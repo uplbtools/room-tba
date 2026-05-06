@@ -80,8 +80,8 @@
   {#if queryStore.inputValue === ""}
     {#if queryStore.recentSearches.length !== 0}
       <h2 class="suggestions-header">Recent searches</h2>
-      {#each queryStore.recentSearches as { category, value }}
-        <Suggestion {value} {category} />
+      {#each queryStore.recentSearches as { category, value }, id (id)}
+        <Suggestion {value} {category} {id} />
       {/each}
     {:else}
       <h2 class="suggestions-header">Trending searches</h2>
@@ -100,7 +100,7 @@
       />
     {/if}
   {:else if suggestedResult.length !== 0}
-    {#each suggestedResult as suggestion}
+    {#each suggestedResult as suggestion, id (id)}
       <Suggestion {...suggestion} />
     {/each}
   {:else if suggestedResult.length === 0}
