@@ -7,13 +7,16 @@
     GraduationCap,
     School,
     University,
+    X,
   } from "@lucide/svelte";
   let {
     value,
     category,
+    id,
   }: {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
+    id?: number;
   } = $props();
 
   const pattern = $derived(
@@ -54,7 +57,18 @@
 <button class="suggestion" onclick={handleSuggestionClick}>
   {@render icon(category)}
   <div class="text">{@html highlightSearch(value, pattern)}</div>
-  <ArrowUpRight size={20} style={"margin-left:auto"} class="icon" />
+  {#if typeof id !== "undefined"}
+    <X
+      size={20}
+      style={"margin-left:auto"}
+      onclick={(e) => {
+        e.stopImmediatePropagation();
+        queryStore.removeRecentSearch(id);
+      }}
+    ></X>
+  {:else}
+    <ArrowUpRight size={20} style={"margin-left:auto"} class="icon" />
+  {/if}
 </button>
 
 <style>

@@ -84,6 +84,10 @@ class QueryStore {
     this.recentSearches.unshift(recentSearch);
   }
 
+  removeRecentSearch(id: number) {
+    this.recentSearches.splice(id, 1);
+  }
+
   // when clicking the x button
   clearQuery = () => {
     this._queryStore = {
