@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FillExtrusionLayer, MapLibre, Marker } from "svelte-maplibre";
+  import { MapLibre, Marker } from "svelte-maplibre";
   import { getAppData } from "../../lib/context";
   import { queryStore, locationStore, mapStore } from "../../lib/store.svelte";
   import { untrack } from "svelte";
@@ -19,6 +19,219 @@
   let zoomLevel = $state(0);
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
+
+  const BUILDING_LAYER_ID = "building-3d";
+  const BUILDING_SOURCE_ID = "openmaptiles";
+  const BUILDING_SOURCE_LAYER = "building";
+  const BUILDING_DEFAULT_COLOR = "rgba(247, 242, 235, 1)";
+  const HIGHLIGHT_SOURCE_ID = "room-tba-highlighted-buildings";
+  const HIGHLIGHT_LAYER_ID = "room-tba-highlighted-buildings-3d";
+  const BUILDING_HIGHLIGHT_COLOR = "#facc15";
+  const HIGHLIGHT_HEIGHT_OFFSET = 0.5;
+  const HIGHLIGHT_POLYGON_INFLATE = 1.02;
+  let baseLayerCleanupDone = false;
+
+  function ensureBaseLayerClean() {
+    const map = mapStore.mapInstance;
+    if (!map || baseLayerCleanupDone) return;
+    if (!map.getLayer(BUILDING_LAYER_ID)) return;
+
+    map.setPaintProperty(
+      BUILDING_LAYER_ID,
+      "fill-extrusion-color",
+      BUILDING_DEFAULT_COLOR,
+    );
+    map.removeFeatureState({
+      source: BUILDING_SOURCE_ID,
+      sourceLayer: BUILDING_SOURCE_LAYER,
+    });
+    baseLayerCleanupDone = true;
+  }
+
+  type HighlightFeature = GeoJSON.Feature<
+    GeoJSON.Polygon | GeoJSON.MultiPolygon,
+    { render_height: number; render_min_height: number }
+  >;
+
+  const highlightFeatureCache = new Map<string, HighlightFeature>();
+
+  function getFeatureKey(feature: mapGl.MapGeoJSONFeature): string {
+    if (feature.id !== undefined && feature.id !== null) {
+      return `id:${String(feature.id)}`;
+    }
+    return `geom:${JSON.stringify(feature.geometry)}`;
+  }
+
+  function pointInRing(point: [number, number], ring: number[][]): boolean {
+    let inside = false;
+    const [x, y] = point;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const ringI = ring[i];
+      const ringJ = ring[j];
+      if (!ringI || !ringJ) continue;
+      const [xi, yi] = ringI;
+      const [xj, yj] = ringJ;
+      const intersects =
+        yi > y !== yj > y &&
+        x < ((xj - xi) * (y - yi)) / (yj - yi + 1e-12) + xi;
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  }
+
+  function pickPolygonContainingPoint(
+    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon,
+    lng: number,
+    lat: number,
+  ): GeoJSON.Polygon | null {
+    if (geometry.type === "Polygon") {
+      const outer = geometry.coordinates[0];
+      if (outer && pointInRing([lng, lat], outer)) return geometry;
+      return null;
+    }
+    for (const polyCoords of geometry.coordinates) {
+      const outer = polyCoords[0];
+      if (outer && pointInRing([lng, lat], outer)) {
+        return { type: "Polygon", coordinates: polyCoords };
+      }
+    }
+    return null;
+  }
+
+  function inflateRing(ring: number[][], scale: number): number[][] {
+    if (ring.length === 0) return ring;
+    let cx = 0;
+    let cy = 0;
+    for (const [x, y] of ring) {
+      cx += x;
+      cy += y;
+    }
+    cx /= ring.length;
+    cy /= ring.length;
+    return ring.map(([x, y]) => [
+      cx + (x - cx) * scale,
+      cy + (y - cy) * scale,
+    ]);
+  }
+
+  function inflateGeometry(
+    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon,
+    scale = HIGHLIGHT_POLYGON_INFLATE,
+  ): GeoJSON.Polygon | GeoJSON.MultiPolygon {
+    if (geometry.type === "Polygon") {
+      return {
+        type: "Polygon",
+        coordinates: geometry.coordinates.map((ring) =>
+          inflateRing(ring, scale),
+        ),
+      };
+    }
+    return {
+      type: "MultiPolygon",
+      coordinates: geometry.coordinates.map((polygon) =>
+        polygon.map((ring) => inflateRing(ring, scale)),
+      ),
+    };
+  }
+
+  function findBuildingFeatureAt(
+    map: mapGl.MapLibreMap,
+    lng: number,
+    lat: number,
+  ): mapGl.MapGeoJSONFeature | null {
+    const point = map.project([lng, lat]);
+    const exact = map.queryRenderedFeatures(point, {
+      layers: [BUILDING_LAYER_ID],
+    });
+    return (exact[0] as mapGl.MapGeoJSONFeature | undefined) ?? null;
+  }
+
+  function highlightDatasetBuildings() {
+    const map = mapStore.mapInstance;
+    if (!map || !map.isStyleLoaded() || map.getZoom() < 14) return;
+
+    ensureBaseLayerClean();
+
+    let cacheChanged = false;
+
+    for (const building of buildings) {
+      if (building.lat === null || building.lon === null) continue;
+
+      const feature = findBuildingFeatureAt(map, building.lon, building.lat);
+      if (!feature) continue;
+      if (
+        feature.geometry.type !== "Polygon" &&
+        feature.geometry.type !== "MultiPolygon"
+      ) {
+        continue;
+      }
+
+      const matchedPolygon = pickPolygonContainingPoint(
+        feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
+        building.lon,
+        building.lat,
+      );
+      if (!matchedPolygon) continue;
+
+      const key = `${getFeatureKey(feature)}|${building.lon.toFixed(6)},${building.lat.toFixed(6)}`;
+      if (highlightFeatureCache.has(key)) continue;
+
+      const inflated = inflateGeometry(matchedPolygon);
+
+      highlightFeatureCache.set(key, {
+        type: "Feature",
+        geometry: inflated,
+        properties: {
+          render_height:
+            (feature.properties?.render_height ?? 12) + HIGHLIGHT_HEIGHT_OFFSET,
+          render_min_height: Math.max(
+            (feature.properties?.render_min_height ?? 0) -
+              HIGHLIGHT_HEIGHT_OFFSET,
+            0,
+          ),
+        },
+      });
+      cacheChanged = true;
+    }
+
+    if (!cacheChanged && map.getSource(HIGHLIGHT_SOURCE_ID)) return;
+
+    const featureCollection: GeoJSON.FeatureCollection<
+      GeoJSON.Polygon | GeoJSON.MultiPolygon
+    > = {
+      type: "FeatureCollection",
+      features: Array.from(highlightFeatureCache.values()),
+    };
+
+    const existingSource = map.getSource(HIGHLIGHT_SOURCE_ID) as
+      | mapGl.GeoJSONSource
+      | undefined;
+
+    if (existingSource) {
+      existingSource.setData(featureCollection);
+    } else {
+      map.addSource(HIGHLIGHT_SOURCE_ID, {
+        type: "geojson",
+        data: featureCollection,
+      });
+    }
+
+    if (!map.getLayer(HIGHLIGHT_LAYER_ID)) {
+      map.addLayer({
+        id: HIGHLIGHT_LAYER_ID,
+        type: "fill-extrusion",
+        source: HIGHLIGHT_SOURCE_ID,
+        paint: {
+          "fill-extrusion-color": BUILDING_HIGHLIGHT_COLOR,
+          "fill-extrusion-height": ["get", "render_height"],
+          "fill-extrusion-base": ["get", "render_min_height"],
+          "fill-extrusion-opacity": 0.95,
+        },
+      });
+    }
+  }
+
+
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
@@ -105,6 +318,37 @@
         mapStore.mapInstance.once("load", initDirections);
       }
     }
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+
+    highlightFeatureCache.clear();
+    baseLayerCleanupDone = false;
+
+    if (map.getLayer(HIGHLIGHT_LAYER_ID)) {
+      map.removeLayer(HIGHLIGHT_LAYER_ID);
+    }
+    if (map.getSource(HIGHLIGHT_SOURCE_ID)) {
+      map.removeSource(HIGHLIGHT_SOURCE_ID);
+    }
+
+    const refresh = () => {
+      highlightDatasetBuildings();
+    };
+
+    if (map.isStyleLoaded()) {
+      refresh();
+    } else {
+      map.once("load", refresh);
+    }
+
+    map.on("idle", refresh);
+
+    return () => {
+      map.off("idle", refresh);
+    };
   });
 
   $effect(() => {
@@ -235,16 +479,6 @@
     minZoom={13}
     class="map"
   >
-    <FillExtrusionLayer
-      sourceLayer="building"
-      paint={{
-        "fill-extrusion-color": "#aaa",
-        "fill-extrusion-height": ["get", "render_height"],
-        "fill-extrusion-base": ["get", "render_min_height"],
-        "fill-extrusion-opacity": 0.6,
-      }}
-      filter={["==", "extrude", "true"]}
-    />
     {#if locationStore.coords}
       <Marker lngLat={locationStore.coords}>
         <div class="user-location-pin"></div>
