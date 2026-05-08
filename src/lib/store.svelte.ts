@@ -248,8 +248,31 @@ class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw()
 }
 
+class JeepneyStore {
+  selectedRouteId: string | null = $state(null);
+  menuOpen: boolean = $state(false);
+
+  toggleMenu = () => {
+    this.menuOpen = !this.menuOpen;
+  };
+
+  closeMenu = () => {
+    this.menuOpen = false;
+  };
+
+  selectRoute = (id: string) => {
+    this.selectedRouteId = this.selectedRouteId === id ? null : id;
+    this.menuOpen = false;
+  };
+
+  clearRoute = () => {
+    this.selectedRouteId = null;
+  };
+}
+
 export const queryStore = new QueryStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
+export const jeepneyStore = new JeepneyStore();

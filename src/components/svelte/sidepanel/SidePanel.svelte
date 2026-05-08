@@ -7,12 +7,16 @@
   import RoomResult from "../room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
   import LocationButton from "../LocationButton.svelte";
+  import JeepneyMenu from "../JeepneyMenu.svelte";
 </script>
 
 <div class="side-panel-wrapper">
   <Search />
   <div class="side-panel-controls">
-    <LocationButton />
+    <div class="floating-actions">
+      <JeepneyMenu />
+      <LocationButton />
+    </div>
     {#if queryStore.category !== null}
       <div class="side-panel-content">
         {#if queryStore.category === "building"}
@@ -64,6 +68,13 @@
     flex-direction: row-reverse;
     justify-content: space-between;
     gap: 1rem;
+  }
+  .floating-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    pointer-events: none;
   }
 
   /* Mobile responsiveness for side panel */
