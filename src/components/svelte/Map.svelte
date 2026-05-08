@@ -1,15 +1,144 @@
 <script lang="ts">
   import { MapLibre, Marker } from "svelte-maplibre";
   import { getAppData } from "../../lib/context";
-  import { queryStore, locationStore, mapStore } from "../../lib/store.svelte";
+  import {
+    queryStore,
+    locationStore,
+    mapStore,
+    jeepneyStore,
+  } from "../../lib/store.svelte";
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import { University } from "@lucide/svelte";
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
+  import {
+    JEEPNEY_ROUTES,
+    type JeepneyRoute,
+    type JeepneyStop,
+  } from "../../constants/jeepney-routes";
   const { buildings, rooms } = getAppData();
   let directions: MapLibreGlDirections | undefined = $state.raw();
+
+  const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
+  const JEEPNEY_ROUTE_LAYER_ID = "jeepney-route-line";
+  const JEEPNEY_ROUTE_LAYER_CASING_ID = "jeepney-route-line-casing";
+
+  let activeRouteId = $state<string | null>(null);
+  let activeRouteStops = $state<JeepneyStop[]>([]);
+  let activeRouteColor = $state<string>("#dc2626");
+
+  async function fetchRouteGeometry(
+    route: JeepneyRoute,
+  ): Promise<GeoJSON.LineString | null> {
+    if (route.stops.length < 2) return null;
+    const coordsParam = route.stops
+      .map((stop) => `${stop.lon},${stop.lat}`)
+      .join(";");
+    const url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = (await res.json()) as {
+        routes?: { geometry?: GeoJSON.LineString }[];
+      };
+      const geometry = data.routes?.[0]?.geometry;
+      if (!geometry || geometry.type !== "LineString") return null;
+      return geometry;
+    } catch {
+      return null;
+    }
+  }
+
+  function buildStraightLineGeometry(
+    route: JeepneyRoute,
+  ): GeoJSON.LineString {
+    return {
+      type: "LineString",
+      coordinates: route.stops.map((stop) => [stop.lon, stop.lat]),
+    };
+  }
+
+  function ensureJeepneyRouteLayers(map: mapGl.MapLibreMap, color: string) {
+    if (!map.getSource(JEEPNEY_ROUTE_SOURCE_ID)) {
+      map.addSource(JEEPNEY_ROUTE_SOURCE_ID, {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
+      });
+    }
+
+    if (!map.getLayer(JEEPNEY_ROUTE_LAYER_CASING_ID)) {
+      map.addLayer({
+        id: JEEPNEY_ROUTE_LAYER_CASING_ID,
+        type: "line",
+        source: JEEPNEY_ROUTE_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 8,
+          "line-opacity": 0.95,
+        },
+      });
+    }
+
+    if (!map.getLayer(JEEPNEY_ROUTE_LAYER_ID)) {
+      map.addLayer({
+        id: JEEPNEY_ROUTE_LAYER_ID,
+        type: "line",
+        source: JEEPNEY_ROUTE_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": color,
+          "line-width": 5,
+          "line-opacity": 0.95,
+        },
+      });
+    } else {
+      map.setPaintProperty(JEEPNEY_ROUTE_LAYER_ID, "line-color", color);
+    }
+  }
+
+  function clearJeepneyRouteLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(JEEPNEY_ROUTE_LAYER_ID)) {
+      map.removeLayer(JEEPNEY_ROUTE_LAYER_ID);
+    }
+    if (map.getLayer(JEEPNEY_ROUTE_LAYER_CASING_ID)) {
+      map.removeLayer(JEEPNEY_ROUTE_LAYER_CASING_ID);
+    }
+    if (map.getSource(JEEPNEY_ROUTE_SOURCE_ID)) {
+      map.removeSource(JEEPNEY_ROUTE_SOURCE_ID);
+    }
+  }
+
+  function fitMapToRoute(map: mapGl.MapLibreMap, route: JeepneyRoute) {
+    if (route.stops.length === 0) return;
+    let minLng = Infinity;
+    let minLat = Infinity;
+    let maxLng = -Infinity;
+    let maxLat = -Infinity;
+    for (const stop of route.stops) {
+      if (stop.lon < minLng) minLng = stop.lon;
+      if (stop.lon > maxLng) maxLng = stop.lon;
+      if (stop.lat < minLat) minLat = stop.lat;
+      if (stop.lat > maxLat) maxLat = stop.lat;
+    }
+    map.fitBounds(
+      [
+        [minLng, minLat],
+        [maxLng, maxLat],
+      ],
+      {
+        padding: { top: 80, bottom: 80, left: 80, right: 80 },
+        duration: 1200,
+        pitch: 30,
+      },
+    );
+  }
 
   let animationFrameId: number | null = $state(null);
 
@@ -365,6 +494,73 @@
   });
 
   $effect(() => {
+    const selectedId = jeepneyStore.selectedRouteId;
+    const map = mapStore.mapInstance;
+    if (!map) return;
+
+    let cancelled = false;
+
+    const apply = async () => {
+      const route = selectedId
+        ? (JEEPNEY_ROUTES.find((r) => r.id === selectedId) ?? null)
+        : null;
+
+      if (!route) {
+        clearJeepneyRouteLayers(map);
+        activeRouteId = null;
+        activeRouteStops = [];
+        return;
+      }
+
+      activeRouteId = route.id;
+      activeRouteStops = route.stops;
+      activeRouteColor = route.color;
+
+      const ensureLayersAndPaint = (geometry: GeoJSON.LineString) => {
+        if (cancelled) return;
+        ensureJeepneyRouteLayers(map, route.color);
+        const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
+          | mapGl.GeoJSONSource
+          | undefined;
+        const featureCollection: GeoJSON.FeatureCollection<GeoJSON.LineString> =
+          {
+            type: "FeatureCollection",
+            features: [
+              {
+                type: "Feature",
+                geometry,
+                properties: { routeId: route.id },
+              },
+            ],
+          };
+        source?.setData(featureCollection);
+      };
+
+      const drawWhenReady = (action: () => void) => {
+        if (map.isStyleLoaded()) action();
+        else map.once("load", action);
+      };
+
+      drawWhenReady(() => {
+        ensureJeepneyRouteLayers(map, route.color);
+        ensureLayersAndPaint(buildStraightLineGeometry(route));
+        fitMapToRoute(map, route);
+      });
+
+      const snapped = await fetchRouteGeometry(route);
+      if (!cancelled && snapped) {
+        drawWhenReady(() => ensureLayersAndPaint(snapped));
+      }
+    };
+
+    apply();
+
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  $effect(() => {
     const category = queryStore.category;
     const type = queryStore.type;
     const value = queryStore.inputValue;
@@ -508,6 +704,20 @@
         </Marker>
       {/if}
     {/each}
+    {#if activeRouteId}
+      {#each activeRouteStops as stop, i (`${activeRouteId}-${i}-${stop.name}`)}
+        <Marker lngLat={[stop.lon, stop.lat]}>
+          <div
+            class="jeepney-stop-pin"
+            style:--stop-color={activeRouteColor}
+            title={stop.name}
+          >
+            <span class="stop-index">{i + 1}</span>
+            <span class="stop-label" transition:fade>{stop.name}</span>
+          </div>
+        </Marker>
+      {/each}
+    {/if}
   </MapLibre>
 </div>
 
@@ -614,5 +824,48 @@
     .pin-label {
       opacity: 1;
     }
+  }
+
+  .jeepney-stop-pin {
+    --stop-color: #dc2626;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    background-color: var(--stop-color);
+    border: 2px solid white;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+    cursor: default;
+    position: relative;
+    z-index: 50;
+  }
+  .jeepney-stop-pin .stop-index {
+    pointer-events: none;
+  }
+  .jeepney-stop-pin .stop-label {
+    position: absolute;
+    bottom: calc(100% + 0.4rem);
+    left: 50%;
+    translate: -50% 0;
+    background-color: white;
+    color: hsl(0, 0%, 15%);
+    border-radius: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+  }
+  .jeepney-stop-pin:hover .stop-label {
+    opacity: 1;
   }
 </style>
