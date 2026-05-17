@@ -1,0 +1,149 @@
+---
+import AppProvider from "../svelte/AppProvider.svelte";
+import Layout from "../../layouts/Layout.astro";
+import type { AppPageData, InitialSearchState } from "../../lib/app-data";
+
+type Breadcrumb = {
+  href: string;
+  label: string;
+};
+
+type Props = {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  heading: string;
+  intro: string;
+  facts?: string[];
+  breadcrumbs: Breadcrumb[];
+  structuredData?: Record<string, unknown>[];
+  appProps: AppPageData;
+  initialSearch: InitialSearchState;
+};
+
+const {
+  title,
+  description,
+  canonicalPath,
+  heading,
+  intro,
+  facts = [],
+  breadcrumbs,
+  structuredData = [],
+  appProps,
+  initialSearch,
+}: Props = Astro.props;
+---
+
+<Layout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  structuredData={structuredData}
+>
+  <main class="entity-page">
+    <article class="entity-page__content">
+      <nav aria-label="Breadcrumb" class="breadcrumbs">
+        <ol>
+          {
+            breadcrumbs.map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+      <h1>{heading}</h1>
+      <p class="entity-page__intro">{intro}</p>
+      {
+        facts.length > 0 && (
+          <ul class="entity-page__facts">
+            {facts.map((fact) => (
+              <li>{fact}</li>
+            ))}
+          </ul>
+        )
+      }
+    </article>
+    <div class="entity-page__app">
+      <AppProvider
+        {...appProps}
+        initialSearch={initialSearch}
+        suppressLandingModal={true}
+        client:load
+      />
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .entity-page {
+    min-height: 100dvh;
+    background: linear-gradient(180deg, #faf6f4 0%, #ffffff 22rem);
+  }
+
+  .entity-page__content {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1rem 1rem 0.75rem;
+    color: #1f1f1f;
+  }
+
+  .breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0 0 0.75rem;
+    list-style: none;
+    font-size: 0.875rem;
+  }
+
+  .breadcrumbs li:not(:last-child)::after {
+    content: "/";
+    margin-left: 0.5rem;
+    color: #727272;
+  }
+
+  .breadcrumbs a {
+    color: #7b1113;
+    text-decoration: none;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 1.1;
+  }
+
+  .entity-page__intro {
+    margin: 0.75rem 0 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 56rem;
+  }
+
+  .entity-page__facts {
+    margin: 1rem 0 0;
+    padding-left: 1.25rem;
+    display: grid;
+    gap: 0.4rem;
+    max-width: 56rem;
+  }
+
+  .entity-page__app {
+    position: relative;
+    height: min(70rem, 100dvh - 12rem);
+  }
+
+  @media (max-width: 48rem) {
+    .entity-page__content {
+      padding-inline: 0.75rem;
+    }
+
+    .entity-page__app {
+      height: calc(100dvh - 11rem);
+    }
+  }
+</style>

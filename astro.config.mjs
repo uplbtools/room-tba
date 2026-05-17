@@ -5,6 +5,7 @@ import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 // https://astro.build/config
 export default defineConfig({
+  site: "https://room-tba.stimmie.dev",
   integrations: [
     react(),
     svelte(),
@@ -30,7 +31,7 @@ export default defineConfig({
             type: "image/png",
           },
         ],
-        display_override: ["standalone"]
+        display_override: ["standalone"],
       },
     }),
   ],

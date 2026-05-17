@@ -1,0 +1,83 @@
+---
+import EntityPage from "../../components/seo/EntityPage.astro";
+import { getRoomRouteSlug, loadAppData } from "../../lib/app-data";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+} from "../../lib/site";
+
+export async function getStaticPaths() {
+  const { rooms } = await loadAppData();
+
+  return rooms.map((room) => ({
+    params: { slug: getRoomRouteSlug(room, rooms) },
+    props: { roomId: room.id },
+  }));
+}
+
+const { roomId } = Astro.props;
+const appData = await loadAppData();
+const room = appData.rooms.find((item) => item.id === roomId);
+
+if (!room) {
+  throw new Error(`Room not found for slug: ${roomId}`);
+}
+
+const roomClasses = appData.classesMap.get(room.code) ?? [];
+const canonicalPath = `/room/${getRoomRouteSlug(room, appData.rooms)}/`;
+const title = `${room.code} | Room at UPLB | Room TBA`;
+const description = room.building?.name
+  ? `Find ${room.code} at UPLB. View its building, directions, and listed classes in ${room.building.name} on Room TBA.`
+  : `Find ${room.code} at UPLB with Room TBA. View room details and listed classes.`;
+const intro = room.building?.name
+  ? `${room.code} is listed under ${room.building.name} in Room TBA. Open this page to jump straight into the room result view with building context, directions, and class listings.`
+  : `${room.code} is listed in Room TBA. Open this page to jump straight into the room result view and browse its class listings.`;
+
+const facts = [
+  room.building?.name ? `Building: ${room.building.name}` : null,
+  room.collegeName ? `College: ${room.collegeName}` : null,
+  room.divisionName ? `Division: ${room.divisionName}` : null,
+  `${roomClasses.length} class${roomClasses.length === 1 ? "" : "es"} currently listed for this room`,
+].filter((fact): fact is string => Boolean(fact));
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Rooms", path: "/room/" },
+    { name: room.code, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: room.code,
+    description,
+    url: absoluteUrl(canonicalPath),
+    containedInPlace: room.building?.name
+      ? {
+          "@type": "Place",
+          name: room.building.name,
+        }
+      : undefined,
+  },
+);
+---
+
+<EntityPage
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${room.code} at UPLB`}
+  {intro}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/room/", label: "Rooms" },
+    { href: canonicalPath, label: room.code },
+  ]}
+  structuredData={structuredData}
+  appProps={appData}
+  initialSearch={{ category: "room", value: room.code }}
+/>

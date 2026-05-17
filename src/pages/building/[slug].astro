@@ -1,0 +1,83 @@
+---
+import EntityPage from "../../components/seo/EntityPage.astro";
+import { getBuildingSlug, loadAppData } from "../../lib/app-data";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+} from "../../lib/site";
+
+export async function getStaticPaths() {
+  const { buildings } = await loadAppData();
+
+  return buildings.map((building) => ({
+    params: { slug: getBuildingSlug(building) },
+    props: { buildingName: building.building_name },
+  }));
+}
+
+const { buildingName } = Astro.props;
+const appData = await loadAppData();
+const building = appData.buildings.find(
+  (item) => item.building_name === buildingName,
+);
+
+if (!building) {
+  throw new Error(`Building not found for slug: ${buildingName}`);
+}
+
+const buildingRooms = appData.rooms.filter(
+  (room) => room.building?.name === building.building_name,
+);
+const canonicalPath = `/building/${getBuildingSlug(building)}/`;
+const title = `${building.building_name} | Building at UPLB | Room TBA`;
+const description = `Find rooms in ${building.building_name} at UPLB. Open the building view on Room TBA for room listings, map context, and directions.`;
+const intro = `${building.building_name} has ${buildingRooms.length} room${buildingRooms.length === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the building result view and browse the mapped rooms.`;
+
+const facts = [
+  `${buildingRooms.length} room${buildingRooms.length === 1 ? "" : "s"} listed in this building`,
+  building.directions ? `Directions available for this building` : null,
+].filter((fact): fact is string => Boolean(fact));
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Buildings", path: "/building/" },
+    { name: building.building_name, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: building.building_name,
+    description: building.directions ?? description,
+    url: absoluteUrl(canonicalPath),
+    geo:
+      building.lat !== null && building.lon !== null
+        ? {
+            "@type": "GeoCoordinates",
+            latitude: building.lat,
+            longitude: building.lon,
+          }
+        : undefined,
+  },
+);
+---
+
+<EntityPage
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${building.building_name} at UPLB`}
+  {intro}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/building/", label: "Buildings" },
+    { href: canonicalPath, label: building.building_name },
+  ]}
+  structuredData={structuredData}
+  appProps={appData}
+  initialSearch={{ category: "building", value: building.building_name }}
+/>
