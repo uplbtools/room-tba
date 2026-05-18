@@ -1,0 +1,78 @@
+---
+import EntityPage from "../../components/seo/EntityPage.astro";
+import { getDivisionSlug, loadAppData } from "../../lib/app-data";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+} from "../../lib/site";
+
+export async function getStaticPaths() {
+  const { divisions } = await loadAppData();
+
+  return divisions.map((division) => ({
+    params: { slug: getDivisionSlug(division) },
+    props: { divisionName: division.division_name },
+  }));
+}
+
+const { divisionName } = Astro.props;
+const appData = await loadAppData();
+const division = appData.divisions.find(
+  (item) => item.division_name === divisionName,
+);
+
+if (!division) {
+  throw new Error(`Division not found for slug: ${divisionName}`);
+}
+
+const divisionRooms = appData.rooms.filter(
+  (room) => room.divisionName === division.division_name,
+);
+const canonicalPath = `/division/${getDivisionSlug(division)}/`;
+const title = `${division.division_name} | Division at UPLB | Room TBA`;
+const description = `Find rooms associated with ${division.division_name} at UPLB. Open the division view on Room TBA to browse linked rooms.`;
+const intro = `${division.division_name} currently has ${divisionRooms.length} room${divisionRooms.length === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the division result view.`;
+
+const facts = [
+  `${divisionRooms.length} room${divisionRooms.length === 1 ? "" : "s"} linked to this division`,
+];
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Divisions", path: "/division/" },
+    { name: division.division_name, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    name: division.division_name,
+    description,
+    url: absoluteUrl(canonicalPath),
+    parentOrganization: {
+      "@type": "CollegeOrUniversity",
+      name: "University of the Philippines Los Banos",
+    },
+  },
+);
+---
+
+<EntityPage
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${division.division_name} at UPLB`}
+  {intro}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/division/", label: "Divisions" },
+    { href: canonicalPath, label: division.division_name },
+  ]}
+  structuredData={structuredData}
+  appProps={appData}
+  initialSearch={{ category: "division", value: division.division_name }}
+/>
