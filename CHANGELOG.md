@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/smmariquit/room-tba/compare/v1.7.0...v1.7.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* **seo:** prevent static pages from being cached to prevent large PWA load ([9829b9d](https://github.com/smmariquit/room-tba/commit/9829b9dd1ea67b79c3e9af395eb62815fd74e1c4))
+
 # [1.7.0](https://github.com/smmariquit/room-tba/compare/v1.6.0...v1.7.0) (2026-05-18)
 
 
