@@ -5,6 +5,7 @@
     BookText,
     DoorClosed,
     GraduationCap,
+    Home,
     School,
     University,
     X,
@@ -50,6 +51,8 @@
       <DoorClosed size={20} />
     {:else if type === "class"}
       <BookText size={20} />
+    {:else if type === "dorm"}
+      <Home size={20} />
     {/if}
   </span>
 {/snippet}
