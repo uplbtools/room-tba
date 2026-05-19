@@ -74,6 +74,24 @@ type DivisionData = {
   division_name: string;
 };
 
+type DormData = {
+  id: number;
+  dorm_name: string;
+  short_name: string | null;
+  lat: number | null;
+  lon: number | null;
+  gender: string;
+  capacity: number | null;
+  managing_office: string | null;
+  contact_email: string | null;
+  amenities: string | null;
+  osm_link: string | null;
+  description: string | null;
+  is_up_managed: boolean;
+  price_range: string | null;
+  contact_phone: string | null;
+};
+
 interface ContributorInfo {
   name: string;
   href?: string;

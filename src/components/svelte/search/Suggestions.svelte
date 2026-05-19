@@ -4,7 +4,7 @@
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
-  const { buildings, colleges, divisions, rooms } = getAppData();
+  const { buildings, colleges, divisions, rooms, dorms } = getAppData();
 
   const suggestedResult = $derived<
     { value: string; category: Exclude<QueryStoreState["category"], null> }[]
@@ -40,6 +40,16 @@
         .map(({ division_name }) => ({
           value: division_name,
           category: "division",
+        })),
+      dorms: dorms
+        .filter(
+          ({ dorm_name, short_name }) =>
+            dorm_name.toLowerCase().includes(searchString) ||
+            (short_name && short_name.toLowerCase().includes(searchString)),
+        )
+        .map(({ dorm_name }) => ({
+          value: dorm_name,
+          category: "dorm",
         })),
     } satisfies {
       [key: string]: {
