@@ -4,6 +4,7 @@
   import BuildingResult from "./BuildingResult.svelte";
   import CollegeResult from "./CollegeResult.svelte";
   import DivisionResult from "./DivisionResult.svelte";
+  import DormResult from "./DormResult.svelte";
   import RoomResult from "../room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
   import LocationButton from "../LocationButton.svelte";
@@ -29,6 +30,8 @@
           <RoomResult />
         {:else if queryStore.category === "class"}
           <ClassQuery />
+        {:else if queryStore.category === "dorm"}
+          <DormResult />
         {/if}
       </div>
     {/if}

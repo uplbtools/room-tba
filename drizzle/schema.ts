@@ -8,6 +8,25 @@ export const buildingsTable = sqliteTable("buildings", (s) => ({
   directions: s.text("directions"),
 }));
 
+export const dormsTable = sqliteTable("dorms", (s) => ({
+  id: s.integer("id").primaryKey({ autoIncrement: true }),
+  dorm_name: s.text("dorm_name").notNull(),
+  short_name: s.text("short_name"),
+  lat: s.real("lat"),
+  lon: s.real("lon"),
+  gender: s.text("gender").notNull(), // "male" | "female" | "coed"
+  capacity: s.integer("capacity"),
+  managing_office: s.text("managing_office"),
+  contact_email: s.text("contact_email"),
+  amenities: s.text("amenities"), // JSON stringified array
+  osm_link: s.text("osm_link"),
+  description: s.text("description"),
+  is_up_managed: s.integer("is_up_managed", { mode: "boolean" }).notNull().default(true),
+  price_range: s.text("price_range"), // e.g. "₱2,500-₱4,000/mo" (to be verified by user)
+  contact_phone: s.text("contact_phone"),
+  facebook_link: s.text("facebook_link"),
+}));
+
 export const collegesTable = sqliteTable("colleges", (s) => ({
   id: s.integer("id").primaryKey({ autoIncrement: true }),
   college_name: s.text("college_name").notNull(),
