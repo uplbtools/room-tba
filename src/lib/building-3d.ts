@@ -1,6 +1,6 @@
 import type { LngLat, OsmBuildingFootprint } from "./overpass";
 
-export type LocalPolygon = {
+export type LocalPolygonData = {
   /** Polygon vertices in local meters (x = east, y = north), centered at origin. */
   points: { x: number; y: number }[];
   /** Width along x (east-west), meters. */
@@ -29,6 +29,18 @@ export type RoomPlacement = {
 
 const METERS_PER_DEGREE_LAT = 111_320;
 
+function getCentroid(cycle: LngLat[]): [number, number] {
+  let centroidX = 0,
+    centroidY = 0;
+  for (const [lon, lat] of cycle) {
+    centroidX += lon;
+    centroidY += lat;
+  }
+  centroidX /= cycle.length;
+  centroidY /= cycle.length;
+  return [centroidX, centroidY];
+}
+
 /**
  * Project an OSM polygon (lng, lat) into local meters centered at the polygon's
  * centroid. Uses an equirectangular projection scaled to `cos(centroidLat)` for
@@ -36,18 +48,12 @@ const METERS_PER_DEGREE_LAT = 111_320;
  */
 export function footprintToLocalPolygon(
   footprint: OsmBuildingFootprint,
-): LocalPolygon {
-  const ring = footprint.outline;
-  let cx = 0;
-  let cy = 0;
-  for (const [lon, lat] of ring) {
-    cx += lon;
-    cy += lat;
-  }
-  cx /= ring.length;
-  cy /= ring.length;
+): LocalPolygonData {
+  const cycle = footprint.outline;
+  let [centroidX, centroidY] = getCentroid(cycle);
 
-  const lonScale = Math.cos((cy * Math.PI) / 180) * METERS_PER_DEGREE_LAT;
+  const lonScale =
+    Math.cos((centroidY * Math.PI) / 180) * METERS_PER_DEGREE_LAT;
   const latScale = METERS_PER_DEGREE_LAT;
 
   const points: { x: number; y: number }[] = [];
@@ -56,44 +62,47 @@ export function footprintToLocalPolygon(
   let minY = Infinity;
   let maxY = -Infinity;
 
-  for (let i = 0; i < ring.length; i++) {
-    const cur = ring[i] as LngLat;
-    const next = ring[(i + 1) % ring.length] as LngLat;
-    if (i === ring.length - 1 && cur[0] === ring[0]?.[0] && cur[1] === ring[0]?.[1]) {
+  for (let i = 0; i < cycle.length; i++) {
+    const [lon, lat] = cycle[i] as LngLat;
+    const next = cycle[(i + 1) % cycle.length] as LngLat;
+    if (
+      i === cycle.length - 1 &&
+      lon === cycle[0]?.[0] &&
+      lat === cycle[0]?.[1]
+    ) {
       continue;
     }
-    const x = (cur[0] - cx) * lonScale;
-    const y = (cur[1] - cy) * latScale;
+    const x = (lon - centroidX) * lonScale;
+    const y = (lat - centroidY) * latScale;
     points.push({ x, y });
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
     if (y > maxY) maxY = y;
-    if (next === cur) break;
+    if (next === cycle[i]) break;
   }
 
   return {
     points,
     widthMeters: maxX - minX,
     depthMeters: maxY - minY,
-    centerLat: cy,
-    centerLon: cx,
+    centerLat: centroidY,
+    centerLon: centroidX,
   };
 }
 
 function pointInPolygonLocal(
   point: { x: number; y: number },
-  ring: { x: number; y: number }[],
+  cycle: { x: number; y: number }[],
 ): boolean {
   let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const a = ring[i];
-    const b = ring[j];
+  for (let i = 0, j = cycle.length - 1; i < cycle.length; j = i++) {
+    const a = cycle[i];
+    const b = cycle[j];
     if (!a || !b) continue;
     const intersects =
       a.y > point.y !== b.y > point.y &&
-      point.x <
-        ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y + 1e-12) + a.x;
+      point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y + 1e-12) + a.x;
     if (intersects) inside = !inside;
   }
   return inside;
@@ -124,8 +133,8 @@ function seededRng(seed: string): () => number {
  *   "Math 101" -> 1
  *   "Lab"      -> null
  */
-function inferFloorFromCode(code: string): number | null {
-  const match = code.match(/(\d{2,4})/);
+function inferFloorFromCode(roomCode: string): number | null {
+  const match = roomCode.match(/(\d{2,4})/);
   if (!match) return null;
   const head = match[1]?.[0];
   if (!head) return null;
@@ -143,9 +152,9 @@ function inferFloorFromCode(code: string): number | null {
  * placement. The override is matched by room code; floor/x/y come straight
  * from the saved record.
  */
-export function placeRooms(
+export function mockPlaceRooms(
   codes: string[],
-  polygon: LocalPolygon,
+  polygon: LocalPolygonData,
   floorCount: number,
   overrides?: Map<string, { floor: number; x: number; y: number }>,
 ): RoomPlacement[] {
@@ -227,10 +236,10 @@ export function placeRooms(
       }
       // Fallback to centroid if sampling failed.
       if (!placed) {
-        const cx = polygon.points.reduce((s, p) => s + p.x, 0) /
-          polygon.points.length;
-        const cy = polygon.points.reduce((s, p) => s + p.y, 0) /
-          polygon.points.length;
+        const cx =
+          polygon.points.reduce((s, p) => s + p.x, 0) / polygon.points.length;
+        const cy =
+          polygon.points.reduce((s, p) => s + p.y, 0) / polygon.points.length;
         placed = { x: cx, y: cy };
       }
       placements.push({ code, floor: f, x: placed.x, y: placed.y });

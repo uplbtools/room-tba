@@ -9,6 +9,9 @@
  * contributors + MapTiler).
  */
 
+/**
+ *
+ API key */
 const MAPTILER_KEY = "B6m4DQknxd9wZ70DnDV4";
 const TILE_URL = (z: number, x: number, y: number) =>
   `https://api.maptiler.com/maps/streets-v2/256/${z}/${x}/${y}.png?key=${MAPTILER_KEY}`;
@@ -90,12 +93,7 @@ export async function fetchBasemap(opts: {
 
   // Sanity guard — at z=18 even 200 m of radius should fit in <= 4 tiles.
   if (cols * rows > 64) {
-    console.warn(
-      "Basemap requested too many tiles; skipping",
-      cols,
-      "x",
-      rows,
-    );
+    console.warn("Basemap requested too many tiles; skipping", cols, "x", rows);
     return null;
   }
 
