@@ -1,4 +1,5 @@
 import Database from "bun:sqlite";
+import { sql, SQL } from "bun";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import {
   buildingsTable,
@@ -6,17 +7,43 @@ import {
   collegesTable,
   divisionsTable,
   roomsTable,
+  roomPositionsTable,
 } from "../drizzle/schema";
 import { getTableColumns, eq } from "drizzle-orm";
-const client = new Database("../data/info.db");
-import appData from "../data/app_data.json";
-const db = drizzle({ client });
+const client = new Database("data/info.db");
 
-console.log(await db.select().from(roomsTable));
-/* 
+const db = drizzle({ client });
+const neonDB = new SQL(`SQL connection string here`);
+
+// const buildings = (await db.select().from(buildingsTable));
+// await neonDB`INSERT INTO buildings ${sql(buildings)}`;
+
+// const colleges = (await db.select().from(collegesTable));
+// await neonDB`INSERT INTO colleges ${sql(colleges)}`;
+
+// const divisions = (await db.select().from(divisionsTable));
+// await neonDB`INSERT INTO divisions ${sql(divisions)}`;
+//
+// const rooms = (await db.select().from(roomsTable));
+// await neonDB`INSERT INTO rooms ${sql(rooms)}`;
+// const classes = (await db.select().from(classesTable)).map(
+//   ({ schedule, ...others }) => ({
+//     schedule: `{${schedule
+//       .split(",")
+//       .map((schedule_item) => `"${schedule_item}"`)
+//       .join(",")}}`,
+//     ...others,
+//   }),
+// );
+// await neonDB`INSERT INTO classes ${sql(classes)}`;
+const room_positions = (await db.select().from(roomPositionsTable)).map(
+  ({ x, y, updated_at, ...others }) => ({ ...others, pos_x: x, pos_y: y, updated_at: new Date(updated_at* 1000).toISOString() }),
+);
+await neonDB`INSERT INTO room_positions ${sql(room_positions)}`;
+/*
 
 ===========================================================
-FOR SEEDING THE DATABASE with buildings, 
+FOR SEEDING THE DATABASE with buildings,
 colleges, and divisions VIA app_data.json
 ===========================================================
 
@@ -41,7 +68,7 @@ await db.insert(divisionsTable).values(
   divisions.map(([division_name]) => ({ division_name })),
 ); */
 
-/* 
+/*
 ===========================================================
 FOR SEEDING THE DATABASE with rooms after other tables
 are seeded
@@ -85,7 +112,7 @@ const rooms = await Promise.all(
 );
 await db.insert(roomsTable).values(rooms); */
 
-/* 
+/*
 ===========================================================
 AFTER SEEDING THE ROOMS TABLE, THE CLASSES TABLE WAS
 SEED
