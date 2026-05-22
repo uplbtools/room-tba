@@ -4,6 +4,7 @@ import type {
   ClassMapValue,
   CollegeData,
   DivisionData,
+  DormData,
   RoomData,
 } from "./types";
 
@@ -12,6 +13,7 @@ type AppData = {
   buildings: BuildingData[];
   colleges: CollegeData[];
   divisions: DivisionData[];
+  dorms: DormData[];
   classesMap: Map<string, ClassMapValue[]>;
   totalRooms: number;
   directionCount: number;

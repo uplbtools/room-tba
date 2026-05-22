@@ -5,6 +5,7 @@ import {
   classesTable,
   collegesTable,
   divisionsTable,
+  dormsTable,
   roomsTable,
 } from "../../drizzle/schema";
 // import Entry from "../components/svelte/Entry.svelte";
@@ -47,6 +48,7 @@ const classes = await db
 const buildings = await db.select().from(buildingsTable);
 const colleges = await db.select().from(collegesTable);
 const divisions = await db.select().from(divisionsTable);
+const dorms = await db.select().from(dormsTable);
 
 const classesDict = new Map<string, (typeof classes)[number][]>();
 classes.forEach((classData) => {
@@ -82,6 +84,7 @@ const [{ count: totalRooms }] = await db
     classesMap={classesDict}
     colleges={colleges}
     divisions={divisions}
+    dorms={dorms}
     rooms={rooms}
     directionCount={directionCount}
     totalRooms={totalRooms}
