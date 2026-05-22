@@ -56,7 +56,7 @@
         bind:this={searchElement}
         class={typing ? "typing" : ""}
         oninput={handleInput}
-        placeholder={"Search room code, building, division..."}
+        placeholder={"Search room, building, dorm, division..."}
       />
       {#if typing}
         <div class="loading-icon">
