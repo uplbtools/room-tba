@@ -798,6 +798,7 @@
         </Marker>
       {/each}
     {/if}
+
     {#each filteredDorms as dorm}
       {#if dorm.lat && dorm.lon}
         <Marker
