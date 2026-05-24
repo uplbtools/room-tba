@@ -1,3 +1,43 @@
+# [1.7.0](https://github.com/smmariquit/room-tba/compare/v1.6.0...v1.7.0) (2026-05-24)
+
+
+### Bug Fixes
+
+* change visibility of suggestions to avoid cluttering half of the map ([d754926](https://github.com/smmariquit/room-tba/commit/d7549266b5dba5cdf3c88813818638f628ba89de))
+* **dorms:** polish UI, add socials/maps, filter, remove 5 dorms ([821954c](https://github.com/smmariquit/room-tba/commit/821954c5db05cf087c375d5d498068a1dc6f0dac))
+* remove waypoints when the map is not pointing to building ([808b25d](https://github.com/smmariquit/room-tba/commit/808b25d5a24b509958187c9247225141a2176bb0))
+* revised logo ([4068c9c](https://github.com/smmariquit/room-tba/commit/4068c9ce69cd3d7483ccb9298d93321a25e1b730))
+
+
+### Features
+
+* add jeepney route menu with mock Kaliwa/Kanan and Forestry routes ([caa6ed3](https://github.com/smmariquit/room-tba/commit/caa6ed3e823b8d17d923807ea6b832cef0f26705))
+* add messenger contact link to status bar ([fa923f3](https://github.com/smmariquit/room-tba/commit/fa923f357dad8f0bfeeeccfd7963b763e50cd972))
+* add messenger redirect ([b14b822](https://github.com/smmariquit/room-tba/commit/b14b8226488d6319bb83b148463e04561532704c))
+* add x button to give users the option to remove the options ([f8db089](https://github.com/smmariquit/room-tba/commit/f8db08920ad5db102c61a884cfec44400aa60a1f))
+* **dorms:** add UPLB dormitory feature with UP-managed and private dorms ([b74b247](https://github.com/smmariquit/room-tba/commit/b74b247c591be7190bf6d634bab91d8ac839044d))
+* **map:** highlight dataset buildings yellow on 3D OSM map ([74d3a07](https://github.com/smmariquit/room-tba/commit/74d3a07a860e4a06cd05c025e8ac848b5ca54f55))
+
+# [1.7.0](https://github.com/smmariquit/room-tba/compare/v1.6.0...v1.7.0) (2026-05-22)
+
+
+### Bug Fixes
+
+* change visibility of suggestions to avoid cluttering half of the map ([d754926](https://github.com/smmariquit/room-tba/commit/d7549266b5dba5cdf3c88813818638f628ba89de))
+* **dorms:** polish UI, add socials/maps, filter, remove 5 dorms ([821954c](https://github.com/smmariquit/room-tba/commit/821954c5db05cf087c375d5d498068a1dc6f0dac))
+* remove waypoints when the map is not pointing to building ([808b25d](https://github.com/smmariquit/room-tba/commit/808b25d5a24b509958187c9247225141a2176bb0))
+* revised logo ([4068c9c](https://github.com/smmariquit/room-tba/commit/4068c9ce69cd3d7483ccb9298d93321a25e1b730))
+
+
+### Features
+
+* add jeepney route menu with mock Kaliwa/Kanan and Forestry routes ([caa6ed3](https://github.com/smmariquit/room-tba/commit/caa6ed3e823b8d17d923807ea6b832cef0f26705))
+* add messenger contact link to status bar ([fa923f3](https://github.com/smmariquit/room-tba/commit/fa923f357dad8f0bfeeeccfd7963b763e50cd972))
+* add messenger redirect ([b14b822](https://github.com/smmariquit/room-tba/commit/b14b8226488d6319bb83b148463e04561532704c))
+* add x button to give users the option to remove the options ([f8db089](https://github.com/smmariquit/room-tba/commit/f8db08920ad5db102c61a884cfec44400aa60a1f))
+* **dorms:** add UPLB dormitory feature with UP-managed and private dorms ([b74b247](https://github.com/smmariquit/room-tba/commit/b74b247c591be7190bf6d634bab91d8ac839044d))
+* **map:** highlight dataset buildings yellow on 3D OSM map ([74d3a07](https://github.com/smmariquit/room-tba/commit/74d3a07a860e4a06cd05c025e8ac848b5ca54f55))
+
 # [1.7.0](https://github.com/smmariquit/room-tba/compare/v1.6.0...v1.7.0) (2026-05-19)
 
 
