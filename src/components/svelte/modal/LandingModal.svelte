@@ -15,7 +15,12 @@
 <div class="landing-content">
   <div class="hero-image">
     <div class="hero-overlay">
-      <h2>Room TBA</h2>
+      <h2>
+        <span class="hero-title">
+          <img src="/logo.png" alt="Room TBA logo" class="hero-logo" />
+          Room TBA
+        </span>
+      </h2>
       <p>"Saan sa UPLB ang ___?" Finally answered.</p>
     </div>
   </div>
@@ -167,16 +172,37 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    gap: 0.5rem;
+    gap: 0.1rem;
     color: white;
     padding: 2rem;
   }
+  
   .hero-overlay h2 {
-    font-size: 2rem;
-    font-weight: bold;
-    margin: 0;
+    font-size: 2.75rem;
+    font-weight: 600;
+    margin: 0;        
+    padding: 0;       
     color: white;
+    font-family: 'Raleway', sans-serif;
+    display: flex;
+    justify-content: center;
+    line-height: 1;   
+    width: 100%;
   }
+
+  .hero-title {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin-left: -1.25rem;
+  }
+
+  .hero-logo {
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: contain;
+  }
+
   .hero-overlay p {
     font-size: 1rem;
     margin: 0;
