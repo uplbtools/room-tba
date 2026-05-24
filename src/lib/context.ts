@@ -11,5 +11,4 @@ export type AppContextData = {
   directionCount: number;
 }
 
-
 export const [getAppData, setAppData] = createContext<AppContextData>();
