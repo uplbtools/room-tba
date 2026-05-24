@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, envField } from "astro/config";
 import react from "@astrojs/react";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
@@ -46,4 +46,12 @@ export default defineConfig({
     "/contribute": "https://forms.gle/nVUMuuZgfW1HgXc98",
     "/messenger": "https://m.me/j/AbbjA1ouHCefGTkU",
   },
+  env: {
+    schema: {
+      NEON_CONNECTION_STRING: envField.string({
+        access: "secret",
+        context: "server"
+      })
+    }
+  }
 });
