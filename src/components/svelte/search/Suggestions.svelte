@@ -6,12 +6,13 @@
 
   const { buildings, colleges, divisions, rooms, dorms } = getAppData();
 
+  console.log(rooms);
   const filteredDorms = $derived(
     dormFilter.value === "all"
       ? dorms
       : dormFilter.value === "up"
-        ? dorms.filter((d) => d.is_up_managed)
-        : dorms.filter((d) => !d.is_up_managed),
+        ? dorms.filter((d) => d.isUpManaged)
+        : dorms.filter((d) => !d.isUpManaged),
   );
 
   const suggestedResult = $derived<
@@ -26,37 +27,37 @@
     if (searchString === "") return [];
     const suggestions = {
       buildings: buildings
-        .filter(({ building_name }) =>
-          building_name.toLowerCase().includes(searchString),
+        .filter(({ buildingName }) =>
+          buildingName.toLowerCase().includes(searchString),
         )
-        .map(({ building_name }) => ({
-          value: building_name,
+        .map(({ buildingName }) => ({
+          value: buildingName,
           category: "building",
         })),
       colleges: colleges
-        .filter(({ college_name }) =>
-          college_name.toLowerCase().includes(searchString),
+        .filter(({ collegeName }) =>
+          collegeName.toLowerCase().includes(searchString),
         )
-        .map(({ college_name }) => ({
-          value: college_name,
+        .map(({ collegeName }) => ({
+          value: collegeName,
           category: "college",
         })),
       divisions: divisions
-        .filter(({ division_name }) =>
-          division_name.toLowerCase().includes(searchString),
+        .filter(({ divisionName }) =>
+          divisionName.toLowerCase().includes(searchString),
         )
-        .map(({ division_name }) => ({
-          value: division_name,
+        .map(({ divisionName }) => ({
+          value: divisionName,
           category: "division",
         })),
       dorms: filteredDorms
         .filter(
-          ({ dorm_name, short_name }) =>
-            dorm_name.toLowerCase().includes(searchString) ||
-            (short_name && short_name.toLowerCase().includes(searchString)),
+          ({ dormName, shortName }) =>
+            dormName.toLowerCase().includes(searchString) ||
+            (shortName && shortName.toLowerCase().includes(searchString)),
         )
-        .map(({ dorm_name }) => ({
-          value: dorm_name,
+        .map(({ dormName }) => ({
+          value: dormName,
           category: "dorm",
         })),
     } satisfies {

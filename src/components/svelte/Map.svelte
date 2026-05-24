@@ -11,7 +11,7 @@
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
-  import { University, Home } from "@lucide/svelte";
+  import { University, House} from "@lucide/svelte";
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import {
@@ -20,12 +20,13 @@
     type JeepneyStop,
   } from "../../constants/jeepney-routes";
   const { buildings, rooms, dorms } = getAppData();
+  $inspect(buildings);
   const filteredDorms = $derived(
     dormFilter.value === "all"
       ? dorms
       : dormFilter.value === "up"
-        ? dorms.filter((d) => d.is_up_managed)
-        : dorms.filter((d) => !d.is_up_managed),
+        ? dorms.filter((d) => d.isUpManaged)
+        : dorms.filter((d) => !d.isUpManaged),
   );
   let directions: MapLibreGlDirections | undefined = $state.raw();
 
@@ -623,7 +624,7 @@
 
       if (category === "building" && type === "result") {
         const currentBuilding = buildings.find(
-          (building) => building.building_name === value,
+          (building) => building.buildingName === value,
         );
 
         if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
@@ -664,7 +665,7 @@
         }
       } else if (category === "dorm") {
         const currentDorm = dorms.find(
-          (dorm) => dorm.dorm_name === value,
+          (dorm) => dorm.dormName === value,
         );
         if (currentDorm && currentDorm.lon && currentDorm.lat) {
           map.flyTo({
@@ -765,12 +766,12 @@
       {#if building.lat && building.lon}
         <Marker
           lngLat={[building.lon, building.lat]}
-          onclick={() => handleMarkerClick(building.building_name)}
+          onclick={() => handleMarkerClick(building.buildingName)}
         >
           <div
             class="pin"
-            class:active={activeBuildingName === building.building_name}
-            title={building.building_name}
+            class:active={activeBuildingName === building.buildingName}
+            title={building.buildingName}
           >
             <University size="20" />
             <div
@@ -778,7 +779,7 @@
               class:active={zoomLevel >= 17}
               transition:fade
             >
-              {building.building_name}
+              {building.buildingName}
             </div>
           </div>
         </Marker>
@@ -803,21 +804,21 @@
       {#if dorm.lat && dorm.lon}
         <Marker
           lngLat={[dorm.lon, dorm.lat]}
-          onclick={() => handleDormMarkerClick(dorm.dorm_name)}
+          onclick={() => handleDormMarkerClick(dorm.dormName)}
         >
           <div
             class="dorm-pin"
-            class:active={activeDormName === dorm.dorm_name}
-            class:private={!dorm.is_up_managed}
-            title={dorm.dorm_name}
+            class:active={activeDormName === dorm.dormName}
+            class:private={!dorm.isUpManaged}
+            title={dorm.dormName}
           >
-            <Home size="18" />
+            <House size="18" />
             <div
               class="pin-label"
               class:active={zoomLevel >= 17}
               transition:fade
             >
-              {dorm.dorm_name}
+              {dorm.dormName}
             </div>
           </div>
         </Marker>
