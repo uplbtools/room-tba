@@ -41,6 +41,9 @@ export default defineConfig({
     server: {
       host: "localhost",
     },
+    optimizeDeps: {
+      exclude: ['@electric-sql/pglite']
+    }
   },
   redirects: {
     "/contribute": "https://forms.gle/nVUMuuZgfW1HgXc98",
@@ -53,5 +56,5 @@ export default defineConfig({
         context: "server"
       })
     }
-  }
+  },
 });
