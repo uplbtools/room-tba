@@ -1,14 +1,14 @@
 import { relations } from "drizzle-orm/relations";
 import { roomsTable, classesTable, roomPositionsTable, buildingsTable, collegesTable, divisionsTable } from "./schema";
 
-export const classesTableRelations = relations(classesTable, ({one}) => ({
+export const classesRelations = relations(classesTable, ({one}) => ({
 	room: one(roomsTable, {
 		fields: [classesTable.roomId],
 		references: [roomsTable.id]
 	}),
 }));
 
-export const roomsTableRelations = relations(roomsTable, ({one, many}) => ({
+export const roomsRelations = relations(roomsTable, ({one, many}) => ({
 	classes: many(classesTable),
 	roomPositions: many(roomPositionsTable),
 	building: one(buildingsTable, {
@@ -25,21 +25,21 @@ export const roomsTableRelations = relations(roomsTable, ({one, many}) => ({
 	}),
 }));
 
-export const roomPositionsRelations = relations(roomPositions, ({one}) => ({
-	room: one(rooms, {
-		fields: [roomPositions.roomId],
-		references: [rooms.id]
+export const roomPositionsRelations = relations(roomPositionsTable, ({one}) => ({
+	room: one(roomsTable, {
+		fields: [roomPositionsTable.roomId],
+		references: [roomsTable.id]
 	}),
 }));
 
-export const buildingsRelations = relations(buildings, ({many}) => ({
-	rooms: many(rooms),
+export const buildingsRelations = relations(buildingsTable, ({many}) => ({
+	rooms: many(roomsTable),
 }));
 
 export const collegesRelations = relations(collegesTable, ({many}) => ({
-	rooms: many(rooms),
+	rooms: many(roomsTable),
 }));
 
-export const divisionsRelations = relations(divisions, ({many}) => ({
-	rooms: many(rooms),
+export const divisionsRelations = relations(divisionsTable, ({many}) => ({
+	rooms: many(roomsTable),
 }));

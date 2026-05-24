@@ -1,4 +1,4 @@
-import { pgTable, integer, varchar, numeric, text, foreignKey, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, integer, varchar, numeric, text, foreignKey, boolean, timestamp } from "drizzle-orm/pg-core"
 
 
 export const buildingsTable = pgTable("buildings", {
@@ -26,10 +26,29 @@ export const classesTable = pgTable("classes", {
 }, (table) => [
 	foreignKey({
 			columns: [table.roomId],
-			foreignColumns: [rooms.id],
+			foreignColumns: [roomsTable.id],
 			name: "class_room"
 		}),
 ]);
+
+export const dormsTable = pgTable("dorms", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "dorms_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	dormName: text("dorm_name").notNull(),
+	shortName: varchar("short_name", { length: 48 }),
+	lat: numeric(),
+	lon: numeric(),
+	gender: text().notNull(),
+	capacity: integer(),
+	managingOffice: text("managing_office"),
+	contactEmail: text("contact_email"),
+	amenities: text().array(),
+	osmLink: text("osm_link"),
+	description: text(),
+	isUpManaged: boolean("is_up_managed").default(true),
+	priceRange: text("price_range"),
+	contactPhone: varchar("contact_phone", { length: 20 }).array(),
+	facebookLink: text("facebook_link"),
+});
 
 export const roomPositionsTable = pgTable("room_positions", {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "room_positions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
@@ -41,7 +60,7 @@ export const roomPositionsTable = pgTable("room_positions", {
 }, (table) => [
 	foreignKey({
 			columns: [table.roomId],
-			foreignColumns: [rooms.id],
+			foreignColumns: [roomsTable.id],
 			name: "room_position_id"
 		}),
 ]);
@@ -61,17 +80,17 @@ export const roomsTable = pgTable("rooms", {
 }, (table) => [
 	foreignKey({
 			columns: [table.buildingId],
-			foreignColumns: [buildings.id],
+			foreignColumns: [buildingsTable.id],
 			name: "room_building"
 		}),
 	foreignKey({
 			columns: [table.collegeId],
-			foreignColumns: [colleges.id],
+			foreignColumns: [collegesTable.id],
 			name: "room_college"
 		}),
 	foreignKey({
 			columns: [table.divisionId],
-			foreignColumns: [divisions.id],
+			foreignColumns: [divisionsTable.id],
 			name: "room_division"
 		}),
 ]);
