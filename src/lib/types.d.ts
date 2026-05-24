@@ -1,3 +1,4 @@
+import { dormsTable } from "../../drizzle/schema";
 import type { QueryStoreState } from "./store.svelte";
 
 export type AppData = {
@@ -48,7 +49,7 @@ type RoomData = {
 
 type BuildingData = {
   id: number;
-  building_name: string;
+  buildingName: string;
   lat: number | null;
   lon: number | null;
   directions: string | null;
@@ -66,32 +67,15 @@ type ClassMapValue = {
 
 type CollegeData = {
   id: number;
-  college_name: string;
+  collegeName: string;
 };
 
 type DivisionData = {
   id: number;
-  division_name: string;
+  divisionName: string;
 };
 
-type DormData = {
-  id: number;
-  dorm_name: string;
-  short_name: string | null;
-  lat: number | null;
-  lon: number | null;
-  gender: string;
-  capacity: number | null;
-  managing_office: string | null;
-  contact_email: string | null;
-  amenities: string | null;
-  osm_link: string | null;
-  description: string | null;
-  is_up_managed: boolean;
-  price_range: string | null;
-  contact_phone: string | null;
-  facebook_link: string | null;
-};
+type DormData = typeof dormsTable.$inferSelect;
 
 interface ContributorInfo {
   name: string;
