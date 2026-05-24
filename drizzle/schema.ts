@@ -1,12 +1,25 @@
-import { pgTable, integer, varchar, numeric, text, foreignKey, boolean, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, integer, text, varchar, doublePrecision, boolean, foreignKey, numeric, timestamp } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
 
 
-export const buildingsTable = pgTable("buildings", {
-	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "buildings_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	buildingName: varchar("building_name", { length: 100 }).notNull(),
-	lon: numeric().notNull(),
-	lat: numeric().notNull(),
-	directions: text().notNull(),
+
+export const dormsTable = pgTable("dorms", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "dorms_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	dormName: text("dorm_name").notNull(),
+	shortName: varchar("short_name", { length: 48 }),
+	lat: doublePrecision(),
+	lon: doublePrecision(),
+	gender: text().notNull(),
+	capacity: integer(),
+	managingOffice: text("managing_office"),
+	contactEmail: text("contact_email"),
+	amenities: text().array(),
+	osmLink: text("osm_link"),
+	description: text(),
+	isUpManaged: boolean("is_up_managed").default(true),
+	priceRange: text("price_range"),
+	contactPhone: varchar("contact_phone", { length: 20 }).array(),
+	facebookLink: text("facebook_link"),
 });
 
 export const collegesTable = pgTable("colleges", {
@@ -31,23 +44,12 @@ export const classesTable = pgTable("classes", {
 		}),
 ]);
 
-export const dormsTable = pgTable("dorms", {
-	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "dorms_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	dormName: text("dorm_name").notNull(),
-	shortName: varchar("short_name", { length: 48 }),
-	lat: numeric(),
-	lon: numeric(),
-	gender: text().notNull(),
-	capacity: integer(),
-	managingOffice: text("managing_office"),
-	contactEmail: text("contact_email"),
-	amenities: text().array(),
-	osmLink: text("osm_link"),
-	description: text(),
-	isUpManaged: boolean("is_up_managed").default(true),
-	priceRange: text("price_range"),
-	contactPhone: varchar("contact_phone", { length: 20 }).array(),
-	facebookLink: text("facebook_link"),
+export const buildingsTable = pgTable("buildings", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "buildings_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	buildingName: varchar("building_name", { length: 100 }).notNull(),
+	lon: doublePrecision().notNull(),
+	lat: doublePrecision().notNull(),
+	directions: text().notNull(),
 });
 
 export const roomPositionsTable = pgTable("room_positions", {
