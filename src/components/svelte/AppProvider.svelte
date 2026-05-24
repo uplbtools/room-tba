@@ -1,25 +1,8 @@
 <script lang="ts">
-  import { setAppData } from "../../lib/context";
-  import type {
-    BuildingData,
-    ClassMapValue,
-    CollegeData,
-    DivisionData,
-    DormData,
-    RoomData,
-  } from "../../lib/types";
+  import { AppContextData, setAppData } from "../../lib/context";
   import Entry from "./Entry.svelte";
 
-  type Props = {
-    rooms: RoomData[];
-    buildings: BuildingData[];
-    colleges: CollegeData[];
-    divisions: DivisionData[];
-    dorms: DormData[];
-    classesMap: Map<string, ClassMapValue[]>;
-    totalRooms: number;
-    directionCount: number;
-  };
+  type Props = AppContextData;
   const appData: Props = $props();
   // svelte-ignore state_referenced_locally
   setAppData(appData);
