@@ -9,5 +9,5 @@ export default defineConfig({
     url: process.env["NEON_CONNECTION_STRING"] as string,
   },
   schema: "./drizzle/schema.ts",
-  out: "./drizzle-migrations",
+  out: "./drizzle",
 });
