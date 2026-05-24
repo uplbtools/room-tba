@@ -1,6 +1,6 @@
-// @ts-nocheck
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { NEON_CONNECTION_STRING } from "astro:env/server";
 
-const client = new Database(`${process.cwd()}/data/info.db`);
-export const db = drizzle({ client });
+// @ts-nocheck
+import { drizzle } from "drizzle-orm/node-postgres";
+
+export const db = drizzle(NEON_CONNECTION_STRING);
