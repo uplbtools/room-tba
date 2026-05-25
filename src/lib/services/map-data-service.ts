@@ -43,7 +43,10 @@ export async function getAllRooms(): Promise<RoomData[]> {
         collegeName: collegesTable.collegeName,
         divisionName: divisionsTable.divisionName,
       })
-      .from(roomsTable);
+      .from(roomsTable)
+      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
     return data;
   } catch (e) {
     console.error("Error: ", e);
