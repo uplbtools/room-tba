@@ -4,6 +4,7 @@ import {
   classesTable,
   collegesTable,
   divisionsTable,
+  dormsTable,
   roomsTable,
 } from "../../../drizzle/schema";
 import { db } from "../db";
@@ -12,6 +13,7 @@ import {
   ClassMapValue,
   CollegeData,
   DivisionData,
+  DormData,
   RoomData,
 } from "../types";
 
@@ -87,5 +89,15 @@ export async function getAllClasses(): Promise<ClassMapValue[]> {
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for classes");
+  }
+}
+
+export async function getAllDorms(): Promise<DormData[]> {
+  try {
+    const data = await db.select().from(dormsTable);
+    return data;
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch data for dorms")
   }
 }
