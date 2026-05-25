@@ -95,3 +95,8 @@ export const roomsTable = pgTable("rooms", {
 			name: "room_division"
 		}),
 ]);
+
+export const updateTable = pgTable("update", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  lastAdminUpdated: timestamp("last_admin_updated")
+})
