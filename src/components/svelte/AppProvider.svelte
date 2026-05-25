@@ -4,6 +4,7 @@
 
   type Props = AppContextData;
   const appData: Props = $props();
+
   // svelte-ignore state_referenced_locally
   setAppData(appData);
 </script>

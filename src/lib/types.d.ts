@@ -56,13 +56,13 @@ type BuildingData = {
 };
 
 type ClassMapValue = {
-  courseCode: string;
+  courseCode: string | null;
   roomCode: string | null;
-  section: string;
-  type: string;
-  schedule: string;
+  section: string | null;
+  type: string | null;
+  schedule: string[] | null;
   directions: string | null;
-  courseTitle: string;
+  courseTitle: string | null;
 };
 
 type CollegeData = {
