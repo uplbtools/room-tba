@@ -4,6 +4,7 @@ import {
   classesTable,
   collegesTable,
   divisionsTable,
+  dormsTable,
   roomsTable,
 } from "../../drizzle/schema";
 import { db } from "./db";
@@ -21,6 +22,7 @@ export type AppPageData = {
   buildings: BuildingData[];
   colleges: CollegeData[];
   divisions: DivisionData[];
+  dorms: DormData[];
   classesMap: Map<string, ClassMapValue[]>;
   totalRooms: number;
   directionCount: number;
@@ -72,6 +74,7 @@ async function fetchAppData(): Promise<AppPageData> {
   const buildings = await db.select().from(buildingsTable);
   const colleges = await db.select().from(collegesTable);
   const divisions = await db.select().from(divisionsTable);
+  const dorms = await db.select().from(dormsTable);
 
   const classesMap = new Map<string, ClassMapValue[]>();
   classes.forEach((classData) => {
@@ -105,6 +108,7 @@ async function fetchAppData(): Promise<AppPageData> {
     buildings,
     colleges,
     divisions,
+    dorms,
     classesMap,
     totalRooms,
     directionCount,
