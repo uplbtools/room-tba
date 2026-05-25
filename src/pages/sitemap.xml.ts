@@ -3,13 +3,14 @@ import {
   getBuildingSlug,
   getCollegeSlug,
   getDivisionSlug,
+  getDormRouteSlug,
   getRoomRouteSlug,
   loadAppData,
 } from "../lib/app-data";
 import { absoluteUrl } from "../lib/site";
 
 export const GET: APIRoute = async () => {
-  const { rooms, buildings, divisions, colleges } = await loadAppData();
+  const { rooms, buildings, divisions, colleges, dorms } = await loadAppData();
 
   const urls = [
     "/",
@@ -18,10 +19,12 @@ export const GET: APIRoute = async () => {
     "/building/",
     "/division/",
     "/college/",
+    "/dorm/",
     ...rooms.map((room) => `/room/${getRoomRouteSlug(room, rooms)}/`),
     ...buildings.map((building) => `/building/${getBuildingSlug(building)}/`),
     ...divisions.map((division) => `/division/${getDivisionSlug(division)}/`),
     ...colleges.map((college) => `/college/${getCollegeSlug(college)}/`),
+    ...dorms.map((dorm) => `/dorm/${getDormRouteSlug(dorm, dorms)}/`),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>

@@ -10,7 +10,12 @@ import {
 import { db } from "./db";
 import { slugifySegment } from "./site";
 
-export type SearchCategory = "building" | "division" | "college" | "room";
+export type SearchCategory =
+  | "building"
+  | "division"
+  | "college"
+  | "room"
+  | "dorm";
 
 export type InitialSearchState = {
   category: SearchCategory;
@@ -140,4 +145,19 @@ export function getDivisionSlug(division: Pick<DivisionData, "division_name">) {
 
 export function getCollegeSlug(college: Pick<CollegeData, "college_name">) {
   return slugifySegment(college.college_name);
+}
+
+export function getDormSlug(dorm: Pick<DormData, "dorm_name">) {
+  return slugifySegment(dorm.dorm_name);
+}
+
+export function getDormRouteSlug(
+  dorm: Pick<DormData, "id" | "dorm_name">,
+  dorms: Array<Pick<DormData, "id" | "dorm_name">>,
+) {
+  const baseSlug = getDormSlug(dorm);
+  const hasCollision =
+    dorms.filter((item) => getDormSlug(item) === baseSlug).length > 1;
+
+  return hasCollision ? `${baseSlug}-${dorm.id}` : baseSlug;
 }
