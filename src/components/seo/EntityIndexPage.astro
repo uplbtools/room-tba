@@ -1,0 +1,108 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+type Item = {
+  href: string;
+  label: string;
+  description?: string;
+};
+
+type Props = {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  heading: string;
+  intro: string;
+  items: Item[];
+  structuredData?: Record<string, unknown>[];
+};
+
+const {
+  title,
+  description,
+  canonicalPath,
+  heading,
+  intro,
+  items,
+  structuredData = [],
+}: Props = Astro.props;
+---
+
+<Layout
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  structuredData={structuredData}
+>
+  <main class="entity-index-page">
+    <section class="entity-index-page__content">
+      <h1>{heading}</h1>
+      <p>{intro}</p>
+      <ul>
+        {
+          items.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+              {item.description && <span>{item.description}</span>}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .entity-index-page {
+    min-height: 100dvh;
+    background: linear-gradient(180deg, #faf6f4 0%, #ffffff 22rem);
+  }
+
+  .entity-index-page__content {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+    color: #1f1f1f;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 1.1;
+  }
+
+  p {
+    margin: 0.75rem 0 1.5rem;
+    max-width: 54rem;
+    line-height: 1.6;
+  }
+
+  ul {
+    display: grid;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    display: grid;
+    gap: 0.125rem;
+    padding: 1rem;
+    border: 1px solid #eadfda;
+    border-radius: 0.875rem;
+    background: white;
+  }
+
+  a {
+    color: #7b1113;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  span {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+</style>

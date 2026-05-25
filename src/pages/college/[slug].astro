@@ -1,0 +1,78 @@
+---
+import EntityPage from "../../components/seo/EntityPage.astro";
+import { getCollegeSlug, loadAppData } from "../../lib/app-data";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+} from "../../lib/site";
+
+export async function getStaticPaths() {
+  const { colleges } = await loadAppData();
+
+  return colleges.map((college) => ({
+    params: { slug: getCollegeSlug(college) },
+    props: { collegeName: college.college_name },
+  }));
+}
+
+const { collegeName } = Astro.props;
+const appData = await loadAppData();
+const college = appData.colleges.find(
+  (item) => item.college_name === collegeName,
+);
+
+if (!college) {
+  throw new Error(`College not found for slug: ${collegeName}`);
+}
+
+const collegeRooms = appData.rooms.filter(
+  (room) => room.collegeName === college.college_name,
+);
+const canonicalPath = `/college/${getCollegeSlug(college)}/`;
+const title = `${college.college_name} | College at UPLB | Room TBA`;
+const description = `Find rooms associated with ${college.college_name} at UPLB. Open the college view on Room TBA to browse linked rooms.`;
+const intro = `${college.college_name} currently has ${collegeRooms.length} room${collegeRooms.length === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the college result view.`;
+
+const facts = [
+  `${collegeRooms.length} room${collegeRooms.length === 1 ? "" : "s"} linked to this college`,
+];
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Colleges", path: "/college/" },
+    { name: college.college_name, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    name: college.college_name,
+    description,
+    url: absoluteUrl(canonicalPath),
+    parentOrganization: {
+      "@type": "CollegeOrUniversity",
+      name: "University of the Philippines Los Banos",
+    },
+  },
+);
+---
+
+<EntityPage
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${college.college_name} at UPLB`}
+  {intro}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/college/", label: "Colleges" },
+    { href: canonicalPath, label: college.college_name },
+  ]}
+  structuredData={structuredData}
+  appProps={appData}
+  initialSearch={{ category: "college", value: college.college_name }}
+/>

@@ -3,6 +3,35 @@ import { pwaInfo } from "virtual:pwa-info";
 import ReloadPrompt from "../components/ReloadPrompt.astro";
 import "../styles/font-face.css";
 import Analytics from "@vercel/analytics/astro";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  SITE_URL,
+  absoluteUrl,
+} from "../lib/site";
+
+type StructuredData = Record<string, unknown>;
+
+type Props = {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  imagePath?: string;
+  robots?: string;
+  structuredData?: StructuredData[];
+};
+
+const {
+  title = DEFAULT_TITLE,
+  description = DEFAULT_DESCRIPTION,
+  canonicalPath = "/",
+  imagePath = "/socmed.png",
+  robots = "index,follow",
+  structuredData = [],
+}: Props = Astro.props;
+
+const canonicalUrl = absoluteUrl(canonicalPath);
+const imageUrl = absoluteUrl(imagePath);
 ---
 
 <!doctype html>
@@ -14,36 +43,29 @@ import Analytics from "@vercel/analytics/astro";
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <meta name="theme-color" content="#a30e00" />
     <meta name="generator" content={Astro.generator} />
-    <title>Room TBA - Searching utility for finding rooms around UPLB</title>
-    <meta
-      name="description"
-      content="Room TBA is an open-source website built to help UPLB students find their rooms across the Los Baños campus."
-    />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonicalUrl} />
 
-    <meta property="og:url" content="https://room-tba.stimmie.dev" />
+    <meta property="og:site_name" content="Room TBA" />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content="website" />
-    <meta
-      property="og:title"
-      content="Room TBA - Searching utility for finding rooms around UPLB"
-    />
-    <meta
-      property="og:description"
-      content="Room TBA is an open-source website built to help UPLB students find their rooms across the Los Baños campus."
-    />
-    <meta property="og:image" content="/socmed.png" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={imageUrl} />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:domain" content="room-tba.stimmie.dev" />
-    <meta property="twitter:url" content="https://room-tba.stimmie.dev" />
-    <meta
-      name="twitter:title"
-      content="Room TBA - Searching utility for finding rooms around UPLB"
-    />
-    <meta
-      name="twitter:description"
-      content="Room TBA is an open-source website built to help UPLB students find their rooms across the Los Baños campus."
-    />
-    <meta name="twitter:image" content="/socmed.png" />
+    <meta property="twitter:domain" content={new URL(SITE_URL).hostname} />
+    <meta property="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    {
+      structuredData.map((entry) => (
+        <script type="application/ld+json" set:html={JSON.stringify(entry)} />
+      ))
+    }
     {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />

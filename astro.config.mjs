@@ -5,12 +5,13 @@ import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 // https://astro.build/config
 export default defineConfig({
+  site: "https://room-tba.stimmie.dev",
   integrations: [
     react(),
     svelte(),
     AstroPWA({
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest,json,jpg}"],
+        globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest,json,jpg}"],
       },
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
@@ -30,7 +31,7 @@ export default defineConfig({
             type: "image/png",
           },
         ],
-        display_override: ["standalone"]
+        display_override: ["standalone"],
       },
     }),
   ],
