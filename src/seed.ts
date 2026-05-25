@@ -1,22 +1,31 @@
 import Database from "bun:sqlite";
+import { sql, SQL } from "bun";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import {
   buildingsTable,
   classesTable,
   collegesTable,
   divisionsTable,
+  dormsTable,
   roomsTable,
 } from "../drizzle/schema";
 import { getTableColumns, eq } from "drizzle-orm";
-const client = new Database("../data/info.db");
-import appData from "../data/app_data.json";
+const client = new Database("data/info.db");
 const db = drizzle({ client });
 
-console.log(await db.select().from(roomsTable));
-/* 
+const dorms = (await db.select().from(dormsTable)).map(
+  ({ amenities, contact_phone, ...others }) => ({
+    contact_phone: contact_phone ? `{${contact_phone.split("/").map(s => s.trim()).join(",")}}` : null,
+    amenities: amenities ? `{${JSON.parse(amenities).join(",")}}` : null,
+    ...others,
+  }),
+);
+
+
+/*
 
 ===========================================================
-FOR SEEDING THE DATABASE with buildings, 
+FOR SEEDING THE DATABASE with buildings,
 colleges, and divisions VIA app_data.json
 ===========================================================
 
@@ -41,7 +50,7 @@ await db.insert(divisionsTable).values(
   divisions.map(([division_name]) => ({ division_name })),
 ); */
 
-/* 
+/*
 ===========================================================
 FOR SEEDING THE DATABASE with rooms after other tables
 are seeded
@@ -85,7 +94,7 @@ const rooms = await Promise.all(
 );
 await db.insert(roomsTable).values(rooms); */
 
-/* 
+/*
 ===========================================================
 AFTER SEEDING THE ROOMS TABLE, THE CLASSES TABLE WAS
 SEED
