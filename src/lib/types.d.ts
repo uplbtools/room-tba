@@ -1,4 +1,4 @@
-import { dormsTable } from "../../drizzle/schema";
+import { dormsTable, roomPositionsTable } from "../../drizzle/schema";
 import type { QueryStoreState } from "./store.svelte";
 
 export type AppData = {
@@ -76,6 +76,8 @@ type DivisionData = {
 };
 
 type DormData = typeof dormsTable.$inferSelect;
+
+type RoomPosition = typeof roomPositionsTable.$inferSelect;
 
 interface ContributorInfo {
   name: string;
