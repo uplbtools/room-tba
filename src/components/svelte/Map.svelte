@@ -10,7 +10,7 @@
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
-  import { University } from "@lucide/svelte";
+  import { University, Home } from "@lucide/svelte";
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import {
@@ -18,7 +18,7 @@
     type JeepneyRoute,
     type JeepneyStop,
   } from "../../constants/jeepney-routes";
-  const { buildings, rooms } = getAppData();
+  const { buildings, rooms, dorms } = getAppData();
   let directions: MapLibreGlDirections | undefined = $state.raw();
 
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
@@ -303,6 +303,47 @@
       if (!matchedPolygon) continue;
 
       const key = `${getFeatureKey(feature)}|${building.lon.toFixed(6)},${building.lat.toFixed(6)}`;
+      if (highlightFeatureCache.has(key)) continue;
+
+      const inflated = inflateGeometry(matchedPolygon);
+
+      highlightFeatureCache.set(key, {
+        type: "Feature",
+        geometry: inflated,
+        properties: {
+          render_height:
+            (feature.properties?.render_height ?? 12) + HIGHLIGHT_HEIGHT_OFFSET,
+          render_min_height: Math.max(
+            (feature.properties?.render_min_height ?? 0) -
+              HIGHLIGHT_HEIGHT_OFFSET,
+            0,
+          ),
+        },
+      });
+      cacheChanged = true;
+    }
+
+    // Also highlight dorm buildings on the 3D map
+    for (const dorm of dorms) {
+      if (dorm.lat === null || dorm.lon === null) continue;
+
+      const feature = findBuildingFeatureAt(map, dorm.lon, dorm.lat);
+      if (!feature) continue;
+      if (
+        feature.geometry.type !== "Polygon" &&
+        feature.geometry.type !== "MultiPolygon"
+      ) {
+        continue;
+      }
+
+      const matchedPolygon = pickPolygonContainingPoint(
+        feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
+        dorm.lon,
+        dorm.lat,
+      );
+      if (!matchedPolygon) continue;
+
+      const key = `dorm:${getFeatureKey(feature)}|${dorm.lon.toFixed(6)},${dorm.lat.toFixed(6)}`;
       if (highlightFeatureCache.has(key)) continue;
 
       const inflated = inflateGeometry(matchedPolygon);
@@ -613,6 +654,20 @@
           });
           map.once("moveend", startRotation);
         }
+      } else if (category === "dorm") {
+        const currentDorm = dorms.find(
+          (dorm) => dorm.dorm_name === value,
+        );
+        if (currentDorm && currentDorm.lon && currentDorm.lat) {
+          map.flyTo({
+            center: [currentDorm.lon, currentDorm.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+          map.once("moveend", startRotation);
+        }
       }
     });
   });
@@ -625,6 +680,16 @@
       value: buildingName,
     });
     queryStore.inputValue = buildingName;
+  }
+
+  function handleDormMarkerClick(dormName: string) {
+    if (dormName === queryStore.inputValue) return;
+    queryStore.updateQuery({
+      category: "dorm",
+      type: "result",
+      value: dormName,
+    });
+    queryStore.inputValue = dormName;
   }
 
   let activeBuildingName = $derived.by(() => {
@@ -643,6 +708,13 @@
       default:
         return null;
     }
+  });
+
+  let activeDormName = $derived.by(() => {
+    if (queryStore.category === "dorm" && queryStore.type === "result") {
+      return queryStore.inputValue;
+    }
+    return null;
   });
 </script>
 
@@ -718,6 +790,30 @@
         </Marker>
       {/each}
     {/if}
+    {#each dorms as dorm}
+      {#if dorm.lat && dorm.lon}
+        <Marker
+          lngLat={[dorm.lon, dorm.lat]}
+          onclick={() => handleDormMarkerClick(dorm.dorm_name)}
+        >
+          <div
+            class="dorm-pin"
+            class:active={activeDormName === dorm.dorm_name}
+            class:private={!dorm.is_up_managed}
+            title={dorm.dorm_name}
+          >
+            <Home size="18" />
+            <div
+              class="pin-label"
+              class:active={zoomLevel >= 17}
+              transition:fade
+            >
+              {dorm.dorm_name}
+            </div>
+          </div>
+        </Marker>
+      {/if}
+    {/each}
   </MapLibre>
 </div>
 
@@ -867,5 +963,84 @@
   }
   .jeepney-stop-pin:hover .stop-label {
     opacity: 1;
+  }
+
+  .dorm-pin {
+    line-height: 0;
+    padding: 0.25rem;
+    color: white;
+    background-color: hsl(170, 50%, 35%);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 2px 0.25rem rgba(0, 0, 0, 0.3);
+    transition:
+      transform 0.2s,
+      scale 1.5s;
+
+    &.active {
+      z-index: 60;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        outline: 0.125rem solid hsl(170, 50%, 45%);
+        outline-offset: 0.125rem;
+      }
+      .pin-label {
+        background-color: hsl(170, 50%, 35%);
+        color: white;
+        opacity: 1;
+      }
+    }
+    .pin-label {
+      line-height: initial;
+      color: black;
+      position: absolute;
+      bottom: calc(100% + 0.5rem);
+      left: 50%;
+      translate: -50% 0;
+      background-color: white;
+      border-radius: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      width: max-content;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      &.active {
+        opacity: 1;
+      }
+    }
+  }
+
+  .dorm-pin:hover {
+    background-color: hsl(170, 50%, 45%);
+
+    .pin-label {
+      opacity: 1;
+    }
+  }
+
+  .dorm-pin.private {
+    background-color: hsl(25, 70%, 50%);
+
+    &.active {
+      &::before {
+        outline-color: hsl(25, 70%, 60%);
+      }
+      .pin-label {
+        background-color: hsl(25, 70%, 50%);
+      }
+    }
+  }
+
+  .dorm-pin.private:hover {
+    background-color: hsl(25, 70%, 60%);
   }
 </style>
