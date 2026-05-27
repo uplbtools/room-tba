@@ -1,0 +1,43 @@
+---
+import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
+import { getCollegeSlug, loadAppData } from "../../lib/app-data";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "../../lib/site";
+
+const { colleges, rooms } = await loadAppData();
+
+const items = colleges
+  .slice()
+  .sort((a, b) => a.college_name.localeCompare(b.college_name))
+  .map((college) => {
+    const roomCount = rooms.filter(
+      (room) => room.collegeName === college.college_name,
+    ).length;
+
+    return {
+      href: `/college/${getCollegeSlug(college)}/`,
+      label: college.college_name,
+      description: `${roomCount} room${roomCount === 1 ? "" : "s"} connected to this college`,
+    };
+  });
+
+const title = "UPLB colleges | Room TBA";
+const description =
+  "Browse college pages on Room TBA to find UPLB rooms associated with each college.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/college/" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Colleges", path: "/college/" },
+  ]),
+);
+---
+
+<EntityIndexPage
+  title={title}
+  description={description}
+  canonicalPath="/college/"
+  heading="UPLB college pages"
+  intro="Browse crawlable college pages for Room TBA. Each page opens the college result view and groups the rooms linked to that college."
+  {items}
+  structuredData={structuredData}
+/>

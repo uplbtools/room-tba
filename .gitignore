@@ -27,3 +27,4 @@ pnpm-debug.log*
 classes.json
 .vercel/
 server/**/*
+

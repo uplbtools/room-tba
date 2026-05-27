@@ -1,0 +1,94 @@
+---
+import EntityPage from "../../components/seo/EntityPage.astro";
+import { getDormRouteSlug, loadAppData } from "../../lib/app-data";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+} from "../../lib/site";
+
+export async function getStaticPaths() {
+  const { dorms } = await loadAppData();
+
+  return dorms.map((dorm) => ({
+    params: { slug: getDormRouteSlug(dorm, dorms) },
+    props: { dormId: dorm.id },
+  }));
+}
+
+const { dormId } = Astro.props;
+const appData = await loadAppData();
+const dorm = appData.dorms.find((item) => item.id === dormId);
+
+if (!dorm) {
+  throw new Error(`Dorm not found for slug: ${dormId}`);
+}
+
+const canonicalPath = `/dorm/${getDormRouteSlug(dorm, appData.dorms)}/`;
+const title = `${dorm.dorm_name} | Dorm at UPLB | Room TBA`;
+const description = [
+  `Find ${dorm.dorm_name} at UPLB on Room TBA.`,
+  dorm.is_up_managed ? "UP-managed housing listing." : "Private housing listing.",
+  dorm.price_range ? `Price range: ${dorm.price_range}.` : null,
+]
+  .filter((value): value is string => Boolean(value))
+  .join(" ");
+const intro = `${dorm.dorm_name} is listed in Room TBA. Open this page to jump straight into the dorm result view with map context, amenities, contacts, and housing details when available.`;
+
+const facts = [
+  dorm.short_name ? `Short name: ${dorm.short_name}` : null,
+  dorm.gender ? `Assigned housing: ${dorm.gender}` : null,
+  dorm.is_up_managed ? "UP-managed dorm" : "Private dorm",
+  dorm.capacity ? `${dorm.capacity} beds listed` : null,
+  dorm.price_range ? `Price range: ${dorm.price_range}` : null,
+  dorm.managing_office ? `Managing office: ${dorm.managing_office}` : null,
+].filter((fact): fact is string => Boolean(fact));
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Dorms", path: "/dorm/" },
+    { name: dorm.dorm_name, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: dorm.dorm_name,
+    description,
+    url: absoluteUrl(canonicalPath),
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Los Banos",
+      addressRegion: "Laguna",
+      addressCountry: "PH",
+    },
+    geo:
+      dorm.lat !== null && dorm.lon !== null
+        ? {
+            "@type": "GeoCoordinates",
+            latitude: dorm.lat,
+            longitude: dorm.lon,
+          }
+        : undefined,
+  },
+);
+---
+
+<EntityPage
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${dorm.dorm_name} at UPLB`}
+  {intro}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/dorm/", label: "Dorms" },
+    { href: canonicalPath, label: dorm.dorm_name },
+  ]}
+  structuredData={structuredData}
+  appProps={appData}
+  initialSearch={{ category: "dorm", value: dorm.dorm_name }}
+/>
