@@ -1,10 +1,40 @@
----
+<!-- ---
 import Layout from "../layouts/Layout.astro";
 import AppProvider from "../components/svelte/AppProvider.svelte";
 ---
 
 <Layout>
-  <AppProvider client:load/>
+  <AppProvider client:load/> -->
+---
+import AppProvider from "../components/svelte/AppProvider.svelte";
+import { loadAppData } from "../lib/app-data";
+import Layout from "../layouts/Layout.astro";
+import {
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+  websiteSchema,
+} from "../lib/site";
+
+const appData = await loadAppData();
+const title =
+  "Room TBA | Find Rooms, Dorms, Buildings, Colleges, and Divisions at UPLB";
+const description =
+  "Search rooms, dorms, buildings, colleges, and divisions around UPLB with Room TBA.";
+const structuredData = jsonLd(
+  websiteSchema(),
+  webpageSchema({ title, description, path: "/" }),
+  breadcrumbSchema([{ name: "Home", path: "/" }]),
+);
+---
+
+<Layout
+  title={title}
+  description={description}
+  canonicalPath="/"
+  structuredData={structuredData}
+>
+  <AppProvider {...appData} client:load />
 </Layout>
 
 <style>

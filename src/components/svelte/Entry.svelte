@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import type { InitialSearchState } from "../../lib/app-data";
   import {
     modalStore,
     queryStore,
@@ -13,6 +14,13 @@
   import Toast from "./Toast.svelte";
   import type { RecentSearch } from "../../lib/types";
   import { isRecentSearch } from "../../lib/locStorage";
+
+  type Props = {
+    initialSearch?: InitialSearchState;
+    suppressLandingModal?: boolean;
+  };
+
+  const { initialSearch, suppressLandingModal = false }: Props = $props();
 
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
@@ -30,7 +38,15 @@
     } catch (e) {
       queryStore.recentSearches = [];
     }
-    if (hideLanding !== "true") {
+    if (initialSearch) {
+      queryStore.hydrateQuery({
+        category: initialSearch.category,
+        type: "result",
+        value: initialSearch.value,
+      });
+    }
+
+    if (!suppressLandingModal && hideLanding !== "true") {
       modalStore.openModal("landing");
     }
   });
