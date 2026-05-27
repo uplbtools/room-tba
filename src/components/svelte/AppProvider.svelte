@@ -1,21 +1,19 @@
-<!-- <script lang="ts">
-  import { onMount } from "svelte";
-  import { isBrowser } from "es-toolkit";
-  import { syncData } from "../../lib/local/data/sync";
-  // import { AppContextData, setAppData } from "../../lib/context";
-  // import Entry from "./Entry.svelte";
-  import { getLocalBuildings, getLocalColleges } from "../../lib/local/data/utils";
+<script lang="ts">
+//   import { onMount } from "svelte";
+//   import { isBrowser } from "es-toolkit";
+//   import { syncData } from "../../lib/local/data/sync";
+//   // import { AppContextData, setAppData } from "../../lib/context";
+//   // import Entry from "./Entry.svelte";
+//   import { getLocalBuildings, getLocalColleges } from "../../lib/local/data/utils";
 
-  // type Props = AppContextData;
+//   // type Props = AppContextData;
 
-  onMount(async () => {
-    if (isBrowser()) {
-      syncData();
-    }
-  });
-</script> -->
+//   onMount(async () => {
+//     if (isBrowser()) {
+//       syncData();
+//     }
+//   });
 
-<!-- <Entry /> -->
   import type { AppPageData, InitialSearchState } from "../../lib/app-data";
   import { setAppData } from "../../lib/context";
   import { queryStore } from "../../lib/store.svelte";
@@ -45,6 +43,7 @@
   setAppData(appData);
 </script>
 
+<!-- <Entry /> -->
 <Entry
   initialSearch={appData.initialSearch}
   suppressLandingModal={appData.suppressLandingModal ?? false}
