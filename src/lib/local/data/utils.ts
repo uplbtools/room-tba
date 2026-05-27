@@ -1,42 +1,106 @@
 import { Result } from "pg";
-import { BuildingData, CollegeData, DivisionData } from "../../types";
+import {
+  BuildingData,
+  CollegeData,
+  DivisionData,
+  DormData,
+  RoomData,
+  RoomPosition,
+} from "../../types";
 import { getDB } from "./pgliteDB";
 
-export async function getLocalBuildings(): Promise<BuildingData[]> {
+export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
     const pgliteDB = await getDB();
     const data = (await pgliteDB.query(`
-      SELECT building_name as "buildingName", lon, lat, id, directions from buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions FROM buildings
       `)) as Result<BuildingData>;
     return data.rows;
   } catch (e) {
-    console.error(e);
-    throw new Error("Failed to fetch local buildings");
+    console.error("Error: ", e);
+    return undefined;
   }
 }
 
-export async function getLocalColleges(): Promise<CollegeData[]> {
+export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
   try {
     const pgliteDB = await getDB();
     const data = (await pgliteDB.query(`
-      SELECT college_name as "collegeName", id from colleges;
+        SELECT college_name AS "collegeName", id FROM colleges;
       `)) as Result<CollegeData>;
     return data.rows;
   } catch (e) {
-    console.error(e);
-    throw new Error("Failed to fetch local buildings");
+    console.error("Error: ", e);
+    return undefined;
   }
 }
 
-export async function getLocalDivisions(): Promise<DivisionData[]> {
+export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
   try {
     const pgliteDB = await getDB();
     const data = (await pgliteDB.query(`
-      SELECT college_name as "collegeName", id from colleges;
+        SELECT college_name AS "collegeName", id FROM colleges;
       `)) as Result<DivisionData>;
     return data.rows;
   } catch (e) {
-    console.error(e);
-    throw new Error("Failed to fetch local buildings");
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalDorms(): Promise<DormData[] | undefined> {
+  try {
+    const pgliteDB = await getDB();
+    const data = (await pgliteDB.query(`
+      SELECT
+        id,
+        dorm_name AS "dormName",
+        short_name AS "shortName",
+        lat,
+        lon,
+        gender,
+        capacity,
+        managing_office AS "managingOffice",
+        contact_email AS "contactEmail",
+        amenities,
+        osm_link AS "osmLink",
+        description,
+        is_up_managed AS "isUpManaged",
+        price_range AS "priceRange",
+        contact_phone AS "contactPhone",
+        facebook_link AS "facebookLink"
+      FROM dorms;
+      `)) as Result<DormData>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+// export async function getLocalRooms(): Promise<RoomData[] | undefined> {
+
+// }
+
+export async function getRoomPosition(
+  roomId: number,
+): Promise<RoomPosition | null | undefined> {
+  try {
+    const pgliteDB = await getDB();
+    const data = (await pgliteDB.query(`
+        SELECT
+          id,
+          floor,
+          pos_x AS "posX",
+          pos_y AS "posY",
+          updated_at AS "updatedAt",
+          room_id AS "room_id"
+        FROM room_positions
+        WHERE room_id = ${roomId}
+      `)) as Result<RoomPosition>;
+    return data.rows.length != 0 ? data.rows[0] : null;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
   }
 }
