@@ -5,13 +5,14 @@ import {
   DormData,
   RoomData,
 } from "../../types";
+import { syncBuildings } from "./utils";
 
 export const API_ROUTES = [
-  "/buildings",
-  "/colleges",
-  "/divisions",
-  "/dorms",
-  "/rooms",
+  "/api/buildings",
+  "/api/colleges",
+  "/api/divisions",
+  "/api/dorms",
+  "/api/rooms",
 ] as const;
 
 type ReturnAllData = [
@@ -41,7 +42,10 @@ export async function syncData(): Promise<{
         dorms,
         rooms,
       );
+
+      console.log(dataLength, [colleges, buildings, divisions, dorms, rooms]);
       // TODO: add sync utility fn for the tables
+      await syncBuildings(buildings);
 
       return {
         success: true,
