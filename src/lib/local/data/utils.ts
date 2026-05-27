@@ -9,6 +9,7 @@ import {
 } from "../../types";
 import { getDB } from "./pgliteDB";
 
+
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
     const pgliteDB = await getDB();
@@ -102,5 +103,26 @@ export async function getRoomPosition(
   } catch (e) {
     console.error("Error: ", e);
     return undefined;
+  }
+}
+
+export async function syncBuildings(remoteBuildings: BuildingData[]) {
+  const db = await getDB();
+  for (const b of remoteBuildings) {
+    try {
+
+      await db.query(`
+        INSERT INTO buildings (id, building_name, lon, lat, directions)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (id) DO UPDATE SET
+        id = EXCLUDED.id,
+        building_name = EXCLUDED.building_name,
+        lon = EXCLUDED.lon,
+        lat = EXCLUDED.lat,
+        directions = EXCLUDED.directions;
+        `, [b.id, b.buildingName, b.lon, b.lat, b.directions]);
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

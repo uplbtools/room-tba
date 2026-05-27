@@ -4,7 +4,6 @@ import {
   DivisionData,
   DormData,
   RoomData,
-  RoomPosition,
 } from "../../types";
 
 export const API_ROUTES = [
@@ -42,6 +41,7 @@ export async function syncData(): Promise<{
         dorms,
         rooms,
       );
+      // TODO: add sync utility fn for the tables
 
       return {
         success: true,
