@@ -31,6 +31,14 @@
         Room TBA is an open-source website built to help UPLB students find
         their rooms across the Los Baños campus.
       </p>
+      <p class="osm-attribution">
+        3D models powered by © <a 
+          href="https://www.openstreetmap.org/copyright" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="osm-link"
+        >OpenStreetMap</a> contributors
+      </p>
       <a
         href="https://github.com/smmariquit/room-tba"
         target="_blank"
@@ -417,5 +425,18 @@
     width: 1rem;
     height: 1rem;
     accent-color: #7b1113;
+  }
+  
+  .osm-attribution {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0;
+  }
+  .osm-link {
+    color: #0078a8;
+    text-decoration: none;
+  }
+  .osm-link:hover {
+    text-decoration: underline;
   }
 </style>
