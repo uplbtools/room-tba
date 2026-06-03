@@ -23,7 +23,6 @@
     "@vercel/analytics": "^2.0.1",
     "@vitejs/plugin-basic-ssl": "^2.2.0",
     "astro": "^5.18.1",
-    "better-sqlite3": "^12.8.0",
     "drizzle-orm": "^0.45.1",
     "es-toolkit": "^1.45.1",
     "maplibre-gl": "^5.21.0",
