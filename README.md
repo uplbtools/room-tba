@@ -79,3 +79,7 @@ Developed by [Simonee Ezekiel Mariquit](https://stimmie.dev)
 - **Kalinaw Lukas Aom Bebis** - Helped with developing the UI, bug fixing, and map functionalities
 - **Eunice Almeyda** - Logo Designer
 - **Mary Gwyneth Telmosa** - UI Designer
+
+
+---
+*If this project helped you out, consider [treating me to a coffee](https://kape.stimmie.dev) ☕*
