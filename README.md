@@ -83,3 +83,8 @@ Developed by [Simonee Ezekiel Mariquit](https://stimmie.dev)
 
 ---
 *If this project helped you out, consider [treating me to a coffee](https://kape.stimmie.dev) ☕*
+
+## 📊 Current State of the Code
+- **Tech Stack:** React, Astro, Svelte, Node.js/NPM
+- **Repository Size:** 109 tracked files
+- **Latest Update:** `d211303 chore: add stale issue and PR validators`
