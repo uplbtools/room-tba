@@ -1,3 +1,4 @@
+import { type DBData } from "../../context";
 import {
   BuildingData,
   CollegeData,
@@ -23,7 +24,7 @@ type ReturnAllData = [
   RoomData[],
 ];
 
-export async function syncData(): Promise<{
+export async function syncAppData(data: DBData): Promise<{
   success: boolean;
   error: Error | null;
 }> {
@@ -65,8 +66,19 @@ export async function syncData(): Promise<{
   };
 }
 
-export async function getAllData() {
-  return Promise.all(API_ROUTES.map((url) => getJSONFetch(url)));
+export async function fetchAppData(): Promise<DBData> {
+  const data =  Promise.all(API_ROUTES.map((url) => getJSONFetch(url)));
+
+  return {
+      buildings: null,
+      colleges: null,
+      classesMap: null,
+      directionCount: null,
+      divisions: null,
+      dorms: null,
+      rooms: null,
+      totalRooms : null,
+    }
 }
 
 export async function getJSONFetch(url: string) {
@@ -76,4 +88,21 @@ export async function getJSONFetch(url: string) {
 
 export function gettotalDataLength(...arrays: any[][]): number {
   return arrays.reduce((acc, curr) => acc + curr.length, 0);
+}
+
+export async function getLocalAppData(): Promise<DBData> {
+  return {
+    buildings: null,
+    colleges: null,
+    classesMap: null,
+    directionCount: null,
+    divisions: null,
+    dorms: null,
+    rooms: null,
+    totalRooms : null,
+  }
+}
+
+export async function isLocalDataValid(): boolean {
+  return false;
 }

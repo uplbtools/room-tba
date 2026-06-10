@@ -1,7 +1,7 @@
 ---
-import AppProvider from "../svelte/AppProvider.svelte";
+import AppRoot from "../svelte/AppRoot.svelte";
 import Layout from "../../layouts/Layout.astro";
-import type { AppPageData, InitialSearchState } from "../../lib/app-data";
+import type { InitialSearchState } from "../../lib/app-data";
 
 type Breadcrumb = {
   href: string;
@@ -17,7 +17,6 @@ type Props = {
   facts?: string[];
   breadcrumbs: Breadcrumb[];
   structuredData?: Record<string, unknown>[];
-  appProps: AppPageData;
   initialSearch: InitialSearchState;
 };
 
@@ -30,7 +29,6 @@ const {
   facts = [],
   breadcrumbs,
   structuredData = [],
-  appProps,
   initialSearch,
 }: Props = Astro.props;
 ---
@@ -67,8 +65,7 @@ const {
       }
     </article>
     <div class="entity-page__app">
-      <AppProvider
-        {...appProps}
+      <AppRoot
         initialSearch={initialSearch}
         suppressLandingModal={true}
         client:load
