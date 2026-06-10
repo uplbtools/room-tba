@@ -34,7 +34,7 @@
     <div class="metadata">
       <div class="data-updated">
         Course and room information is updated regularly. Last updated:
-        <strong>January 2026.</strong>
+        <strong>June 2026.</strong>
       </div>
       <div>
         <a href="/messenger" target="_blank" rel="noopener noreferrer" class="messenger-link">
