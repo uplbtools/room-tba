@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/smmariquit/room-tba/compare/v1.7.0...v1.7.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* update date of update ([cd46811](https://github.com/smmariquit/room-tba/commit/cd46811739dcf43fdc799829e96d467a6475806e))
+
 # [1.7.0](https://github.com/smmariquit/room-tba/compare/v1.6.0...v1.7.0) (2026-06-10)
 
 
