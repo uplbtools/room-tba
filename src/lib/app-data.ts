@@ -9,6 +9,7 @@ import {
 } from "../../drizzle/schema";
 import { db } from "./db";
 import { slugifySegment } from "./site";
+import { BuildingData, ClassMapValue, CollegeData, DivisionData, DormData, RoomData } from "./types";
 
 export type SearchCategory =
   | "building"
@@ -74,7 +75,8 @@ async function fetchAppData(): Promise<AppPageData> {
       courseTitle: classesTable.course_title,
     })
     .from(classesTable)
-    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.room_id));
+    .where(eq(classesTable.term_id, 1253))
+    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.room_id))
 
   const buildings = await db.select().from(buildingsTable);
   const colleges = await db.select().from(collegesTable);
