@@ -28,3 +28,4 @@ classes.json
 .vercel/
 server/**/*
 
+data/AMIS\ subjects.json

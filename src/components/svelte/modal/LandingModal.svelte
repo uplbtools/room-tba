@@ -39,6 +39,14 @@
           class="osm-link"
         >OpenStreetMap</a> contributors
       </p>
+      <p class="osm-attribution">
+        3D models powered by © <a 
+          href="https://www.openstreetmap.org/copyright" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="osm-link"
+        >OpenStreetMap</a> contributors
+      </p>
       <a
         href="https://github.com/smmariquit/room-tba"
         target="_blank"
