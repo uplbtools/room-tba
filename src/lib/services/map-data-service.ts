@@ -42,6 +42,9 @@ export async function getAllRooms(): Promise<RoomData[]> {
         },
         collegeName: collegesTable.collegeName,
         divisionName: divisionsTable.divisionName,
+        buildingId: roomsTable.buildingId,
+        collegeId: roomsTable.collegeId,
+        divisionId: roomsTable.divisionId,
       })
       .from(roomsTable)
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
@@ -78,6 +81,9 @@ export async function getAllClasses(): Promise<ClassMapValue[]> {
   try {
     const data = await db
       .select({
+        id: classesTable.id,
+        termId: classesTable.termId,
+        roomId: classesTable.roomId,
         courseCode: classesTable.courseCode,
         roomCode: roomsTable.roomCode,
         section: classesTable.section,
