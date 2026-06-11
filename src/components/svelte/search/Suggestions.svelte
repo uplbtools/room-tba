@@ -6,7 +6,6 @@
 
   const { buildings, colleges, divisions, rooms, dorms } = getAppData()();
 
-  console.log(rooms);
   const filteredDorms = $derived(
     dormFilter.value === "all"
       ? dorms
