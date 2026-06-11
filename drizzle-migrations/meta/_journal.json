@@ -1,3 +1,5 @@
+// drizzle-migrations/meta/_journal.json
+
 {
   "version": "7",
   "dialect": "sqlite",

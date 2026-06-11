@@ -1,3 +1,5 @@
+// src/lib/context.ts
+
 import { createContext } from "svelte";
 import type {
   BuildingData,

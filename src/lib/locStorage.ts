@@ -1,3 +1,5 @@
+// src/lib/locStorage.ts
+
 import type { RecentSearch } from "./types";
 
 export const isRecentSearch = (

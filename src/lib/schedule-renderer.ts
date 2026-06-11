@@ -1,3 +1,5 @@
+// src/lib/schedule-renderer.ts
+
 type Course = {
   day: string;
   time: string;
