@@ -1,6 +1,8 @@
 ---
 import EntityPage from "../../components/seo/EntityPage.astro";
-import { getDivisionSlug, loadAppData } from "../../lib/app-data";
+import { getDivisionSlug } from "../../lib/app-data";
+import { getDivisionPageData } from "../../lib/services/ssg-service";
+import { getAllDivisions } from "../../lib/services/map-data-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -9,34 +11,29 @@ import {
 } from "../../lib/site";
 
 export async function getStaticPaths() {
-  const { divisions } = await loadAppData();
+  const divisions = await getAllDivisions();
 
   return divisions.map((division) => ({
     params: { slug: getDivisionSlug(division) },
-    props: { divisionName: division.division_name },
+    props: { divisionName: division.divisionName },
   }));
 }
 
 const { divisionName } = Astro.props;
-const appData = await loadAppData();
-const division = appData.divisions.find(
-  (item) => item.division_name === divisionName,
-);
+const appData = await getDivisionPageData(divisionName);
 
-if (!division) {
+if (appData === null) {
   throw new Error(`Division not found for slug: ${divisionName}`);
 }
+const {division, roomCount} = appData;
 
-const divisionRooms = appData.rooms.filter(
-  (room) => room.divisionName === division.division_name,
-);
 const canonicalPath = `/division/${getDivisionSlug(division)}/`;
-const title = `${division.division_name} | Division at UPLB | Room TBA`;
-const description = `Find rooms associated with ${division.division_name} at UPLB. Open the division view on Room TBA to browse linked rooms.`;
-const intro = `${division.division_name} currently has ${divisionRooms.length} room${divisionRooms.length === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the division result view.`;
+const title = `${division.divisionName} | Division at UPLB | Room TBA`;
+const description = `Find rooms associated with ${division.divisionName} at UPLB. Open the division view on Room TBA to browse linked rooms.`;
+const intro = `${division.divisionName} currently has ${roomCount} room${roomCount === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the division result view.`;
 
 const facts = [
-  `${divisionRooms.length} room${divisionRooms.length === 1 ? "" : "s"} linked to this division`,
+  `${roomCount} room${roomCount === 1 ? "" : "s"} linked to this division`,
 ];
 
 const structuredData = jsonLd(
@@ -44,12 +41,12 @@ const structuredData = jsonLd(
   breadcrumbSchema([
     { name: "Home", path: "/" },
     { name: "Divisions", path: "/division/" },
-    { name: division.division_name, path: canonicalPath },
+    { name: division.divisionName, path: canonicalPath },
   ]),
   {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
-    name: division.division_name,
+    name: division.divisionName,
     description,
     url: absoluteUrl(canonicalPath),
     parentOrganization: {
@@ -64,14 +61,14 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   {canonicalPath}
-  heading={`${division.division_name} at UPLB`}
+  heading={`${division.divisionName} at UPLB`}
   {intro}
   {facts}
   breadcrumbs={[
     { href: "/", label: "Home" },
     { href: "/division/", label: "Divisions" },
-    { href: canonicalPath, label: division.division_name },
+    { href: canonicalPath, label: division.divisionName },
   ]}
   structuredData={structuredData}
-  initialSearch={{ category: "division", value: division.division_name }}
+  initialSearch={{ category: "division", value: division.divisionName }}
 />
