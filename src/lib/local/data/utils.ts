@@ -8,6 +8,7 @@ import {
   RoomPosition,
 } from "../../types";
 import { getDB } from "./pgliteDB";
+import { DBData } from "../../context";
 
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
@@ -110,7 +111,6 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
   const db = await getDB();
   for (const b of remoteBuildings) {
     try {
-
       await db.query(`
         INSERT INTO buildings (id, building_name, lon, lat, directions)
         VALUES ($1, $2, $3, $4, $5)
@@ -125,4 +125,8 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
       console.error(e);
     }
   }
+}
+
+export async function syncAllData(data: DBData) {
+
 }

@@ -1,12 +1,5 @@
 import { type DBData } from "../../context";
-import {
-  BuildingData,
-  CollegeData,
-  DivisionData,
-  DormData,
-  RoomData,
-} from "../../types";
-import { syncBuildings } from "./utils";
+import { syncAllData, syncBuildings } from "./utils";
 
 export const API_ROUTES = [
   "/api/buildings",
@@ -16,51 +9,30 @@ export const API_ROUTES = [
   "/api/rooms",
 ] as const;
 
-type ReturnAllData = [
-  BuildingData[],
-  CollegeData[],
-  DivisionData[],
-  DormData[],
-  RoomData[],
-];
-
 // TODO: change the behavior of the fn
 export async function syncAppData(data: DBData): Promise<{
   success: boolean;
   error: Error | null;
 }> {
-  const localSyncHash = localStorage.getItem("sync-hash");
-  const current = await (await fetch("/api/check-sync")).text();
+  const syncKeys = getSyncKeysFromLs();
 
-  if (localSyncHash === null || localSyncHash !== current) {
+  if (syncKeys === null) {
     try {
-      const [buildings, colleges, divisions, dorms, rooms] =
-        (await getAllData()) as ReturnAllData;
-
-      const dataLength = gettotalDataLength(
-        buildings,
-        colleges,
-        divisions,
-        dorms,
-        rooms,
-      );
-
-      console.log(dataLength, [colleges, buildings, divisions, dorms, rooms]);
-      // TODO: add sync utility fn for the tables
-      await syncBuildings(buildings);
-
-      return {
-        success: true,
-        error: null,
-      };
-    } catch {
-      const err = new Error("Failed to sync data");
+      await syncAllData(data);
+    } catch (e) {
+      console.error(e);
       return {
         success: false,
-        error: err,
-      };
+        error: new Error("Failed to sync data")
+      }
     }
   }
+
+  // TOOD: implement the function
+  if (await isLocalDataValid()) {
+    // if (syncKeys["building"] !== )
+  }
+
   return {
     success: true,
     error: null,
@@ -106,7 +78,7 @@ export async function getLocalAppData(): Promise<DBData> {
 
 // TODO: implement predicate fn
 export async function isLocalDataValid(): Promise<boolean> {
-  const syncKeys = getKeysFromLs();
+  const syncKeys = getSyncKeysFromLs();
   if (syncKeys === null) return false;
   for (const [table, key] of Object.entries(syncKeys)) {
     try {
@@ -122,7 +94,7 @@ export async function isLocalDataValid(): Promise<boolean> {
   return true;
 }
 
-function getKeysFromLs(): {
+function getSyncKeysFromLs(): {
   [key: string]: string;
 } | null {
   const lsStore = localStorage.getItem("sync-key");
