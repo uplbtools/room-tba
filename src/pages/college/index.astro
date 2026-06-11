@@ -7,15 +7,15 @@ const { colleges, rooms } = await loadAppData();
 
 const items = colleges
   .slice()
-  .sort((a, b) => a.college_name.localeCompare(b.college_name))
+  .sort((a, b) => a.collegeName.localeCompare(b.collegeName))
   .map((college) => {
     const roomCount = rooms.filter(
-      (room) => room.collegeName === college.college_name,
+      (room) => room.collegeName === college.collegeName,
     ).length;
 
     return {
       href: `/college/${getCollegeSlug(college)}/`,
-      label: college.college_name,
+      label: college.collegeName,
       description: `${roomCount} room${roomCount === 1 ? "" : "s"} connected to this college`,
     };
   });
