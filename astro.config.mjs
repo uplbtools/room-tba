@@ -3,9 +3,11 @@ import { defineConfig, envField } from "astro/config";
 import react from "@astrojs/react";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
+import vercel from "@astrojs/vercel";
 // https://astro.build/config
 export default defineConfig({
   site: "https://room-tba.stimmie.dev",
+
   integrations: [
     react(),
     svelte(),
@@ -35,6 +37,7 @@ export default defineConfig({
       },
     }),
   ],
+
   vite: {
     preview: {
       host: "127.0.0.1",
@@ -46,10 +49,12 @@ export default defineConfig({
       exclude: ['@electric-sql/pglite']
     }
   },
+
   redirects: {
     "/contribute": "https://forms.gle/nVUMuuZgfW1HgXc98",
     "/messenger": "https://m.me/j/AbbjA1ouHCefGTkU",
   },
+
   env: {
     schema: {
       NEON_CONNECTION_STRING: envField.string({
@@ -58,4 +63,6 @@ export default defineConfig({
       })
     }
   },
+
+  adapter: vercel(),
 });
