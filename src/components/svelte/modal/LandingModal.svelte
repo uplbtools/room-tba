@@ -28,8 +28,16 @@
   <div class="content-body">
     <div class="description-container">
       <p class="description">
-        Room TBA is an open-source website built to help UPLB students find
-        their rooms across the Los Baños campus.
+        Room TBA is an open-source website built to help students find
+        their rooms across UPLB — the largest university campus in the Philippines.
+      </p>
+      <p class="osm-attribution">
+        3D models powered by © <a 
+          href="https://www.openstreetmap.org/copyright" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="osm-link"
+        >OpenStreetMap</a> contributors
       </p>
       <p class="osm-attribution">
         3D models powered by © <a 
