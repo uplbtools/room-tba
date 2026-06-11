@@ -3,10 +3,10 @@
   import { getAppData } from "../../../lib/context";
   import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { rooms, colleges } = getAppData();
+  const { rooms, colleges } = getAppData()();
 
   const college = $derived(
-    colleges.find((c) => c.college_name === queryStore.queryValue),
+    colleges.find((c) => c.collegeName === queryStore.queryValue),
   );
 
   const collegeRooms = $derived(
@@ -17,7 +17,7 @@
 <div class="college-query-wrapper">
   {#if college}
     <div class="college-header">
-      <h2 class="college-title">{college.college_name}</h2>
+      <h2 class="college-title">{college.collegeName}</h2>
     </div>
   {/if}
 

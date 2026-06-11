@@ -3,7 +3,7 @@
   import { queryStore } from "../../../lib/store.svelte";
   import RoomDisplay from "./RoomDisplay.svelte";
 
-  const { classesMap, rooms } = getAppData();
+  const { classesMap, rooms } = getAppData()();
 
   const filteredRooms = $derived(
     rooms

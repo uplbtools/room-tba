@@ -8,7 +8,7 @@
   import Classes from "./Classes.svelte";
   import { CornerRightUp } from "@lucide/svelte";
 
-  const { rooms, classesMap } = getAppData();
+  const { rooms, classesMap } = getAppData()();
 
   const roomData = $derived(
     rooms.find((r) => r.code === queryStore.queryValue),

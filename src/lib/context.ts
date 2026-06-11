@@ -13,4 +13,4 @@ export type AppContextData = {
 }
 export type DBData = Omit<AppContextData, "loaded">
 
-export const [getAppData, setAppData] = createContext<AppContextData>();
+export const [getAppData, setAppData] = createContext<() => AppContextData>();
