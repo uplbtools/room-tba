@@ -19,7 +19,7 @@
     type JeepneyRoute,
     type JeepneyStop,
   } from "../../constants/jeepney-routes";
-  const { buildings, rooms, dorms } = getAppData();
+  const { buildings, rooms, dorms } = getAppData()();
   $inspect(buildings);
   const filteredDorms = $derived(
     dormFilter.value === "all"

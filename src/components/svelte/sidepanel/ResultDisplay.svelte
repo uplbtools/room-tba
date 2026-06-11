@@ -4,7 +4,7 @@
   import RoomDisplay from "./RoomDisplay.svelte";
 
   const MAX_DISPLAY_RESULT = 12;
-  const { classesMap } = getAppData();
+  const { classesMap } = getAppData()();
   let paginateOffset = $state(0);
 
   interface Props {

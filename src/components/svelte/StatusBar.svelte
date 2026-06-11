@@ -4,7 +4,7 @@
   import { getAppData } from "../../lib/context";
   import { modalStore } from "../../lib/store.svelte";
 
-  const { directionCount, totalRooms } = getAppData();
+  const { directionCount, totalRooms } = getAppData()();
   let isOpen = $state(false);
 </script>
 

@@ -4,7 +4,7 @@
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
-  const { buildings, colleges, divisions, rooms, dorms } = getAppData();
+  const { buildings, colleges, divisions, rooms, dorms } = getAppData()();
 
   console.log(rooms);
   const filteredDorms = $derived(

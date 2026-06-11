@@ -3,10 +3,10 @@
   import { getAppData } from "../../../lib/context";
   import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { rooms, divisions } = getAppData();
+  const { rooms, divisions } = getAppData()();
 
   const division = $derived(
-    divisions.find((d) => d.division_name === queryStore.queryValue),
+    divisions.find((d) => d.divisionName === queryStore.queryValue),
   );
 
   const divisionRooms = $derived(
@@ -17,7 +17,7 @@
 <div class="division-query-wrapper">
   {#if division}
     <div class="division-header">
-      <h2 class="division-title">{division.division_name}</h2>
+      <h2 class="division-title">{division.divisionName}</h2>
     </div>
   {/if}
 

@@ -14,16 +14,16 @@
     TriangleAlert,
   } from "@lucide/svelte";
 
-  const { dorms } = getAppData();
+  const { dorms } = getAppData()();
 
   const dorm = $derived(
-    dorms.find((d) => d.dorm_name === queryStore.queryValue),
+    dorms?.find((d) => d.dormName === queryStore.queryValue),
   );
 
-  const amenities = $derived<string[]>(() => {
+  const amenities = $derived<() => string[]>(() => {
     if (!dorm?.amenities) return [];
     try {
-      return JSON.parse(dorm.amenities);
+      return dorm?.amenities;
     } catch {
       return [];
     }
@@ -51,25 +51,25 @@
       : null,
   );
 
-  /** Only show short_name when it's a real abbreviation, not just the first word */
+  /** Only show shortName when it's a real abbreviation, not just the first word */
   const showShortName = $derived(() => {
-    if (!dorm?.short_name) return false;
-    const first = dorm.dorm_name.split(/\s+/)[0].toLowerCase();
-    return dorm.short_name.toLowerCase() !== first;
+    if (!dorm || !dorm.shortName) return false;
+    const first = dorm?.dormName.split(/\s+/)[0].toLowerCase();
+    return dorm.shortName.toLowerCase() !== first;
   });
 </script>
 
 <div class="dorm-result-wrapper">
   {#if dorm}
     <div class="dorm-header">
-      <h2 class="dorm-title">{dorm.dorm_name}</h2>
+      <h2 class="dorm-title">{dorm.dormName}</h2>
       {#if showShortName()}
-        <span class="dorm-short-name">{dorm.short_name}</span>
+        <span class="dorm-short-name">{dorm.shortName}</span>
       {/if}
     </div>
 
     <div class="dorm-badges">
-      {#if dorm.is_up_managed}
+      {#if dorm.isUpManaged}
         <span class="badge up-badge">
           <BadgeCheck size={14} />
           UP-managed
@@ -91,11 +91,11 @@
       {/if}
     </div>
 
-    {#if dorm.price_range}
+    {#if dorm.priceRange}
       <div class="price-row">
         <CircleDollarSign size={16} />
-        <span class="price-value">{dorm.price_range}</span>
-        {#if !dorm.is_up_managed}
+        <span class="price-value">{dorm.priceRange}</span>
+        {#if !dorm.isUpManaged}
           <span class="price-disclaimer">
             <TriangleAlert size={12} />
             Verify with owner
@@ -132,9 +132,9 @@
           Google Maps
         </a>
       {/if}
-      {#if dorm.facebook_link}
+      {#if dorm.facebookLink}
         <a
-          href={dorm.facebook_link}
+          href={dorm.facebookLink}
           target="_blank"
           rel="noopener noreferrer"
           class="action-btn social-btn"
@@ -150,37 +150,37 @@
     <div class="dorm-details">
       <h3 class="section-title">Details</h3>
 
-      {#if dorm.managing_office}
+      {#if dorm.managingOffice}
         <div class="detail-row">
           <Building2 size={16} />
           <div>
             <span class="detail-label">Managing Office</span>
-            <span class="detail-value">{dorm.managing_office}</span>
+            <span class="detail-value">{dorm.managingOffice}</span>
           </div>
         </div>
       {/if}
 
-      {#if dorm.contact_email}
+      {#if dorm.contactEmail}
         <div class="detail-row">
           <Mail size={16} />
           <div>
             <span class="detail-label">Email</span>
             <a
-              href="mailto:{dorm.contact_email}"
+              href="mailto:{dorm.contactEmail}"
               class="detail-value email-link"
             >
-              {dorm.contact_email}
+              {dorm.contactEmail}
             </a>
           </div>
         </div>
       {/if}
 
-      {#if dorm.contact_phone}
+      {#if dorm.contactPhone}
         <div class="detail-row">
           <Phone size={16} />
           <div>
             <span class="detail-label">Phone</span>
-            <span class="detail-value">{dorm.contact_phone}</span>
+            <span class="detail-value">{dorm.contactPhone}</span>
           </div>
         </div>
       {/if}
@@ -198,7 +198,7 @@
     {/if}
 
     <div class="dorm-footer">
-      {#if dorm.is_up_managed}
+      {#if dorm.isUpManaged}
         <a
           href="https://uplbosa.org"
           target="_blank"

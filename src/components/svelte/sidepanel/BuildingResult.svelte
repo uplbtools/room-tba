@@ -4,10 +4,10 @@
   import ResultDisplay from "./ResultDisplay.svelte";
   import { CornerRightUp } from "@lucide/svelte";
 
-  const { rooms, buildings } = getAppData();
+  const { rooms, buildings } = getAppData()();
 
   const building = $derived(
-    buildings.find((b) => b.building_name === queryStore.queryValue),
+    buildings.find((b) => b.buildingName === queryStore.queryValue),
   );
 
   const buildingRooms = $derived(
@@ -18,7 +18,7 @@
 <div class="building-query-wrapper">
   {#if building}
     <div class="building-header">
-      <h2 class="building-title">{building.building_name}</h2>
+      <h2 class="building-title">{building.buildingName}</h2>
       {#if building.directions}
         <p class="building-desc">{building.directions}</p>
       {/if}
