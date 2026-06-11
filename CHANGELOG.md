@@ -1,3 +1,11 @@
+## [1.7.2](https://github.com/smmariquit/room-tba/compare/v1.7.1...v1.7.2) (2026-06-11)
+
+
+### Bug Fixes
+
+* acknowledge where 3D building models come from ([811ae15](https://github.com/smmariquit/room-tba/commit/811ae158e73f4b8e13b1d484b8aaa3409b810d96))
+* add largest campus to landing modal description ([1040b6d](https://github.com/smmariquit/room-tba/commit/1040b6d594d0313988c46bca3a2a20dddba2db29))
+
 ## [1.7.1](https://github.com/smmariquit/room-tba/compare/v1.7.0...v1.7.1) (2026-06-10)
 
 
