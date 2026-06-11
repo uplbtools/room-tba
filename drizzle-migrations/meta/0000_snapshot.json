@@ -1,5 +1,3 @@
-// drizzle-migrations/meta/0000_snapshot.json
-
 {
   "version": "6",
   "dialect": "sqlite",
