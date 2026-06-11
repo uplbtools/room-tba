@@ -24,6 +24,7 @@ type ReturnAllData = [
   RoomData[],
 ];
 
+// TODO: change the behavior of the fn
 export async function syncAppData(data: DBData): Promise<{
   success: boolean;
   error: Error | null;
@@ -66,19 +67,18 @@ export async function syncAppData(data: DBData): Promise<{
   };
 }
 
+// TODO: change the behavior of the fn
 export async function fetchAppData(): Promise<DBData> {
-  const data =  Promise.all(API_ROUTES.map((url) => getJSONFetch(url)));
-
   return {
-      buildings: null,
-      colleges: null,
-      classesMap: null,
-      directionCount: null,
-      divisions: null,
-      dorms: null,
-      rooms: null,
-      totalRooms : null,
-    }
+    buildings: null,
+    colleges: null,
+    classesMap: null,
+    directionCount: null,
+    divisions: null,
+    dorms: null,
+    rooms: null,
+    totalRooms: null,
+  };
 }
 
 export async function getJSONFetch(url: string) {
@@ -90,6 +90,7 @@ export function gettotalDataLength(...arrays: any[][]): number {
   return arrays.reduce((acc, curr) => acc + curr.length, 0);
 }
 
+// TODO: implement local data retrieval fn
 export async function getLocalAppData(): Promise<DBData> {
   return {
     buildings: null,
@@ -99,10 +100,46 @@ export async function getLocalAppData(): Promise<DBData> {
     divisions: null,
     dorms: null,
     rooms: null,
-    totalRooms : null,
-  }
+    totalRooms: null,
+  };
 }
 
-export async function isLocalDataValid(): boolean {
-  return false;
+// TODO: implement predicate fn
+export async function isLocalDataValid(): Promise<boolean> {
+  const syncKeys = getKeysFromLs();
+  if (syncKeys === null) return false;
+  for (const [table, key] of Object.entries(syncKeys)) {
+    try {
+      const tableOnline = (await getJSONFetch(`/api/check/${table}`)) as {
+        key: string;
+      };
+      if (key !== tableOnline.key) return false;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
+  }
+  return true;
+}
+
+function getKeysFromLs(): {
+  [key: string]: string;
+} | null {
+  const lsStore = localStorage.getItem("sync-key");
+
+  if (typeof lsStore !== "string") return null;
+
+  try {
+    const keys = JSON.parse(lsStore);
+    if (typeof keys === "object" && "building" in keys) {
+      return keys as {
+        [key: string]: string;
+      };
+    } else {
+      return null;
+    }
+  } catch (e) {
+    console.log("Error: the sync keys in the localStorage was corrupted");
+    return null;
+  }
 }
