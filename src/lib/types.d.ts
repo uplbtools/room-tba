@@ -43,6 +43,9 @@ type RoomData = {
     lon: number | null;
     directions: string | null;
   } | null;
+  buildingId: number | null;
+  collegeId: number | null;
+  divisionId: number | null;
   collegeName: string | null;
   divisionName: string | null;
 };
@@ -63,6 +66,9 @@ type ClassMapValue = {
   schedule: string[] | null;
   directions: string | null;
   courseTitle: string | null;
+  roomId: number | null;
+  termId: number | null;
+  id: number;
 };
 
 type CollegeData = {

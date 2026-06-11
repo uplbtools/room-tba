@@ -12,6 +12,12 @@ import {
   getLocalColleges,
   getLocalDivisions,
   getLocalDorms,
+  syncBuildings,
+  syncClasses,
+  syncColleges,
+  syncDivisions,
+  syncDorms,
+  syncRooms,
 } from "./utils";
 
 export async function getJSONFetch<T>(url: string) {
@@ -34,7 +40,7 @@ export async function isLocalDataValid(): Promise<boolean> {
   return true;
 }
 
-function getSyncKeysFromLs(): {
+export function getSyncKeysFromLs(): {
   [key: string]: string;
 } | null {
   const lsStore = localStorage.getItem("sync-key");
@@ -43,12 +49,12 @@ function getSyncKeysFromLs(): {
     localStorage.setItem(
       "sync-key",
       `{
-      buildings: "",
-      colleges: "",
-      divisions: "",
-      rooms: "",
-      dorms: "",
-      classes: ""
+      "buildings": "",
+      "colleges": "",
+      "divisions": "",
+      "rooms": "",
+      "dorms": "",
+      "classes": ""
     }`,
     );
     return null;
@@ -56,7 +62,7 @@ function getSyncKeysFromLs(): {
 
   try {
     const keys = JSON.parse(lsStore);
-    if (typeof keys === "object" && "building" in keys) {
+    if (typeof keys === "object" && "buildings" in keys) {
       return keys as {
         [key: string]: string;
       };
@@ -64,42 +70,63 @@ function getSyncKeysFromLs(): {
       return null;
     }
   } catch (e) {
-    console.log("Error: the sync keys in the localStorage was corrupted");
+    console.error("Error: the sync keys in the localStorage was corrupted");
     localStorage.setItem(
       "sync-key",
       `{
-      buildings: "",
-      colleges: "",
-      divisions: "",
-      rooms: "",
-      dorms: "",
-      classes: ""
+      "buildings": "",
+      "colleges": "",
+      "divisions": "",
+      "rooms": "",
+      "dorms": "",
+      "classes": ""
     }`,
     );
     return null;
   }
 }
 
-export async function isLocalTableValid(tableName: string): Promise<boolean> {
-  const syncKeyLs = getSyncKeysFromLs();
-  if (syncKeyLs === null) return false;
+export async function localTableCheck(tableName: string): Promise<{
+  valid: boolean;
+  newKey: string | null;
+}> {
   try {
-    const tableSyncKey = syncKeyLs[tableName];
     const remoteSyncKey = await getSyncKey(tableName);
-    return (
-      typeof tableSyncKey === "string" &&
-      remoteSyncKey !== null &&
-      tableSyncKey === remoteSyncKey
-    );
+    const syncKeyLs = getSyncKeysFromLs();
+    if (syncKeyLs === null)
+      return {
+        valid: false,
+        newKey: remoteSyncKey,
+      };
+    const tableSyncKey = syncKeyLs[tableName];
+    return {
+      valid:
+        typeof tableSyncKey === "string" &&
+        remoteSyncKey !== null &&
+        tableSyncKey === remoteSyncKey,
+      newKey: remoteSyncKey,
+    };
   } catch (e) {
     console.error(e);
-    return false;
+    return {
+      valid: false,
+      newKey: null,
+    };
   }
 }
 
-async function getSyncKey(table: string) {
+function updateSyncKeyFromLs(tableName: string, newKey: string) {
+  const syncKeys = getSyncKeysFromLs();
+  console.log(syncKeys);
+  console.log(newKey);
+  if (syncKeys === null) return;
+  syncKeys[tableName] = newKey;
+  localStorage.setItem("sync-key", JSON.stringify(syncKeys));
+}
+
+export async function getSyncKey(table: string) {
   try {
-    const tableOnline = (await getJSONFetch<{
+    const tableOnline = await getJSONFetch<{
       success: boolean;
       error: string | null;
       data: {
@@ -107,7 +134,7 @@ async function getSyncKey(table: string) {
         tableName: string | null;
         syncKey: string | null;
       };
-    }>(`/api/check/${table}`));
+    }>(`/api/check/${table}`);
     return tableOnline.data.syncKey;
   } catch (e) {
     console.error(e);
@@ -115,59 +142,54 @@ async function getSyncKey(table: string) {
   }
 }
 
-export async function getSyncedBuildings(): Promise<BuildingData[]> {
-  if (await isLocalTableValid("buildings"))
-    return (await getLocalBuildings()) ?? [];
+export function getSyncedTable<T>(
+  tableName: string,
+  localDataService: () => Promise<T[] | undefined>,
+  localSyncService: (b: T[]) => Promise<void>,
+): () => Promise<T[]> {
+  return async () => {
+    try {
+      const res = await localTableCheck(tableName);
+      if (res.valid) return (await localDataService()) ?? [];
 
-  try {
-    const fetchedBuildings =
-      await getJSONFetch<BuildingData[]>("/api/buildings");
-    return fetchedBuildings;
-  } catch (e) {
-    return [];
-  }
+      console.log(res);
+      const fetchedData = await getJSONFetch<T[]>(`/api/${tableName}`);
+      updateSyncKeyFromLs(tableName, res.newKey ?? "");
+      await localSyncService(fetchedData);
+      return fetchedData;
+    } catch (e) {
+      return [];
+    }
+  };
 }
 
-export async function getSyncedColleges(): Promise<CollegeData[]> {
-  if (await isLocalTableValid("colleges"))
-    return (await getLocalColleges()) ?? [];
+export const getSyncedBuildings = getSyncedTable<BuildingData>(
+  "buildings",
+  getLocalBuildings,
+  syncBuildings,
+);
 
-  try {
-    const fetchedColleges = await getJSONFetch<CollegeData[]>("/api/colleges");
-    return fetchedColleges;
-  } catch (e) {
-    return [];
-  }
-}
+export const getSyncedColleges = getSyncedTable<CollegeData>(
+  "colleges",
+  getLocalColleges,
+  syncColleges,
+);
 
-export async function getSyncedDivisions(): Promise<DivisionData[]> {
-  if (await isLocalTableValid("divisions"))
-    return (await getLocalDivisions()) ?? [];
+export const getSyncedDivisions = getSyncedTable<DivisionData>(
+  "divisions",
+  getLocalDivisions,
+  syncDivisions,
+);
 
-  try {
-    const fetchedDivisions =
-      await getJSONFetch<DivisionData[]>("/api/divisions");
-    return fetchedDivisions;
-  } catch (e) {
-    return [];
-  }
-}
+export const getSyncedDorms = getSyncedTable<DormData>("dorms", getLocalDorms, syncDorms);
 
-export async function getSyncedDorms(): Promise<DormData[]> {
-  if (await isLocalTableValid("dorms")) return (await getLocalDorms()) ?? [];
-
-  try {
-    const fetchedDorms = await getJSONFetch<DormData[]>("/api/dorms");
-    return fetchedDorms;
-  } catch (e) {
-    return [];
-  }
-}
 export async function getSyncedRooms(): Promise<RoomData[]> {
-  // if (await isLocalTableValid("rooms"))
+  // if (await isLocalTablevalidid("rooms"))
 
   try {
     const fetchedRooms = await getJSONFetch<RoomData[]>("/api/rooms");
+
+    await syncRooms(fetchedRooms);
     return fetchedRooms;
   } catch (e) {
     return [];
@@ -179,6 +201,8 @@ export async function getSyncedClasses(): Promise<
 > {
   try {
     const fetchedClasses = await getJSONFetch<ClassMapValue[]>("/api/classes");
+
+    await syncClasses(fetchedClasses);
 
     const classesMap = new Map<string, ClassMapValue[]>();
     fetchedClasses.forEach((classData) => {
