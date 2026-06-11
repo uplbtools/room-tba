@@ -1,9 +1,9 @@
 <script lang="ts">
   import { isBrowser } from "es-toolkit";
   import type { InitialSearchState } from "../../lib/app-data";
-  import { AppContextData, DBData, setAppData } from "../../lib/context";
+  import { type AppContextData, type DBData, setAppData } from "../../lib/context";
   import { queryStore } from "../../lib/store.svelte";
-  import {
+  import type {
     BuildingData,
     ClassMapValue,
     CollegeData,
@@ -14,10 +14,13 @@
   import Entry from "./Entry.svelte";
   import { onMount } from "svelte";
   import {
-    fetchAppData,
-    getLocalAppData,
-    isLocalDataValid,
-    syncAppData,
+    getSyncedBuildings,
+    getSyncedClasses,
+    getSyncedColleges,
+    getSyncedDivisions,
+    getSyncedDorms,
+    getSyncedRooms,
+    getSyncedRoomsData,
   } from "../../lib/local/data/sync";
 
   type MetadataProps = {
@@ -48,6 +51,7 @@
   });
 
   queryStore.hydrateQuery(
+    // svelte-ignore state_referenced_locally
     metadata.initialSearch
       ? {
           category: metadata.initialSearch.category,
@@ -65,13 +69,19 @@
     if (!isBrowser()) return;
 
     let data: DBData;
-    if (isLocalDataValid()) {
-      data = await getLocalAppData();
-    } else {
-      data = await fetchAppData();
-      await syncAppData(data);
-    }
-
+    // if (await isLocalDataValid()) {
+    //   data = await getLocalAppData();
+    // } else {
+    data = {
+      buildings: await getSyncedBuildings(),
+      colleges: await getSyncedColleges(),
+      divisions: await getSyncedDivisions(),
+      dorms: await getSyncedDorms(),
+      rooms: await getSyncedRooms(),
+      classesMap: await getSyncedClasses(),
+      ...(await getSyncedRoomsData()),
+    };
+    // }
     loadAppData(data);
   });
 
@@ -87,11 +97,14 @@
 
     loaded = true;
   }
+
   // svelte-ignore state_referenced_locally
-  setAppData(appData);
+  setAppData(() => appData);
 </script>
 
+{#if (appData.loaded)}
 <Entry
   initialSearch={metadata.initialSearch}
   suppressLandingModal={metadata.suppressLandingModal ?? false}
 />
+{/if}

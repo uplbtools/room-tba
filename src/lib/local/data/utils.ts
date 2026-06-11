@@ -127,6 +127,16 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
   }
 }
 
-export async function syncAllData(data: DBData) {
 
+export async function getLocalAppData(): Promise<DBData> {
+  return {
+    buildings: null,
+    colleges: null,
+    classesMap: null,
+    directionCount: null,
+    divisions: null,
+    dorms: null,
+    rooms: null,
+    totalRooms: null,
+  };
 }
