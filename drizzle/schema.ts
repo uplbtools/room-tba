@@ -1,4 +1,4 @@
-import { pgTable, integer, text, varchar, doublePrecision, boolean, foreignKey, numeric, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, integer, text, varchar, doublePrecision, boolean, foreignKey, numeric, timestamp, uuid } from "drizzle-orm/pg-core"
 
 
 
@@ -98,5 +98,6 @@ export const roomsTable = pgTable("rooms", {
 
 export const updateTable = pgTable("update", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  lastAdminUpdated: timestamp("last_admin_updated")
+  tableName: varchar("table_name", {length: 20}),
+  syncKey: uuid("sync_key").defaultRandom()
 })
