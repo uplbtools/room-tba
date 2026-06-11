@@ -1,3 +1,10 @@
+## [1.7.3](https://github.com/smmariquit/room-tba/compare/v1.7.2...v1.7.3) (2026-06-11)
+
+
+### Bug Fixes
+
+* remove invalid comment headers from JSON files ([68cbe95](https://github.com/smmariquit/room-tba/commit/68cbe95e847900a21c5426cdb58caa4845b290e1))
+
 ## [1.7.2](https://github.com/smmariquit/room-tba/compare/v1.7.1...v1.7.2) (2026-06-11)
 
 
