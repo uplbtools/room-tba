@@ -9,6 +9,7 @@ import {
 } from "../../drizzle/schema";
 import { db } from "./db";
 import { slugifySegment } from "./site";
+import { BuildingData, ClassMapValue, CollegeData, DivisionData, DormData, RoomData } from "./types";
 
 export type SearchCategory =
   | "building"
@@ -47,34 +48,34 @@ async function fetchAppData(): Promise<AppPageData> {
   const rooms = await db
     .select({
       id: roomsTable.id,
-      code: roomsTable.room_code,
+      code: roomsTable.roomCode,
       directions: roomsTable.directions,
       building: {
-        name: buildingsTable.building_name,
+        name: buildingsTable.buildingName,
         lat: buildingsTable.lat,
         lon: buildingsTable.lon,
         directions: buildingsTable.directions,
       },
-      collegeName: collegesTable.college_name,
-      divisionName: divisionsTable.division_name,
+      collegeName: collegesTable.collegeName,
+      divisionName: divisionsTable.divisionName,
     })
     .from(roomsTable)
-    .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.building_id))
-    .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.division_id))
-    .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.college_id));
+    .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+    .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
+    .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId));
 
   const classes = await db
     .select({
-      courseCode: classesTable.course_code,
-      roomCode: roomsTable.room_code,
+      courseCode: classesTable.courseCode,
+      roomCode: roomsTable.roomCode,
       section: classesTable.section,
       type: classesTable.type,
       schedule: classesTable.schedule,
       directions: roomsTable.directions,
-      courseTitle: classesTable.course_title,
+      courseTitle: classesTable.courseTitle,
     })
     .from(classesTable)
-    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.room_id));
+    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId));
 
   const buildings = await db.select().from(buildingsTable);
   const colleges = await db.select().from(collegesTable);
@@ -126,38 +127,32 @@ export function getRoomSlug(room: Pick<RoomData, "code">) {
 
 export function getRoomRouteSlug(
   room: Pick<RoomData, "id" | "code">,
-  rooms: Array<Pick<RoomData, "id" | "code">>,
 ) {
   const baseSlug = getRoomSlug(room);
-  const hasCollision =
-    rooms.filter((item) => getRoomSlug(item) === baseSlug).length > 1;
 
-  return hasCollision ? `${baseSlug}-${room.id}` : baseSlug;
+  return `${baseSlug}-${room.id}`;
 }
 
-export function getBuildingSlug(building: Pick<BuildingData, "building_name">) {
-  return slugifySegment(building.building_name);
+export function getBuildingSlug(building: Pick<BuildingData, "buildingName">) {
+  return slugifySegment(building.buildingName);
 }
 
-export function getDivisionSlug(division: Pick<DivisionData, "division_name">) {
-  return slugifySegment(division.division_name);
+export function getDivisionSlug(division: Pick<DivisionData, "divisionName">) {
+  return slugifySegment(division.divisionName);
 }
 
-export function getCollegeSlug(college: Pick<CollegeData, "college_name">) {
-  return slugifySegment(college.college_name);
+export function getCollegeSlug(college: Pick<CollegeData, "collegeName">) {
+  return slugifySegment(college.collegeName);
 }
 
-export function getDormSlug(dorm: Pick<DormData, "dorm_name">) {
-  return slugifySegment(dorm.dorm_name);
+export function getDormSlug(dorm: Pick<DormData, "dormName">) {
+  return slugifySegment(dorm.dormName);
 }
 
 export function getDormRouteSlug(
-  dorm: Pick<DormData, "id" | "dorm_name">,
-  dorms: Array<Pick<DormData, "id" | "dorm_name">>,
+  dorm: Pick<DormData, "id" | "dormName">,,
 ) {
   const baseSlug = getDormSlug(dorm);
-  const hasCollision =
-    dorms.filter((item) => getDormSlug(item) === baseSlug).length > 1;
 
-  return hasCollision ? `${baseSlug}-${dorm.id}` : baseSlug;
+  return `${baseSlug}-${dorm.id}`;
 }
