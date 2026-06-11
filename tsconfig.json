@@ -1,3 +1,5 @@
+// tsconfig.json
+
 {
   // "extends": "@astrojs/ts-plugin/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],

@@ -1,3 +1,5 @@
+// drizzle/schema.ts
+
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 
 export const buildingsTable = sqliteTable("buildings", (s) => ({

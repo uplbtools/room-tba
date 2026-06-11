@@ -1,3 +1,5 @@
+// .releaserc.json
+
 {
   "branches": ["main"],
   "plugins": [

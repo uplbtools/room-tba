@@ -1,3 +1,5 @@
+// src/constants/contributors.ts
+
 import type { ContributorInfo, DeveloperInfo } from "../lib/types";
 
 export const developers: DeveloperInfo[] = [

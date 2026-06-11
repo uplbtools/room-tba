@@ -1,3 +1,5 @@
+// src/lib/types.d.ts
+
 import type { QueryStoreState } from "./store.svelte";
 
 export type AppData = {

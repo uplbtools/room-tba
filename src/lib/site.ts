@@ -1,3 +1,5 @@
+// src/lib/site.ts
+
 export const SITE_URL = "https://room-tba.stimmie.dev";
 export const SITE_NAME = "Room TBA";
 export const DEFAULT_TITLE =

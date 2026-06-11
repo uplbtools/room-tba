@@ -1,3 +1,5 @@
+// src/components/pwa.ts
+
 import { registerSW } from "virtual:pwa-register";
 
 window.addEventListener("load", () => {
