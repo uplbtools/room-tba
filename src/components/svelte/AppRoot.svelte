@@ -1,7 +1,11 @@
 <script lang="ts">
   import { isBrowser } from "es-toolkit";
   import type { InitialSearchState } from "../../lib/app-data";
-  import { type AppContextData, type DBData, setAppData } from "../../lib/context";
+  import {
+    type AppContextData,
+    type DBData,
+    setAppData,
+  } from "../../lib/context";
   import { queryStore } from "../../lib/store.svelte";
   import type {
     BuildingData,
@@ -15,13 +19,20 @@
   import { onMount } from "svelte";
   import {
     getSyncedBuildings,
-    getSyncedClasses,
     getSyncedColleges,
     getSyncedDivisions,
     getSyncedDorms,
     getSyncedRooms,
     getSyncedRoomsData,
   } from "../../lib/local/data/sync";
+  import {
+    syncBuildings,
+    syncColleges,
+    syncDivisions,
+    syncDorms,
+    syncRooms,
+  } from "../../lib/local/data/utils";
+  import { localDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
 
   type MetadataProps = {
     initialSearch?: InitialSearchState;
@@ -31,7 +42,7 @@
 
   let buildings: BuildingData[] | null = $state.raw(null);
   let colleges: CollegeData[] | null = $state.raw(null);
-  let classesMap: Map<string, ClassMapValue[]> | null = $state.raw(null);
+  let classes: ClassMapValue[] | null = $state.raw(null);
   let directionCount: number | null = $state.raw(null);
   let divisions: DivisionData[] | null = $state.raw(null);
   let dorms: DormData[] | null = $state.raw(null);
@@ -41,7 +52,6 @@
   const appData: AppContextData = $derived({
     buildings,
     colleges,
-    classesMap,
     directionCount,
     divisions,
     dorms,
@@ -67,44 +77,48 @@
 
   onMount(async () => {
     if (!isBrowser()) return;
-
     let data: DBData;
-    // if (await isLocalDataValid()) {
-    //   data = await getLocalAppData();
-    // } else {
-    data = {
-      buildings: await getSyncedBuildings(),
-      colleges: await getSyncedColleges(),
-      divisions: await getSyncedDivisions(),
-      dorms: await getSyncedDorms(),
-      rooms: await getSyncedRooms(),
-      classesMap: await getSyncedClasses(),
-      ...(await getSyncedRoomsData()),
-    };
-    // }
-    loadAppData(data);
+    Promise.resolve()
+      .then(() => initPGLiteDB(localDB))
+      .then(async () => {
+        data = {
+          buildings: await getSyncedBuildings(),
+          colleges: await getSyncedColleges(),
+          divisions: await getSyncedDivisions(),
+          dorms: await getSyncedDorms(),
+          rooms: await getSyncedRooms(),
+          ...(await getSyncedRoomsData()),
+        };
+        loadAppData(data);
+      });
   });
 
   function loadAppData(data: DBData) {
     buildings = data.buildings;
     colleges = data.colleges;
-    classesMap = data.classesMap;
     directionCount = data.directionCount;
     divisions = data.divisions;
     dorms = data.dorms;
     rooms = data.rooms;
     totalRooms = data.totalRooms;
-
     loaded = true;
+    Promise.resolve()
+      .then(() => syncBuildings(data.buildings ?? []))
+      .then(() => syncColleges(data.colleges ?? []))
+      .then(() => syncDivisions(data.divisions ?? []))
+      .then(() => syncDorms(data.dorms ?? []))
+      .then(() => syncRooms(data.rooms ?? []));
   }
 
   // svelte-ignore state_referenced_locally
   setAppData(() => appData);
+
+  $inspect(classes);
 </script>
 
-{#if (appData.loaded)}
-<Entry
-  initialSearch={metadata.initialSearch}
-  suppressLandingModal={metadata.suppressLandingModal ?? false}
-/>
+{#if appData.loaded}
+  <Entry
+    initialSearch={metadata.initialSearch}
+    suppressLandingModal={metadata.suppressLandingModal ?? false}
+  />
 {/if}
