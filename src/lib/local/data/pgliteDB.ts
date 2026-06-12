@@ -3,19 +3,20 @@ import { IdbFs, PGlite } from "@electric-sql/pglite";
 // import * as schema from "../../drizzle/schema";
 // import { collegesTable } from "../../drizzle/schema";
 
-export async function getDB() {
-  const client = new PGlite({
-    fs: new IdbFs("site-data"),
-  });
-  await client.waitReady;
+export const localDB = new PGlite({
+  fs: new IdbFs("site-data"),
+})
+
+export async function initPGLiteDB(db: PGlite) {
+  await db.waitReady;
 
   // execution if the database isn't created yet
-  await client.exec(`
+  await db.exec(`
   CREATE TABLE IF NOT EXISTS "buildings" (
   	"id" INTEGER PRIMARY KEY,
   	"building_name" varchar(100) NOT NULL,
-  	"lon" numeric NOT NULL,
-  	"lat" numeric NOT NULL,
+  	"lon" double precision NOT NULL,
+  	"lat" double precision NOT NULL,
   	"directions" text NOT NULL
   );
 
@@ -39,8 +40,8 @@ export async function getDB() {
   	"id" integer PRIMARY KEY,
   	"dorm_name" text NOT NULL,
   	"short_name" varchar(48),
-  	"lat" numeric,
-  	"lon" numeric,
+  	"lat" double precision NOT NULL,
+  	"lon" double precision NOT NULL,
   	"gender" text NOT NULL,
   	"capacity" integer,
   	"managing_office" text,
@@ -78,5 +79,4 @@ export async function getDB() {
   );
   `);
 
-  return client;
 }

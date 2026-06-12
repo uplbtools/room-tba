@@ -8,15 +8,15 @@
   import Classes from "./Classes.svelte";
   import { CornerRightUp } from "@lucide/svelte";
 
-  const { rooms, classesMap } = getAppData()();
+  const { rooms } = getAppData()();
 
   const roomData = $derived(
     rooms.find((r) => r.code === queryStore.queryValue),
   );
 
-  const classesData = $derived(
-    roomData ? classesMap.get(roomData.code) || [] : [],
-  );
+  // const classesData = $derived(
+  //   roomData ? classesMap.get(roomData.code) || [] : [],
+  // );
 </script>
 
 <div class="room-details-container">
@@ -130,7 +130,7 @@
           ></button
         >
       </div>
-      <Classes classes={classesData} />
+      <!-- <Classes classes={classesData} /> -->
     </div>
   {:else}
     <p>Room not found.</p>
