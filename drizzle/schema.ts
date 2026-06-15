@@ -1,6 +1,6 @@
-import { pgTable, integer, text, varchar, doublePrecision, boolean, foreignKey, numeric, timestamp, uuid } from "drizzle-orm/pg-core"
+import { pgTable, integer, text, varchar, doublePrecision, boolean, foreignKey, numeric, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core"
 
-
+export const buildingEnum = pgEnum("building_type", ['admin', 'non-admin'])
 
 export const dormsTable = pgTable("dorms", {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "dorms_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
@@ -47,6 +47,7 @@ export const buildingsTable = pgTable("buildings", {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "buildings_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
 	buildingName: varchar("building_name", { length: 100 }).notNull(),
 	lon: doublePrecision().notNull(),
+	buildingType: buildingEnum("building_id").default("non-admin").notNull(),
 	lat: doublePrecision().notNull(),
 	directions: text().notNull(),
 });
