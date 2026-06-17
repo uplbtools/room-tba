@@ -10,7 +10,6 @@ import {
 import { db } from "../db";
 
 export async function getBuildingPageData(buildingName: string) {
-  console.log(buildingName)
   const data = await db
     .select()
     .from(buildingsTable)
