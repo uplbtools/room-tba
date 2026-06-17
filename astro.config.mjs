@@ -15,6 +15,7 @@ export default defineConfig({
     AstroPWA({
       workbox: {
         globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest,json,jpg}"],
+        swDest: `dist/client/sw.js`
       },
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
