@@ -1,7 +1,4 @@
-import { IdbFs, PGlite } from "@electric-sql/pglite";
-// import { drizzle } from "drizzle-orm/pglite";
-// import * as schema from "../../drizzle/schema";
-// import { collegesTable } from "../../drizzle/schema";
+import { PGlite } from "@electric-sql/pglite";
 
 let localDB: PGlite | null = null;
 
@@ -84,11 +81,9 @@ export async function initPGLiteDB(db: PGlite) {
   }
 }
 
-export async function getDB() {
+export function getDB() {
   if (!localDB) {
-    localDB = new PGlite({
-      fs: new IdbFs("site-data"),
-    })
+    localDB = new PGlite("idb://site-data")
   }
   return localDB;
 }

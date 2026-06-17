@@ -20,7 +20,6 @@
   function closeSearchContext() {
     queryStore.clearQuery();
     searchElement?.focus();
-    console.log(queryStore.inputValue);
   }
 </script>
 

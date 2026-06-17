@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { isBrowser } from "es-toolkit";
   import type { InitialSearchState } from "../../lib/app-data";
   import {
     type AppContextData,
@@ -80,9 +79,9 @@
         },
   );
 
-  onMount(async () => {
+  onMount(() => {
     let data: DBData;
-    const localDB = await getDB();
+    const localDB = getDB();
     Promise.resolve()
       .then(() => initPGLiteDB(localDB))
       .catch((e) => console.error(e))
