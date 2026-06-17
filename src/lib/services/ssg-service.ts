@@ -10,11 +10,12 @@ import {
 import { db } from "../db";
 
 export async function getBuildingPageData(buildingName: string) {
+  console.log(buildingName)
   const data = await db
     .select()
     .from(buildingsTable)
     .where(eq(buildingsTable.buildingName, buildingName))
-    .innerJoin(roomsTable, eq(buildingsTable.id, roomsTable.buildingId));
+    .leftJoin(roomsTable, eq(buildingsTable.id, roomsTable.buildingId));
 
   if (data.length === 0) return null;
 
@@ -29,7 +30,7 @@ export async function getCollegePageData(collegeName: string) {
     .select()
     .from(collegesTable)
     .where(eq(collegesTable.collegeName, collegeName))
-    .innerJoin(collegesTable, eq(collegesTable.id, roomsTable.buildingId));
+    .leftJoin(roomsTable, eq(collegesTable.id, roomsTable.buildingId));
 
   if (data.length === 0) return null;
 
@@ -44,7 +45,7 @@ export async function getDivisionPageData(divisionName: string) {
     .select()
     .from(divisionsTable)
     .where(eq(divisionsTable.divisionName, divisionName))
-    .innerJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
+    .leftJoin(roomsTable, eq(divisionsTable.id, roomsTable.divisionId));
 
   if (data.length === 0) return null;
 
@@ -85,7 +86,7 @@ export async function getRoomPageData(roomId: number) {
     .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
     .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
     .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-    .innerJoin(classesTable, eq(classesTable.roomId, roomId));
+    .leftJoin(classesTable, eq(classesTable.roomId, roomId));
 
 
   if (data.length === 0 || !data[0]) return null;

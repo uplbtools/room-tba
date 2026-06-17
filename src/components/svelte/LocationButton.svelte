@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Locate, LocateFixed } from "@lucide/svelte";
+  import Locate from "@lucide/svelte/icons/locate"
+  import LocateFixed from "@lucide/svelte/icons/locate-fixed"
   import { locationStore, mapStore, toastStore } from "../../lib/store.svelte";
 
   let centered: boolean = $state(false);

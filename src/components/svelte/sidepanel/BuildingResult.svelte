@@ -2,7 +2,7 @@
   import { queryStore, locationStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import ResultDisplay from "./ResultDisplay.svelte";
-  import { CornerRightUp } from "@lucide/svelte";
+  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
 
   const { rooms, buildings } = getAppData()();
 

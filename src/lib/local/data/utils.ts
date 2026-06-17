@@ -7,15 +7,17 @@ import {
   DormData,
   RoomData,
 } from "../../types";
-import { localDB } from "./pgliteDB";
+import { getDB } from "./pgliteDB";
 import { localTableSyncCheck, updateSyncKeyFromLs } from "./sync";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT building_name AS "buildingName", lon, lat, id, directions FROM buildings
       `)) as Result<BuildingData>;
+    console.log(data);
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -25,10 +27,12 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
 
 export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
   try {
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT college_name AS "collegeName", id FROM colleges;
       `)) as Result<CollegeData>;
+    console.log(data);
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -38,10 +42,12 @@ export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
 
 export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
   try {
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT division_name AS "divisionName", id FROM divisions;
       `)) as Result<DivisionData>;
+    console.log(data);
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -51,6 +57,7 @@ export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
 
 export async function getLocalDorms(): Promise<DormData[] | undefined> {
   try {
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
       SELECT
@@ -72,6 +79,7 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         facebook_link AS "facebookLink"
       FROM dorms;
       `)) as Result<DormData>;
+    console.log(data);
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -81,6 +89,8 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
 
 export async function getLocalRooms(): Promise<RoomData[] | undefined> {
   try {
+    const localDB = await getDB();
+
     await localDB.waitReady;
     const data = (await localDB.query(`
       SELECT
@@ -97,6 +107,7 @@ export async function getLocalRooms(): Promise<RoomData[] | undefined> {
       LEFT JOIN colleges as c ON c.id = r.college_id
       LEFT JOIN divisions AS d ON d.id = r.division_id;
       `)) as Result<RoomData>;
+    console.log(data);
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -106,6 +117,8 @@ export async function getLocalRooms(): Promise<RoomData[] | undefined> {
 
 export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
   try {
+    const localDB = await getDB();
+
     await localDB.waitReady;
     const data = (await localDB.query(`
       SELECT
@@ -120,7 +133,7 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
         c.room_id as "roomId"
       FROM classes AS c
       LEFT JOIN rooms AS r ON r.id = c.room_id;
-    `)) as Result<ClassMapValue>
+    `)) as Result<ClassMapValue>;
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -131,6 +144,8 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
 export async function syncBuildings(remoteBuildings: BuildingData[]) {
   const res = await localTableSyncCheck("buildings");
   if (res.valid) return;
+  const localDB = await getDB();
+
   await localDB.waitReady;
   for (const b of remoteBuildings) {
     try {
@@ -151,13 +166,15 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
       console.error(e);
     }
   }
-  console.log(await getLocalBuildings())
+  console.log(await getLocalBuildings());
   updateSyncKeyFromLs("buildings", res.newKey ?? "");
 }
 
 export async function syncColleges(remoteColleges: CollegeData[]) {
   const res = await localTableSyncCheck("colleges");
   if (res.valid) return;
+
+  const localDB = await getDB();
 
   await localDB.waitReady;
   for (const college of remoteColleges) {
@@ -177,7 +194,7 @@ export async function syncColleges(remoteColleges: CollegeData[]) {
     }
   }
 
-  console.log(await getLocalColleges())
+  console.log(await getLocalColleges());
   updateSyncKeyFromLs("colleges", res.newKey ?? "");
 }
 
@@ -185,6 +202,7 @@ export async function syncDivisions(remoteDivisions: DivisionData[]) {
   const res = await localTableSyncCheck("divisions");
   if (res.valid) return;
 
+  const localDB = await getDB();
 
   await localDB.waitReady;
   for (const division of remoteDivisions) {
@@ -203,13 +221,15 @@ export async function syncDivisions(remoteDivisions: DivisionData[]) {
       console.error(e);
     }
   }
-  console.log(await getLocalDivisions())
+  console.log(await getLocalDivisions());
   updateSyncKeyFromLs("divisions", res.newKey ?? "");
 }
 
 export async function syncRooms(remoteRooms: RoomData[]) {
   const res = await localTableSyncCheck("rooms");
   if (res.valid) return;
+
+  const localDB = await getDB();
 
   await localDB.waitReady;
   for (const b of remoteRooms) {
@@ -240,6 +260,8 @@ export async function syncRooms(remoteRooms: RoomData[]) {
 export async function syncDorms(remoteDorms: DormData[]) {
   const res = await localTableSyncCheck("dorms");
   if (res.valid) return;
+
+  const localDB = await getDB();
 
   await localDB.waitReady;
   for (const b of remoteDorms) {

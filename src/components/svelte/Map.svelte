@@ -11,7 +11,8 @@
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
-  import { University, House} from "@lucide/svelte";
+  import House from "@lucide/svelte/icons/house";
+  import University from "@lucide/svelte/icons/university"
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import {

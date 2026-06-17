@@ -1,18 +1,16 @@
 <script lang="ts">
   import { queryStore, locationStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  import {
-    CornerRightUp,
-    Users,
-    Mail,
-    Phone,
-    Building2,
-    ExternalLink,
-    MapPin,
-    BadgeCheck,
-    CircleDollarSign,
-    TriangleAlert,
-  } from "@lucide/svelte";
+  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  import Users from "@lucide/svelte/icons/users";
+  import Mail from "@lucide/svelte/icons/mail";
+  import Phone from "@lucide/svelte/icons/phone";
+  import Building2 from "@lucide/svelte/icons/building-2";
+  import ExternalLink from "@lucide/svelte/icons/external-link";
+  import MapPin from "@lucide/svelte/icons/map-pin";
+  import BadgeCheck from "@lucide/svelte/icons/badge-check";
+  import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
+  import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 
   const { dorms } = getAppData()();
 
@@ -75,9 +73,7 @@
           UP-managed
         </span>
       {:else}
-        <span class="badge private-badge">
-          Private
-        </span>
+        <span class="badge private-badge"> Private </span>
       {/if}
       <span class="badge gender-badge" style:--badge-color={genderColor}>
         <Users size={14} />
@@ -211,7 +207,10 @@
       {:else}
         <div class="private-tip">
           <TriangleAlert size={14} />
-          <span>Prices and details may change. Always verify in person or contact directly before committing.</span>
+          <span
+            >Prices and details may change. Always verify in person or contact
+            directly before committing.</span
+          >
         </div>
       {/if}
     </div>
