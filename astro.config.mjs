@@ -4,9 +4,10 @@ import react from "@astrojs/react";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import vercel from "@astrojs/vercel";
+import node from "@astrojs/node";
 // https://astro.build/config
 export default defineConfig({
-  site: "https://room-tba.stimmie.dev",
+  site: "https://room-tba.uplbtools.me",
 
   integrations: [
     react(),
@@ -46,8 +47,8 @@ export default defineConfig({
       host: "localhost",
     },
     optimizeDeps: {
-      exclude: ['@electric-sql/pglite']
-    }
+      exclude: ["@electric-sql/pglite"],
+    },
   },
 
   redirects: {
@@ -55,13 +56,14 @@ export default defineConfig({
     "/messenger": "https://m.me/j/AbbjA1ouHCefGTkU",
   },
 
+  // adapter: vercel(),
   env: {
     schema: {
       NEON_CONNECTION_STRING: envField.string({
         access: "secret",
-        context: "server"
-      })
-    }
+        context: "server",
+      }),
+    },
   },
 
   adapter: vercel(),
