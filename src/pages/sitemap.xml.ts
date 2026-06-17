@@ -20,11 +20,11 @@ export const GET: APIRoute = async () => {
     "/division/",
     "/college/",
     "/dorm/",
-    ...rooms.map((room) => `/room/${getRoomRouteSlug(room, rooms)}/`),
+    ...rooms.map((room) => `/room/${getRoomRouteSlug(room)}/`),
     ...buildings.map((building) => `/building/${getBuildingSlug(building)}/`),
     ...divisions.map((division) => `/division/${getDivisionSlug(division)}/`),
     ...colleges.map((college) => `/college/${getCollegeSlug(college)}/`),
-    ...dorms.map((dorm) => `/dorm/${getDormRouteSlug(dorm, dorms)}/`),
+    ...dorms.map((dorm) => `/dorm/${getDormRouteSlug(dorm)}/`),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>

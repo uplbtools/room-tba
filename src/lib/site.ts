@@ -1,4 +1,4 @@
-export const SITE_URL = "https://room-tba.stimmie.dev";
+export const SITE_URL = "https://room-tba.uplbtools.me";
 export const SITE_NAME = "Room TBA";
 export const DEFAULT_TITLE =
   "Room TBA | Find Rooms, Buildings, Colleges, and Divisions at UPLB";
