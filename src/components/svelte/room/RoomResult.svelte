@@ -6,7 +6,7 @@
   } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import Classes from "./Classes.svelte";
-  import { CornerRightUp } from "@lucide/svelte";
+  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
 
   const { rooms } = getAppData()();
 

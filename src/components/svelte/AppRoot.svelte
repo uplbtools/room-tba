@@ -26,13 +26,18 @@
     getSyncedRoomsData,
   } from "../../lib/local/data/sync";
   import {
+    getLocalBuildings,
+    getLocalColleges,
+    getLocalDivisions,
+    getLocalDorms,
+    getLocalRooms,
     syncBuildings,
     syncColleges,
     syncDivisions,
     syncDorms,
     syncRooms,
   } from "../../lib/local/data/utils";
-  import { localDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
+  import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
 
   type MetadataProps = {
     initialSearch?: InitialSearchState;
@@ -76,10 +81,11 @@
   );
 
   onMount(async () => {
-    if (!isBrowser()) return;
     let data: DBData;
+    const localDB = await getDB();
     Promise.resolve()
       .then(() => initPGLiteDB(localDB))
+      .catch((e) => console.error(e))
       .then(async () => {
         data = {
           buildings: await getSyncedBuildings(),
@@ -89,8 +95,8 @@
           rooms: await getSyncedRooms(),
           ...(await getSyncedRoomsData()),
         };
-        loadAppData(data);
-      });
+      })
+      .then(() => loadAppData(data));
   });
 
   function loadAppData(data: DBData) {

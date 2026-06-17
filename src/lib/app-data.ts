@@ -150,7 +150,7 @@ export function getDormSlug(dorm: Pick<DormData, "dormName">) {
 }
 
 export function getDormRouteSlug(
-  dorm: Pick<DormData, "id" | "dormName">,,
+  dorm: Pick<DormData, "id" | "dormName">,
 ) {
   const baseSlug = getDormSlug(dorm);
 
