@@ -5,7 +5,8 @@
   import { getJSONFetch } from "../../../lib/local/data/sync";
   import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { divisions, loaded } = getAppData()();
+  const appData = getAppData();
+  const { divisions, loaded } = $derived(appData());
 
   const division = $derived(
     loaded

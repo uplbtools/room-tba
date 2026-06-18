@@ -20,14 +20,14 @@
     type JeepneyRoute,
     type JeepneyStop,
   } from "../../constants/jeepney-routes";
-  const { buildings, dorms } = getAppData()();
-  const filteredDorms = $derived(
-    dormFilter.value === "all"
-      ? dorms
-      : dormFilter.value === "up"
-        ? dorms.filter((d) => d.isUpManaged)
-        : dorms.filter((d) => !d.isUpManaged),
-  );
+  const data = getAppData();
+  const { buildings, dorms, loaded } = $derived(data());
+  const filteredDorms = $derived.by(() => {
+    if (!loaded) return;
+    if (dormFilter.value === "all") return dorms;
+    if (dormFilter.value === "up") return dorms.filter((d) => d.isUpManaged);
+    return dorms.filter((d) => !d.isUpManaged);
+  });
   let directions: MapLibreGlDirections | undefined = $state.raw();
 
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
@@ -334,7 +334,7 @@
     untrack(() => {
       stopRotation();
       map.off("moveend", startRotation);
-
+      if (!loaded) return;
       if (category === "building" && type === "result") {
         const currentBuilding = buildings.find(
           (building) => building.buildingName === value,

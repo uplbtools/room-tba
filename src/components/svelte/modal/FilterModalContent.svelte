@@ -3,7 +3,8 @@
   import { modalStore, queryStore } from "../../../lib/store.svelte";
   import type { QueryStoreState } from "../../../lib/store.svelte";
 
-  const { buildings, colleges, divisions } = getAppData()();
+  const appData = getAppData();
+  const { buildings, colleges, divisions } = $derived(appData());
   let type: "buildings" | "colleges" | "divisions" = $state("buildings");
 
   function filterButtonClick(
