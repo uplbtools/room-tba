@@ -2,9 +2,10 @@
   import { queryStore, locationStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
-  import { getJSONFetch } from "../../../lib/local/data/sync";
+  import { getJSONFetch } from "../../../lib/local/data/utils";
   import type { RoomData } from "../../../lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
+    import { onMount } from "svelte";
 
   const appData = getAppData();
   const { buildings, loaded } = $derived(appData());
@@ -16,7 +17,7 @@
   );
   let buildingRooms = $state<RoomData[] | null>(null);
 
-  $effect(() => {
+  onMount(async() => {
     if (!building) return;
     Promise.resolve().then(async () => {
       buildingRooms = (

@@ -15,18 +15,18 @@
   import Entry from "./Entry.svelte";
   import { onMount } from "svelte";
   import {
-    getSyncedBuildings,
-    getSyncedColleges,
-    getSyncedDivisions,
-    getSyncedDorms,
-    getSyncedRoomsData,
-  } from "../../lib/local/data/sync";
+    getBuildings,
+    getColleges,
+    getDivisions,
+    getDorms,
+    getRoomsData,
+  } from "../../lib/local/data/utils";
   import {
     syncBuildings,
     syncColleges,
     syncDivisions,
     syncDorms,
-  } from "../../lib/local/data/utils";
+  } from "../../lib/local/data/sync";
   import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
 
   type MetadataProps = {
@@ -75,11 +75,11 @@
       .catch((e) => console.error(e))
       .then(async () => {
         data = {
-          buildings: await getSyncedBuildings(),
-          colleges: await getSyncedColleges(),
-          divisions: await getSyncedDivisions(),
-          dorms: await getSyncedDorms(),
-          ...(await getSyncedRoomsData()),
+          buildings: await getBuildings(),
+          colleges: await getColleges(),
+          divisions: await getDivisions(),
+          dorms: await getDorms(),
+          ...(await getRoomsData()),
         };
       })
       .then(() => loadAppData(data));
