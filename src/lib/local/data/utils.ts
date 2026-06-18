@@ -9,6 +9,7 @@ import {
 } from "../../types";
 import { getDB } from "./pgliteDB";
 import { localTableSyncCheck, updateSyncKeyFromLs } from "./sync";
+import { syncToastStore } from "../../store.svelte";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
@@ -142,6 +143,7 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
   const localDB = getDB();
 
   await localDB.waitReady;
+  syncToastStore.startBuildingsSync(remoteBuildings.length);
   for (const b of remoteBuildings) {
     try {
       await localDB.query(
@@ -157,6 +159,7 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
         `,
         [b.id, b.buildingName, b.lon, b.lat, b.directions],
       );
+      syncToastStore.updateCollegesSync();
     } catch (e) {
       console.error(e);
     }
@@ -171,6 +174,7 @@ export async function syncColleges(remoteColleges: CollegeData[]) {
   const localDB = getDB();
 
   await localDB.waitReady;
+  syncToastStore.startCollegesSync(remoteColleges.length);
   for (const college of remoteColleges) {
     try {
       await localDB.query(
@@ -183,6 +187,7 @@ export async function syncColleges(remoteColleges: CollegeData[]) {
         `,
         [college.id, college.collegeName],
       );
+      syncToastStore.updateCollegesSync();
     } catch (e) {
       console.error(e);
     }
@@ -198,6 +203,7 @@ export async function syncDivisions(remoteDivisions: DivisionData[]) {
   const localDB = getDB();
 
   await localDB.waitReady;
+  syncToastStore.startDivisionsSync(remoteDivisions.length);
   for (const division of remoteDivisions) {
     try {
       await localDB.query(
@@ -210,6 +216,7 @@ export async function syncDivisions(remoteDivisions: DivisionData[]) {
         `,
         [division.id, division.divisionName],
       );
+      syncToastStore.updateDivisionsSync();
     } catch (e) {
       console.error(e);
     }
@@ -255,6 +262,7 @@ export async function syncDorms(remoteDorms: DormData[]) {
   const localDB = getDB();
 
   await localDB.waitReady;
+  syncToastStore.startDormsSync(remoteDorms.length);
   for (const b of remoteDorms) {
     try {
       await localDB.query(
@@ -298,6 +306,7 @@ export async function syncDorms(remoteDorms: DormData[]) {
           b.facebookLink,
         ],
       );
+      syncToastStore.updateDormsSync();
     } catch (e) {
       console.error(e);
     }
