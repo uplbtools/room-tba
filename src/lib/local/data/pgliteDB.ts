@@ -14,12 +14,14 @@ export async function initPGLiteDB(db: PGlite) {
    	"building_name" varchar(100) NOT NULL,
    	"lon" double precision NOT NULL,
    	"lat" double precision NOT NULL,
-   	"directions" text NOT NULL
+   	"directions" text NOT NULL,
+    "rooms_fetched" boolean NOT NULL DEFAULT false
     );
 
     CREATE TABLE IF NOT EXISTS "colleges" (
    	"id" integer PRIMARY KEY,
-   	"college_name" varchar(100) NOT NULL
+   	"college_name" varchar(100) NOT NULL,
+    "rooms_fetched" boolean NOT NULL DEFAULT false
     );
 
     CREATE TABLE IF NOT EXISTS "classes" (
@@ -63,7 +65,8 @@ export async function initPGLiteDB(db: PGlite) {
 
     CREATE TABLE IF NOT EXISTS "divisions" (
    	"id" integer PRIMARY KEY,
-   	"division_name" varchar(100) NOT NULL
+   	"division_name" varchar(100) NOT NULL,
+    "rooms_fetched" boolean NOT NULL DEFAULT false
     );
 
     CREATE TABLE IF NOT EXISTS "rooms" (
@@ -72,8 +75,23 @@ export async function initPGLiteDB(db: PGlite) {
    	"directions" text,
    	"building_id" integer,
    	"college_id" integer,
-   	"division_id" integer
+   	"division_id" integer,
+    "classes_fetched" boolean NOT NULL DEFAULT false
     );
+
+    -- DB MIGRATION WHEN TABLE IS OUTDATED
+
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean NOT NULL DEFAULT false;
+
+    ALTER TABLE colleges
+    ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean NOT NULL DEFAULT false;
+
+    ALTER TABLE divisions
+    ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean NOT NULL DEFAULT false;
+
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "classes_fetched" boolean NOT NULL DEFAULT false;
     `);
   }
   catch (e) {
