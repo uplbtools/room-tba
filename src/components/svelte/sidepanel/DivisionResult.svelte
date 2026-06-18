@@ -1,14 +1,31 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  // import ResultDisplay from "./ResultDisplay.svelte";
+  import type { RoomData } from "../../../lib/types";
+  import { getJSONFetch } from "../../../lib/local/data/sync";
+  import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { divisions } = getAppData()();
+  const { divisions, loaded } = getAppData()();
 
   const division = $derived(
-    divisions.find((d) => d.divisionName === queryStore.queryValue),
+    loaded
+      ? divisions.find((d) => d.divisionName === queryStore.queryValue)
+      : null,
   );
 
+  let divisionRooms = $state<RoomData[] | null>(null);
+
+  $effect(() => {
+    if (!division) return;
+    Promise.resolve().then(async () => {
+      const { data } = (await getJSONFetch(
+        `/api/rooms?division_id=${division.id}`,
+      )) as {
+        data: RoomData[];
+      };
+      divisionRooms = data;
+    });
+  });
   // const divisionRooms = $derived(
   //   rooms.filter((room) => room.divisionName === queryStore.queryValue),
   // );
@@ -20,8 +37,11 @@
       <h2 class="division-title">{division.divisionName}</h2>
     </div>
   {/if}
-
-  <!-- <ResultDisplay filteredRooms={divisionRooms} /> -->
+  {#if divisionRooms}
+    <ResultDisplay filteredRooms={divisionRooms} />
+  {:else}
+    Loading data...
+  {/if}
 </div>
 
 <style>

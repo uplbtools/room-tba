@@ -1,17 +1,31 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  // import ResultDisplay from "./ResultDisplay.svelte";
+  import { getJSONFetch } from "../../../lib/local/data/sync";
+  import type { RoomData } from "../../../lib/types";
+    import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { colleges } = getAppData()();
+  const { colleges, loaded } = getAppData()();
 
   const college = $derived(
-    colleges.find((c) => c.collegeName === queryStore.queryValue),
+    loaded
+      ? colleges.find((c) => c.collegeName === queryStore.queryValue)
+      : null,
   );
 
-  // const collegeRooms = $derived(
-  //   rooms.filter((room) => room.collegeName === queryStore.queryValue),
-  // );
+  let collegeRooms = $state<RoomData[] | null>(null);
+
+  $effect(() => {
+    if (!college) return;
+    Promise.resolve().then(async () => {
+      const { data } = (await getJSONFetch(
+        `/api/rooms?college_id=${college.id}`,
+      )) as {
+        data: RoomData[];
+      };
+      collegeRooms = data;
+    });
+  });
 </script>
 
 <div class="college-query-wrapper">
@@ -20,8 +34,11 @@
       <h2 class="college-title">{college.collegeName}</h2>
     </div>
   {/if}
-
-  <!-- <ResultDisplay filteredRooms={collegeRooms} /> -->
+  {#if collegeRooms}
+    <ResultDisplay filteredRooms={collegeRooms} />
+  {:else}
+    Loading data...
+  {/if}
 </div>
 
 <style>
