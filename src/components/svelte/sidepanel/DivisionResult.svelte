@@ -1,17 +1,17 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  import ResultDisplay from "./ResultDisplay.svelte";
+  // import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { rooms, divisions } = getAppData()();
+  const { divisions } = getAppData()();
 
   const division = $derived(
     divisions.find((d) => d.divisionName === queryStore.queryValue),
   );
 
-  const divisionRooms = $derived(
-    rooms.filter((room) => room.divisionName === queryStore.queryValue),
-  );
+  // const divisionRooms = $derived(
+  //   rooms.filter((room) => room.divisionName === queryStore.queryValue),
+  // );
 </script>
 
 <div class="division-query-wrapper">
@@ -21,7 +21,7 @@
     </div>
   {/if}
 
-  <ResultDisplay filteredRooms={divisionRooms} />
+  <!-- <ResultDisplay filteredRooms={divisionRooms} /> -->
 </div>
 
 <style>

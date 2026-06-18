@@ -8,11 +8,9 @@
   import { queryStore, syncToastStore } from "../../lib/store.svelte";
   import type {
     BuildingData,
-    ClassMapValue,
     CollegeData,
     DivisionData,
     DormData,
-    RoomData,
   } from "../../lib/types";
   import Entry from "./Entry.svelte";
   import { onMount } from "svelte";
@@ -21,15 +19,9 @@
     getSyncedColleges,
     getSyncedDivisions,
     getSyncedDorms,
-    getSyncedRooms,
     getSyncedRoomsData,
   } from "../../lib/local/data/sync";
   import {
-    getLocalBuildings,
-    getLocalColleges,
-    getLocalDivisions,
-    getLocalDorms,
-    getLocalRooms,
     syncBuildings,
     syncColleges,
     syncDivisions,
@@ -45,11 +37,9 @@
 
   let buildings: BuildingData[] | null = $state.raw(null);
   let colleges: CollegeData[] | null = $state.raw(null);
-  let classes: ClassMapValue[] | null = $state.raw(null);
   let directionCount: number | null = $state.raw(null);
   let divisions: DivisionData[] | null = $state.raw(null);
   let dorms: DormData[] | null = $state.raw(null);
-  let rooms: RoomData[] | null = $state.raw(null);
   let totalRooms: number | null = $state.raw(null);
   let loaded: boolean = $state(false);
   const appData: AppContextData = $derived({
@@ -58,7 +48,6 @@
     directionCount,
     divisions,
     dorms,
-    rooms,
     totalRooms,
     loaded,
   });
@@ -90,7 +79,6 @@
           colleges: await getSyncedColleges(),
           divisions: await getSyncedDivisions(),
           dorms: await getSyncedDorms(),
-          rooms: await getSyncedRooms(),
           ...(await getSyncedRoomsData()),
         };
       })
@@ -103,7 +91,6 @@
     directionCount = data.directionCount;
     divisions = data.divisions;
     dorms = data.dorms;
-    rooms = data.rooms;
     totalRooms = data.totalRooms;
     loaded = true;
     Promise.resolve()
