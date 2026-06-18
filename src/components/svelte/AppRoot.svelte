@@ -34,7 +34,6 @@
     syncColleges,
     syncDivisions,
     syncDorms,
-    syncRooms,
   } from "../../lib/local/data/utils";
   import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
 
@@ -111,8 +110,7 @@
       .then(() => syncBuildings(data.buildings ?? []))
       .then(() => syncColleges(data.colleges ?? []))
       .then(() => syncDivisions(data.divisions ?? []))
-      .then(() => syncDorms(data.dorms ?? []))
-      .then(() => syncRooms(data.rooms ?? []));
+      .then(() => syncDorms(data.dorms ?? []));
   }
 
   // svelte-ignore state_referenced_locally

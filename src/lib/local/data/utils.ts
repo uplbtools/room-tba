@@ -144,18 +144,20 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
 
   await localDB.waitReady;
   syncToastStore.startBuildingsSync(remoteBuildings.length);
+  await localDB.exec(`DELETE FROM rooms`);
   for (const b of remoteBuildings) {
     try {
       await localDB.query(
         `
-        INSERT INTO buildings (id, building_name, lon, lat, directions)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO buildings (id, building_name, lon, lat, directions, rooms_fetched)
+        VALUES ($1, $2, $3, $4, $5, false)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         building_name = EXCLUDED.building_name,
         lon = EXCLUDED.lon,
         lat = EXCLUDED.lat,
-        directions = EXCLUDED.directions;
+        directions = EXCLUDED.directions,
+        rooms_fetched = EXCLUDED.rooms_fetched;
         `,
         [b.id, b.buildingName, b.lon, b.lat, b.directions],
       );
@@ -175,15 +177,17 @@ export async function syncColleges(remoteColleges: CollegeData[]) {
 
   await localDB.waitReady;
   syncToastStore.startCollegesSync(remoteColleges.length);
+  await localDB.exec(`DELETE FROM rooms`);
   for (const college of remoteColleges) {
     try {
       await localDB.query(
         `
-        INSERT INTO colleges (id, college_name)
-        VALUES ($1, $2)
+        INSERT INTO colleges (id, college_name, rooms_fetched)
+        VALUES ($1, $2, false)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
-        college_name = EXCLUDED.college_name;
+        college_name = EXCLUDED.college_name,
+        rooms_fetched = EXCLUDED.rooms_fetched;
         `,
         [college.id, college.collegeName],
       );
@@ -204,15 +208,17 @@ export async function syncDivisions(remoteDivisions: DivisionData[]) {
 
   await localDB.waitReady;
   syncToastStore.startDivisionsSync(remoteDivisions.length);
+  await localDB.exec(`DELETE FROM rooms`);
   for (const division of remoteDivisions) {
     try {
       await localDB.query(
         `
-        INSERT INTO divisions (id, division_name)
-        VALUES ($1, $2)
+        INSERT INTO divisions (id, division_name, rooms_fetched)
+        VALUES ($1, $2, false)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
-        division_name = EXCLUDED.division_name;
+        division_name = EXCLUDED.division_name,
+        rooms_fetched = EXCLUDED.rooms_fetched;
         `,
         [division.id, division.divisionName],
       );
@@ -222,37 +228,6 @@ export async function syncDivisions(remoteDivisions: DivisionData[]) {
     }
   }
   updateSyncKeyFromLs("divisions", res.newKey ?? "");
-}
-
-export async function syncRooms(remoteRooms: RoomData[]) {
-  const res = await localTableSyncCheck("rooms");
-  if (res.valid) return;
-
-  const localDB = getDB();
-
-  await localDB.waitReady;
-  for (const b of remoteRooms) {
-    try {
-      await localDB.query(
-        `
-        INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        ON CONFLICT (id) DO UPDATE SET
-        id = EXCLUDED.id,
-        room_code = EXCLUDED.room_code,
-        directions = EXCLUDED.directions,
-        building_id = EXCLUDED.building_id,
-        college_id = EXCLUDED.college_id,
-        division_id = EXCLUDED.division_id;
-        `,
-        [b.id, b.code, b.directions, b.buildingId, b.collegeId, b.divisionId],
-      );
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  updateSyncKeyFromLs("rooms", res.newKey ?? "");
 }
 
 export async function syncDorms(remoteDorms: DormData[]) {
