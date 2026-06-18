@@ -6,6 +6,7 @@
 
   const { directionCount, totalRooms } = getAppData();
   let isOpen = $state(false);
+  let isSimilarOpen = $state(false);
 </script>
 
 <div class="status-bar" class:is-open={isOpen}>
@@ -49,6 +50,23 @@
         >
           Contributors
         </button>
+      </div>
+      <div class="similar-projects">
+        <button
+          class="similar-btn"
+          onclick={() => (isSimilarOpen = !isSimilarOpen)}
+        >
+          Similar projects
+        </button>
+        {#if isSimilarOpen}
+          <div class="similar-popover">
+            <ul>
+              <li><a href="https://umap.openstreetmap.fr/en/map/ati-ntc-rh-malayo-ba-yan-maps-and-directions_1245231" target="_blank" rel="noopener noreferrer">Malayo Ba 'Yan? (ATI-NTC)</a></li>
+              <li><a href="https://umap.openstreetmap.fr/en/map/uplb-lower-campus_1180826" target="_blank" rel="noopener noreferrer">UPLB Lower Campus Map</a></li>
+              <li><a href="https://www.scribblemaps.com/maps/view/UPLB-Map/8fmzCgyQ4y" target="_blank" rel="noopener noreferrer">UPLB Map (ScribbleMaps)</a></li>
+            </ul>
+          </div>
+        {/if}
       </div>
       <div class="app-version">
         <a href="/changelog" class="changelog-link">
@@ -144,6 +162,50 @@
       &:hover {
         border-radius: 0.5rem;
         background-color: hsla(0, 0%, 0%, 0.1);
+      }
+    }
+    .similar-projects {
+      position: relative;
+
+      .similar-btn {
+        background: none;
+        border: none;
+        padding: 0.125rem 0.375rem;
+        font: inherit;
+        cursor: pointer;
+        color: inherit;
+        &:hover {
+          border-radius: 0.5rem;
+          background-color: hsla(0, 0%, 0%, 0.1);
+        }
+      }
+
+      .similar-popover {
+        position: absolute;
+        bottom: 2rem;
+        right: 0;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 0.5rem 0 hsla(0, 0%, 0%, 0.2);
+        padding: 0.75rem 1rem;
+        white-space: nowrap;
+
+        ul {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+
+          a {
+            color: inherit;
+            text-decoration: none;
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
       }
     }
     .app-version {
