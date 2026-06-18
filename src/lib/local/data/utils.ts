@@ -159,7 +159,7 @@ export async function syncBuildings(remoteBuildings: BuildingData[]) {
         `,
         [b.id, b.buildingName, b.lon, b.lat, b.directions],
       );
-      syncToastStore.updateCollegesSync();
+      syncToastStore.updateBuildingsSync();
     } catch (e) {
       console.error(e);
     }
