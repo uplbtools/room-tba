@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { getAppData } from "../../../lib/context";
   import { queryStore } from "../../../lib/store.svelte";
-  import RoomDisplay from "./RoomDisplay.svelte";
+  // import RoomDisplay from "./RoomDisplay.svelte";
 
-  const { rooms } = getAppData()();
 
   // const filteredRooms = $derived(
   //   rooms

@@ -1,7 +1,6 @@
 import { createContext } from "svelte";
-import { BuildingData, CollegeData, DivisionData, DormData, RoomData } from "./types";
+import { BuildingData, CollegeData, DivisionData, DormData } from "./types";
 export type AppContextData = {
-  rooms: RoomData[] | null;
   buildings: BuildingData[] | null;
   colleges: CollegeData[] | null;
   divisions: DivisionData[] | null;

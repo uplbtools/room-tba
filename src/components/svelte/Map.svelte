@@ -12,7 +12,7 @@
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import House from "@lucide/svelte/icons/house";
-  import University from "@lucide/svelte/icons/university"
+  import University from "@lucide/svelte/icons/university";
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import {
@@ -20,7 +20,7 @@
     type JeepneyRoute,
     type JeepneyStop,
   } from "../../constants/jeepney-routes";
-  const { buildings, rooms, dorms } = getAppData()();
+  const { buildings, dorms } = getAppData()();
   const filteredDorms = $derived(
     dormFilter.value === "all"
       ? dorms
@@ -61,9 +61,7 @@
     }
   }
 
-  function buildStraightLineGeometry(
-    route: JeepneyRoute,
-  ): GeoJSON.LineString {
+  function buildStraightLineGeometry(route: JeepneyRoute): GeoJSON.LineString {
     return {
       type: "LineString",
       coordinates: route.stops.map((stop) => [stop.lon, stop.lat]),
@@ -246,10 +244,7 @@
     }
     cx /= ring.length;
     cy /= ring.length;
-    return ring.map(([x, y]) => [
-      cx + (x - cx) * scale,
-      cy + (y - cy) * scale,
-    ]);
+    return ring.map(([x, y]) => [cx + (x - cx) * scale, cy + (y - cy) * scale]);
   }
 
   function inflateGeometry(
@@ -409,8 +404,6 @@
       });
     }
   }
-
-
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
@@ -647,26 +640,24 @@
         });
         if (directions) directions.clear();
       } else if (category === "room") {
-        const currentRoom = rooms.find((room) => room.code === value);
-        if (
-          currentRoom &&
-          currentRoom.building &&
-          currentRoom.building.lat &&
-          currentRoom.building.lon
-        ) {
-          map.flyTo({
-            center: [currentRoom.building.lon, currentRoom.building.lat],
-            zoom: 18,
-            pitch: 60,
-            padding: calculatePadding(md.current),
-            duration: 1500,
-          });
-          map.once("moveend", startRotation);
-        }
+        // const currentRoom = rooms.find((room) => room.code === value);
+        // if (
+        //   currentRoom &&
+        //   currentRoom.building &&
+        //   currentRoom.building.lat &&
+        //   currentRoom.building.lon
+        // ) {
+        //   map.flyTo({
+        //     center: [currentRoom.building.lon, currentRoom.building.lat],
+        //     zoom: 18,
+        //     pitch: 60,
+        //     padding: calculatePadding(md.current),
+        //     duration: 1500,
+        //   });
+        //   map.once("moveend", startRotation);
+        // }
       } else if (category === "dorm") {
-        const currentDorm = dorms.find(
-          (dorm) => dorm.dormName === value,
-        );
+        const currentDorm = dorms.find((dorm) => dorm.dormName === value);
         if (currentDorm && currentDorm.lon && currentDorm.lat) {
           map.flyTo({
             center: [currentDorm.lon, currentDorm.lat],
@@ -707,12 +698,13 @@
       case "building":
         return queryStore.inputValue;
       case "room": {
-        const currentRoom = rooms.find(
-          (room) => room.code === queryStore.inputValue,
-        );
-        return currentRoom && currentRoom.building
-          ? currentRoom.building.name
-          : null;
+        return null;
+        // const currentRoom = rooms.find(
+        //   (room) => room.code === queryStore.inputValue,
+        // );
+        // return currentRoom && currentRoom.building
+        //   ? currentRoom.building.name
+        //   : null;
       }
       default:
         return null;

@@ -4,7 +4,7 @@
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
-  const { buildings, colleges, divisions, rooms, dorms } = getAppData()();
+  const { buildings, colleges, divisions, dorms } = getAppData()();
 
   const filteredDorms = $derived(
     dormFilter.value === "all"
@@ -76,15 +76,16 @@
         a.toLowerCase().localeCompare(b.toLowerCase()),
       );
 
-    const roomResult = rooms
-      .filter((room) => room.code.toLowerCase().includes(searchString))
-      .map((room) => ({
-        value: room.code,
-        category: "room",
-      })) satisfies {
-      value: string;
-      category: Exclude<QueryStoreState["category"], null>;
-    }[];
+    const roomResult: any[] = []
+    //     rooms
+    //   .filter((room) => room.code.toLowerCase().includes(searchString))
+    //   .map((room) => ({
+    //     value: room.code,
+    //     category: "room",
+    //   })) satisfies {
+    //   value: string;
+    //   category: Exclude<QueryStoreState["category"], null>;
+    // }[];
 
     return [...nonRoomResult, ...roomResult].slice(0, 8);
   }

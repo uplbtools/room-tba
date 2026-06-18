@@ -1,18 +1,18 @@
 <script lang="ts">
   import { queryStore, locationStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  import ResultDisplay from "./ResultDisplay.svelte";
+  // import ResultDisplay from "./ResultDisplay.svelte";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
 
-  const { rooms, buildings } = getAppData()();
+  const { buildings } = getAppData()();
 
   const building = $derived(
     buildings.find((b) => b.buildingName === queryStore.queryValue),
   );
 
-  const buildingRooms = $derived(
-    rooms.filter((room) => room.building?.name === queryStore.queryValue),
-  );
+  // const buildingRooms = $derived(
+  //   rooms.filter((room) => room.building?.name === queryStore.queryValue),
+  // );
 </script>
 
 <div class="building-query-wrapper">
@@ -39,7 +39,7 @@
       {/if}
     </div>
   {/if}
-  <ResultDisplay filteredRooms={buildingRooms} />
+  <!-- <ResultDisplay filteredRooms={buildingRooms} /> -->
 </div>
 
 <style>

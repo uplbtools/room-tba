@@ -1,18 +1,17 @@
 <script lang="ts">
-  import {
-    modalStore,
-    queryStore,
-    locationStore,
-  } from "../../../lib/store.svelte";
-  import { getAppData } from "../../../lib/context";
-  import Classes from "./Classes.svelte";
-  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  // import {
+  //   modalStore,
+  //   queryStore,
+  //   locationStore,
+  // } from "../../../lib/store.svelte";
+  // import { getAppData } from "../../../lib/context";
+  // import Classes from "./Classes.svelte";
+  // import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
 
-  const { rooms } = getAppData()();
 
-  const roomData = $derived(
-    rooms.find((r) => r.code === queryStore.queryValue),
-  );
+  // const roomData = $derived(
+  //   rooms.find((r) => r.code === queryStore.queryValue),
+  // );
 
   // const classesData = $derived(
   //   roomData ? classesMap.get(roomData.code) || [] : [],
@@ -20,7 +19,7 @@
 </script>
 
 <div class="room-details-container">
-  {#if roomData}
+  <!-- {#if roomData}
     <div class="header-section">
       <div class="header-top-row">
         <h2>{roomData.code}</h2>
@@ -129,12 +128,12 @@
             ></polyline></svg
           ></button
         >
-      </div>
+      </div> -->
       <!-- <Classes classes={classesData} /> -->
-    </div>
-  {:else}
+    <!-- </div>
+  {:else} -->
     <p>Room not found.</p>
-  {/if}
+  <!-- {/if} -->
 </div>
 
 <style>
