@@ -55,6 +55,8 @@
   {/if}
   {#if buildingRooms}
     <ResultDisplay filteredRooms={buildingRooms} />
+    {:else}
+    Loading data...
   {/if}
 </div>
 
