@@ -1,18 +1,30 @@
 <script lang="ts">
   import { queryStore, locationStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  // import ResultDisplay from "./ResultDisplay.svelte";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  import { getJSONFetch } from "../../../lib/local/data/sync";
+  import type { RoomData } from "../../../lib/types";
+  import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { buildings } = getAppData()();
+  const { buildings, loaded } = getAppData()();
 
   const building = $derived(
-    buildings.find((b) => b.buildingName === queryStore.queryValue),
+    loaded
+      ? buildings.find((b) => b.buildingName === queryStore.queryValue)
+      : null,
   );
+  let buildingRooms = $state<RoomData[] | null>(null);
 
-  // const buildingRooms = $derived(
-  //   rooms.filter((room) => room.building?.name === queryStore.queryValue),
-  // );
+  $effect(() => {
+    if (!building) return;
+    Promise.resolve().then(async () => {
+      buildingRooms = (
+        (await getJSONFetch(`/api/rooms?building_id=${building.id}`)) as {
+          data: RoomData[];
+        }
+      ).data;
+    });
+  });
 </script>
 
 <div class="building-query-wrapper">
@@ -38,8 +50,12 @@
         </button>
       {/if}
     </div>
+  {:else}
+    <p>Loading data...</p>
   {/if}
-  <!-- <ResultDisplay filteredRooms={buildingRooms} /> -->
+  {#if buildingRooms}
+    <ResultDisplay filteredRooms={buildingRooms} />
+  {/if}
 </div>
 
 <style>
