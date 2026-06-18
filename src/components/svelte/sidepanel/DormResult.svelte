@@ -12,7 +12,8 @@
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
 
-  const { dorms } = getAppData()();
+  const appData = getAppData();
+  const { dorms } = $derived(appData());
 
   const dorm = $derived(
     dorms?.find((d) => d.dormName === queryStore.queryValue),

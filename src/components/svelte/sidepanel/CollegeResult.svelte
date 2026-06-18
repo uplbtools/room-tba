@@ -5,7 +5,8 @@
   import type { RoomData } from "../../../lib/types";
     import ResultDisplay from "./ResultDisplay.svelte";
 
-  const { colleges, loaded } = getAppData()();
+    const appData = getAppData();
+  const { colleges, loaded } = $derived(appData());
 
   const college = $derived(
     loaded
