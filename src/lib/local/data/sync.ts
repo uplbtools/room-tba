@@ -1,193 +1,290 @@
-import { type DBData } from "../../context";
+import { Result } from "pg";
 import {
   BuildingData,
   ClassMapValue,
   CollegeData,
   DivisionData,
   DormData,
+  RoomData,
 } from "../../types";
-import {
-  getLocalBuildings,
-  getLocalClasses,
-  getLocalColleges,
-  getLocalDivisions,
-  getLocalDorms,
-} from "./utils";
+import { getDB } from "./pgliteDB";
+import { localTableSyncCheck, updateSyncKeyFromLs } from "./utils";
+import { syncToastStore } from "../../store.svelte";
 
-export async function getJSONFetch<T>(url: string) {
-  const req = await fetch(url);
-  return (await req.json()) as T;
-}
-
-export function gettotalDataLength(...arrays: any[][]): number {
-  return arrays.reduce((sum, curr) => sum + curr.length, 0);
-}
-
-export async function isLocalDataValid(): Promise<boolean> {
-  const syncKeys = getSyncKeysFromLs();
-  if (syncKeys === null) return false;
-  for (const [table, key] of Object.entries(syncKeys)) {
-    if (key === "") return false;
-    const onlineKey = await getSyncKey(table);
-    if (onlineKey === null || key !== onlineKey) return false;
-  }
-  return true;
-}
-
-export function getSyncKeysFromLs(): {
-  [key: string]: string;
-} | null {
-  const lsStore = localStorage.getItem("sync-key");
-
-  if (lsStore === null) {
-    localStorage.setItem(
-      "sync-key",
-      `{
-      "buildings": "",
-      "colleges": "",
-      "divisions": "",
-      "rooms": "",
-      "dorms": "",
-      "classes": ""
-    }`,
-    );
-    return null;
-  }
-
+export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
-    const keys = JSON.parse(lsStore);
-    if (typeof keys === "object" && "buildings" in keys) {
-      return keys as {
-        [key: string]: string;
-      };
-    } else {
-      return null;
-    }
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+        SELECT building_name AS "buildingName", lon, lat, id, directions FROM buildings
+      `)) as Result<BuildingData>;
+    return data.rows;
   } catch (e) {
-    console.error("Error: the sync keys in the localStorage was corrupted");
-    localStorage.setItem(
-      "sync-key",
-      `{
-      "buildings": "",
-      "colleges": "",
-      "divisions": "",
-      "rooms": "",
-      "dorms": "",
-      "classes": ""
-    }`,
-    );
-    return null;
+    console.error("Error: ", e);
+    return undefined;
   }
 }
 
-export async function localTableSyncCheck(tableName: string): Promise<{
-  valid: boolean;
-  newKey: string | null;
-}> {
+export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
   try {
-    const remoteSyncKey = await getSyncKey(tableName);
-    const syncKeyLs = getSyncKeysFromLs();
-    if (syncKeyLs === null)
-      return {
-        valid: false,
-        newKey: remoteSyncKey,
-      };
-    const tableSyncKey = syncKeyLs[tableName];
-    return {
-      valid:
-        typeof tableSyncKey === "string" &&
-        remoteSyncKey !== null &&
-        tableSyncKey === remoteSyncKey,
-      newKey: remoteSyncKey,
-    };
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+        SELECT college_name AS "collegeName", id FROM colleges;
+      `)) as Result<CollegeData>;
+    return data.rows;
   } catch (e) {
-    console.error(e);
-    return {
-      valid: false,
-      newKey: null,
-    };
+    console.error("Error: ", e);
+    return undefined;
   }
 }
 
-export function updateSyncKeyFromLs(tableName: string, newKey: string) {
-  const syncKeys = getSyncKeysFromLs();
-  if (syncKeys === null) return;
-  syncKeys[tableName] = newKey;
-  localStorage.setItem("sync-key", JSON.stringify(syncKeys));
-}
-
-export async function getSyncKey(table: string) {
+export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
   try {
-    const tableOnline = await getJSONFetch<{
-      success: boolean;
-      error: string | null;
-      data: {
-        id: number;
-        tableName: string | null;
-        syncKey: string | null;
-      };
-    }>(`/api/check/${table}`);
-    return tableOnline.data.syncKey;
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+        SELECT division_name AS "divisionName", id FROM divisions;
+      `)) as Result<DivisionData>;
+    return data.rows;
   } catch (e) {
-    console.error(e);
-    return null;
+    console.error("Error: ", e);
+    return undefined;
   }
 }
 
-export function getSyncedTable<T>(
-  tableName: string,
-  localDataService: () => Promise<T[] | undefined>,
-): () => Promise<T[]> {
-  return async () => {
+export async function getLocalDorms(): Promise<DormData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+      SELECT
+        id,
+        dorm_name AS "dormName",
+        short_name AS "shortName",
+        lat,
+        lon,
+        gender,
+        capacity,
+        managing_office AS "managingOffice",
+        contact_email AS "contactEmail",
+        amenities,
+        osm_link AS "osmLink",
+        description,
+        is_up_managed AS "isUpManaged",
+        price_range AS "priceRange",
+        contact_phone AS "contactPhone",
+        facebook_link AS "facebookLink"
+      FROM dorms;
+      `)) as Result<DormData>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+// export async function getLocalRooms(): Promise<RoomData[] | undefined> {
+//   try {
+//     const localDB = getDB();
+
+//     await localDB.waitReady;
+//     const data = (await localDB.query(`
+//       SELECT
+//         r.room_code AS code,
+//         r.directions AS directions,
+//         json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+//         c.college_name as "collegeName",
+//         d.division_name as "divisionName",
+//         r.building_id as "buildingId",
+//         r.college_id as "collegeId",
+//         r.division_id as "divisionId"
+//       FROM rooms AS r
+//       LEFT JOIN buildings AS b ON b.id = r.building_id
+//       LEFT JOIN colleges as c ON c.id = r.college_id
+//       LEFT JOIN divisions AS d ON d.id = r.division_id;
+//       `)) as Result<RoomData>;
+//     return data.rows;
+//   } catch (e) {
+//     console.error("Error: ", e);
+//     return undefined;
+//   }
+// }
+
+export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
+  try {
+    const localDB = getDB();
+
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+      SELECT
+        c.id,
+        c.course_code as "courseCode",
+        c.section,
+        c.type,
+        c.schedule,
+        c.directions,
+        c.course_title as "courseTitle",
+        c.term_id as "termId",
+        c.room_id as "roomId"
+      FROM classes AS c
+      LEFT JOIN rooms AS r ON r.id = c.room_id;
+    `)) as Result<ClassMapValue>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function syncBuildings(remoteBuildings: BuildingData[]) {
+  const res = await localTableSyncCheck("buildings");
+  if (res.valid) return;
+  const localDB = getDB();
+
+  await localDB.waitReady;
+  syncToastStore.startBuildingsSync(remoteBuildings.length);
+  await localDB.exec(`DELETE FROM rooms`);
+  for (const b of remoteBuildings) {
     try {
-      const res = await localTableSyncCheck(tableName);
-      if (res.valid) {
-        const data = await localDataService();
-        return data ?? [];
-      }
-      const fetchedData = await getJSONFetch<T[]>(`/api/${tableName}`);
-      return fetchedData;
+      await localDB.query(
+        `
+        INSERT INTO buildings (id, building_name, lon, lat, directions, rooms_fetched)
+        VALUES ($1, $2, $3, $4, $5, false)
+        ON CONFLICT (id) DO UPDATE SET
+        id = EXCLUDED.id,
+        building_name = EXCLUDED.building_name,
+        lon = EXCLUDED.lon,
+        lat = EXCLUDED.lat,
+        directions = EXCLUDED.directions,
+        rooms_fetched = EXCLUDED.rooms_fetched;
+        `,
+        [b.id, b.buildingName, b.lon, b.lat, b.directions],
+      );
+      syncToastStore.updateBuildingsSync();
     } catch (e) {
-      return [];
+      console.error(e);
     }
-  };
+  }
+  updateSyncKeyFromLs("buildings", res.newKey ?? "");
 }
 
-export const getSyncedBuildings = getSyncedTable<BuildingData>(
-  "buildings",
-  getLocalBuildings,
-);
+export async function syncColleges(remoteColleges: CollegeData[]) {
+  const res = await localTableSyncCheck("colleges");
+  if (res.valid) return;
 
-export const getSyncedColleges = getSyncedTable<CollegeData>(
-  "colleges",
-  getLocalColleges,
-);
+  const localDB = getDB();
 
-export const getSyncedDivisions = getSyncedTable<DivisionData>(
-  "divisions",
-  getLocalDivisions,
-);
-
-export const getSyncedDorms = getSyncedTable<DormData>("dorms", getLocalDorms);
-
-export const getSyncedClasses = getSyncedTable<ClassMapValue>(
-  "classes",
-  getLocalClasses,
-);
-
-export async function getSyncedRoomsData(): Promise<
-  Pick<DBData, "directionCount" | "totalRooms">
-> {
-  try {
-    const fetchedRoomsData =
-      await getJSONFetch<Pick<DBData, "directionCount" | "totalRooms">>(
-        "/api/rooms-update",
+  await localDB.waitReady;
+  syncToastStore.startCollegesSync(remoteColleges.length);
+  await localDB.exec(`DELETE FROM rooms`);
+  for (const college of remoteColleges) {
+    try {
+      await localDB.query(
+        `
+        INSERT INTO colleges (id, college_name, rooms_fetched)
+        VALUES ($1, $2, false)
+        ON CONFLICT (id) DO UPDATE SET
+        id = EXCLUDED.id,
+        college_name = EXCLUDED.college_name,
+        rooms_fetched = EXCLUDED.rooms_fetched;
+        `,
+        [college.id, college.collegeName],
       );
-    return fetchedRoomsData;
-  } catch (e) {
-    return {
-      directionCount: 0,
-      totalRooms: 0,
-    };
+      syncToastStore.updateCollegesSync();
+    } catch (e) {
+      console.error(e);
+    }
   }
+
+  updateSyncKeyFromLs("colleges", res.newKey ?? "");
+}
+
+export async function syncDivisions(remoteDivisions: DivisionData[]) {
+  const res = await localTableSyncCheck("divisions");
+  if (res.valid) return;
+
+  const localDB = getDB();
+
+  await localDB.waitReady;
+  syncToastStore.startDivisionsSync(remoteDivisions.length);
+  await localDB.exec(`DELETE FROM rooms`);
+  for (const division of remoteDivisions) {
+    try {
+      await localDB.query(
+        `
+        INSERT INTO divisions (id, division_name, rooms_fetched)
+        VALUES ($1, $2, false)
+        ON CONFLICT (id) DO UPDATE SET
+        id = EXCLUDED.id,
+        division_name = EXCLUDED.division_name,
+        rooms_fetched = EXCLUDED.rooms_fetched;
+        `,
+        [division.id, division.divisionName],
+      );
+      syncToastStore.updateDivisionsSync();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  updateSyncKeyFromLs("divisions", res.newKey ?? "");
+}
+
+export async function syncDorms(remoteDorms: DormData[]) {
+  const res = await localTableSyncCheck("dorms");
+  if (res.valid) return;
+
+  const localDB = getDB();
+
+  await localDB.waitReady;
+  syncToastStore.startDormsSync(remoteDorms.length);
+  for (const b of remoteDorms) {
+    try {
+      await localDB.query(
+        `
+        INSERT INTO dorms (id, dorm_name, short_name, lat, lon, gender, capacity, managing_office, contact_email, amenities, osm_link, description, is_up_managed, price_range, contact_phone, facebook_link)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        ON CONFLICT (id) DO UPDATE SET
+        id = EXCLUDED.id,
+        dorm_name = EXCLUDED.dorm_name,
+        short_name = EXCLUDED.short_name,
+        lat = EXCLUDED.lat,
+        lon = EXCLUDED.lon,
+        gender = EXCLUDED.gender,
+        capacity = EXCLUDED.capacity,
+        managing_office = EXCLUDED.managing_office,
+        contact_email = EXCLUDED.contact_email,
+        amenities = EXCLUDED.amenities,
+        osm_link = EXCLUDED.osm_link,
+        description = EXCLUDED.description,
+        is_up_managed = EXCLUDED.is_up_managed,
+        price_range = EXCLUDED.price_range,
+        contact_phone = EXCLUDED.contact_phone,
+        facebook_link = EXCLUDED.facebook_link;
+        `,
+        [
+          b.id,
+          b.dormName,
+          b.shortName,
+          b.lat,
+          b.lon,
+          b.gender,
+          b.capacity,
+          b.managingOffice,
+          b.contactEmail,
+          `{${b.amenities ? b.amenities.map((amenity) => `'${amenity}'`).join(",") : ""}}`,
+          b.osmLink,
+          b.description,
+          b.isUpManaged,
+          b.priceRange,
+          b.contactPhone,
+          b.facebookLink,
+        ],
+      );
+      syncToastStore.updateDormsSync();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  updateSyncKeyFromLs("dorms", res.newKey ?? "");
 }

@@ -2,7 +2,7 @@
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import type { RoomData } from "../../../lib/types";
-  import { getJSONFetch } from "../../../lib/local/data/sync";
+  import { getJSONFetch } from "../../../lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
 
   const appData = getAppData();

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  import { getJSONFetch } from "../../../lib/local/data/sync";
+  import { getJSONFetch } from "../../../lib/local/data/utils";
   import type { RoomData } from "../../../lib/types";
     import ResultDisplay from "./ResultDisplay.svelte";
 
