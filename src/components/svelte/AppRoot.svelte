@@ -5,7 +5,7 @@
     type DBData,
     setAppData,
   } from "../../lib/context";
-  import { queryStore } from "../../lib/store.svelte";
+  import { queryStore, syncToastStore } from "../../lib/store.svelte";
   import type {
     BuildingData,
     ClassMapValue,
@@ -118,7 +118,7 @@
   // svelte-ignore state_referenced_locally
   setAppData(() => appData);
 
-  $inspect(classes);
+  $inspect(syncToastStore.currentSync, syncToastStore.currentSyncData);
 </script>
 
 {#if appData.loaded}
