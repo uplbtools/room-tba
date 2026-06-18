@@ -24,13 +24,12 @@
 <div class="rooms-section">
   <h3 class="rooms-subtitle">Rooms in the building</h3>
   <div class="room-list">
-    <!-- {#each paginatedRooms as room (room.id)}
+    {#each paginatedRooms as room (room.id)}
       <RoomDisplay
         {room}
         searchInput=""
-        classes={classesMap.get(room.code) || []}
       />
-    {/each} -->
+    {/each}
 
     {#if filteredRooms.length === 0}
       <div class="no-results">No rooms found for this building.</div>

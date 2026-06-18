@@ -5,7 +5,6 @@ import {
   CollegeData,
   DivisionData,
   DormData,
-  RoomData,
 } from "../../types";
 import {
   getLocalBuildings,
@@ -13,7 +12,6 @@ import {
   getLocalColleges,
   getLocalDivisions,
   getLocalDorms,
-  getLocalRooms,
 } from "./utils";
 
 export async function getJSONFetch<T>(url: string) {
@@ -171,8 +169,6 @@ export const getSyncedDivisions = getSyncedTable<DivisionData>(
 );
 
 export const getSyncedDorms = getSyncedTable<DormData>("dorms", getLocalDorms);
-
-export const getSyncedRooms = getSyncedTable<RoomData>("rooms", getLocalRooms);
 
 export const getSyncedClasses = getSyncedTable<ClassMapValue>(
   "classes",
