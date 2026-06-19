@@ -1,7 +1,8 @@
 import type { modalOptions } from "../constants/modal-states";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
-import type { RecentSearch } from "./types";
+import { RoomData, type RecentSearch } from "./types";
+import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
 
 export type DormFilterType = "all" | "up" | "private";
 export type SyncInfo = {
@@ -16,6 +17,35 @@ export const dormFilter = {
   },
   set(v: DormFilterType) {
     _dormFilter = v;
+  },
+};
+
+let _currentRoom = $state<RoomData | null>(null);
+export const currentRoom = {
+  get value() {
+    return _currentRoom;
+  },
+  async getRoomByCode(code: string) {
+      _currentRoom = null;
+    try {
+      const localRoom = await getLocalRoomByCode(code);
+      if (localRoom === null) {
+        const codeParam = encodeURI(code.toUpperCase());
+        const remoteRoomReq = await getJSONFetch<{ data: RoomData }>(
+          `/api/rooms?code=${codeParam}`,
+        );
+        const remoteRoom = remoteRoomReq.data;
+        _currentRoom = remoteRoom;
+        return;
+      }
+      _currentRoom = localRoom;
+    } catch (e) {
+      console.error(e);
+      _currentRoom = null;
+    }
+  },
+  async getRoomFromSearch(room: RoomData) {
+      _currentRoom = room;
   },
 };
 

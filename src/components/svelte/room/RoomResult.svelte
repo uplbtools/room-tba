@@ -1,47 +1,38 @@
 <script lang="ts">
-  // import {
-  //   modalStore,
-  //   queryStore,
-  //   locationStore,
-  // } from "../../../lib/store.svelte";
-  // import { getAppData } from "../../../lib/context";
+  import {
+    currentRoom,
+    locationStore,
+    modalStore,
+  } from "../../../lib/store.svelte";
+  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   // import Classes from "./Classes.svelte";
-  // import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
 
-
-  // const roomData = $derived(
-  //   rooms.find((r) => r.code === queryStore.queryValue),
-  // );
-
-  // const classesData = $derived(
-  //   roomData ? classesMap.get(roomData.code) || [] : [],
-  // );
 </script>
 
 <div class="room-details-container">
-  <!-- {#if roomData}
+  {#if currentRoom.value}
     <div class="header-section">
       <div class="header-top-row">
-        <h2>{roomData.code}</h2>
+        <h2>{currentRoom.value.code}</h2>
       </div>
       <div class="subtitle-badge">
         <p>
-          {#if roomData.collegeName}
-            {roomData.collegeName}
+          {#if currentRoom.value.collegeName}
+            {currentRoom.value.collegeName}
           {/if}
-          {#if roomData.building?.name}
-            {#if roomData.collegeName}
+          {#if currentRoom.value.building?.name}
+            {#if currentRoom.value.collegeName}
               •
             {/if}
-            {roomData.building.name}
+            {currentRoom.value.building.name}
           {/if}
         </p>
       </div>
     </div>
 
-    {#if roomData.directions}
+    {#if currentRoom.value.directions}
       <p class="room-directions">
-        {roomData.directions}
+        {currentRoom.value.directions}
       </p>
     {:else}
       <p class="room-directions no-directions">
@@ -53,14 +44,14 @@
       </p>
     {/if}
 
-    {#if roomData.building}
+    {#if currentRoom.value.building}
       <div class="building-note">
         <h3 class="building-note-title">
-          How to get to {roomData.building.name}
+          How to get to {currentRoom.value.building.name}
         </h3>
-        {#if roomData.building.directions}
+        {#if currentRoom.value.building.directions}
           <p class="building-directions">
-            {roomData.building.directions}
+            {currentRoom.value.building.directions}
           </p>
         {:else}
           <p class="building-directions no-directions">
@@ -74,20 +65,21 @@
       </div>
     {/if}
 
-    {#if roomData.building?.lat && roomData.building?.lon}
+    {#if currentRoom.value.building?.lat && currentRoom.value.building?.lon}
       <div class="map-links">
         <button
           class="get-directions-btn"
           onclick={() => {
             if (
-              roomData.building &&
-              roomData.building.lon &&
-              roomData.building.lat
+              currentRoom.value &&
+              currentRoom.value.building &&
+              currentRoom.value.building.lon &&
+              currentRoom.value.building.lat
             ) {
               locationStore.requestLocation();
               locationStore.setDestination([
-                roomData.building.lon,
-                roomData.building.lat,
+                currentRoom.value.building.lon,
+                currentRoom.value.building.lat,
               ]);
             }
           }}
@@ -96,8 +88,8 @@
           <CornerRightUp size={18} />
         </button>
         <a
-          href="https://www.google.com/maps?q={roomData.building.lat},{roomData
-            .building.lon}"
+          href="https://www.google.com/maps?q={currentRoom.value.building
+            .lat},{currentRoom.value.building.lon}"
           target="_blank"
           rel="noreferrer"
         >
@@ -128,12 +120,12 @@
             ></polyline></svg
           ></button
         >
-      </div> -->
+      </div>
       <!-- <Classes classes={classesData} /> -->
-    <!-- </div>
-  {:else} -->
+    </div>
+  {:else}
     <p>Room not found.</p>
-  <!-- {/if} -->
+  {/if}
 </div>
 
 <style>

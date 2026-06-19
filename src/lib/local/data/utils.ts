@@ -1,4 +1,3 @@
-import { Result } from "pg";
 import { type DBData } from "../../context";
 import {
   BuildingData,
@@ -12,12 +11,10 @@ import {
 import { getDB } from "./pgliteDB";
 import {
   getLocalBuildingRooms,
-  checkLocalBuildingRoom,
-  checkLocalCollegeRoom,
   getLocalCollegeRooms,
-  checkLocalDivisionRoom,
   getLocalDivisionRooms,
 } from "./sync";
+import { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
@@ -25,7 +22,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT building_name AS "buildingName", lon, lat, id, directions FROM buildings
-      `)) as Result<BuildingData>;
+      `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -39,7 +36,7 @@ export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT college_name AS "collegeName", id FROM colleges;
-      `)) as Result<CollegeData>;
+      `)) as Results<CollegeData>;
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -53,7 +50,7 @@ export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT division_name AS "divisionName", id FROM divisions;
-      `)) as Result<DivisionData>;
+      `)) as Results<DivisionData>;
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
@@ -84,11 +81,43 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         contact_phone AS "contactPhone",
         facebook_link AS "facebookLink"
       FROM dorms;
-      `)) as Result<DormData>;
+      `)) as Results<DormData>;
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);
     return undefined;
+  }
+}
+
+export async function getLocalRoomByCode(code: string) {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `
+            r.id,
+            r.room_code AS code,
+            r.directions AS directions,
+            json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+            c.college_name as "collegeName",
+            d.division_name as "divisionName",
+            r.building_id as "buildingId",
+            r.college_id as "collegeId",
+            r.division_id as "divisionId"
+            FROM rooms AS r
+            LEFT JOIN buildings AS b ON b.id = r.building_id
+            LEFT JOIN colleges as c ON c.id = r.college_id
+            LEFT JOIN divisions AS d ON d.id = r.division_id
+            WHERE r.room_code = $1
+        `,
+      [code],
+    )) as Results<RoomData>;
+    if (data.rows.length === 0 && typeof data.rows[0] === "undefined")
+      return null;
+    return data.rows[0] as RoomData;
+  } catch (e) {
+    console.error(e);
+    return null;
   }
 }
 
@@ -111,7 +140,7 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
 //       LEFT JOIN buildings AS b ON b.id = r.building_id
 //       LEFT JOIN colleges as c ON c.id = r.college_id
 //       LEFT JOIN divisions AS d ON d.id = r.division_id;
-//       `)) as Result<RoomData>;
+//       `)) as Results<RoomData>;
 //     return data.rows;
 //   } catch (e) {
 //     console.error("Error: ", e);
@@ -137,7 +166,7 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
         c.room_id as "roomId"
       FROM classes AS c
       LEFT JOIN rooms AS r ON r.id = c.room_id;
-    `)) as Result<ClassMapValue>;
+    `)) as Results<ClassMapValue>;
     return data.rows;
   } catch (e) {
     console.error("Error: ", e);

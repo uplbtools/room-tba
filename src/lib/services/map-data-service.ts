@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 import {
   buildingsTable,
   classesTable,
@@ -50,6 +50,57 @@ export async function getAllRooms(): Promise<RoomData[]> {
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
       .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
       .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
+    return data;
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch rooms");
+  }
+}
+
+export async function getRoomByCode(code: string) {
+  try {
+    const data = await db
+      .select({
+        id: roomsTable.id,
+        code: roomsTable.roomCode,
+        directions: roomsTable.directions,
+        building: {
+          name: buildingsTable.buildingName,
+          lat: buildingsTable.lat,
+          lon: buildingsTable.lon,
+          directions: buildingsTable.directions,
+        },
+        collegeName: collegesTable.collegeName,
+        divisionName: divisionsTable.divisionName,
+        buildingId: roomsTable.buildingId,
+        collegeId: roomsTable.collegeId,
+        divisionId: roomsTable.divisionId,
+      })
+      .from(roomsTable)
+      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
+      .where(eq(roomsTable.roomCode, code));
+    if (data.length === 0 || typeof data[0] === "undefined") return null;
+    return data[0];
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch rooms");
+  }
+}
+
+export async function searchRooms(searchString: string) {
+  try {
+    const data = await db
+      .select({
+        value: roomsTable.roomCode,
+      })
+      .from(roomsTable)
+      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
+      .where(like(roomsTable.roomCode, `%${searchString}%`)).limit(6);
+    if (data.length === 0) return null;
     return data;
   } catch (e) {
     console.error("Error: ", e);
