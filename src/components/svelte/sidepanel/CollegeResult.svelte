@@ -4,7 +4,7 @@
   import { getCollegeRooms } from "../../../lib/local/data/utils";
   import type { RoomData } from "../../../lib/types";
     import ResultDisplay from "./ResultDisplay.svelte";
-    import { syncCollegeRooms } from "../../../lib/local/data/sync";
+    import { checkLocalCollegeRoom, syncCollegeRooms } from "../../../lib/local/data/sync";
     import { onMount } from "svelte";
 
     const appData = getAppData();
@@ -20,8 +20,9 @@
 
   onMount(async() => {
     if (!college) return;
-    collegeRooms = await getCollegeRooms(college.id);
-    await syncCollegeRooms(college.id, collegeRooms);
+    const collegeChecker = await checkLocalCollegeRoom(college.id)
+    collegeRooms = await getCollegeRooms(collegeChecker, college.id);
+    await syncCollegeRooms(collegeChecker, college.id, collegeRooms);
 
   });
 </script>
