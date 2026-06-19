@@ -106,9 +106,7 @@
   $inspect(syncToastStore.currentSync, syncToastStore.currentSyncData);
 </script>
 
-{#if appData.loaded}
-  <Entry
-    initialSearch={metadata.initialSearch}
-    suppressLandingModal={metadata.suppressLandingModal ?? false}
-  />
-{/if}
+<Entry
+  initialSearch={metadata.initialSearch}
+  suppressLandingModal={metadata.suppressLandingModal ?? false}
+/>
