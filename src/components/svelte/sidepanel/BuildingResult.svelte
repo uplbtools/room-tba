@@ -6,7 +6,10 @@
   import ResultDisplay from "./ResultDisplay.svelte";
   import { onMount } from "svelte";
   import { getBuildingRooms } from "../../../lib/local/data/utils";
-  import { syncBuildingRooms } from "../../../lib/local/data/sync";
+  import {
+    checkLocalBuildingRoom,
+    syncBuildingRooms,
+  } from "../../../lib/local/data/sync";
 
   const appData = getAppData();
   const { buildings, loaded } = $derived(appData());
@@ -20,9 +23,9 @@
 
   onMount(async () => {
     if (!building) return;
-    buildingRooms = await getBuildingRooms(building.id);
-    await syncBuildingRooms(building.id, buildingRooms);
-
+    const buildingChecker = await checkLocalBuildingRoom(building.id);
+    buildingRooms = await getBuildingRooms(buildingChecker, building.id);
+    await syncBuildingRooms(buildingChecker, building.id, buildingRooms);
   });
 </script>
 

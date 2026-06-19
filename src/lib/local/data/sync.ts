@@ -361,10 +361,12 @@ export async function checkLocalBuildingRoom(id: number) {
   }
 }
 
-export async function syncBuildingRooms(id: number, rooms: RoomData[]) {
-  const synced = await checkLocalBuildingRoom(id);
-
-  if (synced) return;
+export async function syncBuildingRooms(
+  validSync: boolean,
+  id: number,
+  rooms: RoomData[],
+) {
+  if (validSync) return;
   const localDB = getDB();
   for (const room of rooms) {
     try {
@@ -490,10 +492,12 @@ export async function checkLocalCollegeRoom(id: number) {
   }
 }
 
-export async function syncCollegeRooms(id: number, rooms: RoomData[]) {
-  const synced = await checkLocalBuildingRoom(id);
-
-  if (synced) return;
+export async function syncCollegeRooms(
+  validSync: boolean,
+  id: number,
+  rooms: RoomData[],
+) {
+  if (validSync) return;
   const localDB = getDB();
   for (const room of rooms) {
     try {
@@ -619,10 +623,12 @@ export async function checkLocalDivisionRoom(id: number) {
   }
 }
 
-export async function syncDivisionRooms(id: number, rooms: RoomData[]) {
-  const synced = await checkLocalBuildingRoom(id);
-
-  if (synced) return;
+export async function syncDivisionRooms(
+  validSync: boolean,
+  id: number,
+  rooms: RoomData[],
+) {
+  if (validSync) return;
   const localDB = getDB();
   for (const room of rooms) {
     try {

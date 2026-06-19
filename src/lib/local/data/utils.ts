@@ -154,7 +154,7 @@ export function getEntity<T>(
   tableName: string,
   getLocalEntity: () => Promise<T[] | undefined>,
 ): (checker: TableSyncInfo) => Promise<T[]> {
-  return async (checker:TableSyncInfo) => {
+  return async (checker: TableSyncInfo) => {
     try {
       if (checker.valid) {
         const data = await getLocalEntity();
@@ -186,13 +186,11 @@ export const getClasses = getEntity<ClassMapValue>("classes", getLocalClasses);
 
 export function getEntityRooms(
   entityName: string,
-  localTableRoomCheck: (id: number) => Promise<boolean>,
   getLocalTableRoom: (id: number) => Promise<RoomData[] | undefined>,
 ) {
-  return async (id: number) => {
+  return async (validSync: boolean, id: number) => {
     try {
-      const valid = await localTableRoomCheck(id);
-      if (valid) {
+      if (validSync) {
         const data = await getLocalTableRoom(id);
         return data ?? [];
       }
@@ -208,19 +206,13 @@ export function getEntityRooms(
 
 export const getBuildingRooms = getEntityRooms(
   "building",
-  checkLocalBuildingRoom,
   getLocalBuildingRooms,
 );
 
-export const getCollegeRooms = getEntityRooms(
-  "college",
-  checkLocalCollegeRoom,
-  getLocalCollegeRooms,
-);
+export const getCollegeRooms = getEntityRooms("college", getLocalCollegeRooms);
 
 export const getDivisionRooms = getEntityRooms(
   "division",
-  checkLocalDivisionRoom,
   getLocalDivisionRooms,
 );
 

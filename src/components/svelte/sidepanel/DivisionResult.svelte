@@ -4,7 +4,7 @@
   import type { RoomData } from "../../../lib/types";
   import { getDivisionRooms, getJSONFetch } from "../../../lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
-    import { syncDivisionRooms } from "../../../lib/local/data/sync";
+    import { checkLocalDivisionRoom, syncDivisionRooms } from "../../../lib/local/data/sync";
     import { onMount } from "svelte";
 
   const appData = getAppData();
@@ -20,8 +20,9 @@
 
   onMount(async() => {
     if (!division) return;
-    divisionRooms = await getDivisionRooms(division.id);
-    await syncDivisionRooms(division.id, divisionRooms);
+    const divisionChecker = await checkLocalDivisionRoom(division.id)
+    divisionRooms = await getDivisionRooms(divisionChecker, division.id);
+    await syncDivisionRooms(divisionChecker, division.id, divisionRooms);
   });
   // const divisionRooms = $derived(
   //   rooms.filter((room) => room.divisionName === queryStore.queryValue),
