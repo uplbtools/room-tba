@@ -1,3 +1,4 @@
+import { Result } from "pg";
 import { type DBData } from "../../context";
 import {
   BuildingData,
@@ -6,14 +7,11 @@ import {
   DivisionData,
   DormData,
   RoomData,
+  TableSyncInfo,
 } from "../../types";
+import { getDB } from "./pgliteDB";
 import {
   getLocalBuildingRooms,
-  getLocalBuildings,
-  getLocalClasses,
-  getLocalColleges,
-  getLocalDivisions,
-  getLocalDorms,
   checkLocalBuildingRoom,
   checkLocalCollegeRoom,
   getLocalCollegeRooms,
@@ -21,130 +19,144 @@ import {
   getLocalDivisionRooms,
 } from "./sync";
 
+export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+        SELECT building_name AS "buildingName", lon, lat, id, directions FROM buildings
+      `)) as Result<BuildingData>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+        SELECT college_name AS "collegeName", id FROM colleges;
+      `)) as Result<CollegeData>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+        SELECT division_name AS "divisionName", id FROM divisions;
+      `)) as Result<DivisionData>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalDorms(): Promise<DormData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+      SELECT
+        id,
+        dorm_name AS "dormName",
+        short_name AS "shortName",
+        lat,
+        lon,
+        gender,
+        capacity,
+        managing_office AS "managingOffice",
+        contact_email AS "contactEmail",
+        amenities,
+        osm_link AS "osmLink",
+        description,
+        is_up_managed AS "isUpManaged",
+        price_range AS "priceRange",
+        contact_phone AS "contactPhone",
+        facebook_link AS "facebookLink"
+      FROM dorms;
+      `)) as Result<DormData>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+// export async function getLocalRooms(): Promise<RoomData[] | undefined> {
+//   try {
+//     const localDB = getDB();
+
+//     await localDB.waitReady;
+//     const data = (await localDB.query(`
+//       SELECT
+//         r.room_code AS code,
+//         r.directions AS directions,
+//         json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+//         c.college_name as "collegeName",
+//         d.division_name as "divisionName",
+//         r.building_id as "buildingId",
+//         r.college_id as "collegeId",
+//         r.division_id as "divisionId"
+//       FROM rooms AS r
+//       LEFT JOIN buildings AS b ON b.id = r.building_id
+//       LEFT JOIN colleges as c ON c.id = r.college_id
+//       LEFT JOIN divisions AS d ON d.id = r.division_id;
+//       `)) as Result<RoomData>;
+//     return data.rows;
+//   } catch (e) {
+//     console.error("Error: ", e);
+//     return undefined;
+//   }
+// }
+
+export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
+  try {
+    const localDB = getDB();
+
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+      SELECT
+        c.id,
+        c.course_code as "courseCode",
+        c.section,
+        c.type,
+        c.schedule,
+        c.directions,
+        c.course_title as "courseTitle",
+        c.term_id as "termId",
+        c.room_id as "roomId"
+      FROM classes AS c
+      LEFT JOIN rooms AS r ON r.id = c.room_id;
+    `)) as Result<ClassMapValue>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
 export async function getJSONFetch<T>(url: string) {
   const req = await fetch(url);
   return (await req.json()) as T;
 }
 
-export async function isLocalDataValid(): Promise<boolean> {
-  const syncKeys = getSyncKeysFromLs();
-  if (syncKeys === null) return false;
-  for (const [table, key] of Object.entries(syncKeys)) {
-    if (key === "") return false;
-    const onlineKey = await getSyncKey(table);
-    if (onlineKey === null || key !== onlineKey) return false;
-  }
-  return true;
-}
-
-export function getSyncKeysFromLs(): {
-  [key: string]: string;
-} | null {
-  const lsStore = localStorage.getItem("sync-key");
-
-  if (lsStore === null) {
-    localStorage.setItem(
-      "sync-key",
-      `{
-      "buildings": "",
-      "colleges": "",
-      "divisions": "",
-      "rooms": "",
-      "dorms": "",
-      "classes": ""
-    }`,
-    );
-    return null;
-  }
-
-  try {
-    const keys = JSON.parse(lsStore);
-    if (typeof keys === "object" && "buildings" in keys) {
-      return keys as {
-        [key: string]: string;
-      };
-    } else {
-      return null;
-    }
-  } catch (e) {
-    console.error("Error: the sync keys in the localStorage was corrupted");
-    localStorage.setItem(
-      "sync-key",
-      `{
-      "buildings": "",
-      "colleges": "",
-      "divisions": "",
-      "rooms": "",
-      "dorms": "",
-      "classes": ""
-    }`,
-    );
-    return null;
-  }
-}
-
-export async function localTableSyncCheck(tableName: string): Promise<{
-  valid: boolean;
-  newKey: string | null;
-}> {
-  try {
-    const remoteSyncKey = await getSyncKey(tableName);
-    const syncKeyLs = getSyncKeysFromLs();
-    if (syncKeyLs === null)
-      return {
-        valid: false,
-        newKey: remoteSyncKey,
-      };
-    const tableSyncKey = syncKeyLs[tableName];
-    return {
-      valid:
-        typeof tableSyncKey === "string" &&
-        remoteSyncKey !== null &&
-        tableSyncKey === remoteSyncKey,
-      newKey: remoteSyncKey,
-    };
-  } catch (e) {
-    console.error(e);
-    return {
-      valid: false,
-      newKey: null,
-    };
-  }
-}
-
-export function updateSyncKeyFromLs(tableName: string, newKey: string) {
-  const syncKeys = getSyncKeysFromLs();
-  if (syncKeys === null) return;
-  syncKeys[tableName] = newKey;
-  localStorage.setItem("sync-key", JSON.stringify(syncKeys));
-}
-
-export async function getSyncKey(table: string) {
-  try {
-    const tableOnline = await getJSONFetch<{
-      success: boolean;
-      error: string | null;
-      data: {
-        id: number;
-        tableName: string | null;
-        syncKey: string | null;
-      };
-    }>(`/api/check/${table}`);
-    return tableOnline.data.syncKey;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
-
 export function getEntity<T>(
   tableName: string,
   getLocalEntity: () => Promise<T[] | undefined>,
-): () => Promise<T[]> {
-  return async () => {
+): (checker: TableSyncInfo) => Promise<T[]> {
+  return async (checker:TableSyncInfo) => {
     try {
-      const res = await localTableSyncCheck(tableName);
-      if (res.valid) {
+      if (checker.valid) {
         const data = await getLocalEntity();
         return data ?? [];
       }

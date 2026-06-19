@@ -101,3 +101,8 @@ interface RecentSearch {
   category: Exclude<QueryStoreState["category"], null>;
   value: string;
 }
+
+type TableSyncInfo = {
+  valid: boolean;
+  newKey: string | null;
+}
