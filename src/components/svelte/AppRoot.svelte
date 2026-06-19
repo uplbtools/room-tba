@@ -22,6 +22,7 @@
     getRoomsData,
   } from "../../lib/local/data/utils";
   import {
+    localTableSyncCheck,
     syncBuildings,
     syncColleges,
     syncDivisions,
@@ -67,38 +68,40 @@
         },
   );
 
-  onMount(() => {
+  onMount(async () => {
     let data: DBData;
     const localDB = getDB();
+    const buildingCheck = await localTableSyncCheck("buildings");
+    const collegeCheck = await localTableSyncCheck("colleges");
+    const divisionCheck = await localTableSyncCheck("divisions");
+    const dormCheck = await localTableSyncCheck("dorms");
     Promise.resolve()
       .then(() => initPGLiteDB(localDB))
       .catch((e) => console.error(e))
       .then(async () => {
         data = {
-          buildings: await getBuildings(),
-          colleges: await getColleges(),
-          divisions: await getDivisions(),
-          dorms: await getDorms(),
+          buildings: await getBuildings(buildingCheck),
+          colleges: await getColleges(collegeCheck),
+          divisions: await getDivisions(divisionCheck),
+          dorms: await getDorms(dormCheck),
           ...(await getRoomsData()),
         };
       })
-      .then(() => loadAppData(data));
+      .then(() => {
+          buildings = data.buildings;
+          colleges = data.colleges;
+          directionCount = data.directionCount;
+          divisions = data.divisions;
+          dorms = data.dorms;
+          totalRooms = data.totalRooms;
+          loaded = true;
+          Promise.resolve()
+            .then(() => syncBuildings(buildingCheck, data.buildings ?? []))
+            .then(() => syncColleges(collegeCheck, data.colleges ?? []))
+            .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
+            .then(() => syncDorms(dormCheck, data.dorms ?? []))
+      });
   });
-
-  function loadAppData(data: DBData) {
-    buildings = data.buildings;
-    colleges = data.colleges;
-    directionCount = data.directionCount;
-    divisions = data.divisions;
-    dorms = data.dorms;
-    totalRooms = data.totalRooms;
-    loaded = true;
-    Promise.resolve()
-      .then(() => syncBuildings(data.buildings ?? []))
-      .then(() => syncColleges(data.colleges ?? []))
-      .then(() => syncDivisions(data.divisions ?? []))
-      .then(() => syncDorms(data.dorms ?? []));
-  }
 
   // svelte-ignore state_referenced_locally
   setAppData(() => appData);
