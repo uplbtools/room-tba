@@ -8,7 +8,7 @@ import {
   RoomData,
 } from "../../types";
 import { getDB } from "./pgliteDB";
-import { localTableSyncCheck, updateSyncKeyFromLs } from "./utils";
+import { getSyncKey, getSyncKeysFromLs, localTableSyncCheck, updateSyncKeyFromLs } from "./utils";
 import { syncToastStore } from "../../store.svelte";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
@@ -287,4 +287,349 @@ export async function syncDorms(remoteDorms: DormData[]) {
     }
   }
   updateSyncKeyFromLs("dorms", res.newKey ?? "");
+}
+
+export async function resetBuildingsSyncStatus() {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    await localDB.exec(`UPDATE buildings SET rooms_fetched = false`);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function localBuildingSyncStatus(id: number) {
+    try {
+        const localDB = getDB();
+        await localDB.waitReady;
+        const data = (await localDB.query(`
+            SELECT rooms_fetched AS "roomsFetched"
+            FROM buildings
+            WHERE id = $1
+        `, [id])) as Result<{roomsFetched: boolean}>
+        if (data.rows.length === 0) throw new Error("Can't fetch a missing building row");
+        return data.rows[0];
+    }catch (e) {
+        console.error(e)
+    }
+}
+
+export async function getLocalBuildingRooms(id: number) {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `
+    SELECT
+    r.id,
+    r.room_code AS code,
+    r.directions AS directions,
+    json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+    c.college_name as "collegeName",
+    d.division_name as "divisionName",
+    r.building_id as "buildingId",
+    r.college_id as "collegeId",
+    r.division_id as "divisionId"
+    FROM rooms AS r
+    LEFT JOIN buildings AS b ON b.id = r.building_id
+    LEFT JOIN colleges as c ON c.id = r.college_id
+    LEFT JOIN divisions AS d ON d.id = r.division_id
+    WHERE r.building_id = $1;
+    `,
+      [id],
+    )) as Result<RoomData>;
+    return data.rows;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function checkLocalBuildingRoom (id: number) {
+  try {
+    const remoteSyncKey = await getSyncKey("rooms");
+    const syncKeyLs = getSyncKeysFromLs();
+    if (syncKeyLs === null) {
+      await resetBuildingsSyncStatus();
+      return false;
+    }
+
+    const roomSyncKey = syncKeyLs["rooms"];
+    if (
+      !(
+        typeof roomSyncKey === "string" &&
+        remoteSyncKey !== null &&
+        remoteSyncKey === roomSyncKey
+      )
+    ) {
+      await resetBuildingsSyncStatus();
+      return false;
+    }
+
+    const buildingSyncStatus = await localBuildingSyncStatus(id);
+    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+export async function syncBuildingRooms(id: number, rooms: RoomData[]) {
+    const synced = await checkLocalBuildingRoom(id);
+
+    if (synced) return;
+    const localDB = getDB();
+    for (const room of rooms) {
+        try {
+          await localDB.query(
+            `
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (id) DO UPDATE SET
+            id = EXCLUDED.id,
+            room_code = EXCLUDED.room_code,
+            directions = EXCLUDED.directions,
+            building_id = EXCLUDED.building_id,
+            college_id = EXCLUDED.college_id,
+            division_id = EXCLUDED.division_id;
+            `,
+            [room.id, room.code, room.directions, room.buildingId, room.collegeId, room.divisionId],
+          );
+        } catch (e) {
+          console.error(e);
+        }
+    }
+    await localDB.query(`UPDATE buildings SET rooms_fetched = true WHERE id = $1`, [id]);
+}
+
+export async function resetCollegesSyncStatus() {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    await localDB.exec(`UPDATE colleges SET rooms_fetched = false`);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function localCollegeSyncStatus(id: number) {
+    try {
+        const localDB = getDB();
+        await localDB.waitReady;
+        const data = (await localDB.query(`
+            SELECT rooms_fetched as "roomsFetched"
+            FROM colleges
+            WHERE id = $1;
+        `, [id])) as Result<{roomsFetched: boolean}>
+        if (data.rows.length === 0) throw new Error("Can't fetch a missing college row");
+        return data.rows[0];
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+export async function getLocalCollegeRooms(id: number) {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `
+    SELECT
+    r.id,
+    r.room_code AS code,
+    r.directions AS directions,
+    json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+    c.college_name as "collegeName",
+    d.division_name as "divisionName",
+    r.building_id as "buildingId",
+    r.college_id as "collegeId",
+    r.division_id as "divisionId"
+    FROM rooms AS r
+    LEFT JOIN buildings AS b ON b.id = r.building_id
+    LEFT JOIN colleges as c ON c.id = r.college_id
+    LEFT JOIN divisions AS d ON d.id = r.division_id
+    WHERE r.college_id = $1;
+    `,
+      [id],
+    )) as Result<RoomData>;
+    return data.rows;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function checkLocalCollegeRoom (id: number) {
+  try {
+    const remoteSyncKey = await getSyncKey("rooms");
+    const syncKeyLs = getSyncKeysFromLs();
+    if (syncKeyLs === null) {
+      await resetCollegesSyncStatus();
+      return false;
+    }
+
+    const roomSyncKey = syncKeyLs["rooms"];
+    if (
+      !(
+        typeof roomSyncKey === "string" &&
+        remoteSyncKey !== null &&
+        remoteSyncKey === roomSyncKey
+      )
+    ) {
+      await resetCollegesSyncStatus();
+      return false;
+    }
+
+    const buildingSyncStatus = await localCollegeSyncStatus(id);
+    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+export async function syncCollegeRooms(id: number, rooms: RoomData[]) {
+    const synced = await checkLocalBuildingRoom(id);
+
+    if (synced) return;
+    const localDB = getDB();
+    for (const room of rooms) {
+        try {
+          await localDB.query(
+            `
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (id) DO UPDATE SET
+            id = EXCLUDED.id,
+            room_code = EXCLUDED.room_code,
+            directions = EXCLUDED.directions,
+            building_id = EXCLUDED.building_id,
+            college_id = EXCLUDED.college_id,
+            division_id = EXCLUDED.division_id;
+            `,
+            [room.id, room.code, room.directions, room.buildingId, room.collegeId, room.divisionId],
+          );
+        } catch (e) {
+          console.error(e);
+        }
+    }
+    await localDB.query(`UPDATE colleges SET rooms_fetched = true WHERE id = $1`, [id]);
+}
+
+export async function resetDivisionsSyncStatus() {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    await localDB.exec(`UPDATE divisions SET rooms_fetched = false`);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function localDivisionSyncStatus(id: number) {
+    try {
+        const localDB = getDB();
+        await localDB.waitReady;
+        const data = (await localDB.query(`
+            SELECT rooms_fetched as "roomsFetched"
+            FROM divisions
+            WHERE id = $1;
+        `, [id])) as Result<{roomsFetched: boolean}>
+        if (data.rows.length === 0) throw new Error("Can't fetch a missing division row");
+        return data.rows[0];
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+export async function getLocalDivisionRooms(id: number) {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `
+    SELECT
+    r.id,
+    r.room_code AS code,
+    r.directions AS directions,
+    json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+    c.college_name as "collegeName",
+    d.division_name as "divisionName",
+    r.building_id as "buildingId",
+    r.college_id as "collegeId",
+    r.division_id as "divisionId"
+    FROM rooms AS r
+    LEFT JOIN buildings AS b ON b.id = r.building_id
+    LEFT JOIN colleges as c ON c.id = r.college_id
+    LEFT JOIN divisions AS d ON d.id = r.division_id
+    WHERE r.division_id = $1;
+    `,
+      [id],
+    )) as Result<RoomData>;
+    return data.rows;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export async function checkLocalDivisionRoom (id: number) {
+  try {
+    const remoteSyncKey = await getSyncKey("rooms");
+    const syncKeyLs = getSyncKeysFromLs();
+    if (syncKeyLs === null) {
+      await resetDivisionsSyncStatus();
+      return false;
+    }
+
+    const roomSyncKey = syncKeyLs["rooms"];
+    if (
+      !(
+        typeof roomSyncKey === "string" &&
+        remoteSyncKey !== null &&
+        remoteSyncKey === roomSyncKey
+      )
+    ) {
+      await resetDivisionsSyncStatus();
+      return false;
+    }
+
+    const buildingSyncStatus = await localDivisionSyncStatus(id);
+    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+export async function syncDivisionRooms(id: number, rooms: RoomData[]) {
+    const synced = await checkLocalBuildingRoom(id);
+
+    if (synced) return;
+    const localDB = getDB();
+    for (const room of rooms) {
+        try {
+          await localDB.query(
+            `
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (id) DO UPDATE SET
+            id = EXCLUDED.id,
+            room_code = EXCLUDED.room_code,
+            directions = EXCLUDED.directions,
+            building_id = EXCLUDED.building_id,
+            college_id = EXCLUDED.college_id,
+            division_id = EXCLUDED.division_id;
+            `,
+            [room.id, room.code, room.directions, room.buildingId, room.collegeId, room.divisionId],
+          );
+        } catch (e) {
+          console.error(e);
+        }
+    }
+    await localDB.query(`UPDATE divisions SET rooms_fetched = true WHERE id = $1`, [id]);
 }

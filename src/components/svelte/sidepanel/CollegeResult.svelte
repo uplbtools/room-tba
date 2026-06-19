@@ -1,9 +1,11 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  import { getJSONFetch } from "../../../lib/local/data/utils";
+  import { getCollegeRooms } from "../../../lib/local/data/utils";
   import type { RoomData } from "../../../lib/types";
     import ResultDisplay from "./ResultDisplay.svelte";
+    import { syncCollegeRooms } from "../../../lib/local/data/sync";
+    import { onMount } from "svelte";
 
     const appData = getAppData();
   const { colleges, loaded } = $derived(appData());
@@ -16,16 +18,11 @@
 
   let collegeRooms = $state<RoomData[] | null>(null);
 
-  $effect(() => {
+  onMount(async() => {
     if (!college) return;
-    Promise.resolve().then(async () => {
-      const { data } = (await getJSONFetch(
-        `/api/rooms?college_id=${college.id}`,
-      )) as {
-        data: RoomData[];
-      };
-      collegeRooms = data;
-    });
+    collegeRooms = await getCollegeRooms(college.id);
+    await syncCollegeRooms(college.id, collegeRooms);
+
   });
 </script>
 

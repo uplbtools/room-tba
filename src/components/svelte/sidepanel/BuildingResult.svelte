@@ -2,10 +2,11 @@
   import { queryStore, locationStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
-  import { getJSONFetch } from "../../../lib/local/data/utils";
   import type { RoomData } from "../../../lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
+  import { getBuildingRooms } from "../../../lib/local/data/utils";
+  import { syncBuildingRooms } from "../../../lib/local/data/sync";
 
   const appData = getAppData();
   const { buildings, loaded } = $derived(appData());
@@ -17,15 +18,11 @@
   );
   let buildingRooms = $state<RoomData[] | null>(null);
 
-  onMount(async() => {
+  onMount(async () => {
     if (!building) return;
-    Promise.resolve().then(async () => {
-      buildingRooms = (
-        (await getJSONFetch(`/api/rooms?building_id=${building.id}`)) as {
-          data: RoomData[];
-        }
-      ).data;
-    });
+    buildingRooms = await getBuildingRooms(building.id);
+    await syncBuildingRooms(building.id, buildingRooms);
+
   });
 </script>
 
@@ -57,7 +54,7 @@
   {/if}
   {#if buildingRooms}
     <ResultDisplay filteredRooms={buildingRooms} />
-    {:else}
+  {:else}
     Loading data...
   {/if}
 </div>

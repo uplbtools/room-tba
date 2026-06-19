@@ -5,20 +5,26 @@ import {
   CollegeData,
   DivisionData,
   DormData,
+  RoomData,
 } from "../../types";
 import {
+  getLocalBuildingRooms,
   getLocalBuildings,
   getLocalClasses,
   getLocalColleges,
   getLocalDivisions,
   getLocalDorms,
+  checkLocalBuildingRoom,
+  checkLocalCollegeRoom,
+  getLocalCollegeRooms,
+  checkLocalDivisionRoom,
+  getLocalDivisionRooms,
 } from "./sync";
 
 export async function getJSONFetch<T>(url: string) {
   const req = await fetch(url);
   return (await req.json()) as T;
 }
-
 
 export async function isLocalDataValid(): Promise<boolean> {
   const syncKeys = getSyncKeysFromLs();
@@ -155,10 +161,7 @@ export const getBuildings = getEntity<BuildingData>(
   getLocalBuildings,
 );
 
-export const getColleges = getEntity<CollegeData>(
-  "colleges",
-  getLocalColleges,
-);
+export const getColleges = getEntity<CollegeData>("colleges", getLocalColleges);
 
 export const getDivisions = getEntity<DivisionData>(
   "divisions",
@@ -167,9 +170,46 @@ export const getDivisions = getEntity<DivisionData>(
 
 export const getDorms = getEntity<DormData>("dorms", getLocalDorms);
 
-export const getClasses = getEntity<ClassMapValue>(
-  "classes",
-  getLocalClasses,
+export const getClasses = getEntity<ClassMapValue>("classes", getLocalClasses);
+
+export function getEntityRooms(
+  entityName: string,
+  localTableRoomCheck: (id: number) => Promise<boolean>,
+  getLocalTableRoom: (id: number) => Promise<RoomData[] | undefined>,
+) {
+  return async (id: number) => {
+    try {
+      const valid = await localTableRoomCheck(id);
+      if (valid) {
+        const data = await getLocalTableRoom(id);
+        return data ?? [];
+      }
+      const fetchedData = await getJSONFetch<{ data: RoomData[] }>(
+        `/api/rooms?${entityName}_id=${id}`,
+      );
+      return fetchedData.data;
+    } catch (e) {
+      return [];
+    }
+  };
+}
+
+export const getBuildingRooms = getEntityRooms(
+  "building",
+  checkLocalBuildingRoom,
+  getLocalBuildingRooms,
+);
+
+export const getCollegeRooms = getEntityRooms(
+  "college",
+  checkLocalCollegeRoom,
+  getLocalCollegeRooms,
+);
+
+export const getDivisionRooms = getEntityRooms(
+  "division",
+  checkLocalDivisionRoom,
+  getLocalDivisionRooms,
 );
 
 export async function getRoomsData(): Promise<
