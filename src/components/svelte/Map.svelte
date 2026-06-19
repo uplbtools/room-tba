@@ -7,6 +7,7 @@
     mapStore,
     jeepneyStore,
     dormFilter,
+    currentRoom,
   } from "../../lib/store.svelte";
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
@@ -334,8 +335,8 @@
     untrack(() => {
       stopRotation();
       map.off("moveend", startRotation);
-      if (!loaded) return;
       if (category === "building" && type === "result") {
+        if (!loaded) return;
         const currentBuilding = buildings.find(
           (building) => building.buildingName === value,
         );
@@ -360,23 +361,29 @@
         });
         if (directions) directions.clear();
       } else if (category === "room") {
-        // const currentRoom = rooms.find((room) => room.code === value);
-        // if (
-        //   currentRoom &&
-        //   currentRoom.building &&
-        //   currentRoom.building.lat &&
-        //   currentRoom.building.lon
-        // ) {
-        //   map.flyTo({
-        //     center: [currentRoom.building.lon, currentRoom.building.lat],
-        //     zoom: 18,
-        //     pitch: 60,
-        //     padding: calculatePadding(md.current),
-        //     duration: 1500,
-        //   });
-        //   map.once("moveend", startRotation);
-        // }
+        currentRoom.getRoomByCode(value).then(() => {
+          if (
+            currentRoom.value &&
+            currentRoom.value.building &&
+            currentRoom.value.building.lat &&
+            currentRoom.value.building.lon
+          ) {
+            map.flyTo({
+              center: [
+                currentRoom.value.building.lon,
+                currentRoom.value.building.lat,
+              ],
+              zoom: 18,
+              pitch: 60,
+              padding: calculatePadding(md.current),
+              duration: 1500,
+            });
+            map.once("moveend", startRotation);
+          }
+        });
       } else if (category === "dorm") {
+        if (!loaded) return;
+
         const currentDorm = dorms.find((dorm) => dorm.dormName === value);
         if (currentDorm && currentDorm.lon && currentDorm.lat) {
           map.flyTo({

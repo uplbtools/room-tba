@@ -1,4 +1,3 @@
-import { Result } from "pg";
 import type {
   BuildingData,
   CollegeData,
@@ -10,6 +9,7 @@ import type {
 import { getDB } from "./pgliteDB";
 import { getJSONFetch } from "./utils";
 import { syncToastStore } from "../../store.svelte";
+import { Results } from "@electric-sql/pglite";
 
 export function getSyncKeysFromLs(): {
   [key: string]: string;
@@ -291,7 +291,7 @@ export async function localBuildingSyncStatus(id: number) {
             WHERE id = $1
         `,
       [id],
-    )) as Result<{ roomsFetched: boolean }>;
+    )) as Results<{ roomsFetched: boolean }>;
     if (data.rows.length === 0)
       throw new Error("Can't fetch a missing building row");
     return data.rows[0];
@@ -323,7 +323,7 @@ export async function getLocalBuildingRooms(id: number) {
     WHERE r.building_id = $1;
     `,
       [id],
-    )) as Result<RoomData>;
+    )) as Results<RoomData>;
     return data.rows;
   } catch (e) {
     console.error(e);
@@ -422,7 +422,7 @@ export async function localCollegeSyncStatus(id: number) {
             WHERE id = $1;
         `,
       [id],
-    )) as Result<{ roomsFetched: boolean }>;
+    )) as Results<{ roomsFetched: boolean }>;
     if (data.rows.length === 0)
       throw new Error("Can't fetch a missing college row");
     return data.rows[0];
@@ -454,7 +454,7 @@ export async function getLocalCollegeRooms(id: number) {
     WHERE r.college_id = $1;
     `,
       [id],
-    )) as Result<RoomData>;
+    )) as Results<RoomData>;
     return data.rows;
   } catch (e) {
     console.error(e);
@@ -553,7 +553,7 @@ export async function localDivisionSyncStatus(id: number) {
             WHERE id = $1;
         `,
       [id],
-    )) as Result<{ roomsFetched: boolean }>;
+    )) as Results<{ roomsFetched: boolean }>;
     if (data.rows.length === 0)
       throw new Error("Can't fetch a missing division row");
     return data.rows[0];
@@ -585,7 +585,7 @@ export async function getLocalDivisionRooms(id: number) {
     WHERE r.division_id = $1;
     `,
       [id],
-    )) as Result<RoomData>;
+    )) as Results<RoomData>;
     return data.rows;
   } catch (e) {
     console.error(e);
