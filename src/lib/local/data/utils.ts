@@ -95,6 +95,7 @@ export async function getLocalRoomByCode(code: string) {
     await localDB.waitReady;
     const data = (await localDB.query(
       `
+            SELECT
             r.id,
             r.room_code AS code,
             r.directions AS directions,
