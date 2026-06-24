@@ -35,4 +35,5 @@
 
 - After substantive changes, run formatting, lints for edited files, and `bun run build`.
 - For editor changes, also use `docs/editor-foundation-test-plan.md` as the manual PR checklist.
+- For PR QA, follow `docs/agentic-qa-process.md` and separate automated evidence from browser-only checks.
 - Avoid testing by mutating production-like Neon data unless the change is intentional and reversible. Restore any accidental test mutations immediately.
