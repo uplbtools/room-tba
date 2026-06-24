@@ -16,6 +16,10 @@ const description = "Sign in to manage rooms, buildings, and other data.";
         <button type="submit">Sign In</button>
         <p id="error" class="error" hidden></p>
       </form>
+      <div class="login-help">
+        <p>Forgot the password? Contact the site administrator.</p>
+        <p class="muted">If you're setting this up for the first time, make sure <code>ADMIN_PASSWORD</code> is configured on the server.</p>
+      </div>
     </div>
   </div>
 </Layout>
@@ -23,6 +27,12 @@ const description = "Sign in to manage rooms, buildings, and other data.";
 <script>
   const form = document.getElementById("login-form") as HTMLFormElement;
   const errorEl = document.getElementById("error") as HTMLParagraphElement;
+
+  const errorMessages: Record<number, string> = {
+    400: "Please enter a password.",
+    401: "Wrong password. Double-check it and try again. If you've forgotten it, contact the site administrator.",
+    500: "The server isn't fully configured yet. Ask the developer to set the ADMIN_PASSWORD environment variable.",
+  };
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -36,12 +46,12 @@ const description = "Sign in to manage rooms, buildings, and other data.";
       if (res.ok) {
         window.location.href = "/admin";
       } else {
-        const data = await res.json();
-        errorEl.textContent = data.error || "Login failed";
+        const fallback = "Something went wrong. Please try again or contact the site administrator.";
+        errorEl.textContent = errorMessages[res.status] ?? fallback;
         errorEl.hidden = false;
       }
     } catch {
-      errorEl.textContent = "Network error";
+      errorEl.textContent = "Network error — check your internet connection and try again.";
       errorEl.hidden = false;
     }
   });
@@ -87,5 +97,29 @@ const description = "Sign in to manage rooms, buildings, and other data.";
     cursor: pointer;
   }
   button:hover { background: #8a0c00; }
-  .error { color: #d32f2f; font-size: 0.875rem; margin-top: 0.75rem; }
+  .error {
+    color: #d32f2f;
+    font-size: 0.8125rem;
+    margin-top: 0.75rem;
+    line-height: 1.4;
+  }
+  .login-help {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+  }
+  .login-help p {
+    font-size: 0.75rem;
+    margin: 0 0 0.5rem;
+    color: #999;
+  }
+  .login-help .muted {
+    color: #aaa;
+  }
+  .login-help code {
+    background: #f0f0f0;
+    padding: 0.125rem 0.25rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+  }
 </style>
