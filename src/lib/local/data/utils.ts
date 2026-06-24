@@ -104,7 +104,9 @@ export async function getLocalRoomByCode(code: string) {
             d.division_name as "divisionName",
             r.building_id as "buildingId",
             r.college_id as "collegeId",
-            r.division_id as "divisionId"
+            r.division_id as "divisionId",
+            r.version,
+            r.updated_at as "updatedAt"
             FROM rooms AS r
             LEFT JOIN buildings AS b ON b.id = r.building_id
             LEFT JOIN colleges as c ON c.id = r.college_id
