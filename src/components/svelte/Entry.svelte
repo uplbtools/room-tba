@@ -15,7 +15,6 @@
   import StatusBar from "./StatusBar.svelte";
   import Toast from "./Toast.svelte";
   import Building3DViewer from "./Building3DViewer.svelte";
-  import AdminChip from "./AdminChip.svelte";
   import AdminLoginModal from "./AdminLoginModal.svelte";
   import type { RecentSearch } from "../../lib/types";
   import { isRecentSearch } from "../../lib/locStorage";
@@ -49,6 +48,11 @@
         type: "result",
         value: initialSearch.value,
       });
+    }
+
+    if (new URLSearchParams(window.location.search).get("editor") === "login") {
+      adminAuthStore.openLogin();
+      window.history.replaceState({}, "", window.location.pathname);
     }
 
     if (!suppressLandingModal && hideLanding !== "true") {
@@ -97,7 +101,6 @@
   {#if building3DStore.buildingName}
     <Building3DViewer name={building3DStore.buildingName} />
   {/if}
-  <AdminChip />
   {#if adminAuthStore.loginOpen}
     <AdminLoginModal />
   {/if}
