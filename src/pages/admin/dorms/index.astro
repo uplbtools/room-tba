@@ -1,0 +1,50 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getAllDormsAdmin } from "../../../lib/services/admin-service";
+
+const dorms = await getAllDormsAdmin();
+---
+
+<AdminLayout title="Dorms" active="dorms">
+  <div class="search-bar">
+    <input type="text" id="dorm-search" placeholder="Search dorm name..." />
+  </div>
+
+  <div class="table-wrapper">
+    <table id="dorm-table">
+      <thead>
+        <tr>
+          <th>Dorm Name</th>
+          <th>Short Name</th>
+          <th>Gender</th>
+          <th>UP Managed</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {dorms.map((d) => (
+          <tr data-name={d.dormName.toLowerCase()}>
+            <td><strong>{d.dormName}</strong></td>
+            <td>{d.shortName ?? "—"}</td>
+            <td>{d.gender}</td>
+            <td>{d.isUpManaged ? "Yes" : "No"}</td>
+            <td><a href={`/admin/dorms/${d.id}`} class="btn btn-secondary" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">Edit</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  {dorms.length === 0 && <div class="empty-state">No dorms found.</div>}
+</AdminLayout>
+
+<script>
+  const search = document.getElementById("dorm-search") as HTMLInputElement;
+  const rows = document.querySelectorAll("#dorm-table tbody tr");
+  search?.addEventListener("input", () => {
+    const q = search.value.toLowerCase();
+    rows.forEach((row) => {
+      const name = (row as HTMLElement).dataset.name || "";
+      (row as HTMLElement).style.display = name.includes(q) ? "" : "none";
+    });
+  });
+</script>

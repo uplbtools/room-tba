@@ -1,0 +1,44 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getAllCollegesAdmin } from "../../../lib/services/admin-service";
+
+const colleges = await getAllCollegesAdmin();
+---
+
+<AdminLayout title="Colleges" active="colleges">
+  <div class="search-bar">
+    <input type="text" id="college-search" placeholder="Search college name..." />
+  </div>
+
+  <div class="table-wrapper">
+    <table id="college-table">
+      <thead>
+        <tr>
+          <th>College Name</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {colleges.map((c) => (
+          <tr data-name={c.collegeName.toLowerCase()}>
+            <td><strong>{c.collegeName}</strong></td>
+            <td><a href={`/admin/colleges/${c.id}`} class="btn btn-secondary" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">Edit</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  {colleges.length === 0 && <div class="empty-state">No colleges found.</div>}
+</AdminLayout>
+
+<script>
+  const search = document.getElementById("college-search") as HTMLInputElement;
+  const rows = document.querySelectorAll("#college-table tbody tr");
+  search?.addEventListener("input", () => {
+    const q = search.value.toLowerCase();
+    rows.forEach((row) => {
+      const name = (row as HTMLElement).dataset.name || "";
+      (row as HTMLElement).style.display = name.includes(q) ? "" : "none";
+    });
+  });
+</script>

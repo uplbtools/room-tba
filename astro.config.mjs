@@ -64,6 +64,10 @@ export default defineConfig({
         access: "secret",
         context: "server",
       }),
+      ADMIN_PASSWORD: envField.string({
+        access: "secret",
+        context: "server",
+      }),
     },
   },
   adapter: vercel(),

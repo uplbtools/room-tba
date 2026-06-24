@@ -1,0 +1,62 @@
+---
+import "../styles/admin.css";
+
+type Props = {
+  title?: string;
+  active?: string;
+};
+
+const { title = "Admin", active = "" } = Astro.props;
+
+const navItems = [
+  { label: "Dashboard", href: "/admin", key: "dashboard" },
+  { label: "Rooms", href: "/admin/rooms", key: "rooms" },
+  { label: "Buildings", href: "/admin/buildings", key: "buildings" },
+  { label: "Colleges", href: "/admin/colleges", key: "colleges" },
+  { label: "Divisions", href: "/admin/divisions", key: "divisions" },
+  { label: "Dorms", href: "/admin/dorms", key: "dorms" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{title} | Room TBA Editor</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <a href="/admin" class="logo">Room TBA</a>
+          <span class="badge">Editor</span>
+        </div>
+        <nav>
+          {navItems.map((item) => (
+            <a href={item.href} class:list={["nav-link", { active: active === item.key }]}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+        <div class="sidebar-footer">
+          <a href="/" target="_blank">View site ↗</a>
+          <a href="/admin/logout">Sign out</a>
+        </div>
+      </aside>
+      <main class="admin-main">
+        <header class="admin-header">
+          <h1>{title}</h1>
+        </header>
+        <div class="admin-content">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

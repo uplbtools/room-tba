@@ -1,0 +1,52 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getAllBuildingsAdmin } from "../../../lib/services/admin-service";
+
+const buildings = await getAllBuildingsAdmin();
+---
+
+<AdminLayout title="Buildings" active="buildings">
+  <div class="search-bar">
+    <input type="text" id="building-search" placeholder="Search building name..." />
+  </div>
+
+  <div class="table-wrapper">
+    <table id="building-table">
+      <thead>
+        <tr>
+          <th>Building Name</th>
+          <th>Type</th>
+          <th>Lat</th>
+          <th>Lon</th>
+          <th>Directions</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {buildings.map((b) => (
+          <tr data-name={b.buildingName.toLowerCase()}>
+            <td><strong>{b.buildingName}</strong></td>
+            <td>{b.buildingType}</td>
+            <td>{b.lat ?? "—"}</td>
+            <td>{b.lon ?? "—"}</td>
+            <td>{b.directions ? `<span class="muted">${b.directions.slice(0, 60)}${b.directions.length > 60 ? "..." : ""}</span>` : "—"}</td>
+            <td><a href={`/admin/buildings/${b.id}`} class="btn btn-secondary" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">Edit</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  {buildings.length === 0 && <div class="empty-state">No buildings found.</div>}
+</AdminLayout>
+
+<script>
+  const search = document.getElementById("building-search") as HTMLInputElement;
+  const rows = document.querySelectorAll("#building-table tbody tr");
+  search?.addEventListener("input", () => {
+    const q = search.value.toLowerCase();
+    rows.forEach((row) => {
+      const name = (row as HTMLElement).dataset.name || "";
+      (row as HTMLElement).style.display = name.includes(q) ? "" : "none";
+    });
+  });
+</script>
