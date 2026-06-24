@@ -1,6 +1,12 @@
 <script lang="ts">
-  import { queryStore, locationStore } from "../../../lib/store.svelte";
+  import {
+    queryStore,
+    locationStore,
+    adminAuthStore,
+    mapEditStore,
+  } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
+  import type { DormData } from "../../../lib/types";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
@@ -11,6 +17,11 @@
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
+  import InlineEditField from "./InlineEditField.svelte";
+  import {
+    ClientEditConflictError,
+    patchAdminField,
+  } from "../../../lib/admin/editor-client";
 
   const appData = getAppData();
   const { dorms } = $derived(appData());
@@ -18,6 +29,46 @@
   const dorm = $derived(
     dorms?.find((d) => d.dormName === queryStore.queryValue),
   );
+  const editorEnabled = $derived(
+    adminAuthStore.isAdmin && mapEditStore.enabled,
+  );
+
+  type DormEditableField =
+    | "dormName"
+    | "shortName"
+    | "gender"
+    | "capacity"
+    | "managingOffice"
+    | "contactEmail"
+    | "amenities"
+    | "osmLink"
+    | "description"
+    | "isUpManaged"
+    | "priceRange"
+    | "contactPhone"
+    | "facebookLink";
+
+  const dormFieldLabels = {
+    dormName: "name",
+    shortName: "short name",
+    gender: "gender",
+    capacity: "capacity",
+    managingOffice: "managing office",
+    contactEmail: "email",
+    amenities: "amenities",
+    osmLink: "OSM link",
+    description: "description",
+    isUpManaged: "UP-managed status",
+    priceRange: "price range",
+    contactPhone: "phone",
+    facebookLink: "Facebook link",
+  } satisfies Record<DormEditableField, string>;
+
+  const genderOptions = [
+    { label: "Co-ed", value: "coed" },
+    { label: "Male-exclusive", value: "male" },
+    { label: "Female-exclusive", value: "female" },
+  ];
 
   const amenities = $derived<() => string[]>(() => {
     if (!dorm?.amenities) return [];
@@ -56,6 +107,59 @@
     const first = dorm?.dormName.split(/\s+/)[0].toLowerCase();
     return dorm.shortName.toLowerCase() !== first;
   });
+
+  function applyUpdatedDorm(updated: DormData) {
+    const current = dorms?.find((d) => d.id === updated.id);
+    if (current) Object.assign(current, updated);
+
+    if (
+      queryStore.category === "dorm" &&
+      queryStore.type === "result" &&
+      queryStore.queryValue !== updated.dormName
+    ) {
+      queryStore.hydrateQuery({
+        category: "dorm",
+        type: "result",
+        value: updated.dormName,
+      });
+    }
+  }
+
+  function saveFailureMessage(
+    entityName: string,
+    fieldLabel: string,
+    error: unknown,
+  ) {
+    const reason =
+      error instanceof Error ? error.message : "Unknown save failure";
+    return `${entityName} ${fieldLabel} failed to save: ${reason}`;
+  }
+
+  async function saveDormField(field: DormEditableField, value: unknown) {
+    if (!dorm) throw new Error("Dorm field failed to save.");
+    const entityName = dorm.dormName;
+    const fieldLabel = dormFieldLabels[field];
+
+    try {
+      const updated = await patchAdminField<DormData>(
+        "dorm",
+        dorm.id,
+        field,
+        value,
+        dorm.version,
+      );
+      applyUpdatedDorm(updated);
+    } catch (error) {
+      if (error instanceof ClientEditConflictError) {
+        if (error.latest) applyUpdatedDorm(error.latest as DormData);
+        throw new Error(
+          `${entityName} ${fieldLabel} conflict. Showing latest server data; review before saving again.`,
+        );
+      }
+
+      throw new Error(saveFailureMessage(entityName, fieldLabel, error));
+    }
+  }
 </script>
 
 <div class="dorm-result-wrapper">
@@ -141,6 +245,98 @@
         </a>
       {/if}
     </div>
+
+    {#if editorEnabled}
+      <div class="editor-card">
+        <div class="editor-heading">
+          <span>Dorm editor</span>
+          <small>Version {dorm.version}</small>
+        </div>
+        <InlineEditField
+          label="Name"
+          value={dorm.dormName}
+          onSave={(value) => saveDormField("dormName", value)}
+        />
+        <InlineEditField
+          label="Short name"
+          value={dorm.shortName}
+          nullable
+          onSave={(value) => saveDormField("shortName", value)}
+        />
+        <InlineEditField
+          label="UP-managed"
+          value={dorm.isUpManaged}
+          inputType="checkbox"
+          onSave={(value) => saveDormField("isUpManaged", value)}
+        />
+        <InlineEditField
+          label="Gender"
+          value={dorm.gender}
+          inputType="select"
+          options={genderOptions}
+          onSave={(value) => saveDormField("gender", value)}
+        />
+        <InlineEditField
+          label="Capacity"
+          value={dorm.capacity}
+          inputType="number"
+          nullable
+          onSave={(value) => saveDormField("capacity", value)}
+        />
+        <InlineEditField
+          label="Price range"
+          value={dorm.priceRange}
+          nullable
+          onSave={(value) => saveDormField("priceRange", value)}
+        />
+        <InlineEditField
+          label="Description"
+          value={dorm.description}
+          inputType="textarea"
+          nullable
+          rows={4}
+          onSave={(value) => saveDormField("description", value)}
+        />
+        <InlineEditField
+          label="Managing office"
+          value={dorm.managingOffice}
+          nullable
+          onSave={(value) => saveDormField("managingOffice", value)}
+        />
+        <InlineEditField
+          label="Email"
+          value={dorm.contactEmail}
+          nullable
+          onSave={(value) => saveDormField("contactEmail", value)}
+        />
+        <InlineEditField
+          label="Phone"
+          value={dorm.contactPhone ?? []}
+          inputType="list"
+          help="One phone number per line or comma-separated."
+          onSave={(value) => saveDormField("contactPhone", value)}
+        />
+        <InlineEditField
+          label="Amenities"
+          value={dorm.amenities ?? []}
+          inputType="list"
+          help="One amenity per line or comma-separated."
+          onSave={(value) => saveDormField("amenities", value)}
+        />
+        <InlineEditField
+          label="OSM link"
+          value={dorm.osmLink}
+          nullable
+          onSave={(value) => saveDormField("osmLink", value)}
+        />
+        <InlineEditField
+          label="Facebook link"
+          value={dorm.facebookLink}
+          nullable
+          onSave={(value) => saveDormField("facebookLink", value)}
+        />
+      </div>
+    {/if}
 
     <hr class="dorm-divider" />
 
@@ -326,6 +522,37 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+  }
+
+  .editor-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid hsl(160, 42%, 82%);
+    border-radius: 0.75rem;
+    background: hsla(160, 42%, 96%, 0.88);
+  }
+
+  .editor-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: hsl(160, 84%, 18%);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .editor-heading small {
+    color: #666;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    white-space: nowrap;
   }
 
   .action-btn {

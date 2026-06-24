@@ -3,18 +3,25 @@
     queryStore,
     locationStore,
     building3DStore,
+    adminAuthStore,
+    mapEditStore,
   } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Box from "@lucide/svelte/icons/box";
-  import type { RoomData } from "../../../lib/types";
+  import type { BuildingData, RoomData } from "../../../lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
+  import InlineEditField from "./InlineEditField.svelte";
   import { onMount } from "svelte";
   import { getBuildingRooms } from "../../../lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
     syncBuildingRooms,
   } from "../../../lib/local/data/sync";
+  import {
+    ClientEditConflictError,
+    patchAdminField,
+  } from "../../../lib/admin/editor-client";
 
   const appData = getAppData();
   const { buildings, loaded } = $derived(appData());
@@ -24,7 +31,20 @@
       ? buildings.find((b) => b.buildingName === queryStore.queryValue)
       : null,
   );
+  const editorEnabled = $derived(
+    adminAuthStore.isAdmin && mapEditStore.enabled,
+  );
   let buildingRooms = $state<RoomData[] | null>(null);
+  const buildingTypeOptions = [
+    { label: "Admin", value: "admin" },
+    { label: "Non-admin", value: "non-admin" },
+  ];
+  const buildingFieldLabels = {
+    buildingName: "name",
+    buildingType: "type",
+    directions: "directions",
+  } satisfies Record<BuildingEditableField, string>;
+  type BuildingEditableField = "buildingName" | "buildingType" | "directions";
 
   onMount(async () => {
     if (!building) return;
@@ -32,6 +52,62 @@
     buildingRooms = await getBuildingRooms(buildingChecker, building.id);
     await syncBuildingRooms(buildingChecker, building.id, buildingRooms);
   });
+
+  function applyUpdatedBuilding(updated: BuildingData) {
+    const current = buildings.find((b) => b.id === updated.id);
+    if (current) Object.assign(current, updated);
+
+    if (
+      queryStore.category === "building" &&
+      queryStore.type === "result" &&
+      queryStore.queryValue !== updated.buildingName
+    ) {
+      queryStore.hydrateQuery({
+        category: "building",
+        type: "result",
+        value: updated.buildingName,
+      });
+    }
+  }
+
+  function saveFailureMessage(
+    entityName: string,
+    fieldLabel: string,
+    error: unknown,
+  ) {
+    const reason =
+      error instanceof Error ? error.message : "Unknown save failure";
+    return `${entityName} ${fieldLabel} failed to save: ${reason}`;
+  }
+
+  async function saveBuildingField(
+    field: BuildingEditableField,
+    value: unknown,
+  ) {
+    if (!building) throw new Error("Building field failed to save.");
+    const entityName = building.buildingName;
+    const fieldLabel = buildingFieldLabels[field];
+
+    try {
+      const updated = await patchAdminField<BuildingData>(
+        "building",
+        building.id,
+        field,
+        value,
+        building.version,
+      );
+      applyUpdatedBuilding(updated);
+    } catch (error) {
+      if (error instanceof ClientEditConflictError) {
+        if (error.latest) applyUpdatedBuilding(error.latest as BuildingData);
+        throw new Error(
+          `${entityName} ${fieldLabel} conflict. Showing latest server data; review before saving again.`,
+        );
+      }
+
+      throw new Error(saveFailureMessage(entityName, fieldLabel, error));
+    }
+  }
 </script>
 
 <div class="building-query-wrapper">
@@ -63,6 +139,33 @@
             View in 3D
             <Box size={18} />
           </button>
+        </div>
+      {/if}
+      {#if editorEnabled}
+        <div class="editor-card">
+          <div class="editor-heading">
+            <span>Building editor</span>
+            <small>Version {building.version}</small>
+          </div>
+          <InlineEditField
+            label="Name"
+            value={building.buildingName}
+            onSave={(value) => saveBuildingField("buildingName", value)}
+          />
+          <InlineEditField
+            label="Type"
+            value={building.buildingType}
+            inputType="select"
+            options={buildingTypeOptions}
+            onSave={(value) => saveBuildingField("buildingType", value)}
+          />
+          <InlineEditField
+            label="Directions"
+            value={building.directions}
+            inputType="textarea"
+            rows={4}
+            onSave={(value) => saveBuildingField("directions", value)}
+          />
         </div>
       {/if}
     </div>
@@ -114,6 +217,38 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.25rem;
+  }
+
+  .editor-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    padding: 0.5rem;
+    border: 1px solid hsl(160, 42%, 82%);
+    border-radius: 0.75rem;
+    background: hsla(160, 42%, 96%, 0.88);
+  }
+
+  .editor-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: hsl(160, 84%, 18%);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .editor-heading small {
+    color: #666;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    white-space: nowrap;
   }
 
   .get-directions-btn,

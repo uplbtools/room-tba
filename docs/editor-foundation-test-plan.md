@@ -20,6 +20,21 @@ Use this checklist before merging the in-app editor foundation PR.
 - A successful save updates the inline editor toolbar status.
 - A failed save restores the pin to its previous location and shows the entity name in the error.
 
+## Side Panel Editing
+
+- Non-admin users see the existing read-only building and dorm result details.
+- Signed-in admins do not see side-panel edit fields until map edit mode is enabled.
+- In edit mode, building results expose inline edits for name, type, and directions.
+- In edit mode, dorm results expose inline edits for dorm metadata, contact details, description, pricing, and amenities.
+- Each field save sends only the changed field plus the entity `version` to `/api/admin/buildings/[id]` or `/api/admin/dorms/[id]`.
+- A successful field save shows lightweight inline "Saved" feedback and updates the visible version.
+- A failed field save names the entity and field that failed.
+- A stale-version `409 Conflict` replaces the panel values with the latest server data and tells the editor to review before saving again.
+- Successful building and dorm field saves create `editor_history` rows and refresh the matching sync key.
+- Building name and dorm name edits keep the side panel on the renamed entity.
+- Side-panel edit fields stay compact and tappable on a narrow mobile viewport.
+- Browser `/admin` and `/admin/login` still redirect to `/?editor=login` instead of dashboard pages.
+
 ## Mobile Editor QA
 
 - The app includes a mobile viewport with `initial-scale=1`.
