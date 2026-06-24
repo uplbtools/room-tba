@@ -1,0 +1,4218 @@
+[
+  {
+    "id": 1,
+    "room_code": "237",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 2,
+    "room_code": "212B",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 3,
+    "room_code": "A-102",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 4,
+    "room_code": "A-115",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 5,
+    "room_code": "AAVLH",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 6,
+    "room_code": "ABC",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Mechanical Engineering"
+  },
+  {
+    "id": 7,
+    "room_code": "ABC 161",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 8,
+    "room_code": "ABC 162a",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 9,
+    "room_code": "ABC 162b",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Mechanical Engineering"
+  },
+  {
+    "id": 10,
+    "room_code": "ABC 163",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 11,
+    "room_code": "ABC 164",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 12,
+    "room_code": "ABC 165",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Agricultural Machinery and Power Engineering"
+  },
+  {
+    "id": 13,
+    "room_code": "ABC 167",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 14,
+    "room_code": "ABC 261",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 15,
+    "room_code": "ABC162a",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Mechanical Engineering"
+  },
+  {
+    "id": 16,
+    "room_code": "ABCR",
+    "directions": null,
+    "building_name": "AMPED Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 17,
+    "room_code": "ACL",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Human and Family Development Studies"
+  },
+  {
+    "id": 18,
+    "room_code": "ADSC LH3 (IAS-CVM Building)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 19,
+    "room_code": "AFBED LR1",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 20,
+    "room_code": "AFBED LR2",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 21,
+    "room_code": "AFBED LR3",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 22,
+    "room_code": "AFBED PHYSLAB",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 23,
+    "room_code": "AFBED Physlab",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 24,
+    "room_code": "AFBED_Conference Room",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 25,
+    "room_code": "AFBED_LR1",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 26,
+    "room_code": "AFBED_LR2",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 27,
+    "room_code": "AFBED_LR3",
+    "directions": null,
+    "building_name": "AFBED Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 28,
+    "room_code": "ALH",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Human and Family Development Studies"
+  },
+  {
+    "id": 29,
+    "room_code": "ANLR",
+    "directions": null,
+    "building_name": null,
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 30,
+    "room_code": "ANNEX",
+    "directions": null,
+    "building_name": null,
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 31,
+    "room_code": "ANSC LH2",
+    "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 32,
+    "room_code": "ASI 231",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the second floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 33,
+    "room_code": "ASI 233",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the second floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 34,
+    "room_code": "ASI 235",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the second floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 35,
+    "room_code": "ASI 237",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the second floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 36,
+    "room_code": "ASI 238A",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the second floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 37,
+    "room_code": "ASI 238B",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the second floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 38,
+    "room_code": "ASI 240",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the second floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 39,
+    "room_code": "ASI 333",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the third floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 40,
+    "room_code": "ASI 336",
+    "directions": "Enter right hallway after reaching ICropS. It is found on the third floor.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 41,
+    "room_code": "ASI A-104",
+    "directions": "Agriculture Systems Institute (ASI) building is found right across the CEAT building and beside ICropS. To reach wing A, walk straight past the garden walkway.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 42,
+    "room_code": "ASI A-119",
+    "directions": "Agriculture Systems Institute (ASI) building is found right across the CEAT building and beside ICropS. To reach wing A, walk straight past the garden walkway.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 43,
+    "room_code": "ASI B-126",
+    "directions": "Agriculture Systems Institute (ASI) building is found right across the CEAT building and beside ICropS. Wing B is the first corner when you enter ASI.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 44,
+    "room_code": "ASI B-126 / ASI 333",
+    "directions": "Agriculture Systems Institute (ASI) building is found right across the CEAT building and beside ICropS. Wing B is the first corner when you enter ASI.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 45,
+    "room_code": "ASI B-127",
+    "directions": "Agriculture Systems Institute (ASI) building is found right across the CEAT building and beside ICropS. Wing B is the first corner when you enter ASI.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 46,
+    "room_code": "ASI B-138",
+    "directions": "Agriculture Systems Institute (ASI) building is found right across the CEAT building and beside ICropS. Wing B is the first corner when you enter ASI.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 47,
+    "room_code": "ASI Training Room",
+    "directions": null,
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 48,
+    "room_code": "ASILH B125",
+    "directions": null,
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 49,
+    "room_code": "ASLH 1",
+    "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 50,
+    "room_code": "ASLH 2",
+    "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 51,
+    "room_code": "ASLH1",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 52,
+    "room_code": "ASLH2",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 53,
+    "room_code": "ASLH 3",
+    "directions": "After reaching the IAS-CVM communal building, walk straight and turn right.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 54,
+    "room_code": "ASR 1",
+    "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 55,
+    "room_code": "ASR 3",
+    "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
+    "building_name": "Agricultural Systems Institute Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Agricultural Systems Institute"
+  },
+  {
+    "id": 56,
+    "room_code": "AVR-ANNEX",
+    "directions": "Walk straight from main entrance. Turn right at the very end.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 57,
+    "room_code": "Animal Health Lab",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 58,
+    "room_code": "Animal Health Laboratory",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 59,
+    "room_code": "Animal Nutrition Lecture Room",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 60,
+    "room_code": "Animal Physiology Lecture Room",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 61,
+    "room_code": "Annex 04",
+    "directions": null,
+    "building_name": null,
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 62,
+    "room_code": "Annex 3",
+    "directions": null,
+    "building_name": null,
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 63,
+    "room_code": "Annex 4",
+    "directions": null,
+    "building_name": null,
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 64,
+    "room_code": "B-100",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 65,
+    "room_code": "B-201",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Land and Water Resources Engineering"
+  },
+  {
+    "id": 66,
+    "room_code": "B101a",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 67,
+    "room_code": "B200",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 68,
+    "room_code": "BADMINTON COURT",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 69,
+    "room_code": "BAL LAB 1",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 70,
+    "room_code": "BAL LAB 2",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 71,
+    "room_code": "BALH 1",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 72,
+    "room_code": "BALH 2",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 73,
+    "room_code": "BALH1",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 74,
+    "room_code": "BALH2",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 75,
+    "room_code": "BALLET AREA",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 76,
+    "room_code": "BASKETBALL COURT",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 77,
+    "room_code": "BEACH VOLLEYBALL COURT",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 78,
+    "room_code": "BRIDGE ROOM",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 79,
+    "room_code": "BS A-109",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 80,
+    "room_code": "BS A-115",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 81,
+    "room_code": "BS A-121",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 82,
+    "room_code": "BS A-137",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 83,
+    "room_code": "BS A-215",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 84,
+    "room_code": "BS A-309",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 85,
+    "room_code": "BS A-315",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 86,
+    "room_code": "BS B-100",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 87,
+    "room_code": "BS B-101",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 88,
+    "room_code": "BS B-105",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 89,
+    "room_code": "BS B-109",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Weed Science, Entomology and Plant Pathology"
+  },
+  {
+    "id": 90,
+    "room_code": "BS B-307",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 91,
+    "room_code": "BS C-105",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 92,
+    "room_code": "BS C-107",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 93,
+    "room_code": "BS C-112",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 94,
+    "room_code": "BS C-113",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 95,
+    "room_code": "BS C-116",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 96,
+    "room_code": "BS C-117",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 97,
+    "room_code": "BS C-125",
+    "directions": "Biological Sciences Building C, Room 125. BS buildings are in front of CAS A1, to the left of SEARCA.",
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 98,
+    "room_code": "BS C-127",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 99,
+    "room_code": "BS C-205",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 100,
+    "room_code": "BS C-227",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 101,
+    "room_code": "BS C-313",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 102,
+    "room_code": "BS C-321",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 103,
+    "room_code": "BS D-229",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 104,
+    "room_code": "BS E-103",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 105,
+    "room_code": "BS E-213",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 106,
+    "room_code": "Bal lab 2",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 107,
+    "room_code": "Balh1",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 108,
+    "room_code": "CAS 101",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 109,
+    "room_code": "CAS 102",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 110,
+    "room_code": "CAS 103",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 111,
+    "room_code": "CAS 104",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 112,
+    "room_code": "CAS 106",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 113,
+    "room_code": "CAS 107",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 114,
+    "room_code": "CAS 108",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 115,
+    "room_code": "CAS 109",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 116,
+    "room_code": "CAS 110",
+    "directions": "First floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 117,
+    "room_code": "CAS A1 - GAL 2",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 118,
+    "room_code": "CAS A1 301",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 119,
+    "room_code": "CAS A1 302",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 120,
+    "room_code": "CAS A1 303",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 121,
+    "room_code": "CAS A1 304",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 122,
+    "room_code": "CAS A1 305",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 123,
+    "room_code": "CAS A1 306",
+    "directions": "CAS Annex 1, 3rd Floor, Room 306. CAS Annex 1 is the tall building to the left of Oble, beside OUR.",
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 124,
+    "room_code": "CAS A1 402",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 125,
+    "room_code": "CAS A1 403",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 126,
+    "room_code": "CAS A1 404",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 127,
+    "room_code": "CAS A1 405",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 128,
+    "room_code": "CAS A1 406",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 129,
+    "room_code": "CAS A1 407",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 130,
+    "room_code": "CAS A1 408",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 131,
+    "room_code": "CAS A1 409",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 132,
+    "room_code": "CAS A1 410",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 133,
+    "room_code": "CAS A1 GAL 1",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 134,
+    "room_code": "CAS A1 GAL 2",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 135,
+    "room_code": "CAS A2 101",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 136,
+    "room_code": "CAS A2 102",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 137,
+    "room_code": "CAS A2 103",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 138,
+    "room_code": "CAS A2 200",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 139,
+    "room_code": "CAS A2 201",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 140,
+    "room_code": "CAS A2 202",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 141,
+    "room_code": "CAS A2 203",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 142,
+    "room_code": "CAS A2 MPH1",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 143,
+    "room_code": "CAS A2- 201",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 144,
+    "room_code": "CAS A2-201",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 145,
+    "room_code": "CAS A200",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 146,
+    "room_code": "CAS A2MPH2",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 147,
+    "room_code": "CAS B01",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 148,
+    "room_code": "CAS B02",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 149,
+    "room_code": "CAS B03",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 150,
+    "room_code": "CAS B04",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 151,
+    "room_code": "CAS B05",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 152,
+    "room_code": "CAS B06",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 153,
+    "room_code": "CAS B07",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 154,
+    "room_code": "CAS B08",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 155,
+    "room_code": "CAS B09",
+    "directions": "In the basement of CAS Main Building. Take the stairs in front of the OCS kiosks.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 156,
+    "room_code": "CAS B10",
+    "directions": null,
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 157,
+    "room_code": "CAS LITE 4",
+    "directions": "2nd floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 158,
+    "room_code": "CAS LITE 5",
+    "directions": "2nd floor of CAS Main Building.",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 159,
+    "room_code": "CATL",
+    "directions": null,
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 160,
+    "room_code": "CDC 209A",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 161,
+    "room_code": "CDC 212B",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 162,
+    "room_code": "CDC ANNEX 04",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 163,
+    "room_code": "CDC ANNEX 2",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 164,
+    "room_code": "CDC ANNEX 3",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 165,
+    "room_code": "CDC ANNEX1",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 166,
+    "room_code": "CDC ANNEX2",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 167,
+    "room_code": "CDC ANNEX3",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 168,
+    "room_code": "CDC ANNEX4",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 169,
+    "room_code": "CDC Annex 01",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 170,
+    "room_code": "CDC Annex4",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 171,
+    "room_code": "CDC Conference Rm",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 172,
+    "room_code": "CDC DECIMU",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 173,
+    "room_code": "CDC GRAD",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 174,
+    "room_code": "CDC GRAD ROOM",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 175,
+    "room_code": "CDC IMU",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 176,
+    "room_code": "CDC LR1",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 177,
+    "room_code": "CDC LR2",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 178,
+    "room_code": "CDC RM 201B",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 179,
+    "room_code": "CDC RM 209A",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 180,
+    "room_code": "CDC RM201B",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 181,
+    "room_code": "CDC RM212B",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 182,
+    "room_code": "CDC Rm209A",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Educational Communication"
+  },
+  {
+    "id": 183,
+    "room_code": "CDC Room 200A",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 184,
+    "room_code": "CDC Room 201B",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 185,
+    "room_code": "CE 101",
+    "directions": null,
+    "building_name": "Civil Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Civil Engineering"
+  },
+  {
+    "id": 186,
+    "room_code": "CE 101A",
+    "directions": null,
+    "building_name": "Civil Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Civil Engineering"
+  },
+  {
+    "id": 187,
+    "room_code": "CE 101B",
+    "directions": null,
+    "building_name": "Civil Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Civil Engineering"
+  },
+  {
+    "id": 188,
+    "room_code": "CE 102",
+    "directions": null,
+    "building_name": "Civil Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Civil Engineering"
+  },
+  {
+    "id": 189,
+    "room_code": "CE 103",
+    "directions": null,
+    "building_name": "Civil Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Civil Engineering"
+  },
+  {
+    "id": 190,
+    "room_code": "CE CONF RM",
+    "directions": null,
+    "building_name": "Civil Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Civil Engineering"
+  },
+  {
+    "id": 191,
+    "room_code": "CE LAB",
+    "directions": null,
+    "building_name": "Civil Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Civil Engineering"
+  },
+  {
+    "id": 192,
+    "room_code": "CEAT B-100",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 193,
+    "room_code": "CEAT B-100a",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 194,
+    "room_code": "CEAT B-101a",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 195,
+    "room_code": "CEAT B-101b",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 196,
+    "room_code": "CEAT B-103",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 197,
+    "room_code": "CEAT B-105",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 198,
+    "room_code": "CEAT B-108",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 199,
+    "room_code": "CEAT B-200a",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 200,
+    "room_code": "CEAT B-200b",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 201,
+    "room_code": "CEAT B-201",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 202,
+    "room_code": "CEAT B-202",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 203,
+    "room_code": "CEAT B-203",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 204,
+    "room_code": "CEAT B-205",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Engineering Science"
+  },
+  {
+    "id": 205,
+    "room_code": "CEAT B100",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 206,
+    "room_code": "CEAT B100b",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 207,
+    "room_code": "CEAT SHOP",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 208,
+    "room_code": "CEAT SHOP RM",
+    "directions": null,
+    "building_name": "CEAT Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Agricultural Machinery and Power Engineering"
+  },
+  {
+    "id": 209,
+    "room_code": "CEM  202",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": null,
+    "division_name": null
+  },
+  {
+    "id": 210,
+    "room_code": "CEM 101",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 211,
+    "room_code": "CEM 102",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Economics"
+  },
+  {
+    "id": 212,
+    "room_code": "CEM 104",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 213,
+    "room_code": "CEM 105",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 214,
+    "room_code": "CEM 106",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 215,
+    "room_code": "CEM 107",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Economics"
+  },
+  {
+    "id": 216,
+    "room_code": "CEM 108",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 217,
+    "room_code": "CEM 109",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Economics"
+  },
+  {
+    "id": 218,
+    "room_code": "CEM 110",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 219,
+    "room_code": "CEM 111",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 220,
+    "room_code": "CEM 112",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 221,
+    "room_code": "CEM 113",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 222,
+    "room_code": "CEM 114",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 223,
+    "room_code": "CEM 115",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 224,
+    "room_code": "CEM 116",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 225,
+    "room_code": "CEM 117",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 226,
+    "room_code": "CEM 118",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 227,
+    "room_code": "CEM 118/ONLINE",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 228,
+    "room_code": "CEM 201",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 229,
+    "room_code": "CEM 202",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 230,
+    "room_code": "CEM 203",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 231,
+    "room_code": "CEM 204",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 232,
+    "room_code": "CEM 205",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 233,
+    "room_code": "CEM FH",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 234,
+    "room_code": "CEM Function Hall",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 235,
+    "room_code": "CEM102",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Economics"
+  },
+  {
+    "id": 236,
+    "room_code": "CEMFH",
+    "directions": null,
+    "building_name": "CEM Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 237,
+    "room_code": "CERP Conf Room",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 238,
+    "room_code": "CERP Conference Room",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 239,
+    "room_code": "CFNR Lansigan, Audi",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Social Forestry and Forest Governance"
+  },
+  {
+    "id": 240,
+    "room_code": "CFNR Varrons Room",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Social Forestry and Forest Governance"
+  },
+  {
+    "id": 241,
+    "room_code": "CFNR, Manza",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Social Forestry and Forest Governance"
+  },
+  {
+    "id": 242,
+    "room_code": "CHE  MPH",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 243,
+    "room_code": "CHE 1",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 244,
+    "room_code": "CHE 2",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 245,
+    "room_code": "CHE 4",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 246,
+    "room_code": "CHE 5",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 247,
+    "room_code": "CHE Conference Room",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 248,
+    "room_code": "CHE MPH",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 249,
+    "room_code": "CHE REC",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 250,
+    "room_code": "CHE Rec",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 251,
+    "room_code": "CHE SR",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 252,
+    "room_code": "CHE conference room",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 253,
+    "room_code": "CHE-MPH",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": null,
+    "division_name": null
+  },
+  {
+    "id": 254,
+    "room_code": "CLH",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 255,
+    "room_code": "CTL",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Human and Family Development Studies"
+  },
+  {
+    "id": 256,
+    "room_code": "CVM LR1",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 257,
+    "room_code": "CVM LR2",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 258,
+    "room_code": "ChE 1",
+    "directions": null,
+    "building_name": "Chemical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 259,
+    "room_code": "ChE 2",
+    "directions": null,
+    "building_name": "Chemical Engineering Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 260,
+    "room_code": "ChE 3",
+    "directions": null,
+    "building_name": "Chemical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 261,
+    "room_code": "ChE 4",
+    "directions": null,
+    "building_name": "Chemical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 262,
+    "room_code": "ChE 5",
+    "directions": null,
+    "building_name": "Chemical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 263,
+    "room_code": "ChE SR",
+    "directions": null,
+    "building_name": "Chemical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 264,
+    "room_code": "D407",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 265,
+    "room_code": "DAAE Conference Room 1",
+    "directions": null,
+    "building_name": "DAAE Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 266,
+    "room_code": "DAAE Conference Room 2",
+    "directions": null,
+    "building_name": "DAAE Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 267,
+    "room_code": "DANCE AREA 1",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 268,
+    "room_code": "DANCE AREA 2",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 269,
+    "room_code": "DBVS Graduate Student Lecture Room",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 270,
+    "room_code": "DBVS LR",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 271,
+    "room_code": "DBVS Lecture Room",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 272,
+    "room_code": "DCERP  AVR",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 273,
+    "room_code": "DCERP AVR",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 274,
+    "room_code": "DEC-IMU",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 275,
+    "room_code": "DHFDS",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Human and Family Development Studies"
+  },
+  {
+    "id": 276,
+    "room_code": "DHFDS GRAD",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Human and Family Development Studies"
+  },
+  {
+    "id": 277,
+    "room_code": "DSDS MLH",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 278,
+    "room_code": "DSDS MLH (Main Lecture Hall)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 279,
+    "room_code": "DSDS Main Lecture Hall",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 280,
+    "room_code": "DSDS Main Lecture Hall (MLH)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 281,
+    "room_code": "DSDS SDS Lab",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 282,
+    "room_code": "DVCS L.A. SURGERY RM",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 283,
+    "room_code": "DVCS LR1",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 284,
+    "room_code": "DVCS S.A. SURGERY RM",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 285,
+    "room_code": "DVCS SURGERY THEATRE",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 286,
+    "room_code": "DVCS Small Animal Surgery Room",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 287,
+    "room_code": "DVCS THERIO LAB",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 288,
+    "room_code": "DVCS ZOTC Rm - Gregorio San Agustin Hall",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 289,
+    "room_code": "Dean's Office Conference Room DECL Hall",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 290,
+    "room_code": "Dean's Office Conference Room, DECL Hall",
+    "directions": null,
+    "building_name": "CHE Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 291,
+    "room_code": "EAA LH",
+    "directions": "2nd floor of Physical Sciences Building, across the PC labs.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 292,
+    "room_code": "EE 100",
+    "directions": "Main entrance - head straight.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 293,
+    "room_code": "EE 103",
+    "directions": "Main entrance - left side after CEAT OCS.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 294,
+    "room_code": "EE 104",
+    "directions": "Main entrance - left side after CEAT OCS.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 295,
+    "room_code": "EE 202",
+    "directions": "Main entrance - stairs - right hallway.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 296,
+    "room_code": "EE 203",
+    "directions": "Main entrance - stairs - right hallway.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 297,
+    "room_code": "EE 302",
+    "directions": "Main entrance - stairs - right hallway.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 298,
+    "room_code": "EE 303",
+    "directions": "Main entrance - stairs - right hallway.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 299,
+    "room_code": "EE 304",
+    "directions": "Main entrance - stairs - right hallway.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 300,
+    "room_code": "EE AUDI",
+    "directions": "Main entrance - second floor left hallway.",
+    "building_name": "Electrical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Electrical Engineering"
+  },
+  {
+    "id": 301,
+    "room_code": "EM/HIS LAB",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 302,
+    "room_code": "ERSG LAB",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 303,
+    "room_code": "FBS 051",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 304,
+    "room_code": "FBS 055",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 305,
+    "room_code": "FBS 060",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 306,
+    "room_code": "FBS 151",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 307,
+    "room_code": "FBS 155",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 308,
+    "room_code": "FBS 155/ FBS 051",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 309,
+    "room_code": "FBS 155/FBS 051",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 310,
+    "room_code": "FBS 157",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 311,
+    "room_code": "FBS 161",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 312,
+    "room_code": "FBS 169",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 313,
+    "room_code": "FBS 171",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 314,
+    "room_code": "FBS 175",
+    "directions": null,
+    "building_name": "Forest Biological Sciences Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Biological Sciences"
+  },
+  {
+    "id": 315,
+    "room_code": "FCN",
+    "directions": "FCN or Fruit Crops Nursery is found across the Senior Social Garden, past PHTRC/CEAT.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 316,
+    "room_code": "FL",
+    "directions": null,
+    "building_name": "IHNF Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 317,
+    "room_code": "FPPS ANNEX",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 318,
+    "room_code": "FRONDA HALL - ROOM 26",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 319,
+    "room_code": "Field",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": null
+  },
+  {
+    "id": 320,
+    "room_code": "Follosco",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Land and Water Resources Engineering"
+  },
+  {
+    "id": 321,
+    "room_code": "Food Hygiene Laboratory Room",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Paraclinical Sciences"
+  },
+  {
+    "id": 322,
+    "room_code": "Fronda GSR",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 323,
+    "room_code": "Fronda Hall -  Graduate Student Room (GSR)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 324,
+    "room_code": "Fronda Hall -  Poultry Lab B",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 325,
+    "room_code": "Fronda Hall - Graduate Student Room (GSR)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 326,
+    "room_code": "Fronda Hall RM. 24",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 327,
+    "room_code": "Fronda RM. 24",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 328,
+    "room_code": "GEOMATICS",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 329,
+    "room_code": "GEOMATICS ROOM",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 330,
+    "room_code": "GRAD ROOM",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 331,
+    "room_code": "GS 201",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 332,
+    "room_code": "GS Room 202",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 333,
+    "room_code": "GTOCHLOA",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 334,
+    "room_code": "General Physio Lab (Rm. 100)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 335,
+    "room_code": "General Physiology Lab (Rm. 100)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 336,
+    "room_code": "Graduate Room",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 337,
+    "room_code": "Graduate Room 120",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agricultural and Applied Economics"
+  },
+  {
+    "id": 338,
+    "room_code": "Graduate School",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 339,
+    "room_code": "Gross Anat Lab",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 340,
+    "room_code": "HL CONRM 2",
+    "directions": null,
+    "building_name": "Hydraulics Laboratory",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Land and Water Resources Engineering"
+  },
+  {
+    "id": 341,
+    "room_code": "HL ConfRm2",
+    "directions": null,
+    "building_name": "Hydraulics Laboratory",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Land and Water Resources Engineering"
+  },
+  {
+    "id": 342,
+    "room_code": "HL-100",
+    "directions": null,
+    "building_name": "Hydraulics Laboratory",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 343,
+    "room_code": "HL-201",
+    "directions": null,
+    "building_name": "Hydraulics Laboratory",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 344,
+    "room_code": "Human Dimensions Lab",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 345,
+    "room_code": "IABE CONFR",
+    "directions": null,
+    "building_name": "IABE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 346,
+    "room_code": "IABE DO Meeting Room",
+    "directions": null,
+    "building_name": "IABE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 347,
+    "room_code": "IABE LH",
+    "directions": null,
+    "building_name": "IABE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 348,
+    "room_code": "IABE Meeting Room",
+    "directions": null,
+    "building_name": "IABE Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 349,
+    "room_code": "IAF",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 350,
+    "room_code": "IAS Graduate Room (AND)",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 351,
+    "room_code": "IAS RM. 1",
+    "directions": "After reaching the IAS-CVM communal building, walk straight and turn right.",
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 352,
+    "room_code": "IAS RM. 2",
+    "directions": "After reaching the IAS-CVM communal building, walk straight and turn right.",
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 353,
+    "room_code": "IAS Room 1",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 354,
+    "room_code": "IAS-LGIL",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 355,
+    "room_code": "IBS Bioinformatics Laboratory",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 356,
+    "room_code": "IBS Bioinformatics Room",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 357,
+    "room_code": "IBS MBB Teaching Laboratory",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 358,
+    "room_code": "IBS Symbiosis-Bioinformatics Laboratory",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 359,
+    "room_code": "IBSLH 3",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 360,
+    "room_code": "IBSLH MAIN",
+    "directions": "Institute of Biological Sciences Lecture Hall (Main). In the BS building cluster, in front of CAS A1.",
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 361,
+    "room_code": "IBSLH2",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 362,
+    "room_code": "IBSLH3",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 363,
+    "room_code": "ICOPED 26",
+    "directions": null,
+    "building_name": "ICOPED Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 364,
+    "room_code": "ICOPED 28",
+    "directions": null,
+    "building_name": "ICOPED Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Agribusiness Management and Entrepreneurship"
+  },
+  {
+    "id": 365,
+    "room_code": "ICOPED 30",
+    "directions": null,
+    "building_name": "ICOPED Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Institute of Cooperatives and Bio-Enterprise Development"
+  },
+  {
+    "id": 366,
+    "room_code": "ICROPS 100",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 367,
+    "room_code": "ICROPS 101",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 368,
+    "room_code": "ICROPS 104",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 369,
+    "room_code": "ICROPS 106",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 370,
+    "room_code": "ICROPS 134",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 371,
+    "room_code": "ICROPS 137",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 372,
+    "room_code": "ICROPS 138",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 373,
+    "room_code": "ICROPS 200",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 374,
+    "room_code": "ICROPS 201",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 375,
+    "room_code": "ICROPS 202",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 376,
+    "room_code": "ICROPS 302",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 377,
+    "room_code": "ICROPS 302 MORPH LAB",
+    "directions": null,
+    "building_name": "ICropS Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 378,
+    "room_code": "ICS PC1",
+    "directions": "Physical Sciences Building, 2nd Floor. Small PC lab in front of Systems Research Group.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 379,
+    "room_code": "ICS PC2",
+    "directions": "Physical Sciences Building, 2nd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 380,
+    "room_code": "ICS PC3",
+    "directions": "Physical Sciences Building, 2nd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 381,
+    "room_code": "ICS PC4",
+    "directions": "Physical Sciences Building, 2nd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 382,
+    "room_code": "ICS PC5",
+    "directions": "Physical Sciences Building, 2nd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 383,
+    "room_code": "ICS PC6",
+    "directions": "Physical Sciences Building, 3rd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 384,
+    "room_code": "ICS PC7",
+    "directions": "Physical Sciences Building, 3rd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 385,
+    "room_code": "ICS PC8",
+    "directions": "Physical Sciences Building, 3rd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 386,
+    "room_code": "ICS PC9",
+    "directions": "Physical Sciences Building, 3rd Floor.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 387,
+    "room_code": "IE 100",
+    "directions": null,
+    "building_name": "Industrial Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Industrial Engineering"
+  },
+  {
+    "id": 388,
+    "room_code": "IE 101",
+    "directions": null,
+    "building_name": "Industrial Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Industrial Engineering"
+  },
+  {
+    "id": 389,
+    "room_code": "IE 102",
+    "directions": null,
+    "building_name": "Industrial Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Industrial Engineering"
+  },
+  {
+    "id": 390,
+    "room_code": "IE 103",
+    "directions": null,
+    "building_name": "Industrial Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Industrial Engineering"
+  },
+  {
+    "id": 391,
+    "room_code": "IE 104",
+    "directions": null,
+    "building_name": "Industrial Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Industrial Engineering"
+  },
+  {
+    "id": 392,
+    "room_code": "IFST 201",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 393,
+    "room_code": "IFST 202",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 394,
+    "room_code": "IFST ANNEX A",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 395,
+    "room_code": "IFST ANNEX B",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 396,
+    "room_code": "IFST ANNEX C",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 397,
+    "room_code": "IFST ANNEX D",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 398,
+    "room_code": "IFST L2/L3",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 399,
+    "room_code": "IFST Pilot Plant",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 400,
+    "room_code": "IFST STL",
+    "directions": null,
+    "building_name": "IFST Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Food Science and Technology"
+  },
+  {
+    "id": 401,
+    "room_code": "IHNF Conference Room",
+    "directions": null,
+    "building_name": "IHNF Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 402,
+    "room_code": "IMU",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Broadcasting and Telecommunication"
+  },
+  {
+    "id": 403,
+    "room_code": "INSTAT RA2",
+    "directions": null,
+    "building_name": "CAS Annex 2",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 404,
+    "room_code": "INSTATLH",
+    "directions": "3rd floor of Physical Sciences, near the balcony overlooking Oblation Park.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 405,
+    "room_code": "IRNR 252",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 406,
+    "room_code": "IRNR 253",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 407,
+    "room_code": "IRNR 254",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 408,
+    "room_code": "IRNR 271A",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 409,
+    "room_code": "IRNR 273A",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 410,
+    "room_code": "IRNR 273B",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 411,
+    "room_code": "IRNR 290",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 412,
+    "room_code": "IRNR 291",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 413,
+    "room_code": "IRNR 292",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 414,
+    "room_code": "IRNR Conference Room",
+    "directions": null,
+    "building_name": "IRNR Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 415,
+    "room_code": "IWEP AUDI",
+    "directions": null,
+    "building_name": "IWEP Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 416,
+    "room_code": "IWEPLH",
+    "directions": null,
+    "building_name": "IWEP Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Social Sciences"
+  },
+  {
+    "id": 417,
+    "room_code": "LHKCB 101B",
+    "directions": null,
+    "building_name": "LHKCB Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 418,
+    "room_code": "LHKCB 204",
+    "directions": null,
+    "building_name": "LHKCB Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 419,
+    "room_code": "LR1",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 420,
+    "room_code": "LR2A",
+    "directions": "Copeland Gym, Wing B, 3rd Floor, Lecture Room. Wing B is towards the parking at the back of Copeland.",
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 421,
+    "room_code": "LR2B",
+    "directions": "Copeland Gym, Wing B area.",
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 422,
+    "room_code": "LR3A",
+    "directions": null,
+    "building_name": null,
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 423,
+    "room_code": "LR3B",
+    "directions": "Copeland Gym, Wing B area.",
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 424,
+    "room_code": "MARTIAL ARTS AREA",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 425,
+    "room_code": "MB 100",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 426,
+    "room_code": "MB 101A",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 427,
+    "room_code": "MB 101B",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 428,
+    "room_code": "MB 102",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 429,
+    "room_code": "MB 103A",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 430,
+    "room_code": "MB 104",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 431,
+    "room_code": "MB 301",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 432,
+    "room_code": "MB 302",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 433,
+    "room_code": "MB 303",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 434,
+    "room_code": "MB 304",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 435,
+    "room_code": "MB 305",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 436,
+    "room_code": "MB 307",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 437,
+    "room_code": "MB 308",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 438,
+    "room_code": "MB 309",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 439,
+    "room_code": "MBBLH",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 440,
+    "room_code": "MLH",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 441,
+    "room_code": "MMM LH",
+    "directions": "3rd floor of Physical Sciences Building, second lecture hall when entering the ICS area.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 442,
+    "room_code": "MSLR 1",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 443,
+    "room_code": "MSLR 2",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 444,
+    "room_code": "Main Library",
+    "directions": null,
+    "building_name": "Main Library",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 445,
+    "room_code": "Malacology Lab (Snail Room)",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 446,
+    "room_code": "Malacology Laboratory (BS Snail Room)",
+    "directions": null,
+    "building_name": "Biological Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 447,
+    "room_code": "NEW GS RM 2",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Economics and Management",
+    "division_name": "Department of Economics"
+  },
+  {
+    "id": 448,
+    "room_code": "NL",
+    "directions": null,
+    "building_name": "IHNF Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 449,
+    "room_code": "Nursery (FCN)",
+    "directions": "FCN or Fruit Crops Nursery is found across the Senior Social Garden, past PHTRC/CEAT.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 450,
+    "room_code": "Old GS Conference Room",
+    "directions": null,
+    "building_name": "Graduate School Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 451,
+    "room_code": "Online",
+    "directions": null,
+    "building_name": null,
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 452,
+    "room_code": "PHTRC",
+    "directions": null,
+    "building_name": "PHTRC Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 453,
+    "room_code": "PHTRC 106",
+    "directions": null,
+    "building_name": "PHTRC Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 454,
+    "room_code": "PHTRC ANNEX",
+    "directions": null,
+    "building_name": "PHTRC Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": null
+  },
+  {
+    "id": 455,
+    "room_code": "PHYSIO LAB",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 456,
+    "room_code": "PS ANX-300",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 457,
+    "room_code": "PS ANX-306",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 458,
+    "room_code": "PS B-100",
+    "directions": "Walk straight from main entrance. Turn left at the very end.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 459,
+    "room_code": "PS B-101",
+    "directions": "Walk straight from main entrance. Turn left at the very end.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 460,
+    "room_code": "PS B-103",
+    "directions": "Walk straight from main entrance. Turn left at the very end.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 461,
+    "room_code": "PS B-105",
+    "directions": "Walk straight from main entrance. Turn left at the very end.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 462,
+    "room_code": "PS B-200",
+    "directions": "Walk straight from main entrance. Take stairs at the very end to second floor. Turn right.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 463,
+    "room_code": "PS B-201",
+    "directions": "Walk straight from main entrance. Take stairs at the very end to second floor. Turn right.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 464,
+    "room_code": "PS B-203",
+    "directions": "Walk straight from main entrance. Take stairs at the very end to second floor. Turn right.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 465,
+    "room_code": "PS B-205",
+    "directions": "Walk straight from main entrance. Take stairs at the very end to second floor. Turn right.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 466,
+    "room_code": "PS C-101",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 467,
+    "room_code": "PS C-200c",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 468,
+    "room_code": "PS C-203",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 469,
+    "room_code": "PS C-204",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 470,
+    "room_code": "PS C-206",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 471,
+    "room_code": "PS C-214",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 472,
+    "room_code": "PS C-304",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 473,
+    "room_code": "PS C-305",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 474,
+    "room_code": "PS C-306",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 475,
+    "room_code": "PS C-307",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 476,
+    "room_code": "PS C-309",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 477,
+    "room_code": "PS C-312",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 478,
+    "room_code": "PS C-320",
+    "directions": null,
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Statistics"
+  },
+  {
+    "id": 479,
+    "room_code": "PS C100",
+    "directions": "Room just to the right of Physical Sciences first floor main entrance.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 480,
+    "room_code": "PSLH A",
+    "directions": "In the Physical Sciences Building (Francisco O. Santos Hall), to the right of Oble. Ground floor, easy to spot.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 481,
+    "room_code": "PSLH B",
+    "directions": "In the Physical Sciences Building, beside PSLH A.",
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Physics"
+  },
+  {
+    "id": 482,
+    "room_code": "PTCF Conf. Rm",
+    "directions": null,
+    "building_name": "PTCF Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 483,
+    "room_code": "PTCF LAB",
+    "directions": null,
+    "building_name": "PTCF Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 484,
+    "room_code": "PTCF Lec 1",
+    "directions": null,
+    "building_name": "PTCF Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 485,
+    "room_code": "Pharma Lab",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 486,
+    "room_code": "PhysLab",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 487,
+    "room_code": "Poultry Lab B",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 488,
+    "room_code": "RGQ",
+    "directions": null,
+    "building_name": "IHNF Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 489,
+    "room_code": "RM 209A",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 490,
+    "room_code": "Room 200A",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Development Journalism"
+  },
+  {
+    "id": 491,
+    "room_code": "Room 212B",
+    "directions": null,
+    "building_name": "CDC Building",
+    "college_name": "College of Development Communication",
+    "division_name": "Department of Science Communication"
+  },
+  {
+    "id": 492,
+    "room_code": "Room 24 - Fronda Hall",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 493,
+    "room_code": "SDS Lab",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 494,
+    "room_code": "SDS lab",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 495,
+    "room_code": "SFFG 14",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Social Forestry and Forest Governance"
+  },
+  {
+    "id": 496,
+    "room_code": "SFFG 16",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Social Forestry and Forest Governance"
+  },
+  {
+    "id": 497,
+    "room_code": "SFFG 7",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Social Forestry and Forest Governance"
+  },
+  {
+    "id": 498,
+    "room_code": "SFFG 9",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Social Forestry and Forest Governance"
+  },
+  {
+    "id": 499,
+    "room_code": "SHOREA",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 500,
+    "room_code": "SMA LH",
+    "directions": "3rd floor of Physical Sciences Building, first lecture hall when entering the ICS area.",
+    "building_name": "Physical Sciences Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 501,
+    "room_code": "SOILS LAB",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 502,
+    "room_code": "SWIETENIA",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 503,
+    "room_code": "SWIMMING POOL",
+    "directions": null,
+    "building_name": "Baker Hall Pool",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 504,
+    "room_code": "Soils Lab",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 505,
+    "room_code": "TABLE TENNIS AREA",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 506,
+    "room_code": "TBA",
+    "directions": "⚠️ TBA means 'To Be Announced' - this is NOT a real room! The actual location will be announced later. Check your SAIS or ask your instructor for the updated room assignment.",
+    "building_name": null,
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 507,
+    "room_code": "TCC 1",
+    "directions": null,
+    "building_name": "Temporary Common Classrooms",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Social Development Services"
+  },
+  {
+    "id": 508,
+    "room_code": "TCC 11",
+    "directions": null,
+    "building_name": "Temporary Common Classrooms",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
+  },
+  {
+    "id": 509,
+    "room_code": "TCC 2",
+    "directions": null,
+    "building_name": "Temporary Common Classrooms",
+    "college_name": "College of Human Ecology",
+    "division_name": "Department of Community and Environmental Resource Planning"
+  },
+  {
+    "id": 510,
+    "room_code": "TCC 22",
+    "directions": null,
+    "building_name": "Temporary Common Classrooms",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Mechanical Engineering"
+  },
+  {
+    "id": 511,
+    "room_code": "TCC 4",
+    "directions": null,
+    "building_name": "Temporary Common Classrooms",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 512,
+    "room_code": "TCC 5",
+    "directions": null,
+    "building_name": "Temporary Common Classrooms",
+    "college_name": "College of Human Ecology",
+    "division_name": "Institute of Human Nutrition and Food"
+  },
+  {
+    "id": 513,
+    "room_code": "THERIOGENOLOGY LABORATORY ROOM",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 514,
+    "room_code": "UPPERFIELD",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 515,
+    "room_code": "UPRHS",
+    "directions": null,
+    "building_name": "UPRHS Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Biological Sciences"
+  },
+  {
+    "id": 516,
+    "room_code": "Unit Ops",
+    "directions": null,
+    "building_name": "Chemical Engineering Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Department of Chemical Engineering"
+  },
+  {
+    "id": 517,
+    "room_code": "VITEX",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 518,
+    "room_code": "VOLLEYBALL AREA",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 519,
+    "room_code": "Varrons Room",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
+    "id": 520,
+    "room_code": "WEIGHT TRAINING AREA",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 521,
+    "room_code": "WOOD ANATOMY",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 522,
+    "room_code": "WOOD CHEM",
+    "directions": null,
+    "building_name": "CFNR Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Department of Forest Products and Paper Science"
+  },
+  {
+    "id": 523,
+    "room_code": "WPD Hall LR108",
+    "directions": null,
+    "building_name": "IWEP Building",
+    "college_name": "College of Engineering and Agro-Industrial Technology",
+    "division_name": "Institute of Agricultural and Biosystems Engineering"
+  },
+  {
+    "id": 524,
+    "room_code": "YOGA ROOM",
+    "directions": null,
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 525,
+    "room_code": "ZOTCLAB BC",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Basic Veterinary Sciences"
+  },
+  {
+    "id": 526,
+    "room_code": "ZOTCLAB-CL",
+    "directions": null,
+    "building_name": "CVM-IAS Communal Building",
+    "college_name": "College of Veterinary Medicine",
+    "division_name": "Department of Veterinary Clinical Sciences"
+  },
+  {
+    "id": 527,
+    "room_code": "iLab",
+    "directions": "This is the Institute of Crop Science (ICropS) lab, NOT Institute of Computer Science (ICS)! After entering Villegas Hall in IAS, walk straight past the stairs.",
+    "building_name": "AMPED Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  }
+]
