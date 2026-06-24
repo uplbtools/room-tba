@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "collegeName": "College of Agriculture and Food Science"
+  },
+  {
+    "id": 2,
+    "collegeName": "College of Arts and Sciences"
+  },
+  {
+    "id": 3,
+    "collegeName": "College of Development Communication"
+  },
+  {
+    "id": 4,
+    "collegeName": "College of Economics and Management"
+  },
+  {
+    "id": 5,
+    "collegeName": "College of Engineering and Agro-Industrial Technology"
+  },
+  {
+    "id": 6,
+    "collegeName": "College of Forestry and Natural Resources"
+  },
+  {
+    "id": 7,
+    "collegeName": "College of Human Ecology"
+  },
+  {
+    "id": 8,
+    "collegeName": "College of Veterinary Medicine"
+  }
+]

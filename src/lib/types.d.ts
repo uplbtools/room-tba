@@ -56,6 +56,8 @@ type BuildingData = {
   lat: number | null;
   lon: number | null;
   directions: string | null;
+  version: number;
+  updatedAt: string;
 };
 
 type ClassMapValue = {
@@ -105,4 +107,4 @@ interface RecentSearch {
 type TableSyncInfo = {
   valid: boolean;
   newKey: string | null;
-}
+};
