@@ -1071,14 +1071,14 @@
   .map-edit-toolbar {
     position: absolute;
     bottom: 4.75rem;
-    left: 50%;
+    left: calc(50% + 12.875rem);
     z-index: 20;
     display: flex;
     align-items: center;
     gap: 0.75rem;
     transform: translateX(-50%);
     width: max-content;
-    max-width: calc(100% - 1rem);
+    max-width: calc(100% - 26.75rem);
     min-height: 3.25rem;
     padding: 0.375rem 0.375rem 0.375rem 0.75rem;
     border: 1px solid hsla(160, 52%, 32%, 0.35);
