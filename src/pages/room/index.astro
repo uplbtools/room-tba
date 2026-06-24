@@ -9,7 +9,7 @@ const items = rooms
   .slice()
   .sort((a, b) => a.code.localeCompare(b.code))
   .map((room) => ({
-    href: `/room/${getRoomRouteSlug(room, rooms)}/`,
+    href: `/room/${getRoomRouteSlug(room)}/`,
     label: room.code,
     description: room.building?.name
       ? `${room.building.name} at UPLB${classesMap.has(room.code) ? ` · ${classesMap.get(room.code)?.length ?? 0} listed classes` : ""}`

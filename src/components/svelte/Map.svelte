@@ -7,11 +7,13 @@
     mapStore,
     jeepneyStore,
     dormFilter,
+    currentRoom,
   } from "../../lib/store.svelte";
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
-  import { University, Home } from "@lucide/svelte";
+  import House from "@lucide/svelte/icons/house";
+  import University from "@lucide/svelte/icons/university";
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import {
@@ -19,14 +21,14 @@
     type JeepneyRoute,
     type JeepneyStop,
   } from "../../constants/jeepney-routes";
-  const { buildings, rooms, dorms } = getAppData();
-  const filteredDorms = $derived(
-    dormFilter.value === "all"
-      ? dorms
-      : dormFilter.value === "up"
-        ? dorms.filter((d) => d.is_up_managed)
-        : dorms.filter((d) => !d.is_up_managed),
-  );
+  const data = getAppData();
+  const { buildings, dorms, loaded } = $derived(data());
+  const filteredDorms = $derived.by(() => {
+    if (!loaded) return;
+    if (dormFilter.value === "all") return dorms;
+    if (dormFilter.value === "up") return dorms.filter((d) => d.isUpManaged);
+    return dorms.filter((d) => !d.isUpManaged);
+  });
   let directions: MapLibreGlDirections | undefined = $state.raw();
 
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
@@ -60,9 +62,7 @@
     }
   }
 
-  function buildStraightLineGeometry(
-    route: JeepneyRoute,
-  ): GeoJSON.LineString {
+  function buildStraightLineGeometry(route: JeepneyRoute): GeoJSON.LineString {
     return {
       type: "LineString",
       coordinates: route.stops.map((stop) => [stop.lon, stop.lat]),
@@ -157,260 +157,6 @@
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
 
-  const BUILDING_LAYER_ID = "building-3d";
-  const BUILDING_SOURCE_ID = "openmaptiles";
-  const BUILDING_SOURCE_LAYER = "building";
-  const BUILDING_DEFAULT_COLOR = "rgba(247, 242, 235, 1)";
-  const HIGHLIGHT_SOURCE_ID = "room-tba-highlighted-buildings";
-  const HIGHLIGHT_LAYER_ID = "room-tba-highlighted-buildings-3d";
-  const BUILDING_HIGHLIGHT_COLOR = "#facc15";
-  const HIGHLIGHT_HEIGHT_OFFSET = 0.5;
-  const HIGHLIGHT_POLYGON_INFLATE = 1.02;
-  let baseLayerCleanupDone = false;
-
-  function ensureBaseLayerClean() {
-    const map = mapStore.mapInstance;
-    if (!map || baseLayerCleanupDone) return;
-    if (!map.getLayer(BUILDING_LAYER_ID)) return;
-
-    map.setPaintProperty(
-      BUILDING_LAYER_ID,
-      "fill-extrusion-color",
-      BUILDING_DEFAULT_COLOR,
-    );
-    map.removeFeatureState({
-      source: BUILDING_SOURCE_ID,
-      sourceLayer: BUILDING_SOURCE_LAYER,
-    });
-    baseLayerCleanupDone = true;
-  }
-
-  type HighlightFeature = GeoJSON.Feature<
-    GeoJSON.Polygon | GeoJSON.MultiPolygon,
-    { render_height: number; render_min_height: number }
-  >;
-
-  const highlightFeatureCache = new Map<string, HighlightFeature>();
-
-  function getFeatureKey(feature: mapGl.MapGeoJSONFeature): string {
-    if (feature.id !== undefined && feature.id !== null) {
-      return `id:${String(feature.id)}`;
-    }
-    return `geom:${JSON.stringify(feature.geometry)}`;
-  }
-
-  function pointInRing(point: [number, number], ring: number[][]): boolean {
-    let inside = false;
-    const [x, y] = point;
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const ringI = ring[i];
-      const ringJ = ring[j];
-      if (!ringI || !ringJ) continue;
-      const [xi, yi] = ringI;
-      const [xj, yj] = ringJ;
-      const intersects =
-        yi > y !== yj > y &&
-        x < ((xj - xi) * (y - yi)) / (yj - yi + 1e-12) + xi;
-      if (intersects) inside = !inside;
-    }
-    return inside;
-  }
-
-  function pickPolygonContainingPoint(
-    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon,
-    lng: number,
-    lat: number,
-  ): GeoJSON.Polygon | null {
-    if (geometry.type === "Polygon") {
-      const outer = geometry.coordinates[0];
-      if (outer && pointInRing([lng, lat], outer)) return geometry;
-      return null;
-    }
-    for (const polyCoords of geometry.coordinates) {
-      const outer = polyCoords[0];
-      if (outer && pointInRing([lng, lat], outer)) {
-        return { type: "Polygon", coordinates: polyCoords };
-      }
-    }
-    return null;
-  }
-
-  function inflateRing(ring: number[][], scale: number): number[][] {
-    if (ring.length === 0) return ring;
-    let cx = 0;
-    let cy = 0;
-    for (const [x, y] of ring) {
-      cx += x;
-      cy += y;
-    }
-    cx /= ring.length;
-    cy /= ring.length;
-    return ring.map(([x, y]) => [
-      cx + (x - cx) * scale,
-      cy + (y - cy) * scale,
-    ]);
-  }
-
-  function inflateGeometry(
-    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon,
-    scale = HIGHLIGHT_POLYGON_INFLATE,
-  ): GeoJSON.Polygon | GeoJSON.MultiPolygon {
-    if (geometry.type === "Polygon") {
-      return {
-        type: "Polygon",
-        coordinates: geometry.coordinates.map((ring) =>
-          inflateRing(ring, scale),
-        ),
-      };
-    }
-    return {
-      type: "MultiPolygon",
-      coordinates: geometry.coordinates.map((polygon) =>
-        polygon.map((ring) => inflateRing(ring, scale)),
-      ),
-    };
-  }
-
-  function findBuildingFeatureAt(
-    map: mapGl.MapLibreMap,
-    lng: number,
-    lat: number,
-  ): mapGl.MapGeoJSONFeature | null {
-    const point = map.project([lng, lat]);
-    const exact = map.queryRenderedFeatures(point, {
-      layers: [BUILDING_LAYER_ID],
-    });
-    return (exact[0] as mapGl.MapGeoJSONFeature | undefined) ?? null;
-  }
-
-  function highlightDatasetBuildings() {
-    const map = mapStore.mapInstance;
-    if (!map || !map.isStyleLoaded() || map.getZoom() < 14) return;
-
-    ensureBaseLayerClean();
-
-    let cacheChanged = false;
-
-    for (const building of buildings) {
-      if (building.lat === null || building.lon === null) continue;
-
-      const feature = findBuildingFeatureAt(map, building.lon, building.lat);
-      if (!feature) continue;
-      if (
-        feature.geometry.type !== "Polygon" &&
-        feature.geometry.type !== "MultiPolygon"
-      ) {
-        continue;
-      }
-
-      const matchedPolygon = pickPolygonContainingPoint(
-        feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
-        building.lon,
-        building.lat,
-      );
-      if (!matchedPolygon) continue;
-
-      const key = `${getFeatureKey(feature)}|${building.lon.toFixed(6)},${building.lat.toFixed(6)}`;
-      if (highlightFeatureCache.has(key)) continue;
-
-      const inflated = inflateGeometry(matchedPolygon);
-
-      highlightFeatureCache.set(key, {
-        type: "Feature",
-        geometry: inflated,
-        properties: {
-          render_height:
-            (feature.properties?.render_height ?? 12) + HIGHLIGHT_HEIGHT_OFFSET,
-          render_min_height: Math.max(
-            (feature.properties?.render_min_height ?? 0) -
-              HIGHLIGHT_HEIGHT_OFFSET,
-            0,
-          ),
-        },
-      });
-      cacheChanged = true;
-    }
-
-    // Also highlight dorm buildings on the 3D map
-    for (const dorm of dorms) {
-      if (dorm.lat === null || dorm.lon === null) continue;
-
-      const feature = findBuildingFeatureAt(map, dorm.lon, dorm.lat);
-      if (!feature) continue;
-      if (
-        feature.geometry.type !== "Polygon" &&
-        feature.geometry.type !== "MultiPolygon"
-      ) {
-        continue;
-      }
-
-      const matchedPolygon = pickPolygonContainingPoint(
-        feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
-        dorm.lon,
-        dorm.lat,
-      );
-      if (!matchedPolygon) continue;
-
-      const key = `dorm:${getFeatureKey(feature)}|${dorm.lon.toFixed(6)},${dorm.lat.toFixed(6)}`;
-      if (highlightFeatureCache.has(key)) continue;
-
-      const inflated = inflateGeometry(matchedPolygon);
-
-      highlightFeatureCache.set(key, {
-        type: "Feature",
-        geometry: inflated,
-        properties: {
-          render_height:
-            (feature.properties?.render_height ?? 12) + HIGHLIGHT_HEIGHT_OFFSET,
-          render_min_height: Math.max(
-            (feature.properties?.render_min_height ?? 0) -
-              HIGHLIGHT_HEIGHT_OFFSET,
-            0,
-          ),
-        },
-      });
-      cacheChanged = true;
-    }
-
-    if (!cacheChanged && map.getSource(HIGHLIGHT_SOURCE_ID)) return;
-
-    const featureCollection: GeoJSON.FeatureCollection<
-      GeoJSON.Polygon | GeoJSON.MultiPolygon
-    > = {
-      type: "FeatureCollection",
-      features: Array.from(highlightFeatureCache.values()),
-    };
-
-    const existingSource = map.getSource(HIGHLIGHT_SOURCE_ID) as
-      | mapGl.GeoJSONSource
-      | undefined;
-
-    if (existingSource) {
-      existingSource.setData(featureCollection);
-    } else {
-      map.addSource(HIGHLIGHT_SOURCE_ID, {
-        type: "geojson",
-        data: featureCollection,
-      });
-    }
-
-    if (!map.getLayer(HIGHLIGHT_LAYER_ID)) {
-      map.addLayer({
-        id: HIGHLIGHT_LAYER_ID,
-        type: "fill-extrusion",
-        source: HIGHLIGHT_SOURCE_ID,
-        paint: {
-          "fill-extrusion-color": BUILDING_HIGHLIGHT_COLOR,
-          "fill-extrusion-height": ["get", "render_height"],
-          "fill-extrusion-base": ["get", "render_min_height"],
-          "fill-extrusion-opacity": 0.95,
-        },
-      });
-    }
-  }
-
-
-
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
       return {
@@ -496,37 +242,6 @@
         mapStore.mapInstance.once("load", initDirections);
       }
     }
-  });
-
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-
-    highlightFeatureCache.clear();
-    baseLayerCleanupDone = false;
-
-    if (map.getLayer(HIGHLIGHT_LAYER_ID)) {
-      map.removeLayer(HIGHLIGHT_LAYER_ID);
-    }
-    if (map.getSource(HIGHLIGHT_SOURCE_ID)) {
-      map.removeSource(HIGHLIGHT_SOURCE_ID);
-    }
-
-    const refresh = () => {
-      highlightDatasetBuildings();
-    };
-
-    if (map.isStyleLoaded()) {
-      refresh();
-    } else {
-      map.once("load", refresh);
-    }
-
-    map.on("idle", refresh);
-
-    return () => {
-      map.off("idle", refresh);
-    };
   });
 
   $effect(() => {
@@ -620,10 +335,10 @@
     untrack(() => {
       stopRotation();
       map.off("moveend", startRotation);
-
       if (category === "building" && type === "result") {
+        if (!loaded) return;
         const currentBuilding = buildings.find(
-          (building) => building.building_name === value,
+          (building) => building.buildingName === value,
         );
 
         if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
@@ -646,26 +361,30 @@
         });
         if (directions) directions.clear();
       } else if (category === "room") {
-        const currentRoom = rooms.find((room) => room.code === value);
-        if (
-          currentRoom &&
-          currentRoom.building &&
-          currentRoom.building.lat &&
-          currentRoom.building.lon
-        ) {
-          map.flyTo({
-            center: [currentRoom.building.lon, currentRoom.building.lat],
-            zoom: 18,
-            pitch: 60,
-            padding: calculatePadding(md.current),
-            duration: 1500,
-          });
-          map.once("moveend", startRotation);
-        }
+        currentRoom.getRoomByCode(value).then(() => {
+          if (
+            currentRoom.value &&
+            currentRoom.value.building &&
+            currentRoom.value.building.lat &&
+            currentRoom.value.building.lon
+          ) {
+            map.flyTo({
+              center: [
+                currentRoom.value.building.lon,
+                currentRoom.value.building.lat,
+              ],
+              zoom: 18,
+              pitch: 60,
+              padding: calculatePadding(md.current),
+              duration: 1500,
+            });
+            map.once("moveend", startRotation);
+          }
+        });
       } else if (category === "dorm") {
-        const currentDorm = dorms.find(
-          (dorm) => dorm.dorm_name === value,
-        );
+        if (!loaded) return;
+
+        const currentDorm = dorms.find((dorm) => dorm.dormName === value);
         if (currentDorm && currentDorm.lon && currentDorm.lat) {
           map.flyTo({
             center: [currentDorm.lon, currentDorm.lat],
@@ -706,12 +425,13 @@
       case "building":
         return queryStore.inputValue;
       case "room": {
-        const currentRoom = rooms.find(
-          (room) => room.code === queryStore.inputValue,
-        );
-        return currentRoom && currentRoom.building
-          ? currentRoom.building.name
-          : null;
+        return null;
+        // const currentRoom = rooms.find(
+        //   (room) => room.code === queryStore.inputValue,
+        // );
+        // return currentRoom && currentRoom.building
+        //   ? currentRoom.building.name
+        //   : null;
       }
       default:
         return null;
@@ -727,21 +447,6 @@
 </script>
 
 <div class="map-container">
-  <!-- <button
-    onclick={() =>
-      console.log(
-        /**
-         *
-         * zoom 15.238803882144735 bearing -154.48049706309405
-         * LAT 14.16283754850545 LONG 121.24224620509085
-         */
-
-        mapInstance?.getZoom(),
-        mapInstance?.getBearing(),
-        mapInstance?.getCenter(),
-      )}
-    style="position:fixed; left:50%; top:50%; z-index: 100;">log map</button
-  > -->
   <MapLibre
     bind:map={mapStore.mapInstance}
     style="/liberty-customized.json"
@@ -765,12 +470,12 @@
       {#if building.lat && building.lon}
         <Marker
           lngLat={[building.lon, building.lat]}
-          onclick={() => handleMarkerClick(building.building_name)}
+          onclick={() => handleMarkerClick(building.buildingName)}
         >
           <div
             class="pin"
-            class:active={activeBuildingName === building.building_name}
-            title={building.building_name}
+            class:active={activeBuildingName === building.buildingName}
+            title={building.buildingName}
           >
             <University size="20" />
             <div
@@ -778,7 +483,7 @@
               class:active={zoomLevel >= 17}
               transition:fade
             >
-              {building.building_name}
+              {building.buildingName}
             </div>
           </div>
         </Marker>
@@ -803,21 +508,21 @@
       {#if dorm.lat && dorm.lon}
         <Marker
           lngLat={[dorm.lon, dorm.lat]}
-          onclick={() => handleDormMarkerClick(dorm.dorm_name)}
+          onclick={() => handleDormMarkerClick(dorm.dormName)}
         >
           <div
             class="dorm-pin"
-            class:active={activeDormName === dorm.dorm_name}
-            class:private={!dorm.is_up_managed}
-            title={dorm.dorm_name}
+            class:active={activeDormName === dorm.dormName}
+            class:private={!dorm.isUpManaged}
+            title={dorm.dormName}
           >
-            <Home size="18" />
+            <House size="18" />
             <div
               class="pin-label"
               class:active={zoomLevel >= 17}
               transition:fade
             >
-              {dorm.dorm_name}
+              {dorm.dormName}
             </div>
           </div>
         </Marker>

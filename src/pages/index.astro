@@ -1,6 +1,6 @@
+
 ---
-import AppProvider from "../components/svelte/AppProvider.svelte";
-import { loadAppData } from "../lib/app-data";
+import AppRoot from "../components/svelte/AppRoot.svelte";
 import Layout from "../layouts/Layout.astro";
 import {
   breadcrumbSchema,
@@ -9,7 +9,6 @@ import {
   websiteSchema,
 } from "../lib/site";
 
-const appData = await loadAppData();
 const title =
   "Room TBA | Find Rooms, Dorms, Buildings, Colleges, and Divisions at UPLB";
 const description =
@@ -27,7 +26,7 @@ const structuredData = jsonLd(
   canonicalPath="/"
   structuredData={structuredData}
 >
-  <AppProvider {...appData} client:load />
+  <AppRoot client:only />
 </Layout>
 
 <style>

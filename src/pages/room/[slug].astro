@@ -1,6 +1,8 @@
 ---
 import EntityPage from "../../components/seo/EntityPage.astro";
-import { getRoomRouteSlug, loadAppData } from "../../lib/app-data";
+import { getRoomRouteSlug } from "../../lib/app-data";
+import { getAllRooms } from "../../lib/services/map-data-service";
+import { getRoomPageData } from "../../lib/services/ssg-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -9,24 +11,24 @@ import {
 } from "../../lib/site";
 
 export async function getStaticPaths() {
-  const { rooms } = await loadAppData();
+  const rooms = await getAllRooms();
 
   return rooms.map((room) => ({
-    params: { slug: getRoomRouteSlug(room, rooms) },
+    params: { slug: getRoomRouteSlug(room) },
     props: { roomId: room.id },
   }));
 }
 
 const { roomId } = Astro.props;
-const appData = await loadAppData();
-const room = appData.rooms.find((item) => item.id === roomId);
+const appData = await getRoomPageData(roomId);
 
-if (!room) {
+if (appData === null) {
   throw new Error(`Room not found for slug: ${roomId}`);
 }
 
-const roomClasses = appData.classesMap.get(room.code) ?? [];
-const canonicalPath = `/room/${getRoomRouteSlug(room, appData.rooms)}/`;
+const {room, classCount} = appData;
+
+const canonicalPath = `/room/${getRoomRouteSlug(room)}/`;
 const title = `${room.code} | Room at UPLB | Room TBA`;
 const description = room.building?.name
   ? `Find ${room.code} at UPLB. View its building, directions, and listed classes in ${room.building.name} on Room TBA.`
@@ -39,7 +41,7 @@ const facts = [
   room.building?.name ? `Building: ${room.building.name}` : null,
   room.collegeName ? `College: ${room.collegeName}` : null,
   room.divisionName ? `Division: ${room.divisionName}` : null,
-  `${roomClasses.length} class${roomClasses.length === 1 ? "" : "es"} currently listed for this room`,
+  `${classCount} class${classCount === 1 ? "" : "es"} currently listed for this room`,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(
@@ -78,6 +80,5 @@ const structuredData = jsonLd(
     { href: canonicalPath, label: room.code },
   ]}
   structuredData={structuredData}
-  appProps={appData}
   initialSearch={{ category: "room", value: room.code }}
 />

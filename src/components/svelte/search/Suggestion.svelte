@@ -1,15 +1,14 @@
 <script lang="ts">
   import { queryStore, type QueryStoreState } from "../../../lib/store.svelte";
-  import {
-    ArrowUpRight,
-    BookText,
-    DoorClosed,
-    GraduationCap,
-    Home,
-    School,
-    University,
-    X,
-  } from "@lucide/svelte";
+  import ArrowUpRight from "@lucide/svelte/icons/arrow-up-right";
+  import BookText from "@lucide/svelte/icons/book-text";
+  import DoorClosed from "@lucide/svelte/icons/door-closed";
+  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
+  import Home from "@lucide/svelte/icons/home";
+  import School from "@lucide/svelte/icons/school";
+  import University from "@lucide/svelte/icons/university";
+  import X from "@lucide/svelte/icons/x";
+
   let {
     value,
     category,
