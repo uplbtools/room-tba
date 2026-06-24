@@ -3,6 +3,14 @@ import { updateBuilding } from "../../../../lib/services/admin-service";
 
 export const prerender = false;
 
+type BuildingPatchBody = {
+  buildingName?: string;
+  lat?: number;
+  lon?: number;
+  buildingType?: "admin" | "non-admin";
+  directions?: string;
+};
+
 export const PATCH: APIRoute = async ({ params, request }) => {
   const id = parseInt(params["id"] ?? "");
   if (isNaN(id)) {
@@ -12,7 +20,7 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     });
   }
 
-  let body: Record<string, unknown>;
+  let body: BuildingPatchBody;
   try {
     body = await request.json();
   } catch {
@@ -22,29 +30,15 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     });
   }
 
-  const { buildingName, lat, lon, buildingType, directions } = body as {
-    buildingName?: string;
-    lat?: number;
-    lon?: number;
-    buildingType?: "admin" | "non-admin";
-    directions?: string;
-  };
-
-  if (!buildingName || buildingName.trim().length === 0) {
-    return new Response(JSON.stringify({ error: "Building name is required" }), {
+  // Partial updates: only validate fields that are present
+  if (body.buildingName !== undefined && body.buildingName.trim().length === 0) {
+    return new Response(JSON.stringify({ error: "Building name cannot be empty" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  if (typeof lat !== "number" || typeof lon !== "number") {
-    return new Response(JSON.stringify({ error: "Valid lat and lon are required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  if (buildingType && !["admin", "non-admin"].includes(buildingType)) {
+  if (body.buildingType && !["admin", "non-admin"].includes(body.buildingType)) {
     return new Response(JSON.stringify({ error: "Invalid building type" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -52,13 +46,14 @@ export const PATCH: APIRoute = async ({ params, request }) => {
   }
 
   try {
-    await updateBuilding(id, {
-      buildingName: buildingName.trim(),
-      lat,
-      lon,
-      buildingType: buildingType ?? "non-admin",
-      directions: directions ?? "",
-    });
+    const updates: NonNullable<Parameters<typeof updateBuilding>[1]> = {};
+    if (body.buildingName !== undefined) updates.buildingName = body.buildingName.trim();
+    if (body.lat !== undefined) updates.lat = body.lat;
+    if (body.lon !== undefined) updates.lon = body.lon;
+    if (body.buildingType !== undefined) updates.buildingType = body.buildingType;
+    if (body.directions !== undefined) updates.directions = body.directions;
+
+    await updateBuilding(id, updates);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
