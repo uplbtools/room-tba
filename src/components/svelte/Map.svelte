@@ -20,6 +20,7 @@
   import University from "@lucide/svelte/icons/university";
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
+  import type { FeatureCollection, LineString } from "geojson";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
@@ -87,7 +88,7 @@
 
   async function fetchRouteGeometry(
     route: JeepneyRoute,
-  ): Promise<GeoJSON.LineString | null> {
+  ): Promise<LineString | null> {
     if (route.stops.length < 2) return null;
     const coordsParam = route.stops
       .map((stop) => `${stop.lon},${stop.lat}`)
@@ -98,7 +99,7 @@
       const res = await fetch(url);
       if (!res.ok) return null;
       const data = (await res.json()) as {
-        routes?: { geometry?: GeoJSON.LineString }[];
+        routes?: { geometry?: LineString }[];
       };
       const geometry = data.routes?.[0]?.geometry;
       if (!geometry || geometry.type !== "LineString") return null;
@@ -108,7 +109,7 @@
     }
   }
 
-  function buildStraightLineGeometry(route: JeepneyRoute): GeoJSON.LineString {
+  function buildStraightLineGeometry(route: JeepneyRoute): LineString {
     return {
       type: "LineString",
       coordinates: route.stops.map((stop) => [stop.lon, stop.lat]),
@@ -694,23 +695,22 @@
       activeRouteStops = route.stops;
       activeRouteColor = route.color;
 
-      const ensureLayersAndPaint = (geometry: GeoJSON.LineString) => {
+      const ensureLayersAndPaint = (geometry: LineString) => {
         if (cancelled) return;
         ensureJeepneyRouteLayers(map, route.color);
         const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
           | mapGl.GeoJSONSource
           | undefined;
-        const featureCollection: GeoJSON.FeatureCollection<GeoJSON.LineString> =
-          {
-            type: "FeatureCollection",
-            features: [
-              {
-                type: "Feature",
-                geometry,
-                properties: { routeId: route.id },
-              },
-            ],
-          };
+        const featureCollection: FeatureCollection<LineString> = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry,
+              properties: { routeId: route.id },
+            },
+          ],
+        };
         source?.setData(featureCollection);
       };
 
