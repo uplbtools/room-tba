@@ -91,6 +91,7 @@ export async function getRoomByCode(code: string) {
 
 export async function searchRooms(searchString: string) {
   try {
+    const escaped = searchString.replace(/%/g, "\\%").replace(/_/g, "\\_");
     const data = await db
       .select({
         value: roomsTable.roomCode,
@@ -99,7 +100,7 @@ export async function searchRooms(searchString: string) {
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
       .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
       .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(like(roomsTable.roomCode, `%${searchString}%`)).limit(6);
+      .where(like(roomsTable.roomCode, `%${escaped}%`)).limit(6);
     if (data.length === 0) return null;
     return data;
   } catch (e) {
