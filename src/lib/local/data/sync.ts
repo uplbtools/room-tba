@@ -9,7 +9,7 @@ import type {
 import { getDB } from "./pgliteDB";
 import { getJSONFetch } from "./utils";
 import { syncToastStore } from "../../store.svelte";
-import { Results } from "@electric-sql/pglite";
+import type { Results } from "@electric-sql/pglite";
 
 export function getSyncKeysFromLs(): {
   [key: string]: string;

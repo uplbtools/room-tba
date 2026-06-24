@@ -14,7 +14,7 @@ import {
   getLocalCollegeRooms,
   getLocalDivisionRooms,
 } from "./sync";
-import { Results } from "@electric-sql/pglite";
+import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
