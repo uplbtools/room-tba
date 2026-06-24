@@ -20,6 +20,20 @@ Use this checklist before merging the in-app editor foundation PR.
 - A successful save updates the inline editor toolbar status.
 - A failed save restores the pin to its previous location and shows the entity name in the error.
 
+## Terrain Mode
+
+- The Makiling terrain control is visible with the other compact map controls.
+- Terrain mode is off by default and does not request hosted elevation tiles before it is enabled.
+- Enabling terrain loads the hosted DEM layer, expands the map bounds toward Mt. Makiling, and moves to the Makiling terrain view.
+- Turning terrain off restores the flat campus map bounds and leaves building, dorm, jeepney, and location markers usable.
+- Exaggeration controls update the terrain without clearing the current search or route state.
+- Reset view returns to the Makiling terrain camera without clearing the current search.
+- Offline mode shows terrain as unavailable and keeps the flat map usable.
+- Failed or blocked terrain tile requests do not leave the control implying terrain is active.
+- MapTiler attribution/logo remains visible when terrain is active.
+- On a low-bandwidth or data-saver connection, terrain copy warns that hosted elevation tiles are online-only.
+- Mobile terrain controls are reachable and do not cover the side panel, editor toolbar, or attribution.
+
 ## Room Side-Panel Editing
 
 - Non-admin users only see read-only room details in the existing main app side panel.
