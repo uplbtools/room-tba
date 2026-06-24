@@ -29,7 +29,7 @@ export async function getCollegePageData(collegeName: string) {
     .select()
     .from(collegesTable)
     .where(eq(collegesTable.collegeName, collegeName))
-    .leftJoin(roomsTable, eq(collegesTable.id, roomsTable.buildingId));
+    .leftJoin(roomsTable, eq(collegesTable.id, roomsTable.collegeId));
 
   if (data.length === 0) return null;
 
