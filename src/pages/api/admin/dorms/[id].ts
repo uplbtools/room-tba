@@ -1,5 +1,12 @@
 import type { APIRoute } from "astro";
-import { updateDorm } from "../../../../lib/services/admin-service";
+import {
+  ADMIN_COOKIE_NAME,
+  verifySessionToken,
+} from "../../../../lib/admin/auth";
+import {
+  EditConflictError,
+  updateDorm,
+} from "../../../../lib/services/admin-service";
 
 export const prerender = false;
 
@@ -19,9 +26,17 @@ type DormPatchBody = {
   priceRange?: string | null;
   contactPhone?: string[];
   facebookLink?: string | null;
+  version?: number;
 };
 
-export const PATCH: APIRoute = async ({ params, request }) => {
+export const PATCH: APIRoute = async ({ cookies, params, request }) => {
+  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const id = parseInt(params["id"] ?? "");
   if (isNaN(id)) {
     return new Response(JSON.stringify({ error: "Invalid dorm ID" }), {
@@ -40,37 +55,73 @@ export const PATCH: APIRoute = async ({ params, request }) => {
     });
   }
 
-  if (!body.dormName || body.dormName.trim().length === 0) {
+  if (body.dormName !== undefined && body.dormName.trim().length === 0) {
     return new Response(JSON.stringify({ error: "Dorm name is required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  try {
-    await updateDorm(id, {
-      dormName: body.dormName.trim(),
-      shortName: body.shortName || null,
-      lat: body.lat ? Number(body.lat) : null,
-      lon: body.lon ? Number(body.lon) : null,
-      gender: body.gender || "Mixed",
-      capacity: body.capacity ? Number(body.capacity) : null,
-      managingOffice: body.managingOffice || null,
-      contactEmail: body.contactEmail || null,
-      amenities: Array.isArray(body.amenities) ? body.amenities : [],
-      osmLink: body.osmLink || null,
-      description: body.description || null,
-      isUpManaged: body.isUpManaged !== false,
-      priceRange: body.priceRange || null,
-      contactPhone: Array.isArray(body.contactPhone) ? body.contactPhone : [],
-      facebookLink: body.facebookLink || null,
-    });
+  const expectedVersion = Number.isInteger(body.version)
+    ? body.version
+    : undefined;
 
-    return new Response(JSON.stringify({ success: true }), {
+  try {
+    const updates: Parameters<typeof updateDorm>[1] = {};
+    if (body.dormName !== undefined) updates.dormName = body.dormName.trim();
+    if (body.shortName !== undefined)
+      updates.shortName = body.shortName || null;
+    if (body.lat !== undefined)
+      updates.lat = body.lat === null ? null : Number(body.lat);
+    if (body.lon !== undefined)
+      updates.lon = body.lon === null ? null : Number(body.lon);
+    if (body.gender !== undefined) updates.gender = body.gender || "Mixed";
+    if (body.capacity !== undefined) {
+      updates.capacity = body.capacity === null ? null : Number(body.capacity);
+    }
+    if (body.managingOffice !== undefined) {
+      updates.managingOffice = body.managingOffice || null;
+    }
+    if (body.contactEmail !== undefined)
+      updates.contactEmail = body.contactEmail || null;
+    if (body.amenities !== undefined) {
+      updates.amenities = Array.isArray(body.amenities) ? body.amenities : [];
+    }
+    if (body.osmLink !== undefined) updates.osmLink = body.osmLink || null;
+    if (body.description !== undefined)
+      updates.description = body.description || null;
+    if (body.isUpManaged !== undefined)
+      updates.isUpManaged = body.isUpManaged !== false;
+    if (body.priceRange !== undefined)
+      updates.priceRange = body.priceRange || null;
+    if (body.contactPhone !== undefined) {
+      updates.contactPhone = Array.isArray(body.contactPhone)
+        ? body.contactPhone
+        : [];
+    }
+    if (body.facebookLink !== undefined)
+      updates.facebookLink = body.facebookLink || null;
+
+    const dorm = await updateDorm(id, updates, expectedVersion);
+
+    return new Response(JSON.stringify({ success: true, dorm }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
+    if (err instanceof EditConflictError) {
+      return new Response(
+        JSON.stringify({
+          error: "This dorm was changed by another editor.",
+          latest: err.latest,
+        }),
+        {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     console.error("Failed to update dorm:", err);
     return new Response(JSON.stringify({ error: "Failed to save dorm" }), {
       status: 500,
