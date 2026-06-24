@@ -8,10 +8,10 @@
   import { fetchBasemap } from "../../lib/osm-basemap";
   import {
     footprintToLocalPolygon,
-    placeRooms,
+    mockPlaceRooms,
     defaultFloorCount,
     maxInferredFloor,
-    type LocalPolygon,
+    type LocalPolygonData,
     type RoomPlacement,
   } from "../../lib/building-3d";
 
@@ -81,11 +81,11 @@
 
   const placements = $derived(
     polygon
-      ? placeRooms(roomCodes, polygon, totalFloors, savedOverrides)
+      ? mockPlaceRooms(roomCodes, polygon, totalFloors, savedOverrides)
       : ([] as RoomPlacement[]),
   );
 
-  let polygon: LocalPolygon | null = $state(null);
+  let polygon: LocalPolygonData | null = $state(null);
 
   const floorOptions = $derived.by(() => {
     const opts: Array<{ value: number | "all"; label: string }> = [
