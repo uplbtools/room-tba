@@ -4,7 +4,6 @@ let localDB: PGlite | null = null;
 
 export async function initPGLiteDB(db: PGlite) {
   try {
-
     await db.waitReady;
 
     // execution if the database isn't created yet
@@ -16,7 +15,9 @@ export async function initPGLiteDB(db: PGlite) {
   	"lat" double precision NOT NULL,
   	"directions" text NOT NULL,
   	"type" varchar(12) NOT NULL DEFAULT 'non-admin',
-    "rooms_fetched" boolean NOT NULL DEFAULT false
+    "rooms_fetched" boolean NOT NULL DEFAULT false,
+    "version" integer NOT NULL DEFAULT 1,
+    "updated_at" timestamp NOT NULL DEFAULT now()
     );
 
     CREATE TABLE IF NOT EXISTS "colleges" (
@@ -52,7 +53,9 @@ export async function initPGLiteDB(db: PGlite) {
    	"is_up_managed" boolean DEFAULT true,
    	"price_range" text,
    	"contact_phone" varchar(20)[],
-   	"facebook_link" text
+    "facebook_link" text,
+    "version" integer NOT NULL DEFAULT 1,
+    "updated_at" timestamp NOT NULL DEFAULT now()
     );
 
     CREATE TABLE IF NOT EXISTS "room_positions" (
@@ -88,6 +91,18 @@ export async function initPGLiteDB(db: PGlite) {
     ALTER TABLE buildings
     ADD COLUMN IF NOT EXISTS "type" varchar(12) NOT NULL DEFAULT 'non-admin';
 
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;
+
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "updated_at" timestamp NOT NULL DEFAULT now();
+
+    ALTER TABLE dorms
+    ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;
+
+    ALTER TABLE dorms
+    ADD COLUMN IF NOT EXISTS "updated_at" timestamp NOT NULL DEFAULT now();
+
     ALTER TABLE colleges
     ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean NOT NULL DEFAULT false;
 
@@ -97,15 +112,14 @@ export async function initPGLiteDB(db: PGlite) {
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "classes_fetched" boolean NOT NULL DEFAULT false;
     `);
-  }
-  catch (e) {
+  } catch (e) {
     console.error("An error occurred", e);
   }
 }
 
 export function getDB() {
   if (!localDB) {
-    localDB = new PGlite("idb://site-data")
+    localDB = new PGlite("idb://site-data");
   }
   return localDB;
 }

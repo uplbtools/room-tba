@@ -944,6 +944,7 @@
             handleBuildingDragEnd(e, building.id, building.buildingName, {
               lat: position.lat,
               lon: position.lon,
+              version: position.version,
             })}
         >
           <div
@@ -1015,6 +1016,7 @@
             handleDormDragEnd(e, dorm.id, dorm.dormName, {
               lat: position.lat,
               lon: position.lon,
+              version: position.version,
             })}
         >
           <div

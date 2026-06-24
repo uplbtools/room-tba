@@ -55,6 +55,7 @@ type BuildingData = {
   buildingName: string;
   lat: number | null;
   lon: number | null;
+  buildingType: "admin" | "non-admin";
   directions: string | null;
   version: number;
   updatedAt: string;

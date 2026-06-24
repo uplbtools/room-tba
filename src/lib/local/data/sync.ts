@@ -123,8 +123,8 @@ export async function syncBuildings(
     try {
       await localDB.query(
         `
-        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched)
-        VALUES ($1, $2, $3, $4, $5, $6, false)
+        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, false, $7, $8)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         building_name = EXCLUDED.building_name,
@@ -132,9 +132,20 @@ export async function syncBuildings(
         lat = EXCLUDED.lat,
         directions = EXCLUDED.directions,
         type = EXCLUDED.type,
-        rooms_fetched = EXCLUDED.rooms_fetched;
+        rooms_fetched = EXCLUDED.rooms_fetched,
+        version = EXCLUDED.version,
+        updated_at = EXCLUDED.updated_at;
         `,
-        [b.id, b.buildingName, b.lon, b.lat, b.directions, b.buildingType],
+        [
+          b.id,
+          b.buildingName,
+          b.lon,
+          b.lat,
+          b.directions,
+          b.buildingType,
+          b.version,
+          b.updatedAt,
+        ],
       );
       syncToastStore.updateBuildingsSync();
     } catch (e) {
@@ -221,8 +232,8 @@ export async function syncDorms(
     try {
       await localDB.query(
         `
-        INSERT INTO dorms (id, dorm_name, short_name, lat, lon, gender, capacity, managing_office, contact_email, amenities, osm_link, description, is_up_managed, price_range, contact_phone, facebook_link)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        INSERT INTO dorms (id, dorm_name, short_name, lat, lon, gender, capacity, managing_office, contact_email, amenities, osm_link, description, is_up_managed, price_range, contact_phone, facebook_link, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         dorm_name = EXCLUDED.dorm_name,
@@ -239,7 +250,9 @@ export async function syncDorms(
         is_up_managed = EXCLUDED.is_up_managed,
         price_range = EXCLUDED.price_range,
         contact_phone = EXCLUDED.contact_phone,
-        facebook_link = EXCLUDED.facebook_link;
+        facebook_link = EXCLUDED.facebook_link,
+        version = EXCLUDED.version,
+        updated_at = EXCLUDED.updated_at;
         `,
         [
           b.id,
@@ -258,6 +271,8 @@ export async function syncDorms(
           b.priceRange,
           b.contactPhone,
           b.facebookLink,
+          b.version,
+          b.updatedAt,
         ],
       );
       syncToastStore.updateDormsSync();
