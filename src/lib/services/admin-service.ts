@@ -1,10 +1,11 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   buildingsTable,
   collegesTable,
   divisionsTable,
   dormsTable,
+  editorHistoryTable,
   roomsTable,
   roomPositionsTable,
   updateTable,
@@ -13,12 +14,55 @@ import { db } from "../db";
 
 // ── Sync key refresh ──
 
+export class EditConflictError<TLatest> extends Error {
+  latest: TLatest | null;
+
+  constructor(latest: TLatest | null) {
+    super("This record was changed by another editor.");
+    this.name = "EditConflictError";
+    this.latest = latest;
+  }
+}
+
 /** Refresh the sync key for a table so viewers detect the change and re-sync. */
 export async function refreshSyncKey(tableName: string): Promise<void> {
   await db
     .update(updateTable)
     .set({ syncKey: randomUUID() })
     .where(eq(updateTable.tableName, tableName));
+}
+
+type EditorHistoryInput = {
+  entityType: string;
+  entityId: number;
+  action: string;
+  before: unknown;
+  after: unknown;
+  versionBefore?: number | null;
+  versionAfter?: number | null;
+  editedBy?: string;
+};
+
+export async function recordEditorHistory({
+  entityType,
+  entityId,
+  action,
+  before,
+  after,
+  versionBefore,
+  versionAfter,
+  editedBy = "admin",
+}: EditorHistoryInput): Promise<void> {
+  await db.insert(editorHistoryTable).values({
+    entityType,
+    entityId,
+    action,
+    before,
+    after,
+    versionBefore,
+    versionAfter,
+    editedBy,
+  });
 }
 
 // ── Rooms ──
@@ -32,7 +76,9 @@ export type RoomWithRelations = {
   divisionId: number | null;
 };
 
-export async function getRoomById(id: number): Promise<RoomWithRelations | null> {
+export async function getRoomById(
+  id: number,
+): Promise<RoomWithRelations | null> {
   const rows = await db
     .select({
       id: roomsTable.id,
@@ -70,13 +116,20 @@ export type RoomUpdateInput = {
   divisionId?: number | null;
 };
 
-export async function updateRoom(id: number, input: RoomUpdateInput): Promise<void> {
+export async function updateRoom(
+  id: number,
+  input: RoomUpdateInput,
+): Promise<void> {
   const updates: Record<string, unknown> = {};
   if (input.roomCode !== undefined) updates["roomCode"] = input.roomCode;
-  if (input.directions !== undefined) updates["directions"] = input.directions || null;
-  if (input.buildingId !== undefined) updates["buildingId"] = input.buildingId || null;
-  if (input.collegeId !== undefined) updates["collegeId"] = input.collegeId || null;
-  if (input.divisionId !== undefined) updates["divisionId"] = input.divisionId || null;
+  if (input.directions !== undefined)
+    updates["directions"] = input.directions || null;
+  if (input.buildingId !== undefined)
+    updates["buildingId"] = input.buildingId || null;
+  if (input.collegeId !== undefined)
+    updates["collegeId"] = input.collegeId || null;
+  if (input.divisionId !== undefined)
+    updates["divisionId"] = input.divisionId || null;
 
   if (Object.keys(updates).length > 0) {
     await db.update(roomsTable).set(updates).where(eq(roomsTable.id, id));
@@ -95,7 +148,9 @@ export type RoomPosition = {
   roomId: number;
 };
 
-export async function getRoomPosition(roomId: number): Promise<RoomPosition | null> {
+export async function getRoomPosition(
+  roomId: number,
+): Promise<RoomPosition | null> {
   const rows = await db
     .select()
     .from(roomPositionsTable)
@@ -119,7 +174,12 @@ export async function upsertRoomPosition(
   if (existing) {
     await db
       .update(roomPositionsTable)
-      .set({ floor: input.floor, posX: input.posX, posY: input.posY, updatedAt })
+      .set({
+        floor: input.floor,
+        posX: input.posX,
+        posY: input.posY,
+        updatedAt,
+      })
       .where(eq(roomPositionsTable.id, existing.id));
   } else {
     await db.insert(roomPositionsTable).values({
@@ -137,8 +197,14 @@ export async function upsertRoomPosition(
 
 export type BuildingAdmin = typeof buildingsTable.$inferSelect;
 
-export async function getBuildingById(id: number): Promise<BuildingAdmin | null> {
-  const rows = await db.select().from(buildingsTable).where(eq(buildingsTable.id, id)).limit(1);
+export async function getBuildingById(
+  id: number,
+): Promise<BuildingAdmin | null> {
+  const rows = await db
+    .select()
+    .from(buildingsTable)
+    .where(eq(buildingsTable.id, id))
+    .limit(1);
   return rows[0] ?? null;
 }
 
@@ -154,18 +220,62 @@ export type BuildingUpdateInput = {
   directions?: string;
 };
 
-export async function updateBuilding(id: number, input: BuildingUpdateInput): Promise<void> {
+export async function updateBuilding(
+  id: number,
+  input: BuildingUpdateInput,
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<BuildingAdmin | null> {
   const updates: Record<string, unknown> = {};
-  if (input.buildingName !== undefined) updates["buildingName"] = input.buildingName;
+  if (input.buildingName !== undefined)
+    updates["buildingName"] = input.buildingName;
   if (input.lat !== undefined) updates["lat"] = input.lat;
   if (input.lon !== undefined) updates["lon"] = input.lon;
-  if (input.buildingType !== undefined) updates["buildingType"] = input.buildingType;
+  if (input.buildingType !== undefined)
+    updates["buildingType"] = input.buildingType;
   if (input.directions !== undefined) updates["directions"] = input.directions;
 
   if (Object.keys(updates).length > 0) {
-    await db.update(buildingsTable).set(updates).where(eq(buildingsTable.id, id));
+    const before = await getBuildingById(id);
+    const where =
+      expectedVersion === undefined
+        ? eq(buildingsTable.id, id)
+        : and(
+            eq(buildingsTable.id, id),
+            eq(buildingsTable.version, expectedVersion),
+          );
+    const [updated] = await db
+      .update(buildingsTable)
+      .set({
+        ...updates,
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning();
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(await getBuildingById(id));
+    }
+
+    if (before && updated) {
+      await recordEditorHistory({
+        entityType: "building",
+        entityId: id,
+        action: "update",
+        before,
+        after: updated,
+        versionBefore: before.version,
+        versionAfter: updated.version,
+        editedBy,
+      });
+    }
+
     await refreshSyncKey("buildings");
+    return updated ?? (await getBuildingById(id));
   }
+
+  return getBuildingById(id);
 }
 
 // ── Colleges ──
@@ -173,7 +283,11 @@ export async function updateBuilding(id: number, input: BuildingUpdateInput): Pr
 export type CollegeAdmin = typeof collegesTable.$inferSelect;
 
 export async function getCollegeById(id: number): Promise<CollegeAdmin | null> {
-  const rows = await db.select().from(collegesTable).where(eq(collegesTable.id, id)).limit(1);
+  const rows = await db
+    .select()
+    .from(collegesTable)
+    .where(eq(collegesTable.id, id))
+    .limit(1);
   return rows[0] ?? null;
 }
 
@@ -181,8 +295,14 @@ export async function getAllCollegesAdmin(): Promise<CollegeAdmin[]> {
   return db.select().from(collegesTable).orderBy(collegesTable.collegeName);
 }
 
-export async function updateCollege(id: number, collegeName: string): Promise<void> {
-  await db.update(collegesTable).set({ collegeName }).where(eq(collegesTable.id, id));
+export async function updateCollege(
+  id: number,
+  collegeName: string,
+): Promise<void> {
+  await db
+    .update(collegesTable)
+    .set({ collegeName })
+    .where(eq(collegesTable.id, id));
   await refreshSyncKey("colleges");
 }
 
@@ -190,8 +310,14 @@ export async function updateCollege(id: number, collegeName: string): Promise<vo
 
 export type DivisionAdmin = typeof divisionsTable.$inferSelect;
 
-export async function getDivisionById(id: number): Promise<DivisionAdmin | null> {
-  const rows = await db.select().from(divisionsTable).where(eq(divisionsTable.id, id)).limit(1);
+export async function getDivisionById(
+  id: number,
+): Promise<DivisionAdmin | null> {
+  const rows = await db
+    .select()
+    .from(divisionsTable)
+    .where(eq(divisionsTable.id, id))
+    .limit(1);
   return rows[0] ?? null;
 }
 
@@ -199,8 +325,14 @@ export async function getAllDivisionsAdmin(): Promise<DivisionAdmin[]> {
   return db.select().from(divisionsTable).orderBy(divisionsTable.divisionName);
 }
 
-export async function updateDivision(id: number, divisionName: string): Promise<void> {
-  await db.update(divisionsTable).set({ divisionName }).where(eq(divisionsTable.id, id));
+export async function updateDivision(
+  id: number,
+  divisionName: string,
+): Promise<void> {
+  await db
+    .update(divisionsTable)
+    .set({ divisionName })
+    .where(eq(divisionsTable.id, id));
   await refreshSyncKey("divisions");
 }
 
@@ -209,7 +341,11 @@ export async function updateDivision(id: number, divisionName: string): Promise<
 export type DormAdmin = typeof dormsTable.$inferSelect;
 
 export async function getDormById(id: number): Promise<DormAdmin | null> {
-  const rows = await db.select().from(dormsTable).where(eq(dormsTable.id, id)).limit(1);
+  const rows = await db
+    .select()
+    .from(dormsTable)
+    .where(eq(dormsTable.id, id))
+    .limit(1);
   return rows[0] ?? null;
 }
 
@@ -235,15 +371,54 @@ export type DormUpdateInput = Partial<{
   facebookLink: string | null;
 }>;
 
-export async function updateDorm(id: number, input: DormUpdateInput): Promise<void> {
+export async function updateDorm(
+  id: number,
+  input: DormUpdateInput,
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<DormAdmin | null> {
   const updates: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(input)) {
     if (value !== undefined) updates[key] = value;
   }
   if (Object.keys(updates).length > 0) {
-    await db.update(dormsTable).set(updates).where(eq(dormsTable.id, id));
+    const before = await getDormById(id);
+    const where =
+      expectedVersion === undefined
+        ? eq(dormsTable.id, id)
+        : and(eq(dormsTable.id, id), eq(dormsTable.version, expectedVersion));
+    const [updated] = await db
+      .update(dormsTable)
+      .set({
+        ...updates,
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning();
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(await getDormById(id));
+    }
+
+    if (before && updated) {
+      await recordEditorHistory({
+        entityType: "dorm",
+        entityId: id,
+        action: "update",
+        before,
+        after: updated,
+        versionBefore: before.version,
+        versionAfter: updated.version,
+        editedBy,
+      });
+    }
+
     await refreshSyncKey("dorms");
+    return updated ?? (await getDormById(id));
   }
+
+  return getDormById(id);
 }
 
 // ── Counts (for dashboard) ──
