@@ -480,8 +480,8 @@ export async function checkLocalCollegeRoom(id: number) {
       return false;
     }
 
-    const buildingSyncStatus = await localCollegeSyncStatus(id);
-    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+    const collegeSyncStatus = await localCollegeSyncStatus(id);
+    if (!collegeSyncStatus || !collegeSyncStatus.roomsFetched) return false;
 
     return true;
   } catch (e) {
@@ -611,8 +611,8 @@ export async function checkLocalDivisionRoom(id: number) {
       return false;
     }
 
-    const buildingSyncStatus = await localDivisionSyncStatus(id);
-    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+    const divisionSyncStatus = await localDivisionSyncStatus(id);
+    if (!divisionSyncStatus || !divisionSyncStatus.roomsFetched) return false;
 
     return true;
   } catch (e) {
