@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
   import { fade } from "svelte/transition";
-  import { X, Building2, Loader, RotateCcw, Pencil, Save, Undo2 } from "@lucide/svelte";
-  import { building3DStore, adminAuthStore, toastStore } from "../../lib/store.svelte";
+  import { X, Building2, Loader, RotateCcw, Pencil } from "@lucide/svelte";
+  import { building3DStore, adminAuthStore } from "../../lib/store.svelte";
   import { getAppData } from "../../lib/context";
   import type { RoomData } from "../../lib/types";
   import { getBuildingRooms } from "../../lib/local/data/utils";
@@ -35,6 +35,14 @@
   const FLOOR_SLAB_COLOR = 0xf5efe6;
   const FLOOR_SLAB_OPACITY = 0.75;
 
+  type RoomPositionPatchResponse = {
+    success?: boolean;
+    room?: RoomData | null;
+    latest?: RoomData | null;
+    error?: string;
+  };
+  type RoomPositionDraft = { floor: number; x: number; y: number };
+
   let canvasContainer: HTMLDivElement | null = $state(null);
   let labelContainer: HTMLDivElement | null = $state(null);
 
@@ -48,11 +56,16 @@
 
   // Editor state
   let editMode = $state(false);
-  let savedOverrides = $state<Map<string, { floor: number; x: number; y: number }>>(
-    new Map(),
-  );
-  let dirty = $state<Map<string, { floor: number; x: number; y: number }>>(new Map());
-  let saving = $state(false);
+  let savedOverrides = $state<Map<string, RoomPositionDraft>>(new Map());
+  let dirty = $state<Map<string, RoomPositionDraft>>(new Map());
+  let savingRoomCodes = $state<Set<string>>(new Set());
+  let savedRoomCodes = $state<Set<string>>(new Set());
+  let failedRoomCodes = $state<Set<string>>(new Set());
+  let saving = $derived(savingRoomCodes.size > 0);
+  let editorStatus = $state<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
 
   // Three.js objects (not reactive — just refs we hand off to render loop / cleanup).
   let scene: any = null;
@@ -104,7 +117,9 @@
 
   const visibleRooms = $derived.by(() => {
     if (selectedFloor === "all") return placements;
-    return placements.filter((p) => p.floor === selectedFloor);
+    return placements.filter(
+      (p) => (dirty.get(p.code)?.floor ?? p.floor) === selectedFloor,
+    );
   });
 
   function close() {
@@ -150,9 +165,14 @@
       if (savedRes && savedRes.ok) {
         try {
           const data = (await savedRes.json()) as {
-            positions?: Array<{ roomCode: string; floor: number; x: number; y: number }>;
+            positions?: Array<{
+              roomCode: string;
+              floor: number;
+              x: number;
+              y: number;
+            }>;
           };
-          const map = new Map<string, { floor: number; x: number; y: number }>();
+          const map = new Map<string, RoomPositionDraft>();
           for (const p of data.positions ?? []) {
             map.set(p.roomCode, { floor: p.floor, x: p.x, y: p.y });
           }
@@ -185,9 +205,7 @@
         ? `OSM has \`building:levels=${footprint.levels}\`.`
         : footprint.heightMeters
           ? `Floor count estimated from OSM height (~${footprint.heightMeters.toFixed(0)} m).`
-          : inferred
-            ? `Floor count inferred from room codes (max ${inferred}).`
-            : "Floor count is a default guess (3); OSM has no levels or height tag.";
+          : null;
 
       // === Scene setup ===
       scene = new THREE.Scene();
@@ -443,16 +461,16 @@
           // so flip the sign on the way in.
           y: -e.object.position.z,
         };
-        const prev = savedOverrides.get(dragCode);
-        const unchanged =
-          prev &&
-          prev.floor === next.floor &&
-          Math.abs(prev.x - next.x) < 1e-4 &&
-          Math.abs(prev.y - next.y) < 1e-4;
-        if (!unchanged) {
-          const nextDirty = new Map(dirty);
-          nextDirty.set(dragCode, next);
-          dirty = nextDirty;
+        const previous = placementForRoom(dragCode);
+        if (!previous) {
+          dragCode = null;
+          dragFloor = null;
+          return;
+        }
+        if (samePosition(previous, next)) {
+          setPendingPosition(dragCode, null);
+        } else {
+          void autosaveRoomPosition(dragCode, next, previous);
         }
         dragCode = null;
         dragFloor = null;
@@ -469,7 +487,7 @@
           y: -((e.clientY - rect.top) / rect.height) * 2 + 1,
         };
       };
-      onClickBound = (e: MouseEvent) => {
+      onClickBound = () => {
         if (!pointerNDC || !raycaster || !camera || !scene) return;
         pointer.set(pointerNDC.x, pointerNDC.y);
         raycaster.setFromCamera(pointer, camera);
@@ -545,9 +563,11 @@
           raycaster.setFromCamera(pointer, camera);
           const meshes = roomMeshes.map((rm) => rm.mesh);
           const hits = raycaster.intersectObjects(meshes, false);
-          hoveredRoomCode = hits.length > 0
-            ? ((hits[0]!.object.userData.roomCode as string | undefined) ?? null)
-            : null;
+          hoveredRoomCode =
+            hits.length > 0
+              ? ((hits[0]!.object.userData.roomCode as string | undefined) ??
+                null)
+              : null;
         }
         renderer.render(scene, camera);
         labelRenderer.render(scene, camera);
@@ -613,7 +633,9 @@
                 ? 0x059669
                 : ROOM_EDIT_COLOR
               : rm.baseColor;
-        const mat = rm.mesh.material as { color: { setHex: (hex: number) => void } };
+        const mat = rm.mesh.material as {
+          color: { setHex: (hex: number) => void };
+        };
         mat.color.setHex(targetColor);
         const scale = isActive ? 1.4 : isHover ? 1.15 : 1;
         rm.mesh.scale.setScalar(scale);
@@ -623,7 +645,7 @@
 
   // Toggle DragControls when entering / leaving edit mode.
   $effect(() => {
-    const enabled = editMode;
+    const enabled = editMode && !saving;
     untrack(() => {
       if (dragControls) dragControls.enabled = enabled;
       if (renderer?.domElement) {
@@ -632,101 +654,242 @@
     });
   });
 
-  /**
-   * Move a room to a different floor (editor-only). Updates the mesh's
-   * world Y so it sits on the new floor's slab, then marks the change dirty
-   * with the room's *current* X/Z so a Save persists both moves at once.
-   */
-  function changeRoomFloor(code: string, nextFloor: number) {
-    if (!editMode) return;
-    const f = Math.max(1, Math.min(totalFloors, Math.floor(nextFloor)));
+  function samePosition(a: RoomPositionDraft, b: RoomPositionDraft) {
+    return (
+      a.floor === b.floor &&
+      Math.abs(a.x - b.x) < 1e-4 &&
+      Math.abs(a.y - b.y) < 1e-4
+    );
+  }
+
+  function placementForRoom(code: string): RoomPositionDraft | null {
+    const p = placements.find((pl) => pl.code === code);
+    return p ? { floor: p.floor, x: p.x, y: p.y } : null;
+  }
+
+  function applyRoomPosition(code: string, position: RoomPositionDraft) {
     const target = roomMeshes.find((rm) => rm.placement.code === code);
     if (!target) return;
-    target.mesh.position.y = (f - 1) * FLOOR_HEIGHT + 0.95;
-    target.mesh.userData.floor = f;
+    target.mesh.position.set(
+      position.x,
+      (position.floor - 1) * FLOOR_HEIGHT + 0.95,
+      -position.y,
+    );
+    target.mesh.userData.floor = position.floor;
+  }
+
+  function keepActiveRoomVisible(code: string, position: RoomPositionDraft) {
+    if (
+      activeRoomCode === code &&
+      selectedFloor !== "all" &&
+      selectedFloor !== position.floor
+    ) {
+      selectedFloor = position.floor;
+    }
+  }
+
+  function setRoomSavingState(
+    code: string,
+    state: "saving" | "saved" | "failed" | null,
+  ) {
+    const nextSaving = new Set(savingRoomCodes);
+    const nextSaved = new Set(savedRoomCodes);
+    const nextFailed = new Set(failedRoomCodes);
+
+    nextSaving.delete(code);
+    nextSaved.delete(code);
+    nextFailed.delete(code);
+
+    if (state === "saving") nextSaving.add(code);
+    if (state === "saved") nextSaved.add(code);
+    if (state === "failed") nextFailed.add(code);
+
+    savingRoomCodes = nextSaving;
+    savedRoomCodes = nextSaved;
+    failedRoomCodes = nextFailed;
+
+    if (state === "saved") {
+      setTimeout(() => {
+        const current = new Set(savedRoomCodes);
+        current.delete(code);
+        savedRoomCodes = current;
+      }, 1800);
+    }
+  }
+
+  function setPendingPosition(
+    code: string,
+    position: RoomPositionDraft | null,
+  ) {
+    const nextDirty = new Map(dirty);
+    if (position) {
+      nextDirty.set(code, position);
+    } else {
+      nextDirty.delete(code);
+    }
+    dirty = nextDirty;
+  }
+
+  /**
+   * Move a room to a different floor (editor-only). The change is autosaved
+   * through the versioned room admin endpoint, matching map pin editing.
+   */
+  function changeRoomFloor(code: string, nextFloor: number) {
+    if (!editMode || savingRoomCodes.has(code)) return;
+    const f = Math.max(1, Math.min(totalFloors, Math.floor(nextFloor)));
+    const previous = placementForRoom(code);
+    if (!previous) return;
+    const target = roomMeshes.find((rm) => rm.placement.code === code);
+    if (!target) return;
     const next = {
       floor: f,
       x: target.mesh.position.x,
       // World Z grows southward; convert back to local-north meters.
       y: -target.mesh.position.z,
     };
-    const prev = savedOverrides.get(code);
-    const unchanged =
-      prev &&
-      prev.floor === next.floor &&
-      Math.abs(prev.x - next.x) < 1e-4 &&
-      Math.abs(prev.y - next.y) < 1e-4;
-    const nextDirty = new Map(dirty);
-    if (unchanged) {
-      nextDirty.delete(code);
-    } else {
-      nextDirty.set(code, next);
-    }
-    dirty = nextDirty;
+    if (samePosition(previous, next)) return;
+    applyRoomPosition(code, next);
+    void autosaveRoomPosition(code, next, previous);
     // If the user is filtering to a single floor, follow the room.
     if (selectedFloor !== "all") selectedFloor = f;
   }
 
-  function discardChanges() {
-    // Snap meshes back to their saved (or seeded) positions by re-reading
-    // `placements` and writing positions onto the matching meshes.
-    const target = new Map<string, RoomPlacement>();
-    for (const p of placements) target.set(p.code, p);
-    for (const rm of roomMeshes) {
-      const p = target.get(rm.placement.code);
-      if (!p) continue;
-      rm.mesh.position.set(
-        p.x,
-        (p.floor - 1) * FLOOR_HEIGHT + 0.95,
-        -p.y,
-      );
-    }
-    dirty = new Map();
+  function replaceBuildingRoom(room: RoomData) {
+    buildingRooms = buildingRooms.map((candidate) =>
+      candidate.id === room.id ? room : candidate,
+    );
   }
 
-  async function saveChanges() {
-    if (dirty.size === 0) return;
-    saving = true;
+  async function refreshSavedPositionsFromServer() {
+    const res = await fetch(
+      `/api/positions?building=${encodeURIComponent(name)}`,
+      {
+        credentials: "same-origin",
+      },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      positions?: Array<{
+        roomCode: string;
+        floor: number;
+        x: number;
+        y: number;
+      }>;
+    };
+    const map = new Map<string, RoomPositionDraft>();
+    for (const p of data.positions ?? []) {
+      map.set(p.roomCode, { floor: p.floor, x: p.x, y: p.y });
+    }
+    savedOverrides = map;
+    return map;
+  }
+
+  async function autosaveRoomPosition(
+    roomCode: string,
+    next: RoomPositionDraft,
+    previous: RoomPositionDraft,
+  ) {
+    const room = buildingRooms.find((candidate) => candidate.code === roomCode);
+    if (!room) return;
+
+    setPendingPosition(roomCode, next);
+    setRoomSavingState(roomCode, "saving");
+    editorStatus = {
+      type: "info",
+      message: `Saving ${roomCode}...`,
+    };
+
     try {
-      const payload = {
-        positions: Array.from(dirty.entries()).map(([roomCode, pos]) => ({
-          roomCode,
-          floor: pos.floor,
-          x: pos.x,
-          y: pos.y,
-        })),
-      };
-      const res = await fetch(
-        `/api/positions?building=${encodeURIComponent(name)}`,
-        {
-          method: "PUT",
-          headers: { "content-type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify(payload),
-        },
-      );
+      const res = await fetch(`/api/admin/rooms/${room.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          version: room.version,
+          position: {
+            floor: next.floor,
+            posX: String(next.x),
+            posY: String(next.y),
+          },
+        }),
+      });
+      const data = (await res
+        .json()
+        .catch(() => ({}))) as RoomPositionPatchResponse;
+
       if (res.status === 401) {
-        toastStore.show("Session expired. Please log in again.", "error");
+        applyRoomPosition(roomCode, previous);
+        keepActiveRoomVisible(roomCode, previous);
+        setPendingPosition(roomCode, null);
+        setRoomSavingState(roomCode, "failed");
+        editorStatus = {
+          type: "error",
+          message: "Session expired. Please log in again.",
+        };
         adminAuthStore.isAdmin = false;
         return;
       }
+
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        toastStore.show(data.error ?? "Failed to save positions", "error");
+        if (res.status === 409 && data.latest) {
+          replaceBuildingRoom(data.latest);
+          const latestPositions = await refreshSavedPositionsFromServer().catch(
+            () => null,
+          );
+          const restoredPosition = latestPositions?.get(roomCode) ?? previous;
+          applyRoomPosition(roomCode, restoredPosition);
+          keepActiveRoomVisible(roomCode, restoredPosition);
+          setPendingPosition(roomCode, null);
+          setRoomSavingState(roomCode, "failed");
+          editorStatus = {
+            type: "error",
+            message: `${roomCode} was not saved because the server has newer data.`,
+          };
+          return;
+        }
+
+        applyRoomPosition(roomCode, previous);
+        keepActiveRoomVisible(roomCode, previous);
+        setPendingPosition(roomCode, null);
+        setRoomSavingState(roomCode, "failed");
+        editorStatus = {
+          type: "error",
+          message: `${roomCode} failed to save: ${data.error ?? `Save failed (${res.status})`}`,
+        };
         return;
       }
-      // Promote dirty changes into the saved overrides map.
-      const nextSaved = new Map(savedOverrides);
-      for (const [code, pos] of dirty.entries()) {
-        nextSaved.set(code, pos);
+
+      if (!data.room) {
+        applyRoomPosition(roomCode, previous);
+        keepActiveRoomVisible(roomCode, previous);
+        setPendingPosition(roomCode, null);
+        setRoomSavingState(roomCode, "failed");
+        editorStatus = {
+          type: "error",
+          message: `${roomCode} failed to save.`,
+        };
+        return;
       }
+
+      replaceBuildingRoom(data.room);
+      const nextSaved = new Map(savedOverrides);
+      nextSaved.set(roomCode, next);
       savedOverrides = nextSaved;
-      dirty = new Map();
-      toastStore.show(`Saved ${payload.positions.length} room positions.`, "success");
+      setPendingPosition(roomCode, null);
+      setRoomSavingState(roomCode, "saved");
+      editorStatus = {
+        type: "success",
+        message: `${roomCode} saved.`,
+      };
     } catch {
-      toastStore.show("Network error while saving positions", "error");
-    } finally {
-      saving = false;
+      applyRoomPosition(roomCode, previous);
+      keepActiveRoomVisible(roomCode, previous);
+      setPendingPosition(roomCode, null);
+      setRoomSavingState(roomCode, "failed");
+      editorStatus = {
+        type: "error",
+        message: `Network error while saving ${roomCode}.`,
+      };
     }
   }
 
@@ -791,8 +954,7 @@
         <div>
           <div class="viewer-name">{name}</div>
           <div class="viewer-subtitle">
-            3D model fabricated from OpenStreetMap footprint &middot; mock room
-            positions
+            3D model from OpenStreetMap footprint
           </div>
         </div>
       </div>
@@ -824,23 +986,50 @@
             <span class="rooms-count">{visibleRooms.length}</span>
           </div>
           <ul class="room-list">
-            {#each visibleRooms as p (p.code + p.floor)}
+            {#each visibleRooms as p (p.code)}
+              {@const pending = dirty.get(p.code)}
+              {@const isSavingRoom = savingRoomCodes.has(p.code)}
+              {@const isSavedRoom = savedRoomCodes.has(p.code)}
+              {@const isFailedRoom = failedRoomCodes.has(p.code)}
+              {@const hasRoomStatus =
+                isSavingRoom || isSavedRoom || isFailedRoom}
               <li>
                 <button
                   class="room-item"
                   class:active={activeRoomCode === p.code}
+                  class:dirty={Boolean(pending)}
+                  class:saving={isSavingRoom}
+                  class:failed={isFailedRoom}
                   onmouseenter={() => (hoveredRoomCode = p.code)}
                   onmouseleave={() => {
                     if (hoveredRoomCode === p.code) hoveredRoomCode = null;
                   }}
                   onclick={() => {
-                    activeRoomCode =
-                      activeRoomCode === p.code ? null : p.code;
-                    if (activeRoomCode) selectedFloor = p.floor;
+                    activeRoomCode = activeRoomCode === p.code ? null : p.code;
+                    if (activeRoomCode)
+                      selectedFloor = pending?.floor ?? p.floor;
                   }}
                 >
                   <span class="room-code">{p.code}</span>
-                  <span class="room-floor">F{p.floor}</span>
+                  <span class="room-meta">
+                    {#if hasRoomStatus}
+                      <span
+                        class="room-save-state"
+                        class:saving={isSavingRoom}
+                        class:saved={isSavedRoom}
+                        class:failed={isFailedRoom}
+                      >
+                        {isSavingRoom
+                          ? "Saving"
+                          : isFailedRoom
+                            ? "Failed"
+                            : "Saved"}
+                      </span>
+                    {/if}
+                    <span class="room-floor" class:dirty={Boolean(pending)}
+                      >F{pending?.floor ?? p.floor}</span
+                    >
+                  </span>
                 </button>
               </li>
             {/each}
@@ -854,50 +1043,43 @@
           <p class="viewer-note">{footprintNote}</p>
         {/if}
 
+        <button class="viewer-reset" onclick={resetCamera}>
+          <RotateCcw size={14} /> Reset camera
+        </button>
+
         {#if adminAuthStore.isAdmin}
           <section class="viewer-section editor-section">
             <h3>Editor</h3>
             <div class="editor-controls">
-              <label class="edit-toggle">
-                <input
-                  type="checkbox"
-                  checked={editMode}
-                  onchange={(e) => (editMode = e.currentTarget.checked)}
-                />
-                <span class="edit-toggle-label">
-                  <Pencil size={12} /> Edit positions
+              <button
+                class="edit-toggle"
+                class:active={editMode}
+                type="button"
+                aria-pressed={editMode}
+                onclick={() => (editMode = !editMode)}
+              >
+                <span class="edit-toggle-icon">
+                  <Pencil size={12} />
                 </span>
-              </label>
+                <span>{editMode ? "Editing positions" : "Edit positions"}</span>
+              </button>
               {#if editMode}
                 <p class="editor-hint">
-                  Drag any room cylinder. Y is locked to its floor. Click Save
-                  to persist.
+                  Drag a room cylinder or change its floor. Changes autosave to
+                  Neon with a version check.
                 </p>
-                <div class="editor-actions">
-                  <button
-                    class="editor-btn primary"
-                    onclick={saveChanges}
-                    disabled={saving || dirty.size === 0}
-                  >
-                    <Save size={14} />
-                    {saving ? "Saving…" : `Save${dirty.size ? ` (${dirty.size})` : ""}`}
-                  </button>
-                  <button
-                    class="editor-btn"
-                    onclick={discardChanges}
-                    disabled={saving || dirty.size === 0}
-                  >
-                    <Undo2 size={14} /> Discard
-                  </button>
-                </div>
+                <p
+                  class="editor-status"
+                  class:error={editorStatus?.type === "error"}
+                  class:success={editorStatus?.type === "success"}
+                >
+                  {editorStatus?.message ??
+                    "Ready. Each move saves automatically."}
+                </p>
               {/if}
             </div>
           </section>
         {/if}
-
-        <button class="viewer-reset" onclick={resetCamera}>
-          <RotateCcw size={14} /> Reset camera
-        </button>
       </aside>
 
       <div class="viewer-stage">
@@ -915,9 +1097,17 @@
 
         <div class="viewer-attribution">
           ©
-          <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noreferrer">MapTiler</a>
+          <a
+            href="https://www.maptiler.com/copyright/"
+            target="_blank"
+            rel="noreferrer">MapTiler</a
+          >
           ©
-          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer">OpenStreetMap contributors</a
+          >
         </div>
 
         {#if activeRoomMeta}
@@ -941,7 +1131,9 @@
                   </select>
                 </label>
               {:else}
-                <span class="room-info-floor">Floor {activeRoomFloor ?? "?"}</span>
+                <span class="room-info-floor"
+                  >Floor {activeRoomFloor ?? "?"}</span
+                >
               {/if}
             </div>
             {#if activeRoomMeta.collegeName}
@@ -956,10 +1148,6 @@
                 <span>{activeRoomMeta.divisionName}</span>
               </div>
             {/if}
-            <p class="room-info-mock">
-              Position is a mock placement. Real indoor coordinates are not
-              published in OpenStreetMap for this building.
-            </p>
           </div>
         {/if}
       </div>
@@ -1038,6 +1226,7 @@
     border-right: 1px solid hsl(0, 0%, 92%);
     padding: 0.875rem;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -1063,7 +1252,9 @@
     font-size: 0.75rem;
     cursor: pointer;
     color: hsl(0, 0%, 25%);
-    transition: background-color 0.15s, border-color 0.15s;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s;
   }
   .floor-pill:hover {
     background-color: hsl(0, 0%, 96%);
@@ -1092,9 +1283,12 @@
     gap: 0.25rem;
     max-height: 16rem;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   .room-item {
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1113,10 +1307,32 @@
     background-color: hsl(45, 92%, 95%);
     border-color: hsl(45, 92%, 60%);
   }
+  .room-item.dirty {
+    background-color: hsl(160, 84%, 96%);
+    border-color: hsl(160, 70%, 58%);
+  }
+  .room-item.saving {
+    background-color: hsl(217, 91%, 97%);
+    border-color: hsl(217, 91%, 72%);
+  }
+  .room-item.failed {
+    background-color: hsl(5, 90%, 97%);
+    border-color: hsl(5, 60%, 72%);
+  }
   .room-code {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 0.8125rem;
     font-weight: 600;
     color: hsl(0, 0%, 15%);
+  }
+  .room-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 0 0 auto;
   }
   .room-floor {
     font-size: 0.6875rem;
@@ -1124,6 +1340,25 @@
     background-color: hsl(0, 0%, 95%);
     padding: 0.0625rem 0.375rem;
     border-radius: 999px;
+  }
+  .room-floor.dirty {
+    color: hsl(160, 84%, 22%);
+    background-color: hsl(160, 84%, 90%);
+  }
+  .room-save-state {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .room-save-state.saving {
+    color: hsl(217, 72%, 36%);
+  }
+  .room-save-state.saved {
+    color: hsl(145, 55%, 28%);
+  }
+  .room-save-state.failed {
+    color: hsl(5, 60%, 34%);
   }
   .room-empty {
     font-size: 0.8125rem;
@@ -1158,8 +1393,17 @@
   }
 
   .editor-section {
-    border-top: 1px dashed hsl(0, 0%, 88%);
-    padding-top: 0.75rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    margin-top: auto;
+    padding: 0.75rem;
+    border: 1px solid hsl(0, 0%, 88%);
+    border-radius: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(6px);
   }
   .editor-controls {
     display: flex;
@@ -1169,18 +1413,44 @@
   .edit-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 0.375rem;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid hsl(0, 0%, 86%);
+    border-radius: 0.5rem;
+    background-color: white;
+    padding: 0.45rem 0.625rem;
     cursor: pointer;
     font-size: 0.8125rem;
+    font-weight: 700;
     color: hsl(0, 0%, 20%);
+    transition:
+      background-color 0.15s,
+      border-color 0.15s,
+      color 0.15s;
   }
-  .edit-toggle input {
-    accent-color: hsl(217, 91%, 50%);
+  .edit-toggle:hover {
+    background-color: hsl(217, 91%, 97%);
+    border-color: hsl(217, 91%, 82%);
   }
-  .edit-toggle-label {
+  .edit-toggle.active {
+    background-color: hsl(217, 91%, 96%);
+    border-color: hsl(217, 91%, 62%);
+    color: hsl(217, 91%, 28%);
+  }
+  .edit-toggle-icon {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background-color: hsl(0, 0%, 94%);
+  }
+  .edit-toggle.active .edit-toggle-icon {
+    background-color: hsl(217, 91%, 88%);
   }
   .editor-hint {
     margin: 0;
@@ -1192,36 +1462,18 @@
     padding: 0.4rem 0.5rem;
     border-radius: 0.5rem;
   }
-  .editor-actions {
-    display: flex;
-    gap: 0.375rem;
+  .editor-status {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    color: hsl(217, 72%, 30%);
   }
-  .editor-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.75rem;
-    padding: 0.4rem 0.625rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    background: white;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    color: hsl(0, 0%, 20%);
+  .editor-status.success {
+    color: hsl(145, 55%, 28%);
   }
-  .editor-btn:hover:not(:disabled) {
-    background-color: hsl(0, 0%, 96%);
-  }
-  .editor-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .editor-btn.primary {
-    background-color: hsl(160, 84%, 30%);
-    color: white;
-    border-color: hsl(160, 84%, 30%);
-  }
-  .editor-btn.primary:hover:not(:disabled) {
-    background-color: hsl(160, 84%, 26%);
+  .editor-status.error {
+    color: hsl(5, 60%, 34%);
+    font-weight: 600;
   }
 
   .viewer-stage {
@@ -1366,13 +1618,6 @@
     color: hsl(0, 0%, 15%);
     text-align: right;
   }
-  .room-info-mock {
-    margin-top: 0.5rem;
-    font-size: 0.6875rem;
-    color: hsl(0, 0%, 50%);
-    line-height: 1.4;
-  }
-
   @media screen and (max-width: 48rem) {
     .viewer-overlay {
       padding: 0;

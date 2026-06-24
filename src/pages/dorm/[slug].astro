@@ -19,7 +19,20 @@ export async function getStaticPaths() {
   }));
 }
 
-const { dormId } = Astro.props;
+function idFromRouteSlug(slug: string | undefined) {
+  const match = slug?.match(/-(\d+)$/);
+  if (!match) return undefined;
+  const id = Number(match[1]);
+  return Number.isInteger(id) ? id : undefined;
+}
+
+const routeSlug = Astro.params.slug;
+const dormId = Astro.props.dormId ?? idFromRouteSlug(routeSlug);
+
+if (!dormId) {
+  throw new Error(`Dorm not found for slug: ${routeSlug}`);
+}
+
 const appData = await getDormPageData(dormId);
 
 if (appData === null) {
@@ -31,9 +44,7 @@ const canonicalPath = `/dorm/${getDormRouteSlug(dorm)}/`;
 const title = `${dorm.dormName} | Dorm at UPLB | Room TBA`;
 const description = [
   `Find ${dorm.dormName} at UPLB on Room TBA.`,
-  dorm.isUpManaged
-    ? "UP-managed housing listing."
-    : "Private housing listing.",
+  dorm.isUpManaged ? "UP-managed housing listing." : "Private housing listing.",
   dorm.priceRange ? `Price range: ${dorm.priceRange}.` : null,
 ]
   .filter((value): value is string => Boolean(value))
