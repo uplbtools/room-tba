@@ -48,6 +48,8 @@ type RoomData = {
   divisionId: number | null;
   collegeName: string | null;
   divisionName: string | null;
+  version: number;
+  updatedAt: string;
 };
 
 type BuildingData = {
