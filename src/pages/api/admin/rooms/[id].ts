@@ -6,7 +6,7 @@ import {
 import {
   EditConflictError,
   updateRoom,
-  upsertRoomPosition,
+  updateRoomPosition,
 } from "../../../../lib/services/admin-service";
 
 export const prerender = false;
@@ -30,6 +30,18 @@ function json(data: unknown, status = 200) {
 
 function invalidRelationId(value: unknown) {
   return value !== undefined && value !== null && !Number.isInteger(value);
+}
+
+function invalidPosition(value: unknown) {
+  if (value === undefined) return false;
+  if (!value || typeof value !== "object") return true;
+  const position = value as NonNullable<RoomPatchBody["position"]>;
+  return (
+    !Number.isInteger(position.floor) ||
+    position.floor < 1 ||
+    !Number.isFinite(Number(position.posX)) ||
+    !Number.isFinite(Number(position.posY))
+  );
 }
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
@@ -62,6 +74,12 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
   if (invalidRelationId(body.divisionId)) {
     return json({ error: "Division must be a valid selection" }, 400);
   }
+  if (invalidPosition(body.position)) {
+    return json(
+      { error: "Position must include a valid floor, posX, and posY" },
+      400,
+    );
+  }
 
   const expectedVersion = Number.isInteger(body.version)
     ? body.version
@@ -76,16 +94,33 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     if (body.buildingId !== undefined) updates.buildingId = body.buildingId;
     if (body.collegeId !== undefined) updates.collegeId = body.collegeId;
     if (body.divisionId !== undefined) updates.divisionId = body.divisionId;
+    const hasRoomFieldUpdates = Object.keys(updates).length > 0;
+
+    if (body.position && hasRoomFieldUpdates) {
+      return json(
+        {
+          error:
+            "Room field updates and position updates must be saved separately.",
+        },
+        400,
+      );
+    }
+
+    if (body.position && !hasRoomFieldUpdates) {
+      const room = await updateRoomPosition(
+        id,
+        {
+          floor: body.position.floor,
+          posX: String(body.position.posX),
+          posY: String(body.position.posY),
+        },
+        expectedVersion,
+      );
+
+      return json({ success: true, room });
+    }
 
     const room = await updateRoom(id, updates, expectedVersion);
-
-    if (body.position) {
-      await upsertRoomPosition(id, {
-        floor: body.position.floor,
-        posX: body.position.posX,
-        posY: body.position.posY,
-      });
-    }
 
     return json({ success: true, room });
   } catch (err) {

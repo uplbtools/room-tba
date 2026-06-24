@@ -19,14 +19,26 @@ export async function getStaticPaths() {
   }));
 }
 
-const { collegeName } = Astro.props;
+const routeSlug = Astro.params.slug;
+const collegeName =
+  Astro.props.collegeName ??
+  (routeSlug
+    ? (await getAllColleges()).find(
+        (candidate) => getCollegeSlug(candidate) === routeSlug,
+      )?.collegeName
+    : undefined);
+
+if (!collegeName) {
+  throw new Error(`College not found for slug: ${routeSlug}`);
+}
+
 const appData = await getCollegePageData(collegeName);
 
 if (appData === null) {
   throw new Error(`College not found for slug: ${collegeName}`);
 }
 
-const {college, roomCount} = appData;
+const { college, roomCount } = appData;
 
 const canonicalPath = `/college/${getCollegeSlug(college)}/`;
 const title = `${college.collegeName} | College at UPLB | Room TBA`;

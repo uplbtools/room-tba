@@ -21,10 +21,79 @@ const OVERPASS_ENDPOINTS = [
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
+const FOOTPRINT_CACHE_PREFIX = "room-tba:osm-building-footprint:";
+const FOOTPRINT_CACHE_VERSION = 1;
+const FOOTPRINT_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+
 const cache = new Map<string, Promise<OsmBuildingFootprint | null>>();
 
-function cacheKey(lat: number, lon: number): string {
-  return `${lat.toFixed(5)},${lon.toFixed(5)}`;
+type CachedFootprint = {
+  version: number;
+  cachedAt: number;
+  footprint: OsmBuildingFootprint;
+};
+
+function cacheKey(lat: number, lon: number, radius: number): string {
+  return `${lat.toFixed(5)},${lon.toFixed(5)},${Math.round(radius)}`;
+}
+
+function storageKey(key: string): string {
+  return `${FOOTPRINT_CACHE_PREFIX}${key}`;
+}
+
+function isFootprint(value: unknown): value is OsmBuildingFootprint {
+  const footprint = value as OsmBuildingFootprint;
+  return (
+    Array.isArray(footprint?.outline) &&
+    footprint.outline.length >= 4 &&
+    footprint.outline.every(
+      (point) =>
+        Array.isArray(point) &&
+        point.length === 2 &&
+        Number.isFinite(point[0]) &&
+        Number.isFinite(point[1]),
+    )
+  );
+}
+
+function readStoredFootprint(key: string): OsmBuildingFootprint | null {
+  if (typeof localStorage === "undefined") return null;
+
+  try {
+    const raw = localStorage.getItem(storageKey(key));
+    if (!raw) return null;
+
+    const cached = JSON.parse(raw) as CachedFootprint;
+    const expired = Date.now() - cached.cachedAt > FOOTPRINT_CACHE_TTL_MS;
+    if (
+      cached.version !== FOOTPRINT_CACHE_VERSION ||
+      expired ||
+      !isFootprint(cached.footprint)
+    ) {
+      localStorage.removeItem(storageKey(key));
+      return null;
+    }
+
+    return cached.footprint;
+  } catch {
+    localStorage.removeItem(storageKey(key));
+    return null;
+  }
+}
+
+function storeFootprint(key: string, footprint: OsmBuildingFootprint): void {
+  if (typeof localStorage === "undefined") return;
+
+  try {
+    const cached: CachedFootprint = {
+      version: FOOTPRINT_CACHE_VERSION,
+      cachedAt: Date.now(),
+      footprint,
+    };
+    localStorage.setItem(storageKey(key), JSON.stringify(cached));
+  } catch {
+    // Storage can be unavailable or full; the in-memory cache still helps.
+  }
 }
 
 type OverpassNode = { type: "node"; id: number; lat: number; lon: number };
@@ -46,8 +115,7 @@ function pointInRing(point: LngLat, ring: LngLat[]): boolean {
     const [xi, yi] = a;
     const [xj, yj] = b;
     const intersects =
-      yi > y !== yj > y &&
-      x < ((xj - xi) * (y - yi)) / (yj - yi + 1e-12) + xi;
+      yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi + 1e-12) + xi;
     if (intersects) inside = !inside;
   }
   return inside;
@@ -118,9 +186,16 @@ export async function fetchBuildingFootprint(
   lon: number,
   radius = 35,
 ): Promise<OsmBuildingFootprint | null> {
-  const key = cacheKey(lat, lon);
+  const key = cacheKey(lat, lon, radius);
   const existing = cache.get(key);
   if (existing) return existing;
+
+  const stored = readStoredFootprint(key);
+  if (stored) {
+    const promise = Promise.resolve(stored);
+    cache.set(key, promise);
+    return promise;
+  }
 
   const promise = (async () => {
     const query = `
@@ -133,9 +208,9 @@ export async function fetchBuildingFootprint(
       out skel qt;
     `;
 
-    const data = (await fetchOverpass(query)) as
-      | { elements?: OverpassElement[] }
-      | null;
+    const data = (await fetchOverpass(query)) as {
+      elements?: OverpassElement[];
+    } | null;
     if (!data?.elements?.length) return null;
 
     const nodes = new Map<number, OverpassNode>();
@@ -173,12 +248,15 @@ export async function fetchBuildingFootprint(
         return curD < bestD ? current : best;
       });
 
-    return {
+    const footprint = {
       outline: chosen.ring,
       levels: parseLevels(chosen.way.tags),
       heightMeters: parseHeight(chosen.way.tags),
       osmName: chosen.way.tags?.name ?? null,
     };
+
+    storeFootprint(key, footprint);
+    return footprint;
   })();
 
   cache.set(key, promise);

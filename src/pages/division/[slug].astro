@@ -19,13 +19,25 @@ export async function getStaticPaths() {
   }));
 }
 
-const { divisionName } = Astro.props;
+const routeSlug = Astro.params.slug;
+const divisionName =
+  Astro.props.divisionName ??
+  (routeSlug
+    ? (await getAllDivisions()).find(
+        (candidate) => getDivisionSlug(candidate) === routeSlug,
+      )?.divisionName
+    : undefined);
+
+if (!divisionName) {
+  throw new Error(`Division not found for slug: ${routeSlug}`);
+}
+
 const appData = await getDivisionPageData(divisionName);
 
 if (appData === null) {
   throw new Error(`Division not found for slug: ${divisionName}`);
 }
-const {division, roomCount} = appData;
+const { division, roomCount } = appData;
 
 const canonicalPath = `/division/${getDivisionSlug(division)}/`;
 const title = `${division.divisionName} | Division at UPLB | Room TBA`;
