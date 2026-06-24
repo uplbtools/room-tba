@@ -814,7 +814,7 @@
   });
 
   function handleMarkerClick(buildingName: string) {
-    if (isMapEditEnabled()) return;
+    if (isMapEditEnabled() && selectedEditKey !== null) return;
     if (buildingName === queryStore.inputValue) return;
     queryStore.updateQuery({
       category: "building",
@@ -825,7 +825,7 @@
   }
 
   function handleDormMarkerClick(dormName: string) {
-    if (isMapEditEnabled()) return;
+    if (isMapEditEnabled() && selectedEditKey !== null) return;
     if (dormName === queryStore.inputValue) return;
     queryStore.updateQuery({
       category: "dorm",
@@ -872,7 +872,7 @@
           <strong>Editing map</strong>
           <span>
             {editStatusMessage ??
-              `Drag pins to move them. ${undoShortcutLabel} undo, ${undoShortcutLabel.replace("Z", "Y")} redo.`}
+              `Click pins for details or drag to move. ${undoShortcutLabel} undo, ${undoShortcutLabel.replace("Z", "Y")} redo.`}
           </span>
         </div>
       </div>
