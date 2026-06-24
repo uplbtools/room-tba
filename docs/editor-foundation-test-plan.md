@@ -20,6 +20,17 @@ Use this checklist before merging the in-app editor foundation PR.
 - A successful save updates the inline editor toolbar status.
 - A failed save restores the pin to its previous location and shows the entity name in the error.
 
+## Mobile Editor QA
+
+- The app includes a mobile viewport with `initial-scale=1`.
+- The editor login modal fits on a narrow viewport without clipping.
+- Map controls are reachable and tappable on a narrow viewport.
+- The editor toolbar stays readable and does not cover the search/side panel.
+- Undo and Redo buttons remain large enough to tap comfortably.
+- Touch-dragging a pin repositions the pin without excessive accidental map panning.
+- Mobile users can identify draggable pins without relying on hover-only labels.
+- Failed save and rollback feedback remains readable on a narrow viewport.
+
 ## Undo And Redo
 
 - The Undo button restores the most recent saved pin move.
