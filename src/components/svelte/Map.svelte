@@ -480,6 +480,18 @@
   });
 
   $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+    mapStore.stopAutoRotate = () => {
+      stopRotation();
+      map.off("moveend", startRotation);
+    };
+    return () => {
+      mapStore.stopAutoRotate = null;
+    };
+  });
+
+  $effect(() => {
     if (mapStore.mapInstance && !directions) {
       const initDirections = () => {
         if (!directions && mapStore.mapInstance) {
