@@ -84,7 +84,7 @@ export const GET = (async ({ url }) => {
       2,
     ),
     {
-      headers: [["Access-Control-Allow-Origin", "http://localhost:4321"]],
+      headers: [["Access-Control-Allow-Origin", "*"]],
     },
   );
 }) satisfies APIRoute;
