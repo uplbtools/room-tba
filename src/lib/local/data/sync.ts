@@ -1,5 +1,6 @@
 import type {
   BuildingData,
+  ClassMapValue,
   CollegeData,
   DivisionData,
   DormData,
@@ -266,6 +267,51 @@ export async function syncDorms(
     }
   }
   updateSyncKeyFromLs("dorms", checker.newKey ?? "");
+}
+
+export async function syncClasses(
+  checker: TableSyncInfo,
+  remoteClasses: ClassMapValue[],
+) {
+  if (checker.valid) return;
+
+  const localDB = getDB();
+
+  await localDB.waitReady;
+  syncToastStore.startClassesSync(remoteClasses.length);
+  for (const c of remoteClasses) {
+    try {
+      await localDB.query(
+        `
+        INSERT INTO classes (id, course_code, section, type, schedule, room_id, course_title, term_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (id) DO UPDATE SET
+        id = EXCLUDED.id,
+        course_code = EXCLUDED.course_code,
+        section = EXCLUDED.section,
+        type = EXCLUDED.type,
+        schedule = EXCLUDED.schedule,
+        room_id = EXCLUDED.room_id,
+        course_title = EXCLUDED.course_title,
+        term_id = EXCLUDED.term_id;
+        `,
+        [
+          c.id,
+          c.courseCode,
+          c.section,
+          c.type,
+          `{${c.schedule ? c.schedule.map((s) => `'${s.replace(/'/g, "''")}'`).join(",") : ""}}`,
+          c.roomId,
+          c.courseTitle,
+          c.termId,
+        ],
+      );
+      syncToastStore.updateClassesSync();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  updateSyncKeyFromLs("classes", checker.newKey ?? "");
 }
 
 export async function resetBuildingsSyncStatus() {

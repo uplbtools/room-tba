@@ -161,7 +161,8 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
         c.section,
         c.type,
         c.schedule,
-        c.directions,
+        r.directions,
+        r.room_code AS "roomCode",
         c.course_title as "courseTitle",
         c.term_id as "termId",
         c.room_id as "roomId"

@@ -8,6 +8,7 @@
   import { queryStore } from "../../lib/store.svelte";
   import type {
     BuildingData,
+    ClassMapValue,
     CollegeData,
     DivisionData,
     DormData,
@@ -16,6 +17,7 @@
   import { onMount } from "svelte";
   import {
     getBuildings,
+    getClasses,
     getColleges,
     getDivisions,
     getDorms,
@@ -24,6 +26,7 @@
   import {
     localTableSyncCheck,
     syncBuildings,
+    syncClasses,
     syncColleges,
     syncDivisions,
     syncDorms,
@@ -37,6 +40,7 @@
   const metadata: MetadataProps = $props();
 
   let buildings: BuildingData[] | null = $state.raw(null);
+  let classes: ClassMapValue[] | null = $state.raw(null);
   let colleges: CollegeData[] | null = $state.raw(null);
   let directionCount: number | null = $state.raw(null);
   let divisions: DivisionData[] | null = $state.raw(null);
@@ -45,6 +49,7 @@
   let loaded: boolean = $state(false);
   const appData: AppContextData = $derived({
     buildings,
+    classes,
     colleges,
     directionCount,
     divisions,
@@ -72,6 +77,7 @@
     let data: DBData;
     const localDB = getDB();
     const buildingCheck = await localTableSyncCheck("buildings");
+    const classCheck = await localTableSyncCheck("classes");
     const collegeCheck = await localTableSyncCheck("colleges");
     const divisionCheck = await localTableSyncCheck("divisions");
     const dormCheck = await localTableSyncCheck("dorms");
@@ -81,6 +87,7 @@
       .then(async () => {
         data = {
           buildings: await getBuildings(buildingCheck),
+          classes: await getClasses(classCheck),
           colleges: await getColleges(collegeCheck),
           divisions: await getDivisions(divisionCheck),
           dorms: await getDorms(dormCheck),
@@ -89,6 +96,7 @@
       })
       .then(() => {
           buildings = data.buildings;
+          classes = data.classes;
           colleges = data.colleges;
           directionCount = data.directionCount;
           divisions = data.divisions;
@@ -100,6 +108,7 @@
             .then(() => syncColleges(collegeCheck, data.colleges ?? []))
             .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
             .then(() => syncDorms(dormCheck, data.dorms ?? []))
+            .then(() => syncClasses(classCheck, data.classes ?? []))
       });
   });
 

@@ -1,7 +1,8 @@
 import { createContext } from "svelte";
-import { BuildingData, CollegeData, DivisionData, DormData } from "./types";
+import { BuildingData, ClassMapValue, CollegeData, DivisionData, DormData } from "./types";
 export type AppContextData = {
   buildings: BuildingData[];
+  classes: ClassMapValue[];
   colleges: CollegeData[];
   divisions: DivisionData[];
   dorms: DormData[];
@@ -10,6 +11,7 @@ export type AppContextData = {
   loaded: true;
 } | {
   buildings:null;
+  classes:null;
   colleges:null;
   divisions:null;
   dorms:null;
@@ -17,6 +19,14 @@ export type AppContextData = {
   directionCount:null;
   loaded: false;
 }
-export type DBData = Omit<AppContextData, "loaded">
+export type DBData = {
+  buildings: BuildingData[];
+  classes: ClassMapValue[];
+  colleges: CollegeData[];
+  divisions: DivisionData[];
+  dorms: DormData[];
+  totalRooms: number;
+  directionCount: number;
+}
 
 export const [getAppData, setAppData] = createContext<() => AppContextData>();
