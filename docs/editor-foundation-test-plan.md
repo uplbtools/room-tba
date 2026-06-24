@@ -34,6 +34,18 @@ Use this checklist before merging the in-app editor foundation PR.
 - A room with an associated building shows a compact action that navigates back to that building result.
 - Browser `/admin` and `/admin/login` routes still redirect to `/?editor=login`.
 
+## 3D Room Position Editing
+
+- Non-admin users can open the 3D building viewer but do not see room position editor controls.
+- Reopening the same building after its first successful load uses the cached OSM footprint instead of waiting on a new Overpass request.
+- Admin users can enable 3D room position edit mode from the existing building viewer.
+- Dragging a room marker keeps it on its current floor and autosaves the new position.
+- Changing a selected room floor autosaves the new floor and keeps the floor filter understandable.
+- Autosaved room positions send the current room `version` for each edited room.
+- Successful 3D room position autosaves update the local room version, create an `editor_history` row with before/after position snapshots, and refresh the `rooms` sync key.
+- A stale room `version` returns a conflict, rolls the marker back to the latest known saved position, and shows that the room has newer server data instead of silently overwriting it.
+- Failed position autosaves roll the marker back to its previous local position and do not show a success message for the failed room.
+
 ## Mobile Editor QA
 
 - The app includes a mobile viewport with `initial-scale=1`.
