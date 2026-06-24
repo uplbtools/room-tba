@@ -50,7 +50,6 @@ export const GET = (async ({ url }) => {
 
   const id = parseInt(url.searchParams.get(searchField) as string);
   let data: null | RoomData[] = null;
-  console.log(url.searchParams.get(searchField), id);
   if (isNaN(id))
     return new Response("Error with your request", {
       status: 400,
