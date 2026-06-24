@@ -1,6 +1,8 @@
 const MAPTILER_KEY = "B6m4DQknxd9wZ70DnDV4";
 
 export const TERRAIN_SOURCE_ID = "makiling-terrain-dem";
+export const TERRAIN_HILLSHADE_LAYER_ID = "makiling-terrain-hillshade";
+export const TERRAIN_HILLSHADE_BEFORE_LAYER_ID = "road_area_pattern";
 export const TERRAIN_TILEJSON_URL = `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${MAPTILER_KEY}`;
 
 export const TERRAIN_EXAGGERATION_OPTIONS = [1, 1.5, 2] as const;

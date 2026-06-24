@@ -33,6 +33,8 @@
     MAKILING_TERRAIN_CAMERA,
     MAKILING_TERRAIN_MAX_BOUNDS,
     MAKILING_TERRAIN_SOURCE_BOUNDS,
+    TERRAIN_HILLSHADE_BEFORE_LAYER_ID,
+    TERRAIN_HILLSHADE_LAYER_ID,
     TERRAIN_SOURCE_ID,
     TERRAIN_TILE_FAILURE_MESSAGE,
     TERRAIN_TILEJSON_URL,
@@ -209,16 +211,50 @@
     );
   }
 
-  function ensureTerrainSource(map: mapGl.MapLibreMap) {
-    if (map.getSource(TERRAIN_SOURCE_ID)) return;
+  function ensureTerrainRendering(map: mapGl.MapLibreMap) {
+    if (!map.getSource(TERRAIN_SOURCE_ID)) {
+      map.addSource(TERRAIN_SOURCE_ID, {
+        type: "raster-dem",
+        url: TERRAIN_TILEJSON_URL,
+        bounds: MAKILING_TERRAIN_SOURCE_BOUNDS,
+        maxzoom: 14,
+        tileSize: 512,
+      });
+    }
 
-    map.addSource(TERRAIN_SOURCE_ID, {
-      type: "raster-dem",
-      url: TERRAIN_TILEJSON_URL,
-      bounds: MAKILING_TERRAIN_SOURCE_BOUNDS,
-      maxzoom: 14,
-      tileSize: 512,
-    });
+    if (!map.getLayer(TERRAIN_HILLSHADE_LAYER_ID)) {
+      map.addLayer(
+        {
+          id: TERRAIN_HILLSHADE_LAYER_ID,
+          type: "hillshade",
+          source: TERRAIN_SOURCE_ID,
+          layout: { visibility: "none" },
+          paint: {
+            "hillshade-accent-color": "rgba(112, 79, 40, 0.28)",
+            "hillshade-exaggeration": 0.85,
+            "hillshade-highlight-color": "rgba(255, 244, 214, 0.35)",
+            "hillshade-illumination-anchor": "viewport",
+            "hillshade-illumination-direction": 315,
+            "hillshade-shadow-color": "rgba(34, 25, 14, 0.55)",
+          },
+        },
+        map.getLayer(TERRAIN_HILLSHADE_BEFORE_LAYER_ID)
+          ? TERRAIN_HILLSHADE_BEFORE_LAYER_ID
+          : undefined,
+      );
+    }
+  }
+
+  function setTerrainHillshadeVisible(
+    map: mapGl.MapLibreMap,
+    visible: boolean,
+  ) {
+    if (!map.getLayer(TERRAIN_HILLSHADE_LAYER_ID)) return;
+    map.setLayoutProperty(
+      TERRAIN_HILLSHADE_LAYER_ID,
+      "visibility",
+      visible ? "visible" : "none",
+    );
   }
 
   function setBuildingExtrusionsVisible(
@@ -249,6 +285,7 @@
 
   function disableTerrain(map: mapGl.MapLibreMap) {
     map.setTerrain(null);
+    setTerrainHillshadeVisible(map, false);
     setBuildingExtrusionsVisible(map, true);
     map.setMaxBounds(CAMPUS_MAX_BOUNDS);
   }
@@ -731,8 +768,9 @@
 
       try {
         terrainStore.markLoading();
-        ensureTerrainSource(map);
+        ensureTerrainRendering(map);
         map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration });
+        setTerrainHillshadeVisible(map, true);
         setBuildingExtrusionsVisible(map, false);
         map.setMaxBounds(MAKILING_TERRAIN_MAX_BOUNDS);
         if (!terrainModeWasEnabled) {
