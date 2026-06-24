@@ -119,7 +119,6 @@ export async function syncBuildings(
 
   await localDB.waitReady;
   syncToastStore.startBuildingsSync(remoteBuildings.length);
-  await localDB.exec(`DELETE FROM rooms`);
   for (const b of remoteBuildings) {
     try {
       await localDB.query(
@@ -154,7 +153,6 @@ export async function syncColleges(
 
   await localDB.waitReady;
   syncToastStore.startCollegesSync(remoteColleges.length);
-  await localDB.exec(`DELETE FROM rooms`);
   for (const college of remoteColleges) {
     try {
       await localDB.query(
@@ -187,7 +185,6 @@ export async function syncDivisions(
 
   await localDB.waitReady;
   syncToastStore.startDivisionsSync(remoteDivisions.length);
-  await localDB.exec(`DELETE FROM rooms`);
   for (const division of remoteDivisions) {
     try {
       await localDB.query(
