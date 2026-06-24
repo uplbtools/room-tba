@@ -1,0 +1,131 @@
+import type { APIRoute } from "astro";
+import {
+  ADMIN_COOKIE_NAME,
+  verifySessionToken,
+} from "../../../../lib/admin/auth";
+import {
+  EditConflictError,
+  updateDorm,
+} from "../../../../lib/services/admin-service";
+
+export const prerender = false;
+
+type DormPatchBody = {
+  dormName?: string;
+  shortName?: string;
+  lat?: number | null;
+  lon?: number | null;
+  gender?: string;
+  capacity?: number | null;
+  managingOffice?: string | null;
+  contactEmail?: string | null;
+  amenities?: string[];
+  osmLink?: string | null;
+  description?: string | null;
+  isUpManaged?: boolean;
+  priceRange?: string | null;
+  contactPhone?: string[];
+  facebookLink?: string | null;
+  version?: number;
+};
+
+export const PATCH: APIRoute = async ({ cookies, params, request }) => {
+  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const id = parseInt(params["id"] ?? "");
+  if (isNaN(id)) {
+    return new Response(JSON.stringify({ error: "Invalid dorm ID" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  let body: DormPatchBody;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (body.dormName !== undefined && body.dormName.trim().length === 0) {
+    return new Response(JSON.stringify({ error: "Dorm name is required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const expectedVersion = Number.isInteger(body.version)
+    ? body.version
+    : undefined;
+
+  try {
+    const updates: Parameters<typeof updateDorm>[1] = {};
+    if (body.dormName !== undefined) updates.dormName = body.dormName.trim();
+    if (body.shortName !== undefined)
+      updates.shortName = body.shortName || null;
+    if (body.lat !== undefined)
+      updates.lat = body.lat === null ? null : Number(body.lat);
+    if (body.lon !== undefined)
+      updates.lon = body.lon === null ? null : Number(body.lon);
+    if (body.gender !== undefined) updates.gender = body.gender || "Mixed";
+    if (body.capacity !== undefined) {
+      updates.capacity = body.capacity === null ? null : Number(body.capacity);
+    }
+    if (body.managingOffice !== undefined) {
+      updates.managingOffice = body.managingOffice || null;
+    }
+    if (body.contactEmail !== undefined)
+      updates.contactEmail = body.contactEmail || null;
+    if (body.amenities !== undefined) {
+      updates.amenities = Array.isArray(body.amenities) ? body.amenities : [];
+    }
+    if (body.osmLink !== undefined) updates.osmLink = body.osmLink || null;
+    if (body.description !== undefined)
+      updates.description = body.description || null;
+    if (body.isUpManaged !== undefined)
+      updates.isUpManaged = body.isUpManaged !== false;
+    if (body.priceRange !== undefined)
+      updates.priceRange = body.priceRange || null;
+    if (body.contactPhone !== undefined) {
+      updates.contactPhone = Array.isArray(body.contactPhone)
+        ? body.contactPhone
+        : [];
+    }
+    if (body.facebookLink !== undefined)
+      updates.facebookLink = body.facebookLink || null;
+
+    const dorm = await updateDorm(id, updates, expectedVersion);
+
+    return new Response(JSON.stringify({ success: true, dorm }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    if (err instanceof EditConflictError) {
+      return new Response(
+        JSON.stringify({
+          error: "This dorm was changed by another editor.",
+          latest: err.latest,
+        }),
+        {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    console.error("Failed to update dorm:", err);
+    return new Response(JSON.stringify({ error: "Failed to save dorm" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};

@@ -4,7 +4,6 @@ import react from "@astrojs/react";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import vercel from "@astrojs/vercel";
-import node from "@astrojs/node";
 // https://astro.build/config
 export default defineConfig({
   site: "https://room-tba.uplbtools.me",
@@ -61,6 +60,10 @@ export default defineConfig({
   env: {
     schema: {
       NEON_CONNECTION_STRING: envField.string({
+        access: "secret",
+        context: "server",
+      }),
+      ADMIN_PASSWORD: envField.string({
         access: "secret",
         context: "server",
       }),

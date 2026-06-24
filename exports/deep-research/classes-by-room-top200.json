@@ -1,0 +1,802 @@
+[
+  {
+    "room_code": "TBA",
+    "class_count": 6345
+  },
+  {
+    "room_code": "PSLH A",
+    "class_count": 36
+  },
+  {
+    "room_code": "ABC 162a",
+    "class_count": 29
+  },
+  {
+    "room_code": "PS B-203",
+    "class_count": 28
+  },
+  {
+    "room_code": "EE 304",
+    "class_count": 27
+  },
+  {
+    "room_code": "INSTATLH",
+    "class_count": 27
+  },
+  {
+    "room_code": "PS C-312",
+    "class_count": 27
+  },
+  {
+    "room_code": "SWIMMING POOL",
+    "class_count": 26
+  },
+  {
+    "room_code": "PS B-201",
+    "class_count": 23
+  },
+  {
+    "room_code": "BALLET AREA",
+    "class_count": 22
+  },
+  {
+    "room_code": "CEM 118",
+    "class_count": 22
+  },
+  {
+    "room_code": "PS C-304",
+    "class_count": 21
+  },
+  {
+    "room_code": "BS B-105",
+    "class_count": 20
+  },
+  {
+    "room_code": "CAS A2 103",
+    "class_count": 19
+  },
+  {
+    "room_code": "EE 100",
+    "class_count": 19
+  },
+  {
+    "room_code": "IBSLH2",
+    "class_count": 19
+  },
+  {
+    "room_code": "ICS PC2",
+    "class_count": 19
+  },
+  {
+    "room_code": "IFST ANNEX C",
+    "class_count": 19
+  },
+  {
+    "room_code": "MBBLH",
+    "class_count": 19
+  },
+  {
+    "room_code": "PS C-305",
+    "class_count": 19
+  },
+  {
+    "room_code": "BADMINTON COURT",
+    "class_count": 18
+  },
+  {
+    "room_code": "CAS 102",
+    "class_count": 18
+  },
+  {
+    "room_code": "CAS B06",
+    "class_count": 18
+  },
+  {
+    "room_code": "CDC LR1",
+    "class_count": 18
+  },
+  {
+    "room_code": "CEAT B-202",
+    "class_count": 18
+  },
+  {
+    "room_code": "CEAT B-203",
+    "class_count": 18
+  },
+  {
+    "room_code": "CEM 106",
+    "class_count": 18
+  },
+  {
+    "room_code": "IBSLH MAIN",
+    "class_count": 18
+  },
+  {
+    "room_code": "IE 101",
+    "class_count": 18
+  },
+  {
+    "room_code": "IRNR 254",
+    "class_count": 18
+  },
+  {
+    "room_code": "MMM LH",
+    "class_count": 18
+  },
+  {
+    "room_code": "PS C-306",
+    "class_count": 18
+  },
+  {
+    "room_code": "PS C-309",
+    "class_count": 18
+  },
+  {
+    "room_code": "AAVLH",
+    "class_count": 17
+  },
+  {
+    "room_code": "CAS 101",
+    "class_count": 17
+  },
+  {
+    "room_code": "CAS B03",
+    "class_count": 17
+  },
+  {
+    "room_code": "CAS B04",
+    "class_count": 17
+  },
+  {
+    "room_code": "CE CONF RM",
+    "class_count": 17
+  },
+  {
+    "room_code": "CEAT B-200b",
+    "class_count": 17
+  },
+  {
+    "room_code": "CEAT B-205",
+    "class_count": 17
+  },
+  {
+    "room_code": "CEM 114",
+    "class_count": 17
+  },
+  {
+    "room_code": "CEM 116",
+    "class_count": 17
+  },
+  {
+    "room_code": "EE 103",
+    "class_count": 17
+  },
+  {
+    "room_code": "EE 302",
+    "class_count": 17
+  },
+  {
+    "room_code": "ICROPS 100",
+    "class_count": 17
+  },
+  {
+    "room_code": "ICROPS 101",
+    "class_count": 17
+  },
+  {
+    "room_code": "ICROPS 200",
+    "class_count": 17
+  },
+  {
+    "room_code": "ICROPS 201",
+    "class_count": 17
+  },
+  {
+    "room_code": "IRNR 292",
+    "class_count": 17
+  },
+  {
+    "room_code": "MARTIAL ARTS AREA",
+    "class_count": 17
+  },
+  {
+    "room_code": "PS C-203",
+    "class_count": 17
+  },
+  {
+    "room_code": "PS C-204",
+    "class_count": 17
+  },
+  {
+    "room_code": "PS C-307",
+    "class_count": 17
+  },
+  {
+    "room_code": "BS A-315",
+    "class_count": 16
+  },
+  {
+    "room_code": "CAS 109",
+    "class_count": 16
+  },
+  {
+    "room_code": "CAS 110",
+    "class_count": 16
+  },
+  {
+    "room_code": "CAS B10",
+    "class_count": 16
+  },
+  {
+    "room_code": "CDC ANNEX1",
+    "class_count": 16
+  },
+  {
+    "room_code": "CEM 105",
+    "class_count": 16
+  },
+  {
+    "room_code": "CEM 112",
+    "class_count": 16
+  },
+  {
+    "room_code": "CTL",
+    "class_count": 16
+  },
+  {
+    "room_code": "EE 104",
+    "class_count": 16
+  },
+  {
+    "room_code": "ICS PC3",
+    "class_count": 16
+  },
+  {
+    "room_code": "ICS PC5",
+    "class_count": 16
+  },
+  {
+    "room_code": "IE 103",
+    "class_count": 16
+  },
+  {
+    "room_code": "IFST ANNEX B",
+    "class_count": 16
+  },
+  {
+    "room_code": "PS C-206",
+    "class_count": 16
+  },
+  {
+    "room_code": "PS C-214",
+    "class_count": 16
+  },
+  {
+    "room_code": "BS A-109",
+    "class_count": 15
+  },
+  {
+    "room_code": "BS C-105",
+    "class_count": 15
+  },
+  {
+    "room_code": "BS C-205",
+    "class_count": 15
+  },
+  {
+    "room_code": "BS C-321",
+    "class_count": 15
+  },
+  {
+    "room_code": "CAS 103",
+    "class_count": 15
+  },
+  {
+    "room_code": "CAS A1 408",
+    "class_count": 15
+  },
+  {
+    "room_code": "CAS A1 409",
+    "class_count": 15
+  },
+  {
+    "room_code": "CAS A2 101",
+    "class_count": 15
+  },
+  {
+    "room_code": "CAS A2 202",
+    "class_count": 15
+  },
+  {
+    "room_code": "CAS B05",
+    "class_count": 15
+  },
+  {
+    "room_code": "EAA LH",
+    "class_count": 15
+  },
+  {
+    "room_code": "IBSLH3",
+    "class_count": 15
+  },
+  {
+    "room_code": "ICROPS 138",
+    "class_count": 15
+  },
+  {
+    "room_code": "ICS PC4",
+    "class_count": 15
+  },
+  {
+    "room_code": "ICS PC8",
+    "class_count": 15
+  },
+  {
+    "room_code": "ICS PC9",
+    "class_count": 15
+  },
+  {
+    "room_code": "PS C100",
+    "class_count": 15
+  },
+  {
+    "room_code": "ALH",
+    "class_count": 14
+  },
+  {
+    "room_code": "BS C-113",
+    "class_count": 14
+  },
+  {
+    "room_code": "BS C-125",
+    "class_count": 14
+  },
+  {
+    "room_code": "BS C-127",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS 107",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS 108",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS A1 302",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS A1 304",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS A1 306",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS A1 407",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS A2 203",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS A2 MPH1",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS B07",
+    "class_count": 14
+  },
+  {
+    "room_code": "CAS B09",
+    "class_count": 14
+  },
+  {
+    "room_code": "CDC LR2",
+    "class_count": 14
+  },
+  {
+    "room_code": "CVM LR1",
+    "class_count": 14
+  },
+  {
+    "room_code": "EE 203",
+    "class_count": 14
+  },
+  {
+    "room_code": "EE 303",
+    "class_count": 14
+  },
+  {
+    "room_code": "ICROPS 137",
+    "class_count": 14
+  },
+  {
+    "room_code": "IE 102",
+    "class_count": 14
+  },
+  {
+    "room_code": "PS ANX-300",
+    "class_count": 14
+  },
+  {
+    "room_code": "SMA LH",
+    "class_count": 14
+  },
+  {
+    "room_code": "ABC 161",
+    "class_count": 13
+  },
+  {
+    "room_code": "BASKETBALL COURT",
+    "class_count": 13
+  },
+  {
+    "room_code": "BRIDGE ROOM",
+    "class_count": 13
+  },
+  {
+    "room_code": "BS A-121",
+    "class_count": 13
+  },
+  {
+    "room_code": "BS A-137",
+    "class_count": 13
+  },
+  {
+    "room_code": "BS C-116",
+    "class_count": 13
+  },
+  {
+    "room_code": "CAS A1 303",
+    "class_count": 13
+  },
+  {
+    "room_code": "CAS A1 GAL 1",
+    "class_count": 13
+  },
+  {
+    "room_code": "CAS A2 102",
+    "class_count": 13
+  },
+  {
+    "room_code": "CAS B01",
+    "class_count": 13
+  },
+  {
+    "room_code": "CAS B02",
+    "class_count": 13
+  },
+  {
+    "room_code": "CEAT B-200a",
+    "class_count": 13
+  },
+  {
+    "room_code": "CEM 101",
+    "class_count": 13
+  },
+  {
+    "room_code": "CEM 113",
+    "class_count": 13
+  },
+  {
+    "room_code": "CEM 115",
+    "class_count": 13
+  },
+  {
+    "room_code": "CEM 201",
+    "class_count": 13
+  },
+  {
+    "room_code": "CEM 202",
+    "class_count": 13
+  },
+  {
+    "room_code": "ChE 2",
+    "class_count": 13
+  },
+  {
+    "room_code": "DCERP AVR",
+    "class_count": 13
+  },
+  {
+    "room_code": "FCN",
+    "class_count": 13
+  },
+  {
+    "room_code": "ICS PC6",
+    "class_count": 13
+  },
+  {
+    "room_code": "ICS PC7",
+    "class_count": 13
+  },
+  {
+    "room_code": "IRNR 290",
+    "class_count": 13
+  },
+  {
+    "room_code": "MB 301",
+    "class_count": 13
+  },
+  {
+    "room_code": "MB 302",
+    "class_count": 13
+  },
+  {
+    "room_code": "MB 303",
+    "class_count": 13
+  },
+  {
+    "room_code": "PS B-205",
+    "class_count": 13
+  },
+  {
+    "room_code": "PS C-101",
+    "class_count": 13
+  },
+  {
+    "room_code": "RGQ",
+    "class_count": 13
+  },
+  {
+    "room_code": "TCC 4",
+    "class_count": 13
+  },
+  {
+    "room_code": "VITEX",
+    "class_count": 13
+  },
+  {
+    "room_code": "CAS A1 305",
+    "class_count": 12
+  },
+  {
+    "room_code": "CAS A1 GAL 2",
+    "class_count": 12
+  },
+  {
+    "room_code": "CAS A2 200",
+    "class_count": 12
+  },
+  {
+    "room_code": "CAS A2MPH2",
+    "class_count": 12
+  },
+  {
+    "room_code": "CAS LITE 4",
+    "class_count": 12
+  },
+  {
+    "room_code": "CEM 102",
+    "class_count": 12
+  },
+  {
+    "room_code": "CEM 104",
+    "class_count": 12
+  },
+  {
+    "room_code": "CEM 117",
+    "class_count": 12
+  },
+  {
+    "room_code": "EE 202",
+    "class_count": 12
+  },
+  {
+    "room_code": "HL-100",
+    "class_count": 12
+  },
+  {
+    "room_code": "ICROPS 104",
+    "class_count": 12
+  },
+  {
+    "room_code": "IE 100",
+    "class_count": 12
+  },
+  {
+    "room_code": "IFST ANNEX D",
+    "class_count": 12
+  },
+  {
+    "room_code": "IRNR 253",
+    "class_count": 12
+  },
+  {
+    "room_code": "MB 103A",
+    "class_count": 12
+  },
+  {
+    "room_code": "MB 304",
+    "class_count": 12
+  },
+  {
+    "room_code": "PS B-105",
+    "class_count": 12
+  },
+  {
+    "room_code": "PSLH B",
+    "class_count": 12
+  },
+  {
+    "room_code": "SWIETENIA",
+    "class_count": 12
+  },
+  {
+    "room_code": "ASI B-126",
+    "class_count": 11
+  },
+  {
+    "room_code": "BALH 2",
+    "class_count": 11
+  },
+  {
+    "room_code": "BS B-307",
+    "class_count": 11
+  },
+  {
+    "room_code": "BS C-313",
+    "class_count": 11
+  },
+  {
+    "room_code": "BS D-229",
+    "class_count": 11
+  },
+  {
+    "room_code": "CAS 106",
+    "class_count": 11
+  },
+  {
+    "room_code": "CAS A1 403",
+    "class_count": 11
+  },
+  {
+    "room_code": "CAS B08",
+    "class_count": 11
+  },
+  {
+    "room_code": "CE 102",
+    "class_count": 11
+  },
+  {
+    "room_code": "CEAT B100",
+    "class_count": 11
+  },
+  {
+    "room_code": "CEM 108",
+    "class_count": 11
+  },
+  {
+    "room_code": "CEM 203",
+    "class_count": 11
+  },
+  {
+    "room_code": "HL-201",
+    "class_count": 11
+  },
+  {
+    "room_code": "ICOPED 28",
+    "class_count": 11
+  },
+  {
+    "room_code": "IE 104",
+    "class_count": 11
+  },
+  {
+    "room_code": "IRNR 271A",
+    "class_count": 11
+  },
+  {
+    "room_code": "LR2A",
+    "class_count": 11
+  },
+  {
+    "room_code": "MB 101B",
+    "class_count": 11
+  },
+  {
+    "room_code": "NL",
+    "class_count": 11
+  },
+  {
+    "room_code": "PHTRC 106",
+    "class_count": 11
+  },
+  {
+    "room_code": "PS B-100",
+    "class_count": 11
+  },
+  {
+    "room_code": "AFBED_LR3",
+    "class_count": 10
+  },
+  {
+    "room_code": "ANLR",
+    "class_count": 10
+  },
+  {
+    "room_code": "BS B-109",
+    "class_count": 10
+  },
+  {
+    "room_code": "BS C-112",
+    "class_count": 10
+  },
+  {
+    "room_code": "CAS 104",
+    "class_count": 10
+  },
+  {
+    "room_code": "CAS A2- 201",
+    "class_count": 10
+  },
+  {
+    "room_code": "CAS LITE 5",
+    "class_count": 10
+  },
+  {
+    "room_code": "CDC ANNEX2",
+    "class_count": 10
+  },
+  {
+    "room_code": "CDC ANNEX3",
+    "class_count": 10
+  },
+  {
+    "room_code": "CE 101",
+    "class_count": 10
+  },
+  {
+    "room_code": "CE 101A",
+    "class_count": 10
+  },
+  {
+    "room_code": "CEAT B-103",
+    "class_count": 10
+  },
+  {
+    "room_code": "CEM 205",
+    "class_count": 10
+  },
+  {
+    "room_code": "CHE MPH",
+    "class_count": 10
+  },
+  {
+    "room_code": "CVM LR2",
+    "class_count": 10
+  },
+  {
+    "room_code": "ChE 3",
+    "class_count": 10
+  },
+  {
+    "room_code": "DANCE AREA 1",
+    "class_count": 10
+  },
+  {
+    "room_code": "FBS 171",
+    "class_count": 10
+  },
+  {
+    "room_code": "FL",
+    "class_count": 10
+  },
+  {
+    "room_code": "Field",
+    "class_count": 10
+  },
+  {
+    "room_code": "GEOMATICS",
+    "class_count": 10
+  },
+  {
+    "room_code": "IBS MBB Teaching Laboratory",
+    "class_count": 10
+  }
+]
