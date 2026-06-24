@@ -21,7 +21,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT building_name AS "buildingName", lon, lat, id, directions FROM buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType" FROM buildings
       `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {

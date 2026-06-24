@@ -123,17 +123,18 @@ export async function syncBuildings(
     try {
       await localDB.query(
         `
-        INSERT INTO buildings (id, building_name, lon, lat, directions, rooms_fetched)
-        VALUES ($1, $2, $3, $4, $5, false)
+        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched)
+        VALUES ($1, $2, $3, $4, $5, $6, false)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         building_name = EXCLUDED.building_name,
         lon = EXCLUDED.lon,
         lat = EXCLUDED.lat,
         directions = EXCLUDED.directions,
+        type = EXCLUDED.type,
         rooms_fetched = EXCLUDED.rooms_fetched;
         `,
-        [b.id, b.buildingName, b.lon, b.lat, b.directions],
+        [b.id, b.buildingName, b.lon, b.lat, b.directions, b.buildingType],
       );
       syncToastStore.updateBuildingsSync();
     } catch (e) {

@@ -10,11 +10,12 @@ export async function initPGLiteDB(db: PGlite) {
     // execution if the database isn't created yet
     await db.exec(`
     CREATE TABLE IF NOT EXISTS "buildings" (
-   	"id" INTEGER PRIMARY KEY,
-   	"building_name" varchar(100) NOT NULL,
-   	"lon" double precision NOT NULL,
-   	"lat" double precision NOT NULL,
-   	"directions" text NOT NULL,
+  	"id" INTEGER PRIMARY KEY,
+  	"building_name" varchar(100) NOT NULL,
+  	"lon" double precision NOT NULL,
+  	"lat" double precision NOT NULL,
+  	"directions" text NOT NULL,
+  	"type" varchar(12) NOT NULL DEFAULT 'non-admin',
     "rooms_fetched" boolean NOT NULL DEFAULT false
     );
 
@@ -83,6 +84,9 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE buildings
     ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean NOT NULL DEFAULT false;
+
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "type" varchar(12) NOT NULL DEFAULT 'non-admin';
 
     ALTER TABLE colleges
     ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean NOT NULL DEFAULT false;
