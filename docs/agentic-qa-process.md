@@ -42,6 +42,7 @@ Expected automated evidence for the current editor foundation:
 - `/admin` redirects to `/?editor=login`.
 - `/admin/login` redirects to `/?editor=login`.
 - `/?editor=login` returns `200`.
+- The rendered layout includes `name="viewport"` with `initial-scale=1`.
 - `bun run build` passes.
 - `editor_history` exists when history code is in scope.
 - Working tree is clean before updating or merging the PR.
@@ -61,6 +62,19 @@ Do these in the real app because shell checks cannot prove visual state, drag/dr
 - `Ctrl+Z` / `Cmd+Z` triggers undo.
 - `Ctrl+Y` / `Cmd+Y` triggers redo.
 - `Shift+Ctrl+Z` / `Shift+Cmd+Z` triggers redo.
+
+## Mobile Browser Checks
+
+Do these with a narrow viewport or a real phone-sized browser. Agents may verify static CSS and viewport metadata, but should not claim touch behavior was tested without a real browser interaction.
+
+- `/?editor=login` opens a login modal that fits within the viewport.
+- Map controls are reachable and tappable.
+- Edit mode toolbar is readable and does not cover the search or side panel.
+- Undo/Redo buttons remain large enough for touch.
+- Touch-dragging a building pin saves without excessive accidental map panning.
+- Touch-dragging a dorm pin saves without excessive accidental map panning.
+- Draggable affordances are understandable without hover-only labels.
+- Failed save and rollback feedback remains readable on mobile.
 
 Avoid mutating real shared data casually. If a browser test moves a marker in Neon, move it back or use Undo before ending the run.
 
@@ -87,12 +101,14 @@ Automated:
 - [x] Build passed: `<command/output summary>`
 - [x] Admin redirects verified: `/admin`, `/admin/login`
 - [x] Editor history table verified: `editor_history`
+- [x] Mobile viewport metadata verified
 
 Manual browser:
 
 - [x] Login popup opens
 - [x] Building drag save works
 - [ ] Dorm drag save not tested
+- [ ] Mobile touch drag not tested
 
 Known gaps:
 
