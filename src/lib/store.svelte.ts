@@ -310,6 +310,22 @@ class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
 }
 
+class SidePanelStore {
+  collapsed: boolean = $state(false);
+
+  toggle = () => {
+    this.collapsed = !this.collapsed;
+  };
+
+  expand = () => {
+    this.collapsed = false;
+  };
+
+  collapse = () => {
+    this.collapsed = true;
+  };
+}
+
 class MapEditStore {
   enabled: boolean = $state(false);
 
@@ -519,6 +535,7 @@ export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
+export const sidePanelStore = new SidePanelStore();
 export const mapEditStore = new MapEditStore();
 export const jeepneyStore = new JeepneyStore();
 export const syncToastStore = new SyncToastStore();
