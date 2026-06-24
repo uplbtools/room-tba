@@ -78,7 +78,12 @@ export async function getRoomPageData(roomId: number) {
       },
       collegeName: collegesTable.collegeName,
       divisionName: divisionsTable.divisionName,
-      class: getTableColumns(classesTable)
+      buildingId: roomsTable.buildingId,
+      collegeId: roomsTable.collegeId,
+      divisionId: roomsTable.divisionId,
+      version: roomsTable.version,
+      updatedAt: roomsTable.updatedAt,
+      class: getTableColumns(classesTable),
     })
     .from(roomsTable)
     .where(eq(roomsTable.id, roomId))
@@ -86,7 +91,6 @@ export async function getRoomPageData(roomId: number) {
     .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
     .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
     .leftJoin(classesTable, eq(classesTable.roomId, roomId));
-
 
   if (data.length === 0 || !data[0]) return null;
   return { room: data[0], classCount: data.length };

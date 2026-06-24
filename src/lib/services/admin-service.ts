@@ -11,6 +11,7 @@ import {
   updateTable,
 } from "../../../drizzle/schema";
 import { db } from "../db";
+import type { RoomData } from "../types";
 
 // ── Sync key refresh ──
 
@@ -67,28 +68,32 @@ export async function recordEditorHistory({
 
 // ── Rooms ──
 
-export type RoomWithRelations = {
-  id: number;
-  roomCode: string;
-  directions: string | null;
-  buildingId: number | null;
-  collegeId: number | null;
-  divisionId: number | null;
-};
+export type RoomWithRelations = RoomData;
 
-export async function getRoomById(
-  id: number,
-): Promise<RoomWithRelations | null> {
+export async function getRoomById(id: number): Promise<RoomData | null> {
   const rows = await db
     .select({
       id: roomsTable.id,
-      roomCode: roomsTable.roomCode,
+      code: roomsTable.roomCode,
       directions: roomsTable.directions,
+      building: {
+        name: buildingsTable.buildingName,
+        lat: buildingsTable.lat,
+        lon: buildingsTable.lon,
+        directions: buildingsTable.directions,
+      },
+      collegeName: collegesTable.collegeName,
+      divisionName: divisionsTable.divisionName,
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      version: roomsTable.version,
+      updatedAt: roomsTable.updatedAt,
     })
     .from(roomsTable)
+    .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+    .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+    .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
     .where(eq(roomsTable.id, id))
     .limit(1);
   return rows[0] ?? null;
@@ -98,13 +103,26 @@ export async function getAllRoomsAdmin(): Promise<RoomWithRelations[]> {
   return db
     .select({
       id: roomsTable.id,
-      roomCode: roomsTable.roomCode,
+      code: roomsTable.roomCode,
       directions: roomsTable.directions,
+      building: {
+        name: buildingsTable.buildingName,
+        lat: buildingsTable.lat,
+        lon: buildingsTable.lon,
+        directions: buildingsTable.directions,
+      },
+      collegeName: collegesTable.collegeName,
+      divisionName: divisionsTable.divisionName,
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      version: roomsTable.version,
+      updatedAt: roomsTable.updatedAt,
     })
     .from(roomsTable)
+    .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+    .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+    .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
     .orderBy(roomsTable.roomCode);
 }
 
@@ -119,22 +137,59 @@ export type RoomUpdateInput = {
 export async function updateRoom(
   id: number,
   input: RoomUpdateInput,
-): Promise<void> {
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<RoomData | null> {
   const updates: Record<string, unknown> = {};
   if (input.roomCode !== undefined) updates["roomCode"] = input.roomCode;
   if (input.directions !== undefined)
     updates["directions"] = input.directions || null;
   if (input.buildingId !== undefined)
-    updates["buildingId"] = input.buildingId || null;
+    updates["buildingId"] = input.buildingId ?? null;
   if (input.collegeId !== undefined)
-    updates["collegeId"] = input.collegeId || null;
+    updates["collegeId"] = input.collegeId ?? null;
   if (input.divisionId !== undefined)
-    updates["divisionId"] = input.divisionId || null;
+    updates["divisionId"] = input.divisionId ?? null;
 
   if (Object.keys(updates).length > 0) {
-    await db.update(roomsTable).set(updates).where(eq(roomsTable.id, id));
+    const before = await getRoomById(id);
+    const where =
+      expectedVersion === undefined
+        ? eq(roomsTable.id, id)
+        : and(eq(roomsTable.id, id), eq(roomsTable.version, expectedVersion));
+    const [updated] = await db
+      .update(roomsTable)
+      .set({
+        ...updates,
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning({ id: roomsTable.id });
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(await getRoomById(id));
+    }
+
+    const after = updated ? await getRoomById(id) : null;
+    if (before && after) {
+      await recordEditorHistory({
+        entityType: "room",
+        entityId: id,
+        action: "update",
+        before,
+        after,
+        versionBefore: before.version,
+        versionAfter: after.version,
+        editedBy,
+      });
+    }
+
     await refreshSyncKey("rooms");
+    return after ?? (await getRoomById(id));
   }
+
+  return getRoomById(id);
 }
 
 // ── Room positions ──
