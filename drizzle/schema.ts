@@ -1,63 +1,104 @@
-// drizzle/schema.ts
+import { pgTable, integer, text, varchar, doublePrecision, boolean, foreignKey, numeric, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core"
 
-import { sqliteTable } from "drizzle-orm/sqlite-core";
+export const buildingEnum = pgEnum("building_type", ['admin', 'non-admin'])
 
-export const buildingsTable = sqliteTable("buildings", (s) => ({
-  id: s.integer("id").primaryKey({ autoIncrement: true }),
-  building_name: s.text("building_name").notNull(),
-  lat: s.real("lat"),
-  lon: s.real("lon"),
-  directions: s.text("directions"),
-}));
+export const dormsTable = pgTable("dorms", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "dorms_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	dormName: text("dorm_name").notNull(),
+	shortName: varchar("short_name", { length: 48 }),
+	lat: doublePrecision(),
+	lon: doublePrecision(),
+	gender: text().notNull(),
+	capacity: integer(),
+	managingOffice: text("managing_office"),
+	contactEmail: text("contact_email"),
+	amenities: text().array(),
+	osmLink: text("osm_link"),
+	description: text(),
+	isUpManaged: boolean("is_up_managed").default(true),
+	priceRange: text("price_range"),
+	contactPhone: varchar("contact_phone", { length: 20 }).array(),
+	facebookLink: text("facebook_link"),
+});
 
-export const dormsTable = sqliteTable("dorms", (s) => ({
-  id: s.integer("id").primaryKey({ autoIncrement: true }),
-  dorm_name: s.text("dorm_name").notNull(),
-  short_name: s.text("short_name"),
-  lat: s.real("lat"),
-  lon: s.real("lon"),
-  gender: s.text("gender").notNull(), // "male" | "female" | "coed"
-  capacity: s.integer("capacity"),
-  managing_office: s.text("managing_office"),
-  contact_email: s.text("contact_email"),
-  amenities: s.text("amenities"), // JSON stringified array
-  osm_link: s.text("osm_link"),
-  description: s.text("description"),
-  is_up_managed: s.integer("is_up_managed", { mode: "boolean" }).notNull().default(true),
-  price_range: s.text("price_range"), // e.g. "₱2,500-₱4,000/mo" (to be verified by user)
-  contact_phone: s.text("contact_phone"),
-  facebook_link: s.text("facebook_link"),
-}));
+export const collegesTable = pgTable("colleges", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "colleges_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	collegeName: varchar("college_name", { length: 100 }).notNull(),
+});
 
-export const collegesTable = sqliteTable("colleges", (s) => ({
-  id: s.integer("id").primaryKey({ autoIncrement: true }),
-  college_name: s.text("college_name").notNull(),
-}));
+export const classesTable = pgTable("classes", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "classes_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	courseCode: varchar("course_code", { length: 16 }),
+	section: varchar({ length: 16 }),
+	type: varchar({ length: 12 }),
+	schedule: text().array(),
+	roomId: integer("room_id"),
+	courseTitle: text("course_title"),
+	termId: integer("term_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.roomId],
+			foreignColumns: [roomsTable.id],
+			name: "class_room"
+		}),
+]);
 
-export const divisionsTable = sqliteTable("divisions", (s) => ({
-  id: s.integer("id").primaryKey({ autoIncrement: true }),
-  division_name: s.text("division_name").notNull(),
-}));
+export const buildingsTable = pgTable("buildings", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "buildings_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	buildingName: varchar("building_name", { length: 100 }).notNull(),
+	lon: doublePrecision().notNull(),
+	buildingType: buildingEnum("type").default("non-admin").notNull(),
+	lat: doublePrecision().notNull(),
+	directions: text().notNull(),
+});
 
-export const roomsTable = sqliteTable("rooms", (s) => ({
-  id: s.integer("id").primaryKey({ autoIncrement: true }),
-  room_code: s.text("room_code").notNull(),
-  directions: s.text("directions"),
-  building_id: s.integer("building_id").references(() => buildingsTable.id),
-  college_id: s.integer("college_id").references(() => collegesTable.id),
-  division_id: s.integer("division_id").references(() => divisionsTable.id),
-}));
+export const roomPositionsTable = pgTable("room_positions", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "room_positions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	floor: integer().notNull(),
+	posX: numeric("pos_x").notNull(),
+	posY: numeric("pos_y").notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).notNull(),
+	roomId: integer("room_id").notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.roomId],
+			foreignColumns: [roomsTable.id],
+			name: "room_position_id"
+		}),
+]);
 
-export const classesTable = sqliteTable("classes", (s) => ({
-  id: s.integer("id").primaryKey({ autoIncrement: true }),
-  course_code: s.text("course_code").notNull(),
-  section: s.text("section").notNull(),
-  type: s.text("type").notNull(),
-  schedule: s.text("schedule").notNull(),
-  term_id: s.integer("term_id"),
-  room_id: s
-    .integer("room_id")
-    .notNull()
-    .references(() => roomsTable.id),
-  course_title: s.text("course_title").notNull(),
-}));
+export const divisionsTable = pgTable("divisions", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "divisions_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	divisionName: varchar("division_name", { length: 100 }).notNull(),
+});
+
+export const roomsTable = pgTable("rooms", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "rooms_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	roomCode: text("room_code").notNull(),
+	directions: text(),
+	buildingId: integer("building_id"),
+	collegeId: integer("college_id"),
+	divisionId: integer("division_id"),
+}, (table) => [
+	foreignKey({
+			columns: [table.buildingId],
+			foreignColumns: [buildingsTable.id],
+			name: "room_building"
+		}),
+	foreignKey({
+			columns: [table.collegeId],
+			foreignColumns: [collegesTable.id],
+			name: "room_college"
+		}),
+	foreignKey({
+			columns: [table.divisionId],
+			foreignColumns: [divisionsTable.id],
+			name: "room_division"
+		}),
+]);
+
+export const updateTable = pgTable("update", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  tableName: varchar("table_name", {length: 20}),
+  syncKey: uuid("sync_key").defaultRandom()
+})

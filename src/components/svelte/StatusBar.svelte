@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { ChevronDown, ChevronRight, MessageCircle } from "@lucide/svelte";
+  import ChevronDown from "@lucide/svelte/icons/chevron-down"
+  import ChevronRight from "@lucide/svelte/icons/chevron-right"
+  import MessageCircle from "@lucide/svelte/icons/message-circle"
   import { APP_VERSION_LABEL } from "../../constants/version";
   import { getAppData } from "../../lib/context";
   import { modalStore } from "../../lib/store.svelte";
 
-  const { directionCount, totalRooms } = getAppData();
+  const appData = getAppData();
+  const { directionCount, totalRooms } = $derived(appData());
   let isOpen = $state(false);
 </script>
 

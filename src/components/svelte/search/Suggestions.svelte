@@ -1,62 +1,67 @@
 <script lang="ts">
   import { getAppData } from "../../../lib/context";
-  import { queryStore, type QueryStoreState, dormFilter, type DormFilterType } from "../../../lib/store.svelte";
+  import { getJSONFetch } from "../../../lib/local/data/utils";
+  import {
+    queryStore,
+    type QueryStoreState,
+    dormFilter,
+    type DormFilterType,
+  } from "../../../lib/store.svelte";
+  import type { DormData } from "../../../lib/types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
-  const { buildings, colleges, divisions, rooms, dorms } = getAppData();
+  const appData = getAppData();
+  const { buildings, colleges, divisions, dorms, loaded } = $derived(appData());
 
-  const filteredDorms = $derived(
-    dormFilter.value === "all"
-      ? dorms
-      : dormFilter.value === "up"
-        ? dorms.filter((d) => d.is_up_managed)
-        : dorms.filter((d) => !d.is_up_managed),
-  );
+  const filteredDorms = $derived.by(() => {
+    if (!loaded) return;
+    if (dormFilter.value === "all") return dorms;
+    if (dormFilter.value === "up") return dorms.filter((d) => d.isUpManaged);
+    return dorms.filter((d) => !d.isUpManaged);
+  });
 
-  const suggestedResult = $derived<
-    { value: string; category: Exclude<QueryStoreState["category"], null> }[]
-  >(getSuggestions(queryStore.inputValue));
+  const suggestedResult = $derived(getSuggestions(queryStore.inputValue));
 
   function getSuggestions(searchString: string): {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
   }[] {
     searchString = searchString.trim().toLowerCase();
-    if (searchString === "") return [];
+    if (searchString === "" || !loaded) return [];
     const suggestions = {
       buildings: buildings
-        .filter(({ building_name }) =>
-          building_name.toLowerCase().includes(searchString),
+        .filter(({ buildingName }) =>
+          buildingName.toLowerCase().includes(searchString),
         )
-        .map(({ building_name }) => ({
-          value: building_name,
+        .map(({ buildingName }) => ({
+          value: buildingName,
           category: "building",
         })),
       colleges: colleges
-        .filter(({ college_name }) =>
-          college_name.toLowerCase().includes(searchString),
+        .filter(({ collegeName }) =>
+          collegeName.toLowerCase().includes(searchString),
         )
-        .map(({ college_name }) => ({
-          value: college_name,
+        .map(({ collegeName }) => ({
+          value: collegeName,
           category: "college",
         })),
       divisions: divisions
-        .filter(({ division_name }) =>
-          division_name.toLowerCase().includes(searchString),
+        .filter(({ divisionName }) =>
+          divisionName.toLowerCase().includes(searchString),
         )
-        .map(({ division_name }) => ({
-          value: division_name,
+        .map(({ divisionName }) => ({
+          value: divisionName,
           category: "division",
         })),
-      dorms: filteredDorms
+      dorms: (filteredDorms as DormData[])
         .filter(
-          ({ dorm_name, short_name }) =>
-            dorm_name.toLowerCase().includes(searchString) ||
-            (short_name && short_name.toLowerCase().includes(searchString)),
+          ({ dormName, shortName }) =>
+            dormName.toLowerCase().includes(searchString) ||
+            (shortName && shortName.toLowerCase().includes(searchString)),
         )
-        .map(({ dorm_name }) => ({
-          value: dorm_name,
+        .map(({ dormName }) => ({
+          value: dormName,
           category: "dorm",
         })),
     } satisfies {
@@ -76,22 +81,22 @@
         a.toLowerCase().localeCompare(b.toLowerCase()),
       );
 
-    const roomResult = rooms
-      .filter((room) => room.code.toLowerCase().includes(searchString))
-      .map((room) => ({
-        value: room.code,
-        category: "room",
-      })) satisfies {
-      value: string;
-      category: Exclude<QueryStoreState["category"], null>;
-    }[];
-
-    return [...nonRoomResult, ...roomResult].slice(0, 8);
+    return nonRoomResult.slice(0, 8);
   }
 
-  const hasDormResults = $derived(
-    suggestedResult.some((s) => s.category === "dorm"),
-  );
+  const hasDormResults = $derived(suggestedResult);
+  const roomsResult = $derived(getRoomSuggestions(queryStore.inputValue));
+
+  async function getRoomSuggestions(searchValue: string) {
+    const uriSearch = encodeURI(searchValue.toUpperCase());
+    const roomsFetch = await getJSONFetch<{ data: { value: string }[] | null }>(
+      `/api/rooms?search_code=${uriSearch}`,
+    );
+
+    return roomsFetch.data
+      ? roomsFetch.data.map((val) => ({ ...val, category: "room" as const }))
+      : [];
+  }
 
   const filterOptions: { label: string; value: DormFilterType }[] = [
     { label: "All", value: "all" },
@@ -142,7 +147,18 @@
     {#each suggestedResult as suggestion, id (id)}
       <Suggestion {...suggestion} />
     {/each}
-  {:else if suggestedResult.length === 0}
+  {/if}
+
+  {#if queryStore.inputValue !== ""}
+    {#await roomsResult}
+      Loading rooms...
+    {:then result}
+      {#each result as roomResult}
+        <Suggestion {...roomResult} />
+      {/each}
+    {/await}
+  {/if}
+  {#if suggestedResult.length === 0 && queryStore.inputValue !== ""}
     <SearchQuerySuggestion />
   {/if}
 </div>

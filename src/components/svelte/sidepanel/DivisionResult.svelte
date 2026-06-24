@@ -1,27 +1,45 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
+  import type { RoomData } from "../../../lib/types";
+  import { getDivisionRooms, getJSONFetch } from "../../../lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
+    import { checkLocalDivisionRoom, syncDivisionRooms } from "../../../lib/local/data/sync";
+    import { onMount } from "svelte";
 
-  const { rooms, divisions } = getAppData();
+  const appData = getAppData();
+  const { divisions, loaded } = $derived(appData());
 
   const division = $derived(
-    divisions.find((d) => d.division_name === queryStore.queryValue),
+    loaded
+      ? divisions.find((d) => d.divisionName === queryStore.queryValue)
+      : null,
   );
 
-  const divisionRooms = $derived(
-    rooms.filter((room) => room.divisionName === queryStore.queryValue),
-  );
+  let divisionRooms = $state<RoomData[] | null>(null);
+
+  onMount(async() => {
+    if (!division) return;
+    const divisionChecker = await checkLocalDivisionRoom(division.id)
+    divisionRooms = await getDivisionRooms(divisionChecker, division.id);
+    await syncDivisionRooms(divisionChecker, division.id, divisionRooms);
+  });
+  // const divisionRooms = $derived(
+  //   rooms.filter((room) => room.divisionName === queryStore.queryValue),
+  // );
 </script>
 
 <div class="division-query-wrapper">
   {#if division}
     <div class="division-header">
-      <h2 class="division-title">{division.division_name}</h2>
+      <h2 class="division-title">{division.divisionName}</h2>
     </div>
   {/if}
-
-  <ResultDisplay filteredRooms={divisionRooms} />
+  {#if divisionRooms}
+    <ResultDisplay filteredRooms={divisionRooms} />
+  {:else}
+    Loading data...
+  {/if}
 </div>
 
 <style>

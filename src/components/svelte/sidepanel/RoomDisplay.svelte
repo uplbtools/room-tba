@@ -1,14 +1,13 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
-  import type { RoomData, ClassMapValue } from "../../../lib/types";
+  import type { RoomData } from "../../../lib/types";
 
   type Props = {
     room: RoomData;
     searchInput: string;
-    classes: ClassMapValue[];
   };
 
-  const { room, searchInput, classes }: Props = $props();
+  const { room, searchInput }: Props = $props();
   const pattern = $derived(new RegExp(`(${searchInput.trim()})`, "gi"));
   function highlightSearch(original: string, pattern: RegExp): string {
     return searchInput.length < 2
@@ -46,7 +45,7 @@
     </div>
     <h3 class="room-code">{@html highlightSearch(room.code, pattern)}</h3>
     <div class="class-count">
-      {classes.length} class{classes.length !== 1 ? "es" : ""}
+      <!-- {classes.length} class{classes.length !== 1 ? "es" : ""} -->
     </div>
   </div>
 </button>

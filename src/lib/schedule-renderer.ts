@@ -151,11 +151,10 @@ export class ScheduleRenderer {
     const dayIndices = this.parseDays(course.day);
     const [startTime, endTime] = this.parseTime(course.time);
 
-    if (startTime === null || endTime === null) {
+    if (!startTime || !endTime) {
       console.warn("Could not parse time:", course.time);
       return;
     }
-
     dayIndices.forEach((dayIndex) => {
       if (dayIndex < 0 || dayIndex >= cfg.days.length) return;
 
@@ -217,7 +216,7 @@ export class ScheduleRenderer {
       }
     }
 
-    return [...new Set(indices)].sort((a, b) => a - b);
+    return Array.from(new Set(indices).values()).sort((a, b) => a && b ? a - b : 0);
   }
 
   parseTime(timeStr: string) {

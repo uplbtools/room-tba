@@ -1,24 +1,38 @@
 <script lang="ts">
   import { queryStore, locationStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
+  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  import type { RoomData } from "../../../lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
-  import { CornerRightUp } from "@lucide/svelte";
+  import { onMount } from "svelte";
+  import { getBuildingRooms } from "../../../lib/local/data/utils";
+  import {
+    checkLocalBuildingRoom,
+    syncBuildingRooms,
+  } from "../../../lib/local/data/sync";
 
-  const { rooms, buildings } = getAppData();
+  const appData = getAppData();
+  const { buildings, loaded } = $derived(appData());
 
   const building = $derived(
-    buildings.find((b) => b.building_name === queryStore.queryValue),
+    loaded
+      ? buildings.find((b) => b.buildingName === queryStore.queryValue)
+      : null,
   );
+  let buildingRooms = $state<RoomData[] | null>(null);
 
-  const buildingRooms = $derived(
-    rooms.filter((room) => room.building?.name === queryStore.queryValue),
-  );
+  onMount(async () => {
+    if (!building) return;
+    const buildingChecker = await checkLocalBuildingRoom(building.id);
+    buildingRooms = await getBuildingRooms(buildingChecker, building.id);
+    await syncBuildingRooms(buildingChecker, building.id, buildingRooms);
+  });
 </script>
 
 <div class="building-query-wrapper">
   {#if building}
     <div class="building-header">
-      <h2 class="building-title">{building.building_name}</h2>
+      <h2 class="building-title">{building.buildingName}</h2>
       {#if building.directions}
         <p class="building-desc">{building.directions}</p>
       {/if}
@@ -38,8 +52,14 @@
         </button>
       {/if}
     </div>
+  {:else}
+    <p>Loading data...</p>
   {/if}
-  <ResultDisplay filteredRooms={buildingRooms} />
+  {#if buildingRooms}
+    <ResultDisplay filteredRooms={buildingRooms} />
+  {:else}
+    Loading data...
+  {/if}
 </div>
 
 <style>

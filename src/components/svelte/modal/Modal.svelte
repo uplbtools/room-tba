@@ -4,7 +4,7 @@
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
   import FilterModalContent from "./FilterModalContent.svelte";
-  import { X } from "@lucide/svelte";
+  import X from "@lucide/svelte/icons/x";
 </script>
 
 {#if modalStore.open}

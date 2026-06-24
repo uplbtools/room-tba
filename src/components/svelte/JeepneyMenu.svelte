@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Bus, X } from "@lucide/svelte";
+  import X from "@lucide/svelte/icons/x";
+  import Bus from "@lucide/svelte/icons/bus"
   import { JEEPNEY_ROUTES } from "../../constants/jeepney-routes";
   import { jeepneyStore } from "../../lib/store.svelte";
 </script>
