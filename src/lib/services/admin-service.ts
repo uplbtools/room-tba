@@ -220,6 +220,17 @@ export type RoomPositionUpdateInput = {
   posY: string;
 };
 
+function serializeRoomPosition(position: RoomPosition | null) {
+  if (!position) return null;
+  return {
+    floor: position.floor,
+    posX: position.posX,
+    posY: position.posY,
+    updatedAt: position.updatedAt,
+    roomId: position.roomId,
+  };
+}
+
 export async function upsertRoomPosition(
   roomId: number,
   input: RoomPositionUpdateInput,
@@ -246,6 +257,95 @@ export async function upsertRoomPosition(
     });
   }
   await refreshSyncKey("rooms");
+}
+
+export async function updateRoomPosition(
+  roomId: number,
+  input: RoomPositionUpdateInput,
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<RoomData | null> {
+  const before = await getRoomById(roomId);
+  if (!before) return null;
+
+  const beforePosition = await getRoomPosition(roomId);
+  const updatedAt = new Date().toISOString();
+
+  await db.transaction(async (tx) => {
+    const where =
+      expectedVersion === undefined
+        ? eq(roomsTable.id, roomId)
+        : and(
+            eq(roomsTable.id, roomId),
+            eq(roomsTable.version, expectedVersion),
+          );
+
+    const [updated] = await tx
+      .update(roomsTable)
+      .set({
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning({ id: roomsTable.id });
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(await getRoomById(roomId));
+    }
+
+    const existing = await tx
+      .select({ id: roomPositionsTable.id })
+      .from(roomPositionsTable)
+      .where(eq(roomPositionsTable.roomId, roomId))
+      .limit(1);
+
+    if (existing[0]) {
+      await tx
+        .update(roomPositionsTable)
+        .set({
+          floor: input.floor,
+          posX: input.posX,
+          posY: input.posY,
+          updatedAt,
+        })
+        .where(eq(roomPositionsTable.id, existing[0].id));
+    } else {
+      await tx.insert(roomPositionsTable).values({
+        floor: input.floor,
+        posX: input.posX,
+        posY: input.posY,
+        updatedAt,
+        roomId,
+      });
+    }
+  });
+
+  const [after, afterPosition] = await Promise.all([
+    getRoomById(roomId),
+    getRoomPosition(roomId),
+  ]);
+
+  if (after) {
+    await recordEditorHistory({
+      entityType: "room",
+      entityId: roomId,
+      action: "update_position",
+      before: {
+        ...before,
+        position: serializeRoomPosition(beforePosition),
+      },
+      after: {
+        ...after,
+        position: serializeRoomPosition(afterPosition),
+      },
+      versionBefore: before.version,
+      versionAfter: after.version,
+      editedBy,
+    });
+  }
+
+  await refreshSyncKey("rooms");
+  return after;
 }
 
 // ── Buildings ──
