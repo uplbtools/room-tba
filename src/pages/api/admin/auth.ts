@@ -1,8 +1,22 @@
 import type { APIRoute } from "astro";
 import { ADMIN_PASSWORD } from "astro:env/server";
-import { makeSessionToken, setSessionCookie, clearSessionCookie } from "../../../lib/admin/auth";
+import {
+  ADMIN_COOKIE_NAME,
+  clearSessionCookie,
+  makeSessionToken,
+  setSessionCookie,
+  verifySessionToken,
+} from "../../../lib/admin/auth";
 
 export const prerender = false;
+
+export const GET: APIRoute = async ({ cookies }) => {
+  const admin = verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value);
+  return new Response(JSON.stringify({ admin, username: admin ? "admin" : null }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+};
 
 export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
