@@ -1,0 +1,12 @@
+---
+description: Verification cadence for agent coding work
+alwaysApply: true
+---
+
+# Verification Cadence
+
+- During iterative edits, prefer focused checks such as formatting, targeted type/lint checks, or relevant tests for the files changed.
+- Do not run `bun run build` after every small edit.
+- Run `bun run build` once before the final commit or before opening/updating a PR, unless the user explicitly asks to skip it or run it earlier.
+- If a full build was already run after the final code changes, do not repeat it before committing unless new substantive changes are made.
+- If lint or test tooling is blocked by repository configuration, report the blocker and use the lightest reliable verification available.
