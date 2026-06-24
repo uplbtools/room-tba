@@ -19,13 +19,25 @@ export async function getStaticPaths() {
   }));
 }
 
-const { buildingName } = Astro.props;
+const routeSlug = Astro.params.slug;
+const buildingName =
+  Astro.props.buildingName ??
+  (routeSlug
+    ? (await getAllBuildings()).find(
+        (candidate) => getBuildingSlug(candidate) === routeSlug,
+      )?.buildingName
+    : undefined);
+
+if (!buildingName) {
+  throw new Error(`Building not found for slug: ${routeSlug}`);
+}
+
 const appData = await getBuildingPageData(buildingName);
 
 if (appData === null) {
   throw new Error(`Building not found for slug: ${buildingName}`);
 }
-const {building, roomCount} = appData
+const { building, roomCount } = appData;
 const canonicalPath = `/building/${getBuildingSlug(building)}/`;
 const title = `${buildingName} | Building at UPLB | Room TBA`;
 const description = `Find rooms in ${buildingName} at UPLB. Open the building view on Room TBA for room listings, map context, and directions.`;

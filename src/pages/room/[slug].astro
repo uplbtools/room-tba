@@ -19,14 +19,27 @@ export async function getStaticPaths() {
   }));
 }
 
-const { roomId } = Astro.props;
+function idFromRouteSlug(slug: string | undefined) {
+  const match = slug?.match(/-(\d+)$/);
+  if (!match) return undefined;
+  const id = Number(match[1]);
+  return Number.isInteger(id) ? id : undefined;
+}
+
+const routeSlug = Astro.params.slug;
+const roomId = Astro.props.roomId ?? idFromRouteSlug(routeSlug);
+
+if (!roomId) {
+  throw new Error(`Room not found for slug: ${routeSlug}`);
+}
+
 const appData = await getRoomPageData(roomId);
 
 if (appData === null) {
   throw new Error(`Room not found for slug: ${roomId}`);
 }
 
-const {room, classCount} = appData;
+const { room, classCount } = appData;
 
 const canonicalPath = `/room/${getRoomRouteSlug(room)}/`;
 const title = `${room.code} | Room at UPLB | Room TBA`;
