@@ -332,7 +332,6 @@ class SyncToastStore {
   private _colleges = $state<SyncInfo | null>(null);
   private _divisions = $state<SyncInfo | null>(null);
   private _dorms = $state<SyncInfo | null>(null);
-  private _classes = $state<SyncInfo | null>(null);
   public currentSyncData: SyncInfo | null = null;
   public currentSync = $state<string | null>(null);
   public allSynced = $derived<boolean>(
@@ -340,17 +339,14 @@ class SyncToastStore {
       this._colleges !== null &&
       this._divisions !== null &&
       this._dorms !== null &&
-      this._classes !== null &&
       this._buildings.total +
         this._colleges.total +
         this._divisions.total +
-        this._dorms.total +
-        this._classes.total ===
+        this._dorms.total ===
         this._buildings.synced +
           this._colleges.synced +
           this._divisions.synced +
-          this._dorms.synced +
-          this._classes.synced,
+          this._dorms.synced,
   );
 
   startBuildingsSync(total: number) {
@@ -385,14 +381,6 @@ class SyncToastStore {
     this.currentSyncData = this._dorms;
     this.currentSync = "dorms";
   }
-  startClassesSync(total: number) {
-    this._classes = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._classes;
-    this.currentSync = "classes";
-  }
 
   updateBuildingsSync() {
     if (this._buildings === null) return;
@@ -409,10 +397,6 @@ class SyncToastStore {
   updateDormsSync() {
     if (this._dorms === null) return;
     this._dorms.synced++;
-  }
-  updateClassesSync() {
-    if (this._classes === null) return;
-    this._classes.synced++;
   }
 }
 
