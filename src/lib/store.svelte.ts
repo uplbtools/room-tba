@@ -1,3 +1,5 @@
+// src/lib/store.svelte.ts
+
 import type { modalOptions } from "../constants/modal-states";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";

@@ -1,3 +1,5 @@
+// drizzle.config.ts
+
 import { defineConfig } from "drizzle-kit";
 import {config} from "dotenv";
 
