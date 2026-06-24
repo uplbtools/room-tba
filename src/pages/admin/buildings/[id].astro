@@ -1,0 +1,100 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { getBuildingById } from "../../../lib/services/admin-service";
+
+const { id } = Astro.params;
+const buildingId = parseInt(id ?? "");
+if (isNaN(buildingId)) {
+  return Astro.redirect("/admin/buildings");
+}
+
+const building = await getBuildingById(buildingId);
+if (!building) {
+  return Astro.redirect("/admin/buildings");
+}
+
+const success = Astro.url.searchParams.get("success") === "1";
+const error = Astro.url.searchParams.get("error");
+---
+
+<AdminLayout title={`Edit ${building.buildingName}`} active="buildings">
+  {success && <div class="alert alert-success">Saved successfully. Viewers will pick up the change on next sync.</div>}
+  {error && <div class="alert alert-error">{error}</div>}
+
+  <form id="building-form" action={`/api/admin/buildings/${buildingId}`} method="POST" class="card">
+    <input type="hidden" name="_method" value="PATCH" />
+
+    <div class="form-group">
+      <label for="buildingName">Building Name</label>
+      <input type="text" id="buildingName" name="buildingName" value={building.buildingName} required />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="lat">Latitude</label>
+        <input type="number" id="lat" name="lat" value={building.lat} step="any" required />
+        <div class="hint">Map marker position (decimal degrees).</div>
+      </div>
+
+      <div class="form-group">
+        <label for="lon">Longitude</label>
+        <input type="number" id="lon" name="lon" value={building.lon} step="any" required />
+        <div class="hint">Map marker position (decimal degrees).</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="buildingType">Building Type</label>
+      <select id="buildingType" name="buildingType">
+        <option value="non-admin" selected={building.buildingType === "non-admin"}>Non-Admin</option>
+        <option value="admin" selected={building.buildingType === "admin"}>Admin</option>
+      </select>
+      <div class="hint">Admin buildings have classes; non-admin buildings may not.</div>
+    </div>
+
+    <div class="form-group">
+      <label for="directions">Directions</label>
+      <textarea id="directions" name="directions" placeholder="How to get to this building...">{building.directions}</textarea>
+      <div class="hint">Shown to users when they select this building.</div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="/admin/buildings" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById("building-form") as HTMLFormElement;
+  const buildingId = form.action.split("/").pop();
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    const payload = {
+      buildingName: formData.get("buildingName"),
+      lat: parseFloat(formData.get("lat") as string),
+      lon: parseFloat(formData.get("lon") as string),
+      buildingType: formData.get("buildingType"),
+      directions: (formData.get("directions") as string) || "",
+    };
+
+    try {
+      const res = await fetch(`/api/admin/buildings/${buildingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        window.location.search = "?success=1";
+      } else {
+        const data = await res.json().catch(() => ({ error: "Request failed" }));
+        window.location.search = `?error=${encodeURIComponent(data.error || "Save failed")}`;
+      }
+    } catch {
+      window.location.search = `?error=${encodeURIComponent("Network error")}`;
+    }
+  });
+</script>

@@ -1,0 +1,151 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import {
+  getRoomById,
+  getRoomPosition,
+  getAllBuildingsAdmin,
+  getAllCollegesAdmin,
+  getAllDivisionsAdmin,
+} from "../../../lib/services/admin-service";
+
+const { id } = Astro.params;
+const roomId = parseInt(id ?? "");
+if (isNaN(roomId)) {
+  return Astro.redirect("/admin/rooms");
+}
+
+const room = await getRoomById(roomId);
+if (!room) {
+  return Astro.redirect("/admin/rooms");
+}
+
+const position = await getRoomPosition(roomId);
+const buildings = await getAllBuildingsAdmin();
+const colleges = await getAllCollegesAdmin();
+const divisions = await getAllDivisionsAdmin();
+
+const success = Astro.url.searchParams.get("success") === "1";
+const error = Astro.url.searchParams.get("error");
+---
+
+<AdminLayout title={`Edit ${room.roomCode}`} active="rooms">
+  {success && <div class="alert alert-success">Saved successfully. Viewers will pick up the change on next sync.</div>}
+  {error && <div class="alert alert-error">{error}</div>}
+
+  <form id="room-form" action={`/api/admin/rooms/${roomId}`} method="POST" class="card">
+    <input type="hidden" name="_method" value="PATCH" />
+
+    <div class="form-group">
+      <label for="roomCode">Room Code</label>
+      <input type="text" id="roomCode" name="roomCode" value={room.roomCode} required />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="buildingId">Building</label>
+        <select id="buildingId" name="buildingId">
+          <option value="">— None —</option>
+          {buildings.map((b) => (
+            <option value={b.id} selected={room.buildingId === b.id}>{b.buildingName}</option>
+          ))}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="collegeId">College</label>
+        <select id="collegeId" name="collegeId">
+          <option value="">— None —</option>
+          {colleges.map((c) => (
+            <option value={c.id} selected={room.collegeId === c.id}>{c.collegeName}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="divisionId">Division</label>
+        <select id="divisionId" name="divisionId">
+          <option value="">— None —</option>
+          {divisions.map((d) => (
+            <option value={d.id} selected={room.divisionId === d.id}>{d.divisionName}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="directions">Directions</label>
+      <textarea id="directions" name="directions" placeholder="How to get to this room...">{room.directions ?? ""}</textarea>
+      <div class="hint">Shown to users when they look up this room.</div>
+    </div>
+
+    <h2 style="font-size: 1rem; margin: 1.5rem 0 0.75rem;">Room Position <span class="muted">(indoor map placement)</span></h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="floor">Floor</label>
+        <input type="number" id="floor" name="floor" value={position?.floor ?? 0} min="0" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="posX">Position X</label>
+        <input type="text" id="posX" name="posX" value={position?.posX ?? ""} />
+        <div class="hint">Numeric coordinate on the building floor plan.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="posY">Position Y</label>
+        <input type="text" id="posY" name="posY" value={position?.posY ?? ""} />
+        <div class="hint">Numeric coordinate on the building floor plan.</div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="/admin/rooms" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById("room-form") as HTMLFormElement;
+  const roomId = form.action.split("/").pop();
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    // Build JSON payload, converting empty strings to null for optional fields
+    const payload: Record<string, unknown> = {
+      roomCode: formData.get("roomCode"),
+      directions: (formData.get("directions") as string) || null,
+      buildingId: formData.get("buildingId") ? Number(formData.get("buildingId")) : null,
+      collegeId: formData.get("collegeId") ? Number(formData.get("collegeId")) : null,
+      divisionId: formData.get("divisionId") ? Number(formData.get("divisionId")) : null,
+      position: {
+        floor: Number(formData.get("floor")) || 0,
+        posX: (formData.get("posX") as string) || "0",
+        posY: (formData.get("posY") as string) || "0",
+      },
+    };
+
+    try {
+      const res = await fetch(`/api/admin/rooms/${roomId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        window.location.search = "?success=1";
+      } else {
+        const data = await res.json().catch(() => ({ error: "Request failed" }));
+        window.location.search = `?error=${encodeURIComponent(data.error || "Save failed")}`;
+      }
+    } catch {
+      window.location.search = `?error=${encodeURIComponent("Network error")}`;
+    }
+  });
+</script>
