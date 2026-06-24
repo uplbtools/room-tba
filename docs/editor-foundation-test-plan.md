@@ -20,6 +20,20 @@ Use this checklist before merging the in-app editor foundation PR.
 - A successful save updates the inline editor toolbar status.
 - A failed save restores the pin to its previous location and shows the entity name in the error.
 
+## Room Side-Panel Editing
+
+- Non-admin users only see read-only room details in the existing main app side panel.
+- Admin users see compact inline room editor fields after logging in through the in-app editor login.
+- Updating room code saves with the current room `version` and keeps the side panel on the edited room.
+- Updating room directions saves with the current room `version` and shows lightweight inline success feedback.
+- Updating building, college, and division relationships saves with the current room `version`.
+- A failed room save names the room and the field context when possible.
+- A stale room `version` returns a conflict, shows the latest server room data, and does not silently overwrite it.
+- Successful room updates create an `editor_history` row with before/after snapshots and version numbers.
+- Successful room updates refresh the `rooms` sync key.
+- A room with an associated building shows a compact action that navigates back to that building result.
+- Browser `/admin` and `/admin/login` routes still redirect to `/?editor=login`.
+
 ## Mobile Editor QA
 
 - The app includes a mobile viewport with `initial-scale=1`.
@@ -44,11 +58,13 @@ Use this checklist before merging the in-app editor foundation PR.
 
 - Saving with a stale version returns a conflict instead of overwriting another editor's change.
 - On conflict, the marker moves to the latest server position.
+- On room side-panel conflicts, the fields update to the latest saved room details.
 - Missing client versions are accepted during rollout and return a fresh version in the response.
 
 ## Version History
 
 - Building updates create an `editor_history` row.
 - Dorm updates create an `editor_history` row.
+- Room updates create an `editor_history` row.
 - History rows include `entity_type`, `entity_id`, `action`, `before_snapshot`, `after_snapshot`, `version_before`, `version_after`, `edited_by`, and `created_at`.
 - Reverts in future PRs should create new history rows rather than mutating old history.

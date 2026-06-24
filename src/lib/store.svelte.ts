@@ -49,6 +49,9 @@ export const currentRoom = {
   async getRoomFromSearch(room: RoomData) {
     _currentRoom = room;
   },
+  setRoom(room: RoomData) {
+    _currentRoom = room;
+  },
 };
 
 interface ModalStoreState {
