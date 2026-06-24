@@ -28,7 +28,7 @@ export const currentRoom = {
     return _currentRoom;
   },
   async getRoomByCode(code: string) {
-      _currentRoom = null;
+    _currentRoom = null;
     try {
       const localRoom = await getLocalRoomByCode(code);
       if (localRoom === null) {
@@ -47,7 +47,7 @@ export const currentRoom = {
     }
   },
   async getRoomFromSearch(room: RoomData) {
-      _currentRoom = room;
+    _currentRoom = room;
   },
 };
 
@@ -307,6 +307,18 @@ class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
 }
 
+class MapEditStore {
+  enabled: boolean = $state(false);
+
+  toggle = () => {
+    this.enabled = !this.enabled;
+  };
+
+  close = () => {
+    this.enabled = false;
+  };
+}
+
 class Building3DStore {
   buildingName: string | null = $state(null);
 
@@ -334,9 +346,14 @@ class AdminAuthStore {
 
   refresh = async () => {
     try {
-      const res = await fetch("/api/admin/auth", { credentials: "same-origin" });
+      const res = await fetch("/api/admin/auth", {
+        credentials: "same-origin",
+      });
       if (!res.ok) return;
-      const data = (await res.json()) as { admin: boolean; username: string | null };
+      const data = (await res.json()) as {
+        admin: boolean;
+        username: string | null;
+      };
       this.isAdmin = data.admin;
       this.username = data.username;
     } catch {
@@ -346,7 +363,10 @@ class AdminAuthStore {
     }
   };
 
-  login = async (username: string, password: string): Promise<string | null> => {
+  login = async (
+    username: string,
+    password: string,
+  ): Promise<string | null> => {
     this.loading = true;
     try {
       const formData = new FormData();
@@ -357,7 +377,9 @@ class AdminAuthStore {
         credentials: "same-origin",
         body: formData,
       });
-      const data = await res.json().catch(() => ({}) as { error?: string; username?: string });
+      const data = await res
+        .json()
+        .catch(() => ({}) as { error?: string; username?: string });
       if (!res.ok) {
         return data.error ?? `Login failed (${res.status})`;
       }
@@ -494,6 +516,7 @@ export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
+export const mapEditStore = new MapEditStore();
 export const jeepneyStore = new JeepneyStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
