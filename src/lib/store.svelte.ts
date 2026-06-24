@@ -1,6 +1,7 @@
 // src/lib/store.svelte.ts
 
 import type { modalOptions } from "../constants/modal-states";
+import { DEFAULT_TERRAIN_EXAGGERATION } from "../constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
 import { RoomData, type RecentSearch } from "./types";
@@ -338,6 +339,68 @@ class MapEditStore {
   };
 }
 
+type TerrainStatus = "idle" | "loading" | "active" | "unavailable";
+
+class TerrainStore {
+  enabled: boolean = $state(false);
+  menuOpen: boolean = $state(false);
+  exaggeration: number = $state(DEFAULT_TERRAIN_EXAGGERATION);
+  status: TerrainStatus = $state("idle");
+  message: string | null = $state(null);
+  resetNonce: number = $state(0);
+
+  toggleMenu = () => {
+    this.menuOpen = !this.menuOpen;
+  };
+
+  closeMenu = () => {
+    this.menuOpen = false;
+  };
+
+  enable = () => {
+    this.enabled = true;
+    this.status = "loading";
+    this.message = null;
+  };
+
+  disable = () => {
+    this.enabled = false;
+    this.status = "idle";
+    this.message = null;
+  };
+
+  toggle = () => {
+    if (this.enabled) this.disable();
+    else this.enable();
+  };
+
+  setExaggeration = (value: number) => {
+    this.exaggeration = value;
+  };
+
+  markLoading = () => {
+    if (!this.enabled) return;
+    this.status = "loading";
+    this.message = null;
+  };
+
+  markActive = () => {
+    if (!this.enabled) return;
+    this.status = "active";
+    this.message = null;
+  };
+
+  markUnavailable = (message: string) => {
+    this.enabled = false;
+    this.status = "unavailable";
+    this.message = message;
+  };
+
+  requestReset = () => {
+    this.resetNonce += 1;
+  };
+}
+
 class Building3DStore {
   buildingName: string | null = $state(null);
 
@@ -537,6 +600,7 @@ export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
 export const sidePanelStore = new SidePanelStore();
 export const mapEditStore = new MapEditStore();
+export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
