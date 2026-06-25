@@ -13,6 +13,7 @@
     currentRoom,
     adminAuthStore,
     toastStore,
+    mapProposalStore,
     buildingTypeFilter,
     terrainStore,
   } from "../../lib/store.svelte";
@@ -67,6 +68,10 @@
     type MapMoveCoordinates,
     type VersionedMapMove,
   } from "../../lib/map-move-history";
+  import {
+    resolveSubmitterName,
+    submitPinPositionProposal,
+  } from "../../lib/proposals/client";
   const data = getAppData();
   const appActions = getAppActions();
   const { buildings, dorms, events, loaded } = $derived(data());
@@ -419,7 +424,7 @@
 
   async function createEventAtMapPoint(coords: EditableCoords) {
     if (
-      !adminAuthStore.isAdmin ||
+      !adminAuthStore.canPublish ||
       !eventPlacementStore.draft ||
       eventPlacementStore.creating
     )
@@ -745,21 +750,30 @@
   }
 
   function isMapEditEnabled() {
-    return adminAuthStore.isAdmin && mapEditStore.enabled;
+    return adminAuthStore.canPublish && mapEditStore.enabled;
+  }
+
+  function canDragPin(key: string) {
+    if (isMapEditEnabled()) return true;
+    return mapProposalStore.allowsKey(key);
+  }
+
+  function isMapPinSuggestMode() {
+    return mapProposalStore.enabled;
   }
 
   function handleEditablePinEnter(key: string) {
-    if (!isMapEditEnabled()) return;
+    if (!canDragPin(key)) return;
     hoveredEditKey = key;
   }
 
   function handleEditablePinLeave(key: string) {
-    if (!isMapEditEnabled()) return;
+    if (!canDragPin(key)) return;
     if (hoveredEditKey === key) hoveredEditKey = null;
   }
 
   function beginMarkerDrag(key: string) {
-    if (!isMapEditEnabled()) return;
+    if (!canDragPin(key)) return;
     selectedEditKey = key;
     failedEditKey = null;
     stopRotation();
@@ -1141,22 +1155,87 @@
     }
   }
 
+  async function submitSuggestedPinMove(input: {
+    key: string;
+    pinType: "building" | "dorm" | "event";
+    entityId: number;
+    entityLabel: string;
+    baseVersion: number;
+    lat: number;
+    lon: number;
+    previous: EditableVersionedPosition | EditableCoords;
+    rollback: () => void;
+    eventLocations?: unknown[];
+  }) {
+    savingEditKey = input.key;
+    failedEditKey = null;
+    try {
+      const result = await submitPinPositionProposal({
+        pinType: input.pinType,
+        entityId: input.entityId,
+        baseVersion: input.baseVersion,
+        lat: input.lat,
+        lon: input.lon,
+        entityLabel: input.entityLabel,
+        submitterName: resolveSubmitterName({
+          displayName: adminAuthStore.displayName,
+          username: adminAuthStore.username,
+          draftName: mapProposalStore.submitterName,
+        }),
+        proposalId: mapProposalStore.proposalId,
+        eventLocations: input.eventLocations,
+      });
+      if (!result.ok) {
+        failedEditKey = input.key;
+        input.rollback();
+        toastStore.show(
+          result.error ??
+            `${input.entityLabel} pin suggestion could not be submitted.`,
+          "error",
+        );
+        return;
+      }
+      markSaved(input.key);
+      mapProposalStore.disable();
+      toastStore.show(
+        `Pin move for ${input.entityLabel} submitted for review.`,
+        "success",
+      );
+    } finally {
+      if (savingEditKey === input.key) savingEditKey = null;
+      if (selectedEditKey === input.key) selectedEditKey = null;
+    }
+  }
+
   async function handleBuildingDragEnd(
     e: { marker: mapGl.Marker },
     id: number,
     name: string,
     previous: EditableVersionedPosition,
   ) {
-    if (!isMapEditEnabled()) return;
     const lngLat = e.marker.getLngLat();
+    const coords = { lat: lngLat.lat, lon: lngLat.lng };
+    const key = buildingEditKey(id);
+    if (mapProposalStore.allowsKey(key)) {
+      await submitSuggestedPinMove({
+        key,
+        pinType: "building",
+        entityId: id,
+        entityLabel: name,
+        baseVersion: previous.version,
+        lat: coords.lat,
+        lon: coords.lon,
+        previous,
+        rollback: () => setLocalPosition("building", id, previous),
+      });
+      return;
+    }
+    if (!isMapEditEnabled()) return;
     await saveBuildingPosition(
       id,
       name,
       previous,
-      {
-        lat: lngLat.lat,
-        lon: lngLat.lng,
-      },
+      coords,
       previous.version,
     );
   }
@@ -1167,16 +1246,29 @@
     name: string,
     previous: EditableVersionedPosition,
   ) {
-    if (!isMapEditEnabled()) return;
     const lngLat = e.marker.getLngLat();
+    const coords = { lat: lngLat.lat, lon: lngLat.lng };
+    const key = dormEditKey(id);
+    if (mapProposalStore.allowsKey(key)) {
+      await submitSuggestedPinMove({
+        key,
+        pinType: "dorm",
+        entityId: id,
+        entityLabel: name,
+        baseVersion: previous.version,
+        lat: coords.lat,
+        lon: coords.lon,
+        previous,
+        rollback: () => setLocalPosition("dorm", id, previous),
+      });
+      return;
+    }
+    if (!isMapEditEnabled()) return;
     await saveDormPosition(
       id,
       name,
       previous,
-      {
-        lat: lngLat.lat,
-        lon: lngLat.lng,
-      },
+      coords,
       previous.version,
     );
   }
@@ -1186,12 +1278,36 @@
     event: EventData,
     location: EventData["locations"][number],
   ) {
-    if (!isMapEditEnabled()) return;
     const lngLat = e.marker.getLngLat();
-    await saveEventLocationPosition(event, location, {
-      lat: lngLat.lat,
-      lon: lngLat.lng,
-    });
+    const coords = { lat: lngLat.lat, lon: lngLat.lng };
+    const key = eventLocationEditKey(event.id);
+    if (mapProposalStore.allowsKey(key)) {
+      const previous = getResolvedEventLocationCoords(location);
+      await submitSuggestedPinMove({
+        key,
+        pinType: "event",
+        entityId: event.id,
+        entityLabel: event.title,
+        baseVersion: event.version,
+        lat: coords.lat,
+        lon: coords.lon,
+        previous: previous ?? coords,
+        rollback: () => {
+          if (previous) {
+            eventLocationOverrides = {
+              ...eventLocationOverrides,
+              [key]: previous,
+            };
+          } else {
+            clearEventLocationOverride(event.id);
+          }
+        },
+        eventLocations: buildEventLocationDragUpdate(event, location, coords),
+      });
+      return;
+    }
+    if (!isMapEditEnabled()) return;
+    await saveEventLocationPosition(event, location, coords);
   }
 
   async function applyRecordedMove(
@@ -1462,10 +1578,10 @@
   });
 
   $effect(() => {
-    if (!adminAuthStore.isAdmin && mapEditStore.enabled) {
+    if (!adminAuthStore.canPublish && mapEditStore.enabled) {
       mapEditStore.close();
     }
-    if (!adminAuthStore.isAdmin && eventPlacementStore.active) {
+    if (!adminAuthStore.canPublish && eventPlacementStore.active) {
       eventPlacementStore.cancel();
     }
     if (!mapEditStore.enabled) {
@@ -2123,6 +2239,12 @@
         </button>
       </div>
     {/if}
+  {:else if isMapPinSuggestMode()}
+    <div class="map-edit-dock" aria-live="polite">
+      <p class="map-edit-status">
+        Drag the highlighted pin, then release to submit for review.
+      </p>
+    </div>
   {:else if isMapEditEnabled()}
     {#if md.current}
       <div class="edit-dock map-edit-dock" role="status" aria-live="polite">
@@ -2221,7 +2343,7 @@
         {@const editKey = eventLocationEditKey(editableEventLocation.event.id)}
         <Marker
           lngLat={getEventMarkerLngLat(editableEventLocation)}
-          draggable={isMapEditEnabled()}
+          draggable={canDragPin(editKey)}
           onclick={() => handleEventMarkerClick(editableEventLocation.event)}
           ondragstart={() => beginMarkerDrag(editKey)}
           ondragend={(e) =>
@@ -2396,7 +2518,7 @@
       {/each}
     {/if}
     {#if !mapViewStore.eventsOnly}
-      {#each filteredBuildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
+      {#each filteredBuildings as building (`building:${building.id}:${canDragPin(buildingEditKey(building.id))}`)}
         {#if building.lat && building.lon}
           {@const editKey = buildingEditKey(building.id)}
           {@const position = getEditablePosition(editKey, {
@@ -2406,7 +2528,7 @@
           })}
           <Marker
             lngLat={[position.lon, position.lat]}
-            draggable={isMapEditEnabled()}
+            draggable={canDragPin(editKey)}
             onclick={() => handleMarkerClick(building.buildingName)}
             ondragstart={() => beginMarkerDrag(editKey)}
             ondragend={(e) =>
@@ -2420,7 +2542,7 @@
             <MapEntityPin
               label={building.buildingName}
               active={activeBuildingName === building.buildingName}
-              editable={isMapEditEnabled()}
+              editable={canDragPin(editKey)}
               editing={selectedEditKey === editKey}
               dimmed={isBuildingDimmedForEventFocus(building.id)}
               eventLinked={isBuildingEventLinked(building.id)}
@@ -2459,7 +2581,7 @@
     {/if}
 
     {#if !mapViewStore.eventsOnly}
-      {#each filteredDorms as dorm (`dorm:${dorm.id}:${isMapEditEnabled()}`)}
+      {#each filteredDorms as dorm (`dorm:${dorm.id}:${canDragPin(dormEditKey(dorm.id))}`)}
         {#if dorm.lat && dorm.lon}
           {@const editKey = dormEditKey(dorm.id)}
           {@const position = getEditablePosition(editKey, {
@@ -2469,7 +2591,7 @@
           })}
           <Marker
             lngLat={[position.lon, position.lat]}
-            draggable={isMapEditEnabled()}
+            draggable={canDragPin(editKey)}
             onclick={() => handleDormMarkerClick(dorm.dormName)}
             ondragstart={() => beginMarkerDrag(editKey)}
             ondragend={(e) =>
@@ -2481,7 +2603,7 @@
               active={activeDormName === dorm.dormName}
               dimmed={isDormDimmedForEventFocus(dorm.id)}
               eventLinked={isDormEventLinked(dorm.id)}
-              editable={isMapEditEnabled()}
+              editable={canDragPin(editKey)}
               editing={selectedEditKey === editKey}
               hovered={hoveredEditKey === editKey}
               saveState={savingEditKey === editKey

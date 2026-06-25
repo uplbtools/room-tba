@@ -24,13 +24,11 @@
     headingId = "events-heading",
     showHeading = true,
     showRetract = false,
-    compact = false,
     oncollapse,
   }: {
     headingId?: string;
     showHeading?: boolean;
     showRetract?: boolean;
-    compact?: boolean;
     oncollapse?: () => void;
   } = $props();
 
@@ -44,7 +42,7 @@
       )
       .sort((a, b) => a.occurrenceStartsAt.localeCompare(b.occurrenceStartsAt));
   });
-  const visibleEvents = $derived(campusEvents.slice(0, compact ? 3 : 4));
+  const visibleEvents = $derived(campusEvents.slice(0, 4));
   const hasPastEvents = $derived(
     loaded && events.some((event) => event.status === "past"),
   );
@@ -101,7 +99,7 @@
 </script>
 
 {#if !loaded}
-  <section class="events-section" class:compact aria-labelledby={headingId}>
+  <section class="events-section" aria-labelledby={headingId}>
     <div class="section-heading">
       <h2 id={headingId} class="events-heading">Campus events</h2>
     </div>
@@ -113,12 +111,12 @@
     </div>
   </section>
 {:else}
-  <section class="events-section" class:compact aria-labelledby={headingId}>
+  <section class="events-section" aria-labelledby={headingId}>
     {#if showHeading}
       <div class="section-heading">
         <h2 id={headingId} class="events-heading">Campus events</h2>
         <span class="section-actions">
-          {#if adminAuthStore.isAdmin}
+          {#if adminAuthStore.canPublish}
             <button
               class="event-action-chip add-event-button"
               type="button"
@@ -162,7 +160,7 @@
       </div>
     {:else}
       <div class="section-actions section-actions--inline">
-        {#if adminAuthStore.isAdmin}
+        {#if adminAuthStore.canPublish}
           <button
             class="event-action-chip add-event-button"
             type="button"
@@ -224,29 +222,24 @@
                 <span class="event-card-action">Open on map</span>
               </span>
             </button>
-            {#if !compact}
-              <span class="event-card-copy-link">
-                <CopyLinkButton
-                  url={shareUrl}
-                  label="Copy"
-                  ariaLabel={`Copy link to ${event.title}`}
-                  successMessage={`Copied link for ${event.title}.`}
-                  errorMessage={`Could not copy link for ${event.title}.`}
-                  feedback="none"
-                  variant="chip"
-                  onsuccess={() =>
-                    toastStore.show(
-                      `Copied link for ${event.title}.`,
-                      "success",
-                    )}
-                  onerror={() =>
-                    toastStore.show(
-                      `Could not copy link for ${event.title}.`,
-                      "error",
-                    )}
-                />
-              </span>
-            {/if}
+            <span class="event-card-copy-link">
+              <CopyLinkButton
+                url={shareUrl}
+                label="Copy"
+                ariaLabel={`Copy link to ${event.title}`}
+                successMessage={`Copied link for ${event.title}.`}
+                errorMessage={`Could not copy link for ${event.title}.`}
+                feedback="none"
+                variant="chip"
+                onsuccess={() =>
+                  toastStore.show(`Copied link for ${event.title}.`, "success")}
+                onerror={() =>
+                  toastStore.show(
+                    `Could not copy link for ${event.title}.`,
+                    "error",
+                  )}
+              />
+            </span>
           </div>
         {/each}
       </div>
@@ -255,11 +248,7 @@
         No active or upcoming events right now. Use “View all” to browse past
         events.
       </p>
-    {:else if compact}
-      <p class="empty-events empty-events--compact">
-        No campus events right now.
-      </p>
-    {:else if adminAuthStore.isAdmin}
+    {:else if adminAuthStore.canPublish}
       <p class="empty-events">
         No campus events yet. Add an event, then choose its location on the map.
       </p>
@@ -476,73 +465,5 @@
       width: 3rem;
       height: 3rem;
     }
-  }
-
-  .events-section.compact {
-    gap: 0.375rem;
-  }
-
-  .events-section.compact .section-actions--inline {
-    margin-bottom: 0.125rem;
-  }
-
-  .events-section.compact .event-action-chip {
-    min-height: 1.75rem;
-    padding: 0.25rem 0.625rem;
-    font-size: 0.6875rem;
-  }
-
-  .events-section.compact .event-list {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    padding-bottom: 0.125rem;
-  }
-
-  .events-section.compact .event-card {
-    flex: 0 0 min(78vw, 14rem);
-    scroll-snap-align: start;
-    grid-template-columns: minmax(0, 1fr);
-    padding: 0.375rem;
-  }
-
-  .events-section.compact .event-card-main {
-    grid-template-columns: 2.25rem minmax(0, 1fr);
-    gap: 0.5rem;
-  }
-
-  .events-section.compact .event-card-image,
-  .events-section.compact .event-card-icon {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.5rem;
-  }
-
-  .events-section.compact .event-card-icon {
-    font-size: 0.55rem;
-  }
-
-  .events-section.compact .event-card-title {
-    font-size: 0.8125rem;
-  }
-
-  .events-section.compact .event-card-meta {
-    font-size: 0.6875rem;
-  }
-
-  .events-section.compact .event-card-action {
-    display: none;
-  }
-
-  .events-section.compact .empty-events--compact {
-    font-size: 0.75rem;
-  }
-
-  .events-section.compact .loading-events,
-  .events-section.compact .event-skeleton-list {
-    display: none;
   }
 </style>

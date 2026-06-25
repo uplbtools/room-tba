@@ -485,6 +485,48 @@ class MapEditStore {
   };
 }
 
+export type MapProposalTarget = {
+  type: "building" | "dorm" | "event";
+  id: number;
+  label: string;
+  version: number;
+};
+
+class MapProposalStore {
+  target: MapProposalTarget | null = $state(null);
+  submitterName = $state("");
+  proposalId: number | null = $state(null);
+
+  get enabled() {
+    return this.target !== null;
+  }
+
+  pinKey(): string | null {
+    if (!this.target) return null;
+    if (this.target.type === "event") return `event:${this.target.id}:location`;
+    return `${this.target.type}:${this.target.id}`;
+  }
+
+  allowsKey(key: string) {
+    return this.enabled && this.pinKey() === key;
+  }
+
+  enable(
+    target: MapProposalTarget,
+    submitterName = "",
+    proposalId: number | null = null,
+  ) {
+    this.target = target;
+    this.submitterName = submitterName;
+    this.proposalId = proposalId;
+  }
+
+  disable() {
+    this.target = null;
+    this.proposalId = null;
+  }
+}
+
 export type EventPlacementDraft = {
   slug: string;
   title: string;
@@ -610,12 +652,86 @@ class Building3DStore {
   };
 }
 
+class ProposalsStore {
+  pendingCount = $state(0);
+  open = $state(false);
+  loading = $state(false);
+  proposals = $state<
+    Array<{
+      id: number;
+      entityType: string;
+      entityId: number;
+      entityLabel: string;
+      status: string;
+      submitterName: string;
+      proposedPatch: Record<string, unknown>;
+      adminNote?: string | null;
+      createdAt: string;
+    }>
+  >([]);
+
+  refresh = async () => {
+    if (!adminAuthStore.canReview) {
+      this.pendingCount = 0;
+      this.proposals = [];
+      return;
+    }
+    this.loading = true;
+    try {
+      const res = await fetch("/api/admin/proposals", {
+        credentials: "same-origin",
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        pendingCount?: number;
+        proposals?: ProposalsStore["proposals"];
+      };
+      this.pendingCount = data.pendingCount ?? 0;
+      this.proposals = data.proposals ?? [];
+    } catch {
+      // ignore
+    } finally {
+      this.loading = false;
+    }
+  };
+
+  toggle = () => {
+    this.open = !this.open;
+    if (this.open) void this.refresh();
+  };
+
+  close = () => {
+    this.open = false;
+  };
+}
+
 class AdminAuthStore {
   isAdmin: boolean = $state(false);
   username: string | null = $state(null);
+  displayName: string | null = $state(null);
+  role: "admin" | "editor" | "contributor" | null = $state(null);
+  canPublish: boolean = $state(false);
+  canReview: boolean = $state(false);
   loading: boolean = $state(false);
   loginOpen: boolean = $state(false);
   private _hydrated = false;
+
+  private applySession(data: {
+    admin: boolean;
+    username: string | null;
+    displayName?: string | null;
+    role?: "admin" | "editor" | "contributor" | null;
+    canPublish?: boolean;
+    canReview?: boolean;
+  }) {
+    this.isAdmin = data.admin;
+    this.username = data.username;
+    this.displayName = data.displayName ?? data.username;
+    this.role = data.role ?? null;
+    this.canPublish = data.canPublish ?? false;
+    this.canReview = data.canReview ?? false;
+    if (data.canReview) void proposalsStore.refresh();
+  }
 
   hydrate = async () => {
     if (this._hydrated) return;
@@ -632,13 +748,19 @@ class AdminAuthStore {
       const data = (await res.json()) as {
         admin: boolean;
         username: string | null;
+        displayName?: string | null;
+        role?: "admin" | "editor" | "contributor" | null;
+        canPublish?: boolean;
+        canReview?: boolean;
       };
-      this.isAdmin = data.admin;
-      this.username = data.username;
+      this.applySession(data);
     } catch {
-      // network error — treat as logged out, don't spam the UI.
       this.isAdmin = false;
       this.username = null;
+      this.displayName = null;
+      this.role = null;
+      this.canPublish = false;
+      this.canReview = false;
     }
   };
 
@@ -649,6 +771,7 @@ class AdminAuthStore {
     this.loading = true;
     try {
       const formData = new FormData();
+      formData.set("username", username.trim());
       formData.set("password", password);
 
       const res = await fetch("/api/admin/auth", {
@@ -656,14 +779,28 @@ class AdminAuthStore {
         credentials: "same-origin",
         body: formData,
       });
-      const data = await res
-        .json()
-        .catch(() => ({}) as { error?: string; username?: string });
+      const data = await res.json().catch(
+        () =>
+          ({}) as {
+            error?: string;
+            username?: string;
+            displayName?: string;
+            role?: "admin" | "editor" | "contributor";
+            canPublish?: boolean;
+            canReview?: boolean;
+          },
+      );
       if (!res.ok) {
         return data.error ?? `Login failed (${res.status})`;
       }
-      this.isAdmin = true;
-      this.username = data.username ?? username ?? "admin";
+      this.applySession({
+        admin: true,
+        username: data.username ?? username.trim().toLowerCase(),
+        displayName: data.displayName,
+        role: data.role ?? "editor",
+        canPublish: data.canPublish ?? true,
+        canReview: data.canReview ?? true,
+      });
       this.loginOpen = false;
       return null;
     } catch {
@@ -684,6 +821,12 @@ class AdminAuthStore {
     }
     this.isAdmin = false;
     this.username = null;
+    this.displayName = null;
+    this.role = null;
+    this.canPublish = false;
+    this.canReview = false;
+    proposalsStore.pendingCount = 0;
+    proposalsStore.proposals = [];
   };
 
   openLogin = () => {
@@ -928,12 +1071,14 @@ export const sidePanelStore = new SidePanelStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapToolsStore = new MapToolsStore();
 export const mapEditStore = new MapEditStore();
+export const mapProposalStore = new MapProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
+export const proposalsStore = new ProposalsStore();
 
 // The bottom-right control cluster exposes three mutually exclusive map modes:
 // the editor, jeepney routes, and Makiling terrain. They each take over the

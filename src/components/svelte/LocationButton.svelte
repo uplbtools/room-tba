@@ -12,8 +12,10 @@
     locationStore,
     mapEditStore,
     mapStore,
+    proposalsStore,
     toastStore,
   } from "../../lib/store.svelte";
+  import ProposalReviewPanel from "./ProposalReviewPanel.svelte";
 
   let centered: boolean = $state(false);
   const adminPanelId = "admin";
@@ -25,6 +27,10 @@
   onMount(() => {
     adminAuthStore.hydrate();
   });
+
+  const showEditorControls = $derived(
+    adminAuthStore.canPublish || adminAuthStore.canReview,
+  );
 
   const handleLocationClick = () => {
     if (!locationStore.coords) {
@@ -59,7 +65,7 @@
 </script>
 
 <div class="map-control-stack">
-  {#if adminAuthStore.isAdmin}
+  {#if showEditorControls}
     <div class="admin-control">
       {#if adminMenuOpen}
         <div
@@ -75,17 +81,20 @@
               <small>{adminLabel}</small>
             </span>
           </div>
-          <button
-            type="button"
-            class="admin-menu-action"
-            class:active={mapEditStore.enabled}
-            role="menuitem"
-            aria-pressed={mapEditStore.enabled}
-            onclick={toggleMapEditMode}
-          >
-            <Pencil size={16} />
-            {mapEditStore.enabled ? "Turn off map edit" : "Turn on map edit"}
-          </button>
+          {#if adminAuthStore.canPublish}
+            <button
+              type="button"
+              class="admin-menu-action"
+              class:active={mapEditStore.enabled}
+              role="menuitem"
+              aria-pressed={mapEditStore.enabled}
+              onclick={toggleMapEditMode}
+            >
+              <Pencil size={16} />
+              {mapEditStore.enabled ? "Turn off map edit" : "Turn on map edit"}
+            </button>
+          {/if}
+          <ProposalReviewPanel />
           <button
             type="button"
             class="admin-menu-action danger"
@@ -112,6 +121,11 @@
         aria-pressed={mapEditStore.enabled}
       >
         <ShieldCheck />
+        {#if proposalsStore.pendingCount > 0}
+          <span class="pending-badge" aria-hidden="true"
+            >{proposalsStore.pendingCount}</span
+          >
+        {/if}
       </button>
     </div>
   {:else}
@@ -156,6 +170,7 @@
   }
 
   .map-control-btn {
+    position: relative;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     backdrop-filter: blur(10px);
     border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
@@ -192,6 +207,22 @@
       background-color: hsl(160, 84%, 26%);
       color: white;
     }
+  }
+
+  .pending-badge {
+    position: absolute;
+    top: -0.15rem;
+    right: -0.15rem;
+    min-width: 1.1rem;
+    height: 1.1rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background: hsl(5, 65%, 42%);
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1.1rem;
+    text-align: center;
   }
 
   .admin-panel {
