@@ -1,6 +1,10 @@
 import {
   buildingsTable,
   dormsTable,
+  eventLocationsTable,
+  eventRouteStopsTable,
+  eventRoutesTable,
+  eventsTable,
   roomPositionsTable,
 } from "../../drizzle/schema";
 import type { QueryStoreState } from "./store.svelte";
@@ -76,14 +80,53 @@ type ClassMapValue = {
 type CollegeData = {
   id: number;
   collegeName: string;
+  version: number;
+  updatedAt: string;
 };
 
 type DivisionData = {
   id: number;
   divisionName: string;
+  version: number;
+  updatedAt: string;
 };
 
 type DormData = typeof dormsTable.$inferSelect;
+
+type EventCategory = typeof eventsTable.$inferSelect.category;
+
+type EventRecurrence = typeof eventsTable.$inferSelect.recurrence;
+
+type EventLocationAnchorType =
+  typeof eventLocationsTable.$inferSelect.anchorType;
+
+type EventStatus = "active" | "upcoming" | "past";
+
+type EventData = typeof eventsTable.$inferSelect & {
+  status: EventStatus;
+  occurrenceStartsAt: string;
+  occurrenceEndsAt: string;
+  locations: EventLocationData[];
+  routes: EventRouteData[];
+};
+
+type EventLocationData = typeof eventLocationsTable.$inferSelect & {
+  resolvedLat: number | null;
+  resolvedLon: number | null;
+  resolvedLabel: string;
+  buildingName: string | null;
+  dormName: string | null;
+};
+
+type EventRouteData = typeof eventRoutesTable.$inferSelect & {
+  stops: EventRouteStopData[];
+};
+
+type EventRouteStopData = typeof eventRouteStopsTable.$inferSelect & {
+  resolvedLat: number | null;
+  resolvedLon: number | null;
+  resolvedLabel: string;
+};
 
 type RoomPosition = typeof roomPositionsTable.$inferSelect;
 
@@ -102,6 +145,7 @@ interface DeveloperInfo {
 interface RecentSearch {
   category: Exclude<QueryStoreState["category"], null>;
   value: string;
+  eventSlug?: string;
 }
 
 type TableSyncInfo = {

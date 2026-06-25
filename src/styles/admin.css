@@ -1,9 +1,14 @@
 * {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: #f8f9fa;
@@ -33,7 +38,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo {
@@ -61,19 +66,21 @@ html, body {
 .nav-link {
   display: block;
   padding: 0.625rem 1rem;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-size: 0.875rem;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .nav-link:hover {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
 .nav-link.active {
-  background: rgba(163,14,0,0.3);
+  background: rgba(163, 14, 0, 0.3);
   color: #fff;
   border-left: 3px solid #a30e00;
   padding-left: calc(1rem - 3px);
@@ -81,14 +88,14 @@ html, body {
 
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
 .sidebar-footer a {
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   font-size: 0.75rem;
 }
@@ -151,12 +158,14 @@ html, body {
   padding: 1.25rem;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .dash-card:hover {
   border-color: #a30e00;
-  box-shadow: 0 2px 8px rgba(163,14,0,0.1);
+  box-shadow: 0 2px 8px rgba(163, 14, 0, 0.1);
 }
 
 .dash-card .count {

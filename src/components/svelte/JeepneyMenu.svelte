@@ -1,31 +1,53 @@
 <script lang="ts">
   import X from "@lucide/svelte/icons/x";
-  import Bus from "@lucide/svelte/icons/bus"
+  import Bus from "@lucide/svelte/icons/bus";
   import { JEEPNEY_ROUTES } from "../../constants/jeepney-routes";
-  import { jeepneyStore } from "../../lib/store.svelte";
+  import {
+    floatingControlPanelStore,
+    jeepneyStore,
+  } from "../../lib/store.svelte";
+
+  type Props = {
+    embedded?: boolean;
+  };
+
+  let { embedded = false }: Props = $props();
+
+  const panelId = "jeepney";
+  const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
+  const showPanel = $derived(embedded || menuOpen);
+
+  function selectRoute(id: string) {
+    jeepneyStore.selectRoute(id);
+    if (!embedded) {
+      floatingControlPanelStore.close(panelId);
+    }
+  }
 </script>
 
-<div class="jeepney-menu">
-  {#if jeepneyStore.menuOpen}
-    <div class="route-list" role="menu">
-      <div class="route-list-header">
-        <span>Jeepney Routes</span>
-        <button
-          type="button"
-          class="close-btn"
-          onclick={() => jeepneyStore.closeMenu()}
-          aria-label="Close jeepney menu"
-        >
-          <X size="16" />
-        </button>
-      </div>
+<div class="jeepney-menu" class:embedded>
+  {#if showPanel}
+    <div class="route-list" class:embedded role="menu">
+      {#if !embedded}
+        <div class="route-list-header">
+          <span>Jeepney Routes</span>
+          <button
+            type="button"
+            class="close-btn"
+            onclick={() => floatingControlPanelStore.close(panelId)}
+            aria-label="Close jeepney menu"
+          >
+            <X size="16" />
+          </button>
+        </div>
+      {/if}
       {#each JEEPNEY_ROUTES as route (route.id)}
         {@const isActive = jeepneyStore.selectedRouteId === route.id}
         <button
           type="button"
           class="route-option"
           class:active={isActive}
-          onclick={() => jeepneyStore.selectRoute(route.id)}
+          onclick={() => selectRoute(route.id)}
         >
           <span class="route-color" style:background-color={route.color}></span>
           <span class="route-text">
@@ -46,19 +68,33 @@
     </div>
   {/if}
 
-  <button
-    class="jeepney-btn"
-    class:active={jeepneyStore.selectedRouteId !== null}
-    onclick={() => jeepneyStore.toggleMenu()}
-    title="Jeepney Routes"
-    aria-label="Jeepney Routes"
-    aria-expanded={jeepneyStore.menuOpen}
-  >
-    <Bus />
-  </button>
+  {#if !embedded}
+    <button
+      class="jeepney-btn"
+      class:active={jeepneyStore.selectedRouteId !== null}
+      onclick={() => floatingControlPanelStore.toggle(panelId)}
+      title="Jeepney Routes"
+      aria-label="Jeepney Routes"
+      aria-expanded={menuOpen}
+    >
+      <Bus />
+    </button>
+  {/if}
 </div>
 
 <style>
+  .jeepney-menu.embedded {
+    width: 100%;
+  }
+
+  .route-list.embedded {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-shadow: none;
+    overflow-x: hidden;
+  }
+
   .jeepney-menu {
     pointer-events: auto;
     display: flex;

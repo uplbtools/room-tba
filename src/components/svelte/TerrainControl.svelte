@@ -7,7 +7,16 @@
     TERRAIN_EXAGGERATION_OPTIONS,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
   } from "../../constants/map-terrain";
-  import { terrainStore } from "../../lib/store.svelte";
+  import {
+    floatingControlPanelStore,
+    terrainStore,
+  } from "../../lib/store.svelte";
+
+  type Props = {
+    embedded?: boolean;
+  };
+
+  let { embedded = false }: Props = $props();
 
   type NetworkInformation = EventTarget & {
     effectiveType?: string;
@@ -16,6 +25,9 @@
 
   let isOnline = $state(true);
   let lowDataConnection = $state(false);
+  const panelId = "terrain";
+  const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
+  const showPanel = $derived(embedded || menuOpen);
 
   const statusText = $derived.by(() => {
     if (!isOnline) return TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE;
@@ -80,20 +92,22 @@
   });
 </script>
 
-<div class="terrain-control">
-  {#if terrainStore.menuOpen}
-    <div class="terrain-panel" role="menu">
-      <div class="terrain-panel-header">
-        <span>Makiling Terrain</span>
-        <button
-          type="button"
-          class="close-btn"
-          onclick={() => terrainStore.closeMenu()}
-          aria-label="Close terrain menu"
-        >
-          <X size="16" />
-        </button>
-      </div>
+<div class="terrain-control" class:embedded>
+  {#if showPanel}
+    <div class="terrain-panel" class:embedded role="menu">
+      {#if !embedded}
+        <div class="terrain-panel-header">
+          <span>Makiling Terrain</span>
+          <button
+            type="button"
+            class="close-btn"
+            onclick={() => floatingControlPanelStore.close(panelId)}
+            aria-label="Close terrain menu"
+          >
+            <X size="16" />
+          </button>
+        </div>
+      {/if}
 
       <p class="terrain-copy">
         Explore Mt. Makiling in 3D context. This layer is online-only for now
@@ -156,19 +170,33 @@
     </div>
   {/if}
 
-  <button
-    class="terrain-btn"
-    class:active={terrainStore.enabled}
-    onclick={() => terrainStore.toggleMenu()}
-    title="Makiling Terrain"
-    aria-label="Makiling Terrain"
-    aria-expanded={terrainStore.menuOpen}
-  >
-    <Mountain />
-  </button>
+  {#if !embedded}
+    <button
+      class="terrain-btn"
+      class:active={terrainStore.enabled}
+      onclick={() => floatingControlPanelStore.toggle(panelId)}
+      title="Makiling Terrain"
+      aria-label="Makiling Terrain"
+      aria-expanded={menuOpen}
+    >
+      <Mountain />
+    </button>
+  {/if}
 </div>
 
 <style>
+  .terrain-control.embedded {
+    width: 100%;
+  }
+
+  .terrain-panel.embedded {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-shadow: none;
+    overflow-x: hidden;
+  }
+
   .terrain-control {
     display: flex;
     flex-direction: column;

@@ -104,9 +104,14 @@
     justify-content: center;
     gap: 0.375rem;
     border-radius: 0.5rem;
+    border: 1px solid #d8b9ba;
+    background-color: white;
+    color: #7b1113;
     font-size: 0.875rem;
     font-weight: 500;
+    line-height: 1.25;
     cursor: pointer;
+    white-space: nowrap;
     transition:
       background-color 0.2s,
       border-color 0.2s,
@@ -124,27 +129,26 @@
     outline-offset: 2px;
   }
 
+  .copy-link-btn :global(svg) {
+    flex: 0 0 auto;
+  }
+
   [data-variant="chip"] .copy-link-btn {
     width: max-content;
     padding: 0.375rem 0.75rem;
-    border: 1px solid #d8b9ba;
-    background-color: white;
-    color: #7b1113;
   }
 
   [data-variant="chip"] .copy-link-btn:hover:not(:disabled) {
+    border-color: #c58f91;
     background-color: #fdf3f3;
   }
 
   [data-variant="index"] .copy-link-btn {
     padding: 0.35rem 0.625rem;
-    border: 1px solid #eadfda;
-    background-color: #fffafa;
-    color: #7b1113;
   }
 
   [data-variant="index"] .copy-link-btn:hover:not(:disabled) {
-    border-color: #d8b9ba;
+    border-color: #c58f91;
     background-color: #fdf3f3;
   }
 
@@ -156,8 +160,8 @@
   }
 
   @media (max-width: 640px) {
-    .copy-link-wrapper,
-    .copy-link-btn {
+    [data-variant="index"] .copy-link-wrapper,
+    [data-variant="index"] .copy-link-btn {
       width: 100%;
     }
   }

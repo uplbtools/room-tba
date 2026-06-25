@@ -1,12 +1,48 @@
 // src/lib/store.svelte.ts
 
 import { modalOptions } from "../constants/modal-states";
-import type { BuildingTypeFilter } from "../constants/building-types";
-import { DEFAULT_TERRAIN_EXAGGERATION } from "../constants/map-terrain";
+import {
+  DEFAULT_TERRAIN_EXAGGERATION,
+  CAMPUS_BOUNDS,
+} from "../constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
-import { RoomData, type RecentSearch } from "./types";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
+import {
+  AVG_TILE_BYTES,
+  clearMapCaches,
+  getCampusTileCoords,
+  getStorageUsage,
+  getTileTemplate,
+  MIN_ZOOM,
+  tileUrl,
+} from "./local/offline-maps";
+
+export type BuildingTypeFilter =
+  | "all"
+  | "class-building"
+  | "administrative-building"
+  | "up-managed-dorm"
+  | "non-up-managed-dorm";
+
+type RoomData = {
+  id: number;
+  code: string;
+  directions: string | null;
+  building: {
+    name: string;
+    lat: number | null;
+    lon: number | null;
+    directions: string | null;
+  } | null;
+  buildingId: number | null;
+  collegeId: number | null;
+  divisionId: number | null;
+  collegeName: string | null;
+  divisionName: string | null;
+  version: number;
+  updatedAt: string;
+};
 
 export type DormFilterType = "all" | "up" | "private";
 export type SyncInfo = {
@@ -80,9 +116,20 @@ export interface QueryStoreState {
     | "room"
     | "class"
     | "dorm"
+    | "event"
+    | "events"
     | null;
   value: string;
+  // Stable, unique identifier for a selected event. Event titles are not
+  // unique, so event lookups should prefer this slug over `value`/`inputValue`.
+  eventSlug?: string;
 }
+
+type RecentSearch = {
+  category: Exclude<QueryStoreState["category"], null>;
+  value: string;
+  eventSlug?: string;
+};
 
 class ModalStore {
   private _modalStore: ModalStoreState = $state({
@@ -121,6 +168,7 @@ class QueryStore {
   category = $derived(this._queryStore.category);
   type = $derived(this._queryStore.type);
   queryValue = $derived(this._queryStore.value);
+  selectedEventSlug = $derived(this._queryStore.eventSlug ?? null);
   filterValues = $derived(
     Array.from(
       this._filters.entries().map(([value, category]) => ({
@@ -139,6 +187,7 @@ class QueryStore {
       this.addRecentSearch({
         category: obj.category,
         value: obj.value,
+        eventSlug: obj.eventSlug,
       });
     }
   };
@@ -149,11 +198,17 @@ class QueryStore {
   };
 
   addRecentSearch(recentSearch: RecentSearch) {
-    const qIndex = this.recentSearches.findIndex(
-      (query) =>
-        query.value === recentSearch.value &&
-        query.category === recentSearch.category,
-    );
+    const qIndex = this.recentSearches.findIndex((query) => {
+      if (query.category !== recentSearch.category) return false;
+      if (
+        recentSearch.category === "event" &&
+        recentSearch.eventSlug &&
+        query.eventSlug
+      ) {
+        return query.eventSlug === recentSearch.eventSlug;
+      }
+      return query.value === recentSearch.value;
+    });
     if (qIndex !== -1) this.recentSearches.splice(qIndex, 1);
     else if (this.recentSearches.length > 4) this.recentSearches.pop();
 
@@ -220,19 +275,12 @@ class LocationStore {
   routeOrigin: [number, number] | null = $state(null);
   private watchId: number | null = null;
 
-  private readonly CAMPUS_BOUNDS = {
-    minLng: 121.225963,
-    minLat: 14.150106,
-    maxLng: 121.254638,
-    maxLat: 14.172678,
-  };
-
   private isWithinBounds(lng: number, lat: number) {
     return (
-      lng >= this.CAMPUS_BOUNDS.minLng &&
-      lng <= this.CAMPUS_BOUNDS.maxLng &&
-      lat >= this.CAMPUS_BOUNDS.minLat &&
-      lat <= this.CAMPUS_BOUNDS.maxLat
+      lng >= CAMPUS_BOUNDS.minLng &&
+      lng <= CAMPUS_BOUNDS.maxLng &&
+      lat >= CAMPUS_BOUNDS.minLat &&
+      lat <= CAMPUS_BOUNDS.maxLat
     );
   }
 
@@ -325,6 +373,18 @@ class MapStore {
   stopAutoRotate: (() => void) | null = null;
 }
 
+class MapViewStore {
+  eventsOnly: boolean = $state(false);
+
+  toggleEventsOnly = () => {
+    this.eventsOnly = !this.eventsOnly;
+  };
+
+  showAll = () => {
+    this.eventsOnly = false;
+  };
+}
+
 class SidePanelStore {
   collapsed: boolean = $state(false);
 
@@ -341,15 +401,137 @@ class SidePanelStore {
   };
 }
 
+export type FloatingControlPanel =
+  | "legend"
+  | "building-type"
+  | "terrain"
+  | "jeepney"
+  | "admin";
+
+class FloatingControlPanelStore {
+  openPanel: FloatingControlPanel | null = $state(null);
+
+  toggle = (panel: FloatingControlPanel) => {
+    this.openPanel = this.openPanel === panel ? null : panel;
+  };
+
+  close = (panel?: FloatingControlPanel) => {
+    if (panel === undefined || this.openPanel === panel) {
+      this.openPanel = null;
+    }
+  };
+}
+
+export type MapToolsSection =
+  | "view"
+  | "legend"
+  | "building-type"
+  | "terrain"
+  | "jeepney";
+
+class MapToolsStore {
+  open = $state(false);
+  activeSection: MapToolsSection | null = $state("view");
+  /** Accordion: terrain and jeepney collapsed by default. */
+  expandedSections = $state<Set<MapToolsSection>>(
+    new Set(["view", "legend", "building-type"]),
+  );
+
+  toggle = () => {
+    this.open = !this.open;
+    if (this.open && this.activeSection === null) {
+      this.activeSection = "view";
+    }
+  };
+
+  close = () => {
+    this.open = false;
+  };
+
+  openSection = (section: MapToolsSection) => {
+    this.activeSection = section;
+    this.expandedSections = new Set(this.expandedSections).add(section);
+    this.open = true;
+  };
+
+  toggleSection = (section: MapToolsSection) => {
+    const next = new Set(this.expandedSections);
+    if (next.has(section)) {
+      next.delete(section);
+    } else {
+      next.add(section);
+    }
+    this.expandedSections = next;
+    this.activeSection = section;
+  };
+}
+
 class MapEditStore {
   enabled: boolean = $state(false);
 
+  enable = () => {
+    if (this.enabled) return;
+    this.enabled = true;
+    deactivateMapModesExcept("edit");
+  };
+
   toggle = () => {
-    this.enabled = !this.enabled;
+    if (this.enabled) this.enabled = false;
+    else this.enable();
   };
 
   close = () => {
     this.enabled = false;
+  };
+}
+
+export type EventPlacementDraft = {
+  slug: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  category: "tradition" | "fair" | "ceremony" | "sports" | "other";
+};
+
+class EventPlacementStore {
+  draft: EventPlacementDraft | null = $state(null);
+  creating: boolean = $state(false);
+  createdEventId: number | null = $state(null);
+  active = $derived(this.draft !== null);
+
+  start = (draft: EventPlacementDraft) => {
+    this.draft = draft;
+    this.creating = false;
+    this.createdEventId = null;
+    // Event placement is part of the edit flow; clear the other map modes so
+    // they don't fight over the camera or map clicks while placing.
+    deactivateMapModesExcept("edit");
+  };
+
+  beginCreate = () => {
+    if (!this.draft) return;
+    this.creating = true;
+  };
+
+  finishCreate = (eventId: number) => {
+    this.draft = null;
+    this.creating = false;
+    this.createdEventId = eventId;
+  };
+
+  failCreate = () => {
+    this.creating = false;
+  };
+
+  cancel = () => {
+    this.draft = null;
+    this.creating = false;
+  };
+
+  consumeCreatedEvent = (eventId: number) => {
+    if (this.createdEventId !== eventId) return false;
+    this.createdEventId = null;
+    return true;
   };
 }
 
@@ -375,6 +557,7 @@ class TerrainStore {
     this.enabled = true;
     this.status = "loading";
     this.message = null;
+    deactivateMapModesExcept("terrain");
   };
 
   disable = () => {
@@ -527,6 +710,8 @@ class JeepneyStore {
   selectRoute = (id: string) => {
     this.selectedRouteId = this.selectedRouteId === id ? null : id;
     this.menuOpen = false;
+    // Selecting (not clearing) a route activates routes mode.
+    if (this.selectedRouteId !== null) deactivateMapModesExcept("routes");
   };
 
   clearRoute = () => {
@@ -539,10 +724,29 @@ class SyncToastStore {
   private _colleges = $state<SyncInfo | null>(null);
   private _divisions = $state<SyncInfo | null>(null);
   private _dorms = $state<SyncInfo | null>(null);
+  private _events = $state<SyncInfo | null>(null);
   public currentSyncData: SyncInfo | null = null;
   public currentSync = $state<string | null>(null);
   public allSynced = $state<boolean>(false);
   public recentlySynced = $state<boolean | null>(null);
+
+  // Service worker "new content available" update, surfaced inside this same
+  // bottom offline toast instead of a separate floating prompt.
+  public needRefresh = $state<boolean>(false);
+  private _refresh: (() => void) | null = null;
+
+  setRefreshHandler(fn: () => void) {
+    this._refresh = fn;
+  }
+  markNeedRefresh() {
+    this.needRefresh = true;
+  }
+  dismissRefresh() {
+    this.needRefresh = false;
+  }
+  reload() {
+    this._refresh?.();
+  }
 
   startBuildingsSync(total: number) {
     this._buildings = {
@@ -580,6 +784,15 @@ class SyncToastStore {
     this.currentSync = "dorms";
     this.recentlySynced = true;
   }
+  startEventsSync(total: number) {
+    this._events = {
+      synced: 0,
+      total,
+    };
+    this.currentSyncData = this._events;
+    this.currentSync = "events";
+    this.recentlySynced = true;
+  }
 
   updateBuildingsSync() {
     if (this._buildings === null) return;
@@ -597,23 +810,147 @@ class SyncToastStore {
     if (this._dorms === null) return;
     this._dorms.synced++;
   }
+  updateEventsSync() {
+    if (this._events === null) return;
+    this._events.synced++;
+  }
 
   endSync() {
-      this.allSynced = true;
-      if (this.recentlySynced === null)
-        this.recentlySynced = false;
+    this.allSynced = true;
+    if (this.recentlySynced === null) this.recentlySynced = false;
   }
 }
 
+type OfflineStatus = "idle" | "downloading" | "done" | "error" | "cancelled";
+
+class OfflineStore {
+  status = $state<OfflineStatus>("idle");
+  tilesTotal = $state(0);
+  tilesDone = $state(0);
+  bytesDownloaded = $state(0);
+  storageUsed = $state<number | null>(null);
+  error = $state<string | null>(null);
+  private cancelRequested = false;
+
+  progress = $derived(
+    this.tilesTotal === 0 ? 0 : Math.min(1, this.tilesDone / this.tilesTotal),
+  );
+  estimatedBytes = $derived(this.tilesTotal * AVG_TILE_BYTES);
+
+  // Compute the tile count up front so the size estimate shows before download.
+  prepareEstimate = async () => {
+    void this.refreshStorage();
+    if (this.tilesTotal !== 0) return;
+    const source = await getTileTemplate();
+    this.tilesTotal = getCampusTileCoords(MIN_ZOOM, source?.maxZoom).length;
+  };
+
+  refreshStorage = async () => {
+    this.storageUsed = await getStorageUsage();
+  };
+
+  cancel = () => {
+    this.cancelRequested = true;
+  };
+
+  downloadCampus = async () => {
+    if (this.status === "downloading") return;
+    this.cancelRequested = false;
+    this.error = null;
+    this.tilesDone = 0;
+    this.bytesDownloaded = 0;
+    this.status = "downloading";
+
+    const source = await getTileTemplate();
+    if (!source) {
+      this.status = "error";
+      this.error = "Could not resolve the map tile source.";
+      return;
+    }
+
+    const coords = getCampusTileCoords(MIN_ZOOM, source.maxZoom);
+    this.tilesTotal = coords.length;
+
+    let index = 0;
+    const worker = async () => {
+      while (index < coords.length && !this.cancelRequested) {
+        const coord = coords[index++];
+        if (!coord) break;
+        try {
+          const res = await fetch(tileUrl(source.template, coord), {
+            mode: "cors",
+          });
+          if (res.ok) {
+            const len = Number(res.headers.get("content-length"));
+            if (Number.isFinite(len) && len > 0) {
+              this.bytesDownloaded += len;
+            } else {
+              const buf = await res.clone().arrayBuffer();
+              this.bytesDownloaded += buf.byteLength;
+            }
+          }
+        } catch {
+          // Skip individual tile failures; keep the overall download going.
+        }
+        this.tilesDone++;
+      }
+    };
+
+    try {
+      // Modest concurrency to fill the cache quickly without hammering the API.
+      await Promise.all(Array.from({ length: 6 }, () => worker()));
+      await this.refreshStorage();
+      this.status = this.cancelRequested ? "cancelled" : "done";
+    } catch (e) {
+      console.error("Offline map download failed:", e);
+      this.status = "error";
+      this.error = "Download failed. Check your connection and try again.";
+    }
+  };
+
+  clear = async () => {
+    await clearMapCaches();
+    this.tilesDone = 0;
+    this.bytesDownloaded = 0;
+    this.status = "idle";
+    await this.refreshStorage();
+  };
+}
+
 export const queryStore = new QueryStore();
+export const offlineStore = new OfflineStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
+export const mapViewStore = new MapViewStore();
 export const sidePanelStore = new SidePanelStore();
+export const floatingControlPanelStore = new FloatingControlPanelStore();
+export const mapToolsStore = new MapToolsStore();
 export const mapEditStore = new MapEditStore();
+export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
+
+// The bottom-right control cluster exposes three mutually exclusive map modes:
+// the editor, jeepney routes, and Makiling terrain. They each take over the
+// camera, pins, and map interactions, so only one may be active at a time.
+// "None active" stays valid. Activating one tears the others down via their
+// own existing disable/clear paths so per-mode side effects unwind cleanly.
+export type ExclusiveMapMode = "edit" | "routes" | "terrain";
+
+export function deactivateMapModesExcept(active: ExclusiveMapMode) {
+  if (active !== "edit") {
+    mapEditStore.close();
+    eventPlacementStore.cancel();
+  }
+  if (active !== "routes") {
+    jeepneyStore.clearRoute();
+  }
+  if (active !== "terrain") {
+    terrainStore.disable();
+  }
+}

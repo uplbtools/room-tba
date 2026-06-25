@@ -2,6 +2,7 @@
   import { queryStore, type QueryStoreState } from "../../../lib/store.svelte";
   import ArrowUpRight from "@lucide/svelte/icons/arrow-up-right";
   import BookText from "@lucide/svelte/icons/book-text";
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import DoorClosed from "@lucide/svelte/icons/door-closed";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Home from "@lucide/svelte/icons/home";
@@ -13,26 +14,20 @@
     value,
     category,
     id,
+    eventSlug,
   }: {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
     id?: number;
+    eventSlug?: string;
   } = $props();
-
-  const pattern = $derived(
-    new RegExp(`(${queryStore.inputValue.trim()})`, "gi"),
-  );
-  function highlightSearch(original: string, pattern: RegExp): string {
-    return queryStore.inputValue.length < 2
-      ? original
-      : original.replaceAll(pattern, (substr) => `<strong>${substr}</strong>`);
-  }
 
   function handleSuggestionClick() {
     queryStore.updateQuery({
       type: "result",
       category,
       value,
+      eventSlug,
     });
     queryStore.inputValue = value;
   }
@@ -52,37 +47,38 @@
       <BookText size={20} />
     {:else if type === "dorm"}
       <Home size={20} />
+    {:else if type === "event" || type === "events"}
+      <CalendarDays size={20} />
     {/if}
   </span>
 {/snippet}
 
 <button class="suggestion" onclick={handleSuggestionClick}>
   {@render icon(category)}
-  <div class="text">{@html highlightSearch(value, pattern)}</div>
+  <div class="text">{value}</div>
   {#if typeof id !== "undefined"}
     <X
       size={20}
-      style={"margin-left:auto"}
+      style="margin-left:auto"
       onclick={(e) => {
         e.stopImmediatePropagation();
         queryStore.removeRecentSearch(id);
       }}
     ></X>
   {:else}
-    <ArrowUpRight size={20} style={"margin-left:auto"} class="icon" />
+    <ArrowUpRight size={20} style="margin-left:auto" class="icon" />
   {/if}
 </button>
 
 <style>
   .suggestion {
     all: unset;
-    padding: 0.5rem 1rem;
+    padding: 0.4375rem 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
-    transition: background-color 0.2s;
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
     &:hover {
       background-color: hsl(0, 0%, 95%);
     }
@@ -105,7 +101,7 @@
   }
   @media (max-width: 425px) {
     .suggestion {
-      padding: 0.5rem;
+      padding: 0.4375rem 0.375rem;
     }
   }
 </style>

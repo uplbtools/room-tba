@@ -22,7 +22,7 @@ Use this checklist before merging the in-app editor foundation PR.
 
 ## Terrain Mode
 
-- The Makiling terrain control is visible with the other compact map controls.
+- The Makiling terrain control is reachable inside the Map tools flyout.
 - Terrain mode is off by default and does not request hosted elevation tiles before it is enabled.
 - Enabling terrain loads the hosted DEM layer, expands the map bounds toward Mt. Makiling, and moves to the Makiling terrain view.
 - Turning terrain off restores the flat campus map bounds and leaves building, dorm, jeepney, and location markers usable.
@@ -32,7 +32,9 @@ Use this checklist before merging the in-app editor foundation PR.
 - Failed or blocked terrain tile requests do not leave the control implying terrain is active.
 - MapTiler attribution/logo remains visible when terrain is active.
 - On a low-bandwidth or data-saver connection, terrain copy warns that hosted elevation tiles are online-only.
-- Mobile terrain controls are reachable and do not cover the side panel, editor toolbar, or attribution.
+- Terrain and jeepney controls live inside the Map tools flyout (collapsed by default) and do not cover the side panel, editor dock, or attribution.
+- Sync progress appears in the status bar only — no floating sync card on the map face.
+- PWA reload prompt appears as an action in the status bar.
 
 ## Building Type Filter
 
@@ -71,14 +73,20 @@ Use this checklist before merging the in-app editor foundation PR.
 
 ## Mobile Editor QA
 
+See also `docs/map-ui-mode-matrix.md` for chrome visibility by mode. Verify at **320px** and **768px**.
+
 - The app includes a mobile viewport with `initial-scale=1`.
 - The editor login modal fits on a narrow viewport without clipping.
-- Map controls are reachable and tappable on a narrow viewport.
-- The editor toolbar stays readable and does not cover the search/side panel.
-- Undo and Redo buttons remain large enough to tap comfortably.
+- Map tools flyout is reachable and tappable; mobile View section shows Pins + 2D/3D only (pinch handles camera on touch).
+- Desktop: rotate/tilt/compass controls sit on the map face below the layers button, not inside the flyout.
+- Location/editor FAB clears the drawer handle, status bar, and edit dock.
+- Search suggestions and event banner are hidden during map edit mode.
+- Search bar can collapse to a compact tab; expanding restores query, selection, and side-panel state without moving the map.
+- Mobile edit dock (Undo / Redo) sits above the status bar with 44px touch targets; no keyboard-hint copy.
 - Touch-dragging a pin repositions the pin without excessive accidental map panning.
-- Mobile users can identify draggable pins without relying on hover-only labels.
+- Only selected/active/saving pins show the Move affordance — not every pin at once.
 - Failed save and rollback feedback remains readable on a narrow viewport.
+- Zero events: campus events shelf/tab and “Browse campus events” remain reachable.
 
 ## Undo And Redo
 
