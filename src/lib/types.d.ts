@@ -80,11 +80,15 @@ type ClassMapValue = {
 type CollegeData = {
   id: number;
   collegeName: string;
+  version: number;
+  updatedAt: string;
 };
 
 type DivisionData = {
   id: number;
   divisionName: string;
+  version: number;
+  updatedAt: string;
 };
 
 type DormData = typeof dormsTable.$inferSelect;
