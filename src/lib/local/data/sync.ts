@@ -865,11 +865,13 @@ export async function syncAliasCache() {
       }[];
     };
     const rows = payload.data;
-    if (!Array.isArray(rows) || rows.length === 0) return;
+    if (!Array.isArray(rows)) return;
 
     const localDB = getDB();
     await localDB.waitReady;
     await localDB.exec(`DELETE FROM aliases`);
+    if (rows.length === 0) return;
+
     for (const row of rows) {
       await localDB.query(
         `

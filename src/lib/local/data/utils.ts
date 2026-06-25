@@ -450,11 +450,16 @@ export async function searchLocalAliases(
     await localDB.waitReady;
     const data = (await localDB.query(
       `
-      SELECT alias, building_name AS value, normalized_alias AS "normalizedAlias"
-      FROM aliases
-      WHERE building_name IS NOT NULL
-        AND (normalized_alias = $1 OR normalized_alias LIKE $2)
-      ORDER BY CASE WHEN normalized_alias = $1 THEN 0 ELSE 1 END, alias
+      SELECT
+        a.alias,
+        COALESCE(b.building_name, a.building_name) AS value,
+        a.normalized_alias AS "normalizedAlias"
+      FROM aliases AS a
+      LEFT JOIN buildings AS b
+        ON a.target_type = 'building' AND b.id = a.target_id
+      WHERE COALESCE(b.building_name, a.building_name) IS NOT NULL
+        AND (a.normalized_alias = $1 OR a.normalized_alias LIKE $2)
+      ORDER BY CASE WHEN a.normalized_alias = $1 THEN 0 ELSE 1 END, a.alias
       LIMIT 12
       `,
       [normalized, `${normalized}%`],
