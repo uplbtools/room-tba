@@ -848,3 +848,45 @@ export async function syncDivisionRooms(
     [id],
   );
 }
+
+/** Refresh the local alias cache from the server when online (#155 follow-up). */
+export async function syncAliasCache() {
+  try {
+    const response = await fetch("/api/aliases?export=all");
+    if (!response.ok) return;
+    const payload = (await response.json()) as {
+      data?: {
+        id: number;
+        alias: string;
+        normalizedAlias: string;
+        targetType: string;
+        targetId: number;
+        value: string | null;
+      }[];
+    };
+    const rows = payload.data;
+    if (!Array.isArray(rows) || rows.length === 0) return;
+
+    const localDB = getDB();
+    await localDB.waitReady;
+    await localDB.exec(`DELETE FROM aliases`);
+    for (const row of rows) {
+      await localDB.query(
+        `
+        INSERT INTO aliases (id, alias, normalized_alias, target_type, target_id, building_name)
+        VALUES ($1, $2, $3, $4, $5, $6);
+        `,
+        [
+          row.id,
+          row.alias,
+          row.normalizedAlias,
+          row.targetType,
+          row.targetId,
+          row.value,
+        ],
+      );
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}

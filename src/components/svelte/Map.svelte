@@ -2210,6 +2210,7 @@
     bearing={CAMPUS_DEFAULT_CAMERA.bearing}
     minZoom={13}
     class="map"
+    attributionControl={false}
   >
     {#if locationStore.coords}
       <Marker lngLat={locationStore.coords}>
@@ -2503,20 +2504,6 @@
       {/each}
     {/if}
   </MapLibre>
-  {#if terrainStore.enabled}
-    <a
-      class="maptiler-logo"
-      href="https://www.maptiler.com/"
-      target="_blank"
-      rel="noreferrer"
-      aria-label="MapTiler"
-    >
-      <img
-        src="https://api.maptiler.com/resources/logo.svg"
-        alt="MapTiler logo"
-      />
-    </a>
-  {/if}
 </div>
 
 <style>
@@ -2527,40 +2514,6 @@
     width: 100%;
     height: 100%;
     z-index: 0;
-  }
-
-  .maptiler-logo {
-    position: absolute;
-    bottom: 0.75rem;
-    left: calc(25.75rem + 1rem);
-    z-index: 5;
-    display: inline-flex;
-    align-items: center;
-    border-radius: 0.375rem;
-    background-color: rgba(255, 255, 255, 0.92);
-    padding: 0.25rem 0.375rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-    pointer-events: auto;
-  }
-
-  .maptiler-logo img {
-    display: block;
-    width: auto;
-    height: 1.25rem;
-  }
-
-  /* #207: keep the required basemap attribution above the bottom map chrome
-     (status bar + location FAB row) so it is never covered by app UI. */
-  :global(.app-layout .maplibregl-ctrl-bottom-right) {
-    z-index: 11;
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) +
-        var(--bottom-fab-inset, 3.75rem) + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom, 0px)
-    );
-  }
-  :global(.app-layout .maplibregl-ctrl-attrib) {
-    background-color: rgba(255, 255, 255, 0.85);
   }
 
   .map-edit-toolbar {
@@ -2806,17 +2759,6 @@
 
   .edit-dock-action.cancel:hover:not(:disabled) {
     background: #5f0d0f;
-  }
-
-  @media (max-width: 48rem) {
-    .maptiler-logo {
-      bottom: calc(
-        var(--status-bar-block-height, 2.75rem) +
-          env(safe-area-inset-bottom, 0px) + 0.375rem
-      );
-      left: 0.375rem;
-      z-index: 5;
-    }
   }
 
   .user-location-pin {

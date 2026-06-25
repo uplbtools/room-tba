@@ -31,6 +31,7 @@
     syncDivisions,
     syncDorms,
     syncEvents,
+    syncAliasCache,
   } from "../../lib/local/data/sync";
   import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
 
@@ -110,6 +111,7 @@
           .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
           .then(() => syncDorms(dormCheck, data.dorms ?? []))
           .then(() => syncEvents(eventCheck, data.events ?? []))
+          .then(() => syncAliasCache())
           .then(() => syncToastStore.endSync());
       });
   });

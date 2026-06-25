@@ -200,6 +200,15 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE divisions
     ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    CREATE TABLE IF NOT EXISTS "aliases" (
+    "id" integer PRIMARY KEY,
+    "alias" text NOT NULL,
+    "normalized_alias" text NOT NULL,
+    "target_type" varchar(16) NOT NULL,
+    "target_id" integer NOT NULL,
+    "building_name" text
+    );
     `);
   } catch (e) {
     console.error("An error occurred", e);
