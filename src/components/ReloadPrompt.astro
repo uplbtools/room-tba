@@ -17,8 +17,10 @@
     visibility: hidden;
     position: fixed;
     background-color: white;
-    right: 0.5rem;
-    bottom: 0.5rem;
+    /* Sit to the left of the right-side button column and clear of the
+       bottom status bar (which can wrap to two rows on mid-width screens). */
+    right: 4.5rem;
+    bottom: 5.5rem;
     padding: 1rem;
     border-radius: 1rem;
     z-index: 1;
@@ -64,6 +66,15 @@
     #pwa-close {
       background-color: hsl(5, 53%, 32%);
       color: white;
+    }
+  }
+
+  @media (max-width: 800px) {
+    #pwa-toast {
+      left: 0.5rem;
+      right: 4rem;
+      bottom: 5rem;
+      width: auto;
     }
   }
 </style>
