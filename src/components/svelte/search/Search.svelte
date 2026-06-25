@@ -3,9 +3,10 @@
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import SearchIcon from "@lucide/svelte/icons/search";
+  import Menu from "@lucide/svelte/icons/menu";
   import { getAppData } from "../../../lib/context";
   import { getMapChromeVisibility } from "../../../lib/map-chrome";
-  import { queryStore } from "../../../lib/store.svelte";
+  import { mapToolsStore, queryStore } from "../../../lib/store.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import { MediaQuery } from "svelte/reactivity";
@@ -128,241 +129,81 @@
 
 <div
   bind:this={containerEl}
-  class="search-filter-container"
-  class:search-collapsed={searchCollapsed}
-  class:search-focused={queryStore.type !== "result" &&
-    chrome.showSearchSuggestions}
-  class:edit-chrome-suppressed={!chrome.showSearchSuggestions}
+  class="search-root"
+  class:mobile-shell={mobile.current}
 >
-  {#if searchCollapsed}
+  {#if mobile.current}
     <button
-      class="search-tab"
+      class="map-menu-btn"
       type="button"
-      aria-expanded="false"
-      aria-controls="search-chrome"
-      aria-label={expandSearchLabel}
-      title="Expand search bar"
-      onclick={expandSearch}
+      aria-label="Map menu"
+      aria-expanded={mapToolsStore.open}
+      aria-controls="map-tools-panel"
+      title="Map menu"
+      onclick={() => mapToolsStore.toggle()}
     >
-      <SearchIcon size={18} aria-hidden="true" />
-      <span class="search-tab-label">Search</span>
-      {#if searchTabHint}
-        <span class="search-tab-context">{searchTabHint}</span>
-      {/if}
-      <span class="chrome-toggle-btn" aria-hidden="true">
-        <ChevronDown size={18} />
-      </span>
+      <Menu size={20} aria-hidden="true" />
     </button>
+  {/if}
+  <div
+    class="search-filter-container"
+    class:search-collapsed={searchCollapsed}
+    class:search-focused={queryStore.type !== "result" &&
+      chrome.showSearchSuggestions}
+    class:edit-chrome-suppressed={!chrome.showSearchSuggestions}
+  >
+    {#if searchCollapsed}
+      <button
+        class="search-tab"
+        type="button"
+        aria-expanded="false"
+        aria-controls="search-chrome"
+        aria-label={expandSearchLabel}
+        title="Expand search bar"
+        onclick={expandSearch}
+      >
+        <SearchIcon size={18} aria-hidden="true" />
+        <span class="search-tab-label">Search</span>
+        {#if searchTabHint}
+          <span class="search-tab-context">{searchTabHint}</span>
+        {/if}
+        <span class="chrome-toggle-btn" aria-hidden="true">
+          <ChevronDown size={18} />
+        </span>
+      </button>
 
-    {#if showIdleEventsChrome}
-      {#if !eventsCollapsed}
-        <div class="search-input-stack events-only-stack">
-          <section
-            id="persistent-campus-events"
-            class="events-shelf-panel events-shelf-panel-standalone"
-            aria-labelledby="persistent-campus-events-heading"
-          >
-            <EventCards
-              headingId="persistent-campus-events-heading"
-              showHeading={true}
-              showRetract={true}
-              oncollapse={toggleEventsShelf}
-            />
-          </section>
-        </div>
-      {:else}
-        <button
-          class="events-shelf-tab"
-          type="button"
-          aria-expanded="false"
-          aria-controls="persistent-campus-events"
-          aria-label="Expand campus events"
-          onclick={toggleEventsShelf}
-          disabled={!loaded}
-        >
-          <span class="events-shelf-tab-label">Campus events</span>
-          <span class="chrome-toggle-btn" aria-hidden="true">
-            <ChevronDown size={18} />
-          </span>
-        </button>
-      {/if}
-    {/if}
-
-    {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed}
-      <div class="event-banner-stack" role="status" aria-live="polite">
-        {#each activeEvents as activeEvent (activeEvent.slug)}
-          <button
-            class="event-banner"
-            type="button"
-            aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
-            onclick={() => openActiveEvent(activeEvent)}
-          >
-            <span class="event-banner-badge" aria-hidden="true">Live</span>
-            <span class="event-banner-copy">
-              <span class="event-banner-title">{activeEvent.title}</span>
-              <span class="event-banner-meta">Happening now</span>
-            </span>
-            <span class="event-banner-cta" aria-hidden="true">Open on map</span>
-          </button>
-        {/each}
-      </div>
-    {/if}
-  {:else}
-    <div id="search-chrome" class="search-chrome">
-      <div class="search-input-stack">
-        <div class="search-filter">
-          <div class="search-container">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="search-icon"
-              ><circle cx="11" cy="11" r="8" /><line
-                x1="21"
-                y1="21"
-                x2="16.65"
-                y2="16.65"
-              /></svg
+      {#if showIdleEventsChrome}
+        {#if !eventsCollapsed}
+          <div class="search-input-stack events-only-stack">
+            <section
+              id="persistent-campus-events"
+              class="events-shelf-panel events-shelf-panel-standalone"
+              aria-labelledby="persistent-campus-events-heading"
             >
-            <input
-              type="text"
-              id="search"
-              autocomplete="off"
-              value={queryStore.inputValue}
-              bind:this={searchElement}
-              class={typing ? "typing" : ""}
-              oninput={handleInput}
-              placeholder="Search room, building, dorm, event, division..."
-            />
-            {#if typing}
-              <div class="loading-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 200 200"
-                  width="20"
-                  height="20"
-                >
-                  <circle stroke-width="17" r="15" cx="40" cy="65"
-                    ><animate
-                      attributeName="cy"
-                      calcMode="spline"
-                      dur="0.8"
-                      values="65;135;65;"
-                      keySplines=".5 0 .5 1;.5 0 .5 1"
-                      repeatCount="indefinite"
-                      begin="-.4"
-                    ></animate></circle
-                  >
-                  <circle stroke-width="17" r="15" cx="100" cy="65"
-                    ><animate
-                      attributeName="cy"
-                      calcMode="spline"
-                      dur="0.8"
-                      values="65;135;65;"
-                      keySplines=".5 0 .5 1;.5 0 .5 1"
-                      repeatCount="indefinite"
-                      begin="-.2"
-                    ></animate></circle
-                  >
-                  <circle stroke-width="17" r="15" cx="160" cy="65"
-                    ><animate
-                      attributeName="cy"
-                      calcMode="spline"
-                      dur="0.8"
-                      values="65;135;65;"
-                      keySplines=".5 0 .5 1;.5 0 .5 1"
-                      repeatCount="indefinite"
-                      begin="0"
-                    ></animate></circle
-                  >
-                </svg>
-              </div>
-            {/if}
+              <EventCards
+                headingId="persistent-campus-events-heading"
+                showHeading={true}
+                showRetract={true}
+                oncollapse={toggleEventsShelf}
+              />
+            </section>
           </div>
-
-          <div class="search-buttons">
-            {#if queryStore.inputValue !== "" || queryStore.category !== null}
-              <button
-                onclick={closeSearchContext}
-                type="button"
-                class="clear-btn"
-                aria-label={clearSelectionLabel}
-                title={clearSelectionLabel}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  ><line x1="18" y1="6" x2="6" y2="18"></line><line
-                    x1="6"
-                    y1="6"
-                    x2="18"
-                    y2="18"
-                  ></line></svg
-                >
-              </button>
-            {/if}
-            {#if chrome.showSearchSuggestions}
-              <button
-                type="button"
-                class="chrome-toggle-btn"
-                aria-label="Collapse search bar"
-                title="Collapse search bar"
-                onclick={collapseSearch}
-              >
-                <ChevronUp size={18} aria-hidden="true" />
-              </button>
-            {/if}
-          </div>
-        </div>
-
-        {#if chrome.showSearchSuggestions && eventsCollapsed}
-          <Suggestions />
-        {/if}
-
-        {#if showIdleEventsChrome && !eventsCollapsed}
-          <section
-            id="persistent-campus-events"
-            class="events-shelf-panel"
-            aria-labelledby="persistent-campus-events-heading"
+        {:else}
+          <button
+            class="events-shelf-tab"
+            type="button"
+            aria-expanded="false"
+            aria-controls="persistent-campus-events"
+            aria-label="Expand campus events"
+            onclick={toggleEventsShelf}
+            disabled={!loaded}
           >
-            <EventCards
-              headingId="persistent-campus-events-heading"
-              showHeading={true}
-              showRetract={true}
-              oncollapse={toggleEventsShelf}
-            />
-          </section>
+            <span class="events-shelf-tab-label">Campus events</span>
+            <span class="chrome-toggle-btn" aria-hidden="true">
+              <ChevronDown size={18} />
+            </span>
+          </button>
         {/if}
-      </div>
-
-      {#if showIdleEventsChrome && eventsCollapsed}
-        <button
-          class="events-shelf-tab"
-          type="button"
-          aria-expanded="false"
-          aria-controls="persistent-campus-events"
-          aria-label="Expand campus events"
-          onclick={toggleEventsShelf}
-          disabled={!loaded}
-        >
-          <span class="events-shelf-tab-label">Campus events</span>
-          <span class="chrome-toggle-btn" aria-hidden="true">
-            <ChevronDown size={18} />
-          </span>
-        </button>
       {/if}
 
       {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed}
@@ -386,11 +227,247 @@
           {/each}
         </div>
       {/if}
-    </div>
-  {/if}
+    {:else}
+      <div id="search-chrome" class="search-chrome">
+        <div class="search-input-stack">
+          <div class="search-filter">
+            <div class="search-container">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="search-icon"
+                ><circle cx="11" cy="11" r="8" /><line
+                  x1="21"
+                  y1="21"
+                  x2="16.65"
+                  y2="16.65"
+                /></svg
+              >
+              <input
+                type="text"
+                id="search"
+                autocomplete="off"
+                value={queryStore.inputValue}
+                bind:this={searchElement}
+                class={typing ? "typing" : ""}
+                oninput={handleInput}
+                placeholder="Search room, building, dorm, event, division..."
+              />
+              {#if typing}
+                <div class="loading-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 200 200"
+                    width="20"
+                    height="20"
+                  >
+                    <circle stroke-width="17" r="15" cx="40" cy="65"
+                      ><animate
+                        attributeName="cy"
+                        calcMode="spline"
+                        dur="0.8"
+                        values="65;135;65;"
+                        keySplines=".5 0 .5 1;.5 0 .5 1"
+                        repeatCount="indefinite"
+                        begin="-.4"
+                      ></animate></circle
+                    >
+                    <circle stroke-width="17" r="15" cx="100" cy="65"
+                      ><animate
+                        attributeName="cy"
+                        calcMode="spline"
+                        dur="0.8"
+                        values="65;135;65;"
+                        keySplines=".5 0 .5 1;.5 0 .5 1"
+                        repeatCount="indefinite"
+                        begin="-.2"
+                      ></animate></circle
+                    >
+                    <circle stroke-width="17" r="15" cx="160" cy="65"
+                      ><animate
+                        attributeName="cy"
+                        calcMode="spline"
+                        dur="0.8"
+                        values="65;135;65;"
+                        keySplines=".5 0 .5 1;.5 0 .5 1"
+                        repeatCount="indefinite"
+                        begin="0"
+                      ></animate></circle
+                    >
+                  </svg>
+                </div>
+              {/if}
+            </div>
+
+            <div class="search-buttons">
+              {#if queryStore.inputValue !== "" || queryStore.category !== null}
+                <button
+                  onclick={closeSearchContext}
+                  type="button"
+                  class="clear-btn"
+                  aria-label={clearSelectionLabel}
+                  title={clearSelectionLabel}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                      x1="6"
+                      y1="6"
+                      x2="18"
+                      y2="18"
+                    ></line></svg
+                  >
+                </button>
+              {/if}
+              {#if chrome.showSearchSuggestions}
+                <button
+                  type="button"
+                  class="chrome-toggle-btn"
+                  aria-label="Collapse search bar"
+                  title="Collapse search bar"
+                  onclick={collapseSearch}
+                >
+                  <ChevronUp size={18} aria-hidden="true" />
+                </button>
+              {/if}
+            </div>
+          </div>
+
+          {#if chrome.showSearchSuggestions && eventsCollapsed}
+            <Suggestions />
+          {/if}
+
+          {#if showIdleEventsChrome && !eventsCollapsed}
+            <section
+              id="persistent-campus-events"
+              class="events-shelf-panel"
+              aria-labelledby="persistent-campus-events-heading"
+            >
+              <EventCards
+                headingId="persistent-campus-events-heading"
+                showHeading={true}
+                showRetract={true}
+                oncollapse={toggleEventsShelf}
+              />
+            </section>
+          {/if}
+        </div>
+
+        {#if showIdleEventsChrome && eventsCollapsed}
+          <button
+            class="events-shelf-tab"
+            type="button"
+            aria-expanded="false"
+            aria-controls="persistent-campus-events"
+            aria-label="Expand campus events"
+            onclick={toggleEventsShelf}
+            disabled={!loaded}
+          >
+            <span class="events-shelf-tab-label">Campus events</span>
+            <span class="chrome-toggle-btn" aria-hidden="true">
+              <ChevronDown size={18} />
+            </span>
+          </button>
+        {/if}
+
+        {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed}
+          <div class="event-banner-stack" role="status" aria-live="polite">
+            {#each activeEvents as activeEvent (activeEvent.slug)}
+              <button
+                class="event-banner"
+                type="button"
+                aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
+                onclick={() => openActiveEvent(activeEvent)}
+              >
+                <span class="event-banner-badge" aria-hidden="true">Live</span>
+                <span class="event-banner-copy">
+                  <span class="event-banner-title">{activeEvent.title}</span>
+                  <span class="event-banner-meta">Happening now</span>
+                </span>
+                <span class="event-banner-cta" aria-hidden="true"
+                  >Open on map</span
+                >
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
+  .search-root {
+    display: contents;
+  }
+
+  .search-root.mobile-shell {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    width: 100%;
+    padding-top: env(safe-area-inset-top, 0px);
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.14),
+      0 4px 14px hsla(0, 0%, 0%, 0.2),
+      0 10px 28px hsla(0, 0%, 0%, 0.12)
+    );
+    pointer-events: auto;
+  }
+
+  .map-menu-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--map-chrome-toggle-size, 2rem);
+    height: var(--map-chrome-toggle-size, 2rem);
+    margin: 0.4375rem 0 0.4375rem 0.625rem;
+    border: 1px solid #d8b9ba;
+    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
+    background: #fffafa;
+    color: #7b1113;
+    cursor: pointer;
+    transition:
+      background-color 0.16s,
+      border-color 0.16s;
+  }
+
+  .map-menu-btn:hover,
+  .map-menu-btn:focus-visible {
+    border-color: #c58f91;
+    background: #fdf3f3;
+  }
+
+  .map-menu-btn:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
+  }
+
+  .map-menu-btn[aria-expanded="true"] {
+    border-color: #7b1113;
+    background: #7b1113;
+    color: #fffafa;
+  }
+
   .search-filter-container {
     position: relative;
     display: grid;
@@ -682,6 +759,31 @@
   }
 
   @media screen and (max-width: 48rem) {
+    .search-root.mobile-shell .search-filter-container {
+      width: 100%;
+      max-width: none;
+      gap: 0;
+    }
+
+    .search-root.mobile-shell .search-tab,
+    .search-root.mobile-shell .search-input-stack,
+    .search-root.mobile-shell .events-shelf-tab,
+    .search-root.mobile-shell .events-shelf-panel-standalone {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .search-root.mobile-shell .search-tab,
+    .search-root.mobile-shell .search-filter {
+      border-bottom: 1px solid hsl(0, 0%, 92%);
+    }
+
+    .search-root.mobile-shell .events-shelf-tab,
+    .search-root.mobile-shell .event-banner-stack {
+      border-top: 1px solid hsl(0, 0%, 92%);
+    }
+
     .search-filter {
       pointer-events: auto;
     }

@@ -188,6 +188,10 @@
 
   @media screen and (max-width: 48rem) {
     .side-panel-wrapper {
+      gap: 0;
+    }
+
+    .side-panel-wrapper {
       position: relative;
       margin: 0;
       width: 100%;
@@ -211,12 +215,11 @@
       position: fixed;
       z-index: 12;
       top: var(--mobile-detail-sheet-top-inset);
-      right: var(--map-ui-padding);
+      right: 0;
       bottom: calc(
-        var(--status-bar-block-height) + var(--map-ui-padding) +
-          env(safe-area-inset-bottom, 0px)
+        var(--status-bar-block-height) + env(safe-area-inset-bottom, 0px)
       );
-      left: var(--map-ui-padding);
+      left: 0;
       width: auto;
       height: auto;
       max-height: none;

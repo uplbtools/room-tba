@@ -66,14 +66,14 @@
     <span>Status</span>
   </button>
 
-  <SyncStatus
-    inline
-    compact={mobile.current && !showFullSync}
-    expanded={showFullSync}
-  />
+  <div class="status-primary">
+    <SyncStatus
+      inline
+      compact={mobile.current && !showFullSync}
+      expanded={showFullSync}
+    />
 
-  <div class="status-offline">
-    <OfflineMaps />
+    <OfflineMaps compact={mobile.current && !isOpen} />
   </div>
 
   <div class="content-wrapper">
@@ -180,11 +180,17 @@
       padding: 0;
       cursor: pointer;
       min-width: 0;
-      flex: 1;
+      flex: 0 0 auto;
     }
 
-    .status-offline {
-      flex: 0 0 auto;
+    .status-primary {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      overflow: hidden;
+      position: relative;
     }
 
     .content-wrapper {
@@ -294,7 +300,82 @@
     }
   }
 
-  @media (max-width: 800px) {
+  @media (max-width: 48rem) {
+    div.status-bar {
+      width: 100%;
+      max-width: 100%;
+      min-height: 2.375rem;
+      padding: 0.3125rem 0.75rem;
+      padding-bottom: calc(0.3125rem + env(safe-area-inset-bottom, 0px));
+      gap: 0.5rem;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+
+      .status-toggle {
+        display: flex;
+        flex: 0 0 auto;
+        min-height: 0;
+      }
+
+      .status-primary {
+        flex: 1 1 auto;
+        gap: 0.625rem;
+      }
+
+      .content-wrapper {
+        display: none;
+        flex-basis: 100%;
+        flex-direction: column;
+        gap: 0.125rem;
+        padding-top: 0.25rem;
+        border-top: 1px solid #eee;
+        width: 100%;
+        overflow: visible;
+      }
+
+      &.is-open {
+        flex-wrap: wrap;
+      }
+
+      &.is-open .content-wrapper {
+        display: flex;
+      }
+
+      .directions-progress {
+        width: 100%;
+        justify-content: space-between;
+        flex-basis: auto;
+      }
+
+      .metadata {
+        width: 100%;
+        align-items: stretch;
+        flex-wrap: wrap;
+        gap: 0.125rem;
+
+        & > *:not(:last-child),
+        & > *:not(:first-child) {
+          border-right: none;
+          padding: 0;
+        }
+
+        .data-updated {
+          margin-left: 0;
+        }
+
+        .app-version {
+          justify-content: flex-start;
+        }
+      }
+    }
+  }
+
+  @media (min-width: 48.0625rem) and (max-width: 800px) {
     div.status-bar {
       width: 100%;
       max-width: calc(100% - var(--bottom-fab-inset, 0px));
@@ -321,39 +402,6 @@
 
       &.is-open .content-wrapper {
         display: flex;
-      }
-
-      .directions-progress {
-        width: 100%;
-        justify-content: space-between;
-        flex-basis: auto;
-      }
-
-      .metadata {
-        width: 100%;
-        align-items: stretch;
-        flex-wrap: wrap;
-        gap: 0.125rem;
-
-        & > *:not(:last-child),
-        & > *:not(:first-child) {
-          border-right: none;
-          padding: 0;
-        }
-
-        .status-offline {
-          width: 100%;
-          border-left: none;
-          padding-left: 0;
-        }
-
-        .data-updated {
-          margin-left: 0;
-        }
-
-        .app-version {
-          justify-content: flex-start;
-        }
       }
     }
   }

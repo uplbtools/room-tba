@@ -246,7 +246,21 @@
     font-weight: inherit;
   }
 
-  @media (max-width: 800px) {
+  @media (max-width: 48rem) {
+    .sync-status--inline {
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .sync-status--inline .sync-status-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  @media (min-width: 48.0625rem) and (max-width: 800px) {
     .sync-status--inline {
       width: 100%;
       margin-right: 0;

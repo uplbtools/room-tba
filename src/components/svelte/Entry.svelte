@@ -311,19 +311,62 @@
   }
 
   @media (max-width: 48rem) {
+    .app-layout {
+      --map-ui-padding: 0;
+      --map-tools-block-height: 0px;
+      --mobile-detail-sheet-top-inset: var(--search-block-height);
+    }
+
+    .inner-layer {
+      padding: 0;
+      gap: 0;
+    }
+
+    .bottom-band {
+      gap: 0;
+      align-items: stretch;
+      --bottom-fab-inset: 3.25rem;
+    }
+
     .top-right-map-stack {
-      top: calc(var(--search-block-height) + var(--map-ui-padding) + 2px);
-      padding-top: 2px;
-      padding-right: 2px;
+      position: fixed;
+      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      pointer-events: none;
+      z-index: 16;
+    }
+
+    .top-right-map-stack :global(.map-tools-trigger) {
+      display: none;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel) {
+      position: fixed;
+      top: var(--search-block-height);
+      right: 0;
+      left: 0;
+      width: auto;
+      max-width: none;
+      max-height: calc(
+        100dvh - var(--search-block-height) - var(--status-bar-block-height)
+      );
+      margin: 0;
+      border-radius: 0;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      pointer-events: auto;
     }
 
     /* When the drawer sheet is open, lift FABs above its peek handle */
     .location-fab-stack.drawer-lift {
       position: fixed;
-      right: var(--map-ui-padding);
-      bottom: calc(
-        100dvh - var(--mobile-detail-sheet-top-inset) + var(--map-ui-padding)
-      );
+      right: 0.5rem;
+      bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
     }
   }
 </style>

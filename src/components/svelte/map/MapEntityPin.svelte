@@ -10,6 +10,7 @@
     children: Snippet;
     editable?: boolean;
     editing?: boolean;
+    dimmed?: boolean;
     eventLinked?: boolean;
     hovered?: boolean;
     label: string;
@@ -26,6 +27,7 @@
     children,
     editable = false,
     editing = false,
+    dimmed = false,
     eventLinked = false,
     hovered = false,
     label,
@@ -61,6 +63,7 @@
   class:private={tone === "privateDorm"}
   class:editable={showExpandedPin}
   class:editing
+  class:dimmed
   class:event-linked={eventLinked}
   class:hovered
   class:saving={saveState === "saving"}
@@ -173,10 +176,34 @@
     outline-offset: 0.15rem;
   }
 
+  .map-entity-pin.dimmed {
+    opacity: 0.32;
+    filter: grayscale(0.35);
+  }
+
+  .map-entity-pin.dimmed .pin-label {
+    opacity: 0;
+  }
+
+  .map-entity-pin.dimmed:hover,
+  .map-entity-pin.dimmed.active {
+    opacity: 0.55;
+  }
+
+  .map-entity-pin.dimmed:hover .pin-label,
+  .map-entity-pin.dimmed.active .pin-label {
+    opacity: 1;
+  }
+
   .map-entity-pin.event-linked {
     box-shadow:
       0 0 0 0.22rem rgba(250, 204, 21, 0.8),
       0 2px 0.25rem rgba(0, 0, 0, 0.3);
+  }
+
+  .map-entity-pin.dimmed.event-linked {
+    opacity: 1;
+    filter: none;
   }
 
   .map-entity-pin:hover.building {

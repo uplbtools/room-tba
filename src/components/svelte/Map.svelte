@@ -32,11 +32,7 @@
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
   import type { EventData } from "../../lib/types";
-  import {
-    JEEPNEY_ROUTES,
-    type JeepneyRoute,
-    type JeepneyStop,
-  } from "../../constants/jeepney-routes";
+  import { resolveJeepneyRoutesForDisplay, type DisplayJeepneyRoute } from "../../lib/jeepney-routes-display";
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
@@ -54,7 +50,7 @@
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
   } from "../../constants/building-types";
-  import { getEventImage } from "../../lib/event-images";
+  import { getEventPoster } from "../../lib/entity-image-display";
   import {
     formatCampusDateShort,
     formatCampusTime,
@@ -69,7 +65,10 @@
   } from "../../lib/map-move-history";
   const data = getAppData();
   const appActions = getAppActions();
-  const { buildings, dorms, events, loaded } = $derived(data());
+  const { buildings, dorms, events, jeepneyRoutes, loaded } = $derived(data());
+  const jeepneyRoutesDisplay = $derived(
+    resolveJeepneyRoutesForDisplay(loaded ? jeepneyRoutes : null),
+  );
   const filteredBuildings = $derived.by(() => {
     if (!loaded) return [];
     return buildings.filter((building) =>
@@ -186,7 +185,7 @@
   const redoMove = $derived(redoStack.at(-1) ?? null);
 
   async function fetchRouteGeometry(
-    route: JeepneyRoute,
+    route: DisplayJeepneyRoute,
   ): Promise<LineString | null> {
     if (route.stops.length < 2) return null;
     const coordsParam = route.stops
@@ -1957,7 +1956,74 @@
     }
   });
 
-  let linkedEventBuildingIds = $derived.by(() => {
+  let selectedEventFocus = $derived.by(() => {
+    if (
+      !loaded ||
+      isMapEditEnabled() ||
+      queryStore.category !== "event" ||
+      queryStore.type !== "result"
+    ) {
+      return null;
+    }
+    return findSelectedEvent(events);
+  });
+
+  let selectedEventBuildingIds = $derived.by(() => {
+    const event = selectedEventFocus;
+    if (!event) return null;
+    return new Set(
+      event.locations
+        .filter(
+          (location) =>
+            location.anchorType === "building" && location.buildingId !== null,
+        )
+        .map((location) => location.buildingId as number),
+    );
+  });
+
+  let selectedEventDormIds = $derived.by(() => {
+    const event = selectedEventFocus;
+    if (!event) return null;
+    return new Set(
+      event.locations
+        .filter(
+          (location) =>
+            location.anchorType === "dorm" && location.dormId !== null,
+        )
+        .map((location) => location.dormId as number),
+    );
+  });
+
+  const eventPlaceFocusActive = $derived(selectedEventFocus !== null);
+
+  function isBuildingDimmedForEventFocus(buildingId: number): boolean {
+    if (!eventPlaceFocusActive || selectedEventBuildingIds === null)
+      return false;
+    if (selectedEventBuildingIds.size === 0) return true;
+    return !selectedEventBuildingIds.has(buildingId);
+  }
+
+  function isDormDimmedForEventFocus(dormId: number): boolean {
+    if (!eventPlaceFocusActive || selectedEventDormIds === null) return false;
+    if (selectedEventDormIds.size === 0) return true;
+    return !selectedEventDormIds.has(dormId);
+  }
+
+  function isBuildingEventLinked(buildingId: number): boolean {
+    if (selectedEventBuildingIds !== null) {
+      return selectedEventBuildingIds.has(buildingId);
+    }
+    return linkedActiveEventBuildingIds.has(buildingId);
+  }
+
+  function isDormEventLinked(dormId: number): boolean {
+    if (selectedEventDormIds !== null) {
+      return selectedEventDormIds.has(dormId);
+    }
+    return linkedActiveEventDormIds.has(dormId);
+  }
+
+  let linkedActiveEventBuildingIds = $derived.by(() => {
     if (!loaded) return new Set<number>();
     return new Set(
       events
@@ -1978,7 +2044,7 @@
     return null;
   });
 
-  let linkedEventDormIds = $derived.by(() => {
+  let linkedActiveEventDormIds = $derived.by(() => {
     if (!loaded) return new Set<number>();
     return new Set(
       events
@@ -2347,7 +2413,8 @@
               active={activeBuildingName === building.buildingName}
               editable={isMapEditEnabled()}
               editing={selectedEditKey === editKey}
-              eventLinked={linkedEventBuildingIds.has(building.id)}
+              dimmed={isBuildingDimmedForEventFocus(building.id)}
+              eventLinked={isBuildingEventLinked(building.id)}
               hovered={hoveredEditKey === editKey}
               saveState={savingEditKey === editKey
                 ? "saving"
@@ -2403,7 +2470,8 @@
               label={dorm.dormName}
               tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
               active={activeDormName === dorm.dormName}
-              eventLinked={linkedEventDormIds.has(dorm.id)}
+              dimmed={isDormDimmedForEventFocus(dorm.id)}
+              eventLinked={isDormEventLinked(dorm.id)}
               editable={isMapEditEnabled()}
               editing={selectedEditKey === editKey}
               hovered={hoveredEditKey === editKey}
