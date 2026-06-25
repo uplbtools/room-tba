@@ -9,7 +9,7 @@
   const throttleSearch = throttle((searchInput: string) => {
     queryStore.inputValue = searchInput;
     queryStore.setType("query");
-  }, 500);
+  }, 1500);
 
   function handleInput(
     event: Event & { currentTarget: EventTarget & HTMLInputElement },

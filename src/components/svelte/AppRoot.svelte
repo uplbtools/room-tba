@@ -100,6 +100,7 @@
             .then(() => syncColleges(collegeCheck, data.colleges ?? []))
             .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
             .then(() => syncDorms(dormCheck, data.dorms ?? []))
+            .then(() => syncToastStore.endSync())
       });
   });
 

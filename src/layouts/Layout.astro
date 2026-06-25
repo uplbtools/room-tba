@@ -68,9 +68,6 @@ const imageUrl = absoluteUrl(imagePath);
     }
     {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap" rel="stylesheet" />
 
     <style is:global>
       * {
@@ -82,11 +79,8 @@ const imageUrl = absoluteUrl(imagePath);
           "Segoe UI",
           Roboto,
           sans-serif;
+        font-variation-settings: "opsz", 32;
       }
-
-      :root {
-      --font-display: 'Cormorant Garamond', serif;
-    }
 
       button {
         all: unset;

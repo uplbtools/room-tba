@@ -14,6 +14,7 @@
   import Toast from "./Toast.svelte";
   import type { RecentSearch } from "../../lib/types";
   import { isRecentSearch } from "../../lib/locStorage";
+  import SyncToast from "./SyncToast.svelte";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -73,9 +74,6 @@
 <div class="app-layout">
   <Map />
   <div class="ui-layer">
-    <!-- <header class="top-header">
-      <h2>Room TBA</h2>
-    </header> -->
     <div class="inner-layer">
       <SidePanel />
       <StatusBar />
@@ -90,6 +88,7 @@
   </div>
   <Modal />
 </div>
+<SyncToast />
 
 <style>
   .app-layout {

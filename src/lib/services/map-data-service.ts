@@ -1,4 +1,4 @@
-import { eq, like } from "drizzle-orm";
+import { eq, like, sql } from "drizzle-orm";
 import {
   buildingsTable,
   classesTable,
@@ -80,7 +80,7 @@ export async function getRoomByCode(code: string) {
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
       .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
       .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(eq(roomsTable.roomCode, code));
+      .where(sql`upper(${roomsTable.roomCode}) = ${code}`);
     if (data.length === 0 || typeof data[0] === "undefined") return null;
     return data[0];
   } catch (e) {
