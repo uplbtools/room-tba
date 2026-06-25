@@ -30,9 +30,18 @@
   const { initialSearch, suppressLandingModal = false }: Props = $props();
   const appData = getAppData();
   const { events, loaded } = $derived(appData());
-  const activeEvent = $derived(
-    loaded ? (events.find((event) => event.status === "active") ?? null) : null,
+  const activeEvents = $derived(
+    loaded ? events.filter((event) => event.status === "active") : [],
   );
+
+  function openActiveEvent(event: (typeof activeEvents)[number]) {
+    queryStore.updateQuery({
+      category: "event",
+      type: "result",
+      value: event.title,
+      eventSlug: event.slug,
+    });
+  }
 
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
@@ -91,25 +100,24 @@
 <div class="app-layout">
   <Map />
   <div class="ui-layer">
-    {#if activeEvent && queryStore.category !== "event" && queryStore.category !== "events"}
-      <button
-        class="event-banner"
-        type="button"
-        aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
-        onclick={() =>
-          queryStore.updateQuery({
-            category: "event",
-            type: "result",
-            value: activeEvent.title,
-            eventSlug: activeEvent.slug,
-          })}
-      >
-        <span class="event-banner-copy">
-          <span class="event-banner-label">Happening now</span>
-          <span class="event-banner-title">{activeEvent.title}</span>
-        </span>
-        <span class="event-banner-cta" aria-hidden="true">See on map ›</span>
-      </button>
+    {#if activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events"}
+      <div class="event-banner-stack" role="status" aria-live="polite">
+        {#each activeEvents as activeEvent (activeEvent.slug)}
+          <button
+            class="event-banner"
+            type="button"
+            aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
+            onclick={() => openActiveEvent(activeEvent)}
+          >
+            <span class="event-banner-copy">
+              <span class="event-banner-label">Happening now</span>
+              <span class="event-banner-title">{activeEvent.title}</span>
+            </span>
+            <span class="event-banner-cta" aria-hidden="true">See on map ›</span
+            >
+          </button>
+        {/each}
+      </div>
     {/if}
     <div class="top-right-map-stack" aria-label="Map tools">
       <MapControls />
@@ -173,16 +181,24 @@
     width: 100%;
   }
 
-  .event-banner {
+  .event-banner-stack {
     position: absolute;
     top: 0.75rem;
     left: 50%;
     z-index: 12;
     translate: -50% 0;
     display: flex;
+    width: min(32rem, calc(100% - 1rem));
+    flex-direction: column;
+    gap: 0.45rem;
+    pointer-events: none;
+  }
+
+  .event-banner {
+    display: flex;
     align-items: center;
     gap: 0.625rem;
-    max-width: min(32rem, calc(100% - 1rem));
+    width: 100%;
     border: 1px solid #d8b9ba;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);

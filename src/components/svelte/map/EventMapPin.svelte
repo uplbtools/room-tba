@@ -49,6 +49,7 @@
   class:anchored
   class:expanded
   class:group={isGroup}
+  class:past={status === "past"}
   class:upcoming={status === "upcoming"}
   {title}
   aria-label={ariaLabel}
@@ -130,6 +131,13 @@
     border-color: #d8b9ba;
     background: #f8fafc;
     color: #7b1113;
+  }
+
+  .event-map-pin.past {
+    border-color: #d4d4d8;
+    background: #f4f4f5;
+    color: #71717a;
+    opacity: 0.92;
   }
 
   .event-map-pin.active,

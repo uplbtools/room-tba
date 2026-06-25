@@ -144,7 +144,10 @@
       <div class="event-list">
         {#each visibleEvents as event (event.id)}
           {@const image = getEventImage(event.slug)}
-          {@const primaryLocation = event.locations[0] ?? null}
+          {@const primaryLocation =
+            event.locations.find((location) => location.isPrimary) ??
+            event.locations[0] ??
+            null}
           {@const shareUrl = getEventShareUrl(event.slug)}
           <div class="event-card">
             <button

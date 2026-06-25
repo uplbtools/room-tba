@@ -11,7 +11,7 @@
   const throttleSearch = throttle((searchInput: string) => {
     queryStore.inputValue = searchInput;
     queryStore.setType("query");
-  }, 1500);
+  }, 400);
 
   function handleInput(
     event: Event & { currentTarget: EventTarget & HTMLInputElement },
@@ -61,7 +61,7 @@
         bind:this={searchElement}
         class={typing ? "typing" : ""}
         oninput={handleInput}
-        placeholder="Search room, building, dorm, division..."
+        placeholder="Search room, building, dorm, event, division..."
       />
       {#if typing}
         <div class="loading-icon">
