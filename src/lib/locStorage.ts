@@ -10,6 +10,7 @@ const RECENT_SEARCH_CATEGORIES = new Set([
   "class",
   "dorm",
   "event",
+  "events",
 ]);
 
 export const isRecentSearch = (

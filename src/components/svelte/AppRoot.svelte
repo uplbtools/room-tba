@@ -65,6 +65,7 @@
           category: metadata.initialSearch.category,
           type: "result",
           value: metadata.initialSearch.value,
+          eventSlug: metadata.initialSearch.eventSlug,
         }
       : {
           category: null,
