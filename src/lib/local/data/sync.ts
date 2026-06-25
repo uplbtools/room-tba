@@ -118,6 +118,9 @@ export async function syncBuildings(
   remoteBuildings: BuildingData[],
 ) {
   if (checker.valid) return;
+  // Offline (sync endpoint unreachable): keep the local cache rather than
+  // overwriting it with empty remote data or resetting rooms_fetched (#169).
+  if (checker.newKey === null) return;
   const localDB = getDB();
 
   await localDB.waitReady;
@@ -163,6 +166,9 @@ export async function syncColleges(
   remoteColleges: CollegeData[],
 ) {
   if (checker.valid) return;
+  // Offline (sync endpoint unreachable): keep the local cache rather than
+  // overwriting it with empty remote data or empty sync keys (#169).
+  if (checker.newKey === null) return;
 
   const localDB = getDB();
 
@@ -197,6 +203,9 @@ export async function syncDivisions(
   remoteDivisions: DivisionData[],
 ) {
   if (checker.valid) return;
+  // Offline (sync endpoint unreachable): keep the local cache rather than
+  // overwriting it with empty remote data or empty sync keys (#169).
+  if (checker.newKey === null) return;
 
   const localDB = getDB();
 
@@ -235,6 +244,9 @@ export async function syncDorms(
   remoteDorms: DormData[],
 ) {
   if (checker.valid) return;
+  // Offline (sync endpoint unreachable): keep the local cache rather than
+  // overwriting it with empty remote data or empty sync keys (#169).
+  if (checker.newKey === null) return;
 
   const localDB = getDB();
 
@@ -300,6 +312,9 @@ export async function syncEvents(
   remoteEvents: EventData[],
 ) {
   if (checker.valid) return;
+  // Offline (sync endpoint unreachable): keep the local cache rather than
+  // overwriting it with empty remote data or empty sync keys (#169).
+  if (checker.newKey === null) return;
 
   const localDB = getDB();
   await localDB.waitReady;
@@ -497,31 +512,34 @@ export async function getLocalBuildingRooms(id: number) {
   }
 }
 
+/** True when the stored rooms sync key matches the live one (online + fresh). */
+function roomsSyncKeyMatches(remoteSyncKey: string | null): boolean {
+  const syncKeyLs = getSyncKeysFromLs();
+  const roomSyncKey = syncKeyLs?.["rooms"];
+  return (
+    typeof roomSyncKey === "string" &&
+    remoteSyncKey !== null &&
+    roomSyncKey === remoteSyncKey
+  );
+}
+
 export async function checkLocalBuildingRoom(id: number) {
   try {
     const remoteSyncKey = await getSyncKey("rooms");
-    const syncKeyLs = getSyncKeysFromLs();
-    if (syncKeyLs === null) {
-      await resetBuildingsSyncStatus();
-      return false;
-    }
-
-    const roomSyncKey = syncKeyLs["rooms"];
-    if (
-      !(
-        typeof roomSyncKey === "string" &&
-        remoteSyncKey !== null &&
-        remoteSyncKey === roomSyncKey
-      )
-    ) {
-      await resetBuildingsSyncStatus();
-      return false;
-    }
-
     const buildingSyncStatus = await localBuildingSyncStatus(id);
-    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+    const roomsFetched = !!buildingSyncStatus?.roomsFetched;
 
-    return true;
+    // Offline / sync endpoint unreachable: trust the local cache if present
+    // instead of wiping rooms_fetched and forcing a network-only refetch (#169).
+    if (remoteSyncKey === null) return roomsFetched;
+
+    // Online and the rooms sync key changed: local rooms are stale, refetch.
+    if (!roomsSyncKeyMatches(remoteSyncKey)) {
+      await resetBuildingsSyncStatus();
+      return false;
+    }
+
+    return roomsFetched;
   } catch (e) {
     console.error(e);
     return false;
@@ -534,6 +552,9 @@ export async function syncBuildingRooms(
   rooms: RoomData[],
 ) {
   if (validSync) return;
+  // Offline/failed fetch returns no rooms — keep the existing cache and the
+  // rooms_fetched flag untouched instead of marking an empty fetch as done.
+  if (!rooms || rooms.length === 0) return;
   const localDB = getDB();
   for (const room of rooms) {
     try {
@@ -637,28 +658,18 @@ export async function getLocalCollegeRooms(id: number) {
 export async function checkLocalCollegeRoom(id: number) {
   try {
     const remoteSyncKey = await getSyncKey("rooms");
-    const syncKeyLs = getSyncKeysFromLs();
-    if (syncKeyLs === null) {
-      await resetCollegesSyncStatus();
-      return false;
-    }
-
-    const roomSyncKey = syncKeyLs["rooms"];
-    if (
-      !(
-        typeof roomSyncKey === "string" &&
-        remoteSyncKey !== null &&
-        remoteSyncKey === roomSyncKey
-      )
-    ) {
-      await resetCollegesSyncStatus();
-      return false;
-    }
-
     const collegeSyncStatus = await localCollegeSyncStatus(id);
-    if (!collegeSyncStatus || !collegeSyncStatus.roomsFetched) return false;
+    const roomsFetched = !!collegeSyncStatus?.roomsFetched;
 
-    return true;
+    // Offline: trust local cache instead of wiping it (#169).
+    if (remoteSyncKey === null) return roomsFetched;
+
+    if (!roomsSyncKeyMatches(remoteSyncKey)) {
+      await resetCollegesSyncStatus();
+      return false;
+    }
+
+    return roomsFetched;
   } catch (e) {
     console.error(e);
     return false;
@@ -671,6 +682,7 @@ export async function syncCollegeRooms(
   rooms: RoomData[],
 ) {
   if (validSync) return;
+  if (!rooms || rooms.length === 0) return;
   const localDB = getDB();
   for (const room of rooms) {
     try {
@@ -774,28 +786,18 @@ export async function getLocalDivisionRooms(id: number) {
 export async function checkLocalDivisionRoom(id: number) {
   try {
     const remoteSyncKey = await getSyncKey("rooms");
-    const syncKeyLs = getSyncKeysFromLs();
-    if (syncKeyLs === null) {
-      await resetDivisionsSyncStatus();
-      return false;
-    }
-
-    const roomSyncKey = syncKeyLs["rooms"];
-    if (
-      !(
-        typeof roomSyncKey === "string" &&
-        remoteSyncKey !== null &&
-        remoteSyncKey === roomSyncKey
-      )
-    ) {
-      await resetDivisionsSyncStatus();
-      return false;
-    }
-
     const divisionSyncStatus = await localDivisionSyncStatus(id);
-    if (!divisionSyncStatus || !divisionSyncStatus.roomsFetched) return false;
+    const roomsFetched = !!divisionSyncStatus?.roomsFetched;
 
-    return true;
+    // Offline: trust local cache instead of wiping it (#169).
+    if (remoteSyncKey === null) return roomsFetched;
+
+    if (!roomsSyncKeyMatches(remoteSyncKey)) {
+      await resetDivisionsSyncStatus();
+      return false;
+    }
+
+    return roomsFetched;
   } catch (e) {
     console.error(e);
     return false;
@@ -808,6 +810,7 @@ export async function syncDivisionRooms(
   rooms: RoomData[],
 ) {
   if (validSync) return;
+  if (!rooms || rooms.length === 0) return;
   const localDB = getDB();
   for (const room of rooms) {
     try {
