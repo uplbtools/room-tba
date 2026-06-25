@@ -98,7 +98,9 @@
     class="control view-toggle"
     onclick={toggleView}
     title={is2D ? "Switch to 3D tilted view" : "Switch to 2D top-down view"}
-    aria-label={is2D ? "Switch to 3D tilted view" : "Switch to 2D top-down view"}
+    aria-label={is2D
+      ? "Switch to 3D tilted view"
+      : "Switch to 2D top-down view"}
     aria-pressed={is2D}
   >
     {#if is2D}
