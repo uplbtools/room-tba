@@ -33,6 +33,17 @@ export const eventLocationAnchorEnum = pgEnum("event_location_anchor", [
   "dorm",
   "custom",
 ]);
+export const adminRoleEnum = pgEnum("admin_role", [
+  "admin",
+  "editor",
+  "contributor",
+]);
+export const editProposalStatusEnum = pgEnum("edit_proposal_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "needs_changes",
+]);
 
 export const dormsTable = pgTable("dorms", {
   id: integer().primaryKey().generatedByDefaultAsIdentity({
@@ -210,6 +221,57 @@ export const updateTable = pgTable("update", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   tableName: varchar("table_name", { length: 20 }),
   syncKey: uuid("sync_key").defaultRandom(),
+});
+
+export const adminUsersTable = pgTable(
+  "admin_users",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "admin_users_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    username: varchar({ length: 64 }).notNull(),
+    displayName: varchar("display_name", { length: 100 }),
+    passwordHash: text("password_hash").notNull(),
+    role: adminRoleEnum().default("editor").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [uniqueIndex("admin_users_username_unique").on(table.username)],
+);
+
+export const editProposalsTable = pgTable("edit_proposals", {
+  id: integer().primaryKey().generatedByDefaultAsIdentity({
+    name: "edit_proposals_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 2147483647,
+    cache: 1,
+  }),
+  entityType: varchar("entity_type", { length: 32 }).notNull(),
+  entityId: integer("entity_id").notNull(),
+  status: editProposalStatusEnum().default("pending").notNull(),
+  proposedPatch: jsonb("proposed_patch").notNull(),
+  baseVersion: integer("base_version").notNull(),
+  submitterName: varchar("submitter_name", { length: 100 }).notNull(),
+  submitterUserId: integer("submitter_user_id").references(
+    () => adminUsersTable.id,
+  ),
+  adminNote: text("admin_note"),
+  reviewedBy: varchar("reviewed_by", { length: 100 }),
+  reviewedAt: timestamp("reviewed_at", { mode: "string" }),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
 export const editorHistoryTable = pgTable("editor_history", {
