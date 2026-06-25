@@ -32,6 +32,10 @@ export type DBData = Omit<AppContextData, "loaded">;
 export type AppActions = {
   replaceEvent: (event: EventData) => void;
   removeEvent: (eventId: number) => void;
+  replaceBuilding: (building: BuildingData) => void;
+  replaceDorm: (dorm: DormData) => void;
+  replaceCollege: (college: CollegeData) => void;
+  replaceDivision: (division: DivisionData) => void;
 };
 
 export const [getAppData, setAppData] = createContext<() => AppContextData>();

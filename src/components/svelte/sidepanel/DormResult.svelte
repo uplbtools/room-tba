@@ -1,6 +1,11 @@
 <script lang="ts">
-  import { queryStore, locationStore } from "../../../lib/store.svelte";
-  import { getAppData } from "../../../lib/context";
+  import {
+    adminAuthStore,
+    mapEditStore,
+    queryStore,
+    locationStore,
+  } from "../../../lib/store.svelte";
+  import { getAppActions, getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
@@ -11,13 +16,73 @@
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
+  import type { DormData } from "../../../lib/types";
+
+  type DormEditableField =
+    | "dormName"
+    | "shortName"
+    | "description"
+    | "gender"
+    | "isUpManaged"
+    | "capacity"
+    | "priceRange"
+    | "managingOffice"
+    | "contactEmail"
+    | "contactPhone"
+    | "amenities"
+    | "facebookLink"
+    | "osmLink";
+
+  type DormPatchResponse = {
+    success?: boolean;
+    dorm?: DormData;
+    latest?: DormData | null;
+    error?: string;
+  };
 
   const appData = getAppData();
+  const appActions = getAppActions();
   const { dorms } = $derived(appData());
 
   const dorm = $derived(
     dorms?.find((d) => d.dormName === queryStore.queryValue),
   );
+
+  let editing = $state(false);
+  let draftDormId = $state<number | null>(null);
+  let draftVersion = $state<number | null>(null);
+  let nameDraft = $state("");
+  let shortNameDraft = $state("");
+  let descriptionDraft = $state("");
+  let genderDraft = $state("");
+  let isUpManagedDraft = $state(true);
+  let capacityDraft = $state("");
+  let priceRangeDraft = $state("");
+  let managingOfficeDraft = $state("");
+  let contactEmailDraft = $state("");
+  let contactPhoneDraft = $state("");
+  let amenitiesDraft = $state("");
+  let facebookLinkDraft = $state("");
+  let osmLinkDraft = $state("");
+  let savingField = $state<DormEditableField | null>(null);
+  let savedField = $state<DormEditableField | null>(null);
+  let fieldError = $state<string | null>(null);
+
+  const fieldLabels: Record<DormEditableField, string> = {
+    dormName: "Dorm name",
+    shortName: "Short name",
+    description: "Description",
+    gender: "Gender policy",
+    isUpManaged: "UP-managed status",
+    capacity: "Capacity",
+    priceRange: "Price range",
+    managingOffice: "Managing office",
+    contactEmail: "Contact email",
+    contactPhone: "Contact phones",
+    amenities: "Amenities",
+    facebookLink: "Facebook link",
+    osmLink: "OpenStreetMap link",
+  };
 
   const amenities = $derived<() => string[]>(() => {
     if (!dorm?.amenities) return [];
@@ -56,6 +121,204 @@
     const first = dorm?.dormName.split(/\s+/)[0].toLowerCase();
     return dorm.shortName.toLowerCase() !== first;
   });
+
+  function linesToList(text: string) {
+    return text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+
+  function listToLines(items: string[] | null | undefined) {
+    return (items ?? []).join("\n");
+  }
+
+  function arraysEqual(a: string[], b: string[]) {
+    if (a.length !== b.length) return false;
+    return a.every((value, index) => value === b[index]);
+  }
+
+  $effect(() => {
+    const current = dorm;
+    if (!current) return;
+    if (draftDormId === current.id && draftVersion === current.version) {
+      return;
+    }
+
+    draftDormId = current.id;
+    draftVersion = current.version;
+    nameDraft = current.dormName;
+    shortNameDraft = current.shortName ?? "";
+    descriptionDraft = current.description ?? "";
+    genderDraft = current.gender;
+    isUpManagedDraft = current.isUpManaged ?? true;
+    capacityDraft =
+      current.capacity === null || current.capacity === undefined
+        ? ""
+        : String(current.capacity);
+    priceRangeDraft = current.priceRange ?? "";
+    managingOfficeDraft = current.managingOffice ?? "";
+    contactEmailDraft = current.contactEmail ?? "";
+    contactPhoneDraft = listToLines(current.contactPhone);
+    amenitiesDraft = listToLines(current.amenities);
+    facebookLinkDraft = current.facebookLink ?? "";
+    osmLinkDraft = current.osmLink ?? "";
+    savedField = null;
+    fieldError = null;
+  });
+
+  function fieldLabel(field: DormEditableField) {
+    return fieldLabels[field];
+  }
+
+  function syncDormFromServer(updated: DormData) {
+    appActions.replaceDorm(updated);
+    queryStore.hydrateQuery({
+      type: "result",
+      category: "dorm",
+      value: updated.dormName,
+    });
+  }
+
+  function fieldIsUnchanged(field: DormEditableField, current: DormData) {
+    switch (field) {
+      case "dormName":
+        return nameDraft.trim() === current.dormName;
+      case "shortName":
+        return shortNameDraft.trim() === (current.shortName ?? "");
+      case "description":
+        return descriptionDraft.trim() === (current.description ?? "");
+      case "gender":
+        return genderDraft === current.gender;
+      case "isUpManaged":
+        return isUpManagedDraft === (current.isUpManaged ?? true);
+      case "capacity": {
+        const parsed =
+          capacityDraft.trim() === "" ? null : Number(capacityDraft);
+        return parsed === current.capacity;
+      }
+      case "priceRange":
+        return priceRangeDraft.trim() === (current.priceRange ?? "");
+      case "managingOffice":
+        return managingOfficeDraft.trim() === (current.managingOffice ?? "");
+      case "contactEmail":
+        return contactEmailDraft.trim() === (current.contactEmail ?? "");
+      case "contactPhone":
+        return arraysEqual(
+          linesToList(contactPhoneDraft),
+          current.contactPhone ?? [],
+        );
+      case "amenities":
+        return arraysEqual(
+          linesToList(amenitiesDraft),
+          current.amenities ?? [],
+        );
+      case "facebookLink":
+        return facebookLinkDraft.trim() === (current.facebookLink ?? "");
+      case "osmLink":
+        return osmLinkDraft.trim() === (current.osmLink ?? "");
+    }
+  }
+
+  async function saveField(field: DormEditableField) {
+    const current = dorm;
+    if (!current) return;
+
+    const body: {
+      version: number;
+      dormName?: string;
+      shortName?: string | null;
+      description?: string | null;
+      gender?: string;
+      isUpManaged?: boolean;
+      capacity?: number | null;
+      priceRange?: string | null;
+      managingOffice?: string | null;
+      contactEmail?: string | null;
+      contactPhone?: string[];
+      amenities?: string[];
+      facebookLink?: string | null;
+      osmLink?: string | null;
+    } = { version: current.version };
+
+    if (field === "dormName") {
+      const trimmedName = nameDraft.trim();
+      if (trimmedName.length === 0) {
+        fieldError = `${current.dormName} name cannot be empty.`;
+        return;
+      }
+      body.dormName = trimmedName;
+    } else if (field === "shortName") {
+      body.shortName = shortNameDraft.trim() || null;
+    } else if (field === "description") {
+      body.description = descriptionDraft.trim() || null;
+    } else if (field === "gender") {
+      body.gender = genderDraft;
+    } else if (field === "isUpManaged") {
+      body.isUpManaged = isUpManagedDraft;
+    } else if (field === "capacity") {
+      if (capacityDraft.trim() === "") {
+        body.capacity = null;
+      } else {
+        const parsed = Number(capacityDraft);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+          fieldError = `${current.dormName} capacity must be a non-negative number.`;
+          return;
+        }
+        body.capacity = parsed;
+      }
+    } else if (field === "priceRange") {
+      body.priceRange = priceRangeDraft.trim() || null;
+    } else if (field === "managingOffice") {
+      body.managingOffice = managingOfficeDraft.trim() || null;
+    } else if (field === "contactEmail") {
+      body.contactEmail = contactEmailDraft.trim() || null;
+    } else if (field === "contactPhone") {
+      body.contactPhone = linesToList(contactPhoneDraft);
+    } else if (field === "amenities") {
+      body.amenities = linesToList(amenitiesDraft);
+    } else if (field === "facebookLink") {
+      body.facebookLink = facebookLinkDraft.trim() || null;
+    } else if (field === "osmLink") {
+      body.osmLink = osmLinkDraft.trim() || null;
+    }
+
+    savingField = field;
+    savedField = null;
+    fieldError = null;
+
+    try {
+      const res = await fetch(`/api/admin/dorms/${current.id}`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json().catch(() => ({}))) as DormPatchResponse;
+
+      if (!res.ok) {
+        if (res.status === 409 && data.latest) {
+          syncDormFromServer(data.latest);
+          fieldError = `${current.dormName} ${fieldLabel(field)} was not saved because the server has newer data. Showing the latest saved dorm.`;
+          return;
+        }
+
+        fieldError = `${current.dormName} ${fieldLabel(field)} failed to save: ${data.error ?? `Save failed (${res.status})`}`;
+        return;
+      }
+
+      if (data.dorm) syncDormFromServer(data.dorm);
+      savedField = field;
+      setTimeout(() => {
+        if (savedField === field) savedField = null;
+      }, 1800);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${current.dormName} ${fieldLabel(field)} failed to save: ${reason}`;
+    } finally {
+      savingField = null;
+    }
+  }
 </script>
 
 <div class="dorm-result-wrapper">
@@ -141,6 +404,312 @@
         </a>
       {/if}
     </div>
+
+    {#if adminAuthStore.isAdmin}
+      <section class="dorm-editor" aria-label="Edit dorm details">
+        <button
+          type="button"
+          class="editor-toggle"
+          aria-expanded={editing}
+          onclick={() => (editing = !editing)}
+        >
+          {editing ? "Close editor" : "Edit dorm"}
+        </button>
+        {#if editing}
+          <div class="editor-heading">
+            <span>Editor</span>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-name-editor">Dorm name</label>
+            <div class="editor-control-row">
+              <input
+                id="dorm-name-editor"
+                bind:value={nameDraft}
+                disabled={savingField !== null}
+                autocomplete="off"
+              />
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("dormName", dorm)}
+                onclick={() => saveField("dormName")}
+              >
+                {savingField === "dormName" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-short-name-editor">Short name</label>
+            <div class="editor-control-row">
+              <input
+                id="dorm-short-name-editor"
+                bind:value={shortNameDraft}
+                disabled={savingField !== null}
+                autocomplete="off"
+              />
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("shortName", dorm)}
+                onclick={() => saveField("shortName")}
+              >
+                {savingField === "shortName" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-description-editor">Description</label>
+            <div class="editor-control-row stacked">
+              <textarea
+                id="dorm-description-editor"
+                bind:value={descriptionDraft}
+                disabled={savingField !== null}
+                rows="3"></textarea>
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("description", dorm)}
+                onclick={() => saveField("description")}
+              >
+                {savingField === "description" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-grid">
+            <div class="editor-field">
+              <label for="dorm-gender-editor">Gender policy</label>
+              <div class="editor-control-row">
+                <select
+                  id="dorm-gender-editor"
+                  bind:value={genderDraft}
+                  disabled={savingField !== null}
+                >
+                  <option value="male">Male-exclusive</option>
+                  <option value="female">Female-exclusive</option>
+                  <option value="coed">Co-ed</option>
+                  <option value="Mixed">Mixed</option>
+                </select>
+                <button
+                  class="field-save-btn"
+                  disabled={savingField !== null ||
+                    fieldIsUnchanged("gender", dorm)}
+                  onclick={() => saveField("gender")}
+                >
+                  {savingField === "gender" ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-field">
+              <label for="dorm-capacity-editor">Capacity (beds)</label>
+              <div class="editor-control-row">
+                <input
+                  id="dorm-capacity-editor"
+                  type="number"
+                  min="0"
+                  bind:value={capacityDraft}
+                  disabled={savingField !== null}
+                />
+                <button
+                  class="field-save-btn"
+                  disabled={savingField !== null ||
+                    fieldIsUnchanged("capacity", dorm)}
+                  onclick={() => saveField("capacity")}
+                >
+                  {savingField === "capacity" ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="editor-field checkbox-field">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                bind:checked={isUpManagedDraft}
+                disabled={savingField !== null}
+              />
+              UP-managed dorm
+            </label>
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("isUpManaged", dorm)}
+              onclick={() => saveField("isUpManaged")}
+            >
+              {savingField === "isUpManaged" ? "Saving..." : "Save"}
+            </button>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-price-editor">Price range</label>
+            <div class="editor-control-row">
+              <input
+                id="dorm-price-editor"
+                bind:value={priceRangeDraft}
+                disabled={savingField !== null}
+              />
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("priceRange", dorm)}
+                onclick={() => saveField("priceRange")}
+              >
+                {savingField === "priceRange" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-office-editor">Managing office</label>
+            <div class="editor-control-row">
+              <input
+                id="dorm-office-editor"
+                bind:value={managingOfficeDraft}
+                disabled={savingField !== null}
+              />
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("managingOffice", dorm)}
+                onclick={() => saveField("managingOffice")}
+              >
+                {savingField === "managingOffice" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-email-editor">Contact email</label>
+            <div class="editor-control-row">
+              <input
+                id="dorm-email-editor"
+                type="email"
+                bind:value={contactEmailDraft}
+                disabled={savingField !== null}
+              />
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("contactEmail", dorm)}
+                onclick={() => saveField("contactEmail")}
+              >
+                {savingField === "contactEmail" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-phone-editor">Contact phones</label>
+            <div class="editor-control-row stacked">
+              <textarea
+                id="dorm-phone-editor"
+                bind:value={contactPhoneDraft}
+                disabled={savingField !== null}
+                rows="3"
+                placeholder="One phone number per line"></textarea>
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("contactPhone", dorm)}
+                onclick={() => saveField("contactPhone")}
+              >
+                {savingField === "contactPhone" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-amenities-editor">Amenities</label>
+            <div class="editor-control-row stacked">
+              <textarea
+                id="dorm-amenities-editor"
+                bind:value={amenitiesDraft}
+                disabled={savingField !== null}
+                rows="4"
+                placeholder="One amenity per line"></textarea>
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("amenities", dorm)}
+                onclick={() => saveField("amenities")}
+              >
+                {savingField === "amenities" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-facebook-editor">Facebook link</label>
+            <div class="editor-control-row">
+              <input
+                id="dorm-facebook-editor"
+                type="url"
+                bind:value={facebookLinkDraft}
+                disabled={savingField !== null}
+              />
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("facebookLink", dorm)}
+                onclick={() => saveField("facebookLink")}
+              >
+                {savingField === "facebookLink" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="dorm-osm-editor">OpenStreetMap link</label>
+            <div class="editor-control-row">
+              <input
+                id="dorm-osm-editor"
+                type="url"
+                bind:value={osmLinkDraft}
+                disabled={savingField !== null}
+              />
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("osmLink", dorm)}
+                onclick={() => saveField("osmLink")}
+              >
+                {savingField === "osmLink" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <p class="editor-note">
+            {#if mapEditStore.enabled}
+              Map editing is on — drag this dorm's pin on the map to move it.
+            {:else}
+              To move this dorm's map pin,
+              <button
+                type="button"
+                class="inline-link-btn"
+                onclick={() => mapEditStore.enable()}
+              >
+                enable map editing
+              </button>
+              from the shield control, then drag its marker.
+            {/if}
+          </p>
+
+          {#if savedField}
+            <p class="editor-message success">
+              {fieldLabel(savedField)} saved.
+            </p>
+          {/if}
+          {#if fieldError}
+            <p class="editor-message error">{fieldError}</p>
+          {/if}
+        {/if}
+      </section>
+    {/if}
 
     <hr class="dorm-divider" />
 
@@ -482,5 +1051,161 @@
     font-size: 0.875rem;
     text-align: center;
     padding: 1rem 0;
+  }
+
+  .dorm-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.625rem;
+    border: 1px solid hsl(5, 53%, 88%);
+    border-radius: 0.625rem;
+    background-color: hsl(5, 53%, 98%);
+  }
+
+  .editor-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    border: 1px solid #d8b9ba;
+    border-radius: 0.5rem;
+    background: white;
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .editor-toggle:hover,
+  .editor-toggle:focus-visible {
+    background: #fdf3f3;
+  }
+
+  .editor-heading {
+    color: hsl(5, 53%, 32%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .editor-grid,
+  .editor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .editor-grid {
+    gap: 0.5rem;
+  }
+
+  .editor-field label {
+    color: #555;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .checkbox-field {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    text-transform: none;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .editor-control-row {
+    display: flex;
+    gap: 0.375rem;
+    align-items: stretch;
+  }
+
+  .editor-control-row.stacked {
+    flex-direction: column;
+  }
+
+  .editor-control-row input,
+  .editor-control-row select,
+  .editor-control-row textarea {
+    min-width: 0;
+    flex: 1;
+    border: 1px solid #d8d8d8;
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.55rem;
+    font: inherit;
+    font-size: 0.8125rem;
+    color: #222;
+    background: white;
+  }
+
+  .editor-control-row textarea {
+    resize: vertical;
+    min-height: 4rem;
+  }
+
+  .field-save-btn {
+    flex-shrink: 0;
+    border: 1px solid #d8b9ba;
+    border-radius: 0.5rem;
+    background: white;
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .field-save-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .editor-note {
+    margin: 0;
+    color: #666;
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .inline-link-btn {
+    border: none;
+    background: none;
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .editor-message {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .editor-message.success {
+    color: hsl(160, 84%, 26%);
+  }
+
+  .editor-message.error {
+    color: hsl(0, 70%, 38%);
   }
 </style>
