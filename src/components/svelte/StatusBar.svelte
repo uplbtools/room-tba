@@ -72,6 +72,10 @@
     expanded={showFullSync}
   />
 
+  <div class="status-offline">
+    <OfflineMaps />
+  </div>
+
   <div class="content-wrapper">
     <div class="directions-progress">
       <span class="directions-label">Rooms with directions</span>
@@ -89,9 +93,6 @@
       <div class="data-updated">
         Course and room information is updated regularly. Last updated:
         <strong>June 2026.</strong>
-      </div>
-      <div class="metadata-offline">
-        <OfflineMaps />
       </div>
       <div>
         <a
@@ -148,7 +149,7 @@
     width: fit-content;
     max-width: calc(100% - var(--bottom-fab-inset, 0px));
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.2;
@@ -182,16 +183,20 @@
       flex: 1;
     }
 
+    .status-offline {
+      flex: 0 0 auto;
+    }
+
     .content-wrapper {
       display: flex;
       gap: 1rem;
       flex: 0 1 auto;
       min-width: 0;
       max-width: 100%;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: flex-start;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .metadata {
@@ -199,18 +204,16 @@
       min-width: 0;
       display: flex;
       align-items: center;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: 0;
       row-gap: 0.125rem;
-      overflow: hidden;
+      overflow: visible;
       & > *:not(:last-child) {
         border-right: 2px solid #aaa;
         padding-right: 0.75rem;
-        flex-shrink: 0;
       }
       & > *:not(:first-child) {
         padding-left: 0.75rem;
-        flex-shrink: 0;
       }
     }
 
@@ -338,9 +341,10 @@
           padding: 0;
         }
 
-        .metadata-offline {
-          flex: 1 1 100%;
+        .status-offline {
           width: 100%;
+          border-left: none;
+          padding-left: 0;
         }
 
         .data-updated {
