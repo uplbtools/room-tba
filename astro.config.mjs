@@ -14,7 +14,40 @@ export default defineConfig({
     AstroPWA({
       workbox: {
         globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest,json,jpg}"],
-        swDest: `dist/client/sw.js`
+        swDest: `dist/client/sw.js`,
+        // Cache third-party map resources at runtime so the campus map works
+        // offline once visited (or after an explicit "download offline maps").
+        runtimeCaching: [
+          {
+            // MapTiler vector tiles + tiles.json
+            urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "map-tiles",
+              expiration: {
+                maxEntries: 4000,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Sprites, glyphs, and shaded-relief rasters used by the map style
+            urlPattern:
+              /^https:\/\/(maputnik|orangemug|klokantech)\.github\.io\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "map-assets",
+              expiration: {
+                maxEntries: 800,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {

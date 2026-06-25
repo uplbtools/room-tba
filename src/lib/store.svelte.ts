@@ -7,6 +7,14 @@ import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
 import { RoomData, type RecentSearch } from "./types";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
+import {
+  AVG_TILE_BYTES,
+  clearMapCaches,
+  getCampusTileCoords,
+  getStorageUsage,
+  getTileTemplate,
+  tileUrl,
+} from "./local/offline-maps";
 
 export type DormFilterType = "all" | "up" | "private";
 export type SyncInfo = {
@@ -599,13 +607,103 @@ class SyncToastStore {
   }
 
   endSync() {
-      this.allSynced = true;
-      if (this.recentlySynced === null)
-        this.recentlySynced = false;
+    this.allSynced = true;
+    if (this.recentlySynced === null) this.recentlySynced = false;
   }
 }
 
+type OfflineStatus = "idle" | "downloading" | "done" | "error" | "cancelled";
+
+class OfflineStore {
+  status = $state<OfflineStatus>("idle");
+  tilesTotal = $state(0);
+  tilesDone = $state(0);
+  bytesDownloaded = $state(0);
+  storageUsed = $state<number | null>(null);
+  error = $state<string | null>(null);
+  private cancelRequested = false;
+
+  progress = $derived(
+    this.tilesTotal === 0 ? 0 : Math.min(1, this.tilesDone / this.tilesTotal),
+  );
+  estimatedBytes = $derived(this.tilesTotal * AVG_TILE_BYTES);
+
+  // Compute the tile count up front so the size estimate shows before download.
+  prepareEstimate = () => {
+    if (this.tilesTotal === 0) this.tilesTotal = getCampusTileCoords().length;
+    void this.refreshStorage();
+  };
+
+  refreshStorage = async () => {
+    this.storageUsed = await getStorageUsage();
+  };
+
+  cancel = () => {
+    this.cancelRequested = true;
+  };
+
+  downloadCampus = async () => {
+    if (this.status === "downloading") return;
+    this.cancelRequested = false;
+    this.error = null;
+    this.tilesDone = 0;
+    this.bytesDownloaded = 0;
+    this.status = "downloading";
+
+    const template = await getTileTemplate();
+    if (!template) {
+      this.status = "error";
+      this.error = "Could not resolve the map tile source.";
+      return;
+    }
+
+    const coords = getCampusTileCoords();
+    this.tilesTotal = coords.length;
+
+    let index = 0;
+    const worker = async () => {
+      while (index < coords.length && !this.cancelRequested) {
+        const coord = coords[index++];
+        if (!coord) break;
+        try {
+          const res = await fetch(tileUrl(template, coord), { mode: "cors" });
+          const len = Number(res.headers.get("content-length"));
+          if (Number.isFinite(len) && len > 0) {
+            this.bytesDownloaded += len;
+          } else {
+            const buf = await res.clone().arrayBuffer();
+            this.bytesDownloaded += buf.byteLength;
+          }
+        } catch {
+          // Skip individual tile failures; keep the overall download going.
+        }
+        this.tilesDone++;
+      }
+    };
+
+    try {
+      // Modest concurrency to fill the cache quickly without hammering the API.
+      await Promise.all(Array.from({ length: 6 }, () => worker()));
+      await this.refreshStorage();
+      this.status = this.cancelRequested ? "cancelled" : "done";
+    } catch (e) {
+      console.error("Offline map download failed:", e);
+      this.status = "error";
+      this.error = "Download failed. Check your connection and try again.";
+    }
+  };
+
+  clear = async () => {
+    await clearMapCaches();
+    this.tilesDone = 0;
+    this.bytesDownloaded = 0;
+    this.status = "idle";
+    await this.refreshStorage();
+  };
+}
+
 export const queryStore = new QueryStore();
+export const offlineStore = new OfflineStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();

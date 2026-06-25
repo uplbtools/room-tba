@@ -5,6 +5,7 @@
   import { APP_VERSION_LABEL } from "../../constants/version";
   import { getAppData } from "../../lib/context";
   import { modalStore } from "../../lib/store.svelte";
+  import OfflineMaps from "./OfflineMaps.svelte";
 
   const appData = getAppData();
   const { directionCount, totalRooms } = $derived(appData());
@@ -38,6 +39,9 @@
       <div class="data-updated">
         Course and room information is updated regularly. Last updated:
         <strong>June 2026.</strong>
+      </div>
+      <div>
+        <OfflineMaps />
       </div>
       <div>
         <a
