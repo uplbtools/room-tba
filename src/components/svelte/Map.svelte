@@ -2309,10 +2309,10 @@
           </div>
         </Marker>
       {/each}
-      {#each selectedEventRouteStops as stop, i (`event-stop:${stop.id}`)}
+      {#each selectedEventRouteStops as stop (`event-stop:${stop.id}`)}
         <Marker lngLat={[Number(stop.resolvedLon), Number(stop.resolvedLat)]}>
           <div class="event-route-stop-pin" title={stop.resolvedLabel}>
-            <span>{i + 1}</span>
+            <span>{stop.sortOrder + 1}</span>
             <span class="event-route-stop-label" transition:fade>
               {stop.resolvedLabel}
             </span>

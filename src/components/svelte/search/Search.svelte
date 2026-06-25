@@ -38,12 +38,6 @@
   );
 
   $effect(() => {
-    if (!chrome.showSearchSuggestions && searchCollapsed) {
-      searchCollapsed = false;
-    }
-  });
-
-  $effect(() => {
     const el = containerEl;
     if (!el || typeof ResizeObserver === "undefined") return;
 

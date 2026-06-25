@@ -190,7 +190,15 @@
   }
 
   function applyConflictLatest(data: { latest?: EventData | null }) {
-    if (data.latest) appActions.replaceEvent(data.latest);
+    if (!data.latest) return;
+    appActions.replaceEvent(data.latest);
+    form = eventToForm(data.latest);
+    syncLocationForm(data.latest);
+    routeForms = data.latest.routes.map((route) => ({
+      id: route.id,
+      name: route.name,
+      description: route.description ?? "",
+    }));
   }
 
   function serializeRoutesForSave(event: EventData) {
