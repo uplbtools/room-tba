@@ -12,10 +12,15 @@
     eventPlacementStore,
     locationStore,
     mapEditStore,
+    mapProposalStore,
     mapStore,
     queryStore,
     toastStore,
   } from "../../../lib/store.svelte";
+  import {
+    getStoredProposalForEntity,
+    persistEntityChange,
+  } from "../../../lib/proposals/client";
   import { CAMPUS_DEFAULT_CAMERA } from "../../../constants/map-terrain";
   import { getEventImage } from "../../../lib/event-images";
   import {
@@ -75,6 +80,9 @@
   let routeForms = $state<{ id: number; name: string; description: string }[]>(
     [],
   );
+  let submitterNameDraft = $state("");
+  let activeProposalId = $state<number | null>(null);
+  const canPublish = $derived(adminAuthStore.canPublish);
 
   $effect(() => {
     if (!event || editing) return;
@@ -266,12 +274,11 @@
     if (!event || saving) return;
     saving = true;
     try {
-      const res = await fetch(`/api/admin/events/${event.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          version: event.version,
+      const result = await persistEntityChange({
+        entityType: "event",
+        entityId: event.id,
+        baseVersion: event.version,
+        patch: {
           title: form.title,
           description: form.description || null,
           category: form.category,
@@ -280,30 +287,38 @@
           sourceUrl: form.sourceUrl || null,
           recurrence: form.recurrence,
           routes: serializeRoutesForSave(event),
-        }),
+        },
+        entityLabel: form.title,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
       });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        event?: EventData;
-        latest?: EventData | null;
-      };
 
-      if (!res.ok || !data.event) {
-        if (res.status === 409 && data.latest) {
-          applyConflictLatest(data);
-        }
-        throw new Error(data.error ?? `Save failed (${res.status})`);
+      if (!result.ok) {
+        if (result.latest) applyConflictLatest({ latest: result.latest as EventData });
+        throw new Error(result.error ?? "Save failed");
       }
 
-      appActions.replaceEvent(data.event);
-      queryStore.updateQuery({
-        category: "event",
-        type: "result",
-        value: data.event.title,
-        eventSlug: data.event.slug,
-      });
-      editing = false;
-      toastStore.show(`${form.title} saved.`, "success");
+      if (result.published) {
+        const updated = result.published as EventData;
+        appActions.replaceEvent(updated);
+        queryStore.updateQuery({
+          category: "event",
+          type: "result",
+          value: updated.title,
+          eventSlug: updated.slug,
+        });
+        editing = false;
+        toastStore.show(`${form.title} saved.`, "success");
+      } else {
+        toastStore.show(
+          `Suggestion for ${form.title} submitted for review.`,
+          "success",
+        );
+      }
     } catch (error) {
       toastStore.show(
         error instanceof Error ? error.message : "Failed to save event.",
@@ -318,32 +333,38 @@
     if (!event || savingLocation) return;
     savingLocation = true;
     try {
-      const res = await fetch(`/api/admin/events/${event.id}/locations`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          version: event.version,
-          locations: buildPrimaryLocationPayload(event),
-        }),
+      const locations = buildPrimaryLocationPayload(event);
+      const result = await persistEntityChange({
+        entityType: "event_locations",
+        entityId: event.id,
+        baseVersion: event.version,
+        patch: { locations },
+        entityLabel: event.title,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
       });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        event?: EventData;
-        latest?: EventData | null;
-      };
 
-      if (!res.ok || !data.event) {
-        if (res.status === 409 && data.latest) {
-          applyConflictLatest(data);
-        }
-        throw new Error(data.error ?? `Location save failed (${res.status})`);
+      if (!result.ok) {
+        if (result.latest) applyConflictLatest({ latest: result.latest as EventData });
+        throw new Error(result.error ?? "Location save failed");
       }
 
-      appActions.replaceEvent(data.event);
-      syncLocationForm(data.event);
-      focusMapOnSavedEvent(data.event);
-      toastStore.show(`${data.event.title} location updated.`, "success");
+      if (result.published) {
+        const updated = result.published as EventData;
+        appActions.replaceEvent(updated);
+        syncLocationForm(updated);
+        focusMapOnSavedEvent(updated);
+        toastStore.show(`${updated.title} location updated.`, "success");
+      } else {
+        toastStore.show(
+          `Location suggestion for ${event.title} submitted for review.`,
+          "success",
+        );
+      }
     } catch (error) {
       toastStore.show(
         error instanceof Error
@@ -354,6 +375,24 @@
     } finally {
       savingLocation = false;
     }
+  }
+
+  function enableEventPinProposal() {
+    if (!event) return;
+    mapProposalStore.enable(
+      {
+        type: "event",
+        id: event.id,
+        label: event.title,
+        version: event.version,
+      },
+      submitterNameDraft,
+      activeProposalId,
+    );
+    toastStore.show(
+      `Drag the ${event.title} pin on the map, then release to submit.`,
+      "info",
+    );
   }
 
   async function deactivateEvent() {
@@ -638,13 +677,26 @@
       </a>
     {/if}
 
-    {#if adminAuthStore.isAdmin}
-      <section class="event-admin">
-        <button class="secondary-action" onclick={() => (editing = !editing)}>
-          {editing ? "Close editor" : "Edit event"}
-        </button>
-        {#if editing}
-          <form
+    <section class="event-admin">
+      <button class="secondary-action" onclick={() => (editing = !editing)}>
+        {editing
+          ? "Close"
+          : canPublish
+            ? "Edit event"
+            : "Suggest changes"}
+      </button>
+      {#if editing}
+        {#if !canPublish && !adminAuthStore.displayName && !adminAuthStore.username}
+          <label class="suggest-name-field">
+            Your name
+            <input
+              bind:value={submitterNameDraft}
+              maxlength="100"
+              autocomplete="name"
+            />
+          </label>
+        {/if}
+        <form
             class="event-form"
             onsubmit={(e) => {
               e.preventDefault();
@@ -769,7 +821,13 @@
                   disabled={savingLocation}
                   onclick={savePrimaryLocationAnchor}
                 >
-                  {savingLocation ? "Saving anchor..." : "Save location anchor"}
+                  {savingLocation
+                    ? canPublish
+                      ? "Saving anchor..."
+                      : "Submitting..."
+                    : canPublish
+                      ? "Save location anchor"
+                      : "Submit location"}
                 </button>
               </div>
             </div>
@@ -778,8 +836,22 @@
                 <strong>Event location</strong>
                 {#if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null}
                   <p>
-                    Drag the event marker on the map to move it. This edits the
-                    primary location only.
+                    {#if canPublish}
+                      Drag the event marker on the map to move it. This edits
+                      the primary location only.
+                    {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
+                      Pin move mode is on — drag the event marker on the map.
+                    {:else}
+                      Suggest a map pin move with
+                      <button
+                        type="button"
+                        class="inline-link-btn"
+                        onclick={enableEventPinProposal}
+                      >
+                        enable pin move
+                      </button>
+                      , then drag the marker.
+                    {/if}
                   </p>
                 {:else}
                   <p>
@@ -789,46 +861,63 @@
                 {/if}
               </div>
               <div class="location-editor-actions">
-                <button
-                  class="secondary-action"
-                  type="button"
-                  onclick={() => {
-                    if (!mapEditStore.enabled) mapEditStore.toggle();
-                  }}
-                >
-                  {mapEditStore.enabled
-                    ? "Map editing on"
-                    : "Enable map editing"}
-                </button>
-                {#if !primaryLocation || primaryLocation.resolvedLat === null || primaryLocation.resolvedLon === null}
+                {#if canPublish}
                   <button
-                    class="primary-action"
+                    class="secondary-action"
                     type="button"
-                    disabled={savingLocation}
-                    onclick={placePrimaryLocationAtMapCenter}
+                    onclick={() => {
+                      if (!mapEditStore.enabled) mapEditStore.toggle();
+                    }}
                   >
-                    {savingLocation
-                      ? "Placing..."
-                      : "Place marker at map center"}
+                    {mapEditStore.enabled
+                      ? "Map editing on"
+                      : "Enable map editing"}
+                  </button>
+                  {#if !primaryLocation || primaryLocation.resolvedLat === null || primaryLocation.resolvedLon === null}
+                    <button
+                      class="primary-action"
+                      type="button"
+                      disabled={savingLocation}
+                      onclick={placePrimaryLocationAtMapCenter}
+                    >
+                      {savingLocation
+                        ? "Placing..."
+                        : "Place marker at map center"}
+                    </button>
+                  {/if}
+                {:else if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null && !mapProposalStore.allowsKey(`event:${event.id}:location`)}
+                  <button
+                    class="secondary-action"
+                    type="button"
+                    onclick={enableEventPinProposal}
+                  >
+                    Enable pin move
                   </button>
                 {/if}
               </div>
             </div>
             <button class="primary-action" type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save event"}
+              {saving
+                ? canPublish
+                  ? "Saving..."
+                  : "Submitting..."
+                : canPublish
+                  ? "Save event"
+                  : "Submit for review"}
             </button>
-            <button
-              class="danger-action"
-              type="button"
-              disabled={deactivating}
-              onclick={deactivateEvent}
-            >
-              {deactivating ? "Deactivating..." : "Deactivate event"}
-            </button>
+            {#if canPublish}
+              <button
+                class="danger-action"
+                type="button"
+                disabled={deactivating}
+                onclick={deactivateEvent}
+              >
+                {deactivating ? "Deactivating..." : "Deactivate event"}
+              </button>
+            {/if}
           </form>
         {/if}
       </section>
-    {/if}
   {:else}
     <p>Loading event...</p>
   {/if}

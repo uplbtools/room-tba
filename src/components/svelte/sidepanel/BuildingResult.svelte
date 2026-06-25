@@ -2,6 +2,7 @@
   import {
     adminAuthStore,
     mapEditStore,
+    mapProposalStore,
     queryStore,
     locationStore,
     building3DStore,
@@ -20,6 +21,10 @@
     syncBuildingRooms,
   } from "../../../lib/local/data/sync";
   import { getBuildingShareUrl } from "../../../lib/share-links";
+  import {
+    getStoredProposalForEntity,
+    persistEntityChange,
+  } from "../../../lib/proposals/client";
 
   type BuildingEditableField = "buildingName" | "directions" | "buildingType";
 
@@ -53,6 +58,11 @@
   let savingField = $state<BuildingEditableField | null>(null);
   let savedField = $state<BuildingEditableField | null>(null);
   let fieldError = $state<string | null>(null);
+  let submitterNameDraft = $state("");
+  let proposalStatus = $state<string | null>(null);
+  let activeProposalId = $state<number | null>(null);
+
+  const canPublish = $derived(adminAuthStore.canPublish);
 
   const fieldLabels: Record<BuildingEditableField, string> = {
     buildingName: "Building name",
@@ -81,10 +91,33 @@
     typeDraft = current.buildingType;
     savedField = null;
     fieldError = null;
+    proposalStatus = null;
+    const stored = getStoredProposalForEntity("building", current.id);
+    activeProposalId = stored?.id ?? null;
+    if (stored) proposalStatus = stored.status;
   });
 
   function fieldLabel(field: BuildingEditableField) {
     return fieldLabels[field];
+  }
+
+  function enablePinProposal() {
+    const current = building;
+    if (!current?.lat || !current.lon) return;
+    mapProposalStore.enable(
+      {
+        type: "building",
+        id: current.id,
+        label: current.buildingName,
+        version: current.version,
+      },
+      submitterNameDraft,
+      activeProposalId,
+    );
+    toastStore.show(
+      `Drag the ${current.buildingName} pin on the map, then release to submit.`,
+      "info",
+    );
   }
 
   function syncBuildingFromServer(updated: BuildingData) {
@@ -125,32 +158,48 @@
     fieldError = null;
 
     try {
-      const res = await fetch(`/api/admin/buildings/${current.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+      const result = await persistEntityChange({
+        entityType: "building",
+        entityId: current.id,
+        baseVersion: current.version,
+        patch: body,
+        entityLabel: current.buildingName,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
       });
-      const data = (await res
-        .json()
-        .catch(() => ({}))) as BuildingPatchResponse;
 
-      if (!res.ok) {
-        if (res.status === 409 && data.latest) {
-          syncBuildingFromServer(data.latest);
-          fieldError = `${current.buildingName} ${fieldLabel(field)} was not saved because the server has newer data. Showing the latest saved building.`;
-          return;
+      if (!result.ok) {
+        if (result.latest) {
+          syncBuildingFromServer(result.latest as BuildingData);
         }
-
-        fieldError = `${current.buildingName} ${fieldLabel(field)} failed to save: ${data.error ?? `Save failed (${res.status})`}`;
+        fieldError =
+          result.error ??
+          `${current.buildingName} ${fieldLabel(field)} could not be saved.`;
         return;
       }
 
-      if (data.building) syncBuildingFromServer(data.building);
-      savedField = field;
-      setTimeout(() => {
-        if (savedField === field) savedField = null;
-      }, 1800);
+      if (result.published) {
+        syncBuildingFromServer(result.published as BuildingData);
+        savedField = field;
+        setTimeout(() => {
+          if (savedField === field) savedField = null;
+        }, 1800);
+        return;
+      }
+
+      if (result.proposal) {
+        activeProposalId = result.proposal.id;
+        proposalStatus = result.proposal.status;
+        savedField = field;
+        toastStore.show(
+          `Suggestion for ${current.buildingName} submitted for review.`,
+          "success",
+        );
+      }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
       fieldError = `${current.buildingName} ${fieldLabel(field)} failed to save: ${reason}`;
@@ -208,7 +257,7 @@
               "error",
             )}
         />
-        {#if adminAuthStore.isAdmin}
+        {#if canPublish}
           <button
             type="button"
             class="edit-building-btn"
@@ -217,15 +266,48 @@
           >
             {editing ? "Close editor" : "Edit building"}
           </button>
+        {:else}
+          <button
+            type="button"
+            class="edit-building-btn"
+            aria-expanded={editing}
+            onclick={() => (editing = !editing)}
+          >
+            {editing ? "Close" : "Suggest an edit"}
+          </button>
         {/if}
       </div>
     </div>
 
-    {#if adminAuthStore.isAdmin && editing}
-      <section class="building-editor" aria-label="Edit building details">
+    {#if editing}
+      <section
+        class="building-editor"
+        aria-label={canPublish
+          ? "Edit building details"
+          : "Suggest building edits"}
+      >
         <div class="editor-heading">
-          <span>Editor</span>
+          <span>{canPublish ? "Editor" : "Suggest a change"}</span>
         </div>
+
+        {#if !canPublish && !adminAuthStore.isAdmin}
+          <div class="editor-field">
+            <label for="building-submitter-name">Your name</label>
+            <input
+              id="building-submitter-name"
+              bind:value={submitterNameDraft}
+              maxlength="100"
+              autocomplete="name"
+              placeholder="How should we credit this suggestion?"
+            />
+          </div>
+        {/if}
+
+        {#if proposalStatus}
+          <p class="editor-message pending">
+            Status: {proposalStatus.replace("_", " ")} — waiting for editor review.
+          </p>
+        {/if}
 
         <div class="editor-field">
           <label for="building-name-editor">Building name</label>
@@ -242,7 +324,13 @@
                 nameDraft.trim() === building.buildingName}
               onclick={() => saveField("buildingName")}
             >
-              {savingField === "buildingName" ? "Saving..." : "Save"}
+              {savingField === "buildingName"
+                ? canPublish
+                  ? "Saving..."
+                  : "Submitting..."
+                : canPublish
+                  ? "Save"
+                  : "Submit"}
             </button>
           </div>
         </div>
@@ -261,7 +349,13 @@
                 directionsDraft.trim() === (building.directions ?? "")}
               onclick={() => saveField("directions")}
             >
-              {savingField === "directions" ? "Saving..." : "Save"}
+              {savingField === "directions"
+                ? canPublish
+                  ? "Saving..."
+                  : "Submitting..."
+                : canPublish
+                  ? "Save"
+                  : "Submit"}
             </button>
           </div>
         </div>
@@ -283,30 +377,57 @@
                 typeDraft === building.buildingType}
               onclick={() => saveField("buildingType")}
             >
-              {savingField === "buildingType" ? "Saving..." : "Save"}
+              {savingField === "buildingType"
+                ? canPublish
+                  ? "Saving..."
+                  : "Submitting..."
+                : canPublish
+                  ? "Save"
+                  : "Submit"}
             </button>
           </div>
         </div>
 
-        <p class="editor-note">
-          {#if mapEditStore.enabled}
-            Map editing is on — drag this building's pin on the map to move it.
-          {:else}
-            To move this building's map pin,
-            <button
-              type="button"
-              class="inline-link-btn"
-              onclick={() => mapEditStore.enable()}
-            >
-              enable map editing
-            </button>
-            from the shield control, then drag its marker.
-          {/if}
-        </p>
+        {#if canPublish}
+          <p class="editor-note">
+            {#if mapEditStore.enabled}
+              Map editing is on — drag this building's pin on the map to move
+              it.
+            {:else}
+              To move this building's map pin,
+              <button
+                type="button"
+                class="inline-link-btn"
+                onclick={() => mapEditStore.enable()}
+              >
+                enable map editing
+              </button>
+              from the shield control, then drag its marker.
+            {/if}
+          </p>
+        {:else if building.lat && building.lon}
+          <p class="editor-note">
+            {#if mapProposalStore.allowsKey(`building:${building.id}`)}
+              Pin move mode is on — drag this building's marker on the map.
+            {:else}
+              To suggest a map pin move,
+              <button
+                type="button"
+                class="inline-link-btn"
+                onclick={enablePinProposal}
+              >
+                enable pin move
+              </button>
+              , then drag its marker.
+            {/if}
+          </p>
+        {/if}
 
         {#if savedField}
           <p class="editor-message success">
-            {fieldLabel(savedField)} saved.
+            {canPublish
+              ? `${fieldLabel(savedField)} saved.`
+              : "Suggestion submitted."}
           </p>
         {/if}
         {#if fieldError}
@@ -526,6 +647,10 @@
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
+  }
+
+  .editor-message.pending {
+    color: hsl(35, 80%, 28%);
   }
 
   .editor-message.success {

@@ -2,8 +2,10 @@
   import {
     adminAuthStore,
     mapEditStore,
+    mapProposalStore,
     queryStore,
     locationStore,
+    toastStore,
   } from "../../../lib/store.svelte";
   import { getAppActions, getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
@@ -17,6 +19,10 @@
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
   import type { DormData } from "../../../lib/types";
+  import {
+    getStoredProposalForEntity,
+    persistEntityChange,
+  } from "../../../lib/proposals/client";
 
   type DormEditableField =
     | "dormName"
@@ -67,6 +73,10 @@
   let savingField = $state<DormEditableField | null>(null);
   let savedField = $state<DormEditableField | null>(null);
   let fieldError = $state<string | null>(null);
+  let submitterNameDraft = $state("");
+  let proposalStatus = $state<string | null>(null);
+  let activeProposalId = $state<number | null>(null);
+  const canPublish = $derived(adminAuthStore.canPublish);
 
   const fieldLabels: Record<DormEditableField, string> = {
     dormName: "Dorm name",
@@ -165,10 +175,38 @@
     osmLinkDraft = current.osmLink ?? "";
     savedField = null;
     fieldError = null;
+    proposalStatus = null;
+    const stored = getStoredProposalForEntity("dorm", current.id);
+    activeProposalId = stored?.id ?? null;
+    if (stored) proposalStatus = stored.status;
   });
+
+  function enablePinProposal() {
+    const current = dorm;
+    if (!current?.lat || !current.lon) return;
+    mapProposalStore.enable(
+      {
+        type: "dorm",
+        id: current.id,
+        label: current.dormName,
+        version: current.version,
+      },
+      submitterNameDraft,
+      activeProposalId,
+    );
+    toastStore.show(
+      `Drag the ${current.dormName} pin on the map, then release to submit.`,
+      "info",
+    );
+  }
 
   function fieldLabel(field: DormEditableField) {
     return fieldLabels[field];
+  }
+
+  function fieldActionLabel(field: DormEditableField) {
+    if (savingField === field) return canPublish ? "Saving..." : "Submitting...";
+    return canPublish ? "Save" : "Submit";
   }
 
   function syncDormFromServer(updated: DormData) {
@@ -288,26 +326,39 @@
     fieldError = null;
 
     try {
-      const res = await fetch(`/api/admin/dorms/${current.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+      const { version, ...patch } = body;
+      const result = await persistEntityChange({
+        entityType: "dorm",
+        entityId: current.id,
+        baseVersion: current.version,
+        patch,
+        entityLabel: current.dormName,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
       });
-      const data = (await res.json().catch(() => ({}))) as DormPatchResponse;
 
-      if (!res.ok) {
-        if (res.status === 409 && data.latest) {
-          syncDormFromServer(data.latest);
-          fieldError = `${current.dormName} ${fieldLabel(field)} was not saved because the server has newer data. Showing the latest saved dorm.`;
-          return;
-        }
-
-        fieldError = `${current.dormName} ${fieldLabel(field)} failed to save: ${data.error ?? `Save failed (${res.status})`}`;
+      if (!result.ok) {
+        if (result.latest) syncDormFromServer(result.latest as DormData);
+        fieldError =
+          result.error ??
+          `${current.dormName} ${fieldLabel(field)} could not be saved.`;
         return;
       }
 
-      if (data.dorm) syncDormFromServer(data.dorm);
+      if (result.published) {
+        syncDormFromServer(result.published as DormData);
+      } else if (result.proposal) {
+        activeProposalId = result.proposal.id;
+        proposalStatus = result.proposal.status;
+        toastStore.show(
+          `Suggestion for ${current.dormName} submitted for review.`,
+          "success",
+        );
+      }
       savedField = field;
       setTimeout(() => {
         if (savedField === field) savedField = null;
@@ -405,20 +456,41 @@
       {/if}
     </div>
 
-    {#if adminAuthStore.isAdmin}
-      <section class="dorm-editor" aria-label="Edit dorm details">
-        <button
-          type="button"
-          class="editor-toggle"
-          aria-expanded={editing}
-          onclick={() => (editing = !editing)}
-        >
-          {editing ? "Close editor" : "Edit dorm"}
-        </button>
-        {#if editing}
-          <div class="editor-heading">
-            <span>Editor</span>
+    <section class="dorm-editor" aria-label="Edit dorm details">
+      <button
+        type="button"
+        class="editor-toggle"
+        aria-expanded={editing}
+        onclick={() => (editing = !editing)}
+      >
+        {editing
+          ? "Close"
+          : canPublish
+            ? "Edit dorm"
+            : "Suggest an edit"}
+      </button>
+      {#if editing}
+        <div class="editor-heading">
+          <span>{canPublish ? "Editor" : "Suggest a change"}</span>
+        </div>
+
+        {#if !canPublish && !adminAuthStore.isAdmin}
+          <div class="editor-field">
+            <label for="dorm-submitter-name">Your name</label>
+            <input
+              id="dorm-submitter-name"
+              bind:value={submitterNameDraft}
+              maxlength="100"
+              autocomplete="name"
+            />
           </div>
+        {/if}
+
+        {#if proposalStatus}
+          <p class="editor-message pending">
+            Status: {proposalStatus.replace("_", " ")} — waiting for editor review.
+          </p>
+        {/if}
 
           <div class="editor-field">
             <label for="dorm-name-editor">Dorm name</label>
@@ -435,7 +507,7 @@
                   fieldIsUnchanged("dormName", dorm)}
                 onclick={() => saveField("dormName")}
               >
-                {savingField === "dormName" ? "Saving..." : "Save"}
+                {fieldActionLabel("dormName")}
               </button>
             </div>
           </div>
@@ -684,24 +756,42 @@
           </div>
 
           <p class="editor-note">
-            {#if mapEditStore.enabled}
-              Map editing is on — drag this dorm's pin on the map to move it.
-            {:else}
-              To move this dorm's map pin,
-              <button
-                type="button"
-                class="inline-link-btn"
-                onclick={() => mapEditStore.enable()}
-              >
-                enable map editing
-              </button>
-              from the shield control, then drag its marker.
+            {#if canPublish}
+              {#if mapEditStore.enabled}
+                Map editing is on — drag this dorm's pin on the map to move it.
+              {:else}
+                To move this dorm's map pin,
+                <button
+                  type="button"
+                  class="inline-link-btn"
+                  onclick={() => mapEditStore.enable()}
+                >
+                  enable map editing
+                </button>
+                from the shield control, then drag its marker.
+              {/if}
+            {:else if dorm.lat && dorm.lon}
+              {#if mapProposalStore.allowsKey(`dorm:${dorm.id}`)}
+                Pin move mode is on — drag this dorm's marker on the map.
+              {:else}
+                To suggest a map pin move,
+                <button
+                  type="button"
+                  class="inline-link-btn"
+                  onclick={enablePinProposal}
+                >
+                  enable pin move
+                </button>
+                , then drag its marker.
+              {/if}
             {/if}
           </p>
 
           {#if savedField}
             <p class="editor-message success">
-              {fieldLabel(savedField)} saved.
+              {canPublish
+                ? `${fieldLabel(savedField)} saved.`
+                : "Suggestion submitted."}
             </p>
           {/if}
           {#if fieldError}
@@ -709,7 +799,6 @@
           {/if}
         {/if}
       </section>
-    {/if}
 
     <hr class="dorm-divider" />
 

@@ -5,7 +5,12 @@
     locationStore,
     modalStore,
     queryStore,
+    toastStore,
   } from "../../../lib/store.svelte";
+  import {
+    getStoredProposalForEntity,
+    persistEntityChange,
+  } from "../../../lib/proposals/client";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
@@ -51,6 +56,10 @@
   let savedField = $state<RoomEditableField | null>(null);
   let fieldError = $state<string | null>(null);
   let editing = $state(false);
+  let submitterNameDraft = $state("");
+  let proposalStatus = $state<string | null>(null);
+  let activeProposalId = $state<number | null>(null);
+  const canPublish = $derived(adminAuthStore.canPublish);
 
   $effect(() => {
     const room = currentRoom.value;
@@ -66,7 +75,16 @@
     divisionDraft = room.divisionId === null ? "" : String(room.divisionId);
     savedField = null;
     fieldError = null;
+    proposalStatus = null;
+    const stored = getStoredProposalForEntity("room", room.id);
+    activeProposalId = stored?.id ?? null;
+    if (stored) proposalStatus = stored.status;
   });
+
+  function fieldActionLabel(field: RoomEditableField) {
+    if (savingField === field) return canPublish ? "Saving..." : "Submitting...";
+    return canPublish ? "Save" : "Submit";
+  }
 
   function fieldLabel(field: RoomEditableField) {
     return fieldLabels[field];
@@ -120,26 +138,39 @@
     fieldError = null;
 
     try {
-      const res = await fetch(`/api/admin/rooms/${room.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+      const { version, ...patch } = body;
+      const result = await persistEntityChange({
+        entityType: "room",
+        entityId: room.id,
+        baseVersion: room.version,
+        patch,
+        entityLabel: room.code,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
       });
-      const data = (await res.json().catch(() => ({}))) as RoomPatchResponse;
 
-      if (!res.ok) {
-        if (res.status === 409 && data.latest) {
-          syncRoomFromServer(data.latest);
-          fieldError = `${room.code} ${fieldLabel(field)} was not saved because the server has newer data. Showing the latest saved room.`;
-          return;
-        }
-
-        fieldError = `${room.code} ${fieldLabel(field)} failed to save: ${data.error ?? `Save failed (${res.status})`}`;
+      if (!result.ok) {
+        if (result.latest) syncRoomFromServer(result.latest as RoomData);
+        fieldError =
+          result.error ??
+          `${room.code} ${fieldLabel(field)} could not be saved.`;
         return;
       }
 
-      if (data.room) syncRoomFromServer(data.room);
+      if (result.published) {
+        syncRoomFromServer(result.published as RoomData);
+      } else if (result.proposal) {
+        activeProposalId = result.proposal.id;
+        proposalStatus = result.proposal.status;
+        toastStore.show(
+          `Suggestion for ${room.code} submitted for review.`,
+          "success",
+        );
+      }
       savedField = field;
       setTimeout(() => {
         if (savedField === field) savedField = null;
@@ -223,20 +254,41 @@
       </div>
     </div>
 
-    {#if adminAuthStore.isAdmin}
-      <section class="room-editor" aria-label="Edit room details">
+    <section class="room-editor" aria-label="Edit room details">
         <button
           type="button"
           class="editor-toggle"
           aria-expanded={editing}
           onclick={() => (editing = !editing)}
         >
-          {editing ? "Close editor" : "Edit room"}
+          {editing
+            ? "Close"
+            : canPublish
+              ? "Edit room"
+              : "Suggest an edit"}
         </button>
         {#if editing}
           <div class="editor-heading">
-            <span>Editor</span>
+            <span>{canPublish ? "Editor" : "Suggest a change"}</span>
           </div>
+
+          {#if !canPublish && !adminAuthStore.isAdmin}
+            <div class="editor-field">
+              <label for="room-submitter-name">Your name</label>
+              <input
+                id="room-submitter-name"
+                bind:value={submitterNameDraft}
+                maxlength="100"
+                autocomplete="name"
+              />
+            </div>
+          {/if}
+
+          {#if proposalStatus}
+            <p class="editor-message pending">
+              Status: {proposalStatus.replace("_", " ")} — waiting for editor review.
+            </p>
+          {/if}
 
           <div class="editor-field">
             <label for="room-code-editor">Room code</label>
@@ -253,7 +305,7 @@
                   codeDraft.trim() === currentRoom.value.code}
                 onclick={() => saveField("roomCode")}
               >
-                {savingField === "roomCode" ? "Saving..." : "Save"}
+                {fieldActionLabel("roomCode")}
               </button>
             </div>
           </div>
@@ -273,7 +325,7 @@
                     (currentRoom.value.directions ?? "")}
                 onclick={() => saveField("directions")}
               >
-                {savingField === "directions" ? "Saving..." : "Save"}
+                {fieldActionLabel("directions")}
               </button>
             </div>
           </div>
@@ -301,7 +353,7 @@
                       String(currentRoom.value.buildingId ?? "")}
                   onclick={() => saveField("buildingId")}
                 >
-                  {savingField === "buildingId" ? "Saving..." : "Save"}
+                  {fieldActionLabel("buildingId")}
                 </button>
               </div>
             </div>
@@ -327,7 +379,7 @@
                     collegeDraft === String(currentRoom.value.collegeId ?? "")}
                   onclick={() => saveField("collegeId")}
                 >
-                  {savingField === "collegeId" ? "Saving..." : "Save"}
+                  {fieldActionLabel("collegeId")}
                 </button>
               </div>
             </div>
@@ -354,7 +406,7 @@
                       String(currentRoom.value.divisionId ?? "")}
                   onclick={() => saveField("divisionId")}
                 >
-                  {savingField === "divisionId" ? "Saving..." : "Save"}
+                  {fieldActionLabel("divisionId")}
                 </button>
               </div>
             </div>
@@ -362,7 +414,9 @@
 
           {#if savedField}
             <p class="editor-message success">
-              {fieldLabel(savedField)} saved.
+              {canPublish
+                ? `${fieldLabel(savedField)} saved.`
+                : "Suggestion submitted."}
             </p>
           {/if}
           {#if fieldError}
@@ -370,7 +424,6 @@
           {/if}
         {/if}
       </section>
-    {/if}
 
     {#if currentRoom.value.directions}
       <p class="room-directions">

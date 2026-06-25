@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { adminAuthStore, queryStore } from "../../../lib/store.svelte";
+  import {
+    adminAuthStore,
+    queryStore,
+    toastStore,
+  } from "../../../lib/store.svelte";
+  import { persistEntityChange } from "../../../lib/proposals/client";
   import { getAppActions, getAppData } from "../../../lib/context";
   import { getCollegeRooms } from "../../../lib/local/data/utils";
   import type { CollegeData, RoomData } from "../../../lib/types";
@@ -35,6 +40,8 @@
   let saving = $state(false);
   let saved = $state(false);
   let fieldError = $state<string | null>(null);
+  let submitterNameDraft = $state("");
+  const canPublish = $derived(adminAuthStore.canPublish);
 
   onMount(async () => {
     if (!college) return;
@@ -81,29 +88,34 @@
     fieldError = null;
 
     try {
-      const res = await fetch(`/api/admin/colleges/${current.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          collegeName: trimmedName,
-          version: current.version,
-        }),
+      const result = await persistEntityChange({
+        entityType: "college",
+        entityId: current.id,
+        baseVersion: current.version,
+        patch: { collegeName: trimmedName },
+        entityLabel: current.collegeName,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
       });
-      const data = (await res.json().catch(() => ({}))) as CollegePatchResponse;
 
-      if (!res.ok) {
-        if (res.status === 409 && data.latest) {
-          syncCollegeFromServer(data.latest);
-          fieldError = `${current.collegeName} was not saved because the server has newer data. Showing the latest saved college.`;
-          return;
-        }
-
-        fieldError = `${current.collegeName} failed to save: ${data.error ?? `Save failed (${res.status})`}`;
+      if (!result.ok) {
+        if (result.latest) syncCollegeFromServer(result.latest as CollegeData);
+        fieldError =
+          result.error ?? `${current.collegeName} could not be saved.`;
         return;
       }
 
-      if (data.college) syncCollegeFromServer(data.college);
+      if (result.published) {
+        syncCollegeFromServer(result.published as CollegeData);
+      } else {
+        toastStore.show(
+          "College name suggestion submitted for review.",
+          "success",
+        );
+      }
       saved = true;
       setTimeout(() => {
         saved = false;
@@ -123,47 +135,62 @@
       <h2 class="college-title">{college.collegeName}</h2>
     </div>
 
-    {#if adminAuthStore.isAdmin}
-      <section class="entity-editor" aria-label="Edit college details">
-        <button
-          type="button"
-          class="editor-toggle"
-          aria-expanded={editing}
-          onclick={() => (editing = !editing)}
-        >
-          {editing ? "Close editor" : "Edit college"}
-        </button>
-        {#if editing}
-          <div class="editor-heading">
-            <span>Editor</span>
-          </div>
+    <section class="entity-editor" aria-label="Edit college details">
+      <button
+        type="button"
+        class="editor-toggle"
+        aria-expanded={editing}
+        onclick={() => (editing = !editing)}
+      >
+        {editing ? "Close" : canPublish ? "Edit college" : "Suggest an edit"}
+      </button>
+      {#if editing}
+        <div class="editor-heading">
+          <span>{canPublish ? "Editor" : "Suggest a change"}</span>
+        </div>
+        {#if !canPublish && !adminAuthStore.isAdmin}
           <div class="editor-field">
-            <label for="college-name-editor">College name</label>
-            <div class="editor-control-row">
-              <input
-                id="college-name-editor"
-                bind:value={nameDraft}
-                disabled={saving}
-                autocomplete="off"
-              />
-              <button
-                class="field-save-btn"
-                disabled={saving || nameDraft.trim() === college.collegeName}
-                onclick={saveName}
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
-            </div>
+            <label for="college-submitter-name">Your name</label>
+            <input
+              id="college-submitter-name"
+              bind:value={submitterNameDraft}
+              maxlength="100"
+              autocomplete="name"
+            />
           </div>
-          {#if saved}
-            <p class="editor-message success">College name saved.</p>
-          {/if}
-          {#if fieldError}
-            <p class="editor-message error">{fieldError}</p>
-          {/if}
         {/if}
-      </section>
-    {/if}
+        <div class="editor-field">
+          <label for="college-name-editor">College name</label>
+          <div class="editor-control-row">
+            <input
+              id="college-name-editor"
+              bind:value={nameDraft}
+              disabled={saving}
+              autocomplete="off"
+            />
+            <button
+              class="field-save-btn"
+              disabled={saving || nameDraft.trim() === college.collegeName}
+              onclick={saveName}
+            >
+              {saving
+                ? canPublish
+                  ? "Saving..."
+                  : "Submitting..."
+                : canPublish
+                  ? "Save"
+                  : "Submit"}
+            </button>
+          </div>
+        </div>
+        {#if saved}
+          <p class="editor-message success">College name saved.</p>
+        {/if}
+        {#if fieldError}
+          <p class="editor-message error">{fieldError}</p>
+        {/if}
+      {/if}
+    </section>
   {/if}
   {#if collegeRooms}
     <ResultDisplay filteredRooms={collegeRooms} />
