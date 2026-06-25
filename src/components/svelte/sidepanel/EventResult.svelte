@@ -977,7 +977,8 @@
     cursor: pointer;
     font: inherit;
     font-size: 0.875rem;
-    font-weight: 700;
+    font-weight: 500;
+    line-height: 1.25;
     padding: 0.375rem 0.75rem;
   }
 
