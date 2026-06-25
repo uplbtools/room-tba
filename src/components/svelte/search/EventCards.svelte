@@ -147,7 +147,7 @@
           {/if}
           {#if showRetract && oncollapse}
             <button
-              class="events-shelf-retract"
+              class="chrome-toggle-btn"
               type="button"
               aria-label="Collapse campus events"
               title="Collapse campus events"
@@ -288,34 +288,6 @@
     min-width: 0;
     flex-wrap: wrap;
     justify-content: flex-end;
-  }
-
-  .events-shelf-retract {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.625rem;
-    background: #fffafa;
-    color: #7b1113;
-    cursor: pointer;
-    transition:
-      background-color 0.16s,
-      border-color 0.16s;
-  }
-
-  .events-shelf-retract:hover,
-  .events-shelf-retract:focus-visible {
-    border-color: #c58f91;
-    background: #fdf3f3;
-  }
-
-  .events-shelf-retract:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
   }
 
   .section-actions--inline {
