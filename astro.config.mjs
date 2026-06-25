@@ -13,7 +13,19 @@ export default defineConfig({
     svelte(),
     AstroPWA({
       workbox: {
-        globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest,json,jpg}"],
+        // The Vercel adapter otherwise points globDirectory at dist/server,
+        // so nothing client-side gets precached and the app can't load
+        // offline. Glob the actual client output instead.
+        globDirectory: "dist/client",
+        // Precache app assets plus the home shell (only the root index.html,
+        // not the ~650 entity SEO pages) so the app loads offline. The
+        // navigate fallback serves that shell for offline navigations.
+        globPatterns: [
+          "**/*.{js,css,ico,png,svg,webmanifest,json,jpg}",
+          "index.html",
+        ],
+        navigateFallback: "/",
+        navigateFallbackDenylist: [/^\/api\//],
         swDest: `dist/client/sw.js`,
         // Cache third-party map resources at runtime so the campus map works
         // offline once visited (or after an explicit "download offline maps").
