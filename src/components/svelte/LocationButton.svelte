@@ -5,6 +5,7 @@
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import LogOut from "@lucide/svelte/icons/log-out";
   import Pencil from "@lucide/svelte/icons/pencil";
+  import Plus from "@lucide/svelte/icons/plus";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import {
     adminAuthStore,
@@ -16,11 +17,16 @@
     toastStore,
   } from "../../lib/store.svelte";
   import ProposalReviewPanel from "./ProposalReviewPanel.svelte";
+  import SuggestAdditionPanel from "./SuggestAdditionPanel.svelte";
 
   let centered: boolean = $state(false);
   const adminPanelId = "admin";
+  const suggestPanelId = "suggest-addition";
   const adminMenuOpen = $derived(
     floatingControlPanelStore.openPanel === adminPanelId,
+  );
+  const suggestMenuOpen = $derived(
+    floatingControlPanelStore.openPanel === suggestPanelId,
   );
   const adminLabel = $derived(adminAuthStore.username ?? "admin");
 
@@ -31,6 +37,7 @@
   const showEditorControls = $derived(
     adminAuthStore.canPublish || adminAuthStore.canReview,
   );
+  const showSuggestAddition = $derived(!adminAuthStore.canPublish);
 
   const handleLocationClick = () => {
     if (!locationStore.coords) {
@@ -128,6 +135,39 @@
         {/if}
       </button>
     </div>
+  {:else if showSuggestAddition}
+    <div class="admin-control">
+      {#if suggestMenuOpen}
+        <div
+          id="suggest-addition-menu"
+          class="admin-panel suggest-panel"
+          role="menu"
+          aria-label="Propose a campus addition"
+        >
+          <SuggestAdditionPanel />
+        </div>
+      {/if}
+      <button
+        class="map-control-btn"
+        onclick={() => floatingControlPanelStore.toggle(suggestPanelId)}
+        title="Propose a new building, room, or event"
+        aria-label="Propose a campus addition"
+        aria-expanded={suggestMenuOpen}
+        aria-controls="suggest-addition-menu"
+      >
+        <Plus />
+      </button>
+    </div>
+    {#if !adminAuthStore.isLoggedIn}
+      <button
+        class="map-control-btn"
+        onclick={() => adminAuthStore.openLogin()}
+        title="Editor login"
+        aria-label="Editor login"
+      >
+        <LogIn />
+      </button>
+    {/if}
   {:else}
     <button
       class="map-control-btn"
@@ -235,6 +275,10 @@
     background-color: white;
     padding: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .suggest-panel {
+    width: 17rem;
   }
 
   .admin-status {
