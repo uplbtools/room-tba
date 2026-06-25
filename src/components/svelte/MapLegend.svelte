@@ -1,8 +1,10 @@
 <script lang="ts">
   import Info from "@lucide/svelte/icons/info";
   import X from "@lucide/svelte/icons/x";
+  import { floatingControlPanelStore } from "../../lib/store.svelte";
 
-  let open = $state(false);
+  const panelId = "legend";
+  const open = $derived(floatingControlPanelStore.openPanel === panelId);
 
   const legendItems = [
     {
@@ -36,7 +38,7 @@
         <button
           type="button"
           class="close-btn"
-          onclick={() => (open = false)}
+          onclick={() => floatingControlPanelStore.close(panelId)}
           aria-label="Close map legend"
         >
           <X size={16} />
@@ -65,7 +67,7 @@
     class="legend-btn"
     class:active={open}
     type="button"
-    onclick={() => (open = !open)}
+    onclick={() => floatingControlPanelStore.toggle(panelId)}
     title="Map Legend"
     aria-label="Map Legend"
     aria-expanded={open}

@@ -8,6 +8,7 @@
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import {
     adminAuthStore,
+    floatingControlPanelStore,
     locationStore,
     mapEditStore,
     mapStore,
@@ -15,7 +16,10 @@
   } from "../../lib/store.svelte";
 
   let centered: boolean = $state(false);
-  let adminMenuOpen = $state(false);
+  const adminPanelId = "admin";
+  const adminMenuOpen = $derived(
+    floatingControlPanelStore.openPanel === adminPanelId,
+  );
   const adminLabel = $derived(adminAuthStore.username ?? "admin");
 
   onMount(() => {
@@ -47,7 +51,7 @@
   }
 
   async function handleLogout() {
-    adminMenuOpen = false;
+    floatingControlPanelStore.close(adminPanelId);
     mapEditStore.close();
     await adminAuthStore.logout();
     toastStore.show("Signed out.", "info");
@@ -96,7 +100,7 @@
       <button
         class="map-control-btn"
         class:active={mapEditStore.enabled}
-        onclick={() => (adminMenuOpen = !adminMenuOpen)}
+        onclick={() => floatingControlPanelStore.toggle(adminPanelId)}
         title={mapEditStore.enabled
           ? "Editor controls: map edit mode on"
           : "Editor controls"}

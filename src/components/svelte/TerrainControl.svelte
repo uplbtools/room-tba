@@ -7,7 +7,10 @@
     TERRAIN_EXAGGERATION_OPTIONS,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
   } from "../../constants/map-terrain";
-  import { terrainStore } from "../../lib/store.svelte";
+  import {
+    floatingControlPanelStore,
+    terrainStore,
+  } from "../../lib/store.svelte";
 
   type NetworkInformation = EventTarget & {
     effectiveType?: string;
@@ -16,6 +19,8 @@
 
   let isOnline = $state(true);
   let lowDataConnection = $state(false);
+  const panelId = "terrain";
+  const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
 
   const statusText = $derived.by(() => {
     if (!isOnline) return TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE;
@@ -81,14 +86,14 @@
 </script>
 
 <div class="terrain-control">
-  {#if terrainStore.menuOpen}
+  {#if menuOpen}
     <div class="terrain-panel" role="menu">
       <div class="terrain-panel-header">
         <span>Makiling Terrain</span>
         <button
           type="button"
           class="close-btn"
-          onclick={() => terrainStore.closeMenu()}
+          onclick={() => floatingControlPanelStore.close(panelId)}
           aria-label="Close terrain menu"
         >
           <X size="16" />
@@ -159,10 +164,10 @@
   <button
     class="terrain-btn"
     class:active={terrainStore.enabled}
-    onclick={() => terrainStore.toggleMenu()}
+    onclick={() => floatingControlPanelStore.toggle(panelId)}
     title="Makiling Terrain"
     aria-label="Makiling Terrain"
-    aria-expanded={terrainStore.menuOpen}
+    aria-expanded={menuOpen}
   >
     <Mountain />
   </button>

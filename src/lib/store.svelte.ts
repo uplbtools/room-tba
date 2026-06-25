@@ -350,6 +350,27 @@ class SidePanelStore {
   };
 }
 
+export type FloatingControlPanel =
+  | "legend"
+  | "building-type"
+  | "terrain"
+  | "jeepney"
+  | "admin";
+
+class FloatingControlPanelStore {
+  openPanel: FloatingControlPanel | null = $state(null);
+
+  toggle = (panel: FloatingControlPanel) => {
+    this.openPanel = this.openPanel === panel ? null : panel;
+  };
+
+  close = (panel?: FloatingControlPanel) => {
+    if (panel === undefined || this.openPanel === panel) {
+      this.openPanel = null;
+    }
+  };
+}
+
 class MapEditStore {
   enabled: boolean = $state(false);
 
@@ -716,6 +737,7 @@ export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
 export const sidePanelStore = new SidePanelStore();
+export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapEditStore = new MapEditStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();

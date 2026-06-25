@@ -5,12 +5,16 @@
     getBuildingTypeFilterOptions,
   } from "../../constants/building-types";
   import { getAppData } from "../../lib/context";
-  import { buildingTypeFilter } from "../../lib/store.svelte";
+  import {
+    buildingTypeFilter,
+    floatingControlPanelStore,
+  } from "../../lib/store.svelte";
   import type { BuildingTypeFilter } from "../../constants/building-types";
 
   const appData = getAppData();
   const { buildings, dorms } = $derived(appData());
-  let menuOpen = $state(false);
+  const panelId = "building-type";
+  const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
 
   const options = $derived(getBuildingTypeFilterOptions(buildings, dorms));
   const activeLabel = $derived(
@@ -20,7 +24,7 @@
 
   function selectFilter(value: BuildingTypeFilter) {
     buildingTypeFilter.set(value);
-    menuOpen = false;
+    floatingControlPanelStore.close(panelId);
   }
 </script>
 
@@ -32,7 +36,7 @@
         <button
           type="button"
           class="close-btn"
-          onclick={() => (menuOpen = false)}
+          onclick={() => floatingControlPanelStore.close(panelId)}
           aria-label="Close building type filter"
         >
           <X size="16" />
@@ -66,7 +70,7 @@
   <button
     class="filter-btn"
     class:active={hasActiveFilter}
-    onclick={() => (menuOpen = !menuOpen)}
+    onclick={() => floatingControlPanelStore.toggle(panelId)}
     title={`Building Type: ${activeLabel}`}
     aria-label={`Building Type: ${activeLabel}`}
     aria-expanded={menuOpen}
