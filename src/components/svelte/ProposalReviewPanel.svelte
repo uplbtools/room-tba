@@ -5,6 +5,7 @@
     toastStore,
   } from "../../lib/store.svelte";
   import { summarizeProposalPatch } from "../../lib/proposals/client";
+  import type { ProposalEntityType } from "../../lib/services/proposal-service";
 
   let noteById = $state<Record<number, string>>({});
   let actingId = $state<number | null>(null);
@@ -72,7 +73,7 @@
               <span class="review-submitter">{proposal.submitterName}</span>
             </div>
             <ul class="review-changes">
-              {#each summarizeProposalPatch(proposal.proposedPatch) as line}
+              {#each summarizeProposalPatch(proposal.proposedPatch, proposal.entityType as ProposalEntityType) as line}
                 <li>{line}</li>
               {/each}
             </ul>

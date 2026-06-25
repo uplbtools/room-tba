@@ -12,6 +12,13 @@ import { db } from "../db";
 import { canReviewProposals, type SessionUser } from "../admin/auth";
 import {
   EditConflictError,
+  DuplicateSlugError,
+  createBuilding,
+  createCollege,
+  createDivision,
+  createDorm,
+  createEvent,
+  createRoom,
   updateBuilding,
   updateCollege,
   updateDivision,
@@ -19,14 +26,17 @@ import {
   updateEvent,
   updateEventLocations,
   updateRoom,
+  type BuildingCreateInput,
   type BuildingUpdateInput,
+  type DormCreateInput,
   type DormUpdateInput,
   type EventLocationWriteInput,
   type EventWriteInput,
+  type RoomCreateInput,
   type RoomUpdateInput,
 } from "./admin-service";
 
-export const PROPOSAL_ENTITY_TYPES = [
+export const PROPOSAL_UPDATE_TYPES = [
   "building",
   "dorm",
   "room",
@@ -36,7 +46,35 @@ export const PROPOSAL_ENTITY_TYPES = [
   "event_locations",
 ] as const;
 
+export const PROPOSAL_CREATE_TYPES = [
+  "create_building",
+  "create_event",
+  "create_dorm",
+  "create_room",
+  "create_college",
+  "create_division",
+] as const;
+
+export const PROPOSAL_ENTITY_TYPES = [
+  ...PROPOSAL_UPDATE_TYPES,
+  ...PROPOSAL_CREATE_TYPES,
+] as const;
+
+export type ProposalUpdateType = (typeof PROPOSAL_UPDATE_TYPES)[number];
+export type ProposalCreateType = (typeof PROPOSAL_CREATE_TYPES)[number];
 export type ProposalEntityType = (typeof PROPOSAL_ENTITY_TYPES)[number];
+
+export function isCreateProposalType(
+  value: string,
+): value is ProposalCreateType {
+  return (PROPOSAL_CREATE_TYPES as readonly string[]).includes(value);
+}
+
+export function isUpdateProposalType(
+  value: string,
+): value is ProposalUpdateType {
+  return (PROPOSAL_UPDATE_TYPES as readonly string[]).includes(value);
+}
 
 export type EditProposalRow = typeof editProposalsTable.$inferSelect;
 
@@ -51,7 +89,38 @@ function isProposalEntityType(value: string): value is ProposalEntityType {
 export async function getEntityLabel(
   entityType: ProposalEntityType,
   entityId: number,
+  patch?: Record<string, unknown>,
 ): Promise<string> {
+  if (isCreateProposalType(entityType)) {
+    const p = patch ?? {};
+    switch (entityType) {
+      case "create_building":
+        return typeof p.buildingName === "string" && p.buildingName.trim()
+          ? `New building: ${p.buildingName.trim()}`
+          : "New building";
+      case "create_event":
+        return typeof p.title === "string" && p.title.trim()
+          ? `New event: ${p.title.trim()}`
+          : "New event";
+      case "create_dorm":
+        return typeof p.dormName === "string" && p.dormName.trim()
+          ? `New dorm: ${p.dormName.trim()}`
+          : "New dorm";
+      case "create_room":
+        return typeof p.roomCode === "string" && p.roomCode.trim()
+          ? `New room: ${p.roomCode.trim()}`
+          : "New room";
+      case "create_college":
+        return typeof p.collegeName === "string" && p.collegeName.trim()
+          ? `New college: ${p.collegeName.trim()}`
+          : "New college";
+      case "create_division":
+        return typeof p.divisionName === "string" && p.divisionName.trim()
+          ? `New division: ${p.divisionName.trim()}`
+          : "New division";
+    }
+  }
+
   switch (entityType) {
     case "building": {
       const [row] = await db
@@ -106,7 +175,7 @@ export async function getEntityLabel(
 }
 
 async function entityExists(
-  entityType: ProposalEntityType,
+  entityType: ProposalUpdateType,
   entityId: number,
 ): Promise<boolean> {
   switch (entityType) {
@@ -213,11 +282,7 @@ export function canViewProposalSubmitterDetails(
   submitterName?: string | null,
 ): boolean {
   if (session && canReviewProposals(session.role)) return true;
-  if (
-    session &&
-    session.id > 0 &&
-    proposal.submitterUserId === session.id
-  ) {
+  if (session && session.id > 0 && proposal.submitterUserId === session.id) {
     return true;
   }
   const normalized = submitterName?.trim().toLowerCase();
@@ -238,8 +303,69 @@ async function withEntityLabel(
     entityLabel: await getEntityLabel(
       row.entityType as ProposalEntityType,
       row.entityId,
+      row.proposedPatch as Record<string, unknown>,
     ),
   };
+}
+
+function validateCreatePatch(
+  entityType: ProposalCreateType,
+  patch: Record<string, unknown>,
+) {
+  switch (entityType) {
+    case "create_building": {
+      const name =
+        typeof patch.buildingName === "string" ? patch.buildingName.trim() : "";
+      if (!name)
+        throw new ProposalValidationError("Building name is required.");
+      if (typeof patch.lat !== "number" || typeof patch.lon !== "number") {
+        throw new ProposalValidationError(
+          "Pick a map location for the new building.",
+        );
+      }
+      return;
+    }
+    case "create_event": {
+      const title = typeof patch.title === "string" ? patch.title.trim() : "";
+      if (!title) throw new ProposalValidationError("Event title is required.");
+      if (
+        typeof patch.startsAt !== "string" ||
+        typeof patch.endsAt !== "string"
+      ) {
+        throw new ProposalValidationError("Event start and end are required.");
+      }
+      return;
+    }
+    case "create_dorm": {
+      const name =
+        typeof patch.dormName === "string" ? patch.dormName.trim() : "";
+      const gender =
+        typeof patch.gender === "string" ? patch.gender.trim() : "";
+      if (!name) throw new ProposalValidationError("Dorm name is required.");
+      if (!gender)
+        throw new ProposalValidationError("Dorm gender is required.");
+      return;
+    }
+    case "create_room": {
+      const code =
+        typeof patch.roomCode === "string" ? patch.roomCode.trim() : "";
+      if (!code) throw new ProposalValidationError("Room code is required.");
+      return;
+    }
+    case "create_college": {
+      const name =
+        typeof patch.collegeName === "string" ? patch.collegeName.trim() : "";
+      if (!name) throw new ProposalValidationError("College name is required.");
+      return;
+    }
+    case "create_division": {
+      const name =
+        typeof patch.divisionName === "string" ? patch.divisionName.trim() : "";
+      if (!name)
+        throw new ProposalValidationError("Division name is required.");
+      return;
+    }
+  }
 }
 
 export async function listPendingProposals(): Promise<EditProposalSummary[]> {
@@ -292,11 +418,23 @@ export async function submitProposal(
   if (!isProposalEntityType(input.entityType)) {
     throw new ProposalValidationError("Unsupported entity type.");
   }
-  if (!Number.isInteger(input.entityId) || input.entityId < 1) {
-    throw new ProposalValidationError("Invalid entity ID.");
-  }
-  if (!Number.isInteger(input.baseVersion) || input.baseVersion < 1) {
-    throw new ProposalValidationError("Invalid base version.");
+  const isCreate = isCreateProposalType(input.entityType);
+  if (isCreate) {
+    if (input.entityId !== 0) {
+      throw new ProposalValidationError("Invalid entity ID for a new entry.");
+    }
+    if (input.baseVersion !== 0) {
+      throw new ProposalValidationError(
+        "Invalid base version for a new entry.",
+      );
+    }
+  } else {
+    if (!Number.isInteger(input.entityId) || input.entityId < 1) {
+      throw new ProposalValidationError("Invalid entity ID.");
+    }
+    if (!Number.isInteger(input.baseVersion) || input.baseVersion < 1) {
+      throw new ProposalValidationError("Invalid base version.");
+    }
   }
   const name = input.submitterName.trim();
   if (name.length < 2 || name.length > 100) {
@@ -308,7 +446,14 @@ export async function submitProposal(
     throw new ProposalValidationError("No changes to submit.");
   }
 
-  if (!(await entityExists(input.entityType, input.entityId))) {
+  if (isCreate) {
+    validateCreatePatch(input.entityType, input.patch);
+  } else if (
+    !(await entityExists(
+      input.entityType as ProposalUpdateType,
+      input.entityId,
+    ))
+  ) {
     throw new ProposalValidationError("Entity not found.");
   }
 
@@ -408,9 +553,34 @@ export class ProposalActionError extends Error {
 
 async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
   const patch = proposal.proposedPatch as Record<string, unknown>;
+  const entityType = proposal.entityType as ProposalEntityType;
+
+  if (isCreateProposalType(entityType)) {
+    switch (entityType) {
+      case "create_building":
+        return createBuilding(patch as BuildingCreateInput, editedBy);
+      case "create_college": {
+        const collegeName =
+          typeof patch.collegeName === "string" ? patch.collegeName : "";
+        return createCollege(collegeName, editedBy);
+      }
+      case "create_division": {
+        const divisionName =
+          typeof patch.divisionName === "string" ? patch.divisionName : "";
+        return createDivision(divisionName, editedBy);
+      }
+      case "create_dorm":
+        return createDorm(patch as DormCreateInput, editedBy);
+      case "create_room":
+        return createRoom(patch as RoomCreateInput, editedBy);
+      case "create_event":
+        return createEvent(patch as EventWriteInput, editedBy);
+    }
+  }
+
   const version = proposal.baseVersion;
 
-  switch (proposal.entityType as ProposalEntityType) {
+  switch (entityType) {
     case "building":
       return updateBuilding(
         proposal.entityId,
@@ -541,6 +711,9 @@ export async function approveProposal(id: number, reviewer: SessionUser) {
         "Published data changed before approval. Refresh and review again.",
         409,
       );
+    }
+    if (err instanceof DuplicateSlugError) {
+      throw new ProposalActionError(err.message, 409);
     }
     throw err;
   }
