@@ -1,10 +1,13 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import CopyLinkButton from "../svelte/CopyLinkButton.svelte";
 
 type Item = {
   href: string;
   label: string;
   description?: string;
+  copyUrl?: string;
+  copyLabel?: string;
 };
 
 type Props = {
@@ -42,8 +45,27 @@ const {
         {
           items.map((item) => (
             <li>
-              <a href={item.href}>{item.label}</a>
-              {item.description && <span>{item.description}</span>}
+              <div class="entity-index-page__item-main">
+                <a href={item.href}>{item.label}</a>
+                {item.description && (
+                  <span class="entity-index-page__description">
+                    {item.description}
+                  </span>
+                )}
+              </div>
+              {item.copyUrl && (
+                <div class="entity-index-page__item-actions">
+                  <CopyLinkButton
+                    url={item.copyUrl}
+                    ariaLabel={item.copyLabel ?? `Copy link to ${item.label}`}
+                    successMessage="Link copied."
+                    errorMessage={`Could not copy link for ${item.label}.`}
+                    variant="index"
+                    feedback="inline"
+                    client:load
+                  />
+                </div>
+              )}
             </li>
           ))
         }
@@ -87,11 +109,23 @@ const {
 
   li {
     display: grid;
-    gap: 0.125rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
     padding: 1rem;
     border: 1px solid #eadfda;
     border-radius: 0.875rem;
     background: white;
+  }
+
+  .entity-index-page__item-main {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .entity-index-page__item-actions {
+    justify-self: end;
   }
 
   a {
@@ -100,9 +134,19 @@ const {
     text-decoration: none;
   }
 
-  span {
+  .entity-index-page__description {
     color: #555;
     font-size: 0.95rem;
     line-height: 1.5;
+  }
+
+  @media (max-width: 640px) {
+    li {
+      grid-template-columns: 1fr;
+    }
+
+    .entity-index-page__item-actions {
+      justify-self: stretch;
+    }
   }
 </style>
