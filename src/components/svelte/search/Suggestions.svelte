@@ -2,6 +2,7 @@
   import { getAppData } from "../../../lib/context";
   import {
     getJSONFetch,
+    searchLocalAliases,
     searchLocalRooms,
   } from "../../../lib/local/data/utils";
   import {
@@ -148,7 +149,7 @@
         )
         .map((entry) => ({ alias: entry.alias, value: entry.value }));
     } catch {
-      return [];
+      return searchLocalAliases(trimmed);
     }
   }
 </script>

@@ -16,6 +16,7 @@ import {
   getLocalDivisionRooms,
 } from "./sync";
 import { refreshStoredEventTiming, sortStoredEvents } from "../../event-time";
+import { normalizeAlias } from "../../site";
 import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
@@ -435,5 +436,43 @@ export async function searchLocalRooms(
   } catch (e) {
     console.error(e);
     return null;
+  }
+}
+
+/** Offline alias lookup against the PGlite cache (#155 follow-up). */
+export async function searchLocalAliases(
+  searchString: string,
+): Promise<{ alias: string; value: string }[]> {
+  const normalized = normalizeAlias(searchString);
+  if (!normalized) return [];
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `
+      SELECT
+        a.alias,
+        COALESCE(b.building_name, a.building_name) AS value,
+        a.normalized_alias AS "normalizedAlias"
+      FROM aliases AS a
+      LEFT JOIN buildings AS b
+        ON a.target_type = 'building' AND b.id = a.target_id
+      WHERE COALESCE(b.building_name, a.building_name) IS NOT NULL
+        AND (a.normalized_alias = $1 OR a.normalized_alias LIKE $2)
+      ORDER BY CASE WHEN a.normalized_alias = $1 THEN 0 ELSE 1 END, a.alias
+      LIMIT 12
+      `,
+      [normalized, `${normalized}%`],
+    )) as Results<{ alias: string; value: string; normalizedAlias: string }>;
+
+    const seen = new Set<string>();
+    return data.rows.filter((row) => {
+      if (!row.value || seen.has(row.value)) return false;
+      seen.add(row.value);
+      return true;
+    });
+  } catch (e) {
+    console.error(e);
+    return [];
   }
 }
