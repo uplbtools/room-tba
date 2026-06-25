@@ -32,7 +32,11 @@
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
   import type { EventData } from "../../lib/types";
-  import { resolveJeepneyRoutesForDisplay, type DisplayJeepneyRoute } from "../../lib/jeepney-routes-display";
+  import {
+    JEEPNEY_ROUTES,
+    type JeepneyRoute,
+    type JeepneyStop,
+  } from "../../constants/jeepney-routes";
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
@@ -65,10 +69,7 @@
   } from "../../lib/map-move-history";
   const data = getAppData();
   const appActions = getAppActions();
-  const { buildings, dorms, events, jeepneyRoutes, loaded } = $derived(data());
-  const jeepneyRoutesDisplay = $derived(
-    resolveJeepneyRoutesForDisplay(loaded ? jeepneyRoutes : null),
-  );
+  const { buildings, dorms, events, loaded } = $derived(data());
   const filteredBuildings = $derived.by(() => {
     if (!loaded) return [];
     return buildings.filter((building) =>
@@ -102,7 +103,7 @@
   const BUILDING_3D_LAYER_ID = "building-3d";
 
   let activeRouteId = $state<string | null>(null);
-  let activeRouteStops = $state<JeepneyStop[]>([]);
+  let activeRouteStops = $state<DisplayJeepneyRoute["stops"]>([]);
   let activeRouteColor = $state<string>("#dc2626");
   let terrainModeWasEnabled = false;
   let selectedEditKey = $state<string | null>(null);
@@ -185,7 +186,7 @@
   const redoMove = $derived(redoStack.at(-1) ?? null);
 
   async function fetchRouteGeometry(
-    route: DisplayJeepneyRoute,
+    route: JeepneyRoute,
   ): Promise<LineString | null> {
     if (route.stops.length < 2) return null;
     const coordsParam = route.stops
@@ -2109,6 +2110,47 @@
           type="button"
           disabled={eventPlacementStore.creating}
           onclick={() => eventPlacementStore.cancel()}
+        >
+          Cancel
+        </button>
+      </div>
+    {/if}
+  {:else if buildingPlacementStore.active}
+    {#if md.current}
+      <div
+        class="edit-dock event-placement-dock"
+        role="status"
+        aria-live="polite"
+      >
+        <p class="edit-dock-status">
+          {buildingPlacementStore.creating
+            ? "Creating building…"
+            : "Tap the map to place the building"}
+        </p>
+        <button
+          class="edit-dock-action cancel"
+          type="button"
+          disabled={buildingPlacementStore.creating}
+          onclick={() => buildingPlacementStore.cancel()}
+        >
+          Cancel
+        </button>
+      </div>
+    {:else}
+      <div class="event-placement-toolbar" role="status" aria-live="polite">
+        <div class="event-placement-copy">
+          <strong>Choose building location on the map</strong>
+          <span>
+            {buildingPlacementStore.creating
+              ? "Creating the building at the selected map point..."
+              : "Click or tap the map point where this building should appear."}
+          </span>
+        </div>
+        <button
+          class="event-placement-cancel"
+          type="button"
+          disabled={buildingPlacementStore.creating}
+          onclick={() => buildingPlacementStore.cancel()}
         >
           Cancel
         </button>
