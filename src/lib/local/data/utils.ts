@@ -292,15 +292,19 @@ export function getEntity<T>(
   getLocalEntity: () => Promise<T[] | undefined>,
 ): (checker: TableSyncInfo) => Promise<T[]> {
   return async (checker: TableSyncInfo) => {
+    const local = async () => (await getLocalEntity()) ?? [];
+    if (checker.valid) return local();
     try {
-      if (checker.valid) {
-        const data = await getLocalEntity();
-        return data ?? [];
-      }
       const fetchedData = await getJSONFetch<T[]>(`/api/${tableName}`);
-      return fetchedData;
+      if (Array.isArray(fetchedData) && fetchedData.length > 0) {
+        return fetchedData;
+      }
+      // Remote unreachable/empty (offline): prefer cached local rows.
+      const cached = await local();
+      if (cached.length > 0) return cached;
+      return Array.isArray(fetchedData) ? fetchedData : cached;
     } catch {
-      return [];
+      return local();
     }
   };
 }
@@ -328,17 +332,24 @@ export function getEntityRooms(
   getLocalTableRoom: (id: number) => Promise<RoomData[] | undefined>,
 ) {
   return async (validSync: boolean, id: number) => {
+    const loadLocal = async () => (await getLocalTableRoom(id)) ?? [];
+    if (validSync) return loadLocal();
+    const url = `/api/rooms?${entityName}_id=${id}`;
     try {
-      if (validSync) {
-        const data = await getLocalTableRoom(id);
-        return data ?? [];
+      const response = await fetch(url);
+      const fetchedData = (await response.json()) as { data?: RoomData[] };
+      if (response.ok && Array.isArray(fetchedData?.data)) {
+        return fetchedData.data;
       }
-      const fetchedData = await getJSONFetch<{ data: RoomData[] }>(
-        `/api/rooms?${entityName}_id=${id}`,
-      );
-      return fetchedData.data;
+      // Authoritative empty entity (e.g. 404): do not resurrect stale cache.
+      if (response.status === 404) {
+        return [];
+      }
+      const cached = await loadLocal();
+      return cached.length > 0 ? cached : [];
     } catch {
-      return [];
+      const cached = await loadLocal();
+      return cached;
     }
   };
 }
@@ -363,11 +374,66 @@ export async function getRoomsData(): Promise<
       await getJSONFetch<Pick<DBData, "directionCount" | "totalRooms">>(
         "/api/rooms-update",
       );
-    return fetchedRoomsData;
+    if (
+      typeof fetchedRoomsData?.totalRooms === "number" &&
+      fetchedRoomsData.totalRooms > 0
+    ) {
+      return fetchedRoomsData;
+    }
+    // Offline / empty response: derive counts from cached PGlite rows.
+    const local = await getLocalRoomsCounts();
+    return local.totalRooms > 0 ? local : fetchedRoomsData;
   } catch {
+    return getLocalRoomsCounts();
+  }
+}
+
+/** Room counts derived from the local PGlite cache (offline fallback). */
+export async function getLocalRoomsCounts(): Promise<
+  Pick<DBData, "directionCount" | "totalRooms">
+> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const total = (await localDB.query(
+      `SELECT COUNT(*)::int AS count FROM rooms`,
+    )) as Results<{ count: number }>;
+    const directed = (await localDB.query(
+      `SELECT COUNT(*)::int AS count FROM rooms WHERE directions IS NOT NULL`,
+    )) as Results<{ count: number }>;
     return {
-      directionCount: 0,
-      totalRooms: 0,
+      totalRooms: total.rows[0]?.count ?? 0,
+      directionCount: directed.rows[0]?.count ?? 0,
     };
+  } catch (e) {
+    console.error(e);
+    return { directionCount: 0, totalRooms: 0 };
+  }
+}
+
+/** Local room-code search mirroring the server `search_code` behavior, used as
+ * an offline fallback for search suggestions. Returns up to 6 matches, or null
+ * when there are none (matching the server contract). */
+export async function searchLocalRooms(
+  searchString: string,
+): Promise<{ value: string }[] | null> {
+  try {
+    const escaped = searchString
+      .replace(/\\/g, "\\\\")
+      .replace(/%/g, "\\%")
+      .replace(/_/g, "\\_");
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `SELECT room_code AS value FROM rooms
+       WHERE upper(room_code) LIKE upper($1) ESCAPE '\\'
+       ORDER BY length(room_code), room_code
+       LIMIT 6`,
+      [`%${escaped}%`],
+    )) as Results<{ value: string }>;
+    return data.rows.length ? data.rows : null;
+  } catch (e) {
+    console.error(e);
+    return null;
   }
 }

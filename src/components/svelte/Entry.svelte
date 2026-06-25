@@ -84,6 +84,12 @@
     if (!root) return;
 
     const syncHeight = () => {
+      // Mobile uses a full-viewport overlay stack; its height must not drive
+      // layout anchors (detail sheet inset, etc.).
+      if (window.matchMedia("(max-width: 48rem)").matches) {
+        root.style.setProperty("--map-tools-block-height", "0px");
+        return;
+      }
       root.style.setProperty(
         "--map-tools-block-height",
         `${el.getBoundingClientRect().height}px`,
