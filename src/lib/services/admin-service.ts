@@ -6,12 +6,17 @@ import {
   divisionsTable,
   dormsTable,
   editorHistoryTable,
+  eventLocationsTable,
+  eventRouteStopsTable,
+  eventRoutesTable,
+  eventsTable,
   roomsTable,
   roomPositionsTable,
   updateTable,
 } from "../../../drizzle/schema";
 import { db } from "../db";
-import type { RoomData } from "../types";
+import { getEventById } from "./event-service";
+import type { EventData, RoomData } from "../types";
 
 // ── Sync key refresh ──
 
@@ -574,6 +579,428 @@ export async function updateDorm(
   }
 
   return getDormById(id);
+}
+
+// ── Events ──
+
+export type EventLocationWriteInput = Partial<{
+  id: number;
+  anchorType: "building" | "dorm" | "custom";
+  buildingId: number | null;
+  dormId: number | null;
+  label: string;
+  lat: number | null;
+  lon: number | null;
+  highlightPriority: number;
+  sortOrder: number;
+  isPrimary: boolean;
+}>;
+
+export type EventRouteStopWriteInput = Partial<{
+  id: number;
+  eventLocationId: number | null;
+  label: string;
+  lat: number | null;
+  lon: number | null;
+  sortOrder: number;
+}>;
+
+export type EventRouteWriteInput = Partial<{
+  id: number;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+  stops: EventRouteStopWriteInput[];
+}>;
+
+export type EventWriteInput = Partial<{
+  slug: string;
+  title: string;
+  description: string | null;
+  category: "tradition" | "fair" | "ceremony" | "sports" | "other";
+  startsAt: string;
+  endsAt: string;
+  timezone: string;
+  recurrence: "none" | "annual" | "every_1st_sem" | "every_2nd_sem";
+  isActive: boolean;
+  sourceUrl: string | null;
+  priority: number;
+  includeInSeo: boolean;
+  locations: EventLocationWriteInput[];
+  routes: EventRouteWriteInput[];
+}>;
+
+const EVENT_SYNC_TABLES = [
+  "events",
+  "event_locations",
+  "event_routes",
+  "event_route_stops",
+];
+
+async function refreshEventSyncKeys() {
+  await Promise.all(
+    EVENT_SYNC_TABLES.map((tableName) => refreshSyncKey(tableName)),
+  );
+}
+
+function getEventUpdates(input: EventWriteInput) {
+  const updates: Record<string, unknown> = {};
+  if (input.slug !== undefined) updates["slug"] = input.slug;
+  if (input.title !== undefined) updates["title"] = input.title;
+  if (input.description !== undefined)
+    updates["description"] = input.description;
+  if (input.category !== undefined) updates["category"] = input.category;
+  if (input.startsAt !== undefined) updates["startsAt"] = input.startsAt;
+  if (input.endsAt !== undefined) updates["endsAt"] = input.endsAt;
+  if (input.timezone !== undefined) updates["timezone"] = input.timezone;
+  if (input.recurrence !== undefined) updates["recurrence"] = input.recurrence;
+  if (input.isActive !== undefined) updates["isActive"] = input.isActive;
+  if (input.sourceUrl !== undefined) updates["sourceUrl"] = input.sourceUrl;
+  if (input.priority !== undefined) updates["priority"] = input.priority;
+  if (input.includeInSeo !== undefined)
+    updates["includeInSeo"] = input.includeInSeo;
+  return updates;
+}
+
+export async function createEvent(
+  input: EventWriteInput,
+  editedBy = "admin",
+): Promise<EventData | null> {
+  const [inserted] = await db
+    .insert(eventsTable)
+    .values({
+      slug: input.slug ?? "",
+      title: input.title ?? "",
+      description: input.description ?? null,
+      category: input.category ?? "other",
+      startsAt: input.startsAt ?? new Date().toISOString(),
+      endsAt: input.endsAt ?? new Date().toISOString(),
+      timezone: input.timezone ?? "Asia/Manila",
+      recurrence: input.recurrence ?? "none",
+      isActive: input.isActive ?? true,
+      sourceUrl: input.sourceUrl ?? null,
+      priority: input.priority ?? 0,
+      includeInSeo: input.includeInSeo ?? false,
+    })
+    .returning({ id: eventsTable.id });
+
+  if (!inserted) return null;
+  await replaceEventChildren(inserted.id, input);
+
+  const after = await getEventById(inserted.id, { includeInactive: true });
+  if (after) {
+    await recordEditorHistory({
+      entityType: "event",
+      entityId: inserted.id,
+      action: "create",
+      before: null,
+      after,
+      versionAfter: after.version,
+      editedBy,
+    });
+  }
+  await refreshEventSyncKeys();
+  return after;
+}
+
+export async function updateEvent(
+  id: number,
+  input: EventWriteInput,
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<EventData | null> {
+  const before = await getEventById(id, { includeInactive: true });
+  const updates = getEventUpdates(input);
+  const shouldReplaceChildren =
+    input.locations !== undefined || input.routes !== undefined;
+  if (Object.keys(updates).length === 0 && !shouldReplaceChildren) {
+    return before;
+  }
+
+  await db.transaction(async (tx) => {
+    const where =
+      expectedVersion === undefined
+        ? eq(eventsTable.id, id)
+        : and(eq(eventsTable.id, id), eq(eventsTable.version, expectedVersion));
+    const [updated] = await tx
+      .update(eventsTable)
+      .set({
+        ...updates,
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning({ id: eventsTable.id });
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(
+        await getEventById(id, { includeInactive: true }),
+      );
+    }
+
+    if (shouldReplaceChildren) {
+      await replaceEventChildren(id, input, tx);
+    }
+  });
+
+  const after = await getEventById(id, { includeInactive: true });
+  if (before && after) {
+    await recordEditorHistory({
+      entityType: "event",
+      entityId: id,
+      action: "update",
+      before,
+      after,
+      versionBefore: before.version,
+      versionAfter: after.version,
+      editedBy,
+    });
+  }
+  await refreshEventSyncKeys();
+  return after;
+}
+
+export async function deactivateEvent(
+  id: number,
+  expectedVersion?: number,
+  editedBy = "admin",
+) {
+  return updateEvent(id, { isActive: false }, expectedVersion, editedBy);
+}
+
+export async function updateEventLocations(
+  id: number,
+  locations: EventLocationWriteInput[],
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<EventData | null> {
+  const before = await getEventById(id, { includeInactive: true });
+
+  await db.transaction(async (tx) => {
+    const where =
+      expectedVersion === undefined
+        ? eq(eventsTable.id, id)
+        : and(eq(eventsTable.id, id), eq(eventsTable.version, expectedVersion));
+    const [updated] = await tx
+      .update(eventsTable)
+      .set({
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning({ id: eventsTable.id });
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(
+        await getEventById(id, { includeInactive: true }),
+      );
+    }
+
+    await upsertEventLocations(id, locations, tx);
+  });
+
+  const after = await getEventById(id, { includeInactive: true });
+  if (before && after) {
+    await recordEditorHistory({
+      entityType: "event",
+      entityId: id,
+      action: "update_locations",
+      before,
+      after,
+      versionBefore: before.version,
+      versionAfter: after.version,
+      editedBy,
+    });
+  }
+  await refreshEventSyncKeys();
+  return after;
+}
+
+type EventLocationRow = typeof eventLocationsTable.$inferSelect;
+
+function getEventLocationFields(
+  location: EventLocationWriteInput,
+  index: number,
+  existing?: EventLocationRow,
+) {
+  return {
+    anchorType: location.anchorType ?? existing?.anchorType ?? "custom",
+    buildingId:
+      location.buildingId !== undefined
+        ? location.buildingId
+        : (existing?.buildingId ?? null),
+    dormId:
+      location.dormId !== undefined
+        ? location.dormId
+        : (existing?.dormId ?? null),
+    label: location.label ?? existing?.label ?? "Event marker",
+    lat: location.lat !== undefined ? location.lat : (existing?.lat ?? null),
+    lon: location.lon !== undefined ? location.lon : (existing?.lon ?? null),
+    highlightPriority:
+      location.highlightPriority ?? existing?.highlightPriority ?? 0,
+    sortOrder: location.sortOrder ?? existing?.sortOrder ?? index,
+    isPrimary: location.isPrimary ?? existing?.isPrimary ?? index === 0,
+  };
+}
+
+async function upsertEventLocations(
+  eventId: number,
+  locations: EventLocationWriteInput[],
+  tx: typeof db = db,
+) {
+  const existingLocations = await tx
+    .select()
+    .from(eventLocationsTable)
+    .where(eq(eventLocationsTable.eventId, eventId));
+  const existingById = new Map(
+    existingLocations.map((location) => [location.id, location]),
+  );
+  const retainedLocationIds = new Set<number>();
+
+  for (const [index, location] of locations.entries()) {
+    const existing =
+      location.id !== undefined ? existingById.get(location.id) : undefined;
+    const fields = getEventLocationFields(location, index, existing);
+
+    if (existing) {
+      await tx
+        .update(eventLocationsTable)
+        .set({ ...fields, updatedAt: sql`now()` })
+        .where(eq(eventLocationsTable.id, existing.id));
+      retainedLocationIds.add(existing.id);
+      continue;
+    }
+
+    const [inserted] = await tx
+      .insert(eventLocationsTable)
+      .values({ eventId, ...fields })
+      .returning({ id: eventLocationsTable.id });
+    if (inserted) retainedLocationIds.add(inserted.id);
+  }
+
+  const removedLocations = existingLocations.filter(
+    (location) => !retainedLocationIds.has(location.id),
+  );
+  for (const location of removedLocations) {
+    await tx
+      .update(eventRouteStopsTable)
+      .set({ eventLocationId: null })
+      .where(eq(eventRouteStopsTable.eventLocationId, location.id));
+    await tx
+      .delete(eventLocationsTable)
+      .where(eq(eventLocationsTable.id, location.id));
+  }
+}
+
+async function replaceEventChildren(
+  eventId: number,
+  input: Pick<EventWriteInput, "locations" | "routes">,
+  tx: typeof db = db,
+) {
+  if (input.routes !== undefined) {
+    const existingRoutes = await tx
+      .select({ id: eventRoutesTable.id })
+      .from(eventRoutesTable)
+      .where(eq(eventRoutesTable.eventId, eventId));
+    for (const route of existingRoutes) {
+      await tx
+        .delete(eventRouteStopsTable)
+        .where(eq(eventRouteStopsTable.routeId, route.id));
+    }
+    await tx
+      .delete(eventRoutesTable)
+      .where(eq(eventRoutesTable.eventId, eventId));
+  }
+
+  const locationsReplaced = input.locations !== undefined;
+  const locationsHaveIds =
+    input.locations?.some((location) => location.id !== undefined) ?? false;
+  const locationIdByOldId = new Map<number, number>();
+  const locationIdByIndex = new Map<number, number>();
+
+  if (input.locations !== undefined) {
+    if (input.routes === undefined) {
+      const existingLocations = await tx
+        .select({ id: eventLocationsTable.id })
+        .from(eventLocationsTable)
+        .where(eq(eventLocationsTable.eventId, eventId));
+      for (const location of existingLocations) {
+        await tx
+          .update(eventRouteStopsTable)
+          .set({ eventLocationId: null })
+          .where(eq(eventRouteStopsTable.eventLocationId, location.id));
+      }
+    }
+    await tx
+      .delete(eventLocationsTable)
+      .where(eq(eventLocationsTable.eventId, eventId));
+  }
+
+  if (input.locations !== undefined && input.locations.length > 0) {
+    const insertedLocations = await tx
+      .insert(eventLocationsTable)
+      .values(
+        input.locations.map((location, index) => ({
+          eventId,
+          anchorType: location.anchorType ?? "custom",
+          buildingId: location.buildingId ?? null,
+          dormId: location.dormId ?? null,
+          label: location.label ?? "Event marker",
+          lat: location.lat ?? null,
+          lon: location.lon ?? null,
+          highlightPriority: location.highlightPriority ?? 0,
+          sortOrder: location.sortOrder ?? index,
+          isPrimary: location.isPrimary ?? index === 0,
+        })),
+      )
+      .returning({ id: eventLocationsTable.id });
+
+    input.locations.forEach((location, index) => {
+      const newId = insertedLocations[index]?.id;
+      if (newId === undefined) return;
+      locationIdByIndex.set(index, newId);
+      if (location.id !== undefined) locationIdByOldId.set(location.id, newId);
+    });
+  }
+
+  const resolveStopLocationId = (
+    eventLocationId: number | null | undefined,
+  ): number | null => {
+    if (eventLocationId === null || eventLocationId === undefined) return null;
+    if (!locationsReplaced) return eventLocationId;
+    const byOldId = locationIdByOldId.get(eventLocationId);
+    if (byOldId !== undefined) return byOldId;
+    if (!locationsHaveIds) {
+      return locationIdByIndex.get(eventLocationId) ?? null;
+    }
+    return null;
+  };
+
+  if (input.routes !== undefined && input.routes.length > 0) {
+    for (const [routeIndex, route] of input.routes.entries()) {
+      const [insertedRoute] = await tx
+        .insert(eventRoutesTable)
+        .values({
+          eventId,
+          name: route.name ?? "Event route",
+          description: route.description ?? null,
+          sortOrder: route.sortOrder ?? routeIndex,
+        })
+        .returning({ id: eventRoutesTable.id });
+
+      if (!insertedRoute || !route.stops || route.stops.length === 0) continue;
+      await tx.insert(eventRouteStopsTable).values(
+        route.stops.map((stop, stopIndex) => ({
+          routeId: insertedRoute.id,
+          eventLocationId: resolveStopLocationId(stop.eventLocationId),
+          label: stop.label ?? "Route stop",
+          lat: stop.lat ?? null,
+          lon: stop.lon ?? null,
+          sortOrder: stop.sortOrder ?? stopIndex,
+        })),
+      );
+    }
+  }
 }
 
 // ── Counts (for dashboard) ──

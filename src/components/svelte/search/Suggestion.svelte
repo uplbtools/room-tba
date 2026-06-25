@@ -2,6 +2,7 @@
   import { queryStore, type QueryStoreState } from "../../../lib/store.svelte";
   import ArrowUpRight from "@lucide/svelte/icons/arrow-up-right";
   import BookText from "@lucide/svelte/icons/book-text";
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import DoorClosed from "@lucide/svelte/icons/door-closed";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Home from "@lucide/svelte/icons/home";
@@ -18,15 +19,6 @@
     category: Exclude<QueryStoreState["category"], null>;
     id?: number;
   } = $props();
-
-  const pattern = $derived(
-    new RegExp(`(${queryStore.inputValue.trim()})`, "gi"),
-  );
-  function highlightSearch(original: string, pattern: RegExp): string {
-    return queryStore.inputValue.length < 2
-      ? original
-      : original.replaceAll(pattern, (substr) => `<strong>${substr}</strong>`);
-  }
 
   function handleSuggestionClick() {
     queryStore.updateQuery({
@@ -52,24 +44,26 @@
       <BookText size={20} />
     {:else if type === "dorm"}
       <Home size={20} />
+    {:else if type === "event"}
+      <CalendarDays size={20} />
     {/if}
   </span>
 {/snippet}
 
 <button class="suggestion" onclick={handleSuggestionClick}>
   {@render icon(category)}
-  <div class="text">{@html highlightSearch(value, pattern)}</div>
+  <div class="text">{value}</div>
   {#if typeof id !== "undefined"}
     <X
       size={20}
-      style={"margin-left:auto"}
+      style="margin-left:auto"
       onclick={(e) => {
         e.stopImmediatePropagation();
         queryStore.removeRecentSearch(id);
       }}
     ></X>
   {:else}
-    <ArrowUpRight size={20} style={"margin-left:auto"} class="icon" />
+    <ArrowUpRight size={20} style="margin-left:auto" class="icon" />
   {/if}
 </button>
 

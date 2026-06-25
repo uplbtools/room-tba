@@ -20,6 +20,7 @@
   import type { RecentSearch } from "../../lib/types";
   import { isRecentSearch } from "../../lib/locStorage";
   import SyncToast from "./SyncToast.svelte";
+  import { getAppData } from "../../lib/context";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -27,6 +28,11 @@
   };
 
   const { initialSearch, suppressLandingModal = false }: Props = $props();
+  const appData = getAppData();
+  const { events, loaded } = $derived(appData());
+  const activeEvent = $derived(
+    loaded ? (events.find((event) => event.status === "active") ?? null) : null,
+  );
 
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
@@ -84,6 +90,20 @@
 <div class="app-layout">
   <Map />
   <div class="ui-layer">
+    {#if activeEvent && queryStore.category !== "event"}
+      <button
+        class="event-banner"
+        type="button"
+        onclick={() =>
+          queryStore.updateQuery({
+            category: "event",
+            type: "result",
+            value: activeEvent.title,
+          })}
+      >
+        {activeEvent.title} is active. Tap for map.
+      </button>
+    {/if}
     <div class="top-right-map-stack" aria-label="Map tools">
       <MapControls />
       <SyncToast stacked />
@@ -144,6 +164,26 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
+  }
+
+  .event-banner {
+    position: absolute;
+    top: 0.75rem;
+    left: 50%;
+    z-index: 12;
+    translate: -50% 0;
+    max-width: min(32rem, calc(100% - 1rem));
+    border: 1px solid #d8b9ba;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 800;
+    padding: 0.5rem 0.875rem;
+    pointer-events: auto;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
   }
 
   .top-right-map-stack {

@@ -81,6 +81,70 @@ export async function initPGLiteDB(db: PGlite) {
     "classes_fetched" boolean NOT NULL DEFAULT false
     );
 
+    CREATE TABLE IF NOT EXISTS "events" (
+    "id" integer PRIMARY KEY,
+    "slug" varchar(120) NOT NULL,
+    "title" varchar(160) NOT NULL,
+    "description" text,
+    "category" varchar(24) NOT NULL DEFAULT 'other',
+    "starts_at" text NOT NULL,
+    "ends_at" text NOT NULL,
+    "timezone" varchar(64) NOT NULL DEFAULT 'Asia/Manila',
+    "recurrence" varchar(32) NOT NULL DEFAULT 'none',
+    "is_active" boolean NOT NULL DEFAULT true,
+    "source_url" text,
+    "priority" integer NOT NULL DEFAULT 0,
+    "include_in_seo" boolean NOT NULL DEFAULT false,
+    "version" integer NOT NULL DEFAULT 1,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" varchar(16) NOT NULL DEFAULT 'past',
+    "occurrence_starts_at" text NOT NULL,
+    "occurrence_ends_at" text NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS "event_locations" (
+    "id" integer PRIMARY KEY,
+    "event_id" integer NOT NULL,
+    "anchor_type" varchar(16) NOT NULL,
+    "building_id" integer,
+    "dorm_id" integer,
+    "label" text NOT NULL,
+    "lat" double precision,
+    "lon" double precision,
+    "highlight_priority" integer NOT NULL DEFAULT 0,
+    "sort_order" integer NOT NULL DEFAULT 0,
+    "is_primary" boolean NOT NULL DEFAULT false,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolved_lat" double precision,
+    "resolved_lon" double precision,
+    "resolved_label" text NOT NULL,
+    "building_name" text,
+    "dorm_name" text
+    );
+
+    CREATE TABLE IF NOT EXISTS "event_routes" (
+    "id" integer PRIMARY KEY,
+    "event_id" integer NOT NULL,
+    "name" varchar(120) NOT NULL,
+    "description" text,
+    "sort_order" integer NOT NULL DEFAULT 0,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS "event_route_stops" (
+    "id" integer PRIMARY KEY,
+    "route_id" integer NOT NULL,
+    "event_location_id" integer,
+    "label" text NOT NULL,
+    "lat" double precision,
+    "lon" double precision,
+    "sort_order" integer NOT NULL DEFAULT 0,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolved_lat" double precision,
+    "resolved_lon" double precision,
+    "resolved_label" text NOT NULL
+    );
+
     -- DB MIGRATION WHEN TABLE IS OUTDATED
 
     ALTER TABLE buildings
@@ -103,6 +167,15 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE events
+    ADD COLUMN IF NOT EXISTS "status" varchar(16) NOT NULL DEFAULT 'past';
+
+    ALTER TABLE events
+    ADD COLUMN IF NOT EXISTS "occurrence_starts_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE events
+    ADD COLUMN IF NOT EXISTS "occurrence_ends_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
     `);
   } catch (e) {
     console.error("An error occurred", e);
