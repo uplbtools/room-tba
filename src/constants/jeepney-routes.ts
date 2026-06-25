@@ -49,11 +49,13 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     description: "Mock route from main campus down to the Forestry area.",
     color: "#15803d",
     stops: [
-      { name: "Carabao Park", lat: 14.16384, lon: 121.24134 },
-      { name: "DA-PhilRice", lat: 14.16035, lon: 121.23972 },
-      { name: "CFNR Gate", lat: 14.157, lon: 121.2372 },
-      { name: "CFNR Building", lat: 14.1543, lon: 121.2353 },
-      { name: "Forestry Biological Sciences", lat: 14.1548, lon: 121.2358 },
+      { name: "Forestry Jeep Terminal", lat: 14.16809105957495, lon: 121.24248142545251 },
+      { name: "CEM Jeepney Stop", lat:14.167744858385788, lon: 121.24160128212628 },
+      { name: "OVCRE Annex Building", lat:14.167161010311109, lon: 121.24043389915563,  },
+      { name: "Narra Bridge", lat:14.164723828661357, lon: 121.23847671766336,  },
+      { name: "Maria Makiling Statue", lat:14.163961515861006, lon: 121.23821626095294,  },
+      { name: "UP University Health Service", lat:14.161996442247391, lon: 121.23868610580267,  },
+      { name: "Forest Biological Sciences Building", lat:14.154716857167369, lon: 121.2360341113496,  },
     ],
   },
 ];
