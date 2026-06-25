@@ -104,7 +104,10 @@
         {activeEvent.title} is active. Tap for map.
       </button>
     {/if}
-    <MapControls />
+    <div class="top-right-map-stack" aria-label="Map tools">
+      <MapControls />
+      <SyncToast stacked />
+    </div>
     <!-- <header class="top-header">
       <h2>Room TBA</h2>
     </header> -->
@@ -128,7 +131,6 @@
     <AdminLoginModal />
   {/if}
 </div>
-<SyncToast />
 
 <style>
   .app-layout {
@@ -140,7 +142,9 @@
     display: flex;
     flex-direction: column;
     padding: 0.5rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
     flex: 1 0 0;
+    min-height: 0;
     pointer-events: none;
     gap: 0.5rem;
   }
@@ -182,8 +186,27 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
   }
 
+  .top-right-map-stack {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 15;
+    display: flex;
+    width: min(22.5rem, calc(100% - 1rem));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    pointer-events: none;
+  }
+
   :global(*) {
     margin: unset;
     box-sizing: border-box;
+  }
+
+  @media (max-width: 800px) {
+    .top-right-map-stack {
+      top: 4rem;
+    }
   }
 </style>

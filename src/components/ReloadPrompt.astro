@@ -14,14 +14,19 @@
     display: none;
   }
   #pwa-toast {
+    --pwa-toast-bottom-clearance: 4.25rem;
+
     visibility: hidden;
     position: fixed;
     background-color: white;
-    right: 0.5rem;
-    bottom: 0.5rem;
+    /* Sit to the left of the right-side button column and clear of the
+       bottom status bar (which can wrap to two rows on mid-width screens). */
+    right: 4.5rem;
+    bottom: 5.5rem;
     padding: 1rem;
+    border: 1px solid #d8b9ba;
     border-radius: 1rem;
-    z-index: 1;
+    background-color: white;
     text-align: left;
     box-shadow: 0 2px 0.5rem 0 hsla(0, 0%, 0%, 0.2);
     width: min(20rem, calc(100% - (2 * 0.5rem)));
@@ -33,15 +38,27 @@
 
     .message {
       margin-bottom: 8px;
+      color: hsl(0, 0%, 15%);
       font-weight: 600;
+      line-height: 1.35;
     }
     button {
-      border: 1px solid #8885;
+      border: 1px solid #d8b9ba;
       outline: none;
-      margin-right: 5px;
       border-radius: 0.5rem;
+      background-color: white;
+      color: hsl(5, 53%, 32%);
+      cursor: pointer;
+      font-weight: 700;
       padding: 0.25rem 1rem;
       font-size: 0.875rem;
+      &:focus-visible {
+        outline: 3px solid rgba(123, 17, 19, 0.25);
+        outline-offset: 2px;
+      }
+      &:hover {
+        background-color: hsl(5, 53%, 98%);
+      }
       &:active {
         background-color: hsl(0, 0%, 95%);
       }
@@ -64,6 +81,15 @@
     #pwa-close {
       background-color: hsl(5, 53%, 32%);
       color: white;
+    }
+  }
+
+  @media (max-width: 800px) {
+    #pwa-toast {
+      left: 0.5rem;
+      right: 4rem;
+      bottom: 5rem;
+      width: auto;
     }
   }
 </style>

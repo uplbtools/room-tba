@@ -1,19 +1,30 @@
 <script lang="ts">
   import X from "@lucide/svelte/icons/x";
-  import Bus from "@lucide/svelte/icons/bus"
+  import Bus from "@lucide/svelte/icons/bus";
   import { JEEPNEY_ROUTES } from "../../constants/jeepney-routes";
-  import { jeepneyStore } from "../../lib/store.svelte";
+  import {
+    floatingControlPanelStore,
+    jeepneyStore,
+  } from "../../lib/store.svelte";
+
+  const panelId = "jeepney";
+  const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
+
+  function selectRoute(id: string) {
+    jeepneyStore.selectRoute(id);
+    floatingControlPanelStore.close(panelId);
+  }
 </script>
 
 <div class="jeepney-menu">
-  {#if jeepneyStore.menuOpen}
+  {#if menuOpen}
     <div class="route-list" role="menu">
       <div class="route-list-header">
         <span>Jeepney Routes</span>
         <button
           type="button"
           class="close-btn"
-          onclick={() => jeepneyStore.closeMenu()}
+          onclick={() => floatingControlPanelStore.close(panelId)}
           aria-label="Close jeepney menu"
         >
           <X size="16" />
@@ -25,7 +36,7 @@
           type="button"
           class="route-option"
           class:active={isActive}
-          onclick={() => jeepneyStore.selectRoute(route.id)}
+          onclick={() => selectRoute(route.id)}
         >
           <span class="route-color" style:background-color={route.color}></span>
           <span class="route-text">
@@ -49,10 +60,10 @@
   <button
     class="jeepney-btn"
     class:active={jeepneyStore.selectedRouteId !== null}
-    onclick={() => jeepneyStore.toggleMenu()}
+    onclick={() => floatingControlPanelStore.toggle(panelId)}
     title="Jeepney Routes"
     aria-label="Jeepney Routes"
-    aria-expanded={jeepneyStore.menuOpen}
+    aria-expanded={menuOpen}
   >
     <Bus />
   </button>
