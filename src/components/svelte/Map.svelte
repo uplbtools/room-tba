@@ -5,7 +5,10 @@
     queryStore,
     locationStore,
     mapStore,
+    mapViewStore,
     mapEditStore,
+    eventPlacementStore,
+    sidePanelStore,
     jeepneyStore,
     currentRoom,
     adminAuthStore,
@@ -16,9 +19,13 @@
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
+  import X from "@lucide/svelte/icons/x";
   import House from "@lucide/svelte/icons/house";
   import Move from "@lucide/svelte/icons/move";
   import University from "@lucide/svelte/icons/university";
+  import EventMapPin from "./map/EventMapPin.svelte";
+  import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
@@ -45,6 +52,19 @@
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
   } from "../../constants/building-types";
+  import { getEventImage } from "../../lib/event-images";
+  import {
+    formatCampusDateShort,
+    formatCampusTime,
+  } from "../../lib/event-time";
+  import {
+    completeMapMoveRedo,
+    completeMapMoveUndo,
+    getMapEditShortcutAction,
+    recordMapMove,
+    type MapMoveCoordinates,
+    type VersionedMapMove,
+  } from "../../lib/map-move-history";
   const data = getAppData();
   const { buildings, dorms, events, loaded } = $derived(data());
   const filteredBuildings = $derived.by(() => {
@@ -59,6 +79,16 @@
       dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
     );
   });
+
+  // Event titles are not unique, so resolve the selected event by its slug when
+  // one is available, falling back to the title only for legacy/partial state.
+  function findSelectedEvent(eventList: EventData[]): EventData | null {
+    const slug = queryStore.selectedEventSlug;
+    if (slug) return eventList.find((event) => event.slug === slug) ?? null;
+    return (
+      eventList.find((event) => event.title === queryStore.inputValue) ?? null
+    );
+  }
   let directions: MapLibreGlDirections | undefined = $state.raw();
 
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
@@ -78,15 +108,33 @@
   let savedEditKey = $state<string | null>(null);
   let failedEditKey = $state<string | null>(null);
   let hoveredEditKey = $state<string | null>(null);
+  let expandedEventGroupKey = $state<string | null>(null);
   let undoingEditKey = $state<string | null>(null);
   let undoShortcutLabel = $state("Ctrl+Z");
   let editStatusMessage = $state<string | null>(null);
   type EditableEntityType = "building" | "dorm";
-  type EditableCoords = { lat: number; lon: number };
+  type EditableCoords = MapMoveCoordinates;
   type EditableVersionedPosition = EditableCoords & { version: number };
   type EditableUpdateResponse = {
     building?: EditableVersionedPosition;
     dorm?: EditableVersionedPosition;
+  };
+  type EventLocationWriteValue = Partial<{
+    id: number;
+    anchorType: EventData["locations"][number]["anchorType"];
+    buildingId: number | null;
+    dormId: number | null;
+    label: string;
+    lat: number | null;
+    lon: number | null;
+    highlightPriority: number;
+    sortOrder: number;
+    isPrimary: boolean;
+  }>;
+  type EventLocationsPatchResponse = {
+    event?: EventData;
+    latest?: EventData | null;
+    error?: string;
   };
   type EditableConflictResponse = {
     error?: string;
@@ -101,16 +149,34 @@
       this.latest = latest;
     }
   }
-  type EditMove = {
-    type: EditableEntityType;
+  class ClientEventConflictError extends Error {
+    latest: EventData | null;
+
+    constructor(message: string, latest: EventData | null) {
+      super(message);
+      this.name = "ClientEventConflictError";
+      this.latest = latest;
+    }
+  }
+  type EntityEditMove = VersionedMapMove & {
+    kind: "entity";
+    entityType: EditableEntityType;
     id: number;
-    name: string;
-    key: string;
-    previous: EditableCoords;
-    current: EditableCoords;
-    version: number;
   };
+  type EventLocationEditMove = VersionedMapMove & {
+    kind: "eventLocation";
+    eventId: number;
+    locationId: number;
+    previousLocations: EventLocationWriteValue[];
+    currentLocations: EventLocationWriteValue[];
+  };
+  type EditMove = EntityEditMove | EventLocationEditMove;
   let positionOverrides = $state<Record<string, EditableVersionedPosition>>({});
+  // `events` is `$state.raw`, so in-place updates do not invalidate derived
+  // marker positions. Mirror the building/dorm `positionOverrides` pattern with
+  // a reactive override so the editable event marker reflects saves and, on a
+  // failed save, rolls back to the previous/server position.
+  let eventLocationOverrides = $state<Record<string, EditableCoords>>({});
   let undoStack = $state<EditMove[]>([]);
   let redoStack = $state<EditMove[]>([]);
   const undoMove = $derived(undoStack.at(-1) ?? null);
@@ -297,6 +363,8 @@
         location.resolvedLat as number,
       ]);
     }
+    // Include route geometry so events whose route stops extend beyond their
+    // primary locations still fit fully within the viewport.
     for (const route of event.routes) {
       for (const stop of route.stops) {
         if (stop.resolvedLon !== null && stop.resolvedLat !== null) {
@@ -328,6 +396,83 @@
       maxZoom: 17,
     });
     return true;
+  }
+
+  async function createEventAtMapPoint(coords: EditableCoords) {
+    if (
+      !adminAuthStore.isAdmin ||
+      !eventPlacementStore.draft ||
+      eventPlacementStore.creating
+    )
+      return;
+
+    const draft = eventPlacementStore.draft;
+    eventPlacementStore.beginCreate();
+    stopRotation();
+
+    try {
+      const res = await fetch("/api/admin/events", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...draft,
+          recurrence: "none",
+          isActive: true,
+          includeInSeo: true,
+          locations: [
+            {
+              anchorType: "custom",
+              buildingId: null,
+              dormId: null,
+              label: "Event marker",
+              lat: coords.lat,
+              lon: coords.lon,
+              isPrimary: true,
+              sortOrder: 0,
+            },
+          ],
+          routes: [],
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        event?: EventData;
+      };
+
+      if (!res.ok || !data.event) {
+        throw new Error(data.error ?? `Create failed (${res.status})`);
+      }
+
+      events.unshift(data.event);
+      queryStore.updateQuery({
+        category: "event",
+        type: "result",
+        value: data.event.title,
+        eventSlug: data.event.slug,
+      });
+      queryStore.inputValue = data.event.title;
+      sidePanelStore.expand();
+      if (!mapEditStore.enabled) mapEditStore.toggle();
+      eventPlacementStore.finishCreate(data.event.id);
+      mapStore.mapInstance?.flyTo({
+        center: [coords.lon, coords.lat],
+        zoom: 17,
+        pitch: 50,
+        padding: calculatePadding(md.current),
+        duration: 800,
+      });
+      toastStore.show(
+        `${data.event.title} created. Drag its marker on the map to refine the location.`,
+        "success",
+      );
+    } catch (error) {
+      eventPlacementStore.failCreate();
+      toastStore.show(
+        error instanceof Error ? error.message : "Failed to create event.",
+        "error",
+      );
+    }
   }
 
   function ensureTerrainRendering(map: mapGl.MapLibreMap) {
@@ -475,22 +620,8 @@
         }
       } else if (category === "event") {
         if (!loaded) return;
-        const currentEvent = events.find((event) => event.title === value);
-        const location = currentEvent
-          ? getEventPrimaryLocation(currentEvent)
-          : null;
-        if (
-          location &&
-          location.resolvedLon !== null &&
-          location.resolvedLat !== null
-        ) {
-          map.flyTo({
-            center: [location.resolvedLon, location.resolvedLat],
-            zoom: 17,
-            pitch: 50,
-            padding: calculatePadding(md.current),
-            duration: 1200,
-          });
+        const currentEvent = findSelectedEvent(events);
+        if (currentEvent && focusMapOnEvent(map, currentEvent)) {
           map.once("moveend", startRotation);
         }
       }
@@ -580,6 +711,10 @@
     return `dorm:${id}`;
   }
 
+  function eventLocationEditKey(id: number) {
+    return `event:${id}:location`;
+  }
+
   function getEditablePosition(
     key: string,
     fallback: EditableVersionedPosition,
@@ -635,6 +770,7 @@
       "failed to save dorm",
       "failed to save building position",
       "failed to save dorm position",
+      "failed to save event location",
     ]);
 
     if (genericReasons.has(normalizedReason)) {
@@ -682,6 +818,38 @@
     return updated;
   }
 
+  async function patchEventLocations(
+    event: EventData,
+    locations: EventLocationWriteValue[],
+    version = event.version,
+  ): Promise<EventData> {
+    const res = await fetch(`/api/admin/events/${event.id}/locations`, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ version, locations }),
+    });
+    const data = (await res.json().catch(() => ({}))) as
+      | EventLocationsPatchResponse
+      | { error?: string };
+
+    if (!res.ok) {
+      if (res.status === 409) {
+        const conflict = data as EventLocationsPatchResponse;
+        throw new ClientEventConflictError(
+          conflict.error ?? "This event was changed by another editor.",
+          conflict.latest ?? null,
+        );
+      }
+      throw new Error(data.error ?? `Save failed (${res.status})`);
+    }
+
+    const updated = (data as EventLocationsPatchResponse).event;
+    if (!updated)
+      throw new Error("Save response did not include updated event.");
+    return updated;
+  }
+
   function setLocalPosition(
     type: EditableEntityType,
     id: number,
@@ -708,20 +876,81 @@
     }
   }
 
-  function recordMove(
-    type: EditableEntityType,
-    id: number,
-    name: string,
-    key: string,
-    previous: EditableCoords,
-    current: EditableCoords,
-    version: number,
-  ) {
-    undoStack = [
-      ...undoStack,
-      { type, id, name, key, previous, current, version },
-    ];
-    redoStack = [];
+  function setLocalEvent(updated: EventData) {
+    const index = events.findIndex((event) => event.id === updated.id);
+    if (index !== -1) events[index] = updated;
+
+    const key = eventLocationEditKey(updated.id);
+    const editable = getEditableEventLocation(updated);
+    const coords = editable ? getResolvedEventLocationCoords(editable) : null;
+    if (coords) {
+      eventLocationOverrides = { ...eventLocationOverrides, [key]: coords };
+    } else if (key in eventLocationOverrides) {
+      const next = { ...eventLocationOverrides };
+      delete next[key];
+      eventLocationOverrides = next;
+    }
+  }
+
+  function getResolvedEventLocationCoords(
+    location: EventData["locations"][number],
+  ): EditableCoords | null {
+    if (location.resolvedLat === null || location.resolvedLon === null) {
+      return null;
+    }
+    return {
+      lat: location.resolvedLat,
+      lon: location.resolvedLon,
+    };
+  }
+
+  function serializeEventLocation(
+    location: EventData["locations"][number],
+    overrides: Partial<EventData["locations"][number]> = {},
+  ): EventLocationWriteValue {
+    return {
+      id: location.id,
+      anchorType: overrides.anchorType ?? location.anchorType,
+      buildingId:
+        overrides.buildingId !== undefined
+          ? overrides.buildingId
+          : location.buildingId,
+      dormId:
+        overrides.dormId !== undefined ? overrides.dormId : location.dormId,
+      label: overrides.label ?? location.label,
+      lat: overrides.lat !== undefined ? overrides.lat : location.lat,
+      lon: overrides.lon !== undefined ? overrides.lon : location.lon,
+      highlightPriority:
+        overrides.highlightPriority ?? location.highlightPriority,
+      sortOrder: overrides.sortOrder ?? location.sortOrder,
+      isPrimary: overrides.isPrimary ?? location.isPrimary,
+    };
+  }
+
+  function buildEventLocationDragUpdate(
+    event: EventData,
+    targetLocation: EventData["locations"][number],
+    coords: EditableCoords,
+  ): EventLocationWriteValue[] {
+    return event.locations.map((location) =>
+      location.id === targetLocation.id
+        ? serializeEventLocation(location, {
+            anchorType: "custom",
+            buildingId: null,
+            dormId: null,
+            label: location.label || "Event marker",
+            lat: coords.lat,
+            lon: coords.lon,
+            isPrimary: true,
+          })
+        : serializeEventLocation(location, { isPrimary: false }),
+    );
+  }
+
+  function recordMove(move: EditMove) {
+    const next = recordMapMove(undoStack, move);
+    undoStack = next.undoStack;
+    redoStack = next.redoStack;
   }
 
   async function saveBuildingPosition(
@@ -738,7 +967,16 @@
     try {
       const updated = await patchPosition("building", id, current, version);
       setLocalPosition("building", id, updated);
-      recordMove("building", id, name, key, previous, current, updated.version);
+      recordMove({
+        kind: "entity",
+        entityType: "building",
+        id,
+        name,
+        key,
+        previous,
+        current,
+        version: updated.version,
+      });
       markSaved(key);
       setEditStatus(`${name} saved. You can undo this move.`);
     } catch (error) {
@@ -773,7 +1011,16 @@
     try {
       const updated = await patchPosition("dorm", id, current, version);
       setLocalPosition("dorm", id, updated);
-      recordMove("dorm", id, name, key, previous, current, updated.version);
+      recordMove({
+        kind: "entity",
+        entityType: "dorm",
+        id,
+        name,
+        key,
+        previous,
+        current,
+        version: updated.version,
+      });
       markSaved(key);
       setEditStatus(`${name} saved. You can undo this move.`);
     } catch (error) {
@@ -786,6 +1033,70 @@
       setLocalPosition("dorm", id, previous);
       toastStore.show(
         editErrorMessage(name, "Failed to save dorm position.", error),
+        "error",
+      );
+    } finally {
+      if (savingEditKey === key) savingEditKey = null;
+      if (selectedEditKey === key) selectedEditKey = null;
+    }
+  }
+
+  async function saveEventLocationPosition(
+    event: EventData,
+    location: EventData["locations"][number],
+    current: EditableCoords,
+  ): Promise<void> {
+    const key = eventLocationEditKey(event.id);
+    const previous = getResolvedEventLocationCoords(location);
+    if (!previous) return;
+    const previousEvent = {
+      ...event,
+      locations: event.locations.map((eventLocation) => ({
+        ...eventLocation,
+      })),
+    };
+    const previousLocations = event.locations.map((eventLocation) =>
+      serializeEventLocation(eventLocation),
+    );
+    const currentLocations = buildEventLocationDragUpdate(
+      event,
+      location,
+      current,
+    );
+    savingEditKey = key;
+    failedEditKey = null;
+
+    try {
+      const updated = await patchEventLocations(event, currentLocations);
+      setLocalEvent(updated);
+      recordMove({
+        kind: "eventLocation",
+        eventId: event.id,
+        locationId: location.id,
+        name: updated.title,
+        key,
+        previous,
+        current,
+        previousLocations,
+        currentLocations,
+        version: updated.version,
+      });
+      markSaved(key);
+      setEditStatus(`${updated.title} location saved. You can undo this move.`);
+    } catch (error) {
+      failedEditKey = key;
+      if (error instanceof ClientEventConflictError) {
+        if (error.latest) setLocalEvent(error.latest);
+        else setLocalEvent(previousEvent);
+        toastStore.show(
+          editErrorMessage(event.title, error.message, error),
+          "error",
+        );
+        return;
+      }
+      setLocalEvent(previousEvent);
+      toastStore.show(
+        editErrorMessage(event.title, "Failed to save event location.", error),
         "error",
       );
     } finally {
@@ -834,6 +1145,72 @@
     );
   }
 
+  async function handleEventLocationDragEnd(
+    e: { marker: mapGl.Marker },
+    event: EventData,
+    location: EventData["locations"][number],
+  ) {
+    if (!isMapEditEnabled()) return;
+    const lngLat = e.marker.getLngLat();
+    await saveEventLocationPosition(event, location, {
+      lat: lngLat.lat,
+      lon: lngLat.lng,
+    });
+  }
+
+  async function applyRecordedMove(
+    move: EditMove,
+    direction: "undo" | "redo",
+  ): Promise<number> {
+    if (move.kind === "entity") {
+      const updated = await patchPosition(
+        move.entityType,
+        move.id,
+        direction === "undo" ? move.previous : move.current,
+        move.version,
+      );
+      setLocalPosition(move.entityType, move.id, updated);
+      return updated.version;
+    }
+
+    const event = events.find((event) => event.id === move.eventId);
+    if (!event) throw new Error(`${move.name} is no longer loaded.`);
+
+    const updated = await patchEventLocations(
+      event,
+      direction === "undo" ? move.previousLocations : move.currentLocations,
+      move.version,
+    );
+    setLocalEvent(updated);
+    return updated.version;
+  }
+
+  function handleRecordedMoveError(
+    move: EditMove,
+    error: unknown,
+    fallback: string,
+  ) {
+    failedEditKey = move.key;
+    if (move.kind === "entity" && error instanceof ClientEditConflictError) {
+      if (error.latest) {
+        setLocalPosition(move.entityType, move.id, error.latest);
+      }
+      toastStore.show(error.message, "error");
+      return;
+    }
+
+    if (
+      move.kind === "eventLocation" &&
+      error instanceof ClientEventConflictError
+    ) {
+      if (error.latest) setLocalEvent(error.latest);
+      toastStore.show(error.message, "error");
+      return;
+    }
+
+    toastStore.show(error instanceof Error ? error.message : fallback, "error");
+  }
+
   async function undoLastMove() {
     if (!undoMove || !isMapEditEnabled()) return;
 
@@ -843,28 +1220,14 @@
     failedEditKey = null;
 
     try {
-      const updated = await patchPosition(
-        move.type,
-        move.id,
-        move.previous,
-        move.version,
-      );
-      setLocalPosition(move.type, move.id, updated);
+      const version = await applyRecordedMove(move, "undo");
       markSaved(move.key);
       setEditStatus(`Undid move for ${move.name}.`);
-      undoStack = undoStack.slice(0, -1);
-      redoStack = [...redoStack, { ...move, version: updated.version }];
+      const next = completeMapMoveUndo(undoStack, redoStack, move, version);
+      undoStack = next.undoStack;
+      redoStack = next.redoStack;
     } catch (error) {
-      failedEditKey = move.key;
-      if (error instanceof ClientEditConflictError) {
-        if (error.latest) setLocalPosition(move.type, move.id, error.latest);
-        toastStore.show(error.message, "error");
-        return;
-      }
-      toastStore.show(
-        error instanceof Error ? error.message : "Failed to undo last move.",
-        "error",
-      );
+      handleRecordedMoveError(move, error, "Failed to undo last move.");
     } finally {
       if (savingEditKey === move.key) savingEditKey = null;
       if (undoingEditKey === move.key) undoingEditKey = null;
@@ -880,28 +1243,14 @@
     failedEditKey = null;
 
     try {
-      const updated = await patchPosition(
-        move.type,
-        move.id,
-        move.current,
-        move.version,
-      );
-      setLocalPosition(move.type, move.id, updated);
+      const version = await applyRecordedMove(move, "redo");
       markSaved(move.key);
       setEditStatus(`Redid move for ${move.name}.`);
-      redoStack = redoStack.slice(0, -1);
-      undoStack = [...undoStack, { ...move, version: updated.version }];
+      const next = completeMapMoveRedo(undoStack, redoStack, move, version);
+      undoStack = next.undoStack;
+      redoStack = next.redoStack;
     } catch (error) {
-      failedEditKey = move.key;
-      if (error instanceof ClientEditConflictError) {
-        if (error.latest) setLocalPosition(move.type, move.id, error.latest);
-        toastStore.show(error.message, "error");
-        return;
-      }
-      toastStore.show(
-        error instanceof Error ? error.message : "Failed to redo move.",
-        "error",
-      );
+      handleRecordedMoveError(move, error, "Failed to redo move.");
     } finally {
       if (savingEditKey === move.key) savingEditKey = null;
       if (undoingEditKey === move.key) undoingEditKey = null;
@@ -910,17 +1259,12 @@
 
   function handleMapEditKeydown(e: KeyboardEvent) {
     if (!isMapEditEnabled()) return;
-    const isModifierPressed = e.ctrlKey || e.metaKey;
-    const key = e.key.toLowerCase();
+    const action = getMapEditShortcutAction(e);
+    if (!action) return;
 
-    if (isModifierPressed && key === "z") {
-      e.preventDefault();
-      if (e.shiftKey) redoMoveBranch();
-      else undoLastMove();
-    } else if (isModifierPressed && key === "y") {
-      e.preventDefault();
-      redoMoveBranch();
-    }
+    e.preventDefault();
+    if (action === "undo") undoLastMove();
+    else redoMoveBranch();
   }
 
   $effect(() => {
@@ -1064,10 +1408,38 @@
     if (!adminAuthStore.isAdmin && mapEditStore.enabled) {
       mapEditStore.close();
     }
+    if (!adminAuthStore.isAdmin && eventPlacementStore.active) {
+      eventPlacementStore.cancel();
+    }
     if (!mapEditStore.enabled) {
       hoveredEditKey = null;
       selectedEditKey = null;
     }
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !eventPlacementStore.active) return;
+
+    const canvas = map.getCanvas();
+    const previousCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    stopRotation();
+
+    const handlePlacementClick = (event: mapGl.MapMouseEvent) => {
+      void createEventAtMapPoint({
+        lat: event.lngLat.lat,
+        lon: event.lngLat.lng,
+      });
+    };
+
+    map.on("click", handlePlacementClick);
+    return () => {
+      map.off("click", handlePlacementClick);
+      if (canvas.style.cursor === "crosshair") {
+        canvas.style.cursor = previousCursor;
+      }
+    };
   });
 
   $effect(() => {
@@ -1140,8 +1512,7 @@
     const map = mapStore.mapInstance;
     const selectedEvent =
       loaded && queryStore.category === "event" && queryStore.type === "result"
-        ? (events.find((event) => event.title === queryStore.inputValue) ??
-          null)
+        ? findSelectedEvent(events)
         : null;
     if (!map) return;
 
@@ -1175,8 +1546,18 @@
       source?.setData(featureCollection);
     };
 
-    if (map.isStyleLoaded()) draw();
-    else map.once("load", draw);
+    if (map.isStyleLoaded()) {
+      draw();
+      return;
+    }
+
+    // Style isn't ready yet: defer the draw until load, but remove the handler
+    // on re-run/teardown so rapid selection changes don't stack listeners and
+    // draw a stale route once the style finally loads.
+    map.once("load", draw);
+    return () => {
+      map.off("load", draw);
+    };
   });
 
   $effect(() => {
@@ -1250,7 +1631,7 @@
         }
       } else if (category === "event") {
         if (!loaded) return;
-        const currentEvent = events.find((event) => event.title === value);
+        const currentEvent = findSelectedEvent(events);
         if (currentEvent && focusMapOnEvent(map, currentEvent)) {
           if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
@@ -1258,7 +1639,95 @@
     });
   });
 
-  function getEventPrimaryLocation(event: EventData) {
+  function handleMarkerClick(buildingName: string) {
+    if (eventPlacementStore.active) return;
+    if (isMapEditEnabled() && selectedEditKey !== null) return;
+    if (buildingName === queryStore.inputValue) return;
+    queryStore.updateQuery({
+      category: "building",
+      type: "result",
+      value: buildingName,
+    });
+    queryStore.inputValue = buildingName;
+  }
+
+  function handleDormMarkerClick(dormName: string) {
+    if (eventPlacementStore.active) return;
+    if (isMapEditEnabled() && selectedEditKey !== null) return;
+    if (dormName === queryStore.inputValue) return;
+    queryStore.updateQuery({
+      category: "dorm",
+      type: "result",
+      value: dormName,
+    });
+    queryStore.inputValue = dormName;
+  }
+
+  function handleEventMarkerClick(event: EventData) {
+    if (eventPlacementStore.active) return;
+    if (isMapEditEnabled() && selectedEditKey !== null) return;
+    if (queryStore.selectedEventSlug === event.slug) return;
+    queryStore.updateQuery({
+      category: "event",
+      type: "result",
+      value: event.title,
+      eventSlug: event.slug,
+    });
+    queryStore.inputValue = event.title;
+  }
+
+  function toggleEventMarkerGroup(groupKey: string) {
+    if (eventPlacementStore.active) return;
+    expandedEventGroupKey =
+      expandedEventGroupKey === groupKey ? null : groupKey;
+  }
+
+  function collapseEventMarkerGroup() {
+    if (eventPlacementStore.active) return;
+    expandedEventGroupKey = null;
+  }
+
+  function isSelectedEvent(event: EventData) {
+    if (queryStore.category !== "event") return false;
+    if (queryStore.selectedEventSlug) {
+      return queryStore.selectedEventSlug === event.slug;
+    }
+    return queryStore.inputValue === event.title;
+  }
+
+  function formatEventMarkerDate(value: string) {
+    return formatCampusDateShort(value);
+  }
+
+  function formatEventMarkerTime(value: string) {
+    return formatCampusTime(value);
+  }
+
+  function getEventStatusLabel(event: EventData) {
+    if (event.status === "active") return "Active now";
+    if (event.status === "past") return "Past";
+    return "Upcoming";
+  }
+
+  type EventMarkerEntry = {
+    event: EventData;
+    location: EventData["locations"][number];
+  };
+
+  function getEventMarkerLngLat(editable: {
+    event: EventData;
+    location: EventData["locations"][number];
+  }): [number, number] {
+    const override =
+      eventLocationOverrides[eventLocationEditKey(editable.event.id)];
+    if (override) return [override.lon, override.lat];
+    return [
+      Number(editable.location.resolvedLon),
+      Number(editable.location.resolvedLat),
+    ];
+  }
+
+  function getEditableEventLocation(event: EventData) {
     return (
       event.locations.find(
         (location) =>
@@ -1274,37 +1743,132 @@
     );
   }
 
-  function handleMarkerClick(buildingName: string) {
-    if (isMapEditEnabled() && selectedEditKey !== null) return;
-    if (buildingName === queryStore.inputValue) return;
-    queryStore.updateQuery({
-      category: "building",
-      type: "result",
-      value: buildingName,
-    });
-    queryStore.inputValue = buildingName;
+  function isSelectedEditableEventLocation(
+    event: EventData,
+    location: EventData["locations"][number],
+  ) {
+    if (
+      !isMapEditEnabled() ||
+      queryStore.category !== "event" ||
+      queryStore.type !== "result" ||
+      queryStore.inputValue !== event.title
+    ) {
+      return false;
+    }
+
+    return getEditableEventLocation(event)?.id === location.id;
   }
 
-  function handleDormMarkerClick(dormName: string) {
-    if (isMapEditEnabled() && selectedEditKey !== null) return;
-    if (dormName === queryStore.inputValue) return;
-    queryStore.updateQuery({
-      category: "dorm",
-      type: "result",
-      value: dormName,
-    });
-    queryStore.inputValue = dormName;
+  function getEventLocationKey(location: EventMarkerEntry["location"]) {
+    if (location.resolvedLon === null || location.resolvedLat === null) {
+      return null;
+    }
+    return `${location.resolvedLon.toFixed(6)}:${location.resolvedLat.toFixed(6)}`;
   }
 
-  function handleEventMarkerClick(eventTitle: string) {
-    if (eventTitle === queryStore.inputValue) return;
-    queryStore.updateQuery({
-      category: "event",
-      type: "result",
-      value: eventTitle,
+  let eventMarkerGroups = $derived.by(() => {
+    if (!loaded) return [];
+    const groups = new Map<
+      string,
+      {
+        key: string;
+        lngLat: [number, number];
+        label: string;
+        anchored: boolean;
+        entries: EventMarkerEntry[];
+      }
+    >();
+
+    for (const event of events) {
+      if (event.status !== "active" && event.status !== "upcoming") continue;
+      for (const location of event.locations) {
+        if (isSelectedEditableEventLocation(event, location)) continue;
+        const key = getEventLocationKey(location);
+        if (
+          key === null ||
+          location.resolvedLon === null ||
+          location.resolvedLat === null
+        ) {
+          continue;
+        }
+
+        const group = groups.get(key);
+        const entry = { event, location };
+        if (group) {
+          group.anchored =
+            group.anchored ||
+            location.anchorType === "building" ||
+            location.anchorType === "dorm";
+          group.entries.push(entry);
+          continue;
+        }
+
+        groups.set(key, {
+          key,
+          lngLat: [location.resolvedLon, location.resolvedLat],
+          label: location.resolvedLabel,
+          anchored:
+            location.anchorType === "building" ||
+            location.anchorType === "dorm",
+          entries: [entry],
+        });
+      }
+    }
+
+    return Array.from(groups.values()).map((group) => ({
+      ...group,
+      entries: group.entries.sort((a, b) => {
+        const statusDelta =
+          Number(b.event.status === "active") -
+          Number(a.event.status === "active");
+        if (statusDelta !== 0) return statusDelta;
+        return a.event.occurrenceStartsAt.localeCompare(
+          b.event.occurrenceStartsAt,
+        );
+      }),
+    }));
+  });
+
+  let editableEventLocation = $derived.by(() => {
+    if (
+      !loaded ||
+      !isMapEditEnabled() ||
+      queryStore.category !== "event" ||
+      queryStore.type !== "result"
+    ) {
+      return null;
+    }
+
+    const event = findSelectedEvent(events);
+    if (!event) return null;
+
+    const location = getEditableEventLocation(event);
+    if (
+      !location ||
+      location.resolvedLon === null ||
+      location.resolvedLat === null
+    ) {
+      return null;
+    }
+
+    return { event, location };
+  });
+
+  $effect(() => {
+    if (
+      !loaded ||
+      queryStore.category !== "event" ||
+      queryStore.type !== "result"
+    )
+      return;
+    const group = eventMarkerGroups.find((group) =>
+      group.entries.some((entry) => isSelectedEvent(entry.event)),
+    );
+    if (!group) return;
+    untrack(() => {
+      expandedEventGroupKey = group.key;
     });
-    queryStore.inputValue = eventTitle;
-  }
+  });
 
   let activeBuildingName = $derived.by(() => {
     if (!queryStore.category || queryStore.type !== "result") return null;
@@ -1362,9 +1926,7 @@
 
   let selectedEventRouteStops = $derived.by(() => {
     if (!loaded || queryStore.category !== "event") return [];
-    const selectedEvent = events.find(
-      (event) => event.title === queryStore.inputValue,
-    );
+    const selectedEvent = findSelectedEvent(events);
     return (
       selectedEvent?.routes[0]?.stops.filter(
         (stop) => stop.resolvedLon !== null && stop.resolvedLat !== null,
@@ -1376,7 +1938,26 @@
 <svelte:window onkeydown={handleMapEditKeydown} />
 
 <div class="map-container">
-  {#if isMapEditEnabled()}
+  {#if eventPlacementStore.active}
+    <div class="event-placement-toolbar" role="status" aria-live="polite">
+      <div class="event-placement-copy">
+        <strong>Choose event location on the map</strong>
+        <span>
+          {eventPlacementStore.creating
+            ? "Creating the event at the selected map point..."
+            : "Click or tap the map point where this event should appear."}
+        </span>
+      </div>
+      <button
+        class="event-placement-cancel"
+        type="button"
+        disabled={eventPlacementStore.creating}
+        onclick={() => eventPlacementStore.cancel()}
+      >
+        Cancel
+      </button>
+    </div>
+  {:else if isMapEditEnabled()}
     <div class="map-edit-toolbar" role="status" aria-live="polite">
       <div class="map-edit-summary">
         <div class="map-edit-copy">
@@ -1436,30 +2017,172 @@
       </Marker>
     {/if}
     {#if loaded}
-      {#each events.filter((event) => event.status === "active" || event.status === "upcoming") as event (`event:${event.id}`)}
-        {#each event.locations as location (`event-location:${location.id}`)}
-          {#if location.resolvedLat !== null && location.resolvedLon !== null}
-            <Marker lngLat={[location.resolvedLon, location.resolvedLat]}>
-              <button
-                type="button"
-                class="event-pin"
-                class:active={queryStore.category === "event" &&
-                  queryStore.inputValue === event.title}
-                class:upcoming={event.status === "upcoming"}
-                title={`${event.title}: ${location.resolvedLabel}`}
-                onclick={() => handleEventMarkerClick(event.title)}
-              >
-                <span class="event-dot"></span>
-                <span class="event-pin-label" transition:fade>
-                  {event.title}
-                  {#if event.status === "upcoming"}
-                    <span class="event-status">Upcoming</span>
+      {#if editableEventLocation}
+        {@const editKey = eventLocationEditKey(editableEventLocation.event.id)}
+        <Marker
+          lngLat={getEventMarkerLngLat(editableEventLocation)}
+          draggable={isMapEditEnabled()}
+          onclick={() => handleEventMarkerClick(editableEventLocation.event)}
+          ondragstart={() => beginMarkerDrag(editKey)}
+          ondragend={(e) =>
+            handleEventLocationDragEnd(
+              e,
+              editableEventLocation.event,
+              editableEventLocation.location,
+            )}
+        >
+          <div class="event-marker-anchor event-edit-anchor">
+            <span class="event-anchor-dot event-edit-dot" aria-hidden="true"
+            ></span>
+            <div
+              class="event-edit-pin"
+              class:editing={selectedEditKey === editKey}
+              class:hovered={hoveredEditKey === editKey}
+              class:saving={savingEditKey === editKey}
+              class:saved={savedEditKey === editKey}
+              class:failed={failedEditKey === editKey}
+              title={`Drag to move ${editableEventLocation.event.title}`}
+              onpointerenter={() => handleEditablePinEnter(editKey)}
+              onpointerleave={() => handleEditablePinLeave(editKey)}
+            >
+              <span class="event-edit-icon" aria-hidden="true">
+                <CalendarDays size={18} />
+              </span>
+              <span class="event-edit-copy">
+                <span>{editableEventLocation.event.title}</span>
+                {#if savingEditKey === editKey}
+                  <strong>Saving</strong>
+                {:else if savedEditKey === editKey}
+                  <strong>Saved</strong>
+                {:else if failedEditKey === editKey}
+                  <strong>Failed</strong>
+                {:else}
+                  <strong>Drag location</strong>
+                {/if}
+              </span>
+              <span class="event-edit-handle" aria-hidden="true">
+                <Move size={16} />
+              </span>
+            </div>
+          </div>
+        </Marker>
+      {/if}
+      {#each eventMarkerGroups as group (`event-group:${group.key}`)}
+        <Marker lngLat={group.lngLat}>
+          <div class="event-marker-anchor" class:anchored={group.anchored}>
+            <span class="event-anchor-connector" aria-hidden="true"></span>
+            <span class="event-anchor-dot" aria-hidden="true"></span>
+            <div class="event-callout" class:anchored={group.anchored}>
+              {#if group.entries.length === 1}
+                {@const entry = group.entries[0]}
+                {#if entry}
+                  {@const image = getEventImage(entry.event.slug)}
+                  {@const active = isSelectedEvent(entry.event)}
+                  <EventMapPin
+                    {active}
+                    anchored={group.anchored}
+                    imageSrc={image?.src ?? null}
+                    dateLabel={formatEventMarkerDate(
+                      entry.event.occurrenceStartsAt,
+                    )}
+                    status={entry.event.status}
+                    title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
+                    ariaLabel={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
+                    labelTitle={entry.event.title}
+                    labelMeta={`${getEventStatusLabel(entry.event)} - ${formatEventMarkerTime(
+                      entry.event.occurrenceStartsAt,
+                    )}`}
+                    onclick={() => handleEventMarkerClick(entry.event)}
+                  />
+                {/if}
+              {:else}
+                {@const primaryEntry = group.entries[0]}
+                {@const isExpanded = expandedEventGroupKey === group.key}
+                {#if primaryEntry}
+                  {@const primaryImage = getEventImage(primaryEntry.event.slug)}
+                  <EventMapPin
+                    variant="group"
+                    anchored={group.anchored}
+                    expanded={isExpanded}
+                    ariaExpanded={isExpanded}
+                    count={group.entries.length}
+                    imageSrc={primaryImage?.src ?? null}
+                    dateLabel={formatEventMarkerDate(
+                      primaryEntry.event.occurrenceStartsAt,
+                    )}
+                    status={primaryEntry.event.status}
+                    title={`${group.entries.length} events at ${group.label}`}
+                    ariaLabel={`${isExpanded ? "Collapse" : "Expand"} ${group.entries.length} events at ${group.label}`}
+                    onclick={() => toggleEventMarkerGroup(group.key)}
+                  />
+                  {#if isExpanded}
+                    <div
+                      class="event-pin-stack"
+                      role="group"
+                      aria-label={`${group.entries.length} events at ${group.label}`}
+                      transition:fade
+                    >
+                      <div class="event-stack-header">
+                        <span class="event-stack-heading">
+                          <strong>{group.entries.length} events</strong>
+                          <span>{group.label}</span>
+                        </span>
+                        <button
+                          class="event-stack-close"
+                          type="button"
+                          aria-label={`Collapse events at ${group.label}`}
+                          onclick={collapseEventMarkerGroup}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <div class="event-stack-list">
+                        {#each group.entries as entry (`event-stack:${entry.event.id}:${entry.location.id}`)}
+                          {@const image = getEventImage(entry.event.slug)}
+                          <button
+                            type="button"
+                            class="event-stack-item"
+                            class:active={isSelectedEvent(entry.event)}
+                            class:upcoming={entry.event.status === "upcoming"}
+                            title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
+                            aria-label={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
+                            onclick={() => handleEventMarkerClick(entry.event)}
+                          >
+                            {#if image}
+                              <img
+                                class="event-stack-thumb"
+                                src={image.src}
+                                alt=""
+                              />
+                            {:else}
+                              <span class="event-stack-icon" aria-hidden="true">
+                                <CalendarDays size={14} />
+                              </span>
+                            {/if}
+                            <span class="event-stack-copy">
+                              <span class="event-stack-title"
+                                >{entry.event.title}</span
+                              >
+                              <span class="event-stack-meta">
+                                {formatEventMarkerDate(
+                                  entry.event.occurrenceStartsAt,
+                                )}
+                                at {formatEventMarkerTime(
+                                  entry.event.occurrenceStartsAt,
+                                )}
+                                - {getEventStatusLabel(entry.event)}
+                              </span>
+                            </span>
+                          </button>
+                        {/each}
+                      </div>
+                    </div>
                   {/if}
-                </span>
-              </button>
-            </Marker>
-          {/if}
-        {/each}
+                {/if}
+              {/if}
+            </div>
+          </div>
+        </Marker>
       {/each}
       {#each selectedEventRouteStops as stop, i (`event-stop:${stop.id}`)}
         <Marker lngLat={[Number(stop.resolvedLon), Number(stop.resolvedLat)]}>
@@ -1472,63 +2195,53 @@
         </Marker>
       {/each}
     {/if}
-    {#each filteredBuildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
-      {#if building.lat && building.lon}
-        {@const editKey = buildingEditKey(building.id)}
-        {@const position = getEditablePosition(editKey, {
-          lat: building.lat,
-          lon: building.lon,
-          version: getLoadedVersion(building.version),
-        })}
-        <Marker
-          lngLat={[position.lon, position.lat]}
-          draggable={isMapEditEnabled()}
-          onclick={() => handleMarkerClick(building.buildingName)}
-          ondragstart={() => beginMarkerDrag(editKey)}
-          ondragend={(e) =>
-            handleBuildingDragEnd(e, building.id, building.buildingName, {
-              lat: position.lat,
-              lon: position.lon,
-            })}
-        >
-          <div
-            class="pin"
-            class:active={activeBuildingName === building.buildingName}
-            class:editable={isMapEditEnabled()}
-            class:editing={selectedEditKey === editKey}
-            class:event-linked={linkedEventBuildingIds.has(building.id)}
-            class:hovered={hoveredEditKey === editKey}
-            class:saving={savingEditKey === editKey}
-            class:saved={savedEditKey === editKey}
-            class:failed={failedEditKey === editKey}
-            title={building.buildingName}
-            onpointerenter={() => handleEditablePinEnter(editKey)}
-            onpointerleave={() => handleEditablePinLeave(editKey)}
+    {#if !mapViewStore.eventsOnly}
+      {#each filteredBuildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
+        {#if building.lat && building.lon}
+          {@const editKey = buildingEditKey(building.id)}
+          {@const position = getEditablePosition(editKey, {
+            lat: building.lat,
+            lon: building.lon,
+            version: getLoadedVersion(building.version),
+          })}
+          <Marker
+            lngLat={[position.lon, position.lat]}
+            draggable={isMapEditEnabled()}
+            onclick={() => handleMarkerClick(building.buildingName)}
+            ondragstart={() => beginMarkerDrag(editKey)}
+            ondragend={(e) =>
+              handleBuildingDragEnd(
+                e,
+                building.id,
+                building.buildingName,
+                position,
+              )}
           >
-            <University size="20" />
-            {#if isMapEditEnabled()}
-              <span class="drag-handle" aria-hidden="true">
-                <Move size={13} />
-              </span>
-            {/if}
-            <div
-              class="pin-label"
-              class:active={zoomLevel >= 17 || hoveredEditKey === editKey}
-              transition:fade
+            <MapEntityPin
+              label={building.buildingName}
+              active={activeBuildingName === building.buildingName}
+              editable={isMapEditEnabled()}
+              editing={selectedEditKey === editKey}
+              eventLinked={linkedEventBuildingIds.has(building.id)}
+              hovered={hoveredEditKey === editKey}
+              saveState={savingEditKey === editKey
+                ? "saving"
+                : savedEditKey === editKey
+                  ? "saved"
+                  : failedEditKey === editKey
+                    ? "failed"
+                    : "idle"}
+              title={building.buildingName}
+              labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
+              onpointerenter={() => handleEditablePinEnter(editKey)}
+              onpointerleave={() => handleEditablePinLeave(editKey)}
             >
-              {building.buildingName}
-              {#if savingEditKey === editKey}
-                <span class="pin-status">Saving</span>
-              {:else if savedEditKey === editKey}
-                <span class="pin-status">Saved</span>
-              {:else if failedEditKey === editKey}
-                <span class="pin-status">Failed</span>
-              {/if}
-            </div>
-          </div>
-        </Marker>
-      {/if}
-    {/each}
+              <University size="20" />
+            </MapEntityPin>
+          </Marker>
+        {/if}
+      {/each}
+    {/if}
     {#if activeRouteId}
       {#each activeRouteStops as stop, i (`${activeRouteId}-${i}-${stop.name}`)}
         <Marker lngLat={[stop.lon, stop.lat]}>
@@ -1544,64 +2257,49 @@
       {/each}
     {/if}
 
-    {#each filteredDorms as dorm (`dorm:${dorm.id}:${isMapEditEnabled()}`)}
-      {#if dorm.lat && dorm.lon}
-        {@const editKey = dormEditKey(dorm.id)}
-        {@const position = getEditablePosition(editKey, {
-          lat: dorm.lat,
-          lon: dorm.lon,
-          version: getLoadedVersion(dorm.version),
-        })}
-        <Marker
-          lngLat={[position.lon, position.lat]}
-          draggable={isMapEditEnabled()}
-          onclick={() => handleDormMarkerClick(dorm.dormName)}
-          ondragstart={() => beginMarkerDrag(editKey)}
-          ondragend={(e) =>
-            handleDormDragEnd(e, dorm.id, dorm.dormName, {
-              lat: position.lat,
-              lon: position.lon,
-            })}
-        >
-          <div
-            class="dorm-pin"
-            class:active={activeDormName === dorm.dormName}
-            class:private={!dorm.isUpManaged}
-            class:event-linked={linkedEventDormIds.has(dorm.id)}
-            class:editable={isMapEditEnabled()}
-            class:editing={selectedEditKey === editKey}
-            class:hovered={hoveredEditKey === editKey}
-            class:saving={savingEditKey === editKey}
-            class:saved={savedEditKey === editKey}
-            class:failed={failedEditKey === editKey}
-            title={dorm.dormName}
-            onpointerenter={() => handleEditablePinEnter(editKey)}
-            onpointerleave={() => handleEditablePinLeave(editKey)}
+    {#if !mapViewStore.eventsOnly}
+      {#each filteredDorms as dorm (`dorm:${dorm.id}:${isMapEditEnabled()}`)}
+        {#if dorm.lat && dorm.lon}
+          {@const editKey = dormEditKey(dorm.id)}
+          {@const position = getEditablePosition(editKey, {
+            lat: dorm.lat,
+            lon: dorm.lon,
+            version: getLoadedVersion(dorm.version),
+          })}
+          <Marker
+            lngLat={[position.lon, position.lat]}
+            draggable={isMapEditEnabled()}
+            onclick={() => handleDormMarkerClick(dorm.dormName)}
+            ondragstart={() => beginMarkerDrag(editKey)}
+            ondragend={(e) =>
+              handleDormDragEnd(e, dorm.id, dorm.dormName, position)}
           >
-            <House size="18" />
-            {#if isMapEditEnabled()}
-              <span class="drag-handle" aria-hidden="true">
-                <Move size={13} />
-              </span>
-            {/if}
-            <div
-              class="pin-label"
-              class:active={zoomLevel >= 17 || hoveredEditKey === editKey}
-              transition:fade
+            <MapEntityPin
+              label={dorm.dormName}
+              tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
+              active={activeDormName === dorm.dormName}
+              eventLinked={linkedEventDormIds.has(dorm.id)}
+              editable={isMapEditEnabled()}
+              editing={selectedEditKey === editKey}
+              hovered={hoveredEditKey === editKey}
+              saveState={savingEditKey === editKey
+                ? "saving"
+                : savedEditKey === editKey
+                  ? "saved"
+                  : failedEditKey === editKey
+                    ? "failed"
+                    : "idle"}
+              title={dorm.dormName}
+              labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
+              onpointerenter={() => handleEditablePinEnter(editKey)}
+              onpointerleave={() => handleEditablePinLeave(editKey)}
             >
-              {dorm.dormName}
-              {#if savingEditKey === editKey}
-                <span class="pin-status">Saving</span>
-              {:else if savedEditKey === editKey}
-                <span class="pin-status">Saved</span>
-              {:else if failedEditKey === editKey}
-                <span class="pin-status">Failed</span>
-              {/if}
-            </div>
-          </div>
-        </Marker>
-      {/if}
-    {/each}
+              <House size="18" />
+            </MapEntityPin>
+          </Marker>
+        {/if}
+      {/each}
+    {/if}
   </MapLibre>
   {#if terrainStore.enabled}
     <a
@@ -1734,13 +2432,82 @@
     opacity: 0.45;
   }
 
+  .event-placement-toolbar {
+    position: absolute;
+    bottom: 4.75rem;
+    left: calc(50% + 12.875rem);
+    z-index: 22;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - 26.75rem);
+    min-height: 3.25rem;
+    padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+    border: 1px solid hsla(5, 53%, 32%, 0.35);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    color: hsl(0, 0%, 12%);
+    font-size: 0.8125rem;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    pointer-events: auto;
+  }
+
+  .event-placement-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+
+  .event-placement-copy strong {
+    color: #7b1113;
+    font-size: 0.78rem;
+    line-height: 1.15;
+  }
+
+  .event-placement-copy span {
+    display: block;
+    max-width: 19rem;
+    overflow: hidden;
+    color: hsl(0, 0%, 24%);
+    font-size: 0.75rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-placement-cancel {
+    min-width: 4.75rem;
+    padding: 0.48rem 0.75rem;
+    border: none;
+    border-radius: 999px;
+    background: #7b1113;
+    color: white;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+  }
+
+  .event-placement-cancel:hover:not(:disabled) {
+    background: #5f0d0f;
+  }
+
+  .event-placement-cancel:disabled {
+    cursor: progress;
+    opacity: 0.55;
+  }
+
   @media (max-width: 48rem) {
     .maptiler-logo {
       bottom: calc(50vh + 0.75rem);
       left: 0.75rem;
     }
 
-    .map-edit-toolbar {
+    .map-edit-toolbar,
+    .event-placement-toolbar {
       right: 0.5rem;
       bottom: 4.25rem;
       left: 0.5rem;
@@ -1754,12 +2521,23 @@
       max-width: 100%;
     }
 
+    .event-placement-copy span {
+      max-width: 100%;
+      white-space: normal;
+    }
+
     .map-edit-actions {
       flex: 0 0 auto;
     }
 
     .map-edit-action {
       width: 4.2rem;
+      padding-inline: 0.55rem;
+    }
+
+    .event-placement-cancel {
+      flex: 0 0 auto;
+      min-width: 4.2rem;
       padding-inline: 0.55rem;
     }
   }
@@ -1797,74 +2575,351 @@
     }
   }
 
-  .event-pin {
-    all: unset;
+  .event-marker-anchor {
     position: relative;
-    z-index: 65;
+    z-index: 80;
+    display: block;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .event-anchor-dot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 2px solid white;
+    border-radius: 999px;
+    background: #7b1113;
+    box-shadow:
+      0 0 0 0.14rem rgba(123, 17, 19, 0.22),
+      0 0.15rem 0.35rem rgba(0, 0, 0, 0.24);
+    translate: -50% -50%;
+    pointer-events: none;
+  }
+
+  .event-anchor-connector {
+    position: absolute;
+    top: -0.05rem;
+    left: 0.05rem;
+    z-index: 1;
+    display: none;
+    width: 2rem;
+    height: 0.2rem;
+    border-radius: 999px;
+    background: rgba(123, 17, 19, 0.72);
+    box-shadow: 0 0 0 2px white;
+    transform: rotate(-38deg);
+    transform-origin: left center;
+    pointer-events: none;
+  }
+
+  .event-marker-anchor.anchored .event-anchor-connector {
+    display: block;
+  }
+
+  .event-callout {
+    position: absolute;
+    bottom: 0.68rem;
+    left: 0;
+    z-index: 3;
     display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    translate: -50% 0;
+    pointer-events: auto;
+  }
+
+  .event-callout.anchored {
+    bottom: 1.08rem;
+    left: 1.32rem;
+    translate: 0 0;
+  }
+
+  .event-edit-pin {
+    all: unset;
+    position: absolute;
+    bottom: 0.68rem;
+    left: 0;
+    z-index: 90;
+    display: inline-flex;
+    min-width: 4.75rem;
+    min-height: 3rem;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.45rem;
+    gap: 0.35rem;
+    padding: 0.22rem 0.35rem 0.22rem 0.22rem;
     border: 2px solid white;
     border-radius: 999px;
     background: #7b1113;
     color: white;
-    cursor: pointer;
-    box-shadow: 0 3px 0.5rem rgba(0, 0, 0, 0.32);
+    cursor: grab;
+    line-height: 1;
+    pointer-events: auto;
+    touch-action: none;
+    box-shadow:
+      0 0 0 0.2rem rgba(250, 204, 21, 0.92),
+      0 0.55rem 1.1rem rgba(0, 0, 0, 0.34);
+    transform-origin: bottom center;
+    translate: -50% 0;
   }
 
-  .event-pin.upcoming {
-    background: #f8fafc;
-    color: #7b1113;
-    border-color: #d8b9ba;
-  }
-
-  .event-pin.active {
-    transform: scale(1.08);
-    outline: 0.16rem solid rgba(123, 17, 19, 0.28);
-    outline-offset: 0.12rem;
-  }
-
-  .event-dot {
+  .event-edit-pin::after {
+    content: "";
+    position: absolute;
+    top: calc(100% - 0.2rem);
+    left: 50%;
     width: 0.55rem;
     height: 0.55rem;
-    border-radius: 999px;
-    background: currentColor;
-  }
-
-  .event-pin:not(.upcoming) .event-dot {
-    background: white;
-  }
-
-  .event-pin-label {
-    position: absolute;
-    bottom: calc(100% + 0.45rem);
-    left: 50%;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    background: inherit;
+    pointer-events: none;
+    rotate: 45deg;
     translate: -50% 0;
-    width: max-content;
-    max-width: 14rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 0.5rem;
+  }
+
+  .event-edit-pin.hovered,
+  .event-edit-pin.editing {
+    transform: scale(1.05);
+  }
+
+  .event-edit-pin.editing {
+    cursor: grabbing;
+  }
+
+  .event-edit-icon,
+  .event-edit-handle {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+  }
+
+  .event-edit-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .event-edit-handle {
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-left: 0.1rem;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .event-edit-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.12rem;
+    pointer-events: none;
+  }
+
+  .event-edit-copy span,
+  .event-edit-copy strong {
+    overflow: hidden;
+    max-width: 9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-edit-copy span {
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1.05;
+  }
+
+  .event-edit-copy strong {
+    font-size: 0.62rem;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .event-edit-pin.saving {
+    box-shadow:
+      0 0 0 0.22rem hsl(45, 94%, 47%),
+      0 0.55rem 1.1rem rgba(0, 0, 0, 0.34);
+  }
+
+  .event-edit-pin.saved {
+    box-shadow:
+      0 0 0 0.22rem hsl(145, 63%, 42%),
+      0 0.55rem 1.1rem rgba(0, 0, 0, 0.34);
+  }
+
+  .event-edit-pin.failed {
+    box-shadow:
+      0 0 0 0.22rem hsl(0, 72%, 51%),
+      0 0.55rem 1.1rem rgba(0, 0, 0, 0.34);
+  }
+
+  .event-pin-stack {
+    position: relative;
+    margin-top: 0.5rem;
+    display: grid;
+    width: min(15rem, calc(100vw - 2rem));
+    overflow: hidden;
+    border: 2px solid white;
+    border-radius: 1rem;
+    background: white;
+    box-shadow:
+      0 0 0 0.16rem rgba(123, 17, 19, 0.28),
+      0 0.55rem 1.15rem rgba(0, 0, 0, 0.34);
+  }
+
+  .event-stack-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+    padding: 0.42rem 0.45rem 0.42rem 0.6rem;
+    background: #7b1113;
+    color: white;
+  }
+
+  .event-stack-heading {
+    display: grid;
+    min-width: 0;
+    gap: 0.1rem;
+  }
+
+  .event-stack-heading strong {
+    font-size: 0.72rem;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .event-stack-heading span {
+    overflow: hidden;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-stack-close {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    cursor: pointer;
+    color: white;
+  }
+
+  .event-stack-close:hover,
+  .event-stack-close:focus-visible {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .event-stack-close:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 1px;
+  }
+
+  .event-stack-list {
+    display: grid;
+    gap: 1px;
+    background: #eee1e1;
+  }
+
+  .event-stack-item {
+    all: unset;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 0.5rem;
     background: white;
     color: #18181b;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1.2;
-    opacity: 0;
-    pointer-events: none;
-    box-shadow: 0 2px 0.5rem rgba(0, 0, 0, 0.2);
+    cursor: pointer;
   }
 
-  .event-pin:hover .event-pin-label,
-  .event-pin.active .event-pin-label {
-    opacity: 1;
+  .event-stack-item:hover,
+  .event-stack-item:focus-visible,
+  .event-stack-item.active {
+    background: #fdf3f3;
   }
 
-  .event-status {
-    margin-left: 0.4rem;
+  .event-stack-item:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: -2px;
+  }
+
+  .event-stack-thumb,
+  .event-stack-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+  }
+
+  .event-stack-thumb {
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  .event-stack-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fdf3f3;
     color: #7b1113;
-    font-size: 0.68rem;
-    font-weight: 700;
+  }
+
+  .event-stack-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.16rem;
+  }
+
+  .event-stack-title {
+    overflow: hidden;
+    color: #7b1113;
+    font-size: 0.76rem;
+    font-weight: 900;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-stack-meta {
+    color: #71717a;
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 48rem) {
+    .event-edit-pin {
+      min-height: 3.35rem;
+      padding-right: 0.42rem;
+    }
+
+    .event-edit-icon,
+    .event-edit-handle {
+      width: 2.55rem;
+      height: 2.55rem;
+    }
+
+    .event-edit-copy span,
+    .event-edit-copy strong {
+      max-width: 7rem;
+    }
+
+    .event-pin-stack {
+      width: min(13rem, calc(100vw - 1rem));
+    }
   }
 
   .event-route-stop-pin {
@@ -1903,136 +2958,6 @@
 
   .event-route-stop-pin:hover .event-route-stop-label {
     opacity: 1;
-  }
-
-  .pin {
-    line-height: 0;
-    padding: 0.25rem;
-    color: white;
-    background-color: hsl(5, 53%, 32%);
-    border: 2px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    position: relative;
-    box-shadow: 0 2px 0.25rem rgba(0, 0, 0, 0.3);
-    transition:
-      transform 0.2s,
-      scale 1.5s;
-
-    &.active {
-      z-index: 60;
-
-      &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        outline: 0.125rem solid hsl(5, 53%, 40%);
-        outline-offset: 0.125rem;
-      }
-      .pin-label {
-        background-color: hsl(5, 53%, 32%);
-        color: white;
-        opacity: 1;
-      }
-    }
-    .pin-label {
-      line-height: initial;
-      color: black;
-      position: absolute;
-      bottom: calc(100% + 0.5rem);
-      left: 50%;
-      translate: -50% 0;
-      background-color: white;
-      border-radius: 0.5rem;
-      padding: 0.25rem 0.75rem;
-      width: max-content;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-      &.active {
-        opacity: 1;
-      }
-    }
-  }
-
-  .pin.editable,
-  .dorm-pin.editable {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    border-radius: 999px;
-    padding-right: 0.5rem;
-    cursor: grab;
-    touch-action: none;
-  }
-
-  .pin.hovered,
-  .dorm-pin.hovered {
-    transform: scale(1.08);
-    box-shadow:
-      0 0 0 0.2rem rgba(255, 255, 255, 0.9),
-      0 4px 0.75rem rgba(0, 0, 0, 0.28);
-  }
-
-  .pin.editing,
-  .dorm-pin.editing {
-    cursor: grabbing;
-    z-index: 70;
-    transform: scale(1.14);
-  }
-
-  .drag-handle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    opacity: 0.92;
-    pointer-events: none;
-  }
-
-  .pin.saving,
-  .dorm-pin.saving {
-    outline: 0.16rem solid hsl(45, 94%, 47%);
-    outline-offset: 0.15rem;
-  }
-
-  .pin.saved,
-  .dorm-pin.saved {
-    outline: 0.16rem solid hsl(145, 63%, 42%);
-    outline-offset: 0.15rem;
-  }
-
-  .pin.event-linked,
-  .dorm-pin.event-linked {
-    box-shadow:
-      0 0 0 0.22rem rgba(250, 204, 21, 0.8),
-      0 2px 0.25rem rgba(0, 0, 0, 0.3);
-  }
-
-  .pin.failed,
-  .dorm-pin.failed {
-    outline: 0.16rem solid hsl(0, 72%, 51%);
-    outline-offset: 0.15rem;
-  }
-
-  .pin-status {
-    margin-left: 0.5rem;
-    padding-left: 0.5rem;
-    border-left: 1px solid currentColor;
-    font-size: 0.6875rem;
-    opacity: 0.85;
-  }
-
-  .pin:hover {
-    background-color: hsl(5, 53%, 40%);
-
-    .pin-label {
-      opacity: 1;
-    }
   }
 
   .jeepney-stop-pin {
@@ -2076,84 +3001,5 @@
   }
   .jeepney-stop-pin:hover .stop-label {
     opacity: 1;
-  }
-
-  .dorm-pin {
-    line-height: 0;
-    padding: 0.25rem;
-    color: white;
-    background-color: hsl(170, 50%, 35%);
-    border: 2px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    position: relative;
-    box-shadow: 0 2px 0.25rem rgba(0, 0, 0, 0.3);
-    transition:
-      transform 0.2s,
-      scale 1.5s;
-
-    &.active {
-      z-index: 60;
-
-      &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        outline: 0.125rem solid hsl(170, 50%, 45%);
-        outline-offset: 0.125rem;
-      }
-      .pin-label {
-        background-color: hsl(170, 50%, 35%);
-        color: white;
-        opacity: 1;
-      }
-    }
-    .pin-label {
-      line-height: initial;
-      color: black;
-      position: absolute;
-      bottom: calc(100% + 0.5rem);
-      left: 50%;
-      translate: -50% 0;
-      background-color: white;
-      border-radius: 0.5rem;
-      padding: 0.25rem 0.75rem;
-      width: max-content;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-      &.active {
-        opacity: 1;
-      }
-    }
-  }
-
-  .dorm-pin:hover {
-    background-color: hsl(170, 50%, 45%);
-
-    .pin-label {
-      opacity: 1;
-    }
-  }
-
-  .dorm-pin.private {
-    background-color: hsl(25, 70%, 50%);
-
-    &.active {
-      &::before {
-        outline-color: hsl(25, 70%, 60%);
-      }
-      .pin-label {
-        background-color: hsl(25, 70%, 50%);
-      }
-    }
-  }
-
-  .dorm-pin.private:hover {
-    background-color: hsl(25, 70%, 60%);
   }
 </style>

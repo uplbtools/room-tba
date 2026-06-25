@@ -1,12 +1,18 @@
 import "dotenv/config";
+import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import {
+  buildingsTable,
+  collegesTable,
+  divisionsTable,
   eventLocationsTable,
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
+  roomsTable,
+  updateTable,
 } from "../drizzle/schema";
 
 const connectionString = process.env.NEON_CONNECTION_STRING;
@@ -16,27 +22,48 @@ if (!connectionString) {
 
 const pool = new Pool({ connectionString });
 const db = drizzle(pool);
+const SYNC_TABLES = [
+  "rooms",
+  "events",
+  "event_locations",
+  "event_routes",
+  "event_route_stops",
+];
+
+const legacySeedEventSlugs = [
+  "lantern-parade",
+  "feb-fair",
+  "graduation-photo-spots",
+];
+
+const specialRooms = [
+  {
+    roomCode: "NCAS Auditorium",
+    directions: "NCAS Auditorium in CAS Annex 1.",
+    buildingName: "CAS Annex 1",
+    collegeName: "College of Arts and Sciences",
+    divisionName: "Institute of Computer Science",
+  },
+];
 
 const seedEvents = [
   {
     event: {
-      slug: "lantern-parade",
-      title: "Lantern Parade",
-      description:
-        "A seasonal UPLB tradition that brings lantern displays and evening foot traffic around the campus core.",
-      category: "tradition" as const,
-      startsAt: "2026-12-15T08:00:00+08:00",
-      endsAt: "2026-12-15T22:00:00+08:00",
-      recurrence: "annual" as const,
+      slug: "university-graduation-2026",
+      title: "University Graduation",
+      description: "UPLB University Graduation ceremony at Copeland Gymnasium.",
+      category: "ceremony" as const,
+      startsAt: "2026-07-04T08:00:00+08:00",
+      endsAt: "2026-07-04T17:00:00+08:00",
+      recurrence: "none" as const,
       includeInSeo: true,
-      priority: 80,
+      priority: 100,
     },
     locations: [
       {
-        anchorType: "custom" as const,
-        label: "Freedom Park",
-        lat: 14.16536,
-        lon: 121.24135,
+        anchorType: "building" as const,
+        buildingName: "Copeland Gymnasium",
+        label: "Copeland Gymnasium",
         isPrimary: true,
       },
     ],
@@ -44,68 +71,115 @@ const seedEvents = [
   },
   {
     event: {
-      slug: "feb-fair",
-      title: "Feb Fair",
+      slug: "institute-of-computer-science-testimonials-2026",
+      title: "Institute of Computer Science Testimonials",
       description:
-        "Annual February fair season with concerts, booths, and student activities near the UPLB campus core.",
-      category: "fair" as const,
-      startsAt: "2026-02-12T08:00:00+08:00",
-      endsAt: "2026-02-17T23:00:00+08:00",
-      recurrence: "annual" as const,
+        "Institute of Computer Science testimonials at NCAS Auditorium in CAS Annex 1.",
+      category: "ceremony" as const,
+      startsAt: "2026-07-01T14:00:00+08:00",
+      endsAt: "2026-07-01T17:00:00+08:00",
+      recurrence: "none" as const,
+      includeInSeo: true,
+      priority: 95,
+    },
+    locations: [
+      {
+        anchorType: "building" as const,
+        buildingName: "CAS Annex 1",
+        label: "NCAS Auditorium",
+        isPrimary: true,
+      },
+    ],
+    routes: [],
+  },
+  {
+    event: {
+      slug: "uplb-cas-testimonials-2026",
+      title: "UPLB CAS Testimonials",
+      description: "UPLB College of Arts and Sciences testimonials.",
+      category: "ceremony" as const,
+      startsAt: "2026-07-02T07:30:00+08:00",
+      endsAt: "2026-07-02T12:00:00+08:00",
+      recurrence: "none" as const,
       includeInSeo: true,
       priority: 90,
     },
     locations: [
       {
-        anchorType: "custom" as const,
-        label: "Freedom Park",
-        lat: 14.16536,
-        lon: 121.24135,
+        anchorType: "building" as const,
+        buildingName: "Copeland Gymnasium",
+        label: "Copeland Gymnasium",
         isPrimary: true,
       },
     ],
     routes: [],
   },
-  {
-    event: {
-      slug: "graduation-photo-spots",
-      title: "Graduation Photo Spots",
-      description:
-        "Suggested graduation-season photo landmarks around UPLB, including Oble and Baker Hall steps.",
-      category: "ceremony" as const,
-      startsAt: "2026-06-01T08:00:00+08:00",
-      endsAt: "2026-07-31T18:00:00+08:00",
-      recurrence: "annual" as const,
-      includeInSeo: true,
-      priority: 70,
-    },
-    locations: [
-      {
-        anchorType: "custom" as const,
-        label: "Oblation Plaza",
-        lat: 14.16508,
-        lon: 121.24204,
-        isPrimary: true,
-      },
-      {
-        anchorType: "custom" as const,
-        label: "Baker Hall Steps",
-        lat: 14.16283,
-        lon: 121.2411,
-      },
-    ],
-    routes: [
-      {
-        name: "Graduation photo walk",
-        description: "A short landmark walk for common graduation photo stops.",
-        stops: [
-          { label: "Oblation Plaza", lat: 14.16508, lon: 121.24204 },
-          { label: "Baker Hall Steps", lat: 14.16283, lon: 121.2411 },
-        ],
-      },
-    ],
-  },
 ];
+
+async function getBuildingId(buildingName: string) {
+  const [building] = await db
+    .select({ id: buildingsTable.id })
+    .from(buildingsTable)
+    .where(eq(buildingsTable.buildingName, buildingName))
+    .limit(1);
+  if (!building) throw new Error(`Missing building: ${buildingName}`);
+  return building.id;
+}
+
+async function getCollegeId(collegeName: string) {
+  const [college] = await db
+    .select({ id: collegesTable.id })
+    .from(collegesTable)
+    .where(eq(collegesTable.collegeName, collegeName))
+    .limit(1);
+  if (!college) throw new Error(`Missing college: ${collegeName}`);
+  return college.id;
+}
+
+async function getDivisionId(divisionName: string) {
+  const [division] = await db
+    .select({ id: divisionsTable.id })
+    .from(divisionsTable)
+    .where(eq(divisionsTable.divisionName, divisionName))
+    .limit(1);
+  return division?.id ?? null;
+}
+
+for (const room of specialRooms) {
+  const buildingId = await getBuildingId(room.buildingName);
+  const collegeId = await getCollegeId(room.collegeName);
+  const divisionId = await getDivisionId(room.divisionName);
+  const [existingRoom] = await db
+    .select({ id: roomsTable.id })
+    .from(roomsTable)
+    .where(eq(roomsTable.roomCode, room.roomCode))
+    .limit(1);
+
+  const values = {
+    roomCode: room.roomCode,
+    directions: room.directions,
+    buildingId,
+    collegeId,
+    divisionId,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (existingRoom) {
+    await db
+      .update(roomsTable)
+      .set(values)
+      .where(eq(roomsTable.id, existingRoom.id));
+  } else {
+    await db.insert(roomsTable).values(values);
+  }
+}
+
+for (const slug of legacySeedEventSlugs) {
+  await db
+    .update(eventsTable)
+    .set({ isActive: false, updatedAt: new Date().toISOString() })
+    .where(eq(eventsTable.slug, slug));
+}
 
 for (const seed of seedEvents) {
   const existing = await db
@@ -145,14 +219,20 @@ for (const seed of seedEvents) {
     .where(eq(eventsTable.id, event.id));
 
   if (seed.locations.length > 0) {
-    await db.insert(eventLocationsTable).values(
-      seed.locations.map((location, index) => ({
+    const locations = await Promise.all(
+      seed.locations.map(async (location, index) => ({
         eventId: event.id,
         sortOrder: index,
         highlightPriority: seed.event.priority,
-        ...location,
+        anchorType: location.anchorType,
+        buildingId: location.buildingName
+          ? await getBuildingId(location.buildingName)
+          : null,
+        label: location.label,
+        isPrimary: location.isPrimary ?? false,
       })),
     );
+    await db.insert(eventLocationsTable).values(locations);
   }
 
   for (const [routeIndex, route] of seed.routes.entries()) {
@@ -175,6 +255,13 @@ for (const seed of seedEvents) {
       })),
     );
   }
+}
+
+for (const tableName of SYNC_TABLES) {
+  await db
+    .update(updateTable)
+    .set({ syncKey: randomUUID() })
+    .where(eq(updateTable.tableName, tableName));
 }
 
 await pool.end();

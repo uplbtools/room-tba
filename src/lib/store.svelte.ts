@@ -114,13 +114,18 @@ export interface QueryStoreState {
     | "class"
     | "dorm"
     | "event"
+    | "events"
     | null;
   value: string;
+  // Stable, unique identifier for a selected event. Event titles are not
+  // unique, so event lookups should prefer this slug over `value`/`inputValue`.
+  eventSlug?: string;
 }
 
 type RecentSearch = {
   category: Exclude<QueryStoreState["category"], null>;
   value: string;
+  eventSlug?: string;
 };
 
 class ModalStore {
@@ -160,6 +165,7 @@ class QueryStore {
   category = $derived(this._queryStore.category);
   type = $derived(this._queryStore.type);
   queryValue = $derived(this._queryStore.value);
+  selectedEventSlug = $derived(this._queryStore.eventSlug ?? null);
   filterValues = $derived(
     Array.from(
       this._filters.entries().map(([value, category]) => ({
@@ -178,6 +184,7 @@ class QueryStore {
       this.addRecentSearch({
         category: obj.category,
         value: obj.value,
+        eventSlug: obj.eventSlug,
       });
     }
   };
@@ -364,6 +371,18 @@ class MapStore {
   stopAutoRotate: (() => void) | null = null;
 }
 
+class MapViewStore {
+  eventsOnly: boolean = $state(false);
+
+  toggleEventsOnly = () => {
+    this.eventsOnly = !this.eventsOnly;
+  };
+
+  showAll = () => {
+    this.eventsOnly = false;
+  };
+}
+
 class SidePanelStore {
   collapsed: boolean = $state(false);
 
@@ -404,12 +423,69 @@ class FloatingControlPanelStore {
 class MapEditStore {
   enabled: boolean = $state(false);
 
+  enable = () => {
+    if (this.enabled) return;
+    this.enabled = true;
+    deactivateMapModesExcept("edit");
+  };
+
   toggle = () => {
-    this.enabled = !this.enabled;
+    if (this.enabled) this.enabled = false;
+    else this.enable();
   };
 
   close = () => {
     this.enabled = false;
+  };
+}
+
+export type EventPlacementDraft = {
+  slug: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  category: "tradition" | "fair" | "ceremony" | "sports" | "other";
+};
+
+class EventPlacementStore {
+  draft: EventPlacementDraft | null = $state(null);
+  creating: boolean = $state(false);
+  createdEventId: number | null = $state(null);
+  active = $derived(this.draft !== null);
+
+  start = (draft: EventPlacementDraft) => {
+    this.draft = draft;
+    this.creating = false;
+    this.createdEventId = null;
+    // Event placement is part of the edit flow; clear the other map modes so
+    // they don't fight over the camera or map clicks while placing.
+    deactivateMapModesExcept("edit");
+  };
+
+  beginCreate = () => {
+    if (!this.draft) return;
+    this.creating = true;
+  };
+
+  finishCreate = (eventId: number) => {
+    this.draft = null;
+    this.creating = false;
+    this.createdEventId = eventId;
+  };
+
+  failCreate = () => {
+    this.creating = false;
+  };
+
+  cancel = () => {
+    this.draft = null;
+    this.creating = false;
+  };
+
+  consumeCreatedEvent = (eventId: number) => {
+    if (this.createdEventId !== eventId) return false;
+    this.createdEventId = null;
+    return true;
   };
 }
 
@@ -435,6 +511,7 @@ class TerrainStore {
     this.enabled = true;
     this.status = "loading";
     this.message = null;
+    deactivateMapModesExcept("terrain");
   };
 
   disable = () => {
@@ -587,6 +664,8 @@ class JeepneyStore {
   selectRoute = (id: string) => {
     this.selectedRouteId = this.selectedRouteId === id ? null : id;
     this.menuOpen = false;
+    // Selecting (not clearing) a route activates routes mode.
+    if (this.selectedRouteId !== null) deactivateMapModesExcept("routes");
   };
 
   clearRoute = () => {
@@ -604,6 +683,24 @@ class SyncToastStore {
   public currentSync = $state<string | null>(null);
   public allSynced = $state<boolean>(false);
   public recentlySynced = $state<boolean | null>(null);
+
+  // Service worker "new content available" update, surfaced inside this same
+  // bottom offline toast instead of a separate floating prompt.
+  public needRefresh = $state<boolean>(false);
+  private _refresh: (() => void) | null = null;
+
+  setRefreshHandler(fn: () => void) {
+    this._refresh = fn;
+  }
+  markNeedRefresh() {
+    this.needRefresh = true;
+  }
+  dismissRefresh() {
+    this.needRefresh = false;
+  }
+  reload() {
+    this._refresh?.();
+  }
 
   startBuildingsSync(total: number) {
     this._buildings = {
@@ -780,11 +877,33 @@ export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
+export const mapViewStore = new MapViewStore();
 export const sidePanelStore = new SidePanelStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapEditStore = new MapEditStore();
+export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
+
+// The bottom-right control cluster exposes three mutually exclusive map modes:
+// the editor, jeepney routes, and Makiling terrain. They each take over the
+// camera, pins, and map interactions, so only one may be active at a time.
+// "None active" stays valid. Activating one tears the others down via their
+// own existing disable/clear paths so per-mode side effects unwind cleanly.
+export type ExclusiveMapMode = "edit" | "routes" | "terrain";
+
+export function deactivateMapModesExcept(active: ExclusiveMapMode) {
+  if (active !== "edit") {
+    mapEditStore.close();
+    eventPlacementStore.cancel();
+  }
+  if (active !== "routes") {
+    jeepneyStore.clearRoute();
+  }
+  if (active !== "terrain") {
+    terrainStore.disable();
+  }
+}

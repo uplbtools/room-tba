@@ -33,6 +33,7 @@ export type SearchCategory =
 export type InitialSearchState = {
   category: SearchCategory;
   value: string;
+  eventSlug?: string;
 };
 
 export type AppPageData = {

@@ -14,10 +14,12 @@
     value,
     category,
     id,
+    eventSlug,
   }: {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
     id?: number;
+    eventSlug?: string;
   } = $props();
 
   function handleSuggestionClick() {
@@ -25,6 +27,7 @@
       type: "result",
       category,
       value,
+      eventSlug,
     });
     queryStore.inputValue = value;
   }
@@ -44,7 +47,7 @@
       <BookText size={20} />
     {:else if type === "dorm"}
       <Home size={20} />
-    {:else if type === "event"}
+    {:else if type === "event" || type === "events"}
       <CalendarDays size={20} />
     {/if}
   </span>

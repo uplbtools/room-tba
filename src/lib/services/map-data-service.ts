@@ -23,7 +23,7 @@ export async function getAllBuildings(): Promise<BuildingData[]> {
     return data;
   } catch (e) {
     console.error(e);
-    throw new Error("Failed to fetch data for buildings");
+    throw new Error("Failed to fetch data for buildings", { cause: e });
   }
 }
 
@@ -55,12 +55,13 @@ export async function getAllRooms(): Promise<RoomData[]> {
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms");
+    throw new Error("Failed to fetch rooms", { cause: e });
   }
 }
 
 export async function getRoomByCode(code: string) {
   try {
+    const normalizedCode = code.toUpperCase();
     const data = await db
       .select({
         id: roomsTable.id,
@@ -84,12 +85,12 @@ export async function getRoomByCode(code: string) {
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
       .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
       .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(sql`upper(${roomsTable.roomCode}) = ${code}`);
+      .where(sql`upper(${roomsTable.roomCode}) = ${normalizedCode}`);
     if (data.length === 0 || typeof data[0] === "undefined") return null;
     return data[0];
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms");
+    throw new Error("Failed to fetch rooms", { cause: e });
   }
 }
 
@@ -110,7 +111,7 @@ export async function searchRooms(searchString: string) {
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms");
+    throw new Error("Failed to fetch rooms", { cause: e });
   }
 }
 
@@ -145,7 +146,7 @@ export async function getBuildingRooms(
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms");
+    throw new Error("Failed to fetch rooms", { cause: e });
   }
 }
 export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
@@ -177,7 +178,7 @@ export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms");
+    throw new Error("Failed to fetch rooms", { cause: e });
   }
 }
 export async function getDivisionRooms(
@@ -212,7 +213,7 @@ export async function getDivisionRooms(
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms");
+    throw new Error("Failed to fetch rooms", { cause: e });
   }
 }
 
@@ -222,7 +223,7 @@ export async function getAllColleges(): Promise<CollegeData[]> {
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch data for colleges");
+    throw new Error("Failed to fetch data for colleges", { cause: e });
   }
 }
 
@@ -232,7 +233,7 @@ export async function getAllDivisions(): Promise<DivisionData[]> {
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch data for divisions");
+    throw new Error("Failed to fetch data for divisions", { cause: e });
   }
 }
 
@@ -256,7 +257,7 @@ export async function getAllClasses(): Promise<ClassMapValue[]> {
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch data for classes");
+    throw new Error("Failed to fetch data for classes", { cause: e });
   }
 }
 
@@ -266,6 +267,6 @@ export async function getAllDorms(): Promise<DormData[]> {
     return data;
   } catch (e) {
     console.error("Error: ", e);
-    throw new Error("Failed to fetch data for dorms");
+    throw new Error("Failed to fetch data for dorms", { cause: e });
   }
 }

@@ -1,33 +1,49 @@
 <script lang="ts">
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  import ExternalLink from "@lucide/svelte/icons/external-link";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
   import CopyLinkButton from "../CopyLinkButton.svelte";
   import { getAppActions, getAppData } from "../../../lib/context";
   import {
+    adminAuthStore,
+    eventPlacementStore,
+    locationStore,
+    mapEditStore,
+    mapStore,
+    queryStore,
+    toastStore,
+  } from "../../../lib/store.svelte";
+  import { CAMPUS_DEFAULT_CAMERA } from "../../../constants/map-terrain";
+  import { getEventImage } from "../../../lib/event-images";
+  import {
     campusInputToWallString,
     formatCampusDateTime,
     instantToCampusInput,
   } from "../../../lib/event-time";
-  import {
-    adminAuthStore,
-    locationStore,
-    queryStore,
-    toastStore,
-  } from "../../../lib/store.svelte";
   import { getEventShareUrl } from "../../../lib/share-links";
   import type { EventData } from "../../../lib/types";
+
+  const STATUS_LABELS: Record<EventData["status"], string> = {
+    active: "Happening now",
+    upcoming: "Upcoming event",
+    past: "Past event",
+  };
 
   const appData = getAppData();
   const appActions = getAppActions();
   const { events, loaded } = $derived(appData());
   const event = $derived(
     loaded
-      ? (events.find((item) => item.title === queryStore.queryValue) ?? null)
+      ? queryStore.selectedEventSlug
+        ? (events.find((item) => item.slug === queryStore.selectedEventSlug) ??
+          null)
+        : (events.find((item) => item.title === queryStore.queryValue) ?? null)
       : null,
   );
   const shareUrl = $derived(event ? getEventShareUrl(event.slug) : "");
+  const eventImage = $derived(event ? getEventImage(event.slug) : null);
   const primaryLocation = $derived(
     event
       ? (event.locations.find((location) => location.isPrimary) ??
@@ -38,22 +54,25 @@
 
   let editing = $state(false);
   let saving = $state(false);
+  let savingLocation = $state(false);
   let form = $state({
     title: "",
     description: "",
     category: "other",
     startsAt: "",
     endsAt: "",
-    recurrence: "none",
     sourceUrl: "",
-    includeInSeo: false,
-    locationsJson: "[]",
-    routesJson: "[]",
   });
 
   $effect(() => {
     if (!event || editing) return;
     form = eventToForm(event);
+  });
+
+  $effect(() => {
+    if (!event || !eventPlacementStore.consumeCreatedEvent(event.id)) return;
+    form = eventToForm(event);
+    editing = true;
   });
 
   function eventToForm(event: EventData) {
@@ -63,24 +82,14 @@
       category: event.category,
       startsAt: instantToCampusInput(event.occurrenceStartsAt),
       endsAt: instantToCampusInput(event.occurrenceEndsAt),
-      recurrence: event.recurrence,
       sourceUrl: event.sourceUrl ?? "",
-      includeInSeo: event.includeInSeo,
-      locationsJson: JSON.stringify(event.locations, null, 2),
-      routesJson: JSON.stringify(event.routes, null, 2),
     };
-  }
-
-  function formatDate(value: string) {
-    return formatCampusDateTime(value);
   }
 
   async function saveEvent() {
     if (!event || saving) return;
     saving = true;
     try {
-      const locations = JSON.parse(form.locationsJson);
-      const routes = JSON.parse(form.routesJson);
       const res = await fetch(`/api/admin/events/${event.id}`, {
         method: "PATCH",
         credentials: "same-origin",
@@ -92,11 +101,8 @@
           category: form.category,
           startsAt: campusInputToWallString(form.startsAt),
           endsAt: campusInputToWallString(form.endsAt),
-          recurrence: form.recurrence,
           sourceUrl: form.sourceUrl || null,
-          includeInSeo: form.includeInSeo,
-          locations,
-          routes,
+          includeInSeo: true,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -107,6 +113,7 @@
         category: "event",
         type: "result",
         value: data.event?.title ?? form.title,
+        eventSlug: data.event?.slug ?? event.slug,
       });
       editing = false;
       toastStore.show(`${form.title} saved.`, "success");
@@ -119,18 +126,141 @@
       saving = false;
     }
   }
+
+  function getMapCenterCoords() {
+    const center = mapStore.mapInstance?.getCenter();
+    return {
+      lat: center?.lat ?? CAMPUS_DEFAULT_CAMERA.center[1],
+      lon: center?.lng ?? CAMPUS_DEFAULT_CAMERA.center[0],
+    };
+  }
+
+  function serializeLocation(
+    location: EventData["locations"][number],
+    overrides: Partial<EventData["locations"][number]> = {},
+  ) {
+    return {
+      id: location.id,
+      anchorType: overrides.anchorType ?? location.anchorType,
+      buildingId:
+        overrides.buildingId !== undefined
+          ? overrides.buildingId
+          : location.buildingId,
+      dormId:
+        overrides.dormId !== undefined ? overrides.dormId : location.dormId,
+      label: overrides.label ?? location.label,
+      lat: overrides.lat !== undefined ? overrides.lat : location.lat,
+      lon: overrides.lon !== undefined ? overrides.lon : location.lon,
+      highlightPriority:
+        overrides.highlightPriority ?? location.highlightPriority,
+      sortOrder: overrides.sortOrder ?? location.sortOrder,
+      isPrimary: overrides.isPrimary ?? location.isPrimary,
+    };
+  }
+
+  function buildPrimaryLocationUpdate(
+    event: EventData,
+    coords: { lat: number; lon: number },
+  ) {
+    const primary =
+      event.locations.find((location) => location.isPrimary) ??
+      event.locations[0] ??
+      null;
+
+    if (!primary) {
+      return [
+        {
+          anchorType: "custom" as const,
+          buildingId: null,
+          dormId: null,
+          label: "Event marker",
+          lat: coords.lat,
+          lon: coords.lon,
+          highlightPriority: 0,
+          sortOrder: 0,
+          isPrimary: true,
+        },
+      ];
+    }
+
+    return event.locations.map((location) =>
+      location.id === primary.id
+        ? serializeLocation(location, {
+            anchorType: "custom",
+            buildingId: null,
+            dormId: null,
+            label: location.label || "Event marker",
+            lat: coords.lat,
+            lon: coords.lon,
+            isPrimary: true,
+          })
+        : serializeLocation(location, { isPrimary: false }),
+    );
+  }
+
+  async function placePrimaryLocationAtMapCenter() {
+    if (!event || savingLocation) return;
+    savingLocation = true;
+    try {
+      const res = await fetch(`/api/admin/events/${event.id}/locations`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          version: event.version,
+          locations: buildPrimaryLocationUpdate(event, getMapCenterCoords()),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        event?: EventData;
+        latest?: EventData | null;
+      };
+
+      if (!res.ok || !data.event) {
+        if (res.status === 409 && data.latest) {
+          appActions.replaceEvent(data.latest);
+        }
+        throw new Error(data.error ?? `Location save failed (${res.status})`);
+      }
+
+      appActions.replaceEvent(data.event);
+      if (!mapEditStore.enabled) mapEditStore.toggle();
+      toastStore.show(
+        `${data.event.title} marker placed. Drag it on the map to adjust.`,
+        "success",
+      );
+    } catch (error) {
+      toastStore.show(
+        error instanceof Error
+          ? error.message
+          : "Failed to place event marker.",
+        "error",
+      );
+    } finally {
+      savingLocation = false;
+    }
+  }
 </script>
 
 <div class="event-result">
   {#if event}
     <header class="event-header">
-      <div class="event-kicker">
+      <div class="event-kicker" class:is-past={event.status === "past"}>
         <CalendarDays size={16} />
-        <span>{event.status === "active" ? "Active event" : event.status}</span>
+        <span>{STATUS_LABELS[event.status]}</span>
       </div>
       <h2>{event.title}</h2>
       {#if event.description}
         <p>{event.description}</p>
+      {/if}
+      {#if eventImage}
+        <img
+          class="event-image"
+          src={eventImage.src}
+          alt={eventImage.alt}
+          loading="lazy"
+        />
       {/if}
       <div class="event-actions">
         {#if primaryLocation && primaryLocation.resolvedLon !== null && primaryLocation.resolvedLat !== null}
@@ -167,18 +297,16 @@
     <section class="event-section">
       <h3>When</h3>
       <p>
-        {formatDate(event.occurrenceStartsAt)} to {formatDate(
+        {formatCampusDateTime(event.occurrenceStartsAt)} to {formatCampusDateTime(
           event.occurrenceEndsAt,
         )}
       </p>
-      {#if event.recurrence !== "none"}
-        <p class="muted">Repeats: {event.recurrence.replaceAll("_", " ")}</p>
-      {/if}
+      <p class="muted timezone-note">Times shown in campus time (Manila).</p>
     </section>
 
     {#if event.locations.length > 0}
       <section class="event-section">
-        <h3>Map markers</h3>
+        <h3>Event locations</h3>
         <ul>
           {#each event.locations as location (location.id)}
             <li>
@@ -192,7 +320,10 @@
 
     {#if event.routes.length > 0}
       <section class="event-section">
-        <h3>Routes</h3>
+        <h3>
+          {event.routes.length === 1 ? "Suggested route" : "Suggested routes"}
+        </h3>
+        <p class="muted">Optional path details for this event.</p>
         {#each event.routes as route (route.id)}
           <div class="route-card">
             <strong><Route size={15} /> {route.name}</strong>
@@ -216,7 +347,8 @@
         target="_blank"
         rel="noreferrer"
       >
-        Source
+        <span>Source</span>
+        <ExternalLink size={15} aria-hidden="true" />
       </a>
     {/if}
 
@@ -248,6 +380,9 @@
                 <option value="other">Other</option>
               </select>
             </label>
+            <p class="muted timezone-note">
+              Enter start and end in campus time (Manila).
+            </p>
             <label
               >Starts <input
                 type="datetime-local"
@@ -262,28 +397,48 @@
                 required
               /></label
             >
-            <label>
-              Recurrence
-              <select bind:value={form.recurrence}>
-                <option value="none">None</option>
-                <option value="annual">Annual</option>
-                <option value="every_1st_sem">Every 1st sem</option>
-                <option value="every_2nd_sem">Every 2nd sem</option>
-              </select>
-            </label>
             <label>Source URL <input bind:value={form.sourceUrl} /></label>
-            <label class="checkbox">
-              <input type="checkbox" bind:checked={form.includeInSeo} />
-              Include in SEO pages
-            </label>
-            <label
-              >Locations JSON <textarea bind:value={form.locationsJson}
-              ></textarea></label
-            >
-            <label
-              >Routes JSON <textarea bind:value={form.routesJson}
-              ></textarea></label
-            >
+            <div class="location-editor-card">
+              <div>
+                <strong>Event location</strong>
+                {#if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null}
+                  <p>
+                    Drag the event marker on the map to move it. This edits the
+                    primary location only.
+                  </p>
+                {:else}
+                  <p>
+                    Place a primary marker at the current map center, then drag
+                    it on the map to refine the location.
+                  </p>
+                {/if}
+              </div>
+              <div class="location-editor-actions">
+                <button
+                  class="secondary-action"
+                  type="button"
+                  onclick={() => {
+                    if (!mapEditStore.enabled) mapEditStore.toggle();
+                  }}
+                >
+                  {mapEditStore.enabled
+                    ? "Map editing on"
+                    : "Enable map editing"}
+                </button>
+                {#if !primaryLocation || primaryLocation.resolvedLat === null || primaryLocation.resolvedLon === null}
+                  <button
+                    class="primary-action"
+                    type="button"
+                    disabled={savingLocation}
+                    onclick={placePrimaryLocationAtMapCenter}
+                  >
+                    {savingLocation
+                      ? "Placing..."
+                      : "Place marker at map center"}
+                  </button>
+                {/if}
+              </div>
+            </div>
             <button class="primary-action" type="submit" disabled={saving}>
               {saving ? "Saving..." : "Save event"}
             </button>
@@ -327,6 +482,24 @@
     font-size: 0.75rem;
     font-weight: 800;
     text-transform: uppercase;
+  }
+
+  .event-kicker.is-past {
+    color: #71717a;
+  }
+
+  .timezone-note {
+    font-size: 0.75rem;
+  }
+
+  .event-image {
+    display: block;
+    width: 100%;
+    max-height: 24rem;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    object-position: top center;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
   }
 
   h2,
@@ -406,9 +579,28 @@
   }
 
   .source-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    width: max-content;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #d8b9ba;
+    border-radius: 999px;
+    background: #fffafa;
     color: #7b1113;
     font-weight: 700;
     text-decoration: none;
+  }
+
+  .source-link:hover,
+  .source-link:focus-visible {
+    background: #fdf3f3;
+  }
+
+  .source-link:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
   }
 
   .event-form {
@@ -422,10 +614,24 @@
     font-weight: 700;
   }
 
-  .checkbox {
+  .location-editor-card {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.65rem;
+    border: 1px solid #d8b9ba;
+    border-radius: 0.75rem;
+    background: #fffafa;
+  }
+
+  .location-editor-card strong {
+    color: #7b1113;
+    font-size: 0.85rem;
+  }
+
+  .location-editor-actions {
     display: flex;
-    align-items: center;
-    gap: 0.4rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   input,

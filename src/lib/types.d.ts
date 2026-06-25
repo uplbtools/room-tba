@@ -141,6 +141,7 @@ interface DeveloperInfo {
 interface RecentSearch {
   category: Exclude<QueryStoreState["category"], null>;
   value: string;
+  eventSlug?: string;
 }
 
 type TableSyncInfo = {

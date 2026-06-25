@@ -1,5 +1,6 @@
 ---
 import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
+import { formatCampusDateLong } from "../../lib/event-time";
 import { getSeoEvents } from "../../lib/services/event-service";
 import {
   absoluteUrl,
@@ -14,7 +15,7 @@ const items = events.map((event) => {
   return {
     href,
     label: event.title,
-    description: `${event.category} · ${new Date(event.occurrenceStartsAt).toLocaleDateString()}`,
+    description: `${event.category} · ${formatCampusDateLong(event.occurrenceStartsAt)}`,
     copyUrl: absoluteUrl(href),
     copyLabel: `Copy link to ${event.title}`,
   };
