@@ -180,8 +180,20 @@ const manifest: ExportManifest = {
   },
   files,
   schema_notes: {
-    buildings: ["building_name", "lat", "lon", "directions", "type (admin|non-admin)"],
-    rooms: ["room_code", "directions", "building_name", "college_name", "division_name"],
+    buildings: [
+      "building_name",
+      "lat",
+      "lon",
+      "directions",
+      "type (admin|non-admin)",
+    ],
+    rooms: [
+      "room_code",
+      "directions",
+      "building_name",
+      "college_name",
+      "division_name",
+    ],
     classes: [
       "course_code",
       "section",

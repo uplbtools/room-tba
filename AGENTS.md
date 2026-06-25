@@ -17,6 +17,14 @@
 - Error messages should name the exact entity that failed without repeating generic wording.
 - Support common shortcuts in map edit mode: `Ctrl+Z` / `Cmd+Z` for undo, `Ctrl+Y` / `Cmd+Y` and `Shift+Ctrl+Z` / `Shift+Cmd+Z` for redo.
 
+## Map layout guardrails
+
+- Map chrome mounts in Entry zones (top / map / bottom / ephemeral). See `docs/map-ui-mode-matrix.md`.
+- Use `.app-layout` CSS vars for spacing — no magic fixed offsets.
+- New fixed overlays outside Entry zones require updating the mode matrix.
+- One Map tools flyout (`mapToolsStore`); admin menu stays on LocationButton only.
+- Before merge on map chrome changes: verify 320px + 768px browse, edit mode, and map tools open.
+
 ## Data Integrity
 
 - Use optimistic concurrency for editor writes. Send the version the client last saw, and return `409 Conflict` with the latest row if it is stale.

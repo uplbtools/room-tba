@@ -17,12 +17,16 @@ const db = drizzle({ client });
 
 const dorms = (await db.select().from(dormsTable)).map(
   ({ amenities, contact_phone, ...others }) => ({
-    contact_phone: contact_phone ? `{${contact_phone.split("/").map(s => s.trim()).join(",")}}` : null,
+    contact_phone: contact_phone
+      ? `{${contact_phone
+          .split("/")
+          .map((s) => s.trim())
+          .join(",")}}`
+      : null,
     amenities: amenities ? `{${JSON.parse(amenities).join(",")}}` : null,
     ...others,
   }),
 );
-
 
 /*
 

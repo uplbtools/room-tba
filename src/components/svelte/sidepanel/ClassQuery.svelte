@@ -2,7 +2,6 @@
   import { queryStore } from "../../../lib/store.svelte";
   // import RoomDisplay from "./RoomDisplay.svelte";
 
-
   // const filteredRooms = $derived(
   //   rooms
   //     .filter((room) =>

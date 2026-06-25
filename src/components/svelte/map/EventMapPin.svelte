@@ -166,7 +166,8 @@
   }
 
   .event-pin-media {
-    object-fit: cover;
+    object-fit: contain;
+    background: hsl(0, 0%, 96%);
     object-position: top center;
   }
 

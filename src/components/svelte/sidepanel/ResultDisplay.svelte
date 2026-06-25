@@ -25,10 +25,7 @@
   <h3 class="rooms-subtitle">Rooms in the building</h3>
   <div class="room-list">
     {#each paginatedRooms as room (room.id)}
-      <RoomDisplay
-        {room}
-        searchInput=""
-      />
+      <RoomDisplay {room} searchInput="" />
     {/each}
 
     {#if filteredRooms.length === 0}

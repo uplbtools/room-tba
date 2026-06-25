@@ -5,6 +5,7 @@ import { db } from "../../lib/db";
 import { buildingsTable } from "../../../drizzle/schema";
 import { ADMIN_COOKIE_NAME, verifySessionToken } from "../../lib/admin/auth";
 import { refreshSyncKey } from "../../lib/services/admin-service";
+import { CAMPUS_BOUNDS } from "../../constants/map-terrain";
 
 export const prerender = false;
 
@@ -51,11 +52,12 @@ export const PUT: APIRoute = async ({ request, cookies, url }) => {
     return jsonError(400, "Body must contain { lon: number, lat: number }");
   }
 
-  // Validate coordinates are within campus bounds (with some margin)
-  const minLng = 121.2;
-  const maxLng = 121.3;
-  const minLat = 14.1;
-  const maxLat = 14.2;
+  // Validate coordinates are within campus bounds (with a small margin).
+  const margin = 0.01;
+  const minLng = CAMPUS_BOUNDS.minLng - margin;
+  const maxLng = CAMPUS_BOUNDS.maxLng + margin;
+  const minLat = CAMPUS_BOUNDS.minLat - margin;
+  const maxLat = CAMPUS_BOUNDS.maxLat + margin;
 
   if (lon < minLng || lon > maxLng || lat < minLat || lat > maxLat) {
     return jsonError(400, "Coordinates are outside campus bounds");

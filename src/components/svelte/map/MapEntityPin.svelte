@@ -46,6 +46,11 @@
           ? "Failed"
           : null,
   );
+
+  const showDragAffordance = $derived(
+    editable && (hovered || editing || active || saveState !== "idle"),
+  );
+  const showExpandedPin = $derived(editable && showDragAffordance);
 </script>
 
 <div
@@ -54,7 +59,7 @@
   class:building={tone === "building"}
   class:dorm={tone === "dorm"}
   class:private={tone === "privateDorm"}
-  class:editable
+  class:editable={showExpandedPin}
   class:editing
   class:event-linked={eventLinked}
   class:hovered
@@ -66,7 +71,7 @@
   {onpointerleave}
 >
   {@render children()}
-  {#if editable}
+  {#if showDragAffordance}
     <span class="drag-handle" aria-hidden="true">
       <Move size={13} />
     </span>

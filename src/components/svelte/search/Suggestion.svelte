@@ -73,13 +73,12 @@
 <style>
   .suggestion {
     all: unset;
-    padding: 0.5rem 1rem;
+    padding: 0.4375rem 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
-    transition: background-color 0.2s;
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
     &:hover {
       background-color: hsl(0, 0%, 95%);
     }
@@ -102,7 +101,7 @@
   }
   @media (max-width: 425px) {
     .suggestion {
-      padding: 0.5rem;
+      padding: 0.4375rem 0.375rem;
     }
   }
 </style>

@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
+  import { MediaQuery } from "svelte/reactivity";
   import { offlineStore } from "../../lib/store.svelte";
 
   let open = $state(false);
+  const mobile = new MediaQuery("max-width:48rem");
 
   onMount(() => {
     offlineStore.prepareEstimate();
@@ -19,7 +21,7 @@
   const pct = $derived(Math.round(offlineStore.progress * 100));
 </script>
 
-<div class="offline-maps">
+<div class="offline-maps" class:is-open={open} class:mobile={mobile.current}>
   <button
     class="offline-trigger"
     type="button"
@@ -111,15 +113,41 @@
     right: 0;
     z-index: 40;
     width: 16rem;
-    background-color: white;
+    max-width: min(16rem, calc(100vw - 1rem));
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
     border-radius: 0.75rem;
     padding: 0.75rem;
-    box-shadow: 0 2px 0.75rem 0 hsla(0, 0%, 0%, 0.25);
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.14),
+      0 4px 14px hsla(0, 0%, 0%, 0.2),
+      0 10px 28px hsla(0, 0%, 0%, 0.12)
+    );
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
     text-align: left;
     cursor: default;
+  }
+
+  /* Mobile: expand inline in the status bar — absolute popovers clip/off-screen */
+  .offline-maps.mobile.is-open {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .offline-maps.mobile .offline-popover {
+    position: static;
+    width: 100%;
+    max-width: none;
+    margin-top: 0.375rem;
+  }
+
+  .offline-maps.mobile .offline-trigger {
+    align-self: flex-start;
   }
 
   .offline-line {

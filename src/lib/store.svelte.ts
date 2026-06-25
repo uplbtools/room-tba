@@ -1,7 +1,10 @@
 // src/lib/store.svelte.ts
 
 import { modalOptions } from "../constants/modal-states";
-import { DEFAULT_TERRAIN_EXAGGERATION } from "../constants/map-terrain";
+import {
+  DEFAULT_TERRAIN_EXAGGERATION,
+  CAMPUS_BOUNDS,
+} from "../constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
@@ -272,19 +275,12 @@ class LocationStore {
   routeOrigin: [number, number] | null = $state(null);
   private watchId: number | null = null;
 
-  private readonly CAMPUS_BOUNDS = {
-    minLng: 121.225963,
-    minLat: 14.150106,
-    maxLng: 121.254638,
-    maxLat: 14.172678,
-  };
-
   private isWithinBounds(lng: number, lat: number) {
     return (
-      lng >= this.CAMPUS_BOUNDS.minLng &&
-      lng <= this.CAMPUS_BOUNDS.maxLng &&
-      lat >= this.CAMPUS_BOUNDS.minLat &&
-      lat <= this.CAMPUS_BOUNDS.maxLat
+      lng >= CAMPUS_BOUNDS.minLng &&
+      lng <= CAMPUS_BOUNDS.maxLng &&
+      lat >= CAMPUS_BOUNDS.minLat &&
+      lat <= CAMPUS_BOUNDS.maxLat
     );
   }
 
@@ -423,6 +419,50 @@ class FloatingControlPanelStore {
     if (panel === undefined || this.openPanel === panel) {
       this.openPanel = null;
     }
+  };
+}
+
+export type MapToolsSection =
+  | "view"
+  | "legend"
+  | "building-type"
+  | "terrain"
+  | "jeepney";
+
+class MapToolsStore {
+  open = $state(false);
+  activeSection: MapToolsSection | null = $state("view");
+  /** Accordion: terrain and jeepney collapsed by default. */
+  expandedSections = $state<Set<MapToolsSection>>(
+    new Set(["view", "legend", "building-type"]),
+  );
+
+  toggle = () => {
+    this.open = !this.open;
+    if (this.open && this.activeSection === null) {
+      this.activeSection = "view";
+    }
+  };
+
+  close = () => {
+    this.open = false;
+  };
+
+  openSection = (section: MapToolsSection) => {
+    this.activeSection = section;
+    this.expandedSections = new Set(this.expandedSections).add(section);
+    this.open = true;
+  };
+
+  toggleSection = (section: MapToolsSection) => {
+    const next = new Set(this.expandedSections);
+    if (next.has(section)) {
+      next.delete(section);
+    } else {
+      next.add(section);
+    }
+    this.expandedSections = next;
+    this.activeSection = section;
   };
 }
 
@@ -886,6 +926,7 @@ export const mapStore = new MapStore();
 export const mapViewStore = new MapViewStore();
 export const sidePanelStore = new SidePanelStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
+export const mapToolsStore = new MapToolsStore();
 export const mapEditStore = new MapEditStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();

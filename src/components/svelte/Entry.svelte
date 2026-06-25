@@ -8,19 +8,22 @@
     toastStore,
     building3DStore,
     adminAuthStore,
+    mapEditStore,
+    mapToolsStore,
+    sidePanelStore,
   } from "../../lib/store.svelte";
   import Modal from "./modal/Modal.svelte";
   import SidePanel from "./sidepanel/SidePanel.svelte";
   import Map from "./Map.svelte";
-  import MapControls from "./MapControls.svelte";
+  import MapToolsFlyout from "./MapToolsFlyout.svelte";
+  import MapViewControls from "./MapViewControls.svelte";
+  import LocationButton from "./LocationButton.svelte";
   import StatusBar from "./StatusBar.svelte";
   import Toast from "./Toast.svelte";
   import Building3DViewer from "./Building3DViewer.svelte";
   import AdminLoginModal from "./AdminLoginModal.svelte";
   import type { RecentSearch } from "../../lib/types";
   import { isRecentSearch } from "../../lib/locStorage";
-  import SyncToast from "./SyncToast.svelte";
-  import { getAppData } from "../../lib/context";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -28,20 +31,6 @@
   };
 
   const { initialSearch, suppressLandingModal = false }: Props = $props();
-  const appData = getAppData();
-  const { events, loaded } = $derived(appData());
-  const activeEvents = $derived(
-    loaded ? events.filter((event) => event.status === "active") : [],
-  );
-
-  function openActiveEvent(event: (typeof activeEvents)[number]) {
-    queryStore.updateQuery({
-      category: "event",
-      type: "result",
-      value: event.title,
-      eventSlug: event.slug,
-    });
-  }
 
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
@@ -81,10 +70,16 @@
     updateData(queryStore.recentSearches);
   });
 
+  const drawerExpanded = $derived(
+    queryStore.category !== null && !sidePanelStore.collapsed,
+  );
+
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       if (modalStore.open) {
         modalStore.closeModal();
+      } else if (mapToolsStore.open) {
+        mapToolsStore.close();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
         queryStore.clearQuery();
         if (locationStore.destination) {
@@ -97,38 +92,27 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="app-layout">
+<div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
-  <div class="ui-layer">
-    {#if activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events"}
-      <div class="event-banner-stack" role="status" aria-live="polite">
-        {#each activeEvents as activeEvent (activeEvent.slug)}
-          <button
-            class="event-banner"
-            type="button"
-            aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
-            onclick={() => openActiveEvent(activeEvent)}
-          >
-            <span class="event-banner-copy">
-              <span class="event-banner-label">Happening now</span>
-              <span class="event-banner-title">{activeEvent.title}</span>
-            </span>
-            <span class="event-banner-cta" aria-hidden="true">See on map ›</span
-            >
-          </button>
-        {/each}
-      </div>
-    {/if}
+  <div class="ui-layer" class:drawer-expanded={drawerExpanded}>
     <div class="top-right-map-stack" aria-label="Map tools">
-      <MapControls />
-      <SyncToast stacked />
+      <MapToolsFlyout />
+      <div class="desktop-camera-controls" aria-label="Map camera">
+        <MapViewControls variant="camera" />
+      </div>
     </div>
-    <!-- <header class="top-header">
-      <h2>Room TBA</h2>
-    </header> -->
     <div class="inner-layer">
       <SidePanel />
-      <StatusBar />
+      <div class="bottom-band">
+        <div
+          class="location-fab-stack"
+          class:drawer-lift={drawerExpanded}
+          aria-label="Location and editor"
+        >
+          <LocationButton />
+        </div>
+        <StatusBar />
+      </div>
     </div>
     {#if toastStore.message}
       <Toast
@@ -149,19 +133,53 @@
 
 <style>
   .app-layout {
+    --map-ui-padding: 0.5rem;
+    --search-block-height: 3.25rem;
+    --status-bar-block-height: 2.75rem;
+    --drawer-peek-offset: 1.75rem;
+    --edit-bar-height: 0rem;
+    --pill-padding-x: 0.875rem;
+    /* Map-face controls: readable on light tiles and white building footprints */
+    --map-chrome-surface: rgba(255, 255, 255, 0.98);
+    --map-chrome-border: hsl(0, 0%, 58%);
+    --map-chrome-border-accent: hsl(5, 40%, 42%);
+    --map-chrome-shadow:
+      0 0 0 1px hsla(0, 0%, 0%, 0.18), 0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14);
+    --map-chrome-panel-shadow:
+      0 0 0 1px hsla(0, 0%, 0%, 0.14), 0 4px 14px hsla(0, 0%, 0%, 0.2),
+      0 10px 28px hsla(0, 0%, 0%, 0.12);
+
     width: 100%;
     height: 100dvh;
     overflow: hidden;
   }
+
+  .app-layout.edit-mode {
+    --edit-bar-height: 3rem;
+  }
+
   .inner-layer {
     display: flex;
     flex-direction: column;
-    padding: 0.5rem;
+    padding: var(--map-ui-padding, 0.5rem);
     padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
     flex: 1 0 0;
     min-height: 0;
     pointer-events: none;
     gap: 0.5rem;
+  }
+
+  .bottom-band {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    width: 100%;
+    pointer-events: none;
+    /* Reserve horizontal space so status bar text does not sit under FABs */
+    --bottom-fab-inset: 3.75rem;
   }
 
   :global(.map) {
@@ -181,106 +199,39 @@
     width: 100%;
   }
 
-  .event-banner-stack {
-    position: absolute;
-    top: 0.75rem;
-    left: 50%;
-    z-index: 12;
-    translate: -50% 0;
-    display: flex;
-    width: min(32rem, calc(100% - 1rem));
-    flex-direction: column;
-    gap: 0.45rem;
-    pointer-events: none;
-  }
-
-  .event-banner {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    width: 100%;
-    border: 1px solid #d8b9ba;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.96);
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
-    text-align: left;
-    padding: 0.5rem 0.875rem;
-    pointer-events: auto;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
-    transition:
-      background-color 0.16s,
-      border-color 0.16s,
-      box-shadow 0.16s;
-  }
-
-  .event-banner:hover,
-  .event-banner:focus-visible {
-    background: #fff;
-    border-color: #c58f91;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
-  }
-
-  .event-banner:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .event-banner-copy {
-    display: flex;
-    flex-direction: column;
-    gap: 0.05rem;
-    min-width: 0;
-  }
-
-  .event-banner-label {
-    color: #15803d;
-    font-size: 0.625rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .event-banner-title {
-    overflow: hidden;
-    color: #7b1113;
-    font-size: 0.875rem;
-    font-weight: 800;
-    line-height: 1.2;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .event-banner-cta {
-    flex: 0 0 auto;
-    margin-left: auto;
-    color: #7b1113;
-    font-size: 0.8125rem;
-    font-weight: 800;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 30rem) {
-    .event-banner-cta {
-      display: none;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .event-banner {
-      transition: none;
-    }
-  }
-
   .top-right-map-stack {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: calc(var(--map-ui-padding) + 2px);
+    right: calc(var(--map-ui-padding) + 2px);
     z-index: 15;
     display: flex;
     width: min(22.5rem, calc(100% - 1rem));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding-top: 2px;
+    padding-right: 2px;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .desktop-camera-controls {
+    display: none;
+    pointer-events: none;
+  }
+
+  @media (min-width: 48.0625rem) {
+    .desktop-camera-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+  }
+
+  .location-fab-stack {
+    position: relative;
+    z-index: 14;
+    display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.5rem;
@@ -292,9 +243,21 @@
     box-sizing: border-box;
   }
 
-  @media (max-width: 800px) {
+  @media (max-width: 48rem) {
     .top-right-map-stack {
-      top: 4rem;
+      top: calc(var(--search-block-height) + var(--map-ui-padding) + 2px);
+      padding-top: 2px;
+      padding-right: 2px;
+    }
+
+    /* When the drawer sheet is open, lift FABs above its peek handle */
+    .location-fab-stack.drawer-lift {
+      position: fixed;
+      right: var(--map-ui-padding);
+      bottom: calc(
+        50% + var(--drawer-peek-offset) + var(--edit-bar-height) +
+          var(--map-ui-padding)
+      );
     }
   }
 </style>

@@ -100,7 +100,6 @@
 
   .copy-link-btn {
     display: inline-flex;
-    min-height: 2rem;
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
@@ -109,8 +108,8 @@
     background-color: white;
     color: #7b1113;
     font-size: 0.875rem;
-    font-weight: 700;
-    line-height: 1;
+    font-weight: 500;
+    line-height: 1.25;
     cursor: pointer;
     white-space: nowrap;
     transition:
@@ -161,8 +160,8 @@
   }
 
   @media (max-width: 640px) {
-    .copy-link-wrapper,
-    .copy-link-btn {
+    [data-variant="index"] .copy-link-wrapper,
+    [data-variant="index"] .copy-link-btn {
       width: 100%;
     }
   }

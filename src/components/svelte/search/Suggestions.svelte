@@ -12,7 +12,6 @@
     dormMatchesTypeFilter,
   } from "../../../constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
-  import EventCards from "./EventCards.svelte";
   import Suggestion from "./Suggestion.svelte";
 
   const appData = getAppData();
@@ -120,9 +119,6 @@
 <div class="suggestions-container">
   <!-- class:force-visible={queryStore.inputValue === ""} -->
   {#if queryStore.inputValue === ""}
-    <div class="dropdown-events">
-      <EventCards headingId="dropdown-events-heading" />
-    </div>
     {#if queryStore.recentSearches.length !== 0}
       <h2 class="suggestions-header">Recent searches</h2>
       {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
@@ -163,33 +159,22 @@
 
 <style>
   .suggestions-container {
-    position: absolute;
-    width: 100%;
-    height: max-content;
-    border-radius: 1rem;
-    padding: 1rem;
-    display: flex;
     flex-direction: column;
-    background-color: white;
-    pointer-events: none;
-    box-shadow: 0rem 2px 0.25rem 0rem rgba(0, 0, 0, 0.25);
-    margin-top: 0.5rem;
-    opacity: 0;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem 0.625rem;
+    border-top: 1px solid hsl(0, 0%, 90%);
+    max-height: min(50vh, 18rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  /* .force-visible {
-    opacity: 1;
-    pointer-events: auto;
-  } */
+
   .suggestions-header {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-  }
-  .dropdown-events {
-    margin-bottom: 0.75rem;
-  }
-  @media (max-width: 425px) {
-    .suggestions-header {
-      margin-bottom: 0.25rem;
-    }
+    margin: 0;
+    padding: 0.125rem 0.5rem 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: hsl(0, 0%, 45%);
   }
 </style>

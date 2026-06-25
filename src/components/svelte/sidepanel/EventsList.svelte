@@ -93,145 +93,168 @@
 </script>
 
 <div class="events-list-panel">
-  <header class="events-list-header">
-    <div class="events-list-kicker">
-      <CalendarDays size={16} aria-hidden="true" />
-      <span>{events.length} campus events</span>
+  {#if !loaded}
+    <header class="events-list-header">
+      <div class="events-list-kicker">
+        <CalendarDays size={16} aria-hidden="true" />
+        <span>Loading campus events…</span>
+      </div>
+      <h2>Campus events</h2>
+    </header>
+    <div class="events-tabs skeleton-tabs" aria-hidden="true">
+      <span class="events-tab skeleton-tab"></span>
+      <span class="events-tab skeleton-tab"></span>
     </div>
-    <h2>Campus events</h2>
-    <p>Browse events around campus. Times shown in campus time (Manila).</p>
-  </header>
-
-  <div class="events-tabs" role="tablist" aria-label="Filter events by status">
-    <button
-      class="events-tab"
-      class:is-active={activeTab === "upcoming"}
-      type="button"
-      role="tab"
-      aria-selected={activeTab === "upcoming"}
-      onclick={() => selectTab("upcoming")}
-    >
-      Upcoming
-      <span class="events-tab-count">{upcomingEvents.length}</span>
-    </button>
-    <button
-      class="events-tab"
-      class:is-active={activeTab === "past"}
-      type="button"
-      role="tab"
-      aria-selected={activeTab === "past"}
-      onclick={() => selectTab("past")}
-    >
-      Past
-      <span class="events-tab-count">{pastEvents.length}</span>
-    </button>
-  </div>
-
-  {#if tabEvents.length > 0}
-    <div class="events-list">
-      {#each pageEvents as event (event.id)}
-        {@const image = getEventImage(event.slug)}
-        {@const primaryLocation =
-          event.locations.find((location) => location.isPrimary) ??
-          event.locations[0] ??
-          null}
-        {@const shareUrl = getEventShareUrl(event.slug)}
-        <article class="events-list-card">
-          <button
-            class="events-list-card-main"
-            type="button"
-            aria-label={`Open ${event.title} details`}
-            onclick={() => openEvent(event)}
-          >
-            {#if image}
-              <img
-                class="events-list-card-image"
-                src={image.src}
-                alt=""
-                loading="lazy"
-              />
-            {:else}
-              <span class="events-list-card-icon" aria-hidden="true">
-                <CalendarDays size={20} />
-              </span>
-            {/if}
-            <span class="events-list-card-copy">
-              <span class="events-list-card-top">
-                <span class="events-list-card-title">{event.title}</span>
-                <span
-                  class="events-status-badge"
-                  class:is-active={event.status === "active"}
-                  class:is-past={event.status === "past"}
-                >
-                  {STATUS_BADGES[event.status]}
-                </span>
-              </span>
-              <span class="events-list-card-meta">
-                {formatCampusRange(
-                  event.occurrenceStartsAt,
-                  event.occurrenceEndsAt,
-                )}
-              </span>
-              <span class="events-list-card-location">
-                <MapPin size={14} aria-hidden="true" />
-                {primaryLocation?.resolvedLabel ?? "No mapped location yet"}
-              </span>
-              <span class="events-list-card-action">Open details</span>
-            </span>
-          </button>
-          <span class="events-list-copy-link">
-            <CopyLinkButton
-              url={shareUrl}
-              label="Copy"
-              ariaLabel={`Copy link to ${event.title}`}
-              successMessage={`Copied link for ${event.title}.`}
-              errorMessage={`Could not copy link for ${event.title}.`}
-              feedback="none"
-              variant="index"
-              onsuccess={() =>
-                toastStore.show(`Copied link for ${event.title}.`, "success")}
-              onerror={() =>
-                toastStore.show(
-                  `Could not copy link for ${event.title}.`,
-                  "error",
-                )}
-            />
-          </span>
-        </article>
+    <div class="events-list skeleton-list" aria-hidden="true">
+      {#each [1, 2, 3] as row (row)}
+        <div class="skeleton-row"></div>
       {/each}
     </div>
-
-    {#if pageCount > 1}
-      <nav class="events-pagination" aria-label="Events pages">
-        <button
-          class="events-page-button"
-          type="button"
-          aria-label="Previous page"
-          disabled={currentPage <= 1}
-          onclick={() => goToPage(currentPage - 1)}
-        >
-          <ChevronLeft size={18} aria-hidden="true" />
-        </button>
-        <span class="events-page-status" aria-live="polite">
-          <strong>{rangeStart}–{rangeEnd}</strong> of {tabEvents.length}
-        </span>
-        <button
-          class="events-page-button"
-          type="button"
-          aria-label="Next page"
-          disabled={currentPage >= pageCount}
-          onclick={() => goToPage(currentPage + 1)}
-        >
-          <ChevronRight size={18} aria-hidden="true" />
-        </button>
-      </nav>
-    {/if}
   {:else}
-    <p class="empty-events">
-      {activeTab === "upcoming"
-        ? "No active or upcoming campus events yet. Check back soon."
-        : "No past campus events to show yet."}
-    </p>
+    <header class="events-list-header">
+      <div class="events-list-kicker">
+        <CalendarDays size={16} aria-hidden="true" />
+        <span>{events.length} campus events</span>
+      </div>
+      <h2>Campus events</h2>
+      <p>Browse events around campus. Times shown in campus time (Manila).</p>
+    </header>
+
+    <div
+      class="events-tabs"
+      role="tablist"
+      aria-label="Filter events by status"
+    >
+      <button
+        class="events-tab"
+        class:is-active={activeTab === "upcoming"}
+        type="button"
+        role="tab"
+        aria-selected={activeTab === "upcoming"}
+        onclick={() => selectTab("upcoming")}
+      >
+        Upcoming
+        <span class="events-tab-count">{upcomingEvents.length}</span>
+      </button>
+      <button
+        class="events-tab"
+        class:is-active={activeTab === "past"}
+        type="button"
+        role="tab"
+        aria-selected={activeTab === "past"}
+        onclick={() => selectTab("past")}
+      >
+        Past
+        <span class="events-tab-count">{pastEvents.length}</span>
+      </button>
+    </div>
+
+    {#if tabEvents.length > 0}
+      <div class="events-list">
+        {#each pageEvents as event (event.id)}
+          {@const image = getEventImage(event.slug)}
+          {@const primaryLocation =
+            event.locations.find((location) => location.isPrimary) ??
+            event.locations[0] ??
+            null}
+          {@const shareUrl = getEventShareUrl(event.slug)}
+          <article class="events-list-card">
+            <button
+              class="events-list-card-main"
+              type="button"
+              aria-label={`Open ${event.title} details`}
+              onclick={() => openEvent(event)}
+            >
+              {#if image}
+                <img
+                  class="events-list-card-image"
+                  src={image.src}
+                  alt=""
+                  loading="lazy"
+                />
+              {:else}
+                <span class="events-list-card-icon" aria-hidden="true">
+                  <CalendarDays size={20} />
+                </span>
+              {/if}
+              <span class="events-list-card-copy">
+                <span class="events-list-card-top">
+                  <span class="events-list-card-title">{event.title}</span>
+                  <span
+                    class="events-status-badge"
+                    class:is-active={event.status === "active"}
+                    class:is-past={event.status === "past"}
+                  >
+                    {STATUS_BADGES[event.status]}
+                  </span>
+                </span>
+                <span class="events-list-card-meta">
+                  {formatCampusRange(
+                    event.occurrenceStartsAt,
+                    event.occurrenceEndsAt,
+                  )}
+                </span>
+                <span class="events-list-card-location">
+                  <MapPin size={14} aria-hidden="true" />
+                  {primaryLocation?.resolvedLabel ?? "No mapped location yet"}
+                </span>
+                <span class="events-list-card-action">Open details</span>
+              </span>
+            </button>
+            <span class="events-list-copy-link">
+              <CopyLinkButton
+                url={shareUrl}
+                label="Copy"
+                ariaLabel={`Copy link to ${event.title}`}
+                successMessage={`Copied link for ${event.title}.`}
+                errorMessage={`Could not copy link for ${event.title}.`}
+                feedback="none"
+                variant="index"
+                onsuccess={() =>
+                  toastStore.show(`Copied link for ${event.title}.`, "success")}
+                onerror={() =>
+                  toastStore.show(
+                    `Could not copy link for ${event.title}.`,
+                    "error",
+                  )}
+              />
+            </span>
+          </article>
+        {/each}
+      </div>
+
+      {#if pageCount > 1}
+        <nav class="events-pagination" aria-label="Events pages">
+          <button
+            class="events-page-button"
+            type="button"
+            aria-label="Previous page"
+            disabled={currentPage <= 1}
+            onclick={() => goToPage(currentPage - 1)}
+          >
+            <ChevronLeft size={18} aria-hidden="true" />
+          </button>
+          <span class="events-page-status" aria-live="polite">
+            <strong>{rangeStart}–{rangeEnd}</strong> of {tabEvents.length}
+          </span>
+          <button
+            class="events-page-button"
+            type="button"
+            aria-label="Next page"
+            disabled={currentPage >= pageCount}
+            onclick={() => goToPage(currentPage + 1)}
+          >
+            <ChevronRight size={18} aria-hidden="true" />
+          </button>
+        </nav>
+      {/if}
+    {:else}
+      <p class="empty-events">
+        {activeTab === "upcoming"
+          ? "No active or upcoming campus events yet. Check back soon."
+          : "No past campus events to show yet."}
+      </p>
+    {/if}
   {/if}
 </div>
 
@@ -243,6 +266,30 @@
     gap: 0.85rem;
     overflow-y: auto;
     width: 100%;
+  }
+
+  .skeleton-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .skeleton-tab {
+    display: block;
+    width: 6rem;
+    height: 2rem;
+    border-radius: 0.75rem;
+    background: #f4f4f5;
+  }
+
+  .skeleton-list {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .skeleton-row {
+    height: 5rem;
+    border-radius: 0.875rem;
+    background: #f4f4f5;
   }
 
   .events-list-header {
@@ -397,8 +444,8 @@
   }
 
   .events-list-card-image {
-    object-fit: cover;
-    object-position: top center;
+    object-fit: contain;
+    background: hsl(0, 0%, 96%);
   }
 
   .events-list-card-icon {

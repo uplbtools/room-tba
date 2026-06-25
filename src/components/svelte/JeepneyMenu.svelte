@@ -7,29 +7,40 @@
     jeepneyStore,
   } from "../../lib/store.svelte";
 
+  type Props = {
+    embedded?: boolean;
+  };
+
+  let { embedded = false }: Props = $props();
+
   const panelId = "jeepney";
   const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
+  const showPanel = $derived(embedded || menuOpen);
 
   function selectRoute(id: string) {
     jeepneyStore.selectRoute(id);
-    floatingControlPanelStore.close(panelId);
+    if (!embedded) {
+      floatingControlPanelStore.close(panelId);
+    }
   }
 </script>
 
-<div class="jeepney-menu">
-  {#if menuOpen}
-    <div class="route-list" role="menu">
-      <div class="route-list-header">
-        <span>Jeepney Routes</span>
-        <button
-          type="button"
-          class="close-btn"
-          onclick={() => floatingControlPanelStore.close(panelId)}
-          aria-label="Close jeepney menu"
-        >
-          <X size="16" />
-        </button>
-      </div>
+<div class="jeepney-menu" class:embedded>
+  {#if showPanel}
+    <div class="route-list" class:embedded role="menu">
+      {#if !embedded}
+        <div class="route-list-header">
+          <span>Jeepney Routes</span>
+          <button
+            type="button"
+            class="close-btn"
+            onclick={() => floatingControlPanelStore.close(panelId)}
+            aria-label="Close jeepney menu"
+          >
+            <X size="16" />
+          </button>
+        </div>
+      {/if}
       {#each JEEPNEY_ROUTES as route (route.id)}
         {@const isActive = jeepneyStore.selectedRouteId === route.id}
         <button
@@ -57,19 +68,33 @@
     </div>
   {/if}
 
-  <button
-    class="jeepney-btn"
-    class:active={jeepneyStore.selectedRouteId !== null}
-    onclick={() => floatingControlPanelStore.toggle(panelId)}
-    title="Jeepney Routes"
-    aria-label="Jeepney Routes"
-    aria-expanded={menuOpen}
-  >
-    <Bus />
-  </button>
+  {#if !embedded}
+    <button
+      class="jeepney-btn"
+      class:active={jeepneyStore.selectedRouteId !== null}
+      onclick={() => floatingControlPanelStore.toggle(panelId)}
+      title="Jeepney Routes"
+      aria-label="Jeepney Routes"
+      aria-expanded={menuOpen}
+    >
+      <Bus />
+    </button>
+  {/if}
 </div>
 
 <style>
+  .jeepney-menu.embedded {
+    width: 100%;
+  }
+
+  .route-list.embedded {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-shadow: none;
+    overflow-x: hidden;
+  }
+
   .jeepney-menu {
     pointer-events: auto;
     display: flex;
