@@ -9,6 +9,7 @@
   import ClassQuery from "./ClassQuery.svelte";
   import BuildingTypeControl from "../BuildingTypeControl.svelte";
   import LocationButton from "../LocationButton.svelte";
+  import MapLegend from "../MapLegend.svelte";
   import JeepneyMenu from "../JeepneyMenu.svelte";
   import TerrainControl from "../TerrainControl.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
@@ -48,6 +49,7 @@
   <Search />
   <div class="side-panel-controls">
     <div class="floating-actions">
+      <MapLegend />
       <BuildingTypeControl />
       <TerrainControl />
       <JeepneyMenu />
@@ -110,6 +112,7 @@
     justify-content: space-between;
     gap: 0.75rem;
     flex: 1;
+    min-height: 0;
     pointer-events: none;
   }
 
