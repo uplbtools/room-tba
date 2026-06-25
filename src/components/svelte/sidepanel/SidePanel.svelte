@@ -151,6 +151,10 @@
     min-height: 0;
   }
   .side-panel-details > :global(*) {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: hsl(6, 63%, 48%) hsl(0, 0%, 98%);
   }
@@ -194,6 +198,7 @@
       flex-direction: column;
       justify-content: flex-start;
       min-height: 0;
+      overflow: visible;
     }
 
     .side-panel-controls {
@@ -204,8 +209,8 @@
 
     .drawer {
       position: fixed;
-      z-index: 13;
-      top: auto;
+      z-index: 12;
+      top: var(--mobile-detail-sheet-top-inset);
       right: var(--map-ui-padding);
       bottom: calc(
         var(--status-bar-block-height) + var(--map-ui-padding) +
@@ -213,15 +218,21 @@
       );
       left: var(--map-ui-padding);
       width: auto;
-      height: var(--mobile-detail-sheet-height);
-      max-height: var(--mobile-detail-sheet-height);
+      height: auto;
+      max-height: none;
       display: flex;
       flex-direction: column;
       pointer-events: auto;
+      transform: none;
     }
 
     .drawer.is-collapsed {
-      transform: translateY(calc(100% - var(--drawer-peek-offset, 1.75rem)));
+      top: auto;
+      height: auto;
+    }
+
+    .drawer.is-collapsed .drawer-card {
+      display: none;
     }
 
     .drawer-card {

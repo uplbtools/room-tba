@@ -74,6 +74,28 @@
     queryStore.category !== null && !sidePanelStore.collapsed,
   );
 
+  let mapToolsStackEl = $state<HTMLDivElement | null>(null);
+
+  $effect(() => {
+    const el = mapToolsStackEl;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const root = el.closest(".app-layout") as HTMLElement | null;
+    if (!root) return;
+
+    const syncHeight = () => {
+      root.style.setProperty(
+        "--map-tools-block-height",
+        `${el.getBoundingClientRect().height}px`,
+      );
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(el);
+    return () => observer.disconnect();
+  });
+
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       if (modalStore.open) {
@@ -95,7 +117,11 @@
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
   <div class="ui-layer" class:drawer-expanded={drawerExpanded}>
-    <div class="top-right-map-stack" aria-label="Map tools">
+    <div
+      class="top-right-map-stack"
+      aria-label="Map tools"
+      bind:this={mapToolsStackEl}
+    >
       <MapToolsFlyout />
       <div class="desktop-camera-controls" aria-label="Map camera">
         <MapViewControls variant="camera" />
@@ -137,13 +163,10 @@
     --search-block-height: 3.25rem;
     --status-bar-block-height: 2.75rem;
     --drawer-peek-offset: 1.75rem;
-    --mobile-detail-sheet-height: min(
-      58dvh,
-      calc(
-        100dvh - var(--search-block-height) - var(--status-bar-block-height) -
-          var(--edit-bar-height) - var(--map-ui-padding) * 2 -
-          env(safe-area-inset-bottom, 0px)
-      )
+    --map-tools-block-height: 3.25rem;
+    --mobile-detail-sheet-top-inset: calc(
+      var(--search-block-height) + var(--map-tools-block-height) +
+        var(--map-ui-padding) * 2
     );
     --edit-bar-height: 0rem;
     --pill-padding-x: 0.875rem;
@@ -299,9 +322,7 @@
       position: fixed;
       right: var(--map-ui-padding);
       bottom: calc(
-        var(--status-bar-block-height) + var(--map-ui-padding) +
-          env(safe-area-inset-bottom, 0px) + var(--mobile-detail-sheet-height) +
-          var(--map-ui-padding)
+        100dvh - var(--mobile-detail-sheet-top-inset) + var(--map-ui-padding)
       );
     }
   }
