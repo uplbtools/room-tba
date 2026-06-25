@@ -1,3 +1,16 @@
+# [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
+
+
+### Bug Fixes
+
+* **ci:** repair release workflow version read step ([3c18283](https://github.com/uplbtools/room-tba/commit/3c182837748ddea250f91ff74724a03f2b5265dc))
+* map attribution chrome and offline alias cache ([#207](https://github.com/uplbtools/room-tba/issues/207) [#155](https://github.com/uplbtools/room-tba/issues/155) follow-ups) ([8b47748](https://github.com/uplbtools/room-tba/commit/8b47748ace8df8268c34f74ce24212decaf4cd57))
+
+
+### Features
+
+* attribution, SEO, offline fallbacks, and alias search ([#207](https://github.com/uplbtools/room-tba/issues/207) [#128](https://github.com/uplbtools/room-tba/issues/128) [#169](https://github.com/uplbtools/room-tba/issues/169) [#155](https://github.com/uplbtools/room-tba/issues/155)) ([29b702c](https://github.com/uplbtools/room-tba/commit/29b702c9ee7b12ca55afe23ba7639d5316d69a2e))
+
 ## [1.7.3](https://github.com/smmariquit/room-tba/compare/v1.7.2...v1.7.3) (2026-06-11)
 
 
