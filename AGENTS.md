@@ -9,6 +9,8 @@
 
 ## Editor UX Rules
 
+- No decorative or attention-seeking animations. Do not add pulsing/“live” dots, blinking badges, glowing rings, bouncing elements, or similar gimmicks. Keep the UI calm and static; only animate when it communicates real state (e.g. a spinner during a save).
+- Layout must never overflow or overlap. Buttons and chips must stay inside their container, controls must wrap gracefully on narrow widths, and text must truncate (ellipsis) instead of colliding with neighbors. Verify the header/action rows at narrow widths before finishing.
 - Keep editor controls compact and map-friendly. Avoid large modals for persistent edit state.
 - Do not show duplicate feedback surfaces. If the editor toolbar already explains the state, do not also show an info toast.
 - Failed saves must not leave the UI implying success. Roll markers back to the previous local position, or to the latest server position on conflict.

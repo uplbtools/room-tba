@@ -193,6 +193,7 @@ export async function getLocalEvents(): Promise<EventData[] | undefined> {
 
 export async function getLocalRoomByCode(code: string) {
   try {
+    const normalizedCode = code.toUpperCase();
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
@@ -213,9 +214,9 @@ export async function getLocalRoomByCode(code: string) {
             LEFT JOIN buildings AS b ON b.id = r.building_id
             LEFT JOIN colleges as c ON c.id = r.college_id
             LEFT JOIN divisions AS d ON d.id = r.division_id
-            WHERE r.room_code = $1
+            WHERE upper(r.room_code) = $1
         `,
-      [code],
+      [normalizedCode],
     )) as Results<RoomData>;
     if (data.rows.length === 0 && typeof data.rows[0] === "undefined")
       return null;

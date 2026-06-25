@@ -12,6 +12,7 @@
     dormMatchesTypeFilter,
   } from "../../../constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
+  import EventCards from "./EventCards.svelte";
   import Suggestion from "./Suggestion.svelte";
 
   const appData = getAppData();
@@ -32,10 +33,10 @@
   });
 
   const suggestedResult = $derived(getSuggestions(queryStore.inputValue));
-
   function getSuggestions(searchString: string): {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
+    eventSlug?: string;
   }[] {
     searchString = searchString.trim().toLowerCase();
     if (searchString === "" || !loaded) return [];
@@ -80,14 +81,16 @@
             title.toLowerCase().includes(searchString) ||
             (description && description.toLowerCase().includes(searchString)),
         )
-        .map(({ title }) => ({
+        .map(({ title, slug }) => ({
           value: title,
           category: "event",
+          eventSlug: slug,
         })),
     } satisfies {
       [key: string]: {
         value: string;
         category: Exclude<QueryStoreState["category"], null>;
+        eventSlug?: string;
       }[];
     };
 
@@ -117,10 +120,13 @@
 <div class="suggestions-container">
   <!-- class:force-visible={queryStore.inputValue === ""} -->
   {#if queryStore.inputValue === ""}
+    <div class="dropdown-events">
+      <EventCards headingId="dropdown-events-heading" />
+    </div>
     {#if queryStore.recentSearches.length !== 0}
       <h2 class="suggestions-header">Recent searches</h2>
-      {#each queryStore.recentSearches as { category, value }, id (id)}
-        <Suggestion {value} {category} {id} />
+      {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
+        <Suggestion {value} {category} {id} {eventSlug} />
       {/each}
     {:else}
       <h2 class="suggestions-header">Trending searches</h2>
@@ -177,6 +183,9 @@
   .suggestions-header {
     font-size: 1rem;
     margin-bottom: 0.5rem;
+  }
+  .dropdown-events {
+    margin-bottom: 0.75rem;
   }
   @media (max-width: 425px) {
     .suggestions-header {

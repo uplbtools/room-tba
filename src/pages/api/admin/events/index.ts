@@ -29,6 +29,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   const event = await createEvent({
     ...body,
     title,
+    includeInSeo: true,
     slug:
       typeof body.slug === "string" && body.slug.trim()
         ? slugifySegment(body.slug)

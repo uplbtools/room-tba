@@ -55,6 +55,7 @@
         category: initialSearch.category,
         type: "result",
         value: initialSearch.value,
+        eventSlug: initialSearch.eventSlug,
       });
     }
 
@@ -90,18 +91,24 @@
 <div class="app-layout">
   <Map />
   <div class="ui-layer">
-    {#if activeEvent && queryStore.category !== "event"}
+    {#if activeEvent && queryStore.category !== "event" && queryStore.category !== "events"}
       <button
         class="event-banner"
         type="button"
+        aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
         onclick={() =>
           queryStore.updateQuery({
             category: "event",
             type: "result",
             value: activeEvent.title,
+            eventSlug: activeEvent.slug,
           })}
       >
-        {activeEvent.title} is active. Tap for map.
+        <span class="event-banner-copy">
+          <span class="event-banner-label">Happening now</span>
+          <span class="event-banner-title">{activeEvent.title}</span>
+        </span>
+        <span class="event-banner-cta" aria-hidden="true">See on map ›</span>
       </button>
     {/if}
     <div class="top-right-map-stack" aria-label="Map tools">
@@ -172,6 +179,9 @@
     left: 50%;
     z-index: 12;
     translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
     max-width: min(32rem, calc(100% - 1rem));
     border: 1px solid #d8b9ba;
     border-radius: 999px;
@@ -179,11 +189,73 @@
     color: #7b1113;
     cursor: pointer;
     font: inherit;
-    font-size: 0.875rem;
-    font-weight: 800;
+    text-align: left;
     padding: 0.5rem 0.875rem;
     pointer-events: auto;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+    transition:
+      background-color 0.16s,
+      border-color 0.16s,
+      box-shadow 0.16s;
+  }
+
+  .event-banner:hover,
+  .event-banner:focus-visible {
+    background: #fff;
+    border-color: #c58f91;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .event-banner:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
+  }
+
+  .event-banner-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    min-width: 0;
+  }
+
+  .event-banner-label {
+    color: #15803d;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .event-banner-title {
+    overflow: hidden;
+    color: #7b1113;
+    font-size: 0.875rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-banner-cta {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: #7b1113;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 30rem) {
+    .event-banner-cta {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .event-banner {
+      transition: none;
+    }
   }
 
   .top-right-map-stack {

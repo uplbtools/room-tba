@@ -5,6 +5,7 @@
   import CollegeResult from "./CollegeResult.svelte";
   import DivisionResult from "./DivisionResult.svelte";
   import DormResult from "./DormResult.svelte";
+  import EventsList from "./EventsList.svelte";
   import EventResult from "./EventResult.svelte";
   import RoomResult from "../room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
@@ -99,6 +100,8 @@
               <DormResult />
             {:else if queryStore.category === "event"}
               <EventResult />
+            {:else if queryStore.category === "events"}
+              <EventsList />
             {/if}
           </div>
         </div>

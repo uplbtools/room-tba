@@ -1,6 +1,5 @@
 ---
 import { pwaInfo } from "virtual:pwa-info";
-import ReloadPrompt from "../components/ReloadPrompt.astro";
 import "../styles/font-face.css";
 import Analytics from "@vercel/analytics/astro";
 import {
@@ -113,7 +112,6 @@ const imageUrl = absoluteUrl(imagePath);
   </head>
   <body>
     <slot />
-    <ReloadPrompt />
     <Analytics />
   </body>
 </html>
