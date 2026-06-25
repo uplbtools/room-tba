@@ -44,7 +44,7 @@ This project uses [Astro](https://astro.build), and may have the following folde
 
 ## Releases and versioning
 
-Versions follow [Semantic Versioning](https://semver.org/). [semantic-release](https://semantic-release.gitbook.io/) runs on every push to `main` (skipping commits that include `[skip ci]`). It reads [Conventional Commits](https://www.conventionalcommits.org/) messages, bumps `package.json`, updates `CHANGELOG.md`, creates a Git tag, and publishes a GitHub release.
+Versions follow [Semantic Versioning](https://semver.org/). [semantic-release](https://semantic-release.gitbook.io/) runs on every push to `main` (skipping commits that include `[skip ci]`). It reads [Conventional Commits](https://www.conventionalcommits.org/) messages, creates a Git tag, publishes a GitHub release, and opens a follow-up PR to sync `package.json` and `CHANGELOG.md` (required because `main` is protected).
 
 Use prefixes such as `fix:`, `feat:`, or `feat!:` / `BREAKING CHANGE:` so the next version is chosen correctly. To preview what would ship without changing anything:
 

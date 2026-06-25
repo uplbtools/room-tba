@@ -114,13 +114,25 @@
       queryStore.inputValue === "",
   );
 
+  const showMobileIntegratedEvents = $derived(
+    mobile.current &&
+      showIdleEventsChrome &&
+      queryStore.inputValue === "" &&
+      queryStore.category === null,
+  );
+
+  $effect(() => {
+    if (mobile.current) {
+      searchCollapsed = false;
+    }
+  });
+
   $effect(() => {
     if (
       mobile.current &&
       queryStore.category !== null &&
       queryStore.type === "result"
     ) {
-      searchCollapsed = true;
       eventsCollapsed = true;
       searchElement?.blur();
     }
@@ -152,7 +164,7 @@
       chrome.showSearchSuggestions}
     class:edit-chrome-suppressed={!chrome.showSearchSuggestions}
   >
-    {#if searchCollapsed}
+    {#if searchCollapsed && !mobile.current}
       <button
         class="search-tab"
         type="button"
@@ -334,7 +346,7 @@
                   >
                 </button>
               {/if}
-              {#if chrome.showSearchSuggestions}
+              {#if chrome.showSearchSuggestions && !mobile.current}
                 <button
                   type="button"
                   class="chrome-toggle-btn"
@@ -352,7 +364,22 @@
             <Suggestions />
           {/if}
 
-          {#if showIdleEventsChrome && !eventsCollapsed}
+          {#if showMobileIntegratedEvents}
+            <section
+              id="persistent-campus-events"
+              class="events-shelf-panel mobile-integrated-events"
+              aria-labelledby="persistent-campus-events-heading"
+            >
+              <EventCards
+                headingId="persistent-campus-events-heading"
+                showHeading={false}
+                showRetract={false}
+                compact={true}
+              />
+            </section>
+          {/if}
+
+          {#if showIdleEventsChrome && !eventsCollapsed && !mobile.current}
             <section
               id="persistent-campus-events"
               class="events-shelf-panel"
@@ -368,7 +395,7 @@
           {/if}
         </div>
 
-        {#if showIdleEventsChrome && eventsCollapsed}
+        {#if showIdleEventsChrome && eventsCollapsed && !mobile.current}
           <button
             class="events-shelf-tab"
             type="button"
@@ -385,7 +412,7 @@
           </button>
         {/if}
 
-        {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed}
+        {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed && !mobile.current}
           <div class="event-banner-stack" role="status" aria-live="polite">
             {#each activeEvents as activeEvent (activeEvent.slug)}
               <button
@@ -600,6 +627,31 @@
     max-height: min(40vh, 22rem);
   }
 
+  .mobile-integrated-events {
+    border-top: 1px solid hsl(0, 0%, 92%);
+    padding: 0.375rem 0.625rem 0.5rem;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .search-root.mobile-shell
+    .search-filter-container.search-focused
+    .mobile-integrated-events,
+  .search-root.mobile-shell
+    .search-filter-container:focus-within
+    .mobile-integrated-events {
+    display: none;
+  }
+
+  .search-root.mobile-shell .search-filter {
+    padding: 0.625rem 0.75rem;
+  }
+
+  .search-root.mobile-shell .map-menu-btn {
+    margin-top: 0.3125rem;
+    margin-bottom: 0.3125rem;
+  }
+
   .event-banner-stack {
     display: flex;
     flex-direction: column;
@@ -781,7 +833,7 @@
 
     .search-root.mobile-shell .events-shelf-tab,
     .search-root.mobile-shell .event-banner-stack {
-      border-top: 1px solid hsl(0, 0%, 92%);
+      display: none;
     }
 
     .search-filter {

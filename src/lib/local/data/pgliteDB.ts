@@ -176,6 +176,30 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE events
     ADD COLUMN IF NOT EXISTS "occurrence_ends_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;
+
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE dorms
+    ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;
+
+    ALTER TABLE dorms
+    ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE colleges
+    ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;
+
+    ALTER TABLE colleges
+    ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE divisions
+    ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;
+
+    ALTER TABLE divisions
+    ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
     `);
   } catch (e) {
     console.error("An error occurred", e);

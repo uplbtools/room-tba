@@ -23,7 +23,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType" FROM buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", version, updated_at AS "updatedAt" FROM buildings
       `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {
@@ -37,7 +37,7 @@ export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT college_name AS "collegeName", id FROM colleges;
+        SELECT college_name AS "collegeName", id, version, updated_at AS "updatedAt" FROM colleges;
       `)) as Results<CollegeData>;
     return data.rows;
   } catch (e) {
@@ -51,7 +51,7 @@ export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT division_name AS "divisionName", id FROM divisions;
+        SELECT division_name AS "divisionName", id, version, updated_at AS "updatedAt" FROM divisions;
       `)) as Results<DivisionData>;
     return data.rows;
   } catch (e) {
@@ -81,7 +81,9 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         is_up_managed AS "isUpManaged",
         price_range AS "priceRange",
         contact_phone AS "contactPhone",
-        facebook_link AS "facebookLink"
+        facebook_link AS "facebookLink",
+        version,
+        updated_at AS "updatedAt"
       FROM dorms;
       `)) as Results<DormData>;
     return data.rows;

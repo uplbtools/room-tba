@@ -1010,7 +1010,11 @@
     } catch (error) {
       failedEditKey = key;
       if (error instanceof ClientEditConflictError) {
-        if (error.latest) setLocalPosition("building", id, error.latest);
+        if (error.latest) {
+          setLocalPosition("building", id, error.latest);
+        } else {
+          setLocalPosition("building", id, previous);
+        }
         toastStore.show(editErrorMessage(name, error.message, error), "error");
         return;
       }
@@ -1054,7 +1058,11 @@
     } catch (error) {
       failedEditKey = key;
       if (error instanceof ClientEditConflictError) {
-        if (error.latest) setLocalPosition("dorm", id, error.latest);
+        if (error.latest) {
+          setLocalPosition("dorm", id, error.latest);
+        } else {
+          setLocalPosition("dorm", id, previous);
+        }
         toastStore.show(editErrorMessage(name, error.message, error), "error");
         return;
       }
@@ -2558,15 +2566,20 @@
 
   .map-edit-toolbar {
     position: absolute;
-    bottom: 4.75rem;
-    left: calc(50% + 12.875rem);
+    right: var(--map-ui-padding, 0.5rem);
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
+        env(safe-area-inset-bottom, 0px) + 0.75rem
+    );
+    left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
     z-index: 20;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    transform: translateX(-50%);
-    width: max-content;
-    max-width: calc(100% - 26.75rem);
+    width: auto;
+    max-width: calc(
+      100% - 25.75rem - var(--map-ui-padding, 0.5rem) * 2 - 0.75rem
+    );
     min-height: 3.25rem;
     padding: 0.375rem 0.375rem 0.375rem 0.75rem;
     border: 1px solid hsla(160, 52%, 32%, 0.35);
@@ -2643,15 +2656,20 @@
 
   .event-placement-toolbar {
     position: absolute;
-    bottom: 4.75rem;
-    left: calc(50% + 12.875rem);
+    right: var(--map-ui-padding, 0.5rem);
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
+        env(safe-area-inset-bottom, 0px) + 0.75rem
+    );
+    left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
     z-index: 22;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    transform: translateX(-50%);
-    width: max-content;
-    max-width: calc(100% - 26.75rem);
+    width: auto;
+    max-width: calc(
+      100% - 25.75rem - var(--map-ui-padding, 0.5rem) * 2 - 0.75rem
+    );
     min-height: 3.25rem;
     padding: 0.4rem 0.4rem 0.4rem 0.85rem;
     border: 1px solid hsla(5, 53%, 32%, 0.35);
@@ -2793,8 +2811,12 @@
 
   @media (max-width: 48rem) {
     .maptiler-logo {
-      bottom: calc(50vh + 0.75rem);
-      left: 0.75rem;
+      bottom: calc(
+        var(--status-bar-block-height, 2.75rem) +
+          env(safe-area-inset-bottom, 0px) + 0.375rem
+      );
+      left: 0.375rem;
+      z-index: 5;
     }
   }
 
