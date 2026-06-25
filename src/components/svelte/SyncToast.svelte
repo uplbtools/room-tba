@@ -1,33 +1,45 @@
 <script lang="ts">
   import {
-    CircleCheck,
+    CircleCheckBig,
     Info,
     LoaderCircle,
-    LoaderPinwheel,
     TriangleAlert,
     X,
   } from "@lucide/svelte";
   import { syncToastStore } from "../../lib/store.svelte";
-    import { fly } from "svelte/transition";
+  import { fly } from "svelte/transition";
   $inspect(
     syncToastStore.currentSyncData !== null && !syncToastStore.allSynced,
   );
   let manualClosed = $state<boolean>(false);
 
   $effect(() => {
-      syncToastStore.recentlySynced;
-      syncToastStore.allSynced;
-      syncToastStore.currentSync;
-      manualClosed = false;
-      // if (syncToastStore.recentlySynced)
-  })
+    syncToastStore.recentlySynced;
+    syncToastStore.allSynced;
+    syncToastStore.currentSync;
+    manualClosed = false;
+    // if (syncToastStore.recentlySynced)
+  });
+  $effect(() => {
+    let timeout: number | null = null;
+    if (syncToastStore.allSynced) {
+      timeout = setTimeout(() => {
+        manualClosed = true;
+      }, 3000);
+    }
+    return () => {
+      if (timeout !== null) {
+        clearTimeout(timeout);
+      }
+    };
+  });
 </script>
 
 {#snippet icon(type: "warning" | "success" | "info" | "loading")}
   {#if type === "info"}
     <Info color="#000" />
   {:else if type === "success"}
-    <CircleCheck color="hsla(133, 100%, 13%, 1)" />
+    <CircleCheckBig color="hsla(133, 100%, 13%, 1)" />
   {:else if type === "warning"}
     <TriangleAlert color="hsla(54, 100%, 18%, 1)" />
   {:else}
@@ -35,81 +47,98 @@
   {/if}
 {/snippet}
 
-{#if (syncToastStore.recentlySynced === null || syncToastStore.recentlySynced) && !manualClosed}
-  <div class="sync-toast" class:sync-toast--success={syncToastStore.allSynced} transition:fly={{duration:175, x:20}}>
-    {#if syncToastStore.allSynced}
-      {@render icon("success")}
-    {:else if syncToastStore.currentSync === null}
-      {@render icon("loading")}
-    {:else}
-      {@render icon("info")}
-    {/if}
-    <div class="sync-toast-content">
-      <div class="sync-toast-text">
-        <div class="sync-toast-header">
-          {#if syncToastStore.allSynced}
-            Data successfully synced
-          {:else if syncToastStore.currentSync === null}
-            Checking if data needs syncing
-          {:else}
-            Syncing data to device
-          {/if}
-        </div>
-        <div class="sync-toast-subtitle">
-          {#if syncToastStore.allSynced}
-            Room TBA can now work offline
-          {:else if syncToastStore.currentSync !== null}
-            Storing {syncToastStore.currentSync}
-          {/if}
-        </div>
-      </div>
-      {#key syncToastStore.currentSync}
-        {#if !syncToastStore.allSynced && syncToastStore.currentSyncData !== null}
-          <div class="progress-bar">
-            <!--  -->
-            <div
-              class="progress-bar-value"
-              style:width={`${Math.floor((syncToastStore.currentSyncData.synced / syncToastStore.currentSyncData.total) * 5) * 20}%`}
-            ></div>
+{#key syncToastStore.currentSync}
+  {#if (syncToastStore.recentlySynced === null || syncToastStore.recentlySynced) && !manualClosed}
+    <div
+      class="sync-toast"
+      class:sync-toast--success={syncToastStore.allSynced}
+      transition:fly={{ duration: 175, y: 20 }}
+    >
+      {#if syncToastStore.allSynced}
+        {@render icon("success")}
+      {:else if syncToastStore.currentSync === null}
+        {@render icon("loading")}
+      {:else}
+        {@render icon("info")}
+      {/if}
+      <div class="sync-toast-content">
+        <div class="sync-toast-text">
+          <div class="sync-toast-header">
+            {#if syncToastStore.allSynced}
+              Data successfully synced
+            {:else if syncToastStore.currentSync === null}
+              Checking if data needs syncing
+            {:else}
+              Syncing {syncToastStore.currentSync} to device
+            {/if}
           </div>
-        {/if}
-      {/key}
+          <div class="sync-toast-subtitle">
+            {#if syncToastStore.allSynced}
+              Room TBA can now work offline
+            {:else if syncToastStore.currentSync !== null && syncToastStore.currentSyncData !== null}
+              {#key syncToastStore.currentSync}
+                {Math.floor(
+                  (syncToastStore.currentSyncData.synced /
+                    syncToastStore.currentSyncData.total) *
+                    5,
+                ) * 20}%
+              {/key}
+            {/if}
+          </div>
+        </div>
+        {#key syncToastStore.currentSync}
+          {#if !syncToastStore.allSynced && syncToastStore.currentSyncData !== null}
+            <div class="progress-bar">
+              <!--  -->
+              <div
+                class="progress-bar-value"
+                style:width={`${Math.floor((syncToastStore.currentSyncData.synced / syncToastStore.currentSyncData.total) * 5) * 20}%`}
+              ></div>
+            </div>
+          {/if}
+        {/key}
+      </div>
+      <button onclick={() => (manualClosed = true)}><X /></button>
     </div>
-    <button onclick={() => manualClosed = true}><X /></button>
-  </div>
-{/if}
+  {/if}
+{/key}
 
 <style>
   div.sync-toast {
-    padding: 1rem;
+    position: fixed;
+    padding: 0.75rem;
     background-color: white;
     border-radius: var(--radius-lg, 12px);
-    position: fixed;
-    right: 0.5rem;
-    top: 0.5rem;
     z-index: 30;
+    left: 50%;
+    bottom: 5rem;
     display: flex;
     gap: 0.5rem;
-    width: min(360px, 100%);
+    translate: -50% 0;
+    z-index: 30;
+    width: min(300px, 100%);
+    align-items: center;
     .sync-toast-content {
       display: flex;
       flex-direction: column;
       flex: 1;
-      gap:.5rem;
-      .sync-toast-text {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-      .sync-toast-header {
-        font-size: 16px;
-        font-weight: bold;
-      }
-      .sync-toast-subtitle {
-        font-size: 14px;
-      }
+      gap: 0.5rem;
+    }
+    .sync-toast-header {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .sync-toast-subtitle {
+      display: none;
+    }
+    button {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      height: min-content;
     }
   }
+
   div.sync-toast--success {
     border: 1px solid var(--Color-success-200, #c6fbd2);
     background: var(--Color-success-100, #e5ffeb);
@@ -138,13 +167,40 @@
   }
 
   :global(.loading-icon) {
-      animation: rotate .75s linear infinite;
+    animation: rotate 0.75s linear infinite;
   }
   @keyframes rotate {
-      from {
-          rotate: 0deg;
-      } to {
-          rotate: 1 1 1 360deg;
+    from {
+      rotate: 0deg;
+    }
+    to {
+      rotate: 1 1 1 360deg;
+    }
+  }
+  @media (width >= 48rem) {
+    div.sync-toast {
+      bottom: unset;
+      left: unset;
+      right: 0.5rem;
+      top: 0.5rem;
+      width: min(360px, 100%);
+      translate: unset;
+      align-items: initial;
+      .sync-toast-content {
+        .sync-toast-text {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        .sync-toast-header {
+          font-size: 16px;
+          font-weight: bold;
+        }
+        .sync-toast-subtitle {
+          font-size: 14px;
+          display: initial;
+        }
       }
+    }
   }
 </style>
