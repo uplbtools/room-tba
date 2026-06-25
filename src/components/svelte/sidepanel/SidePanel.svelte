@@ -231,14 +231,14 @@
       transform: translateY(100%);
     }
     .drawer-handle {
-      top: -1.875rem;
+      top: -1.75rem;
       right: auto;
       left: 50%;
       translate: -50% 0;
-      width: 4rem;
-      height: 1.875rem;
-      border-radius: 0.75rem 0.75rem 0 0;
-      box-shadow: 0 -2px 4px 0 rgba(0, 0, 0, 0.2);
+      width: 5.5rem;
+      height: 1.75rem;
+      border-radius: 0.875rem 0.875rem 0 0;
+      box-shadow: 0 -3px 8px 0 rgba(0, 0, 0, 0.22);
     }
   }
 
