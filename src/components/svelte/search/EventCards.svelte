@@ -55,6 +55,7 @@
   const placingEvent = $derived(
     eventPlacementStore.active || eventPlacementStore.creating,
   );
+  let proposeSubmitterName = $state("");
 
   function formatEventDate(value: string) {
     return `${formatCampusDateShort(value)}, ${formatCampusTime(value)}`;
@@ -80,20 +81,37 @@
     sidePanelStore.expand();
   }
 
-  function startEventPlacement() {
+  function startEventPlacement(propose = false) {
     if (placingEvent) return;
+    if (
+      propose &&
+      !adminAuthStore.isLoggedIn &&
+      proposeSubmitterName.trim().length < 2
+    ) {
+      toastStore.show(
+        "Enter your name (at least 2 characters) before proposing an event.",
+        "error",
+      );
+      return;
+    }
     const now = Date.now();
     const startsAt = new Date(now + 60 * 60 * 1000);
     const endsAt = new Date(now + 2 * 60 * 60 * 1000);
     const titleDate = formatEventDate(startsAt.toISOString());
     const title = `Untitled campus event ${titleDate}`;
-    eventPlacementStore.start({
-      slug: `draft-event-${now}`,
-      title,
-      startsAt: instantToCampusWallString(startsAt),
-      endsAt: instantToCampusWallString(endsAt),
-      category: "other",
-    });
+    eventPlacementStore.start(
+      {
+        slug: `draft-event-${now}`,
+        title,
+        startsAt: instantToCampusWallString(startsAt),
+        endsAt: instantToCampusWallString(endsAt),
+        category: "other",
+      },
+      {
+        propose,
+        submitterName: propose ? proposeSubmitterName.trim() : "",
+      },
+    );
     oncollapse?.();
   }
 </script>
@@ -116,12 +134,24 @@
       <div class="section-heading">
         <h2 id={headingId} class="events-heading">Campus events</h2>
         <span class="section-actions">
+          {#if !adminAuthStore.canPublish && !adminAuthStore.isLoggedIn}
+            <label class="propose-name-field">
+              <span class="sr-only">Your name</span>
+              <input
+                type="text"
+                bind:value={proposeSubmitterName}
+                maxlength="100"
+                placeholder="Your name"
+                autocomplete="name"
+              />
+            </label>
+          {/if}
           {#if adminAuthStore.canPublish}
             <button
               class="event-action-chip add-event-button"
               type="button"
               disabled={placingEvent}
-              onclick={startEventPlacement}
+              onclick={() => startEventPlacement(false)}
             >
               <CalendarPlus size={14} aria-hidden="true" />
               <span>
@@ -131,6 +161,24 @@
                   Choose on map
                 {:else}
                   Add event
+                {/if}
+              </span>
+            </button>
+          {:else}
+            <button
+              class="event-action-chip add-event-button"
+              type="button"
+              disabled={placingEvent}
+              onclick={() => startEventPlacement(true)}
+            >
+              <CalendarPlus size={14} aria-hidden="true" />
+              <span>
+                {#if eventPlacementStore.creating}
+                  Submitting...
+                {:else if eventPlacementStore.active}
+                  Choose on map
+                {:else}
+                  Propose event
                 {/if}
               </span>
             </button>
@@ -165,7 +213,7 @@
             class="event-action-chip add-event-button"
             type="button"
             disabled={placingEvent}
-            onclick={startEventPlacement}
+            onclick={() => startEventPlacement(false)}
           >
             <CalendarPlus size={14} aria-hidden="true" />
             <span>
@@ -175,6 +223,24 @@
                 Choose on map
               {:else}
                 Add event
+              {/if}
+            </span>
+          </button>
+        {:else}
+          <button
+            class="event-action-chip add-event-button"
+            type="button"
+            disabled={placingEvent}
+            onclick={() => startEventPlacement(true)}
+          >
+            <CalendarPlus size={14} aria-hidden="true" />
+            <span>
+              {#if eventPlacementStore.creating}
+                Submitting...
+              {:else if eventPlacementStore.active}
+                Choose on map
+              {:else}
+                Propose event
               {/if}
             </span>
           </button>
@@ -254,15 +320,27 @@
       </p>
     {:else}
       <p class="empty-events">
-        No campus events scheduled yet. Browse events to check for updates.
+        No campus events yet. Propose one, then choose its location on the map.
       </p>
+      {#if !adminAuthStore.isLoggedIn}
+        <label class="propose-name-field propose-name-field--block">
+          <span>Your name</span>
+          <input
+            type="text"
+            bind:value={proposeSubmitterName}
+            maxlength="100"
+            autocomplete="name"
+          />
+        </label>
+      {/if}
       <button
-        class="event-action-chip browse-events-button"
+        class="event-action-chip add-event-button"
         type="button"
-        onclick={openEventsList}
+        disabled={placingEvent}
+        onclick={() => startEventPlacement(true)}
       >
-        <CalendarDays size={14} aria-hidden="true" />
-        <span>Browse campus events</span>
+        <CalendarPlus size={14} aria-hidden="true" />
+        <span>Propose event</span>
       </button>
     {/if}
   </section>
@@ -293,6 +371,40 @@
   .section-actions--inline {
     flex: 0 0 auto;
     justify-content: flex-start;
+  }
+  .propose-name-field {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .propose-name-field input {
+    font: inherit;
+    font-size: 0.75rem;
+    border: 1px solid hsl(0, 0%, 85%);
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    max-width: 8rem;
+  }
+  .propose-name-field--block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 35%);
+  }
+  .propose-name-field--block input {
+    max-width: none;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
   .events-heading {
     margin: 0;

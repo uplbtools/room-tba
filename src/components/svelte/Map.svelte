@@ -14,6 +14,7 @@
     adminAuthStore,
     toastStore,
     mapProposalStore,
+    additionProposalStore,
     buildingTypeFilter,
     terrainStore,
   } from "../../lib/store.svelte";
@@ -70,6 +71,7 @@
   } from "../../lib/map-move-history";
   import {
     resolveSubmitterName,
+    submitCreateProposal,
     submitPinPositionProposal,
   } from "../../lib/proposals/client";
   const data = getAppData();
@@ -423,12 +425,7 @@
   }
 
   async function createEventAtMapPoint(coords: EditableCoords) {
-    if (
-      !adminAuthStore.canPublish ||
-      !eventPlacementStore.draft ||
-      eventPlacementStore.creating
-    )
-      return;
+    if (!eventPlacementStore.draft || eventPlacementStore.creating) return;
 
     const draft = eventPlacementStore.draft;
     eventPlacementStore.beginCreate();
@@ -497,6 +494,73 @@
         "error",
       );
     }
+  }
+
+  async function proposeEventAtMapPoint(coords: EditableCoords) {
+    if (!eventPlacementStore.draft || eventPlacementStore.creating) return;
+
+    const draft = eventPlacementStore.draft;
+    eventPlacementStore.beginCreate();
+    stopRotation();
+
+    try {
+      const submitterName = resolveSubmitterName({
+        displayName: adminAuthStore.displayName,
+        username: adminAuthStore.username,
+        draftName: eventPlacementStore.submitterName,
+      });
+      if (!submitterName) {
+        throw new Error("Enter your name before proposing an event.");
+      }
+
+      const result = await submitCreateProposal({
+        entityType: "create_event",
+        patch: {
+          ...draft,
+          recurrence: "none",
+          isActive: true,
+          includeInSeo: true,
+          locations: [
+            {
+              anchorType: "custom",
+              buildingId: null,
+              dormId: null,
+              label: "Event marker",
+              lat: coords.lat,
+              lon: coords.lon,
+              isPrimary: true,
+              sortOrder: 0,
+            },
+          ],
+          routes: [],
+        },
+        submitterName,
+      });
+
+      if (!result.ok) {
+        throw new Error(result.error ?? "Failed to submit event proposal.");
+      }
+
+      eventPlacementStore.cancel();
+      toastStore.show(
+        `Event "${draft.title}" submitted for editor review.`,
+        "success",
+      );
+    } catch (error) {
+      eventPlacementStore.failCreate();
+      toastStore.show(
+        error instanceof Error ? error.message : "Failed to propose event.",
+        "error",
+      );
+    }
+  }
+
+  async function placeEventAtMapPoint(coords: EditableCoords) {
+    if (eventPlacementStore.proposing || !adminAuthStore.canPublish) {
+      await proposeEventAtMapPoint(coords);
+      return;
+    }
+    await createEventAtMapPoint(coords);
   }
 
   function ensureTerrainRendering(map: mapGl.MapLibreMap) {
@@ -1231,13 +1295,7 @@
       return;
     }
     if (!isMapEditEnabled()) return;
-    await saveBuildingPosition(
-      id,
-      name,
-      previous,
-      coords,
-      previous.version,
-    );
+    await saveBuildingPosition(id, name, previous, coords, previous.version);
   }
 
   async function handleDormDragEnd(
@@ -1264,13 +1322,7 @@
       return;
     }
     if (!isMapEditEnabled()) return;
-    await saveDormPosition(
-      id,
-      name,
-      previous,
-      coords,
-      previous.version,
-    );
+    await saveDormPosition(id, name, previous, coords, previous.version);
   }
 
   async function handleEventLocationDragEnd(
@@ -1581,13 +1633,32 @@
     if (!adminAuthStore.canPublish && mapEditStore.enabled) {
       mapEditStore.close();
     }
-    if (!adminAuthStore.canPublish && eventPlacementStore.active) {
-      eventPlacementStore.cancel();
-    }
     if (!mapEditStore.enabled) {
       hoveredEditKey = null;
       selectedEditKey = null;
     }
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !additionProposalStore.pinPickActive) return;
+
+    const canvas = map.getCanvas();
+    const previousCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    stopRotation();
+
+    const handlePinPick = (event: mapGl.MapMouseEvent) => {
+      additionProposalStore.deliverMapPin(event.lngLat.lat, event.lngLat.lng);
+    };
+
+    map.on("click", handlePinPick);
+    return () => {
+      map.off("click", handlePinPick);
+      if (canvas.style.cursor === "crosshair") {
+        canvas.style.cursor = previousCursor;
+      }
+    };
   });
 
   $effect(() => {
@@ -1600,7 +1671,7 @@
     stopRotation();
 
     const handlePlacementClick = (event: mapGl.MapMouseEvent) => {
-      void createEventAtMapPoint({
+      void placeEventAtMapPoint({
         lat: event.lngLat.lat,
         lon: event.lngLat.lng,
       });
