@@ -50,6 +50,8 @@ jobs:
 
       - name: Open version sync PR
         if: steps.pkg.outputs.published == 'true'
+        continue-on-error: true
+        id: sync_pr
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(release): ${{ steps.pkg.outputs.version }} [skip ci]"
@@ -63,3 +65,8 @@ jobs:
           add-paths: |
             CHANGELOG.md
             package.json
+
+      - name: Version sync PR failed
+        if: steps.pkg.outputs.published == 'true' && steps.sync_pr.outcome == 'failure'
+        run: |
+          echo "::warning::Could not open version sync PR (org may block Actions from creating PRs). Open a manual chore(release): ${{ steps.pkg.outputs.version }} [skip ci] PR for package.json and CHANGELOG.md."
