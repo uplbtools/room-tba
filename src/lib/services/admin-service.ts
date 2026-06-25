@@ -468,12 +468,46 @@ export async function getAllCollegesAdmin(): Promise<CollegeAdmin[]> {
 export async function updateCollege(
   id: number,
   collegeName: string,
-): Promise<void> {
-  await db
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<CollegeAdmin | null> {
+  const before = await getCollegeById(id);
+  const where =
+    expectedVersion === undefined
+      ? eq(collegesTable.id, id)
+      : and(
+          eq(collegesTable.id, id),
+          eq(collegesTable.version, expectedVersion),
+        );
+  const [updated] = await db
     .update(collegesTable)
-    .set({ collegeName })
-    .where(eq(collegesTable.id, id));
+    .set({
+      collegeName,
+      version: sql`"version" + 1`,
+      updatedAt: sql`now()`,
+    })
+    .where(where)
+    .returning();
+
+  if (!updated && expectedVersion !== undefined) {
+    throw new EditConflictError(await getCollegeById(id));
+  }
+
+  if (before && updated) {
+    await recordEditorHistory({
+      entityType: "college",
+      entityId: id,
+      action: "update",
+      before,
+      after: updated,
+      versionBefore: before.version,
+      versionAfter: updated.version,
+      editedBy,
+    });
+  }
+
   await refreshSyncKey("colleges");
+  return updated ?? (await getCollegeById(id));
 }
 
 // ── Divisions ──
@@ -498,12 +532,46 @@ export async function getAllDivisionsAdmin(): Promise<DivisionAdmin[]> {
 export async function updateDivision(
   id: number,
   divisionName: string,
-): Promise<void> {
-  await db
+  expectedVersion?: number,
+  editedBy = "admin",
+): Promise<DivisionAdmin | null> {
+  const before = await getDivisionById(id);
+  const where =
+    expectedVersion === undefined
+      ? eq(divisionsTable.id, id)
+      : and(
+          eq(divisionsTable.id, id),
+          eq(divisionsTable.version, expectedVersion),
+        );
+  const [updated] = await db
     .update(divisionsTable)
-    .set({ divisionName })
-    .where(eq(divisionsTable.id, id));
+    .set({
+      divisionName,
+      version: sql`"version" + 1`,
+      updatedAt: sql`now()`,
+    })
+    .where(where)
+    .returning();
+
+  if (!updated && expectedVersion !== undefined) {
+    throw new EditConflictError(await getDivisionById(id));
+  }
+
+  if (before && updated) {
+    await recordEditorHistory({
+      entityType: "division",
+      entityId: id,
+      action: "update",
+      before,
+      after: updated,
+      versionBefore: before.version,
+      versionAfter: updated.version,
+      editedBy,
+    });
+  }
+
   await refreshSyncKey("divisions");
+  return updated ?? (await getDivisionById(id));
 }
 
 // ── Dorms ──
@@ -845,8 +913,19 @@ function getEventLocationFields(
   index: number,
   existing?: EventLocationRow,
 ) {
+  const anchorType = location.anchorType ?? existing?.anchorType ?? "custom";
+  const customCoords =
+    anchorType === "custom"
+      ? {
+          lat:
+            location.lat !== undefined ? location.lat : (existing?.lat ?? null),
+          lon:
+            location.lon !== undefined ? location.lon : (existing?.lon ?? null),
+        }
+      : { lat: null, lon: null };
+
   return {
-    anchorType: location.anchorType ?? existing?.anchorType ?? "custom",
+    anchorType,
     buildingId:
       location.buildingId !== undefined
         ? location.buildingId
@@ -856,8 +935,8 @@ function getEventLocationFields(
         ? location.dormId
         : (existing?.dormId ?? null),
     label: location.label ?? existing?.label ?? "Event marker",
-    lat: location.lat !== undefined ? location.lat : (existing?.lat ?? null),
-    lon: location.lon !== undefined ? location.lon : (existing?.lon ?? null),
+    lat: customCoords.lat,
+    lon: customCoords.lon,
     highlightPriority:
       location.highlightPriority ?? existing?.highlightPriority ?? 0,
     sortOrder: location.sortOrder ?? existing?.sortOrder ?? index,

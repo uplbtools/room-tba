@@ -103,7 +103,10 @@
 <style>
   .toast {
     position: fixed;
-    bottom: 7.5rem;
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) + var(--edit-bar-height, 0rem) +
+        env(safe-area-inset-bottom) + 1rem
+    );
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
@@ -159,9 +162,8 @@
     opacity: 1;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 48rem) {
     .toast {
-      bottom: 5rem;
       width: calc(100% - 2rem);
     }
   }

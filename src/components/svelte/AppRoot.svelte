@@ -131,6 +131,42 @@
       if (!events) return;
       events = events.filter((event) => event.id !== eventId);
     },
+    replaceBuilding: (updated) => {
+      if (!buildings) return;
+      const index = buildings.findIndex(
+        (building) => building.id === updated.id,
+      );
+      if (index === -1) return;
+      const next = buildings.slice();
+      next[index] = updated;
+      buildings = next;
+    },
+    replaceDorm: (updated) => {
+      if (!dorms) return;
+      const index = dorms.findIndex((dorm) => dorm.id === updated.id);
+      if (index === -1) return;
+      const next = dorms.slice();
+      next[index] = updated;
+      dorms = next;
+    },
+    replaceCollege: (updated) => {
+      if (!colleges) return;
+      const index = colleges.findIndex((college) => college.id === updated.id);
+      if (index === -1) return;
+      const next = colleges.slice();
+      next[index] = updated;
+      colleges = next;
+    },
+    replaceDivision: (updated) => {
+      if (!divisions) return;
+      const index = divisions.findIndex(
+        (division) => division.id === updated.id,
+      );
+      if (index === -1) return;
+      const next = divisions.slice();
+      next[index] = updated;
+      divisions = next;
+    },
   });
 </script>
 

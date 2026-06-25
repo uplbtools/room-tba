@@ -31,9 +31,7 @@ const canonicalPath = `/dorm/${getDormRouteSlug(dorm)}/`;
 const title = `${dorm.dormName} | Dorm at UPLB | Room TBA`;
 const description = [
   `Find ${dorm.dormName} at UPLB on Room TBA.`,
-  dorm.isUpManaged
-    ? "UP-managed housing listing."
-    : "Private housing listing.",
+  dorm.isUpManaged ? "UP-managed housing listing." : "Private housing listing.",
   dorm.priceRange ? `Price range: ${dorm.priceRange}.` : null,
 ]
   .filter((value): value is string => Boolean(value))

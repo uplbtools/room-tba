@@ -12,7 +12,9 @@ function getSecret(): string {
 /** Produce a deterministic token proving knowledge of the admin password. */
 export function makeSessionToken(): string {
   const secret = getSecret();
-  return createHmac("sha256", secret).update("admin-session").digest("base64url");
+  return createHmac("sha256", secret)
+    .update("admin-session")
+    .digest("base64url");
 }
 
 /** Verify a cookie value against the expected token. */

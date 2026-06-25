@@ -265,9 +265,7 @@
     "description": "A hotel-style residence at Centtro Mall, Lopez Ave., Batong Malake. Offers dormitory-style rooms up to presidential suites. Popular for transient stays and long-term student housing.",
     "isUpManaged": 0,
     "priceRange": "₱4,370-₱9,250/night (transient) — inquire for monthly",
-    "contactPhone": [
-      "049) 544-6649 / 0999-227-0957"
-    ],
+    "contactPhone": ["049) 544-6649 / 0999-227-0957"],
     "facebookLink": "https://www.facebook.com/CenttroResidences"
   },
   {
@@ -295,9 +293,7 @@
     "description": "A private residence on Jose R. Velasco Ave., Batong Malake. Offers furnished rooms with en suite bathrooms. Near Sacay Grand Villas Gate and UPLB Main Library.",
     "isUpManaged": 0,
     "priceRange": "~₱1,250/night solo — inquire for monthly",
-    "contactPhone": [
-      "912-372-2936 / 0998-972-8559"
-    ],
+    "contactPhone": ["912-372-2936 / 0998-972-8559"],
     "facebookLink": null
   },
   {
@@ -321,9 +317,7 @@
     "description": "A private residence on Jose R. Velasco Ave. (Kanluran Road), Batong Malake. Offers both transient and long-term stays.",
     "isUpManaged": 0,
     "priceRange": "~₱1,000/day (transient) — inquire for monthly",
-    "contactPhone": [
-      "049) 536-4094 / 0998-550-3490 / 0917-500-6180"
-    ],
+    "contactPhone": ["049) 536-4094 / 0998-550-3490 / 0917-500-6180"],
     "facebookLink": "https://www.facebook.com/WestbrookResidences"
   },
   {
@@ -336,11 +330,7 @@
     "capacity": null,
     "managingOffice": null,
     "contactEmail": null,
-    "amenities": [
-      "Furnished rooms",
-      "Near campus gate",
-      "]"
-    ],
+    "amenities": ["Furnished rooms", "Near campus gate", "]"],
     "osmLink": null,
     "description": "A private accommodation on Victoria M. Ela Avenue, Batong Malake. Near the UPLB campus gate.",
     "isUpManaged": 0,
