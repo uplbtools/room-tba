@@ -7,15 +7,15 @@ const { divisions, rooms } = await loadAppData();
 
 const items = divisions
   .slice()
-  .sort((a, b) => a.division_name.localeCompare(b.division_name))
+  .sort((a, b) => a.divisionName.localeCompare(b.divisionName))
   .map((division) => {
     const roomCount = rooms.filter(
-      (room) => room.divisionName === division.division_name,
+      (room) => room.divisionName === division.divisionName,
     ).length;
 
     return {
       href: `/division/${getDivisionSlug(division)}/`,
-      label: division.division_name,
+      label: division.divisionName,
       description: `${roomCount} room${roomCount === 1 ? "" : "s"} connected to this division`,
     };
   });
