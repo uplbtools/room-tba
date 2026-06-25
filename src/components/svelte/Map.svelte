@@ -8,6 +8,7 @@
     mapEditStore,
     jeepneyStore,
     dormFilter,
+    buildingTypeFilter,
     currentRoom,
     adminAuthStore,
     toastStore,
@@ -42,6 +43,13 @@
   } from "../../constants/map-terrain";
   const data = getAppData();
   const { buildings, dorms, loaded } = $derived(data());
+  const filteredBuildings = $derived.by(() => {
+    if (!loaded) return [];
+    if (buildingTypeFilter.value === "all") return buildings;
+    return buildings.filter(
+      (building) => building.buildingType === buildingTypeFilter.value,
+    );
+  });
   const filteredDorms = $derived.by(() => {
     if (!loaded) return;
     if (dormFilter.value === "all") return dorms;
@@ -1169,7 +1177,7 @@
         <div class="user-location-pin"></div>
       </Marker>
     {/if}
-    {#each buildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
+    {#each filteredBuildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
       {#if building.lat && building.lon}
         {@const editKey = buildingEditKey(building.id)}
         {@const position = getEditablePosition(editKey, {

@@ -6,8 +6,9 @@
     type QueryStoreState,
     dormFilter,
     type DormFilterType,
+    buildingTypeFilter,
   } from "../../../lib/store.svelte";
-  import type { DormData } from "../../../lib/types";
+  import type { BuildingData, DormData } from "../../../lib/types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
@@ -20,6 +21,13 @@
     if (dormFilter.value === "up") return dorms.filter((d) => d.isUpManaged);
     return dorms.filter((d) => !d.isUpManaged);
   });
+  const filteredBuildings = $derived.by(() => {
+    if (!loaded) return;
+    if (buildingTypeFilter.value === "all") return buildings;
+    return buildings.filter(
+      (building) => building.buildingType === buildingTypeFilter.value,
+    );
+  });
 
   const suggestedResult = $derived(getSuggestions(queryStore.inputValue));
 
@@ -30,7 +38,7 @@
     searchString = searchString.trim().toLowerCase();
     if (searchString === "" || !loaded) return [];
     const suggestions = {
-      buildings: buildings
+      buildings: (filteredBuildings as BuildingData[])
         .filter(({ buildingName }) =>
           buildingName.toLowerCase().includes(searchString),
         )
@@ -71,12 +79,8 @@
       }[];
     };
 
-    const nonRoomResult = Array.from(Object.values(suggestions))
-      .reduce(
-        // @ts-ignore
-        (prev, curr) => [...prev, ...curr],
-        [],
-      )
+    const nonRoomResult = Object.values(suggestions)
+      .flat()
       .sort(({ value: a }, { value: b }) =>
         a.toLowerCase().localeCompare(b.toLowerCase()),
       );
@@ -116,24 +120,21 @@
       {/each}
     {:else}
       <h2 class="suggestions-header">Trending searches</h2>
-      <Suggestion value={"Physical Sciences Building"} category={"building"} />
+      <Suggestion value="Physical Sciences Building" category="building" />
+      <Suggestion value="Institute of Computer Science" category="division" />
       <Suggestion
-        value={"Institute of Computer Science"}
-        category={"division"}
+        value="Institute of Biological Sciences"
+        category="division"
       />
       <Suggestion
-        value={"Institute of Biological Sciences"}
-        category={"division"}
-      />
-      <Suggestion
-        value={"College of Engineering and Agro-Industrial Technology"}
-        category={"college"}
+        value="College of Engineering and Agro-Industrial Technology"
+        category="college"
       />
     {/if}
   {:else if suggestedResult.length !== 0}
     {#if hasDormResults}
       <div class="filter-chips">
-        {#each filterOptions as opt}
+        {#each filterOptions as opt (opt.value)}
           <button
             class="filter-chip"
             class:active={dormFilter.value === opt.value}
@@ -153,7 +154,7 @@
     {#await roomsResult}
       Loading rooms...
     {:then result}
-      {#each result as roomResult}
+      {#each result as roomResult (roomResult.value)}
         <Suggestion {...roomResult} />
       {/each}
     {/await}
