@@ -45,6 +45,9 @@
     lowDataConnection = Boolean(
       connection?.saveData || connection?.effectiveType?.includes("2g"),
     );
+    if (!isOnline && terrainStore.enabled) {
+      terrainStore.markUnavailable(TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE);
+    }
   }
 
   function handleToggle() {
