@@ -13,6 +13,7 @@ import {
   getCampusTileCoords,
   getStorageUsage,
   getTileTemplate,
+  MIN_ZOOM,
   tileUrl,
 } from "./local/offline-maps";
 
@@ -629,9 +630,11 @@ class OfflineStore {
   estimatedBytes = $derived(this.tilesTotal * AVG_TILE_BYTES);
 
   // Compute the tile count up front so the size estimate shows before download.
-  prepareEstimate = () => {
-    if (this.tilesTotal === 0) this.tilesTotal = getCampusTileCoords().length;
+  prepareEstimate = async () => {
     void this.refreshStorage();
+    if (this.tilesTotal !== 0) return;
+    const source = await getTileTemplate();
+    this.tilesTotal = getCampusTileCoords(MIN_ZOOM, source?.maxZoom).length;
   };
 
   refreshStorage = async () => {
@@ -650,14 +653,14 @@ class OfflineStore {
     this.bytesDownloaded = 0;
     this.status = "downloading";
 
-    const template = await getTileTemplate();
-    if (!template) {
+    const source = await getTileTemplate();
+    if (!source) {
       this.status = "error";
       this.error = "Could not resolve the map tile source.";
       return;
     }
 
-    const coords = getCampusTileCoords();
+    const coords = getCampusTileCoords(MIN_ZOOM, source.maxZoom);
     this.tilesTotal = coords.length;
 
     let index = 0;
@@ -666,13 +669,17 @@ class OfflineStore {
         const coord = coords[index++];
         if (!coord) break;
         try {
-          const res = await fetch(tileUrl(template, coord), { mode: "cors" });
-          const len = Number(res.headers.get("content-length"));
-          if (Number.isFinite(len) && len > 0) {
-            this.bytesDownloaded += len;
-          } else {
-            const buf = await res.clone().arrayBuffer();
-            this.bytesDownloaded += buf.byteLength;
+          const res = await fetch(tileUrl(source.template, coord), {
+            mode: "cors",
+          });
+          if (res.ok) {
+            const len = Number(res.headers.get("content-length"));
+            if (Number.isFinite(len) && len > 0) {
+              this.bytesDownloaded += len;
+            } else {
+              const buf = await res.clone().arrayBuffer();
+              this.bytesDownloaded += buf.byteLength;
+            }
           }
         } catch {
           // Skip individual tile failures; keep the overall download going.
