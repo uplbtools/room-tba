@@ -1,8 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-  ADMIN_COOKIE_NAME,
-  verifySessionToken,
-} from "../../../../lib/admin/auth";
+import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
 import {
   createEvent,
   DuplicateSlugError,
@@ -12,9 +9,8 @@ import { slugifySegment } from "../../../../lib/site";
 export const prerender = false;
 
 export const POST: APIRoute = async ({ cookies, request }) => {
-  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  if (auth instanceof Response) return auth;
 
   let body: Record<string, unknown>;
   try {
@@ -35,13 +31,16 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       : slugifySegment(title);
 
   try {
-    const event = await createEvent({
-      ...body,
-      title,
-      slug,
-      includeInSeo:
-        typeof body.includeInSeo === "boolean" ? body.includeInSeo : true,
-    });
+    const event = await createEvent(
+      {
+        ...body,
+        title,
+        slug,
+        includeInSeo:
+          typeof body.includeInSeo === "boolean" ? body.includeInSeo : true,
+      },
+      auth.editedBy,
+    );
 
     return json({ success: true, event }, 201);
   } catch (err) {
