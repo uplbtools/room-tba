@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   buildingsTable,
@@ -14,6 +14,7 @@ import {
   roomPositionsTable,
   updateTable,
 } from "../../../drizzle/schema";
+import { normalizeEntityName } from "../entity-names";
 import { db } from "../db";
 import { getEventById } from "./event-service";
 import type { EventData, RoomData } from "../types";
@@ -37,6 +38,24 @@ export class DuplicateSlugError extends Error {
     super(`An event with slug "${slug}" already exists.`);
     this.name = "DuplicateSlugError";
     this.slug = slug;
+  }
+}
+
+export class DuplicateNameError<TCandidate = unknown> extends Error {
+  entityType: "room";
+  candidate: TCandidate;
+  attemptedName: string;
+
+  constructor(
+    entityType: "room",
+    candidate: TCandidate,
+    attemptedName: string,
+  ) {
+    super(`A ${entityType} with a similar name already exists.`);
+    this.name = "DuplicateNameError";
+    this.entityType = entityType;
+    this.candidate = candidate;
+    this.attemptedName = attemptedName;
   }
 }
 
@@ -149,6 +168,27 @@ export type RoomUpdateInput = {
   divisionId?: number | null;
 };
 
+export async function findRoomMergeCandidate(
+  roomCode: string,
+  excludeId: number,
+): Promise<RoomData | null> {
+  const normalized = normalizeEntityName(roomCode);
+  if (!normalized) return null;
+
+  const rows = await db
+    .select({ id: roomsTable.id, roomCode: roomsTable.roomCode })
+    .from(roomsTable)
+    .where(ne(roomsTable.id, excludeId));
+
+  for (const row of rows) {
+    if (normalizeEntityName(row.roomCode) === normalized) {
+      return getRoomById(row.id);
+    }
+  }
+
+  return null;
+}
+
 export async function updateRoom(
   id: number,
   input: RoomUpdateInput,
@@ -167,6 +207,13 @@ export async function updateRoom(
     updates["divisionId"] = input.divisionId ?? null;
 
   if (Object.keys(updates).length > 0) {
+    if (input.roomCode !== undefined) {
+      const candidate = await findRoomMergeCandidate(input.roomCode, id);
+      if (candidate) {
+        throw new DuplicateNameError("room", candidate, input.roomCode);
+      }
+    }
+
     const before = await getRoomById(id);
     const where =
       expectedVersion === undefined
@@ -205,6 +252,47 @@ export async function updateRoom(
   }
 
   return getRoomById(id);
+}
+
+export type RoomCreateInput = {
+  roomCode: string;
+  directions?: string | null;
+  buildingId?: number | null;
+  collegeId?: number | null;
+  divisionId?: number | null;
+};
+
+export async function createRoom(
+  input: RoomCreateInput,
+  editedBy = "admin",
+): Promise<RoomData | null> {
+  const [inserted] = await db
+    .insert(roomsTable)
+    .values({
+      roomCode: input.roomCode.trim(),
+      directions: input.directions?.trim() || null,
+      buildingId: input.buildingId ?? null,
+      collegeId: input.collegeId ?? null,
+      divisionId: input.divisionId ?? null,
+    })
+    .returning({ id: roomsTable.id });
+
+  if (!inserted) return null;
+
+  const after = await getRoomById(inserted.id);
+  if (after) {
+    await recordEditorHistory({
+      entityType: "room",
+      entityId: inserted.id,
+      action: "create",
+      before: null,
+      after,
+      versionAfter: after.version,
+      editedBy,
+    });
+  }
+  await refreshSyncKey("rooms");
+  return after;
 }
 
 // ── Room positions ──
@@ -448,6 +536,44 @@ export async function updateBuilding(
   return getBuildingById(id);
 }
 
+export type BuildingCreateInput = {
+  buildingName: string;
+  lat: number;
+  lon: number;
+  buildingType?: "admin" | "non-admin";
+  directions?: string;
+};
+
+export async function createBuilding(
+  input: BuildingCreateInput,
+  editedBy = "admin",
+): Promise<BuildingAdmin | null> {
+  const [inserted] = await db
+    .insert(buildingsTable)
+    .values({
+      buildingName: input.buildingName.trim(),
+      lat: input.lat,
+      lon: input.lon,
+      buildingType: input.buildingType ?? "non-admin",
+      directions: input.directions?.trim() ?? "",
+    })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "building",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("buildings");
+  return inserted;
+}
+
 // ── Colleges ──
 
 export type CollegeAdmin = typeof collegesTable.$inferSelect;
@@ -510,6 +636,31 @@ export async function updateCollege(
   return updated ?? (await getCollegeById(id));
 }
 
+export async function createCollege(
+  collegeName: string,
+  editedBy = "admin",
+): Promise<CollegeAdmin | null> {
+  const trimmed = collegeName.trim();
+  const [inserted] = await db
+    .insert(collegesTable)
+    .values({ collegeName: trimmed })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "college",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("colleges");
+  return inserted;
+}
+
 // ── Divisions ──
 
 export type DivisionAdmin = typeof divisionsTable.$inferSelect;
@@ -529,12 +680,29 @@ export async function getAllDivisionsAdmin(): Promise<DivisionAdmin[]> {
   return db.select().from(divisionsTable).orderBy(divisionsTable.divisionName);
 }
 
+export type DivisionUpdateInput = {
+  divisionName?: string;
+  collegeId?: number | null;
+};
+
 export async function updateDivision(
   id: number,
-  divisionName: string,
+  input: DivisionUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
 ): Promise<DivisionAdmin | null> {
+  const updates: Record<string, unknown> = {};
+  if (input.divisionName !== undefined) {
+    updates["divisionName"] = input.divisionName;
+  }
+  if (input.collegeId !== undefined) {
+    updates["collegeId"] = input.collegeId ?? null;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return getDivisionById(id);
+  }
+
   const before = await getDivisionById(id);
   const where =
     expectedVersion === undefined
@@ -546,7 +714,7 @@ export async function updateDivision(
   const [updated] = await db
     .update(divisionsTable)
     .set({
-      divisionName,
+      ...updates,
       version: sql`"version" + 1`,
       updatedAt: sql`now()`,
     })
@@ -572,6 +740,46 @@ export async function updateDivision(
 
   await refreshSyncKey("divisions");
   return updated ?? (await getDivisionById(id));
+}
+
+export type DivisionCreateInput = {
+  divisionName: string;
+  collegeId?: number | null;
+};
+
+export async function createDivision(
+  input: DivisionCreateInput | string,
+  editedBy = "admin",
+): Promise<DivisionAdmin | null> {
+  const normalized =
+    typeof input === "string"
+      ? { divisionName: input.trim(), collegeId: null as number | null }
+      : {
+          divisionName: input.divisionName.trim(),
+          collegeId: input.collegeId ?? null,
+        };
+
+  const [inserted] = await db
+    .insert(divisionsTable)
+    .values({
+      divisionName: normalized.divisionName,
+      collegeId: normalized.collegeId,
+    })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "division",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("divisions");
+  return inserted;
 }
 
 // ── Dorms ──
@@ -657,6 +865,51 @@ export async function updateDorm(
   }
 
   return getDormById(id);
+}
+
+export type DormCreateInput = DormUpdateInput & {
+  dormName: string;
+  gender: string;
+};
+
+export async function createDorm(
+  input: DormCreateInput,
+  editedBy = "admin",
+): Promise<DormAdmin | null> {
+  const [inserted] = await db
+    .insert(dormsTable)
+    .values({
+      dormName: input.dormName.trim(),
+      gender: input.gender.trim(),
+      shortName: input.shortName ?? null,
+      lat: input.lat ?? null,
+      lon: input.lon ?? null,
+      capacity: input.capacity ?? null,
+      managingOffice: input.managingOffice ?? null,
+      contactEmail: input.contactEmail ?? null,
+      amenities: input.amenities ?? null,
+      osmLink: input.osmLink ?? null,
+      description: input.description ?? null,
+      isUpManaged: input.isUpManaged ?? true,
+      priceRange: input.priceRange ?? null,
+      contactPhone: input.contactPhone ?? null,
+      facebookLink: input.facebookLink ?? null,
+    })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "dorm",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("dorms");
+  return inserted;
 }
 
 // ── Events ──
