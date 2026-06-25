@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   buildingsTable,
@@ -14,6 +14,7 @@ import {
   roomPositionsTable,
   updateTable,
 } from "../../../drizzle/schema";
+import { normalizeEntityName } from "../entity-names";
 import { db } from "../db";
 import { getEventById } from "./event-service";
 import type { EventData, RoomData } from "../types";
@@ -37,6 +38,24 @@ export class DuplicateSlugError extends Error {
     super(`An event with slug "${slug}" already exists.`);
     this.name = "DuplicateSlugError";
     this.slug = slug;
+  }
+}
+
+export class DuplicateNameError<TCandidate = unknown> extends Error {
+  entityType: "room";
+  candidate: TCandidate;
+  attemptedName: string;
+
+  constructor(
+    entityType: "room",
+    candidate: TCandidate,
+    attemptedName: string,
+  ) {
+    super(`A ${entityType} with a similar name already exists.`);
+    this.name = "DuplicateNameError";
+    this.entityType = entityType;
+    this.candidate = candidate;
+    this.attemptedName = attemptedName;
   }
 }
 
@@ -149,6 +168,27 @@ export type RoomUpdateInput = {
   divisionId?: number | null;
 };
 
+export async function findRoomMergeCandidate(
+  roomCode: string,
+  excludeId: number,
+): Promise<RoomData | null> {
+  const normalized = normalizeEntityName(roomCode);
+  if (!normalized) return null;
+
+  const rows = await db
+    .select({ id: roomsTable.id, roomCode: roomsTable.roomCode })
+    .from(roomsTable)
+    .where(ne(roomsTable.id, excludeId));
+
+  for (const row of rows) {
+    if (normalizeEntityName(row.roomCode) === normalized) {
+      return getRoomById(row.id);
+    }
+  }
+
+  return null;
+}
+
 export async function updateRoom(
   id: number,
   input: RoomUpdateInput,
@@ -167,6 +207,13 @@ export async function updateRoom(
     updates["divisionId"] = input.divisionId ?? null;
 
   if (Object.keys(updates).length > 0) {
+    if (input.roomCode !== undefined) {
+      const candidate = await findRoomMergeCandidate(input.roomCode, id);
+      if (candidate) {
+        throw new DuplicateNameError("room", candidate, input.roomCode);
+      }
+    }
+
     const before = await getRoomById(id);
     const where =
       expectedVersion === undefined

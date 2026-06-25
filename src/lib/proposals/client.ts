@@ -118,6 +118,8 @@ export async function persistEntityChange(
   published?: unknown;
   proposal?: StoredProposalRef;
   latest?: unknown;
+  mergeCandidate?: RoomData;
+  attemptedName?: string;
 }> {
   if (input.canPublish) {
     const result = await publishEntityPatch(
@@ -131,6 +133,8 @@ export async function persistEntityChange(
         ok: false,
         error: result.error ?? `${input.entityLabel} failed to save.`,
         latest: result.latest,
+        mergeCandidate: result.mergeCandidate as RoomData | undefined,
+        attemptedName: result.attemptedName,
       };
     }
     return { ok: true, published: result.data };
@@ -184,7 +188,14 @@ export async function publishEntityPatch(
   entityId: number,
   baseVersion: number,
   patch: Record<string, unknown>,
-): Promise<{ ok: boolean; error?: string; latest?: unknown; data?: unknown }> {
+): Promise<{
+  ok: boolean;
+  error?: string;
+  latest?: unknown;
+  data?: unknown;
+  mergeCandidate?: unknown;
+  attemptedName?: string;
+}> {
   const body =
     entityType === "event_locations"
       ? { version: baseVersion, locations: patch.locations }
@@ -198,10 +209,18 @@ export async function publishEntityPatch(
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    const payload = data as {
+      error?: string;
+      latest?: unknown;
+      mergeCandidate?: unknown;
+      attemptedName?: string;
+    };
     return {
       ok: false,
-      error: (data as { error?: string }).error,
-      latest: (data as { latest?: unknown }).latest,
+      error: payload.error,
+      latest: payload.latest,
+      mergeCandidate: payload.mergeCandidate,
+      attemptedName: payload.attemptedName,
     };
   }
   const payload = data as Record<string, unknown>;
