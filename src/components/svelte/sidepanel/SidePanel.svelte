@@ -10,6 +10,7 @@
   import ClassQuery from "./ClassQuery.svelte";
   import LocationButton from "../LocationButton.svelte";
   import JeepneyMenu from "../JeepneyMenu.svelte";
+  import TerrainControl from "../TerrainControl.svelte";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
@@ -66,6 +67,7 @@
     class:is-collapsed={sidePanelStore.collapsed}
   >
     <div class="floating-actions">
+      <TerrainControl />
       <JeepneyMenu />
       <LocationButton />
     </div>
