@@ -11,18 +11,29 @@ import {
 } from "../../drizzle/schema";
 import { db } from "./db";
 import { slugifySegment } from "./site";
-import { BuildingData, ClassMapValue, CollegeData, DivisionData, DormData, RoomData } from "./types";
+import { getAllEvents } from "./services/event-service";
+import {
+  BuildingData,
+  ClassMapValue,
+  CollegeData,
+  DivisionData,
+  DormData,
+  EventData,
+  RoomData,
+} from "./types";
 
 export type SearchCategory =
   | "building"
   | "division"
   | "college"
   | "room"
-  | "dorm";
+  | "dorm"
+  | "event";
 
 export type InitialSearchState = {
   category: SearchCategory;
   value: string;
+  eventSlug?: string;
 };
 
 export type AppPageData = {
@@ -31,6 +42,7 @@ export type AppPageData = {
   colleges: CollegeData[];
   divisions: DivisionData[];
   dorms: DormData[];
+  events: EventData[];
   classesMap: Map<string, ClassMapValue[]>;
   totalRooms: number;
   directionCount: number;
@@ -83,6 +95,7 @@ async function fetchAppData(): Promise<AppPageData> {
   const colleges = await db.select().from(collegesTable);
   const divisions = await db.select().from(divisionsTable);
   const dorms = await db.select().from(dormsTable);
+  const events = await getAllEvents();
 
   const classesMap = new Map<string, ClassMapValue[]>();
   classes.forEach((classData) => {
@@ -100,13 +113,13 @@ async function fetchAppData(): Promise<AppPageData> {
     return countB - countA;
   });
 
-  // @ts-ignore drizzle returns count as a scalar row here.
+  // @ts-expect-error drizzle returns count as a scalar row here.
   const [{ count: directionCount }] = await db
     .select({ count: count() })
     .from(roomsTable)
     .where(isNotNull(roomsTable.directions));
 
-  // @ts-ignore drizzle returns count as a scalar row here.
+  // @ts-expect-error drizzle returns count as a scalar row here.
   const [{ count: totalRooms }] = await db
     .select({ count: count() })
     .from(roomsTable);
@@ -117,6 +130,7 @@ async function fetchAppData(): Promise<AppPageData> {
     colleges,
     divisions,
     dorms,
+    events,
     classesMap,
     totalRooms,
     directionCount,
@@ -127,9 +141,7 @@ export function getRoomSlug(room: Pick<RoomData, "code">) {
   return slugifySegment(room.code);
 }
 
-export function getRoomRouteSlug(
-  room: Pick<RoomData, "id" | "code">,
-) {
+export function getRoomRouteSlug(room: Pick<RoomData, "id" | "code">) {
   const baseSlug = getRoomSlug(room);
 
   return `${baseSlug}-${room.id}`;
@@ -151,10 +163,12 @@ export function getDormSlug(dorm: Pick<DormData, "dormName">) {
   return slugifySegment(dorm.dormName);
 }
 
-export function getDormRouteSlug(
-  dorm: Pick<DormData, "id" | "dormName">,
-) {
+export function getDormRouteSlug(dorm: Pick<DormData, "id" | "dormName">) {
   const baseSlug = getDormSlug(dorm);
 
   return `${baseSlug}-${dorm.id}`;
+}
+
+export function getEventSlug(event: Pick<EventData, "slug">) {
+  return event.slug;
 }

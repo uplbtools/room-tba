@@ -46,7 +46,7 @@ export class ScheduleRenderer {
     }
     this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    this.config = {...this.config, ...config};
+    this.config = { ...this.config, ...config };
 
     this.courses = [];
     this.init();
@@ -216,7 +216,9 @@ export class ScheduleRenderer {
       }
     }
 
-    return Array.from(new Set(indices).values()).sort((a, b) => a && b ? a - b : 0);
+    return Array.from(new Set(indices).values()).sort((a, b) =>
+      a && b ? a - b : 0,
+    );
   }
 
   parseTime(timeStr: string) {

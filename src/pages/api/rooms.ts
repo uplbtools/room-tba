@@ -18,7 +18,13 @@ export const GET = (async ({ url }) => {
     });
 
   const searchField = searchKeys[0] as string;
-  const fieldSets = ["building_id", "college_id", "division_id", "code", "search_code"];
+  const fieldSets = [
+    "building_id",
+    "college_id",
+    "division_id",
+    "code",
+    "search_code",
+  ];
   if (!fieldSets.includes(searchField))
     return new Response("400 bad request", {
       status: 400,
@@ -29,23 +35,32 @@ export const GET = (async ({ url }) => {
     const code = url.searchParams.get(searchField) as string;
     const room = await getRoomByCode(code);
     return new Response(
-      JSON.stringify({
-        data: room,
-        success: true,
-      }, null, 2),
+      JSON.stringify(
+        {
+          data: room,
+          success: true,
+        },
+        null,
+        2,
+      ),
     );
   }
 
   if (searchField === "search_code") {
-      const searchString = url.searchParams.get(searchField) as string;
-      if (searchString === "") return new Response(JSON.stringify({data: [], success: true}, null, 2))
-      const rooms = await searchRooms(searchString);
-      return new Response(
-          JSON.stringify({
-              data: rooms,
-              success: true
-          }, null, 2)
-      )
+    const searchString = url.searchParams.get(searchField) as string;
+    if (searchString === "")
+      return new Response(JSON.stringify({ data: [], success: true }, null, 2));
+    const rooms = await searchRooms(searchString);
+    return new Response(
+      JSON.stringify(
+        {
+          data: rooms,
+          success: true,
+        },
+        null,
+        2,
+      ),
+    );
   }
 
   const id = parseInt(url.searchParams.get(searchField) as string);

@@ -5,8 +5,9 @@
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import Box from "@lucide/svelte/icons/box";
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapIcon from "@lucide/svelte/icons/map";
-  import { mapStore } from "../../lib/store.svelte";
+  import { mapStore, mapViewStore } from "../../lib/store.svelte";
   import type { MapLibreMap } from "maplibre-gl";
 
   const ROTATE_STEP = 30;
@@ -20,6 +21,16 @@
   let pitch = $state(0);
 
   const is2D = $derived(pitch <= TWO_D_THRESHOLD);
+  const pinModeTitle = $derived(
+    mapViewStore.eventsOnly
+      ? "Showing event pins only. Switch to all pins."
+      : "Showing all pins. Switch to event pins only.",
+  );
+  const cameraModeTitle = $derived(
+    is2D
+      ? "Camera is flat 2D. Switch to tilted 3D."
+      : "Camera is tilted 3D. Switch to flat 2D.",
+  );
 
   function syncCamera() {
     const map = mapStore.mapInstance;
@@ -91,30 +102,50 @@
     });
 </script>
 
-<div class="map-controls" aria-label="Map orientation controls">
+<div class="map-controls" aria-label="Map display controls">
   <button
-    class="control view-toggle"
+    class="control mode-toggle pin-toggle"
+    class:active={mapViewStore.eventsOnly}
+    onclick={mapViewStore.toggleEventsOnly}
+    title={pinModeTitle}
+    aria-label={pinModeTitle}
+    aria-pressed={mapViewStore.eventsOnly}
+  >
+    <CalendarDays size={18} />
+    <span class="control-copy">
+      <span class="control-kicker">Pins</span>
+      <span class="control-value">
+        {mapViewStore.eventsOnly ? "Events" : "All"}
+      </span>
+    </span>
+  </button>
+
+  <div class="divider"></div>
+
+  <button
+    class="control mode-toggle camera-toggle"
+    class:active={!is2D}
     onclick={toggleView}
-    title={is2D ? "Switch to 3D tilted view" : "Switch to 2D top-down view"}
-    aria-label={is2D
-      ? "Switch to 3D tilted view"
-      : "Switch to 2D top-down view"}
-    aria-pressed={is2D}
+    title={cameraModeTitle}
+    aria-label={cameraModeTitle}
+    aria-pressed={!is2D}
   >
     {#if is2D}
-      <Box size={18} />
-      <span>3D</span>
-    {:else}
       <MapIcon size={18} />
-      <span>2D</span>
+    {:else}
+      <Box size={18} />
     {/if}
+    <span class="control-copy">
+      <span class="control-kicker">Camera</span>
+      <span class="control-value">{is2D ? "2D" : "3D"}</span>
+    </span>
   </button>
 
   <div class="divider"></div>
 
   <div class="rotate-row">
     <button
-      class="control"
+      class="control rotate-step"
       onclick={rotateLeft}
       title="Rotate left"
       aria-label="Rotate map left"
@@ -132,7 +163,7 @@
       </span>
     </button>
     <button
-      class="control"
+      class="control rotate-step"
       onclick={rotateRight}
       title="Rotate right"
       aria-label="Rotate map right"
@@ -141,7 +172,7 @@
     </button>
   </div>
 
-  <div class="divider"></div>
+  <div class="divider divider--tilt"></div>
 
   <div class="tilt-row">
     <button
@@ -175,8 +206,8 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.375rem;
-    padding: 0.375rem;
+    gap: 0.25rem;
+    padding: 0.3125rem;
     background-color: white;
     border-radius: 0.875rem;
     box-shadow: 0 2px 0.5rem 0 hsla(0, 0%, 0%, 0.2);
@@ -191,7 +222,7 @@
   .rotate-row,
   .tilt-row {
     display: flex;
-    gap: 0.25rem;
+    gap: 0.1875rem;
     justify-content: center;
   }
 
@@ -199,16 +230,20 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
-    width: 2.25rem;
-    height: 2.25rem;
+    gap: 0.2rem;
+    width: 2.125rem;
+    height: 2.125rem;
     padding: 0;
     border: none;
     border-radius: 0.625rem;
     background-color: transparent;
+    box-sizing: border-box;
     color: hsl(0, 0%, 20%);
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
   }
 
   .control:hover {
@@ -225,12 +260,61 @@
     background-color: transparent;
   }
 
-  .view-toggle {
-    width: 100%;
-    height: 2.25rem;
-    font-size: 0.8125rem;
+  .mode-toggle {
+    justify-content: flex-start;
+    width: 5.25rem;
+    height: 2.15rem;
+    padding: 0 0.5rem;
+    border: 1px solid hsl(0, 0%, 88%);
+    font-size: 0.75rem;
     font-weight: 700;
+    line-height: 1;
     color: hsl(5, 53%, 32%);
+  }
+
+  .control-copy {
+    display: grid;
+    gap: 0.025rem;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .control-kicker {
+    font-size: 0.56rem;
+    letter-spacing: 0.05em;
+    line-height: 0.95;
+    opacity: 0.72;
+    text-transform: uppercase;
+  }
+
+  .control-value {
+    overflow: hidden;
+    font-size: 0.75rem;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pin-toggle {
+    border-color: hsl(5, 34%, 78%);
+    background-color: hsl(0, 100%, 99%);
+  }
+
+  .pin-toggle:hover {
+    border-color: hsl(5, 34%, 68%);
+    background-color: hsl(0, 78%, 97%);
+  }
+
+  .pin-toggle.active,
+  .camera-toggle.active {
+    border-color: hsl(5, 53%, 32%);
+    background-color: hsl(5, 53%, 32%);
+    color: white;
+  }
+
+  .pin-toggle.active:hover,
+  .camera-toggle.active:hover {
+    background-color: hsl(5, 53%, 38%);
   }
 
   .compass {
@@ -244,9 +328,11 @@
 
   @media (max-width: 800px) {
     /* Drop below the full-width search box so the two never overlap, and
-       grow the tap targets to the 44px touch-friendly minimum. Native
-       touch gestures (two-finger twist/drag) exist but aren't discoverable,
-       so these explicit affordances stay visible on mobile too. */
+       grow the tap targets to the 44px touch-friendly minimum. On touch,
+       pinch zooms, a two-finger twist rotates, and a two-finger drag tilts,
+       so the rotate/tilt stepper buttons are redundant and removed here to
+       reduce clutter. We keep the Pins/Camera toggles (discoverable modes)
+       and the compass (reset-to-north can't be done by gesture). */
     .map-controls {
       right: 0.5rem;
       top: 4rem;
@@ -255,6 +341,17 @@
     .control {
       width: 2.75rem;
       height: 2.75rem;
+    }
+
+    .mode-toggle {
+      width: 5.25rem;
+      height: 2.75rem;
+    }
+
+    .rotate-step,
+    .tilt-row,
+    .divider--tilt {
+      display: none;
     }
   }
 </style>

@@ -12,10 +12,13 @@ export const prerender = false;
 
 export const GET: APIRoute = async ({ cookies }) => {
   const admin = verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value);
-  return new Response(JSON.stringify({ admin, username: admin ? "admin" : null }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({ admin, username: admin ? "admin" : null }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
 };
 
 export const POST: APIRoute = async ({ request }) => {
@@ -31,13 +34,18 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (!ADMIN_PASSWORD) {
     return new Response(
-      JSON.stringify({ error: "ADMIN_PASSWORD is not configured on the server" }),
+      JSON.stringify({
+        error: "ADMIN_PASSWORD is not configured on the server",
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 
   // Constant-time comparison
-  if (password.length !== ADMIN_PASSWORD.length || password !== ADMIN_PASSWORD) {
+  if (
+    password.length !== ADMIN_PASSWORD.length ||
+    password !== ADMIN_PASSWORD
+  ) {
     return new Response(JSON.stringify({ error: "Invalid password" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },

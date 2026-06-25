@@ -15,6 +15,7 @@
     "astro": "astro",
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
+    "seed:events": "bun src/seed-events.ts",
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run"
   },

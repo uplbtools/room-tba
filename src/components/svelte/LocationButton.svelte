@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Lock from "@lucide/svelte/icons/lock";
+  import LogIn from "@lucide/svelte/icons/log-in";
   import Locate from "@lucide/svelte/icons/locate";
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import LogOut from "@lucide/svelte/icons/log-out";
@@ -8,14 +8,20 @@
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import {
     adminAuthStore,
+    floatingControlPanelStore,
     locationStore,
     mapEditStore,
     mapStore,
     toastStore,
   } from "../../lib/store.svelte";
-    import { SquareArrowRightEnterIcon } from "@lucide/svelte";
 
   let centered: boolean = $state(false);
+  const adminPanelId = "admin";
+  const adminMenuOpen = $derived(
+    floatingControlPanelStore.openPanel === adminPanelId,
+  );
+  const adminLabel = $derived(adminAuthStore.username ?? "admin");
+
   onMount(() => {
     adminAuthStore.hydrate();
   });
@@ -45,6 +51,7 @@
   }
 
   async function handleLogout() {
+    floatingControlPanelStore.close(adminPanelId);
     mapEditStore.close();
     await adminAuthStore.logout();
     toastStore.show("Signed out.", "info");
@@ -53,31 +60,60 @@
 
 <div class="map-control-stack">
   {#if adminAuthStore.isAdmin}
-    <div class="map-control-btn admin-state" title="Signed in as admin">
-      <ShieldCheck />
+    <div class="admin-control">
+      {#if adminMenuOpen}
+        <div
+          id="admin-control-menu"
+          class="admin-panel"
+          role="menu"
+          aria-label="Editor controls"
+        >
+          <div class="admin-status">
+            <ShieldCheck size={16} />
+            <span>
+              <strong>Editor signed in</strong>
+              <small>{adminLabel}</small>
+            </span>
+          </div>
+          <button
+            type="button"
+            class="admin-menu-action"
+            class:active={mapEditStore.enabled}
+            role="menuitem"
+            aria-pressed={mapEditStore.enabled}
+            onclick={toggleMapEditMode}
+          >
+            <Pencil size={16} />
+            {mapEditStore.enabled ? "Turn off map edit" : "Turn on map edit"}
+          </button>
+          <button
+            type="button"
+            class="admin-menu-action danger"
+            role="menuitem"
+            onclick={handleLogout}
+          >
+            <LogOut size={16} />
+            Sign out
+          </button>
+        </div>
+      {/if}
+      <button
+        class="map-control-btn"
+        class:active={mapEditStore.enabled}
+        onclick={() => floatingControlPanelStore.toggle(adminPanelId)}
+        title={mapEditStore.enabled
+          ? "Editor controls: map edit mode on"
+          : "Editor controls"}
+        aria-label={mapEditStore.enabled
+          ? "Editor controls, map edit mode on"
+          : "Editor controls"}
+        aria-expanded={adminMenuOpen}
+        aria-controls="admin-control-menu"
+        aria-pressed={mapEditStore.enabled}
+      >
+        <ShieldCheck />
+      </button>
     </div>
-    <button
-      class="map-control-btn"
-      class:active={mapEditStore.enabled}
-      onclick={toggleMapEditMode}
-      title={mapEditStore.enabled
-        ? "Disable map edit mode"
-        : "Enable map edit mode"}
-      aria-label={mapEditStore.enabled
-        ? "Disable map edit mode"
-        : "Enable map edit mode"}
-      aria-pressed={mapEditStore.enabled}
-    >
-      <Pencil />
-    </button>
-    <button
-      class="map-control-btn"
-      onclick={handleLogout}
-      title="Sign out"
-      aria-label="Sign out"
-    >
-      <LogOut />
-    </button>
   {:else}
     <button
       class="map-control-btn"
@@ -85,7 +121,7 @@
       title="Editor login"
       aria-label="Editor login"
     >
-      <SquareArrowRightEnterIcon />
+      <LogIn />
     </button>
   {/if}
 
@@ -107,19 +143,22 @@
   .map-control-stack {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-end;
     gap: 0.5rem;
     pointer-events: auto;
   }
 
-  .admin-state {
-    color: hsl(160, 84%, 26%);
-    cursor: default;
+  .admin-control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
   }
 
   .map-control-btn {
-    background-color: white;
-    border: 1px solid #ececec;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    backdrop-filter: blur(10px);
+    border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
     border-radius: 50%;
     width: 3rem;
     height: 3rem;
@@ -127,15 +166,25 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(
+      --map-chrome-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.18),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14)
+    );
     color: hsl(5, 53%, 32%);
     transition:
       background-color 0.2s,
-      transform 0.2s;
+      border-color 0.2s;
 
     &:hover {
-      background-color: hsl(5, 53%, 98%);
-      transform: scale(1.05);
+      background-color: hsl(0, 0%, 99%);
+      border-color: hsl(5, 53%, 32%);
+    }
+
+    &:focus-visible {
+      outline: 2px solid hsl(5, 53%, 32%);
+      outline-offset: 2px;
     }
 
     &.active {
@@ -143,5 +192,73 @@
       background-color: hsl(160, 84%, 26%);
       color: white;
     }
+  }
+
+  .admin-panel {
+    display: flex;
+    width: 15.5rem;
+    max-width: calc(100vw - 1rem);
+    flex-direction: column;
+    gap: 0.5rem;
+    border-radius: 0.875rem;
+    background-color: white;
+    padding: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .admin-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: hsl(160, 84%, 22%);
+    font-size: 0.8125rem;
+  }
+
+  .admin-status span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .admin-status small {
+    overflow: hidden;
+    color: hsl(0, 0%, 42%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-menu-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    border: 1px solid #d8b9ba;
+    border-radius: 0.625rem;
+    background-color: white;
+    color: hsl(5, 53%, 32%);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    padding: 0.55rem 0.625rem;
+  }
+
+  .admin-menu-action:hover,
+  .admin-menu-action:focus-visible {
+    background-color: hsl(5, 53%, 98%);
+  }
+
+  .admin-menu-action.active {
+    border-color: hsl(160, 84%, 26%);
+    background-color: hsl(160, 84%, 26%);
+    color: white;
+  }
+
+  .admin-menu-action.danger {
+    border-color: hsl(0, 70%, 88%);
+    color: hsl(0, 70%, 38%);
   }
 </style>

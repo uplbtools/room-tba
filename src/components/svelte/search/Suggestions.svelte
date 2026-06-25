@@ -6,7 +6,7 @@
     type QueryStoreState,
     buildingTypeFilter,
   } from "../../../lib/store.svelte";
-  import type { BuildingData, DormData } from "../../../lib/types";
+  import type { BuildingData, DormData, EventData } from "../../../lib/types";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -15,7 +15,8 @@
   import Suggestion from "./Suggestion.svelte";
 
   const appData = getAppData();
-  const { buildings, colleges, divisions, dorms, loaded } = $derived(appData());
+  const { buildings, colleges, divisions, dorms, events, loaded } =
+    $derived(appData());
 
   const filteredDorms = $derived.by(() => {
     if (!loaded) return [];
@@ -31,10 +32,10 @@
   });
 
   const suggestedResult = $derived(getSuggestions(queryStore.inputValue));
-
   function getSuggestions(searchString: string): {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
+    eventSlug?: string;
   }[] {
     searchString = searchString.trim().toLowerCase();
     if (searchString === "" || !loaded) return [];
@@ -73,10 +74,22 @@
           value: dormName,
           category: "dorm",
         })),
+      events: (events as EventData[])
+        .filter(
+          ({ title, description }) =>
+            title.toLowerCase().includes(searchString) ||
+            (description && description.toLowerCase().includes(searchString)),
+        )
+        .map(({ title, slug }) => ({
+          value: title,
+          category: "event",
+          eventSlug: slug,
+        })),
     } satisfies {
       [key: string]: {
         value: string;
         category: Exclude<QueryStoreState["category"], null>;
+        eventSlug?: string;
       }[];
     };
 
@@ -108,8 +121,8 @@
   {#if queryStore.inputValue === ""}
     {#if queryStore.recentSearches.length !== 0}
       <h2 class="suggestions-header">Recent searches</h2>
-      {#each queryStore.recentSearches as { category, value }, id (id)}
-        <Suggestion {value} {category} {id} />
+      {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
+        <Suggestion {value} {category} {id} {eventSlug} />
       {/each}
     {:else}
       <h2 class="suggestions-header">Trending searches</h2>
@@ -146,30 +159,22 @@
 
 <style>
   .suggestions-container {
-    position: absolute;
-    width: 100%;
-    height: max-content;
-    border-radius: 1rem;
-    padding: 1rem;
-    display: flex;
     flex-direction: column;
-    background-color: white;
-    pointer-events: none;
-    box-shadow: 0rem 2px 0.25rem 0rem rgba(0, 0, 0, 0.25);
-    margin-top: 0.5rem;
-    opacity: 0;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem 0.625rem;
+    border-top: 1px solid hsl(0, 0%, 90%);
+    max-height: min(50vh, 18rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  /* .force-visible {
-    opacity: 1;
-    pointer-events: auto;
-  } */
+
   .suggestions-header {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-  }
-  @media (max-width: 425px) {
-    .suggestions-header {
-      margin-bottom: 0.25rem;
-    }
+    margin: 0;
+    padding: 0.125rem 0.5rem 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: hsl(0, 0%, 45%);
   }
 </style>

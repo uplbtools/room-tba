@@ -8,6 +8,7 @@ import {
   roomsTable,
 } from "../../../drizzle/schema";
 import { db } from "../db";
+import { getEventBySlug } from "./event-service";
 
 export async function getBuildingPageData(buildingName: string) {
   const data = await db
@@ -94,4 +95,10 @@ export async function getRoomPageData(roomId: number) {
 
   if (data.length === 0 || !data[0]) return null;
   return { room: data[0], classCount: data.length };
+}
+
+export async function getEventPageData(slug: string) {
+  const event = await getEventBySlug(slug);
+  if (!event || !event.includeInSeo) return null;
+  return { event };
 }

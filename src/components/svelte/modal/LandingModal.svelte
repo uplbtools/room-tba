@@ -28,16 +28,16 @@
   <div class="content-body">
     <div class="description-container">
       <p class="description">
-        Room TBA is an open-source website built to help students find
-        their rooms across UPLB — the largest university campus in the Philippines.
+        Room TBA is an open-source website built to help students find their
+        rooms across UPLB, the largest university campus in the Philippines.
       </p>
       <p class="osm-attribution">
-        3D models powered by © <a 
-          href="https://www.openstreetmap.org/copyright" 
-          target="_blank" 
+        3D models powered by © <a
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
           rel="noopener noreferrer"
-          class="osm-link"
-        >OpenStreetMap</a> contributors
+          class="osm-link">OpenStreetMap</a
+        > contributors
       </p>
       <a
         href="https://github.com/smmariquit/room-tba"
@@ -184,17 +184,17 @@
     color: white;
     padding: 2rem;
   }
-  
+
   .hero-overlay h2 {
     font-size: 2.75rem;
     font-weight: 600;
-    margin: 0;        
-    padding: 0;       
+    margin: 0;
+    padding: 0;
     color: white;
-    font-family: 'Raleway', sans-serif;
+    font-family: "Raleway", sans-serif;
     display: flex;
     justify-content: center;
-    line-height: 1;   
+    line-height: 1;
     width: 100%;
   }
 
@@ -206,9 +206,9 @@
   }
 
   .hero-logo {
-  width: 4.5rem;
-  height: 4.5rem;
-  object-fit: contain;
+    width: 4.5rem;
+    height: 4.5rem;
+    object-fit: contain;
   }
 
   .hero-overlay p {
@@ -426,7 +426,7 @@
     height: 1rem;
     accent-color: #7b1113;
   }
-  
+
   .osm-attribution {
     font-size: 0.85rem;
     color: #666;

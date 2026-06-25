@@ -9,9 +9,18 @@ export const TERRAIN_EXAGGERATION_OPTIONS = [1, 1.5, 2] as const;
 export const DEFAULT_TERRAIN_EXAGGERATION = 1.5;
 
 export const CAMPUS_MAX_BOUNDS: [[number, number], [number, number]] = [
-  [121.22951431520816, 14.143739048514412],
-  [121.28117994803134, 14.18059150108623],
+  // West/south: Mt. Makiling foothills, BSP Jamboree site, National Arts Center corridor.
+  [121.168, 14.095],
+  [121.335, 14.215],
 ];
+
+/** Flat object form for bounds checks (offline tiles, geolocation, admin APIs). */
+export const CAMPUS_BOUNDS = {
+  minLng: CAMPUS_MAX_BOUNDS[0][0],
+  minLat: CAMPUS_MAX_BOUNDS[0][1],
+  maxLng: CAMPUS_MAX_BOUNDS[1][0],
+  maxLat: CAMPUS_MAX_BOUNDS[1][1],
+} as const;
 
 export const CAMPUS_DEFAULT_CAMERA = {
   center: [121.24125948460573, 14.16323736946326] as [number, number],
@@ -23,7 +32,7 @@ export const CAMPUS_DEFAULT_CAMERA = {
 export const MAKILING_TERRAIN_MAX_BOUNDS: [[number, number], [number, number]] =
   [
     [121.168, 14.095],
-    [121.29, 14.19],
+    [121.34, 14.22],
   ];
 
 export const MAKILING_TERRAIN_SOURCE_BOUNDS = [

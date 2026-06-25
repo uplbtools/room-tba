@@ -8,18 +8,22 @@
     toastStore,
     building3DStore,
     adminAuthStore,
+    mapEditStore,
+    mapToolsStore,
+    sidePanelStore,
   } from "../../lib/store.svelte";
   import Modal from "./modal/Modal.svelte";
   import SidePanel from "./sidepanel/SidePanel.svelte";
   import Map from "./Map.svelte";
-  import MapControls from "./MapControls.svelte";
+  import MapToolsFlyout from "./MapToolsFlyout.svelte";
+  import MapViewControls from "./MapViewControls.svelte";
+  import LocationButton from "./LocationButton.svelte";
   import StatusBar from "./StatusBar.svelte";
   import Toast from "./Toast.svelte";
   import Building3DViewer from "./Building3DViewer.svelte";
   import AdminLoginModal from "./AdminLoginModal.svelte";
   import type { RecentSearch } from "../../lib/types";
   import { isRecentSearch } from "../../lib/locStorage";
-  import SyncToast from "./SyncToast.svelte";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -41,7 +45,7 @@
           queryStore.addRecentSearch(parsedSearch);
         }
       });
-    } catch (e) {
+    } catch {
       queryStore.recentSearches = [];
     }
     if (initialSearch) {
@@ -49,6 +53,7 @@
         category: initialSearch.category,
         type: "result",
         value: initialSearch.value,
+        eventSlug: initialSearch.eventSlug,
       });
     }
 
@@ -65,10 +70,38 @@
     updateData(queryStore.recentSearches);
   });
 
+  const drawerExpanded = $derived(
+    queryStore.category !== null && !sidePanelStore.collapsed,
+  );
+
+  let mapToolsStackEl = $state<HTMLDivElement | null>(null);
+
+  $effect(() => {
+    const el = mapToolsStackEl;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const root = el.closest(".app-layout") as HTMLElement | null;
+    if (!root) return;
+
+    const syncHeight = () => {
+      root.style.setProperty(
+        "--map-tools-block-height",
+        `${el.getBoundingClientRect().height}px`,
+      );
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(el);
+    return () => observer.disconnect();
+  });
+
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       if (modalStore.open) {
         modalStore.closeModal();
+      } else if (mapToolsStore.open) {
+        mapToolsStore.close();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
         queryStore.clearQuery();
         if (locationStore.destination) {
@@ -81,16 +114,31 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="app-layout">
+<div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
-  <div class="ui-layer">
-    <MapControls />
-    <!-- <header class="top-header">
-      <h2>Room TBA</h2>
-    </header> -->
+  <div class="ui-layer" class:drawer-expanded={drawerExpanded}>
+    <div
+      class="top-right-map-stack"
+      aria-label="Map tools"
+      bind:this={mapToolsStackEl}
+    >
+      <MapToolsFlyout />
+      <div class="desktop-camera-controls" aria-label="Map camera">
+        <MapViewControls variant="camera" />
+      </div>
+    </div>
     <div class="inner-layer">
       <SidePanel />
-      <StatusBar />
+      <div class="bottom-band">
+        <div
+          class="location-fab-stack"
+          class:drawer-lift={drawerExpanded}
+          aria-label="Location and editor"
+        >
+          <LocationButton />
+        </div>
+        <StatusBar />
+      </div>
     </div>
     {#if toastStore.message}
       <Toast
@@ -108,21 +156,97 @@
     <AdminLoginModal />
   {/if}
 </div>
-<SyncToast />
 
 <style>
   .app-layout {
+    --map-ui-padding: 0.5rem;
+    --search-block-height: 3.25rem;
+    --status-bar-block-height: 2.75rem;
+    --drawer-peek-offset: 1.75rem;
+    --map-tools-block-height: 3.25rem;
+    --mobile-detail-sheet-top-inset: calc(
+      var(--search-block-height) + var(--map-tools-block-height) +
+        var(--map-ui-padding) * 2
+    );
+    --edit-bar-height: 0rem;
+    --pill-padding-x: 0.875rem;
+    --map-chrome-radius: 1rem;
+    --map-chrome-toggle-size: 2rem;
+    --map-chrome-toggle-radius: 0.625rem;
+    /* Map-face controls: readable on light tiles and white building footprints */
+    --map-chrome-surface: rgba(255, 255, 255, 0.98);
+    --map-chrome-border: hsl(0, 0%, 58%);
+    --map-chrome-border-accent: hsl(5, 40%, 42%);
+    --map-chrome-shadow:
+      0 0 0 1px hsla(0, 0%, 0%, 0.18), 0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14);
+    --map-chrome-panel-shadow:
+      0 0 0 1px hsla(0, 0%, 0%, 0.14), 0 4px 14px hsla(0, 0%, 0%, 0.2),
+      0 10px 28px hsla(0, 0%, 0%, 0.12);
+
     width: 100%;
     height: 100dvh;
     overflow: hidden;
   }
+
+  .app-layout.edit-mode {
+    --edit-bar-height: 3rem;
+  }
+
+  :global(.chrome-toggle-btn) {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--map-chrome-toggle-size, 2rem);
+    height: var(--map-chrome-toggle-size, 2rem);
+    border: 1px solid #d8b9ba;
+    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
+    background: #fffafa;
+    color: #7b1113;
+    transition:
+      background-color 0.16s,
+      border-color 0.16s;
+  }
+
+  :global(button.chrome-toggle-btn) {
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+  }
+
+  :global(button.chrome-toggle-btn:hover),
+  :global(button.chrome-toggle-btn:focus-visible) {
+    border-color: #c58f91;
+    background: #fdf3f3;
+  }
+
+  :global(button.chrome-toggle-btn:focus-visible) {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
+  }
+
   .inner-layer {
     display: flex;
     flex-direction: column;
-    padding: 0.5rem;
+    padding: var(--map-ui-padding, 0.5rem);
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
     flex: 1 0 0;
+    min-height: 0;
     pointer-events: none;
     gap: 0.5rem;
+  }
+
+  .bottom-band {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    width: 100%;
+    pointer-events: none;
+    /* Reserve horizontal space so status bar text does not sit under FABs */
+    --bottom-fab-inset: 3.75rem;
   }
 
   :global(.map) {
@@ -142,8 +266,107 @@
     width: 100%;
   }
 
+  .top-right-map-stack {
+    position: absolute;
+    top: calc(var(--map-ui-padding) + 2px);
+    right: calc(var(--map-ui-padding) + 2px);
+    z-index: 15;
+    display: flex;
+    width: min(22.5rem, calc(100% - 1rem));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding-top: 2px;
+    padding-right: 2px;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .desktop-camera-controls {
+    display: none;
+    pointer-events: none;
+  }
+
+  @media (min-width: 48.0625rem) {
+    .desktop-camera-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+  }
+
+  .location-fab-stack {
+    position: relative;
+    z-index: 14;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    pointer-events: none;
+  }
+
   :global(*) {
     margin: unset;
     box-sizing: border-box;
+  }
+
+  @media (max-width: 48rem) {
+    .app-layout {
+      --map-ui-padding: 0;
+      --map-tools-block-height: 0px;
+      --mobile-detail-sheet-top-inset: var(--search-block-height);
+    }
+
+    .inner-layer {
+      padding: 0;
+      gap: 0;
+    }
+
+    .bottom-band {
+      gap: 0;
+      align-items: stretch;
+      --bottom-fab-inset: 3.25rem;
+    }
+
+    .top-right-map-stack {
+      position: fixed;
+      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      pointer-events: none;
+      z-index: 16;
+    }
+
+    .top-right-map-stack :global(.map-tools-trigger) {
+      display: none;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel) {
+      position: fixed;
+      top: var(--search-block-height);
+      right: 0;
+      left: 0;
+      width: auto;
+      max-width: none;
+      max-height: calc(
+        100dvh - var(--search-block-height) - var(--status-bar-block-height)
+      );
+      margin: 0;
+      border-radius: 0;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      pointer-events: auto;
+    }
+
+    /* When the drawer sheet is open, lift FABs above its peek handle */
+    .location-fab-stack.drawer-lift {
+      position: fixed;
+      right: 0.5rem;
+      bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
+    }
   }
 </style>

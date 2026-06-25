@@ -8,6 +8,7 @@
   } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import type { RoomData } from "../../../lib/types";
   // import Classes from "./Classes.svelte";
 
@@ -49,6 +50,7 @@
   let savingField = $state<RoomEditableField | null>(null);
   let savedField = $state<RoomEditableField | null>(null);
   let fieldError = $state<string | null>(null);
+  let editing = $state(false);
 
   $effect(() => {
     const room = currentRoom.value;
@@ -150,8 +152,29 @@
     }
   }
 
+  const parentBuilding = $derived.by(() => {
+    const room = currentRoom.value;
+    if (!room) return null;
+
+    if (room.building?.name) {
+      return room.building;
+    }
+
+    if (room.buildingId === null) return null;
+
+    const building = buildings.find((item) => item.id === room.buildingId);
+    if (!building) return null;
+
+    return {
+      name: building.buildingName,
+      lat: building.lat,
+      lon: building.lon,
+      directions: building.directions,
+    };
+  });
+
   function openBuildingResult() {
-    const buildingName = currentRoom.value?.building?.name;
+    const buildingName = parentBuilding?.name;
     if (!buildingName) return;
     queryStore.updateQuery({
       type: "result",
@@ -163,6 +186,18 @@
 
 <div class="room-details-container">
   {#if currentRoom.value}
+    {#if parentBuilding}
+      <button
+        class="back-to-building"
+        type="button"
+        onclick={openBuildingResult}
+        aria-label={`Back to ${parentBuilding.name}`}
+      >
+        <ChevronLeft size={18} aria-hidden="true" />
+        <span>Back to {parentBuilding.name}</span>
+      </button>
+    {/if}
+
     <div class="header-section">
       <div class="header-top-row">
         <h2>{currentRoom.value.code}</h2>
@@ -172,11 +207,17 @@
           {#if currentRoom.value.collegeName}
             {currentRoom.value.collegeName}
           {/if}
-          {#if currentRoom.value.building?.name}
+          {#if parentBuilding}
             {#if currentRoom.value.collegeName}
               •
             {/if}
-            {currentRoom.value.building.name}
+            <button
+              type="button"
+              class="building-link"
+              onclick={openBuildingResult}
+            >
+              {parentBuilding.name}
+            </button>
           {/if}
         </p>
       </div>
@@ -184,135 +225,149 @@
 
     {#if adminAuthStore.isAdmin}
       <section class="room-editor" aria-label="Edit room details">
-        <div class="editor-heading">
-          <span>Editor</span>
-          <small>v{currentRoom.value.version}</small>
-        </div>
-
-        <div class="editor-field">
-          <label for="room-code-editor">Room code</label>
-          <div class="editor-control-row">
-            <input
-              id="room-code-editor"
-              bind:value={codeDraft}
-              disabled={savingField !== null}
-              autocomplete="off"
-            />
-            <button
-              class="field-save-btn"
-              disabled={savingField !== null ||
-                codeDraft.trim() === currentRoom.value.code}
-              onclick={() => saveField("roomCode")}
-            >
-              {savingField === "roomCode" ? "Saving..." : "Save"}
-            </button>
+        <button
+          type="button"
+          class="editor-toggle"
+          aria-expanded={editing}
+          onclick={() => (editing = !editing)}
+        >
+          {editing ? "Close editor" : "Edit room"}
+        </button>
+        {#if editing}
+          <div class="editor-heading">
+            <span>Editor</span>
           </div>
-        </div>
 
-        <div class="editor-field">
-          <label for="room-directions-editor">Room directions</label>
-          <div class="editor-control-row stacked">
-            <textarea
-              id="room-directions-editor"
-              bind:value={directionsDraft}
-              disabled={savingField !== null}
-              rows="3"></textarea>
-            <button
-              class="field-save-btn"
-              disabled={savingField !== null ||
-                directionsDraft.trim() === (currentRoom.value.directions ?? "")}
-              onclick={() => saveField("directions")}
-            >
-              {savingField === "directions" ? "Saving..." : "Save"}
-            </button>
-          </div>
-        </div>
-
-        <div class="editor-grid">
           <div class="editor-field">
-            <label for="room-building-editor">Building</label>
+            <label for="room-code-editor">Room code</label>
             <div class="editor-control-row">
-              <select
-                id="room-building-editor"
-                bind:value={buildingDraft}
+              <input
+                id="room-code-editor"
+                bind:value={codeDraft}
                 disabled={savingField !== null}
-              >
-                <option value="">No building</option>
-                {#each buildings as building (building.id)}
-                  <option value={String(building.id)}
-                    >{building.buildingName}</option
-                  >
-                {/each}
-              </select>
+                autocomplete="off"
+              />
               <button
                 class="field-save-btn"
                 disabled={savingField !== null ||
-                  buildingDraft === String(currentRoom.value.buildingId ?? "")}
-                onclick={() => saveField("buildingId")}
+                  codeDraft.trim() === currentRoom.value.code}
+                onclick={() => saveField("roomCode")}
               >
-                {savingField === "buildingId" ? "Saving..." : "Save"}
+                {savingField === "roomCode" ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
 
           <div class="editor-field">
-            <label for="room-college-editor">College</label>
-            <div class="editor-control-row">
-              <select
-                id="room-college-editor"
-                bind:value={collegeDraft}
+            <label for="room-directions-editor">Room directions</label>
+            <div class="editor-control-row stacked">
+              <textarea
+                id="room-directions-editor"
+                bind:value={directionsDraft}
                 disabled={savingField !== null}
-              >
-                <option value="">No college</option>
-                {#each colleges as college (college.id)}
-                  <option value={String(college.id)}
-                    >{college.collegeName}</option
-                  >
-                {/each}
-              </select>
+                rows="3"></textarea>
               <button
                 class="field-save-btn"
                 disabled={savingField !== null ||
-                  collegeDraft === String(currentRoom.value.collegeId ?? "")}
-                onclick={() => saveField("collegeId")}
+                  directionsDraft.trim() ===
+                    (currentRoom.value.directions ?? "")}
+                onclick={() => saveField("directions")}
               >
-                {savingField === "collegeId" ? "Saving..." : "Save"}
+                {savingField === "directions" ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
 
-          <div class="editor-field">
-            <label for="room-division-editor">Division</label>
-            <div class="editor-control-row">
-              <select
-                id="room-division-editor"
-                bind:value={divisionDraft}
-                disabled={savingField !== null}
-              >
-                <option value="">No division</option>
-                {#each divisions as division (division.id)}
-                  <option value={String(division.id)}
-                    >{division.divisionName}</option
-                  >
-                {/each}
-              </select>
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  divisionDraft === String(currentRoom.value.divisionId ?? "")}
-                onclick={() => saveField("divisionId")}
-              >
-                {savingField === "divisionId" ? "Saving..." : "Save"}
-              </button>
+          <div class="editor-grid">
+            <div class="editor-field">
+              <label for="room-building-editor">Building</label>
+              <div class="editor-control-row">
+                <select
+                  id="room-building-editor"
+                  bind:value={buildingDraft}
+                  disabled={savingField !== null}
+                >
+                  <option value="">No building</option>
+                  {#each buildings as building (building.id)}
+                    <option value={String(building.id)}
+                      >{building.buildingName}</option
+                    >
+                  {/each}
+                </select>
+                <button
+                  class="field-save-btn"
+                  disabled={savingField !== null ||
+                    buildingDraft ===
+                      String(currentRoom.value.buildingId ?? "")}
+                  onclick={() => saveField("buildingId")}
+                >
+                  {savingField === "buildingId" ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-field">
+              <label for="room-college-editor">College</label>
+              <div class="editor-control-row">
+                <select
+                  id="room-college-editor"
+                  bind:value={collegeDraft}
+                  disabled={savingField !== null}
+                >
+                  <option value="">No college</option>
+                  {#each colleges as college (college.id)}
+                    <option value={String(college.id)}
+                      >{college.collegeName}</option
+                    >
+                  {/each}
+                </select>
+                <button
+                  class="field-save-btn"
+                  disabled={savingField !== null ||
+                    collegeDraft === String(currentRoom.value.collegeId ?? "")}
+                  onclick={() => saveField("collegeId")}
+                >
+                  {savingField === "collegeId" ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </div>
+
+            <div class="editor-field">
+              <label for="room-division-editor">Division</label>
+              <div class="editor-control-row">
+                <select
+                  id="room-division-editor"
+                  bind:value={divisionDraft}
+                  disabled={savingField !== null}
+                >
+                  <option value="">No division</option>
+                  {#each divisions as division (division.id)}
+                    <option value={String(division.id)}
+                      >{division.divisionName}</option
+                    >
+                  {/each}
+                </select>
+                <button
+                  class="field-save-btn"
+                  disabled={savingField !== null ||
+                    divisionDraft ===
+                      String(currentRoom.value.divisionId ?? "")}
+                  onclick={() => saveField("divisionId")}
+                >
+                  {savingField === "divisionId" ? "Saving..." : "Save"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {#if savedField}
-          <p class="editor-message success">{fieldLabel(savedField)} saved.</p>
-        {/if}
-        {#if fieldError}
-          <p class="editor-message error">{fieldError}</p>
+          {#if savedField}
+            <p class="editor-message success">
+              {fieldLabel(savedField)} saved.
+            </p>
+          {/if}
+          {#if fieldError}
+            <p class="editor-message error">{fieldError}</p>
+          {/if}
         {/if}
       </section>
     {/if}
@@ -331,14 +386,14 @@
       </p>
     {/if}
 
-    {#if currentRoom.value.building?.name}
+    {#if parentBuilding}
       <div class="building-note">
         <h3 class="building-note-title">
-          How to get to {currentRoom.value.building.name}
+          How to get to {parentBuilding.name}
         </h3>
-        {#if currentRoom.value.building.directions}
+        {#if parentBuilding.directions}
           <p class="building-directions">
-            {currentRoom.value.building.directions}
+            {parentBuilding.directions}
           </p>
         {:else}
           <p class="building-directions no-directions">
@@ -352,35 +407,24 @@
       </div>
     {/if}
 
-    {#if currentRoom.value.building?.name}
+    {#if parentBuilding}
       <div class="map-links">
-        <button class="view-building-btn" onclick={openBuildingResult}>
-          View building
-        </button>
-        {#if currentRoom.value.building.lat && currentRoom.value.building.lon}
+        {#if parentBuilding.lat && parentBuilding.lon}
           <button
             class="get-directions-btn"
             onclick={() => {
-              if (
-                currentRoom.value &&
-                currentRoom.value.building &&
-                currentRoom.value.building.lon &&
-                currentRoom.value.building.lat
-              ) {
-                locationStore.requestLocation();
-                locationStore.setDestination([
-                  currentRoom.value.building.lon,
-                  currentRoom.value.building.lat,
-                ]);
-              }
+              locationStore.requestLocation();
+              locationStore.setDestination([
+                parentBuilding.lon as number,
+                parentBuilding.lat as number,
+              ]);
             }}
           >
             Get Directions
             <CornerRightUp size={18} />
           </button>
           <a
-            href="https://www.google.com/maps?q={currentRoom.value.building
-              .lat},{currentRoom.value.building.lon}"
+            href="https://www.google.com/maps?q={parentBuilding.lat},{parentBuilding.lon}"
             target="_blank"
             rel="noreferrer"
           >
@@ -433,6 +477,55 @@
     flex: 1 1 0;
   }
 
+  .back-to-building {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 100%;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid hsl(5, 53%, 82%);
+    border-radius: 0.5rem;
+    background-color: white;
+    color: hsl(5, 53%, 32%);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
+    cursor: pointer;
+  }
+
+  .back-to-building span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .back-to-building:hover,
+  .back-to-building:focus-visible {
+    background-color: hsl(5, 53%, 98%);
+    border-color: hsl(5, 53%, 32%);
+  }
+
+  .back-to-building:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
+  }
+
+  .building-link {
+    all: unset;
+    cursor: pointer;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .building-link:hover,
+  .building-link:focus-visible {
+    color: hsl(5, 53%, 22%);
+  }
+
   .header-section {
     display: flex;
     flex-direction: column;
@@ -470,6 +563,10 @@
     font-size: 0.75rem;
     color: #4f4f4f;
     margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
   }
 
   .room-editor {
@@ -480,6 +577,32 @@
     border: 1px solid hsl(5, 53%, 88%);
     border-radius: 0.625rem;
     background-color: hsl(5, 53%, 98%);
+  }
+
+  .editor-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    border: 1px solid #d8b9ba;
+    border-radius: 0.5rem;
+    background: white;
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .editor-toggle:hover,
+  .editor-toggle:focus-visible {
+    background: #fdf3f3;
+  }
+
+  .editor-toggle:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
   }
 
   .editor-heading {
@@ -680,23 +803,6 @@
   .map-links a:focus-visible {
     background-color: hsl(5, 53%, 32%);
     color: white;
-  }
-
-  .view-building-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.5rem;
-    color: hsl(5, 53%, 32%);
-    background-color: white;
-    border: 1px solid hsl(5, 53%, 75%);
-    border-radius: 4px;
-    font-size: 0.875rem;
-    cursor: pointer;
-  }
-
-  .view-building-btn:hover,
-  .view-building-btn:focus-visible {
-    background-color: hsl(5, 53%, 95%);
   }
 
   .get-directions-btn {

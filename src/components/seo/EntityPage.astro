@@ -12,6 +12,10 @@ type Props = {
   title: string;
   description: string;
   canonicalPath: string;
+  image?: {
+    src: string;
+    alt: string;
+  } | null;
   heading: string;
   intro: string;
   facts?: string[];
@@ -24,6 +28,7 @@ const {
   title,
   description,
   canonicalPath,
+  image = null,
   heading,
   intro,
   facts = [],
@@ -37,6 +42,7 @@ const {
   title={title}
   description={description}
   canonicalPath={canonicalPath}
+  imagePath={image?.src}
   structuredData={structuredData}
 >
   <main class="entity-page">
@@ -53,6 +59,16 @@ const {
         </ol>
       </nav>
       <h1>{heading}</h1>
+      {
+        image && (
+          <img
+            class="entity-page__image"
+            src={image.src}
+            alt={image.alt}
+            loading="lazy"
+          />
+        )
+      }
       <p class="entity-page__intro">{intro}</p>
       {
         facts.length > 0 && (
@@ -68,7 +84,7 @@ const {
       <AppRoot
         initialSearch={initialSearch}
         suppressLandingModal={true}
-        client:only
+        client:only="svelte"
       />
     </div>
   </main>
@@ -119,6 +135,15 @@ const {
     font-size: 1rem;
     line-height: 1.6;
     max-width: 56rem;
+  }
+
+  .entity-page__image {
+    display: block;
+    width: min(22rem, 100%);
+    height: auto;
+    margin-top: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.16);
   }
 
   .entity-page__facts {
