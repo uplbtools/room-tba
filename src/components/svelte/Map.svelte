@@ -570,7 +570,6 @@
     map.setTerrain(null);
     setTerrainHillshadeVisible(map, false);
     setBuildingExtrusionsVisible(map, true);
-    map.setMaxBounds(CAMPUS_MAX_BOUNDS);
   }
 
   function restoreFlatMapCamera(map: mapGl.MapLibreMap) {
@@ -895,18 +894,29 @@
     }
   }
 
+  function clearEventLocationOverride(eventId: number) {
+    const key = eventLocationEditKey(eventId);
+    if (!(key in eventLocationOverrides)) return;
+    const next = { ...eventLocationOverrides };
+    delete next[key];
+    eventLocationOverrides = next;
+  }
+
   function setLocalEvent(updated: EventData) {
     appActions.replaceEvent(updated);
 
     const key = eventLocationEditKey(updated.id);
     const editable = getEditableEventLocation(updated);
+    if (editable && isAnchoredEventLocation(editable)) {
+      clearEventLocationOverride(updated.id);
+      return;
+    }
+
     const coords = editable ? getResolvedEventLocationCoords(editable) : null;
     if (coords) {
       eventLocationOverrides = { ...eventLocationOverrides, [key]: coords };
-    } else if (key in eventLocationOverrides) {
-      const next = { ...eventLocationOverrides };
-      delete next[key];
-      eventLocationOverrides = next;
+    } else {
+      clearEventLocationOverride(updated.id);
     }
   }
 
@@ -1356,7 +1366,6 @@
         map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration });
         setTerrainHillshadeVisible(map, true);
         setBuildingExtrusionsVisible(map, false);
-        map.setMaxBounds(MAKILING_TERRAIN_MAX_BOUNDS);
         if (!terrainModeWasEnabled) {
           map.off("moveend", startRotation);
           stopRotation();
@@ -1379,6 +1388,28 @@
     return () => {
       cancelled = true;
     };
+  });
+
+  // svelte-maplibre only passes maxBounds at map construction; keep the live
+  // instance in sync when bounds constants change (HMR) or terrain toggles.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const terrainEnabled = terrainStore.enabled;
+    if (!map) return;
+
+    const bounds = terrainEnabled
+      ? MAKILING_TERRAIN_MAX_BOUNDS
+      : CAMPUS_MAX_BOUNDS;
+
+    const applyBounds = () => {
+      map.setMaxBounds(bounds);
+    };
+
+    if (map.isStyleLoaded()) {
+      applyBounds();
+    } else {
+      map.once("load", applyBounds);
+    }
   });
 
   $effect(() => {
@@ -1717,18 +1748,35 @@
     return "Upcoming";
   }
 
+  $effect(() => {
+    if (!loaded || !isMapEditEnabled()) return;
+    const event = findSelectedEvent(events);
+    if (!event) return;
+    const location = getEditableEventLocation(event);
+    if (!location || !isAnchoredEventLocation(location)) return;
+    untrack(() => clearEventLocationOverride(event.id));
+  });
+
   type EventMarkerEntry = {
     event: EventData;
     location: EventData["locations"][number];
   };
 
+  function isAnchoredEventLocation(
+    location: EventData["locations"][number],
+  ): boolean {
+    return location.anchorType === "building" || location.anchorType === "dorm";
+  }
+
   function getEventMarkerLngLat(editable: {
     event: EventData;
     location: EventData["locations"][number];
   }): [number, number] {
-    const override =
-      eventLocationOverrides[eventLocationEditKey(editable.event.id)];
-    if (override) return [override.lon, override.lat];
+    if (!isAnchoredEventLocation(editable.location)) {
+      const override =
+        eventLocationOverrides[eventLocationEditKey(editable.event.id)];
+      if (override) return [override.lon, override.lat];
+    }
     return [
       Number(editable.location.resolvedLon),
       Number(editable.location.resolvedLat),
@@ -2966,8 +3014,8 @@
   }
 
   .event-stack-thumb {
-    object-fit: cover;
-    object-position: top center;
+    object-fit: contain;
+    background: hsl(0, 0%, 96%);
   }
 
   .event-stack-icon {
