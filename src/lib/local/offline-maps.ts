@@ -11,9 +11,12 @@ const CAMPUS_BOUNDS = {
 };
 
 export const MIN_ZOOM = 13;
-export const MAX_ZOOM = 17;
+// Hard ceiling; the real cap comes from the tile source's maxzoom (MapTiler
+// openmaptiles is 14 — higher zooms are overzoomed client-side, so requesting
+// them just 4xx's). Resolved dynamically in getTileTemplate().
+export const MAX_ZOOM = 14;
 // Rough per-tile size, only used for the pre-download size estimate.
-export const AVG_TILE_BYTES = 28 * 1024;
+export const AVG_TILE_BYTES = 80 * 1024;
 
 export const OFFLINE_TILE_CACHE = "map-tiles";
 export const OFFLINE_ASSET_CACHE = "map-assets";
@@ -51,27 +54,38 @@ export function getCampusTileCoords(
   return coords;
 }
 
-let cachedTemplate: string | null = null;
+export type TileSource = { template: string; maxZoom: number };
+
+let cachedSource: TileSource | null = null;
 
 /**
- * Resolve the MapTiler vector-tile URL template from the map style, following
- * the tiles.json indirection. Reuses the existing key in the style file.
+ * Resolve the MapTiler vector-tile URL template and the source's maxzoom from
+ * the map style, following the tiles.json indirection. Reuses the existing key
+ * in the style file. Zoom levels above maxZoom are overzoomed client-side, so
+ * they must not be prefetched.
  */
-export async function getTileTemplate(): Promise<string | null> {
-  if (cachedTemplate) return cachedTemplate;
+export async function getTileTemplate(): Promise<TileSource | null> {
+  if (cachedSource) return cachedSource;
   try {
     const style = await (await fetch("/liberty-customized.json")).json();
     const src = style?.sources?.openmaptiles;
     if (!src) return null;
+
     if (Array.isArray(src.tiles) && src.tiles[0]) {
-      cachedTemplate = src.tiles[0];
-      return cachedTemplate;
+      cachedSource = {
+        template: src.tiles[0],
+        maxZoom: clampMaxZoom(src.maxzoom),
+      };
+      return cachedSource;
     }
     if (typeof src.url === "string") {
       const tj = await (await fetch(src.url)).json();
       if (Array.isArray(tj?.tiles) && tj.tiles[0]) {
-        cachedTemplate = tj.tiles[0];
-        return cachedTemplate;
+        cachedSource = {
+          template: tj.tiles[0],
+          maxZoom: clampMaxZoom(tj.maxzoom),
+        };
+        return cachedSource;
       }
     }
     return null;
@@ -79,6 +93,11 @@ export async function getTileTemplate(): Promise<string | null> {
     console.error("Failed to resolve tile template:", e);
     return null;
   }
+}
+
+function clampMaxZoom(sourceMaxZoom: unknown): number {
+  const z = Number(sourceMaxZoom);
+  return Number.isFinite(z) ? Math.min(MAX_ZOOM, z) : MAX_ZOOM;
 }
 
 export function tileUrl(template: string, { z, x, y }: TileCoord): string {
