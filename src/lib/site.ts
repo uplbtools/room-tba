@@ -16,6 +16,16 @@ export function ogImageUrl(path: string = DEFAULT_OG_IMAGE) {
   return absoluteUrl(path);
 }
 
+/** Normalize a search term / alias for matching: NFKD, lowercase, and strip
+ * everything that is not a letter or digit (so "PhySci", "CAS A1", and "CASA1"
+ * collapse to comparable keys). Used for the alias synonym map (#155). */
+export function normalizeAlias(value: string) {
+  return value
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
 export function slugifySegment(value: string) {
   return value
     .trim()

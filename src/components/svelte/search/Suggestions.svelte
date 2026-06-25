@@ -128,6 +128,29 @@
       ? local.map((val) => ({ ...val, category: "room" as const }))
       : [];
   }
+
+  const aliasResult = $derived(getAliasSuggestions(queryStore.inputValue));
+
+  // Resolve search aliases/synonyms (e.g. "PhySci" -> Physical Sciences
+  // Building) to their building targets, with the matched alias for a hint (#155).
+  async function getAliasSuggestions(
+    searchValue: string,
+  ): Promise<{ alias: string; value: string }[]> {
+    const trimmed = searchValue.trim();
+    if (trimmed === "") return [];
+    try {
+      const res = await getJSONFetch<{
+        data: { alias: string; value: string | null }[];
+      }>(`/api/aliases?q=${encodeURIComponent(trimmed)}`);
+      return (res.data ?? [])
+        .filter((entry): entry is { alias: string; value: string } =>
+          Boolean(entry.value),
+        )
+        .map((entry) => ({ alias: entry.alias, value: entry.value }));
+    } catch {
+      return [];
+    }
+  }
 </script>
 
 <!-- class:visible={queryStore.inputValue === ""} -->
@@ -156,6 +179,20 @@
     {#each suggestedResult as suggestion, id (id)}
       <Suggestion {...suggestion} />
     {/each}
+  {/if}
+
+  {#if queryStore.inputValue !== ""}
+    {#await aliasResult then aliases}
+      {#each aliases as alias (alias.value)}
+        {#if !suggestedResult.some((s) => s.category === "building" && s.value === alias.value)}
+          <div class="alias-hint">
+            Showing results for <strong>{alias.alias}</strong> &rarr;
+            {alias.value}
+          </div>
+          <Suggestion value={alias.value} category="building" />
+        {/if}
+      {/each}
+    {/await}
   {/if}
 
   {#if queryStore.inputValue !== ""}
@@ -191,5 +228,14 @@
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: hsl(0, 0%, 45%);
+  }
+
+  .alias-hint {
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 45%);
+  }
+  .alias-hint strong {
+    color: hsl(5, 53%, 32%);
   }
 </style>
