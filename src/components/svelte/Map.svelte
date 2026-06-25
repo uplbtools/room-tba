@@ -11,6 +11,7 @@
     currentRoom,
     adminAuthStore,
     toastStore,
+    terrainStore,
   } from "../../lib/store.svelte";
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
@@ -26,6 +27,19 @@
     type JeepneyRoute,
     type JeepneyStop,
   } from "../../constants/jeepney-routes";
+  import {
+    CAMPUS_DEFAULT_CAMERA,
+    CAMPUS_MAX_BOUNDS,
+    MAKILING_TERRAIN_CAMERA,
+    MAKILING_TERRAIN_MAX_BOUNDS,
+    MAKILING_TERRAIN_SOURCE_BOUNDS,
+    TERRAIN_HILLSHADE_BEFORE_LAYER_ID,
+    TERRAIN_HILLSHADE_LAYER_ID,
+    TERRAIN_SOURCE_ID,
+    TERRAIN_TILE_FAILURE_MESSAGE,
+    TERRAIN_TILEJSON_URL,
+    TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
+  } from "../../constants/map-terrain";
   const data = getAppData();
   const { buildings, dorms, loaded } = $derived(data());
   const filteredDorms = $derived.by(() => {
@@ -39,10 +53,12 @@
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_CASING_ID = "jeepney-route-line-casing";
+  const BUILDING_3D_LAYER_ID = "building-3d";
 
   let activeRouteId = $state<string | null>(null);
   let activeRouteStops = $state<JeepneyStop[]>([]);
   let activeRouteColor = $state<string>("#dc2626");
+  let terrainModeWasEnabled = false;
   let selectedEditKey = $state<string | null>(null);
   let savingEditKey = $state<string | null>(null);
   let savedEditKey = $state<string | null>(null);
@@ -195,6 +211,167 @@
     );
   }
 
+  function ensureTerrainRendering(map: mapGl.MapLibreMap) {
+    if (!map.getSource(TERRAIN_SOURCE_ID)) {
+      map.addSource(TERRAIN_SOURCE_ID, {
+        type: "raster-dem",
+        url: TERRAIN_TILEJSON_URL,
+        bounds: MAKILING_TERRAIN_SOURCE_BOUNDS,
+        maxzoom: 14,
+        tileSize: 512,
+      });
+    }
+
+    if (!map.getLayer(TERRAIN_HILLSHADE_LAYER_ID)) {
+      map.addLayer(
+        {
+          id: TERRAIN_HILLSHADE_LAYER_ID,
+          type: "hillshade",
+          source: TERRAIN_SOURCE_ID,
+          layout: { visibility: "none" },
+          paint: {
+            "hillshade-accent-color": "rgba(112, 79, 40, 0.28)",
+            "hillshade-exaggeration": 0.85,
+            "hillshade-highlight-color": "rgba(255, 244, 214, 0.35)",
+            "hillshade-illumination-anchor": "viewport",
+            "hillshade-illumination-direction": 315,
+            "hillshade-shadow-color": "rgba(34, 25, 14, 0.55)",
+          },
+        },
+        map.getLayer(TERRAIN_HILLSHADE_BEFORE_LAYER_ID)
+          ? TERRAIN_HILLSHADE_BEFORE_LAYER_ID
+          : undefined,
+      );
+    }
+  }
+
+  function setTerrainHillshadeVisible(
+    map: mapGl.MapLibreMap,
+    visible: boolean,
+  ) {
+    if (!map.getLayer(TERRAIN_HILLSHADE_LAYER_ID)) return;
+    map.setLayoutProperty(
+      TERRAIN_HILLSHADE_LAYER_ID,
+      "visibility",
+      visible ? "visible" : "none",
+    );
+  }
+
+  function setBuildingExtrusionsVisible(
+    map: mapGl.MapLibreMap,
+    visible: boolean,
+  ) {
+    if (!map.getLayer(BUILDING_3D_LAYER_ID)) return;
+    map.setLayoutProperty(
+      BUILDING_3D_LAYER_ID,
+      "visibility",
+      visible ? "visible" : "none",
+    );
+  }
+
+  function flyToCamera(
+    map: mapGl.MapLibreMap,
+    camera: typeof CAMPUS_DEFAULT_CAMERA,
+  ) {
+    map.easeTo({
+      center: camera.center,
+      zoom: camera.zoom,
+      pitch: camera.pitch,
+      bearing: camera.bearing,
+      duration: 1500,
+      padding: calculatePadding(untrack(() => md.current)),
+    });
+  }
+
+  function disableTerrain(map: mapGl.MapLibreMap) {
+    map.setTerrain(null);
+    setTerrainHillshadeVisible(map, false);
+    setBuildingExtrusionsVisible(map, true);
+    map.setMaxBounds(CAMPUS_MAX_BOUNDS);
+  }
+
+  function restoreFlatMapCamera(map: mapGl.MapLibreMap) {
+    untrack(() => {
+      const category = queryStore.category;
+      const type = queryStore.type;
+      const value = queryStore.inputValue;
+
+      stopRotation();
+      map.off("moveend", startRotation);
+
+      if (category === "building" && type === "result") {
+        if (!loaded) return;
+        const currentBuilding = buildings.find(
+          (building) => building.buildingName === value,
+        );
+
+        if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
+          map.flyTo({
+            center: [currentBuilding.lon, currentBuilding.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+          map.once("moveend", startRotation);
+        }
+      } else if (category === null) {
+        flyToCamera(map, CAMPUS_DEFAULT_CAMERA);
+        if (directions) directions.clear();
+      } else if (category === "room") {
+        currentRoom.getRoomByCode(value).then(() => {
+          if (
+            currentRoom.value &&
+            currentRoom.value.building &&
+            currentRoom.value.building.lat &&
+            currentRoom.value.building.lon &&
+            !terrainStore.enabled
+          ) {
+            map.flyTo({
+              center: [
+                currentRoom.value.building.lon,
+                currentRoom.value.building.lat,
+              ],
+              zoom: 18,
+              pitch: 60,
+              padding: calculatePadding(md.current),
+              duration: 1500,
+            });
+            map.once("moveend", startRotation);
+          }
+        });
+      } else if (category === "dorm") {
+        if (!loaded) return;
+
+        const currentDorm = dorms.find((dorm) => dorm.dormName === value);
+        if (currentDorm && currentDorm.lon && currentDorm.lat) {
+          map.flyTo({
+            center: [currentDorm.lon, currentDorm.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+          map.once("moveend", startRotation);
+        }
+      }
+    });
+  }
+
+  function failTerrain(map: mapGl.MapLibreMap, message: string) {
+    disableTerrain(map);
+    terrainStore.markUnavailable(message);
+  }
+
+  function sourceErrorMatchesTerrain(event: mapGl.ErrorEvent) {
+    const sourceId = (event as mapGl.ErrorEvent & { sourceId?: string })
+      .sourceId;
+    const message = event.error?.message ?? "";
+    return (
+      sourceId === TERRAIN_SOURCE_ID || message.includes(TERRAIN_SOURCE_ID)
+    );
+  }
+
   let animationFrameId: number | null = $state(null);
 
   let isRotating = $state(false);
@@ -235,7 +412,7 @@
 
   function startRotation() {
     stopRotation();
-    if (!mapStore.mapInstance) return;
+    if (!mapStore.mapInstance || terrainStore.enabled) return;
     isRotating = true;
     lastTimestamp = 0;
     currentRotation = mapStore.mapInstance.getBearing();
@@ -617,17 +794,87 @@
   $effect(() => {
     if (mapStore.mapInstance) {
       const map = mapStore.mapInstance;
+      const handleMapError = (event: mapGl.ErrorEvent) => {
+        if (!terrainStore.enabled || !sourceErrorMatchesTerrain(event)) return;
+        failTerrain(map, TERRAIN_TILE_FAILURE_MESSAGE);
+      };
       map.on("mousedown", stopRotation);
       map.on("touchstart", stopRotation);
       map.on("wheel", stopRotation);
       map.on("zoom", handleZoom);
+      map.on("error", handleMapError);
       return () => {
         map.off("mousedown", stopRotation);
         map.off("touchstart", stopRotation);
         map.off("wheel", stopRotation);
         map.off("zoom", handleZoom);
+        map.off("error", handleMapError);
       };
     }
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const enabled = terrainStore.enabled;
+    const exaggeration = terrainStore.exaggeration;
+    if (!map) return;
+
+    let cancelled = false;
+    const apply = () => {
+      if (cancelled) return;
+
+      if (!enabled) {
+        const shouldRestoreFlatCamera = terrainModeWasEnabled;
+        disableTerrain(map);
+        map.off("moveend", startRotation);
+        terrainModeWasEnabled = false;
+        if (shouldRestoreFlatCamera) restoreFlatMapCamera(map);
+        return;
+      }
+
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        failTerrain(map, TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE);
+        return;
+      }
+
+      try {
+        terrainStore.markLoading();
+        ensureTerrainRendering(map);
+        map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration });
+        setTerrainHillshadeVisible(map, true);
+        setBuildingExtrusionsVisible(map, false);
+        map.setMaxBounds(MAKILING_TERRAIN_MAX_BOUNDS);
+        if (!terrainModeWasEnabled) {
+          map.off("moveend", startRotation);
+          stopRotation();
+          flyToCamera(map, MAKILING_TERRAIN_CAMERA);
+        }
+        terrainModeWasEnabled = true;
+        terrainStore.markActive();
+      } catch (error) {
+        console.warn("Terrain setup failed", error);
+        failTerrain(map, TERRAIN_TILE_FAILURE_MESSAGE);
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      apply();
+    } else {
+      map.once("load", apply);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const resetNonce = terrainStore.resetNonce;
+    if (!map || !terrainStore.enabled || resetNonce === 0) return;
+
+    stopRotation();
+    flyToCamera(map, MAKILING_TERRAIN_CAMERA);
   });
 
   $effect(() => {
@@ -747,6 +994,7 @@
     if (!map) return;
 
     untrack(() => {
+      const isTerrainEnabled = terrainStore.enabled;
       stopRotation();
       map.off("moveend", startRotation);
       if (category === "building" && type === "result") {
@@ -763,16 +1011,13 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          map.once("moveend", startRotation);
+          if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
       } else if (category === null) {
-        map.flyTo({
-          center: [121.24125948460573, 14.16323736946326],
-          zoom: 15.81,
-          pitch: 60,
-          bearing: -154.48,
-          duration: 1500,
-        });
+        flyToCamera(
+          map,
+          isTerrainEnabled ? MAKILING_TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
+        );
         if (directions) directions.clear();
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
@@ -792,7 +1037,7 @@
               padding: calculatePadding(md.current),
               duration: 1500,
             });
-            map.once("moveend", startRotation);
+            if (!isTerrainEnabled) map.once("moveend", startRotation);
           }
         });
       } else if (category === "dorm") {
@@ -807,7 +1052,7 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          map.once("moveend", startRotation);
+          if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
       }
     });
@@ -911,14 +1156,11 @@
   <MapLibre
     bind:map={mapStore.mapInstance}
     style="/liberty-customized.json"
-    maxBounds={[
-      [121.22951431520816, 14.143739048514412],
-      [121.28117994803134, 14.18059150108623],
-    ]}
-    center={[121.24224620509085, 14.16283754850545]}
+    maxBounds={CAMPUS_MAX_BOUNDS}
+    center={CAMPUS_DEFAULT_CAMERA.center}
     zoom={17}
-    pitch={60}
-    bearing={-154.48}
+    pitch={CAMPUS_DEFAULT_CAMERA.pitch}
+    bearing={CAMPUS_DEFAULT_CAMERA.bearing}
     minZoom={13}
     class="map"
   >
@@ -1056,6 +1298,20 @@
       {/if}
     {/each}
   </MapLibre>
+  {#if terrainStore.enabled}
+    <a
+      class="maptiler-logo"
+      href="https://www.maptiler.com/"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="MapTiler"
+    >
+      <img
+        src="https://api.maptiler.com/resources/logo.svg"
+        alt="MapTiler logo"
+      />
+    </a>
+  {/if}
 </div>
 
 <style>
@@ -1066,6 +1322,26 @@
     width: 100%;
     height: 100%;
     z-index: 0;
+  }
+
+  .maptiler-logo {
+    position: absolute;
+    bottom: 0.75rem;
+    left: calc(25.75rem + 1rem);
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.375rem;
+    background-color: rgba(255, 255, 255, 0.92);
+    padding: 0.25rem 0.375rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    pointer-events: auto;
+  }
+
+  .maptiler-logo img {
+    display: block;
+    width: auto;
+    height: 1.25rem;
   }
 
   .map-edit-toolbar {
@@ -1154,6 +1430,11 @@
   }
 
   @media (max-width: 48rem) {
+    .maptiler-logo {
+      bottom: calc(50vh + 0.75rem);
+      left: 0.75rem;
+    }
+
     .map-edit-toolbar {
       right: 0.5rem;
       bottom: 4.25rem;
