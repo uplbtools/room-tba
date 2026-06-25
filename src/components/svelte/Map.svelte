@@ -825,6 +825,18 @@
 
   $effect(() => {
     const map = mapStore.mapInstance;
+    if (!map) return;
+    mapStore.stopAutoRotate = () => {
+      stopRotation();
+      map.off("moveend", startRotation);
+    };
+    return () => {
+      mapStore.stopAutoRotate = null;
+    };
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
     const enabled = terrainStore.enabled;
     const exaggeration = terrainStore.exaggeration;
     if (!map) return;
