@@ -8,17 +8,17 @@
   } from "@lucide/svelte";
   import { syncToastStore } from "../../lib/store.svelte";
   import { fly } from "svelte/transition";
-  $inspect(
-    syncToastStore.currentSyncData !== null && !syncToastStore.allSynced,
-  );
+
+  type Props = {
+    stacked?: boolean;
+  };
+
+  const { stacked = false }: Props = $props();
   let manualClosed = $state<boolean>(false);
 
   $effect(() => {
-    syncToastStore.recentlySynced;
-    syncToastStore.allSynced;
-    syncToastStore.currentSync;
-    manualClosed = false;
-    // if (syncToastStore.recentlySynced)
+    const syncStateKey = `${syncToastStore.recentlySynced}:${syncToastStore.allSynced}:${syncToastStore.currentSync}`;
+    if (syncStateKey !== "") manualClosed = false;
   });
   $effect(() => {
     let timeout: number | null = null;
@@ -52,6 +52,7 @@
     <div
       class="sync-toast"
       class:sync-toast--success={syncToastStore.allSynced}
+      class:sync-toast--stacked={stacked}
       transition:fly={{ duration: 175, y: 20 }}
     >
       {#if syncToastStore.allSynced}
@@ -98,7 +99,7 @@
           {/if}
         {/key}
       </div>
-      <button onclick={() => (manualClosed = true)}><X /></button>
+      <button type="button" onclick={() => (manualClosed = true)}><X /></button>
     </div>
   {/if}
 {/key}
@@ -148,6 +149,16 @@
     .sync-toast-subtitle {
       color: var(--Color-success-700, #07761f);
     }
+  }
+  div.sync-toast--stacked {
+    position: static;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    top: auto;
+    width: min(360px, 100%);
+    translate: none;
+    pointer-events: auto;
   }
   div.progress-bar {
     position: relative;
@@ -201,6 +212,13 @@
           display: initial;
         }
       }
+    }
+
+    div.sync-toast--stacked {
+      position: static;
+      right: auto;
+      top: auto;
+      width: min(360px, 100%);
     }
   }
 </style>

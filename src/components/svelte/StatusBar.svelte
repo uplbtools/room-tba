@@ -1,10 +1,11 @@
 <script lang="ts">
-  import ChevronDown from "@lucide/svelte/icons/chevron-down"
-  import ChevronRight from "@lucide/svelte/icons/chevron-right"
-  import MessageCircle from "@lucide/svelte/icons/message-circle"
+  import ChevronDown from "@lucide/svelte/icons/chevron-down";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import MessageCircle from "@lucide/svelte/icons/message-circle";
   import { APP_VERSION_LABEL } from "../../constants/version";
   import { getAppData } from "../../lib/context";
   import { modalStore } from "../../lib/store.svelte";
+  import OfflineMaps from "./OfflineMaps.svelte";
 
   const appData = getAppData();
   const { directionCount, totalRooms } = $derived(appData());
@@ -40,7 +41,15 @@
         <strong>June 2026.</strong>
       </div>
       <div>
-        <a href="/messenger" target="_blank" rel="noopener noreferrer" class="messenger-link">
+        <OfflineMaps />
+      </div>
+      <div>
+        <a
+          href="/messenger"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="messenger-link"
+        >
           <MessageCircle size={18} />
           <div>Contact</div>
         </a>
@@ -87,6 +96,7 @@
     font-size: 0.875rem;
     font-weight: 600;
     gap: 1rem;
+    flex: 0 0 auto;
     background-color: white;
     padding: 0.5rem 1.5rem;
     border-radius: 1rem;
@@ -108,13 +118,18 @@
       display: flex;
       gap: 1rem;
       flex: 1;
+      min-width: 0;
+      flex-wrap: wrap;
     }
 
     .metadata {
       margin-left: auto;
-      flex: 0 0 auto;
+      flex: 0 1 auto;
+      min-width: 0;
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
+      row-gap: 0.25rem;
       & > *:not(:last-child) {
         border-right: 2px solid #aaa;
         padding-right: 0.75rem;
@@ -153,6 +168,7 @@
       .changelog-link {
         display: flex;
         gap: 0.25rem;
+        white-space: nowrap;
         color: unset;
         text-decoration: unset;
         padding: 0.125rem 0.375rem;
@@ -169,7 +185,8 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      flex: 0 0 24rem;
+      flex: 1 1 24rem;
+      min-width: 12rem;
       .progress-bar {
         height: 0.75rem;
         flex: 1 0 0;

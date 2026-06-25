@@ -167,10 +167,6 @@
 
 <style>
   .map-controls {
-    position: absolute;
-    right: 0.5rem;
-    top: 0.5rem;
-    z-index: 15;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
@@ -247,11 +243,6 @@
        grow the tap targets to the 44px touch-friendly minimum. Native
        touch gestures (two-finger twist/drag) exist but aren't discoverable,
        so these explicit affordances stay visible on mobile too. */
-    .map-controls {
-      right: 0.5rem;
-      top: 4rem;
-    }
-
     .control {
       width: 2.75rem;
       height: 2.75rem;
