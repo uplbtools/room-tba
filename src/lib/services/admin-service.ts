@@ -680,12 +680,29 @@ export async function getAllDivisionsAdmin(): Promise<DivisionAdmin[]> {
   return db.select().from(divisionsTable).orderBy(divisionsTable.divisionName);
 }
 
+export type DivisionUpdateInput = {
+  divisionName?: string;
+  collegeId?: number | null;
+};
+
 export async function updateDivision(
   id: number,
-  divisionName: string,
+  input: DivisionUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
 ): Promise<DivisionAdmin | null> {
+  const updates: Record<string, unknown> = {};
+  if (input.divisionName !== undefined) {
+    updates["divisionName"] = input.divisionName;
+  }
+  if (input.collegeId !== undefined) {
+    updates["collegeId"] = input.collegeId ?? null;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return getDivisionById(id);
+  }
+
   const before = await getDivisionById(id);
   const where =
     expectedVersion === undefined
@@ -697,7 +714,7 @@ export async function updateDivision(
   const [updated] = await db
     .update(divisionsTable)
     .set({
-      divisionName,
+      ...updates,
       version: sql`"version" + 1`,
       updatedAt: sql`now()`,
     })
@@ -725,14 +742,29 @@ export async function updateDivision(
   return updated ?? (await getDivisionById(id));
 }
 
+export type DivisionCreateInput = {
+  divisionName: string;
+  collegeId?: number | null;
+};
+
 export async function createDivision(
-  divisionName: string,
+  input: DivisionCreateInput | string,
   editedBy = "admin",
 ): Promise<DivisionAdmin | null> {
-  const trimmed = divisionName.trim();
+  const normalized =
+    typeof input === "string"
+      ? { divisionName: input.trim(), collegeId: null as number | null }
+      : {
+          divisionName: input.divisionName.trim(),
+          collegeId: input.collegeId ?? null,
+        };
+
   const [inserted] = await db
     .insert(divisionsTable)
-    .values({ divisionName: trimmed })
+    .values({
+      divisionName: normalized.divisionName,
+      collegeId: normalized.collegeId,
+    })
     .returning();
 
   if (!inserted) return null;

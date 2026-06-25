@@ -163,19 +163,32 @@ export const roomPositionsTable = pgTable(
   ],
 );
 
-export const divisionsTable = pgTable("divisions", {
-  id: integer().primaryKey().generatedByDefaultAsIdentity({
-    name: "divisions_id_seq",
-    startWith: 1,
-    increment: 1,
-    minValue: 1,
-    maxValue: 2147483647,
-    cache: 1,
-  }),
-  divisionName: varchar("division_name", { length: 100 }).notNull(),
-  version: integer().default(1).notNull(),
-  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
-});
+export const divisionsTable = pgTable(
+  "divisions",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "divisions_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    divisionName: varchar("division_name", { length: 100 }).notNull(),
+    collegeId: integer("college_id"),
+    version: integer().default(1).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.collegeId],
+      foreignColumns: [collegesTable.id],
+      name: "division_college",
+    }),
+  ],
+);
 
 export const roomsTable = pgTable(
   "rooms",

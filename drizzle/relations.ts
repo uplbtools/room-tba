@@ -58,11 +58,19 @@ export const dormsRelations = relations(dormsTable, ({ many }) => ({
 
 export const collegesRelations = relations(collegesTable, ({ many }) => ({
   rooms: many(roomsTable),
+  divisions: many(divisionsTable),
 }));
 
-export const divisionsRelations = relations(divisionsTable, ({ many }) => ({
-  rooms: many(roomsTable),
-}));
+export const divisionsRelations = relations(
+  divisionsTable,
+  ({ one, many }) => ({
+    college: one(collegesTable, {
+      fields: [divisionsTable.collegeId],
+      references: [collegesTable.id],
+    }),
+    rooms: many(roomsTable),
+  }),
+);
 
 export const eventsRelations = relations(eventsTable, ({ many }) => ({
   locations: many(eventLocationsTable),
