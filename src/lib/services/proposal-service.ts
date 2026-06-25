@@ -9,7 +9,7 @@ import {
   roomsTable,
 } from "../../../drizzle/schema";
 import { db } from "../db";
-import type { SessionUser } from "../admin/auth";
+import { canReviewProposals, type SessionUser } from "../admin/auth";
 import {
   EditConflictError,
   updateBuilding,
@@ -109,16 +109,125 @@ async function entityExists(
   entityType: ProposalEntityType,
   entityId: number,
 ): Promise<boolean> {
-  if (entityType === "event" || entityType === "event_locations") {
-    const [row] = await db
-      .select({ id: eventsTable.id })
-      .from(eventsTable)
-      .where(eq(eventsTable.id, entityId))
-      .limit(1);
-    return row !== undefined;
+  switch (entityType) {
+    case "building": {
+      const [row] = await db
+        .select({ id: buildingsTable.id })
+        .from(buildingsTable)
+        .where(eq(buildingsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "dorm": {
+      const [row] = await db
+        .select({ id: dormsTable.id })
+        .from(dormsTable)
+        .where(eq(dormsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "room": {
+      const [row] = await db
+        .select({ id: roomsTable.id })
+        .from(roomsTable)
+        .where(eq(roomsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "college": {
+      const [row] = await db
+        .select({ id: collegesTable.id })
+        .from(collegesTable)
+        .where(eq(collegesTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "division": {
+      const [row] = await db
+        .select({ id: divisionsTable.id })
+        .from(divisionsTable)
+        .where(eq(divisionsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "event":
+    case "event_locations": {
+      const [row] = await db
+        .select({ id: eventsTable.id })
+        .from(eventsTable)
+        .where(eq(eventsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
   }
-  const label = await getEntityLabel(entityType, entityId);
-  return !label.endsWith(` #${entityId}`);
+}
+
+export type ProposalPublicView = {
+  id: number;
+  entityType: string;
+  entityId: number;
+  entityLabel: string;
+  status: string;
+  adminNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProposalSubmitterView = ProposalPublicView & {
+  proposedPatch: Record<string, unknown>;
+  baseVersion: number;
+  submitterName: string;
+};
+
+export function toPublicProposalView(
+  summary: EditProposalSummary,
+): ProposalPublicView {
+  const showNote =
+    summary.status === "needs_changes" || summary.status === "rejected";
+  return {
+    id: summary.id,
+    entityType: summary.entityType,
+    entityId: summary.entityId,
+    entityLabel: summary.entityLabel,
+    status: summary.status,
+    adminNote: showNote ? summary.adminNote : null,
+    createdAt: summary.createdAt,
+    updatedAt: summary.updatedAt,
+  };
+}
+
+export function toSubmitterProposalView(
+  summary: EditProposalSummary,
+): ProposalSubmitterView {
+  return {
+    ...toPublicProposalView(summary),
+    proposedPatch: summary.proposedPatch as Record<string, unknown>,
+    baseVersion: summary.baseVersion,
+    submitterName: summary.submitterName,
+  };
+}
+
+export function canViewProposalSubmitterDetails(
+  session: SessionUser | null,
+  proposal: EditProposalRow,
+  submitterName?: string | null,
+): boolean {
+  if (session && canReviewProposals(session.role)) return true;
+  if (
+    session &&
+    session.id > 0 &&
+    proposal.submitterUserId === session.id
+  ) {
+    return true;
+  }
+  const normalized = submitterName?.trim().toLowerCase();
+  if (
+    normalized &&
+    normalized === proposal.submitterName.trim().toLowerCase()
+  ) {
+    return true;
+  }
+  return false;
 }
 
 async function withEntityLabel(
@@ -384,18 +493,49 @@ export async function approveProposal(id: number, reviewer: SessionUser) {
     throw new ProposalActionError("This proposal is no longer open.", 409);
   }
 
+  const reviewedBy = reviewer.displayName || reviewer.username;
+  const priorStatus = proposal.status;
+  const priorNote = proposal.adminNote;
+
+  const [claimed] = await db
+    .update(editProposalsTable)
+    .set({
+      status: "approved",
+      reviewedBy,
+      reviewedAt: sql`now()`,
+      adminNote: null,
+      updatedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(editProposalsTable.id, id),
+        inArray(editProposalsTable.status, [
+          "pending",
+          "needs_changes",
+        ] as const),
+      ),
+    )
+    .returning();
+
+  if (!claimed) {
+    throw new ProposalActionError("This proposal is no longer open.", 409);
+  }
+
   try {
-    const published = await applyProposalPatch(
-      proposal,
-      reviewer.displayName || reviewer.username,
-    );
-    const finalized = await finalizeProposal(
-      id,
-      "approved",
-      reviewer.displayName || reviewer.username,
-    );
-    return { proposal: finalized, published };
+    const published = await applyProposalPatch(claimed, reviewedBy);
+    return { proposal: await withEntityLabel(claimed), published };
   } catch (err) {
+    await db
+      .update(editProposalsTable)
+      .set({
+        status: priorStatus,
+        reviewedBy: null,
+        reviewedAt: null,
+        adminNote: priorNote,
+        updatedAt: sql`now()`,
+      })
+      .where(eq(editProposalsTable.id, id));
+
     if (err instanceof EditConflictError) {
       throw new ProposalActionError(
         "Published data changed before approval. Refresh and review again.",
