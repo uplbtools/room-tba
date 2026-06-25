@@ -1,4 +1,8 @@
-import { dormsTable, roomPositionsTable } from "../../drizzle/schema";
+import {
+  dormsTable,
+  roomPositionsTable,
+  termsTable,
+} from "../../drizzle/schema";
 import type { QueryStoreState } from "./store.svelte";
 
 export type AppData = {
@@ -86,6 +90,11 @@ type DivisionData = {
 };
 
 type DormData = typeof dormsTable.$inferSelect;
+
+type Term = typeof termsTable.$inferSelect;
+
+// A term plus how many classes are tagged with it, for the term selector UI.
+type TermWithCount = Term & { classCount: number };
 
 type RoomPosition = typeof roomPositionsTable.$inferSelect;
 
