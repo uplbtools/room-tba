@@ -1,8 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-  ADMIN_COOKIE_NAME,
-  verifySessionToken,
-} from "../../../../lib/admin/auth";
+import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
 import {
   deactivateEvent,
   EditConflictError,
@@ -18,9 +15,8 @@ type EventPatchBody = EventWriteInput & {
 };
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  if (auth instanceof Response) return auth;
 
   const id = parseEventId(params.id);
   if (id === null) return json({ error: "Invalid event ID" }, 400);
@@ -47,7 +43,12 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     if (typeof body.includeInSeo === "boolean") {
       updates.includeInSeo = body.includeInSeo;
     }
-    const event = await updateEvent(id, updates, expectedVersion);
+    const event = await updateEvent(
+      id,
+      updates,
+      expectedVersion,
+      auth.editedBy,
+    );
     if (!event) return json({ error: "Event not found" }, 404);
     return json({ success: true, event });
   } catch (err) {
@@ -56,9 +57,8 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
 };
 
 export const DELETE: APIRoute = async ({ cookies, params, request }) => {
-  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  if (auth instanceof Response) return auth;
 
   const id = parseEventId(params.id);
   if (id === null) return json({ error: "Invalid event ID" }, 400);
@@ -68,7 +68,7 @@ export const DELETE: APIRoute = async ({ cookies, params, request }) => {
     : undefined;
 
   try {
-    const event = await deactivateEvent(id, expectedVersion);
+    const event = await deactivateEvent(id, expectedVersion, auth.editedBy);
     return json({ success: true, event });
   } catch (err) {
     return handleEventError(err);

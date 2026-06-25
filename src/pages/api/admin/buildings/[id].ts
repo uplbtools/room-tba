@@ -1,8 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-  ADMIN_COOKIE_NAME,
-  verifySessionToken,
-} from "../../../../lib/admin/auth";
+import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
 import {
   EditConflictError,
   updateBuilding,
@@ -20,12 +17,8 @@ type BuildingPatchBody = {
 };
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  if (auth instanceof Response) return auth;
 
   const id = parseInt(params["id"] ?? "");
   if (isNaN(id)) {
@@ -45,7 +38,6 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     });
   }
 
-  // Partial updates: only validate fields that are present
   if (
     body.buildingName !== undefined &&
     body.buildingName.trim().length === 0
@@ -83,7 +75,12 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       updates.buildingType = body.buildingType;
     if (body.directions !== undefined) updates.directions = body.directions;
 
-    const building = await updateBuilding(id, updates, expectedVersion);
+    const building = await updateBuilding(
+      id,
+      updates,
+      expectedVersion,
+      auth.editedBy,
+    );
 
     return new Response(JSON.stringify({ success: true, building }), {
       status: 200,

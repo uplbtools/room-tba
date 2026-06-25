@@ -1,8 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-  ADMIN_COOKIE_NAME,
-  verifySessionToken,
-} from "../../../../../lib/admin/auth";
+import { editorSessionOrUnauthorized } from "../../../../../lib/admin/require-editor";
 import {
   EditConflictError,
   updateEvent,
@@ -17,9 +14,8 @@ type RoutesPatchBody = {
 };
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  if (auth instanceof Response) return auth;
 
   const id = Number(params.id);
   if (!Number.isInteger(id)) return json({ error: "Invalid event ID" }, 400);
@@ -40,6 +36,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       id,
       { routes: body.routes },
       Number.isInteger(body.version) ? body.version : undefined,
+      auth.editedBy,
     );
     if (!event) return json({ error: "Event not found" }, 404);
     return json({ success: true, event });
