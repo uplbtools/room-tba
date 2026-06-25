@@ -1,24 +1,22 @@
-// src/lib/context.ts
-
 import { createContext } from "svelte";
-import type {
-  BuildingData,
-  ClassMapValue,
-  CollegeData,
-  DivisionData,
-  DormData,
-  RoomData,
-} from "./types";
-
-type AppData = {
-  rooms: RoomData[];
+import { BuildingData, CollegeData, DivisionData, DormData } from "./types";
+export type AppContextData = {
   buildings: BuildingData[];
   colleges: CollegeData[];
   divisions: DivisionData[];
   dorms: DormData[];
-  classesMap: Map<string, ClassMapValue[]>;
   totalRooms: number;
   directionCount: number;
-};
+  loaded: true;
+} | {
+  buildings:null;
+  colleges:null;
+  divisions:null;
+  dorms:null;
+  totalRooms:null;
+  directionCount:null;
+  loaded: false;
+}
+export type DBData = Omit<AppContextData, "loaded">
 
-export const [getAppData, setAppData] = createContext<AppData>();
+export const [getAppData, setAppData] = createContext<() => AppContextData>();

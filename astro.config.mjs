@@ -1,17 +1,20 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, envField } from "astro/config";
 import react from "@astrojs/react";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
+import vercel from "@astrojs/vercel";
 // https://astro.build/config
 export default defineConfig({
-  site: "https://room-tba.stimmie.dev",
+  site: "https://room-tba.uplbtools.me",
+
   integrations: [
     react(),
     svelte(),
     AstroPWA({
       workbox: {
         globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest,json,jpg}"],
+        swDest: `dist/client/sw.js`
       },
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
@@ -35,6 +38,7 @@ export default defineConfig({
       },
     }),
   ],
+
   vite: {
     preview: {
       host: "127.0.0.1",
@@ -42,9 +46,28 @@ export default defineConfig({
     server: {
       host: "localhost",
     },
+    optimizeDeps: {
+      exclude: ["@electric-sql/pglite"],
+    },
   },
+
   redirects: {
     "/contribute": "https://forms.gle/nVUMuuZgfW1HgXc98",
     "/messenger": "https://m.me/j/AbbjA1ouHCefGTkU",
   },
+
+  // adapter: vercel(),
+  env: {
+    schema: {
+      NEON_CONNECTION_STRING: envField.string({
+        access: "secret",
+        context: "server",
+      }),
+      ADMIN_PASSWORD: envField.string({
+        access: "secret",
+        context: "server",
+      }),
+    },
+  },
+  adapter: vercel(),
 });

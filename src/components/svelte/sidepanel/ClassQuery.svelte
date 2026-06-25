@@ -1,26 +1,24 @@
 <script lang="ts">
-  import { getAppData } from "../../../lib/context";
   import { queryStore } from "../../../lib/store.svelte";
-  import RoomDisplay from "./RoomDisplay.svelte";
+  // import RoomDisplay from "./RoomDisplay.svelte";
 
-  const { classesMap, rooms } = getAppData();
 
-  const filteredRooms = $derived(
-    rooms
-      .filter((room) =>
-        classesMap
-          .get(room.code)
-          ?.some((classItem) =>
-            classItem.courseCode
-              ?.toLowerCase()
-              .includes(queryStore.queryValue.toLowerCase()),
-          ),
-      )
-      .map((room) => ({
-        room,
-        classes: classesMap.get(room.code) || [],
-      })),
-  );
+  // const filteredRooms = $derived(
+  //   rooms
+  //     .filter((room) =>
+  //       classesMap
+  //         .get(room.code)
+  //         ?.some((classItem) =>
+  //           classItem.courseCode
+  //             ?.toLowerCase()
+  //             .includes(queryStore.queryValue.toLowerCase()),
+  //         ),
+  //     )
+  //     .map((room) => ({
+  //       room,
+  //       classes: classesMap.get(room.code) || [],
+  //     })),
+  // );
 </script>
 
 <div class="class-query-container">
@@ -30,15 +28,15 @@
   </div>
 
   <div class="results-list">
-    {#if filteredRooms.length > 0}
+    <!-- {#if filteredRooms.length > 0}
       {#each filteredRooms as { room, classes }}
         <RoomDisplay {room} searchInput={queryStore.queryValue} {classes} />
       {/each}
-    {:else}
-      <div class="no-results">
-        <p>No rooms found with classes matching this course code.</p>
-      </div>
-    {/if}
+    {:else} -->
+    <div class="no-results">
+      <p>No rooms found with classes matching this course code.</p>
+    </div>
+    <!-- {/if} -->
   </div>
 </div>
 
