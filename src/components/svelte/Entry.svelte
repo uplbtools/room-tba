@@ -137,6 +137,14 @@
     --search-block-height: 3.25rem;
     --status-bar-block-height: 2.75rem;
     --drawer-peek-offset: 1.75rem;
+    --mobile-detail-sheet-height: min(
+      58dvh,
+      calc(
+        100dvh - var(--search-block-height) - var(--status-bar-block-height) -
+          var(--edit-bar-height) - var(--map-ui-padding) * 2 -
+          env(safe-area-inset-bottom, 0px)
+      )
+    );
     --edit-bar-height: 0rem;
     --pill-padding-x: 0.875rem;
     --map-chrome-radius: 1rem;
@@ -291,7 +299,8 @@
       position: fixed;
       right: var(--map-ui-padding);
       bottom: calc(
-        50% + var(--drawer-peek-offset) + var(--edit-bar-height) +
+        var(--status-bar-block-height) + var(--map-ui-padding) +
+          env(safe-area-inset-bottom, 0px) + var(--mobile-detail-sheet-height) +
           var(--map-ui-padding)
       );
     }
