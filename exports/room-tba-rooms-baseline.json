@@ -1,0 +1,2080 @@
+{
+  "rooms": [
+    {
+      "room_code": "ABC",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 161",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 162a",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 162b",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 163",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 164",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 165",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 167",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC 261",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABC162a",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "ABCR",
+      "building_name": "Agricultural and Biological Chemistry Building"
+    },
+    {
+      "room_code": "AFBED LR1",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED LR2",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED LR3",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED PHYSLAB",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED Physlab",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED_Conference Room",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED_LR1",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED_LR2",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "AFBED_LR3",
+      "building_name": "AFBED Building"
+    },
+    {
+      "room_code": "ASI 231",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 233",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 235",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 237",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 238A",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 238B",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 240",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 333",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI 336",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI A-104",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI A-119",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI B-126",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI B-126 / ASI 333",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI B-127",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI B-138",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASI Training Room",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASR 1",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASR 3",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "ASILH B125",
+      "building_name": "Agricultural Systems Institute Building"
+    },
+    {
+      "room_code": "BS A-109",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS A-115",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS A-121",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS A-137",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS A-215",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS A-309",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS A-315",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS B-100",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS B-101",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS B-105",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS B-109",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS B-307",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-105",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-107",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-112",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-113",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-116",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-117",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-125",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-127",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-205",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-227",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-313",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS C-321",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS D-229",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS E-103",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "BS E-213",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBSLH 3",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBSLH MAIN",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBSLH Main",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBSLH2",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBSLH3",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "MBBLH",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "MSLR 1",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "MSLR 2",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBS Bioinformatics Laboratory",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBS Bioinformatics Room",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBS MBB Teaching Laboratory",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "IBS Symbiosis-Bioinformatics Laboratory",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "Malacology Lab (Snail Room)",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "Malacology Laboratory (BS Snail Room)",
+      "building_name": "Biological Sciences Building"
+    },
+    {
+      "room_code": "212B",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "237",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "A-102",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "A-115",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "AAVLH",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "ANSC LH2",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "ASLH 1",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "ASLH 2",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "ASLH1",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "ASLH2",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "ASLH 3",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "B-100",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "B-201",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "B101a",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "B200",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "BAL LAB 1",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "BAL LAB 2",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "BALH 1",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "BALH 2",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "BALH1",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "BALH2",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "Bal lab 2",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "Balh1",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "D407",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "FCN",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "FPPS ANNEX",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "IAF",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "Nursery (FCN)",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "SOILS LAB",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "Soils Lab",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "PSLH A",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "PSLH B",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "Poultry Lab B",
+      "building_name": "CAFS Building"
+    },
+    {
+      "room_code": "CAS 101",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 102",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 103",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 104",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 106",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 107",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 108",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 109",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS 110",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B01",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B02",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B03",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B04",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B05",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B06",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B07",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B08",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B09",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS B10",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS LITE 4",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS LITE 5",
+      "building_name": "CAS Main Building"
+    },
+    {
+      "room_code": "CAS A1 - GAL 2",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 301",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 302",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 303",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 304",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 305",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 306",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 402",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 403",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 404",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 405",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 406",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 407",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 408",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 409",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 410",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 GAL 1",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A1 GAL 2",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CATL",
+      "building_name": "CAS Annex 1"
+    },
+    {
+      "room_code": "CAS A2 101",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2 102",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2 103",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2 200",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2 201",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2 202",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2 203",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2 MPH1",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2- 201",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2-201",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A200",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CAS A2MPH2",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "INSTAT RA2",
+      "building_name": "CAS Annex 2"
+    },
+    {
+      "room_code": "CDC 209A",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC 212B",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC ANNEX 04",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC ANNEX 2",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC ANNEX 3",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC ANNEX1",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC ANNEX2",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC ANNEX3",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC ANNEX4",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC Annex 01",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC Annex4",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC Conference Rm",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC DECIMU",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC GRAD",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC GRAD ROOM",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC IMU",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC LR1",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC LR2",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC RM 201B",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC RM 209A",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC RM201B",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC RM212B",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC Rm209A",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC Room 200A",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CDC Room 201B",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "RM 209A",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "Room 200A",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "Room 212B",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "DEC-IMU",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "IMU",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "LR1",
+      "building_name": "CDC Building"
+    },
+    {
+      "room_code": "CE 101",
+      "building_name": "Civil Engineering Building"
+    },
+    {
+      "room_code": "CE 101A",
+      "building_name": "Civil Engineering Building"
+    },
+    {
+      "room_code": "CE 101B",
+      "building_name": "Civil Engineering Building"
+    },
+    {
+      "room_code": "CE 102",
+      "building_name": "Civil Engineering Building"
+    },
+    {
+      "room_code": "CE 103",
+      "building_name": "Civil Engineering Building"
+    },
+    {
+      "room_code": "CE CONF RM",
+      "building_name": "Civil Engineering Building"
+    },
+    {
+      "room_code": "CE LAB",
+      "building_name": "Civil Engineering Building"
+    },
+    {
+      "room_code": "CEAT B-100",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-100a",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-101a",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-101b",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-103",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-105",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-108",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-200a",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-200b",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-201",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-202",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-203",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B-205",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B100",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT B100b",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT SHOP",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEAT SHOP RM",
+      "building_name": "CEAT Building"
+    },
+    {
+      "room_code": "CEM  202",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 101",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 102",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 104",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 105",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 106",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 107",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 108",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 109",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 110",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 111",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 112",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 113",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 114",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 115",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 116",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 117",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 118",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 118/ONLINE",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 201",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 202",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 203",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 204",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM 205",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM FH",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM Function Hall",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEM102",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CEMFH",
+      "building_name": "CEM Building"
+    },
+    {
+      "room_code": "CFNR Lansigan, Audi",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "CFNR Varrons Room",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "CFNR, Manza",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "ERSG LAB",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "Follosco",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "GEOMATICS",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "GEOMATICS ROOM",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "GTOCHLOA",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "Human Dimensions Lab",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "SFFG 14",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "SFFG 16",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "SFFG 7",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "SFFG 9",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "SHOREA",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "SWIETENIA",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "VITEX",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "Varrons Room",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "WOOD ANATOMY",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "WOOD CHEM",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "Field",
+      "building_name": "CFNR Building"
+    },
+    {
+      "room_code": "CHE  MPH",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE 1",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE 2",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE 4",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE 5",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE Conference Room",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE MPH",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE REC",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE Rec",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE SR",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE conference room",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CHE-MPH",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "Dean's Office Conference Room DECL Hall",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "Dean's Office Conference Room, DECL Hall",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CLH",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "DHFDS",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "DHFDS GRAD",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "ALH",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "ACL",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CTL",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CERP Conf Room",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "CERP Conference Room",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "DCERP  AVR",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "DCERP AVR",
+      "building_name": "CHE Building"
+    },
+    {
+      "room_code": "ChE 1",
+      "building_name": "Chemical Engineering Building"
+    },
+    {
+      "room_code": "ChE 2",
+      "building_name": "Chemical Engineering Building"
+    },
+    {
+      "room_code": "ChE 3",
+      "building_name": "Chemical Engineering Building"
+    },
+    {
+      "room_code": "ChE 4",
+      "building_name": "Chemical Engineering Building"
+    },
+    {
+      "room_code": "ChE 5",
+      "building_name": "Chemical Engineering Building"
+    },
+    {
+      "room_code": "ChE SR",
+      "building_name": "Chemical Engineering Building"
+    },
+    {
+      "room_code": "Unit Ops",
+      "building_name": "Chemical Engineering Building"
+    },
+    {
+      "room_code": "ADSC LH3 (IAS-CVM Building)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Animal Health Lab",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Animal Health Laboratory",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Animal Nutrition Lecture Room",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Animal Physiology Lecture Room",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "CVM LR1",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "CVM LR2",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DSDS MLH",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DSDS MLH (Main Lecture Hall)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DSDS Main Lecture Hall",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DSDS Main Lecture Hall (MLH)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DSDS SDS Lab",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "EM/HIS LAB",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "FRONDA HALL - ROOM 26",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Food Hygiene Laboratory Room",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Fronda GSR",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Fronda Hall -  Graduate Student Room (GSR)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Fronda Hall -  Poultry Lab B",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Fronda Hall - Graduate Student Room (GSR)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Fronda Hall RM. 24",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Fronda RM. 24",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Room 24 - Fronda Hall",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "General Physio Lab (Rm. 100)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "General Physiology Lab (Rm. 100)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Gross Anat Lab",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "IAS Graduate Room (AND)",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "IAS RM. 1",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "IAS RM. 2",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "IAS Room 1",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "IAS-LGIL",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "MLH",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "PHYSIO LAB",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "PhysLab",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "Pharma Lab",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "SDS Lab",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "SDS lab",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "THERIOGENOLOGY LABORATORY ROOM",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "ZOTCLAB BC",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "ZOTCLAB-CL",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DBVS Graduate Student Lecture Room",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DBVS LR",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DBVS Lecture Room",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DVCS L.A. SURGERY RM",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DVCS LR1",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DVCS S.A. SURGERY RM",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DVCS SURGERY THEATRE",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DVCS Small Animal Surgery Room",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DVCS THERIO LAB",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DVCS ZOTC Rm - Gregorio San Agustin Hall",
+      "building_name": "CVM Building"
+    },
+    {
+      "room_code": "DAAE Conference Room 1",
+      "building_name": "DAAE Building"
+    },
+    {
+      "room_code": "DAAE Conference Room 2",
+      "building_name": "DAAE Building"
+    },
+    {
+      "room_code": "EE 100",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE 103",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE 104",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE 202",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE 203",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE 302",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE 303",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE 304",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "EE AUDI",
+      "building_name": "Electrical Engineering Building"
+    },
+    {
+      "room_code": "FBS 051",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 055",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 060",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 151",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 155",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 155/ FBS 051",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 155/FBS 051",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 157",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 161",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 169",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 171",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "FBS 175",
+      "building_name": "Forestry Biological Sciences Building"
+    },
+    {
+      "room_code": "GRAD ROOM",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "GS 201",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "GS Room 202",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "Graduate Room",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "Graduate Room 120",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "Graduate School",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "NEW GS RM 2",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "Old GS Conference Room",
+      "building_name": "Graduate School Building"
+    },
+    {
+      "room_code": "HL CONRM 2",
+      "building_name": "Hydrology Building"
+    },
+    {
+      "room_code": "HL ConfRm2",
+      "building_name": "Hydrology Building"
+    },
+    {
+      "room_code": "HL-100",
+      "building_name": "Hydrology Building"
+    },
+    {
+      "room_code": "HL-201",
+      "building_name": "Hydrology Building"
+    },
+    {
+      "room_code": "IABE CONFR",
+      "building_name": "IABE Building"
+    },
+    {
+      "room_code": "IABE DO Meeting Room",
+      "building_name": "IABE Building"
+    },
+    {
+      "room_code": "IABE LH",
+      "building_name": "IABE Building"
+    },
+    {
+      "room_code": "IABE Meeting Room",
+      "building_name": "IABE Building"
+    },
+    {
+      "room_code": "ICOPED 26",
+      "building_name": "ICOPED Building"
+    },
+    {
+      "room_code": "ICOPED 28",
+      "building_name": "ICOPED Building"
+    },
+    {
+      "room_code": "ICOPED 30",
+      "building_name": "ICOPED Building"
+    },
+    {
+      "room_code": "ICROPS 100",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 101",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 104",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 106",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 134",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 137",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 138",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 200",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 201",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 202",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 302",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "ICROPS 302 MORPH LAB",
+      "building_name": "ICropS Building"
+    },
+    {
+      "room_code": "IE 100",
+      "building_name": "Industrial Engineering Building"
+    },
+    {
+      "room_code": "IE 101",
+      "building_name": "Industrial Engineering Building"
+    },
+    {
+      "room_code": "IE 102",
+      "building_name": "Industrial Engineering Building"
+    },
+    {
+      "room_code": "IE 103",
+      "building_name": "Industrial Engineering Building"
+    },
+    {
+      "room_code": "IE 104",
+      "building_name": "Industrial Engineering Building"
+    },
+    {
+      "room_code": "IFST 201",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST 202",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST ANNEX A",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST ANNEX B",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST ANNEX C",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST ANNEX D",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST L2/L3",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST Pilot Plant",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IFST STL",
+      "building_name": "IFST Building"
+    },
+    {
+      "room_code": "IHNF Conference Room",
+      "building_name": "IHNF Building"
+    },
+    {
+      "room_code": "RGQ",
+      "building_name": "IHNF Building"
+    },
+    {
+      "room_code": "NL",
+      "building_name": "IHNF Building"
+    },
+    {
+      "room_code": "FL",
+      "building_name": "IHNF Building"
+    },
+    {
+      "room_code": "IRNR 252",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 253",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 254",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 271A",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 273A",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 273B",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 290",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 291",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR 292",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IRNR Conference Room",
+      "building_name": "IRNR Building"
+    },
+    {
+      "room_code": "IWEP AUDI",
+      "building_name": "IWEP Building"
+    },
+    {
+      "room_code": "IWEPLH",
+      "building_name": "IWEP Building"
+    },
+    {
+      "room_code": "WPD Hall LR108",
+      "building_name": "IWEP Building"
+    },
+    {
+      "room_code": "LHKCB 101B",
+      "building_name": "LHKCB Building"
+    },
+    {
+      "room_code": "LHKCB 204",
+      "building_name": "LHKCB Building"
+    },
+    {
+      "room_code": "MB 100",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 101A",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 101B",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 102",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 103A",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 104",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 301",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 302",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 303",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 304",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 305",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 307",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 308",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "MB 309",
+      "building_name": "Math Building"
+    },
+    {
+      "room_code": "BADMINTON COURT",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "BALLET AREA",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "BASKETBALL COURT",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "BEACH VOLLEYBALL COURT",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "BRIDGE ROOM",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "DANCE AREA 1",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "DANCE AREA 2",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "MARTIAL ARTS AREA",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "TABLE TENNIS AREA",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "UPPERFIELD",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "VOLLEYBALL AREA",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "WEIGHT TRAINING AREA",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "YOGA ROOM",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "LR2A",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "LR2B",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "LR3B",
+      "building_name": "Copeland Gymnasium"
+    },
+    {
+      "room_code": "SWIMMING POOL",
+      "building_name": "Baker Hall Pool"
+    },
+    {
+      "room_code": "PHTRC",
+      "building_name": "PHTRC Building"
+    },
+    {
+      "room_code": "PHTRC 106",
+      "building_name": "PHTRC Building"
+    },
+    {
+      "room_code": "PHTRC ANNEX",
+      "building_name": "PHTRC Building"
+    },
+    {
+      "room_code": "PS ANX-300",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS ANX-306",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-100",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-101",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-103",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-105",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-200",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-201",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-203",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS B-205",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-101",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-200c",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-203",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-204",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-206",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-214",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-304",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-305",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-306",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-307",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-309",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-312",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C-320",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PS C100",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "AVR-ANNEX",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "EAA LH",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC1",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC2",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC3",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC4",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC5",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC6",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC7",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC8",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "ICS PC9",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "INSTATLH",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "MMM LH",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "SMA LH",
+      "building_name": "Physical Sciences Building"
+    },
+    {
+      "room_code": "PTCF Conf. Rm",
+      "building_name": "PTCF Building"
+    },
+    {
+      "room_code": "PTCF LAB",
+      "building_name": "PTCF Building"
+    },
+    {
+      "room_code": "PTCF Lec 1",
+      "building_name": "PTCF Building"
+    },
+    {
+      "room_code": "TCC 1",
+      "building_name": "TCC Building"
+    },
+    {
+      "room_code": "TCC 11",
+      "building_name": "TCC Building"
+    },
+    {
+      "room_code": "TCC 2",
+      "building_name": "TCC Building"
+    },
+    {
+      "room_code": "TCC 22",
+      "building_name": "TCC Building"
+    },
+    {
+      "room_code": "TCC 4",
+      "building_name": "TCC Building"
+    },
+    {
+      "room_code": "TCC 5",
+      "building_name": "TCC Building"
+    },
+    {
+      "room_code": "Main Library",
+      "building_name": "Main Library"
+    },
+    {
+      "room_code": "UPRHS",
+      "building_name": "UPRHS Building"
+    }
+  ]
+}
