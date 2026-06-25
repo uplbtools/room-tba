@@ -3,7 +3,7 @@
 import type { modalOptions } from "../constants/modal-states";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
-import { RoomData, type RecentSearch } from "./types";
+import { RoomData, type RecentSearch, type TermWithCount } from "./types";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
 
 export type DormFilterType = "all" | "up" | "private";
@@ -530,7 +530,56 @@ class SyncToastStore {
   }
 }
 
+const ACTIVE_TERM_LS_KEY = "active-term-id";
+
+class TermStore {
+  terms = $state<TermWithCount[]>([]);
+  activeTermId = $state<number | null>(null);
+  loaded = $state(false);
+  private _hydrated = false;
+
+  activeTerm = $derived(
+    this.terms.find((t) => t.id === this.activeTermId) ?? null,
+  );
+
+  init = async () => {
+    if (this._hydrated) return;
+    this._hydrated = true;
+    try {
+      const terms = await getJSONFetch<TermWithCount[]>("/api/terms");
+      this.terms = terms;
+
+      const storedRaw = localStorage.getItem(ACTIVE_TERM_LS_KEY);
+      const stored = storedRaw !== null ? Number(storedRaw) : NaN;
+      const storedValid =
+        Number.isFinite(stored) && terms.some((t) => t.id === stored);
+
+      const fallback =
+        terms.find((t) => t.isDefault) ??
+        terms.find((t) => t.isActive) ??
+        terms[0] ??
+        null;
+
+      this.activeTermId = storedValid ? stored : (fallback?.id ?? null);
+      this.loaded = true;
+    } catch (e) {
+      console.error("Failed to load terms:", e);
+    }
+  };
+
+  setTerm = (id: number) => {
+    this.activeTermId = id;
+    try {
+      localStorage.setItem(ACTIVE_TERM_LS_KEY, String(id));
+    } catch {
+      // localStorage may be unavailable (private mode); selection still works
+      // for the current session.
+    }
+  };
+}
+
 export const queryStore = new QueryStore();
+export const termStore = new TermStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();

@@ -1,10 +1,11 @@
 <script lang="ts">
-  import ChevronDown from "@lucide/svelte/icons/chevron-down"
-  import ChevronRight from "@lucide/svelte/icons/chevron-right"
-  import MessageCircle from "@lucide/svelte/icons/message-circle"
+  import ChevronDown from "@lucide/svelte/icons/chevron-down";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import MessageCircle from "@lucide/svelte/icons/message-circle";
   import { APP_VERSION_LABEL } from "../../constants/version";
   import { getAppData } from "../../lib/context";
   import { modalStore } from "../../lib/store.svelte";
+  import TermSelector from "./TermSelector.svelte";
 
   const appData = getAppData();
   const { directionCount, totalRooms } = $derived(appData());
@@ -35,12 +36,20 @@
       </div>
     </div>
     <div class="metadata">
+      <div class="term-selector-item">
+        <TermSelector />
+      </div>
       <div class="data-updated">
         Course and room information is updated regularly. Last updated:
         <strong>June 2026.</strong>
       </div>
       <div>
-        <a href="/messenger" target="_blank" rel="noopener noreferrer" class="messenger-link">
+        <a
+          href="/messenger"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="messenger-link"
+        >
           <MessageCircle size={18} />
           <div>Contact</div>
         </a>
