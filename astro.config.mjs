@@ -13,8 +13,53 @@ export default defineConfig({
     svelte(),
     AstroPWA({
       workbox: {
-        globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest,json,jpg}"],
-        swDest: `dist/client/sw.js`
+        // The Vercel adapter otherwise points globDirectory at dist/server,
+        // so nothing client-side gets precached and the app can't load
+        // offline. Glob the actual client output instead.
+        globDirectory: "dist/client",
+        // Precache app assets plus the home shell (only the root index.html,
+        // not the ~650 entity SEO pages) so the app loads offline. The
+        // navigate fallback serves that shell for offline navigations.
+        globPatterns: [
+          "**/*.{js,css,ico,png,svg,webmanifest,json,jpg}",
+          "index.html",
+        ],
+        navigateFallback: "/",
+        navigateFallbackDenylist: [/^\/api\//],
+        swDest: `dist/client/sw.js`,
+        // Cache third-party map resources at runtime so the campus map works
+        // offline once visited (or after an explicit "download offline maps").
+        runtimeCaching: [
+          {
+            // MapTiler vector tiles + tiles.json
+            urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "map-tiles",
+              expiration: {
+                maxEntries: 4000,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Sprites, glyphs, and shaded-relief rasters used by the map style
+            urlPattern:
+              /^https:\/\/(maputnik|orangemug|klokantech)\.github\.io\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "map-assets",
+              expiration: {
+                maxEntries: 800,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
