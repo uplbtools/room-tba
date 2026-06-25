@@ -195,30 +195,60 @@
       justify-content: flex-start;
       min-height: 0;
     }
+
     .side-panel-controls {
       flex: 0 0 auto;
-      flex-direction: column;
-      justify-content: flex-end;
+      min-height: 0;
+      pointer-events: none;
     }
+
     .drawer {
+      position: fixed;
+      z-index: 13;
       top: auto;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      height: 50%;
+      right: var(--map-ui-padding);
+      bottom: calc(
+        var(--status-bar-block-height) + var(--map-ui-padding) +
+          env(safe-area-inset-bottom, 0px)
+      );
+      left: var(--map-ui-padding);
+      width: auto;
+      height: var(--mobile-detail-sheet-height);
+      max-height: var(--mobile-detail-sheet-height);
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
     }
+
     .drawer.is-collapsed {
-      transform: translateY(100%);
+      transform: translateY(calc(100% - var(--drawer-peek-offset, 1.75rem)));
     }
+
+    .drawer-card {
+      flex: 1 1 auto;
+      min-height: 0;
+      border-radius: 0 0 var(--map-chrome-radius, 1rem)
+        var(--map-chrome-radius, 1rem);
+      box-shadow: var(
+        --map-chrome-panel-shadow,
+        0 0 0 1px hsla(0, 0%, 0%, 0.14),
+        0 4px 14px hsla(0, 0%, 0%, 0.2),
+        0 10px 28px hsla(0, 0%, 0%, 0.12)
+      );
+    }
+
     .drawer-handle {
-      top: -1.75rem;
+      position: relative;
+      top: auto;
       right: auto;
-      left: 50%;
-      translate: -50% 0;
+      left: auto;
+      translate: none;
+      flex-shrink: 0;
+      align-self: center;
       width: 5.5rem;
-      height: 1.75rem;
-      border-radius: 0.875rem 0.875rem 0 0;
+      height: var(--drawer-peek-offset, 1.75rem);
+      border-radius: var(--map-chrome-radius, 1rem)
+        var(--map-chrome-radius, 1rem) 0 0;
       box-shadow: 0 -3px 8px 0 rgba(0, 0, 0, 0.22);
     }
   }
