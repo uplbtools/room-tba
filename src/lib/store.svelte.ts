@@ -259,9 +259,6 @@ class LocationStore {
 
 class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
-  // Set by Map.svelte so UI controls can halt the idle auto-rotation
-  // before performing a manual camera change.
-  stopAutoRotate: (() => void) | null = null;
 }
 
 class JeepneyStore {
