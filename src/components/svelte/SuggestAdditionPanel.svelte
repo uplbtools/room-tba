@@ -5,8 +5,10 @@
     floatingControlPanelStore,
     toastStore,
   } from "../../lib/store.svelte";
+  import { getAppData } from "../../lib/context";
   import {
     resolveSubmitterName,
+    publishEntityCreate,
     submitCreateProposal,
     type ProposalCreateType,
   } from "../../lib/proposals/client";
@@ -18,7 +20,15 @@
     label: string;
   };
 
-  const OPTIONS: AdditionOption[] = [
+  let {
+    mode = "proposal",
+    panelId = "suggest-addition",
+  }: {
+    mode?: "proposal" | "publish";
+    panelId?: string;
+  } = $props();
+
+  const PROPOSAL_OPTIONS: AdditionOption[] = [
     { value: "create_building", label: "Building" },
     { value: "create_event", label: "Campus event" },
     { value: "create_dorm", label: "Dorm" },
@@ -26,6 +36,19 @@
     { value: "create_college", label: "College" },
     { value: "create_division", label: "Division" },
   ];
+
+  const PUBLISH_OPTIONS: AdditionOption[] = [
+    { value: "create_building", label: "Building" },
+    { value: "create_dorm", label: "Dorm" },
+    { value: "create_room", label: "Room" },
+    { value: "create_college", label: "College" },
+    { value: "create_division", label: "Division" },
+  ];
+
+  const options = $derived(
+    mode === "publish" ? PUBLISH_OPTIONS : PROPOSAL_OPTIONS,
+  );
+  const isPublish = $derived(mode === "publish");
 
   let kind = $state<ProposalCreateType>("create_building");
   let submitterName = $state("");
@@ -45,9 +68,13 @@
   let roomCode = $state("");
   let roomDirections = $state("");
   let collegeName = $state("");
+  let divisionCollegeDraft = $state("");
   let divisionName = $state("");
   let submitting = $state(false);
   let error = $state<string | null>(null);
+
+  const appData = getAppData();
+  const colleges = $derived(appData().loaded ? appData().colleges : []);
 
   const needsPin = $derived(
     kind === "create_building" ||
@@ -76,13 +103,14 @@
     roomCode = "";
     roomDirections = "";
     collegeName = "";
+    divisionCollegeDraft = "";
     divisionName = "";
     error = null;
   }
 
   async function pickOnMap() {
     error = null;
-    floatingControlPanelStore.close("suggest-addition");
+    floatingControlPanelStore.close(panelId);
     try {
       const coords = await additionProposalStore.requestMapPin();
       lat = coords.lat;
@@ -90,7 +118,7 @@
     } catch {
       // cancelled
     } finally {
-      floatingControlPanelStore.openPanel = "suggest-addition";
+      floatingControlPanelStore.openPanel = panelId;
     }
   }
 
@@ -155,20 +183,26 @@
       case "create_college":
         return { collegeName: collegeName.trim() };
       case "create_division":
-        return { divisionName: divisionName.trim() };
+        return {
+          divisionName: divisionName.trim(),
+          collegeId:
+            divisionCollegeDraft === "" ? null : Number(divisionCollegeDraft),
+        };
     }
   }
 
   async function submit() {
     error = null;
-    const name = resolveSubmitterName({
-      displayName: adminAuthStore.displayName,
-      username: adminAuthStore.username,
-      draftName: submitterName,
-    });
-    if (!name) {
-      error = "Enter your name so editors know who suggested this.";
-      return;
+    if (!isPublish) {
+      const name = resolveSubmitterName({
+        displayName: adminAuthStore.displayName,
+        username: adminAuthStore.username,
+        draftName: submitterName,
+      });
+      if (!name) {
+        error = "Enter your name so editors know who suggested this.";
+        return;
+      }
     }
     if (
       needsPin &&
@@ -178,12 +212,53 @@
       error = "Pick a map location first.";
       return;
     }
+    if (kind === "create_building" && !buildingName.trim()) {
+      error = "Building name is required.";
+      return;
+    }
+    if (kind === "create_room" && !roomCode.trim()) {
+      error = "Room code is required.";
+      return;
+    }
+    if (kind === "create_dorm" && !dormName.trim()) {
+      error = "Dorm name is required.";
+      return;
+    }
+    if (kind === "create_college" && !collegeName.trim()) {
+      error = "College name is required.";
+      return;
+    }
+    if (kind === "create_division" && !divisionName.trim()) {
+      error = "Division name is required.";
+      return;
+    }
 
     submitting = true;
     try {
+      const patch = buildPatch();
+      if (isPublish) {
+        const result = await publishEntityCreate(kind, patch);
+        if (!result.ok) {
+          error = result.error ?? "Could not create entry.";
+          return;
+        }
+        toastStore.show(
+          `${options.find((o) => o.value === kind)?.label ?? "Entry"} created.`,
+          "success",
+        );
+        resetFields();
+        floatingControlPanelStore.close(panelId);
+        return;
+      }
+
+      const name = resolveSubmitterName({
+        displayName: adminAuthStore.displayName,
+        username: adminAuthStore.username,
+        draftName: submitterName,
+      })!;
       const result = await submitCreateProposal({
         entityType: kind,
-        patch: buildPatch(),
+        patch,
         submitterName: name,
       });
       if (!result.ok) {
@@ -192,17 +267,25 @@
       }
       toastStore.show("Addition submitted for editor review.", "success");
       resetFields();
-      floatingControlPanelStore.close("suggest-addition");
+      floatingControlPanelStore.close(panelId);
     } finally {
       submitting = false;
     }
   }
 </script>
 
-<section class="addition-panel" aria-label="Propose a campus addition">
+<section
+  class="addition-panel"
+  aria-label={isPublish ? "Add to campus map" : "Propose a campus addition"}
+>
   <p class="addition-lead">
-    Missing something on the map? Propose a new building, room, event, or other
-    campus entry. Editors review before anything goes live.
+    {#if isPublish}
+      Add a missing building, room, dorm, college, or division. Buildings and
+      dorms need a map pin before you create them.
+    {:else}
+      Missing something on the map? Propose a new building, room, event, or
+      other campus entry. Editors review before anything goes live.
+    {/if}
   </p>
 
   <label class="field">
@@ -213,13 +296,13 @@
         resetFields();
       }}
     >
-      {#each OPTIONS as option (option.value)}
+      {#each options as option (option.value)}
         <option value={option.value}>{option.label}</option>
       {/each}
     </select>
   </label>
 
-  {#if !adminAuthStore.isLoggedIn}
+  {#if !isPublish && !adminAuthStore.isLoggedIn}
     <label class="field">
       <span>Your name</span>
       <input bind:value={submitterName} maxlength="100" autocomplete="name" />
@@ -293,6 +376,15 @@
       <span>Division name</span>
       <input bind:value={divisionName} maxlength="100" />
     </label>
+    <label class="field">
+      <span>Parent college</span>
+      <select bind:value={divisionCollegeDraft}>
+        <option value="">No college</option>
+        {#each colleges as college (college.id)}
+          <option value={String(college.id)}>{college.collegeName}</option>
+        {/each}
+      </select>
+    </label>
   {/if}
 
   {#if needsPin}
@@ -309,7 +401,13 @@
   {/if}
 
   <button type="button" class="submit" disabled={submitting} onclick={submit}>
-    {submitting ? "Submitting…" : "Submit for review"}
+    {submitting
+      ? isPublish
+        ? "Creating…"
+        : "Submitting…"
+      : isPublish
+        ? "Create now"
+        : "Submit for review"}
   </button>
 </section>
 
@@ -318,8 +416,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-height: 18rem;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .addition-lead {

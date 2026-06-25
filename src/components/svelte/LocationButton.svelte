@@ -9,6 +9,7 @@
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import {
     adminAuthStore,
+    eventPlacementStore,
     floatingControlPanelStore,
     locationStore,
     mapEditStore,
@@ -16,8 +17,10 @@
     proposalsStore,
     toastStore,
   } from "../../lib/store.svelte";
+  import { beginEventPlacement } from "../../lib/event-placement";
   import ProposalReviewPanel from "./ProposalReviewPanel.svelte";
   import SuggestAdditionPanel from "./SuggestAdditionPanel.svelte";
+  import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
 
   let centered: boolean = $state(false);
   const adminPanelId = "admin";
@@ -69,6 +72,22 @@
     await adminAuthStore.logout();
     toastStore.show("Signed out.", "info");
   }
+
+  const placingEvent = $derived(
+    eventPlacementStore.active || eventPlacementStore.creating,
+  );
+
+  function handleAddEvent() {
+    if (!beginEventPlacement({ propose: false })) return;
+    floatingControlPanelStore.close(adminPanelId);
+    toastStore.show("Click the map to place the new event.", "info");
+  }
+
+  function addEventLabel() {
+    if (eventPlacementStore.creating) return "Creating event...";
+    if (eventPlacementStore.active) return "Choose event location on map";
+    return "Add event";
+  }
 </script>
 
 <div class="map-control-stack">
@@ -100,6 +119,20 @@
               <Pencil size={16} />
               {mapEditStore.enabled ? "Turn off map edit" : "Turn on map edit"}
             </button>
+            <button
+              type="button"
+              class="admin-menu-action"
+              role="menuitem"
+              disabled={placingEvent}
+              onclick={handleAddEvent}
+            >
+              <CalendarPlus size={16} />
+              {addEventLabel()}
+            </button>
+            <div class="admin-addition-section">
+              <p class="admin-section-label">Add to map</p>
+              <SuggestAdditionPanel mode="publish" panelId={adminPanelId} />
+            </div>
           {/if}
           <ProposalReviewPanel />
           <button
@@ -267,14 +300,33 @@
 
   .admin-panel {
     display: flex;
-    width: 15.5rem;
+    width: 17rem;
     max-width: calc(100vw - 1rem);
+    max-height: min(70vh, 28rem);
     flex-direction: column;
     gap: 0.5rem;
     border-radius: 0.875rem;
     background-color: white;
     padding: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+  }
+
+  .admin-addition-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid hsl(0, 0%, 90%);
+  }
+
+  .admin-section-label {
+    margin: 0;
+    color: hsl(5, 53%, 32%);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
 
   .suggest-panel {
@@ -324,6 +376,11 @@
   .admin-menu-action:hover,
   .admin-menu-action:focus-visible {
     background-color: hsl(5, 53%, 98%);
+  }
+
+  .admin-menu-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
   }
 
   .admin-menu-action.active {
