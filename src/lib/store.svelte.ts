@@ -3,7 +3,12 @@
 import type { modalOptions } from "../constants/modal-states";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
-import { RoomData, type RecentSearch, type TermWithCount } from "./types";
+import {
+  RoomData,
+  type ClassMapValue,
+  type RecentSearch,
+  type TermWithCount,
+} from "./types";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
 
 export type DormFilterType = "all" | "up" | "private";
@@ -578,8 +583,55 @@ class TermStore {
   };
 }
 
+/**
+ * Classes for the currently viewed room, scoped to the active term. Results are
+ * cached per `${roomCode}::${termId}` key so switching back and forth between
+ * terms/rooms doesn't refetch (a clear, term-aware client cache).
+ */
+class RoomClassesStore {
+  classes = $state<ClassMapValue[]>([]);
+  loading = $state(false);
+  private _cache = new Map<string, ClassMapValue[]>();
+  private _requestKey: string | null = null;
+
+  load = async (roomCode: string, termId: number | null) => {
+    const key = `${roomCode}::${termId ?? "all"}`;
+    this._requestKey = key;
+
+    const cached = this._cache.get(key);
+    if (cached) {
+      this.classes = cached;
+      this.loading = false;
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const params = new URLSearchParams({ room_code: roomCode });
+      if (termId != null) params.set("term_id", String(termId));
+      const data = await getJSONFetch<ClassMapValue[]>(
+        `/api/classes?${params.toString()}`,
+      );
+      this._cache.set(key, data);
+      // Ignore responses for a room/term the user has since navigated away from.
+      if (this._requestKey === key) this.classes = data;
+    } catch (e) {
+      console.error("Failed to load room classes:", e);
+      if (this._requestKey === key) this.classes = [];
+    } finally {
+      if (this._requestKey === key) this.loading = false;
+    }
+  };
+
+  clear = () => {
+    this.classes = [];
+    this._requestKey = null;
+  };
+}
+
 export const queryStore = new QueryStore();
 export const termStore = new TermStore();
+export const roomClassesStore = new RoomClassesStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();

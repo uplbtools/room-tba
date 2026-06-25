@@ -1,15 +1,18 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import {
     adminAuthStore,
     currentRoom,
     locationStore,
     modalStore,
     queryStore,
+    roomClassesStore,
+    termStore,
   } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import type { RoomData } from "../../../lib/types";
-  // import Classes from "./Classes.svelte";
+  import Classes from "./Classes.svelte";
 
   type RoomEditableField =
     | "roomCode"
@@ -159,6 +162,24 @@
       value: buildingName,
     });
   }
+
+  onMount(() => {
+    termStore.init();
+  });
+
+  // Load the current room's classes for the active term, re-fetching whenever
+  // the room or the selected term changes.
+  $effect(() => {
+    const code = currentRoom.value?.code;
+    const termId = termStore.activeTermId;
+    if (!code) {
+      roomClassesStore.clear();
+      return;
+    }
+    roomClassesStore.load(code, termId);
+  });
+
+  const activeTermLabel = $derived(termStore.activeTerm?.label ?? null);
 </script>
 
 <div class="room-details-container">
@@ -393,27 +414,54 @@
 
     <div class="schedule-section">
       <div class="schedule-section__header">
-        <h3>Classes in this room</h3>
-        <button
-          onclick={() => modalStore.openModal("schedule-expand")}
-          class="schedule-section__opener"
-          >Open schedule <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><line x1="7" y1="17" x2="17" y2="7"></line><polyline
-              points="7 7 17 7 17 17"
-            ></polyline></svg
-          ></button
-        >
+        <h3>
+          Classes in this room
+          {#if !roomClassesStore.loading}
+            <span class="schedule-section__count"
+              >({roomClassesStore.classes.length})</span
+            >
+          {/if}
+        </h3>
+        {#if roomClassesStore.classes.length > 0}
+          <button
+            onclick={() => modalStore.openModal("schedule-expand")}
+            class="schedule-section__opener"
+            >Open schedule <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><line x1="7" y1="17" x2="17" y2="7"></line><polyline
+                points="7 7 17 7 17 17"
+              ></polyline></svg
+            ></button
+          >
+        {/if}
       </div>
-      <!-- <Classes classes={classesData} /> -->
+      {#if activeTermLabel}
+        <p class="schedule-section__term">{activeTermLabel}</p>
+      {/if}
+      {#if roomClassesStore.loading}
+        <p class="schedule-section__empty">Loading classes…</p>
+      {:else if roomClassesStore.classes.length > 0}
+        <Classes classes={roomClassesStore.classes} />
+      {:else}
+        <p class="schedule-section__empty">
+          No classes listed for this room{activeTermLabel
+            ? ` in ${activeTermLabel}`
+            : ""}.
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdius5C7OyC1klraq71fFwWPZNvNk_iDLFyhCNir_ccC07Q7Q/viewform?usp=dialog"
+            target="_blank"
+            rel="noreferrer">Report outdated data</a
+          >
+        </p>
+      {/if}
     </div>
   {:else}
     <p>Room not found.</p>
@@ -657,6 +705,28 @@
     line-height: 1.25rem;
     color: black;
     margin: 0;
+  }
+
+  .schedule-section__count {
+    color: hsl(0, 0%, 45%);
+    font-weight: 500;
+  }
+
+  .schedule-section__term {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(5, 53%, 32%);
+  }
+
+  .schedule-section__empty {
+    margin: 0;
+    font-size: 0.875rem;
+    color: hsl(0, 0%, 45%);
+  }
+
+  .schedule-section__empty a {
+    color: hsl(5, 53%, 32%);
   }
 
   .map-links {
