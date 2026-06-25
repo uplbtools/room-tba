@@ -1,0 +1,450 @@
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import {
+  buildingsTable,
+  collegesTable,
+  divisionsTable,
+  dormsTable,
+  editProposalsTable,
+  eventsTable,
+  roomsTable,
+} from "../../../drizzle/schema";
+import { db } from "../db";
+import type { SessionUser } from "../admin/auth";
+import {
+  EditConflictError,
+  updateBuilding,
+  updateCollege,
+  updateDivision,
+  updateDorm,
+  updateEvent,
+  updateEventLocations,
+  updateRoom,
+  type BuildingUpdateInput,
+  type DormUpdateInput,
+  type EventLocationWriteInput,
+  type EventWriteInput,
+  type RoomUpdateInput,
+} from "./admin-service";
+
+export const PROPOSAL_ENTITY_TYPES = [
+  "building",
+  "dorm",
+  "room",
+  "college",
+  "division",
+  "event",
+  "event_locations",
+] as const;
+
+export type ProposalEntityType = (typeof PROPOSAL_ENTITY_TYPES)[number];
+
+export type EditProposalRow = typeof editProposalsTable.$inferSelect;
+
+export type EditProposalSummary = EditProposalRow & {
+  entityLabel: string;
+};
+
+function isProposalEntityType(value: string): value is ProposalEntityType {
+  return (PROPOSAL_ENTITY_TYPES as readonly string[]).includes(value);
+}
+
+export async function getEntityLabel(
+  entityType: ProposalEntityType,
+  entityId: number,
+): Promise<string> {
+  switch (entityType) {
+    case "building": {
+      const [row] = await db
+        .select({ label: buildingsTable.buildingName })
+        .from(buildingsTable)
+        .where(eq(buildingsTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Building #${entityId}`;
+    }
+    case "dorm": {
+      const [row] = await db
+        .select({ label: dormsTable.dormName })
+        .from(dormsTable)
+        .where(eq(dormsTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Dorm #${entityId}`;
+    }
+    case "room": {
+      const [row] = await db
+        .select({ label: roomsTable.roomCode })
+        .from(roomsTable)
+        .where(eq(roomsTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Room #${entityId}`;
+    }
+    case "college": {
+      const [row] = await db
+        .select({ label: collegesTable.collegeName })
+        .from(collegesTable)
+        .where(eq(collegesTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `College #${entityId}`;
+    }
+    case "division": {
+      const [row] = await db
+        .select({ label: divisionsTable.divisionName })
+        .from(divisionsTable)
+        .where(eq(divisionsTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Division #${entityId}`;
+    }
+    case "event":
+    case "event_locations": {
+      const [row] = await db
+        .select({ label: eventsTable.title })
+        .from(eventsTable)
+        .where(eq(eventsTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Event #${entityId}`;
+    }
+  }
+}
+
+async function entityExists(
+  entityType: ProposalEntityType,
+  entityId: number,
+): Promise<boolean> {
+  if (entityType === "event" || entityType === "event_locations") {
+    const [row] = await db
+      .select({ id: eventsTable.id })
+      .from(eventsTable)
+      .where(eq(eventsTable.id, entityId))
+      .limit(1);
+    return row !== undefined;
+  }
+  const label = await getEntityLabel(entityType, entityId);
+  return !label.endsWith(` #${entityId}`);
+}
+
+async function withEntityLabel(
+  row: EditProposalRow,
+): Promise<EditProposalSummary> {
+  return {
+    ...row,
+    entityLabel: await getEntityLabel(
+      row.entityType as ProposalEntityType,
+      row.entityId,
+    ),
+  };
+}
+
+export async function listPendingProposals(): Promise<EditProposalSummary[]> {
+  const rows = await db
+    .select()
+    .from(editProposalsTable)
+    .where(
+      inArray(editProposalsTable.status, ["pending", "needs_changes"] as const),
+    )
+    .orderBy(desc(editProposalsTable.createdAt));
+
+  return Promise.all(rows.map(withEntityLabel));
+}
+
+export async function countPendingProposals(): Promise<number> {
+  const rows = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(editProposalsTable)
+    .where(
+      inArray(editProposalsTable.status, ["pending", "needs_changes"] as const),
+    );
+  return Number(rows[0]?.c ?? 0);
+}
+
+export async function getProposalById(
+  id: number,
+): Promise<EditProposalSummary | null> {
+  const [row] = await db
+    .select()
+    .from(editProposalsTable)
+    .where(eq(editProposalsTable.id, id))
+    .limit(1);
+  if (!row) return null;
+  return withEntityLabel(row);
+}
+
+type SubmitProposalInput = {
+  entityType: string;
+  entityId: number;
+  baseVersion: number;
+  patch: Record<string, unknown>;
+  submitterName: string;
+  submitterUserId?: number | null;
+  proposalId?: number | null;
+};
+
+export async function submitProposal(
+  input: SubmitProposalInput,
+): Promise<EditProposalSummary> {
+  if (!isProposalEntityType(input.entityType)) {
+    throw new ProposalValidationError("Unsupported entity type.");
+  }
+  if (!Number.isInteger(input.entityId) || input.entityId < 1) {
+    throw new ProposalValidationError("Invalid entity ID.");
+  }
+  if (!Number.isInteger(input.baseVersion) || input.baseVersion < 1) {
+    throw new ProposalValidationError("Invalid base version.");
+  }
+  const name = input.submitterName.trim();
+  if (name.length < 2 || name.length > 100) {
+    throw new ProposalValidationError(
+      "Your name must be between 2 and 100 characters.",
+    );
+  }
+  if (Object.keys(input.patch).length === 0) {
+    throw new ProposalValidationError("No changes to submit.");
+  }
+
+  if (!(await entityExists(input.entityType, input.entityId))) {
+    throw new ProposalValidationError("Entity not found.");
+  }
+
+  let existing: EditProposalRow | undefined;
+
+  if (input.proposalId) {
+    [existing] = await db
+      .select()
+      .from(editProposalsTable)
+      .where(eq(editProposalsTable.id, input.proposalId))
+      .limit(1);
+    if (
+      !existing ||
+      !["pending", "needs_changes"].includes(existing.status) ||
+      existing.submitterName !== name ||
+      (input.submitterUserId &&
+        existing.submitterUserId !== input.submitterUserId)
+    ) {
+      existing = undefined;
+    }
+  } else if (input.submitterUserId) {
+    [existing] = await db
+      .select()
+      .from(editProposalsTable)
+      .where(
+        and(
+          eq(editProposalsTable.entityType, input.entityType),
+          eq(editProposalsTable.entityId, input.entityId),
+          eq(editProposalsTable.submitterUserId, input.submitterUserId),
+          inArray(editProposalsTable.status, [
+            "pending",
+            "needs_changes",
+          ] as const),
+        ),
+      )
+      .limit(1);
+  }
+
+  const mergedPatch = existing
+    ? {
+        ...(existing.proposedPatch as Record<string, unknown>),
+        ...input.patch,
+      }
+    : input.patch;
+
+  if (existing) {
+    const [updated] = await db
+      .update(editProposalsTable)
+      .set({
+        proposedPatch: mergedPatch,
+        baseVersion: input.baseVersion,
+        status: "pending",
+        adminNote: null,
+        reviewedBy: null,
+        reviewedAt: null,
+        updatedAt: sql`now()`,
+      })
+      .where(eq(editProposalsTable.id, existing.id))
+      .returning();
+    if (!updated) throw new Error("Failed to update proposal.");
+    return withEntityLabel(updated);
+  }
+
+  const [created] = await db
+    .insert(editProposalsTable)
+    .values({
+      entityType: input.entityType,
+      entityId: input.entityId,
+      proposedPatch: mergedPatch,
+      baseVersion: input.baseVersion,
+      submitterName: name,
+      submitterUserId: input.submitterUserId ?? null,
+      status: "pending",
+    })
+    .returning();
+
+  if (!created) throw new Error("Failed to create proposal.");
+  return withEntityLabel(created);
+}
+
+export class ProposalValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ProposalValidationError";
+  }
+}
+
+export class ProposalActionError extends Error {
+  status: number;
+
+  constructor(message: string, status = 400) {
+    super(message);
+    this.name = "ProposalActionError";
+    this.status = status;
+  }
+}
+
+async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
+  const patch = proposal.proposedPatch as Record<string, unknown>;
+  const version = proposal.baseVersion;
+
+  switch (proposal.entityType as ProposalEntityType) {
+    case "building":
+      return updateBuilding(
+        proposal.entityId,
+        patch as BuildingUpdateInput,
+        version,
+        editedBy,
+      );
+    case "dorm":
+      return updateDorm(
+        proposal.entityId,
+        patch as DormUpdateInput,
+        version,
+        editedBy,
+      );
+    case "room":
+      return updateRoom(
+        proposal.entityId,
+        patch as RoomUpdateInput,
+        version,
+        editedBy,
+      );
+    case "college": {
+      const name =
+        typeof patch.collegeName === "string" ? patch.collegeName : "";
+      return updateCollege(proposal.entityId, name, version, editedBy);
+    }
+    case "division": {
+      const name =
+        typeof patch.divisionName === "string" ? patch.divisionName : "";
+      return updateDivision(proposal.entityId, name, version, editedBy);
+    }
+    case "event":
+      return updateEvent(
+        proposal.entityId,
+        patch as EventWriteInput,
+        version,
+        editedBy,
+      );
+    case "event_locations": {
+      const locations = patch.locations;
+      if (!Array.isArray(locations)) {
+        throw new ProposalActionError("Invalid event locations proposal.");
+      }
+      return updateEventLocations(
+        proposal.entityId,
+        locations as EventLocationWriteInput[],
+        version,
+        editedBy,
+      );
+    }
+    default:
+      throw new ProposalActionError("Unsupported entity type.");
+  }
+}
+
+async function finalizeProposal(
+  id: number,
+  status: "approved" | "rejected" | "needs_changes",
+  reviewedBy: string,
+  adminNote?: string | null,
+) {
+  const [updated] = await db
+    .update(editProposalsTable)
+    .set({
+      status,
+      reviewedBy,
+      reviewedAt: sql`now()`,
+      adminNote: adminNote?.trim() || null,
+      updatedAt: sql`now()`,
+    })
+    .where(eq(editProposalsTable.id, id))
+    .returning();
+  return updated ?? null;
+}
+
+export async function approveProposal(id: number, reviewer: SessionUser) {
+  const proposal = await getProposalById(id);
+  if (!proposal) throw new ProposalActionError("Proposal not found.", 404);
+  if (!["pending", "needs_changes"].includes(proposal.status)) {
+    throw new ProposalActionError("This proposal is no longer open.", 409);
+  }
+
+  try {
+    const published = await applyProposalPatch(
+      proposal,
+      reviewer.displayName || reviewer.username,
+    );
+    const finalized = await finalizeProposal(
+      id,
+      "approved",
+      reviewer.displayName || reviewer.username,
+    );
+    return { proposal: finalized, published };
+  } catch (err) {
+    if (err instanceof EditConflictError) {
+      throw new ProposalActionError(
+        "Published data changed before approval. Refresh and review again.",
+        409,
+      );
+    }
+    throw err;
+  }
+}
+
+export async function rejectProposal(
+  id: number,
+  reviewer: SessionUser,
+  note?: string,
+) {
+  const proposal = await getProposalById(id);
+  if (!proposal) throw new ProposalActionError("Proposal not found.", 404);
+  if (!["pending", "needs_changes"].includes(proposal.status)) {
+    throw new ProposalActionError("This proposal is no longer open.", 409);
+  }
+  const finalized = await finalizeProposal(
+    id,
+    "rejected",
+    reviewer.displayName || reviewer.username,
+    note,
+  );
+  return finalized;
+}
+
+export async function requestProposalChanges(
+  id: number,
+  reviewer: SessionUser,
+  note?: string,
+) {
+  const proposal = await getProposalById(id);
+  if (!proposal) throw new ProposalActionError("Proposal not found.", 404);
+  if (!["pending", "needs_changes"].includes(proposal.status)) {
+    throw new ProposalActionError("This proposal is no longer open.", 409);
+  }
+  if (!note?.trim()) {
+    throw new ProposalValidationError(
+      "Add a note so the contributor knows what to change.",
+    );
+  }
+  const finalized = await finalizeProposal(
+    id,
+    "needs_changes",
+    reviewer.displayName || reviewer.username,
+    note,
+  );
+  return finalized;
+}
