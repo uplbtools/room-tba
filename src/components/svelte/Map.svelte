@@ -290,6 +290,74 @@
     map.setMaxBounds(CAMPUS_MAX_BOUNDS);
   }
 
+  function restoreFlatMapCamera(map: mapGl.MapLibreMap) {
+    untrack(() => {
+      const category = queryStore.category;
+      const type = queryStore.type;
+      const value = queryStore.inputValue;
+
+      stopRotation();
+      map.off("moveend", startRotation);
+
+      if (category === "building" && type === "result") {
+        if (!loaded) return;
+        const currentBuilding = buildings.find(
+          (building) => building.buildingName === value,
+        );
+
+        if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
+          map.flyTo({
+            center: [currentBuilding.lon, currentBuilding.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+          map.once("moveend", startRotation);
+        }
+      } else if (category === null) {
+        flyToCamera(map, CAMPUS_DEFAULT_CAMERA);
+        if (directions) directions.clear();
+      } else if (category === "room") {
+        currentRoom.getRoomByCode(value).then(() => {
+          if (
+            currentRoom.value &&
+            currentRoom.value.building &&
+            currentRoom.value.building.lat &&
+            currentRoom.value.building.lon &&
+            !terrainStore.enabled
+          ) {
+            map.flyTo({
+              center: [
+                currentRoom.value.building.lon,
+                currentRoom.value.building.lat,
+              ],
+              zoom: 18,
+              pitch: 60,
+              padding: calculatePadding(md.current),
+              duration: 1500,
+            });
+            map.once("moveend", startRotation);
+          }
+        });
+      } else if (category === "dorm") {
+        if (!loaded) return;
+
+        const currentDorm = dorms.find((dorm) => dorm.dormName === value);
+        if (currentDorm && currentDorm.lon && currentDorm.lat) {
+          map.flyTo({
+            center: [currentDorm.lon, currentDorm.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+          map.once("moveend", startRotation);
+        }
+      }
+    });
+  }
+
   function failTerrain(map: mapGl.MapLibreMap, message: string) {
     disableTerrain(map);
     terrainStore.markUnavailable(message);
@@ -344,7 +412,7 @@
 
   function startRotation() {
     stopRotation();
-    if (!mapStore.mapInstance) return;
+    if (!mapStore.mapInstance || terrainStore.enabled) return;
     isRotating = true;
     lastTimestamp = 0;
     currentRotation = mapStore.mapInstance.getBearing();
@@ -756,8 +824,11 @@
       if (cancelled) return;
 
       if (!enabled) {
+        const shouldRestoreFlatCamera = terrainModeWasEnabled;
         disableTerrain(map);
+        map.off("moveend", startRotation);
         terrainModeWasEnabled = false;
+        if (shouldRestoreFlatCamera) restoreFlatMapCamera(map);
         return;
       }
 
@@ -774,6 +845,7 @@
         setBuildingExtrusionsVisible(map, false);
         map.setMaxBounds(MAKILING_TERRAIN_MAX_BOUNDS);
         if (!terrainModeWasEnabled) {
+          map.off("moveend", startRotation);
           stopRotation();
           flyToCamera(map, MAKILING_TERRAIN_CAMERA);
         }
