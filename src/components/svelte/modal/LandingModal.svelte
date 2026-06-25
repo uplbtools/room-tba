@@ -31,6 +31,28 @@
         Room TBA is an open-source website built to help students find their
         rooms across UPLB, the largest university campus in the Philippines.
       </p>
+      <section
+        class="crowdsource-section"
+        aria-labelledby="crowdsource-heading"
+      >
+        <h3 id="crowdsource-heading">Fully crowdsourced campus map</h3>
+        <p class="crowdsource-lead">
+          Built by students, kept accurate by students. Room TBA runs a fully
+          crowdsourced pipeline—anyone can suggest fixes to rooms, buildings,
+          map pins, dorms, and campus events; volunteer editors review and
+          publish them. No gatekept data entry.
+        </p>
+        <ol class="crowdsource-steps">
+          <li>
+            <strong>Suggest</strong> — edit any entity, or tap
+            <strong>+</strong> to propose something new
+          </li>
+          <li><strong>Review</strong> — editors check your change in-app</li>
+          <li>
+            <strong>Publish</strong> — approved edits go live for everyone
+          </li>
+        </ol>
+      </section>
       <p class="osm-attribution">
         3D models powered by © <a
           href="https://www.openstreetmap.org/copyright"
@@ -104,7 +126,11 @@
         </div>
       </div>
       <div class="contributors-section">
-        <h3>Contributors</h3>
+        <h3>Campus editors &amp; contributors</h3>
+        <p class="section-note">
+          Code, design, and the map edits credited below—thank you for keeping
+          UPLB navigable.
+        </p>
         <div class="contributors-list">
           {#each contributors as { name, href }}
             {@const img_url = name.toLowerCase().split(" ").join("-")}
@@ -160,7 +186,9 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     border-radius: inherit;
     background-color: white;
   }
@@ -170,6 +198,7 @@
     background-position: center;
     position: relative;
     min-height: 16rem;
+    flex-shrink: 0;
     display: flex;
   }
   .hero-overlay {
@@ -223,6 +252,11 @@
     align-items: center;
     gap: 1.5rem;
     text-align: center;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
   .description-container {
     display: flex;
@@ -236,6 +270,46 @@
     line-height: 1.5;
     margin: 0;
     max-width: 28rem;
+  }
+  .crowdsource-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 28rem;
+    text-align: left;
+    padding: 0.875rem 1rem;
+    border: 1px solid hsl(5, 35%, 88%);
+    border-radius: 0.625rem;
+    background: hsl(5, 45%, 98%);
+  }
+  .crowdsource-section h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 28%);
+  }
+  .crowdsource-lead {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: hsl(0, 0%, 28%);
+  }
+  .crowdsource-steps {
+    margin: 0.25rem 0 0;
+    padding-left: 1.125rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: hsl(0, 0%, 32%);
+  }
+  .crowdsource-steps li + li {
+    margin-top: 0.25rem;
+  }
+  .section-note {
+    margin: 0 0 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: hsl(0, 0%, 42%);
+    max-width: 16rem;
   }
   .github-link {
     display: inline-flex;
@@ -367,7 +441,7 @@
       display: none;
     } */
     .hero-image {
-      min-height: 12rem;
+      min-height: 10rem;
     }
     .hero-overlay {
       padding: 1.5rem 1rem;
