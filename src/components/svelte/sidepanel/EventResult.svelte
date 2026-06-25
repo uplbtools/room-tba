@@ -4,7 +4,12 @@
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
   import CopyLinkButton from "../CopyLinkButton.svelte";
-  import { getAppData } from "../../../lib/context";
+  import { getAppActions, getAppData } from "../../../lib/context";
+  import {
+    campusInputToWallString,
+    formatCampusDateTime,
+    instantToCampusInput,
+  } from "../../../lib/event-time";
   import {
     adminAuthStore,
     locationStore,
@@ -15,6 +20,7 @@
   import type { EventData } from "../../../lib/types";
 
   const appData = getAppData();
+  const appActions = getAppActions();
   const { events, loaded } = $derived(appData());
   const event = $derived(
     loaded
@@ -55,8 +61,8 @@
       title: event.title,
       description: event.description ?? "",
       category: event.category,
-      startsAt: toDateTimeInput(event.startsAt),
-      endsAt: toDateTimeInput(event.endsAt),
+      startsAt: instantToCampusInput(event.occurrenceStartsAt),
+      endsAt: instantToCampusInput(event.occurrenceEndsAt),
       recurrence: event.recurrence,
       sourceUrl: event.sourceUrl ?? "",
       includeInSeo: event.includeInSeo,
@@ -65,17 +71,8 @@
     };
   }
 
-  function toDateTimeInput(value: string) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    return date.toISOString().slice(0, 16);
-  }
-
   function formatDate(value: string) {
-    return new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(value));
+    return formatCampusDateTime(value);
   }
 
   async function saveEvent() {
@@ -93,8 +90,8 @@
           title: form.title,
           description: form.description || null,
           category: form.category,
-          startsAt: new Date(form.startsAt).toISOString(),
-          endsAt: new Date(form.endsAt).toISOString(),
+          startsAt: campusInputToWallString(form.startsAt),
+          endsAt: campusInputToWallString(form.endsAt),
           recurrence: form.recurrence,
           sourceUrl: form.sourceUrl || null,
           includeInSeo: form.includeInSeo,
@@ -105,8 +102,7 @@
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? `Save failed (${res.status})`);
 
-      const index = events.findIndex((item) => item.id === event.id);
-      if (index !== -1 && data.event) events[index] = data.event;
+      if (data.event) appActions.replaceEvent(data.event);
       queryStore.updateQuery({
         category: "event",
         type: "result",

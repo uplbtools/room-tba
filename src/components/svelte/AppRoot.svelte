@@ -3,6 +3,7 @@
   import {
     type AppContextData,
     type DBData,
+    setAppActions,
     setAppData,
   } from "../../lib/context";
   import { queryStore, syncToastStore } from "../../lib/store.svelte";
@@ -113,6 +114,16 @@
   });
 
   setAppData(() => appData);
+  setAppActions({
+    replaceEvent: (updated) => {
+      if (!events) return;
+      const index = events.findIndex((event) => event.id === updated.id);
+      if (index === -1) return;
+      const next = events.slice();
+      next[index] = updated;
+      events = next;
+    },
+  });
 </script>
 
 <Entry

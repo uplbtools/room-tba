@@ -1,4 +1,5 @@
 import { asc, eq } from "drizzle-orm";
+import { getStoredEventOccurrence, getStoredEventStatus } from "../event-time";
 import {
   buildingsTable,
   dormsTable,
@@ -26,8 +27,6 @@ type EventLoadOptions = {
   includeInactive?: boolean;
   now?: Date;
 };
-
-const UPCOMING_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
 
 export async function getAllEvents(
   options: EventLoadOptions = {},
@@ -156,7 +155,7 @@ async function hydrateEvents(
 
       return {
         ...event,
-        status: getEventStatus(occurrence.startsAt, occurrence.endsAt, now),
+        status: getStoredEventStatus(occurrence, now),
         occurrenceStartsAt: occurrence.startsAt.toISOString(),
         occurrenceEndsAt: occurrence.endsAt.toISOString(),
         locations: eventLocations,
@@ -227,35 +226,7 @@ function resolveRouteStop(
 }
 
 function getOccurrenceWindow(event: EventRow, now: Date) {
-  const startsAt = new Date(event.startsAt);
-  const endsAt = new Date(event.endsAt);
-  if (event.recurrence === "none") return { startsAt, endsAt };
-
-  const duration = Math.max(endsAt.getTime() - startsAt.getTime(), 0);
-  const projectedStart = new Date(startsAt);
-  projectedStart.setFullYear(now.getFullYear());
-  let projectedEnd = new Date(projectedStart.getTime() + duration);
-
-  if (projectedEnd.getTime() < now.getTime()) {
-    projectedStart.setFullYear(projectedStart.getFullYear() + 1);
-    projectedEnd = new Date(projectedStart.getTime() + duration);
-  }
-
-  return { startsAt: projectedStart, endsAt: projectedEnd };
-}
-
-function getEventStatus(startsAt: Date, endsAt: Date, now: Date) {
-  const nowTime = now.getTime();
-  if (startsAt.getTime() <= nowTime && endsAt.getTime() >= nowTime) {
-    return "active" as const;
-  }
-  if (
-    startsAt.getTime() > nowTime &&
-    startsAt.getTime() - nowTime <= UPCOMING_WINDOW_MS
-  ) {
-    return "upcoming" as const;
-  }
-  return "past" as const;
+  return getStoredEventOccurrence(event, now);
 }
 
 function groupBy<T, TKey>(items: T[], getKey: (item: T) => TKey) {
