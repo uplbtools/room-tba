@@ -33,7 +33,7 @@
 
   const appData = getAppData();
   const appActions = getAppActions();
-  const { events, loaded } = $derived(appData());
+  const { events, loaded, buildings, dorms } = $derived(appData());
   const event = $derived(
     loaded
       ? queryStore.selectedEventSlug
@@ -55,6 +55,7 @@
   let editing = $state(false);
   let saving = $state(false);
   let savingLocation = $state(false);
+  let deactivating = $state(false);
   let form = $state({
     title: "",
     description: "",
@@ -62,11 +63,28 @@
     startsAt: "",
     endsAt: "",
     sourceUrl: "",
+    recurrence: "none" as EventData["recurrence"],
+    includeInSeo: true,
   });
+  let locationForm = $state({
+    anchorType: "custom" as EventData["locations"][number]["anchorType"],
+    buildingId: "" as number | "",
+    dormId: "" as number | "",
+    label: "",
+  });
+  let routeForms = $state<{ id: number; name: string; description: string }[]>(
+    [],
+  );
 
   $effect(() => {
     if (!event || editing) return;
     form = eventToForm(event);
+    syncLocationForm(event);
+    routeForms = event.routes.map((route) => ({
+      id: route.id,
+      name: route.name,
+      description: route.description ?? "",
+    }));
   });
 
   $effect(() => {
@@ -80,10 +98,99 @@
       title: event.title,
       description: event.description ?? "",
       category: event.category,
-      startsAt: instantToCampusInput(event.occurrenceStartsAt),
-      endsAt: instantToCampusInput(event.occurrenceEndsAt),
+      startsAt: instantToCampusInput(event.startsAt),
+      endsAt: instantToCampusInput(event.endsAt),
       sourceUrl: event.sourceUrl ?? "",
+      recurrence: event.recurrence,
+      includeInSeo: event.includeInSeo,
     };
+  }
+
+  function syncLocationForm(event: EventData) {
+    const primary =
+      event.locations.find((location) => location.isPrimary) ??
+      event.locations[0] ??
+      null;
+    if (!primary) {
+      locationForm = {
+        anchorType: "custom",
+        buildingId: "",
+        dormId: "",
+        label: "",
+      };
+      return;
+    }
+    locationForm = {
+      anchorType: primary.anchorType,
+      buildingId: primary.buildingId ?? "",
+      dormId: primary.dormId ?? "",
+      label: primary.label,
+    };
+  }
+
+  function applyConflictLatest(data: { latest?: EventData | null }) {
+    if (data.latest) appActions.replaceEvent(data.latest);
+  }
+
+  function serializeRoutesForSave(event: EventData) {
+    return event.routes.map((route) => {
+      const edited = routeForms.find((item) => item.id === route.id);
+      return {
+        id: route.id,
+        name: edited?.name.trim() || route.name,
+        description: edited?.description.trim() || route.description,
+        sortOrder: route.sortOrder,
+        stops: route.stops.map((stop) => ({
+          id: stop.id,
+          eventLocationId: stop.eventLocationId,
+          label: stop.label,
+          lat: stop.lat,
+          lon: stop.lon,
+          sortOrder: stop.sortOrder,
+        })),
+      };
+    });
+  }
+
+  function buildPrimaryLocationPayload(event: EventData) {
+    const primary =
+      event.locations.find((location) => location.isPrimary) ??
+      event.locations[0] ??
+      null;
+    const buildingId =
+      locationForm.anchorType === "building" && locationForm.buildingId !== ""
+        ? Number(locationForm.buildingId)
+        : null;
+    const dormId =
+      locationForm.anchorType === "dorm" && locationForm.dormId !== ""
+        ? Number(locationForm.dormId)
+        : null;
+
+    const nextPrimary = {
+      anchorType: locationForm.anchorType,
+      buildingId,
+      dormId,
+      label: locationForm.label.trim() || "Event marker",
+      lat:
+        locationForm.anchorType === "custom"
+          ? (primary?.lat ?? primary?.resolvedLat ?? null)
+          : null,
+      lon:
+        locationForm.anchorType === "custom"
+          ? (primary?.lon ?? primary?.resolvedLon ?? null)
+          : null,
+      highlightPriority: primary?.highlightPriority ?? 0,
+      sortOrder: primary?.sortOrder ?? 0,
+      isPrimary: true,
+      ...(primary?.id ? { id: primary.id } : {}),
+    };
+
+    if (!primary) return [nextPrimary];
+    return event.locations.map((location) =>
+      location.id === primary.id
+        ? { ...serializeLocation(location), ...nextPrimary }
+        : serializeLocation(location, { isPrimary: false }),
+    );
   }
 
   async function saveEvent() {
@@ -102,18 +209,30 @@
           startsAt: campusInputToWallString(form.startsAt),
           endsAt: campusInputToWallString(form.endsAt),
           sourceUrl: form.sourceUrl || null,
-          includeInSeo: true,
+          recurrence: form.recurrence,
+          includeInSeo: form.includeInSeo,
+          routes: serializeRoutesForSave(event),
         }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? `Save failed (${res.status})`);
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        event?: EventData;
+        latest?: EventData | null;
+      };
 
-      if (data.event) appActions.replaceEvent(data.event);
+      if (!res.ok || !data.event) {
+        if (res.status === 409 && data.latest) {
+          applyConflictLatest(data);
+        }
+        throw new Error(data.error ?? `Save failed (${res.status})`);
+      }
+
+      appActions.replaceEvent(data.event);
       queryStore.updateQuery({
         category: "event",
         type: "result",
-        value: data.event?.title ?? form.title,
-        eventSlug: data.event?.slug ?? event.slug,
+        value: data.event.title,
+        eventSlug: data.event.slug,
       });
       editing = false;
       toastStore.show(`${form.title} saved.`, "success");
@@ -124,6 +243,92 @@
       );
     } finally {
       saving = false;
+    }
+  }
+
+  async function savePrimaryLocationAnchor() {
+    if (!event || savingLocation) return;
+    savingLocation = true;
+    try {
+      const res = await fetch(`/api/admin/events/${event.id}/locations`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          version: event.version,
+          locations: buildPrimaryLocationPayload(event),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        event?: EventData;
+        latest?: EventData | null;
+      };
+
+      if (!res.ok || !data.event) {
+        if (res.status === 409 && data.latest) {
+          applyConflictLatest(data);
+        }
+        throw new Error(data.error ?? `Location save failed (${res.status})`);
+      }
+
+      appActions.replaceEvent(data.event);
+      syncLocationForm(data.event);
+      toastStore.show(`${data.event.title} location updated.`, "success");
+    } catch (error) {
+      toastStore.show(
+        error instanceof Error
+          ? error.message
+          : `Failed to save location for ${event.title}.`,
+        "error",
+      );
+    } finally {
+      savingLocation = false;
+    }
+  }
+
+  async function deactivateEvent() {
+    if (!event || deactivating) return;
+    if (
+      !window.confirm(
+        `Deactivate "${event.title}"? It will be hidden from the public map and lists.`,
+      )
+    ) {
+      return;
+    }
+
+    deactivating = true;
+    try {
+      const res = await fetch(`/api/admin/events/${event.id}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ version: event.version }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        latest?: EventData | null;
+      };
+
+      if (!res.ok) {
+        if (res.status === 409 && data.latest) {
+          applyConflictLatest(data);
+        }
+        throw new Error(data.error ?? `Deactivate failed (${res.status})`);
+      }
+
+      appActions.removeEvent(event.id);
+      queryStore.clearQuery();
+      toastStore.show(`${event.title} deactivated.`, "success");
+    } catch (error) {
+      toastStore.show(
+        error instanceof Error
+          ? error.message
+          : `Failed to deactivate ${event.title}.`,
+        "error",
+      );
+    } finally {
+      deactivating = false;
     }
   }
 
@@ -219,7 +424,7 @@
 
       if (!res.ok || !data.event) {
         if (res.status === 409 && data.latest) {
-          appActions.replaceEvent(data.latest);
+          applyConflictLatest(data);
         }
         throw new Error(data.error ?? `Location save failed (${res.status})`);
       }
@@ -398,6 +603,88 @@
               /></label
             >
             <label>Source URL <input bind:value={form.sourceUrl} /></label>
+            <label>
+              Recurrence
+              <select bind:value={form.recurrence}>
+                <option value="none">None</option>
+                <option value="annual">Annual</option>
+                <option value="every_1st_sem">Every 1st semester</option>
+                <option value="every_2nd_sem">Every 2nd semester</option>
+              </select>
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" bind:checked={form.includeInSeo} />
+              Include in SEO pages
+            </label>
+            {#if routeForms.length > 0}
+              <div class="route-editor-card">
+                <strong>Routes</strong>
+                {#each routeForms as routeForm, index (routeForm.id)}
+                  <label>
+                    Route name
+                    <input bind:value={routeForms[index]!.name} required />
+                  </label>
+                  <label>
+                    Route description
+                    <textarea bind:value={routeForms[index]!.description}
+                    ></textarea>
+                  </label>
+                {/each}
+              </div>
+            {/if}
+            <div class="location-editor-card">
+              <div>
+                <strong>Primary location anchor</strong>
+                <p>
+                  Choose whether the primary marker follows a building, dorm, or
+                  custom map coordinates.
+                </p>
+              </div>
+              <label>
+                Anchor type
+                <select bind:value={locationForm.anchorType}>
+                  <option value="custom">Custom map point</option>
+                  <option value="building">Building</option>
+                  <option value="dorm">Dorm</option>
+                </select>
+              </label>
+              {#if locationForm.anchorType === "building"}
+                <label>
+                  Building
+                  <select bind:value={locationForm.buildingId} required>
+                    <option value="">Select a building</option>
+                    {#each buildings as building (building.id)}
+                      <option value={building.id}
+                        >{building.buildingName}</option
+                      >
+                    {/each}
+                  </select>
+                </label>
+              {:else if locationForm.anchorType === "dorm"}
+                <label>
+                  Dorm
+                  <select bind:value={locationForm.dormId} required>
+                    <option value="">Select a dorm</option>
+                    {#each dorms as dorm (dorm.id)}
+                      <option value={dorm.id}>{dorm.dormName}</option>
+                    {/each}
+                  </select>
+                </label>
+              {/if}
+              <label
+                >Location label <input bind:value={locationForm.label} /></label
+              >
+              <div class="location-editor-actions">
+                <button
+                  class="secondary-action"
+                  type="button"
+                  disabled={savingLocation}
+                  onclick={savePrimaryLocationAnchor}
+                >
+                  {savingLocation ? "Saving anchor..." : "Save location anchor"}
+                </button>
+              </div>
+            </div>
             <div class="location-editor-card">
               <div>
                 <strong>Event location</strong>
@@ -441,6 +728,14 @@
             </div>
             <button class="primary-action" type="submit" disabled={saving}>
               {saving ? "Saving..." : "Save event"}
+            </button>
+            <button
+              class="danger-action"
+              type="button"
+              disabled={deactivating}
+              onclick={deactivateEvent}
+            >
+              {deactivating ? "Deactivating..." : "Deactivate event"}
             </button>
           </form>
         {/if}
@@ -547,7 +842,8 @@
   }
 
   .primary-action,
-  .secondary-action {
+  .secondary-action,
+  .danger-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -573,7 +869,30 @@
     color: #7b1113;
   }
 
-  .primary-action:disabled {
+  .danger-action {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+  }
+
+  .checkbox-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .route-editor-card {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.65rem;
+    border: 1px solid #e4e4e7;
+    border-radius: 0.5rem;
+    background: #fafafa;
+  }
+
+  .primary-action:disabled,
+  .secondary-action:disabled,
+  .danger-action:disabled {
     cursor: progress;
     opacity: 0.65;
   }

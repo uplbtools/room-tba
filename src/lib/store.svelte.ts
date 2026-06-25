@@ -195,11 +195,17 @@ class QueryStore {
   };
 
   addRecentSearch(recentSearch: RecentSearch) {
-    const qIndex = this.recentSearches.findIndex(
-      (query) =>
-        query.value === recentSearch.value &&
-        query.category === recentSearch.category,
-    );
+    const qIndex = this.recentSearches.findIndex((query) => {
+      if (query.category !== recentSearch.category) return false;
+      if (
+        recentSearch.category === "event" &&
+        recentSearch.eventSlug &&
+        query.eventSlug
+      ) {
+        return query.eventSlug === recentSearch.eventSlug;
+      }
+      return query.value === recentSearch.value;
+    });
     if (qIndex !== -1) this.recentSearches.splice(qIndex, 1);
     else if (this.recentSearches.length > 4) this.recentSearches.pop();
 

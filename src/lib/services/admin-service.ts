@@ -30,6 +30,16 @@ export class EditConflictError<TLatest> extends Error {
   }
 }
 
+export class DuplicateSlugError extends Error {
+  slug: string;
+
+  constructor(slug: string) {
+    super(`An event with slug "${slug}" already exists.`);
+    this.name = "DuplicateSlugError";
+    this.slug = slug;
+  }
+}
+
 /** Refresh the sync key for a table so viewers detect the change and re-sync. */
 export async function refreshSyncKey(tableName: string): Promise<void> {
   await db
@@ -666,6 +676,16 @@ export async function createEvent(
   input: EventWriteInput,
   editedBy = "admin",
 ): Promise<EventData | null> {
+  const slug = input.slug ?? "";
+  if (slug) {
+    const [existing] = await db
+      .select({ id: eventsTable.id })
+      .from(eventsTable)
+      .where(eq(eventsTable.slug, slug))
+      .limit(1);
+    if (existing) throw new DuplicateSlugError(slug);
+  }
+
   const [inserted] = await db
     .insert(eventsTable)
     .values({
@@ -710,6 +730,8 @@ export async function updateEvent(
   editedBy = "admin",
 ): Promise<EventData | null> {
   const before = await getEventById(id, { includeInactive: true });
+  if (!before) return null;
+
   const updates = getEventUpdates(input);
   const shouldReplaceChildren =
     input.locations !== undefined || input.routes !== undefined;
