@@ -54,7 +54,7 @@
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
   } from "../../constants/building-types";
-  import { getEventPoster } from "../../lib/entity-image-display";
+  import { getEventImage } from "../../lib/event-images";
   import {
     formatCampusDateShort,
     formatCampusTime,
@@ -2110,47 +2110,6 @@
           type="button"
           disabled={eventPlacementStore.creating}
           onclick={() => eventPlacementStore.cancel()}
-        >
-          Cancel
-        </button>
-      </div>
-    {/if}
-  {:else if buildingPlacementStore.active}
-    {#if md.current}
-      <div
-        class="edit-dock event-placement-dock"
-        role="status"
-        aria-live="polite"
-      >
-        <p class="edit-dock-status">
-          {buildingPlacementStore.creating
-            ? "Creating building…"
-            : "Tap the map to place the building"}
-        </p>
-        <button
-          class="edit-dock-action cancel"
-          type="button"
-          disabled={buildingPlacementStore.creating}
-          onclick={() => buildingPlacementStore.cancel()}
-        >
-          Cancel
-        </button>
-      </div>
-    {:else}
-      <div class="event-placement-toolbar" role="status" aria-live="polite">
-        <div class="event-placement-copy">
-          <strong>Choose building location on the map</strong>
-          <span>
-            {buildingPlacementStore.creating
-              ? "Creating the building at the selected map point..."
-              : "Click or tap the map point where this building should appear."}
-          </span>
-        </div>
-        <button
-          class="event-placement-cancel"
-          type="button"
-          disabled={buildingPlacementStore.creating}
-          onclick={() => buildingPlacementStore.cancel()}
         >
           Cancel
         </button>
