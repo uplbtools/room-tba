@@ -2,6 +2,7 @@
 description: Map layout guardrails for Entry, SidePanel, Search, StatusBar, and Map tools
 globs:
   - src/components/svelte/Entry.svelte
+  - src/components/svelte/MapAttribution.svelte
   - src/components/svelte/sidepanel/**
   - src/components/svelte/Map.svelte
   - src/components/svelte/StatusBar.svelte
@@ -15,7 +16,7 @@ globs:
 Before adding or moving map chrome:
 
 1. Read `docs/map-ui-mode-matrix.md` and update it if you add a mode or surface.
-2. Mount UI in Entry zones (top / map / bottom / ephemeral) — no new fixed overlays in `Map.svelte` except pins and the edit dock.
+2. Mount UI in Entry zones (top / map / bottom / ephemeral) — no new fixed overlays in `Map.svelte` except pins and the edit dock. Basemap attribution belongs in `MapAttribution.svelte` on the bottom band, not on the map canvas.
 3. Use `.app-layout` CSS vars (`--status-bar-block-height`, `--edit-bar-height`, etc.) — no magic `bottom: 4.25rem`.
 4. One flyout at a time: `mapToolsStore` for Map tools; `floatingControlPanelStore` only for admin menu on LocationButton.
 5. View controls split: flyout uses `MapViewControls variant="modes"` (Pins + 2D/3D only). Desktop rotate/tilt/compass use `variant="camera"` on the map face in `Entry.svelte`, not inside the flyout. Do not mount camera variant on mobile.

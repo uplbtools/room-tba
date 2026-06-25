@@ -31,6 +31,7 @@
     syncDivisions,
     syncDorms,
     syncEvents,
+    syncAliasCache,
   } from "../../lib/local/data/sync";
   import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
 
@@ -94,6 +95,8 @@
           events: await getEvents(eventCheck),
           ...(await getRoomsData()),
         };
+        await syncBuildings(buildingCheck, data.buildings ?? []);
+        await syncAliasCache();
       })
       .then(() => {
         buildings = data.buildings;
@@ -105,7 +108,6 @@
         totalRooms = data.totalRooms;
         loaded = true;
         Promise.resolve()
-          .then(() => syncBuildings(buildingCheck, data.buildings ?? []))
           .then(() => syncColleges(collegeCheck, data.colleges ?? []))
           .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
           .then(() => syncDorms(dormCheck, data.dorms ?? []))

@@ -1,5 +1,6 @@
-import { eq, like, sql } from "drizzle-orm";
+import { and, eq, like, or, sql } from "drizzle-orm";
 import {
+  aliasesTable,
   buildingsTable,
   classesTable,
   collegesTable,
@@ -8,6 +9,7 @@ import {
   roomsTable,
 } from "../../../drizzle/schema";
 import { db } from "../db";
+import { normalizeAlias } from "../site";
 import {
   BuildingData,
   ClassMapValue,
@@ -258,6 +260,111 @@ export async function getAllClasses(): Promise<ClassMapValue[]> {
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for classes", { cause: e });
+  }
+}
+
+export type AliasMatch = {
+  alias: string;
+  targetType: string;
+  targetId: number;
+  value: string | null;
+};
+
+export type AliasCacheRow = AliasMatch & {
+  id: number;
+  normalizedAlias: string;
+};
+
+/** All alias rows with resolved building names for PGlite cache refresh (#155). */
+export async function listAliasesForCache(): Promise<AliasCacheRow[]> {
+  try {
+    const rows = await db
+      .select({
+        id: aliasesTable.id,
+        alias: aliasesTable.alias,
+        normalizedAlias: aliasesTable.normalizedAlias,
+        targetType: aliasesTable.targetType,
+        targetId: aliasesTable.targetId,
+        buildingName: buildingsTable.buildingName,
+      })
+      .from(aliasesTable)
+      .leftJoin(
+        buildingsTable,
+        and(
+          eq(aliasesTable.targetType, "building"),
+          eq(buildingsTable.id, aliasesTable.targetId),
+        ),
+      );
+
+    return rows.map((row) => ({
+      id: row.id,
+      alias: row.alias,
+      normalizedAlias: row.normalizedAlias,
+      targetType: row.targetType,
+      targetId: row.targetId,
+      value: row.buildingName,
+    }));
+  } catch (e) {
+    console.error("Error: ", e);
+    return [];
+  }
+}
+
+/** Resolve a search term against the alias/synonym map (#155). Matches exact
+ * and prefix normalized aliases, returning the (deduped) building targets. */
+export async function searchAliases(
+  searchString: string,
+): Promise<AliasMatch[]> {
+  try {
+    const normalized = normalizeAlias(searchString);
+    if (!normalized) return [];
+    const rows = await db
+      .select({
+        alias: aliasesTable.alias,
+        normalizedAlias: aliasesTable.normalizedAlias,
+        targetType: aliasesTable.targetType,
+        targetId: aliasesTable.targetId,
+        buildingName: buildingsTable.buildingName,
+      })
+      .from(aliasesTable)
+      .leftJoin(
+        buildingsTable,
+        and(
+          eq(aliasesTable.targetType, "building"),
+          eq(buildingsTable.id, aliasesTable.targetId),
+        ),
+      )
+      .where(
+        or(
+          eq(aliasesTable.normalizedAlias, normalized),
+          like(aliasesTable.normalizedAlias, `${normalized}%`),
+        ),
+      )
+      .limit(12);
+
+    // Exact matches first, then dedupe by target.
+    rows.sort((a, b) => {
+      const ae = a.normalizedAlias === normalized ? 0 : 1;
+      const be = b.normalizedAlias === normalized ? 0 : 1;
+      return ae - be;
+    });
+    const seen = new Set<string>();
+    const matches: AliasMatch[] = [];
+    for (const row of rows) {
+      const key = `${row.targetType}:${row.targetId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      matches.push({
+        alias: row.alias,
+        targetType: row.targetType,
+        targetId: row.targetId,
+        value: row.buildingName,
+      });
+    }
+    return matches;
+  } catch (e) {
+    console.error("Error: ", e);
+    return [];
   }
 }
 
