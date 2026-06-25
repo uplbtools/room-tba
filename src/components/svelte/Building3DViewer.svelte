@@ -826,7 +826,7 @@
           type: "error",
           message: "Session expired. Please log in again.",
         };
-        adminAuthStore.isAdmin = false;
+        adminAuthStore.isLoggedIn = false;
         return;
       }
 
