@@ -331,7 +331,7 @@
       </p>
     {/if}
 
-    {#if currentRoom.value.building}
+    {#if currentRoom.value.building?.name}
       <div class="building-note">
         <h3 class="building-note-title">
           How to get to {currentRoom.value.building.name}
