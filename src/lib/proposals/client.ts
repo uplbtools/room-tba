@@ -266,6 +266,48 @@ export async function mergeEntityRooms(input: {
   return { ok: true, room: (data as { room?: RoomData }).room };
 }
 
+function adminCreatePath(entityType: ProposalCreateType): string {
+  switch (entityType) {
+    case "create_building":
+      return "/api/admin/buildings";
+    case "create_room":
+      return "/api/admin/rooms";
+    case "create_dorm":
+      return "/api/admin/dorms";
+    case "create_college":
+      return "/api/admin/colleges";
+    case "create_division":
+      return "/api/admin/divisions";
+    case "create_event":
+      return "/api/admin/events";
+  }
+}
+
+export async function publishEntityCreate(
+  entityType: ProposalCreateType,
+  patch: Record<string, unknown>,
+): Promise<{ ok: boolean; error?: string; data?: unknown }> {
+  const res = await fetch(adminCreatePath(entityType), {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { ok: false, error: (data as { error?: string }).error };
+  }
+  const payload = data as Record<string, unknown>;
+  const entity =
+    payload.building ??
+    payload.room ??
+    payload.dorm ??
+    payload.college ??
+    payload.division ??
+    payload.event;
+  return { ok: true, data: entity ?? payload };
+}
+
 export async function submitCreateProposal(input: {
   entityType: ProposalCreateType;
   patch: Record<string, unknown>;
