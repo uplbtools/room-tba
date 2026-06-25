@@ -1,12 +1,36 @@
 // src/lib/store.svelte.ts
 
 import { modalOptions } from "../constants/modal-states";
-import type { BuildingTypeFilter } from "../constants/building-types";
 import { DEFAULT_TERRAIN_EXAGGERATION } from "../constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
-import { RoomData, type RecentSearch } from "./types";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
+
+export type BuildingTypeFilter =
+  | "all"
+  | "class-building"
+  | "administrative-building"
+  | "up-managed-dorm"
+  | "non-up-managed-dorm";
+
+type RoomData = {
+  id: number;
+  code: string;
+  directions: string | null;
+  building: {
+    name: string;
+    lat: number | null;
+    lon: number | null;
+    directions: string | null;
+  } | null;
+  buildingId: number | null;
+  collegeId: number | null;
+  divisionId: number | null;
+  collegeName: string | null;
+  divisionName: string | null;
+  version: number;
+  updatedAt: string;
+};
 
 export type DormFilterType = "all" | "up" | "private";
 export type SyncInfo = {
@@ -80,9 +104,15 @@ export interface QueryStoreState {
     | "room"
     | "class"
     | "dorm"
+    | "event"
     | null;
   value: string;
 }
+
+type RecentSearch = {
+  category: Exclude<QueryStoreState["category"], null>;
+  value: string;
+};
 
 class ModalStore {
   private _modalStore: ModalStoreState = $state({
@@ -539,6 +569,7 @@ class SyncToastStore {
   private _colleges = $state<SyncInfo | null>(null);
   private _divisions = $state<SyncInfo | null>(null);
   private _dorms = $state<SyncInfo | null>(null);
+  private _events = $state<SyncInfo | null>(null);
   public currentSyncData: SyncInfo | null = null;
   public currentSync = $state<string | null>(null);
   public allSynced = $state<boolean>(false);
@@ -580,6 +611,15 @@ class SyncToastStore {
     this.currentSync = "dorms";
     this.recentlySynced = true;
   }
+  startEventsSync(total: number) {
+    this._events = {
+      synced: 0,
+      total,
+    };
+    this.currentSyncData = this._events;
+    this.currentSync = "events";
+    this.recentlySynced = true;
+  }
 
   updateBuildingsSync() {
     if (this._buildings === null) return;
@@ -597,11 +637,14 @@ class SyncToastStore {
     if (this._dorms === null) return;
     this._dorms.synced++;
   }
+  updateEventsSync() {
+    if (this._events === null) return;
+    this._events.synced++;
+  }
 
   endSync() {
-      this.allSynced = true;
-      if (this.recentlySynced === null)
-        this.recentlySynced = false;
+    this.allSynced = true;
+    if (this.recentlySynced === null) this.recentlySynced = false;
   }
 }
 

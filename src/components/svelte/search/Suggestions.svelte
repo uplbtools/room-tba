@@ -6,7 +6,7 @@
     type QueryStoreState,
     buildingTypeFilter,
   } from "../../../lib/store.svelte";
-  import type { BuildingData, DormData } from "../../../lib/types";
+  import type { BuildingData, DormData, EventData } from "../../../lib/types";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -15,7 +15,8 @@
   import Suggestion from "./Suggestion.svelte";
 
   const appData = getAppData();
-  const { buildings, colleges, divisions, dorms, loaded } = $derived(appData());
+  const { buildings, colleges, divisions, dorms, events, loaded } =
+    $derived(appData());
 
   const filteredDorms = $derived.by(() => {
     if (!loaded) return [];
@@ -72,6 +73,16 @@
         .map(({ dormName }) => ({
           value: dormName,
           category: "dorm",
+        })),
+      events: (events as EventData[])
+        .filter(
+          ({ title, description }) =>
+            title.toLowerCase().includes(searchString) ||
+            (description && description.toLowerCase().includes(searchString)),
+        )
+        .map(({ title }) => ({
+          value: title,
+          category: "event",
         })),
     } satisfies {
       [key: string]: {

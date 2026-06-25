@@ -1,0 +1,97 @@
+---
+import EntityPage from "../../components/seo/EntityPage.astro";
+import { getSeoEvents } from "../../lib/services/event-service";
+import { getEventPageData } from "../../lib/services/ssg-service";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+} from "../../lib/site";
+
+export async function getStaticPaths() {
+  const events = await getSeoEvents();
+  return events.map((event) => ({
+    params: { slug: event.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const appData = slug ? await getEventPageData(slug) : null;
+
+if (appData === null) {
+  throw new Error(`Event not found for slug: ${slug}`);
+}
+
+const { event } = appData;
+const canonicalPath = `/event/${event.slug}/`;
+const title = `${event.title} | UPLB event | Room TBA`;
+const description =
+  event.description ??
+  `Open ${event.title} on Room TBA for event-linked UPLB map markers and routes.`;
+const facts = [
+  `Category: ${event.category}`,
+  `Starts ${new Date(event.occurrenceStartsAt).toLocaleString()}`,
+  event.locations.length > 0
+    ? `${event.locations.length} mapped location${event.locations.length === 1 ? "" : "s"}`
+    : null,
+  event.routes.length > 0
+    ? `${event.routes.length} suggested route${event.routes.length === 1 ? "" : "s"}`
+    : null,
+].filter((fact): fact is string => Boolean(fact));
+
+const primaryLocation =
+  event.locations.find((location) => location.isPrimary) ??
+  event.locations[0] ??
+  null;
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Events", path: "/event/" },
+    { name: event.title, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    description,
+    url: absoluteUrl(canonicalPath),
+    startDate: event.occurrenceStartsAt,
+    endDate: event.occurrenceEndsAt,
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location:
+      primaryLocation &&
+      primaryLocation.resolvedLat !== null &&
+      primaryLocation.resolvedLon !== null
+        ? {
+            "@type": "Place",
+            name: primaryLocation.resolvedLabel,
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: primaryLocation.resolvedLat,
+              longitude: primaryLocation.resolvedLon,
+            },
+          }
+        : undefined,
+  },
+);
+---
+
+<EntityPage
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${event.title} at UPLB`}
+  intro={description}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/event/", label: "Events" },
+    { href: canonicalPath, label: event.title },
+  ]}
+  structuredData={structuredData}
+  initialSearch={{ category: "event", value: event.title }}
+/>

@@ -6,6 +6,7 @@
   import CollegeResult from "./CollegeResult.svelte";
   import DivisionResult from "./DivisionResult.svelte";
   import DormResult from "./DormResult.svelte";
+  import EventResult from "./EventResult.svelte";
   import RoomResult from "../room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
   import BuildingTypeControl from "../BuildingTypeControl.svelte";
@@ -28,6 +29,7 @@
     room: "Room",
     class: "Class search",
     dorm: "Dorm",
+    event: "Event",
   };
 
   const mobile = new MediaQuery("max-width:48rem");
@@ -123,6 +125,8 @@
             <ClassQuery />
           {:else if queryStore.category === "dorm"}
             <DormResult />
+          {:else if queryStore.category === "event"}
+            <EventResult />
           {/if}
         </div>
       </div>
