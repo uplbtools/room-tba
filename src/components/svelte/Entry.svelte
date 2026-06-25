@@ -10,7 +10,6 @@
   import Modal from "./modal/Modal.svelte";
   import SidePanel from "./sidepanel/SidePanel.svelte";
   import Map from "./Map.svelte";
-  import MapControls from "./MapControls.svelte";
   import StatusBar from "./StatusBar.svelte";
   import Toast from "./Toast.svelte";
   import type { RecentSearch } from "../../lib/types";
@@ -74,7 +73,6 @@
 <div class="app-layout">
   <Map />
   <div class="ui-layer">
-    <MapControls />
     <!-- <header class="top-header">
       <h2>Room TBA</h2>
     </header> -->
