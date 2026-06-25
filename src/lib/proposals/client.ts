@@ -1,4 +1,8 @@
-import type { ProposalEntityType } from "../services/proposal-service";
+import type {
+  ProposalCreateType,
+  ProposalEntityType,
+} from "../services/proposal-service";
+import type { RoomData } from "../types";
 
 export type StoredProposalRef = {
   id: number;
@@ -68,7 +72,13 @@ const FIELD_LABELS: Record<string, string> = {
 
 export function summarizeProposalPatch(
   patch: Record<string, unknown>,
+  entityType?: ProposalEntityType,
 ): string[] {
+  if (entityType && entityType.startsWith("create_")) {
+    const label = entityType.replace("create_", "");
+    const details = summarizeProposalPatch(patch);
+    return [`New ${label}`, ...details];
+  }
   if (Array.isArray(patch.locations)) {
     return [`Event map pin / ${patch.locations.length} location(s)`];
   }
@@ -203,6 +213,52 @@ export async function publishEntityPatch(
     payload.division ??
     payload.event;
   return { ok: true, data: entity ?? payload };
+}
+
+export async function mergeEntityRooms(input: {
+  sourceRoomId: number;
+  targetRoomId: number;
+  sourceVersion: number;
+  preferredRoomCode?: string;
+}): Promise<{
+  ok: boolean;
+  error?: string;
+  room?: RoomData;
+  latest?: RoomData | null;
+}> {
+  const res = await fetch(`/api/admin/rooms/${input.sourceRoomId}/merge`, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      targetRoomId: input.targetRoomId,
+      sourceVersion: input.sourceVersion,
+      preferredRoomCode: input.preferredRoomCode,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: (data as { error?: string }).error,
+      latest: (data as { latest?: RoomData | null }).latest,
+    };
+  }
+  return { ok: true, room: (data as { room?: RoomData }).room };
+}
+
+export async function submitCreateProposal(input: {
+  entityType: ProposalCreateType;
+  patch: Record<string, unknown>;
+  submitterName?: string;
+}): Promise<{ ok: boolean; error?: string; proposal?: StoredProposalRef }> {
+  return submitEntityProposal({
+    entityType: input.entityType,
+    entityId: 0,
+    baseVersion: 0,
+    patch: input.patch,
+    submitterName: input.submitterName,
+  });
 }
 
 export async function submitEntityProposal(input: {
