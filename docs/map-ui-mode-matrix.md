@@ -27,7 +27,8 @@ New map chrome must mount in a named zone in `Entry.svelte` or its children. Do 
 - `--search-block-height`
 - `--status-bar-block-height`
 - `--drawer-peek-offset`
-- `--mobile-detail-sheet-top-inset` (mobile entity detail sheet; below search + map tools)
+- `--mobile-detail-sheet-top-inset` (mobile entity detail sheet; below search app bar)
+- `--map-ui-padding` is `0` on mobile (edge-to-edge chrome)
 - `--edit-bar-height` (non-zero when editing)
 
 Use these instead of magic `bottom` / `top` values.

@@ -4,6 +4,13 @@
   import { MediaQuery } from "svelte/reactivity";
   import { offlineStore } from "../../lib/store.svelte";
 
+  type Props = {
+    /** Icon-only trigger for the mobile status strip. */
+    compact?: boolean;
+  };
+
+  let { compact = false }: Props = $props();
+
   let open = $state(false);
   const mobile = new MediaQuery("max-width:48rem");
 
@@ -21,7 +28,12 @@
   const pct = $derived(Math.round(offlineStore.progress * 100));
 </script>
 
-<div class="offline-maps" class:is-open={open} class:mobile={mobile.current}>
+<div
+  class="offline-maps"
+  class:is-open={open}
+  class:mobile={mobile.current}
+  class:compact
+>
   <button
     class="offline-trigger"
     type="button"
@@ -30,7 +42,11 @@
     title="Download the campus map for offline use"
   >
     <DownloadCloud size={16} />
-    <span>Offline maps</span>
+    {#if !compact}
+      <span>Offline maps</span>
+    {:else}
+      <span class="sr-only">Offline maps</span>
+    {/if}
   </button>
 
   {#if open}
@@ -107,6 +123,26 @@
     background-color: hsla(0, 0%, 0%, 0.1);
   }
 
+  .offline-maps.compact {
+    flex: 0 0 auto;
+  }
+
+  .offline-maps.compact .offline-trigger {
+    padding: 0.125rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .offline-popover {
     position: absolute;
     bottom: calc(100% + 0.5rem);
@@ -132,21 +168,38 @@
     cursor: default;
   }
 
-  /* Mobile: expand inline in the status bar — absolute popovers clip/off-screen */
+  /* Mobile: expand inline below the status strip when opened. */
   .offline-maps.mobile.is-open {
+    position: absolute;
+    right: 0.75rem;
+    bottom: calc(100% + 0.25rem);
+    z-index: 20;
     flex-direction: column;
     align-items: stretch;
-    width: 100%;
+    width: min(16rem, calc(100vw - 1.5rem));
+    padding: 0.625rem;
+    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border-radius: 0.75rem;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.14),
+      0 4px 14px hsla(0, 0%, 0%, 0.2),
+      0 10px 28px hsla(0, 0%, 0%, 0.12)
+    );
   }
 
-  .offline-maps.mobile .offline-popover {
+  .offline-maps.mobile.is-open .offline-popover {
     position: static;
     width: 100%;
     max-width: none;
     margin-top: 0.375rem;
+    border: none;
+    box-shadow: none;
+    padding: 0;
   }
 
-  .offline-maps.mobile .offline-trigger {
+  .offline-maps.mobile.is-open .offline-trigger {
     align-self: flex-start;
   }
 
