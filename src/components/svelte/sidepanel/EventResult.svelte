@@ -298,7 +298,8 @@
       });
 
       if (!result.ok) {
-        if (result.latest) applyConflictLatest({ latest: result.latest as EventData });
+        if (result.latest)
+          applyConflictLatest({ latest: result.latest as EventData });
         throw new Error(result.error ?? "Save failed");
       }
 
@@ -349,7 +350,8 @@
       });
 
       if (!result.ok) {
-        if (result.latest) applyConflictLatest({ latest: result.latest as EventData });
+        if (result.latest)
+          applyConflictLatest({ latest: result.latest as EventData });
         throw new Error(result.error ?? "Location save failed");
       }
 
@@ -679,11 +681,7 @@
 
     <section class="event-admin">
       <button class="secondary-action" onclick={() => (editing = !editing)}>
-        {editing
-          ? "Close"
-          : canPublish
-            ? "Edit event"
-            : "Suggest changes"}
+        {editing ? "Close" : canPublish ? "Edit event" : "Suggest changes"}
       </button>
       {#if editing}
         {#if !canPublish && !adminAuthStore.displayName && !adminAuthStore.username}
@@ -697,227 +695,225 @@
           </label>
         {/if}
         <form
-            class="event-form"
-            onsubmit={(e) => {
-              e.preventDefault();
-              saveEvent();
-            }}
+          class="event-form"
+          onsubmit={(e) => {
+            e.preventDefault();
+            saveEvent();
+          }}
+        >
+          <label>Title <input bind:value={form.title} required /></label>
+          <label
+            >Description <textarea bind:value={form.description}
+            ></textarea></label
           >
-            <label>Title <input bind:value={form.title} required /></label>
-            <label
-              >Description <textarea bind:value={form.description}
-              ></textarea></label
-            >
+          <label>
+            Category
+            <select bind:value={form.category}>
+              <option value="tradition">Tradition</option>
+              <option value="fair">Fair</option>
+              <option value="ceremony">Ceremony</option>
+              <option value="sports">Sports</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <p class="muted timezone-note">
+            Enter start and end in campus time (Manila).
+          </p>
+          <label
+            >Starts <input
+              type="datetime-local"
+              bind:value={form.startsAt}
+              required
+            /></label
+          >
+          <label
+            >Ends <input
+              type="datetime-local"
+              bind:value={form.endsAt}
+              required
+            /></label
+          >
+          <label>Source URL <input bind:value={form.sourceUrl} /></label>
+          <label>
+            Recurrence
+            <select bind:value={form.recurrence}>
+              <option value="none">None</option>
+              <option value="annual">Annual</option>
+              <option value="every_1st_sem">Every 1st semester</option>
+              <option value="every_2nd_sem">Every 2nd semester</option>
+            </select>
+          </label>
+          {#if routeForms.length > 0}
+            <div class="route-editor-card">
+              <strong>Routes</strong>
+              {#each routeForms as routeForm, index (routeForm.id)}
+                <label>
+                  Route name
+                  <input bind:value={routeForms[index]!.name} required />
+                </label>
+                <label>
+                  Route description
+                  <textarea bind:value={routeForms[index]!.description}
+                  ></textarea>
+                </label>
+              {/each}
+            </div>
+          {/if}
+          <div class="location-editor-card">
+            <div>
+              <strong>Primary location anchor</strong>
+              <p>
+                Choose whether the primary marker follows a building, dorm, or
+                custom map coordinates.
+              </p>
+            </div>
             <label>
-              Category
-              <select bind:value={form.category}>
-                <option value="tradition">Tradition</option>
-                <option value="fair">Fair</option>
-                <option value="ceremony">Ceremony</option>
-                <option value="sports">Sports</option>
-                <option value="other">Other</option>
+              Anchor type
+              <select
+                bind:value={locationForm.anchorType}
+                onchange={handleAnchorTypeChange}
+              >
+                <option value="custom">Custom map point</option>
+                <option value="building">Building</option>
+                <option value="dorm">Dorm</option>
               </select>
             </label>
-            <p class="muted timezone-note">
-              Enter start and end in campus time (Manila).
-            </p>
-            <label
-              >Starts <input
-                type="datetime-local"
-                bind:value={form.startsAt}
-                required
-              /></label
-            >
-            <label
-              >Ends <input
-                type="datetime-local"
-                bind:value={form.endsAt}
-                required
-              /></label
-            >
-            <label>Source URL <input bind:value={form.sourceUrl} /></label>
-            <label>
-              Recurrence
-              <select bind:value={form.recurrence}>
-                <option value="none">None</option>
-                <option value="annual">Annual</option>
-                <option value="every_1st_sem">Every 1st semester</option>
-                <option value="every_2nd_sem">Every 2nd semester</option>
-              </select>
-            </label>
-            {#if routeForms.length > 0}
-              <div class="route-editor-card">
-                <strong>Routes</strong>
-                {#each routeForms as routeForm, index (routeForm.id)}
-                  <label>
-                    Route name
-                    <input bind:value={routeForms[index]!.name} required />
-                  </label>
-                  <label>
-                    Route description
-                    <textarea bind:value={routeForms[index]!.description}
-                    ></textarea>
-                  </label>
-                {/each}
-              </div>
-            {/if}
-            <div class="location-editor-card">
-              <div>
-                <strong>Primary location anchor</strong>
-                <p>
-                  Choose whether the primary marker follows a building, dorm, or
-                  custom map coordinates.
-                </p>
-              </div>
+            {#if locationForm.anchorType === "building"}
               <label>
-                Anchor type
+                Building
                 <select
-                  bind:value={locationForm.anchorType}
-                  onchange={handleAnchorTypeChange}
+                  bind:value={locationForm.buildingId}
+                  required
+                  onchange={handleBuildingAnchorChange}
                 >
-                  <option value="custom">Custom map point</option>
-                  <option value="building">Building</option>
-                  <option value="dorm">Dorm</option>
+                  <option value="">Select a building</option>
+                  {#each buildings as building (building.id)}
+                    <option value={building.id}>{building.buildingName}</option>
+                  {/each}
                 </select>
               </label>
-              {#if locationForm.anchorType === "building"}
-                <label>
-                  Building
-                  <select
-                    bind:value={locationForm.buildingId}
-                    required
-                    onchange={handleBuildingAnchorChange}
-                  >
-                    <option value="">Select a building</option>
-                    {#each buildings as building (building.id)}
-                      <option value={building.id}
-                        >{building.buildingName}</option
-                      >
-                    {/each}
-                  </select>
-                </label>
-              {:else if locationForm.anchorType === "dorm"}
-                <label>
-                  Dorm
-                  <select
-                    bind:value={locationForm.dormId}
-                    required
-                    onchange={handleDormAnchorChange}
-                  >
-                    <option value="">Select a dorm</option>
-                    {#each dorms as dorm (dorm.id)}
-                      <option value={dorm.id}>{dorm.dormName}</option>
-                    {/each}
-                  </select>
-                </label>
-              {/if}
-              <label
-                >Location label <input bind:value={locationForm.label} /></label
+            {:else if locationForm.anchorType === "dorm"}
+              <label>
+                Dorm
+                <select
+                  bind:value={locationForm.dormId}
+                  required
+                  onchange={handleDormAnchorChange}
+                >
+                  <option value="">Select a dorm</option>
+                  {#each dorms as dorm (dorm.id)}
+                    <option value={dorm.id}>{dorm.dormName}</option>
+                  {/each}
+                </select>
+              </label>
+            {/if}
+            <label
+              >Location label <input bind:value={locationForm.label} /></label
+            >
+            <div class="location-editor-actions">
+              <button
+                class="secondary-action"
+                type="button"
+                disabled={savingLocation}
+                onclick={savePrimaryLocationAnchor}
               >
-              <div class="location-editor-actions">
+                {savingLocation
+                  ? canPublish
+                    ? "Saving anchor..."
+                    : "Submitting..."
+                  : canPublish
+                    ? "Save location anchor"
+                    : "Submit location"}
+              </button>
+            </div>
+          </div>
+          <div class="location-editor-card">
+            <div>
+              <strong>Event location</strong>
+              {#if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null}
+                <p>
+                  {#if canPublish}
+                    Drag the event marker on the map to move it. This edits the
+                    primary location only.
+                  {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
+                    Pin move mode is on — drag the event marker on the map.
+                  {:else}
+                    Suggest a map pin move with
+                    <button
+                      type="button"
+                      class="inline-link-btn"
+                      onclick={enableEventPinProposal}
+                    >
+                      enable pin move
+                    </button>
+                    , then drag the marker.
+                  {/if}
+                </p>
+              {:else}
+                <p>
+                  Place a primary marker at the current map center, then drag it
+                  on the map to refine the location.
+                </p>
+              {/if}
+            </div>
+            <div class="location-editor-actions">
+              {#if canPublish}
                 <button
                   class="secondary-action"
                   type="button"
-                  disabled={savingLocation}
-                  onclick={savePrimaryLocationAnchor}
+                  onclick={() => {
+                    if (!mapEditStore.enabled) mapEditStore.toggle();
+                  }}
                 >
-                  {savingLocation
-                    ? canPublish
-                      ? "Saving anchor..."
-                      : "Submitting..."
-                    : canPublish
-                      ? "Save location anchor"
-                      : "Submit location"}
+                  {mapEditStore.enabled
+                    ? "Map editing on"
+                    : "Enable map editing"}
                 </button>
-              </div>
-            </div>
-            <div class="location-editor-card">
-              <div>
-                <strong>Event location</strong>
-                {#if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null}
-                  <p>
-                    {#if canPublish}
-                      Drag the event marker on the map to move it. This edits
-                      the primary location only.
-                    {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
-                      Pin move mode is on — drag the event marker on the map.
-                    {:else}
-                      Suggest a map pin move with
-                      <button
-                        type="button"
-                        class="inline-link-btn"
-                        onclick={enableEventPinProposal}
-                      >
-                        enable pin move
-                      </button>
-                      , then drag the marker.
-                    {/if}
-                  </p>
-                {:else}
-                  <p>
-                    Place a primary marker at the current map center, then drag
-                    it on the map to refine the location.
-                  </p>
-                {/if}
-              </div>
-              <div class="location-editor-actions">
-                {#if canPublish}
+                {#if !primaryLocation || primaryLocation.resolvedLat === null || primaryLocation.resolvedLon === null}
                   <button
-                    class="secondary-action"
+                    class="primary-action"
                     type="button"
-                    onclick={() => {
-                      if (!mapEditStore.enabled) mapEditStore.toggle();
-                    }}
+                    disabled={savingLocation}
+                    onclick={placePrimaryLocationAtMapCenter}
                   >
-                    {mapEditStore.enabled
-                      ? "Map editing on"
-                      : "Enable map editing"}
-                  </button>
-                  {#if !primaryLocation || primaryLocation.resolvedLat === null || primaryLocation.resolvedLon === null}
-                    <button
-                      class="primary-action"
-                      type="button"
-                      disabled={savingLocation}
-                      onclick={placePrimaryLocationAtMapCenter}
-                    >
-                      {savingLocation
-                        ? "Placing..."
-                        : "Place marker at map center"}
-                    </button>
-                  {/if}
-                {:else if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null && !mapProposalStore.allowsKey(`event:${event.id}:location`)}
-                  <button
-                    class="secondary-action"
-                    type="button"
-                    onclick={enableEventPinProposal}
-                  >
-                    Enable pin move
+                    {savingLocation
+                      ? "Placing..."
+                      : "Place marker at map center"}
                   </button>
                 {/if}
-              </div>
+              {:else if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null && !mapProposalStore.allowsKey(`event:${event.id}:location`)}
+                <button
+                  class="secondary-action"
+                  type="button"
+                  onclick={enableEventPinProposal}
+                >
+                  Enable pin move
+                </button>
+              {/if}
             </div>
-            <button class="primary-action" type="submit" disabled={saving}>
-              {saving
-                ? canPublish
-                  ? "Saving..."
-                  : "Submitting..."
-                : canPublish
-                  ? "Save event"
-                  : "Submit for review"}
+          </div>
+          <button class="primary-action" type="submit" disabled={saving}>
+            {saving
+              ? canPublish
+                ? "Saving..."
+                : "Submitting..."
+              : canPublish
+                ? "Save event"
+                : "Submit for review"}
+          </button>
+          {#if canPublish}
+            <button
+              class="danger-action"
+              type="button"
+              disabled={deactivating}
+              onclick={deactivateEvent}
+            >
+              {deactivating ? "Deactivating..." : "Deactivate event"}
             </button>
-            {#if canPublish}
-              <button
-                class="danger-action"
-                type="button"
-                disabled={deactivating}
-                onclick={deactivateEvent}
-              >
-                {deactivating ? "Deactivating..." : "Deactivate event"}
-              </button>
-            {/if}
-          </form>
-        {/if}
-      </section>
+          {/if}
+        </form>
+      {/if}
+    </section>
   {:else}
     <p>Loading event...</p>
   {/if}
