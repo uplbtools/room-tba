@@ -5,7 +5,7 @@
     type DBData,
     setAppData,
   } from "../../lib/context";
-  import { queryStore } from "../../lib/store.svelte";
+  import { queryStore, syncToastStore } from "../../lib/store.svelte";
   import type {
     BuildingData,
     CollegeData,
@@ -100,6 +100,7 @@
             .then(() => syncColleges(collegeCheck, data.colleges ?? []))
             .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
             .then(() => syncDorms(dormCheck, data.dorms ?? []))
+            .then(() => syncToastStore.endSync())
       });
   });
 

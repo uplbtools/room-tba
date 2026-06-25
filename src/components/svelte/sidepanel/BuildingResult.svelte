@@ -3,18 +3,21 @@
     queryStore,
     locationStore,
     building3DStore,
+    toastStore,
   } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Box from "@lucide/svelte/icons/box";
   import type { RoomData } from "../../../lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
+  import CopyLinkButton from "../CopyLinkButton.svelte";
   import { onMount } from "svelte";
   import { getBuildingRooms } from "../../../lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
     syncBuildingRooms,
   } from "../../../lib/local/data/sync";
+  import { getBuildingShareUrl } from "../../../lib/share-links";
 
   const appData = getAppData();
   const { buildings, loaded } = $derived(appData());
@@ -23,6 +26,9 @@
     loaded
       ? buildings.find((b) => b.buildingName === queryStore.queryValue)
       : null,
+  );
+  const buildingShareUrl = $derived(
+    building ? getBuildingShareUrl(building.buildingName) : "",
   );
   let buildingRooms = $state<RoomData[] | null>(null);
 
@@ -41,8 +47,8 @@
       {#if building.directions}
         <p class="building-desc">{building.directions}</p>
       {/if}
-      {#if building.lon && building.lat}
-        <div class="building-actions">
+      <div class="building-actions">
+        {#if building.lon && building.lat}
           <button
             class="get-directions-btn"
             onclick={() => {
@@ -63,8 +69,26 @@
             View in 3D
             <Box size={18} />
           </button>
-        </div>
-      {/if}
+        {/if}
+        <CopyLinkButton
+          url={buildingShareUrl}
+          ariaLabel={`Copy link to ${building.buildingName}`}
+          successMessage={`Copied link for ${building.buildingName}.`}
+          errorMessage={`Could not copy link for ${building.buildingName}.`}
+          feedback="none"
+          variant="chip"
+          onsuccess={() =>
+            toastStore.show(
+              `Copied link for ${building.buildingName}.`,
+              "success",
+            )}
+          onerror={() =>
+            toastStore.show(
+              `Could not copy link for ${building.buildingName}.`,
+              "error",
+            )}
+        />
+      </div>
     </div>
   {:else}
     <p>Loading data...</p>
