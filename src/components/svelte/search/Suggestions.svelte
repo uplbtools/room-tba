@@ -111,15 +111,20 @@
     const trimmed = searchValue.trim();
     if (trimmed === "") return [];
     const upper = trimmed.toUpperCase();
+    const url = `/api/rooms?search_code=${encodeURI(upper)}`;
     try {
-      const roomsFetch = await getJSONFetch<{
-        data: { value: string }[] | null;
-      }>(`/api/rooms?search_code=${encodeURI(upper)}`);
-      if (roomsFetch.data && roomsFetch.data.length > 0) {
+      const response = await fetch(url);
+      const roomsFetch = (await response.json()) as {
+        data?: { value: string }[] | null;
+      };
+      if (response.ok && Array.isArray(roomsFetch?.data)) {
         return roomsFetch.data.map((val) => ({
           ...val,
           category: "room" as const,
         }));
+      }
+      if (response.status === 404) {
+        return [];
       }
     } catch {
       // Network unavailable — fall back to the local PGlite room cache (#169).
@@ -155,7 +160,7 @@
 </script>
 
 <!-- class:visible={queryStore.inputValue === ""} -->
-<div class="suggestions-container">
+<div class="suggestions-container search-suggestions">
   <!-- class:force-visible={queryStore.inputValue === ""} -->
   {#if queryStore.inputValue === ""}
     {#if queryStore.recentSearches.length !== 0}
