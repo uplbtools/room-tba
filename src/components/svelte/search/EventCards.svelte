@@ -68,7 +68,7 @@
       value: event.title,
       eventSlug: event.slug,
     });
-    queryStore.inputValue = event.title;
+    queryStore.inputValue = "";
   }
 
   function openEventsList() {
@@ -77,7 +77,7 @@
       type: "result",
       value: "Campus events",
     });
-    queryStore.inputValue = "Campus events";
+    queryStore.inputValue = "";
     sidePanelStore.expand();
   }
 

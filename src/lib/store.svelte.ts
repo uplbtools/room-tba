@@ -229,6 +229,15 @@ class QueryStore {
     this.inputValue = "";
   };
 
+  /** Drop an active result selection while keeping the search field editable. */
+  exitResultMode = () => {
+    this._queryStore = {
+      category: null,
+      type: "query",
+      value: "",
+    };
+  };
+
   setType = (type: QueryStoreState["type"]) => {
     this._queryStore.type = type;
   };
