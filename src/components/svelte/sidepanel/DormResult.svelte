@@ -205,7 +205,8 @@
   }
 
   function fieldActionLabel(field: DormEditableField) {
-    if (savingField === field) return canPublish ? "Saving..." : "Submitting...";
+    if (savingField === field)
+      return canPublish ? "Saving..." : "Submitting...";
     return canPublish ? "Save" : "Submit";
   }
 
@@ -463,11 +464,7 @@
         aria-expanded={editing}
         onclick={() => (editing = !editing)}
       >
-        {editing
-          ? "Close"
-          : canPublish
-            ? "Edit dorm"
-            : "Suggest an edit"}
+        {editing ? "Close" : canPublish ? "Edit dorm" : "Suggest an edit"}
       </button>
       {#if editing}
         <div class="editor-heading">
@@ -492,313 +489,313 @@
           </p>
         {/if}
 
-          <div class="editor-field">
-            <label for="dorm-name-editor">Dorm name</label>
-            <div class="editor-control-row">
-              <input
-                id="dorm-name-editor"
-                bind:value={nameDraft}
-                disabled={savingField !== null}
-                autocomplete="off"
-              />
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("dormName", dorm)}
-                onclick={() => saveField("dormName")}
-              >
-                {fieldActionLabel("dormName")}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-field">
-            <label for="dorm-short-name-editor">Short name</label>
-            <div class="editor-control-row">
-              <input
-                id="dorm-short-name-editor"
-                bind:value={shortNameDraft}
-                disabled={savingField !== null}
-                autocomplete="off"
-              />
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("shortName", dorm)}
-                onclick={() => saveField("shortName")}
-              >
-                {savingField === "shortName" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-field">
-            <label for="dorm-description-editor">Description</label>
-            <div class="editor-control-row stacked">
-              <textarea
-                id="dorm-description-editor"
-                bind:value={descriptionDraft}
-                disabled={savingField !== null}
-                rows="3"></textarea>
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("description", dorm)}
-                onclick={() => saveField("description")}
-              >
-                {savingField === "description" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-grid">
-            <div class="editor-field">
-              <label for="dorm-gender-editor">Gender policy</label>
-              <div class="editor-control-row">
-                <select
-                  id="dorm-gender-editor"
-                  bind:value={genderDraft}
-                  disabled={savingField !== null}
-                >
-                  <option value="male">Male-exclusive</option>
-                  <option value="female">Female-exclusive</option>
-                  <option value="coed">Co-ed</option>
-                  <option value="Mixed">Mixed</option>
-                </select>
-                <button
-                  class="field-save-btn"
-                  disabled={savingField !== null ||
-                    fieldIsUnchanged("gender", dorm)}
-                  onclick={() => saveField("gender")}
-                >
-                  {savingField === "gender" ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </div>
-
-            <div class="editor-field">
-              <label for="dorm-capacity-editor">Capacity (beds)</label>
-              <div class="editor-control-row">
-                <input
-                  id="dorm-capacity-editor"
-                  type="number"
-                  min="0"
-                  bind:value={capacityDraft}
-                  disabled={savingField !== null}
-                />
-                <button
-                  class="field-save-btn"
-                  disabled={savingField !== null ||
-                    fieldIsUnchanged("capacity", dorm)}
-                  onclick={() => saveField("capacity")}
-                >
-                  {savingField === "capacity" ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="editor-field checkbox-field">
-            <label class="checkbox-label">
-              <input
-                type="checkbox"
-                bind:checked={isUpManagedDraft}
-                disabled={savingField !== null}
-              />
-              UP-managed dorm
-            </label>
+        <div class="editor-field">
+          <label for="dorm-name-editor">Dorm name</label>
+          <div class="editor-control-row">
+            <input
+              id="dorm-name-editor"
+              bind:value={nameDraft}
+              disabled={savingField !== null}
+              autocomplete="off"
+            />
             <button
               class="field-save-btn"
               disabled={savingField !== null ||
-                fieldIsUnchanged("isUpManaged", dorm)}
-              onclick={() => saveField("isUpManaged")}
+                fieldIsUnchanged("dormName", dorm)}
+              onclick={() => saveField("dormName")}
             >
-              {savingField === "isUpManaged" ? "Saving..." : "Save"}
+              {fieldActionLabel("dormName")}
             </button>
           </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-short-name-editor">Short name</label>
+          <div class="editor-control-row">
+            <input
+              id="dorm-short-name-editor"
+              bind:value={shortNameDraft}
+              disabled={savingField !== null}
+              autocomplete="off"
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("shortName", dorm)}
+              onclick={() => saveField("shortName")}
+            >
+              {savingField === "shortName" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-description-editor">Description</label>
+          <div class="editor-control-row stacked">
+            <textarea
+              id="dorm-description-editor"
+              bind:value={descriptionDraft}
+              disabled={savingField !== null}
+              rows="3"></textarea>
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("description", dorm)}
+              onclick={() => saveField("description")}
+            >
+              {savingField === "description" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-grid">
+          <div class="editor-field">
+            <label for="dorm-gender-editor">Gender policy</label>
+            <div class="editor-control-row">
+              <select
+                id="dorm-gender-editor"
+                bind:value={genderDraft}
+                disabled={savingField !== null}
+              >
+                <option value="male">Male-exclusive</option>
+                <option value="female">Female-exclusive</option>
+                <option value="coed">Co-ed</option>
+                <option value="Mixed">Mixed</option>
+              </select>
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  fieldIsUnchanged("gender", dorm)}
+                onclick={() => saveField("gender")}
+              >
+                {savingField === "gender" ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
 
           <div class="editor-field">
-            <label for="dorm-price-editor">Price range</label>
+            <label for="dorm-capacity-editor">Capacity (beds)</label>
             <div class="editor-control-row">
               <input
-                id="dorm-price-editor"
-                bind:value={priceRangeDraft}
+                id="dorm-capacity-editor"
+                type="number"
+                min="0"
+                bind:value={capacityDraft}
                 disabled={savingField !== null}
               />
               <button
                 class="field-save-btn"
                 disabled={savingField !== null ||
-                  fieldIsUnchanged("priceRange", dorm)}
-                onclick={() => saveField("priceRange")}
+                  fieldIsUnchanged("capacity", dorm)}
+                onclick={() => saveField("capacity")}
               >
-                {savingField === "priceRange" ? "Saving..." : "Save"}
+                {savingField === "capacity" ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
+        </div>
 
-          <div class="editor-field">
-            <label for="dorm-office-editor">Managing office</label>
-            <div class="editor-control-row">
-              <input
-                id="dorm-office-editor"
-                bind:value={managingOfficeDraft}
-                disabled={savingField !== null}
-              />
+        <div class="editor-field checkbox-field">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              bind:checked={isUpManagedDraft}
+              disabled={savingField !== null}
+            />
+            UP-managed dorm
+          </label>
+          <button
+            class="field-save-btn"
+            disabled={savingField !== null ||
+              fieldIsUnchanged("isUpManaged", dorm)}
+            onclick={() => saveField("isUpManaged")}
+          >
+            {savingField === "isUpManaged" ? "Saving..." : "Save"}
+          </button>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-price-editor">Price range</label>
+          <div class="editor-control-row">
+            <input
+              id="dorm-price-editor"
+              bind:value={priceRangeDraft}
+              disabled={savingField !== null}
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("priceRange", dorm)}
+              onclick={() => saveField("priceRange")}
+            >
+              {savingField === "priceRange" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-office-editor">Managing office</label>
+          <div class="editor-control-row">
+            <input
+              id="dorm-office-editor"
+              bind:value={managingOfficeDraft}
+              disabled={savingField !== null}
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("managingOffice", dorm)}
+              onclick={() => saveField("managingOffice")}
+            >
+              {savingField === "managingOffice" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-email-editor">Contact email</label>
+          <div class="editor-control-row">
+            <input
+              id="dorm-email-editor"
+              type="email"
+              bind:value={contactEmailDraft}
+              disabled={savingField !== null}
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("contactEmail", dorm)}
+              onclick={() => saveField("contactEmail")}
+            >
+              {savingField === "contactEmail" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-phone-editor">Contact phones</label>
+          <div class="editor-control-row stacked">
+            <textarea
+              id="dorm-phone-editor"
+              bind:value={contactPhoneDraft}
+              disabled={savingField !== null}
+              rows="3"
+              placeholder="One phone number per line"></textarea>
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("contactPhone", dorm)}
+              onclick={() => saveField("contactPhone")}
+            >
+              {savingField === "contactPhone" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-amenities-editor">Amenities</label>
+          <div class="editor-control-row stacked">
+            <textarea
+              id="dorm-amenities-editor"
+              bind:value={amenitiesDraft}
+              disabled={savingField !== null}
+              rows="4"
+              placeholder="One amenity per line"></textarea>
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("amenities", dorm)}
+              onclick={() => saveField("amenities")}
+            >
+              {savingField === "amenities" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-facebook-editor">Facebook link</label>
+          <div class="editor-control-row">
+            <input
+              id="dorm-facebook-editor"
+              type="url"
+              bind:value={facebookLinkDraft}
+              disabled={savingField !== null}
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("facebookLink", dorm)}
+              onclick={() => saveField("facebookLink")}
+            >
+              {savingField === "facebookLink" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="dorm-osm-editor">OpenStreetMap link</label>
+          <div class="editor-control-row">
+            <input
+              id="dorm-osm-editor"
+              type="url"
+              bind:value={osmLinkDraft}
+              disabled={savingField !== null}
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                fieldIsUnchanged("osmLink", dorm)}
+              onclick={() => saveField("osmLink")}
+            >
+              {savingField === "osmLink" ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+
+        <p class="editor-note">
+          {#if canPublish}
+            {#if mapEditStore.enabled}
+              Map editing is on — drag this dorm's pin on the map to move it.
+            {:else}
+              To move this dorm's map pin,
               <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("managingOffice", dorm)}
-                onclick={() => saveField("managingOffice")}
+                type="button"
+                class="inline-link-btn"
+                onclick={() => mapEditStore.enable()}
               >
-                {savingField === "managingOffice" ? "Saving..." : "Save"}
+                enable map editing
               </button>
-            </div>
-          </div>
-
-          <div class="editor-field">
-            <label for="dorm-email-editor">Contact email</label>
-            <div class="editor-control-row">
-              <input
-                id="dorm-email-editor"
-                type="email"
-                bind:value={contactEmailDraft}
-                disabled={savingField !== null}
-              />
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("contactEmail", dorm)}
-                onclick={() => saveField("contactEmail")}
-              >
-                {savingField === "contactEmail" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-field">
-            <label for="dorm-phone-editor">Contact phones</label>
-            <div class="editor-control-row stacked">
-              <textarea
-                id="dorm-phone-editor"
-                bind:value={contactPhoneDraft}
-                disabled={savingField !== null}
-                rows="3"
-                placeholder="One phone number per line"></textarea>
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("contactPhone", dorm)}
-                onclick={() => saveField("contactPhone")}
-              >
-                {savingField === "contactPhone" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-field">
-            <label for="dorm-amenities-editor">Amenities</label>
-            <div class="editor-control-row stacked">
-              <textarea
-                id="dorm-amenities-editor"
-                bind:value={amenitiesDraft}
-                disabled={savingField !== null}
-                rows="4"
-                placeholder="One amenity per line"></textarea>
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("amenities", dorm)}
-                onclick={() => saveField("amenities")}
-              >
-                {savingField === "amenities" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-field">
-            <label for="dorm-facebook-editor">Facebook link</label>
-            <div class="editor-control-row">
-              <input
-                id="dorm-facebook-editor"
-                type="url"
-                bind:value={facebookLinkDraft}
-                disabled={savingField !== null}
-              />
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("facebookLink", dorm)}
-                onclick={() => saveField("facebookLink")}
-              >
-                {savingField === "facebookLink" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-field">
-            <label for="dorm-osm-editor">OpenStreetMap link</label>
-            <div class="editor-control-row">
-              <input
-                id="dorm-osm-editor"
-                type="url"
-                bind:value={osmLinkDraft}
-                disabled={savingField !== null}
-              />
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  fieldIsUnchanged("osmLink", dorm)}
-                onclick={() => saveField("osmLink")}
-              >
-                {savingField === "osmLink" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <p class="editor-note">
-            {#if canPublish}
-              {#if mapEditStore.enabled}
-                Map editing is on — drag this dorm's pin on the map to move it.
-              {:else}
-                To move this dorm's map pin,
-                <button
-                  type="button"
-                  class="inline-link-btn"
-                  onclick={() => mapEditStore.enable()}
-                >
-                  enable map editing
-                </button>
-                from the shield control, then drag its marker.
-              {/if}
-            {:else if dorm.lat && dorm.lon}
-              {#if mapProposalStore.allowsKey(`dorm:${dorm.id}`)}
-                Pin move mode is on — drag this dorm's marker on the map.
-              {:else}
-                To suggest a map pin move,
-                <button
-                  type="button"
-                  class="inline-link-btn"
-                  onclick={enablePinProposal}
-                >
-                  enable pin move
-                </button>
-                , then drag its marker.
-              {/if}
+              from the shield control, then drag its marker.
             {/if}
-          </p>
+          {:else if dorm.lat && dorm.lon}
+            {#if mapProposalStore.allowsKey(`dorm:${dorm.id}`)}
+              Pin move mode is on — drag this dorm's marker on the map.
+            {:else}
+              To suggest a map pin move,
+              <button
+                type="button"
+                class="inline-link-btn"
+                onclick={enablePinProposal}
+              >
+                enable pin move
+              </button>
+              , then drag its marker.
+            {/if}
+          {/if}
+        </p>
 
-          {#if savedField}
-            <p class="editor-message success">
-              {canPublish
-                ? `${fieldLabel(savedField)} saved.`
-                : "Suggestion submitted."}
-            </p>
-          {/if}
-          {#if fieldError}
-            <p class="editor-message error">{fieldError}</p>
-          {/if}
+        {#if savedField}
+          <p class="editor-message success">
+            {canPublish
+              ? `${fieldLabel(savedField)} saved.`
+              : "Suggestion submitted."}
+          </p>
         {/if}
-      </section>
+        {#if fieldError}
+          <p class="editor-message error">{fieldError}</p>
+        {/if}
+      {/if}
+    </section>
 
     <hr class="dorm-divider" />
 

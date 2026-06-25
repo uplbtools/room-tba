@@ -26,9 +26,7 @@ export const GET: APIRoute = async ({ cookies, params, url }) => {
     return json({ proposal });
   }
 
-  if (
-    canViewProposalSubmitterDetails(session, proposal, submitterName)
-  ) {
+  if (canViewProposalSubmitterDetails(session, proposal, submitterName)) {
     return json({ proposal: toSubmitterProposalView(proposal) });
   }
 
