@@ -119,10 +119,17 @@
     replaceEvent: (updated) => {
       if (!events) return;
       const index = events.findIndex((event) => event.id === updated.id);
-      if (index === -1) return;
+      if (index === -1) {
+        events = [updated, ...events];
+        return;
+      }
       const next = events.slice();
       next[index] = updated;
       events = next;
+    },
+    removeEvent: (eventId) => {
+      if (!events) return;
+      events = events.filter((event) => event.id !== eventId);
     },
   });
 </script>

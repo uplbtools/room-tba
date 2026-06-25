@@ -25,7 +25,9 @@
   const panelIdentity = $derived(
     queryStore.category === null
       ? null
-      : `${queryStore.category}:${queryStore.queryValue}`,
+      : queryStore.category === "event" && queryStore.selectedEventSlug
+        ? `event:${queryStore.selectedEventSlug}`
+        : `${queryStore.category}:${queryStore.queryValue}`,
   );
   const toggleLabel = $derived(
     sidePanelStore.collapsed

@@ -41,6 +41,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       { routes: body.routes },
       Number.isInteger(body.version) ? body.version : undefined,
     );
+    if (!event) return json({ error: "Event not found" }, 404);
     return json({ success: true, event });
   } catch (err) {
     if (err instanceof EditConflictError) {

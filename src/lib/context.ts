@@ -31,6 +31,7 @@ export type DBData = Omit<AppContextData, "loaded">;
 
 export type AppActions = {
   replaceEvent: (event: EventData) => void;
+  removeEvent: (eventId: number) => void;
 };
 
 export const [getAppData, setAppData] = createContext<() => AppContextData>();

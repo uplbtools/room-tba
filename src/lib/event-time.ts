@@ -14,6 +14,13 @@
  *  - `datetime-local` inputs are treated as Asia/Manila wall-clock time.
  */
 
+import {
+  CAMPUS_SEMESTER_MONTHS,
+  type SemesterRecurrence,
+} from "./campus-calendar";
+
+export type { SemesterRecurrence } from "./campus-calendar";
+
 export const CAMPUS_TIME_ZONE = "Asia/Manila";
 const CAMPUS_UTC_OFFSET = "+08:00";
 
@@ -130,13 +137,6 @@ export function projectCampusOccurrence(
   return { startsAt: projectedStart, endsAt: projectedEnd };
 }
 
-export type SemesterRecurrence = "every_1st_sem" | "every_2nd_sem";
-
-const SEMESTER_MONTHS: Record<SemesterRecurrence, readonly number[]> = {
-  every_1st_sem: [8, 9, 10, 11, 12],
-  every_2nd_sem: [1, 2, 3, 4, 5],
-};
-
 /** Project a semester-recurring event into the current-or-next semester window. */
 export function projectCampusSemesterOccurrence(
   startWall: string,
@@ -152,7 +152,7 @@ export function projectCampusSemesterOccurrence(
   const nowParts = getCampusParts(now);
   if (!startParts || !nowParts) return { startsAt: start, endsAt: end };
 
-  const months = SEMESTER_MONTHS[semester];
+  const months = CAMPUS_SEMESTER_MONTHS[semester];
   const inWindow = months.includes(Number(startParts.month));
   const month = inWindow
     ? startParts.month

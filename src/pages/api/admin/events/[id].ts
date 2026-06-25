@@ -44,8 +44,11 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     const updates: EventWriteInput = { ...body };
     if (updates.slug) updates.slug = slugifySegment(updates.slug);
     if (updates.title) updates.title = updates.title.trim();
-    updates.includeInSeo = true;
+    if (typeof body.includeInSeo === "boolean") {
+      updates.includeInSeo = body.includeInSeo;
+    }
     const event = await updateEvent(id, updates, expectedVersion);
+    if (!event) return json({ error: "Event not found" }, 404);
     return json({ success: true, event });
   } catch (err) {
     return handleEventError(err);
