@@ -332,20 +332,24 @@ export function getEntityRooms(
   getLocalTableRoom: (id: number) => Promise<RoomData[] | undefined>,
 ) {
   return async (validSync: boolean, id: number) => {
-    const local = async () => (await getLocalTableRoom(id)) ?? [];
-    if (validSync) return local();
+    const loadLocal = async () => (await getLocalTableRoom(id)) ?? [];
+    if (validSync) return loadLocal();
+    const url = `/api/rooms?${entityName}_id=${id}`;
     try {
-      const fetchedData = await getJSONFetch<{ data: RoomData[] }>(
-        `/api/rooms?${entityName}_id=${id}`,
-      );
-      if (Array.isArray(fetchedData?.data) && fetchedData.data.length > 0) {
+      const response = await fetch(url);
+      const fetchedData = (await response.json()) as { data?: RoomData[] };
+      if (response.ok && Array.isArray(fetchedData?.data)) {
         return fetchedData.data;
       }
-      // Remote unreachable/empty (offline): fall back to cached local rooms.
-      const cached = await local();
-      return cached.length > 0 ? cached : (fetchedData?.data ?? []);
+      // Authoritative empty entity (e.g. 404): do not resurrect stale cache.
+      if (response.status === 404) {
+        return [];
+      }
+      const cached = await loadLocal();
+      return cached.length > 0 ? cached : [];
     } catch {
-      return local();
+      const cached = await loadLocal();
+      return cached;
     }
   };
 }

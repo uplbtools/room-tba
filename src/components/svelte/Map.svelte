@@ -2550,13 +2550,12 @@
   }
 
   /* #207: keep the required basemap attribution above the bottom map chrome
-     (status bar + FAB row) so it is never covered by app UI. Uses the shared
-     layout anchors on .app-layout instead of magic offsets. */
+     (status bar + location FAB row) so it is never covered by app UI. */
   :global(.app-layout .maplibregl-ctrl-bottom-right) {
     z-index: 11;
     bottom: calc(
       var(--status-bar-block-height, 2.75rem) +
-        var(--map-tools-block-height, 3.25rem) + var(--map-ui-padding, 0.5rem) +
+        var(--bottom-fab-inset, 3.75rem) + var(--map-ui-padding, 0.5rem) +
         env(safe-area-inset-bottom, 0px)
     );
   }
