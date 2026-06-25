@@ -3,7 +3,8 @@ import type { AstroCookies } from "astro";
 import { eq } from "drizzle-orm";
 import { db } from "../../lib/db";
 import { buildingsTable } from "../../../drizzle/schema";
-import { ADMIN_COOKIE_NAME, verifySessionToken } from "../../lib/admin/auth";
+import { canPublishDirectly } from "../../lib/admin/auth";
+import { getEditorSession } from "../../lib/admin/require-editor";
 import { refreshSyncKey } from "../../lib/services/admin-service";
 import { CAMPUS_BOUNDS } from "../../constants/map-terrain";
 
@@ -23,12 +24,13 @@ function jsonOk<T>(data: T, status = 200): Response {
   });
 }
 
-function isAdmin(cookies: AstroCookies): boolean {
-  return verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value);
+function canPublish(cookies: AstroCookies): boolean {
+  const session = getEditorSession(cookies);
+  return session !== null && canPublishDirectly(session.role);
 }
 
 export const PUT: APIRoute = async ({ request, cookies, url }) => {
-  if (!isAdmin(cookies)) return jsonError(401, "Not authorized");
+  if (!canPublish(cookies)) return jsonError(401, "Not authorized");
 
   const buildingName = url.searchParams.get("building");
   if (!buildingName) {

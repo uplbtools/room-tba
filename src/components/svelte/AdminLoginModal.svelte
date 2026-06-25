@@ -16,7 +16,9 @@
       return;
     }
     password = "";
-    toastStore.show("Logged in as admin.", "success");
+    const label =
+      adminAuthStore.displayName ?? adminAuthStore.username ?? "editor";
+    toastStore.show(`Logged in as ${label}.`, "success");
   }
 
   function close() {

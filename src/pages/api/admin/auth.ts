@@ -1,19 +1,30 @@
 import type { APIRoute } from "astro";
-import { ADMIN_PASSWORD } from "astro:env/server";
 import {
-  ADMIN_COOKIE_NAME,
+  canPublishDirectly,
+  canReviewProposals,
   clearSessionCookie,
-  makeSessionToken,
+  createSessionToken,
   setSessionCookie,
-  verifySessionToken,
 } from "../../../lib/admin/auth";
+import { getEditorSession } from "../../../lib/admin/require-editor";
+import {
+  authenticateAdminUser,
+  authenticateLegacyAdminPassword,
+} from "../../../lib/services/admin-user-service";
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const admin = verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value);
+  const session = getEditorSession(cookies);
   return new Response(
-    JSON.stringify({ admin, username: admin ? "admin" : null }),
+    JSON.stringify({
+      admin: session !== null,
+      username: session?.username ?? null,
+      displayName: session?.displayName ?? null,
+      role: session?.role ?? null,
+      canPublish: session ? canPublishDirectly(session.role) : false,
+      canReview: session ? canReviewProposals(session.role) : false,
+    }),
     {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -23,43 +34,43 @@ export const GET: APIRoute = async ({ cookies }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
-  const password = formData.get("password");
+  const usernameRaw = formData.get("username");
+  const passwordRaw = formData.get("password");
+  const username = typeof usernameRaw === "string" ? usernameRaw.trim() : "";
+  const password = typeof passwordRaw === "string" ? passwordRaw : "";
 
-  if (typeof password !== "string" || password.length === 0) {
-    return new Response(JSON.stringify({ error: "Password is required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+  if (!password) {
+    return json({ error: "Password is required" }, 400);
   }
 
-  if (!ADMIN_PASSWORD) {
-    return new Response(
-      JSON.stringify({
-        error: "ADMIN_PASSWORD is not configured on the server",
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    );
+  let user = username ? await authenticateAdminUser(username, password) : null;
+
+  if (!user && !username) {
+    user = await authenticateLegacyAdminPassword(password);
   }
 
-  // Constant-time comparison
-  if (
-    password.length !== ADMIN_PASSWORD.length ||
-    password !== ADMIN_PASSWORD
-  ) {
-    return new Response(JSON.stringify({ error: "Invalid password" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
+  if (!user) {
+    return json({ error: "Invalid username or password" }, 401);
   }
 
-  const token = makeSessionToken();
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Set-Cookie": setSessionCookie(token),
+  const token = createSessionToken(user);
+  return new Response(
+    JSON.stringify({
+      success: true,
+      username: user.username,
+      displayName: user.displayName,
+      role: user.role,
+      canPublish: canPublishDirectly(user.role),
+      canReview: canReviewProposals(user.role),
+    }),
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": setSessionCookie(token),
+      },
     },
-  });
+  );
 };
 
 export const DELETE: APIRoute = async () => {
@@ -71,3 +82,10 @@ export const DELETE: APIRoute = async () => {
     },
   });
 };
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}

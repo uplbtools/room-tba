@@ -1,8 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-  ADMIN_COOKIE_NAME,
-  verifySessionToken,
-} from "../../../../lib/admin/auth";
+import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
 import {
   EditConflictError,
   updateRoom,
@@ -45,9 +42,8 @@ function invalidPosition(value: unknown) {
 }
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  if (!verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value)) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  if (auth instanceof Response) return auth;
 
   const id = parseInt(params["id"] ?? "");
   if (isNaN(id)) {
@@ -115,12 +111,13 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
           posY: String(body.position.posY),
         },
         expectedVersion,
+        auth.editedBy,
       );
 
       return json({ success: true, room });
     }
 
-    const room = await updateRoom(id, updates, expectedVersion);
+    const room = await updateRoom(id, updates, expectedVersion, auth.editedBy);
 
     return json({ success: true, room });
   } catch (err) {
