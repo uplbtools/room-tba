@@ -7,7 +7,7 @@
     mapStore,
     mapEditStore,
     jeepneyStore,
-    dormFilter,
+    buildingTypeFilter,
     currentRoom,
     adminAuthStore,
     toastStore,
@@ -40,13 +40,23 @@
     TERRAIN_TILEJSON_URL,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
   } from "../../constants/map-terrain";
+  import {
+    buildingMatchesTypeFilter,
+    dormMatchesTypeFilter,
+  } from "../../constants/building-types";
   const data = getAppData();
   const { buildings, dorms, loaded } = $derived(data());
+  const filteredBuildings = $derived.by(() => {
+    if (!loaded) return [];
+    return buildings.filter((building) =>
+      buildingMatchesTypeFilter(building, buildingTypeFilter.value),
+    );
+  });
   const filteredDorms = $derived.by(() => {
-    if (!loaded) return;
-    if (dormFilter.value === "all") return dorms;
-    if (dormFilter.value === "up") return dorms.filter((d) => d.isUpManaged);
-    return dorms.filter((d) => !d.isUpManaged);
+    if (!loaded) return [];
+    return dorms.filter((dorm) =>
+      dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
+    );
   });
   let directions: MapLibreGlDirections | undefined = $state.raw();
 
@@ -1169,7 +1179,7 @@
         <div class="user-location-pin"></div>
       </Marker>
     {/if}
-    {#each buildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
+    {#each filteredBuildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
       {#if building.lat && building.lon}
         {@const editKey = buildingEditKey(building.id)}
         {@const position = getEditablePosition(editKey, {

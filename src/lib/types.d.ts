@@ -1,4 +1,8 @@
-import { dormsTable, roomPositionsTable } from "../../drizzle/schema";
+import {
+  buildingsTable,
+  dormsTable,
+  roomPositionsTable,
+} from "../../drizzle/schema";
 import type { QueryStoreState } from "./store.svelte";
 
 export type AppData = {
@@ -52,15 +56,9 @@ type RoomData = {
   updatedAt: string;
 };
 
-type BuildingData = {
-  id: number;
-  buildingName: string;
-  lat: number | null;
-  lon: number | null;
-  directions: string | null;
-  version: number;
-  updatedAt: string;
-};
+type BuildingData = typeof buildingsTable.$inferSelect;
+
+type BuildingType = BuildingData["buildingType"];
 
 type ClassMapValue = {
   courseCode: string | null;
