@@ -26,7 +26,7 @@ if (appData === null) {
   throw new Error(`Room not found for slug: ${roomId}`);
 }
 
-const {room, classCount} = appData;
+const { room, classCount } = appData;
 
 const canonicalPath = `/room/${getRoomRouteSlug(room)}/`;
 const title = `${room.code} | Room at UPLB | Room TBA`;

@@ -9,7 +9,7 @@ import type {
 import { getDB } from "./pgliteDB";
 import { getJSONFetch } from "./utils";
 import { syncToastStore } from "../../store.svelte";
-import { Results } from "@electric-sql/pglite";
+import type { Results } from "@electric-sql/pglite";
 
 export function getSyncKeysFromLs(): {
   [key: string]: string;
@@ -119,22 +119,22 @@ export async function syncBuildings(
 
   await localDB.waitReady;
   syncToastStore.startBuildingsSync(remoteBuildings.length);
-  await localDB.exec(`DELETE FROM rooms`);
   for (const b of remoteBuildings) {
     try {
       await localDB.query(
         `
-        INSERT INTO buildings (id, building_name, lon, lat, directions, rooms_fetched)
-        VALUES ($1, $2, $3, $4, $5, false)
+        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched)
+        VALUES ($1, $2, $3, $4, $5, $6, false)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         building_name = EXCLUDED.building_name,
         lon = EXCLUDED.lon,
         lat = EXCLUDED.lat,
         directions = EXCLUDED.directions,
+        type = EXCLUDED.type,
         rooms_fetched = EXCLUDED.rooms_fetched;
         `,
-        [b.id, b.buildingName, b.lon, b.lat, b.directions],
+        [b.id, b.buildingName, b.lon, b.lat, b.directions, b.buildingType],
       );
       syncToastStore.updateBuildingsSync();
     } catch (e) {
@@ -154,7 +154,6 @@ export async function syncColleges(
 
   await localDB.waitReady;
   syncToastStore.startCollegesSync(remoteColleges.length);
-  await localDB.exec(`DELETE FROM rooms`);
   for (const college of remoteColleges) {
     try {
       await localDB.query(
@@ -187,7 +186,6 @@ export async function syncDivisions(
 
   await localDB.waitReady;
   syncToastStore.startDivisionsSync(remoteDivisions.length);
-  await localDB.exec(`DELETE FROM rooms`);
   for (const division of remoteDivisions) {
     try {
       await localDB.query(
@@ -315,7 +313,9 @@ export async function getLocalBuildingRooms(id: number) {
     d.division_name as "divisionName",
     r.building_id as "buildingId",
     r.college_id as "collegeId",
-    r.division_id as "divisionId"
+    r.division_id as "divisionId",
+    r.version,
+    r.updated_at as "updatedAt"
     FROM rooms AS r
     LEFT JOIN buildings AS b ON b.id = r.building_id
     LEFT JOIN colleges as c ON c.id = r.college_id
@@ -372,15 +372,17 @@ export async function syncBuildingRooms(
     try {
       await localDB.query(
         `
-            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, version, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             ON CONFLICT (id) DO UPDATE SET
             id = EXCLUDED.id,
             room_code = EXCLUDED.room_code,
             directions = EXCLUDED.directions,
             building_id = EXCLUDED.building_id,
             college_id = EXCLUDED.college_id,
-            division_id = EXCLUDED.division_id;
+            division_id = EXCLUDED.division_id,
+            version = EXCLUDED.version,
+            updated_at = EXCLUDED.updated_at;
             `,
         [
           room.id,
@@ -389,6 +391,8 @@ export async function syncBuildingRooms(
           room.buildingId,
           room.collegeId,
           room.divisionId,
+          room.version,
+          room.updatedAt,
         ],
       );
     } catch (e) {
@@ -446,7 +450,9 @@ export async function getLocalCollegeRooms(id: number) {
     d.division_name as "divisionName",
     r.building_id as "buildingId",
     r.college_id as "collegeId",
-    r.division_id as "divisionId"
+    r.division_id as "divisionId",
+    r.version,
+    r.updated_at as "updatedAt"
     FROM rooms AS r
     LEFT JOIN buildings AS b ON b.id = r.building_id
     LEFT JOIN colleges as c ON c.id = r.college_id
@@ -482,8 +488,8 @@ export async function checkLocalCollegeRoom(id: number) {
       return false;
     }
 
-    const buildingSyncStatus = await localCollegeSyncStatus(id);
-    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+    const collegeSyncStatus = await localCollegeSyncStatus(id);
+    if (!collegeSyncStatus || !collegeSyncStatus.roomsFetched) return false;
 
     return true;
   } catch (e) {
@@ -503,15 +509,17 @@ export async function syncCollegeRooms(
     try {
       await localDB.query(
         `
-            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, version, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             ON CONFLICT (id) DO UPDATE SET
             id = EXCLUDED.id,
             room_code = EXCLUDED.room_code,
             directions = EXCLUDED.directions,
             building_id = EXCLUDED.building_id,
             college_id = EXCLUDED.college_id,
-            division_id = EXCLUDED.division_id;
+            division_id = EXCLUDED.division_id,
+            version = EXCLUDED.version,
+            updated_at = EXCLUDED.updated_at;
             `,
         [
           room.id,
@@ -520,6 +528,8 @@ export async function syncCollegeRooms(
           room.buildingId,
           room.collegeId,
           room.divisionId,
+          room.version,
+          room.updatedAt,
         ],
       );
     } catch (e) {
@@ -577,7 +587,9 @@ export async function getLocalDivisionRooms(id: number) {
     d.division_name as "divisionName",
     r.building_id as "buildingId",
     r.college_id as "collegeId",
-    r.division_id as "divisionId"
+    r.division_id as "divisionId",
+    r.version,
+    r.updated_at as "updatedAt"
     FROM rooms AS r
     LEFT JOIN buildings AS b ON b.id = r.building_id
     LEFT JOIN colleges as c ON c.id = r.college_id
@@ -613,8 +625,8 @@ export async function checkLocalDivisionRoom(id: number) {
       return false;
     }
 
-    const buildingSyncStatus = await localDivisionSyncStatus(id);
-    if (!buildingSyncStatus || !buildingSyncStatus.roomsFetched) return false;
+    const divisionSyncStatus = await localDivisionSyncStatus(id);
+    if (!divisionSyncStatus || !divisionSyncStatus.roomsFetched) return false;
 
     return true;
   } catch (e) {
@@ -634,15 +646,17 @@ export async function syncDivisionRooms(
     try {
       await localDB.query(
         `
-            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, version, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             ON CONFLICT (id) DO UPDATE SET
             id = EXCLUDED.id,
             room_code = EXCLUDED.room_code,
             directions = EXCLUDED.directions,
             building_id = EXCLUDED.building_id,
             college_id = EXCLUDED.college_id,
-            division_id = EXCLUDED.division_id;
+            division_id = EXCLUDED.division_id,
+            version = EXCLUDED.version,
+            updated_at = EXCLUDED.updated_at;
             `,
         [
           room.id,
@@ -651,6 +665,8 @@ export async function syncDivisionRooms(
           room.buildingId,
           room.collegeId,
           room.divisionId,
+          room.version,
+          room.updatedAt,
         ],
       );
     } catch (e) {

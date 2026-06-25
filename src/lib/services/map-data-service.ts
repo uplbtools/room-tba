@@ -45,6 +45,8 @@ export async function getAllRooms(): Promise<RoomData[]> {
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        version: roomsTable.version,
+        updatedAt: roomsTable.updatedAt,
       })
       .from(roomsTable)
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
@@ -75,6 +77,8 @@ export async function getRoomByCode(code: string) {
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        version: roomsTable.version,
+        updatedAt: roomsTable.updatedAt,
       })
       .from(roomsTable)
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
@@ -91,6 +95,7 @@ export async function getRoomByCode(code: string) {
 
 export async function searchRooms(searchString: string) {
   try {
+    const escaped = searchString.replace(/%/g, "\\%").replace(/_/g, "\\_");
     const data = await db
       .select({
         value: roomsTable.roomCode,
@@ -99,7 +104,8 @@ export async function searchRooms(searchString: string) {
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
       .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
       .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(like(roomsTable.roomCode, `%${searchString}%`)).limit(6);
+      .where(like(roomsTable.roomCode, `%${escaped}%`))
+      .limit(6);
     if (data.length === 0) return null;
     return data;
   } catch (e) {
@@ -128,6 +134,8 @@ export async function getBuildingRooms(
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        version: roomsTable.version,
+        updatedAt: roomsTable.updatedAt,
       })
       .from(roomsTable)
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
@@ -158,6 +166,8 @@ export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        version: roomsTable.version,
+        updatedAt: roomsTable.updatedAt,
       })
       .from(roomsTable)
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
@@ -190,6 +200,8 @@ export async function getDivisionRooms(
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        version: roomsTable.version,
+        updatedAt: roomsTable.updatedAt,
       })
       .from(roomsTable)
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))

@@ -1,3 +1,5 @@
+// src/seed-private-dorms.ts
+
 import Database from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { dormsTable } from "../drizzle/schema";

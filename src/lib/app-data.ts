@@ -1,3 +1,5 @@
+// src/lib/app-data.ts
+
 import { count, eq, isNotNull } from "drizzle-orm";
 import {
   buildingsTable,

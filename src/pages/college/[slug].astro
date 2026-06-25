@@ -26,7 +26,7 @@ if (appData === null) {
   throw new Error(`College not found for slug: ${collegeName}`);
 }
 
-const {college, roomCount} = appData;
+const { college, roomCount } = appData;
 
 const canonicalPath = `/college/${getCollegeSlug(college)}/`;
 const title = `${college.collegeName} | College at UPLB | Room TBA`;

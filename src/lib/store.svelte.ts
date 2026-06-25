@@ -1,3 +1,5 @@
+// src/lib/store.svelte.ts
+
 import type { modalOptions } from "../constants/modal-states";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
@@ -26,7 +28,7 @@ export const currentRoom = {
     return _currentRoom;
   },
   async getRoomByCode(code: string) {
-      _currentRoom = null;
+    _currentRoom = null;
     try {
       const localRoom = await getLocalRoomByCode(code);
       if (localRoom === null) {
@@ -45,7 +47,10 @@ export const currentRoom = {
     }
   },
   async getRoomFromSearch(room: RoomData) {
-      _currentRoom = room;
+    _currentRoom = room;
+  },
+  setRoom(room: RoomData) {
+    _currentRoom = room;
   },
 };
 
@@ -305,6 +310,131 @@ class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
 }
 
+class SidePanelStore {
+  collapsed: boolean = $state(false);
+
+  toggle = () => {
+    this.collapsed = !this.collapsed;
+  };
+
+  expand = () => {
+    this.collapsed = false;
+  };
+
+  collapse = () => {
+    this.collapsed = true;
+  };
+}
+
+class MapEditStore {
+  enabled: boolean = $state(false);
+
+  toggle = () => {
+    this.enabled = !this.enabled;
+  };
+
+  close = () => {
+    this.enabled = false;
+  };
+}
+
+class Building3DStore {
+  buildingName: string | null = $state(null);
+
+  open = (name: string) => {
+    this.buildingName = name;
+  };
+
+  close = () => {
+    this.buildingName = null;
+  };
+}
+
+class AdminAuthStore {
+  isAdmin: boolean = $state(false);
+  username: string | null = $state(null);
+  loading: boolean = $state(false);
+  loginOpen: boolean = $state(false);
+  private _hydrated = false;
+
+  hydrate = async () => {
+    if (this._hydrated) return;
+    this._hydrated = true;
+    await this.refresh();
+  };
+
+  refresh = async () => {
+    try {
+      const res = await fetch("/api/admin/auth", {
+        credentials: "same-origin",
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        admin: boolean;
+        username: string | null;
+      };
+      this.isAdmin = data.admin;
+      this.username = data.username;
+    } catch {
+      // network error — treat as logged out, don't spam the UI.
+      this.isAdmin = false;
+      this.username = null;
+    }
+  };
+
+  login = async (
+    username: string,
+    password: string,
+  ): Promise<string | null> => {
+    this.loading = true;
+    try {
+      const formData = new FormData();
+      formData.set("password", password);
+
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        credentials: "same-origin",
+        body: formData,
+      });
+      const data = await res
+        .json()
+        .catch(() => ({}) as { error?: string; username?: string });
+      if (!res.ok) {
+        return data.error ?? `Login failed (${res.status})`;
+      }
+      this.isAdmin = true;
+      this.username = data.username ?? username ?? "admin";
+      this.loginOpen = false;
+      return null;
+    } catch {
+      return "Network error. Try again.";
+    } finally {
+      this.loading = false;
+    }
+  };
+
+  logout = async () => {
+    try {
+      await fetch("/api/admin/auth", {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+    } catch {
+      // ignore — we're going to clear local state regardless.
+    }
+    this.isAdmin = false;
+    this.username = null;
+  };
+
+  openLogin = () => {
+    this.loginOpen = true;
+  };
+
+  closeLogin = () => {
+    this.loginOpen = false;
+  };
+}
+
 class JeepneyStore {
   selectedRouteId: string | null = $state(null);
   menuOpen: boolean = $state(false);
@@ -403,5 +533,9 @@ export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
+export const sidePanelStore = new SidePanelStore();
+export const mapEditStore = new MapEditStore();
 export const jeepneyStore = new JeepneyStore();
 export const syncToastStore = new SyncToastStore();
+export const building3DStore = new Building3DStore();
+export const adminAuthStore = new AdminAuthStore();
