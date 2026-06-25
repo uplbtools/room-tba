@@ -8,6 +8,7 @@
   import DormResult from "./DormResult.svelte";
   import RoomResult from "../room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
+  import BuildingTypeControl from "../BuildingTypeControl.svelte";
   import LocationButton from "../LocationButton.svelte";
   import JeepneyMenu from "../JeepneyMenu.svelte";
   import TerrainControl from "../TerrainControl.svelte";
@@ -67,6 +68,7 @@
     class:is-collapsed={sidePanelStore.collapsed}
   >
     <div class="floating-actions">
+      <BuildingTypeControl />
       <TerrainControl />
       <JeepneyMenu />
       <LocationButton />

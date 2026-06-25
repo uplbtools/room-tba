@@ -4,10 +4,13 @@
   import {
     queryStore,
     type QueryStoreState,
-    dormFilter,
-    type DormFilterType,
+    buildingTypeFilter,
   } from "../../../lib/store.svelte";
-  import type { DormData } from "../../../lib/types";
+  import type { BuildingData, DormData } from "../../../lib/types";
+  import {
+    buildingMatchesTypeFilter,
+    dormMatchesTypeFilter,
+  } from "../../../constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
@@ -15,10 +18,16 @@
   const { buildings, colleges, divisions, dorms, loaded } = $derived(appData());
 
   const filteredDorms = $derived.by(() => {
-    if (!loaded) return;
-    if (dormFilter.value === "all") return dorms;
-    if (dormFilter.value === "up") return dorms.filter((d) => d.isUpManaged);
-    return dorms.filter((d) => !d.isUpManaged);
+    if (!loaded) return [];
+    return dorms.filter((dorm) =>
+      dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
+    );
+  });
+  const filteredBuildings = $derived.by(() => {
+    if (!loaded) return [];
+    return buildings.filter((building) =>
+      buildingMatchesTypeFilter(building, buildingTypeFilter.value),
+    );
   });
 
   const suggestedResult = $derived(getSuggestions(queryStore.inputValue));
@@ -30,7 +39,7 @@
     searchString = searchString.trim().toLowerCase();
     if (searchString === "" || !loaded) return [];
     const suggestions = {
-      buildings: buildings
+      buildings: (filteredBuildings as BuildingData[])
         .filter(({ buildingName }) =>
           buildingName.toLowerCase().includes(searchString),
         )
@@ -71,20 +80,14 @@
       }[];
     };
 
-    const nonRoomResult = Array.from(Object.values(suggestions))
-      .reduce(
-        // @ts-ignore
-        (prev, curr) => [...prev, ...curr],
-        [],
-      )
+    const nonRoomResult = Object.values(suggestions)
+      .flat()
       .sort(({ value: a }, { value: b }) =>
         a.toLowerCase().localeCompare(b.toLowerCase()),
       );
 
     return nonRoomResult.slice(0, 8);
   }
-
-  const hasDormResults = $derived(suggestedResult);
   const roomsResult = $derived(getRoomSuggestions(queryStore.inputValue));
 
   async function getRoomSuggestions(searchValue: string) {
@@ -97,12 +100,6 @@
       ? roomsFetch.data.map((val) => ({ ...val, category: "room" as const }))
       : [];
   }
-
-  const filterOptions: { label: string; value: DormFilterType }[] = [
-    { label: "All", value: "all" },
-    { label: "UP-managed", value: "up" },
-    { label: "Private", value: "private" },
-  ];
 </script>
 
 <!-- class:visible={queryStore.inputValue === ""} -->
@@ -116,34 +113,18 @@
       {/each}
     {:else}
       <h2 class="suggestions-header">Trending searches</h2>
-      <Suggestion value={"Physical Sciences Building"} category={"building"} />
+      <Suggestion value="Physical Sciences Building" category="building" />
+      <Suggestion value="Institute of Computer Science" category="division" />
       <Suggestion
-        value={"Institute of Computer Science"}
-        category={"division"}
+        value="Institute of Biological Sciences"
+        category="division"
       />
       <Suggestion
-        value={"Institute of Biological Sciences"}
-        category={"division"}
-      />
-      <Suggestion
-        value={"College of Engineering and Agro-Industrial Technology"}
-        category={"college"}
+        value="College of Engineering and Agro-Industrial Technology"
+        category="college"
       />
     {/if}
   {:else if suggestedResult.length !== 0}
-    {#if hasDormResults}
-      <div class="filter-chips">
-        {#each filterOptions as opt}
-          <button
-            class="filter-chip"
-            class:active={dormFilter.value === opt.value}
-            onclick={() => dormFilter.set(opt.value)}
-          >
-            {opt.label}
-          </button>
-        {/each}
-      </div>
-    {/if}
     {#each suggestedResult as suggestion, id (id)}
       <Suggestion {...suggestion} />
     {/each}
@@ -153,7 +134,7 @@
     {#await roomsResult}
       Loading rooms...
     {:then result}
-      {#each result as roomResult}
+      {#each result as roomResult (roomResult.value)}
         <Suggestion {...roomResult} />
       {/each}
     {/await}
@@ -186,35 +167,6 @@
     font-size: 1rem;
     margin-bottom: 0.5rem;
   }
-
-  .filter-chips {
-    display: flex;
-    gap: 0.375rem;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .filter-chip {
-    all: unset;
-    cursor: pointer;
-    padding: 0.25rem 0.625rem;
-    border-radius: 1rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    background-color: hsl(0, 0%, 94%);
-    color: hsl(0, 0%, 40%);
-    transition: all 0.15s;
-  }
-
-  .filter-chip:hover {
-    background-color: hsl(0, 0%, 88%);
-  }
-
-  .filter-chip.active {
-    background-color: hsl(5, 53%, 30%);
-    color: white;
-  }
-
   @media (max-width: 425px) {
     .suggestions-header {
       margin-bottom: 0.25rem;

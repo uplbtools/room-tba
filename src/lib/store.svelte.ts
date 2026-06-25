@@ -1,6 +1,7 @@
 // src/lib/store.svelte.ts
 
 import type { modalOptions } from "../constants/modal-states";
+import type { BuildingTypeFilter } from "../constants/building-types";
 import { DEFAULT_TERRAIN_EXAGGERATION } from "../constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
@@ -20,6 +21,16 @@ export const dormFilter = {
   },
   set(v: DormFilterType) {
     _dormFilter = v;
+  },
+};
+
+let _buildingTypeFilter = $state<BuildingTypeFilter>("all");
+export const buildingTypeFilter = {
+  get value() {
+    return _buildingTypeFilter;
+  },
+  set(v: BuildingTypeFilter) {
+    _buildingTypeFilter = v;
   },
 };
 
