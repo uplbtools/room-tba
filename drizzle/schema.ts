@@ -437,3 +437,36 @@ export const eventRouteStopsTable = pgTable(
     }),
   ],
 );
+
+// Search aliases / synonyms (e.g. "PhySci" -> Physical Sciences Building),
+// including retired names. Seeded from public/room_info.json (#155).
+export const aliasesTable = pgTable(
+  "aliases",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "aliases_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    alias: text().notNull(),
+    normalizedAlias: text("normalized_alias").notNull(),
+    // "building" | "room" | "college" | "division"
+    targetType: varchar("target_type", { length: 16 }).notNull(),
+    targetId: integer("target_id").notNull(),
+    source: varchar({ length: 32 }),
+    confidence: varchar({ length: 16 }).default("unverified").notNull(),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("aliases_normalized_target").on(
+      table.normalizedAlias,
+      table.targetType,
+      table.targetId,
+    ),
+  ],
+);
