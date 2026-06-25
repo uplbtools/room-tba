@@ -144,7 +144,7 @@
       from {
           rotate: 0deg;
       } to {
-          rotate: 360deg;
+          rotate: 1 1 1 360deg;
       }
   }
 </style>
