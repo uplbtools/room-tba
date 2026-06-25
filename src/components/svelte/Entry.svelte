@@ -122,7 +122,9 @@
     display: flex;
     flex-direction: column;
     padding: 0.5rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
     flex: 1 0 0;
+    min-height: 0;
     pointer-events: none;
     gap: 0.5rem;
   }

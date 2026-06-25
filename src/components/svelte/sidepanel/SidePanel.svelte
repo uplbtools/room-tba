@@ -112,6 +112,7 @@
     justify-content: space-between;
     gap: 0.75rem;
     flex: 1;
+    min-height: 0;
     pointer-events: none;
   }
 
