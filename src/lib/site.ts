@@ -4,9 +4,16 @@ export const DEFAULT_TITLE =
   "Room TBA | Find Rooms, Buildings, Colleges, and Divisions at UPLB";
 export const DEFAULT_DESCRIPTION =
   "Room TBA helps UPLB students find rooms, buildings, colleges, and divisions across the Los Banos campus.";
+export const DEFAULT_OG_IMAGE = "/socmed.png";
 
 export function absoluteUrl(path = "/") {
   return new URL(path, SITE_URL).toString();
+}
+
+/** Absolute URL for an Open Graph / structured-data image (defaults to the
+ * site social card). Accepts a relative path or an already-absolute URL. */
+export function ogImageUrl(path: string = DEFAULT_OG_IMAGE) {
+  return absoluteUrl(path);
 }
 
 export function slugifySegment(value: string) {
@@ -51,10 +58,12 @@ export function webpageSchema({
   title,
   description,
   path,
+  image,
 }: {
   title: string;
   description: string;
   path: string;
+  image?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -62,6 +71,7 @@ export function webpageSchema({
     name: title,
     description,
     url: absoluteUrl(path),
+    image: ogImageUrl(image),
     isPartOf: {
       "@type": "WebSite",
       name: SITE_NAME,

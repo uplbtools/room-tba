@@ -53,6 +53,8 @@ const imageUrl = absoluteUrl(imagePath);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:locale" content="en_US" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta property="twitter:domain" content={new URL(SITE_URL).hostname} />
@@ -60,6 +62,7 @@ const imageUrl = absoluteUrl(imagePath);
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={title} />
     {
       structuredData.map((entry) => (
         <script type="application/ld+json" set:html={JSON.stringify(entry)} />

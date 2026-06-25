@@ -7,6 +7,7 @@ import {
   absoluteUrl,
   breadcrumbSchema,
   jsonLd,
+  ogImageUrl,
   webpageSchema,
 } from "../../lib/site";
 
@@ -60,6 +61,7 @@ const structuredData = jsonLd(
     name: dorm.dormName,
     description,
     url: absoluteUrl(canonicalPath),
+    image: ogImageUrl(),
     address: {
       "@type": "PostalAddress",
       addressLocality: "Los Banos",
