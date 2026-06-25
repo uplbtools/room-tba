@@ -15,8 +15,9 @@ export const MIN_ZOOM = 13;
 // openmaptiles is 14 — higher zooms are overzoomed client-side, so requesting
 // them just 4xx's). Resolved dynamically in getTileTemplate().
 export const MAX_ZOOM = 14;
-// Rough per-tile size, only used for the pre-download size estimate.
-export const AVG_TILE_BYTES = 80 * 1024;
+// Rough per-tile size, only used for the pre-download size estimate. Tuned to
+// observed campus z13-14 vector tiles (a mix of small and ~150KB tiles).
+export const AVG_TILE_BYTES = 40 * 1024;
 
 export const OFFLINE_TILE_CACHE = "map-tiles";
 export const OFFLINE_ASSET_CACHE = "map-assets";
