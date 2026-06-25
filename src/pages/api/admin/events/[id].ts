@@ -44,6 +44,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     const updates: EventWriteInput = { ...body };
     if (updates.slug) updates.slug = slugifySegment(updates.slug);
     if (updates.title) updates.title = updates.title.trim();
+    updates.includeInSeo = true;
     const event = await updateEvent(id, updates, expectedVersion);
     return json({ success: true, event });
   } catch (err) {
