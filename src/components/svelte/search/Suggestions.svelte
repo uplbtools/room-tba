@@ -1,6 +1,9 @@
 <script lang="ts">
   import { getAppData } from "../../../lib/context";
-  import { getJSONFetch } from "../../../lib/local/data/utils";
+  import {
+    getJSONFetch,
+    searchLocalRooms,
+  } from "../../../lib/local/data/utils";
   import {
     queryStore,
     type QueryStoreState,
@@ -104,13 +107,25 @@
   const roomsResult = $derived(getRoomSuggestions(queryStore.inputValue));
 
   async function getRoomSuggestions(searchValue: string) {
-    const uriSearch = encodeURI(searchValue.toUpperCase());
-    const roomsFetch = await getJSONFetch<{ data: { value: string }[] | null }>(
-      `/api/rooms?search_code=${uriSearch}`,
-    );
-
-    return roomsFetch.data
-      ? roomsFetch.data.map((val) => ({ ...val, category: "room" as const }))
+    const trimmed = searchValue.trim();
+    if (trimmed === "") return [];
+    const upper = trimmed.toUpperCase();
+    try {
+      const roomsFetch = await getJSONFetch<{
+        data: { value: string }[] | null;
+      }>(`/api/rooms?search_code=${encodeURI(upper)}`);
+      if (roomsFetch.data && roomsFetch.data.length > 0) {
+        return roomsFetch.data.map((val) => ({
+          ...val,
+          category: "room" as const,
+        }));
+      }
+    } catch {
+      // Network unavailable — fall back to the local PGlite room cache (#169).
+    }
+    const local = await searchLocalRooms(upper);
+    return local
+      ? local.map((val) => ({ ...val, category: "room" as const }))
       : [];
   }
 </script>
