@@ -2,13 +2,13 @@
 
 Source of truth for which map chrome is visible in each mode.
 
-| Mode                          | Search dropdown | Event banner | Events shelf | Map tools      | Edit dock             | Sync UI    |
-| ----------------------------- | --------------- | ------------ | ------------ | -------------- | --------------------- | ---------- |
-| Browse                        | yes             | yes          | yes          | closed default | hidden                | status bar |
-| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | hidden                | status bar |
-| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **yes (mobile dock)** | status bar |
-| Event placement               | **no**          | **no**       | **no**       | closed default | cancel dock           | status bar |
-| Terrain / jeepney active      | yes             | yes          | yes          | flyout section | hidden                | status bar |
+| Mode                          | Search dropdown | Event banner | Events shelf | Map tools      | Edit dock             | Sync UI    | Map attribution |
+| ----------------------------- | --------------- | ------------ | ------------ | -------------- | --------------------- | ---------- | --------------- |
+| Browse                        | yes             | yes          | yes          | closed default | hidden                | status bar | bottom band     |
+| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | hidden                | status bar | bottom band     |
+| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **yes (mobile dock)** | status bar | bottom band     |
+| Event placement               | **no**          | **no**       | **no**       | closed default | cancel dock           | status bar | bottom band     |
+| Terrain / jeepney active      | yes             | yes          | yes          | flyout section | hidden                | status bar | bottom band     |
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
@@ -16,10 +16,10 @@ Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 - **Top band:** search column, event banner, Map tools trigger
 - **Map face:** map canvas, location/editor FAB
-- **Bottom band:** status bar, edit dock (when editing), drawer host
+- **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location/editor FAB
 - **Ephemeral:** toast, modals
 
-New map chrome must mount in a named zone in `Entry.svelte` or its children. Do not add new `position: fixed` surfaces inside `Map.svelte` except map-attached pins/markers and the edit dock.
+MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.
 
 ## CSS anchors (on `.app-layout`)
 
