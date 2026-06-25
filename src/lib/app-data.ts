@@ -10,8 +10,16 @@ import {
   roomsTable,
 } from "../../drizzle/schema";
 import { db } from "./db";
+import { getDefaultTerm } from "./services/term-service";
 import { slugifySegment } from "./site";
-import { BuildingData, ClassMapValue, CollegeData, DivisionData, DormData, RoomData } from "./types";
+import {
+  BuildingData,
+  ClassMapValue,
+  CollegeData,
+  DivisionData,
+  DormData,
+  RoomData,
+} from "./types";
 
 export type SearchCategory =
   | "building"
@@ -34,6 +42,9 @@ export type AppPageData = {
   classesMap: Map<string, ClassMapValue[]>;
   totalRooms: number;
   directionCount: number;
+  // The term whose schedules `classesMap` reflects (default term), or null
+  // when no terms are configured yet.
+  activeTermId: number | null;
 };
 
 let appDataPromise: Promise<AppPageData> | undefined;
@@ -66,6 +77,10 @@ async function fetchAppData(): Promise<AppPageData> {
     .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
     .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId));
 
+  // Class counts/maps reflect the default term so SSG/SEO pages stay
+  // consistent with the term the interactive UI shows by default.
+  const defaultTerm = await getDefaultTerm();
+
   const classes = await db
     .select({
       courseCode: classesTable.courseCode,
@@ -77,7 +92,8 @@ async function fetchAppData(): Promise<AppPageData> {
       courseTitle: classesTable.courseTitle,
     })
     .from(classesTable)
-    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId));
+    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+    .where(defaultTerm ? eq(classesTable.termId, defaultTerm.id) : undefined);
 
   const buildings = await db.select().from(buildingsTable);
   const colleges = await db.select().from(collegesTable);
@@ -120,6 +136,7 @@ async function fetchAppData(): Promise<AppPageData> {
     classesMap,
     totalRooms,
     directionCount,
+    activeTermId: defaultTerm?.id ?? null,
   };
 }
 
@@ -127,9 +144,7 @@ export function getRoomSlug(room: Pick<RoomData, "code">) {
   return slugifySegment(room.code);
 }
 
-export function getRoomRouteSlug(
-  room: Pick<RoomData, "id" | "code">,
-) {
+export function getRoomRouteSlug(room: Pick<RoomData, "id" | "code">) {
   const baseSlug = getRoomSlug(room);
 
   return `${baseSlug}-${room.id}`;
@@ -151,9 +166,7 @@ export function getDormSlug(dorm: Pick<DormData, "dormName">) {
   return slugifySegment(dorm.dormName);
 }
 
-export function getDormRouteSlug(
-  dorm: Pick<DormData, "id" | "dormName">,
-) {
+export function getDormRouteSlug(dorm: Pick<DormData, "id" | "dormName">) {
   const baseSlug = getDormSlug(dorm);
 
   return `${baseSlug}-${dorm.id}`;

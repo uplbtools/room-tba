@@ -236,7 +236,7 @@ export async function getAllDivisions(): Promise<DivisionData[]> {
   }
 }
 
-export async function getAllClasses(): Promise<ClassMapValue[]> {
+export async function getAllClasses(termId?: number): Promise<ClassMapValue[]> {
   try {
     const data = await db
       .select({
@@ -252,7 +252,8 @@ export async function getAllClasses(): Promise<ClassMapValue[]> {
         courseTitle: classesTable.courseTitle,
       })
       .from(classesTable)
-      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId));
+      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+      .where(termId != null ? eq(classesTable.termId, termId) : undefined);
     return data;
   } catch (e) {
     console.error("Error: ", e);
