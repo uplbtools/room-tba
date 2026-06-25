@@ -13,6 +13,7 @@
     mapStore,
     toastStore,
   } from "../../lib/store.svelte";
+    import { SquareArrowRightEnterIcon } from "@lucide/svelte";
 
   let centered: boolean = $state(false);
   onMount(() => {
@@ -84,7 +85,7 @@
       title="Editor login"
       aria-label="Editor login"
     >
-      <Lock />
+      <SquareArrowRightEnterIcon />
     </button>
   {/if}
 

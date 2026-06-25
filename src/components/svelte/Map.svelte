@@ -7,10 +7,11 @@
     mapStore,
     mapEditStore,
     jeepneyStore,
-    buildingTypeFilter,
+    dormFilter,
     currentRoom,
     adminAuthStore,
     toastStore,
+    buildingTypeFilter,
     terrainStore,
   } from "../../lib/store.svelte";
   import { untrack } from "svelte";

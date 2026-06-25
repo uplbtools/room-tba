@@ -1,5 +1,3 @@
-// src/lib/context.ts
-
 import { createContext } from "svelte";
 import { BuildingData, CollegeData, DivisionData, DormData } from "./types";
 export type AppContextData = {

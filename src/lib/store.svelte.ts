@@ -1,6 +1,6 @@
 // src/lib/store.svelte.ts
 
-import type { modalOptions } from "../constants/modal-states";
+import { modalOptions } from "../constants/modal-states";
 import type { BuildingTypeFilter } from "../constants/building-types";
 import { DEFAULT_TERRAIN_EXAGGERATION } from "../constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
@@ -541,20 +541,8 @@ class SyncToastStore {
   private _dorms = $state<SyncInfo | null>(null);
   public currentSyncData: SyncInfo | null = null;
   public currentSync = $state<string | null>(null);
-  public allSynced = $derived<boolean>(
-    this._buildings !== null &&
-      this._colleges !== null &&
-      this._divisions !== null &&
-      this._dorms !== null &&
-      this._buildings.total +
-        this._colleges.total +
-        this._divisions.total +
-        this._dorms.total ===
-        this._buildings.synced +
-          this._colleges.synced +
-          this._divisions.synced +
-          this._dorms.synced,
-  );
+  public allSynced = $state<boolean>(false);
+  public recentlySynced = $state<boolean | null>(null);
 
   startBuildingsSync(total: number) {
     this._buildings = {
@@ -563,6 +551,7 @@ class SyncToastStore {
     };
     this.currentSyncData = this._buildings;
     this.currentSync = "buildings";
+    this.recentlySynced = true;
   }
   startCollegesSync(total: number) {
     this._colleges = {
@@ -571,6 +560,7 @@ class SyncToastStore {
     };
     this.currentSyncData = this._colleges;
     this.currentSync = "colleges";
+    this.recentlySynced = true;
   }
   startDivisionsSync(total: number) {
     this._divisions = {
@@ -579,6 +569,7 @@ class SyncToastStore {
     };
     this.currentSyncData = this._divisions;
     this.currentSync = "divisions";
+    this.recentlySynced = true;
   }
   startDormsSync(total: number) {
     this._dorms = {
@@ -587,6 +578,7 @@ class SyncToastStore {
     };
     this.currentSyncData = this._dorms;
     this.currentSync = "dorms";
+    this.recentlySynced = true;
   }
 
   updateBuildingsSync() {
@@ -604,6 +596,12 @@ class SyncToastStore {
   updateDormsSync() {
     if (this._dorms === null) return;
     this._dorms.synced++;
+  }
+
+  endSync() {
+      this.allSynced = true;
+      if (this.recentlySynced === null)
+        this.recentlySynced = false;
   }
 }
 

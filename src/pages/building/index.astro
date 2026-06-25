@@ -1,7 +1,12 @@
 ---
 import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
 import { getBuildingSlug, loadAppData } from "../../lib/app-data";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "../../lib/site";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+} from "../../lib/site";
 
 const { buildings, rooms } = await loadAppData();
 
@@ -12,11 +17,14 @@ const items = buildings
     const roomCount = rooms.filter(
       (room) => room.building?.name === building.buildingName,
     ).length;
+    const href = `/building/${getBuildingSlug(building)}/`;
 
     return {
-      href: `/building/${getBuildingSlug(building)}/`,
+      href,
       label: building.buildingName,
       description: `${roomCount} room${roomCount === 1 ? "" : "s"} listed${building.directions ? " · includes directions" : ""}`,
+      copyUrl: absoluteUrl(href),
+      copyLabel: `Copy link to ${building.buildingName}`,
     };
   });
 

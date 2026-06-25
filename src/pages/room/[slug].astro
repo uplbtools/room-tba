@@ -19,20 +19,7 @@ export async function getStaticPaths() {
   }));
 }
 
-function idFromRouteSlug(slug: string | undefined) {
-  const match = slug?.match(/-(\d+)$/);
-  if (!match) return undefined;
-  const id = Number(match[1]);
-  return Number.isInteger(id) ? id : undefined;
-}
-
-const routeSlug = Astro.params.slug;
-const roomId = Astro.props.roomId ?? idFromRouteSlug(routeSlug);
-
-if (!roomId) {
-  throw new Error(`Room not found for slug: ${routeSlug}`);
-}
-
+const { roomId } = Astro.props;
 const appData = await getRoomPageData(roomId);
 
 if (appData === null) {
