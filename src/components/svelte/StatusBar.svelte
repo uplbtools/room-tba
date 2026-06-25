@@ -96,6 +96,7 @@
     font-size: 0.875rem;
     font-weight: 600;
     gap: 1rem;
+    flex: 0 0 auto;
     background-color: white;
     padding: 0.5rem 1.5rem;
     border-radius: 1rem;
