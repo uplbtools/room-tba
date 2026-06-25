@@ -5,7 +5,7 @@ import {
 } from "../../../../../lib/admin/auth";
 import {
   EditConflictError,
-  updateEvent,
+  updateEventLocations,
   type EventLocationWriteInput,
 } from "../../../../../lib/services/admin-service";
 
@@ -36,9 +36,9 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
   }
 
   try {
-    const event = await updateEvent(
+    const event = await updateEventLocations(
       id,
-      { locations: body.locations },
+      body.locations,
       Number.isInteger(body.version) ? body.version : undefined,
     );
     return json({ success: true, event });

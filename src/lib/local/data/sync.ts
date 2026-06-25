@@ -281,17 +281,22 @@ export async function syncEvents(
   await localDB.waitReady;
   syncToastStore.startEventsSync(remoteEvents.length);
 
-  await localDB.exec(`
-    DELETE FROM event_route_stops;
-    DELETE FROM event_routes;
-    DELETE FROM event_locations;
-    DELETE FROM events;
-  `);
+  // Events span four related tables, so the cache rebuild must be all-or-nothing.
+  // Run it inside a single transaction: any failure rolls back the delete +
+  // partial inserts, and we leave the sync key untouched so the stale-but-complete
+  // cache is retried on the next sync instead of being marked up to date.
+  try {
+    await localDB.transaction(async (tx) => {
+      await tx.exec(`
+        DELETE FROM event_route_stops;
+        DELETE FROM event_routes;
+        DELETE FROM event_locations;
+        DELETE FROM events;
+      `);
 
-  for (const event of remoteEvents) {
-    try {
-      await localDB.query(
-        `
+      for (const event of remoteEvents) {
+        await tx.query(
+          `
         INSERT INTO events (
           id, slug, title, description, category, starts_at, ends_at, timezone,
           recurrence, is_active, source_url, priority, include_in_seo, version,
@@ -299,31 +304,31 @@ export async function syncEvents(
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18);
         `,
-        [
-          event.id,
-          event.slug,
-          event.title,
-          event.description,
-          event.category,
-          event.startsAt,
-          event.endsAt,
-          event.timezone,
-          event.recurrence,
-          event.isActive,
-          event.sourceUrl,
-          event.priority,
-          event.includeInSeo,
-          event.version,
-          event.updatedAt,
-          event.status,
-          event.occurrenceStartsAt,
-          event.occurrenceEndsAt,
-        ],
-      );
+          [
+            event.id,
+            event.slug,
+            event.title,
+            event.description,
+            event.category,
+            event.startsAt,
+            event.endsAt,
+            event.timezone,
+            event.recurrence,
+            event.isActive,
+            event.sourceUrl,
+            event.priority,
+            event.includeInSeo,
+            event.version,
+            event.updatedAt,
+            event.status,
+            event.occurrenceStartsAt,
+            event.occurrenceEndsAt,
+          ],
+        );
 
-      for (const location of event.locations) {
-        await localDB.query(
-          `
+        for (const location of event.locations) {
+          await tx.query(
+            `
           INSERT INTO event_locations (
             id, event_id, anchor_type, building_id, dorm_id, label, lat, lon,
             highlight_priority, sort_order, is_primary, updated_at, resolved_lat,
@@ -331,74 +336,76 @@ export async function syncEvents(
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);
           `,
-          [
-            location.id,
-            location.eventId,
-            location.anchorType,
-            location.buildingId,
-            location.dormId,
-            location.label,
-            location.lat,
-            location.lon,
-            location.highlightPriority,
-            location.sortOrder,
-            location.isPrimary,
-            location.updatedAt,
-            location.resolvedLat,
-            location.resolvedLon,
-            location.resolvedLabel,
-            location.buildingName,
-            location.dormName,
-          ],
-        );
-      }
+            [
+              location.id,
+              location.eventId,
+              location.anchorType,
+              location.buildingId,
+              location.dormId,
+              location.label,
+              location.lat,
+              location.lon,
+              location.highlightPriority,
+              location.sortOrder,
+              location.isPrimary,
+              location.updatedAt,
+              location.resolvedLat,
+              location.resolvedLon,
+              location.resolvedLabel,
+              location.buildingName,
+              location.dormName,
+            ],
+          );
+        }
 
-      for (const route of event.routes) {
-        await localDB.query(
-          `
+        for (const route of event.routes) {
+          await tx.query(
+            `
           INSERT INTO event_routes (id, event_id, name, description, sort_order, updated_at)
           VALUES ($1, $2, $3, $4, $5, $6);
           `,
-          [
-            route.id,
-            route.eventId,
-            route.name,
-            route.description,
-            route.sortOrder,
-            route.updatedAt,
-          ],
-        );
+            [
+              route.id,
+              route.eventId,
+              route.name,
+              route.description,
+              route.sortOrder,
+              route.updatedAt,
+            ],
+          );
 
-        for (const stop of route.stops) {
-          await localDB.query(
-            `
+          for (const stop of route.stops) {
+            await tx.query(
+              `
             INSERT INTO event_route_stops (
               id, route_id, event_location_id, label, lat, lon, sort_order,
               updated_at, resolved_lat, resolved_lon, resolved_label
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
             `,
-            [
-              stop.id,
-              stop.routeId,
-              stop.eventLocationId,
-              stop.label,
-              stop.lat,
-              stop.lon,
-              stop.sortOrder,
-              stop.updatedAt,
-              stop.resolvedLat,
-              stop.resolvedLon,
-              stop.resolvedLabel,
-            ],
-          );
+              [
+                stop.id,
+                stop.routeId,
+                stop.eventLocationId,
+                stop.label,
+                stop.lat,
+                stop.lon,
+                stop.sortOrder,
+                stop.updatedAt,
+                stop.resolvedLat,
+                stop.resolvedLon,
+                stop.resolvedLabel,
+              ],
+            );
+          }
         }
-      }
 
-      syncToastStore.updateEventsSync();
-    } catch (e) {
-      console.error(e);
-    }
+        syncToastStore.updateEventsSync();
+      }
+    });
+  } catch (e) {
+    console.error("Failed to sync events; keeping previous cache", e);
+    return;
   }
 
   updateSyncKeyFromLs("events", checker.newKey ?? "");

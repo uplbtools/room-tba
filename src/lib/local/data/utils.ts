@@ -15,6 +15,7 @@ import {
   getLocalCollegeRooms,
   getLocalDivisionRooms,
 } from "./sync";
+import { refreshStoredEventTiming, sortStoredEvents } from "../../event-time";
 import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
@@ -168,18 +169,22 @@ export async function getLocalEvents(): Promise<EventData[] | undefined> {
       `) as Promise<Results<EventData["routes"][number]["stops"][number]>>,
     ]);
 
-    return events.rows.map((event) => ({
-      ...event,
-      locations: locations.rows.filter(
-        (location) => location.eventId === event.id,
+    return sortStoredEvents(
+      events.rows.map((event) =>
+        refreshStoredEventTiming({
+          ...event,
+          locations: locations.rows.filter(
+            (location) => location.eventId === event.id,
+          ),
+          routes: routes.rows
+            .filter((route) => route.eventId === event.id)
+            .map((route) => ({
+              ...route,
+              stops: stops.rows.filter((stop) => stop.routeId === route.id),
+            })),
+        }),
       ),
-      routes: routes.rows
-        .filter((route) => route.eventId === event.id)
-        .map((route) => ({
-          ...route,
-          stops: stops.rows.filter((stop) => stop.routeId === route.id),
-        })),
-    }));
+    );
   } catch (e) {
     console.error("Error: ", e);
     return undefined;

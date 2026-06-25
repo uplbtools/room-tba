@@ -282,23 +282,52 @@
     );
   }
 
-  function fitMapToEventRoute(
-    map: mapGl.MapLibreMap,
-    route: EventData["routes"][number],
-  ) {
-    const stops = route.stops.filter(
-      (stop) => stop.resolvedLon !== null && stop.resolvedLat !== null,
+  function getEventMapLocations(event: EventData) {
+    return event.locations.filter(
+      (location) =>
+        location.resolvedLon !== null && location.resolvedLat !== null,
     );
-    if (stops.length === 0) return;
+  }
+
+  function focusMapOnEvent(map: mapGl.MapLibreMap, event: EventData) {
+    const points: [number, number][] = [];
+    for (const location of getEventMapLocations(event)) {
+      points.push([
+        location.resolvedLon as number,
+        location.resolvedLat as number,
+      ]);
+    }
+    for (const route of event.routes) {
+      for (const stop of route.stops) {
+        if (stop.resolvedLon !== null && stop.resolvedLat !== null) {
+          points.push([stop.resolvedLon, stop.resolvedLat]);
+        }
+      }
+    }
+    if (points.length === 0) return false;
+
+    if (points.length === 1) {
+      map.flyTo({
+        center: points[0],
+        zoom: 17,
+        pitch: 50,
+        padding: calculatePadding(md.current),
+        duration: 1200,
+      });
+      return true;
+    }
+
     const bounds = new mapGl.LngLatBounds();
-    for (const stop of stops) {
-      bounds.extend([stop.resolvedLon as number, stop.resolvedLat as number]);
+    for (const point of points) {
+      bounds.extend(point);
     }
     map.fitBounds(bounds, {
       padding: { top: 80, bottom: 80, left: 80, right: 80 },
       duration: 1000,
       pitch: 30,
+      maxZoom: 17,
     });
+    return true;
   }
 
   function ensureTerrainRendering(map: mapGl.MapLibreMap) {
@@ -1144,7 +1173,6 @@
         ],
       };
       source?.setData(featureCollection);
-      fitMapToEventRoute(map, route);
     };
 
     if (map.isStyleLoaded()) draw();
@@ -1223,21 +1251,7 @@
       } else if (category === "event") {
         if (!loaded) return;
         const currentEvent = events.find((event) => event.title === value);
-        const location = currentEvent
-          ? getEventPrimaryLocation(currentEvent)
-          : null;
-        if (
-          location &&
-          location.resolvedLon !== null &&
-          location.resolvedLat !== null
-        ) {
-          map.flyTo({
-            center: [location.resolvedLon, location.resolvedLat],
-            zoom: 17,
-            pitch: 50,
-            padding: calculatePadding(md.current),
-            duration: 1200,
-          });
+        if (currentEvent && focusMapOnEvent(map, currentEvent)) {
           if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
       }
