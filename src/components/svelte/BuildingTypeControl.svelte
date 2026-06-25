@@ -9,10 +9,10 @@
   import type { BuildingTypeFilter } from "../../constants/building-types";
 
   const appData = getAppData();
-  const { buildings } = $derived(appData());
+  const { buildings, dorms } = $derived(appData());
   let menuOpen = $state(false);
 
-  const options = $derived(getBuildingTypeFilterOptions(buildings));
+  const options = $derived(getBuildingTypeFilterOptions(buildings, dorms));
   const activeLabel = $derived(
     getBuildingTypeFilterLabel(buildingTypeFilter.value),
   );
@@ -39,7 +39,7 @@
         </button>
       </div>
 
-      <p class="filter-copy">Show building pins and suggestions by type.</p>
+      <p class="filter-copy">Show building and dorm pins by type.</p>
 
       <div class="filter-options">
         {#each options as option (option.value)}
@@ -52,7 +52,10 @@
             aria-checked={isActive}
             onclick={() => selectFilter(option.value)}
           >
-            <span>{option.label}</span>
+            <span class="option-label">
+              <span class={`type-dot ${option.tone}`}></span>
+              {option.label}
+            </span>
             <span class="option-count">{option.count}</span>
           </button>
         {/each}
@@ -198,5 +201,33 @@
     font-size: 0.75rem;
     font-weight: 700;
     padding: 0.125rem 0.5rem;
+  }
+
+  .option-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .type-dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    background-color: hsl(0, 0%, 65%);
+    box-shadow: 0 0 0 2px white;
+    flex: 0 0 auto;
+  }
+
+  .type-dot.building,
+  .type-dot.admin {
+    background-color: hsl(5, 53%, 32%);
+  }
+
+  .type-dot.up-dorm {
+    background-color: hsl(170, 50%, 35%);
+  }
+
+  .type-dot.non-up-dorm {
+    background-color: hsl(25, 70%, 50%);
   }
 </style>
