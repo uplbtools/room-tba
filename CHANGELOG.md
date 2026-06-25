@@ -1,3 +1,32 @@
+# [1.10.0](https://github.com/uplbtools/room-tba/compare/v1.9.0...v1.10.0) (2026-06-25)
+
+
+### Bug Fixes
+
+* **auth:** rename isAdmin store flag to isLoggedIn ([#203](https://github.com/uplbtools/room-tba/issues/203)) ([f18a160](https://github.com/uplbtools/room-tba/commit/f18a160234c85db586a2c565c410a31da3b1eb52))
+* **ci:** do not fail release when version sync PR is blocked ([6170b5b](https://github.com/uplbtools/room-tba/commit/6170b5ba44121b9f7d4edde22598554ba866b916))
+* **proposals:** harden approval flow, entity checks, and GET access ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([b5e9573](https://github.com/uplbtools/room-tba/commit/b5e957368be5714fd876f453b8aad3b837babb65))
+* **pwa:** raise Workbox precache limit for AppRoot bundle ([447212c](https://github.com/uplbtools/room-tba/commit/447212c1bc320773b74d23bb9eadf3e20b8b619f))
+* **search:** unblock typing after event selection and stale room fallback ([8e58322](https://github.com/uplbtools/room-tba/commit/8e583228f1a7e085fc838536bff80c6dd38a9f2f))
+* **ui:** improve landing modal scroll and backdrop blur ([bdd4944](https://github.com/uplbtools/room-tba/commit/bdd4944d31fac510c3516504fa43efeab5ad9146))
+
+
+### Features
+
+* **auth:** add multi-user editor sessions and publish role gates ([#203](https://github.com/uplbtools/room-tba/issues/203)) ([a86c3c3](https://github.com/uplbtools/room-tba/commit/a86c3c34e82efe6038cd293671fd517bc2eefed8))
+* **db:** add admin_users and edit_proposals schema migrations ([610150c](https://github.com/uplbtools/room-tba/commit/610150c4d26158eefe25347207169ad254e2643b)), closes [#203](https://github.com/uplbtools/room-tba/issues/203) [#208](https://github.com/uplbtools/room-tba/issues/208)
+* **editor:** add admin POST routes for direct entity creation ([a0b9246](https://github.com/uplbtools/room-tba/commit/a0b9246bf25e8aa348ecaa19a1c1d0ab4404837a))
+* **editor:** add create affordances in publisher shield menu ([e3ad02a](https://github.com/uplbtools/room-tba/commit/e3ad02a13f9edd79ed9571e0e8d1439d34b2df6e))
+* **proposals:** add addition proposal store and event placement state ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([b676581](https://github.com/uplbtools/room-tba/commit/b6765817022c7736cc4c4a2801372f4d5359f6f3))
+* **proposals:** add admin create helpers for new entities ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([16387e0](https://github.com/uplbtools/room-tba/commit/16387e08888b4a0c37c2e9a810dbe94340f55659))
+* **proposals:** add client helpers for create proposals ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([f988fd6](https://github.com/uplbtools/room-tba/commit/f988fd635f89cf4821222451b71ed60b0a1d320f))
+* **proposals:** add edit proposal service and API routes ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([cfa62d3](https://github.com/uplbtools/room-tba/commit/cfa62d301ec74281dfbf980832bfafa4ac7e80e4))
+* **proposals:** add map UI for proposing new campus entities ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([71239e2](https://github.com/uplbtools/room-tba/commit/71239e2ba509a1679d9754210bad231e71af7bc6))
+* **proposals:** add suggest-edit UI, review panel, and map pin proposals ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([30c6d80](https://github.com/uplbtools/room-tba/commit/30c6d80b28238d459de13cbdf01ab9659260aaef))
+* **proposals:** support create proposals in service and review UI ([#208](https://github.com/uplbtools/room-tba/issues/208)) ([a600947](https://github.com/uplbtools/room-tba/commit/a600947a88db04b45c07417f1b84f7a51271bb8a))
+* **rooms:** detect duplicate names and offer in-app merge ([489da72](https://github.com/uplbtools/room-tba/commit/489da723ef01d04de9d0bb213b0a15158f990952))
+* **taxonomy:** link divisions to parent colleges ([e81e509](https://github.com/uplbtools/room-tba/commit/e81e509139cf474ce0dc6bfbd2742234b5b0dd2a))
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
