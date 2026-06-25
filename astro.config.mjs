@@ -13,6 +13,8 @@ export default defineConfig({
     svelte(),
     AstroPWA({
       workbox: {
+        // AppRoot includes map + editor + PGlite; auth/proposals pushed it past 2 MiB.
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         // The Vercel adapter otherwise points globDirectory at dist/server,
         // so nothing client-side gets precached and the app can't load
         // offline. Glob the actual client output instead.
