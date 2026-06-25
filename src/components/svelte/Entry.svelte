@@ -41,7 +41,7 @@
           queryStore.addRecentSearch(parsedSearch);
         }
       });
-    } catch (e) {
+    } catch {
       queryStore.recentSearches = [];
     }
     if (initialSearch) {
@@ -84,7 +84,10 @@
 <div class="app-layout">
   <Map />
   <div class="ui-layer">
-    <MapControls />
+    <div class="top-right-map-stack" aria-label="Map tools">
+      <MapControls />
+      <SyncToast stacked />
+    </div>
     <!-- <header class="top-header">
       <h2>Room TBA</h2>
     </header> -->
@@ -108,7 +111,6 @@
     <AdminLoginModal />
   {/if}
 </div>
-<SyncToast />
 
 <style>
   .app-layout {
@@ -142,8 +144,27 @@
     width: 100%;
   }
 
+  .top-right-map-stack {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 15;
+    display: flex;
+    width: min(22.5rem, calc(100% - 1rem));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    pointer-events: none;
+  }
+
   :global(*) {
     margin: unset;
     box-sizing: border-box;
+  }
+
+  @media (max-width: 800px) {
+    .top-right-map-stack {
+      top: 4rem;
+    }
   }
 </style>
