@@ -10,13 +10,14 @@ permissions:
   issues: write
   pull-requests: write
 
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
     if: "${{ !contains(github.event.head_commit.message, '[skip ci]') }}"
-    strategy:
-      matrix:
-        node-version: [22.x, 24.x]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,11 +27,6 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "lts/*"
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -38,3 +34,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bunx semantic-release
+
+      - name: Read release version
+        id: pkg
+        run: echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+
+      - name: Open version sync PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(release): ${{ steps.pkg.outputs.version }} [skip ci]"
+          title: "chore(release): ${{ steps.pkg.outputs.version }}"
+          body: |
+            Sync `package.json` and `CHANGELOG.md` after semantic-release published the GitHub release.
+
+            Merge to keep in-app version labels and `/changelog` up to date. The commit includes `[skip ci]` so this merge does not re-run release.
+          branch: chore/release-${{ steps.pkg.outputs.version }}-${{ github.run_id }}
+          delete-branch: true
+          add-paths: |
+            CHANGELOG.md
+            package.json
