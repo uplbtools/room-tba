@@ -1,10 +1,15 @@
 <script lang="ts">
   import { throttle } from "es-toolkit";
+  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import SearchIcon from "@lucide/svelte/icons/search";
+  import { tick } from "svelte";
   import { queryStore } from "../../../lib/store.svelte";
   import Suggestions from "./Suggestions.svelte";
 
   let searchElement = $state<HTMLInputElement | null>(null);
   let typing = $state(false);
+  let searchCollapsed = $state(false);
+  let searchFocused = $state(false);
 
   const throttleSearch = throttle((searchInput: string) => {
     queryStore.inputValue = searchInput;
@@ -21,118 +26,155 @@
     queryStore.clearQuery();
     searchElement?.focus();
   }
+
+  async function expandSearch() {
+    searchCollapsed = false;
+    await tick();
+    searchElement?.focus();
+  }
+
+  function collapseSearch() {
+    if (searchFocused) return;
+    searchCollapsed = true;
+  }
+
+  function handleFocusOut(event: FocusEvent) {
+    const currentTarget = event.currentTarget as HTMLElement;
+    const nextTarget = event.relatedTarget as Node | null;
+    if (!nextTarget || !currentTarget.contains(nextTarget)) {
+      searchFocused = false;
+    }
+  }
 </script>
 
 <div
   class="search-filter-container"
   class:search-focused={queryStore.type !== "result"}
+  class:is-collapsed={searchCollapsed}
 >
-  <div class="search-filter">
-    <div class="search-container">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="search-icon"
-        ><circle cx="11" cy="11" r="8" /><line
-          x1="21"
-          y1="21"
-          x2="16.65"
-          y2="16.65"
-        /></svg
-      >
-      <input
-        type="text"
-        id="search"
-        autocomplete="off"
-        value={queryStore.inputValue}
-        bind:this={searchElement}
-        class={typing ? "typing" : ""}
-        oninput={handleInput}
-        placeholder={"Search room, building, dorm, division..."}
-      />
-      {#if typing}
-        <div class="loading-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 200 200"
-            width="20"
-            height="20"
-          >
-            <circle stroke-width="17" r="15" cx="40" cy="65"
-              ><animate
-                attributeName="cy"
-                calcMode="spline"
-                dur="0.8"
-                values="65;135;65;"
-                keySplines=".5 0 .5 1;.5 0 .5 1"
-                repeatCount="indefinite"
-                begin="-.4"
-              ></animate></circle
-            >
-            <circle stroke-width="17" r="15" cx="100" cy="65"
-              ><animate
-                attributeName="cy"
-                calcMode="spline"
-                dur="0.8"
-                values="65;135;65;"
-                keySplines=".5 0 .5 1;.5 0 .5 1"
-                repeatCount="indefinite"
-                begin="-.2"
-              ></animate></circle
-            >
-            <circle stroke-width="17" r="15" cx="160" cy="65"
-              ><animate
-                attributeName="cy"
-                calcMode="spline"
-                dur="0.8"
-                values="65;135;65;"
-                keySplines=".5 0 .5 1;.5 0 .5 1"
-                repeatCount="indefinite"
-                begin="0"
-              ></animate></circle
-            >
-          </svg>
-        </div>
-      {/if}
-    </div>
+  {#if searchCollapsed}
+    <button
+      type="button"
+      class="search-tab"
+      aria-expanded="false"
+      aria-controls="search-panel"
+      aria-label="Expand search bar"
+      onclick={expandSearch}
+    >
+      <SearchIcon size={18} />
+      <span>Search</span>
+    </button>
+  {/if}
 
-    <div class="search-buttons">
-      {#if queryStore.inputValue !== ""}
-        <button
-          onclick={closeSearchContext}
-          type="button"
-          class="clear-btn"
-          aria-label="Clear Search"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><line x1="18" y1="6" x2="6" y2="18"></line><line
-              x1="6"
-              y1="6"
-              x2="18"
-              y2="18"
-            ></line></svg
+  <div
+    id="search-panel"
+    class="search-panel"
+    hidden={searchCollapsed}
+    onfocusin={() => (searchFocused = true)}
+    onfocusout={handleFocusOut}
+  >
+    <div class="search-filter">
+      <div class="search-container">
+        <SearchIcon class="search-icon" size={20} />
+        <input
+          type="text"
+          id="search"
+          autocomplete="off"
+          value={queryStore.inputValue}
+          bind:this={searchElement}
+          class={typing ? "typing" : ""}
+          oninput={handleInput}
+          placeholder="Search room, building, dorm, division..."
+        />
+        {#if typing}
+          <div class="loading-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 200 200"
+              width="20"
+              height="20"
+            >
+              <circle stroke-width="17" r="15" cx="40" cy="65"
+                ><animate
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.8"
+                  values="65;135;65;"
+                  keySplines=".5 0 .5 1;.5 0 .5 1"
+                  repeatCount="indefinite"
+                  begin="-.4"
+                ></animate></circle
+              >
+              <circle stroke-width="17" r="15" cx="100" cy="65"
+                ><animate
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.8"
+                  values="65;135;65;"
+                  keySplines=".5 0 .5 1;.5 0 .5 1"
+                  repeatCount="indefinite"
+                  begin="-.2"
+                ></animate></circle
+              >
+              <circle stroke-width="17" r="15" cx="160" cy="65"
+                ><animate
+                  attributeName="cy"
+                  calcMode="spline"
+                  dur="0.8"
+                  values="65;135;65;"
+                  keySplines=".5 0 .5 1;.5 0 .5 1"
+                  repeatCount="indefinite"
+                  begin="0"
+                ></animate></circle
+              >
+            </svg>
+          </div>
+        {/if}
+      </div>
+
+      <div class="search-buttons">
+        {#if queryStore.inputValue !== ""}
+          <button
+            onclick={closeSearchContext}
+            type="button"
+            class="clear-btn"
+            aria-label="Clear Search"
           >
-        </button>
-      {/if}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+              ></line></svg
+            >
+          </button>
+        {/if}
+        {#if !searchFocused}
+          <button
+            type="button"
+            class="collapse-search-btn"
+            aria-expanded="true"
+            aria-controls="search-panel"
+            aria-label="Collapse search bar"
+            onclick={collapseSearch}
+          >
+            <ChevronLeft size={18} />
+          </button>
+        {/if}
+      </div>
     </div>
+    <Suggestions />
   </div>
-  <Suggestions />
 </div>
 
 <style>
@@ -142,9 +184,39 @@
     pointer-events: auto;
   }
 
-  .search-focused:focus-within :first-child + :global(*) {
+  .search-filter-container.is-collapsed {
+    width: max-content;
+  }
+
+  .search-focused .search-panel:focus-within :global(.suggestions-container) {
     opacity: 1;
     pointer-events: auto;
+  }
+
+  .search-panel[hidden] {
+    display: none;
+  }
+
+  .search-tab {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid #d8b9ba;
+    border-radius: 0 999px 999px 0;
+    background-color: white;
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 800;
+    padding: 0.625rem 0.875rem 0.625rem 0.75rem;
+    box-shadow: 0rem 2px 0.25rem 0rem rgba(0, 0, 0, 0.25);
+  }
+
+  .search-tab:hover,
+  .search-tab:focus-visible {
+    background-color: #fdf3f3;
   }
 
   .search-filter {
@@ -204,7 +276,8 @@
   }
 
   .clear-btn,
-  .filter-btn {
+  .filter-btn,
+  .collapse-search-btn {
     all: unset;
     cursor: pointer;
     display: flex;
@@ -216,7 +289,8 @@
   }
 
   .clear-btn:hover,
-  .filter-btn:hover {
+  .filter-btn:hover,
+  .collapse-search-btn:hover {
     background-color: #f0f0f0;
   }
 
