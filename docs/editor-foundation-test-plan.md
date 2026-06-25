@@ -104,6 +104,23 @@ See also `docs/map-ui-mode-matrix.md` for chrome visibility by mode. Verify at *
 - On room side-panel conflicts, the fields update to the latest saved room details.
 - Missing client versions are accepted during rollout and return a fresh version in the response.
 
+## Contributor edit proposals (#208)
+
+- Anyone can open **Suggest an edit** on building, college, division, dorm, room, and event panels without changing live data.
+- Map pin moves for buildings, dorms, and events (custom primary marker) use **enable pin move** → drag → submit for review.
+- Submissions create or update a pending row in `edit_proposals`; anonymous users provide a display name.
+- Editors/admins review from the shield menu queue: approve publishes atomically (entity + history + sync key), reject/request-changes stores a note.
+- Approval conflicts (`409`) leave the proposal open; the admin sees an error instead of a false success.
+- Event deactivate and map-center placement remain direct-publish for editors only.
+
+## Multi-user editor auth (#203)
+
+- Two distinct admin users can sign in with different usernames and passwords.
+- Disabled users (`is_active = false`) receive 401 on login.
+- Admin writes store the signed-in username/display name in `editor_history.edited_by`.
+- Session cookie remains httpOnly; `/admin` still redirects to in-app login.
+- Legacy `ADMIN_PASSWORD`-only login bootstraps user `admin` when `admin_users` is empty.
+
 ## Version History
 
 - Building updates create an `editor_history` row.

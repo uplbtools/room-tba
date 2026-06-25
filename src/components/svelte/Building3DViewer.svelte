@@ -826,7 +826,7 @@
           type: "error",
           message: "Session expired. Please log in again.",
         };
-        adminAuthStore.isAdmin = false;
+        adminAuthStore.isLoggedIn = false;
         return;
       }
 
@@ -1047,7 +1047,7 @@
           <RotateCcw size={14} /> Reset camera
         </button>
 
-        {#if adminAuthStore.isAdmin}
+        {#if adminAuthStore.canPublish}
           <section class="viewer-section editor-section">
             <h3>Editor</h3>
             <div class="editor-controls">

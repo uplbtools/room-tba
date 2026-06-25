@@ -68,6 +68,9 @@
   function handleInput(
     event: Event & { currentTarget: EventTarget & HTMLInputElement },
   ) {
+    if (queryStore.type === "result" || queryStore.category !== null) {
+      queryStore.exitResultMode();
+    }
     throttleSearch(event.currentTarget.value);
   }
 
@@ -100,6 +103,8 @@
       value: event.title,
       eventSlug: event.slug,
     });
+    queryStore.inputValue = "";
+    searchElement?.blur();
   }
 
   const clearSelectionLabel = $derived(
@@ -635,11 +640,11 @@
   }
 
   .search-root.mobile-shell
-    .search-filter-container.search-focused
-    .mobile-integrated-events,
+    .search-filter:focus-within
+    ~ .mobile-integrated-events,
   .search-root.mobile-shell
-    .search-filter-container:focus-within
-    .mobile-integrated-events {
+    .search-suggestions:focus-within
+    ~ .mobile-integrated-events {
     display: none;
   }
 

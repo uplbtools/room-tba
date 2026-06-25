@@ -8,9 +8,9 @@
   import {
     formatCampusDateShort,
     formatCampusTime,
-    instantToCampusWallString,
   } from "../../../lib/event-time";
   import { getEventShareUrl } from "../../../lib/share-links";
+  import { beginEventPlacement } from "../../../lib/event-placement";
   import {
     adminAuthStore,
     eventPlacementStore,
@@ -24,13 +24,11 @@
     headingId = "events-heading",
     showHeading = true,
     showRetract = false,
-    compact = false,
     oncollapse,
   }: {
     headingId?: string;
     showHeading?: boolean;
     showRetract?: boolean;
-    compact?: boolean;
     oncollapse?: () => void;
   } = $props();
 
@@ -44,7 +42,7 @@
       )
       .sort((a, b) => a.occurrenceStartsAt.localeCompare(b.occurrenceStartsAt));
   });
-  const visibleEvents = $derived(campusEvents.slice(0, compact ? 3 : 4));
+  const visibleEvents = $derived(campusEvents.slice(0, 4));
   const hasPastEvents = $derived(
     loaded && events.some((event) => event.status === "past"),
   );
@@ -57,6 +55,7 @@
   const placingEvent = $derived(
     eventPlacementStore.active || eventPlacementStore.creating,
   );
+  let proposeSubmitterName = $state("");
 
   function formatEventDate(value: string) {
     return `${formatCampusDateShort(value)}, ${formatCampusTime(value)}`;
@@ -69,7 +68,7 @@
       value: event.title,
       eventSlug: event.slug,
     });
-    queryStore.inputValue = event.title;
+    queryStore.inputValue = "";
   }
 
   function openEventsList() {
@@ -78,30 +77,37 @@
       type: "result",
       value: "Campus events",
     });
-    queryStore.inputValue = "Campus events";
+    queryStore.inputValue = "";
     sidePanelStore.expand();
   }
 
-  function startEventPlacement() {
+  function startEventPlacement(propose = false) {
     if (placingEvent) return;
-    const now = Date.now();
-    const startsAt = new Date(now + 60 * 60 * 1000);
-    const endsAt = new Date(now + 2 * 60 * 60 * 1000);
-    const titleDate = formatEventDate(startsAt.toISOString());
-    const title = `Untitled campus event ${titleDate}`;
-    eventPlacementStore.start({
-      slug: `draft-event-${now}`,
-      title,
-      startsAt: instantToCampusWallString(startsAt),
-      endsAt: instantToCampusWallString(endsAt),
-      category: "other",
-    });
+    if (
+      propose &&
+      !adminAuthStore.isLoggedIn &&
+      proposeSubmitterName.trim().length < 2
+    ) {
+      toastStore.show(
+        "Enter your name (at least 2 characters) before proposing an event.",
+        "error",
+      );
+      return;
+    }
+    if (
+      !beginEventPlacement({
+        propose,
+        submitterName: propose ? proposeSubmitterName.trim() : "",
+      })
+    ) {
+      return;
+    }
     oncollapse?.();
   }
 </script>
 
 {#if !loaded}
-  <section class="events-section" class:compact aria-labelledby={headingId}>
+  <section class="events-section" aria-labelledby={headingId}>
     <div class="section-heading">
       <h2 id={headingId} class="events-heading">Campus events</h2>
     </div>
@@ -113,17 +119,29 @@
     </div>
   </section>
 {:else}
-  <section class="events-section" class:compact aria-labelledby={headingId}>
+  <section class="events-section" aria-labelledby={headingId}>
     {#if showHeading}
       <div class="section-heading">
         <h2 id={headingId} class="events-heading">Campus events</h2>
         <span class="section-actions">
-          {#if adminAuthStore.isAdmin}
+          {#if !adminAuthStore.canPublish && !adminAuthStore.isLoggedIn}
+            <label class="propose-name-field">
+              <span class="sr-only">Your name</span>
+              <input
+                type="text"
+                bind:value={proposeSubmitterName}
+                maxlength="100"
+                placeholder="Your name"
+                autocomplete="name"
+              />
+            </label>
+          {/if}
+          {#if adminAuthStore.canPublish}
             <button
               class="event-action-chip add-event-button"
               type="button"
               disabled={placingEvent}
-              onclick={startEventPlacement}
+              onclick={() => startEventPlacement(false)}
             >
               <CalendarPlus size={14} aria-hidden="true" />
               <span>
@@ -133,6 +151,24 @@
                   Choose on map
                 {:else}
                   Add event
+                {/if}
+              </span>
+            </button>
+          {:else}
+            <button
+              class="event-action-chip add-event-button"
+              type="button"
+              disabled={placingEvent}
+              onclick={() => startEventPlacement(true)}
+            >
+              <CalendarPlus size={14} aria-hidden="true" />
+              <span>
+                {#if eventPlacementStore.creating}
+                  Submitting...
+                {:else if eventPlacementStore.active}
+                  Choose on map
+                {:else}
+                  Propose event
                 {/if}
               </span>
             </button>
@@ -162,12 +198,12 @@
       </div>
     {:else}
       <div class="section-actions section-actions--inline">
-        {#if adminAuthStore.isAdmin}
+        {#if adminAuthStore.canPublish}
           <button
             class="event-action-chip add-event-button"
             type="button"
             disabled={placingEvent}
-            onclick={startEventPlacement}
+            onclick={() => startEventPlacement(false)}
           >
             <CalendarPlus size={14} aria-hidden="true" />
             <span>
@@ -177,6 +213,24 @@
                 Choose on map
               {:else}
                 Add event
+              {/if}
+            </span>
+          </button>
+        {:else}
+          <button
+            class="event-action-chip add-event-button"
+            type="button"
+            disabled={placingEvent}
+            onclick={() => startEventPlacement(true)}
+          >
+            <CalendarPlus size={14} aria-hidden="true" />
+            <span>
+              {#if eventPlacementStore.creating}
+                Submitting...
+              {:else if eventPlacementStore.active}
+                Choose on map
+              {:else}
+                Propose event
               {/if}
             </span>
           </button>
@@ -224,29 +278,24 @@
                 <span class="event-card-action">Open on map</span>
               </span>
             </button>
-            {#if !compact}
-              <span class="event-card-copy-link">
-                <CopyLinkButton
-                  url={shareUrl}
-                  label="Copy"
-                  ariaLabel={`Copy link to ${event.title}`}
-                  successMessage={`Copied link for ${event.title}.`}
-                  errorMessage={`Could not copy link for ${event.title}.`}
-                  feedback="none"
-                  variant="chip"
-                  onsuccess={() =>
-                    toastStore.show(
-                      `Copied link for ${event.title}.`,
-                      "success",
-                    )}
-                  onerror={() =>
-                    toastStore.show(
-                      `Could not copy link for ${event.title}.`,
-                      "error",
-                    )}
-                />
-              </span>
-            {/if}
+            <span class="event-card-copy-link">
+              <CopyLinkButton
+                url={shareUrl}
+                label="Copy"
+                ariaLabel={`Copy link to ${event.title}`}
+                successMessage={`Copied link for ${event.title}.`}
+                errorMessage={`Could not copy link for ${event.title}.`}
+                feedback="none"
+                variant="chip"
+                onsuccess={() =>
+                  toastStore.show(`Copied link for ${event.title}.`, "success")}
+                onerror={() =>
+                  toastStore.show(
+                    `Could not copy link for ${event.title}.`,
+                    "error",
+                  )}
+              />
+            </span>
           </div>
         {/each}
       </div>
@@ -255,25 +304,33 @@
         No active or upcoming events right now. Use “View all” to browse past
         events.
       </p>
-    {:else if compact}
-      <p class="empty-events empty-events--compact">
-        No campus events right now.
-      </p>
-    {:else if adminAuthStore.isAdmin}
+    {:else if adminAuthStore.canPublish}
       <p class="empty-events">
         No campus events yet. Add an event, then choose its location on the map.
       </p>
     {:else}
       <p class="empty-events">
-        No campus events scheduled yet. Browse events to check for updates.
+        No campus events yet. Propose one, then choose its location on the map.
       </p>
+      {#if !adminAuthStore.isLoggedIn}
+        <label class="propose-name-field propose-name-field--block">
+          <span>Your name</span>
+          <input
+            type="text"
+            bind:value={proposeSubmitterName}
+            maxlength="100"
+            autocomplete="name"
+          />
+        </label>
+      {/if}
       <button
-        class="event-action-chip browse-events-button"
+        class="event-action-chip add-event-button"
         type="button"
-        onclick={openEventsList}
+        disabled={placingEvent}
+        onclick={() => startEventPlacement(true)}
       >
-        <CalendarDays size={14} aria-hidden="true" />
-        <span>Browse campus events</span>
+        <CalendarPlus size={14} aria-hidden="true" />
+        <span>Propose event</span>
       </button>
     {/if}
   </section>
@@ -304,6 +361,40 @@
   .section-actions--inline {
     flex: 0 0 auto;
     justify-content: flex-start;
+  }
+  .propose-name-field {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .propose-name-field input {
+    font: inherit;
+    font-size: 0.75rem;
+    border: 1px solid hsl(0, 0%, 85%);
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    max-width: 8rem;
+  }
+  .propose-name-field--block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 35%);
+  }
+  .propose-name-field--block input {
+    max-width: none;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
   .events-heading {
     margin: 0;
@@ -476,73 +567,5 @@
       width: 3rem;
       height: 3rem;
     }
-  }
-
-  .events-section.compact {
-    gap: 0.375rem;
-  }
-
-  .events-section.compact .section-actions--inline {
-    margin-bottom: 0.125rem;
-  }
-
-  .events-section.compact .event-action-chip {
-    min-height: 1.75rem;
-    padding: 0.25rem 0.625rem;
-    font-size: 0.6875rem;
-  }
-
-  .events-section.compact .event-list {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    padding-bottom: 0.125rem;
-  }
-
-  .events-section.compact .event-card {
-    flex: 0 0 min(78vw, 14rem);
-    scroll-snap-align: start;
-    grid-template-columns: minmax(0, 1fr);
-    padding: 0.375rem;
-  }
-
-  .events-section.compact .event-card-main {
-    grid-template-columns: 2.25rem minmax(0, 1fr);
-    gap: 0.5rem;
-  }
-
-  .events-section.compact .event-card-image,
-  .events-section.compact .event-card-icon {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.5rem;
-  }
-
-  .events-section.compact .event-card-icon {
-    font-size: 0.55rem;
-  }
-
-  .events-section.compact .event-card-title {
-    font-size: 0.8125rem;
-  }
-
-  .events-section.compact .event-card-meta {
-    font-size: 0.6875rem;
-  }
-
-  .events-section.compact .event-card-action {
-    display: none;
-  }
-
-  .events-section.compact .empty-events--compact {
-    font-size: 0.75rem;
-  }
-
-  .events-section.compact .loading-events,
-  .events-section.compact .event-skeleton-list {
-    display: none;
   }
 </style>

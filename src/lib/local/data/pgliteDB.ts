@@ -201,6 +201,9 @@ export async function initPGLiteDB(db: PGlite) {
     ALTER TABLE divisions
     ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
+    ALTER TABLE divisions
+    ADD COLUMN IF NOT EXISTS "college_id" integer;
+
     CREATE TABLE IF NOT EXISTS "aliases" (
     "id" integer PRIMARY KEY,
     "alias" text NOT NULL,

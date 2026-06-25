@@ -5,7 +5,13 @@
     locationStore,
     modalStore,
     queryStore,
+    toastStore,
   } from "../../../lib/store.svelte";
+  import {
+    getStoredProposalForEntity,
+    mergeEntityRooms,
+    persistEntityChange,
+  } from "../../../lib/proposals/client";
   import { getAppData } from "../../../lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
@@ -51,6 +57,16 @@
   let savedField = $state<RoomEditableField | null>(null);
   let fieldError = $state<string | null>(null);
   let editing = $state(false);
+  let submitterNameDraft = $state("");
+  let proposalStatus = $state<string | null>(null);
+  let activeProposalId = $state<number | null>(null);
+  let mergePrompt = $state<{
+    candidate: RoomData;
+    attemptedName: string;
+    sourceVersion: number;
+  } | null>(null);
+  let mergingRooms = $state(false);
+  const canPublish = $derived(adminAuthStore.canPublish);
 
   $effect(() => {
     const room = currentRoom.value;
@@ -66,7 +82,18 @@
     divisionDraft = room.divisionId === null ? "" : String(room.divisionId);
     savedField = null;
     fieldError = null;
+    mergePrompt = null;
+    proposalStatus = null;
+    const stored = getStoredProposalForEntity("room", room.id);
+    activeProposalId = stored?.id ?? null;
+    if (stored) proposalStatus = stored.status;
   });
+
+  function fieldActionLabel(field: RoomEditableField) {
+    if (savingField === field)
+      return canPublish ? "Saving..." : "Submitting...";
+    return canPublish ? "Save" : "Submit";
+  }
 
   function fieldLabel(field: RoomEditableField) {
     return fieldLabels[field];
@@ -118,28 +145,51 @@
     savingField = field;
     savedField = null;
     fieldError = null;
+    mergePrompt = null;
 
     try {
-      const res = await fetch(`/api/admin/rooms/${room.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+      const { version, ...patch } = body;
+      const result = await persistEntityChange({
+        entityType: "room",
+        entityId: room.id,
+        baseVersion: room.version,
+        patch,
+        entityLabel: room.code,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
       });
-      const data = (await res.json().catch(() => ({}))) as RoomPatchResponse;
 
-      if (!res.ok) {
-        if (res.status === 409 && data.latest) {
-          syncRoomFromServer(data.latest);
-          fieldError = `${room.code} ${fieldLabel(field)} was not saved because the server has newer data. Showing the latest saved room.`;
+      if (!result.ok) {
+        if (result.latest) syncRoomFromServer(result.latest as RoomData);
+        if (result.mergeCandidate && field === "roomCode") {
+          mergePrompt = {
+            candidate: result.mergeCandidate,
+            attemptedName: result.attemptedName ?? codeDraft.trim(),
+            sourceVersion: room.version,
+          };
+          fieldError = null;
           return;
         }
-
-        fieldError = `${room.code} ${fieldLabel(field)} failed to save: ${data.error ?? `Save failed (${res.status})`}`;
+        fieldError =
+          result.error ??
+          `${room.code} ${fieldLabel(field)} could not be saved.`;
         return;
       }
 
-      if (data.room) syncRoomFromServer(data.room);
+      if (result.published) {
+        syncRoomFromServer(result.published as RoomData);
+      } else if (result.proposal) {
+        activeProposalId = result.proposal.id;
+        proposalStatus = result.proposal.status;
+        toastStore.show(
+          `Suggestion for ${room.code} submitted for review.`,
+          "success",
+        );
+      }
       savedField = field;
       setTimeout(() => {
         if (savedField === field) savedField = null;
@@ -150,6 +200,57 @@
     } finally {
       savingField = null;
     }
+  }
+
+  function dismissMergePrompt() {
+    mergePrompt = null;
+    const room = currentRoom.value;
+    if (room) codeDraft = room.code;
+  }
+
+  async function confirmRoomMerge() {
+    const room = currentRoom.value;
+    if (!room || !mergePrompt) return;
+
+    mergingRooms = true;
+    fieldError = null;
+
+    try {
+      const result = await mergeEntityRooms({
+        sourceRoomId: room.id,
+        targetRoomId: mergePrompt.candidate.id,
+        sourceVersion: mergePrompt.sourceVersion,
+        preferredRoomCode: mergePrompt.attemptedName,
+      });
+
+      if (!result.ok) {
+        if (result.latest) syncRoomFromServer(result.latest);
+        fieldError =
+          result.error ??
+          `${room.code} could not be merged into ${mergePrompt.candidate.code}.`;
+        return;
+      }
+
+      if (result.room) {
+        syncRoomFromServer(result.room);
+        toastStore.show(
+          `Merged ${room.code} into ${result.room.code}.`,
+          "success",
+        );
+      }
+      mergePrompt = null;
+      editing = false;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${room.code} merge failed: ${reason}`;
+    } finally {
+      mergingRooms = false;
+    }
+  }
+
+  function mergeCandidateLabel(candidate: RoomData) {
+    const building = candidate.building?.name;
+    return building ? `${candidate.code} (${building})` : candidate.code;
   }
 
   const parentBuilding = $derived.by(() => {
@@ -223,154 +324,200 @@
       </div>
     </div>
 
-    {#if adminAuthStore.isAdmin}
-      <section class="room-editor" aria-label="Edit room details">
-        <button
-          type="button"
-          class="editor-toggle"
-          aria-expanded={editing}
-          onclick={() => (editing = !editing)}
-        >
-          {editing ? "Close editor" : "Edit room"}
-        </button>
-        {#if editing}
-          <div class="editor-heading">
-            <span>Editor</span>
-          </div>
+    <section class="room-editor" aria-label="Edit room details">
+      <button
+        type="button"
+        class="editor-toggle"
+        aria-expanded={editing}
+        onclick={() => (editing = !editing)}
+      >
+        {editing ? "Close" : canPublish ? "Edit room" : "Suggest an edit"}
+      </button>
+      {#if editing}
+        <div class="editor-heading">
+          <span>{canPublish ? "Editor" : "Suggest a change"}</span>
+        </div>
 
+        {#if !canPublish && !adminAuthStore.isLoggedIn}
           <div class="editor-field">
-            <label for="room-code-editor">Room code</label>
-            <div class="editor-control-row">
-              <input
-                id="room-code-editor"
-                bind:value={codeDraft}
-                disabled={savingField !== null}
-                autocomplete="off"
-              />
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  codeDraft.trim() === currentRoom.value.code}
-                onclick={() => saveField("roomCode")}
-              >
-                {savingField === "roomCode" ? "Saving..." : "Save"}
-              </button>
-            </div>
+            <label for="room-submitter-name">Your name</label>
+            <input
+              id="room-submitter-name"
+              bind:value={submitterNameDraft}
+              maxlength="100"
+              autocomplete="name"
+            />
           </div>
-
-          <div class="editor-field">
-            <label for="room-directions-editor">Room directions</label>
-            <div class="editor-control-row stacked">
-              <textarea
-                id="room-directions-editor"
-                bind:value={directionsDraft}
-                disabled={savingField !== null}
-                rows="3"></textarea>
-              <button
-                class="field-save-btn"
-                disabled={savingField !== null ||
-                  directionsDraft.trim() ===
-                    (currentRoom.value.directions ?? "")}
-                onclick={() => saveField("directions")}
-              >
-                {savingField === "directions" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </div>
-
-          <div class="editor-grid">
-            <div class="editor-field">
-              <label for="room-building-editor">Building</label>
-              <div class="editor-control-row">
-                <select
-                  id="room-building-editor"
-                  bind:value={buildingDraft}
-                  disabled={savingField !== null}
-                >
-                  <option value="">No building</option>
-                  {#each buildings as building (building.id)}
-                    <option value={String(building.id)}
-                      >{building.buildingName}</option
-                    >
-                  {/each}
-                </select>
-                <button
-                  class="field-save-btn"
-                  disabled={savingField !== null ||
-                    buildingDraft ===
-                      String(currentRoom.value.buildingId ?? "")}
-                  onclick={() => saveField("buildingId")}
-                >
-                  {savingField === "buildingId" ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </div>
-
-            <div class="editor-field">
-              <label for="room-college-editor">College</label>
-              <div class="editor-control-row">
-                <select
-                  id="room-college-editor"
-                  bind:value={collegeDraft}
-                  disabled={savingField !== null}
-                >
-                  <option value="">No college</option>
-                  {#each colleges as college (college.id)}
-                    <option value={String(college.id)}
-                      >{college.collegeName}</option
-                    >
-                  {/each}
-                </select>
-                <button
-                  class="field-save-btn"
-                  disabled={savingField !== null ||
-                    collegeDraft === String(currentRoom.value.collegeId ?? "")}
-                  onclick={() => saveField("collegeId")}
-                >
-                  {savingField === "collegeId" ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </div>
-
-            <div class="editor-field">
-              <label for="room-division-editor">Division</label>
-              <div class="editor-control-row">
-                <select
-                  id="room-division-editor"
-                  bind:value={divisionDraft}
-                  disabled={savingField !== null}
-                >
-                  <option value="">No division</option>
-                  {#each divisions as division (division.id)}
-                    <option value={String(division.id)}
-                      >{division.divisionName}</option
-                    >
-                  {/each}
-                </select>
-                <button
-                  class="field-save-btn"
-                  disabled={savingField !== null ||
-                    divisionDraft ===
-                      String(currentRoom.value.divisionId ?? "")}
-                  onclick={() => saveField("divisionId")}
-                >
-                  {savingField === "divisionId" ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {#if savedField}
-            <p class="editor-message success">
-              {fieldLabel(savedField)} saved.
-            </p>
-          {/if}
-          {#if fieldError}
-            <p class="editor-message error">{fieldError}</p>
-          {/if}
         {/if}
-      </section>
-    {/if}
+
+        {#if proposalStatus}
+          <p class="editor-message pending">
+            Status: {proposalStatus.replace("_", " ")} — waiting for editor review.
+          </p>
+        {/if}
+
+        <div class="editor-field">
+          <label for="room-code-editor">Room code</label>
+          <div class="editor-control-row">
+            <input
+              id="room-code-editor"
+              bind:value={codeDraft}
+              disabled={savingField !== null}
+              autocomplete="off"
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                codeDraft.trim() === currentRoom.value.code}
+              onclick={() => saveField("roomCode")}
+            >
+              {fieldActionLabel("roomCode")}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label for="room-directions-editor">Room directions</label>
+          <div class="editor-control-row stacked">
+            <textarea
+              id="room-directions-editor"
+              bind:value={directionsDraft}
+              disabled={savingField !== null}
+              rows="3"></textarea>
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                directionsDraft.trim() === (currentRoom.value.directions ?? "")}
+              onclick={() => saveField("directions")}
+            >
+              {fieldActionLabel("directions")}
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-grid">
+          <div class="editor-field">
+            <label for="room-building-editor">Building</label>
+            <div class="editor-control-row">
+              <select
+                id="room-building-editor"
+                bind:value={buildingDraft}
+                disabled={savingField !== null}
+              >
+                <option value="">No building</option>
+                {#each buildings as building (building.id)}
+                  <option value={String(building.id)}
+                    >{building.buildingName}</option
+                  >
+                {/each}
+              </select>
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  buildingDraft === String(currentRoom.value.buildingId ?? "")}
+                onclick={() => saveField("buildingId")}
+              >
+                {fieldActionLabel("buildingId")}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="room-college-editor">College</label>
+            <div class="editor-control-row">
+              <select
+                id="room-college-editor"
+                bind:value={collegeDraft}
+                disabled={savingField !== null}
+              >
+                <option value="">No college</option>
+                {#each colleges as college (college.id)}
+                  <option value={String(college.id)}
+                    >{college.collegeName}</option
+                  >
+                {/each}
+              </select>
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  collegeDraft === String(currentRoom.value.collegeId ?? "")}
+                onclick={() => saveField("collegeId")}
+              >
+                {fieldActionLabel("collegeId")}
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label for="room-division-editor">Division</label>
+            <div class="editor-control-row">
+              <select
+                id="room-division-editor"
+                bind:value={divisionDraft}
+                disabled={savingField !== null}
+              >
+                <option value="">No division</option>
+                {#each divisions as division (division.id)}
+                  <option value={String(division.id)}
+                    >{division.divisionName}</option
+                  >
+                {/each}
+              </select>
+              <button
+                class="field-save-btn"
+                disabled={savingField !== null ||
+                  divisionDraft === String(currentRoom.value.divisionId ?? "")}
+                onclick={() => saveField("divisionId")}
+              >
+                {fieldActionLabel("divisionId")}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {#if savedField}
+          <p class="editor-message success">
+            {canPublish
+              ? `${fieldLabel(savedField)} saved.`
+              : "Suggestion submitted."}
+          </p>
+        {/if}
+        {#if mergePrompt}
+          <div class="merge-prompt" role="status">
+            <p>
+              A room named <strong>{mergePrompt.candidate.code}</strong> already
+              exists{#if mergePrompt.candidate.building?.name}
+                in {mergePrompt.candidate.building.name}{/if}. Merge
+              <strong>{currentRoom.value.code}</strong> into it? Classes and map pins
+              move to the kept room; empty fields are filled from the merged room.
+            </p>
+            <div class="merge-actions">
+              <button
+                type="button"
+                class="merge-btn merge-btn-primary"
+                disabled={mergingRooms || savingField !== null}
+                onclick={confirmRoomMerge}
+              >
+                {mergingRooms
+                  ? "Merging..."
+                  : `Merge into ${mergeCandidateLabel(mergePrompt.candidate)}`}
+              </button>
+              <button
+                type="button"
+                class="merge-btn"
+                disabled={mergingRooms}
+                onclick={dismissMergePrompt}
+              >
+                Keep separate
+              </button>
+            </div>
+          </div>
+        {/if}
+        {#if fieldError}
+          <p class="editor-message error">{fieldError}</p>
+        {/if}
+      {/if}
+    </section>
 
     {#if currentRoom.value.directions}
       <p class="room-directions">
@@ -700,6 +847,51 @@
   .editor-message.error {
     color: hsl(5, 53%, 32%);
     font-weight: 600;
+  }
+
+  .merge-prompt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.625rem;
+    border: 1px solid hsl(35, 80%, 70%);
+    border-radius: 0.5rem;
+    background-color: hsl(45, 100%, 97%);
+  }
+
+  .merge-prompt p {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: #333;
+  }
+
+  .merge-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .merge-btn {
+    border: 1px solid #d8b9ba;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.625rem;
+    background: white;
+    color: #7b1113;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .merge-btn-primary {
+    border-color: hsl(5, 53%, 32%);
+    background-color: hsl(5, 53%, 32%);
+    color: white;
+  }
+
+  .merge-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
   }
 
   .room-directions {

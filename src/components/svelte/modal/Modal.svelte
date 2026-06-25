@@ -71,12 +71,14 @@
     position: relative;
     flex: 0 1 64rem;
     max-height: 90dvh;
+    min-height: 0;
     background-color: white;
     z-index: inherit;
     border-radius: 1rem;
     padding: 0.5rem;
     display: flex;
     flex-flow: column nowrap;
+    overflow: hidden;
     .modal-content__close-icon {
       position: absolute;
       right: 0.25rem;
@@ -95,8 +97,10 @@
   }
   .landing-modal-container {
     flex: 0 1 48rem;
+    width: 100%;
     padding: 0;
     overflow: hidden;
+    min-height: 0;
   }
   @media only screen and (max-width: 31.25rem) {
     .modal-content {
@@ -112,7 +116,9 @@
     height: 100%;
     inset: 0;
     position: absolute;
-    inset: 0;
-    background-color: hsla(0, 0%, 0%, 0.2);
+    background-color: hsla(0, 0%, 8%, 0.42);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
   }
 </style>
