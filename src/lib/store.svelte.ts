@@ -406,7 +406,8 @@ export type FloatingControlPanel =
   | "building-type"
   | "terrain"
   | "jeepney"
-  | "admin";
+  | "admin"
+  | "suggest-addition";
 
 class FloatingControlPanelStore {
   openPanel: FloatingControlPanel | null = $state(null);
@@ -527,6 +528,30 @@ class MapProposalStore {
   }
 }
 
+class AdditionProposalStore {
+  pinPickActive = $state(false);
+  private pinResolver: ((coords: { lat: number; lon: number }) => void) | null =
+    null;
+
+  requestMapPin() {
+    this.pinPickActive = true;
+    return new Promise<{ lat: number; lon: number }>((resolve) => {
+      this.pinResolver = resolve;
+    });
+  }
+
+  deliverMapPin(lat: number, lon: number) {
+    this.pinResolver?.({ lat, lon });
+    this.pinResolver = null;
+    this.pinPickActive = false;
+  }
+
+  cancelMapPin() {
+    this.pinResolver = null;
+    this.pinPickActive = false;
+  }
+}
+
 export type EventPlacementDraft = {
   slug: string;
   title: string;
@@ -539,14 +564,19 @@ class EventPlacementStore {
   draft: EventPlacementDraft | null = $state(null);
   creating: boolean = $state(false);
   createdEventId: number | null = $state(null);
+  proposing: boolean = $state(false);
+  submitterName: string = $state("");
   active = $derived(this.draft !== null);
 
-  start = (draft: EventPlacementDraft) => {
+  start = (
+    draft: EventPlacementDraft,
+    options: { propose?: boolean; submitterName?: string } = {},
+  ) => {
     this.draft = draft;
     this.creating = false;
     this.createdEventId = null;
-    // Event placement is part of the edit flow; clear the other map modes so
-    // they don't fight over the camera or map clicks while placing.
+    this.proposing = options.propose ?? false;
+    this.submitterName = options.submitterName?.trim() ?? "";
     deactivateMapModesExcept("edit");
   };
 
@@ -568,6 +598,8 @@ class EventPlacementStore {
   cancel = () => {
     this.draft = null;
     this.creating = false;
+    this.proposing = false;
+    this.submitterName = "";
   };
 
   consumeCreatedEvent = (eventId: number) => {
@@ -1074,6 +1106,7 @@ export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapToolsStore = new MapToolsStore();
 export const mapEditStore = new MapEditStore();
 export const mapProposalStore = new MapProposalStore();
+export const additionProposalStore = new AdditionProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
