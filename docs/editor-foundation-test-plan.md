@@ -37,10 +37,10 @@ Use this checklist before merging the in-app editor foundation PR.
 ## Building Type Filter
 
 - The building type filter defaults to All and shows the same building pins and suggestions as before.
-- Selecting Administrative shows only administrative building pins and building suggestions.
-- Selecting Non-administrative shows only non-administrative building pins and building suggestions.
-- A search with no matching buildings under the active building type filter keeps the existing empty/query fallback understandable.
-- Building type filtering does not change dorm filter behavior or dorm marker visibility.
+- Selecting Class Building shows only red building pins and building suggestions.
+- Selecting UP Managed Dorm shows only green UP-managed dorm pins and dorm suggestions.
+- Selecting Non-UP Managed Dorm shows only orange non-UP-managed dorm pins and dorm suggestions.
+- A search with no matching buildings or dorms under the active building type filter keeps the existing empty/query fallback understandable.
 - In map edit mode, only visible building pins are draggable, and changing the filter does not imply hidden pins were edited.
 
 ## Room Side-Panel Editing
