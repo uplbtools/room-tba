@@ -9,8 +9,8 @@ export const TERRAIN_EXAGGERATION_OPTIONS = [1, 1.5, 2] as const;
 export const DEFAULT_TERRAIN_EXAGGERATION = 1.5;
 
 export const CAMPUS_MAX_BOUNDS: [[number, number], [number, number]] = [
-  [121.22951431520816, 14.143739048514412],
-  // Extended NE: more room east (Laguna de Bay shore) and north (Bay / Calamba corridor).
+  // West/south: Mt. Makiling foothills, BSP Jamboree site, National Arts Center corridor.
+  [121.168, 14.095],
   [121.335, 14.215],
 ];
 
