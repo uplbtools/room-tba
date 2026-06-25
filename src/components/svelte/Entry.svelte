@@ -139,6 +139,9 @@
     --drawer-peek-offset: 1.75rem;
     --edit-bar-height: 0rem;
     --pill-padding-x: 0.875rem;
+    --map-chrome-radius: 1rem;
+    --map-chrome-toggle-size: 2rem;
+    --map-chrome-toggle-radius: 0.625rem;
     /* Map-face controls: readable on light tiles and white building footprints */
     --map-chrome-surface: rgba(255, 255, 255, 0.98);
     --map-chrome-border: hsl(0, 0%, 58%);
@@ -157,6 +160,39 @@
 
   .app-layout.edit-mode {
     --edit-bar-height: 3rem;
+  }
+
+  :global(.chrome-toggle-btn) {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--map-chrome-toggle-size, 2rem);
+    height: var(--map-chrome-toggle-size, 2rem);
+    border: 1px solid #d8b9ba;
+    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
+    background: #fffafa;
+    color: #7b1113;
+    transition:
+      background-color 0.16s,
+      border-color 0.16s;
+  }
+
+  :global(button.chrome-toggle-btn) {
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+  }
+
+  :global(button.chrome-toggle-btn:hover),
+  :global(button.chrome-toggle-btn:focus-visible) {
+    border-color: #c58f91;
+    background: #fdf3f3;
+  }
+
+  :global(button.chrome-toggle-btn:focus-visible) {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
   }
 
   .inner-layer {

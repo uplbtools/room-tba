@@ -135,7 +135,9 @@
       {#if searchTabHint}
         <span class="search-tab-context">{searchTabHint}</span>
       {/if}
-      <ChevronDown size={18} aria-hidden="true" />
+      <span class="chrome-toggle-btn" aria-hidden="true">
+        <ChevronDown size={18} />
+      </span>
     </button>
 
     {#if showIdleEventsChrome}
@@ -165,7 +167,9 @@
           disabled={!loaded}
         >
           <span class="events-shelf-tab-label">Campus events</span>
-          <ChevronDown size={18} aria-hidden="true" />
+          <span class="chrome-toggle-btn" aria-hidden="true">
+            <ChevronDown size={18} />
+          </span>
         </button>
       {/if}
     {/if}
@@ -299,7 +303,7 @@
             {#if chrome.showSearchSuggestions}
               <button
                 type="button"
-                class="search-retract"
+                class="chrome-toggle-btn"
                 aria-label="Collapse search bar"
                 title="Collapse search bar"
                 onclick={collapseSearch}
@@ -341,7 +345,9 @@
           disabled={!loaded}
         >
           <span class="events-shelf-tab-label">Campus events</span>
-          <ChevronDown size={18} aria-hidden="true" />
+          <span class="chrome-toggle-btn" aria-hidden="true">
+            <ChevronDown size={18} />
+          </span>
         </button>
       {/if}
 
@@ -400,9 +406,9 @@
     min-width: 0;
     max-width: 100%;
     min-height: 2.75rem;
-    padding: 0.625rem 1rem;
+    padding: 0.875rem 1rem;
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 0.8125rem;
+    border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     box-shadow: var(
       --map-chrome-panel-shadow,
@@ -443,8 +449,7 @@
     white-space: nowrap;
   }
 
-  .search-tab :global(svg:last-child) {
-    flex: 0 0 auto;
+  .search-tab .chrome-toggle-btn {
     margin-left: auto;
   }
 
@@ -455,7 +460,7 @@
     min-width: 0;
     z-index: 2;
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 0.8125rem;
+    border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     backdrop-filter: blur(10px);
     box-shadow: var(
@@ -522,7 +527,7 @@
     max-width: 100%;
     overflow: hidden;
     border: 1px solid #eee1e1;
-    border-radius: 0.8125rem;
+    border-radius: var(--map-chrome-radius, 1rem);
     background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     color: #18181b;
     cursor: pointer;
@@ -557,7 +562,7 @@
     justify-content: center;
     width: 3rem;
     height: 3rem;
-    border-radius: 0.75rem;
+    border-radius: calc(var(--map-chrome-radius, 1rem) * 0.75);
     background: #7b1113;
     color: white;
     font-size: 0.7rem;
@@ -623,9 +628,9 @@
     min-width: 0;
     max-width: 100%;
     min-height: 2.75rem;
-    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    padding: 0.875rem 1rem;
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 0.8125rem;
+    border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     box-shadow: var(
       --map-chrome-panel-shadow,
@@ -648,6 +653,7 @@
   .events-shelf-tab-label {
     min-width: 0;
     flex: 1;
+    padding-left: 1.75rem;
   }
 
   .events-shelf-tab:hover:not(:disabled),
@@ -662,29 +668,11 @@
   }
 
   @media screen and (max-width: 48rem) {
-    .search-tab {
-      border-radius: 2rem;
-      min-height: 2.875rem;
-    }
-
-    .search-input-stack {
-      border-radius: 2rem;
-    }
-
-    .search-filter-container:focus-within:not(.edit-chrome-suppressed)
-      .search-input-stack {
-      border-radius: 1.25rem;
-    }
-
     .search-filter {
       pointer-events: auto;
     }
     .search-filter-container {
       width: 100%;
-    }
-
-    .events-shelf-tab {
-      border-radius: 0.8125rem;
     }
 
     .event-banner-cta {
@@ -735,31 +723,7 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
-  }
-
-  .search-retract {
-    display: inline-flex;
     flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.625rem;
-    background: #fffafa;
-    color: #7b1113;
-    cursor: pointer;
-  }
-
-  .search-retract:hover,
-  .search-retract:focus-visible {
-    border-color: #c58f91;
-    background: #fdf3f3;
-  }
-
-  .search-retract:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
   }
 
   .clear-btn,
