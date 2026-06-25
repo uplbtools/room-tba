@@ -14,14 +14,14 @@ import {
   getLocalCollegeRooms,
   getLocalDivisionRooms,
 } from "./sync";
-import { Results } from "@electric-sql/pglite";
+import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT building_name AS "buildingName", lon, lat, id, directions FROM buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType" FROM buildings
       `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {
@@ -95,6 +95,7 @@ export async function getLocalRoomByCode(code: string) {
     await localDB.waitReady;
     const data = (await localDB.query(
       `
+            SELECT
             r.id,
             r.room_code AS code,
             r.directions AS directions,
@@ -103,7 +104,9 @@ export async function getLocalRoomByCode(code: string) {
             d.division_name as "divisionName",
             r.building_id as "buildingId",
             r.college_id as "collegeId",
-            r.division_id as "divisionId"
+            r.division_id as "divisionId",
+            r.version,
+            r.updated_at as "updatedAt"
             FROM rooms AS r
             LEFT JOIN buildings AS b ON b.id = r.building_id
             LEFT JOIN colleges as c ON c.id = r.college_id

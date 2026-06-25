@@ -106,8 +106,6 @@
 
   // svelte-ignore state_referenced_locally
   setAppData(() => appData);
-
-  $inspect(syncToastStore.currentSync, syncToastStore.currentSyncData);
 </script>
 
 <Entry

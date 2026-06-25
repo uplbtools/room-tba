@@ -1,3 +1,5 @@
+// src/pages/sitemap.xml.ts
+
 import type { APIRoute } from "astro";
 import {
   getBuildingSlug,

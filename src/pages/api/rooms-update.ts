@@ -3,6 +3,8 @@ import { roomsTable } from "../../../drizzle/schema";
 import { count, isNotNull } from "drizzle-orm";
 import { db } from "../../lib/db";
 
+export const prerender = false;
+
 export const GET = (async (_) => {
   // @ts-ignore drizzle returns count as a scalar row here.
   const [{ count: directionCount }] = await db

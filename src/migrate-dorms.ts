@@ -1,3 +1,5 @@
+// src/migrate-dorms.ts
+
 import Database from "bun:sqlite";
 
 const client = new Database("data/info.db");
