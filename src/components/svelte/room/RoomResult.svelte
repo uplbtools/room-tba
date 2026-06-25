@@ -272,7 +272,7 @@
             <span>{canPublish ? "Editor" : "Suggest a change"}</span>
           </div>
 
-          {#if !canPublish && !adminAuthStore.isAdmin}
+          {#if !canPublish && !adminAuthStore.isLoggedIn}
             <div class="editor-field">
               <label for="room-submitter-name">Your name</label>
               <input

@@ -148,7 +148,7 @@
         <div class="editor-heading">
           <span>{canPublish ? "Editor" : "Suggest a change"}</span>
         </div>
-        {#if !canPublish && !adminAuthStore.isAdmin}
+        {#if !canPublish && !adminAuthStore.isLoggedIn}
           <div class="editor-field">
             <label for="college-submitter-name">Your name</label>
             <input

@@ -706,7 +706,7 @@ class ProposalsStore {
 }
 
 class AdminAuthStore {
-  isAdmin: boolean = $state(false);
+  isLoggedIn: boolean = $state(false);
   username: string | null = $state(null);
   displayName: string | null = $state(null);
   role: "admin" | "editor" | "contributor" | null = $state(null);
@@ -717,14 +717,15 @@ class AdminAuthStore {
   private _hydrated = false;
 
   private applySession(data: {
-    admin: boolean;
+    loggedIn?: boolean;
+    admin?: boolean;
     username: string | null;
     displayName?: string | null;
     role?: "admin" | "editor" | "contributor" | null;
     canPublish?: boolean;
     canReview?: boolean;
   }) {
-    this.isAdmin = data.admin;
+    this.isLoggedIn = data.loggedIn ?? data.admin ?? false;
     this.username = data.username;
     this.displayName = data.displayName ?? data.username;
     this.role = data.role ?? null;
@@ -746,7 +747,8 @@ class AdminAuthStore {
       });
       if (!res.ok) return;
       const data = (await res.json()) as {
-        admin: boolean;
+        loggedIn?: boolean;
+        admin?: boolean;
         username: string | null;
         displayName?: string | null;
         role?: "admin" | "editor" | "contributor" | null;
@@ -755,7 +757,7 @@ class AdminAuthStore {
       };
       this.applySession(data);
     } catch {
-      this.isAdmin = false;
+      this.isLoggedIn = false;
       this.username = null;
       this.displayName = null;
       this.role = null;
@@ -794,7 +796,7 @@ class AdminAuthStore {
         return data.error ?? `Login failed (${res.status})`;
       }
       this.applySession({
-        admin: true,
+        loggedIn: true,
         username: data.username ?? username.trim().toLowerCase(),
         displayName: data.displayName,
         role: data.role ?? "editor",
@@ -819,7 +821,7 @@ class AdminAuthStore {
     } catch {
       // ignore — we're going to clear local state regardless.
     }
-    this.isAdmin = false;
+    this.isLoggedIn = false;
     this.username = null;
     this.displayName = null;
     this.role = null;
