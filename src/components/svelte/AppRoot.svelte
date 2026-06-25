@@ -3,6 +3,7 @@
   import {
     type AppContextData,
     type DBData,
+    setAppActions,
     setAppData,
   } from "../../lib/context";
   import { queryStore, syncToastStore } from "../../lib/store.svelte";
@@ -11,6 +12,7 @@
     CollegeData,
     DivisionData,
     DormData,
+    EventData,
   } from "../../lib/types";
   import Entry from "./Entry.svelte";
   import { onMount } from "svelte";
@@ -19,6 +21,7 @@
     getColleges,
     getDivisions,
     getDorms,
+    getEvents,
     getRoomsData,
   } from "../../lib/local/data/utils";
   import {
@@ -27,6 +30,7 @@
     syncColleges,
     syncDivisions,
     syncDorms,
+    syncEvents,
   } from "../../lib/local/data/sync";
   import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
 
@@ -41,6 +45,7 @@
   let directionCount: number | null = $state.raw(null);
   let divisions: DivisionData[] | null = $state.raw(null);
   let dorms: DormData[] | null = $state.raw(null);
+  let events: EventData[] | null = $state.raw(null);
   let totalRooms: number | null = $state.raw(null);
   let loaded: boolean = $state(false);
   const appData: AppContextData = $derived({
@@ -49,12 +54,12 @@
     directionCount,
     divisions,
     dorms,
+    events,
     totalRooms,
     loaded,
   });
 
   queryStore.hydrateQuery(
-    // svelte-ignore state_referenced_locally
     metadata.initialSearch
       ? {
           category: metadata.initialSearch.category,
@@ -75,6 +80,7 @@
     const collegeCheck = await localTableSyncCheck("colleges");
     const divisionCheck = await localTableSyncCheck("divisions");
     const dormCheck = await localTableSyncCheck("dorms");
+    const eventCheck = await localTableSyncCheck("events");
     Promise.resolve()
       .then(() => initPGLiteDB(localDB))
       .catch((e) => console.error(e))
@@ -84,28 +90,40 @@
           colleges: await getColleges(collegeCheck),
           divisions: await getDivisions(divisionCheck),
           dorms: await getDorms(dormCheck),
+          events: await getEvents(eventCheck),
           ...(await getRoomsData()),
         };
       })
       .then(() => {
-          buildings = data.buildings;
-          colleges = data.colleges;
-          directionCount = data.directionCount;
-          divisions = data.divisions;
-          dorms = data.dorms;
-          totalRooms = data.totalRooms;
-          loaded = true;
-          Promise.resolve()
-            .then(() => syncBuildings(buildingCheck, data.buildings ?? []))
-            .then(() => syncColleges(collegeCheck, data.colleges ?? []))
-            .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
-            .then(() => syncDorms(dormCheck, data.dorms ?? []))
-            .then(() => syncToastStore.endSync())
+        buildings = data.buildings;
+        colleges = data.colleges;
+        directionCount = data.directionCount;
+        divisions = data.divisions;
+        dorms = data.dorms;
+        events = data.events;
+        totalRooms = data.totalRooms;
+        loaded = true;
+        Promise.resolve()
+          .then(() => syncBuildings(buildingCheck, data.buildings ?? []))
+          .then(() => syncColleges(collegeCheck, data.colleges ?? []))
+          .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
+          .then(() => syncDorms(dormCheck, data.dorms ?? []))
+          .then(() => syncEvents(eventCheck, data.events ?? []))
+          .then(() => syncToastStore.endSync());
       });
   });
 
-  // svelte-ignore state_referenced_locally
   setAppData(() => appData);
+  setAppActions({
+    replaceEvent: (updated) => {
+      if (!events) return;
+      const index = events.findIndex((event) => event.id === updated.id);
+      if (index === -1) return;
+      const next = events.slice();
+      next[index] = updated;
+      events = next;
+    },
+  });
 </script>
 
 <Entry

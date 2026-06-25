@@ -5,6 +5,7 @@ import {
   CollegeData,
   DivisionData,
   DormData,
+  EventData,
   RoomData,
   TableSyncInfo,
 } from "../../types";
@@ -14,6 +15,7 @@ import {
   getLocalCollegeRooms,
   getLocalDivisionRooms,
 } from "./sync";
+import { refreshStoredEventTiming, sortStoredEvents } from "../../event-time";
 import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
@@ -83,6 +85,106 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
       FROM dorms;
       `)) as Results<DormData>;
     return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalEvents(): Promise<EventData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const [events, locations, routes, stops] = await Promise.all([
+      localDB.query(`
+        SELECT
+          id,
+          slug,
+          title,
+          description,
+          category,
+          starts_at AS "startsAt",
+          ends_at AS "endsAt",
+          timezone,
+          recurrence,
+          is_active AS "isActive",
+          source_url AS "sourceUrl",
+          priority,
+          include_in_seo AS "includeInSeo",
+          version,
+          updated_at AS "updatedAt",
+          status,
+          occurrence_starts_at AS "occurrenceStartsAt",
+          occurrence_ends_at AS "occurrenceEndsAt"
+        FROM events;
+      `) as Promise<Results<Omit<EventData, "locations" | "routes">>>,
+      localDB.query(`
+        SELECT
+          id,
+          event_id AS "eventId",
+          anchor_type AS "anchorType",
+          building_id AS "buildingId",
+          dorm_id AS "dormId",
+          label,
+          lat,
+          lon,
+          highlight_priority AS "highlightPriority",
+          sort_order AS "sortOrder",
+          is_primary AS "isPrimary",
+          updated_at AS "updatedAt",
+          resolved_lat AS "resolvedLat",
+          resolved_lon AS "resolvedLon",
+          resolved_label AS "resolvedLabel",
+          building_name AS "buildingName",
+          dorm_name AS "dormName"
+        FROM event_locations
+        ORDER BY sort_order, id;
+      `) as Promise<Results<EventData["locations"][number]>>,
+      localDB.query(`
+        SELECT
+          id,
+          event_id AS "eventId",
+          name,
+          description,
+          sort_order AS "sortOrder",
+          updated_at AS "updatedAt"
+        FROM event_routes
+        ORDER BY sort_order, id;
+      `) as Promise<Results<Omit<EventData["routes"][number], "stops">>>,
+      localDB.query(`
+        SELECT
+          id,
+          route_id AS "routeId",
+          event_location_id AS "eventLocationId",
+          label,
+          lat,
+          lon,
+          sort_order AS "sortOrder",
+          updated_at AS "updatedAt",
+          resolved_lat AS "resolvedLat",
+          resolved_lon AS "resolvedLon",
+          resolved_label AS "resolvedLabel"
+        FROM event_route_stops
+        ORDER BY sort_order, id;
+      `) as Promise<Results<EventData["routes"][number]["stops"][number]>>,
+    ]);
+
+    return sortStoredEvents(
+      events.rows.map((event) =>
+        refreshStoredEventTiming({
+          ...event,
+          locations: locations.rows.filter(
+            (location) => location.eventId === event.id,
+          ),
+          routes: routes.rows
+            .filter((route) => route.eventId === event.id)
+            .map((route) => ({
+              ...route,
+              stops: stops.rows.filter((stop) => stop.routeId === route.id),
+            })),
+        }),
+      ),
+    );
   } catch (e) {
     console.error("Error: ", e);
     return undefined;
@@ -194,7 +296,7 @@ export function getEntity<T>(
       }
       const fetchedData = await getJSONFetch<T[]>(`/api/${tableName}`);
       return fetchedData;
-    } catch (e) {
+    } catch {
       return [];
     }
   };
@@ -214,6 +316,8 @@ export const getDivisions = getEntity<DivisionData>(
 
 export const getDorms = getEntity<DormData>("dorms", getLocalDorms);
 
+export const getEvents = getEntity<EventData>("events", getLocalEvents);
+
 export const getClasses = getEntity<ClassMapValue>("classes", getLocalClasses);
 
 export function getEntityRooms(
@@ -230,7 +334,7 @@ export function getEntityRooms(
         `/api/rooms?${entityName}_id=${id}`,
       );
       return fetchedData.data;
-    } catch (e) {
+    } catch {
       return [];
     }
   };
@@ -257,7 +361,7 @@ export async function getRoomsData(): Promise<
         "/api/rooms-update",
       );
     return fetchedRoomsData;
-  } catch (e) {
+  } catch {
     return {
       directionCount: 0,
       totalRooms: 0,

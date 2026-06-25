@@ -7,7 +7,6 @@
     mapStore,
     mapEditStore,
     jeepneyStore,
-    dormFilter,
     currentRoom,
     adminAuthStore,
     toastStore,
@@ -23,6 +22,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
+  import type { EventData } from "../../lib/types";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
@@ -46,7 +46,7 @@
     dormMatchesTypeFilter,
   } from "../../constants/building-types";
   const data = getAppData();
-  const { buildings, dorms, loaded } = $derived(data());
+  const { buildings, dorms, events, loaded } = $derived(data());
   const filteredBuildings = $derived.by(() => {
     if (!loaded) return [];
     return buildings.filter((building) =>
@@ -64,6 +64,9 @@
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_CASING_ID = "jeepney-route-line-casing";
+  const EVENT_ROUTE_SOURCE_ID = "event-route-line";
+  const EVENT_ROUTE_LAYER_ID = "event-route-line";
+  const EVENT_ROUTE_LAYER_CASING_ID = "event-route-line-casing";
   const BUILDING_3D_LAYER_ID = "building-3d";
 
   let activeRouteId = $state<string | null>(null);
@@ -197,6 +200,63 @@
     }
   }
 
+  function ensureEventRouteLayers(map: mapGl.MapLibreMap) {
+    if (!map.getSource(EVENT_ROUTE_SOURCE_ID)) {
+      map.addSource(EVENT_ROUTE_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+
+    if (!map.getLayer(EVENT_ROUTE_LAYER_CASING_ID)) {
+      map.addLayer({
+        id: EVENT_ROUTE_LAYER_CASING_ID,
+        type: "line",
+        source: EVENT_ROUTE_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 7,
+          "line-opacity": 0.9,
+        },
+      });
+    }
+
+    if (!map.getLayer(EVENT_ROUTE_LAYER_ID)) {
+      map.addLayer({
+        id: EVENT_ROUTE_LAYER_ID,
+        type: "line",
+        source: EVENT_ROUTE_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#7b1113",
+          "line-width": 4,
+          "line-opacity": 0.9,
+        },
+      });
+    }
+  }
+
+  function clearEventRouteLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(EVENT_ROUTE_LAYER_ID))
+      map.removeLayer(EVENT_ROUTE_LAYER_ID);
+    if (map.getLayer(EVENT_ROUTE_LAYER_CASING_ID)) {
+      map.removeLayer(EVENT_ROUTE_LAYER_CASING_ID);
+    }
+    if (map.getSource(EVENT_ROUTE_SOURCE_ID))
+      map.removeSource(EVENT_ROUTE_SOURCE_ID);
+  }
+
+  function buildEventRouteGeometry(
+    route: EventData["routes"][number],
+  ): LineString | null {
+    const coordinates = route.stops
+      .filter((stop) => stop.resolvedLon !== null && stop.resolvedLat !== null)
+      .map((stop) => [stop.resolvedLon as number, stop.resolvedLat as number]);
+    if (coordinates.length < 2) return null;
+    return { type: "LineString", coordinates };
+  }
+
   function fitMapToRoute(map: mapGl.MapLibreMap, route: JeepneyRoute) {
     if (route.stops.length === 0) return;
     let minLng = Infinity;
@@ -220,6 +280,54 @@
         pitch: 30,
       },
     );
+  }
+
+  function getEventMapLocations(event: EventData) {
+    return event.locations.filter(
+      (location) =>
+        location.resolvedLon !== null && location.resolvedLat !== null,
+    );
+  }
+
+  function focusMapOnEvent(map: mapGl.MapLibreMap, event: EventData) {
+    const points: [number, number][] = [];
+    for (const location of getEventMapLocations(event)) {
+      points.push([
+        location.resolvedLon as number,
+        location.resolvedLat as number,
+      ]);
+    }
+    for (const route of event.routes) {
+      for (const stop of route.stops) {
+        if (stop.resolvedLon !== null && stop.resolvedLat !== null) {
+          points.push([stop.resolvedLon, stop.resolvedLat]);
+        }
+      }
+    }
+    if (points.length === 0) return false;
+
+    if (points.length === 1) {
+      map.flyTo({
+        center: points[0],
+        zoom: 17,
+        pitch: 50,
+        padding: calculatePadding(md.current),
+        duration: 1200,
+      });
+      return true;
+    }
+
+    const bounds = new mapGl.LngLatBounds();
+    for (const point of points) {
+      bounds.extend(point);
+    }
+    map.fitBounds(bounds, {
+      padding: { top: 80, bottom: 80, left: 80, right: 80 },
+      duration: 1000,
+      pitch: 30,
+      maxZoom: 17,
+    });
+    return true;
   }
 
   function ensureTerrainRendering(map: mapGl.MapLibreMap) {
@@ -362,6 +470,26 @@
             pitch: 60,
             padding: calculatePadding(md.current),
             duration: 1500,
+          });
+          map.once("moveend", startRotation);
+        }
+      } else if (category === "event") {
+        if (!loaded) return;
+        const currentEvent = events.find((event) => event.title === value);
+        const location = currentEvent
+          ? getEventPrimaryLocation(currentEvent)
+          : null;
+        if (
+          location &&
+          location.resolvedLon !== null &&
+          location.resolvedLat !== null
+        ) {
+          map.flyTo({
+            center: [location.resolvedLon, location.resolvedLat],
+            zoom: 17,
+            pitch: 50,
+            padding: calculatePadding(md.current),
+            duration: 1200,
           });
           map.once("moveend", startRotation);
         }
@@ -1009,6 +1137,49 @@
   });
 
   $effect(() => {
+    const map = mapStore.mapInstance;
+    const selectedEvent =
+      loaded && queryStore.category === "event" && queryStore.type === "result"
+        ? (events.find((event) => event.title === queryStore.inputValue) ??
+          null)
+        : null;
+    if (!map) return;
+
+    const route = selectedEvent?.routes[0] ?? null;
+    if (!route) {
+      clearEventRouteLayers(map);
+      return;
+    }
+
+    const geometry = buildEventRouteGeometry(route);
+    if (!geometry) {
+      clearEventRouteLayers(map);
+      return;
+    }
+
+    const draw = () => {
+      ensureEventRouteLayers(map);
+      const source = map.getSource(EVENT_ROUTE_SOURCE_ID) as
+        | mapGl.GeoJSONSource
+        | undefined;
+      const featureCollection: FeatureCollection<LineString> = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry,
+            properties: { eventId: selectedEvent?.id },
+          },
+        ],
+      };
+      source?.setData(featureCollection);
+    };
+
+    if (map.isStyleLoaded()) draw();
+    else map.once("load", draw);
+  });
+
+  $effect(() => {
     const category = queryStore.category;
     const type = queryStore.type;
     const value = queryStore.inputValue;
@@ -1077,9 +1248,31 @@
           });
           if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
+      } else if (category === "event") {
+        if (!loaded) return;
+        const currentEvent = events.find((event) => event.title === value);
+        if (currentEvent && focusMapOnEvent(map, currentEvent)) {
+          if (!isTerrainEnabled) map.once("moveend", startRotation);
+        }
       }
     });
   });
+
+  function getEventPrimaryLocation(event: EventData) {
+    return (
+      event.locations.find(
+        (location) =>
+          location.isPrimary &&
+          location.resolvedLon !== null &&
+          location.resolvedLat !== null,
+      ) ??
+      event.locations.find(
+        (location) =>
+          location.resolvedLon !== null && location.resolvedLat !== null,
+      ) ??
+      null
+    );
+  }
 
   function handleMarkerClick(buildingName: string) {
     if (isMapEditEnabled() && selectedEditKey !== null) return;
@@ -1103,6 +1296,16 @@
     queryStore.inputValue = dormName;
   }
 
+  function handleEventMarkerClick(eventTitle: string) {
+    if (eventTitle === queryStore.inputValue) return;
+    queryStore.updateQuery({
+      category: "event",
+      type: "result",
+      value: eventTitle,
+    });
+    queryStore.inputValue = eventTitle;
+  }
+
   let activeBuildingName = $derived.by(() => {
     if (!queryStore.category || queryStore.type !== "result") return null;
     switch (queryStore.category) {
@@ -1122,11 +1325,51 @@
     }
   });
 
+  let linkedEventBuildingIds = $derived.by(() => {
+    if (!loaded) return new Set<number>();
+    return new Set(
+      events
+        .filter((event) => event.status === "active")
+        .flatMap((event) => event.locations)
+        .filter(
+          (location) =>
+            location.anchorType === "building" && location.buildingId !== null,
+        )
+        .map((location) => location.buildingId as number),
+    );
+  });
+
   let activeDormName = $derived.by(() => {
     if (queryStore.category === "dorm" && queryStore.type === "result") {
       return queryStore.inputValue;
     }
     return null;
+  });
+
+  let linkedEventDormIds = $derived.by(() => {
+    if (!loaded) return new Set<number>();
+    return new Set(
+      events
+        .filter((event) => event.status === "active")
+        .flatMap((event) => event.locations)
+        .filter(
+          (location) =>
+            location.anchorType === "dorm" && location.dormId !== null,
+        )
+        .map((location) => location.dormId as number),
+    );
+  });
+
+  let selectedEventRouteStops = $derived.by(() => {
+    if (!loaded || queryStore.category !== "event") return [];
+    const selectedEvent = events.find(
+      (event) => event.title === queryStore.inputValue,
+    );
+    return (
+      selectedEvent?.routes[0]?.stops.filter(
+        (stop) => stop.resolvedLon !== null && stop.resolvedLat !== null,
+      ) ?? []
+    );
   });
 </script>
 
@@ -1192,6 +1435,43 @@
         <div class="user-location-pin"></div>
       </Marker>
     {/if}
+    {#if loaded}
+      {#each events.filter((event) => event.status === "active" || event.status === "upcoming") as event (`event:${event.id}`)}
+        {#each event.locations as location (`event-location:${location.id}`)}
+          {#if location.resolvedLat !== null && location.resolvedLon !== null}
+            <Marker lngLat={[location.resolvedLon, location.resolvedLat]}>
+              <button
+                type="button"
+                class="event-pin"
+                class:active={queryStore.category === "event" &&
+                  queryStore.inputValue === event.title}
+                class:upcoming={event.status === "upcoming"}
+                title={`${event.title}: ${location.resolvedLabel}`}
+                onclick={() => handleEventMarkerClick(event.title)}
+              >
+                <span class="event-dot"></span>
+                <span class="event-pin-label" transition:fade>
+                  {event.title}
+                  {#if event.status === "upcoming"}
+                    <span class="event-status">Upcoming</span>
+                  {/if}
+                </span>
+              </button>
+            </Marker>
+          {/if}
+        {/each}
+      {/each}
+      {#each selectedEventRouteStops as stop, i (`event-stop:${stop.id}`)}
+        <Marker lngLat={[Number(stop.resolvedLon), Number(stop.resolvedLat)]}>
+          <div class="event-route-stop-pin" title={stop.resolvedLabel}>
+            <span>{i + 1}</span>
+            <span class="event-route-stop-label" transition:fade>
+              {stop.resolvedLabel}
+            </span>
+          </div>
+        </Marker>
+      {/each}
+    {/if}
     {#each filteredBuildings as building (`building:${building.id}:${isMapEditEnabled()}`)}
       {#if building.lat && building.lon}
         {@const editKey = buildingEditKey(building.id)}
@@ -1216,6 +1496,7 @@
             class:active={activeBuildingName === building.buildingName}
             class:editable={isMapEditEnabled()}
             class:editing={selectedEditKey === editKey}
+            class:event-linked={linkedEventBuildingIds.has(building.id)}
             class:hovered={hoveredEditKey === editKey}
             class:saving={savingEditKey === editKey}
             class:saved={savedEditKey === editKey}
@@ -1286,6 +1567,7 @@
             class="dorm-pin"
             class:active={activeDormName === dorm.dormName}
             class:private={!dorm.isUpManaged}
+            class:event-linked={linkedEventDormIds.has(dorm.id)}
             class:editable={isMapEditEnabled()}
             class:editing={selectedEditKey === editKey}
             class:hovered={hoveredEditKey === editKey}
@@ -1515,6 +1797,114 @@
     }
   }
 
+  .event-pin {
+    all: unset;
+    position: relative;
+    z-index: 65;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.45rem;
+    border: 2px solid white;
+    border-radius: 999px;
+    background: #7b1113;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 3px 0.5rem rgba(0, 0, 0, 0.32);
+  }
+
+  .event-pin.upcoming {
+    background: #f8fafc;
+    color: #7b1113;
+    border-color: #d8b9ba;
+  }
+
+  .event-pin.active {
+    transform: scale(1.08);
+    outline: 0.16rem solid rgba(123, 17, 19, 0.28);
+    outline-offset: 0.12rem;
+  }
+
+  .event-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .event-pin:not(.upcoming) .event-dot {
+    background: white;
+  }
+
+  .event-pin-label {
+    position: absolute;
+    bottom: calc(100% + 0.45rem);
+    left: 50%;
+    translate: -50% 0;
+    width: max-content;
+    max-width: 14rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.5rem;
+    background: white;
+    color: #18181b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 2px 0.5rem rgba(0, 0, 0, 0.2);
+  }
+
+  .event-pin:hover .event-pin-label,
+  .event-pin.active .event-pin-label {
+    opacity: 1;
+  }
+
+  .event-status {
+    margin-left: 0.4rem;
+    color: #7b1113;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .event-route-stop-pin {
+    position: relative;
+    z-index: 64;
+    display: flex;
+    width: 1.35rem;
+    height: 1.35rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    border-radius: 50%;
+    background: #7b1113;
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 800;
+    box-shadow: 0 2px 0.5rem rgba(0, 0, 0, 0.32);
+  }
+
+  .event-route-stop-label {
+    position: absolute;
+    bottom: calc(100% + 0.35rem);
+    left: 50%;
+    translate: -50% 0;
+    width: max-content;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    background: white;
+    color: #18181b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 2px 0.5rem rgba(0, 0, 0, 0.2);
+  }
+
+  .event-route-stop-pin:hover .event-route-stop-label {
+    opacity: 1;
+  }
+
   .pin {
     line-height: 0;
     padding: 0.25rem;
@@ -1614,6 +2004,13 @@
   .dorm-pin.saved {
     outline: 0.16rem solid hsl(145, 63%, 42%);
     outline-offset: 0.15rem;
+  }
+
+  .pin.event-linked,
+  .dorm-pin.event-linked {
+    box-shadow:
+      0 0 0 0.22rem rgba(250, 204, 21, 0.8),
+      0 2px 0.25rem rgba(0, 0, 0, 0.3);
   }
 
   .pin.failed,
