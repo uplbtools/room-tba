@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { getStoredEventOccurrence, getStoredEventStatus } from "../event-time";
 import {
   buildingsTable,
@@ -111,33 +111,63 @@ async function hydrateEvents(
   now = new Date(),
 ): Promise<EventData[]> {
   if (events.length === 0) return [];
-  const eventIds = new Set(events.map((event) => event.id));
-  const [locations, routes, stops, buildings, dorms] = await Promise.all([
+  const eventIds = events.map((event) => event.id);
+  const [locations, routes] = await Promise.all([
     db
       .select()
       .from(eventLocationsTable)
+      .where(inArray(eventLocationsTable.eventId, eventIds))
       .orderBy(asc(eventLocationsTable.sortOrder)),
-    db.select().from(eventRoutesTable).orderBy(asc(eventRoutesTable.sortOrder)),
     db
       .select()
-      .from(eventRouteStopsTable)
-      .orderBy(asc(eventRouteStopsTable.sortOrder)),
-    db.select().from(buildingsTable),
-    db.select().from(dormsTable),
+      .from(eventRoutesTable)
+      .where(inArray(eventRoutesTable.eventId, eventIds))
+      .orderBy(asc(eventRoutesTable.sortOrder)),
+  ]);
+
+  const routeIds = routes.map((route) => route.id);
+  const stops =
+    routeIds.length === 0
+      ? []
+      : await db
+          .select()
+          .from(eventRouteStopsTable)
+          .where(inArray(eventRouteStopsTable.routeId, routeIds))
+          .orderBy(asc(eventRouteStopsTable.sortOrder));
+
+  const buildingIds = [
+    ...new Set(
+      locations
+        .map((location) => location.buildingId)
+        .filter((id): id is number => id !== null),
+    ),
+  ];
+  const dormIds = [
+    ...new Set(
+      locations
+        .map((location) => location.dormId)
+        .filter((id): id is number => id !== null),
+    ),
+  ];
+
+  const [buildings, dorms] = await Promise.all([
+    buildingIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select()
+          .from(buildingsTable)
+          .where(inArray(buildingsTable.id, buildingIds)),
+    dormIds.length === 0
+      ? Promise.resolve([])
+      : db.select().from(dormsTable).where(inArray(dormsTable.id, dormIds)),
   ]);
 
   const buildingMap = new Map(
     buildings.map((building) => [building.id, building]),
   );
   const dormMap = new Map(dorms.map((dorm) => [dorm.id, dorm]));
-  const locationsByEvent = groupBy(
-    locations.filter((location) => eventIds.has(location.eventId)),
-    (location) => location.eventId,
-  );
-  const routesByEvent = groupBy(
-    routes.filter((route) => eventIds.has(route.eventId)),
-    (route) => route.eventId,
-  );
+  const locationsByEvent = groupBy(locations, (location) => location.eventId);
+  const routesByEvent = groupBy(routes, (route) => route.eventId);
   const stopsByRoute = groupBy(stops, (stop) => stop.routeId);
 
   return events

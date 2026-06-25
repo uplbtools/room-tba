@@ -12,6 +12,13 @@
   import { syncToastStore } from "../../lib/store.svelte";
   import { fly } from "svelte/transition";
 
+  type Props = {
+    /** When true, toast flows in the map-controls stack instead of fixed. */
+    stacked?: boolean;
+  };
+
+  let { stacked = false }: Props = $props();
+
   let manualClosed = $state<boolean>(false);
   let reloading = $state<boolean>(false);
 
@@ -76,6 +83,7 @@
 {#if syncToastStore.needRefresh}
   <div
     class="sync-toast sync-toast--update"
+    class:sync-toast--stacked={stacked}
     role="status"
     aria-live="polite"
     transition:fly={{ duration: 175, y: 20 }}
@@ -108,6 +116,7 @@
   {#if (syncToastStore.recentlySynced === null || syncToastStore.recentlySynced) && !manualClosed && !syncToastStore.needRefresh}
     <div
       class="sync-toast"
+      class:sync-toast--stacked={stacked}
       class:sync-toast--success={syncToastStore.allSynced}
       role="status"
       aria-live="polite"
@@ -274,6 +283,17 @@
       rotate: 1 1 1 360deg;
     }
   }
+  div.sync-toast--stacked {
+    position: relative;
+    left: unset;
+    right: unset;
+    bottom: unset;
+    top: unset;
+    translate: unset;
+    width: min(360px, calc(100vw - 1rem));
+    z-index: unset;
+  }
+
   @media (width >= 48rem) {
     div.sync-toast {
       /* Keep the sync status out of the top-right map orientation stack. */

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MapLibre, Marker } from "svelte-maplibre";
-  import { getAppData } from "../../lib/context";
+  import { getAppActions, getAppData } from "../../lib/context";
   import {
     queryStore,
     locationStore,
@@ -66,6 +66,7 @@
     type VersionedMapMove,
   } from "../../lib/map-move-history";
   const data = getAppData();
+  const appActions = getAppActions();
   const { buildings, dorms, events, loaded } = $derived(data());
   const filteredBuildings = $derived.by(() => {
     if (!loaded) return [];
@@ -323,6 +324,22 @@
     return { type: "LineString", coordinates };
   }
 
+  function buildSelectedEventRouteFeatures(
+    event: EventData,
+  ): FeatureCollection<LineString>["features"] {
+    return event.routes.flatMap((route) => {
+      const geometry = buildEventRouteGeometry(route);
+      if (!geometry) return [];
+      return [
+        {
+          type: "Feature" as const,
+          geometry,
+          properties: { eventId: event.id, routeId: route.id },
+        },
+      ];
+    });
+  }
+
   function fitMapToRoute(map: mapGl.MapLibreMap, route: JeepneyRoute) {
     if (route.stops.length === 0) return;
     let minLng = Infinity;
@@ -444,7 +461,7 @@
         throw new Error(data.error ?? `Create failed (${res.status})`);
       }
 
-      events.unshift(data.event);
+      appActions.replaceEvent(data.event);
       queryStore.updateQuery({
         category: "event",
         type: "result",
@@ -877,8 +894,7 @@
   }
 
   function setLocalEvent(updated: EventData) {
-    const index = events.findIndex((event) => event.id === updated.id);
-    if (index !== -1) events[index] = updated;
+    appActions.replaceEvent(updated);
 
     const key = eventLocationEditKey(updated.id);
     const editable = getEditableEventLocation(updated);
@@ -1516,14 +1532,10 @@
         : null;
     if (!map) return;
 
-    const route = selectedEvent?.routes[0] ?? null;
-    if (!route) {
-      clearEventRouteLayers(map);
-      return;
-    }
-
-    const geometry = buildEventRouteGeometry(route);
-    if (!geometry) {
+    const routeFeatures = selectedEvent
+      ? buildSelectedEventRouteFeatures(selectedEvent)
+      : [];
+    if (routeFeatures.length === 0) {
       clearEventRouteLayers(map);
       return;
     }
@@ -1535,13 +1547,7 @@
         | undefined;
       const featureCollection: FeatureCollection<LineString> = {
         type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            geometry,
-            properties: { eventId: selectedEvent?.id },
-          },
-        ],
+        features: routeFeatures,
       };
       source?.setData(featureCollection);
     };
@@ -1750,9 +1756,15 @@
     if (
       !isMapEditEnabled() ||
       queryStore.category !== "event" ||
-      queryStore.type !== "result" ||
-      queryStore.inputValue !== event.title
+      queryStore.type !== "result"
     ) {
+      return false;
+    }
+
+    const slug = queryStore.selectedEventSlug;
+    if (slug) {
+      if (slug !== event.slug) return false;
+    } else if (queryStore.inputValue !== event.title) {
       return false;
     }
 
@@ -1780,7 +1792,13 @@
     >();
 
     for (const event of events) {
-      if (event.status !== "active" && event.status !== "upcoming") continue;
+      if (
+        event.status !== "active" &&
+        event.status !== "upcoming" &&
+        event.status !== "past"
+      ) {
+        continue;
+      }
       for (const location of event.locations) {
         if (isSelectedEditableEventLocation(event, location)) continue;
         const key = getEventLocationKey(location);
@@ -1927,10 +1945,11 @@
   let selectedEventRouteStops = $derived.by(() => {
     if (!loaded || queryStore.category !== "event") return [];
     const selectedEvent = findSelectedEvent(events);
-    return (
-      selectedEvent?.routes[0]?.stops.filter(
+    if (!selectedEvent) return [];
+    return selectedEvent.routes.flatMap((route) =>
+      route.stops.filter(
         (stop) => stop.resolvedLon !== null && stop.resolvedLat !== null,
-      ) ?? []
+      ),
     );
   });
 </script>
@@ -2551,28 +2570,6 @@
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 70;
-  }
-  .user-location-pin::after {
-    content: "";
-    position: absolute;
-    top: -5px;
-    left: -5px;
-    right: -5px;
-    bottom: -5px;
-    border-radius: 50%;
-    border: 2px solid #4285f4;
-    animation: pulsate 2s ease-out infinite;
-    opacity: 0;
-  }
-  @keyframes pulsate {
-    0% {
-      transform: scale(0.5);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1.5);
-      opacity: 0;
-    }
   }
 
   .event-marker-anchor {
