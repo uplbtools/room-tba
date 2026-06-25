@@ -37,9 +37,19 @@ jobs:
 
       - name: Read release version
         id: pkg
-        run: echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          if git diff --quiet HEAD -- package.json CHANGELOG.md; then
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "No version bump — skipping sync PR."
+          else
+            version=$(node -p "require('./package.json').version")
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "version=${version}" >> "$GITHUB_OUTPUT"
+            echo "Release ${version} — opening sync PR."
+          fi
 
       - name: Open version sync PR
+        if: steps.pkg.outputs.published == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(release): ${{ steps.pkg.outputs.version }} [skip ci]"
