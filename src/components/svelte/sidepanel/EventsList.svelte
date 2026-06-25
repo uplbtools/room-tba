@@ -444,8 +444,8 @@
   }
 
   .events-list-card-image {
-    object-fit: cover;
-    object-position: top center;
+    object-fit: contain;
+    background: hsl(0, 0%, 96%);
   }
 
   .events-list-card-icon {

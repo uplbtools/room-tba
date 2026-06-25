@@ -65,7 +65,6 @@
     endsAt: "",
     sourceUrl: "",
     recurrence: "none" as EventData["recurrence"],
-    includeInSeo: true,
   });
   let locationForm = $state({
     anchorType: "custom" as EventData["locations"][number]["anchorType"],
@@ -108,7 +107,6 @@
       endsAt: instantToCampusInput(event.endsAt),
       sourceUrl: event.sourceUrl ?? "",
       recurrence: event.recurrence,
-      includeInSeo: event.includeInSeo,
     };
   }
 
@@ -132,6 +130,63 @@
       dormId: primary.dormId ?? "",
       label: primary.label,
     };
+  }
+
+  function flyMapToAnchorPreview(coords: { lat: number; lon: number }) {
+    mapStore.mapInstance?.flyTo({
+      center: [coords.lon, coords.lat],
+      zoom: Math.max(mapStore.mapInstance.getZoom(), 17),
+      duration: 700,
+    });
+  }
+
+  function handleAnchorTypeChange() {
+    locationForm.buildingId = "";
+    locationForm.dormId = "";
+  }
+
+  function handleBuildingAnchorChange() {
+    if (locationForm.buildingId === "") return;
+    const building = buildings.find(
+      (item) => item.id === Number(locationForm.buildingId),
+    );
+    if (!building) return;
+    if (!locationForm.label.trim() || locationForm.label === "Event marker") {
+      locationForm.label = building.buildingName;
+    }
+    if (building.lat != null && building.lon != null) {
+      flyMapToAnchorPreview({ lat: building.lat, lon: building.lon });
+    }
+  }
+
+  function handleDormAnchorChange() {
+    if (locationForm.dormId === "") return;
+    const dorm = dorms.find((item) => item.id === Number(locationForm.dormId));
+    if (!dorm) return;
+    if (!locationForm.label.trim() || locationForm.label === "Event marker") {
+      locationForm.label = dorm.dormName;
+    }
+    if (dorm.lat != null && dorm.lon != null) {
+      flyMapToAnchorPreview({ lat: dorm.lat, lon: dorm.lon });
+    }
+  }
+
+  function focusMapOnSavedEvent(event: EventData) {
+    const primary =
+      event.locations.find((location) => location.isPrimary) ??
+      event.locations[0] ??
+      null;
+    if (
+      !primary ||
+      primary.resolvedLat === null ||
+      primary.resolvedLon === null
+    ) {
+      return;
+    }
+    flyMapToAnchorPreview({
+      lat: primary.resolvedLat,
+      lon: primary.resolvedLon,
+    });
   }
 
   function applyConflictLatest(data: { latest?: EventData | null }) {
@@ -216,7 +271,6 @@
           endsAt: campusInputToWallString(form.endsAt),
           sourceUrl: form.sourceUrl || null,
           recurrence: form.recurrence,
-          includeInSeo: form.includeInSeo,
           routes: serializeRoutesForSave(event),
         }),
       });
@@ -280,6 +334,7 @@
 
       appActions.replaceEvent(data.event);
       syncLocationForm(data.event);
+      focusMapOnSavedEvent(data.event);
       toastStore.show(`${data.event.title} location updated.`, "success");
     } catch (error) {
       toastStore.show(
@@ -630,10 +685,6 @@
                 <option value="every_2nd_sem">Every 2nd semester</option>
               </select>
             </label>
-            <label class="checkbox-row">
-              <input type="checkbox" bind:checked={form.includeInSeo} />
-              Include in SEO pages
-            </label>
             {#if routeForms.length > 0}
               <div class="route-editor-card">
                 <strong>Routes</strong>
@@ -660,7 +711,10 @@
               </div>
               <label>
                 Anchor type
-                <select bind:value={locationForm.anchorType}>
+                <select
+                  bind:value={locationForm.anchorType}
+                  onchange={handleAnchorTypeChange}
+                >
                   <option value="custom">Custom map point</option>
                   <option value="building">Building</option>
                   <option value="dorm">Dorm</option>
@@ -669,7 +723,11 @@
               {#if locationForm.anchorType === "building"}
                 <label>
                   Building
-                  <select bind:value={locationForm.buildingId} required>
+                  <select
+                    bind:value={locationForm.buildingId}
+                    required
+                    onchange={handleBuildingAnchorChange}
+                  >
                     <option value="">Select a building</option>
                     {#each buildings as building (building.id)}
                       <option value={building.id}
@@ -681,7 +739,11 @@
               {:else if locationForm.anchorType === "dorm"}
                 <label>
                   Dorm
-                  <select bind:value={locationForm.dormId} required>
+                  <select
+                    bind:value={locationForm.dormId}
+                    required
+                    onchange={handleDormAnchorChange}
+                  >
                     <option value="">Select a dorm</option>
                     {#each dorms as dorm (dorm.id)}
                       <option value={dorm.id}>{dorm.dormName}</option>
@@ -846,10 +908,8 @@
   .event-image {
     display: block;
     width: 100%;
-    max-height: 24rem;
+    height: auto;
     border-radius: 0.75rem;
-    object-fit: cover;
-    object-position: top center;
     box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
   }
 
@@ -929,12 +989,6 @@
     border: 1px solid #fecaca;
     background: #fef2f2;
     color: #991b1b;
-  }
-
-  .checkbox-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
   }
 
   .route-editor-card {

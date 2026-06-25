@@ -455,8 +455,8 @@
     border-radius: 0.75rem;
   }
   .event-card-image {
-    object-fit: cover;
-    object-position: top center;
+    object-fit: contain;
+    background: hsl(0, 0%, 96%);
   }
   .event-card-icon {
     display: inline-flex;
