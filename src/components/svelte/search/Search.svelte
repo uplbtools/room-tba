@@ -143,6 +143,58 @@
       {/if}
       <ChevronDown size={18} aria-hidden="true" />
     </button>
+
+    {#if showIdleEventsChrome}
+      {#if !eventsCollapsed}
+        <div class="search-input-stack events-only-stack">
+          <section
+            id="persistent-campus-events"
+            class="events-shelf-panel events-shelf-panel-standalone"
+            aria-labelledby="persistent-campus-events-heading"
+          >
+            <EventCards
+              headingId="persistent-campus-events-heading"
+              showHeading={true}
+              showRetract={true}
+              oncollapse={toggleEventsShelf}
+            />
+          </section>
+        </div>
+      {:else}
+        <button
+          class="events-shelf-tab"
+          type="button"
+          aria-expanded="false"
+          aria-controls="persistent-campus-events"
+          aria-label="Expand campus events"
+          onclick={toggleEventsShelf}
+          disabled={!loaded}
+        >
+          <span class="events-shelf-tab-label">Campus events</span>
+          <ChevronDown size={18} aria-hidden="true" />
+        </button>
+      {/if}
+    {/if}
+
+    {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed}
+      <div class="event-banner-stack" role="status" aria-live="polite">
+        {#each activeEvents as activeEvent (activeEvent.slug)}
+          <button
+            class="event-banner"
+            type="button"
+            aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
+            onclick={() => openActiveEvent(activeEvent)}
+          >
+            <span class="event-banner-badge" aria-hidden="true">Live</span>
+            <span class="event-banner-copy">
+              <span class="event-banner-title">{activeEvent.title}</span>
+              <span class="event-banner-meta">Happening now</span>
+            </span>
+            <span class="event-banner-cta" aria-hidden="true">Open on map</span>
+          </button>
+        {/each}
+      </div>
+    {/if}
   {:else}
     <div id="search-chrome" class="search-chrome">
       <div class="search-input-stack">
@@ -447,6 +499,15 @@
     max-height: min(40vh, 22rem);
     overflow-y: auto;
     overscroll-behavior: contain;
+  }
+
+  .events-only-stack {
+    z-index: 2;
+  }
+
+  .events-shelf-panel-standalone {
+    border-top: none;
+    max-height: min(40vh, 22rem);
   }
 
   .event-banner-stack {
