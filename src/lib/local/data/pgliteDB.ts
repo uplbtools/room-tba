@@ -200,6 +200,9 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE divisions
     ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE divisions
+    ADD COLUMN IF NOT EXISTS "college_id" integer;
     `);
   } catch (e) {
     console.error("An error occurred", e);

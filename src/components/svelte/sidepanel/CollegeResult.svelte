@@ -24,13 +24,21 @@
 
   const appData = getAppData();
   const appActions = getAppActions();
-  const { colleges, loaded } = $derived(appData());
+  const { divisions, colleges, loaded } = $derived(appData());
 
   const college = $derived(
     loaded
       ? colleges.find((c) => c.collegeName === queryStore.queryValue)
       : null,
   );
+
+  const collegeDivisions = $derived.by(() => {
+    const current = college;
+    if (!current || !loaded) return [];
+    return divisions
+      .filter((item) => item.collegeId === current.id)
+      .sort((a, b) => a.divisionName.localeCompare(b.divisionName));
+  });
 
   let collegeRooms = $state<RoomData[] | null>(null);
   let editing = $state(false);
@@ -127,6 +135,14 @@
       saving = false;
     }
   }
+
+  function openDivision(divisionName: string) {
+    queryStore.updateQuery({
+      type: "result",
+      category: "division",
+      value: divisionName,
+    });
+  }
 </script>
 
 <div class="college-query-wrapper">
@@ -189,6 +205,30 @@
         {#if fieldError}
           <p class="editor-message error">{fieldError}</p>
         {/if}
+      {/if}
+    </section>
+
+    <section class="taxonomy-section" aria-label="College divisions">
+      <h3 class="taxonomy-heading">Divisions in this college</h3>
+      {#if collegeDivisions.length > 0}
+        <ul class="taxonomy-list">
+          {#each collegeDivisions as item (item.id)}
+            <li>
+              <button
+                type="button"
+                class="taxonomy-link"
+                onclick={() => openDivision(item.divisionName)}
+              >
+                {item.divisionName}
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="taxonomy-empty">
+          No divisions assigned yet. Open a division and set its parent college
+          in the editor.
+        </p>
       {/if}
     </section>
   {/if}
@@ -329,5 +369,56 @@
 
   .editor-message.error {
     color: hsl(0, 70%, 38%);
+  }
+
+  .taxonomy-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .taxonomy-heading {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: black;
+  }
+
+  .taxonomy-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .taxonomy-link {
+    all: unset;
+    display: block;
+    max-width: 100%;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid hsl(5, 53%, 88%);
+    border-radius: 0.5rem;
+    background: white;
+    color: hsl(5, 53%, 32%);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .taxonomy-link:hover,
+  .taxonomy-link:focus-visible {
+    background: hsl(5, 53%, 98%);
+  }
+
+  .taxonomy-empty {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: hsl(0, 0%, 40%);
   }
 </style>

@@ -206,11 +206,12 @@ export async function syncDivisions(
     try {
       await localDB.query(
         `
-        INSERT INTO divisions (id, division_name, rooms_fetched, version, updated_at)
-        VALUES ($1, $2, false, $3, $4)
+        INSERT INTO divisions (id, division_name, college_id, rooms_fetched, version, updated_at)
+        VALUES ($1, $2, $3, false, $4, $5)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         division_name = EXCLUDED.division_name,
+        college_id = EXCLUDED.college_id,
         rooms_fetched = EXCLUDED.rooms_fetched,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
@@ -218,6 +219,7 @@ export async function syncDivisions(
         [
           division.id,
           division.divisionName,
+          division.collegeId,
           division.version,
           division.updatedAt,
         ],

@@ -55,6 +55,7 @@ const FIELD_LABELS: Record<string, string> = {
   capacity: "Capacity",
   roomCode: "Room code",
   collegeName: "College name",
+  collegeId: "Parent college",
   divisionName: "Division name",
   description: "Description",
   managingOffice: "Managing office",

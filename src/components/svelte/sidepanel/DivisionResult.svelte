@@ -24,7 +24,7 @@
 
   const appData = getAppData();
   const appActions = getAppActions();
-  const { divisions, loaded } = $derived(appData());
+  const { divisions, colleges, loaded } = $derived(appData());
 
   const division = $derived(
     loaded
@@ -32,13 +32,20 @@
       : null,
   );
 
+  const parentCollege = $derived.by(() => {
+    const current = division;
+    if (!current?.collegeId) return null;
+    return colleges.find((college) => college.id === current.collegeId) ?? null;
+  });
+
   let divisionRooms = $state<RoomData[] | null>(null);
   let editing = $state(false);
   let draftDivisionId = $state<number | null>(null);
   let draftVersion = $state<number | null>(null);
   let nameDraft = $state("");
-  let saving = $state(false);
-  let saved = $state(false);
+  let collegeDraft = $state("");
+  let savingField = $state<"divisionName" | "collegeId" | null>(null);
+  let savedField = $state<"divisionName" | "collegeId" | null>(null);
   let fieldError = $state<string | null>(null);
   let submitterNameDraft = $state("");
   const canPublish = $derived(adminAuthStore.canPublish);
@@ -60,7 +67,8 @@
     draftDivisionId = current.id;
     draftVersion = current.version;
     nameDraft = current.divisionName;
-    saved = false;
+    collegeDraft = current.collegeId === null ? "" : String(current.collegeId);
+    savedField = null;
     fieldError = null;
   });
 
@@ -73,26 +81,38 @@
     });
   }
 
-  async function saveName() {
+  async function saveField(field: "divisionName" | "collegeId") {
     const current = division;
     if (!current) return;
 
-    const trimmedName = nameDraft.trim();
-    if (trimmedName.length === 0) {
-      fieldError = `${current.divisionName} name cannot be empty.`;
-      return;
+    const patch: {
+      version: number;
+      divisionName?: string;
+      collegeId?: number | null;
+    } = { version: current.version };
+
+    if (field === "divisionName") {
+      const trimmedName = nameDraft.trim();
+      if (trimmedName.length === 0) {
+        fieldError = `${current.divisionName} name cannot be empty.`;
+        return;
+      }
+      patch.divisionName = trimmedName;
+    } else {
+      patch.collegeId = collegeDraft === "" ? null : Number(collegeDraft);
     }
 
-    saving = true;
-    saved = false;
+    savingField = field;
+    savedField = null;
     fieldError = null;
 
     try {
+      const { version, ...bodyPatch } = patch;
       const result = await persistEntityChange({
         entityType: "division",
         entityId: current.id,
         baseVersion: current.version,
-        patch: { divisionName: trimmedName },
+        patch: bodyPatch,
         entityLabel: current.divisionName,
         canPublish,
         submitterName:
@@ -113,20 +133,34 @@
         syncDivisionFromServer(result.published as DivisionData);
       } else {
         toastStore.show(
-          "Division name suggestion submitted for review.",
+          "Division change suggestion submitted for review.",
           "success",
         );
       }
-      saved = true;
+      savedField = field;
       setTimeout(() => {
-        saved = false;
+        if (savedField === field) savedField = null;
       }, 1800);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
       fieldError = `${current.divisionName} failed to save: ${reason}`;
     } finally {
-      saving = false;
+      savingField = null;
     }
+  }
+
+  function openCollege(collegeName: string) {
+    queryStore.updateQuery({
+      type: "result",
+      category: "college",
+      value: collegeName,
+    });
+  }
+
+  function fieldActionLabel(field: "divisionName" | "collegeId") {
+    if (savingField === field)
+      return canPublish ? "Saving..." : "Submitting...";
+    return canPublish ? "Save" : "Submit";
   }
 </script>
 
@@ -134,6 +168,20 @@
   {#if division}
     <div class="division-header">
       <h2 class="division-title">{division.divisionName}</h2>
+      {#if parentCollege}
+        <p class="division-subtitle">
+          Part of
+          <button
+            type="button"
+            class="college-link"
+            onclick={() => openCollege(parentCollege.collegeName)}
+          >
+            {parentCollege.collegeName}
+          </button>
+        </p>
+      {:else}
+        <p class="division-subtitle unassigned">No parent college assigned</p>
+      {/if}
     </div>
 
     <section class="entity-editor" aria-label="Edit division details">
@@ -166,26 +214,49 @@
             <input
               id="division-name-editor"
               bind:value={nameDraft}
-              disabled={saving}
+              disabled={savingField !== null}
               autocomplete="off"
             />
             <button
               class="field-save-btn"
-              disabled={saving || nameDraft.trim() === division.divisionName}
-              onclick={saveName}
+              disabled={savingField !== null ||
+                nameDraft.trim() === division.divisionName}
+              onclick={() => saveField("divisionName")}
             >
-              {saving
-                ? canPublish
-                  ? "Saving..."
-                  : "Submitting..."
-                : canPublish
-                  ? "Save"
-                  : "Submit"}
+              {fieldActionLabel("divisionName")}
             </button>
           </div>
         </div>
-        {#if saved}
-          <p class="editor-message success">Division name saved.</p>
+        <div class="editor-field">
+          <label for="division-college-editor">Parent college</label>
+          <div class="editor-control-row">
+            <select
+              id="division-college-editor"
+              bind:value={collegeDraft}
+              disabled={savingField !== null}
+            >
+              <option value="">No college</option>
+              {#each colleges as college (college.id)}
+                <option value={String(college.id)}>{college.collegeName}</option
+                >
+              {/each}
+            </select>
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                collegeDraft === String(division.collegeId ?? "")}
+              onclick={() => saveField("collegeId")}
+            >
+              {fieldActionLabel("collegeId")}
+            </button>
+          </div>
+        </div>
+        {#if savedField}
+          <p class="editor-message success">
+            {savedField === "collegeId"
+              ? "Parent college saved."
+              : "Division name saved."}
+          </p>
         {/if}
         {#if fieldError}
           <p class="editor-message error">{fieldError}</p>
@@ -224,6 +295,30 @@
     color: black;
     margin: 0;
     line-height: 1.25rem;
+  }
+
+  .division-subtitle {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 40%);
+  }
+
+  .division-subtitle.unassigned {
+    color: hsl(0, 0%, 55%);
+  }
+
+  .college-link {
+    all: unset;
+    cursor: pointer;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .college-link:hover,
+  .college-link:focus-visible {
+    color: hsl(5, 53%, 22%);
   }
 
   .entity-editor {
@@ -290,7 +385,8 @@
     align-items: stretch;
   }
 
-  .editor-control-row input {
+  .editor-control-row input,
+  .editor-control-row select {
     min-width: 0;
     flex: 1;
     border: 1px solid #d8d8d8;

@@ -30,6 +30,7 @@ import {
   type BuildingUpdateInput,
   type DormCreateInput,
   type DormUpdateInput,
+  type DivisionUpdateInput,
   type EventLocationWriteInput,
   type EventWriteInput,
   type RoomCreateInput,
@@ -567,7 +568,17 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
       case "create_division": {
         const divisionName =
           typeof patch.divisionName === "string" ? patch.divisionName : "";
-        return createDivision(divisionName, editedBy);
+        const collegeId =
+          patch.collegeId === null || patch.collegeId === undefined
+            ? null
+            : Number(patch.collegeId);
+        return createDivision(
+          {
+            divisionName,
+            collegeId: Number.isInteger(collegeId) ? collegeId : null,
+          },
+          editedBy,
+        );
       }
       case "create_dorm":
         return createDorm(patch as DormCreateInput, editedBy);
@@ -608,9 +619,15 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
       return updateCollege(proposal.entityId, name, version, editedBy);
     }
     case "division": {
-      const name =
-        typeof patch.divisionName === "string" ? patch.divisionName : "";
-      return updateDivision(proposal.entityId, name, version, editedBy);
+      const updates: DivisionUpdateInput = {};
+      if (typeof patch.divisionName === "string") {
+        updates.divisionName = patch.divisionName;
+      }
+      if (patch.collegeId !== undefined) {
+        updates.collegeId =
+          patch.collegeId === null ? null : Number(patch.collegeId);
+      }
+      return updateDivision(proposal.entityId, updates, version, editedBy);
     }
     case "event":
       return updateEvent(
