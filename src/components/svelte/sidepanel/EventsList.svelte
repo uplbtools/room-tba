@@ -209,7 +209,7 @@
                 successMessage={`Copied link for ${event.title}.`}
                 errorMessage={`Could not copy link for ${event.title}.`}
                 feedback="none"
-                variant="index"
+                variant="chip"
                 onsuccess={() =>
                   toastStore.show(`Copied link for ${event.title}.`, "success")}
                 onerror={() =>
@@ -401,7 +401,7 @@
   .events-list-card {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: start;
     gap: 0.5rem;
     padding: 0.55rem;
     border: 1px solid #eee1e1;
@@ -523,23 +523,8 @@
 
   .events-list-copy-link {
     display: inline-flex;
-    justify-self: end;
-  }
-
-  .events-list-copy-link :global(.copy-link-wrapper) {
-    flex-wrap: nowrap;
-    width: auto;
-  }
-
-  .events-list-copy-link :global(.copy-link-btn) {
-    width: auto;
-    min-height: 1.9rem;
-    padding: 0.32rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 1;
-    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 0.125rem;
   }
 
   .events-pagination {
@@ -599,13 +584,14 @@
   }
 
   @media (max-width: 425px) {
-    .events-list-card {
-      grid-template-columns: minmax(0, 1fr);
+    .events-list-card-main {
+      grid-template-columns: 3rem minmax(0, 1fr);
     }
 
-    .events-list-copy-link {
-      justify-self: start;
-      margin-left: 4.7rem;
+    .events-list-card-image,
+    .events-list-card-icon {
+      width: 3rem;
+      height: 3rem;
     }
   }
 </style>

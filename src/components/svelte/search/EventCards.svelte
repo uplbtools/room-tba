@@ -230,7 +230,7 @@
                 successMessage={`Copied link for ${event.title}.`}
                 errorMessage={`Could not copy link for ${event.title}.`}
                 feedback="none"
-                variant="index"
+                variant="chip"
                 onsuccess={() =>
                   toastStore.show(`Copied link for ${event.title}.`, "success")}
                 onerror={() =>
@@ -400,7 +400,7 @@
   .event-card {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: start;
     gap: 0.5rem;
     padding: 0.45rem;
     border: 1px solid #eee1e1;
@@ -432,21 +432,8 @@
   }
   .event-card-copy-link {
     display: inline-flex;
-    justify-self: end;
-  }
-  .event-card-copy-link :global(.copy-link-wrapper) {
-    flex-wrap: nowrap;
-    width: auto;
-  }
-  .event-card-copy-link :global(.copy-link-btn) {
-    width: auto;
-    min-height: 1.9rem;
-    padding: 0.32rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 1;
-    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 0.125rem;
   }
   .event-card-image,
   .event-card-icon {
