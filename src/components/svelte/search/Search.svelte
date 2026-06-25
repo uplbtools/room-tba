@@ -8,12 +8,14 @@
   import { queryStore } from "../../../lib/store.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
+  import { MediaQuery } from "svelte/reactivity";
 
   let searchElement = $state<HTMLInputElement | null>(null);
   let containerEl = $state<HTMLDivElement | null>(null);
   let typing = $state(false);
   let eventsCollapsed = $state(true);
   let searchCollapsed = $state(false);
+  const mobile = new MediaQuery("max-width:48rem");
 
   const appData = getAppData();
   const { events, loaded } = $derived(appData());
@@ -110,6 +112,18 @@
       queryStore.category === null &&
       queryStore.inputValue === "",
   );
+
+  $effect(() => {
+    if (
+      mobile.current &&
+      queryStore.category !== null &&
+      queryStore.type === "result"
+    ) {
+      searchCollapsed = true;
+      eventsCollapsed = true;
+      searchElement?.blur();
+    }
+  });
 </script>
 
 <div
