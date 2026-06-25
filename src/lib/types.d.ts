@@ -87,6 +87,7 @@ type CollegeData = {
 type DivisionData = {
   id: number;
   divisionName: string;
+  collegeId: number | null;
   version: number;
   updatedAt: string;
 };

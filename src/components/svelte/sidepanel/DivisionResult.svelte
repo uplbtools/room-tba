@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { adminAuthStore, queryStore } from "../../../lib/store.svelte";
+  import {
+    adminAuthStore,
+    queryStore,
+    toastStore,
+  } from "../../../lib/store.svelte";
+  import { persistEntityChange } from "../../../lib/proposals/client";
   import { getAppActions, getAppData } from "../../../lib/context";
   import type { DivisionData, RoomData } from "../../../lib/types";
   import { getDivisionRooms } from "../../../lib/local/data/utils";
@@ -19,7 +24,7 @@
 
   const appData = getAppData();
   const appActions = getAppActions();
-  const { divisions, loaded } = $derived(appData());
+  const { divisions, colleges, loaded } = $derived(appData());
 
   const division = $derived(
     loaded
@@ -27,14 +32,23 @@
       : null,
   );
 
+  const parentCollege = $derived.by(() => {
+    const current = division;
+    if (!current?.collegeId) return null;
+    return colleges.find((college) => college.id === current.collegeId) ?? null;
+  });
+
   let divisionRooms = $state<RoomData[] | null>(null);
   let editing = $state(false);
   let draftDivisionId = $state<number | null>(null);
   let draftVersion = $state<number | null>(null);
   let nameDraft = $state("");
-  let saving = $state(false);
-  let saved = $state(false);
+  let collegeDraft = $state("");
+  let savingField = $state<"divisionName" | "collegeId" | null>(null);
+  let savedField = $state<"divisionName" | "collegeId" | null>(null);
   let fieldError = $state<string | null>(null);
+  let submitterNameDraft = $state("");
+  const canPublish = $derived(adminAuthStore.canPublish);
 
   onMount(async () => {
     if (!division) return;
@@ -53,7 +67,8 @@
     draftDivisionId = current.id;
     draftVersion = current.version;
     nameDraft = current.divisionName;
-    saved = false;
+    collegeDraft = current.collegeId === null ? "" : String(current.collegeId);
+    savedField = null;
     fieldError = null;
   });
 
@@ -66,56 +81,86 @@
     });
   }
 
-  async function saveName() {
+  async function saveField(field: "divisionName" | "collegeId") {
     const current = division;
     if (!current) return;
 
-    const trimmedName = nameDraft.trim();
-    if (trimmedName.length === 0) {
-      fieldError = `${current.divisionName} name cannot be empty.`;
-      return;
+    const patch: {
+      version: number;
+      divisionName?: string;
+      collegeId?: number | null;
+    } = { version: current.version };
+
+    if (field === "divisionName") {
+      const trimmedName = nameDraft.trim();
+      if (trimmedName.length === 0) {
+        fieldError = `${current.divisionName} name cannot be empty.`;
+        return;
+      }
+      patch.divisionName = trimmedName;
+    } else {
+      patch.collegeId = collegeDraft === "" ? null : Number(collegeDraft);
     }
 
-    saving = true;
-    saved = false;
+    savingField = field;
+    savedField = null;
     fieldError = null;
 
     try {
-      const res = await fetch(`/api/admin/divisions/${current.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          divisionName: trimmedName,
-          version: current.version,
-        }),
+      const { version, ...bodyPatch } = patch;
+      const result = await persistEntityChange({
+        entityType: "division",
+        entityId: current.id,
+        baseVersion: current.version,
+        patch: bodyPatch,
+        entityLabel: current.divisionName,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
       });
-      const data = (await res
-        .json()
-        .catch(() => ({}))) as DivisionPatchResponse;
 
-      if (!res.ok) {
-        if (res.status === 409 && data.latest) {
-          syncDivisionFromServer(data.latest);
-          fieldError = `${current.divisionName} was not saved because the server has newer data. Showing the latest saved division.`;
-          return;
-        }
-
-        fieldError = `${current.divisionName} failed to save: ${data.error ?? `Save failed (${res.status})`}`;
+      if (!result.ok) {
+        if (result.latest)
+          syncDivisionFromServer(result.latest as DivisionData);
+        fieldError =
+          result.error ?? `${current.divisionName} could not be saved.`;
         return;
       }
 
-      if (data.division) syncDivisionFromServer(data.division);
-      saved = true;
+      if (result.published) {
+        syncDivisionFromServer(result.published as DivisionData);
+      } else {
+        toastStore.show(
+          "Division change suggestion submitted for review.",
+          "success",
+        );
+      }
+      savedField = field;
       setTimeout(() => {
-        saved = false;
+        if (savedField === field) savedField = null;
       }, 1800);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
       fieldError = `${current.divisionName} failed to save: ${reason}`;
     } finally {
-      saving = false;
+      savingField = null;
     }
+  }
+
+  function openCollege(collegeName: string) {
+    queryStore.updateQuery({
+      type: "result",
+      category: "college",
+      value: collegeName,
+    });
+  }
+
+  function fieldActionLabel(field: "divisionName" | "collegeId") {
+    if (savingField === field)
+      return canPublish ? "Saving..." : "Submitting...";
+    return canPublish ? "Save" : "Submit";
   }
 </script>
 
@@ -123,49 +168,101 @@
   {#if division}
     <div class="division-header">
       <h2 class="division-title">{division.divisionName}</h2>
+      {#if parentCollege}
+        <p class="division-subtitle">
+          Part of
+          <button
+            type="button"
+            class="college-link"
+            onclick={() => openCollege(parentCollege.collegeName)}
+          >
+            {parentCollege.collegeName}
+          </button>
+        </p>
+      {:else}
+        <p class="division-subtitle unassigned">No parent college assigned</p>
+      {/if}
     </div>
 
-    {#if adminAuthStore.isAdmin}
-      <section class="entity-editor" aria-label="Edit division details">
-        <button
-          type="button"
-          class="editor-toggle"
-          aria-expanded={editing}
-          onclick={() => (editing = !editing)}
-        >
-          {editing ? "Close editor" : "Edit division"}
-        </button>
-        {#if editing}
-          <div class="editor-heading">
-            <span>Editor</span>
-          </div>
+    <section class="entity-editor" aria-label="Edit division details">
+      <button
+        type="button"
+        class="editor-toggle"
+        aria-expanded={editing}
+        onclick={() => (editing = !editing)}
+      >
+        {editing ? "Close" : canPublish ? "Edit division" : "Suggest an edit"}
+      </button>
+      {#if editing}
+        <div class="editor-heading">
+          <span>{canPublish ? "Editor" : "Suggest a change"}</span>
+        </div>
+        {#if !canPublish && !adminAuthStore.isLoggedIn}
           <div class="editor-field">
-            <label for="division-name-editor">Division name</label>
-            <div class="editor-control-row">
-              <input
-                id="division-name-editor"
-                bind:value={nameDraft}
-                disabled={saving}
-                autocomplete="off"
-              />
-              <button
-                class="field-save-btn"
-                disabled={saving || nameDraft.trim() === division.divisionName}
-                onclick={saveName}
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
-            </div>
+            <label for="division-submitter-name">Your name</label>
+            <input
+              id="division-submitter-name"
+              bind:value={submitterNameDraft}
+              maxlength="100"
+              autocomplete="name"
+            />
           </div>
-          {#if saved}
-            <p class="editor-message success">Division name saved.</p>
-          {/if}
-          {#if fieldError}
-            <p class="editor-message error">{fieldError}</p>
-          {/if}
         {/if}
-      </section>
-    {/if}
+        <div class="editor-field">
+          <label for="division-name-editor">Division name</label>
+          <div class="editor-control-row">
+            <input
+              id="division-name-editor"
+              bind:value={nameDraft}
+              disabled={savingField !== null}
+              autocomplete="off"
+            />
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                nameDraft.trim() === division.divisionName}
+              onclick={() => saveField("divisionName")}
+            >
+              {fieldActionLabel("divisionName")}
+            </button>
+          </div>
+        </div>
+        <div class="editor-field">
+          <label for="division-college-editor">Parent college</label>
+          <div class="editor-control-row">
+            <select
+              id="division-college-editor"
+              bind:value={collegeDraft}
+              disabled={savingField !== null}
+            >
+              <option value="">No college</option>
+              {#each colleges as college (college.id)}
+                <option value={String(college.id)}>{college.collegeName}</option
+                >
+              {/each}
+            </select>
+            <button
+              class="field-save-btn"
+              disabled={savingField !== null ||
+                collegeDraft === String(division.collegeId ?? "")}
+              onclick={() => saveField("collegeId")}
+            >
+              {fieldActionLabel("collegeId")}
+            </button>
+          </div>
+        </div>
+        {#if savedField}
+          <p class="editor-message success">
+            {savedField === "collegeId"
+              ? "Parent college saved."
+              : "Division name saved."}
+          </p>
+        {/if}
+        {#if fieldError}
+          <p class="editor-message error">{fieldError}</p>
+        {/if}
+      {/if}
+    </section>
   {/if}
   {#if divisionRooms}
     <ResultDisplay filteredRooms={divisionRooms} />
@@ -198,6 +295,30 @@
     color: black;
     margin: 0;
     line-height: 1.25rem;
+  }
+
+  .division-subtitle {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 40%);
+  }
+
+  .division-subtitle.unassigned {
+    color: hsl(0, 0%, 55%);
+  }
+
+  .college-link {
+    all: unset;
+    cursor: pointer;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .college-link:hover,
+  .college-link:focus-visible {
+    color: hsl(5, 53%, 22%);
   }
 
   .entity-editor {
@@ -264,7 +385,8 @@
     align-items: stretch;
   }
 
-  .editor-control-row input {
+  .editor-control-row input,
+  .editor-control-row select {
     min-width: 0;
     flex: 1;
     border: 1px solid #d8d8d8;

@@ -7,7 +7,8 @@ import {
   roomPositionsTable,
   roomsTable,
 } from "../../../drizzle/schema";
-import { ADMIN_COOKIE_NAME, verifySessionToken } from "../../lib/admin/auth";
+import { canPublishDirectly } from "../../lib/admin/auth";
+import { getEditorSession } from "../../lib/admin/require-editor";
 import { refreshSyncKey } from "../../lib/services/admin-service";
 
 export const prerender = false;
@@ -33,8 +34,9 @@ function jsonOk<T>(data: T, status = 200): Response {
   });
 }
 
-function isAdmin(cookies: AstroCookies): boolean {
-  return verifySessionToken(cookies.get(ADMIN_COOKIE_NAME)?.value);
+function canPublish(cookies: AstroCookies): boolean {
+  const session = getEditorSession(cookies);
+  return session !== null && canPublishDirectly(session.role);
 }
 
 export const GET: APIRoute = async ({ url }) => {
@@ -82,7 +84,7 @@ export const PUT: APIRoute = async () => {
 };
 
 export const DELETE: APIRoute = async ({ cookies, url }) => {
-  if (!isAdmin(cookies)) return jsonError(401, "Not authorized");
+  if (!canPublish(cookies)) return jsonError(401, "Not authorized");
 
   const buildingName = url.searchParams.get("building");
   const roomCode = url.searchParams.get("room");
