@@ -1,15 +1,69 @@
 // src/lib/store.svelte.ts
 
-import type { modalOptions } from "../constants/modal-states";
+import { modalOptions } from "../constants/modal-states";
+import type { BuildingTypeFilter } from "../constants/building-types";
+import { DEFAULT_TERRAIN_EXAGGERATION } from "../constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
-import type { RecentSearch } from "./types";
+import { RoomData, type RecentSearch } from "./types";
+import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
 
 export type DormFilterType = "all" | "up" | "private";
+export type SyncInfo = {
+  synced: number;
+  total: number;
+};
+
 let _dormFilter = $state<DormFilterType>("all");
 export const dormFilter = {
-  get value() { return _dormFilter; },
-  set(v: DormFilterType) { _dormFilter = v; },
+  get value() {
+    return _dormFilter;
+  },
+  set(v: DormFilterType) {
+    _dormFilter = v;
+  },
+};
+
+let _buildingTypeFilter = $state<BuildingTypeFilter>("all");
+export const buildingTypeFilter = {
+  get value() {
+    return _buildingTypeFilter;
+  },
+  set(v: BuildingTypeFilter) {
+    _buildingTypeFilter = v;
+  },
+};
+
+let _currentRoom = $state<RoomData | null>(null);
+export const currentRoom = {
+  get value() {
+    return _currentRoom;
+  },
+  async getRoomByCode(code: string) {
+    _currentRoom = null;
+    try {
+      const localRoom = await getLocalRoomByCode(code);
+      if (localRoom === null) {
+        const codeParam = encodeURI(code.toUpperCase());
+        const remoteRoomReq = await getJSONFetch<{ data: RoomData }>(
+          `/api/rooms?code=${codeParam}`,
+        );
+        const remoteRoom = remoteRoomReq.data;
+        _currentRoom = remoteRoom;
+        return;
+      }
+      _currentRoom = localRoom;
+    } catch (e) {
+      console.error(e);
+      _currentRoom = null;
+    }
+  },
+  async getRoomFromSearch(room: RoomData) {
+    _currentRoom = room;
+  },
+  setRoom(room: RoomData) {
+    _currentRoom = room;
+  },
 };
 
 interface ModalStoreState {
@@ -19,7 +73,14 @@ interface ModalStoreState {
 
 export interface QueryStoreState {
   type: "query" | "result";
-  category: "building" | "division" | "college" | "room" | "class" | "dorm" | null;
+  category:
+    | "building"
+    | "division"
+    | "college"
+    | "room"
+    | "class"
+    | "dorm"
+    | null;
   value: string;
 }
 
@@ -259,6 +320,196 @@ class LocationStore {
 
 class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
+  // Set by Map.svelte so UI controls can halt the idle auto-rotation
+  // before performing a manual camera change.
+  stopAutoRotate: (() => void) | null = null;
+}
+
+class SidePanelStore {
+  collapsed: boolean = $state(false);
+
+  toggle = () => {
+    this.collapsed = !this.collapsed;
+  };
+
+  expand = () => {
+    this.collapsed = false;
+  };
+
+  collapse = () => {
+    this.collapsed = true;
+  };
+}
+
+class MapEditStore {
+  enabled: boolean = $state(false);
+
+  toggle = () => {
+    this.enabled = !this.enabled;
+  };
+
+  close = () => {
+    this.enabled = false;
+  };
+}
+
+type TerrainStatus = "idle" | "loading" | "active" | "unavailable";
+
+class TerrainStore {
+  enabled: boolean = $state(false);
+  menuOpen: boolean = $state(false);
+  exaggeration: number = $state(DEFAULT_TERRAIN_EXAGGERATION);
+  status: TerrainStatus = $state("idle");
+  message: string | null = $state(null);
+  resetNonce: number = $state(0);
+
+  toggleMenu = () => {
+    this.menuOpen = !this.menuOpen;
+  };
+
+  closeMenu = () => {
+    this.menuOpen = false;
+  };
+
+  enable = () => {
+    this.enabled = true;
+    this.status = "loading";
+    this.message = null;
+  };
+
+  disable = () => {
+    this.enabled = false;
+    this.status = "idle";
+    this.message = null;
+  };
+
+  toggle = () => {
+    if (this.enabled) this.disable();
+    else this.enable();
+  };
+
+  setExaggeration = (value: number) => {
+    this.exaggeration = value;
+  };
+
+  markLoading = () => {
+    if (!this.enabled) return;
+    this.status = "loading";
+    this.message = null;
+  };
+
+  markActive = () => {
+    if (!this.enabled) return;
+    this.status = "active";
+    this.message = null;
+  };
+
+  markUnavailable = (message: string) => {
+    this.enabled = false;
+    this.status = "unavailable";
+    this.message = message;
+  };
+
+  requestReset = () => {
+    this.resetNonce += 1;
+  };
+}
+
+class Building3DStore {
+  buildingName: string | null = $state(null);
+
+  open = (name: string) => {
+    this.buildingName = name;
+  };
+
+  close = () => {
+    this.buildingName = null;
+  };
+}
+
+class AdminAuthStore {
+  isAdmin: boolean = $state(false);
+  username: string | null = $state(null);
+  loading: boolean = $state(false);
+  loginOpen: boolean = $state(false);
+  private _hydrated = false;
+
+  hydrate = async () => {
+    if (this._hydrated) return;
+    this._hydrated = true;
+    await this.refresh();
+  };
+
+  refresh = async () => {
+    try {
+      const res = await fetch("/api/admin/auth", {
+        credentials: "same-origin",
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        admin: boolean;
+        username: string | null;
+      };
+      this.isAdmin = data.admin;
+      this.username = data.username;
+    } catch {
+      // network error — treat as logged out, don't spam the UI.
+      this.isAdmin = false;
+      this.username = null;
+    }
+  };
+
+  login = async (
+    username: string,
+    password: string,
+  ): Promise<string | null> => {
+    this.loading = true;
+    try {
+      const formData = new FormData();
+      formData.set("password", password);
+
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        credentials: "same-origin",
+        body: formData,
+      });
+      const data = await res
+        .json()
+        .catch(() => ({}) as { error?: string; username?: string });
+      if (!res.ok) {
+        return data.error ?? `Login failed (${res.status})`;
+      }
+      this.isAdmin = true;
+      this.username = data.username ?? username ?? "admin";
+      this.loginOpen = false;
+      return null;
+    } catch {
+      return "Network error. Try again.";
+    } finally {
+      this.loading = false;
+    }
+  };
+
+  logout = async () => {
+    try {
+      await fetch("/api/admin/auth", {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+    } catch {
+      // ignore — we're going to clear local state regardless.
+    }
+    this.isAdmin = false;
+    this.username = null;
+  };
+
+  openLogin = () => {
+    this.loginOpen = true;
+  };
+
+  closeLogin = () => {
+    this.loginOpen = false;
+  };
 }
 
 class JeepneyStore {
@@ -283,9 +534,86 @@ class JeepneyStore {
   };
 }
 
+class SyncToastStore {
+  private _buildings = $state<SyncInfo | null>(null);
+  private _colleges = $state<SyncInfo | null>(null);
+  private _divisions = $state<SyncInfo | null>(null);
+  private _dorms = $state<SyncInfo | null>(null);
+  public currentSyncData: SyncInfo | null = null;
+  public currentSync = $state<string | null>(null);
+  public allSynced = $state<boolean>(false);
+  public recentlySynced = $state<boolean | null>(null);
+
+  startBuildingsSync(total: number) {
+    this._buildings = {
+      synced: 0,
+      total,
+    };
+    this.currentSyncData = this._buildings;
+    this.currentSync = "buildings";
+    this.recentlySynced = true;
+  }
+  startCollegesSync(total: number) {
+    this._colleges = {
+      synced: 0,
+      total,
+    };
+    this.currentSyncData = this._colleges;
+    this.currentSync = "colleges";
+    this.recentlySynced = true;
+  }
+  startDivisionsSync(total: number) {
+    this._divisions = {
+      synced: 0,
+      total,
+    };
+    this.currentSyncData = this._divisions;
+    this.currentSync = "divisions";
+    this.recentlySynced = true;
+  }
+  startDormsSync(total: number) {
+    this._dorms = {
+      synced: 0,
+      total,
+    };
+    this.currentSyncData = this._dorms;
+    this.currentSync = "dorms";
+    this.recentlySynced = true;
+  }
+
+  updateBuildingsSync() {
+    if (this._buildings === null) return;
+    this._buildings.synced++;
+  }
+  updateCollegesSync() {
+    if (this._colleges === null) return;
+    this._colleges.synced++;
+  }
+  updateDivisionsSync() {
+    if (this._divisions === null) return;
+    this._divisions.synced++;
+  }
+  updateDormsSync() {
+    if (this._dorms === null) return;
+    this._dorms.synced++;
+  }
+
+  endSync() {
+      this.allSynced = true;
+      if (this.recentlySynced === null)
+        this.recentlySynced = false;
+  }
+}
+
 export const queryStore = new QueryStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
+export const sidePanelStore = new SidePanelStore();
+export const mapEditStore = new MapEditStore();
+export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
+export const syncToastStore = new SyncToastStore();
+export const building3DStore = new Building3DStore();
+export const adminAuthStore = new AdminAuthStore();

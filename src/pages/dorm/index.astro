@@ -1,20 +1,21 @@
 ---
 import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
-import { getDormRouteSlug, loadAppData } from "../../lib/app-data";
+import { getDormRouteSlug } from "../../lib/app-data";
+import { getAllDorms } from "../../lib/services/map-data-service";
 import { breadcrumbSchema, jsonLd, webpageSchema } from "../../lib/site";
 
-const { dorms } = await loadAppData();
+const dorms = await getAllDorms();
 
 const items = dorms
   .slice()
-  .sort((a, b) => a.dorm_name.localeCompare(b.dorm_name))
+  .sort((a, b) => a.dormName.localeCompare(b.dormName))
   .map((dorm) => ({
-    href: `/dorm/${getDormRouteSlug(dorm, dorms)}/`,
-    label: dorm.dorm_name,
+    href: `/dorm/${getDormRouteSlug(dorm)}/`,
+    label: dorm.dormName,
     description: [
-      dorm.is_up_managed ? "UP-managed dorm" : "Private dorm",
-      dorm.short_name ? `short name: ${dorm.short_name}` : null,
-      dorm.price_range,
+      dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
+      dorm.shortName ? `short name: ${dorm.shortName}` : null,
+      dorm.priceRange,
     ]
       .filter((value): value is string => Boolean(value))
       .join(" · "),

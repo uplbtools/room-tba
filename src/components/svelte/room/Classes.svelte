@@ -16,7 +16,7 @@
         <div class="class-section">{section}</div>
       </div>
       <div class="class-schedule">
-        {#each schedule.split(",") as sched}
+        {#each schedule as sched}
           <div>{sched}</div>
         {/each}
       </div>

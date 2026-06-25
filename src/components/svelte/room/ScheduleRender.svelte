@@ -20,14 +20,14 @@
   );
   $effect(() => {
     classes.forEach((sectionClass) => {
-      const schedule: string[] = sectionClass.schedule.split(",");
+      const schedule: string[] = sectionClass.schedule ?? [];
       if (schedule.length === 0) return;
       schedule.forEach((schedStr) => {
         const parsed = parseScheduleTime(schedStr);
         if (!parsed) {
           return;
         }
-        const color = getColorForCourse(sectionClass.courseCode);
+        const color = getColorForCourse(sectionClass.courseCode ?? "");
         const label =
           sectionClass.courseCode +
           (sectionClass.type ? " (" + sectionClass.type + ")" : "");

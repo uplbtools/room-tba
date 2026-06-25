@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { getAppData } from "../../../lib/context";
   import type { RoomData } from "../../../lib/types";
   import RoomDisplay from "./RoomDisplay.svelte";
 
   const MAX_DISPLAY_RESULT = 12;
-  const { classesMap } = getAppData();
   let paginateOffset = $state(0);
 
   interface Props {
@@ -30,7 +28,6 @@
       <RoomDisplay
         {room}
         searchInput=""
-        classes={classesMap.get(room.code) || []}
       />
     {/each}
 

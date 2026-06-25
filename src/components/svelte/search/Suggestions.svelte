@@ -1,62 +1,76 @@
 <script lang="ts">
   import { getAppData } from "../../../lib/context";
-  import { queryStore, type QueryStoreState, dormFilter, type DormFilterType } from "../../../lib/store.svelte";
+  import { getJSONFetch } from "../../../lib/local/data/utils";
+  import {
+    queryStore,
+    type QueryStoreState,
+    buildingTypeFilter,
+  } from "../../../lib/store.svelte";
+  import type { BuildingData, DormData } from "../../../lib/types";
+  import {
+    buildingMatchesTypeFilter,
+    dormMatchesTypeFilter,
+  } from "../../../constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
-  const { buildings, colleges, divisions, rooms, dorms } = getAppData();
+  const appData = getAppData();
+  const { buildings, colleges, divisions, dorms, loaded } = $derived(appData());
 
-  const filteredDorms = $derived(
-    dormFilter.value === "all"
-      ? dorms
-      : dormFilter.value === "up"
-        ? dorms.filter((d) => d.is_up_managed)
-        : dorms.filter((d) => !d.is_up_managed),
-  );
+  const filteredDorms = $derived.by(() => {
+    if (!loaded) return [];
+    return dorms.filter((dorm) =>
+      dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
+    );
+  });
+  const filteredBuildings = $derived.by(() => {
+    if (!loaded) return [];
+    return buildings.filter((building) =>
+      buildingMatchesTypeFilter(building, buildingTypeFilter.value),
+    );
+  });
 
-  const suggestedResult = $derived<
-    { value: string; category: Exclude<QueryStoreState["category"], null> }[]
-  >(getSuggestions(queryStore.inputValue));
+  const suggestedResult = $derived(getSuggestions(queryStore.inputValue));
 
   function getSuggestions(searchString: string): {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
   }[] {
     searchString = searchString.trim().toLowerCase();
-    if (searchString === "") return [];
+    if (searchString === "" || !loaded) return [];
     const suggestions = {
-      buildings: buildings
-        .filter(({ building_name }) =>
-          building_name.toLowerCase().includes(searchString),
+      buildings: (filteredBuildings as BuildingData[])
+        .filter(({ buildingName }) =>
+          buildingName.toLowerCase().includes(searchString),
         )
-        .map(({ building_name }) => ({
-          value: building_name,
+        .map(({ buildingName }) => ({
+          value: buildingName,
           category: "building",
         })),
       colleges: colleges
-        .filter(({ college_name }) =>
-          college_name.toLowerCase().includes(searchString),
+        .filter(({ collegeName }) =>
+          collegeName.toLowerCase().includes(searchString),
         )
-        .map(({ college_name }) => ({
-          value: college_name,
+        .map(({ collegeName }) => ({
+          value: collegeName,
           category: "college",
         })),
       divisions: divisions
-        .filter(({ division_name }) =>
-          division_name.toLowerCase().includes(searchString),
+        .filter(({ divisionName }) =>
+          divisionName.toLowerCase().includes(searchString),
         )
-        .map(({ division_name }) => ({
-          value: division_name,
+        .map(({ divisionName }) => ({
+          value: divisionName,
           category: "division",
         })),
-      dorms: filteredDorms
+      dorms: (filteredDorms as DormData[])
         .filter(
-          ({ dorm_name, short_name }) =>
-            dorm_name.toLowerCase().includes(searchString) ||
-            (short_name && short_name.toLowerCase().includes(searchString)),
+          ({ dormName, shortName }) =>
+            dormName.toLowerCase().includes(searchString) ||
+            (shortName && shortName.toLowerCase().includes(searchString)),
         )
-        .map(({ dorm_name }) => ({
-          value: dorm_name,
+        .map(({ dormName }) => ({
+          value: dormName,
           category: "dorm",
         })),
     } satisfies {
@@ -66,38 +80,26 @@
       }[];
     };
 
-    const nonRoomResult = Array.from(Object.values(suggestions))
-      .reduce(
-        // @ts-ignore
-        (prev, curr) => [...prev, ...curr],
-        [],
-      )
+    const nonRoomResult = Object.values(suggestions)
+      .flat()
       .sort(({ value: a }, { value: b }) =>
         a.toLowerCase().localeCompare(b.toLowerCase()),
       );
 
-    const roomResult = rooms
-      .filter((room) => room.code.toLowerCase().includes(searchString))
-      .map((room) => ({
-        value: room.code,
-        category: "room",
-      })) satisfies {
-      value: string;
-      category: Exclude<QueryStoreState["category"], null>;
-    }[];
-
-    return [...nonRoomResult, ...roomResult].slice(0, 8);
+    return nonRoomResult.slice(0, 8);
   }
+  const roomsResult = $derived(getRoomSuggestions(queryStore.inputValue));
 
-  const hasDormResults = $derived(
-    suggestedResult.some((s) => s.category === "dorm"),
-  );
+  async function getRoomSuggestions(searchValue: string) {
+    const uriSearch = encodeURI(searchValue.toUpperCase());
+    const roomsFetch = await getJSONFetch<{ data: { value: string }[] | null }>(
+      `/api/rooms?search_code=${uriSearch}`,
+    );
 
-  const filterOptions: { label: string; value: DormFilterType }[] = [
-    { label: "All", value: "all" },
-    { label: "UP-managed", value: "up" },
-    { label: "Private", value: "private" },
-  ];
+    return roomsFetch.data
+      ? roomsFetch.data.map((val) => ({ ...val, category: "room" as const }))
+      : [];
+  }
 </script>
 
 <!-- class:visible={queryStore.inputValue === ""} -->
@@ -111,38 +113,33 @@
       {/each}
     {:else}
       <h2 class="suggestions-header">Trending searches</h2>
-      <Suggestion value={"Physical Sciences Building"} category={"building"} />
+      <Suggestion value="Physical Sciences Building" category="building" />
+      <Suggestion value="Institute of Computer Science" category="division" />
       <Suggestion
-        value={"Institute of Computer Science"}
-        category={"division"}
+        value="Institute of Biological Sciences"
+        category="division"
       />
       <Suggestion
-        value={"Institute of Biological Sciences"}
-        category={"division"}
-      />
-      <Suggestion
-        value={"College of Engineering and Agro-Industrial Technology"}
-        category={"college"}
+        value="College of Engineering and Agro-Industrial Technology"
+        category="college"
       />
     {/if}
   {:else if suggestedResult.length !== 0}
-    {#if hasDormResults}
-      <div class="filter-chips">
-        {#each filterOptions as opt}
-          <button
-            class="filter-chip"
-            class:active={dormFilter.value === opt.value}
-            onclick={() => dormFilter.set(opt.value)}
-          >
-            {opt.label}
-          </button>
-        {/each}
-      </div>
-    {/if}
     {#each suggestedResult as suggestion, id (id)}
       <Suggestion {...suggestion} />
     {/each}
-  {:else if suggestedResult.length === 0}
+  {/if}
+
+  {#if queryStore.inputValue !== ""}
+    {#await roomsResult}
+      Loading rooms...
+    {:then result}
+      {#each result as roomResult (roomResult.value)}
+        <Suggestion {...roomResult} />
+      {/each}
+    {/await}
+  {/if}
+  {#if suggestedResult.length === 0 && queryStore.inputValue !== ""}
     <SearchQuerySuggestion />
   {/if}
 </div>
@@ -170,35 +167,6 @@
     font-size: 1rem;
     margin-bottom: 0.5rem;
   }
-
-  .filter-chips {
-    display: flex;
-    gap: 0.375rem;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .filter-chip {
-    all: unset;
-    cursor: pointer;
-    padding: 0.25rem 0.625rem;
-    border-radius: 1rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    background-color: hsl(0, 0%, 94%);
-    color: hsl(0, 0%, 40%);
-    transition: all 0.15s;
-  }
-
-  .filter-chip:hover {
-    background-color: hsl(0, 0%, 88%);
-  }
-
-  .filter-chip.active {
-    background-color: hsl(5, 53%, 30%);
-    color: white;
-  }
-
   @media (max-width: 425px) {
     .suggestions-header {
       margin-bottom: 0.25rem;

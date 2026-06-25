@@ -1,6 +1,8 @@
 ---
 import EntityPage from "../../components/seo/EntityPage.astro";
-import { getDormRouteSlug, loadAppData } from "../../lib/app-data";
+import { getDormRouteSlug } from "../../lib/app-data";
+import { getAllDorms } from "../../lib/services/map-data-service";
+import { getDormPageData } from "../../lib/services/ssg-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -9,40 +11,42 @@ import {
 } from "../../lib/site";
 
 export async function getStaticPaths() {
-  const { dorms } = await loadAppData();
+  const dorms = await getAllDorms();
 
   return dorms.map((dorm) => ({
-    params: { slug: getDormRouteSlug(dorm, dorms) },
+    params: { slug: getDormRouteSlug(dorm) },
     props: { dormId: dorm.id },
   }));
 }
 
 const { dormId } = Astro.props;
-const appData = await loadAppData();
-const dorm = appData.dorms.find((item) => item.id === dormId);
+const appData = await getDormPageData(dormId);
 
-if (!dorm) {
+if (appData === null) {
   throw new Error(`Dorm not found for slug: ${dormId}`);
 }
+const { dorm } = appData;
 
-const canonicalPath = `/dorm/${getDormRouteSlug(dorm, appData.dorms)}/`;
-const title = `${dorm.dorm_name} | Dorm at UPLB | Room TBA`;
+const canonicalPath = `/dorm/${getDormRouteSlug(dorm)}/`;
+const title = `${dorm.dormName} | Dorm at UPLB | Room TBA`;
 const description = [
-  `Find ${dorm.dorm_name} at UPLB on Room TBA.`,
-  dorm.is_up_managed ? "UP-managed housing listing." : "Private housing listing.",
-  dorm.price_range ? `Price range: ${dorm.price_range}.` : null,
+  `Find ${dorm.dormName} at UPLB on Room TBA.`,
+  dorm.isUpManaged
+    ? "UP-managed housing listing."
+    : "Private housing listing.",
+  dorm.priceRange ? `Price range: ${dorm.priceRange}.` : null,
 ]
   .filter((value): value is string => Boolean(value))
   .join(" ");
-const intro = `${dorm.dorm_name} is listed in Room TBA. Open this page to jump straight into the dorm result view with map context, amenities, contacts, and housing details when available.`;
+const intro = `${dorm.dormName} is listed in Room TBA. Open this page to jump straight into the dorm result view with map context, amenities, contacts, and housing details when available.`;
 
 const facts = [
-  dorm.short_name ? `Short name: ${dorm.short_name}` : null,
+  dorm.shortName ? `Short name: ${dorm.shortName}` : null,
   dorm.gender ? `Assigned housing: ${dorm.gender}` : null,
-  dorm.is_up_managed ? "UP-managed dorm" : "Private dorm",
+  dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
   dorm.capacity ? `${dorm.capacity} beds listed` : null,
-  dorm.price_range ? `Price range: ${dorm.price_range}` : null,
-  dorm.managing_office ? `Managing office: ${dorm.managing_office}` : null,
+  dorm.priceRange ? `Price range: ${dorm.priceRange}` : null,
+  dorm.managingOffice ? `Managing office: ${dorm.managingOffice}` : null,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(
@@ -50,12 +54,12 @@ const structuredData = jsonLd(
   breadcrumbSchema([
     { name: "Home", path: "/" },
     { name: "Dorms", path: "/dorm/" },
-    { name: dorm.dorm_name, path: canonicalPath },
+    { name: dorm.dormName, path: canonicalPath },
   ]),
   {
     "@context": "https://schema.org",
     "@type": "Place",
-    name: dorm.dorm_name,
+    name: dorm.dormName,
     description,
     url: absoluteUrl(canonicalPath),
     address: {
@@ -80,15 +84,14 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   {canonicalPath}
-  heading={`${dorm.dorm_name} at UPLB`}
+  heading={`${dorm.dormName} at UPLB`}
   {intro}
   {facts}
   breadcrumbs={[
     { href: "/", label: "Home" },
     { href: "/dorm/", label: "Dorms" },
-    { href: canonicalPath, label: dorm.dorm_name },
+    { href: canonicalPath, label: dorm.dormName },
   ]}
   structuredData={structuredData}
-  appProps={appData}
-  initialSearch={{ category: "dorm", value: dorm.dorm_name }}
+  initialSearch={{ category: "dorm", value: dorm.dormName }}
 />

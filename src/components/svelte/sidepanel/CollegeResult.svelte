@@ -1,27 +1,43 @@
 <script lang="ts">
   import { queryStore } from "../../../lib/store.svelte";
   import { getAppData } from "../../../lib/context";
-  import ResultDisplay from "./ResultDisplay.svelte";
+  import { getCollegeRooms } from "../../../lib/local/data/utils";
+  import type { RoomData } from "../../../lib/types";
+    import ResultDisplay from "./ResultDisplay.svelte";
+    import { checkLocalCollegeRoom, syncCollegeRooms } from "../../../lib/local/data/sync";
+    import { onMount } from "svelte";
 
-  const { rooms, colleges } = getAppData();
+    const appData = getAppData();
+  const { colleges, loaded } = $derived(appData());
 
   const college = $derived(
-    colleges.find((c) => c.college_name === queryStore.queryValue),
+    loaded
+      ? colleges.find((c) => c.collegeName === queryStore.queryValue)
+      : null,
   );
 
-  const collegeRooms = $derived(
-    rooms.filter((room) => room.collegeName === queryStore.queryValue),
-  );
+  let collegeRooms = $state<RoomData[] | null>(null);
+
+  onMount(async() => {
+    if (!college) return;
+    const collegeChecker = await checkLocalCollegeRoom(college.id)
+    collegeRooms = await getCollegeRooms(collegeChecker, college.id);
+    await syncCollegeRooms(collegeChecker, college.id, collegeRooms);
+
+  });
 </script>
 
 <div class="college-query-wrapper">
   {#if college}
     <div class="college-header">
-      <h2 class="college-title">{college.college_name}</h2>
+      <h2 class="college-title">{college.collegeName}</h2>
     </div>
   {/if}
-
-  <ResultDisplay filteredRooms={collegeRooms} />
+  {#if collegeRooms}
+    <ResultDisplay filteredRooms={collegeRooms} />
+  {:else}
+    Loading data...
+  {/if}
 </div>
 
 <style>
