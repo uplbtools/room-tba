@@ -270,6 +270,46 @@ export type AliasMatch = {
   value: string | null;
 };
 
+export type AliasCacheRow = AliasMatch & {
+  id: number;
+  normalizedAlias: string;
+};
+
+/** All alias rows with resolved building names for PGlite cache refresh (#155). */
+export async function listAliasesForCache(): Promise<AliasCacheRow[]> {
+  try {
+    const rows = await db
+      .select({
+        id: aliasesTable.id,
+        alias: aliasesTable.alias,
+        normalizedAlias: aliasesTable.normalizedAlias,
+        targetType: aliasesTable.targetType,
+        targetId: aliasesTable.targetId,
+        buildingName: buildingsTable.buildingName,
+      })
+      .from(aliasesTable)
+      .leftJoin(
+        buildingsTable,
+        and(
+          eq(aliasesTable.targetType, "building"),
+          eq(buildingsTable.id, aliasesTable.targetId),
+        ),
+      );
+
+    return rows.map((row) => ({
+      id: row.id,
+      alias: row.alias,
+      normalizedAlias: row.normalizedAlias,
+      targetType: row.targetType,
+      targetId: row.targetId,
+      value: row.buildingName,
+    }));
+  } catch (e) {
+    console.error("Error: ", e);
+    return [];
+  }
+}
+
 /** Resolve a search term against the alias/synonym map (#155). Matches exact
  * and prefix normalized aliases, returning the (deduped) building targets. */
 export async function searchAliases(

@@ -18,6 +18,7 @@
   import MapToolsFlyout from "./MapToolsFlyout.svelte";
   import MapViewControls from "./MapViewControls.svelte";
   import LocationButton from "./LocationButton.svelte";
+  import MapAttribution from "./MapAttribution.svelte";
   import StatusBar from "./StatusBar.svelte";
   import Toast from "./Toast.svelte";
   import Building3DViewer from "./Building3DViewer.svelte";
@@ -136,6 +137,7 @@
     <div class="inner-layer">
       <SidePanel />
       <div class="bottom-band">
+        <MapAttribution />
         <div
           class="location-fab-stack"
           class:drawer-lift={drawerExpanded}
