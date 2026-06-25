@@ -8,8 +8,10 @@
   import DormResult from "./DormResult.svelte";
   import RoomResult from "../room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
+  import BuildingTypeControl from "../BuildingTypeControl.svelte";
   import LocationButton from "../LocationButton.svelte";
   import JeepneyMenu from "../JeepneyMenu.svelte";
+  import TerrainControl from "../TerrainControl.svelte";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
@@ -66,6 +68,8 @@
     class:is-collapsed={sidePanelStore.collapsed}
   >
     <div class="floating-actions">
+      <BuildingTypeControl />
+      <TerrainControl />
       <JeepneyMenu />
       <LocationButton />
     </div>
