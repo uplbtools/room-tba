@@ -8,9 +8,9 @@
   import {
     formatCampusDateShort,
     formatCampusTime,
-    instantToCampusWallString,
   } from "../../../lib/event-time";
   import { getEventShareUrl } from "../../../lib/share-links";
+  import { beginEventPlacement } from "../../../lib/event-placement";
   import {
     adminAuthStore,
     eventPlacementStore,
@@ -94,24 +94,14 @@
       );
       return;
     }
-    const now = Date.now();
-    const startsAt = new Date(now + 60 * 60 * 1000);
-    const endsAt = new Date(now + 2 * 60 * 60 * 1000);
-    const titleDate = formatEventDate(startsAt.toISOString());
-    const title = `Untitled campus event ${titleDate}`;
-    eventPlacementStore.start(
-      {
-        slug: `draft-event-${now}`,
-        title,
-        startsAt: instantToCampusWallString(startsAt),
-        endsAt: instantToCampusWallString(endsAt),
-        category: "other",
-      },
-      {
+    if (
+      !beginEventPlacement({
         propose,
         submitterName: propose ? proposeSubmitterName.trim() : "",
-      },
-    );
+      })
+    ) {
+      return;
+    }
     oncollapse?.();
   }
 </script>
