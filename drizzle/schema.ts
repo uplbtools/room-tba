@@ -11,9 +11,28 @@ import {
   uuid,
   pgEnum,
   jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const buildingEnum = pgEnum("building_type", ["admin", "non-admin"]);
+export const eventCategoryEnum = pgEnum("event_category", [
+  "tradition",
+  "fair",
+  "ceremony",
+  "sports",
+  "other",
+]);
+export const eventRecurrenceEnum = pgEnum("event_recurrence", [
+  "none",
+  "annual",
+  "every_1st_sem",
+  "every_2nd_sem",
+]);
+export const eventLocationAnchorEnum = pgEnum("event_location_anchor", [
+  "building",
+  "dorm",
+  "custom",
+]);
 
 export const dormsTable = pgTable("dorms", {
   id: integer().primaryKey().generatedByDefaultAsIdentity({
@@ -205,3 +224,141 @@ export const editorHistoryTable = pgTable("editor_history", {
   editedBy: varchar("edited_by", { length: 100 }).default("admin").notNull(),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
+
+export const eventsTable = pgTable(
+  "events",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "events_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    slug: varchar({ length: 120 }).notNull(),
+    title: varchar({ length: 160 }).notNull(),
+    description: text(),
+    category: eventCategoryEnum().default("other").notNull(),
+    startsAt: timestamp("starts_at", { mode: "string" }).notNull(),
+    endsAt: timestamp("ends_at", { mode: "string" }).notNull(),
+    timezone: varchar({ length: 64 }).default("Asia/Manila").notNull(),
+    recurrence: eventRecurrenceEnum().default("none").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    sourceUrl: text("source_url"),
+    priority: integer().default(0).notNull(),
+    includeInSeo: boolean("include_in_seo").default(false).notNull(),
+    version: integer().default(1).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [uniqueIndex("events_slug_unique").on(table.slug)],
+);
+
+export const eventLocationsTable = pgTable(
+  "event_locations",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "event_locations_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    eventId: integer("event_id").notNull(),
+    anchorType: eventLocationAnchorEnum("anchor_type").notNull(),
+    buildingId: integer("building_id"),
+    dormId: integer("dorm_id"),
+    label: text().notNull(),
+    lat: doublePrecision(),
+    lon: doublePrecision(),
+    highlightPriority: integer("highlight_priority").default(0).notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.eventId],
+      foreignColumns: [eventsTable.id],
+      name: "event_location_event",
+    }),
+    foreignKey({
+      columns: [table.buildingId],
+      foreignColumns: [buildingsTable.id],
+      name: "event_location_building",
+    }),
+    foreignKey({
+      columns: [table.dormId],
+      foreignColumns: [dormsTable.id],
+      name: "event_location_dorm",
+    }),
+  ],
+);
+
+export const eventRoutesTable = pgTable(
+  "event_routes",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "event_routes_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    eventId: integer("event_id").notNull(),
+    name: varchar({ length: 120 }).notNull(),
+    description: text(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.eventId],
+      foreignColumns: [eventsTable.id],
+      name: "event_route_event",
+    }),
+  ],
+);
+
+export const eventRouteStopsTable = pgTable(
+  "event_route_stops",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "event_route_stops_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    routeId: integer("route_id").notNull(),
+    eventLocationId: integer("event_location_id"),
+    label: text().notNull(),
+    lat: doublePrecision(),
+    lon: doublePrecision(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.routeId],
+      foreignColumns: [eventRoutesTable.id],
+      name: "event_route_stop_route",
+    }),
+    foreignKey({
+      columns: [table.eventLocationId],
+      foreignColumns: [eventLocationsTable.id],
+      name: "event_route_stop_location",
+    }),
+  ],
+);

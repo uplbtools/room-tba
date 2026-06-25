@@ -12,13 +12,21 @@ const PATHS = [
   "dorms",
   "rooms",
   "classes",
+  "events",
+  "event_locations",
+  "event_routes",
+  "event_route_stops",
 ];
 
 export const GET = (async ({ params }) => {
   const tableName = params["name"] as string;
   if (!PATHS.includes(tableName as string))
     return new Response(
-      JSON.stringify({ success: false, data: null, error: "Invalid table name" }),
+      JSON.stringify({
+        success: false,
+        data: null,
+        error: "Invalid table name",
+      }),
       { status: 400 },
     );
 
@@ -26,16 +34,20 @@ export const GET = (async ({ params }) => {
     .select()
     .from(updateTable)
     .where(eq(updateTable.tableName, tableName));
-  if (rows.length === 0 || !(rows[0]))
+  if (rows.length === 0 || !rows[0])
     return new Response(
-      JSON.stringify({ success: false, data: null, error: "Uncaught exception in server" }),
+      JSON.stringify({
+        success: false,
+        data: null,
+        error: "Uncaught exception in server",
+      }),
       { status: 500 },
     );
   return new Response(
     JSON.stringify({
       success: true,
       error: null,
-      data: rows[0]
-    })
-  )
+      data: rows[0],
+    }),
+  );
 }) satisfies APIRoute;
