@@ -207,6 +207,47 @@ export async function updateRoom(
   return getRoomById(id);
 }
 
+export type RoomCreateInput = {
+  roomCode: string;
+  directions?: string | null;
+  buildingId?: number | null;
+  collegeId?: number | null;
+  divisionId?: number | null;
+};
+
+export async function createRoom(
+  input: RoomCreateInput,
+  editedBy = "admin",
+): Promise<RoomData | null> {
+  const [inserted] = await db
+    .insert(roomsTable)
+    .values({
+      roomCode: input.roomCode.trim(),
+      directions: input.directions?.trim() || null,
+      buildingId: input.buildingId ?? null,
+      collegeId: input.collegeId ?? null,
+      divisionId: input.divisionId ?? null,
+    })
+    .returning({ id: roomsTable.id });
+
+  if (!inserted) return null;
+
+  const after = await getRoomById(inserted.id);
+  if (after) {
+    await recordEditorHistory({
+      entityType: "room",
+      entityId: inserted.id,
+      action: "create",
+      before: null,
+      after,
+      versionAfter: after.version,
+      editedBy,
+    });
+  }
+  await refreshSyncKey("rooms");
+  return after;
+}
+
 // ── Room positions ──
 
 export type RoomPosition = {
@@ -448,6 +489,44 @@ export async function updateBuilding(
   return getBuildingById(id);
 }
 
+export type BuildingCreateInput = {
+  buildingName: string;
+  lat: number;
+  lon: number;
+  buildingType?: "admin" | "non-admin";
+  directions?: string;
+};
+
+export async function createBuilding(
+  input: BuildingCreateInput,
+  editedBy = "admin",
+): Promise<BuildingAdmin | null> {
+  const [inserted] = await db
+    .insert(buildingsTable)
+    .values({
+      buildingName: input.buildingName.trim(),
+      lat: input.lat,
+      lon: input.lon,
+      buildingType: input.buildingType ?? "non-admin",
+      directions: input.directions?.trim() ?? "",
+    })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "building",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("buildings");
+  return inserted;
+}
+
 // ── Colleges ──
 
 export type CollegeAdmin = typeof collegesTable.$inferSelect;
@@ -508,6 +587,31 @@ export async function updateCollege(
 
   await refreshSyncKey("colleges");
   return updated ?? (await getCollegeById(id));
+}
+
+export async function createCollege(
+  collegeName: string,
+  editedBy = "admin",
+): Promise<CollegeAdmin | null> {
+  const trimmed = collegeName.trim();
+  const [inserted] = await db
+    .insert(collegesTable)
+    .values({ collegeName: trimmed })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "college",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("colleges");
+  return inserted;
 }
 
 // ── Divisions ──
@@ -572,6 +676,31 @@ export async function updateDivision(
 
   await refreshSyncKey("divisions");
   return updated ?? (await getDivisionById(id));
+}
+
+export async function createDivision(
+  divisionName: string,
+  editedBy = "admin",
+): Promise<DivisionAdmin | null> {
+  const trimmed = divisionName.trim();
+  const [inserted] = await db
+    .insert(divisionsTable)
+    .values({ divisionName: trimmed })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "division",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("divisions");
+  return inserted;
 }
 
 // ── Dorms ──
@@ -657,6 +786,51 @@ export async function updateDorm(
   }
 
   return getDormById(id);
+}
+
+export type DormCreateInput = DormUpdateInput & {
+  dormName: string;
+  gender: string;
+};
+
+export async function createDorm(
+  input: DormCreateInput,
+  editedBy = "admin",
+): Promise<DormAdmin | null> {
+  const [inserted] = await db
+    .insert(dormsTable)
+    .values({
+      dormName: input.dormName.trim(),
+      gender: input.gender.trim(),
+      shortName: input.shortName ?? null,
+      lat: input.lat ?? null,
+      lon: input.lon ?? null,
+      capacity: input.capacity ?? null,
+      managingOffice: input.managingOffice ?? null,
+      contactEmail: input.contactEmail ?? null,
+      amenities: input.amenities ?? null,
+      osmLink: input.osmLink ?? null,
+      description: input.description ?? null,
+      isUpManaged: input.isUpManaged ?? true,
+      priceRange: input.priceRange ?? null,
+      contactPhone: input.contactPhone ?? null,
+      facebookLink: input.facebookLink ?? null,
+    })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "dorm",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("dorms");
+  return inserted;
 }
 
 // ── Events ──
