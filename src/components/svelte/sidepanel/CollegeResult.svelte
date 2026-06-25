@@ -3,11 +3,14 @@
   import { getAppData } from "../../../lib/context";
   import { getCollegeRooms } from "../../../lib/local/data/utils";
   import type { RoomData } from "../../../lib/types";
-    import ResultDisplay from "./ResultDisplay.svelte";
-    import { checkLocalCollegeRoom, syncCollegeRooms } from "../../../lib/local/data/sync";
-    import { onMount } from "svelte";
+  import ResultDisplay from "./ResultDisplay.svelte";
+  import {
+    checkLocalCollegeRoom,
+    syncCollegeRooms,
+  } from "../../../lib/local/data/sync";
+  import { onMount } from "svelte";
 
-    const appData = getAppData();
+  const appData = getAppData();
   const { colleges, loaded } = $derived(appData());
 
   const college = $derived(
@@ -18,12 +21,11 @@
 
   let collegeRooms = $state<RoomData[] | null>(null);
 
-  onMount(async() => {
+  onMount(async () => {
     if (!college) return;
-    const collegeChecker = await checkLocalCollegeRoom(college.id)
+    const collegeChecker = await checkLocalCollegeRoom(college.id);
     collegeRooms = await getCollegeRooms(collegeChecker, college.id);
     await syncCollegeRooms(collegeChecker, college.id, collegeRooms);
-
   });
 </script>
 

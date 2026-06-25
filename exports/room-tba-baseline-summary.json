@@ -69,13 +69,7 @@
       "lon": 121.24452978338535,
       "directions": "Near the CAFS cluster, behind the Soils Building. Look for the ABC signage.",
       "room_count": 11,
-      "sample_rooms": [
-        "ABC",
-        "ABC 161",
-        "ABC 162a",
-        "ABC 162b",
-        "ABC 163"
-      ]
+      "sample_rooms": ["ABC", "ABC 161", "ABC 162a", "ABC 162b", "ABC 163"]
     },
     {
       "building_name": "AFBED Building",
@@ -97,13 +91,7 @@
       "lon": 121.24371439189271,
       "directions": "In the CAFS area, past the crop science buildings. Look for the animal husbandry facilities nearby.",
       "room_count": 19,
-      "sample_rooms": [
-        "ASI 231",
-        "ASI 233",
-        "ASI 235",
-        "ASI 237",
-        "ASI 238A"
-      ]
+      "sample_rooms": ["ASI 231", "ASI 233", "ASI 235", "ASI 237", "ASI 238A"]
     },
     {
       "building_name": "Biological Sciences Building",
@@ -125,13 +113,7 @@
       "lon": 121.24508768282763,
       "directions": "College of Agriculture and Food Science cluster. In the upper campus area near the agriculture facilities.",
       "room_count": 33,
-      "sample_rooms": [
-        "212B",
-        "237",
-        "A-102",
-        "A-115",
-        "AAVLH"
-      ]
+      "sample_rooms": ["212B", "237", "A-102", "A-115", "AAVLH"]
     },
     {
       "building_name": "CAS Main Building",
@@ -139,13 +121,7 @@
       "lon": 121.24116485649184,
       "directions": "The main CAS building is BEHIND the Oblation statue. CAS Bxx rooms are in the basement (stairs in front of OCS kiosks). CAS 1xx rooms are on the first floor. CAS LITE rooms are on the 2nd floor.",
       "room_count": 21,
-      "sample_rooms": [
-        "CAS 101",
-        "CAS 102",
-        "CAS 103",
-        "CAS 104",
-        "CAS 106"
-      ]
+      "sample_rooms": ["CAS 101", "CAS 102", "CAS 103", "CAS 104", "CAS 106"]
     },
     {
       "building_name": "CAS Annex 1",
@@ -195,13 +171,7 @@
       "lon": 121.246,
       "directions": "Part of the CEAT cluster. Near the main engineering buildings.",
       "room_count": 7,
-      "sample_rooms": [
-        "CE 101",
-        "CE 101A",
-        "CE 101B",
-        "CE 102",
-        "CE 103"
-      ]
+      "sample_rooms": ["CE 101", "CE 101A", "CE 101B", "CE 102", "CE 103"]
     },
     {
       "building_name": "CEAT Building",
@@ -223,13 +193,7 @@
       "lon": 121.24090736444153,
       "directions": "College of Economics and Management. The first cluster of buildings if you follow the Kanan road from the main gate. A large building complex with many lecture rooms (CEM 101-118, 201-205).",
       "room_count": 28,
-      "sample_rooms": [
-        "CEM  202",
-        "CEM 101",
-        "CEM 102",
-        "CEM 104",
-        "CEM 105"
-      ]
+      "sample_rooms": ["CEM  202", "CEM 101", "CEM 102", "CEM 104", "CEM 105"]
     },
     {
       "building_name": "CFNR Building",
@@ -251,13 +215,7 @@
       "lon": 121.241894417301,
       "directions": "College of Human Ecology (Gil F. Saguiguit Hall). Located beside Physical Sciences, on the left side of OPark when facing the Oblation.",
       "room_count": 24,
-      "sample_rooms": [
-        "CHE  MPH",
-        "CHE 1",
-        "CHE 2",
-        "CHE 4",
-        "CHE 5"
-      ]
+      "sample_rooms": ["CHE  MPH", "CHE 1", "CHE 2", "CHE 4", "CHE 5"]
     },
     {
       "building_name": "Chemical Engineering Building",
@@ -265,13 +223,7 @@
       "lon": 121.245,
       "directions": "In the CEAT complex, has specialized labs including Unit Operations. Near the other engineering buildings.",
       "room_count": 7,
-      "sample_rooms": [
-        "ChE 1",
-        "ChE 2",
-        "ChE 3",
-        "ChE 4",
-        "ChE 5"
-      ]
+      "sample_rooms": ["ChE 1", "ChE 2", "ChE 3", "ChE 4", "ChE 5"]
     },
     {
       "building_name": "CVM Building",
@@ -293,10 +245,7 @@
       "lon": 121.24073570307466,
       "directions": "Department of Agricultural and Applied Economics. Part of the CEM cluster.",
       "room_count": 2,
-      "sample_rooms": [
-        "DAAE Conference Room 1",
-        "DAAE Conference Room 2"
-      ]
+      "sample_rooms": ["DAAE Conference Room 1", "DAAE Conference Room 2"]
     },
     {
       "building_name": "Electrical Engineering Building",
@@ -304,13 +253,7 @@
       "lon": 121.24783967751902,
       "directions": "White, three-storey building beside ICrops in Pili Drive. Part of CEAT complex. Houses EE lecture rooms and the EE Auditorium.",
       "room_count": 9,
-      "sample_rooms": [
-        "EE 100",
-        "EE 103",
-        "EE 104",
-        "EE 202",
-        "EE 203"
-      ]
+      "sample_rooms": ["EE 100", "EE 103", "EE 104", "EE 202", "EE 203"]
     },
     {
       "building_name": "Forestry Biological Sciences Building",
@@ -318,13 +261,7 @@
       "lon": 121.2358,
       "directions": "In the CFNR area in the upper campus. Contains FBS labs and lecture rooms.",
       "room_count": 12,
-      "sample_rooms": [
-        "FBS 051",
-        "FBS 055",
-        "FBS 060",
-        "FBS 151",
-        "FBS 155"
-      ]
+      "sample_rooms": ["FBS 051", "FBS 055", "FBS 060", "FBS 151", "FBS 155"]
     },
     {
       "building_name": "Graduate School Building",
@@ -346,12 +283,7 @@
       "lon": 121.24949043285048,
       "directions": "The Hydrology Laboratory. Located in the CEAT area, near the irrigation and water resources facilities.",
       "room_count": 4,
-      "sample_rooms": [
-        "HL CONRM 2",
-        "HL ConfRm2",
-        "HL-100",
-        "HL-201"
-      ]
+      "sample_rooms": ["HL CONRM 2", "HL ConfRm2", "HL-100", "HL-201"]
     },
     {
       "building_name": "IABE Building",
@@ -372,11 +304,7 @@
       "lon": 121.24232357078375,
       "directions": "Institute of Cooperatives and Bio-Enterprise Development. Part of the CEM area.",
       "room_count": 3,
-      "sample_rooms": [
-        "ICOPED 26",
-        "ICOPED 28",
-        "ICOPED 30"
-      ]
+      "sample_rooms": ["ICOPED 26", "ICOPED 28", "ICOPED 30"]
     },
     {
       "building_name": "ICropS Building",
@@ -398,13 +326,7 @@
       "lon": 121.24760215793597,
       "directions": "Part of CEAT. Contains IE lecture rooms and labs.",
       "room_count": 5,
-      "sample_rooms": [
-        "IE 100",
-        "IE 101",
-        "IE 102",
-        "IE 103",
-        "IE 104"
-      ]
+      "sample_rooms": ["IE 100", "IE 101", "IE 102", "IE 103", "IE 104"]
     },
     {
       "building_name": "IFST Building",
@@ -426,12 +348,7 @@
       "lon": 121.2427098088592,
       "directions": "Institute of Human Nutrition and Food. Part of the CHE building complex.",
       "room_count": 4,
-      "sample_rooms": [
-        "IHNF Conference Room",
-        "RGQ",
-        "NL",
-        "FL"
-      ]
+      "sample_rooms": ["IHNF Conference Room", "RGQ", "NL", "FL"]
     },
     {
       "building_name": "IRNR Building",
@@ -453,11 +370,7 @@
       "lon": 121.2406498724568,
       "directions": "Institute of Weed Science, Entomology and Plant Pathology. In the CAFS area, includes the WPD Hall.",
       "room_count": 3,
-      "sample_rooms": [
-        "IWEP AUDI",
-        "IWEPLH",
-        "WPD Hall LR108"
-      ]
+      "sample_rooms": ["IWEP AUDI", "IWEPLH", "WPD Hall LR108"]
     },
     {
       "building_name": "LHKCB Building",
@@ -465,10 +378,7 @@
       "lon": 121.24438350730719,
       "directions": "Near the CAFS area. Has lecture halls and classroom facilities.",
       "room_count": 2,
-      "sample_rooms": [
-        "LHKCB 101B",
-        "LHKCB 204"
-      ]
+      "sample_rooms": ["LHKCB 101B", "LHKCB 204"]
     },
     {
       "building_name": "Math Building",
@@ -476,13 +386,7 @@
       "lon": 121.24361103115628,
       "directions": "The old-looking building on the left before the bridge to CEAT, just across the Diocesan Shrine of St. Therese. Houses IMSP lecture rooms (MB 100-104 on ground floor, MB 301-309 on 3rd floor).",
       "room_count": 14,
-      "sample_rooms": [
-        "MB 100",
-        "MB 101A",
-        "MB 101B",
-        "MB 102",
-        "MB 103A"
-      ]
+      "sample_rooms": ["MB 100", "MB 101A", "MB 101B", "MB 102", "MB 103A"]
     },
     {
       "building_name": "Copeland Gymnasium",
@@ -504,9 +408,7 @@
       "lon": 121.24266929817223,
       "directions": "The swimming pool area, located behind Baker Hall, which is at Freedom Park. Managed by the Department of Human Kinetics (CAS).",
       "room_count": 1,
-      "sample_rooms": [
-        "SWIMMING POOL"
-      ]
+      "sample_rooms": ["SWIMMING POOL"]
     },
     {
       "building_name": "PHTRC Building",
@@ -514,11 +416,7 @@
       "lon": 121.24429767662376,
       "directions": "Post-Harvest Training and Research Center. In the CAFS area.",
       "room_count": 3,
-      "sample_rooms": [
-        "PHTRC",
-        "PHTRC 106",
-        "PHTRC ANNEX"
-      ]
+      "sample_rooms": ["PHTRC", "PHTRC 106", "PHTRC ANNEX"]
     },
     {
       "building_name": "Physical Sciences Building",
@@ -540,11 +438,7 @@
       "lon": 121.241,
       "directions": "Post-harvest Training and Research Center Facility. In the CAFS area.",
       "room_count": 3,
-      "sample_rooms": [
-        "PTCF Conf. Rm",
-        "PTCF LAB",
-        "PTCF Lec 1"
-      ]
+      "sample_rooms": ["PTCF Conf. Rm", "PTCF LAB", "PTCF Lec 1"]
     },
     {
       "building_name": "TCC Building",
@@ -552,13 +446,7 @@
       "lon": 121.24288733602698,
       "directions": "Temporary Common Classroom at the Old Maquiling School. Located beside the CHE building, behind the Administration Building. Has multiple rooms (TCC 1, 2, 4, 5, 11, 22).",
       "room_count": 6,
-      "sample_rooms": [
-        "TCC 1",
-        "TCC 11",
-        "TCC 2",
-        "TCC 22",
-        "TCC 4"
-      ]
+      "sample_rooms": ["TCC 1", "TCC 11", "TCC 2", "TCC 22", "TCC 4"]
     },
     {
       "building_name": "Main Library",
@@ -566,9 +454,7 @@
       "lon": 121.23919075095945,
       "directions": "The main library building. Located behind the Pegaraw statue (winged tamaraw).",
       "room_count": 1,
-      "sample_rooms": [
-        "Main Library"
-      ]
+      "sample_rooms": ["Main Library"]
     },
     {
       "building_name": "UPRHS Building",
@@ -576,9 +462,7 @@
       "lon": 121.27134891640044,
       "directions": "UP Rural High School. Located in Bay, Laguna, OUTSIDE the main UPLB campus.",
       "room_count": 1,
-      "sample_rooms": [
-        "UPRHS"
-      ]
+      "sample_rooms": ["UPRHS"]
     }
   ]
 }

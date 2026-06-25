@@ -23,10 +23,13 @@ export const PATCH: APIRoute = async ({ params, request }) => {
   }
 
   if (!body.divisionName || body.divisionName.trim().length === 0) {
-    return new Response(JSON.stringify({ error: "Division name is required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Division name is required" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 
   try {

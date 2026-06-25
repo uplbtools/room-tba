@@ -156,8 +156,9 @@
   }
 
   .map-control-btn {
-    background-color: white;
-    border: 1px solid #ececec;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    backdrop-filter: blur(10px);
+    border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
     border-radius: 50%;
     width: 3rem;
     height: 3rem;
@@ -165,15 +166,25 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(
+      --map-chrome-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.18),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14)
+    );
     color: hsl(5, 53%, 32%);
     transition:
       background-color 0.2s,
-      transform 0.2s;
+      border-color 0.2s;
 
     &:hover {
-      background-color: hsl(5, 53%, 98%);
-      transform: scale(1.05);
+      background-color: hsl(0, 0%, 99%);
+      border-color: hsl(5, 53%, 32%);
+    }
+
+    &:focus-visible {
+      outline: 2px solid hsl(5, 53%, 32%);
+      outline-offset: 2px;
     }
 
     &.active {

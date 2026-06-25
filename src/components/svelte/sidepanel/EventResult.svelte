@@ -4,6 +4,7 @@
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
+  import X from "@lucide/svelte/icons/x";
   import CopyLinkButton from "../CopyLinkButton.svelte";
   import { getAppActions, getAppData } from "../../../lib/context";
   import {
@@ -92,6 +93,11 @@
     form = eventToForm(event);
     editing = true;
   });
+
+  function closeEventDetails() {
+    editing = false;
+    queryStore.clearQuery();
+  }
 
   function eventToForm(event: EventData) {
     return {
@@ -451,9 +457,21 @@
 <div class="event-result">
   {#if event}
     <header class="event-header">
-      <div class="event-kicker" class:is-past={event.status === "past"}>
-        <CalendarDays size={16} />
-        <span>{STATUS_LABELS[event.status]}</span>
+      <div class="event-header-top">
+        <div class="event-kicker" class:is-past={event.status === "past"}>
+          <CalendarDays size={16} />
+          <span>{STATUS_LABELS[event.status]}</span>
+        </div>
+        <button
+          class="event-close"
+          type="button"
+          aria-label="Close event details"
+          title="Close event details (Esc)"
+          onclick={closeEventDetails}
+        >
+          <X size={16} aria-hidden="true" />
+          <span>Close</span>
+        </button>
       </div>
       <h2>{event.title}</h2>
       {#if event.description}
@@ -762,6 +780,44 @@
   .route-card {
     display: grid;
     gap: 0.45rem;
+  }
+
+  .event-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .event-close {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #d8b9ba;
+    border-radius: 0.625rem;
+    background: #fffafa;
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .event-close:hover,
+  .event-close:focus-visible {
+    border-color: #c58f91;
+    background: #fdf3f3;
+  }
+
+  .event-close:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
   }
 
   .event-kicker,

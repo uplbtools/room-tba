@@ -9,29 +9,36 @@ const db = drizzle({ client });
 
 // Add new columns to existing dorms table
 try {
-  client.run(`ALTER TABLE dorms ADD COLUMN is_up_managed INTEGER NOT NULL DEFAULT 1`);
+  client.run(
+    `ALTER TABLE dorms ADD COLUMN is_up_managed INTEGER NOT NULL DEFAULT 1`,
+  );
   console.log("Added is_up_managed column");
 } catch (e: any) {
-  if (e.message?.includes("duplicate column")) console.log("is_up_managed column already exists");
+  if (e.message?.includes("duplicate column"))
+    console.log("is_up_managed column already exists");
   else throw e;
 }
 try {
   client.run(`ALTER TABLE dorms ADD COLUMN price_range TEXT`);
   console.log("Added price_range column");
 } catch (e: any) {
-  if (e.message?.includes("duplicate column")) console.log("price_range column already exists");
+  if (e.message?.includes("duplicate column"))
+    console.log("price_range column already exists");
   else throw e;
 }
 try {
   client.run(`ALTER TABLE dorms ADD COLUMN contact_phone TEXT`);
   console.log("Added contact_phone column");
 } catch (e: any) {
-  if (e.message?.includes("duplicate column")) console.log("contact_phone column already exists");
+  if (e.message?.includes("duplicate column"))
+    console.log("contact_phone column already exists");
   else throw e;
 }
 
 // Update existing UP dorms with price range info
-client.run(`UPDATE dorms SET price_range = '₱400-₱800/mo (SLAS bracket)' WHERE is_up_managed = 1`);
+client.run(
+  `UPDATE dorms SET price_range = '₱400-₱800/mo (SLAS bracket)' WHERE is_up_managed = 1`,
+);
 console.log("Updated UP dorm price ranges");
 
 // Now seed the 10 non-UP dorms
@@ -69,7 +76,7 @@ const privateDorms = [
     dorm_name: "Koru Residences",
     short_name: "Koru",
     lat: 14.1695,
-    lon: 121.2440,
+    lon: 121.244,
     gender: "female",
     capacity: null,
     managing_office: null,
@@ -147,16 +154,13 @@ const privateDorms = [
     dorm_name: "One Silangan Place",
     short_name: "Silangan",
     lat: 14.1672495,
-    lon: 121.2439320,
+    lon: 121.243932,
     gender: "coed",
     capacity: null,
     managing_office: null,
     contact_email: null,
     contact_phone: null,
-    amenities: JSON.stringify([
-      "Furnished rooms",
-      "Near campus gate",
-    ]),
+    amenities: JSON.stringify(["Furnished rooms", "Near campus gate"]),
     osm_link: null,
     description:
       "A private accommodation on Victoria M. Ela Avenue, Batong Malake. Near the UPLB campus gate.",
@@ -187,7 +191,7 @@ const privateDorms = [
   {
     dorm_name: "Antonio's Boarding House",
     short_name: "Antonio's",
-    lat: 14.1700,
+    lat: 14.17,
     lon: 121.2435,
     gender: "coed",
     capacity: null,
@@ -230,7 +234,7 @@ const privateDorms = [
     dorm_name: "Raymundo Area Boarding Houses",
     short_name: "Raymundo",
     lat: 14.1676533,
-    lon: 121.2413970,
+    lon: 121.241397,
     gender: "coed",
     capacity: null,
     managing_office: null,
@@ -252,7 +256,7 @@ const privateDorms = [
   {
     dorm_name: "Catalan Compound Boarding Houses",
     short_name: "Catalan",
-    lat: 14.1680,
+    lat: 14.168,
     lon: 121.2408,
     gender: "coed",
     capacity: null,
@@ -280,5 +284,5 @@ console.log(`Seeded ${privateDorms.length} private dorms successfully!`);
 // Verify
 const allDorms = await db.select().from(dormsTable);
 console.log(`Total dorms in database: ${allDorms.length}`);
-console.log("UP-managed:", allDorms.filter(d => d.is_up_managed).length);
-console.log("Private:", allDorms.filter(d => !d.is_up_managed).length);
+console.log("UP-managed:", allDorms.filter((d) => d.is_up_managed).length);
+console.log("Private:", allDorms.filter((d) => !d.is_up_managed).length);

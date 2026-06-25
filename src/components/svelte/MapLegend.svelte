@@ -8,8 +8,15 @@
     queryStore,
   } from "../../lib/store.svelte";
 
+  type Props = {
+    embedded?: boolean;
+  };
+
+  let { embedded = false }: Props = $props();
+
   const panelId = "legend";
   const open = $derived(floatingControlPanelStore.openPanel === panelId);
+  const showPanel = $derived(embedded || open);
 
   const appData = getAppData();
   const { events, loaded } = $derived(appData());
@@ -21,6 +28,8 @@
         queryStore.category === "event" ||
         queryStore.category === "events"),
   );
+
+  const eventsEmpty = $derived(loaded && events.length === 0);
 
   const placeItems = [
     {
@@ -77,20 +86,27 @@
   ] as const;
 </script>
 
-<div class="map-legend">
-  {#if open}
-    <div id="map-icon-legend" class="legend-panel" aria-label="Map icon legend">
-      <div class="legend-panel-header">
-        <span>Map legend</span>
-        <button
-          type="button"
-          class="close-btn"
-          onclick={() => floatingControlPanelStore.close(panelId)}
-          aria-label="Close map legend"
-        >
-          <X size={16} />
-        </button>
-      </div>
+<div class="map-legend" class:embedded>
+  {#if showPanel}
+    <div
+      id="map-icon-legend"
+      class="legend-panel"
+      class:embedded
+      aria-label="Map icon legend"
+    >
+      {#if !embedded}
+        <div class="legend-panel-header">
+          <span>Map legend</span>
+          <button
+            type="button"
+            class="close-btn"
+            onclick={() => floatingControlPanelStore.close(panelId)}
+            aria-label="Close map legend"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      {/if}
 
       <div class="legend-sections">
         <section class="legend-section" aria-labelledby="legend-places">
@@ -112,21 +128,28 @@
         {#if showEventSection}
           <section class="legend-section" aria-labelledby="legend-events">
             <h3 id="legend-events" class="legend-section-title">Events</h3>
-            <div class="legend-list">
-              {#each eventItems as item (item.key)}
-                <div class="legend-item">
-                  <span class={`legend-swatch ${item.key}`} aria-hidden="true">
-                    {#if item.key === "event-route-stop"}
-                      1
-                    {/if}
-                  </span>
-                  <span class="legend-copy">
-                    <span class="legend-label">{item.label}</span>
-                    <span class="legend-description">{item.description}</span>
-                  </span>
-                </div>
-              {/each}
-            </div>
+            {#if eventsEmpty}
+              <p class="legend-empty-note">No events on the map yet.</p>
+            {:else}
+              <div class="legend-list">
+                {#each eventItems as item (item.key)}
+                  <div class="legend-item">
+                    <span
+                      class={`legend-swatch ${item.key}`}
+                      aria-hidden="true"
+                    >
+                      {#if item.key === "event-route-stop"}
+                        1
+                      {/if}
+                    </span>
+                    <span class="legend-copy">
+                      <span class="legend-label">{item.label}</span>
+                      <span class="legend-description">{item.description}</span>
+                    </span>
+                  </div>
+                {/each}
+              </div>
+            {/if}
           </section>
         {/if}
 
@@ -150,21 +173,45 @@
     </div>
   {/if}
 
-  <button
-    class="legend-btn"
-    class:active={open}
-    type="button"
-    onclick={() => floatingControlPanelStore.toggle(panelId)}
-    title="Map legend"
-    aria-label="Map legend"
-    aria-expanded={open}
-    aria-controls="map-icon-legend"
-  >
-    <Info />
-  </button>
+  {#if !embedded}
+    <button
+      class="legend-btn"
+      class:active={open}
+      type="button"
+      onclick={() => floatingControlPanelStore.toggle(panelId)}
+      title="Map legend"
+      aria-label="Map legend"
+      aria-expanded={open}
+      aria-controls="map-icon-legend"
+    >
+      <Info />
+    </button>
+  {/if}
 </div>
 
 <style>
+  .map-legend.embedded {
+    pointer-events: auto;
+    width: 100%;
+  }
+
+  .legend-panel.embedded {
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    padding: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .legend-empty-note {
+    margin: 0;
+    padding: 0 0.25rem;
+    color: hsl(0, 0%, 45%);
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
   .map-legend {
     display: flex;
     flex-direction: column;
@@ -245,10 +292,11 @@
   .legend-sections {
     display: flex;
     min-height: 0;
+    min-width: 0;
     flex-direction: column;
     gap: 0.75rem;
-    overflow-y: auto;
-    padding-right: 0.125rem;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .legend-section {
@@ -263,7 +311,7 @@
     font-size: 0.6875rem;
     font-weight: 800;
     letter-spacing: 0.04em;
-    line-height: 1;
+    line-height: 1.2;
     text-transform: uppercase;
   }
 

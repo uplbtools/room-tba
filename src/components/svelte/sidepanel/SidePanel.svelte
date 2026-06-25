@@ -9,11 +9,6 @@
   import EventResult from "./EventResult.svelte";
   import RoomResult from "../room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
-  import BuildingTypeControl from "../BuildingTypeControl.svelte";
-  import LocationButton from "../LocationButton.svelte";
-  import MapLegend from "../MapLegend.svelte";
-  import JeepneyMenu from "../JeepneyMenu.svelte";
-  import TerrainControl from "../TerrainControl.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
@@ -35,7 +30,6 @@
       : "Collapse details panel",
   );
 
-  // A new result always re-opens the drawer.
   $effect(() => {
     const identity = panelIdentity;
     if (identity === lastPanelIdentity) return;
@@ -52,13 +46,6 @@
 <div class="side-panel-wrapper">
   <Search />
   <div class="side-panel-controls">
-    <div class="floating-actions">
-      <MapLegend />
-      <BuildingTypeControl />
-      <TerrainControl />
-      <JeepneyMenu />
-      <LocationButton />
-    </div>
     {#if queryStore.category !== null}
       <div class="drawer" class:is-collapsed={sidePanelStore.collapsed}>
         <button
@@ -117,10 +104,10 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     gap: 0.75rem;
     flex: 1;
     min-height: 0;
+    overflow: hidden;
     pointer-events: none;
   }
 
@@ -129,22 +116,9 @@
     display: flex;
     flex: 1;
     align-items: flex-end;
-    flex-direction: row-reverse;
-    justify-content: space-between;
-    gap: 1rem;
     min-height: 0;
   }
 
-  .floating-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-    pointer-events: none;
-  }
-
-  /* Full-height drawer that slides out of view when retracted, leaving a
-     persistent middle handle on its outer edge to pull it back. */
   .drawer {
     position: absolute;
     top: 0;
@@ -208,7 +182,6 @@
     outline-offset: 2px;
   }
 
-  /* Mobile: drawer becomes a bottom sheet that slides down to retract. */
   @media screen and (max-width: 48rem) {
     .side-panel-wrapper {
       position: relative;
@@ -219,16 +192,13 @@
       pointer-events: none;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
+      min-height: 0;
     }
     .side-panel-controls {
+      flex: 0 0 auto;
       flex-direction: column;
       justify-content: flex-end;
-    }
-    .floating-actions {
-      position: absolute;
-      right: 0;
-      bottom: calc(50% + 1.5rem);
     }
     .drawer {
       top: auto;

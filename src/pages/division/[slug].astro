@@ -25,7 +25,7 @@ const appData = await getDivisionPageData(divisionName);
 if (appData === null) {
   throw new Error(`Division not found for slug: ${divisionName}`);
 }
-const {division, roomCount} = appData;
+const { division, roomCount } = appData;
 
 const canonicalPath = `/division/${getDivisionSlug(division)}/`;
 const title = `${division.divisionName} | Division at UPLB | Room TBA`;

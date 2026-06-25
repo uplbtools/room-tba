@@ -17,19 +17,22 @@ const db = drizzle({ client });
     (amisClasses.classes as any[]).map(async (classInfo: any) => ({
       type: classInfo.type,
       section: classInfo.section,
-      room_id: (await db
-        .select({ id: roomsTable.id })
-        .from(roomsTable)
-        .where(eq(classInfo.facility_id, roomsTable.room_code))
-      )[0]?.id ?? 506,
+      room_id:
+        (
+          await db
+            .select({ id: roomsTable.id })
+            .from(roomsTable)
+            .where(eq(classInfo.facility_id, roomsTable.room_code))
+        )[0]?.id ?? 506,
       course_code: classInfo.course_code,
       course_title: `${classInfo.course.title}${classInfo.course_code.includes("HK 12") ? ` (${classInfo.activity})` : ""}`,
-      schedule: (classInfo.class_dates
-        .map(
-          (schedData: any) =>
-            `${schedData.date} ${schedData.start_time.replace(" ", "")}-${schedData.end_time.replace(" ", "")}`,
-        )
-        .join(",")) ?? "",
+      schedule:
+        classInfo.class_dates
+          .map(
+            (schedData: any) =>
+              `${schedData.date} ${schedData.start_time.replace(" ", "")}-${schedData.end_time.replace(" ", "")}`,
+          )
+          .join(",") ?? "",
       term_id: classInfo.term_id,
     })),
   );

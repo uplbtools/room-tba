@@ -11,10 +11,17 @@
   } from "../../lib/store.svelte";
   import type { BuildingTypeFilter } from "../../constants/building-types";
 
+  type Props = {
+    embedded?: boolean;
+  };
+
+  let { embedded = false }: Props = $props();
+
   const appData = getAppData();
   const { buildings, dorms } = $derived(appData());
   const panelId = "building-type";
   const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
+  const showPanel = $derived(embedded || menuOpen);
 
   const options = $derived(getBuildingTypeFilterOptions(buildings, dorms));
   const activeLabel = $derived(
@@ -24,24 +31,33 @@
 
   function selectFilter(value: BuildingTypeFilter) {
     buildingTypeFilter.set(value);
-    floatingControlPanelStore.close(panelId);
+    if (!embedded) {
+      floatingControlPanelStore.close(panelId);
+    }
   }
 </script>
 
-<div class="building-type-control">
-  {#if menuOpen}
-    <div class="filter-panel" role="menu" aria-label="Building type filter">
-      <div class="filter-panel-header">
-        <span>Building Type</span>
-        <button
-          type="button"
-          class="close-btn"
-          onclick={() => floatingControlPanelStore.close(panelId)}
-          aria-label="Close building type filter"
-        >
-          <X size="16" />
-        </button>
-      </div>
+<div class="building-type-control" class:embedded>
+  {#if showPanel}
+    <div
+      class="filter-panel"
+      class:embedded
+      role="menu"
+      aria-label="Building type filter"
+    >
+      {#if !embedded}
+        <div class="filter-panel-header">
+          <span>Building Type</span>
+          <button
+            type="button"
+            class="close-btn"
+            onclick={() => floatingControlPanelStore.close(panelId)}
+            aria-label="Close building type filter"
+          >
+            <X size="16" />
+          </button>
+        </div>
+      {/if}
 
       <p class="filter-copy">Show building and dorm pins by type.</p>
 
@@ -67,20 +83,34 @@
     </div>
   {/if}
 
-  <button
-    class="filter-btn"
-    class:active={hasActiveFilter}
-    onclick={() => floatingControlPanelStore.toggle(panelId)}
-    title={`Building Type: ${activeLabel}`}
-    aria-label={`Building Type: ${activeLabel}`}
-    aria-expanded={menuOpen}
-    aria-pressed={hasActiveFilter}
-  >
-    <Building2 />
-  </button>
+  {#if !embedded}
+    <button
+      class="filter-btn"
+      class:active={hasActiveFilter}
+      onclick={() => floatingControlPanelStore.toggle(panelId)}
+      title={`Building Type: ${activeLabel}`}
+      aria-label={`Building Type: ${activeLabel}`}
+      aria-expanded={menuOpen}
+      aria-pressed={hasActiveFilter}
+    >
+      <Building2 />
+    </button>
+  {/if}
 </div>
 
 <style>
+  .building-type-control.embedded {
+    width: 100%;
+  }
+
+  .filter-panel.embedded {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-shadow: none;
+    overflow-x: hidden;
+  }
+
   .building-type-control {
     pointer-events: auto;
     display: flex;

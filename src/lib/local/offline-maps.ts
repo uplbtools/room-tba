@@ -2,12 +2,14 @@
 // reporting how much data is involved. Tiles are fetched from the page so the
 // service worker's `map-tiles` runtime cache stores them (see astro.config.mjs).
 
-// Campus bounds — mirrors `maxBounds` in src/components/svelte/Map.svelte.
-const CAMPUS_BOUNDS = {
-  minLon: 121.22951431520816,
-  minLat: 14.143739048514412,
-  maxLon: 121.28117994803134,
-  maxLat: 14.18059150108623,
+import { CAMPUS_BOUNDS } from "../../constants/map-terrain";
+
+// Campus bounds — mirrors `CAMPUS_MAX_BOUNDS` in src/constants/map-terrain.ts.
+const CAMPUS_BOUNDS_LON_LAT = {
+  minLon: CAMPUS_BOUNDS.minLng,
+  minLat: CAMPUS_BOUNDS.minLat,
+  maxLon: CAMPUS_BOUNDS.maxLng,
+  maxLat: CAMPUS_BOUNDS.maxLat,
 };
 
 export const MIN_ZOOM = 13;
@@ -42,10 +44,10 @@ export function getCampusTileCoords(
 ): TileCoord[] {
   const coords: TileCoord[] = [];
   for (let z = minZoom; z <= maxZoom; z++) {
-    const xA = lonToTileX(CAMPUS_BOUNDS.minLon, z);
-    const xB = lonToTileX(CAMPUS_BOUNDS.maxLon, z);
-    const yA = latToTileY(CAMPUS_BOUNDS.maxLat, z);
-    const yB = latToTileY(CAMPUS_BOUNDS.minLat, z);
+    const xA = lonToTileX(CAMPUS_BOUNDS_LON_LAT.minLon, z);
+    const xB = lonToTileX(CAMPUS_BOUNDS_LON_LAT.maxLon, z);
+    const yA = latToTileY(CAMPUS_BOUNDS_LON_LAT.maxLat, z);
+    const yB = latToTileY(CAMPUS_BOUNDS_LON_LAT.minLat, z);
     for (let x = Math.min(xA, xB); x <= Math.max(xA, xB); x++) {
       for (let y = Math.min(yA, yB); y <= Math.max(yA, yB); y++) {
         coords.push({ z, x, y });

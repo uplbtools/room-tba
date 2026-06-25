@@ -23,6 +23,8 @@
   import X from "@lucide/svelte/icons/x";
   import House from "@lucide/svelte/icons/house";
   import Move from "@lucide/svelte/icons/move";
+  import Undo2 from "@lucide/svelte/icons/undo-2";
+  import Redo2 from "@lucide/svelte/icons/redo-2";
   import University from "@lucide/svelte/icons/university";
   import EventMapPin from "./map/EventMapPin.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
@@ -1958,66 +1960,122 @@
 
 <div class="map-container">
   {#if eventPlacementStore.active}
-    <div class="event-placement-toolbar" role="status" aria-live="polite">
-      <div class="event-placement-copy">
-        <strong>Choose event location on the map</strong>
-        <span>
-          {eventPlacementStore.creating
-            ? "Creating the event at the selected map point..."
-            : "Click or tap the map point where this event should appear."}
-        </span>
-      </div>
-      <button
-        class="event-placement-cancel"
-        type="button"
-        disabled={eventPlacementStore.creating}
-        onclick={() => eventPlacementStore.cancel()}
+    {#if md.current}
+      <div
+        class="edit-dock event-placement-dock"
+        role="status"
+        aria-live="polite"
       >
-        Cancel
-      </button>
-    </div>
-  {:else if isMapEditEnabled()}
-    <div class="map-edit-toolbar" role="status" aria-live="polite">
-      <div class="map-edit-summary">
-        <div class="map-edit-copy">
-          <strong>Editing map</strong>
+        <p class="edit-dock-status">
+          {eventPlacementStore.creating
+            ? "Creating event…"
+            : "Tap the map to place the event"}
+        </p>
+        <button
+          class="edit-dock-action cancel"
+          type="button"
+          disabled={eventPlacementStore.creating}
+          onclick={() => eventPlacementStore.cancel()}
+        >
+          Cancel
+        </button>
+      </div>
+    {:else}
+      <div class="event-placement-toolbar" role="status" aria-live="polite">
+        <div class="event-placement-copy">
+          <strong>Choose event location on the map</strong>
           <span>
-            {editStatusMessage ??
-              `Click pins for details or drag to move. ${undoShortcutLabel} undo, ${undoShortcutLabel.replace("Z", "Y")} redo.`}
+            {eventPlacementStore.creating
+              ? "Creating the event at the selected map point..."
+              : "Click or tap the map point where this event should appear."}
           </span>
         </div>
-      </div>
-      <div class="map-edit-actions">
         <button
-          class="map-edit-action"
-          disabled={!undoMove || undoingEditKey !== null}
-          onclick={undoLastMove}
-          title={undoMove
-            ? `Undo move for ${undoMove.name}`
-            : "No move to undo yet"}
+          class="event-placement-cancel"
+          type="button"
+          disabled={eventPlacementStore.creating}
+          onclick={() => eventPlacementStore.cancel()}
         >
-          {#if undoingEditKey && undoMove}
-            Undoing
-          {:else}
-            Undo
-          {/if}
-        </button>
-        <button
-          class="map-edit-action"
-          disabled={!redoMove || undoingEditKey !== null}
-          onclick={redoMoveBranch}
-          title={redoMove
-            ? `Redo move for ${redoMove.name}`
-            : "No move to redo yet"}
-        >
-          {#if undoingEditKey && redoMove}
-            Redoing
-          {:else}
-            Redo
-          {/if}
+          Cancel
         </button>
       </div>
-    </div>
+    {/if}
+  {:else if isMapEditEnabled()}
+    {#if md.current}
+      <div class="edit-dock map-edit-dock" role="status" aria-live="polite">
+        {#if editStatusMessage}
+          <p class="edit-dock-status">{editStatusMessage}</p>
+        {/if}
+        <div class="edit-dock-actions">
+          <button
+            class="edit-dock-action"
+            disabled={!undoMove || undoingEditKey !== null}
+            onclick={undoLastMove}
+            title={undoMove
+              ? `Undo move for ${undoMove.name}`
+              : "No move to undo yet"}
+            aria-label="Undo last pin move"
+          >
+            <Undo2 size={18} />
+            <span>Undo</span>
+          </button>
+          <button
+            class="edit-dock-action"
+            disabled={!redoMove || undoingEditKey !== null}
+            onclick={redoMoveBranch}
+            title={redoMove
+              ? `Redo move for ${redoMove.name}`
+              : "No move to redo yet"}
+            aria-label="Redo last pin move"
+          >
+            <Redo2 size={18} />
+            <span>Redo</span>
+          </button>
+        </div>
+      </div>
+    {:else}
+      <div class="map-edit-toolbar" role="status" aria-live="polite">
+        <div class="map-edit-summary">
+          <div class="map-edit-copy">
+            <strong>Editing map</strong>
+            <span>
+              {editStatusMessage ??
+                `Click pins for details or drag to move. ${undoShortcutLabel} undo, ${undoShortcutLabel.replace("Z", "Y")} redo.`}
+            </span>
+          </div>
+        </div>
+        <div class="map-edit-actions">
+          <button
+            class="map-edit-action"
+            disabled={!undoMove || undoingEditKey !== null}
+            onclick={undoLastMove}
+            title={undoMove
+              ? `Undo move for ${undoMove.name}`
+              : "No move to undo yet"}
+          >
+            {#if undoingEditKey && undoMove}
+              Undoing
+            {:else}
+              Undo
+            {/if}
+          </button>
+          <button
+            class="map-edit-action"
+            disabled={!redoMove || undoingEditKey !== null}
+            onclick={redoMoveBranch}
+            title={redoMove
+              ? `Redo move for ${redoMove.name}`
+              : "No move to redo yet"}
+          >
+            {#if undoingEditKey && redoMove}
+              Redoing
+            {:else}
+              Redo
+            {/if}
+          </button>
+        </div>
+      </div>
+    {/if}
   {/if}
   <MapLibre
     bind:map={mapStore.mapInstance}
@@ -2519,45 +2577,92 @@
     opacity: 0.55;
   }
 
+  .edit-dock {
+    position: absolute;
+    right: var(--map-ui-padding, 0.5rem);
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
+        env(safe-area-inset-bottom)
+    );
+    left: var(--map-ui-padding, 0.5rem);
+    z-index: 21;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid hsla(160, 52%, 32%, 0.35);
+    border-radius: 0.875rem;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    pointer-events: auto;
+  }
+
+  .event-placement-dock {
+    border-color: hsla(5, 53%, 32%, 0.35);
+  }
+
+  .edit-dock-status {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: hsl(0, 0%, 24%);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .edit-dock-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .edit-dock-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.875rem;
+    border: none;
+    border-radius: 0.75rem;
+    background: hsl(160, 84%, 26%);
+    color: white;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .edit-dock-action:hover:not(:disabled) {
+    background: hsl(160, 84%, 20%);
+  }
+
+  .edit-dock-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .edit-dock-action.cancel {
+    background: #7b1113;
+  }
+
+  .edit-dock-action.cancel:hover:not(:disabled) {
+    background: #5f0d0f;
+  }
+
   @media (max-width: 48rem) {
     .maptiler-logo {
       bottom: calc(50vh + 0.75rem);
       left: 0.75rem;
-    }
-
-    .map-edit-toolbar,
-    .event-placement-toolbar {
-      right: 0.5rem;
-      bottom: 4.25rem;
-      left: 0.5rem;
-      transform: none;
-      width: auto;
-      justify-content: space-between;
-      border-radius: 1.25rem;
-    }
-
-    .map-edit-copy span {
-      max-width: 100%;
-    }
-
-    .event-placement-copy span {
-      max-width: 100%;
-      white-space: normal;
-    }
-
-    .map-edit-actions {
-      flex: 0 0 auto;
-    }
-
-    .map-edit-action {
-      width: 4.2rem;
-      padding-inline: 0.55rem;
-    }
-
-    .event-placement-cancel {
-      flex: 0 0 auto;
-      min-width: 4.2rem;
-      padding-inline: 0.55rem;
     }
   }
 
