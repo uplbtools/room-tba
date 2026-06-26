@@ -1,9 +1,6 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
-import {
-  EditConflictError,
-  updateBuilding,
-} from "@lib/services/admin-service";
+import { EditConflictError, updateBuilding } from "@lib/services/admin-service";
 
 export const prerender = false;
 

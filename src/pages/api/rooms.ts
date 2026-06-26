@@ -6,7 +6,7 @@ import {
   getRoomByCode,
   searchRooms,
 } from "@lib/services/map-data-service";
-import { RoomData } from "@lib/types";
+import type { RoomData } from "@lib/types";
 // import { getAllRooms } from "@lib/services/map-data-service";
 
 export const GET = (async ({ url }) => {

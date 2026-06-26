@@ -5,10 +5,7 @@
   import CopyLinkButton from "../CopyLinkButton.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
-  import {
-    formatCampusDateShort,
-    formatCampusTime,
-  } from "@lib/event-time";
+  import { formatCampusDateShort, formatCampusTime } from "@lib/event-time";
   import { getEventShareUrl } from "@lib/share-links";
   import { beginEventPlacement } from "@lib/event-placement";
   import {

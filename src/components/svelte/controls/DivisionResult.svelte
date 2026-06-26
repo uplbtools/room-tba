@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    adminAuthStore,
-    queryStore,
-    toastStore,
-  } from "@lib/store.svelte";
+  import { adminAuthStore, queryStore, toastStore } from "@lib/store.svelte";
   import { persistEntityChange } from "@lib/proposals/client";
   import { getAppActions, getAppData } from "@lib/context";
   import type { DivisionData, RoomData } from "@lib/types";

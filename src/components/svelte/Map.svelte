@@ -57,10 +57,7 @@
     dormMatchesTypeFilter,
   } from "@constants/building-types";
   import { getEventImage } from "@lib/event-images";
-  import {
-    formatCampusDateShort,
-    formatCampusTime,
-  } from "@lib/event-time";
+  import { formatCampusDateShort, formatCampusTime } from "@lib/event-time";
   import {
     completeMapMoveRedo,
     completeMapMoveUndo,
