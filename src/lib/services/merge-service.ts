@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { classesTable, roomsTable, roomPositionsTable } from "@drizzle/schema";
-import { normalizeEntityName } from "../entity-names";
+import { normalizeEntityName } from "@lib/entity-names";
 import { db } from "@lib/db";
 import type { RoomData } from "@lib/types";
 import {

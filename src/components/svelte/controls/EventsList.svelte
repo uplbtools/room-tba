@@ -3,7 +3,7 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import MapPin from "@lucide/svelte/icons/map-pin";
-  import CopyLinkButton from "../CopyLinkButton.svelte";
+  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
   import { formatCampusRange } from "@lib/event-time";

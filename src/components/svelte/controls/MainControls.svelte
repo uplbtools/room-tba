@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Search from "../search/Search.svelte";
+  import Search from "@ui/search/Search.svelte";
   import { queryStore, sidePanelStore } from "@lib/store.svelte";
   import BuildingResult from "./BuildingResult.svelte";
   import CollegeResult from "./CollegeResult.svelte";
@@ -7,7 +7,7 @@
   import DormResult from "./DormResult.svelte";
   import EventsList from "./EventsList.svelte";
   import EventResult from "./EventResult.svelte";
-  import RoomResult from "../room/RoomResult.svelte";
+  import RoomResult from "@ui/room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";

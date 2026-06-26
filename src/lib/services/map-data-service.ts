@@ -9,7 +9,7 @@ import {
   roomsTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
-import { normalizeAlias } from "../site";
+import { normalizeAlias } from "@lib/site";
 import type {
   BuildingData,
   ClassMapValue,

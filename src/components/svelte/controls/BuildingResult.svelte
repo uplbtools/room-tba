@@ -13,7 +13,7 @@
   import Box from "@lucide/svelte/icons/box";
   import type { BuildingData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
-  import CopyLinkButton from "../CopyLinkButton.svelte";
+  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { onMount } from "svelte";
   import { getBuildingRooms } from "@lib/local/data/utils";
   import {
