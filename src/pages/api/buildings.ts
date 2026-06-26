@@ -1,4 +1,4 @@
-import { APIRoute } from "astro";
+import type { APIRoute } from "astro";
 import { getAllBuildings } from "@lib/services/map-data-service";
 
 export const prerender = false;
