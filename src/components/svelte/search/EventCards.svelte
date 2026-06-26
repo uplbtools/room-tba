@@ -2,7 +2,7 @@
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
-  import CopyLinkButton from "../CopyLinkButton.svelte";
+  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
   import { formatCampusDateShort, formatCampusTime } from "@lib/event-time";

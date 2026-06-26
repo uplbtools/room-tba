@@ -9,7 +9,7 @@ import {
   roomsTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
-import { canReviewProposals, type SessionUser } from "../admin/auth";
+import { canReviewProposals, type SessionUser } from "@lib/admin/auth";
 import {
   EditConflictError,
   DuplicateSlugError,

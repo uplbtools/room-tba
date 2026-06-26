@@ -1,7 +1,7 @@
 <script>
   import { getAppData } from "@lib/context";
   import { queryStore } from "@lib/store.svelte";
-  import ScheduleRender from "../room/ScheduleRender.svelte";
+  import ScheduleRender from "@ui/room/ScheduleRender.svelte";
   const appData = getAppData();
   const { classesMap } = $derived(appData());
   // const classes = $derived(classesMap.get(queryStore.inputValue) ?? []);

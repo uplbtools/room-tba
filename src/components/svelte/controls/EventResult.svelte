@@ -5,7 +5,7 @@
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
   import X from "@lucide/svelte/icons/x";
-  import CopyLinkButton from "../CopyLinkButton.svelte";
+  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import {
     adminAuthStore,
