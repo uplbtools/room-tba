@@ -1,5 +1,5 @@
-import { type DBData } from "../../context";
-import {
+import { type DBData } from "@lib/context";
+import type {
   BuildingData,
   ClassMapValue,
   CollegeData,
@@ -8,15 +8,15 @@ import {
   EventData,
   RoomData,
   TableSyncInfo,
-} from "../../types";
+} from "@lib/types";
 import { getDB } from "./pgliteDB";
 import {
   getLocalBuildingRooms,
   getLocalCollegeRooms,
   getLocalDivisionRooms,
 } from "./sync";
-import { refreshStoredEventTiming, sortStoredEvents } from "../../event-time";
-import { normalizeAlias } from "../../site";
+import { refreshStoredEventTiming, sortStoredEvents } from "@lib/event-time";
+import { normalizeAlias } from "@lib/site";
 import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {

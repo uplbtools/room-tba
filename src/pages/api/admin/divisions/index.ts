@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
-import { createDivision } from "../../../../lib/services/admin-service";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { createDivision } from "@lib/services/admin-service";
 
 export const prerender = false;
 

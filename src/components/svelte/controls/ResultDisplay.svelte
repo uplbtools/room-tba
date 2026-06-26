@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RoomData } from "../../../lib/types";
+  import type { RoomData } from "@lib/types";
   import RoomDisplay from "./RoomDisplay.svelte";
 
   const MAX_DISPLAY_RESULT = 12;

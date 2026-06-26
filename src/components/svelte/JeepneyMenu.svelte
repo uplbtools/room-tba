@@ -1,11 +1,11 @@
 <script lang="ts">
   import X from "@lucide/svelte/icons/x";
   import Bus from "@lucide/svelte/icons/bus";
-  import { JEEPNEY_ROUTES } from "../../constants/jeepney-routes";
+  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
   import {
     floatingControlPanelStore,
     jeepneyStore,
-  } from "../../lib/store.svelte";
+  } from "@lib/store.svelte";
 
   type Props = {
     embedded?: boolean;

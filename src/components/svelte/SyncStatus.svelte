@@ -6,7 +6,7 @@
     RefreshCw,
     X,
   } from "@lucide/svelte";
-  import { syncToastStore } from "../../lib/store.svelte";
+  import { syncToastStore } from "@lib/store.svelte";
 
   type Props = {
     /** When true, show compact collapsed label for mobile status bar. */

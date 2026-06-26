@@ -1,7 +1,7 @@
 <script lang="ts">
   import Copy from "@lucide/svelte/icons/copy";
   import { onDestroy } from "svelte";
-  import { copyTextToClipboard } from "../../lib/clipboard";
+  import { copyTextToClipboard } from "@lib/clipboard";
 
   type FeedbackMode = "inline" | "none";
   type Variant = "index" | "chip";

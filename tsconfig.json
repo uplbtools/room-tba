@@ -1,10 +1,11 @@
 {
-  // "extends": "@astrojs/ts-plugin/tsconfigs/strict",
+  "extends": "astro/tsconfigs/base",
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"],
   "compilerOptions": {
+      "baseUrl": ".",
     "strict": true,
-    "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info"],
+    "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info", "svelte"],
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "allowUnusedLabels": false,
@@ -13,6 +14,14 @@
     "allowUnreachableCode": false,
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
-    "erasableSyntaxOnly": false
+    "erasableSyntaxOnly": false,
+    "paths": {
+        "@ui/*": ["./src/components/svelte/*"],
+        "@seo/*": ["./src/components/seo/*"],
+        "@constants/*": ["./src/constants/*"],
+        "@lib/*": ["./src/lib/*"],
+        "@drizzle/*": ["./drizzle/*"],
+        "@layouts/*": ["./src/layouts/*"]
+    }
   }
 }

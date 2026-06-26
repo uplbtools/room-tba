@@ -3,16 +3,16 @@
     adminAuthStore,
     queryStore,
     toastStore,
-  } from "../../../lib/store.svelte";
-  import { persistEntityChange } from "../../../lib/proposals/client";
-  import { getAppActions, getAppData } from "../../../lib/context";
-  import type { DivisionData, RoomData } from "../../../lib/types";
-  import { getDivisionRooms } from "../../../lib/local/data/utils";
+  } from "@lib/store.svelte";
+  import { persistEntityChange } from "@lib/proposals/client";
+  import { getAppActions, getAppData } from "@lib/context";
+  import type { DivisionData, RoomData } from "@lib/types";
+  import { getDivisionRooms } from "@lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
   import {
     checkLocalDivisionRoom,
     syncDivisionRooms,
-  } from "../../../lib/local/data/sync";
+  } from "@lib/local/data/sync";
   import { onMount } from "svelte";
 
   type DivisionPatchResponse = {

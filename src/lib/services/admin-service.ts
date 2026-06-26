@@ -13,11 +13,11 @@ import {
   roomsTable,
   roomPositionsTable,
   updateTable,
-} from "../../../drizzle/schema";
-import { normalizeEntityName } from "../entity-names";
-import { db } from "../db";
+} from "@drizzle/schema";
+import { normalizeEntityName } from "@lib/entity-names";
+import { db } from "@lib/db";
 import { getEventById } from "./event-service";
-import type { EventData, RoomData } from "../types";
+import type { EventData, RoomData } from "@lib/types";
 
 // ── Sync key refresh ──
 

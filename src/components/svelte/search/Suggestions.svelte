@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { getAppData } from "../../../lib/context";
+  import { getAppData } from "@lib/context";
   import {
     getJSONFetch,
     searchLocalAliases,
     searchLocalRooms,
-  } from "../../../lib/local/data/utils";
+  } from "@lib/local/data/utils";
   import {
     queryStore,
     type QueryStoreState,
     buildingTypeFilter,
-  } from "../../../lib/store.svelte";
-  import type { BuildingData, DormData, EventData } from "../../../lib/types";
+  } from "@lib/store.svelte";
+  import type { BuildingData, DormData, EventData } from "@lib/types";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
-  } from "../../../constants/building-types";
+  } from "@constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 

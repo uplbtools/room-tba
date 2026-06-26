@@ -7,8 +7,8 @@ import {
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
-} from "../../../drizzle/schema";
-import { db } from "../db";
+} from "@drizzle/schema";
+import { db } from "@lib/db";
 import type {
   BuildingData,
   DormData,
@@ -16,7 +16,7 @@ import type {
   EventLocationData,
   EventRouteData,
   EventRouteStopData,
-} from "../types";
+} from "@lib/types";
 
 type EventRow = typeof eventsTable.$inferSelect;
 type EventLocationRow = typeof eventLocationsTable.$inferSelect;

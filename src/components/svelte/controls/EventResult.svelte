@@ -6,7 +6,7 @@
   import Route from "@lucide/svelte/icons/route";
   import X from "@lucide/svelte/icons/x";
   import CopyLinkButton from "../CopyLinkButton.svelte";
-  import { getAppActions, getAppData } from "../../../lib/context";
+  import { getAppActions, getAppData } from "@lib/context";
   import {
     adminAuthStore,
     eventPlacementStore,
@@ -16,20 +16,20 @@
     mapStore,
     queryStore,
     toastStore,
-  } from "../../../lib/store.svelte";
+  } from "@lib/store.svelte";
   import {
     getStoredProposalForEntity,
     persistEntityChange,
-  } from "../../../lib/proposals/client";
-  import { CAMPUS_DEFAULT_CAMERA } from "../../../constants/map-terrain";
-  import { getEventImage } from "../../../lib/event-images";
+  } from "@lib/proposals/client";
+  import { CAMPUS_DEFAULT_CAMERA } from "@constants/map-terrain";
+  import { getEventImage } from "@lib/event-images";
   import {
     campusInputToWallString,
     formatCampusDateTime,
     instantToCampusInput,
-  } from "../../../lib/event-time";
-  import { getEventShareUrl } from "../../../lib/share-links";
-  import type { EventData } from "../../../lib/types";
+  } from "@lib/event-time";
+  import { getEventShareUrl } from "@lib/share-links";
+  import type { EventData } from "@lib/types";
 
   const STATUS_LABELS: Record<EventData["status"], string> = {
     active: "Happening now",

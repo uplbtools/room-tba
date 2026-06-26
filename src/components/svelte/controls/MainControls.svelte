@@ -1,6 +1,6 @@
 <script lang="ts">
   import Search from "../search/Search.svelte";
-  import { queryStore, sidePanelStore } from "../../../lib/store.svelte";
+  import { queryStore, sidePanelStore } from "@lib/store.svelte";
   import BuildingResult from "./BuildingResult.svelte";
   import CollegeResult from "./CollegeResult.svelte";
   import DivisionResult from "./DivisionResult.svelte";

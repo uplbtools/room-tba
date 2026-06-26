@@ -1,9 +1,9 @@
 import type { APIRoute } from "astro";
-import { getEditorSession } from "../../../lib/admin/require-editor";
+import { getEditorSession } from "@lib/admin/require-editor";
 import {
   ProposalValidationError,
   submitProposal,
-} from "../../../lib/services/proposal-service";
+} from "@lib/services/proposal-service";
 
 export const prerender = false;
 

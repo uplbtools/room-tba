@@ -6,10 +6,10 @@ import type {
   EventData,
   RoomData,
   TableSyncInfo,
-} from "../../types";
+} from "@lib/types";
 import { getDB } from "./pgliteDB";
 import { getJSONFetch } from "./utils";
-import { syncToastStore } from "../../store.svelte";
+import { syncToastStore } from "@lib/store.svelte";
 import type { Results } from "@electric-sql/pglite";
 
 export function getSyncKeysFromLs(): {

@@ -1,18 +1,10 @@
 <script lang="ts">
-  import {
-    adminAuthStore,
-    queryStore,
-    toastStore,
-  } from "../../../lib/store.svelte";
-  import { persistEntityChange } from "../../../lib/proposals/client";
-  import { getAppActions, getAppData } from "../../../lib/context";
-  import { getCollegeRooms } from "../../../lib/local/data/utils";
-  import type { CollegeData, RoomData } from "../../../lib/types";
+  import { adminAuthStore, queryStore, toastStore } from "@lib/store.svelte";
   import ResultDisplay from "./ResultDisplay.svelte";
   import {
     checkLocalCollegeRoom,
     syncCollegeRooms,
-  } from "../../../lib/local/data/sync";
+  } from "@lib/local/data/sync";
   import { onMount } from "svelte";
 
   type CollegePatchResponse = {

@@ -1,13 +1,13 @@
 ---
-import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
-import { formatCampusDateLong } from "../../lib/event-time";
-import { getSeoEvents } from "../../lib/services/event-service";
+import EntityIndexPage from "@seo/EntityIndexPage.astro";
+import { formatCampusDateLong } from "@lib/event-time";
+import { getSeoEvents } from "@lib/services/event-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
   jsonLd,
   webpageSchema,
-} from "../../lib/site";
+} from "@lib/site";
 
 const events = await getSeoEvents();
 const items = events.map((event) => {

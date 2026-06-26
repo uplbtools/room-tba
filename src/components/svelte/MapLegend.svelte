@@ -1,12 +1,12 @@
 <script lang="ts">
   import Info from "@lucide/svelte/icons/info";
   import X from "@lucide/svelte/icons/x";
-  import { getAppData } from "../../lib/context";
+  import { getAppData } from "@lib/context";
   import {
     floatingControlPanelStore,
     mapViewStore,
     queryStore,
-  } from "../../lib/store.svelte";
+  } from "@lib/store.svelte";
 
   type Props = {
     embedded?: boolean;

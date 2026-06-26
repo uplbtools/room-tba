@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { getAppData } from "../../../lib/context";
-  import { modalStore, queryStore } from "../../../lib/store.svelte";
-  import type { QueryStoreState } from "../../../lib/store.svelte";
+  import { getAppData } from "@lib/context";
+  import { modalStore, queryStore } from "@lib/store.svelte";
+  import type { QueryStoreState } from "@lib/store.svelte";
 
   const appData = getAppData();
   const { buildings, colleges, divisions } = $derived(appData());

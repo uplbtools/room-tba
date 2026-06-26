@@ -6,8 +6,8 @@
     queryStore,
     locationStore,
     toastStore,
-  } from "../../../lib/store.svelte";
-  import { getAppActions, getAppData } from "../../../lib/context";
+  } from "@lib/store.svelte";
+  import { getAppActions, getAppData } from "@lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
@@ -18,11 +18,11 @@
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
-  import type { DormData } from "../../../lib/types";
+  import type { DormData } from "@lib/types";
   import {
     getStoredProposalForEntity,
     persistEntityChange,
-  } from "../../../lib/proposals/client";
+  } from "@lib/proposals/client";
 
   type DormEditableField =
     | "dormName"

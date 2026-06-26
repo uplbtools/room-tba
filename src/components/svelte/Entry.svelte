@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { InitialSearchState } from "../../lib/app-data";
+  import type { InitialSearchState } from "@lib/app-data";
   import {
     modalStore,
     queryStore,
@@ -11,20 +11,20 @@
     mapEditStore,
     mapToolsStore,
     sidePanelStore,
-  } from "../../lib/store.svelte";
-  import Modal from "./modal/Modal.svelte";
-  import SidePanel from "./sidepanel/SidePanel.svelte";
-  import Map from "./Map.svelte";
-  import MapToolsFlyout from "./MapToolsFlyout.svelte";
-  import MapViewControls from "./MapViewControls.svelte";
-  import LocationButton from "./LocationButton.svelte";
-  import MapAttribution from "./MapAttribution.svelte";
-  import StatusBar from "./StatusBar.svelte";
-  import Toast from "./Toast.svelte";
-  import Building3DViewer from "./Building3DViewer.svelte";
-  import AdminLoginModal from "./AdminLoginModal.svelte";
-  import type { RecentSearch } from "../../lib/types";
-  import { isRecentSearch } from "../../lib/locStorage";
+  } from "@lib/store.svelte";
+  import Modal from "@ui/modal/Modal.svelte";
+  import MainControls from "@ui/controls/MainControls.svelte";
+  import Map from "@ui/Map.svelte";
+  import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
+  import MapViewControls from "@ui/MapViewControls.svelte";
+  import LocationButton from "@ui/LocationButton.svelte";
+  import MapAttribution from "@ui/MapAttribution.svelte";
+  import StatusBar from "@ui/StatusBar.svelte";
+  import Toast from "@ui/Toast.svelte";
+  import Building3DViewer from "@ui/Building3DViewer.svelte";
+  import AdminLoginModal from "@ui/AdminLoginModal.svelte";
+  import type { RecentSearch } from "@lib/types";
+  import { isRecentSearch } from "@lib/locStorage";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -135,7 +135,7 @@
       </div>
     </div>
     <div class="inner-layer">
-      <SidePanel />
+      <MainControls />
       <div class="bottom-band">
         <MapAttribution />
         <div

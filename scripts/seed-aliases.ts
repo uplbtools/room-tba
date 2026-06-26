@@ -11,7 +11,7 @@
 import { config } from "dotenv";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { aliasesTable, buildingsTable } from "../drizzle/schema";
+import { aliasesTable, buildingsTable } from "@drizzle/schema";
 import { normalizeAlias } from "../src/lib/site";
 import roomInfo from "../public/room_info.json";
 

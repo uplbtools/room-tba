@@ -1,5 +1,5 @@
 import { APIRoute } from "astro";
-import { getAllColleges } from "../../lib/services/map-data-service";
+import { getAllColleges } from "@lib/services/map-data-service";
 
 export const prerender = false;
 

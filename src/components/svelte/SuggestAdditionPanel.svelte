@@ -4,16 +4,16 @@
     additionProposalStore,
     floatingControlPanelStore,
     toastStore,
-  } from "../../lib/store.svelte";
-  import { getAppData } from "../../lib/context";
+  } from "@lib/store.svelte";
+  import { getAppData } from "@lib/context";
   import {
     resolveSubmitterName,
     publishEntityCreate,
     submitCreateProposal,
     type ProposalCreateType,
-  } from "../../lib/proposals/client";
-  import { instantToCampusWallString } from "../../lib/event-time";
-  import { slugifySegment } from "../../lib/site";
+  } from "@lib/proposals/client";
+  import { instantToCampusWallString } from "@lib/event-time";
+  import { slugifySegment } from "@lib/site";
 
   type AdditionOption = {
     value: ProposalCreateType;

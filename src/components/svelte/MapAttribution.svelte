@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { terrainStore } from "../../lib/store.svelte";
+  import { terrainStore } from "@lib/store.svelte";
 
   let expanded = $state(false);
 

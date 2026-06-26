@@ -3,7 +3,7 @@
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import X from "@lucide/svelte/icons/x";
-  import { mapToolsStore, type MapToolsSection } from "../../lib/store.svelte";
+  import { mapToolsStore, type MapToolsSection } from "@lib/store.svelte";
   import MapViewControls from "./MapViewControls.svelte";
   import MapLegend from "./MapLegend.svelte";
   import BuildingTypeControl from "./BuildingTypeControl.svelte";

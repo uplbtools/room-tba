@@ -1,7 +1,7 @@
 import { APIRoute } from "astro";
-import { roomsTable } from "../../../drizzle/schema";
+import { roomsTable } from "@drizzle/schema";
 import { count, isNotNull } from "drizzle-orm";
-import { db } from "../../lib/db";
+import { db } from "@lib/db";
 
 export const prerender = false;
 

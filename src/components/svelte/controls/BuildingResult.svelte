@@ -7,24 +7,24 @@
     locationStore,
     building3DStore,
     toastStore,
-  } from "../../../lib/store.svelte";
-  import { getAppActions, getAppData } from "../../../lib/context";
+  } from "@lib/store.svelte";
+  import { getAppActions, getAppData } from "@lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Box from "@lucide/svelte/icons/box";
-  import type { BuildingData, RoomData } from "../../../lib/types";
+  import type { BuildingData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import CopyLinkButton from "../CopyLinkButton.svelte";
   import { onMount } from "svelte";
-  import { getBuildingRooms } from "../../../lib/local/data/utils";
+  import { getBuildingRooms } from "@lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
     syncBuildingRooms,
-  } from "../../../lib/local/data/sync";
-  import { getBuildingShareUrl } from "../../../lib/share-links";
+  } from "@lib/local/data/sync";
+  import { getBuildingShareUrl } from "@lib/share-links";
   import {
     getStoredProposalForEntity,
     persistEntityChange,
-  } from "../../../lib/proposals/client";
+  } from "@lib/proposals/client";
 
   type BuildingEditableField = "buildingName" | "directions" | "buildingType";
 

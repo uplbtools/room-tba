@@ -10,7 +10,7 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
-} from "../drizzle/schema";
+} from "@drizzle/schema";
 import { getTableColumns, eq } from "drizzle-orm";
 const client = new Database("data/info.db");
 const db = drizzle({ client });

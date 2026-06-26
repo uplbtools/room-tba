@@ -4,9 +4,9 @@
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import SearchIcon from "@lucide/svelte/icons/search";
   import Menu from "@lucide/svelte/icons/menu";
-  import { getAppData } from "../../../lib/context";
-  import { getMapChromeVisibility } from "../../../lib/map-chrome";
-  import { mapToolsStore, queryStore } from "../../../lib/store.svelte";
+  import { getAppData } from "@lib/context";
+  import { getMapChromeVisibility } from "@lib/map-chrome";
+  import { mapToolsStore, queryStore } from "@lib/store.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import { MediaQuery } from "svelte/reactivity";

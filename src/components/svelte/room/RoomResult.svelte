@@ -6,16 +6,16 @@
     modalStore,
     queryStore,
     toastStore,
-  } from "../../../lib/store.svelte";
+  } from "@lib/store.svelte";
   import {
     getStoredProposalForEntity,
     mergeEntityRooms,
     persistEntityChange,
-  } from "../../../lib/proposals/client";
-  import { getAppData } from "../../../lib/context";
+  } from "@lib/proposals/client";
+  import { getAppData } from "@lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-  import type { RoomData } from "../../../lib/types";
+  import type { RoomData } from "@lib/types";
   // import Classes from "./Classes.svelte";
 
   type RoomEditableField =
