@@ -1,4 +1,4 @@
-import { APIRoute } from "astro";
+import type { APIRoute } from "astro";
 import { roomsTable } from "@drizzle/schema";
 import { count, isNotNull } from "drizzle-orm";
 import { db } from "@lib/db";
@@ -6,13 +6,13 @@ import { db } from "@lib/db";
 export const prerender = false;
 
 export const GET = (async (_) => {
-  // @ts-ignore drizzle returns count as a scalar row here.
+  // @ts-expect-error drizzle returns count as a scalar row here.
   const [{ count: directionCount }] = await db
     .select({ count: count() })
     .from(roomsTable)
     .where(isNotNull(roomsTable.directions));
 
-  // @ts-ignore drizzle returns count as a scalar row here.
+  // @ts-expect-error drizzle returns count as a scalar row here.
   const [{ count: totalRooms }] = await db
     .select({ count: count() })
     .from(roomsTable);
