@@ -7,17 +7,17 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
-} from "../../../drizzle/schema";
-import { db } from "../db";
+} from "@drizzle/schema";
+import { db } from "@lib/db";
 import { normalizeAlias } from "../site";
-import {
+import type {
   BuildingData,
   ClassMapValue,
   CollegeData,
   DivisionData,
   DormData,
   RoomData,
-} from "../types";
+} from "@lib/types";
 
 export async function getAllBuildings(): Promise<BuildingData[]> {
   try {

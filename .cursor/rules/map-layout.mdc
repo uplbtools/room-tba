@@ -1,5 +1,5 @@
 ---
-description: Map layout guardrails for Entry, SidePanel, Search, StatusBar, and Map tools
+description: Map layout guardrails for Entry, MainControls, Search, StatusBar, and Map tools
 globs:
   - src/components/svelte/Entry.svelte
   - src/components/svelte/MapAttribution.svelte

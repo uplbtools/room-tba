@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   EditConflictError,
   updateDivision,
   type DivisionUpdateInput,
-} from "../../../../lib/services/admin-service";
+} from "@lib/services/admin-service";
 
 export const prerender = false;
 

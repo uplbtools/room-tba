@@ -7,7 +7,7 @@
   import Box from "@lucide/svelte/icons/box";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapIcon from "@lucide/svelte/icons/map";
-  import { mapStore, mapViewStore } from "../../lib/store.svelte";
+  import { mapStore, mapViewStore } from "@lib/store.svelte";
   import type { MapLibreMap } from "maplibre-gl";
 
   type Props = {

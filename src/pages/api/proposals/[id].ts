@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
-import { canReviewProposals } from "../../../lib/admin/auth";
-import { getEditorSession } from "../../../lib/admin/require-editor";
+import { canReviewProposals } from "@lib/admin/auth";
+import { getEditorSession } from "@lib/admin/require-editor";
 import {
   canViewProposalSubmitterDetails,
   getProposalById,
   toPublicProposalView,
   toSubmitterProposalView,
-} from "../../../lib/services/proposal-service";
+} from "@lib/services/proposal-service";
 
 export const prerender = false;
 

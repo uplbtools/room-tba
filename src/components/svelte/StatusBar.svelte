@@ -4,9 +4,9 @@
   import MessageCircle from "@lucide/svelte/icons/message-circle";
   import { onMount } from "svelte";
   import { registerSW } from "virtual:pwa-register";
-  import { APP_VERSION_LABEL } from "../../constants/version";
-  import { getAppData } from "../../lib/context";
-  import { modalStore, syncToastStore } from "../../lib/store.svelte";
+  import { APP_VERSION_LABEL } from "@constants/version";
+  import { getAppData } from "@lib/context";
+  import { modalStore, syncToastStore } from "@lib/store.svelte";
   import OfflineMaps from "./OfflineMaps.svelte";
   import SyncStatus from "./SyncStatus.svelte";
   import { MediaQuery } from "svelte/reactivity";

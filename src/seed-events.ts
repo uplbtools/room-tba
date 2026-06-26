@@ -13,7 +13,7 @@ import {
   eventsTable,
   roomsTable,
   updateTable,
-} from "../drizzle/schema";
+} from "@drizzle/schema";
 
 const connectionString = process.env.NEON_CONNECTION_STRING;
 if (!connectionString) {

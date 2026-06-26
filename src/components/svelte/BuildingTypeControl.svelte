@@ -3,13 +3,13 @@
   import {
     getBuildingTypeFilterLabel,
     getBuildingTypeFilterOptions,
-  } from "../../constants/building-types";
-  import { getAppData } from "../../lib/context";
+  } from "@constants/building-types";
+  import { getAppData } from "@lib/context";
   import {
     buildingTypeFilter,
     floatingControlPanelStore,
-  } from "../../lib/store.svelte";
-  import type { BuildingTypeFilter } from "../../constants/building-types";
+  } from "@lib/store.svelte";
+  import type { BuildingTypeFilter } from "@constants/building-types";
 
   type Props = {
     embedded?: boolean;

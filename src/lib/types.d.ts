@@ -6,7 +6,7 @@ import {
   eventRoutesTable,
   eventsTable,
   roomPositionsTable,
-} from "../../drizzle/schema";
+} from "@drizzle/schema";
 import type { QueryStoreState } from "./store.svelte";
 
 export type AppData = {

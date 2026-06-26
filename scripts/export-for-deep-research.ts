@@ -22,7 +22,7 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
-} from "../drizzle/schema";
+} from "@drizzle/schema";
 
 const OUT_DIR = join(import.meta.dir, "..", "exports", "deep-research");
 const TERM = "AY 2025-2026 2nd Semester";

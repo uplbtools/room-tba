@@ -3,22 +3,22 @@
   import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import CopyLinkButton from "../CopyLinkButton.svelte";
-  import { getAppData } from "../../../lib/context";
-  import { getEventImage } from "../../../lib/event-images";
+  import { getAppData } from "@lib/context";
+  import { getEventImage } from "@lib/event-images";
   import {
     formatCampusDateShort,
     formatCampusTime,
-  } from "../../../lib/event-time";
-  import { getEventShareUrl } from "../../../lib/share-links";
-  import { beginEventPlacement } from "../../../lib/event-placement";
+  } from "@lib/event-time";
+  import { getEventShareUrl } from "@lib/share-links";
+  import { beginEventPlacement } from "@lib/event-placement";
   import {
     adminAuthStore,
     eventPlacementStore,
     queryStore,
     sidePanelStore,
     toastStore,
-  } from "../../../lib/store.svelte";
-  import type { EventData } from "../../../lib/types";
+  } from "@lib/store.svelte";
+  import type { EventData } from "@lib/types";
 
   let {
     headingId = "events-heading",

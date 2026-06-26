@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   deactivateEvent,
   EditConflictError,
   updateEvent,
   type EventWriteInput,
-} from "../../../../lib/services/admin-service";
-import { slugifySegment } from "../../../../lib/site";
+} from "@lib/services/admin-service";
+import { slugifySegment } from "@lib/site";
 
 export const prerender = false;
 

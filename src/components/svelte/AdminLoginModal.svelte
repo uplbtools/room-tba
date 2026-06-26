@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
   import { X, Lock } from "@lucide/svelte";
-  import { adminAuthStore, toastStore } from "../../lib/store.svelte";
+  import { adminAuthStore, toastStore } from "@lib/store.svelte";
 
   let username = $state("admin");
   let password = $state("");

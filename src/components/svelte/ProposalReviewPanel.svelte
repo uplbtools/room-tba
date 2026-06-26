@@ -3,9 +3,9 @@
     adminAuthStore,
     proposalsStore,
     toastStore,
-  } from "../../lib/store.svelte";
-  import { summarizeProposalPatch } from "../../lib/proposals/client";
-  import type { ProposalEntityType } from "../../lib/services/proposal-service";
+  } from "@lib/store.svelte";
+  import { summarizeProposalPatch } from "@lib/proposals/client";
+  import type { ProposalEntityType } from "@lib/services/proposal-service";
 
   let noteById = $state<Record<number, string>>({});
   let actingId = $state<number | null>(null);

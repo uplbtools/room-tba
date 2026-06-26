@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MapLibre, Marker } from "svelte-maplibre";
-  import { getAppActions, getAppData } from "../../lib/context";
+  import { getAppActions, getAppData } from "@lib/context";
   import {
     queryStore,
     locationStore,
@@ -17,7 +17,7 @@
     additionProposalStore,
     buildingTypeFilter,
     terrainStore,
-  } from "../../lib/store.svelte";
+  } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
@@ -33,12 +33,12 @@
   import { MediaQuery } from "svelte/reactivity";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { EventData } from "../../lib/types";
+  import type { EventData } from "@lib/types";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
     type JeepneyStop,
-  } from "../../constants/jeepney-routes";
+  } from "@constants/jeepney-routes";
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
@@ -51,16 +51,16 @@
     TERRAIN_TILE_FAILURE_MESSAGE,
     TERRAIN_TILEJSON_URL,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
-  } from "../../constants/map-terrain";
+  } from "@constants/map-terrain";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
-  } from "../../constants/building-types";
-  import { getEventImage } from "../../lib/event-images";
+  } from "@constants/building-types";
+  import { getEventImage } from "@lib/event-images";
   import {
     formatCampusDateShort,
     formatCampusTime,
-  } from "../../lib/event-time";
+  } from "@lib/event-time";
   import {
     completeMapMoveRedo,
     completeMapMoveUndo,
@@ -68,12 +68,12 @@
     recordMapMove,
     type MapMoveCoordinates,
     type VersionedMapMove,
-  } from "../../lib/map-move-history";
+  } from "@lib/map-move-history";
   import {
     resolveSubmitterName,
     submitCreateProposal,
     submitPinPositionProposal,
-  } from "../../lib/proposals/client";
+  } from "@lib/proposals/client";
   const data = getAppData();
   const appActions = getAppActions();
   const { buildings, dorms, events, loaded } = $derived(data());

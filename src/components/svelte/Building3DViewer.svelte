@@ -2,16 +2,16 @@
   import { onMount, untrack } from "svelte";
   import { fade } from "svelte/transition";
   import { X, Building2, Loader, RotateCcw, Pencil } from "@lucide/svelte";
-  import { building3DStore, adminAuthStore } from "../../lib/store.svelte";
-  import { getAppData } from "../../lib/context";
-  import type { RoomData } from "../../lib/types";
-  import { getBuildingRooms } from "../../lib/local/data/utils";
+  import { building3DStore, adminAuthStore } from "@lib/store.svelte";
+  import { getAppData } from "@lib/context";
+  import type { RoomData } from "@lib/types";
+  import { getBuildingRooms } from "@lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
     syncBuildingRooms,
-  } from "../../lib/local/data/sync";
-  import { fetchBuildingFootprint } from "../../lib/overpass";
-  import { fetchBasemap } from "../../lib/osm-basemap";
+  } from "@lib/local/data/sync";
+  import { fetchBuildingFootprint } from "@lib/overpass";
+  import { fetchBasemap } from "@lib/osm-basemap";
   import {
     footprintToLocalPolygon,
     mockPlaceRooms,
@@ -19,7 +19,7 @@
     maxInferredFloor,
     type LocalPolygonData,
     type RoomPlacement,
-  } from "../../lib/building-3d";
+  } from "@lib/building-3d";
 
   const appData = getAppData();
   const buildings = $derived(appData().loaded ? appData().buildings : []);

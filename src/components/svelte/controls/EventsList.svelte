@@ -4,16 +4,16 @@
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import CopyLinkButton from "../CopyLinkButton.svelte";
-  import { getAppData } from "../../../lib/context";
-  import { getEventImage } from "../../../lib/event-images";
-  import { formatCampusRange } from "../../../lib/event-time";
-  import { getEventShareUrl } from "../../../lib/share-links";
+  import { getAppData } from "@lib/context";
+  import { getEventImage } from "@lib/event-images";
+  import { formatCampusRange } from "@lib/event-time";
+  import { getEventShareUrl } from "@lib/share-links";
   import {
     queryStore,
     sidePanelStore,
     toastStore,
-  } from "../../../lib/store.svelte";
-  import type { EventData } from "../../../lib/types";
+  } from "@lib/store.svelte";
+  import type { EventData } from "@lib/types";
 
   type EventTab = "upcoming" | "past";
 

@@ -7,8 +7,8 @@ import {
   editProposalsTable,
   eventsTable,
   roomsTable,
-} from "../../../drizzle/schema";
-import { db } from "../db";
+} from "@drizzle/schema";
+import { db } from "@lib/db";
 import { canReviewProposals, type SessionUser } from "../admin/auth";
 import {
   EditConflictError,

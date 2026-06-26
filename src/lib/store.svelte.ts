@@ -1,10 +1,10 @@
 // src/lib/store.svelte.ts
 
-import { modalOptions } from "../constants/modal-states";
+import { modalOptions } from "@constants/modal-states";
 import {
   DEFAULT_TERRAIN_EXAGGERATION,
   CAMPUS_BOUNDS,
-} from "../constants/map-terrain";
+} from "@constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
@@ -394,7 +394,7 @@ class MapViewStore {
   };
 }
 
-class SidePanelStore {
+class MainControlsStore {
   collapsed: boolean = $state(false);
 
   toggle = () => {
@@ -1110,7 +1110,7 @@ export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
 export const mapViewStore = new MapViewStore();
-export const sidePanelStore = new SidePanelStore();
+export const sidePanelStore = new MainControlsStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapToolsStore = new MapToolsStore();
 export const mapEditStore = new MapEditStore();

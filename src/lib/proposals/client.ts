@@ -1,8 +1,8 @@
 import type {
   ProposalCreateType,
   ProposalEntityType,
-} from "../services/proposal-service";
-import type { RoomData } from "../types";
+} from "@lib/services/proposal-service";
+import type { RoomData } from "@lib/types";
 
 export type StoredProposalRef = {
   id: number;

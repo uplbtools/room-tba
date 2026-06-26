@@ -9,7 +9,7 @@
   } from "@lucide/svelte";
   import { onMount } from "svelte";
   import { registerSW } from "virtual:pwa-register";
-  import { syncToastStore } from "../../lib/store.svelte";
+  import { syncToastStore } from "@lib/store.svelte";
   import { fly } from "svelte/transition";
 
   type Props = {

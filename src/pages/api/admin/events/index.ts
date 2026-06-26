@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   createEvent,
   DuplicateSlugError,
-} from "../../../../lib/services/admin-service";
-import { slugifySegment } from "../../../../lib/site";
+} from "@lib/services/admin-service";
+import { slugifySegment } from "@lib/site";
 
 export const prerender = false;
 

@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
   import { MediaQuery } from "svelte/reactivity";
-  import { offlineStore } from "../../lib/store.svelte";
+  import { offlineStore } from "@lib/store.svelte";
 
   type Props = {
     /** Icon-only trigger for the mobile status strip. */

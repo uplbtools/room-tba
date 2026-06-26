@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../../lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   ProposalActionError,
   ProposalValidationError,
   requestProposalChanges,
-} from "../../../../../lib/services/proposal-service";
+} from "@lib/services/proposal-service";
 
 export const prerender = false;
 

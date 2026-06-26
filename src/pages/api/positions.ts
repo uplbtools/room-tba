@@ -1,15 +1,15 @@
 import type { APIRoute } from "astro";
 import { eq, inArray } from "drizzle-orm";
 import type { AstroCookies } from "astro";
-import { db } from "../../lib/db";
+import { db } from "@lib/db";
 import {
   buildingsTable,
   roomPositionsTable,
   roomsTable,
-} from "../../../drizzle/schema";
-import { canPublishDirectly } from "../../lib/admin/auth";
-import { getEditorSession } from "../../lib/admin/require-editor";
-import { refreshSyncKey } from "../../lib/services/admin-service";
+} from "@drizzle/schema";
+import { canPublishDirectly } from "@lib/admin/auth";
+import { getEditorSession } from "@lib/admin/require-editor";
+import { refreshSyncKey } from "@lib/services/admin-service";
 
 export const prerender = false;
 

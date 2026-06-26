@@ -8,11 +8,11 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
-} from "../../drizzle/schema";
+} from "@drizzle/schema";
 import { db } from "./db";
 import { slugifySegment } from "./site";
 import { getAllEvents } from "./services/event-service";
-import {
+import type {
   BuildingData,
   ClassMapValue,
   CollegeData,
@@ -20,7 +20,7 @@ import {
   DormData,
   EventData,
   RoomData,
-} from "./types";
+} from "@lib/types";
 
 export type SearchCategory =
   | "building"

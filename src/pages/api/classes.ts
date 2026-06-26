@@ -1,5 +1,5 @@
 import { APIRoute } from "astro";
-import { getAllClasses } from "../../lib/services/map-data-service";
+import { getAllClasses } from "@lib/services/map-data-service";
 
 export const prerender = false;
 

@@ -1,19 +1,19 @@
 <script lang="ts">
-  import type { InitialSearchState } from "../../lib/app-data";
+  import type { InitialSearchState } from "@lib/app-data";
   import {
     type AppContextData,
     type DBData,
     setAppActions,
     setAppData,
-  } from "../../lib/context";
-  import { queryStore, syncToastStore } from "../../lib/store.svelte";
+  } from "@lib/context";
+  import { queryStore, syncToastStore } from "@lib/store.svelte";
   import type {
     BuildingData,
     CollegeData,
     DivisionData,
     DormData,
     EventData,
-  } from "../../lib/types";
+  } from "@lib/types";
   import Entry from "./Entry.svelte";
   import { onMount } from "svelte";
   import {
@@ -23,7 +23,7 @@
     getDorms,
     getEvents,
     getRoomsData,
-  } from "../../lib/local/data/utils";
+  } from "@lib/local/data/utils";
   import {
     localTableSyncCheck,
     syncBuildings,
@@ -32,8 +32,8 @@
     syncDorms,
     syncEvents,
     syncAliasCache,
-  } from "../../lib/local/data/sync";
-  import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
+  } from "@lib/local/data/sync";
+  import { getDB, initPGLiteDB } from "@lib/local/data/pgliteDB";
 
   type MetadataProps = {
     initialSearch?: InitialSearchState;

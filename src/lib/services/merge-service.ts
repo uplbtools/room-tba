@@ -3,10 +3,10 @@ import {
   classesTable,
   roomsTable,
   roomPositionsTable,
-} from "../../../drizzle/schema";
+} from "@drizzle/schema";
 import { normalizeEntityName } from "../entity-names";
-import { db } from "../db";
-import type { RoomData } from "../types";
+import { db } from "@lib/db";
+import type { RoomData } from "@lib/types";
 import {
   EditConflictError,
   DuplicateNameError,

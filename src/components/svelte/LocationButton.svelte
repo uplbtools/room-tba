@@ -16,8 +16,8 @@
     mapStore,
     proposalsStore,
     toastStore,
-  } from "../../lib/store.svelte";
-  import { beginEventPlacement } from "../../lib/event-placement";
+  } from "@lib/store.svelte";
+  import { beginEventPlacement } from "@lib/event-placement";
   import ProposalReviewPanel from "./ProposalReviewPanel.svelte";
   import SuggestAdditionPanel from "./SuggestAdditionPanel.svelte";
   import CalendarPlus from "@lucide/svelte/icons/calendar-plus";

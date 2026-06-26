@@ -5,12 +5,12 @@ import {
   clearSessionCookie,
   createSessionToken,
   setSessionCookie,
-} from "../../../lib/admin/auth";
-import { getEditorSession } from "../../../lib/admin/require-editor";
+} from "@lib/admin/auth";
+import { getEditorSession } from "@lib/admin/require-editor";
 import {
   authenticateAdminUser,
   authenticateLegacyAdminPassword,
-} from "../../../lib/services/admin-user-service";
+} from "@lib/services/admin-user-service";
 
 export const prerender = false;
 

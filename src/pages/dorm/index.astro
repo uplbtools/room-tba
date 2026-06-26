@@ -1,8 +1,8 @@
 ---
-import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
-import { getDormRouteSlug } from "../../lib/app-data";
-import { getAllDorms } from "../../lib/services/map-data-service";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "../../lib/site";
+import EntityIndexPage from "@seo/EntityIndexPage.astro";
+import { getDormRouteSlug } from "@lib/app-data";
+import { getAllDorms } from "@lib/services/map-data-service";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const dorms = await getAllDorms();
 
