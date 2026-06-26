@@ -3,7 +3,7 @@
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"],
   "compilerOptions": {
-      "baseUrl": ".",
+    "baseUrl": ".",
     "strict": true,
     "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info", "svelte"],
     "noUnusedLocals": true,
@@ -15,13 +15,14 @@
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
     "erasableSyntaxOnly": false,
+    "verbatimModuleSyntax": true,
     "paths": {
-        "@ui/*": ["./src/components/svelte/*"],
-        "@seo/*": ["./src/components/seo/*"],
-        "@constants/*": ["./src/constants/*"],
-        "@lib/*": ["./src/lib/*"],
-        "@drizzle/*": ["./drizzle/*"],
-        "@layouts/*": ["./src/layouts/*"]
+      "@ui/*": ["./src/components/svelte/*"],
+      "@seo/*": ["./src/components/seo/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@drizzle/*": ["./drizzle/*"],
+      "@layouts/*": ["./src/layouts/*"]
     }
   }
 }

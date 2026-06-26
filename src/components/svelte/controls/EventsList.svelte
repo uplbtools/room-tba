@@ -8,11 +8,7 @@
   import { getEventImage } from "@lib/event-images";
   import { formatCampusRange } from "@lib/event-time";
   import { getEventShareUrl } from "@lib/share-links";
-  import {
-    queryStore,
-    sidePanelStore,
-    toastStore,
-  } from "@lib/store.svelte";
+  import { queryStore, sidePanelStore, toastStore } from "@lib/store.svelte";
   import type { EventData } from "@lib/types";
 
   type EventTab = "upcoming" | "past";
