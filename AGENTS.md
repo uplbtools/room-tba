@@ -11,6 +11,7 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Human volunteers, developers (default)           | [CONTRIBUTING.md](CONTRIBUTING.md)                                                                                      |
 | Developer setup detail                           | [docs/developer-guide.md](docs/developer-guide.md)                                                                      |
 | Starting a coding session, commit, or PR         | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md)                      |
+| Worktrees, multiple agents, push to `staging`      | [AGENTS.md § Worktrees and multiple agents](#worktrees-and-multiple-agents)                                             |
 | Map chrome, Entry zones, flyouts, 320/768 layout | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md) |
 | Side panel / entity detail views                 | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc)                                                            |
 | Drizzle, API routes, migrations, PGlite          | [.cursor/rules/data-and-migrations.mdc](.cursor/rules/data-and-migrations.mdc)                                          |
@@ -33,6 +34,7 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 - **Infer intent over typos.** User messages are often rushed; read for what they mean, not only literal wording. Common patterns:
   - **"PR to main" / "merge to prod" / "ship it"** → promote **`staging` → `main`** (release PR), not a feature branch opened against `main`. See [Branches and pull requests](#branches-and-pull-requests).
   - **"PR to staging"** → feature branch → `staging` (default for new work).
+  - **"Push staging" / "ship to staging"** → commit on `staging` and `git push origin staging` ([§ Push to staging directly](#push-to-staging-directly)).
   - Minor typos (`pr`, `stagign`, `mrege`, doubled letters); do not ask for clarification when context makes the goal obvious.
 - **`data` / `qa` issues:** reporters do not open PRs. Implement on their behalf; credit in issue comments.
 
@@ -49,6 +51,71 @@ Default flow: **feature branch → `staging` → `main`**.
 - **`main`** is production; semantic-release runs there.
 - **`staging`** is integration; feature PRs land here first unless the user explicitly asks for a hotfix straight to `main`.
 - When the user says **"PR to main"**, they usually mean **get it to production**, not "set the GitHub PR base branch to `main`."
+
+### Push to `staging` directly
+
+For scoped fixes and solo/maintainer sessions, **committing on `staging` and pushing is fine** — you do not need a feature branch for every change.
+
+```sh
+git checkout staging
+git pull --rebase origin staging
+# … edit, verify, commit …
+git push origin staging
+```
+
+- Push to **`staging`** when the user asks to land work on integration, ship to staging, or says push (and context is not a release to prod).
+- **Do not push to `main`** except via the **`staging` → `main`** release PR (or an explicit hotfix the user requested).
+- After pushing `staging`, Vercel builds the staging preview (`staging.room-tba.uplbtools.me`). Preview env must have **`DATABASE_URL`** (same Supabase as production) or the build fails at prerender.
+
+Feature branches remain appropriate for large or review-heavy work: `feat/…` → PR to `staging` → merge → delete branch.
+
+## Worktrees and multiple agents
+
+**Default:** one repo checkout, one worktree, on **`staging`**. Run at session start:
+
+```sh
+git worktree list
+git fetch origin staging main
+git status --short --branch
+```
+
+### How not to collide with other agents
+
+Multiple Cursor agents (or human + agent) on the **same path and branch** cause lost work, surprise merges, and “it built locally but Vercel failed” confusion.
+
+| Do | Don't |
+| --- | --- |
+| **One active agent per worktree path** | Two agents editing `/home/…/room-tba` on `staging` at once |
+| `git fetch` + `git status` before editing | Assume the tree matches remote |
+| `git pull --rebase origin staging` before push when others may be active | Force-push `staging` or `main` |
+| Commit only your scoped changes; preserve unrelated dirty files | Revert or `git checkout --` user WIP |
+| Open a **separate worktree + branch** for parallel long tasks | Long-lived stashes as a substitute for branches |
+| `git stash drop` / `git stash clear` only when the user asks | Bulk-drop stashes to “clean up” without checking |
+
+### Optional: extra worktrees
+
+Use when you need a second branch checked out without disturbing `staging`:
+
+```sh
+# new branch in a sibling directory
+git worktree add ../room-tba-feat feat/my-thing
+cd ../room-tba-feat
+# … work, commit, push, open PR to staging …
+git worktree remove ../room-tba-feat   # after branch is merged and pushed
+```
+
+- Each worktree has its **own** working tree and `.env` (copy or symlink if needed); `node_modules` are per checkout unless shared.
+- List/remove: `git worktree list`, `git worktree remove <path>`.
+- **Never** edit the same file from two worktrees simultaneously without committing/pushing between pulls.
+
+### Session handoff checklist
+
+Before ending a turn with code changes:
+
+1. `git status` — clean or only intentional WIP left for the user.
+2. Commits on the correct branch (`staging` or feature branch).
+3. Push only if the user asked (or AGENTS default commit policy applies).
+4. If you applied DB migrations, note “run on Supabase before deploy” in the PR or issue.
 
 ## GitHub issues
 
@@ -94,7 +161,7 @@ Enable **Dependabot security updates** and **secret scanning** in GitHub repo Se
 - **Use [Conventional Commits](https://www.conventionalcommits.org/)**; required for semantic-release on `main`. Format: `type(scope): imperative summary` (e.g. `feat(map-chrome): add transit route panel`, `fix(security): validate image URLs`). Common types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`. Scope is optional but preferred when the change is localized.
 - **One logical unit per commit**; atomic, reviewable, GPG-signed: `git commit -S -m "$(cat <<'EOF' … EOF)"`.
 - Stage only files that belong together; write a message that states _why_, not a file list.
-- Do not push unless asked. Do not amend or force-push unless the user’s git rules allow it.
+- Do not push unless asked. **Exception:** user explicitly wants work on integration (`push staging`, `ship to staging`) — push `origin staging` after commit. Do not amend or force-push unless the user’s git rules allow it.
 
 ## Architecture (short)
 
