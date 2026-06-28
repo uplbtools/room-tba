@@ -53,3 +53,7 @@ Do not add duplicate action rows or colored highlight boxes. See `.cursor/rules/
 ## Motion
 
 Functional transitions only (no decorative loops). Shared tokens on `.app-layout`: `--motion-duration-fast` (150ms), `--motion-duration-micro` (200ms), `--motion-duration-panel` (280ms), `--motion-duration-shelf` (260ms). Svelte `fly`/`slide`/`fade` helpers in `src/lib/motion.ts` zero durations when `prefers-reduced-motion: reduce`.
+
+## Basemap palette
+
+Campus map tiles use `public/liberty-customized.json` (OSM Liberty / MapTiler vector tiles). Eye-strain tuning lives in `src/constants/map-basemap-palette.ts` and is applied at runtime via `applyBasemapPalette()` in `Map.svelte` (also mirrored in the JSON for offline downloads). Adjust grass, water, building extrusions, and road fills there — not map chrome tokens on `.app-layout`. A full dark or muted theme would need a separate style variant and user setting.
