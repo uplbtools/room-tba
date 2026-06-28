@@ -776,6 +776,12 @@
     }
   }
 
+  /** User took camera control — stop idle spin and clear the Auto tour toggle. */
+  function haltAutoTourFromUser() {
+    stopRotation();
+    mapViewStore.disableCampusTour();
+  }
+
   function handleZoom() {
     if (!mapStore.mapInstance) return;
     zoomLevel = mapStore.mapInstance.getZoom();
@@ -1429,15 +1435,15 @@
         if (!terrainStore.enabled || !sourceErrorMatchesTerrain(event)) return;
         failTerrain(map, TERRAIN_TILE_FAILURE_MESSAGE);
       };
-      map.on("mousedown", stopRotation);
-      map.on("touchstart", stopRotation);
-      map.on("wheel", stopRotation);
+      map.on("mousedown", haltAutoTourFromUser);
+      map.on("touchstart", haltAutoTourFromUser);
+      map.on("wheel", haltAutoTourFromUser);
       map.on("zoom", handleZoom);
       map.on("error", handleMapError);
       return () => {
-        map.off("mousedown", stopRotation);
-        map.off("touchstart", stopRotation);
-        map.off("wheel", stopRotation);
+        map.off("mousedown", haltAutoTourFromUser);
+        map.off("touchstart", haltAutoTourFromUser);
+        map.off("wheel", haltAutoTourFromUser);
         map.off("zoom", handleZoom);
         map.off("error", handleMapError);
       };
@@ -1450,6 +1456,7 @@
     mapStore.stopAutoRotate = () => {
       stopRotation();
       map.off("moveend", startRotation);
+      mapViewStore.disableCampusTour();
     };
     return () => {
       mapStore.stopAutoRotate = null;

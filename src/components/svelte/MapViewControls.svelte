@@ -7,8 +7,10 @@
   import Box from "@lucide/svelte/icons/box";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapIcon from "@lucide/svelte/icons/map";
+  import Sparkles from "@lucide/svelte/icons/sparkles";
   import { mapStore, mapViewStore } from "@lib/store.svelte";
   import type { MapLibreMap } from "maplibre-gl";
+  import { MediaQuery } from "svelte/reactivity";
 
   type Props = {
     /** When true, omit outer card chrome (used inside MapToolsFlyout). */
@@ -19,6 +21,7 @@
 
   let { embedded = false, variant = "modes" }: Props = $props();
 
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const showModes = $derived(variant === "modes");
   const showCameraNav = $derived(variant === "camera");
 
@@ -45,6 +48,14 @@
       ? "Camera is flat 2D. Switch to tilted 3D."
       : "Camera is tilted 3D. Switch to flat 2D.",
   );
+  const autoTourTitle = $derived(
+    reducedMotion.current
+      ? "Auto tour is unavailable when reduced motion is enabled in your system settings."
+      : mapViewStore.campusTourEnabled
+        ? "Stop the automatic campus overview spin."
+        : "Automatically spin the campus overview map while idle.",
+  );
+
   function syncCamera() {
     const map = mapStore.mapInstance;
     if (!map) return;
@@ -70,6 +81,8 @@
   function withMap(fn: (map: MapLibreMap) => void) {
     const map = mapStore.mapInstance;
     if (!map) return;
+    mapViewStore.disableCampusTour();
+    mapStore.stopAutoRotate?.();
     fn(map);
   }
 
@@ -154,6 +167,30 @@
       <span class="control-copy">
         <span class="control-kicker">View</span>
         <span class="control-value">{is2D ? "2D flat" : "3D tilted"}</span>
+      </span>
+    </button>
+
+    <div class="divider"></div>
+
+    <button
+      class="control mode-toggle tour-toggle"
+      class:active={mapViewStore.campusTourEnabled}
+      disabled={reducedMotion.current}
+      onclick={mapViewStore.toggleCampusTour}
+      title={autoTourTitle}
+      aria-label={autoTourTitle}
+      aria-pressed={mapViewStore.campusTourEnabled}
+    >
+      <Sparkles size={18} aria-hidden="true" />
+      <span class="control-copy">
+        <span class="control-kicker">Auto tour</span>
+        <span class="control-value">
+          {reducedMotion.current
+            ? "Unavailable"
+            : mapViewStore.campusTourEnabled
+              ? "On"
+              : "Off"}
+        </span>
       </span>
     </button>
   {/if}
@@ -406,6 +443,26 @@
   .camera-toggle:hover {
     border-color: hsl(5, 34%, 68%);
     background-color: hsl(0, 78%, 97%);
+  }
+
+  .tour-toggle {
+    border-color: hsl(5, 34%, 78%);
+    background-color: hsl(0, 100%, 99%);
+  }
+
+  .tour-toggle:hover:not(:disabled) {
+    border-color: hsl(5, 34%, 68%);
+    background-color: hsl(0, 78%, 97%);
+  }
+
+  .tour-toggle:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .tour-toggle:disabled:hover {
+    border-color: hsl(0, 0%, 88%);
+    background-color: hsl(0, 100%, 99%);
   }
 
   .mode-toggle.active {

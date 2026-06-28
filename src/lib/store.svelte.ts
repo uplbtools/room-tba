@@ -373,22 +373,13 @@ class LocationStore {
 
 class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
-  // Set by Map.svelte so UI controls can halt the idle auto-rotation
-  // before performing a manual camera change.
-  stopAutoRotate: (() => void) | null = null;
 }
 
 class MapViewStore {
   eventsOnly: boolean = $state(false);
-  /** Opt-in slow campus overview rotation; off by default for a11y and calm UI. */
-  campusTourEnabled: boolean = $state(false);
 
   toggleEventsOnly = () => {
     this.eventsOnly = !this.eventsOnly;
-  };
-
-  toggleCampusTour = () => {
-    this.campusTourEnabled = !this.campusTourEnabled;
   };
 
   showAll = () => {
