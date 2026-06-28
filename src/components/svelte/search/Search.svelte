@@ -444,7 +444,7 @@
     width: 100%;
     max-width: 100%;
     margin-inline: -0.625rem;
-    padding: 0.375rem 0.625rem 0;
+    padding: 0.375rem 0.625rem 0.4375rem;
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome {
@@ -476,7 +476,10 @@
     display: flex;
     align-items: center;
     gap: 0.375rem;
+    box-sizing: border-box;
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome__bar {
