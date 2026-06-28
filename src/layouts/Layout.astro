@@ -20,6 +20,8 @@ type Props = {
   imagePath?: string;
   robots?: string;
   structuredData?: StructuredData[];
+  /** Map app shell only — static pages (changelog, legal) should disable this. */
+  showAppLoadingShell?: boolean;
 };
 
 const {
@@ -29,6 +31,7 @@ const {
   imagePath = "/socmed.png",
   robots = "index,follow",
   structuredData = [],
+  showAppLoadingShell = true,
 }: Props = Astro.props;
 
 const canonicalUrl = absoluteUrl(canonicalPath);
@@ -116,125 +119,129 @@ const imageUrl = absoluteUrl(imagePath);
     </style>
   </head>
   <body>
-    <div
-      id="app-loading-shell"
-      class="app-loading-shell"
-      role="status"
-      aria-live="polite"
-    >
-      <div class="app-loading-shell__card">
-        <div class="app-loading-mark" aria-hidden="true">
-          <div class="app-loading-mark__loader">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="app-loading-spinner app-loading-spinner--spin"
-              ><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg
-            >
-          </div>
-          <div class="app-loading-mark__pin">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.25"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              ><path
-                d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-              ></path><circle cx="12" cy="10" r="3"></circle></svg
-            >
+    {
+      showAppLoadingShell ? (
+        <div
+          id="app-loading-shell"
+          class="app-loading-shell"
+          role="status"
+          aria-live="polite"
+        >
+          <div class="app-loading-shell__card">
+            <div class="app-loading-mark" aria-hidden="true">
+              <div class="app-loading-mark__loader">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="app-loading-spinner app-loading-spinner--spin"
+                  ><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg
+                >
+              </div>
+              <div class="app-loading-mark__pin">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.25"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  ><path
+                    d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                  ></path><circle cx="12" cy="10" r="3" /></svg
+                >
+              </div>
+            </div>
+            <div class="app-loading-mark__context" aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="app-loading-mark__context-icon"
+                ><path d="M10 12h4"></path><path d="M10 8h4"></path><path
+                  d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path
+                  d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2"
+                ></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"
+                ></path></svg
+              >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="app-loading-mark__context-icon"
+                ><path
+                  d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                ></path><circle cx="12" cy="10" r="3" /></svg
+              >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="app-loading-mark__context-icon"
+                ><path
+                  d="M10 10v.2A3 3 0 0 1 8.8 15H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z"
+                ></path><path
+                  d="M14 10v.2A3 3 0 0 0 15.2 15H19a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"
+                ></path><path d="M12 22v-3"></path><path
+                  d="M12 15V9m-4 0a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0Z"></path></svg
+              >
+            </div>
+            <p class="app-loading-shell__message">Loading campus data</p>
+            <p class="app-loading-shell__splash" aria-hidden="true">
+              {LOADING_SPLASH_FIRST}
+            </p>
           </div>
         </div>
-        <div class="app-loading-mark__context" aria-hidden="true">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="app-loading-mark__context-icon"
-            ><path d="M10 12h4"></path><path d="M10 8h4"></path><path
-              d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path
-              d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2"
-            ></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"
-            ></path></svg
-          >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="app-loading-mark__context-icon"
-            ><path
-              d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-            ></path><circle cx="12" cy="10" r="3"></circle></svg
-          >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="app-loading-mark__context-icon"
-            ><path
-              d="M10 10v.2A3 3 0 0 1 8.8 15H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z"
-            ></path><path
-              d="M14 10v.2A3 3 0 0 0 15.2 15H19a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"
-            ></path><path d="M12 22v-3"></path><path
-              d="M12 15V9m-4 0a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0Z"></path></svg
-          >
-        </div>
-        <p class="app-loading-shell__message">Loading campus data</p>
-        <p class="app-loading-shell__splash" aria-hidden="true">
-          {LOADING_SPLASH_FIRST}
-        </p>
-      </div>
-    </div>
+      ) : null
+    }
     <slot />
     <Analytics />
-    <script is:inline>
-      (function () {
-        function dismissLoadingShell() {
-          document.getElementById("app-loading-shell")?.remove();
-        }
-        // AppRoot removes the shell on mount; if hydration never starts (e.g. dev HMR
-        // corruption), don't leave the static HTML blocker up indefinitely.
-        document.addEventListener(
-          "astro:before-prehydration",
-          dismissLoadingShell,
-          {
-            once: true,
-          },
-        );
-        window.addEventListener("DOMContentLoaded", function () {
-          setTimeout(dismissLoadingShell, 12_000);
-        });
-      })();
-    </script>
+    {
+      showAppLoadingShell ? (
+        <script is:inline>
+          (function () {
+            function dismissLoadingShell() {
+              document.getElementById("app-loading-shell")?.remove();
+            }
+            document.addEventListener(
+              "astro:before-prehydration",
+              dismissLoadingShell,
+              { once: true },
+            );
+            window.addEventListener("DOMContentLoaded", function () {
+              setTimeout(dismissLoadingShell, 12_000);
+            });
+          })();
+        </script>
+      ) : null
+    }
   </body>
 </html>
 

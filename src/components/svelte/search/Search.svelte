@@ -17,6 +17,7 @@
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
+  import TermSelector from "@ui/TermSelector.svelte";
   import TransitFilterChip from "@ui/TransitFilterChip.svelte";
   import TransitRoutePanel from "@ui/TransitRoutePanel.svelte";
   import { jeepneyStore } from "@lib/store.svelte";
@@ -333,11 +334,12 @@
         </div>
       </div>
 
-      {#if mobile.current || chrome.showSearchSuggestions}
+      {#if mobile.current || chrome.showSearchSuggestions || chrome.editMode}
         <div class="map-search-chrome__chips">
           {#if mobile.current}
             <MapDimensionToggle compact />
           {/if}
+          <TermSelector />
           {#if chrome.showSearchSuggestions}
             {#if showIdleEventsChrome}
               <button
@@ -761,6 +763,12 @@
     flex: 0 0 auto;
     min-width: 0;
     padding: 0 !important;
+  }
+
+  .map-search-chrome__chips :global(.term-selector) {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: min(100%, 18rem);
   }
 
   .map-search-chrome__chips :global(.transit-filter-chip) {
