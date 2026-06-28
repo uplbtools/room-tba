@@ -3,6 +3,7 @@ import { pwaInfo } from "virtual:pwa-info";
 import "../styles/font-face.css";
 import "../styles/app-loading.css";
 import Analytics from "@vercel/analytics/astro";
+import { LOADING_SPLASH_FIRST } from "@lib/loading-splash-messages";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
@@ -197,8 +198,8 @@ const imageUrl = absoluteUrl(imagePath);
               d="M12 15V9m-4 0a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0Z"></path></svg
           >
         </div>
-        <p class="app-loading-shell__message">Loading campus data…</p>
-        <p class="app-loading-shell__subtitle">Buildings, rooms &amp; events</p>
+        <p class="app-loading-shell__message">Loading campus data</p>
+        <p class="app-loading-shell__splash" aria-hidden="true">{LOADING_SPLASH_FIRST}</p>
       </div>
     </div>
     <slot />
