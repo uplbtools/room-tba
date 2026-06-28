@@ -114,6 +114,12 @@ const imageUrl = absoluteUrl(imagePath);
     </style>
   </head>
   <body>
+    <div id="app-loading-shell" class="app-loading-shell" role="status" aria-live="polite">
+      <div class="app-loading-shell__card">
+        <div class="app-loading-shell__spinner" aria-hidden="true"></div>
+        <p class="app-loading-shell__message">Loading campus data…</p>
+      </div>
+    </div>
     <slot />
     <Analytics />
   </body>
@@ -125,6 +131,68 @@ const imageUrl = absoluteUrl(imagePath);
     margin: 0;
     width: 100%;
     min-height: 100%;
+  }
+
+  .app-loading-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: hsl(5, 22%, 96%);
+  }
+
+  .app-loading-shell__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+    width: min(18rem, calc(100% - 2rem));
+    padding: 1rem 1.125rem;
+    border: 1.5px solid hsl(5, 10%, 68%);
+    border-radius: 1rem;
+    background: hsl(5, 20%, 97%);
+    box-shadow:
+      0 0 0 1px hsla(15, 8%, 20%, 0.16),
+      0 2px 8px hsla(0, 0%, 0%, 0.14),
+      0 8px 20px hsla(0, 0%, 0%, 0.18);
+    color: hsl(0, 0%, 18%);
+    text-align: center;
+  }
+
+  .app-loading-shell__spinner {
+    width: 1.375rem;
+    height: 1.375rem;
+    border: 2px solid hsl(5, 20%, 82%);
+    border-top-color: hsl(5, 53%, 32%);
+    border-radius: 50%;
+    animation: app-loading-shell-spin 0.75s linear infinite;
+  }
+
+  .app-loading-shell__message {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  @keyframes app-loading-shell-spin {
+    from {
+      rotate: 0deg;
+    }
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-loading-shell__spinner {
+      animation: none;
+      border-top-color: hsl(5, 53%, 32%);
+      opacity: 0.85;
+    }
   }
 
   @media only screen and (max-width: 600px) {

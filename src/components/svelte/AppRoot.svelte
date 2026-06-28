@@ -6,7 +6,7 @@
     setAppActions,
     setAppData,
   } from "@lib/context";
-  import { queryStore, syncToastStore } from "@lib/store.svelte";
+  import { queryStore, syncToastStore, appBootstrapStore } from "@lib/store.svelte";
   import type {
     BuildingData,
     CollegeData,
@@ -90,6 +90,21 @@
     totalRooms = data.totalRooms;
   }
 
+  function hasUsableCampusData(data: DBData) {
+    return (
+      data.buildings.length > 0 ||
+      data.colleges.length > 0 ||
+      data.divisions.length > 0 ||
+      data.dorms.length > 0 ||
+      data.events.length > 0 ||
+      data.totalRooms > 0
+    );
+  }
+
+  function dismissStaticLoadingShell() {
+    document.getElementById("app-loading-shell")?.remove();
+  }
+
   async function retryStaleEventsInBackground(eventCheck: TableSyncInfo) {
     if (eventCheck.valid || eventCheck.newKey === null) return;
 
@@ -108,7 +123,15 @@
     }
   }
 
-  async function refreshFromNetwork() {
+  async function refreshFromNetwork(hasCachedData: boolean) {
+    if (hasCachedData) {
+      appBootstrapStore.markBackgroundRefresh();
+    } else {
+      appBootstrapStore.beginRemote();
+    }
+    syncToastStore.startRemoteFetch();
+
+    let didSync = false;
     try {
       const [
         buildingCheck,
@@ -140,7 +163,7 @@
         getRoomsData(),
       ]);
 
-      applyData({
+      const nextData = {
         buildings: buildingLoad.rows,
         colleges: collegeLoad.rows,
         divisions: divisionLoad.rows,
@@ -148,7 +171,24 @@
         events: eventLoad.rows,
         directionCount: roomsData.directionCount,
         totalRooms: roomsData.totalRooms,
-      });
+      };
+      applyData(nextData);
+
+      const hasData = hasUsableCampusData(nextData);
+      appBootstrapStore.setHasCachedData(hasData);
+      if (!hasData) {
+        appBootstrapStore.fail(
+          "Could not load campus data. Check your connection and try again.",
+          () => {
+            void refreshFromNetwork(false);
+          },
+        );
+        syncToastStore.endSync(false);
+        return;
+      }
+
+      appBootstrapStore.beginSync();
+      didSync = true;
 
       await syncBuildings(
         buildingCheck,
@@ -180,15 +220,36 @@
       ) {
         void retryStaleEventsInBackground(eventCheck);
       }
+
+      appBootstrapStore.complete();
     } catch (error) {
       console.error("Network refresh failed", error);
+      if (!hasCachedData && !hasUsableCampusData({
+        buildings: buildings ?? [],
+        colleges: colleges ?? [],
+        divisions: divisions ?? [],
+        dorms: dorms ?? [],
+        events: events ?? [],
+        directionCount: directionCount ?? 0,
+        totalRooms: totalRooms ?? 0,
+      })) {
+        appBootstrapStore.fail(
+          "Could not connect to the database. Check your connection and try again.",
+          () => {
+            void refreshFromNetwork(false);
+          },
+        );
+      } else {
+        appBootstrapStore.complete();
+      }
     } finally {
-      syncToastStore.endSync();
+      syncToastStore.endSync(didSync);
     }
   }
 
   onMount(() => {
     void (async () => {
+      appBootstrapStore.beginLocal();
       const localDB = getDB();
       try {
         await initPGLiteDB(localDB);
@@ -196,10 +257,22 @@
         console.error(error);
       }
 
-      applyData(await loadCachedAppData());
+      const cached = await loadCachedAppData();
+      const hasCache = hasUsableCampusData(cached);
+      appBootstrapStore.setHasCachedData(hasCache);
+      applyData(cached);
       loaded = true;
+      dismissStaticLoadingShell();
 
-      void refreshFromNetwork();
+      appBootstrapStore.setRetryHandler(() => {
+        void refreshFromNetwork(false);
+      });
+
+      if (hasCache) {
+        appBootstrapStore.complete();
+      }
+
+      void refreshFromNetwork(hasCache);
     })();
   });
 
