@@ -6,7 +6,11 @@
     setAppActions,
     setAppData,
   } from "@lib/context";
-  import { queryStore, syncToastStore, appBootstrapStore } from "@lib/store.svelte";
+  import {
+    queryStore,
+    syncToastStore,
+    appBootstrapStore,
+  } from "@lib/store.svelte";
   import type {
     BuildingData,
     CollegeData,
@@ -123,10 +127,10 @@
     }
   }
 
-  async function refreshFromNetwork(hasCachedData: boolean) {
-    if (hasCachedData) {
+  async function refreshFromNetwork(hasCachedDataAtStart: boolean) {
+    if (hasCachedDataAtStart) {
       appBootstrapStore.markBackgroundRefresh();
-    } else {
+    } else if (appBootstrapStore.phase !== "remote") {
       appBootstrapStore.beginRemote();
     }
     syncToastStore.startRemoteFetch();
@@ -175,15 +179,22 @@
       applyData(nextData);
 
       const hasData = hasUsableCampusData(nextData);
-      appBootstrapStore.setHasCachedData(hasData);
+      if (hasData) {
+        appBootstrapStore.setHasCachedData(true);
+      } else if (!hasCachedDataAtStart) {
+        appBootstrapStore.setHasCachedData(false);
+      }
       if (!hasData) {
-        appBootstrapStore.fail(
-          "Could not load campus data. Check your connection and try again.",
-          () => {
-            void refreshFromNetwork(false);
-          },
-        );
-        syncToastStore.endSync(false);
+        if (hasCachedDataAtStart) {
+          appBootstrapStore.complete();
+        } else {
+          appBootstrapStore.fail(
+            "Could not load campus data. Check your connection and try again.",
+            () => {
+              void refreshFromNetwork(false);
+            },
+          );
+        }
         return;
       }
 
@@ -224,7 +235,7 @@
       appBootstrapStore.complete();
     } catch (error) {
       console.error("Network refresh failed", error);
-      if (!hasCachedData && !hasUsableCampusData({
+      const hasUsableData = hasUsableCampusData({
         buildings: buildings ?? [],
         colleges: colleges ?? [],
         divisions: divisions ?? [],
@@ -232,7 +243,8 @@
         events: events ?? [],
         directionCount: directionCount ?? 0,
         totalRooms: totalRooms ?? 0,
-      })) {
+      });
+      if (!hasCachedDataAtStart && !hasUsableData) {
         appBootstrapStore.fail(
           "Could not connect to the database. Check your connection and try again.",
           () => {
@@ -244,35 +256,58 @@
       }
     } finally {
       syncToastStore.endSync(didSync);
+      if (appBootstrapStore.isBlockingPhase) {
+        appBootstrapStore.forceResolveBlockingPhase();
+      }
     }
   }
 
   onMount(() => {
     void (async () => {
       appBootstrapStore.beginLocal();
-      const localDB = getDB();
-      try {
-        await initPGLiteDB(localDB);
-      } catch (error) {
-        console.error(error);
-      }
-
-      const cached = await loadCachedAppData();
-      const hasCache = hasUsableCampusData(cached);
-      appBootstrapStore.setHasCachedData(hasCache);
-      applyData(cached);
-      loaded = true;
-      dismissStaticLoadingShell();
-
       appBootstrapStore.setRetryHandler(() => {
         void refreshFromNetwork(false);
       });
 
-      if (hasCache) {
-        appBootstrapStore.complete();
-      }
+      try {
+        const localDB = getDB();
+        try {
+          await initPGLiteDB(localDB);
+        } catch (error) {
+          console.error(error);
+        }
 
-      void refreshFromNetwork(hasCache);
+        const cached = await loadCachedAppData();
+        const hasCache = hasUsableCampusData(cached);
+        appBootstrapStore.setHasCachedData(hasCache);
+        applyData(cached);
+        loaded = true;
+        dismissStaticLoadingShell();
+
+        if (hasCache) {
+          appBootstrapStore.complete();
+        }
+
+        await refreshFromNetwork(hasCache);
+      } catch (error) {
+        console.error("Bootstrap failed", error);
+        loaded = true;
+        dismissStaticLoadingShell();
+        if (appBootstrapStore.hasCachedData) {
+          appBootstrapStore.complete();
+        } else {
+          appBootstrapStore.fail(
+            "Could not load campus data. Check your connection and try again.",
+            () => {
+              void refreshFromNetwork(false);
+            },
+          );
+        }
+      } finally {
+        if (appBootstrapStore.isBlockingPhase) {
+          appBootstrapStore.forceResolveBlockingPhase();
+        }
+      }
     })();
   });
 

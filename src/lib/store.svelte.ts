@@ -934,27 +934,26 @@ class JeepneyStore {
 }
 
 export type AppBootstrapPhase =
-  | "idle"
-  | "local"
-  | "remote"
-  | "sync"
-  | "ready"
-  | "error";
+  "idle" | "local" | "remote" | "sync" | "ready" | "error";
 
-const APP_BOOTSTRAP_REMOTE_TIMEOUT_MS = 90_000;
+const APP_BOOTSTRAP_DEADLINE_MS = 90_000;
 
 class AppBootstrapStore {
   phase = $state<AppBootstrapPhase>("idle");
   errorMessage = $state<string | null>(null);
   hasCachedData = $state(false);
   private retryHandler: (() => void) | null = null;
-  private remoteTimeout: ReturnType<typeof setTimeout> | null = null;
+  private bootstrapDeadline: ReturnType<typeof setTimeout> | null = null;
 
   showBlockingOverlay = $derived(
     this.phase === "local" ||
       (this.phase === "remote" && !this.hasCachedData) ||
       (this.phase === "error" && !this.hasCachedData),
   );
+
+  get isBlockingPhase() {
+    return this.showBlockingOverlay;
+  }
 
   statusLabel = $derived.by(() => {
     switch (this.phase) {
@@ -970,25 +969,27 @@ class AppBootstrapStore {
   });
 
   beginLocal() {
-    this.clearRemoteTimeout();
+    this.clearBootstrapDeadline();
     this.errorMessage = null;
     this.phase = "local";
+    this.scheduleBootstrapDeadline();
   }
 
   beginRemote() {
     this.phase = "remote";
     this.errorMessage = null;
-    this.scheduleRemoteTimeout();
+    if (this.bootstrapDeadline === null) {
+      this.scheduleBootstrapDeadline();
+    }
   }
 
   beginSync() {
-    this.clearRemoteTimeout();
     this.phase = "sync";
     this.errorMessage = null;
   }
 
   complete() {
-    this.clearRemoteTimeout();
+    this.clearBootstrapDeadline();
     this.phase = "ready";
     this.errorMessage = null;
     this.retryHandler = null;
@@ -1013,7 +1014,7 @@ class AppBootstrapStore {
   }
 
   fail(message: string, retry?: () => void) {
-    this.clearRemoteTimeout();
+    this.clearBootstrapDeadline();
     this.phase = "error";
     this.errorMessage = message;
     this.retryHandler = retry ?? null;
@@ -1023,26 +1024,44 @@ class AppBootstrapStore {
     const handler = this.retryHandler;
     if (!handler) return;
     this.errorMessage = null;
+    this.clearBootstrapDeadline();
+    this.scheduleBootstrapDeadline();
     this.beginRemote();
     handler();
   }
 
-  private scheduleRemoteTimeout() {
-    this.clearRemoteTimeout();
-    if (this.hasCachedData) return;
-    this.remoteTimeout = setTimeout(() => {
-      if (this.phase !== "remote" && this.phase !== "local") return;
+  /** Escape hatch when bootstrap finishes without reaching ready/error. */
+  forceResolveBlockingPhase() {
+    if (this.phase === "ready" || this.phase === "idle") return;
+    if (this.hasCachedData || this.phase === "sync") {
+      this.complete();
+      return;
+    }
+    this.fail(
+      "This is taking longer than expected. Check your connection.",
+      this.retryHandler ?? undefined,
+    );
+  }
+
+  private scheduleBootstrapDeadline() {
+    this.clearBootstrapDeadline();
+    this.bootstrapDeadline = setTimeout(() => {
+      if (this.phase === "ready" || this.phase === "idle") return;
+      if (this.hasCachedData || this.phase === "sync") {
+        this.complete();
+        return;
+      }
       this.fail(
         "This is taking longer than expected. Check your connection.",
         this.retryHandler ?? undefined,
       );
-    }, APP_BOOTSTRAP_REMOTE_TIMEOUT_MS);
+    }, APP_BOOTSTRAP_DEADLINE_MS);
   }
 
-  private clearRemoteTimeout() {
-    if (this.remoteTimeout !== null) {
-      clearTimeout(this.remoteTimeout);
-      this.remoteTimeout = null;
+  private clearBootstrapDeadline() {
+    if (this.bootstrapDeadline !== null) {
+      clearTimeout(this.bootstrapDeadline);
+      this.bootstrapDeadline = null;
     }
   }
 }

@@ -342,8 +342,8 @@ export async function loadCachedAppData(): Promise<DBData> {
   };
 }
 
-export async function getJSONFetch<T>(url: string) {
-  const req = await fetch(url);
+export async function getJSONFetch<T>(url: string, timeoutMs = 30_000) {
+  const req = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   return (await req.json()) as T;
 }
 
