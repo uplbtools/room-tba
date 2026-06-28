@@ -459,39 +459,35 @@
     }
 
     .top-right-map-stack :global(.map-tools-panel) {
-      min-height: min(
-        58dvh,
+      /* Hug collapsed content; cap scroll height when sections expand. */
+      max-height: min(
+        42dvh,
         calc(
           100dvh - var(--search-block-height) - var(--status-bar-block-height)
         )
       );
-      padding: 0.875rem 1rem;
-      gap: 0.625rem;
-    }
-
-    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-header) {
-      font-size: 1rem;
-      padding: 0.375rem 0.25rem 0.625rem;
-    }
-
-    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-close) {
-      width: 2.75rem;
-      height: 2.75rem;
-    }
-
-    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-body) {
-      flex: 1 1 auto;
+      padding: 0.625rem 0.75rem;
       gap: 0.375rem;
     }
 
-    .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-toggle) {
-      min-height: 2.75rem;
-      padding: 0.625rem 0.75rem;
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-header) {
       font-size: 0.9375rem;
+      padding: 0.1875rem 0.25rem 0.3125rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-body) {
+      flex: 0 1 auto;
+      gap: 0.3125rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-toggle) {
+      min-height: 2.375rem;
+      padding: 0.4375rem 0.625rem;
+      font-size: 0.875rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-body) {
-      padding: 0.25rem 0 0.5rem;
+      padding: 0.125rem 0 0.3125rem;
     }
 
     /* When the drawer sheet is open, lift FABs above its peek handle */

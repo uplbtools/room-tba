@@ -7,10 +7,8 @@
   import Box from "@lucide/svelte/icons/box";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapIcon from "@lucide/svelte/icons/map";
-  import Orbit from "@lucide/svelte/icons/orbit";
   import { mapStore, mapViewStore } from "@lib/store.svelte";
   import type { MapLibreMap } from "maplibre-gl";
-  import { MediaQuery } from "svelte/reactivity";
 
   type Props = {
     /** When true, omit outer card chrome (used inside MapToolsFlyout). */
@@ -21,7 +19,6 @@
 
   let { embedded = false, variant = "modes" }: Props = $props();
 
-  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const showModes = $derived(variant === "modes");
   const showCameraNav = $derived(variant === "camera");
 
@@ -48,14 +45,6 @@
       ? "Camera is flat 2D. Switch to tilted 3D."
       : "Camera is tilted 3D. Switch to flat 2D.",
   );
-  const campusTourTitle = $derived(
-    reducedMotion.current
-      ? "Campus tour is unavailable when reduced motion is enabled in your system settings."
-      : mapViewStore.campusTourEnabled
-        ? "Stop slow campus overview rotation."
-        : "Slowly rotate the campus overview map.",
-  );
-
   function syncCamera() {
     const map = mapStore.mapInstance;
     if (!map) return;
@@ -81,7 +70,6 @@
   function withMap(fn: (map: MapLibreMap) => void) {
     const map = mapStore.mapInstance;
     if (!map) return;
-    mapStore.stopAutoRotate?.();
     fn(map);
   }
 
@@ -166,30 +154,6 @@
       <span class="control-copy">
         <span class="control-kicker">View</span>
         <span class="control-value">{is2D ? "2D flat" : "3D tilted"}</span>
-      </span>
-    </button>
-
-    <div class="divider"></div>
-
-    <button
-      class="control mode-toggle tour-toggle"
-      class:active={mapViewStore.campusTourEnabled}
-      disabled={reducedMotion.current}
-      onclick={mapViewStore.toggleCampusTour}
-      title={campusTourTitle}
-      aria-label={campusTourTitle}
-      aria-pressed={mapViewStore.campusTourEnabled}
-    >
-      <Orbit size={18} aria-hidden="true" />
-      <span class="control-copy">
-        <span class="control-kicker">Campus tour</span>
-        <span class="control-value">
-          {reducedMotion.current
-            ? "Unavailable"
-            : mapViewStore.campusTourEnabled
-              ? "Rotating"
-              : "Off"}
-        </span>
       </span>
     </button>
   {/if}
@@ -289,11 +253,19 @@
     padding: 0;
     background: transparent;
     backdrop-filter: none;
-    width: var(--map-chrome-toggle-size, 2rem);
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
     gap: 0.0625rem;
+  }
+
+  /* Camera stack is icon-only; modes panel needs full accordion width. */
+  .map-view-controls.embedded.camera-only {
+    width: var(--map-chrome-toggle-size, 2rem);
+  }
+
+  .map-view-controls.embedded:not(.camera-only) {
+    width: 100%;
   }
 
   .divider {
@@ -359,12 +331,16 @@
   }
 
   .mode-toggle {
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: 1.125rem minmax(0, 1fr);
+    column-gap: 0.4375rem;
+    align-items: center;
+    justify-items: start;
     width: 100%;
     max-width: 100%;
-    min-height: 2rem;
+    min-height: 2.125rem;
     height: auto;
-    padding: 0.3125rem 0.625rem;
+    padding: 0.25rem 0.5rem;
     border: 1px solid hsl(0, 0%, 88%);
     border-radius: 0.625rem;
     box-sizing: border-box;
@@ -376,14 +352,22 @@
   }
 
   .mode-toggle :global(svg) {
+    grid-column: 1;
+    justify-self: center;
     flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .mode-toggle .control-copy {
+    grid-column: 2;
+    width: 100%;
   }
 
   .control-copy {
     display: grid;
     gap: 0.0625rem;
     min-width: 0;
-    flex: 1;
     text-align: left;
     overflow: visible;
   }
@@ -414,28 +398,34 @@
     background-color: hsl(0, 78%, 97%);
   }
 
-  .pin-toggle.active,
-  .camera-toggle.active,
-  .tour-toggle.active {
+  .camera-toggle {
+    border-color: hsl(5, 34%, 78%);
+    background-color: hsl(0, 100%, 99%);
+  }
+
+  .camera-toggle:hover {
+    border-color: hsl(5, 34%, 68%);
+    background-color: hsl(0, 78%, 97%);
+  }
+
+  .mode-toggle.active {
     border-color: hsl(5, 53%, 32%);
     background-color: hsl(5, 53%, 32%);
     color: white;
   }
 
-  .pin-toggle.active:hover,
-  .camera-toggle.active:hover,
-  .tour-toggle.active:hover {
+  .mode-toggle.active .control-kicker,
+  .mode-toggle.active .control-value {
+    color: white;
+  }
+
+  .mode-toggle.active .control-kicker {
+    opacity: 0.88;
+  }
+
+  .mode-toggle.active:hover:not(:disabled) {
+    border-color: hsl(5, 53%, 32%);
     background-color: hsl(5, 53%, 38%);
-  }
-
-  .tour-toggle:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-
-  .tour-toggle:disabled:hover {
-    border-color: hsl(0, 0%, 88%);
-    background-color: hsl(0, 100%, 99%);
   }
 
   @media (max-width: 48rem) {
@@ -446,7 +436,8 @@
 
     .mode-toggle {
       width: 100%;
-      min-height: 2rem;
+      min-height: 2.25rem;
+      padding: 0.3125rem 0.5625rem;
     }
   }
 </style>
