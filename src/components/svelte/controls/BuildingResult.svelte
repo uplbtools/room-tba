@@ -295,6 +295,18 @@
             <Box size={14} aria-hidden="true" />
             3D view
           </MapChromeActionChip>
+          <MapChromeActionChip
+            onclick={() => {
+              locationStore.requestLocation();
+              locationStore.setDestination([
+                building.lon ?? 0,
+                building.lat ?? 0,
+              ]);
+            }}
+          >
+            <CornerRightUp size={14} aria-hidden="true" />
+            Directions
+          </MapChromeActionChip>
         {/if}
         <CopyLinkButton
           url={buildingShareUrl}
@@ -442,23 +454,6 @@
             <p class="entity-directions__empty">No directions listed.</p>
           {/if}
         </div>
-
-        {#if hasMapPin}
-          <div class="entity-directions__nav">
-            <MapChromeActionChip
-              onclick={() => {
-                locationStore.requestLocation();
-                locationStore.setDestination([
-                  building.lon ?? 0,
-                  building.lat ?? 0,
-                ]);
-              }}
-            >
-              Directions
-              <CornerRightUp size={14} aria-hidden="true" />
-            </MapChromeActionChip>
-          </div>
-        {/if}
       </section>
     {/if}
   {:else}

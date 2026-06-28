@@ -77,7 +77,7 @@
     align-items: center;
     gap: 0.375rem;
     flex: 0 0 auto;
-    max-width: min(8rem, 28vw);
+    max-width: min(9rem, 32vw);
     pointer-events: auto;
     isolation: isolate;
   }
@@ -95,6 +95,9 @@
     font-weight: 600;
     line-height: 1.2;
     padding: 0.25rem 0.5rem;
+    min-width: 6.875rem;
+    text-align: center;
+    white-space: nowrap;
     cursor: pointer;
     /* Single edge layer: border only — avoid stacking with shadow 1px rings. */
     box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);

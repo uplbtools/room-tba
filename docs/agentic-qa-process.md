@@ -52,12 +52,15 @@ Run these before asking for browser QA:
 ```sh
 git status --short --branch
 bun run lint
+bun run check:readme
 bun test src
 bun run build
 curl -I http://localhost:4321/admin
 curl -I http://localhost:4321/admin/login
 curl -I 'http://localhost:4321/?editor=login'
 ```
+
+If the branch changed env vars, scripts, stack versions, CI, or contributor workflow, confirm `README.md` and `.env.example` were updated in the same PR — not a follow-up. `check:readme` catches known stale onboarding text; a passing check does not replace reading the sections you touched.
 
 For editor-history work, also confirm the table exists:
 

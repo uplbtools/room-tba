@@ -27,7 +27,7 @@ import {
 
 const OUT_DIR = join(import.meta.dir, "..", "exports", "deep-research");
 // Fallback term label when the terms table is unavailable (e.g. SQLite export).
-const TERM = "AY 2025-2026 2nd Semester";
+const TERM = "AY 2025-2026 Midyear";
 const EXPORTED_AT = new Date().toISOString();
 
 type ExportManifest = {
