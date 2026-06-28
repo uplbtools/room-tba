@@ -338,7 +338,7 @@
   <p class="editor-note">
     {#if canPublish}
       {#if mapEditStore.enabled}
-        Map editing is on — drag this dorm's pin on the map to move it.
+        Map editing is on. Drag this dorm's pin on the map to move it.
       {:else}
         To move this dorm's map pin,
         <button
@@ -352,7 +352,7 @@
       {/if}
     {:else if dorm.lat && dorm.lon}
       {#if mapProposalStore.allowsKey(`dorm:${dorm.id}`)}
-        Pin move mode is on — drag this dorm's marker on the map.
+        Pin move mode is on. Drag this dorm's marker on the map.
       {:else}
         To suggest a map pin move,
         <button

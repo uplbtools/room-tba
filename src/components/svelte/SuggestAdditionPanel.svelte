@@ -363,7 +363,7 @@
         error = result.error ?? "Could not submit proposal.";
         return;
       }
-      toastStore.show("Thanks — we'll review your suggestion soon.", "success");
+      toastStore.show("Thanks. We'll review your suggestion soon.", "success");
       clearSuggestAdditionDraft();
       resetFields();
       dismissHost();
@@ -383,8 +383,8 @@
       Add a missing building, room, dorm, college, or division. Buildings and
       dorms need a map pin before you create them.
     {:else}
-      Spot something missing on the map? Tell us what to add — editors review
-      every suggestion before it goes live.
+      Spot something missing on the map? Describe it below. Editors review every
+      suggestion before it goes live.
     {/if}
   </p>
 
@@ -433,7 +433,7 @@
       <EntityEditorFormField
         label="How do you find it?"
         inputId="addition-building-directions"
-        hint="Floor, nearby landmarks — anything that helps someone get there."
+        hint="Floor, nearby landmarks, or anything that helps someone get there."
       >
         {#snippet control()}
           <textarea
@@ -532,7 +532,7 @@
       <EntityEditorFormField
         label="Who can live here?"
         inputId="addition-dorm-gender"
-        hint="Coed, women only, men only — whatever applies."
+        hint="Coed, women only, men only, or whatever applies."
       >
         {#snippet control()}
           <input
@@ -561,7 +561,7 @@
       <EntityEditorFormField
         label="How do you get there?"
         inputId="addition-room-directions"
-        hint="Optional — stairs, wing, or landmarks help."
+        hint="Optional: stairs, wing, or landmarks."
       >
         {#snippet control()}
           <textarea

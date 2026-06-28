@@ -44,7 +44,7 @@ Use this when you can test the live or staging app on a real device.
 
 Helpful checks: search a room you know, open schedules for the current term, try offline mode after loading once, check layout at narrow phone width.
 
-**No PR required** — describe what you saw; developers fix bugs from your report.
+**No PR required.** Describe what you saw. A developer will fix it from your report.
 
 ---
 

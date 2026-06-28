@@ -270,7 +270,7 @@
         );
       } else if (hasUsableData) {
         syncToastStore.setSyncError(
-          "Could not sync campus data — tap to retry",
+          "Could not sync campus data. Tap to retry.",
           () => {
             void refreshFromNetwork(hasCachedDataAtStart);
           },
