@@ -14,8 +14,8 @@ Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column, building pin filter chips (`BuildingTypeFilterBar.svelte`), **Editor chip + shelf** (signed-in editors), event banner, Map tools trigger
-- **Map face:** map canvas, desktop `MapDimensionToggle` + camera stack (`MapViewControls variant="camera"` — rotate/tilt/north), mobile `MapDimensionToggle`, location/editor FAB
+- **Top band:** search column, building pin filter chips (`BuildingTypeFilterBar.svelte`), **Editor chip + shelf** (signed-in editors), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only)
+- **Map face:** map canvas, desktop `MapDimensionToggle` + camera stack (`MapViewControls variant="camera"` — rotate/tilt/north), location/editor FAB
 - **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location/editor FAB
 - **Ephemeral:** toast, modals
 
@@ -32,6 +32,19 @@ MapLibre attribution is disabled on the map canvas (`attributionControl={false}`
 - `--edit-bar-height` (non-zero when editing)
 
 Use these instead of magic `bottom` / `top` values.
+
+## Side panel zones (MainControls drawer)
+
+Entity detail views (`RoomResult`, `BuildingResult`, `DormResult`, etc.) use shared layout from `controls/entity-detail.css`:
+
+| Zone | Contents |
+| ---- | -------- |
+| Header | Breadcrumb (optional), title + badge, context line, **one** actions row (Copy link, Edit, nav chips) |
+| Body | Browse text; editor panel expands inline when Edit is open |
+| Directions | Merged directions text + suggest links + Directions / Google Maps chips |
+| Footer | Secondary links only (e.g. classes schedule, external refs) |
+
+Do not add duplicate action rows or colored highlight boxes. See `.cursor/rules/side-panel.mdc`.
 
 ## Verification viewports
 
