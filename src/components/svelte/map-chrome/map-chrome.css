@@ -385,7 +385,6 @@ button.map-chrome-chip:disabled {
   width: min(20rem, calc(100vw - 1rem));
   max-height: min(75vh, 28rem);
   min-width: 0;
-  transform-origin: top right;
 }
 
 .map-chrome-popover {
@@ -471,12 +470,10 @@ button.map-chrome-chip:disabled {
 @keyframes map-chrome-accordion-in {
   from {
     opacity: 0;
-    transform: translateY(-0.25rem);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
