@@ -66,7 +66,7 @@
         aria-expanded={suggestMenuOpen}
         aria-controls="suggest-addition-menu"
       >
-        <Plus />
+        <Plus aria-hidden="true" />
       </button>
     </div>
   {/if}
@@ -78,9 +78,9 @@
     aria-label="My Location"
   >
     {#if centered}
-      <LocateFixed />
+      <LocateFixed aria-hidden="true" />
     {:else}
-      <Locate />
+      <Locate aria-hidden="true" />
     {/if}
   </button>
 </div>

@@ -4,9 +4,16 @@
   type Props = {
     variant: "success" | "error" | "pending";
     message: string;
+    id?: string;
   };
 
-  let { variant, message }: Props = $props();
+  let { variant, message, id }: Props = $props();
 </script>
 
-<p class="editor-message {variant}">{message}</p>
+<p
+  {id}
+  class="editor-message {variant}"
+  role={variant === "error" ? "alert" : "status"}
+>
+  {message}
+</p>

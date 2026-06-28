@@ -70,6 +70,7 @@
     class:active={is2D}
     onclick={go2D}
     aria-pressed={is2D}
+    aria-label="Switch to flat 2D map"
     title="Flat top-down map"
   >
     2D
@@ -80,6 +81,7 @@
     class:active={!is2D}
     onclick={go3D}
     aria-pressed={!is2D}
+    aria-label="Switch to tilted 3D map"
     title="Tilted perspective map"
   >
     3D
@@ -125,6 +127,11 @@
 
   .segment:hover:not(.active) {
     background-color: hsla(0, 0%, 0%, 0.06);
+  }
+
+  .segment:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
   }
 
   .segment.active {

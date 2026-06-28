@@ -62,7 +62,7 @@
     </div>
 
     {#if proposalsStore.loading}
-      <p class="entity-review-empty">Loading proposals…</p>
+      <p class="entity-review-empty" aria-live="polite">Loading proposals…</p>
     {:else if proposalsStore.proposals.length === 0}
       <p class="entity-review-empty">No pending suggestions.</p>
     {:else}
@@ -74,7 +74,9 @@
                 {proposal.entityLabel}
                 <small>({proposal.entityType})</small>
               </span>
-              <span class="entity-review-submitter">{proposal.submitterName}</span>
+              <span class="entity-review-submitter"
+                >{proposal.submitterName}</span
+              >
             </div>
             <ul class="entity-review-changes">
               {#each summarizeProposalPatch(proposal.proposedPatch, proposal.entityType as ProposalEntityType) as line}
@@ -102,8 +104,7 @@
             <EntityReviewActions
               disabled={actingId === proposal.id}
               onapprove={() => runAction(proposal.id, "approve")}
-              onrequestChanges={() =>
-                runAction(proposal.id, "request-changes")}
+              onrequestChanges={() => runAction(proposal.id, "request-changes")}
               onreject={() => runAction(proposal.id, "reject")}
             />
           </li>

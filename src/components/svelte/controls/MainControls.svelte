@@ -59,14 +59,14 @@
         >
           {#if mobile.current}
             {#if sidePanelStore.collapsed}
-              <ChevronUp size={20} />
+              <ChevronUp size={20} aria-hidden="true" />
             {:else}
-              <ChevronDown size={20} />
+              <ChevronDown size={20} aria-hidden="true" />
             {/if}
           {:else if sidePanelStore.collapsed}
-            <ChevronRight size={20} />
+            <ChevronRight size={20} aria-hidden="true" />
           {:else}
-            <ChevronLeft size={20} />
+            <ChevronLeft size={20} aria-hidden="true" />
           {/if}
         </button>
         <div class="drawer-card">

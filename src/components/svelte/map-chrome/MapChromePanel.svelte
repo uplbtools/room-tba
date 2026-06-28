@@ -43,7 +43,7 @@
       aria-label="Close"
       onclick={onclose}
     >
-      <X size={16} />
+      <X size={16} aria-hidden="true" />
     </button>
   </div>
   <div class="map-chrome-panel-body">
