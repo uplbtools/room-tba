@@ -29,15 +29,15 @@ No account needed to browse. Editors and contributors fix data in the same app (
 
 ## What you can do (student mode)
 
-| You want to…                         | Room TBA does…                                                                  |
-| ------------------------------------ | ------------------------------------------------------------------------------- |
-| Find **PSLH 1** or **PhySci**        | Search + alias matching (`PhySci`, `HUM`, building nicknames)                   |
-| See **who's in that room this sem**  | Term-aware class schedules + timetable view                                     |
-| Figure out **where the building is** | MapLibre campus map, pins, directions, Google Maps handoff                      |
-| Survive **dead zones**               | PWA + offline cache (PGlite in the browser; map tiles after you've loaded them) |
-| Check **events & org stuff**         | Campus events on the map with locations and routes                              |
-| Ride the **jeep** without guessing   | Jeepney route overlays                                                          |
-| Get **un-lost in 3D**                | Optional building view / terrain toward Makiling (online tiles)                 |
+| Goal                          | How                                        |
+| ----------------------------- | ------------------------------------------ |
+| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)      |
+| Room schedule this sem        | Term filter + timetable                    |
+| Building location             | Map, pins, directions, Google Maps         |
+| Offline / bad signal          | PWA + local cache; tiles if already loaded |
+| Campus events                 | Events on map with routes                  |
+| Jeepney routes                | Route overlays on map                      |
+| 3D view                       | Buildings + Makiling terrain (online)      |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
@@ -83,18 +83,17 @@ flowchart LR
 
 ---
 
-## Stack (for the curious)
+## Stack
 
-| Layer     | Choice                                                                              | Why it's here                                                 |
-| --------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| App shell | [Astro 7](https://astro.build) + [Svelte 5](https://svelte.dev)                     | SEO pages for every room/building **and** a snappy map island |
-| Runtime   | [Bun](https://bun.sh)                                                               | Dev speed, tests, installs                                    |
-| Database  | [Supabase](https://supabase.com) Postgres + [Drizzle ORM](https://orm.drizzle.team) | Relational data, migrations in `drizzle/`                     |
-| Offline   | [PGlite](https://pglite.dev) (`idb://site-data`)                                    | SQL in the browser, not a hand-rolled JSON cache              |
-| Maps      | [MapLibre GL](https://maplibre.org) + OSM/MapTiler                                  | Open tiles, no vendor lock-in on basemaps                     |
-| Images    | Cloudflare R2 (optional)                                                            | Event uploads via `/api/admin/upload`                         |
-| Host      | [Vercel](https://vercel.com)                                                        | SSR + API routes                                              |
-| CI        | Prettier, unit tests, CodeQL, Dependabot                                            | See [AGENTS.md](AGENTS.md)                                    |
+- [Astro 7](https://astro.build) + [Svelte 5](https://svelte.dev)
+- [Bun](https://bun.sh)
+- [Supabase](https://supabase.com) Postgres + [Drizzle](https://orm.drizzle.team) (`drizzle/`)
+- [PGlite](https://pglite.dev) in the browser for offline data
+- [MapLibre GL](https://maplibre.org), OSM / MapTiler tiles
+- [Vercel](https://vercel.com) for SSR and API routes
+- Cloudflare R2 for event uploads (optional)
+
+Contributor notes: [AGENTS.md](AGENTS.md)
 
 ---
 
