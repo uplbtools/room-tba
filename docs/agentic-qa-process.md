@@ -2,7 +2,7 @@
 
 Use this process when preparing an editor-focused PR for review. The goal is to let agents verify everything they can with evidence, while clearly marking browser-only checks that still need a human pass.
 
-**Related docs:** [AGENTS.md](../AGENTS.md) (policy), [editor-foundation-test-plan.md](editor-foundation-test-plan.md) (manual editor checklist), [.cursor/rules/map-layout.mdc](../.cursor/rules/map-layout.mdc) and [side-panel.mdc](../.cursor/rules/side-panel.mdc) for UI layout.
+**Related docs:** [AGENTS.md](../AGENTS.md) (policy), [issue-hygiene.md](issue-hygiene.md) (GitHub issue upkeep), [editor-foundation-test-plan.md](editor-foundation-test-plan.md) (manual editor checklist), [.cursor/rules/map-layout.mdc](../.cursor/rules/map-layout.mdc) and [side-panel.mdc](../.cursor/rules/side-panel.mdc) for UI layout.
 
 ## Roles
 
@@ -19,6 +19,18 @@ One agent can play multiple roles, but the report must separate automated eviden
 - Local `.env` with `DATABASE_URL` and `ADMIN_PASSWORD`.
 - Current test checklist: `docs/editor-foundation-test-plan.md`.
 - A running local dev server on the expected port, usually `http://localhost:4321`.
+- Linked GitHub issue number(s), if any — re-read with `gh issue view N` before coding; see [issue-hygiene.md](issue-hygiene.md).
+
+## GitHub issue sync (PR prep)
+
+When the PR implements or partially implements an issue:
+
+1. Re-read the issue; grep for every path/command cited in the body.
+2. Edit the issue body: check off completed AC, fix stale paths, update `Status:` and `Last verified against staging:`.
+3. Comment on the issue with the PR link and which AC items this PR covers.
+4. In the PR body, use `Closes #N` / `Refs #N` and fill the **Issues updated** checklist in the PR template.
+
+Do not close issues with unchecked AC or outdated implementation notes.
 
 ## Change-type matrix
 
