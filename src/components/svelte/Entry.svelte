@@ -185,6 +185,8 @@
     /* Breathing room between bottom FAB stack and status bar (above inner-layer padding). */
     --bottom-fab-gap: var(--map-ui-padding, 0.5rem);
     --search-block-height: 3.25rem;
+    /* Top-left search card + drawer: use viewport minus right-side map chrome. */
+    --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
     --status-bar-block-height: 2.75rem;
     --drawer-peek-offset: 1.75rem;
     --map-tools-block-height: 3.25rem;
@@ -457,35 +459,39 @@
     }
 
     .top-right-map-stack :global(.map-tools-panel) {
-      /* Hug collapsed content; cap scroll height when sections expand. */
-      max-height: min(
-        42dvh,
+      min-height: min(
+        58dvh,
         calc(
           100dvh - var(--search-block-height) - var(--status-bar-block-height)
         )
       );
-      padding: 0.625rem 0.75rem;
-      gap: 0.375rem;
+      padding: 0.875rem 1rem;
+      gap: 0.625rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-header) {
-      font-size: 0.9375rem;
-      padding: 0.1875rem 0.25rem 0.3125rem;
+      font-size: 1rem;
+      padding: 0.375rem 0.25rem 0.625rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-close) {
+      width: 2.75rem;
+      height: 2.75rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-body) {
-      flex: 0 1 auto;
-      gap: 0.3125rem;
+      flex: 1 1 auto;
+      gap: 0.375rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-toggle) {
-      min-height: 2.375rem;
-      padding: 0.4375rem 0.625rem;
-      font-size: 0.875rem;
+      min-height: 2.75rem;
+      padding: 0.625rem 0.75rem;
+      font-size: 0.9375rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-body) {
-      padding: 0.125rem 0 0.3125rem;
+      padding: 0.25rem 0 0.5rem;
     }
 
     /* When the drawer sheet is open, lift FABs above its peek handle */
