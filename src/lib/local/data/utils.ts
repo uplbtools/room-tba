@@ -237,6 +237,40 @@ export async function getLocalRoomByCode(code: string) {
   }
 }
 
+export async function getLocalRoomById(id: number) {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `
+            SELECT
+            r.id,
+            r.room_code AS code,
+            r.directions AS directions,
+            json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+            c.college_name as "collegeName",
+            d.division_name as "divisionName",
+            r.building_id as "buildingId",
+            r.college_id as "collegeId",
+            r.division_id as "divisionId",
+            r.version,
+            r.updated_at as "updatedAt"
+            FROM rooms AS r
+            LEFT JOIN buildings AS b ON b.id = r.building_id
+            LEFT JOIN colleges as c ON c.id = r.college_id
+            LEFT JOIN divisions AS d ON d.id = r.division_id
+            WHERE r.id = $1
+        `,
+      [id],
+    )) as Results<RoomData>;
+    if (data.rows.length === 0) return null;
+    return data.rows[0] as RoomData;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
 // export async function getLocalRooms(): Promise<RoomData[] | undefined> {
 //   try {
 //     const localDB = getDB();
