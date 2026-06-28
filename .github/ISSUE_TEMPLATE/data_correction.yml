@@ -34,7 +34,7 @@ body:
     id: term
     attributes:
       label: Term (if schedule-related)
-      description: e.g. 2nd Sem AY 2025-2026 — leave blank if not applicable
+      description: e.g. 2nd Sem AY 2025-2026; leave blank if not applicable
   - type: textarea
     id: wrong
     attributes:

@@ -35,11 +35,11 @@
       {:else}
         <a
           class="term-selector__empty"
-          href="/contribute"
+          href="https://github.com/uplbtools/room-tba/issues/new?template=data_correction.yml"
           target="_blank"
           rel="noopener noreferrer"
         >
-          No schedules yet — report
+          No schedules yet. Report data
         </a>
       {/if}
     {/if}

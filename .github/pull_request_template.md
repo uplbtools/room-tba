@@ -1,8 +1,8 @@
 ## Who are you?
 
-- [ ] **Campus / data / QA only** — no code in this PR? Comment on the issue instead; skip the rest of this template.
-- [ ] **Developer** — code PR to `staging` ([CONTRIBUTING.md](CONTRIBUTING.md)).
-- [ ] **Maintainer / agent** — full QA below + issue hygiene for linked specs.
+- [ ] **Campus / data / QA only:** no code in this PR? Comment on the issue and skip the rest.
+- [ ] **Developer:** code PR to `staging` ([CONTRIBUTING.md](CONTRIBUTING.md)).
+- [ ] **Maintainer / agent:** full QA below plus issue hygiene for linked specs.
 
 ## Summary
 
@@ -23,7 +23,7 @@ Automated:
 - [ ] Prettier passed: `bunx prettier --check .` (PR CI)
 - [ ] Unit tests passed: `bun test src` (PR CI)
 - [ ] Full lint passed (local): `bun run lint`
-- [ ] Build passed (local): `bun run build` — requires `DATABASE_URL`; not run in PR CI
+- [ ] Build passed (local): `bun run build` (needs `DATABASE_URL`; not run in PR CI)
 
 If auth, routing, or schema changed:
 
