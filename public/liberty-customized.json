@@ -3269,21 +3269,21 @@
           ["linear"],
           ["coalesce", ["get", "render_height"], 5],
           3,
-          "#ead8bc",
+          "#ede9e1",
           5,
-          "#e8d4b4",
+          "#e8e4dc",
           8,
-          "#d4bc96",
+          "#e8e4dc",
           12,
-          "#c4a67a",
+          "#e2ded6",
           18,
-          "#b89968",
+          "#d8d4cc",
           28,
-          "#9a7850",
+          "#c8c4bc",
           45,
-          "#7a5c38"
+          "#a8a49c"
         ],
-        "fill-outline-color": "#9a8570"
+        "fill-outline-color": "#b8b4ac"
       }
     },
     {
@@ -3298,19 +3298,19 @@
           ["linear"],
           ["coalesce", ["get", "render_height"], 5],
           3,
-          "#ead8bc",
+          "#ede9e1",
           5,
-          "#e8d4b4",
+          "#e8e4dc",
           8,
-          "#d4bc96",
+          "#e8e4dc",
           12,
-          "#c4a67a",
+          "#e2ded6",
           18,
-          "#b89968",
+          "#d8d4cc",
           28,
-          "#9a7850",
+          "#c8c4bc",
           45,
-          "#7a5c38"
+          "#a8a49c"
         ],
         "fill-extrusion-height": {
           "property": "render_height",
