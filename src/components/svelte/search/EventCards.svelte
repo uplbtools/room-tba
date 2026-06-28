@@ -255,19 +255,19 @@
 <style>
   .events-section {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.375rem;
   }
   .section-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 0.5rem 0.75rem;
+    gap: 0.375rem 0.625rem;
   }
   .section-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
     flex: 1 1 auto;
     min-width: 0;
     flex-wrap: wrap;
@@ -292,7 +292,7 @@
   }
   .event-list {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.375rem;
   }
   .empty-events {
     margin: 0;
@@ -311,7 +311,7 @@
     gap: 0.5rem;
   }
   .event-skeleton-row {
-    height: 4.5rem;
+    height: 3.75rem;
     border-radius: 0.875rem;
     background: linear-gradient(90deg, #f4f4f5 25%, #ececee 50%, #f4f4f5 75%);
     background-size: 200% 100%;
@@ -321,7 +321,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
     gap: 0.5rem;
-    padding: 0.45rem;
+    padding: 0.375rem;
     border: 1px solid #eee1e1;
     border-radius: 0.875rem;
     transition:

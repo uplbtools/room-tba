@@ -17,6 +17,7 @@
   import Suggestions from "./Suggestions.svelte";
   import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
   import EditorShelf from "@ui/EditorShelf.svelte";
+  import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { MediaQuery } from "svelte/reactivity";
@@ -264,8 +265,12 @@
         </div>
       </div>
 
-      {#if chrome.showSearchSuggestions}
+      {#if mobile.current || chrome.showSearchSuggestions}
         <div class="map-search-chrome__chips">
+          {#if mobile.current}
+            <MapDimensionToggle compact />
+          {/if}
+          {#if chrome.showSearchSuggestions}
           {#if showIdleEventsChrome}
             <button
               type="button"
@@ -315,6 +320,7 @@
             </button>
           {/if}
           <BuildingTypeFilterBar />
+          {/if}
         </div>
       {/if}
 
@@ -435,11 +441,11 @@
   }
 
   .map-search-chrome__bar {
-    padding: 0.625rem 0.75rem;
+    padding: 0.4375rem 0.625rem;
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome__bar {
-    padding: 0.5rem 0.625rem;
+    padding: 0.375rem 0.5rem;
   }
 
   .map-search-chrome__pill-wrap {
@@ -450,10 +456,10 @@
   .map-search-chrome__pill {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
     min-width: 0;
-    min-height: 2.5rem;
-    padding: 0.375rem 0.625rem;
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
     border: 1px solid hsl(0, 0%, 88%);
     border-radius: 999px;
     background-color: hsl(0, 0%, 97%);
@@ -535,7 +541,7 @@
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 0.4375rem 0.625rem 0.4375rem;
+    padding: 0.3125rem 0.625rem 0.3125rem;
     border-top: 1px solid hsl(0, 0%, 92%);
   }
 
@@ -586,7 +592,7 @@
     overflow: hidden;
     overscroll-behavior: contain;
     border-top: 1px solid hsl(0, 0%, 92%);
-    padding: 0.375rem 0.625rem 0.625rem;
+    padding: 0.1875rem 0.625rem 0.4375rem;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -595,30 +601,55 @@
     flex-direction: column;
     min-height: 0;
     flex: 1 1 auto;
-    gap: 0.375rem;
+    gap: 0;
   }
 
   .map-search-chrome__events :global(.section-actions--inline) {
     flex: 0 0 auto;
+    gap: 0.375rem;
   }
 
   .map-search-chrome__events :global(.event-list) {
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
+    gap: 0.375rem;
+    margin-top: 0.25rem;
+    padding-top: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 72%) transparent;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: hsl(0, 0%, 72%);
+  }
+
+  .map-search-chrome__events :global(.event-list):hover::-webkit-scrollbar-thumb {
+    background-color: hsl(0, 0%, 58%);
   }
 
   .map-search-chrome__editor {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    max-height: min(50dvh, 24rem);
+    max-height: min(46dvh, 20rem);
     overflow-y: auto;
     overscroll-behavior: contain;
     border-top: 1px solid hsl(0, 0%, 92%);
-    padding: 0.375rem 0.625rem 0.625rem;
+    padding: 0.25rem 0.625rem 0.4375rem;
     -webkit-overflow-scrolling: touch;
   }
 </style>
