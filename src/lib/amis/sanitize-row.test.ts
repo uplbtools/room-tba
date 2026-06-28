@@ -61,6 +61,11 @@ describe("amisExportContainsInstructorPii", () => {
     ).toBe(true);
     expect(
       amisExportContainsInstructorPii({
+        classes: [{ course_code: "CMSC 123", last_name: "DOE" }],
+      }),
+    ).toBe(true);
+    expect(
+      amisExportContainsInstructorPii({
         classes: [{ course_code: "CMSC 123" }],
       }),
     ).toBe(false);

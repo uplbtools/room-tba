@@ -8,11 +8,19 @@ import {
 } from "@lib/admin/auth";
 import { getEditorSession } from "@lib/admin/require-editor";
 import {
+  checkRateLimit,
+  clientIp,
+  rateLimitResponse,
+} from "@lib/api/rate-limit";
+import {
   authenticateAdminUser,
   authenticateLegacyAdminPassword,
 } from "@lib/services/admin-user-service";
 
 export const prerender = false;
+
+const LOGIN_IP_LIMIT = { max: 12, windowMs: 15 * 60 * 1000 };
+const LOGIN_USER_LIMIT = { max: 8, windowMs: 15 * 60 * 1000 };
 
 export const GET: APIRoute = async ({ cookies }) => {
   const session = getEditorSession(cookies);
@@ -34,11 +42,32 @@ export const GET: APIRoute = async ({ cookies }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = clientIp(request);
+  const ipRate = checkRateLimit(
+    `admin-login:ip:${ip}`,
+    LOGIN_IP_LIMIT.max,
+    LOGIN_IP_LIMIT.windowMs,
+  );
+  if (!ipRate.allowed) {
+    return rateLimitResponse(ipRate.resetAt);
+  }
+
   const formData = await request.formData();
   const usernameRaw = formData.get("username");
   const passwordRaw = formData.get("password");
   const username = typeof usernameRaw === "string" ? usernameRaw.trim() : "";
   const password = typeof passwordRaw === "string" ? passwordRaw : "";
+
+  if (username) {
+    const userRate = checkRateLimit(
+      `admin-login:user:${username.toLowerCase()}`,
+      LOGIN_USER_LIMIT.max,
+      LOGIN_USER_LIMIT.windowMs,
+    );
+    if (!userRate.allowed) {
+      return rateLimitResponse(userRate.resetAt);
+    }
+  }
 
   if (!password) {
     return json({ error: "Password is required" }, 400);

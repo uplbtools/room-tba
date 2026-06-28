@@ -3,7 +3,7 @@ import type { AmisClassRow, AmisFetchOptions } from "./types";
 
 const AMIS_CLASSES_URL = "https://api-amis.uplb.edu.ph/api/students/classes";
 
-/** AMIS-friendly batch size (verified against midyear term 1252). */
+/** AMIS-friendly batch size (verified against CRS term imports). */
 export const AMIS_DEFAULT_PAGE_SIZE = 10_000;
 
 /** Pause between page requests so imports do not hammer AMIS. */

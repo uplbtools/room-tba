@@ -46,12 +46,22 @@ export function sanitizeAmisRows(rows: AmisClassRow[]): AmisClassRow[] {
   return rows.map(sanitizeAmisRow);
 }
 
-/** True when JSON still embeds instructor name fields (unsafe to commit). */
+/** True when JSON still embeds instructor PII keys (unsafe to commit). */
 export function amisExportContainsInstructorPii(payload: unknown): boolean {
-  const text = JSON.stringify(payload).toLowerCase();
-  return (
-    text.includes('"formatted_name"') ||
-    text.includes('"first_name"') ||
-    text.includes('"faculty":')
-  );
+  return objectContainsStripKey(payload, STRIP_KEYS);
+}
+
+function objectContainsStripKey(value: unknown, keys: Set<string>): boolean {
+  if (Array.isArray(value)) {
+    return value.some((entry) => objectContainsStripKey(entry, keys));
+  }
+  if (value !== null && typeof value === "object") {
+    for (const [key, nested] of Object.entries(
+      value as Record<string, unknown>,
+    )) {
+      if (keys.has(key)) return true;
+      if (objectContainsStripKey(nested, keys)) return true;
+    }
+  }
+  return false;
 }
