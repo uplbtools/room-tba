@@ -413,7 +413,7 @@
 
   .search-root.mobile-shell .search-shell-main {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: var(--map-chrome-toggle-size, 2rem) minmax(0, 1fr);
     align-items: center;
     justify-items: stretch;
     column-gap: 0.375rem;
@@ -475,9 +475,9 @@
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome {
-    width: min(25.75rem, calc(50% - 4rem));
+    width: var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem)));
     max-width: 100%;
-    min-width: 0;
+    min-width: min(22rem, 100%);
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
@@ -514,7 +514,7 @@
   .map-search-chrome__pill-wrap {
     position: relative;
     flex: 1 1 auto;
-    min-width: 0;
+    min-width: min(100%, 12rem);
   }
 
   .map-search-chrome__editor-btn {
@@ -599,13 +599,17 @@
 
   input[type="text"] {
     flex: 1 1 auto;
-    min-width: 0;
+    min-width: 8.5rem;
     border: none;
     outline: none;
     font-size: 0.875rem;
     color: #18181b;
     background: transparent;
     text-overflow: ellipsis;
+  }
+
+  .search-root:not(.mobile-shell) input[type="text"] {
+    min-width: 15rem;
   }
 
   input[type="text"]::placeholder {

@@ -124,7 +124,7 @@
     top: 0;
     bottom: 0;
     left: 0;
-    width: min(25.75rem, calc(50% - 4rem));
+    width: var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem)));
     z-index: 2;
     pointer-events: none;
     transition: transform var(--motion-duration-panel) var(--motion-ease-out);
