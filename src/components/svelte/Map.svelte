@@ -53,6 +53,8 @@
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
   } from "@constants/map-terrain";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
+  import { isMap2DPitch } from "@constants/map-dimension";
+  import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -117,8 +119,6 @@
   const EVENT_ROUTE_SOURCE_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_CASING_ID = "event-route-line-casing";
-  const BUILDING_3D_LAYER_ID = "building-3d";
-
   let activeRouteId = $state<string | null>(null);
   let activeRouteStops = $state<DisplayJeepneyRoute["stops"]>([]);
   let activeRouteColor = $state<string>("#dc2626");
@@ -569,18 +569,6 @@
     );
   }
 
-  function setBuildingExtrusionsVisible(
-    map: mapGl.MapLibreMap,
-    visible: boolean,
-  ) {
-    if (!map.getLayer(BUILDING_3D_LAYER_ID)) return;
-    map.setLayoutProperty(
-      BUILDING_3D_LAYER_ID,
-      "visibility",
-      visible ? "visible" : "none",
-    );
-  }
-
   function flyToCamera(
     map: mapGl.MapLibreMap,
     camera: typeof CAMPUS_DEFAULT_CAMERA,
@@ -598,7 +586,11 @@
   function disableTerrain(map: mapGl.MapLibreMap) {
     map.setTerrain(null);
     setTerrainHillshadeVisible(map, false);
-    setBuildingExtrusionsVisible(map, true);
+    syncBuildingLayersForDimension(
+      map,
+      isMap2DPitch(map.getPitch()),
+      false,
+    );
   }
 
   function restoreFlatMapCamera(map: mapGl.MapLibreMap) {
@@ -1365,7 +1357,11 @@
         ensureTerrainRendering(map);
         map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration });
         setTerrainHillshadeVisible(map, true);
-        setBuildingExtrusionsVisible(map, false);
+        syncBuildingLayersForDimension(
+          map,
+          isMap2DPitch(map.getPitch()),
+          true,
+        );
         if (!terrainModeWasEnabled) {
           flyToCamera(map, MAKILING_TERRAIN_CAMERA);
         }
@@ -1385,6 +1381,37 @@
 
     return () => {
       cancelled = true;
+    };
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const terrainEnabled = terrainStore.enabled;
+    if (!map) return;
+
+    let cancelled = false;
+    const applyDimensionLayers = () => {
+      if (cancelled) return;
+      syncBuildingLayersForDimension(
+        map,
+        isMap2DPitch(map.getPitch()),
+        terrainEnabled,
+      );
+    };
+
+    if (map.isStyleLoaded()) {
+      applyDimensionLayers();
+    } else {
+      map.once("load", applyDimensionLayers);
+    }
+
+    map.on("pitch", applyDimensionLayers);
+    map.on("moveend", applyDimensionLayers);
+
+    return () => {
+      cancelled = true;
+      map.off("pitch", applyDimensionLayers);
+      map.off("moveend", applyDimensionLayers);
     };
   });
 
