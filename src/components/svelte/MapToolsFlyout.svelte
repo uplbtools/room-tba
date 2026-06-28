@@ -61,40 +61,40 @@
         title="Map tools"
         onclose={() => mapToolsStore.close()}
       >
-      {#each sections as section (section.id)}
-        <div class="accordion-section">
-          <button
-            type="button"
-            class="map-chrome-accordion-toggle"
-            aria-expanded={isExpanded(section.id)}
-            aria-controls={`map-tools-section-${section.id}`}
-            onclick={() => toggleSection(section.id)}
-          >
-            {#if isExpanded(section.id)}
-              <ChevronDown size={18} aria-hidden="true" />
-            {:else}
-              <ChevronRight size={18} aria-hidden="true" />
-            {/if}
-            <span>{section.label}</span>
-          </button>
-          {#if isExpanded(section.id)}
-            <div
-              id={`map-tools-section-${section.id}`}
-              class="map-chrome-accordion-body map-chrome-accordion-body--enter"
+        {#each sections as section (section.id)}
+          <div class="accordion-section">
+            <button
+              type="button"
+              class="map-chrome-accordion-toggle"
+              aria-expanded={isExpanded(section.id)}
+              aria-controls={`map-tools-section-${section.id}`}
+              onclick={() => toggleSection(section.id)}
             >
-              {#if section.id === "view"}
-                <MapViewControls embedded variant="modes" />
-              {:else if section.id === "legend"}
-                <MapLegend embedded />
-              {:else if section.id === "terrain"}
-                <TerrainControl embedded />
-              {:else if section.id === "jeepney"}
-                <JeepneyMenu embedded />
+              {#if isExpanded(section.id)}
+                <ChevronDown size={18} aria-hidden="true" />
+              {:else}
+                <ChevronRight size={18} aria-hidden="true" />
               {/if}
-            </div>
-          {/if}
-        </div>
-      {/each}
+              <span>{section.label}</span>
+            </button>
+            {#if isExpanded(section.id)}
+              <div
+                id={`map-tools-section-${section.id}`}
+                class="map-chrome-accordion-body map-chrome-accordion-body--enter"
+              >
+                {#if section.id === "view"}
+                  <MapViewControls embedded variant="modes" />
+                {:else if section.id === "legend"}
+                  <MapLegend embedded />
+                {:else if section.id === "terrain"}
+                  <TerrainControl embedded />
+                {:else if section.id === "jeepney"}
+                  <JeepneyMenu embedded />
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/each}
       </MapChromePanel>
     </div>
   {/if}

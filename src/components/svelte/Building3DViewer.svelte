@@ -954,7 +954,10 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="viewer-overlay" transition:fade={overlayFade(reducedMotion.current)}>
+<div
+  class="viewer-overlay"
+  transition:fade={overlayFade(reducedMotion.current)}
+>
   <div
     class="viewer-frame"
     in:fly={modalContentReveal(reducedMotion.current)}

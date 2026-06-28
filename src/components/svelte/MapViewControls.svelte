@@ -8,10 +8,7 @@
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapIcon from "@lucide/svelte/icons/map";
   import { mapStore, mapViewStore, terrainStore } from "@lib/store.svelte";
-  import {
-    THREE_D_PITCH,
-    isMap2DPitch,
-  } from "@constants/map-dimension";
+  import { THREE_D_PITCH, isMap2DPitch } from "@constants/map-dimension";
   import {
     enterFlatMapDimension,
     enterTiltedMapDimension,

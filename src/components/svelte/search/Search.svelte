@@ -312,7 +312,9 @@
               aria-controls={mobile.current
                 ? "editor-screen"
                 : "editor-shelf-panel"}
-              aria-label={showEditorSheet ? "Close editor tools" : editorOpenLabel}
+              aria-label={showEditorSheet
+                ? "Close editor tools"
+                : editorOpenLabel}
               title={showEditorSheet ? "Close editor tools" : editorChipLabel}
               onclick={(event) => {
                 event.preventDefault();
@@ -455,9 +457,15 @@
     box-sizing: border-box;
     overflow-x: clip;
     padding: calc(env(safe-area-inset-top, 0px) + 0.4375rem)
-      max(var(--map-search-inline-pad, 0.625rem), env(safe-area-inset-right, 0px))
+      max(
+        var(--map-search-inline-pad, 0.625rem),
+        env(safe-area-inset-right, 0px)
+      )
       0.4375rem
-      max(var(--map-search-inline-pad, 0.625rem), env(safe-area-inset-left, 0px));
+      max(
+        var(--map-search-inline-pad, 0.625rem),
+        env(safe-area-inset-left, 0px)
+      );
     background: linear-gradient(
       180deg,
       var(--map-chrome-band-backdrop, hsla(5, 22%, 96%, 0.82)) 0%,

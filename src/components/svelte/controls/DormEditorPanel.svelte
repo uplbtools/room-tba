@@ -4,7 +4,11 @@
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import EntityEditorCheckboxField from "@ui/editor/EntityEditorCheckboxField.svelte";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
-  import { adminAuthStore, mapEditStore, mapProposalStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    mapEditStore,
+    mapProposalStore,
+  } from "@lib/store.svelte";
   import "../editor/entity-editor.css";
 
   type DormEditableField =
@@ -146,8 +150,7 @@
         id="dorm-description-editor"
         bind:value={descriptionDraft}
         {disabled}
-        rows="3"
-      ></textarea>
+        rows="3"></textarea>
     {/snippet}
   </EntityEditorField>
 
@@ -270,8 +273,7 @@
         bind:value={contactPhoneDraft}
         {disabled}
         rows="3"
-        placeholder="One phone number per line"
-      ></textarea>
+        placeholder="One phone number per line"></textarea>
     {/snippet}
   </EntityEditorField>
 
@@ -291,8 +293,7 @@
         bind:value={amenitiesDraft}
         {disabled}
         rows="4"
-        placeholder="One amenity per line"
-      ></textarea>
+        placeholder="One amenity per line"></textarea>
     {/snippet}
   </EntityEditorField>
 

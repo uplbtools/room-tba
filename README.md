@@ -18,29 +18,35 @@ Course and room listings are maintained for UPLB students and updated each term;
 
 ## Development/Contribution
 
-To run locally, you need to download [Bun.js](https://bun.sh/) and run the following command:
+Install [Bun](https://bun.sh/), copy [`.env.example`](.env.example) to `.env`, and set `DATABASE_URL` to your Supabase Postgres connection string (session pooler recommended). `ADMIN_PASSWORD` enables the in-app editor login.
 
-```
+```sh
+bun install
 bun dev
 ```
 
-The data is stored in the info.db file, and may be accessed using sqlite. If you are not familiar with using SQL, you may run the following command to open up drizzle studio and start correcting data:
+Common commands:
 
-```
-bunx drizzle-kit studio
+```sh
+bun run lint          # prettier + eslint
+bun test src          # unit tests (no DATABASE_URL required)
+bun run build         # production build (requires DATABASE_URL)
+bunx drizzle-kit studio   # inspect/edit Postgres via Drizzle
 ```
 
-After that, you may open a pull request and describe the changes.
+Runtime data lives in **Supabase Postgres**. The legacy `data/info.db` SQLite file is only used by local seed/export scripts, not by the app at runtime.
+
+Agent and contributor workflow: see [AGENTS.md](AGENTS.md) and [docs/agentic-qa-process.md](docs/agentic-qa-process.md). PR CI runs Prettier + unit tests; verify full lint and build locally before merge.
 
 ## Project structure
 
-This project uses [Astro](https://astro.build), and may have the following folders:
+This project uses [Astro](https://astro.build) with Svelte islands:
 
-- `/public` - All the static assets that can be requested by the route
-- `/src/routes` - All of the routes used by the website
-- `/src/components` - All of the frontend components used by the website
-- `/src/assets` - All other internal assets used by the program
-- `/src/lib` - where helper Typescript functions are located
+- `/public` — static assets
+- `/src/pages` — routes (Astro pages + API endpoints under `/src/pages/api`)
+- `/src/components` — UI components (mostly Svelte)
+- `/src/lib` — shared TypeScript helpers, stores, services
+- `/drizzle` — Postgres schema and SQL migrations
 
 ## Releases and versioning
 

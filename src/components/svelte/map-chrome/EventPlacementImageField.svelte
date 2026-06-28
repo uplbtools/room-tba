@@ -3,9 +3,7 @@
   import { adminAuthStore, eventPlacementStore } from "@lib/store.svelte";
 
   const draft = $derived(eventPlacementStore.draft);
-  const uploadPrefix = $derived(
-    draft ? `events/${draft.slug}` : "events",
-  );
+  const uploadPrefix = $derived(draft ? `events/${draft.slug}` : "events");
 </script>
 
 {#if draft && adminAuthStore.isLoggedIn}
@@ -38,8 +36,8 @@
     z-index: 18;
     max-width: calc(
       100% - var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) -
-        var(--map-ui-padding, 0.5rem) * 2 -
-        var(--bottom-fab-inset, 3.75rem) - var(--bottom-fab-gap, 0.5rem) * 2
+        var(--map-ui-padding, 0.5rem) * 2 - var(--bottom-fab-inset, 3.75rem) -
+        var(--bottom-fab-gap, 0.5rem) * 2
     );
     max-height: min(12rem, 30dvh);
     overflow: auto;

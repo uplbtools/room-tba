@@ -42,7 +42,9 @@ describe("entity-urls", () => {
   });
 
   it("builds canonical entity paths", () => {
-    expect(getBuildingCanonicalPath("Baker Hall")).toBe("/building/baker-hall/");
+    expect(getBuildingCanonicalPath("Baker Hall")).toBe(
+      "/building/baker-hall/",
+    );
     expect(getRoomCanonicalPath({ id: 12, code: "ICS 260" })).toBe(
       "/room/ics-260-12/",
     );
@@ -80,18 +82,17 @@ describe("entity-urls", () => {
 
   it("returns null for room paths without async room lookup", () => {
     expect(
-      resolveQueryFromEntityPath(
-        { category: "room", slug: "ics-260-12" },
-        {},
-      ),
+      resolveQueryFromEntityPath({ category: "room", slug: "ics-260-12" }, {}),
     ).toBeNull();
   });
 
   it("builds paths from query state when entity context is present", () => {
     expect(
-      getEntityCanonicalPath(
-        { type: "result", category: "building", value: "Baker Hall" },
-      ),
+      getEntityCanonicalPath({
+        type: "result",
+        category: "building",
+        value: "Baker Hall",
+      }),
     ).toBe("/building/baker-hall/");
 
     expect(
@@ -102,9 +103,7 @@ describe("entity-urls", () => {
     ).toBe("/room/ics-260-12/");
 
     expect(
-      getEntityCanonicalPath(
-        { type: "query", category: null, value: "" },
-      ),
+      getEntityCanonicalPath({ type: "query", category: null, value: "" }),
     ).toBeNull();
   });
 });

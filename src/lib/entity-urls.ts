@@ -141,14 +141,22 @@ export function resolveQueryFromEntityPath(
         (entry) => getBuildingSlug(entry) === slug,
       );
       if (!building) return null;
-      return { type: "result", category: "building", value: building.buildingName };
+      return {
+        type: "result",
+        category: "building",
+        value: building.buildingName,
+      };
     }
     case "college": {
       const college = context.colleges?.find(
         (entry) => getCollegeSlug(entry) === slug,
       );
       if (!college) return null;
-      return { type: "result", category: "college", value: college.collegeName };
+      return {
+        type: "result",
+        category: "college",
+        value: college.collegeName,
+      };
     }
     case "division": {
       const division = context.divisions?.find(
