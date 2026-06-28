@@ -184,6 +184,8 @@
 <style>
   .app-layout {
     --map-ui-padding: 0.5rem;
+    /* Breathing room between bottom FAB stack and status bar (above inner-layer padding). */
+    --bottom-fab-gap: var(--map-ui-padding, 0.5rem);
     --search-block-height: 3.25rem;
     --status-bar-block-height: 2.75rem;
     --drawer-peek-offset: 1.75rem;
@@ -368,7 +370,8 @@
     right: calc(var(--map-ui-padding, 0.5rem) + 0.5rem);
     bottom: calc(
       var(--status-bar-block-height, 2.75rem) +
-        env(safe-area-inset-bottom, 0px) + 0.5rem
+        var(--map-ui-padding, 0.5rem) + env(safe-area-inset-bottom, 0px) +
+        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem))
     );
     z-index: 14;
     display: flex;
@@ -400,6 +403,7 @@
   @media (max-width: 48rem) {
     .app-layout {
       --map-ui-padding: 0;
+      --bottom-fab-gap: 0.5rem;
       --map-tools-block-height: 0px;
       --mobile-detail-sheet-top-inset: var(--search-block-height);
     }
