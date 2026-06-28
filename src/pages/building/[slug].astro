@@ -26,14 +26,17 @@ const appData = await getBuildingPageData(buildingName);
 if (appData === null) {
   throw new Error(`Building not found for slug: ${buildingName}`);
 }
-const { building, roomCount } = appData;
+const { building, roomCount, classCount, termLabel } = appData;
+const termPhrase = termLabel ? ` for ${termLabel}` : "";
 const canonicalPath = `/building/${getBuildingSlug(building)}/`;
 const title = `${buildingName} | Building at UPLB | Room TBA`;
-const description = `Find rooms in ${buildingName} at UPLB. Open the building view on Room TBA for room listings, map context, and directions.`;
-const intro = `${buildingName} has ${roomCount} room${roomCount === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the building result view and browse the mapped rooms.`;
+const description = `Find rooms in ${buildingName} at UPLB. Browse ${roomCount} mapped room${roomCount === 1 ? "" : "s"} and ${classCount} listed class${classCount === 1 ? "" : "es"}${termPhrase} on Room TBA.`;
+const intro = `${buildingName} has ${roomCount} room${roomCount === 1 ? "" : "s"} and ${classCount} class listing${classCount === 1 ? "" : "s"}${termPhrase} in Room TBA. Open this page to browse rooms and schedules.`;
 
 const facts = [
+  termLabel ? `Schedule term: ${termLabel}` : null,
   `${roomCount} room${roomCount === 1 ? "" : "s"} listed in this building`,
+  `${classCount} class${classCount === 1 ? "" : "es"} listed in this building${termPhrase}`,
   building.directions ? `Directions available for this building` : null,
 ].filter((fact): fact is string => Boolean(fact));
 

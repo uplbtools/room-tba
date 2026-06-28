@@ -21,17 +21,25 @@ Policy (commits, verification tiers, architecture, product rules) lives in [AGEN
 
 Follow [AGENTS.md § Verify before done](../../AGENTS.md#verify-before-done) for the canonical checklist. Session tips:
 
-- During iterative edits, prefer targeted lint/tests on changed files — not full repo lint every edit.
+- During iterative edits, prefer targeted lint/tests on changed files; not full repo lint every edit.
 - Do not run `bun run build` after every small edit.
 - Run `bun run build` once before the final commit or PR, unless the user asks to skip it.
 - If a full build already passed after the final code changes, do not repeat it before committing unless new substantive changes were made.
 - If lint or test tooling is blocked, report the blocker and use the lightest reliable verification available.
 
+## README sync (mandatory)
+
+`AGENTS.md` § **README sync** is not optional. Treat README drift as a merge blocker.
+
+- **Same PR:** env vars, scripts, stack versions, CI, URLs, editor entry points, or user-facing features → update `README.md` (and `.env.example` when adding env vars) in the same change set.
+- **Before commit/PR:** run `bun run check:readme` after any of the above, or after editing README.
+- **Do not** ship “fix README later” — the check script catches common stale lies (Neon, `info.db` as runtime DB, `/src/routes`, `npm install`, wrong Astro major).
+
 ## Commits and PRs
 
 Commit policy, Conventional Commits format, and GPG signing: [AGENTS.md § Commits](../../AGENTS.md#commits).
 
-- Do not end a session with uncommitted completed work unless the user explicitly deferred commit or a hook/blocker prevented it — report the blocker.
+- Do not end a session with uncommitted completed work unless the user explicitly deferred commit or a hook/blocker prevented it; report the blocker.
 - Before opening a PR, summarize the **full branch diff**, not just the latest commit.
 - In final summaries, call out what changed, what was verified, and any blockers or residual risk.
 
@@ -42,3 +50,5 @@ Commit policy, Conventional Commits format, and GPG signing: [AGENTS.md § Commi
 3. For map/side-panel changes, confirm applicable Cursor rules were followed.
 4. **Issue sync:** for each linked `#NNN`, update AC/paths/status per [docs/issue-hygiene.md](../../docs/issue-hygiene.md); comment with the PR URL.
 5. Push with `-u origin HEAD` only when the user asked to push/open a PR.
+6. **Base branch:** feature work → `staging`. "PR to main" / prod ship → `staging` → `main` release only ([AGENTS.md § Branches and pull requests](../../AGENTS.md#branches-and-pull-requests)).
+7. **`data` / `qa` issues:** reporter does not PR; implement and link the PR on the issue.

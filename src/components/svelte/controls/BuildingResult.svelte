@@ -295,6 +295,18 @@
             <Box size={14} aria-hidden="true" />
             3D view
           </MapChromeActionChip>
+          <MapChromeActionChip
+            onclick={() => {
+              locationStore.requestLocation();
+              locationStore.setDestination([
+                building.lon ?? 0,
+                building.lat ?? 0,
+              ]);
+            }}
+          >
+            <CornerRightUp size={14} aria-hidden="true" />
+            Directions
+          </MapChromeActionChip>
         {/if}
         <CopyLinkButton
           url={buildingShareUrl}
@@ -368,7 +380,7 @@
             {#if canPublish}
               <EntityEditorPinRow
                 label={mapEditStore.enabled
-                  ? "Map pin — drag marker on map"
+                  ? "Map pin: drag marker on map"
                   : "Map pin"}
                 pickLabel={mapEditStore.enabled ? "Active" : "Enable map edit"}
                 disabled={mapEditStore.enabled || savingField !== null}
@@ -377,7 +389,7 @@
             {:else}
               <EntityEditorPinRow
                 label={pinProposalActive
-                  ? "Pin move — drag marker on map"
+                  ? "Pin move: drag marker on map"
                   : "Map pin"}
                 pickLabel={pinProposalActive ? "Active" : "Suggest move"}
                 disabled={pinProposalActive || savingField !== null}
@@ -442,23 +454,6 @@
             <p class="entity-directions__empty">No directions listed.</p>
           {/if}
         </div>
-
-        {#if hasMapPin}
-          <div class="entity-directions__nav">
-            <MapChromeActionChip
-              onclick={() => {
-                locationStore.requestLocation();
-                locationStore.setDestination([
-                  building.lon ?? 0,
-                  building.lat ?? 0,
-                ]);
-              }}
-            >
-              Directions
-              <CornerRightUp size={14} aria-hidden="true" />
-            </MapChromeActionChip>
-          </div>
-        {/if}
       </section>
     {/if}
   {:else}

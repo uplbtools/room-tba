@@ -151,14 +151,15 @@
     display: flex;
     flex: 1 1 0;
     min-height: 0;
-  }
-  .side-panel-details > :global(*) {
-    flex: 1 1 auto;
-    min-height: 0;
-    width: 100%;
     overflow-y: auto;
+    overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: hsl(6, 63%, 48%) hsl(0, 0%, 98%);
+  }
+  .side-panel-details > :global(*) {
+    flex: 0 1 auto;
+    min-height: 0;
+    width: 100%;
   }
 
   .drawer-handle {
@@ -228,13 +229,17 @@
       max-height: none;
       display: flex;
       flex-direction: column;
-      pointer-events: auto;
+      justify-content: flex-start;
+      align-items: stretch;
+      pointer-events: none;
       transform: none;
+      transition: none;
     }
 
     .drawer.is-collapsed {
       top: auto;
       height: auto;
+      transform: none;
     }
 
     .drawer.is-collapsed .drawer-card {
@@ -251,8 +256,10 @@
     }
 
     .drawer-card {
-      flex: 1 1 auto;
+      flex: 0 1 auto;
       min-height: 0;
+      max-height: calc(100% - var(--drawer-peek-offset, 1.75rem));
+      pointer-events: auto;
       border-left: none;
       border-top: 3px solid
         var(--map-chrome-panel-accent-border, hsl(5 15% 78%));
@@ -280,6 +287,7 @@
       align-self: center;
       width: 5.5rem;
       height: var(--drawer-peek-offset, 1.75rem);
+      pointer-events: auto;
       border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
       border-bottom: none;
       border-radius: var(--map-chrome-radius, 1rem)

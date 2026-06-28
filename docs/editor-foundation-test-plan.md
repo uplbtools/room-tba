@@ -35,7 +35,7 @@ Use this checklist before merging the in-app editor foundation PR.
 - On a low-bandwidth or data-saver connection, terrain copy warns that hosted elevation tiles are online-only.
 - Terrain controls live inside the Map tools flyout (collapsed by default) and do not cover the side panel, editor dock, or attribution.
 - Jeepney route chips live in the search filter row alongside building type filters; selecting a route highlights the chip and draws the route on the map.
-- Sync progress appears in the status bar only — no floating sync card on the map face.
+- Sync progress appears in the status bar only; no floating sync card on the map face.
 - PWA reload prompt appears as an action in the status bar.
 
 ## Building Type Filter
@@ -86,7 +86,7 @@ See also `docs/map-ui-mode-matrix.md` for chrome visibility by mode. Verify at *
 - Search bar can collapse to a compact tab; expanding restores query, selection, and side-panel state without moving the map.
 - Mobile edit dock (Undo / Redo) sits above the status bar with 44px touch targets; no keyboard-hint copy.
 - Touch-dragging a pin repositions the pin without excessive accidental map panning.
-- Only selected/active/saving pins show the Move affordance — not every pin at once.
+- Only selected/active/saving pins show the Move affordance; not every pin at once.
 - Failed save and rollback feedback remains readable on a narrow viewport.
 - Zero events: campus events shelf/tab and “Browse campus events” remain reachable.
 

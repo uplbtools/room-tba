@@ -171,7 +171,7 @@
 
   {#if queryStore.inputValue !== ""}
     {#if roomLoading}
-      Loading rooms...
+      <p class="suggestions-status" aria-live="polite">Loading rooms…</p>
     {:else}
       {#each roomResults as roomResult (roomResult.value)}
         <Suggestion {...roomResult} />
@@ -179,7 +179,7 @@
     {/if}
   {/if}
 
-  {#if suggestedResult.length === 0 && queryStore.inputValue !== ""}
+  {#if suggestedResult.length === 0 && queryStore.inputValue !== "" && !roomLoading}
     <SearchQuerySuggestion />
   {/if}
 </div>
@@ -215,5 +215,12 @@
 
   .alias-hint strong {
     color: hsl(5, 53%, 32%);
+  }
+
+  .suggestions-status {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 45%);
   }
 </style>

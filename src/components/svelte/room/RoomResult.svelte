@@ -407,6 +407,29 @@
       {/if}
 
       <div class="entity-actions">
+        {#if parentBuilding?.lat && parentBuilding.lon}
+          <MapChromeActionChip
+            onclick={() => {
+              locationStore.requestLocation();
+              locationStore.setDestination([
+                parentBuilding.lon as number,
+                parentBuilding.lat as number,
+              ]);
+            }}
+          >
+            <CornerRightUp size={14} aria-hidden="true" />
+            Directions
+          </MapChromeActionChip>
+          <a
+            class="map-chrome-action-chip"
+            href="https://www.google.com/maps?q={parentBuilding.lat},{parentBuilding.lon}"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MapPin size={14} aria-hidden="true" />
+            Google Maps
+          </a>
+        {/if}
         <CopyLinkButton
           url={roomShareUrl}
           ariaLabel={`Copy link to ${currentRoom.value.code}`}
@@ -643,32 +666,6 @@
             </p>
           {/if}
         </div>
-
-        {#if parentBuilding.lat && parentBuilding.lon}
-          <div class="entity-directions__nav">
-            <MapChromeActionChip
-              onclick={() => {
-                locationStore.requestLocation();
-                locationStore.setDestination([
-                  parentBuilding.lon as number,
-                  parentBuilding.lat as number,
-                ]);
-              }}
-            >
-              Directions
-              <CornerRightUp size={14} aria-hidden="true" />
-            </MapChromeActionChip>
-            <a
-              class="map-chrome-action-chip"
-              href="https://www.google.com/maps?q={parentBuilding.lat},{parentBuilding.lon}"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <MapPin size={14} aria-hidden="true" />
-              Google Maps
-            </a>
-          </div>
-        {/if}
       {/if}
     </section>
 

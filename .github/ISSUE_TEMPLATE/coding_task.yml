@@ -1,0 +1,49 @@
+name: Coding task
+description: Bug fix or feature for developers; no file paths required upfront
+title: "[CODE] "
+labels:
+  - help wanted
+body:
+  - type: markdown
+    value: |
+      For **developers** who will open a PR to `staging`. See [CONTRIBUTING.md](../CONTRIBUTING.md#developers-no-ai-required).
+
+      Campus volunteers reporting wrong data should use the **Data correction** template instead (no PR needed).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What should change from a user perspective?
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area of the app (optional)
+      options:
+        - Map / search
+        - Side panel / entity detail
+        - Editor / proposals
+        - API / data
+        - Docs / tooling
+        - Not sure
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Plain checklist of what must be true when this is done
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true

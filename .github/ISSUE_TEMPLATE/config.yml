@@ -1,5 +1,14 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Discord
+    url: https://discord.uplbtools.me
+    about: Chat with the team and report issues
+  - name: Messenger
+    url: https://messenger.uplbtools.me
+    about: Message the team
+  - name: Contributing guide
+    url: https://github.com/uplbtools/room-tba/blob/staging/CONTRIBUTING.md
+    about: Pick your path (report data, QA, or code)
   - name: Room TBA repo
     url: https://github.com/uplbtools/room-tba
-    about: Open issues and PRs on GitHub
+    about: Open issues and pull requests on GitHub

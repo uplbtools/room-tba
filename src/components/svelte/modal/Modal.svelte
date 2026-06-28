@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { modalStore } from "@lib/store.svelte";
+  import { jeepneyStore, modalStore } from "@lib/store.svelte";
   import { fade, fly } from "svelte/transition";
   import {
     modalContentDismiss,
@@ -11,6 +11,7 @@
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
   import FilterModalContent from "./FilterModalContent.svelte";
+  import JeepneyStopModal from "./JeepneyStopModal.svelte";
   import X from "@lucide/svelte/icons/x";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -21,13 +22,22 @@
     if (modalStore.type === "landing") return undefined;
     if (modalStore.type === "schedule-expand") return "Room schedule";
     if (modalStore.type === "filter") return "Filter campus";
+    if (modalStore.type === "jeepney-stop") return "Jeepney stop details";
     return "Dialog";
   });
+
+  function closeDialog() {
+    if (modalStore.type === "jeepney-stop") {
+      jeepneyStore.closeStop();
+      return;
+    }
+    modalStore.closeModal();
+  }
 
   $effect(() => {
     if (!modalStore.open || !modalContentEl) return;
     return trapFocus(modalContentEl, {
-      onEscape: () => modalStore.closeModal(),
+      onEscape: closeDialog,
     });
   });
 </script>
@@ -38,7 +48,7 @@
       type="button"
       class="overlay"
       aria-label="Close dialog"
-      onclick={() => modalStore.closeModal()}
+      onclick={closeDialog}
       transition:fade={overlayFade(reducedMotion.current)}
     ></button>
     <div
@@ -63,13 +73,23 @@
           type="button"
           class="modal-content__close-icon"
           aria-label="Close schedule"
-          onclick={() => modalStore.closeModal()}
+          onclick={closeDialog}
         >
           <X size={20} aria-hidden="true" />
         </button>
         <ScheduleModal />
       {:else if modalStore.type === "filter"}
         <FilterModalContent />
+      {:else if modalStore.type === "jeepney-stop"}
+        <button
+          type="button"
+          class="modal-content__close-icon"
+          aria-label="Close jeepney stop details"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+        <JeepneyStopModal />
       {/if}
     </div>
   </div>
