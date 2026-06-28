@@ -1,16 +1,16 @@
 import type { APIRoute } from "astro";
-import { canReviewProposals } from "../../../lib/admin/auth";
-import { getEditorSession } from "../../../lib/admin/require-editor";
+import { canReviewProposals } from "@lib/admin/auth";
+import { getEditorSession } from "@lib/admin/require-editor";
 import {
   canViewProposalSubmitterDetails,
   getProposalById,
   toPublicProposalView,
   toSubmitterProposalView,
-} from "../../../lib/services/proposal-service";
+} from "@lib/services/proposal-service";
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ cookies, params, url }) => {
+export const GET: APIRoute = async ({ cookies, params }) => {
   const id = Number(params.id);
   if (!Number.isInteger(id)) {
     return json({ error: "Invalid proposal ID" }, 400);
@@ -20,13 +20,12 @@ export const GET: APIRoute = async ({ cookies, params, url }) => {
   if (!proposal) return json({ error: "Proposal not found" }, 404);
 
   const session = getEditorSession(cookies);
-  const submitterName = url.searchParams.get("submitterName");
 
   if (session && canReviewProposals(session.role)) {
     return json({ proposal });
   }
 
-  if (canViewProposalSubmitterDetails(session, proposal, submitterName)) {
+  if (canViewProposalSubmitterDetails(session, proposal)) {
     return json({ proposal: toSubmitterProposalView(proposal) });
   }
 

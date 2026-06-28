@@ -1,17 +1,23 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import { fade } from "svelte/transition";
+  import { fade, fly } from "svelte/transition";
   import { X, Building2, Loader, RotateCcw, Pencil } from "@lucide/svelte";
-  import { building3DStore, adminAuthStore } from "../../lib/store.svelte";
-  import { getAppData } from "../../lib/context";
-  import type { RoomData } from "../../lib/types";
-  import { getBuildingRooms } from "../../lib/local/data/utils";
+  import { building3DStore, adminAuthStore } from "@lib/store.svelte";
+  import {
+    modalContentDismiss,
+    modalContentReveal,
+    overlayFade,
+  } from "@lib/motion";
+  import { MediaQuery } from "svelte/reactivity";
+  import { getAppData } from "@lib/context";
+  import type { RoomData } from "@lib/types";
+  import { getBuildingRooms } from "@lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
     syncBuildingRooms,
-  } from "../../lib/local/data/sync";
-  import { fetchBuildingFootprint } from "../../lib/overpass";
-  import { fetchBasemap } from "../../lib/osm-basemap";
+  } from "@lib/local/data/sync";
+  import { fetchBuildingFootprint } from "@lib/overpass";
+  import { fetchBasemap } from "@lib/osm-basemap";
   import {
     footprintToLocalPolygon,
     mockPlaceRooms,
@@ -19,12 +25,14 @@
     maxInferredFloor,
     type LocalPolygonData,
     type RoomPlacement,
-  } from "../../lib/building-3d";
+  } from "@lib/building-3d";
 
   const appData = getAppData();
   const buildings = $derived(appData().loaded ? appData().buildings : []);
 
   let { name }: { name: string } = $props();
+
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   const FLOOR_HEIGHT = 3.5;
   const ROOM_COLOR = 0xdc2626;
@@ -946,8 +954,15 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="viewer-overlay" transition:fade={{ duration: 180 }}>
-  <div class="viewer-frame">
+<div
+  class="viewer-overlay"
+  transition:fade={overlayFade(reducedMotion.current)}
+>
+  <div
+    class="viewer-frame"
+    in:fly={modalContentReveal(reducedMotion.current)}
+    out:fly={modalContentDismiss(reducedMotion.current)}
+  >
     <header class="viewer-header">
       <div class="viewer-title">
         <Building2 size={20} />
@@ -1066,7 +1081,7 @@
               {#if editMode}
                 <p class="editor-hint">
                   Drag a room cylinder or change its floor. Changes autosave to
-                  Neon with a version check.
+                  the server with a version check.
                 </p>
                 <p
                   class="editor-status"

@@ -1,5 +1,5 @@
 {
-  "export_note": "Baseline from public/app_data.json (legacy bundle). Compare Neon production via scripts/export-for-deep-research.ts when .env is set.",
+  "export_note": "Baseline from public/app_data.json (legacy bundle). Compare Supabase production via scripts/export-for-deep-research.ts when .env is set.",
   "term_target": "AY 2025-2026 2nd Semester",
   "counts": {
     "buildings": 39,

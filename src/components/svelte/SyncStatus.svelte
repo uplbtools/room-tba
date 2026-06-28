@@ -6,7 +6,7 @@
     RefreshCw,
     X,
   } from "@lucide/svelte";
-  import { syncToastStore } from "../../lib/store.svelte";
+  import { syncToastStore, appBootstrapStore } from "@lib/store.svelte";
 
   type Props = {
     /** When true, show compact collapsed label for mobile status bar. */
@@ -21,21 +21,25 @@
 
   let manualClosed = $state<boolean>(false);
   let reloading = $state<boolean>(false);
+  let retrying = $state<boolean>(false);
 
-  const progressPercent = $derived.by(() => {
-    const syncData = syncToastStore.currentSyncData;
-    if (!syncData || syncData.total <= 0) return 0;
-    return Math.floor((syncData.synced / syncData.total) * 5) * 20;
-  });
+  const LABEL_HOLD_MS = 650;
+  let displayedLabel = $state("");
+  let displayedDetail = $state<string | null>(null);
+  let labelHoldTimeout: ReturnType<typeof setTimeout> | undefined;
 
   const manualCloseResetKey = $derived(
-    `${syncToastStore.recentlySynced}:${syncToastStore.allSynced}:${syncToastStore.currentSync}`,
+    `${syncToastStore.recentlySynced}:${syncToastStore.allSynced}:${syncToastStore.currentSync}:${syncToastStore.syncError}:${syncToastStore.isSyncing}`,
   );
 
   const isActive = $derived(
-    syncToastStore.needRefresh ||
+    appBootstrapStore.phase === "error" ||
+      syncToastStore.syncError !== null ||
+      syncToastStore.needRefresh ||
+      syncToastStore.isSyncing ||
       ((syncToastStore.recentlySynced === null ||
         syncToastStore.recentlySynced) &&
+        syncToastStore.allSynced &&
         !manualClosed),
   );
 
@@ -47,7 +51,7 @@
 
   $effect(() => {
     let timeout: number | null = null;
-    if (syncToastStore.allSynced) {
+    if (syncToastStore.allSynced && syncToastStore.syncError === null) {
       timeout = setTimeout(() => {
         manualClosed = true;
       }, 3000);
@@ -59,24 +63,116 @@
     };
   });
 
-  const showDetail = $derived(expanded || (!compact && !inline));
+  /** Inline status bar: label carries sync steps; stacked detail clutters the two-row layout. */
+  const showDetail = $derived.by(() => {
+    if (inline) {
+      if (compact && !expanded) return false;
+      return (
+        appBootstrapStore.phase === "error" ||
+        syncToastStore.syncError !== null ||
+        syncToastStore.needRefresh
+      );
+    }
+    return expanded || (!compact && !inline);
+  });
   const showDismiss = $derived(
     (expanded || !compact) &&
-      (!inline || syncToastStore.allSynced || syncToastStore.needRefresh),
+      !syncToastStore.isSyncing &&
+      syncToastStore.syncError === null &&
+      (syncToastStore.needRefresh || (!inline && syncToastStore.allSynced)),
   );
   const showReload = $derived(showDetail && syncToastStore.needRefresh);
-  const showSyncProgress = $derived(
-    expanded &&
-      !syncToastStore.allSynced &&
-      syncToastStore.currentSyncData !== null,
+  const showProgress = $derived(
+    syncToastStore.isSyncing && syncToastStore.hasCountableProgress,
+  );
+  const showIndeterminate = $derived(
+    syncToastStore.isSyncing && !syncToastStore.hasCountableProgress,
   );
 
-  const collapsedLabel = $derived.by(() => {
-    if (syncToastStore.needRefresh) return "Update ready";
-    if (syncToastStore.allSynced) return "Ready offline";
-    if (syncToastStore.currentSync === null) return "Syncing…";
-    return "Syncing…";
+  const statusLabel = $derived.by(() => {
+    if (appBootstrapStore.phase === "error") {
+      return appBootstrapStore.errorMessage ?? "Could not load campus data";
+    }
+    return syncToastStore.stepLabel;
   });
+
+  const statusDetail = $derived.by(() => {
+    if (appBootstrapStore.phase === "error") {
+      return "Map is available; campus data failed to load.";
+    }
+    return syncToastStore.stepDetail;
+  });
+
+  const urgentStatus = $derived(
+    appBootstrapStore.phase === "error" ||
+      syncToastStore.syncError !== null ||
+      syncToastStore.needRefresh,
+  );
+
+  $effect(() => {
+    const nextLabel = statusLabel;
+    const nextDetail = showDetail ? statusDetail : null;
+
+    if (!displayedLabel) {
+      displayedLabel = nextLabel;
+      displayedDetail = nextDetail;
+      return;
+    }
+
+    if (urgentStatus || !syncToastStore.isSyncing) {
+      if (labelHoldTimeout) {
+        clearTimeout(labelHoldTimeout);
+        labelHoldTimeout = undefined;
+      }
+      displayedLabel = nextLabel;
+      displayedDetail = nextDetail;
+      return;
+    }
+
+    if (nextLabel === displayedLabel) {
+      displayedDetail = nextDetail;
+      return;
+    }
+
+    if (labelHoldTimeout) clearTimeout(labelHoldTimeout);
+    labelHoldTimeout = setTimeout(() => {
+      displayedLabel = nextLabel;
+      displayedDetail = nextDetail;
+      labelHoldTimeout = undefined;
+    }, LABEL_HOLD_MS);
+
+    return () => {
+      if (labelHoldTimeout) {
+        clearTimeout(labelHoldTimeout);
+        labelHoldTimeout = undefined;
+      }
+    };
+  });
+
+  const showBootstrapRetry = $derived(
+    appBootstrapStore.phase === "error" && appBootstrapStore.canRetry,
+  );
+  const showSyncRetry = $derived(
+    syncToastStore.syncError !== null && syncToastStore.canRetrySync,
+  );
+
+  async function handleBootstrapRetry() {
+    retrying = true;
+    try {
+      appBootstrapStore.retry();
+    } finally {
+      retrying = false;
+    }
+  }
+
+  async function handleSyncRetry() {
+    retrying = true;
+    try {
+      syncToastStore.retrySync();
+    } finally {
+      retrying = false;
+    }
+  }
 </script>
 
 {#if isActive}
@@ -85,19 +181,70 @@
     class:sync-status--inline={inline}
     class:sync-status--compact={compact && !expanded}
     class:sync-status--success={syncToastStore.allSynced &&
-      !syncToastStore.needRefresh}
+      !syncToastStore.needRefresh &&
+      appBootstrapStore.phase !== "error" &&
+      syncToastStore.syncError === null}
     class:sync-status--update={syncToastStore.needRefresh}
-    role="status"
+    class:sync-status--error={appBootstrapStore.phase === "error" ||
+      syncToastStore.syncError !== null}
+    class:sync-status--syncing={syncToastStore.isSyncing}
+    role={appBootstrapStore.phase === "error" || syncToastStore.syncError
+      ? "alert"
+      : "status"}
     aria-live="polite"
   >
-    {#if syncToastStore.needRefresh}
-      <Info size={16} />
+    {#if appBootstrapStore.phase === "error"}
+      <Info size={16} aria-hidden="true" />
       <div class="sync-status-copy">
-        <span class="sync-status-label">Update ready</span>
-        {#if showDetail}
-          <span class="sync-status-detail"
-            >Reload to get the latest updates.</span
-          >
+        <span class="sync-status-label">{displayedLabel}</span>
+        {#if showDetail && displayedDetail}
+          <span class="sync-status-detail">{displayedDetail}</span>
+        {/if}
+      </div>
+      {#if showBootstrapRetry}
+        <button
+          class="sync-action reload-button"
+          type="button"
+          onclick={handleBootstrapRetry}
+          disabled={retrying}
+        >
+          <RefreshCw
+            size={14}
+            class={retrying ? "loading-icon" : ""}
+            aria-hidden="true"
+          />
+          {retrying ? "Retrying…" : "Try again"}
+        </button>
+      {/if}
+    {:else if syncToastStore.syncError !== null}
+      <Info size={16} aria-hidden="true" />
+      <div class="sync-status-copy">
+        <span class="sync-status-label">{displayedLabel}</span>
+        {#if showDetail && displayedDetail}
+          <span class="sync-status-detail">{displayedDetail}</span>
+        {/if}
+      </div>
+      {#if showSyncRetry}
+        <button
+          class="sync-action reload-button"
+          type="button"
+          onclick={handleSyncRetry}
+          disabled={retrying}
+        >
+          <RefreshCw
+            size={14}
+            class={retrying ? "loading-icon" : ""}
+            aria-hidden="true"
+          />
+          {retrying ? "Retrying…" : "Retry"}
+        </button>
+      {/if}
+    {:else if syncToastStore.needRefresh}
+      <Info size={16} aria-hidden="true" />
+      <div class="sync-status-copy">
+        <span class="sync-status-label">{displayedLabel}</span>
+        {#if showDetail && displayedDetail}
+          <span class="sync-status-detail">{displayedDetail}</span>
         {/if}
       </div>
       {#if showReload}
@@ -107,7 +254,11 @@
           onclick={() => syncToastStore.reload()}
           disabled={reloading}
         >
-          <RefreshCw size={14} class={reloading ? "loading-icon" : ""} />
+          <RefreshCw
+            size={14}
+            class={reloading ? "loading-icon" : ""}
+            aria-hidden="true"
+          />
           {reloading ? "Reloading…" : "Reload"}
         </button>
       {/if}
@@ -118,15 +269,15 @@
           aria-label="Dismiss update notice"
           onclick={() => syncToastStore.dismissRefresh()}
         >
-          <X size={14} />
+          <X size={14} aria-hidden="true" />
         </button>
       {/if}
     {:else if syncToastStore.allSynced}
-      <CircleCheckBig size={16} />
+      <CircleCheckBig size={16} aria-hidden="true" />
       <div class="sync-status-copy">
-        <span class="sync-status-label">{collapsedLabel}</span>
-        {#if showDetail}
-          <span class="sync-status-detail">Room TBA can now work offline</span>
+        <span class="sync-status-label">{displayedLabel}</span>
+        {#if showDetail && displayedDetail}
+          <span class="sync-status-detail">{displayedDetail}</span>
         {/if}
       </div>
       {#if showDismiss}
@@ -136,42 +287,69 @@
           aria-label="Dismiss sync status"
           onclick={() => (manualClosed = true)}
         >
-          <X size={14} />
+          <X size={14} aria-hidden="true" />
         </button>
       {/if}
     {:else}
-      <LoaderCircle size={16} class="loading-icon" />
+      <LoaderCircle size={16} class="loading-icon" aria-hidden="true" />
       <div class="sync-status-copy">
-        <span class="sync-status-label">{collapsedLabel}</span>
-        {#if showDetail && syncToastStore.currentSync !== null}
-          <span class="sync-status-detail">
-            Syncing {syncToastStore.currentSync} to device
-          </span>
+        <span class="sync-status-label">{displayedLabel}</span>
+        {#if showDetail && displayedDetail}
+          <span class="sync-status-detail">{displayedDetail}</span>
         {/if}
       </div>
-      {#if showSyncProgress}
-        <div class="progress-bar">
+      {#if syncToastStore.isSyncing && (inline || (compact && !expanded))}
+        <div
+          class="progress-bar progress-bar--compact progress-bar--inline"
+          class:progress-bar--indeterminate={!showProgress}
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={showProgress
+            ? syncToastStore.progressPercent
+            : undefined}
+          aria-label={displayedLabel}
+        >
+          {#if showProgress}
+            <div
+              class="progress-bar-value"
+              style:width={`${syncToastStore.progressPercent}%`}
+            ></div>
+          {:else}
+            <div
+              class="progress-bar-value progress-bar-value--indeterminate"
+            ></div>
+          {/if}
+        </div>
+      {:else if showProgress}
+        <div
+          class="progress-bar"
+          class:progress-bar--compact={compact && !expanded}
+          class:progress-bar--inline={inline}
+        >
           <div
             class="progress-bar-value"
             role="progressbar"
             aria-valuemin="0"
             aria-valuemax="100"
-            aria-valuenow={progressPercent}
-            aria-label={`Syncing ${syncToastStore.currentSync} data`}
-            style:width={`${progressPercent}%`}
+            aria-valuenow={syncToastStore.progressPercent}
+            aria-label={displayedLabel}
+            style:width={`${syncToastStore.progressPercent}%`}
           ></div>
         </div>
-        <span class="progress-label">{progressPercent}%</span>
-      {/if}
-      {#if showDismiss}
-        <button
-          class="sync-dismiss"
-          type="button"
-          aria-label="Dismiss sync status"
-          onclick={() => (manualClosed = true)}
+        {#if expanded && !inline}
+          <span class="progress-label">{syncToastStore.progressPercent}%</span>
+        {/if}
+      {:else if showIndeterminate && ((compact && !expanded) || inline)}
+        <div
+          class="progress-bar progress-bar--compact progress-bar--indeterminate"
+          role="progressbar"
+          aria-label={displayedLabel}
         >
-          <X size={14} />
-        </button>
+          <div
+            class="progress-bar-value progress-bar-value--indeterminate"
+          ></div>
+        </div>
       {/if}
     {/if}
   </div>
@@ -181,9 +359,9 @@
   .sync-status {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    min-height: 1.625rem;
-    padding: 0.1875rem 0.625rem;
+    gap: 0.3125rem;
+    min-height: 1.5rem;
+    padding: 0.125rem 0.5rem;
     border-radius: 0.75rem;
     background-color: hsl(0, 0%, 97%);
     color: hsl(0, 0%, 20%);
@@ -191,12 +369,16 @@
     line-height: 1.15;
     flex: 0 1 auto;
     min-width: 0;
-    max-width: min(100%, 12rem);
+    max-width: min(100%, 16rem);
   }
 
   .sync-status--compact {
-    flex: 0 0 auto;
-    max-width: min(100%, 10.5rem);
+    flex: 0 1 auto;
+    max-width: min(100%, 14rem);
+  }
+
+  .sync-status--syncing.sync-status--compact {
+    max-width: min(100%, 18rem);
   }
 
   .sync-status--success {
@@ -210,20 +392,26 @@
     background: hsl(0, 0%, 99%);
   }
 
+  .sync-status--error {
+    border: 1px solid hsl(5, 34%, 82%);
+    background: hsl(0, 0%, 99%);
+    color: hsl(5, 53%, 32%);
+  }
+
   .sync-status--inline {
-    min-height: 0;
+    min-height: 1.25rem;
     padding: 0;
     border: none;
     border-radius: 0;
     background: transparent;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     max-width: none;
-    gap: 0.375rem;
+    gap: 0.25rem;
     font-size: inherit;
     line-height: inherit;
     border-right: 1px solid hsl(0, 0%, 82%);
-    padding-right: 0.75rem;
-    margin-right: 0.125rem;
+    padding-right: 0.5rem;
+    margin-right: 0.0625rem;
   }
 
   .sync-status--inline.sync-status--success {
@@ -238,12 +426,34 @@
     color: hsl(5, 53%, 32%);
   }
 
+  .sync-status--inline.sync-status--error {
+    background: transparent;
+    border-right-color: hsl(5, 34%, 82%);
+    color: hsl(5, 53%, 32%);
+  }
+
   .sync-status--inline .sync-status-copy {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .sync-status--inline .sync-status-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-weight: inherit;
+  }
+
+  .sync-status--inline .sync-status-detail {
+    font-size: inherit;
+    color: inherit;
+    opacity: 0.75;
   }
 
   @media (max-width: 48rem) {
@@ -252,15 +462,9 @@
       min-width: 0;
       max-width: none;
     }
-
-    .sync-status--inline .sync-status-label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
   }
 
-  @media (min-width: 48.0625rem) and (max-width: 800px) {
+  @media (min-width: 48.0625rem) and (max-width: 50rem) {
     .sync-status--inline {
       width: 100%;
       margin-right: 0;
@@ -331,7 +535,7 @@
     background: transparent;
     color: inherit;
     cursor: pointer;
-    padding: 0.25rem;
+    padding: 0.125rem;
     opacity: 0.65;
   }
 
@@ -346,6 +550,18 @@
     flex-shrink: 0;
     border-radius: 8px;
     background-color: hsla(358, 84%, 86%, 1);
+    overflow: hidden;
+  }
+
+  .progress-bar--compact {
+    width: 2.5rem;
+    height: 4px;
+  }
+
+  .progress-bar--inline {
+    width: 2.25rem;
+    height: 4px;
+    flex: 0 0 2.25rem;
   }
 
   .progress-bar-value {
@@ -358,10 +574,16 @@
     transition: width 0.5s ease-in-out;
   }
 
+  .progress-bar--indeterminate .progress-bar-value--indeterminate {
+    width: 40%;
+    animation: indeterminate 1.2s ease-in-out infinite;
+  }
+
   .progress-label {
     flex-shrink: 0;
     font-size: 0.75rem;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
   :global(.loading-icon) {
@@ -374,6 +596,32 @@
     }
     to {
       rotate: 360deg;
+    }
+  }
+
+  @keyframes indeterminate {
+    0% {
+      left: -40%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.loading-icon) {
+      animation: none;
+    }
+
+    .progress-bar-value {
+      transition: none;
+    }
+
+    .progress-bar--indeterminate .progress-bar-value--indeterminate {
+      animation: none;
+      left: 0;
+      width: 100%;
+      opacity: 0.45;
     }
   }
 </style>

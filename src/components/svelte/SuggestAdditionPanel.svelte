@@ -4,16 +4,29 @@
     additionProposalStore,
     floatingControlPanelStore,
     toastStore,
-  } from "../../lib/store.svelte";
-  import { getAppData } from "../../lib/context";
+  } from "@lib/store.svelte";
+  import { getAppData } from "@lib/context";
+  import SubmitterNameField from "./SubmitterNameField.svelte";
   import {
     resolveSubmitterName,
     publishEntityCreate,
     submitCreateProposal,
     type ProposalCreateType,
-  } from "../../lib/proposals/client";
-  import { instantToCampusWallString } from "../../lib/event-time";
-  import { slugifySegment } from "../../lib/site";
+  } from "@lib/proposals/client";
+  import { validateSubmitterName } from "@constants/proposals";
+  import { instantToCampusWallString } from "@lib/event-time";
+  import { slugifySegment } from "@lib/site";
+  import {
+    clearSuggestAdditionDraft,
+    readSuggestAdditionDraft,
+    scheduleSuggestAdditionDraftSave,
+  } from "@lib/contributor-drafts";
+  import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
+  import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
+  import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
+  import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
+  import ImageUpload from "@ui/editor/ImageUpload.svelte";
+  import { onMount } from "svelte";
 
   type AdditionOption = {
     value: ProposalCreateType;
@@ -23,9 +36,13 @@
   let {
     mode = "proposal",
     panelId = "suggest-addition",
+    onDismiss,
+    onRestore,
   }: {
     mode?: "proposal" | "publish";
     panelId?: string;
+    onDismiss?: () => void;
+    onRestore?: () => void;
   } = $props();
 
   const PROPOSAL_OPTIONS: AdditionOption[] = [
@@ -55,14 +72,13 @@
   let buildingName = $state("");
   let buildingDirections = $state("");
   let buildingType = $state<"admin" | "non-admin">("non-admin");
-  let lat = $state<number | null>(null);
-  let lon = $state<number | null>(null);
   let eventTitle = $state("");
   let eventStartsAt = $state("");
   let eventEndsAt = $state("");
   let eventCategory = $state<
     "tradition" | "fair" | "ceremony" | "sports" | "other"
   >("other");
+  let eventImageUrl = $state<string | null>(null);
   let dormName = $state("");
   let dormGender = $state("coed");
   let roomCode = $state("");
@@ -72,6 +88,7 @@
   let divisionName = $state("");
   let submitting = $state(false);
   let error = $state<string | null>(null);
+  let draftReady = $state(false);
 
   const appData = getAppData();
   const colleges = $derived(appData().loaded ? appData().colleges : []);
@@ -82,22 +99,18 @@
       kind === "create_event",
   );
 
-  const pinLabel = $derived(
-    lat !== null && lon !== null
-      ? `${lat.toFixed(5)}, ${lon.toFixed(5)}`
-      : "Not set",
-  );
+  const draftPin = $derived(additionProposalStore.draftPin);
 
-  function resetFields() {
+  function resetFields(clearPin = true) {
     buildingName = "";
     buildingDirections = "";
     buildingType = "non-admin";
-    lat = null;
-    lon = null;
+    if (clearPin) additionProposalStore.clearDraftPin();
     eventTitle = "";
     eventStartsAt = "";
     eventEndsAt = "";
     eventCategory = "other";
+    eventImageUrl = null;
     dormName = "";
     dormGender = "coed";
     roomCode = "";
@@ -108,17 +121,104 @@
     error = null;
   }
 
+  function snapshotAdditionDraft() {
+    return {
+      kind,
+      buildingName,
+      buildingDirections,
+      buildingType,
+      eventTitle,
+      eventStartsAt,
+      eventEndsAt,
+      eventCategory,
+      eventImageUrl,
+      dormName,
+      dormGender,
+      roomCode,
+      roomDirections,
+      collegeName,
+      divisionCollegeDraft,
+      divisionName,
+      draftPin: additionProposalStore.draftPin,
+    };
+  }
+
+  function restoreAdditionDraft() {
+    const saved = readSuggestAdditionDraft();
+    if (!saved) return;
+    kind = saved.kind;
+    buildingName = saved.buildingName;
+    buildingDirections = saved.buildingDirections;
+    buildingType = saved.buildingType;
+    eventTitle = saved.eventTitle;
+    eventStartsAt = saved.eventStartsAt;
+    eventEndsAt = saved.eventEndsAt;
+    eventCategory = saved.eventCategory;
+    eventImageUrl = saved.eventImageUrl;
+    dormName = saved.dormName;
+    dormGender = saved.dormGender;
+    roomCode = saved.roomCode;
+    roomDirections = saved.roomDirections;
+    collegeName = saved.collegeName;
+    divisionCollegeDraft = saved.divisionCollegeDraft;
+    divisionName = saved.divisionName;
+    if (saved.draftPin) {
+      additionProposalStore.setDraftPin(saved.draftPin);
+    }
+  }
+
+  onMount(() => {
+    if (!isPublish) restoreAdditionDraft();
+    draftReady = true;
+  });
+
+  $effect(() => {
+    if (isPublish || !draftReady || typeof localStorage === "undefined") return;
+    kind;
+    buildingName;
+    buildingDirections;
+    buildingType;
+    eventTitle;
+    eventStartsAt;
+    eventEndsAt;
+    eventCategory;
+    eventImageUrl;
+    dormName;
+    dormGender;
+    roomCode;
+    roomDirections;
+    collegeName;
+    divisionCollegeDraft;
+    divisionName;
+    additionProposalStore.draftPin;
+    scheduleSuggestAdditionDraftSave(snapshotAdditionDraft);
+  });
+
+  function dismissHost() {
+    if (onDismiss) {
+      onDismiss();
+      return;
+    }
+    floatingControlPanelStore.close(panelId);
+  }
+
+  function restoreHost() {
+    if (onRestore) {
+      onRestore();
+      return;
+    }
+    floatingControlPanelStore.openPanel = panelId;
+  }
+
   async function pickOnMap() {
     error = null;
-    floatingControlPanelStore.close(panelId);
+    dismissHost();
     try {
-      const coords = await additionProposalStore.requestMapPin();
-      lat = coords.lat;
-      lon = coords.lon;
+      await additionProposalStore.requestMapPin();
     } catch {
       // cancelled
     } finally {
-      floatingControlPanelStore.openPanel = panelId;
+      restoreHost();
     }
   }
 
@@ -136,8 +236,8 @@
           buildingName: buildingName.trim(),
           directions: buildingDirections.trim(),
           buildingType,
-          lat: lat ?? undefined,
-          lon: lon ?? undefined,
+          lat: draftPin?.lat,
+          lon: draftPin?.lon,
         };
       case "create_event": {
         const title = eventTitle.trim();
@@ -150,21 +250,21 @@
           recurrence: "none",
           isActive: true,
           includeInSeo: true,
-          locations:
-            lat !== null && lon !== null
-              ? [
-                  {
-                    anchorType: "custom",
-                    buildingId: null,
-                    dormId: null,
-                    label: "Event marker",
-                    lat,
-                    lon,
-                    isPrimary: true,
-                    sortOrder: 0,
-                  },
-                ]
-              : [],
+          imageUrl: eventImageUrl,
+          locations: draftPin
+            ? [
+                {
+                  anchorType: "custom",
+                  buildingId: null,
+                  dormId: null,
+                  label: "Event marker",
+                  lat: draftPin.lat,
+                  lon: draftPin.lon,
+                  isPrimary: true,
+                  sortOrder: 0,
+                },
+              ]
+            : [],
           routes: [],
         };
       }
@@ -172,8 +272,8 @@
         return {
           dormName: dormName.trim(),
           gender: dormGender.trim(),
-          lat,
-          lon,
+          lat: draftPin?.lat ?? null,
+          lon: draftPin?.lon ?? null,
         };
       case "create_room":
         return {
@@ -199,16 +299,13 @@
         username: adminAuthStore.username,
         draftName: submitterName,
       });
-      if (!name) {
-        error = "Enter your name so editors know who suggested this.";
+      const validation = validateSubmitterName(name);
+      if (!validation.ok) {
+        error = validation.error;
         return;
       }
     }
-    if (
-      needsPin &&
-      (kind === "create_building" || kind === "create_event") &&
-      (lat === null || lon === null)
-    ) {
+    if (needsPin && !draftPin) {
       error = "Pick a map location first.";
       return;
     }
@@ -246,8 +343,9 @@
           `${options.find((o) => o.value === kind)?.label ?? "Entry"} created.`,
           "success",
         );
+        clearSuggestAdditionDraft();
         resetFields();
-        floatingControlPanelStore.close(panelId);
+        dismissHost();
         return;
       }
 
@@ -265,9 +363,10 @@
         error = result.error ?? "Could not submit proposal.";
         return;
       }
-      toastStore.show("Addition submitted for editor review.", "success");
+      toastStore.show("Thanks — we'll review your suggestion soon.", "success");
+      clearSuggestAdditionDraft();
       resetFields();
-      floatingControlPanelStore.close(panelId);
+      dismissHost();
     } finally {
       submitting = false;
     }
@@ -275,225 +374,280 @@
 </script>
 
 <section
-  class="addition-panel"
+  class="entity-editor addition-panel"
+  class:contributor-form={!isPublish}
   aria-label={isPublish ? "Add to campus map" : "Propose a campus addition"}
 >
-  <p class="addition-lead">
+  <p class="entity-editor-lead">
     {#if isPublish}
       Add a missing building, room, dorm, college, or division. Buildings and
       dorms need a map pin before you create them.
     {:else}
-      Missing something on the map? Propose a new building, room, event, or
-      other campus entry. Editors review before anything goes live.
+      Spot something missing on the map? Tell us what to add — editors review
+      every suggestion before it goes live.
     {/if}
   </p>
 
-  <label class="field">
-    <span>What to add</span>
-    <select
-      bind:value={kind}
-      onchange={() => {
-        resetFields();
-      }}
-    >
-      {#each options as option (option.value)}
-        <option value={option.value}>{option.label}</option>
-      {/each}
-    </select>
-  </label>
-
-  {#if !isPublish && !adminAuthStore.isLoggedIn}
-    <label class="field">
-      <span>Your name</span>
-      <input bind:value={submitterName} maxlength="100" autocomplete="name" />
-    </label>
-  {/if}
-
-  {#if kind === "create_building"}
-    <label class="field">
-      <span>Building name</span>
-      <input bind:value={buildingName} maxlength="100" />
-    </label>
-    <label class="field">
-      <span>Directions / notes</span>
-      <textarea bind:value={buildingDirections} rows="2"></textarea>
-    </label>
-    <label class="field">
-      <span>Type</span>
-      <select bind:value={buildingType}>
-        <option value="non-admin">Non-admin</option>
-        <option value="admin">Admin</option>
-      </select>
-    </label>
-  {:else if kind === "create_event"}
-    <label class="field">
-      <span>Event title</span>
-      <input bind:value={eventTitle} maxlength="200" />
-    </label>
-    <label class="field">
-      <span>Starts</span>
-      <input type="datetime-local" bind:value={eventStartsAt} />
-    </label>
-    <label class="field">
-      <span>Ends</span>
-      <input type="datetime-local" bind:value={eventEndsAt} />
-    </label>
-    <label class="field">
-      <span>Category</span>
-      <select bind:value={eventCategory}>
-        <option value="tradition">Tradition</option>
-        <option value="fair">Fair</option>
-        <option value="ceremony">Ceremony</option>
-        <option value="sports">Sports</option>
-        <option value="other">Other</option>
-      </select>
-    </label>
-  {:else if kind === "create_dorm"}
-    <label class="field">
-      <span>Dorm name</span>
-      <input bind:value={dormName} maxlength="120" />
-    </label>
-    <label class="field">
-      <span>Gender policy</span>
-      <input bind:value={dormGender} maxlength="40" placeholder="e.g. coed" />
-    </label>
-  {:else if kind === "create_room"}
-    <label class="field">
-      <span>Room code</span>
-      <input bind:value={roomCode} maxlength="80" />
-    </label>
-    <label class="field">
-      <span>Directions (optional)</span>
-      <textarea bind:value={roomDirections} rows="2"></textarea>
-    </label>
-  {:else if kind === "create_college"}
-    <label class="field">
-      <span>College name</span>
-      <input bind:value={collegeName} maxlength="100" />
-    </label>
-  {:else if kind === "create_division"}
-    <label class="field">
-      <span>Division name</span>
-      <input bind:value={divisionName} maxlength="100" />
-    </label>
-    <label class="field">
-      <span>Parent college</span>
-      <select bind:value={divisionCollegeDraft}>
-        <option value="">No college</option>
-        {#each colleges as college (college.id)}
-          <option value={String(college.id)}>{college.collegeName}</option>
+  <EntityEditorFormField
+    label="What are you adding?"
+    inputId="addition-kind-select"
+  >
+    {#snippet control()}
+      <select
+        id="addition-kind-select"
+        bind:value={kind}
+        onchange={() => {
+          resetFields();
+        }}
+      >
+        {#each options as option (option.value)}
+          <option value={option.value}>{option.label}</option>
         {/each}
       </select>
-    </label>
+    {/snippet}
+  </EntityEditorFormField>
+
+  {#if !isPublish && !adminAuthStore.isLoggedIn}
+    <SubmitterNameField
+      id="suggest-addition-submitter-name"
+      bind:value={submitterName}
+    />
   {/if}
 
-  {#if needsPin}
-    <div class="pin-row">
-      <span class="pin-label">Map pin: {pinLabel}</span>
-      <button type="button" class="pin-btn" onclick={pickOnMap}
-        >Pick on map</button
+  <div class="field-group">
+    {#if kind === "create_building"}
+      <EntityEditorFormField
+        label="What's it called?"
+        inputId="addition-building-name"
+        hint="The name people use on campus."
       >
-    </div>
+        {#snippet control()}
+          <input
+            id="addition-building-name"
+            bind:value={buildingName}
+            maxlength="100"
+            placeholder="e.g. Gonzaga Hall"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="How do you find it?"
+        inputId="addition-building-directions"
+        hint="Floor, nearby landmarks — anything that helps someone get there."
+      >
+        {#snippet control()}
+          <textarea
+            id="addition-building-directions"
+            bind:value={buildingDirections}
+            rows="2"
+            placeholder="Near the main entrance, past the lobby…"></textarea>
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="Who uses this building?"
+        inputId="addition-building-type"
+      >
+        {#snippet control()}
+          <select id="addition-building-type" bind:value={buildingType}>
+            <option value="non-admin">Student-facing</option>
+            <option value="admin">Admin / offices</option>
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_event"}
+      <EntityEditorFormField
+        label="What's the event called?"
+        inputId="addition-event-title"
+      >
+        {#snippet control()}
+          <input
+            id="addition-event-title"
+            bind:value={eventTitle}
+            maxlength="200"
+            placeholder="e.g. Lantern Parade"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="When does it start?"
+        inputId="addition-event-starts"
+      >
+        {#snippet control()}
+          <input
+            id="addition-event-starts"
+            type="datetime-local"
+            bind:value={eventStartsAt}
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="When does it wrap up?"
+        inputId="addition-event-ends"
+      >
+        {#snippet control()}
+          <input
+            id="addition-event-ends"
+            type="datetime-local"
+            bind:value={eventEndsAt}
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="What kind of event?"
+        inputId="addition-event-category"
+      >
+        {#snippet control()}
+          <select id="addition-event-category" bind:value={eventCategory}>
+            <option value="tradition">Tradition</option>
+            <option value="fair">Fair</option>
+            <option value="ceremony">Ceremony</option>
+            <option value="sports">Sports</option>
+            <option value="other">Other</option>
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+      {#if adminAuthStore.isLoggedIn}
+        <ImageUpload
+          inputId="addition-event-image"
+          label="Event image (optional)"
+          prefix={`events/${slugifySegment(eventTitle.trim() || "event")}`}
+          bind:value={eventImageUrl}
+          disabled={submitting}
+        />
+      {/if}
+    {:else if kind === "create_dorm"}
+      <EntityEditorFormField
+        label="What's the dorm called?"
+        inputId="addition-dorm-name"
+      >
+        {#snippet control()}
+          <input
+            id="addition-dorm-name"
+            bind:value={dormName}
+            maxlength="120"
+            placeholder="e.g. Eliazo Hall"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="Who can live here?"
+        inputId="addition-dorm-gender"
+        hint="Coed, women only, men only — whatever applies."
+      >
+        {#snippet control()}
+          <input
+            id="addition-dorm-gender"
+            bind:value={dormGender}
+            maxlength="40"
+            placeholder="e.g. coed"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_room"}
+      <EntityEditorFormField
+        label="Room number or code"
+        inputId="addition-room-code"
+        hint="As you'd tell a friend where to meet."
+      >
+        {#snippet control()}
+          <input
+            id="addition-room-code"
+            bind:value={roomCode}
+            maxlength="80"
+            placeholder="e.g. 301 or A-12"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="How do you get there?"
+        inputId="addition-room-directions"
+        hint="Optional — stairs, wing, or landmarks help."
+      >
+        {#snippet control()}
+          <textarea
+            id="addition-room-directions"
+            bind:value={roomDirections}
+            rows="2"
+            placeholder="Third floor, left wing…"></textarea>
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_college"}
+      <EntityEditorFormField
+        label="College name"
+        inputId="addition-college-name"
+        hint="The official name as students know it."
+      >
+        {#snippet control()}
+          <input
+            id="addition-college-name"
+            bind:value={collegeName}
+            maxlength="100"
+            placeholder="e.g. College of Science"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_division"}
+      <EntityEditorFormField
+        label="Division name"
+        inputId="addition-division-name"
+      >
+        {#snippet control()}
+          <input
+            id="addition-division-name"
+            bind:value={divisionName}
+            maxlength="100"
+            placeholder="e.g. Department of Physics"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="Part of which college?"
+        inputId="addition-division-college"
+      >
+        {#snippet control()}
+          <select
+            id="addition-division-college"
+            bind:value={divisionCollegeDraft}
+          >
+            <option value="">No college</option>
+            {#each colleges as college (college.id)}
+              <option value={String(college.id)}>{college.collegeName}</option>
+            {/each}
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+    {/if}
+  </div>
+
+  {#if needsPin}
+    <EntityEditorPinRow
+      label={draftPin
+        ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+        : "Drop a pin on the map"}
+      pickLabel={draftPin ? "Move pin" : "Pick on map"}
+      disabled={submitting}
+      onclick={pickOnMap}
+    />
   {/if}
 
   {#if error}
-    <p class="error">{error}</p>
+    <EntityEditorMessage variant="error" message={error} />
   {/if}
 
-  <button type="button" class="submit" disabled={submitting} onclick={submit}>
-    {submitting
-      ? isPublish
-        ? "Creating…"
-        : "Submitting…"
-      : isPublish
-        ? "Create now"
-        : "Submit for review"}
-  </button>
+  <EntityEditorSubmitButton
+    label={isPublish ? "Create now" : "Send suggestion"}
+    savingLabel={isPublish ? "Creating…" : "Sending…"}
+    saving={submitting}
+    variant="primary"
+    onclick={submit}
+  />
 </section>
 
 <style>
+  @import "./editor/entity-editor.css";
+
   .addition-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
     max-height: none;
     overflow: visible;
-  }
-
-  .addition-lead {
-    margin: 0;
-    font-size: 0.75rem;
-    line-height: 1.45;
-    color: hsl(0, 0%, 32%);
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    font-size: 0.6875rem;
-    color: hsl(0, 0%, 38%);
-  }
-
-  .field input,
-  .field select,
-  .field textarea {
-    font: inherit;
-    font-size: 0.75rem;
-    border: 1px solid hsl(0, 0%, 85%);
-    border-radius: 0.5rem;
-    padding: 0.35rem 0.5rem;
-  }
-
-  .pin-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.75rem;
-  }
-
-  .pin-label {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: hsl(0, 0%, 28%);
-  }
-
-  .pin-btn {
-    border: 1px solid hsl(5, 40%, 72%);
-    border-radius: 0.5rem;
-    background: white;
-    color: hsl(5, 53%, 32%);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    padding: 0.35rem 0.5rem;
-  }
-
-  .error {
-    margin: 0;
-    color: hsl(5, 65%, 38%);
-    font-size: 0.75rem;
-  }
-
-  .submit {
-    border: none;
-    border-radius: 0.5rem;
-    background: hsl(5, 53%, 32%);
-    color: white;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.5rem 0.625rem;
-  }
-
-  .submit:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 </style>

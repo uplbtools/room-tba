@@ -5,21 +5,21 @@
  * matched building row.
  *
  * Usage:
- *   NEON_CONNECTION_STRING=... ./node_modules/.bin/bun run scripts/seed-aliases.ts
+ *   DATABASE_URL=... ./node_modules/.bin/bun run scripts/seed-aliases.ts
  */
 
 import { config } from "dotenv";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { aliasesTable, buildingsTable } from "../drizzle/schema";
+import { aliasesTable, buildingsTable } from "@drizzle/schema";
 import { normalizeAlias } from "../src/lib/site";
 import roomInfo from "../public/room_info.json";
 
 config({ path: ".env" });
 
-const connectionString = process.env.NEON_CONNECTION_STRING;
+const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  console.error("NEON_CONNECTION_STRING is required");
+  console.error("DATABASE_URL is required");
   process.exit(1);
 }
 

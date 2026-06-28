@@ -1,20 +1,16 @@
 <script lang="ts">
-  import { getAppData } from "../../../lib/context";
+  import { getAppData } from "@lib/context";
   import {
     getJSONFetch,
     searchLocalAliases,
     searchLocalRooms,
-  } from "../../../lib/local/data/utils";
-  import {
-    queryStore,
-    type QueryStoreState,
-    buildingTypeFilter,
-  } from "../../../lib/store.svelte";
-  import type { BuildingData, DormData, EventData } from "../../../lib/types";
+  } from "@lib/local/data/utils";
+  import { buildEntitySuggestions } from "@lib/search-suggestions";
+  import { queryStore, buildingTypeFilter } from "@lib/store.svelte";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
-  } from "../../../constants/building-types";
+  } from "@constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
@@ -35,128 +31,102 @@
     );
   });
 
-  const suggestedResult = $derived(getSuggestions(queryStore.inputValue));
-  function getSuggestions(searchString: string): {
-    value: string;
-    category: Exclude<QueryStoreState["category"], null>;
-    eventSlug?: string;
-  }[] {
-    searchString = searchString.trim().toLowerCase();
-    if (searchString === "" || !loaded) return [];
-    const suggestions = {
-      buildings: (filteredBuildings as BuildingData[])
-        .filter(({ buildingName }) =>
-          buildingName.toLowerCase().includes(searchString),
-        )
-        .map(({ buildingName }) => ({
-          value: buildingName,
-          category: "building",
-        })),
-      colleges: colleges
-        .filter(({ collegeName }) =>
-          collegeName.toLowerCase().includes(searchString),
-        )
-        .map(({ collegeName }) => ({
-          value: collegeName,
-          category: "college",
-        })),
-      divisions: divisions
-        .filter(({ divisionName }) =>
-          divisionName.toLowerCase().includes(searchString),
-        )
-        .map(({ divisionName }) => ({
-          value: divisionName,
-          category: "division",
-        })),
-      dorms: (filteredDorms as DormData[])
-        .filter(
-          ({ dormName, shortName }) =>
-            dormName.toLowerCase().includes(searchString) ||
-            (shortName && shortName.toLowerCase().includes(searchString)),
-        )
-        .map(({ dormName }) => ({
-          value: dormName,
-          category: "dorm",
-        })),
-      events: (events as EventData[])
-        .filter(
-          ({ title, description }) =>
-            title.toLowerCase().includes(searchString) ||
-            (description && description.toLowerCase().includes(searchString)),
-        )
-        .map(({ title, slug }) => ({
-          value: title,
-          category: "event",
-          eventSlug: slug,
-        })),
-    } satisfies {
-      [key: string]: {
-        value: string;
-        category: Exclude<QueryStoreState["category"], null>;
-        eventSlug?: string;
-      }[];
+  const suggestedResult = $derived.by(() =>
+    buildEntitySuggestions(queryStore.inputValue, {
+      loaded,
+      filteredBuildings,
+      filteredDorms,
+      colleges,
+      divisions,
+      events,
+    }),
+  );
+
+  type AliasHit = { alias: string; value: string };
+  type RoomHit = { value: string; category: "room" };
+
+  let aliasResults = $state<AliasHit[]>([]);
+  let roomResults = $state<RoomHit[]>([]);
+  let roomLoading = $state(false);
+
+  $effect(() => {
+    const trimmed = queryStore.inputValue.trim();
+    if (trimmed === "") {
+      aliasResults = [];
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await getJSONFetch<{
+          data: { alias: string; value: string | null }[];
+        }>(`/api/aliases?q=${encodeURIComponent(trimmed)}`);
+        if (cancelled) return;
+        aliasResults = (res.data ?? [])
+          .filter((entry): entry is { alias: string; value: string } =>
+            Boolean(entry.value),
+          )
+          .map((entry) => ({ alias: entry.alias, value: entry.value }));
+      } catch {
+        if (cancelled) return;
+        aliasResults = await searchLocalAliases(trimmed);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
     };
+  });
 
-    const nonRoomResult = Object.values(suggestions)
-      .flat()
-      .sort(({ value: a }, { value: b }) =>
-        a.toLowerCase().localeCompare(b.toLowerCase()),
-      );
-
-    return nonRoomResult.slice(0, 8);
-  }
-  const roomsResult = $derived(getRoomSuggestions(queryStore.inputValue));
-
-  async function getRoomSuggestions(searchValue: string) {
-    const trimmed = searchValue.trim();
-    if (trimmed === "") return [];
-    const upper = trimmed.toUpperCase();
-    const url = `/api/rooms?search_code=${encodeURI(upper)}`;
-    try {
-      const response = await fetch(url);
-      const roomsFetch = (await response.json()) as {
-        data?: { value: string }[] | null;
-      };
-      if (response.ok && Array.isArray(roomsFetch?.data)) {
-        return roomsFetch.data.map((val) => ({
-          ...val,
-          category: "room" as const,
-        }));
-      }
-      if (response.status === 404) {
-        return [];
-      }
-    } catch {
-      // Network unavailable — fall back to the local PGlite room cache (#169).
+  $effect(() => {
+    const trimmed = queryStore.inputValue.trim();
+    if (trimmed === "") {
+      roomResults = [];
+      roomLoading = false;
+      return;
     }
-    const local = await searchLocalRooms(upper);
-    return local
-      ? local.map((val) => ({ ...val, category: "room" as const }))
-      : [];
-  }
 
-  const aliasResult = $derived(getAliasSuggestions(queryStore.inputValue));
+    let cancelled = false;
+    roomLoading = true;
+    void (async () => {
+      const upper = trimmed.toUpperCase();
+      const url = `/api/rooms?search_code=${encodeURI(upper)}`;
+      try {
+        const response = await fetch(url);
+        const roomsFetch = (await response.json()) as {
+          data?: { value: string }[] | null;
+        };
+        if (cancelled) return;
+        if (response.ok && Array.isArray(roomsFetch?.data)) {
+          roomResults = roomsFetch.data.map((val) => ({
+            ...val,
+            category: "room" as const,
+          }));
+          roomLoading = false;
+          return;
+        }
+        if (response.status === 404) {
+          roomResults = [];
+          roomLoading = false;
+          return;
+        }
+      } catch {
+        // Network unavailable — fall back to the local PGlite room cache (#169).
+      }
 
-  // Resolve search aliases/synonyms (e.g. "PhySci" -> Physical Sciences
-  // Building) to their building targets, with the matched alias for a hint (#155).
-  async function getAliasSuggestions(
-    searchValue: string,
-  ): Promise<{ alias: string; value: string }[]> {
-    const trimmed = searchValue.trim();
-    if (trimmed === "") return [];
-    try {
-      const res = await getJSONFetch<{
-        data: { alias: string; value: string | null }[];
-      }>(`/api/aliases?q=${encodeURIComponent(trimmed)}`);
-      return (res.data ?? [])
-        .filter((entry): entry is { alias: string; value: string } =>
-          Boolean(entry.value),
-        )
-        .map((entry) => ({ alias: entry.alias, value: entry.value }));
-    } catch {
-      return searchLocalAliases(trimmed);
-    }
-  }
+      if (cancelled) return;
+      const local = await searchLocalRooms(upper);
+      roomResults = local
+        ? local.map((val) => ({ ...val, category: "room" as const }))
+        : [];
+      roomLoading = false;
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  });
 </script>
 
 <!-- class:visible={queryStore.inputValue === ""} -->
@@ -188,28 +158,27 @@
   {/if}
 
   {#if queryStore.inputValue !== ""}
-    {#await aliasResult then aliases}
-      {#each aliases as alias (alias.value)}
-        {#if !suggestedResult.some((s) => s.category === "building" && s.value === alias.value)}
-          <div class="alias-hint">
-            Showing results for <strong>{alias.alias}</strong> &rarr;
-            {alias.value}
-          </div>
-          <Suggestion value={alias.value} category="building" />
-        {/if}
-      {/each}
-    {/await}
+    {#each aliasResults as alias (alias.value)}
+      {#if !suggestedResult.some((s) => s.category === "building" && s.value === alias.value)}
+        <div class="alias-hint">
+          Showing results for <strong>{alias.alias}</strong> &rarr;
+          {alias.value}
+        </div>
+        <Suggestion value={alias.value} category="building" />
+      {/if}
+    {/each}
   {/if}
 
   {#if queryStore.inputValue !== ""}
-    {#await roomsResult}
+    {#if roomLoading}
       Loading rooms...
-    {:then result}
-      {#each result as roomResult (roomResult.value)}
+    {:else}
+      {#each roomResults as roomResult (roomResult.value)}
         <Suggestion {...roomResult} />
       {/each}
-    {/await}
+    {/if}
   {/if}
+
   {#if suggestedResult.length === 0 && queryStore.inputValue !== ""}
     <SearchQuerySuggestion />
   {/if}
@@ -217,6 +186,7 @@
 
 <style>
   .suggestions-container {
+    display: flex;
     flex-direction: column;
     gap: 0.25rem;
     padding: 0.375rem 0.5rem 0.625rem;
@@ -224,6 +194,7 @@
     max-height: min(50vh, 18rem);
     overflow-y: auto;
     overscroll-behavior: contain;
+    contain: layout style;
   }
 
   .suggestions-header {
@@ -241,6 +212,7 @@
     font-size: 0.75rem;
     color: hsl(0, 0%, 45%);
   }
+
   .alias-hint strong {
     color: hsl(5, 53%, 32%);
   }

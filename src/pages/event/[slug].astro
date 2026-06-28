@@ -1,16 +1,16 @@
 ---
-import AppRoot from "../../components/svelte/AppRoot.svelte";
-import Layout from "../../layouts/Layout.astro";
-import { getEventImage } from "../../lib/event-images";
-import { formatCampusDateTime } from "../../lib/event-time";
-import { getSeoEvents } from "../../lib/services/event-service";
-import { getEventPageData } from "../../lib/services/ssg-service";
+import AppRoot from "@ui/AppRoot.svelte";
+import Layout from "@layouts/Layout.astro";
+import { getEventImage } from "@lib/event-images";
+import { formatCampusDateTime } from "@lib/event-time";
+import { getSeoEvents } from "@lib/services/event-service";
+import { getEventPageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
   jsonLd,
   webpageSchema,
-} from "../../lib/site";
+} from "@lib/site";
 
 export async function getStaticPaths() {
   const events = await getSeoEvents();
@@ -27,7 +27,7 @@ if (appData === null) {
 }
 
 const { event } = appData;
-const eventImage = getEventImage(event.slug);
+const eventImage = getEventImage(event.slug, event.imageUrl, event.title);
 const canonicalPath = `/event/${event.slug}/`;
 const title = `${event.title} | UPLB event | Room TBA`;
 const description =

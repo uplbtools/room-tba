@@ -1,6 +1,5 @@
 // @ts-check
 import { defineConfig, envField } from "astro/config";
-import react from "@astrojs/react";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import vercel from "@astrojs/vercel";
@@ -9,7 +8,6 @@ export default defineConfig({
   site: "https://room-tba.uplbtools.me",
 
   integrations: [
-    react(),
     svelte(),
     AstroPWA({
       workbox: {
@@ -99,16 +97,28 @@ export default defineConfig({
   },
 
   redirects: {
-    "/contribute": "https://forms.gle/nVUMuuZgfW1HgXc98",
+    "/contribute": "/?contribute=1",
     "/messenger": "https://m.me/j/AbbjA1ouHCefGTkU",
   },
 
   // adapter: vercel(),
   env: {
     schema: {
-      NEON_CONNECTION_STRING: envField.string({
+      // Supabase Postgres connection string (Session pooler or direct).
+      DATABASE_URL: envField.string({
         access: "secret",
         context: "server",
+      }),
+      // Supabase JS client (Auth, Realtime, Storage). Separate from DATABASE_URL.
+      PUBLIC_SUPABASE_URL: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
       }),
       ADMIN_PASSWORD: envField.string({
         access: "secret",
@@ -116,6 +126,33 @@ export default defineConfig({
         optional: true,
       }),
       ADMIN_SESSION_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Cloudflare R2 (S3-compatible). Required for /api/admin/upload.
+      R2_ACCOUNT_ID: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      R2_ACCESS_KEY_ID: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      R2_SECRET_ACCESS_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      R2_BUCKET_NAME: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Public base URL for uploaded objects (custom domain or r2.dev).
+      R2_PUBLIC_URL: envField.string({
         access: "secret",
         context: "server",
         optional: true,

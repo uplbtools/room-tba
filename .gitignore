@@ -17,6 +17,11 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.*
+!.env.example
+
+# local database snapshots
+backups/
 
 # macOS-specific files
 .DS_Store
@@ -30,3 +35,4 @@ server/**/*
 
 data/AMIS subjects.json
 .vercel
+.env*.local

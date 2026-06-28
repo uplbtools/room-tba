@@ -1,5 +1,8 @@
 import { asc, eq, inArray } from "drizzle-orm";
-import { getStoredEventOccurrence, getStoredEventStatus } from "../event-time";
+import {
+  getStoredEventOccurrence,
+  getStoredEventStatus,
+} from "@lib/event-time";
 import {
   buildingsTable,
   dormsTable,
@@ -7,8 +10,8 @@ import {
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
-} from "../../../drizzle/schema";
-import { db } from "../db";
+} from "@drizzle/schema";
+import { db } from "@lib/db";
 import type {
   BuildingData,
   DormData,
@@ -16,7 +19,7 @@ import type {
   EventLocationData,
   EventRouteData,
   EventRouteStopData,
-} from "../types";
+} from "@lib/types";
 
 type EventRow = typeof eventsTable.$inferSelect;
 type EventLocationRow = typeof eventLocationsTable.$inferSelect;
@@ -38,6 +41,7 @@ export async function getAllEvents(
     );
   } catch (error) {
     if (isMissingEventsTableError(error)) return [];
+    console.error("Failed to load events", error);
     throw error;
   }
 }
@@ -270,14 +274,19 @@ function groupBy<T, TKey>(items: T[], getKey: (item: T) => TKey) {
   return grouped;
 }
 
+const EVENTS_RELATION_NAMES = [
+  "events",
+  "event_locations",
+  "event_routes",
+  "event_route_stops",
+] as const;
+
 function isMissingEventsTableError(error: unknown) {
   const message = collectErrorMessages(error).join(" ");
-  return (
-    message.includes('relation "events" does not exist') ||
-    message.includes('from "events"') ||
-    message.includes("event_locations") ||
-    message.includes("event_routes") ||
-    message.includes("event_route_stops")
+  // Column errors embed "relation \"…\" does not exist" — do not treat as missing table.
+  if (/\bcolumn "[^"]+" of relation/.test(message)) return false;
+  return EVENTS_RELATION_NAMES.some((name) =>
+    message.includes(`relation "${name}" does not exist`),
   );
 }
 

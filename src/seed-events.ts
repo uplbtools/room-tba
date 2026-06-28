@@ -13,11 +13,11 @@ import {
   eventsTable,
   roomsTable,
   updateTable,
-} from "../drizzle/schema";
+} from "@drizzle/schema";
 
-const connectionString = process.env.NEON_CONNECTION_STRING;
+const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error("NEON_CONNECTION_STRING is required to seed events.");
+  throw new Error("DATABASE_URL is required to seed events.");
 }
 
 const pool = new Pool({ connectionString });

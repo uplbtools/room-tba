@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
-  import { MediaQuery } from "svelte/reactivity";
-  import { offlineStore } from "../../lib/store.svelte";
+  import { offlineStore } from "@lib/store.svelte";
+  import { rafThrottle } from "@lib/layout-css-vars";
+  import { trapFocus } from "@lib/focus-trap";
+  import "./map-chrome/map-chrome.css";
 
   type Props = {
     /** Icon-only trigger for the mobile status strip. */
@@ -12,11 +14,59 @@
   let { compact = false }: Props = $props();
 
   let open = $state(false);
-  const mobile = new MediaQuery("max-width:48rem");
+  let triggerEl = $state<HTMLButtonElement | null>(null);
+  let popoverEl = $state<HTMLDivElement | null>(null);
+  let popoverStyle = $state("");
 
   onMount(() => {
     offlineStore.prepareEstimate();
   });
+
+  function updatePopoverPosition() {
+    if (!open || !triggerEl) return;
+    const rect = triggerEl.getBoundingClientRect();
+    const width = Math.min(256, window.innerWidth - 16);
+    const right = Math.max(8, window.innerWidth - rect.right);
+    const bottom = Math.max(8, window.innerHeight - rect.top + 8);
+    popoverStyle = `right: ${right}px; bottom: ${bottom}px; width: ${width}px;`;
+  }
+
+  $effect(() => {
+    if (!open) return;
+    updatePopoverPosition();
+    const handleLayout = rafThrottle(updatePopoverPosition);
+    window.addEventListener("resize", handleLayout);
+    window.addEventListener("scroll", handleLayout, true);
+    return () => {
+      window.removeEventListener("resize", handleLayout);
+      window.removeEventListener("scroll", handleLayout, true);
+    };
+  });
+
+  function toggleOpen() {
+    open = !open;
+    if (open) {
+      queueMicrotask(updatePopoverPosition);
+    }
+  }
+
+  function closePopover() {
+    open = false;
+  }
+
+  $effect(() => {
+    if (!open || !popoverEl) return;
+    return trapFocus(popoverEl, { onEscape: closePopover });
+  });
+
+  function handleDocumentPointerDown(event: PointerEvent) {
+    if (!open) return;
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (triggerEl?.contains(target)) return;
+    if (popoverEl?.contains(target)) return;
+    closePopover();
+  }
 
   function fmtBytes(bytes: number | null): string {
     if (bytes == null) return "—";
@@ -28,17 +78,17 @@
   const pct = $derived(Math.round(offlineStore.progress * 100));
 </script>
 
-<div
-  class="offline-maps"
-  class:is-open={open}
-  class:mobile={mobile.current}
-  class:compact
->
+<svelte:window onpointerdown={handleDocumentPointerDown} />
+
+<div class="offline-maps" class:compact>
   <button
+    bind:this={triggerEl}
     class="offline-trigger"
     type="button"
     aria-expanded={open}
-    onclick={() => (open = !open)}
+    aria-haspopup="dialog"
+    aria-controls="offline-maps-dialog"
+    onclick={toggleOpen}
     title="Download the campus map for offline use"
   >
     <DownloadCloud size={16} />
@@ -50,15 +100,23 @@
   </button>
 
   {#if open}
-    <div class="offline-popover" role="dialog" aria-label="Offline maps">
+    <div
+      bind:this={popoverEl}
+      id="offline-maps-dialog"
+      class="map-chrome-popover offline-popover"
+      style={popoverStyle}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Offline maps"
+    >
       {#if offlineStore.status === "downloading"}
-        <p class="offline-line">
+        <p class="map-chrome-popover-line">
           Downloading campus map… {pct}%
         </p>
-        <div class="offline-bar" aria-hidden="true">
-          <div class="offline-bar__value" style:width={`${pct}%`}></div>
+        <div class="map-chrome-progress" aria-hidden="true">
+          <div class="map-chrome-progress__value" style:width={`${pct}%`}></div>
         </div>
-        <p class="offline-sub">
+        <p class="map-chrome-popover-sub">
           {offlineStore.tilesDone} / {offlineStore.tilesTotal} tiles ·
           {fmtBytes(offlineStore.bytesDownloaded)}
         </p>
@@ -66,8 +124,8 @@
           Cancel
         </button>
       {:else if offlineStore.status === "done"}
-        <p class="offline-line">Campus map saved for offline use.</p>
-        <p class="offline-sub">
+        <p class="map-chrome-popover-line">Campus map saved for offline use.</p>
+        <p class="map-chrome-popover-sub">
           {offlineStore.tilesTotal} tiles · {fmtBytes(
             offlineStore.bytesDownloaded,
           )} downloaded
@@ -76,8 +134,10 @@
           Clear offline maps
         </button>
       {:else}
-        <p class="offline-line">Download the campus map for offline use.</p>
-        <p class="offline-sub">
+        <p class="map-chrome-popover-line">
+          Download the campus map for offline use.
+        </p>
+        <p class="map-chrome-popover-sub">
           Estimated download: ~{fmtBytes(offlineStore.estimatedBytes)}
           ({offlineStore.tilesTotal} tiles)
         </p>
@@ -92,7 +152,7 @@
         </button>
       {/if}
 
-      <p class="offline-storage">
+      <p class="map-chrome-popover-footnote">
         On this device: {fmtBytes(offlineStore.storageUsed)}
       </p>
     </div>
@@ -104,6 +164,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
   }
 
   .offline-trigger {
@@ -144,94 +205,15 @@
   }
 
   .offline-popover {
-    position: absolute;
-    bottom: calc(100% + 0.5rem);
-    right: 0;
-    z-index: 40;
-    width: 16rem;
-    max-width: min(16rem, calc(100vw - 1rem));
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    position: fixed;
+    z-index: 25;
     border-radius: 0.75rem;
-    padding: 0.75rem;
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    text-align: left;
-    cursor: default;
   }
 
-  /* Mobile: expand inline below the status strip when opened. */
-  .offline-maps.mobile.is-open {
-    position: absolute;
-    right: 0.75rem;
-    bottom: calc(100% + 0.25rem);
-    z-index: 20;
-    flex-direction: column;
-    align-items: stretch;
-    width: min(16rem, calc(100vw - 1.5rem));
-    padding: 0.625rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 0.75rem;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-  }
-
-  .offline-maps.mobile.is-open .offline-popover {
-    position: static;
-    width: 100%;
-    max-width: none;
-    margin-top: 0.375rem;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-  }
-
-  .offline-maps.mobile.is-open .offline-trigger {
-    align-self: flex-start;
-  }
-
-  .offline-line {
-    margin: 0;
-    font-weight: 600;
-    font-size: 0.8125rem;
-    color: black;
-  }
-  .offline-sub {
-    margin: 0;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: hsl(0, 0%, 40%);
-  }
   .offline-error {
     margin: 0;
     font-size: 0.75rem;
     color: hsl(5, 53%, 38%);
-  }
-
-  .offline-bar {
-    height: 0.5rem;
-    border-radius: 0.5rem;
-    background-color: #ddd;
-    overflow: hidden;
-  }
-  .offline-bar__value {
-    height: 100%;
-    background-color: #7b1113;
-    border-radius: 0.5rem;
-    transition: width 0.2s ease;
   }
 
   .offline-btn {
@@ -256,13 +238,5 @@
   }
   .offline-btn.ghost:hover {
     background-color: hsl(5, 53%, 97%);
-  }
-
-  .offline-storage {
-    margin: 0.125rem 0 0;
-    padding-top: 0.375rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
-    font-size: 0.6875rem;
-    color: hsl(0, 0%, 55%);
   }
 </style>

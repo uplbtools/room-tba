@@ -7,6 +7,7 @@ Use this checklist before merging the in-app editor foundation PR.
 - Visiting `/admin` redirects to `/?editor=login`.
 - Visiting `/admin/login` redirects to `/?editor=login`.
 - `/?editor=login` opens the in-app editor login modal.
+- **Editor sign in** in the status bar (expand Status on mobile) also opens the login modal.
 - A successful login updates the map controls to show the admin/editor controls.
 - Signing out disables map edit mode.
 
@@ -32,7 +33,8 @@ Use this checklist before merging the in-app editor foundation PR.
 - Failed or blocked terrain tile requests do not leave the control implying terrain is active.
 - MapTiler attribution/logo remains visible when terrain is active.
 - On a low-bandwidth or data-saver connection, terrain copy warns that hosted elevation tiles are online-only.
-- Terrain and jeepney controls live inside the Map tools flyout (collapsed by default) and do not cover the side panel, editor dock, or attribution.
+- Terrain controls live inside the Map tools flyout (collapsed by default) and do not cover the side panel, editor dock, or attribution.
+- Jeepney route chips live in the search filter row alongside building type filters; selecting a route highlights the chip and draws the route on the map.
 - Sync progress appears in the status bar only — no floating sync card on the map face.
 - PWA reload prompt appears as an action in the status bar.
 

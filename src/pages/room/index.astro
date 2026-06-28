@@ -1,7 +1,7 @@
 ---
-import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
-import { getRoomRouteSlug, loadAppData } from "../../lib/app-data";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "../../lib/site";
+import EntityIndexPage from "@seo/EntityIndexPage.astro";
+import { getRoomRouteSlug, loadAppData } from "@lib/app-data";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const { rooms, classesMap } = await loadAppData();
 

@@ -1,0 +1,17 @@
+---
+description: Svelte 5 client stores and shared reactive state
+globs:
+  - src/lib/store.svelte.ts
+  - src/lib/stores/**
+---
+
+# Svelte stores
+
+Before adding or changing client state:
+
+1. **Extend existing stores** in [`src/lib/store.svelte.ts`](src/lib/store.svelte.ts) (or `src/lib/stores/` if split) — do not introduce parallel global state (new context providers, ad-hoc module singletons) without a strong reason.
+2. **Import via barrel:** components use `@lib/store.svelte` exports; keep public API stable when refactoring internals.
+3. **Map mode exclusivity:** enabling edit, routes, or terrain should go through `deactivateMapModesExcept` so only one exclusive mode is active.
+4. **Flyouts:** one Map tools flyout (`mapToolsStore`); contributor menu on LocationButton (`floatingControlPanelStore`); editor chrome via `editorChromeStore`.
+5. **Offline/sync:** table sync and PGlite writes live in `src/lib/local/data/*`; stores orchestrate UI — avoid duplicating sync logic in components.
+6. **Auth UI:** `adminAuthStore` hydrates from `/api/admin/auth`; do not bypass it for editor session state.

@@ -1,13 +1,13 @@
-import { APIRoute } from "astro";
+import type { APIRoute } from "astro";
 import {
   getBuildingRooms,
   getCollegeRooms,
   getDivisionRooms,
   getRoomByCode,
   searchRooms,
-} from "../../lib/services/map-data-service";
-import { RoomData } from "../../lib/types";
-// import { getAllRooms } from "../../lib/services/map-data-service";
+} from "@lib/services/map-data-service";
+import type { RoomData } from "@lib/types";
+// import { getAllRooms } from "@lib/services/map-data-service";
 
 export const GET = (async ({ url }) => {
   const searchKeys = Array.from(url.searchParams.keys());

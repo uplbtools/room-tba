@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../../lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   EditConflictError,
   DuplicateNameError,
-} from "../../../../../lib/services/admin-service";
-import { mergeRooms } from "../../../../../lib/services/merge-service";
+} from "@lib/services/admin-service";
+import { mergeRooms } from "@lib/services/merge-service";
 
 export const prerender = false;
 

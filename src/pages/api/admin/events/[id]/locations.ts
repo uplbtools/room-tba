@@ -1,10 +1,11 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../../lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
 import {
   EditConflictError,
   updateEventLocations,
   type EventLocationWriteInput,
-} from "../../../../../lib/services/admin-service";
+} from "@lib/services/admin-service";
 
 export const prerender = false;
 
@@ -31,11 +32,14 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     return json({ error: "locations must be an array" }, 400);
   }
 
+  const parsedVersion = parseRequiredEditorVersion(body.version);
+  if (!parsedVersion.ok) return parsedVersion.response;
+
   try {
     const event = await updateEventLocations(
       id,
       body.locations,
-      Number.isInteger(body.version) ? body.version : undefined,
+      parsedVersion.version,
       auth.editedBy,
     );
     if (!event) return json({ error: "Event not found" }, 404);

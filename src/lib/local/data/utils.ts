@@ -1,22 +1,25 @@
-import { type DBData } from "../../context";
-import {
+import { type DBData } from "@lib/context";
+import type {
   BuildingData,
   ClassMapValue,
   CollegeData,
   DivisionData,
   DormData,
+  EntityLoadResult,
   EventData,
   RoomData,
   TableSyncInfo,
-} from "../../types";
+} from "@lib/types";
 import { getDB } from "./pgliteDB";
+import { ENTITY_FETCH_OPTIONS, fetchJsonWithRetry } from "./fetch-json";
 import {
   getLocalBuildingRooms,
   getLocalCollegeRooms,
   getLocalDivisionRooms,
 } from "./sync";
-import { refreshStoredEventTiming, sortStoredEvents } from "../../event-time";
-import { normalizeAlias } from "../../site";
+import { refreshStoredEventTiming, sortStoredEvents } from "@lib/event-time";
+import { normalizeAlias } from "@lib/site";
+import { normalizeDormListFields } from "@lib/string-lists";
 import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
@@ -87,7 +90,7 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         updated_at AS "updatedAt"
       FROM dorms;
       `)) as Results<DormData>;
-    return data.rows;
+    return data.rows.map((row) => normalizeDormListFields(row));
   } catch (e) {
     console.error("Error: ", e);
     return undefined;
@@ -112,6 +115,7 @@ export async function getLocalEvents(): Promise<EventData[] | undefined> {
           recurrence,
           is_active AS "isActive",
           source_url AS "sourceUrl",
+          image_url AS "imageUrl",
           priority,
           include_in_seo AS "includeInSeo",
           version,
@@ -230,6 +234,40 @@ export async function getLocalRoomByCode(code: string) {
   }
 }
 
+export async function getLocalRoomById(id: number) {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(
+      `
+            SELECT
+            r.id,
+            r.room_code AS code,
+            r.directions AS directions,
+            json_build_object('name',b.building_name, 'lat', b.lat, 'lon', b.lon, 'directions', b.directions ) as building,
+            c.college_name as "collegeName",
+            d.division_name as "divisionName",
+            r.building_id as "buildingId",
+            r.college_id as "collegeId",
+            r.division_id as "divisionId",
+            r.version,
+            r.updated_at as "updatedAt"
+            FROM rooms AS r
+            LEFT JOIN buildings AS b ON b.id = r.building_id
+            LEFT JOIN colleges as c ON c.id = r.college_id
+            LEFT JOIN divisions AS d ON d.id = r.division_id
+            WHERE r.id = $1
+        `,
+      [id],
+    )) as Results<RoomData>;
+    if (data.rows.length === 0) return null;
+    return data.rows[0] as RoomData;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
 // export async function getLocalRooms(): Promise<RoomData[] | undefined> {
 //   try {
 //     const localDB = getDB();
@@ -283,31 +321,66 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
   }
 }
 
-export async function getJSONFetch<T>(url: string) {
-  const req = await fetch(url);
+export async function loadCachedAppData(): Promise<DBData> {
+  const [buildings, colleges, divisions, dorms, events, roomsMeta] =
+    await Promise.all([
+      getLocalBuildings().then((rows) => rows ?? []),
+      getLocalColleges().then((rows) => rows ?? []),
+      getLocalDivisions().then((rows) => rows ?? []),
+      getLocalDorms().then((rows) => rows ?? []),
+      getLocalEvents().then((rows) => rows ?? []),
+      getLocalRoomsCounts(),
+    ]);
+
+  return {
+    buildings,
+    colleges,
+    divisions,
+    dorms,
+    events,
+    directionCount: roomsMeta.directionCount,
+    totalRooms: roomsMeta.totalRooms,
+  };
+}
+
+export async function getJSONFetch<T>(url: string, timeoutMs = 30_000) {
+  const req = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   return (await req.json()) as T;
 }
 
 export function getEntity<T>(
   tableName: string,
   getLocalEntity: () => Promise<T[] | undefined>,
-): (checker: TableSyncInfo) => Promise<T[]> {
+): (checker: TableSyncInfo) => Promise<EntityLoadResult<T>> {
   return async (checker: TableSyncInfo) => {
     const local = async () => (await getLocalEntity()) ?? [];
-    if (checker.valid) return local();
-    try {
-      const fetchedData = await getJSONFetch<T[]>(`/api/${tableName}`);
-      if (Array.isArray(fetchedData) && fetchedData.length > 0) {
-        return fetchedData;
-      }
-      // Remote unreachable/empty (offline): prefer cached local rows.
+    if (checker.valid) {
       const cached = await local();
-      if (cached.length > 0) return cached;
-      return Array.isArray(fetchedData) ? fetchedData : cached;
+      // localStorage sync key can outlive PGlite (IDB eviction, cleared site data).
+      // Treat an empty cache as stale so we refetch instead of showing no events.
+      if (cached.length > 0) {
+        return { rows: cached, source: "cache" };
+      }
+    }
+    try {
+      const fetchedData = await fetchJsonWithRetry<T[]>(
+        `/api/${tableName}`,
+        ENTITY_FETCH_OPTIONS,
+      );
+      if (Array.isArray(fetchedData)) {
+        return { rows: fetchedData, source: "remote" };
+      }
+      const cached = await local();
+      return { rows: cached, source: "cache" };
     } catch {
-      return local();
+      const cached = await local();
+      return { rows: cached, source: "cache" };
     }
   };
+}
+
+export async function fetchRemoteEvents(): Promise<EventData[]> {
+  return fetchJsonWithRetry<EventData[]>("/api/events", ENTITY_FETCH_OPTIONS);
 }
 
 export const getBuildings = getEntity<BuildingData>(

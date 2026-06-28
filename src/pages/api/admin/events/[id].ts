@@ -1,12 +1,15 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
+import { R2_PUBLIC_URL } from "astro:env/server";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
+import { parseEventImageUrl } from "@lib/r2-upload";
 import {
   deactivateEvent,
   EditConflictError,
   updateEvent,
   type EventWriteInput,
-} from "../../../../lib/services/admin-service";
-import { slugifySegment } from "../../../../lib/site";
+} from "@lib/services/admin-service";
+import { slugifySegment } from "@lib/site";
 
 export const prerender = false;
 
@@ -32,9 +35,14 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     return json({ error: "Event title cannot be empty" }, 400);
   }
 
-  const expectedVersion = Number.isInteger(body.version)
-    ? body.version
-    : undefined;
+  const parsedVersion = parseRequiredEditorVersion(body.version);
+  if (!parsedVersion.ok) return parsedVersion.response;
+  const expectedVersion = parsedVersion.version;
+
+  const parsedImageUrl = parseEventImageUrl(body.imageUrl, R2_PUBLIC_URL);
+  if (!parsedImageUrl.ok) {
+    return json({ error: parsedImageUrl.error }, 400);
+  }
 
   try {
     const updates: EventWriteInput = { ...body };
@@ -42,6 +50,9 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     if (updates.title) updates.title = updates.title.trim();
     if (typeof body.includeInSeo === "boolean") {
       updates.includeInSeo = body.includeInSeo;
+    }
+    if (parsedImageUrl.provided) {
+      updates.imageUrl = parsedImageUrl.imageUrl;
     }
     const event = await updateEvent(
       id,
@@ -63,9 +74,9 @@ export const DELETE: APIRoute = async ({ cookies, params, request }) => {
   const id = parseEventId(params.id);
   if (id === null) return json({ error: "Invalid event ID" }, 400);
   const body = await request.json().catch(() => ({}) as { version?: number });
-  const expectedVersion = Number.isInteger(body.version)
-    ? body.version
-    : undefined;
+  const parsedVersion = parseRequiredEditorVersion(body.version);
+  if (!parsedVersion.ok) return parsedVersion.response;
+  const expectedVersion = parsedVersion.version;
 
   try {
     const event = await deactivateEvent(id, expectedVersion, auth.editedBy);

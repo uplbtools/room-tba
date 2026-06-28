@@ -10,7 +10,7 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
-} from "../drizzle/schema";
+} from "@drizzle/schema";
 import { getTableColumns, eq } from "drizzle-orm";
 const client = new Database("data/info.db");
 const db = drizzle({ client });
@@ -23,7 +23,7 @@ const dorms = (await db.select().from(dormsTable)).map(
           .map((s) => s.trim())
           .join(",")}}`
       : null,
-    amenities: amenities ? `{${JSON.parse(amenities).join(",")}}` : null,
+    amenities: amenities ? JSON.parse(amenities) : null,
     ...others,
   }),
 );

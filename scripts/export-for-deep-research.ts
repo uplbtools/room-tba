@@ -2,7 +2,7 @@
  * Export Room TBA database tables to JSON for ChatGPT Deep Research attachment.
  *
  * Usage:
- *   NEON_CONNECTION_STRING=... ./node_modules/.bin/bun run scripts/export-for-deep-research.ts
+ *   DATABASE_URL=... ./node_modules/.bin/bun run scripts/export-for-deep-research.ts
  *   ./node_modules/.bin/bun run scripts/export-for-deep-research.ts --sqlite data/info.db
  *
  * Writes to exports/deep-research/ with a manifest.json describing each file.
@@ -22,16 +22,18 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
-} from "../drizzle/schema";
+  termsTable,
+} from "@drizzle/schema";
 
 const OUT_DIR = join(import.meta.dir, "..", "exports", "deep-research");
+// Fallback term label when the terms table is unavailable (e.g. SQLite export).
 const TERM = "AY 2025-2026 2nd Semester";
 const EXPORTED_AT = new Date().toISOString();
 
 type ExportManifest = {
   exported_at: string;
   term_target: string;
-  source: "neon" | "sqlite";
+  source: "postgres" | "sqlite";
   counts: Record<string, number>;
   files: string[];
   schema_notes: Record<string, string[]>;
@@ -46,6 +48,18 @@ function writeJson(name: string, data: unknown) {
 async function exportFromPostgres(connectionString: string) {
   const pool = new pg.Pool({ connectionString });
   const db = drizzlePg(pool);
+
+  let termLabel = TERM;
+  try {
+    const [defaultTerm] = await db
+      .select()
+      .from(termsTable)
+      .where(eq(termsTable.isDefault, true))
+      .limit(1);
+    if (defaultTerm?.label) termLabel = defaultTerm.label;
+  } catch {
+    // terms table not migrated yet — keep the fallback label.
+  }
 
   const buildings = await db.select().from(buildingsTable);
   const colleges = await db.select().from(collegesTable);
@@ -83,7 +97,7 @@ async function exportFromPostgres(connectionString: string) {
 
   await pool.end();
 
-  return { buildings, colleges, divisions, dorms, rooms, classes };
+  return { buildings, colleges, divisions, dorms, rooms, classes, termLabel };
 }
 
 function exportFromSqlite(sqlitePath: string) {
@@ -128,7 +142,15 @@ function exportFromSqlite(sqlitePath: string) {
 
   client.close();
 
-  return { buildings, colleges, divisions, dorms, rooms, classes };
+  return {
+    buildings,
+    colleges,
+    divisions,
+    dorms,
+    rooms,
+    classes,
+    termLabel: TERM,
+  };
 }
 
 function roomCodeStats(classes: { room_code: string | null }[]) {
@@ -146,15 +168,15 @@ function roomCodeStats(classes: { room_code: string | null }[]) {
 const sqliteArg = process.argv.indexOf("--sqlite");
 const sqlitePath =
   sqliteArg >= 0 ? process.argv[sqliteArg + 1] : "data/info.db";
-const neonUrl = process.env.NEON_CONNECTION_STRING;
+const postgresUrl = process.env.DATABASE_URL;
 
 mkdirSync(OUT_DIR, { recursive: true });
 
-const data = neonUrl
-  ? await exportFromPostgres(neonUrl)
+const data = postgresUrl
+  ? await exportFromPostgres(postgresUrl)
   : exportFromSqlite(sqlitePath);
 
-const source = neonUrl ? "neon" : "sqlite";
+const source = postgresUrl ? "postgres" : "sqlite";
 
 const files = [
   writeJson("buildings.json", data.buildings),
@@ -168,7 +190,7 @@ const files = [
 
 const manifest: ExportManifest = {
   exported_at: EXPORTED_AT,
-  term_target: TERM,
+  term_target: data.termLabel,
   source,
   counts: {
     buildings: data.buildings.length,

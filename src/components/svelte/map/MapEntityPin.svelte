@@ -18,7 +18,6 @@
     onpointerenter?: () => void;
     onpointerleave?: () => void;
     saveState?: EntityPinSaveState;
-    title?: string;
     tone?: EntityPinTone;
   };
 
@@ -35,7 +34,6 @@
     onpointerenter,
     onpointerleave,
     saveState = "idle",
-    title = label,
     tone = "building",
   }: Props = $props();
 
@@ -69,17 +67,23 @@
   class:saving={saveState === "saving"}
   class:saved={saveState === "saved"}
   class:failed={saveState === "failed"}
-  {title}
+  aria-label={label}
   {onpointerenter}
   {onpointerleave}
 >
-  {@render children()}
+  <span class="pin-icon" aria-hidden="true">
+    {@render children()}
+  </span>
   {#if showDragAffordance}
     <span class="drag-handle" aria-hidden="true">
       <Move size={13} />
     </span>
   {/if}
-  <div class="pin-label" class:active={labelVisible || active}>
+  <div
+    class="pin-label"
+    class:active={labelVisible || active}
+    aria-hidden="true"
+  >
     {label}
     {#if statusLabel}
       <span class="pin-status">{statusLabel}</span>
@@ -115,7 +119,7 @@
   }
 
   .map-entity-pin.active {
-    z-index: 60;
+    z-index: 85;
   }
 
   .map-entity-pin.active::before {
@@ -149,6 +153,7 @@
   }
 
   .map-entity-pin.hovered {
+    z-index: 82;
     transform: scale(1.08);
     box-shadow:
       0 0 0 0.2rem rgba(255, 255, 255, 0.9),
@@ -156,7 +161,7 @@
   }
 
   .map-entity-pin.editing {
-    z-index: 70;
+    z-index: 92;
     cursor: grabbing;
     transform: scale(1.14);
   }
@@ -227,10 +232,16 @@
     pointer-events: none;
   }
 
+  .pin-icon {
+    display: inline-flex;
+    line-height: 0;
+  }
+
   .pin-label {
     position: absolute;
     bottom: calc(100% + 0.5rem);
     left: 50%;
+    z-index: 1;
     width: max-content;
     border-radius: 0.5rem;
     background-color: white;
@@ -269,5 +280,13 @@
     font-size: 0.6875rem;
     opacity: 0.85;
     padding-left: 0.5rem;
+  }
+
+  @media (max-width: 48rem) {
+    .pin-label {
+      max-width: min(11rem, calc(100vw - 1.5rem));
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 </style>

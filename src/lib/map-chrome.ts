@@ -16,6 +16,7 @@ export function getMapChromeVisibility() {
     showSearchSuggestions: !editMode,
     showEventBanner: !editMode,
     showEventsShelf: !editMode,
+    showEditorShelf: !editMode,
     showMapTools: true,
     mapToolsDefaultClosed: editMode,
     showEditDock: mapEditStore.enabled,

@@ -1,6 +1,6 @@
-import { APIRoute } from "astro";
-import { db } from "../../../lib/db";
-import { updateTable } from "../../../../drizzle/schema";
+import type { APIRoute } from "astro";
+import { db } from "@lib/db";
+import { updateTable } from "@drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export const prerender = false;

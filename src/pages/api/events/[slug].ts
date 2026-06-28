@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getEventBySlug } from "../../../lib/services/event-service";
+import { getEventBySlug } from "@lib/services/event-service";
 
 export const prerender = false;
 

@@ -1,8 +1,23 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
+  import { fade, fly } from "svelte/transition";
   import { X, Lock } from "@lucide/svelte";
-  import { adminAuthStore, toastStore } from "../../lib/store.svelte";
+  import { adminAuthStore, toastStore } from "@lib/store.svelte";
+  import {
+    modalContentDismiss,
+    modalContentReveal,
+    overlayFade,
+  } from "@lib/motion";
+  import { trapFocus } from "@lib/focus-trap";
+  import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
+  import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
+  import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
+  import "./editor/entity-editor.css";
+  import { MediaQuery } from "svelte/reactivity";
 
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+  const loginErrorId = "admin-login-error";
+
+  let loginFrameEl = $state<HTMLDivElement | null>(null);
   let username = $state("admin");
   let password = $state("");
   let error: string | null = $state(null);
@@ -30,46 +45,77 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") close();
   }
+
+  $effect(() => {
+    if (!loginFrameEl) return;
+    return trapFocus(loginFrameEl, { onEscape: close });
+  });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="login-overlay" transition:fade={{ duration: 140 }}>
-  <div class="login-frame" role="dialog" aria-modal="true">
+<div class="login-overlay" transition:fade={overlayFade(reducedMotion.current)}>
+  <div
+    bind:this={loginFrameEl}
+    class="login-frame"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="admin-login-title"
+    in:fly={modalContentReveal(reducedMotion.current)}
+    out:fly={modalContentDismiss(reducedMotion.current)}
+  >
     <header class="login-header">
-      <div class="login-title">
-        <Lock size={16} />
+      <div class="login-title" id="admin-login-title">
+        <Lock size={16} aria-hidden="true" />
         <span>Editor login</span>
       </div>
-      <button class="login-close" onclick={close} aria-label="Close login">
-        <X size={18} />
+      <button
+        type="button"
+        class="login-close"
+        onclick={close}
+        aria-label="Close login"
+      >
+        <X size={18} aria-hidden="true" />
       </button>
     </header>
-    <form class="login-body" onsubmit={submit}>
-      <label class="field">
-        <span>Username</span>
-        <input
-          type="text"
-          autocomplete="username"
-          bind:value={username}
-          required
-        />
-      </label>
-      <label class="field">
-        <span>Password</span>
-        <input
-          type="password"
-          autocomplete="current-password"
-          bind:value={password}
-          required
-        />
-      </label>
+    <form class="login-body entity-editor-form" onsubmit={submit}>
+      <EntityEditorFormField label="Username" inputId="admin-login-username">
+        {#snippet control()}
+          <input
+            id="admin-login-username"
+            type="text"
+            autocomplete="username"
+            bind:value={username}
+            required
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField label="Password" inputId="admin-login-password">
+        {#snippet control()}
+          <input
+            id="admin-login-password"
+            type="password"
+            autocomplete="current-password"
+            bind:value={password}
+            required
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? loginErrorId : undefined}
+          />
+        {/snippet}
+      </EntityEditorFormField>
       {#if error}
-        <p class="error">{error}</p>
+        <EntityEditorMessage
+          variant="error"
+          message={error}
+          id={loginErrorId}
+        />
       {/if}
-      <button class="submit" type="submit" disabled={adminAuthStore.loading}>
-        {adminAuthStore.loading ? "Signing in…" : "Sign in"}
-      </button>
+      <EntityEditorSubmitButton
+        type="submit"
+        label="Sign in"
+        savingLabel="Signing in…"
+        saving={adminAuthStore.loading}
+      />
     </form>
   </div>
 </div>
@@ -115,54 +161,13 @@
     color: hsl(0, 0%, 30%);
     display: flex;
   }
-  .login-close:hover {
+  .login-close:hover,
+  .login-close:focus-visible {
     background-color: hsl(0, 0%, 95%);
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
   }
   .login-body {
     padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.8125rem;
-    color: hsl(0, 0%, 25%);
-  }
-  .field input {
-    font: inherit;
-    padding: 0.5rem 0.625rem;
-    border: 1px solid hsl(0, 0%, 85%);
-    border-radius: 0.5rem;
-    background: white;
-    color: hsl(0, 0%, 15%);
-  }
-  .field input:focus {
-    border-color: hsl(5, 53%, 32%);
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-  }
-  .error {
-    margin: 0;
-    color: hsl(5, 65%, 38%);
-    font-size: 0.8125rem;
-  }
-  .submit {
-    background-color: hsl(5, 53%, 32%);
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    padding: 0.55rem 0.75rem;
-    font: inherit;
-    cursor: pointer;
-  }
-  .submit:hover:not(:disabled) {
-    background-color: hsl(5, 53%, 27%);
-  }
-  .submit:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 </style>

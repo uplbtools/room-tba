@@ -1,15 +1,15 @@
 ---
-import EntityPage from "../../components/seo/EntityPage.astro";
-import { getRoomRouteSlug } from "../../lib/app-data";
-import { getAllRooms } from "../../lib/services/map-data-service";
-import { getRoomPageData } from "../../lib/services/ssg-service";
+import EntityPage from "@seo/EntityPage.astro";
+import { getRoomRouteSlug } from "@lib/app-data";
+import { getAllRooms } from "@lib/services/map-data-service";
+import { getRoomPageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
   jsonLd,
   ogImageUrl,
   webpageSchema,
-} from "../../lib/site";
+} from "@lib/site";
 
 export async function getStaticPaths() {
   const rooms = await getAllRooms();

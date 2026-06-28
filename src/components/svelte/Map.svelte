@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MapLibre, Marker } from "svelte-maplibre";
-  import { getAppActions, getAppData } from "../../lib/context";
+  import { getAppActions, getAppData } from "@lib/context";
   import {
     queryStore,
     locationStore,
@@ -17,7 +17,7 @@
     additionProposalStore,
     buildingTypeFilter,
     terrainStore,
-  } from "../../lib/store.svelte";
+  } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
@@ -29,16 +29,18 @@
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import University from "@lucide/svelte/icons/university";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
+  import { observeBlockHeight } from "@lib/layout-css-vars";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { EventData } from "../../lib/types";
+  import type { EventData } from "@lib/types";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
     type JeepneyStop,
-  } from "../../constants/jeepney-routes";
+  } from "@constants/jeepney-routes";
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
@@ -51,16 +53,16 @@
     TERRAIN_TILE_FAILURE_MESSAGE,
     TERRAIN_TILEJSON_URL,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
-  } from "../../constants/map-terrain";
+  } from "@constants/map-terrain";
+  import { applyBasemapPalette } from "@lib/map-basemap-palette";
+  import { isMap2DPitch } from "@constants/map-dimension";
+  import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
-  } from "../../constants/building-types";
-  import { getEventImage } from "../../lib/event-images";
-  import {
-    formatCampusDateShort,
-    formatCampusTime,
-  } from "../../lib/event-time";
+  } from "@constants/building-types";
+  import { getEventImage } from "@lib/event-images";
+  import { formatCampusDateShort, formatCampusTime } from "@lib/event-time";
   import {
     completeMapMoveRedo,
     completeMapMoveUndo,
@@ -68,12 +70,24 @@
     recordMapMove,
     type MapMoveCoordinates,
     type VersionedMapMove,
-  } from "../../lib/map-move-history";
+  } from "@lib/map-move-history";
+  import {
+    ClientEditConflictError,
+    ClientEventConflictError,
+    editErrorMessage,
+  } from "@lib/map-edit/errors";
+  import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
+  import type {
+    EditableCoords,
+    EditableEntityType,
+    EditableVersionedPosition,
+    EventLocationWriteValue,
+  } from "@lib/map-edit/types";
   import {
     resolveSubmitterName,
     submitCreateProposal,
     submitPinPositionProposal,
-  } from "../../lib/proposals/client";
+  } from "@lib/proposals/client";
   const data = getAppData();
   const appActions = getAppActions();
   const { buildings, dorms, events, loaded } = $derived(data());
@@ -107,8 +121,6 @@
   const EVENT_ROUTE_SOURCE_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_CASING_ID = "event-route-line-casing";
-  const BUILDING_3D_LAYER_ID = "building-3d";
-
   let activeRouteId = $state<string | null>(null);
   let activeRouteStops = $state<DisplayJeepneyRoute["stops"]>([]);
   let activeRouteColor = $state<string>("#dc2626");
@@ -122,52 +134,6 @@
   let undoingEditKey = $state<string | null>(null);
   let undoShortcutLabel = $state("Ctrl+Z");
   let editStatusMessage = $state<string | null>(null);
-  type EditableEntityType = "building" | "dorm";
-  type EditableCoords = MapMoveCoordinates;
-  type EditableVersionedPosition = EditableCoords & { version: number };
-  type EditableUpdateResponse = {
-    building?: EditableVersionedPosition;
-    dorm?: EditableVersionedPosition;
-  };
-  type EventLocationWriteValue = Partial<{
-    id: number;
-    anchorType: EventData["locations"][number]["anchorType"];
-    buildingId: number | null;
-    dormId: number | null;
-    label: string;
-    lat: number | null;
-    lon: number | null;
-    highlightPriority: number;
-    sortOrder: number;
-    isPrimary: boolean;
-  }>;
-  type EventLocationsPatchResponse = {
-    event?: EventData;
-    latest?: EventData | null;
-    error?: string;
-  };
-  type EditableConflictResponse = {
-    error?: string;
-    latest?: EditableVersionedPosition | null;
-  };
-  class ClientEditConflictError extends Error {
-    latest: EditableVersionedPosition | null;
-
-    constructor(message: string, latest: EditableVersionedPosition | null) {
-      super(message);
-      this.name = "ClientEditConflictError";
-      this.latest = latest;
-    }
-  }
-  class ClientEventConflictError extends Error {
-    latest: EventData | null;
-
-    constructor(message: string, latest: EventData | null) {
-      super(message);
-      this.name = "ClientEventConflictError";
-      this.latest = latest;
-    }
-  }
   type EntityEditMove = VersionedMapMove & {
     kind: "entity";
     entityType: EditableEntityType;
@@ -429,8 +395,6 @@
 
     const draft = eventPlacementStore.draft;
     eventPlacementStore.beginCreate();
-    stopRotation();
-
     try {
       const res = await fetch("/api/admin/events", {
         method: "POST",
@@ -501,8 +465,6 @@
 
     const draft = eventPlacementStore.draft;
     eventPlacementStore.beginCreate();
-    stopRotation();
-
     try {
       const submitterName = resolveSubmitterName({
         displayName: adminAuthStore.displayName,
@@ -609,18 +571,6 @@
     );
   }
 
-  function setBuildingExtrusionsVisible(
-    map: mapGl.MapLibreMap,
-    visible: boolean,
-  ) {
-    if (!map.getLayer(BUILDING_3D_LAYER_ID)) return;
-    map.setLayoutProperty(
-      BUILDING_3D_LAYER_ID,
-      "visibility",
-      visible ? "visible" : "none",
-    );
-  }
-
   function flyToCamera(
     map: mapGl.MapLibreMap,
     camera: typeof CAMPUS_DEFAULT_CAMERA,
@@ -638,7 +588,7 @@
   function disableTerrain(map: mapGl.MapLibreMap) {
     map.setTerrain(null);
     setTerrainHillshadeVisible(map, false);
-    setBuildingExtrusionsVisible(map, true);
+    syncBuildingLayersForDimension(map, isMap2DPitch(map.getPitch()), false);
   }
 
   function restoreFlatMapCamera(map: mapGl.MapLibreMap) {
@@ -646,9 +596,6 @@
       const category = queryStore.category;
       const type = queryStore.type;
       const value = queryStore.inputValue;
-
-      stopRotation();
-      map.off("moveend", startRotation);
 
       if (category === "building" && type === "result") {
         if (!loaded) return;
@@ -664,7 +611,6 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          map.once("moveend", startRotation);
         }
       } else if (category === null) {
         flyToCamera(map, CAMPUS_DEFAULT_CAMERA);
@@ -688,7 +634,6 @@
               padding: calculatePadding(md.current),
               duration: 1500,
             });
-            map.once("moveend", startRotation);
           }
         });
       } else if (category === "dorm") {
@@ -703,14 +648,11 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          map.once("moveend", startRotation);
         }
       } else if (category === "event") {
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
-        if (currentEvent && focusMapOnEvent(map, currentEvent)) {
-          map.once("moveend", startRotation);
-        }
+        if (currentEvent) focusMapOnEvent(map, currentEvent);
       }
     });
   }
@@ -729,14 +671,30 @@
     );
   }
 
-  let animationFrameId: number | null = $state(null);
-
-  let isRotating = $state(false);
-  let lastTimestamp = $state(0);
-  let currentRotation = $state(0);
   let zoomLevel = $state(0);
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
+  let editChromeEl = $state<HTMLElement | null>(null);
+  const editChromeActive = $derived(
+    eventPlacementStore.active ||
+      additionProposalStore.pinPickActive ||
+      mapProposalStore.enabled ||
+      (adminAuthStore.canPublish && mapEditStore.enabled),
+  );
+
+  $effect(() => {
+    const root = editChromeEl?.closest(".app-layout") as HTMLElement | null;
+    if (!editChromeActive) {
+      root?.style.setProperty("--edit-bar-height", "0px");
+      return;
+    }
+    const el = editChromeEl;
+    if (!el) return;
+    return observeBlockHeight(el, "--edit-bar-height", {
+      shouldSkip: () => !editChromeActive,
+      skipValue: "0px",
+    });
+  });
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
@@ -750,40 +708,6 @@
       bottom: 0,
     };
   };
-
-  function rotateCamera(timestamp: number) {
-    if (!mapStore.mapInstance || !isRotating) return;
-
-    if (!lastTimestamp) lastTimestamp = timestamp;
-    const delta = timestamp - lastTimestamp;
-    lastTimestamp = timestamp;
-
-    currentRotation = (currentRotation + delta / 150) % 360;
-    mapStore.mapInstance.rotateTo(currentRotation, {
-      duration: 0,
-      padding: calculatePadding(untrack(() => md.current)),
-    });
-
-    animationFrameId = requestAnimationFrame(rotateCamera);
-  }
-
-  function startRotation() {
-    stopRotation();
-    if (!mapStore.mapInstance || terrainStore.enabled) return;
-    isRotating = true;
-    lastTimestamp = 0;
-    currentRotation = mapStore.mapInstance.getBearing();
-    animationFrameId = requestAnimationFrame(rotateCamera);
-  }
-
-  function stopRotation() {
-    isRotating = false;
-    lastTimestamp = 0;
-    if (animationFrameId !== null) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-  }
 
   function handleZoom() {
     if (!mapStore.mapInstance) return;
@@ -840,7 +764,6 @@
     if (!canDragPin(key)) return;
     selectedEditKey = key;
     failedEditKey = null;
-    stopRotation();
   }
 
   function markSaved(key: string) {
@@ -855,95 +778,6 @@
     setTimeout(() => {
       if (editStatusMessage === message) editStatusMessage = null;
     }, 3500);
-  }
-
-  function editErrorMessage(name: string, fallback: string, error: unknown) {
-    const reason = error instanceof Error ? error.message : fallback;
-    const normalizedReason = reason.toLowerCase().replace(/[.?!]+$/, "");
-    const genericReasons = new Set([
-      fallback.toLowerCase().replace(/[.?!]+$/, ""),
-      "failed to save building",
-      "failed to save dorm",
-      "failed to save building position",
-      "failed to save dorm position",
-      "failed to save event location",
-    ]);
-
-    if (genericReasons.has(normalizedReason)) {
-      return `${name} failed to save.`;
-    }
-
-    return `${name} failed to save: ${reason}`;
-  }
-
-  async function patchPosition(
-    type: EditableEntityType,
-    id: number,
-    coords: EditableCoords,
-    version: number,
-  ): Promise<EditableVersionedPosition> {
-    const endpoint =
-      type === "building"
-        ? `/api/admin/buildings/${id}`
-        : `/api/admin/dorms/${id}`;
-    const res = await fetch(endpoint, {
-      method: "PATCH",
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...coords, version }),
-    });
-
-    if (!res.ok) {
-      const data = (await res.json().catch(() => ({}))) as
-        | EditableConflictResponse
-        | { error?: string };
-      if (res.status === 409) {
-        const conflict = data as EditableConflictResponse;
-        throw new ClientEditConflictError(
-          conflict.error ?? "This item was changed by another editor.",
-          conflict.latest ?? null,
-        );
-      }
-      throw new Error(data.error ?? `Save failed (${res.status})`);
-    }
-
-    const data = (await res.json()) as EditableUpdateResponse;
-    const updated = type === "building" ? data.building : data.dorm;
-    if (!updated)
-      throw new Error("Save response did not include updated data.");
-    return updated;
-  }
-
-  async function patchEventLocations(
-    event: EventData,
-    locations: EventLocationWriteValue[],
-    version = event.version,
-  ): Promise<EventData> {
-    const res = await fetch(`/api/admin/events/${event.id}/locations`, {
-      method: "PATCH",
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ version, locations }),
-    });
-    const data = (await res.json().catch(() => ({}))) as
-      | EventLocationsPatchResponse
-      | { error?: string };
-
-    if (!res.ok) {
-      if (res.status === 409) {
-        const conflict = data as EventLocationsPatchResponse;
-        throw new ClientEventConflictError(
-          conflict.error ?? "This event was changed by another editor.",
-          conflict.latest ?? null,
-        );
-      }
-      throw new Error(data.error ?? `Save failed (${res.status})`);
-    }
-
-    const updated = (data as EventLocationsPatchResponse).event;
-    if (!updated)
-      throw new Error("Save response did not include updated event.");
-    return updated;
   }
 
   function setLocalPosition(
@@ -1479,37 +1313,37 @@
   });
 
   $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+
+    let cancelled = false;
+    const applyPalette = () => {
+      if (!cancelled) applyBasemapPalette(map);
+    };
+    if (map.isStyleLoaded()) {
+      applyPalette();
+    } else {
+      map.once("load", applyPalette);
+    }
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  $effect(() => {
     if (mapStore.mapInstance) {
       const map = mapStore.mapInstance;
       const handleMapError = (event: mapGl.ErrorEvent) => {
         if (!terrainStore.enabled || !sourceErrorMatchesTerrain(event)) return;
         failTerrain(map, TERRAIN_TILE_FAILURE_MESSAGE);
       };
-      map.on("mousedown", stopRotation);
-      map.on("touchstart", stopRotation);
-      map.on("wheel", stopRotation);
       map.on("zoom", handleZoom);
       map.on("error", handleMapError);
       return () => {
-        map.off("mousedown", stopRotation);
-        map.off("touchstart", stopRotation);
-        map.off("wheel", stopRotation);
         map.off("zoom", handleZoom);
         map.off("error", handleMapError);
       };
     }
-  });
-
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    mapStore.stopAutoRotate = () => {
-      stopRotation();
-      map.off("moveend", startRotation);
-    };
-    return () => {
-      mapStore.stopAutoRotate = null;
-    };
   });
 
   $effect(() => {
@@ -1525,7 +1359,6 @@
       if (!enabled) {
         const shouldRestoreFlatCamera = terrainModeWasEnabled;
         disableTerrain(map);
-        map.off("moveend", startRotation);
         terrainModeWasEnabled = false;
         if (shouldRestoreFlatCamera) restoreFlatMapCamera(map);
         return;
@@ -1541,10 +1374,8 @@
         ensureTerrainRendering(map);
         map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration });
         setTerrainHillshadeVisible(map, true);
-        setBuildingExtrusionsVisible(map, false);
+        syncBuildingLayersForDimension(map, isMap2DPitch(map.getPitch()), true);
         if (!terrainModeWasEnabled) {
-          map.off("moveend", startRotation);
-          stopRotation();
           flyToCamera(map, MAKILING_TERRAIN_CAMERA);
         }
         terrainModeWasEnabled = true;
@@ -1563,6 +1394,37 @@
 
     return () => {
       cancelled = true;
+    };
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const terrainEnabled = terrainStore.enabled;
+    if (!map) return;
+
+    let cancelled = false;
+    const applyDimensionLayers = () => {
+      if (cancelled) return;
+      syncBuildingLayersForDimension(
+        map,
+        isMap2DPitch(map.getPitch()),
+        terrainEnabled,
+      );
+    };
+
+    if (map.isStyleLoaded()) {
+      applyDimensionLayers();
+    } else {
+      map.once("load", applyDimensionLayers);
+    }
+
+    map.on("pitch", applyDimensionLayers);
+    map.on("moveend", applyDimensionLayers);
+
+    return () => {
+      cancelled = true;
+      map.off("pitch", applyDimensionLayers);
+      map.off("moveend", applyDimensionLayers);
     };
   });
 
@@ -1593,7 +1455,6 @@
     const resetNonce = terrainStore.resetNonce;
     if (!map || !terrainStore.enabled || resetNonce === 0) return;
 
-    stopRotation();
     flyToCamera(map, MAKILING_TERRAIN_CAMERA);
   });
 
@@ -1646,8 +1507,6 @@
     const canvas = map.getCanvas();
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
-    stopRotation();
-
     const handlePinPick = (event: mapGl.MapMouseEvent) => {
       additionProposalStore.deliverMapPin(event.lngLat.lat, event.lngLat.lng);
     };
@@ -1668,8 +1527,6 @@
     const canvas = map.getCanvas();
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
-    stopRotation();
-
     const handlePlacementClick = (event: mapGl.MapMouseEvent) => {
       void placeEventAtMapPoint({
         lat: event.lngLat.lat,
@@ -1713,8 +1570,7 @@
         if (cancelled) return;
         ensureJeepneyRouteLayers(map, route.color);
         const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
-          | mapGl.GeoJSONSource
-          | undefined;
+          mapGl.GeoJSONSource | undefined;
         const featureCollection: FeatureCollection<LineString> = {
           type: "FeatureCollection",
           features: [
@@ -1771,8 +1627,7 @@
     const draw = () => {
       ensureEventRouteLayers(map);
       const source = map.getSource(EVENT_ROUTE_SOURCE_ID) as
-        | mapGl.GeoJSONSource
-        | undefined;
+        mapGl.GeoJSONSource | undefined;
       const featureCollection: FeatureCollection<LineString> = {
         type: "FeatureCollection",
         features: routeFeatures,
@@ -1804,8 +1659,6 @@
 
     untrack(() => {
       const isTerrainEnabled = terrainStore.enabled;
-      stopRotation();
-      map.off("moveend", startRotation);
       if (category === "building" && type === "result") {
         if (!loaded) return;
         const currentBuilding = buildings.find(
@@ -1820,7 +1673,6 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
       } else if (category === null) {
         flyToCamera(
@@ -1846,7 +1698,6 @@
               padding: calculatePadding(md.current),
               duration: 1500,
             });
-            if (!isTerrainEnabled) map.once("moveend", startRotation);
           }
         });
       } else if (category === "dorm") {
@@ -1861,14 +1712,11 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
       } else if (category === "event") {
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
-        if (currentEvent && focusMapOnEvent(map, currentEvent)) {
-          if (!isTerrainEnabled) map.once("moveend", startRotation);
-        }
+        if (currentEvent) focusMapOnEvent(map, currentEvent);
       }
     });
   });
@@ -1935,6 +1783,10 @@
 
   function formatEventMarkerTime(value: string) {
     return formatCampusTime(value);
+  }
+
+  function formatEventMarkerDateTime(value: string) {
+    return `${formatCampusDateShort(value)}, ${formatCampusTime(value)}`;
   }
 
   function getEventStatusLabel(event: EventData) {
@@ -2270,8 +2122,10 @@
 
 <div class="map-container">
   {#if eventPlacementStore.active}
+    <EventPlacementImageField />
     {#if md.current}
       <div
+        bind:this={editChromeEl}
         class="edit-dock event-placement-dock"
         role="status"
         aria-live="polite"
@@ -2291,7 +2145,12 @@
         </button>
       </div>
     {:else}
-      <div class="event-placement-toolbar" role="status" aria-live="polite">
+      <div
+        bind:this={editChromeEl}
+        class="event-placement-toolbar"
+        role="status"
+        aria-live="polite"
+      >
         <div class="event-placement-copy">
           <strong>Choose event location on the map</strong>
           <span>
@@ -2310,15 +2169,62 @@
         </button>
       </div>
     {/if}
+  {:else if additionProposalStore.pinPickActive}
+    {#if md.current}
+      <div
+        bind:this={editChromeEl}
+        class="edit-dock event-placement-dock"
+        role="status"
+        aria-live="polite"
+      >
+        <p class="edit-dock-status">Tap the map to set the pin location</p>
+        <button
+          class="edit-dock-action cancel"
+          type="button"
+          onclick={() => additionProposalStore.cancelMapPin()}
+        >
+          Cancel
+        </button>
+      </div>
+    {:else}
+      <div
+        bind:this={editChromeEl}
+        class="event-placement-toolbar"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="event-placement-copy">
+          <strong>Choose a map pin location</strong>
+          <span>Click or tap the map where this entry should appear.</span>
+        </div>
+        <button
+          class="event-placement-cancel"
+          type="button"
+          onclick={() => additionProposalStore.cancelMapPin()}
+        >
+          Cancel
+        </button>
+      </div>
+    {/if}
   {:else if isMapPinSuggestMode()}
-    <div class="map-edit-dock" aria-live="polite">
-      <p class="map-edit-status">
+    <div
+      bind:this={editChromeEl}
+      class="edit-dock map-edit-dock"
+      role="status"
+      aria-live="polite"
+    >
+      <p class="edit-dock-status">
         Drag the highlighted pin, then release to submit for review.
       </p>
     </div>
   {:else if isMapEditEnabled()}
     {#if md.current}
-      <div class="edit-dock map-edit-dock" role="status" aria-live="polite">
+      <div
+        bind:this={editChromeEl}
+        class="edit-dock map-edit-dock"
+        role="status"
+        aria-live="polite"
+      >
         {#if editStatusMessage}
           <p class="edit-dock-status">{editStatusMessage}</p>
         {/if}
@@ -2350,7 +2256,12 @@
         </div>
       </div>
     {:else}
-      <div class="map-edit-toolbar" role="status" aria-live="polite">
+      <div
+        bind:this={editChromeEl}
+        class="map-edit-toolbar"
+        role="status"
+        aria-live="polite"
+      >
         <div class="map-edit-summary">
           <div class="map-edit-copy">
             <strong>Editing map</strong>
@@ -2368,6 +2279,7 @@
             title={undoMove
               ? `Undo move for ${undoMove.name}`
               : "No move to undo yet"}
+            aria-label="Undo last pin move"
           >
             {#if undoingEditKey && undoMove}
               Undoing
@@ -2382,6 +2294,7 @@
             title={redoMove
               ? `Redo move for ${redoMove.name}`
               : "No move to redo yet"}
+            aria-label="Redo last pin move"
           >
             {#if undoingEditKey && redoMove}
               Redoing
@@ -2408,6 +2321,16 @@
     {#if locationStore.coords}
       <Marker lngLat={locationStore.coords}>
         <div class="user-location-pin"></div>
+      </Marker>
+    {/if}
+    {#if additionProposalStore.draftPin}
+      <Marker
+        lngLat={{
+          lng: additionProposalStore.draftPin.lon,
+          lat: additionProposalStore.draftPin.lat,
+        }}
+      >
+        <div class="addition-draft-pin" aria-hidden="true"></div>
       </Marker>
     {/if}
     {#if loaded}
@@ -2470,7 +2393,11 @@
               {#if group.entries.length === 1}
                 {@const entry = group.entries[0]}
                 {#if entry}
-                  {@const image = getEventImage(entry.event.slug)}
+                  {@const image = getEventImage(
+                    entry.event.slug,
+                    entry.event.imageUrl,
+                    entry.event.title,
+                  )}
                   {@const active = isSelectedEvent(entry.event)}
                   <EventMapPin
                     {active}
@@ -2483,7 +2410,7 @@
                     title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
                     ariaLabel={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
                     labelTitle={entry.event.title}
-                    labelMeta={`${getEventStatusLabel(entry.event)} - ${formatEventMarkerTime(
+                    labelMeta={`${getEventStatusLabel(entry.event)} · ${formatEventMarkerDateTime(
                       entry.event.occurrenceStartsAt,
                     )}`}
                     onclick={() => handleEventMarkerClick(entry.event)}
@@ -2493,7 +2420,11 @@
                 {@const primaryEntry = group.entries[0]}
                 {@const isExpanded = expandedEventGroupKey === group.key}
                 {#if primaryEntry}
-                  {@const primaryImage = getEventImage(primaryEntry.event.slug)}
+                  {@const primaryImage = getEventImage(
+                    primaryEntry.event.slug,
+                    primaryEntry.event.imageUrl,
+                    primaryEntry.event.title,
+                  )}
                   <EventMapPin
                     variant="group"
                     anchored={group.anchored}
@@ -2532,7 +2463,11 @@
                       </div>
                       <div class="event-stack-list">
                         {#each group.entries as entry (`event-stack:${entry.event.id}:${entry.location.id}`)}
-                          {@const image = getEventImage(entry.event.slug)}
+                          {@const image = getEventImage(
+                            entry.event.slug,
+                            entry.event.imageUrl,
+                            entry.event.title,
+                          )}
                           <button
                             type="button"
                             class="event-stack-item"
@@ -2590,7 +2525,7 @@
       {/each}
     {/if}
     {#if !mapViewStore.eventsOnly}
-      {#each filteredBuildings as building (`building:${building.id}:${canDragPin(buildingEditKey(building.id))}`)}
+      {#each filteredBuildings as building (`building:${building.id}`)}
         {#if building.lat && building.lon}
           {@const editKey = buildingEditKey(building.id)}
           {@const position = getEditablePosition(editKey, {
@@ -2653,7 +2588,7 @@
     {/if}
 
     {#if !mapViewStore.eventsOnly}
-      {#each filteredDorms as dorm (`dorm:${dorm.id}:${canDragPin(dormEditKey(dorm.id))}`)}
+      {#each filteredDorms as dorm (`dorm:${dorm.id}`)}
         {#if dorm.lat && dorm.lon}
           {@const editKey = dormEditKey(dorm.id)}
           {@const position = getEditablePosition(editKey, {
@@ -2710,23 +2645,32 @@
   }
 
   .map-edit-toolbar {
-    position: absolute;
-    right: var(--map-ui-padding, 0.5rem);
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom, 0px) + 0.75rem
+    position: fixed;
+    right: calc(
+      var(--map-ui-padding, 0.5rem) + var(--bottom-fab-inset, 3.75rem)
     );
-    left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
-    z-index: 20;
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) +
+        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem)) +
+        env(safe-area-inset-bottom, 0px)
+    );
+    left: calc(
+      var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) +
+        var(--map-ui-padding, 0.5rem) + var(--bottom-fab-gap, 0.5rem)
+    );
+    z-index: 18;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     width: auto;
+    min-width: 0;
     max-width: calc(
-      100% - 25.75rem - var(--map-ui-padding, 0.5rem) * 2 - 0.75rem
+      100% - var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) -
+        var(--map-ui-padding, 0.5rem) * 2 - var(--bottom-fab-inset, 3.75rem) -
+        var(--bottom-fab-gap, 0.5rem) * 2
     );
-    min-height: 3.25rem;
-    padding: 0.375rem 0.375rem 0.375rem 0.75rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.625rem;
     border: 1px solid hsla(160, 52%, 32%, 0.35);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.94);
@@ -2759,7 +2703,7 @@
 
   .map-edit-copy span {
     display: block;
-    max-width: 18rem;
+    min-width: 0;
     overflow: hidden;
     color: hsl(0, 0%, 24%);
     font-size: 0.75rem;
@@ -2776,15 +2720,17 @@
   }
 
   .map-edit-action {
-    width: 4.75rem;
+    flex: 0 0 auto;
+    min-width: 3.75rem;
     overflow: hidden;
-    padding: 0.48rem 0.6rem;
+    padding: 0.3125rem 0.625rem;
     border: none;
     border-radius: 999px;
     background: hsl(160, 84%, 26%);
     color: white;
     cursor: pointer;
     font: inherit;
+    font-size: 0.75rem;
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2800,23 +2746,32 @@
   }
 
   .event-placement-toolbar {
-    position: absolute;
-    right: var(--map-ui-padding, 0.5rem);
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom, 0px) + 0.75rem
+    position: fixed;
+    right: calc(
+      var(--map-ui-padding, 0.5rem) + var(--bottom-fab-inset, 3.75rem)
     );
-    left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
-    z-index: 22;
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) +
+        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem)) +
+        env(safe-area-inset-bottom, 0px)
+    );
+    left: calc(
+      var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) +
+        var(--map-ui-padding, 0.5rem) + var(--bottom-fab-gap, 0.5rem)
+    );
+    z-index: 18;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     width: auto;
+    min-width: 0;
     max-width: calc(
-      100% - 25.75rem - var(--map-ui-padding, 0.5rem) * 2 - 0.75rem
+      100% - var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) -
+        var(--map-ui-padding, 0.5rem) * 2 - var(--bottom-fab-inset, 3.75rem) -
+        var(--bottom-fab-gap, 0.5rem) * 2
     );
-    min-height: 3.25rem;
-    padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.625rem;
     border: 1px solid hsla(5, 53%, 32%, 0.35);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
@@ -2842,7 +2797,7 @@
 
   .event-placement-copy span {
     display: block;
-    max-width: 19rem;
+    min-width: 0;
     overflow: hidden;
     color: hsl(0, 0%, 24%);
     font-size: 0.75rem;
@@ -2852,15 +2807,18 @@
   }
 
   .event-placement-cancel {
-    min-width: 4.75rem;
-    padding: 0.48rem 0.75rem;
+    flex: 0 0 auto;
+    min-width: 3.75rem;
+    padding: 0.3125rem 0.625rem;
     border: none;
     border-radius: 999px;
     background: #7b1113;
     color: white;
     cursor: pointer;
     font: inherit;
+    font-size: 0.75rem;
     font-weight: 800;
+    white-space: nowrap;
   }
 
   .event-placement-cancel:hover:not(:disabled) {
@@ -2873,22 +2831,28 @@
   }
 
   .edit-dock {
-    position: absolute;
-    right: var(--map-ui-padding, 0.5rem);
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom)
+    position: fixed;
+    left: max(0.5rem, env(safe-area-inset-left, 0px));
+    right: calc(
+      var(--bottom-fab-inset, 3.25rem) +
+        max(0.5rem, env(safe-area-inset-right, 0px))
     );
-    left: var(--map-ui-padding, 0.5rem);
-    z-index: 21;
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) +
+        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem)) +
+        env(safe-area-inset-bottom, 0px)
+    );
+    z-index: 18;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
-    min-height: 3rem;
-    padding: 0.375rem 0.5rem;
+    gap: 0.375rem;
+    min-width: 0;
+    min-height: 2rem;
+    max-height: 2.75rem;
+    padding: 0.25rem 0.375rem 0.25rem 0.625rem;
     border: 1px solid hsla(160, 52%, 32%, 0.35);
-    border-radius: 0.875rem;
+    border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
@@ -2923,18 +2887,29 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.875rem;
+    gap: 0.2rem;
+    flex: 0 0 auto;
+    min-width: 2.25rem;
+    min-height: 2rem;
+    padding: 0.25rem 0.625rem;
     border: none;
-    border-radius: 0.75rem;
+    border-radius: 999px;
     background: hsl(160, 84%, 26%);
     color: white;
     cursor: pointer;
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .edit-dock-action :global(svg) {
+    flex-shrink: 0;
+  }
+
+  .edit-dock-action span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .edit-dock-action:hover:not(:disabled) {
@@ -2963,6 +2938,18 @@
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 70;
+  }
+
+  .addition-draft-pin {
+    width: 1.125rem;
+    height: 1.125rem;
+    background-color: hsl(5, 53%, 42%);
+    border: 3px solid white;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    position: relative;
+    z-index: 71;
   }
 
   .event-marker-anchor {

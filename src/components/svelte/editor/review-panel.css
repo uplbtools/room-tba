@@ -1,0 +1,119 @@
+.entity-review-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  border-top: 1px solid hsl(0, 0%, 92%);
+  padding-top: 0.4375rem;
+}
+
+.entity-review-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: hsl(5, 53%, 32%);
+}
+
+.entity-review-count {
+  color: hsl(0, 0%, 42%);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.entity-review-empty {
+  margin: 0;
+  color: hsl(0, 0%, 45%);
+  font-size: 0.75rem;
+}
+
+.entity-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.entity-review-item {
+  border: 1px solid hsl(0, 0%, 90%);
+  border-radius: 0.625rem;
+  padding: 0.375rem;
+  background: hsl(0, 0%, 99%);
+}
+
+.entity-review-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.entity-review-entity {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: hsl(0, 0%, 18%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entity-review-entity small {
+  font-weight: 600;
+  color: hsl(0, 0%, 45%);
+}
+
+.entity-review-submitter {
+  font-size: 0.75rem;
+  color: hsl(0, 0%, 42%);
+}
+
+.entity-review-changes {
+  margin: 0.375rem 0 0;
+  padding-left: 1rem;
+  color: hsl(0, 0%, 28%);
+  font-size: 0.75rem;
+}
+
+.entity-review-note {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  color: hsl(35, 80%, 28%);
+}
+
+.entity-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.entity-review-actions button {
+  border: 1px solid hsl(0, 0%, 85%);
+  border-radius: 0.5rem;
+  background: white;
+  color: hsl(0, 0%, 22%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.4375rem;
+}
+
+.entity-review-actions button.approve {
+  border-color: hsl(160, 84%, 34%);
+  color: hsl(160, 84%, 22%);
+}
+
+.entity-review-actions button.reject {
+  border-color: hsl(0, 70%, 82%);
+  color: hsl(0, 70%, 38%);
+}
+
+.entity-review-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

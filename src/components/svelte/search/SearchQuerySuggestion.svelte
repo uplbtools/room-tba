@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { queryStore } from "../../../lib/store.svelte";
+  import { queryStore } from "@lib/store.svelte";
 
   function handleRoomSearchSuggestion() {
     queryStore.updateQuery({

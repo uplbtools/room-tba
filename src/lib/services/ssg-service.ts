@@ -6,8 +6,8 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
-} from "../../../drizzle/schema";
-import { db } from "../db";
+} from "@drizzle/schema";
+import { db } from "@lib/db";
 import { getEventBySlug } from "./event-service";
 
 export async function getBuildingPageData(buildingName: string) {

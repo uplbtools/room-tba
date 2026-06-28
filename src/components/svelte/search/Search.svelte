@@ -1,69 +1,70 @@
 <script lang="ts">
-  import { throttle } from "es-toolkit";
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import ChevronUp from "@lucide/svelte/icons/chevron-up";
-  import SearchIcon from "@lucide/svelte/icons/search";
+  import { debounce } from "es-toolkit";
+  import { fade } from "svelte/transition";
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import Menu from "@lucide/svelte/icons/menu";
-  import { getAppData } from "../../../lib/context";
-  import { getMapChromeVisibility } from "../../../lib/map-chrome";
-  import { mapToolsStore, queryStore } from "../../../lib/store.svelte";
+  import ShieldCheck from "@lucide/svelte/icons/shield-check";
+  import { getAppData } from "@lib/context";
+  import { getMapChromeVisibility } from "@lib/map-chrome";
+  import {
+    adminAuthStore,
+    editorChromeStore,
+    mapEditStore,
+    mapToolsStore,
+    proposalsStore,
+    queryStore,
+  } from "@lib/store.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
+  import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
+  import TransitFilterChip from "@ui/TransitFilterChip.svelte";
+  import TransitRoutePanel from "@ui/TransitRoutePanel.svelte";
+  import { jeepneyStore } from "@lib/store.svelte";
+  import EditorShelf from "@ui/EditorShelf.svelte";
+  import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
+  import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
+  import { observeBlockHeight } from "@lib/layout-css-vars";
+  import {
+    dropdownFadeIn,
+    dropdownFadeOut,
+    panelFadeIn,
+    panelFadeOut,
+  } from "@lib/motion";
   import { MediaQuery } from "svelte/reactivity";
 
   let searchElement = $state<HTMLInputElement | null>(null);
-  let containerEl = $state<HTMLDivElement | null>(null);
-  let typing = $state(false);
+  let shellMainEl = $state<HTMLDivElement | null>(null);
+  let chromeEl = $state<HTMLDivElement | null>(null);
+  let draftInput = $state("");
   let eventsCollapsed = $state(true);
-  let searchCollapsed = $state(false);
+  let searchFocused = $state(false);
   const mobile = new MediaQuery("max-width:48rem");
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   const appData = getAppData();
-  const { events, loaded } = $derived(appData());
+  const { loaded } = $derived(appData());
   const chrome = $derived(getMapChromeVisibility());
-  const activeEvents = $derived(
-    loaded ? events.filter((event) => event.status === "active") : [],
-  );
-
-  const searchTabHint = $derived.by(() => {
-    const input = queryStore.inputValue.trim();
-    if (input) return input;
-    if (queryStore.category !== null && queryStore.queryValue) {
-      return queryStore.queryValue;
-    }
-    return null;
-  });
-
-  const expandSearchLabel = $derived(
-    searchTabHint
-      ? `Expand search bar, current context: ${searchTabHint}`
-      : "Expand search bar",
-  );
 
   $effect(() => {
-    const el = containerEl;
-    if (!el || typeof ResizeObserver === "undefined") return;
-
-    const root = el.closest(".app-layout") as HTMLElement | null;
-    if (!root) return;
-
-    const syncHeight = () => {
-      root.style.setProperty(
-        "--search-block-height",
-        `${el.getBoundingClientRect().height}px`,
-      );
-    };
-
-    syncHeight();
-    const observer = new ResizeObserver(syncHeight);
-    observer.observe(el);
-    return () => observer.disconnect();
+    const el = mobile.current ? shellMainEl : chromeEl;
+    if (!el) return;
+    return observeBlockHeight(el, "--search-block-height");
   });
 
-  const throttleSearch = throttle((searchInput: string) => {
+  const commitSearchInput = debounce((searchInput: string) => {
     queryStore.inputValue = searchInput;
     queryStore.setType("query");
-  }, 400);
+  }, 200);
+
+  $effect(() => {
+    if (queryStore.type === "result" || queryStore.category !== null) {
+      draftInput = queryStore.inputValue;
+      return;
+    }
+    if (queryStore.inputValue === "") {
+      draftInput = "";
+    }
+  });
 
   function handleInput(
     event: Event & { currentTarget: EventTarget & HTMLInputElement },
@@ -71,40 +72,34 @@
     if (queryStore.type === "result" || queryStore.category !== null) {
       queryStore.exitResultMode();
     }
-    throttleSearch(event.currentTarget.value);
+    draftInput = event.currentTarget.value;
+    commitSearchInput(draftInput);
   }
 
   function closeSearchContext() {
+    commitSearchInput.cancel();
     queryStore.clearQuery();
+    draftInput = "";
     searchElement?.focus();
   }
 
+  function openEventsShelf() {
+    searchFocused = false;
+    searchElement?.blur();
+    jeepneyStore.disableLayer();
+    eventsCollapsed = false;
+  }
+
+  function closeEventsShelf() {
+    eventsCollapsed = true;
+  }
+
   function toggleEventsShelf() {
-    eventsCollapsed = !eventsCollapsed;
-    if (!eventsCollapsed) {
-      searchElement?.blur();
+    if (eventsCollapsed) {
+      openEventsShelf();
+    } else {
+      closeEventsShelf();
     }
-  }
-
-  function collapseSearch() {
-    searchElement?.blur();
-    searchCollapsed = true;
-  }
-
-  function expandSearch() {
-    searchCollapsed = false;
-    queueMicrotask(() => searchElement?.focus());
-  }
-
-  function openActiveEvent(event: (typeof activeEvents)[number]) {
-    queryStore.updateQuery({
-      category: "event",
-      type: "result",
-      value: event.title,
-      eventSlug: event.slug,
-    });
-    queryStore.inputValue = "";
-    searchElement?.blur();
   }
 
   const clearSelectionLabel = $derived(
@@ -114,141 +109,122 @@
   );
 
   const showIdleEventsChrome = $derived(
-    chrome.showEventsShelf &&
-      queryStore.category === null &&
-      queryStore.inputValue === "",
+    chrome.showEventsShelf && queryStore.category === null && draftInput === "",
   );
 
-  const showMobileIntegratedEvents = $derived(
-    mobile.current &&
-      showIdleEventsChrome &&
-      queryStore.inputValue === "" &&
-      queryStore.category === null,
+  function closeEditorShelf() {
+    editorChromeStore.closeShelf();
+  }
+
+  function openEditorShelf() {
+    searchFocused = false;
+    searchElement?.blur();
+    closeEventsShelf();
+    editorChromeStore.openShelf();
+  }
+
+  function toggleEditorShelf() {
+    if (editorChromeStore.shelfOpen) {
+      closeEditorShelf();
+    } else {
+      openEditorShelf();
+    }
+  }
+
+  const showEditorChrome = $derived(
+    chrome.showEditorShelf &&
+      (adminAuthStore.canPublish || adminAuthStore.canReview),
+  );
+
+  const editorChipLabel = $derived(mapEditStore.enabled ? "Editing" : "Editor");
+  const editorOpenLabel = $derived(
+    proposalsStore.pendingCount > 0
+      ? `Open editor tools, ${proposalsStore.pendingCount} pending`
+      : "Open editor tools",
+  );
+
+  const showSearchDropdown = $derived(
+    chrome.showSearchSuggestions &&
+      searchFocused &&
+      eventsCollapsed &&
+      !editorChromeStore.shelfOpen,
+  );
+
+  const showEventsSheet = $derived(showIdleEventsChrome && !eventsCollapsed);
+
+  const showEditorSheet = $derived(
+    showEditorChrome && editorChromeStore.shelfOpen,
+  );
+  const showEditorInline = $derived(showEditorSheet && !mobile.current);
+
+  const showTransitRoutePanel = $derived(
+    chrome.showSearchSuggestions &&
+      jeepneyStore.layerActive &&
+      !mapToolsStore.open,
   );
 
   $effect(() => {
-    if (mobile.current) {
-      searchCollapsed = false;
+    if (draftInput.trim() !== "") {
+      closeEventsShelf();
+      closeEditorShelf();
     }
   });
 
   $effect(() => {
-    if (
-      mobile.current &&
-      queryStore.category !== null &&
-      queryStore.type === "result"
-    ) {
-      eventsCollapsed = true;
+    if (queryStore.category !== null && queryStore.type === "result") {
+      closeEventsShelf();
+      closeEditorShelf();
       searchElement?.blur();
+    }
+  });
+
+  $effect(() => {
+    if (editorChromeStore.shelfOpen) {
+      closeEventsShelf();
+    }
+  });
+
+  $effect(() => {
+    if (jeepneyStore.layerActive) {
+      closeEventsShelf();
+      closeEditorShelf();
+    }
+  });
+
+  $effect(() => {
+    if (chrome.editMode) {
+      closeEditorShelf();
     }
   });
 </script>
 
 <div
-  bind:this={containerEl}
   class="search-root"
   class:mobile-shell={mobile.current}
+  class:search-input-focused={searchFocused}
+  class:events-panel-open={showEventsSheet}
+  class:editor-panel-open={showEditorInline}
+  class:transit-panel-open={showTransitRoutePanel}
 >
-  {#if mobile.current}
-    <button
-      class="map-menu-btn"
-      type="button"
-      aria-label="Map menu"
-      aria-expanded={mapToolsStore.open}
-      aria-controls="map-tools-panel"
-      title="Map menu"
-      onclick={() => mapToolsStore.toggle()}
-    >
-      <Menu size={20} aria-hidden="true" />
-    </button>
-  {/if}
-  <div
-    class="search-filter-container"
-    class:search-collapsed={searchCollapsed}
-    class:search-focused={queryStore.type !== "result" &&
-      chrome.showSearchSuggestions}
-    class:edit-chrome-suppressed={!chrome.showSearchSuggestions}
-  >
-    {#if searchCollapsed && !mobile.current}
-      <button
-        class="search-tab"
-        type="button"
-        aria-expanded="false"
-        aria-controls="search-chrome"
-        aria-label={expandSearchLabel}
-        title="Expand search bar"
-        onclick={expandSearch}
+  <div class="search-shell-main" bind:this={shellMainEl}>
+    {#if mobile.current}
+      <MapChromeToggleButton
+        class="map-menu-btn"
+        ariaLabel="Map menu"
+        ariaExpanded={mapToolsStore.open}
+        ariaControls="map-tools-panel"
+        title="Map menu"
+        onclick={() => mapToolsStore.toggle()}
       >
-        <SearchIcon size={18} aria-hidden="true" />
-        <span class="search-tab-label">Search</span>
-        {#if searchTabHint}
-          <span class="search-tab-context">{searchTabHint}</span>
-        {/if}
-        <span class="chrome-toggle-btn" aria-hidden="true">
-          <ChevronDown size={18} />
-        </span>
-      </button>
+        <Menu size={20} aria-hidden="true" />
+      </MapChromeToggleButton>
+    {/if}
 
-      {#if showIdleEventsChrome}
-        {#if !eventsCollapsed}
-          <div class="search-input-stack events-only-stack">
-            <section
-              id="persistent-campus-events"
-              class="events-shelf-panel events-shelf-panel-standalone"
-              aria-labelledby="persistent-campus-events-heading"
-            >
-              <EventCards
-                headingId="persistent-campus-events-heading"
-                showHeading={true}
-                showRetract={true}
-                oncollapse={toggleEventsShelf}
-              />
-            </section>
-          </div>
-        {:else}
-          <button
-            class="events-shelf-tab"
-            type="button"
-            aria-expanded="false"
-            aria-controls="persistent-campus-events"
-            aria-label="Expand campus events"
-            onclick={toggleEventsShelf}
-            disabled={!loaded}
-          >
-            <span class="events-shelf-tab-label">Campus events</span>
-            <span class="chrome-toggle-btn" aria-hidden="true">
-              <ChevronDown size={18} />
-            </span>
-          </button>
-        {/if}
-      {/if}
-
-      {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed}
-        <div class="event-banner-stack" role="status" aria-live="polite">
-          {#each activeEvents as activeEvent (activeEvent.slug)}
-            <button
-              class="event-banner"
-              type="button"
-              aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
-              onclick={() => openActiveEvent(activeEvent)}
-            >
-              <span class="event-banner-badge" aria-hidden="true">Live</span>
-              <span class="event-banner-copy">
-                <span class="event-banner-title">{activeEvent.title}</span>
-                <span class="event-banner-meta">Happening now</span>
-              </span>
-              <span class="event-banner-cta" aria-hidden="true"
-                >Open on map</span
-              >
-            </button>
-          {/each}
-        </div>
-      {/if}
-    {:else}
-      <div id="search-chrome" class="search-chrome">
-        <div class="search-input-stack">
-          <div class="search-filter">
-            <div class="search-container">
+    <div bind:this={chromeEl} class="map-search-chrome">
+      <div class="map-search-chrome__bar">
+        <div class="map-search-chrome__bar-row">
+          <div class="map-search-chrome__pill-wrap">
+            <div class="map-search-chrome__pill">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -260,6 +236,7 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 class="search-icon"
+                aria-hidden="true"
                 ><circle cx="11" cy="11" r="8" /><line
                   x1="21"
                   y1="21"
@@ -267,64 +244,23 @@
                   y2="16.65"
                 /></svg
               >
+              <label class="sr-only" for="search">Search campus</label>
               <input
                 type="text"
                 id="search"
                 autocomplete="off"
-                value={queryStore.inputValue}
+                value={draftInput}
                 bind:this={searchElement}
-                class={typing ? "typing" : ""}
                 oninput={handleInput}
+                onfocus={() => {
+                  searchFocused = true;
+                }}
+                onblur={() => {
+                  searchFocused = false;
+                }}
                 placeholder="Search room, building, dorm, event, division..."
               />
-              {#if typing}
-                <div class="loading-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 200 200"
-                    width="20"
-                    height="20"
-                  >
-                    <circle stroke-width="17" r="15" cx="40" cy="65"
-                      ><animate
-                        attributeName="cy"
-                        calcMode="spline"
-                        dur="0.8"
-                        values="65;135;65;"
-                        keySplines=".5 0 .5 1;.5 0 .5 1"
-                        repeatCount="indefinite"
-                        begin="-.4"
-                      ></animate></circle
-                    >
-                    <circle stroke-width="17" r="15" cx="100" cy="65"
-                      ><animate
-                        attributeName="cy"
-                        calcMode="spline"
-                        dur="0.8"
-                        values="65;135;65;"
-                        keySplines=".5 0 .5 1;.5 0 .5 1"
-                        repeatCount="indefinite"
-                        begin="-.2"
-                      ></animate></circle
-                    >
-                    <circle stroke-width="17" r="15" cx="160" cy="65"
-                      ><animate
-                        attributeName="cy"
-                        calcMode="spline"
-                        dur="0.8"
-                        values="65;135;65;"
-                        keySplines=".5 0 .5 1;.5 0 .5 1"
-                        repeatCount="indefinite"
-                        begin="0"
-                      ></animate></circle
-                    >
-                  </svg>
-                </div>
-              {/if}
-            </div>
-
-            <div class="search-buttons">
-              {#if queryStore.inputValue !== "" || queryStore.category !== null}
+              {#if draftInput !== "" || queryStore.category !== null}
                 <button
                   onclick={closeSearchContext}
                   type="button"
@@ -342,6 +278,7 @@
                     stroke-width="2"
                     stroke-linecap="round"
                     stroke-linejoin="round"
+                    aria-hidden="true"
                     ><line x1="18" y1="6" x2="6" y2="18"></line><line
                       x1="6"
                       y1="6"
@@ -351,580 +288,626 @@
                   >
                 </button>
               {/if}
-              {#if chrome.showSearchSuggestions && !mobile.current}
-                <button
-                  type="button"
-                  class="chrome-toggle-btn"
-                  aria-label="Collapse search bar"
-                  title="Collapse search bar"
-                  onclick={collapseSearch}
-                >
-                  <ChevronUp size={18} aria-hidden="true" />
-                </button>
-              {/if}
             </div>
+
+            {#if showSearchDropdown}
+              <div
+                class="map-search-chrome__dropdown"
+                role="listbox"
+                in:fade={dropdownFadeIn(reducedMotion.current)}
+                out:fade={dropdownFadeOut(reducedMotion.current)}
+              >
+                <Suggestions />
+              </div>
+            {/if}
           </div>
 
-          {#if chrome.showSearchSuggestions && eventsCollapsed}
-            <Suggestions />
-          {/if}
-
-          {#if showMobileIntegratedEvents}
-            <section
-              id="persistent-campus-events"
-              class="events-shelf-panel mobile-integrated-events"
-              aria-labelledby="persistent-campus-events-heading"
+          {#if showEditorChrome}
+            <button
+              type="button"
+              class="map-search-chrome__editor-btn"
+              class:map-search-chrome__editor-btn--active={showEditorSheet}
+              class:map-search-chrome__editor-btn--editing={mapEditStore.enabled}
+              aria-expanded={showEditorSheet}
+              aria-controls={mobile.current
+                ? "editor-screen"
+                : "editor-shelf-panel"}
+              aria-label={showEditorSheet
+                ? "Close editor tools"
+                : editorOpenLabel}
+              title={showEditorSheet ? "Close editor tools" : editorChipLabel}
+              onclick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleEditorShelf();
+              }}
             >
-              <EventCards
-                headingId="persistent-campus-events-heading"
-                showHeading={false}
-                showRetract={false}
-                compact={true}
-              />
-            </section>
-          {/if}
-
-          {#if showIdleEventsChrome && !eventsCollapsed && !mobile.current}
-            <section
-              id="persistent-campus-events"
-              class="events-shelf-panel"
-              aria-labelledby="persistent-campus-events-heading"
-            >
-              <EventCards
-                headingId="persistent-campus-events-heading"
-                showHeading={true}
-                showRetract={true}
-                oncollapse={toggleEventsShelf}
-              />
-            </section>
+              <ShieldCheck size={18} aria-hidden="true" />
+              {#if proposalsStore.pendingCount > 0}
+                <span class="map-search-chrome__editor-badge" aria-hidden="true"
+                  >{proposalsStore.pendingCount}</span
+                >
+              {/if}
+            </button>
           {/if}
         </div>
-
-        {#if showIdleEventsChrome && eventsCollapsed && !mobile.current}
-          <button
-            class="events-shelf-tab"
-            type="button"
-            aria-expanded="false"
-            aria-controls="persistent-campus-events"
-            aria-label="Expand campus events"
-            onclick={toggleEventsShelf}
-            disabled={!loaded}
-          >
-            <span class="events-shelf-tab-label">Campus events</span>
-            <span class="chrome-toggle-btn" aria-hidden="true">
-              <ChevronDown size={18} />
-            </span>
-          </button>
-        {/if}
-
-        {#if chrome.showEventBanner && activeEvents.length > 0 && queryStore.category !== "event" && queryStore.category !== "events" && queryStore.inputValue === "" && eventsCollapsed && !mobile.current}
-          <div class="event-banner-stack" role="status" aria-live="polite">
-            {#each activeEvents as activeEvent (activeEvent.slug)}
-              <button
-                class="event-banner"
-                type="button"
-                aria-label={`${activeEvent.title} is happening now. Tap to see it on the map.`}
-                onclick={() => openActiveEvent(activeEvent)}
-              >
-                <span class="event-banner-badge" aria-hidden="true">Live</span>
-                <span class="event-banner-copy">
-                  <span class="event-banner-title">{activeEvent.title}</span>
-                  <span class="event-banner-meta">Happening now</span>
-                </span>
-                <span class="event-banner-cta" aria-hidden="true"
-                  >Open on map</span
-                >
-              </button>
-            {/each}
-          </div>
-        {/if}
       </div>
-    {/if}
+
+      {#if mobile.current || chrome.showSearchSuggestions}
+        <div class="map-search-chrome__chips">
+          {#if mobile.current}
+            <MapDimensionToggle compact />
+          {/if}
+          {#if chrome.showSearchSuggestions}
+            {#if showIdleEventsChrome}
+              <button
+                type="button"
+                class="map-chrome-chip"
+                class:map-chrome-chip--toggle-active={showEventsSheet}
+                aria-expanded={showEventsSheet}
+                aria-controls="persistent-campus-events"
+                aria-label={showEventsSheet
+                  ? "Close campus events"
+                  : "Open campus events"}
+                onclick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  closeEditorShelf();
+                  toggleEventsShelf();
+                }}
+                disabled={!loaded}
+              >
+                <CalendarDays size={14} aria-hidden="true" />
+                <span>Events</span>
+              </button>
+            {/if}
+            <BuildingTypeFilterBar />
+            <TransitFilterChip />
+          {/if}
+        </div>
+      {/if}
+
+      {#if showTransitRoutePanel}
+        <div
+          class="map-search-chrome__transit-routes"
+          id="transit-route-picker"
+          aria-label="Transit route picker"
+          in:fade={panelFadeIn(reducedMotion.current)}
+          out:fade={panelFadeOut(reducedMotion.current)}
+        >
+          <TransitRoutePanel compact />
+        </div>
+      {/if}
+
+      {#if showEventsSheet}
+        <div
+          class="map-search-chrome__events"
+          id="persistent-campus-events"
+          aria-labelledby="persistent-campus-events-heading"
+          in:fade={panelFadeIn(reducedMotion.current)}
+          out:fade={panelFadeOut(reducedMotion.current)}
+        >
+          <EventCards
+            headingId="persistent-campus-events-heading"
+            showHeading={false}
+            showRetract={false}
+            oncollapse={closeEventsShelf}
+          />
+        </div>
+      {/if}
+
+      {#if showEditorInline}
+        <div
+          class="map-search-chrome__editor"
+          id="editor-shelf-panel"
+          aria-label="Editor tools"
+          in:fade={panelFadeIn(reducedMotion.current)}
+          out:fade={panelFadeOut(reducedMotion.current)}
+        >
+          <EditorShelf onclose={closeEditorShelf} />
+        </div>
+      {/if}
+    </div>
   </div>
 </div>
 
 <style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .search-root {
     display: contents;
   }
 
   .search-root.mobile-shell {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
+    display: block;
     width: 100%;
-    padding-top: env(safe-area-inset-top, 0px);
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-    pointer-events: auto;
-  }
-
-  .map-menu-btn {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: var(--map-chrome-toggle-size, 2rem);
-    height: var(--map-chrome-toggle-size, 2rem);
-    margin: 0.4375rem 0 0.4375rem 0.625rem;
-    border: 1px solid #d8b9ba;
-    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
-    background: #fffafa;
-    color: #7b1113;
-    cursor: pointer;
-    transition:
-      background-color 0.16s,
-      border-color 0.16s;
-  }
-
-  .map-menu-btn:hover,
-  .map-menu-btn:focus-visible {
-    border-color: #c58f91;
-    background: #fdf3f3;
-  }
-
-  .map-menu-btn:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .map-menu-btn[aria-expanded="true"] {
-    border-color: #7b1113;
-    background: #7b1113;
-    color: #fffafa;
-  }
-
-  .search-filter-container {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.5rem;
-    width: min(25.75rem, calc(50% - 4rem));
-    max-width: 100%;
-    flex-shrink: 0;
-    min-height: 0;
-    pointer-events: auto;
-  }
-
-  .search-chrome {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.5rem;
-    min-width: 0;
-    width: 100%;
-  }
-
-  .search-tab {
-    all: unset;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-    max-width: 100%;
-    min-height: 2.75rem;
-    padding: 0.875rem 1rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: var(--map-chrome-radius, 1rem);
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-    color: #18181b;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.2;
-    pointer-events: auto;
-  }
-
-  .search-tab:hover,
-  .search-tab:focus-visible {
-    border-color: #d8b9ba;
-    background-color: #fdf3f3;
-  }
-
-  .search-tab:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .search-tab-label {
-    flex: 0 0 auto;
-  }
-
-  .search-tab-context {
-    min-width: 0;
-    overflow: hidden;
-    color: hsl(0, 0%, 42%);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .search-tab .chrome-toggle-btn {
-    margin-left: auto;
-  }
-
-  .search-input-stack {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    min-width: 0;
-    z-index: 2;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: var(--map-chrome-radius, 1rem);
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    backdrop-filter: blur(10px);
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-    overflow: hidden;
-  }
-
-  .search-input-stack :global(.suggestions-container) {
-    display: none;
-  }
-
-  .search-filter-container:focus-within:not(.edit-chrome-suppressed)
-    .search-input-stack
-    :global(.suggestions-container) {
-    display: flex;
-  }
-
-  .search-focused:focus-within .search-input-stack,
-  .search-filter-container:focus-within .search-input-stack {
-    z-index: 3;
-  }
-
-  .search-input-stack:focus-within ~ .event-banner-stack,
-  .search-input-stack:focus-within ~ .events-shelf-tab {
-    display: none;
-  }
-
-  .events-shelf-panel {
-    border-top: 1px solid hsl(0, 0%, 90%);
-    padding: 0.5rem 0.75rem 0.75rem;
-    max-height: min(40vh, 22rem);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
-  .events-only-stack {
-    z-index: 2;
-  }
-
-  .events-shelf-panel-standalone {
-    border-top: none;
-    max-height: min(40vh, 22rem);
-  }
-
-  .mobile-integrated-events {
-    border-top: 1px solid hsl(0, 0%, 92%);
-    padding: 0.375rem 0.625rem 0.5rem;
-    max-height: none;
-    overflow: visible;
-  }
-
-  .search-root.mobile-shell
-    .search-filter:focus-within
-    ~ .mobile-integrated-events,
-  .search-root.mobile-shell
-    .search-suggestions:focus-within
-    ~ .mobile-integrated-events {
-    display: none;
-  }
-
-  .search-root.mobile-shell .search-filter {
-    padding: 0.625rem 0.75rem;
-  }
-
-  .search-root.mobile-shell .map-menu-btn {
-    margin-top: 0.3125rem;
-    margin-bottom: 0.3125rem;
-  }
-
-  .event-banner-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    flex-shrink: 0;
-    min-width: 0;
     pointer-events: none;
   }
 
-  .event-banner {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.65rem;
+  .search-shell-main {
     min-width: 0;
     max-width: 100%;
-    overflow: hidden;
-    border: 1px solid #eee1e1;
-    border-radius: var(--map-chrome-radius, 1rem);
-    background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    color: #18181b;
-    cursor: pointer;
-    text-align: left;
-    padding: 0.45rem 0.625rem;
-    pointer-events: auto;
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-    transition:
-      background-color 0.16s,
-      border-color 0.16s;
   }
 
-  .event-banner:hover,
-  .event-banner:focus-visible {
-    background: #fdf3f3;
-    border-color: #d8b9ba;
+  .search-root:not(.mobile-shell) .search-shell-main {
+    width: fit-content;
+    max-width: 100%;
   }
 
-  .event-banner:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .event-banner-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    border-radius: calc(var(--map-chrome-radius, 1rem) * 0.75);
-    background: #7b1113;
-    color: white;
-    font-size: 0.7rem;
-    font-weight: 800;
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .event-banner-copy {
+  .search-root.mobile-shell .search-shell-main {
     display: grid;
+    grid-template-columns: var(--map-chrome-toggle-size, 2rem) minmax(0, 1fr);
+    align-items: center;
+    justify-items: stretch;
+    column-gap: 0.375rem;
+    row-gap: 0;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
-    gap: 0.2rem;
+    box-sizing: border-box;
+    overflow-x: clip;
+    padding: calc(env(safe-area-inset-top, 0px) + 0.4375rem)
+      max(
+        var(--map-search-inline-pad, 0.625rem),
+        env(safe-area-inset-right, 0px)
+      )
+      0.4375rem
+      max(
+        var(--map-search-inline-pad, 0.625rem),
+        env(safe-area-inset-left, 0px)
+      );
+    background: linear-gradient(
+      180deg,
+      var(--map-chrome-band-backdrop, hsla(5, 22%, 96%, 0.82)) 0%,
+      var(--map-chrome-surface, hsl(5 20% 97%)) 72%
+    );
+    border-bottom: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    box-shadow: var(--map-chrome-shadow);
+    pointer-events: auto;
   }
 
-  .event-banner-title {
-    overflow: hidden;
-    color: #18181b;
-    font-size: 0.875rem;
-    font-weight: 800;
-    line-height: 1.2;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .search-root.mobile-shell .map-search-chrome {
+    display: contents;
   }
 
-  .event-banner-meta {
-    overflow: hidden;
-    color: #71717a;
-    font-size: 0.75rem;
-    line-height: 1.25;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .search-root.mobile-shell .map-menu-btn {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    margin: 0;
   }
 
-  .event-banner-cta {
-    flex: 0 0 auto;
-    color: #7b1113;
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 1.2;
-    white-space: nowrap;
+  .search-root.mobile-shell .map-search-chrome__bar {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
   }
 
-  .search-filter {
+  .search-root.mobile-shell .map-search-chrome__bar-row {
+    min-width: 0;
+  }
+
+  .search-root.mobile-shell .map-search-chrome__pill-wrap {
+    min-width: 0;
+  }
+
+  .search-root.mobile-shell input[type="text"] {
+    min-width: 0;
+  }
+
+  .search-root.mobile-shell .map-search-chrome__chips {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+    padding: 0.4375rem 0 0.1875rem;
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+  }
+
+  .search-root.mobile-shell .map-search-chrome__transit-routes,
+  .search-root.mobile-shell .map-search-chrome__events,
+  .search-root.mobile-shell .map-search-chrome__editor {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+    padding: 0.375rem 0 0.4375rem;
+  }
+
+  .search-root:not(.mobile-shell) .map-search-chrome {
+    width: var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem)));
+    max-width: 100%;
+    min-width: min(22rem, 100%);
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border-radius: var(--map-chrome-radius, 1rem);
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    box-shadow: var(--map-chrome-shadow);
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
+  .map-search-chrome {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    pointer-events: auto;
+  }
+
+  .map-search-chrome__bar {
+    padding: 0.4375rem 0.625rem;
+  }
+
+  .map-search-chrome__bar-row {
     display: flex;
     align-items: center;
-    padding: 0.875rem 1rem;
-    gap: 0.5rem;
-    flex-shrink: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
+    gap: 0.375rem;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
-  .events-shelf-tab {
+  .search-root:not(.mobile-shell) .map-search-chrome__bar {
+    padding: 0.375rem 0.5rem;
+  }
+
+  .map-search-chrome__pill-wrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: min(100%, 12rem);
+  }
+
+  .map-search-chrome__editor-btn {
     all: unset;
     box-sizing: border-box;
-    display: flex;
-    width: 100%;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    min-width: 0;
-    max-width: 100%;
-    min-height: 2.75rem;
-    padding: 0.875rem 1rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: var(--map-chrome-radius, 1rem);
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-    color: #18181b;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  .events-shelf-tab:disabled {
-    cursor: default;
-    opacity: 0.7;
-  }
-
-  .events-shelf-tab-label {
-    min-width: 0;
-    flex: 1;
-    padding-left: 1.75rem;
-  }
-
-  .events-shelf-tab:hover:not(:disabled),
-  .events-shelf-tab:focus-visible {
-    border-color: #d8b9ba;
-    background-color: #fdf3f3;
-  }
-
-  .events-shelf-tab:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  @media screen and (max-width: 48rem) {
-    .search-root.mobile-shell .search-filter-container {
-      width: 100%;
-      max-width: none;
-      gap: 0;
-    }
-
-    .search-root.mobile-shell .search-tab,
-    .search-root.mobile-shell .search-input-stack,
-    .search-root.mobile-shell .events-shelf-tab,
-    .search-root.mobile-shell .events-shelf-panel-standalone {
-      border: none;
-      border-radius: 0;
-      box-shadow: none;
-    }
-
-    .search-root.mobile-shell .search-tab,
-    .search-root.mobile-shell .search-filter {
-      border-bottom: 1px solid hsl(0, 0%, 92%);
-    }
-
-    .search-root.mobile-shell .events-shelf-tab,
-    .search-root.mobile-shell .event-banner-stack {
-      display: none;
-    }
-
-    .search-filter {
-      pointer-events: auto;
-    }
-    .search-filter-container {
-      width: 100%;
-    }
-
-    .event-banner-cta {
-      display: none;
-    }
-
-    .event-banner {
-      grid-template-columns: auto minmax(0, 1fr);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .event-banner {
-      transition: none;
-    }
-  }
-
-  .search-container {
     position: relative;
-    flex: 1;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border-radius: 999px;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    color: hsl(160, 84%, 22%);
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  .map-search-chrome__editor-btn:hover,
+  .map-search-chrome__editor-btn:focus-visible {
+    border-color: hsl(160, 40%, 72%);
+    background-color: hsl(160, 45%, 96%);
+  }
+
+  .map-search-chrome__editor-btn:focus-visible {
+    outline: 2px solid hsl(160, 84%, 22%);
+    outline-offset: 1px;
+  }
+
+  .map-search-chrome__editor-btn--active {
+    border-color: hsl(5, 53%, 32%);
+    background-color: hsl(5, 53%, 96%);
+    color: hsl(5, 53%, 22%);
+  }
+
+  .map-search-chrome__editor-btn--editing {
+    border-color: hsl(160, 84%, 26%);
+    background-color: hsl(160, 84%, 26%);
+    color: white;
+  }
+
+  .map-search-chrome__editor-badge {
+    position: absolute;
+    top: -0.2rem;
+    right: -0.2rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background: hsl(5, 65%, 42%);
+    color: white;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    line-height: 1rem;
+    text-align: center;
+  }
+
+  .map-search-chrome__pill {
     display: flex;
     align-items: center;
+    gap: 0.375rem;
     min-width: 0;
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid hsl(0, 0%, 88%);
+    border-radius: 999px;
+    background-color: hsl(0, 0%, 97%);
+  }
+
+  .search-root.mobile-shell .map-search-chrome__pill {
+    border-color: transparent;
+    background-color: hsl(0, 0%, 96%);
   }
 
   .search-icon {
-    position: absolute;
-    left: 0;
-    color: black;
+    flex: 0 0 auto;
+    color: hsl(0, 0%, 28%);
   }
 
   input[type="text"] {
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 8.5rem;
     border: none;
     outline: none;
-    padding-left: 1.75rem;
     font-size: 0.875rem;
-    color: black;
+    color: #18181b;
     background: transparent;
     text-overflow: ellipsis;
+  }
+
+  .search-root:not(.mobile-shell) input[type="text"] {
+    min-width: 15rem;
   }
 
   input[type="text"]::placeholder {
     color: #6b6b6b;
   }
 
-  .search-buttons {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
-  .clear-btn,
-  .filter-btn {
+  .clear-btn {
     all: unset;
-    cursor: pointer;
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    color: black;
-    border-radius: 0.25rem;
-    transition: background-color 0.125s;
+    cursor: pointer;
+    color: hsl(0, 0%, 28%);
+    border-radius: 999px;
+    padding: 0.125rem;
   }
 
   .clear-btn:hover,
-  .filter-btn:hover {
-    background-color: #f0f0f0;
+  .clear-btn:focus-visible {
+    background-color: hsla(0, 0%, 0%, 0.08);
   }
 
-  .loading-icon {
+  .clear-btn:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 1px;
+  }
+
+  .map-search-chrome__dropdown {
+    position: absolute;
+    top: calc(100% + 0.375rem);
+    left: 0;
+    right: 0;
+    z-index: 8;
+    overflow: hidden;
+    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border-radius: var(--map-chrome-radius, 1rem);
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    box-shadow: var(--map-chrome-shadow);
+  }
+
+  .map-search-chrome__dropdown :global(.suggestions-container) {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 0.5rem;
+    border-top: none;
+    max-height: min(50dvh, 18rem);
   }
 
-  .loading-icon svg {
-    fill: #7b2d26;
-    stroke: #7b2d26;
+  .map-search-chrome__chips {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.375rem;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0.3125rem 0.625rem 0.3125rem;
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    transition: border-radius var(--motion-duration-micro)
+      var(--motion-ease-out);
+  }
+
+  .map-search-chrome__chips > :global(*) {
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .search-root:not(.mobile-shell) .map-search-chrome__chips {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+  .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+  .search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .map-search-chrome__chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map-search-chrome__chips :global(.building-filter-bar) {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0 !important;
+  }
+
+  .map-search-chrome__chips :global(.transit-filter-chip) {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .map-search-chrome__transit-routes {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.3125rem 0.625rem 0.375rem;
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+  }
+
+  .search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+  .search-root.transit-panel-open:not(.mobile-shell)
+    .map-search-chrome__transit-routes {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .search-root.transit-panel-open:not(.mobile-shell)
+    .map-search-chrome__transit-routes {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .map-search-chrome__events {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    max-height: min(50dvh, 22rem);
+    overflow-x: clip;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    padding: 0.1875rem 0.625rem 0.4375rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__events {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .map-search-chrome__events :global(.events-section) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+    gap: 0;
+  }
+
+  .map-search-chrome__events :global(.section-actions--inline) {
+    flex: 0 0 auto;
+    gap: 0.375rem;
+  }
+
+  .map-search-chrome__events :global(.event-list) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 0.375rem;
+    margin-top: 0.25rem;
+    padding-top: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 72%) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: hsl(0, 0%, 72%);
+  }
+
+  .map-search-chrome__events
+    :global(.event-list):hover::-webkit-scrollbar-thumb {
+    background-color: hsl(0, 0%, 58%);
+  }
+
+  .map-search-chrome__editor {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    /* Viewport cap below status bar; dvh-only limits ignore search/chip rows. */
+    max-height: min(
+      24rem,
+      calc(
+        100dvh - var(--status-bar-block-height, 2.75rem) -
+          var(--map-ui-padding, 0.5rem) * 2 - 4.75rem
+      )
+    );
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    padding: 0.375rem 0.625rem 0.625rem;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 72%) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .map-search-chrome__editor::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .map-search-chrome__editor::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .map-search-chrome__editor::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: hsl(0, 0%, 72%);
+  }
+
+  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__editor {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .map-search-chrome__editor :global(.editor-shelf) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 </style>
