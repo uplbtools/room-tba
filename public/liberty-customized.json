@@ -26,7 +26,7 @@
     {
       "id": "background",
       "type": "background",
-      "paint": { "background-color": "rgb(239,239,239)" }
+      "paint": { "background-color": "rgb(228, 224, 216)" }
     },
     {
       "id": "natural_earth",
@@ -49,9 +49,9 @@
       "source": "openmaptiles",
       "source-layer": "park",
       "paint": {
-        "fill-color": "#d8e8c8",
+        "fill-color": "#c5d4b5",
         "fill-opacity": 0.7,
-        "fill-outline-color": "rgba(95, 208, 100, 1)"
+        "fill-outline-color": "rgba(118, 148, 108, 0.75)"
       }
     },
     {
@@ -89,8 +89,8 @@
       "filter": ["all"],
       "paint": {
         "fill-antialias": false,
-        "fill-color": "rgba(103, 206, 116, 0.7)",
-        "fill-opacity": 0.4
+        "fill-color": "rgba(95, 155, 105, 0.55)",
+        "fill-opacity": 0.38
       }
     },
     {
@@ -101,8 +101,8 @@
       "filter": ["all", ["==", "class", "grass"]],
       "paint": {
         "fill-antialias": false,
-        "fill-color": "rgba(177, 255, 142, 1)",
-        "fill-opacity": 0.3
+        "fill-color": "rgba(150, 168, 132, 1)",
+        "fill-opacity": 0.28
       }
     },
     {
@@ -137,7 +137,7 @@
       "source": "openmaptiles",
       "source-layer": "landuse",
       "filter": ["==", "class", "pitch"],
-      "paint": { "fill-color": "rgba(156, 207, 140, 1)" }
+      "paint": { "fill-color": "rgba(140, 170, 128, 1)" }
     },
     {
       "id": "landuse_track",
@@ -169,7 +169,7 @@
       "source": "openmaptiles",
       "source-layer": "landuse",
       "filter": ["==", "class", "school"],
-      "paint": { "fill-color": "rgb(236,238,204)" }
+      "paint": { "fill-color": "rgb(218, 216, 188)" }
     },
     {
       "id": "waterway_tunnel",
@@ -178,7 +178,7 @@
       "source-layer": "waterway",
       "filter": ["all", ["==", "brunnel", "tunnel"]],
       "paint": {
-        "line-color": "#a0c8f0",
+        "line-color": "#96b8d4",
         "line-dasharray": [3, 3],
         "line-gap-width": {
           "stops": [
@@ -204,7 +204,7 @@
       "filter": ["all", ["==", "class", "river"], ["!=", "brunnel", "tunnel"]],
       "layout": { "line-cap": "round" },
       "paint": {
-        "line-color": "#a0c8f0",
+        "line-color": "#96b8d4",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -222,7 +222,7 @@
       "filter": ["all", ["!=", "class", "river"], ["!=", "brunnel", "tunnel"]],
       "layout": { "line-cap": "round" },
       "paint": {
-        "line-color": "#a0c8f0",
+        "line-color": "#96b8d4",
         "line-width": {
           "base": 1.3,
           "stops": [
@@ -238,7 +238,7 @@
       "source": "openmaptiles",
       "source-layer": "water",
       "filter": ["all", ["!=", "brunnel", "tunnel"]],
-      "paint": { "fill-color": "rgba(164, 219, 255, 1)" }
+      "paint": { "fill-color": "rgba(145, 185, 205, 1)" }
     },
     {
       "id": "landcover_sand",
@@ -485,7 +485,7 @@
         ["in", "class", "path", "pedestrian"]
       ],
       "paint": {
-        "line-color": "hsl(0, 0%, 100%)",
+        "line-color": "hsl(35, 10%, 93%)",
         "line-dasharray": [1, 0.75],
         "line-width": {
           "base": 1.2,
@@ -533,7 +533,7 @@
       ],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#fff",
+        "line-color": "hsl(35, 12%, 92%)",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -572,7 +572,7 @@
       "filter": ["all", ["==", "brunnel", "tunnel"], ["in", "class", "minor"]],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#fff",
+        "line-color": "hsl(35, 12%, 92%)",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -986,7 +986,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#fff",
+        "line-color": "hsl(35, 12%, 92%)",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -1036,7 +1036,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#fff",
+        "line-color": "hsl(35, 12%, 92%)",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -1059,7 +1059,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "rgba(220, 220, 220, 1)",
+        "line-color": "rgba(200, 196, 188, 1)",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -1440,7 +1440,7 @@
         ["in", "class", "path", "pedestrian"]
       ],
       "paint": {
-        "line-color": "hsl(0, 0%, 100%)",
+        "line-color": "hsl(35, 10%, 93%)",
         "line-dasharray": [1, 0.3],
         "line-width": {
           "base": 1.2,
@@ -1488,7 +1488,7 @@
       ],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#fff",
+        "line-color": "hsl(35, 12%, 92%)",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -1527,7 +1527,7 @@
       "filter": ["all", ["==", "brunnel", "bridge"], ["in", "class", "minor"]],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#fff",
+        "line-color": "hsl(35, 12%, 92%)",
         "line-width": {
           "base": 1.2,
           "stops": [
@@ -1698,7 +1698,7 @@
       "minzoom": 13,
       "maxzoom": 14,
       "paint": {
-        "fill-color": "hsl(35, 8%, 85%)",
+        "fill-color": "hsl(35, 10%, 78%)",
         "fill-outline-color": {
           "base": 1,
           "stops": [
@@ -1715,7 +1715,7 @@
       "source-layer": "building",
       "minzoom": 14,
       "paint": {
-        "fill-extrusion-color": "rgba(247, 242, 235, 1)",
+        "fill-extrusion-color": "rgba(230, 222, 210, 1)",
         "fill-extrusion-height": {
           "property": "render_height",
           "type": "identity"
@@ -1724,7 +1724,7 @@
           "property": "render_min_height",
           "type": "identity"
         },
-        "fill-extrusion-opacity": 0.8
+        "fill-extrusion-opacity": 0.82
       }
     },
     {

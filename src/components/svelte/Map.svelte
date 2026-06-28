@@ -1408,12 +1408,18 @@
     const map = mapStore.mapInstance;
     if (!map) return;
 
-    const applyPalette = () => applyBasemapPalette(map);
+    let cancelled = false;
+    const applyPalette = () => {
+      if (!cancelled) applyBasemapPalette(map);
+    };
     if (map.isStyleLoaded()) {
       applyPalette();
     } else {
       map.once("load", applyPalette);
     }
+    return () => {
+      cancelled = true;
+    };
   });
 
   $effect(() => {
