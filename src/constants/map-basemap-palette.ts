@@ -1,10 +1,10 @@
 /**
  * Experimental basemap palette — Jun 2026.
  *
- * UPLB campus direction: fresh, naturey — lush green without neon arcade grass.
- * Applied at runtime via applyBasemapPalette() and mirrored in
- * public/liberty-customized.json for offline tiles. Pin/label colors are
- * unchanged; dark pins stay readable on the muted green ground plane.
+ * Warmer, desaturated OSM Liberty overrides for campus viewing. Applied at
+ * runtime via applyBasemapPalette() and mirrored in public/liberty-customized.json
+ * for offline tiles. Pin/label colors are unchanged; dark pins stay readable on
+ * the muted ground plane.
  *
  * Swap MAP_BASEMAP_PALETTE with a preset below to try alternates.
  */
@@ -54,12 +54,7 @@
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // cool-paper-rejected
 
-/** Rejected Jun 2026 — campus greige still too brown/neutral, not naturey:
- *  background rgb(228,226,222) · grass rgba(186,190,178,0.2) · building #c8c4bc · extrusion #d0ccc4
- */
-// export const MAP_BASEMAP_PALETTE = { ... } as const; // campus-greige-rejected
-
-/** Active preset: UPLB fresh — morning-mist ground, natural lawn, warm stone buildings. */
+/** Alternate preset: UPLB fresh — morning-mist ground, natural lawn, warm stone buildings. */
 export const uplbFresh = {
   background: "rgb(232, 237, 230)",
   grassFill: "rgba(156, 184, 150, 1)",
@@ -96,7 +91,44 @@ export const uplbFresh = {
   roadMotorwayCasing: "rgba(162, 156, 148, 0.82)",
 } as const;
 
-export const MAP_BASEMAP_PALETTE = uplbFresh;
+/** Active preset: campus greige — light neutral floor, medium-light warm buildings, outline-led separation. */
+export const campusGreige = {
+  background: "rgb(228, 226, 222)",
+  grassFill: "rgba(186, 190, 178, 1)",
+  grassOpacity: 0.2,
+  parkFill: "#e0deda",
+  parkOutline: "rgba(168, 162, 154, 0.5)",
+  parkOutlineLine: "#d4d2ce",
+  woodFill: "rgba(168, 162, 154, 0.32)",
+  woodOpacity: 0.3,
+  waterFill: "rgba(118, 148, 168, 1)",
+  waterOutline: "rgba(88, 112, 130, 0.55)",
+  waterwayLine: "#7898ac",
+  schoolFill: "rgb(226, 224, 220)",
+  pitchFill: "rgba(214, 212, 206, 1)",
+  landuseTrack: "#dad8d4",
+  buildingFill: "#c8c4bc",
+  buildingOutline: "#a8a29a",
+  buildingExtrusion: "#d0ccc4",
+  buildingExtrusionOpacity: 0.94,
+  labelText: "#444444",
+  labelHaloColor: "rgba(255, 255, 255, 0.92)",
+  labelHaloWidth: 1.4,
+  roadMinor: "hsl(40, 4%, 86%)",
+  roadService: "hsl(40, 4%, 86%)",
+  roadPathPedestrian: "rgba(168, 162, 154, 0.72)",
+  roadSecondaryTertiary: "rgba(186, 182, 174, 1)",
+  roadMinorCasing: "rgba(160, 156, 148, 0.85)",
+  roadSecondaryTertiaryCasing: "rgba(148, 144, 136, 0.75)",
+  roadTrunkPrimary: "rgba(196, 190, 178, 1)",
+  roadMotorway: "rgba(188, 180, 166, 1)",
+  roadLink: "rgba(196, 190, 178, 1)",
+  roadMotorwayLink: "rgba(188, 180, 166, 1)",
+  roadTrunkPrimaryCasing: "rgba(158, 148, 132, 0.85)",
+  roadMotorwayCasing: "rgba(158, 148, 132, 0.85)",
+} as const;
+
+export const MAP_BASEMAP_PALETTE = campusGreige;
 
 /** Layer paint overrides keyed by MapLibre layer id. */
 export const BASEMAP_LAYER_PAINT: Record<
