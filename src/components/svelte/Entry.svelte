@@ -125,6 +125,7 @@
     >
       <MapToolsFlyout />
       <div class="desktop-camera-controls" aria-label="Map camera">
+        <MapDimensionToggle />
         <MapViewControls variant="camera" />
       </div>
     </div>
@@ -292,6 +293,7 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      gap: 0.375rem;
     }
 
     .mobile-dimension-toggle {
