@@ -24,7 +24,7 @@ export function editorToggleLabel(options: {
 }
 
 export function proposalStatusMessage(status: string): string {
-  return `Status: ${status.replace("_", " ")} — waiting for editor review.`;
+  return `Status: ${status.replace("_", " ")}. Waiting for editor review.`;
 }
 
 export function entityEditorSavedMessage(options: {

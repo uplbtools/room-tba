@@ -6,7 +6,7 @@ export const LOADING_SPLASH_MESSAGES = [
   "Loading trees (UPLB has many)",
   "Checking which building is which",
   "Plotting pins on the right hills",
-  "Almost there — campus is big",
+  "Almost there. Campus is big",
 ] as const;
 
 export const LOADING_SPLASH_INTERVAL_MS = 3500;
