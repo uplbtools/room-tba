@@ -624,6 +624,14 @@
           onerror={() =>
             toastStore.show(`Could not copy link for ${event.title}.`, "error")}
         />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit event"
+          suggestOpenLabel="Suggest changes"
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
       </div>
     </header>
 
@@ -685,16 +693,11 @@
       </a>
     {/if}
 
-    <section class="event-admin">
-      <EntityEditorToggle
-        expanded={editing}
-        {canPublish}
-        publishOpenLabel="Edit event"
-        suggestOpenLabel="Suggest changes"
-        onclick={() => (editing = !editing)}
-      />
-      {#if editing}
-        <div class="entity-editor">
+    {#if editing}
+      <section
+        class="event-admin entity-editor"
+        aria-label={canPublish ? "Edit event details" : "Suggest event changes"}
+      >
           <EntityEditorPanel
             {canPublish}
             showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
@@ -981,9 +984,8 @@
               {/if}
             </form>
           </EntityEditorPanel>
-        </div>
-      {/if}
-    </section>
+      </section>
+    {/if}
   {:else}
     <p>Loading event...</p>
   {/if}
@@ -1119,6 +1121,7 @@
   .event-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
   }
 

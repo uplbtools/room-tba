@@ -15,6 +15,8 @@
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
   import { getAppData } from "@lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  import MapPin from "@lucide/svelte/icons/map-pin";
+  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
@@ -23,6 +25,7 @@
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
   import type { RoomData } from "@lib/types";
+  import { tick } from "svelte";
   // import Classes from "./Classes.svelte";
 
   type RoomEditableField =
@@ -287,76 +290,96 @@
       value: buildingName,
     });
   }
+
+  async function suggestRoomDirections() {
+    editing = true;
+    await tick();
+    document.getElementById("room-directions-editor")?.focus();
+  }
+
+  function suggestBuildingDirections() {
+    const buildingName = parentBuilding?.name;
+    if (!buildingName) return;
+    sessionStorage.setItem(
+      "room-tba:auto-edit",
+      JSON.stringify({
+        entity: "building",
+        field: "directions",
+        buildingName,
+      }),
+    );
+    openBuildingResult();
+  }
 </script>
 
-<div class="room-details-container">
+<div class="entity-detail">
   {#if currentRoom.value}
-    {#if parentBuilding}
-      <button
-        class="back-to-building"
-        type="button"
-        onclick={openBuildingResult}
-        aria-label={`Back to ${parentBuilding.name}`}
-      >
-        <ChevronLeft size={18} aria-hidden="true" />
-        <span>Back to {parentBuilding.name}</span>
-      </button>
-    {/if}
+    <header class="entity-header">
+      {#if parentBuilding}
+        <button
+          class="entity-header__breadcrumb"
+          type="button"
+          onclick={openBuildingResult}
+          aria-label={`Back to ${parentBuilding.name}`}
+        >
+          <ChevronLeft size={14} aria-hidden="true" />
+          <span>{parentBuilding.name}</span>
+        </button>
+      {/if}
 
-    <div class="header-section">
-      <div class="header-top-row">
-        <h2>{currentRoom.value.code}</h2>
-      </div>
-      <div class="subtitle-badge">
-        <p>
+      <h2 class="entity-header__title">{currentRoom.value.code}</h2>
+
+      {#if currentRoom.value.collegeName || parentBuilding}
+        <p class="entity-header__context">
           {#if currentRoom.value.collegeName}
             {currentRoom.value.collegeName}
           {/if}
           {#if parentBuilding}
             {#if currentRoom.value.collegeName}
-              •
+              ·
             {/if}
             <button
               type="button"
-              class="building-link"
+              class="entity-header__context-link"
               onclick={openBuildingResult}
             >
               {parentBuilding.name}
             </button>
           {/if}
         </p>
+      {/if}
+
+      <div class="entity-actions">
+        <CopyLinkButton
+          url={roomShareUrl}
+          ariaLabel={`Copy link to ${currentRoom.value.code}`}
+          successMessage={`Copied link for ${currentRoom.value.code}.`}
+          errorMessage={`Could not copy link for ${currentRoom.value.code}.`}
+          feedback="none"
+          variant="chip"
+          onsuccess={() =>
+            toastStore.show(
+              `Copied link for ${currentRoom.value?.code ?? "room"}.`,
+              "success",
+            )}
+          onerror={() =>
+            toastStore.show(
+              `Could not copy link for ${currentRoom.value?.code ?? "room"}.`,
+              "error",
+            )}
+        />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit room"
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
       </div>
-    </div>
+    </header>
 
-    <div class="room-actions">
-      <CopyLinkButton
-        url={roomShareUrl}
-        ariaLabel={`Copy link to ${currentRoom.value.code}`}
-        successMessage={`Copied link for ${currentRoom.value.code}.`}
-        errorMessage={`Could not copy link for ${currentRoom.value.code}.`}
-        feedback="none"
-        variant="chip"
-        onsuccess={() =>
-          toastStore.show(
-            `Copied link for ${currentRoom.value?.code ?? "room"}.`,
-            "success",
-          )}
-        onerror={() =>
-          toastStore.show(
-            `Could not copy link for ${currentRoom.value?.code ?? "room"}.`,
-            "error",
-          )}
-      />
-    </div>
-
-    <section class="entity-editor" aria-label="Edit room details">
-      <EntityEditorToggle
-        expanded={editing}
-        {canPublish}
-        publishOpenLabel="Edit room"
-        onclick={() => (editing = !editing)}
-      />
-      {#if editing}
+    {#if editing}
+      <section class="entity-editor" aria-label="Edit room details">
         <EntityEditorPanel
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
@@ -524,213 +547,93 @@
             </div>
           {/if}
         </EntityEditorPanel>
+      </section>
+    {/if}
+
+    <section class="entity-directions" aria-label="Directions">
+      <div class="entity-directions__segment">
+        <p class="entity-directions__label">Room</p>
+        {#if currentRoom.value.directions}
+          <p class="entity-directions__text">{currentRoom.value.directions}</p>
+        {:else}
+          <p class="entity-directions__empty">
+            No directions listed.
+            <button
+              type="button"
+              class="entity-suggest-link"
+              onclick={suggestRoomDirections}
+            >
+              Suggest directions
+            </button>
+          </p>
+        {/if}
+      </div>
+
+      {#if parentBuilding}
+        <div class="entity-directions__segment">
+          <p class="entity-directions__label">{parentBuilding.name}</p>
+          {#if parentBuilding.directions}
+            <p class="entity-directions__text">{parentBuilding.directions}</p>
+          {:else}
+            <p class="entity-directions__empty">
+              No building directions.
+              <button
+                type="button"
+                class="entity-suggest-link"
+                onclick={suggestBuildingDirections}
+              >
+                Suggest building directions
+              </button>
+            </p>
+          {/if}
+        </div>
+
+        {#if parentBuilding.lat && parentBuilding.lon}
+          <div class="entity-directions__nav">
+            <MapChromeActionChip
+              onclick={() => {
+                locationStore.requestLocation();
+                locationStore.setDestination([
+                  parentBuilding.lon as number,
+                  parentBuilding.lat as number,
+                ]);
+              }}
+            >
+              Directions
+              <CornerRightUp size={14} aria-hidden="true" />
+            </MapChromeActionChip>
+            <a
+              class="map-chrome-action-chip"
+              href="https://www.google.com/maps?q={parentBuilding.lat},{parentBuilding.lon}"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <MapPin size={14} aria-hidden="true" />
+              Google Maps
+            </a>
+          </div>
+        {/if}
       {/if}
     </section>
 
-    {#if currentRoom.value.directions}
-      <p class="room-directions">
-        {currentRoom.value.directions}
-      </p>
-    {:else}
-      <p class="room-directions no-directions">
-        No directions? <a
-          href="https://docs.google.com/forms/d/e/1FAIpQLSdius5C7OyC1klraq71fFwWPZNvNk_iDLFyhCNir_ccC07Q7Q/viewform?usp=dialog"
-          target="_blank"
-          rel="noreferrer"><strong>Contribute to room-tba</strong></a
-        >
-      </p>
-    {/if}
-
-    {#if parentBuilding}
-      <div class="building-note">
-        <h3 class="building-note-title">
-          How to get to {parentBuilding.name}
-        </h3>
-        {#if parentBuilding.directions}
-          <p class="building-directions">
-            {parentBuilding.directions}
-          </p>
-        {:else}
-          <p class="building-directions no-directions">
-            No directions? <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSdius5C7OyC1klraq71fFwWPZNvNk_iDLFyhCNir_ccC07Q7Q/viewform?usp=dialog"
-              target="_blank"
-              rel="noreferrer"><strong>Contribute to room-tba</strong></a
-            >
-          </p>
-        {/if}
-      </div>
-    {/if}
-
-    {#if parentBuilding}
-      <div class="map-links">
-        {#if parentBuilding.lat && parentBuilding.lon}
-          <button
-            class="get-directions-btn"
-            onclick={() => {
-              locationStore.requestLocation();
-              locationStore.setDestination([
-                parentBuilding.lon as number,
-                parentBuilding.lat as number,
-              ]);
-            }}
-          >
-            Get Directions
-            <CornerRightUp size={18} />
-          </button>
-          <a
-            href="https://www.google.com/maps?q={parentBuilding.lat},{parentBuilding.lon}"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open in Google Maps
-          </a>
-        {/if}
-      </div>
-    {/if}
-    <hr />
-
-    <div class="schedule-section">
-      <div class="schedule-section__header">
-        <h3>Classes in this room</h3>
-        <button
-          onclick={() => modalStore.openModal("schedule-expand")}
-          class="schedule-section__opener"
-          >Open schedule <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><line x1="7" y1="17" x2="17" y2="7"></line><polyline
-              points="7 7 17 7 17 17"
-            ></polyline></svg
-          ></button
-        >
-      </div>
-      <!-- <Classes classes={classesData} /> -->
-    </div>
+    <footer class="entity-footer">
+      <button
+        type="button"
+        class="entity-footer__link"
+        onclick={() => modalStore.openModal("schedule-expand")}
+      >
+        Classes in this room →
+      </button>
+    </footer>
   {:else}
     <p>Room not found.</p>
   {/if}
 </div>
 
 <style>
+  @import "../controls/entity-detail.css";
   @import "../editor/entity-editor.css";
-
-  hr {
-    margin-block: 0;
-  }
-  .room-details-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    overflow-y: auto;
-    width: 100%;
-    flex: 1 1 0;
-  }
-
-  .back-to-building {
-    all: unset;
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    max-width: 100%;
-    padding: 0.375rem 0.5rem;
-    border: 1px solid hsl(5, 53%, 82%);
-    border-radius: 0.5rem;
-    background-color: white;
-    color: hsl(5, 53%, 32%);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    line-height: 1.25;
-    cursor: pointer;
-  }
-
-  .back-to-building span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .back-to-building:hover,
-  .back-to-building:focus-visible {
-    background-color: hsl(5, 53%, 98%);
-    border-color: hsl(5, 53%, 32%);
-  }
-
-  .back-to-building:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
-  }
-
-  .building-link {
-    all: unset;
-    cursor: pointer;
-    color: hsl(5, 53%, 32%);
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .building-link:hover,
-  .building-link:focus-visible {
-    color: hsl(5, 53%, 22%);
-  }
-
-  .header-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    align-items: flex-start;
-    width: 100%;
-  }
-
-  .header-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-
-  .header-section h2 {
-    font-weight: bold;
-    font-size: 1.125rem;
-    line-height: 1.25rem;
-    color: black;
-    margin: 0;
-  }
-
-  .subtitle-badge {
-    background-color: #ececec;
-    border-radius: 0.4375rem;
-    padding: 2px 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .subtitle-badge p {
-    font-weight: normal;
-    font-size: 0.75rem;
-    color: #4f4f4f;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .room-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+  @import "../map-chrome/map-chrome.css";
 
   .merge-prompt {
     display: flex;
@@ -775,127 +678,5 @@
   .merge-btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
-  }
-
-  .room-directions {
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: #4f4f4f;
-    margin: 0;
-  }
-
-  .building-note {
-    padding: 0.75rem 1rem;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-    border-left: 4px solid hsl(5, 53%, 32%);
-    background-color: hsla(5, 53%, 89%, 0.5);
-  }
-
-  .building-note-title {
-    font-weight: 600;
-    font-size: 1rem;
-    margin: 0 0 0.25rem 0;
-    color: black;
-  }
-
-  .building-directions {
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: #4f4f4f;
-    margin: 0;
-  }
-
-  .no-directions {
-    color: hsl(0, 0%, 60%);
-  }
-
-  .no-directions a {
-    color: hsl(5, 53%, 32%);
-    outline: none;
-    transition: all 0.2s;
-    padding: 0.125rem 0.25rem;
-    border-radius: 4px;
-  }
-
-  .no-directions a:hover,
-  .no-directions a:focus-visible {
-    background-color: hsl(5, 53%, 32%);
-    color: white;
-    text-decoration: none;
-  }
-
-  .schedule-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    .schedule-section__header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      button.schedule-section__opener {
-        all: unset;
-        font-size: 0.875rem;
-        font-weight: 600;
-        padding: 0.25rem 1rem;
-        background-color: hsl(5, 53%, 32%);
-        color: white;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        gap: 0.25rem;
-        align-items: center;
-      }
-    }
-  }
-
-  .schedule-section h3 {
-    font-weight: 600;
-    font-size: 1rem;
-    line-height: 1.25rem;
-    color: black;
-    margin: 0;
-  }
-
-  .map-links {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .map-links a {
-    color: hsl(5, 53%, 32%);
-    outline: none;
-    transition: all 0.2s;
-    font-size: 0.875rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid hsl(5, 53%, 32%);
-    border-radius: 4px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-  }
-  .map-links a:hover,
-  .map-links a:focus-visible {
-    background-color: hsl(5, 53%, 32%);
-    color: white;
-  }
-
-  .get-directions-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.75rem;
-    background-color: hsl(5, 53%, 32%);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .get-directions-btn:hover {
-    background-color: hsl(5, 53%, 40%);
   }
 </style>

@@ -11,6 +11,7 @@
   import { getAppActions, getAppData } from "@lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Box from "@lucide/svelte/icons/box";
+  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import type { BuildingData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
@@ -19,7 +20,7 @@
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { getBuildingRooms } from "@lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
@@ -82,6 +83,36 @@
     const buildingChecker = await checkLocalBuildingRoom(building.id);
     buildingRooms = await getBuildingRooms(buildingChecker, building.id);
     await syncBuildingRooms(buildingChecker, building.id, buildingRooms);
+  });
+
+  function applyAutoEditIntent() {
+    const raw = sessionStorage.getItem("room-tba:auto-edit");
+    if (!raw || !building) return;
+    try {
+      const intent = JSON.parse(raw) as {
+        entity?: string;
+        field?: string;
+        buildingName?: string;
+      };
+      if (
+        intent.entity !== "building" ||
+        intent.field !== "directions" ||
+        intent.buildingName !== building.buildingName
+      ) {
+        return;
+      }
+      sessionStorage.removeItem("room-tba:auto-edit");
+      editing = true;
+      void tick().then(() =>
+        document.getElementById("building-directions-editor")?.focus(),
+      );
+    } catch {
+      sessionStorage.removeItem("room-tba:auto-edit");
+    }
+  }
+
+  $effect(() => {
+    if (building) applyAutoEditIntent();
   });
 
   $effect(() => {
@@ -215,51 +246,20 @@
   }
 </script>
 
-<div class="building-query-wrapper">
+<div class="entity-detail building-query-wrapper">
   {#if building}
-    <div class="building-header">
-      <div class="building-title-row">
-        <h2 class="building-title">{building.buildingName}</h2>
-        <span class="building-type-badge">{buildingTypeLabel}</span>
+    <header class="entity-header">
+      <div class="entity-header__title-row">
+        <h2 class="entity-header__title">{building.buildingName}</h2>
+        <span class="entity-header__badge">{buildingTypeLabel}</span>
       </div>
 
-      {#if !editing}
-        {#if building.directions}
-          <p class="building-desc">{building.directions}</p>
-        {:else}
-          <p class="building-desc building-desc--empty">No directions listed.</p>
-        {/if}
-      {/if}
-
-      {#if hasMapPin}
-        <div class="building-primary-actions">
-          <button
-            class="get-directions-btn"
-            type="button"
-            onclick={() => {
-              locationStore.requestLocation();
-              locationStore.setDestination([
-                building.lon ?? 0,
-                building.lat ?? 0,
-              ]);
-            }}
-          >
-            Get Directions
-            <CornerRightUp size={16} aria-hidden="true" />
-          </button>
-        </div>
-      {/if}
-
-      <div class="building-secondary-actions">
+      <div class="entity-actions">
         {#if hasMapPin}
-          <button
-            class="secondary-btn"
-            type="button"
-            onclick={() => building3DStore.open(building.buildingName)}
-          >
+          <MapChromeActionChip onclick={() => building3DStore.open(building.buildingName)}>
             <Box size={14} aria-hidden="true" />
             3D view
-          </button>
+          </MapChromeActionChip>
         {/if}
         <CopyLinkButton
           url={buildingShareUrl}
@@ -279,20 +279,21 @@
               "error",
             )}
         />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit building"
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
       </div>
-    </div>
+    </header>
 
-    <section
-      class="entity-editor"
-      aria-label={canPublish ? "Edit building details" : "Suggest building edits"}
-    >
-      <EntityEditorToggle
-        expanded={editing}
-        {canPublish}
-        publishOpenLabel="Edit building"
-        onclick={() => (editing = !editing)}
-      />
-      {#if editing}
+    {#if editing}
+      <section
+        class="entity-editor"
+        aria-label={canPublish ? "Edit building details" : "Suggest building edits"}
+      >
         <EntityEditorPanel
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
@@ -395,16 +396,43 @@
             </div>
           </details>
         </EntityEditorPanel>
-      {/if}
-    </section>
+      </section>
+    {:else}
+      <section class="entity-directions" aria-label="Directions">
+        <div class="entity-directions__segment">
+          {#if building.directions}
+            <p class="entity-directions__text">{building.directions}</p>
+          {:else}
+            <p class="entity-directions__empty">No directions listed.</p>
+          {/if}
+        </div>
+
+        {#if hasMapPin}
+          <div class="entity-directions__nav">
+            <MapChromeActionChip
+              onclick={() => {
+                locationStore.requestLocation();
+                locationStore.setDestination([
+                  building.lon ?? 0,
+                  building.lat ?? 0,
+                ]);
+              }}
+            >
+              Directions
+              <CornerRightUp size={14} aria-hidden="true" />
+            </MapChromeActionChip>
+          </div>
+        {/if}
+      </section>
+    {/if}
   {:else}
-    <p class="loading-note">Loading building…</p>
+    <p class="entity-loading-note">Loading building…</p>
   {/if}
 
   {#if buildingRooms}
     <ResultDisplay filteredRooms={buildingRooms} />
   {:else if building}
-    <p class="loading-note">Loading rooms…</p>
+    <p class="entity-loading-note">Loading rooms…</p>
   {/if}
 </div>
 
