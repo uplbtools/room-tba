@@ -10,6 +10,7 @@ import {
   roomsTable,
 } from "@drizzle/schema";
 import { db } from "./db";
+import { getDefaultTerm } from "./services/term-service";
 import { slugifySegment } from "./site";
 import { getDormRouteSlug, getRoomRouteSlug } from "./route-slugs";
 import { getAllEvents } from "./services/event-service";
@@ -47,6 +48,9 @@ export type AppPageData = {
   classesMap: Map<string, ClassMapValue[]>;
   totalRooms: number;
   directionCount: number;
+  // The term whose schedules `classesMap` reflects (default term), or null
+  // when no terms are configured yet.
+  activeTermId: number | null;
 };
 
 let appDataPromise: Promise<AppPageData> | undefined;
@@ -79,6 +83,10 @@ async function fetchAppData(): Promise<AppPageData> {
     .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
     .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId));
 
+  // Class counts/maps reflect the default term so SSG/SEO pages stay
+  // consistent with the term the interactive UI shows by default.
+  const defaultTerm = await getDefaultTerm();
+
   const classes = await db
     .select({
       courseCode: classesTable.courseCode,
@@ -90,7 +98,8 @@ async function fetchAppData(): Promise<AppPageData> {
       courseTitle: classesTable.courseTitle,
     })
     .from(classesTable)
-    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId));
+    .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+    .where(defaultTerm ? eq(classesTable.termId, defaultTerm.id) : undefined);
 
   const buildings = await db.select().from(buildingsTable);
   const colleges = await db.select().from(collegesTable);
@@ -135,6 +144,7 @@ async function fetchAppData(): Promise<AppPageData> {
     classesMap,
     totalRooms,
     directionCount,
+    activeTermId: defaultTerm?.id ?? null,
   };
 }
 
