@@ -1078,7 +1078,7 @@
               {#if editMode}
                 <p class="editor-hint">
                   Drag a room cylinder or change its floor. Changes autosave to
-                  Neon with a version check.
+                  the server with a version check.
                 </p>
                 <p
                   class="editor-status"

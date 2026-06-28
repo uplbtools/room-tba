@@ -14,7 +14,7 @@ One agent can play multiple roles, but the report must separate automated eviden
 ## Required Inputs
 
 - PR URL or branch name.
-- Local `.env` with `NEON_CONNECTION_STRING` and `ADMIN_PASSWORD`.
+- Local `.env` with `DATABASE_URL` and `ADMIN_PASSWORD`.
 - Current test checklist: `docs/editor-foundation-test-plan.md`.
 - A running local dev server on the expected port, usually `http://localhost:4321`.
 
@@ -34,7 +34,7 @@ curl -I 'http://localhost:4321/?editor=login'
 For editor-history work, also confirm the table exists:
 
 ```sh
-bun -e 'import { config } from "dotenv"; import pg from "pg"; config({ path: ".env" }); const client = new pg.Client({ connectionString: process.env.NEON_CONNECTION_STRING }); await client.connect(); const { rows } = await client.query("select to_regclass($1) as table_name", ["public.editor_history"]); console.log(JSON.stringify(rows[0])); await client.end();'
+bun -e 'import { config } from "dotenv"; import pg from "pg"; config({ path: ".env" }); const client = new pg.Client({ connectionString: process.env.DATABASE_URL }); await client.connect(); const { rows } = await client.query("select to_regclass($1) as table_name", ["public.editor_history"]); console.log(JSON.stringify(rows[0])); await client.end();'
 ```
 
 Expected automated evidence for the current editor foundation:
@@ -76,7 +76,7 @@ Do these with a narrow viewport or a real phone-sized browser. Agents may verify
 - Draggable affordances are understandable without hover-only labels.
 - Failed save and rollback feedback remains readable on mobile.
 
-Avoid mutating real shared data casually. If a browser test moves a marker in Neon, move it back or use Undo before ending the run.
+Avoid mutating real shared data casually. If a browser test moves a marker on the server, move it back or use Undo before ending the run.
 
 ## Conflict Checks
 

@@ -2,7 +2,7 @@
  * Export Room TBA database tables to JSON for ChatGPT Deep Research attachment.
  *
  * Usage:
- *   NEON_CONNECTION_STRING=... ./node_modules/.bin/bun run scripts/export-for-deep-research.ts
+ *   DATABASE_URL=... ./node_modules/.bin/bun run scripts/export-for-deep-research.ts
  *   ./node_modules/.bin/bun run scripts/export-for-deep-research.ts --sqlite data/info.db
  *
  * Writes to exports/deep-research/ with a manifest.json describing each file.
@@ -31,7 +31,7 @@ const EXPORTED_AT = new Date().toISOString();
 type ExportManifest = {
   exported_at: string;
   term_target: string;
-  source: "neon" | "sqlite";
+  source: "postgres" | "sqlite";
   counts: Record<string, number>;
   files: string[];
   schema_notes: Record<string, string[]>;
@@ -146,15 +146,15 @@ function roomCodeStats(classes: { room_code: string | null }[]) {
 const sqliteArg = process.argv.indexOf("--sqlite");
 const sqlitePath =
   sqliteArg >= 0 ? process.argv[sqliteArg + 1] : "data/info.db";
-const neonUrl = process.env.NEON_CONNECTION_STRING;
+const postgresUrl = process.env.DATABASE_URL;
 
 mkdirSync(OUT_DIR, { recursive: true });
 
-const data = neonUrl
-  ? await exportFromPostgres(neonUrl)
+const data = postgresUrl
+  ? await exportFromPostgres(postgresUrl)
   : exportFromSqlite(sqlitePath);
 
-const source = neonUrl ? "neon" : "sqlite";
+const source = postgresUrl ? "postgres" : "sqlite";
 
 const files = [
   writeJson("buildings.json", data.buildings),

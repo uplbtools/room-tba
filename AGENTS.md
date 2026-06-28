@@ -57,7 +57,7 @@
 
 ## Database And APIs
 
-- Neon Postgres is the runtime source of truth.
+- Supabase Postgres is the runtime source of truth.
 - Drizzle schema changes need a matching SQL migration in `drizzle/`.
 - Admin API routes live under `/api/admin/*` and must keep auth checks.
 - Browser-facing `/admin` pages are intentionally not the default editor surface.
@@ -68,12 +68,12 @@
 - After substantive changes, run formatting, lints for edited files, and `bun run build`.
 - For editor changes, also use `docs/editor-foundation-test-plan.md` as the manual PR checklist.
 - For PR QA, follow `docs/agentic-qa-process.md` and separate automated evidence from browser-only checks.
-- Avoid testing by mutating production-like Neon data unless the change is intentional and reversible. Restore any accidental test mutations immediately.
+- Avoid testing by mutating production-like server data unless the change is intentional and reversible. Restore any accidental test mutations immediately.
 
 ## Cursor Cloud specific instructions
 
 - Package manager is **Bun** (installed at `~/.bun/bin`). The startup update script runs `bun install --frozen-lockfile`. Use Bun, not npm, even though a npm lockfile may also be present.
-- **A reachable Postgres is required to run or build the app — there is no local DB fallback.** `src/lib/db.ts` connects via the `NEON_CONNECTION_STRING` server env var (see `astro:env/server` schema in `astro.config.mjs`); `ADMIN_PASSWORD` is needed for admin/editor features. Provide these as Cursor Secrets, or run a local Postgres and point `NEON_CONNECTION_STRING` at it. Apply the SQL migrations in `drizzle/` to that database before first run.
-- This is **Astro 6 SSR** (Vercel adapter). API routes under `src/pages/api/*` are server-rendered (`prerender = false`), and the SSG entity pages (e.g. `/room/[slug]`) also query the DB at build time — so even `bun run build` fails without a working `NEON_CONNECTION_STRING`.
+- **A reachable Postgres is required to run or build the app — there is no local DB fallback.** `src/lib/db.ts` connects via the `DATABASE_URL` server env var (see `astro:env/server` schema in `astro.config.mjs`); `ADMIN_PASSWORD` is needed for admin/editor features. Provide these as Cursor Secrets, or run a local Postgres and point `DATABASE_URL` at it. Apply the SQL migrations in `drizzle/` to that database before first run.
+- This is **Astro 6 SSR** (Vercel adapter). API routes under `src/pages/api/*` are server-rendered (`prerender = false`), and the SSG entity pages (e.g. `/room/[slug]`) also query the DB at build time — so even `bun run build` fails without a working `DATABASE_URL`.
 - `@electric-sql/pglite` (`idb://site-data`) is a **browser-side cache only**, not a server/dev database fallback.
 - Standard scripts live in `package.json`: `bun dev` (dev server on `http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint` (`prettier --check . && eslint .`), `bun run format`. There is no automated test suite; verify changes via build + manual browser testing.
