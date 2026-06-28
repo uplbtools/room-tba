@@ -59,7 +59,7 @@ P4="${5:-}"
 P5="${6:-}"
 
 if [[ -z "$P1" ]]; then
-  P1=$(get_issue_num_from_url "$(create_issue "[EPIC] Data trust and Neon-first pipeline" "Sprint 1 parent epic." "parent issue,enhancement")")
+  P1=$(get_issue_num_from_url "$(create_issue "[EPIC] Data trust and Supabase Postgres pipeline" "Sprint 1 parent epic." "parent issue,enhancement")")
   P2=$(get_issue_num_from_url "$(create_issue "[EPIC] Schedule relaunch and design system" "Sprint 2 parent epic." "parent issue,enhancement")")
   P3=$(get_issue_num_from_url "$(create_issue "[EPIC] Orgs, events and contributor platform" "Sprint 3 parent epic." "parent issue,enhancement")")
   P4=$(get_issue_num_from_url "$(create_issue "[EPIC] Performance, PWA growth and sponsorship foundation" "Sprint 4 parent epic." "parent issue,enhancement")")

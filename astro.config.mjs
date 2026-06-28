@@ -104,7 +104,9 @@ export default defineConfig({
   // adapter: vercel(),
   env: {
     schema: {
-      NEON_CONNECTION_STRING: envField.string({
+      // Supabase Postgres connection string (Session pooler or direct).
+      // Migration: rename NEON_CONNECTION_STRING → DATABASE_URL in Vercel / local .env.
+      DATABASE_URL: envField.string({
         access: "secret",
         context: "server",
       }),
