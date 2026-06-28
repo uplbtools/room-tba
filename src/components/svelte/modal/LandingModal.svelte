@@ -1,8 +1,62 @@
 <script lang="ts">
-  import { modalStore } from "@lib/store.svelte";
-  import { contributors, developers } from "@constants/contributors";
+  import { onMount } from "svelte";
+  import { modalStore } from "../../../lib/store.svelte";
+  import { contributors } from "../../../constants/contributors";
+  import {
+    fetchGithubContributors,
+    type GithubContributor,
+  } from "../../../lib/github-contributors";
+  import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
+  import GithubContributorsSection from "./GithubContributorsSection.svelte";
+  import LandingGuideSteps from "./LandingGuideSteps.svelte";
 
+  type LandingTab = "welcome" | "campus";
+
+  let activeTab = $state<LandingTab>("welcome");
   let dontShowAgain = $state(false);
+
+  let githubContributors = $state<GithubContributor[]>([]);
+  let githubLoading = $state(false);
+  let githubError = $state<string | null>(null);
+  let githubLoaded = $state(false);
+
+  const tabs: { id: LandingTab; label: string }[] = [
+    { id: "welcome", label: "Welcome" },
+    { id: "campus", label: "Campus team" },
+  ];
+
+  const campusContributorPeople = $derived(
+    contributors.map((person) => ({
+      name: person.name,
+      href: person.href,
+      imageSrc: "",
+    })),
+  );
+
+  async function loadGithubContributors() {
+    if (githubLoaded || githubLoading) return;
+    githubLoading = true;
+    githubError = null;
+    try {
+      githubContributors = await fetchGithubContributors();
+      githubLoaded = true;
+    } catch (err) {
+      githubError =
+        err instanceof Error ? err.message : "Could not load contributors";
+    } finally {
+      githubLoading = false;
+    }
+  }
+
+  function retryGithubContributors() {
+    githubLoaded = false;
+    void loadGithubContributors();
+  }
+
+  function selectTab(tab: LandingTab) {
+    activeTab = tab;
+    if (tab === "campus") void loadGithubContributors();
+  }
 
   function handleGetStarted() {
     if (dontShowAgain) {
@@ -10,175 +64,92 @@
     }
     modalStore.closeModal();
   }
+
+  onMount(() => {
+    void loadGithubContributors();
+  });
 </script>
 
 <div class="landing-content">
-  <div class="hero-image">
-    <div class="hero-overlay">
-      <h2>
-        <span class="hero-title">
-          <img src="/logo.png" alt="Room TBA logo" class="hero-logo" />
-          Room TBA
-        </span>
-      </h2>
-      <p>"Saan sa UPLB ang ___?" Finally answered.</p>
-    </div>
-  </div>
-
-  <div class="content-body">
-    <div class="description-container">
-      <p class="description">
-        Room TBA is an open-source website built to help students find their
-        rooms across UPLB, the largest university campus in the Philippines.
-      </p>
-      <section
-        class="crowdsource-section"
-        aria-labelledby="crowdsource-heading"
-      >
-        <h3 id="crowdsource-heading">Fully crowdsourced campus map</h3>
-        <p class="crowdsource-lead">
-          Built by students, kept accurate by students. Room TBA runs a fully
-          crowdsourced pipeline—anyone can suggest fixes to rooms, buildings,
-          map pins, dorms, and campus events; volunteer editors review and
-          publish them. No gatekept data entry.
+  <header class="landing-header">
+    <div class="hero-image">
+      <div class="hero-overlay">
+        <h2>
+          <span class="hero-title">
+            <img src="/logo.png" alt="Room TBA logo" class="hero-logo" />
+            Room TBA
+          </span>
+        </h2>
+        <p class="hero-tagline">
+          Find rooms, explore the map, and discover campus events at UPLB.
         </p>
-        <ol class="crowdsource-steps">
-          <li>
-            <strong>Suggest</strong> — edit any entity, or tap
-            <strong>+</strong> to propose something new
-          </li>
-          <li><strong>Review</strong> — editors check your change in-app</li>
-          <li>
-            <strong>Publish</strong> — approved edits go live for everyone
-          </li>
-        </ol>
-      </section>
-      <p class="osm-attribution">
-        3D models powered by © <a
-          href="https://www.openstreetmap.org/copyright"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="osm-link">OpenStreetMap</a
-        > contributors
-      </p>
-      <a
-        href="https://github.com/smmariquit/room-tba"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="github-link"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-github"
+      </div>
+    </div>
+
+    <div class="tab-bar" role="tablist" aria-label="About Room TBA">
+      {#each tabs as tab (tab.id)}
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
+          class:active={activeTab === tab.id}
+          aria-selected={activeTab === tab.id}
+          onclick={() => selectTab(tab.id)}
         >
-          <path
-            d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.18-.38 6.5-1.5 6.5-7a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 5.5 3.3 6.6 6.5 7a4.8 4.8 0 0 0-1 3.02V22"
-          ></path>
-        </svg>
-        View on GitHub
-      </a>
+          {tab.label}
+        </button>
+      {/each}
     </div>
-    <div class="people-sections">
-      <div class="developers-section">
-        <h3>Developers</h3>
-        <div class="developers-list">
-          {#each developers as { name, href }}
-            {@const img_url = name.toLowerCase().split(" ").join("-")}
-            {#if href}
-              <a
-                class="developers-profile tooltip"
-                {href}
-                target="_blank"
-                data-tooltip={name}
-              >
-                <img
-                  src={`/developers/${img_url}.png`}
-                  alt={name}
-                  title={name}
-                  onerror={(event) =>
-                    ((event.currentTarget as HTMLImageElement).src =
-                      "/profile.svg")}
-                />
-                <div class="name">{name}</div>
-              </a>
-            {:else}
-              <div class="developers-profile tooltip" data-tooltip={name}>
-                <img
-                  src={`/developers/${img_url}.png`}
-                  alt={name}
-                  title={name}
-                  onerror={(event) =>
-                    ((event.currentTarget as HTMLImageElement).src =
-                      "/profile.svg")}
-                />
-                <div class="name">{name}</div>
-              </div>
-            {/if}
-          {/each}
-        </div>
-      </div>
-      <div class="contributors-section">
-        <h3>Campus editors &amp; contributors</h3>
-        <p class="section-note">
-          Code, design, and the map edits credited below—thank you for keeping
-          UPLB navigable.
-        </p>
-        <div class="contributors-list">
-          {#each contributors as { name, href }}
-            {@const img_url = name.toLowerCase().split(" ").join("-")}
-            {#if href}
-              <a
-                class="contributor-profile tooltip"
-                {href}
-                target="_blank"
-                data-tooltip={name}
-              >
-                <img
-                  src={`/contributors/${img_url}.png`}
-                  alt={name}
-                  title={name}
-                  onerror={(event) =>
-                    ((event.currentTarget as HTMLImageElement).src =
-                      "/profile.svg")}
-                />
-                <div class="name">{name}</div>
-              </a>
-            {:else}
-              <div class="contributor-profile tooltip" data-tooltip={name}>
-                <img
-                  src={`/contributors/${img_url}.png`}
-                  alt={name}
-                  title={name}
-                  onerror={(event) =>
-                    ((event.currentTarget as HTMLImageElement).src =
-                      "/profile.svg")}
-                />
-                <div class="name">{name}</div>
-              </div>
-            {/if}
-          {/each}
-        </div>
-      </div>
-    </div>
+  </header>
 
-    <div class="actions">
-      <button class="primary-btn" onclick={handleGetStarted}>
-        Get Started
-      </button>
-      <label class="checkbox-label">
-        <input type="checkbox" bind:checked={dontShowAgain} />
-        Don't show again
-      </label>
-    </div>
+  <div class="scroll-region">
+    {#if activeTab === "welcome"}
+      <div class="tab-panel" role="tabpanel">
+        <LandingGuideSteps />
+      </div>
+    {:else}
+      <div class="tab-panel" role="tabpanel">
+        <GithubContributorsSection
+          title="Developers"
+          note="Pulled live from the Room TBA GitHub repo, sorted by commit count."
+          contributors={githubContributors}
+          loading={githubLoading}
+          loaded={githubLoaded}
+          error={githubError}
+          onRetry={retryGithubContributors}
+        />
+
+        <p class="repo-link">
+          <a
+            href="https://github.com/smmariquit/room-tba"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-link">View repo on GitHub</a
+          >
+        </p>
+
+        <section class="people-block">
+          <h3>Campus editors &amp; contributors</h3>
+          <p class="section-note">
+            Students who help keep map data and events accurate on the ground.
+            These credits are manual, not from GitHub commits.
+          </p>
+          <PeopleAvatarGrid
+            people={campusContributorPeople}
+            imageFolder="contributors"
+          />
+        </section>
+      </div>
+    {/if}
   </div>
+
+  <footer class="actions">
+    <button class="primary-btn" onclick={handleGetStarted}>Get Started</button>
+    <label class="checkbox-label">
+      <input type="checkbox" bind:checked={dontShowAgain} />
+      Don't show again
+    </label>
+  </footer>
 </div>
 
 <style>
@@ -192,15 +163,18 @@
     border-radius: inherit;
     background-color: white;
   }
+
+  .landing-header {
+    flex-shrink: 0;
+  }
+
   .hero-image {
     background-image: url("/uplb-bg.webp");
     background-size: cover;
     background-position: center;
-    position: relative;
-    min-height: 16rem;
-    flex-shrink: 0;
     display: flex;
   }
+
   .hero-overlay {
     background-color: rgba(123, 17, 19, 0.85);
     flex: 1;
@@ -209,308 +183,193 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    gap: 0.1rem;
+    gap: 0.25rem;
     color: white;
-    padding: 2rem;
+    padding: 0.875rem 1rem;
+    min-height: clamp(4.75rem, 11vh, 6.5rem);
   }
 
   .hero-overlay h2 {
-    font-size: 2.75rem;
+    font-size: clamp(1.5rem, 4vw, 1.875rem);
     font-weight: 600;
     margin: 0;
-    padding: 0;
     color: white;
     font-family: "Raleway", sans-serif;
-    display: flex;
-    justify-content: center;
     line-height: 1;
-    width: 100%;
   }
 
   .hero-title {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.2rem;
-    margin-left: -1.25rem;
+    gap: 0.35rem;
   }
 
   .hero-logo {
-    width: 4.5rem;
-    height: 4.5rem;
+    width: clamp(2.25rem, 6vw, 2.75rem);
+    height: clamp(2.25rem, 6vw, 2.75rem);
     object-fit: contain;
   }
 
-  .hero-overlay p {
-    font-size: 1rem;
+  .hero-tagline {
+    font-size: 0.8125rem;
     margin: 0;
     font-weight: 500;
+    max-width: 24rem;
+    line-height: 1.35;
   }
-  .content-body {
-    padding: 1.5rem 2rem 2rem;
+
+  .tab-bar {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    text-align: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.875rem 0;
+    border-bottom: 1px solid hsl(0, 0%, 90%);
+    background: hsl(0, 0%, 99%);
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: hsl(0, 0%, 32%);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.45rem 0.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tab-btn.active {
+    color: hsl(5, 53%, 28%);
+    background: white;
+    border-bottom-color: hsl(5, 53%, 35%);
+  }
+
+  .tab-btn:focus-visible {
+    outline: 2px solid hsl(5, 53%, 35%);
+    outline-offset: 1px;
+  }
+
+  .scroll-region {
     flex: 1;
     min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    padding: 0.875rem 1rem 0.5rem;
   }
-  .description-container {
+
+  .tab-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
+    width: 100%;
+    max-width: 36rem;
+    margin: 0 auto;
   }
-  .description {
-    font-size: 0.9375rem;
-    color: #4a4a4a;
-    line-height: 1.5;
-    margin: 0;
-    max-width: 28rem;
-  }
-  .crowdsource-section {
+
+  .people-block {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 0.5rem;
-    max-width: 28rem;
-    text-align: left;
-    padding: 0.875rem 1rem;
-    border: 1px solid hsl(5, 35%, 88%);
-    border-radius: 0.625rem;
-    background: hsl(5, 45%, 98%);
+    width: 100%;
   }
-  .crowdsource-section h3 {
+
+  .people-block h3 {
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
     color: hsl(5, 53%, 28%);
   }
-  .crowdsource-lead {
+
+  .section-note {
     margin: 0;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: hsl(0, 0%, 28%);
-  }
-  .crowdsource-steps {
-    margin: 0.25rem 0 0;
-    padding-left: 1.125rem;
     font-size: 0.75rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 32%);
-  }
-  .crowdsource-steps li + li {
-    margin-top: 0.25rem;
-  }
-  .section-note {
-    margin: 0 0 0.625rem;
-    font-size: 0.75rem;
-    line-height: 1.4;
-    color: hsl(0, 0%, 42%);
-    max-width: 16rem;
-  }
-  .github-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    color: #333;
-    font-weight: 600;
-    text-decoration: none;
-    padding: 0.375rem 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-  }
-  .github-link:hover {
-    background-color: #f5f5f5;
-    border-color: #bbb;
-  }
-  .contributors-section h3,
-  .developers-section h3 {
-    margin: 0 0 0.75rem 0;
-    font-size: 1rem;
-    color: #333;
-    font-weight: 600;
-  }
-  .people-sections {
-    width: 100%;
-    max-width: 48rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    align-items: start;
-  }
-  .contributors-section,
-  .developers-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .contributors-list,
-  .developers-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-    max-width: 30rem;
-  }
-  .contributor-profile,
-  .developers-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    text-decoration: none;
-    color: inherit;
-  }
-  .contributor-profile img,
-  .developers-profile img {
-    width: 2.25rem;
-    height: 2.25rem;
-    border: 1px solid #ccc;
-    border-radius: 50%;
-    object-fit: cover;
-    background-color: #f5f5f5;
-    overflow: hidden;
-  }
-
-  .contributor-profile .name,
-  .developers-profile .name {
-    font-size: 0.65rem;
-    font-weight: 500;
-    max-width: 3.5rem;
+    color: hsl(0, 0%, 30%);
+    max-width: 28rem;
     text-align: center;
-    line-height: 1.1;
-    display: none;
   }
 
-  .tooltip {
-    position: relative;
-    outline: unset;
-  }
-  .tooltip::before {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 0;
-    left: 50%;
-    translate: -50% calc(-1 * (100% + 8px));
-    padding: 0.2rem 0.4rem;
-    background-color: hsla(0, 0%, 10%, 0.8);
-    color: white;
-    border-radius: 6px;
-    pointer-events: none;
-    opacity: 0;
-    width: max-content;
-    transition: opacity 0.125s;
-    font-size: 0.75rem;
-    z-index: 50;
-  }
-  .tooltip::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    pointer-events: none;
-    translate: -50% -100%;
-    border-width: 4px;
-    border-style: solid;
-    opacity: 0;
-    transition: opacity 0.125s;
-    border-color: hsla(0, 0%, 10%, 0.8) transparent transparent transparent;
-    z-index: 50;
-  }
-  .tooltip:is(:hover, :focus)::before,
-  .tooltip:is(:hover, :focus)::after {
-    opacity: 1;
+  .inline-link {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
-  @media screen and (max-width: 768px) {
-    .people-sections {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-    /* .contributor-profile .name,
-    .developers-profile .name {
-      display: block;
-    }
-    .tooltip::after,
-    .tooltip::before {
-      display: none;
-    } */
-    .hero-image {
-      min-height: 10rem;
-    }
-    .hero-overlay {
-      padding: 1.5rem 1rem;
-    }
-    /* .hero-overlay h2 {
-      font-size: 1.5rem;
-    } */
-    .content-body {
-      padding: 1rem;
-      gap: 1rem;
-    }
+  .repo-link {
+    margin: 0;
+    font-size: 0.8125rem;
   }
 
   .actions {
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.25rem;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid hsl(0, 0%, 92%);
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
   }
+
   .primary-btn {
-    background-color: #7b1113;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 0.5rem;
+    padding: 0.6875rem 1.75rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    cursor: pointer;
+    background-color: hsl(5, 75%, 28%);
     color: white;
     border: none;
-    border-radius: 0.5rem;
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition:
-      background-color 0.2s,
-      transform 0.1s;
     box-shadow: 0 2px 4px rgba(123, 17, 19, 0.2);
+    width: min(100%, 16rem);
+    box-sizing: border-box;
   }
+
   .primary-btn:hover {
-    background-color: #5a0c0e;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(123, 17, 19, 0.3);
+    background-color: hsl(5, 75%, 22%);
   }
-  .primary-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 2px rgba(123, 17, 19, 0.2);
-  }
+
   .checkbox-label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
-    color: #4a4a4a;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 22%);
     cursor: pointer;
     user-select: none;
   }
+
   .checkbox-label input[type="checkbox"] {
     cursor: pointer;
     width: 1rem;
     height: 1rem;
-    accent-color: #7b1113;
+    accent-color: hsl(5, 75%, 28%);
   }
 
-  .osm-attribution {
-    font-size: 0.85rem;
-    color: #666;
-    margin: 0;
-  }
-  .osm-link {
-    color: #0078a8;
-    text-decoration: none;
-  }
-  .osm-link:hover {
-    text-decoration: underline;
+  @media screen and (max-width: 48rem) {
+    .scroll-region {
+      padding: 0.75rem 0.875rem 0.375rem;
+    }
+
+    .actions {
+      padding: 0.625rem 0.875rem 0.875rem;
+    }
   }
 </style>

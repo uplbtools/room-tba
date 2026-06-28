@@ -8,7 +8,7 @@ import type {
   TableSyncInfo,
 } from "@lib/types";
 import { getDB } from "./pgliteDB";
-import { getJSONFetch } from "./utils";
+import { fetchJsonWithRetry, SYNC_CHECK_FETCH_OPTIONS } from "./fetch-json";
 import { syncToastStore } from "@lib/store.svelte";
 import type { Results } from "@electric-sql/pglite";
 
@@ -60,6 +60,27 @@ export function getSyncKeysFromLs(): {
   }
 }
 
+async function localCacheIsEmpty(tableName: string): Promise<boolean> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const result = (await localDB.query(
+      `SELECT 1 FROM "${tableName}" LIMIT 1;`,
+    )) as Results<Record<string, unknown>>;
+    return result.rows.length === 0;
+  } catch {
+    return true;
+  }
+}
+
+async function shouldSkipValidSync(
+  checker: TableSyncInfo,
+  tableName: string,
+): Promise<boolean> {
+  if (!checker.valid) return false;
+  return !(await localCacheIsEmpty(tableName));
+}
+
 export async function localTableSyncCheck(
   tableName: string,
 ): Promise<TableSyncInfo> {
@@ -97,7 +118,7 @@ export function updateSyncKeyFromLs(tableName: string, newKey: string) {
 
 export async function getSyncKey(table: string) {
   try {
-    const tableOnline = await getJSONFetch<{
+    const tableOnline = await fetchJsonWithRetry<{
       success: boolean;
       error: string | null;
       data: {
@@ -105,7 +126,7 @@ export async function getSyncKey(table: string) {
         tableName: string | null;
         syncKey: string | null;
       };
-    }>(`/api/check/${table}`);
+    }>(`/api/check/${table}`, SYNC_CHECK_FETCH_OPTIONS);
     return tableOnline.data.syncKey;
   } catch (e) {
     console.error(e);
@@ -116,11 +137,13 @@ export async function getSyncKey(table: string) {
 export async function syncBuildings(
   checker: TableSyncInfo,
   remoteBuildings: BuildingData[],
+  trustedRemote = false,
 ) {
-  if (checker.valid) return;
+  if (await shouldSkipValidSync(checker, "buildings")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or resetting rooms_fetched (#169).
   if (checker.newKey === null) return;
+  if (!trustedRemote) return;
   const localDB = getDB();
 
   await localDB.waitReady;
@@ -158,17 +181,21 @@ export async function syncBuildings(
       console.error(e);
     }
   }
-  updateSyncKeyFromLs("buildings", checker.newKey ?? "");
+  if (trustedRemote) {
+    updateSyncKeyFromLs("buildings", checker.newKey ?? "");
+  }
 }
 
 export async function syncColleges(
   checker: TableSyncInfo,
   remoteColleges: CollegeData[],
+  trustedRemote = false,
 ) {
-  if (checker.valid) return;
+  if (await shouldSkipValidSync(checker, "colleges")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
   if (checker.newKey === null) return;
+  if (!trustedRemote) return;
 
   const localDB = getDB();
 
@@ -195,17 +222,21 @@ export async function syncColleges(
     }
   }
 
-  updateSyncKeyFromLs("colleges", checker.newKey ?? "");
+  if (trustedRemote) {
+    updateSyncKeyFromLs("colleges", checker.newKey ?? "");
+  }
 }
 
 export async function syncDivisions(
   checker: TableSyncInfo,
   remoteDivisions: DivisionData[],
+  trustedRemote = false,
 ) {
-  if (checker.valid) return;
+  if (await shouldSkipValidSync(checker, "divisions")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
   if (checker.newKey === null) return;
+  if (!trustedRemote) return;
 
   const localDB = getDB();
 
@@ -238,17 +269,21 @@ export async function syncDivisions(
       console.error(e);
     }
   }
-  updateSyncKeyFromLs("divisions", checker.newKey ?? "");
+  if (trustedRemote) {
+    updateSyncKeyFromLs("divisions", checker.newKey ?? "");
+  }
 }
 
 export async function syncDorms(
   checker: TableSyncInfo,
   remoteDorms: DormData[],
+  trustedRemote = false,
 ) {
-  if (checker.valid) return;
+  if (await shouldSkipValidSync(checker, "dorms")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
   if (checker.newKey === null) return;
+  if (!trustedRemote) return;
 
   const localDB = getDB();
 
@@ -306,17 +341,21 @@ export async function syncDorms(
       console.error(e);
     }
   }
-  updateSyncKeyFromLs("dorms", checker.newKey ?? "");
+  if (trustedRemote) {
+    updateSyncKeyFromLs("dorms", checker.newKey ?? "");
+  }
 }
 
 export async function syncEvents(
   checker: TableSyncInfo,
   remoteEvents: EventData[],
+  trustedRemote = false,
 ) {
-  if (checker.valid) return;
+  if (await shouldSkipValidSync(checker, "events")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
   if (checker.newKey === null) return;
+  if (!trustedRemote) return;
 
   const localDB = getDB();
   await localDB.waitReady;
@@ -449,7 +488,9 @@ export async function syncEvents(
     return;
   }
 
-  updateSyncKeyFromLs("events", checker.newKey ?? "");
+  if (trustedRemote) {
+    updateSyncKeyFromLs("events", checker.newKey ?? "");
+  }
 }
 
 export async function resetBuildingsSyncStatus() {
