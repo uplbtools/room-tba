@@ -454,6 +454,28 @@
       pointer-events: auto;
     }
 
+    .top-right-map-stack :global(.map-tools-panel) {
+      min-height: min(
+        58dvh,
+        calc(
+          100dvh - var(--search-block-height) - var(--status-bar-block-height)
+        )
+      );
+      padding: 0.875rem 1rem;
+      gap: 0.625rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-header) {
+      font-size: 1rem;
+      padding: 0.375rem 0.25rem 0.625rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-toggle) {
+      min-height: 2.75rem;
+      padding: 0.625rem 0.75rem;
+      font-size: 0.9375rem;
+    }
+
     /* When the drawer sheet is open, lift FABs above its peek handle */
     .location-fab-stack.drawer-lift {
       position: fixed;
