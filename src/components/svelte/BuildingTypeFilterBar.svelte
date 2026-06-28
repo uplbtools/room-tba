@@ -29,7 +29,7 @@
   role="toolbar"
   aria-label="Building pin filters"
 >
-  <span class="filter-heading">Show</span>
+  <span class="filter-heading sr-only">Show</span>
   <div class="filter-chips">
     {#each options as option (option.value)}
       {@const isActive = buildingTypeFilter.value === option.value}
@@ -51,35 +51,33 @@
 </div>
 
 <style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .building-filter-bar {
     display: flex;
     align-items: center;
     gap: 0.375rem;
-    min-width: 0;
-    width: 100%;
-    pointer-events: auto;
-  }
-
-  .filter-heading {
     flex: 0 0 auto;
-    color: hsl(0, 0%, 38%);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    min-width: 0;
+    pointer-events: auto;
   }
 
   .filter-chips {
     display: flex;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     align-items: center;
     gap: 0.375rem;
     min-width: 0;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 1px;
   }
 
   .filter-chip {
@@ -99,7 +97,6 @@
     line-height: 1.1;
     padding: 0.25rem 0.5rem;
     white-space: nowrap;
-    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);
   }
 
   .filter-chip:hover,
@@ -157,15 +154,5 @@
     font-weight: 700;
     line-height: 1;
     padding: 0.125rem 0.35rem;
-  }
-
-  @media (max-width: 48rem) {
-    .building-filter-bar {
-      padding: 0.375rem 0.625rem 0.5rem;
-    }
-
-    .filter-heading {
-      display: none;
-    }
   }
 </style>

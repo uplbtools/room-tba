@@ -42,15 +42,34 @@
       )
       .sort((a, b) => a.occurrenceStartsAt.localeCompare(b.occurrenceStartsAt));
   });
-  const visibleEvents = $derived(campusEvents.slice(0, 4));
+  const visibleEvents = $derived.by(() => {
+    const base = campusEvents;
+    if (!import.meta.env.DEV || typeof window === "undefined") return base;
+
+    const count = Number(
+      new URLSearchParams(window.location.search).get("stressEvents") ?? 0,
+    );
+    if (!Number.isFinite(count) || count <= base.length || base.length === 0) {
+      return base;
+    }
+
+    const copies = [];
+    for (let index = 0; index < count; index += 1) {
+      const source = base[index % base.length];
+      copies.push({
+        ...source,
+        id: source.id * 10_000 + index,
+        slug: `${source.slug}-stress-${index}`,
+        title: `${source.title} (${index + 1})`,
+      });
+    }
+    return copies;
+  });
   const hasPastEvents = $derived(
     loaded && events.some((event) => event.status === "past"),
   );
-  // Surface "View all" whenever there are events the inline list does not show,
-  // including past events that only live in the full list.
-  const hasHiddenEvents = $derived(
-    campusEvents.length > visibleEvents.length || hasPastEvents,
-  );
+  // Full side-panel list still adds past events and pagination.
+  const hasHiddenEvents = $derived(hasPastEvents);
   const hasAnyEvents = $derived(loaded && events.length > 0);
   const eventsSyncing = $derived(
     loaded &&
@@ -144,8 +163,10 @@
           {placingEvent}
           {hasAnyEvents}
           {hasHiddenEvents}
+          {showRetract}
           onViewAll={openEventsList}
           onStartPlacement={startEventPlacement}
+          {oncollapse}
         />
       </div>
     {/if}
