@@ -6,6 +6,7 @@
   import { slide } from "svelte/transition";
   import { onMount } from "svelte";
   import { registerSW } from "virtual:pwa-register";
+  import { formatCatalogUpdatedDate } from "@constants/data-catalog";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { getAppData } from "@lib/context";
   import { slideDismiss, slideReveal } from "@lib/motion";
@@ -48,6 +49,10 @@
   const showSessionUtilities = $derived(contributorSession && isOpen);
   const progressPercent = $derived(
     totalRooms > 0 ? Math.floor((directionCount / totalRooms) * 100) : 0,
+  );
+  const catalogUpdatedLabel = formatCatalogUpdatedDate();
+  const showDirectionsProgress = $derived(
+    directionCount != null && totalRooms != null && totalRooms > 0,
   );
 
   let barEl = $state<HTMLDivElement | null>(null);
@@ -123,6 +128,20 @@
             onSignOut={handleSignOut}
           />
         {/if}
+        {#if showDirectionsProgress}
+          <span class="status-sep" aria-hidden="true">·</span>
+          <span
+            class="status-collapsed-count"
+            title="{directionCount} of {totalRooms} rooms with directions"
+          >
+            <span class="status-count-wide"
+              >{directionCount} of {totalRooms} rooms with directions</span
+            >
+            <span class="status-count-narrow"
+              >{directionCount}/{totalRooms} w/ directions</span
+            >
+          </span>
+        {/if}
       </div>
     {/if}
   </div>
@@ -134,26 +153,35 @@
       in:slide={slideReveal(reducedMotion.current)}
       out:slide={slideDismiss(reducedMotion.current)}
     >
-      <div
-        class="status-meta-progress"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={totalRooms}
-        aria-valuenow={directionCount}
-        aria-label="Rooms with directions"
-      >
-        <div class="map-chrome-progress">
-          <div
-            class="map-chrome-progress__value"
-            style:width={`${progressPercent}%`}
-          ></div>
+      {#if showDirectionsProgress}
+        <div
+          class="status-meta-progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={totalRooms}
+          aria-valuenow={directionCount}
+          aria-label="{directionCount} of {totalRooms} rooms with directions"
+        >
+          <div class="map-chrome-progress">
+            <div
+              class="map-chrome-progress__value"
+              style:width={`${progressPercent}%`}
+            ></div>
+          </div>
+          <span class="status-meta-count">
+            <span class="status-count-wide"
+              >{directionCount} of {totalRooms} rooms with directions</span
+            >
+            <span class="status-count-narrow"
+              >{directionCount}/{totalRooms} w/ directions</span
+            >
+          </span>
         </div>
-        <span class="status-meta-count">{directionCount}/{totalRooms}</span>
-      </div>
 
-      <span class="status-sep" aria-hidden="true">·</span>
+        <span class="status-sep" aria-hidden="true">·</span>
+      {/if}
       <span class="status-meta-updated">
-        Updated <strong>June 2026</strong>
+        Updated {catalogUpdatedLabel}
       </span>
 
       <span class="status-sep" aria-hidden="true">·</span>
@@ -329,6 +357,26 @@
       color: hsl(0, 0%, 22%);
     }
 
+    .status-count-wide {
+      display: inline;
+    }
+
+    .status-count-narrow {
+      display: none;
+    }
+
+    .status-collapsed-count {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: inherit;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: hsl(0, 0%, 28%);
+    }
+
     .status-meta-updated {
       flex-shrink: 1;
       min-width: 0;
@@ -400,6 +448,14 @@
   @media (max-width: 22rem) {
     .status-meta-progress :global(.map-chrome-progress) {
       width: 2.75rem;
+    }
+
+    .status-count-wide {
+      display: none;
+    }
+
+    .status-count-narrow {
+      display: inline;
     }
   }
 
