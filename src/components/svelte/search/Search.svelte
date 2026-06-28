@@ -2,12 +2,21 @@
   import { debounce } from "es-toolkit";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import Menu from "@lucide/svelte/icons/menu";
+  import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import { getAppData } from "@lib/context";
   import { getMapChromeVisibility } from "@lib/map-chrome";
-  import { mapToolsStore, queryStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    editorChromeStore,
+    mapEditStore,
+    mapToolsStore,
+    proposalsStore,
+    queryStore,
+  } from "@lib/store.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
+  import EditorShelf from "@ui/EditorShelf.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { MediaQuery } from "svelte/reactivity";
@@ -90,22 +99,69 @@
     chrome.showEventsShelf && queryStore.category === null && draftInput === "",
   );
 
+  function closeEditorShelf() {
+    editorChromeStore.closeShelf();
+  }
+
+  function openEditorShelf() {
+    searchFocused = false;
+    searchElement?.blur();
+    closeEventsShelf();
+    editorChromeStore.openShelf();
+  }
+
+  function toggleEditorShelf() {
+    if (editorChromeStore.shelfOpen) {
+      closeEditorShelf();
+    } else {
+      openEditorShelf();
+    }
+  }
+
+  const showEditorChrome = $derived(
+    chrome.showEditorShelf &&
+      (adminAuthStore.canPublish || adminAuthStore.canReview),
+  );
+
+  const editorChipLabel = $derived(
+    mapEditStore.enabled ? "Editing" : "Editor",
+  );
+
   const showSearchDropdown = $derived(
-    chrome.showSearchSuggestions && searchFocused && eventsCollapsed,
+    chrome.showSearchSuggestions &&
+      searchFocused &&
+      eventsCollapsed &&
+      !editorChromeStore.shelfOpen,
   );
 
   const showEventsSheet = $derived(showIdleEventsChrome && !eventsCollapsed);
 
+  const showEditorSheet = $derived(showEditorChrome && editorChromeStore.shelfOpen);
+
   $effect(() => {
     if (draftInput.trim() !== "") {
       closeEventsShelf();
+      closeEditorShelf();
     }
   });
 
   $effect(() => {
     if (queryStore.category !== null && queryStore.type === "result") {
       closeEventsShelf();
+      closeEditorShelf();
       searchElement?.blur();
+    }
+  });
+
+  $effect(() => {
+    if (editorChromeStore.shelfOpen) {
+      closeEventsShelf();
+    }
+  });
+
+  $effect(() => {
+    if (chrome.editMode) {
+      closeEditorShelf();
     }
   });
 </script>
@@ -115,6 +171,7 @@
   class:mobile-shell={mobile.current}
   class:search-input-focused={searchFocused}
   class:events-panel-open={showEventsSheet}
+  class:editor-panel-open={showEditorSheet}
 >
   <div class="search-shell-main" bind:this={shellMainEl}>
     {#if mobile.current}
@@ -222,12 +279,39 @@
               onclick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
+                closeEditorShelf();
                 toggleEventsShelf();
               }}
               disabled={!loaded}
             >
               <CalendarDays size={14} aria-hidden="true" />
               <span>Events</span>
+            </button>
+          {/if}
+          {#if showEditorChrome}
+            <button
+              type="button"
+              class="map-chrome-chip"
+              class:map-chrome-chip--toggle-active={showEditorSheet}
+              class:map-chrome-chip--editor-active={mapEditStore.enabled}
+              aria-expanded={showEditorSheet}
+              aria-controls="editor-shelf-panel"
+              aria-label={showEditorSheet
+                ? "Close editor tools"
+                : "Open editor tools"}
+              onclick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleEditorShelf();
+              }}
+            >
+              <ShieldCheck size={14} aria-hidden="true" />
+              <span>{editorChipLabel}</span>
+              {#if proposalsStore.pendingCount > 0}
+                <span class="map-chrome-chip__count"
+                  >{proposalsStore.pendingCount}</span
+                >
+              {/if}
             </button>
           {/if}
           <BuildingTypeFilterBar />
@@ -246,6 +330,16 @@
             showRetract={false}
             oncollapse={closeEventsShelf}
           />
+        </div>
+      {/if}
+
+      {#if showEditorSheet}
+        <div
+          class="map-search-chrome__editor"
+          id="editor-shelf-panel"
+          aria-label="Editor tools"
+        >
+          <EditorShelf onclose={closeEditorShelf} />
         </div>
       {/if}
     </div>
@@ -314,7 +408,8 @@
     border-top: 1px solid hsl(0, 0%, 92%);
   }
 
-  .search-root.mobile-shell .map-search-chrome__events {
+  .search-root.mobile-shell .map-search-chrome__events,
+  .search-root.mobile-shell .map-search-chrome__editor {
     grid-column: 1 / -1;
     grid-row: 3;
     padding: 0.375rem 0 0;
@@ -512,6 +607,18 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .map-search-chrome__editor {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: min(50dvh, 24rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid hsl(0, 0%, 92%);
+    padding: 0.375rem 0.625rem 0.625rem;
     -webkit-overflow-scrolling: touch;
   }
 </style>

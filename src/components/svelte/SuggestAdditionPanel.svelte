@@ -29,9 +29,13 @@
   let {
     mode = "proposal",
     panelId = "suggest-addition",
+    onDismiss,
+    onRestore,
   }: {
     mode?: "proposal" | "publish";
     panelId?: string;
+    onDismiss?: () => void;
+    onRestore?: () => void;
   } = $props();
 
   const PROPOSAL_OPTIONS: AdditionOption[] = [
@@ -113,15 +117,31 @@
     error = null;
   }
 
+  function dismissHost() {
+    if (onDismiss) {
+      onDismiss();
+      return;
+    }
+    floatingControlPanelStore.close(panelId);
+  }
+
+  function restoreHost() {
+    if (onRestore) {
+      onRestore();
+      return;
+    }
+    floatingControlPanelStore.openPanel = panelId;
+  }
+
   async function pickOnMap() {
     error = null;
-    floatingControlPanelStore.close(panelId);
+    dismissHost();
     try {
       await additionProposalStore.requestMapPin();
     } catch {
       // cancelled
     } finally {
-      floatingControlPanelStore.openPanel = panelId;
+      restoreHost();
     }
   }
 
@@ -246,7 +266,7 @@
           "success",
         );
         resetFields();
-        floatingControlPanelStore.close(panelId);
+        dismissHost();
         return;
       }
 
@@ -266,7 +286,7 @@
       }
       toastStore.show("Addition submitted for editor review.", "success");
       resetFields();
-      floatingControlPanelStore.close(panelId);
+      dismissHost();
     } finally {
       submitting = false;
     }

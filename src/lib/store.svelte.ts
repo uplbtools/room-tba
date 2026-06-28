@@ -470,6 +470,32 @@ class MapToolsStore {
   };
 }
 
+class EditorChromeStore {
+  shelfOpen = $state(false);
+  additionModalOpen = $state(false);
+
+  openShelf = () => {
+    this.shelfOpen = true;
+  };
+
+  closeShelf = () => {
+    this.shelfOpen = false;
+  };
+
+  toggleShelf = () => {
+    this.shelfOpen = !this.shelfOpen;
+  };
+
+  openAdditionModal = () => {
+    this.additionModalOpen = true;
+    this.shelfOpen = false;
+  };
+
+  closeAdditionModal = () => {
+    this.additionModalOpen = false;
+  };
+}
+
 class MapEditStore {
   enabled: boolean = $state(false);
 
@@ -1122,6 +1148,7 @@ export const mapViewStore = new MapViewStore();
 export const sidePanelStore = new MainControlsStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapToolsStore = new MapToolsStore();
+export const editorChromeStore = new EditorChromeStore();
 export const mapEditStore = new MapEditStore();
 export const mapProposalStore = new MapProposalStore();
 export const additionProposalStore = new AdditionProposalStore();

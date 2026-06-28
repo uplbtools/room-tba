@@ -246,6 +246,12 @@ button.map-chrome-chip:disabled {
   color: hsl(5, 53%, 22%);
 }
 
+.map-chrome-chip--editor-active {
+  border-color: hsl(160, 40%, 72%);
+  background-color: hsl(160, 45%, 96%);
+  color: hsl(160, 84%, 22%);
+}
+
 .map-chrome-chip--filter-selected {
   border-color: hsl(5, 53%, 32%);
   background: hsl(5, 53%, 32%);
