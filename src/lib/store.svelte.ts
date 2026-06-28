@@ -380,9 +380,15 @@ class MapStore {
 
 class MapViewStore {
   eventsOnly: boolean = $state(false);
+  /** Opt-in slow campus overview rotation; off by default for a11y and calm UI. */
+  campusTourEnabled: boolean = $state(false);
 
   toggleEventsOnly = () => {
     this.eventsOnly = !this.eventsOnly;
+  };
+
+  toggleCampusTour = () => {
+    this.campusTourEnabled = !this.campusTourEnabled;
   };
 
   showAll = () => {
@@ -429,11 +435,7 @@ class FloatingControlPanelStore {
 }
 
 export type MapToolsSection =
-  | "view"
-  | "legend"
-  | "building-type"
-  | "terrain"
-  | "jeepney";
+  "view" | "legend" | "building-type" | "terrain" | "jeepney";
 
 class MapToolsStore {
   open = $state(false);
