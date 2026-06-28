@@ -159,17 +159,17 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 
 ### Update README when you change…
 
-| If you touch… | README must reflect… |
-|---------------|----------------------|
-| `package.json` scripts | Command names, what they do, when they need `DATABASE_URL` |
-| `astro.config.mjs` / `.env.example` env vars | Required vs optional vars, where to get values |
-| Database provider, Drizzle, migrations | Supabase Postgres + `drizzle/` — not SQLite/Neon as runtime |
-| Astro / Bun / major deps | Version labels that match `package.json` |
-| CI workflows (`.github/workflows/*`) | What runs on PRs (`bun test src`, Prettier, etc.) |
-| Live URL, repo org, default term label | Links, “current semester” data note, changelog path |
-| Editor login entry points | `/?editor=login`, in-app editing — not a separate admin app |
-| Project layout (`src/pages`, `src/lib`, …) | Folder tree in README matches reality |
-| New user-visible features | Feature table or student-mode bullets |
+| If you touch…                                | README must reflect…                                        |
+| -------------------------------------------- | ----------------------------------------------------------- |
+| `package.json` scripts                       | Command names, what they do, when they need `DATABASE_URL`  |
+| `astro.config.mjs` / `.env.example` env vars | Required vs optional vars, where to get values              |
+| Database provider, Drizzle, migrations       | Supabase Postgres + `drizzle/` — not SQLite/Neon as runtime |
+| Astro / Bun / major deps                     | Version labels that match `package.json`                    |
+| CI workflows (`.github/workflows/*`)         | What runs on PRs (`bun test src`, Prettier, etc.)           |
+| Live URL, repo org, default term label       | Links, “current semester” data note, changelog path         |
+| Editor login entry points                    | `/?editor=login`, in-app editing — not a separate admin app |
+| Project layout (`src/pages`, `src/lib`, …)   | Folder tree in README matches reality                       |
+| New user-visible features                    | Feature table or student-mode bullets                       |
 
 **Pair with `.env.example`:** new server env vars get a commented line in `.env.example` and a README mention in the same change set.
 

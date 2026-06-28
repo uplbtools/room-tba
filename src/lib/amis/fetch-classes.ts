@@ -1,8 +1,7 @@
 import { extractClassRows } from "./normalize-class";
 import type { AmisClassRow, AmisFetchOptions } from "./types";
 
-const AMIS_CLASSES_URL =
-  "https://api-amis.uplb.edu.ph/api/students/classes";
+const AMIS_CLASSES_URL = "https://api-amis.uplb.edu.ph/api/students/classes";
 
 /** AMIS-friendly batch size (verified against midyear term 1252). */
 export const AMIS_DEFAULT_PAGE_SIZE = 10_000;
@@ -10,10 +9,7 @@ export const AMIS_DEFAULT_PAGE_SIZE = 10_000;
 /** Pause between page requests so imports do not hammer AMIS. */
 export const AMIS_DEFAULT_PAGE_DELAY_MS = 400;
 
-function asNested(
-  obj: Record<string, unknown>,
-  path: string[],
-): unknown {
+function asNested(obj: Record<string, unknown>, path: string[]): unknown {
   let current: unknown = obj;
   for (const key of path) {
     if (current == null || typeof current !== "object") return null;
@@ -40,13 +36,11 @@ export function readAmisPageMeta(payload: unknown, page: number): AmisPageMeta {
       : {};
 
   const total =
-    readNumber(obj.total) ??
-    readNumber(asNested(obj, ["classes", "total"]));
+    readNumber(obj.total) ?? readNumber(asNested(obj, ["classes", "total"]));
   const lastPageRaw =
     readNumber(obj.last_page) ??
     readNumber(asNested(obj, ["classes", "last_page"]));
-  const to =
-    readNumber(obj.to) ?? readNumber(asNested(obj, ["classes", "to"]));
+  const to = readNumber(obj.to) ?? readNumber(asNested(obj, ["classes", "to"]));
 
   let lastPage = lastPageRaw ?? page;
   if (total != null && to != null && to >= total) {

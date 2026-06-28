@@ -26,7 +26,9 @@ function stripPii(value: unknown): unknown {
   }
   if (value !== null && typeof value === "object") {
     const out: Record<string, unknown> = {};
-    for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    for (const [key, nested] of Object.entries(
+      value as Record<string, unknown>,
+    )) {
       if (STRIP_KEYS.has(key)) continue;
       out[key] = stripPii(nested);
     }

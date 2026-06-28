@@ -14,7 +14,11 @@ export function getBuildingShareUrl(
   defaultTermId?: number | null,
 ) {
   return absoluteUrl(
-    withTermQuery(getBuildingCanonicalPath(buildingName), termId, defaultTermId),
+    withTermQuery(
+      getBuildingCanonicalPath(buildingName),
+      termId,
+      defaultTermId,
+    ),
   );
 }
 

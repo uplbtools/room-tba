@@ -110,13 +110,13 @@
   const showDormDetails = $derived(
     Boolean(
       dorm &&
-        (dorm.managingOffice ||
-          dorm.contactEmail ||
-          contactPhones.length > 0 ||
-          amenities.length > 0 ||
-          dorm.isUpManaged ||
-          dorm.facebookLink ||
-          (!dorm.isUpManaged && dorm.priceRange)),
+      (dorm.managingOffice ||
+        dorm.contactEmail ||
+        contactPhones.length > 0 ||
+        amenities.length > 0 ||
+        dorm.isUpManaged ||
+        dorm.facebookLink ||
+        (!dorm.isUpManaged && dorm.priceRange)),
     ),
   );
 
@@ -590,7 +590,8 @@
             <Building2 size={14} />
             <div class="entity-detail-row__content">
               <span class="entity-detail-row__label">Managing office</span>
-              <span class="entity-detail-row__value">{dorm.managingOffice}</span>
+              <span class="entity-detail-row__value">{dorm.managingOffice}</span
+              >
             </div>
           </div>
         {/if}

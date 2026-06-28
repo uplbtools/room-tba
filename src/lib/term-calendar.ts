@@ -38,12 +38,12 @@ export function resolveActiveTermByDate<T extends Term>(
   terms: T[],
   date = new Date(),
 ): T | null {
-  const active = terms.filter((term) => term.isActive && isDateWithinTerm(term, date));
+  const active = terms.filter(
+    (term) => term.isActive && isDateWithinTerm(term, date),
+  );
   if (active.length === 0) return null;
   return (
-    active.sort(
-      (a, b) => b.sortOrder - a.sortOrder || b.id - a.id,
-    )[0] ?? null
+    active.sort((a, b) => b.sortOrder - a.sortOrder || b.id - a.id)[0] ?? null
   );
 }
 
@@ -97,7 +97,8 @@ export function resolveInitialTermId(
   },
 ): number | null {
   const urlValid =
-    options.fromUrl !== null && terms.some((term) => term.id === options.fromUrl);
+    options.fromUrl !== null &&
+    terms.some((term) => term.id === options.fromUrl);
   if (urlValid) return options.fromUrl;
 
   const calendarDefault = resolveActiveTermByDate(terms, options.date);

@@ -2,12 +2,20 @@
   import { onMount } from "svelte";
   import { getAppData } from "@lib/context";
   import { createEntityUrlSync } from "@lib/entity-url-sync";
-  import { getBuildingCanonicalPath, getRoomCanonicalPath } from "@lib/entity-urls";
+  import {
+    getBuildingCanonicalPath,
+    getRoomCanonicalPath,
+  } from "@lib/entity-urls";
   import {
     resetDocumentMeta,
     updateTermAwareDocumentMeta,
   } from "@lib/term-document-meta";
-  import { currentRoom, mapEditStore, queryStore, termStore } from "@lib/store.svelte";
+  import {
+    currentRoom,
+    mapEditStore,
+    queryStore,
+    termStore,
+  } from "@lib/store.svelte";
 
   const appData = getAppData();
   let sync = $state<ReturnType<typeof createEntityUrlSync> | null>(null);

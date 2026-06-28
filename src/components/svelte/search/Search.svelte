@@ -301,7 +301,6 @@
                 </button>
               {/if}
             </div>
-
           </div>
 
           {#if showEditorChrome}
@@ -565,9 +564,12 @@
     grid-row: 4;
   }
 
-  .search-root.mobile-shell:not(.search-suggestions-open) .map-search-chrome__transit-routes,
-  .search-root.mobile-shell:not(.search-suggestions-open) .map-search-chrome__events,
-  .search-root.mobile-shell:not(.search-suggestions-open) .map-search-chrome__editor {
+  .search-root.mobile-shell:not(.search-suggestions-open)
+    .map-search-chrome__transit-routes,
+  .search-root.mobile-shell:not(.search-suggestions-open)
+    .map-search-chrome__events,
+  .search-root.mobile-shell:not(.search-suggestions-open)
+    .map-search-chrome__editor {
     grid-column: 1 / -1;
     grid-row: 3;
     min-width: 0;
@@ -753,13 +755,17 @@
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
-  .search-root.search-suggestions-open:not(.mobile-shell) .map-search-chrome__bar,
-  .search-root.search-suggestions-open:not(.mobile-shell) .map-search-chrome__suggestions {
+  .search-root.search-suggestions-open:not(.mobile-shell)
+    .map-search-chrome__bar,
+  .search-root.search-suggestions-open:not(.mobile-shell)
+    .map-search-chrome__suggestions {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
 
-  .search-root.search-suggestions-open:not(.mobile-shell):not(.events-panel-open):not(.editor-panel-open):not(.transit-panel-open)
+  .search-root.search-suggestions-open:not(.mobile-shell):not(
+      .events-panel-open
+    ):not(.editor-panel-open):not(.transit-panel-open)
     .map-search-chrome__suggestions {
     border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
     border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
