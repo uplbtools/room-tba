@@ -11,7 +11,7 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Human volunteers, developers (default)           | [CONTRIBUTING.md](CONTRIBUTING.md)                                                                                      |
 | Developer setup detail                           | [docs/developer-guide.md](docs/developer-guide.md)                                                                      |
 | Starting a coding session, commit, or PR         | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md)                      |
-| Worktrees, multiple agents, push to `staging`      | [AGENTS.md § Worktrees and multiple agents](#worktrees-and-multiple-agents)                                             |
+| Worktrees, multiple agents, push to `staging`    | [AGENTS.md § Worktrees and multiple agents](#worktrees-and-multiple-agents)                                             |
 | Map chrome, Entry zones, flyouts, 320/768 layout | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md) |
 | Side panel / entity detail views                 | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc)                                                            |
 | Drizzle, API routes, migrations, PGlite          | [.cursor/rules/data-and-migrations.mdc](.cursor/rules/data-and-migrations.mdc)                                          |
@@ -83,14 +83,14 @@ git status --short --branch
 
 Multiple Cursor agents (or human + agent) on the **same path and branch** cause lost work, surprise merges, and “it built locally but Vercel failed” confusion.
 
-| Do | Don't |
-| --- | --- |
-| **One active agent per worktree path** | Two agents editing `/home/…/room-tba` on `staging` at once |
-| `git fetch` + `git status` before editing | Assume the tree matches remote |
-| `git pull --rebase origin staging` before push when others may be active | Force-push `staging` or `main` |
-| Commit only your scoped changes; preserve unrelated dirty files | Revert or `git checkout --` user WIP |
-| Open a **separate worktree + branch** for parallel long tasks | Long-lived stashes as a substitute for branches |
-| `git stash drop` / `git stash clear` only when the user asks | Bulk-drop stashes to “clean up” without checking |
+| Do                                                                       | Don't                                                      |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| **One active agent per worktree path**                                   | Two agents editing `/home/…/room-tba` on `staging` at once |
+| `git fetch` + `git status` before editing                                | Assume the tree matches remote                             |
+| `git pull --rebase origin staging` before push when others may be active | Force-push `staging` or `main`                             |
+| Commit only your scoped changes; preserve unrelated dirty files          | Revert or `git checkout --` user WIP                       |
+| Open a **separate worktree + branch** for parallel long tasks            | Long-lived stashes as a substitute for branches            |
+| `git stash drop` / `git stash clear` only when the user asks             | Bulk-drop stashes to “clean up” without checking           |
 
 ### Optional: extra worktrees
 
