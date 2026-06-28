@@ -184,40 +184,42 @@
         Updated {catalogUpdatedLabel}
       </span>
 
-      <span class="status-sep" aria-hidden="true">·</span>
-      <a
-        href="/messenger"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="map-chrome-ghost-link status-meta-link"
-      >
-        <MessageCircle size={14} aria-hidden="true" />
-        Contact
-      </a>
+      <span class="status-meta-links">
+        <span class="status-sep" aria-hidden="true">·</span>
+        <a
+          href="/messenger"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="map-chrome-ghost-link status-meta-link"
+        >
+          <MessageCircle size={14} aria-hidden="true" />
+          Contact
+        </a>
 
-      <span class="status-sep" aria-hidden="true">·</span>
-      <MapChromeGhostButton
-        variant="muted"
-        onclick={() => modalStore.openModal("landing")}
-      >
-        Contributors
-      </MapChromeGhostButton>
-
-      {#if !adminAuthStore.isLoggedIn}
         <span class="status-sep" aria-hidden="true">·</span>
         <MapChromeGhostButton
           variant="muted"
-          onclick={() => adminAuthStore.openLogin()}
+          onclick={() => modalStore.openModal("landing")}
         >
-          Editor sign in
+          Contributors
         </MapChromeGhostButton>
-      {/if}
 
-      <span class="status-sep" aria-hidden="true">·</span>
-      <a href="/changelog" class="map-chrome-ghost-link status-meta-link">
-        <GitFork size={14} aria-hidden="true" />
-        {APP_VERSION_LABEL}
-      </a>
+        {#if !adminAuthStore.isLoggedIn}
+          <span class="status-sep" aria-hidden="true">·</span>
+          <MapChromeGhostButton
+            variant="muted"
+            onclick={() => adminAuthStore.openLogin()}
+          >
+            Editor sign in
+          </MapChromeGhostButton>
+        {/if}
+
+        <span class="status-sep" aria-hidden="true">·</span>
+        <a href="/changelog" class="map-chrome-ghost-link status-meta-link">
+          <GitFork size={14} aria-hidden="true" />
+          {APP_VERSION_LABEL}
+        </a>
+      </span>
     </div>
   {/if}
 </div>
@@ -243,14 +245,14 @@
     font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.2;
-    gap: 0.125rem;
+    gap: 0.0625rem;
     flex: 0 0 auto;
     min-height: 2rem;
     box-sizing: border-box;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     backdrop-filter: blur(10px);
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    padding: 0.1875rem 0.625rem;
+    padding: 0.125rem 0.5rem;
     border-radius: 1rem;
     box-shadow: var(
       --map-chrome-panel-shadow,
@@ -265,16 +267,16 @@
 
     &.is-open {
       width: min(44rem, calc(100% - var(--bottom-fab-inset, 0px)));
-      gap: 0.1875rem;
-      padding: 0.25rem 0.625rem 0.3125rem;
+      gap: 0.0625rem;
+      padding: 0.1875rem 0.5rem 0.25rem;
     }
 
     .status-head {
       display: flex;
       align-items: center;
-      gap: 0.375rem;
+      gap: 0.3125rem;
       min-width: 0;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
     .status-toggle {
@@ -302,10 +304,10 @@
       display: flex;
       flex: 1 1 auto;
       align-items: center;
-      gap: 0.375rem;
+      gap: 0.3125rem;
       min-width: 0;
       overflow: hidden;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
     .status-primary :global(.sync-status--inline),
@@ -332,28 +334,37 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.25rem 0.375rem;
+      gap: 0.1875rem 0.3125rem;
       width: 100%;
       min-width: 0;
       font-size: 0.75rem;
       font-weight: 500;
-      line-height: 1.25;
+      line-height: 1.2;
       color: hsl(0, 0%, 28%);
+    }
+
+    .status-meta-links {
+      display: inline-flex;
+      flex: 1 1 auto;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.1875rem 0.3125rem;
+      min-width: 0;
     }
 
     .status-meta-progress {
       display: inline-flex;
       align-items: center;
-      gap: 0.3125rem;
-      flex: 0 0 auto;
+      gap: 0.25rem;
+      flex: 0 1 auto;
       min-width: 0;
-      white-space: nowrap;
+      max-width: 100%;
     }
 
     .status-meta-progress :global(.map-chrome-progress) {
-      width: min(3.5rem, 12vw);
+      width: min(3rem, 11vw);
       flex: 0 0 auto;
-      height: 0.4375rem;
+      height: 0.375rem;
     }
 
     .status-meta-count {
@@ -395,7 +406,7 @@
     .status-meta :global(.map-chrome-ghost-btn) {
       font-size: 0.75rem;
       font-weight: 600;
-      padding: 0.0625rem 0.25rem;
+      padding: 0 0.1875rem;
     }
 
     .status-meta-link {
@@ -410,9 +421,9 @@
       margin-left: 0;
       align-self: stretch;
       min-height: 2rem;
-      padding: 0.1875rem 0.5rem;
-      padding-bottom: calc(0.1875rem + env(safe-area-inset-bottom, 0px));
-      gap: 0.125rem;
+      padding: 0.125rem 0.4375rem;
+      padding-bottom: calc(0.125rem + env(safe-area-inset-bottom, 0px));
+      gap: 0.0625rem;
       border-radius: 0;
       border-left: none;
       border-right: none;
@@ -421,21 +432,30 @@
 
       &.is-open {
         width: 100%;
-        padding: 0.25rem 0.5rem;
-        padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
+        padding: 0.1875rem 0.4375rem;
+        padding-bottom: calc(0.1875rem + env(safe-area-inset-bottom, 0px));
       }
 
       .status-head {
-        gap: 0.3125rem;
+        gap: 0.25rem;
       }
 
-      .status-primary,
+      .status-primary {
+        gap: 0.25rem;
+        flex-wrap: wrap;
+      }
+
       .status-utilities {
-        gap: 0.3125rem;
+        gap: 0.25rem;
+        flex-wrap: nowrap;
       }
 
       .status-meta {
-        gap: 0.1875rem 0.3125rem;
+        gap: 0.125rem 0.25rem;
+      }
+
+      .status-meta-links {
+        gap: 0.125rem 0.25rem;
       }
 
       .status-meta-progress {
@@ -446,14 +466,14 @@
 
   @media (max-width: 1200px) {
     .status-meta-updated,
-    .status-meta-updated + .status-sep {
+    .status-meta-updated + .status-meta-links .status-sep:first-child {
       display: none;
     }
   }
 
   @media (max-width: 22rem) {
     .status-meta-progress :global(.map-chrome-progress) {
-      width: 2.75rem;
+      width: 2.5rem;
     }
 
     .status-count-wide {

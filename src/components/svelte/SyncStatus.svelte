@@ -58,14 +58,23 @@
     };
   });
 
-  const showDetail = $derived(expanded || (!compact && !inline));
+  /** Inline status bar: label carries sync steps; stacked detail clutters the two-row layout. */
+  const showDetail = $derived.by(() => {
+    if (inline) {
+      if (compact && !expanded) return false;
+      return (
+        appBootstrapStore.phase === "error" ||
+        syncToastStore.syncError !== null ||
+        syncToastStore.needRefresh
+      );
+    }
+    return expanded || (!compact && !inline);
+  });
   const showDismiss = $derived(
     (expanded || !compact) &&
       !syncToastStore.isSyncing &&
       syncToastStore.syncError === null &&
-      (!inline ||
-        syncToastStore.allSynced ||
-        syncToastStore.needRefresh),
+      (syncToastStore.needRefresh || (!inline && syncToastStore.allSynced)),
   );
   const showReload = $derived(showDetail && syncToastStore.needRefresh);
   const showProgress = $derived(
@@ -242,6 +251,7 @@
         <div
           class="progress-bar"
           class:progress-bar--compact={compact && !expanded}
+          class:progress-bar--inline={inline}
         >
           <div
             class="progress-bar-value"
@@ -253,10 +263,10 @@
             style:width={`${syncToastStore.progressPercent}%`}
           ></div>
         </div>
-        {#if expanded}
+        {#if expanded && !inline}
           <span class="progress-label">{syncToastStore.progressPercent}%</span>
         {/if}
-      {:else if showIndeterminate && compact && !expanded}
+      {:else if showIndeterminate && ((compact && !expanded) || inline)}
         <div
           class="progress-bar progress-bar--compact progress-bar--indeterminate"
           role="progressbar"
@@ -274,9 +284,9 @@
   .sync-status {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    min-height: 1.625rem;
-    padding: 0.1875rem 0.625rem;
+    gap: 0.3125rem;
+    min-height: 1.5rem;
+    padding: 0.125rem 0.5rem;
     border-radius: 0.75rem;
     background-color: hsl(0, 0%, 97%);
     color: hsl(0, 0%, 20%);
@@ -319,14 +329,14 @@
     border: none;
     border-radius: 0;
     background: transparent;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     max-width: none;
-    gap: 0.375rem;
+    gap: 0.25rem;
     font-size: inherit;
     line-height: inherit;
     border-right: 1px solid hsl(0, 0%, 82%);
-    padding-right: 0.75rem;
-    margin-right: 0.125rem;
+    padding-right: 0.5rem;
+    margin-right: 0.0625rem;
   }
 
   .sync-status--inline.sync-status--success {
@@ -349,10 +359,19 @@
 
   .sync-status--inline .sync-status-copy {
     flex: 0 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
   }
 
   .sync-status--inline .sync-status-label {
     font-weight: inherit;
+  }
+
+  .sync-status--inline .sync-status-detail {
+    font-size: inherit;
+    color: inherit;
+    opacity: 0.75;
   }
 
   @media (max-width: 48rem) {
@@ -440,7 +459,7 @@
     background: transparent;
     color: inherit;
     cursor: pointer;
-    padding: 0.25rem;
+    padding: 0.125rem;
     opacity: 0.65;
   }
 
@@ -460,6 +479,11 @@
 
   .progress-bar--compact {
     width: 2.5rem;
+    height: 4px;
+  }
+
+  .progress-bar--inline {
+    width: 2.25rem;
     height: 4px;
   }
 
