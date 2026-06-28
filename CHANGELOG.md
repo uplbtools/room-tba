@@ -1,3 +1,22 @@
+# [1.13.0](https://github.com/uplbtools/room-tba/compare/v1.12.0...v1.13.0) (2026-06-28)
+
+
+### Bug Fixes
+
+* **copy:** repair terms typos and finish em-dash cleanup ([bf3ae16](https://github.com/uplbtools/room-tba/commit/bf3ae1655d7cdf30a492158d2def128384812f25))
+* **map:** tighten map chrome layout and mobile panel exclusivity ([8a3974e](https://github.com/uplbtools/room-tba/commit/8a3974e71119f5ef75281b420c3f91b6ec58f561))
+* **ui:** improve entity detail panels on mobile and narrow widths ([70e511e](https://github.com/uplbtools/room-tba/commit/70e511e061e1ea3ac4e1a816accf8bcff8baaddf))
+* **ui:** keep term selector visible in map edit mode ([5229493](https://github.com/uplbtools/room-tba/commit/5229493c0b5c4f0b1d8bfea0e6cb51bc22898f6f))
+
+
+### Features
+
+* AMIS class import, term calendar, and map UI fixes ([#314](https://github.com/uplbtools/room-tba/issues/314)) ([7ec9f02](https://github.com/uplbtools/room-tba/commit/7ec9f02d1ef9b2d9360330d45924f10a2fb5d597))
+* **amis:** add import pipeline with sanitized local cache ([b046501](https://github.com/uplbtools/room-tba/commit/b04650146fd035435430e94edf10ffcd53a5b090))
+* **db:** add term calendar migrations and midyear fixes ([9b2778f](https://github.com/uplbtools/room-tba/commit/9b2778f7f737ecc2058141cfbe5f7b01ab14f9ec))
+* **ui:** polish term selector and add jeepney stop modal ([1684b13](https://github.com/uplbtools/room-tba/commit/1684b136852a5e75855347f137162ee32ab8821e))
+* **ui:** sync term selection through URLs and static entity pages ([4a45d10](https://github.com/uplbtools/room-tba/commit/4a45d10f24e99fe8587f1cb20441691fb39a70c0))
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
