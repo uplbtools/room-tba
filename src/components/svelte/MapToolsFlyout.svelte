@@ -73,7 +73,7 @@
               class="map-chrome-accordion-body"
             >
               {#if section.id === "view"}
-                <MapViewControls embedded />
+                <MapViewControls embedded variant="modes" />
               {:else if section.id === "legend"}
                 <MapLegend embedded />
               {:else if section.id === "terrain"}

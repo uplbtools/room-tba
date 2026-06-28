@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Compass from "@lucide/svelte/icons/compass";
+  import Navigation2 from "@lucide/svelte/icons/navigation-2";
   import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
   import RotateCw from "@lucide/svelte/icons/rotate-cw";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
@@ -13,7 +13,7 @@
   type Props = {
     /** When true, omit outer card chrome (used inside MapToolsFlyout). */
     embedded?: boolean;
-    /** modes = pins + 2D/3D in flyout; camera = desktop rotate/tilt/compass on map face. */
+    /** modes = pins + 2D/3D in flyout; camera = desktop rotate/tilt/north on map face. */
     variant?: "modes" | "camera";
   };
 
@@ -27,13 +27,13 @@
   const MAX_PITCH = 60;
   const THREE_D_PITCH = 60;
   const TWO_D_THRESHOLD = 1;
-  /** Lucide compass SVG tip sits at 45°; offset so north points up at bearing 0. */
-  const COMPASS_NORTH_OFFSET = 45;
+  /** Lucide navigation arrow tip sits at 45°; offset so north points up at bearing 0. */
+  const NORTH_ICON_OFFSET = 45;
 
   let bearing = $state(0);
   let pitch = $state(0);
 
-  const compassRotation = $derived(-COMPASS_NORTH_OFFSET - bearing);
+  const northRotation = $derived(-NORTH_ICON_OFFSET - bearing);
   const is2D = $derived(pitch <= TWO_D_THRESHOLD);
   const pinModeTitle = $derived(
     mapViewStore.eventsOnly
@@ -104,18 +104,6 @@
   const resetNorth = () =>
     withMap((map) => map.easeTo({ bearing: 0, duration: 400 }));
 
-  const go2D = () =>
-    withMap((map) => {
-      if (map.getPitch() <= TWO_D_THRESHOLD) return;
-      map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
-    });
-
-  const go3D = () =>
-    withMap((map) => {
-      if (map.getPitch() > TWO_D_THRESHOLD) return;
-      map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
-    });
-
   const toggleView = () =>
     withMap((map) => {
       if (map.getPitch() > TWO_D_THRESHOLD) {
@@ -173,74 +161,55 @@
   {/if}
 
   {#if showCameraNav}
-    <div class="camera-toolbar">
-      <div class="dimension-segments" role="group" aria-label="Map view mode">
-        <button
-          type="button"
-          class="dimension-segment"
-          class:active={is2D}
-          onclick={go2D}
-          aria-pressed={is2D}
-          title="Flat top-down map"
-        >
-          2D
-        </button>
-        <button
-          type="button"
-          class="dimension-segment"
-          class:active={!is2D}
-          onclick={go3D}
-          aria-pressed={!is2D}
-          title="Tilted perspective map"
-        >
-          3D
-        </button>
-      </div>
-      <div class="toolbar-divider" aria-hidden="true"></div>
+    <div class="camera-stack" role="group" aria-label="Camera navigation">
       <button
-        class="control rotate-step"
+        type="button"
+        class="control icon-btn"
         onclick={rotateLeft}
         title="Rotate left"
         aria-label="Rotate map left"
       >
-        <RotateCcw size={18} />
+        <RotateCcw size={16} />
       </button>
       <button
-        class="control compass"
+        type="button"
+        class="control icon-btn north-btn"
         onclick={resetNorth}
         title="Reset to north"
         aria-label="Reset map orientation to north"
       >
-        <span class="compass-icon" style:rotate={`${compassRotation}deg`}>
-          <Compass size={20} />
+        <span class="north-icon" style:rotate={`${northRotation}deg`}>
+          <Navigation2 size={15} stroke-width={2} />
         </span>
       </button>
       <button
-        class="control rotate-step"
+        type="button"
+        class="control icon-btn"
         onclick={rotateRight}
         title="Rotate right"
         aria-label="Rotate map right"
       >
-        <RotateCw size={18} />
+        <RotateCw size={16} />
       </button>
-      <div class="toolbar-divider" aria-hidden="true"></div>
       <button
-        class="control"
+        type="button"
+        class="control icon-btn"
         onclick={tiltDown}
         title="Tilt down (less 3D)"
         aria-label="Decrease map tilt"
         disabled={pitch <= 0}
       >
-        <ChevronDown size={18} />
+        <ChevronDown size={16} />
       </button>
       <button
-        class="control"
+        type="button"
+        class="control icon-btn"
         onclick={tiltUp}
         title="Tilt up (more 3D)"
         aria-label="Increase map tilt"
         disabled={pitch >= MAX_PITCH}
       >
-        <ChevronUp size={18} />
+        <ChevronUp size={16} />
       </button>
     </div>
   {/if}
@@ -269,61 +238,15 @@
 
   .map-view-controls.camera-only {
     flex-shrink: 0;
-    padding: 0.25rem;
+    padding: 0.1875rem;
+    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
   }
 
-  .camera-toolbar {
+  .camera-stack {
     display: flex;
-    align-items: center;
-    gap: 0.125rem;
-  }
-
-  .dimension-segments {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    padding: 0.125rem;
-    border-radius: 0.5rem;
-    background-color: hsl(0, 0%, 96%);
-  }
-
-  .dimension-segment {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 2rem;
-    height: 2.125rem;
-    padding: 0 0.4375rem;
-    border: none;
-    border-radius: 0.375rem;
-    background: transparent;
-    font: inherit;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.02em;
-    color: hsl(5, 53%, 32%);
-    cursor: pointer;
-    transition:
-      background-color 0.15s ease,
-      color 0.15s ease;
-  }
-
-  .dimension-segment:hover:not(.active) {
-    background-color: hsla(0, 0%, 0%, 0.06);
-  }
-
-  .dimension-segment.active {
-    background-color: hsl(5, 53%, 32%);
-    color: white;
-  }
-
-  .toolbar-divider {
-    flex-shrink: 0;
-    width: 1px;
-    height: 1.375rem;
-    margin: 0 0.0625rem;
-    background-color: hsl(0, 0%, 90%);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.0625rem;
   }
 
   .map-view-controls.embedded {
@@ -350,19 +273,21 @@
     align-items: center;
     justify-content: center;
     gap: 0.2rem;
-    width: 2.125rem;
-    height: 2.125rem;
     padding: 0;
     border: none;
-    border-radius: 0.625rem;
+    border-radius: var(--map-chrome-toggle-radius, 0.5rem);
     background-color: transparent;
     box-sizing: border-box;
-    color: hsl(0, 0%, 20%);
+    color: hsl(0, 0%, 28%);
     cursor: pointer;
     transition:
       background-color 0.15s ease,
-      border-color 0.15s ease,
       color 0.15s ease;
+  }
+
+  .icon-btn {
+    width: var(--map-chrome-toggle-size, 2rem);
+    height: var(--map-chrome-toggle-size, 2rem);
   }
 
   .control:hover {
@@ -377,6 +302,15 @@
     color: hsl(0, 0%, 75%);
     cursor: default;
     background-color: transparent;
+  }
+
+  .north-btn {
+    color: hsl(5, 40%, 42%);
+  }
+
+  .north-icon {
+    display: inline-flex;
+    transition: rotate 0.2s ease;
   }
 
   .mode-toggle {
@@ -447,17 +381,8 @@
     background-color: hsl(5, 53%, 38%);
   }
 
-  .compass {
-    color: hsl(5, 53%, 32%);
-  }
-
-  .compass-icon {
-    display: inline-flex;
-    transition: rotate 0.2s ease;
-  }
-
   @media (max-width: 48rem) {
-    .control {
+    .icon-btn {
       width: 2.75rem;
       height: 2.75rem;
     }
