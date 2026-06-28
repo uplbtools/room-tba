@@ -10,6 +10,7 @@
 ## Commits
 
 - **When you finish a scoped task, commit it** unless the user says not to. Do not leave completed work uncommitted across turns.
+- **Use [Conventional Commits](https://www.conventionalcommits.org/)** — required for semantic-release on `main`. Format: `type(scope): imperative summary` (e.g. `feat(map-chrome): add transit route panel`, `fix(security): validate image URLs`). Common types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`. Scope is optional but preferred when the change is localized.
 - **One logical unit per commit** — atomic, reviewable, GPG-signed: `git commit -S -m "$(cat <<'EOF' … EOF)"`.
 - Stage only files that belong together; write a message that states _why_, not a file list.
 - Do not push unless asked. Do not amend or force-push unless the user’s git rules allow it.
