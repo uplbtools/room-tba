@@ -1,0 +1,92 @@
+---
+import {
+  COMMUNITY_LINKS,
+  LEGAL_LINKS,
+  UPLB_TOOLS_URL,
+} from "@constants/community-links";
+
+const externalCommunityLinks = COMMUNITY_LINKS.filter(
+  (link) => link.href !== UPLB_TOOLS_URL,
+);
+---
+
+<footer class="site-footer">
+  <nav class="site-footer__nav" aria-label="Site links">
+    <span class="site-footer__group">
+      {LEGAL_LINKS.map((link) => <a href={link.href}>{link.label}</a>)}
+    </span>
+    <span class="site-footer__sep" aria-hidden="true">·</span>
+    <span class="site-footer__group">
+      <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer">
+        UPLB Tools
+      </a>
+      {
+        externalCommunityLinks.map((link) => (
+          <a href={link.href} target="_blank" rel="noopener noreferrer">
+            {link.label}
+          </a>
+        ))
+      }
+    </span>
+  </nav>
+  <p class="site-footer__note">
+    Room TBA is a student-run project under
+    <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
+      >UPLB Tools</a
+    >. Not an official UPLB website.
+  </p>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid hsl(0, 0%, 88%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: hsl(0, 0%, 35%);
+  }
+
+  .site-footer__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.625rem;
+  }
+
+  .site-footer__group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.625rem;
+  }
+
+  .site-footer__sep {
+    color: hsl(0, 0%, 72%);
+    user-select: none;
+  }
+
+  .site-footer a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .site-footer a:hover,
+  .site-footer a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .site-footer__note {
+    margin: 0;
+    max-width: 36rem;
+  }
+
+  .site-footer__note a {
+    font-weight: 600;
+  }
+</style>

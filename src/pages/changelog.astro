@@ -1,6 +1,7 @@
 ---
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 import * as changelog from "../../CHANGELOG.md";
 ---
 
@@ -8,14 +9,15 @@ import * as changelog from "../../CHANGELOG.md";
   title="Changelog | Room TBA"
   description="Track recent Room TBA updates, including room data, course offerings, and site improvements."
   canonicalPath="/changelog"
+  showAppLoadingShell={false}
 >
   <main class="changelog-page">
     <a href="/" class="back-link">Back to Room TBA</a>
 
     <header class="hero">
       <p class="eyebrow">Release notes</p>
-      <h1>Changelog</h1>
-      <p>
+      <h1 class="changelog-page__title">Changelog</h1>
+      <p class="hero__lede">
         Room TBA is a living document and is updated regularly, especially every
         term, to reflect latest changes in course offerings, room status, and
         other relevant information. Aside from the data itself, the website also
@@ -24,24 +26,37 @@ import * as changelog from "../../CHANGELOG.md";
         release.
       </p>
     </header>
-    <!-- <main> -->
-    <div set:html={changelog.compiledContent()} class="entries" />
+
+    <div class="entries" set:html={changelog.compiledContent()} />
+
+    <SiteFooter />
   </main>
+
   <script is:inline>
-    const changelogContainer = document.querySelector("div.entries");
-    const changelogArticles = document.createElement("DIV");
-    let currentArticle = null;
-    changelogContainer.childNodes.forEach((val) => {
-      if (val.nodeName == "H1" || val.nodeName == "H2") {
-        currentArticle = document.createElement("ARTICLE");
-        currentArticle.classList.add("entry");
-        changelogArticles.appendChild(currentArticle);
+    (function () {
+      const container = document.querySelector(".changelog-page div.entries");
+      if (!container) return;
+
+      const fragment = document.createDocumentFragment();
+      let article = null;
+
+      while (container.firstChild) {
+        const node = container.firstChild;
+        if (node.nodeName === "H1" || node.nodeName === "H2") {
+          article = document.createElement("article");
+          article.className = "entry";
+          fragment.appendChild(article);
+        }
+        if (!article) {
+          article = document.createElement("article");
+          article.className = "entry";
+          fragment.appendChild(article);
+        }
+        article.appendChild(node);
       }
 
-      currentArticle.appendChild(changelogContainer.removeChild(val));
-    });
-    changelogContainer.append(...changelogArticles.childNodes);
-    console.log(changelogContainer);
+      container.replaceChildren(fragment);
+    })();
   </script>
 </Layout>
 
@@ -61,10 +76,7 @@ import * as changelog from "../../CHANGELOG.md";
       Cantarell,
       "Open Sans",
       "Helvetica Neue",
-      sans-serif,
-      "Times New Roman",
-      Times,
-      serif;
+      sans-serif;
   }
 
   .back-link {
@@ -82,26 +94,26 @@ import * as changelog from "../../CHANGELOG.md";
     margin-bottom: 2rem;
   }
 
-  .eyebrow,
-  .date,
-  .version {
+  .eyebrow {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.75rem;
     color: hsl(0, 0%, 40%);
+    margin: 0;
   }
 
-  h1 {
+  .changelog-page__title {
     font-size: clamp(2.25rem, 5vw, 3.5rem);
     line-height: 1;
     margin: 0;
   }
 
-  .hero p:last-child {
+  .hero__lede {
     max-width: 38rem;
     color: hsl(0, 0%, 30%);
     font-size: 1rem;
     line-height: 1.6;
+    margin: 0;
   }
 
   .entries {
@@ -115,42 +127,33 @@ import * as changelog from "../../CHANGELOG.md";
     padding: 1.25rem;
     background: white;
     box-shadow: 0 2px 0.5rem 0 hsla(0, 0%, 0%, 0.06);
-    h1,
-    h2 {
-      font-size: 1.5rem;
-    }
-    > :is(h3) {
-      margin-block: 0.5rem;
-    }
-    > :is(h1, h2) {
-      margin-block: 1rem;
-    }
-    > ul {
-      margin-bottom: 1rem;
-    }
-    h3 {
-      font-size: 1rem;
-    }
   }
 
-  .entry-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: start;
-    margin-bottom: 1rem;
+  .entry :is(h1, h2) {
+    font-size: 1.5rem;
+    margin-block: 0 0.75rem;
   }
 
-  ul {
-    margin: 0;
+  .entry h3 {
+    font-size: 1rem;
+    margin-block: 0.75rem 0.25rem;
+  }
+
+  .entry ul {
+    margin: 0 0 1rem;
     padding-left: 1.25rem;
     color: hsl(0, 0%, 25%);
     line-height: 1.65;
   }
 
+  .entry a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+  }
+
   @media screen and (max-width: 600px) {
-    .entry-header {
-      flex-direction: column;
+    .changelog-page {
+      padding: 1.5rem 0.875rem 3rem;
     }
   }
 </style>
