@@ -137,7 +137,7 @@
 
   .accordion-section {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.25rem;
     min-width: 0;
   }
 </style>
