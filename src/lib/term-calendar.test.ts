@@ -28,12 +28,12 @@ function term(id: number, overrides: Partial<Term> = {}): Term {
 describe("term-calendar", () => {
   it("detects midyear from Manila calendar date", () => {
     const midyear = term(1252);
-    expect(isDateWithinTerm(midyear, new Date("2026-06-29T12:00:00+08:00"))).toBe(
-      true,
-    );
-    expect(isDateWithinTerm(midyear, new Date("2026-08-01T12:00:00+08:00"))).toBe(
-      false,
-    );
+    expect(
+      isDateWithinTerm(midyear, new Date("2026-06-29T12:00:00+08:00")),
+    ).toBe(true);
+    expect(
+      isDateWithinTerm(midyear, new Date("2026-08-01T12:00:00+08:00")),
+    ).toBe(false);
   });
 
   it("resolves the in-session term for today", () => {
@@ -51,9 +51,9 @@ describe("term-calendar", () => {
       startsOn: "2026-06-07T16:00:00.000Z",
       endsOn: "2026-07-25T16:00:00.000Z",
     });
-    expect(isDateWithinTerm(midyear, new Date("2026-06-29T12:00:00+08:00"))).toBe(
-      true,
-    );
+    expect(
+      isDateWithinTerm(midyear, new Date("2026-06-29T12:00:00+08:00")),
+    ).toBe(true);
   });
 
   it("ignores stale local picks for undated terms during midyear", () => {

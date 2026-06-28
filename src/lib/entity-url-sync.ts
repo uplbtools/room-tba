@@ -207,7 +207,10 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     const targetSearch = targetPath.includes("?")
       ? targetPath.slice(targetPath.indexOf("?"))
       : "";
-    const targetPathname = targetPath.slice(0, targetPath.indexOf("?") >= 0 ? targetPath.indexOf("?") : undefined);
+    const targetPathname = targetPath.slice(
+      0,
+      targetPath.indexOf("?") >= 0 ? targetPath.indexOf("?") : undefined,
+    );
 
     if (pathname === targetPathname && currentSearch === targetSearch) {
       return;

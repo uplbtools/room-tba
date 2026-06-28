@@ -8,10 +8,7 @@ import {
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
-import {
-  parseTermIdFromSearch,
-  syncTermQueryParam,
-} from "./term-url";
+import { parseTermIdFromSearch, syncTermQueryParam } from "./term-url";
 import {
   resolveDefaultTermFromList,
   resolveInitialTermId,

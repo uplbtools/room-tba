@@ -1,8 +1,6 @@
 export const TERM_QUERY_PARAM = "term";
 
-export function parseTermIdFromSearch(
-  search: string,
-): number | null {
+export function parseTermIdFromSearch(search: string): number | null {
   const raw = new URLSearchParams(
     search.startsWith("?") ? search.slice(1) : search,
   ).get(TERM_QUERY_PARAM);

@@ -9,8 +9,9 @@
 
   const route = $derived(
     jeepneyStore.selectedRouteId
-      ? (JEEPNEY_ROUTES.find((entry) => entry.id === jeepneyStore.selectedRouteId) ??
-        null)
+      ? (JEEPNEY_ROUTES.find(
+          (entry) => entry.id === jeepneyStore.selectedRouteId,
+        ) ?? null)
       : null,
   );
 
@@ -58,10 +59,7 @@
     </div>
 
     <div class="jeepney-stop-modal__actions">
-      <MapChromeActionChip
-        disabled={stopIndex <= 0}
-        onclick={openPreviousStop}
-      >
+      <MapChromeActionChip disabled={stopIndex <= 0} onclick={openPreviousStop}>
         Previous stop
       </MapChromeActionChip>
       <MapChromeActionChip

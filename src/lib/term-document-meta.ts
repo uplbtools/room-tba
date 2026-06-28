@@ -37,7 +37,9 @@ export function updateTermAwareDocumentMeta(options: {
     baseDocumentTitle = document.title;
   }
 
-  const termPhrase = options.termLabel ? termSeoPhrase({ label: options.termLabel }) : null;
+  const termPhrase = options.termLabel
+    ? termSeoPhrase({ label: options.termLabel })
+    : null;
   const title = termPhrase
     ? `${options.baseTitle} (${termPhrase}) | Room TBA`
     : `${options.baseTitle} | Room TBA`;
@@ -55,7 +57,10 @@ export function updateTermAwareDocumentMeta(options: {
     options.termId,
     options.defaultTermId,
   );
-  const canonicalUrl = new URL(canonicalPath, window.location.origin).toString();
+  const canonicalUrl = new URL(
+    canonicalPath,
+    window.location.origin,
+  ).toString();
   setOg("og:url", canonicalUrl);
 
   let link = document.querySelector('link[rel="canonical"]');

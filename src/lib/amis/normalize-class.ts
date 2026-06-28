@@ -63,7 +63,9 @@ function scheduleFromClassDates(row: AmisClassRow): string[] | null {
 function scheduleFromScheduleField(row: AmisClassRow): string[] | null {
   const schedule = row.schedule;
   if (Array.isArray(schedule)) {
-    const slots = schedule.map(asString).filter((slot): slot is string => slot !== null);
+    const slots = schedule
+      .map(asString)
+      .filter((slot): slot is string => slot !== null);
     return slots.length > 0 ? slots : null;
   }
   if (typeof schedule === "string") {
@@ -122,9 +124,7 @@ export function normalizeAmisClass(
   if (!courseCode || !section) return null;
 
   const schedule =
-    scheduleFromClassDates(row) ??
-    scheduleFromScheduleField(row) ??
-    [];
+    scheduleFromClassDates(row) ?? scheduleFromScheduleField(row) ?? [];
 
   return {
     courseCode,

@@ -18,7 +18,13 @@
  */
 
 import { config } from "dotenv";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname } from "node:path";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -27,7 +33,10 @@ import { classesTable, roomsTable, updateTable } from "@drizzle/schema";
 import { fetchAmisClasses } from "@lib/amis/fetch-classes";
 import { defaultAmisExportPath } from "@lib/amis/export-path";
 import { extractClassRows } from "@lib/amis/normalize-class";
-import { normalizeAmisClass, normalizeFacilityKey } from "@lib/amis/normalize-class";
+import {
+  normalizeAmisClass,
+  normalizeFacilityKey,
+} from "@lib/amis/normalize-class";
 import {
   amisExportContainsInstructorPii,
   sanitizeAmisRows,
@@ -77,10 +86,16 @@ function parseArgs(argv: string[]): CliOptions {
   return { termId, dryRun, replace, fetch, fromJson, scrubExports };
 }
 
-function saveSanitizedExport(termId: number, rows: ReturnType<typeof sanitizeAmisRows>, path: string) {
+function saveSanitizedExport(
+  termId: number,
+  rows: ReturnType<typeof sanitizeAmisRows>,
+  path: string,
+) {
   const payload = { term_id: termId, classes: rows };
   if (amisExportContainsInstructorPii(payload)) {
-    throw new Error(`Refusing to save ${path}: instructor PII still present after sanitization.`);
+    throw new Error(
+      `Refusing to save ${path}: instructor PII still present after sanitization.`,
+    );
   }
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, JSON.stringify(payload, null, 2));
@@ -153,7 +168,9 @@ async function resolveRawRows(options: CliOptions) {
     console.log(`Fetched ${fetched.length} raw rows from AMIS.`);
     const sanitized = sanitizeAmisRows(fetched);
     saveSanitizedExport(options.termId, sanitized, exportPath);
-    console.log(`Saved sanitized export to ${exportPath} (instructor names stripped).`);
+    console.log(
+      `Saved sanitized export to ${exportPath} (instructor names stripped).`,
+    );
     return sanitized;
   }
 
@@ -219,7 +236,10 @@ async function main() {
     for (const row of normalized) {
       const facility = row.facilityCode?.trim();
       if (!facility) {
-        unmatched.set("(missing facility)", (unmatched.get("(missing facility)") ?? 0) + 1);
+        unmatched.set(
+          "(missing facility)",
+          (unmatched.get("(missing facility)") ?? 0) + 1,
+        );
         continue;
       }
       const roomId = roomIdByKey.get(normalizeFacilityKey(facility));
@@ -253,9 +273,13 @@ async function main() {
 
     await refreshSyncKey(db, "classes");
 
-    console.log(`Imported ${inserts.length} classes for term_id=${options.termId}.`);
+    console.log(
+      `Imported ${inserts.length} classes for term_id=${options.termId}.`,
+    );
     if (unmatched.size > 0) {
-      console.warn(`Skipped ${[...unmatched.values()].reduce((a, b) => a + b, 0)} rows with unmatched facilities:`);
+      console.warn(
+        `Skipped ${[...unmatched.values()].reduce((a, b) => a + b, 0)} rows with unmatched facilities:`,
+      );
       for (const [facility, count] of [...unmatched.entries()].sort(
         (a, b) => b[1] - a[1],
       )) {

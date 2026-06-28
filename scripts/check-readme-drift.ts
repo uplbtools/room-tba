@@ -49,7 +49,9 @@ if (failures.length > 0) {
   for (const { line, hint } of failures) {
     console.error(`  • Found "${line}" — ${hint}`);
   }
-  console.error("\nUpdate README.md in the same PR as the code change. See AGENTS.md § README sync.");
+  console.error(
+    "\nUpdate README.md in the same PR as the code change. See AGENTS.md § README sync.",
+  );
   process.exit(1);
 }
 

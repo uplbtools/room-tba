@@ -27,13 +27,9 @@
 
   const active = $derived(termStore.activeTerm);
 
-  const activeChipLabel = $derived(
-    active ? termChipLabel(active) : "Term",
-  );
+  const activeChipLabel = $derived(active ? termChipLabel(active) : "Term");
 
-  const activeDateRange = $derived(
-    active ? formatTermDateRange(active) : null,
-  );
+  const activeDateRange = $derived(active ? formatTermDateRange(active) : null);
 
   function updatePanelPosition() {
     if (!open || !triggerEl) return;
@@ -109,11 +105,15 @@
         aria-controls="term-picker-inline"
         onclick={toggleOpen}
       >
-        <span class="term-inline__trigger-label">{active?.label ?? "Select term"}</span>
+        <span class="term-inline__trigger-label"
+          >{active?.label ?? "Select term"}</span
+        >
         <ChevronDown size={14} aria-hidden="true" />
       </button>
       {#if active && active.classCount > 0}
-        <span class="term-inline__count">{active.classCount} classes campus-wide</span>
+        <span class="term-inline__count"
+          >{active.classCount} classes campus-wide</span
+        >
       {/if}
       {#if activeDateRange}
         <span class="term-inline__dates">{activeDateRange}</span>
@@ -170,7 +170,11 @@
         {#if active && active.classCount > 0}
           <span class="map-chrome-chip__count">{active.classCount}</span>
         {/if}
-        <ChevronDown size={14} class="term-filter-chip__chevron" aria-hidden="true" />
+        <ChevronDown
+          size={14}
+          class="term-filter-chip__chevron"
+          aria-hidden="true"
+        />
       </button>
       {#if open}
         <div

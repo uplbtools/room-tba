@@ -570,7 +570,8 @@
       overscroll-behavior: contain;
     }
 
-    .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-toggle) {
+    .top-right-map-stack
+      :global(.map-tools-panel .map-chrome-accordion-toggle) {
       min-height: 2.125rem;
       padding: 0.375rem 0.5rem;
       font-size: 0.8125rem;
