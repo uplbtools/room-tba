@@ -240,7 +240,7 @@ export async function getAllDivisions(): Promise<DivisionData[]> {
   }
 }
 
-export async function getAllClasses(): Promise<ClassMapValue[]> {
+export async function getAllClasses(termId?: number): Promise<ClassMapValue[]> {
   try {
     const data = await db
       .select({
@@ -256,11 +256,45 @@ export async function getAllClasses(): Promise<ClassMapValue[]> {
         courseTitle: classesTable.courseTitle,
       })
       .from(classesTable)
-      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId));
+      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+      .where(termId != null ? eq(classesTable.termId, termId) : undefined);
     return data;
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for classes", { cause: e });
+  }
+}
+
+export async function getClassesForRoom(
+  roomCode: string,
+  termId?: number,
+): Promise<ClassMapValue[]> {
+  try {
+    const data = await db
+      .select({
+        id: classesTable.id,
+        termId: classesTable.termId,
+        roomId: classesTable.roomId,
+        courseCode: classesTable.courseCode,
+        roomCode: roomsTable.roomCode,
+        section: classesTable.section,
+        type: classesTable.type,
+        schedule: classesTable.schedule,
+        directions: roomsTable.directions,
+        courseTitle: classesTable.courseTitle,
+      })
+      .from(classesTable)
+      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+      .where(
+        and(
+          eq(roomsTable.roomCode, roomCode),
+          termId != null ? eq(classesTable.termId, termId) : undefined,
+        ),
+      );
+    return data;
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch classes for room", { cause: e });
   }
 }
 
