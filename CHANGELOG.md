@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/uplbtools/room-tba/compare/v1.13.0...v1.13.1) (2026-06-28)
+
+
+### Bug Fixes
+
+* **amis:** correct CRS term IDs and harden import pipeline ([a93b89e](https://github.com/uplbtools/room-tba/commit/a93b89ee472e820e522105184ee1451cb4582555))
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
