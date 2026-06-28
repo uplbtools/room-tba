@@ -105,7 +105,6 @@ export default defineConfig({
   env: {
     schema: {
       // Supabase Postgres connection string (Session pooler or direct).
-      // Migration: rename NEON_CONNECTION_STRING → DATABASE_URL in Vercel / local .env.
       DATABASE_URL: envField.string({
         access: "secret",
         context: "server",
@@ -116,6 +115,33 @@ export default defineConfig({
         optional: true,
       }),
       ADMIN_SESSION_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Cloudflare R2 (S3-compatible). Required for /api/admin/upload.
+      R2_ACCOUNT_ID: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      R2_ACCESS_KEY_ID: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      R2_SECRET_ACCESS_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      R2_BUCKET_NAME: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Public base URL for uploaded objects (custom domain or r2.dev).
+      R2_PUBLIC_URL: envField.string({
         access: "secret",
         context: "server",
         optional: true,
