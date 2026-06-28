@@ -20,6 +20,7 @@
   import SyncStatus from "@ui/SyncStatus.svelte";
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
+  import TermSelector from "@ui/TermSelector.svelte";
   import "./map-chrome/map-chrome.css";
   import { MediaQuery } from "svelte/reactivity";
 
@@ -174,6 +175,10 @@
 
         <span class="status-sep" aria-hidden="true">·</span>
       {/if}
+      <span class="status-meta-term">
+        <TermSelector />
+      </span>
+      <span class="status-sep" aria-hidden="true">·</span>
       <span class="status-meta-updated">
         Updated {catalogUpdatedLabel}
       </span>
@@ -377,6 +382,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .status-meta-term {
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .status-meta :global(.map-chrome-ghost-link),
