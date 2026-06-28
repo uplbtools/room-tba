@@ -62,10 +62,17 @@ describe("parseEventImageUrl", () => {
     });
   });
 
-  test("requires https and optional public base prefix", () => {
+  test("requires https and upload storage origin", () => {
     expect(parseEventImageUrl("http://example.com/a.jpg")).toEqual({
       ok: false,
       error: "Event image URL must use HTTPS",
+    });
+    expect(
+      parseEventImageUrl("https://cdn.example.com/events/a.jpg"),
+    ).toEqual({
+      ok: false,
+      error:
+        "Event image URL requires upload storage (R2_PUBLIC_URL) to be configured",
     });
     expect(
       parseEventImageUrl(

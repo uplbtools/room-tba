@@ -5,6 +5,7 @@ import {
   clientIp,
   rateLimitResponse,
 } from "@lib/api/rate-limit";
+import { R2_PUBLIC_URL } from "astro:env/server";
 import {
   UPLOAD_MAX_BYTES,
   buildUploadKey,
@@ -51,6 +52,16 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       {
         error:
           "Image uploads are not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME.",
+      },
+      503,
+    );
+  }
+
+  if (!R2_PUBLIC_URL?.trim()) {
+    return json(
+      {
+        error:
+          "Image uploads require R2_PUBLIC_URL so saved event URLs can be validated.",
       },
       503,
     );

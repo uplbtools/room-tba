@@ -959,7 +959,8 @@ class JeepneyStore {
 
   toggleLayer = () => {
     if (this.layerActive) {
-      this.disableLayer();
+      this.layerActive = false;
+      this.menuOpen = false;
       return;
     }
     this.enableLayer();
@@ -967,6 +968,7 @@ class JeepneyStore {
 
   enableLayer = () => {
     this.layerActive = true;
+    mapToolsStore.close();
     deactivateMapModesExcept("routes");
   };
 
@@ -1472,11 +1474,10 @@ export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
 export const proposalsStore = new ProposalsStore();
 
-// The bottom-right control cluster exposes three mutually exclusive map modes:
-// the editor, jeepney routes, and Makiling terrain. They each take over the
-// camera, pins, and map interactions, so only one may be active at a time.
-// "None active" stays valid. Activating one tears the others down via their
-// own existing disable/clear paths so per-mode side effects unwind cleanly.
+// Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive:
+// they take over the camera, pins, and map interactions. Location/propose
+// actions live in the bottom chrome tray. Activating one mode tears the others
+// down via deactivateMapModesExcept().
 export type ExclusiveMapMode = "edit" | "routes" | "terrain";
 
 export function deactivateMapModesExcept(active: ExclusiveMapMode) {
