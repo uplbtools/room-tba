@@ -5,11 +5,13 @@ import type {
   CollegeData,
   DivisionData,
   DormData,
+  EntityLoadResult,
   EventData,
   RoomData,
   TableSyncInfo,
 } from "@lib/types";
 import { getDB } from "./pgliteDB";
+import { ENTITY_FETCH_OPTIONS, fetchJsonWithRetry } from "./fetch-json";
 import {
   getLocalBuildingRooms,
   getLocalCollegeRooms,
@@ -283,6 +285,28 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
   }
 }
 
+export async function loadCachedAppData(): Promise<DBData> {
+  const [buildings, colleges, divisions, dorms, events, roomsMeta] =
+    await Promise.all([
+      getLocalBuildings().then((rows) => rows ?? []),
+      getLocalColleges().then((rows) => rows ?? []),
+      getLocalDivisions().then((rows) => rows ?? []),
+      getLocalDorms().then((rows) => rows ?? []),
+      getLocalEvents().then((rows) => rows ?? []),
+      getLocalRoomsCounts(),
+    ]);
+
+  return {
+    buildings,
+    colleges,
+    divisions,
+    dorms,
+    events,
+    directionCount: roomsMeta.directionCount,
+    totalRooms: roomsMeta.totalRooms,
+  };
+}
+
 export async function getJSONFetch<T>(url: string) {
   const req = await fetch(url);
   return (await req.json()) as T;
@@ -291,23 +315,36 @@ export async function getJSONFetch<T>(url: string) {
 export function getEntity<T>(
   tableName: string,
   getLocalEntity: () => Promise<T[] | undefined>,
-): (checker: TableSyncInfo) => Promise<T[]> {
+): (checker: TableSyncInfo) => Promise<EntityLoadResult<T>> {
   return async (checker: TableSyncInfo) => {
     const local = async () => (await getLocalEntity()) ?? [];
-    if (checker.valid) return local();
-    try {
-      const fetchedData = await getJSONFetch<T[]>(`/api/${tableName}`);
-      if (Array.isArray(fetchedData) && fetchedData.length > 0) {
-        return fetchedData;
-      }
-      // Remote unreachable/empty (offline): prefer cached local rows.
+    if (checker.valid) {
       const cached = await local();
-      if (cached.length > 0) return cached;
-      return Array.isArray(fetchedData) ? fetchedData : cached;
+      // localStorage sync key can outlive PGlite (IDB eviction, cleared site data).
+      // Treat an empty cache as stale so we refetch instead of showing no events.
+      if (cached.length > 0) {
+        return { rows: cached, source: "cache" };
+      }
+    }
+    try {
+      const fetchedData = await fetchJsonWithRetry<T[]>(
+        `/api/${tableName}`,
+        ENTITY_FETCH_OPTIONS,
+      );
+      if (Array.isArray(fetchedData)) {
+        return { rows: fetchedData, source: "remote" };
+      }
+      const cached = await local();
+      return { rows: cached, source: "cache" };
     } catch {
-      return local();
+      const cached = await local();
+      return { rows: cached, source: "cache" };
     }
   };
+}
+
+export async function fetchRemoteEvents(): Promise<EventData[]> {
+  return fetchJsonWithRetry<EventData[]>("/api/events", ENTITY_FETCH_OPTIONS);
 }
 
 export const getBuildings = getEntity<BuildingData>(

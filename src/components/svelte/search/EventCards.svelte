@@ -13,6 +13,7 @@
     eventPlacementStore,
     queryStore,
     sidePanelStore,
+    syncToastStore,
     toastStore,
   } from "@lib/store.svelte";
   import type { EventData } from "@lib/types";
@@ -49,6 +50,13 @@
     campusEvents.length > visibleEvents.length || hasPastEvents,
   );
   const hasAnyEvents = $derived(loaded && events.length > 0);
+  const eventsSyncing = $derived(
+    loaded &&
+      campusEvents.length === 0 &&
+      !syncToastStore.allSynced &&
+      (syncToastStore.currentSync === "events" ||
+        syncToastStore.currentSync === null),
+  );
   const placingEvent = $derived(
     eventPlacementStore.active || eventPlacementStore.creating,
   );
@@ -107,12 +115,6 @@
   <section class="events-section" aria-labelledby={headingId}>
     <div class="section-heading">
       <h2 id={headingId} class="events-heading">Campus events</h2>
-    </div>
-    <p class="loading-events">Loading campus events…</p>
-    <div class="event-skeleton-list" aria-hidden="true">
-      {#each [1, 2] as row (row)}
-        <div class="event-skeleton-row"></div>
-      {/each}
     </div>
   </section>
 {:else}
@@ -296,6 +298,8 @@
           </div>
         {/each}
       </div>
+    {:else if eventsSyncing}
+      <p class="loading-events">Syncing campus events…</p>
     {:else if hasPastEvents}
       <p class="empty-events">
         No active or upcoming events right now. Use “View all” to browse past
