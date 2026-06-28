@@ -942,6 +942,120 @@ class JeepneyStore {
   };
 }
 
+export type AppBootstrapPhase =
+  | "idle"
+  | "local"
+  | "remote"
+  | "sync"
+  | "ready"
+  | "error";
+
+const APP_BOOTSTRAP_REMOTE_TIMEOUT_MS = 90_000;
+
+class AppBootstrapStore {
+  phase = $state<AppBootstrapPhase>("idle");
+  errorMessage = $state<string | null>(null);
+  hasCachedData = $state(false);
+  private retryHandler: (() => void) | null = null;
+  private remoteTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  showBlockingOverlay = $derived(
+    this.phase === "local" ||
+      (this.phase === "remote" && !this.hasCachedData) ||
+      (this.phase === "error" && !this.hasCachedData),
+  );
+
+  statusLabel = $derived.by(() => {
+    switch (this.phase) {
+      case "local":
+        return "Loading campus data…";
+      case "remote":
+        return "Connecting to database…";
+      case "error":
+        return this.errorMessage ?? "Could not load campus data";
+      default:
+        return null;
+    }
+  });
+
+  beginLocal() {
+    this.clearRemoteTimeout();
+    this.errorMessage = null;
+    this.phase = "local";
+  }
+
+  beginRemote() {
+    this.phase = "remote";
+    this.errorMessage = null;
+    this.scheduleRemoteTimeout();
+  }
+
+  beginSync() {
+    this.clearRemoteTimeout();
+    this.phase = "sync";
+    this.errorMessage = null;
+  }
+
+  complete() {
+    this.clearRemoteTimeout();
+    this.phase = "ready";
+    this.errorMessage = null;
+    this.retryHandler = null;
+  }
+
+  markBackgroundRefresh() {
+    if (this.phase === "idle" || this.phase === "ready") {
+      this.phase = "remote";
+    }
+  }
+
+  setHasCachedData(value: boolean) {
+    this.hasCachedData = value;
+  }
+
+  setRetryHandler(handler: () => void) {
+    this.retryHandler = handler;
+  }
+
+  get canRetry() {
+    return this.retryHandler !== null;
+  }
+
+  fail(message: string, retry?: () => void) {
+    this.clearRemoteTimeout();
+    this.phase = "error";
+    this.errorMessage = message;
+    this.retryHandler = retry ?? null;
+  }
+
+  retry() {
+    const handler = this.retryHandler;
+    if (!handler) return;
+    this.errorMessage = null;
+    this.beginRemote();
+    handler();
+  }
+
+  private scheduleRemoteTimeout() {
+    this.clearRemoteTimeout();
+    if (this.hasCachedData) return;
+    this.remoteTimeout = setTimeout(() => {
+      if (this.phase !== "remote" && this.phase !== "local") return;
+      this.fail(
+        "This is taking longer than expected. Check your connection.",
+        this.retryHandler ?? undefined,
+      );
+    }, APP_BOOTSTRAP_REMOTE_TIMEOUT_MS);
+  }
+
+  private clearRemoteTimeout() {
+    if (this.remoteTimeout !== null) {
+      clearTimeout(this.remoteTimeout);
+      this.remoteTimeout = null;
+    }
+  }
+}
+
 class SyncToastStore {
   private _buildings = $state<SyncInfo | null>(null);
   private _colleges = $state<SyncInfo | null>(null);
@@ -952,6 +1066,7 @@ class SyncToastStore {
   public currentSync = $state<string | null>(null);
   public allSynced = $state<boolean>(false);
   public recentlySynced = $state<boolean | null>(null);
+  public fetchingRemote = $state<boolean>(false);
 
   // Service worker "new content available" update, surfaced inside this same
   // bottom offline toast instead of a separate floating prompt.
@@ -971,7 +1086,16 @@ class SyncToastStore {
     this._refresh?.();
   }
 
+  startRemoteFetch() {
+    this.fetchingRemote = true;
+    this.allSynced = false;
+    this.recentlySynced = true;
+    this.currentSync = null;
+    this.currentSyncData = null;
+  }
+
   startBuildingsSync(total: number) {
+    this.fetchingRemote = false;
     this._buildings = {
       synced: 0,
       total,
@@ -1038,9 +1162,14 @@ class SyncToastStore {
     this._events.synced++;
   }
 
-  endSync() {
+  endSync(didSync = true) {
+    this.fetchingRemote = false;
     this.allSynced = true;
-    if (this.recentlySynced === null) this.recentlySynced = false;
+    if (this.recentlySynced === null) {
+      this.recentlySynced = didSync;
+    } else if (!didSync) {
+      this.recentlySynced = false;
+    }
   }
 }
 
@@ -1157,6 +1286,7 @@ export const additionProposalStore = new AdditionProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
+export const appBootstrapStore = new AppBootstrapStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();

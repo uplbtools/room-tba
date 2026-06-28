@@ -6,7 +6,7 @@
     RefreshCw,
     X,
   } from "@lucide/svelte";
-  import { syncToastStore } from "@lib/store.svelte";
+  import { syncToastStore, appBootstrapStore } from "@lib/store.svelte";
 
   type Props = {
     /** When true, show compact collapsed label for mobile status bar. */
@@ -33,10 +33,11 @@
   );
 
   const isActive = $derived(
-    syncToastStore.needRefresh ||
-      ((syncToastStore.recentlySynced === null ||
-        syncToastStore.recentlySynced) &&
-        !manualClosed),
+    !appBootstrapStore.showBlockingOverlay &&
+      (syncToastStore.needRefresh ||
+        ((syncToastStore.recentlySynced === null ||
+          syncToastStore.recentlySynced) &&
+          !manualClosed)),
   );
 
   $effect(() => {
@@ -74,6 +75,8 @@
   const collapsedLabel = $derived.by(() => {
     if (syncToastStore.needRefresh) return "Update ready";
     if (syncToastStore.allSynced) return "Ready offline";
+    if (syncToastStore.fetchingRemote) return "Connecting to database…";
+    if (appBootstrapStore.phase === "remote") return "Updating campus data…";
     if (syncToastStore.currentSync === null) return "Syncing…";
     return "Syncing…";
   });
@@ -91,7 +94,7 @@
     aria-live="polite"
   >
     {#if syncToastStore.needRefresh}
-      <Info size={16} />
+      <Info size={16} aria-hidden="true" />
       <div class="sync-status-copy">
         <span class="sync-status-label">Update ready</span>
         {#if showDetail}
@@ -107,7 +110,11 @@
           onclick={() => syncToastStore.reload()}
           disabled={reloading}
         >
-          <RefreshCw size={14} class={reloading ? "loading-icon" : ""} />
+          <RefreshCw
+            size={14}
+            class={reloading ? "loading-icon" : ""}
+            aria-hidden="true"
+          />
           {reloading ? "Reloading…" : "Reload"}
         </button>
       {/if}
@@ -118,11 +125,11 @@
           aria-label="Dismiss update notice"
           onclick={() => syncToastStore.dismissRefresh()}
         >
-          <X size={14} />
+          <X size={14} aria-hidden="true" />
         </button>
       {/if}
     {:else if syncToastStore.allSynced}
-      <CircleCheckBig size={16} />
+      <CircleCheckBig size={16} aria-hidden="true" />
       <div class="sync-status-copy">
         <span class="sync-status-label">{collapsedLabel}</span>
         {#if showDetail}
@@ -136,14 +143,16 @@
           aria-label="Dismiss sync status"
           onclick={() => (manualClosed = true)}
         >
-          <X size={14} />
+          <X size={14} aria-hidden="true" />
         </button>
       {/if}
     {:else}
-      <LoaderCircle size={16} class="loading-icon" />
+      <LoaderCircle size={16} class="loading-icon" aria-hidden="true" />
       <div class="sync-status-copy">
         <span class="sync-status-label">{collapsedLabel}</span>
-        {#if showDetail && syncToastStore.currentSync !== null}
+        {#if showDetail && syncToastStore.fetchingRemote}
+          <span class="sync-status-detail">Fetching latest campus data</span>
+        {:else if showDetail && syncToastStore.currentSync !== null}
           <span class="sync-status-detail">
             Syncing {syncToastStore.currentSync} to device
           </span>
@@ -170,7 +179,7 @@
           aria-label="Dismiss sync status"
           onclick={() => (manualClosed = true)}
         >
-          <X size={14} />
+          <X size={14} aria-hidden="true" />
         </button>
       {/if}
     {/if}
@@ -374,6 +383,16 @@
     }
     to {
       rotate: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.loading-icon) {
+      animation: none;
+    }
+
+    .progress-bar-value {
+      transition: none;
     }
   }
 </style>
