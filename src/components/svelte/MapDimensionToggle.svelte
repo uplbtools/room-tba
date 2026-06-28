@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mapStore } from "@lib/store.svelte";
+  import { mapStore, mapViewStore } from "@lib/store.svelte";
   import type { MapLibreMap } from "maplibre-gl";
 
   type Props = {
@@ -40,6 +40,7 @@
   function withMap(fn: (map: MapLibreMap) => void) {
     const map = mapStore.mapInstance;
     if (!map) return;
+    mapViewStore.disableCampusTour();
     mapStore.stopAutoRotate?.();
     fn(map);
   }
