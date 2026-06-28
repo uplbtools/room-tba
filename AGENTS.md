@@ -13,6 +13,7 @@ Read the right doc for the task — do not rely on this file alone for detailed 
 | Stores and client state                          | [.cursor/rules/svelte-stores.mdc](.cursor/rules/svelte-stores.mdc)                                                      |
 | PR QA evidence and reporting                     | [docs/agentic-qa-process.md](docs/agentic-qa-process.md)                                                                |
 | Editor manual checklist                          | [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md)                                              |
+| Issue-linked work / keeping specs current        | [docs/issue-hygiene.md](docs/issue-hygiene.md)                                                                          |
 
 ## How to work
 
@@ -21,6 +22,18 @@ Read the right doc for the task — do not rely on this file alone for detailed 
 - **One pass is often enough.** Prefer a focused implementation plus verification over long planning loops or repeated “want me to…?” prompts.
 - **Preserve the dirty tree.** Do not revert unrelated user changes unless explicitly asked.
 - **Keep scope tight.** Avoid opportunistic refactors outside the request.
+- **Keep GitHub issues current** when work is tied to `#NNN` — issues hold implementation specifics that drift fast. See [docs/issue-hygiene.md](docs/issue-hygiene.md).
+
+## GitHub issues
+
+Issues are living specs (paths, schema, acceptance criteria). When coding quickly, update them in the same session as the code:
+
+- **Before starting:** `gh issue view N` — verify cited files/APIs still exist; fix stale body text first.
+- **While implementing:** if the approach changes, edit the issue — don't leave wrong paths for the next agent.
+- **With the PR:** comment on the issue with the PR link; check off completed AC; set `Last verified against staging: YYYY-MM-DD` and `Status:` at the top.
+- **After merge:** close if done, or trim the body and file follow-ups. Move obsolete text under `## Superseded`, don't delete history.
+
+Full checklist: [docs/issue-hygiene.md](docs/issue-hygiene.md).
 
 ## Verify before done
 

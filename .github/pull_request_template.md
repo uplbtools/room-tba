@@ -2,6 +2,8 @@
 
 <!-- What changed and why (1–3 sentences). -->
 
+**Linked issues:** Closes # / Refs # <!-- update issue bodies + AC per docs/issue-hygiene.md -->
+
 ## QA Summary
 
 Automated:
@@ -25,6 +27,12 @@ Known gaps:
 Follow-up:
 
 - <!-- Issues or PRs to file next -->
+
+## Issues updated
+
+- [ ] Linked issue(s) commented with this PR
+- [ ] Acceptance criteria checkboxes / paths updated on issue body ([issue-hygiene.md](docs/issue-hygiene.md))
+- [ ] `Last verified against staging:` date set on linked issues
 
 ## Test plan
 
