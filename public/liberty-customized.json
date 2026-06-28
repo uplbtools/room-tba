@@ -3264,7 +3264,25 @@
       "minzoom": 13,
       "maxzoom": 14,
       "paint": {
-        "fill-color": "#d4bc96",
+        "fill-color": [
+          "interpolate",
+          ["linear"],
+          ["coalesce", ["get", "render_height"], 5],
+          3,
+          "#ead8bc",
+          5,
+          "#e8d4b4",
+          8,
+          "#d4bc96",
+          12,
+          "#c4a67a",
+          18,
+          "#b89968",
+          28,
+          "#9a7850",
+          45,
+          "#7a5c38"
+        ],
         "fill-outline-color": "#9a8570"
       }
     },
@@ -3275,7 +3293,25 @@
       "source-layer": "building",
       "minzoom": 14,
       "paint": {
-        "fill-extrusion-color": "#b89968",
+        "fill-extrusion-color": [
+          "interpolate",
+          ["linear"],
+          ["coalesce", ["get", "render_height"], 5],
+          3,
+          "#ead8bc",
+          5,
+          "#e8d4b4",
+          8,
+          "#d4bc96",
+          12,
+          "#c4a67a",
+          18,
+          "#b89968",
+          28,
+          "#9a7850",
+          45,
+          "#7a5c38"
+        ],
         "fill-extrusion-height": {
           "property": "render_height",
           "type": "identity"
