@@ -260,7 +260,7 @@
     }
   }
 
-  @media (min-width: 48.0625rem) and (max-width: 800px) {
+  @media (min-width: 48.0625rem) and (max-width: 50rem) {
     .sync-status--inline {
       width: 100%;
       margin-right: 0;

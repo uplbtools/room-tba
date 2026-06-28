@@ -71,7 +71,7 @@
     flex-wrap: wrap;
     align-items: flex-end;
     gap: 0.375rem;
-    align-self: flex-start;
+    flex: 0 0 auto;
     max-width: calc(100% - var(--bottom-fab-inset, 0px));
     pointer-events: auto;
   }
@@ -139,6 +139,7 @@
     .map-attribution {
       margin-left: 0.5rem;
       margin-bottom: 0.25rem;
+      order: -1;
     }
   }
 </style>

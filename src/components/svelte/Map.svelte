@@ -67,6 +67,18 @@
     type VersionedMapMove,
   } from "@lib/map-move-history";
   import {
+    ClientEditConflictError,
+    ClientEventConflictError,
+    editErrorMessage,
+  } from "@lib/map-edit/errors";
+  import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
+  import type {
+    EditableCoords,
+    EditableEntityType,
+    EditableVersionedPosition,
+    EventLocationWriteValue,
+  } from "@lib/map-edit/types";
+  import {
     resolveSubmitterName,
     submitCreateProposal,
     submitPinPositionProposal,
@@ -119,52 +131,6 @@
   let undoingEditKey = $state<string | null>(null);
   let undoShortcutLabel = $state("Ctrl+Z");
   let editStatusMessage = $state<string | null>(null);
-  type EditableEntityType = "building" | "dorm";
-  type EditableCoords = MapMoveCoordinates;
-  type EditableVersionedPosition = EditableCoords & { version: number };
-  type EditableUpdateResponse = {
-    building?: EditableVersionedPosition;
-    dorm?: EditableVersionedPosition;
-  };
-  type EventLocationWriteValue = Partial<{
-    id: number;
-    anchorType: EventData["locations"][number]["anchorType"];
-    buildingId: number | null;
-    dormId: number | null;
-    label: string;
-    lat: number | null;
-    lon: number | null;
-    highlightPriority: number;
-    sortOrder: number;
-    isPrimary: boolean;
-  }>;
-  type EventLocationsPatchResponse = {
-    event?: EventData;
-    latest?: EventData | null;
-    error?: string;
-  };
-  type EditableConflictResponse = {
-    error?: string;
-    latest?: EditableVersionedPosition | null;
-  };
-  class ClientEditConflictError extends Error {
-    latest: EditableVersionedPosition | null;
-
-    constructor(message: string, latest: EditableVersionedPosition | null) {
-      super(message);
-      this.name = "ClientEditConflictError";
-      this.latest = latest;
-    }
-  }
-  class ClientEventConflictError extends Error {
-    latest: EventData | null;
-
-    constructor(message: string, latest: EventData | null) {
-      super(message);
-      this.name = "ClientEventConflictError";
-      this.latest = latest;
-    }
-  }
   type EntityEditMove = VersionedMapMove & {
     kind: "entity";
     entityType: EditableEntityType;
@@ -852,95 +818,6 @@
     setTimeout(() => {
       if (editStatusMessage === message) editStatusMessage = null;
     }, 3500);
-  }
-
-  function editErrorMessage(name: string, fallback: string, error: unknown) {
-    const reason = error instanceof Error ? error.message : fallback;
-    const normalizedReason = reason.toLowerCase().replace(/[.?!]+$/, "");
-    const genericReasons = new Set([
-      fallback.toLowerCase().replace(/[.?!]+$/, ""),
-      "failed to save building",
-      "failed to save dorm",
-      "failed to save building position",
-      "failed to save dorm position",
-      "failed to save event location",
-    ]);
-
-    if (genericReasons.has(normalizedReason)) {
-      return `${name} failed to save.`;
-    }
-
-    return `${name} failed to save: ${reason}`;
-  }
-
-  async function patchPosition(
-    type: EditableEntityType,
-    id: number,
-    coords: EditableCoords,
-    version: number,
-  ): Promise<EditableVersionedPosition> {
-    const endpoint =
-      type === "building"
-        ? `/api/admin/buildings/${id}`
-        : `/api/admin/dorms/${id}`;
-    const res = await fetch(endpoint, {
-      method: "PATCH",
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...coords, version }),
-    });
-
-    if (!res.ok) {
-      const data = (await res.json().catch(() => ({}))) as
-        | EditableConflictResponse
-        | { error?: string };
-      if (res.status === 409) {
-        const conflict = data as EditableConflictResponse;
-        throw new ClientEditConflictError(
-          conflict.error ?? "This item was changed by another editor.",
-          conflict.latest ?? null,
-        );
-      }
-      throw new Error(data.error ?? `Save failed (${res.status})`);
-    }
-
-    const data = (await res.json()) as EditableUpdateResponse;
-    const updated = type === "building" ? data.building : data.dorm;
-    if (!updated)
-      throw new Error("Save response did not include updated data.");
-    return updated;
-  }
-
-  async function patchEventLocations(
-    event: EventData,
-    locations: EventLocationWriteValue[],
-    version = event.version,
-  ): Promise<EventData> {
-    const res = await fetch(`/api/admin/events/${event.id}/locations`, {
-      method: "PATCH",
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ version, locations }),
-    });
-    const data = (await res.json().catch(() => ({}))) as
-      | EventLocationsPatchResponse
-      | { error?: string };
-
-    if (!res.ok) {
-      if (res.status === 409) {
-        const conflict = data as EventLocationsPatchResponse;
-        throw new ClientEventConflictError(
-          conflict.error ?? "This event was changed by another editor.",
-          conflict.latest ?? null,
-        );
-      }
-      throw new Error(data.error ?? `Save failed (${res.status})`);
-    }
-
-    const updated = (data as EventLocationsPatchResponse).event;
-    if (!updated)
-      throw new Error("Save response did not include updated event.");
-    return updated;
   }
 
   function setLocalPosition(
@@ -2307,9 +2184,40 @@
         </button>
       </div>
     {/if}
+  {:else if additionProposalStore.pinPickActive}
+    {#if md.current}
+      <div
+        class="edit-dock event-placement-dock"
+        role="status"
+        aria-live="polite"
+      >
+        <p class="edit-dock-status">Tap the map to set the pin location</p>
+        <button
+          class="edit-dock-action cancel"
+          type="button"
+          onclick={() => additionProposalStore.cancelMapPin()}
+        >
+          Cancel
+        </button>
+      </div>
+    {:else}
+      <div class="event-placement-toolbar" role="status" aria-live="polite">
+        <div class="event-placement-copy">
+          <strong>Choose a map pin location</strong>
+          <span>Click or tap the map where this entry should appear.</span>
+        </div>
+        <button
+          class="event-placement-cancel"
+          type="button"
+          onclick={() => additionProposalStore.cancelMapPin()}
+        >
+          Cancel
+        </button>
+      </div>
+    {/if}
   {:else if isMapPinSuggestMode()}
-    <div class="map-edit-dock" aria-live="polite">
-      <p class="map-edit-status">
+    <div class="edit-dock map-edit-dock" role="status" aria-live="polite">
+      <p class="edit-dock-status">
         Drag the highlighted pin, then release to submit for review.
       </p>
     </div>
@@ -2365,6 +2273,7 @@
             title={undoMove
               ? `Undo move for ${undoMove.name}`
               : "No move to undo yet"}
+            aria-label="Undo last pin move"
           >
             {#if undoingEditKey && undoMove}
               Undoing
@@ -2379,6 +2288,7 @@
             title={redoMove
               ? `Redo move for ${redoMove.name}`
               : "No move to redo yet"}
+            aria-label="Redo last pin move"
           >
             {#if undoingEditKey && redoMove}
               Redoing
@@ -2405,6 +2315,16 @@
     {#if locationStore.coords}
       <Marker lngLat={locationStore.coords}>
         <div class="user-location-pin"></div>
+      </Marker>
+    {/if}
+    {#if additionProposalStore.draftPin}
+      <Marker
+        lngLat={{
+          lng: additionProposalStore.draftPin.lon,
+          lat: additionProposalStore.draftPin.lat,
+        }}
+      >
+        <div class="addition-draft-pin" aria-hidden="true"></div>
       </Marker>
     {/if}
     {#if loaded}
@@ -2587,7 +2507,7 @@
       {/each}
     {/if}
     {#if !mapViewStore.eventsOnly}
-      {#each filteredBuildings as building (`building:${building.id}:${canDragPin(buildingEditKey(building.id))}`)}
+      {#each filteredBuildings as building (`building:${building.id}`)}
         {#if building.lat && building.lon}
           {@const editKey = buildingEditKey(building.id)}
           {@const position = getEditablePosition(editKey, {
@@ -2650,7 +2570,7 @@
     {/if}
 
     {#if !mapViewStore.eventsOnly}
-      {#each filteredDorms as dorm (`dorm:${dorm.id}:${canDragPin(dormEditKey(dorm.id))}`)}
+      {#each filteredDorms as dorm (`dorm:${dorm.id}`)}
         {#if dorm.lat && dorm.lon}
           {@const editKey = dormEditKey(dorm.id)}
           {@const position = getEditablePosition(editKey, {
@@ -2707,14 +2627,14 @@
   }
 
   .map-edit-toolbar {
-    position: absolute;
+    position: fixed;
     right: var(--map-ui-padding, 0.5rem);
     bottom: calc(
       var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
         env(safe-area-inset-bottom, 0px) + 0.75rem
     );
     left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
-    z-index: 20;
+    z-index: 18;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -2797,14 +2717,14 @@
   }
 
   .event-placement-toolbar {
-    position: absolute;
+    position: fixed;
     right: var(--map-ui-padding, 0.5rem);
     bottom: calc(
       var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
         env(safe-area-inset-bottom, 0px) + 0.75rem
     );
     left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
-    z-index: 22;
+    z-index: 18;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -2870,14 +2790,14 @@
   }
 
   .edit-dock {
-    position: absolute;
+    position: fixed;
     right: var(--map-ui-padding, 0.5rem);
     bottom: calc(
       var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
         env(safe-area-inset-bottom)
     );
     left: var(--map-ui-padding, 0.5rem);
-    z-index: 21;
+    z-index: 18;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2960,6 +2880,18 @@
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 70;
+  }
+
+  .addition-draft-pin {
+    width: 1.125rem;
+    height: 1.125rem;
+    background-color: hsl(5, 53%, 42%);
+    border: 3px solid white;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    position: relative;
+    z-index: 71;
   }
 
   .event-marker-anchor {

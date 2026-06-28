@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { modalStore } from "../../../lib/store.svelte";
-  import { contributors, designers } from "../../../constants/contributors";
+  import { modalStore } from "@lib/store.svelte";
+  import { contributors, designers } from "@constants/contributors";
   import {
     fetchGithubContributors,
     type GithubContributor,
-  } from "../../../lib/github-contributors";
+  } from "@lib/github-contributors";
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";

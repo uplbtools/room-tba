@@ -2,19 +2,19 @@
 
 Source of truth for which map chrome is visible in each mode.
 
-| Mode                          | Search dropdown | Event banner | Events shelf | Map tools      | Edit dock             | Sync UI    | Map attribution |
-| ----------------------------- | --------------- | ------------ | ------------ | -------------- | --------------------- | ---------- | --------------- |
-| Browse                        | yes             | yes          | yes          | closed default | hidden                | status bar | bottom band     |
-| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | hidden                | status bar | bottom band     |
-| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **yes (mobile dock)** | status bar | bottom band     |
-| Event placement               | **no**          | **no**       | **no**       | closed default | cancel dock           | status bar | bottom band     |
-| Terrain / jeepney active      | yes             | yes          | yes          | flyout section | hidden                | status bar | bottom band     |
+| Mode                          | Search dropdown | Event banner | Events shelf | Map tools      | Building filters   | Edit dock             | Sync UI    | Map attribution |
+| ----------------------------- | --------------- | ------------ | ------------ | -------------- | ------------------ | --------------------- | ---------- | --------------- |
+| Browse                        | yes             | yes          | yes          | closed default | **yes (chip bar)** | hidden                | status bar | bottom band     |
+| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | **yes (chip bar)** | hidden                | status bar | bottom band     |
+| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **no**             | **yes (mobile dock)** | status bar | bottom band     |
+| Event placement               | **no**          | **no**       | **no**       | closed default | **no**             | cancel dock           | status bar | bottom band     |
+| Terrain / jeepney active      | yes             | yes          | yes          | flyout section | **yes (chip bar)** | hidden                | status bar | bottom band     |
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column, event banner, Map tools trigger
+- **Top band:** search column, building pin filter chips (`BuildingTypeFilterBar.svelte`), event banner, Map tools trigger
 - **Map face:** map canvas, location/editor FAB
 - **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location/editor FAB
 - **Ephemeral:** toast, modals
