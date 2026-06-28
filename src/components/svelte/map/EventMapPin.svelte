@@ -71,7 +71,12 @@
       <ChevronDown size={12} />
     </span>
   {:else if labelTitle && labelMeta}
-    <span class="event-pin-label" class:active transition:fade>
+    <span
+      class="event-pin-label"
+      class:active
+      transition:fade
+      aria-hidden="true"
+    >
       <span class="event-pin-title">{labelTitle}</span>
       <span class="event-pin-meta">{labelMeta}</span>
     </span>
