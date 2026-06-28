@@ -2,7 +2,7 @@
 
 import Database from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import { dormsTable } from "../drizzle/schema";
+import { dormsTable } from "@drizzle/schema";
 
 const client = new Database("data/info.db");
 const db = drizzle({ client });

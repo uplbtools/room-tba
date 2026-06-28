@@ -1,0 +1,21 @@
+{
+  // Reference config for Cloudflare R2 bucket setup. The Room TBA app deploys to
+  // Vercel (see astro.config.mjs), so runtime uploads use S3-compatible API
+  // credentials from env vars — not Workers bindings.
+  //
+  // Setup:
+  // 1. Create an R2 bucket in the Cloudflare dashboard.
+  // 2. Create an R2 API token with Object Read & Write on that bucket.
+  // 3. Enable public access (custom domain or r2.dev) and set R2_PUBLIC_URL.
+  // 4. Add the env vars listed in .env.example to Vercel / local .env.
+  //
+  // Optional: deploy a Worker that binds this bucket for edge-only use cases.
+  "name": "room-tba-r2",
+  "compatibility_date": "2024-09-23",
+  "r2_buckets": [
+    {
+      "binding": "UPLOADS",
+      "bucket_name": "room-tba-uploads",
+    },
+  ],
+}

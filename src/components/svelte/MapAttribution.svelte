@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { terrainStore } from "../../lib/store.svelte";
+  import { terrainStore } from "@lib/store.svelte";
 
   let expanded = $state(false);
 
@@ -8,7 +8,12 @@
   }
 </script>
 
-<div class="map-attribution" class:expanded>
+<div
+  class="map-attribution"
+  class:expanded
+  role="region"
+  aria-label="Map attribution"
+>
   <button
     type="button"
     class="attrib-toggle"
@@ -66,48 +71,60 @@
 <style>
   .map-attribution {
     position: relative;
-    z-index: 15;
+    z-index: 1;
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: 0.375rem;
-    align-self: flex-start;
-    max-width: calc(100% - var(--bottom-fab-inset, 0px));
+    flex: 0 0 auto;
+    max-width: min(8rem, 28vw);
     pointer-events: auto;
+    isolation: isolate;
   }
 
   .attrib-toggle {
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    box-sizing: border-box;
+    margin: 0;
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.92);
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-clip: padding-box;
     color: hsl(0, 0%, 20%);
+    font: inherit;
     font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1.2;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    /* Single edge layer: border only — avoid stacking with shadow 1px rings. */
+    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);
   }
 
   .attrib-toggle:hover,
   .attrib-toggle:focus-visible {
-    background: #fff;
+    background-color: hsl(5 25% 98%);
     outline: 2px solid #7b1113;
     outline-offset: 1px;
   }
 
   .attrib-body {
+    position: absolute;
+    bottom: calc(100% + 0.375rem);
+    left: 0;
+    z-index: 1;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
-    width: min(16rem, 100%);
+    width: min(16rem, calc(100vw - 1.5rem));
     padding: 0.375rem 0.5rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.96);
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-clip: padding-box;
     font-size: 0.6875rem;
     line-height: 1.35;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+    box-shadow: 0 2px 8px hsla(0, 0%, 0%, 0.12);
   }
 
   .attrib-body a {
@@ -121,24 +138,20 @@
   }
 
   .maptiler-logo {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.375rem;
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-clip: padding-box;
     padding: 0.25rem 0.375rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);
   }
 
   .maptiler-logo img {
     display: block;
     width: auto;
     height: 1.25rem;
-  }
-
-  @media (max-width: 48rem) {
-    .map-attribution {
-      margin-left: 0.5rem;
-      margin-bottom: 0.25rem;
-    }
   }
 </style>

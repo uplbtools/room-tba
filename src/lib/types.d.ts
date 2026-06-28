@@ -6,7 +6,8 @@ import {
   eventRoutesTable,
   eventsTable,
   roomPositionsTable,
-} from "../../drizzle/schema";
+  termsTable,
+} from "@drizzle/schema";
 import type { QueryStoreState } from "./store.svelte";
 
 export type AppData = {
@@ -94,6 +95,11 @@ type DivisionData = {
 
 type DormData = typeof dormsTable.$inferSelect;
 
+type Term = typeof termsTable.$inferSelect;
+
+// A term plus how many classes are tagged with it, for the term selector UI.
+type TermWithCount = Term & { classCount: number };
+
 type EventCategory = typeof eventsTable.$inferSelect.category;
 
 type EventRecurrence = typeof eventsTable.$inferSelect.recurrence;
@@ -152,4 +158,9 @@ interface RecentSearch {
 type TableSyncInfo = {
   valid: boolean;
   newKey: string | null;
+};
+
+type EntityLoadResult<T> = {
+  rows: T[];
+  source: "remote" | "cache";
 };

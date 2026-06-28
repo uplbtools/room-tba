@@ -1,39 +1,71 @@
 <script lang="ts">
-  import { modalStore } from "../../../lib/store.svelte";
+  import { modalStore } from "@lib/store.svelte";
   import { fade, fly } from "svelte/transition";
+  import {
+    modalContentDismiss,
+    modalContentReveal,
+    overlayFade,
+  } from "@lib/motion";
+  import { trapFocus } from "@lib/focus-trap";
+  import { MediaQuery } from "svelte/reactivity";
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
   import FilterModalContent from "./FilterModalContent.svelte";
   import X from "@lucide/svelte/icons/x";
+
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+
+  let modalContentEl = $state<HTMLDivElement | null>(null);
+
+  const modalAriaLabel = $derived.by(() => {
+    if (modalStore.type === "landing") return undefined;
+    if (modalStore.type === "schedule-expand") return "Room schedule";
+    if (modalStore.type === "filter") return "Filter campus";
+    return "Dialog";
+  });
+
+  $effect(() => {
+    if (!modalStore.open || !modalContentEl) return;
+    return trapFocus(modalContentEl, {
+      onEscape: () => modalStore.closeModal(),
+    });
+  });
 </script>
 
 {#if modalStore.open}
   <div class="modal-set">
-    <!-- svelte-ignore a11y_consider_explicit_label -->
     <button
+      type="button"
       class="overlay"
+      aria-label="Close dialog"
       onclick={() => modalStore.closeModal()}
-      transition:fade={{ duration: 200 }}
+      transition:fade={overlayFade(reducedMotion.current)}
     ></button>
     <div
+      bind:this={modalContentEl}
       class="modal-content {modalStore.type === 'landing'
         ? 'landing-modal-container'
         : ''}"
       id="modal-content"
-      transition:fly={{
-        duration: 200,
-        delay: 50,
-        y: 50,
-      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={modalStore.type === "landing"
+        ? "landing-modal-title"
+        : undefined}
+      aria-label={modalAriaLabel}
+      in:fly={modalContentReveal(reducedMotion.current)}
+      out:fly={modalContentDismiss(reducedMotion.current)}
     >
       {#if modalStore.type === "landing"}
         <LandingModal />
       {:else if modalStore.type === "schedule-expand"}
         <button
+          type="button"
           class="modal-content__close-icon"
+          aria-label="Close schedule"
           onclick={() => modalStore.closeModal()}
         >
-          <X size={20} />
+          <X size={20} aria-hidden="true" />
         </button>
         <ScheduleModal />
       {:else if modalStore.type === "filter"}
@@ -93,14 +125,21 @@
       &:hover {
         background-color: #f0f0f0;
       }
+      &:focus-visible {
+        outline: 2px solid hsl(5, 53%, 32%);
+        outline-offset: 1px;
+      }
     }
   }
   .landing-modal-container {
     flex: 0 1 48rem;
     width: 100%;
+    max-height: min(92dvh, 52rem);
     padding: 0;
     overflow: hidden;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   @media only screen and (max-width: 31.25rem) {
     .modal-content {
@@ -120,5 +159,10 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     cursor: pointer;
+  }
+
+  .overlay:focus-visible {
+    outline: 2px solid white;
+    outline-offset: -4px;
   }
 </style>

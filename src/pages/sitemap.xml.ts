@@ -9,8 +9,8 @@ import {
   getEventSlug,
   getRoomRouteSlug,
   loadAppData,
-} from "../lib/app-data";
-import { absoluteUrl } from "../lib/site";
+} from "@lib/app-data";
+import { absoluteUrl } from "@lib/site";
 
 export const GET: APIRoute = async () => {
   const { rooms, buildings, divisions, colleges, dorms, events } =

@@ -1,9 +1,7 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
-import {
-  EditConflictError,
-  updateCollege,
-} from "../../../../lib/services/admin-service";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
+import { EditConflictError, updateCollege } from "@lib/services/admin-service";
 
 export const prerender = false;
 
@@ -41,9 +39,9 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     });
   }
 
-  const expectedVersion = Number.isInteger(body.version)
-    ? body.version
-    : undefined;
+  const parsedVersion = parseRequiredEditorVersion(body.version);
+  if (!parsedVersion.ok) return parsedVersion.response;
+  const expectedVersion = parsedVersion.version;
 
   try {
     const college = await updateCollege(

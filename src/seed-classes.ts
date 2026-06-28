@@ -3,7 +3,7 @@
 import Database from "bun:sqlite";
 // import { sql, SQL } from "bun";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import { classesTable, roomsTable } from "../drizzle/schema";
+import { classesTable, roomsTable } from "@drizzle/schema";
 import amisClasses from "../data/AMIS subjects.json";
 import { getTableColumns, eq } from "drizzle-orm";
 const client = new Database("data/info.db");

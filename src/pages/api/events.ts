@@ -3,7 +3,7 @@ import {
   getActiveEvents,
   getAllEvents,
   getUpcomingEvents,
-} from "../../lib/services/event-service";
+} from "@lib/services/event-service";
 
 export const prerender = false;
 

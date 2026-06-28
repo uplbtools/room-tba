@@ -1,8 +1,9 @@
 import type {
   ProposalCreateType,
   ProposalEntityType,
-} from "../services/proposal-service";
-import type { RoomData } from "../types";
+} from "@lib/services/proposal-service";
+import { validateSubmitterName } from "@constants/proposals";
+import type { RoomData } from "@lib/types";
 
 export type StoredProposalRef = {
   id: number;
@@ -66,6 +67,7 @@ const FIELD_LABELS: Record<string, string> = {
   startsAt: "Starts",
   endsAt: "Ends",
   sourceUrl: "Source URL",
+  imageUrl: "Event image",
   recurrence: "Recurrence",
   routes: "Routes",
   locations: "Map locations",
@@ -331,6 +333,13 @@ export async function submitEntityProposal(input: {
   submitterName?: string;
   proposalId?: number | null;
 }): Promise<{ ok: boolean; error?: string; proposal?: StoredProposalRef }> {
+  if (input.submitterName !== undefined) {
+    const validation = validateSubmitterName(input.submitterName);
+    if (!validation.ok) {
+      return { ok: false, error: validation.error };
+    }
+  }
+
   const res = await fetch("/api/proposals", {
     method: "POST",
     credentials: "same-origin",

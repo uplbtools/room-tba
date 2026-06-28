@@ -1,12 +1,12 @@
 ---
-import EntityIndexPage from "../../components/seo/EntityIndexPage.astro";
-import { getBuildingSlug, loadAppData } from "../../lib/app-data";
+import EntityIndexPage from "@seo/EntityIndexPage.astro";
+import { getBuildingSlug, loadAppData } from "@lib/app-data";
 import {
   absoluteUrl,
   breadcrumbSchema,
   jsonLd,
   webpageSchema,
-} from "../../lib/site";
+} from "@lib/site";
 
 const { buildings, rooms } = await loadAppData();
 

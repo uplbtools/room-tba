@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt";
 import { and, eq, sql } from "drizzle-orm";
 import { ADMIN_PASSWORD } from "astro:env/server";
-import { adminUsersTable } from "../../../drizzle/schema";
-import { db } from "../db";
-import type { SessionUser } from "../admin/auth";
+import { adminUsersTable } from "@drizzle/schema";
+import { db } from "@lib/db";
+import type { SessionUser } from "@lib/admin/auth";
 
 export async function countAdminUsers(): Promise<number> {
   const rows = await db

@@ -1,29 +1,38 @@
 <script lang="ts">
-  import type { InitialSearchState } from "../../lib/app-data";
+  import type { InitialSearchState } from "@lib/app-data";
   import {
     type AppContextData,
     type DBData,
     setAppActions,
     setAppData,
-  } from "../../lib/context";
-  import { queryStore, syncToastStore } from "../../lib/store.svelte";
+  } from "@lib/context";
+  import {
+    queryStore,
+    syncToastStore,
+    appBootstrapStore,
+  } from "@lib/store.svelte";
   import type {
     BuildingData,
     CollegeData,
     DivisionData,
     DormData,
     EventData,
-  } from "../../lib/types";
+    TableSyncInfo,
+  } from "@lib/types";
   import Entry from "./Entry.svelte";
   import { onMount } from "svelte";
+  import { jitteredBackoffDelay, sleep } from "@lib/local/data/fetch-json";
   import {
+    fetchRemoteEvents,
     getBuildings,
     getColleges,
     getDivisions,
     getDorms,
     getEvents,
     getRoomsData,
-  } from "../../lib/local/data/utils";
+    loadCachedAppData,
+  } from "@lib/local/data/utils";
+  import { normalizeDormListFields } from "@lib/string-lists";
   import {
     localTableSyncCheck,
     syncBuildings,
@@ -32,8 +41,8 @@
     syncDorms,
     syncEvents,
     syncAliasCache,
-  } from "../../lib/local/data/sync";
-  import { getDB, initPGLiteDB } from "../../lib/local/data/pgliteDB";
+  } from "@lib/local/data/sync";
+  import { getDB, initPGLiteDB } from "@lib/local/data/pgliteDB";
 
   type MetadataProps = {
     initialSearch?: InitialSearchState;
@@ -75,45 +84,247 @@
         },
   );
 
-  onMount(async () => {
-    let data: DBData;
-    const localDB = getDB();
-    const buildingCheck = await localTableSyncCheck("buildings");
-    const collegeCheck = await localTableSyncCheck("colleges");
-    const divisionCheck = await localTableSyncCheck("divisions");
-    const dormCheck = await localTableSyncCheck("dorms");
-    const eventCheck = await localTableSyncCheck("events");
-    Promise.resolve()
-      .then(() => initPGLiteDB(localDB))
-      .catch((e) => console.error(e))
-      .then(async () => {
-        data = {
-          buildings: await getBuildings(buildingCheck),
-          colleges: await getColleges(collegeCheck),
-          divisions: await getDivisions(divisionCheck),
-          dorms: await getDorms(dormCheck),
-          events: await getEvents(eventCheck),
-          ...(await getRoomsData()),
-        };
-        await syncBuildings(buildingCheck, data.buildings ?? []);
-        await syncAliasCache();
-      })
-      .then(() => {
-        buildings = data.buildings;
-        colleges = data.colleges;
-        directionCount = data.directionCount;
-        divisions = data.divisions;
-        dorms = data.dorms;
-        events = data.events;
-        totalRooms = data.totalRooms;
-        loaded = true;
-        Promise.resolve()
-          .then(() => syncColleges(collegeCheck, data.colleges ?? []))
-          .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
-          .then(() => syncDorms(dormCheck, data.dorms ?? []))
-          .then(() => syncEvents(eventCheck, data.events ?? []))
-          .then(() => syncToastStore.endSync());
+  function applyData(data: DBData) {
+    buildings = data.buildings;
+    colleges = data.colleges;
+    directionCount = data.directionCount;
+    divisions = data.divisions;
+    dorms = data.dorms;
+    events = data.events;
+    totalRooms = data.totalRooms;
+  }
+
+  function hasUsableCampusData(data: DBData) {
+    return (
+      data.buildings.length > 0 ||
+      data.colleges.length > 0 ||
+      data.divisions.length > 0 ||
+      data.dorms.length > 0 ||
+      data.events.length > 0 ||
+      data.totalRooms > 0
+    );
+  }
+
+  function dismissStaticLoadingShell() {
+    document.getElementById("app-loading-shell")?.remove();
+  }
+
+  const EMPTY_DB_DATA: DBData = {
+    buildings: [],
+    colleges: [],
+    divisions: [],
+    dorms: [],
+    events: [],
+    directionCount: 0,
+    totalRooms: 0,
+  };
+
+  async function retryStaleEventsInBackground(eventCheck: TableSyncInfo) {
+    if (eventCheck.valid || eventCheck.newKey === null) return;
+
+    const maxWaves = 5;
+    for (let wave = 0; wave < maxWaves; wave += 1) {
+      try {
+        const fresh = await fetchRemoteEvents();
+        events = fresh;
+        await syncEvents(eventCheck, fresh, true);
+        return;
+      } catch (error) {
+        console.error("Background events fetch failed", error);
+        if (wave >= maxWaves - 1) return;
+        await sleep(jitteredBackoffDelay(wave + 1, 2_000, 60_000));
+      }
+    }
+  }
+
+  async function refreshFromNetwork(hasCachedDataAtStart: boolean) {
+    if (hasCachedDataAtStart) {
+      appBootstrapStore.markBackgroundRefresh();
+    } else if (appBootstrapStore.phase !== "remote") {
+      appBootstrapStore.beginRemote();
+    }
+    syncToastStore.startRemoteFetch();
+
+    let didSync = false;
+    try {
+      const [
+        buildingCheck,
+        collegeCheck,
+        divisionCheck,
+        dormCheck,
+        eventCheck,
+      ] = await Promise.all([
+        localTableSyncCheck("buildings"),
+        localTableSyncCheck("colleges"),
+        localTableSyncCheck("divisions"),
+        localTableSyncCheck("dorms"),
+        localTableSyncCheck("events"),
+      ]);
+
+      syncToastStore.beginFetchingCampus(6);
+
+      const trackFetch = <T,>(promise: Promise<T>) =>
+        promise.finally(() => {
+          syncToastStore.reportFetchComplete();
+        });
+
+      const [
+        buildingLoad,
+        collegeLoad,
+        divisionLoad,
+        dormLoad,
+        eventLoad,
+        roomsData,
+      ] = await Promise.all([
+        trackFetch(getBuildings(buildingCheck)),
+        trackFetch(getColleges(collegeCheck)),
+        trackFetch(getDivisions(divisionCheck)),
+        trackFetch(getDorms(dormCheck)),
+        trackFetch(getEvents(eventCheck)),
+        trackFetch(getRoomsData()),
+      ]);
+
+      const nextData = {
+        buildings: buildingLoad.rows,
+        colleges: collegeLoad.rows,
+        divisions: divisionLoad.rows,
+        dorms: dormLoad.rows,
+        events: eventLoad.rows,
+        directionCount: roomsData.directionCount,
+        totalRooms: roomsData.totalRooms,
+      };
+      applyData(nextData);
+
+      const hasData = hasUsableCampusData(nextData);
+      if (hasData) {
+        appBootstrapStore.setHasCachedData(true);
+      } else if (!hasCachedDataAtStart) {
+        appBootstrapStore.setHasCachedData(false);
+      }
+      if (!hasData) {
+        if (hasCachedDataAtStart) {
+          appBootstrapStore.complete();
+        } else {
+          appBootstrapStore.fail(
+            "Could not load campus data. Check your connection and try again.",
+            () => {
+              void refreshFromNetwork(false);
+            },
+          );
+        }
+        return;
+      }
+
+      appBootstrapStore.beginSync();
+      didSync = true;
+
+      await syncBuildings(
+        buildingCheck,
+        buildingLoad.rows,
+        buildingLoad.source === "remote",
+      );
+      await syncAliasCache();
+      await syncColleges(
+        collegeCheck,
+        collegeLoad.rows,
+        collegeLoad.source === "remote",
+      );
+      await syncDivisions(
+        divisionCheck,
+        divisionLoad.rows,
+        divisionLoad.source === "remote",
+      );
+      await syncDorms(dormCheck, dormLoad.rows, dormLoad.source === "remote");
+      await syncEvents(
+        eventCheck,
+        eventLoad.rows,
+        eventLoad.source === "remote",
+      );
+
+      if (
+        eventLoad.source === "cache" &&
+        !eventCheck.valid &&
+        eventCheck.newKey !== null
+      ) {
+        void retryStaleEventsInBackground(eventCheck);
+      }
+
+      appBootstrapStore.complete();
+    } catch (error) {
+      console.error("Network refresh failed", error);
+      const hasUsableData = hasUsableCampusData({
+        buildings: buildings ?? [],
+        colleges: colleges ?? [],
+        divisions: divisions ?? [],
+        dorms: dorms ?? [],
+        events: events ?? [],
+        directionCount: directionCount ?? 0,
+        totalRooms: totalRooms ?? 0,
       });
+      if (!hasCachedDataAtStart && !hasUsableData) {
+        appBootstrapStore.fail(
+          "Could not connect to the database. Check your connection and try again.",
+          () => {
+            void refreshFromNetwork(false);
+          },
+        );
+      } else if (hasUsableData) {
+        syncToastStore.setSyncError(
+          "Could not sync campus data — tap to retry",
+          () => {
+            void refreshFromNetwork(hasCachedDataAtStart);
+          },
+        );
+        appBootstrapStore.complete();
+      } else {
+        appBootstrapStore.complete();
+      }
+    } finally {
+      syncToastStore.endSync(didSync);
+    }
+  }
+
+  onMount(() => {
+    applyData(EMPTY_DB_DATA);
+    loaded = true;
+    dismissStaticLoadingShell();
+    appBootstrapStore.complete();
+    appBootstrapStore.setRetryHandler(() => {
+      void refreshFromNetwork(false);
+    });
+
+    void (async () => {
+      try {
+        syncToastStore.startRemoteFetch();
+        const localDB = getDB();
+        try {
+          await initPGLiteDB(localDB);
+        } catch (error) {
+          console.error(error);
+        }
+
+        const cached = await loadCachedAppData();
+        const hasCache = hasUsableCampusData(cached);
+        appBootstrapStore.setHasCachedData(hasCache);
+        if (hasCache) {
+          applyData(cached);
+        }
+
+        await refreshFromNetwork(hasCache);
+      } catch (error) {
+        console.error("Bootstrap failed", error);
+        if (appBootstrapStore.hasCachedData) {
+          appBootstrapStore.complete();
+        } else {
+          appBootstrapStore.fail(
+            "Could not load campus data. Check your connection and try again.",
+            () => {
+              void refreshFromNetwork(false);
+            },
+          );
+        }
+      }
+    })();
   });
 
   setAppData(() => appData);
@@ -148,7 +359,7 @@
       const index = dorms.findIndex((dorm) => dorm.id === updated.id);
       if (index === -1) return;
       const next = dorms.slice();
-      next[index] = updated;
+      next[index] = normalizeDormListFields(updated);
       dorms = next;
     },
     replaceCollege: (updated) => {

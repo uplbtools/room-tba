@@ -1,10 +1,11 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
 import {
   EditConflictError,
   updateDivision,
   type DivisionUpdateInput,
-} from "../../../../lib/services/admin-service";
+} from "@lib/services/admin-service";
 
 export const prerender = false;
 
@@ -51,9 +52,9 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     return json({ error: "College must be a valid selection" }, 400);
   }
 
-  const expectedVersion = Number.isInteger(body.version)
-    ? body.version
-    : undefined;
+  const parsedVersion = parseRequiredEditorVersion(body.version);
+  if (!parsedVersion.ok) return parsedVersion.response;
+  const expectedVersion = parsedVersion.version;
 
   const updates: DivisionUpdateInput = {};
   if (body.divisionName !== undefined) {

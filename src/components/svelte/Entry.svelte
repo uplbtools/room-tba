@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { InitialSearchState } from "../../lib/app-data";
+  import type { InitialSearchState } from "@lib/app-data";
   import {
     modalStore,
     queryStore,
@@ -10,21 +10,29 @@
     adminAuthStore,
     mapEditStore,
     mapToolsStore,
+    editorChromeStore,
     sidePanelStore,
-  } from "../../lib/store.svelte";
-  import Modal from "./modal/Modal.svelte";
-  import SidePanel from "./sidepanel/SidePanel.svelte";
-  import Map from "./Map.svelte";
-  import MapToolsFlyout from "./MapToolsFlyout.svelte";
-  import MapViewControls from "./MapViewControls.svelte";
-  import LocationButton from "./LocationButton.svelte";
-  import MapAttribution from "./MapAttribution.svelte";
-  import StatusBar from "./StatusBar.svelte";
-  import Toast from "./Toast.svelte";
-  import Building3DViewer from "./Building3DViewer.svelte";
-  import AdminLoginModal from "./AdminLoginModal.svelte";
-  import type { RecentSearch } from "../../lib/types";
-  import { isRecentSearch } from "../../lib/locStorage";
+    floatingControlPanelStore,
+  } from "@lib/store.svelte";
+  import Modal from "@ui/modal/Modal.svelte";
+  import MainControls from "@ui/controls/MainControls.svelte";
+  import Map from "@ui/Map.svelte";
+  import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
+  import MapViewControls from "@ui/MapViewControls.svelte";
+  import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
+  import LocationButton from "@ui/LocationButton.svelte";
+  import MapAttribution from "@ui/MapAttribution.svelte";
+  import StatusBar from "@ui/StatusBar.svelte";
+  import Toast from "@ui/Toast.svelte";
+  import Building3DViewer from "@ui/Building3DViewer.svelte";
+  import AdminLoginModal from "@ui/AdminLoginModal.svelte";
+  import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
+  import EditorScreen from "@ui/EditorScreen.svelte";
+  import EntityUrlSync from "@ui/EntityUrlSync.svelte";
+  import "./map-chrome/map-chrome.css";
+  import { observeBlockHeight, observeBlockWidth } from "@lib/layout-css-vars";
+  import type { RecentSearch } from "@lib/types";
+  import { isRecentSearch } from "@lib/locStorage";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -58,8 +66,15 @@
       });
     }
 
-    if (new URLSearchParams(window.location.search).get("editor") === "login") {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get("editor") === "login") {
       adminAuthStore.openLogin();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    if (urlParams.get("contribute") === "1") {
+      floatingControlPanelStore.openPanel = "suggest-addition";
       window.history.replaceState({}, "", window.location.pathname);
     }
 
@@ -76,37 +91,47 @@
   );
 
   let mapToolsStackEl = $state<HTMLDivElement | null>(null);
+  let bottomChromeEl = $state<HTMLDivElement | null>(null);
+  let bottomChromeActionsEl = $state<HTMLDivElement | null>(null);
 
   $effect(() => {
     const el = mapToolsStackEl;
-    if (!el || typeof ResizeObserver === "undefined") return;
+    if (!el) return;
+    return observeBlockHeight(el, "--map-tools-block-height", {
+      shouldSkip: () => window.matchMedia("(max-width: 48rem)").matches,
+      skipValue: "0px",
+    });
+  });
 
-    const root = el.closest(".app-layout") as HTMLElement | null;
-    if (!root) return;
+  $effect(() => {
+    const el = bottomChromeEl;
+    if (!el) return;
+    return observeBlockHeight(el, "--status-bar-block-height");
+  });
 
-    const syncHeight = () => {
-      // Mobile uses a full-viewport overlay stack; its height must not drive
-      // layout anchors (detail sheet inset, etc.).
-      if (window.matchMedia("(max-width: 48rem)").matches) {
-        root.style.setProperty("--map-tools-block-height", "0px");
-        return;
-      }
-      root.style.setProperty(
-        "--map-tools-block-height",
-        `${el.getBoundingClientRect().height}px`,
-      );
-    };
-
-    syncHeight();
-    const observer = new ResizeObserver(syncHeight);
-    observer.observe(el);
-    return () => observer.disconnect();
+  $effect(() => {
+    const el = bottomChromeActionsEl;
+    if (!el) return;
+    return observeBlockWidth(el, "--bottom-fab-inset", {
+      onSync: (widthPx, root) => {
+        root.style.setProperty(
+          "--bottom-fab-inset",
+          `calc(${widthPx} + var(--bottom-chrome-gap, var(--bottom-fab-gap, 0.5rem)))`,
+        );
+      },
+    });
   });
 
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       if (modalStore.open) {
         modalStore.closeModal();
+      } else if (adminAuthStore.loginOpen) {
+        adminAuthStore.closeLogin();
+      } else if (editorChromeStore.additionModalOpen) {
+        editorChromeStore.closeAdditionModal();
+      } else if (editorChromeStore.shelfOpen) {
+        editorChromeStore.closeShelf();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
@@ -121,6 +146,8 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
+<EntityUrlSync />
+
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
   <div class="ui-layer" class:drawer-expanded={drawerExpanded}>
@@ -131,21 +158,32 @@
     >
       <MapToolsFlyout />
       <div class="desktop-camera-controls" aria-label="Map camera">
-        <MapViewControls variant="camera" />
+        <div class="camera-controls-card">
+          <MapDimensionToggle embedded />
+          <div class="camera-controls-card__divider" aria-hidden="true"></div>
+          <MapViewControls variant="camera" embedded />
+        </div>
       </div>
     </div>
     <div class="inner-layer">
-      <SidePanel />
+      <MainControls />
       <div class="bottom-band">
-        <MapAttribution />
-        <div
-          class="location-fab-stack"
-          class:drawer-lift={drawerExpanded}
-          aria-label="Location and editor"
-        >
-          <LocationButton />
+        <div class="bottom-chrome" bind:this={bottomChromeEl}>
+          <div class="bottom-chrome__leading">
+            <MapAttribution />
+          </div>
+          <div class="bottom-chrome__status">
+            <StatusBar />
+          </div>
+          <div
+            class="bottom-chrome__actions"
+            class:drawer-lift={drawerExpanded}
+            bind:this={bottomChromeActionsEl}
+            aria-label="Location controls"
+          >
+            <LocationButton embedded />
+          </div>
         </div>
-        <StatusBar />
       </div>
     </div>
     {#if toastStore.message}
@@ -163,12 +201,19 @@
   {#if adminAuthStore.loginOpen}
     <AdminLoginModal />
   {/if}
+  <EditorAdditionModal />
+  <EditorScreen />
 </div>
 
 <style>
   .app-layout {
     --map-ui-padding: 0.5rem;
+    /* Gap between bottom chrome and edit dock / map padding edge */
+    --bottom-fab-gap: var(--map-ui-padding, 0.5rem);
+    --bottom-chrome-gap: var(--bottom-fab-gap, 0.5rem);
     --search-block-height: 3.25rem;
+    /* Top-left search card + drawer: use viewport minus right-side map chrome. */
+    --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
     --status-bar-block-height: 2.75rem;
     --drawer-peek-offset: 1.75rem;
     --map-tools-block-height: 3.25rem;
@@ -177,61 +222,39 @@
         var(--map-ui-padding) * 2
     );
     --edit-bar-height: 0rem;
+    --bottom-fab-inset: 3.75rem;
     --pill-padding-x: 0.875rem;
     --map-chrome-radius: 1rem;
     --map-chrome-toggle-size: 2rem;
     --map-chrome-toggle-radius: 0.625rem;
-    /* Map-face controls: readable on light tiles and white building footprints */
-    --map-chrome-surface: rgba(255, 255, 255, 0.98);
-    --map-chrome-border: hsl(0, 0%, 58%);
-    --map-chrome-border-accent: hsl(5, 40%, 42%);
+    /* Map chrome contrast: warm off-white surfaces + stronger edges so controls
+       float above light basemap tiles without dimming the map itself. */
+    --map-chrome-surface: hsl(5 20% 97%);
+    --map-chrome-panel-bg: hsl(5 18% 96%);
+    --map-chrome-border: hsl(5 10% 68%);
+    --map-chrome-border-accent: hsl(5 40% 42%);
+    --map-chrome-divider: hsl(5 12% 88%);
+    --map-chrome-panel-accent-border: hsl(5 15% 78%);
+    --map-chrome-band-backdrop: hsla(5, 22%, 96%, 0.82);
     --map-chrome-shadow:
-      0 0 0 1px hsla(0, 0%, 0%, 0.18), 0 2px 6px hsla(0, 0%, 0%, 0.18),
-      0 8px 20px hsla(0, 0%, 0%, 0.14);
+      0 0 0 1px hsla(15, 8%, 20%, 0.14), 0 1px 3px hsla(0, 0%, 0%, 0.12),
+      0 4px 12px hsla(0, 0%, 0%, 0.16), 0 10px 24px hsla(0, 0%, 0%, 0.1);
     --map-chrome-panel-shadow:
-      0 0 0 1px hsla(0, 0%, 0%, 0.14), 0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12);
+      0 0 0 1px hsla(15, 8%, 20%, 0.16), 0 2px 8px hsla(0, 0%, 0%, 0.14),
+      0 8px 20px hsla(0, 0%, 0%, 0.18), 0 16px 32px hsla(0, 0%, 0%, 0.08);
+    --map-chrome-fab-shadow:
+      inset 0 0 0 1px hsla(0, 0%, 100%, 0.72), 0 2px 6px hsla(0, 0%, 0%, 0.2),
+      0 6px 16px hsla(0, 0%, 0%, 0.14);
+    --motion-duration-fast: 150ms;
+    --motion-duration-micro: 200ms;
+    --motion-duration-panel: 280ms;
+    --motion-duration-shelf: 260ms;
+    --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
 
     width: 100%;
     height: 100dvh;
     overflow: hidden;
-  }
-
-  .app-layout.edit-mode {
-    --edit-bar-height: 3rem;
-  }
-
-  :global(.chrome-toggle-btn) {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: var(--map-chrome-toggle-size, 2rem);
-    height: var(--map-chrome-toggle-size, 2rem);
-    border: 1px solid #d8b9ba;
-    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
-    background: #fffafa;
-    color: #7b1113;
-    transition:
-      background-color 0.16s,
-      border-color 0.16s;
-  }
-
-  :global(button.chrome-toggle-btn) {
-    cursor: pointer;
-    font: inherit;
-    padding: 0;
-  }
-
-  :global(button.chrome-toggle-btn:hover),
-  :global(button.chrome-toggle-btn:focus-visible) {
-    border-color: #c58f91;
-    background: #fdf3f3;
-  }
-
-  :global(button.chrome-toggle-btn:focus-visible) {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
   }
 
   .inner-layer {
@@ -246,15 +269,104 @@
   }
 
   .bottom-band {
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
+    align-items: stretch;
+    justify-content: flex-end;
     flex-shrink: 0;
     width: 100%;
     pointer-events: none;
-    /* Reserve horizontal space so status bar text does not sit under FABs */
-    --bottom-fab-inset: 3.75rem;
+  }
+
+  .bottom-chrome {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.375rem;
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    pointer-events: auto;
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border-radius: var(--map-chrome-radius, 1rem);
+    padding: 0.125rem 0.375rem;
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 0 0 1px hsla(15, 8%, 20%, 0.16),
+      0 2px 8px hsla(0, 0%, 0%, 0.14),
+      0 8px 20px hsla(0, 0%, 0%, 0.18)
+    );
+  }
+
+  .bottom-chrome__leading {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: center;
+    min-width: 0;
+  }
+
+  .bottom-chrome__status {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .bottom-chrome__status :global(.status-bar) {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    align-self: stretch;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding: 0;
+    min-height: 1.25rem;
+  }
+
+  .bottom-chrome__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: flex-start;
+    min-width: 0;
+    margin-top: 0.125rem;
+    padding-left: 0.25rem;
+    margin-left: 0.0625rem;
+    border-left: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+  }
+
+  .bottom-band::before {
+    content: "";
+    position: absolute;
+    /* Bleed through inner-layer padding so the fade reaches the viewport edge. */
+    left: calc(-1 * var(--map-ui-padding, 0.5rem));
+    right: calc(-1 * var(--map-ui-padding, 0.5rem));
+    bottom: calc(
+      -1 * (var(--map-ui-padding, 0.5rem) + env(safe-area-inset-bottom, 0px))
+    );
+    height: calc(
+      6rem + var(--map-ui-padding, 0.5rem) + env(safe-area-inset-bottom, 0px)
+    );
+    background: linear-gradient(
+      to top,
+      var(--map-chrome-surface) 0%,
+      var(--map-chrome-band-backdrop) 14%,
+      hsla(5, 22%, 96%, 0.35) 54%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 0;
   }
 
   :global(.map) {
@@ -264,14 +376,11 @@
 
   .ui-layer {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     z-index: 10;
     pointer-events: none;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    width: 100%;
   }
 
   .top-right-map-stack {
@@ -300,29 +409,55 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      pointer-events: none;
     }
   }
 
-  .location-fab-stack {
-    position: relative;
-    z-index: 14;
+  .camera-controls-card {
+    pointer-events: auto;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-    pointer-events: none;
+    align-items: stretch;
+    width: calc(var(--map-chrome-toggle-size, 2rem) + 0.375rem);
+    box-sizing: border-box;
+    gap: 0.0625rem;
+    padding: 0.1875rem;
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    backdrop-filter: blur(10px);
+    border: 1.5px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
+    box-shadow: var(
+      --map-chrome-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.18),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14)
+    );
   }
 
-  :global(*) {
-    margin: unset;
-    box-sizing: border-box;
+  .camera-controls-card__divider {
+    height: 1px;
+    margin: 0.0625rem 0.125rem;
+    background-color: var(--map-chrome-divider, hsl(5 12% 88%));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-layout {
+      --motion-duration-fast: 0ms;
+      --motion-duration-micro: 0ms;
+      --motion-duration-panel: 0ms;
+      --motion-duration-shelf: 0ms;
+    }
   }
 
   @media (max-width: 48rem) {
     .app-layout {
       --map-ui-padding: 0;
+      --map-search-inline-pad: 0.625rem;
+      --bottom-fab-gap: 0.375rem;
+      --bottom-chrome-gap: var(--bottom-fab-gap);
       --map-tools-block-height: 0px;
       --mobile-detail-sheet-top-inset: var(--search-block-height);
+      --bottom-fab-inset: 3.25rem;
     }
 
     .inner-layer {
@@ -330,10 +465,38 @@
       gap: 0;
     }
 
-    .bottom-band {
-      gap: 0;
-      align-items: stretch;
-      --bottom-fab-inset: 3.25rem;
+    .bottom-chrome {
+      gap: 0.25rem;
+      min-height: 2rem;
+      padding: 0.125rem max(0.375rem, env(safe-area-inset-left, 0px))
+        calc(0.125rem + env(safe-area-inset-bottom, 0px))
+        max(0.375rem, env(safe-area-inset-right, 0px));
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      backdrop-filter: none;
+    }
+
+    .bottom-chrome__status :global(.status-bar) {
+      min-height: 1.25rem;
+      padding-bottom: 0;
+    }
+
+    .bottom-chrome__leading {
+      padding-left: max(0.125rem, env(safe-area-inset-left, 0px));
+    }
+
+    /* When the drawer sheet is open, lift actions above its peek handle */
+    .bottom-chrome__actions.drawer-lift {
+      position: fixed;
+      right: max(0.5rem, env(safe-area-inset-right, 0px));
+      bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
+      z-index: 14;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
     }
 
     .top-right-map-stack {
@@ -348,11 +511,11 @@
       z-index: 16;
     }
 
-    .top-right-map-stack :global(.map-tools-trigger) {
+    .top-right-map-stack :global(.map-chrome-fab-trigger) {
       display: none;
     }
 
-    .top-right-map-stack :global(.map-tools-panel) {
+    .top-right-map-stack :global(.map-chrome-panel) {
       position: fixed;
       top: var(--search-block-height);
       right: 0;
@@ -370,11 +533,41 @@
       pointer-events: auto;
     }
 
-    /* When the drawer sheet is open, lift FABs above its peek handle */
-    .location-fab-stack.drawer-lift {
-      position: fixed;
-      right: 0.5rem;
-      bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
+    .top-right-map-stack :global(.map-tools-panel) {
+      min-height: min(
+        58dvh,
+        calc(
+          100dvh - var(--search-block-height) - var(--status-bar-block-height)
+        )
+      );
+      padding: 0.875rem 1rem;
+      gap: 0.625rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-header) {
+      font-size: 1rem;
+      padding: 0.375rem 0.25rem 0.625rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-close) {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-body) {
+      flex: 1 1 auto;
+      gap: 0.375rem;
+    }
+
+    .top-right-map-stack
+      :global(.map-tools-panel .map-chrome-accordion-toggle) {
+      min-height: 2.75rem;
+      padding: 0.625rem 0.75rem;
+      font-size: 0.9375rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-body) {
+      padding: 0.25rem 0 0.5rem;
     }
   }
 </style>

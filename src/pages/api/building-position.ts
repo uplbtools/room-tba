@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
 import type { AstroCookies } from "astro";
 import { eq } from "drizzle-orm";
-import { db } from "../../lib/db";
-import { buildingsTable } from "../../../drizzle/schema";
-import { canPublishDirectly } from "../../lib/admin/auth";
-import { getEditorSession } from "../../lib/admin/require-editor";
-import { refreshSyncKey } from "../../lib/services/admin-service";
-import { CAMPUS_BOUNDS } from "../../constants/map-terrain";
+import { db } from "@lib/db";
+import { buildingsTable } from "@drizzle/schema";
+import { canPublishDirectly } from "@lib/admin/auth";
+import { getEditorSession } from "@lib/admin/require-editor";
+import { refreshSyncKey } from "@lib/services/admin-service";
+import { CAMPUS_BOUNDS } from "@constants/map-terrain";
 
 export const prerender = false;
 

@@ -1,12 +1,12 @@
 <script lang="ts">
   import Info from "@lucide/svelte/icons/info";
   import X from "@lucide/svelte/icons/x";
-  import { getAppData } from "../../lib/context";
+  import { getAppData } from "@lib/context";
   import {
     floatingControlPanelStore,
     mapViewStore,
     queryStore,
-  } from "../../lib/store.svelte";
+  } from "@lib/store.svelte";
 
   type Props = {
     embedded?: boolean;
@@ -201,7 +201,41 @@
     max-height: none;
     padding: 0;
     box-shadow: none;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
+    gap: 0.375rem;
+  }
+
+  .map-legend.embedded .legend-sections {
+    gap: 0.5rem;
+  }
+
+  .map-legend.embedded .legend-section {
+    gap: 0.25rem;
+  }
+
+  .map-legend.embedded .legend-list {
+    gap: 0.25rem;
+  }
+
+  .map-legend.embedded .legend-item {
+    gap: 0.5rem;
+    padding: 0.3125rem 0.5rem;
+  }
+
+  .map-legend.embedded .legend-swatch {
+    width: 1.125rem;
+    height: 1.125rem;
+    font-size: 0.625rem;
+  }
+
+  .map-legend.embedded .legend-label {
+    font-size: 0.75rem;
+  }
+
+  .map-legend.embedded .legend-description {
+    font-size: 0.625rem;
+    line-height: 1.2;
   }
 
   .legend-empty-note {
@@ -295,7 +329,8 @@
     min-width: 0;
     flex-direction: column;
     gap: 0.75rem;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
     padding-right: 0;
   }
 
@@ -321,9 +356,12 @@
   }
 
   .legend-item {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 0.625rem;
+    min-width: 0;
+    max-width: 100%;
     border-radius: 0.625rem;
     background-color: hsl(0, 0%, 98%);
     padding: 0.45rem 0.625rem;

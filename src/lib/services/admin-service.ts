@@ -13,23 +13,16 @@ import {
   roomsTable,
   roomPositionsTable,
   updateTable,
-} from "../../../drizzle/schema";
-import { normalizeEntityName } from "../entity-names";
-import { db } from "../db";
+} from "@drizzle/schema";
+import { normalizeEntityName } from "@lib/entity-names";
+import { db } from "@lib/db";
 import { getEventById } from "./event-service";
-import type { EventData, RoomData } from "../types";
+import type { EventData, RoomData } from "@lib/types";
+import { EditConflictError } from "./edit-conflict-error";
+
+export { EditConflictError } from "./edit-conflict-error";
 
 // ── Sync key refresh ──
-
-export class EditConflictError<TLatest> extends Error {
-  latest: TLatest | null;
-
-  constructor(latest: TLatest | null) {
-    super("This record was changed by another editor.");
-    this.name = "EditConflictError";
-    this.latest = latest;
-  }
-}
 
 export class DuplicateSlugError extends Error {
   slug: string;
@@ -955,6 +948,7 @@ export type EventWriteInput = Partial<{
   recurrence: "none" | "annual" | "every_1st_sem" | "every_2nd_sem";
   isActive: boolean;
   sourceUrl: string | null;
+  imageUrl: string | null;
   priority: number;
   includeInSeo: boolean;
   locations: EventLocationWriteInput[];
@@ -987,6 +981,7 @@ function getEventUpdates(input: EventWriteInput) {
   if (input.recurrence !== undefined) updates["recurrence"] = input.recurrence;
   if (input.isActive !== undefined) updates["isActive"] = input.isActive;
   if (input.sourceUrl !== undefined) updates["sourceUrl"] = input.sourceUrl;
+  if (input.imageUrl !== undefined) updates["imageUrl"] = input.imageUrl;
   if (input.priority !== undefined) updates["priority"] = input.priority;
   if (input.includeInSeo !== undefined)
     updates["includeInSeo"] = input.includeInSeo;
@@ -1020,6 +1015,7 @@ export async function createEvent(
       recurrence: input.recurrence ?? "none",
       isActive: input.isActive ?? true,
       sourceUrl: input.sourceUrl ?? null,
+      imageUrl: input.imageUrl ?? null,
       priority: input.priority ?? 0,
       includeInSeo: input.includeInSeo ?? false,
     })

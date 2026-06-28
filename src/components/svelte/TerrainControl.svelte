@@ -6,11 +6,8 @@
   import {
     TERRAIN_EXAGGERATION_OPTIONS,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
-  } from "../../constants/map-terrain";
-  import {
-    floatingControlPanelStore,
-    terrainStore,
-  } from "../../lib/store.svelte";
+  } from "@constants/map-terrain";
+  import { floatingControlPanelStore, terrainStore } from "@lib/store.svelte";
 
   type Props = {
     embedded?: boolean;
@@ -312,7 +309,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 0.5rem;
+    min-width: 0;
     color: hsl(0, 0%, 30%);
     font-size: 0.75rem;
     font-weight: 600;

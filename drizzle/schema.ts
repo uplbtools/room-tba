@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   integer,
@@ -44,6 +45,34 @@ export const editProposalStatusEnum = pgEnum("edit_proposal_status", [
   "rejected",
   "needs_changes",
 ]);
+
+// Academic terms. `id` mirrors the CRS/SAIS term_id (e.g. 1252) rather than
+// being auto-generated, so it matches the `term_id` already stored on classes.
+export const termsTable = pgTable(
+  "terms",
+  {
+    id: integer().primaryKey(),
+    label: text().notNull(),
+    schoolYear: varchar("school_year", { length: 16 }),
+    // "1" | "2" | "midyear"
+    semester: varchar({ length: 12 }),
+    startsOn: timestamp("starts_on", { mode: "string" }),
+    endsOn: timestamp("ends_on", { mode: "string" }),
+    isDefault: boolean("is_default").default(false).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    version: integer().default(1).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    // At most one term may be the default for anonymous visitors.
+    uniqueIndex("terms_single_default")
+      .on(table.isDefault)
+      .where(sql`${table.isDefault}`),
+  ],
+);
 
 export const dormsTable = pgTable("dorms", {
   id: integer().primaryKey().generatedByDefaultAsIdentity({
@@ -321,6 +350,7 @@ export const eventsTable = pgTable(
     recurrence: eventRecurrenceEnum().default("none").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     sourceUrl: text("source_url"),
+    imageUrl: text("image_url"),
     priority: integer().default(0).notNull(),
     includeInSeo: boolean("include_in_seo").default(false).notNull(),
     version: integer().default(1).notNull(),

@@ -7,9 +7,14 @@ import {
   editProposalsTable,
   eventsTable,
   roomsTable,
-} from "../../../drizzle/schema";
-import { db } from "../db";
-import { canReviewProposals, type SessionUser } from "../admin/auth";
+} from "@drizzle/schema";
+import { db } from "@lib/db";
+import { type SessionUser } from "@lib/admin/auth";
+import { validateSubmitterName } from "@constants/proposals";
+import { parseEventImageUrl } from "@lib/r2-upload";
+import { R2_PUBLIC_URL } from "astro:env/server";
+import { canViewProposalSubmitterDetails } from "./proposal-access";
+export { canViewProposalSubmitterDetails } from "./proposal-access";
 import {
   EditConflictError,
   DuplicateSlugError,
@@ -276,26 +281,6 @@ export function toSubmitterProposalView(
     submitterName: summary.submitterName,
   };
 }
-
-export function canViewProposalSubmitterDetails(
-  session: SessionUser | null,
-  proposal: EditProposalRow,
-  submitterName?: string | null,
-): boolean {
-  if (session && canReviewProposals(session.role)) return true;
-  if (session && session.id > 0 && proposal.submitterUserId === session.id) {
-    return true;
-  }
-  const normalized = submitterName?.trim().toLowerCase();
-  if (
-    normalized &&
-    normalized === proposal.submitterName.trim().toLowerCase()
-  ) {
-    return true;
-  }
-  return false;
-}
-
 async function withEntityLabel(
   row: EditProposalRow,
 ): Promise<EditProposalSummary> {
@@ -437,12 +422,11 @@ export async function submitProposal(
       throw new ProposalValidationError("Invalid base version.");
     }
   }
-  const name = input.submitterName.trim();
-  if (name.length < 2 || name.length > 100) {
-    throw new ProposalValidationError(
-      "Your name must be between 2 and 100 characters.",
-    );
+  const validation = validateSubmitterName(input.submitterName);
+  if (!validation.ok) {
+    throw new ProposalValidationError(validation.error);
   }
+  const name = validation.name;
   if (Object.keys(input.patch).length === 0) {
     throw new ProposalValidationError("No changes to submit.");
   }
@@ -552,9 +536,24 @@ export class ProposalActionError extends Error {
   }
 }
 
+function validateProposalEventImageUrl(patch: Record<string, unknown>) {
+  if (!("imageUrl" in patch)) return;
+  const parsed = parseEventImageUrl(patch.imageUrl, R2_PUBLIC_URL);
+  if (!parsed.ok) {
+    throw new ProposalActionError(parsed.error);
+  }
+  if (parsed.provided) {
+    patch.imageUrl = parsed.imageUrl;
+  }
+}
+
 async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
   const patch = proposal.proposedPatch as Record<string, unknown>;
   const entityType = proposal.entityType as ProposalEntityType;
+
+  if (entityType === "create_event" || entityType === "event") {
+    validateProposalEventImageUrl(patch);
+  }
 
   if (isCreateProposalType(entityType)) {
     switch (entityType) {

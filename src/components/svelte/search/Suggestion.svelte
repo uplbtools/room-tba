@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { queryStore, type QueryStoreState } from "../../../lib/store.svelte";
+  import { queryStore, type QueryStoreState } from "@lib/store.svelte";
   import ArrowUpRight from "@lucide/svelte/icons/arrow-up-right";
   import BookText from "@lucide/svelte/icons/book-text";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";

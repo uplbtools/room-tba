@@ -1,11 +1,11 @@
 import { createContext } from "svelte";
-import {
+import type {
   BuildingData,
   CollegeData,
   DivisionData,
   DormData,
   EventData,
-} from "./types";
+} from "@lib/types";
 export type AppContextData =
   | {
       buildings: BuildingData[];

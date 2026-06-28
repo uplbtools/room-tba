@@ -1,0 +1,21 @@
+---
+description: Drizzle schema, SQL migrations, admin APIs, and PGlite offline sync
+globs:
+  - drizzle/**
+  - src/pages/api/**
+  - src/lib/services/**
+  - src/lib/local/data/**
+  - src/lib/db.ts
+---
+
+# Data and migrations
+
+Before changing schema, APIs, or offline sync:
+
+1. **Server schema:** edit [`drizzle/schema.ts`](drizzle/schema.ts) and add a matching SQL migration in `drizzle/`. Apply to Supabase before deploying dependent code.
+2. **PGlite drift:** update [`src/lib/local/data/pgliteDB.ts`](src/lib/local/data/pgliteDB.ts) (or generated init SQL) and verify [`src/lib/local/data/sync.ts`](src/lib/local/data/sync.ts) still reads/writes expected columns.
+3. **Do not edit** `drizzle-migrations/` — archived SQLite history only.
+4. **Admin writes:** routes under `/api/admin/*` must keep auth via `require-editor.ts`. Every publish/write should refresh the entity's sync key.
+5. **PATCH routes:** field-level partial updates only; send/validate `version` for optimistic concurrency; return `409 Conflict` with the latest row when stale.
+6. **History:** reverts create new `editor_history` entries — do not rewrite or delete audit rows.
+7. **Queries:** use Drizzle + `DATABASE_URL` for Postgres. Supabase JS client is for Auth/client features only unless the feature explicitly requires it.

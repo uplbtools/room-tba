@@ -1,10 +1,10 @@
 // src/lib/store.svelte.ts
 
-import { modalOptions } from "../constants/modal-states";
+import { modalOptions } from "@constants/modal-states";
 import {
   DEFAULT_TERRAIN_EXAGGERATION,
   CAMPUS_BOUNDS,
-} from "../constants/map-terrain";
+} from "@constants/map-terrain";
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
@@ -17,13 +17,10 @@ import {
   MIN_ZOOM,
   tileUrl,
 } from "./local/offline-maps";
+import { clearProposeEventDraft } from "./contributor-drafts";
+import type { BuildingTypeFilter } from "@constants/building-types";
 
-export type BuildingTypeFilter =
-  | "all"
-  | "class-building"
-  | "administrative-building"
-  | "up-managed-dorm"
-  | "non-up-managed-dorm";
+export type { BuildingTypeFilter };
 
 type RoomData = {
   id: number;
@@ -49,6 +46,31 @@ export type SyncInfo = {
   synced: number;
   total: number;
 };
+
+export type SyncTableKey =
+  | "buildings"
+  | "colleges"
+  | "divisions"
+  | "dorms"
+  | "events"
+  | "aliases"
+  | "rooms";
+
+export type SyncActivity = "idle" | "checking" | "fetching" | "writing";
+
+const SYNC_TABLE_LABELS: Record<SyncTableKey, string> = {
+  buildings: "buildings",
+  colleges: "colleges",
+  divisions: "divisions",
+  dorms: "dorms",
+  events: "events",
+  aliases: "search aliases",
+  rooms: "room stats",
+};
+
+export function syncTableLabel(table: SyncTableKey): string {
+  return SYNC_TABLE_LABELS[table];
+}
 
 let _dormFilter = $state<DormFilterType>("all");
 export const dormFilter = {
@@ -377,9 +399,6 @@ class LocationStore {
 
 class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
-  // Set by Map.svelte so UI controls can halt the idle auto-rotation
-  // before performing a manual camera change.
-  stopAutoRotate: (() => void) | null = null;
 }
 
 class MapViewStore {
@@ -394,7 +413,7 @@ class MapViewStore {
   };
 }
 
-class SidePanelStore {
+class MainControlsStore {
   collapsed: boolean = $state(false);
 
   toggle = () => {
@@ -411,12 +430,7 @@ class SidePanelStore {
 }
 
 export type FloatingControlPanel =
-  | "legend"
-  | "building-type"
-  | "terrain"
-  | "jeepney"
-  | "admin"
-  | "suggest-addition";
+  "legend" | "building-type" | "terrain" | "admin" | "suggest-addition";
 
 class FloatingControlPanelStore {
   openPanel: FloatingControlPanel | null = $state(null);
@@ -432,20 +446,13 @@ class FloatingControlPanelStore {
   };
 }
 
-export type MapToolsSection =
-  | "view"
-  | "legend"
-  | "building-type"
-  | "terrain"
-  | "jeepney";
+export type MapToolsSection = "view" | "legend" | "terrain" | "jeepney";
 
 class MapToolsStore {
   open = $state(false);
   activeSection: MapToolsSection | null = $state("view");
-  /** Accordion: terrain and jeepney collapsed by default. */
-  expandedSections = $state<Set<MapToolsSection>>(
-    new Set(["view", "legend", "building-type"]),
-  );
+  /** Accordion: terrain collapsed by default. */
+  expandedSections = $state<Set<MapToolsSection>>(new Set(["view", "legend"]));
 
   toggle = () => {
     this.open = !this.open;
@@ -473,6 +480,32 @@ class MapToolsStore {
     }
     this.expandedSections = next;
     this.activeSection = section;
+  };
+}
+
+class EditorChromeStore {
+  shelfOpen = $state(false);
+  additionModalOpen = $state(false);
+
+  openShelf = () => {
+    this.shelfOpen = true;
+  };
+
+  closeShelf = () => {
+    this.shelfOpen = false;
+  };
+
+  toggleShelf = () => {
+    this.shelfOpen = !this.shelfOpen;
+  };
+
+  openAdditionModal = () => {
+    this.additionModalOpen = true;
+    this.shelfOpen = false;
+  };
+
+  closeAdditionModal = () => {
+    this.additionModalOpen = false;
   };
 }
 
@@ -539,25 +572,44 @@ class MapProposalStore {
 
 class AdditionProposalStore {
   pinPickActive = $state(false);
+  draftPin: { lat: number; lon: number } | null = $state(null);
   private pinResolver: ((coords: { lat: number; lon: number }) => void) | null =
     null;
+  private pinReject: ((reason?: unknown) => void) | null = null;
 
   requestMapPin() {
+    if (this.pinPickActive) {
+      this.cancelMapPin();
+    }
     this.pinPickActive = true;
-    return new Promise<{ lat: number; lon: number }>((resolve) => {
+    return new Promise<{ lat: number; lon: number }>((resolve, reject) => {
       this.pinResolver = resolve;
+      this.pinReject = reject;
     });
   }
 
   deliverMapPin(lat: number, lon: number) {
-    this.pinResolver?.({ lat, lon });
+    const coords = { lat, lon };
+    this.draftPin = coords;
+    this.pinResolver?.(coords);
     this.pinResolver = null;
+    this.pinReject = null;
     this.pinPickActive = false;
   }
 
   cancelMapPin() {
+    this.pinReject?.(new Error("cancelled"));
     this.pinResolver = null;
+    this.pinReject = null;
     this.pinPickActive = false;
+  }
+
+  clearDraftPin() {
+    this.draftPin = null;
+  }
+
+  setDraftPin(pin: { lat: number; lon: number } | null) {
+    this.draftPin = pin;
   }
 }
 
@@ -567,6 +619,7 @@ export type EventPlacementDraft = {
   startsAt: string;
   endsAt: string;
   category: "tradition" | "fair" | "ceremony" | "sports" | "other";
+  imageUrl: string | null;
 };
 
 class EventPlacementStore {
@@ -609,6 +662,7 @@ class EventPlacementStore {
     this.creating = false;
     this.proposing = false;
     this.submitterName = "";
+    clearProposeEventDraft();
   };
 
   consumeCreatedEvent = (eventId: number) => {
@@ -841,8 +895,8 @@ class AdminAuthStore {
         username: data.username ?? username.trim().toLowerCase(),
         displayName: data.displayName,
         role: data.role ?? "editor",
-        canPublish: data.canPublish ?? true,
-        canReview: data.canReview ?? true,
+        canPublish: data.canPublish,
+        canReview: data.canReview,
       });
       this.loginOpen = false;
       return null;
@@ -882,6 +936,8 @@ class AdminAuthStore {
 }
 
 class JeepneyStore {
+  /** Transit/jeepney layer visible (search chip or map tools). */
+  layerActive: boolean = $state(false);
   selectedRouteId: string | null = $state(null);
   menuOpen: boolean = $state(false);
 
@@ -893,11 +949,36 @@ class JeepneyStore {
     this.menuOpen = false;
   };
 
+  toggleLayer = () => {
+    if (this.layerActive) {
+      this.layerActive = false;
+      this.menuOpen = false;
+      return;
+    }
+    this.enableLayer();
+  };
+
+  enableLayer = () => {
+    this.layerActive = true;
+    mapToolsStore.close();
+    deactivateMapModesExcept("routes");
+  };
+
+  disableLayer = () => {
+    this.layerActive = false;
+    this.selectedRouteId = null;
+    this.menuOpen = false;
+  };
+
   selectRoute = (id: string) => {
+    if (!this.layerActive) {
+      this.enableLayer();
+    }
     this.selectedRouteId = this.selectedRouteId === id ? null : id;
     this.menuOpen = false;
-    // Selecting (not clearing) a route activates routes mode.
-    if (this.selectedRouteId !== null) deactivateMapModesExcept("routes");
+    if (this.selectedRouteId !== null) {
+      deactivateMapModesExcept("routes");
+    }
   };
 
   clearRoute = () => {
@@ -905,21 +986,198 @@ class JeepneyStore {
   };
 }
 
+export type AppBootstrapPhase =
+  "idle" | "local" | "remote" | "sync" | "ready" | "error";
+
+class AppBootstrapStore {
+  phase = $state<AppBootstrapPhase>("idle");
+  errorMessage = $state<string | null>(null);
+  hasCachedData = $state(false);
+  private retryHandler: (() => void) | null = null;
+
+  /** Bootstrap never blocks the map; static HTML shell only until hydration. */
+  showBlockingOverlay = $derived(false);
+
+  statusLabel = $derived.by(() => {
+    switch (this.phase) {
+      case "remote":
+        return "Connecting to database";
+      case "sync":
+        return "Writing to offline cache";
+      case "error":
+        return this.errorMessage ?? "Could not load campus data";
+      default:
+        return null;
+    }
+  });
+
+  beginRemote() {
+    this.phase = "remote";
+    this.errorMessage = null;
+  }
+
+  beginSync() {
+    this.phase = "sync";
+    this.errorMessage = null;
+  }
+
+  complete() {
+    this.phase = "ready";
+    this.errorMessage = null;
+  }
+
+  markBackgroundRefresh() {
+    if (
+      this.phase === "idle" ||
+      this.phase === "ready" ||
+      this.phase === "error"
+    ) {
+      this.phase = "remote";
+      this.errorMessage = null;
+    }
+  }
+
+  setHasCachedData(value: boolean) {
+    this.hasCachedData = value;
+  }
+
+  setRetryHandler(handler: () => void) {
+    this.retryHandler = handler;
+  }
+
+  get canRetry() {
+    return this.retryHandler !== null;
+  }
+
+  fail(message: string, retry?: () => void) {
+    this.phase = "error";
+    this.errorMessage = message;
+    if (retry) {
+      this.retryHandler = retry;
+    }
+  }
+
+  retry() {
+    const handler = this.retryHandler;
+    if (!handler) return;
+    this.errorMessage = null;
+    this.beginRemote();
+    handler();
+  }
+}
+
 class SyncToastStore {
+  activity = $state<SyncActivity>("idle");
+  activityTable = $state<SyncTableKey | null>(null);
+  fetchProgress = $state<{ done: number; total: number } | null>(null);
+  syncError = $state<string | null>(null);
+
   private _buildings = $state<SyncInfo | null>(null);
   private _colleges = $state<SyncInfo | null>(null);
   private _divisions = $state<SyncInfo | null>(null);
   private _dorms = $state<SyncInfo | null>(null);
   private _events = $state<SyncInfo | null>(null);
-  public currentSyncData: SyncInfo | null = null;
-  public currentSync = $state<string | null>(null);
-  public allSynced = $state<boolean>(false);
-  public recentlySynced = $state<boolean | null>(null);
+  private _aliases = $state<SyncInfo | null>(null);
+
+  currentSync = $state<SyncTableKey | null>(null);
+  allSynced = $state<boolean>(false);
+  recentlySynced = $state<boolean | null>(null);
+  fetchingRemote = $state<boolean>(false);
+
+  currentSyncData = $derived.by((): SyncInfo | null => {
+    switch (this.currentSync) {
+      case "buildings":
+        return this._buildings;
+      case "colleges":
+        return this._colleges;
+      case "divisions":
+        return this._divisions;
+      case "dorms":
+        return this._dorms;
+      case "events":
+        return this._events;
+      case "aliases":
+        return this._aliases;
+      default:
+        return null;
+    }
+  });
+
+  isSyncing = $derived(
+    !this.allSynced &&
+      this.syncError === null &&
+      (this.activity !== "idle" || this.fetchingRemote),
+  );
+
+  hasCountableProgress = $derived.by(() => {
+    const data = this.currentSyncData;
+    if (data !== null && data.total > 0) return true;
+    const fetch = this.fetchProgress;
+    return fetch !== null && fetch.total > 0;
+  });
+
+  progressPercent = $derived.by(() => {
+    const data = this.currentSyncData;
+    if (data !== null && data.total > 0) {
+      return Math.min(100, Math.round((data.synced / data.total) * 100));
+    }
+    const fetch = this.fetchProgress;
+    if (fetch !== null && fetch.total > 0) {
+      return Math.min(100, Math.round((fetch.done / fetch.total) * 100));
+    }
+    return 0;
+  });
+
+  stepLabel = $derived.by(() => {
+    if (this.syncError) return this.syncError;
+    if (this.allSynced && !this.needRefresh) return "Up to date";
+    if (this.needRefresh) return "Update ready";
+    if (this.activity === "checking") return "Connecting to database…";
+    if (this.activity === "fetching") {
+      if (this.activityTable !== null) {
+        return `Fetching ${syncTableLabel(this.activityTable)}…`;
+      }
+      const fetch = this.fetchProgress;
+      if (fetch !== null && fetch.total > 0) {
+        return `Fetching campus data (${fetch.done}/${fetch.total})…`;
+      }
+      return "Fetching campus data…";
+    }
+    if (this.activity === "writing" && this.currentSync !== null) {
+      const label = syncTableLabel(this.currentSync);
+      const data = this.currentSyncData;
+      if (data !== null && data.total > 0) {
+        return `Syncing ${label} (${data.synced}/${data.total})`;
+      }
+      return `Writing ${label} to offline cache…`;
+    }
+    if (this.fetchingRemote) return "Connecting to database…";
+    return "Syncing…";
+  });
+
+  stepDetail = $derived.by((): string | null => {
+    if (this.syncError) return "Tap to retry";
+    if (this.allSynced && !this.needRefresh) {
+      return "Room TBA can now work offline";
+    }
+    if (this.needRefresh) return "Reload to get the latest updates.";
+    if (this.activity === "checking") {
+      return "Checking if local data is current";
+    }
+    if (this.activity === "fetching") {
+      return "Loading latest from server";
+    }
+    if (this.activity === "writing") {
+      return "Saving to device for offline use";
+    }
+    return null;
+  });
 
   // Service worker "new content available" update, surfaced inside this same
   // bottom offline toast instead of a separate floating prompt.
   public needRefresh = $state<boolean>(false);
   private _refresh: (() => void) | null = null;
+  private _syncRetry: (() => void) | null = null;
 
   setRefreshHandler(fn: () => void) {
     this._refresh = fn;
@@ -934,50 +1192,118 @@ class SyncToastStore {
     this._refresh?.();
   }
 
-  startBuildingsSync(total: number) {
-    this._buildings = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._buildings;
-    this.currentSync = "buildings";
+  get canRetrySync() {
+    return this._syncRetry !== null;
+  }
+
+  setSyncError(message: string, retry?: () => void) {
+    this.syncError = message;
+    this._syncRetry = retry ?? null;
+    this.activity = "idle";
+    this.activityTable = null;
+    this.fetchProgress = null;
+    this.fetchingRemote = false;
+    this.currentSync = null;
+    this.allSynced = false;
+  }
+
+  clearSyncError() {
+    this.syncError = null;
+    this._syncRetry = null;
+  }
+
+  retrySync() {
+    const handler = this._syncRetry;
+    if (!handler) return;
+    this.clearSyncError();
+    this.allSynced = false;
     this.recentlySynced = true;
+    handler();
+  }
+
+  startRemoteFetch() {
+    this.clearSyncError();
+    this.activity = "checking";
+    this.activityTable = null;
+    this.fetchProgress = null;
+    this.fetchingRemote = true;
+    this.allSynced = false;
+    this.recentlySynced = true;
+    this.currentSync = null;
+    this._buildings = null;
+    this._colleges = null;
+    this._divisions = null;
+    this._dorms = null;
+    this._events = null;
+    this._aliases = null;
+  }
+
+  beginFetchingCampus(totalFetches: number) {
+    this.activity = "fetching";
+    this.activityTable = null;
+    this.fetchProgress = { done: 0, total: totalFetches };
+    this.fetchingRemote = true;
+  }
+
+  reportFetchComplete() {
+    if (this.fetchProgress === null) return;
+    this.fetchProgress = {
+      done: Math.min(this.fetchProgress.done + 1, this.fetchProgress.total),
+      total: this.fetchProgress.total,
+    };
+  }
+
+  markWritingPhase(table: SyncTableKey) {
+    this.activity = "writing";
+    this.activityTable = table;
+    this.fetchingRemote = false;
+    this.fetchProgress = null;
+    this.currentSync = table;
+  }
+
+  private beginWriting(table: SyncTableKey, total: number) {
+    this.markWritingPhase(table);
+    const info: SyncInfo = { synced: 0, total };
+    switch (table) {
+      case "buildings":
+        this._buildings = info;
+        break;
+      case "colleges":
+        this._colleges = info;
+        break;
+      case "divisions":
+        this._divisions = info;
+        break;
+      case "dorms":
+        this._dorms = info;
+        break;
+      case "events":
+        this._events = info;
+        break;
+      case "aliases":
+        this._aliases = info;
+        break;
+    }
+    this.recentlySynced = true;
+  }
+
+  startBuildingsSync(total: number) {
+    this.beginWriting("buildings", total);
   }
   startCollegesSync(total: number) {
-    this._colleges = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._colleges;
-    this.currentSync = "colleges";
-    this.recentlySynced = true;
+    this.beginWriting("colleges", total);
   }
   startDivisionsSync(total: number) {
-    this._divisions = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._divisions;
-    this.currentSync = "divisions";
-    this.recentlySynced = true;
+    this.beginWriting("divisions", total);
   }
   startDormsSync(total: number) {
-    this._dorms = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._dorms;
-    this.currentSync = "dorms";
-    this.recentlySynced = true;
+    this.beginWriting("dorms", total);
   }
   startEventsSync(total: number) {
-    this._events = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._events;
-    this.currentSync = "events";
-    this.recentlySynced = true;
+    this.beginWriting("events", total);
+  }
+  startAliasesSync(total: number) {
+    this.beginWriting("aliases", total);
   }
 
   updateBuildingsSync() {
@@ -1000,10 +1326,24 @@ class SyncToastStore {
     if (this._events === null) return;
     this._events.synced++;
   }
+  updateAliasesSync() {
+    if (this._aliases === null) return;
+    this._aliases.synced++;
+  }
 
-  endSync() {
+  endSync(didSync = true) {
+    if (this.syncError !== null) return;
+    this.activity = "idle";
+    this.activityTable = null;
+    this.fetchProgress = null;
+    this.fetchingRemote = false;
+    this.currentSync = null;
     this.allSynced = true;
-    if (this.recentlySynced === null) this.recentlySynced = false;
+    if (this.recentlySynced === null) {
+      this.recentlySynced = didSync;
+    } else if (!didSync) {
+      this.recentlySynced = false;
+    }
   }
 }
 
@@ -1103,32 +1443,128 @@ class OfflineStore {
   };
 }
 
+const ACTIVE_TERM_LS_KEY = "active-term-id";
+
+class TermStore {
+  terms = $state<TermWithCount[]>([]);
+  activeTermId = $state<number | null>(null);
+  loaded = $state(false);
+  private _hydrated = false;
+
+  activeTerm = $derived(
+    this.terms.find((t) => t.id === this.activeTermId) ?? null,
+  );
+
+  init = async () => {
+    if (this._hydrated) return;
+    this._hydrated = true;
+    try {
+      const terms = await getJSONFetch<TermWithCount[]>("/api/terms");
+      this.terms = terms;
+
+      const storedRaw = localStorage.getItem(ACTIVE_TERM_LS_KEY);
+      const stored = storedRaw !== null ? Number(storedRaw) : NaN;
+      const storedValid =
+        Number.isFinite(stored) && terms.some((t) => t.id === stored);
+
+      const fallback =
+        terms.find((t) => t.isDefault) ??
+        terms.find((t) => t.isActive) ??
+        terms[0] ??
+        null;
+
+      this.activeTermId = storedValid ? stored : (fallback?.id ?? null);
+      this.loaded = true;
+    } catch (e) {
+      console.error("Failed to load terms:", e);
+    }
+  };
+
+  setTerm = (id: number) => {
+    this.activeTermId = id;
+    try {
+      localStorage.setItem(ACTIVE_TERM_LS_KEY, String(id));
+    } catch {
+      // localStorage may be unavailable (private mode); selection still works
+      // for the current session.
+    }
+  };
+}
+
+/**
+ * Classes for the currently viewed room, scoped to the active term. Results are
+ * cached per `${roomCode}::${termId}` key so switching back and forth between
+ * terms/rooms doesn't refetch.
+ */
+class RoomClassesStore {
+  classes = $state<ClassMapValue[]>([]);
+  loading = $state(false);
+  private _cache = new Map<string, ClassMapValue[]>();
+  private _requestKey: string | null = null;
+
+  load = async (roomCode: string, termId: number | null) => {
+    const key = `${roomCode}::${termId ?? "all"}`;
+    this._requestKey = key;
+
+    const cached = this._cache.get(key);
+    if (cached) {
+      this.classes = cached;
+      this.loading = false;
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const params = new URLSearchParams({ room_code: roomCode });
+      if (termId != null) params.set("term_id", String(termId));
+      const data = await getJSONFetch<ClassMapValue[]>(
+        `/api/classes?${params.toString()}`,
+      );
+      this._cache.set(key, data);
+      if (this._requestKey === key) this.classes = data;
+    } catch (e) {
+      console.error("Failed to load room classes:", e);
+      if (this._requestKey === key) this.classes = [];
+    } finally {
+      if (this._requestKey === key) this.loading = false;
+    }
+  };
+
+  clear = () => {
+    this.classes = [];
+    this._requestKey = null;
+  };
+}
+
 export const queryStore = new QueryStore();
+export const termStore = new TermStore();
+export const roomClassesStore = new RoomClassesStore();
 export const offlineStore = new OfflineStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
 export const mapViewStore = new MapViewStore();
-export const sidePanelStore = new SidePanelStore();
+export const sidePanelStore = new MainControlsStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapToolsStore = new MapToolsStore();
+export const editorChromeStore = new EditorChromeStore();
 export const mapEditStore = new MapEditStore();
 export const mapProposalStore = new MapProposalStore();
 export const additionProposalStore = new AdditionProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
+export const appBootstrapStore = new AppBootstrapStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
 export const proposalsStore = new ProposalsStore();
 
-// The bottom-right control cluster exposes three mutually exclusive map modes:
-// the editor, jeepney routes, and Makiling terrain. They each take over the
-// camera, pins, and map interactions, so only one may be active at a time.
-// "None active" stays valid. Activating one tears the others down via their
-// own existing disable/clear paths so per-mode side effects unwind cleanly.
+// Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive:
+// they take over the camera, pins, and map interactions. Location/propose
+// actions live in the bottom chrome tray. Activating one mode tears the others
+// down via deactivateMapModesExcept().
 export type ExclusiveMapMode = "edit" | "routes" | "terrain";
 
 export function deactivateMapModesExcept(active: ExclusiveMapMode) {
@@ -1137,7 +1573,7 @@ export function deactivateMapModesExcept(active: ExclusiveMapMode) {
     eventPlacementStore.cancel();
   }
   if (active !== "routes") {
-    jeepneyStore.clearRoute();
+    jeepneyStore.disableLayer();
   }
   if (active !== "terrain") {
     terrainStore.disable();
