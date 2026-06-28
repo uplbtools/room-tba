@@ -28,6 +28,7 @@
     getRoomsData,
     loadCachedAppData,
   } from "@lib/local/data/utils";
+  import { normalizeDormListFields } from "@lib/string-lists";
   import {
     localTableSyncCheck,
     syncBuildings,
@@ -234,7 +235,7 @@
       const index = dorms.findIndex((dorm) => dorm.id === updated.id);
       if (index === -1) return;
       const next = dorms.slice();
-      next[index] = updated;
+      next[index] = normalizeDormListFields(updated);
       dorms = next;
     },
     replaceCollege: (updated) => {

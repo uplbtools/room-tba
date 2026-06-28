@@ -10,6 +10,7 @@ import {
 } from "@drizzle/schema";
 import { db } from "@lib/db";
 import { normalizeAlias } from "@lib/site";
+import { normalizeDormListFields } from "@lib/string-lists";
 import type {
   BuildingData,
   ClassMapValue,
@@ -371,7 +372,7 @@ export async function searchAliases(
 export async function getAllDorms(): Promise<DormData[]> {
   try {
     const data = await db.select().from(dormsTable);
-    return data;
+    return data.map(normalizeDormListFields);
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for dorms", { cause: e });
