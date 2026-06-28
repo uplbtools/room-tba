@@ -27,6 +27,7 @@
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
+  import EditorScreen from "@ui/EditorScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight } from "@lib/layout-css-vars";
@@ -136,8 +137,11 @@
     >
       <MapToolsFlyout />
       <div class="desktop-camera-controls" aria-label="Map camera">
-        <MapDimensionToggle />
-        <MapViewControls variant="camera" />
+        <div class="camera-controls-card">
+          <MapDimensionToggle embedded />
+          <div class="camera-controls-card__divider" aria-hidden="true"></div>
+          <MapViewControls variant="camera" embedded />
+        </div>
       </div>
     </div>
     <div class="inner-layer">
@@ -172,6 +176,7 @@
     <AdminLoginModal />
   {/if}
   <EditorAdditionModal />
+  <EditorScreen />
 </div>
 
 <style>
@@ -190,16 +195,30 @@
     --map-chrome-radius: 1rem;
     --map-chrome-toggle-size: 2rem;
     --map-chrome-toggle-radius: 0.625rem;
-    /* Map-face controls: readable on light tiles and white building footprints */
-    --map-chrome-surface: rgba(255, 255, 255, 0.98);
-    --map-chrome-border: hsl(0, 0%, 58%);
-    --map-chrome-border-accent: hsl(5, 40%, 42%);
+    /* Map chrome contrast: warm off-white surfaces + stronger edges so controls
+       float above light basemap tiles without dimming the map itself. */
+    --map-chrome-surface: hsl(5 20% 97%);
+    --map-chrome-panel-bg: hsl(5 18% 96%);
+    --map-chrome-border: hsl(5 10% 68%);
+    --map-chrome-border-accent: hsl(5 40% 42%);
+    --map-chrome-divider: hsl(5 12% 88%);
+    --map-chrome-panel-accent-border: hsl(5 15% 78%);
+    --map-chrome-band-backdrop: hsla(5, 22%, 96%, 0.82);
     --map-chrome-shadow:
-      0 0 0 1px hsla(0, 0%, 0%, 0.18), 0 2px 6px hsla(0, 0%, 0%, 0.18),
-      0 8px 20px hsla(0, 0%, 0%, 0.14);
+      0 0 0 1px hsla(15, 8%, 20%, 0.14), 0 1px 3px hsla(0, 0%, 0%, 0.12),
+      0 4px 12px hsla(0, 0%, 0%, 0.16), 0 10px 24px hsla(0, 0%, 0%, 0.1);
     --map-chrome-panel-shadow:
-      0 0 0 1px hsla(0, 0%, 0%, 0.14), 0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12);
+      0 0 0 1px hsla(15, 8%, 20%, 0.16), 0 2px 8px hsla(0, 0%, 0%, 0.14),
+      0 8px 20px hsla(0, 0%, 0%, 0.18), 0 16px 32px hsla(0, 0%, 0%, 0.08);
+    --map-chrome-fab-shadow:
+      inset 0 0 0 1px hsla(0, 0%, 100%, 0.72), 0 2px 6px hsla(0, 0%, 0%, 0.2),
+      0 6px 16px hsla(0, 0%, 0%, 0.14);
+    --motion-duration-fast: 150ms;
+    --motion-duration-micro: 200ms;
+    --motion-duration-panel: 280ms;
+    --motion-duration-shelf: 260ms;
+    --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
 
     width: 100%;
     height: 100dvh;
@@ -235,7 +254,26 @@
     --bottom-fab-inset: 3.75rem;
   }
 
+  .bottom-band::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 6rem;
+    background: linear-gradient(
+      to top,
+      var(--map-chrome-band-backdrop) 12%,
+      hsla(5, 22%, 96%, 0.35) 52%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .bottom-band-footer {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: row;
     align-items: flex-end;
@@ -288,6 +326,7 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      pointer-events: none;
     }
   }
 
@@ -296,11 +335,13 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    width: calc(var(--map-chrome-toggle-size, 2rem) + 0.375rem);
+    box-sizing: border-box;
     gap: 0.0625rem;
     padding: 0.1875rem;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     backdrop-filter: blur(10px);
-    border: 1.5px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1.5px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: var(--map-chrome-toggle-radius, 0.625rem);
     box-shadow: var(
       --map-chrome-shadow,
@@ -313,15 +354,15 @@
   .camera-controls-card__divider {
     height: 1px;
     margin: 0.0625rem 0.125rem;
-    background-color: hsl(0, 0%, 90%);
+    background-color: var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
   .location-fab-stack {
     position: fixed;
     right: calc(var(--map-ui-padding, 0.5rem) + 0.5rem);
     bottom: calc(
-      var(--status-bar-block-height, 2.75rem) + env(safe-area-inset-bottom, 0px) +
-        0.5rem
+      var(--status-bar-block-height, 2.75rem) +
+        env(safe-area-inset-bottom, 0px) + 0.5rem
     );
     z-index: 14;
     display: flex;
@@ -329,6 +370,20 @@
     align-items: flex-end;
     gap: 0.5rem;
     pointer-events: none;
+    transition: bottom var(--motion-duration-panel) var(--motion-ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-layout {
+      --motion-duration-fast: 0ms;
+      --motion-duration-micro: 0ms;
+      --motion-duration-panel: 0ms;
+      --motion-duration-shelf: 0ms;
+    }
+
+    .location-fab-stack {
+      transition: none;
+    }
   }
 
   :global(*) {
