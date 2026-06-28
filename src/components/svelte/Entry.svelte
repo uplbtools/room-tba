@@ -474,10 +474,24 @@
       padding: 0.375rem 0.25rem 0.625rem;
     }
 
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-close) {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-body) {
+      flex: 1 1 auto;
+      gap: 0.375rem;
+    }
+
     .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-toggle) {
       min-height: 2.75rem;
       padding: 0.625rem 0.75rem;
       font-size: 0.9375rem;
+    }
+
+    .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-body) {
+      padding: 0.25rem 0 0.5rem;
     }
 
     /* When the drawer sheet is open, lift FABs above its peek handle */
