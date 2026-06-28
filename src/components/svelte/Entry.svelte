@@ -27,6 +27,7 @@
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
+  import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import type { RecentSearch } from "@lib/types";
@@ -122,6 +123,8 @@
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
+
+<EntityUrlSync />
 
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
