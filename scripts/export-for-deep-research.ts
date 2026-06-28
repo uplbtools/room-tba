@@ -22,9 +22,11 @@ import {
   divisionsTable,
   dormsTable,
   roomsTable,
+  termsTable,
 } from "@drizzle/schema";
 
 const OUT_DIR = join(import.meta.dir, "..", "exports", "deep-research");
+// Fallback term label when the terms table is unavailable (e.g. SQLite export).
 const TERM = "AY 2025-2026 2nd Semester";
 const EXPORTED_AT = new Date().toISOString();
 
@@ -46,6 +48,18 @@ function writeJson(name: string, data: unknown) {
 async function exportFromPostgres(connectionString: string) {
   const pool = new pg.Pool({ connectionString });
   const db = drizzlePg(pool);
+
+  let termLabel = TERM;
+  try {
+    const [defaultTerm] = await db
+      .select()
+      .from(termsTable)
+      .where(eq(termsTable.isDefault, true))
+      .limit(1);
+    if (defaultTerm?.label) termLabel = defaultTerm.label;
+  } catch {
+    // terms table not migrated yet — keep the fallback label.
+  }
 
   const buildings = await db.select().from(buildingsTable);
   const colleges = await db.select().from(collegesTable);
@@ -83,7 +97,7 @@ async function exportFromPostgres(connectionString: string) {
 
   await pool.end();
 
-  return { buildings, colleges, divisions, dorms, rooms, classes };
+  return { buildings, colleges, divisions, dorms, rooms, classes, termLabel };
 }
 
 function exportFromSqlite(sqlitePath: string) {
@@ -128,7 +142,15 @@ function exportFromSqlite(sqlitePath: string) {
 
   client.close();
 
-  return { buildings, colleges, divisions, dorms, rooms, classes };
+  return {
+    buildings,
+    colleges,
+    divisions,
+    dorms,
+    rooms,
+    classes,
+    termLabel: TERM,
+  };
 }
 
 function roomCodeStats(classes: { room_code: string | null }[]) {
@@ -168,7 +190,7 @@ const files = [
 
 const manifest: ExportManifest = {
   exported_at: EXPORTED_AT,
-  term_target: TERM,
+  term_target: data.termLabel,
   source,
   counts: {
     buildings: data.buildings.length,
