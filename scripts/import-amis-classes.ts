@@ -5,6 +5,7 @@
  *   AMIS_BEARER_TOKEN=… AMIS_SESSION_ID=… bun run import:amis-classes -- --term-id 1252 --fetch
  *   DATABASE_URL=… bun run import:amis-classes -- --term-id 1252
  *
+ * AMIS bearer tokens expire in about an hour — paste a fresh token for --fetch only.
  * Flags:
  *   --fetch            Fetch from AMIS, strip instructor PII, save JSON, then import
  *   --from-json path   Import from saved JSON only (no AMIS call)
