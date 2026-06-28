@@ -1,5 +1,13 @@
 <script lang="ts">
-  import { mapStore, mapViewStore } from "@lib/store.svelte";
+  import { mapStore, terrainStore } from "@lib/store.svelte";
+  import {
+    THREE_D_PITCH,
+    isMap2DPitch,
+  } from "@constants/map-dimension";
+  import {
+    enterFlatMapDimension,
+    enterTiltedMapDimension,
+  } from "@lib/map-dimension-layers";
   import type { MapLibreMap } from "maplibre-gl";
 
   type Props = {
@@ -11,12 +19,9 @@
 
   let { compact = false, embedded = false }: Props = $props();
 
-  const THREE_D_PITCH = 60;
-  const TWO_D_THRESHOLD = 1;
-
   let pitch = $state(0);
 
-  const is2D = $derived(pitch <= TWO_D_THRESHOLD);
+  const is2D = $derived(isMap2DPitch(pitch));
 
   function syncPitch() {
     const map = mapStore.mapInstance;
@@ -45,14 +50,18 @@
 
   const go2D = () =>
     withMap((map) => {
-      if (map.getPitch() <= TWO_D_THRESHOLD) return;
+      if (isMap2DPitch(map.getPitch())) return;
+      enterFlatMapDimension(map, terrainStore.enabled);
       map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
     });
 
   const go3D = () =>
     withMap((map) => {
-      if (map.getPitch() > TWO_D_THRESHOLD) return;
+      if (!isMap2DPitch(map.getPitch())) return;
       map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
+      map.once("moveend", () =>
+        enterTiltedMapDimension(map, terrainStore.enabled),
+      );
     });
 </script>
 

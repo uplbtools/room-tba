@@ -7,7 +7,15 @@
   import Box from "@lucide/svelte/icons/box";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapIcon from "@lucide/svelte/icons/map";
-  import { mapStore, mapViewStore } from "@lib/store.svelte";
+  import { mapStore, mapViewStore, terrainStore } from "@lib/store.svelte";
+  import {
+    THREE_D_PITCH,
+    isMap2DPitch,
+  } from "@constants/map-dimension";
+  import {
+    enterFlatMapDimension,
+    enterTiltedMapDimension,
+  } from "@lib/map-dimension-layers";
   import type { MapLibreMap } from "maplibre-gl";
 
   type Props = {
@@ -25,8 +33,6 @@
   const ROTATE_STEP = 30;
   const PITCH_STEP = 15;
   const MAX_PITCH = 60;
-  const THREE_D_PITCH = 60;
-  const TWO_D_THRESHOLD = 1;
   /** Lucide navigation arrow tip sits at 45°; offset so north points up at bearing 0. */
   const NORTH_ICON_OFFSET = 45;
 
@@ -34,7 +40,7 @@
   let pitch = $state(0);
 
   const northRotation = $derived(-NORTH_ICON_OFFSET - bearing);
-  const is2D = $derived(pitch <= TWO_D_THRESHOLD);
+  const is2D = $derived(isMap2DPitch(pitch));
   const pinModeTitle = $derived(
     mapViewStore.eventsOnly
       ? "Showing event pins only. Switch to all pins."
@@ -104,11 +110,15 @@
 
   const toggleView = () =>
     withMap((map) => {
-      if (map.getPitch() > TWO_D_THRESHOLD) {
+      if (!isMap2DPitch(map.getPitch())) {
+        enterFlatMapDimension(map, terrainStore.enabled);
         map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
-      } else {
-        map.easeTo({ pitch: THREE_D_PITCH, duration: 600 });
+        return;
       }
+      map.easeTo({ pitch: THREE_D_PITCH, duration: 600 });
+      map.once("moveend", () =>
+        enterTiltedMapDimension(map, terrainStore.enabled),
+      );
     });
 </script>
 
