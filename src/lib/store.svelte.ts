@@ -958,9 +958,9 @@ class AppBootstrapStore {
   statusLabel = $derived.by(() => {
     switch (this.phase) {
       case "local":
-        return "Loading campus data…";
+        return "Loading campus data";
       case "remote":
-        return "Connecting to database…";
+        return "Connecting to database";
       case "error":
         return this.errorMessage ?? "Could not load campus data";
       default:
