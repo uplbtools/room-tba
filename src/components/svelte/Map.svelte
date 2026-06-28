@@ -52,6 +52,7 @@
     TERRAIN_TILEJSON_URL,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
   } from "@constants/map-terrain";
+  import { applyBasemapPalette } from "@lib/map-basemap-palette";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -627,11 +628,11 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          map.once("moveend", startRotation);
         }
       } else if (category === null) {
         flyToCamera(map, CAMPUS_DEFAULT_CAMERA);
         if (directions) directions.clear();
+        scheduleAutoRotate(map);
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
@@ -651,7 +652,6 @@
               padding: calculatePadding(md.current),
               duration: 1500,
             });
-            map.once("moveend", startRotation);
           }
         });
       } else if (category === "dorm") {
@@ -666,14 +666,11 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          map.once("moveend", startRotation);
         }
       } else if (category === "event") {
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
-        if (currentEvent && focusMapOnEvent(map, currentEvent)) {
-          map.once("moveend", startRotation);
-        }
+        if (currentEvent) focusMapOnEvent(map, currentEvent);
       }
     });
   }
@@ -700,6 +697,37 @@
   let zoomLevel = $state(0);
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+
+  /** Decorative campus overview spin — see AGENTS.md "Map motion". */
+  function shouldAutoRotate() {
+    return (
+      mapViewStore.campusTourEnabled &&
+      !reducedMotion.current &&
+      !terrainStore.enabled &&
+      !mapEditStore.enabled &&
+      !mapProposalStore.enabled &&
+      !eventPlacementStore.active &&
+      !additionProposalStore.pinPickActive &&
+      jeepneyStore.selectedRouteId === null &&
+      queryStore.category === null
+    );
+  }
+
+  function scheduleAutoRotate(map: mapGl.MapLibreMap) {
+    map.off("moveend", startRotation);
+    if (!shouldAutoRotate()) return;
+    map.once("moveend", startRotation);
+  }
+
+  function tryStartAutoRotate(map: mapGl.MapLibreMap) {
+    if (!shouldAutoRotate()) return;
+    if (map.isMoving()) {
+      scheduleAutoRotate(map);
+      return;
+    }
+    startRotation();
+  }
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
@@ -732,7 +760,7 @@
 
   function startRotation() {
     stopRotation();
-    if (!mapStore.mapInstance || terrainStore.enabled) return;
+    if (!mapStore.mapInstance || !shouldAutoRotate()) return;
     isRotating = true;
     lastTimestamp = 0;
     currentRotation = mapStore.mapInstance.getBearing();
@@ -1353,6 +1381,42 @@
   });
 
   $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+
+    const canRotate =
+      mapViewStore.campusTourEnabled &&
+      !reducedMotion.current &&
+      !terrainStore.enabled &&
+      !mapEditStore.enabled &&
+      !mapProposalStore.enabled &&
+      !eventPlacementStore.active &&
+      !additionProposalStore.pinPickActive &&
+      jeepneyStore.selectedRouteId === null &&
+      queryStore.category === null;
+
+    if (!canRotate) {
+      stopRotation();
+      map.off("moveend", startRotation);
+      return;
+    }
+
+    tryStartAutoRotate(map);
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+
+    const applyPalette = () => applyBasemapPalette(map);
+    if (map.isStyleLoaded()) {
+      applyPalette();
+    } else {
+      map.once("load", applyPalette);
+    }
+  });
+
+  $effect(() => {
     if (mapStore.mapInstance) {
       const map = mapStore.mapInstance;
       const handleMapError = (event: mapGl.ErrorEvent) => {
@@ -1587,8 +1651,7 @@
         if (cancelled) return;
         ensureJeepneyRouteLayers(map, route.color);
         const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
-          | mapGl.GeoJSONSource
-          | undefined;
+          mapGl.GeoJSONSource | undefined;
         const featureCollection: FeatureCollection<LineString> = {
           type: "FeatureCollection",
           features: [
@@ -1645,8 +1708,7 @@
     const draw = () => {
       ensureEventRouteLayers(map);
       const source = map.getSource(EVENT_ROUTE_SOURCE_ID) as
-        | mapGl.GeoJSONSource
-        | undefined;
+        mapGl.GeoJSONSource | undefined;
       const featureCollection: FeatureCollection<LineString> = {
         type: "FeatureCollection",
         features: routeFeatures,
@@ -1694,7 +1756,6 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
       } else if (category === null) {
         flyToCamera(
@@ -1702,6 +1763,7 @@
           isTerrainEnabled ? MAKILING_TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
         );
         if (directions) directions.clear();
+        if (!isTerrainEnabled) scheduleAutoRotate(map);
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
@@ -1720,7 +1782,6 @@
               padding: calculatePadding(md.current),
               duration: 1500,
             });
-            if (!isTerrainEnabled) map.once("moveend", startRotation);
           }
         });
       } else if (category === "dorm") {
@@ -1735,14 +1796,11 @@
             padding: calculatePadding(md.current),
             duration: 1500,
           });
-          if (!isTerrainEnabled) map.once("moveend", startRotation);
         }
       } else if (category === "event") {
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
-        if (currentEvent && focusMapOnEvent(map, currentEvent)) {
-          if (!isTerrainEnabled) map.once("moveend", startRotation);
-        }
+        if (currentEvent) focusMapOnEvent(map, currentEvent);
       }
     });
   });
