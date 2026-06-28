@@ -309,7 +309,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 0.5rem;
+    min-width: 0;
     color: hsl(0, 0%, 30%);
     font-size: 0.75rem;
     font-weight: 600;

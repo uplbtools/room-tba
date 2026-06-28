@@ -160,9 +160,13 @@
   }
 
   .route-option {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 0.625rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     padding: 0.5rem 0.625rem;
     border-radius: 0.625rem;
     border: 1px solid transparent;
@@ -189,6 +193,8 @@
   }
   .route-text {
     display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 0.125rem;
     line-height: 1.2;
