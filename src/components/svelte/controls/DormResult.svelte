@@ -107,6 +107,18 @@
 
   const amenities = $derived(normalizeStringList(dorm?.amenities));
   const contactPhones = $derived(normalizeStringList(dorm?.contactPhone));
+  const showDormDetails = $derived(
+    Boolean(
+      dorm &&
+        (dorm.managingOffice ||
+          dorm.contactEmail ||
+          contactPhones.length > 0 ||
+          amenities.length > 0 ||
+          dorm.isUpManaged ||
+          dorm.facebookLink ||
+          (!dorm.isUpManaged && dorm.priceRange)),
+    ),
+  );
 
   const genderLabel = $derived(
     dorm?.gender === "male"
@@ -131,9 +143,9 @@
   );
 
   /** Only show shortName when it's a real abbreviation, not just the first word */
-  const showShortName = $derived(() => {
+  const showShortName = $derived.by(() => {
     if (!dorm || !dorm.shortName) return false;
-    const first = dorm?.dormName.split(/\s+/)[0].toLowerCase();
+    const first = dorm.dormName.split(/\s+/)[0].toLowerCase();
     return dorm.shortName.toLowerCase() !== first;
   });
 
@@ -445,7 +457,7 @@
     <header class="entity-header">
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">{dorm.dormName}</h2>
-        {#if showShortName()}
+        {#if showShortName}
           <span class="entity-header__badge">{dorm.shortName}</span>
         {/if}
       </div>
@@ -569,87 +581,86 @@
       </section>
     {/if}
 
-    {#if !editing && (dorm.managingOffice || dorm.contactEmail || dorm.contactPhone || amenities.length > 0)}
-      <details class="entity-details-collapse">
-        <summary>Details & amenities</summary>
-        <div class="entity-details-collapse__body">
-          {#if dorm.managingOffice}
-            <div class="entity-detail-row">
-              <Building2 size={14} />
-              <div class="entity-detail-row__content">
-                <span class="entity-detail-row__label">Managing office</span>
-                <span class="entity-detail-row__value"
-                  >{dorm.managingOffice}</span
-                >
-              </div>
-            </div>
-          {/if}
+    {#if !editing && showDormDetails}
+      <section class="entity-dorm-details" aria-label="Details and amenities">
+        <h3 class="entity-section-heading">Details & amenities</h3>
 
-          {#if dorm.contactEmail}
-            <div class="entity-detail-row">
-              <Mail size={14} />
-              <div class="entity-detail-row__content">
-                <span class="entity-detail-row__label">Email</span>
-                <a
-                  href="mailto:{dorm.contactEmail}"
-                  class="entity-detail-row__value entity-detail-row__value--link"
-                >
-                  {dorm.contactEmail}
-                </a>
-              </div>
+        {#if dorm.managingOffice}
+          <div class="entity-detail-row">
+            <Building2 size={14} />
+            <div class="entity-detail-row__content">
+              <span class="entity-detail-row__label">Managing office</span>
+              <span class="entity-detail-row__value">{dorm.managingOffice}</span>
             </div>
-          {/if}
+          </div>
+        {/if}
 
-          {#if contactPhones.length > 0}
-            <div class="entity-detail-row">
-              <Phone size={14} />
-              <div class="entity-detail-row__content">
-                <span class="entity-detail-row__label">Phone</span>
-                <span class="entity-detail-row__value"
-                  >{contactPhones.join(", ")}</span
-                >
-              </div>
+        {#if dorm.contactEmail}
+          <div class="entity-detail-row">
+            <Mail size={14} />
+            <div class="entity-detail-row__content">
+              <span class="entity-detail-row__label">Email</span>
+              <a
+                href="mailto:{dorm.contactEmail}"
+                class="entity-detail-row__value entity-detail-row__value--link"
+              >
+                {dorm.contactEmail}
+              </a>
             </div>
-          {/if}
+          </div>
+        {/if}
 
-          {#if amenities.length > 0}
-            <div class="entity-meta-row">
-              {#each amenities as amenity}
-                <span class="entity-meta-chip amenity-tag">{amenity}</span>
-              {/each}
+        {#if contactPhones.length > 0}
+          <div class="entity-detail-row">
+            <Phone size={14} />
+            <div class="entity-detail-row__content">
+              <span class="entity-detail-row__label">Phone</span>
+              <span class="entity-detail-row__value"
+                >{contactPhones.join(", ")}</span
+              >
             </div>
-          {/if}
-        </div>
-      </details>
+          </div>
+        {/if}
+
+        {#if amenities.length > 0}
+          <div class="entity-meta-row entity-dorm-details__amenities">
+            {#each amenities as amenity}
+              <span class="entity-meta-chip amenity-tag">{amenity}</span>
+            {/each}
+          </div>
+        {/if}
+
+        {#if dorm.isUpManaged || dorm.facebookLink || (!dorm.isUpManaged && dorm.priceRange)}
+          <div class="entity-dorm-details__links">
+            {#if dorm.isUpManaged}
+              <a
+                href="https://uplbosa.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="entity-footer__link"
+              >
+                UPLB OSA website →
+              </a>
+            {:else if dorm.priceRange}
+              <span class="price-disclaimer">
+                <TriangleAlert size={12} />
+                Verify price with owner
+              </span>
+            {/if}
+            {#if dorm.facebookLink}
+              <a
+                href={dorm.facebookLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="entity-footer__link"
+              >
+                Facebook →
+              </a>
+            {/if}
+          </div>
+        {/if}
+      </section>
     {/if}
-
-    <footer class="entity-footer">
-      {#if dorm.isUpManaged}
-        <a
-          href="https://uplbosa.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="entity-footer__link"
-        >
-          UPLB OSA website →
-        </a>
-      {:else if !dorm.isUpManaged && dorm.priceRange}
-        <span class="price-disclaimer">
-          <TriangleAlert size={12} />
-          Verify price with owner
-        </span>
-      {/if}
-      {#if dorm.facebookLink}
-        <a
-          href={dorm.facebookLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="entity-footer__link"
-        >
-          Facebook →
-        </a>
-      {/if}
-    </footer>
   {:else}
     <div class="no-results">Dorm not found.</div>
   {/if}

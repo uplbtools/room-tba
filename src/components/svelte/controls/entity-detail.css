@@ -7,9 +7,8 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-height: 0;
-  overflow-y: auto;
 }
 
 .entity-header {
@@ -165,7 +164,7 @@
   gap: 0.375rem;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #4f4f4f;
+  color: #3f3f46;
 }
 
 .entity-body--compact {
@@ -218,7 +217,7 @@
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: #4f4f4f;
+  color: #3f3f46;
 }
 
 .entity-directions__empty {
@@ -250,7 +249,6 @@
   flex-wrap: wrap;
   gap: 0.375rem;
   align-items: center;
-  margin-top: auto;
   padding-top: 0.375rem;
   border-top: 1px solid #ececec;
   flex-shrink: 0;
@@ -317,6 +315,34 @@
   border-top: 1px solid #ececec;
 }
 
+.entity-section-heading {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #71717a;
+}
+
+.entity-dorm-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding-top: 0.125rem;
+}
+
+.entity-dorm-details__amenities {
+  padding-top: 0.125rem;
+}
+
+.entity-dorm-details__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding-top: 0.25rem;
+}
+
 .entity-detail-row {
   display: flex;
   align-items: flex-start;
@@ -333,7 +359,7 @@
 
 .entity-detail-row__label {
   font-size: 0.625rem;
-  color: #a1a1aa;
+  color: #71717a;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
