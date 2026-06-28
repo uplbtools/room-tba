@@ -1,8 +1,8 @@
 /**
  * Experimental basemap palette — Jun 2026.
  *
- * UPLB campus viewing: airy green-tinted ground, natural lawn, warm wood/tan
- * buildings that advance against grass (aerial photo model). Applied at runtime
+ * UPLB campus viewing: airy green-tinted ground, natural lawn, light campus
+ * stone buildings that read architectural against grass. Applied at runtime
  * via applyBasemapPalette() and mirrored in public/liberty-customized.json
  * for offline tiles. Pin/label colors are unchanged; maroon pins (#7b1113) stay
  * readable on both the green lawn and warm building fills.
@@ -138,9 +138,9 @@ export const campusGreige = {
   roadMotorwayCasing: "rgba(158, 148, 132, 0.85)",
 } as const;
 
-/** Active preset — uplbRefreshing: green campus, warm wood buildings.
+/** Active preset — uplbRefreshing: green campus, fresh campus stone buildings.
  *  background #EEF4EC · grass #7CB87A @ 0.38 · park #8FBF8A · wood forest rgba(62,96,58,0.48)
- *  water #6BA3B8 · building #D4BC96 · extrusion #B89968 · outline #9A8570 · roads #C5C5C0
+ *  water #6BA3B8 · building #E8E4DC · extrusion #D8D4CC · outline #B8B4AC · roads #C5C5C0
  */
 export const uplbRefreshing = {
   background: "rgb(238, 244, 236)",
@@ -157,9 +157,9 @@ export const uplbRefreshing = {
   schoolFill: "rgb(240, 245, 238)",
   pitchFill: "rgba(143, 191, 138, 0.85)",
   landuseTrack: "#b8c8b4",
-  buildingFill: "#d4bc96",
-  buildingOutline: "#9a8570",
-  buildingExtrusion: "#b89968",
+  buildingFill: "#e8e4dc",
+  buildingOutline: "#b8b4ac",
+  buildingExtrusion: "#d8d4cc",
   buildingExtrusionOpacity: 0.95,
   labelText: "#444444",
   labelHaloColor: "rgba(255, 255, 255, 0.92)",
@@ -180,15 +180,15 @@ export const uplbRefreshing = {
 
 export const MAP_BASEMAP_PALETTE = uplbRefreshing;
 
-/** Toggle size-driven building colors (render_height → warm wood ramp). */
+/** Toggle size-driven building colors (render_height → campus stone ramp). */
 export const MAP_BASEMAP_BUILDING_SIZE_COLORS = true;
 
 /**
  * Data-driven building color by OpenMapTiles `render_height` (meters).
  * OMT derives this from OSM height, building:levels × 3.66, or defaults to 5 m.
- * At z13 generalized blocks omit render_height — coalesce falls back to 5 (light tan).
+ * At z13 generalized blocks omit render_height — coalesce falls back to 5 (light cream).
  * Probed UPLB z14 tiles (Jun 2026): ~90 footprints, heights 1–85 m, ~10% at default 5 m.
- * Smaller footprints read lighter; taller blocks read richer brown on green lawn.
+ * Smaller footprints read lighter cream; taller blocks read grey-limestone on green lawn.
  */
 export function buildingSizeColorExpression(
   palette: Pick<typeof uplbRefreshing, "buildingFill" | "buildingExtrusion"> =
@@ -199,19 +199,19 @@ export function buildingSizeColorExpression(
     ["linear"],
     ["coalesce", ["get", "render_height"], 5],
     3,
-    "#ead8bc",
+    "#ede9e1",
     5,
-    "#e8d4b4",
+    "#e8e4dc",
     8,
     palette.buildingFill,
     12,
-    "#c4a67a",
+    "#e2ded6",
     18,
     palette.buildingExtrusion,
     28,
-    "#9a7850",
+    "#c8c4bc",
     45,
-    "#7a5c38",
+    "#a8a49c",
   ];
 }
 
