@@ -104,6 +104,18 @@
   const resetNorth = () =>
     withMap((map) => map.easeTo({ bearing: 0, duration: 400 }));
 
+  const go2D = () =>
+    withMap((map) => {
+      if (map.getPitch() <= TWO_D_THRESHOLD) return;
+      map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
+    });
+
+  const go3D = () =>
+    withMap((map) => {
+      if (map.getPitch() > TWO_D_THRESHOLD) return;
+      map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
+    });
+
   const toggleView = () =>
     withMap((map) => {
       if (map.getPitch() > TWO_D_THRESHOLD) {
@@ -154,14 +166,37 @@
         <Box size={18} />
       {/if}
       <span class="control-copy">
-        <span class="control-kicker">Camera</span>
-        <span class="control-value">{is2D ? "2D" : "3D"}</span>
+        <span class="control-kicker">View</span>
+        <span class="control-value">{is2D ? "2D flat" : "3D tilted"}</span>
       </span>
     </button>
   {/if}
 
   {#if showCameraNav}
-    <div class="rotate-row">
+    <div class="camera-toolbar">
+      <div class="dimension-segments" role="group" aria-label="Map view mode">
+        <button
+          type="button"
+          class="dimension-segment"
+          class:active={is2D}
+          onclick={go2D}
+          aria-pressed={is2D}
+          title="Flat top-down map"
+        >
+          2D
+        </button>
+        <button
+          type="button"
+          class="dimension-segment"
+          class:active={!is2D}
+          onclick={go3D}
+          aria-pressed={!is2D}
+          title="Tilted perspective map"
+        >
+          3D
+        </button>
+      </div>
+      <div class="toolbar-divider" aria-hidden="true"></div>
       <button
         class="control rotate-step"
         onclick={rotateLeft}
@@ -188,11 +223,7 @@
       >
         <RotateCw size={18} />
       </button>
-    </div>
-
-    <div class="divider divider--tilt"></div>
-
-    <div class="tilt-row">
+      <div class="toolbar-divider" aria-hidden="true"></div>
       <button
         class="control"
         onclick={tiltDown}
@@ -238,6 +269,61 @@
 
   .map-view-controls.camera-only {
     flex-shrink: 0;
+    padding: 0.25rem;
+  }
+
+  .camera-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .dimension-segments {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding: 0.125rem;
+    border-radius: 0.5rem;
+    background-color: hsl(0, 0%, 96%);
+  }
+
+  .dimension-segment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2.125rem;
+    padding: 0 0.4375rem;
+    border: none;
+    border-radius: 0.375rem;
+    background: transparent;
+    font: inherit;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: hsl(5, 53%, 32%);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .dimension-segment:hover:not(.active) {
+    background-color: hsla(0, 0%, 0%, 0.06);
+  }
+
+  .dimension-segment.active {
+    background-color: hsl(5, 53%, 32%);
+    color: white;
+  }
+
+  .toolbar-divider {
+    flex-shrink: 0;
+    width: 1px;
+    height: 1.375rem;
+    margin: 0 0.0625rem;
+    background-color: hsl(0, 0%, 90%);
   }
 
   .map-view-controls.embedded {
@@ -257,15 +343,6 @@
     height: 1px;
     background-color: hsl(0, 0%, 90%);
     margin: 0 0.125rem;
-  }
-
-  .rotate-row,
-  .tilt-row {
-    display: flex;
-    gap: 0.1875rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    max-width: 100%;
   }
 
   .control {

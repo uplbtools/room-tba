@@ -1,10 +1,16 @@
 <script lang="ts">
+  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
+  import House from "@lucide/svelte/icons/house";
+  import Landmark from "@lucide/svelte/icons/landmark";
+  import Layers from "@lucide/svelte/icons/layers";
+  import Shield from "@lucide/svelte/icons/shield";
   import {
     getBuildingTypeFilterOptions,
     type BuildingTypeFilter,
   } from "@constants/building-types";
   import { getAppData } from "@lib/context";
   import { buildingTypeFilter } from "@lib/store.svelte";
+  import "./map-chrome/map-chrome.css";
 
   const appData = getAppData();
   const { buildings, dorms } = $derived(appData());
@@ -18,6 +24,14 @@
     "up-managed-dorm": "UP dorms",
     "non-up-managed-dorm": "Other dorms",
   };
+
+  const FILTER_ICONS = {
+    all: Layers,
+    "class-building": GraduationCap,
+    "administrative-building": Landmark,
+    "up-managed-dorm": Shield,
+    "non-up-managed-dorm": House,
+  } as const;
 
   function selectFilter(value: BuildingTypeFilter) {
     buildingTypeFilter.set(value);
@@ -33,18 +47,24 @@
   <div class="filter-chips">
     {#each options as option (option.value)}
       {@const isActive = buildingTypeFilter.value === option.value}
+      {@const Icon = FILTER_ICONS[option.value]}
       <button
         type="button"
-        class="filter-chip"
-        class:active={isActive}
+        class="map-chrome-chip"
+        class:map-chrome-chip--filter-selected={isActive}
         aria-pressed={isActive}
         aria-label={`${option.label}, ${option.count} pins`}
         title={`${option.label} (${option.count})`}
         onclick={() => selectFilter(option.value)}
       >
-        <span class={`type-dot ${option.tone}`} aria-hidden="true"></span>
-        <span class="chip-label">{CHIP_LABELS[option.value]}</span>
-        <span class="chip-count">{option.count}</span>
+        <span
+          class="map-chrome-chip__icon map-chrome-chip__icon--{option.tone}"
+          aria-hidden="true"
+        >
+          <Icon size={14} />
+        </span>
+        <span>{CHIP_LABELS[option.value]}</span>
+        <span class="map-chrome-chip__count">{option.count}</span>
       </button>
     {/each}
   </div>
@@ -78,81 +98,5 @@
     align-items: center;
     gap: 0.375rem;
     min-width: 0;
-  }
-
-  .filter-chip {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 0.3rem;
-    min-height: 1.75rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 999px;
-    background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    color: hsl(0, 0%, 22%);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1.1;
-    padding: 0.25rem 0.5rem;
-    white-space: nowrap;
-  }
-
-  .filter-chip:hover,
-  .filter-chip:focus-visible {
-    border-color: hsl(5, 40%, 72%);
-    background: hsl(5, 53%, 98%);
-  }
-
-  .filter-chip:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
-  }
-
-  .filter-chip.active {
-    border-color: hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 32%);
-    color: white;
-  }
-
-  .filter-chip.active .chip-count {
-    background: hsla(0, 0%, 100%, 0.18);
-    color: white;
-  }
-
-  .type-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background-color: hsl(0, 0%, 65%);
-    flex: 0 0 auto;
-  }
-
-  .type-dot.building,
-  .type-dot.admin {
-    background-color: hsl(5, 53%, 32%);
-  }
-
-  .type-dot.up-dorm {
-    background-color: hsl(170, 50%, 35%);
-  }
-
-  .type-dot.non-up-dorm {
-    background-color: hsl(25, 70%, 50%);
-  }
-
-  .filter-chip.active .type-dot {
-    box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.65);
-  }
-
-  .chip-count {
-    border-radius: 999px;
-    background: hsl(0, 0%, 94%);
-    color: hsl(0, 0%, 38%);
-    font-size: 0.625rem;
-    font-weight: 700;
-    line-height: 1;
-    padding: 0.125rem 0.35rem;
   }
 </style>

@@ -17,6 +17,7 @@
   import Map from "@ui/Map.svelte";
   import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
   import MapViewControls from "@ui/MapViewControls.svelte";
+  import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import LocationButton from "@ui/LocationButton.svelte";
   import MapAttribution from "@ui/MapAttribution.svelte";
   import StatusBar from "@ui/StatusBar.svelte";
@@ -128,6 +129,9 @@
             class:drawer-lift={drawerExpanded}
             aria-label="Location and editor"
           >
+            <div class="mobile-dimension-toggle">
+              <MapDimensionToggle />
+            </div>
             <LocationButton />
           </div>
         </div>
@@ -224,6 +228,7 @@
     display: flex;
     flex-direction: row;
     align-items: flex-end;
+    justify-content: space-between;
     gap: 0.5rem;
     min-width: 0;
     pointer-events: none;
@@ -267,11 +272,21 @@
     pointer-events: none;
   }
 
+  .mobile-dimension-toggle {
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
   @media (min-width: 48.0625rem) {
     .desktop-camera-controls {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+    }
+
+    .mobile-dimension-toggle {
+      display: none;
     }
   }
 

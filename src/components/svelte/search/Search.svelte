@@ -94,9 +94,7 @@
     chrome.showSearchSuggestions && searchFocused && eventsCollapsed,
   );
 
-  const showEventsSheet = $derived(
-    showIdleEventsChrome && !eventsCollapsed,
-  );
+  const showEventsSheet = $derived(showIdleEventsChrome && !eventsCollapsed);
 
   $effect(() => {
     if (draftInput.trim() !== "") {
@@ -214,8 +212,8 @@
           {#if showIdleEventsChrome}
             <button
               type="button"
-              class="map-chrome-chip map-chrome-chip--events"
-              class:map-chrome-chip--active={showEventsSheet}
+              class="map-chrome-chip"
+              class:map-chrome-chip--toggle-active={showEventsSheet}
               aria-expanded={showEventsSheet}
               aria-controls="persistent-campus-events"
               aria-label={showEventsSheet
@@ -328,7 +326,9 @@
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
     border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    box-shadow: var(--map-chrome-shadow);
+    box-shadow:
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14);
     overflow: visible;
   }
 
@@ -439,13 +439,28 @@
     overflow-x: auto;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: hsl(0, 0%, 72%) transparent;
-    padding: 0 0.625rem 0.3125rem;
+    scrollbar-width: none;
+    padding: 0.4375rem 0.625rem 0.4375rem;
     border-top: 1px solid hsl(0, 0%, 92%);
   }
 
+  .search-root:not(.mobile-shell) .map-search-chrome__chips {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .map-search-chrome__chips:hover,
+  .map-search-chrome__chips:focus-within {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 72%) transparent;
+  }
+
   .map-search-chrome__chips::-webkit-scrollbar {
+    height: 0;
+  }
+
+  .map-search-chrome__chips:hover::-webkit-scrollbar,
+  .map-search-chrome__chips:focus-within::-webkit-scrollbar {
     height: 3px;
   }
 
@@ -466,45 +481,6 @@
     flex: 0 0 auto;
     min-width: 0;
     padding: 0 !important;
-  }
-
-  .map-chrome-chip {
-    all: unset;
-    box-sizing: border-box;
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 0.3rem;
-    min-height: 1.75rem;
-    padding: 0.25rem 0.625rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 999px;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    color: hsl(0, 0%, 22%);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1.1;
-    white-space: nowrap;
-    pointer-events: auto;
-    touch-action: manipulation;
-  }
-
-  .map-chrome-chip:disabled {
-    cursor: default;
-    opacity: 0.7;
-  }
-
-  .map-chrome-chip:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
-  }
-
-  .map-chrome-chip--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 22%);
   }
 
   .map-search-chrome__events {
