@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
+  import { fade, fly } from "svelte/transition";
   import { X, Lock } from "@lucide/svelte";
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
+  import {
+    modalContentDismiss,
+    modalContentReveal,
+    overlayFade,
+  } from "@lib/motion";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
   import "./editor/entity-editor.css";
+  import { MediaQuery } from "svelte/reactivity";
+
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   let username = $state("admin");
   let password = $state("");
@@ -38,8 +46,17 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="login-overlay" transition:fade={{ duration: 140 }}>
-  <div class="login-frame" role="dialog" aria-modal="true">
+<div
+  class="login-overlay"
+  transition:fade={overlayFade(reducedMotion.current)}
+>
+  <div
+    class="login-frame"
+    role="dialog"
+    aria-modal="true"
+    in:fly={modalContentReveal(reducedMotion.current)}
+    out:fly={modalContentDismiss(reducedMotion.current)}
+  >
     <header class="login-header">
       <div class="login-title">
         <Lock size={16} />

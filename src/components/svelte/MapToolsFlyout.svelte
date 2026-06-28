@@ -2,7 +2,9 @@
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import Layers from "@lucide/svelte/icons/layers";
+  import { fade } from "svelte/transition";
   import { mapToolsStore, type MapToolsSection } from "@lib/store.svelte";
+  import { panelFadeIn, panelFadeOut } from "@lib/motion";
   import MapViewControls from "@ui/MapViewControls.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
@@ -11,8 +13,10 @@
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
   import MapChromePanel from "@ui/map-chrome/MapChromePanel.svelte";
   import "./map-chrome/map-chrome.css";
+  import { MediaQuery } from "svelte/reactivity";
 
   let panelEl = $state<HTMLDivElement | null>(null);
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const sections: { id: MapToolsSection; label: string }[] = [
     { id: "view", label: "View" },
     { id: "legend", label: "Legend" },
@@ -45,12 +49,17 @@
   </MapChromeFabTrigger>
 
   {#if mapToolsStore.open}
-    <MapChromePanel
-      bind:element={panelEl}
-      id="map-tools-panel"
-      title="Map tools"
-      onclose={() => mapToolsStore.close()}
+    <div
+      class="map-tools-panel-shell"
+      in:fade={panelFadeIn(reducedMotion.current)}
+      out:fade={panelFadeOut(reducedMotion.current)}
     >
+      <MapChromePanel
+        bind:element={panelEl}
+        id="map-tools-panel"
+        title="Map tools"
+        onclose={() => mapToolsStore.close()}
+      >
       {#each sections as section (section.id)}
         <div class="accordion-section">
           <button
@@ -70,7 +79,7 @@
           {#if isExpanded(section.id)}
             <div
               id={`map-tools-section-${section.id}`}
-              class="map-chrome-accordion-body"
+              class="map-chrome-accordion-body map-chrome-accordion-body--enter"
             >
               {#if section.id === "view"}
                 <MapViewControls embedded variant="modes" />
@@ -85,7 +94,8 @@
           {/if}
         </div>
       {/each}
-    </MapChromePanel>
+      </MapChromePanel>
+    </div>
   {/if}
 </div>
 
@@ -98,6 +108,14 @@
     align-items: flex-end;
     gap: 0.5rem;
     overflow: visible;
+  }
+
+  .map-tools-panel-shell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 100%;
+    min-width: 0;
   }
 
   .accordion-section {

@@ -1,4 +1,24 @@
-/* Shared map chrome: toggles, chips, panels, FAB triggers. Uses .app-layout CSS vars. */
+/* Shared map chrome: toggles, chips, panels, FAB triggers. Uses .app-layout CSS vars.
+   Contrast tokens live in Entry.svelte — warm off-white surfaces and stronger borders/shadows
+   so chrome reads clearly on light map tiles without a full-screen dim overlay. */
+
+:root {
+  --motion-duration-fast: 150ms;
+  --motion-duration-micro: 200ms;
+  --motion-duration-panel: 280ms;
+  --motion-duration-shelf: 260ms;
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: 0ms;
+    --motion-duration-micro: 0ms;
+    --motion-duration-panel: 0ms;
+    --motion-duration-shelf: 0ms;
+  }
+}
 
 .map-chrome-toggle-btn,
 .chrome-toggle-btn {
@@ -311,17 +331,19 @@ button.map-chrome-chip:disabled {
   backdrop-filter: blur(10px);
   color: hsl(5, 53%, 32%);
   cursor: pointer;
-  box-shadow:
-    inset 0 0 0 1px hsla(0, 0%, 100%, 0.85),
-    0 2px 6px hsla(0, 0%, 0%, 0.18),
-    0 6px 14px hsla(0, 0%, 0%, 0.12);
+  box-shadow: var(
+    --map-chrome-fab-shadow,
+    inset 0 0 0 1px hsla(0, 0%, 100%, 0.72),
+    0 2px 6px hsla(0, 0%, 0%, 0.2),
+    0 6px 16px hsla(0, 0%, 0%, 0.14)
+  );
   transition:
     background-color 0.2s,
     border-color 0.2s;
 }
 
 .map-chrome-fab-trigger:hover {
-  background-color: hsl(0, 0%, 99%);
+  background-color: hsl(5 25% 98%);
   border-color: hsl(5, 53%, 32%);
 }
 
@@ -363,6 +385,7 @@ button.map-chrome-chip:disabled {
   width: min(20rem, calc(100vw - 1rem));
   max-height: min(75vh, 28rem);
   min-width: 0;
+  transform-origin: top right;
 }
 
 .map-chrome-popover {
@@ -438,6 +461,29 @@ button.map-chrome-chip:disabled {
   max-width: 100%;
   overflow: visible;
   padding: 0.1875rem 0 0.375rem;
+}
+
+.map-chrome-accordion-body--enter {
+  animation: map-chrome-accordion-in var(--motion-duration-micro)
+    var(--motion-ease-out) both;
+}
+
+@keyframes map-chrome-accordion-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-chrome-accordion-body--enter {
+    animation: none;
+  }
 }
 
 .map-chrome-accordion-body > :global(*) {

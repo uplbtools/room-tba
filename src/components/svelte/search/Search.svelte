@@ -1,6 +1,6 @@
 <script lang="ts">
   import { debounce } from "es-toolkit";
-  import { fly } from "svelte/transition";
+  import { fade } from "svelte/transition";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import Menu from "@lucide/svelte/icons/menu";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
@@ -22,10 +22,10 @@
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import {
-    dropdownDismiss,
-    dropdownReveal,
-    shelfDismiss,
-    shelfReveal,
+    dropdownFadeIn,
+    dropdownFadeOut,
+    panelFadeIn,
+    panelFadeOut,
   } from "@lib/motion";
   import { MediaQuery } from "svelte/reactivity";
 
@@ -271,8 +271,8 @@
               <div
                 class="map-search-chrome__dropdown"
                 role="listbox"
-                in:fly={dropdownReveal(reducedMotion.current)}
-                out:fly={dropdownDismiss(reducedMotion.current)}
+                in:fade={dropdownFadeIn(reducedMotion.current)}
+                out:fade={dropdownFadeOut(reducedMotion.current)}
               >
                 <Suggestions />
               </div>
@@ -348,8 +348,8 @@
           class="map-search-chrome__events"
           id="persistent-campus-events"
           aria-labelledby="persistent-campus-events-heading"
-          in:fly={shelfReveal(reducedMotion.current)}
-          out:fly={shelfDismiss(reducedMotion.current)}
+          in:fade={panelFadeIn(reducedMotion.current)}
+          out:fade={panelFadeOut(reducedMotion.current)}
         >
           <EventCards
             headingId="persistent-campus-events-heading"
@@ -365,8 +365,8 @@
           class="map-search-chrome__editor"
           id="editor-shelf-panel"
           aria-label="Editor tools"
-          in:fly={shelfReveal(reducedMotion.current)}
-          out:fly={shelfDismiss(reducedMotion.current)}
+          in:fade={panelFadeIn(reducedMotion.current)}
+          out:fade={panelFadeOut(reducedMotion.current)}
         >
           <EditorShelf onclose={closeEditorShelf} />
         </div>
@@ -665,7 +665,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding: 0.3125rem 0.625rem 0.3125rem;
-    border-top: 1px solid var(--map-chrome-divider, hsl(0, 0%, 92%));
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
     transition: border-radius var(--motion-duration-micro)
       var(--motion-ease-out);
   }
