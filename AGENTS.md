@@ -1,11 +1,39 @@
 # Room TBA Agent Guide
 
-## Agent execution
+## Doc map
 
-- **Bias toward action.** Training data reflects human pacing; in this repo you can read, edit, verify, and commit much faster. Do not pad estimates, over-explain tradeoffs, or defer work that is clearly scoped.
+Read the right doc for the task — do not rely on this file alone for detailed checklists.
+
+| When                                             | Read                                                                                                                    |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Starting a coding session, commit, or PR         | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md)                      |
+| Map chrome, Entry zones, flyouts, 320/768 layout | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md) |
+| Side panel / entity detail views                 | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc)                                                            |
+| Drizzle, API routes, migrations, PGlite          | [.cursor/rules/data-and-migrations.mdc](.cursor/rules/data-and-migrations.mdc)                                          |
+| Stores and client state                          | [.cursor/rules/svelte-stores.mdc](.cursor/rules/svelte-stores.mdc)                                                      |
+| PR QA evidence and reporting                     | [docs/agentic-qa-process.md](docs/agentic-qa-process.md)                                                                |
+| Editor manual checklist                          | [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md)                                              |
+
+## How to work
+
+- **Bias toward action.** Do not pad estimates, over-explain tradeoffs, or defer work that is clearly scoped.
 - **Default to implementing** when the request is concrete and the codebase path is discoverable. Ask only when a product decision is genuinely ambiguous or irreversible.
-- **One pass is often enough.** Prefer a focused implementation plus build/lint over long planning loops or repeated “want me to…?” prompts.
-- **Adjust verification to change size.** Small UI or store tweaks need targeted checks; run `bun run build` once before committing substantive work.
+- **One pass is often enough.** Prefer a focused implementation plus verification over long planning loops or repeated “want me to…?” prompts.
+- **Preserve the dirty tree.** Do not revert unrelated user changes unless explicitly asked.
+- **Keep scope tight.** Avoid opportunistic refactors outside the request.
+
+## Verify before done
+
+Adjust checks to change size. PR CI runs **Prettier + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
+
+| Step                                                         | When                                                                   |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `bun run lint` (or targeted prettier/eslint on edited files) | Always before commit/PR                                                |
+| `bun test src` (or targeted test files)                      | When logic, lib, or API behavior changed                               |
+| `bun run build`                                              | Once before commit/PR on substantive changes (requires `DATABASE_URL`) |
+| Manual browser / editor checklist                            | Map chrome, editor drag/save, side panel UX                            |
+
+Do not run full build after every small edit. See the workflow skill for session cadence.
 
 ## Commits
 
@@ -15,14 +43,23 @@
 - Stage only files that belong together; write a message that states _why_, not a file list.
 - Do not push unless asked. Do not amend or force-push unless the user’s git rules allow it.
 
-## Product Direction
+## Architecture (short)
+
+- **App:** Astro 7 SSR + Svelte 5 islands, Vercel adapter, Bun.
+- **Server data:** Supabase Postgres via Drizzle ([`src/lib/db.ts`](src/lib/db.ts), [`drizzle/schema.ts`](drizzle/schema.ts), migrations in `drizzle/`).
+- **Client offline cache:** PGlite in IndexedDB ([`src/lib/local/data/pgliteDB.ts`](src/lib/local/data/pgliteDB.ts)) — schema is maintained separately and **can drift** from Drizzle; update both when changing tables.
+- **Client state:** [`src/lib/store.svelte.ts`](src/lib/store.svelte.ts) (monolithic store module; import via `@lib/store.svelte`).
+- **Auth:** HMAC cookie `admin_session` + bcrypt `admin_users` gates `/api/admin/*`. Supabase Auth ([`src/lib/supabase/*`](src/lib/supabase/)) is additive in middleware; intended long-term consolidation target.
+- **Do not edit:** `drizzle-migrations/` (archived SQLite history). Do not add browser `/admin` pages as the editor surface.
+
+## Product direction
 
 - Prefer editing in the main app over building a separate admin dashboard.
 - The editor login should use the in-app popup. `/admin` browser pages should redirect into the main app login flow.
 - Keep the read and edit experiences colocated: if a user can view an entity in the app, an editor should eventually edit it there.
-- Treat the current PR as the editor foundation: map pin editing, admin entry, optimistic concurrency, version history, undo/redo, and manual verification.
+- Editor capabilities (map pin editing, proposals, optimistic concurrency, version history, undo/redo) live in the main map app — extend in place.
 
-## Editor UX Rules
+## Editor UX rules
 
 - No decorative or attention-seeking animations. Do not add pulsing/“live” dots, blinking badges, glowing rings, bouncing elements, or similar gimmicks. Keep the UI calm and static; only animate when it communicates real state (e.g. a spinner during a save).
 - Layout must never overflow or overlap. Buttons and chips must stay inside their container, controls must wrap gracefully on narrow widths, and text must truncate (ellipsis) instead of colliding with neighbors. Verify the header/action rows at narrow widths before finishing.
@@ -32,23 +69,14 @@
 - Error messages should name the exact entity that failed without repeating generic wording.
 - Support common shortcuts in map edit mode: `Ctrl+Z` / `Cmd+Z` for undo, `Ctrl+Y` / `Cmd+Y` and `Shift+Ctrl+Z` / `Shift+Cmd+Z` for redo.
 
-## Map layout guardrails
+## UI guardrails
 
-- Map chrome mounts in Entry zones (top / map / bottom / ephemeral). See `docs/map-ui-mode-matrix.md`.
-- Use `.app-layout` CSS vars for spacing — no magic fixed offsets.
-- Map chrome contrast tokens (`--map-chrome-surface`, borders, shadows) live on `.app-layout` in `Entry.svelte`. Surfaces use a warm off-white tint so controls float above light basemap tiles; tune there rather than per-component whites.
-- New fixed overlays outside Entry zones require updating the mode matrix.
-- One Map tools flyout (`mapToolsStore`); contributor propose menu on LocationButton; editor tools via `editorChromeStore` (top-bar chip + shelf; shield FAB opens the same shelf).
-- Before merge on map chrome changes: verify 320px + 768px browse, edit mode, and map tools open.
+Map and side-panel layout rules are detailed in glob-scoped Cursor rules — read them before editing matched files.
 
-## Side panel guardrails
+- **Map chrome:** Entry zones only; one Map tools flyout; verify 320px + 768px. See [map-layout.mdc](.cursor/rules/map-layout.mdc) and [map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md).
+- **Side panel:** Header → body → directions → footer; parity across Room/Building/Dorm results. See [side-panel.mdc](.cursor/rules/side-panel.mdc).
 
-- Entity detail views live in the MainControls drawer (`controls/*Result*.svelte`, `room/RoomResult.svelte`). See `.cursor/rules/side-panel.mdc`.
-- Layout zones: **header** (title, context, one actions row) → **body** → **directions** (merged) → **footer** (subtle links). Shared styles in `controls/entity-detail.css`.
-- Do not add new full-width button rows or colored boxes without consolidating existing ones. Match map-chrome action chip patterns.
-- Check RoomResult + BuildingResult + DormResult for parity when changing any entity detail view.
-
-## Data Integrity
+## Data integrity
 
 - Use optimistic concurrency for editor writes. Send the version the client last saw, and return `409 Conflict` with the latest row if it is stale.
 - Missing client versions are a transitional compatibility fallback only; new editor surfaces should send versions.
@@ -56,21 +84,21 @@
 - Reverts should create new history entries instead of rewriting or deleting old history.
 - Every admin write should refresh the relevant sync key so clients can detect changed data.
 
-## Database And APIs
+## Database and APIs
 
-- Supabase Postgres is the runtime source of truth via `DATABASE_URL` (not `NEON_CONNECTION_STRING`). Code, Drizzle, seeds, and the Astro env schema all use `DATABASE_URL`. On Vercel, name the env var `DATABASE_URL` — rename any legacy `NEON_CONNECTION_STRING`.
+- Supabase Postgres is the runtime source of truth via `DATABASE_URL` (not `NEON_CONNECTION_STRING`). Code, Drizzle, seeds, and the Astro env schema all use `DATABASE_URL`. On Vercel, name the env var `DATABASE_URL`.
 - Supabase JS (`@supabase/supabase-js` + `@supabase/ssr`) is additive: `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` power Auth/client features via `src/lib/supabase/*`. Keep using Drizzle + `DATABASE_URL` for existing Postgres queries unless a feature explicitly needs the JS client.
 - Drizzle schema changes need a matching SQL migration in `drizzle/`. Apply pending migrations to Supabase before deploying code that depends on them — skipped migrations cause runtime query failures (e.g. missing `0007_add_event_image_url.sql` leaves out `events.image_url` and breaks event loading).
+- **PGlite drift:** offline tables in `pgliteDB.ts` must stay aligned with server schema and with [`src/lib/local/data/sync.ts`](src/lib/local/data/sync.ts) consumers.
 - Admin API routes live under `/api/admin/*` and must keep auth checks.
-- Browser-facing `/admin` pages are intentionally not the default editor surface.
 - Keep PATCH routes field-level and partial so unrelated edits do not clobber each other.
 
 ## Verification
 
-- After substantive changes, run formatting, lints for edited files, and `bun run build`.
-- For editor changes, also use `docs/editor-foundation-test-plan.md` as the manual PR checklist.
-- For PR QA, follow `docs/agentic-qa-process.md` and separate automated evidence from browser-only checks.
-- Avoid testing by mutating production-like server data unless the change is intentional and reversible. Restore any accidental test mutations immediately.
+- After substantive changes: lint, relevant unit tests, and `bun run build` (local).
+- For editor changes: [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md).
+- For PR QA: [docs/agentic-qa-process.md](docs/agentic-qa-process.md) — separate automated evidence from browser-only checks.
+- Avoid mutating production-like server data unless intentional and reversible. Restore accidental test mutations immediately.
 
 ## Cursor Cloud specific instructions
 
@@ -79,6 +107,7 @@
 - **Refreshing local `.env`:** Production/preview `DATABASE_URL` lives in Vercel env vars. When `.env` is empty or stale: `vercel env pull .env.vercel --environment=development --yes` (requires Vercel CLI linked to `stimmie/saan-ang-room` — room-tba.stimmie.dev — not a separate empty `room-tba` project; see `.vercel/project.json`), merge `DATABASE_URL` into `.env`, keep local `ADMIN_PASSWORD` if already set. `vercel env pull` often returns empty `""` for encrypted vars like `DATABASE_URL` — copy from Vercel UI (Settings → Environment Variables) or Supabase dashboard instead. Use the Supabase **session pooler** URL (`*.pooler.supabase.com`) for local dev. Or provide `DATABASE_URL` via Cursor Secrets.
 - **`bun dev` without `DATABASE_URL`:** Server starts but SSR returns HTTP 500 (`EnvInvalidVariables: DATABASE_URL is missing`). Set a valid Supabase connection string in `.env` and restart.
 - **Optional R2:** Image upload (`/api/admin/upload`) needs `R2_*` vars (see `.env.example`, `wrangler.jsonc`). App runs without them; upload UI shows a not-configured message.
-- This is **Astro 6 SSR** (Vercel adapter). API routes under `src/pages/api/*` are server-rendered (`prerender = false`), and the SSG entity pages (e.g. `/room/[slug]`) also query the DB at build time — so even `bun run build` fails without a working `DATABASE_URL`.
+- This is **Astro 7 SSR** (Vercel adapter). API routes under `src/pages/api/*` are server-rendered (`prerender = false`), and SSG entity pages (e.g. `/room/[slug]`) query the DB at build time — so `bun run build` fails without a working `DATABASE_URL`.
 - `@electric-sql/pglite` (`idb://site-data`) is a **browser-side cache only**, not a server/dev database fallback.
-- Standard scripts live in `package.json`: `bun dev` (dev server on `http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint` (`prettier --check . && eslint .`), `bun run format`. There is no automated test suite; verify changes via build + manual browser testing.
+- **PWA:** Workbox precaches `dist/client`; large client bundles affect offline install. See `astro.config.mjs` PWA config before adding heavy dependencies.
+- Standard scripts: `bun dev` (`http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint`, `bun run format`, `bun test src`. PR CI runs Prettier check + unit tests; run full lint and build locally before merge.

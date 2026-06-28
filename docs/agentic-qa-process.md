@@ -2,10 +2,12 @@
 
 Use this process when preparing an editor-focused PR for review. The goal is to let agents verify everything they can with evidence, while clearly marking browser-only checks that still need a human pass.
 
+**Related docs:** [AGENTS.md](../AGENTS.md) (policy), [editor-foundation-test-plan.md](editor-foundation-test-plan.md) (manual editor checklist), [.cursor/rules/map-layout.mdc](../.cursor/rules/map-layout.mdc) and [side-panel.mdc](../.cursor/rules/side-panel.mdc) for UI layout.
+
 ## Roles
 
 - **QA coordinator:** owns the run, keeps scope tight, and writes the final PR QA summary.
-- **Static verifier:** checks formatting, lints, build, git status, redirects, and database/schema presence.
+- **Static verifier:** checks formatting, lints, unit tests, build, git status, redirects, and database/schema presence.
 - **Runtime verifier:** runs targeted API checks against the local dev server and confirms auth/redirect behavior.
 - **Human browser verifier:** performs drag/drop and visual checks that cannot be trusted from shell output alone.
 
@@ -18,13 +20,27 @@ One agent can play multiple roles, but the report must separate automated eviden
 - Current test checklist: `docs/editor-foundation-test-plan.md`.
 - A running local dev server on the expected port, usually `http://localhost:4321`.
 
+## Change-type matrix
+
+Run only what applies to the PR scope:
+
+| Change type             | lint | `bun test src`    | build (local) | browser                               |
+| ----------------------- | ---- | ----------------- | ------------- | ------------------------------------- |
+| Lib/helper only         | yes  | yes (or targeted) | yes           | skip                                  |
+| Map chrome / side panel | yes  | yes               | yes           | 320px + 768px                         |
+| Editor / admin API      | yes  | yes               | yes           | auth + one PATCH                      |
+| Drizzle migration       | yes  | yes               | yes           | confirm migration applied on Supabase |
+
+PR CI (GitHub Actions) runs **Prettier check + unit tests** — no `DATABASE_URL` required. Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
+
 ## Automated Checks
 
 Run these before asking for browser QA:
 
 ```sh
 git status --short --branch
-bunx prettier --check .
+bun run lint
+bun test src
 bun run build
 curl -I http://localhost:4321/admin
 curl -I http://localhost:4321/admin/login
@@ -39,11 +55,13 @@ bun -e 'import { config } from "dotenv"; import pg from "pg"; config({ path: ".e
 
 Expected automated evidence for the current editor foundation:
 
+- `bunx prettier --check .` passes (PR CI).
+- `bun test src` passes (PR CI).
 - `/admin` redirects to `/?editor=login`.
 - `/admin/login` redirects to `/?editor=login`.
 - `/?editor=login` returns `200`.
 - The rendered layout includes `name="viewport"` with `initial-scale=1`.
-- `bun run build` passes.
+- `bun run build` passes (local, with `DATABASE_URL`).
 - `editor_history` exists when history code is in scope.
 - Working tree is clean before updating or merging the PR.
 
@@ -91,22 +109,25 @@ Do not leave test coordinates changed. Restore the entity or test against dispos
 
 ## Reporting Format
 
-Use this structure in the PR comment or PR body:
+Use this structure in the PR comment or PR body (also in [.github/pull_request_template.md](../.github/pull_request_template.md)):
 
 ```md
 ## QA Summary
 
 Automated:
 
-- [x] Build passed: `<command/output summary>`
-- [x] Admin redirects verified: `/admin`, `/admin/login`
-- [x] Editor history table verified: `editor_history`
-- [x] Mobile viewport metadata verified
+- [ ] Prettier passed: `bunx prettier --check .` (PR CI)
+- [ ] Unit tests passed: `bun test src` (PR CI)
+- [ ] Full lint passed (local): `bun run lint`
+- [ ] Build passed (local): `bun run build`
+- [ ] Admin redirects verified: `/admin`, `/admin/login`
+- [ ] Editor history table verified: `editor_history` (if in scope)
+- [ ] Mobile viewport metadata verified (if UI in scope)
 
 Manual browser:
 
-- [x] Login popup opens
-- [x] Building drag save works
+- [ ] Login popup opens
+- [ ] Building drag save works
 - [ ] Dorm drag save not tested
 - [ ] Mobile touch drag not tested
 

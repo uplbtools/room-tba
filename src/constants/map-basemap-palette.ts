@@ -191,8 +191,10 @@ export const MAP_BASEMAP_BUILDING_SIZE_COLORS = true;
  * Smaller footprints read lighter cream; taller blocks read grey-limestone on green lawn.
  */
 export function buildingSizeColorExpression(
-  palette: Pick<typeof uplbRefreshing, "buildingFill" | "buildingExtrusion"> =
-    MAP_BASEMAP_PALETTE,
+  palette: Pick<
+    typeof uplbRefreshing,
+    "buildingFill" | "buildingExtrusion"
+  > = MAP_BASEMAP_PALETTE,
 ): ExpressionSpecification {
   return [
     "interpolate",

@@ -44,7 +44,9 @@ export function detectImageContentType(bytes: Uint8Array): string | null {
   return null;
 }
 
-export function sanitizeUploadPrefix(prefix: string | null | undefined): string {
+export function sanitizeUploadPrefix(
+  prefix: string | null | undefined,
+): string {
   if (!prefix?.trim()) return "uploads";
   const cleaned = prefix
     .trim()
@@ -75,7 +77,10 @@ export function buildUploadKey(
   return `${sanitizeUploadPrefix(prefix)}/${id}.${extension}`;
 }
 
-export function publicUrlForKey(key: string, publicBaseUrl?: string | null): string {
+export function publicUrlForKey(
+  key: string,
+  publicBaseUrl?: string | null,
+): string {
   if (publicBaseUrl) {
     return `${publicBaseUrl.replace(/\/$/, "")}/${key}`;
   }

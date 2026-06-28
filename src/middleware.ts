@@ -15,7 +15,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith("/api/admin") && pathname !== "/api/admin/auth";
 
   if (isAdminPage) {
-    return applySupabaseCacheHeaders(context.redirect("/?editor=login"), context);
+    return applySupabaseCacheHeaders(
+      context.redirect("/?editor=login"),
+      context,
+    );
   }
 
   if (isAdminApi) {

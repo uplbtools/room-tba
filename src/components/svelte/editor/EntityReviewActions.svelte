@@ -8,8 +8,12 @@
     onreject: () => void;
   };
 
-  let { disabled = false, onapprove, onrequestChanges, onreject }: Props =
-    $props();
+  let {
+    disabled = false,
+    onapprove,
+    onrequestChanges,
+    onreject,
+  }: Props = $props();
 </script>
 
 <div class="entity-review-actions">

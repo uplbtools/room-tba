@@ -21,9 +21,7 @@
     onclick,
   }: Props = $props();
 
-  const text = $derived(
-    saving && savingLabel ? savingLabel : label,
-  );
+  const text = $derived(saving && savingLabel ? savingLabel : label);
 </script>
 
 <button

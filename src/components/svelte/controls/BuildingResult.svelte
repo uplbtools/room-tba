@@ -289,7 +289,9 @@
 
       <div class="entity-actions">
         {#if hasMapPin}
-          <MapChromeActionChip onclick={() => building3DStore.open(building.buildingName)}>
+          <MapChromeActionChip
+            onclick={() => building3DStore.open(building.buildingName)}
+          >
             <Box size={14} aria-hidden="true" />
             3D view
           </MapChromeActionChip>
@@ -325,7 +327,9 @@
     {#if editing}
       <section
         class="entity-editor"
-        aria-label={canPublish ? "Edit building details" : "Suggest building edits"}
+        aria-label={canPublish
+          ? "Edit building details"
+          : "Suggest building edits"}
       >
         <EntityEditorPanel
           {canPublish}
@@ -401,8 +405,7 @@
                     id="building-directions-editor"
                     bind:value={directionsDraft}
                     disabled={savingField !== null}
-                    rows="3"
-                  ></textarea>
+                    rows="3"></textarea>
                 {/snippet}
               </EntityEditorField>
 

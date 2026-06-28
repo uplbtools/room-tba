@@ -75,7 +75,9 @@
       <small>{adminLabel}</small>
     </div>
     {#if proposalsStore.pendingCount > 0}
-      <span class="editor-shelf-badge">{proposalsStore.pendingCount} pending</span>
+      <span class="editor-shelf-badge"
+        >{proposalsStore.pendingCount} pending</span
+      >
     {/if}
   </div>
 
@@ -113,7 +115,11 @@
 
   <ProposalReviewPanel />
 
-  <button type="button" class="editor-shelf-action danger" onclick={handleLogout}>
+  <button
+    type="button"
+    class="editor-shelf-action danger"
+    onclick={handleLogout}
+  >
     <LogOut size={16} aria-hidden="true" />
     Sign out
   </button>

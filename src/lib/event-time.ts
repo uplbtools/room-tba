@@ -27,10 +27,7 @@ const CAMPUS_UTC_OFFSET = "+08:00";
 export const UPCOMING_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
 
 export type EventRecurrence =
-  | "none"
-  | "annual"
-  | "every_1st_sem"
-  | "every_2nd_sem";
+  "none" | "annual" | "every_1st_sem" | "every_2nd_sem";
 
 export type StoredEventTiming = {
   startsAt: string;

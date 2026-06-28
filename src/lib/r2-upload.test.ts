@@ -20,14 +20,12 @@ describe("sanitizeUploadPrefix", () => {
 
 describe("detectImageContentType", () => {
   test("detects jpeg, png, and webp signatures", () => {
-    expect(detectImageContentType(new Uint8Array([0xff, 0xd8, 0xff, 0x00]))).toBe(
-      "image/jpeg",
-    );
+    expect(
+      detectImageContentType(new Uint8Array([0xff, 0xd8, 0xff, 0x00])),
+    ).toBe("image/jpeg");
     expect(
       detectImageContentType(
-        new Uint8Array([
-          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00,
-        ]),
+        new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]),
       ),
     ).toBe("image/png");
     expect(
@@ -67,9 +65,7 @@ describe("parseEventImageUrl", () => {
       ok: false,
       error: "Event image URL must use HTTPS",
     });
-    expect(
-      parseEventImageUrl("https://cdn.example.com/events/a.jpg"),
-    ).toEqual({
+    expect(parseEventImageUrl("https://cdn.example.com/events/a.jpg")).toEqual({
       ok: false,
       error:
         "Event image URL requires upload storage (R2_PUBLIC_URL) to be configured",

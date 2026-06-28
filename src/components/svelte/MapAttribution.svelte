@@ -8,7 +8,12 @@
   }
 </script>
 
-<div class="map-attribution" class:expanded role="region" aria-label="Map attribution">
+<div
+  class="map-attribution"
+  class:expanded
+  role="region"
+  aria-label="Map attribution"
+>
   <button
     type="button"
     class="attrib-toggle"
@@ -149,5 +154,4 @@
     width: auto;
     height: 1.25rem;
   }
-
 </style>
