@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { modalStore } from "../../../lib/store.svelte";
-  import { contributors } from "../../../constants/contributors";
+  import { contributors, designers } from "../../../constants/contributors";
   import {
     fetchGithubContributors,
     type GithubContributor,
@@ -25,13 +25,16 @@
     { id: "campus", label: "Campus team" },
   ];
 
-  const campusContributorPeople = $derived(
-    contributors.map((person) => ({
+  function toAvatarPeople(list: typeof contributors) {
+    return list.map((person) => ({
       name: person.name,
       href: person.href,
       imageSrc: "",
-    })),
-  );
+    }));
+  }
+
+  const designerPeople = $derived(toAvatarPeople(designers));
+  const campusContributorPeople = $derived(toAvatarPeople(contributors));
 
   async function loadGithubContributors() {
     if (githubLoaded || githubLoading) return;
@@ -127,6 +130,18 @@
             class="inline-link">View repo on GitHub</a
           >
         </p>
+
+        <section class="people-block">
+          <h3>Design</h3>
+          <p class="section-note">
+            Visual and UX design. These credits are manual, not from GitHub
+            commits.
+          </p>
+          <PeopleAvatarGrid
+            people={designerPeople}
+            imageFolder="contributors"
+          />
+        </section>
 
         <section class="people-block">
           <h3>Campus editors &amp; contributors</h3>
