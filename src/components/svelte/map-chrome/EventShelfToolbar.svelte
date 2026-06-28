@@ -1,8 +1,5 @@
 <script lang="ts">
-  import {
-    adminAuthStore,
-    eventPlacementStore,
-  } from "@lib/store.svelte";
+  import { adminAuthStore, eventPlacementStore } from "@lib/store.svelte";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
@@ -37,6 +34,12 @@
   const canPublish = $derived(adminAuthStore.canPublish);
   const showProposeName = $derived(!canPublish && !adminAuthStore.isLoggedIn);
   const propose = $derived(layout === "empty" || !canPublish);
+  let proposeNameRequested = $state(false);
+  const showNameField = $derived(
+    showProposeName &&
+      (proposeNameRequested ||
+        (placingEvent && eventPlacementStore.proposing)),
+  );
 
   function placementLabel() {
     if (eventPlacementStore.creating) {
@@ -49,11 +52,14 @@
   }
 
   function startPlacement() {
+    if (propose && showProposeName) {
+      proposeNameRequested = true;
+    }
     onStartPlacement(propose);
   }
 </script>
 
-{#if layout === "empty" && showProposeName}
+{#if layout === "empty" && showNameField}
   <SubmitterNameField
     id="events-empty-submitter-name"
     bind:value={proposeSubmitterName}
@@ -63,7 +69,7 @@
   />
 {/if}
 
-{#if layout === "toolbar" && showProposeName}
+{#if layout === "toolbar" && showNameField}
   <SubmitterNameField
     id="events-shelf-submitter-name"
     bind:value={proposeSubmitterName}
