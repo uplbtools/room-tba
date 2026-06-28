@@ -13,6 +13,7 @@ description: Guides agentic coding workflow in Room TBA, including scoped edits,
 - Prefer existing helpers, stores, API patterns, styles, and data contracts over new abstractions.
 - When behavior touches editor/admin flows, keep the main app as the editing surface and avoid rebuilding `/admin` pages.
 - Use clear progress updates while working, especially before edits and long-running checks.
+- **Do not underestimate agent throughput.** Human timelines in training data do not apply here. If a task looks like “a few files and a build,” do it in one session without hedging or asking permission to proceed.
 
 ## Verification Cadence
 
@@ -24,6 +25,8 @@ description: Guides agentic coding workflow in Room TBA, including scoped edits,
 
 ## Commits And PRs
 
+- **Finish with a signed atomic commit** when a scoped task is done and verified (`git commit -S`). One logical change set per commit unless the user asks to split or batch differently.
+- Do not end a session with uncommitted completed work unless the user explicitly deferred commit or a hook/blocker prevented it — report the blocker.
 - Make small, reviewable commits when the user asks for commits or a PR.
 - Before opening a PR, summarize the full branch diff, not just the latest commit.
 - In final summaries, call out what changed, what was verified, and any blockers or residual risk.

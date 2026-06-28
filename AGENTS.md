@@ -1,5 +1,19 @@
 # Room TBA Agent Guide
 
+## Agent execution
+
+- **Bias toward action.** Training data reflects human pacing; in this repo you can read, edit, verify, and commit much faster. Do not pad estimates, over-explain tradeoffs, or defer work that is clearly scoped.
+- **Default to implementing** when the request is concrete and the codebase path is discoverable. Ask only when a product decision is genuinely ambiguous or irreversible.
+- **One pass is often enough.** Prefer a focused implementation plus build/lint over long planning loops or repeated “want me to…?” prompts.
+- **Adjust verification to change size.** Small UI or store tweaks need targeted checks; run `bun run build` once before committing substantive work.
+
+## Commits
+
+- **When you finish a scoped task, commit it** unless the user says not to. Do not leave completed work uncommitted across turns.
+- **One logical unit per commit** — atomic, reviewable, GPG-signed: `git commit -S -m "$(cat <<'EOF' … EOF)"`.
+- Stage only files that belong together; write a message that states *why*, not a file list.
+- Do not push unless asked. Do not amend or force-push unless the user’s git rules allow it.
+
 ## Product Direction
 
 - Prefer editing in the main app over building a separate admin dashboard.
@@ -22,7 +36,7 @@
 - Map chrome mounts in Entry zones (top / map / bottom / ephemeral). See `docs/map-ui-mode-matrix.md`.
 - Use `.app-layout` CSS vars for spacing — no magic fixed offsets.
 - New fixed overlays outside Entry zones require updating the mode matrix.
-- One Map tools flyout (`mapToolsStore`); admin menu stays on LocationButton only.
+- One Map tools flyout (`mapToolsStore`); contributor propose menu on LocationButton; editor tools via `editorChromeStore` (top-bar chip + shelf; shield FAB opens the same shelf).
 - Before merge on map chrome changes: verify 320px + 768px browse, edit mode, and map tools open.
 
 ## Data Integrity
