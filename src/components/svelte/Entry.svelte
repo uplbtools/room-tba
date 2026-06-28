@@ -12,6 +12,7 @@
     mapToolsStore,
     editorChromeStore,
     sidePanelStore,
+    floatingControlPanelStore,
   } from "@lib/store.svelte";
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
@@ -63,8 +64,15 @@
       });
     }
 
-    if (new URLSearchParams(window.location.search).get("editor") === "login") {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get("editor") === "login") {
       adminAuthStore.openLogin();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    if (urlParams.get("contribute") === "1") {
+      floatingControlPanelStore.openPanel = "suggest-addition";
       window.history.replaceState({}, "", window.location.pathname);
     }
 
@@ -138,9 +146,6 @@
             class:drawer-lift={drawerExpanded}
             aria-label="Location and editor"
           >
-            <div class="mobile-dimension-toggle">
-              <MapDimensionToggle />
-            </div>
             <LocationButton />
           </div>
         </div>
@@ -282,23 +287,37 @@
     pointer-events: none;
   }
 
-  .mobile-dimension-toggle {
-    display: flex;
-    justify-content: flex-end;
-    pointer-events: none;
-  }
-
   @media (min-width: 48.0625rem) {
     .desktop-camera-controls {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 0.375rem;
     }
+  }
 
-    .mobile-dimension-toggle {
-      display: none;
-    }
+  .camera-controls-card {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.0625rem;
+    padding: 0.1875rem;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    backdrop-filter: blur(10px);
+    border: 1.5px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
+    box-shadow: var(
+      --map-chrome-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.18),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14)
+    );
+  }
+
+  .camera-controls-card__divider {
+    height: 1px;
+    margin: 0.0625rem 0.125rem;
+    background-color: hsl(0, 0%, 90%);
   }
 
   .location-fab-stack {

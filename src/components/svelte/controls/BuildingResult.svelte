@@ -437,132 +437,12 @@
 </div>
 
 <style>
+  @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
+  @import "../map-chrome/map-chrome.css";
 
   .building-query-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-    flex: 1 1 0;
-    overflow-y: auto;
-  }
-
-  .building-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    width: 100%;
-    flex-shrink: 0;
-  }
-
-  .building-title-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.375rem 0.5rem;
-    min-width: 0;
-  }
-
-  .building-title {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-size: 1.125rem;
-    font-weight: bold;
-    color: black;
-    margin: 0;
-    line-height: 1.25rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .building-type-badge {
-    flex-shrink: 0;
-    font-size: 0.6875rem;
-    color: #7b1113;
-    background-color: hsl(5, 53%, 95%);
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .building-desc {
-    font-size: 0.8125rem;
-    color: #4f4f4f;
-    margin: 0;
-    line-height: 1.45;
-  }
-
-  .building-desc--empty {
-    color: #71717a;
-    font-style: italic;
-  }
-
-  .building-primary-actions,
-  .building-secondary-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-    align-items: center;
-  }
-
-  .building-secondary-actions {
-    gap: 0.5rem;
-  }
-
-  .get-directions-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    line-height: 1.25;
-    cursor: pointer;
-    background-color: #7b1113;
-    color: white;
-    width: max-content;
-    max-width: 100%;
-  }
-
-  .get-directions-btn:hover,
-  .get-directions-btn:focus-visible {
-    background-color: #9a1517;
-  }
-
-  .get-directions-btn:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .secondary-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.3125rem 0.625rem;
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.25;
-    cursor: pointer;
-    background-color: white;
-    color: #7b1113;
-    border: 1px solid #d8b9ba;
-    width: max-content;
-    max-width: 100%;
-  }
-
-  .secondary-btn:hover,
-  .secondary-btn:focus-visible {
-    background-color: #fdf3f3;
-  }
-
-  .secondary-btn:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
+    gap: 0.625rem;
   }
 
   .editor-advanced {
@@ -601,12 +481,6 @@
     gap: 0.5rem;
     padding: 0 0.55rem 0.55rem;
     border-top: 1px solid hsl(5, 53%, 92%);
-  }
-
-  .loading-note {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: #71717a;
   }
 
   @media (prefers-reduced-motion: reduce) {

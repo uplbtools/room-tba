@@ -97,7 +97,7 @@ export default defineConfig({
   },
 
   redirects: {
-    "/contribute": "https://forms.gle/nVUMuuZgfW1HgXc98",
+    "/contribute": "/?contribute=1",
     "/messenger": "https://m.me/j/AbbjA1ouHCefGTkU",
   },
 
