@@ -88,6 +88,9 @@
     searchFocused = false;
     searchElement?.blur();
     jeepneyStore.disableLayer();
+    if (mobile.current) {
+      mapToolsStore.close();
+    }
     eventsCollapsed = false;
   }
 
@@ -197,12 +200,20 @@
       closeEditorShelf();
     }
   });
+
+  $effect(() => {
+    if (mobile.current && mapToolsStore.open) {
+      closeEventsShelf();
+    }
+  });
 </script>
 
 <div
   class="search-root"
   class:mobile-shell={mobile.current}
   class:search-input-focused={searchFocused}
+  class:search-suggestions-open={showSearchDropdown}
+  class:search-query-active={draftInput.trim() !== ""}
   class:events-panel-open={showEventsSheet}
   class:editor-panel-open={showEditorInline}
   class:transit-panel-open={showTransitRoutePanel}
@@ -291,16 +302,6 @@
               {/if}
             </div>
 
-            {#if showSearchDropdown}
-              <div
-                class="map-search-chrome__dropdown"
-                role="listbox"
-                in:fade={dropdownFadeIn(reducedMotion.current)}
-                out:fade={dropdownFadeOut(reducedMotion.current)}
-              >
-                <Suggestions />
-              </div>
-            {/if}
           </div>
 
           {#if showEditorChrome}
@@ -334,12 +335,22 @@
         </div>
       </div>
 
-      {#if mobile.current || chrome.showSearchSuggestions || chrome.editMode}
+      {#if showSearchDropdown}
+        <div
+          class="map-search-chrome__suggestions"
+          role="listbox"
+          in:fade={dropdownFadeIn(reducedMotion.current)}
+          out:fade={dropdownFadeOut(reducedMotion.current)}
+        >
+          <Suggestions />
+        </div>
+      {/if}
+
+      {#if (mobile.current || chrome.showSearchSuggestions || chrome.editMode) && !(showSearchDropdown && draftInput.trim() !== "")}
         <div class="map-search-chrome__chips">
           {#if mobile.current}
             <MapDimensionToggle compact />
           {/if}
-          <TermSelector />
           {#if chrome.showSearchSuggestions}
             {#if showIdleEventsChrome}
               <button
@@ -363,6 +374,7 @@
                 <span>Events</span>
               </button>
             {/if}
+            <TermSelector />
             <BuildingTypeFilterBar />
             <TransitFilterChip />
           {/if}
@@ -521,9 +533,41 @@
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
-  .search-root.mobile-shell .map-search-chrome__transit-routes,
-  .search-root.mobile-shell .map-search-chrome__events,
-  .search-root.mobile-shell .map-search-chrome__editor {
+  .search-root.mobile-shell .map-search-chrome__suggestions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+    padding: 0;
+  }
+
+  .search-root.mobile-shell.search-suggestions-open .map-search-chrome__chips {
+    grid-row: 3;
+  }
+
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__transit-routes,
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__events,
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__editor {
+    grid-row: 3;
+  }
+
+  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
+    .map-search-chrome__transit-routes,
+  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
+    .map-search-chrome__events,
+  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
+    .map-search-chrome__editor {
+    grid-row: 4;
+  }
+
+  .search-root.mobile-shell:not(.search-suggestions-open) .map-search-chrome__transit-routes,
+  .search-root.mobile-shell:not(.search-suggestions-open) .map-search-chrome__events,
+  .search-root.mobile-shell:not(.search-suggestions-open) .map-search-chrome__editor {
     grid-column: 1 / -1;
     grid-row: 3;
     min-width: 0;
@@ -698,21 +742,32 @@
     outline-offset: 1px;
   }
 
-  .map-search-chrome__dropdown {
-    position: absolute;
-    top: calc(100% + 0.375rem);
-    left: 0;
-    right: 0;
-    z-index: 8;
+  .map-search-chrome__suggestions {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: var(--map-chrome-radius, 1rem);
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    box-shadow: var(--map-chrome-shadow);
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
-  .map-search-chrome__dropdown :global(.suggestions-container) {
+  .search-root.search-suggestions-open:not(.mobile-shell) .map-search-chrome__bar,
+  .search-root.search-suggestions-open:not(.mobile-shell) .map-search-chrome__suggestions {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .search-root.search-suggestions-open:not(.mobile-shell):not(.events-panel-open):not(.editor-panel-open):not(.transit-panel-open)
+    .map-search-chrome__suggestions {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .map-search-chrome__suggestions :global(.suggestions-container) {
     display: flex;
+    flex-direction: column;
     border-top: none;
     max-height: min(50dvh, 18rem);
   }
@@ -772,6 +827,11 @@
   }
 
   .map-search-chrome__chips :global(.transit-filter-chip) {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .map-search-chrome__chips :global(.term-filter-chip) {
     flex: 0 0 auto;
     min-width: 0;
   }
