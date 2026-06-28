@@ -17,6 +17,9 @@
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
+  import TransitFilterChip from "@ui/TransitFilterChip.svelte";
+  import TransitRoutePanel from "@ui/TransitRoutePanel.svelte";
+  import { jeepneyStore } from "@lib/store.svelte";
   import EditorShelf from "@ui/EditorShelf.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
@@ -83,6 +86,7 @@
   function openEventsShelf() {
     searchFocused = false;
     searchElement?.blur();
+    jeepneyStore.disableLayer();
     eventsCollapsed = false;
   }
 
@@ -153,6 +157,10 @@
   );
   const showEditorInline = $derived(showEditorSheet && !mobile.current);
 
+  const showTransitRoutePanel = $derived(
+    chrome.showSearchSuggestions && jeepneyStore.layerActive,
+  );
+
   $effect(() => {
     if (draftInput.trim() !== "") {
       closeEventsShelf();
@@ -175,6 +183,13 @@
   });
 
   $effect(() => {
+    if (jeepneyStore.layerActive) {
+      closeEventsShelf();
+      closeEditorShelf();
+    }
+  });
+
+  $effect(() => {
     if (chrome.editMode) {
       closeEditorShelf();
     }
@@ -187,6 +202,7 @@
   class:search-input-focused={searchFocused}
   class:events-panel-open={showEventsSheet}
   class:editor-panel-open={showEditorInline}
+  class:transit-panel-open={showTransitRoutePanel}
 >
   <div class="search-shell-main" bind:this={shellMainEl}>
     {#if mobile.current}
@@ -342,7 +358,20 @@
               </button>
             {/if}
             <BuildingTypeFilterBar />
+            <TransitFilterChip />
           {/if}
+        </div>
+      {/if}
+
+      {#if showTransitRoutePanel}
+        <div
+          class="map-search-chrome__transit-routes"
+          id="transit-route-picker"
+          aria-label="Transit route picker"
+          in:fade={panelFadeIn(reducedMotion.current)}
+          out:fade={panelFadeOut(reducedMotion.current)}
+        >
+          <TransitRoutePanel compact />
         </div>
       {/if}
 
@@ -480,6 +509,7 @@
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
+  .search-root.mobile-shell .map-search-chrome__transit-routes,
   .search-root.mobile-shell .map-search-chrome__events,
   .search-root.mobile-shell .map-search-chrome__editor {
     grid-column: 1 / -1;
@@ -707,7 +737,8 @@
   }
 
   .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__chips,
-  .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips {
+  .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+  .search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
@@ -720,6 +751,35 @@
     flex: 0 0 auto;
     min-width: 0;
     padding: 0 !important;
+  }
+
+  .map-search-chrome__chips :global(.transit-filter-chip) {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .map-search-chrome__transit-routes {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.3125rem 0.625rem 0.375rem;
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+  }
+
+  .search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+  .search-root.transit-panel-open:not(.mobile-shell)
+    .map-search-chrome__transit-routes {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .search-root.transit-panel-open:not(.mobile-shell)
+    .map-search-chrome__transit-routes {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
   }
 
   .map-search-chrome__events {
@@ -798,13 +858,35 @@
     width: 100%;
     max-width: 100%;
     min-height: 0;
-    max-height: min(46dvh, 20rem);
+    /* Viewport cap below status bar; dvh-only limits ignore search/chip rows. */
+    max-height: min(
+      24rem,
+      calc(
+        100dvh - var(--status-bar-block-height, 2.75rem) -
+          var(--map-ui-padding, 0.5rem) * 2 - 4.75rem
+      )
+    );
     overflow-x: clip;
     overflow-y: auto;
     overscroll-behavior: contain;
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-    padding: 0.25rem 0.625rem 0.4375rem;
+    padding: 0.375rem 0.625rem 0.625rem;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 72%) transparent;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .map-search-chrome__editor::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .map-search-chrome__editor::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .map-search-chrome__editor::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: hsl(0, 0%, 72%);
   }
 
   .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__editor {

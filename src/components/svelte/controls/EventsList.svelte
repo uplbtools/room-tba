@@ -3,6 +3,7 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import MapPin from "@lucide/svelte/icons/map-pin";
+  import X from "@lucide/svelte/icons/x";
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
@@ -86,14 +87,30 @@
     queryStore.inputValue = event.title;
     sidePanelStore.expand();
   }
+
+  function closeEventsList() {
+    queryStore.clearQuery();
+  }
 </script>
 
 <div class="events-list-panel">
   {#if !loaded}
     <header class="events-list-header">
-      <div class="events-list-kicker">
-        <CalendarDays size={16} aria-hidden="true" />
-        <span>Loading campus events…</span>
+      <div class="events-list-header-top">
+        <div class="events-list-kicker">
+          <CalendarDays size={16} aria-hidden="true" />
+          <span>Loading campus events…</span>
+        </div>
+        <button
+          class="events-list-close"
+          type="button"
+          aria-label="Close campus events list"
+          title="Close campus events list"
+          onclick={closeEventsList}
+        >
+          <X size={16} aria-hidden="true" />
+          <span>Close</span>
+        </button>
       </div>
       <h2>Campus events</h2>
     </header>
@@ -108,9 +125,21 @@
     </div>
   {:else}
     <header class="events-list-header">
-      <div class="events-list-kicker">
-        <CalendarDays size={16} aria-hidden="true" />
-        <span>{events.length} campus events</span>
+      <div class="events-list-header-top">
+        <div class="events-list-kicker">
+          <CalendarDays size={16} aria-hidden="true" />
+          <span>{events.length} campus events</span>
+        </div>
+        <button
+          class="events-list-close"
+          type="button"
+          aria-label="Close campus events list"
+          title="Close campus events list"
+          onclick={closeEventsList}
+        >
+          <X size={16} aria-hidden="true" />
+          <span>Close</span>
+        </button>
       </div>
       <h2>Campus events</h2>
       <p>Browse events around campus. Times shown in campus time (Manila).</p>
@@ -291,6 +320,45 @@
   .events-list-header {
     display: grid;
     gap: 0.35rem;
+  }
+
+  .events-list-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .events-list-close {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #d8b9ba;
+    border-radius: 0.625rem;
+    background: #fffafa;
+    color: #7b1113;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .events-list-close:hover,
+  .events-list-close:focus-visible {
+    border-color: #c58f91;
+    background: #fdf3f3;
+  }
+
+  .events-list-close:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 2px;
   }
 
   .events-list-kicker,

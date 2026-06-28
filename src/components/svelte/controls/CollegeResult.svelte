@@ -6,6 +6,11 @@
   } from "@lib/store.svelte";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import {
+    clearEntityContributorDraft,
+    readEntityContributorDraft,
+    scheduleEntityContributorDraftSave,
+  } from "@lib/contributor-drafts";
   import { getAppActions, getAppData } from "@lib/context";
   import { getCollegeRooms } from "@lib/local/data/utils";
   import type { CollegeData, RoomData } from "@lib/types";
@@ -75,6 +80,24 @@
     nameDraft = current.collegeName;
     saved = false;
     fieldError = null;
+
+    if (!canPublish) {
+      const savedDraft = readEntityContributorDraft("college", current.id);
+      if (savedDraft) {
+        if (savedDraft.editing) editing = true;
+        if (typeof savedDraft.fields.nameDraft === "string") {
+          nameDraft = savedDraft.fields.nameDraft;
+        }
+      }
+    }
+  });
+
+  $effect(() => {
+    if (canPublish || !editing || !college) return;
+    scheduleEntityContributorDraftSave("college", college.id, () => ({
+      editing: true,
+      fields: { nameDraft },
+    }));
   });
 
   function syncCollegeFromServer(updated: CollegeData) {
@@ -125,6 +148,7 @@
       }
 
       if (!outcome.published) {
+        clearEntityContributorDraft("college", current.id);
         toastStore.show(
           "College name suggestion submitted for review.",
           "success",

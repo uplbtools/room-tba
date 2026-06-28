@@ -37,8 +37,7 @@
   let proposeNameRequested = $state(false);
   const showNameField = $derived(
     showProposeName &&
-      (proposeNameRequested ||
-        (placingEvent && eventPlacementStore.proposing)),
+      (proposeNameRequested || (placingEvent && eventPlacementStore.proposing)),
   );
 
   function placementLabel() {
@@ -48,7 +47,7 @@
     if (eventPlacementStore.active) {
       return "Choose on map";
     }
-    return propose ? "Propose event" : "Add event";
+    return propose ? "Suggest event" : "Add event";
   }
 
   function startPlacement() {
@@ -64,8 +63,6 @@
     id="events-empty-submitter-name"
     bind:value={proposeSubmitterName}
     variant="block"
-    label="Your name"
-    placeholder="Your name"
   />
 {/if}
 
@@ -74,8 +71,7 @@
     id="events-shelf-submitter-name"
     bind:value={proposeSubmitterName}
     variant="inline"
-    label="Your name"
-    placeholder="Your name"
+    showHint={false}
   />
 {/if}
 

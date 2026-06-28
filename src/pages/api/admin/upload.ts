@@ -1,6 +1,11 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
+  checkRateLimit,
+  clientIp,
+  rateLimitResponse,
+} from "@lib/api/rate-limit";
+import {
   UPLOAD_MAX_BYTES,
   buildUploadKey,
   detectImageContentType,
@@ -13,9 +18,33 @@ export const prerender = false;
 // Authenticated image upload to Cloudflare R2. Events persist the returned URL
 // via events.image_url; rooms/buildings/dorms have no image columns yet.
 
+/** Per editor session (or IP fallback): 30 uploads / 10 minutes. */
+const UPLOAD_LIMIT = { max: 30, windowMs: 10 * 60 * 1000 };
+
+export const GET: APIRoute = async ({ cookies }) => {
+  const auth = editorSessionOrUnauthorized(cookies);
+  if (auth instanceof Response) return auth;
+
+  return json({
+    configured: isR2Configured(),
+    maxBytes: UPLOAD_MAX_BYTES,
+    allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+  });
+};
+
 export const POST: APIRoute = async ({ cookies, request }) => {
   const auth = editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
+
+  const ip = clientIp(request);
+  const rate = checkRateLimit(
+    `upload:${auth.session.id}:${ip}`,
+    UPLOAD_LIMIT.max,
+    UPLOAD_LIMIT.windowMs,
+  );
+  if (!rate.allowed) {
+    return rateLimitResponse(rate.resetAt);
+  }
 
   if (!isR2Configured()) {
     return json(

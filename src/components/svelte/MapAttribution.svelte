@@ -66,13 +66,13 @@
 <style>
   .map-attribution {
     position: relative;
-    z-index: 15;
+    z-index: 1;
     display: flex;
     flex-wrap: nowrap;
-    align-items: flex-end;
+    align-items: center;
     gap: 0.375rem;
     flex: 0 0 auto;
-    max-width: calc(100% - var(--bottom-fab-inset, 0px));
+    max-width: min(8rem, 28vw);
     pointer-events: auto;
     isolation: isolate;
   }
@@ -111,7 +111,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
-    width: min(16rem, calc(100vw - var(--bottom-fab-inset, 0px) - 1.5rem));
+    width: min(16rem, calc(100vw - 1.5rem));
     padding: 0.375rem 0.5rem;
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.5rem;
@@ -150,12 +150,4 @@
     height: 1.25rem;
   }
 
-  @media (max-width: 48rem) {
-    .map-attribution {
-      align-self: flex-start;
-      padding-inline: max(0.5rem, env(safe-area-inset-left, 0px))
-        max(0.5rem, env(safe-area-inset-right, 0px));
-      order: -1;
-    }
-  }
 </style>

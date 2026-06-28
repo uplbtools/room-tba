@@ -21,7 +21,6 @@
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
   import "./map-chrome/map-chrome.css";
-  import { observeBlockHeight } from "@lib/layout-css-vars";
   import { MediaQuery } from "svelte/reactivity";
 
   const appData = getAppData();
@@ -52,16 +51,11 @@
   );
   const catalogUpdatedLabel = formatCatalogUpdatedDate();
   const showDirectionsProgress = $derived(
-    directionCount != null && totalRooms != null && totalRooms > 0,
+    directionCount != null &&
+      totalRooms != null &&
+      totalRooms > 0 &&
+      !syncToastStore.isSyncing,
   );
-
-  let barEl = $state<HTMLDivElement | null>(null);
-
-  $effect(() => {
-    const el = barEl;
-    if (!el) return;
-    return observeBlockHeight(el, "--status-bar-block-height");
-  });
 
   onMount(() => {
     const updateSW = registerSW({
@@ -84,7 +78,7 @@
   }
 </script>
 
-<div class="status-bar" class:is-open={isOpen} bind:this={barEl}>
+<div class="status-bar" class:is-open={isOpen}>
   <div class="status-head">
     <button
       class="status-toggle"
@@ -231,44 +225,26 @@
 
   div.status-bar {
     position: relative;
-    z-index: 16;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    justify-content: flex-start;
-    width: fit-content;
-    max-width: calc(100% - var(--bottom-fab-inset, 0px));
-    margin-left: auto;
-    align-self: flex-end;
+    justify-content: center;
+    width: 100%;
     min-width: 0;
     overflow: visible;
     font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.2;
     gap: 0.0625rem;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
     min-height: 2rem;
     box-sizing: border-box;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    padding: 0.125rem 0.5rem;
-    border-radius: 1rem;
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(0, 0%, 0%, 0.14),
-      0 4px 14px hsla(0, 0%, 0%, 0.2),
-      0 10px 28px hsla(0, 0%, 0%, 0.12)
-    );
-    transition:
-      width var(--motion-duration-micro) var(--motion-ease-out),
-      gap var(--motion-duration-micro) var(--motion-ease-out),
-      padding var(--motion-duration-micro) var(--motion-ease-out);
+    padding: 0.0625rem 0.125rem;
 
     &.is-open {
-      width: min(44rem, calc(100% - var(--bottom-fab-inset, 0px)));
       gap: 0.0625rem;
-      padding: 0.1875rem 0.5rem 0.25rem;
+      padding: 0.0625rem 0.125rem 0.125rem;
     }
 
     .status-head {
@@ -276,6 +252,7 @@
       align-items: center;
       gap: 0.3125rem;
       min-width: 0;
+      min-height: 1.25rem;
       flex-wrap: nowrap;
     }
 
@@ -416,24 +393,11 @@
 
   @media (max-width: 48rem) {
     div.status-bar {
-      width: 100%;
-      max-width: 100%;
-      margin-left: 0;
-      align-self: stretch;
-      min-height: 2rem;
-      padding: 0.125rem 0.4375rem;
-      padding-bottom: calc(0.125rem + env(safe-area-inset-bottom, 0px));
-      gap: 0.0625rem;
-      border-radius: 0;
-      border-left: none;
-      border-right: none;
-      border-bottom: none;
-      backdrop-filter: none;
+      min-height: 1.75rem;
+      padding: 0.0625rem 0.0625rem;
 
       &.is-open {
-        width: 100%;
-        padding: 0.1875rem 0.4375rem;
-        padding-bottom: calc(0.1875rem + env(safe-area-inset-bottom, 0px));
+        padding: 0.0625rem 0.0625rem 0.125rem;
       }
 
       .status-head {
@@ -442,7 +406,7 @@
 
       .status-primary {
         gap: 0.25rem;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
       }
 
       .status-utilities {
@@ -485,9 +449,4 @@
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    div.status-bar {
-      transition: none;
-    }
-  }
 </style>

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildUploadKey,
   detectImageContentType,
+  parseEventImageUrl,
   sanitizeUploadPrefix,
 } from "./r2-upload-core";
 
@@ -44,5 +45,46 @@ describe("buildUploadKey", () => {
   test("uses sanitized prefix and extension", () => {
     const key = buildUploadKey("events/my-event", "image/png", "test-id");
     expect(key).toBe("events/my-event/test-id.png");
+  });
+});
+
+describe("parseEventImageUrl", () => {
+  test("accepts null and empty values", () => {
+    expect(parseEventImageUrl(undefined)).toEqual({
+      ok: true,
+      imageUrl: null,
+      provided: false,
+    });
+    expect(parseEventImageUrl(null)).toEqual({
+      ok: true,
+      imageUrl: null,
+      provided: true,
+    });
+  });
+
+  test("requires https and optional public base prefix", () => {
+    expect(parseEventImageUrl("http://example.com/a.jpg")).toEqual({
+      ok: false,
+      error: "Event image URL must use HTTPS",
+    });
+    expect(
+      parseEventImageUrl(
+        "https://cdn.example.com/events/a.jpg",
+        "https://cdn.example.com",
+      ),
+    ).toEqual({
+      ok: true,
+      imageUrl: "https://cdn.example.com/events/a.jpg",
+      provided: true,
+    });
+    expect(
+      parseEventImageUrl(
+        "https://evil.example/photo.jpg",
+        "https://cdn.example.com",
+      ),
+    ).toEqual({
+      ok: false,
+      error: "Event image URL must come from this site's upload storage",
+    });
   });
 });

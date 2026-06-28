@@ -18,6 +18,7 @@ export {
   UPLOAD_MAX_BYTES,
   buildUploadKey,
   detectImageContentType,
+  parseEventImageUrl,
   sanitizeUploadPrefix,
 } from "./r2-upload-core";
 

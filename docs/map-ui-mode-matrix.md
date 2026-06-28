@@ -8,15 +8,16 @@ Source of truth for which map chrome is visible in each mode.
 | Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | **yes (chip bar)** | hidden                | status bar | bottom band     |
 | Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **no**             | **yes (mobile dock)** | status bar | bottom band     |
 | Event placement               | **no**          | **no**       | **no**       | closed default | **no**             | cancel dock           | status bar | bottom band     |
-| Terrain / jeepney active      | yes             | yes          | yes          | flyout section | **yes (chip bar)** | hidden                | status bar | bottom band     |
+| Terrain active                | yes             | yes          | yes          | flyout section | **yes (chip bar)** | hidden                | status bar | bottom band     |
+| Transit active                | yes             | yes          | yes          | closed default | **yes (chip bar)** | hidden                | status bar | bottom band     |
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
-- **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north), location FAB stack (`location-fab-stack` in `Entry.svelte`, fixed above status bar)
-- **Bottom band:** status bar, map attribution (`MapAttribution.svelte`)
+- **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), transit toggle chip (`TransitFilterChip.svelte`, count badge + route sub-panel when active), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). Individual jeepney routes are picked in the transit sub-panel under the chip row or in Map tools → Transit (`JeepneyMenu.svelte` / `TransitRoutePanel.svelte`), not as top-level chips. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
+- **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north)
+- **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`) — attribution leading, status center, location/propose actions trailing; one shared surface
 - **Ephemeral:** toast, modals, mobile editor screen (`EditorScreen.svelte` when `editorChromeStore.shelfOpen`)
 
 MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.
@@ -26,11 +27,14 @@ MapLibre attribution is disabled on the map canvas (`attributionControl={false}`
 - `--map-ui-padding`
 - `--map-search-inline-pad` (mobile search bar horizontal inset; defaults with `--map-ui-padding`)
 - `--search-block-height`
-- `--status-bar-block-height`
+- `--status-bar-block-height` (measured from full `.bottom-chrome` tray)
 - `--drawer-peek-offset`
 - `--mobile-detail-sheet-top-inset` (mobile entity detail sheet; below search app bar)
 - `--map-ui-padding` is `0` on mobile (edge-to-edge chrome)
-- `--edit-bar-height` (non-zero when editing)
+- `--bottom-fab-inset` (measured from `.bottom-chrome__actions` width + `--bottom-chrome-gap`; reserves space for edit dock right edge)
+- `--bottom-chrome-gap` (gap between bottom chrome and edit dock; defaults to `--bottom-fab-gap`)
+- `--bottom-fab-gap` (spacing between bottom chrome and edit dock)
+- `--edit-bar-height` (measured edit dock height; non-zero when editing; set via ResizeObserver in `Map.svelte`)
 
 Use these instead of magic `bottom` / `top` values.
 

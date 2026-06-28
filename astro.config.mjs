@@ -109,6 +109,17 @@ export default defineConfig({
         access: "secret",
         context: "server",
       }),
+      // Supabase JS client (Auth, Realtime, Storage). Separate from DATABASE_URL.
+      PUBLIC_SUPABASE_URL: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
       ADMIN_PASSWORD: envField.string({
         access: "secret",
         context: "server",

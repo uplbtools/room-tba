@@ -29,8 +29,10 @@
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import University from "@lucide/svelte/icons/university";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
+  import { observeBlockHeight } from "@lib/layout-css-vars";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
   import type { EventData } from "@lib/types";
@@ -676,6 +678,27 @@
   let zoomLevel = $state(0);
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
+  let editChromeEl = $state<HTMLElement | null>(null);
+  const editChromeActive = $derived(
+    eventPlacementStore.active ||
+      additionProposalStore.pinPickActive ||
+      mapProposalStore.enabled ||
+      (adminAuthStore.canPublish && mapEditStore.enabled),
+  );
+
+  $effect(() => {
+    const root = editChromeEl?.closest(".app-layout") as HTMLElement | null;
+    if (!editChromeActive) {
+      root?.style.setProperty("--edit-bar-height", "0px");
+      return;
+    }
+    const el = editChromeEl;
+    if (!el) return;
+    return observeBlockHeight(el, "--edit-bar-height", {
+      shouldSkip: () => !editChromeActive,
+      skipValue: "0px",
+    });
+  });
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
@@ -2107,8 +2130,10 @@
 
 <div class="map-container">
   {#if eventPlacementStore.active}
+    <EventPlacementImageField />
     {#if md.current}
       <div
+        bind:this={editChromeEl}
         class="edit-dock event-placement-dock"
         role="status"
         aria-live="polite"
@@ -2128,7 +2153,12 @@
         </button>
       </div>
     {:else}
-      <div class="event-placement-toolbar" role="status" aria-live="polite">
+      <div
+        bind:this={editChromeEl}
+        class="event-placement-toolbar"
+        role="status"
+        aria-live="polite"
+      >
         <div class="event-placement-copy">
           <strong>Choose event location on the map</strong>
           <span>
@@ -2150,6 +2180,7 @@
   {:else if additionProposalStore.pinPickActive}
     {#if md.current}
       <div
+        bind:this={editChromeEl}
         class="edit-dock event-placement-dock"
         role="status"
         aria-live="polite"
@@ -2164,7 +2195,12 @@
         </button>
       </div>
     {:else}
-      <div class="event-placement-toolbar" role="status" aria-live="polite">
+      <div
+        bind:this={editChromeEl}
+        class="event-placement-toolbar"
+        role="status"
+        aria-live="polite"
+      >
         <div class="event-placement-copy">
           <strong>Choose a map pin location</strong>
           <span>Click or tap the map where this entry should appear.</span>
@@ -2179,14 +2215,24 @@
       </div>
     {/if}
   {:else if isMapPinSuggestMode()}
-    <div class="edit-dock map-edit-dock" role="status" aria-live="polite">
+    <div
+      bind:this={editChromeEl}
+      class="edit-dock map-edit-dock"
+      role="status"
+      aria-live="polite"
+    >
       <p class="edit-dock-status">
         Drag the highlighted pin, then release to submit for review.
       </p>
     </div>
   {:else if isMapEditEnabled()}
     {#if md.current}
-      <div class="edit-dock map-edit-dock" role="status" aria-live="polite">
+      <div
+        bind:this={editChromeEl}
+        class="edit-dock map-edit-dock"
+        role="status"
+        aria-live="polite"
+      >
         {#if editStatusMessage}
           <p class="edit-dock-status">{editStatusMessage}</p>
         {/if}
@@ -2218,7 +2264,12 @@
         </div>
       </div>
     {:else}
-      <div class="map-edit-toolbar" role="status" aria-live="polite">
+      <div
+        bind:this={editChromeEl}
+        class="map-edit-toolbar"
+        role="status"
+        aria-live="polite"
+      >
         <div class="map-edit-summary">
           <div class="map-edit-copy">
             <strong>Editing map</strong>
@@ -2603,22 +2654,31 @@
 
   .map-edit-toolbar {
     position: fixed;
-    right: var(--map-ui-padding, 0.5rem);
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom, 0px) + 0.75rem
+    right: calc(
+      var(--map-ui-padding, 0.5rem) + var(--bottom-fab-inset, 3.75rem)
     );
-    left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) +
+        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem)) +
+        env(safe-area-inset-bottom, 0px)
+    );
+    left: calc(
+      var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) +
+        var(--map-ui-padding, 0.5rem) + var(--bottom-fab-gap, 0.5rem)
+    );
     z-index: 18;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     width: auto;
+    min-width: 0;
     max-width: calc(
-      100% - 25.75rem - var(--map-ui-padding, 0.5rem) * 2 - 0.75rem
+      100% - var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) -
+        var(--map-ui-padding, 0.5rem) * 2 -
+        var(--bottom-fab-inset, 3.75rem) - var(--bottom-fab-gap, 0.5rem) * 2
     );
-    min-height: 3.25rem;
-    padding: 0.375rem 0.375rem 0.375rem 0.75rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.625rem;
     border: 1px solid hsla(160, 52%, 32%, 0.35);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.94);
@@ -2651,7 +2711,7 @@
 
   .map-edit-copy span {
     display: block;
-    max-width: 18rem;
+    min-width: 0;
     overflow: hidden;
     color: hsl(0, 0%, 24%);
     font-size: 0.75rem;
@@ -2668,15 +2728,17 @@
   }
 
   .map-edit-action {
-    width: 4.75rem;
+    flex: 0 0 auto;
+    min-width: 3.75rem;
     overflow: hidden;
-    padding: 0.48rem 0.6rem;
+    padding: 0.3125rem 0.625rem;
     border: none;
     border-radius: 999px;
     background: hsl(160, 84%, 26%);
     color: white;
     cursor: pointer;
     font: inherit;
+    font-size: 0.75rem;
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2693,22 +2755,31 @@
 
   .event-placement-toolbar {
     position: fixed;
-    right: var(--map-ui-padding, 0.5rem);
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom, 0px) + 0.75rem
+    right: calc(
+      var(--map-ui-padding, 0.5rem) + var(--bottom-fab-inset, 3.75rem)
     );
-    left: calc(25.75rem + var(--map-ui-padding, 0.5rem) * 2);
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) +
+        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem)) +
+        env(safe-area-inset-bottom, 0px)
+    );
+    left: calc(
+      var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) +
+        var(--map-ui-padding, 0.5rem) + var(--bottom-fab-gap, 0.5rem)
+    );
     z-index: 18;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     width: auto;
+    min-width: 0;
     max-width: calc(
-      100% - 25.75rem - var(--map-ui-padding, 0.5rem) * 2 - 0.75rem
+      100% - var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) -
+        var(--map-ui-padding, 0.5rem) * 2 -
+        var(--bottom-fab-inset, 3.75rem) - var(--bottom-fab-gap, 0.5rem) * 2
     );
-    min-height: 3.25rem;
-    padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.625rem;
     border: 1px solid hsla(5, 53%, 32%, 0.35);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
@@ -2734,7 +2805,7 @@
 
   .event-placement-copy span {
     display: block;
-    max-width: 19rem;
+    min-width: 0;
     overflow: hidden;
     color: hsl(0, 0%, 24%);
     font-size: 0.75rem;
@@ -2744,15 +2815,18 @@
   }
 
   .event-placement-cancel {
-    min-width: 4.75rem;
-    padding: 0.48rem 0.75rem;
+    flex: 0 0 auto;
+    min-width: 3.75rem;
+    padding: 0.3125rem 0.625rem;
     border: none;
     border-radius: 999px;
     background: #7b1113;
     color: white;
     cursor: pointer;
     font: inherit;
+    font-size: 0.75rem;
     font-weight: 800;
+    white-space: nowrap;
   }
 
   .event-placement-cancel:hover:not(:disabled) {
@@ -2766,21 +2840,27 @@
 
   .edit-dock {
     position: fixed;
-    right: var(--map-ui-padding, 0.5rem);
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom)
+    left: max(0.5rem, env(safe-area-inset-left, 0px));
+    right: calc(
+      var(--bottom-fab-inset, 3.25rem) +
+        max(0.5rem, env(safe-area-inset-right, 0px))
     );
-    left: var(--map-ui-padding, 0.5rem);
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) +
+        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem)) +
+        env(safe-area-inset-bottom, 0px)
+    );
     z-index: 18;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
-    min-height: 3rem;
-    padding: 0.375rem 0.5rem;
+    gap: 0.375rem;
+    min-width: 0;
+    min-height: 2rem;
+    max-height: 2.75rem;
+    padding: 0.25rem 0.375rem 0.25rem 0.625rem;
     border: 1px solid hsla(160, 52%, 32%, 0.35);
-    border-radius: 0.875rem;
+    border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
@@ -2815,18 +2895,29 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.875rem;
+    gap: 0.2rem;
+    flex: 0 0 auto;
+    min-width: 2.25rem;
+    min-height: 2rem;
+    padding: 0.25rem 0.625rem;
     border: none;
-    border-radius: 0.75rem;
+    border-radius: 999px;
     background: hsl(160, 84%, 26%);
     color: white;
     cursor: pointer;
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .edit-dock-action :global(svg) {
+    flex-shrink: 0;
+  }
+
+  .edit-dock-action span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .edit-dock-action:hover:not(:disabled) {

@@ -37,6 +37,11 @@
   } from "@lib/event-time";
   import { getEventShareUrl } from "@lib/share-links";
   import type { EventData } from "@lib/types";
+  import {
+    clearEntityContributorDraft,
+    readEntityContributorDraft,
+    scheduleEntityContributorDraftSave,
+  } from "@lib/contributor-drafts";
 
   const STATUS_LABELS: Record<EventData["status"], string> = {
     active: "Happening now",
@@ -92,7 +97,46 @@
   );
   let submitterNameDraft = $state("");
   let activeProposalId = $state<number | null>(null);
+  let draftEventId = $state<number | null>(null);
   const canPublish = $derived(adminAuthStore.canPublish);
+
+  $effect(() => {
+    const current = event;
+    if (!current) return;
+    if (draftEventId === current.id) return;
+    draftEventId = current.id;
+
+    if (canPublish) return;
+    const saved = readEntityContributorDraft("event", current.id);
+    if (!saved) return;
+    if (saved.editing) editing = true;
+    const savedForm = saved.fields.form;
+    if (savedForm && typeof savedForm === "object") {
+      form = { ...form, ...(savedForm as typeof form) };
+    }
+    const savedLocationForm = saved.fields.locationForm;
+    if (savedLocationForm && typeof savedLocationForm === "object") {
+      locationForm = {
+        ...locationForm,
+        ...(savedLocationForm as typeof locationForm),
+      };
+    }
+    const savedRouteForms = saved.fields.routeForms;
+    if (Array.isArray(savedRouteForms)) {
+      routeForms = savedRouteForms as typeof routeForms;
+    }
+  });
+
+  $effect(() => {
+    if (canPublish || !editing || !event) return;
+    form;
+    locationForm;
+    routeForms;
+    scheduleEntityContributorDraftSave("event", event.id, () => ({
+      editing: true,
+      fields: { form, locationForm, routeForms },
+    }));
+  });
 
   $effect(() => {
     if (!event || editing) return;
@@ -327,6 +371,7 @@
         editing = false;
         toastStore.show(`${form.title} saved.`, "success");
       } else {
+        clearEntityContributorDraft("event", event.id);
         toastStore.show(
           `Suggestion for ${form.title} submitted for review.`,
           "success",
@@ -374,6 +419,7 @@
         focusMapOnSavedEvent(updated);
         toastStore.show(`${updated.title} location updated.`, "success");
       } else {
+        clearEntityContributorDraft("event", event.id);
         toastStore.show(
           `Location suggestion for ${event.title} submitted for review.`,
           "success",
@@ -977,7 +1023,7 @@
               type="submit"
               variant="primary"
               {saving}
-              label={canPublish ? "Save event" : "Submit for review"}
+              label={canPublish ? "Save event" : "Send suggestion"}
               savingLabel={fieldSaveActionLabel({
                 canPublish,
                 isSaving: true,

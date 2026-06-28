@@ -318,6 +318,19 @@ button.map-chrome-chip:disabled {
   color: hsl(25, 70%, 50%);
 }
 
+.map-chrome-chip__route-color {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.85);
+}
+
+.map-chrome-chip--filter-selected .map-chrome-chip__route-color {
+  box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.65);
+}
+
 .map-chrome-chip--filter-selected .map-chrome-chip__icon {
   color: currentColor;
 }
@@ -570,11 +583,27 @@ button.map-chrome-chip:disabled {
 .map-chrome-name-field input {
   box-sizing: border-box;
   font: inherit;
-  font-size: 0.75rem;
-  border: 1px solid hsl(0, 0%, 85%);
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
+  border-radius: 0.625rem;
+  padding: 0.4375rem 0.625rem;
   max-width: 8rem;
+  color: hsl(0, 0%, 14%);
+  background: var(--map-chrome-surface, #fffafa);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.map-chrome-name-field input::placeholder {
+  color: hsl(0, 0%, 54%);
+}
+
+.map-chrome-name-field input:focus {
+  outline: none;
+  border-color: hsl(5, 53%, 42%);
+  box-shadow: 0 0 0 2px hsla(5, 53%, 32%, 0.12);
 }
 
 .map-chrome-name-field:not(.map-chrome-name-field--block) input {
@@ -585,9 +614,9 @@ button.map-chrome-chip:disabled {
 .map-chrome-name-field--block {
   flex-direction: column;
   align-items: stretch;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: hsl(0, 0%, 35%);
+  gap: 0.3125rem;
+  font-size: 0.8125rem;
+  color: hsl(0, 0%, 32%);
 }
 
 .map-chrome-name-field--block input {
