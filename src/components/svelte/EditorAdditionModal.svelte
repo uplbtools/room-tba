@@ -1,9 +1,17 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
+  import { fade, fly } from "svelte/transition";
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
   import X from "@lucide/svelte/icons/x";
   import { editorChromeStore } from "@lib/store.svelte";
+  import {
+    modalContentDismiss,
+    modalContentReveal,
+    overlayFade,
+  } from "@lib/motion";
   import SuggestAdditionPanel from "@ui/SuggestAdditionPanel.svelte";
+  import { MediaQuery } from "svelte/reactivity";
+
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   function close() {
     editorChromeStore.closeAdditionModal();
@@ -17,12 +25,17 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if editorChromeStore.additionModalOpen}
-  <div class="editor-addition-overlay" transition:fade={{ duration: 140 }}>
+  <div
+    class="editor-addition-overlay"
+    transition:fade={overlayFade(reducedMotion.current)}
+  >
     <div
       class="editor-addition-frame"
       role="dialog"
       aria-modal="true"
       aria-labelledby="editor-addition-title"
+      in:fly={modalContentReveal(reducedMotion.current)}
+      out:fly={modalContentDismiss(reducedMotion.current)}
     >
       <header class="editor-addition-header">
         <div class="editor-addition-title" id="editor-addition-title">

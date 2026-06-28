@@ -1,10 +1,18 @@
 <script lang="ts">
   import { modalStore } from "@lib/store.svelte";
   import { fade, fly } from "svelte/transition";
+  import {
+    modalContentDismiss,
+    modalContentReveal,
+    overlayFade,
+  } from "@lib/motion";
+  import { MediaQuery } from "svelte/reactivity";
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
   import FilterModalContent from "./FilterModalContent.svelte";
   import X from "@lucide/svelte/icons/x";
+
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 </script>
 
 {#if modalStore.open}
@@ -13,18 +21,15 @@
     <button
       class="overlay"
       onclick={() => modalStore.closeModal()}
-      transition:fade={{ duration: 200 }}
+      transition:fade={overlayFade(reducedMotion.current)}
     ></button>
     <div
       class="modal-content {modalStore.type === 'landing'
         ? 'landing-modal-container'
         : ''}"
       id="modal-content"
-      transition:fly={{
-        duration: 200,
-        delay: 50,
-        y: 50,
-      }}
+      in:fly={modalContentReveal(reducedMotion.current)}
+      out:fly={modalContentDismiss(reducedMotion.current)}
     >
       {#if modalStore.type === "landing"}
         <LandingModal />
