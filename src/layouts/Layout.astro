@@ -117,7 +117,32 @@ const imageUrl = absoluteUrl(imagePath);
   <body>
     <div id="app-loading-shell" class="app-loading-shell" role="status" aria-live="polite">
       <div class="app-loading-shell__card">
-        <div class="app-loading-shell__spinner" aria-hidden="true"></div>
+        <p class="app-loading-shell__eyebrow">UPLB Campus Map</p>
+        <div class="app-loading-shell__scene" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g opacity="0.22" stroke="hsl(5, 12%, 58%)" stroke-width="1">
+              <line x1="32" y1="10" x2="32" y2="54"></line>
+              <line x1="10" y1="36" x2="54" y2="36"></line>
+            </g>
+            <circle
+              class="app-loading-scene__arc"
+              cx="32"
+              cy="36"
+              r="22"
+              stroke="hsl(5, 53%, 32%)"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-dasharray="34 104"
+              fill="none"></circle>
+            <path
+              d="M32 15C27 15 23.5 18.5 23.5 23.5C23.5 30.5 32 44 32 44C32 44 40.5 30.5 40.5 23.5C40.5 18.5 37 15 32 15Z"
+              fill="hsl(5, 53%, 32%)"
+              stroke="white"
+              stroke-width="2"></path>
+            <path d="M28.5 19.5H35.5V25.5H28.5V19.5Z" fill="white"></path>
+            <path d="M27.5 19.5L32 15.5L36.5 19.5H27.5Z" fill="white"></path>
+          </svg>
+        </div>
         <p class="app-loading-shell__message">Loading campus data…</p>
       </div>
     </div>
