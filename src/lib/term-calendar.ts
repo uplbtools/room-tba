@@ -5,10 +5,10 @@ export const TERM_CALENDAR_WINDOWS: Record<
   number,
   { startsOn: string; endsOn: string }
 > = {
-  // CRS 1252 — midyear (Jun–Jul; schedules imported separately)
-  1252: { startsOn: "2026-06-08", endsOn: "2026-07-26" },
-  // CRS 1253 — UP second semester (Jan–May; production class rows live here)
-  1253: { startsOn: "2026-01-19", endsOn: "2026-05-31" },
+  // CRS 1252 — 2nd semester (Jan–May)
+  1252: { startsOn: "2026-01-19", endsOn: "2026-05-31" },
+  // CRS 1253 — midyear (Jun–Jul)
+  1253: { startsOn: "2026-06-08", endsOn: "2026-07-26" },
 };
 
 function toManilaDateKey(date: Date) {

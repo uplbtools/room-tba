@@ -2,7 +2,7 @@
  * Import AMIS class schedules into Supabase for a given CRS term_id.
  *
  * Workflow (fetch once, reuse local cache):
- *   AMIS_BEARER_TOKEN=… AMIS_SESSION_ID=… bun run import:amis-classes -- --term-id 1252 --fetch
+ *   AMIS_BEARER_TOKEN=… AMIS_SESSION_ID=… bun run import:amis-classes -- --term-id 1253 --fetch
  *   DATABASE_URL=… bun run import:amis-classes -- --term-id 1252
  *
  * AMIS bearer tokens expire in about an hour — paste a fresh token for --fetch only.
@@ -13,7 +13,8 @@
  *   --dry-run          Parse + map only; no DB writes
  *   --no-replace       Do not delete existing rows for the term before insert
  *
- * Midyear = 1252, 2nd sem = 1253, 1st sem = 1251.
+ * CRS term_id is chronological within the AY: 1251 = 1st sem, 1252 = 2nd sem, 1253 = midyear.
+ * Only LEC and LAB rows with a resolvable room are imported (thesis, special problem, etc. usually have no room in AMIS).
  * Local exports live at data/amis-*-{termId}.json (gitignored).
  * AMIS responses include instructor names — never commit raw exports or store names.
  */
@@ -42,6 +43,7 @@ import {
   amisExportContainsInstructorPii,
   sanitizeAmisRows,
 } from "@lib/amis/sanitize-row";
+import { isRoomScheduledClassType } from "@lib/amis/room-scheduled-types";
 import { randomUUID } from "node:crypto";
 
 config({ path: ".env" });
@@ -56,7 +58,7 @@ type CliOptions = {
 };
 
 function parseArgs(argv: string[]): CliOptions {
-  let termId = 1252;
+  let termId = 1253;
   let dryRun = false;
   let replace = true;
   let fetch = false;
@@ -125,7 +127,7 @@ function loadSanitizedExport(path: string, expectedTermId: number) {
 }
 
 async function refreshSyncKey(
-  db: ReturnType<typeof drizzle>,
+  db: Pick<ReturnType<typeof drizzle>, "update">,
   tableName: string,
 ) {
   await db
@@ -232,9 +234,16 @@ async function main() {
     }
 
     const unmatched = new Map<string, number>();
+    const skippedByType = new Map<string, number>();
     const inserts: (typeof classesTable.$inferInsert)[] = [];
 
     for (const row of normalized) {
+      if (!isRoomScheduledClassType(row.type)) {
+        const key = row.type?.trim().toUpperCase() || "(no type)";
+        skippedByType.set(key, (skippedByType.get(key) ?? 0) + 1);
+        continue;
+      }
+
       const facility = row.facilityCode?.trim();
       if (!facility) {
         unmatched.set(
@@ -261,22 +270,46 @@ async function main() {
     }
 
     if (options.replace) {
-      await db
-        .delete(classesTable)
-        .where(eq(classesTable.termId, options.termId));
-      console.log(`Cleared existing term_id=${options.termId} rows.`);
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(classesTable)
+          .where(eq(classesTable.termId, options.termId));
+
+        const batchSize = 500;
+        for (let i = 0; i < inserts.length; i += batchSize) {
+          await tx.insert(classesTable).values(inserts.slice(i, i + batchSize));
+        }
+
+        await refreshSyncKey(tx, "classes");
+      });
+      console.log(
+        `Cleared and re-imported term_id=${options.termId} (${inserts.length} rows, transactional).`,
+      );
+    } else {
+      const batchSize = 500;
+      for (let i = 0; i < inserts.length; i += batchSize) {
+        await db.insert(classesTable).values(inserts.slice(i, i + batchSize));
+      }
+      await refreshSyncKey(db, "classes");
+      console.log(
+        `Imported ${inserts.length} classes for term_id=${options.termId}.`,
+      );
     }
 
-    const batchSize = 500;
-    for (let i = 0; i < inserts.length; i += batchSize) {
-      await db.insert(classesTable).values(inserts.slice(i, i + batchSize));
+    if (skippedByType.size > 0) {
+      const totalSkipped = [...skippedByType.values()].reduce(
+        (a, b) => a + b,
+        0,
+      );
+      console.warn(
+        `Skipped ${totalSkipped} rows that are not room-scheduled LEC/LAB (thesis, special problem, dissertation, etc. usually have no room in AMIS):`,
+      );
+      for (const [type, count] of [...skippedByType.entries()].sort(
+        (a, b) => b[1] - a[1],
+      )) {
+        console.warn(`  ${count}× ${type}`);
+      }
     }
-
-    await refreshSyncKey(db, "classes");
-
-    console.log(
-      `Imported ${inserts.length} classes for term_id=${options.termId}.`,
-    );
     if (unmatched.size > 0) {
       console.warn(
         `Skipped ${[...unmatched.values()].reduce((a, b) => a + b, 0)} rows with unmatched facilities:`,

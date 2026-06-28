@@ -139,8 +139,36 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 
 ## AMIS class imports
 
+### CRS term IDs (source of truth)
+
+CRS/AMIS `term_id` values are **chronological within the academic year** — the number is not a semantic label:
+
+| CRS id   | Period       | Typical dates (AY 2025–2026) |
+| -------- | ------------ | ---------------------------- |
+| **1251** | 1st semester | Aug–Dec                      |
+| **1252** | 2nd semester | Jan–May                      |
+| **1253** | Midyear      | Jun–Jul                      |
+
+- **`terms.id` must equal the CRS id** you pass to `--term-id` / AMIS fetch. Fix labels and calendar dates in the `terms` row; **never move class rows between ids** to “fix” a naming mix-up.
+- Import commands: 2nd sem `--term-id 1252 --fetch`; midyear `--term-id 1253 --fetch`.
+- **Do not re-apply** [`drizzle/0012_reassign_second_sem_classes.sql`](drizzle/0012_reassign_second_sem_classes.sql) — it assumed 1252 was mislabeled 2nd sem data. That was wrong. Term metadata is corrected in [`0013_fix_crs_term_labels.sql`](drizzle/0013_fix_crs_term_labels.sql). Migrations `0009`/`0010` had the same backwards assumption; do not copy their label/date mapping into new code.
+
+### Pitfalls (read before triaging “wrong term” bugs)
+
+1. **Do not infer term type from row count.** A term with 3k+ rows is not automatically “2nd sem”; a term with ~200 rows is not automatically “broken.” Check **schedule patterns** in `classes.schedule`:
+   - **Midyear (1253):** intensive daily blocks — `MTWTHFS`, `MTWTHF`, `TTHS`, Saturday-heavy slots.
+   - **2nd sem (1252):** regular semester — mostly `TTH`, `MWF`, single-day weekly slots.
+2. **Do not conflate CRS id with English name.** Early agents assumed “1252 sounds like midyear slot” — wrong. Always trust the chronological table above and what AMIS returns for that numeric id.
+3. **Thousands fetched, hundreds imported is normal.** AMIS returns every section type; Room TBA imports only **LEC/LAB with a matched room** (see below). A 12k fetch → ~3k import for 2nd sem is expected; a 6k fetch → ~120 for midyear can be expected too.
+4. **Two different “skipped row” buckets** — do not treat them as the same bug:
+   - **By design:** THE (thesis), SPR (special problem), PRA (practicum), DSR (dissertation), IND, etc. usually have **no `facility_id`** in AMIS. Skipped on purpose; users are told on the room panel. See `src/lib/amis/room-scheduled-types.ts`.
+   - **Data gap (#300):** LEC/LAB rows **with** a facility string that does not match `rooms.room_code` (aliases, typos, `PSLH-A` vs `PSLH A`). Needs alias work, not term-id surgery.
+5. **Validate before “re-import to fix term”.** Query sample schedules per `term_id`, confirm `/api/terms` labels match CRS table, then re-import the **correct CRS id** with `--replace`. Do not run 0012-style mass `UPDATE term_id`.
+
+### Workflow
+
 - **Fetch once, reuse cache:** `bun run import:amis-classes -- --term-id <id> --fetch` saves sanitized rows to `data/amis-*-<id>.json` (gitignored). Re-import with the same command **without** `--fetch` — no AMIS hammering.
-- **Short-lived tokens:** `AMIS_BEARER_TOKEN` from a logged-in AMIS session expires in about an hour. Copy a fresh token right before `--fetch`; do not rely on a token saved in `.env` from yesterday. Cached JSON imports do not need a token.
+- **Short-lived tokens:** `AMIS_BEARER_TOKEN` from a logged-in AMIS session expires in about an hour. Copy a fresh token right before `--fetch`; do not rely on a token saved in `.env` from yesterday. Cached JSON imports do not need a token. Never commit tokens or paste them into issues or chat logs.
 - **Never store or commit instructor names.** AMIS responses embed faculty/user PII. `sanitizeAmisRow()` strips it before any JSON is written. Do not commit `data/amis-*.json`, raw AMIS dumps, or DB exports that include `faculty`, `first_name`, `formatted_name`, etc.
 - The app DB stores only course code, section, type, title, schedule slots, room, and term — never instructor fields.
 - If unsanitized exports exist locally, run `bun run import:amis-classes -- --scrub-exports`.
