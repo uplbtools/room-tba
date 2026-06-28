@@ -1,0 +1,27 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Review dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail PRs that introduce known-critical vulnerabilities
+          fail-on-severity: critical
+          # Allow a comment summary on the PR for high/moderate findings
+          comment-summary-in-pr: on-failure
