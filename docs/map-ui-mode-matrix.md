@@ -15,8 +15,8 @@ Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 ## Layout zones (Entry.svelte)
 
 - **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
-- **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north), location FAB (+ contributor propose FAB when signed in)
-- **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location FAB (fixed above status bar)
+- **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north), location FAB stack (`location-fab-stack` in `Entry.svelte`, fixed above status bar)
+- **Bottom band:** status bar, map attribution (`MapAttribution.svelte`)
 - **Ephemeral:** toast, modals, mobile editor screen (`EditorScreen.svelte` when `editorChromeStore.shelfOpen`)
 
 MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.
@@ -24,6 +24,7 @@ MapLibre attribution is disabled on the map canvas (`attributionControl={false}`
 ## CSS anchors (on `.app-layout`)
 
 - `--map-ui-padding`
+- `--map-search-inline-pad` (mobile search bar horizontal inset; defaults with `--map-ui-padding`)
 - `--search-block-height`
 - `--status-bar-block-height`
 - `--drawer-peek-offset`

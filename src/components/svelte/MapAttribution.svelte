@@ -152,7 +152,9 @@
 
   @media (max-width: 48rem) {
     .map-attribution {
-      padding-left: 0.5rem;
+      align-self: flex-start;
+      padding-inline: max(0.5rem, env(safe-area-inset-left, 0px))
+        max(0.5rem, env(safe-area-inset-right, 0px));
       order: -1;
     }
   }

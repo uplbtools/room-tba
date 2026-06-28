@@ -144,19 +144,19 @@
         </div>
       </div>
     </div>
+    <div
+      class="location-fab-stack"
+      class:drawer-lift={drawerExpanded}
+      aria-label="Location controls"
+    >
+      <LocationButton />
+    </div>
     <div class="inner-layer">
       <MainControls />
       <div class="bottom-band">
         <div class="bottom-band-footer">
           <MapAttribution />
           <StatusBar />
-        </div>
-        <div
-          class="location-fab-stack"
-          class:drawer-lift={drawerExpanded}
-          aria-label="Location controls"
-        >
-          <LocationButton />
         </div>
       </div>
     </div>
@@ -367,6 +367,7 @@
 
   .location-fab-stack {
     position: fixed;
+    left: auto;
     right: calc(var(--map-ui-padding, 0.5rem) + 0.5rem);
     bottom: calc(
       var(--status-bar-block-height, 2.75rem) +
@@ -377,6 +378,8 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    width: max-content;
+    max-width: calc(100% - 1rem);
     gap: 0.5rem;
     pointer-events: none;
     transition: bottom var(--motion-duration-panel) var(--motion-ease-out);
@@ -403,9 +406,17 @@
   @media (max-width: 48rem) {
     .app-layout {
       --map-ui-padding: 0;
+      --map-search-inline-pad: 0.625rem;
       --bottom-fab-gap: 0.5rem;
       --map-tools-block-height: 0px;
       --mobile-detail-sheet-top-inset: var(--search-block-height);
+    }
+
+    .location-fab-stack {
+      right: max(0.5rem, env(safe-area-inset-right, 0px));
+      bottom: calc(
+        var(--status-bar-block-height, 2.75rem) + var(--bottom-fab-gap, 0.5rem)
+      );
     }
 
     .inner-layer {
@@ -421,7 +432,7 @@
     .bottom-band-footer {
       flex-direction: column;
       align-items: stretch;
-      gap: 0;
+      gap: var(--bottom-fab-gap, 0.5rem);
     }
 
     .top-right-map-stack {
@@ -496,8 +507,7 @@
 
     /* When the drawer sheet is open, lift FABs above its peek handle */
     .location-fab-stack.drawer-lift {
-      position: fixed;
-      right: 0.5rem;
+      right: max(0.5rem, env(safe-area-inset-right, 0px));
       bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
     }
   }
