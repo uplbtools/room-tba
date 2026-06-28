@@ -427,7 +427,7 @@
     opacity: 1;
   }
 
-  @media screen and (max-width: 768px) {
+  @media screen and (max-width: 48rem) {
     .people-sections {
       grid-template-columns: 1fr;
       gap: 1rem;

@@ -7,6 +7,7 @@ Use this checklist before merging the in-app editor foundation PR.
 - Visiting `/admin` redirects to `/?editor=login`.
 - Visiting `/admin/login` redirects to `/?editor=login`.
 - `/?editor=login` opens the in-app editor login modal.
+- **Editor sign in** in the status bar (expand Status on mobile) also opens the login modal.
 - A successful login updates the map controls to show the admin/editor controls.
 - Signing out disables map edit mode.
 

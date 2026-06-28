@@ -17,13 +17,9 @@ import {
   MIN_ZOOM,
   tileUrl,
 } from "./local/offline-maps";
+import type { BuildingTypeFilter } from "../constants/building-types";
 
-export type BuildingTypeFilter =
-  | "all"
-  | "class-building"
-  | "administrative-building"
-  | "up-managed-dorm"
-  | "non-up-managed-dorm";
+export type { BuildingTypeFilter };
 
 type RoomData = {
   id: number;
@@ -443,9 +439,7 @@ class MapToolsStore {
   open = $state(false);
   activeSection: MapToolsSection | null = $state("view");
   /** Accordion: terrain and jeepney collapsed by default. */
-  expandedSections = $state<Set<MapToolsSection>>(
-    new Set(["view", "legend", "building-type"]),
-  );
+  expandedSections = $state<Set<MapToolsSection>>(new Set(["view", "legend"]));
 
   toggle = () => {
     this.open = !this.open;
@@ -539,25 +533,40 @@ class MapProposalStore {
 
 class AdditionProposalStore {
   pinPickActive = $state(false);
+  draftPin: { lat: number; lon: number } | null = $state(null);
   private pinResolver: ((coords: { lat: number; lon: number }) => void) | null =
     null;
+  private pinReject: ((reason?: unknown) => void) | null = null;
 
   requestMapPin() {
+    if (this.pinPickActive) {
+      this.cancelMapPin();
+    }
     this.pinPickActive = true;
-    return new Promise<{ lat: number; lon: number }>((resolve) => {
+    return new Promise<{ lat: number; lon: number }>((resolve, reject) => {
       this.pinResolver = resolve;
+      this.pinReject = reject;
     });
   }
 
   deliverMapPin(lat: number, lon: number) {
-    this.pinResolver?.({ lat, lon });
+    const coords = { lat, lon };
+    this.draftPin = coords;
+    this.pinResolver?.(coords);
     this.pinResolver = null;
+    this.pinReject = null;
     this.pinPickActive = false;
   }
 
   cancelMapPin() {
+    this.pinReject?.(new Error("cancelled"));
     this.pinResolver = null;
+    this.pinReject = null;
     this.pinPickActive = false;
+  }
+
+  clearDraftPin() {
+    this.draftPin = null;
   }
 }
 
@@ -841,8 +850,8 @@ class AdminAuthStore {
         username: data.username ?? username.trim().toLowerCase(),
         displayName: data.displayName,
         role: data.role ?? "editor",
-        canPublish: data.canPublish ?? true,
-        canReview: data.canReview ?? true,
+        canPublish: data.canPublish,
+        canReview: data.canReview,
       });
       this.loginOpen = false;
       return null;

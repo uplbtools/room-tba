@@ -1,10 +1,8 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { ADMIN_PASSWORD, ADMIN_SESSION_SECRET } from "astro:env/server";
-
-const COOKIE_NAME = "admin_session";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
-
-export type AdminRole = "admin" | "editor" | "contributor";
+import type { AdminRole } from "./roles";
+export type { AdminRole } from "./roles";
+export { canPublishDirectly, canReviewProposals } from "./roles";
 
 export type SessionUser = {
   id: number;
@@ -15,23 +13,13 @@ export type SessionUser = {
 
 type SessionPayload = SessionUser & { exp: number };
 
-export function canPublishDirectly(role: AdminRole): boolean {
-  return role === "admin" || role === "editor";
-}
-
-export function canReviewProposals(role: AdminRole): boolean {
-  return role === "admin" || role === "editor";
-}
+const COOKIE_NAME = "admin_session";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function signingSecret(): string {
   if (ADMIN_SESSION_SECRET) return ADMIN_SESSION_SECRET;
   if (ADMIN_PASSWORD) return ADMIN_PASSWORD;
   throw new Error("ADMIN_SESSION_SECRET or ADMIN_PASSWORD must be configured");
-}
-
-function legacySecret(): string | null {
-  if (!ADMIN_PASSWORD) return null;
-  return ADMIN_PASSWORD;
 }
 
 function signBody(body: string): string {
@@ -94,29 +82,6 @@ export function getSessionUser(
   } catch {
     return null;
   }
-}
-
-/** Legacy shared-password session token (v1). */
-export function makeSessionToken(): string {
-  const secret = legacySecret();
-  if (!secret) throw new Error("ADMIN_PASSWORD env var is not set");
-  return createHmac("sha256", secret)
-    .update("admin-session")
-    .digest("base64url");
-}
-
-export function verifyLegacySessionToken(value: string | undefined): boolean {
-  if (!value || value.includes(".")) return false;
-  try {
-    return safeEqual(value, makeSessionToken());
-  } catch {
-    return false;
-  }
-}
-
-/** @deprecated Use getSessionUser or verifyLegacySessionToken. */
-export function verifySessionToken(value: string | undefined): boolean {
-  return getSessionUser(value) !== null || verifyLegacySessionToken(value);
 }
 
 export function sessionEditedBy(session: SessionUser): string {

@@ -14,6 +14,10 @@
   import type { BuildingData, RoomData } from "../../../lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import CopyLinkButton from "../CopyLinkButton.svelte";
+  import EntityEditorToggle from "../editor/EntityEditorToggle.svelte";
+  import EntityEditorPanel from "../editor/EntityEditorPanel.svelte";
+  import EntityEditorField from "../editor/EntityEditorField.svelte";
+  import { entityEditorSavedMessage } from "../../../lib/editor/field-action-label";
   import { onMount } from "svelte";
   import { getBuildingRooms } from "../../../lib/local/data/utils";
   import {
@@ -25,6 +29,7 @@
     getStoredProposalForEntity,
     persistEntityChange,
   } from "../../../lib/proposals/client";
+  import { handlePersistEntityResult } from "../../../lib/editor/handle-persist-result";
 
   type BuildingEditableField = "buildingName" | "directions" | "buildingType";
 
@@ -172,18 +177,17 @@
         proposalId: activeProposalId,
       });
 
-      if (!result.ok) {
-        if (result.latest) {
-          syncBuildingFromServer(result.latest as BuildingData);
-        }
-        fieldError =
-          result.error ??
-          `${current.buildingName} ${fieldLabel(field)} could not be saved.`;
+      const outcome = handlePersistEntityResult<BuildingData>(result, {
+        syncFromServer: syncBuildingFromServer,
+        fallbackError: `${current.buildingName} ${fieldLabel(field)} could not be saved.`,
+      });
+
+      if (outcome.error) {
+        fieldError = outcome.error;
         return;
       }
 
-      if (result.published) {
-        syncBuildingFromServer(result.published as BuildingData);
+      if (outcome.published) {
         savedField = field;
         setTimeout(() => {
           if (savedField === field) savedField = null;
@@ -191,9 +195,9 @@
         return;
       }
 
-      if (result.proposal) {
-        activeProposalId = result.proposal.id;
-        proposalStatus = result.proposal.status;
+      if (outcome.proposal) {
+        activeProposalId = outcome.proposal.id;
+        proposalStatus = outcome.proposal.status;
         savedField = field;
         toastStore.show(
           `Suggestion for ${current.buildingName} submitted for review.`,
@@ -257,182 +261,133 @@
               "error",
             )}
         />
-        {#if canPublish}
-          <button
-            type="button"
-            class="edit-building-btn"
-            aria-expanded={editing}
-            onclick={() => (editing = !editing)}
-          >
-            {editing ? "Close editor" : "Edit building"}
-          </button>
-        {:else}
-          <button
-            type="button"
-            class="edit-building-btn"
-            aria-expanded={editing}
-            onclick={() => (editing = !editing)}
-          >
-            {editing ? "Close" : "Suggest an edit"}
-          </button>
-        {/if}
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit building"
+          closeLabel={canPublish ? "Close editor" : "Close"}
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
       </div>
     </div>
 
     {#if editing}
       <section
-        class="building-editor"
+        class="entity-editor"
         aria-label={canPublish
           ? "Edit building details"
           : "Suggest building edits"}
       >
-        <div class="editor-heading">
-          <span>{canPublish ? "Editor" : "Suggest a change"}</span>
-        </div>
+        <EntityEditorPanel
+          {canPublish}
+          showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
+          submitterNameId="building-submitter-name"
+          bind:submitterName={submitterNameDraft}
+          {proposalStatus}
+          successMessage={savedField
+            ? entityEditorSavedMessage({
+                canPublish,
+                savedFieldLabel: fieldLabel(savedField),
+              })
+            : null}
+          errorMessage={fieldError}
+        >
+          <EntityEditorField
+            label="Building name"
+            inputId="building-name-editor"
+            {canPublish}
+            disabled={savingField !== null}
+            fieldSaving={savingField === "buildingName"}
+            unchanged={nameDraft.trim() === building.buildingName}
+            onsave={() => saveField("buildingName")}
+          >
+            {#snippet control()}
+              <input
+                id="building-name-editor"
+                bind:value={nameDraft}
+                disabled={savingField !== null}
+                autocomplete="off"
+              />
+            {/snippet}
+          </EntityEditorField>
 
-        {#if !canPublish && !adminAuthStore.isLoggedIn}
-          <div class="editor-field">
-            <label for="building-submitter-name">Your name</label>
-            <input
-              id="building-submitter-name"
-              bind:value={submitterNameDraft}
-              maxlength="100"
-              autocomplete="name"
-              placeholder="How should we credit this suggestion?"
-            />
-          </div>
-        {/if}
+          <EntityEditorField
+            label="Building directions"
+            inputId="building-directions-editor"
+            {canPublish}
+            disabled={savingField !== null}
+            fieldSaving={savingField === "directions"}
+            stacked
+            unchanged={directionsDraft.trim() === (building.directions ?? "")}
+            onsave={() => saveField("directions")}
+          >
+            {#snippet control()}
+              <textarea
+                id="building-directions-editor"
+                bind:value={directionsDraft}
+                disabled={savingField !== null}
+                rows="3"
+              ></textarea>
+            {/snippet}
+          </EntityEditorField>
 
-        {#if proposalStatus}
-          <p class="editor-message pending">
-            Status: {proposalStatus.replace("_", " ")} — waiting for editor review.
-          </p>
-        {/if}
-
-        <div class="editor-field">
-          <label for="building-name-editor">Building name</label>
-          <div class="editor-control-row">
-            <input
-              id="building-name-editor"
-              bind:value={nameDraft}
-              disabled={savingField !== null}
-              autocomplete="off"
-            />
-            <button
-              class="field-save-btn"
-              disabled={savingField !== null ||
-                nameDraft.trim() === building.buildingName}
-              onclick={() => saveField("buildingName")}
-            >
-              {savingField === "buildingName"
-                ? canPublish
-                  ? "Saving..."
-                  : "Submitting..."
-                : canPublish
-                  ? "Save"
-                  : "Submit"}
-            </button>
-          </div>
-        </div>
-
-        <div class="editor-field">
-          <label for="building-directions-editor">Building directions</label>
-          <div class="editor-control-row stacked">
-            <textarea
-              id="building-directions-editor"
-              bind:value={directionsDraft}
-              disabled={savingField !== null}
-              rows="3"></textarea>
-            <button
-              class="field-save-btn"
-              disabled={savingField !== null ||
-                directionsDraft.trim() === (building.directions ?? "")}
-              onclick={() => saveField("directions")}
-            >
-              {savingField === "directions"
-                ? canPublish
-                  ? "Saving..."
-                  : "Submitting..."
-                : canPublish
-                  ? "Save"
-                  : "Submit"}
-            </button>
-          </div>
-        </div>
-
-        <div class="editor-field">
-          <label for="building-type-editor">Building type</label>
-          <div class="editor-control-row">
-            <select
-              id="building-type-editor"
-              bind:value={typeDraft}
-              disabled={savingField !== null}
-            >
-              <option value="admin">Administrative building</option>
-              <option value="non-admin">Class / academic building</option>
-            </select>
-            <button
-              class="field-save-btn"
-              disabled={savingField !== null ||
-                typeDraft === building.buildingType}
-              onclick={() => saveField("buildingType")}
-            >
-              {savingField === "buildingType"
-                ? canPublish
-                  ? "Saving..."
-                  : "Submitting..."
-                : canPublish
-                  ? "Save"
-                  : "Submit"}
-            </button>
-          </div>
-        </div>
-
-        {#if canPublish}
-          <p class="editor-note">
-            {#if mapEditStore.enabled}
-              Map editing is on — drag this building's pin on the map to move
-              it.
-            {:else}
-              To move this building's map pin,
-              <button
-                type="button"
-                class="inline-link-btn"
-                onclick={() => mapEditStore.enable()}
+          <EntityEditorField
+            label="Building type"
+            inputId="building-type-editor"
+            {canPublish}
+            disabled={savingField !== null}
+            fieldSaving={savingField === "buildingType"}
+            unchanged={typeDraft === building.buildingType}
+            onsave={() => saveField("buildingType")}
+          >
+            {#snippet control()}
+              <select
+                id="building-type-editor"
+                bind:value={typeDraft}
+                disabled={savingField !== null}
               >
-                enable map editing
-              </button>
-              from the shield control, then drag its marker.
-            {/if}
-          </p>
-        {:else if building.lat && building.lon}
-          <p class="editor-note">
-            {#if mapProposalStore.allowsKey(`building:${building.id}`)}
-              Pin move mode is on — drag this building's marker on the map.
-            {:else}
-              To suggest a map pin move,
-              <button
-                type="button"
-                class="inline-link-btn"
-                onclick={enablePinProposal}
-              >
-                enable pin move
-              </button>
-              , then drag its marker.
-            {/if}
-          </p>
-        {/if}
+                <option value="admin">Administrative building</option>
+                <option value="non-admin">Class / academic building</option>
+              </select>
+            {/snippet}
+          </EntityEditorField>
 
-        {#if savedField}
-          <p class="editor-message success">
-            {canPublish
-              ? `${fieldLabel(savedField)} saved.`
-              : "Suggestion submitted."}
-          </p>
-        {/if}
-        {#if fieldError}
-          <p class="editor-message error">{fieldError}</p>
-        {/if}
+          {#if canPublish}
+            <p class="editor-note">
+              {#if mapEditStore.enabled}
+                Map editing is on — drag this building's pin on the map to move
+                it.
+              {:else}
+                To move this building's map pin,
+                <button
+                  type="button"
+                  class="inline-link-btn"
+                  onclick={() => mapEditStore.enable()}
+                >
+                  enable map editing
+                </button>
+                from the shield control, then drag its marker.
+              {/if}
+            </p>
+          {:else if building.lat && building.lon}
+            <p class="editor-note">
+              {#if mapProposalStore.allowsKey(`building:${building.id}`)}
+                Pin move mode is on — drag this building's marker on the map.
+              {:else}
+                To suggest a map pin move,
+                <button
+                  type="button"
+                  class="inline-link-btn"
+                  onclick={enablePinProposal}
+                >
+                  enable pin move
+                </button>
+                , then drag its marker.
+              {/if}
+            </p>
+          {/if}
+        </EntityEditorPanel>
       </section>
     {/if}
   {:else}
@@ -446,6 +401,8 @@
 </div>
 
 <style>
+  @import "../editor/entity-editor.css";
+
   .building-query-wrapper {
     display: flex;
     flex-direction: column;
@@ -486,8 +443,7 @@
   }
 
   .get-directions-btn,
-  .view-3d-btn,
-  .edit-building-btn {
+  .view-3d-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
@@ -501,13 +457,6 @@
     width: max-content;
   }
 
-  .edit-building-btn {
-    font: inherit;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.25;
-  }
-
   .get-directions-btn {
     border: none;
     background-color: #7b1113;
@@ -518,146 +467,14 @@
     background-color: #9a1517;
   }
 
-  .view-3d-btn,
-  .edit-building-btn {
+  .view-3d-btn {
     background-color: white;
     color: #7b1113;
     border: 1px solid #d8b9ba;
   }
 
   .view-3d-btn:hover,
-  .edit-building-btn:hover,
-  .edit-building-btn:focus-visible {
+  .view-3d-btn:focus-visible {
     background-color: #fdf3f3;
-  }
-
-  .edit-building-btn:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .building-editor {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.625rem;
-    border: 1px solid hsl(5, 53%, 88%);
-    border-radius: 0.625rem;
-    background-color: hsl(5, 53%, 98%);
-  }
-
-  .editor-heading {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    color: hsl(5, 53%, 32%);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .editor-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .editor-field label {
-    color: #555;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-
-  .editor-control-row {
-    display: flex;
-    gap: 0.375rem;
-    align-items: stretch;
-  }
-
-  .editor-control-row.stacked {
-    flex-direction: column;
-  }
-
-  .editor-control-row input,
-  .editor-control-row select,
-  .editor-control-row textarea {
-    min-width: 0;
-    flex: 1;
-    border: 1px solid #d8d8d8;
-    border-radius: 0.5rem;
-    padding: 0.45rem 0.55rem;
-    font: inherit;
-    font-size: 0.8125rem;
-    color: #222;
-    background: white;
-  }
-
-  .editor-control-row textarea {
-    resize: vertical;
-    min-height: 4.5rem;
-  }
-
-  .field-save-btn {
-    flex-shrink: 0;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.5rem;
-    background: white;
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.45rem 0.65rem;
-  }
-
-  .field-save-btn:hover:not(:disabled),
-  .field-save-btn:focus-visible:not(:disabled) {
-    background: #fdf3f3;
-  }
-
-  .field-save-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-  }
-
-  .editor-note {
-    margin: 0;
-    color: #666;
-    font-size: 0.75rem;
-    line-height: 1.45;
-  }
-
-  .inline-link-btn {
-    border: none;
-    background: none;
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
-    font-size: inherit;
-    font-weight: 700;
-    padding: 0;
-    text-decoration: underline;
-  }
-
-  .editor-message {
-    margin: 0;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  .editor-message.pending {
-    color: hsl(35, 80%, 28%);
-  }
-
-  .editor-message.success {
-    color: hsl(160, 84%, 26%);
-  }
-
-  .editor-message.error {
-    color: hsl(0, 70%, 38%);
   }
 </style>

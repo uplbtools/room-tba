@@ -2,6 +2,7 @@ import type {
   ProposalCreateType,
   ProposalEntityType,
 } from "../services/proposal-service";
+import { validateSubmitterName } from "../../constants/proposals";
 import type { RoomData } from "../types";
 
 export type StoredProposalRef = {
@@ -331,6 +332,13 @@ export async function submitEntityProposal(input: {
   submitterName?: string;
   proposalId?: number | null;
 }): Promise<{ ok: boolean; error?: string; proposal?: StoredProposalRef }> {
+  if (input.submitterName !== undefined) {
+    const validation = validateSubmitterName(input.submitterName);
+    if (!validation.ok) {
+      return { ok: false, error: validation.error };
+    }
+  }
+
   const res = await fetch("/api/proposals", {
     method: "POST",
     credentials: "same-origin",

@@ -1,6 +1,5 @@
 // @ts-check
 import { defineConfig, envField } from "astro/config";
-import react from "@astrojs/react";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import vercel from "@astrojs/vercel";
@@ -9,7 +8,6 @@ export default defineConfig({
   site: "https://room-tba.uplbtools.me",
 
   integrations: [
-    react(),
     svelte(),
     AstroPWA({
       workbox: {

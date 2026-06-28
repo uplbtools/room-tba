@@ -6,9 +6,18 @@
   import { registerSW } from "virtual:pwa-register";
   import { APP_VERSION_LABEL } from "../../constants/version";
   import { getAppData } from "../../lib/context";
-  import { modalStore, syncToastStore } from "../../lib/store.svelte";
+  import {
+    modalStore,
+    syncToastStore,
+    adminAuthStore,
+    toastStore,
+  } from "../../lib/store.svelte";
   import OfflineMaps from "./OfflineMaps.svelte";
   import SyncStatus from "./SyncStatus.svelte";
+  import MapChromeSession from "./map-chrome/MapChromeSession.svelte";
+  import MapChromeGhostButton from "./map-chrome/MapChromeGhostButton.svelte";
+  import "./map-chrome/map-chrome.css";
+  import { observeBlockHeight } from "../../lib/layout-css-vars";
   import { MediaQuery } from "svelte/reactivity";
 
   const appData = getAppData();
@@ -17,27 +26,32 @@
   const mobile = new MediaQuery("max-width:48rem");
   /** Full sync copy only when the mobile status drawer is expanded. */
   const showFullSync = $derived(mobile.current && isOpen);
+  const contributorSession = $derived(
+    adminAuthStore.isLoggedIn &&
+      !adminAuthStore.canPublish &&
+      !adminAuthStore.canReview,
+  );
+  const editorSession = $derived(
+    adminAuthStore.isLoggedIn &&
+      (adminAuthStore.canPublish || adminAuthStore.canReview),
+  );
+  const sessionDisplayName = $derived(
+    adminAuthStore.displayName ?? adminAuthStore.username ?? "Contributor",
+  );
+  const sessionRoleLabel = $derived(
+    adminAuthStore.role === "admin"
+      ? "Admin"
+      : adminAuthStore.role === "editor"
+        ? "Editor"
+        : "Contributor",
+  );
 
   let barEl = $state<HTMLDivElement | null>(null);
 
   $effect(() => {
     const el = barEl;
-    if (!el || typeof ResizeObserver === "undefined") return;
-
-    const root = el.closest(".app-layout") as HTMLElement | null;
-    if (!root) return;
-
-    const syncHeight = () => {
-      root.style.setProperty(
-        "--status-bar-block-height",
-        `${el.getBoundingClientRect().height}px`,
-      );
-    };
-
-    syncHeight();
-    const observer = new ResizeObserver(syncHeight);
-    observer.observe(el);
-    return () => observer.disconnect();
+    if (!el) return;
+    return observeBlockHeight(el, "--status-bar-block-height");
   });
 
   onMount(() => {
@@ -54,10 +68,20 @@
       void updateSW(true);
     });
   });
+
+  async function handleSignOut() {
+    await adminAuthStore.logout();
+    toastStore.show("Signed out.", "info");
+  }
 </script>
 
 <div class="status-bar" class:is-open={isOpen} bind:this={barEl}>
-  <button class="status-toggle" onclick={() => (isOpen = !isOpen)}>
+  <button
+    class="status-toggle"
+    aria-expanded={isOpen}
+    aria-controls="status-bar-details"
+    onclick={() => (isOpen = !isOpen)}
+  >
     {#if isOpen}
       <ChevronDown size={20} />
     {:else}
@@ -74,14 +98,31 @@
     />
 
     <OfflineMaps compact={mobile.current && !isOpen} />
+
+    {#if contributorSession || editorSession}
+      <MapChromeSession
+        label="{sessionRoleLabel}: {sessionDisplayName}"
+        compactLabel={sessionDisplayName}
+        title="Signed in as {sessionRoleLabel.toLowerCase()}"
+        compact={mobile.current && !isOpen}
+        onSignOut={handleSignOut}
+      />
+    {/if}
   </div>
 
-  <div class="content-wrapper">
+  <div class="content-wrapper" id="status-bar-details">
     <div class="directions-progress">
       <span class="directions-label">Rooms with directions</span>
-      <div class="progress-bar">
+      <div
+        class="map-chrome-progress map-chrome-progress--lg"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={totalRooms}
+        aria-valuenow={directionCount}
+        aria-label="Rooms with directions"
+      >
         <div
-          class="progress-bar__value"
+          class="map-chrome-progress__value"
           style:width={`${Math.floor((directionCount / totalRooms) * 100)}%`}
         ></div>
       </div>
@@ -99,22 +140,32 @@
           href="/messenger"
           target="_blank"
           rel="noopener noreferrer"
-          class="messenger-link"
+          class="map-chrome-ghost-link"
         >
           <MessageCircle size={18} />
           <div>Contact</div>
         </a>
       </div>
       <div>
-        <button
-          class="contributors-btn"
+        <MapChromeGhostButton
+          variant="muted"
           onclick={() => modalStore.openModal("landing")}
         >
           Contributors
-        </button>
+        </MapChromeGhostButton>
       </div>
+      {#if !adminAuthStore.isLoggedIn}
+        <div>
+          <MapChromeGhostButton
+            variant="muted"
+            onclick={() => adminAuthStore.openLogin()}
+          >
+            Editor sign in
+          </MapChromeGhostButton>
+        </div>
+      {/if}
       <div class="app-version">
-        <a href="/changelog" class="changelog-link">
+        <a href="/changelog" class="map-chrome-ghost-link changelog-link">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="18"
@@ -189,7 +240,7 @@
       align-items: center;
       gap: 0.75rem;
       min-width: 0;
-      overflow: hidden;
+      overflow: visible;
       position: relative;
     }
 
@@ -223,43 +274,9 @@
       }
     }
 
-    .messenger-link {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      text-decoration: none;
-      color: inherit;
-      padding: 0.125rem 0.375rem;
-      &:hover {
-        border-radius: 0.5rem;
-        background-color: hsla(0, 0%, 0%, 0.1);
-      }
-    }
-    .contributors-btn {
-      background: none;
-      border: none;
-      padding: 0;
-      font: inherit;
-      cursor: pointer;
-      color: inherit;
-      padding: 0.125rem 0.375rem;
-      &:hover {
-        border-radius: 0.5rem;
-        background-color: hsla(0, 0%, 0%, 0.1);
-      }
-    }
     .app-version {
       .changelog-link {
-        display: flex;
-        gap: 0.25rem;
         white-space: nowrap;
-        color: unset;
-        text-decoration: unset;
-        padding: 0.125rem 0.375rem;
-        &:hover {
-          border-radius: 0.5rem;
-          background-color: hsla(0, 0%, 0%, 0.1);
-        }
       }
     }
     .data-updated {
@@ -281,21 +298,9 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .progress-bar {
+      :global(.map-chrome-progress) {
         width: min(5.5rem, 14vw);
-        height: 0.75rem;
         flex: 0 0 auto;
-        border-radius: 0.5rem;
-        background-color: #ddd;
-        position: relative;
-        .progress-bar__value {
-          position: absolute;
-          top: 0;
-          left: 0;
-          height: 100%;
-          background-color: #7b1113;
-          border-radius: 0.5rem;
-        }
       }
     }
   }
@@ -375,7 +380,7 @@
     }
   }
 
-  @media (min-width: 48.0625rem) and (max-width: 800px) {
+  @media (min-width: 48.0625rem) and (max-width: 50rem) {
     div.status-bar {
       width: 100%;
       max-width: calc(100% - var(--bottom-fab-inset, 0px));
@@ -414,6 +419,13 @@
   @media (max-width: 1024px) {
     .directions-label {
       display: none;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    div.status-bar {
+      backdrop-filter: none;
+      background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     }
   }
 </style>

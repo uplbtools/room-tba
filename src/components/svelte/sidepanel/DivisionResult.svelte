@@ -5,10 +5,15 @@
     toastStore,
   } from "../../../lib/store.svelte";
   import { persistEntityChange } from "../../../lib/proposals/client";
+  import { handlePersistEntityResult } from "../../../lib/editor/handle-persist-result";
   import { getAppActions, getAppData } from "../../../lib/context";
   import type { DivisionData, RoomData } from "../../../lib/types";
   import { getDivisionRooms } from "../../../lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
+  import EntityEditorToggle from "../editor/EntityEditorToggle.svelte";
+  import EntityEditorPanel from "../editor/EntityEditorPanel.svelte";
+  import EntityEditorField from "../editor/EntityEditorField.svelte";
+  import { entityEditorSavedMessage } from "../../../lib/editor/field-action-label";
   import {
     checkLocalDivisionRoom,
     syncDivisionRooms,
@@ -121,17 +126,17 @@
           submitterNameDraft,
       });
 
-      if (!result.ok) {
-        if (result.latest)
-          syncDivisionFromServer(result.latest as DivisionData);
-        fieldError =
-          result.error ?? `${current.divisionName} could not be saved.`;
+      const outcome = handlePersistEntityResult<DivisionData>(result, {
+        syncFromServer: syncDivisionFromServer,
+        fallbackError: `${current.divisionName} could not be saved.`,
+      });
+
+      if (outcome.error) {
+        fieldError = outcome.error;
         return;
       }
 
-      if (result.published) {
-        syncDivisionFromServer(result.published as DivisionData);
-      } else {
+      if (!outcome.published) {
         toastStore.show(
           "Division change suggestion submitted for review.",
           "success",
@@ -157,10 +162,16 @@
     });
   }
 
-  function fieldActionLabel(field: "divisionName" | "collegeId") {
-    if (savingField === field)
-      return canPublish ? "Saving..." : "Submitting...";
-    return canPublish ? "Save" : "Submit";
+  function divisionSavedMessage(
+    field: "divisionName" | "collegeId" | null,
+  ): string | null {
+    if (!field) return null;
+    if (!canPublish) {
+      return entityEditorSavedMessage({ canPublish: false });
+    }
+    return field === "collegeId"
+      ? "Parent college saved."
+      : "Division name saved.";
   }
 </script>
 
@@ -185,82 +196,63 @@
     </div>
 
     <section class="entity-editor" aria-label="Edit division details">
-      <button
-        type="button"
-        class="editor-toggle"
-        aria-expanded={editing}
+      <EntityEditorToggle
+        expanded={editing}
+        {canPublish}
+        publishOpenLabel="Edit division"
         onclick={() => (editing = !editing)}
-      >
-        {editing ? "Close" : canPublish ? "Edit division" : "Suggest an edit"}
-      </button>
+      />
       {#if editing}
-        <div class="editor-heading">
-          <span>{canPublish ? "Editor" : "Suggest a change"}</span>
-        </div>
-        {#if !canPublish && !adminAuthStore.isLoggedIn}
-          <div class="editor-field">
-            <label for="division-submitter-name">Your name</label>
-            <input
-              id="division-submitter-name"
-              bind:value={submitterNameDraft}
-              maxlength="100"
-              autocomplete="name"
-            />
-          </div>
-        {/if}
-        <div class="editor-field">
-          <label for="division-name-editor">Division name</label>
-          <div class="editor-control-row">
-            <input
-              id="division-name-editor"
-              bind:value={nameDraft}
-              disabled={savingField !== null}
-              autocomplete="off"
-            />
-            <button
-              class="field-save-btn"
-              disabled={savingField !== null ||
-                nameDraft.trim() === division.divisionName}
-              onclick={() => saveField("divisionName")}
-            >
-              {fieldActionLabel("divisionName")}
-            </button>
-          </div>
-        </div>
-        <div class="editor-field">
-          <label for="division-college-editor">Parent college</label>
-          <div class="editor-control-row">
-            <select
-              id="division-college-editor"
-              bind:value={collegeDraft}
-              disabled={savingField !== null}
-            >
-              <option value="">No college</option>
-              {#each colleges as college (college.id)}
-                <option value={String(college.id)}>{college.collegeName}</option
-                >
-              {/each}
-            </select>
-            <button
-              class="field-save-btn"
-              disabled={savingField !== null ||
-                collegeDraft === String(division.collegeId ?? "")}
-              onclick={() => saveField("collegeId")}
-            >
-              {fieldActionLabel("collegeId")}
-            </button>
-          </div>
-        </div>
-        {#if savedField}
-          <p class="editor-message success">
-            {savedField === "collegeId"
-              ? "Parent college saved."
-              : "Division name saved."}
-          </p>
-        {/if}
-        {#if fieldError}
-          <p class="editor-message error">{fieldError}</p>
-        {/if}
+        <EntityEditorPanel
+          {canPublish}
+          showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
+          submitterNameId="division-submitter-name"
+          bind:submitterName={submitterNameDraft}
+          successMessage={divisionSavedMessage(savedField)}
+          errorMessage={fieldError}
+        >
+          <EntityEditorField
+            label="Division name"
+            inputId="division-name-editor"
+            {canPublish}
+            disabled={savingField !== null}
+            fieldSaving={savingField === "divisionName"}
+            unchanged={nameDraft.trim() === division.divisionName}
+            onsave={() => saveField("divisionName")}
+          >
+            {#snippet control()}
+              <input
+                id="division-name-editor"
+                bind:value={nameDraft}
+                disabled={savingField !== null}
+                autocomplete="off"
+              />
+            {/snippet}
+          </EntityEditorField>
+          <EntityEditorField
+            label="Parent college"
+            inputId="division-college-editor"
+            {canPublish}
+            disabled={savingField !== null}
+            fieldSaving={savingField === "collegeId"}
+            unchanged={collegeDraft === String(division.collegeId ?? "")}
+            onsave={() => saveField("collegeId")}
+          >
+            {#snippet control()}
+              <select
+                id="division-college-editor"
+                bind:value={collegeDraft}
+                disabled={savingField !== null}
+              >
+                <option value="">No college</option>
+                {#each colleges as college (college.id)}
+                  <option value={String(college.id)}>{college.collegeName}</option
+                  >
+                {/each}
+              </select>
+            {/snippet}
+          </EntityEditorField>
+        </EntityEditorPanel>
       {/if}
     </section>
   {/if}
@@ -272,6 +264,8 @@
 </div>
 
 <style>
+  @import "../editor/entity-editor.css";
+
   .division-query-wrapper {
     display: flex;
     flex-direction: column;
@@ -319,112 +313,5 @@
   .college-link:hover,
   .college-link:focus-visible {
     color: hsl(5, 53%, 22%);
-  }
-
-  .entity-editor {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.625rem;
-    border: 1px solid hsl(5, 53%, 88%);
-    border-radius: 0.625rem;
-    background-color: hsl(5, 53%, 98%);
-  }
-
-  .editor-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: max-content;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.5rem;
-    background: white;
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    padding: 0.45rem 0.75rem;
-  }
-
-  .editor-toggle:hover,
-  .editor-toggle:focus-visible {
-    background: #fdf3f3;
-  }
-
-  .editor-toggle:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .editor-heading {
-    color: hsl(5, 53%, 32%);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .editor-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .editor-field label {
-    color: #555;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-
-  .editor-control-row {
-    display: flex;
-    gap: 0.375rem;
-    align-items: stretch;
-  }
-
-  .editor-control-row input,
-  .editor-control-row select {
-    min-width: 0;
-    flex: 1;
-    border: 1px solid #d8d8d8;
-    border-radius: 0.5rem;
-    padding: 0.45rem 0.55rem;
-    font: inherit;
-    font-size: 0.8125rem;
-  }
-
-  .field-save-btn {
-    flex-shrink: 0;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.5rem;
-    background: white;
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.45rem 0.65rem;
-  }
-
-  .field-save-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-  }
-
-  .editor-message {
-    margin: 0;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  .editor-message.success {
-    color: hsl(160, 84%, 26%);
-  }
-
-  .editor-message.error {
-    color: hsl(0, 70%, 38%);
   }
 </style>

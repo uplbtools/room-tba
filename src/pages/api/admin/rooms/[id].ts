@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "../../../../lib/admin/require-editor";
+import { parseRequiredEditorVersion } from "../../../../lib/admin/expected-version";
 import {
   EditConflictError,
   DuplicateNameError,
@@ -78,9 +79,9 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     );
   }
 
-  const expectedVersion = Number.isInteger(body.version)
-    ? body.version
-    : undefined;
+  const parsedVersion = parseRequiredEditorVersion(body.version);
+  if (!parsedVersion.ok) return parsedVersion.response;
+  const expectedVersion = parsedVersion.version;
 
   try {
     const updates: Parameters<typeof updateRoom>[1] = {};
