@@ -14,7 +14,7 @@ Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column, building pin filter chips (`BuildingTypeFilterBar.svelte`), event banner, Map tools trigger
+- **Top band:** search column, building pin filter chips (`BuildingTypeFilterBar.svelte`), **Editor chip + shelf** (signed-in editors), event banner, Map tools trigger
 - **Map face:** map canvas, desktop camera toolbar (`MapViewControls variant="camera"` — 2D/3D + rotate/tilt/compass), mobile `MapDimensionToggle`, location/editor FAB
 - **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location/editor FAB
 - **Ephemeral:** toast, modals

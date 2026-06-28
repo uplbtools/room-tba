@@ -10,6 +10,7 @@
     adminAuthStore,
     mapEditStore,
     mapToolsStore,
+    editorChromeStore,
     sidePanelStore,
   } from "@lib/store.svelte";
   import Modal from "@ui/modal/Modal.svelte";
@@ -24,6 +25,7 @@
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
+  import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import type { RecentSearch } from "@lib/types";
@@ -93,6 +95,12 @@
     if (e.key === "Escape") {
       if (modalStore.open) {
         modalStore.closeModal();
+      } else if (adminAuthStore.loginOpen) {
+        adminAuthStore.closeLogin();
+      } else if (editorChromeStore.additionModalOpen) {
+        editorChromeStore.closeAdditionModal();
+      } else if (editorChromeStore.shelfOpen) {
+        editorChromeStore.closeShelf();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
@@ -156,6 +164,7 @@
   {#if adminAuthStore.loginOpen}
     <AdminLoginModal />
   {/if}
+  <EditorAdditionModal />
 </div>
 
 <style>

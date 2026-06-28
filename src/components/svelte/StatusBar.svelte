@@ -30,10 +30,6 @@
       !adminAuthStore.canPublish &&
       !adminAuthStore.canReview,
   );
-  const editorSession = $derived(
-    adminAuthStore.isLoggedIn &&
-      (adminAuthStore.canPublish || adminAuthStore.canReview),
-  );
   const sessionDisplayName = $derived(
     adminAuthStore.displayName ?? adminAuthStore.username ?? "Contributor",
   );
@@ -44,12 +40,8 @@
         ? "Editor"
         : "Contributor",
   );
-  const showSessionChip = $derived(
-    (contributorSession || editorSession) && !isOpen,
-  );
-  const showSessionExpanded = $derived(
-    (contributorSession || editorSession) && isOpen,
-  );
+  const showSessionChip = $derived(contributorSession && !isOpen);
+  const showSessionExpanded = $derived(contributorSession && isOpen);
 
   let barEl = $state<HTMLDivElement | null>(null);
 
