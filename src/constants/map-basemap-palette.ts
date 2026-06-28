@@ -7,8 +7,13 @@
  * for offline tiles. Pin/label colors are unchanged; maroon pins (#7b1113) stay
  * readable on both the green lawn and warm building fills.
  *
+ * Building fill/extrusion colors scale with OpenMapTiles `render_height` (m)
+ * when MAP_BASEMAP_BUILDING_SIZE_COLORS is true — see BUILDING_SIZE_COLOR_EXPRESSION.
+ *
  * Swap MAP_BASEMAP_PALETTE with a preset below to try alternates.
  */
+
+import type { ExpressionSpecification } from "maplibre-gl";
 
 /** OSM Liberty defaults (reference only — rejected neon grass):
  *  background rgb(239,239,239) · grass rgba(177,255,142,0.3) · water rgba(164,219,255,1)
@@ -175,10 +180,47 @@ export const uplbRefreshing = {
 
 export const MAP_BASEMAP_PALETTE = uplbRefreshing;
 
+/** Toggle size-driven building colors (render_height → warm wood ramp). */
+export const MAP_BASEMAP_BUILDING_SIZE_COLORS = true;
+
+/**
+ * Data-driven building color by OpenMapTiles `render_height` (meters).
+ * OMT derives this from OSM height, building:levels × 3.66, or defaults to 5 m.
+ * At z13 generalized blocks omit render_height — coalesce falls back to 5 (light tan).
+ * Probed UPLB z14 tiles (Jun 2026): ~90 footprints, heights 1–85 m, ~10% at default 5 m.
+ * Smaller footprints read lighter; taller blocks read richer brown on green lawn.
+ */
+export function buildingSizeColorExpression(
+  palette: Pick<typeof uplbRefreshing, "buildingFill" | "buildingExtrusion"> =
+    MAP_BASEMAP_PALETTE,
+): ExpressionSpecification {
+  return [
+    "interpolate",
+    ["linear"],
+    ["coalesce", ["get", "render_height"], 5],
+    3,
+    "#ead8bc",
+    5,
+    "#e8d4b4",
+    8,
+    palette.buildingFill,
+    12,
+    "#c4a67a",
+    18,
+    palette.buildingExtrusion,
+    28,
+    "#9a7850",
+    45,
+    "#7a5c38",
+  ];
+}
+
+type BasemapPaintValue = string | number | boolean | ExpressionSpecification;
+
 /** Layer paint overrides keyed by MapLibre layer id. */
 export const BASEMAP_LAYER_PAINT: Record<
   string,
-  Record<string, string | number>
+  Record<string, BasemapPaintValue>
 > = {
   background: {
     "background-color": MAP_BASEMAP_PALETTE.background,
@@ -221,11 +263,15 @@ export const BASEMAP_LAYER_PAINT: Record<
     "fill-color": MAP_BASEMAP_PALETTE.landuseTrack,
   },
   building: {
-    "fill-color": MAP_BASEMAP_PALETTE.buildingFill,
+    "fill-color": MAP_BASEMAP_BUILDING_SIZE_COLORS
+      ? buildingSizeColorExpression()
+      : MAP_BASEMAP_PALETTE.buildingFill,
     "fill-outline-color": MAP_BASEMAP_PALETTE.buildingOutline,
   },
   "building-3d": {
-    "fill-extrusion-color": MAP_BASEMAP_PALETTE.buildingExtrusion,
+    "fill-extrusion-color": MAP_BASEMAP_BUILDING_SIZE_COLORS
+      ? buildingSizeColorExpression()
+      : MAP_BASEMAP_PALETTE.buildingExtrusion,
     "fill-extrusion-opacity": MAP_BASEMAP_PALETTE.buildingExtrusionOpacity,
     "fill-extrusion-vertical-gradient": true,
   },
