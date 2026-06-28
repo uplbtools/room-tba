@@ -1,5 +1,6 @@
 <script lang="ts">
   import { debounce } from "es-toolkit";
+  import { fly } from "svelte/transition";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import Menu from "@lucide/svelte/icons/menu";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
@@ -20,6 +21,12 @@
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
+  import {
+    dropdownDismiss,
+    dropdownReveal,
+    shelfDismiss,
+    shelfReveal,
+  } from "@lib/motion";
   import { MediaQuery } from "svelte/reactivity";
 
   let searchElement = $state<HTMLInputElement | null>(null);
@@ -29,6 +36,7 @@
   let eventsCollapsed = $state(true);
   let searchFocused = $state(false);
   const mobile = new MediaQuery("max-width:48rem");
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   const appData = getAppData();
   const { loaded } = $derived(appData());
@@ -124,9 +132,7 @@
       (adminAuthStore.canPublish || adminAuthStore.canReview),
   );
 
-  const editorChipLabel = $derived(
-    mapEditStore.enabled ? "Editing" : "Editor",
-  );
+  const editorChipLabel = $derived(mapEditStore.enabled ? "Editing" : "Editor");
 
   const showSearchDropdown = $derived(
     chrome.showSearchSuggestions &&
@@ -137,7 +143,10 @@
 
   const showEventsSheet = $derived(showIdleEventsChrome && !eventsCollapsed);
 
-  const showEditorSheet = $derived(showEditorChrome && editorChromeStore.shelfOpen);
+  const showEditorSheet = $derived(
+    showEditorChrome && editorChromeStore.shelfOpen,
+  );
+  const showEditorInline = $derived(showEditorSheet && !mobile.current);
 
   $effect(() => {
     if (draftInput.trim() !== "") {
@@ -172,7 +181,7 @@
   class:mobile-shell={mobile.current}
   class:search-input-focused={searchFocused}
   class:events-panel-open={showEventsSheet}
-  class:editor-panel-open={showEditorSheet}
+  class:editor-panel-open={showEditorInline}
 >
   <div class="search-shell-main" bind:this={shellMainEl}>
     {#if mobile.current}
@@ -193,76 +202,81 @@
         <div class="map-search-chrome__bar-row">
           <div class="map-search-chrome__pill-wrap">
             <div class="map-search-chrome__pill">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="search-icon"
-              aria-hidden="true"
-              ><circle cx="11" cy="11" r="8" /><line
-                x1="21"
-                y1="21"
-                x2="16.65"
-                y2="16.65"
-              /></svg
-            >
-            <label class="sr-only" for="search">Search campus</label>
-            <input
-              type="text"
-              id="search"
-              autocomplete="off"
-              value={draftInput}
-              bind:this={searchElement}
-              oninput={handleInput}
-              onfocus={() => {
-                searchFocused = true;
-              }}
-              onblur={() => {
-                searchFocused = false;
-              }}
-              placeholder="Search room, building, dorm, event, division..."
-            />
-            {#if draftInput !== "" || queryStore.category !== null}
-              <button
-                onclick={closeSearchContext}
-                type="button"
-                class="clear-btn"
-                aria-label={clearSelectionLabel}
-                title={clearSelectionLabel}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="search-icon"
+                aria-hidden="true"
+                ><circle cx="11" cy="11" r="8" /><line
+                  x1="21"
+                  y1="21"
+                  x2="16.65"
+                  y2="16.65"
+                /></svg
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  ><line x1="18" y1="6" x2="6" y2="18"></line><line
-                    x1="6"
-                    y1="6"
-                    x2="18"
-                    y2="18"
-                  ></line></svg
+              <label class="sr-only" for="search">Search campus</label>
+              <input
+                type="text"
+                id="search"
+                autocomplete="off"
+                value={draftInput}
+                bind:this={searchElement}
+                oninput={handleInput}
+                onfocus={() => {
+                  searchFocused = true;
+                }}
+                onblur={() => {
+                  searchFocused = false;
+                }}
+                placeholder="Search room, building, dorm, event, division..."
+              />
+              {#if draftInput !== "" || queryStore.category !== null}
+                <button
+                  onclick={closeSearchContext}
+                  type="button"
+                  class="clear-btn"
+                  aria-label={clearSelectionLabel}
+                  title={clearSelectionLabel}
                 >
-              </button>
-            {/if}
-          </div>
-
-          {#if showSearchDropdown}
-            <div class="map-search-chrome__dropdown" role="listbox">
-              <Suggestions />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                      x1="6"
+                      y1="6"
+                      x2="18"
+                      y2="18"
+                    ></line></svg
+                  >
+                </button>
+              {/if}
             </div>
-          {/if}
+
+            {#if showSearchDropdown}
+              <div
+                class="map-search-chrome__dropdown"
+                role="listbox"
+                in:fly={dropdownReveal(reducedMotion.current)}
+                out:fly={dropdownDismiss(reducedMotion.current)}
+              >
+                <Suggestions />
+              </div>
+            {/if}
           </div>
 
           {#if showEditorChrome}
@@ -272,7 +286,9 @@
               class:map-search-chrome__editor-btn--active={showEditorSheet}
               class:map-search-chrome__editor-btn--editing={mapEditStore.enabled}
               aria-expanded={showEditorSheet}
-              aria-controls="editor-shelf-panel"
+              aria-controls={mobile.current
+                ? "editor-screen"
+                : "editor-shelf-panel"}
               aria-label={showEditorSheet
                 ? "Close editor tools"
                 : "Open editor tools"}
@@ -300,29 +316,29 @@
             <MapDimensionToggle compact />
           {/if}
           {#if chrome.showSearchSuggestions}
-          {#if showIdleEventsChrome}
-            <button
-              type="button"
-              class="map-chrome-chip"
-              class:map-chrome-chip--toggle-active={showEventsSheet}
-              aria-expanded={showEventsSheet}
-              aria-controls="persistent-campus-events"
-              aria-label={showEventsSheet
-                ? "Close campus events"
-                : "Open campus events"}
-              onclick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                closeEditorShelf();
-                toggleEventsShelf();
-              }}
-              disabled={!loaded}
-            >
-              <CalendarDays size={14} aria-hidden="true" />
-              <span>Events</span>
-            </button>
-          {/if}
-          <BuildingTypeFilterBar />
+            {#if showIdleEventsChrome}
+              <button
+                type="button"
+                class="map-chrome-chip"
+                class:map-chrome-chip--toggle-active={showEventsSheet}
+                aria-expanded={showEventsSheet}
+                aria-controls="persistent-campus-events"
+                aria-label={showEventsSheet
+                  ? "Close campus events"
+                  : "Open campus events"}
+                onclick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  closeEditorShelf();
+                  toggleEventsShelf();
+                }}
+                disabled={!loaded}
+              >
+                <CalendarDays size={14} aria-hidden="true" />
+                <span>Events</span>
+              </button>
+            {/if}
+            <BuildingTypeFilterBar />
           {/if}
         </div>
       {/if}
@@ -332,6 +348,8 @@
           class="map-search-chrome__events"
           id="persistent-campus-events"
           aria-labelledby="persistent-campus-events-heading"
+          in:fly={shelfReveal(reducedMotion.current)}
+          out:fly={shelfDismiss(reducedMotion.current)}
         >
           <EventCards
             headingId="persistent-campus-events-heading"
@@ -342,11 +360,13 @@
         </div>
       {/if}
 
-      {#if showEditorSheet}
+      {#if showEditorInline}
         <div
           class="map-search-chrome__editor"
           id="editor-shelf-panel"
           aria-label="Editor tools"
+          in:fly={shelfReveal(reducedMotion.current)}
+          out:fly={shelfDismiss(reducedMotion.current)}
         >
           <EditorShelf onclose={closeEditorShelf} />
         </div>
@@ -399,8 +419,12 @@
     max-width: 100%;
     min-width: 0;
     padding: calc(env(safe-area-inset-top, 0px) + 0.4375rem) 0.625rem 0.4375rem;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    background: linear-gradient(
+      180deg,
+      var(--map-chrome-band-backdrop, hsla(5, 22%, 96%, 0.82)) 0%,
+      var(--map-chrome-surface, hsl(5 20% 97%)) 72%
+    );
+    border-bottom: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     box-shadow: var(--map-chrome-shadow);
     pointer-events: auto;
   }
@@ -433,7 +457,7 @@
     max-width: 100%;
     margin-inline: -0.625rem;
     padding: 0.4375rem 0.625rem 0.1875rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
   .search-root.mobile-shell .map-search-chrome__events,
@@ -451,12 +475,10 @@
     width: min(25.75rem, calc(50% - 4rem));
     max-width: 100%;
     min-width: 0;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: var(--map-chrome-radius, 1rem);
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    box-shadow:
-      0 2px 6px hsla(0, 0%, 0%, 0.18),
-      0 8px 20px hsla(0, 0%, 0%, 0.14);
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    box-shadow: var(--map-chrome-shadow);
     overflow: visible;
   }
 
@@ -643,7 +665,9 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding: 0.3125rem 0.625rem 0.3125rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--map-chrome-divider, hsl(0, 0%, 92%));
+    transition: border-radius var(--motion-duration-micro)
+      var(--motion-ease-out);
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome__chips {
@@ -702,7 +726,7 @@
     max-height: min(50dvh, 22rem);
     overflow: hidden;
     overscroll-behavior: contain;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
     padding: 0.1875rem 0.625rem 0.4375rem;
     -webkit-overflow-scrolling: touch;
   }
@@ -753,7 +777,8 @@
     background-color: hsl(0, 0%, 72%);
   }
 
-  .map-search-chrome__events :global(.event-list):hover::-webkit-scrollbar-thumb {
+  .map-search-chrome__events
+    :global(.event-list):hover::-webkit-scrollbar-thumb {
     background-color: hsl(0, 0%, 58%);
   }
 
@@ -769,7 +794,7 @@
     overflow-x: clip;
     overflow-y: auto;
     overscroll-behavior: contain;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
     padding: 0.25rem 0.625rem 0.4375rem;
     -webkit-overflow-scrolling: touch;
   }

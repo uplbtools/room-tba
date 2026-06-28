@@ -14,10 +14,10 @@ Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only)
-- **Map face:** map canvas, desktop `MapDimensionToggle` + camera stack (`MapViewControls variant="camera"` — rotate/tilt/north), location FAB (+ contributor propose FAB when signed in)
+- **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
+- **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north), location FAB (+ contributor propose FAB when signed in)
 - **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location FAB (fixed above status bar)
-- **Ephemeral:** toast, modals
+- **Ephemeral:** toast, modals, mobile editor screen (`EditorScreen.svelte` when `editorChromeStore.shelfOpen`)
 
 MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.
 
@@ -37,12 +37,12 @@ Use these instead of magic `bottom` / `top` values.
 
 Entity detail views (`RoomResult`, `BuildingResult`, `DormResult`, etc.) use shared layout from `controls/entity-detail.css`:
 
-| Zone | Contents |
-| ---- | -------- |
-| Header | Breadcrumb (optional), title + badge, context line, **one** actions row (Copy link, Edit, nav chips) |
-| Body | Browse text; editor panel expands inline when Edit is open |
-| Directions | Merged directions text + suggest links + Directions / Google Maps chips |
-| Footer | Secondary links only (e.g. classes schedule, external refs) |
+| Zone       | Contents                                                                                             |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| Header     | Breadcrumb (optional), title + badge, context line, **one** actions row (Copy link, Edit, nav chips) |
+| Body       | Browse text; editor panel expands inline when Edit is open                                           |
+| Directions | Merged directions text + suggest links + Directions / Google Maps chips                              |
+| Footer     | Secondary links only (e.g. classes schedule, external refs)                                          |
 
 Do not add duplicate action rows or colored highlight boxes. See `.cursor/rules/side-panel.mdc`.
 
