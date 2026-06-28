@@ -140,18 +140,16 @@
     <div class="inner-layer">
       <MainControls />
       <div class="bottom-band">
-        <div class="bottom-band-elevated">
-          <div
-            class="location-fab-stack"
-            class:drawer-lift={drawerExpanded}
-            aria-label="Location and editor"
-          >
-            <LocationButton />
-          </div>
-        </div>
         <div class="bottom-band-footer">
           <MapAttribution />
           <StatusBar />
+        </div>
+        <div
+          class="location-fab-stack"
+          class:drawer-lift={drawerExpanded}
+          aria-label="Location controls"
+        >
+          <LocationButton />
         </div>
       </div>
     </div>
@@ -221,22 +219,17 @@
   }
 
   .bottom-band {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-end;
-    gap: 0.5rem;
+    gap: 0;
     flex-shrink: 0;
     width: 100%;
     pointer-events: none;
     /* Reserve horizontal space so status bar text does not sit under FABs */
     --bottom-fab-inset: 3.75rem;
-  }
-
-  .bottom-band-elevated {
-    display: flex;
-    justify-content: flex-end;
-    pointer-events: none;
   }
 
   .bottom-band-footer {
@@ -321,7 +314,12 @@
   }
 
   .location-fab-stack {
-    position: relative;
+    position: fixed;
+    right: calc(var(--map-ui-padding, 0.5rem) + 0.5rem);
+    bottom: calc(
+      var(--status-bar-block-height, 2.75rem) + env(safe-area-inset-bottom, 0px) +
+        0.5rem
+    );
     z-index: 14;
     display: flex;
     flex-direction: column;

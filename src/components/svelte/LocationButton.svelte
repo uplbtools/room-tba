@@ -3,15 +3,11 @@
   import Locate from "@lucide/svelte/icons/locate";
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import Plus from "@lucide/svelte/icons/plus";
-  import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import {
     adminAuthStore,
-    editorChromeStore,
     floatingControlPanelStore,
     locationStore,
-    mapEditStore,
     mapStore,
-    proposalsStore,
     toastStore,
   } from "@lib/store.svelte";
   import SuggestAdditionPanel from "./SuggestAdditionPanel.svelte";
@@ -26,9 +22,6 @@
     adminAuthStore.hydrate();
   });
 
-  const showEditorControls = $derived(
-    adminAuthStore.canPublish || adminAuthStore.canReview,
-  );
   const showSuggestAddition = $derived(!adminAuthStore.canPublish);
 
   const handleLocationClick = () => {
@@ -50,36 +43,10 @@
       duration: 1500,
     });
   };
-
-  function openEditorShelf() {
-    editorChromeStore.toggleShelf();
-  }
 </script>
 
 <div class="map-control-stack">
-  {#if showEditorControls}
-    <button
-      class="map-control-btn"
-      class:active={mapEditStore.enabled || editorChromeStore.shelfOpen}
-      onclick={openEditorShelf}
-      title={mapEditStore.enabled
-        ? "Editor tools: map edit mode on"
-        : "Open editor tools"}
-      aria-label={mapEditStore.enabled
-        ? "Open editor tools, map edit mode on"
-        : "Open editor tools"}
-      aria-expanded={editorChromeStore.shelfOpen}
-      aria-controls="editor-shelf-panel"
-      aria-pressed={mapEditStore.enabled}
-    >
-      <ShieldCheck />
-      {#if proposalsStore.pendingCount > 0}
-        <span class="pending-badge" aria-hidden="true"
-          >{proposalsStore.pendingCount}</span
-        >
-      {/if}
-    </button>
-  {:else if showSuggestAddition}
+  {#if showSuggestAddition}
     <div class="admin-control">
       {#if suggestMenuOpen}
         <div
@@ -166,28 +133,6 @@
       outline: 2px solid hsl(5, 53%, 32%);
       outline-offset: 2px;
     }
-
-    &.active {
-      border-color: hsl(160, 84%, 26%);
-      background-color: hsl(160, 84%, 26%);
-      color: white;
-    }
-  }
-
-  .pending-badge {
-    position: absolute;
-    top: -0.15rem;
-    right: -0.15rem;
-    min-width: 1.1rem;
-    height: 1.1rem;
-    padding: 0 0.2rem;
-    border-radius: 999px;
-    background: hsl(5, 65%, 42%);
-    color: white;
-    font-size: 0.625rem;
-    font-weight: 700;
-    line-height: 1.1rem;
-    text-align: center;
   }
 
   .admin-panel {
