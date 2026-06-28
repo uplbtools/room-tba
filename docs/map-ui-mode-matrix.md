@@ -17,7 +17,7 @@ Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 - **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), transit toggle chip (`TransitFilterChip.svelte`, count badge + route sub-panel when active), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). Individual jeepney routes are picked in the transit sub-panel under the chip row or in Map tools → Transit (`JeepneyMenu.svelte` / `TransitRoutePanel.svelte`), not as top-level chips. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
 - **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north)
-- **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`) — attribution leading, status center, location/propose actions trailing; one shared surface
+- **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, location/propose actions trailing; one shared surface
 - **Ephemeral:** toast, modals, mobile editor screen (`EditorScreen.svelte` when `editorChromeStore.shelfOpen`)
 
 MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.
@@ -53,7 +53,7 @@ Do not add duplicate action rows or colored highlight boxes. See `.cursor/rules/
 
 ## Verification viewports
 
-320px, 768px, desktop — browse, edit mode, map tools open, sync active.
+320px, 768px, desktop; browse, edit mode, map tools open, sync active.
 
 ## Motion
 
@@ -61,4 +61,4 @@ Functional transitions only (no decorative loops). Shared tokens on `.app-layout
 
 ## Basemap palette
 
-Campus map tiles use `public/liberty-customized.json` (OSM Liberty / MapTiler vector tiles). Eye-strain tuning lives in `src/constants/map-basemap-palette.ts` and is applied at runtime via `applyBasemapPalette()` in `Map.svelte` (also mirrored in the JSON for offline downloads). Adjust grass, water, building extrusions, and road fills there — not map chrome tokens on `.app-layout`. A full dark or muted theme would need a separate style variant and user setting.
+Campus map tiles use `public/liberty-customized.json` (OSM Liberty / MapTiler vector tiles). Eye-strain tuning lives in `src/constants/map-basemap-palette.ts` and is applied at runtime via `applyBasemapPalette()` in `Map.svelte` (also mirrored in the JSON for offline downloads). Adjust grass, water, building extrusions, and road fills there; not map chrome tokens on `.app-layout`. A full dark or muted theme would need a separate style variant and user setting.

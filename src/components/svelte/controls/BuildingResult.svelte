@@ -368,7 +368,7 @@
             {#if canPublish}
               <EntityEditorPinRow
                 label={mapEditStore.enabled
-                  ? "Map pin — drag marker on map"
+                  ? "Map pin: drag marker on map"
                   : "Map pin"}
                 pickLabel={mapEditStore.enabled ? "Active" : "Enable map edit"}
                 disabled={mapEditStore.enabled || savingField !== null}
@@ -377,7 +377,7 @@
             {:else}
               <EntityEditorPinRow
                 label={pinProposalActive
-                  ? "Pin move — drag marker on map"
+                  ? "Pin move: drag marker on map"
                   : "Map pin"}
                 pickLabel={pinProposalActive ? "Active" : "Suggest move"}
                 disabled={pinProposalActive || savingField !== null}

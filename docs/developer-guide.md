@@ -12,7 +12,7 @@ For human developers contributing code. Start with [CONTRIBUTING.md](../CONTRIBU
 
 ```sh
 cp .env.example .env
-# Edit .env — DATABASE_URL is required for pages that hit the DB
+# Edit .env: DATABASE_URL is required for pages that hit the DB
 
 bun install
 bun dev   # http://localhost:4321
