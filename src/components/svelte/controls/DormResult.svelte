@@ -28,6 +28,7 @@
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getDormShareUrl } from "@lib/share-links";
+  import { normalizeStringList } from "@lib/string-lists";
 
   type DormEditableField =
     | "dormName"
@@ -100,14 +101,7 @@
     osmLink: "OpenStreetMap link",
   };
 
-  const amenities = $derived<() => string[]>(() => {
-    if (!dorm?.amenities) return [];
-    try {
-      return dorm?.amenities;
-    } catch {
-      return [];
-    }
-  });
+  const amenities = $derived(normalizeStringList(dorm?.amenities));
 
   const genderLabel = $derived(
     dorm?.gender === "male"
@@ -555,11 +549,11 @@
       {/if}
     </div>
 
-    {#if amenities().length > 0}
+    {#if amenities.length > 0}
       <div class="dorm-amenities">
         <h3 class="section-title">Amenities</h3>
         <div class="amenities-grid">
-          {#each amenities() as amenity}
+          {#each amenities as amenity}
             <span class="amenity-tag">{amenity}</span>
           {/each}
         </div>

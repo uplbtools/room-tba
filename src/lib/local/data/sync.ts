@@ -325,7 +325,7 @@ export async function syncDorms(
           b.capacity,
           b.managingOffice,
           b.contactEmail,
-          `{${b.amenities ? b.amenities.map((amenity) => `'${amenity}'`).join(",") : ""}}`,
+          b.amenities ?? null,
           b.osmLink,
           b.description,
           b.isUpManaged,

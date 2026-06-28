@@ -23,7 +23,7 @@ const dorms = (await db.select().from(dormsTable)).map(
           .map((s) => s.trim())
           .join(",")}}`
       : null,
-    amenities: amenities ? `{${JSON.parse(amenities).join(",")}}` : null,
+    amenities: amenities ? JSON.parse(amenities) : null,
     ...others,
   }),
 );
