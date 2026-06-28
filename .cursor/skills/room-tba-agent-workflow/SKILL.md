@@ -40,4 +40,5 @@ Commit policy, Conventional Commits format, and GPG signing: [AGENTS.md § Commi
 1. Read [docs/agentic-qa-process.md](../../docs/agentic-qa-process.md) and run applicable automated checks.
 2. Use the PR template QA summary (automated vs manual browser vs known gaps).
 3. For map/side-panel changes, confirm applicable Cursor rules were followed.
-4. Push with `-u origin HEAD` only when the user asked to push/open a PR.
+4. **Issue sync:** for each linked `#NNN`, update AC/paths/status per [docs/issue-hygiene.md](../../docs/issue-hygiene.md); comment with the PR URL.
+5. Push with `-u origin HEAD` only when the user asked to push/open a PR.
