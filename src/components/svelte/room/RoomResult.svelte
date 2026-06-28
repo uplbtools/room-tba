@@ -32,19 +32,13 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
+  import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import type { RoomData } from "@lib/types";
   import { tick } from "svelte";
   import Classes from "./Classes.svelte";
 
   type RoomEditableField =
     "roomCode" | "directions" | "buildingId" | "collegeId" | "divisionId";
-
-  type RoomPatchResponse = {
-    success?: boolean;
-    room?: RoomData;
-    latest?: RoomData | null;
-    error?: string;
-  };
 
   const appData = getAppData();
   const app = $derived(appData());
@@ -211,7 +205,7 @@
     mergePrompt = null;
 
     try {
-      const { version, ...patch } = body;
+      const { version: _version, ...patch } = body;
       const result = await persistEntityChange({
         entityType: "room",
         entityId: room.id,
@@ -248,7 +242,7 @@
       if (outcome.proposal) {
         activeProposalId = outcome.proposal.id;
         proposalStatus = outcome.proposal.status;
-        clearEntityContributorDraft("room", current.id);
+        clearEntityContributorDraft("room", room.id);
         toastStore.show(
           `Suggestion for ${room.code} submitted for review.`,
           "success",
@@ -692,6 +686,7 @@
       {#if activeTermLabel}
         <p class="entity-schedule__term">{activeTermLabel}</p>
       {/if}
+      <p class="entity-schedule__scope">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
       {#if roomClassesStore.loading}
         <p class="entity-schedule__empty">Loading classes…</p>
       {:else if roomClassesStore.classes.length > 0}
@@ -792,6 +787,13 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: hsl(5, 53%, 32%);
+  }
+
+  .entity-schedule__scope {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: hsl(0, 0%, 45%);
   }
 
   .entity-schedule__empty {

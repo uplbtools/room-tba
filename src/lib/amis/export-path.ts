@@ -4,9 +4,9 @@ export function defaultAmisExportPath(termId: number): string {
     termId === 1251
       ? "1st-sem"
       : termId === 1252
-        ? "midyear"
+        ? "2nd-sem"
         : termId === 1253
-          ? "2nd-sem"
+          ? "midyear"
           : `term-${termId}`;
   return `data/amis-${label}-${termId}.json`;
 }
