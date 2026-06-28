@@ -77,21 +77,21 @@
   }
 
   .attrib-toggle {
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--map-chrome-surface, hsl(5 20% 97%));
     color: hsl(0, 0%, 20%);
     font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1.2;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--map-chrome-shadow);
   }
 
   .attrib-toggle:hover,
   .attrib-toggle:focus-visible {
-    background: #fff;
+    background: hsl(5 25% 98%);
     outline: 2px solid #7b1113;
     outline-offset: 1px;
   }
@@ -106,12 +106,12 @@
     gap: 0.125rem;
     width: min(16rem, calc(100vw - var(--bottom-fab-inset, 0px) - 1.5rem));
     padding: 0.375rem 0.5rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--map-chrome-surface, hsl(5 20% 97%));
     font-size: 0.6875rem;
     line-height: 1.35;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+    box-shadow: var(--map-chrome-panel-shadow);
   }
 
   .attrib-body a {
@@ -128,9 +128,9 @@
     display: inline-flex;
     align-items: center;
     border-radius: 0.375rem;
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     padding: 0.25rem 0.375rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--map-chrome-shadow);
   }
 
   .maptiler-logo img {
