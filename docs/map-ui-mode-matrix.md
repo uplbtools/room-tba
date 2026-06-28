@@ -14,9 +14,9 @@ Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column, building pin filter chips (`BuildingTypeFilterBar.svelte`), **Editor chip + shelf** (signed-in editors), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only)
-- **Map face:** map canvas, desktop `MapDimensionToggle` + camera stack (`MapViewControls variant="camera"` — rotate/tilt/north), location/editor FAB
-- **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location/editor FAB
+- **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only)
+- **Map face:** map canvas, desktop `MapDimensionToggle` + camera stack (`MapViewControls variant="camera"` — rotate/tilt/north), location FAB (+ contributor propose FAB when signed in)
+- **Bottom band:** status bar, map attribution (`MapAttribution.svelte`), location FAB (fixed above status bar)
 - **Ephemeral:** toast, modals
 
 MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.

@@ -68,7 +68,7 @@
     position: relative;
     z-index: 15;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: flex-end;
     gap: 0.375rem;
     flex: 0 0 auto;
@@ -97,10 +97,14 @@
   }
 
   .attrib-body {
+    position: absolute;
+    bottom: calc(100% + 0.375rem);
+    left: 0;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
-    width: min(16rem, 100%);
+    width: min(16rem, calc(100vw - var(--bottom-fab-inset, 0px) - 1.5rem));
     padding: 0.375rem 0.5rem;
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
     border-radius: 0.5rem;

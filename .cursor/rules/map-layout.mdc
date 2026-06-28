@@ -19,6 +19,6 @@ Before adding or moving map chrome:
 1. Read `docs/map-ui-mode-matrix.md` and update it if you add a mode or surface.
 2. Mount UI in Entry zones (top / map / bottom / ephemeral) — no new fixed overlays in `Map.svelte` except pins and the edit dock. Basemap attribution belongs in `MapAttribution.svelte` on the bottom band, not on the map canvas.
 3. Use `.app-layout` CSS vars (`--status-bar-block-height`, `--edit-bar-height`, etc.) — no magic `bottom: 4.25rem`.
-4. One flyout at a time: `mapToolsStore` for Map tools; `floatingControlPanelStore` only for contributor propose menu on LocationButton. Editor tools use `editorChromeStore` (top-bar chip + shelf; shield FAB opens the same shelf).
+4. One flyout at a time: `mapToolsStore` for Map tools; `floatingControlPanelStore` only for contributor propose menu on LocationButton. Editor tools use `editorChromeStore` (search-bar icon + shelf).
 5. View controls split: flyout uses `MapViewControls variant="modes"` (Pins + 2D/3D only). Desktop map face stacks `MapDimensionToggle` (2D/3D) above `MapViewControls variant="camera"` (vertical rotate/tilt/north column) in `Entry.svelte`, not inside the flyout. Do not mount camera variant on mobile. Mobile 2D/3D only: compact `MapDimensionToggle` in the search chip row (`Search.svelte`).
 6. Verify at 320px and 768px: browse, edit mode, map tools open, no bounding-box overlap in the same zone.
