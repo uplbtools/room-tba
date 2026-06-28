@@ -19,6 +19,7 @@ import {
 } from "./sync";
 import { refreshStoredEventTiming, sortStoredEvents } from "@lib/event-time";
 import { normalizeAlias } from "@lib/site";
+import { normalizeStringList } from "@lib/string-lists";
 import type { Results } from "@electric-sql/pglite";
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
@@ -89,7 +90,11 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         updated_at AS "updatedAt"
       FROM dorms;
       `)) as Results<DormData>;
-    return data.rows;
+    return data.rows.map((row) => ({
+      ...row,
+      amenities: normalizeStringList(row.amenities),
+      contactPhone: normalizeStringList(row.contactPhone),
+    }));
   } catch (e) {
     console.error("Error: ", e);
     return undefined;
