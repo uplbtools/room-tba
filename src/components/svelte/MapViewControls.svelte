@@ -27,10 +27,13 @@
   const MAX_PITCH = 60;
   const THREE_D_PITCH = 60;
   const TWO_D_THRESHOLD = 1;
+  /** Lucide compass SVG tip sits at 45°; offset so north points up at bearing 0. */
+  const COMPASS_NORTH_OFFSET = 45;
 
   let bearing = $state(0);
   let pitch = $state(0);
 
+  const compassRotation = $derived(-COMPASS_NORTH_OFFSET - bearing);
   const is2D = $derived(pitch <= TWO_D_THRESHOLD);
   const pinModeTitle = $derived(
     mapViewStore.eventsOnly
@@ -173,7 +176,7 @@
         title="Reset to north"
         aria-label="Reset map orientation to north"
       >
-        <span class="compass-icon" style:rotate={`${-bearing}deg`}>
+        <span class="compass-icon" style:rotate={`${compassRotation}deg`}>
           <Compass size={20} />
         </span>
       </button>
