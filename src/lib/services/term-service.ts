@@ -1,6 +1,7 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { classesTable, termsTable } from "@drizzle/schema";
 import { db } from "@lib/db";
+import { resolveDefaultTermFromList } from "@lib/term-calendar";
 import type { Term, TermWithCount } from "@lib/types";
 
 /**
@@ -37,26 +38,20 @@ export async function getAllTerms(): Promise<TermWithCount[]> {
 }
 
 /**
- * The single default term for anonymous visitors. Falls back to the newest
- * active term, then null. Never throws so SSG/SSR data loading stays resilient
- * when the terms table is empty or not yet migrated.
+ * Resolve the term visitors should see by default:
+ * 1) instructional window containing today (Asia/Manila date)
+ * 2) legacy `is_default` flag (between terms / missing dates)
+ * 3) newest active term
  */
 export async function getDefaultTerm(): Promise<Term | null> {
   try {
-    const [byFlag] = await db
-      .select()
-      .from(termsTable)
-      .where(and(eq(termsTable.isDefault, true), eq(termsTable.isActive, true)))
-      .limit(1);
-    if (byFlag) return byFlag;
-
-    const [newestActive] = await db
+    const terms = await db
       .select()
       .from(termsTable)
       .where(eq(termsTable.isActive, true))
-      .orderBy(desc(termsTable.sortOrder), desc(termsTable.id))
-      .limit(1);
-    return newestActive ?? null;
+      .orderBy(desc(termsTable.sortOrder), desc(termsTable.id));
+
+    return resolveDefaultTermFromList(terms);
   } catch (e) {
     console.error("Failed to resolve default term:", e);
     return null;
