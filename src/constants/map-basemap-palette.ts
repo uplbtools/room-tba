@@ -27,41 +27,54 @@
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // cool-dusk
 
-/** Active preset: warm sage — buildings darker than terrain, land stays muted. */
+/** Rejected Jun 2026 — warm sage read as too green:
+ *  background rgb(214,210,200) · grass rgba(132,145,112,1) · park #b4c0a4 · wood rgba(98,128,92,0.48)
+ *  pitch rgba(100,122,92,1) · landuseTrack #b8c0a8 · building #c8beb0 · extrusion #beb2a0
+ */
+// export const MAP_BASEMAP_PALETTE = { ... } as const; // warm-sage-rejected
+
+/** Rejected Jun 2026 — warm stone read as too brown/ochre:
+ *  background rgb(212,207,196) · grass rgba(194,182,162,1) · park #d6cab6 · wood rgba(146,130,110,0.42)
+ *  pitch rgba(186,174,152,1) · landuseTrack #c8beac · building #e8e4e0 · extrusion #dcd4c8
+ *  roads hsl(35,5%,88%) · motorway rgba(186,162,124,1)
+ */
+// export const MAP_BASEMAP_PALETTE = { ... } as const; // warm-stone-rejected
+
+/** Active preset: neutral greige — paper-like ground, no green, no muddy brown. */
 export const MAP_BASEMAP_PALETTE = {
-  background: "rgb(214, 210, 200)",
-  grassFill: "rgba(132, 145, 112, 1)",
-  grassOpacity: 0.3,
-  parkFill: "#b4c0a4",
-  parkOutline: "rgba(88, 108, 82, 0.72)",
-  parkOutlineLine: "#b0bc9e",
-  woodFill: "rgba(98, 128, 92, 0.48)",
+  background: "rgb(226, 224, 220)",
+  grassFill: "rgba(198, 200, 200, 1)",
+  grassOpacity: 0.24,
+  parkFill: "#dcdad6",
+  parkOutline: "rgba(138, 136, 132, 0.55)",
+  parkOutlineLine: "#c8c6c2",
+  woodFill: "rgba(170, 170, 166, 0.32)",
   woodOpacity: 0.32,
   waterFill: "rgba(108, 138, 158, 1)",
   waterOutline: "rgba(78, 102, 120, 0.55)",
   waterwayLine: "#7290a4",
-  schoolFill: "rgb(198, 190, 168)",
-  pitchFill: "rgba(100, 122, 92, 1)",
-  landuseTrack: "#b8c0a8",
-  buildingFill: "#c8beb0",
-  buildingOutline: "hsl(35, 10%, 52%)",
-  buildingExtrusion: "#beb2a0",
+  schoolFill: "rgb(218, 216, 212)",
+  pitchFill: "rgba(210, 208, 204, 1)",
+  landuseTrack: "#d0ceca",
+  buildingFill: "#d4d0ca",
+  buildingOutline: "hsl(220, 4%, 48%)",
+  buildingExtrusion: "#c8c4be",
   buildingExtrusionOpacity: 0.94,
   labelText: "#444444",
   labelHaloColor: "rgba(255, 255, 255, 0.92)",
   labelHaloWidth: 1.4,
-  roadMinor: "hsl(35, 8%, 87%)",
-  roadService: "hsl(35, 8%, 87%)",
-  roadPathPedestrian: "rgba(170, 158, 148, 0.72)",
-  roadSecondaryTertiary: "rgba(176, 172, 164, 1)",
-  roadMinorCasing: "rgba(168, 164, 156, 0.85)",
-  roadSecondaryTertiaryCasing: "rgba(152, 148, 140, 0.75)",
-  roadTrunkPrimary: "rgba(196, 184, 152, 1)",
-  roadMotorway: "rgba(188, 160, 120, 1)",
-  roadLink: "rgba(196, 184, 152, 1)",
-  roadMotorwayLink: "rgba(188, 160, 120, 1)",
-  roadTrunkPrimaryCasing: "rgba(170, 148, 118, 0.85)",
-  roadMotorwayCasing: "rgba(170, 148, 118, 0.85)",
+  roadMinor: "hsl(220, 3%, 88%)",
+  roadService: "hsl(220, 3%, 88%)",
+  roadPathPedestrian: "rgba(186, 184, 180, 0.72)",
+  roadSecondaryTertiary: "rgba(208, 206, 202, 1)",
+  roadMinorCasing: "rgba(196, 194, 190, 0.85)",
+  roadSecondaryTertiaryCasing: "rgba(182, 180, 176, 0.75)",
+  roadTrunkPrimary: "rgba(204, 202, 198, 1)",
+  roadMotorway: "rgba(196, 194, 190, 1)",
+  roadLink: "rgba(204, 202, 198, 1)",
+  roadMotorwayLink: "rgba(196, 194, 190, 1)",
+  roadTrunkPrimaryCasing: "rgba(180, 178, 174, 0.85)",
+  roadMotorwayCasing: "rgba(180, 178, 174, 0.85)",
 } as const;
 
 /** Layer paint overrides keyed by MapLibre layer id. */
