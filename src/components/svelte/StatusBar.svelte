@@ -18,14 +18,13 @@
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight } from "@lib/layout-css-vars";
-  import { MediaQuery } from "svelte/reactivity";
 
   const appData = getAppData();
   const { directionCount, totalRooms } = $derived(appData());
   let isOpen = $state(false);
-  const mobile = new MediaQuery("max-width:48rem");
-  /** Full sync copy only when the mobile status drawer is expanded. */
-  const showFullSync = $derived(mobile.current && isOpen);
+  /** Full sync copy only when the status drawer is expanded. */
+  const showFullSync = $derived(isOpen);
+  const detailsCompact = $derived(!isOpen);
   const contributorSession = $derived(
     adminAuthStore.isLoggedIn &&
       !adminAuthStore.canPublish &&
@@ -45,6 +44,12 @@
         ? "Editor"
         : "Contributor",
   );
+  const sessionLabel = $derived.by(() => {
+    const name = sessionDisplayName.trim();
+    const role = sessionRoleLabel;
+    if (name.toLowerCase() === role.toLowerCase()) return role;
+    return `${role}: ${name}`;
+  });
 
   let barEl = $state<HTMLDivElement | null>(null);
 
@@ -93,18 +98,18 @@
   <div class="status-primary">
     <SyncStatus
       inline
-      compact={mobile.current && !showFullSync}
+      compact={detailsCompact}
       expanded={showFullSync}
     />
 
-    <OfflineMaps compact={mobile.current && !isOpen} />
+    <OfflineMaps compact={detailsCompact} />
 
     {#if contributorSession || editorSession}
       <MapChromeSession
-        label="{sessionRoleLabel}: {sessionDisplayName}"
+        label={sessionLabel}
         compactLabel={sessionDisplayName}
         title="Signed in as {sessionRoleLabel.toLowerCase()}"
-        compact={mobile.current && !isOpen}
+        compact={detailsCompact}
         onSignOut={handleSignOut}
       />
     {/if}
@@ -222,7 +227,7 @@
     transition: all 0.2s ease;
 
     .status-toggle {
-      display: none;
+      display: flex;
       align-items: center;
       gap: 0.5rem;
       background: none;
@@ -232,6 +237,7 @@
       cursor: pointer;
       min-width: 0;
       flex: 0 0 auto;
+      color: inherit;
     }
 
     .status-primary {
@@ -240,20 +246,31 @@
       align-items: center;
       gap: 0.75rem;
       min-width: 0;
-      overflow: visible;
+      overflow: hidden;
       position: relative;
     }
 
     .content-wrapper {
-      display: flex;
-      gap: 1rem;
-      flex: 0 1 auto;
+      display: none;
+      gap: 0.75rem;
+      flex: 1 1 100%;
       min-width: 0;
       max-width: 100%;
       flex-wrap: wrap;
       align-items: center;
       justify-content: flex-start;
       overflow: visible;
+      padding-top: 0.375rem;
+      border-top: 1px solid hsl(0, 0%, 88%);
+    }
+
+    &.is-open {
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    &.is-open .content-wrapper {
+      display: flex;
     }
 
     .metadata {
@@ -321,10 +338,9 @@
       border-right: none;
       border-bottom: none;
 
-      .status-toggle {
-        display: flex;
-        flex: 0 0 auto;
-        min-height: 0;
+      &.is-open {
+        flex-wrap: wrap;
+        align-items: flex-start;
       }
 
       .status-primary {
@@ -333,22 +349,10 @@
       }
 
       .content-wrapper {
-        display: none;
-        flex-basis: 100%;
         flex-direction: column;
         gap: 0.125rem;
         padding-top: 0.25rem;
-        border-top: 1px solid #eee;
         width: 100%;
-        overflow: visible;
-      }
-
-      &.is-open {
-        flex-wrap: wrap;
-      }
-
-      &.is-open .content-wrapper {
-        display: flex;
       }
 
       .directions-progress {
@@ -380,36 +384,6 @@
     }
   }
 
-  @media (min-width: 48.0625rem) and (max-width: 50rem) {
-    div.status-bar {
-      width: 100%;
-      max-width: calc(100% - var(--bottom-fab-inset, 0px));
-      padding: 0.3125rem 1rem;
-      gap: 0.25rem;
-      flex-direction: column;
-      align-items: stretch;
-      overflow: visible;
-
-      .status-toggle {
-        display: flex;
-        min-height: 1.5rem;
-      }
-
-      .content-wrapper {
-        display: none;
-        flex-direction: column;
-        gap: 0.125rem;
-        padding-top: 0.25rem;
-        border-top: 1px solid #eee;
-        width: 100%;
-        overflow: visible;
-      }
-
-      &.is-open .content-wrapper {
-        display: flex;
-      }
-    }
-  }
   @media (max-width: 1200px) {
     .data-updated {
       display: none;
