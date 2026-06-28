@@ -13,16 +13,20 @@
     DivisionData,
     DormData,
     EventData,
+    TableSyncInfo,
   } from "@lib/types";
   import Entry from "./Entry.svelte";
   import { onMount } from "svelte";
+  import { jitteredBackoffDelay, sleep } from "@lib/local/data/fetch-json";
   import {
+    fetchRemoteEvents,
     getBuildings,
     getColleges,
     getDivisions,
     getDorms,
     getEvents,
     getRoomsData,
+    loadCachedAppData,
   } from "@lib/local/data/utils";
   import {
     localTableSyncCheck,
@@ -75,45 +79,127 @@
         },
   );
 
-  onMount(async () => {
-    let data: DBData;
-    const localDB = getDB();
-    const buildingCheck = await localTableSyncCheck("buildings");
-    const collegeCheck = await localTableSyncCheck("colleges");
-    const divisionCheck = await localTableSyncCheck("divisions");
-    const dormCheck = await localTableSyncCheck("dorms");
-    const eventCheck = await localTableSyncCheck("events");
-    Promise.resolve()
-      .then(() => initPGLiteDB(localDB))
-      .catch((e) => console.error(e))
-      .then(async () => {
-        data = {
-          buildings: await getBuildings(buildingCheck),
-          colleges: await getColleges(collegeCheck),
-          divisions: await getDivisions(divisionCheck),
-          dorms: await getDorms(dormCheck),
-          events: await getEvents(eventCheck),
-          ...(await getRoomsData()),
-        };
-        await syncBuildings(buildingCheck, data.buildings ?? []);
-        await syncAliasCache();
-      })
-      .then(() => {
-        buildings = data.buildings;
-        colleges = data.colleges;
-        directionCount = data.directionCount;
-        divisions = data.divisions;
-        dorms = data.dorms;
-        events = data.events;
-        totalRooms = data.totalRooms;
-        loaded = true;
-        Promise.resolve()
-          .then(() => syncColleges(collegeCheck, data.colleges ?? []))
-          .then(() => syncDivisions(divisionCheck, data.divisions ?? []))
-          .then(() => syncDorms(dormCheck, data.dorms ?? []))
-          .then(() => syncEvents(eventCheck, data.events ?? []))
-          .then(() => syncToastStore.endSync());
+  function applyData(data: DBData) {
+    buildings = data.buildings;
+    colleges = data.colleges;
+    directionCount = data.directionCount;
+    divisions = data.divisions;
+    dorms = data.dorms;
+    events = data.events;
+    totalRooms = data.totalRooms;
+  }
+
+  async function retryStaleEventsInBackground(eventCheck: TableSyncInfo) {
+    if (eventCheck.valid || eventCheck.newKey === null) return;
+
+    const maxWaves = 5;
+    for (let wave = 0; wave < maxWaves; wave += 1) {
+      try {
+        const fresh = await fetchRemoteEvents();
+        events = fresh;
+        await syncEvents(eventCheck, fresh, true);
+        return;
+      } catch (error) {
+        console.error("Background events fetch failed", error);
+        if (wave >= maxWaves - 1) return;
+        await sleep(jitteredBackoffDelay(wave + 1, 2_000, 60_000));
+      }
+    }
+  }
+
+  async function refreshFromNetwork() {
+    try {
+      const [
+        buildingCheck,
+        collegeCheck,
+        divisionCheck,
+        dormCheck,
+        eventCheck,
+      ] = await Promise.all([
+        localTableSyncCheck("buildings"),
+        localTableSyncCheck("colleges"),
+        localTableSyncCheck("divisions"),
+        localTableSyncCheck("dorms"),
+        localTableSyncCheck("events"),
+      ]);
+
+      const [
+        buildingLoad,
+        collegeLoad,
+        divisionLoad,
+        dormLoad,
+        eventLoad,
+        roomsData,
+      ] = await Promise.all([
+        getBuildings(buildingCheck),
+        getColleges(collegeCheck),
+        getDivisions(divisionCheck),
+        getDorms(dormCheck),
+        getEvents(eventCheck),
+        getRoomsData(),
+      ]);
+
+      applyData({
+        buildings: buildingLoad.rows,
+        colleges: collegeLoad.rows,
+        divisions: divisionLoad.rows,
+        dorms: dormLoad.rows,
+        events: eventLoad.rows,
+        directionCount: roomsData.directionCount,
+        totalRooms: roomsData.totalRooms,
       });
+
+      await syncBuildings(
+        buildingCheck,
+        buildingLoad.rows,
+        buildingLoad.source === "remote",
+      );
+      await syncAliasCache();
+      await syncColleges(
+        collegeCheck,
+        collegeLoad.rows,
+        collegeLoad.source === "remote",
+      );
+      await syncDivisions(
+        divisionCheck,
+        divisionLoad.rows,
+        divisionLoad.source === "remote",
+      );
+      await syncDorms(dormCheck, dormLoad.rows, dormLoad.source === "remote");
+      await syncEvents(
+        eventCheck,
+        eventLoad.rows,
+        eventLoad.source === "remote",
+      );
+
+      if (
+        eventLoad.source === "cache" &&
+        !eventCheck.valid &&
+        eventCheck.newKey !== null
+      ) {
+        void retryStaleEventsInBackground(eventCheck);
+      }
+    } catch (error) {
+      console.error("Network refresh failed", error);
+    } finally {
+      syncToastStore.endSync();
+    }
+  }
+
+  onMount(() => {
+    void (async () => {
+      const localDB = getDB();
+      try {
+        await initPGLiteDB(localDB);
+      } catch (error) {
+        console.error(error);
+      }
+
+      applyData(await loadCachedAppData());
+      loaded = true;
+
+      void refreshFromNetwork();
+    })();
   });
 
   setAppData(() => appData);
