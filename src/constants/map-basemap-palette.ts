@@ -1,11 +1,11 @@
 /**
  * Experimental basemap palette — Jun 2026.
  *
- * UPLB campus viewing: airy green-tinted ground, natural lawn, crisp white
+ * UPLB campus viewing: airy green-tinted ground, natural lawn, warm wood/tan
  * buildings that advance against grass (aerial photo model). Applied at runtime
  * via applyBasemapPalette() and mirrored in public/liberty-customized.json
  * for offline tiles. Pin/label colors are unchanged; maroon pins (#7b1113) stay
- * readable on both the green lawn and white building fills.
+ * readable on both the green lawn and warm building fills.
  *
  * Swap MAP_BASEMAP_PALETTE with a preset below to try alternates.
  */
@@ -133,9 +133,9 @@ export const campusGreige = {
   roadMotorwayCasing: "rgba(158, 148, 132, 0.85)",
 } as const;
 
-/** Active preset — UPLB refreshing: airy green sky-floor, natural lawn, white buildings on green.
+/** Active preset — uplbRefreshing: green campus, warm wood buildings.
  *  background #EEF4EC · grass #7CB87A @ 0.38 · park #8FBF8A · wood forest rgba(62,96,58,0.48)
- *  water #6BA3B8 · building #F5F5F2 · extrusion #FAFAF8 · outline #D8D8D4 · roads #C5C5C0
+ *  water #6BA3B8 · building #D4BC96 · extrusion #B89968 · outline #9A8570 · roads #C5C5C0
  */
 export const uplbRefreshing = {
   background: "rgb(238, 244, 236)",
@@ -152,9 +152,9 @@ export const uplbRefreshing = {
   schoolFill: "rgb(240, 245, 238)",
   pitchFill: "rgba(143, 191, 138, 0.85)",
   landuseTrack: "#b8c8b4",
-  buildingFill: "#f5f5f2",
-  buildingOutline: "#d8d8d4",
-  buildingExtrusion: "#fafaf8",
+  buildingFill: "#d4bc96",
+  buildingOutline: "#9a8570",
+  buildingExtrusion: "#b89968",
   buildingExtrusionOpacity: 0.95,
   labelText: "#444444",
   labelHaloColor: "rgba(255, 255, 255, 0.92)",

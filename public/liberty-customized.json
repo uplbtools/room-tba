@@ -3264,8 +3264,8 @@
       "minzoom": 13,
       "maxzoom": 14,
       "paint": {
-        "fill-color": "#f5f5f2",
-        "fill-outline-color": "#d8d8d4"
+        "fill-color": "#d4bc96",
+        "fill-outline-color": "#9a8570"
       }
     },
     {
@@ -3275,7 +3275,7 @@
       "source-layer": "building",
       "minzoom": 14,
       "paint": {
-        "fill-extrusion-color": "#fafaf8",
+        "fill-extrusion-color": "#b89968",
         "fill-extrusion-height": {
           "property": "render_height",
           "type": "identity"
