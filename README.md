@@ -160,18 +160,15 @@ PR checklist: [`docs/agentic-qa-process.md`](docs/agentic-qa-process.md)
 
 ## Contributing
 
-We merge through GitHub. Rough flow:
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** — pick your path:
 
-1. **Find or file an issue.** Implementation details live there; keep them updated ([`docs/issue-hygiene.md`](docs/issue-hygiene.md)).
-2. **Branch off `staging`**, hack, run `bun test src` + Prettier.
-3. **PR to `staging`.** The template asks for QA evidence; CI runs Prettier + tests.
-4. **Human pass** for map/editor UI at 320px if you touched chrome.
+- **Report wrong data** or **campus QA** — no repo clone, no PR required
+- **Write code** — branch off `staging`, PR to `staging` ([developer guide](docs/developer-guide.md))
+- **Maintainers / agents** — [AGENTS.md](AGENTS.md)
 
-Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) (`feat(map): …`, `fix(api): …`). semantic-release uses them on `main`.
+[Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) · **Data:** label `data` · **QA:** label `qa`
 
-**Good first issues:** [good first issue](https://github.com/uplbtools/room-tba/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) · **Data fixes:** label `data` · **QA passes:** label `qa`
-
-No separate admin dashboard. If you can view it on the map, you should eventually edit it there.
+Implementers: [issue hygiene](docs/issue-hygiene.md) · [PR QA process](docs/agentic-qa-process.md)
 
 ---
 
