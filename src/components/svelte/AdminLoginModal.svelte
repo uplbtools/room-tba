@@ -54,10 +54,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div
-  class="login-overlay"
-  transition:fade={overlayFade(reducedMotion.current)}
->
+<div class="login-overlay" transition:fade={overlayFade(reducedMotion.current)}>
   <div
     bind:this={loginFrameEl}
     class="login-frame"

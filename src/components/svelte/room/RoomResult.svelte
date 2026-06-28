@@ -37,11 +37,7 @@
   import Classes from "./Classes.svelte";
 
   type RoomEditableField =
-    | "roomCode"
-    | "directions"
-    | "buildingId"
-    | "collegeId"
-    | "divisionId";
+    "roomCode" | "directions" | "buildingId" | "collegeId" | "divisionId";
 
   type RoomPatchResponse = {
     success?: boolean;
@@ -490,8 +486,7 @@
                 id="room-directions-editor"
                 bind:value={directionsDraft}
                 disabled={savingField !== null}
-                rows="3"
-              ></textarea>
+                rows="3"></textarea>
             {/snippet}
           </EntityEditorField>
 
@@ -578,8 +573,8 @@
           {#if mergePrompt}
             <div class="merge-prompt" role="status">
               <p>
-                A room named <strong>{mergePrompt.candidate.code}</strong> already
-                exists{#if mergePrompt.candidate.building?.name}
+                A room named <strong>{mergePrompt.candidate.code}</strong>
+                already exists{#if mergePrompt.candidate.building?.name}
                   in {mergePrompt.candidate.building.name}{/if}. Merge
                 <strong>{currentRoom.value.code}</strong> into it? Classes and map
                 pins move to the kept room; empty fields are filled from the merged

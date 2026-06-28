@@ -356,8 +356,7 @@
       -1 * (var(--map-ui-padding, 0.5rem) + env(safe-area-inset-bottom, 0px))
     );
     height: calc(
-      6rem + var(--map-ui-padding, 0.5rem) +
-        env(safe-area-inset-bottom, 0px)
+      6rem + var(--map-ui-padding, 0.5rem) + env(safe-area-inset-bottom, 0px)
     );
     background: linear-gradient(
       to top,
@@ -560,7 +559,8 @@
       gap: 0.375rem;
     }
 
-    .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-toggle) {
+    .top-right-map-stack
+      :global(.map-tools-panel .map-chrome-accordion-toggle) {
       min-height: 2.75rem;
       padding: 0.625rem 0.75rem;
       font-size: 0.9375rem;

@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    adminAuthStore,
-    queryStore,
-    toastStore,
-  } from "@lib/store.svelte";
+  import { adminAuthStore, queryStore, toastStore } from "@lib/store.svelte";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
   import {
@@ -273,7 +269,8 @@
               >
                 <option value="">No college</option>
                 {#each colleges as college (college.id)}
-                  <option value={String(college.id)}>{college.collegeName}</option
+                  <option value={String(college.id)}
+                    >{college.collegeName}</option
                   >
                 {/each}
               </select>

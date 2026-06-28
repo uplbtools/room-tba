@@ -305,7 +305,9 @@
           role="progressbar"
           aria-valuemin="0"
           aria-valuemax="100"
-          aria-valuenow={showProgress ? syncToastStore.progressPercent : undefined}
+          aria-valuenow={showProgress
+            ? syncToastStore.progressPercent
+            : undefined}
           aria-label={displayedLabel}
         >
           {#if showProgress}
@@ -314,7 +316,8 @@
               style:width={`${syncToastStore.progressPercent}%`}
             ></div>
           {:else}
-            <div class="progress-bar-value progress-bar-value--indeterminate"
+            <div
+              class="progress-bar-value progress-bar-value--indeterminate"
             ></div>
           {/if}
         </div>
@@ -343,7 +346,8 @@
           role="progressbar"
           aria-label={displayedLabel}
         >
-          <div class="progress-bar-value progress-bar-value--indeterminate"
+          <div
+            class="progress-bar-value progress-bar-value--indeterminate"
           ></div>
         </div>
       {/if}
