@@ -9,6 +9,9 @@ assignees: ""
 **Describe the bug**
 A clear and concise description of what the bug is.
 
+**Entity (optional)**
+Room/building name, search query, or share URL from the app.
+
 **To Reproduce**
 Steps to reproduce the behavior:
 

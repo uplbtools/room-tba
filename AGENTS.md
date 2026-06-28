@@ -1,11 +1,15 @@
 # Room TBA Agent Guide
 
+**Human developers and campus volunteers:** start with [CONTRIBUTING.md](CONTRIBUTING.md). You do not need this file.
+
 ## Doc map
 
 Read the right doc for the task — do not rely on this file alone for detailed checklists.
 
 | When                                             | Read                                                                                                                    |
 | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Human volunteers, developers (default)           | [CONTRIBUTING.md](CONTRIBUTING.md)                                                                                      |
+| Developer setup detail                           | [docs/developer-guide.md](docs/developer-guide.md)                                                                      |
 | Starting a coding session, commit, or PR         | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md)                      |
 | Map chrome, Entry zones, flyouts, 320/768 layout | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md) |
 | Side panel / entity detail views                 | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc)                                                            |
@@ -13,7 +17,10 @@ Read the right doc for the task — do not rely on this file alone for detailed 
 | Stores and client state                          | [.cursor/rules/svelte-stores.mdc](.cursor/rules/svelte-stores.mdc)                                                      |
 | PR QA evidence and reporting                     | [docs/agentic-qa-process.md](docs/agentic-qa-process.md)                                                                |
 | Editor manual checklist                          | [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md)                                              |
+| When                                             | Read                                                                                                                    |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | Issue-linked work / keeping specs current        | [docs/issue-hygiene.md](docs/issue-hygiene.md)                                                                          |
+| Volunteer triage                                 | [docs/volunteer-triage.md](docs/volunteer-triage.md)                                                                    |
 
 ## How to work
 
@@ -23,6 +30,25 @@ Read the right doc for the task — do not rely on this file alone for detailed 
 - **Preserve the dirty tree.** Do not revert unrelated user changes unless explicitly asked.
 - **Keep scope tight.** Avoid opportunistic refactors outside the request.
 - **Keep GitHub issues current** when work is tied to `#NNN` — issues hold implementation specifics that drift fast. See [docs/issue-hygiene.md](docs/issue-hygiene.md).
+- **Infer intent over typos.** User messages are often rushed — read for what they mean, not only literal wording. Common patterns:
+  - **"PR to main" / "merge to prod" / "ship it"** → promote **`staging` → `main`** (release PR), not a feature branch opened against `main`. See [Branches and pull requests](#branches-and-pull-requests).
+  - **"PR to staging"** → feature branch → `staging` (default for new work).
+  - Minor typos (`pr`, `stagign`, `mrege`, doubled letters) — do not ask for clarification when context makes the goal obvious.
+- **`data` / `qa` issues:** reporters do not open PRs. Implement on their behalf; credit in issue comments.
+
+## Branches and pull requests
+
+Default flow: **feature branch → `staging` → `main`**.
+
+| User says (approx.)               | Do this                                                | Do **not** do this                                     |
+| --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| Open a PR / PR to staging         | `gh pr create --base staging --head <feature-branch>`  | —                                                      |
+| PR to main / merge to prod / ship | Open (or merge) **`staging` → `main`** release PR only | `--base main --head <feature-branch>` for routine work |
+| Merge the feature PR              | Squash/merge into **`staging`** first                  | Skip `staging` and land features directly on `main`    |
+
+- **`main`** is production; semantic-release runs there.
+- **`staging`** is integration — feature PRs land here first unless the user explicitly asks for a hotfix straight to `main`.
+- When the user says **"PR to main"**, they usually mean **get it to production**, not "set the GitHub PR base branch to `main`."
 
 ## GitHub issues
 
