@@ -1,11 +1,14 @@
 <script lang="ts">
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import GitFork from "@lucide/svelte/icons/git-fork";
   import MessageCircle from "@lucide/svelte/icons/message-circle";
+  import { slide } from "svelte/transition";
   import { onMount } from "svelte";
   import { registerSW } from "virtual:pwa-register";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { getAppData } from "@lib/context";
+  import { slideDismiss, slideReveal } from "@lib/motion";
   import {
     modalStore,
     syncToastStore,
@@ -18,11 +21,12 @@
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight } from "@lib/layout-css-vars";
+  import { MediaQuery } from "svelte/reactivity";
 
   const appData = getAppData();
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const { directionCount, totalRooms } = $derived(appData());
   let isOpen = $state(false);
-  /** Full sync copy only when the status drawer is expanded. */
   const showFullSync = $derived(isOpen);
   const detailsCompact = $derived(!isOpen);
   const contributorSession = $derived(
@@ -41,7 +45,10 @@
         : "Contributor",
   );
   const showSessionChip = $derived(contributorSession && !isOpen);
-  const showSessionExpanded = $derived(contributorSession && isOpen);
+  const showSessionUtilities = $derived(contributorSession && isOpen);
+  const progressPercent = $derived(
+    totalRooms > 0 ? Math.floor((directionCount / totalRooms) * 100) : 0,
+  );
 
   let barEl = $state<HTMLDivElement | null>(null);
 
@@ -73,134 +80,131 @@
 </script>
 
 <div class="status-bar" class:is-open={isOpen} bind:this={barEl}>
-  <button
-    class="status-toggle"
-    aria-expanded={isOpen}
-    aria-controls="status-bar-details"
-    onclick={() => (isOpen = !isOpen)}
-  >
+  <div class="status-head">
+    <button
+      class="status-toggle"
+      aria-expanded={isOpen}
+      aria-controls="status-bar-details"
+      onclick={() => (isOpen = !isOpen)}
+    >
+      {#if isOpen}
+        <ChevronDown size={18} />
+      {:else}
+        <ChevronRight size={18} />
+      {/if}
+      <span>Status</span>
+    </button>
+
     {#if isOpen}
-      <ChevronDown size={20} />
+      <div class="status-utilities">
+        <SyncStatus inline compact={false} expanded={showFullSync} />
+        <span class="status-sep" aria-hidden="true">·</span>
+        <OfflineMaps compact={false} />
+        {#if showSessionUtilities}
+          <span class="status-sep" aria-hidden="true">·</span>
+          <MapChromeSession
+            roleLabel={sessionRoleLabel}
+            displayName={sessionDisplayName}
+            utilities
+            onSignOut={handleSignOut}
+          />
+        {/if}
+      </div>
     {:else}
-      <ChevronRight size={20} />
-    {/if}
-    <span>Status</span>
-  </button>
-
-  <div class="status-primary">
-    <SyncStatus
-      inline
-      compact={detailsCompact}
-      expanded={showFullSync}
-    />
-
-    <OfflineMaps compact={detailsCompact} />
-
-    {#if showSessionChip}
-      <MapChromeSession
-        roleLabel={sessionRoleLabel}
-        displayName={sessionDisplayName}
-        title="Signed in as {sessionRoleLabel.toLowerCase()}"
-        compact
-        onSignOut={handleSignOut}
-      />
+      <div class="status-primary">
+        <SyncStatus inline compact={detailsCompact} expanded={showFullSync} />
+        <OfflineMaps compact={detailsCompact} />
+        {#if showSessionChip}
+          <MapChromeSession
+            roleLabel={sessionRoleLabel}
+            displayName={sessionDisplayName}
+            title="Signed in as {sessionRoleLabel.toLowerCase()}"
+            compact
+            onSignOut={handleSignOut}
+          />
+        {/if}
+      </div>
     {/if}
   </div>
 
-  <div class="content-wrapper" id="status-bar-details">
-    <div class="content-primary-row">
-      {#if showSessionExpanded}
-        <MapChromeSession
-          roleLabel={sessionRoleLabel}
-          displayName={sessionDisplayName}
-          expanded
-          onSignOut={handleSignOut}
-        />
-      {/if}
-      <div class="directions-progress">
-        <span class="directions-label">Rooms with directions</span>
-        <div
-          class="map-chrome-progress map-chrome-progress--lg"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={totalRooms}
-          aria-valuenow={directionCount}
-          aria-label="Rooms with directions"
-        >
+  {#if isOpen}
+    <div
+      class="status-meta"
+      id="status-bar-details"
+      in:slide={slideReveal(reducedMotion.current)}
+      out:slide={slideDismiss(reducedMotion.current)}
+    >
+      <div
+        class="status-meta-progress"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={totalRooms}
+        aria-valuenow={directionCount}
+        aria-label="Rooms with directions"
+      >
+        <div class="map-chrome-progress">
           <div
             class="map-chrome-progress__value"
-            style:width={`${Math.floor((directionCount / totalRooms) * 100)}%`}
+            style:width={`${progressPercent}%`}
           ></div>
         </div>
-        <span class="directions-count">{directionCount} / {totalRooms}</span>
+        <span class="status-meta-count">{directionCount}/{totalRooms}</span>
       </div>
-    </div>
-    <div class="metadata">
-      <div class="data-updated">
-        Course and room information is updated regularly. Last updated:
-        <strong>June 2026.</strong>
-      </div>
-      <div>
-        <a
-          href="/messenger"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="map-chrome-ghost-link"
-        >
-          <MessageCircle size={18} />
-          <div>Contact</div>
-        </a>
-      </div>
-      <div>
+
+      <span class="status-sep" aria-hidden="true">·</span>
+      <span class="status-meta-updated">
+        Updated <strong>June 2026</strong>
+      </span>
+
+      <span class="status-sep" aria-hidden="true">·</span>
+      <a
+        href="/messenger"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="map-chrome-ghost-link status-meta-link"
+      >
+        <MessageCircle size={14} aria-hidden="true" />
+        Contact
+      </a>
+
+      <span class="status-sep" aria-hidden="true">·</span>
+      <MapChromeGhostButton
+        variant="muted"
+        onclick={() => modalStore.openModal("landing")}
+      >
+        Contributors
+      </MapChromeGhostButton>
+
+      {#if !adminAuthStore.isLoggedIn}
+        <span class="status-sep" aria-hidden="true">·</span>
         <MapChromeGhostButton
           variant="muted"
-          onclick={() => modalStore.openModal("landing")}
+          onclick={() => adminAuthStore.openLogin()}
         >
-          Contributors
+          Editor sign in
         </MapChromeGhostButton>
-      </div>
-      {#if !adminAuthStore.isLoggedIn}
-        <div>
-          <MapChromeGhostButton
-            variant="muted"
-            onclick={() => adminAuthStore.openLogin()}
-          >
-            Editor sign in
-          </MapChromeGhostButton>
-        </div>
       {/if}
-      <div class="app-version">
-        <a href="/changelog" class="map-chrome-ghost-link changelog-link">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-git-fork-icon lucide-git-fork"
-            ><circle cx="12" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"
-            ></circle><circle cx="18" cy="6" r="3"></circle><path
-              d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"
-            ></path><path d="M12 12v3"></path></svg
-          >
-          <div>{APP_VERSION_LABEL}</div>
-        </a>
-      </div>
+
+      <span class="status-sep" aria-hidden="true">·</span>
+      <a href="/changelog" class="map-chrome-ghost-link status-meta-link">
+        <GitFork size={14} aria-hidden="true" />
+        {APP_VERSION_LABEL}
+      </a>
     </div>
-  </div>
+  {/if}
 </div>
 
 <style>
   * {
     pointer-events: auto;
   }
+
   div.status-bar {
+    position: relative;
+    z-index: 16;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: flex-start;
     width: fit-content;
     max-width: calc(100% - var(--bottom-fab-inset, 0px));
@@ -208,17 +212,17 @@
     align-self: flex-end;
     min-width: 0;
     overflow: visible;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.2;
-    gap: 0.5rem;
+    gap: 0.125rem;
     flex: 0 0 auto;
     min-height: 2rem;
     box-sizing: border-box;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     backdrop-filter: blur(10px);
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    padding: 0.25rem 0.75rem;
+    padding: 0.1875rem 0.625rem;
     border-radius: 1rem;
     box-shadow: var(
       --map-chrome-panel-shadow,
@@ -226,12 +230,29 @@
       0 4px 14px hsla(0, 0%, 0%, 0.2),
       0 10px 28px hsla(0, 0%, 0%, 0.12)
     );
-    transition: all 0.2s ease;
+    transition:
+      width var(--motion-duration-micro) var(--motion-ease-out),
+      gap var(--motion-duration-micro) var(--motion-ease-out),
+      padding var(--motion-duration-micro) var(--motion-ease-out);
 
-    .status-toggle {
+    &.is-open {
+      width: min(44rem, calc(100% - var(--bottom-fab-inset, 0px)));
+      gap: 0.1875rem;
+      padding: 0.25rem 0.625rem 0.3125rem;
+    }
+
+    .status-head {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.375rem;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .status-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
       background: none;
       border: none;
       font: inherit;
@@ -242,117 +263,89 @@
       color: inherit;
     }
 
-    .status-primary {
+    .status-primary,
+    .status-utilities {
       display: flex;
       flex: 1 1 auto;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.375rem;
       min-width: 0;
       overflow: hidden;
-      position: relative;
+      flex-wrap: wrap;
     }
 
-    .content-wrapper {
-      display: none;
-      gap: 0.25rem;
+    .status-primary :global(.sync-status--inline),
+    .status-utilities :global(.sync-status--inline) {
+      border-right: none;
+      padding-right: 0;
+      margin-right: 0;
+    }
+
+    .status-utilities {
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .status-sep {
+      flex-shrink: 0;
+      color: hsl(0, 0%, 68%);
+      font-weight: 400;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .status-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.375rem;
+      width: 100%;
+      min-width: 0;
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.25;
+      color: hsl(0, 0%, 28%);
+    }
+
+    .status-meta-progress {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3125rem;
       flex: 0 0 auto;
-      width: 100%;
       min-width: 0;
-      max-width: 100%;
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: flex-start;
-      overflow: visible;
-      padding-top: 0.25rem;
-      border-top: 1px solid hsl(0, 0%, 88%);
+      white-space: nowrap;
     }
 
-    .content-primary-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.375rem 0.75rem;
-      width: 100%;
+    .status-meta-progress :global(.map-chrome-progress) {
+      width: min(3.5rem, 12vw);
+      flex: 0 0 auto;
+      height: 0.4375rem;
+    }
+
+    .status-meta-count {
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: hsl(0, 0%, 22%);
+    }
+
+    .status-meta-updated {
+      flex-shrink: 1;
       min-width: 0;
-    }
-
-    .content-primary-row :global(.map-chrome-session-expanded) {
-      flex: 1 1 auto;
-      min-width: min(100%, 12rem);
-      width: auto;
-      padding-bottom: 0;
-    }
-
-    &.is-open {
-      flex-wrap: wrap;
-      align-items: flex-start;
-      width: min(44rem, calc(100% - var(--bottom-fab-inset, 0px)));
-    }
-
-    &.is-open .content-wrapper {
-      display: flex;
-    }
-
-    .metadata {
-      flex: 0 1 auto;
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0;
-      row-gap: 0;
-      overflow: visible;
-      font-size: 0.8125rem;
-      & > *:not(:last-child) {
-        border-right: 1px solid hsl(0, 0%, 78%);
-        padding-right: 0.5rem;
-      }
-      & > *:not(:first-child) {
-        padding-left: 0.5rem;
-      }
-      :global(.map-chrome-ghost-link),
-      :global(.map-chrome-ghost-btn) {
-        padding: 0.0625rem 0.25rem;
-        font-size: 0.8125rem;
-      }
-    }
-
-    .app-version {
-      .changelog-link {
-        white-space: nowrap;
-      }
-    }
-    .data-updated {
       overflow: hidden;
-      min-width: 0;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .directions-progress {
-      display: flex;
-      align-items: center;
-      gap: 0.375rem;
-      flex: 0 0 auto;
-      min-width: 0;
+
+    .status-meta :global(.map-chrome-ghost-link),
+    .status-meta :global(.map-chrome-ghost-btn) {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.0625rem 0.25rem;
+    }
+
+    .status-meta-link {
       white-space: nowrap;
-      overflow: hidden;
-      font-size: 0.8125rem;
-      .directions-label {
-        flex-shrink: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .directions-count {
-        flex-shrink: 0;
-        font-variant-numeric: tabular-nums;
-      }
-      :global(.map-chrome-progress) {
-        width: min(4.5rem, 14vw);
-        flex: 0 0 auto;
-      }
-      :global(.map-chrome-progress--lg) {
-        height: 0.625rem;
-      }
     }
   }
 
@@ -363,90 +356,56 @@
       margin-left: 0;
       align-self: stretch;
       min-height: 2rem;
-      padding: 0.25rem 0.625rem;
-      padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
-      gap: 0.375rem;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: center;
+      padding: 0.1875rem 0.5rem;
+      padding-bottom: calc(0.1875rem + env(safe-area-inset-bottom, 0px));
+      gap: 0.125rem;
       border-radius: 0;
       border-left: none;
       border-right: none;
       border-bottom: none;
+      backdrop-filter: none;
 
       &.is-open {
-        flex-wrap: wrap;
-        align-items: flex-start;
         width: 100%;
+        padding: 0.25rem 0.5rem;
+        padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
       }
 
-      .status-primary {
-        flex: 1 1 auto;
-        gap: 0.375rem;
+      .status-head {
+        gap: 0.3125rem;
       }
 
-      .content-wrapper {
-        gap: 0.1875rem;
-        padding-top: 0.1875rem;
-        width: 100%;
+      .status-primary,
+      .status-utilities {
+        gap: 0.3125rem;
       }
 
-      .content-primary-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.1875rem;
+      .status-meta {
+        gap: 0.1875rem 0.3125rem;
       }
 
-      .content-primary-row :global(.map-chrome-session-expanded) {
-        width: 100%;
-        min-width: 0;
-      }
-
-      .directions-progress {
-        width: 100%;
-        justify-content: space-between;
+      .status-meta-progress {
         flex-basis: auto;
-      }
-
-      .metadata {
-        width: 100%;
-        align-items: stretch;
-        flex-wrap: wrap;
-        gap: 0.125rem;
-
-        & > *:not(:last-child),
-        & > *:not(:first-child) {
-          border-right: none;
-          padding: 0;
-        }
-
-        .data-updated {
-          margin-left: 0;
-        }
-
-        .app-version {
-          justify-content: flex-start;
-        }
       }
     }
   }
 
   @media (max-width: 1200px) {
-    .data-updated {
+    .status-meta-updated,
+    .status-meta-updated + .status-sep {
       display: none;
     }
   }
 
-  @media (max-width: 1024px) {
-    .directions-label {
-      display: none;
+  @media (max-width: 22rem) {
+    .status-meta-progress :global(.map-chrome-progress) {
+      width: 2.75rem;
     }
   }
 
-  @media (max-width: 48rem) {
+  @media (prefers-reduced-motion: reduce) {
     div.status-bar {
-      backdrop-filter: none;
-      background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+      transition: none;
     }
   }
 </style>
