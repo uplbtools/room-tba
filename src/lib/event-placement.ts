@@ -26,6 +26,7 @@ export function beginEventPlacement(
       startsAt: instantToCampusWallString(startsAt),
       endsAt: instantToCampusWallString(endsAt),
       category: "other",
+      imageUrl: null,
     },
     {
       propose: options.propose ?? false,

@@ -13,6 +13,11 @@
     persistEntityChange,
   } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import {
+    clearEntityContributorDraft,
+    readEntityContributorDraft,
+    scheduleEntityContributorDraftSave,
+  } from "@lib/contributor-drafts";
   import { getAppData } from "@lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import MapPin from "@lucide/svelte/icons/map-pin";
@@ -100,6 +105,43 @@
     const stored = getStoredProposalForEntity("room", room.id);
     activeProposalId = stored?.id ?? null;
     if (stored) proposalStatus = stored.status;
+
+    if (!canPublish) {
+      const saved = readEntityContributorDraft("room", room.id);
+      if (saved) {
+        if (saved.editing) editing = true;
+        if (typeof saved.fields.codeDraft === "string") {
+          codeDraft = saved.fields.codeDraft;
+        }
+        if (typeof saved.fields.directionsDraft === "string") {
+          directionsDraft = saved.fields.directionsDraft;
+        }
+        if (typeof saved.fields.buildingDraft === "string") {
+          buildingDraft = saved.fields.buildingDraft;
+        }
+        if (typeof saved.fields.collegeDraft === "string") {
+          collegeDraft = saved.fields.collegeDraft;
+        }
+        if (typeof saved.fields.divisionDraft === "string") {
+          divisionDraft = saved.fields.divisionDraft;
+        }
+      }
+    }
+  });
+
+  $effect(() => {
+    const room = currentRoom.value;
+    if (canPublish || !editing || !room) return;
+    scheduleEntityContributorDraftSave("room", room.id, () => ({
+      editing: true,
+      fields: {
+        codeDraft,
+        directionsDraft,
+        buildingDraft,
+        collegeDraft,
+        divisionDraft,
+      },
+    }));
   });
 
   function fieldLabel(field: RoomEditableField) {
@@ -192,6 +234,7 @@
       if (outcome.proposal) {
         activeProposalId = outcome.proposal.id;
         proposalStatus = outcome.proposal.status;
+        clearEntityContributorDraft("room", current.id);
         toastStore.show(
           `Suggestion for ${room.code} submitted for review.`,
           "success",

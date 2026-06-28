@@ -21,7 +21,7 @@
     { id: "view", label: "View" },
     { id: "legend", label: "Legend" },
     { id: "terrain", label: "Terrain" },
-    { id: "jeepney", label: "Jeepney" },
+    { id: "jeepney", label: "Transit" },
   ];
 
   function toggleSection(id: MapToolsSection) {

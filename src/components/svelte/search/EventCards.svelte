@@ -8,6 +8,10 @@
   import { beginEventPlacement } from "@lib/event-placement";
   import { validateSubmitterName } from "@constants/proposals";
   import {
+    readProposeEventDraft,
+    scheduleProposeEventDraftSave,
+  } from "@lib/contributor-drafts";
+  import {
     adminAuthStore,
     eventPlacementStore,
     queryStore,
@@ -16,6 +20,7 @@
     toastStore,
   } from "@lib/store.svelte";
   import type { EventData } from "@lib/types";
+  import { onMount } from "svelte";
 
   let {
     headingId = "events-heading",
@@ -79,6 +84,41 @@
     eventPlacementStore.active || eventPlacementStore.creating,
   );
   let proposeSubmitterName = $state("");
+  let proposeDraftReady = $state(false);
+
+  onMount(() => {
+    if (adminAuthStore.canPublish) {
+      proposeDraftReady = true;
+      return;
+    }
+    const saved = readProposeEventDraft();
+    if (saved?.proposing && !eventPlacementStore.active) {
+      eventPlacementStore.start(saved.draft, {
+        propose: true,
+        submitterName: saved.submitterName,
+      });
+      proposeSubmitterName = saved.submitterName;
+    }
+    proposeDraftReady = true;
+  });
+
+  $effect(() => {
+    if (
+      !proposeDraftReady ||
+      adminAuthStore.canPublish ||
+      !eventPlacementStore.active ||
+      !eventPlacementStore.proposing
+    ) {
+      return;
+    }
+    const draft = eventPlacementStore.draft;
+    if (!draft) return;
+    scheduleProposeEventDraftSave(() => ({
+      draft: { ...draft },
+      proposing: true,
+      submitterName: eventPlacementStore.submitterName,
+    }));
+  });
 
   function formatEventDate(value: string) {
     return `${formatCampusDateShort(value)}, ${formatCampusTime(value)}`;

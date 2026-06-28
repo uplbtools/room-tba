@@ -24,6 +24,11 @@
     persistEntityChange,
   } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import {
+    clearEntityContributorDraft,
+    readEntityContributorDraft,
+    scheduleEntityContributorDraftSave,
+  } from "@lib/contributor-drafts";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
@@ -179,6 +184,73 @@
     const stored = getStoredProposalForEntity("dorm", current.id);
     activeProposalId = stored?.id ?? null;
     if (stored) proposalStatus = stored.status;
+
+    if (!canPublish) {
+      const saved = readEntityContributorDraft("dorm", current.id);
+      if (saved) {
+        if (saved.editing) editing = true;
+        const { fields } = saved;
+        if (typeof fields.nameDraft === "string") nameDraft = fields.nameDraft;
+        if (typeof fields.shortNameDraft === "string") {
+          shortNameDraft = fields.shortNameDraft;
+        }
+        if (typeof fields.descriptionDraft === "string") {
+          descriptionDraft = fields.descriptionDraft;
+        }
+        if (typeof fields.genderDraft === "string") {
+          genderDraft = fields.genderDraft;
+        }
+        if (typeof fields.isUpManagedDraft === "boolean") {
+          isUpManagedDraft = fields.isUpManagedDraft;
+        }
+        if (typeof fields.capacityDraft === "string") {
+          capacityDraft = fields.capacityDraft;
+        }
+        if (typeof fields.priceRangeDraft === "string") {
+          priceRangeDraft = fields.priceRangeDraft;
+        }
+        if (typeof fields.managingOfficeDraft === "string") {
+          managingOfficeDraft = fields.managingOfficeDraft;
+        }
+        if (typeof fields.contactEmailDraft === "string") {
+          contactEmailDraft = fields.contactEmailDraft;
+        }
+        if (typeof fields.contactPhoneDraft === "string") {
+          contactPhoneDraft = fields.contactPhoneDraft;
+        }
+        if (typeof fields.amenitiesDraft === "string") {
+          amenitiesDraft = fields.amenitiesDraft;
+        }
+        if (typeof fields.facebookLinkDraft === "string") {
+          facebookLinkDraft = fields.facebookLinkDraft;
+        }
+        if (typeof fields.osmLinkDraft === "string") {
+          osmLinkDraft = fields.osmLinkDraft;
+        }
+      }
+    }
+  });
+
+  $effect(() => {
+    if (canPublish || !editing || !dorm) return;
+    scheduleEntityContributorDraftSave("dorm", dorm.id, () => ({
+      editing: true,
+      fields: {
+        nameDraft,
+        shortNameDraft,
+        descriptionDraft,
+        genderDraft,
+        isUpManagedDraft,
+        capacityDraft,
+        priceRangeDraft,
+        managingOfficeDraft,
+        contactEmailDraft,
+        contactPhoneDraft,
+        amenitiesDraft,
+        facebookLinkDraft,
+        osmLinkDraft,
+      },
+    }));
   });
 
   function enablePinProposal() {
@@ -349,6 +421,7 @@
       if (outcome.proposal) {
         activeProposalId = outcome.proposal.id;
         proposalStatus = outcome.proposal.status;
+        clearEntityContributorDraft("dorm", current.id);
         toastStore.show(
           `Suggestion for ${current.dormName} submitted for review.`,
           "success",

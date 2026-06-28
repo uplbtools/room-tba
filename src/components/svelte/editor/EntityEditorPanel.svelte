@@ -28,9 +28,9 @@
   }: Props = $props();
 </script>
 
-<div class="entity-editor-panel">
+<div class="entity-editor-panel" class:contributor-form={!canPublish}>
   <div class="editor-heading">
-    <span>{canPublish ? "Editor" : "Suggest a change"}</span>
+    <span>{canPublish ? "Editor" : "Spot something off?"}</span>
   </div>
 
   {#if showSubmitterName}

@@ -6,6 +6,11 @@
   } from "@lib/store.svelte";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import {
+    clearEntityContributorDraft,
+    readEntityContributorDraft,
+    scheduleEntityContributorDraftSave,
+  } from "@lib/contributor-drafts";
   import { getAppActions, getAppData } from "@lib/context";
   import type { DivisionData, RoomData } from "@lib/types";
   import { getDivisionRooms } from "@lib/local/data/utils";
@@ -75,6 +80,27 @@
     collegeDraft = current.collegeId === null ? "" : String(current.collegeId);
     savedField = null;
     fieldError = null;
+
+    if (!canPublish) {
+      const savedDraft = readEntityContributorDraft("division", current.id);
+      if (savedDraft) {
+        if (savedDraft.editing) editing = true;
+        if (typeof savedDraft.fields.nameDraft === "string") {
+          nameDraft = savedDraft.fields.nameDraft;
+        }
+        if (typeof savedDraft.fields.collegeDraft === "string") {
+          collegeDraft = savedDraft.fields.collegeDraft;
+        }
+      }
+    }
+  });
+
+  $effect(() => {
+    if (canPublish || !editing || !division) return;
+    scheduleEntityContributorDraftSave("division", division.id, () => ({
+      editing: true,
+      fields: { nameDraft, collegeDraft },
+    }));
   });
 
   function syncDivisionFromServer(updated: DivisionData) {
@@ -137,6 +163,7 @@
       }
 
       if (!outcome.published) {
+        clearEntityContributorDraft("division", current.id);
         toastStore.show(
           "Division change suggestion submitted for review.",
           "success",

@@ -67,6 +67,7 @@ const FIELD_LABELS: Record<string, string> = {
   startsAt: "Starts",
   endsAt: "Ends",
   sourceUrl: "Source URL",
+  imageUrl: "Event image",
   recurrence: "Recurrence",
   routes: "Routes",
   locations: "Map locations",

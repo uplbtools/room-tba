@@ -295,6 +295,7 @@
 
     void (async () => {
       try {
+        syncToastStore.startRemoteFetch();
         const localDB = getDB();
         try {
           await initPGLiteDB(localDB);

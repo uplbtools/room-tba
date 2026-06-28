@@ -81,3 +81,54 @@ export function publicUrlForKey(key: string, publicBaseUrl?: string | null): str
   }
   return key;
 }
+
+const EVENT_IMAGE_URL_MAX_LENGTH = 2048;
+
+export type ParsedEventImageUrl =
+  | { ok: true; imageUrl: string | null; provided: boolean }
+  | { ok: false; error: string };
+
+/** Validates image URLs saved on events (typically from /api/admin/upload). */
+export function parseEventImageUrl(
+  value: unknown,
+  publicBaseUrl?: string | null,
+): ParsedEventImageUrl {
+  if (value === undefined) {
+    return { ok: true, imageUrl: null, provided: false };
+  }
+  if (value === null || value === "") {
+    return { ok: true, imageUrl: null, provided: true };
+  }
+  if (typeof value !== "string") {
+    return { ok: false, error: "Event image URL must be a string" };
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { ok: true, imageUrl: null, provided: true };
+  }
+  if (trimmed.length > EVENT_IMAGE_URL_MAX_LENGTH) {
+    return { ok: false, error: "Event image URL is too long" };
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return { ok: false, error: "Event image URL is invalid" };
+  }
+  if (parsed.protocol !== "https:") {
+    return { ok: false, error: "Event image URL must use HTTPS" };
+  }
+  if (publicBaseUrl) {
+    const base = publicBaseUrl.replace(/\/$/, "");
+    if (!trimmed.startsWith(`${base}/`)) {
+      return {
+        ok: false,
+        error: "Event image URL must come from this site's upload storage",
+      };
+    }
+  }
+
+  return { ok: true, imageUrl: trimmed, provided: true };
+}

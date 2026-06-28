@@ -10,7 +10,14 @@
     mapStore,
     toastStore,
   } from "@lib/store.svelte";
-  import SuggestAdditionPanel from "./SuggestAdditionPanel.svelte";
+  import SuggestAdditionPanel from "@ui/SuggestAdditionPanel.svelte";
+
+  type Props = {
+    /** When true, render as inline actions inside the bottom chrome tray. */
+    embedded?: boolean;
+  };
+
+  let { embedded = false }: Props = $props();
 
   let centered: boolean = $state(false);
   const suggestPanelId = "suggest-addition";
@@ -45,7 +52,7 @@
   };
 </script>
 
-<div class="map-control-stack">
+<div class="map-control-stack" class:embedded>
   {#if showSuggestAddition}
     <div class="admin-control">
       {#if suggestMenuOpen}
@@ -61,8 +68,8 @@
       <button
         class="map-control-btn"
         onclick={() => floatingControlPanelStore.toggle(suggestPanelId)}
-        title="Propose a new building, room, or event"
-        aria-label="Propose a campus addition"
+        title="Add something to the map"
+        aria-label="Add something to the map"
         aria-expanded={suggestMenuOpen}
         aria-controls="suggest-addition-menu"
       >
@@ -94,11 +101,24 @@
     pointer-events: auto;
   }
 
+  .map-control-stack.embedded {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
   .admin-control {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.5rem;
+  }
+
+  .embedded .admin-control {
+    position: relative;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 0.375rem;
   }
 
   .map-control-btn {
@@ -123,33 +143,61 @@
     transition:
       background-color 0.2s,
       border-color 0.2s;
+  }
 
-    &:hover {
-      background-color: hsl(0, 0%, 99%);
-      border-color: hsl(5, 53%, 32%);
-    }
+  .embedded .map-control-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 1px;
+    box-shadow: var(
+      --map-chrome-fab-shadow,
+      inset 0 0 0 1px hsla(0, 0%, 100%, 0.72),
+      0 1px 4px hsla(0, 0%, 0%, 0.16)
+    );
+  }
 
-    &:focus-visible {
-      outline: 2px solid hsl(5, 53%, 32%);
-      outline-offset: 2px;
-    }
+  .embedded .map-control-btn :global(svg) {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .map-control-btn:hover {
+    background-color: hsl(0, 0%, 99%);
+    border-color: hsl(5, 53%, 32%);
+  }
+
+  .map-control-btn:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
   }
 
   .admin-panel {
     display: flex;
-    width: 17rem;
+    width: min(18rem, calc(100vw - 1rem));
     max-width: calc(100vw - 1rem);
     max-height: min(70vh, 28rem);
     flex-direction: column;
     gap: 0.5rem;
+    border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
     border-radius: 0.875rem;
-    background-color: white;
+    background-color: var(--map-chrome-surface, rgba(255, 250, 250, 0.98));
     padding: 0.75rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 4px 14px hsla(0, 0%, 0%, 0.16)
+    );
     overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .embedded .admin-panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.375rem);
+    width: min(18rem, calc(100vw - 1.5rem));
   }
 
   .suggest-panel {
-    width: 17rem;
+    width: min(18rem, calc(100vw - 1rem));
   }
 </style>

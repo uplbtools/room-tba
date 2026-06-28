@@ -17,7 +17,8 @@ import {
   MIN_ZOOM,
   tileUrl,
 } from "./local/offline-maps";
-import type { BuildingTypeFilter } from "../constants/building-types";
+import { clearProposeEventDraft } from "./contributor-drafts";
+import type { BuildingTypeFilter } from "@constants/building-types";
 
 export type { BuildingTypeFilter };
 
@@ -432,7 +433,6 @@ export type FloatingControlPanel =
   | "legend"
   | "building-type"
   | "terrain"
-  | "jeepney"
   | "admin"
   | "suggest-addition";
 
@@ -451,12 +451,15 @@ class FloatingControlPanelStore {
 }
 
 export type MapToolsSection =
-  "view" | "legend" | "building-type" | "terrain" | "jeepney";
+  | "view"
+  | "legend"
+  | "terrain"
+  | "jeepney";
 
 class MapToolsStore {
   open = $state(false);
   activeSection: MapToolsSection | null = $state("view");
-  /** Accordion: terrain and jeepney collapsed by default. */
+  /** Accordion: terrain collapsed by default. */
   expandedSections = $state<Set<MapToolsSection>>(new Set(["view", "legend"]));
 
   toggle = () => {
@@ -612,6 +615,10 @@ class AdditionProposalStore {
   clearDraftPin() {
     this.draftPin = null;
   }
+
+  setDraftPin(pin: { lat: number; lon: number } | null) {
+    this.draftPin = pin;
+  }
 }
 
 export type EventPlacementDraft = {
@@ -620,6 +627,7 @@ export type EventPlacementDraft = {
   startsAt: string;
   endsAt: string;
   category: "tradition" | "fair" | "ceremony" | "sports" | "other";
+  imageUrl: string | null;
 };
 
 class EventPlacementStore {
@@ -662,6 +670,7 @@ class EventPlacementStore {
     this.creating = false;
     this.proposing = false;
     this.submitterName = "";
+    clearProposeEventDraft();
   };
 
   consumeCreatedEvent = (eventId: number) => {
@@ -935,6 +944,8 @@ class AdminAuthStore {
 }
 
 class JeepneyStore {
+  /** Transit/jeepney layer visible (search chip or map tools). */
+  layerActive: boolean = $state(false);
   selectedRouteId: string | null = $state(null);
   menuOpen: boolean = $state(false);
 
@@ -946,11 +957,34 @@ class JeepneyStore {
     this.menuOpen = false;
   };
 
+  toggleLayer = () => {
+    if (this.layerActive) {
+      this.disableLayer();
+      return;
+    }
+    this.enableLayer();
+  };
+
+  enableLayer = () => {
+    this.layerActive = true;
+    deactivateMapModesExcept("routes");
+  };
+
+  disableLayer = () => {
+    this.layerActive = false;
+    this.selectedRouteId = null;
+    this.menuOpen = false;
+  };
+
   selectRoute = (id: string) => {
+    if (!this.layerActive) {
+      this.enableLayer();
+    }
     this.selectedRouteId = this.selectedRouteId === id ? null : id;
     this.menuOpen = false;
-    // Selecting (not clearing) a route activates routes mode.
-    if (this.selectedRouteId !== null) deactivateMapModesExcept("routes");
+    if (this.selectedRouteId !== null) {
+      deactivateMapModesExcept("routes");
+    }
   };
 
   clearRoute = () => {
@@ -1451,7 +1485,7 @@ export function deactivateMapModesExcept(active: ExclusiveMapMode) {
     eventPlacementStore.cancel();
   }
   if (active !== "routes") {
-    jeepneyStore.clearRoute();
+    jeepneyStore.disableLayer();
   }
   if (active !== "terrain") {
     terrainStore.disable();

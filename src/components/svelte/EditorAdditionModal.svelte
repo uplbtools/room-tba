@@ -90,8 +90,9 @@
     flex-direction: column;
     overflow: hidden;
     border-radius: 0.75rem;
-    background: white;
-    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
+    background: var(--map-chrome-surface, #fffafa);
+    box-shadow: var(--map-chrome-panel-shadow, 0 18px 38px rgba(0, 0, 0, 0.3));
   }
 
   .editor-addition-header {

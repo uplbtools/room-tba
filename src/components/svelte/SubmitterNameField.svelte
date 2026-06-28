@@ -1,8 +1,13 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import {
     MAX_SUBMITTER_NAME_LENGTH,
     MIN_SUBMITTER_NAME_LENGTH,
   } from "@constants/proposals";
+  import {
+    readSubmitterName,
+    scheduleSubmitterNameSave,
+  } from "@lib/contributor-drafts";
   import "./map-chrome/map-chrome.css";
 
   type Props = {
@@ -18,8 +23,8 @@
 
   let {
     id,
-    label = "Your name",
-    placeholder = "How should we credit this suggestion?",
+    label = "What should we call you?",
+    placeholder = "First name or nickname",
     value = $bindable(""),
     variant = "editor",
     showHint = variant === "editor",
@@ -35,6 +40,20 @@
     return fieldClass;
   });
   const labelClass = $derived(variant === "inline" ? "sr-only" : undefined);
+  let nameReady = $state(false);
+
+  onMount(() => {
+    if (!value.trim()) {
+      const stored = readSubmitterName();
+      if (stored) value = stored;
+    }
+    nameReady = true;
+  });
+
+  $effect(() => {
+    if (!nameReady || typeof localStorage === "undefined") return;
+    scheduleSubmitterNameSave(value);
+  });
 </script>
 
 <div class={wrapperClass}>
@@ -56,7 +75,7 @@
       aria-live="polite"
     >
       {value.length}/{MAX_SUBMITTER_NAME_LENGTH}
-      · min {MIN_SUBMITTER_NAME_LENGTH} characters
+      · at least {MIN_SUBMITTER_NAME_LENGTH} characters — so editors can follow up
     </p>
   {/if}
 </div>

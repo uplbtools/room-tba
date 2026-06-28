@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
+import { R2_PUBLIC_URL } from "astro:env/server";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { parseEventImageUrl } from "@lib/r2-upload";
 import { createEvent, DuplicateSlugError } from "@lib/services/admin-service";
 import { slugifySegment } from "@lib/site";
 
@@ -27,6 +29,11 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       ? slugifySegment(body.slug)
       : slugifySegment(title);
 
+  const parsedImageUrl = parseEventImageUrl(body.imageUrl, R2_PUBLIC_URL);
+  if (!parsedImageUrl.ok) {
+    return json({ error: parsedImageUrl.error }, 400);
+  }
+
   try {
     const event = await createEvent(
       {
@@ -35,6 +42,9 @@ export const POST: APIRoute = async ({ cookies, request }) => {
         slug,
         includeInSeo:
           typeof body.includeInSeo === "boolean" ? body.includeInSeo : true,
+        ...(parsedImageUrl.provided
+          ? { imageUrl: parsedImageUrl.imageUrl }
+          : {}),
       },
       auth.editedBy,
     );

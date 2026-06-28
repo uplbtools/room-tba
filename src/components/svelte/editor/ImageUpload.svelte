@@ -1,5 +1,6 @@
 <script lang="ts">
   import "./entity-editor.css";
+  import { UPLOAD_MAX_BYTES } from "@lib/r2-upload-core";
 
   type Props = {
     value?: string | null;
@@ -19,12 +20,43 @@
 
   let uploading = $state(false);
   let error = $state<string | null>(null);
+  let uploadConfigured = $state<boolean | null>(null);
+
+  const maxSizeLabel = `${Math.round(UPLOAD_MAX_BYTES / (1024 * 1024))} MB`;
+
+  $effect(() => {
+    let cancelled = false;
+    uploadConfigured = null;
+    fetch("/api/admin/upload", { credentials: "same-origin" })
+      .then(async (res) => {
+        if (cancelled) return;
+        if (res.status === 401 || res.status === 403) {
+          uploadConfigured = false;
+          return;
+        }
+        const data = (await res.json().catch(() => ({}))) as {
+          configured?: boolean;
+        };
+        uploadConfigured = data.configured === true;
+      })
+      .catch(() => {
+        if (!cancelled) uploadConfigured = false;
+      });
+    return () => {
+      cancelled = true;
+    };
+  });
 
   async function handleFileChange(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
     input.value = "";
-    if (!file || uploading) return;
+    if (!file || uploading || disabled) return;
+
+    if (file.size > UPLOAD_MAX_BYTES) {
+      error = `Image must be ${maxSizeLabel} or smaller.`;
+      return;
+    }
 
     uploading = true;
     error = null;
@@ -43,11 +75,24 @@
         error?: string;
       };
 
+      if (res.status === 429) {
+        throw new Error(
+          data.error ?? "Too many uploads. Wait a few minutes and try again.",
+        );
+      }
+      if (res.status === 503) {
+        uploadConfigured = false;
+        throw new Error(
+          data.error ??
+            "Image uploads are not configured on this server yet.",
+        );
+      }
       if (!res.ok || !data.url) {
         throw new Error(data.error ?? `Upload failed (${res.status})`);
       }
 
       value = data.url;
+      uploadConfigured = true;
     } catch (uploadError) {
       error =
         uploadError instanceof Error
@@ -62,6 +107,10 @@
     value = null;
     error = null;
   }
+
+  const inputDisabled = $derived(
+    disabled || uploading || uploadConfigured === false,
+  );
 </script>
 
 <div class="editor-field image-upload">
@@ -76,7 +125,7 @@
         <button
           type="button"
           class="editor-toggle image-upload-button"
-          {disabled}
+          disabled={inputDisabled}
           onclick={clearImage}
         >
           Remove
@@ -84,7 +133,11 @@
       </div>
     </div>
   {:else}
-    <label class="editor-toggle image-upload-button" for={inputId}>
+    <label
+      class="editor-toggle image-upload-button"
+      class:disabled={inputDisabled}
+      for={inputId}
+    >
       {uploading ? "Uploading..." : "Choose image"}
     </label>
   {/if}
@@ -93,11 +146,16 @@
     type="file"
     accept="image/jpeg,image/png,image/webp"
     hidden
-    {disabled}
+    disabled={inputDisabled}
     onchange={handleFileChange}
   />
   <p class="entity-editor-muted image-upload-hint">
-    JPEG, PNG, or WebP up to 5 MB.
+    {#if uploadConfigured === false}
+      Image uploads are not configured on this server. You can still save the
+      event without a photo.
+    {:else}
+      JPEG, PNG, or WebP up to {maxSizeLabel}.
+    {/if}
   </p>
   {#if error}
     <p class="image-upload-error" role="alert">{error}</p>
@@ -128,6 +186,11 @@
 
   .image-upload-button {
     cursor: pointer;
+  }
+
+  .image-upload-button.disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
   }
 
   .image-upload-hint {

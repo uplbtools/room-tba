@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
+import { R2_PUBLIC_URL } from "astro:env/server";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
+import { parseEventImageUrl } from "@lib/r2-upload";
 import {
   deactivateEvent,
   EditConflictError,
@@ -37,12 +39,20 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
   if (!parsedVersion.ok) return parsedVersion.response;
   const expectedVersion = parsedVersion.version;
 
+  const parsedImageUrl = parseEventImageUrl(body.imageUrl, R2_PUBLIC_URL);
+  if (!parsedImageUrl.ok) {
+    return json({ error: parsedImageUrl.error }, 400);
+  }
+
   try {
     const updates: EventWriteInput = { ...body };
     if (updates.slug) updates.slug = slugifySegment(updates.slug);
     if (updates.title) updates.title = updates.title.trim();
     if (typeof body.includeInSeo === "boolean") {
       updates.includeInSeo = body.includeInSeo;
+    }
+    if (parsedImageUrl.provided) {
+      updates.imageUrl = parsedImageUrl.imageUrl;
     }
     const event = await updateEvent(
       id,

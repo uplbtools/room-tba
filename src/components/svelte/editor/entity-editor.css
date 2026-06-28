@@ -307,3 +307,111 @@
   font-size: 0.75rem;
   line-height: 1.45;
 }
+
+/* Contributor-facing forms: readable labels, map-chrome inputs, no admin uppercase */
+.contributor-form {
+  gap: 0.625rem;
+}
+
+.contributor-form .editor-heading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.35;
+}
+
+.contributor-form .editor-field {
+  gap: 0.25rem;
+}
+
+.contributor-form .editor-field label {
+  color: hsl(0, 0%, 26%);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.35;
+}
+
+.contributor-form .field-hint {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: hsl(0, 0%, 46%);
+}
+
+.contributor-form .editor-field input,
+.contributor-form .editor-field select,
+.contributor-form .editor-field textarea,
+.contributor-form .editor-control-row input,
+.contributor-form .editor-control-row select,
+.contributor-form .editor-control-row textarea {
+  min-width: 0;
+  border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
+  border-radius: 0.625rem;
+  padding: 0.4375rem 0.625rem;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: hsl(0, 0%, 14%);
+  background: var(--map-chrome-surface, #fffafa);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.contributor-form .editor-field input::placeholder,
+.contributor-form .editor-field textarea::placeholder,
+.contributor-form .editor-control-row input::placeholder,
+.contributor-form .editor-control-row textarea::placeholder {
+  color: hsl(0, 0%, 54%);
+}
+
+.contributor-form .editor-field input:focus,
+.contributor-form .editor-field select:focus,
+.contributor-form .editor-field textarea:focus,
+.contributor-form .editor-control-row input:focus,
+.contributor-form .editor-control-row select:focus,
+.contributor-form .editor-control-row textarea:focus {
+  outline: none;
+  border-color: hsl(5, 53%, 42%);
+  box-shadow: 0 0 0 2px hsla(5, 53%, 32%, 0.12);
+}
+
+.contributor-form .editor-field textarea,
+.contributor-form .editor-control-row textarea {
+  resize: vertical;
+  min-height: 3.25rem;
+}
+
+.contributor-form .entity-editor-lead {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: hsl(0, 0%, 28%);
+}
+
+.contributor-form .entity-editor-pin-label {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: hsl(0, 0%, 32%);
+}
+
+.contributor-form .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.375rem;
+  border-top: 1px solid hsl(5, 53%, 90%);
+}
+
+.contributor-form .field-group:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.contributor-form .submitter-name-hint {
+  color: hsl(0, 0%, 46%);
+  line-height: 1.4;
+}

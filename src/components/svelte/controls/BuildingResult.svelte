@@ -32,6 +32,11 @@
     persistEntityChange,
   } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import {
+    clearEntityContributorDraft,
+    readEntityContributorDraft,
+    scheduleEntityContributorDraftSave,
+  } from "@lib/contributor-drafts";
 
   type BuildingEditableField = "buildingName" | "directions" | "buildingType";
 
@@ -133,6 +138,33 @@
     const stored = getStoredProposalForEntity("building", current.id);
     activeProposalId = stored?.id ?? null;
     if (stored) proposalStatus = stored.status;
+
+    if (!canPublish) {
+      const saved = readEntityContributorDraft("building", current.id);
+      if (saved) {
+        if (saved.editing) editing = true;
+        if (typeof saved.fields.nameDraft === "string") {
+          nameDraft = saved.fields.nameDraft;
+        }
+        if (typeof saved.fields.directionsDraft === "string") {
+          directionsDraft = saved.fields.directionsDraft;
+        }
+        if (
+          saved.fields.typeDraft === "admin" ||
+          saved.fields.typeDraft === "non-admin"
+        ) {
+          typeDraft = saved.fields.typeDraft;
+        }
+      }
+    }
+  });
+
+  $effect(() => {
+    if (canPublish || !editing || !building) return;
+    scheduleEntityContributorDraftSave("building", building.id, () => ({
+      editing: true,
+      fields: { nameDraft, directionsDraft, typeDraft },
+    }));
   });
 
   function fieldLabel(field: BuildingEditableField) {
@@ -231,6 +263,7 @@
       if (outcome.proposal) {
         activeProposalId = outcome.proposal.id;
         proposalStatus = outcome.proposal.status;
+        clearEntityContributorDraft("building", current.id);
         savedField = field;
         toastStore.show(
           `Suggestion for ${current.buildingName} submitted for review.`,

@@ -16,10 +16,17 @@
   import { validateSubmitterName } from "@constants/proposals";
   import { instantToCampusWallString } from "@lib/event-time";
   import { slugifySegment } from "@lib/site";
+  import {
+    clearSuggestAdditionDraft,
+    readSuggestAdditionDraft,
+    scheduleSuggestAdditionDraftSave,
+  } from "@lib/contributor-drafts";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
+  import ImageUpload from "@ui/editor/ImageUpload.svelte";
+  import { onMount } from "svelte";
 
   type AdditionOption = {
     value: ProposalCreateType;
@@ -71,6 +78,7 @@
   let eventCategory = $state<
     "tradition" | "fair" | "ceremony" | "sports" | "other"
   >("other");
+  let eventImageUrl = $state<string | null>(null);
   let dormName = $state("");
   let dormGender = $state("coed");
   let roomCode = $state("");
@@ -80,6 +88,7 @@
   let divisionName = $state("");
   let submitting = $state(false);
   let error = $state<string | null>(null);
+  let draftReady = $state(false);
 
   const appData = getAppData();
   const colleges = $derived(appData().loaded ? appData().colleges : []);
@@ -92,21 +101,16 @@
 
   const draftPin = $derived(additionProposalStore.draftPin);
 
-  const pinLabel = $derived(
-    draftPin
-      ? `${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
-      : "Not set",
-  );
-
-  function resetFields() {
+  function resetFields(clearPin = true) {
     buildingName = "";
     buildingDirections = "";
     buildingType = "non-admin";
-    additionProposalStore.clearDraftPin();
+    if (clearPin) additionProposalStore.clearDraftPin();
     eventTitle = "";
     eventStartsAt = "";
     eventEndsAt = "";
     eventCategory = "other";
+    eventImageUrl = null;
     dormName = "";
     dormGender = "coed";
     roomCode = "";
@@ -116,6 +120,79 @@
     divisionName = "";
     error = null;
   }
+
+  function snapshotAdditionDraft() {
+    return {
+      kind,
+      buildingName,
+      buildingDirections,
+      buildingType,
+      eventTitle,
+      eventStartsAt,
+      eventEndsAt,
+      eventCategory,
+      eventImageUrl,
+      dormName,
+      dormGender,
+      roomCode,
+      roomDirections,
+      collegeName,
+      divisionCollegeDraft,
+      divisionName,
+      draftPin: additionProposalStore.draftPin,
+    };
+  }
+
+  function restoreAdditionDraft() {
+    const saved = readSuggestAdditionDraft();
+    if (!saved) return;
+    kind = saved.kind;
+    buildingName = saved.buildingName;
+    buildingDirections = saved.buildingDirections;
+    buildingType = saved.buildingType;
+    eventTitle = saved.eventTitle;
+    eventStartsAt = saved.eventStartsAt;
+    eventEndsAt = saved.eventEndsAt;
+    eventCategory = saved.eventCategory;
+    eventImageUrl = saved.eventImageUrl;
+    dormName = saved.dormName;
+    dormGender = saved.dormGender;
+    roomCode = saved.roomCode;
+    roomDirections = saved.roomDirections;
+    collegeName = saved.collegeName;
+    divisionCollegeDraft = saved.divisionCollegeDraft;
+    divisionName = saved.divisionName;
+    if (saved.draftPin) {
+      additionProposalStore.setDraftPin(saved.draftPin);
+    }
+  }
+
+  onMount(() => {
+    if (!isPublish) restoreAdditionDraft();
+    draftReady = true;
+  });
+
+  $effect(() => {
+    if (isPublish || !draftReady || typeof localStorage === "undefined") return;
+    kind;
+    buildingName;
+    buildingDirections;
+    buildingType;
+    eventTitle;
+    eventStartsAt;
+    eventEndsAt;
+    eventCategory;
+    eventImageUrl;
+    dormName;
+    dormGender;
+    roomCode;
+    roomDirections;
+    collegeName;
+    divisionCollegeDraft;
+    divisionName;
+    additionProposalStore.draftPin;
+    scheduleSuggestAdditionDraftSave(snapshotAdditionDraft);
+  });
 
   function dismissHost() {
     if (onDismiss) {
@@ -173,6 +250,7 @@
           recurrence: "none",
           isActive: true,
           includeInSeo: true,
+          imageUrl: eventImageUrl,
           locations: draftPin
             ? [
                 {
@@ -265,6 +343,7 @@
           `${options.find((o) => o.value === kind)?.label ?? "Entry"} created.`,
           "success",
         );
+        clearSuggestAdditionDraft();
         resetFields();
         dismissHost();
         return;
@@ -284,7 +363,8 @@
         error = result.error ?? "Could not submit proposal.";
         return;
       }
-      toastStore.show("Addition submitted for editor review.", "success");
+      toastStore.show("Thanks — we'll review your suggestion soon.", "success");
+      clearSuggestAdditionDraft();
       resetFields();
       dismissHost();
     } finally {
@@ -295,6 +375,7 @@
 
 <section
   class="entity-editor addition-panel"
+  class:contributor-form={!isPublish}
   aria-label={isPublish ? "Add to campus map" : "Propose a campus addition"}
 >
   <p class="entity-editor-lead">
@@ -302,12 +383,15 @@
       Add a missing building, room, dorm, college, or division. Buildings and
       dorms need a map pin before you create them.
     {:else}
-      Missing something on the map? Propose a new building, room, event, or
-      other campus entry. Editors review before anything goes live.
+      Spot something missing on the map? Tell us what to add — editors review
+      every suggestion before it goes live.
     {/if}
   </p>
 
-  <EntityEditorFormField label="What to add" inputId="addition-kind-select">
+  <EntityEditorFormField
+    label="What are you adding?"
+    inputId="addition-kind-select"
+  >
     {#snippet control()}
       <select
         id="addition-kind-select"
@@ -330,143 +414,217 @@
     />
   {/if}
 
-  {#if kind === "create_building"}
-    <EntityEditorFormField label="Building name" inputId="addition-building-name">
-      {#snippet control()}
-        <input
-          id="addition-building-name"
-          bind:value={buildingName}
-          maxlength="100"
+  <div class="field-group">
+    {#if kind === "create_building"}
+      <EntityEditorFormField
+        label="What's it called?"
+        inputId="addition-building-name"
+        hint="The name people use on campus."
+      >
+        {#snippet control()}
+          <input
+            id="addition-building-name"
+            bind:value={buildingName}
+            maxlength="100"
+            placeholder="e.g. Gonzaga Hall"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="How do you find it?"
+        inputId="addition-building-directions"
+        hint="Floor, nearby landmarks — anything that helps someone get there."
+      >
+        {#snippet control()}
+          <textarea
+            id="addition-building-directions"
+            bind:value={buildingDirections}
+            rows="2"
+            placeholder="Near the main entrance, past the lobby…"></textarea>
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="Who uses this building?"
+        inputId="addition-building-type"
+      >
+        {#snippet control()}
+          <select id="addition-building-type" bind:value={buildingType}>
+            <option value="non-admin">Student-facing</option>
+            <option value="admin">Admin / offices</option>
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_event"}
+      <EntityEditorFormField
+        label="What's the event called?"
+        inputId="addition-event-title"
+      >
+        {#snippet control()}
+          <input
+            id="addition-event-title"
+            bind:value={eventTitle}
+            maxlength="200"
+            placeholder="e.g. Lantern Parade"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="When does it start?"
+        inputId="addition-event-starts"
+      >
+        {#snippet control()}
+          <input
+            id="addition-event-starts"
+            type="datetime-local"
+            bind:value={eventStartsAt}
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="When does it wrap up?"
+        inputId="addition-event-ends"
+      >
+        {#snippet control()}
+          <input
+            id="addition-event-ends"
+            type="datetime-local"
+            bind:value={eventEndsAt}
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="What kind of event?"
+        inputId="addition-event-category"
+      >
+        {#snippet control()}
+          <select id="addition-event-category" bind:value={eventCategory}>
+            <option value="tradition">Tradition</option>
+            <option value="fair">Fair</option>
+            <option value="ceremony">Ceremony</option>
+            <option value="sports">Sports</option>
+            <option value="other">Other</option>
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+      {#if adminAuthStore.isLoggedIn}
+        <ImageUpload
+          inputId="addition-event-image"
+          label="Event image (optional)"
+          prefix={`events/${slugifySegment(eventTitle.trim() || "event")}`}
+          bind:value={eventImageUrl}
+          disabled={submitting}
         />
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField
-      label="Directions / notes"
-      inputId="addition-building-directions"
-    >
-      {#snippet control()}
-        <textarea
-          id="addition-building-directions"
-          bind:value={buildingDirections}
-          rows="2"
-        ></textarea>
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField label="Type" inputId="addition-building-type">
-      {#snippet control()}
-        <select id="addition-building-type" bind:value={buildingType}>
-          <option value="non-admin">Non-admin</option>
-          <option value="admin">Admin</option>
-        </select>
-      {/snippet}
-    </EntityEditorFormField>
-  {:else if kind === "create_event"}
-    <EntityEditorFormField label="Event title" inputId="addition-event-title">
-      {#snippet control()}
-        <input id="addition-event-title" bind:value={eventTitle} maxlength="200" />
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField label="Starts" inputId="addition-event-starts">
-      {#snippet control()}
-        <input
-          id="addition-event-starts"
-          type="datetime-local"
-          bind:value={eventStartsAt}
-        />
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField label="Ends" inputId="addition-event-ends">
-      {#snippet control()}
-        <input
-          id="addition-event-ends"
-          type="datetime-local"
-          bind:value={eventEndsAt}
-        />
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField label="Category" inputId="addition-event-category">
-      {#snippet control()}
-        <select id="addition-event-category" bind:value={eventCategory}>
-          <option value="tradition">Tradition</option>
-          <option value="fair">Fair</option>
-          <option value="ceremony">Ceremony</option>
-          <option value="sports">Sports</option>
-          <option value="other">Other</option>
-        </select>
-      {/snippet}
-    </EntityEditorFormField>
-  {:else if kind === "create_dorm"}
-    <EntityEditorFormField label="Dorm name" inputId="addition-dorm-name">
-      {#snippet control()}
-        <input id="addition-dorm-name" bind:value={dormName} maxlength="120" />
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField label="Gender policy" inputId="addition-dorm-gender">
-      {#snippet control()}
-        <input
-          id="addition-dorm-gender"
-          bind:value={dormGender}
-          maxlength="40"
-          placeholder="e.g. coed"
-        />
-      {/snippet}
-    </EntityEditorFormField>
-  {:else if kind === "create_room"}
-    <EntityEditorFormField label="Room code" inputId="addition-room-code">
-      {#snippet control()}
-        <input id="addition-room-code" bind:value={roomCode} maxlength="80" />
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField
-      label="Directions (optional)"
-      inputId="addition-room-directions"
-    >
-      {#snippet control()}
-        <textarea
-          id="addition-room-directions"
-          bind:value={roomDirections}
-          rows="2"
-        ></textarea>
-      {/snippet}
-    </EntityEditorFormField>
-  {:else if kind === "create_college"}
-    <EntityEditorFormField label="College name" inputId="addition-college-name">
-      {#snippet control()}
-        <input
-          id="addition-college-name"
-          bind:value={collegeName}
-          maxlength="100"
-        />
-      {/snippet}
-    </EntityEditorFormField>
-  {:else if kind === "create_division"}
-    <EntityEditorFormField label="Division name" inputId="addition-division-name">
-      {#snippet control()}
-        <input
-          id="addition-division-name"
-          bind:value={divisionName}
-          maxlength="100"
-        />
-      {/snippet}
-    </EntityEditorFormField>
-    <EntityEditorFormField
-      label="Parent college"
-      inputId="addition-division-college"
-    >
-      {#snippet control()}
-        <select id="addition-division-college" bind:value={divisionCollegeDraft}>
-          <option value="">No college</option>
-          {#each colleges as college (college.id)}
-            <option value={String(college.id)}>{college.collegeName}</option>
-          {/each}
-        </select>
-      {/snippet}
-    </EntityEditorFormField>
-  {/if}
+      {/if}
+    {:else if kind === "create_dorm"}
+      <EntityEditorFormField
+        label="What's the dorm called?"
+        inputId="addition-dorm-name"
+      >
+        {#snippet control()}
+          <input
+            id="addition-dorm-name"
+            bind:value={dormName}
+            maxlength="120"
+            placeholder="e.g. Eliazo Hall"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="Who can live here?"
+        inputId="addition-dorm-gender"
+        hint="Coed, women only, men only — whatever applies."
+      >
+        {#snippet control()}
+          <input
+            id="addition-dorm-gender"
+            bind:value={dormGender}
+            maxlength="40"
+            placeholder="e.g. coed"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_room"}
+      <EntityEditorFormField
+        label="Room number or code"
+        inputId="addition-room-code"
+        hint="As you'd tell a friend where to meet."
+      >
+        {#snippet control()}
+          <input
+            id="addition-room-code"
+            bind:value={roomCode}
+            maxlength="80"
+            placeholder="e.g. 301 or A-12"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="How do you get there?"
+        inputId="addition-room-directions"
+        hint="Optional — stairs, wing, or landmarks help."
+      >
+        {#snippet control()}
+          <textarea
+            id="addition-room-directions"
+            bind:value={roomDirections}
+            rows="2"
+            placeholder="Third floor, left wing…"></textarea>
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_college"}
+      <EntityEditorFormField
+        label="College name"
+        inputId="addition-college-name"
+        hint="The official name as students know it."
+      >
+        {#snippet control()}
+          <input
+            id="addition-college-name"
+            bind:value={collegeName}
+            maxlength="100"
+            placeholder="e.g. College of Science"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_division"}
+      <EntityEditorFormField
+        label="Division name"
+        inputId="addition-division-name"
+      >
+        {#snippet control()}
+          <input
+            id="addition-division-name"
+            bind:value={divisionName}
+            maxlength="100"
+            placeholder="e.g. Department of Physics"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="Part of which college?"
+        inputId="addition-division-college"
+      >
+        {#snippet control()}
+          <select
+            id="addition-division-college"
+            bind:value={divisionCollegeDraft}
+          >
+            <option value="">No college</option>
+            {#each colleges as college (college.id)}
+              <option value={String(college.id)}>{college.collegeName}</option>
+            {/each}
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+    {/if}
+  </div>
 
   {#if needsPin}
     <EntityEditorPinRow
-      label="Map pin: {pinLabel}"
+      label={draftPin
+        ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+        : "Drop a pin on the map"}
+      pickLabel={draftPin ? "Move pin" : "Pick on map"}
       disabled={submitting}
       onclick={pickOnMap}
     />
@@ -477,8 +635,8 @@
   {/if}
 
   <EntityEditorSubmitButton
-    label={isPublish ? "Create now" : "Submit for review"}
-    savingLabel={isPublish ? "Creating…" : "Submitting…"}
+    label={isPublish ? "Create now" : "Send suggestion"}
+    savingLabel={isPublish ? "Creating…" : "Sending…"}
     saving={submitting}
     variant="primary"
     onclick={submit}

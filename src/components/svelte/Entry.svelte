@@ -30,7 +30,7 @@
   import EditorScreen from "@ui/EditorScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import "./map-chrome/map-chrome.css";
-  import { observeBlockHeight } from "@lib/layout-css-vars";
+  import { observeBlockHeight, observeBlockWidth } from "@lib/layout-css-vars";
   import type { RecentSearch } from "@lib/types";
   import { isRecentSearch } from "@lib/locStorage";
 
@@ -91,6 +91,8 @@
   );
 
   let mapToolsStackEl = $state<HTMLDivElement | null>(null);
+  let bottomChromeEl = $state<HTMLDivElement | null>(null);
+  let bottomChromeActionsEl = $state<HTMLDivElement | null>(null);
 
   $effect(() => {
     const el = mapToolsStackEl;
@@ -98,6 +100,25 @@
     return observeBlockHeight(el, "--map-tools-block-height", {
       shouldSkip: () => window.matchMedia("(max-width: 48rem)").matches,
       skipValue: "0px",
+    });
+  });
+
+  $effect(() => {
+    const el = bottomChromeEl;
+    if (!el) return;
+    return observeBlockHeight(el, "--status-bar-block-height");
+  });
+
+  $effect(() => {
+    const el = bottomChromeActionsEl;
+    if (!el) return;
+    return observeBlockWidth(el, "--bottom-fab-inset", {
+      onSync: (widthPx, root) => {
+        root.style.setProperty(
+          "--bottom-fab-inset",
+          `calc(${widthPx} + var(--bottom-chrome-gap, var(--bottom-fab-gap, 0.5rem)))`,
+        );
+      },
     });
   });
 
@@ -144,19 +165,24 @@
         </div>
       </div>
     </div>
-    <div
-      class="location-fab-stack"
-      class:drawer-lift={drawerExpanded}
-      aria-label="Location controls"
-    >
-      <LocationButton />
-    </div>
     <div class="inner-layer">
       <MainControls />
       <div class="bottom-band">
-        <div class="bottom-band-footer">
-          <MapAttribution />
-          <StatusBar />
+        <div class="bottom-chrome" bind:this={bottomChromeEl}>
+          <div class="bottom-chrome__leading">
+            <MapAttribution />
+          </div>
+          <div class="bottom-chrome__status">
+            <StatusBar />
+          </div>
+          <div
+            class="bottom-chrome__actions"
+            class:drawer-lift={drawerExpanded}
+            bind:this={bottomChromeActionsEl}
+            aria-label="Location controls"
+          >
+            <LocationButton embedded />
+          </div>
         </div>
       </div>
     </div>
@@ -182,8 +208,9 @@
 <style>
   .app-layout {
     --map-ui-padding: 0.5rem;
-    /* Breathing room between bottom FAB stack and status bar (above inner-layer padding). */
+    /* Gap between bottom chrome and edit dock / map padding edge */
     --bottom-fab-gap: var(--map-ui-padding, 0.5rem);
+    --bottom-chrome-gap: var(--bottom-fab-gap, 0.5rem);
     --search-block-height: 3.25rem;
     /* Top-left search card + drawer: use viewport minus right-side map chrome. */
     --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
@@ -195,6 +222,7 @@
         var(--map-ui-padding) * 2
     );
     --edit-bar-height: 0rem;
+    --bottom-fab-inset: 3.75rem;
     --pill-padding-x: 0.875rem;
     --map-chrome-radius: 1rem;
     --map-chrome-toggle-size: 2rem;
@@ -229,10 +257,6 @@
     overflow: hidden;
   }
 
-  .app-layout.edit-mode {
-    --edit-bar-height: 3rem;
-  }
-
   .inner-layer {
     display: flex;
     flex-direction: column;
@@ -250,12 +274,76 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-end;
-    gap: 0;
     flex-shrink: 0;
     width: 100%;
     pointer-events: none;
-    /* Reserve horizontal space so status bar text does not sit under FABs */
-    --bottom-fab-inset: 3.75rem;
+  }
+
+  .bottom-chrome {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.375rem;
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    pointer-events: auto;
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border-radius: var(--map-chrome-radius, 1rem);
+    padding: 0.125rem 0.375rem;
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 0 0 1px hsla(15, 8%, 20%, 0.16),
+      0 2px 8px hsla(0, 0%, 0%, 0.14),
+      0 8px 20px hsla(0, 0%, 0%, 0.18)
+    );
+  }
+
+  .bottom-chrome__leading {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: center;
+    min-width: 0;
+  }
+
+  .bottom-chrome__status {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .bottom-chrome__status :global(.status-bar) {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    align-self: stretch;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding: 0;
+    min-height: 1.25rem;
+  }
+
+  .bottom-chrome__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: flex-start;
+    min-width: 0;
+    margin-top: 0.125rem;
+    padding-left: 0.25rem;
+    margin-left: 0.0625rem;
+    border-left: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
   .bottom-band::before {
@@ -280,18 +368,6 @@
     );
     pointer-events: none;
     z-index: 0;
-  }
-
-  .bottom-band-footer {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-width: 0;
-    pointer-events: none;
   }
 
   :global(.map) {
@@ -365,26 +441,6 @@
     background-color: var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
-  .location-fab-stack {
-    position: fixed;
-    left: auto;
-    right: calc(var(--map-ui-padding, 0.5rem) + 0.5rem);
-    bottom: calc(
-      var(--status-bar-block-height, 2.75rem) +
-        var(--map-ui-padding, 0.5rem) + env(safe-area-inset-bottom, 0px) +
-        var(--bottom-fab-gap, var(--map-ui-padding, 0.5rem))
-    );
-    z-index: 14;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    width: max-content;
-    max-width: calc(100% - 1rem);
-    gap: 0.5rem;
-    pointer-events: none;
-    transition: bottom var(--motion-duration-panel) var(--motion-ease-out);
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .app-layout {
       --motion-duration-fast: 0ms;
@@ -392,31 +448,17 @@
       --motion-duration-panel: 0ms;
       --motion-duration-shelf: 0ms;
     }
-
-    .location-fab-stack {
-      transition: none;
-    }
-  }
-
-  :global(*) {
-    margin: unset;
-    box-sizing: border-box;
   }
 
   @media (max-width: 48rem) {
     .app-layout {
       --map-ui-padding: 0;
       --map-search-inline-pad: 0.625rem;
-      --bottom-fab-gap: 0.5rem;
+      --bottom-fab-gap: 0.375rem;
+      --bottom-chrome-gap: var(--bottom-fab-gap);
       --map-tools-block-height: 0px;
       --mobile-detail-sheet-top-inset: var(--search-block-height);
-    }
-
-    .location-fab-stack {
-      right: max(0.5rem, env(safe-area-inset-right, 0px));
-      bottom: calc(
-        var(--status-bar-block-height, 2.75rem) + var(--bottom-fab-gap, 0.5rem)
-      );
+      --bottom-fab-inset: 3.25rem;
     }
 
     .inner-layer {
@@ -424,15 +466,38 @@
       gap: 0;
     }
 
-    .bottom-band {
-      gap: 0;
-      --bottom-fab-inset: 3.25rem;
+    .bottom-chrome {
+      gap: 0.25rem;
+      min-height: 2rem;
+      padding: 0.125rem max(0.375rem, env(safe-area-inset-left, 0px))
+        calc(0.125rem + env(safe-area-inset-bottom, 0px))
+        max(0.375rem, env(safe-area-inset-right, 0px));
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      backdrop-filter: none;
     }
 
-    .bottom-band-footer {
-      flex-direction: column;
-      align-items: stretch;
-      gap: var(--bottom-fab-gap, 0.5rem);
+    .bottom-chrome__status :global(.status-bar) {
+      min-height: 1.25rem;
+      padding-bottom: 0;
+    }
+
+    .bottom-chrome__leading {
+      padding-left: max(0.125rem, env(safe-area-inset-left, 0px));
+    }
+
+    /* When the drawer sheet is open, lift actions above its peek handle */
+    .bottom-chrome__actions.drawer-lift {
+      position: fixed;
+      right: max(0.5rem, env(safe-area-inset-right, 0px));
+      bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
+      z-index: 14;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
     }
 
     .top-right-map-stack {
@@ -503,12 +568,6 @@
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-body) {
       padding: 0.25rem 0 0.5rem;
-    }
-
-    /* When the drawer sheet is open, lift FABs above its peek handle */
-    .location-fab-stack.drawer-lift {
-      right: max(0.5rem, env(safe-area-inset-right, 0px));
-      bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
     }
   }
 </style>
