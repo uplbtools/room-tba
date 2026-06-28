@@ -255,11 +255,11 @@
     padding: 0;
     background: transparent;
     backdrop-filter: none;
-    width: 100%;
+    width: var(--map-chrome-toggle-size, 2rem);
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
-    gap: 0.375rem;
+    gap: 0.0625rem;
   }
 
   .divider {
