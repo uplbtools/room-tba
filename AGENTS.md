@@ -137,6 +137,13 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 - Reverts should create new history entries instead of rewriting or deleting old history.
 - Every admin write should refresh the relevant sync key so clients can detect changed data.
 
+## AMIS class imports
+
+- **Fetch once, reuse cache:** `bun run import:amis-classes -- --term-id <id> --fetch` saves sanitized rows to `data/amis-*-<id>.json` (gitignored). Re-import with the same command **without** `--fetch` — no AMIS hammering.
+- **Never store or commit instructor names.** AMIS responses embed faculty/user PII. `sanitizeAmisRow()` strips it before any JSON is written. Do not commit `data/amis-*.json`, raw AMIS dumps, or DB exports that include `faculty`, `first_name`, `formatted_name`, etc.
+- The app DB stores only course code, section, type, title, schedule slots, room, and term — never instructor fields.
+- If unsanitized exports exist locally, run `bun run import:amis-classes -- --scrub-exports`.
+
 ## Database and APIs
 
 - Supabase Postgres is the runtime source of truth via `DATABASE_URL` (not `NEON_CONNECTION_STRING`). Code, Drizzle, seeds, and the Astro env schema all use `DATABASE_URL`. On Vercel, name the env var `DATABASE_URL`.
@@ -145,6 +152,34 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 - **PGlite drift:** offline tables in `pgliteDB.ts` must stay aligned with server schema and with [`src/lib/local/data/sync.ts`](src/lib/local/data/sync.ts) consumers.
 - Admin API routes live under `/api/admin/*` and must keep auth checks.
 - Keep PATCH routes field-level and partial so unrelated edits do not clobber each other.
+
+## README sync (no drift)
+
+`README.md` is the human onboarding contract — not decoration. **Never merge stack, env, workflow, or contributor-facing behavior changes without updating README in the same PR.** Do not file a follow-up “docs PR” unless the user explicitly asked to split.
+
+### Update README when you change…
+
+| If you touch…                                | README must reflect…                                        |
+| -------------------------------------------- | ----------------------------------------------------------- |
+| `package.json` scripts                       | Command names, what they do, when they need `DATABASE_URL`  |
+| `astro.config.mjs` / `.env.example` env vars | Required vs optional vars, where to get values              |
+| Database provider, Drizzle, migrations       | Supabase Postgres + `drizzle/` — not SQLite/Neon as runtime |
+| Astro / Bun / major deps                     | Version labels that match `package.json`                    |
+| CI workflows (`.github/workflows/*`)         | What runs on PRs (`bun test src`, Prettier, etc.)           |
+| Live URL, repo org, default term label       | Links, “current semester” data note, changelog path         |
+| Editor login entry points                    | `/?editor=login`, in-app editing — not a separate admin app |
+| Project layout (`src/pages`, `src/lib`, …)   | Folder tree in README matches reality                       |
+| New user-visible features                    | Feature table or student-mode bullets                       |
+
+**Pair with `.env.example`:** new server env vars get a commented line in `.env.example` and a README mention in the same change set.
+
+### Before commit or PR
+
+1. Re-read the README sections your change affects — dev setup, stack, contributing, data note.
+2. Run **`bun run check:readme`** — fails on known stale phrases (Neon, `info.db` as runtime DB, `/src/routes`, `npm install`, wrong Astro major, “no automated test suite”).
+3. If you changed env or scripts and README still looks fine, you probably missed an update — check again.
+
+README-only overhauls are welcome; they still must pass `check:readme` and stay accurate against `package.json`, `.env.example`, and `AGENTS.md`.
 
 ## Verification
 
@@ -163,4 +198,4 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 - This is **Astro 7 SSR** (Vercel adapter). API routes under `src/pages/api/*` are server-rendered (`prerender = false`), and SSG entity pages (e.g. `/room/[slug]`) query the DB at build time; so `bun run build` fails without a working `DATABASE_URL`.
 - `@electric-sql/pglite` (`idb://site-data`) is a **browser-side cache only**, not a server/dev database fallback.
 - **PWA:** Workbox precaches `dist/client`; large client bundles affect offline install. See `astro.config.mjs` PWA config before adding heavy dependencies.
-- Standard scripts: `bun dev` (`http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint`, `bun run format`, `bun test src`. PR CI runs Prettier check + unit tests; run full lint and build locally before merge.
+- Standard scripts: `bun dev` (`http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint`, `bun run format`, `bun test src`, `bun run check:readme`. PR CI runs Prettier check + unit tests; run full lint and build locally before merge.

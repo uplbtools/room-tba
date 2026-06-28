@@ -1,4 +1,4 @@
-import { eq, getTableColumns } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import {
   buildingsTable,
   classesTable,
@@ -9,8 +9,11 @@ import {
 } from "@drizzle/schema";
 import { db } from "@lib/db";
 import { getEventBySlug } from "./event-service";
+import { getDefaultTerm } from "./term-service";
 
 export async function getBuildingPageData(buildingName: string) {
+  const defaultTerm = await getDefaultTerm();
+
   const data = await db
     .select()
     .from(buildingsTable)
@@ -19,9 +22,29 @@ export async function getBuildingPageData(buildingName: string) {
 
   if (data.length === 0) return null;
 
+  const building = data[0]?.buildings as typeof buildingsTable.$inferSelect;
+  const roomCount = data.filter((row) => row.rooms?.id != null).length;
+
+  let classCount = 0;
+  if (defaultTerm) {
+    const [{ count: classTotal }] = await db
+      .select({ count: count() })
+      .from(classesTable)
+      .innerJoin(roomsTable, eq(classesTable.roomId, roomsTable.id))
+      .where(
+        and(
+          eq(roomsTable.buildingId, building.id),
+          eq(classesTable.termId, defaultTerm.id),
+        ),
+      );
+    classCount = classTotal;
+  }
+
   return {
-    building: data[0]?.buildings as typeof buildingsTable.$inferSelect,
-    roomCount: data.length,
+    building,
+    roomCount,
+    classCount,
+    termLabel: defaultTerm?.label ?? null,
   };
 }
 
@@ -66,7 +89,9 @@ export async function getDormPageData(dormId: number) {
 }
 
 export async function getRoomPageData(roomId: number) {
-  const data = await db
+  const defaultTerm = await getDefaultTerm();
+
+  const [room] = await db
     .select({
       id: roomsTable.id,
       code: roomsTable.roomCode,
@@ -84,17 +109,33 @@ export async function getRoomPageData(roomId: number) {
       divisionId: roomsTable.divisionId,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
-      class: getTableColumns(classesTable),
     })
     .from(roomsTable)
     .where(eq(roomsTable.id, roomId))
     .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
     .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
     .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-    .leftJoin(classesTable, eq(classesTable.roomId, roomId));
+    .limit(1);
 
-  if (data.length === 0 || !data[0]) return null;
-  return { room: data[0], classCount: data.length };
+  if (!room) return null;
+
+  const [{ count: classCount }] = await db
+    .select({ count: count() })
+    .from(classesTable)
+    .where(
+      defaultTerm
+        ? and(
+            eq(classesTable.roomId, roomId),
+            eq(classesTable.termId, defaultTerm.id),
+          )
+        : eq(classesTable.roomId, roomId),
+    );
+
+  return {
+    room,
+    classCount,
+    termLabel: defaultTerm?.label ?? null,
+  };
 }
 
 export async function getEventPageData(slug: string) {

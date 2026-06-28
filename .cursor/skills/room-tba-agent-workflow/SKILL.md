@@ -27,6 +27,14 @@ Follow [AGENTS.md § Verify before done](../../AGENTS.md#verify-before-done) for
 - If a full build already passed after the final code changes, do not repeat it before committing unless new substantive changes were made.
 - If lint or test tooling is blocked, report the blocker and use the lightest reliable verification available.
 
+## README sync (mandatory)
+
+`AGENTS.md` § **README sync** is not optional. Treat README drift as a merge blocker.
+
+- **Same PR:** env vars, scripts, stack versions, CI, URLs, editor entry points, or user-facing features → update `README.md` (and `.env.example` when adding env vars) in the same change set.
+- **Before commit/PR:** run `bun run check:readme` after any of the above, or after editing README.
+- **Do not** ship “fix README later” — the check script catches common stale lies (Neon, `info.db` as runtime DB, `/src/routes`, `npm install`, wrong Astro major).
+
 ## Commits and PRs
 
 Commit policy, Conventional Commits format, and GPG signing: [AGENTS.md § Commits](../../AGENTS.md#commits).

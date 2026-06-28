@@ -118,6 +118,7 @@
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_CASING_ID = "jeepney-route-line-casing";
+  const jeepneyRouteGeometryCache = new Map<string, LineString>();
   const EVENT_ROUTE_SOURCE_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_CASING_ID = "event-route-line-casing";
@@ -161,6 +162,9 @@
   async function fetchRouteGeometry(
     route: JeepneyRoute,
   ): Promise<LineString | null> {
+    const cached = jeepneyRouteGeometryCache.get(route.id);
+    if (cached) return cached;
+
     if (route.stops.length < 2) return null;
     const coordsParam = route.stops
       .map((stop) => `${stop.lon},${stop.lat}`)
@@ -175,17 +179,11 @@
       };
       const geometry = data.routes?.[0]?.geometry;
       if (!geometry || geometry.type !== "LineString") return null;
+      jeepneyRouteGeometryCache.set(route.id, geometry);
       return geometry;
     } catch {
       return null;
     }
-  }
-
-  function buildStraightLineGeometry(route: JeepneyRoute): LineString {
-    return {
-      type: "LineString",
-      coordinates: route.stops.map((stop) => [stop.lon, stop.lat]),
-    };
   }
 
   function ensureJeepneyRouteLayers(map: mapGl.MapLibreMap, color: string) {
@@ -1590,8 +1588,7 @@
       };
 
       drawWhenReady(() => {
-        ensureJeepneyRouteLayers(map, route.color);
-        ensureLayersAndPaint(buildStraightLineGeometry(route));
+        clearJeepneyRouteLayers(map);
         fitMapToRoute(map, route);
       });
 
@@ -1606,6 +1603,24 @@
     return () => {
       cancelled = true;
     };
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const routeId = jeepneyStore.selectedRouteId;
+    const stopIndex = jeepneyStore.selectedStopIndex;
+    if (!map || routeId === null || stopIndex === null) return;
+
+    const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);
+    const stop = route?.stops[stopIndex];
+    if (!stop) return;
+
+    map.flyTo({
+      center: [stop.lon, stop.lat],
+      zoom: Math.max(map.getZoom(), 16),
+      duration: 700,
+      essential: true,
+    });
   });
 
   $effect(() => {
@@ -2574,15 +2589,29 @@
     {/if}
     {#if activeRouteId}
       {#each activeRouteStops as stop, i (`${activeRouteId}-${i}-${stop.name}`)}
+        {@const isHovered = jeepneyStore.hoveredStopIndex === i}
+        {@const isSelected = jeepneyStore.selectedStopIndex === i}
         <Marker lngLat={[stop.lon, stop.lat]}>
-          <div
+          <button
+            type="button"
             class="jeepney-stop-pin"
+            class:jeepney-stop-pin--hovered={isHovered}
+            class:jeepney-stop-pin--selected={isSelected}
             style:--stop-color={activeRouteColor}
-            title={stop.name}
+            aria-label={`Jeepney stop ${i + 1}: ${stop.name}`}
+            aria-pressed={isSelected}
+            onclick={(event) => {
+              event.stopPropagation();
+              jeepneyStore.openStop(i);
+            }}
+            onmouseenter={() => jeepneyStore.setHoveredStop(i)}
+            onmouseleave={() => jeepneyStore.setHoveredStop(null)}
+            onfocus={() => jeepneyStore.setHoveredStop(i)}
+            onblur={() => jeepneyStore.setHoveredStop(null)}
           >
-            <span class="stop-index">{i + 1}</span>
+            <span class="stop-index" aria-hidden="true">{i + 1}</span>
             <span class="stop-label" transition:fade>{stop.name}</span>
-          </div>
+          </button>
         </Marker>
       {/each}
     {/if}
@@ -3339,6 +3368,8 @@
 
   .jeepney-stop-pin {
     --stop-color: #dc2626;
+    all: unset;
+    box-sizing: border-box;
     width: 1.4rem;
     height: 1.4rem;
     border-radius: 50%;
@@ -3352,13 +3383,38 @@
     font-weight: 700;
     line-height: 1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
-    cursor: default;
+    cursor: pointer;
     position: relative;
     z-index: 50;
+    touch-action: manipulation;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
   }
+
+  .jeepney-stop-pin:hover,
+  .jeepney-stop-pin--hovered,
+  .jeepney-stop-pin--selected,
+  .jeepney-stop-pin:focus-visible {
+    transform: scale(1.12);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .jeepney-stop-pin--selected {
+    z-index: 52;
+    outline: 2px solid white;
+    outline-offset: 2px;
+  }
+
+  .jeepney-stop-pin:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
+  }
+
   .jeepney-stop-pin .stop-index {
     pointer-events: none;
   }
+
   .jeepney-stop-pin .stop-label {
     position: absolute;
     bottom: calc(100% + 0.4rem);
@@ -3375,8 +3431,15 @@
     opacity: 0;
     transition: opacity 0.15s;
     pointer-events: none;
+    max-width: min(14rem, calc(100vw - 2rem));
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .jeepney-stop-pin:hover .stop-label {
+
+  .jeepney-stop-pin:hover .stop-label,
+  .jeepney-stop-pin--hovered .stop-label,
+  .jeepney-stop-pin--selected .stop-label,
+  .jeepney-stop-pin:focus-visible .stop-label {
     opacity: 1;
   }
 </style>

@@ -8,7 +8,8 @@ import {
   type RoutableQueryState,
 } from "./entity-urls";
 import { getLocalRoomById } from "./local/data/utils";
-import { currentRoom } from "./store.svelte";
+import { currentRoom, termStore } from "./store.svelte";
+import { parseTermIdFromSearch, withTermQuery } from "./term-url";
 
 type EntityHistoryState = {
   rtbaEntity?: true;
@@ -26,6 +27,8 @@ export type EntityUrlSyncContext = {
 export type EntityUrlSyncSnapshot = RoutableQueryState & {
   room: { id: number; code: string } | null;
   editMode: boolean;
+  termId: number | null;
+  defaultTermId: number | null;
 };
 
 const HOME_PATH = "/";
@@ -119,6 +122,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
   function handlePopState(event: PopStateEvent) {
     applyingFromHistory = true;
     try {
+      termStore.applyFromUrl();
       const state = (event.state ?? null) as EntityHistoryState | null;
       if (state?.query) {
         context.hydrateQuery(state.query);
@@ -149,7 +153,13 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       HOME_PATH,
     );
 
-    window.history.replaceState(initialState, "", pathname);
+    const initialPath = withTermQuery(
+      pathname,
+      parseTermIdFromSearch(window.location.search) ?? termStore.activeTermId,
+      termStore.defaultTermId,
+    );
+
+    window.history.replaceState(initialState, "", initialPath);
     window.addEventListener("popstate", handlePopState);
   }
 
@@ -164,11 +174,20 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
 
     if (snapshot.type !== "result" || snapshot.category === null) {
       const pathname = currentPathname();
-      if (pathname !== HOME_PATH) {
+      const homePath = withTermQuery(
+        HOME_PATH,
+        snapshot.termId,
+        snapshot.defaultTermId,
+      );
+      const homePathname = homePath.split("?")[0] ?? HOME_PATH;
+      const homeSearch = homePath.includes("?")
+        ? homePath.slice(homePath.indexOf("?"))
+        : "";
+      if (pathname !== homePathname || window.location.search !== homeSearch) {
         window.history.pushState(
           buildHistoryState(null, HOME_PATH),
           "",
-          HOME_PATH,
+          homePath,
         );
       }
       return;
@@ -177,8 +196,23 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     const path = resolvePathForQuery(snapshot);
     if (!path) return;
 
+    const pathWithTerm = withTermQuery(
+      path,
+      snapshot.termId,
+      snapshot.defaultTermId,
+    );
     const pathname = currentPathname();
-    if (pathname === path) {
+    const currentSearch = window.location.search;
+    const targetPath = pathWithTerm;
+    const targetSearch = targetPath.includes("?")
+      ? targetPath.slice(targetPath.indexOf("?"))
+      : "";
+    const targetPathname = targetPath.slice(
+      0,
+      targetPath.indexOf("?") >= 0 ? targetPath.indexOf("?") : undefined,
+    );
+
+    if (pathname === targetPathname && currentSearch === targetSearch) {
       return;
     }
 
@@ -192,7 +226,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     window.history.pushState(
       buildHistoryState(historyQuery, HOME_PATH),
       "",
-      path,
+      pathWithTerm,
     );
   }
 

@@ -4,15 +4,32 @@ import {
   getEventCanonicalPath,
   getRoomCanonicalPath,
 } from "./entity-urls";
+import { withTermQuery } from "./term-url";
 import { absoluteUrl } from "./site";
 import type { DormData, RoomData } from "./types";
 
-export function getBuildingShareUrl(buildingName: string) {
-  return absoluteUrl(getBuildingCanonicalPath(buildingName));
+export function getBuildingShareUrl(
+  buildingName: string,
+  termId?: number | null,
+  defaultTermId?: number | null,
+) {
+  return absoluteUrl(
+    withTermQuery(
+      getBuildingCanonicalPath(buildingName),
+      termId,
+      defaultTermId,
+    ),
+  );
 }
 
-export function getRoomShareUrl(room: Pick<RoomData, "id" | "code">) {
-  return absoluteUrl(getRoomCanonicalPath(room));
+export function getRoomShareUrl(
+  room: Pick<RoomData, "id" | "code">,
+  termId?: number | null,
+  defaultTermId?: number | null,
+) {
+  return absoluteUrl(
+    withTermQuery(getRoomCanonicalPath(room), termId, defaultTermId),
+  );
 }
 
 export function getDormShareUrl(dorm: Pick<DormData, "id" | "dormName">) {

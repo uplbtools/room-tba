@@ -17,6 +17,7 @@
 
   let panelEl = $state<HTMLDivElement | null>(null);
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+  const mobile = new MediaQuery("max-width:48rem");
   const sections: { id: MapToolsSection; label: string }[] = [
     { id: "view", label: "View" },
     { id: "legend", label: "Legend" },
@@ -25,6 +26,12 @@
   ];
 
   function toggleSection(id: MapToolsSection) {
+    if (mobile.current) {
+      const isOpen = mapToolsStore.expandedSections.has(id);
+      mapToolsStore.expandedSections = isOpen ? new Set() : new Set([id]);
+      mapToolsStore.activeSection = isOpen ? null : id;
+      return;
+    }
     mapToolsStore.toggleSection(id);
   }
 

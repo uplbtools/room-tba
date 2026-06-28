@@ -13,6 +13,7 @@
     editorChromeStore,
     sidePanelStore,
     floatingControlPanelStore,
+    jeepneyStore,
   } from "@lib/store.svelte";
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
@@ -125,7 +126,11 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       if (modalStore.open) {
-        modalStore.closeModal();
+        if (modalStore.type === "jeepney-stop") {
+          jeepneyStore.closeStop();
+        } else {
+          modalStore.closeModal();
+        }
       } else if (adminAuthStore.loginOpen) {
         adminAuthStore.closeLogin();
       } else if (editorChromeStore.additionModalOpen) {
@@ -534,40 +539,46 @@
     }
 
     .top-right-map-stack :global(.map-tools-panel) {
-      min-height: min(
-        58dvh,
+      /* Hug content; scroll inside when a section is expanded. */
+      min-height: 0;
+      max-height: min(
+        42dvh,
         calc(
-          100dvh - var(--search-block-height) - var(--status-bar-block-height)
+          100dvh - var(--search-block-height) - var(--status-bar-block-height) -
+            0.5rem
         )
       );
-      padding: 0.875rem 1rem;
-      gap: 0.625rem;
+      padding: 0.5rem 0.625rem;
+      gap: 0.375rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-header) {
-      font-size: 1rem;
-      padding: 0.375rem 0.25rem 0.625rem;
+      font-size: 0.875rem;
+      padding: 0.125rem 0.125rem 0.375rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-close) {
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 2.25rem;
+      height: 2.25rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-panel-body) {
-      flex: 1 1 auto;
-      gap: 0.375rem;
+      flex: 0 1 auto;
+      min-height: 0;
+      gap: 0.25rem;
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     .top-right-map-stack
       :global(.map-tools-panel .map-chrome-accordion-toggle) {
-      min-height: 2.75rem;
-      padding: 0.625rem 0.75rem;
-      font-size: 0.9375rem;
+      min-height: 2.125rem;
+      padding: 0.375rem 0.5rem;
+      font-size: 0.8125rem;
     }
 
     .top-right-map-stack :global(.map-tools-panel .map-chrome-accordion-body) {
-      padding: 0.25rem 0 0.5rem;
+      padding: 0.125rem 0 0.3125rem;
     }
   }
 </style>
