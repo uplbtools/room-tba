@@ -351,6 +351,7 @@
           {#if mobile.current}
             <MapDimensionToggle compact />
           {/if}
+          <TermSelector />
           {#if chrome.showSearchSuggestions}
             {#if showIdleEventsChrome}
               <button
@@ -374,7 +375,6 @@
                 <span>Events</span>
               </button>
             {/if}
-            <TermSelector />
             <BuildingTypeFilterBar />
             <TransitFilterChip />
           {/if}
