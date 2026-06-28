@@ -23,7 +23,7 @@ export function observeBlockHeight(
       if (lastWritten === skip) return;
       lastWritten = skip;
       root.style.setProperty(cssVar, skip);
-      options.onSync?.(skip, root);
+      options?.onSync?.(skip, root);
       return;
     }
 
@@ -31,7 +31,7 @@ export function observeBlockHeight(
     if (height === lastWritten) return;
     lastWritten = height;
     root.style.setProperty(cssVar, height);
-    options.onSync?.(height, root);
+    options?.onSync?.(height, root);
   };
 
   const schedule = () => {
@@ -74,7 +74,7 @@ export function observeBlockWidth(
       if (lastWritten === skip) return;
       lastWritten = skip;
       root.style.setProperty(cssVar, skip);
-      options.onSync?.(skip, root);
+      options?.onSync?.(skip, root);
       return;
     }
 
@@ -82,7 +82,7 @@ export function observeBlockWidth(
     if (width === lastWritten) return;
     lastWritten = width;
     root.style.setProperty(cssVar, width);
-    options.onSync?.(width, root);
+    options?.onSync?.(width, root);
   };
 
   const schedule = () => {

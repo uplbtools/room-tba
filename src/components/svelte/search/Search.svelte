@@ -158,7 +158,9 @@
   const showEditorInline = $derived(showEditorSheet && !mobile.current);
 
   const showTransitRoutePanel = $derived(
-    chrome.showSearchSuggestions && jeepneyStore.layerActive,
+    chrome.showSearchSuggestions &&
+      jeepneyStore.layerActive &&
+      !mapToolsStore.open,
   );
 
   $effect(() => {

@@ -11,6 +11,8 @@ import {
 import { db } from "@lib/db";
 import { type SessionUser } from "@lib/admin/auth";
 import { validateSubmitterName } from "@constants/proposals";
+import { parseEventImageUrl } from "@lib/r2-upload";
+import { R2_PUBLIC_URL } from "astro:env/server";
 import { canViewProposalSubmitterDetails } from "./proposal-access";
 export { canViewProposalSubmitterDetails } from "./proposal-access";
 import {
@@ -534,9 +536,24 @@ export class ProposalActionError extends Error {
   }
 }
 
+function validateProposalEventImageUrl(patch: Record<string, unknown>) {
+  if (!("imageUrl" in patch)) return;
+  const parsed = parseEventImageUrl(patch.imageUrl, R2_PUBLIC_URL);
+  if (!parsed.ok) {
+    throw new ProposalActionError(parsed.error);
+  }
+  if (parsed.provided) {
+    patch.imageUrl = parsed.imageUrl;
+  }
+}
+
 async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
   const patch = proposal.proposedPatch as Record<string, unknown>;
   const entityType = proposal.entityType as ProposalEntityType;
+
+  if (entityType === "create_event" || entityType === "event") {
+    validateProposalEventImageUrl(patch);
+  }
 
   if (isCreateProposalType(entityType)) {
     switch (entityType) {

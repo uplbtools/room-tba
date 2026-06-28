@@ -120,14 +120,35 @@ export function parseEventImageUrl(
   if (parsed.protocol !== "https:") {
     return { ok: false, error: "Event image URL must use HTTPS" };
   }
-  if (publicBaseUrl) {
-    const base = publicBaseUrl.replace(/\/$/, "");
-    if (!trimmed.startsWith(`${base}/`)) {
-      return {
-        ok: false,
-        error: "Event image URL must come from this site's upload storage",
-      };
-    }
+
+  const base = publicBaseUrl?.trim().replace(/\/$/, "") ?? "";
+  if (!base) {
+    return {
+      ok: false,
+      error:
+        "Event image URL requires upload storage (R2_PUBLIC_URL) to be configured",
+    };
+  }
+
+  let baseOrigin: string;
+  try {
+    baseOrigin = new URL(base.includes("://") ? base : `https://${base}`)
+      .origin;
+  } catch {
+    return {
+      ok: false,
+      error: "Upload storage URL is not configured correctly",
+    };
+  }
+
+  if (
+    parsed.origin !== baseOrigin ||
+    !(trimmed === base || trimmed.startsWith(`${base}/`))
+  ) {
+    return {
+      ok: false,
+      error: "Event image URL must come from this site's upload storage",
+    };
   }
 
   return { ok: true, imageUrl: trimmed, provided: true };

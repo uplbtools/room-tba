@@ -11,18 +11,22 @@ export async function refreshSupabaseSession(
   if (!isSupabaseConfigured()) return;
 
   const pendingCacheHeaders: Record<string, string> = {};
-  const supabase = createServerSupabaseClient({
-    request: context.request,
-    cookies: context.cookies,
-    applyCacheHeaders: (headers) => {
-      Object.assign(pendingCacheHeaders, headers);
-    },
-  });
+  try {
+    const supabase = createServerSupabaseClient({
+      request: context.request,
+      cookies: context.cookies,
+      applyCacheHeaders: (headers) => {
+        Object.assign(pendingCacheHeaders, headers);
+      },
+    });
 
-  await supabase.auth.getUser();
+    await supabase.auth.getUser();
 
-  context.locals.supabase = supabase;
-  context.locals.supabaseCacheHeaders = pendingCacheHeaders;
+    context.locals.supabase = supabase;
+    context.locals.supabaseCacheHeaders = pendingCacheHeaders;
+  } catch (error) {
+    console.error("Supabase session refresh failed:", error);
+  }
 }
 
 export function applySupabaseCacheHeaders(
