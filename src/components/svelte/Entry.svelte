@@ -257,14 +257,21 @@
   .bottom-band::before {
     content: "";
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 6rem;
+    /* Bleed through inner-layer padding so the fade reaches the viewport edge. */
+    left: calc(-1 * var(--map-ui-padding, 0.5rem));
+    right: calc(-1 * var(--map-ui-padding, 0.5rem));
+    bottom: calc(
+      -1 * (var(--map-ui-padding, 0.5rem) + env(safe-area-inset-bottom, 0px))
+    );
+    height: calc(
+      6rem + var(--map-ui-padding, 0.5rem) +
+        env(safe-area-inset-bottom, 0px)
+    );
     background: linear-gradient(
       to top,
-      var(--map-chrome-band-backdrop) 12%,
-      hsla(5, 22%, 96%, 0.35) 52%,
+      var(--map-chrome-surface) 0%,
+      var(--map-chrome-band-backdrop) 14%,
+      hsla(5, 22%, 96%, 0.35) 54%,
       transparent 100%
     );
     pointer-events: none;
@@ -290,14 +297,11 @@
 
   .ui-layer {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     z-index: 10;
     pointer-events: none;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    width: 100%;
   }
 
   .top-right-map-stack {
