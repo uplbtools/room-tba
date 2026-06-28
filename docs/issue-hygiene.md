@@ -1,8 +1,33 @@
 # GitHub Issue Hygiene
 
-Issues in this repo often contain **implementation specifics** — file paths, table names, API routes, acceptance checklists, and design decisions. When agents ship code quickly, those details go stale within days. Treat issues as living specs, not write-once tickets.
+Issues are living specs. **Not every issue needs file paths** — match the track to the audience.
 
 Use `gh issue view <n> --repo uplbtools/room-tba` before and after issue-scoped work.
+
+## Three tracks
+
+| Track           | Typical labels                          | Who writes the issue | Implementation pointers                                         |
+| --------------- | --------------------------------------- | -------------------- | --------------------------------------------------------------- |
+| **Reporter**    | `data`, `qa`                            | Campus volunteers    | Added **when someone picks it up** — not required from reporter |
+| **Developer**   | `good first issue`, `help wanted`       | Developers           | Dev fills in as they learn the codebase                         |
+| **Spec / epic** | `enhancement`, `parent issue`, `[TASK]` | Maintainers          | Full paths, AC, `Last verified`                                 |
+
+**Reporter issues:** problem + verification only. Do not ask reporters to cite `src/` or open PRs.
+
+**Developer issues:** plain acceptance criteria; optional area of app (map, API, etc.).
+
+**Spec issues:** implementation specifics (paths, migrations) — keep current when agents or maintainers ship quickly.
+
+### Picking up a campus issue
+
+When implementing a `data` or `qa` issue on behalf of a reporter:
+
+1. Comment that you are working on it
+2. Append **Implementation pointers** to the issue body if helpful
+3. Open PR to `staging`; `Closes #NNN`
+4. Thank the reporter when merged
+
+---
 
 ## When to update an issue
 
@@ -32,7 +57,9 @@ Do **not** delete historical context — strike through or move obsolete paragra
 - **Comments:** progress pings, PR links, questions, blockers needing human input.
 - **Body edits:** anything the next implementer must trust (paths, AC, commands, schema).
 
-## Agent session checklist (issue-linked work)
+## Agent session checklist (spec / epic issues)
+
+For `data` / `qa` issues, steps 2–4 are optional until converting to an implementation spec.
 
 1. `gh issue view N --json title,body,state,labels`
 2. Verify cited files/routes exist; update issue if not.

@@ -1,0 +1,60 @@
+name: Data correction
+description: Wrong schedule, pin, directions, or missing room/building info
+title: "[DATA] "
+labels:
+  - data
+body:
+  - type: markdown
+    value: |
+      **No pull request required.** A developer or maintainer will implement the fix. Thank you for keeping campus data accurate.
+
+      Prefer the [in-app suggest flow](https://room-tba.uplbtools.me) if you have contributor access.
+  - type: dropdown
+    id: entity_type
+    attributes:
+      label: What is wrong?
+      options:
+        - Room schedule
+        - Building location / pin
+        - Directions text
+        - Missing room or building
+        - Event
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: entity_name
+    attributes:
+      label: Room or building name
+      description: e.g. PSLH 1, PhySci, CAS Annex 1
+      placeholder: PSLH 1
+    validations:
+      required: true
+  - type: input
+    id: term
+    attributes:
+      label: Term (if schedule-related)
+      description: e.g. 2nd Sem AY 2025-2026 — leave blank if not applicable
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong?
+      description: What you see now
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should it be?
+    validations:
+      required: true
+  - type: textarea
+    id: verified
+    attributes:
+      label: How did you verify?
+      description: Walked there, SAIS, org page, photo, etc.
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot or link (optional)
+      description: Paste a link or describe what you would attach

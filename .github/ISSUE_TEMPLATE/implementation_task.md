@@ -1,6 +1,6 @@
 ---
 name: Implementation task
-about: Feature or refactor with concrete acceptance criteria and file pointers
+about: Detailed spec with file pointers — for epics, maintainers, or experienced devs
 title: "[TASK] "
 labels: enhancement
 assignees: ""
@@ -19,7 +19,7 @@ assignees: ""
 
 ## Implementation pointers
 
-<!-- Keep these current — agents trust them literally -->
+<!-- Keep these current for anyone implementing (human dev or maintainer) -->
 
 - **Files / routes:**
 - **Schema / migrations:**
