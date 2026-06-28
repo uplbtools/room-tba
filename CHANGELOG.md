@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/uplbtools/room-tba/compare/v1.11.0...v1.12.0) (2026-06-28)
+
+
+### Features
+
+* **chrome:** legal pages, community links, and status bar rework ([#303](https://github.com/uplbtools/room-tba/issues/303)) ([39ace06](https://github.com/uplbtools/room-tba/commit/39ace060a779c054dab089443774837200b70e36))
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
