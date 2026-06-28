@@ -190,8 +190,9 @@
 
     <div bind:this={chromeEl} class="map-search-chrome">
       <div class="map-search-chrome__bar">
-        <div class="map-search-chrome__pill-wrap">
-          <div class="map-search-chrome__pill">
+        <div class="map-search-chrome__bar-row">
+          <div class="map-search-chrome__pill-wrap">
+            <div class="map-search-chrome__pill">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -262,6 +263,34 @@
               <Suggestions />
             </div>
           {/if}
+          </div>
+
+          {#if showEditorChrome}
+            <button
+              type="button"
+              class="map-search-chrome__editor-btn"
+              class:map-search-chrome__editor-btn--active={showEditorSheet}
+              class:map-search-chrome__editor-btn--editing={mapEditStore.enabled}
+              aria-expanded={showEditorSheet}
+              aria-controls="editor-shelf-panel"
+              aria-label={showEditorSheet
+                ? "Close editor tools"
+                : "Open editor tools"}
+              title={showEditorSheet ? "Close editor tools" : editorChipLabel}
+              onclick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleEditorShelf();
+              }}
+            >
+              <ShieldCheck size={18} aria-hidden="true" />
+              {#if proposalsStore.pendingCount > 0}
+                <span class="map-search-chrome__editor-badge"
+                  >{proposalsStore.pendingCount}</span
+                >
+              {/if}
+            </button>
+          {/if}
         </div>
       </div>
 
@@ -291,32 +320,6 @@
             >
               <CalendarDays size={14} aria-hidden="true" />
               <span>Events</span>
-            </button>
-          {/if}
-          {#if showEditorChrome}
-            <button
-              type="button"
-              class="map-chrome-chip"
-              class:map-chrome-chip--toggle-active={showEditorSheet}
-              class:map-chrome-chip--editor-active={mapEditStore.enabled}
-              aria-expanded={showEditorSheet}
-              aria-controls="editor-shelf-panel"
-              aria-label={showEditorSheet
-                ? "Close editor tools"
-                : "Open editor tools"}
-              onclick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                toggleEditorShelf();
-              }}
-            >
-              <ShieldCheck size={14} aria-hidden="true" />
-              <span>{editorChipLabel}</span>
-              {#if proposalsStore.pendingCount > 0}
-                <span class="map-chrome-chip__count"
-                  >{proposalsStore.pendingCount}</span
-                >
-              {/if}
             </button>
           {/if}
           <BuildingTypeFilterBar />
@@ -375,13 +378,26 @@
     pointer-events: none;
   }
 
+  .search-shell-main {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .search-root:not(.mobile-shell) .search-shell-main {
+    width: fit-content;
+    max-width: 100%;
+  }
+
   .search-root.mobile-shell .search-shell-main {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
+    justify-items: stretch;
     column-gap: 0.375rem;
     row-gap: 0;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: calc(env(safe-area-inset-top, 0px) + 0.4375rem) 0.625rem 0.4375rem;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
@@ -404,13 +420,19 @@
     grid-column: 2;
     grid-row: 1;
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
     padding: 0;
   }
 
   .search-root.mobile-shell .map-search-chrome__chips {
     grid-column: 1 / -1;
     grid-row: 2;
-    padding: 0.4375rem 0 0.1875rem;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: -0.625rem;
+    padding: 0.4375rem 0.625rem 0.1875rem;
     border-top: 1px solid hsl(0, 0%, 92%);
   }
 
@@ -418,12 +440,17 @@
   .search-root.mobile-shell .map-search-chrome__editor {
     grid-column: 1 / -1;
     grid-row: 3;
-    padding: 0.375rem 0 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: -0.625rem;
+    padding: 0.375rem 0.625rem 0;
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome {
     width: min(25.75rem, calc(50% - 4rem));
     max-width: 100%;
+    min-width: 0;
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
     border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
@@ -437,11 +464,19 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    max-width: 100%;
     pointer-events: auto;
   }
 
   .map-search-chrome__bar {
     padding: 0.4375rem 0.625rem;
+  }
+
+  .map-search-chrome__bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome__bar {
@@ -450,7 +485,66 @@
 
   .map-search-chrome__pill-wrap {
     position: relative;
+    flex: 1 1 auto;
     min-width: 0;
+  }
+
+  .map-search-chrome__editor-btn {
+    all: unset;
+    box-sizing: border-box;
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border-radius: 999px;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    color: hsl(160, 84%, 22%);
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  .map-search-chrome__editor-btn:hover,
+  .map-search-chrome__editor-btn:focus-visible {
+    border-color: hsl(160, 40%, 72%);
+    background-color: hsl(160, 45%, 96%);
+  }
+
+  .map-search-chrome__editor-btn:focus-visible {
+    outline: 2px solid hsl(160, 84%, 22%);
+    outline-offset: 1px;
+  }
+
+  .map-search-chrome__editor-btn--active {
+    border-color: hsl(5, 53%, 32%);
+    background-color: hsl(5, 53%, 96%);
+    color: hsl(5, 53%, 22%);
+  }
+
+  .map-search-chrome__editor-btn--editing {
+    border-color: hsl(160, 84%, 26%);
+    background-color: hsl(160, 84%, 26%);
+    color: white;
+  }
+
+  .map-search-chrome__editor-badge {
+    position: absolute;
+    top: -0.2rem;
+    right: -0.2rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background: hsl(5, 65%, 42%);
+    color: white;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    line-height: 1rem;
+    text-align: center;
   }
 
   .map-search-chrome__pill {
@@ -536,8 +630,12 @@
     flex-wrap: nowrap;
     align-items: center;
     gap: 0.375rem;
+    box-sizing: border-box;
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -548,6 +646,12 @@
   .search-root:not(.mobile-shell) .map-search-chrome__chips {
     border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
     border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+  .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .map-search-chrome__chips:hover,
@@ -587,6 +691,10 @@
   .map-search-chrome__events {
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     min-height: 0;
     max-height: min(50dvh, 22rem);
     overflow: hidden;
@@ -594,6 +702,11 @@
     border-top: 1px solid hsl(0, 0%, 92%);
     padding: 0.1875rem 0.625rem 0.4375rem;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__events {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
   }
 
   .map-search-chrome__events :global(.events-section) {
@@ -644,12 +757,29 @@
   .map-search-chrome__editor {
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     min-height: 0;
     max-height: min(46dvh, 20rem);
+    overflow-x: clip;
     overflow-y: auto;
     overscroll-behavior: contain;
     border-top: 1px solid hsl(0, 0%, 92%);
     padding: 0.25rem 0.625rem 0.4375rem;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__editor {
+    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+  }
+
+  .map-search-chrome__editor :global(.editor-shelf) {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 </style>

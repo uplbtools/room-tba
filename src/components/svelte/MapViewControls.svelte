@@ -317,9 +317,9 @@
     justify-content: flex-start;
     width: 100%;
     max-width: 100%;
-    min-height: 2.75rem;
+    min-height: 2rem;
     height: auto;
-    padding: 0.5rem 0.75rem;
+    padding: 0.3125rem 0.625rem;
     border: 1px solid hsl(0, 0%, 88%);
     border-radius: 0.625rem;
     box-sizing: border-box;
@@ -383,13 +383,13 @@
 
   @media (max-width: 48rem) {
     .icon-btn {
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 2rem;
+      height: 2rem;
     }
 
     .mode-toggle {
       width: 100%;
-      min-height: 2.75rem;
+      min-height: 2rem;
     }
   }
 </style>
