@@ -3,6 +3,7 @@
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
   import X from "@lucide/svelte/icons/x";
   import { editorChromeStore } from "@lib/store.svelte";
+  import { trapFocus } from "@lib/focus-trap";
   import {
     modalContentDismiss,
     modalContentReveal,
@@ -13,6 +14,8 @@
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
+  let dialogEl = $state<HTMLDivElement | null>(null);
+
   function close() {
     editorChromeStore.closeAdditionModal();
   }
@@ -20,6 +23,11 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") close();
   }
+
+  $effect(() => {
+    if (!editorChromeStore.additionModalOpen || !dialogEl) return;
+    return trapFocus(dialogEl, { onEscape: close });
+  });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -30,6 +38,7 @@
     transition:fade={overlayFade(reducedMotion.current)}
   >
     <div
+      bind:this={dialogEl}
       class="editor-addition-frame"
       role="dialog"
       aria-modal="true"
@@ -48,7 +57,7 @@
           onclick={close}
           aria-label="Close add to map"
         >
-          <X size={18} />
+          <X size={18} aria-hidden="true" />
         </button>
       </header>
       <div class="editor-addition-body">

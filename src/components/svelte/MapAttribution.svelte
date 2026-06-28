@@ -8,7 +8,7 @@
   }
 </script>
 
-<div class="map-attribution" class:expanded>
+<div class="map-attribution" class:expanded role="region" aria-label="Map attribution">
   <button
     type="button"
     class="attrib-toggle"
@@ -74,24 +74,30 @@
     flex: 0 0 auto;
     max-width: calc(100% - var(--bottom-fab-inset, 0px));
     pointer-events: auto;
+    isolation: isolate;
   }
 
   .attrib-toggle {
+    box-sizing: border-box;
+    margin: 0;
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.5rem;
-    background: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-clip: padding-box;
     color: hsl(0, 0%, 20%);
+    font: inherit;
     font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1.2;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
-    box-shadow: var(--map-chrome-shadow);
+    /* Single edge layer: border only — avoid stacking with shadow 1px rings. */
+    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);
   }
 
   .attrib-toggle:hover,
   .attrib-toggle:focus-visible {
-    background: hsl(5 25% 98%);
+    background-color: hsl(5 25% 98%);
     outline: 2px solid #7b1113;
     outline-offset: 1px;
   }
@@ -101,6 +107,7 @@
     bottom: calc(100% + 0.375rem);
     left: 0;
     z-index: 1;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
@@ -108,10 +115,11 @@
     padding: 0.375rem 0.5rem;
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.5rem;
-    background: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-clip: padding-box;
     font-size: 0.6875rem;
     line-height: 1.35;
-    box-shadow: var(--map-chrome-panel-shadow);
+    box-shadow: 0 2px 8px hsla(0, 0%, 0%, 0.12);
   }
 
   .attrib-body a {
@@ -125,12 +133,15 @@
   }
 
   .maptiler-logo {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: 0.375rem;
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-clip: padding-box;
     padding: 0.25rem 0.375rem;
-    box-shadow: var(--map-chrome-shadow);
+    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);
   }
 
   .maptiler-logo img {
@@ -141,8 +152,7 @@
 
   @media (max-width: 48rem) {
     .map-attribution {
-      margin-left: 0.5rem;
-      margin-bottom: 0.25rem;
+      padding-left: 0.5rem;
       order: -1;
     }
   }

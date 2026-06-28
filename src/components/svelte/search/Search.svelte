@@ -133,6 +133,11 @@
   );
 
   const editorChipLabel = $derived(mapEditStore.enabled ? "Editing" : "Editor");
+  const editorOpenLabel = $derived(
+    proposalsStore.pendingCount > 0
+      ? `Open editor tools, ${proposalsStore.pendingCount} pending`
+      : "Open editor tools",
+  );
 
   const showSearchDropdown = $derived(
     chrome.showSearchSuggestions &&
@@ -289,9 +294,7 @@
               aria-controls={mobile.current
                 ? "editor-screen"
                 : "editor-shelf-panel"}
-              aria-label={showEditorSheet
-                ? "Close editor tools"
-                : "Open editor tools"}
+              aria-label={showEditorSheet ? "Close editor tools" : editorOpenLabel}
               title={showEditorSheet ? "Close editor tools" : editorChipLabel}
               onclick={(event) => {
                 event.preventDefault();
@@ -301,7 +304,7 @@
             >
               <ShieldCheck size={18} aria-hidden="true" />
               {#if proposalsStore.pendingCount > 0}
-                <span class="map-search-chrome__editor-badge"
+                <span class="map-search-chrome__editor-badge" aria-hidden="true"
                   >{proposalsStore.pendingCount}</span
                 >
               {/if}

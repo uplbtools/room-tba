@@ -7,6 +7,7 @@
     modalContentReveal,
     overlayFade,
   } from "@lib/motion";
+  import { trapFocus } from "@lib/focus-trap";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
@@ -14,7 +15,9 @@
   import { MediaQuery } from "svelte/reactivity";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+  const loginErrorId = "admin-login-error";
 
+  let loginFrameEl = $state<HTMLDivElement | null>(null);
   let username = $state("admin");
   let password = $state("");
   let error: string | null = $state(null);
@@ -42,6 +45,11 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") close();
   }
+
+  $effect(() => {
+    if (!loginFrameEl) return;
+    return trapFocus(loginFrameEl, { onEscape: close });
+  });
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -51,19 +59,26 @@
   transition:fade={overlayFade(reducedMotion.current)}
 >
   <div
+    bind:this={loginFrameEl}
     class="login-frame"
     role="dialog"
     aria-modal="true"
+    aria-labelledby="admin-login-title"
     in:fly={modalContentReveal(reducedMotion.current)}
     out:fly={modalContentDismiss(reducedMotion.current)}
   >
     <header class="login-header">
-      <div class="login-title">
-        <Lock size={16} />
+      <div class="login-title" id="admin-login-title">
+        <Lock size={16} aria-hidden="true" />
         <span>Editor login</span>
       </div>
-      <button class="login-close" onclick={close} aria-label="Close login">
-        <X size={18} />
+      <button
+        type="button"
+        class="login-close"
+        onclick={close}
+        aria-label="Close login"
+      >
+        <X size={18} aria-hidden="true" />
       </button>
     </header>
     <form class="login-body entity-editor-form" onsubmit={submit}>
@@ -86,11 +101,17 @@
             autocomplete="current-password"
             bind:value={password}
             required
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? loginErrorId : undefined}
           />
         {/snippet}
       </EntityEditorFormField>
       {#if error}
-        <EntityEditorMessage variant="error" message={error} />
+        <EntityEditorMessage
+          variant="error"
+          message={error}
+          id={loginErrorId}
+        />
       {/if}
       <EntityEditorSubmitButton
         type="submit"
@@ -143,8 +164,11 @@
     color: hsl(0, 0%, 30%);
     display: flex;
   }
-  .login-close:hover {
+  .login-close:hover,
+  .login-close:focus-visible {
     background-color: hsl(0, 0%, 95%);
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
   }
   .login-body {
     padding: 1rem;

@@ -401,7 +401,7 @@
         {/if}
         {#if dorm.priceRange}
           <span class="entity-meta-chip price-badge">
-            <CircleDollarSign size={12} />
+            <CircleDollarSign size={12} aria-hidden="true" />
             {dorm.priceRange}
           </span>
         {/if}
@@ -415,7 +415,7 @@
               locationStore.setDestination([dorm.lon ?? 0, dorm.lat ?? 0]);
             }}
           >
-            <CornerRightUp size={14} />
+            <CornerRightUp size={14} aria-hidden="true" />
             Directions
           </MapChromeActionChip>
         {/if}
@@ -426,7 +426,7 @@
             target="_blank"
             rel="noopener noreferrer"
           >
-            <MapPin size={14} />
+            <MapPin size={14} aria-hidden="true" />
             Google Maps
           </a>
         {/if}

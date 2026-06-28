@@ -78,8 +78,8 @@
     <div class="hero-image">
       <div class="hero-overlay">
         <h2>
-          <span class="hero-title">
-            <img src="/logo.png" alt="Room TBA logo" class="hero-logo" />
+          <span class="hero-title" id="landing-modal-title">
+            <img src="/logo.png" alt="" class="hero-logo" aria-hidden="true" />
             Room TBA
           </span>
         </h2>
@@ -94,9 +94,11 @@
         <button
           type="button"
           role="tab"
+          id="landing-tab-{tab.id}"
           class="tab-btn"
           class:active={activeTab === tab.id}
           aria-selected={activeTab === tab.id}
+          aria-controls="landing-panel-{tab.id}"
           onclick={() => selectTab(tab.id)}
         >
           {tab.label}
@@ -107,11 +109,21 @@
 
   <div class="scroll-region">
     {#if activeTab === "welcome"}
-      <div class="tab-panel" role="tabpanel">
+      <div
+        class="tab-panel"
+        role="tabpanel"
+        id="landing-panel-welcome"
+        aria-labelledby="landing-tab-welcome"
+      >
         <LandingGuideSteps />
       </div>
     {:else}
-      <div class="tab-panel" role="tabpanel">
+      <div
+        class="tab-panel"
+        role="tabpanel"
+        id="landing-panel-campus"
+        aria-labelledby="landing-tab-campus"
+      >
         <GithubContributorsSection
           title="Developers"
           note="Pulled live from the Room TBA GitHub repo, sorted by commit count."

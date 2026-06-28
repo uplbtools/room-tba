@@ -139,7 +139,7 @@
       aria-label={pinModeTitle}
       aria-pressed={mapViewStore.eventsOnly}
     >
-      <CalendarDays size={18} />
+      <CalendarDays size={18} aria-hidden="true" />
       <span class="control-copy">
         <span class="control-kicker">Pins</span>
         <span class="control-value">
@@ -159,9 +159,9 @@
       aria-pressed={!is2D}
     >
       {#if is2D}
-        <MapIcon size={18} />
+        <MapIcon size={18} aria-hidden="true" />
       {:else}
-        <Box size={18} />
+        <Box size={18} aria-hidden="true" />
       {/if}
       <span class="control-copy">
         <span class="control-kicker">View</span>
@@ -180,7 +180,7 @@
       aria-label={campusTourTitle}
       aria-pressed={mapViewStore.campusTourEnabled}
     >
-      <Orbit size={18} />
+      <Orbit size={18} aria-hidden="true" />
       <span class="control-copy">
         <span class="control-kicker">Campus tour</span>
         <span class="control-value">
@@ -203,7 +203,7 @@
         title="Rotate left"
         aria-label="Rotate map left"
       >
-        <RotateCcw size={16} />
+        <RotateCcw size={16} aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -213,7 +213,7 @@
         aria-label="Reset map orientation to north"
       >
         <span class="north-icon" style:rotate={`${northRotation}deg`}>
-          <Navigation2 size={15} stroke-width={2} />
+          <Navigation2 size={15} stroke-width={2} aria-hidden="true" />
         </span>
       </button>
       <button
@@ -223,7 +223,7 @@
         title="Rotate right"
         aria-label="Rotate map right"
       >
-        <RotateCw size={16} />
+        <RotateCw size={16} aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -233,7 +233,7 @@
         aria-label="Decrease map tilt"
         disabled={pitch <= 0}
       >
-        <ChevronDown size={16} />
+        <ChevronDown size={16} aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -243,7 +243,7 @@
         aria-label="Increase map tilt"
         disabled={pitch >= MAX_PITCH}
       >
-        <ChevronUp size={16} />
+        <ChevronUp size={16} aria-hidden="true" />
       </button>
     </div>
   {/if}
@@ -324,6 +324,11 @@
     height: var(--map-chrome-toggle-size, 2rem);
   }
 
+  .control:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
+  }
+
   .control:hover {
     background-color: hsla(0, 0%, 0%, 0.08);
   }
@@ -345,6 +350,12 @@
   .north-icon {
     display: inline-flex;
     transition: rotate 0.2s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .north-icon {
+      transition: none;
+    }
   }
 
   .mode-toggle {

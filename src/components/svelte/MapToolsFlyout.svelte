@@ -45,7 +45,7 @@
     ariaLabel="Map tools"
     onclick={() => mapToolsStore.toggle()}
   >
-    <Layers size={20} />
+    <Layers size={20} aria-hidden="true" />
   </MapChromeFabTrigger>
 
   {#if mapToolsStore.open}
@@ -57,6 +57,7 @@
       <MapChromePanel
         bind:element={panelEl}
         id="map-tools-panel"
+        panelClass="map-chrome-panel map-tools-panel"
         title="Map tools"
         onclose={() => mapToolsStore.close()}
       >
@@ -70,9 +71,9 @@
             onclick={() => toggleSection(section.id)}
           >
             {#if isExpanded(section.id)}
-              <ChevronDown size={16} />
+              <ChevronDown size={18} aria-hidden="true" />
             {:else}
-              <ChevronRight size={16} />
+              <ChevronRight size={18} aria-hidden="true" />
             {/if}
             <span>{section.label}</span>
           </button>
@@ -120,7 +121,7 @@
 
   .accordion-section {
     display: grid;
-    gap: 0.25rem;
+    gap: 0.5rem;
     min-width: 0;
   }
 </style>

@@ -93,9 +93,9 @@
       onclick={() => (isOpen = !isOpen)}
     >
       {#if isOpen}
-        <ChevronDown size={18} />
+        <ChevronDown size={18} aria-hidden="true" />
       {:else}
-        <ChevronRight size={18} />
+        <ChevronRight size={18} aria-hidden="true" />
       {/if}
       <span>Status</span>
     </button>
@@ -289,6 +289,12 @@
       min-width: 0;
       flex: 0 0 auto;
       color: inherit;
+    }
+
+    .status-toggle:focus-visible {
+      outline: 2px solid hsl(5, 53%, 32%);
+      outline-offset: 2px;
+      border-radius: 0.25rem;
     }
 
     .status-primary,
