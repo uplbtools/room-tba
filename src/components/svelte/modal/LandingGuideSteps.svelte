@@ -101,6 +101,15 @@
       {/if}
     {/each}
   </ol>
+
+  <p class="guide-footnote">
+    Questions or want to volunteer? Use <strong>Suggest an edit</strong> on the
+    map, or reach us on
+    <a href="/discord" target="_blank" rel="noopener noreferrer">Discord</a>
+    /
+    <a href="/messenger" target="_blank" rel="noopener noreferrer">Messenger</a
+    >.
+  </p>
 </section>
 
 <style>
@@ -353,6 +362,20 @@
     color: hsl(5, 35%, 38%);
     flex-shrink: 0;
     align-self: center;
+  }
+
+  .guide-footnote {
+    margin: 0.125rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: hsl(0, 0%, 32%);
+  }
+
+  .guide-footnote a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   @media screen and (max-width: 36rem) {
