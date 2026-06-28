@@ -204,6 +204,21 @@ const imageUrl = absoluteUrl(imagePath);
     </div>
     <slot />
     <Analytics />
+    <script is:inline>
+      (function () {
+        function dismissLoadingShell() {
+          document.getElementById("app-loading-shell")?.remove();
+        }
+        // AppRoot removes the shell on mount; if hydration never starts (e.g. dev HMR
+        // corruption), don't leave the static HTML blocker up indefinitely.
+        document.addEventListener("astro:before-prehydration", dismissLoadingShell, {
+          once: true,
+        });
+        window.addEventListener("DOMContentLoaded", function () {
+          setTimeout(dismissLoadingShell, 12_000);
+        });
+      })();
+    </script>
   </body>
 </html>
 
