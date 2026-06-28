@@ -123,8 +123,11 @@
   .editor-shelf {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.375rem;
+    box-sizing: border-box;
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .editor-shelf-status {
@@ -168,15 +171,16 @@
   .editor-shelf-actions {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.25rem;
   }
 
   .editor-shelf-action {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 0.5rem;
+    gap: 0.375rem;
     width: 100%;
+    min-height: 2rem;
     border: 1px solid #d8b9ba;
     border-radius: 0.625rem;
     background-color: white;
@@ -185,7 +189,7 @@
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 700;
-    padding: 0.55rem 0.625rem;
+    padding: 0.3125rem 0.5rem;
     text-align: left;
   }
 
