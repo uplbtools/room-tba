@@ -2,7 +2,7 @@
 
 # Room TBA
 
-**Saan sa UPLB ang \___?** · Finally, a straight answer.
+**Saan sa UPLB ang \___?**
 
 [![Live app](https://img.shields.io/badge/open-room--tba.uplbtools.me-maroon?style=for-the-badge)](https://room-tba.uplbtools.me)
 [![MIT](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
@@ -27,17 +27,17 @@ No account needed to browse. Editors and contributors fix data in the same app (
 
 ---
 
-## What you can do (student mode)
+## What you can do
 
-| You want to…                         | Room TBA does…                                                                  |
-| ------------------------------------ | ------------------------------------------------------------------------------- |
-| Find **PSLH 1** or **PhySci**        | Search + alias matching (`PhySci`, `HUM`, building nicknames)                   |
-| See **who's in that room this sem**  | Term-aware class schedules + timetable view                                     |
-| Figure out **where the building is** | MapLibre campus map, pins, directions, Google Maps handoff                      |
-| Survive **dead zones**               | PWA + offline cache (PGlite in the browser; map tiles after you've loaded them) |
-| Check **events & org stuff**         | Campus events on the map with locations and routes                              |
-| Ride the **jeep** without guessing   | Jeepney route overlays                                                          |
-| Get **un-lost in 3D**                | Optional building view / terrain toward Makiling (online tiles)                 |
+| Goal                          | How                                        |
+| ----------------------------- | ------------------------------------------ |
+| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)      |
+| Room schedule this sem        | Term filter + timetable                    |
+| Building location             | Map, pins, directions, Google Maps         |
+| Offline / bad signal          | PWA + local cache; tiles if already loaded |
+| Campus events                 | Events on map with routes                  |
+| Jeepney routes                | Route overlays                             |
+| 3D view                       | Buildings + Makiling terrain (online)      |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
@@ -83,18 +83,17 @@ flowchart LR
 
 ---
 
-## Stack (for the curious)
+## Stack
 
-| Layer     | Choice                                                                              | Why it's here                                                 |
-| --------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| App shell | [Astro 7](https://astro.build) + [Svelte 5](https://svelte.dev)                     | SEO pages for every room/building **and** a snappy map island |
-| Runtime   | [Bun](https://bun.sh)                                                               | Dev speed, tests, installs                                    |
-| Database  | [Supabase](https://supabase.com) Postgres + [Drizzle ORM](https://orm.drizzle.team) | Relational data, migrations in `drizzle/`                     |
-| Offline   | [PGlite](https://pglite.dev) (`idb://site-data`)                                    | SQL in the browser, not a hand-rolled JSON cache              |
-| Maps      | [MapLibre GL](https://maplibre.org) + OSM/MapTiler                                  | Open tiles, no vendor lock-in on basemaps                     |
-| Images    | Cloudflare R2 (optional)                                                            | Event uploads via `/api/admin/upload`                         |
-| Host      | [Vercel](https://vercel.com)                                                        | SSR + API routes                                              |
-| CI        | Prettier, unit tests, CodeQL, Dependabot                                            | See [AGENTS.md](AGENTS.md)                                    |
+- [Astro 7](https://astro.build) + [Svelte 5](https://svelte.dev)
+- [Bun](https://bun.sh)
+- [Supabase](https://supabase.com) Postgres + [Drizzle](https://orm.drizzle.team) (`drizzle/`)
+- [PGlite](https://pglite.dev) in the browser for offline data
+- [MapLibre GL](https://maplibre.org), OSM / MapTiler tiles
+- [Vercel](https://vercel.com) for SSR and API routes
+- Cloudflare R2 for event uploads (optional)
+
+Contributor notes: [AGENTS.md](AGENTS.md)
 
 ---
 
@@ -160,18 +159,15 @@ PR checklist: [`docs/agentic-qa-process.md`](docs/agentic-qa-process.md)
 
 ## Contributing
 
-We merge through GitHub. Rough flow:
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for how to help:
 
-1. **Find or file an issue.** Implementation details live there; keep them updated ([`docs/issue-hygiene.md`](docs/issue-hygiene.md)).
-2. **Branch off `staging`**, hack, run `bun test src` + Prettier.
-3. **PR to `staging`.** The template asks for QA evidence; CI runs Prettier + tests.
-4. **Human pass** for map/editor UI at 320px if you touched chrome.
+- **Report wrong data** or **campus QA:** no clone, no PR
+- **Write code:** branch off `staging`, PR to `staging` ([developer guide](docs/developer-guide.md))
+- **Maintainers / agents:** [AGENTS.md](AGENTS.md)
 
-Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) (`feat(map): …`, `fix(api): …`). semantic-release uses them on `main`.
+[Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) · **Data:** label `data` · **QA:** label `qa`
 
-**Good first issues:** [good first issue](https://github.com/uplbtools/room-tba/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) · **Data fixes:** label `data` · **QA passes:** label `qa`
-
-No separate admin dashboard. If you can view it on the map, you should eventually edit it there.
+Implementers: [issue hygiene](docs/issue-hygiene.md) · [PR QA process](docs/agentic-qa-process.md)
 
 ---
 
@@ -210,6 +206,6 @@ Org: [uplbtools](https://github.com/uplbtools) · Campus tool, not an official U
 
 <div align="center">
 
-**[room-tba.uplbtools.me](https://room-tba.uplbtools.me)** · for people who've asked "Saan ba ang ___?" at least once this week
+**[room-tba.uplbtools.me](https://room-tba.uplbtools.me)**
 
 </div>

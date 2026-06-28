@@ -1,0 +1,51 @@
+name: Campus QA
+description: Manual testing on a phone or laptop (layout, search, schedules, offline)
+title: "[QA] "
+labels:
+  - qa
+body:
+  - type: markdown
+    value: |
+      **No pull request required.** Describe what you tested and what broke or looked wrong.
+
+      See the [contributing guide](https://github.com/uplbtools/room-tba/blob/staging/CONTRIBUTING.md#campus-qa) for ideas.
+  - type: input
+    id: url
+    attributes:
+      label: URL tested
+      description: Production or staging link, or describe how you opened the app
+      placeholder: https://room-tba.uplbtools.me
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: Android Chrome, iPhone Safari, laptop Firefox
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps you took
+      placeholder: |
+        1. Searched PSLH 1
+        2. Opened schedule
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      description: Drag images into the comment after filing, or paste links here

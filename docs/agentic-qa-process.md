@@ -19,7 +19,7 @@ One agent can play multiple roles, but the report must separate automated eviden
 - Local `.env` with `DATABASE_URL` and `ADMIN_PASSWORD`.
 - Current test checklist: `docs/editor-foundation-test-plan.md`.
 - A running local dev server on the expected port, usually `http://localhost:4321`.
-- Linked GitHub issue number(s), if any — re-read with `gh issue view N` before coding; see [issue-hygiene.md](issue-hygiene.md).
+- Linked GitHub issue number(s), if any; re-read with `gh issue view N` before coding; see [issue-hygiene.md](issue-hygiene.md).
 
 ## GitHub issue sync (PR prep)
 
@@ -43,7 +43,7 @@ Run only what applies to the PR scope:
 | Editor / admin API      | yes  | yes               | yes           | auth + one PATCH                      |
 | Drizzle migration       | yes  | yes               | yes           | confirm migration applied on Supabase |
 
-PR CI (GitHub Actions) runs **Prettier check + unit tests** — no `DATABASE_URL` required. Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
+PR CI (GitHub Actions) runs **Prettier check + unit tests**; no `DATABASE_URL` required. Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
 
 ## Automated Checks
 
@@ -52,12 +52,15 @@ Run these before asking for browser QA:
 ```sh
 git status --short --branch
 bun run lint
+bun run check:readme
 bun test src
 bun run build
 curl -I http://localhost:4321/admin
 curl -I http://localhost:4321/admin/login
 curl -I 'http://localhost:4321/?editor=login'
 ```
+
+If the branch changed env vars, scripts, stack versions, CI, or contributor workflow, confirm `README.md` and `.env.example` were updated in the same PR — not a follow-up. `check:readme` catches known stale onboarding text; a passing check does not replace reading the sections you touched.
 
 For editor-history work, also confirm the table exists:
 

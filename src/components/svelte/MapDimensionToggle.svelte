@@ -183,25 +183,38 @@
   }
 
   .map-dimension-toggle.compact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    box-sizing: border-box;
+    width: 4.125rem;
     height: 1.75rem;
     padding: 0.125rem;
     border-width: 1px;
     border-radius: 999px;
+    overflow: hidden;
     box-shadow: none;
     backdrop-filter: none;
   }
 
   .map-dimension-toggle.compact .segment {
-    min-width: 1.875rem;
-    min-height: 1.375rem;
-    height: 1.375rem;
-    padding: 0 0.4375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
     border-radius: 999px;
     font-size: 0.6875rem;
+    font-weight: 600;
   }
 
   .map-dimension-toggle.compact .segment.active {
     background-color: hsl(5, 53%, 96%);
     color: hsl(5, 53%, 22%);
+    font-weight: 600;
   }
 </style>

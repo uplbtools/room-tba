@@ -27,22 +27,24 @@ if (appData === null) {
   throw new Error(`Room not found for slug: ${roomId}`);
 }
 
-const { room, classCount } = appData;
+const { room, classCount, termLabel } = appData;
+const termPhrase = termLabel ? ` for ${termLabel}` : "";
 
 const canonicalPath = `/room/${getRoomRouteSlug(room)}/`;
 const title = `${room.code} | Room at UPLB | Room TBA`;
 const description = room.building?.name
-  ? `Find ${room.code} at UPLB. View its building, directions, and listed classes in ${room.building.name} on Room TBA.`
-  : `Find ${room.code} at UPLB with Room TBA. View room details and listed classes.`;
+  ? `Find ${room.code} at UPLB. View building context, directions, and ${classCount} listed class${classCount === 1 ? "" : "es"}${termPhrase} in ${room.building.name} on Room TBA.`
+  : `Find ${room.code} at UPLB with Room TBA. View room details and ${classCount} listed class${classCount === 1 ? "" : "es"}${termPhrase}.`;
 const intro = room.building?.name
-  ? `${room.code} is listed under ${room.building.name} in Room TBA. Open this page to jump straight into the room result view with building context, directions, and class listings.`
-  : `${room.code} is listed in Room TBA. Open this page to jump straight into the room result view and browse its class listings.`;
+  ? `${room.code} is listed under ${room.building.name} in Room TBA. Open this page for directions and class listings${termPhrase}.`
+  : `${room.code} is listed in Room TBA. Open this page to browse class listings${termPhrase}.`;
 
 const facts = [
   room.building?.name ? `Building: ${room.building.name}` : null,
   room.collegeName ? `College: ${room.collegeName}` : null,
   room.divisionName ? `Division: ${room.divisionName}` : null,
-  `${classCount} class${classCount === 1 ? "" : "es"} currently listed for this room`,
+  termLabel ? `Schedule term: ${termLabel}` : null,
+  `${classCount} class${classCount === 1 ? "" : "es"} listed for this room${termPhrase}`,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(

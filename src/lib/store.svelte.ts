@@ -8,6 +8,11 @@ import {
 import { SvelteMap } from "svelte/reactivity";
 import * as maplibre from "maplibre-gl";
 import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
+import { parseTermIdFromSearch, syncTermQueryParam } from "./term-url";
+import {
+  resolveDefaultTermFromList,
+  resolveInitialTermId,
+} from "./term-calendar";
 import {
   AVG_TILE_BYTES,
   clearMapCaches,
@@ -451,8 +456,8 @@ export type MapToolsSection = "view" | "legend" | "terrain" | "jeepney";
 class MapToolsStore {
   open = $state(false);
   activeSection: MapToolsSection | null = $state("view");
-  /** Accordion: terrain collapsed by default. */
-  expandedSections = $state<Set<MapToolsSection>>(new Set(["view", "legend"]));
+  /** Accordion: view only by default; legend/terrain/transit collapsed. */
+  expandedSections = $state<Set<MapToolsSection>>(new Set(["view"]));
 
   toggle = () => {
     this.open = !this.open;
@@ -940,6 +945,8 @@ class JeepneyStore {
   layerActive: boolean = $state(false);
   selectedRouteId: string | null = $state(null);
   menuOpen: boolean = $state(false);
+  selectedStopIndex: number | null = $state(null);
+  hoveredStopIndex: number | null = $state(null);
 
   toggleMenu = () => {
     this.menuOpen = !this.menuOpen;
@@ -968,13 +975,18 @@ class JeepneyStore {
     this.layerActive = false;
     this.selectedRouteId = null;
     this.menuOpen = false;
+    this.closeStop();
   };
 
   selectRoute = (id: string) => {
     if (!this.layerActive) {
       this.enableLayer();
     }
-    this.selectedRouteId = this.selectedRouteId === id ? null : id;
+    const nextId = this.selectedRouteId === id ? null : id;
+    if (nextId !== this.selectedRouteId) {
+      this.closeStop();
+    }
+    this.selectedRouteId = nextId;
     this.menuOpen = false;
     if (this.selectedRouteId !== null) {
       deactivateMapModesExcept("routes");
@@ -983,6 +995,26 @@ class JeepneyStore {
 
   clearRoute = () => {
     this.selectedRouteId = null;
+    this.closeStop();
+  };
+
+  setHoveredStop = (index: number | null) => {
+    this.hoveredStopIndex = index;
+  };
+
+  openStop = (index: number) => {
+    if (this.selectedRouteId === null) return;
+    this.selectedStopIndex = index;
+    this.hoveredStopIndex = index;
+    modalStore.openModal("jeepney-stop");
+  };
+
+  closeStop = () => {
+    this.selectedStopIndex = null;
+    this.hoveredStopIndex = null;
+    if (modalStore.open && modalStore.type === "jeepney-stop") {
+      modalStore.closeModal();
+    }
   };
 }
 
@@ -1455,6 +1487,8 @@ class TermStore {
     this.terms.find((t) => t.id === this.activeTermId) ?? null,
   );
 
+  defaultTermId = $derived(resolveDefaultTermFromList(this.terms)?.id ?? null);
+
   init = async () => {
     if (this._hydrated) return;
     this._hydrated = true;
@@ -1462,21 +1496,51 @@ class TermStore {
       const terms = await getJSONFetch<TermWithCount[]>("/api/terms");
       this.terms = terms;
 
+      const fromUrl =
+        typeof window !== "undefined"
+          ? parseTermIdFromSearch(window.location.search)
+          : null;
+
       const storedRaw = localStorage.getItem(ACTIVE_TERM_LS_KEY);
       const stored = storedRaw !== null ? Number(storedRaw) : NaN;
-      const storedValid =
-        Number.isFinite(stored) && terms.some((t) => t.id === stored);
+      const storedId = Number.isFinite(stored) ? stored : null;
 
-      const fallback =
-        terms.find((t) => t.isDefault) ??
-        terms.find((t) => t.isActive) ??
-        terms[0] ??
-        null;
+      const fallback = resolveDefaultTermFromList(terms);
 
-      this.activeTermId = storedValid ? stored : (fallback?.id ?? null);
+      this.activeTermId = resolveInitialTermId(terms, {
+        fromUrl,
+        storedId,
+      });
       this.loaded = true;
+
+      syncTermQueryParam(this.activeTermId, fallback?.id ?? null);
+
+      if (
+        storedId !== null &&
+        this.activeTermId !== null &&
+        storedId !== this.activeTermId
+      ) {
+        try {
+          localStorage.setItem(ACTIVE_TERM_LS_KEY, String(this.activeTermId));
+        } catch {
+          // ignore storage failures
+        }
+      }
     } catch (e) {
       console.error("Failed to load terms:", e);
+    }
+  };
+
+  applyFromUrl = () => {
+    if (typeof window === "undefined" || !this.loaded) return;
+    const fromUrl = parseTermIdFromSearch(window.location.search);
+    if (fromUrl !== null && this.terms.some((term) => term.id === fromUrl)) {
+      this.activeTermId = fromUrl;
+      try {
+        localStorage.setItem(ACTIVE_TERM_LS_KEY, String(fromUrl));
+      } catch {
+        // ignore storage failures
+      }
     }
   };
 
@@ -1488,6 +1552,7 @@ class TermStore {
       // localStorage may be unavailable (private mode); selection still works
       // for the current session.
     }
+    syncTermQueryParam(id, this.defaultTermId);
   };
 }
 

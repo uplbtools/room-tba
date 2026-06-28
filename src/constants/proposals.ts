@@ -15,7 +15,7 @@ export function validateSubmitterName(
   if (trimmed.length > MAX_SUBMITTER_NAME_LENGTH) {
     return {
       ok: false,
-      error: `That name is a bit long — keep it under ${MAX_SUBMITTER_NAME_LENGTH} characters.`,
+      error: `That name is a bit long. Keep it under ${MAX_SUBMITTER_NAME_LENGTH} characters.`,
     };
   }
   return { ok: true, name: trimmed };

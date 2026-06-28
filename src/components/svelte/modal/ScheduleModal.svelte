@@ -9,7 +9,7 @@
 
 <div class="schedule-modal">
   <div class="schedule-modal__header">
-    <h2>{room ? `Schedule — ${room.code}` : "Schedule"}</h2>
+    <h2>{room ? `Schedule: ${room.code}` : "Schedule"}</h2>
     {#if termLabel}
       <span class="schedule-modal__term">{termLabel}</span>
     {/if}
