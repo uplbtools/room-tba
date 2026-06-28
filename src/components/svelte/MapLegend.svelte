@@ -201,7 +201,8 @@
     max-height: none;
     padding: 0;
     box-shadow: none;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
     gap: 0.375rem;
   }
 
@@ -328,7 +329,8 @@
     min-width: 0;
     flex-direction: column;
     gap: 0.75rem;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
     padding-right: 0;
   }
 
@@ -354,9 +356,12 @@
   }
 
   .legend-item {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     gap: 0.625rem;
+    min-width: 0;
+    max-width: 100%;
     border-radius: 0.625rem;
     background-color: hsl(0, 0%, 98%);
     padding: 0.45rem 0.625rem;
