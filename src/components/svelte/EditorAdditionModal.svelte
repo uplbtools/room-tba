@@ -78,7 +78,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.875rem;
     border-bottom: 1px solid hsl(0, 0%, 92%);
   }
 

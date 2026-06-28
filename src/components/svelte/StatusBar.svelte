@@ -108,31 +108,31 @@
   </div>
 
   <div class="content-wrapper" id="status-bar-details">
-    {#if showSessionExpanded}
-      <MapChromeSession
-        roleLabel={sessionRoleLabel}
-        displayName={sessionDisplayName}
-        expanded
-        onSignOut={handleSignOut}
-      />
-    {/if}
-    <div class="directions-progress">
-      <span class="directions-label">Rooms with directions</span>
-      <div
-        class="map-chrome-progress map-chrome-progress--lg"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={totalRooms}
-        aria-valuenow={directionCount}
-        aria-label="Rooms with directions"
-      >
+    <div class="content-primary-row">
+      {#if showSessionExpanded}
+        <MapChromeSession
+          roleLabel={sessionRoleLabel}
+          displayName={sessionDisplayName}
+          expanded
+          onSignOut={handleSignOut}
+        />
+      {/if}
+      <div class="directions-progress">
+        <span class="directions-label">Rooms with directions</span>
         <div
-          class="map-chrome-progress__value"
-          style:width={`${Math.floor((directionCount / totalRooms) * 100)}%`}
-        ></div>
-      </div>
-      <div>
-        {directionCount} / {totalRooms}
+          class="map-chrome-progress map-chrome-progress--lg"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={totalRooms}
+          aria-valuenow={directionCount}
+          aria-label="Rooms with directions"
+        >
+          <div
+            class="map-chrome-progress__value"
+            style:width={`${Math.floor((directionCount / totalRooms) * 100)}%`}
+          ></div>
+        </div>
+        <span class="directions-count">{directionCount} / {totalRooms}</span>
       </div>
     </div>
     <div class="metadata">
@@ -211,14 +211,14 @@
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.2;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex: 0 0 auto;
-    min-height: 2.375rem;
+    min-height: 2rem;
     box-sizing: border-box;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     backdrop-filter: blur(10px);
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    padding: 0.375rem 1rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 1rem;
     box-shadow: var(
       --map-chrome-panel-shadow,
@@ -246,7 +246,7 @@
       display: flex;
       flex: 1 1 auto;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.5rem;
       min-width: 0;
       overflow: hidden;
       position: relative;
@@ -254,17 +254,33 @@
 
     .content-wrapper {
       display: none;
-      gap: 0.75rem;
+      gap: 0.25rem;
       flex: 0 0 auto;
       width: 100%;
       min-width: 0;
       max-width: 100%;
-      flex-wrap: wrap;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       justify-content: flex-start;
       overflow: visible;
-      padding-top: 0.375rem;
+      padding-top: 0.25rem;
       border-top: 1px solid hsl(0, 0%, 88%);
+    }
+
+    .content-primary-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.375rem 0.75rem;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .content-primary-row :global(.map-chrome-session-expanded) {
+      flex: 1 1 auto;
+      min-width: min(100%, 12rem);
+      width: auto;
+      padding-bottom: 0;
     }
 
     &.is-open {
@@ -284,14 +300,20 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 0;
-      row-gap: 0.125rem;
+      row-gap: 0;
       overflow: visible;
+      font-size: 0.8125rem;
       & > *:not(:last-child) {
-        border-right: 2px solid #aaa;
-        padding-right: 0.75rem;
+        border-right: 1px solid hsl(0, 0%, 78%);
+        padding-right: 0.5rem;
       }
       & > *:not(:first-child) {
-        padding-left: 0.75rem;
+        padding-left: 0.5rem;
+      }
+      :global(.map-chrome-ghost-link),
+      :global(.map-chrome-ghost-btn) {
+        padding: 0.0625rem 0.25rem;
+        font-size: 0.8125rem;
       }
     }
 
@@ -309,19 +331,27 @@
     .directions-progress {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      flex: 0 1 auto;
+      gap: 0.375rem;
+      flex: 0 0 auto;
       min-width: 0;
       white-space: nowrap;
       overflow: hidden;
+      font-size: 0.8125rem;
       .directions-label {
         flex-shrink: 1;
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .directions-count {
+        flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
+      }
       :global(.map-chrome-progress) {
-        width: min(5.5rem, 14vw);
+        width: min(4.5rem, 14vw);
         flex: 0 0 auto;
+      }
+      :global(.map-chrome-progress--lg) {
+        height: 0.625rem;
       }
     }
   }
@@ -332,10 +362,10 @@
       max-width: 100%;
       margin-left: 0;
       align-self: stretch;
-      min-height: 2.375rem;
-      padding: 0.3125rem 0.75rem;
-      padding-bottom: calc(0.3125rem + env(safe-area-inset-bottom, 0px));
-      gap: 0.5rem;
+      min-height: 2rem;
+      padding: 0.25rem 0.625rem;
+      padding-bottom: calc(0.25rem + env(safe-area-inset-bottom, 0px));
+      gap: 0.375rem;
       flex-direction: row;
       flex-wrap: nowrap;
       align-items: center;
@@ -352,14 +382,24 @@
 
       .status-primary {
         flex: 1 1 auto;
-        gap: 0.625rem;
+        gap: 0.375rem;
       }
 
       .content-wrapper {
-        flex-direction: column;
-        gap: 0.125rem;
-        padding-top: 0.25rem;
+        gap: 0.1875rem;
+        padding-top: 0.1875rem;
         width: 100%;
+      }
+
+      .content-primary-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.1875rem;
+      }
+
+      .content-primary-row :global(.map-chrome-session-expanded) {
+        width: 100%;
+        min-width: 0;
       }
 
       .directions-progress {
