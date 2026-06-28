@@ -13,7 +13,7 @@
   import Mail from "@lucide/svelte/icons/mail";
   import Phone from "@lucide/svelte/icons/phone";
   import Building2 from "@lucide/svelte/icons/building-2";
-  import ExternalLink from "@lucide/svelte/icons/external-link";
+  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
@@ -29,7 +29,6 @@
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getDormShareUrl } from "@lib/share-links";
   import { normalizeStringList } from "@lib/string-lists";
-
   type DormEditableField =
     | "dormName"
     | "shortName"
@@ -102,6 +101,7 @@
   };
 
   const amenities = $derived(normalizeStringList(dorm?.amenities));
+  const contactPhones = $derived(normalizeStringList(dorm?.contactPhone));
 
   const genderLabel = $derived(
     dorm?.gender === "male"
@@ -367,112 +367,100 @@
   }
 </script>
 
-<div class="dorm-result-wrapper">
+<div class="entity-detail">
   {#if dorm}
-    <div class="dorm-header">
-      <h2 class="dorm-title">{dorm.dormName}</h2>
-      {#if showShortName()}
-        <span class="dorm-short-name">{dorm.shortName}</span>
-      {/if}
-    </div>
+    <header class="entity-header">
+      <div class="entity-header__title-row">
+        <h2 class="entity-header__title">{dorm.dormName}</h2>
+        {#if showShortName()}
+          <span class="entity-header__badge">{dorm.shortName}</span>
+        {/if}
+      </div>
 
-    <div class="dorm-badges">
-      {#if dorm.isUpManaged}
-        <span class="badge up-badge">
-          <BadgeCheck size={14} />
-          UP-managed
+      <div class="entity-meta-row">
+        {#if dorm.isUpManaged}
+          <span class="entity-meta-chip up-badge">
+            <BadgeCheck size={12} />
+            UP-managed
+          </span>
+        {:else}
+          <span class="entity-meta-chip private-badge">Private</span>
+        {/if}
+        <span
+          class="entity-meta-chip gender-badge"
+          style:--badge-color={genderColor}
+        >
+          <Users size={12} />
+          {genderLabel}
         </span>
-      {:else}
-        <span class="badge private-badge"> Private </span>
-      {/if}
-      <span class="badge gender-badge" style:--badge-color={genderColor}>
-        <Users size={14} />
-        {genderLabel}
-      </span>
-      {#if dorm.capacity}
-        <span class="badge capacity-badge">
-          <Building2 size={14} />
-          {dorm.capacity} beds
-        </span>
-      {/if}
-    </div>
-
-    {#if dorm.priceRange}
-      <div class="price-row">
-        <CircleDollarSign size={16} />
-        <span class="price-value">{dorm.priceRange}</span>
-        {#if !dorm.isUpManaged}
-          <span class="price-disclaimer">
-            <TriangleAlert size={12} />
-            Verify with owner
+        {#if dorm.capacity}
+          <span class="entity-meta-chip capacity-badge">
+            <Building2 size={12} />
+            {dorm.capacity} beds
+          </span>
+        {/if}
+        {#if dorm.priceRange}
+          <span class="entity-meta-chip price-badge">
+            <CircleDollarSign size={12} />
+            {dorm.priceRange}
           </span>
         {/if}
       </div>
-    {/if}
 
-    {#if dorm.description}
-      <p class="dorm-desc">{dorm.description}</p>
-    {/if}
+      <div class="entity-actions">
+        {#if dorm.lon && dorm.lat}
+          <MapChromeActionChip
+            onclick={() => {
+              locationStore.requestLocation();
+              locationStore.setDestination([dorm.lon ?? 0, dorm.lat ?? 0]);
+            }}
+          >
+            <CornerRightUp size={14} />
+            Directions
+          </MapChromeActionChip>
+        {/if}
+        {#if googleMapsLink}
+          <a
+            class="map-chrome-action-chip"
+            href={googleMapsLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MapPin size={14} />
+            Google Maps
+          </a>
+        {/if}
+        <CopyLinkButton
+          url={dormShareUrl}
+          ariaLabel={`Copy link to ${dorm.dormName}`}
+          successMessage={`Copied link for ${dorm.dormName}.`}
+          errorMessage={`Could not copy link for ${dorm.dormName}.`}
+          feedback="none"
+          variant="chip"
+          onsuccess={() =>
+            toastStore.show(`Copied link for ${dorm.dormName}.`, "success")}
+          onerror={() =>
+            toastStore.show(
+              `Could not copy link for ${dorm.dormName}.`,
+              "error",
+            )}
+        />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit dorm"
+          closeLabel={canPublish ? "Close editor" : "Close"}
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
+      </div>
+    </header>
 
-    <div class="dorm-actions">
-      {#if dorm.lon && dorm.lat}
-        <button
-          class="action-btn directions-btn"
-          onclick={() => {
-            locationStore.requestLocation();
-            locationStore.setDestination([dorm.lon ?? 0, dorm.lat ?? 0]);
-          }}
-        >
-          <CornerRightUp size={16} />
-          Directions
-        </button>
-      {/if}
-      {#if googleMapsLink}
-        <a
-          href={googleMapsLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="action-btn gmaps-btn"
-        >
-          <MapPin size={16} />
-          Google Maps
-        </a>
-      {/if}
-      {#if dorm.facebookLink}
-        <a
-          href={dorm.facebookLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="action-btn social-btn"
-        >
-          <ExternalLink size={16} />
-          Facebook
-        </a>
-      {/if}
-      <CopyLinkButton
-        url={dormShareUrl}
-        ariaLabel={`Copy link to ${dorm.dormName}`}
-        successMessage={`Copied link for ${dorm.dormName}.`}
-        errorMessage={`Could not copy link for ${dorm.dormName}.`}
-        feedback="none"
-        variant="chip"
-        onsuccess={() =>
-          toastStore.show(`Copied link for ${dorm.dormName}.`, "success")}
-        onerror={() =>
-          toastStore.show(
-            `Could not copy link for ${dorm.dormName}.`,
-            "error",
-          )}
-      />
-      <EntityEditorToggle
-        expanded={editing}
-        {canPublish}
-        publishOpenLabel="Edit dorm"
-        closeLabel={canPublish ? "Close editor" : "Close"}
-        variant="toolbar"
-        onclick={() => (editing = !editing)}
-      />
-    </div>
+    {#if !editing && dorm.description}
+      <div class="entity-body entity-body--compact">
+        <p class="entity-directions__text">{dorm.description}</p>
+      </div>
+    {/if}
 
     {#if editing}
       <section
@@ -508,138 +496,96 @@
       </section>
     {/if}
 
-    <hr class="dorm-divider" />
+    {#if !editing && (dorm.managingOffice || dorm.contactEmail || dorm.contactPhone || amenities.length > 0)}
+      <details class="entity-details-collapse">
+        <summary>Details & amenities</summary>
+        <div class="entity-details-collapse__body">
+          {#if dorm.managingOffice}
+            <div class="entity-detail-row">
+              <Building2 size={14} />
+              <div class="entity-detail-row__content">
+                <span class="entity-detail-row__label">Managing office</span>
+                <span class="entity-detail-row__value"
+                  >{dorm.managingOffice}</span
+                >
+              </div>
+            </div>
+          {/if}
 
-    <div class="dorm-details">
-      <h3 class="section-title">Details</h3>
+          {#if dorm.contactEmail}
+            <div class="entity-detail-row">
+              <Mail size={14} />
+              <div class="entity-detail-row__content">
+                <span class="entity-detail-row__label">Email</span>
+                <a
+                  href="mailto:{dorm.contactEmail}"
+                  class="entity-detail-row__value entity-detail-row__value--link"
+                >
+                  {dorm.contactEmail}
+                </a>
+              </div>
+            </div>
+          {/if}
 
-      {#if dorm.managingOffice}
-        <div class="detail-row">
-          <Building2 size={16} />
-          <div>
-            <span class="detail-label">Managing Office</span>
-            <span class="detail-value">{dorm.managingOffice}</span>
-          </div>
+          {#if contactPhones.length > 0}
+            <div class="entity-detail-row">
+              <Phone size={14} />
+              <div class="entity-detail-row__content">
+                <span class="entity-detail-row__label">Phone</span>
+                <span class="entity-detail-row__value"
+                  >{contactPhones.join(", ")}</span
+                >
+              </div>
+            </div>
+          {/if}
+
+          {#if amenities.length > 0}
+            <div class="entity-meta-row">
+              {#each amenities as amenity}
+                <span class="entity-meta-chip amenity-tag">{amenity}</span>
+              {/each}
+            </div>
+          {/if}
         </div>
-      {/if}
-
-      {#if dorm.contactEmail}
-        <div class="detail-row">
-          <Mail size={16} />
-          <div>
-            <span class="detail-label">Email</span>
-            <a
-              href="mailto:{dorm.contactEmail}"
-              class="detail-value email-link"
-            >
-              {dorm.contactEmail}
-            </a>
-          </div>
-        </div>
-      {/if}
-
-      {#if dorm.contactPhone}
-        <div class="detail-row">
-          <Phone size={16} />
-          <div>
-            <span class="detail-label">Phone</span>
-            <span class="detail-value">{dorm.contactPhone}</span>
-          </div>
-        </div>
-      {/if}
-    </div>
-
-    {#if amenities.length > 0}
-      <div class="dorm-amenities">
-        <h3 class="section-title">Amenities</h3>
-        <div class="amenities-grid">
-          {#each amenities as amenity}
-            <span class="amenity-tag">{amenity}</span>
-          {/each}
-        </div>
-      </div>
+      </details>
     {/if}
 
-    <div class="dorm-footer">
+    <footer class="entity-footer">
       {#if dorm.isUpManaged}
         <a
           href="https://uplbosa.org"
           target="_blank"
           rel="noopener noreferrer"
-          class="osa-link"
+          class="entity-footer__link"
         >
-          <ExternalLink size={14} />
-          UPLB OSA Website
+          UPLB OSA website →
         </a>
-      {:else}
-        <div class="private-tip">
-          <TriangleAlert size={14} />
-          <span
-            >Prices and details may change. Always verify in person or contact
-            directly before committing.</span
-          >
-        </div>
+      {:else if !dorm.isUpManaged && dorm.priceRange}
+        <span class="price-disclaimer">
+          <TriangleAlert size={12} />
+          Verify price with owner
+        </span>
       {/if}
-    </div>
+      {#if dorm.facebookLink}
+        <a
+          href={dorm.facebookLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="entity-footer__link"
+        >
+          Facebook →
+        </a>
+      {/if}
+    </footer>
   {:else}
     <div class="no-results">Dorm not found.</div>
   {/if}
 </div>
 
 <style>
+  @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
-
-  .dorm-result-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    width: 100%;
-    flex: 1 1 0;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: hsl(6, 63%, 48%) hsl(0, 0%, 98%);
-  }
-
-  .dorm-header {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .dorm-title {
-    font-size: 1.125rem;
-    font-weight: bold;
-    color: black;
-    margin: 0;
-    line-height: 1.3;
-  }
-
-  .dorm-short-name {
-    font-size: 0.75rem;
-    color: #7b1113;
-    background-color: hsl(5, 53%, 95%);
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.25rem;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  .dorm-badges {
-    display: flex;
-    gap: 0.375rem;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.625rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
+  @import "../map-chrome/map-chrome.css";
 
   .gender-badge {
     background-color: color-mix(in srgb, var(--badge-color) 15%, white);
@@ -661,17 +607,16 @@
     color: hsl(210, 60%, 40%);
   }
 
-  .price-row {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    color: #333;
-    font-size: 0.8125rem;
-    font-weight: 600;
+  .price-badge {
+    background-color: hsl(150, 35%, 93%);
+    color: hsl(150, 45%, 30%);
   }
 
-  .price-value {
-    color: hsl(150, 45%, 35%);
+  .amenity-tag {
+    background-color: hsl(0, 0%, 96%);
+    border: 1px solid hsl(0, 0%, 90%);
+    border-radius: 0.375rem;
+    color: #555;
   }
 
   .price-disclaimer {
@@ -681,168 +626,6 @@
     font-size: 0.6875rem;
     color: hsl(35, 80%, 45%);
     font-weight: 500;
-  }
-
-  .dorm-desc {
-    font-size: 0.8125rem;
-    color: #4f4f4f;
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .dorm-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    text-decoration: none;
-    width: max-content;
-  }
-
-  .directions-btn {
-    background-color: #7b1113;
-    color: white;
-  }
-
-  .directions-btn:hover {
-    background-color: #9a1517;
-  }
-
-  .gmaps-btn {
-    background-color: hsl(210, 50%, 93%);
-    color: hsl(210, 60%, 35%);
-  }
-
-  .gmaps-btn:hover {
-    background-color: hsl(210, 50%, 87%);
-  }
-
-  .social-btn {
-    background-color: hsl(220, 50%, 93%);
-    color: hsl(220, 60%, 40%);
-  }
-
-  .social-btn:hover {
-    background-color: hsl(220, 50%, 87%);
-  }
-
-  .dorm-divider {
-    margin: 0.25rem 0;
-    border: none;
-    border-top: 1px solid #ececec;
-  }
-
-  .dorm-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .section-title {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #333;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .detail-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    color: #666;
-  }
-
-  .detail-row > div {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .detail-label {
-    font-size: 0.6875rem;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-
-  .detail-value {
-    font-size: 0.8125rem;
-    color: #333;
-  }
-
-  .email-link {
-    color: #7b1113;
-    text-decoration: none;
-  }
-
-  .email-link:hover {
-    text-decoration: underline;
-  }
-
-  .dorm-amenities {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .amenities-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-  }
-
-  .amenity-tag {
-    padding: 0.25rem 0.625rem;
-    background-color: hsl(0, 0%, 96%);
-    border: 1px solid hsl(0, 0%, 90%);
-    border-radius: 0.375rem;
-    font-size: 0.75rem;
-    color: #555;
-  }
-
-  .dorm-footer {
-    margin-top: auto;
-    padding-top: 0.5rem;
-    border-top: 1px solid #ececec;
-  }
-
-  .osa-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    color: #7b1113;
-    text-decoration: none;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.375rem;
-    transition: background-color 0.15s;
-  }
-
-  .osa-link:hover {
-    background-color: hsl(5, 53%, 95%);
-  }
-
-  .private-tip {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.375rem;
-    font-size: 0.6875rem;
-    color: hsl(35, 80%, 45%);
-    line-height: 1.4;
-    padding: 0.375rem 0;
   }
 
   .no-results {
