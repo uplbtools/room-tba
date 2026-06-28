@@ -23,7 +23,6 @@
   import LocationButton from "@ui/LocationButton.svelte";
   import MapAttribution from "@ui/MapAttribution.svelte";
   import StatusBar from "@ui/StatusBar.svelte";
-  import AppLoadingOverlay from "@ui/AppLoadingOverlay.svelte";
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
@@ -130,7 +129,6 @@
 
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
-  <AppLoadingOverlay />
   <div class="ui-layer" class:drawer-expanded={drawerExpanded}>
     <div
       class="top-right-map-stack"

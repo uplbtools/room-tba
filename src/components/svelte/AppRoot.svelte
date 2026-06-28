@@ -109,6 +109,16 @@
     document.getElementById("app-loading-shell")?.remove();
   }
 
+  const EMPTY_DB_DATA: DBData = {
+    buildings: [],
+    colleges: [],
+    divisions: [],
+    dorms: [],
+    events: [],
+    directionCount: 0,
+    totalRooms: 0,
+  };
+
   async function retryStaleEventsInBackground(eventCheck: TableSyncInfo) {
     if (eventCheck.valid || eventCheck.newKey === null) return;
 
@@ -151,6 +161,13 @@
         localTableSyncCheck("events"),
       ]);
 
+      syncToastStore.beginFetchingCampus(6);
+
+      const trackFetch = <T>(promise: Promise<T>) =>
+        promise.finally(() => {
+          syncToastStore.reportFetchComplete();
+        });
+
       const [
         buildingLoad,
         collegeLoad,
@@ -159,12 +176,12 @@
         eventLoad,
         roomsData,
       ] = await Promise.all([
-        getBuildings(buildingCheck),
-        getColleges(collegeCheck),
-        getDivisions(divisionCheck),
-        getDorms(dormCheck),
-        getEvents(eventCheck),
-        getRoomsData(),
+        trackFetch(getBuildings(buildingCheck)),
+        trackFetch(getColleges(collegeCheck)),
+        trackFetch(getDivisions(divisionCheck)),
+        trackFetch(getDorms(dormCheck)),
+        trackFetch(getEvents(eventCheck)),
+        trackFetch(getRoomsData()),
       ]);
 
       const nextData = {
@@ -251,24 +268,32 @@
             void refreshFromNetwork(false);
           },
         );
+      } else if (hasUsableData) {
+        syncToastStore.setSyncError(
+          "Could not sync campus data — tap to retry",
+          () => {
+            void refreshFromNetwork(hasCachedDataAtStart);
+          },
+        );
+        appBootstrapStore.complete();
       } else {
         appBootstrapStore.complete();
       }
     } finally {
       syncToastStore.endSync(didSync);
-      if (appBootstrapStore.isBlockingPhase) {
-        appBootstrapStore.forceResolveBlockingPhase();
-      }
     }
   }
 
   onMount(() => {
-    void (async () => {
-      appBootstrapStore.beginLocal();
-      appBootstrapStore.setRetryHandler(() => {
-        void refreshFromNetwork(false);
-      });
+    applyData(EMPTY_DB_DATA);
+    loaded = true;
+    dismissStaticLoadingShell();
+    appBootstrapStore.complete();
+    appBootstrapStore.setRetryHandler(() => {
+      void refreshFromNetwork(false);
+    });
 
+    void (async () => {
       try {
         const localDB = getDB();
         try {
@@ -280,19 +305,13 @@
         const cached = await loadCachedAppData();
         const hasCache = hasUsableCampusData(cached);
         appBootstrapStore.setHasCachedData(hasCache);
-        applyData(cached);
-        loaded = true;
-        dismissStaticLoadingShell();
-
         if (hasCache) {
-          appBootstrapStore.complete();
+          applyData(cached);
         }
 
         await refreshFromNetwork(hasCache);
       } catch (error) {
         console.error("Bootstrap failed", error);
-        loaded = true;
-        dismissStaticLoadingShell();
         if (appBootstrapStore.hasCachedData) {
           appBootstrapStore.complete();
         } else {
@@ -302,10 +321,6 @@
               void refreshFromNetwork(false);
             },
           );
-        }
-      } finally {
-        if (appBootstrapStore.isBlockingPhase) {
-          appBootstrapStore.forceResolveBlockingPhase();
         }
       }
     })();

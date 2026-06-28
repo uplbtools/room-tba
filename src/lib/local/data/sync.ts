@@ -139,6 +139,7 @@ export async function syncBuildings(
   remoteBuildings: BuildingData[],
   trustedRemote = false,
 ) {
+  syncToastStore.markWritingPhase("buildings");
   if (await shouldSkipValidSync(checker, "buildings")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or resetting rooms_fetched (#169).
@@ -191,6 +192,7 @@ export async function syncColleges(
   remoteColleges: CollegeData[],
   trustedRemote = false,
 ) {
+  syncToastStore.markWritingPhase("colleges");
   if (await shouldSkipValidSync(checker, "colleges")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
@@ -232,6 +234,7 @@ export async function syncDivisions(
   remoteDivisions: DivisionData[],
   trustedRemote = false,
 ) {
+  syncToastStore.markWritingPhase("divisions");
   if (await shouldSkipValidSync(checker, "divisions")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
@@ -279,6 +282,7 @@ export async function syncDorms(
   remoteDorms: DormData[],
   trustedRemote = false,
 ) {
+  syncToastStore.markWritingPhase("dorms");
   if (await shouldSkipValidSync(checker, "dorms")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
@@ -351,6 +355,7 @@ export async function syncEvents(
   remoteEvents: EventData[],
   trustedRemote = false,
 ) {
+  syncToastStore.markWritingPhase("events");
   if (await shouldSkipValidSync(checker, "events")) return;
   // Offline (sync endpoint unreachable): keep the local cache rather than
   // overwriting it with empty remote data or empty sync keys (#169).
@@ -894,6 +899,7 @@ export async function syncDivisionRooms(
 
 /** Refresh the local alias cache from the server when online (#155 follow-up). */
 export async function syncAliasCache() {
+  syncToastStore.markWritingPhase("aliases");
   try {
     const response = await fetch("/api/aliases?export=all");
     if (!response.ok) return;
@@ -915,6 +921,7 @@ export async function syncAliasCache() {
     await localDB.exec(`DELETE FROM aliases`);
     if (rows.length === 0) return;
 
+    syncToastStore.startAliasesSync(rows.length);
     for (const row of rows) {
       await localDB.query(
         `
@@ -930,6 +937,7 @@ export async function syncAliasCache() {
           row.value,
         ],
       );
+      syncToastStore.updateAliasesSync();
     }
   } catch (e) {
     console.error(e);

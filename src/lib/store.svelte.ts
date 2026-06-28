@@ -46,6 +46,31 @@ export type SyncInfo = {
   total: number;
 };
 
+export type SyncTableKey =
+  | "buildings"
+  | "colleges"
+  | "divisions"
+  | "dorms"
+  | "events"
+  | "aliases"
+  | "rooms";
+
+export type SyncActivity = "idle" | "checking" | "fetching" | "writing";
+
+const SYNC_TABLE_LABELS: Record<SyncTableKey, string> = {
+  buildings: "buildings",
+  colleges: "colleges",
+  divisions: "divisions",
+  dorms: "dorms",
+  events: "events",
+  aliases: "search aliases",
+  rooms: "room stats",
+};
+
+export function syncTableLabel(table: SyncTableKey): string {
+  return SYNC_TABLE_LABELS[table];
+}
+
 let _dormFilter = $state<DormFilterType>("all");
 export const dormFilter = {
   get value() {
@@ -936,31 +961,21 @@ class JeepneyStore {
 export type AppBootstrapPhase =
   "idle" | "local" | "remote" | "sync" | "ready" | "error";
 
-const APP_BOOTSTRAP_DEADLINE_MS = 90_000;
-
 class AppBootstrapStore {
   phase = $state<AppBootstrapPhase>("idle");
   errorMessage = $state<string | null>(null);
   hasCachedData = $state(false);
   private retryHandler: (() => void) | null = null;
-  private bootstrapDeadline: ReturnType<typeof setTimeout> | null = null;
 
-  showBlockingOverlay = $derived(
-    this.phase === "local" ||
-      (this.phase === "remote" && !this.hasCachedData) ||
-      (this.phase === "error" && !this.hasCachedData),
-  );
-
-  get isBlockingPhase() {
-    return this.showBlockingOverlay;
-  }
+  /** Bootstrap never blocks the map; static HTML shell only until hydration. */
+  showBlockingOverlay = $derived(false);
 
   statusLabel = $derived.by(() => {
     switch (this.phase) {
-      case "local":
-        return "Loading campus data";
       case "remote":
         return "Connecting to database";
+      case "sync":
+        return "Writing to offline cache";
       case "error":
         return this.errorMessage ?? "Could not load campus data";
       default:
@@ -968,19 +983,9 @@ class AppBootstrapStore {
     }
   });
 
-  beginLocal() {
-    this.clearBootstrapDeadline();
-    this.errorMessage = null;
-    this.phase = "local";
-    this.scheduleBootstrapDeadline();
-  }
-
   beginRemote() {
     this.phase = "remote";
     this.errorMessage = null;
-    if (this.bootstrapDeadline === null) {
-      this.scheduleBootstrapDeadline();
-    }
   }
 
   beginSync() {
@@ -989,15 +994,18 @@ class AppBootstrapStore {
   }
 
   complete() {
-    this.clearBootstrapDeadline();
     this.phase = "ready";
     this.errorMessage = null;
-    this.retryHandler = null;
   }
 
   markBackgroundRefresh() {
-    if (this.phase === "idle" || this.phase === "ready") {
+    if (
+      this.phase === "idle" ||
+      this.phase === "ready" ||
+      this.phase === "error"
+    ) {
       this.phase = "remote";
+      this.errorMessage = null;
     }
   }
 
@@ -1014,74 +1022,134 @@ class AppBootstrapStore {
   }
 
   fail(message: string, retry?: () => void) {
-    this.clearBootstrapDeadline();
     this.phase = "error";
     this.errorMessage = message;
-    this.retryHandler = retry ?? null;
+    if (retry) {
+      this.retryHandler = retry;
+    }
   }
 
   retry() {
     const handler = this.retryHandler;
     if (!handler) return;
     this.errorMessage = null;
-    this.clearBootstrapDeadline();
-    this.scheduleBootstrapDeadline();
     this.beginRemote();
     handler();
-  }
-
-  /** Escape hatch when bootstrap finishes without reaching ready/error. */
-  forceResolveBlockingPhase() {
-    if (this.phase === "ready" || this.phase === "idle") return;
-    if (this.hasCachedData || this.phase === "sync") {
-      this.complete();
-      return;
-    }
-    this.fail(
-      "This is taking longer than expected. Check your connection.",
-      this.retryHandler ?? undefined,
-    );
-  }
-
-  private scheduleBootstrapDeadline() {
-    this.clearBootstrapDeadline();
-    this.bootstrapDeadline = setTimeout(() => {
-      if (this.phase === "ready" || this.phase === "idle") return;
-      if (this.hasCachedData || this.phase === "sync") {
-        this.complete();
-        return;
-      }
-      this.fail(
-        "This is taking longer than expected. Check your connection.",
-        this.retryHandler ?? undefined,
-      );
-    }, APP_BOOTSTRAP_DEADLINE_MS);
-  }
-
-  private clearBootstrapDeadline() {
-    if (this.bootstrapDeadline !== null) {
-      clearTimeout(this.bootstrapDeadline);
-      this.bootstrapDeadline = null;
-    }
   }
 }
 
 class SyncToastStore {
+  activity = $state<SyncActivity>("idle");
+  activityTable = $state<SyncTableKey | null>(null);
+  fetchProgress = $state<{ done: number; total: number } | null>(null);
+  syncError = $state<string | null>(null);
+
   private _buildings = $state<SyncInfo | null>(null);
   private _colleges = $state<SyncInfo | null>(null);
   private _divisions = $state<SyncInfo | null>(null);
   private _dorms = $state<SyncInfo | null>(null);
   private _events = $state<SyncInfo | null>(null);
-  public currentSyncData: SyncInfo | null = null;
-  public currentSync = $state<string | null>(null);
-  public allSynced = $state<boolean>(false);
-  public recentlySynced = $state<boolean | null>(null);
-  public fetchingRemote = $state<boolean>(false);
+  private _aliases = $state<SyncInfo | null>(null);
+
+  currentSync = $state<SyncTableKey | null>(null);
+  allSynced = $state<boolean>(false);
+  recentlySynced = $state<boolean | null>(null);
+  fetchingRemote = $state<boolean>(false);
+
+  currentSyncData = $derived.by((): SyncInfo | null => {
+    switch (this.currentSync) {
+      case "buildings":
+        return this._buildings;
+      case "colleges":
+        return this._colleges;
+      case "divisions":
+        return this._divisions;
+      case "dorms":
+        return this._dorms;
+      case "events":
+        return this._events;
+      case "aliases":
+        return this._aliases;
+      default:
+        return null;
+    }
+  });
+
+  isSyncing = $derived(
+    !this.allSynced &&
+      this.syncError === null &&
+      (this.activity !== "idle" || this.fetchingRemote),
+  );
+
+  hasCountableProgress = $derived.by(() => {
+    const data = this.currentSyncData;
+    if (data !== null && data.total > 0) return true;
+    const fetch = this.fetchProgress;
+    return fetch !== null && fetch.total > 0;
+  });
+
+  progressPercent = $derived.by(() => {
+    const data = this.currentSyncData;
+    if (data !== null && data.total > 0) {
+      return Math.min(100, Math.round((data.synced / data.total) * 100));
+    }
+    const fetch = this.fetchProgress;
+    if (fetch !== null && fetch.total > 0) {
+      return Math.min(100, Math.round((fetch.done / fetch.total) * 100));
+    }
+    return 0;
+  });
+
+  stepLabel = $derived.by(() => {
+    if (this.syncError) return this.syncError;
+    if (this.allSynced && !this.needRefresh) return "Up to date";
+    if (this.needRefresh) return "Update ready";
+    if (this.activity === "checking") return "Connecting to database…";
+    if (this.activity === "fetching") {
+      if (this.activityTable !== null) {
+        return `Fetching ${syncTableLabel(this.activityTable)}…`;
+      }
+      const fetch = this.fetchProgress;
+      if (fetch !== null && fetch.total > 0) {
+        return `Fetching campus data (${fetch.done}/${fetch.total})…`;
+      }
+      return "Fetching campus data…";
+    }
+    if (this.activity === "writing" && this.currentSync !== null) {
+      const label = syncTableLabel(this.currentSync);
+      const data = this.currentSyncData;
+      if (data !== null && data.total > 0) {
+        return `Syncing ${label} (${data.synced}/${data.total})`;
+      }
+      return `Writing ${label} to offline cache…`;
+    }
+    if (this.fetchingRemote) return "Connecting to database…";
+    return "Syncing…";
+  });
+
+  stepDetail = $derived.by((): string | null => {
+    if (this.syncError) return "Tap to retry";
+    if (this.allSynced && !this.needRefresh) {
+      return "Room TBA can now work offline";
+    }
+    if (this.needRefresh) return "Reload to get the latest updates.";
+    if (this.activity === "checking") {
+      return "Checking if local data is current";
+    }
+    if (this.activity === "fetching") {
+      return "Loading latest from server";
+    }
+    if (this.activity === "writing") {
+      return "Saving to device for offline use";
+    }
+    return null;
+  });
 
   // Service worker "new content available" update, surfaced inside this same
   // bottom offline toast instead of a separate floating prompt.
   public needRefresh = $state<boolean>(false);
   private _refresh: (() => void) | null = null;
+  private _syncRetry: (() => void) | null = null;
 
   setRefreshHandler(fn: () => void) {
     this._refresh = fn;
@@ -1096,59 +1164,118 @@ class SyncToastStore {
     this._refresh?.();
   }
 
+  get canRetrySync() {
+    return this._syncRetry !== null;
+  }
+
+  setSyncError(message: string, retry?: () => void) {
+    this.syncError = message;
+    this._syncRetry = retry ?? null;
+    this.activity = "idle";
+    this.activityTable = null;
+    this.fetchProgress = null;
+    this.fetchingRemote = false;
+    this.currentSync = null;
+    this.allSynced = false;
+  }
+
+  clearSyncError() {
+    this.syncError = null;
+    this._syncRetry = null;
+  }
+
+  retrySync() {
+    const handler = this._syncRetry;
+    if (!handler) return;
+    this.clearSyncError();
+    this.allSynced = false;
+    this.recentlySynced = true;
+    handler();
+  }
+
   startRemoteFetch() {
+    this.clearSyncError();
+    this.activity = "checking";
+    this.activityTable = null;
+    this.fetchProgress = null;
     this.fetchingRemote = true;
     this.allSynced = false;
     this.recentlySynced = true;
     this.currentSync = null;
-    this.currentSyncData = null;
+    this._buildings = null;
+    this._colleges = null;
+    this._divisions = null;
+    this._dorms = null;
+    this._events = null;
+    this._aliases = null;
+  }
+
+  beginFetchingCampus(totalFetches: number) {
+    this.activity = "fetching";
+    this.activityTable = null;
+    this.fetchProgress = { done: 0, total: totalFetches };
+    this.fetchingRemote = true;
+  }
+
+  reportFetchComplete() {
+    if (this.fetchProgress === null) return;
+    this.fetchProgress = {
+      done: Math.min(this.fetchProgress.done + 1, this.fetchProgress.total),
+      total: this.fetchProgress.total,
+    };
+  }
+
+  markWritingPhase(table: SyncTableKey) {
+    this.activity = "writing";
+    this.activityTable = table;
+    this.fetchingRemote = false;
+    this.fetchProgress = null;
+    this.currentSync = table;
+  }
+
+  private beginWriting(table: SyncTableKey, total: number) {
+    this.markWritingPhase(table);
+    const info: SyncInfo = { synced: 0, total };
+    switch (table) {
+      case "buildings":
+        this._buildings = info;
+        break;
+      case "colleges":
+        this._colleges = info;
+        break;
+      case "divisions":
+        this._divisions = info;
+        break;
+      case "dorms":
+        this._dorms = info;
+        break;
+      case "events":
+        this._events = info;
+        break;
+      case "aliases":
+        this._aliases = info;
+        break;
+    }
+    this.recentlySynced = true;
   }
 
   startBuildingsSync(total: number) {
-    this.fetchingRemote = false;
-    this._buildings = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._buildings;
-    this.currentSync = "buildings";
-    this.recentlySynced = true;
+    this.beginWriting("buildings", total);
   }
   startCollegesSync(total: number) {
-    this._colleges = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._colleges;
-    this.currentSync = "colleges";
-    this.recentlySynced = true;
+    this.beginWriting("colleges", total);
   }
   startDivisionsSync(total: number) {
-    this._divisions = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._divisions;
-    this.currentSync = "divisions";
-    this.recentlySynced = true;
+    this.beginWriting("divisions", total);
   }
   startDormsSync(total: number) {
-    this._dorms = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._dorms;
-    this.currentSync = "dorms";
-    this.recentlySynced = true;
+    this.beginWriting("dorms", total);
   }
   startEventsSync(total: number) {
-    this._events = {
-      synced: 0,
-      total,
-    };
-    this.currentSyncData = this._events;
-    this.currentSync = "events";
-    this.recentlySynced = true;
+    this.beginWriting("events", total);
+  }
+  startAliasesSync(total: number) {
+    this.beginWriting("aliases", total);
   }
 
   updateBuildingsSync() {
@@ -1171,9 +1298,18 @@ class SyncToastStore {
     if (this._events === null) return;
     this._events.synced++;
   }
+  updateAliasesSync() {
+    if (this._aliases === null) return;
+    this._aliases.synced++;
+  }
 
   endSync(didSync = true) {
+    if (this.syncError !== null) return;
+    this.activity = "idle";
+    this.activityTable = null;
+    this.fetchProgress = null;
     this.fetchingRemote = false;
+    this.currentSync = null;
     this.allSynced = true;
     if (this.recentlySynced === null) {
       this.recentlySynced = didSync;

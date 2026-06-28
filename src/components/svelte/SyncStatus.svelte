@@ -21,23 +21,21 @@
 
   let manualClosed = $state<boolean>(false);
   let reloading = $state<boolean>(false);
-
-  const progressPercent = $derived.by(() => {
-    const syncData = syncToastStore.currentSyncData;
-    if (!syncData || syncData.total <= 0) return 0;
-    return Math.floor((syncData.synced / syncData.total) * 5) * 20;
-  });
+  let retrying = $state<boolean>(false);
 
   const manualCloseResetKey = $derived(
-    `${syncToastStore.recentlySynced}:${syncToastStore.allSynced}:${syncToastStore.currentSync}`,
+    `${syncToastStore.recentlySynced}:${syncToastStore.allSynced}:${syncToastStore.currentSync}:${syncToastStore.syncError}:${syncToastStore.isSyncing}`,
   );
 
   const isActive = $derived(
-    !appBootstrapStore.showBlockingOverlay &&
-      (syncToastStore.needRefresh ||
-        ((syncToastStore.recentlySynced === null ||
-          syncToastStore.recentlySynced) &&
-          !manualClosed)),
+    appBootstrapStore.phase === "error" ||
+      syncToastStore.syncError !== null ||
+      syncToastStore.needRefresh ||
+      syncToastStore.isSyncing ||
+      ((syncToastStore.recentlySynced === null ||
+        syncToastStore.recentlySynced) &&
+        syncToastStore.allSynced &&
+        !manualClosed),
   );
 
   $effect(() => {
@@ -48,7 +46,7 @@
 
   $effect(() => {
     let timeout: number | null = null;
-    if (syncToastStore.allSynced) {
+    if (syncToastStore.allSynced && syncToastStore.syncError === null) {
       timeout = setTimeout(() => {
         manualClosed = true;
       }, 3000);
@@ -63,23 +61,58 @@
   const showDetail = $derived(expanded || (!compact && !inline));
   const showDismiss = $derived(
     (expanded || !compact) &&
-      (!inline || syncToastStore.allSynced || syncToastStore.needRefresh),
+      !syncToastStore.isSyncing &&
+      syncToastStore.syncError === null &&
+      (!inline ||
+        syncToastStore.allSynced ||
+        syncToastStore.needRefresh),
   );
   const showReload = $derived(showDetail && syncToastStore.needRefresh);
-  const showSyncProgress = $derived(
-    expanded &&
-      !syncToastStore.allSynced &&
-      syncToastStore.currentSyncData !== null,
+  const showProgress = $derived(
+    syncToastStore.isSyncing && syncToastStore.hasCountableProgress,
+  );
+  const showIndeterminate = $derived(
+    syncToastStore.isSyncing && !syncToastStore.hasCountableProgress,
   );
 
-  const collapsedLabel = $derived.by(() => {
-    if (syncToastStore.needRefresh) return "Update ready";
-    if (syncToastStore.allSynced) return "Ready offline";
-    if (syncToastStore.fetchingRemote) return "Connecting to database…";
-    if (appBootstrapStore.phase === "remote") return "Updating campus data…";
-    if (syncToastStore.currentSync === null) return "Syncing…";
-    return "Syncing…";
+  const statusLabel = $derived.by(() => {
+    if (appBootstrapStore.phase === "error") {
+      return appBootstrapStore.errorMessage ?? "Could not load campus data";
+    }
+    return syncToastStore.stepLabel;
   });
+
+  const statusDetail = $derived.by(() => {
+    if (appBootstrapStore.phase === "error") {
+      return "Map is available; campus data failed to load.";
+    }
+    return syncToastStore.stepDetail;
+  });
+
+  const showBootstrapRetry = $derived(
+    appBootstrapStore.phase === "error" && appBootstrapStore.canRetry,
+  );
+  const showSyncRetry = $derived(
+    syncToastStore.syncError !== null && syncToastStore.canRetrySync,
+  );
+
+  async function handleBootstrapRetry() {
+    retrying = true;
+    try {
+      appBootstrapStore.retry();
+    } finally {
+      retrying = false;
+    }
+  }
+
+  async function handleSyncRetry() {
+    retrying = true;
+    try {
+      syncToastStore.retrySync();
+    } finally {
+      retrying = false;
+    }
+  }
 </script>
 
 {#if isActive}
@@ -88,19 +121,70 @@
     class:sync-status--inline={inline}
     class:sync-status--compact={compact && !expanded}
     class:sync-status--success={syncToastStore.allSynced &&
-      !syncToastStore.needRefresh}
+      !syncToastStore.needRefresh &&
+      appBootstrapStore.phase !== "error" &&
+      syncToastStore.syncError === null}
     class:sync-status--update={syncToastStore.needRefresh}
-    role="status"
+    class:sync-status--error={appBootstrapStore.phase === "error" ||
+      syncToastStore.syncError !== null}
+    class:sync-status--syncing={syncToastStore.isSyncing}
+    role={appBootstrapStore.phase === "error" || syncToastStore.syncError
+      ? "alert"
+      : "status"}
     aria-live="polite"
   >
-    {#if syncToastStore.needRefresh}
+    {#if appBootstrapStore.phase === "error"}
       <Info size={16} aria-hidden="true" />
       <div class="sync-status-copy">
-        <span class="sync-status-label">Update ready</span>
+        <span class="sync-status-label">{statusLabel}</span>
         {#if showDetail}
-          <span class="sync-status-detail"
-            >Reload to get the latest updates.</span
-          >
+          <span class="sync-status-detail">{statusDetail}</span>
+        {/if}
+      </div>
+      {#if showBootstrapRetry}
+        <button
+          class="sync-action reload-button"
+          type="button"
+          onclick={handleBootstrapRetry}
+          disabled={retrying}
+        >
+          <RefreshCw
+            size={14}
+            class={retrying ? "loading-icon" : ""}
+            aria-hidden="true"
+          />
+          {retrying ? "Retrying…" : "Try again"}
+        </button>
+      {/if}
+    {:else if syncToastStore.syncError !== null}
+      <Info size={16} aria-hidden="true" />
+      <div class="sync-status-copy">
+        <span class="sync-status-label">{statusLabel}</span>
+        {#if showDetail && statusDetail}
+          <span class="sync-status-detail">{statusDetail}</span>
+        {/if}
+      </div>
+      {#if showSyncRetry}
+        <button
+          class="sync-action reload-button"
+          type="button"
+          onclick={handleSyncRetry}
+          disabled={retrying}
+        >
+          <RefreshCw
+            size={14}
+            class={retrying ? "loading-icon" : ""}
+            aria-hidden="true"
+          />
+          {retrying ? "Retrying…" : "Retry"}
+        </button>
+      {/if}
+    {:else if syncToastStore.needRefresh}
+      <Info size={16} aria-hidden="true" />
+      <div class="sync-status-copy">
+        <span class="sync-status-label">{statusLabel}</span>
+        {#if showDetail && statusDetail}
+          <span class="sync-status-detail">{statusDetail}</span>
         {/if}
       </div>
       {#if showReload}
@@ -131,9 +215,9 @@
     {:else if syncToastStore.allSynced}
       <CircleCheckBig size={16} aria-hidden="true" />
       <div class="sync-status-copy">
-        <span class="sync-status-label">{collapsedLabel}</span>
-        {#if showDetail}
-          <span class="sync-status-detail">Room TBA can now work offline</span>
+        <span class="sync-status-label">{statusLabel}</span>
+        {#if showDetail && statusDetail}
+          <span class="sync-status-detail">{statusDetail}</span>
         {/if}
       </div>
       {#if showDismiss}
@@ -149,38 +233,38 @@
     {:else}
       <LoaderCircle size={16} class="loading-icon" aria-hidden="true" />
       <div class="sync-status-copy">
-        <span class="sync-status-label">{collapsedLabel}</span>
-        {#if showDetail && syncToastStore.fetchingRemote}
-          <span class="sync-status-detail">Fetching latest campus data</span>
-        {:else if showDetail && syncToastStore.currentSync !== null}
-          <span class="sync-status-detail">
-            Syncing {syncToastStore.currentSync} to device
-          </span>
+        <span class="sync-status-label">{statusLabel}</span>
+        {#if showDetail && statusDetail}
+          <span class="sync-status-detail">{statusDetail}</span>
         {/if}
       </div>
-      {#if showSyncProgress}
-        <div class="progress-bar">
+      {#if showProgress}
+        <div
+          class="progress-bar"
+          class:progress-bar--compact={compact && !expanded}
+        >
           <div
             class="progress-bar-value"
             role="progressbar"
             aria-valuemin="0"
             aria-valuemax="100"
-            aria-valuenow={progressPercent}
-            aria-label={`Syncing ${syncToastStore.currentSync} data`}
-            style:width={`${progressPercent}%`}
+            aria-valuenow={syncToastStore.progressPercent}
+            aria-label={statusLabel}
+            style:width={`${syncToastStore.progressPercent}%`}
           ></div>
         </div>
-        <span class="progress-label">{progressPercent}%</span>
-      {/if}
-      {#if showDismiss}
-        <button
-          class="sync-dismiss"
-          type="button"
-          aria-label="Dismiss sync status"
-          onclick={() => (manualClosed = true)}
+        {#if expanded}
+          <span class="progress-label">{syncToastStore.progressPercent}%</span>
+        {/if}
+      {:else if showIndeterminate && compact && !expanded}
+        <div
+          class="progress-bar progress-bar--compact progress-bar--indeterminate"
+          role="progressbar"
+          aria-label={statusLabel}
         >
-          <X size={14} aria-hidden="true" />
-        </button>
+          <div class="progress-bar-value progress-bar-value--indeterminate"
+          ></div>
+        </div>
       {/if}
     {/if}
   </div>
@@ -200,12 +284,16 @@
     line-height: 1.15;
     flex: 0 1 auto;
     min-width: 0;
-    max-width: min(100%, 12rem);
+    max-width: min(100%, 16rem);
   }
 
   .sync-status--compact {
-    flex: 0 0 auto;
-    max-width: min(100%, 10.5rem);
+    flex: 0 1 auto;
+    max-width: min(100%, 14rem);
+  }
+
+  .sync-status--syncing.sync-status--compact {
+    max-width: min(100%, 18rem);
   }
 
   .sync-status--success {
@@ -217,6 +305,12 @@
   .sync-status--update {
     border: 1px solid hsl(5, 34%, 82%);
     background: hsl(0, 0%, 99%);
+  }
+
+  .sync-status--error {
+    border: 1px solid hsl(5, 34%, 82%);
+    background: hsl(0, 0%, 99%);
+    color: hsl(5, 53%, 32%);
   }
 
   .sync-status--inline {
@@ -242,6 +336,12 @@
   }
 
   .sync-status--inline.sync-status--update {
+    background: transparent;
+    border-right-color: hsl(5, 34%, 82%);
+    color: hsl(5, 53%, 32%);
+  }
+
+  .sync-status--inline.sync-status--error {
     background: transparent;
     border-right-color: hsl(5, 34%, 82%);
     color: hsl(5, 53%, 32%);
@@ -355,6 +455,12 @@
     flex-shrink: 0;
     border-radius: 8px;
     background-color: hsla(358, 84%, 86%, 1);
+    overflow: hidden;
+  }
+
+  .progress-bar--compact {
+    width: 2.5rem;
+    height: 4px;
   }
 
   .progress-bar-value {
@@ -367,10 +473,16 @@
     transition: width 0.5s ease-in-out;
   }
 
+  .progress-bar--indeterminate .progress-bar-value--indeterminate {
+    width: 40%;
+    animation: indeterminate 1.2s ease-in-out infinite;
+  }
+
   .progress-label {
     flex-shrink: 0;
     font-size: 0.75rem;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
   :global(.loading-icon) {
@@ -386,6 +498,15 @@
     }
   }
 
+  @keyframes indeterminate {
+    0% {
+      left: -40%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :global(.loading-icon) {
       animation: none;
@@ -393,6 +514,13 @@
 
     .progress-bar-value {
       transition: none;
+    }
+
+    .progress-bar--indeterminate .progress-bar-value--indeterminate {
+      animation: none;
+      left: 0;
+      width: 100%;
+      opacity: 0.45;
     }
   }
 </style>
