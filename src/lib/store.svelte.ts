@@ -1451,7 +1451,102 @@ class OfflineStore {
   };
 }
 
+const ACTIVE_TERM_LS_KEY = "active-term-id";
+
+class TermStore {
+  terms = $state<TermWithCount[]>([]);
+  activeTermId = $state<number | null>(null);
+  loaded = $state(false);
+  private _hydrated = false;
+
+  activeTerm = $derived(
+    this.terms.find((t) => t.id === this.activeTermId) ?? null,
+  );
+
+  init = async () => {
+    if (this._hydrated) return;
+    this._hydrated = true;
+    try {
+      const terms = await getJSONFetch<TermWithCount[]>("/api/terms");
+      this.terms = terms;
+
+      const storedRaw = localStorage.getItem(ACTIVE_TERM_LS_KEY);
+      const stored = storedRaw !== null ? Number(storedRaw) : NaN;
+      const storedValid =
+        Number.isFinite(stored) && terms.some((t) => t.id === stored);
+
+      const fallback =
+        terms.find((t) => t.isDefault) ??
+        terms.find((t) => t.isActive) ??
+        terms[0] ??
+        null;
+
+      this.activeTermId = storedValid ? stored : (fallback?.id ?? null);
+      this.loaded = true;
+    } catch (e) {
+      console.error("Failed to load terms:", e);
+    }
+  };
+
+  setTerm = (id: number) => {
+    this.activeTermId = id;
+    try {
+      localStorage.setItem(ACTIVE_TERM_LS_KEY, String(id));
+    } catch {
+      // localStorage may be unavailable (private mode); selection still works
+      // for the current session.
+    }
+  };
+}
+
+/**
+ * Classes for the currently viewed room, scoped to the active term. Results are
+ * cached per `${roomCode}::${termId}` key so switching back and forth between
+ * terms/rooms doesn't refetch.
+ */
+class RoomClassesStore {
+  classes = $state<ClassMapValue[]>([]);
+  loading = $state(false);
+  private _cache = new Map<string, ClassMapValue[]>();
+  private _requestKey: string | null = null;
+
+  load = async (roomCode: string, termId: number | null) => {
+    const key = `${roomCode}::${termId ?? "all"}`;
+    this._requestKey = key;
+
+    const cached = this._cache.get(key);
+    if (cached) {
+      this.classes = cached;
+      this.loading = false;
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const params = new URLSearchParams({ room_code: roomCode });
+      if (termId != null) params.set("term_id", String(termId));
+      const data = await getJSONFetch<ClassMapValue[]>(
+        `/api/classes?${params.toString()}`,
+      );
+      this._cache.set(key, data);
+      if (this._requestKey === key) this.classes = data;
+    } catch (e) {
+      console.error("Failed to load room classes:", e);
+      if (this._requestKey === key) this.classes = [];
+    } finally {
+      if (this._requestKey === key) this.loading = false;
+    }
+  };
+
+  clear = () => {
+    this.classes = [];
+    this._requestKey = null;
+  };
+}
+
 export const queryStore = new QueryStore();
+export const termStore = new TermStore();
+export const roomClassesStore = new RoomClassesStore();
 export const offlineStore = new OfflineStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
