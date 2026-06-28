@@ -1,0 +1,44 @@
+# Dependabot keeps npm/Bun and GitHub Actions dependencies current.
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      astro:
+        patterns:
+          - "@astrojs/*"
+          - "astro"
+      svelte:
+        patterns:
+          - "svelte*"
+          - "@lucide/svelte"
+      drizzle:
+        patterns:
+          - "drizzle-*"
+      dev-tooling:
+        dependency-type: development
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      github-actions:
+        patterns:
+          - "*"
