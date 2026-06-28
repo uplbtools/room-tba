@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
 import {
   EditConflictError,
   updateEvent,
@@ -31,11 +32,14 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     return json({ error: "routes must be an array" }, 400);
   }
 
+  const parsedVersion = parseRequiredEditorVersion(body.version);
+  if (!parsedVersion.ok) return parsedVersion.response;
+
   try {
     const event = await updateEvent(
       id,
       { routes: body.routes },
-      Number.isInteger(body.version) ? body.version : undefined,
+      parsedVersion.version,
       auth.editedBy,
     );
     if (!event) return json({ error: "Event not found" }, 404);

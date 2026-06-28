@@ -23,6 +23,8 @@
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
+  import "./map-chrome/map-chrome.css";
+  import { observeBlockHeight } from "@lib/layout-css-vars";
   import type { RecentSearch } from "@lib/types";
   import { isRecentSearch } from "@lib/locStorage";
 
@@ -79,28 +81,11 @@
 
   $effect(() => {
     const el = mapToolsStackEl;
-    if (!el || typeof ResizeObserver === "undefined") return;
-
-    const root = el.closest(".app-layout") as HTMLElement | null;
-    if (!root) return;
-
-    const syncHeight = () => {
-      // Mobile uses a full-viewport overlay stack; its height must not drive
-      // layout anchors (detail sheet inset, etc.).
-      if (window.matchMedia("(max-width: 48rem)").matches) {
-        root.style.setProperty("--map-tools-block-height", "0px");
-        return;
-      }
-      root.style.setProperty(
-        "--map-tools-block-height",
-        `${el.getBoundingClientRect().height}px`,
-      );
-    };
-
-    syncHeight();
-    const observer = new ResizeObserver(syncHeight);
-    observer.observe(el);
-    return () => observer.disconnect();
+    if (!el) return;
+    return observeBlockHeight(el, "--map-tools-block-height", {
+      shouldSkip: () => window.matchMedia("(max-width: 48rem)").matches,
+      skipValue: "0px",
+    });
   });
 
   function handleKeydown(e: KeyboardEvent) {
@@ -137,15 +122,19 @@
     <div class="inner-layer">
       <MainControls />
       <div class="bottom-band">
-        <MapAttribution />
-        <div
-          class="location-fab-stack"
-          class:drawer-lift={drawerExpanded}
-          aria-label="Location and editor"
-        >
-          <LocationButton />
+        <div class="bottom-band-elevated">
+          <div
+            class="location-fab-stack"
+            class:drawer-lift={drawerExpanded}
+            aria-label="Location and editor"
+          >
+            <LocationButton />
+          </div>
         </div>
-        <StatusBar />
+        <div class="bottom-band-footer">
+          <MapAttribution />
+          <StatusBar />
+        </div>
       </div>
     </div>
     {#if toastStore.message}
@@ -201,39 +190,6 @@
     --edit-bar-height: 3rem;
   }
 
-  :global(.chrome-toggle-btn) {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: var(--map-chrome-toggle-size, 2rem);
-    height: var(--map-chrome-toggle-size, 2rem);
-    border: 1px solid #d8b9ba;
-    border-radius: var(--map-chrome-toggle-radius, 0.625rem);
-    background: #fffafa;
-    color: #7b1113;
-    transition:
-      background-color 0.16s,
-      border-color 0.16s;
-  }
-
-  :global(button.chrome-toggle-btn) {
-    cursor: pointer;
-    font: inherit;
-    padding: 0;
-  }
-
-  :global(button.chrome-toggle-btn:hover),
-  :global(button.chrome-toggle-btn:focus-visible) {
-    border-color: #c58f91;
-    background: #fdf3f3;
-  }
-
-  :global(button.chrome-toggle-btn:focus-visible) {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
   .inner-layer {
     display: flex;
     flex-direction: column;
@@ -248,13 +204,29 @@
   .bottom-band {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: stretch;
+    justify-content: flex-end;
     gap: 0.5rem;
     flex-shrink: 0;
     width: 100%;
     pointer-events: none;
     /* Reserve horizontal space so status bar text does not sit under FABs */
     --bottom-fab-inset: 3.75rem;
+  }
+
+  .bottom-band-elevated {
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
+  .bottom-band-footer {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.5rem;
+    min-width: 0;
+    pointer-events: none;
   }
 
   :global(.map) {
@@ -332,8 +304,13 @@
 
     .bottom-band {
       gap: 0;
-      align-items: stretch;
       --bottom-fab-inset: 3.25rem;
+    }
+
+    .bottom-band-footer {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
     }
 
     .top-right-map-stack {
@@ -348,11 +325,11 @@
       z-index: 16;
     }
 
-    .top-right-map-stack :global(.map-tools-trigger) {
+    .top-right-map-stack :global(.map-chrome-fab-trigger) {
       display: none;
     }
 
-    .top-right-map-stack :global(.map-tools-panel) {
+    .top-right-map-stack :global(.map-chrome-panel) {
       position: fixed;
       top: var(--search-block-height);
       right: 0;

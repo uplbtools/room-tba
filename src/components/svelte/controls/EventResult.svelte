@@ -6,6 +6,12 @@
   import Route from "@lucide/svelte/icons/route";
   import X from "@lucide/svelte/icons/x";
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
+  import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
+  import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
+  import EntityEditorCard from "@ui/editor/EntityEditorCard.svelte";
+  import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
+  import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { getAppActions, getAppData } from "@lib/context";
   import {
     adminAuthStore,
@@ -680,238 +686,302 @@
     {/if}
 
     <section class="event-admin">
-      <button class="secondary-action" onclick={() => (editing = !editing)}>
-        {editing ? "Close" : canPublish ? "Edit event" : "Suggest changes"}
-      </button>
+      <EntityEditorToggle
+        expanded={editing}
+        {canPublish}
+        publishOpenLabel="Edit event"
+        suggestOpenLabel="Suggest changes"
+        onclick={() => (editing = !editing)}
+      />
       {#if editing}
-        {#if !canPublish && !adminAuthStore.displayName && !adminAuthStore.username}
-          <label class="suggest-name-field">
-            Your name
-            <input
-              bind:value={submitterNameDraft}
-              maxlength="100"
-              autocomplete="name"
-            />
-          </label>
-        {/if}
-        <form
-          class="event-form"
-          onsubmit={(e) => {
-            e.preventDefault();
-            saveEvent();
-          }}
-        >
-          <label>Title <input bind:value={form.title} required /></label>
-          <label
-            >Description <textarea bind:value={form.description}
-            ></textarea></label
+        <div class="entity-editor">
+          <EntityEditorPanel
+            {canPublish}
+            showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
+            submitterNameId="event-submitter-name"
+            bind:submitterName={submitterNameDraft}
           >
-          <label>
-            Category
-            <select bind:value={form.category}>
-              <option value="tradition">Tradition</option>
-              <option value="fair">Fair</option>
-              <option value="ceremony">Ceremony</option>
-              <option value="sports">Sports</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
-          <p class="muted timezone-note">
-            Enter start and end in campus time (Manila).
-          </p>
-          <label
-            >Starts <input
-              type="datetime-local"
-              bind:value={form.startsAt}
-              required
-            /></label
-          >
-          <label
-            >Ends <input
-              type="datetime-local"
-              bind:value={form.endsAt}
-              required
-            /></label
-          >
-          <label>Source URL <input bind:value={form.sourceUrl} /></label>
-          <label>
-            Recurrence
-            <select bind:value={form.recurrence}>
-              <option value="none">None</option>
-              <option value="annual">Annual</option>
-              <option value="every_1st_sem">Every 1st semester</option>
-              <option value="every_2nd_sem">Every 2nd semester</option>
-            </select>
-          </label>
-          {#if routeForms.length > 0}
-            <div class="route-editor-card">
-              <strong>Routes</strong>
-              {#each routeForms as routeForm, index (routeForm.id)}
-                <label>
-                  Route name
-                  <input bind:value={routeForms[index]!.name} required />
-                </label>
-                <label>
-                  Route description
-                  <textarea bind:value={routeForms[index]!.description}
+            <form
+              class="entity-editor-form"
+              onsubmit={(e) => {
+                e.preventDefault();
+                saveEvent();
+              }}
+            >
+              <EntityEditorFormField label="Title" inputId="event-title-editor">
+                {#snippet control()}
+                  <input
+                    id="event-title-editor"
+                    bind:value={form.title}
+                    required
+                  />
+                {/snippet}
+              </EntityEditorFormField>
+              <EntityEditorFormField
+                label="Description"
+                inputId="event-description-editor"
+              >
+                {#snippet control()}
+                  <textarea
+                    id="event-description-editor"
+                    bind:value={form.description}
                   ></textarea>
-                </label>
-              {/each}
-            </div>
-          {/if}
-          <div class="location-editor-card">
-            <div>
-              <strong>Primary location anchor</strong>
-              <p>
-                Choose whether the primary marker follows a building, dorm, or
-                custom map coordinates.
+                {/snippet}
+              </EntityEditorFormField>
+              <EntityEditorFormField
+                label="Category"
+                inputId="event-category-editor"
+              >
+                {#snippet control()}
+                  <select id="event-category-editor" bind:value={form.category}>
+                    <option value="tradition">Tradition</option>
+                    <option value="fair">Fair</option>
+                    <option value="ceremony">Ceremony</option>
+                    <option value="sports">Sports</option>
+                    <option value="other">Other</option>
+                  </select>
+                {/snippet}
+              </EntityEditorFormField>
+              <p class="entity-editor-muted timezone-note">
+                Enter start and end in campus time (Manila).
               </p>
-            </div>
-            <label>
-              Anchor type
-              <select
-                bind:value={locationForm.anchorType}
-                onchange={handleAnchorTypeChange}
+              <EntityEditorFormField label="Starts" inputId="event-starts-editor">
+                {#snippet control()}
+                  <input
+                    id="event-starts-editor"
+                    type="datetime-local"
+                    bind:value={form.startsAt}
+                    required
+                  />
+                {/snippet}
+              </EntityEditorFormField>
+              <EntityEditorFormField label="Ends" inputId="event-ends-editor">
+                {#snippet control()}
+                  <input
+                    id="event-ends-editor"
+                    type="datetime-local"
+                    bind:value={form.endsAt}
+                    required
+                  />
+                {/snippet}
+              </EntityEditorFormField>
+              <EntityEditorFormField
+                label="Source URL"
+                inputId="event-source-editor"
               >
-                <option value="custom">Custom map point</option>
-                <option value="building">Building</option>
-                <option value="dorm">Dorm</option>
-              </select>
-            </label>
-            {#if locationForm.anchorType === "building"}
-              <label>
-                Building
-                <select
-                  bind:value={locationForm.buildingId}
-                  required
-                  onchange={handleBuildingAnchorChange}
-                >
-                  <option value="">Select a building</option>
-                  {#each buildings as building (building.id)}
-                    <option value={building.id}>{building.buildingName}</option>
-                  {/each}
-                </select>
-              </label>
-            {:else if locationForm.anchorType === "dorm"}
-              <label>
-                Dorm
-                <select
-                  bind:value={locationForm.dormId}
-                  required
-                  onchange={handleDormAnchorChange}
-                >
-                  <option value="">Select a dorm</option>
-                  {#each dorms as dorm (dorm.id)}
-                    <option value={dorm.id}>{dorm.dormName}</option>
-                  {/each}
-                </select>
-              </label>
-            {/if}
-            <label
-              >Location label <input bind:value={locationForm.label} /></label
-            >
-            <div class="location-editor-actions">
-              <button
-                class="secondary-action"
-                type="button"
-                disabled={savingLocation}
-                onclick={savePrimaryLocationAnchor}
+                {#snippet control()}
+                  <input id="event-source-editor" bind:value={form.sourceUrl} />
+                {/snippet}
+              </EntityEditorFormField>
+              <EntityEditorFormField
+                label="Recurrence"
+                inputId="event-recurrence-editor"
               >
-                {savingLocation
-                  ? canPublish
-                    ? "Saving anchor..."
-                    : "Submitting..."
-                  : canPublish
-                    ? "Save location anchor"
-                    : "Submit location"}
-              </button>
-            </div>
-          </div>
-          <div class="location-editor-card">
-            <div>
-              <strong>Event location</strong>
-              {#if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null}
-                <p>
-                  {#if canPublish}
-                    Drag the event marker on the map to move it. This edits the
-                    primary location only.
-                  {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
-                    Pin move mode is on — drag the event marker on the map.
-                  {:else}
-                    Suggest a map pin move with
-                    <button
-                      type="button"
-                      class="inline-link-btn"
-                      onclick={enableEventPinProposal}
-                    >
-                      enable pin move
-                    </button>
-                    , then drag the marker.
-                  {/if}
-                </p>
-              {:else}
-                <p>
-                  Place a primary marker at the current map center, then drag it
-                  on the map to refine the location.
-                </p>
-              {/if}
-            </div>
-            <div class="location-editor-actions">
-              {#if canPublish}
-                <button
-                  class="secondary-action"
-                  type="button"
-                  onclick={() => {
-                    if (!mapEditStore.enabled) mapEditStore.toggle();
-                  }}
-                >
-                  {mapEditStore.enabled
-                    ? "Map editing on"
-                    : "Enable map editing"}
-                </button>
-                {#if !primaryLocation || primaryLocation.resolvedLat === null || primaryLocation.resolvedLon === null}
-                  <button
-                    class="primary-action"
-                    type="button"
-                    disabled={savingLocation}
-                    onclick={placePrimaryLocationAtMapCenter}
+                {#snippet control()}
+                  <select
+                    id="event-recurrence-editor"
+                    bind:value={form.recurrence}
                   >
-                    {savingLocation
-                      ? "Placing..."
-                      : "Place marker at map center"}
-                  </button>
-                {/if}
-              {:else if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null && !mapProposalStore.allowsKey(`event:${event.id}:location`)}
-                <button
-                  class="secondary-action"
-                  type="button"
-                  onclick={enableEventPinProposal}
-                >
-                  Enable pin move
-                </button>
+                    <option value="none">None</option>
+                    <option value="annual">Annual</option>
+                    <option value="every_1st_sem">Every 1st semester</option>
+                    <option value="every_2nd_sem">Every 2nd semester</option>
+                  </select>
+                {/snippet}
+              </EntityEditorFormField>
+              {#if routeForms.length > 0}
+                <EntityEditorCard title="Routes">
+                  {#each routeForms as routeForm, index (routeForm.id)}
+                    <EntityEditorFormField
+                      label="Route name"
+                      inputId="event-route-name-{routeForm.id}"
+                    >
+                      {#snippet control()}
+                        <input
+                          id="event-route-name-{routeForm.id}"
+                          bind:value={routeForms[index]!.name}
+                          required
+                        />
+                      {/snippet}
+                    </EntityEditorFormField>
+                    <EntityEditorFormField
+                      label="Route description"
+                      inputId="event-route-desc-{routeForm.id}"
+                    >
+                      {#snippet control()}
+                        <textarea
+                          id="event-route-desc-{routeForm.id}"
+                          bind:value={routeForms[index]!.description}
+                        ></textarea>
+                      {/snippet}
+                    </EntityEditorFormField>
+                  {/each}
+                </EntityEditorCard>
               {/if}
-            </div>
-          </div>
-          <button class="primary-action" type="submit" disabled={saving}>
-            {saving
-              ? canPublish
-                ? "Saving..."
-                : "Submitting..."
-              : canPublish
-                ? "Save event"
-                : "Submit for review"}
-          </button>
-          {#if canPublish}
-            <button
-              class="danger-action"
-              type="button"
-              disabled={deactivating}
-              onclick={deactivateEvent}
-            >
-              {deactivating ? "Deactivating..." : "Deactivate event"}
-            </button>
-          {/if}
-        </form>
+              <EntityEditorCard title="Primary location anchor">
+                <p>
+                  Choose whether the primary marker follows a building, dorm, or
+                  custom map coordinates.
+                </p>
+                  <EntityEditorFormField
+                    label="Anchor type"
+                    inputId="event-anchor-type-editor"
+                  >
+                    {#snippet control()}
+                      <select
+                        id="event-anchor-type-editor"
+                        bind:value={locationForm.anchorType}
+                        onchange={handleAnchorTypeChange}
+                      >
+                        <option value="custom">Custom map point</option>
+                        <option value="building">Building</option>
+                        <option value="dorm">Dorm</option>
+                      </select>
+                    {/snippet}
+                  </EntityEditorFormField>
+                  {#if locationForm.anchorType === "building"}
+                    <EntityEditorFormField
+                      label="Building"
+                      inputId="event-building-anchor-editor"
+                    >
+                      {#snippet control()}
+                        <select
+                          id="event-building-anchor-editor"
+                          bind:value={locationForm.buildingId}
+                          required
+                          onchange={handleBuildingAnchorChange}
+                        >
+                          <option value="">Select a building</option>
+                          {#each buildings as building (building.id)}
+                            <option value={building.id}
+                              >{building.buildingName}</option
+                            >
+                          {/each}
+                        </select>
+                      {/snippet}
+                    </EntityEditorFormField>
+                  {:else if locationForm.anchorType === "dorm"}
+                    <EntityEditorFormField
+                      label="Dorm"
+                      inputId="event-dorm-anchor-editor"
+                    >
+                      {#snippet control()}
+                        <select
+                          id="event-dorm-anchor-editor"
+                          bind:value={locationForm.dormId}
+                          required
+                          onchange={handleDormAnchorChange}
+                        >
+                          <option value="">Select a dorm</option>
+                          {#each dorms as dorm (dorm.id)}
+                            <option value={dorm.id}>{dorm.dormName}</option>
+                          {/each}
+                        </select>
+                      {/snippet}
+                    </EntityEditorFormField>
+                  {/if}
+                  <EntityEditorFormField
+                    label="Location label"
+                    inputId="event-location-label-editor"
+                  >
+                    {#snippet control()}
+                      <input
+                        id="event-location-label-editor"
+                        bind:value={locationForm.label}
+                      />
+                    {/snippet}
+                  </EntityEditorFormField>
+                  <div class="entity-editor-form-actions">
+                    <EntityEditorSubmitButton
+                      variant="secondary"
+                      saving={savingLocation}
+                      label={canPublish
+                        ? "Save location anchor"
+                        : "Submit location"}
+                      savingLabel={canPublish
+                        ? "Saving anchor..."
+                        : "Submitting..."}
+                      onclick={savePrimaryLocationAnchor}
+                    />
+                  </div>
+              </EntityEditorCard>
+              <EntityEditorCard title="Event location">
+                {#if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null}
+                    <p>
+                      {#if canPublish}
+                        Drag the event marker on the map to move it. This edits
+                        the primary location only.
+                      {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
+                        Pin move mode is on — drag the event marker on the map.
+                      {:else}
+                        Suggest a map pin move with
+                        <button
+                          type="button"
+                          class="inline-link-btn"
+                          onclick={enableEventPinProposal}
+                        >
+                          enable pin move
+                        </button>
+                        , then drag the marker.
+                      {/if}
+                    </p>
+                  {:else}
+                    <p>
+                      Place a primary marker at the current map center, then
+                      drag it on the map to refine the location.
+                    </p>
+                  {/if}
+                  <div class="entity-editor-form-actions">
+                    {#if canPublish}
+                      <EntityEditorSubmitButton
+                        variant="secondary"
+                        label={mapEditStore.enabled
+                          ? "Map editing on"
+                          : "Enable map editing"}
+                        onclick={() => {
+                          if (!mapEditStore.enabled) mapEditStore.toggle();
+                        }}
+                      />
+                      {#if !primaryLocation || primaryLocation.resolvedLat === null || primaryLocation.resolvedLon === null}
+                        <EntityEditorSubmitButton
+                          variant="primary"
+                          saving={savingLocation}
+                          label="Place marker at map center"
+                          savingLabel="Placing..."
+                          onclick={placePrimaryLocationAtMapCenter}
+                        />
+                      {/if}
+                    {:else if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null && !mapProposalStore.allowsKey(`event:${event.id}:location`)}
+                      <EntityEditorSubmitButton
+                        variant="secondary"
+                        label="Enable pin move"
+                        onclick={enableEventPinProposal}
+                      />
+                    {/if}
+                  </div>
+              </EntityEditorCard>
+              <EntityEditorSubmitButton
+                type="submit"
+                variant="primary"
+                saving={saving}
+                label={canPublish ? "Save event" : "Submit for review"}
+                savingLabel={fieldSaveActionLabel({
+                  canPublish,
+                  isSaving: true,
+                })}
+              />
+              {#if canPublish}
+                <EntityEditorSubmitButton
+                  variant="danger"
+                  saving={deactivating}
+                  label="Deactivate event"
+                  savingLabel="Deactivating..."
+                  onclick={deactivateEvent}
+                />
+              {/if}
+            </form>
+          </EntityEditorPanel>
+        </div>
       {/if}
     </section>
   {:else}
@@ -920,6 +990,8 @@
 </div>
 
 <style>
+  @import "../editor/entity-editor.css";
+
   .event-result {
     display: flex;
     flex: 1 1 0;
@@ -1050,9 +1122,7 @@
     gap: 0.5rem;
   }
 
-  .primary-action,
-  .secondary-action,
-  .danger-action {
+  .primary-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1065,40 +1135,9 @@
     font-weight: 500;
     line-height: 1.25;
     padding: 0.375rem 0.75rem;
-  }
-
-  .primary-action {
     border: none;
     background: #7b1113;
     color: white;
-  }
-
-  .secondary-action {
-    border: 1px solid #d8b9ba;
-    background: white;
-    color: #7b1113;
-  }
-
-  .danger-action {
-    border: 1px solid #fecaca;
-    background: #fef2f2;
-    color: #991b1b;
-  }
-
-  .route-editor-card {
-    display: grid;
-    gap: 0.45rem;
-    padding: 0.65rem;
-    border: 1px solid #e4e4e7;
-    border-radius: 0.5rem;
-    background: #fafafa;
-  }
-
-  .primary-action:disabled,
-  .secondary-action:disabled,
-  .danger-action:disabled {
-    cursor: progress;
-    opacity: 0.65;
   }
 
   .source-link {
@@ -1124,51 +1163,5 @@
   .source-link:focus-visible {
     outline: 2px solid #7b1113;
     outline-offset: 2px;
-  }
-
-  .event-form {
-    display: grid;
-    gap: 0.55rem;
-  }
-
-  label {
-    display: grid;
-    gap: 0.25rem;
-    font-weight: 700;
-  }
-
-  .location-editor-card {
-    display: grid;
-    gap: 0.55rem;
-    padding: 0.65rem;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.75rem;
-    background: #fffafa;
-  }
-
-  .location-editor-card strong {
-    color: #7b1113;
-    font-size: 0.85rem;
-  }
-
-  .location-editor-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  input,
-  select,
-  textarea {
-    width: 100%;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.5rem;
-    font: inherit;
-    padding: 0.45rem 0.55rem;
-  }
-
-  textarea {
-    min-height: 5.5rem;
-    resize: vertical;
   }
 </style>

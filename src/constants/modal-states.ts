@@ -1,9 +1,3 @@
 // src/constants/modal-states.ts
 
-export const modalOptions = [
-  "landing",
-  "schedule-expand",
-  "contributors",
-  "changelog",
-  "filter",
-] as const;
+export const modalOptions = ["landing", "schedule-expand", "filter"] as const;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
-  import type { GithubContributor } from "../../../lib/github-contributors";
-  import { formatGithubContributions } from "../../../lib/github-contributors";
+  import type { GithubContributor } from "@lib/github-contributors";
+  import { formatGithubContributions } from "@lib/github-contributors";
 
   type Props = {
     title: string;

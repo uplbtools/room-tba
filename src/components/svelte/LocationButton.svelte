@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import LogIn from "@lucide/svelte/icons/log-in";
   import Locate from "@lucide/svelte/icons/locate";
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import LogOut from "@lucide/svelte/icons/log-out";
@@ -191,25 +190,6 @@
         <Plus />
       </button>
     </div>
-    {#if !adminAuthStore.isLoggedIn}
-      <button
-        class="map-control-btn"
-        onclick={() => adminAuthStore.openLogin()}
-        title="Editor login"
-        aria-label="Editor login"
-      >
-        <LogIn />
-      </button>
-    {/if}
-  {:else}
-    <button
-      class="map-control-btn"
-      onclick={() => adminAuthStore.openLogin()}
-      title="Editor login"
-      aria-label="Editor login"
-    >
-      <LogIn />
-    </button>
   {/if}
 
   <button

@@ -5,24 +5,13 @@ import {
   canReviewProposals,
   getSessionUser,
   sessionEditedBy,
-  verifyLegacySessionToken,
   type AdminRole,
   type SessionUser,
 } from "./auth";
 
-const LEGACY_SESSION: SessionUser = {
-  id: 0,
-  username: "admin",
-  displayName: "Admin",
-  role: "admin",
-};
-
 export function getEditorSession(cookies: AstroCookies): SessionUser | null {
   const cookie = cookies.get(ADMIN_COOKIE_NAME)?.value;
-  const session = getSessionUser(cookie);
-  if (session) return session;
-  if (verifyLegacySessionToken(cookie)) return LEGACY_SESSION;
-  return null;
+  return getSessionUser(cookie);
 }
 
 type EditorSessionOptions = {
