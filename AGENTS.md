@@ -140,6 +140,7 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 ## AMIS class imports
 
 - **Fetch once, reuse cache:** `bun run import:amis-classes -- --term-id <id> --fetch` saves sanitized rows to `data/amis-*-<id>.json` (gitignored). Re-import with the same command **without** `--fetch` — no AMIS hammering.
+- **Short-lived tokens:** `AMIS_BEARER_TOKEN` from a logged-in AMIS session expires in about an hour. Copy a fresh token right before `--fetch`; do not rely on a token saved in `.env` from yesterday. Cached JSON imports do not need a token.
 - **Never store or commit instructor names.** AMIS responses embed faculty/user PII. `sanitizeAmisRow()` strips it before any JSON is written. Do not commit `data/amis-*.json`, raw AMIS dumps, or DB exports that include `faculty`, `first_name`, `formatted_name`, etc.
 - The app DB stores only course code, section, type, title, schedule slots, room, and term — never instructor fields.
 - If unsanitized exports exist locally, run `bun run import:amis-classes -- --scrub-exports`.
