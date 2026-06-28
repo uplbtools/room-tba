@@ -49,3 +49,7 @@ Do not add duplicate action rows or colored highlight boxes. See `.cursor/rules/
 ## Verification viewports
 
 320px, 768px, desktop — browse, edit mode, map tools open, sync active.
+
+## Motion
+
+Functional transitions only (no decorative loops). Shared tokens on `.app-layout`: `--motion-duration-fast` (150ms), `--motion-duration-micro` (200ms), `--motion-duration-panel` (280ms), `--motion-duration-shelf` (260ms). Svelte `fly`/`slide`/`fade` helpers in `src/lib/motion.ts` zero durations when `prefers-reduced-motion: reduce`.
