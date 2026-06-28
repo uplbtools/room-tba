@@ -18,12 +18,7 @@
 
 <div class="entity-editor-pin-row">
   <span class="entity-editor-pin-label">{label}</span>
-  <button
-    type="button"
-    class="field-save-btn"
-    {disabled}
-    {onclick}
-  >
+  <button type="button" class="field-save-btn" {disabled} {onclick}>
     {pickLabel}
   </button>
 </div>

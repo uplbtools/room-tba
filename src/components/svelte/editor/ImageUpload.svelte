@@ -83,8 +83,7 @@
       if (res.status === 503) {
         uploadConfigured = false;
         throw new Error(
-          data.error ??
-            "Image uploads are not configured on this server yet.",
+          data.error ?? "Image uploads are not configured on this server yet.",
         );
       }
       if (!res.ok || !data.url) {

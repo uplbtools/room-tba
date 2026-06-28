@@ -430,11 +430,7 @@ class MainControlsStore {
 }
 
 export type FloatingControlPanel =
-  | "legend"
-  | "building-type"
-  | "terrain"
-  | "admin"
-  | "suggest-addition";
+  "legend" | "building-type" | "terrain" | "admin" | "suggest-addition";
 
 class FloatingControlPanelStore {
   openPanel: FloatingControlPanel | null = $state(null);
@@ -450,11 +446,7 @@ class FloatingControlPanelStore {
   };
 }
 
-export type MapToolsSection =
-  | "view"
-  | "legend"
-  | "terrain"
-  | "jeepney";
+export type MapToolsSection = "view" | "legend" | "terrain" | "jeepney";
 
 class MapToolsStore {
   open = $state(false);

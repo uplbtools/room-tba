@@ -210,7 +210,11 @@
     {#if visibleEvents.length > 0}
       <div class="event-list">
         {#each visibleEvents as event (event.id)}
-          {@const image = getEventImage(event.slug, event.imageUrl, event.title)}
+          {@const image = getEventImage(
+            event.slug,
+            event.imageUrl,
+            event.title,
+          )}
           {@const primaryLocation =
             event.locations.find((location) => location.isPrimary) ??
             event.locations[0] ??

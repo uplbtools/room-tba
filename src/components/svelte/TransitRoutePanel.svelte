@@ -39,7 +39,9 @@
       <span class="transit-route-option__copy">
         <span class="transit-route-option__name">{route.name}</span>
         {#if !compact}
-          <span class="transit-route-option__description">{route.description}</span>
+          <span class="transit-route-option__description"
+            >{route.description}</span
+          >
         {/if}
       </span>
     </button>
@@ -90,7 +92,8 @@
       border-color 0.15s ease;
   }
 
-  .transit-route-panel:not(.transit-route-panel--compact) .transit-route-option {
+  .transit-route-panel:not(.transit-route-panel--compact)
+    .transit-route-option {
     width: 100%;
     border-radius: 0.625rem;
     background-color: hsl(0, 0%, 98%);

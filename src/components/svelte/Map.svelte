@@ -588,11 +588,7 @@
   function disableTerrain(map: mapGl.MapLibreMap) {
     map.setTerrain(null);
     setTerrainHillshadeVisible(map, false);
-    syncBuildingLayersForDimension(
-      map,
-      isMap2DPitch(map.getPitch()),
-      false,
-    );
+    syncBuildingLayersForDimension(map, isMap2DPitch(map.getPitch()), false);
   }
 
   function restoreFlatMapCamera(map: mapGl.MapLibreMap) {
@@ -1378,11 +1374,7 @@
         ensureTerrainRendering(map);
         map.setTerrain({ source: TERRAIN_SOURCE_ID, exaggeration });
         setTerrainHillshadeVisible(map, true);
-        syncBuildingLayersForDimension(
-          map,
-          isMap2DPitch(map.getPitch()),
-          true,
-        );
+        syncBuildingLayersForDimension(map, isMap2DPitch(map.getPitch()), true);
         if (!terrainModeWasEnabled) {
           flyToCamera(map, MAKILING_TERRAIN_CAMERA);
         }
@@ -2472,10 +2464,10 @@
                       <div class="event-stack-list">
                         {#each group.entries as entry (`event-stack:${entry.event.id}:${entry.location.id}`)}
                           {@const image = getEventImage(
-                    entry.event.slug,
-                    entry.event.imageUrl,
-                    entry.event.title,
-                  )}
+                            entry.event.slug,
+                            entry.event.imageUrl,
+                            entry.event.title,
+                          )}
                           <button
                             type="button"
                             class="event-stack-item"
@@ -2674,8 +2666,8 @@
     min-width: 0;
     max-width: calc(
       100% - var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) -
-        var(--map-ui-padding, 0.5rem) * 2 -
-        var(--bottom-fab-inset, 3.75rem) - var(--bottom-fab-gap, 0.5rem) * 2
+        var(--map-ui-padding, 0.5rem) * 2 - var(--bottom-fab-inset, 3.75rem) -
+        var(--bottom-fab-gap, 0.5rem) * 2
     );
     min-height: 2.5rem;
     padding: 0.25rem 0.25rem 0.25rem 0.625rem;
@@ -2775,8 +2767,8 @@
     min-width: 0;
     max-width: calc(
       100% - var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem))) -
-        var(--map-ui-padding, 0.5rem) * 2 -
-        var(--bottom-fab-inset, 3.75rem) - var(--bottom-fab-gap, 0.5rem) * 2
+        var(--map-ui-padding, 0.5rem) * 2 - var(--bottom-fab-inset, 3.75rem) -
+        var(--bottom-fab-gap, 0.5rem) * 2
     );
     min-height: 2.5rem;
     padding: 0.25rem 0.25rem 0.25rem 0.625rem;

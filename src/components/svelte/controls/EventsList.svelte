@@ -177,7 +177,11 @@
     {#if tabEvents.length > 0}
       <div class="events-list">
         {#each pageEvents as event (event.id)}
-          {@const image = getEventImage(event.slug, event.imageUrl, event.title)}
+          {@const image = getEventImage(
+            event.slug,
+            event.imageUrl,
+            event.title,
+          )}
           {@const primaryLocation =
             event.locations.find((location) => location.isPrimary) ??
             event.locations[0] ??

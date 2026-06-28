@@ -8,18 +8,18 @@ import {
 
 describe("fieldSaveActionLabel", () => {
   test("uses publish vs suggest wording", () => {
-    expect(
-      fieldSaveActionLabel({ canPublish: true, isSaving: false }),
-    ).toBe("Save");
-    expect(
-      fieldSaveActionLabel({ canPublish: false, isSaving: false }),
-    ).toBe("Submit");
-    expect(
-      fieldSaveActionLabel({ canPublish: true, isSaving: true }),
-    ).toBe("Saving...");
-    expect(
-      fieldSaveActionLabel({ canPublish: false, isSaving: true }),
-    ).toBe("Submitting...");
+    expect(fieldSaveActionLabel({ canPublish: true, isSaving: false })).toBe(
+      "Save",
+    );
+    expect(fieldSaveActionLabel({ canPublish: false, isSaving: false })).toBe(
+      "Submit",
+    );
+    expect(fieldSaveActionLabel({ canPublish: true, isSaving: true })).toBe(
+      "Saving...",
+    );
+    expect(fieldSaveActionLabel({ canPublish: false, isSaving: true })).toBe(
+      "Submitting...",
+    );
   });
 });
 

@@ -163,7 +163,7 @@
 
       syncToastStore.beginFetchingCampus(6);
 
-      const trackFetch = <T>(promise: Promise<T>) =>
+      const trackFetch = <T,>(promise: Promise<T>) =>
         promise.finally(() => {
           syncToastStore.reportFetchComplete();
         });
