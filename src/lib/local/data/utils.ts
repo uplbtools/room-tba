@@ -115,6 +115,7 @@ export async function getLocalEvents(): Promise<EventData[] | undefined> {
           recurrence,
           is_active AS "isActive",
           source_url AS "sourceUrl",
+          image_url AS "imageUrl",
           priority,
           include_in_seo AS "includeInSeo",
           version,

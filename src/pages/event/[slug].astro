@@ -27,7 +27,7 @@ if (appData === null) {
 }
 
 const { event } = appData;
-const eventImage = getEventImage(event.slug);
+const eventImage = getEventImage(event.slug, event.imageUrl, event.title);
 const canonicalPath = `/event/${event.slug}/`;
 const title = `${event.title} | UPLB event | Room TBA`;
 const description =

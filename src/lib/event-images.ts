@@ -10,6 +10,16 @@ const EVENT_IMAGES: Record<string, EventImage> = {
   },
 };
 
-export function getEventImage(slug: string): EventImage | null {
+export function getEventImage(
+  slug: string,
+  imageUrl?: string | null,
+  title?: string,
+): EventImage | null {
+  if (imageUrl) {
+    return {
+      src: imageUrl,
+      alt: title ? `Image for ${title}` : "Event image",
+    };
+  }
   return EVENT_IMAGES[slug] ?? null;
 }

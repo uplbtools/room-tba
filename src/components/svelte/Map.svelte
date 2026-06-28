@@ -1293,7 +1293,6 @@
       : "Ctrl+Z";
   });
 
-
   $effect(() => {
     const map = mapStore.mapInstance;
     if (!map) return;
@@ -1327,7 +1326,6 @@
       };
     }
   });
-
 
   $effect(() => {
     const map = mapStore.mapInstance;
@@ -2352,7 +2350,11 @@
               {#if group.entries.length === 1}
                 {@const entry = group.entries[0]}
                 {#if entry}
-                  {@const image = getEventImage(entry.event.slug)}
+                  {@const image = getEventImage(
+                    entry.event.slug,
+                    entry.event.imageUrl,
+                    entry.event.title,
+                  )}
                   {@const active = isSelectedEvent(entry.event)}
                   <EventMapPin
                     {active}
@@ -2375,7 +2377,11 @@
                 {@const primaryEntry = group.entries[0]}
                 {@const isExpanded = expandedEventGroupKey === group.key}
                 {#if primaryEntry}
-                  {@const primaryImage = getEventImage(primaryEntry.event.slug)}
+                  {@const primaryImage = getEventImage(
+                    primaryEntry.event.slug,
+                    primaryEntry.event.imageUrl,
+                    primaryEntry.event.title,
+                  )}
                   <EventMapPin
                     variant="group"
                     anchored={group.anchored}
@@ -2392,12 +2398,14 @@
                     onclick={() => toggleEventMarkerGroup(group.key)}
                   />
                   {#if isExpanded}
-                    <div class="event-pin-stack" transition:fade>
+                    <div
+                      class="event-pin-stack"
+                      role="group"
+                      aria-label={`${group.entries.length} events at ${group.label}`}
+                      transition:fade
+                    >
                       <div class="event-stack-header">
-                        <span
-                          id="event-stack-heading-{group.key}"
-                          class="event-stack-heading"
-                        >
+                        <span class="event-stack-heading">
                           <strong>{group.entries.length} events</strong>
                           <span>{group.label}</span>
                         </span>
@@ -2412,15 +2420,18 @@
                       </div>
                       <div class="event-stack-list">
                         {#each group.entries as entry (`event-stack:${entry.event.id}:${entry.location.id}`)}
-                          {@const image = getEventImage(entry.event.slug)}
-                          {@const stackItemLabelId = `event-stack-item-${entry.event.id}-${entry.location.id}`}
+                          {@const image = getEventImage(
+                    entry.event.slug,
+                    entry.event.imageUrl,
+                    entry.event.title,
+                  )}
                           <button
                             type="button"
                             class="event-stack-item"
                             class:active={isSelectedEvent(entry.event)}
                             class:upcoming={entry.event.status === "upcoming"}
                             title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
-                            aria-labelledby={stackItemLabelId}
+                            aria-label={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
                             onclick={() => handleEventMarkerClick(entry.event)}
                           >
                             {#if image}
@@ -2434,10 +2445,7 @@
                                 <CalendarDays size={14} />
                               </span>
                             {/if}
-                            <span
-                              class="event-stack-copy"
-                              id={stackItemLabelId}
-                            >
+                            <span class="event-stack-copy">
                               <span class="event-stack-title"
                                 >{entry.event.title}</span
                               >
@@ -2448,8 +2456,7 @@
                                 at {formatEventMarkerTime(
                                   entry.event.occurrenceStartsAt,
                                 )}
-                                - {getEventStatusLabel(entry.event)} · {entry
-                                  .location.resolvedLabel}
+                                - {getEventStatusLabel(entry.event)}
                               </span>
                             </span>
                           </button>
@@ -2511,6 +2518,7 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
+              title={building.buildingName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
               onpointerenter={() => handleEditablePinEnter(editKey)}
               onpointerleave={() => handleEditablePinLeave(editKey)}
@@ -2569,6 +2577,7 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
+              title={dorm.dormName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
               onpointerenter={() => handleEditablePinEnter(editKey)}
               onpointerleave={() => handleEditablePinLeave(editKey)}
