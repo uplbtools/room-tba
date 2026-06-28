@@ -1,10 +1,13 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import {
     adminAuthStore,
     currentRoom,
     locationStore,
     modalStore,
     queryStore,
+    roomClassesStore,
+    termStore,
     toastStore,
   } from "@lib/store.svelte";
   import {
@@ -31,7 +34,7 @@
   import { getRoomShareUrl } from "@lib/share-links";
   import type { RoomData } from "@lib/types";
   import { tick } from "svelte";
-  // import Classes from "./Classes.svelte";
+  import Classes from "./Classes.svelte";
 
   type RoomEditableField =
     | "roomCode"
@@ -85,6 +88,21 @@
   const roomShareUrl = $derived(
     currentRoom.value ? getRoomShareUrl(currentRoom.value) : "",
   );
+  const activeTermLabel = $derived(termStore.activeTerm?.label ?? null);
+
+  onMount(() => {
+    termStore.init();
+  });
+
+  $effect(() => {
+    const code = currentRoom.value?.code;
+    const termId = termStore.activeTermId;
+    if (!code) {
+      roomClassesStore.clear();
+      return;
+    }
+    void roomClassesStore.load(code, termId);
+  });
 
   $effect(() => {
     const room = currentRoom.value;
@@ -659,15 +677,41 @@
       {/if}
     </section>
 
-    <footer class="entity-footer">
-      <button
-        type="button"
-        class="entity-footer__link"
-        onclick={() => modalStore.openModal("schedule-expand")}
-      >
-        Classes in this room →
-      </button>
-    </footer>
+    <section class="entity-schedule" aria-label="Classes in this room">
+      <div class="entity-schedule__header">
+        <h3 class="entity-schedule__title">
+          Classes in this room
+          {#if !roomClassesStore.loading}
+            <span class="entity-schedule__count"
+              >({roomClassesStore.classes.length})</span
+            >
+          {/if}
+        </h3>
+        {#if roomClassesStore.classes.length > 0}
+          <button
+            type="button"
+            class="entity-footer__link"
+            onclick={() => modalStore.openModal("schedule-expand")}
+          >
+            Open schedule →
+          </button>
+        {/if}
+      </div>
+      {#if activeTermLabel}
+        <p class="entity-schedule__term">{activeTermLabel}</p>
+      {/if}
+      {#if roomClassesStore.loading}
+        <p class="entity-schedule__empty">Loading classes…</p>
+      {:else if roomClassesStore.classes.length > 0}
+        <Classes classes={roomClassesStore.classes} />
+      {:else}
+        <p class="entity-schedule__empty">
+          No classes listed for this room{activeTermLabel
+            ? ` in ${activeTermLabel}`
+            : ""}.
+        </p>
+      {/if}
+    </section>
   {:else}
     <p>Room not found.</p>
   {/if}
@@ -721,5 +765,46 @@
   .merge-btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+  }
+
+  .entity-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.25rem;
+  }
+
+  .entity-schedule__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .entity-schedule__title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: hsl(0, 0%, 12%);
+  }
+
+  .entity-schedule__count {
+    color: hsl(0, 0%, 45%);
+    font-weight: 500;
+  }
+
+  .entity-schedule__term {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(5, 53%, 32%);
+  }
+
+  .entity-schedule__empty {
+    margin: 0;
+    font-size: 0.875rem;
+    color: hsl(0, 0%, 45%);
   }
 </style>
