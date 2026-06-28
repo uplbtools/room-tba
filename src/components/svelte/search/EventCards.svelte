@@ -3,10 +3,7 @@
   import EventShelfToolbar from "@ui/map-chrome/EventShelfToolbar.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
-  import {
-    formatCampusDateShort,
-    formatCampusTime,
-  } from "@lib/event-time";
+  import { formatCampusDateShort, formatCampusTime } from "@lib/event-time";
   import { getEventShareUrl } from "@lib/share-links";
   import { beginEventPlacement } from "@lib/event-placement";
   import { validateSubmitterName } from "@constants/proposals";
@@ -173,7 +170,7 @@
     {#if visibleEvents.length > 0}
       <div class="event-list">
         {#each visibleEvents as event (event.id)}
-          {@const image = getEventImage(event.slug)}
+          {@const image = getEventImage(event.slug, event.imageUrl, event.title)}
           {@const primaryLocation =
             event.locations.find((location) => location.isPrimary) ??
             event.locations[0] ??

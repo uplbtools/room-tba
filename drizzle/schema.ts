@@ -321,6 +321,7 @@ export const eventsTable = pgTable(
     recurrence: eventRecurrenceEnum().default("none").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     sourceUrl: text("source_url"),
+    imageUrl: text("image_url"),
     priority: integer().default(0).notNull(),
     includeInSeo: boolean("include_in_seo").default(false).notNull(),
     version: integer().default(1).notNull(),

@@ -93,6 +93,7 @@ export async function initPGLiteDB(db: PGlite) {
     "recurrence" varchar(32) NOT NULL DEFAULT 'none',
     "is_active" boolean NOT NULL DEFAULT true,
     "source_url" text,
+    "image_url" text,
     "priority" integer NOT NULL DEFAULT 0,
     "include_in_seo" boolean NOT NULL DEFAULT false,
     "version" integer NOT NULL DEFAULT 1,
@@ -176,6 +177,9 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE events
     ADD COLUMN IF NOT EXISTS "occurrence_ends_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+    ALTER TABLE events
+    ADD COLUMN IF NOT EXISTS "image_url" text;
 
     ALTER TABLE buildings
     ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;

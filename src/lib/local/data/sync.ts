@@ -384,10 +384,10 @@ export async function syncEvents(
           `
         INSERT INTO events (
           id, slug, title, description, category, starts_at, ends_at, timezone,
-          recurrence, is_active, source_url, priority, include_in_seo, version,
+          recurrence, is_active, source_url, image_url, priority, include_in_seo, version,
           updated_at, status, occurrence_starts_at, occurrence_ends_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18);
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19);
         `,
           [
             event.id,
@@ -401,6 +401,7 @@ export async function syncEvents(
             event.recurrence,
             event.isActive,
             event.sourceUrl,
+            event.imageUrl,
             event.priority,
             event.includeInSeo,
             event.version,
