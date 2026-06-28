@@ -98,7 +98,8 @@ export default defineConfig({
 
   redirects: {
     "/contribute": "/?contribute=1",
-    "/messenger": "https://m.me/j/AbbjA1ouHCefGTkU",
+    "/discord": "https://discord.uplbtools.me",
+    "/messenger": "https://messenger.uplbtools.me",
   },
 
   // adapter: vercel(),

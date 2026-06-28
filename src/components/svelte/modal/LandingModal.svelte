@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { modalStore } from "@lib/store.svelte";
   import { contributors, designers } from "@constants/contributors";
+  import { UPLB_TOOLS_URL } from "@constants/community-links";
   import {
     fetchGithubContributors,
     type GithubContributor,
@@ -136,12 +137,46 @@
 
         <p class="repo-link">
           <a
-            href="https://github.com/smmariquit/room-tba"
+            href="https://github.com/uplbtools/room-tba"
             target="_blank"
             rel="noopener noreferrer"
             class="inline-link">View repo on GitHub</a
           >
         </p>
+
+        <section class="community-block">
+          <h3>Join the community</h3>
+          <p class="section-note">
+            Help keep campus data accurate — suggest edits in the map, chat with
+            volunteers, or say hi on our channels.
+          </p>
+          <ul class="community-links">
+            <li>
+              <a
+                href={UPLB_TOOLS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">UPLB Tools</a
+              >
+            </li>
+            <li>
+              <a
+                href="/discord"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">Discord</a
+              >
+            </li>
+            <li>
+              <a
+                href="/messenger"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">Messenger</a
+              >
+            </li>
+          </ul>
+        </section>
 
         <section class="people-block">
           <h3>Design</h3>
@@ -171,6 +206,11 @@
   </div>
 
   <footer class="actions">
+    <p class="legal-hint">
+      <a href="/privacy" class="inline-link">Privacy</a>
+      ·
+      <a href="/terms" class="inline-link">Terms</a>
+    </p>
     <button class="primary-btn" onclick={handleGetStarted}>Get Started</button>
     <label class="checkbox-label">
       <input type="checkbox" bind:checked={dontShowAgain} />
@@ -336,6 +376,38 @@
   .repo-link {
     margin: 0;
     font-size: 0.8125rem;
+  }
+
+  .community-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    width: 100%;
+  }
+
+  .community-block h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 28%);
+  }
+
+  .community-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .legal-hint {
+    margin: 0;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 38%);
   }
 
   .actions {
