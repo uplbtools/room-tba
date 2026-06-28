@@ -1,0 +1,24 @@
+---
+description: Side panel entity detail layout guardrails for MainControls drawer
+globs:
+  - src/components/svelte/controls/*Result*.svelte
+  - src/components/svelte/controls/entity-detail.css
+  - src/components/svelte/controls/MainControls.svelte
+  - src/components/svelte/room/RoomResult.svelte
+---
+
+# Side panel layout rules
+
+Before adding UI to entity detail views in the MainControls drawer:
+
+1. Read the existing layout in `entity-detail.css` and sibling result components (`RoomResult`, `BuildingResult`, `DormResult`, `EventResult`).
+2. Integrate into established zones — do not bolt on new sections:
+   - **Header:** breadcrumb (optional), title + badge, context line, **one** primary actions row (Copy link + Edit + entity-specific chips).
+   - **Body:** browse content only; editor fields expand inline below the header when Edit is open.
+   - **Directions:** one merged block — directions text, contribute/suggest links, nav chips (Directions, Google Maps). No duplicate colored boxes or second nav row.
+   - **Footer:** secondary links only (schedule, external refs) as subtle text links — not full-width buttons.
+3. Do **not** add new full-width button rows or colored highlight boxes without removing or consolidating existing ones.
+4. Match existing action chip patterns: `CopyLinkButton variant="chip"`, `EntityEditorToggle variant="toolbar"`, `MapChromeActionChip`, or `.map-chrome-action-chip` anchors.
+5. Side panel changes require checking **RoomResult + BuildingResult + DormResult** (minimum) for parity before merge.
+6. Keep browse mode compact — prefer collapsed `<details>` for long secondary content; editor fields use progressive disclosure.
+7. Update `docs/map-ui-mode-matrix.md` if drawer zones or collapse behavior change.

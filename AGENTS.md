@@ -11,7 +11,7 @@
 
 - **When you finish a scoped task, commit it** unless the user says not to. Do not leave completed work uncommitted across turns.
 - **One logical unit per commit** — atomic, reviewable, GPG-signed: `git commit -S -m "$(cat <<'EOF' … EOF)"`.
-- Stage only files that belong together; write a message that states *why*, not a file list.
+- Stage only files that belong together; write a message that states _why_, not a file list.
 - Do not push unless asked. Do not amend or force-push unless the user’s git rules allow it.
 
 ## Product Direction
@@ -31,13 +31,27 @@
 - Error messages should name the exact entity that failed without repeating generic wording.
 - Support common shortcuts in map edit mode: `Ctrl+Z` / `Cmd+Z` for undo, `Ctrl+Y` / `Cmd+Y` and `Shift+Ctrl+Z` / `Shift+Cmd+Z` for redo.
 
+## Map motion
+
+- Campus auto-rotate is decorative only: **off by default**, opt-in via Map tools → View → Campus tour.
+- Honor `prefers-reduced-motion: reduce` (no auto-rotate).
+- Never auto-rotate during edit/proposal/placement modes, terrain or jeepney routes, entity selection, or after the user interacts with the map (pan/zoom/drag).
+
 ## Map layout guardrails
 
 - Map chrome mounts in Entry zones (top / map / bottom / ephemeral). See `docs/map-ui-mode-matrix.md`.
 - Use `.app-layout` CSS vars for spacing — no magic fixed offsets.
+- Map chrome contrast tokens (`--map-chrome-surface`, borders, shadows) live on `.app-layout` in `Entry.svelte`. Surfaces use a warm off-white tint so controls float above light basemap tiles; tune there rather than per-component whites.
 - New fixed overlays outside Entry zones require updating the mode matrix.
 - One Map tools flyout (`mapToolsStore`); contributor propose menu on LocationButton; editor tools via `editorChromeStore` (top-bar chip + shelf; shield FAB opens the same shelf).
 - Before merge on map chrome changes: verify 320px + 768px browse, edit mode, and map tools open.
+
+## Side panel guardrails
+
+- Entity detail views live in the MainControls drawer (`controls/*Result*.svelte`, `room/RoomResult.svelte`). See `.cursor/rules/side-panel.mdc`.
+- Layout zones: **header** (title, context, one actions row) → **body** → **directions** (merged) → **footer** (subtle links). Shared styles in `controls/entity-detail.css`.
+- Do not add new full-width button rows or colored boxes without consolidating existing ones. Match map-chrome action chip patterns.
+- Check RoomResult + BuildingResult + DormResult for parity when changing any entity detail view.
 
 ## Data Integrity
 
