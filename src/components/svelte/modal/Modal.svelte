@@ -98,9 +98,12 @@
   .landing-modal-container {
     flex: 0 1 48rem;
     width: 100%;
+    max-height: min(92dvh, 52rem);
     padding: 0;
     overflow: hidden;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   @media only screen and (max-width: 31.25rem) {
     .modal-content {

@@ -153,3 +153,8 @@ type TableSyncInfo = {
   valid: boolean;
   newKey: string | null;
 };
+
+type EntityLoadResult<T> = {
+  rows: T[];
+  source: "remote" | "cache";
+};
