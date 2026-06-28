@@ -11,6 +11,7 @@ import {
 } from "@drizzle/schema";
 import { db } from "./db";
 import { slugifySegment } from "./site";
+import { getDormRouteSlug, getRoomRouteSlug } from "./route-slugs";
 import { getAllEvents } from "./services/event-service";
 import type {
   BuildingData,
@@ -141,11 +142,7 @@ export function getRoomSlug(room: Pick<RoomData, "code">) {
   return slugifySegment(room.code);
 }
 
-export function getRoomRouteSlug(room: Pick<RoomData, "id" | "code">) {
-  const baseSlug = getRoomSlug(room);
-
-  return `${baseSlug}-${room.id}`;
-}
+export { getRoomRouteSlug } from "./route-slugs";
 
 export function getBuildingSlug(building: Pick<BuildingData, "buildingName">) {
   return slugifySegment(building.buildingName);
@@ -163,11 +160,7 @@ export function getDormSlug(dorm: Pick<DormData, "dormName">) {
   return slugifySegment(dorm.dormName);
 }
 
-export function getDormRouteSlug(dorm: Pick<DormData, "id" | "dormName">) {
-  const baseSlug = getDormSlug(dorm);
-
-  return `${baseSlug}-${dorm.id}`;
-}
+export { getDormRouteSlug } from "./route-slugs";
 
 export function getEventSlug(event: Pick<EventData, "slug">) {
   return event.slug;

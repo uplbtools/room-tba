@@ -26,6 +26,8 @@
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
+  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import { getDormShareUrl } from "@lib/share-links";
 
   type DormEditableField =
     | "dormName"
@@ -80,6 +82,7 @@
   let proposalStatus = $state<string | null>(null);
   let activeProposalId = $state<number | null>(null);
   const canPublish = $derived(adminAuthStore.canPublish);
+  const dormShareUrl = $derived(dorm ? getDormShareUrl(dorm) : "");
 
   const fieldLabels: Record<DormEditableField, string> = {
     dormName: "Dorm name",
@@ -452,16 +455,36 @@
           Facebook
         </a>
       {/if}
-    </div>
-
-    <section class="entity-editor" aria-label="Edit dorm details">
+      <CopyLinkButton
+        url={dormShareUrl}
+        ariaLabel={`Copy link to ${dorm.dormName}`}
+        successMessage={`Copied link for ${dorm.dormName}.`}
+        errorMessage={`Could not copy link for ${dorm.dormName}.`}
+        feedback="none"
+        variant="chip"
+        onsuccess={() =>
+          toastStore.show(`Copied link for ${dorm.dormName}.`, "success")}
+        onerror={() =>
+          toastStore.show(
+            `Could not copy link for ${dorm.dormName}.`,
+            "error",
+          )}
+      />
       <EntityEditorToggle
         expanded={editing}
         {canPublish}
         publishOpenLabel="Edit dorm"
+        closeLabel={canPublish ? "Close editor" : "Close"}
+        variant="toolbar"
         onclick={() => (editing = !editing)}
       />
-      {#if editing}
+    </div>
+
+    {#if editing}
+      <section
+        class="entity-editor"
+        aria-label={canPublish ? "Edit dorm details" : "Suggest dorm edits"}
+      >
         <DormEditorPanel
           {dorm}
           {canPublish}
@@ -488,8 +511,8 @@
           {saveField}
           {enablePinProposal}
         />
-      {/if}
-    </section>
+      </section>
+    {/if}
 
     <hr class="dorm-divider" />
 

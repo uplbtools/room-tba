@@ -20,6 +20,8 @@
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import { getRoomShareUrl } from "@lib/share-links";
   import type { RoomData } from "@lib/types";
   // import Classes from "./Classes.svelte";
 
@@ -72,6 +74,9 @@
   } | null>(null);
   let mergingRooms = $state(false);
   const canPublish = $derived(adminAuthStore.canPublish);
+  const roomShareUrl = $derived(
+    currentRoom.value ? getRoomShareUrl(currentRoom.value) : "",
+  );
 
   $effect(() => {
     const room = currentRoom.value;
@@ -321,6 +326,27 @@
           {/if}
         </p>
       </div>
+    </div>
+
+    <div class="room-actions">
+      <CopyLinkButton
+        url={roomShareUrl}
+        ariaLabel={`Copy link to ${currentRoom.value.code}`}
+        successMessage={`Copied link for ${currentRoom.value.code}.`}
+        errorMessage={`Could not copy link for ${currentRoom.value.code}.`}
+        feedback="none"
+        variant="chip"
+        onsuccess={() =>
+          toastStore.show(
+            `Copied link for ${currentRoom.value?.code ?? "room"}.`,
+            "success",
+          )}
+        onerror={() =>
+          toastStore.show(
+            `Could not copy link for ${currentRoom.value?.code ?? "room"}.`,
+            "error",
+          )}
+      />
     </div>
 
     <section class="entity-editor" aria-label="Edit room details">
@@ -698,6 +724,12 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  .room-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .merge-prompt {
