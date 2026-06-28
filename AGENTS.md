@@ -39,14 +39,28 @@ Full checklist: [docs/issue-hygiene.md](docs/issue-hygiene.md).
 
 Adjust checks to change size. PR CI runs **Prettier + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
 
-| Step                                                         | When                                                                   |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| `bun run lint` (or targeted prettier/eslint on edited files) | Always before commit/PR                                                |
-| `bun test src` (or targeted test files)                      | When logic, lib, or API behavior changed                               |
-| `bun run build`                                              | Once before commit/PR on substantive changes (requires `DATABASE_URL`) |
-| Manual browser / editor checklist                            | Map chrome, editor drag/save, side panel UX                            |
+| Step                                                         | When                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `bun run lint` (or targeted prettier/eslint on edited files) | Always before commit/PR                                                   |
+| `bun test src` (or targeted test files)                      | When logic, lib, or API behavior changed                                  |
+| `bun run build`                                              | Once before commit/PR on substantive changes (requires `DATABASE_URL`)    |
+| Manual browser / editor checklist                            | Map chrome, editor drag/save, side panel UX                               |
+| **Dependabot PRs**                                           | Run Prettier + tests before merge; read CodeQL / dependency-review checks |
 
 Do not run full build after every small edit. See the workflow skill for session cadence.
+
+## Security automation (GitHub)
+
+Production readiness is backed by repo automation — do not disable without replacing:
+
+| Tool                  | Config                                                                               | What it does                                     |
+| --------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| **Dependabot**        | [`.github/dependabot.yml`](.github/dependabot.yml)                                   | Weekly Bun + GitHub Actions version PRs          |
+| **CodeQL**            | [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)                       | Static analysis on push/PR + weekly schedule     |
+| **Dependency Review** | [`.github/workflows/dependency-review.yml`](.github/workflows/dependency-review.yml) | Blocks PRs introducing critical CVEs in new deps |
+| **CI**                | [`.github/workflows/ci.yml`](.github/workflows/ci.yml)                               | Prettier + unit tests                            |
+
+Enable **Dependabot security updates** and **secret scanning** in GitHub repo Settings → Code security if not already on (org defaults may apply). CodeQL SARIF appears under Security → Code scanning.
 
 ## Commits
 
