@@ -5,9 +5,11 @@
   type Props = {
     /** Inline chip-row size (~1.75rem); used on mobile search chrome. */
     compact?: boolean;
+    /** Inside desktop camera card — no outer chrome, vertical stack. */
+    embedded?: boolean;
   };
 
-  let { compact = false }: Props = $props();
+  let { compact = false, embedded = false }: Props = $props();
 
   const THREE_D_PITCH = 60;
   const TWO_D_THRESHOLD = 1;
@@ -58,6 +60,7 @@
 <div
   class="map-dimension-toggle"
   class:compact
+  class:embedded
   role="group"
   aria-label="Map view mode"
 >
@@ -110,10 +113,10 @@
     background: transparent;
     font: inherit;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.02em;
     line-height: 1;
-    color: hsl(5, 53%, 32%);
+    color: hsl(0, 0%, 32%);
     cursor: pointer;
     transition:
       background-color 0.15s ease,
@@ -125,8 +128,46 @@
   }
 
   .segment.active {
-    background-color: hsl(5, 53%, 32%);
-    color: white;
+    background-color: hsl(5, 53%, 96%);
+    color: hsl(5, 53%, 28%);
+    font-weight: 700;
+  }
+
+  .map-dimension-toggle.embedded {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.0625rem;
+    width: var(--map-chrome-toggle-size, 2rem);
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  .map-dimension-toggle.embedded .segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    height: var(--map-chrome-toggle-size, 2rem);
+    min-height: var(--map-chrome-toggle-size, 2rem);
+    padding: 0;
+    border-radius: var(--map-chrome-toggle-radius, 0.5rem);
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+  }
+
+  .map-dimension-toggle.embedded .segment:hover:not(.active) {
+    background-color: hsla(0, 0%, 0%, 0.08);
+  }
+
+  .map-dimension-toggle.embedded .segment.active {
+    background-color: hsla(5, 53%, 32%, 0.1);
+    color: hsl(5, 53%, 28%);
   }
 
   .map-dimension-toggle.compact {
@@ -145,5 +186,10 @@
     padding: 0 0.4375rem;
     border-radius: 999px;
     font-size: 0.6875rem;
+  }
+
+  .map-dimension-toggle.compact .segment.active {
+    background-color: hsl(5, 53%, 96%);
+    color: hsl(5, 53%, 22%);
   }
 </style>
