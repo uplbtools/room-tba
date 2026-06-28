@@ -1811,6 +1811,10 @@
     return formatCampusTime(value);
   }
 
+  function formatEventMarkerDateTime(value: string) {
+    return `${formatCampusDateShort(value)}, ${formatCampusTime(value)}`;
+  }
+
   function getEventStatusLabel(event: EventData) {
     if (event.status === "active") return "Active now";
     if (event.status === "past") return "Past";
@@ -2400,7 +2404,7 @@
                     title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
                     ariaLabel={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
                     labelTitle={entry.event.title}
-                    labelMeta={`${getEventStatusLabel(entry.event)} - ${formatEventMarkerTime(
+                    labelMeta={`${getEventStatusLabel(entry.event)} · ${formatEventMarkerDateTime(
                       entry.event.occurrenceStartsAt,
                     )}`}
                     onclick={() => handleEventMarkerClick(entry.event)}
