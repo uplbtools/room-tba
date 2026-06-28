@@ -119,6 +119,22 @@
     min-width: 0;
   }
 
+  /* Desktop: panel overlays below the Layers FAB without growing the stack
+     (camera controls stay fixed under the trigger). */
+  @media (min-width: 48.0625rem) {
+    .map-tools-flyout {
+      z-index: 1;
+    }
+
+    .map-tools-panel-shell {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      width: min(24rem, calc(100vw - 1rem));
+      z-index: 2;
+    }
+  }
+
   .accordion-section {
     display: grid;
     gap: 0.5rem;
