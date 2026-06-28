@@ -133,7 +133,7 @@ const classInsert = await Promise.all(
       type,
       schedule:schedule.toString(),
       room_id,
-      term_id: 1252,
+      term_id: 1253,
     }
   }),
 

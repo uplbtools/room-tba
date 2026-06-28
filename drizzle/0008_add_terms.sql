@@ -18,8 +18,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS "terms_single_default"
 --> statement-breakpoint
 -- Seed the known UPLB terms. `id` mirrors the CRS/SAIS term_id already stored
 -- on classes.term_id (e.g. 1252). Idempotent so re-running is safe.
-INSERT INTO "terms" ("id", "label", "school_year", "semester", "is_default", "is_active", "sort_order")
+INSERT INTO "terms" ("id", "label", "school_year", "semester", "starts_on", "ends_on", "is_default", "is_active", "sort_order")
 VALUES
-  (1251, 'AY 2025-2026 1st Semester', '2025-2026', '1', false, true, 10),
-  (1252, 'AY 2025-2026 2nd Semester', '2025-2026', '2', true, true, 20)
+  (1251, 'AY 2025-2026 1st Semester', '2025-2026', '1', NULL, NULL, false, true, 10),
+  (1252, 'AY 2025-2026 Midyear', '2025-2026', 'midyear', '2026-06-08', '2026-07-26', true, true, 20),
+  (1253, 'AY 2025-2026 2nd Semester', '2025-2026', '2', '2026-01-19', '2026-05-31', false, true, 30)
 ON CONFLICT ("id") DO NOTHING;
