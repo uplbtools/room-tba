@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LoaderCircle, RefreshCw } from "@lucide/svelte";
+  import { Building2, LoaderCircle, MapPin, RefreshCw, Trees } from "@lucide/svelte";
   import { appBootstrapStore } from "@lib/store.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import "../../styles/app-loading.css";
@@ -49,14 +49,26 @@
           </button>
         {/if}
       {:else}
-        <LoaderCircle
-          size={16}
-          class={reducedMotion.current
-            ? "app-loading-spinner app-loading-spinner--static"
-            : "app-loading-spinner app-loading-spinner--spin"}
-          aria-hidden="true"
-        />
+        <div class="app-loading-mark" aria-hidden="true">
+          <div class="app-loading-mark__loader">
+            <LoaderCircle
+              size={28}
+              class={reducedMotion.current
+                ? "app-loading-spinner app-loading-spinner--static"
+                : "app-loading-spinner app-loading-spinner--spin"}
+            />
+          </div>
+          <div class="app-loading-mark__pin">
+            <MapPin size={14} strokeWidth={2.25} />
+          </div>
+        </div>
+        <div class="app-loading-mark__context" aria-hidden="true">
+          <Building2 size={13} class="app-loading-mark__context-icon" />
+          <MapPin size={13} class="app-loading-mark__context-icon" />
+          <Trees size={13} class="app-loading-mark__context-icon" />
+        </div>
         <p class="app-loading-overlay__message">{message}</p>
+        <p class="app-loading-overlay__subtitle">Buildings, rooms &amp; events</p>
       {/if}
     </div>
   </div>
