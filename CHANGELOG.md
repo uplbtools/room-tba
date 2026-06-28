@@ -1,3 +1,57 @@
+# [1.11.0](https://github.com/uplbtools/room-tba/compare/v1.10.0...v1.11.0) (2026-06-28)
+
+
+### Bug Fixes
+
+* **a11y:** fix clipped focus rings and unify action chip hovers ([07ff6cb](https://github.com/uplbtools/room-tba/commit/07ff6cbb3ab1559b7bad3b67c14fd9cb239ce71d))
+* **a11y:** improve map UI accessibility for dialogs and panels ([e4c3c21](https://github.com/uplbtools/room-tba/commit/e4c3c213a3b566fdd3dd4e66005cbe2b46250d6f))
+* **contributor:** hide event propose name field until propose is clicked ([865c220](https://github.com/uplbtools/room-tba/commit/865c2208e5110366c8753d038f5244116a0cf6cd))
+* **dorms:** harden amenity parsing for quoted Postgres arrays ([224f07d](https://github.com/uplbtools/room-tba/commit/224f07d0004c5114752470dd3005674065e1e7eb))
+* **dorms:** strip quote wrappers from amenity chips ([d5cc921](https://github.com/uplbtools/room-tba/commit/d5cc92150235dca13479727193124d88ec76d1f3))
+* **map-chrome:** clarify status bar directions progress and catalog date ([e999233](https://github.com/uplbtools/room-tba/commit/e9992333b89b8255ef3260a15878a9832cf82ac3))
+* **map-chrome:** collapse status bar details by default on narrow layouts ([1206df4](https://github.com/uplbtools/room-tba/commit/1206df4a533960002b82f7f5cf96001f67900e72))
+* **map-chrome:** fix attribution expand lifting FABs and dedupe editor entry ([11a1756](https://github.com/uplbtools/room-tba/commit/11a17560ec27c87758a5f70fdbd729090221af1d))
+* **map-chrome:** fix bottom gradient leaking map pixels ([4e8b549](https://github.com/uplbtools/room-tba/commit/4e8b549e2d479528e02c477bae2997790941c890))
+* **map-chrome:** fix map tools mode row and restore campus tour toggle ([7578d37](https://github.com/uplbtools/room-tba/commit/7578d37dc320e0d8f00868d276d1eec66ddd669f))
+* **map-chrome:** fix map tools panel positioning after motion pass ([a01d04c](https://github.com/uplbtools/room-tba/commit/a01d04c9a2efb9cdf15fbce60c93b5061b3ae258))
+* **map-chrome:** fix mobile padding and FAB placement ([848d43b](https://github.com/uplbtools/room-tba/commit/848d43b471b35ca6bdbc8c2469faf85777c1fb09))
+* **map-chrome:** prevent editor shelf clip in search chrome ([6b42d0d](https://github.com/uplbtools/room-tba/commit/6b42d0d1884180070411e5123a95860b3f3d0c16))
+* **map-chrome:** remove hover-triggered scrollbar from search chip row ([78d1550](https://github.com/uplbtools/room-tba/commit/78d1550777c941062e5c3b4791437970a9cc2ef6))
+* **map-chrome:** remove unnecessary horizontal scroll from map tools ([016b1cd](https://github.com/uplbtools/room-tba/commit/016b1cd6ca532fad926f1f808a104b968e73c49b))
+* **map-chrome:** restore spacious mobile map tools sheet ([0ab45bb](https://github.com/uplbtools/room-tba/commit/0ab45bbeb9a98e71cbce44e3cdc99ddf59ba134b))
+* **map-chrome:** restore two-row expanded status bar with sync transparency ([3aa63d2](https://github.com/uplbtools/room-tba/commit/3aa63d2e38bb4621f35dbedc47af2fc8b57bb46d))
+* **map:** align compass icon when map bearing is north ([1c530b1](https://github.com/uplbtools/room-tba/commit/1c530b1227ac429fb0f8267f865c4cc1424b3dea))
+* **map:** hide 3D building extrusions in flat 2D view ([5400f15](https://github.com/uplbtools/room-tba/commit/5400f1515d3688b420a68595b66a2ee4211c1143))
+* **map:** raise building pins above events and dedupe pin labels ([3d278cb](https://github.com/uplbtools/room-tba/commit/3d278cb62af0989aea2eb14992dccbe8b8869dcb))
+* **map:** remove dead campus tour control that broke hydration ([939fc9d](https://github.com/uplbtools/room-tba/commit/939fc9dba8cd42094fc777b47c4f38384102456b))
+* **map:** set basemap preset to warm stone not neutral greige ([c6b6dd8](https://github.com/uplbtools/room-tba/commit/c6b6dd85b05926e6d20b2ce5f1c6f2a9786b4802))
+* **security:** harden image URL validation and layout observer crash ([9b10199](https://github.com/uplbtools/room-tba/commit/9b1019995cec2b808fa8dabecd989cb3a7f560ef))
+* **ui:** dismiss loading shell when hydration fails to start ([b8cd003](https://github.com/uplbtools/room-tba/commit/b8cd003eb107843003932f43adf472c4239fc699))
+* **ui:** fix bootstrap loading overlay that never dismisses ([52a7c00](https://github.com/uplbtools/room-tba/commit/52a7c00f97e2c17e3fefaabf6b145899eed585e6))
+* **ui:** landing modal tabs and stale events cache on boot ([01a91fa](https://github.com/uplbtools/room-tba/commit/01a91fa00292a1d1e3ea31dbce3909c8558f1056))
+
+
+### Features
+
+* **api:** add term-aware class queries and GET /api/terms ([9f897c8](https://github.com/uplbtools/room-tba/commit/9f897c8d79bcb5b0715d65d27b25df033bd0b0b9))
+* **contributor:** replace Google Forms links with in-app propose flow ([896bbb2](https://github.com/uplbtools/room-tba/commit/896bbb23fda6c115f43e0f0b3066348251be886d))
+* **db:** add terms table and seed UPLB semesters ([6d5b82f](https://github.com/uplbtools/room-tba/commit/6d5b82fef27f771d6fe3653935c470874a1f1694))
+* **editor:** foundation refactor and map chrome componentization ([8d4cfa4](https://github.com/uplbtools/room-tba/commit/8d4cfa461ab5ad7adac1f0ba749d2e27358dfc86))
+* **editor:** move tools to top-bar chip, shelf, and add-to-map modal ([327dd07](https://github.com/uplbtools/room-tba/commit/327dd07da68464ae7d2f31b41058858764c03509))
+* **editor:** open dashboard full-screen on mobile ([533e1ff](https://github.com/uplbtools/room-tba/commit/533e1ff789a0233eeec870f9400021e751000170))
+* **events:** add Cloudflare R2 image upload for event photos ([a58708b](https://github.com/uplbtools/room-tba/commit/a58708b3bc88c01ea65cb4c2734ad1b5eff7bf74))
+* **events:** include campus date in map pin labels ([54edf54](https://github.com/uplbtools/room-tba/commit/54edf541cb2f5b1f6235fbf6901f0aece6a4a3bc))
+* **map-chrome:** add functional motion transitions ([c229b2e](https://github.com/uplbtools/room-tba/commit/c229b2ea74b1901271d227739c1ab46ab44ceb57))
+* **map-chrome:** unify bottom tray, transit chip, Supabase, and event images ([267e6e9](https://github.com/uplbtools/room-tba/commit/267e6e9d8ca2e5b52a367ddf587a485cbda3adc3))
+* **map:** gate auto-rotate behind opt-in and motion policy ([ac3bc81](https://github.com/uplbtools/room-tba/commit/ac3bc81923a27539902fecb156383572b11c3311))
+* **map:** sync entity selection to canonical browser URLs ([cec355e](https://github.com/uplbtools/room-tba/commit/cec355e7535ad3891184d04d78c6b6f3214d498a))
+* **side-panel:** add copy-link actions for room and dorm panels ([ba5b19d](https://github.com/uplbtools/room-tba/commit/ba5b19d9c4ad8f263004c6e5de382cd4bdc74dc7))
+* **store:** add term selection and room class cache ([0b9ec4a](https://github.com/uplbtools/room-tba/commit/0b9ec4af2cec98a0c52243b53e26d9afe5727a7d))
+* **ui:** add term selector to expanded status bar ([df119a5](https://github.com/uplbtools/room-tba/commit/df119a577591737cf50d0168851ca3e4dd295ae3))
+* **ui:** filter room schedule by active term ([185c83d](https://github.com/uplbtools/room-tba/commit/185c83df13cf23c1a6f23ee839cac0cea4aae9a9))
+* **ui:** show loading state while campus data sync is pending ([6626e80](https://github.com/uplbtools/room-tba/commit/6626e8039021e94844dddf842fd0ef3c2ae13917))
+* **ui:** show map immediately and sync campus data in background ([902a038](https://github.com/uplbtools/room-tba/commit/902a03830f6d401553c31431b92d57c535d45889))
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
