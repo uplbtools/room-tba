@@ -18,18 +18,11 @@ import { normalizeEntityName } from "../entity-names";
 import { db } from "../db";
 import { getEventById } from "./event-service";
 import type { EventData, RoomData } from "../types";
+import { EditConflictError } from "./edit-conflict-error";
+
+export { EditConflictError } from "./edit-conflict-error";
 
 // ── Sync key refresh ──
-
-export class EditConflictError<TLatest> extends Error {
-  latest: TLatest | null;
-
-  constructor(latest: TLatest | null) {
-    super("This record was changed by another editor.");
-    this.name = "EditConflictError";
-    this.latest = latest;
-  }
-}
 
 export class DuplicateSlugError extends Error {
   slug: string;

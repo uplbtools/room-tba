@@ -2,6 +2,10 @@
   import { fade } from "svelte/transition";
   import { X, Lock } from "@lucide/svelte";
   import { adminAuthStore, toastStore } from "../../lib/store.svelte";
+  import EntityEditorFormField from "./editor/EntityEditorFormField.svelte";
+  import EntityEditorSubmitButton from "./editor/EntityEditorSubmitButton.svelte";
+  import EntityEditorMessage from "./editor/EntityEditorMessage.svelte";
+  import "./editor/entity-editor.css";
 
   let username = $state("admin");
   let password = $state("");
@@ -45,31 +49,38 @@
         <X size={18} />
       </button>
     </header>
-    <form class="login-body" onsubmit={submit}>
-      <label class="field">
-        <span>Username</span>
-        <input
-          type="text"
-          autocomplete="username"
-          bind:value={username}
-          required
-        />
-      </label>
-      <label class="field">
-        <span>Password</span>
-        <input
-          type="password"
-          autocomplete="current-password"
-          bind:value={password}
-          required
-        />
-      </label>
+    <form class="login-body entity-editor-form" onsubmit={submit}>
+      <EntityEditorFormField label="Username" inputId="admin-login-username">
+        {#snippet control()}
+          <input
+            id="admin-login-username"
+            type="text"
+            autocomplete="username"
+            bind:value={username}
+            required
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField label="Password" inputId="admin-login-password">
+        {#snippet control()}
+          <input
+            id="admin-login-password"
+            type="password"
+            autocomplete="current-password"
+            bind:value={password}
+            required
+          />
+        {/snippet}
+      </EntityEditorFormField>
       {#if error}
-        <p class="error">{error}</p>
+        <EntityEditorMessage variant="error" message={error} />
       {/if}
-      <button class="submit" type="submit" disabled={adminAuthStore.loading}>
-        {adminAuthStore.loading ? "Signing in…" : "Sign in"}
-      </button>
+      <EntityEditorSubmitButton
+        type="submit"
+        label="Sign in"
+        savingLabel="Signing in…"
+        saving={adminAuthStore.loading}
+      />
     </form>
   </div>
 </div>
@@ -120,49 +131,5 @@
   }
   .login-body {
     padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.8125rem;
-    color: hsl(0, 0%, 25%);
-  }
-  .field input {
-    font: inherit;
-    padding: 0.5rem 0.625rem;
-    border: 1px solid hsl(0, 0%, 85%);
-    border-radius: 0.5rem;
-    background: white;
-    color: hsl(0, 0%, 15%);
-  }
-  .field input:focus {
-    border-color: hsl(5, 53%, 32%);
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-  }
-  .error {
-    margin: 0;
-    color: hsl(5, 65%, 38%);
-    font-size: 0.8125rem;
-  }
-  .submit {
-    background-color: hsl(5, 53%, 32%);
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    padding: 0.55rem 0.75rem;
-    font: inherit;
-    cursor: pointer;
-  }
-  .submit:hover:not(:disabled) {
-    background-color: hsl(5, 53%, 27%);
-  }
-  .submit:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 </style>

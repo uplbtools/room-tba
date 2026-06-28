@@ -1,5 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
-import { verifySessionToken, ADMIN_COOKIE_NAME } from "./lib/admin/auth";
+import { getSessionUser, ADMIN_COOKIE_NAME } from "./lib/admin/auth";
 
 export const onRequest = defineMiddleware((context, next) => {
   const { pathname } = context.url;
@@ -14,7 +14,7 @@ export const onRequest = defineMiddleware((context, next) => {
 
   if (isAdminApi) {
     const cookie = context.cookies.get(ADMIN_COOKIE_NAME)?.value;
-    if (!verifySessionToken(cookie)) {
+    if (!getSessionUser(cookie)) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
