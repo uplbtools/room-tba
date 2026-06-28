@@ -40,8 +40,6 @@
   function withMap(fn: (map: MapLibreMap) => void) {
     const map = mapStore.mapInstance;
     if (!map) return;
-    mapViewStore.disableCampusTour();
-    mapStore.stopAutoRotate?.();
     fn(map);
   }
 

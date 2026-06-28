@@ -31,12 +31,6 @@
 - Error messages should name the exact entity that failed without repeating generic wording.
 - Support common shortcuts in map edit mode: `Ctrl+Z` / `Cmd+Z` for undo, `Ctrl+Y` / `Cmd+Y` and `Shift+Ctrl+Z` / `Shift+Cmd+Z` for redo.
 
-## Map motion
-
-- Campus auto-rotate is decorative only: **off by default**, opt-in via Map tools → View → Campus tour.
-- Honor `prefers-reduced-motion: reduce` (no auto-rotate).
-- Never auto-rotate during edit/proposal/placement modes, terrain or jeepney routes, entity selection, or after the user interacts with the map (pan/zoom/drag).
-
 ## Map layout guardrails
 
 - Map chrome mounts in Entry zones (top / map / bottom / ephemeral). See `docs/map-ui-mode-matrix.md`.

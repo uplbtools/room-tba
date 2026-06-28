@@ -393,8 +393,6 @@
 
     const draft = eventPlacementStore.draft;
     eventPlacementStore.beginCreate();
-    stopRotation();
-
     try {
       const res = await fetch("/api/admin/events", {
         method: "POST",
@@ -465,8 +463,6 @@
 
     const draft = eventPlacementStore.draft;
     eventPlacementStore.beginCreate();
-    stopRotation();
-
     try {
       const submitterName = resolveSubmitterName({
         displayName: adminAuthStore.displayName,
@@ -611,9 +607,6 @@
       const type = queryStore.type;
       const value = queryStore.inputValue;
 
-      stopRotation();
-      map.off("moveend", startRotation);
-
       if (category === "building" && type === "result") {
         if (!loaded) return;
         const currentBuilding = buildings.find(
@@ -632,7 +625,6 @@
       } else if (category === null) {
         flyToCamera(map, CAMPUS_DEFAULT_CAMERA);
         if (directions) directions.clear();
-        scheduleAutoRotate(map);
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
@@ -689,45 +681,9 @@
     );
   }
 
-  let animationFrameId: number | null = $state(null);
-
-  let isRotating = $state(false);
-  let lastTimestamp = $state(0);
-  let currentRotation = $state(0);
   let zoomLevel = $state(0);
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
-  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
-
-  /** Decorative campus overview spin — see AGENTS.md "Map motion". */
-  function shouldAutoRotate() {
-    return (
-      mapViewStore.campusTourEnabled &&
-      !reducedMotion.current &&
-      !terrainStore.enabled &&
-      !mapEditStore.enabled &&
-      !mapProposalStore.enabled &&
-      !eventPlacementStore.active &&
-      !additionProposalStore.pinPickActive &&
-      jeepneyStore.selectedRouteId === null &&
-      queryStore.category === null
-    );
-  }
-
-  function scheduleAutoRotate(map: mapGl.MapLibreMap) {
-    map.off("moveend", startRotation);
-    if (!shouldAutoRotate()) return;
-    map.once("moveend", startRotation);
-  }
-
-  function tryStartAutoRotate(map: mapGl.MapLibreMap) {
-    if (!shouldAutoRotate()) return;
-    if (map.isMoving()) {
-      scheduleAutoRotate(map);
-      return;
-    }
-    startRotation();
-  }
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
@@ -741,46 +697,6 @@
       bottom: 0,
     };
   };
-
-  function rotateCamera(timestamp: number) {
-    if (!mapStore.mapInstance || !isRotating) return;
-
-    if (!lastTimestamp) lastTimestamp = timestamp;
-    const delta = timestamp - lastTimestamp;
-    lastTimestamp = timestamp;
-
-    currentRotation = (currentRotation + delta / 150) % 360;
-    mapStore.mapInstance.rotateTo(currentRotation, {
-      duration: 0,
-      padding: calculatePadding(untrack(() => md.current)),
-    });
-
-    animationFrameId = requestAnimationFrame(rotateCamera);
-  }
-
-  function startRotation() {
-    stopRotation();
-    if (!mapStore.mapInstance || !shouldAutoRotate()) return;
-    isRotating = true;
-    lastTimestamp = 0;
-    currentRotation = mapStore.mapInstance.getBearing();
-    animationFrameId = requestAnimationFrame(rotateCamera);
-  }
-
-  function stopRotation() {
-    isRotating = false;
-    lastTimestamp = 0;
-    if (animationFrameId !== null) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-  }
-
-  /** User took camera control — stop idle spin and clear the Auto tour toggle. */
-  function haltAutoTourFromUser() {
-    stopRotation();
-    mapViewStore.disableCampusTour();
-  }
 
   function handleZoom() {
     if (!mapStore.mapInstance) return;
@@ -837,7 +753,6 @@
     if (!canDragPin(key)) return;
     selectedEditKey = key;
     failedEditKey = null;
-    stopRotation();
   }
 
   function markSaved(key: string) {
@@ -1386,29 +1301,6 @@
       : "Ctrl+Z";
   });
 
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-
-    const canRotate =
-      mapViewStore.campusTourEnabled &&
-      !reducedMotion.current &&
-      !terrainStore.enabled &&
-      !mapEditStore.enabled &&
-      !mapProposalStore.enabled &&
-      !eventPlacementStore.active &&
-      !additionProposalStore.pinPickActive &&
-      jeepneyStore.selectedRouteId === null &&
-      queryStore.category === null;
-
-    if (!canRotate) {
-      stopRotation();
-      map.off("moveend", startRotation);
-      return;
-    }
-
-    tryStartAutoRotate(map);
-  });
 
   $effect(() => {
     const map = mapStore.mapInstance;
@@ -1435,33 +1327,15 @@
         if (!terrainStore.enabled || !sourceErrorMatchesTerrain(event)) return;
         failTerrain(map, TERRAIN_TILE_FAILURE_MESSAGE);
       };
-      map.on("mousedown", haltAutoTourFromUser);
-      map.on("touchstart", haltAutoTourFromUser);
-      map.on("wheel", haltAutoTourFromUser);
       map.on("zoom", handleZoom);
       map.on("error", handleMapError);
       return () => {
-        map.off("mousedown", haltAutoTourFromUser);
-        map.off("touchstart", haltAutoTourFromUser);
-        map.off("wheel", haltAutoTourFromUser);
         map.off("zoom", handleZoom);
         map.off("error", handleMapError);
       };
     }
   });
 
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    mapStore.stopAutoRotate = () => {
-      stopRotation();
-      map.off("moveend", startRotation);
-      mapViewStore.disableCampusTour();
-    };
-    return () => {
-      mapStore.stopAutoRotate = null;
-    };
-  });
 
   $effect(() => {
     const map = mapStore.mapInstance;
@@ -1476,7 +1350,6 @@
       if (!enabled) {
         const shouldRestoreFlatCamera = terrainModeWasEnabled;
         disableTerrain(map);
-        map.off("moveend", startRotation);
         terrainModeWasEnabled = false;
         if (shouldRestoreFlatCamera) restoreFlatMapCamera(map);
         return;
@@ -1494,8 +1367,6 @@
         setTerrainHillshadeVisible(map, true);
         setBuildingExtrusionsVisible(map, false);
         if (!terrainModeWasEnabled) {
-          map.off("moveend", startRotation);
-          stopRotation();
           flyToCamera(map, MAKILING_TERRAIN_CAMERA);
         }
         terrainModeWasEnabled = true;
@@ -1544,7 +1415,6 @@
     const resetNonce = terrainStore.resetNonce;
     if (!map || !terrainStore.enabled || resetNonce === 0) return;
 
-    stopRotation();
     flyToCamera(map, MAKILING_TERRAIN_CAMERA);
   });
 
@@ -1597,8 +1467,6 @@
     const canvas = map.getCanvas();
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
-    stopRotation();
-
     const handlePinPick = (event: mapGl.MapMouseEvent) => {
       additionProposalStore.deliverMapPin(event.lngLat.lat, event.lngLat.lng);
     };
@@ -1619,8 +1487,6 @@
     const canvas = map.getCanvas();
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
-    stopRotation();
-
     const handlePlacementClick = (event: mapGl.MapMouseEvent) => {
       void placeEventAtMapPoint({
         lat: event.lngLat.lat,
@@ -1753,8 +1619,6 @@
 
     untrack(() => {
       const isTerrainEnabled = terrainStore.enabled;
-      stopRotation();
-      map.off("moveend", startRotation);
       if (category === "building" && type === "result") {
         if (!loaded) return;
         const currentBuilding = buildings.find(
@@ -1776,7 +1640,6 @@
           isTerrainEnabled ? MAKILING_TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
         );
         if (directions) directions.clear();
-        if (!isTerrainEnabled) scheduleAutoRotate(map);
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
@@ -2502,14 +2365,12 @@
                     onclick={() => toggleEventMarkerGroup(group.key)}
                   />
                   {#if isExpanded}
-                    <div
-                      class="event-pin-stack"
-                      role="group"
-                      aria-label={`${group.entries.length} events at ${group.label}`}
-                      transition:fade
-                    >
+                    <div class="event-pin-stack" transition:fade>
                       <div class="event-stack-header">
-                        <span class="event-stack-heading">
+                        <span
+                          id="event-stack-heading-{group.key}"
+                          class="event-stack-heading"
+                        >
                           <strong>{group.entries.length} events</strong>
                           <span>{group.label}</span>
                         </span>
@@ -2525,13 +2386,14 @@
                       <div class="event-stack-list">
                         {#each group.entries as entry (`event-stack:${entry.event.id}:${entry.location.id}`)}
                           {@const image = getEventImage(entry.event.slug)}
+                          {@const stackItemLabelId = `event-stack-item-${entry.event.id}-${entry.location.id}`}
                           <button
                             type="button"
                             class="event-stack-item"
                             class:active={isSelectedEvent(entry.event)}
                             class:upcoming={entry.event.status === "upcoming"}
                             title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
-                            aria-label={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
+                            aria-labelledby={stackItemLabelId}
                             onclick={() => handleEventMarkerClick(entry.event)}
                           >
                             {#if image}
@@ -2545,7 +2407,10 @@
                                 <CalendarDays size={14} />
                               </span>
                             {/if}
-                            <span class="event-stack-copy">
+                            <span
+                              class="event-stack-copy"
+                              id={stackItemLabelId}
+                            >
                               <span class="event-stack-title"
                                 >{entry.event.title}</span
                               >
@@ -2556,7 +2421,8 @@
                                 at {formatEventMarkerTime(
                                   entry.event.occurrenceStartsAt,
                                 )}
-                                - {getEventStatusLabel(entry.event)}
+                                - {getEventStatusLabel(entry.event)} · {entry
+                                  .location.resolvedLabel}
                               </span>
                             </span>
                           </button>
@@ -2618,7 +2484,6 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
-              title={building.buildingName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
               onpointerenter={() => handleEditablePinEnter(editKey)}
               onpointerleave={() => handleEditablePinLeave(editKey)}
@@ -2677,7 +2542,6 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
-              title={dorm.dormName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
               onpointerenter={() => handleEditablePinEnter(editKey)}
               onpointerleave={() => handleEditablePinLeave(editKey)}
