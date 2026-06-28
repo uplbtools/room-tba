@@ -23,8 +23,24 @@ Read the right doc for the task — do not rely on this file alone for detailed 
 - **Preserve the dirty tree.** Do not revert unrelated user changes unless explicitly asked.
 - **Keep scope tight.** Avoid opportunistic refactors outside the request.
 - **Keep GitHub issues current** when work is tied to `#NNN` — issues hold implementation specifics that drift fast. See [docs/issue-hygiene.md](docs/issue-hygiene.md).
+- **Infer intent over typos.** User messages are often rushed — read for what they mean, not only literal wording. Common patterns:
+  - **"PR to main" / "merge to prod" / "ship it"** → promote **`staging` → `main`** (release PR), not a feature branch opened against `main`. See [Branches and pull requests](#branches-and-pull-requests).
+  - **"PR to staging"** → feature branch → `staging` (default for new work).
+  - Minor typos (`pr`, `stagign`, `mrege`, doubled letters, missing spaces) — do not ask for clarification when context makes the goal obvious.
 
-## GitHub issues
+## Branches and pull requests
+
+Default flow: **feature branch → `staging` → `main`**.
+
+| User says (approx.)               | Do this                                                | Do **not** do this                                     |
+| --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| Open a PR / PR to staging         | `gh pr create --base staging --head <feature-branch>`  | —                                                      |
+| PR to main / merge to prod / ship | Open (or merge) **`staging` → `main`** release PR only | `--base main --head <feature-branch>` for routine work |
+| Merge the feature PR              | Squash/merge into **`staging`** first                  | Skip `staging` and land features directly on `main`    |
+
+- **`main`** is production; semantic-release runs there.
+- **`staging`** is integration — feature PRs land here first unless the user explicitly asks for a hotfix straight to `main`.
+- When the user says **"PR to main"**, they usually mean **get it to production**, not "set the GitHub PR base branch to `main`." Confirm only if they truly want a feature branch targeting `main` (rare hotfix).
 
 Issues are living specs (paths, schema, acceptance criteria). When coding quickly, update them in the same session as the code:
 

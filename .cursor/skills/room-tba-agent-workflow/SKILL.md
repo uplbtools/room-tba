@@ -42,3 +42,4 @@ Commit policy, Conventional Commits format, and GPG signing: [AGENTS.md § Commi
 3. For map/side-panel changes, confirm applicable Cursor rules were followed.
 4. **Issue sync:** for each linked `#NNN`, update AC/paths/status per [docs/issue-hygiene.md](../../docs/issue-hygiene.md); comment with the PR URL.
 5. Push with `-u origin HEAD` only when the user asked to push/open a PR.
+6. **Base branch:** feature work → `staging`. "PR to main" / prod ship → `staging` → `main` release only ([AGENTS.md § Branches and pull requests](../../AGENTS.md#branches-and-pull-requests)).
