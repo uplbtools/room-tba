@@ -44,12 +44,12 @@
         ? "Editor"
         : "Contributor",
   );
-  const sessionLabel = $derived.by(() => {
-    const name = sessionDisplayName.trim();
-    const role = sessionRoleLabel;
-    if (name.toLowerCase() === role.toLowerCase()) return role;
-    return `${role}: ${name}`;
-  });
+  const showSessionChip = $derived(
+    (contributorSession || editorSession) && !isOpen,
+  );
+  const showSessionExpanded = $derived(
+    (contributorSession || editorSession) && isOpen,
+  );
 
   let barEl = $state<HTMLDivElement | null>(null);
 
@@ -104,18 +104,26 @@
 
     <OfflineMaps compact={detailsCompact} />
 
-    {#if contributorSession || editorSession}
+    {#if showSessionChip}
       <MapChromeSession
-        label={sessionLabel}
-        compactLabel={sessionDisplayName}
+        roleLabel={sessionRoleLabel}
+        displayName={sessionDisplayName}
         title="Signed in as {sessionRoleLabel.toLowerCase()}"
-        compact={detailsCompact}
+        compact
         onSignOut={handleSignOut}
       />
     {/if}
   </div>
 
   <div class="content-wrapper" id="status-bar-details">
+    {#if showSessionExpanded}
+      <MapChromeSession
+        roleLabel={sessionRoleLabel}
+        displayName={sessionDisplayName}
+        expanded
+        onSignOut={handleSignOut}
+      />
+    {/if}
     <div class="directions-progress">
       <span class="directions-label">Rooms with directions</span>
       <div
@@ -204,6 +212,8 @@
     justify-content: flex-start;
     width: fit-content;
     max-width: calc(100% - var(--bottom-fab-inset, 0px));
+    margin-left: auto;
+    align-self: flex-end;
     min-width: 0;
     overflow: visible;
     font-size: 0.875rem;
@@ -253,7 +263,8 @@
     .content-wrapper {
       display: none;
       gap: 0.75rem;
-      flex: 1 1 100%;
+      flex: 0 0 auto;
+      width: 100%;
       min-width: 0;
       max-width: 100%;
       flex-wrap: wrap;
@@ -267,6 +278,7 @@
     &.is-open {
       flex-wrap: wrap;
       align-items: flex-start;
+      width: min(44rem, calc(100% - var(--bottom-fab-inset, 0px)));
     }
 
     &.is-open .content-wrapper {
@@ -326,6 +338,8 @@
     div.status-bar {
       width: 100%;
       max-width: 100%;
+      margin-left: 0;
+      align-self: stretch;
       min-height: 2.375rem;
       padding: 0.3125rem 0.75rem;
       padding-bottom: calc(0.3125rem + env(safe-area-inset-bottom, 0px));
@@ -341,6 +355,7 @@
       &.is-open {
         flex-wrap: wrap;
         align-items: flex-start;
+        width: 100%;
       }
 
       .status-primary {

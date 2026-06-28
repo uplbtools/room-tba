@@ -95,6 +95,59 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   max-width: 100%;
 }
 
+.map-chrome-session-chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid hsl(160, 40%, 72%);
+  border-radius: 999px;
+  background-color: hsl(160, 45%, 96%);
+  color: hsl(160, 84%, 22%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.map-chrome-session-expanded {
+  display: flex;
+  flex: 0 0 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  padding-bottom: 0.125rem;
+}
+
+.map-chrome-session-expanded-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(160, 84%, 22%);
+}
+
+.map-chrome-session-expanded-label span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-chrome-session-expanded :global(.map-chrome-ghost-btn) {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+  color: hsl(0, 70%, 38%);
+}
+
 .map-chrome-session-label {
   min-width: 0;
   overflow: hidden;
@@ -141,6 +194,100 @@ button.chrome-toggle-btn[aria-expanded="true"] {
 .map-chrome-action-chip:disabled {
   cursor: progress;
   opacity: 0.65;
+}
+
+.map-chrome-chip {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+  border-radius: 999px;
+  background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+  color: hsl(0, 0%, 22%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: auto;
+  touch-action: manipulation;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+button.map-chrome-chip:hover:not(:disabled),
+button.map-chrome-chip:focus-visible {
+  border-color: hsl(5, 40%, 72%);
+  background: hsl(5, 53%, 98%);
+}
+
+button.map-chrome-chip:focus-visible {
+  outline: 2px solid hsl(5, 53%, 32%);
+  outline-offset: 1px;
+}
+
+button.map-chrome-chip:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.map-chrome-chip--toggle-active {
+  border-color: hsl(5, 53%, 32%);
+  background-color: hsl(5, 53%, 96%);
+  color: hsl(5, 53%, 22%);
+}
+
+.map-chrome-chip--filter-selected {
+  border-color: hsl(5, 53%, 32%);
+  background: hsl(5, 53%, 32%);
+  color: white;
+}
+
+.map-chrome-chip__count {
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+.map-chrome-chip--filter-selected .map-chrome-chip__count {
+  opacity: 0.82;
+}
+
+.map-chrome-chip__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.map-chrome-chip__icon--all {
+  color: hsl(0, 0%, 42%);
+}
+
+.map-chrome-chip__icon--building,
+.map-chrome-chip__icon--admin {
+  color: hsl(5, 53%, 32%);
+}
+
+.map-chrome-chip__icon--up-dorm {
+  color: hsl(170, 50%, 35%);
+}
+
+.map-chrome-chip__icon--non-up-dorm {
+  color: hsl(25, 70%, 50%);
+}
+
+.map-chrome-chip--filter-selected .map-chrome-chip__icon {
+  color: currentColor;
 }
 
 .map-chrome-fab-trigger {
