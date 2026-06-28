@@ -1,19 +1,19 @@
 /**
  * Experimental basemap palette — Jun 2026.
  *
- * Warmer, desaturated OSM Liberty overrides for campus viewing. Applied at
- * runtime via applyBasemapPalette() and mirrored in public/liberty-customized.json
- * for offline tiles. Pin/label colors are unchanged; dark pins stay readable on
- * the muted ground plane.
+ * UPLB campus direction: fresh, naturey — lush green without neon arcade grass.
+ * Applied at runtime via applyBasemapPalette() and mirrored in
+ * public/liberty-customized.json for offline tiles. Pin/label colors are
+ * unchanged; dark pins stay readable on the muted green ground plane.
  *
  * Swap MAP_BASEMAP_PALETTE with a preset below to try alternates.
  */
 
-/** OSM Liberty defaults (reference only):
+/** OSM Liberty defaults (reference only — rejected neon grass):
  *  background rgb(239,239,239) · grass rgba(177,255,142,0.3) · water rgba(164,219,255,1)
  *  building hsl(35,8%,85%) · extrusion rgba(247,242,235,1) · roads near-white / #fea
  */
-// export const MAP_BASEMAP_PALETTE = { ... } as const; // osm-liberty-default
+// export const MAP_BASEMAP_PALETTE = { ... } as const; // osm-liberty-neon-rejected
 
 /** Prior subtle pass (commit 9d1dc52):
  *  background rgb(228,224,216) · grass rgba(150,168,132,0.28) · water rgba(145,185,205,1)
@@ -44,47 +44,54 @@
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // paper-floor-warm-rejected
 
-/** Rejected Jun 2026 — cool paper skewed too blue/cold:
- *  background rgb(236,238,240) · building #a8adb2 · extrusion #94999e · roads hsl(220,4%,86%)
+/** Rejected Jun 2026 — neutral greige insufficient ground/building contrast:
+ *  background rgb(226,224,220) · building #d4d0ca · extrusion #c8c4be · outline hsl(220,4%,48%)
+ */
+// export const MAP_BASEMAP_PALETTE = { ... } as const; // neutral-greige-rejected
+
+/** Rejected Jun 2026 — cool paper: dark buildings on light floor, inverted hierarchy:
+ *  background rgb(236,238,240) · grass rgba(200,208,200,0.18) · building #a8adb2 · extrusion #94999e
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // cool-paper-rejected
 
-/** Active preset: neutral greige — paper-like ground, no green, no muddy brown. */
-export const MAP_BASEMAP_PALETTE = {
-  background: "rgb(226, 224, 220)",
-  grassFill: "rgba(198, 200, 200, 1)",
+/** Active preset: UPLB fresh — morning-mist ground, natural lawn, warm stone buildings. */
+export const uplbFresh = {
+  background: "rgb(232, 237, 230)",
+  grassFill: "rgba(156, 184, 150, 1)",
   grassOpacity: 0.24,
-  parkFill: "#dcdad6",
-  parkOutline: "rgba(138, 136, 132, 0.55)",
-  parkOutlineLine: "#c8c6c2",
-  woodFill: "rgba(170, 170, 166, 0.32)",
-  woodOpacity: 0.32,
-  waterFill: "rgba(108, 138, 158, 1)",
-  waterOutline: "rgba(78, 102, 120, 0.55)",
-  waterwayLine: "#7290a4",
-  schoolFill: "rgb(218, 216, 212)",
-  pitchFill: "rgba(210, 208, 204, 1)",
-  landuseTrack: "#d0ceca",
-  buildingFill: "#d4d0ca",
-  buildingOutline: "hsl(220, 4%, 48%)",
-  buildingExtrusion: "#c8c4be",
-  buildingExtrusionOpacity: 0.94,
+  parkFill: "#a8b89c",
+  parkOutline: "rgba(120, 138, 112, 0.45)",
+  parkOutlineLine: "#b8c8b0",
+  woodFill: "rgba(88, 108, 82, 0.42)",
+  woodOpacity: 0.38,
+  waterFill: "rgba(118, 158, 152, 1)",
+  waterOutline: "rgba(88, 128, 122, 0.5)",
+  waterwayLine: "#7aada4",
+  schoolFill: "rgb(232, 237, 230)",
+  pitchFill: "rgba(168, 184, 156, 1)",
+  landuseTrack: "#c4d0bc",
+  buildingFill: "#e2ddd4",
+  buildingOutline: "hsl(35, 8%, 62%)",
+  buildingExtrusion: "#d4cec4",
+  buildingExtrusionOpacity: 0.92,
   labelText: "#444444",
   labelHaloColor: "rgba(255, 255, 255, 0.92)",
   labelHaloWidth: 1.4,
-  roadMinor: "hsl(220, 3%, 88%)",
-  roadService: "hsl(220, 3%, 88%)",
-  roadPathPedestrian: "rgba(186, 184, 180, 0.72)",
-  roadSecondaryTertiary: "rgba(208, 206, 202, 1)",
-  roadMinorCasing: "rgba(196, 194, 190, 0.85)",
-  roadSecondaryTertiaryCasing: "rgba(182, 180, 176, 0.75)",
-  roadTrunkPrimary: "rgba(204, 202, 198, 1)",
-  roadMotorway: "rgba(196, 194, 190, 1)",
-  roadLink: "rgba(204, 202, 198, 1)",
-  roadMotorwayLink: "rgba(196, 194, 190, 1)",
-  roadTrunkPrimaryCasing: "rgba(180, 178, 174, 0.85)",
-  roadMotorwayCasing: "rgba(180, 178, 174, 0.85)",
+  roadMinor: "hsl(40, 5%, 88%)",
+  roadService: "hsl(40, 5%, 88%)",
+  roadPathPedestrian: "rgba(180, 178, 172, 0.72)",
+  roadSecondaryTertiary: "rgba(200, 196, 188, 1)",
+  roadMinorCasing: "rgba(168, 164, 156, 0.8)",
+  roadSecondaryTertiaryCasing: "rgba(158, 154, 146, 0.72)",
+  roadTrunkPrimary: "rgba(192, 188, 178, 1)",
+  roadMotorway: "rgba(182, 176, 164, 1)",
+  roadLink: "rgba(192, 188, 178, 1)",
+  roadMotorwayLink: "rgba(182, 176, 164, 1)",
+  roadTrunkPrimaryCasing: "rgba(162, 156, 148, 0.82)",
+  roadMotorwayCasing: "rgba(162, 156, 148, 0.82)",
 } as const;
+
+export const MAP_BASEMAP_PALETTE = uplbFresh;
 
 /** Layer paint overrides keyed by MapLibre layer id. */
 export const BASEMAP_LAYER_PAINT: Record<
