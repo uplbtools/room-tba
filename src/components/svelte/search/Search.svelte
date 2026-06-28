@@ -482,7 +482,8 @@
     border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     box-shadow: var(--map-chrome-shadow);
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   .map-search-chrome {
@@ -671,10 +672,16 @@
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    -ms-overflow-style: none;
     padding: 0.3125rem 0.625rem 0.3125rem;
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
     transition: border-radius var(--motion-duration-micro)
       var(--motion-ease-out);
+  }
+
+  .map-search-chrome__chips > :global(*) {
+    flex-shrink: 0;
+    min-width: 0;
   }
 
   .search-root:not(.mobile-shell) .map-search-chrome__chips {
@@ -688,32 +695,8 @@
     border-bottom-right-radius: 0;
   }
 
-  .map-search-chrome__chips:hover,
-  .map-search-chrome__chips:focus-within {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(0, 0%, 72%) transparent;
-  }
-
   .map-search-chrome__chips::-webkit-scrollbar {
-    height: 0;
-  }
-
-  .map-search-chrome__chips:hover::-webkit-scrollbar,
-  .map-search-chrome__chips:focus-within::-webkit-scrollbar {
-    height: 3px;
-  }
-
-  .map-search-chrome__chips::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .map-search-chrome__chips::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background-color: hsl(0, 0%, 72%);
-  }
-
-  .map-search-chrome__chips:hover::-webkit-scrollbar-thumb {
-    background-color: hsl(0, 0%, 58%);
+    display: none;
   }
 
   .map-search-chrome__chips :global(.building-filter-bar) {
@@ -731,7 +714,8 @@
     max-width: 100%;
     min-height: 0;
     max-height: min(50dvh, 22rem);
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: hidden;
     overscroll-behavior: contain;
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
     padding: 0.1875rem 0.625rem 0.4375rem;
