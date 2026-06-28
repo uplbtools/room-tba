@@ -2,6 +2,13 @@
   import { mapStore } from "@lib/store.svelte";
   import type { MapLibreMap } from "maplibre-gl";
 
+  type Props = {
+    /** Inline chip-row size (~1.75rem); used on mobile search chrome. */
+    compact?: boolean;
+  };
+
+  let { compact = false }: Props = $props();
+
   const THREE_D_PITCH = 60;
   const TWO_D_THRESHOLD = 1;
 
@@ -48,7 +55,12 @@
     });
 </script>
 
-<div class="map-dimension-toggle" role="group" aria-label="Map view mode">
+<div
+  class="map-dimension-toggle"
+  class:compact
+  role="group"
+  aria-label="Map view mode"
+>
   <button
     type="button"
     class="segment"
@@ -90,8 +102,9 @@
   }
 
   .segment {
-    min-width: 2.5rem;
-    padding: 0.375rem 0.625rem;
+    min-width: 2.25rem;
+    min-height: 1.75rem;
+    padding: 0.25rem 0.5rem;
     border: none;
     border-radius: 0.5rem;
     background: transparent;
@@ -116,12 +129,21 @@
     color: white;
   }
 
-  @media (max-width: 48rem) {
-    .segment {
-      min-width: 2.75rem;
-      min-height: 2.25rem;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.8125rem;
-    }
+  .map-dimension-toggle.compact {
+    height: 1.75rem;
+    padding: 0.125rem;
+    border-width: 1px;
+    border-radius: 999px;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .map-dimension-toggle.compact .segment {
+    min-width: 1.875rem;
+    min-height: 1.375rem;
+    height: 1.375rem;
+    padding: 0 0.4375rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
   }
 </style>
