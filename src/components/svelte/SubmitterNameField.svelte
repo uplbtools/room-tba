@@ -75,7 +75,7 @@
       aria-live="polite"
     >
       {value.length}/{MAX_SUBMITTER_NAME_LENGTH}
-      · at least {MIN_SUBMITTER_NAME_LENGTH} characters — so editors can follow up
+      · at least {MIN_SUBMITTER_NAME_LENGTH} characters so editors can follow up
     </p>
   {/if}
 </div>

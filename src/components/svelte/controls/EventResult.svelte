@@ -971,7 +971,7 @@
                     Drag the event marker on the map to move it. This edits the
                     primary location only.
                   {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
-                    Pin move mode is on — drag the event marker on the map.
+                    Pin move mode is on. Drag the event marker on the map.
                   {:else}
                     Suggest a map pin move with
                     <button

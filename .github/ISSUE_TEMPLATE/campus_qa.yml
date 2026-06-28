@@ -1,5 +1,5 @@
 name: Campus QA
-description: Manual testing on a phone or laptop — layout, search, schedules, offline
+description: Manual testing on a phone or laptop (layout, search, schedules, offline)
 title: "[QA] "
 labels:
   - qa

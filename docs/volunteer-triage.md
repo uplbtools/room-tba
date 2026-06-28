@@ -5,12 +5,12 @@ Lightweight process for non-coding volunteers and triage leads. You do **not** n
 ## Weekly check (5–10 minutes)
 
 1. Open [open issues](https://github.com/uplbtools/room-tba/issues).
-2. Sort by **`data`** and **`qa`** labels — campus reports.
+2. Sort by **`data`** and **`qa`** labels: campus reports.
 3. For each new issue:
    - Is the report clear enough to act on? If not, ask one clarifying question in a comment.
    - Add **`help wanted`** if it needs a developer and no one is assigned.
    - Link related duplicates.
-4. Skim **`good first issue`** — ping Discord if something is unclaimed for 2+ weeks.
+4. Skim **`good first issue`**: ping Discord if something is unclaimed for 2+ weeks.
 
 ## Who does what
 
@@ -30,7 +30,7 @@ flowchart LR
 
 | Role               | Action                                                |
 | ------------------ | ----------------------------------------------------- |
-| Reporter           | Data / QA issue or in-app suggest — **no PR**         |
+| Reporter           | Data / QA issue or in-app suggest: **no PR**          |
 | Triage             | Label, clarify, surface `help wanted`                 |
 | Developer          | Picks up issue, PR to `staging`, comments on issue    |
 | Maintainer / agent | Same; may implement data fixes on behalf of reporters |

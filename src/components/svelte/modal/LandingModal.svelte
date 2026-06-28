@@ -127,7 +127,7 @@
       >
         <GithubContributorsSection
           title="Developers"
-          note="Pulled live from the Room TBA GitHub repo, sorted by commit count."
+          note="From GitHub commit history on the Room TBA repo."
           contributors={githubContributors}
           loading={githubLoading}
           loaded={githubLoaded}
@@ -147,8 +147,8 @@
         <section class="community-block">
           <h3>Join the community</h3>
           <p class="section-note">
-            Help keep campus data accurate — suggest edits in the map, chat with
-            volunteers, or say hi on our channels.
+            Suggest fixes in the map, or chat on Discord or Messenger if you
+            want to help verify data.
           </p>
           <ul class="community-links">
             <li>
@@ -181,8 +181,7 @@
         <section class="people-block">
           <h3>Design</h3>
           <p class="section-note">
-            Visual and UX design. These credits are manual, not from GitHub
-            commits.
+            Visual and UX design (manual credits, not from GitHub commits).
           </p>
           <PeopleAvatarGrid
             people={designerPeople}
@@ -193,8 +192,8 @@
         <section class="people-block">
           <h3>Campus editors &amp; contributors</h3>
           <p class="section-note">
-            Students who help keep map data and events accurate on the ground.
-            These credits are manual, not from GitHub commits.
+            Students who verify rooms and events on campus (manual credits, not
+            from GitHub commits).
           </p>
           <PeopleAvatarGrid
             people={campusContributorPeople}

@@ -8,7 +8,7 @@ contact_links:
     about: Message the team
   - name: Contributing guide
     url: https://github.com/uplbtools/room-tba/blob/staging/CONTRIBUTING.md
-    about: Pick your path — report data, QA, or code
+    about: Pick your path (report data, QA, or code)
   - name: Room TBA repo
     url: https://github.com/uplbtools/room-tba
     about: Open issues and pull requests on GitHub

@@ -1,6 +1,6 @@
 ---
 name: Implementation task
-about: Detailed spec with file pointers — for epics, maintainers, or experienced devs
+about: Detailed spec with file pointers for epics, maintainers, or experienced devs
 title: "[TASK] "
 labels: enhancement
 assignees: ""

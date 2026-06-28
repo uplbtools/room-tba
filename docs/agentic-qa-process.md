@@ -19,7 +19,7 @@ One agent can play multiple roles, but the report must separate automated eviden
 - Local `.env` with `DATABASE_URL` and `ADMIN_PASSWORD`.
 - Current test checklist: `docs/editor-foundation-test-plan.md`.
 - A running local dev server on the expected port, usually `http://localhost:4321`.
-- Linked GitHub issue number(s), if any — re-read with `gh issue view N` before coding; see [issue-hygiene.md](issue-hygiene.md).
+- Linked GitHub issue number(s), if any; re-read with `gh issue view N` before coding; see [issue-hygiene.md](issue-hygiene.md).
 
 ## GitHub issue sync (PR prep)
 
@@ -43,7 +43,7 @@ Run only what applies to the PR scope:
 | Editor / admin API      | yes  | yes               | yes           | auth + one PATCH                      |
 | Drizzle migration       | yes  | yes               | yes           | confirm migration applied on Supabase |
 
-PR CI (GitHub Actions) runs **Prettier check + unit tests** — no `DATABASE_URL` required. Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
+PR CI (GitHub Actions) runs **Prettier check + unit tests**; no `DATABASE_URL` required. Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
 
 ## Automated Checks
 

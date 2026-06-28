@@ -1,5 +1,5 @@
 name: Coding task
-description: Bug fix or feature for developers — no file paths required upfront
+description: Bug fix or feature for developers; no file paths required upfront
 title: "[CODE] "
 labels:
   - help wanted
@@ -41,7 +41,7 @@ body:
     id: acceptance
     attributes:
       label: Acceptance criteria
-      description: Plain checklist — what must be true when this is done?
+      description: Plain checklist of what must be true when this is done
       value: |
         - [ ]
         - [ ]
