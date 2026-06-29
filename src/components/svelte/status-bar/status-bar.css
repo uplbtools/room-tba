@@ -2,156 +2,71 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
   width: 100%;
   min-width: 0;
-  overflow: visible;
+  min-height: 1.75rem;
+  box-sizing: border-box;
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.2;
-  gap: 0.0625rem;
-  flex: 1 1 auto;
-  min-height: 2rem;
-  box-sizing: border-box;
-  padding: 0.0625rem 0.125rem;
 }
 
-.status-bar.is-open {
-  gap: 0.0625rem;
-  padding: 0.0625rem 0.125rem 0.125rem;
-}
-
-.status-bar__head {
+.status-bar__badges {
   display: flex;
-  align-items: center;
-  gap: 0.3125rem;
-  min-width: 0;
-  min-height: 1.25rem;
-  flex-wrap: nowrap;
-}
-
-.status-bar__toggle {
-  display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  background: none;
-  border: none;
-  font: inherit;
-  padding: 0;
-  cursor: pointer;
   min-width: 0;
-  flex: 0 0 auto;
-  color: inherit;
-}
-
-.status-bar__toggle:focus-visible {
-  outline: 2px solid hsl(5, 53%, 32%);
-  outline-offset: 2px;
-  border-radius: 0.25rem;
-}
-
-.status-bar__primary,
-.status-bar__utilities {
-  display: flex;
   flex: 1 1 auto;
-  align-items: center;
-  gap: 0.3125rem;
-  min-width: 0;
   overflow: hidden;
-  flex-wrap: nowrap;
 }
 
-.status-bar__primary :global(.sync-status--inline),
-.status-bar__utilities :global(.sync-status--inline) {
+.status-bar__badges :global(.sync-status--inline) {
   border-right: none;
   padding-right: 0;
   margin-right: 0;
-}
-
-.status-bar__utilities {
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-bar__sep {
-  flex-shrink: 0;
-  color: hsl(0, 0%, 68%);
-  font-weight: 400;
-  line-height: 1;
-  user-select: none;
-}
-
-.status-bar__details {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.375rem;
-  width: 100%;
   min-width: 0;
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.2;
-  color: hsl(0, 0%, 28%);
+  flex: 1 1 auto;
 }
 
-.status-bar__section {
-  display: flex;
-  flex-wrap: wrap;
+.status-bar__offline {
+  display: inline-flex;
   align-items: center;
-  gap: 0.1875rem 0.3125rem;
-  min-width: 0;
-}
-
-.status-bar__section--nav {
-  gap: 0.25rem 0.375rem;
-}
-
-.status-bar__catalog {
-  flex-shrink: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid hsl(0, 0%, 82%);
+  background: hsl(0, 0%, 97%);
+  color: hsl(0, 0%, 38%);
+  font-size: 0.75rem;
+  line-height: 1.15;
+  flex-shrink: 0;
   white-space: nowrap;
 }
 
 .status-bar__directions {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  flex: 0 1 auto;
+  gap: 0.375rem;
+  width: 100%;
   min-width: 0;
-  max-width: 100%;
 }
 
 .status-bar__directions :global(.map-chrome-progress) {
-  width: min(3rem, 11vw);
+  width: min(4.5rem, 22vw);
   flex: 0 0 auto;
   height: 0.375rem;
 }
 
 .status-bar__directions-count {
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: hsl(0, 0%, 22%);
-}
-
-.status-bar__progress-actions {
-  margin-top: 0.25rem;
-}
-
-.status-bar__directions-collapsed {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: inherit;
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: hsl(0, 0%, 28%);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: hsl(0, 0%, 22%);
 }
 
 .status-bar__count-wide {
@@ -162,12 +77,11 @@
   display: none;
 }
 
-.status-bar__nav-group {
+.status-bar__nav-link {
   display: inline-flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.1875rem 0.3125rem;
-  min-width: 0;
+  gap: 0.1875rem;
+  white-space: nowrap;
 }
 
 .status-bar :global(.map-chrome-ghost-link),
@@ -177,41 +91,9 @@
   padding: 0 0.1875rem;
 }
 
-.status-bar__nav-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.1875rem;
-  white-space: nowrap;
-}
-
 @media (max-width: 48rem) {
   .status-bar {
-    min-height: 1.75rem;
-    padding: 0.0625rem 0.0625rem;
-  }
-
-  .status-bar.is-open {
-    padding: 0.0625rem 0.0625rem 0.125rem;
-  }
-
-  .status-bar__head {
-    gap: 0.25rem;
-  }
-
-  .status-bar__primary,
-  .status-bar__utilities {
-    gap: 0.25rem;
-    flex-wrap: nowrap;
-  }
-
-  .status-bar__details {
-    gap: 0.3125rem;
-  }
-}
-
-@media (max-width: 1200px) {
-  .status-bar__section--catalog {
-    display: none;
+    gap: 0.375rem;
   }
 }
 
