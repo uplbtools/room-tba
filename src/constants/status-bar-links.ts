@@ -68,6 +68,37 @@ export const STATUS_BAR_APP_ACTIONS: StatusBarActionItem[] = [
   { kind: "action", id: "editor-login", label: "Editor sign in" },
 ];
 
+/** Similar campus map initiatives (#108). */
+export const STATUS_BAR_SIMILAR_PROJECTS_GROUP: StatusBarNavGroup = {
+  id: "similar",
+  items: [
+    {
+      kind: "link",
+      id: "malayo-ba-yan",
+      label: "Malayo Ba 'Yan?",
+      href: "https://umap.openstreetmap.fr/en/map/ati-ntc-rh-malayo-ba-yan-maps-and-directions_1245231",
+      external: true,
+      icon: "external",
+    },
+    {
+      kind: "link",
+      id: "uplb-lower-campus",
+      label: "UPLB Lower Campus",
+      href: "https://umap.openstreetmap.fr/en/map/uplb-lower-campus_1180826",
+      external: true,
+      icon: "external",
+    },
+    {
+      kind: "link",
+      id: "uplb-scribblemaps",
+      label: "UPLB ScribbleMaps",
+      href: "https://www.scribblemaps.com/maps/view/UPLB-Map/8fmzCgyQ4y",
+      external: true,
+      icon: "external",
+    },
+  ],
+};
+
 /** Legal + release metadata links. */
 export function buildStatusBarMetaGroup(
   versionLabel: string,
@@ -105,6 +136,7 @@ export function statusBarNavGroups(options: {
 
   return [
     STATUS_BAR_COMMUNITY_GROUP,
+    STATUS_BAR_SIMILAR_PROJECTS_GROUP,
     { id: "app", items: appItems },
     buildStatusBarMetaGroup(options.versionLabel),
   ];
