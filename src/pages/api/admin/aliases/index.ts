@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
-import { db } from "@drizzle/db";
+import { db } from "@lib/db";
 import { aliasesTable } from "@drizzle/schema";
 import { eq, ilike, sql } from "drizzle-orm";
 import { normalizeAlias } from "@lib/site";
