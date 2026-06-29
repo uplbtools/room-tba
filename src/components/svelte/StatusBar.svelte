@@ -2,7 +2,6 @@
   import WifiOff from "@lucide/svelte/icons/wifi-off";
   import { onMount } from "svelte";
   import { registerSW } from "virtual:pwa-register";
-  import { getAppData } from "@lib/context";
   import {
     appBootstrapStore,
     syncToastStore,
@@ -13,19 +12,8 @@
   import AppMenu from "./status-bar/AppMenu.svelte";
   import "./status-bar/status-bar.css";
 
-  const appData = getAppData();
-  const { directionCount, totalRooms } = $derived(appData());
   let isOnline = $state(true);
 
-  const progressPercent = $derived(
-    totalRooms > 0 ? Math.floor((directionCount / totalRooms) * 100) : 0,
-  );
-  const showDirectionsProgress = $derived(
-    directionCount != null &&
-      totalRooms != null &&
-      totalRooms > 0 &&
-      !syncToastStore.isSyncing,
-  );
   const showUrgentSync = $derived(
     appBootstrapStore.phase === "error" ||
       syncToastStore.syncError !== null ||
@@ -74,13 +62,7 @@
 </script>
 
 <div class="status-bar">
-  <AppMenu
-    {directionCount}
-    {totalRooms}
-    {progressPercent}
-    {showDirectionsProgress}
-    onSignOut={handleSignOut}
-  />
+  <AppMenu onSignOut={handleSignOut} />
 
   <div class="status-bar__badges" aria-live="polite">
     {#if showUrgentSync}
