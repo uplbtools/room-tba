@@ -1,4 +1,3 @@
-
 class TermStore {
   terms = $state<TermWithCount[]>([]);
   activeTermId = $state<number | null>(null);

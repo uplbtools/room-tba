@@ -183,14 +183,34 @@ type RecentSearch = {
   eventSlug?: string;
 };
 
-
 // Domain store modules
-import { ModalStore, QueryStore, ToastStore, MainControlsStore, FloatingControlPanelStore } from "./ui-stores.svelte.js";
-import { MapStore, MapViewStore, MapToolsStore, TerrainStore, Building3DStore } from "./map-stores.svelte.js";
-import { EditorChromeStore, MapEditStore, MapProposalStore, AdditionProposalStore, EventPlacementStore } from "./editor-stores.svelte.js";
-import { AppBootstrapStore, SyncToastStore, OfflineStore } from "./sync-stores.svelte.js";
+import {
+  ModalStore,
+  QueryStore,
+  ToastStore,
+  MainControlsStore,
+  FloatingControlPanelStore,
+} from "./ui-stores.svelte.js";
+import {
+  MapStore,
+  MapViewStore,
+  MapToolsStore,
+  TerrainStore,
+  Building3DStore,
+} from "./map-stores.svelte.js";
+import {
+  EditorChromeStore,
+  MapEditStore,
+  MapProposalStore,
+  AdditionProposalStore,
+  EventPlacementStore,
+} from "./editor-stores.svelte.js";
+import {
+  AppBootstrapStore,
+  SyncToastStore,
+  OfflineStore,
+} from "./sync-stores.svelte.js";
 import { TermStore, RoomClassesStore } from "./data-stores.svelte.js";
-
 
 class LocationStore {
   coords: [number, number] | null = $state(null);
@@ -307,7 +327,6 @@ class LocationStore {
   };
 }
 
-
 class JeepneyStore {
   /** Transit/jeepney layer visible (search chip or map tools). */
   layerActive: boolean = $state(false);
@@ -386,7 +405,6 @@ class JeepneyStore {
     this.hoveredStopIndex = null;
   };
 }
-
 
 class AdminAuthStore {
   isLoggedIn: boolean = $state(false);
@@ -525,7 +543,6 @@ class AdminAuthStore {
   };
 }
 
-
 class ProposalsStore {
   pendingCount = $state(0);
   open = $state(false);
@@ -578,7 +595,6 @@ class ProposalsStore {
     this.open = false;
   };
 }
-
 
 class ScheduleRouteStore {
   importedRows = $state<ImportedScheduleRow[]>([]);

@@ -1,4 +1,3 @@
-
 class EditorChromeStore {
   shelfOpen = $state(false);
   additionModalOpen = $state(false);
@@ -25,7 +24,6 @@ class EditorChromeStore {
   };
 }
 
-
 class MapEditStore {
   enabled: boolean = $state(false);
 
@@ -44,7 +42,6 @@ class MapEditStore {
     this.enabled = false;
   };
 }
-
 
 class MapProposalStore {
   target: MapProposalTarget | null = $state(null);
@@ -80,7 +77,6 @@ class MapProposalStore {
     this.proposalId = null;
   }
 }
-
 
 class AdditionProposalStore {
   pinPickActive = $state(false);
@@ -124,7 +120,6 @@ class AdditionProposalStore {
     this.draftPin = pin;
   }
 }
-
 
 class EventPlacementStore {
   draft: EventPlacementDraft | null = $state(null);

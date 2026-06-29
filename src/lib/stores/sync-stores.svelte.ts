@@ -1,4 +1,3 @@
-
 class AppBootstrapStore {
   phase = $state<AppBootstrapPhase>("idle");
   errorMessage = $state<string | null>(null);
@@ -75,7 +74,6 @@ class AppBootstrapStore {
     handler();
   }
 }
-
 
 class SyncToastStore {
   activity = $state<SyncActivity>("idle");
@@ -374,7 +372,6 @@ class SyncToastStore {
     this._syncStartTime = 0;
   }
 }
-
 
 class OfflineStore {
   /** Campus map tile download. */

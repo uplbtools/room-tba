@@ -1,4 +1,3 @@
-
 class ModalStore {
   private _modalStore: ModalStoreState = $state({
     open: false,
@@ -26,7 +25,6 @@ class ModalStore {
     };
   };
 }
-
 
 class QueryStore {
   private _queryStore: QueryStoreState = $state({
@@ -137,7 +135,6 @@ class QueryStore {
   };
 }
 
-
 class ToastStore {
   message: string | null = $state(null);
   type: "info" | "error" | "success" = $state("info");
@@ -151,7 +148,6 @@ class ToastStore {
     this.message = null;
   };
 }
-
 
 class MainControlsStore {
   collapsed: boolean = $state(false);
@@ -168,7 +164,6 @@ class MainControlsStore {
     this.collapsed = true;
   };
 }
-
 
 class FloatingControlPanelStore {
   openPanel: FloatingControlPanel | null = $state(null);

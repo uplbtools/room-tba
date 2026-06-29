@@ -18,7 +18,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith("/api/admin") && pathname !== "/api/admin/auth";
 
   // Resolve editor identity from HMAC cookie or Supabase session (#293).
-  let editorUser = getSessionUser(context.cookies.get(ADMIN_COOKIE_NAME)?.value);
+  let editorUser = getSessionUser(
+    context.cookies.get(ADMIN_COOKIE_NAME)?.value,
+  );
   if (!editorUser) {
     const sbUser = context.locals.supabaseUser;
     if (sbUser?.id) {

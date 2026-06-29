@@ -1,8 +1,6 @@
-
 class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
 }
-
 
 class MapViewStore {
   eventsOnly: boolean = $state(false);
@@ -15,7 +13,6 @@ class MapViewStore {
     this.eventsOnly = false;
   };
 }
-
 
 class MapToolsStore {
   open = $state(false);
@@ -54,7 +51,6 @@ class MapToolsStore {
     this.activeSection = section;
   };
 }
-
 
 class TerrainStore {
   enabled: boolean = $state(false);
@@ -116,7 +112,6 @@ class TerrainStore {
     this.resetNonce += 1;
   };
 }
-
 
 class Building3DStore {
   buildingName: string | null = $state(null);
