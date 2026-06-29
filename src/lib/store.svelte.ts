@@ -129,9 +129,12 @@ export const currentRoom = {
   },
 };
 
+export type LandingModalTab = "welcome" | "campus";
+
 interface ModalStoreState {
   open: boolean;
   type: (typeof modalOptions)[number] | null;
+  landingTab?: LandingModalTab;
 }
 
 export interface QueryStoreState {
@@ -166,10 +169,15 @@ class ModalStore {
 
   open = $derived(this._modalStore.open);
   type = $derived(this._modalStore.type);
+  landingTab = $derived(this._modalStore.landingTab);
 
-  openModal = (type: ModalStoreState["type"]) => {
+  openModal = (
+    type: ModalStoreState["type"],
+    options?: { landingTab?: LandingModalTab },
+  ) => {
     this._modalStore.open = true;
     this._modalStore.type = type;
+    this._modalStore.landingTab = options?.landingTab;
   };
 
   closeModal = () => {
