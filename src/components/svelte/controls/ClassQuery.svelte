@@ -137,7 +137,19 @@
     {:else if classesLoading}
       <p class="status">Loading classes…</p>
     {:else if classesError}
-      <p class="status">{classesError}</p>
+      <div class="no-results">
+        <p class="status">{classesError}</p>
+        <button
+          type="button"
+          class="browse-all-btn"
+          onclick={() => {
+            classPage = 1;
+            classesError = null;
+          }}
+        >
+          Retry →
+        </button>
+      </div>
     {:else if classes.length > 0}
       <Classes {classes} />
       {#if classTotal > PAGE_SIZE}
