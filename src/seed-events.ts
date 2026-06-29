@@ -1,3 +1,6 @@
+// Legacy export/seed script only — uses bun:sqlite for local data prep.
+// Not part of the runtime app; production uses Supabase Postgres + Drizzle.
+
 import "dotenv/config";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
