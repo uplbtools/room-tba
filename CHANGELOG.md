@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/uplbtools/room-tba/compare/v1.15.0...v1.16.0) (2026-06-29)
+
+
+### Features
+
+* **batch:** 5 small tickets — pin validation, schedule theme, PWA install, changelog, offline ([#354](https://github.com/uplbtools/room-tba/issues/354)) ([#355](https://github.com/uplbtools/room-tba/issues/355)) ([89969c1](https://github.com/uplbtools/room-tba/commit/89969c169795f0880a1ea4f92a753ea5d9adb9c7)), closes [#283](https://github.com/uplbtools/room-tba/issues/283) [#240](https://github.com/uplbtools/room-tba/issues/240) [#213](https://github.com/uplbtools/room-tba/issues/213) [#212](https://github.com/uplbtools/room-tba/issues/212) [#101](https://github.com/uplbtools/room-tba/issues/101)
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
