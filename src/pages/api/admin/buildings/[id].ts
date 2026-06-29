@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
-import { EditConflictError, updateBuilding } from "@lib/services/admin-service";
+import { EditConflictError, updateBuilding, DuplicateNameError } from "@lib/services/admin-service";
 
 export const prerender = false;
 
@@ -90,6 +90,22 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
         JSON.stringify({
           error: "This building was changed by another editor.",
           latest: err.latest,
+        }),
+        {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (err instanceof DuplicateNameError) {
+      return new Response(
+        JSON.stringify({
+          error: err.message,
+          code: "duplicate_name",
+          entityType: err.entityType,
+          mergeCandidate: err.candidate,
+          attemptedName: err.attemptedName,
         }),
         {
           status: 409,

@@ -5,8 +5,9 @@
     toastStore,
     termStore,
   } from "@lib/store.svelte";
-  import { persistEntityChange } from "@lib/proposals/client";
+  import { persistEntityChange, mergeEntityRecord } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import MergeEntityPrompt from "@ui/editor/MergeEntityPrompt.svelte";
   import {
     clearEntityContributorDraft,
     readEntityContributorDraft,
@@ -60,6 +61,12 @@
   let saved = $state(false);
   let fieldError = $state<string | null>(null);
   let submitterNameDraft = $state("");
+  let mergePrompt = $state<{
+    candidate: CollegeData;
+    attemptedName: string;
+    sourceVersion: number;
+  } | null>(null);
+  let mergingEntity = $state(false);
   const canPublish = $derived(adminAuthStore.canPublish);
 
   // Reload rooms when the selected college changes; CollegeResult is not
@@ -120,6 +127,7 @@
     nameDraft = current.collegeName;
     saved = false;
     fieldError = null;
+    mergePrompt = null;
 
     if (!canPublish) {
       const savedDraft = readEntityContributorDraft("college", current.id);
@@ -183,6 +191,15 @@
       });
 
       if (outcome.error) {
+        if (outcome.mergeCandidate) {
+          mergePrompt = {
+            candidate: outcome.mergeCandidate as CollegeData,
+            attemptedName: trimmedName,
+            sourceVersion: current.version,
+          };
+          fieldError = null;
+          return;
+        }
         fieldError = outcome.error;
         return;
       }
@@ -203,6 +220,53 @@
       fieldError = `${current.collegeName} failed to save: ${reason}`;
     } finally {
       saving = false;
+    }
+  }
+
+  function dismissMergePrompt() {
+    mergePrompt = null;
+    const current = college;
+    if (current) nameDraft = current.collegeName;
+  }
+
+  async function confirmCollegeMerge() {
+    const current = college;
+    if (!current || !mergePrompt) return;
+
+    mergingEntity = true;
+    fieldError = null;
+
+    try {
+      const result = await mergeEntityRecord({
+        entityType: "college",
+        sourceId: current.id,
+        targetId: mergePrompt.candidate.id,
+        sourceVersion: mergePrompt.sourceVersion,
+        preferredName: mergePrompt.attemptedName,
+      });
+
+      if (!result.ok) {
+        if (result.latest) syncCollegeFromServer(result.latest as CollegeData);
+        fieldError =
+          result.error ??
+          `${current.collegeName} could not be merged into ${mergePrompt.candidate.collegeName}.`;
+        return;
+      }
+
+      if (result.entity) {
+        syncCollegeFromServer(result.entity as CollegeData);
+        toastStore.show(
+          `Merged ${current.collegeName} into ${mergePrompt.candidate.collegeName}.`,
+          "success",
+        );
+      }
+      mergePrompt = null;
+      editing = false;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${current.collegeName} merge failed: ${reason}`;
+    } finally {
+      mergingEntity = false;
     }
   }
 
@@ -260,6 +324,19 @@
               />
             {/snippet}
           </EntityEditorField>
+
+          {#if mergePrompt}
+            <MergeEntityPrompt
+              entityKind="college"
+              sourceLabel={college.collegeName}
+              candidateLabel={mergePrompt.candidate.collegeName}
+              detail="Merge divisions and room links into the kept college;"
+              merging={mergingEntity}
+              disabled={saving}
+              onconfirm={confirmCollegeMerge}
+              ondismiss={dismissMergePrompt}
+            />
+          {/if}
         </EntityEditorPanel>
       {/if}
     </section>
