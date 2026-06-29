@@ -1,0 +1,180 @@
+class ModalStore {
+  private _modalStore: ModalStoreState = $state({
+    open: false,
+    type: null,
+  });
+
+  open = $derived(this._modalStore.open);
+  type = $derived(this._modalStore.type);
+  landingTab = $derived(this._modalStore.landingTab);
+
+  openModal = (
+    type: ModalStoreState["type"],
+    options?: { landingTab?: LandingModalTab },
+  ) => {
+    dismissEphemeralOverlays();
+    this._modalStore.open = true;
+    this._modalStore.type = type;
+    this._modalStore.landingTab = options?.landingTab;
+  };
+
+  closeModal = () => {
+    this._modalStore = {
+      open: false,
+      type: null,
+    };
+  };
+}
+
+class QueryStore {
+  private _queryStore: QueryStoreState = $state({
+    category: null,
+    type: "query",
+    value: "",
+  });
+  recentSearches: RecentSearch[] = $state([]);
+  private _filters = new SvelteMap<
+    string,
+    Exclude<QueryStoreState["category"], null>
+  >();
+  inputValue = $state("");
+  category = $derived(this._queryStore.category);
+  type = $derived(this._queryStore.type);
+  queryValue = $derived(this._queryStore.value);
+  selectedEventSlug = $derived(this._queryStore.eventSlug ?? null);
+  filterValues = $derived(
+    Array.from(
+      this._filters.entries().map(([value, category]) => ({
+        category,
+        value,
+      })),
+    ),
+  );
+
+  // onclick of query buttons
+  updateQuery = (obj: QueryStoreState) => {
+    this._queryStore = obj;
+    this.inputValue = obj.value;
+
+    if (obj.type === "result" && obj.category !== null) {
+      this.addRecentSearch({
+        category: obj.category,
+        value: obj.value,
+        eventSlug: obj.eventSlug,
+      });
+    }
+  };
+
+  hydrateQuery = (obj: QueryStoreState) => {
+    this._queryStore = obj;
+    this.inputValue = obj.value;
+  };
+
+  addRecentSearch(recentSearch: RecentSearch) {
+    const qIndex = this.recentSearches.findIndex((query) => {
+      if (query.category !== recentSearch.category) return false;
+      if (
+        recentSearch.category === "event" &&
+        recentSearch.eventSlug &&
+        query.eventSlug
+      ) {
+        return query.eventSlug === recentSearch.eventSlug;
+      }
+      return query.value === recentSearch.value;
+    });
+    if (qIndex !== -1) this.recentSearches.splice(qIndex, 1);
+    else if (this.recentSearches.length > 4) this.recentSearches.pop();
+
+    this.recentSearches.unshift(recentSearch);
+  }
+
+  removeRecentSearch(id: number) {
+    this.recentSearches.splice(id, 1);
+  }
+
+  // when clicking the x button
+  clearQuery = () => {
+    this._queryStore = {
+      category: null,
+      type: "query",
+      value: "",
+    };
+    this.inputValue = "";
+  };
+
+  /** Drop an active result selection while keeping the search field editable. */
+  exitResultMode = () => {
+    this._queryStore = {
+      category: null,
+      type: "query",
+      value: "",
+    };
+  };
+
+  setType = (type: QueryStoreState["type"]) => {
+    this._queryStore.type = type;
+  };
+
+  setCategory = (category: QueryStoreState["category"]) => {
+    this._queryStore.category = category;
+  };
+
+  addFilter = (
+    key: string,
+    category: Exclude<QueryStoreState["category"], null>,
+  ) => {
+    this._filters.set(key, category);
+  };
+
+  removeFilter = (key: string) => {
+    this._filters.delete(key);
+  };
+
+  clearFilters = () => {
+    this._filters.clear();
+  };
+}
+
+class ToastStore {
+  message: string | null = $state(null);
+  type: "info" | "error" | "success" = $state("info");
+
+  show = (message: string, type: "info" | "error" | "success" = "info") => {
+    this.message = message;
+    this.type = type;
+  };
+
+  clear = () => {
+    this.message = null;
+  };
+}
+
+class MainControlsStore {
+  collapsed: boolean = $state(false);
+
+  toggle = () => {
+    this.collapsed = !this.collapsed;
+  };
+
+  expand = () => {
+    this.collapsed = false;
+  };
+
+  collapse = () => {
+    this.collapsed = true;
+  };
+}
+
+class FloatingControlPanelStore {
+  openPanel: FloatingControlPanel | null = $state(null);
+
+  toggle = (panel: FloatingControlPanel) => {
+    this.openPanel = this.openPanel === panel ? null : panel;
+  };
+
+  close = (panel?: FloatingControlPanel) => {
+    if (panel === undefined || this.openPanel === panel) {
+      this.openPanel = null;
+    }
+  };
+}
