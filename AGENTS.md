@@ -140,6 +140,7 @@ Some issues cannot be resolved purely through code. Issues that require **extern
 - **Volunteer onboarding** or training workflows dependent on human scheduling.
 
 **Agent protocol for human-dependent issues:**
+
 1. Implement the technical infrastructure (schema, UI stubs, API routes) and reference the issue in the PR.
 2. **Do NOT comment "Closes #NNN"** on PRs for human-dependent issues.
 3. After merge, **comment on the issue** with what was built and what remains for human coordination.
