@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { adminAuthStore, queryStore, toastStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    queryStore,
+    toastStore,
+    termStore,
+  } from "@lib/store.svelte";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
   import {
@@ -8,7 +13,7 @@
     scheduleEntityContributorDraftSave,
   } from "@lib/contributor-drafts";
   import { getAppActions, getAppData } from "@lib/context";
-  import { getCollegeRooms } from "@lib/local/data/utils";
+  import { getCollegeRooms, fetchRoomClassCounts } from "@lib/local/data/utils";
   import type { CollegeData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
@@ -19,7 +24,6 @@
     checkLocalCollegeRoom,
     syncCollegeRooms,
   } from "@lib/local/data/sync";
-  import { onMount } from "svelte";
 
   type CollegePatchResponse = {
     success?: boolean;
@@ -47,6 +51,7 @@
   });
 
   let collegeRooms = $state<RoomData[] | null>(null);
+  let classCounts = $state<Map<number, number> | null>(null);
   let editing = $state(false);
   let draftCollegeId = $state<number | null>(null);
   let draftVersion = $state<number | null>(null);
@@ -57,11 +62,50 @@
   let submitterNameDraft = $state("");
   const canPublish = $derived(adminAuthStore.canPublish);
 
-  onMount(async () => {
-    if (!college) return;
-    const collegeChecker = await checkLocalCollegeRoom(college.id);
-    collegeRooms = await getCollegeRooms(collegeChecker, college.id);
-    await syncCollegeRooms(collegeChecker, college.id, collegeRooms);
+  // Reload rooms when the selected college changes; CollegeResult is not
+  // remounted on switch, so key the load on college id and discard stale
+  // fetches from a previous selection (#340).
+  let roomLoadGeneration = 0;
+
+  $effect(() => {
+    const id = college?.id;
+    if (id == null) {
+      collegeRooms = null;
+      return;
+    }
+    const gen = ++roomLoadGeneration;
+    collegeRooms = null;
+    void (async () => {
+      const collegeChecker = await checkLocalCollegeRoom(id);
+      const rooms = await getCollegeRooms(collegeChecker, id);
+      if (gen !== roomLoadGeneration) return;
+      collegeRooms = rooms;
+      await syncCollegeRooms(collegeChecker, id, rooms);
+    })();
+  });
+
+  // Class counts per room for the active term, batched in one request so the
+  // room list preview doesn't fire N+1 /api/classes calls (#342). Re-fetches
+  // when the college or the active term changes; null while loading/offline.
+  let classCountGeneration = 0;
+
+  $effect(() => {
+    const id = college?.id;
+    const termId = termStore.activeTermId;
+    if (id == null) {
+      classCounts = null;
+      return;
+    }
+    const gen = ++classCountGeneration;
+    void (async () => {
+      const counts = await fetchRoomClassCounts(
+        "college",
+        id,
+        termId ?? undefined,
+      );
+      if (gen !== classCountGeneration) return;
+      classCounts = counts;
+    })();
   });
 
   $effect(() => {
@@ -245,7 +289,7 @@
     </section>
   {/if}
   {#if collegeRooms}
-    <ResultDisplay filteredRooms={collegeRooms} />
+    <ResultDisplay filteredRooms={collegeRooms} {classCounts} />
   {:else}
     Loading data...
   {/if}

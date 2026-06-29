@@ -435,7 +435,11 @@ class MainControlsStore {
 }
 
 export type FloatingControlPanel =
-  "legend" | "building-type" | "terrain" | "admin" | "suggest-addition";
+  | "legend"
+  | "building-type"
+  | "terrain"
+  | "admin"
+  | "suggest-addition";
 
 class FloatingControlPanelStore {
   openPanel: FloatingControlPanel | null = $state(null);
@@ -969,6 +973,10 @@ class JeepneyStore {
     this.layerActive = true;
     mapToolsStore.close();
     deactivateMapModesExcept("routes");
+    // Transit is mutually exclusive with building/dorm pin filters: reset to
+    // All so filtered pins don't overlap jeepney routes/stops (#325). This
+    // covers every enable path (search chip, map tools flyout, route picker).
+    buildingTypeFilter.set("all");
   };
 
   disableLayer = () => {
@@ -1006,20 +1014,22 @@ class JeepneyStore {
     if (this.selectedRouteId === null) return;
     this.selectedStopIndex = index;
     this.hoveredStopIndex = index;
-    modalStore.openModal("jeepney-stop");
+    sidePanelStore.expand();
   };
 
   closeStop = () => {
     this.selectedStopIndex = null;
     this.hoveredStopIndex = null;
-    if (modalStore.open && modalStore.type === "jeepney-stop") {
-      modalStore.closeModal();
-    }
   };
 }
 
 export type AppBootstrapPhase =
-  "idle" | "local" | "remote" | "sync" | "ready" | "error";
+  | "idle"
+  | "local"
+  | "remote"
+  | "sync"
+  | "ready"
+  | "error";
 
 class AppBootstrapStore {
   phase = $state<AppBootstrapPhase>("idle");

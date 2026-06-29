@@ -2,6 +2,7 @@
   import Bus from "@lucide/svelte/icons/bus";
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import MapPin from "@lucide/svelte/icons/map-pin";
+  import X from "@lucide/svelte/icons/x";
   import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
   import { jeepneyStore } from "@lib/store.svelte";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
@@ -34,31 +35,44 @@
     if (stopIndex >= route.stops.length - 1) return;
     jeepneyStore.openStop(stopIndex + 1);
   }
+
+  function closeStop() {
+    jeepneyStore.closeStop();
+  }
 </script>
 
 {#if route && stop && stopIndex !== null}
-  <div class="jeepney-stop-modal">
-    <div class="jeepney-stop-modal__header">
+  <div class="jeepney-stop-panel">
+    <button
+      type="button"
+      class="jeepney-stop-panel__close"
+      aria-label="Close stop details"
+      onclick={closeStop}
+    >
+      <X size={18} aria-hidden="true" />
+    </button>
+
+    <div class="jeepney-stop-panel__header">
       <span
-        class="jeepney-stop-modal__route-badge"
+        class="jeepney-stop-panel__route-badge"
         style:background-color={route.color}
       >
         <Bus size={14} aria-hidden="true" />
         {route.name}
       </span>
-      <h2 class="jeepney-stop-modal__title">{stop.name}</h2>
-      <p class="jeepney-stop-modal__meta">
+      <h2 class="jeepney-stop-panel__title">{stop.name}</h2>
+      <p class="jeepney-stop-panel__meta">
         Stop {stopIndex + 1} of {route.stops.length}
       </p>
-      <p class="jeepney-stop-modal__description">{route.description}</p>
+      <p class="jeepney-stop-panel__description">{route.description}</p>
     </div>
 
-    <div class="jeepney-stop-modal__coords">
+    <div class="jeepney-stop-panel__coords">
       <MapPin size={14} aria-hidden="true" />
       <span>{stop.lat.toFixed(5)}, {stop.lon.toFixed(5)}</span>
     </div>
 
-    <div class="jeepney-stop-modal__actions">
+    <div class="jeepney-stop-panel__actions">
       <MapChromeActionChip disabled={stopIndex <= 0} onclick={openPreviousStop}>
         Previous stop
       </MapChromeActionChip>
@@ -70,7 +84,7 @@
       </MapChromeActionChip>
       {#if mapsUrl}
         <a
-          class="jeepney-stop-modal__maps-link map-chrome-action-chip"
+          class="jeepney-stop-panel__maps-link map-chrome-action-chip"
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
@@ -84,23 +98,49 @@
 {/if}
 
 <style>
-  .jeepney-stop-modal {
+  .jeepney-stop-panel {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0.875rem;
-    padding: 0.75rem 0.875rem 1rem;
-    min-width: min(100%, 22rem);
-    max-width: 28rem;
+    gap: 0.75rem;
+    padding: 0.25rem 0.125rem 0.5rem;
+    min-width: 0;
   }
 
-  .jeepney-stop-modal__header {
+  .jeepney-stop-panel__close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0.25rem;
+    border-radius: 0.375rem;
+    color: hsl(0, 0%, 30%);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .jeepney-stop-panel__close:hover,
+  .jeepney-stop-panel__close:focus-visible {
+    background-color: hsl(0, 0%, 92%);
+  }
+  .jeepney-stop-panel__close:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
+  }
+
+  .jeepney-stop-panel__header {
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
     min-width: 0;
+    padding-right: 1.75rem;
   }
 
-  .jeepney-stop-modal__route-badge {
+  .jeepney-stop-panel__route-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
@@ -117,7 +157,7 @@
     text-overflow: ellipsis;
   }
 
-  .jeepney-stop-modal__title {
+  .jeepney-stop-panel__title {
     margin: 0;
     font-size: 1.125rem;
     font-weight: 700;
@@ -125,21 +165,21 @@
     color: #18181b;
   }
 
-  .jeepney-stop-modal__meta {
+  .jeepney-stop-panel__meta {
     margin: 0;
     font-size: 0.8125rem;
     font-weight: 600;
     color: hsl(0, 0%, 42%);
   }
 
-  .jeepney-stop-modal__description {
+  .jeepney-stop-panel__description {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.45;
     color: hsl(0, 0%, 38%);
   }
 
-  .jeepney-stop-modal__coords {
+  .jeepney-stop-panel__coords {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
@@ -148,13 +188,13 @@
     color: hsl(0, 0%, 45%);
   }
 
-  .jeepney-stop-modal__actions {
+  .jeepney-stop-panel__actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.375rem;
   }
 
-  .jeepney-stop-modal__maps-link {
+  .jeepney-stop-panel__maps-link {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;

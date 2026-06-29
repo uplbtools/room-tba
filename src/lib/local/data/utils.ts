@@ -440,6 +440,32 @@ export const getDivisionRooms = getEntityRooms(
   getLocalDivisionRooms,
 );
 
+/** Per-room class counts for an entity's room list, scoped to the active term.
+ * One batched /api/rooms/class-counts request replaces N+1 /api/classes calls
+ * per visible row (#342). Returns null on offline/server error so the UI can
+ * distinguish "not loaded yet" from a real "0 classes". */
+export async function fetchRoomClassCounts(
+  entityName: "building" | "college" | "division",
+  id: number,
+  termId?: number,
+): Promise<Map<number, number> | null> {
+  const params = new URLSearchParams({ [`${entityName}_id`]: String(id) });
+  if (termId != null) params.set("term_id", String(termId));
+  try {
+    const response = await fetch(
+      `/api/rooms/class-counts?${params.toString()}`,
+    );
+    if (!response.ok) return null;
+    const payload = (await response.json()) as {
+      data?: { roomId: number; count: number }[];
+    };
+    if (!Array.isArray(payload?.data)) return null;
+    return new Map(payload.data.map((row) => [row.roomId, row.count]));
+  } catch {
+    return null;
+  }
+}
+
 export async function getRoomsData(): Promise<
   Pick<DBData, "directionCount" | "totalRooms">
 > {

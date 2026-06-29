@@ -9,7 +9,7 @@
     type BuildingTypeFilter,
   } from "@constants/building-types";
   import { getAppData } from "@lib/context";
-  import { buildingTypeFilter } from "@lib/store.svelte";
+  import { buildingTypeFilter, jeepneyStore } from "@lib/store.svelte";
   import "./map-chrome/map-chrome.css";
 
   const appData = getAppData();
@@ -34,6 +34,9 @@
   } as const;
 
   function selectFilter(value: BuildingTypeFilter) {
+    // Non-All pin filters are mutually exclusive with the transit layer:
+    // turn off jeepney routes/stops so filtered pins aren't obscured (#325).
+    if (value !== "all") jeepneyStore.disableLayer();
     buildingTypeFilter.set(value);
   }
 </script>
