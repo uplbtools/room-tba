@@ -29,6 +29,7 @@
     getDivisions,
     getDorms,
     getEvents,
+    getClasses,
     getRoomsData,
     loadCachedAppData,
   } from "@lib/local/data/utils";
@@ -41,6 +42,7 @@
     syncDorms,
     syncEvents,
     syncAliasCache,
+    syncClasses,
   } from "@lib/local/data/sync";
   import { getDB, initPGLiteDB } from "@lib/local/data/pgliteDB";
 
@@ -153,15 +155,17 @@
         divisionCheck,
         dormCheck,
         eventCheck,
+        classCheck,
       ] = await Promise.all([
         localTableSyncCheck("buildings"),
         localTableSyncCheck("colleges"),
         localTableSyncCheck("divisions"),
         localTableSyncCheck("dorms"),
         localTableSyncCheck("events"),
+        localTableSyncCheck("classes"),
       ]);
 
-      syncToastStore.beginFetchingCampus(6);
+      syncToastStore.beginFetchingCampus(7);
 
       const trackFetch = <T,>(promise: Promise<T>) =>
         promise.finally(() => {
@@ -174,6 +178,7 @@
         divisionLoad,
         dormLoad,
         eventLoad,
+        classLoad,
         roomsData,
       ] = await Promise.all([
         trackFetch(getBuildings(buildingCheck)),
@@ -181,6 +186,7 @@
         trackFetch(getDivisions(divisionCheck)),
         trackFetch(getDorms(dormCheck)),
         trackFetch(getEvents(eventCheck)),
+        trackFetch(getClasses(classCheck)),
         trackFetch(getRoomsData()),
       ]);
 
@@ -239,6 +245,11 @@
         eventCheck,
         eventLoad.rows,
         eventLoad.source === "remote",
+      );
+      await syncClasses(
+        classCheck,
+        classLoad.rows,
+        classLoad.source === "remote",
       );
 
       if (
