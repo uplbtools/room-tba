@@ -25,6 +25,8 @@ describe("parseChangelogHighlights", () => {
   });
 
   test("returns null when no bullets exist", () => {
-    expect(parseChangelogHighlights("# [1.0.0](https://example.com)\n")).toBeNull();
+    expect(
+      parseChangelogHighlights("# [1.0.0](https://example.com)\n"),
+    ).toBeNull();
   });
 });
