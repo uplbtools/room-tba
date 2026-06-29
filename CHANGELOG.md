@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/uplbtools/room-tba/compare/v1.14.0...v1.15.0) (2026-06-29)
+
+
+### Features
+
+* **ui:** sync copy, action chips, LEC/LAB grouping ([#338](https://github.com/uplbtools/room-tba/issues/338), [#319](https://github.com/uplbtools/room-tba/issues/319), [#301](https://github.com/uplbtools/room-tba/issues/301)) ([ec503e5](https://github.com/uplbtools/room-tba/commit/ec503e53fc6d698dd7f5cd9f0d67dac86fb91504))
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
