@@ -24,6 +24,15 @@ import {
 } from "./local/offline-maps";
 import { clearProposeEventDraft } from "./contributor-drafts";
 import type { BuildingTypeFilter } from "@constants/building-types";
+import { orderDayStops, type Weekday } from "./schedule-import/day-stops";
+import { matchImportedScheduleRows } from "./schedule-import/match-classes";
+import { parseScheduleImport } from "./schedule-import/parse-import";
+import type {
+  ImportedScheduleRow,
+  ScheduleDayStop,
+  ScheduleMatchResult,
+} from "./schedule-import/types";
+import { ROOM_SCHEDULE_SCOPE_NOTE } from "./amis/room-scheduled-types";
 
 export type { BuildingTypeFilter };
 
@@ -317,6 +326,8 @@ class LocationStore {
   isTracking: boolean = $state(false);
   destination: [number, number] | null = $state(null);
   routeOrigin: [number, number] | null = $state(null);
+  /** Multi-stop foot route (schedule import or 2-point fallback). */
+  routeWaypoints: [number, number][] | null = $state(null);
   private watchId: number | null = null;
 
   private isWithinBounds(lng: number, lat: number) {
@@ -402,11 +413,25 @@ class LocationStore {
   setDestination = (coords: [number, number]) => {
     this.destination = coords;
     this.routeOrigin = this.coords;
+    this.routeWaypoints = null;
   };
 
   clearDestination = () => {
     this.destination = null;
     this.routeOrigin = null;
+    this.routeWaypoints = null;
+  };
+
+  setRouteWaypoints = (waypoints: [number, number][] | null) => {
+    this.routeWaypoints = waypoints;
+    if (waypoints && waypoints.length >= 2) {
+      this.destination = null;
+      this.routeOrigin = null;
+    }
+  };
+
+  clearRouteWaypoints = () => {
+    this.routeWaypoints = null;
   };
 }
 
@@ -459,7 +484,8 @@ class FloatingControlPanelStore {
   };
 }
 
-export type MapToolsSection = "view" | "legend" | "terrain" | "jeepney";
+export type MapToolsSection =
+  "view" | "legend" | "terrain" | "jeepney" | "schedule";
 
 class MapToolsStore {
   open = $state(false);
@@ -1611,9 +1637,212 @@ class RoomClassesStore {
   };
 }
 
+const SCHEDULE_IMPORT_SS_KEY = "room-tba:schedule-import";
+
+type ScheduleImportPersisted = {
+  importedRows: ImportedScheduleRow[];
+  selectedWeekday: Weekday;
+};
+
+class ScheduleRouteStore {
+  importedRows = $state<ImportedScheduleRow[]>([]);
+  matches = $state<ScheduleMatchResult[]>([]);
+  selectedWeekday = $state<Weekday>("M");
+  matching = $state(false);
+  importError: string | null = $state(null);
+  private _roomCoordCache = new Map<string, [number, number] | null>();
+  private _hydrated = false;
+
+  scopeNote = ROOM_SCHEDULE_SCOPE_NOTE;
+
+  dayStops = $derived(orderDayStops(this.matches, this.selectedWeekday));
+
+  unresolved = $derived(
+    this.matches.filter((match) => match.unresolvedReason !== null),
+  );
+
+  hasImport = $derived(this.importedRows.length > 0);
+
+  init = () => {
+    if (this._hydrated || typeof window === "undefined") return;
+    this._hydrated = true;
+    try {
+      const raw = sessionStorage.getItem(SCHEDULE_IMPORT_SS_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as ScheduleImportPersisted;
+      if (!Array.isArray(parsed.importedRows)) return;
+      this.importedRows = parsed.importedRows;
+      if (parsed.selectedWeekday) {
+        this.selectedWeekday = parsed.selectedWeekday;
+      }
+      void this.rematch();
+    } catch (e) {
+      console.error("Failed to hydrate schedule import:", e);
+    }
+  };
+
+  private persist = () => {
+    if (typeof window === "undefined") return;
+    if (this.importedRows.length === 0) {
+      sessionStorage.removeItem(SCHEDULE_IMPORT_SS_KEY);
+      return;
+    }
+    const payload: ScheduleImportPersisted = {
+      importedRows: this.importedRows,
+      selectedWeekday: this.selectedWeekday,
+    };
+    sessionStorage.setItem(SCHEDULE_IMPORT_SS_KEY, JSON.stringify(payload));
+  };
+
+  private async resolveRoomCoords(
+    roomCode: string,
+  ): Promise<[number, number] | null> {
+    const normalized = roomCode.trim().toUpperCase();
+    if (this._roomCoordCache.has(normalized)) {
+      return this._roomCoordCache.get(normalized) ?? null;
+    }
+
+    let coords: [number, number] | null = null;
+    try {
+      const localRoom = await getLocalRoomByCode(normalized);
+      const room = localRoom
+        ? localRoom
+        : (
+            await getJSONFetch<{ data: RoomData }>(
+              `/api/rooms?code=${encodeURIComponent(normalized)}`,
+            )
+          ).data;
+      const lat = room?.building?.lat;
+      const lon = room?.building?.lon;
+      if (lat != null && lon != null) {
+        coords = [lon, lat];
+      }
+    } catch (e) {
+      console.error(`Failed to resolve room ${normalized}:`, e);
+    }
+
+    this._roomCoordCache.set(normalized, coords);
+    return coords;
+  }
+
+  private async fetchClassesForTerm(
+    termId: number | null,
+  ): Promise<ClassMapValue[]> {
+    const params = new URLSearchParams();
+    if (termId != null) params.set("term_id", String(termId));
+    const query = params.toString();
+    return getJSONFetch<ClassMapValue[]>(
+      query ? `/api/classes?${query}` : "/api/classes",
+    );
+  }
+
+  rematch = async () => {
+    if (this.importedRows.length === 0) {
+      this.matches = [];
+      return;
+    }
+
+    this.matching = true;
+    this.importError = null;
+    try {
+      const classes = await this.fetchClassesForTerm(termStore.activeTermId);
+      const uniqueRooms = new Set<string>();
+      for (const row of classes) {
+        if (row.roomCode) uniqueRooms.add(row.roomCode.trim().toUpperCase());
+      }
+      await Promise.all(
+        [...uniqueRooms].map((code) => this.resolveRoomCoords(code)),
+      );
+
+      this.matches = matchImportedScheduleRows(
+        this.importedRows,
+        classes,
+        (roomCode) =>
+          this._roomCoordCache.get(roomCode.trim().toUpperCase()) ?? null,
+      );
+    } catch (e) {
+      console.error("Schedule match failed:", e);
+      this.importError = "Could not load classes for matching. Try again.";
+      this.matches = [];
+    } finally {
+      this.matching = false;
+    }
+  };
+
+  importText = async (text: string) => {
+    const parsed = parseScheduleImport(text);
+    if (!parsed.ok) {
+      this.importError = parsed.error;
+      return false;
+    }
+
+    this.importedRows = parsed.rows;
+    this.importError = null;
+    this._roomCoordCache.clear();
+    this.persist();
+    await this.rematch();
+    toastStore.show(
+      `Imported ${parsed.rows.length} schedule row${parsed.rows.length === 1 ? "" : "s"}.`,
+      "success",
+    );
+    return true;
+  };
+
+  selectWeekday = (weekday: Weekday) => {
+    this.selectedWeekday = weekday;
+    this.persist();
+  };
+
+  routeDay = (weekday: Weekday = this.selectedWeekday) => {
+    this.selectedWeekday = weekday;
+    this.persist();
+    const stops = orderDayStops(this.matches, weekday);
+    const stopCoords = stops
+      .map((stop) => stop.coords)
+      .filter((coords): coords is [number, number] => coords !== null);
+
+    if (stopCoords.length === 0) {
+      toastStore.show("No routable classes on this day.", "info");
+      return;
+    }
+
+    const waypoints: [number, number][] = [];
+    if (locationStore.coords) {
+      waypoints.push(locationStore.coords);
+    }
+    waypoints.push(...stopCoords);
+
+    if (waypoints.length < 2) {
+      toastStore.show(
+        "Need at least two stops. Enable location or add more classes.",
+        "error",
+      );
+      return;
+    }
+
+    locationStore.setRouteWaypoints(waypoints);
+    toastStore.show(
+      `Routing ${stops.length} class stop${stops.length === 1 ? "" : "s"}.`,
+      "success",
+    );
+  };
+
+  clearImport = () => {
+    this.importedRows = [];
+    this.matches = [];
+    this.importError = null;
+    this._roomCoordCache.clear();
+    locationStore.clearRouteWaypoints();
+    this.persist();
+  };
+}
+
+export type { Weekday, ScheduleDayStop, ScheduleMatchResult };
+
 export const queryStore = new QueryStore();
 export const termStore = new TermStore();
 export const roomClassesStore = new RoomClassesStore();
+export const scheduleRouteStore = new ScheduleRouteStore();
 export const offlineStore = new OfflineStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
