@@ -7,8 +7,9 @@
 
   interface Props {
     filteredRooms: RoomData[];
+    classCounts?: Map<number, number> | null;
   }
-  const { filteredRooms }: Props = $props();
+  const { filteredRooms, classCounts }: Props = $props();
 
   const paginatedRooms = $derived(
     filteredRooms.slice(
@@ -25,7 +26,11 @@
   <h3 class="rooms-subtitle">Rooms in the building</h3>
   <div class="room-list">
     {#each paginatedRooms as room (room.id)}
-      <RoomDisplay {room} searchInput="" />
+      <RoomDisplay
+        {room}
+        searchInput=""
+        classCount={classCounts?.get(room.id)}
+      />
     {/each}
 
     {#if filteredRooms.length === 0}

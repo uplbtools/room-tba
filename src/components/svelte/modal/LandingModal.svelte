@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { modalStore } from "@lib/store.svelte";
   import { contributors, designers } from "@constants/contributors";
   import { UPLB_TOOLS_URL } from "@constants/community-links";
@@ -69,8 +68,10 @@
     modalStore.closeModal();
   }
 
-  onMount(() => {
-    void loadGithubContributors();
+  $effect(() => {
+    if (!modalStore.open || modalStore.type !== "landing") return;
+    activeTab = modalStore.landingTab ?? "welcome";
+    if (activeTab === "campus") void loadGithubContributors();
   });
 </script>
 

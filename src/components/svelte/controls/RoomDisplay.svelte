@@ -5,15 +5,25 @@
   type Props = {
     room: RoomData;
     searchInput: string;
+    classCount?: number | null;
   };
 
-  const { room, searchInput }: Props = $props();
+  const { room, searchInput, classCount }: Props = $props();
   const pattern = $derived(new RegExp(`(${searchInput.trim()})`, "gi"));
   function highlightSearch(original: string, pattern: RegExp): string {
     return searchInput.length < 2
       ? original
       : original.replaceAll(pattern, (substr) => `<mark>${substr}</mark>`);
   }
+
+  // Class count is undefined while the batched count request is in flight (or
+  // offline), so the chip stays empty rather than flashing a wrong "0". A
+  // loaded 0 renders explicitly as "0 classes" (#342).
+  const classCountLabel = $derived(
+    typeof classCount === "number"
+      ? `${classCount} class${classCount !== 1 ? "es" : ""}`
+      : null,
+  );
 
   function openRoomData() {
     queryStore.updateQuery({
@@ -45,7 +55,7 @@
     </div>
     <h3 class="room-code">{@html highlightSearch(room.code, pattern)}</h3>
     <div class="class-count">
-      <!-- {classes.length} class{classes.length !== 1 ? "es" : ""} -->
+      {#if classCountLabel}{classCountLabel}{/if}
     </div>
   </div>
 </button>

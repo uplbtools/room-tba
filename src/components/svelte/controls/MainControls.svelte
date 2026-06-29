@@ -1,6 +1,6 @@
 <script lang="ts">
   import Search from "@ui/search/Search.svelte";
-  import { queryStore, sidePanelStore } from "@lib/store.svelte";
+  import { queryStore, sidePanelStore, jeepneyStore } from "@lib/store.svelte";
   import BuildingResult from "./BuildingResult.svelte";
   import CollegeResult from "./CollegeResult.svelte";
   import DivisionResult from "./DivisionResult.svelte";
@@ -9,6 +9,7 @@
   import EventResult from "./EventResult.svelte";
   import RoomResult from "@ui/room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
+  import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
@@ -35,6 +36,7 @@
     if (identity === lastPanelIdentity) return;
 
     sidePanelStore.expand();
+    jeepneyStore.closeStop();
     lastPanelIdentity = identity;
   });
 
@@ -46,7 +48,7 @@
 <div class="side-panel-wrapper">
   <Search />
   <div class="side-panel-controls">
-    {#if queryStore.category !== null}
+    {#if queryStore.category !== null || jeepneyStore.selectedStopIndex !== null}
       <div class="drawer" class:is-collapsed={sidePanelStore.collapsed}>
         <button
           class="drawer-handle"
@@ -75,7 +77,9 @@
             class="side-panel-details"
             aria-hidden={sidePanelStore.collapsed}
           >
-            {#if queryStore.category === "building"}
+            {#if jeepneyStore.selectedStopIndex !== null}
+              <JeepneyStopPanel />
+            {:else if queryStore.category === "building"}
               <BuildingResult />
             {:else if queryStore.category === "college"}
               <CollegeResult />
@@ -125,7 +129,7 @@
     bottom: 0;
     left: 0;
     width: var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem)));
-    z-index: 2;
+    z-index: var(--z-side-panel, 2);
     pointer-events: none;
     transition: transform var(--motion-duration-panel) var(--motion-ease-out);
   }
@@ -217,7 +221,6 @@
 
     .drawer {
       position: fixed;
-      z-index: 12;
       top: var(--mobile-detail-sheet-top-inset);
       right: 0;
       bottom: calc(
