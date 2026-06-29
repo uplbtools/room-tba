@@ -240,7 +240,9 @@ async function main() {
 
   try {
     const [rooms, roomAliases, existingClasses] = await Promise.all([
-      db.select({ id: roomsTable.id, code: roomsTable.roomCode }).from(roomsTable),
+      db
+        .select({ id: roomsTable.id, code: roomsTable.roomCode })
+        .from(roomsTable),
       db
         .select({
           alias: aliasesTable.alias,
@@ -265,15 +267,13 @@ async function main() {
 
     const roomLookup = buildRoomLookup(rooms, roomAliases);
 
-    const { rows: incomingRows, stats, unmatched } = resolveImportRows(
-      normalized,
-      roomLookup,
-    );
+    const {
+      rows: incomingRows,
+      stats,
+      unmatched,
+    } = resolveImportRows(normalized, roomLookup);
 
-    const existingByKey = new Map<
-      string,
-      (typeof existingClasses)[number]
-    >();
+    const existingByKey = new Map<string, (typeof existingClasses)[number]>();
     for (const row of existingClasses) {
       if (row.termId == null) continue;
       existingByKey.set(
