@@ -7,6 +7,7 @@ import {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
+  const start = performance.now();
 
   await refreshSupabaseSession(context);
 
@@ -34,5 +35,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  return applySupabaseCacheHeaders(await next(), context);
+  const response = await next();
+  const duration = Math.round(performance.now() - start);
+
+  // Add Server-Timing header for API routes so Vercel logs and browsers
+  // can surface slow endpoints during QA (#313).
+  if (pathname.startsWith("/api/")) {
+    response.headers.set(
+      "Server-Timing",
+      `handler;dur=${duration},desc="Astro route handler"`,
+    );
+    if (duration > 500) {
+      console.warn(`[Slow API] ${pathname} took ${duration}ms`);
+    }
+  }
+
+  return applySupabaseCacheHeaders(response, context);
 });
