@@ -35,6 +35,19 @@ export async function initPGLiteDB(db: PGlite) {
    	"term_id" integer
     );
 
+    CREATE TABLE IF NOT EXISTS "final_exams" (
+    "id" integer PRIMARY KEY,
+    "term_id" integer NOT NULL,
+    "course_code" varchar(16) NOT NULL,
+    "section" varchar(16),
+    "course_title" text,
+    "room_id" integer,
+    "exam_date" text NOT NULL,
+    "starts_at" text NOT NULL,
+    "ends_at" text NOT NULL,
+    "source" varchar(64) NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS "dorms" (
    	"id" integer PRIMARY KEY,
    	"dorm_name" text NOT NULL,
