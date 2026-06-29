@@ -256,10 +256,7 @@ const classListSelect = {
   courseTitle: classesTable.courseTitle,
 };
 
-function classListWhere(
-  termId?: number,
-  courseCodePrefix?: string,
-) {
+function classListWhere(termId?: number, courseCodePrefix?: string) {
   const filters = [];
   if (termId != null) {
     filters.push(eq(classesTable.termId, termId));

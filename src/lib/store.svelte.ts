@@ -155,6 +155,7 @@ export interface QueryStoreState {
     | "college"
     | "room"
     | "class"
+    | "classes"
     | "dorm"
     | "event"
     | "events"

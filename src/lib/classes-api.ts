@@ -1,4 +1,4 @@
-import { getJSONFetch } from "@lib/fetch";
+import { getJSONFetch } from "@lib/local/data/utils";
 import type { ClassMapValue } from "@lib/types";
 
 export type ClassQueryPage = {
@@ -19,16 +19,8 @@ export async function fetchClassPage(options: {
   if (options.courseCodePrefix?.trim()) {
     params.set("course_code", options.courseCodePrefix.trim());
   }
-  if (options.limit != null) {
-    params.set("limit", String(options.limit));
-  }
-  if (options.offset != null) {
-    params.set("offset", String(options.offset));
-  }
   params.set("limit", String(options.limit ?? 25));
-  if (options.offset != null) {
-    params.set("offset", String(options.offset));
-  }
+  params.set("offset", String(options.offset ?? 0));
 
   return getJSONFetch<ClassQueryPage>(`/api/classes?${params.toString()}`);
 }

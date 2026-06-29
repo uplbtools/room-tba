@@ -10,7 +10,9 @@
   "scripts": {
     "dev": "astro dev",
     "dev:debug": "astro dev --verbose",
-    "build": "astro build",
+    "build": "bash scripts/vercel-build-guard.sh && astro build",
+    "check:vercel-env": "bash scripts/check-vercel-env.sh",
+    "check:prod-branch": "bash scripts/check-production-branch.sh",
     "preview": "astro preview",
     "astro": "astro",
     "lint": "prettier --check . && eslint .",
