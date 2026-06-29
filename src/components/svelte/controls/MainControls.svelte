@@ -125,7 +125,7 @@
     bottom: 0;
     left: 0;
     width: var(--map-search-chrome-width, min(31rem, calc(100vw - 15rem)));
-    z-index: 2;
+    z-index: var(--z-side-panel, 2);
     pointer-events: none;
     transition: transform var(--motion-duration-panel) var(--motion-ease-out);
   }
@@ -217,7 +217,6 @@
 
     .drawer {
       position: fixed;
-      z-index: 12;
       top: var(--mobile-detail-sheet-top-inset);
       right: 0;
       bottom: calc(
