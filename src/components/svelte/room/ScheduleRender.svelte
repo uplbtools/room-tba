@@ -4,6 +4,7 @@
     parseScheduleTime,
     ScheduleRenderer,
   } from "@lib/schedule-renderer";
+  import { offeringGroupKey } from "@lib/class-offering-groups";
   import type { ClassMapValue } from "@lib/types";
 
   interface Props {
@@ -41,6 +42,10 @@
           courseCode: label,
           section: sectionClass.section,
           color,
+          groupKey: offeringGroupKey(
+            sectionClass.courseCode,
+            sectionClass.section,
+          ),
         });
       });
     });

@@ -18,7 +18,8 @@ Before adding UI to entity detail views in the MainControls drawer:
    - **Directions:** one merged block — directions text, contribute/suggest links, nav chips (Directions, Google Maps). No duplicate colored boxes or second nav row.
    - **Footer:** secondary links only (schedule, external refs) as subtle text links — not full-width buttons.
 3. Do **not** add new full-width button rows or colored highlight boxes without removing or consolidating existing ones.
-4. Match existing action chip patterns: `CopyLinkButton variant="chip"`, `EntityEditorToggle variant="toolbar"`, `MapChromeActionChip`, or `.map-chrome-action-chip` anchors.
-5. Side panel changes require checking **RoomResult + BuildingResult + DormResult** (minimum) for parity before merge.
-6. Keep browse mode compact — prefer collapsed `<details>` for long secondary content; editor fields use progressive disclosure.
-7. Update `docs/map-ui-mode-matrix.md` if drawer zones or collapse behavior change.
+4. Match existing action chip patterns: `CopyLinkButton variant="chip"`, `EntityEditorToggle variant="toolbar"`, `MapChromeActionChip`, `EntityEditorPinRow`, or `.map-chrome-action-chip` anchors.
+5. **Links navigate; buttons/chips act.** Use `<a href>` for navigation (legal, external community, back links). State-changing controls (edit mode, pin move, toggles) use `<button>` with chip/toolbar styling, not underlined inline text.
+6. Side panel changes require checking **RoomResult + BuildingResult + DormResult** (minimum) for parity before merge.
+7. Keep browse mode compact — prefer collapsed `<details>` for long secondary content; editor fields use progressive disclosure.
+8. Update `docs/map-ui-mode-matrix.md` if drawer zones or collapse behavior change.

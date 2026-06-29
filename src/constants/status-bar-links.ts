@@ -1,4 +1,9 @@
-import { LEGAL_LINKS, UPLB_TOOLS_URL } from "@constants/community-links";
+import {
+  LEGAL_LINKS,
+  UPLB_TOOLS_URL,
+  DISCORD_URL,
+  MESSENGER_URL,
+} from "@constants/community-links";
 
 /** Icon keys resolved in StatusBarLinkGroup — add new icons there when extending. */
 export type StatusBarIcon = "external" | "discord" | "messenger" | "version";
@@ -41,7 +46,7 @@ export const STATUS_BAR_COMMUNITY_GROUP: StatusBarNavGroup = {
       kind: "link",
       id: "discord",
       label: "Discord",
-      href: "/discord",
+      href: DISCORD_URL,
       external: true,
       icon: "discord",
     },
@@ -49,7 +54,7 @@ export const STATUS_BAR_COMMUNITY_GROUP: StatusBarNavGroup = {
       kind: "link",
       id: "messenger",
       label: "Messenger",
-      href: "/messenger",
+      href: MESSENGER_URL,
       external: true,
       icon: "messenger",
     },
