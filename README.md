@@ -29,17 +29,17 @@ No account needed to browse. Editors and contributors fix data in the same app (
 
 ## What you can do
 
-| Goal                          | How                                                              |
-| ----------------------------- | ---------------------------------------------------------------- |
-| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)                            |
-| Room schedule this sem        | Term filter + timetable                                          |
-| Browse all classes            | Status bar → Browse classes; search by course code               |
-| Final exam time & room        | Search course code → finals panel; room panel during finals week |
-| Building location             | Map, pins, directions, Google Maps                               |
-| Offline / bad signal          | PWA + local cache; tiles if already loaded                       |
-| Campus events                 | Events on map with routes                                        |
-| Jeepney routes                | Route overlays                                                   |
-| 3D view                       | Buildings + Makiling terrain (online)                            |
+| Goal                          | How                                        |
+| ----------------------------- | ------------------------------------------ |
+| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)      |
+|                               | Room schedule this sem                     | Term filter + timetable                                          |
+|                               | Browse all classes                         | Status bar → Browse classes; search by course code               |
+|                               | Final exam time & room                     | Search course code → finals panel; room panel during finals week |
+| Building location             | Map, pins, directions, Google Maps         |
+| Offline / bad signal          | PWA + local cache; tiles if already loaded |
+| Campus events                 | Events on map with routes                  |
+| Jeepney routes                | Route overlays                             |
+| 3D view                       | Buildings + Makiling terrain (online)      |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
