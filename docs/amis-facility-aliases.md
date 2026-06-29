@@ -18,11 +18,11 @@ Re-run the import for the term; the report shows **alias-matched** counts separa
 
 ## Import report categories
 
-| Category | Meaning |
-| --- | --- |
-| Direct room match | Facility string matched `rooms.room_code` |
-| Via alias | Matched through `aliases` (`target_type = room`) |
-| Missing facility | AMIS row has no facility (TBA) — **skipped**, not pinned |
+| Category           | Meaning                                                         |
+| ------------------ | --------------------------------------------------------------- |
+| Direct room match  | Facility string matched `rooms.room_code`                       |
+| Via alias          | Matched through `aliases` (`target_type = room`)                |
+| Missing facility   | AMIS row has no facility (TBA) — **skipped**, not pinned        |
 | Unmatched facility | Non-empty string with no room or alias — fix alias or room data |
 
 ## TBA policy
