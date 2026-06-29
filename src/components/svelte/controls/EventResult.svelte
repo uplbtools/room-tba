@@ -974,7 +974,7 @@
                   {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
                     Pin move mode is on. Drag the event marker on the map.
                   {:else}
-                    <p>Suggest a map pin move, then drag the marker.</p>
+                    Suggest a map pin move, then drag the marker.
                     <EntityEditorPinRow
                       label="Event marker"
                       pickLabel="Enable pin move"
