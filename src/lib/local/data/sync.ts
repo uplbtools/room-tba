@@ -952,7 +952,17 @@ export async function syncAliasCache() {
 /** Sync classes into PGlite cache (#231). */
 export async function syncClasses(
   checker: TableSyncInfo,
-  remoteClasses: { id: number; courseCode: string; section: string; type: string; schedule: string; directions: string | null; courseTitle: string; termId: number; roomId: number | null }[],
+  remoteClasses: {
+    id: number;
+    courseCode: string;
+    section: string;
+    type: string;
+    schedule: string;
+    directions: string | null;
+    courseTitle: string;
+    termId: number;
+    roomId: number | null;
+  }[],
   trustedRemote = false,
 ) {
   syncToastStore.markWritingPhase("classes");
@@ -971,7 +981,17 @@ export async function syncClasses(
         INSERT INTO classes (id, course_code, section, type, schedule, directions, course_title, term_id, room_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
         `,
-        [c.id, c.courseCode, c.section, c.type, c.schedule, c.directions, c.courseTitle, c.termId, c.roomId],
+        [
+          c.id,
+          c.courseCode,
+          c.section,
+          c.type,
+          c.schedule,
+          c.directions,
+          c.courseTitle,
+          c.termId,
+          c.roomId,
+        ],
       );
       syncToastStore.updateClassesSync();
     }
