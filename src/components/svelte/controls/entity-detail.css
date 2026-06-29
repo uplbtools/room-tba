@@ -135,6 +135,10 @@
 .entity-actions :global(.editor-toggle--toolbar),
 .entity-directions__nav :global(.map-chrome-action-chip) {
   box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   min-height: 1.75rem;
   height: 1.75rem;
   padding: 0 0.5rem;
@@ -149,6 +153,13 @@
     background-color 0.16s,
     border-color 0.16s,
     box-shadow 0.16s;
+}
+
+.entity-actions :global(.copy-link-btn :global(svg)),
+.entity-actions :global(.map-chrome-action-chip :global(svg)) {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .entity-actions :global(.map-chrome-action-chip:hover:not(:disabled)),
