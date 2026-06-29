@@ -34,13 +34,20 @@ export class DuplicateSlugError extends Error {
   }
 }
 
+export type MergeEntityType =
+  | "room"
+  | "building"
+  | "college"
+  | "division"
+  | "dorm";
+
 export class DuplicateNameError<TCandidate = unknown> extends Error {
-  entityType: "room";
+  entityType: MergeEntityType;
   candidate: TCandidate;
   attemptedName: string;
 
   constructor(
-    entityType: "room",
+    entityType: MergeEntityType,
     candidate: TCandidate,
     attemptedName: string,
   ) {
@@ -176,6 +183,93 @@ export async function findRoomMergeCandidate(
   for (const row of rows) {
     if (normalizeEntityName(row.roomCode) === normalized) {
       return getRoomById(row.id);
+    }
+  }
+
+  return null;
+}
+
+export async function findBuildingMergeCandidate(
+  buildingName: string,
+  excludeId: number,
+): Promise<BuildingAdmin | null> {
+  const normalized = normalizeEntityName(buildingName);
+  if (!normalized) return null;
+
+  const rows = await db
+    .select({ id: buildingsTable.id, buildingName: buildingsTable.buildingName })
+    .from(buildingsTable)
+    .where(ne(buildingsTable.id, excludeId));
+
+  for (const row of rows) {
+    if (normalizeEntityName(row.buildingName) === normalized) {
+      return getBuildingById(row.id);
+    }
+  }
+
+  return null;
+}
+
+export async function findCollegeMergeCandidate(
+  collegeName: string,
+  excludeId: number,
+): Promise<CollegeAdmin | null> {
+  const normalized = normalizeEntityName(collegeName);
+  if (!normalized) return null;
+
+  const rows = await db
+    .select({ id: collegesTable.id, collegeName: collegesTable.collegeName })
+    .from(collegesTable)
+    .where(ne(collegesTable.id, excludeId));
+
+  for (const row of rows) {
+    if (normalizeEntityName(row.collegeName) === normalized) {
+      return getCollegeById(row.id);
+    }
+  }
+
+  return null;
+}
+
+export async function findDivisionMergeCandidate(
+  divisionName: string,
+  excludeId: number,
+): Promise<DivisionAdmin | null> {
+  const normalized = normalizeEntityName(divisionName);
+  if (!normalized) return null;
+
+  const rows = await db
+    .select({
+      id: divisionsTable.id,
+      divisionName: divisionsTable.divisionName,
+    })
+    .from(divisionsTable)
+    .where(ne(divisionsTable.id, excludeId));
+
+  for (const row of rows) {
+    if (normalizeEntityName(row.divisionName) === normalized) {
+      return getDivisionById(row.id);
+    }
+  }
+
+  return null;
+}
+
+export async function findDormMergeCandidate(
+  dormName: string,
+  excludeId: number,
+): Promise<DormAdmin | null> {
+  const normalized = normalizeEntityName(dormName);
+  if (!normalized) return null;
+
+  const rows = await db
+    .select({ id: dormsTable.id, dormName: dormsTable.dormName })
+    .from(dormsTable)
+    .where(ne(dormsTable.id, excludeId));
+
+  for (const row of rows) {
+    if (normalizeEntityName(row.dormName) === normalized) {
+      return getDormById(row.id);
     }
   }
 
@@ -487,6 +581,13 @@ export async function updateBuilding(
   if (input.directions !== undefined) updates["directions"] = input.directions;
 
   if (Object.keys(updates).length > 0) {
+    if (input.buildingName !== undefined) {
+      const candidate = await findBuildingMergeCandidate(input.buildingName, id);
+      if (candidate) {
+        throw new DuplicateNameError("building", candidate, input.buildingName);
+      }
+    }
+
     const before = await getBuildingById(id);
     const where =
       expectedVersion === undefined
@@ -590,6 +691,11 @@ export async function updateCollege(
   expectedVersion?: number,
   editedBy = "admin",
 ): Promise<CollegeAdmin | null> {
+  const candidate = await findCollegeMergeCandidate(collegeName, id);
+  if (candidate) {
+    throw new DuplicateNameError("college", candidate, collegeName);
+  }
+
   const before = await getCollegeById(id);
   const where =
     expectedVersion === undefined
@@ -694,6 +800,13 @@ export async function updateDivision(
 
   if (Object.keys(updates).length === 0) {
     return getDivisionById(id);
+  }
+
+  if (input.divisionName !== undefined) {
+    const candidate = await findDivisionMergeCandidate(input.divisionName, id);
+    if (candidate) {
+      throw new DuplicateNameError("division", candidate, input.divisionName);
+    }
   }
 
   const before = await getDivisionById(id);
@@ -821,6 +934,13 @@ export async function updateDorm(
     if (value !== undefined) updates[key] = value;
   }
   if (Object.keys(updates).length > 0) {
+    if (input.dormName !== undefined) {
+      const candidate = await findDormMergeCandidate(input.dormName, id);
+      if (candidate) {
+        throw new DuplicateNameError("dorm", candidate, input.dormName);
+      }
+    }
+
     const before = await getDormById(id);
     const where =
       expectedVersion === undefined

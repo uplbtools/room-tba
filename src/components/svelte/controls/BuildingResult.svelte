@@ -33,9 +33,11 @@
   import { getBuildingShareUrl } from "@lib/share-links";
   import {
     getStoredProposalForEntity,
+    mergeEntityRecord,
     persistEntityChange,
   } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import MergeEntityPrompt from "@ui/editor/MergeEntityPrompt.svelte";
   import {
     clearEntityContributorDraft,
     readEntityContributorDraft,
@@ -79,6 +81,12 @@
   let submitterNameDraft = $state("");
   let proposalStatus = $state<string | null>(null);
   let activeProposalId = $state<number | null>(null);
+  let mergePrompt = $state<{
+    candidate: BuildingData;
+    attemptedName: string;
+    sourceVersion: number;
+  } | null>(null);
+  let mergingEntity = $state(false);
 
   const canPublish = $derived(adminAuthStore.canPublish);
 
@@ -179,6 +187,7 @@
     typeDraft = current.buildingType;
     savedField = null;
     fieldError = null;
+    mergePrompt = null;
     proposalStatus = null;
     const stored = getStoredProposalForEntity("building", current.id);
     activeProposalId = stored?.id ?? null;
@@ -293,6 +302,15 @@
       });
 
       if (outcome.error) {
+        if (outcome.mergeCandidate && field === "buildingName") {
+          mergePrompt = {
+            candidate: outcome.mergeCandidate as BuildingData,
+            attemptedName: outcome.attemptedName ?? nameDraft.trim(),
+            sourceVersion: current.version,
+          };
+          fieldError = null;
+          return;
+        }
         fieldError = outcome.error;
         return;
       }
@@ -320,6 +338,53 @@
       fieldError = `${current.buildingName} ${fieldLabel(field)} failed to save: ${reason}`;
     } finally {
       savingField = null;
+    }
+  }
+
+  function dismissMergePrompt() {
+    mergePrompt = null;
+    const current = building;
+    if (current) nameDraft = current.buildingName;
+  }
+
+  async function confirmBuildingMerge() {
+    const current = building;
+    if (!current || !mergePrompt) return;
+
+    mergingEntity = true;
+    fieldError = null;
+
+    try {
+      const result = await mergeEntityRecord({
+        entityType: "building",
+        sourceId: current.id,
+        targetId: mergePrompt.candidate.id,
+        sourceVersion: mergePrompt.sourceVersion,
+        preferredName: mergePrompt.attemptedName,
+      });
+
+      if (!result.ok) {
+        if (result.latest) syncBuildingFromServer(result.latest as BuildingData);
+        fieldError =
+          result.error ??
+          `${current.buildingName} could not be merged into ${mergePrompt.candidate.buildingName}.`;
+        return;
+      }
+
+      if (result.entity) {
+        syncBuildingFromServer(result.entity as BuildingData);
+        toastStore.show(
+          `Merged ${current.buildingName} into ${mergePrompt.candidate.buildingName}.`,
+          "success",
+        );
+      }
+      mergePrompt = null;
+      editing = false;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${current.buildingName} merge failed: ${reason}`;
+    } finally {
+      mergingEntity = false;
     }
   }
 </script>
@@ -420,6 +485,19 @@
               />
             {/snippet}
           </EntityEditorField>
+
+          {#if mergePrompt}
+            <MergeEntityPrompt
+              entityKind="building"
+              sourceLabel={building.buildingName}
+              candidateLabel={mergePrompt.candidate.buildingName}
+              detail="Merge rooms and map pins into the kept building;"
+              merging={mergingEntity}
+              disabled={savingField !== null}
+              onconfirm={confirmBuildingMerge}
+              ondismiss={dismissMergePrompt}
+            />
+          {/if}
 
           {#if hasMapPin}
             {#if canPublish}
