@@ -12,6 +12,7 @@
     dormMatchesTypeFilter,
   } from "@constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
+  import FinalExamSuggestion from "./FinalExamSuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
 
   const appData = getAppData();
@@ -180,6 +181,7 @@
   {/if}
 
   {#if suggestedResult.length === 0 && queryStore.inputValue !== "" && !roomLoading}
+    <FinalExamSuggestion onSelect={() => {}} />
     <SearchQuerySuggestion />
   {/if}
 </div>
