@@ -5,7 +5,10 @@
     toastStore,
     termStore,
   } from "@lib/store.svelte";
-  import { persistEntityChange, mergeEntityRecord } from "@lib/proposals/client";
+  import {
+    persistEntityChange,
+    mergeEntityRecord,
+  } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
   import MergeEntityPrompt from "@ui/editor/MergeEntityPrompt.svelte";
   import {
@@ -264,7 +267,8 @@
       });
 
       if (!result.ok) {
-        if (result.latest) syncDivisionFromServer(result.latest as DivisionData);
+        if (result.latest)
+          syncDivisionFromServer(result.latest as DivisionData);
         fieldError =
           result.error ??
           `${current.divisionName} could not be merged into ${mergePrompt.candidate.divisionName}.`;

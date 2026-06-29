@@ -5,7 +5,10 @@
     toastStore,
     termStore,
   } from "@lib/store.svelte";
-  import { persistEntityChange, mergeEntityRecord } from "@lib/proposals/client";
+  import {
+    persistEntityChange,
+    mergeEntityRecord,
+  } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
   import MergeEntityPrompt from "@ui/editor/MergeEntityPrompt.svelte";
   import {

@@ -102,7 +102,11 @@ export async function mergeRooms({
   if (!source) throw new Error(`Room ${sourceId} was not found.`);
   if (!target) throw new Error(`Room ${targetId} was not found.`);
 
-  const mergedCode = pickMergedLabel(target.code, source.code, preferredRoomCode);
+  const mergedCode = pickMergedLabel(
+    target.code,
+    source.code,
+    preferredRoomCode,
+  );
   const normalizedMerged = normalizeEntityName(mergedCode);
   const sourceNormalized = normalizeEntityName(source.code);
   const targetNormalized = normalizeEntityName(target.code);
@@ -580,7 +584,10 @@ export async function mergeDorms({
           target.managingOffice,
           source.managingOffice,
         ),
-        contactEmail: pickNullableText(target.contactEmail, source.contactEmail),
+        contactEmail: pickNullableText(
+          target.contactEmail,
+          source.contactEmail,
+        ),
         amenities:
           target.amenities && target.amenities.length > 0
             ? target.amenities
@@ -593,7 +600,10 @@ export async function mergeDorms({
           target.contactPhone && target.contactPhone.length > 0
             ? target.contactPhone
             : source.contactPhone,
-        facebookLink: pickNullableText(target.facebookLink, source.facebookLink),
+        facebookLink: pickNullableText(
+          target.facebookLink,
+          source.facebookLink,
+        ),
         version: sql`"version" + 1`,
         updatedAt: sql`now()`,
       })
