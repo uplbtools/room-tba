@@ -69,7 +69,11 @@ export function buildRoomLookup(
 export function resolveImportRows(
   normalized: NormalizedAmisClass[],
   lookup: ReturnType<typeof buildRoomLookup>,
-): { rows: ClassInsertRow[]; stats: ImportRowStats; unmatched: Map<string, number> } {
+): {
+  rows: ClassInsertRow[];
+  stats: ImportRowStats;
+  unmatched: Map<string, number>;
+} {
   const stats: ImportRowStats = {
     directRoomMatch: 0,
     aliasRoomMatch: 0,

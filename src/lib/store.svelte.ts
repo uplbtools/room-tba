@@ -1565,8 +1565,7 @@ class OfflineStore {
       this.directoryProgress = 1;
     } else {
       this.directoryStatus = "error";
-      this.directoryError =
-        result.error ?? "Campus directory download failed.";
+      this.directoryError = result.error ?? "Campus directory download failed.";
     }
   };
 
