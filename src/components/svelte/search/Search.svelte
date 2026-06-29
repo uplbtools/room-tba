@@ -226,7 +226,13 @@
         ariaExpanded={mapToolsStore.open}
         ariaControls="map-tools-panel"
         title="Map menu"
-        onclick={() => mapToolsStore.toggle()}
+        onclick={() => {
+          if (!mapToolsStore.open) {
+            searchFocused = false;
+            searchElement?.blur();
+          }
+          mapToolsStore.toggle();
+        }}
       >
         <Menu size={20} aria-hidden="true" />
       </MapChromeToggleButton>

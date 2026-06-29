@@ -97,7 +97,7 @@
     padding: 0.75rem;
     width: 100%;
     height: 100dvh;
-    z-index: 100;
+    z-index: var(--z-modal, 100);
     display: flex;
     justify-content: center;
     align-items: center;

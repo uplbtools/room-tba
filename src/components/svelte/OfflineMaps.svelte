@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
-  import { offlineStore } from "@lib/store.svelte";
+  import { mapToolsStore, offlineStore } from "@lib/store.svelte";
   import { rafThrottle } from "@lib/layout-css-vars";
   import { trapFocus } from "@lib/focus-trap";
+  import { portal } from "@lib/portal";
   import "./map-chrome/map-chrome.css";
 
   type Props = {
@@ -44,6 +45,9 @@
   });
 
   function toggleOpen() {
+    if (!open) {
+      mapToolsStore.close();
+    }
     open = !open;
     if (open) {
       queueMicrotask(updatePopoverPosition);
@@ -108,6 +112,7 @@
       role="dialog"
       aria-modal="true"
       aria-label="Offline maps"
+      use:portal
     >
       {#if offlineStore.status === "downloading"}
         <p class="map-chrome-popover-line">
@@ -206,7 +211,7 @@
 
   .offline-popover {
     position: fixed;
-    z-index: 25;
+    z-index: var(--z-chrome-popover, 17);
     border-radius: 0.75rem;
   }
 

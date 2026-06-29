@@ -29,3 +29,6 @@ jobs:
 
       - name: Unit tests
         run: bun test src
+
+      - name: PWA legal route guardrails
+        run: bun run check:pwa-legal
