@@ -19,30 +19,16 @@
   import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
-  import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
-  import ContributorProgressPanel from "./ContributorProgressPanel.svelte";
-  import StatusBarDirectionsStat from "./StatusBarDirectionsStat.svelte";
   import StatusBarLinkGroups from "./StatusBarLinkGroups.svelte";
   import "../map-chrome/map-chrome.css";
 
   type Props = {
-    directionCount: number;
-    totalRooms: number;
-    progressPercent: number;
-    showDirectionsProgress: boolean;
     onSignOut: () => void | Promise<void>;
   };
 
-  const {
-    directionCount,
-    totalRooms,
-    progressPercent,
-    showDirectionsProgress,
-    onSignOut,
-  }: Props = $props();
+  const { onSignOut }: Props = $props();
 
   let open = $state(false);
-  let showCoveragePanel = $state(false);
   let triggerEl = $state<HTMLButtonElement | null>(null);
   let panelEl = $state<HTMLDivElement | null>(null);
   let panelStyle = $state("");
@@ -205,38 +191,6 @@
         <p class="app-menu__meta">Updated {catalogUpdatedLabel}</p>
       </section>
 
-      {#if showDirectionsProgress}
-        <section
-          class="app-menu__section"
-          aria-labelledby="app-menu-coverage-heading"
-        >
-          <h3 id="app-menu-coverage-heading" class="app-menu__heading">
-            Coverage
-          </h3>
-          <StatusBarDirectionsStat
-            {directionCount}
-            {totalRooms}
-            {progressPercent}
-            variant="expanded"
-          />
-          <MapChromeGhostButton
-            variant="muted"
-            aria-expanded={showCoveragePanel}
-            aria-controls="app-menu-coverage-panel"
-            onclick={() => (showCoveragePanel = !showCoveragePanel)}
-          >
-            {showCoveragePanel
-              ? "Hide building breakdown"
-              : "Progress by building"}
-          </MapChromeGhostButton>
-          {#if showCoveragePanel}
-            <div id="app-menu-coverage-panel" class="app-menu__coverage">
-              <ContributorProgressPanel />
-            </div>
-          {/if}
-        </section>
-      {/if}
-
       <section
         class="app-menu__section"
         aria-labelledby="app-menu-links-heading"
@@ -315,10 +269,6 @@
 
   .app-menu__offline :global(.offline-maps) {
     width: 100%;
-  }
-
-  .app-menu__coverage {
-    margin-top: 0.25rem;
   }
 
   .app-menu__section--install :global(.pwa-install-prompt) {

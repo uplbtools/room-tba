@@ -9,6 +9,7 @@
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
+  import ContributorProgressPanel from "@ui/status-bar/ContributorProgressPanel.svelte";
   import Download from "@lucide/svelte/icons/download";
 
   type LandingTab = "welcome" | "campus";
@@ -158,6 +159,14 @@
         id="landing-panel-campus"
         aria-labelledby="landing-tab-campus"
       >
+        <section class="coverage-block">
+          <h3>Campus data coverage</h3>
+          <p class="section-note">
+            Track directions, schedules, and map pins across campus buildings.
+          </p>
+          <ContributorProgressPanel />
+        </section>
+
         <GithubContributorsSection
           title="Developers"
           note="From GitHub commit history on the Room TBA repo."
@@ -396,6 +405,25 @@
     font-size: 0.9375rem;
     font-weight: 700;
     color: hsl(5, 53%, 28%);
+  }
+
+  .coverage-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .coverage-block h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 28%);
+    text-align: center;
+  }
+
+  .coverage-block :global(.contributor-progress) {
+    width: 100%;
   }
 
   .section-note {
