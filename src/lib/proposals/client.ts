@@ -121,7 +121,7 @@ export async function persistEntityChange(
   published?: unknown;
   proposal?: StoredProposalRef;
   latest?: unknown;
-  mergeCandidate?: RoomData;
+  mergeCandidate?: unknown;
   attemptedName?: string;
 }> {
   if (input.canPublish) {
@@ -136,7 +136,7 @@ export async function persistEntityChange(
         ok: false,
         error: result.error ?? `${input.entityLabel} failed to save.`,
         latest: result.latest,
-        mergeCandidate: result.mergeCandidate as RoomData | undefined,
+        mergeCandidate: result.mergeCandidate,
         attemptedName: result.attemptedName,
       };
     }
@@ -267,6 +267,83 @@ export async function mergeEntityRooms(input: {
     };
   }
   return { ok: true, room: (data as { room?: RoomData }).room };
+}
+
+type MergeEntityConfig = {
+  path: string;
+  targetKey: string;
+  responseKey: string;
+};
+
+const MERGE_ENTITY_CONFIG: Record<
+  Exclude<ProposalEntityType, "event" | "event_locations">,
+  MergeEntityConfig
+> = {
+  building: {
+    path: "buildings",
+    targetKey: "targetBuildingId",
+    responseKey: "building",
+  },
+  college: {
+    path: "colleges",
+    targetKey: "targetCollegeId",
+    responseKey: "college",
+  },
+  division: {
+    path: "divisions",
+    targetKey: "targetDivisionId",
+    responseKey: "division",
+  },
+  dorm: {
+    path: "dorms",
+    targetKey: "targetDormId",
+    responseKey: "dorm",
+  },
+  room: {
+    path: "rooms",
+    targetKey: "targetRoomId",
+    responseKey: "room",
+  },
+};
+
+export async function mergeEntityRecord(input: {
+  entityType: Exclude<ProposalEntityType, "event" | "event_locations">;
+  sourceId: number;
+  targetId: number;
+  sourceVersion: number;
+  preferredName?: string;
+}): Promise<{
+  ok: boolean;
+  error?: string;
+  entity?: unknown;
+  latest?: unknown;
+}> {
+  const config = MERGE_ENTITY_CONFIG[input.entityType];
+  const res = await fetch(`/api/admin/${config.path}/${input.sourceId}/merge`, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      [config.targetKey]: input.targetId,
+      sourceVersion: input.sourceVersion,
+      preferredName: input.preferredName,
+      ...(input.entityType === "room"
+        ? { preferredRoomCode: input.preferredName }
+        : {}),
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: (data as { error?: string }).error,
+      latest: (data as { latest?: unknown }).latest,
+    };
+  }
+  return {
+    ok: true,
+    entity: (data as Record<string, unknown>)[config.responseKey],
+  };
 }
 
 function adminCreatePath(entityType: ProposalCreateType): string {
