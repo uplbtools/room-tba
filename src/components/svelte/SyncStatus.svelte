@@ -9,6 +9,8 @@
   } from "@lucide/svelte";
   import { syncToastStore, appBootstrapStore } from "@lib/store.svelte";
   import { APP_VERSION_LABEL } from "@constants/version";
+  import { parseChangelogHighlights } from "@lib/changelog-highlights";
+  import changelogRaw from "../../../CHANGELOG.md?raw";
 
   type Props = {
     /** When true, show compact collapsed label for mobile status bar. */
@@ -89,6 +91,15 @@
   );
   const showIndeterminate = $derived(
     syncToastStore.isSyncing && !syncToastStore.hasCountableProgress,
+  );
+
+  const updateHighlights = $derived(parseChangelogHighlights(changelogRaw));
+  const showUpdateHighlights = $derived(
+    syncToastStore.needRefresh &&
+      showDetail &&
+      !compact &&
+      updateHighlights !== null &&
+      updateHighlights.items.length > 0,
   );
 
   const statusLabel = $derived.by(() => {
@@ -252,6 +263,19 @@
         </span>
         {#if showDetail && displayedDetail}
           <span class="sync-status-detail">{displayedDetail}</span>
+        {/if}
+        {#if showUpdateHighlights && updateHighlights}
+          <ul class="sync-update-highlights" aria-label="What's new">
+            {#each updateHighlights.items as item (item)}
+              <li>{item}</li>
+            {/each}
+          </ul>
+          {#if updateHighlights.totalCount > updateHighlights.items.length}
+            <p class="sync-update-more">
+              + {updateHighlights.totalCount - updateHighlights.items.length} more
+              in changelog
+            </p>
+          {/if}
         {/if}
       </div>
       {#if showReload}
@@ -514,6 +538,27 @@
     line-height: 1.1;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .sync-update-highlights {
+    margin: 0.25rem 0 0;
+    padding-left: 1rem;
+    color: hsl(0, 0%, 28%);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.35;
+    list-style: disc;
+  }
+
+  .sync-update-highlights li + li {
+    margin-top: 0.125rem;
+  }
+
+  .sync-update-more {
+    margin: 0.125rem 0 0;
+    color: hsl(0, 0%, 45%);
+    font-size: 0.6875rem;
+    font-weight: 500;
   }
 
   .sync-action.reload-button {

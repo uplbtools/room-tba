@@ -17,6 +17,7 @@
     "format": "prettier --write .",
     "test": "bun test src",
     "check:readme": "bun run scripts/check-readme-drift.ts",
+    "check:pwa-legal": "bun run scripts/check-pwa-legal-routes.ts",
     "seed:events": "bun src/seed-events.ts",
     "seed:aliases": "bun run scripts/seed-aliases.ts",
     "import:amis-classes": "bun run scripts/import-amis-classes.ts",

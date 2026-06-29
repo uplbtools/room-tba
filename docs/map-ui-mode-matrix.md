@@ -23,7 +23,27 @@ Only one browse overlay from the chip row is active at a time (except **All** pi
 - **All** is neutral: selecting it does not touch transit.
 - Edit/terrain exclusivity via `deactivateMapModesExcept` is unchanged.
 
-Term-chip exclusivity is intentionally not enforced here (deferred — needs a product call on whether opening the term picker should drop transit/pins).
+Term-chip exclusivity: opening the term picker closes the map tools flyout (and vice versa) so top-band popovers do not stack on mobile.
+
+## Overlay stacking (`.app-layout` tokens)
+
+Lowest to highest:
+
+| Layer                     | Token / value            | Surfaces                                       |
+| ------------------------- | ------------------------ | ---------------------------------------------- |
+| Map canvas                | `--z-map: 0`             | MapLibre canvas                                |
+| Side panel                | `--z-side-panel: 2`      | MainControls drawer                            |
+| Bottom chrome             | `--z-status-bar: 3`      | Status bar tray                                |
+| UI shell                  | `10` (`.ui-layer`)       | Search, side panel host                        |
+| Drawer-lift FABs          | `14`                     | Location button when sheet open                |
+| Map tools (mobile)        | `--z-map-tools: 16`      | Map tools flyout stack                         |
+| Chrome popovers           | `--z-chrome-popover: 17` | Term picker, offline maps (portaled to `body`) |
+| Edit dock / editor screen | `18`                     | Map edit toolbar                               |
+| Browse modals             | `--z-modal: 100`         | Landing, schedule expand                       |
+| Login / editor addition   | `--z-login-modal: 200`   | Admin login (closes browse modals on open)     |
+| Toast                     | `--z-toast: 1000`        | App-layout sibling (above edit dock)           |
+
+Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome stacking context. Editor login closes browse modals before opening.
 
 ## Layout zones (Entry.svelte)
 
