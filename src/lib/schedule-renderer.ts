@@ -6,6 +6,7 @@ type Course = {
   courseCode: string;
   section: string;
   color: string;
+  groupKey?: string | null;
 };
 
 export class ScheduleRenderer {
@@ -174,6 +175,12 @@ export class ScheduleRenderer {
       ctx.beginPath();
       ctx.roundRect(x, y, width, height, 2);
       ctx.fill();
+
+      if (course.groupKey) {
+        ctx.strokeStyle = "rgba(123, 17, 19, 0.55)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
 
       ctx.fillStyle = "#FFFFFF";
       ctx.textAlign = "center";

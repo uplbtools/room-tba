@@ -290,8 +290,10 @@
   {/if}
   {#if collegeRooms}
     <ResultDisplay filteredRooms={collegeRooms} {classCounts} />
-  {:else}
-    Loading data...
+  {:else if college}
+    <p class="entity-loading-note">
+      Loading rooms for {college.collegeName}…
+    </p>
   {/if}
 </div>
 
