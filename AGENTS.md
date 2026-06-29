@@ -22,6 +22,7 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | Issue-linked work / keeping specs current        | [docs/issue-hygiene.md](docs/issue-hygiene.md)                                                                          |
 | Volunteer triage                                 | [docs/volunteer-triage.md](docs/volunteer-triage.md)                                                                    |
+| Vercel env, deploy guards, Supabase ops          | [AGENTS.md § Vercel CLI and environment ops](#vercel-cli-and-environment-ops)                                           |
 
 ## How to work
 
@@ -65,6 +66,7 @@ git push origin staging
 
 - Push to **`staging`** when the user asks to land work on integration, ship to staging, or says push (and context is not a release to prod).
 - **Do not push to `main`** except via the **`staging` → `main`** release PR (or an explicit hotfix the user requested).
+- **Never `vercel deploy --prod`** unless `git branch --show-current` is `main` and matches `origin/main`. Staging integration uses `git push origin staging` only.
 - After pushing `staging`, Vercel builds the staging preview (`staging.room-tba.uplbtools.me`). Preview env must have **`DATABASE_URL`** (same Supabase as production) or the build fails at prerender.
 
 Feature branches remain appropriate for large or review-heavy work: `feat/…` → PR to `staging` → merge → delete branch.
@@ -251,34 +253,65 @@ CRS/AMIS `term_id` values are **chronological within the academic year** — the
 
 ## Vercel CLI and environment ops
 
-The project deploys on Vercel. Use the CLI for env management and preview control.
+The project deploys on Vercel (`stimmie/saan-ang-room`, see `.vercel/project.json`). Production: `room-tba.uplbtools.me`. Staging preview: `staging.room-tba.uplbtools.me`. Git remote may redirect `smmariquit/room-tba` → **`uplbtools/room-tba`** — use `gh` against `uplbtools/room-tba`.
+
+### Branch → deploy target
+
+| Git branch       | Vercel target    | URL (approx.)                   |
+| ---------------- | ---------------- | ------------------------------- |
+| `main`           | **Production**   | `room-tba.uplbtools.me`         |
+| `staging`        | **Preview** only | `staging.room-tba.uplbtools.me` |
+| feature branches | **Preview**      | `*.vercel.app`                  |
+
+Code reaches production **only** when `staging → main` is merged (release PR), then Vercel builds **`main`**. Confirm Vercel → Project → Settings → Git has **Production Branch = `main`**.
+
+Build guards (run automatically on Vercel via `scripts/vercel-build-guard.sh` before `astro build`):
+
+- `scripts/check-vercel-env.sh` — fails if `DATABASE_URL` is missing or an empty string.
+- `scripts/check-production-branch.sh` — fails production builds when `VERCEL_GIT_COMMIT_REF` is not `main`.
+
+Local checks: `bun run check:vercel-env`, `bun run check:prod-branch` (set `VERCEL_ENV=production` to test the branch guard).
+
+### Env vars required for builds
+
+- **`DATABASE_URL` is mandatory** for `bun run build` (Astro SSG prerender hits Postgres). Required on **Production** and **Preview (all branches)** — not only `staging`.
+- Legacy **`NEON_CONNECTION_STRING`** may still appear in Vercel; **runtime code uses `DATABASE_URL` only**.
+- Optional server vars: `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `R2_*`. Supabase JS client uses separate `PUBLIC_SUPABASE_URL` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` (optional until Auth features need them). See `.env.example`.
+
+### Commands (cheat sheet)
 
 ```sh
-# Link (once)
 vercel link
-
-# Pull env vars for local dev
-vercel env pull .env.vercel --environment=development --yes
-# Merge DATABASE_URL into .env; keep local ADMIN_PASSWORD if set.
-
-# Add / update an env var
-vercel env add DATABASE_URL production
-vercel env add DATABASE_URL preview
-
-# List vars
 vercel env ls
-
-# Validate required vars before deploy
-./scripts/check-vercel-env.sh
-
-# Guard: prevent production deploys from staging branch
-./scripts/check-production-branch.sh
+vercel env pull .env.vercel --environment=production --yes   # or preview / development
+vercel env add DATABASE_URL production --value "$DATABASE_URL" --yes --force
+vercel env add DATABASE_URL preview staging --value "$DATABASE_URL" --yes --force
+vercel ls
+vercel inspect <deployment-url>
+vercel deploy --prod --yes   # manual prod redeploy — only from main checkout
 ```
 
-- **Vercel project:** `stimmie/saan-ang-room` (linked in `.vercel/project.json`).
-- **Preview builds** (`staging` branch) must have `DATABASE_URL` set or prerender fails.
-- **Production builds** must come from `main`; the `check-production-branch.sh` script enforces this.
-- `vercel env pull` sometimes returns `""` for encrypted vars; copy `DATABASE_URL` from the Vercel UI or Supabase dashboard if empty.
+### Pitfalls
+
+| Trap                                                              | Reality                                                                                                                |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `vercel env pull` shows `DATABASE_URL=""`                         | Encrypted values often **omit** in pull output — not proof the var is unset. Verify via successful build or Vercel UI. |
+| Var listed as “Encrypted” in `vercel env ls`                      | Can still be an **empty string** — causes `[EnvInvalidVariables] DATABASE_URL is missing`.                             |
+| `vercel env add DATABASE_URL preview` (no branch) non-interactive | CLI returns `git_branch_required`; use branch arg (`staging`) or Vercel API for all Preview targets.                   |
+| Only `Preview (staging)` has `DATABASE_URL`                       | PR previews on other branches still fail.                                                                              |
+| `vercel deploy --prod` from `staging` checkout                    | Bypasses release gate — blocked by `check-production-branch.sh` on Vercel production builds.                           |
+
+**API fallback (all Preview branches, non-interactive):** `POST /v10/projects/{projectId}/env?teamId={teamId}` with `{ "key": "DATABASE_URL", "value": "…", "type": "encrypted", "target": ["preview"] }`. Never paste connection strings into issues or commits.
+
+### Supabase ops
+
+- **Runtime Postgres:** Supabase via **`DATABASE_URL`** (Drizzle in `src/lib/db.ts`). Not PGlite, not Neon at runtime.
+- **Migrations:** SQL in `drizzle/` — apply to Supabase **before** deploying code that depends on new columns (`psql "$DATABASE_URL" -f drizzle/….sql` or dashboard SQL editor). Repo does not use `supabase db push` as the primary flow.
+- **Connection string:** Prefer **session pooler** (`*.pooler.supabase.com`) from Supabase dashboard → Settings → Database.
+- **Optional CLI:** `supabase login`, `supabase projects list`; `bunx drizzle-kit studio` to browse schema locally (needs working `DATABASE_URL`).
+- After fixing Vercel env, **redeploy** — failed deployments are not auto-retried.
+
+Human setup detail: [docs/developer-guide.md](docs/developer-guide.md). Cursor Cloud quick notes remain in [§ Cursor Cloud specific instructions](#cursor-cloud-specific-instructions) below — link here instead of duplicating env troubleshooting.
 
 ## README sync (no drift)
 

@@ -59,6 +59,7 @@ type RoomData = {
   divisionName: string | null;
   version: number;
   updatedAt: string;
+  floor?: number | null;
 };
 
 type BuildingData = typeof buildingsTable.$inferSelect;
@@ -97,6 +98,7 @@ type CollegeData = {
   collegeName: string;
   version: number;
   updatedAt: string;
+  floor?: number | null;
 };
 
 type DivisionData = {
@@ -105,6 +107,7 @@ type DivisionData = {
   collegeId: number | null;
   version: number;
   updatedAt: string;
+  floor?: number | null;
 };
 
 type DormData = typeof dormsTable.$inferSelect;

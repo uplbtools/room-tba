@@ -54,6 +54,9 @@
       >
     </div>
     <h3 class="room-code">{@html highlightSearch(room.code, pattern)}</h3>
+    {#if room.floor != null}
+      <span class="floor-badge">Floor {room.floor}</span>
+    {/if}
     <div class="class-count">
       {#if classCountLabel}{classCountLabel}{/if}
     </div>
@@ -107,6 +110,16 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+  }
+
+  .floor-badge {
+    background-color: hsl(5, 53%, 32%);
+    color: white;
+    border-radius: 0.25rem;
+    padding: 1px 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    white-space: nowrap;
   }
 
   .class-count {
