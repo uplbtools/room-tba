@@ -31,6 +31,12 @@
     });
     queryStore.inputValue = value;
   }
+
+  function handleRemoveRecent(event: MouseEvent) {
+    event.stopPropagation();
+    if (typeof id === "undefined") return;
+    queryStore.removeRecentSearch(id);
+  }
 </script>
 
 {#snippet icon(type: typeof category)}
@@ -53,35 +59,69 @@
   </span>
 {/snippet}
 
-<button class="suggestion" onclick={handleSuggestionClick}>
-  {@render icon(category)}
-  <div class="text">{value}</div>
+<div class="suggestion-row">
+  <button type="button" class="suggestion" onclick={handleSuggestionClick}>
+    {@render icon(category)}
+    <div class="text">{value}</div>
+    {#if typeof id === "undefined"}
+      <ArrowUpRight size={20} class="icon trailing" />
+    {/if}
+  </button>
   {#if typeof id !== "undefined"}
-    <X
-      size={20}
-      style="margin-left:auto"
-      onclick={(e) => {
-        e.stopImmediatePropagation();
-        queryStore.removeRecentSearch(id);
-      }}
-    ></X>
-  {:else}
-    <ArrowUpRight size={20} style="margin-left:auto" class="icon" />
+    <button
+      type="button"
+      class="suggestion-remove"
+      aria-label={`Remove ${value} from recent searches`}
+      onclick={handleRemoveRecent}
+    >
+      <X size={18} aria-hidden="true" />
+    </button>
   {/if}
-</button>
+</div>
 
 <style>
+  .suggestion-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.125rem;
+    border-radius: 0.5rem;
+  }
+
+  .suggestion-row:hover .suggestion,
+  .suggestion-row:focus-within .suggestion {
+    background-color: hsl(0, 0%, 95%);
+  }
+
   .suggestion {
     all: unset;
+    box-sizing: border-box;
+    flex: 1;
+    min-width: 0;
     padding: 0.4375rem 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
     border-radius: 0.5rem;
-    &:hover {
-      background-color: hsl(0, 0%, 95%);
-    }
+  }
+
+  .suggestion-remove {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2rem;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    color: #52525b;
+  }
+
+  .suggestion-remove:hover,
+  .suggestion-remove:focus-visible {
+    background-color: hsl(0, 0%, 90%);
+    color: #18181b;
   }
 
   :global(.icon) {
@@ -92,13 +132,18 @@
     flex-shrink: 0;
   }
 
+  :global(.icon.trailing) {
+    margin-left: auto;
+  }
+
   .text {
     font-size: 0.875rem;
-    color: #18181b; /* zinc-900 */
+    color: #18181b;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
   @media (max-width: 425px) {
     .suggestion {
       padding: 0.4375rem 0.375rem;
