@@ -1,3 +1,19 @@
+# [1.14.0](https://github.com/uplbtools/room-tba/compare/v1.13.1...v1.14.0) (2026-06-29)
+
+
+### Bug Fixes
+
+* **pwa:** load legal pages outside fallback ([5571e79](https://github.com/uplbtools/room-tba/commit/5571e7939f0e58e430bf2c6cdc602c344ab6e601))
+* **schedule:** bind canvas element ref instead of getElementById ([8738719](https://github.com/uplbtools/room-tba/commit/873871910ad2b27243414c072b17e1dd221adb76)), closes [#330](https://github.com/uplbtools/room-tba/issues/330)
+* **search:** make recent search remove button work ([28454da](https://github.com/uplbtools/room-tba/commit/28454da4b209c8b4a2d55c60b6f0c1c52b36d764)), closes [#326](https://github.com/uplbtools/room-tba/issues/326)
+* **ui:** close jeepney stop panel when query changes ([ff86769](https://github.com/uplbtools/room-tba/commit/ff86769d771ada9ece6d6913c87562f24df333a7)), closes [#324](https://github.com/uplbtools/room-tba/issues/324)
+* **ux:** open Contributors on Campus team tab ([dae07dd](https://github.com/uplbtools/room-tba/commit/dae07dd0cb4e16bc365ca13e98a3513baf4f5c40)), closes [#320](https://github.com/uplbtools/room-tba/issues/320)
+
+
+### Features
+
+* **batch:** 5 small tickets — refresh, class counts, transit exclusivity, stop panel, z-index fix ([#344](https://github.com/uplbtools/room-tba/issues/344)) ([6b8eb45](https://github.com/uplbtools/room-tba/commit/6b8eb4583e9d4fb353b4392160fd722d5ce16aa9)), closes [#340](https://github.com/uplbtools/room-tba/issues/340) [#337](https://github.com/uplbtools/room-tba/issues/337) [#342](https://github.com/uplbtools/room-tba/issues/342) [#324](https://github.com/uplbtools/room-tba/issues/324) [#339](https://github.com/uplbtools/room-tba/issues/339)
+
 # [1.9.0](https://github.com/uplbtools/room-tba/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 
