@@ -1,0 +1,1 @@
+ALTER TABLE "admin_users" ADD COLUMN IF NOT EXISTS "supabase_user_id" uuid;
