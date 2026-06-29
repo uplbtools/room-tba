@@ -13,6 +13,7 @@ import { db } from "@lib/db";
 import { normalizeCourseCode } from "@lib/final-exams/normalize";
 import { normalizeAlias } from "@lib/site";
 import { normalizeDormListFields } from "@lib/string-lists";
+import { getBuildCache } from "./ssg-cache";
 import type {
   BuildingData,
   ClassMapValue,
@@ -23,6 +24,70 @@ import type {
   RoomData,
 } from "@lib/types";
 
+// Cached getters for SSG (#331)
+export async function getAllBuildingsCached(): Promise<BuildingData[]> {
+  const cache = getBuildCache();
+  if (cache.buildings) return cache.buildings;
+  const data = await db.select().from(buildingsTable);
+  cache.buildings = data;
+  return data;
+}
+
+export async function getAllRoomsCached(): Promise<RoomData[]> {
+  const cache = getBuildCache();
+  if (cache.rooms) return cache.rooms;
+  const data = await db
+    .select({
+      id: roomsTable.id,
+      code: roomsTable.roomCode,
+      directions: roomsTable.directions,
+      building: {
+        name: buildingsTable.buildingName,
+        lat: buildingsTable.lat,
+        lon: buildingsTable.lon,
+        directions: buildingsTable.directions,
+      },
+      collegeName: collegesTable.collegeName,
+      divisionName: divisionsTable.divisionName,
+      buildingId: roomsTable.buildingId,
+      collegeId: roomsTable.collegeId,
+      divisionId: roomsTable.divisionId,
+      version: roomsTable.version,
+      updatedAt: roomsTable.updatedAt,
+    })
+    .from(roomsTable)
+    .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+    .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+    .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
+  cache.rooms = data;
+  return data;
+}
+
+export async function getAllCollegesCached(): Promise<CollegeData[]> {
+  const cache = getBuildCache();
+  if (cache.colleges) return cache.colleges;
+  const data = await db.select().from(collegesTable);
+  cache.colleges = data;
+  return data;
+}
+
+export async function getAllDivisionsCached(): Promise<DivisionData[]> {
+  const cache = getBuildCache();
+  if (cache.divisions) return cache.divisions;
+  const data = await db.select().from(divisionsTable);
+  cache.divisions = data;
+  return data;
+}
+
+export async function getAllDormsCached(): Promise<DormData[]> {
+  const cache = getBuildCache();
+  if (cache.dorms) return cache.dorms;
+  const data = await db.select().from(dormsTable);
+  cache.dorms = data;
+  return data;
+}
+
+// Legacy non-cached versions for runtime use
 export async function getAllBuildings(): Promise<BuildingData[]> {
   try {
     const data = await db.select().from(buildingsTable);

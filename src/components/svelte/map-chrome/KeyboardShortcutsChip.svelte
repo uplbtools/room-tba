@@ -8,7 +8,10 @@
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
   import { mapToolsStore } from "@lib/store.svelte";
-  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
+  import {
+    registerEphemeralOverlayDismisser,
+    openEphemeralOverlay,
+  } from "@lib/overlay-stack";
   import "./map-chrome.css";
 
   type Props = {
@@ -57,9 +60,15 @@
   });
 
   function toggleOpen() {
-    if (!open) mapToolsStore.close();
-    open = !open;
-    if (open) queueMicrotask(updatePanelPosition);
+    if (!open) {
+      openEphemeralOverlay(() => {
+        mapToolsStore.close();
+        open = true;
+        queueMicrotask(updatePanelPosition);
+      });
+      return;
+    }
+    open = false;
   }
 
   function closePanel() {

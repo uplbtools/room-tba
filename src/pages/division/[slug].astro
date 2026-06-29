@@ -2,7 +2,7 @@
 import EntityPage from "@seo/EntityPage.astro";
 import { getDivisionSlug } from "@lib/app-data";
 import { getDivisionPageData } from "@lib/services/ssg-service";
-import { getAllDivisions } from "@lib/services/map-data-service";
+import { getAllDivisionsCached } from "@lib/services/map-data-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -12,7 +12,7 @@ import {
 } from "@lib/site";
 
 export async function getStaticPaths() {
-  const divisions = await getAllDivisions();
+  const divisions = await getAllDivisionsCached();
 
   return divisions.map((division) => ({
     params: { slug: getDivisionSlug(division) },

@@ -17,3 +17,9 @@ export function dismissEphemeralOverlays() {
     dismiss();
   }
 }
+
+/** Close sibling flyouts, then open the requested panel (#302). */
+export function openEphemeralOverlay(open: () => void) {
+  dismissEphemeralOverlays();
+  open();
+}
