@@ -4,6 +4,7 @@ import {
   applySupabaseCacheHeaders,
   refreshSupabaseSession,
 } from "./lib/supabase/session";
+import { recordLatency } from "./lib/latency-tracker";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
@@ -37,6 +38,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const response = await next();
   const duration = Math.round(performance.now() - start);
+  recordLatency(pathname, duration);
 
   // Add Server-Timing header for API routes so Vercel logs and browsers
   // can surface slow endpoints during QA (#313).
