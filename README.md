@@ -33,6 +33,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | ----------------------------- | ---------------------------------------------------------------- |
 | Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)                            |
 | Room schedule this sem        | Term filter + timetable                                          |
+| Browse all classes            | Status bar → Browse classes; search by course code               |
 | Final exam time & room        | Search course code → finals panel; room panel during finals week |
 | Building location             | Map, pins, directions, Google Maps                               |
 | Offline / bad signal          | PWA + local cache; tiles if already loaded                       |

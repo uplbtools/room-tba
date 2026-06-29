@@ -1,4 +1,4 @@
-import { and, eq, like, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, ilike, like, or, sql } from "drizzle-orm";
 import {
   aliasesTable,
   buildingsTable,
@@ -243,21 +243,73 @@ export async function getAllDivisions(): Promise<DivisionData[]> {
   }
 }
 
+const classListSelect = {
+  id: classesTable.id,
+  termId: classesTable.termId,
+  roomId: classesTable.roomId,
+  courseCode: classesTable.courseCode,
+  roomCode: roomsTable.roomCode,
+  section: classesTable.section,
+  type: classesTable.type,
+  schedule: classesTable.schedule,
+  directions: roomsTable.directions,
+  courseTitle: classesTable.courseTitle,
+};
+
+function classListWhere(termId?: number, courseCodePrefix?: string) {
+  const filters = [];
+  if (termId != null) {
+    filters.push(eq(classesTable.termId, termId));
+  }
+  const prefix = courseCodePrefix?.trim();
+  if (prefix) {
+    filters.push(ilike(classesTable.courseCode, `${prefix.toUpperCase()}%`));
+  }
+  return filters.length > 0 ? and(...filters) : undefined;
+}
+
+export type ClassQueryPage = {
+  rows: ClassMapValue[];
+  total: number;
+};
+
+export async function queryClasses(options: {
+  termId?: number;
+  courseCodePrefix?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<ClassQueryPage> {
+  try {
+    const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+    const offset = Math.max(options.offset ?? 0, 0);
+    const where = classListWhere(options.termId, options.courseCodePrefix);
+
+    const [{ value: total }] = await db
+      .select({ value: count() })
+      .from(classesTable)
+      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+      .where(where);
+
+    const rows = await db
+      .select(classListSelect)
+      .from(classesTable)
+      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+      .where(where)
+      .orderBy(asc(classesTable.courseCode), asc(classesTable.section))
+      .limit(limit)
+      .offset(offset);
+
+    return { rows, total: Number(total ?? 0) };
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to query classes", { cause: e });
+  }
+}
+
 export async function getAllClasses(termId?: number): Promise<ClassMapValue[]> {
   try {
     const data = await db
-      .select({
-        id: classesTable.id,
-        termId: classesTable.termId,
-        roomId: classesTable.roomId,
-        courseCode: classesTable.courseCode,
-        roomCode: roomsTable.roomCode,
-        section: classesTable.section,
-        type: classesTable.type,
-        schedule: classesTable.schedule,
-        directions: roomsTable.directions,
-        courseTitle: classesTable.courseTitle,
-      })
+      .select(classListSelect)
       .from(classesTable)
       .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
       .where(termId != null ? eq(classesTable.termId, termId) : undefined);

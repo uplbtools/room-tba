@@ -8,7 +8,7 @@
 
   type Props = {
     groups: StatusBarNavGroup[];
-    onAction: (id: "contributors" | "editor-login") => void;
+    onAction: (id: "contributors" | "editor-login" | "browse-classes") => void;
   };
 
   const { groups, onAction }: Props = $props();

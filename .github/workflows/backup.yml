@@ -1,0 +1,39 @@
+name: Database backup
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Install pg_dump
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Run backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          mkdir -p backups
+          stamp=$(date +%Y%m%d-%H%M%S)
+          pg_dump "$DATABASE_URL" --format=custom --file="backups/room-tba-${stamp}.dump"
+          pg_dump "$DATABASE_URL" --format=plain --file="backups/room-tba-${stamp}.sql"
+          echo "Backup completed: room-tba-${stamp}.dump"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 7
+      - name: Notify on failure
+        if: failure()
+        run: echo "::error::Database backup failed"

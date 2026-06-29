@@ -45,15 +45,14 @@
 
       <div class="class-offering__sections">
         {#each group.sections as sectionClass (sectionClass.id)}
-          {@const elsewhere =
-            currentRoomCode &&
+          {@const showRoomLink =
             sectionClass.roomCode &&
-            sectionClass.roomCode !== currentRoomCode}
+            (!currentRoomCode || sectionClass.roomCode !== currentRoomCode)}
           <article class="class-section-row">
             <div class="class-section-row__main">
               <div class="class-section-row__type">
                 {sectionClass.type ?? "Class"}
-                {#if elsewhere && sectionClass.roomCode}
+                {#if showRoomLink && sectionClass.roomCode}
                   <span class="class-section-row__room">
                     in {sectionClass.roomCode}
                   </span>
@@ -63,7 +62,7 @@
                 {formatSchedule(sectionClass.schedule)}
               </div>
             </div>
-            {#if elsewhere && sectionClass.roomCode}
+            {#if showRoomLink && sectionClass.roomCode}
               <button
                 type="button"
                 class="class-section-row__open"
