@@ -64,7 +64,7 @@ export type SyncTableKey =
 export type SyncActivity = "idle" | "checking" | "fetching" | "writing";
 
 const SYNC_TABLE_LABELS: Record<SyncTableKey, string> = {
-  buildings: "buildings",
+  buildings: "building list",
   colleges: "colleges",
   divisions: "divisions",
   dorms: "dorms",
@@ -443,11 +443,7 @@ class MainControlsStore {
 }
 
 export type FloatingControlPanel =
-  | "legend"
-  | "building-type"
-  | "terrain"
-  | "admin"
-  | "suggest-addition";
+  "legend" | "building-type" | "terrain" | "admin" | "suggest-addition";
 
 class FloatingControlPanelStore {
   openPanel: FloatingControlPanel | null = $state(null);
@@ -1032,12 +1028,7 @@ class JeepneyStore {
 }
 
 export type AppBootstrapPhase =
-  | "idle"
-  | "local"
-  | "remote"
-  | "sync"
-  | "ready"
-  | "error";
+  "idle" | "local" | "remote" | "sync" | "ready" | "error";
 
 class AppBootstrapStore {
   phase = $state<AppBootstrapPhase>("idle");
@@ -1208,7 +1199,7 @@ class SyncToastStore {
   stepDetail = $derived.by((): string | null => {
     if (this.syncError) return "Tap to retry";
     if (this.allSynced && !this.needRefresh) {
-      return "Room TBA can now work offline";
+      return "Campus directory cached; room lists load when you open a building";
     }
     if (this.needRefresh) return "Reload to get the latest updates.";
     if (this.activity === "checking") {

@@ -508,7 +508,9 @@
   {#if buildingRooms}
     <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
   {:else if building}
-    <p class="entity-loading-note">Loading rooms…</p>
+    <p class="entity-loading-note">
+      Loading rooms for {building.buildingName}…
+    </p>
   {/if}
 </div>
 
