@@ -58,7 +58,10 @@ export function createEntityMergeRoute<TEntity>(options: {
     const sourceVersion = body.sourceVersion;
 
     if (!Number.isInteger(targetId)) {
-      return json({ error: `Target ${options.entityLabel} ID is required` }, 400);
+      return json(
+        { error: `Target ${options.entityLabel} ID is required` },
+        400,
+      );
     }
     if (!Number.isInteger(sourceVersion)) {
       return json({ error: "Source version is required" }, 400);

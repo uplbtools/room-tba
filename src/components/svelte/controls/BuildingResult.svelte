@@ -364,7 +364,8 @@
       });
 
       if (!result.ok) {
-        if (result.latest) syncBuildingFromServer(result.latest as BuildingData);
+        if (result.latest)
+          syncBuildingFromServer(result.latest as BuildingData);
         fieldError =
           result.error ??
           `${current.buildingName} could not be merged into ${mergePrompt.candidate.buildingName}.`;

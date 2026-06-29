@@ -35,11 +35,7 @@ export class DuplicateSlugError extends Error {
 }
 
 export type MergeEntityType =
-  | "room"
-  | "building"
-  | "college"
-  | "division"
-  | "dorm";
+  "room" | "building" | "college" | "division" | "dorm";
 
 export class DuplicateNameError<TCandidate = unknown> extends Error {
   entityType: MergeEntityType;
@@ -197,7 +193,10 @@ export async function findBuildingMergeCandidate(
   if (!normalized) return null;
 
   const rows = await db
-    .select({ id: buildingsTable.id, buildingName: buildingsTable.buildingName })
+    .select({
+      id: buildingsTable.id,
+      buildingName: buildingsTable.buildingName,
+    })
     .from(buildingsTable)
     .where(ne(buildingsTable.id, excludeId));
 
@@ -582,7 +581,10 @@ export async function updateBuilding(
 
   if (Object.keys(updates).length > 0) {
     if (input.buildingName !== undefined) {
-      const candidate = await findBuildingMergeCandidate(input.buildingName, id);
+      const candidate = await findBuildingMergeCandidate(
+        input.buildingName,
+        id,
+      );
       if (candidate) {
         throw new DuplicateNameError("building", candidate, input.buildingName);
       }
