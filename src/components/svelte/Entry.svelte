@@ -190,14 +190,14 @@
         </div>
       </div>
     </div>
-    {#if toastStore.message}
-      <Toast
-        message={toastStore.message}
-        type={toastStore.type}
-        onclose={() => toastStore.clear()}
-      />
-    {/if}
   </div>
+  {#if toastStore.message}
+    <Toast
+      message={toastStore.message}
+      type={toastStore.type}
+      onclose={() => toastStore.clear()}
+    />
+  {/if}
   <Modal />
   {#if building3DStore.buildingName}
     <Building3DViewer name={building3DStore.buildingName} />
@@ -256,16 +256,17 @@
     --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
     /* Stacking contract — highest first, only one primary overlay at a time.
-       map(0) < ui-layer(10) < map-tools(15) < modal(100) < admin-login(200)
-       < toast(1000) < term-selector(1200).
+       map(0) < ui-layer(10) < map-tools(15) < chrome-popover(17) < modal(100)
+       < login-modal(200) < toast(1000) < term-selector(1200).
        When a modal opens, Escape or backdrop-click closes lower layers first.
        (#302) */
     --z-map: 0;
     --z-side-panel: 2;
     --z-status-bar: 3;
     --z-map-tools: 15;
+    --z-chrome-popover: 17;
     --z-modal: 100;
-    --z-admin-login: 200;
+    --z-login-modal: 200;
     --z-toast: 1000;
 
     width: 100%;

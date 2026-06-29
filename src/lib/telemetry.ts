@@ -9,12 +9,15 @@ type SyncTelemetryEvent = {
 const MAX_EVENTS = 50;
 let events: SyncTelemetryEvent[] = [];
 
-export function recordSyncTelemetry(event: Omit<SyncTelemetryEvent, "timestamp">) {
+export function recordSyncTelemetry(
+  event: Omit<SyncTelemetryEvent, "timestamp">,
+) {
   events.push({ ...event, timestamp: Date.now() });
   if (events.length > MAX_EVENTS) events = events.slice(-MAX_EVENTS);
 
   if (typeof console !== "undefined") {
-    const label = event.type === "sync-error" ? "[SyncTelemetry] ERROR" : "[SyncTelemetry]";
+    const label =
+      event.type === "sync-error" ? "[SyncTelemetry] ERROR" : "[SyncTelemetry]";
     console.log(label, event);
   }
 }

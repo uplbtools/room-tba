@@ -1,0 +1,24 @@
+{
+  "term_id": 1252,
+  "source": "our-sample-2025-2nd-sem",
+  "exams": [
+    {
+      "course_code": "CMSC 130",
+      "section": "A-1L",
+      "course_title": "Introduction to Computing",
+      "room_code": "ICS L105",
+      "exam_date": "2026-05-15",
+      "starts_at": "08:00",
+      "ends_at": "10:00"
+    },
+    {
+      "course_code": "MATH 27",
+      "section": "B2R",
+      "course_title": "Calculus II",
+      "room_code": "PSLH A",
+      "exam_date": "2026-05-16",
+      "starts_at": "13:00",
+      "ends_at": "15:00"
+    }
+  ]
+}

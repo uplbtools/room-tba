@@ -6,6 +6,8 @@
   import { slideDismiss, slideReveal } from "@lib/motion";
   import StatusBarDirectionsStat from "./StatusBarDirectionsStat.svelte";
   import StatusBarLinkGroups from "./StatusBarLinkGroups.svelte";
+  import ContributorProgressPanel from "./ContributorProgressPanel.svelte";
+  import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
   import type { StatusBarNavGroup } from "@constants/status-bar-links";
 
   type Props = {
@@ -27,6 +29,8 @@
     showEditorLogin,
     onAction,
   }: Props = $props();
+
+  let showProgressPanel = $state(false);
 
   const catalogUpdatedLabel = formatCatalogUpdatedDate();
   const navGroups = $derived<StatusBarNavGroup[]>(
@@ -51,6 +55,21 @@
         {progressPercent}
         variant="expanded"
       />
+      <div class="status-bar__progress-actions">
+        <MapChromeGhostButton
+          variant="muted"
+          aria-expanded={showProgressPanel}
+          aria-controls="contributor-progress-panel"
+          onclick={() => (showProgressPanel = !showProgressPanel)}
+        >
+          {showProgressPanel ? "Hide progress" : "Progress by building"}
+        </MapChromeGhostButton>
+      </div>
+      {#if showProgressPanel}
+        <div id="contributor-progress-panel">
+          <ContributorProgressPanel />
+        </div>
+      {/if}
     </section>
   {/if}
 
