@@ -6,6 +6,7 @@
   import Route from "@lucide/svelte/icons/route";
   import X from "@lucide/svelte/icons/x";
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
@@ -648,10 +649,9 @@
           loading="lazy"
         />
       {/if}
-      <div class="event-actions">
+      <div class="entity-actions">
         {#if primaryLocation && primaryLocation.resolvedLon !== null && primaryLocation.resolvedLat !== null}
-          <button
-            class="primary-action"
+          <MapChromeActionChip
             onclick={() => {
               if (!primaryLocation) return;
               locationStore.requestLocation();
@@ -661,9 +661,9 @@
               ]);
             }}
           >
+            <CornerRightUp size={14} aria-hidden="true" />
             Get directions
-            <CornerRightUp size={18} />
-          </button>
+          </MapChromeActionChip>
         {/if}
         <CopyLinkButton
           url={shareUrl}
@@ -1046,6 +1046,7 @@
 </div>
 
 <style>
+  @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
 
   .event-result {
@@ -1170,31 +1171,6 @@
     gap: 0.35rem;
     margin: 0;
     padding-left: 1rem;
-  }
-
-  .event-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .primary-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    width: max-content;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.25;
-    padding: 0.375rem 0.75rem;
-    border: none;
-    background: #7b1113;
-    color: white;
   }
 
   .source-link {
