@@ -23,9 +23,17 @@ export default defineConfig({
         globPatterns: [
           "**/*.{js,css,ico,png,svg,webmanifest,json,jpg}",
           "index.html",
+          "privacy/index.html",
+          "terms/index.html",
+          "changelog/index.html",
         ],
         navigateFallback: "/",
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/privacy(\/|$)/,
+          /^\/terms(\/|$)/,
+          /^\/changelog(\/|$)/,
+        ],
         swDest: `dist/client/sw.js`,
         // Cache third-party map resources at runtime so the campus map works
         // offline once visited (or after an explicit "download offline maps").
