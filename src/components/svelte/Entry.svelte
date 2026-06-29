@@ -255,6 +255,11 @@
     --motion-duration-shelf: 260ms;
     --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    /* Stacking context tokens so status bar > side panel > map. */
+    --z-map: 0;
+    --z-side-panel: 2;
+    --z-status-bar: 3;
+    --z-map-tools: 15;
 
     width: 100%;
     height: 100dvh;
@@ -285,7 +290,7 @@
 
   .bottom-chrome {
     position: relative;
-    z-index: 1;
+    z-index: var(--z-status-bar, 3);
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -391,7 +396,7 @@
     position: absolute;
     top: calc(var(--map-ui-padding) + 2px);
     right: calc(var(--map-ui-padding) + 2px);
-    z-index: 15;
+    z-index: var(--z-map-tools, 15);
     display: flex;
     width: min(22.5rem, calc(100% - 1rem));
     flex-direction: column;
