@@ -19,7 +19,6 @@
     checkLocalCollegeRoom,
     syncCollegeRooms,
   } from "@lib/local/data/sync";
-  import { onMount } from "svelte";
 
   type CollegePatchResponse = {
     success?: boolean;
@@ -57,11 +56,26 @@
   let submitterNameDraft = $state("");
   const canPublish = $derived(adminAuthStore.canPublish);
 
-  onMount(async () => {
-    if (!college) return;
-    const collegeChecker = await checkLocalCollegeRoom(college.id);
-    collegeRooms = await getCollegeRooms(collegeChecker, college.id);
-    await syncCollegeRooms(collegeChecker, college.id, collegeRooms);
+  // Reload rooms when the selected college changes; CollegeResult is not
+  // remounted on switch, so key the load on college id and discard stale
+  // fetches from a previous selection (#340).
+  let roomLoadGeneration = 0;
+
+  $effect(() => {
+    const id = college?.id;
+    if (id == null) {
+      collegeRooms = null;
+      return;
+    }
+    const gen = ++roomLoadGeneration;
+    collegeRooms = null;
+    void (async () => {
+      const collegeChecker = await checkLocalCollegeRoom(id);
+      const rooms = await getCollegeRooms(collegeChecker, id);
+      if (gen !== roomLoadGeneration) return;
+      collegeRooms = rooms;
+      await syncCollegeRooms(collegeChecker, id, rooms);
+    })();
   });
 
   $effect(() => {

@@ -19,7 +19,6 @@
     checkLocalDivisionRoom,
     syncDivisionRooms,
   } from "@lib/local/data/sync";
-  import { onMount } from "svelte";
 
   type DivisionPatchResponse = {
     success?: boolean;
@@ -56,11 +55,26 @@
   let submitterNameDraft = $state("");
   const canPublish = $derived(adminAuthStore.canPublish);
 
-  onMount(async () => {
-    if (!division) return;
-    const divisionChecker = await checkLocalDivisionRoom(division.id);
-    divisionRooms = await getDivisionRooms(divisionChecker, division.id);
-    await syncDivisionRooms(divisionChecker, division.id, divisionRooms);
+  // Reload rooms when the selected division changes; DivisionResult is not
+  // remounted on switch, so key the load on division id and discard stale
+  // fetches from a previous selection (#340).
+  let roomLoadGeneration = 0;
+
+  $effect(() => {
+    const id = division?.id;
+    if (id == null) {
+      divisionRooms = null;
+      return;
+    }
+    const gen = ++roomLoadGeneration;
+    divisionRooms = null;
+    void (async () => {
+      const divisionChecker = await checkLocalDivisionRoom(id);
+      const rooms = await getDivisionRooms(divisionChecker, id);
+      if (gen !== roomLoadGeneration) return;
+      divisionRooms = rooms;
+      await syncDivisionRooms(divisionChecker, id, rooms);
+    })();
   });
 
   $effect(() => {
