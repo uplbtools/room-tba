@@ -140,6 +140,23 @@
     transform: translateX(-100%);
   }
 
+  /* Desktop: pin the open drawer to the viewport band between search and status bar. */
+  @media (min-width: 48.0625rem) {
+    .drawer:not(.is-collapsed) {
+      position: fixed;
+      top: calc(
+        var(--search-block-height, 3.25rem) + var(--map-ui-padding, 0.5rem)
+      );
+      bottom: calc(
+        var(--status-bar-block-height, 2.75rem) +
+          var(--map-ui-padding, 0.5rem) + 0.5rem +
+          env(safe-area-inset-bottom, 0px)
+      );
+      left: var(--map-ui-padding, 0.5rem);
+      height: auto;
+    }
+  }
+
   .drawer-card {
     pointer-events: auto;
     height: 100%;
@@ -227,7 +244,8 @@
       top: var(--mobile-detail-sheet-top-inset);
       right: 0;
       bottom: calc(
-        var(--status-bar-block-height) + env(safe-area-inset-bottom, 0px)
+        var(--status-bar-block-height, 2.75rem) +
+          env(safe-area-inset-bottom, 0px) + 0.25rem
       );
       left: 0;
       width: auto;
