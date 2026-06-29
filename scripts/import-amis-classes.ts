@@ -11,7 +11,11 @@
  *   --from-json path   Import from saved JSON only (no AMIS call)
  *   --scrub-exports    Re-sanitize all data/amis-*.json in place (no AMIS / DB)
  *   --dry-run          Parse + map only; no DB writes
- *   --no-replace       Do not delete existing rows for the term before insert
+ *   --replace-term     Remove term rows not present in the new export (COM stale sections)
+ *   --no-replace       Legacy alias; upsert without stale removal (default)
+ *
+ * Default import upserts by natural key (term + course + section + type).
+ * See docs/amis-com-refresh-runbook.md for COM refresh workflow.
  *
  * CRS term_id is chronological within the AY: 1251 = 1st sem, 1252 = 2nd sem, 1253 = midyear.
  * Only LEC and LAB rows with a resolvable room are imported (thesis, special problem, etc. usually have no room in AMIS).
@@ -31,19 +35,27 @@ import { dirname } from "node:path";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
-import { classesTable, roomsTable, updateTable } from "@drizzle/schema";
+import {
+  aliasesTable,
+  classesTable,
+  roomsTable,
+  updateTable,
+} from "@drizzle/schema";
 import { fetchAmisClasses } from "@lib/amis/fetch-classes";
 import { defaultAmisExportPath } from "@lib/amis/export-path";
-import { extractClassRows } from "@lib/amis/normalize-class";
 import {
-  normalizeAmisClass,
-  normalizeFacilityKey,
-} from "@lib/amis/normalize-class";
+  buildRoomLookup,
+  classNaturalKey,
+  formatImportReport,
+  resolveImportRows,
+  summarizeImportChanges,
+} from "@lib/amis/import-classes";
+import { extractClassRows } from "@lib/amis/normalize-class";
+import { normalizeAmisClass } from "@lib/amis/normalize-class";
 import {
   amisExportContainsInstructorPii,
   sanitizeAmisRows,
 } from "@lib/amis/sanitize-row";
-import { isRoomScheduledClassType } from "@lib/amis/room-scheduled-types";
 import { randomUUID } from "node:crypto";
 
 config({ path: ".env" });
@@ -51,7 +63,7 @@ config({ path: ".env" });
 type CliOptions = {
   termId: number;
   dryRun: boolean;
-  replace: boolean;
+  replaceTerm: boolean;
   fetch: boolean;
   fromJson: string | null;
   scrubExports: boolean;
@@ -60,7 +72,7 @@ type CliOptions = {
 function parseArgs(argv: string[]): CliOptions {
   let termId = 1253;
   let dryRun = false;
-  let replace = true;
+  let replaceTerm = false;
   let fetch = false;
   let fromJson: string | null = null;
   let scrubExports = false;
@@ -71,8 +83,10 @@ function parseArgs(argv: string[]): CliOptions {
       termId = Number(argv[++i]);
     } else if (arg === "--dry-run") {
       dryRun = true;
+    } else if (arg === "--replace-term" || arg === "--replace") {
+      replaceTerm = true;
     } else if (arg === "--no-replace") {
-      replace = false;
+      replaceTerm = false;
     } else if (arg === "--fetch") {
       fetch = true;
     } else if (arg === "--from-json") {
@@ -86,7 +100,7 @@ function parseArgs(argv: string[]): CliOptions {
     throw new Error("Invalid --term-id");
   }
 
-  return { termId, dryRun, replace, fetch, fromJson, scrubExports };
+  return { termId, dryRun, replaceTerm, fetch, fromJson, scrubExports };
 }
 
 function saveSanitizedExport(
@@ -225,101 +239,101 @@ async function main() {
   const db = drizzle(pool);
 
   try {
-    const rooms = await db
-      .select({ id: roomsTable.id, code: roomsTable.roomCode })
-      .from(roomsTable);
-    const roomIdByKey = new Map<string, number>();
-    for (const room of rooms) {
-      roomIdByKey.set(normalizeFacilityKey(room.code), room.id);
-    }
+    const [rooms, roomAliases, existingClasses] = await Promise.all([
+      db.select({ id: roomsTable.id, code: roomsTable.roomCode }).from(roomsTable),
+      db
+        .select({
+          alias: aliasesTable.alias,
+          targetId: aliasesTable.targetId,
+        })
+        .from(aliasesTable)
+        .where(eq(aliasesTable.targetType, "room")),
+      db
+        .select({
+          id: classesTable.id,
+          courseCode: classesTable.courseCode,
+          section: classesTable.section,
+          type: classesTable.type,
+          courseTitle: classesTable.courseTitle,
+          schedule: classesTable.schedule,
+          roomId: classesTable.roomId,
+          termId: classesTable.termId,
+        })
+        .from(classesTable)
+        .where(eq(classesTable.termId, options.termId)),
+    ]);
 
-    const unmatched = new Map<string, number>();
-    const skippedByType = new Map<string, number>();
-    const inserts: (typeof classesTable.$inferInsert)[] = [];
+    const roomLookup = buildRoomLookup(rooms, roomAliases);
 
-    for (const row of normalized) {
-      if (!isRoomScheduledClassType(row.type)) {
-        const key = row.type?.trim().toUpperCase() || "(no type)";
-        skippedByType.set(key, (skippedByType.get(key) ?? 0) + 1);
-        continue;
-      }
+    const { rows: incomingRows, stats, unmatched } = resolveImportRows(
+      normalized,
+      roomLookup,
+    );
 
-      const facility = row.facilityCode?.trim();
-      if (!facility) {
-        unmatched.set(
-          "(missing facility)",
-          (unmatched.get("(missing facility)") ?? 0) + 1,
-        );
-        continue;
-      }
-      const roomId = roomIdByKey.get(normalizeFacilityKey(facility));
-      if (roomId == null) {
-        unmatched.set(facility, (unmatched.get(facility) ?? 0) + 1);
-        continue;
-      }
-
-      inserts.push({
-        courseCode: row.courseCode,
-        section: row.section,
-        type: row.type,
-        courseTitle: row.courseTitle,
-        schedule: row.schedule,
-        roomId,
-        termId: row.termId,
-      });
-    }
-
-    if (options.replace) {
-      await db.transaction(async (tx) => {
-        await tx
-          .delete(classesTable)
-          .where(eq(classesTable.termId, options.termId));
-
-        const batchSize = 500;
-        for (let i = 0; i < inserts.length; i += batchSize) {
-          await tx.insert(classesTable).values(inserts.slice(i, i + batchSize));
-        }
-
-        await refreshSyncKey(tx, "classes");
-      });
-      console.log(
-        `Cleared and re-imported term_id=${options.termId} (${inserts.length} rows, transactional).`,
+    const existingByKey = new Map<
+      string,
+      (typeof existingClasses)[number]
+    >();
+    for (const row of existingClasses) {
+      if (row.termId == null) continue;
+      existingByKey.set(
+        classNaturalKey({
+          termId: row.termId,
+          courseCode: row.courseCode ?? "",
+          section: row.section,
+          type: row.type,
+        }),
+        row,
       );
-    } else {
+    }
+
+    const { summary, inserts, updates, removeIds } = summarizeImportChanges({
+      replaceTerm: options.replaceTerm,
+      existingKeys: new Set(existingByKey.keys()),
+      existingByKey,
+      incomingRows,
+    });
+
+    await db.transaction(async (tx) => {
+      if (removeIds.length > 0) {
+        for (const id of removeIds) {
+          await tx.delete(classesTable).where(eq(classesTable.id, id));
+        }
+      }
+
+      for (const { id, row } of updates) {
+        await tx
+          .update(classesTable)
+          .set({
+            courseCode: row.courseCode,
+            section: row.section,
+            type: row.type,
+            courseTitle: row.courseTitle,
+            schedule: row.schedule,
+            roomId: row.roomId,
+            termId: row.termId,
+          })
+          .where(eq(classesTable.id, id));
+      }
+
       const batchSize = 500;
       for (let i = 0; i < inserts.length; i += batchSize) {
-        await db.insert(classesTable).values(inserts.slice(i, i + batchSize));
+        await tx.insert(classesTable).values(inserts.slice(i, i + batchSize));
       }
-      await refreshSyncKey(db, "classes");
-      console.log(
-        `Imported ${inserts.length} classes for term_id=${options.termId}.`,
-      );
-    }
 
-    if (skippedByType.size > 0) {
-      const totalSkipped = [...skippedByType.values()].reduce(
-        (a, b) => a + b,
-        0,
-      );
-      console.warn(
-        `Skipped ${totalSkipped} rows that are not room-scheduled LEC/LAB (thesis, special problem, dissertation, etc. usually have no room in AMIS):`,
-      );
-      for (const [type, count] of [...skippedByType.entries()].sort(
-        (a, b) => b[1] - a[1],
-      )) {
-        console.warn(`  ${count}× ${type}`);
-      }
-    }
-    if (unmatched.size > 0) {
-      console.warn(
-        `Skipped ${[...unmatched.values()].reduce((a, b) => a + b, 0)} rows with unmatched facilities:`,
-      );
-      for (const [facility, count] of [...unmatched.entries()].sort(
-        (a, b) => b[1] - a[1],
-      )) {
-        console.warn(`  ${count}× ${facility}`);
-      }
-    }
+      await refreshSyncKey(tx, "classes");
+    });
+
+    console.log(
+      formatImportReport({
+        termId: options.termId,
+        rawCount: rawRows.length,
+        normalizedCount: normalized.length,
+        stats,
+        summary,
+        unmatched,
+      }),
+    );
   } finally {
     await pool.end();
   }
