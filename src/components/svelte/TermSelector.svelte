@@ -6,7 +6,7 @@
   import { formatTermDateRange } from "@lib/term-calendar";
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
-  import { termStore } from "@lib/store.svelte";
+  import { mapToolsStore, termStore } from "@lib/store.svelte";
   import type { TermWithCount } from "@lib/types";
   import "./map-chrome/map-chrome.css";
 
@@ -56,6 +56,9 @@
   });
 
   function toggleOpen() {
+    if (!open) {
+      mapToolsStore.close();
+    }
     open = !open;
     if (open) queueMicrotask(updatePanelPosition);
   }
@@ -72,6 +75,10 @@
   $effect(() => {
     if (!open || !panelEl) return;
     return trapFocus(panelEl, { onEscape: closePanel });
+  });
+
+  $effect(() => {
+    if (mapToolsStore.open) closePanel();
   });
 
   function handleDocumentPointerDown(event: PointerEvent) {
@@ -304,7 +311,7 @@
 
   .term-picker-panel {
     position: fixed;
-    z-index: 1200;
+    z-index: var(--z-chrome-popover, 17);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;

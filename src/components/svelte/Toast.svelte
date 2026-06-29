@@ -109,7 +109,7 @@
     );
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1000;
+    z-index: var(--z-toast, 1000);
     display: flex;
     align-items: center;
     gap: 0.75rem;
