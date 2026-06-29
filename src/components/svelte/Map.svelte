@@ -1478,7 +1478,22 @@
   $effect(() => {
     if (!directions) return;
 
-    if (locationStore.routeOrigin && locationStore.destination) {
+    const waypoints = locationStore.routeWaypoints;
+    if (waypoints && waypoints.length >= 2) {
+      directions.setWaypoints(waypoints);
+      const map = mapStore.mapInstance;
+      if (map) {
+        const bounds = new mapGl.LngLatBounds();
+        for (const point of waypoints) {
+          bounds.extend(point);
+        }
+        map.fitBounds(bounds, {
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          duration: 1200,
+          maxZoom: 18,
+        });
+      }
+    } else if (locationStore.routeOrigin && locationStore.destination) {
       directions.setWaypoints([
         locationStore.routeOrigin,
         locationStore.destination,
