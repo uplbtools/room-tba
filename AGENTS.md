@@ -249,6 +249,37 @@ CRS/AMIS `term_id` values are **chronological within the academic year** — the
 - Admin API routes live under `/api/admin/*` and must keep auth checks.
 - Keep PATCH routes field-level and partial so unrelated edits do not clobber each other.
 
+## Vercel CLI and environment ops
+
+The project deploys on Vercel. Use the CLI for env management and preview control.
+
+```sh
+# Link (once)
+vercel link
+
+# Pull env vars for local dev
+vercel env pull .env.vercel --environment=development --yes
+# Merge DATABASE_URL into .env; keep local ADMIN_PASSWORD if set.
+
+# Add / update an env var
+vercel env add DATABASE_URL production
+vercel env add DATABASE_URL preview
+
+# List vars
+vercel env ls
+
+# Validate required vars before deploy
+./scripts/check-vercel-env.sh
+
+# Guard: prevent production deploys from staging branch
+./scripts/check-production-branch.sh
+```
+
+- **Vercel project:** `stimmie/saan-ang-room` (linked in `.vercel/project.json`).
+- **Preview builds** (`staging` branch) must have `DATABASE_URL` set or prerender fails.
+- **Production builds** must come from `main`; the `check-production-branch.sh` script enforces this.
+- `vercel env pull` sometimes returns `""` for encrypted vars; copy `DATABASE_URL` from the Vercel UI or Supabase dashboard if empty.
+
 ## README sync (no drift)
 
 `README.md` is the human onboarding contract — not decoration. **Never merge stack, env, workflow, or contributor-facing behavior changes without updating README in the same PR.** Do not file a follow-up “docs PR” unless the user explicitly asked to split.
