@@ -1,4 +1,8 @@
-class EditorChromeStore {
+import { clearProposeEventDraft } from "../contributor-drafts.js";
+import { deactivateMapModesExcept } from "./map-modes.js";
+import type { EventPlacementDraft, MapProposalTarget } from "./store-types.js";
+
+export class EditorChromeStore {
   shelfOpen = $state(false);
   additionModalOpen = $state(false);
 
@@ -24,7 +28,7 @@ class EditorChromeStore {
   };
 }
 
-class MapEditStore {
+export class MapEditStore {
   enabled: boolean = $state(false);
 
   enable = () => {
@@ -43,7 +47,7 @@ class MapEditStore {
   };
 }
 
-class MapProposalStore {
+export class MapProposalStore {
   target: MapProposalTarget | null = $state(null);
   submitterName = $state("");
   proposalId: number | null = $state(null);
@@ -78,7 +82,7 @@ class MapProposalStore {
   }
 }
 
-class AdditionProposalStore {
+export class AdditionProposalStore {
   pinPickActive = $state(false);
   draftPin: { lat: number; lon: number } | null = $state(null);
   private pinResolver: ((coords: { lat: number; lon: number }) => void) | null =
@@ -121,7 +125,7 @@ class AdditionProposalStore {
   }
 }
 
-class EventPlacementStore {
+export class EventPlacementStore {
   draft: EventPlacementDraft | null = $state(null);
   creating: boolean = $state(false);
   createdEventId: number | null = $state(null);

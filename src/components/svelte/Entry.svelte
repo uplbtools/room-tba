@@ -38,6 +38,7 @@
     dispatchGlobalShortcut,
     getGlobalShortcutAction,
   } from "@lib/keyboard-shortcuts";
+  import { dismissEphemeralOverlays } from "@lib/overlay-stack";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -143,6 +144,7 @@
     }
 
     if (e.key === "Escape") {
+      dismissEphemeralOverlays();
       if (modalStore.open) {
         modalStore.closeModal();
       } else if (building3DStore.buildingName) {

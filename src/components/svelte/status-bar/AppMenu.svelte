@@ -6,7 +6,10 @@
   import { statusBarNavGroups } from "@constants/status-bar-links";
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
-  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
+  import {
+    registerEphemeralOverlayDismisser,
+    openEphemeralOverlay,
+  } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
   import {
     adminAuthStore,
@@ -88,9 +91,15 @@
   });
 
   function toggleOpen() {
-    if (!open) mapToolsStore.close();
-    open = !open;
-    if (open) queueMicrotask(updatePanelPosition);
+    if (!open) {
+      openEphemeralOverlay(() => {
+        mapToolsStore.close();
+        open = true;
+        queueMicrotask(updatePanelPosition);
+      });
+      return;
+    }
+    open = false;
   }
 
   function closePanel() {
@@ -108,7 +117,7 @@
     if (!(target instanceof Node)) return;
     if (triggerEl?.contains(target)) return;
     if (panelEl?.contains(target)) return;
-    if (target instanceof Element && target.closest(".map-chrome-popover")) {
+    if (target instanceof Element && target.closest("#offline-maps-dialog")) {
       return;
     }
     closePanel();
