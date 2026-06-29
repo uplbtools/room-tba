@@ -58,8 +58,31 @@ export class ScheduleRenderer {
   }
 
   init() {
-    this.canvas.width = this.config.width;
-    this.canvas.height = this.config.height;
+    // Responsive canvas for mobile schedule UX (#241)
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = Math.min(
+      this.config.width,
+      this.canvas.clientWidth || this.config.width,
+    );
+    const cssHeight = Math.min(
+      this.config.height,
+      this.canvas.clientHeight || this.config.height,
+    );
+    this.canvas.width = cssWidth * dpr;
+    this.canvas.height = cssHeight * dpr;
+    this.canvas.style.width = cssWidth + "px";
+    this.canvas.style.height = cssHeight + "px";
+    this.ctx.scale(dpr, dpr);
+    this.config.width = cssWidth;
+    this.config.height = cssHeight;
+    // Pull design tokens from CSS custom properties when available (#240).
+    const root = getComputedStyle(document.documentElement);
+    this.config.colors.background =
+      root.getPropertyValue("--map-chrome-surface").trim() ||
+      this.config.colors.background;
+    this.config.colors.header =
+      root.getPropertyValue("--map-chrome-border-accent").trim() ||
+      this.config.colors.header;
     this.cellWidth =
       (this.config.width - this.config.timeColumnWidth) /
       this.config.days.length;

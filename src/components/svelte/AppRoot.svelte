@@ -10,6 +10,7 @@
     queryStore,
     syncToastStore,
     appBootstrapStore,
+    toastStore,
   } from "@lib/store.svelte";
   import type {
     BuildingData,
@@ -298,11 +299,19 @@
   onMount(() => {
     applyData(EMPTY_DB_DATA);
     loaded = true;
-    dismissStaticLoadingShell();
-    appBootstrapStore.complete();
     appBootstrapStore.setRetryHandler(() => {
       void refreshFromNetwork(false);
     });
+
+    const onOffline = () => {
+      toastStore.show("You are offline. Campus data may be stale.", "info");
+    };
+    const onOnline = () => {
+      toastStore.show("Back online. Syncing latest data...", "success");
+      void refreshFromNetwork(appBootstrapStore.hasCachedData);
+    };
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", onOnline);
 
     void (async () => {
       try {
@@ -319,11 +328,16 @@
         appBootstrapStore.setHasCachedData(hasCache);
         if (hasCache) {
           applyData(cached);
+          dismissStaticLoadingShell();
         }
 
         await refreshFromNetwork(hasCache);
+        if (!hasCache) {
+          dismissStaticLoadingShell();
+        }
       } catch (error) {
         console.error("Bootstrap failed", error);
+        dismissStaticLoadingShell();
         if (appBootstrapStore.hasCachedData) {
           appBootstrapStore.complete();
         } else {
@@ -336,6 +350,11 @@
         }
       }
     })();
+
+    return () => {
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", onOnline);
+    };
   });
 
   setAppData(() => appData);

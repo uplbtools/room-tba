@@ -17,6 +17,8 @@
     labelMeta?: string;
     labelTitle?: string;
     onclick: () => void;
+    onpointerenter?: (event: PointerEvent) => void;
+    onpointerleave?: (event: PointerEvent) => void;
     status?: string;
     title: string;
     variant?: EventPinVariant;
@@ -34,6 +36,8 @@
     labelMeta,
     labelTitle,
     onclick,
+    onpointerenter,
+    onpointerleave,
     status = "active",
     title,
     variant = "single",
@@ -55,6 +59,8 @@
   aria-label={ariaLabel}
   aria-expanded={isGroup ? ariaExpanded : undefined}
   {onclick}
+  {onpointerenter}
+  {onpointerleave}
 >
   {#if imageSrc}
     <img class="event-pin-media" src={imageSrc} alt="" />

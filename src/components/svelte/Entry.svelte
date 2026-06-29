@@ -14,6 +14,7 @@
     sidePanelStore,
     floatingControlPanelStore,
     jeepneyStore,
+    appBootstrapStore,
   } from "@lib/store.svelte";
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
@@ -30,10 +31,13 @@
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import EditorScreen from "@ui/EditorScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
+  import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight, observeBlockWidth } from "@lib/layout-css-vars";
-  import type { RecentSearch } from "@lib/types";
-  import { isRecentSearch } from "@lib/locStorage";
+  import {
+    dispatchGlobalShortcut,
+    getGlobalShortcutAction,
+  } from "@lib/keyboard-shortcuts";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -46,7 +50,6 @@
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
   };
   onMount(() => {
-    const hideLanding = localStorage.getItem("hideLandingModal");
     const recentSearchesLS = localStorage.getItem("recent-search");
     try {
       const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? "[]");
@@ -78,8 +81,15 @@
       floatingControlPanelStore.openPanel = "suggest-addition";
       window.history.replaceState({}, "", window.location.pathname);
     }
+  });
 
-    if (!suppressLandingModal && hideLanding !== "true") {
+  $effect(() => {
+    if (
+      appBootstrapStore.phase === "ready" &&
+      !suppressLandingModal &&
+      localStorage.getItem("hideLandingModal") !== "true" &&
+      !modalStore.open
+    ) {
       modalStore.openModal("landing");
     }
   });
@@ -125,9 +135,18 @@
   });
 
   function handleKeydown(e: KeyboardEvent) {
+    const action = getGlobalShortcutAction(e);
+    if (action) {
+      e.preventDefault();
+      dispatchGlobalShortcut(action);
+      return;
+    }
+
     if (e.key === "Escape") {
       if (modalStore.open) {
         modalStore.closeModal();
+      } else if (building3DStore.buildingName) {
+        building3DStore.close();
       } else if (adminAuthStore.loginOpen) {
         adminAuthStore.closeLogin();
       } else if (editorChromeStore.additionModalOpen) {
@@ -151,6 +170,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <EntityUrlSync />
+<EntityHoverPreview />
 
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
@@ -255,13 +275,18 @@
     --motion-duration-shelf: 260ms;
     --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
-    /* Stacking contract — highest first, only one primary overlay at a time.
-       map(0) < ui-layer(10) < map-tools(15) < chrome-popover(17) < modal(100)
-       < login-modal(200) < toast(1000) < term-selector(1200).
-       When a modal opens, Escape or backdrop-click closes lower layers first.
-       (#302) */
+    @media (prefers-reduced-motion: reduce) {
+      --motion-duration-fast: 0ms;
+      --motion-duration-micro: 0ms;
+      --motion-duration-panel: 0ms;
+      --motion-duration-shelf: 0ms;
+    }
+    /* Stacking contract — highest first; blocking overlays dismiss ephemeral chrome.
+       map(0) < side-panel(2) < search-elevated(12) < map-tools(15) < chrome-popover(17)
+       < modal(100) < login-modal(200) < toast(1000). (#302) */
     --z-map: 0;
     --z-side-panel: 2;
+    --z-search-elevated: 12;
     --z-status-bar: 3;
     --z-map-tools: 15;
     --z-chrome-popover: 17;

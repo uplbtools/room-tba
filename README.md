@@ -123,18 +123,19 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 
 ### Commands worth knowing
 
-| Command                      | Does what                                                                                    |
-| ---------------------------- | -------------------------------------------------------------------------------------------- |
-| `bun dev`                    | Dev server                                                                                   |
-| `bun run build`              | Production build (**needs** `DATABASE_URL`)                                                  |
-| `bun test src`               | Unit tests (no DB required)                                                                  |
-| `bun run lint`               | Prettier + ESLint                                                                            |
-| `bun run format`             | Prettier write                                                                               |
-| `bunx drizzle-kit studio`    | Browse/edit Postgres visually                                                                |
-| `bun run seed:aliases`       | Seed building aliases from `public/room_info.json`                                           |
-| `bun run import:final-exams` | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
+| Command                       | Does what                                                                                    |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| `bun dev`                     | Dev server                                                                                   |
+| `bun run build`               | Production build (**needs** `DATABASE_URL`)                                                  |
+| `bun test src`                | Unit tests (no DB required)                                                                  |
+| `bun run lint`                | Prettier + ESLint                                                                            |
+| `bun run format`              | Prettier write                                                                               |
+| `bunx drizzle-kit studio`     | Browse/edit Postgres visually                                                                |
+| `bun run seed:aliases`        | Seed building aliases from `public/room_info.json`                                           |
+| `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`)                                     |
+| `bun run import:final-exams`  | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
 
-Legacy **`data/info.db`** SQLite is only for old seed/export scripts. Production does not use it.
+Legacy **`data/info.db`** SQLite is only for old seed/export scripts (`bun:sqlite`, not runtime). Production uses Supabase Postgres via `DATABASE_URL`. Archived SQLite migrations live in `drizzle-migrations/` — do not edit; active schema is `drizzle/`.
 
 Optional env vars (R2 uploads, Supabase Auth client): see [`.env.example`](.env.example).
 

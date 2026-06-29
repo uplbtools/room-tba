@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { debounce } from "es-toolkit";
   import { fade } from "svelte/transition";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -24,7 +25,10 @@
   import EditorShelf from "@ui/EditorShelf.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
+  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
+  import { registerSearchFocus } from "@lib/search-focus";
+  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import {
     dropdownFadeIn,
     dropdownFadeOut,
@@ -50,6 +54,21 @@
     const el = mobile.current ? shellMainEl : chromeEl;
     if (!el) return;
     return observeBlockHeight(el, "--search-block-height");
+  });
+
+  onMount(() => {
+    const unregisterFocus = registerSearchFocus(() => {
+      searchElement?.focus();
+      searchElement?.select();
+    });
+    const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
+      searchFocused = false;
+      searchElement?.blur();
+    });
+    return () => {
+      unregisterFocus();
+      unregisterDismiss();
+    };
   });
 
   const commitSearchInput = debounce((searchInput: string) => {
@@ -264,7 +283,7 @@
               >
               <label class="sr-only" for="search">Search campus</label>
               <input
-                type="text"
+                type="search"
                 id="search"
                 autocomplete="off"
                 value={draftInput}
@@ -276,6 +295,9 @@
                 onblur={() => {
                   searchFocused = false;
                 }}
+                aria-expanded={showSearchDropdown}
+                aria-controls="search-suggestions"
+                aria-autocomplete="list"
                 placeholder="Search room, building, dorm, event, division..."
               />
               {#if draftInput !== "" || queryStore.category !== null}
@@ -342,8 +364,10 @@
 
       {#if showSearchDropdown}
         <div
+          id="search-suggestions"
           class="map-search-chrome__suggestions"
           role="listbox"
+          aria-label="Search suggestions"
           in:fade={dropdownFadeIn(reducedMotion.current)}
           out:fade={dropdownFadeOut(reducedMotion.current)}
         >
@@ -383,6 +407,7 @@
             <BuildingTypeFilterBar />
             <TransitFilterChip />
           {/if}
+          <KeyboardShortcutsChip compact={mobile.current} />
         </div>
       {/if}
 
