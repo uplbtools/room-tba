@@ -19,7 +19,7 @@ export type StatusBarLinkItem = {
 
 export type StatusBarActionItem = {
   kind: "action";
-  id: "contributors" | "editor-login";
+  id: "contributors" | "editor-login" | "browse-classes";
   label: string;
 };
 
@@ -63,6 +63,7 @@ export const STATUS_BAR_COMMUNITY_GROUP: StatusBarNavGroup = {
 
 /** In-app actions (rendered via StatusBar action handler). */
 export const STATUS_BAR_APP_ACTIONS: StatusBarActionItem[] = [
+  { kind: "action", id: "browse-classes", label: "Browse classes" },
   { kind: "action", id: "contributors", label: "Contributors" },
   { kind: "action", id: "editor-login", label: "Editor sign in" },
 ];
@@ -98,7 +99,8 @@ export function statusBarNavGroups(options: {
 }): StatusBarNavGroup[] {
   const appItems: StatusBarNavItem[] = [
     STATUS_BAR_APP_ACTIONS[0]!,
-    ...(options.showEditorLogin ? [STATUS_BAR_APP_ACTIONS[1]!] : []),
+    STATUS_BAR_APP_ACTIONS[1]!,
+    ...(options.showEditorLogin ? [STATUS_BAR_APP_ACTIONS[2]!] : []),
   ];
 
   return [

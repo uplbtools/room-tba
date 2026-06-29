@@ -141,6 +141,7 @@ export const campusGreige = {
 /** Active preset — uplbRefreshing: green campus, fresh campus stone buildings.
  *  background #EEF4EC · grass #7CB87A @ 0.38 · park #8FBF8A · wood forest rgba(62,96,58,0.48)
  *  water #6BA3B8 · building #E8E4DC · extrusion #D8D4CC · outline #B8B4AC · roads #C5C5C0
+ *  Jun 2026 (#285): POI layers hidden at runtime; softer labels + lower extrusion so native pins read first.
  */
 export const uplbRefreshing = {
   background: "rgb(238, 244, 236)",
@@ -160,10 +161,10 @@ export const uplbRefreshing = {
   buildingFill: "#e8e4dc",
   buildingOutline: "#b8b4ac",
   buildingExtrusion: "#d8d4cc",
-  buildingExtrusionOpacity: 0.95,
-  labelText: "#444444",
-  labelHaloColor: "rgba(255, 255, 255, 0.92)",
-  labelHaloWidth: 1.4,
+  buildingExtrusionOpacity: 0.55,
+  labelText: "#666666",
+  labelHaloColor: "rgba(255, 255, 255, 0.88)",
+  labelHaloWidth: 1.2,
   roadMinor: "#c5c5c0",
   roadService: "#c5c5c0",
   roadPathPedestrian: "rgba(197, 197, 192, 0.72)",
@@ -179,6 +180,14 @@ export const uplbRefreshing = {
 } as const;
 
 export const MAP_BASEMAP_PALETTE = uplbRefreshing;
+
+/** Generic OSM POI labels hidden on campus — native Room TBA layers stay primary (#285). */
+export const BASEMAP_RECESS_LAYER_IDS = [
+  "poi_z14",
+  "poi_z15",
+  "poi_z16",
+  "poi_transit",
+] as const;
 
 /** Toggle size-driven building colors (render_height → campus stone ramp). */
 export const MAP_BASEMAP_BUILDING_SIZE_COLORS = true;
@@ -298,7 +307,8 @@ export const BASEMAP_LAYER_PAINT: Record<
     "text-halo-width": MAP_BASEMAP_PALETTE.labelHaloWidth,
   },
   place_other: {
-    "text-color": "#3a3a3a",
+    "text-color": "#888888",
+    "text-opacity": 0.72,
     "text-halo-color": MAP_BASEMAP_PALETTE.labelHaloColor,
     "text-halo-width": MAP_BASEMAP_PALETTE.labelHaloWidth,
   },

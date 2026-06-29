@@ -9,6 +9,7 @@
   import EventResult from "./EventResult.svelte";
   import RoomResult from "@ui/room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
+  import ClassesList from "./ClassesList.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
@@ -89,6 +90,8 @@
               <RoomResult />
             {:else if queryStore.category === "class"}
               <ClassQuery />
+            {:else if queryStore.category === "classes"}
+              <ClassesList />
             {:else if queryStore.category === "dorm"}
               <DormResult />
             {:else if queryStore.category === "event"}

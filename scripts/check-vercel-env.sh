@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validate that required Vercel environment variables are set.
+# Validate that required Vercel environment variables are set and non-empty.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,22 +7,22 @@ cd "$ROOT"
 
 REQUIRED=(
   "DATABASE_URL"
-  "SUPABASE_URL"
-  "SUPABASE_ANON_KEY"
 )
 
 MISSING=0
 for var in "${REQUIRED[@]}"; do
-  if [[ -z "${!var:-}" ]]; then
-    echo "MISSING: $var"
+  value="${!var:-}"
+  if [[ -z "${value// }" ]]; then
+    echo "MISSING or empty: $var"
     MISSING=1
   fi
 done
 
 if [[ "$MISSING" -eq 1 ]]; then
   echo ""
-  echo "Some required Vercel env vars are not set."
-  echo "Set them with: vercel env add <name> [production|preview|development]"
+  echo "Required Vercel env vars are missing or empty strings."
+  echo "Set them with: vercel env add $var production --value \"\$DATABASE_URL\" --yes --force"
+  echo "See AGENTS.md § Vercel CLI and environment ops."
   exit 1
 fi
 

@@ -10,6 +10,8 @@
     syncToastStore,
     adminAuthStore,
     toastStore,
+    queryStore,
+    sidePanelStore,
   } from "@lib/store.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
   import SyncStatus from "@ui/SyncStatus.svelte";
@@ -96,7 +98,20 @@
     toastStore.show("Signed out.", "info");
   }
 
-  function handleNavAction(id: "contributors" | "editor-login") {
+  function handleNavAction(
+    id: "contributors" | "editor-login" | "browse-classes",
+  ) {
+    if (id === "browse-classes") {
+      queryStore.updateQuery({
+        category: "classes",
+        type: "result",
+        value: "All classes",
+      });
+      queryStore.inputValue = "";
+      sidePanelStore.expand();
+      isOpen = false;
+      return;
+    }
     if (id === "contributors") {
       modalStore.openModal("landing", { landingTab: "campus" });
       return;
