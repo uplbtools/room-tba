@@ -26,6 +26,11 @@ import {
   OFFLINE_DIRECTORY_SYNCED_AT_KEY,
   syncCampusDirectoryForOffline,
 } from "./local/data/campus-directory-sync";
+import {
+  OFFLINE_CLASSES_SYNCED_AT_KEY,
+  syncClassSchedulesForOffline,
+} from "./local/data/class-schedules-offline-sync";
+import { dismissEphemeralOverlays } from "./overlay-stack";
 import { clearProposeEventDraft } from "./contributor-drafts";
 import { recordSyncTelemetry } from "./telemetry";
 import type { BuildingTypeFilter } from "@constants/building-types";
@@ -192,6 +197,7 @@ class ModalStore {
     type: ModalStoreState["type"],
     options?: { landingTab?: LandingModalTab },
   ) => {
+    dismissEphemeralOverlays();
     this._modalStore.open = true;
     this._modalStore.type = type;
     this._modalStore.landingTab = options?.landingTab;
@@ -502,7 +508,9 @@ class MapToolsStore {
   expandedSections = $state<Set<MapToolsSection>>(new Set(["view"]));
 
   toggle = () => {
-    this.open = !this.open;
+    const next = !this.open;
+    if (next) dismissEphemeralOverlays();
+    this.open = next;
     if (this.open && this.activeSection === null) {
       this.activeSection = "view";
     }
@@ -513,6 +521,7 @@ class MapToolsStore {
   };
 
   openSection = (section: MapToolsSection) => {
+    dismissEphemeralOverlays();
     this.activeSection = section;
     this.expandedSections = new Set(this.expandedSections).add(section);
     this.open = true;
@@ -786,6 +795,7 @@ class Building3DStore {
   buildingName: string | null = $state(null);
 
   open = (name: string) => {
+    dismissEphemeralOverlays();
     this.buildingName = name;
   };
 
@@ -974,6 +984,7 @@ class AdminAuthStore {
   };
 
   openLogin = () => {
+    dismissEphemeralOverlays();
     modalStore.closeModal();
     this.loginOpen = true;
   };
@@ -1451,6 +1462,12 @@ class OfflineStore {
   directoryProgress = $state(0);
   directoryProgressLabel = $state("");
   directoryLastSyncedAt = $state<string | null>(null);
+  /** Class schedules for active term in PGlite. */
+  schedulesStatus = $state<OfflineStatus>("idle");
+  schedulesError = $state<string | null>(null);
+  schedulesProgressLabel = $state("");
+  schedulesRowCount = $state(0);
+  schedulesLastSyncedAt = $state<string | null>(null);
   tilesTotal = $state(0);
   tilesDone = $state(0);
   bytesDownloaded = $state(0);
@@ -1468,6 +1485,8 @@ class OfflineStore {
     void this.refreshStorage();
     this.directoryLastSyncedAt =
       localStorage.getItem(OFFLINE_DIRECTORY_SYNCED_AT_KEY) ?? null;
+    this.schedulesLastSyncedAt =
+      localStorage.getItem(OFFLINE_CLASSES_SYNCED_AT_KEY) ?? null;
     if (this.tilesTotal !== 0) return;
     const source = await getTileTemplate();
     this.tilesTotal = getCampusTileCoords(MIN_ZOOM, source?.maxZoom).length;
@@ -1576,6 +1595,38 @@ class OfflineStore {
     this.directoryProgress = 0;
     this.directoryProgressLabel = "";
     this.directoryLastSyncedAt = null;
+  };
+
+  downloadClassSchedules = async () => {
+    if (this.schedulesStatus === "downloading") return;
+    this.schedulesError = null;
+    this.schedulesProgressLabel = "Starting…";
+    this.schedulesStatus = "downloading";
+
+    const result = await syncClassSchedulesForOffline({
+      onProgress: (label) => {
+        this.schedulesProgressLabel = label;
+      },
+    });
+
+    if (result.ok) {
+      this.schedulesStatus = "done";
+      this.schedulesRowCount = result.rowCount;
+      this.schedulesLastSyncedAt =
+        localStorage.getItem(OFFLINE_CLASSES_SYNCED_AT_KEY) ?? null;
+    } else {
+      this.schedulesStatus = "error";
+      this.schedulesError = result.error ?? "Class schedule download failed.";
+    }
+  };
+
+  clearClassSchedules = () => {
+    localStorage.removeItem(OFFLINE_CLASSES_SYNCED_AT_KEY);
+    this.schedulesStatus = "idle";
+    this.schedulesError = null;
+    this.schedulesProgressLabel = "";
+    this.schedulesRowCount = 0;
+    this.schedulesLastSyncedAt = null;
   };
 }
 
