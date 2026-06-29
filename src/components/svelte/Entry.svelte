@@ -88,7 +88,8 @@
   });
 
   const drawerExpanded = $derived(
-    queryStore.category !== null && !sidePanelStore.collapsed,
+    (queryStore.category !== null || jeepneyStore.selectedStopIndex !== null) &&
+      !sidePanelStore.collapsed,
   );
 
   let mapToolsStackEl = $state<HTMLDivElement | null>(null);
@@ -126,11 +127,7 @@
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
       if (modalStore.open) {
-        if (modalStore.type === "jeepney-stop") {
-          jeepneyStore.closeStop();
-        } else {
-          modalStore.closeModal();
-        }
+        modalStore.closeModal();
       } else if (adminAuthStore.loginOpen) {
         adminAuthStore.closeLogin();
       } else if (editorChromeStore.additionModalOpen) {
@@ -139,6 +136,8 @@
         editorChromeStore.closeShelf();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
+      } else if (jeepneyStore.selectedStopIndex !== null) {
+        jeepneyStore.closeStop();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
         queryStore.clearQuery();
         if (locationStore.destination) {
