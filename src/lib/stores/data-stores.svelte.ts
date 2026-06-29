@@ -1,4 +1,13 @@
-class TermStore {
+import { getJSONFetch } from "../local/data/utils.js";
+import { parseTermIdFromSearch, syncTermQueryParam } from "../term-url.js";
+import {
+  resolveDefaultTermFromList,
+  resolveInitialTermId,
+} from "../term-calendar.js";
+import type { TermWithCount } from "@lib/types";
+import { ACTIVE_TERM_LS_KEY } from "./store-types.js";
+
+export class TermStore {
   terms = $state<TermWithCount[]>([]);
   activeTermId = $state<number | null>(null);
   loaded = $state(false);
@@ -77,7 +86,7 @@ class TermStore {
   };
 }
 
-class RoomClassesStore {
+export class RoomClassesStore {
   classes = $state<ClassMapValue[]>([]);
   loading = $state(false);
   private _cache = new Map<string, ClassMapValue[]>();
