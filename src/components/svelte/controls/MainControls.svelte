@@ -36,6 +36,7 @@
     if (identity === lastPanelIdentity) return;
 
     sidePanelStore.expand();
+    jeepneyStore.closeStop();
     lastPanelIdentity = identity;
   });
 
