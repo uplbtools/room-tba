@@ -138,6 +138,10 @@
   color: hsl(0, 0%, 22%);
 }
 
+.status-bar__progress-actions {
+  margin-top: 0.25rem;
+}
+
 .status-bar__directions-collapsed {
   flex: 0 1 auto;
   min-width: 0;
