@@ -31,15 +31,14 @@
   justify-content: center;
   width: max-content;
   min-height: 1.75rem;
-  height: 1.75rem;
-  padding: 0 0.5rem;
+  padding: 0.3125rem 0.5rem;
   border: 1px solid #d8b9ba;
   border-radius: 0.75rem;
   background: #fffafa;
   color: #7b1113;
   font-size: 0.6875rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.2;
   white-space: nowrap;
   flex-shrink: 0;
 }

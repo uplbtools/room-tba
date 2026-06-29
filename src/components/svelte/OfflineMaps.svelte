@@ -146,7 +146,10 @@
               style:width={`${mapPct}%`}
             ></div>
           </div>
-          <button class="offline-btn ghost" onclick={() => offlineStore.cancel()}>
+          <button
+            class="offline-btn ghost"
+            onclick={() => offlineStore.cancel()}
+          >
             Cancel map download
           </button>
         {:else if offlineStore.status === "done"}
@@ -155,7 +158,10 @@
               offlineStore.bytesDownloaded,
             )}
           </p>
-          <button class="offline-btn ghost" onclick={() => offlineStore.clear()}>
+          <button
+            class="offline-btn ghost"
+            onclick={() => offlineStore.clear()}
+          >
             Clear map tiles
           </button>
         {:else}
@@ -165,7 +171,10 @@
           {#if offlineStore.status === "error" && offlineStore.error}
             <p class="offline-error">{offlineStore.error}</p>
           {/if}
-          <button class="offline-btn" onclick={() => offlineStore.downloadCampus()}>
+          <button
+            class="offline-btn"
+            onclick={() => offlineStore.downloadCampus()}
+          >
             Download campus map
           </button>
         {/if}
@@ -186,7 +195,8 @@
 
         {#if offlineStore.directoryStatus === "downloading"}
           <p class="map-chrome-popover-sub" role="status">
-            {offlineStore.directoryProgressLabel} {directoryPct}%
+            {offlineStore.directoryProgressLabel}
+            {directoryPct}%
           </p>
           <div class="map-chrome-progress" aria-hidden="true">
             <div
