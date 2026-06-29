@@ -4,6 +4,7 @@ import {
   applySupabaseCacheHeaders,
   refreshSupabaseSession,
 } from "./lib/supabase/session";
+import { getAdminUserBySupabaseId } from "./lib/services/admin-user-service";
 import { recordLatency } from "./lib/latency-tracker";
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -16,16 +17,27 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isAdminApi =
     pathname.startsWith("/api/admin") && pathname !== "/api/admin/auth";
 
+  // Resolve editor identity from HMAC cookie or Supabase session (#293).
+  let editorUser = getSessionUser(context.cookies.get(ADMIN_COOKIE_NAME)?.value);
+  if (!editorUser) {
+    const sbUser = context.locals.supabaseUser;
+    if (sbUser?.id) {
+      const linked = await getAdminUserBySupabaseId(sbUser.id);
+      if (linked) editorUser = linked;
+    }
+  }
+
   if (isAdminPage) {
-    return applySupabaseCacheHeaders(
-      context.redirect("/?editor=login"),
-      context,
-    );
+    if (!editorUser) {
+      return applySupabaseCacheHeaders(
+        context.redirect("/?editor=login"),
+        context,
+      );
+    }
   }
 
   if (isAdminApi) {
-    const cookie = context.cookies.get(ADMIN_COOKIE_NAME)?.value;
-    if (!getSessionUser(cookie)) {
+    if (!editorUser) {
       return applySupabaseCacheHeaders(
         new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
