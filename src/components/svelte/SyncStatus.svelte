@@ -5,8 +5,10 @@
     LoaderCircle,
     RefreshCw,
     X,
+    FileText,
   } from "@lucide/svelte";
   import { syncToastStore, appBootstrapStore } from "@lib/store.svelte";
+  import { APP_VERSION_LABEL } from "@constants/version";
 
   type Props = {
     /** When true, show compact collapsed label for mobile status bar. */
@@ -242,12 +244,27 @@
     {:else if syncToastStore.needRefresh}
       <Info size={16} aria-hidden="true" />
       <div class="sync-status-copy">
-        <span class="sync-status-label">{displayedLabel}</span>
+        <span class="sync-status-label">
+          {displayedLabel}
+          {#if APP_VERSION_LABEL}
+            <span class="version-label">· {APP_VERSION_LABEL}</span>
+          {/if}
+        </span>
         {#if showDetail && displayedDetail}
           <span class="sync-status-detail">{displayedDetail}</span>
         {/if}
       </div>
       {#if showReload}
+        <a
+          class="sync-action changelog-link"
+          href="/changelog"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="View full changelog"
+        >
+          <FileText size={12} aria-hidden="true" />
+          Changelog
+        </a>
         <button
           class="sync-action reload-button"
           type="button"
@@ -606,6 +623,31 @@
     100% {
       left: 100%;
     }
+  }
+
+  .version-label {
+    opacity: 0.7;
+    font-weight: 500;
+  }
+
+  .changelog-link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(5, 34%, 82%);
+    background: transparent;
+    color: hsl(5, 53%, 32%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .changelog-link:hover,
+  .changelog-link:focus-visible {
+    background: hsl(5, 20%, 96%);
   }
 
   @media (prefers-reduced-motion: reduce) {
