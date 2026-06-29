@@ -940,6 +940,7 @@ class AdminAuthStore {
   };
 
   openLogin = () => {
+    modalStore.closeModal();
     this.loginOpen = true;
   };
 

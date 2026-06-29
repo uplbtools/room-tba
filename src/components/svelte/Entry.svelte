@@ -190,14 +190,14 @@
         </div>
       </div>
     </div>
-    {#if toastStore.message}
-      <Toast
-        message={toastStore.message}
-        type={toastStore.type}
-        onclose={() => toastStore.clear()}
-      />
-    {/if}
   </div>
+  {#if toastStore.message}
+    <Toast
+      message={toastStore.message}
+      type={toastStore.type}
+      onclose={() => toastStore.clear()}
+    />
+  {/if}
   <Modal />
   {#if building3DStore.buildingName}
     <Building3DViewer name={building3DStore.buildingName} />
@@ -260,6 +260,10 @@
     --z-side-panel: 2;
     --z-status-bar: 3;
     --z-map-tools: 15;
+    --z-chrome-popover: 17;
+    --z-modal: 100;
+    --z-login-modal: 200;
+    --z-toast: 1000;
 
     width: 100%;
     height: 100dvh;

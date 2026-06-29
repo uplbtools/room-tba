@@ -125,7 +125,7 @@
     position: fixed;
     inset: 0;
     background-color: rgba(8, 12, 22, 0.55);
-    z-index: 200;
+    z-index: var(--z-login-modal, 200);
     display: flex;
     align-items: center;
     justify-content: center;
