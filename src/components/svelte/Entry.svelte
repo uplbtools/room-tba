@@ -238,7 +238,7 @@
     --search-block-height: 3.25rem;
     /* Top-left search card + drawer: use viewport minus right-side map chrome. */
     --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
-    --status-bar-block-height: 2.75rem;
+    --status-bar-block-height: 2rem;
     --drawer-peek-offset: 1.75rem;
     --map-tools-block-height: 3.25rem;
     --mobile-detail-sheet-top-inset: calc(
@@ -330,7 +330,7 @@
     gap: 0.375rem;
     width: 100%;
     min-width: 0;
-    min-height: 2.75rem;
+    min-height: 2rem;
     box-sizing: border-box;
     pointer-events: auto;
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
