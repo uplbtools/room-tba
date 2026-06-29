@@ -76,7 +76,7 @@
 
   function handleNavAction(id: "contributors" | "editor-login") {
     if (id === "contributors") {
-      modalStore.openModal("landing");
+      modalStore.openModal("landing", { landingTab: "campus" });
       return;
     }
     adminAuthStore.openLogin();
