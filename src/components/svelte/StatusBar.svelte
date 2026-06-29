@@ -1,6 +1,7 @@
 <script lang="ts">
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import WifiOff from "@lucide/svelte/icons/wifi-off";
   import { onMount } from "svelte";
   import { registerSW } from "virtual:pwa-register";
   import { getAppData } from "@lib/context";
@@ -12,6 +13,7 @@
   } from "@lib/store.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
   import SyncStatus from "@ui/SyncStatus.svelte";
+  import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
   import StatusBarDetails from "./status-bar/StatusBarDetails.svelte";
   import StatusBarDirectionsStat from "./status-bar/StatusBarDirectionsStat.svelte";
@@ -24,6 +26,7 @@
   const appData = getAppData();
   const { directionCount, totalRooms } = $derived(appData());
   let isOpen = $state(false);
+  let isOnline = $state(true);
 
   const showFullSync = $derived(isOpen);
   const detailsCompact = $derived(!isOpen);
@@ -55,6 +58,21 @@
   );
 
   onMount(() => {
+    isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+    const onOnline = () => {
+      isOnline = true;
+      toastStore.show("Back online — campus data will sync.", "success");
+    };
+    const onOffline = () => {
+      isOnline = false;
+      toastStore.show(
+        "You’re offline. Map and cached data still work.",
+        "info",
+      );
+    };
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+
     const updateSW = registerSW({
       immediate: true,
       onNeedRefresh() {
@@ -67,6 +85,10 @@
     syncToastStore.setRefreshHandler(() => {
       void updateSW(true);
     });
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
   });
 
   async function handleSignOut() {
@@ -119,6 +141,14 @@
       <div class="status-bar__primary">
         <SyncStatus inline compact={detailsCompact} expanded={showFullSync} />
         <OfflineMaps compact={detailsCompact} />
+        <PWAInstallPrompt />
+        {#if !isOnline}
+          <span class="status-bar__sep" aria-hidden="true">·</span>
+          <span class="offline-chip" title="Offline mode">
+            <WifiOff size={12} aria-hidden="true" />
+            Offline
+          </span>
+        {/if}
         {#if showSessionChip}
           <MapChromeSession
             roleLabel={sessionRoleLabel}
@@ -157,5 +187,19 @@
 <style>
   * {
     pointer-events: auto;
+  }
+
+  .offline-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid hsl(0, 0%, 82%);
+    background: hsl(0, 0%, 97%);
+    color: hsl(0, 0%, 38%);
+    font-size: 0.8125rem;
+    line-height: 1.15;
+    flex-shrink: 0;
   }
 </style>
