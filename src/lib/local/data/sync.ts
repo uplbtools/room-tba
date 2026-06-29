@@ -27,6 +27,7 @@ export function getSyncKeysFromLs(): {
       "rooms": "",
       "dorms": "",
       "classes": "",
+      "final_exams": "",
       "events": ""
     }`,
     );
@@ -53,6 +54,7 @@ export function getSyncKeysFromLs(): {
       "rooms": "",
       "dorms": "",
       "classes": "",
+      "final_exams": "",
       "events": ""
     }`,
     );

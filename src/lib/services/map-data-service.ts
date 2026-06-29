@@ -6,9 +6,11 @@ import {
   collegesTable,
   divisionsTable,
   dormsTable,
+  finalExamsTable,
   roomsTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
+import { normalizeCourseCode } from "@lib/final-exams/normalize";
 import { normalizeAlias } from "@lib/site";
 import { normalizeDormListFields } from "@lib/string-lists";
 import type {
@@ -17,6 +19,7 @@ import type {
   CollegeData,
   DivisionData,
   DormData,
+  FinalExamRow,
   RoomData,
 } from "@lib/types";
 
@@ -503,5 +506,57 @@ export async function getAllDorms(): Promise<DormData[]> {
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for dorms", { cause: e });
+  }
+}
+
+export async function queryFinalExams(filters: {
+  courseCode?: string;
+  roomCode?: string;
+  date?: string;
+  termId?: number;
+}): Promise<FinalExamRow[]> {
+  try {
+    const conditions = [];
+    if (filters.termId != null) {
+      conditions.push(eq(finalExamsTable.termId, filters.termId));
+    }
+    if (filters.courseCode) {
+      const code = normalizeCourseCode(filters.courseCode);
+      if (code) conditions.push(eq(finalExamsTable.courseCode, code));
+    }
+    if (filters.roomCode) {
+      conditions.push(eq(roomsTable.roomCode, filters.roomCode));
+    }
+    if (filters.date) {
+      conditions.push(eq(finalExamsTable.examDate, filters.date));
+    }
+
+    const data = await db
+      .select({
+        id: finalExamsTable.id,
+        termId: finalExamsTable.termId,
+        courseCode: finalExamsTable.courseCode,
+        section: finalExamsTable.section,
+        courseTitle: finalExamsTable.courseTitle,
+        roomId: finalExamsTable.roomId,
+        roomCode: roomsTable.roomCode,
+        examDate: finalExamsTable.examDate,
+        startsAt: finalExamsTable.startsAt,
+        endsAt: finalExamsTable.endsAt,
+        source: finalExamsTable.source,
+      })
+      .from(finalExamsTable)
+      .leftJoin(roomsTable, eq(roomsTable.id, finalExamsTable.roomId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(
+        finalExamsTable.examDate,
+        finalExamsTable.startsAt,
+        finalExamsTable.courseCode,
+      );
+
+    return data;
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch final exams", { cause: e });
   }
 }

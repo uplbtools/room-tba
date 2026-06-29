@@ -18,9 +18,16 @@
   $effect(() => {
     if (!canvasEl) return;
 
+    // Scale renderer to container so text stays readable at 320px (#241)
+    const containerWidth = canvasEl.parentElement?.clientWidth ?? 320;
+    const baseWidth = 1000;
+    const scale = Math.min(1, containerWidth / baseWidth);
+    const width = Math.round(baseWidth * scale);
+    const height = Math.round(600 * scale);
+
     const renderer = new ScheduleRenderer(canvasEl, {
-      width: 1000,
-      height: 600,
+      width,
+      height,
     });
 
     classes.forEach((sectionClass) => {

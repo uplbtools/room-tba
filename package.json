@@ -21,6 +21,7 @@
     "seed:events": "bun src/seed-events.ts",
     "seed:aliases": "bun run scripts/seed-aliases.ts",
     "import:amis-classes": "bun run scripts/import-amis-classes.ts",
+    "import:final-exams": "bun run scripts/import-final-exams.ts",
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run"
   },
