@@ -264,6 +264,12 @@
     --motion-duration-shelf: 260ms;
     --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    @media (prefers-reduced-motion: reduce) {
+      --motion-duration-fast: 0ms;
+      --motion-duration-micro: 0ms;
+      --motion-duration-panel: 0ms;
+      --motion-duration-shelf: 0ms;
+    }
     /* Stacking contract — highest first; blocking overlays dismiss ephemeral chrome.
        map(0) < side-panel(2) < search-elevated(12) < map-tools(15) < chrome-popover(17)
        < modal(100) < login-modal(200) < toast(1000). (#302) */
