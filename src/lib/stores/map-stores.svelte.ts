@@ -1,8 +1,14 @@
-class MapStore {
+import * as maplibre from "maplibre-gl";
+import { DEFAULT_TERRAIN_EXAGGERATION } from "@constants/map-terrain";
+import { dismissEphemeralOverlays } from "../overlay-stack.js";
+import { deactivateMapModesExcept } from "./map-modes.js";
+import type { MapToolsSection, TerrainStatus } from "./store-types.js";
+
+export class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
 }
 
-class MapViewStore {
+export class MapViewStore {
   eventsOnly: boolean = $state(false);
 
   toggleEventsOnly = () => {
@@ -14,10 +20,9 @@ class MapViewStore {
   };
 }
 
-class MapToolsStore {
+export class MapToolsStore {
   open = $state(false);
   activeSection: MapToolsSection | null = $state("view");
-  /** Accordion: view only by default; legend/terrain/transit collapsed. */
   expandedSections = $state<Set<MapToolsSection>>(new Set(["view"]));
 
   toggle = () => {
@@ -52,7 +57,7 @@ class MapToolsStore {
   };
 }
 
-class TerrainStore {
+export class TerrainStore {
   enabled: boolean = $state(false);
   menuOpen: boolean = $state(false);
   exaggeration: number = $state(DEFAULT_TERRAIN_EXAGGERATION);
@@ -113,7 +118,7 @@ class TerrainStore {
   };
 }
 
-class Building3DStore {
+export class Building3DStore {
   buildingName: string | null = $state(null);
 
   open = (name: string) => {
