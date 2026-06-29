@@ -17,7 +17,7 @@
     progressPercent: number;
     showDirectionsProgress: boolean;
     showEditorLogin: boolean;
-    onAction: (id: "contributors" | "editor-login") => void;
+    onAction: (id: "contributors" | "editor-login" | "browse-classes") => void;
   };
 
   const {

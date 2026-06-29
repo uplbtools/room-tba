@@ -69,7 +69,8 @@ export type SyncTableKey =
   | "dorms"
   | "events"
   | "aliases"
-  | "rooms";
+  | "rooms"
+  | "classes";
 
 export type SyncActivity = "idle" | "checking" | "fetching" | "writing";
 
@@ -81,6 +82,7 @@ const SYNC_TABLE_LABELS: Record<SyncTableKey, string> = {
   events: "events",
   aliases: "search aliases",
   rooms: "room stats",
+  classes: "classes",
 };
 
 export function syncTableLabel(table: SyncTableKey): string {
@@ -155,6 +157,7 @@ export interface QueryStoreState {
     | "college"
     | "room"
     | "class"
+    | "classes"
     | "dorm"
     | "event"
     | "events"
@@ -1147,6 +1150,7 @@ class SyncToastStore {
   private _dorms = $state<SyncInfo | null>(null);
   private _events = $state<SyncInfo | null>(null);
   private _aliases = $state<SyncInfo | null>(null);
+  private _classes = $state<SyncInfo | null>(null);
 
   private _syncStartTime = $state<number>(0);
 
@@ -1379,6 +1383,9 @@ class SyncToastStore {
   startAliasesSync(total: number) {
     this.beginWriting("aliases", total);
   }
+  startClassesSync(total: number) {
+    this.beginWriting("classes", total);
+  }
 
   updateBuildingsSync() {
     if (this._buildings === null) return;
@@ -1401,8 +1408,10 @@ class SyncToastStore {
     this._events.synced++;
   }
   updateAliasesSync() {
-    if (this._aliases === null) return;
-    this._aliases.synced++;
+    this._aliases!.synced++;
+  }
+  updateClassesSync() {
+    this._classes!.synced++;
   }
 
   endSync(didSync = true) {

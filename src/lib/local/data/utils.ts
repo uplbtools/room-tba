@@ -354,6 +354,13 @@ export function getEntity<T>(
 ): (checker: TableSyncInfo) => Promise<EntityLoadResult<T>> {
   return async (checker: TableSyncInfo) => {
     const local = async () => (await getLocalEntity()) ?? [];
+    // Offline (sync endpoint unreachable): prefer stale local cache over
+    // failing to remote. Only treat invalid checker as "must refetch" when
+    // we actually got a newKey back (confirmed sync mismatch) (#169).
+    if (checker.newKey === null) {
+      const cached = await local();
+      return { rows: cached, source: "cache" };
+    }
     if (checker.valid) {
       const cached = await local();
       // localStorage sync key can outlive PGlite (IDB eviction, cleared site data).
