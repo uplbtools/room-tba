@@ -7,7 +7,10 @@
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
   import { mapToolsStore, termStore } from "@lib/store.svelte";
-  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
+  import {
+    registerEphemeralOverlayDismisser,
+    openEphemeralOverlay,
+  } from "@lib/overlay-stack";
   import type { TermWithCount } from "@lib/types";
   import "./map-chrome/map-chrome.css";
 
@@ -69,10 +72,14 @@
 
   function toggleOpen() {
     if (!open) {
-      mapToolsStore.close();
+      openEphemeralOverlay(() => {
+        mapToolsStore.close();
+        open = true;
+        queueMicrotask(updatePanelPosition);
+      });
+      return;
     }
-    open = !open;
-    if (open) queueMicrotask(updatePanelPosition);
+    open = false;
   }
 
   function closePanel() {
