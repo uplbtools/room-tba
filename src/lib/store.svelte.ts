@@ -22,6 +22,10 @@ import {
   MIN_ZOOM,
   tileUrl,
 } from "./local/offline-maps";
+import {
+  OFFLINE_DIRECTORY_SYNCED_AT_KEY,
+  syncCampusDirectoryForOffline,
+} from "./local/data/campus-directory-sync";
 import { clearProposeEventDraft } from "./contributor-drafts";
 import { recordSyncTelemetry } from "./telemetry";
 import type { BuildingTypeFilter } from "@constants/building-types";
@@ -1439,7 +1443,14 @@ class SyncToastStore {
 type OfflineStatus = "idle" | "downloading" | "done" | "error" | "cancelled";
 
 class OfflineStore {
+  /** Campus map tile download. */
   status = $state<OfflineStatus>("idle");
+  /** Buildings, rooms, aliases bundle for offline search. */
+  directoryStatus = $state<OfflineStatus>("idle");
+  directoryError = $state<string | null>(null);
+  directoryProgress = $state(0);
+  directoryProgressLabel = $state("");
+  directoryLastSyncedAt = $state<string | null>(null);
   tilesTotal = $state(0);
   tilesDone = $state(0);
   bytesDownloaded = $state(0);
@@ -1455,6 +1466,8 @@ class OfflineStore {
   // Compute the tile count up front so the size estimate shows before download.
   prepareEstimate = async () => {
     void this.refreshStorage();
+    this.directoryLastSyncedAt =
+      localStorage.getItem(OFFLINE_DIRECTORY_SYNCED_AT_KEY) ?? null;
     if (this.tilesTotal !== 0) return;
     const source = await getTileTemplate();
     this.tilesTotal = getCampusTileCoords(MIN_ZOOM, source?.maxZoom).length;
@@ -1529,6 +1542,41 @@ class OfflineStore {
     this.bytesDownloaded = 0;
     this.status = "idle";
     await this.refreshStorage();
+  };
+
+  downloadCampusDirectory = async () => {
+    if (this.directoryStatus === "downloading") return;
+    this.directoryError = null;
+    this.directoryProgress = 0;
+    this.directoryProgressLabel = "Starting…";
+    this.directoryStatus = "downloading";
+
+    const result = await syncCampusDirectoryForOffline({
+      onProgress: (progress) => {
+        this.directoryProgress = progress.step / progress.totalSteps;
+        this.directoryProgressLabel = progress.label;
+      },
+    });
+
+    if (result.ok) {
+      this.directoryStatus = "done";
+      this.directoryLastSyncedAt =
+        localStorage.getItem(OFFLINE_DIRECTORY_SYNCED_AT_KEY) ?? null;
+      this.directoryProgress = 1;
+    } else {
+      this.directoryStatus = "error";
+      this.directoryError =
+        result.error ?? "Campus directory download failed.";
+    }
+  };
+
+  clearCampusDirectory = () => {
+    localStorage.removeItem(OFFLINE_DIRECTORY_SYNCED_AT_KEY);
+    this.directoryStatus = "idle";
+    this.directoryError = null;
+    this.directoryProgress = 0;
+    this.directoryProgressLabel = "";
+    this.directoryLastSyncedAt = null;
   };
 }
 

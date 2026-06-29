@@ -1498,6 +1498,17 @@
         locationStore.routeOrigin,
         locationStore.destination,
       ]);
+      const map = mapStore.mapInstance;
+      if (map) {
+        const bounds = new mapGl.LngLatBounds();
+        bounds.extend(locationStore.routeOrigin);
+        bounds.extend(locationStore.destination);
+        map.fitBounds(bounds, {
+          padding: { top: 80, bottom: 120, left: 80, right: 80 },
+          duration: 1000,
+          maxZoom: 18,
+        });
+      }
     } else {
       directions.clear();
     }

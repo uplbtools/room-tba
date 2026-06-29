@@ -9,11 +9,20 @@
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
+  import Download from "@lucide/svelte/icons/download";
 
   type LandingTab = "welcome" | "campus";
 
   let activeTab = $state<LandingTab>("welcome");
   let dontShowAgain = $state(false);
+  let installPrompt = $state<
+    | (Event & {
+        prompt: () => Promise<void>;
+        userChoice: Promise<{ outcome: string }>;
+      })
+    | null
+  >(null);
+  let isInstalled = $state(false);
 
   let githubContributors = $state<GithubContributor[]>([]);
   let githubLoading = $state(false);
@@ -62,11 +71,34 @@
   }
 
   function handleGetStarted() {
+    if (installPrompt) {
+      void installPrompt.prompt();
+      installPrompt.userChoice.then(({ outcome }) => {
+        if (outcome === "accepted") isInstalled = true;
+      });
+      installPrompt = null;
+      return;
+    }
     if (dontShowAgain) {
       localStorage.setItem("hideLandingModal", "true");
     }
     modalStore.closeModal();
   }
+
+  $effect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      installPrompt = e as BeforeInstallPromptEvent;
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    const iosStandalone =
+      "standalone" in window.navigator &&
+      (window.navigator as unknown as { standalone: boolean }).standalone ===
+        true;
+    isInstalled =
+      iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  });
 
   $effect(() => {
     if (!modalStore.open || modalStore.type !== "landing") return;
@@ -211,7 +243,16 @@
       ·
       <a href="/terms" class="inline-link">Terms</a>
     </p>
-    <button class="primary-btn" onclick={handleGetStarted}>Get Started</button>
+    {#if installPrompt && !isInstalled}
+      <button class="primary-btn install-btn" onclick={handleGetStarted}>
+        <Download size={16} aria-hidden="true" />
+        Install Room TBA
+      </button>
+    {:else}
+      <button class="primary-btn" onclick={() => modalStore.closeModal()}
+        >Get Started</button
+      >
+    {/if}
     <label class="checkbox-label">
       <input type="checkbox" bind:checked={dontShowAgain} />
       Don't show again
@@ -443,6 +484,13 @@
 
   .primary-btn:hover {
     background-color: hsl(5, 75%, 22%);
+  }
+
+  .install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: hsl(5, 75%, 28%);
   }
 
   .checkbox-label {

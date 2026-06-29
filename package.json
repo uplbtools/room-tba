@@ -41,7 +41,6 @@
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "astro": "^7.0.3",
     "bcrypt": "^6.0.0",
-    "better-sqlite3": "^12.11.1",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "es-toolkit": "^1.49.0",
