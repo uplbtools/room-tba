@@ -3,9 +3,11 @@
 A 30-minute weekly process to keep issues moving and volunteers unblocked.
 
 ## When
+
 Every Monday at 09:00 UTC (or async if no one is online).
 
 ## Roles
+
 - **Scribe:** rotates weekly; updates issue labels and writes a brief summary.
 - **Driver:** the person with the most context on current sprint work.
 
@@ -40,5 +42,6 @@ gh pr list --state open --base staging
 ```
 
 ## Resources
+
 - [Issue hygiene](issue-hygiene.md)
 - [Volunteer triage](volunteer-triage.md)
