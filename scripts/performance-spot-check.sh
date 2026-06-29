@@ -39,4 +39,30 @@ find public -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) | whi
   fi
 done
 
+# Check total JS payload
+echo "\n--- Total JS payload ---"
+total_js=$(find dist/client -name "*.js" | xargs wc -c | tail -1 | awk '{print $1}')
+total_js_kb=$((total_js / 1024))
+echo "  Total JS: ${total_js_kb}KB"
+if [ "$total_js_kb" -gt 2000 ]; then
+  echo "  WARNING: total JS exceeds 2MB"
+fi
+
+# Check for uncompressed assets
+echo "\n--- Compression check ---"
+find dist/client -name "*.js" -o -name "*.css" | head -5 | while read -r f; do
+  gz=$(gzip -9 -c "$f" | wc -c)
+  orig=$(wc -c < "$f")
+  ratio=$((100 * gz / orig))
+  echo "  $(basename "$f"): ${ratio}% of original after gzip"
+done
+
+# Check API health if server is running
+echo "\n--- API health ---"
+if curl -sf http://localhost:4321/api/health > /dev/null 2>&1; then
+  echo "  /api/health reachable"
+else
+  echo "  SKIP: dev server not running (run 'bun dev' first to check latency)"
+fi
+
 echo "\n=== Done ==="
