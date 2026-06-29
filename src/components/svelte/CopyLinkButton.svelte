@@ -81,7 +81,7 @@
     onclick={handleCopy}
   >
     <span>{label}</span>
-    <Copy size={16} aria-hidden="true" />
+    <Copy size={14} aria-hidden="true" />
   </button>
   {#if feedback === "inline"}
     <span class="copy-link-status" role="status" aria-live="polite">
@@ -134,8 +134,16 @@
   }
 
   [data-variant="chip"] .copy-link-btn {
+    box-sizing: border-box;
     width: max-content;
-    padding: 0.375rem 0.75rem;
+    min-height: 1.75rem;
+    height: 1.75rem;
+    padding: 0 0.5rem;
+    border-radius: 0.75rem;
+    background: #fffafa;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
   }
 
   [data-variant="chip"] .copy-link-btn:hover:not(:disabled) {
