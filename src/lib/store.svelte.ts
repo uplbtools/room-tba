@@ -23,6 +23,7 @@ import {
   tileUrl,
 } from "./local/offline-maps";
 import { clearProposeEventDraft } from "./contributor-drafts";
+import { recordSyncTelemetry } from "./telemetry";
 import type { BuildingTypeFilter } from "@constants/building-types";
 
 export type { BuildingTypeFilter };
@@ -1120,6 +1121,8 @@ class SyncToastStore {
   private _events = $state<SyncInfo | null>(null);
   private _aliases = $state<SyncInfo | null>(null);
 
+  private _syncStartTime = $state<number>(0);
+
   currentSync = $state<SyncTableKey | null>(null);
   allSynced = $state<boolean>(false);
   recentlySynced = $state<boolean | null>(null);
@@ -1246,6 +1249,7 @@ class SyncToastStore {
     this.fetchingRemote = false;
     this.currentSync = null;
     this.allSynced = false;
+    recordSyncTelemetry({ type: "sync-error", error: message });
   }
 
   clearSyncError() {
@@ -1259,6 +1263,7 @@ class SyncToastStore {
     this.clearSyncError();
     this.allSynced = false;
     this.recentlySynced = true;
+    recordSyncTelemetry({ type: "sync-retry" });
     handler();
   }
 
@@ -1277,6 +1282,7 @@ class SyncToastStore {
     this._dorms = null;
     this._events = null;
     this._aliases = null;
+    this._syncStartTime = performance.now();
   }
 
   beginFetchingCampus(totalFetches: number) {
@@ -1385,6 +1391,12 @@ class SyncToastStore {
     } else if (!didSync) {
       this.recentlySynced = false;
     }
+    const duration =
+      this._syncStartTime > 0
+        ? Math.round(performance.now() - this._syncStartTime)
+        : undefined;
+    recordSyncTelemetry({ type: "sync-complete", durationMs: duration });
+    this._syncStartTime = 0;
   }
 }
 
