@@ -15,8 +15,8 @@
     hovered?: boolean;
     label: string;
     labelVisible?: boolean;
-    onpointerenter?: () => void;
-    onpointerleave?: () => void;
+    onpointerenter?: (event: PointerEvent) => void;
+    onpointerleave?: (event: PointerEvent) => void;
     saveState?: EntityPinSaveState;
     tone?: EntityPinTone;
   };

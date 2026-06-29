@@ -322,6 +322,7 @@ export const adminUsersTable = pgTable(
     passwordHash: text("password_hash").notNull(),
     role: adminRoleEnum().default("editor").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
+    supabaseUserId: uuid("supabase_user_id"),
     createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
       .notNull(),
