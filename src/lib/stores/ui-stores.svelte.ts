@@ -1,4 +1,14 @@
-class ModalStore {
+import { SvelteMap } from "svelte/reactivity";
+import { dismissEphemeralOverlays } from "../overlay-stack.js";
+import type {
+  FloatingControlPanel,
+  LandingModalTab,
+  ModalStoreState,
+  QueryStoreState,
+  RecentSearch,
+} from "./store-types.js";
+
+export class ModalStore {
   private _modalStore: ModalStoreState = $state({
     open: false,
     type: null,
@@ -26,7 +36,7 @@ class ModalStore {
   };
 }
 
-class QueryStore {
+export class QueryStore {
   private _queryStore: QueryStoreState = $state({
     category: null,
     type: "query",
@@ -51,7 +61,6 @@ class QueryStore {
     ),
   );
 
-  // onclick of query buttons
   updateQuery = (obj: QueryStoreState) => {
     this._queryStore = obj;
     this.inputValue = obj.value;
@@ -92,7 +101,6 @@ class QueryStore {
     this.recentSearches.splice(id, 1);
   }
 
-  // when clicking the x button
   clearQuery = () => {
     this._queryStore = {
       category: null,
@@ -102,7 +110,6 @@ class QueryStore {
     this.inputValue = "";
   };
 
-  /** Drop an active result selection while keeping the search field editable. */
   exitResultMode = () => {
     this._queryStore = {
       category: null,
@@ -135,7 +142,7 @@ class QueryStore {
   };
 }
 
-class ToastStore {
+export class ToastStore {
   message: string | null = $state(null);
   type: "info" | "error" | "success" = $state("info");
 
@@ -149,7 +156,7 @@ class ToastStore {
   };
 }
 
-class MainControlsStore {
+export class MainControlsStore {
   collapsed: boolean = $state(false);
 
   toggle = () => {
@@ -165,7 +172,7 @@ class MainControlsStore {
   };
 }
 
-class FloatingControlPanelStore {
+export class FloatingControlPanelStore {
   openPanel: FloatingControlPanel | null = $state(null);
 
   toggle = (panel: FloatingControlPanel) => {

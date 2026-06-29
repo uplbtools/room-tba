@@ -1,50 +1,60 @@
 // src/lib/store.svelte.ts
 
-import { modalOptions } from "@constants/modal-states";
 import {
   DEFAULT_TERRAIN_EXAGGERATION,
   CAMPUS_BOUNDS,
 } from "@constants/map-terrain";
-import { SvelteMap } from "svelte/reactivity";
-import * as maplibre from "maplibre-gl";
-import { getJSONFetch, getLocalRoomByCode } from "./local/data/utils";
-import { parseTermIdFromSearch, syncTermQueryParam } from "./term-url";
-import {
-  resolveDefaultTermFromList,
-  resolveInitialTermId,
-} from "./term-calendar";
-import {
-  AVG_TILE_BYTES,
-  clearMapCaches,
-  getCampusTileCoords,
-  getStorageUsage,
-  getTileTemplate,
-  MIN_ZOOM,
-  tileUrl,
-} from "./local/offline-maps";
-import {
-  OFFLINE_DIRECTORY_SYNCED_AT_KEY,
-  syncCampusDirectoryForOffline,
-} from "./local/data/campus-directory-sync";
-import {
-  OFFLINE_CLASSES_SYNCED_AT_KEY,
-  syncClassSchedulesForOffline,
-} from "./local/data/class-schedules-offline-sync";
-import { dismissEphemeralOverlays } from "./overlay-stack";
-import { clearProposeEventDraft } from "./contributor-drafts";
-import { recordSyncTelemetry } from "./telemetry";
+import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
-import { orderDayStops, type Weekday } from "./schedule-import/day-stops";
-import { matchImportedScheduleRows } from "./schedule-import/match-classes";
-import { parseScheduleImport } from "./schedule-import/parse-import";
+import { orderDayStops, type Weekday } from "../schedule-import/day-stops.js";
+import { matchImportedScheduleRows } from "../schedule-import/match-classes.js";
+import { parseScheduleImport } from "../schedule-import/parse-import.js";
 import type {
   ImportedScheduleRow,
-  ScheduleDayStop,
   ScheduleMatchResult,
-} from "./schedule-import/types";
-import { ROOM_SCHEDULE_SCOPE_NOTE } from "./amis/room-scheduled-types";
+} from "../schedule-import/types.js";
+import { ROOM_SCHEDULE_SCOPE_NOTE } from "../amis/room-scheduled-types.js";
+import { dismissEphemeralOverlays } from "../overlay-stack.js";
+import {
+  deactivateMapModesExcept,
+  registerMapMode,
+  type ExclusiveMapMode,
+} from "./map-modes.js";
+import {
+  SCHEDULE_IMPORT_SS_KEY,
+  type ScheduleImportPersisted,
+  syncTableLabel,
+  type AppBootstrapPhase,
+  type EventPlacementDraft,
+  type FloatingControlPanel,
+  type LandingModalTab,
+  type MapProposalTarget,
+  type MapToolsSection,
+  type OfflineStatus,
+  type QueryStoreState,
+  type SyncActivity,
+  type SyncInfo,
+  type SyncTableKey,
+  type TerrainStatus,
+} from "./store-types.js";
 
 export type { BuildingTypeFilter };
+export type {
+  AppBootstrapPhase,
+  EventPlacementDraft,
+  ExclusiveMapMode,
+  FloatingControlPanel,
+  LandingModalTab,
+  MapProposalTarget,
+  MapToolsSection,
+  OfflineStatus,
+  QueryStoreState,
+  SyncActivity,
+  SyncInfo,
+  SyncTableKey,
+  TerrainStatus,
+};
+export { deactivateMapModesExcept, syncTableLabel };
 
 type RoomData = {
   id: number;
@@ -66,37 +76,6 @@ type RoomData = {
 };
 
 export type DormFilterType = "all" | "up" | "private";
-export type SyncInfo = {
-  synced: number;
-  total: number;
-};
-
-export type SyncTableKey =
-  | "buildings"
-  | "colleges"
-  | "divisions"
-  | "dorms"
-  | "events"
-  | "aliases"
-  | "rooms"
-  | "classes";
-
-export type SyncActivity = "idle" | "checking" | "fetching" | "writing";
-
-const SYNC_TABLE_LABELS: Record<SyncTableKey, string> = {
-  buildings: "building list",
-  colleges: "colleges",
-  divisions: "divisions",
-  dorms: "dorms",
-  events: "events",
-  aliases: "search aliases",
-  rooms: "room stats",
-  classes: "classes",
-};
-
-export function syncTableLabel(table: SyncTableKey): string {
-  return SYNC_TABLE_LABELS[table];
-}
 
 let _dormFilter = $state<DormFilterType>("all");
 export const dormFilter = {
@@ -148,39 +127,6 @@ export const currentRoom = {
   setRoom(room: RoomData) {
     _currentRoom = room;
   },
-};
-
-export type LandingModalTab = "welcome" | "campus";
-
-interface ModalStoreState {
-  open: boolean;
-  type: (typeof modalOptions)[number] | null;
-  landingTab?: LandingModalTab;
-}
-
-export interface QueryStoreState {
-  type: "query" | "result";
-  category:
-    | "building"
-    | "division"
-    | "college"
-    | "room"
-    | "class"
-    | "classes"
-    | "dorm"
-    | "event"
-    | "events"
-    | null;
-  value: string;
-  // Stable, unique identifier for a selected event. Event titles are not
-  // unique, so event lookups should prefer this slug over `value`/`inputValue`.
-  eventSlug?: string;
-}
-
-type RecentSearch = {
-  category: Exclude<QueryStoreState["category"], null>;
-  value: string;
-  eventSlug?: string;
 };
 
 // Domain store modules
@@ -815,21 +761,20 @@ export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
 export const proposalsStore = new ProposalsStore();
 
-// Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive:
-// they take over the camera, pins, and map interactions. Location/propose
-// actions live in the bottom chrome tray. Activating one mode tears the others
-// down via deactivateMapModesExcept().
-export type ExclusiveMapMode = "edit" | "routes" | "terrain";
-
-export function deactivateMapModesExcept(active: ExclusiveMapMode) {
-  if (active !== "edit") {
+// Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive.
+registerMapMode("edit", {
+  disable: () => {
     mapEditStore.close();
     eventPlacementStore.cancel();
-  }
-  if (active !== "routes") {
+  },
+});
+registerMapMode("routes", {
+  disable: () => {
     jeepneyStore.disableLayer();
-  }
-  if (active !== "terrain") {
+  },
+});
+registerMapMode("terrain", {
+  disable: () => {
     terrainStore.disable();
-  }
-}
+  },
+});

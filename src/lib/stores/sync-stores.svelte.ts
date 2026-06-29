@@ -1,10 +1,36 @@
-class AppBootstrapStore {
+import {
+  AVG_TILE_BYTES,
+  clearMapCaches,
+  getCampusTileCoords,
+  getStorageUsage,
+  getTileTemplate,
+  MIN_ZOOM,
+  tileUrl,
+} from "../local/offline-maps.js";
+import {
+  OFFLINE_DIRECTORY_SYNCED_AT_KEY,
+  syncCampusDirectoryForOffline,
+} from "../local/data/campus-directory-sync.js";
+import {
+  OFFLINE_CLASSES_SYNCED_AT_KEY,
+  syncClassSchedulesForOffline,
+} from "../local/data/class-schedules-offline-sync.js";
+import { recordSyncTelemetry } from "../telemetry.js";
+import type {
+  AppBootstrapPhase,
+  OfflineStatus,
+  SyncActivity,
+  SyncInfo,
+  SyncTableKey,
+} from "./store-types.js";
+import { syncTableLabel } from "./store-types.js";
+
+export class AppBootstrapStore {
   phase = $state<AppBootstrapPhase>("idle");
   errorMessage = $state<string | null>(null);
   hasCachedData = $state(false);
   private retryHandler: (() => void) | null = null;
 
-  /** Bootstrap never blocks the map; static HTML shell only until hydration. */
   showBlockingOverlay = $derived(false);
 
   statusLabel = $derived.by(() => {
@@ -75,7 +101,7 @@ class AppBootstrapStore {
   }
 }
 
-class SyncToastStore {
+export class SyncToastStore {
   activity = $state<SyncActivity>("idle");
   activityTable = $state<SyncTableKey | null>(null);
   fetchProgress = $state<{ done: number; total: number } | null>(null);
@@ -185,9 +211,7 @@ class SyncToastStore {
     return null;
   });
 
-  // Service worker "new content available" update, surfaced inside this same
-  // bottom offline toast instead of a separate floating prompt.
-  public needRefresh = $state<boolean>(false);
+  needRefresh = $state<boolean>(false);
   private _refresh: (() => void) | null = null;
   private _syncRetry: (() => void) | null = null;
 
@@ -373,16 +397,13 @@ class SyncToastStore {
   }
 }
 
-class OfflineStore {
-  /** Campus map tile download. */
+export class OfflineStore {
   status = $state<OfflineStatus>("idle");
-  /** Buildings, rooms, aliases bundle for offline search. */
   directoryStatus = $state<OfflineStatus>("idle");
   directoryError = $state<string | null>(null);
   directoryProgress = $state(0);
   directoryProgressLabel = $state("");
   directoryLastSyncedAt = $state<string | null>(null);
-  /** Class schedules for active term in PGlite. */
   schedulesStatus = $state<OfflineStatus>("idle");
   schedulesError = $state<string | null>(null);
   schedulesProgressLabel = $state("");
@@ -400,7 +421,6 @@ class OfflineStore {
   );
   estimatedBytes = $derived(this.tilesTotal * AVG_TILE_BYTES);
 
-  // Compute the tile count up front so the size estimate shows before download.
   prepareEstimate = async () => {
     void this.refreshStorage();
     this.directoryLastSyncedAt =
@@ -464,7 +484,6 @@ class OfflineStore {
     };
 
     try {
-      // Modest concurrency to fill the cache quickly without hammering the API.
       await Promise.all(Array.from({ length: 6 }, () => worker()));
       await this.refreshStorage();
       this.status = this.cancelRequested ? "cancelled" : "done";
