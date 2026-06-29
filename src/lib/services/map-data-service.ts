@@ -298,6 +298,45 @@ export async function getClassesForRoom(
   }
 }
 
+/** Per-room class counts for one building/college/division, optionally scoped
+ * to a term. Returns a Map of roomId -> count; rooms with no classes for the
+ * scope are included with count 0 (LEFT JOIN + GROUP BY). One grouped query
+ * feeds the room list preview so we avoid N+1 /api/classes calls per row
+ * (#342). */
+export async function getRoomClassCounts(
+  entityName: "building" | "college" | "division",
+  id: number,
+  termId?: number,
+): Promise<Map<number, number>> {
+  try {
+    const column =
+      entityName === "building"
+        ? roomsTable.buildingId
+        : entityName === "college"
+          ? roomsTable.collegeId
+          : roomsTable.divisionId;
+    const data = await db
+      .select({
+        roomId: roomsTable.id,
+        count: sql<number>`count(${classesTable.id})::int`,
+      })
+      .from(roomsTable)
+      .leftJoin(
+        classesTable,
+        and(
+          eq(classesTable.roomId, roomsTable.id),
+          termId != null ? eq(classesTable.termId, termId) : undefined,
+        ),
+      )
+      .where(eq(column, id))
+      .groupBy(roomsTable.id);
+    return new Map(data.map((row) => [row.roomId, row.count]));
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch room class counts", { cause: e });
+  }
+}
+
 export type AliasMatch = {
   alias: string;
   targetType: string;
