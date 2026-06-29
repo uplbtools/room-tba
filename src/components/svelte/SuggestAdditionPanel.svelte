@@ -212,6 +212,20 @@
 
   async function pickOnMap() {
     error = null;
+    // Require basic identity before dropping a pin so the map interaction has
+    // context and the user doesn't place a pin for an empty form (#283).
+    if (kind === "create_building" && !buildingName.trim()) {
+      error = "You must add all information before picking location on map";
+      return;
+    }
+    if (kind === "create_event" && !eventTitle.trim()) {
+      error = "You must add all information before picking location on map";
+      return;
+    }
+    if (kind === "create_dorm" && !dormName.trim()) {
+      error = "You must add all information before picking location on map";
+      return;
+    }
     dismissHost();
     try {
       await additionProposalStore.requestMapPin();

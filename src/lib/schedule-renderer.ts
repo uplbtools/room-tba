@@ -21,11 +21,11 @@ export class ScheduleRenderer {
     days: ["M", "T", "W", "Th", "F", "S"],
     colors: {
       background: "#FFFFFF",
-      header: "#1a1a1a",
+      header: "hsl(5, 53%, 32%)",
       headerText: "#FFFFFF",
-      grid: "#dadada",
-      gridLight: "#dfdfdf",
-      timeColumn: "#333333",
+      grid: "hsl(5, 10%, 78%)",
+      gridLight: "hsl(5, 10%, 85%)",
+      timeColumn: "hsl(5, 53%, 28%)",
       timeText: "#FFFFFF",
     },
     fonts: {
