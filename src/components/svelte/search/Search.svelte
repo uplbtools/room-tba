@@ -264,7 +264,7 @@
               >
               <label class="sr-only" for="search">Search campus</label>
               <input
-                type="text"
+                type="search"
                 id="search"
                 autocomplete="off"
                 value={draftInput}
@@ -276,6 +276,9 @@
                 onblur={() => {
                   searchFocused = false;
                 }}
+                aria-expanded={showSearchDropdown}
+                aria-controls="search-suggestions"
+                aria-autocomplete="list"
                 placeholder="Search room, building, dorm, event, division..."
               />
               {#if draftInput !== "" || queryStore.category !== null}
@@ -342,8 +345,10 @@
 
       {#if showSearchDropdown}
         <div
+          id="search-suggestions"
           class="map-search-chrome__suggestions"
           role="listbox"
+          aria-label="Search suggestions"
           in:fade={dropdownFadeIn(reducedMotion.current)}
           out:fade={dropdownFadeOut(reducedMotion.current)}
         >
