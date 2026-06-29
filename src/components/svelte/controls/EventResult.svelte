@@ -10,6 +10,7 @@
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorCard from "@ui/editor/EntityEditorCard.svelte";
+  import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import ImageUpload from "@ui/editor/ImageUpload.svelte";
   import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
@@ -973,15 +974,12 @@
                   {:else if mapProposalStore.allowsKey(`event:${event.id}:location`)}
                     Pin move mode is on. Drag the event marker on the map.
                   {:else}
-                    Suggest a map pin move with
-                    <button
-                      type="button"
-                      class="inline-link-btn"
+                    Suggest a map pin move, then drag the marker.
+                    <EntityEditorPinRow
+                      label="Event marker"
+                      pickLabel="Enable pin move"
                       onclick={enableEventPinProposal}
-                    >
-                      enable pin move
-                    </button>
-                    , then drag the marker.
+                    />
                   {/if}
                 </p>
               {:else}
