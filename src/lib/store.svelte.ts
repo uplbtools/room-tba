@@ -1154,8 +1154,6 @@ class SyncToastStore {
 
   private _syncStartTime = $state<number>(0);
 
-  private _syncStartTime = $state<number>(0);
-
   currentSync = $state<SyncTableKey | null>(null);
   allSynced = $state<boolean>(false);
   recentlySynced = $state<boolean | null>(null);
