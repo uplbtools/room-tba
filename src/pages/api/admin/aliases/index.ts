@@ -47,17 +47,13 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  const aliasText =
-    typeof body.alias === "string" ? body.alias.trim() : "";
+  const aliasText = typeof body.alias === "string" ? body.alias.trim() : "";
   const targetType =
     typeof body.targetType === "string" ? body.targetType.trim() : "";
   const targetId = Number(body.targetId);
 
   if (!aliasText || !targetType || !Number.isFinite(targetId)) {
-    return json(
-      { error: "alias, targetType, and targetId are required" },
-      400,
-    );
+    return json({ error: "alias, targetType, and targetId are required" }, 400);
   }
 
   const normalized = normalizeAlias(aliasText);
@@ -111,9 +107,11 @@ export const DELETE: APIRoute = async ({ cookies, request }) => {
   }
 
   try {
-    await db.delete(aliasesTable).where(
-      sql`${aliasesTable.id} IN (${sql.join(ids.map((id) => sql`${id}`))})`,
-    );
+    await db
+      .delete(aliasesTable)
+      .where(
+        sql`${aliasesTable.id} IN (${sql.join(ids.map((id) => sql`${id}`))})`,
+      );
     return json({ success: true, deleted: ids.length });
   } catch (err) {
     console.error("Failed to delete aliases:", err);
