@@ -39,10 +39,14 @@ export class ScheduleRenderer {
   cellWidth: number = 0;
   cellHeight: number = 0;
 
-  constructor(canvasId: string, config = {}) {
-    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!this.canvas) {
-      throw new Error(`Canvas with id "${canvasId}" not found`);
+  constructor(canvas: string | HTMLCanvasElement, config = {}) {
+    if (typeof canvas === "string") {
+      this.canvas = document.getElementById(canvas) as HTMLCanvasElement;
+      if (!this.canvas) {
+        throw new Error(`Canvas with id "${canvas}" not found`);
+      }
+    } else {
+      this.canvas = canvas;
     }
     this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 

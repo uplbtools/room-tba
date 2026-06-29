@@ -11,14 +11,17 @@
     classes: ClassMapValue[];
   }
   const { roomCode, classes }: Props = $props();
-  const canvasId = $derived(`schedule-${roomCode}`);
-  const renderer = $derived(
-    new ScheduleRenderer(canvasId, {
+
+  let canvasEl = $state<HTMLCanvasElement | undefined>();
+
+  $effect(() => {
+    if (!canvasEl) return;
+
+    const renderer = new ScheduleRenderer(canvasEl, {
       width: 1000,
       height: 600,
-    }),
-  );
-  $effect(() => {
+    });
+
     classes.forEach((sectionClass) => {
       const schedule: string[] = sectionClass.schedule ?? [];
       if (schedule.length === 0) return;
@@ -44,7 +47,8 @@
   });
 </script>
 
-<canvas id={canvasId}></canvas>
+<canvas bind:this={canvasEl} aria-label={`Class schedule for ${roomCode}`}
+></canvas>
 
 <style>
   canvas {
