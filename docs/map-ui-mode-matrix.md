@@ -13,6 +13,18 @@ Source of truth for which map chrome is visible in each mode.
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
+## Browse overlay exclusivity (chip row)
+
+Only one browse overlay from the chip row is active at a time (except **All** pins, the neutral default):
+
+- **Transit on** → building/dorm pin filter resets to **All** (`jeepneyStore.enableLayer` sets `buildingTypeFilter` to `"all"`). Covers the search chip, Map tools → Transit, and the route sub-panel — every enable path funnels through `enableLayer`.
+- **Non-All pin filter selected** (Class / Admin / UP dorms / Other dorms) → transit layer + selected route/stop turn off (`BuildingTypeFilterBar.selectFilter` calls `jeepneyStore.disableLayer`).
+- **Events shelf** ↔ Transit exclusivity is unchanged (`openEventsShelf` disables transit; transit active closes the events shelf).
+- **All** is neutral: selecting it does not touch transit.
+- Edit/terrain exclusivity via `deactivateMapModesExcept` is unchanged.
+
+Term-chip exclusivity is intentionally not enforced here (deferred — needs a product call on whether opening the term picker should drop transit/pins).
+
 ## Layout zones (Entry.svelte)
 
 - **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), **term selector chip** (`TermSelector.svelte`, class schedules), transit toggle chip (`TransitFilterChip.svelte`, count badge + route sub-panel when active), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). Individual jeepney routes are picked in the transit sub-panel under the chip row or in Map tools → Transit (`JeepneyMenu.svelte` / `TransitRoutePanel.svelte`), not as top-level chips. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
