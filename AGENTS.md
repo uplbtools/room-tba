@@ -130,6 +130,24 @@ Issues are living specs (paths, schema, acceptance criteria). When coding quickl
 
 Full checklist: [docs/issue-hygiene.md](docs/issue-hygiene.md).
 
+### Do NOT auto-close issues with human coordination requirements
+
+Some issues cannot be resolved purely through code. Issues that require **external human coordination** must remain open until the human work is complete, even if the technical implementation is merged. Examples include:
+
+- **Partnerships** (e.g., #257): Legal agreements, MOUs, and organizational approvals require human signatures and back-and-forth negotiation.
+- **External integrations** requiring third-party API keys, approvals, or contracts.
+- **Content moderation policies** needing stakeholder review.
+- **Volunteer onboarding** or training workflows dependent on human scheduling.
+
+**Agent protocol for human-dependent issues:**
+1. Implement the technical infrastructure (schema, UI stubs, API routes) and reference the issue in the PR.
+2. **Do NOT comment "Closes #NNN"** on PRs for human-dependent issues.
+3. After merge, **comment on the issue** with what was built and what remains for human coordination.
+4. **Keep the issue open** until the user or project lead confirms the human work is complete.
+5. If the issue needs splitting, file a follow-up technical issue and rename the original to focus on the human aspect.
+
+When in doubt, ask the user: "Does this issue require external coordination, or can it be closed with the technical implementation?"
+
 ## Verify before done
 
 Adjust checks to change size. PR CI runs **Prettier + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
