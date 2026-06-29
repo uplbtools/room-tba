@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { adminAuthStore, queryStore, toastStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    queryStore,
+    toastStore,
+    termStore,
+  } from "@lib/store.svelte";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
   import {
@@ -8,7 +13,7 @@
     scheduleEntityContributorDraftSave,
   } from "@lib/contributor-drafts";
   import { getAppActions, getAppData } from "@lib/context";
-  import { getCollegeRooms } from "@lib/local/data/utils";
+  import { getCollegeRooms, fetchRoomClassCounts } from "@lib/local/data/utils";
   import type { CollegeData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
@@ -46,6 +51,7 @@
   });
 
   let collegeRooms = $state<RoomData[] | null>(null);
+  let classCounts = $state<Map<number, number> | null>(null);
   let editing = $state(false);
   let draftCollegeId = $state<number | null>(null);
   let draftVersion = $state<number | null>(null);
@@ -75,6 +81,30 @@
       if (gen !== roomLoadGeneration) return;
       collegeRooms = rooms;
       await syncCollegeRooms(collegeChecker, id, rooms);
+    })();
+  });
+
+  // Class counts per room for the active term, batched in one request so the
+  // room list preview doesn't fire N+1 /api/classes calls (#342). Re-fetches
+  // when the college or the active term changes; null while loading/offline.
+  let classCountGeneration = 0;
+
+  $effect(() => {
+    const id = college?.id;
+    const termId = termStore.activeTermId;
+    if (id == null) {
+      classCounts = null;
+      return;
+    }
+    const gen = ++classCountGeneration;
+    void (async () => {
+      const counts = await fetchRoomClassCounts(
+        "college",
+        id,
+        termId ?? undefined,
+      );
+      if (gen !== classCountGeneration) return;
+      classCounts = counts;
     })();
   });
 
@@ -259,7 +289,7 @@
     </section>
   {/if}
   {#if collegeRooms}
-    <ResultDisplay filteredRooms={collegeRooms} />
+    <ResultDisplay filteredRooms={collegeRooms} {classCounts} />
   {:else}
     Loading data...
   {/if}

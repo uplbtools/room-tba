@@ -7,6 +7,7 @@
     locationStore,
     building3DStore,
     toastStore,
+    termStore,
   } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
@@ -21,7 +22,10 @@
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import { tick } from "svelte";
-  import { getBuildingRooms } from "@lib/local/data/utils";
+  import {
+    getBuildingRooms,
+    fetchRoomClassCounts,
+  } from "@lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
     syncBuildingRooms,
@@ -61,6 +65,7 @@
   );
 
   let buildingRooms = $state<RoomData[] | null>(null);
+  let classCounts = $state<Map<number, number> | null>(null);
 
   let editing = $state(false);
   let draftBuildingId = $state<number | null>(null);
@@ -103,6 +108,30 @@
       if (gen !== roomLoadGeneration) return;
       buildingRooms = rooms;
       await syncBuildingRooms(buildingChecker, id, rooms);
+    })();
+  });
+
+  // Class counts per room for the active term, batched in one request so the
+  // room list preview doesn't fire N+1 /api/classes calls (#342). Re-fetches
+  // when the building or the active term changes; null while loading/offline.
+  let classCountGeneration = 0;
+
+  $effect(() => {
+    const id = building?.id;
+    const termId = termStore.activeTermId;
+    if (id == null) {
+      classCounts = null;
+      return;
+    }
+    const gen = ++classCountGeneration;
+    void (async () => {
+      const counts = await fetchRoomClassCounts(
+        "building",
+        id,
+        termId ?? undefined,
+      );
+      if (gen !== classCountGeneration) return;
+      classCounts = counts;
     })();
   });
 
@@ -477,7 +506,7 @@
   {/if}
 
   {#if buildingRooms}
-    <ResultDisplay filteredRooms={buildingRooms} />
+    <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
   {:else if building}
     <p class="entity-loading-note">Loading rooms…</p>
   {/if}
