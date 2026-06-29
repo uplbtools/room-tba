@@ -690,7 +690,10 @@
       {#if roomClassesStore.loading}
         <p class="entity-schedule__empty">Loading classes…</p>
       {:else if roomClassesStore.classes.length > 0}
-        <Classes classes={roomClassesStore.classes} />
+        <Classes
+          classes={roomClassesStore.classes}
+          currentRoomCode={currentRoom.value?.code ?? null}
+        />
       {:else}
         <p class="entity-schedule__empty">
           No classes listed for this room{activeTermLabel

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { DormData } from "@lib/types";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
+  import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import EntityEditorCheckboxField from "@ui/editor/EntityEditorCheckboxField.svelte";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
@@ -340,30 +341,29 @@
       {#if mapEditStore.enabled}
         Map editing is on. Drag this dorm's pin on the map to move it.
       {:else}
-        To move this dorm's map pin,
-        <button
-          type="button"
-          class="inline-link-btn"
-          onclick={() => mapEditStore.enable()}
-        >
-          enable map editing
-        </button>
-        from the shield control, then drag its marker.
+        Move this dorm's map pin from the map after enabling edit mode.
       {/if}
     {:else if dorm.lat && dorm.lon}
       {#if mapProposalStore.allowsKey(`dorm:${dorm.id}`)}
         Pin move mode is on. Drag this dorm's marker on the map.
       {:else}
-        To suggest a map pin move,
-        <button
-          type="button"
-          class="inline-link-btn"
-          onclick={enablePinProposal}
-        >
-          enable pin move
-        </button>
-        , then drag its marker.
+        Suggest a map pin move, then drag its marker on the map.
       {/if}
     {/if}
   </p>
+  {#if canPublish && !mapEditStore.enabled}
+    <EntityEditorPinRow
+      label="Map pin"
+      pickLabel="Enable map edit"
+      {disabled}
+      onclick={() => mapEditStore.enable()}
+    />
+  {:else if !canPublish && dorm.lat && dorm.lon && !mapProposalStore.allowsKey(`dorm:${dorm.id}`)}
+    <EntityEditorPinRow
+      label="Map pin"
+      pickLabel="Enable pin move"
+      {disabled}
+      onclick={enablePinProposal}
+    />
+  {/if}
 </EntityEditorPanel>

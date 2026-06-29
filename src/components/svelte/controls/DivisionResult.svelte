@@ -329,8 +329,10 @@
   {/if}
   {#if divisionRooms}
     <ResultDisplay filteredRooms={divisionRooms} {classCounts} />
-  {:else}
-    Loading data...
+  {:else if division}
+    <p class="entity-loading-note">
+      Loading rooms for {division.divisionName}…
+    </p>
   {/if}
 </div>
 
