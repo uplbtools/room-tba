@@ -210,20 +210,28 @@
     floatingControlPanelStore.openPanel = panelId;
   }
 
+  const pickPinBlockedMessage =
+    "You must add all information before picking location on map";
+
+  function blockPickOnMap(message = pickPinBlockedMessage) {
+    error = message;
+    toastStore.show(message, "error");
+  }
+
   async function pickOnMap() {
     error = null;
     // Require basic identity before dropping a pin so the map interaction has
     // context and the user doesn't place a pin for an empty form (#283).
     if (kind === "create_building" && !buildingName.trim()) {
-      error = "You must add all information before picking location on map";
+      blockPickOnMap();
       return;
     }
     if (kind === "create_event" && !eventTitle.trim()) {
-      error = "You must add all information before picking location on map";
+      blockPickOnMap();
       return;
     }
     if (kind === "create_dorm" && !dormName.trim()) {
-      error = "You must add all information before picking location on map";
+      blockPickOnMap();
       return;
     }
     dismissHost();
