@@ -177,6 +177,7 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scroll-padding: 4px;
     scrollbar-width: thin;
     scrollbar-color: hsl(6, 63%, 48%) hsl(0, 0%, 98%);
   }
