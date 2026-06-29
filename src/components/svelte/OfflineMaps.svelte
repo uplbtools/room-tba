@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
   import { mapToolsStore, offlineStore } from "@lib/store.svelte";
+  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
@@ -21,6 +22,10 @@
 
   onMount(() => {
     offlineStore.prepareEstimate();
+    const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
+      open = false;
+    });
+    return unregisterDismiss;
   });
 
   function updatePopoverPosition() {
@@ -232,6 +237,55 @@
             onclick={() => offlineStore.downloadCampusDirectory()}
           >
             Download campus directory
+          </button>
+        {/if}
+      </section>
+
+      <section
+        class="offline-category"
+        aria-labelledby="offline-schedules-heading"
+      >
+        <div class="offline-category__head">
+          <h3 id="offline-schedules-heading" class="offline-category__title">
+            Class schedules
+          </h3>
+          <span class="offline-category__meta">
+            {fmtSyncedAt(offlineStore.schedulesLastSyncedAt)}
+          </span>
+        </div>
+
+        {#if offlineStore.schedulesStatus === "downloading"}
+          <p class="map-chrome-popover-sub" role="status">
+            {offlineStore.schedulesProgressLabel}
+          </p>
+        {:else if offlineStore.schedulesStatus === "done"}
+          <p class="map-chrome-popover-sub">
+            {offlineStore.schedulesRowCount} classes saved for offline browse.
+          </p>
+          <button
+            class="offline-btn ghost"
+            onclick={() => offlineStore.downloadClassSchedules()}
+          >
+            Update schedules
+          </button>
+          <button
+            class="offline-btn ghost"
+            onclick={() => offlineStore.clearClassSchedules()}
+          >
+            Mark as not downloaded
+          </button>
+        {:else}
+          <p class="map-chrome-popover-sub">
+            Active-term class list for offline class search.
+          </p>
+          {#if offlineStore.schedulesStatus === "error" && offlineStore.schedulesError}
+            <p class="offline-error">{offlineStore.schedulesError}</p>
+          {/if}
+          <button
+            class="offline-btn"
+            onclick={() => offlineStore.downloadClassSchedules()}
+          >
+            Download class schedules
           </button>
         {/if}
       </section>

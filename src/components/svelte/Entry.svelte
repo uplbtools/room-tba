@@ -31,10 +31,13 @@
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import EditorScreen from "@ui/EditorScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
+  import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight, observeBlockWidth } from "@lib/layout-css-vars";
-  import type { RecentSearch } from "@lib/types";
-  import { isRecentSearch } from "@lib/locStorage";
+  import {
+    dispatchGlobalShortcut,
+    getGlobalShortcutAction,
+  } from "@lib/keyboard-shortcuts";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -132,6 +135,13 @@
   });
 
   function handleKeydown(e: KeyboardEvent) {
+    const action = getGlobalShortcutAction(e);
+    if (action) {
+      e.preventDefault();
+      dispatchGlobalShortcut(action);
+      return;
+    }
+
     if (e.key === "Escape") {
       if (modalStore.open) {
         modalStore.closeModal();
@@ -160,6 +170,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <EntityUrlSync />
+<EntityHoverPreview />
 
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
