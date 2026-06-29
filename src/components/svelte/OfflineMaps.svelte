@@ -2,7 +2,10 @@
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
   import { mapToolsStore, offlineStore } from "@lib/store.svelte";
-  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
+  import {
+    registerEphemeralOverlayDismisser,
+    openEphemeralOverlay,
+  } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
@@ -51,12 +54,14 @@
 
   function toggleOpen() {
     if (!open) {
-      mapToolsStore.close();
+      openEphemeralOverlay(() => {
+        mapToolsStore.close();
+        open = true;
+        queueMicrotask(updatePopoverPosition);
+      });
+      return;
     }
-    open = !open;
-    if (open) {
-      queueMicrotask(updatePopoverPosition);
-    }
+    open = false;
   }
 
   function closePopover() {

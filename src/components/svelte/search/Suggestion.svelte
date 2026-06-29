@@ -1,5 +1,11 @@
 <script lang="ts">
+  import type { BuildingData, EventData } from "@lib/types";
   import { queryStore, type QueryStoreState } from "@lib/store.svelte";
+  import {
+    entityHoverPreviewStore,
+    buildingPreviewFromRow,
+    eventPreviewFromRow,
+  } from "@lib/entity-hover-preview.svelte";
   import ArrowUpRight from "@lucide/svelte/icons/arrow-up-right";
   import BookText from "@lucide/svelte/icons/book-text";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -15,14 +21,19 @@
     category,
     id,
     eventSlug,
+    building,
+    event: eventData,
   }: {
     value: string;
     category: Exclude<QueryStoreState["category"], null>;
     id?: number;
     eventSlug?: string;
+    building?: BuildingData;
+    event?: EventData;
   } = $props();
 
   function handleSuggestionClick() {
+    entityHoverPreviewStore.hideNow();
     queryStore.updateQuery({
       type: "result",
       category,
@@ -36,6 +47,32 @@
     event.stopPropagation();
     if (typeof id === "undefined") return;
     queryStore.removeRecentSearch(id);
+  }
+
+  // Hover preview for buildings and events (#288)
+  function handleMouseEnter(event: MouseEvent) {
+    if (category === "building" && building) {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      entityHoverPreviewStore.show(buildingPreviewFromRow(building), {
+        x: rect.right,
+        y: rect.top + rect.height / 2,
+      });
+    } else if (category === "event" && eventData) {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      entityHoverPreviewStore.show(eventPreviewFromRow(eventData), {
+        x: rect.right,
+        y: rect.top + rect.height / 2,
+      });
+    }
+  }
+
+  function handleMouseLeave() {
+    entityHoverPreviewStore.scheduleHide();
+  }
+
+  function handleFocus(event: FocusEvent) {
+    // Show preview on keyboard focus too
+    handleMouseEnter(event as unknown as MouseEvent);
   }
 </script>
 
@@ -60,7 +97,14 @@
 {/snippet}
 
 <div class="suggestion-row">
-  <button type="button" class="suggestion" onclick={handleSuggestionClick}>
+  <button
+    type="button"
+    class="suggestion"
+    onclick={handleSuggestionClick}
+    onmouseenter={handleMouseEnter}
+    onmouseleave={handleMouseLeave}
+    onfocus={handleFocus}
+  >
     {@render icon(category)}
     <div class="text">{value}</div>
     {#if typeof id === "undefined"}

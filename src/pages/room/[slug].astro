@@ -1,7 +1,7 @@
 ---
 import EntityPage from "@seo/EntityPage.astro";
 import { getRoomRouteSlug } from "@lib/app-data";
-import { getAllRooms } from "@lib/services/map-data-service";
+import { getAllRoomsCached } from "@lib/services/map-data-service";
 import { getRoomPageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
@@ -12,7 +12,7 @@ import {
 } from "@lib/site";
 
 export async function getStaticPaths() {
-  const rooms = await getAllRooms();
+  const rooms = await getAllRoomsCached();
 
   return rooms.map((room) => ({
     params: { slug: getRoomRouteSlug(room) },

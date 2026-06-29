@@ -16,6 +16,7 @@ export function trapFocus(
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
       options?.onEscape?.();
+      event.stopPropagation();
       return;
     }
     if (event.key !== "Tab") return;
