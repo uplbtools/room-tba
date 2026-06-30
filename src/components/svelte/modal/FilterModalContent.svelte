@@ -21,10 +21,12 @@
     filter_name: string,
   ) {
     return () => {
-      queryStore.updateQuery(
-        { type: "result", category: filter_type },
-        filter_name,
-      );
+      queryStore.updateQuery({
+        type: "result",
+        category: filter_type,
+        value: filter_name,
+      });
+      queryStore.inputValue = filter_name;
       modalStore.closeModal();
     };
   }
@@ -40,6 +42,10 @@
   function formatDivisionLabel(name: string) {
     return name.replace(/(Department of |Institute of)/, "");
   }
+  $effect(() => {
+    if (!modalStore.open || modalStore.type !== "filter") return;
+    activeTab = modalStore.filterTab ?? "buildings";
+  });
 </script>
 
 <div class="filter-modal">
