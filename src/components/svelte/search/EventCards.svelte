@@ -243,10 +243,7 @@
               </span>
             </button>
             <span class="event-card-copy-link">
-              <EntityShareCopyLink
-                url={shareUrl}
-                entityLabel={event.title}
-              />
+              <EntityShareCopyLink url={shareUrl} entityLabel={event.title} />
             </span>
           </div>
         {/each}

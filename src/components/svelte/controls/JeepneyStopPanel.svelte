@@ -21,9 +21,7 @@
     route && stopIndex !== null ? (route.stops[stopIndex] ?? null) : null,
   );
 
-  const mapsUrl = $derived(
-    stop ? { lat: stop.lat, lon: stop.lon } : null,
-  );
+  const mapsUrl = $derived(stop ? { lat: stop.lat, lon: stop.lon } : null);
 
   function openPreviousStop() {
     if (route === null || stopIndex === null || stopIndex <= 0) return;
