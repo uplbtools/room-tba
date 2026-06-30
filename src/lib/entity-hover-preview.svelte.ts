@@ -75,3 +75,17 @@ export function eventPreviewFromRow(event: EventData): EntityHoverPreview {
     imageUrl: event.imageUrl ?? null,
   };
 }
+
+export function isBuildingHoverPreview(
+  entity: EntityHoverPreview | null,
+  buildingId: number,
+): boolean {
+  return entity?.kind === "building" && entity.id === buildingId;
+}
+
+export function isEventHoverPreview(
+  entity: EntityHoverPreview | null,
+  eventSlug: string,
+): boolean {
+  return entity?.kind === "event" && entity.slug === eventSlug;
+}
