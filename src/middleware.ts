@@ -24,8 +24,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!editorUser) {
     const sbUser = context.locals.supabaseUser;
     if (sbUser?.id) {
-      const linked = await getAdminUserBySupabaseId(sbUser.id);
-      if (linked) editorUser = linked;
+      try {
+        const linked = await getAdminUserBySupabaseId(sbUser.id);
+        if (linked) editorUser = linked;
+      } catch (error) {
+        console.error("Supabase editor session lookup failed:", error);
+      }
     }
   }
 
