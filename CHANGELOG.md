@@ -1,3 +1,12 @@
+## [1.17.3](https://github.com/uplbtools/room-tba/compare/v1.17.2...v1.17.3) (2026-06-30)
+
+
+### Bug Fixes
+
+* **test:** isolate browse-campus test from svelte runes ([5cad89e](https://github.com/uplbtools/room-tba/commit/5cad89eca53bddd1ff7243749d46a99c2c97a3f1))
+* **ui:** keep keyboard shortcuts panel in viewport ([feafb37](https://github.com/uplbtools/room-tba/commit/feafb371952bde18c1edb3b33bb94d63565d3391))
+* **ui:** rework search chrome browse, input, and status links ([d192c8c](https://github.com/uplbtools/room-tba/commit/d192c8cdcb61358899d081047d32cc6d80ca50cb))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
