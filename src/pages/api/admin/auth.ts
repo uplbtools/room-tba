@@ -44,86 +44,110 @@ export const GET: APIRoute = async ({ cookies }) => {
 };
 
 export const POST: APIRoute = async ({ request, cookies }) => {
-  const ip = clientIp(request);
-  const ipRate = checkRateLimit(
-    `admin-login:ip:${ip}`,
-    LOGIN_IP_LIMIT.max,
-    LOGIN_IP_LIMIT.windowMs,
-  );
-  if (!ipRate.allowed) {
-    return rateLimitResponse(ipRate.resetAt);
-  }
-
-  const formData = await request.formData();
-  const usernameRaw = formData.get("username");
-  const passwordRaw = formData.get("password");
-  const username = typeof usernameRaw === "string" ? usernameRaw.trim() : "";
-  const password = typeof passwordRaw === "string" ? passwordRaw : "";
-
-  if (username) {
-    const userRate = checkRateLimit(
-      `admin-login:user:${username.toLowerCase()}`,
-      LOGIN_USER_LIMIT.max,
-      LOGIN_USER_LIMIT.windowMs,
-    );
-    if (!userRate.allowed) {
-      return rateLimitResponse(userRate.resetAt);
-    }
-  }
-
-  if (!password) {
-    return json({ error: "Password is required" }, 400);
-  }
-
-  let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
-
-  // Try Supabase Auth when configured (#293)
   try {
-    const supabase = createServerSupabaseClient({
-      request,
-      cookies,
-    });
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: username,
-      password,
-    });
-    if (data.user && !error) {
-      user = await getAdminUserBySupabaseId(data.user.id);
+    const ip = clientIp(request);
+    const ipRate = checkRateLimit(
+      `admin-login:ip:${ip}`,
+      LOGIN_IP_LIMIT.max,
+      LOGIN_IP_LIMIT.windowMs,
+    );
+    if (!ipRate.allowed) {
+      return rateLimitResponse(ipRate.resetAt);
     }
-  } catch {
-    // Supabase not configured or unavailable → fall through to bcrypt
-  }
 
-  if (!user) {
-    user = username ? await authenticateAdminUser(username, password) : null;
-  }
+    const formData = await request.formData();
+    const usernameRaw = formData.get("username");
+    const passwordRaw = formData.get("password");
+    const username = typeof usernameRaw === "string" ? usernameRaw.trim() : "";
+    const password = typeof passwordRaw === "string" ? passwordRaw : "";
 
-  if (!user && !username) {
-    user = await authenticateLegacyAdminPassword(password);
-  }
+    if (username) {
+      const userRate = checkRateLimit(
+        `admin-login:user:${username.toLowerCase()}`,
+        LOGIN_USER_LIMIT.max,
+        LOGIN_USER_LIMIT.windowMs,
+      );
+      if (!userRate.allowed) {
+        return rateLimitResponse(userRate.resetAt);
+      }
+    }
 
-  if (!user) {
-    return json({ error: "Invalid username or password" }, 401);
-  }
+    if (!password) {
+      return json({ error: "Password is required" }, 400);
+    }
 
-  const token = createSessionToken(user);
-  return new Response(
-    JSON.stringify({
-      success: true,
-      username: user.username,
-      displayName: user.displayName,
-      role: user.role,
-      canPublish: canPublishDirectly(user.role),
-      canReview: canReviewProposals(user.role),
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Set-Cookie": setSessionCookie(token),
+    let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
+
+    // Try Supabase Auth when configured (#293)
+    try {
+      const supabase = createServerSupabaseClient({
+        request,
+        cookies,
+      });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: username,
+        password,
+      });
+      if (data.user && !error) {
+        user = await getAdminUserBySupabaseId(data.user.id);
+      }
+    } catch {
+      // Supabase not configured or unavailable → fall through to bcrypt
+    }
+
+    if (!user) {
+      user = username ? await authenticateAdminUser(username, password) : null;
+    }
+
+    if (!user && !username) {
+      user = await authenticateLegacyAdminPassword(password);
+    }
+
+    if (!user) {
+      return json({ error: "Invalid username or password" }, 401);
+    }
+
+    let token: string;
+    try {
+      token = createSessionToken(user);
+    } catch (error) {
+      console.error("Admin session signing misconfigured:", error);
+      return json(
+        {
+          error:
+            "Editor sign-in is not configured on this server. Contact the site maintainer.",
+        },
+        503,
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role,
+        canPublish: canPublishDirectly(user.role),
+        canReview: canReviewProposals(user.role),
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": setSessionCookie(token),
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    console.error("Admin login failed:", error);
+    return json(
+      {
+        error:
+          "Sign-in is temporarily unavailable. Try again in a moment, or contact the site maintainer if this keeps happening.",
+      },
+      503,
+    );
+  }
 };
 
 export const DELETE: APIRoute = async () => {
