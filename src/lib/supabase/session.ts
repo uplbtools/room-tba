@@ -20,9 +20,12 @@ export async function refreshSupabaseSession(
       },
     });
 
-    await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     context.locals.supabase = supabase;
+    context.locals.supabaseUser = user ?? undefined;
     context.locals.supabaseCacheHeaders = pendingCacheHeaders;
   } catch (error) {
     console.error("Supabase session refresh failed:", error);
