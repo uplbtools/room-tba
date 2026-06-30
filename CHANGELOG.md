@@ -1,3 +1,10 @@
+## [1.17.4](https://github.com/uplbtools/room-tba/compare/v1.17.3...v1.17.4) (2026-06-30)
+
+
+### Bug Fixes
+
+* **auth:** harden admin login against prod schema and server errors ([ab2ea43](https://github.com/uplbtools/room-tba/commit/ab2ea43c0494e53dce612b129fd9a9d9f4f23c77))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
