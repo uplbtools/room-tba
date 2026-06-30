@@ -24,7 +24,7 @@
 </script>
 
 {#if preview && anchor}
-  <div class="entity-hover-preview" {style} role="tooltip" use:portal>
+  <div class="entity-hover-preview" {style} aria-hidden="true" use:portal>
     {#if preview.kind === "event" && preview.imageUrl}
       <img
         class="entity-hover-preview__image"

@@ -80,6 +80,8 @@
     buildingPreviewFromRow,
     entityHoverPreviewStore,
     eventPreviewFromRow,
+    isBuildingHoverPreview,
+    isEventHoverPreview,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import type {
@@ -2485,8 +2487,10 @@
                     entry.event.title,
                   )}
                   {@const active = isSelectedEvent(entry.event)}
+                  {@const centralHoverPreview = shouldShowEntityHoverPreview()}
                   <EventMapPin
                     {active}
+                    useCentralHoverPreview={centralHoverPreview}
                     anchored={group.anchored}
                     imageSrc={image?.src ?? null}
                     dateLabel={formatEventMarkerDate(
@@ -2625,6 +2629,10 @@
             lon: building.lon,
             version: getLoadedVersion(building.version),
           })}
+          {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+          {@const previewSuppressed =
+            centralHoverPreview &&
+            isBuildingHoverPreview(entityHoverPreviewStore.entity, building.id)}
           <Marker
             lngLat={[position.lon, position.lat]}
             draggable={canDragPin(editKey)}
@@ -2653,8 +2661,9 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
-              title={building.buildingName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
+              useCentralHoverPreview={centralHoverPreview}
+              {previewSuppressed}
               onpointerenter={(event) =>
                 handleBuildingPinPointerEnter(building, editKey, event)}
               onpointerleave={() => handleBuildingPinPointerLeave(editKey)}
@@ -2727,7 +2736,6 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
-              title={dorm.dormName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
               onpointerenter={(event) => handleEditablePinEnter(editKey)}
               onpointerleave={() => handleEditablePinLeave(editKey)}
