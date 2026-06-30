@@ -1,3 +1,22 @@
+# [1.18.0](https://github.com/uplbtools/room-tba/compare/v1.17.4...v1.18.0) (2026-06-30)
+
+
+### Bug Fixes
+
+* **auth:** harden admin login against prod schema and server errors ([62e7025](https://github.com/uplbtools/room-tba/commit/62e7025808935d6641ebeeeffb441069a99438c5))
+* **db:** bootstrap update sync registry for local and fresh databases ([c3ea125](https://github.com/uplbtools/room-tba/commit/c3ea1258dab35eff7d8bdff4fb075586cfcbb2c2))
+* **dorm:** split concatenated AMIS amenity strings for tag chips ([6b8a414](https://github.com/uplbtools/room-tba/commit/6b8a414356c10e99d55df18937f0ceb6f93d177c))
+* **map:** route pin hovers through one central preview overlay ([9dbb740](https://github.com/uplbtools/room-tba/commit/9dbb740ba1f2ebc3d34ff46427a4187132b78ddd))
+* **map:** suppress inline pin labels during central hover preview ([f79e0d4](https://github.com/uplbtools/room-tba/commit/f79e0d4947e1315b1f5fc1149ec563beb80daa93)), closes [hi#zoom](https://github.com/hi/issues/zoom)
+* **side-panel:** compact mobile collapse peek with dismiss affordance ([4700b65](https://github.com/uplbtools/room-tba/commit/4700b65dd4e3e312bb3c5a6d2e47824443709b4f))
+* term picker dropdown clipped off-screen near viewport edges ([b69cff3](https://github.com/uplbtools/room-tba/commit/b69cff3a9b4ad3c19afed343e94678dafe89c2e4))
+
+
+### Features
+
+* **search:** open campus browse lists in the side drawer ([e499819](https://github.com/uplbtools/room-tba/commit/e49981953b8a7a2024f8a6689c89aa4536577d68))
+* **side-panel:** add shared entity panel actions and list chrome ([32486b1](https://github.com/uplbtools/room-tba/commit/32486b195ccdcca09e7b656b477e7a623432ca45))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
