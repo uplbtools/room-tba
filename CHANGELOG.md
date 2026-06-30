@@ -1,3 +1,11 @@
+## [1.17.2](https://github.com/uplbtools/room-tba/compare/v1.17.1...v1.17.2) (2026-06-30)
+
+
+### Bug Fixes
+
+* **ui:** landing modal cannot be dismissed on prod ([#396](https://github.com/uplbtools/room-tba/issues/396)) ([f8ba38d](https://github.com/uplbtools/room-tba/commit/f8ba38dee2ecfab6c50a375424c2073f87325a1a))
+* **ui:** stop landing modal from reopening on dismiss ([d339834](https://github.com/uplbtools/room-tba/commit/d339834ed8223940a0e3fc22718519ea97231937))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
