@@ -43,8 +43,11 @@
     useCentralHoverPreview = false,
   }: Props = $props();
 
-  const showPersistentLabel = $derived(
-    (labelVisible || active) && !previewSuppressed,
+  /** With central hover preview, only the selected pin keeps an inline label. */
+  const showPinLabel = $derived(
+    useCentralHoverPreview
+      ? active && !previewSuppressed
+      : (labelVisible || active) && !previewSuppressed,
   );
 
   const statusLabel = $derived(
@@ -92,8 +95,8 @@
   {/if}
   <div
     class="pin-label"
-    class:active={showPersistentLabel}
-    class:persistent={showPersistentLabel}
+    class:active={showPinLabel}
+    class:persistent={showPinLabel}
     aria-hidden="true"
   >
     {label}
@@ -212,6 +215,14 @@
     opacity: 1;
   }
 
+  .map-entity-pin.central-hover-preview .pin-label {
+    opacity: 0;
+  }
+
+  .map-entity-pin.central-hover-preview.active .pin-label.active {
+    opacity: 1;
+  }
+
   .map-entity-pin.event-linked {
     box-shadow:
       0 0 0 0.22rem rgba(250, 204, 21, 0.8),
@@ -282,13 +293,9 @@
   }
 
   .map-entity-pin:not(.central-hover-preview):hover .pin-label,
-  .pin-label.active,
-  .pin-label.persistent {
+  .map-entity-pin:not(.central-hover-preview) .pin-label.active,
+  .map-entity-pin:not(.central-hover-preview) .pin-label.persistent {
     opacity: 1;
-  }
-
-  .map-entity-pin.central-hover-preview:hover .pin-label:not(.persistent) {
-    opacity: 0;
   }
 
   .pin-status {
