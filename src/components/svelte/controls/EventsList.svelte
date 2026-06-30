@@ -99,12 +99,9 @@
       closeTitle="Close campus events list"
       onclose={closeEventsList}
     >
-      {#snippet kicker()}
-        <CalendarDays size={16} aria-hidden="true" />
-        <span>Loading campus events…</span>
-      {/snippet}
       {#snippet trailing()}
         <h2 class="entity-header__title">Campus events</h2>
+        <p class="entity-panel-note">Loading campus events…</p>
       {/snippet}
     </EntityPanelHeader>
     <div class="events-tabs skeleton-tabs" aria-hidden="true">
@@ -122,12 +119,11 @@
       closeTitle="Close campus events list"
       onclose={closeEventsList}
     >
-      {#snippet kicker()}
-        <CalendarDays size={16} aria-hidden="true" />
-        <span>{events.length} campus events</span>
-      {/snippet}
       {#snippet trailing()}
-        <h2 class="entity-header__title">Campus events</h2>
+        <div class="entity-header__title-row">
+          <h2 class="entity-header__title">Campus events</h2>
+          <span class="entity-header__badge">{events.length} total</span>
+        </div>
         <p class="entity-panel-note">
           Browse events around campus. Times shown in campus time (Manila).
         </p>
@@ -220,10 +216,7 @@
               </span>
             </button>
             <span class="events-list-copy-link">
-              <EntityShareCopyLink
-                url={shareUrl}
-                entityLabel={event.title}
-              />
+              <EntityShareCopyLink url={shareUrl} entityLabel={event.title} />
             </span>
           </article>
         {/each}

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Building2 from "@lucide/svelte/icons/building-2";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import EntityPanelFilter from "./EntityPanelFilter.svelte";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
@@ -16,6 +15,17 @@
     const value = queryStore.queryValue;
     if (value === "colleges" || value === "divisions") return value;
     return "buildings";
+  });
+
+  const tabTitle = $derived.by(() => {
+    switch (activeTab) {
+      case "colleges":
+        return "Colleges";
+      case "divisions":
+        return "Divisions";
+      default:
+        return "Buildings";
+    }
   });
 
   const tabMeta = $derived.by(() => {
@@ -153,11 +163,8 @@
     closeTitle="Close"
     onclose={closeList}
   >
-    {#snippet kicker()}
-      <Building2 size={16} aria-hidden="true" />
-      <span>Browse campus</span>
-    {/snippet}
     {#snippet trailing()}
+      <h2 class="entity-header__title">{tabTitle}</h2>
       <EntityPanelFilter
         value={filterText}
         label={`Filter ${tabMeta.plural}`}

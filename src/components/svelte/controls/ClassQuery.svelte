@@ -113,15 +113,14 @@
 
 <div class="entity-detail class-query-container">
   <header class="entity-header">
-    <p class="entity-panel-kicker">Course lookup</p>
     <div class="entity-header__title-row">
       <h2 class="entity-header__title">
         {courseQuery || queryStore.queryValue}
       </h2>
+      {#if termStore.activeTerm?.label}
+        <span class="entity-header__badge">{termStore.activeTerm.label}</span>
+      {/if}
     </div>
-    {#if termStore.activeTerm?.label}
-      <p class="entity-panel-term">{termStore.activeTerm.label}</p>
-    {/if}
     <p class="entity-panel-note">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
   </header>
 

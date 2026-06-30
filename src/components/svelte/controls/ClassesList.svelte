@@ -1,5 +1,4 @@
 <script lang="ts">
-  import BookOpen from "@lucide/svelte/icons/book-open";
   import Classes from "@ui/room/Classes.svelte";
   import EntityPanelFilter from "./EntityPanelFilter.svelte";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
@@ -79,14 +78,13 @@
     closeTitle="Close class list"
     onclose={closeList}
   >
-    {#snippet kicker()}
-      <BookOpen size={16} aria-hidden="true" />
-      <span>All classes</span>
-    {/snippet}
     {#snippet trailing()}
-      {#if termStore.activeTerm?.label}
-        <p class="entity-panel-term">{termStore.activeTerm.label}</p>
-      {/if}
+      <div class="entity-header__title-row">
+        <h2 class="entity-header__title">All classes</h2>
+        {#if termStore.activeTerm?.label}
+          <span class="entity-header__badge">{termStore.activeTerm.label}</span>
+        {/if}
+      </div>
       <p class="entity-panel-note">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
       <EntityPanelFilter
         value={filterText}
