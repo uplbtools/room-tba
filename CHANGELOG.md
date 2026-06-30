@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/uplbtools/room-tba/compare/v1.18.0...v1.18.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* **dorm:** restore missing normalizeStringList import in DormResult ([d03ff29](https://github.com/uplbtools/room-tba/commit/d03ff29e2461da6dafe2fa6d4d4c00a92769c50d))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
