@@ -1,15 +1,14 @@
 <script lang="ts">
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
-  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import MapPin from "@lucide/svelte/icons/map-pin";
-  import X from "@lucide/svelte/icons/x";
-  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import EntityPanelHeader from "./EntityPanelHeader.svelte";
+  import EntityPagination from "./EntityPagination.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
   import { formatCampusRange } from "@lib/event-time";
   import { getEventShareUrl } from "@lib/share-links";
-  import { queryStore, sidePanelStore, toastStore } from "@lib/store.svelte";
+  import { queryStore, sidePanelStore } from "@lib/store.svelte";
   import type { EventData } from "@lib/types";
 
   type EventTab = "upcoming" | "past";
@@ -95,25 +94,19 @@
 
 <div class="events-list-panel">
   {#if !loaded}
-    <header class="events-list-header">
-      <div class="events-list-header-top">
-        <div class="events-list-kicker">
-          <CalendarDays size={16} aria-hidden="true" />
-          <span>Loading campus events…</span>
-        </div>
-        <button
-          class="events-list-close"
-          type="button"
-          aria-label="Close campus events list"
-          title="Close campus events list"
-          onclick={closeEventsList}
-        >
-          <X size={16} aria-hidden="true" />
-          <span>Close</span>
-        </button>
-      </div>
-      <h2>Campus events</h2>
-    </header>
+    <EntityPanelHeader
+      closeAriaLabel="Close campus events list"
+      closeTitle="Close campus events list"
+      onclose={closeEventsList}
+    >
+      {#snippet kicker()}
+        <CalendarDays size={16} aria-hidden="true" />
+        <span>Loading campus events…</span>
+      {/snippet}
+      {#snippet trailing()}
+        <h2 class="entity-header__title">Campus events</h2>
+      {/snippet}
+    </EntityPanelHeader>
     <div class="events-tabs skeleton-tabs" aria-hidden="true">
       <span class="events-tab skeleton-tab"></span>
       <span class="events-tab skeleton-tab"></span>
@@ -124,26 +117,22 @@
       {/each}
     </div>
   {:else}
-    <header class="events-list-header">
-      <div class="events-list-header-top">
-        <div class="events-list-kicker">
-          <CalendarDays size={16} aria-hidden="true" />
-          <span>{events.length} campus events</span>
-        </div>
-        <button
-          class="events-list-close"
-          type="button"
-          aria-label="Close campus events list"
-          title="Close campus events list"
-          onclick={closeEventsList}
-        >
-          <X size={16} aria-hidden="true" />
-          <span>Close</span>
-        </button>
-      </div>
-      <h2>Campus events</h2>
-      <p>Browse events around campus. Times shown in campus time (Manila).</p>
-    </header>
+    <EntityPanelHeader
+      closeAriaLabel="Close campus events list"
+      closeTitle="Close campus events list"
+      onclose={closeEventsList}
+    >
+      {#snippet kicker()}
+        <CalendarDays size={16} aria-hidden="true" />
+        <span>{events.length} campus events</span>
+      {/snippet}
+      {#snippet trailing()}
+        <h2 class="entity-header__title">Campus events</h2>
+        <p class="entity-panel-note">
+          Browse events around campus. Times shown in campus time (Manila).
+        </p>
+      {/snippet}
+    </EntityPanelHeader>
 
     <div
       class="events-tabs"
@@ -231,21 +220,9 @@
               </span>
             </button>
             <span class="events-list-copy-link">
-              <CopyLinkButton
+              <EntityShareCopyLink
                 url={shareUrl}
-                label="Copy"
-                ariaLabel={`Copy link to ${event.title}`}
-                successMessage={`Copied link for ${event.title}.`}
-                errorMessage={`Could not copy link for ${event.title}.`}
-                feedback="none"
-                variant="chip"
-                onsuccess={() =>
-                  toastStore.show(`Copied link for ${event.title}.`, "success")}
-                onerror={() =>
-                  toastStore.show(
-                    `Could not copy link for ${event.title}.`,
-                    "error",
-                  )}
+                entityLabel={event.title}
               />
             </span>
           </article>
@@ -253,29 +230,16 @@
       </div>
 
       {#if pageCount > 1}
-        <nav class="events-pagination" aria-label="Events pages">
-          <button
-            class="events-page-button"
-            type="button"
-            aria-label="Previous page"
-            disabled={currentPage <= 1}
-            onclick={() => goToPage(currentPage - 1)}
-          >
-            <ChevronLeft size={18} aria-hidden="true" />
-          </button>
-          <span class="events-page-status" aria-live="polite">
-            <strong>{rangeStart}–{rangeEnd}</strong> of {tabEvents.length}
-          </span>
-          <button
-            class="events-page-button"
-            type="button"
-            aria-label="Next page"
-            disabled={currentPage >= pageCount}
-            onclick={() => goToPage(currentPage + 1)}
-          >
-            <ChevronRight size={18} aria-hidden="true" />
-          </button>
-        </nav>
+        <EntityPagination
+          {rangeStart}
+          {rangeEnd}
+          total={tabEvents.length}
+          prevDisabled={currentPage <= 1}
+          nextDisabled={currentPage >= pageCount}
+          onPrevious={() => goToPage(currentPage - 1)}
+          onNext={() => goToPage(currentPage + 1)}
+          ariaLabel="Events pages"
+        />
       {/if}
     {:else}
       <p class="empty-events">
@@ -288,6 +252,8 @@
 </div>
 
 <style>
+  @import "./entity-detail.css";
+
   .events-list-panel {
     display: flex;
     flex: 1 1 0;
@@ -321,62 +287,10 @@
     background: #f4f4f5;
   }
 
-  .events-list-header {
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  .events-list-header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    min-width: 0;
-  }
-
-  .events-list-close {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    min-height: 2rem;
-    padding: 0.375rem 0.75rem;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.625rem;
-    background: #fffafa;
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .events-list-close:hover,
-  .events-list-close:focus-visible {
-    border-color: #c58f91;
-    background: #fdf3f3;
-  }
-
-  .events-list-close:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .events-list-kicker,
   .events-list-card-location {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-  }
-
-  .events-list-kicker {
-    color: #7b1113;
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
   }
 
   h2,
@@ -592,58 +506,7 @@
   .events-list-copy-link {
     display: inline-flex;
     flex-shrink: 0;
-    padding-top: 0.125rem;
-  }
-
-  .events-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-top: 0.15rem;
-  }
-
-  .events-page-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border: 1px solid #d8b9ba;
-    border-radius: 999px;
-    background: #fffafa;
-    color: #7b1113;
-    cursor: pointer;
-    transition:
-      background-color 0.16s,
-      border-color 0.16s,
-      opacity 0.16s;
-  }
-
-  .events-page-button:hover:not(:disabled) {
-    background: #fdf3f3;
-    border-color: #c58f91;
-  }
-
-  .events-page-button:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .events-page-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
-  }
-
-  .events-page-status {
-    color: #3f3f46;
-    font-size: 0.8rem;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .events-page-status strong {
-    color: #18181b;
+    align-items: flex-start;
   }
 
   .empty-events {
