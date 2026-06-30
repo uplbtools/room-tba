@@ -4,17 +4,15 @@
     mapEditStore,
     mapProposalStore,
     queryStore,
-    locationStore,
     toastStore,
   } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
-  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
   import Phone from "@lucide/svelte/icons/phone";
   import Building2 from "@lucide/svelte/icons/building-2";
-  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
-  import MapPin from "@lucide/svelte/icons/map-pin";
+  import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
@@ -33,9 +31,9 @@
   } from "@lib/contributor-drafts";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
-  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
-  import { normalizeStringList } from "@lib/string-lists";
+  import { normalizeAmenityList } from "@lib/string-lists";
   type DormEditableField =
     | "dormName"
     | "shortName"
@@ -113,7 +111,7 @@
     osmLink: "OpenStreetMap link",
   };
 
-  const amenities = $derived(normalizeStringList(dorm?.amenities));
+  const amenities = $derived(normalizeAmenityList(dorm?.amenities));
   const contactPhones = $derived(normalizeStringList(dorm?.contactPhone));
   const showDormDetails = $derived(
     Boolean(
@@ -142,12 +140,6 @@
       : dorm?.gender === "female"
         ? "hsl(330, 65%, 50%)"
         : "hsl(150, 55%, 40%)",
-  );
-
-  const googleMapsLink = $derived(
-    dorm?.lat && dorm?.lon
-      ? `https://www.google.com/maps?q=${dorm.lat},${dorm.lon}`
-      : null,
   );
 
   /** Only show shortName when it's a real abbreviation, not just the first word */
@@ -521,10 +513,12 @@
   {#if dorm}
     <header class="entity-header">
       <div class="entity-header__title-row">
-        <h2 class="entity-header__title">{dorm.dormName}</h2>
-        {#if showShortName}
-          <span class="entity-header__badge">{dorm.shortName}</span>
-        {/if}
+        <h2 class="entity-header__title">
+          {dorm.dormName}
+          {#if showShortName}
+            <span class="entity-header__abbrev">{dorm.shortName}</span>
+          {/if}
+        </h2>
       </div>
 
       <div class="entity-meta-row">
@@ -559,42 +553,18 @@
 
       <div class="entity-actions">
         {#if dorm.lon && dorm.lat}
-          <MapChromeActionChip
-            onclick={() => {
-              locationStore.requestLocation();
-              locationStore.setDestination([dorm.lon ?? 0, dorm.lat ?? 0]);
-            }}
-          >
-            <CornerRightUp size={14} aria-hidden="true" />
-            Directions
-          </MapChromeActionChip>
+          <EntityDirectionsChip
+            lat={dorm.lat}
+            lon={dorm.lon}
+            destinationLabel={dorm.dormName}
+          />
+          <EntityGoogleMapsLink
+            lat={dorm.lat}
+            lon={dorm.lon}
+            ariaLabel={`Open ${dorm.dormName} in Google Maps`}
+          />
         {/if}
-        {#if googleMapsLink}
-          <a
-            class="map-chrome-action-chip"
-            href={googleMapsLink}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MapPin size={14} aria-hidden="true" />
-            Google Maps
-          </a>
-        {/if}
-        <CopyLinkButton
-          url={dormShareUrl}
-          ariaLabel={`Copy link to ${dorm.dormName}`}
-          successMessage={`Copied link for ${dorm.dormName}.`}
-          errorMessage={`Could not copy link for ${dorm.dormName}.`}
-          feedback="none"
-          variant="chip"
-          onsuccess={() =>
-            toastStore.show(`Copied link for ${dorm.dormName}.`, "success")}
-          onerror={() =>
-            toastStore.show(
-              `Could not copy link for ${dorm.dormName}.`,
-              "error",
-            )}
-        />
+        <EntityShareCopyLink url={dormShareUrl} entityLabel={dorm.dormName} />
         <EntityEditorToggle
           expanded={editing}
           {canPublish}
@@ -702,10 +672,13 @@
         {/if}
 
         {#if amenities.length > 0}
-          <div class="entity-meta-row entity-dorm-details__amenities">
-            {#each amenities as amenity}
-              <span class="entity-meta-chip amenity-tag">{amenity}</span>
-            {/each}
+          <div class="entity-tag-block">
+            <span class="entity-detail-row__label">Amenities</span>
+            <div class="entity-tag-list">
+              {#each amenities as amenity}
+                <span class="entity-tag-chip">{amenity}</span>
+              {/each}
+            </div>
           </div>
         {/if}
 
@@ -751,35 +724,28 @@
   @import "../map-chrome/map-chrome.css";
 
   .gender-badge {
-    background-color: color-mix(in srgb, var(--badge-color) 15%, white);
-    color: var(--badge-color);
+    background-color: color-mix(in srgb, var(--badge-color) 18%, white);
+    color: color-mix(in srgb, var(--badge-color) 88%, black);
   }
 
   .capacity-badge {
-    background-color: hsl(0, 0%, 93%);
-    color: #4f4f4f;
+    background-color: hsl(0, 0%, 92%);
+    color: hsl(0, 0%, 22%);
   }
 
   .up-badge {
-    background-color: hsl(5, 53%, 93%);
-    color: #7b1113;
+    background-color: hsl(5, 53%, 92%);
+    color: hsl(5, 53%, 28%);
   }
 
   .private-badge {
-    background-color: hsl(210, 50%, 93%);
-    color: hsl(210, 60%, 40%);
+    background-color: hsl(210, 45%, 92%);
+    color: hsl(210, 55%, 32%);
   }
 
   .price-badge {
-    background-color: hsl(150, 35%, 93%);
-    color: hsl(150, 45%, 30%);
-  }
-
-  .amenity-tag {
-    background-color: hsl(0, 0%, 96%);
-    border: 1px solid hsl(0, 0%, 90%);
-    border-radius: 0.375rem;
-    color: #555;
+    background-color: hsl(150, 30%, 91%);
+    color: hsl(150, 45%, 24%);
   }
 
   .price-disclaimer {

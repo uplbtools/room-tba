@@ -1,12 +1,11 @@
 <script lang="ts">
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
-  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
-  import X from "@lucide/svelte/icons/x";
-  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
-  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
+  import EntityPanelClose from "./EntityPanelClose.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
@@ -19,7 +18,6 @@
   import {
     adminAuthStore,
     eventPlacementStore,
-    locationStore,
     mapEditStore,
     mapProposalStore,
     mapStore,
@@ -622,22 +620,20 @@
   {#if event}
     <header class="event-header">
       <div class="event-header-top">
-        <div class="event-kicker" class:is-past={event.status === "past"}>
-          <CalendarDays size={16} />
+        <div
+          class="entity-panel-kicker"
+          class:is-past={event.status === "past"}
+        >
+          <CalendarDays size={16} aria-hidden="true" />
           <span>{STATUS_LABELS[event.status]}</span>
         </div>
-        <button
-          class="event-close"
-          type="button"
-          aria-label="Close event details"
+        <EntityPanelClose
+          ariaLabel="Close event details"
           title="Close event details (Esc)"
           onclick={closeEventDetails}
-        >
-          <X size={16} aria-hidden="true" />
-          <span>Close</span>
-        </button>
+        />
       </div>
-      <h2>{event.title}</h2>
+      <h2 class="entity-header__title">{event.title}</h2>
       {#if event.description}
         <p>{event.description}</p>
       {/if}
@@ -651,32 +647,13 @@
       {/if}
       <div class="entity-actions">
         {#if primaryLocation && primaryLocation.resolvedLon !== null && primaryLocation.resolvedLat !== null}
-          <MapChromeActionChip
-            onclick={() => {
-              if (!primaryLocation) return;
-              locationStore.requestLocation();
-              locationStore.setDestination([
-                primaryLocation.resolvedLon ?? 0,
-                primaryLocation.resolvedLat ?? 0,
-              ]);
-            }}
-          >
-            <CornerRightUp size={14} aria-hidden="true" />
-            Get directions
-          </MapChromeActionChip>
+          <EntityDirectionsChip
+            lat={primaryLocation.resolvedLat}
+            lon={primaryLocation.resolvedLon}
+            destinationLabel={primaryLocation.resolvedLabel}
+          />
         {/if}
-        <CopyLinkButton
-          url={shareUrl}
-          ariaLabel={`Copy link to ${event.title}`}
-          successMessage={`Copied link for ${event.title}.`}
-          errorMessage={`Could not copy link for ${event.title}.`}
-          feedback="none"
-          variant="chip"
-          onsuccess={() =>
-            toastStore.show(`Copied link for ${event.title}.`, "success")}
-          onerror={() =>
-            toastStore.show(`Could not copy link for ${event.title}.`, "error")}
-        />
+        <EntityShareCopyLink url={shareUrl} entityLabel={event.title} />
         <EntityEditorToggle
           expanded={editing}
           {canPublish}
@@ -1073,54 +1050,11 @@
     gap: 0.75rem;
   }
 
-  .event-close {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    min-height: 2rem;
-    padding: 0.375rem 0.75rem;
-    border: 1px solid #d8b9ba;
-    border-radius: 0.625rem;
-    background: #fffafa;
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .event-close:hover,
-  .event-close:focus-visible {
-    border-color: #c58f91;
-    background: #fdf3f3;
-  }
-
-  .event-close:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: 2px;
-  }
-
-  .event-kicker,
   .event-section li,
   .route-card strong {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-  }
-
-  .event-kicker {
-    color: #7b1113;
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-
-  .event-kicker.is-past {
-    color: #71717a;
   }
 
   .timezone-note {
