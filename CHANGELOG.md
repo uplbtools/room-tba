@@ -1,16 +1,28 @@
+<<<<<<< HEAD
 ## [1.7.1](https://github.com/smmariquit/room-tba/compare/v1.7.0...v1.7.1) (2026-05-18)
+=======
+# [1.7.0](https://github.com/smmariquit/room-tba/compare/v1.6.0...v1.7.0) (2026-05-19)
+>>>>>>> 9a88c3793f07af932670ae5671798345190e4fa9
 
 
 ### Bug Fixes
 
+<<<<<<< HEAD
 * **seo:** prevent static pages from being cached to prevent large PWA load ([9829b9d](https://github.com/smmariquit/room-tba/commit/9829b9dd1ea67b79c3e9af395eb62815fd74e1c4))
 
 # [1.7.0](https://github.com/smmariquit/room-tba/compare/v1.6.0...v1.7.0) (2026-05-18)
+=======
+* **dorms:** polish UI, add socials/maps, filter, remove 5 dorms ([821954c](https://github.com/smmariquit/room-tba/commit/821954c5db05cf087c375d5d498068a1dc6f0dac))
+>>>>>>> 9a88c3793f07af932670ae5671798345190e4fa9
 
 
 ### Features
 
+<<<<<<< HEAD
 * **seo:** add crawlable entity pages ([89de2f1](https://github.com/smmariquit/room-tba/commit/89de2f110d203fc5c74650ee4105c8daaaad18f1))
+=======
+* **dorms:** add UPLB dormitory feature with UP-managed and private dorms ([b74b247](https://github.com/smmariquit/room-tba/commit/b74b247c591be7190bf6d634bab91d8ac839044d))
+>>>>>>> 9a88c3793f07af932670ae5671798345190e4fa9
 
 # [1.6.0](https://github.com/smmariquit/room-tba/compare/v1.5.0...v1.6.0) (2026-05-08)
 
