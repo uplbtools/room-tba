@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { openCampusBrowseModal } from "./browse-campus";
+import { openCampusBrowseModal } from "./browse-campus-shared";
 
 describe("openCampusBrowseModal", () => {
   it("opens the filter modal with the requested tab", () => {
@@ -10,7 +10,7 @@ describe("openCampusBrowseModal", () => {
       },
     };
 
-    openCampusBrowseModal(modalStore as never, "colleges");
+    openCampusBrowseModal(modalStore, "colleges");
 
     expect(calls).toEqual([["filter", { filterTab: "colleges" }]]);
   });

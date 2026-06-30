@@ -1,18 +1,15 @@
 import { dismissEphemeralOverlays } from "./overlay-stack.js";
+import {
+  openCampusBrowseModal,
+  type CampusBrowseTab,
+} from "./browse-campus-shared.js";
 import type {
   MainControlsStore,
-  ModalStore,
   QueryStore,
 } from "./stores/ui-stores.svelte.js";
 
-export type CampusBrowseTab = "buildings" | "colleges" | "divisions";
-
-export function openCampusBrowseModal(
-  modalStore: ModalStore,
-  tab: CampusBrowseTab = "buildings",
-) {
-  modalStore.openModal("filter", { filterTab: tab });
-}
+export type { CampusBrowseTab } from "./browse-campus-shared.js";
+export { openCampusBrowseModal } from "./browse-campus-shared.js";
 
 export function openBrowseClasses(
   queryStore: QueryStore,
