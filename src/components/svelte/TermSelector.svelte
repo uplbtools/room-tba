@@ -49,12 +49,30 @@
   function updatePanelPosition() {
     if (!open || !triggerEl) return;
     const rect = triggerEl.getBoundingClientRect();
-    const width = Math.min(20 * 16, window.innerWidth - 16);
+    const width = Math.min(24 * 16, window.innerWidth - 16);
     const left = Math.min(
       Math.max(8, rect.left),
       window.innerWidth - width - 8,
     );
-    const top = rect.bottom + 6;
+
+    const gap = 6;
+    const margin = 8;
+    const panelHeight = panelEl?.offsetHeight ?? 0;
+
+    const spaceBelow = window.innerHeight - rect.bottom - gap - margin;
+    const spaceAbove = rect.top - gap - margin;
+
+    let top: number;
+    if (panelHeight > spaceBelow && spaceAbove > spaceBelow) {
+      top = Math.max(margin, rect.top - gap - panelHeight);
+    } else {
+      top = rect.bottom + gap;
+      const maxTop = window.innerHeight - margin - panelHeight;
+      if (panelHeight > 0 && top > maxTop) {
+        top = Math.max(margin, maxTop);
+      }
+    }
+
     panelStyle = `left: ${left}px; top: ${top}px; width: ${width}px;`;
   }
 
@@ -248,6 +266,7 @@
     flex: 0 0 auto;
     min-width: 0;
     max-width: min(100%, 11rem);
+    margin-top: 0vh;
   }
 
   .term-filter-chip__button {
@@ -355,6 +374,7 @@
     gap: 0.625rem;
     width: 100%;
     min-width: 0;
+    box-sizing: border-box;
     padding: 0.5rem 0.625rem;
     border: 1px solid transparent;
     border-radius: 0.625rem;
@@ -391,9 +411,8 @@
     font-size: 0.8125rem;
     font-weight: 700;
     line-height: 1.2;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    overflow: visible;
   }
 
   .term-picker-option__meta {
@@ -404,7 +423,6 @@
 
   .term-picker-option__count {
     flex: 0 0 auto;
-    min-width: 2.25rem;
     font-size: 0.6875rem;
     font-weight: 700;
     color: hsl(0, 0%, 42%);
