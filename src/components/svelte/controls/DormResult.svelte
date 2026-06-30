@@ -33,7 +33,7 @@
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
-  import { normalizeAmenityList } from "@lib/string-lists";
+  import { normalizeAmenityList, normalizeStringList } from "@lib/string-lists";
   type DormEditableField =
     | "dormName"
     | "shortName"
