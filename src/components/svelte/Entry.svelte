@@ -39,6 +39,7 @@
     getGlobalShortcutAction,
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
+  import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -84,15 +85,22 @@
     }
   });
 
+  let landingModalAutoOpenConsumed = $state(false);
+
   $effect(() => {
     if (
-      appBootstrapStore.phase === "ready" &&
-      !suppressLandingModal &&
-      localStorage.getItem("hideLandingModal") !== "true" &&
-      !modalStore.open
+      !shouldAutoOpenLandingModal({
+        consumed: landingModalAutoOpenConsumed,
+        phase: appBootstrapStore.phase,
+        suppressLandingModal,
+        hideLandingModal: localStorage.getItem("hideLandingModal") === "true",
+        modalOpen: modalStore.open,
+      })
     ) {
-      modalStore.openModal("landing");
+      return;
     }
+    landingModalAutoOpenConsumed = true;
+    modalStore.openModal("landing");
   });
   $effect(() => {
     updateData(queryStore.recentSearches);
