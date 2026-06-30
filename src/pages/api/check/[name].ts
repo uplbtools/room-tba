@@ -31,18 +31,32 @@ export const GET = (async ({ params }) => {
       { status: 400 },
     );
 
-  const rows = await db
-    .select()
-    .from(updateTable)
-    .where(eq(updateTable.tableName, tableName));
+  let rows: (typeof updateTable.$inferSelect)[];
+  try {
+    rows = await db
+      .select()
+      .from(updateTable)
+      .where(eq(updateTable.tableName, tableName));
+  } catch (error) {
+    console.error(`Sync check failed for ${tableName}:`, error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        data: null,
+        error:
+          "Sync registry unavailable. Apply pending DB migrations (drizzle/0016_ensure_update_sync_table.sql).",
+      }),
+      { status: 503 },
+    );
+  }
   if (rows.length === 0 || !rows[0])
     return new Response(
       JSON.stringify({
         success: false,
         data: null,
-        error: "Uncaught exception in server",
+        error: `Missing sync registry row for ${tableName}. Apply drizzle/0016_ensure_update_sync_table.sql.`,
       }),
-      { status: 500 },
+      { status: 503 },
     );
   return new Response(
     JSON.stringify({
