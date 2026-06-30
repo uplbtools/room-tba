@@ -1,5 +1,5 @@
 <script lang="ts">
-  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import EntityShareCopyLink from "@ui/controls/EntityShareCopyLink.svelte";
   import EventShelfToolbar from "@ui/map-chrome/EventShelfToolbar.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
@@ -243,21 +243,9 @@
               </span>
             </button>
             <span class="event-card-copy-link">
-              <CopyLinkButton
+              <EntityShareCopyLink
                 url={shareUrl}
-                label="Copy"
-                ariaLabel={`Copy link to ${event.title}`}
-                successMessage={`Copied link for ${event.title}.`}
-                errorMessage={`Could not copy link for ${event.title}.`}
-                feedback="none"
-                variant="chip"
-                onsuccess={() =>
-                  toastStore.show(`Copied link for ${event.title}.`, "success")}
-                onerror={() =>
-                  toastStore.show(
-                    `Could not copy link for ${event.title}.`,
-                    "error",
-                  )}
+                entityLabel={event.title}
               />
             </span>
           </div>
@@ -393,7 +381,7 @@
   .event-card-copy-link {
     display: inline-flex;
     flex-shrink: 0;
-    padding-top: 0.125rem;
+    align-items: flex-start;
   }
   .event-card-image,
   .event-card-icon {
