@@ -39,16 +39,41 @@
     };
   });
 
+  const PANEL_MAX_HEIGHT = 20 * 16;
+  const VIEWPORT_MARGIN = 8;
+  const TRIGGER_GAP = 6;
+
   function updatePanelPosition() {
     if (!open || !triggerEl) return;
     const rect = triggerEl.getBoundingClientRect();
-    const width = Math.min(18 * 16, window.innerWidth - 16);
+    const width = Math.min(18 * 16, window.innerWidth - VIEWPORT_MARGIN * 2);
     const left = Math.min(
-      Math.max(8, rect.right - width),
-      window.innerWidth - width - 8,
+      Math.max(VIEWPORT_MARGIN, rect.left),
+      window.innerWidth - width - VIEWPORT_MARGIN,
     );
-    const bottom = Math.max(8, window.innerHeight - rect.top + 8);
-    panelStyle = `left: ${left}px; bottom: ${bottom}px; width: ${width}px;`;
+
+    const measuredHeight = panelEl?.offsetHeight ?? PANEL_MAX_HEIGHT;
+    const maxHeight = Math.min(
+      PANEL_MAX_HEIGHT,
+      window.innerHeight - VIEWPORT_MARGIN * 2,
+    );
+    const spaceBelow =
+      window.innerHeight - rect.bottom - TRIGGER_GAP - VIEWPORT_MARGIN;
+    const spaceAbove = rect.top - TRIGGER_GAP - VIEWPORT_MARGIN;
+    const preferredHeight = Math.min(maxHeight, measuredHeight);
+
+    let top: number;
+    let heightCap: number;
+
+    if (spaceBelow >= preferredHeight || spaceBelow >= spaceAbove) {
+      top = rect.bottom + TRIGGER_GAP;
+      heightCap = Math.max(0, Math.min(maxHeight, spaceBelow));
+    } else {
+      heightCap = Math.max(0, Math.min(maxHeight, spaceAbove));
+      top = Math.max(VIEWPORT_MARGIN, rect.top - TRIGGER_GAP - heightCap);
+    }
+
+    panelStyle = `left: ${left}px; top: ${top}px; width: ${width}px; max-height: ${heightCap}px;`;
   }
 
   $effect(() => {
@@ -56,7 +81,19 @@
     updatePanelPosition();
     const handleLayout = () => updatePanelPosition();
     window.addEventListener("resize", handleLayout);
-    return () => window.removeEventListener("resize", handleLayout);
+    window.addEventListener("scroll", handleLayout, true);
+    return () => {
+      window.removeEventListener("resize", handleLayout);
+      window.removeEventListener("scroll", handleLayout, true);
+    };
+  });
+
+  $effect(() => {
+    if (!open || !panelEl) return;
+    updatePanelPosition();
+    const observer = new ResizeObserver(() => updatePanelPosition());
+    observer.observe(panelEl);
+    return () => observer.disconnect();
   });
 
   function toggleOpen() {
@@ -169,8 +206,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
-    max-height: min(60vh, 20rem);
     overflow-y: auto;
+    box-sizing: border-box;
   }
 
   .shortcuts-panel__lead {

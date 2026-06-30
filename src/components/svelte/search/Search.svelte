@@ -26,6 +26,7 @@
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
   import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
+  import CampusBrowseChips from "@ui/search/CampusBrowseChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
@@ -283,7 +284,9 @@
               >
               <label class="sr-only" for="search">Search campus</label>
               <input
-                type="search"
+                type="text"
+                role="searchbox"
+                enterkeyhint="search"
                 id="search"
                 autocomplete="off"
                 value={draftInput}
@@ -368,6 +371,7 @@
           class="map-search-chrome__suggestions"
           role="listbox"
           aria-label="Search suggestions"
+          onmousedown={(event) => event.preventDefault()}
           in:fade={dropdownFadeIn(reducedMotion.current)}
           out:fade={dropdownFadeOut(reducedMotion.current)}
         >
@@ -382,6 +386,9 @@
           {/if}
           <TermSelector />
           {#if chrome.showSearchSuggestions}
+            {#if !showSearchDropdown}
+              <CampusBrowseChips variant="inline" />
+            {/if}
             {#if showIdleEventsChrome}
               <button
                 type="button"
@@ -407,7 +414,9 @@
             <BuildingTypeFilterBar />
             <TransitFilterChip />
           {/if}
-          <KeyboardShortcutsChip compact={mobile.current} />
+          {#if !(showSearchDropdown && draftInput.trim() === "")}
+            <KeyboardShortcutsChip compact={mobile.current} />
+          {/if}
         </div>
       {/if}
 
@@ -548,7 +557,7 @@
     min-width: 0;
   }
 
-  .search-root.mobile-shell input[type="text"] {
+  .search-root.mobile-shell .map-search-chrome__pill input {
     min-width: 0;
   }
 
@@ -734,7 +743,7 @@
     color: hsl(0, 0%, 28%);
   }
 
-  input[type="text"] {
+  .map-search-chrome__pill input {
     flex: 1 1 auto;
     min-width: 8.5rem;
     border: none;
@@ -745,11 +754,11 @@
     text-overflow: ellipsis;
   }
 
-  .search-root:not(.mobile-shell) input[type="text"] {
+  .search-root:not(.mobile-shell) .map-search-chrome__pill input {
     min-width: 15rem;
   }
 
-  input[type="text"]::placeholder {
+  .map-search-chrome__pill input::placeholder {
     color: #6b6b6b;
   }
 
