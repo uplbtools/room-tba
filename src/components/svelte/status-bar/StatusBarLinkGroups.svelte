@@ -58,7 +58,10 @@
             {item.label}
           </a>
         {:else}
-          <MapChromeGhostButton variant="muted" onclick={() => onAction(item.id)}>
+          <MapChromeGhostButton
+            variant="muted"
+            onclick={() => onAction(item.id)}
+          >
             {item.label}
           </MapChromeGhostButton>
         {/if}
