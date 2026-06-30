@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/uplbtools/room-tba/compare/v1.18.1...v1.18.2) (2026-06-30)
+
+
+### Bug Fixes
+
+* **dorm:** normalize dorm lists at load and drop runtime string helper ([7bcb4bc](https://github.com/uplbtools/room-tba/commit/7bcb4bc56dd8b7912d14cfaa07e1ca2997d59cb2))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
