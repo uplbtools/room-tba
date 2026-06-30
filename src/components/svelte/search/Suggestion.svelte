@@ -44,6 +44,7 @@
   }
 
   function handleRemoveRecent(event: MouseEvent) {
+    event.preventDefault();
     event.stopPropagation();
     if (typeof id === "undefined") return;
     queryStore.removeRecentSearch(id);
@@ -116,7 +117,7 @@
       type="button"
       class="suggestion-remove"
       aria-label={`Remove ${value} from recent searches`}
-      onclick={handleRemoveRecent}
+      onmousedown={handleRemoveRecent}
     >
       <X size={18} aria-hidden="true" />
     </button>
