@@ -81,6 +81,11 @@
   white-space: nowrap;
 }
 
+.entity-header__badge--muted {
+  color: #71717a;
+  background-color: #f4f4f5;
+}
+
 /** Campus abbreviations (MRH, IH) inline with title — not a corner badge. */
 .entity-header__abbrev {
   font-size: 0.8125rem;
@@ -545,32 +550,25 @@
 
 .entity-panel-header-top {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: 0.75rem;
   min-width: 0;
 }
 
-.entity-panel-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: #7b1113;
+.entity-panel-header-content {
+  order: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.entity-panel-kicker.is-past {
-  color: #71717a;
-}
-
-.entity-panel-term {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #7b1113;
+.entity-panel-header-top :global(.entity-panel-close) {
+  order: 2;
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+  margin-left: auto;
 }
 
 .entity-panel-close {

@@ -6,33 +6,23 @@
     closeAriaLabel: string;
     closeTitle?: string;
     onclose: () => void;
-    kickerClass?: string;
-    kicker?: Snippet;
     trailing?: Snippet;
   };
 
-  let {
-    closeAriaLabel,
-    closeTitle,
-    onclose,
-    kickerClass = "",
-    kicker,
-    trailing,
-  }: Props = $props();
+  let { closeAriaLabel, closeTitle, onclose, trailing }: Props = $props();
 </script>
 
 <header class="entity-panel-header">
   <div class="entity-panel-header-top">
-    <div class="entity-panel-kicker {kickerClass}">
-      {@render kicker?.()}
-    </div>
     <EntityPanelClose
       ariaLabel={closeAriaLabel}
       title={closeTitle}
       onclick={onclose}
     />
+    <div class="entity-panel-header-content">
+      {@render trailing?.()}
+    </div>
   </div>
-  {@render trailing?.()}
 </header>
 
 <style>
