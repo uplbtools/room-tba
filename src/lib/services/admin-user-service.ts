@@ -5,6 +5,30 @@ import { adminUsersTable } from "@drizzle/schema";
 import { db } from "@lib/db";
 import type { SessionUser } from "@lib/admin/auth";
 
+/** Columns safe before migration 0015 (`supabase_user_id`). */
+const adminUserCredentialColumns = {
+  id: adminUsersTable.id,
+  username: adminUsersTable.username,
+  displayName: adminUsersTable.displayName,
+  passwordHash: adminUsersTable.passwordHash,
+  role: adminUsersTable.role,
+  isActive: adminUsersTable.isActive,
+};
+
+function toSessionUser(user: {
+  id: number;
+  username: string;
+  displayName: string | null;
+  role: SessionUser["role"] | null;
+}): SessionUser {
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName ?? user.username,
+    role: user.role ?? "editor",
+  };
+}
+
 export async function countAdminUsers(): Promise<number> {
   const rows = await db
     .select({ c: sql<number>`count(*)` })
@@ -15,24 +39,29 @@ export async function countAdminUsers(): Promise<number> {
 export async function getAdminUserBySupabaseId(
   supabaseUserId: string,
 ): Promise<SessionUser | null> {
-  const [user] = await db
-    .select()
-    .from(adminUsersTable)
-    .where(
-      and(
-        eq(adminUsersTable.supabaseUserId, supabaseUserId),
-        eq(adminUsersTable.isActive, true),
-      ),
-    )
-    .limit(1);
+  try {
+    const [user] = await db
+      .select({
+        id: adminUsersTable.id,
+        username: adminUsersTable.username,
+        displayName: adminUsersTable.displayName,
+        role: adminUsersTable.role,
+      })
+      .from(adminUsersTable)
+      .where(
+        and(
+          eq(adminUsersTable.supabaseUserId, supabaseUserId),
+          eq(adminUsersTable.isActive, true),
+        ),
+      )
+      .limit(1);
 
-  if (!user) return null;
-  return {
-    id: user.id,
-    username: user.username,
-    displayName: user.displayName ?? user.username,
-    role: user.role ?? "editor",
-  };
+    if (!user) return null;
+    return toSessionUser(user);
+  } catch (error) {
+    console.error("getAdminUserBySupabaseId failed:", error);
+    return null;
+  }
 }
 
 export async function authenticateAdminUser(
@@ -43,7 +72,7 @@ export async function authenticateAdminUser(
   if (!normalized || password.length === 0) return null;
 
   const [user] = await db
-    .select()
+    .select(adminUserCredentialColumns)
     .from(adminUsersTable)
     .where(
       and(
@@ -57,12 +86,7 @@ export async function authenticateAdminUser(
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return null;
 
-  return {
-    id: user.id,
-    username: user.username,
-    displayName: user.displayName ?? user.username,
-    role: user.role ?? "editor",
-  };
+  return toSessionUser(user);
 }
 
 export async function ensureBootstrapAdminUser(): Promise<void> {

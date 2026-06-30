@@ -440,7 +440,16 @@ class AdminAuthStore {
           },
       );
       if (!res.ok) {
-        return data.error ?? `Login failed (${res.status})`;
+        return (
+          data.error ??
+          (res.status === 401
+            ? "Invalid username or password"
+            : res.status === 429
+              ? "Too many attempts. Wait a few minutes and try again."
+              : res.status >= 500
+                ? "Sign-in failed on our side. Try again later."
+                : "Could not sign in. Check your username and password.")
+        );
       }
       this.applySession({
         loggedIn: true,
