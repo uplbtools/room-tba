@@ -5,6 +5,10 @@
   type Props = {
     type?: "button" | "submit";
     disabled?: boolean;
+    ariaLabel?: string;
+    ariaBusy?: boolean;
+    title?: string;
+    toolbar?: boolean;
     onclick?: () => void;
     children?: Snippet;
   };
@@ -12,12 +16,25 @@
   let {
     type = "button",
     disabled = false,
+    ariaLabel,
+    ariaBusy = false,
+    title,
+    toolbar = false,
     onclick,
     children,
   }: Props = $props();
 </script>
 
-<button {type} class="map-chrome-action-chip" {disabled} {onclick}>
+<button
+  {type}
+  class="map-chrome-action-chip"
+  class:map-chrome-action-chip--toolbar={toolbar}
+  {disabled}
+  {onclick}
+  aria-label={ariaLabel}
+  aria-busy={ariaBusy}
+  title={title ?? ariaLabel}
+>
   <span class="map-chrome-action-chip__inner">
     {@render children?.()}
   </span>
