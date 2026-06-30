@@ -3,13 +3,11 @@ import type { Weekday } from "../schedule-import/day-stops.js";
 import type { ImportedScheduleRow } from "../schedule-import/types.js";
 
 export type LandingModalTab = "welcome" | "campus";
-export type FilterModalTab = "buildings" | "colleges" | "divisions";
 
 export interface ModalStoreState {
   open: boolean;
   type: (typeof modalOptions)[number] | null;
   landingTab?: LandingModalTab;
-  filterTab?: FilterModalTab;
 }
 
 export interface QueryStoreState {
@@ -21,6 +19,7 @@ export interface QueryStoreState {
     | "room"
     | "class"
     | "classes"
+    | "browse"
     | "dorm"
     | "event"
     | "events"

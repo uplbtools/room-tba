@@ -1,17 +1,12 @@
 import { describe, expect, it } from "bun:test";
-import { openCampusBrowseModal } from "./browse-campus-shared";
+import { campusBrowseQuery } from "./browse-campus-shared";
 
-describe("openCampusBrowseModal", () => {
-  it("opens the filter modal with the requested tab", () => {
-    const calls: unknown[] = [];
-    const modalStore = {
-      openModal: (...args: unknown[]) => {
-        calls.push(args);
-      },
-    };
-
-    openCampusBrowseModal(modalStore, "colleges");
-
-    expect(calls).toEqual([["filter", { filterTab: "colleges" }]]);
+describe("campusBrowseQuery", () => {
+  it("builds side-panel browse state for the requested tab", () => {
+    expect(campusBrowseQuery("colleges")).toEqual({
+      category: "browse",
+      type: "result",
+      value: "colleges",
+    });
   });
 });

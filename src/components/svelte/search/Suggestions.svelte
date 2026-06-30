@@ -14,8 +14,6 @@
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import FinalExamSuggestion from "./FinalExamSuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
-  import CampusBrowseChips from "./CampusBrowseChips.svelte";
-  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
 
   const appData = getAppData();
   const { buildings, colleges, divisions, dorms, events, loaded } =
@@ -132,34 +130,16 @@
   });
 </script>
 
-<!-- class:visible={queryStore.inputValue === ""} -->
 <div
   class="suggestions-container search-suggestions"
   onmousedown={(event) => event.preventDefault()}
 >
-  <!-- class:force-visible={queryStore.inputValue === ""} -->
   {#if queryStore.inputValue === ""}
-    <CampusBrowseChips />
-    <div class="suggestions-toolbar">
-      <KeyboardShortcutsChip compact />
-    </div>
     {#if queryStore.recentSearches.length !== 0}
       <h2 class="suggestions-header">Recent searches</h2>
       {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
         <Suggestion {value} {category} {id} {eventSlug} />
       {/each}
-    {:else}
-      <h2 class="suggestions-header">Trending searches</h2>
-      <Suggestion value="Physical Sciences Building" category="building" />
-      <Suggestion value="Institute of Computer Science" category="division" />
-      <Suggestion
-        value="Institute of Biological Sciences"
-        category="division"
-      />
-      <Suggestion
-        value="College of Engineering and Agro-Industrial Technology"
-        category="college"
-      />
     {/if}
   {:else if suggestedResult.length !== 0}
     {#each suggestedResult as suggestion, id (id)}
@@ -206,12 +186,6 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     contain: layout style;
-  }
-
-  .suggestions-toolbar {
-    display: flex;
-    justify-content: flex-start;
-    padding: 0 0.5rem 0.25rem;
   }
 
   .suggestions-header {
