@@ -60,7 +60,6 @@ const {
                     ariaLabel={item.copyLabel ?? `Copy link to ${item.label}`}
                     successMessage="Link copied."
                     errorMessage={`Could not copy link for ${item.label}.`}
-                    variant="index"
                     feedback="inline"
                     client:load
                   />
@@ -147,6 +146,11 @@ const {
 
     .entity-index-page__item-actions {
       justify-self: stretch;
+    }
+
+    .entity-index-page__item-actions :global(.copy-link-wrapper),
+    .entity-index-page__item-actions :global(.map-chrome-action-chip) {
+      width: 100%;
     }
   }
 </style>
