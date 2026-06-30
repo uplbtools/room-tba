@@ -33,7 +33,6 @@
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
-  import { normalizeAmenityList, normalizeStringList } from "@lib/string-lists";
   type DormEditableField =
     | "dormName"
     | "shortName"
@@ -111,8 +110,8 @@
     osmLink: "OpenStreetMap link",
   };
 
-  const amenities = $derived(normalizeAmenityList(dorm?.amenities));
-  const contactPhones = $derived(normalizeStringList(dorm?.contactPhone));
+  const amenities = $derived(dorm?.amenities ?? []);
+  const contactPhones = $derived(dorm?.contactPhone ?? []);
   const showDormDetails = $derived(
     Boolean(
       dorm &&
