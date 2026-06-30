@@ -2661,10 +2661,8 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
-              labelVisible={
-                !centralHoverPreview &&
-                (zoomLevel >= 17 || hoveredEditKey === editKey)
-              }
+              labelVisible={!centralHoverPreview &&
+                (zoomLevel >= 17 || hoveredEditKey === editKey)}
               useCentralHoverPreview={centralHoverPreview}
               {previewSuppressed}
               onpointerenter={(event) =>
