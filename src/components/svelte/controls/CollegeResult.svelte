@@ -20,6 +20,8 @@
   import { getCollegeRooms, fetchRoomClassCounts } from "@lib/local/data/utils";
   import type { CollegeData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import { getCollegeShareUrl } from "@lib/share-links";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
@@ -71,6 +73,9 @@
   } | null>(null);
   let mergingEntity = $state(false);
   const canPublish = $derived(adminAuthStore.canPublish);
+  const collegeShareUrl = $derived(
+    college ? getCollegeShareUrl(college.collegeName) : "",
+  );
 
   // Reload rooms when the selected college changes; CollegeResult is not
   // remounted on switch, so key the load on college id and discard stale
@@ -282,20 +287,27 @@
   }
 </script>
 
-<div class="college-query-wrapper">
+<div class="entity-detail college-query-wrapper">
   {#if college}
-    <div class="college-header">
-      <h2 class="college-title">{college.collegeName}</h2>
-    </div>
+    <header class="entity-header">
+      <h2 class="entity-header__title">{college.collegeName}</h2>
+      <div class="entity-actions">
+        <EntityShareCopyLink
+          url={collegeShareUrl}
+          entityLabel={college.collegeName}
+        />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit college"
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
+      </div>
+    </header>
 
-    <section class="entity-editor" aria-label="Edit college details">
-      <EntityEditorToggle
-        expanded={editing}
-        {canPublish}
-        publishOpenLabel="Edit college"
-        onclick={() => (editing = !editing)}
-      />
-      {#if editing}
+    {#if editing}
+      <section class="entity-editor" aria-label="Edit college details">
         <EntityEditorPanel
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
@@ -341,18 +353,18 @@
             />
           {/if}
         </EntityEditorPanel>
-      {/if}
-    </section>
+      </section>
+    {/if}
 
-    <section class="taxonomy-section" aria-label="College divisions">
-      <h3 class="taxonomy-heading">Divisions in this college</h3>
+    <section class="entity-list-section" aria-label="College divisions">
+      <h3 class="entity-section-heading">Divisions</h3>
       {#if collegeDivisions.length > 0}
-        <ul class="taxonomy-list">
+        <ul class="entity-nav-list">
           {#each collegeDivisions as item (item.id)}
             <li>
               <button
                 type="button"
-                class="taxonomy-link"
+                class="entity-nav-chip"
                 onclick={() => openDivision(item.divisionName)}
               >
                 {item.divisionName}
@@ -361,7 +373,7 @@
           {/each}
         </ul>
       {:else}
-        <p class="taxonomy-empty">
+        <p class="entity-nav-empty">
           No divisions assigned yet. Open a division and set its parent college
           in the editor.
         </p>
@@ -369,7 +381,13 @@
     </section>
   {/if}
   {#if collegeRooms}
-    <ResultDisplay filteredRooms={collegeRooms} {classCounts} />
+    <ResultDisplay
+      filteredRooms={collegeRooms}
+      {classCounts}
+      sectionTitle="Rooms under this college"
+      emptyMessage="No rooms found for this college."
+      groupByBuilding
+    />
   {:else if college}
     <p class="entity-loading-note">
       Loading rooms for {college.collegeName}…
@@ -378,81 +396,12 @@
 </div>
 
 <style>
+  @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
 
   .college-query-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
     width: 100%;
     flex: 1 1 0;
     overflow-y: auto;
-  }
-
-  .college-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    width: 100%;
-    flex-shrink: 0;
-  }
-
-  .college-title {
-    font-size: 1.125rem;
-    font-weight: bold;
-    color: black;
-    margin: 0;
-    line-height: 1.25rem;
-  }
-
-  .taxonomy-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .taxonomy-heading {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: black;
-  }
-
-  .taxonomy-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .taxonomy-link {
-    all: unset;
-    display: block;
-    max-width: 100%;
-    padding: 0.375rem 0.5rem;
-    border: 1px solid hsl(5, 53%, 88%);
-    border-radius: 0.5rem;
-    background: white;
-    color: hsl(5, 53%, 32%);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .taxonomy-link:hover,
-  .taxonomy-link:focus-visible {
-    background: hsl(5, 53%, 98%);
-  }
-
-  .taxonomy-empty {
-    margin: 0;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: hsl(0, 0%, 40%);
   }
 </style>

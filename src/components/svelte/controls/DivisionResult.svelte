@@ -23,6 +23,8 @@
     fetchRoomClassCounts,
   } from "@lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import { getDivisionShareUrl } from "@lib/share-links";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
@@ -73,6 +75,9 @@
   } | null>(null);
   let mergingEntity = $state(false);
   const canPublish = $derived(adminAuthStore.canPublish);
+  const divisionShareUrl = $derived(
+    division ? getDivisionShareUrl(division.divisionName) : "",
+  );
 
   // Reload rooms when the selected division changes; DivisionResult is not
   // remounted on switch, so key the load on division id and discard stale
@@ -313,34 +318,43 @@
   }
 </script>
 
-<div class="division-query-wrapper">
+<div class="entity-detail division-query-wrapper">
   {#if division}
-    <div class="division-header">
-      <h2 class="division-title">{division.divisionName}</h2>
+    <header class="entity-header">
+      <h2 class="entity-header__title">{division.divisionName}</h2>
       {#if parentCollege}
-        <p class="division-subtitle">
+        <p class="entity-header__context">
           Part of
           <button
             type="button"
-            class="college-link"
+            class="entity-header__context-link"
             onclick={() => openCollege(parentCollege.collegeName)}
           >
             {parentCollege.collegeName}
           </button>
         </p>
       {:else}
-        <p class="division-subtitle unassigned">No parent college assigned</p>
+        <p class="entity-header__context entity-header__context--muted">
+          No parent college assigned
+        </p>
       {/if}
-    </div>
+      <div class="entity-actions">
+        <EntityShareCopyLink
+          url={divisionShareUrl}
+          entityLabel={division.divisionName}
+        />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit division"
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
+      </div>
+    </header>
 
-    <section class="entity-editor" aria-label="Edit division details">
-      <EntityEditorToggle
-        expanded={editing}
-        {canPublish}
-        publishOpenLabel="Edit division"
-        onclick={() => (editing = !editing)}
-      />
-      {#if editing}
+    {#if editing}
+      <section class="entity-editor" aria-label="Edit division details">
         <EntityEditorPanel
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
@@ -406,11 +420,17 @@
             {/snippet}
           </EntityEditorField>
         </EntityEditorPanel>
-      {/if}
-    </section>
+      </section>
+    {/if}
   {/if}
   {#if divisionRooms}
-    <ResultDisplay filteredRooms={divisionRooms} {classCounts} />
+    <ResultDisplay
+      filteredRooms={divisionRooms}
+      {classCounts}
+      sectionTitle="Rooms under this division"
+      emptyMessage="No rooms found for this division."
+      groupByBuilding
+    />
   {:else if division}
     <p class="entity-loading-note">
       Loading rooms for {division.divisionName}…
@@ -419,54 +439,17 @@
 </div>
 
 <style>
+  @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
 
   .division-query-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
     width: 100%;
     flex: 1 1 0;
     overflow-y: auto;
   }
 
-  .division-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    width: 100%;
-    flex-shrink: 0;
-  }
-
-  .division-title {
-    font-size: 1.125rem;
-    font-weight: bold;
-    color: black;
-    margin: 0;
-    line-height: 1.25rem;
-  }
-
-  .division-subtitle {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: hsl(0, 0%, 40%);
-  }
-
-  .division-subtitle.unassigned {
-    color: hsl(0, 0%, 55%);
-  }
-
-  .college-link {
-    all: unset;
-    cursor: pointer;
-    color: hsl(5, 53%, 32%);
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .college-link:hover,
-  .college-link:focus-visible {
-    color: hsl(5, 53%, 22%);
+  .entity-header__context--muted {
+    font-style: italic;
+    color: #a1a1aa;
   }
 </style>
