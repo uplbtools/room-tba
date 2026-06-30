@@ -11,13 +11,7 @@
     openEphemeralOverlay,
   } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
-  import {
-    adminAuthStore,
-    mapToolsStore,
-    modalStore,
-    queryStore,
-    sidePanelStore,
-  } from "@lib/store.svelte";
+  import { adminAuthStore, mapToolsStore, modalStore } from "@lib/store.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
   import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
@@ -123,20 +117,7 @@
     closePanel();
   }
 
-  function handleNavAction(
-    id: "contributors" | "editor-login" | "browse-classes",
-  ) {
-    if (id === "browse-classes") {
-      queryStore.updateQuery({
-        category: "classes",
-        type: "result",
-        value: "All classes",
-      });
-      queryStore.inputValue = "";
-      sidePanelStore.expand();
-      closePanel();
-      return;
-    }
+  function handleNavAction(id: "contributors" | "editor-login") {
     if (id === "contributors") {
       modalStore.openModal("landing", { landingTab: "campus" });
       closePanel();
