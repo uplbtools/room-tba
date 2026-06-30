@@ -1,10 +1,12 @@
 <script lang="ts">
   import Menu from "@lucide/svelte/icons/menu";
+  import Keyboard from "@lucide/svelte/icons/keyboard";
   import { onMount } from "svelte";
   import { formatCatalogUpdatedDate } from "@constants/data-catalog";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { statusBarNavGroups } from "@constants/status-bar-links";
   import { trapFocus } from "@lib/focus-trap";
+  import { openShortcutsHelp } from "@lib/keyboard-shortcuts";
   import { portal } from "@lib/portal";
   import {
     registerEphemeralOverlayDismisser,
@@ -16,6 +18,7 @@
   import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
+  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
   import StatusBarLinkGroups from "./StatusBarLinkGroups.svelte";
   import "../map-chrome/map-chrome.css";
 
@@ -126,6 +129,11 @@
     adminAuthStore.openLogin();
     closePanel();
   }
+
+  function handleShortcutsHelp() {
+    closePanel();
+    openShortcutsHelp();
+  }
 </script>
 
 <svelte:window onpointerdown={handleDocumentPointerDown} />
@@ -144,6 +152,10 @@
     <Menu size={14} aria-hidden="true" />
     <span>Menu</span>
   </button>
+
+  <div class="app-menu__shortcuts-host" aria-hidden="true">
+    <KeyboardShortcutsChip compact />
+  </div>
 
   {#if open}
     <div
@@ -192,6 +204,22 @@
       </section>
 
       <section
+        class="app-menu__section"
+        aria-labelledby="app-menu-help-heading"
+      >
+        <h3 id="app-menu-help-heading" class="app-menu__heading">Help</h3>
+        <button
+          type="button"
+          class="app-menu__action map-chrome-chip"
+          aria-keyshortcuts="?"
+          onclick={handleShortcutsHelp}
+        >
+          <Keyboard size={14} aria-hidden="true" />
+          <span>Keyboard shortcuts</span>
+        </button>
+      </section>
+
+      <section
         class="app-menu__section app-menu__section--install"
         aria-label="Install app"
       >
@@ -209,6 +237,28 @@
   }
 
   .app-menu__trigger {
+    cursor: pointer;
+  }
+
+  .app-menu__shortcuts-host {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    width: 0;
+    height: 0;
+    overflow: visible;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .app-menu__shortcuts-host :global(.shortcuts-chip__trigger) {
+    position: fixed;
+    left: var(--map-ui-padding, 0.5rem);
+    bottom: calc(var(--status-bar-block-height, 2.75rem) + 0.25rem);
+  }
+
+  .app-menu__action {
+    align-self: flex-start;
     cursor: pointer;
   }
 

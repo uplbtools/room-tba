@@ -15,10 +15,14 @@
     hovered?: boolean;
     label: string;
     labelVisible?: boolean;
+    /** Hide inline pin label while the shared EntityHoverPreview is shown for this pin. */
+    previewSuppressed?: boolean;
     onpointerenter?: (event: PointerEvent) => void;
     onpointerleave?: (event: PointerEvent) => void;
     saveState?: EntityPinSaveState;
     tone?: EntityPinTone;
+    /** Read mode: hover detail comes from EntityHoverPreview, not the pin label. */
+    useCentralHoverPreview?: boolean;
   };
 
   let {
@@ -31,11 +35,20 @@
     hovered = false,
     label,
     labelVisible = false,
+    previewSuppressed = false,
     onpointerenter,
     onpointerleave,
     saveState = "idle",
     tone = "building",
+    useCentralHoverPreview = false,
   }: Props = $props();
+
+  /** With central hover preview, only the selected pin keeps an inline label. */
+  const showPinLabel = $derived(
+    useCentralHoverPreview
+      ? active && !previewSuppressed
+      : (labelVisible || active) && !previewSuppressed,
+  );
 
   const statusLabel = $derived(
     saveState === "saving"
@@ -59,6 +72,7 @@
   class:building={tone === "building"}
   class:dorm={tone === "dorm"}
   class:private={tone === "privateDorm"}
+  class:central-hover-preview={useCentralHoverPreview}
   class:editable={showExpandedPin}
   class:editing
   class:dimmed
@@ -81,7 +95,8 @@
   {/if}
   <div
     class="pin-label"
-    class:active={labelVisible || active}
+    class:active={showPinLabel}
+    class:persistent={showPinLabel}
     aria-hidden="true"
   >
     {label}
@@ -195,8 +210,16 @@
     opacity: 0.55;
   }
 
-  .map-entity-pin.dimmed:hover .pin-label,
-  .map-entity-pin.dimmed.active .pin-label {
+  .map-entity-pin.dimmed:not(.central-hover-preview):hover .pin-label,
+  .map-entity-pin.dimmed.active .pin-label.persistent {
+    opacity: 1;
+  }
+
+  .map-entity-pin.central-hover-preview .pin-label {
+    opacity: 0;
+  }
+
+  .map-entity-pin.central-hover-preview.active .pin-label.active {
     opacity: 1;
   }
 
@@ -269,8 +292,9 @@
     color: white;
   }
 
-  .map-entity-pin:hover .pin-label,
-  .pin-label.active {
+  .map-entity-pin:not(.central-hover-preview):hover .pin-label,
+  .map-entity-pin:not(.central-hover-preview) .pin-label.active,
+  .map-entity-pin:not(.central-hover-preview) .pin-label.persistent {
     opacity: 1;
   }
 

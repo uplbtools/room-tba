@@ -186,14 +186,14 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   min-height: 1.75rem;
   padding: 0.3125rem 0.5rem;
   white-space: nowrap;
-  border: 1px solid #d8b9ba;
+  border: 1px solid #c58f91;
   border-radius: 0.75rem;
-  background: #fffafa;
-  color: #7b1113;
+  background: #ffffff;
+  color: hsl(5, 65%, 22%);
   cursor: pointer;
   font: inherit;
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   line-height: 1.2;
   text-decoration: none;
   transition:
@@ -218,6 +218,23 @@ button.chrome-toggle-btn[aria-expanded="true"] {
 .map-chrome-action-chip:disabled {
   cursor: progress;
   opacity: 0.65;
+}
+
+/* Entity header / list card action rows — one chip look app-wide. */
+.map-chrome-action-chip--toolbar {
+  min-height: 2rem;
+  padding: 0.4375rem 0.625rem;
+}
+
+.map-chrome-action-chip--toolbar:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #7b1113;
+}
+
+.map-chrome-action-chip--toolbar svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .map-chrome-chip {

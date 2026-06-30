@@ -25,7 +25,6 @@
   import EditorShelf from "@ui/EditorShelf.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
-  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
   import CampusBrowseChips from "@ui/search/CampusBrowseChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
@@ -384,11 +383,11 @@
           {#if mobile.current}
             <MapDimensionToggle compact />
           {/if}
+          {#if chrome.showSearchSuggestions}
+            <CampusBrowseChips />
+          {/if}
           <TermSelector />
           {#if chrome.showSearchSuggestions}
-            {#if !showSearchDropdown}
-              <CampusBrowseChips variant="inline" />
-            {/if}
             {#if showIdleEventsChrome}
               <button
                 type="button"
@@ -413,9 +412,6 @@
             {/if}
             <BuildingTypeFilterBar />
             <TransitFilterChip />
-          {/if}
-          {#if !(showSearchDropdown && draftInput.trim() === "")}
-            <KeyboardShortcutsChip compact={mobile.current} />
           {/if}
         </div>
       {/if}
@@ -508,7 +504,7 @@
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
-    overflow-x: clip;
+    overflow-x: visible;
     padding: calc(env(safe-area-inset-top, 0px) + 0.4375rem)
       max(
         var(--map-search-inline-pad, 0.625rem),
@@ -524,8 +520,12 @@
       var(--map-chrome-band-backdrop, hsla(5, 22%, 96%, 0.82)) 0%,
       var(--map-chrome-surface, hsl(5 20% 97%)) 72%
     );
-    border-bottom: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-    box-shadow: var(--map-chrome-shadow);
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border-radius: var(--map-chrome-radius, 1rem);
+    box-shadow:
+      0 1px 3px hsla(0, 0%, 0%, 0.12),
+      0 4px 12px hsla(0, 0%, 0%, 0.16),
+      0 10px 24px hsla(0, 0%, 0%, 0.1);
     pointer-events: auto;
   }
 
@@ -626,7 +626,10 @@
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
-    box-shadow: var(--map-chrome-shadow);
+    box-shadow:
+      0 1px 3px hsla(0, 0%, 0%, 0.12),
+      0 4px 12px hsla(0, 0%, 0%, 0.16),
+      0 10px 24px hsla(0, 0%, 0%, 0.1);
     overflow-x: clip;
     overflow-y: visible;
   }

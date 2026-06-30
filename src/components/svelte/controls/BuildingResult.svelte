@@ -4,18 +4,18 @@
     mapEditStore,
     mapProposalStore,
     queryStore,
-    locationStore,
     building3DStore,
     toastStore,
     termStore,
   } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
-  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Box from "@lucide/svelte/icons/box";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import type { BuildingData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
-  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
@@ -401,41 +401,26 @@
       <div class="entity-actions">
         {#if hasMapPin}
           <MapChromeActionChip
+            toolbar
             onclick={() => building3DStore.open(building.buildingName)}
           >
             <Box size={14} aria-hidden="true" />
             3D view
           </MapChromeActionChip>
-          <MapChromeActionChip
-            onclick={() => {
-              locationStore.requestLocation();
-              locationStore.setDestination([
-                building.lon ?? 0,
-                building.lat ?? 0,
-              ]);
-            }}
-          >
-            <CornerRightUp size={14} aria-hidden="true" />
-            Directions
-          </MapChromeActionChip>
+          <EntityDirectionsChip
+            lat={building.lat ?? 0}
+            lon={building.lon ?? 0}
+            destinationLabel={building.buildingName}
+          />
+          <EntityGoogleMapsLink
+            lat={building.lat ?? 0}
+            lon={building.lon ?? 0}
+            ariaLabel={`Open ${building.buildingName} in Google Maps`}
+          />
         {/if}
-        <CopyLinkButton
+        <EntityShareCopyLink
           url={buildingShareUrl}
-          ariaLabel={`Copy link to ${building.buildingName}`}
-          successMessage={`Copied link for ${building.buildingName}.`}
-          errorMessage={`Could not copy link for ${building.buildingName}.`}
-          feedback="none"
-          variant="chip"
-          onsuccess={() =>
-            toastStore.show(
-              `Copied link for ${building.buildingName}.`,
-              "success",
-            )}
-          onerror={() =>
-            toastStore.show(
-              `Could not copy link for ${building.buildingName}.`,
-              "error",
-            )}
+          entityLabel={building.buildingName}
         />
         <EntityEditorToggle
           expanded={editing}
@@ -573,6 +558,7 @@
       <section class="entity-directions" aria-label="Directions">
         <div class="entity-directions__segment">
           {#if building.directions}
+            <p class="entity-directions__label">Directions</p>
             <p class="entity-directions__text">{building.directions}</p>
           {:else}
             <p class="entity-directions__empty">No directions listed.</p>

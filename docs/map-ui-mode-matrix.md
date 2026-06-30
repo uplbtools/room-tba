@@ -33,7 +33,7 @@ Lowest to highest:
 | ------------------------- | ------------------------ | ---------------------------------------------- |
 | Map canvas                | `--z-map: 0`             | MapLibre canvas                                |
 | Side panel                | `--z-side-panel: 2`      | MainControls drawer                            |
-| Bottom chrome             | `--z-status-bar: 3`      | Status bar tray                                |
+| Bottom chrome             | `--z-status-bar: 5`      | Status bar tray                                |
 | UI shell                  | `10` (`.ui-layer`)       | Search, side panel host                        |
 | Drawer-lift FABs          | `14`                     | Location button when sheet open                |
 | Map tools (mobile)        | `--z-map-tools: 16`      | Map tools flyout stack                         |
@@ -47,7 +47,7 @@ Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome 
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column (editor icon button when signed in), building pin filter chips (`BuildingTypeFilterBar.svelte`), **term selector chip** (`TermSelector.svelte`, class schedules), transit toggle chip (`TransitFilterChip.svelte`, count badge + route sub-panel when active), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). Individual jeepney routes are picked in the transit sub-panel under the chip row or in Map tools → Transit (`JeepneyMenu.svelte` / `TransitRoutePanel.svelte`), not as top-level chips. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
+- **Top band:** search column (editor icon button when signed in), **campus browse chips** (`CampusBrowseChips.svelte`: Buildings / Colleges / Divisions / Classes — always in the chip row, opens the side-panel browse list), **term selector chip** (`TermSelector.svelte`, class schedules), building pin filter chips (`BuildingTypeFilterBar.svelte`), transit toggle chip (`TransitFilterChip.svelte`, count badge + route sub-panel when active), event banner, Map tools trigger; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). Browse opens `CampusBrowseList.svelte` / `ClassesList.svelte` in the side drawer — not a centered modal. The search suggestions dropdown is for recent searches and typed results only. **Keyboard shortcuts** are opened from the app menu (`AppMenu.svelte`) or the `?` key, not from search chrome. Individual jeepney routes are picked in the transit sub-panel under the chip row or in Map tools → Transit (`JeepneyMenu.svelte` / `TransitRoutePanel.svelte`), not as top-level chips. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
 - **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north)
 - **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, location/propose actions trailing; one shared surface
 - **Ephemeral:** toast, modals, mobile editor screen (`EditorScreen.svelte` when `editorChromeStore.shelfOpen`)
@@ -60,9 +60,15 @@ MapLibre attribution is disabled on the map canvas (`attributionControl={false}`
 - `--map-search-inline-pad` (mobile search bar horizontal inset; defaults with `--map-ui-padding`)
 - `--search-block-height`
 - `--status-bar-block-height` (measured from full `.bottom-chrome` tray)
+- `--side-panel-top-inset` (search block + map padding; desktop fixed drawer top)
+- `--side-panel-bottom-inset` (measured from `.bottom-chrome` top edge + `--side-panel-bottom-gap`; fixed drawer/sheet bottom)
+- `--side-panel-bottom-inset-measured` (runtime px distance from viewport bottom to status tray top; set in `Entry.svelte`)
+- `--side-panel-bottom-gap` (extra clearance between drawer and status tray)
 - `--drawer-peek-offset`
 - `--mobile-detail-sheet-top-inset` (mobile entity detail sheet; below search app bar)
-- `--map-ui-padding` is `0` on mobile (edge-to-edge chrome)
+- `--map-ui-padding` is `0.375rem` horizontal on mobile (search + drawer gutter; bottom band stays edge-to-edge)
+- `--mobile-detail-sheet-gap` (vertical space between measured search block and mobile detail sheet)
+- Mobile detail sheet inset horizontally by `--map-ui-padding`; rounded card, not viewport-bleed
 - `--bottom-fab-inset` (measured from `.bottom-chrome__actions` width + `--bottom-chrome-gap`; reserves space for edit dock right edge)
 - `--bottom-chrome-gap` (gap between bottom chrome and edit dock; defaults to `--bottom-fab-gap`)
 - `--bottom-fab-gap` (spacing between bottom chrome and edit dock)

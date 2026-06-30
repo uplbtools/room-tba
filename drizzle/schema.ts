@@ -300,11 +300,15 @@ export const roomsTable = pgTable(
   ],
 );
 
-export const updateTable = pgTable("update", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  tableName: varchar("table_name", { length: 20 }),
-  syncKey: uuid("sync_key").defaultRandom(),
-});
+export const updateTable = pgTable(
+  "update",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    tableName: varchar("table_name", { length: 20 }),
+    syncKey: uuid("sync_key").defaultRandom(),
+  },
+  (table) => [uniqueIndex("update_table_name_key").on(table.tableName)],
+);
 
 export const adminUsersTable = pgTable(
   "admin_users",

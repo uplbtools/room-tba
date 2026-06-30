@@ -3,7 +3,6 @@
   import {
     adminAuthStore,
     currentRoom,
-    locationStore,
     modalStore,
     queryStore,
     roomClassesStore,
@@ -22,15 +21,14 @@
     scheduleEntityContributorDraftSave,
   } from "@lib/contributor-drafts";
   import { getAppData } from "@lib/context";
-  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
-  import MapPin from "@lucide/svelte/icons/map-pin";
-  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
+  import EntityGoogleMapsLink from "../controls/EntityGoogleMapsLink.svelte";
+  import EntityDirectionsChip from "../controls/EntityDirectionsChip.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-  import CopyLinkButton from "@ui/CopyLinkButton.svelte";
+  import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
   import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
@@ -406,67 +404,28 @@
 
       <h2 class="entity-header__title">{currentRoom.value.code}</h2>
 
-      {#if currentRoom.value.collegeName || parentBuilding}
+      {#if currentRoom.value.collegeName}
         <p class="entity-header__context">
-          {#if currentRoom.value.collegeName}
-            {currentRoom.value.collegeName}
-          {/if}
-          {#if parentBuilding}
-            {#if currentRoom.value.collegeName}
-              ·
-            {/if}
-            <button
-              type="button"
-              class="entity-header__context-link"
-              onclick={openBuildingResult}
-            >
-              {parentBuilding.name}
-            </button>
-          {/if}
+          {currentRoom.value.collegeName}
         </p>
       {/if}
 
       <div class="entity-actions">
         {#if parentBuilding?.lat && parentBuilding.lon}
-          <MapChromeActionChip
-            onclick={() => {
-              locationStore.requestLocation();
-              locationStore.setDestination([
-                parentBuilding.lon as number,
-                parentBuilding.lat as number,
-              ]);
-            }}
-          >
-            <CornerRightUp size={14} aria-hidden="true" />
-            Directions
-          </MapChromeActionChip>
-          <a
-            class="map-chrome-action-chip"
-            href="https://www.google.com/maps?q={parentBuilding.lat},{parentBuilding.lon}"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MapPin size={14} aria-hidden="true" />
-            Google Maps
-          </a>
+          <EntityDirectionsChip
+            lat={parentBuilding.lat}
+            lon={parentBuilding.lon}
+            destinationLabel={parentBuilding.name}
+          />
+          <EntityGoogleMapsLink
+            lat={parentBuilding.lat}
+            lon={parentBuilding.lon}
+            ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
+          />
         {/if}
-        <CopyLinkButton
+        <EntityShareCopyLink
           url={roomShareUrl}
-          ariaLabel={`Copy link to ${currentRoom.value.code}`}
-          successMessage={`Copied link for ${currentRoom.value.code}.`}
-          errorMessage={`Could not copy link for ${currentRoom.value.code}.`}
-          feedback="none"
-          variant="chip"
-          onsuccess={() =>
-            toastStore.show(
-              `Copied link for ${currentRoom.value?.code ?? "room"}.`,
-              "success",
-            )}
-          onerror={() =>
-            toastStore.show(
-              `Could not copy link for ${currentRoom.value?.code ?? "room"}.`,
-              "error",
-            )}
+          entityLabel={currentRoom.value.code}
         />
         <EntityEditorToggle
           expanded={editing}
@@ -651,7 +610,7 @@
 
     <section class="entity-directions" aria-label="Directions">
       <div class="entity-directions__segment">
-        <p class="entity-directions__label">Room</p>
+        <p class="entity-directions__label">Room directions</p>
         {#if currentRoom.value.directions}
           <p class="entity-directions__text">{currentRoom.value.directions}</p>
         {:else}
@@ -670,7 +629,7 @@
 
       {#if parentBuilding}
         <div class="entity-directions__segment">
-          <p class="entity-directions__label">{parentBuilding.name}</p>
+          <p class="entity-directions__label">Building directions</p>
           {#if parentBuilding.directions}
             <p class="entity-directions__text">{parentBuilding.directions}</p>
           {:else}
@@ -689,9 +648,12 @@
       {/if}
     </section>
 
-    <section class="entity-schedule" aria-label="Classes in this room">
+    <section
+      class="entity-list-section entity-schedule"
+      aria-label="Classes in this room"
+    >
       <div class="entity-schedule__header">
-        <h3 class="entity-schedule__title">
+        <h3 class="entity-section-heading">
           Classes in this room
           {#if !roomClassesStore.loading}
             <span class="entity-schedule__count"
@@ -806,50 +768,41 @@
   }
 
   .entity-schedule {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding-top: 0.25rem;
+    gap: 0.375rem;
   }
 
   .entity-schedule__header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
     flex-wrap: wrap;
   }
 
-  .entity-schedule__title {
-    margin: 0;
-    font-size: 0.9375rem;
-    font-weight: 700;
-    line-height: 1.25;
-    color: hsl(0, 0%, 12%);
-  }
-
   .entity-schedule__count {
-    color: hsl(0, 0%, 45%);
-    font-weight: 500;
+    color: #71717a;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .entity-schedule__term {
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: #7b1113;
   }
 
   .entity-schedule__scope {
     margin: 0;
     font-size: 0.75rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 45%);
+    color: #71717a;
   }
 
   .entity-schedule__empty {
     margin: 0;
-    font-size: 0.875rem;
-    color: hsl(0, 0%, 45%);
+    font-size: 0.8125rem;
+    color: #71717a;
   }
 </style>
