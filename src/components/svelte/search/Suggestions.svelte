@@ -6,11 +6,7 @@
     searchLocalRooms,
   } from "@lib/local/data/utils";
   import { buildEntitySuggestions } from "@lib/search-suggestions";
-  import {
-    queryStore,
-    buildingTypeFilter,
-    modalStore,
-  } from "@lib/store.svelte";
+  import { queryStore, buildingTypeFilter } from "@lib/store.svelte";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -18,6 +14,8 @@
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import FinalExamSuggestion from "./FinalExamSuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
+  import CampusBrowseChips from "./CampusBrowseChips.svelte";
+  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
 
   const appData = getAppData();
   const { buildings, colleges, divisions, dorms, events, loaded } =
@@ -135,17 +133,15 @@
 </script>
 
 <!-- class:visible={queryStore.inputValue === ""} -->
-<div class="suggestions-container search-suggestions">
+<div
+  class="suggestions-container search-suggestions"
+  onmousedown={(event) => event.preventDefault()}
+>
   <!-- class:force-visible={queryStore.inputValue === ""} -->
   {#if queryStore.inputValue === ""}
-    <div class="browse-campus-row">
-      <button
-        type="button"
-        class="browse-campus-btn"
-        onclick={() => modalStore.openModal("filter")}
-      >
-        Browse buildings & rooms
-      </button>
+    <CampusBrowseChips />
+    <div class="suggestions-toolbar">
+      <KeyboardShortcutsChip compact />
     </div>
     {#if queryStore.recentSearches.length !== 0}
       <h2 class="suggestions-header">Recent searches</h2>
@@ -212,6 +208,12 @@
     contain: layout style;
   }
 
+  .suggestions-toolbar {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 0.5rem 0.25rem;
+  }
+
   .suggestions-header {
     margin: 0;
     padding: 0.125rem 0.5rem 0.25rem;
@@ -220,43 +222,6 @@
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: hsl(0, 0%, 45%);
-  }
-
-  .browse-campus-row {
-    padding: 0 0.5rem 0.375rem;
-  }
-
-  .browse-campus-btn {
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid hsl(5, 53%, 32%);
-    border-radius: 0.625rem;
-    background: hsl(5, 53%, 98%);
-    color: hsl(5, 53%, 28%);
-    font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    line-height: 1.25;
-    cursor: pointer;
-    transition:
-      background-color 0.125s,
-      border-color 0.125s;
-  }
-
-  .browse-campus-btn:hover,
-  .browse-campus-btn:focus-visible {
-    background: hsl(5, 53%, 94%);
-    border-color: hsl(5, 53%, 26%);
-  }
-
-  .browse-campus-btn:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
   }
 
   .alias-hint {
