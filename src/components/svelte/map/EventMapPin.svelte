@@ -20,8 +20,10 @@
     onpointerenter?: (event: PointerEvent) => void;
     onpointerleave?: (event: PointerEvent) => void;
     status?: string;
-    title: string;
+    title?: string;
     variant?: EventPinVariant;
+    /** Read mode: hover detail comes from EntityHoverPreview, not the pin label. */
+    useCentralHoverPreview?: boolean;
   };
 
   let {
@@ -41,6 +43,7 @@
     status = "active",
     title,
     variant = "single",
+    useCentralHoverPreview = false,
   }: Props = $props();
 
   const isGroup = $derived(variant === "group");
@@ -55,7 +58,7 @@
   class:group={isGroup}
   class:past={status === "past"}
   class:upcoming={status === "upcoming"}
-  {title}
+  title={useCentralHoverPreview ? undefined : title}
   aria-label={ariaLabel}
   aria-expanded={isGroup ? ariaExpanded : undefined}
   {onclick}
@@ -76,7 +79,7 @@
     <span class="event-pin-chevron" aria-hidden="true">
       <ChevronDown size={12} />
     </span>
-  {:else if labelTitle && labelMeta}
+  {:else if labelTitle && labelMeta && !useCentralHoverPreview}
     <span
       class="event-pin-label"
       class:active

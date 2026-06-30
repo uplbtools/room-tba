@@ -10,11 +10,13 @@
   import RoomResult from "@ui/room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
   import ClassesList from "./ClassesList.svelte";
+  import CampusBrowseList from "./CampusBrowseList.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
+  import X from "@lucide/svelte/icons/x";
+  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
   import { MediaQuery } from "svelte/reactivity";
 
   const mobile = new MediaQuery("max-width:48rem");
@@ -32,6 +34,28 @@
       : "Collapse details panel",
   );
 
+  const peekLabel = $derived.by(() => {
+    if (jeepneyStore.selectedStopIndex !== null) {
+      const route = jeepneyStore.selectedRouteId
+        ? (JEEPNEY_ROUTES.find(
+            (entry) => entry.id === jeepneyStore.selectedRouteId,
+          ) ?? null)
+        : null;
+      const stop =
+        route && jeepneyStore.selectedStopIndex !== null
+          ? (route.stops[jeepneyStore.selectedStopIndex] ?? null)
+          : null;
+      return stop?.name ?? "Jeepney stop";
+    }
+    if (queryStore.category === null) return "Details";
+    if (queryStore.category === "classes") return "All classes";
+    if (queryStore.category === "events") return "Campus events";
+    if (queryStore.category === "browse") {
+      return queryStore.queryValue || "Browse campus";
+    }
+    return queryStore.queryValue || queryStore.inputValue || "Details";
+  });
+
   $effect(() => {
     const identity = panelIdentity;
     if (identity === lastPanelIdentity) return;
@@ -44,6 +68,14 @@
   function togglePanel() {
     sidePanelStore.collapsed = !sidePanelStore.collapsed;
   }
+
+  function closeSelection() {
+    if (jeepneyStore.selectedStopIndex !== null) {
+      jeepneyStore.closeStop();
+      return;
+    }
+    queryStore.clearQuery();
+  }
 </script>
 
 <div class="side-panel-wrapper">
@@ -51,54 +83,80 @@
   <div class="side-panel-controls">
     {#if queryStore.category !== null || jeepneyStore.selectedStopIndex !== null}
       <div class="drawer" class:is-collapsed={sidePanelStore.collapsed}>
-        <button
-          class="drawer-handle"
-          type="button"
-          aria-expanded={!sidePanelStore.collapsed}
-          aria-controls="side-panel-details"
-          aria-label={toggleLabel}
-          title={toggleLabel}
-          onclick={togglePanel}
-        >
-          {#if mobile.current}
-            {#if sidePanelStore.collapsed}
-              <ChevronUp size={20} aria-hidden="true" />
-            {:else}
-              <ChevronDown size={20} aria-hidden="true" />
-            {/if}
-          {:else if sidePanelStore.collapsed}
-            <ChevronRight size={20} aria-hidden="true" />
+        <div class="drawer-sheet">
+          {#if mobile.current && sidePanelStore.collapsed}
+            <div class="drawer-peek">
+              <button
+                class="drawer-peek-expand"
+                type="button"
+                aria-expanded={false}
+                aria-controls="side-panel-details"
+                aria-label={toggleLabel}
+                title={toggleLabel}
+                onclick={togglePanel}
+              >
+                <span class="drawer-peek-label">{peekLabel}</span>
+                <ChevronUp size={16} aria-hidden="true" />
+              </button>
+              <button
+                class="drawer-peek-close"
+                type="button"
+                aria-label="Close details"
+                title="Close details"
+                onclick={closeSelection}
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
           {:else}
-            <ChevronLeft size={20} aria-hidden="true" />
+            <button
+              class="drawer-handle"
+              type="button"
+              aria-expanded={!sidePanelStore.collapsed}
+              aria-controls="side-panel-details"
+              aria-label={toggleLabel}
+              title={toggleLabel}
+              onclick={togglePanel}
+            >
+              {#if mobile.current}
+                <span class="drawer-grab" aria-hidden="true"></span>
+              {:else if sidePanelStore.collapsed}
+                <ChevronRight size={20} aria-hidden="true" />
+              {:else}
+                <ChevronLeft size={20} aria-hidden="true" />
+              {/if}
+            </button>
           {/if}
-        </button>
-        <div class="drawer-card">
-          <div
-            id="side-panel-details"
-            class="side-panel-details"
-            aria-hidden={sidePanelStore.collapsed}
-          >
-            {#if jeepneyStore.selectedStopIndex !== null}
-              <JeepneyStopPanel />
-            {:else if queryStore.category === "building"}
-              <BuildingResult />
-            {:else if queryStore.category === "college"}
-              <CollegeResult />
-            {:else if queryStore.category === "division"}
-              <DivisionResult />
-            {:else if queryStore.category === "room"}
-              <RoomResult />
-            {:else if queryStore.category === "class"}
-              <ClassQuery />
-            {:else if queryStore.category === "classes"}
-              <ClassesList />
-            {:else if queryStore.category === "dorm"}
-              <DormResult />
-            {:else if queryStore.category === "event"}
-              <EventResult />
-            {:else if queryStore.category === "events"}
-              <EventsList />
-            {/if}
+          <div class="drawer-card">
+            <div
+              id="side-panel-details"
+              class="side-panel-details"
+              aria-hidden={sidePanelStore.collapsed}
+            >
+              {#if jeepneyStore.selectedStopIndex !== null}
+                <JeepneyStopPanel />
+              {:else if queryStore.category === "building"}
+                <BuildingResult />
+              {:else if queryStore.category === "college"}
+                <CollegeResult />
+              {:else if queryStore.category === "division"}
+                <DivisionResult />
+              {:else if queryStore.category === "room"}
+                <RoomResult />
+              {:else if queryStore.category === "class"}
+                <ClassQuery />
+              {:else if queryStore.category === "classes"}
+                <ClassesList />
+              {:else if queryStore.category === "browse"}
+                <CampusBrowseList />
+              {:else if queryStore.category === "dorm"}
+                <DormResult />
+              {:else if queryStore.category === "event"}
+                <EventResult />
+              {:else if queryStore.category === "events"}
+                <EventsList />
+              {/if}
+            </div>
           </div>
         </div>
       </div>
@@ -144,14 +202,8 @@
   @media (min-width: 48.0625rem) {
     .drawer:not(.is-collapsed) {
       position: fixed;
-      top: calc(
-        var(--search-block-height, 3.25rem) + var(--map-ui-padding, 0.5rem)
-      );
-      bottom: calc(
-        var(--status-bar-block-height, 2.75rem) +
-          var(--map-ui-padding, 0.5rem) + 0.5rem +
-          env(safe-area-inset-bottom, 0px)
-      );
+      top: var(--side-panel-top-inset);
+      bottom: var(--side-panel-bottom-inset);
       left: var(--map-ui-padding, 0.5rem);
       height: auto;
     }
@@ -171,6 +223,10 @@
     flex-direction: column;
   }
 
+  .drawer-sheet {
+    display: contents;
+  }
+
   .side-panel-details {
     display: flex;
     flex: 1 1 0;
@@ -179,7 +235,7 @@
     overscroll-behavior: contain;
     scroll-padding: 4px;
     scrollbar-width: thin;
-    scrollbar-color: hsl(6, 63%, 48%) hsl(0, 0%, 98%);
+    scrollbar-color: #d4d4d8 transparent;
   }
   .side-panel-details > :global(*) {
     flex: 0 1 auto;
@@ -217,14 +273,11 @@
 
   @media screen and (max-width: 48rem) {
     .side-panel-wrapper {
-      gap: 0;
-    }
-
-    .side-panel-wrapper {
       position: relative;
-      margin: 0;
-      width: 100%;
-      max-width: 100%;
+      gap: 0;
+      margin-inline: var(--map-ui-padding, 0.375rem);
+      width: auto;
+      max-width: none;
       flex: 1;
       pointer-events: none;
       display: flex;
@@ -243,12 +296,9 @@
     .drawer {
       position: fixed;
       top: var(--mobile-detail-sheet-top-inset);
-      right: 0;
-      bottom: calc(
-        var(--status-bar-block-height, 2.75rem) +
-          env(safe-area-inset-bottom, 0px) + 0.25rem
-      );
-      left: 0;
+      right: var(--map-ui-padding, 0.375rem);
+      left: var(--map-ui-padding, 0.375rem);
+      bottom: var(--side-panel-bottom-inset);
       width: auto;
       height: auto;
       max-height: none;
@@ -261,10 +311,117 @@
       transition: none;
     }
 
+    .drawer-sheet {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      pointer-events: auto;
+      background-color: var(--map-chrome-panel-bg, hsl(5 18% 96%));
+      border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+      border-bottom: none;
+      border-radius: var(--map-chrome-radius, 1rem);
+      box-shadow: var(--map-chrome-panel-shadow);
+      overflow: hidden;
+    }
+
     .drawer.is-collapsed {
       top: auto;
       height: auto;
       transform: none;
+    }
+
+    .drawer.is-collapsed .drawer-sheet {
+      flex: 0 0 auto;
+      border-radius: var(--map-chrome-radius, 1rem)
+        var(--map-chrome-radius, 1rem) 0 0;
+    }
+
+    .drawer-peek {
+      display: flex;
+      align-items: stretch;
+      flex-shrink: 0;
+      min-height: 2rem;
+      padding: 0.25rem
+        max(
+          var(--map-search-inline-pad, 0.625rem),
+          env(safe-area-inset-right, 0px)
+        )
+        0.25rem
+        max(
+          var(--map-search-inline-pad, 0.625rem),
+          env(safe-area-inset-left, 0px)
+        );
+      gap: 0.25rem;
+    }
+
+    .drawer-peek-expand {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      padding: 0.125rem 0.375rem;
+      border: none;
+      border-radius: 0.375rem;
+      background: transparent;
+      color: #18181b;
+      cursor: pointer;
+    }
+
+    .drawer-peek-expand:hover,
+    .drawer-peek-expand:focus-visible {
+      background: hsl(5 53% 95% / 0.65);
+    }
+
+    .drawer-peek-expand:focus-visible {
+      outline: 2px solid #7b1113;
+      outline-offset: 1px;
+    }
+
+    .drawer-peek-label {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      line-height: 1.2;
+      text-align: left;
+    }
+
+    .drawer-peek-expand :global(svg) {
+      flex-shrink: 0;
+      color: #7b1113;
+    }
+
+    .drawer-peek-close {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border: none;
+      border-radius: 0.375rem;
+      background: transparent;
+      color: #71717a;
+      cursor: pointer;
+    }
+
+    .drawer-peek-close:hover,
+    .drawer-peek-close:focus-visible {
+      background: hsl(5 53% 95% / 0.65);
+      color: #7b1113;
+    }
+
+    .drawer-peek-close:focus-visible {
+      outline: 2px solid #7b1113;
+      outline-offset: 1px;
     }
 
     .drawer.is-collapsed .drawer-card {
@@ -277,29 +434,34 @@
       border-width: 0;
       overflow: hidden;
       pointer-events: none;
-      transform: translateY(0.375rem);
     }
 
     .drawer-card {
-      flex: 0 1 auto;
+      flex: 1 1 0;
       min-height: 0;
-      max-height: calc(100% - var(--drawer-peek-offset, 1.75rem));
+      height: auto;
+      max-height: none;
       pointer-events: auto;
+      border: none;
       border-left: none;
-      border-top: 3px solid
-        var(--map-chrome-panel-accent-border, hsl(5 15% 78%));
-      border-radius: 0 0 var(--map-chrome-radius, 1rem)
-        var(--map-chrome-radius, 1rem);
-      box-shadow: var(--map-chrome-panel-shadow);
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0
+        max(
+          var(--map-search-inline-pad, 0.625rem),
+          env(safe-area-inset-right, 0px)
+        )
+        1rem
+        max(
+          var(--map-search-inline-pad, 0.625rem),
+          env(safe-area-inset-left, 0px)
+        );
+      background: transparent;
       transition:
         max-height var(--motion-duration-panel) var(--motion-ease-out),
         opacity var(--motion-duration-micro) var(--motion-ease-out),
-        transform var(--motion-duration-panel) var(--motion-ease-out),
-        padding var(--motion-duration-panel) var(--motion-ease-out),
-        border-width var(--motion-duration-fast) var(--motion-ease-out);
-      max-height: 100%;
+        padding var(--motion-duration-panel) var(--motion-ease-out);
       opacity: 1;
-      transform: translateY(0);
     }
 
     .drawer-handle {
@@ -309,15 +471,47 @@
       left: auto;
       translate: none;
       flex-shrink: 0;
-      align-self: center;
-      width: 5.5rem;
-      height: var(--drawer-peek-offset, 1.75rem);
+      align-self: stretch;
+      width: auto;
+      min-height: 1.25rem;
+      padding: 0.25rem
+        max(
+          var(--map-search-inline-pad, 0.625rem),
+          env(safe-area-inset-right, 0px)
+        )
+        0.3125rem
+        max(
+          var(--map-search-inline-pad, 0.625rem),
+          env(safe-area-inset-left, 0px)
+        );
       pointer-events: auto;
-      border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-      border-bottom: none;
-      border-radius: var(--map-chrome-radius, 1rem)
-        var(--map-chrome-radius, 1rem) 0 0;
-      box-shadow: var(--map-chrome-shadow);
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+      color: #7b1113;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .drawer-grab {
+      display: block;
+      width: 2.5rem;
+      height: 0.1875rem;
+      border-radius: 999px;
+      background: #d4d4d8;
+      flex-shrink: 0;
+    }
+
+    .drawer-handle:hover .drawer-grab,
+    .drawer-handle:focus-visible .drawer-grab {
+      background: #a1a1aa;
+    }
+
+    .side-panel-details {
+      scroll-padding-bottom: 0.5rem;
     }
   }
 

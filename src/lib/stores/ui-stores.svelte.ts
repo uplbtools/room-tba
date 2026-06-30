@@ -2,7 +2,6 @@ import { SvelteMap } from "svelte/reactivity";
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import type {
   FloatingControlPanel,
-  FilterModalTab,
   LandingModalTab,
   ModalStoreState,
   QueryStoreState,
@@ -18,17 +17,15 @@ export class ModalStore {
   open = $derived(this._modalStore.open);
   type = $derived(this._modalStore.type);
   landingTab = $derived(this._modalStore.landingTab);
-  filterTab = $derived(this._modalStore.filterTab);
 
   openModal = (
     type: ModalStoreState["type"],
-    options?: { landingTab?: LandingModalTab; filterTab?: FilterModalTab },
+    options?: { landingTab?: LandingModalTab },
   ) => {
     dismissEphemeralOverlays();
     this._modalStore.open = true;
     this._modalStore.type = type;
     this._modalStore.landingTab = options?.landingTab;
-    this._modalStore.filterTab = options?.filterTab;
   };
 
   closeModal = () => {
@@ -68,7 +65,11 @@ export class QueryStore {
     this._queryStore = obj;
     this.inputValue = obj.value;
 
-    if (obj.type === "result" && obj.category !== null) {
+    if (
+      obj.type === "result" &&
+      obj.category !== null &&
+      obj.category !== "browse"
+    ) {
       this.addRecentSearch({
         category: obj.category,
         value: obj.value,

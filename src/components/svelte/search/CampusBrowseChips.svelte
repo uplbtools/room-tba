@@ -5,17 +5,11 @@
   import University from "@lucide/svelte/icons/university";
   import {
     openBrowseClasses,
-    openCampusBrowseModal,
+    openCampusBrowse,
     type CampusBrowseTab,
   } from "@lib/browse-campus";
-  import { modalStore, queryStore, sidePanelStore } from "@lib/store.svelte";
-
-  type Props = {
-    /** Compact chips for the search chip row; default fits the suggestions panel. */
-    variant?: "inline" | "panel";
-  };
-
-  const { variant = "panel" }: Props = $props();
+  import { queryStore, sidePanelStore } from "@lib/store.svelte";
+  import "../map-chrome/map-chrome.css";
 
   const tabs: {
     id: CampusBrowseTab | "classes";
@@ -28,28 +22,39 @@
     { id: "classes", label: "Classes", icon: BookText },
   ];
 
+  const activeTab = $derived.by((): CampusBrowseTab | "classes" | null => {
+    if (queryStore.category === "classes") return "classes";
+    if (queryStore.category !== "browse") return null;
+    if (
+      queryStore.queryValue === "colleges" ||
+      queryStore.queryValue === "divisions"
+    ) {
+      return queryStore.queryValue;
+    }
+    return "buildings";
+  });
+
   function handleBrowse(id: CampusBrowseTab | "classes") {
     if (id === "classes") {
       openBrowseClasses(queryStore, sidePanelStore);
       return;
     }
-    openCampusBrowseModal(modalStore, id);
+    openCampusBrowse(queryStore, sidePanelStore, id);
   }
 </script>
 
-<div
-  class="campus-browse-chips"
-  class:campus-browse-chips--inline={variant === "inline"}
-  role="toolbar"
-  aria-label="Browse campus"
->
+<div class="campus-browse-chips" role="toolbar" aria-label="Browse campus">
   {#each tabs as tab (tab.id)}
     <button
       type="button"
-      class="campus-browse-chip"
+      class="map-chrome-chip campus-browse-chip"
+      class:map-chrome-chip--toggle-active={activeTab === tab.id}
+      aria-pressed={activeTab === tab.id}
       onclick={() => handleBrowse(tab.id)}
     >
-      <tab.icon size={14} aria-hidden="true" />
+      <span class="map-chrome-chip__icon" aria-hidden="true">
+        <tab.icon size={14} />
+      </span>
       <span>{tab.label}</span>
     </button>
   {/each}
@@ -57,49 +62,10 @@
 
 <style>
   .campus-browse-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-    padding: 0 0.5rem 0.375rem;
-  }
-
-  .campus-browse-chips--inline {
-    flex-wrap: nowrap;
-    padding: 0;
-  }
-
-  .campus-browse-chip {
-    all: unset;
-    box-sizing: border-box;
     display: inline-flex;
-    align-items: center;
-    gap: 0.3125rem;
-    min-height: 2rem;
-    padding: 0.3125rem 0.625rem;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-    border-radius: 999px;
-    background: var(--map-chrome-surface, hsl(5 20% 97%));
-    color: hsl(5, 53%, 28%);
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.2;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .campus-browse-chips--inline .campus-browse-chip {
     flex: 0 0 auto;
-  }
-
-  .campus-browse-chip:hover,
-  .campus-browse-chip:focus-visible {
-    border-color: hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 96%);
-  }
-
-  .campus-browse-chip:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
   }
 </style>

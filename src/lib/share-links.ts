@@ -1,5 +1,7 @@
 import {
   getBuildingCanonicalPath,
+  getCollegeCanonicalPath,
+  getDivisionCanonicalPath,
   getDormCanonicalPath,
   getEventCanonicalPath,
   getRoomCanonicalPath,
@@ -20,6 +22,14 @@ export function getBuildingShareUrl(
       defaultTermId,
     ),
   );
+}
+
+export function getCollegeShareUrl(collegeName: string) {
+  return absoluteUrl(getCollegeCanonicalPath(collegeName));
+}
+
+export function getDivisionShareUrl(divisionName: string) {
+  return absoluteUrl(getDivisionCanonicalPath(divisionName));
 }
 
 export function getRoomShareUrl(

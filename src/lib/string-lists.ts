@@ -107,12 +107,40 @@ function stripWrappingQuotes(text: string): string {
   return value;
 }
 
+/** Split labels accidentally concatenated without separators (e.g. PGlite / legacy seed). */
+export function splitMergedListItem(text: string): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+
+  const byCaseBoundary = trimmed
+    .split(/(?<=[a-z])(?=[A-Z])/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (byCaseBoundary.length > 1) return byCaseBoundary;
+
+  if (trimmed.includes(";")) {
+    const bySemicolon = trimmed
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (bySemicolon.length > 1) return bySemicolon;
+  }
+
+  return [trimmed];
+}
+
+/** Amenities may arrive merged into one string — normalize then split. */
+export function normalizeAmenityList(value: unknown): string[] {
+  return normalizeStringList(value).flatMap(splitMergedListItem);
+}
+
 export function normalizeDormListFields<
   T extends { amenities?: unknown; contactPhone?: unknown },
 >(dorm: T): T {
   return {
     ...dorm,
-    amenities: normalizeStringList(dorm.amenities),
+    amenities: normalizeAmenityList(dorm.amenities),
     contactPhone: normalizeStringList(dorm.contactPhone),
   };
 }

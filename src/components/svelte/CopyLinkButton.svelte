@@ -2,9 +2,9 @@
   import Copy from "@lucide/svelte/icons/copy";
   import { onDestroy } from "svelte";
   import { copyTextToClipboard } from "@lib/clipboard";
+  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
 
   type FeedbackMode = "inline" | "none";
-  type Variant = "index" | "chip";
 
   let {
     url,
@@ -12,8 +12,9 @@
     ariaLabel = label,
     successMessage = "Link copied.",
     errorMessage = "Could not copy link.",
-    feedback = "inline",
-    variant = "index",
+    feedback = "none",
+    block = false,
+    toolbar = false,
     onsuccess,
     onerror,
   } = $props<{
@@ -23,7 +24,10 @@
     successMessage?: string;
     errorMessage?: string;
     feedback?: FeedbackMode;
-    variant?: Variant;
+    /** Stretch to full container width (SEO index rows on narrow screens). */
+    block?: boolean;
+    /** Match entity header / list card toolbar chip styling. */
+    toolbar?: boolean;
     onsuccess?: () => void;
     onerror?: () => void;
   }>();
@@ -70,19 +74,18 @@
   }
 </script>
 
-<span class="copy-link-wrapper" data-variant={variant}>
-  <button
-    type="button"
-    class="copy-link-btn"
-    aria-label={ariaLabel}
-    aria-busy={copying}
-    title={ariaLabel}
-    disabled={copying}
+<span class="copy-link-wrapper" class:copy-link-wrapper--block={block}>
+  <MapChromeActionChip
     onclick={handleCopy}
+    disabled={copying}
+    {toolbar}
+    {ariaLabel}
+    ariaBusy={copying}
+    title={ariaLabel}
   >
     <Copy size={14} aria-hidden="true" />
-    <span class="copy-link-btn__label">{label}</span>
-  </button>
+    {label}
+  </MapChromeActionChip>
   {#if feedback === "inline"}
     <span class="copy-link-status" role="status" aria-live="polite">
       {statusMessage}
@@ -95,75 +98,16 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-shrink: 0;
   }
 
-  .copy-link-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d8b9ba;
-    background-color: white;
-    color: #7b1113;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.25;
-    cursor: pointer;
-    white-space: nowrap;
-    transition:
-      background-color 0.2s,
-      border-color 0.2s,
-      color 0.2s,
-      opacity 0.2s;
+  .copy-link-wrapper--block {
+    display: flex;
+    width: 100%;
   }
 
-  .copy-link-btn:disabled {
-    cursor: progress;
-    opacity: 0.7;
-  }
-
-  .copy-link-btn:focus-visible {
-    outline: 3px solid rgba(123, 17, 19, 0.25);
-    outline-offset: 2px;
-  }
-
-  .copy-link-btn :global(svg) {
-    display: block;
-    flex: 0 0 auto;
-    width: 14px;
-    height: 14px;
-  }
-
-  [data-variant="chip"] .copy-link-btn {
-    box-sizing: border-box;
-    width: max-content;
-    min-height: 1.75rem;
-    padding: 0.3125rem 0.5rem;
-    border-radius: 0.75rem;
-    background: #fffafa;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  .copy-link-btn__label {
-    line-height: 1.2;
-  }
-
-  [data-variant="chip"] .copy-link-btn:hover:not(:disabled) {
-    border-color: #c58f91;
-    background-color: #fdf3f3;
-  }
-
-  [data-variant="index"] .copy-link-btn {
-    padding: 0.35rem 0.625rem;
-  }
-
-  [data-variant="index"] .copy-link-btn:hover:not(:disabled) {
-    border-color: #c58f91;
-    background-color: #fdf3f3;
+  .copy-link-wrapper--block :global(.map-chrome-action-chip) {
+    width: 100%;
   }
 
   .copy-link-status {
@@ -171,12 +115,5 @@
     color: #065f46;
     font-size: 0.8125rem;
     font-weight: 500;
-  }
-
-  @media (max-width: 640px) {
-    [data-variant="index"] .copy-link-wrapper,
-    [data-variant="index"] .copy-link-btn {
-      width: 100%;
-    }
   }
 </style>

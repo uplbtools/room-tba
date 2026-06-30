@@ -1,8 +1,8 @@
 <script lang="ts">
   import Bus from "@lucide/svelte/icons/bus";
-  import ExternalLink from "@lucide/svelte/icons/external-link";
   import MapPin from "@lucide/svelte/icons/map-pin";
-  import X from "@lucide/svelte/icons/x";
+  import EntityPanelClose from "./EntityPanelClose.svelte";
+  import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
   import { jeepneyStore } from "@lib/store.svelte";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
@@ -21,9 +21,7 @@
     route && stopIndex !== null ? (route.stops[stopIndex] ?? null) : null,
   );
 
-  const mapsUrl = $derived(
-    stop ? `https://www.google.com/maps?q=${stop.lat},${stop.lon}` : null,
-  );
+  const mapsUrl = $derived(stop ? { lat: stop.lat, lon: stop.lon } : null);
 
   function openPreviousStop() {
     if (route === null || stopIndex === null || stopIndex <= 0) return;
@@ -42,102 +40,68 @@
 </script>
 
 {#if route && stop && stopIndex !== null}
-  <div class="jeepney-stop-panel">
-    <button
-      type="button"
-      class="jeepney-stop-panel__close"
-      aria-label="Close stop details"
-      onclick={closeStop}
-    >
-      <X size={18} aria-hidden="true" />
-    </button>
-
-    <div class="jeepney-stop-panel__header">
-      <span
-        class="jeepney-stop-panel__route-badge"
-        style:background-color={route.color}
-      >
-        <Bus size={14} aria-hidden="true" />
-        {route.name}
-      </span>
-      <h2 class="jeepney-stop-panel__title">{stop.name}</h2>
-      <p class="jeepney-stop-panel__meta">
+  <div class="entity-detail jeepney-stop-panel">
+    <header class="entity-header">
+      <div class="entity-panel-header-top">
+        <span
+          class="jeepney-stop-panel__route-badge"
+          style:background-color={route.color}
+        >
+          <Bus size={14} aria-hidden="true" />
+          {route.name}
+        </span>
+        <EntityPanelClose ariaLabel="Close stop details" onclick={closeStop} />
+      </div>
+      <h2 class="entity-header__title">{stop.name}</h2>
+      <p class="entity-header__context">
         Stop {stopIndex + 1} of {route.stops.length}
       </p>
-      <p class="jeepney-stop-panel__description">{route.description}</p>
-    </div>
+    </header>
 
-    <div class="jeepney-stop-panel__coords">
+    <details class="entity-details-collapse">
+      <summary>About this route</summary>
+      <div class="entity-details-collapse__body">
+        <p class="entity-panel-note">{route.description}</p>
+      </div>
+    </details>
+
+    <p class="jeepney-stop-panel__coords">
       <MapPin size={14} aria-hidden="true" />
       <span>{stop.lat.toFixed(5)}, {stop.lon.toFixed(5)}</span>
-    </div>
+    </p>
 
-    <div class="jeepney-stop-panel__actions">
-      <MapChromeActionChip disabled={stopIndex <= 0} onclick={openPreviousStop}>
+    <div class="entity-actions">
+      <MapChromeActionChip
+        toolbar
+        disabled={stopIndex <= 0}
+        onclick={openPreviousStop}
+      >
         Previous stop
       </MapChromeActionChip>
       <MapChromeActionChip
+        toolbar
         disabled={stopIndex >= route.stops.length - 1}
         onclick={openNextStop}
       >
         Next stop
       </MapChromeActionChip>
       {#if mapsUrl}
-        <a
-          class="jeepney-stop-panel__maps-link map-chrome-action-chip"
-          href={mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Open in Maps
-          <ExternalLink size={14} aria-hidden="true" />
-        </a>
+        <EntityGoogleMapsLink
+          lat={mapsUrl.lat}
+          lon={mapsUrl.lon}
+          ariaLabel={`Open ${stop.name} in Google Maps`}
+        />
       {/if}
     </div>
   </div>
 {/if}
 
 <style>
+  @import "./entity-detail.css";
+
   .jeepney-stop-panel {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.25rem 0.125rem 0.5rem;
     min-width: 0;
-  }
-
-  .jeepney-stop-panel__close {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    padding: 0.25rem;
-    border-radius: 0.375rem;
-    color: hsl(0, 0%, 30%);
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-  }
-  .jeepney-stop-panel__close:hover,
-  .jeepney-stop-panel__close:focus-visible {
-    background-color: hsl(0, 0%, 92%);
-  }
-  .jeepney-stop-panel__close:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
-  }
-
-  .jeepney-stop-panel__header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    min-width: 0;
-    padding-right: 1.75rem;
+    padding: 0.125rem 0;
   }
 
   .jeepney-stop-panel__route-badge {
@@ -145,7 +109,7 @@
     align-items: center;
     gap: 0.375rem;
     align-self: flex-start;
-    max-width: 100%;
+    max-width: calc(100% - 6rem);
     padding: 0.1875rem 0.5rem;
     border-radius: 999px;
     color: white;
@@ -157,47 +121,13 @@
     text-overflow: ellipsis;
   }
 
-  .jeepney-stop-panel__title {
-    margin: 0;
-    font-size: 1.125rem;
-    font-weight: 700;
-    line-height: 1.25;
-    color: #18181b;
-  }
-
-  .jeepney-stop-panel__meta {
-    margin: 0;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: hsl(0, 0%, 42%);
-  }
-
-  .jeepney-stop-panel__description {
-    margin: 0;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: hsl(0, 0%, 38%);
-  }
-
   .jeepney-stop-panel__coords {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
+    margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0, 0%, 45%);
-  }
-
-  .jeepney-stop-panel__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-  }
-
-  .jeepney-stop-panel__maps-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    text-decoration: none;
+    color: #71717a;
   }
 </style>

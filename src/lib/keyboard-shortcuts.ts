@@ -48,12 +48,16 @@ export function dispatchGlobalShortcut(action: GlobalShortcutAction) {
       focusSearch();
       return;
     case "open-shortcuts-help":
-      window.dispatchEvent(new CustomEvent("room-tba:open-shortcuts-help"));
+      openShortcutsHelp();
       return;
     case "open-term-picker":
       window.dispatchEvent(new CustomEvent("room-tba:open-term-picker"));
       return;
   }
+}
+
+export function openShortcutsHelp() {
+  window.dispatchEvent(new CustomEvent("room-tba:open-shortcuts-help"));
 }
 
 export function getKeyboardShortcutGroups() {

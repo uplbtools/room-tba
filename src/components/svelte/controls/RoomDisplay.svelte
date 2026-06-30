@@ -98,13 +98,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: black;
+    color: #71717a;
   }
 
   .room-code {
-    font-weight: normal;
-    font-size: 0.875rem;
-    color: black;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: #18181b;
     margin: 0;
     line-height: 1.25rem;
     white-space: nowrap;
@@ -123,12 +125,14 @@
   }
 
   .class-count {
-    background-color: #ececec;
+    flex-shrink: 0;
+    background-color: #f4f4f5;
     border-radius: 0.25rem;
     padding: 2px 0.375rem;
-    font-size: 0.75rem;
-    color: #969696;
-    margin-left: auto; /* Push to the right if there's space, or keep it close */
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #71717a;
+    margin-left: auto;
     white-space: nowrap;
   }
 

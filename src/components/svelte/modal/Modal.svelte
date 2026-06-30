@@ -10,22 +10,38 @@
   import { MediaQuery } from "svelte/reactivity";
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
-  import FilterModalContent from "./FilterModalContent.svelte";
   import X from "@lucide/svelte/icons/x";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   let modalContentEl = $state<HTMLDivElement | null>(null);
+  let overlayCloseReady = $state(false);
+
+  $effect(() => {
+    if (!modalStore.open) {
+      overlayCloseReady = false;
+      return;
+    }
+    overlayCloseReady = false;
+    const frame = requestAnimationFrame(() => {
+      overlayCloseReady = true;
+    });
+    return () => cancelAnimationFrame(frame);
+  });
 
   const modalAriaLabel = $derived.by(() => {
     if (modalStore.type === "landing") return undefined;
     if (modalStore.type === "schedule-expand") return "Room schedule";
-    if (modalStore.type === "filter") return "Filter campus";
     return "Dialog";
   });
 
   function closeDialog() {
     modalStore.closeModal();
+  }
+
+  function handleOverlayClick() {
+    if (!overlayCloseReady) return;
+    closeDialog();
   }
 
   $effect(() => {
@@ -42,7 +58,7 @@
       type="button"
       class="overlay"
       aria-label="Close dialog"
-      onclick={closeDialog}
+      onclick={handleOverlayClick}
       transition:fade={overlayFade(reducedMotion.current)}
     ></button>
     <div
@@ -55,9 +71,7 @@
       aria-modal="true"
       aria-labelledby={modalStore.type === "landing"
         ? "landing-modal-title"
-        : modalStore.type === "filter"
-          ? "filter-modal-title"
-          : undefined}
+        : undefined}
       aria-label={modalAriaLabel}
       in:fly={modalContentReveal(reducedMotion.current)}
       out:fly={modalContentDismiss(reducedMotion.current)}
@@ -74,8 +88,6 @@
           <X size={20} aria-hidden="true" />
         </button>
         <ScheduleModal />
-      {:else if modalStore.type === "filter"}
-        <FilterModalContent />
       {/if}
     </div>
   </div>
@@ -104,6 +116,7 @@
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
+    pointer-events: auto;
   }
   .modal-content {
     position: relative;
