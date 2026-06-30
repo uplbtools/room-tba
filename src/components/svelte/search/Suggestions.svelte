@@ -6,10 +6,7 @@
     searchLocalRooms,
   } from "@lib/local/data/utils";
   import { buildEntitySuggestions } from "@lib/search-suggestions";
-  import {
-    queryStore,
-    buildingTypeFilter,
-  } from "@lib/store.svelte";
+  import { queryStore, buildingTypeFilter } from "@lib/store.svelte";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,

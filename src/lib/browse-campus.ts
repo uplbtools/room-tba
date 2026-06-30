@@ -1,5 +1,9 @@
 import { dismissEphemeralOverlays } from "./overlay-stack.js";
-import type { MainControlsStore, ModalStore, QueryStore } from "./stores/ui-stores.svelte.js";
+import type {
+  MainControlsStore,
+  ModalStore,
+  QueryStore,
+} from "./stores/ui-stores.svelte.js";
 
 export type CampusBrowseTab = "buildings" | "colleges" | "divisions";
 

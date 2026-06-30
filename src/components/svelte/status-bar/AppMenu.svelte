@@ -11,11 +11,7 @@
     openEphemeralOverlay,
   } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
-  import {
-    adminAuthStore,
-    mapToolsStore,
-    modalStore,
-  } from "@lib/store.svelte";
+  import { adminAuthStore, mapToolsStore, modalStore } from "@lib/store.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
   import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
