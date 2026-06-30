@@ -159,9 +159,31 @@ Adjust checks to change size. PR CI runs **Prettier + unit tests** (no `DATABASE
 | `bun test src` (or targeted test files)                      | When logic, lib, or API behavior changed                                  |
 | `bun run build`                                              | Once before commit/PR on substantive changes (requires `DATABASE_URL`)    |
 | Manual browser / editor checklist                            | Map chrome, editor drag/save, side panel UX                               |
+| **Agentic browser** (when available)                         | UI flows, console/`pageerror` checks, staging/prod smoke — see below      |
 | **Dependabot PRs**                                           | Run Prettier + tests before merge; read CodeQL / dependency-review checks |
 
 Do not run full build after every small edit. See the workflow skill for session cadence.
+
+### Agentic browser
+
+When the agent session has **browser automation** (Cursor agentic browser, Playwright MCP, or headless Playwright in the shell), **use it** for UI verification instead of skipping straight to “needs manual QA.”
+
+| Use agentic browser for | Still human-only |
+| ----------------------- | ---------------- |
+| Open entity side panels (building, dorm, room, event) | Drag/drop pin polish, animation feel |
+| Map chrome at 320px / 768px viewport | Subjective visual design judgment |
+| Capture `pageerror` / console errors after navigation | Long editor save/conflict sessions |
+| Dismiss landing modal, wait for bootstrap (`campus-browse-chips`, map canvas) | Production account-specific data |
+| Staging or prod smoke after deploy (`room-tba.uplbtools.me`) | |
+
+**Practices:**
+
+- Prefer **local dev** (`bun dev`) for iteration; hit **staging/prod** for release verification.
+- Wait for app bootstrap before asserting UI (search chips, map canvas loaded).
+- Log console/page errors explicitly; a blank panel with no failed test is not a pass.
+- Report what the browser checked vs gaps — same split as [docs/agentic-qa-process.md](docs/agentic-qa-process.md).
+
+If no browser tools are available, say so and list the manual checks still needed.
 
 ## Security automation (GitHub)
 
@@ -365,6 +387,7 @@ README-only overhauls are welcome; they still must pass `check:readme` and stay 
 - After substantive changes: lint, relevant unit tests, and `bun run build` (local).
 - For editor changes: [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md).
 - For PR QA: [docs/agentic-qa-process.md](docs/agentic-qa-process.md); separate automated evidence from browser-only checks.
+- **Use agentic browser when available** for UI regressions (see [§ Agentic browser](#agentic-browser)); do not defer to humans what automation can prove.
 - Avoid mutating production-like server data unless intentional and reversible. Restore accidental test mutations immediately.
 
 ## Cursor Cloud specific instructions
