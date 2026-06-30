@@ -1,3 +1,10 @@
+# [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* **store:** compile runes module as index.svelte.ts ([67acd53](https://github.com/uplbtools/room-tba/commit/67acd535a9410e94c44625bb824dc23131c45ecf)), closes [#295](https://github.com/uplbtools/room-tba/issues/295)
+
 # [1.17.0](https://github.com/uplbtools/room-tba/compare/v1.16.0...v1.17.0) (2026-06-29)
 
 
