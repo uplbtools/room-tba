@@ -92,7 +92,7 @@
     colleges = data.colleges;
     directionCount = data.directionCount;
     divisions = data.divisions;
-    dorms = data.dorms;
+    dorms = data.dorms.map(normalizeDormListFields);
     events = data.events;
     totalRooms = data.totalRooms;
   }
