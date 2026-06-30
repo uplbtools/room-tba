@@ -11,7 +11,6 @@
     mapEditStore,
     mapToolsStore,
     editorChromeStore,
-    sidePanelStore,
     floatingControlPanelStore,
     jeepneyStore,
     appBootstrapStore,
@@ -106,11 +105,6 @@
     updateData(queryStore.recentSearches);
   });
 
-  const drawerExpanded = $derived(
-    (queryStore.category !== null || jeepneyStore.selectedStopIndex !== null) &&
-      !sidePanelStore.collapsed,
-  );
-
   let mapToolsStackEl = $state<HTMLDivElement | null>(null);
   let bottomChromeEl = $state<HTMLDivElement | null>(null);
   let bottomChromeActionsEl = $state<HTMLDivElement | null>(null);
@@ -127,7 +121,46 @@
   $effect(() => {
     const el = bottomChromeEl;
     if (!el) return;
-    return observeBlockHeight(el, "--status-bar-block-height");
+    const root = el.closest(".app-layout") as HTMLElement | null;
+    if (!root) return;
+
+    let rafId = 0;
+    let lastHeight = "";
+    let lastInset = "";
+
+    const sync = () => {
+      rafId = 0;
+      const rect = el.getBoundingClientRect();
+      const height = `${Math.max(0, Math.round(rect.height))}px`;
+      const inset = `${Math.max(0, Math.round(window.innerHeight - rect.top))}px`;
+
+      if (height !== lastHeight) {
+        lastHeight = height;
+        root.style.setProperty("--status-bar-block-height", height);
+      }
+      if (inset !== lastInset) {
+        lastInset = inset;
+        root.style.setProperty("--side-panel-bottom-inset-measured", inset);
+      }
+    };
+
+    const schedule = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(sync);
+    };
+
+    sync();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(el);
+    window.addEventListener("resize", schedule);
+    window.visualViewport?.addEventListener("resize", schedule);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", schedule);
+      window.visualViewport?.removeEventListener("resize", schedule);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   });
 
   $effect(() => {
@@ -184,7 +217,7 @@
 
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
-  <div class="ui-layer" class:drawer-expanded={drawerExpanded}>
+  <div class="ui-layer">
     <div
       class="top-right-map-stack"
       aria-label="Map tools"
@@ -211,7 +244,6 @@
           </div>
           <div
             class="bottom-chrome__actions"
-            class:drawer-lift={drawerExpanded}
             bind:this={bottomChromeActionsEl}
             aria-label="Location controls"
           >
@@ -249,12 +281,28 @@
     /* Top-left search card + drawer: use viewport minus right-side map chrome. */
     --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
     --status-bar-block-height: 2rem;
+    --side-panel-bottom-gap: 0.375rem;
+    /* Measured at runtime from .bottom-chrome top edge (see Entry.svelte). */
+    --side-panel-bottom-inset-measured: calc(
+      var(--status-bar-block-height, 2.75rem) + var(--map-ui-padding, 0.5rem) +
+        env(safe-area-inset-bottom, 0px)
+    );
+    --side-panel-bottom-inset: calc(
+      var(--side-panel-bottom-inset-measured) +
+        var(--side-panel-bottom-gap, 0.375rem)
+    );
+    --side-panel-top-inset: calc(
+      var(--search-block-height, 3.25rem) + var(--map-ui-padding, 0.5rem) +
+        var(--side-panel-top-gap, 0.75rem)
+    );
+    --side-panel-top-gap: 0.75rem;
     --drawer-peek-offset: 1.75rem;
     --map-tools-block-height: 3.25rem;
     --mobile-detail-sheet-top-inset: calc(
       var(--search-block-height) + var(--map-tools-block-height) +
-        var(--map-ui-padding) * 2
+        var(--map-ui-padding) * 2 + var(--mobile-detail-sheet-gap, 0.375rem)
     );
+    --mobile-detail-sheet-gap: 0.375rem;
     --edit-bar-height: 0rem;
     --bottom-fab-inset: 3.75rem;
     --pill-padding-x: 0.875rem;
@@ -292,12 +340,12 @@
       --motion-duration-shelf: 0ms;
     }
     /* Stacking contract — highest first; blocking overlays dismiss ephemeral chrome.
-       map(0) < side-panel(2) < search-elevated(12) < map-tools(15) < chrome-popover(17)
+       map(0) < side-panel(2) < status-bar(5) < search-elevated(12) < map-tools(15) < chrome-popover(17)
        < modal(100) < login-modal(200) < toast(1000). (#302) */
     --z-map: 0;
     --z-side-panel: 2;
     --z-search-elevated: 12;
-    --z-status-bar: 3;
+    --z-status-bar: 5;
     --z-map-tools: 15;
     --z-chrome-popover: 17;
     --z-modal: 100;
@@ -322,6 +370,7 @@
 
   .bottom-band {
     position: relative;
+    z-index: var(--z-status-bar, 3);
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -390,9 +439,9 @@
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    align-self: flex-start;
-    min-width: 0;
-    margin-top: 0.125rem;
+    align-self: stretch;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     padding-left: 0.25rem;
     margin-left: 0.0625rem;
     border-left: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
@@ -503,12 +552,14 @@
 
   @media (max-width: 48rem) {
     .app-layout {
-      --map-ui-padding: 0;
+      --map-ui-padding: 0.375rem;
       --map-search-inline-pad: 0.625rem;
       --bottom-fab-gap: 0.375rem;
       --bottom-chrome-gap: var(--bottom-fab-gap);
       --map-tools-block-height: 0px;
-      --mobile-detail-sheet-top-inset: var(--search-block-height);
+      --mobile-detail-sheet-top-inset: calc(
+        var(--search-block-height) + var(--mobile-detail-sheet-gap, 0.375rem)
+      );
       --bottom-fab-inset: 3.25rem;
     }
 
@@ -537,18 +588,6 @@
 
     .bottom-chrome__leading {
       padding-left: max(0.125rem, env(safe-area-inset-left, 0px));
-    }
-
-    /* When the drawer sheet is open, lift actions above its peek handle */
-    .bottom-chrome__actions.drawer-lift {
-      position: fixed;
-      right: max(0.5rem, env(safe-area-inset-right, 0px));
-      bottom: calc(100dvh - var(--mobile-detail-sheet-top-inset) + 0.5rem);
-      z-index: 14;
-      padding: 0;
-      background: transparent;
-      border: none;
-      box-shadow: none;
     }
 
     .top-right-map-stack {
