@@ -21,6 +21,14 @@
           : null
       : null,
   );
+
+  const dormBadge = $derived(
+    preview?.kind === "dorm"
+      ? preview.isUpManaged
+        ? "UP-managed dorm"
+        : "Private dorm"
+      : null,
+  );
 </script>
 
 {#if preview && anchor}
@@ -35,14 +43,22 @@
     {/if}
     <div class="entity-hover-preview__body">
       <p class="entity-hover-preview__title">
-        {preview.kind === "building" ? preview.name : preview.title}
+        {preview.kind === "event" ? preview.title : preview.name}
       </p>
       {#if preview.kind === "building" && buildingBadge}
         <p class="entity-hover-preview__meta">{buildingBadge}</p>
+      {:else if preview.kind === "dorm" && dormBadge}
+        <p class="entity-hover-preview__meta">{dormBadge}</p>
       {:else if preview.kind === "event" && preview.category}
         <p class="entity-hover-preview__meta">{preview.category}</p>
       {/if}
       {#if preview.kind === "building" && preview.directions}
+        <p class="entity-hover-preview__hint">
+          {preview.directions.slice(0, 120)}{preview.directions.length > 120
+            ? "…"
+            : ""}
+        </p>
+      {:else if preview.kind === "dorm" && preview.directions}
         <p class="entity-hover-preview__hint">
           {preview.directions.slice(0, 120)}{preview.directions.length > 120
             ? "…"

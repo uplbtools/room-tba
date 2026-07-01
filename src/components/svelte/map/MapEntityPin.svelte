@@ -43,12 +43,7 @@
     useCentralHoverPreview = false,
   }: Props = $props();
 
-  /** With central hover preview, only the selected pin keeps an inline label. */
-  const showPinLabel = $derived(
-    useCentralHoverPreview
-      ? active && !previewSuppressed
-      : (labelVisible || active) && !previewSuppressed,
-  );
+  const showPinLabel = $derived((labelVisible || active) && !previewSuppressed);
 
   const statusLabel = $derived(
     saveState === "saving"
@@ -78,6 +73,7 @@
   class:dimmed
   class:event-linked={eventLinked}
   class:hovered
+  class:preview-suppressed={previewSuppressed}
   class:saving={saveState === "saving"}
   class:saved={saveState === "saved"}
   class:failed={saveState === "failed"}
@@ -215,12 +211,8 @@
     opacity: 1;
   }
 
-  .map-entity-pin.central-hover-preview .pin-label {
+  .map-entity-pin.preview-suppressed .pin-label {
     opacity: 0;
-  }
-
-  .map-entity-pin.central-hover-preview.active .pin-label.active {
-    opacity: 1;
   }
 
   .map-entity-pin.event-linked {
@@ -292,9 +284,9 @@
     color: white;
   }
 
-  .map-entity-pin:not(.central-hover-preview):hover .pin-label,
-  .map-entity-pin:not(.central-hover-preview) .pin-label.active,
-  .map-entity-pin:not(.central-hover-preview) .pin-label.persistent {
+  .map-entity-pin:not(.preview-suppressed):hover .pin-label,
+  .map-entity-pin .pin-label.active,
+  .map-entity-pin .pin-label.persistent {
     opacity: 1;
   }
 

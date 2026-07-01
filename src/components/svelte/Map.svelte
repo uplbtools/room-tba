@@ -35,7 +35,7 @@
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { BuildingData, EventData } from "@lib/types";
+  import type { BuildingData, DormData, EventData } from "@lib/types";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
@@ -78,9 +78,11 @@
   } from "@lib/map-edit/errors";
   import {
     buildingPreviewFromRow,
+    dormPreviewFromRow,
     entityHoverPreviewStore,
     eventPreviewFromRow,
     isBuildingHoverPreview,
+    isDormHoverPreview,
     isEventHoverPreview,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
@@ -787,6 +789,25 @@
   }
 
   function handleBuildingPinPointerLeave(editKey: string) {
+    handleEditablePinLeave(editKey);
+    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
+    entityHoverPreviewStore.scheduleHide();
+  }
+
+  function handleDormPinPointerEnter(
+    dorm: DormData,
+    editKey: string,
+    event: PointerEvent,
+  ) {
+    handleEditablePinEnter(editKey);
+    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
+    entityHoverPreviewStore.show(dormPreviewFromRow(dorm), {
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  function handleDormPinPointerLeave(editKey: string) {
     handleEditablePinLeave(editKey);
     if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
     entityHoverPreviewStore.scheduleHide();
@@ -2488,9 +2509,16 @@
                   )}
                   {@const active = isSelectedEvent(entry.event)}
                   {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+                  {@const previewSuppressed =
+                    centralHoverPreview &&
+                    isEventHoverPreview(
+                      entityHoverPreviewStore.entity,
+                      entry.event.slug,
+                    )}
                   <EventMapPin
                     {active}
                     useCentralHoverPreview={centralHoverPreview}
+                    {previewSuppressed}
                     anchored={group.anchored}
                     imageSrc={image?.src ?? null}
                     dateLabel={formatEventMarkerDate(
@@ -2503,6 +2531,7 @@
                     labelMeta={`${getEventStatusLabel(entry.event)} · ${formatEventMarkerDateTime(
                       entry.event.occurrenceStartsAt,
                     )}`}
+                    labelVisible={zoomLevel >= 17 || active}
                     onclick={() => handleEventMarkerClick(entry.event)}
                     onpointerenter={(event) =>
                       handleEventPinPointerEnter(entry.event, event)}
@@ -2661,8 +2690,8 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
-              labelVisible={!centralHoverPreview &&
-                (zoomLevel >= 17 || hoveredEditKey === editKey)}
+              labelVisible={zoomLevel >= 17 ||
+                activeBuildingName === building.buildingName}
               useCentralHoverPreview={centralHoverPreview}
               {previewSuppressed}
               onpointerenter={(event) =>
@@ -2713,6 +2742,10 @@
             lon: dorm.lon,
             version: getLoadedVersion(dorm.version),
           })}
+          {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+          {@const previewSuppressed =
+            centralHoverPreview &&
+            isDormHoverPreview(entityHoverPreviewStore.entity, dorm.id)}
           <Marker
             lngLat={[position.lon, position.lat]}
             draggable={canDragPin(editKey)}
@@ -2737,9 +2770,12 @@
                   : failedEditKey === editKey
                     ? "failed"
                     : "idle"}
-              labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
-              onpointerenter={(event) => handleEditablePinEnter(editKey)}
-              onpointerleave={() => handleEditablePinLeave(editKey)}
+              labelVisible={zoomLevel >= 17 || activeDormName === dorm.dormName}
+              useCentralHoverPreview={centralHoverPreview}
+              {previewSuppressed}
+              onpointerenter={(event) =>
+                handleDormPinPointerEnter(dorm, editKey, event)}
+              onpointerleave={() => handleDormPinPointerLeave(editKey)}
             >
               <House size="18" />
             </MapEntityPin>

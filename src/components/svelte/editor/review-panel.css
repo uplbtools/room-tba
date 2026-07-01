@@ -11,20 +11,21 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem;
-  font-size: 0.8125rem;
-  color: hsl(5, 53%, 32%);
+  font-size: 0.875rem;
+  color: hsl(5, 53%, 28%);
 }
 
 .entity-review-count {
-  color: hsl(0, 0%, 42%);
-  font-size: 0.75rem;
+  color: hsl(0, 0%, 32%);
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
 .entity-review-empty {
   margin: 0;
-  color: hsl(0, 0%, 45%);
-  font-size: 0.75rem;
+  color: hsl(0, 0%, 35%);
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
 .entity-review-list {
@@ -41,7 +42,7 @@
 .entity-review-item {
   border: 1px solid hsl(0, 0%, 90%);
   border-radius: 0.625rem;
-  padding: 0.375rem;
+  padding: 0.4375rem;
   background: hsl(0, 0%, 99%);
 }
 
@@ -53,9 +54,9 @@
 }
 
 .entity-review-entity {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 700;
-  color: hsl(0, 0%, 18%);
+  color: hsl(0, 0%, 12%);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -63,25 +64,28 @@
 
 .entity-review-entity small {
   font-weight: 600;
-  color: hsl(0, 0%, 45%);
+  color: hsl(0, 0%, 35%);
 }
 
 .entity-review-submitter {
-  font-size: 0.75rem;
-  color: hsl(0, 0%, 42%);
+  font-size: 0.8125rem;
+  color: hsl(0, 0%, 32%);
+  line-height: 1.35;
 }
 
 .entity-review-changes {
   margin: 0.375rem 0 0;
   padding-left: 1rem;
-  color: hsl(0, 0%, 28%);
-  font-size: 0.75rem;
+  color: hsl(0, 0%, 18%);
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
 .entity-review-note {
   margin: 0.375rem 0 0;
-  font-size: 0.75rem;
-  color: hsl(35, 80%, 28%);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: hsl(35, 80%, 24%);
 }
 
 .entity-review-actions {
@@ -92,28 +96,43 @@
 }
 
 .entity-review-actions button {
-  border: 1px solid hsl(0, 0%, 85%);
+  border: 1px solid hsl(0, 0%, 80%);
   border-radius: 0.5rem;
   background: white;
-  color: hsl(0, 0%, 22%);
+  color: hsl(0, 0%, 16%);
   cursor: pointer;
   font: inherit;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  padding: 0.25rem 0.4375rem;
+  line-height: 1.25;
+  padding: 0.3125rem 0.5rem;
 }
 
 .entity-review-actions button.approve {
-  border-color: hsl(160, 84%, 34%);
-  color: hsl(160, 84%, 22%);
+  border-color: hsl(160, 84%, 30%);
+  color: hsl(160, 84%, 18%);
 }
 
 .entity-review-actions button.reject {
-  border-color: hsl(0, 70%, 82%);
-  color: hsl(0, 70%, 38%);
+  border-color: hsl(0, 70%, 78%);
+  color: hsl(0, 70%, 32%);
 }
 
 .entity-review-actions button:disabled {
-  opacity: 0.55;
+  opacity: 0.65;
+  color: hsl(0, 0%, 38%);
   cursor: not-allowed;
+}
+
+.entity-review-panel :global(.editor-field label) {
+  font-size: 0.8125rem;
+  color: hsl(0, 0%, 22%);
+}
+
+.entity-review-panel :global(.editor-control-row textarea) {
+  font-size: 0.875rem;
+}
+
+.entity-review-panel :global(.editor-control-row textarea::placeholder) {
+  color: hsl(0, 0%, 38%);
 }
