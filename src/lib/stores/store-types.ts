@@ -1,6 +1,5 @@
 import { modalOptions } from "@constants/modal-states";
-import type { Weekday } from "../schedule-import/day-stops.js";
-import type { ImportedScheduleRow } from "../schedule-import/types.js";
+import type { ImportedScheduleRow, Weekday } from "@lib/schedule-import/types.js";
 
 export type LandingModalTab = "welcome" | "campus";
 
