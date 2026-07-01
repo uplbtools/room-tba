@@ -5,6 +5,8 @@
   import PencilLine from "@lucide/svelte/icons/pencil-line";
   import ClipboardCheck from "@lucide/svelte/icons/clipboard-check";
   import CircleCheck from "@lucide/svelte/icons/circle-check";
+  import UserRound from "@lucide/svelte/icons/user-round";
+  import WifiOff from "@lucide/svelte/icons/wifi-off";
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
   import Plus from "@lucide/svelte/icons/plus";
 
@@ -12,7 +14,21 @@
     { icon: Search, label: "Search rooms", hint: "Room codes and buildings" },
     { icon: Map, label: "Explore the map", hint: "Buildings, dorms, and pins" },
     { icon: CalendarDays, label: "Events", hint: "Where things happen" },
-    { icon: PencilLine, label: "Suggest fixes", hint: "Keep the map accurate" },
+    {
+      icon: UserRound,
+      label: "Browse freely",
+      hint: "No sign-in required",
+    },
+    {
+      icon: WifiOff,
+      label: "Offline-friendly",
+      hint: "Cache after your first visit",
+    },
+    {
+      icon: PencilLine,
+      label: "Suggest fixes",
+      hint: "Optional login to edit",
+    },
   ] as const;
 
   const steps = [
@@ -134,7 +150,7 @@
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.375rem;
   }
 

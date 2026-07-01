@@ -1,4 +1,4 @@
-import type { BuildingData, EventData } from "@lib/types";
+import type { BuildingData, DormData, EventData } from "@lib/types";
 
 export type EntityHoverPreview =
   | {
@@ -6,6 +6,13 @@ export type EntityHoverPreview =
       id: number;
       name: string;
       buildingType: string | null;
+      directions: string | null;
+    }
+  | {
+      kind: "dorm";
+      id: number;
+      name: string;
+      isUpManaged: boolean;
       directions: string | null;
     }
   | {
@@ -66,6 +73,16 @@ export function buildingPreviewFromRow(
   };
 }
 
+export function dormPreviewFromRow(dorm: DormData): EntityHoverPreview {
+  return {
+    kind: "dorm",
+    id: dorm.id,
+    name: dorm.dormName,
+    isUpManaged: dorm.isUpManaged,
+    directions: dorm.directions ?? null,
+  };
+}
+
 export function eventPreviewFromRow(event: EventData): EntityHoverPreview {
   return {
     kind: "event",
@@ -81,6 +98,13 @@ export function isBuildingHoverPreview(
   buildingId: number,
 ): boolean {
   return entity?.kind === "building" && entity.id === buildingId;
+}
+
+export function isDormHoverPreview(
+  entity: EntityHoverPreview | null,
+  dormId: number,
+): boolean {
+  return entity?.kind === "dorm" && entity.id === dormId;
 }
 
 export function isEventHoverPreview(
