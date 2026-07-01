@@ -11,6 +11,7 @@
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
   import ContributorProgressPanel from "@ui/status-bar/ContributorProgressPanel.svelte";
   import Download from "@lucide/svelte/icons/download";
+import { untrack } from "svelte";
 
   type LandingTab = "welcome" | "campus";
 
@@ -102,9 +103,9 @@
   });
 
   $effect(() => {
-    if (!modalStore.open || modalStore.type !== "landing") return;
-    activeTab = modalStore.landingTab ?? "welcome";
-    if (activeTab === "campus") void loadGithubContributors();
+    if (!modalStore.open) return;
+    activeTab = untrack(() => modalStore.landingTab) ?? "welcome";
+    if (untrack(() => activeTab) === "campus") void loadGithubContributors();
   });
 </script>
 
