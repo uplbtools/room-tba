@@ -1,3 +1,10 @@
+## [1.18.5](https://github.com/uplbtools/room-tba/compare/v1.18.4...v1.18.5) (2026-07-01)
+
+
+### Bug Fixes
+
+* **side-panel:** round all corners on mobile collapsed peek pill ([0acb4d4](https://github.com/uplbtools/room-tba/commit/0acb4d446f7152c4127e9589ab7c2b600e4164fc))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
