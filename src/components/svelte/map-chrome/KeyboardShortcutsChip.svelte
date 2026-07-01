@@ -6,7 +6,13 @@
     modifierLabel,
   } from "@lib/keyboard-shortcuts";
   import { trapFocus } from "@lib/focus-trap";
+  import { rafThrottle } from "@lib/layout-css-vars";
   import { portal } from "@lib/portal";
+  import {
+    computeShortcutsPanelLayout,
+    formatShortcutsPanelStyle,
+    measureOpenSidePanelBounds,
+  } from "@lib/shortcuts-panel-position";
   import { mapToolsStore } from "@lib/store.svelte";
   import {
     registerEphemeralOverlayDismisser,
@@ -39,47 +45,21 @@
     };
   });
 
-  const PANEL_MAX_HEIGHT = 20 * 16;
-  const VIEWPORT_MARGIN = 8;
-  const TRIGGER_GAP = 6;
-
   function updatePanelPosition() {
     if (!open || !triggerEl) return;
-    const rect = triggerEl.getBoundingClientRect();
-    const width = Math.min(18 * 16, window.innerWidth - VIEWPORT_MARGIN * 2);
-    const left = Math.min(
-      Math.max(VIEWPORT_MARGIN, rect.left),
-      window.innerWidth - width - VIEWPORT_MARGIN,
-    );
-
-    const measuredHeight = panelEl?.offsetHeight ?? PANEL_MAX_HEIGHT;
-    const maxHeight = Math.min(
-      PANEL_MAX_HEIGHT,
-      window.innerHeight - VIEWPORT_MARGIN * 2,
-    );
-    const spaceBelow =
-      window.innerHeight - rect.bottom - TRIGGER_GAP - VIEWPORT_MARGIN;
-    const spaceAbove = rect.top - TRIGGER_GAP - VIEWPORT_MARGIN;
-    const preferredHeight = Math.min(maxHeight, measuredHeight);
-
-    let top: number;
-    let heightCap: number;
-
-    if (spaceBelow >= preferredHeight || spaceBelow >= spaceAbove) {
-      top = rect.bottom + TRIGGER_GAP;
-      heightCap = Math.max(0, Math.min(maxHeight, spaceBelow));
-    } else {
-      heightCap = Math.max(0, Math.min(maxHeight, spaceAbove));
-      top = Math.max(VIEWPORT_MARGIN, rect.top - TRIGGER_GAP - heightCap);
-    }
-
-    panelStyle = `left: ${left}px; top: ${top}px; width: ${width}px; max-height: ${heightCap}px;`;
+    const layout = computeShortcutsPanelLayout({
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      triggerRect: triggerEl.getBoundingClientRect(),
+      sidePanel: measureOpenSidePanelBounds(),
+    });
+    panelStyle = formatShortcutsPanelStyle(layout);
   }
 
   $effect(() => {
     if (!open) return;
     updatePanelPosition();
-    const handleLayout = () => updatePanelPosition();
+    const handleLayout = rafThrottle(updatePanelPosition);
     window.addEventListener("resize", handleLayout);
     window.addEventListener("scroll", handleLayout, true);
     return () => {
