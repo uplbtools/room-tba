@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/uplbtools/room-tba/compare/v1.18.3...v1.18.4) (2026-07-01)
+
+
+### Bug Fixes
+
+* **ui:** review panel contrast, map hover labels, landing pitch ([7b7b2c6](https://github.com/uplbtools/room-tba/commit/7b7b2c6176cfca5223eb99d6f5a08aad0dbfd982))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
