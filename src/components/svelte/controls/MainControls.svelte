@@ -334,8 +334,8 @@
 
     .drawer.is-collapsed .drawer-sheet {
       flex: 0 0 auto;
-      border-radius: var(--map-chrome-radius, 1rem)
-        var(--map-chrome-radius, 1rem) 0 0;
+      border-radius: var(--map-chrome-radius, 1rem);
+      border-bottom: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     }
 
     .drawer-peek {
