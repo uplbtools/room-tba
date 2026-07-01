@@ -12,6 +12,8 @@ Use `gh issue view <n> --repo uplbtools/room-tba` before and after issue-scoped 
 | **Developer**   | `good first issue`, `help wanted`       | Developers           | Dev fills in as they learn the codebase                        |
 | **Spec / epic** | `enhancement`, `parent issue`, `[TASK]` | Maintainers          | Full paths, AC, `Last verified`                                |
 
+**Filing new issues (agents + maintainers):** every new issue gets **one** `size/*`, **one** `priority/*`, and an explicit decision on **`good first issue`** (add the label only when newcomer-safe; otherwise leave it off). Split multi-PR work into a **`parent issue`** epic and **`sub-issue`** children (`Parent: #NNN` in the child body). Details: [AGENTS.md § Creating issues](../AGENTS.md#creating-issues).
+
 **Reporter issues:** problem + verification only. Do not ask reporters to cite `src/` or open PRs.
 
 **Developer issues:** plain acceptance criteria; optional area of app (map, API, etc.).
@@ -26,6 +28,16 @@ When implementing a `data` or `qa` issue on behalf of a reporter:
 2. Append **Implementation pointers** to the issue body if helpful
 3. Open PR to `staging`; `Closes #NNN`
 4. Thank the reporter when merged
+
+---
+
+## Filing a new issue (triage checklist)
+
+1. **Size** — exactly one: `size/XS` | `size/S` | `size/M` | `size/L` | `size/XL`.
+2. **Priority** — exactly one: `priority/high` | `priority/medium` | `priority/low`.
+3. **Good first issue** — add `good first issue` only if scoped, documented, and safe for newcomers; otherwise omit.
+4. **Type** — `bug`, `enhancement`, `design improvement`, `data`, `qa`, etc. as appropriate.
+5. **Epics** — if the work needs multiple PRs, open a **`parent issue`** first, then **`sub-issue`** tasks with `Parent: #NNN` and their own size/priority. Parent body links children; avoid duplicating child AC on the parent.
 
 ---
 

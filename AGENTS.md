@@ -130,6 +130,45 @@ Issues are living specs (paths, schema, acceptance criteria). When coding quickl
 
 Full checklist: [docs/issue-hygiene.md](docs/issue-hygiene.md).
 
+### Creating issues
+
+Whenever an agent (or maintainer) **files a new GitHub issue**, set triage metadata at creation time — not “later.”
+
+| Required | Label(s) | Rule |
+| -------- | -------- | ---- |
+| **Size** | Exactly one of `size/XS` … `size/XL` | Estimate effort for one focused PR (see label descriptions on GitHub). |
+| **Priority** | Exactly one of `priority/high`, `priority/medium`, `priority/low` | `high` = user-visible break or blocker; `medium` = planned improvement; `low` = backlog/nice-to-have. |
+| **Good first issue** | `good first issue` **or omit** | Add only when the task is newcomer-safe: clear AC, small surface, no prod DB/auth/security surprises, paths documented. **Do not** tag epics, migrations, or coordination-heavy work. |
+
+**Optional but common:** `bug`, `enhancement`, `design improvement`, `data`, `qa`, `help wanted` — type labels are separate from size/priority.
+
+**Parent / sub-issue structure**
+
+- **Split** when one request spans multiple PRs, tracks, or owners (e.g. contrast audit → review panel + entity forms + map chrome).
+- **Parent (epic):** `parent issue` + size `M`/`L`/`XL`; body holds shared context, links children, no duplicated child AC.
+- **Child (task):** `sub-issue` + its own size/priority; body starts with `Parent: #NNN` and scoped AC.
+- **Do not** close the parent until all linked sub-issues ship or are explicitly deferred.
+
+**`gh` example**
+
+```sh
+gh issue create \
+  --title "fix(map-chrome): example scoped fix" \
+  --label "bug,size/S,priority/medium" \
+  --body "$(cat <<'EOF'
+Parent: #NNN
+
+## Problem
+…
+
+## Acceptance criteria
+- [ ] …
+EOF
+)"
+```
+
+For a good-first-issue task, add `good first issue` to `--label`. For epics, omit `good first issue` and use `parent issue,size/M,priority/medium` (adjust size/priority to match).
+
 ### Do NOT auto-close issues with human coordination requirements
 
 Some issues cannot be resolved purely through code. Issues that require **external human coordination** must remain open until the human work is complete, even if the technical implementation is merged. Examples include:
