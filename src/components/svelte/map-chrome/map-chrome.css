@@ -265,12 +265,6 @@ button.chrome-toggle-btn[aria-expanded="true"] {
     color 0.15s ease;
 }
 
-button.map-chrome-chip:hover:not(:disabled),
-button.map-chrome-chip:focus-visible {
-  border-color: hsl(5, 40%, 72%);
-  background: hsl(5, 53%, 98%);
-}
-
 button.map-chrome-chip:focus-visible {
   outline: 2px solid hsl(5, 53%, 32%);
   outline-offset: 1px;
