@@ -16,9 +16,11 @@
     imageSrc?: string | null;
     labelMeta?: string;
     labelTitle?: string;
+    labelVisible?: boolean;
     onclick: () => void;
     onpointerenter?: (event: PointerEvent) => void;
     onpointerleave?: (event: PointerEvent) => void;
+    previewSuppressed?: boolean;
     status?: string;
     title?: string;
     variant?: EventPinVariant;
@@ -37,9 +39,11 @@
     imageSrc = null,
     labelMeta,
     labelTitle,
+    labelVisible = false,
     onclick,
     onpointerenter,
     onpointerleave,
+    previewSuppressed = false,
     status = "active",
     title,
     variant = "single",
@@ -47,6 +51,10 @@
   }: Props = $props();
 
   const isGroup = $derived(variant === "group");
+  const showInlineLabel = $derived(
+    !isGroup && labelTitle && (labelVisible || active) && !previewSuppressed,
+  );
+  const showInlineMeta = $derived(!useCentralHoverPreview || active);
 </script>
 
 <button
@@ -56,6 +64,7 @@
   class:anchored
   class:expanded
   class:group={isGroup}
+  class:preview-suppressed={previewSuppressed}
   class:past={status === "past"}
   class:upcoming={status === "upcoming"}
   title={useCentralHoverPreview ? undefined : title}
@@ -79,15 +88,18 @@
     <span class="event-pin-chevron" aria-hidden="true">
       <ChevronDown size={12} />
     </span>
-  {:else if labelTitle && labelMeta && !useCentralHoverPreview}
+  {:else if showInlineLabel}
     <span
       class="event-pin-label"
       class:active
+      class:title-only={useCentralHoverPreview && labelVisible && !active}
       transition:fade
       aria-hidden="true"
     >
       <span class="event-pin-title">{labelTitle}</span>
-      <span class="event-pin-meta">{labelMeta}</span>
+      {#if showInlineMeta && labelMeta}
+        <span class="event-pin-meta">{labelMeta}</span>
+      {/if}
     </span>
   {/if}
 </button>
@@ -280,6 +292,14 @@
   .event-map-pin:hover .event-pin-label,
   .event-map-pin:focus-visible .event-pin-label,
   .event-pin-label.active {
+    opacity: 1;
+  }
+
+  .event-map-pin.preview-suppressed .event-pin-label {
+    opacity: 0;
+  }
+
+  .event-pin-label.title-only {
     opacity: 1;
   }
 
