@@ -1,3 +1,10 @@
+## [1.18.3](https://github.com/uplbtools/room-tba/compare/v1.18.2...v1.18.3) (2026-07-01)
+
+
+### Bug Fixes
+
+* **map-chrome:** anchor shortcuts help in map column ([#429](https://github.com/uplbtools/room-tba/issues/429)) ([019461c](https://github.com/uplbtools/room-tba/commit/019461c29cf77dedc73cb4c7a313cb4385e2c128))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
