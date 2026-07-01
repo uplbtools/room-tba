@@ -1,3 +1,10 @@
+## [1.18.6](https://github.com/uplbtools/room-tba/compare/v1.18.5...v1.18.6) (2026-07-01)
+
+
+### Bug Fixes
+
+* update hover states, landing modal tab ([ac84447](https://github.com/uplbtools/room-tba/commit/ac84447033a5f0a22d5b3e80f9188b755da1161c))
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
