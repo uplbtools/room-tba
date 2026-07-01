@@ -121,6 +121,13 @@
         <p class="hero-tagline">
           Find rooms, explore the map, and discover campus events at UPLB.
         </p>
+        <ul class="hero-pitches">
+          <li>No account needed — search and browse right away.</li>
+          <li>
+            Works on spotty campus Wi‑Fi — data saves locally after your first
+            visit.
+          </li>
+        </ul>
       </div>
     </div>
 
@@ -333,6 +340,24 @@
     font-weight: 500;
     max-width: 24rem;
     line-height: 1.35;
+  }
+
+  .hero-pitches {
+    list-style: none;
+    margin: 0.375rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-width: 24rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: hsl(5, 35%, 92%);
+  }
+
+  .hero-pitches li {
+    margin: 0;
   }
 
   .tab-bar {
