@@ -45,14 +45,18 @@ export const GET: APIRoute = async ({ cookies }) => {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
+    const skipLoginRateLimit =
+      process.env.ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === "1";
     const ip = clientIp(request);
-    const ipRate = checkRateLimit(
-      `admin-login:ip:${ip}`,
-      LOGIN_IP_LIMIT.max,
-      LOGIN_IP_LIMIT.windowMs,
-    );
-    if (!ipRate.allowed) {
-      return rateLimitResponse(ipRate.resetAt);
+    if (!skipLoginRateLimit) {
+      const ipRate = checkRateLimit(
+        `admin-login:ip:${ip}`,
+        LOGIN_IP_LIMIT.max,
+        LOGIN_IP_LIMIT.windowMs,
+      );
+      if (!ipRate.allowed) {
+        return rateLimitResponse(ipRate.resetAt);
+      }
     }
 
     const formData = await request.formData();
@@ -61,7 +65,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const username = typeof usernameRaw === "string" ? usernameRaw.trim() : "";
     const password = typeof passwordRaw === "string" ? passwordRaw : "";
 
-    if (username) {
+    if (username && !skipLoginRateLimit) {
       const userRate = checkRateLimit(
         `admin-login:user:${username.toLowerCase()}`,
         LOGIN_USER_LIMIT.max,

@@ -4,6 +4,16 @@ Shared with [uplbtools/discord-bot](https://github.com/uplbtools/discord-bot). S
 
 Producers emit versioned JSON; the Discord bot routes to channels. Room TBA uses `NotificationAdapter` — `HttpNotificationAdapter` when `NOTIFICATION_GATEWAY_URL` + `NOTIFICATION_INGRESS_SECRET` are set, else `NoOpNotificationAdapter`.
 
+## CI E2E failures (GitHub Actions)
+
+Playwright workflow failures POST from `.github/workflows/discord-notify-e2e.yml` via `scripts/ci-notify-discord-e2e.sh` (not the Astro app).
+
+Event types: `ci.e2e.failed`, `ci.e2e.advisory.failed`, `ci.staging-e2e.failed`, `ci.staging-smoke.failed`, optional `ci.e2e.passed`.
+
+Secrets: `NOTIFICATION_GATEWAY_URL`, `NOTIFICATION_INGRESS_SECRET` (same as proposal notifications).
+
+See [docs/e2e-discord-handoff.md](e2e-discord-handoff.md).
+
 ## proposal.submitted
 
 Emitted fire-and-forget after successful `POST /api/proposals`.

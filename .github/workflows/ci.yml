@@ -1,5 +1,7 @@
 name: CI
 
+# Verify: Biome format, scoped ESLint, unit + component tests, build.
+
 on:
   pull_request:
     paths-ignore:
@@ -32,17 +34,39 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Prettier
-        run: bunx prettier --check .
+      - name: Biome format
+        run: bunx biome format .
+
+      - name: ESLint (test harness)
+        run: bunx eslint integration e2e vitest.config.ts playwright.config.ts playwright.advisory.config.ts
 
       - name: Unit tests
-        run: bun test src
+        run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'
+
+      - name: Component tests
+        run: bun run test:components
 
       - name: PWA legal route guardrails
         run: bun run check:pwa-legal
 
-      - name: Build (smoke)
+      - name: Build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
         run: bun run build
-        continue-on-error: true
+
+  migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Schema tables present
+        env:
+          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+        run: bun run check:migrations

@@ -44,7 +44,11 @@ export class DuplicateSlugError extends Error {
 }
 
 export type MergeEntityType =
-  "room" | "building" | "college" | "division" | "dorm";
+  | "room"
+  | "building"
+  | "college"
+  | "division"
+  | "dorm";
 
 export class DuplicateNameError<TCandidate = unknown> extends Error {
   entityType: MergeEntityType;

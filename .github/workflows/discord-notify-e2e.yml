@@ -22,8 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: POST failure to Discord bot
-        if: ${{ secrets.NOTIFICATION_GATEWAY_URL != '' && secrets.NOTIFICATION_INGRESS_SECRET != '' }}
+      - name: POST failure to Discord bot (or skip when secrets unset)
         env:
           GATEWAY_URL: ${{ secrets.NOTIFICATION_GATEWAY_URL }}
           SECRET: ${{ secrets.NOTIFICATION_INGRESS_SECRET }}
@@ -36,8 +35,9 @@ jobs:
           HTML_URL: ${{ github.event.workflow_run.html_url }}
           RUN_EVENT: ${{ github.event.workflow_run.event }}
           RUN_DURATION: ${{ github.event.workflow_run.run_duration_ms }}
-        run: bash scripts/ci-notify-discord-e2e.sh
-
-      - name: Skip notice (secrets not configured)
-        if: ${{ secrets.NOTIFICATION_GATEWAY_URL == '' || secrets.NOTIFICATION_INGRESS_SECRET == '' }}
-        run: echo "::warning::NOTIFICATION_GATEWAY_URL or NOTIFICATION_INGRESS_SECRET not set — Discord E2E notify skipped"
+        run: |
+          if [ -z "$GATEWAY_URL" ] || [ -z "$SECRET" ]; then
+            echo "::warning::NOTIFICATION_GATEWAY_URL or NOTIFICATION_INGRESS_SECRET not set — Discord E2E notify skipped"
+            exit 0
+          fi
+          bash scripts/ci-notify-discord-e2e.sh

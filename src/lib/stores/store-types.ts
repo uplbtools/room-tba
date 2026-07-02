@@ -37,7 +37,11 @@ export type RecentSearch = {
 };
 
 export type FloatingControlPanel =
-  "legend" | "building-type" | "terrain" | "admin" | "suggest-addition";
+  | "legend"
+  | "building-type"
+  | "terrain"
+  | "admin"
+  | "suggest-addition";
 
 export type MapToolsSection = "view" | "legend" | "terrain" | "jeepney";
 
@@ -60,10 +64,19 @@ export type EventPlacementDraft = {
 export type TerrainStatus = "idle" | "loading" | "active" | "unavailable";
 
 export type AppBootstrapPhase =
-  "idle" | "local" | "remote" | "sync" | "ready" | "error";
+  | "idle"
+  | "local"
+  | "remote"
+  | "sync"
+  | "ready"
+  | "error";
 
 export type OfflineStatus =
-  "idle" | "downloading" | "done" | "error" | "cancelled";
+  | "idle"
+  | "downloading"
+  | "done"
+  | "error"
+  | "cancelled";
 
 export type SyncInfo = {
   synced: number;
