@@ -1,0 +1,30 @@
+name: E2E
+
+# Blocking Playwright + integration — not on every draft push.
+# Integration runs once in the same job before Playwright (one reset, one build:e2e).
+# Runs when a PR is first opened (non-draft), marked ready for review, reopened, or labeled `run/e2e`.
+# See docs/testing.md § Heavy CI gating.
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened, labeled]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".cursor/**"
+
+concurrency:
+  group: e2e-stack-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    if: |
+      github.event.action == 'ready_for_review' ||
+      (github.event.action == 'opened' && github.event.pull_request.draft == false) ||
+      (github.event.action == 'reopened' && github.event.pull_request.draft == false) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'run/e2e')
+    uses: ./.github/workflows/e2e-reusable.yml
+    secrets: inherit
+    with:
+      suite: blocking

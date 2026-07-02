@@ -50,7 +50,14 @@
       class="map-chrome-chip campus-browse-chip"
       class:map-chrome-chip--toggle-active={activeTab === tab.id}
       aria-pressed={activeTab === tab.id}
-      onclick={() => handleBrowse(tab.id)}
+      aria-label={tab.id === "classes"
+        ? "Browse all classes"
+        : `Browse ${tab.label.toLowerCase()}`}
+      onclick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        handleBrowse(tab.id);
+      }}
     >
       <span class="map-chrome-chip__icon" aria-hidden="true">
         <tab.icon size={14} />

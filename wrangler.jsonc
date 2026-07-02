@@ -15,7 +15,7 @@
   "r2_buckets": [
     {
       "binding": "UPLOADS",
-      "bucket_name": "room-tba-uploads",
-    },
-  ],
+      "bucket_name": "room-tba-uploads"
+    }
+  ]
 }

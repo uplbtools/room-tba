@@ -113,8 +113,8 @@ Contributor notes: [AGENTS.md](AGENTS.md)
 ```sh
 git clone https://github.com/uplbtools/room-tba.git
 cd room-tba
-cp .env.example .env
-# Fill DATABASE_URL (and ADMIN_PASSWORD) in .env
+cp .env.example .env.local
+# Fill DATABASE_URL (staging pooler) and ADMIN_PASSWORD — see .env.example for prod/E2E URLs
 
 bun install
 bun dev
@@ -124,17 +124,21 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 
 ### Commands worth knowing
 
-| Command                       | Does what                                                                                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `bun dev`                     | Dev server                                                                                                         |
-| `bun run build`               | Production build (**needs** `DATABASE_URL`; entity SEO pages render on first request via Vercel ISR, not at build) |
-| `bun test src`                | Unit tests (no DB required)                                                                                        |
-| `bun run lint`                | Prettier + ESLint                                                                                                  |
-| `bun run format`              | Prettier write                                                                                                     |
-| `bunx drizzle-kit studio`     | Browse/edit Postgres visually                                                                                      |
-| `bun run seed:aliases`        | Seed building aliases from `public/room_info.json`                                                                 |
-| `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`)                                                           |
-| `bun run import:final-exams`  | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`)                       |
+| Command                          | Does what                                                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `bun dev`                        | Dev server                                                                                                         |
+| `bun run build`                  | Production build (**needs** `DATABASE_URL`; entity SEO pages render on first request via Vercel ISR, not at build) |
+| `bun test src/lib src/constants` | Unit + store tests (no DB required)                                                                                |
+| `bun run test:components`        | Vitest component/layout tests                                                                                      |
+| `bun run test:integration`       | API + DB integration (E2E DB; see `docs/testing.md`)                                                               |
+| `bun run e2e`                    | Playwright blocking suite (uses `serve:e2e` — node adapter build + preview) |
+| `bun run e2e:advisory`           | Playwright advisory (non-blocking in CI)                                                                           |
+| `bun run lint`                   | Biome format check + ESLint                                                                                        |
+| `bun run format`                 | Biome format write                                                                                                 |
+| `bunx drizzle-kit studio`        | Browse/edit Postgres visually                                                                                      |
+| `bun run seed:aliases`           | Seed building aliases from `public/room_info.json`                                                                 |
+| `bun run import:amis-classes`    | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`)                                                           |
+| `bun run import:final-exams`     | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`)                       |
 
 Legacy **`data/info.db`** SQLite is only for old seed/export scripts (`bun:sqlite`, not runtime). Production uses Supabase Postgres via `DATABASE_URL`. Archived SQLite migrations live in `drizzle-migrations/` — do not edit; active schema is `drizzle/`.
 

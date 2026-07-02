@@ -73,7 +73,7 @@ Open http://localhost:4321. More setup help: [docs/developer-guide.md](docs/deve
 3. Make your change.
 4. Before opening a PR:
    - `bun test src`
-   - `bun run lint` (or `bunx prettier --check` on files you touched)
+   - `bun run lint` (or `bunx biome format` on files you touched)
    - `bun run build` for substantive changes (needs `DATABASE_URL`)
 5. Open a PR to **`staging`**. Use the PR template checkboxes.
 6. Use [Conventional Commits](https://www.conventionalcommits.org/) in commit messages (`fix(map): …`, `feat(api): …`).

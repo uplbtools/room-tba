@@ -11,10 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Post to Discord
-        if: ${{ secrets.DISCORD_CI_WEBHOOK_URL != '' }}
         env:
           DISCORD_CI_WEBHOOK_URL: ${{ secrets.DISCORD_CI_WEBHOOK_URL }}
         run: |
+          if [ -z "$DISCORD_CI_WEBHOOK_URL" ]; then
+            echo "::warning::DISCORD_CI_WEBHOOK_URL not set — skipped"
+            exit 0
+          fi
           payload=$(jq -n \
             --arg repo "${{ github.repository }}" \
             --arg branch "${{ github.event.workflow_run.head_branch }}" \
