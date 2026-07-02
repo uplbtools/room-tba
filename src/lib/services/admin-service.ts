@@ -16,6 +16,15 @@ import {
 } from "@drizzle/schema";
 import { normalizeEntityName } from "@lib/entity-names";
 import { db } from "@lib/db";
+import {
+  buildingIsrPath,
+  collegeIsrPath,
+  divisionIsrPath,
+  dormIsrPath,
+  eventIsrPath,
+  revalidateIsrPaths,
+  roomIsrPath,
+} from "@lib/isr-revalidate";
 import { getEventById } from "./event-service";
 import type { EventData, RoomData } from "@lib/types";
 import { EditConflictError } from "./edit-conflict-error";
@@ -56,11 +65,15 @@ export class DuplicateNameError<TCandidate = unknown> extends Error {
 }
 
 /** Refresh the sync key for a table so viewers detect the change and re-sync. */
-export async function refreshSyncKey(tableName: string): Promise<void> {
+export async function refreshSyncKey(
+  tableName: string,
+  revalidatePaths?: string[],
+): Promise<void> {
   await db
     .update(updateTable)
     .set({ syncKey: randomUUID() })
     .where(eq(updateTable.tableName, tableName));
+  revalidateIsrPaths(revalidatePaths);
 }
 
 type EditorHistoryInput = {
@@ -333,7 +346,12 @@ export async function updateRoom(
       });
     }
 
-    await refreshSyncKey("rooms");
+    const revalidatePaths = ["/room/"];
+    if (after) revalidatePaths.push(roomIsrPath(after));
+    if (before && after && before.code !== after.code) {
+      revalidatePaths.push(roomIsrPath(before));
+    }
+    await refreshSyncKey("rooms", revalidatePaths);
     return after ?? (await getRoomById(id));
   }
 
@@ -377,7 +395,10 @@ export async function createRoom(
       editedBy,
     });
   }
-  await refreshSyncKey("rooms");
+  await refreshSyncKey(
+    "rooms",
+    after ? [roomIsrPath(after), "/room/"] : ["/room/"],
+  );
   return after;
 }
 
@@ -445,7 +466,11 @@ export async function upsertRoomPosition(
       roomId,
     });
   }
-  await refreshSyncKey("rooms");
+  const room = await getRoomById(roomId);
+  await refreshSyncKey(
+    "rooms",
+    room ? [roomIsrPath(room), "/room/"] : ["/room/"],
+  );
 }
 
 export async function updateRoomPosition(
@@ -533,7 +558,10 @@ export async function updateRoomPosition(
     });
   }
 
-  await refreshSyncKey("rooms");
+  await refreshSyncKey(
+    "rooms",
+    after ? [roomIsrPath(after), "/room/"] : ["/room/"],
+  );
   return after;
 }
 
@@ -625,7 +653,12 @@ export async function updateBuilding(
       });
     }
 
-    await refreshSyncKey("buildings");
+    const revalidatePaths = ["/building/"];
+    if (updated) revalidatePaths.push(buildingIsrPath(updated));
+    if (before && updated && before.buildingName !== updated.buildingName) {
+      revalidatePaths.push(buildingIsrPath(before));
+    }
+    await refreshSyncKey("buildings", revalidatePaths);
     return updated ?? (await getBuildingById(id));
   }
 
@@ -666,7 +699,7 @@ export async function createBuilding(
     versionAfter: inserted.version,
     editedBy,
   });
-  await refreshSyncKey("buildings");
+  await refreshSyncKey("buildings", [buildingIsrPath(inserted), "/building/"]);
   return inserted;
 }
 
@@ -733,7 +766,10 @@ export async function updateCollege(
     });
   }
 
-  await refreshSyncKey("colleges");
+  await refreshSyncKey("colleges", [
+    collegeIsrPath(updated ?? before),
+    "/college/",
+  ]);
   return updated ?? (await getCollegeById(id));
 }
 
@@ -758,7 +794,7 @@ export async function createCollege(
     versionAfter: inserted.version,
     editedBy,
   });
-  await refreshSyncKey("colleges");
+  await refreshSyncKey("colleges", [collegeIsrPath(inserted), "/college/"]);
   return inserted;
 }
 
@@ -846,7 +882,10 @@ export async function updateDivision(
     });
   }
 
-  await refreshSyncKey("divisions");
+  await refreshSyncKey("divisions", [
+    divisionIsrPath(updated ?? before),
+    "/division/",
+  ]);
   return updated ?? (await getDivisionById(id));
 }
 
@@ -886,7 +925,7 @@ export async function createDivision(
     versionAfter: inserted.version,
     editedBy,
   });
-  await refreshSyncKey("divisions");
+  await refreshSyncKey("divisions", [divisionIsrPath(inserted), "/division/"]);
   return inserted;
 }
 
@@ -975,7 +1014,7 @@ export async function updateDorm(
       });
     }
 
-    await refreshSyncKey("dorms");
+    await refreshSyncKey("dorms", [dormIsrPath(updated ?? before), "/dorm/"]);
     return updated ?? (await getDormById(id));
   }
 
@@ -1023,7 +1062,7 @@ export async function createDorm(
     versionAfter: inserted.version,
     editedBy,
   });
-  await refreshSyncKey("dorms");
+  await refreshSyncKey("dorms", [dormIsrPath(inserted), "/dorm/"]);
   return inserted;
 }
 
@@ -1084,10 +1123,11 @@ const EVENT_SYNC_TABLES = [
   "event_route_stops",
 ];
 
-async function refreshEventSyncKeys() {
+async function refreshEventSyncKeys(revalidatePaths?: string[]) {
   await Promise.all(
     EVENT_SYNC_TABLES.map((tableName) => refreshSyncKey(tableName)),
   );
+  revalidateIsrPaths(revalidatePaths);
 }
 
 function getEventUpdates(input: EventWriteInput) {
@@ -1158,7 +1198,9 @@ export async function createEvent(
       editedBy,
     });
   }
-  await refreshEventSyncKeys();
+  await refreshEventSyncKeys(
+    after?.slug ? [eventIsrPath(after.slug), "/event/"] : ["/event/"],
+  );
   return after;
 }
 
@@ -1217,7 +1259,10 @@ export async function updateEvent(
       editedBy,
     });
   }
-  await refreshEventSyncKeys();
+  const eventPaths = ["/event/"];
+  if (after?.slug) eventPaths.push(eventIsrPath(after.slug));
+  if (before.slug !== after?.slug) eventPaths.push(eventIsrPath(before.slug));
+  await refreshEventSyncKeys(eventPaths);
   return after;
 }
 
@@ -1273,7 +1318,9 @@ export async function updateEventLocations(
       editedBy,
     });
   }
-  await refreshEventSyncKeys();
+  await refreshEventSyncKeys(
+    after?.slug ? [eventIsrPath(after.slug), "/event/"] : ["/event/"],
+  );
   return after;
 }
 

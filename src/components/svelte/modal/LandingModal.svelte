@@ -11,7 +11,7 @@
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
   import ContributorProgressPanel from "@ui/status-bar/ContributorProgressPanel.svelte";
   import Download from "@lucide/svelte/icons/download";
-import { untrack } from "svelte";
+  import { untrack } from "svelte";
 
   type LandingTab = "welcome" | "campus";
 

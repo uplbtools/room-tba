@@ -134,11 +134,11 @@ Full checklist: [docs/issue-hygiene.md](docs/issue-hygiene.md).
 
 Whenever an agent (or maintainer) **files a new GitHub issue**, set triage metadata at creation time — not “later.”
 
-| Required | Label(s) | Rule |
-| -------- | -------- | ---- |
-| **Size** | Exactly one of `size/XS` … `size/XL` | Estimate effort for one focused PR (see label descriptions on GitHub). |
-| **Priority** | Exactly one of `priority/high`, `priority/medium`, `priority/low` | `high` = user-visible break or blocker; `medium` = planned improvement; `low` = backlog/nice-to-have. |
-| **Good first issue** | `good first issue` **or omit** | Add only when the task is newcomer-safe: clear AC, small surface, no prod DB/auth/security surprises, paths documented. **Do not** tag epics, migrations, or coordination-heavy work. |
+| Required             | Label(s)                                                          | Rule                                                                                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Size**             | Exactly one of `size/XS` … `size/XL`                              | Estimate effort for one focused PR (see label descriptions on GitHub).                                                                                                                |
+| **Priority**         | Exactly one of `priority/high`, `priority/medium`, `priority/low` | `high` = user-visible break or blocker; `medium` = planned improvement; `low` = backlog/nice-to-have.                                                                                 |
+| **Good first issue** | `good first issue` **or omit**                                    | Add only when the task is newcomer-safe: clear AC, small surface, no prod DB/auth/security surprises, paths documented. **Do not** tag epics, migrations, or coordination-heavy work. |
 
 **Optional but common:** `bug`, `enhancement`, `design improvement`, `data`, `qa`, `help wanted` — type labels are separate from size/priority.
 
@@ -207,13 +207,13 @@ Do not run full build after every small edit. See the workflow skill for session
 
 When the agent session has **browser automation** (Cursor agentic browser, Playwright MCP, or headless Playwright in the shell), **use it** for UI verification instead of skipping straight to “needs manual QA.”
 
-| Use agentic browser for | Still human-only |
-| ----------------------- | ---------------- |
-| Open entity side panels (building, dorm, room, event) | Drag/drop pin polish, animation feel |
-| Map chrome at 320px / 768px viewport | Subjective visual design judgment |
-| Capture `pageerror` / console errors after navigation | Long editor save/conflict sessions |
-| Dismiss landing modal, wait for bootstrap (`campus-browse-chips`, map canvas) | Production account-specific data |
-| Staging or prod smoke after deploy (`room-tba.uplbtools.me`) | |
+| Use agentic browser for                                                       | Still human-only                     |
+| ----------------------------------------------------------------------------- | ------------------------------------ |
+| Open entity side panels (building, dorm, room, event)                         | Drag/drop pin polish, animation feel |
+| Map chrome at 320px / 768px viewport                                          | Subjective visual design judgment    |
+| Capture `pageerror` / console errors after navigation                         | Long editor save/conflict sessions   |
+| Dismiss landing modal, wait for bootstrap (`campus-browse-chips`, map canvas) | Production account-specific data     |
+| Staging or prod smoke after deploy (`room-tba.uplbtools.me`)                  |                                      |
 
 **Practices:**
 
