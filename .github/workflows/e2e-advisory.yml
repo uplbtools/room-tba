@@ -1,33 +1,27 @@
 name: E2E advisory
 
+# Same PR triggers as blocking E2E; non-blocking (continue-on-error).
+
 on:
   pull_request:
+    types: [opened, ready_for_review, reopened, labeled]
     paths-ignore:
       - "**.md"
       - "docs/**"
       - ".cursor/**"
 
+concurrency:
+  group: e2e-advisory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   e2e-advisory:
-    runs-on: ubuntu-latest
+    if: |
+      github.event.action == 'ready_for_review' ||
+      (github.event.action == 'opened' && github.event.pull_request.draft == false) ||
+      (github.event.action == 'reopened' && github.event.pull_request.draft == false) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'run/e2e')
+    uses: ./.github/workflows/e2e-reusable.yml
+    with:
+      suite: advisory
     continue-on-error: true
-    env:
-      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
-      E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
-      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
-      E2E_ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
-      ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
-      ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
-      CI: true
-    steps:
-      - uses: actions/checkout@v7
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bunx playwright install chromium --with-deps
-      - run: bun run e2e:reset-db
-      - run: bun run build
-      - name: Advisory Playwright
-        run: bun run e2e:advisory
-      - name: Warn on failure
-        if: failure()
-        run: echo "::warning::Advisory E2E failed — review Playwright report (non-blocking)"

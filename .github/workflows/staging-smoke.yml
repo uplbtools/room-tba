@@ -1,5 +1,8 @@
 name: Staging smoke
 
+# Read-only Playwright against live staging URL (non-blocking).
+# Full mutating E2E on staging branch: e2e-staging.yml (push + nightly).
+
 on:
   push:
     branches:

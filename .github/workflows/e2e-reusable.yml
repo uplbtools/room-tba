@@ -1,0 +1,75 @@
+name: E2E (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      suite:
+        description: blocking or advisory
+        required: true
+        type: string
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+      E2E_ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
+      ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+      ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
+      CI: true
+      SKIP_E2E_BUILD: "1"
+      ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install chromium --with-deps
+
+      - name: Reset E2E database
+        run: bun run e2e:reset-db
+
+      - name: Build for E2E preview
+        run: bun run build:e2e
+
+      - name: Start preview server
+        if: inputs.suite == 'blocking'
+        run: |
+          bun run preview:e2e &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:4321/api/health && exit 0
+            sleep 2
+          done
+          echo "Preview failed to start"
+          exit 1
+
+      - name: Integration tests
+        if: inputs.suite == 'blocking'
+        run: PREVIEW_BASE_URL=http://127.0.0.1:4321 bun run test:integration
+
+      - name: Playwright blocking tests
+        if: inputs.suite == 'blocking'
+        env:
+          PLAYWRIGHT_SKIP_WEBSERVER: "1"
+        run: bun run e2e
+
+      - name: Playwright advisory tests
+        if: inputs.suite == 'advisory'
+        run: bun run e2e:advisory
+
+      - name: Advisory failure notice
+        if: failure() && inputs.suite == 'advisory'
+        run: echo "::warning::Advisory E2E failed — review Playwright report (non-blocking)"
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ inputs.suite }}-${{ github.run_id }}
+          path: playwright-report/

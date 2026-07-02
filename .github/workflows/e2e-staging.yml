@@ -1,0 +1,26 @@
+name: E2E staging
+
+# Full blocking Playwright + integration on integration branch — every merge to staging + nightly cron.
+# Complements staging-smoke.yml (read-only live URL checks).
+
+on:
+  push:
+    branches:
+      - staging
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".cursor/**"
+  schedule:
+    # 02:00 Asia/Manila (UTC+8) — catch drift on staging without a merge
+    - cron: "0 18 * * *"
+
+concurrency:
+  group: e2e-staging
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    uses: ./.github/workflows/e2e-reusable.yml
+    with:
+      suite: blocking
