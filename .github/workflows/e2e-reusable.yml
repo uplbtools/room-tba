@@ -52,6 +52,19 @@ jobs:
         if: inputs.suite == 'blocking'
         run: PREVIEW_BASE_URL=http://127.0.0.1:4321 bun test ./integration --preload integration/preload.ts --concurrency 1
 
+      - name: Restart preview after integration
+        if: inputs.suite == 'blocking'
+        run: |
+          fuser -k 4321/tcp 2>/dev/null || true
+          sleep 2
+          bun run preview:e2e &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:4321/api/health && exit 0
+            sleep 2
+          done
+          echo "Preview failed to restart after integration"
+          exit 1
+
       - name: Playwright blocking tests
         if: inputs.suite == 'blocking'
         env:
