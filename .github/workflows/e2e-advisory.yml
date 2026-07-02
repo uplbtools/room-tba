@@ -1,0 +1,33 @@
+name: E2E advisory
+
+on:
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".cursor/**"
+
+jobs:
+  e2e-advisory:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+      E2E_ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
+      ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+      ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
+      CI: true
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install chromium --with-deps
+      - run: bun run e2e:reset-db
+      - run: bun run build
+      - name: Advisory Playwright
+        run: bun run e2e:advisory
+      - name: Warn on failure
+        if: failure()
+        run: echo "::warning::Advisory E2E failed — review Playwright report (non-blocking)"

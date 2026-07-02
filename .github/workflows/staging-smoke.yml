@@ -1,0 +1,19 @@
+name: Staging smoke
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  staging-smoke:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      STAGING_BASE_URL: https://staging.room-tba.uplbtools.me
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install chromium --with-deps
+      - run: bun run e2e:staging

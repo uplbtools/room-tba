@@ -128,7 +128,11 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `bun dev`                     | Dev server                                                                                                         |
 | `bun run build`               | Production build (**needs** `DATABASE_URL`; entity SEO pages render on first request via Vercel ISR, not at build) |
-| `bun test src`                | Unit tests (no DB required)                                                                                        |
+| `bun test src/lib src/constants` | Unit + store tests (no DB required) |
+| `bun run test:components`        | Vitest component/layout tests |
+| `bun run test:integration`       | API + DB integration (E2E DB; see `docs/testing.md`) |
+| `bun run e2e`                    | Playwright blocking E2E (E2E DB + preview) |
+| `bun run e2e:advisory`           | Playwright advisory (non-blocking in CI) |
 | `bun run lint`                | Prettier + ESLint                                                                                                  |
 | `bun run format`              | Prettier write                                                                                                     |
 | `bunx drizzle-kit studio`     | Browse/edit Postgres visually                                                                                      |

@@ -43,7 +43,7 @@ Run only what applies to the PR scope:
 | Editor / admin API      | yes  | yes               | yes           | auth + one PATCH                      |
 | Drizzle migration       | yes  | yes               | yes           | confirm migration applied on Supabase |
 
-PR CI (GitHub Actions) runs **Prettier check + unit tests**; no `DATABASE_URL` required. Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
+PR CI (GitHub Actions) runs **Prettier check + unit tests + component tests**; integration and E2E run in separate jobs. See [docs/testing.md](testing.md). Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
 
 ## Automated Checks
 
