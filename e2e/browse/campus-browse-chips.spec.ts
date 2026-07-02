@@ -9,9 +9,11 @@ test.describe("campus browse chips", () => {
 
   test("Buildings opens browse panel with building list", async ({ page }) => {
     await page.getByRole("button", { name: "Browse buildings" }).click();
-    await expect(page.getByRole("heading", { name: /Buildings/i })).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByRole("heading", { name: /Buildings/i })).toBeVisible(
+      {
+        timeout: 10_000,
+      },
+    );
   });
 
   test("Colleges opens browse panel on colleges tab", async ({ page }) => {
@@ -23,9 +25,11 @@ test.describe("campus browse chips", () => {
 
   test("Divisions opens browse panel on divisions tab", async ({ page }) => {
     await page.getByRole("button", { name: "Browse divisions" }).click();
-    await expect(page.getByRole("heading", { name: /Divisions/i })).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByRole("heading", { name: /Divisions/i })).toBeVisible(
+      {
+        timeout: 10_000,
+      },
+    );
   });
 
   test("Classes opens class list without toggling building filter chip", async ({

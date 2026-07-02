@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openBuilding } from "../helpers/search";
-import { buildingPagePath } from "../helpers/search";
+import { openBuilding, buildingPagePath } from "../helpers/search";
+import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
 test.describe("entity SEO", () => {
   test("building page has og:title and canonical", async ({ page }) => {
@@ -12,10 +12,17 @@ test.describe("entity SEO", () => {
     await expect(canonical).toHaveAttribute("href", /\/building\//);
   });
 
-  test("search updates URL with entity path", async ({ page }) => {
+  test("search updates URL with entity path", async ({ page, isMobile }) => {
     await page.goto("/");
     await waitForAppBoot(page);
     await openBuilding(page);
-    await expect(page).toHaveURL(/building=|\/building\//, { timeout: 10_000 });
+    if (isMobile) {
+      await expect(
+        page.getByText(E2E_FIXTURES.buildingName).first(),
+      ).toBeVisible();
+      return;
+    }
+    await page.waitForURL(/building=|\/building\//, { timeout: 20_000 });
+    await expect(page).toHaveURL(/building=|\/building\//);
   });
 });

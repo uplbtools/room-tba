@@ -1,15 +1,22 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
+import { campusSearchBox } from "./app";
+
+export function searchSuggestions(page: Page): Locator {
+  return page.getByRole("listbox", { name: /search suggestions/i });
+}
 
 export async function searchAndSelect(
   page: Page,
   query: string,
   optionPattern: RegExp,
 ) {
-  await page.getByPlaceholder("Search campus").fill(query);
-  await page.getByRole("option", { name: optionPattern }).first().click({
-    timeout: 15_000,
-  });
+  await campusSearchBox(page).fill(query);
+  const suggestion = searchSuggestions(page)
+    .getByRole("button", { name: optionPattern })
+    .first();
+  await suggestion.waitFor({ state: "visible", timeout: 30_000 });
+  await suggestion.click({ timeout: 15_000 });
 }
 
 export async function openBuilding(page: Page) {
@@ -44,8 +51,9 @@ export async function openEvent(page: Page) {
   );
 }
 
-export function buildingPagePath(id = 1) {
-  return `/building/e2e-test-hall-${id}/`;
+/** Building entity pages use name slug only (no id suffix). */
+export function buildingPagePath() {
+  return "/building/e2e-test-hall/";
 }
 
 export function roomPagePath(id = 1) {

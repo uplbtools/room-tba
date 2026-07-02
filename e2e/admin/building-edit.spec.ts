@@ -1,6 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
 import { loginAsAdmin, logout } from "../helpers/auth";
+import {
+  expandEditorMoreFields,
+  fillAndSaveEditorField,
+  openEntityEditor,
+} from "../helpers/editor";
 import { openBuilding } from "../helpers/search";
 
 test.describe("entity panel edits", () => {
@@ -16,13 +21,12 @@ test.describe("entity panel edits", () => {
 
   test("admin edits building directions", async ({ page }) => {
     await openBuilding(page);
-    const directions = page.getByLabel(/directions/i).first();
-    if (await directions.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await directions.fill("E2E building directions updated");
-      await page.getByRole("button", { name: /^save$/i }).first().click();
-      await expect(page.getByText(/saved|updated/i).first()).toBeVisible({
-        timeout: 10_000,
-      });
-    }
+    await openEntityEditor(page, "building");
+    await expandEditorMoreFields(page);
+    await fillAndSaveEditorField(
+      page,
+      "building-directions-editor",
+      `E2E building directions ${Date.now()}`,
+    );
   });
 });

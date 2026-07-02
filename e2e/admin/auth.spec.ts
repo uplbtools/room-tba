@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { loginAsAdmin, logout } from "../helpers/auth";
+import { loginAsAdminViaModal, logout } from "../helpers/auth";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
 test.describe("admin auth", () => {
@@ -10,7 +10,7 @@ test.describe("admin auth", () => {
   });
 
   test("login via modal", async ({ page }) => {
-    await loginAsAdmin(page);
+    await loginAsAdminViaModal(page);
     await expect(page.getByRole("button", { name: /editor/i })).toBeVisible();
     await logout(page);
   });

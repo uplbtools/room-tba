@@ -1,12 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnv } from "./scripts/load-env";
+
+loadEnv();
+
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4321";
 
 export default defineConfig({
   testDir: "e2e/advisory",
+  timeout: 60_000,
   fullyParallel: true,
   retries: 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4321",
+    baseURL,
     trace: "on-first-retry",
   },
   projects: [
@@ -23,9 +29,9 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: "bun run preview -- --host 127.0.0.1 --port 4321",
-        url: "http://127.0.0.1:4321",
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        command: "bun run serve:e2e",
+        url: `${baseURL}/api/health`,
+        reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
+        timeout: 180_000,
       },
 });

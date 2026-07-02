@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { waitForAppBoot } from "../helpers/app";
+import { campusSearchBox, waitForAppBoot } from "../helpers/app";
 
 test.describe("smoke boot", () => {
   test("app loads after dismissing landing", async ({ page }) => {
@@ -8,7 +8,7 @@ test.describe("smoke boot", () => {
     });
     await page.goto("/");
     await waitForAppBoot(page);
-    await expect(page.getByPlaceholder("Search campus")).toBeVisible();
+    await expect(campusSearchBox(page)).toBeVisible();
   });
 
   test("viewport meta initial-scale=1", async ({ page }) => {

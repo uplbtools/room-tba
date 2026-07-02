@@ -15,6 +15,9 @@ test.describe("contributor proposals", () => {
   });
 
   test("admin sees review queue after contributor proposal", async () => {
-    test.skip(true, "Requires stable proposal UI flow — covered in integration");
+    test.skip(
+      true,
+      "Requires stable proposal UI flow — covered in integration",
+    );
   });
 });

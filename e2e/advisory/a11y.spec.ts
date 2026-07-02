@@ -4,7 +4,9 @@ import { waitForAppBoot } from "../helpers/app";
 import { openBuilding } from "../helpers/search";
 
 test.describe("a11y @advisory", () => {
-  async function assertNoSeriousViolations(page: import("@playwright/test").Page) {
+  async function assertNoSeriousViolations(
+    page: import("@playwright/test").Page,
+  ) {
     const results = await new AxeBuilder({ page })
       .disableRules(["color-contrast"])
       .analyze();
@@ -32,7 +34,9 @@ test.describe("a11y @advisory", () => {
     await assertNoSeriousViolations(page);
   });
 
-  test("building side panel has no serious axe violations", async ({ page }) => {
+  test("building side panel has no serious axe violations", async ({
+    page,
+  }) => {
     await page.goto("/");
     await waitForAppBoot(page);
     await openBuilding(page);

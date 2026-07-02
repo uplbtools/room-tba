@@ -121,8 +121,8 @@ async function main() {
     if (!roomId) throw new Error("Failed to seed room");
 
     await client.query(
-      `INSERT INTO events (slug, title, description, category, starts_at, ends_at, timezone, recurrence, is_active, version)
-       VALUES ($1, $2, 'E2E event', 'other', NOW() + interval '1 day', NOW() + interval '2 days', 'Asia/Manila', 'none', true, 1)`,
+      `INSERT INTO events (slug, title, description, category, starts_at, ends_at, timezone, recurrence, is_active, include_in_seo, version)
+       VALUES ($1, $2, 'E2E event', 'other', NOW() + interval '1 day', NOW() + interval '2 days', 'Asia/Manila', 'none', true, true, 1)`,
       [E2E_FIXTURES.eventSlug, E2E_FIXTURES.eventTitle],
     );
 

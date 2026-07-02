@@ -24,7 +24,10 @@ test.describe("schedule import @advisory", () => {
     const textarea = page.locator("#schedule-import-paste");
     if (await textarea.isVisible({ timeout: 5000 }).catch(() => false)) {
       await textarea.fill(SAMPLE_SCHEDULE);
-      await page.getByRole("button", { name: /import|match/i }).first().click();
+      await page
+        .getByRole("button", { name: /import|match/i })
+        .first()
+        .click();
       await expect(page.locator(".schedule-import-panel")).toBeVisible();
     }
   });

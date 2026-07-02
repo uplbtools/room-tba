@@ -9,7 +9,9 @@ test.describe("term and classes", () => {
   });
 
   test("term selector visible", async ({ page }) => {
-    await expect(page.getByRole("button", { name: /sem|term|1252/i }).first()).toBeVisible({
+    await expect(
+      page.getByRole("button", { name: /sem|term|1252/i }).first(),
+    ).toBeVisible({
       timeout: 10_000,
     });
   });

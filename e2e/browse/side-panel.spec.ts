@@ -1,11 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import {
-  openBuilding,
-  openDorm,
-  openEvent,
-  openRoom,
-} from "../helpers/search";
+import { openBuilding, openDorm, openEvent, openRoom } from "../helpers/search";
 
 test.describe("side panel parity", () => {
   test.beforeEach(async ({ page }) => {
@@ -33,7 +28,10 @@ test.describe("side panel parity", () => {
     await expect(page.getByText(/E2E Test Event/i).first()).toBeVisible();
   });
 
-  test("building panel no horizontal overflow @mobile", async ({ page, isMobile }) => {
+  test("building panel no horizontal overflow @mobile", async ({
+    page,
+    isMobile,
+  }) => {
     test.skip(!isMobile, "mobile only");
     await openBuilding(page);
     const panel = page.locator(".drawer-card").first();

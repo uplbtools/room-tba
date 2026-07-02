@@ -1,6 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
 import { loginAsAdmin, logout } from "../helpers/auth";
+import { fillAndSaveEditorField, openEntityEditor } from "../helpers/editor";
 import { openDorm } from "../helpers/search";
 
 test.describe("dorm edit", () => {
@@ -16,13 +17,11 @@ test.describe("dorm edit", () => {
 
   test("admin edits dorm directions", async ({ page }) => {
     await openDorm(page);
-    const directions = page.getByLabel(/directions/i).first();
-    if (await directions.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await directions.fill("E2E dorm directions updated");
-      await page.getByRole("button", { name: /^save$/i }).first().click();
-      await expect(page.getByText(/saved|updated/i).first()).toBeVisible({
-        timeout: 10_000,
-      });
-    }
+    await openEntityEditor(page, "dorm");
+    await fillAndSaveEditorField(
+      page,
+      "dorm-description-editor",
+      `E2E dorm description ${Date.now()}`,
+    );
   });
 });
