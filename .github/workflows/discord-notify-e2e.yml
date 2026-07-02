@@ -1,0 +1,43 @@
+name: Discord notify E2E
+
+# Listens for completed Playwright workflows and POSTs failures to uplbtools/discord-bot.
+# Must exist on the default branch (staging/main) to receive workflow_run events.
+
+on:
+  workflow_run:
+    workflows:
+      - E2E
+      - E2E advisory
+      - E2E staging
+      - Staging smoke
+    types:
+      - completed
+
+jobs:
+  notify:
+    if: >
+      github.event.workflow_run.conclusion != 'success' &&
+      github.event.workflow_run.conclusion != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: POST failure to Discord bot
+        if: ${{ secrets.NOTIFICATION_GATEWAY_URL != '' && secrets.NOTIFICATION_INGRESS_SECRET != '' }}
+        env:
+          GATEWAY_URL: ${{ secrets.NOTIFICATION_GATEWAY_URL }}
+          SECRET: ${{ secrets.NOTIFICATION_INGRESS_SECRET }}
+          GH_TOKEN: ${{ github.token }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HTML_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_EVENT: ${{ github.event.workflow_run.event }}
+          RUN_DURATION: ${{ github.event.workflow_run.run_duration_ms }}
+        run: bash scripts/ci-notify-discord-e2e.sh
+
+      - name: Skip notice (secrets not configured)
+        if: ${{ secrets.NOTIFICATION_GATEWAY_URL == '' || secrets.NOTIFICATION_INGRESS_SECRET == '' }}
+        run: echo "::warning::NOTIFICATION_GATEWAY_URL or NOTIFICATION_INGRESS_SECRET not set — Discord E2E notify skipped"
