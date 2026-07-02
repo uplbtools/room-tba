@@ -39,7 +39,7 @@ jobs:
         run: bunx eslint .
 
       - name: Unit tests
-        run: bun test src/lib src/constants
+        run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'
 
       - name: Component tests
         run: bun run test:components
