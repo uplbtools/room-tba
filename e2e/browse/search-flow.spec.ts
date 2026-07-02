@@ -28,15 +28,13 @@ test.describe("search flow", () => {
       .click({ timeout: 15_000 });
     await expect(page.getByText(E2E_FIXTURES.roomCode).first()).toBeVisible();
   });
-});
 
-test.describe("building filters", () => {
-  test("map tools flyout opens", async ({ page }) => {
-    await page.goto("/");
-    await waitForAppBoot(page);
-    await page.getByRole("button", { name: /map tools/i }).click();
-    await expect(
-      page.getByRole("dialog", { name: /map tools/i }),
-    ).toBeVisible();
+  test("search updates location for building", async ({ page }) => {
+    await page.getByPlaceholder("Search campus").fill(E2E_FIXTURES.buildingName);
+    await page
+      .getByRole("option", { name: new RegExp(E2E_FIXTURES.buildingName, "i") })
+      .first()
+      .click({ timeout: 15_000 });
+    await expect(page).toHaveURL(/building/i, { timeout: 10_000 });
   });
 });

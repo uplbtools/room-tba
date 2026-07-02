@@ -9,7 +9,17 @@ export default defineConfig({
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4321",
     trace: "on-first-retry",
   },
-  projects: [{ name: "desktop-chrome", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "desktop-chrome", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "mobile-chrome",
+      use: { ...devices["Pixel 7"] },
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
+  ],
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
