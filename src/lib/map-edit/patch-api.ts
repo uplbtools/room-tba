@@ -29,7 +29,8 @@ export async function patchPosition(
 
   if (!res.ok) {
     const data = (await res.json().catch(() => ({}))) as
-      EditableConflictResponse | { error?: string };
+      | EditableConflictResponse
+      | { error?: string };
     if (res.status === 409) {
       const conflict = data as EditableConflictResponse;
       throw new ClientEditConflictError(
@@ -60,7 +61,8 @@ export async function patchEventLocations(
     body: JSON.stringify({ version, locations }),
   });
   const data = (await res.json().catch(() => ({}))) as
-    EventLocationsPatchResponse | { error?: string };
+    | EventLocationsPatchResponse
+    | { error?: string };
 
   if (!res.ok) {
     if (res.status === 409) {

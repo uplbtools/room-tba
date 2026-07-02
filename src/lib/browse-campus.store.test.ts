@@ -37,7 +37,12 @@ function mockQueryStore(): MockQueryStore {
 describe("openCampusBrowse", () => {
   test("sets browse query, clears search input, and expands the drawer", () => {
     const queryStore = mockQueryStore();
-    const sidePanelStore = { collapsed: true, expand() { this.collapsed = false; } };
+    const sidePanelStore = {
+      collapsed: true,
+      expand() {
+        this.collapsed = false;
+      },
+    };
     openCampusBrowse(queryStore as never, sidePanelStore as never, "divisions");
     expect(queryStore.category).toBe("browse");
     expect(queryStore.queryValue).toBe("divisions");
@@ -49,7 +54,12 @@ describe("openCampusBrowse", () => {
 describe("openBrowseClasses", () => {
   test("opens classes list and expands the drawer", () => {
     const queryStore = mockQueryStore();
-    const sidePanelStore = { collapsed: true, expand() { this.collapsed = false; } };
+    const sidePanelStore = {
+      collapsed: true,
+      expand() {
+        this.collapsed = false;
+      },
+    };
     openBrowseClasses(queryStore as never, sidePanelStore as never);
     expect(queryStore.category).toBe("classes");
     expect(queryStore.queryValue).toBe("All classes");

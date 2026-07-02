@@ -30,7 +30,8 @@ export async function fetchFinalExams(
   const response = await fetch(`/api/final-exams?${params.toString()}`);
   if (!response.ok) return [];
   const payload = (await response.json()) as
-    FinalExamRow[] | { data?: FinalExamRow[] };
+    | FinalExamRow[]
+    | { data?: FinalExamRow[] };
   if (Array.isArray(payload)) return payload;
   return Array.isArray(payload?.data) ? payload.data : [];
 }

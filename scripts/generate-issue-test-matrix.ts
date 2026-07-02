@@ -38,7 +38,8 @@ type Row = {
 
 const HUMAN_COORDINATION =
   /partnership|MOU|volunteer onboarding|stakeholder review|human coordination/i;
-const NO_AUTO = /prettier|eslint|biome|semantic-release|dependabot|changelog only|documentation only|README only/i;
+const NO_AUTO =
+  /prettier|eslint|biome|semantic-release|dependabot|changelog only|documentation only|README only/i;
 const RELEASED = /released/i;
 
 function labelNames(issue: Issue): string[] {
@@ -49,7 +50,11 @@ function hasLabel(labels: string[], ...names: string[]): boolean {
   return names.some((n) => labels.includes(n));
 }
 
-function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: string } {
+function inferTiers(issue: Issue): {
+  tiers: TestTier[];
+  spec: string;
+  notes: string;
+} {
   const labels = labelNames(issue);
   const text = `${issue.title}\n${issue.body ?? ""}`.toLowerCase();
   const tiers = new Set<TestTier>();
@@ -72,7 +77,10 @@ function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: str
     };
   }
 
-  if (NO_AUTO.test(text) && !/api|auth|route|map|panel|editor/i.test(issue.title)) {
+  if (
+    NO_AUTO.test(text) &&
+    !/api|auth|route|map|panel|editor/i.test(issue.title)
+  ) {
     return {
       tiers: ["none"],
       spec: "CI/tooling change only",
@@ -93,7 +101,8 @@ function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: str
   if (hasLabel(labels, "data")) {
     tiers.add("unit");
     tiers.add("integration");
-    spec = spec || "Fixture/import unit test; optional staging data-fidelity smoke";
+    spec =
+      spec || "Fixture/import unit test; optional staging data-fidelity smoke";
     notes = notes || "No live AMIS fetch in CI";
   }
 
@@ -103,13 +112,19 @@ function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: str
     spec = spec || "Regression: unit for pure logic; E2E for UI repro";
   }
 
-  if (/security|rate.?limit|pagination|auth|turnstile|captcha|csrf|upload/i.test(text)) {
+  if (
+    /security|rate.?limit|pagination|auth|turnstile|captcha|csrf|upload/i.test(
+      text,
+    )
+  ) {
     tiers.add("unit");
     tiers.add("integration");
     spec = spec || "HTTP integration + unit for guards/helpers";
   }
 
-  if (/api\/|patch |409|conflict|optimistic|merge |proposal|admin\//i.test(text)) {
+  if (
+    /api\/|patch |409|conflict|optimistic|merge |proposal|admin\//i.test(text)
+  ) {
     tiers.add("integration");
     spec = spec || "integration/services or integration/http";
   }
@@ -117,7 +132,9 @@ function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: str
   if (/amis|import.*class|schedule import|term_id|1252|1253/i.test(text)) {
     tiers.add("unit");
     spec = spec || "Fixture JSON unit tests in src/lib/amis or schedule-import";
-    notes = notes ? `${notes}; AMIS --fetch manual only` : "AMIS --fetch manual only";
+    notes = notes
+      ? `${notes}; AMIS --fetch manual only`
+      : "AMIS --fetch manual only";
   }
 
   if (/a11y|accessibility|axe|contrast|screen reader/i.test(text)) {
@@ -136,13 +153,21 @@ function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: str
     spec = spec || "sync-keys/store unit; advisory offline-boot";
   }
 
-  if (/map|side panel|side-panel|drawer|chrome|flyout|320|768|mobile|search|browse chip/i.test(text)) {
+  if (
+    /map|side panel|side-panel|drawer|chrome|flyout|320|768|mobile|search|browse chip/i.test(
+      text,
+    )
+  ) {
     tiers.add("component");
     tiers.add("e2e-blocking");
     spec = spec || "Vitest layout @320px + Playwright browse/admin spec";
   }
 
-  if (/editor|pin drag|undo|redo|map edit|contributor|3d room|building 3d/i.test(text)) {
+  if (
+    /editor|pin drag|undo|redo|map edit|contributor|3d room|building 3d/i.test(
+      text,
+    )
+  ) {
     tiers.add("e2e-blocking");
     tiers.add("integration");
     spec = spec || "e2e/admin/* + integration 409/version";
@@ -154,7 +179,11 @@ function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: str
     spec = spec || "e2e/browse/map-tools + advisory transit";
   }
 
-  if (/design improvement|whimsical|visual polish|animation feel|subjective/i.test(text)) {
+  if (
+    /design improvement|whimsical|visual polish|animation feel|subjective/i.test(
+      text,
+    )
+  ) {
     tiers.add("e2e-advisory");
     tiers.add("manual-only");
     spec = spec || "Layout overflow/component width; human visual sign-off";
@@ -178,7 +207,9 @@ function inferTiers(issue: Issue): { tiers: TestTier[]; spec: string; notes: str
   }
 
   if (issue.state === "CLOSED" && !hasLabel(labels, "released")) {
-    notes = notes ? `${notes}; closed — audit only` : "Closed — audit coverage before new work";
+    notes = notes
+      ? `${notes}; closed — audit only`
+      : "Closed — audit coverage before new work";
   }
 
   return {
@@ -222,12 +253,18 @@ function main() {
   });
 
   const open = rows.filter((r) => r.state === "OPEN");
-  const needsWork = open.filter((r) => !r.tiers.includes("none") && !r.tiers.includes("verify-existing"));
+  const needsWork = open.filter(
+    (r) => !r.tiers.includes("none") && !r.tiers.includes("verify-existing"),
+  );
   const verifyOnly = open.filter((r) => r.tiers.includes("verify-existing"));
-  const noTest = open.filter((r) => r.tiers.includes("none") || r.tiers.includes("manual-only"));
+  const noTest = open.filter(
+    (r) => r.tiers.includes("none") || r.tiers.includes("manual-only"),
+  );
 
   const byTier = (tier: TestTier) =>
-    open.filter((r) => r.tiers.includes(tier)).sort((a, b) => a.number - b.number);
+    open
+      .filter((r) => r.tiers.includes(tier))
+      .sort((a, b) => a.number - b.number);
 
   const lines: string[] = [
     "# Issue → test matrix",
@@ -260,15 +297,25 @@ function main() {
   ];
 
   for (const r of needsWork
-    .filter((r) => r.labels.some((l) => l.startsWith("priority/high") || l === "bug"))
+    .filter((r) =>
+      r.labels.some((l) => l.startsWith("priority/high") || l === "bug"),
+    )
     .sort((a, b) => a.number - b.number)) {
     lines.push(
       `| [#${r.number}](https://github.com/uplbtools/room-tba/issues/${r.number}) | ${r.tiers.join(", ")} | ${r.spec} |`,
     );
   }
 
-  lines.push("", "## Open bugs (regression tests mandatory)", "", "| Issue | Tiers | Test spec |", "| ----- | ----- | --------- |");
-  for (const r of open.filter((r) => r.labels.includes("bug")).sort((a, b) => a.number - b.number)) {
+  lines.push(
+    "",
+    "## Open bugs (regression tests mandatory)",
+    "",
+    "| Issue | Tiers | Test spec |",
+    "| ----- | ----- | --------- |",
+  );
+  for (const r of open
+    .filter((r) => r.labels.includes("bug"))
+    .sort((a, b) => a.number - b.number)) {
     lines.push(
       `| [#${r.number}](https://github.com/uplbtools/room-tba/issues/${r.number}) | ${r.tiers.join(", ")} | ${r.spec} |`,
     );
@@ -281,7 +328,13 @@ function main() {
     ["Component backlog", "component"],
     ["Advisory backlog", "e2e-advisory"],
   ] as const) {
-    lines.push("", `## ${heading}`, "", "| Issue | State | Tiers | Test spec | Notes |", "| ----- | ----- | ----- | --------- | ----- |");
+    lines.push(
+      "",
+      `## ${heading}`,
+      "",
+      "| Issue | State | Tiers | Test spec | Notes |",
+      "| ----- | ----- | ----- | --------- | ----- |",
+    );
     for (const r of byTier(tier)) {
       lines.push(
         `| [#${r.number}](https://github.com/uplbtools/room-tba/issues/${r.number}) ${r.title.slice(0, 60)} | ${r.state} | ${r.tiers.join(", ")} | ${r.spec} | ${r.notes} |`,
@@ -289,7 +342,13 @@ function main() {
     }
   }
 
-  lines.push("", "## Full open issue index", "", "| Issue | Labels | Tiers | Test spec |", "| ----- | ------ | ----- | --------- |");
+  lines.push(
+    "",
+    "## Full open issue index",
+    "",
+    "| Issue | Labels | Tiers | Test spec |",
+    "| ----- | ------ | ----- | --------- |",
+  );
   for (const r of open.sort((a, b) => a.number - b.number)) {
     const lbl = r.labels.slice(0, 4).join(", ") || "—";
     lines.push(
@@ -297,13 +356,26 @@ function main() {
     );
   }
 
-  lines.push("", "## Closed issues (coverage audit)", "", "| Issue | Tiers | Notes |", "| ----- | ----- | ----- |");
-  for (const r of rows.filter((r) => r.state === "CLOSED").sort((a, b) => b.number - a.number).slice(0, 80)) {
+  lines.push(
+    "",
+    "## Closed issues (coverage audit)",
+    "",
+    "| Issue | Tiers | Notes |",
+    "| ----- | ----- | ----- |",
+  );
+  for (const r of rows
+    .filter((r) => r.state === "CLOSED")
+    .sort((a, b) => b.number - a.number)
+    .slice(0, 80)) {
     lines.push(
       `| [#${r.number}](https://github.com/uplbtools/room-tba/issues/${r.number}) | ${r.tiers.join(", ")} | ${r.notes || r.spec} |`,
     );
   }
-  lines.push("", "_Showing 80 most recent closed; regenerate for full list._", "");
+  lines.push(
+    "",
+    "_Showing 80 most recent closed; regenerate for full list._",
+    "",
+  );
 
   const out = path.join(import.meta.dir, "..", "docs", "issue-test-matrix.md");
   writeFileSync(out, lines.join("\n"));

@@ -40,4 +40,5 @@ export type ScheduleDayStop = {
 };
 
 export type ParseImportResult =
-  { ok: true; rows: ImportedScheduleRow[] } | { ok: false; error: string };
+  | { ok: true; rows: ImportedScheduleRow[] }
+  | { ok: false; error: string };

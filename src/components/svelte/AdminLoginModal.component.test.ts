@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test } from "vitest";
 import AdminLoginModal from "@ui/AdminLoginModal.svelte";
 import { adminAuthStore } from "@lib/store.svelte";
-import { expectNoHorizontalOverflow, mountAtWidth } from "@test/layout-assertions";
+import {
+  expectNoHorizontalOverflow,
+  mountAtWidth,
+} from "@test/layout-assertions";
 
 describe("AdminLoginModal", () => {
   beforeEach(() => {
