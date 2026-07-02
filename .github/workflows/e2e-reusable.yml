@@ -20,7 +20,6 @@ jobs:
       ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
       CI: true
       SKIP_E2E_BUILD: "1"
-      ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT: "1"
     steps:
       - uses: actions/checkout@v7
 
@@ -51,17 +50,20 @@ jobs:
 
       - name: Integration tests
         if: inputs.suite == 'blocking'
-        run: PREVIEW_BASE_URL=http://127.0.0.1:4321 bun run test:integration
+        run: PREVIEW_BASE_URL=http://127.0.0.1:4321 bun test integration --preload integration/preload.ts --concurrency 1
 
       - name: Playwright blocking tests
         if: inputs.suite == 'blocking'
         env:
           PLAYWRIGHT_SKIP_WEBSERVER: "1"
+          ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT: "1"
         run: bun run e2e
 
       - name: Playwright advisory tests
         if: inputs.suite == 'advisory'
         continue-on-error: true
+        env:
+          ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT: "1"
         run: bun run e2e:advisory
 
       - name: Advisory failure notice
