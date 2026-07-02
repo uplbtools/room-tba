@@ -1,8 +1,12 @@
 ---
+export const prerender = false;
+
 import EntityPage from "@seo/EntityPage.astro";
 import { getBuildingSlug } from "@lib/app-data";
-import { getAllBuildingsCached } from "@lib/services/map-data-service";
-import { getBuildingPageData } from "@lib/services/ssg-service";
+import {
+  getBuildingPageData,
+  resolveBuildingNameFromSlug,
+} from "@lib/services/ssg-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -11,20 +15,20 @@ import {
   webpageSchema,
 } from "@lib/site";
 
-export async function getStaticPaths() {
-  const buildings = await getAllBuildingsCached();
-
-  return buildings.map((building) => ({
-    params: { slug: getBuildingSlug(building) },
-    props: { buildingName: building.buildingName },
-  }));
+const slug = Astro.params.slug;
+if (!slug) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
-const { buildingName } = Astro.props;
+const buildingName = await resolveBuildingNameFromSlug(slug);
+if (!buildingName) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
 const appData = await getBuildingPageData(buildingName);
 
 if (appData === null) {
-  throw new Error(`Building not found for slug: ${buildingName}`);
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 const { building, roomCount, classCount, termLabel } = appData;
 const termPhrase = termLabel ? ` for ${termLabel}` : "";

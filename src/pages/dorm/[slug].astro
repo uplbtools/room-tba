@@ -1,7 +1,9 @@
 ---
+export const prerender = false;
+
 import EntityPage from "@seo/EntityPage.astro";
 import { getDormRouteSlug } from "@lib/app-data";
-import { getAllDormsCached } from "@lib/services/map-data-service";
+import { parseIdRouteSlug } from "@lib/route-slugs";
 import { getDormPageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
@@ -11,20 +13,16 @@ import {
   webpageSchema,
 } from "@lib/site";
 
-export async function getStaticPaths() {
-  const dorms = await getAllDormsCached();
-
-  return dorms.map((dorm) => ({
-    params: { slug: getDormRouteSlug(dorm) },
-    props: { dormId: dorm.id },
-  }));
+const slug = Astro.params.slug;
+const dormId = slug ? parseIdRouteSlug(slug) : null;
+if (!dormId) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
-const { dormId } = Astro.props;
 const appData = await getDormPageData(dormId);
 
 if (appData === null) {
-  throw new Error(`Dorm not found for slug: ${dormId}`);
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 const { dorm } = appData;
 
