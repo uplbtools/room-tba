@@ -22,7 +22,7 @@
     "format": "biome format --write .",
     "test": "bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'",
     "test:components": "vitest run",
-    "test:integration": "bun test integration --preload integration/preload.ts --concurrency 1",
+    "test:integration": "bun test ./integration --preload integration/preload.ts --concurrency 1",
     "test:integration:live": "bash scripts/run-integration-preview.sh",
     "test:all": "bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts' && bun run test:components && bun run test:integration",
     "e2e": "playwright test",

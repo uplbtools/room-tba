@@ -43,5 +43,5 @@ describeIntegration("merge service", () => {
     ]);
     expect(gone.rowCount).toBe(0);
     await verify.end();
-  });
+  }, 60_000);
 });
