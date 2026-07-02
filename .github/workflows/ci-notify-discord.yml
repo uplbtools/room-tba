@@ -1,0 +1,23 @@
+name: CI notify Discord
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event != 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to Discord
+        if: ${{ secrets.DISCORD_CI_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_CI_WEBHOOK_URL: ${{ secrets.DISCORD_CI_WEBHOOK_URL }}
+        run: |
+          payload=$(jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg branch "${{ github.event.workflow_run.head_branch }}" \
+            --arg url "${{ github.event.workflow_run.html_url }}" \
+            '{embeds:[{title:"CI failed",description:("**"+$repo+"** on `"+$branch+"`"),url:$url,color:15158332}]}')
+          curl -sf -H "Content-Type: application/json" -d "$payload" "$DISCORD_CI_WEBHOOK_URL"

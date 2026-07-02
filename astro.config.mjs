@@ -166,6 +166,16 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
+      NOTIFICATION_GATEWAY_URL: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      NOTIFICATION_INGRESS_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
     },
   },
   adapter: vercel({
