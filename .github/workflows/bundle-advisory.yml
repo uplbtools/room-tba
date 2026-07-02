@@ -1,0 +1,32 @@
+name: Bundle advisory
+
+# Same PR gating as E2E — avoids duplicate prod builds on draft pushes.
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened, labeled]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".cursor/**"
+
+jobs:
+  bundle:
+    if: |
+      github.event.action == 'ready_for_review' ||
+      (github.event.action == 'opened' && github.event.pull_request.draft == false) ||
+      (github.event.action == 'reopened' && github.event.pull_request.draft == false) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'run/e2e')
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run check:bundle
+      - name: Bundle budget notice
+        if: failure()
+        run: echo "::warning::Bundle budget check failed (non-blocking)"

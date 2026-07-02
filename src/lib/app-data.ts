@@ -25,7 +25,12 @@ import type {
 } from "@lib/types";
 
 export type SearchCategory =
-  "building" | "division" | "college" | "room" | "dorm" | "event";
+  | "building"
+  | "division"
+  | "college"
+  | "room"
+  | "dorm"
+  | "event";
 
 export type InitialSearchState = {
   category: SearchCategory;
