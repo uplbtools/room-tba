@@ -1,8 +1,12 @@
 ---
+export const prerender = false;
+
 import EntityPage from "@seo/EntityPage.astro";
 import { getCollegeSlug } from "@lib/app-data";
-import { getAllCollegesCached } from "@lib/services/map-data-service";
-import { getCollegePageData } from "@lib/services/ssg-service";
+import {
+  getCollegePageData,
+  resolveCollegeNameFromSlug,
+} from "@lib/services/ssg-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -11,20 +15,20 @@ import {
   webpageSchema,
 } from "@lib/site";
 
-export async function getStaticPaths() {
-  const colleges = await getAllCollegesCached();
-
-  return colleges.map((college) => ({
-    params: { slug: getCollegeSlug(college) },
-    props: { collegeName: college.collegeName },
-  }));
+const slug = Astro.params.slug;
+if (!slug) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
-const { collegeName } = Astro.props;
+const collegeName = await resolveCollegeNameFromSlug(slug);
+if (!collegeName) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
 const appData = await getCollegePageData(collegeName);
 
 if (appData === null) {
-  throw new Error(`College not found for slug: ${collegeName}`);
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const { college, roomCount } = appData;

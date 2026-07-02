@@ -1,9 +1,10 @@
 ---
+export const prerender = false;
+
 import AppRoot from "@ui/AppRoot.svelte";
 import Layout from "@layouts/Layout.astro";
 import { getEventImage } from "@lib/event-images";
 import { formatCampusDateTime } from "@lib/event-time";
-import { getSeoEvents } from "@lib/services/event-service";
 import { getEventPageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
@@ -11,20 +12,16 @@ import {
   jsonLd,
   webpageSchema,
 } from "@lib/site";
-import { getSeoEventsCached } from "@lib/services/event-service";
-
-export async function getStaticPaths() {
-  const events = await getSeoEventsCached();
-  return events.map((event) => ({
-    params: { slug: event.slug },
-  }));
-}
 
 const { slug } = Astro.params;
-const appData = slug ? await getEventPageData(slug) : null;
+if (!slug) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const appData = await getEventPageData(slug);
 
 if (appData === null) {
-  throw new Error(`Event not found for slug: ${slug}`);
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const { event } = appData;
