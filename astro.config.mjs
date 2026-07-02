@@ -168,5 +168,13 @@ export default defineConfig({
       }),
     },
   },
-  adapter: vercel(),
+  adapter: vercel({
+    // Entity SEO pages use prerender=false and render on first request; Vercel
+    // caches HTML at the edge (ISR). Admin writes revalidate via ISR_BYPASS_TOKEN.
+    isr: {
+      expiration: 60 * 60 * 24,
+      bypassToken: process.env.ISR_BYPASS_TOKEN,
+      exclude: [/^\/api\//],
+    },
+  }),
 });

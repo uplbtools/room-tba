@@ -7,9 +7,45 @@ import {
   dormsTable,
   roomsTable,
 } from "@drizzle/schema";
+import {
+  getBuildingSlug,
+  getCollegeSlug,
+  getDivisionSlug,
+} from "@lib/app-data";
 import { db } from "@lib/db";
 import { getEventBySlug } from "./event-service";
 import { getDefaultTerm } from "./term-service";
+
+export async function resolveBuildingNameFromSlug(
+  slug: string,
+): Promise<string | null> {
+  const rows = await db
+    .select({ buildingName: buildingsTable.buildingName })
+    .from(buildingsTable);
+  return (
+    rows.find((row) => getBuildingSlug(row) === slug)?.buildingName ?? null
+  );
+}
+
+export async function resolveCollegeNameFromSlug(
+  slug: string,
+): Promise<string | null> {
+  const rows = await db
+    .select({ collegeName: collegesTable.collegeName })
+    .from(collegesTable);
+  return rows.find((row) => getCollegeSlug(row) === slug)?.collegeName ?? null;
+}
+
+export async function resolveDivisionNameFromSlug(
+  slug: string,
+): Promise<string | null> {
+  const rows = await db
+    .select({ divisionName: divisionsTable.divisionName })
+    .from(divisionsTable);
+  return (
+    rows.find((row) => getDivisionSlug(row) === slug)?.divisionName ?? null
+  );
+}
 
 export async function getBuildingPageData(buildingName: string) {
   const defaultTerm = await getDefaultTerm();

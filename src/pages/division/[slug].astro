@@ -1,8 +1,12 @@
 ---
+export const prerender = false;
+
 import EntityPage from "@seo/EntityPage.astro";
 import { getDivisionSlug } from "@lib/app-data";
-import { getDivisionPageData } from "@lib/services/ssg-service";
-import { getAllDivisionsCached } from "@lib/services/map-data-service";
+import {
+  getDivisionPageData,
+  resolveDivisionNameFromSlug,
+} from "@lib/services/ssg-service";
 import {
   absoluteUrl,
   breadcrumbSchema,
@@ -11,20 +15,20 @@ import {
   webpageSchema,
 } from "@lib/site";
 
-export async function getStaticPaths() {
-  const divisions = await getAllDivisionsCached();
-
-  return divisions.map((division) => ({
-    params: { slug: getDivisionSlug(division) },
-    props: { divisionName: division.divisionName },
-  }));
+const slug = Astro.params.slug;
+if (!slug) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
-const { divisionName } = Astro.props;
+const divisionName = await resolveDivisionNameFromSlug(slug);
+if (!divisionName) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
 const appData = await getDivisionPageData(divisionName);
 
 if (appData === null) {
-  throw new Error(`Division not found for slug: ${divisionName}`);
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 const { division, roomCount } = appData;
 
