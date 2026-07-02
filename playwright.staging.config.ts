@@ -1,4 +1,7 @@
 import { defineConfig } from "@playwright/test";
+import { loadEnv } from "./scripts/load-env";
+
+loadEnv([".env.staging"]);
 
 export default defineConfig({
   testDir: "e2e/staging",

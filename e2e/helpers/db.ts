@@ -1,7 +1,7 @@
-import { config } from "dotenv";
 import pg from "pg";
+import { loadEnv } from "../../scripts/load-env";
 
-config({ path: ".env" });
+loadEnv();
 
 const E2E_PROJECT_REF = "yhzinxlakcewqjaqbbaj";
 

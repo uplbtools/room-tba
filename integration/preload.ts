@@ -1,7 +1,7 @@
-import { config } from "dotenv";
 import { mock } from "bun:test";
+import { loadEnv } from "../scripts/load-env";
 
-config({ path: ".env" });
+loadEnv();
 
 const databaseUrl =
   process.env.E2E_DATABASE_URL?.trim() ||

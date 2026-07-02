@@ -1,10 +1,10 @@
 /**
  * Verify Postgres has all required public tables (migrations applied).
  */
-import { config } from "dotenv";
+import { loadEnv } from "./load-env";
 import pg from "pg";
 
-config({ path: ".env" });
+loadEnv();
 
 const REQUIRED_TABLES = [
   "terms",

@@ -2,11 +2,11 @@
  * Reset E2E Supabase database and seed fixtures for integration + Playwright.
  * Refuses to run unless DATABASE_URL host contains the E2E project ref.
  */
-import { config } from "dotenv";
 import bcrypt from "bcrypt";
 import pg from "pg";
+import { loadEnv } from "./load-env";
 
-config({ path: ".env" });
+loadEnv();
 
 const E2E_PROJECT_REF = "yhzinxlakcewqjaqbbaj";
 const DEFAULT_E2E_PASSWORD = "e2e-test-password-change-me";
