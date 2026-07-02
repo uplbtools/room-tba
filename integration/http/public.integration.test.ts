@@ -1,5 +1,10 @@
 import { describe, expect, test, beforeAll } from "bun:test";
-import { PREVIEW_BASE, requirePreview, previewFetchInit, skipWithoutE2eDb } from "../helpers/env";
+import {
+  PREVIEW_BASE,
+  requirePreview,
+  previewFetchInit,
+  skipWithoutE2eDb,
+} from "../helpers/env";
 
 const describeIntegration = skipWithoutE2eDb() ? describe.skip : describe;
 
@@ -34,10 +39,13 @@ describeIntegration("HTTP redirects", () => {
     const form = new FormData();
     form.set("username", "e2e-admin");
     form.set("password", "wrong-password");
-    const res = await fetch(`${PREVIEW_BASE}/api/admin/auth`, previewFetchInit({
-      method: "POST",
-      body: form,
-    }));
+    const res = await fetch(
+      `${PREVIEW_BASE}/api/admin/auth`,
+      previewFetchInit({
+        method: "POST",
+        body: form,
+      }),
+    );
     expect(res.status).toBe(401);
   });
 });

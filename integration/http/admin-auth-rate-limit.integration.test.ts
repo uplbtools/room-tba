@@ -1,5 +1,10 @@
 import { describe, expect, test, beforeAll } from "bun:test";
-import { PREVIEW_BASE, requirePreview, previewFetchInit, skipWithoutE2eDb } from "../helpers/env";
+import {
+  PREVIEW_BASE,
+  requirePreview,
+  previewFetchInit,
+  skipWithoutE2eDb,
+} from "../helpers/env";
 
 const describeIntegration = skipWithoutE2eDb() ? describe.skip : describe;
 
@@ -14,10 +19,13 @@ describeIntegration("admin auth rate limit", () => {
       const form = new FormData();
       form.set("username", "rate-limit-user");
       form.set("password", "wrong-password");
-      const res = await fetch(`${PREVIEW_BASE}/api/admin/auth`, previewFetchInit({
-        method: "POST",
-        body: form,
-      }));
+      const res = await fetch(
+        `${PREVIEW_BASE}/api/admin/auth`,
+        previewFetchInit({
+          method: "POST",
+          body: form,
+        }),
+      );
       lastStatus = res.status;
       if (lastStatus === 429) break;
     }

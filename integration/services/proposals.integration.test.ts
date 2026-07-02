@@ -16,11 +16,14 @@ describeIntegration("admin PATCH HTTP", () => {
   });
 
   test("PATCH without cookie returns 401", async () => {
-    const res = await fetch(`${PREVIEW_BASE}/api/admin/buildings/1`, previewFetchInit({
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat: 14.17, version: 1 }),
-    }));
+    const res = await fetch(
+      `${PREVIEW_BASE}/api/admin/buildings/1`,
+      previewFetchInit({
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat: 14.17, version: 1 }),
+      }),
+    );
     expect(res.status).toBe(401);
   });
 
