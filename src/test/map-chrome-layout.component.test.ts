@@ -1,8 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-  expectSingleLineButton,
-  mountAtWidth,
-} from "./layout-assertions";
+import { expectSingleLineButton, mountAtWidth } from "@test/layout-assertions";
 
 describe("map chrome layout helpers", () => {
   test("expectSingleLineButton passes for nowrap single-line button", () => {
