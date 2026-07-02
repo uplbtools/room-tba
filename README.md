@@ -106,6 +106,7 @@ Contributor notes: [AGENTS.md](AGENTS.md)
 - [Bun](https://bun.sh) 1.3+
 - A **Supabase** Postgres URL (`DATABASE_URL`); session pooler recommended for dev
 - `ADMIN_PASSWORD` if you want editor login locally
+- `ISR_BYPASS_TOKEN` (optional locally; **required on Vercel** for on-demand SEO page revalidation after editor publishes)
 
 ### Setup
 
@@ -126,7 +127,7 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 | Command                       | Does what                                                                                    |
 | ----------------------------- | -------------------------------------------------------------------------------------------- |
 | `bun dev`                     | Dev server                                                                                   |
-| `bun run build`               | Production build (**needs** `DATABASE_URL`)                                                  |
+| `bun run build`               | Production build (**needs** `DATABASE_URL`; entity SEO pages render on first request via Vercel ISR, not at build) |
 | `bun test src`                | Unit tests (no DB required)                                                                  |
 | `bun run lint`                | Prettier + ESLint                                                                            |
 | `bun run format`              | Prettier write                                                                               |
