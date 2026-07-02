@@ -1,5 +1,7 @@
 name: CI
 
+# Verify: Biome format, scoped ESLint, unit + component tests, build.
+
 on:
   pull_request:
     paths-ignore:
