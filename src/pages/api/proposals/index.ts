@@ -9,7 +9,9 @@ import { validateSubmitterName } from "@constants/proposals";
 import {
   ProposalValidationError,
   submitProposal,
+  type EditProposalSummary,
 } from "@lib/services/proposal-service";
+import { getNotificationAdapter } from "@lib/notifications";
 
 export const prerender = false;
 
@@ -67,6 +69,11 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       submitterUserId: session?.id && session.id > 0 ? session.id : null,
       proposalId: Number.isInteger(body.proposalId) ? body.proposalId : null,
     });
+
+    void emitProposalSubmitted(proposal, session?.id).catch((err) => {
+      console.error("Notification emit failed:", err);
+    });
+
     return json({ success: true, proposal }, 201);
   } catch (err) {
     if (err instanceof ProposalValidationError) {
@@ -81,5 +88,27 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json" },
+  });
+}
+
+async function emitProposalSubmitted(
+  proposal: EditProposalSummary,
+  sessionUserId: number | undefined,
+): Promise<void> {
+  const notifications = getNotificationAdapter();
+  await notifications.notify({
+    schemaVersion: 1,
+    type: "proposal.submitted",
+    source: "room-tba",
+    occurredAt: new Date().toISOString(),
+    idempotencyKey: `proposal:${proposal.id}:submitted`,
+    payload: {
+      proposalId: proposal.id,
+      entityType: proposal.entityType,
+      entityId: proposal.entityId,
+      entityLabel: proposal.entityLabel,
+      submitterName: proposal.submitterName,
+      isAnonymous: !sessionUserId,
+    },
   });
 }
