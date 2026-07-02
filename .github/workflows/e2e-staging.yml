@@ -22,5 +22,6 @@ concurrency:
 jobs:
   e2e:
     uses: ./.github/workflows/e2e-reusable.yml
+    secrets: inherit
     with:
       suite: blocking
