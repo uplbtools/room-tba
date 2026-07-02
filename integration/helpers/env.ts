@@ -1,5 +1,6 @@
 import { loadEnv } from "../../scripts/load-env";
 
+/** Shared integration/E2E preview env (see docs/testing.md). */
 loadEnv();
 
 const E2E_PROJECT_REF = "yhzinxlakcewqjaqbbaj";
