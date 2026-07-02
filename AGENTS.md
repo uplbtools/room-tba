@@ -17,6 +17,7 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Drizzle, API routes, migrations, PGlite          | [.cursor/rules/data-and-migrations.mdc](.cursor/rules/data-and-migrations.mdc)                                          |
 | Stores and client state                          | [.cursor/rules/svelte-stores.mdc](.cursor/rules/svelte-stores.mdc)                                                      |
 | PR QA evidence and reporting                     | [docs/agentic-qa-process.md](docs/agentic-qa-process.md)                                                                |
+| **Tests for an issue / test backlog**            | [docs/issue-test-matrix.md](docs/issue-test-matrix.md) + [docs/testing.md](docs/testing.md)                             |
 | Editor manual checklist                          | [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md)                                              |
 | When                                             | Read                                                                                                                    |
 | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
@@ -33,11 +34,46 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 - **Keep scope tight.** Avoid opportunistic refactors outside the request.
 - **Keep GitHub issues current** when work is tied to `#NNN`; issues hold implementation specifics that drift fast. See [docs/issue-hygiene.md](docs/issue-hygiene.md).
 - **Infer intent over typos.** User messages are often rushed; read for what they mean, not only literal wording. Common patterns:
-  - **"PR to main" / "merge to prod" / "ship it"** → promote **`staging` → `main`** (release PR), not a feature branch opened against `main`. See [Branches and pull requests](#branches-and-pull-requests).
-  - **"PR to staging"** → feature branch → `staging` (default for new work).
-  - **"Push staging" / "ship to staging"** → commit on `staging` and `git push origin staging` ([§ Push to staging directly](#push-to-staging-directly)).
+  - **"PR to main" / "merge to prod"** → release step only: **`staging` → `main`** PR (see [What “ship” means](#what-ship--shipped-means) for the full pipeline).
+  - **"Ship" / "ship it" / "shipped"** → **two-PR pipeline**: integration PR → `staging`, then release PR → `main`; review and **`bun run build`** at each stage. See [§ What “ship” means](#what-ship--shipped-means).
+  - **"PR to staging"** → feature branch → `staging` (integration step only).
+  - **"Push staging" / "ship to staging"** → land on integration only (stage 1); stop before `main` unless the user also asked to ship to prod.
   - Minor typos (`pr`, `stagign`, `mrege`, doubled letters); do not ask for clarification when context makes the goal obvious.
 - **`data` / `qa` issues:** reporters do not open PRs. Implement on their behalf; credit in issue comments.
+- **GitHub + Vercel CLI on maintainer machine:** `gh` and `vercel` are installed, authenticated, and linked (see [§ Vercel CLI and environment ops](#vercel-cli-and-environment-ops)). **Run them yourself by default** for PRs, issues, Actions secrets, env vars, check status, and deploy inspection — do not tell the user to use the dashboard when the CLI can do it. Only stop if auth fails (`gh auth status`, `vercel whoami`), the repo is not linked, or the action is destructive on prod without explicit approval.
+
+### Agent time estimates (not human sprint math)
+
+Estimate like **Composer with repo + shell access**, not like a human developer with meetings and context switches.
+
+- **Do not quote human-day timelines** (“this will take a day”) for scoped repo work. Prefer **“I’ll do it in this session”** or split by **deliverable** (PR1, PR2), not calendar days.
+- **Scoped + discoverable path** (one feature, known files, existing patterns) → usually **minutes to one session**, not hours/days of “dev time.” Examples: env wiring, a Playwright smoke slice, a map chrome fix, one API route.
+- **Reserve multi-session / multi-PR** for true epics: broad refactors, full test matrices, ship pipeline (`staging` → `main`) with review, or hard external blocks (AMIS token, legal, prod credentials).
+- **Say “blocked on you”** when waiting on secrets, passwords, or product decisions — not “implementation takes a day.”
+- **Infra cooldowns (rate limits, Supabase circuit breaker):** try once → if blocked, **~5 minutes + one retry** → report and parallelize other work. Do **not** default to “wait 30–60 minutes” unless a second failure proves a longer lockout.
+
+| Bad | Better |
+| --- | ------ |
+| “Playwright will take 2–3 days” | “PR1 infra + smoke in this turn; admin specs next PR if needed.” |
+| “Wait 30–60 min for circuit breaker” | “Breaker hit — retry in ~5 min; I’ll continue X meanwhile.” |
+| “Want me to implement?” on obvious scope | Implement, then report what shipped. |
+| “Optional next steps: …” / “Want me to commit?” after clear scope | **Do the steps.** Only ask when blocked on secrets, product call, or destructive prod ops. |
+| “Suggested next session: add Tests AC to issues” | Open `gh issue view`, edit the issue body, add the spec file — same turn. |
+| “CI enforcement can come later” | Add the script/check in the same PR as the policy doc. |
+| “Defer store tests — `$state` in Bun” | Run store tests in Vitest (`*.store.test.ts`); ship in this session. |
+
+### Do not defer executable work
+
+If the path is in the repo and the user did not say “plan only” or “don’t commit”:
+
+1. **Implement** — do not end the turn with a backlog of items you could have done in minutes (issue test matrix + generator + AGENTS policy + regression spec + issue AC edits fit one session).
+2. **Same PR** — feature + tests + issue AC checkboxes + doc updates; not “infra PR then tests PR.”
+3. **Ask only when blocked** — missing secrets, irreversible product choice, or explicit user stop. Not “should I continue?”
+4. **Report what shipped** — not a menu of optional follow-ups. One line “Blocked on X” if truly stuck.
+
+**Underestimating is a process bug.** You have shell, `gh`, `bun test`, Playwright, and the full tree. Scoped issues (#401 regression, issue test matrix, Tests AC on open bugs) are **minutes to one session**, not human-day estimates.
+
+- **Default to one PR** for agent-delivered work. Do not habitually split into “PR1 / PR2 / PR3” or “infra PR then follow-up PR” unless the user asked for split review, the diff is unreviewably huge, or two genuinely independent tracks must land separately. Scoped features (Playwright slice, map fix, env wiring + tests) → **one branch, one PR to `staging`**, implement fully, then ship.
 
 ## Branches and pull requests
 
@@ -45,13 +81,38 @@ Default flow: **feature branch → `staging` → `main`**.
 
 | User says (approx.)               | Do this                                                | Do **not** do this                                     |
 | --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
-| Open a PR / PR to staging         | `gh pr create --base staging --head <feature-branch>`  | ;                                                      |
-| PR to main / merge to prod / ship | Open (or merge) **`staging` → `main`** release PR only | `--base main --head <feature-branch>` for routine work |
-| Merge the feature PR              | Squash/merge into **`staging`** first                  | Skip `staging` and land features directly on `main`    |
+| Open a PR / PR to staging         | `gh pr create --base staging --head <feature-branch>`  | Open feature PRs against `main` for routine work       |
+| Ship / ship it / shipped          | Full [two-PR pipeline](#what-ship--shipped-means)       | Merge only to `staging` or only to `main`              |
+| PR to main / merge to prod        | Release PR **`staging` → `main`** (stage 2 of ship)    | `--base main --head <feature-branch>` for routine work |
+| Merge the feature PR              | Squash/merge into **`staging`** first (stage 1)        | Skip `staging` and land features directly on `main`    |
+| Ship to staging / push staging    | Stage 1 only — integration PR or push to `staging`     | Open release PR to `main` unless user asked for prod   |
 
 - **`main`** is production; semantic-release runs there.
 - **`staging`** is integration; feature PRs land here first unless the user explicitly asks for a hotfix straight to `main`.
-- When the user says **"PR to main"**, they usually mean **get it to production**, not "set the GitHub PR base branch to `main`."
+- When the user says **"PR to main"**, they usually mean **get it to production** (release step), not "set the GitHub PR base branch to `main`" on a feature branch.
+
+### What “ship” / “shipped” means
+
+When the user asks to **ship** a feature or fix, they mean the **full integration → production pipeline** — not a direct push, not release-only, not “merge to staging and stop.”
+
+| Stage | PR | After merge |
+| ----- | -- | ----------- |
+| **1 — Integration** | `<feature-branch>` → **`staging`** (or equivalent PR landing the work on `staging`) | Staging preview deploy (`staging.room-tba.uplbtools.me`) |
+| **2 — Release** | **`staging` → `main`** | Production deploy (`room-tba.uplbtools.me`) |
+
+**Before each merge (both stages):**
+
+1. **Review** — summarize the PR diff (full branch delta for stage 1; full `staging`…`main` delta for stage 2), not just the latest commit.
+2. **Verify build** — run **`bun run build`** locally (requires `DATABASE_URL`); plus lint/tests from [§ Verify before done](#verify-before-done) for the change size.
+3. **Wait for green** — confirm the PR’s Vercel preview / GitHub checks pass before merging (stage 1: staging preview build; stage 2: production-bound build on the release PR).
+
+**Agent checklist when user says “ship”:**
+
+1. Open (or complete) integration PR → `staging`; review; local `bun run build`; merge.
+2. Open release PR → `main`; review; local `bun run build` again; merge.
+3. Report both PR URLs and that prod deploy was triggered from `main`.
+
+Direct commit + push to `staging` without a PR is fine for solo touch-ups ([§ Push to staging directly](#push-to-staging-directly)) — but that is **not** “shipped” until stage 2 (`staging` → `main`) is also reviewed, built, and merged.
 
 ### Push to `staging` directly
 
@@ -188,6 +249,46 @@ Some issues cannot be resolved purely through code. Issues that require **extern
 
 When in doubt, ask the user: "Does this issue require external coordination, or can it be closed with the technical implementation?"
 
+## Tests with GitHub issues
+
+**Yes — agents add tests in the same PR as the feature or fix.** Do not ship issue-linked code and file a follow-up “tests PR.”
+
+### Before implementing `#NNN`
+
+1. `gh issue view N` and open [docs/issue-test-matrix.md](docs/issue-test-matrix.md) for the suggested tiers (unit / integration / component / E2E).
+2. If the matrix row is wrong, fix the issue body **Acceptance criteria** to name the test layer and file pattern (e.g. `e2e/browse/search-flow.spec.ts`).
+3. Regenerate the matrix when triaging many issues: `bun run generate:issue-test-matrix` (needs `gh` auth).
+
+### Same-PR minimum by change type
+
+| Change | Add in the same PR |
+| ------ | ------------------ |
+| Bug fix | Regression test that would have failed before the fix |
+| New lib/helper/parser | `src/**/*.test.ts` or `*.store.test.ts` (Vitest for `$state` stores) |
+| API route / service | `integration/http/*` or `integration/services/*` |
+| Map chrome / side panel UI | Vitest `@320px` component test + Playwright browse/admin spec when user-visible |
+| Editor / PATCH / 409 | Integration stale-version test + E2E when UI surfaces conflict |
+| `data` / AMIS import | Fixture JSON unit test only — **never** live `--fetch` in CI |
+| Subjective design / whimsy | Component layout guards + manual QA note in PR; do not skip all automation |
+
+### Issue acceptance criteria template
+
+When editing an issue body, include:
+
+```markdown
+## Tests (required in implementation PR)
+- [ ] Unit: …
+- [ ] Integration: …
+- [ ] E2E blocking: …
+- [ ] Manual only: …
+```
+
+Check these off in the issue when the PR merges.
+
+### What not to automate
+
+Partnerships, legal/MOUs, AMIS live fetch, subjective animation “feel,” prod-only data spot-checks — see [docs/testing.md § Manual only](docs/testing.md#manual-only).
+
 ## Verify before done
 
 Adjust checks to change size. PR CI runs **Prettier + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
@@ -196,6 +297,9 @@ Adjust checks to change size. PR CI runs **Prettier + unit tests** (no `DATABASE
 | ------------------------------------------------------------ | ------------------------------------------------------------------------- |
 | `bun run lint` (or targeted prettier/eslint on edited files) | Always before commit/PR                                                   |
 | `bun test src` (or targeted test files)                      | When logic, lib, or API behavior changed                                  |
+| `bun run test:components`                                    | When stores or Svelte UI changed                                          |
+| `bun run test:integration`                                   | When services, admin PATCH, or HTTP routes changed (E2E DB + preview)     |
+| Issue-linked work                                            | Tests per [§ Tests with GitHub issues](#tests-with-github-issues) — same PR |
 | `bun run build`                                              | Once before commit/PR on substantive changes (requires `DATABASE_URL`)    |
 | Manual browser / editor checklist                            | Map chrome, editor drag/save, side panel UX                               |
 | **Agentic browser** (when available)                         | UI flows, console/`pageerror` checks, staging/prod smoke — see below      |
@@ -333,7 +437,25 @@ CRS/AMIS `term_id` values are **chronological within the academic year** — the
 
 ## Vercel CLI and environment ops
 
-The project deploys on Vercel (`stimmie/saan-ang-room`, see `.vercel/project.json`). Production: `room-tba.uplbtools.me`. Staging preview: `staging.room-tba.uplbtools.me`. Git remote may redirect `smmariquit/room-tba` → **`uplbtools/room-tba`** — use `gh` against `uplbtools/room-tba`.
+The project deploys on Vercel (`stimmie/saan-ang-room`, see `.vercel/project.json`). Production: `room-tba.uplbtools.me`. Staging preview: `staging.room-tba.uplbtools.me`. Git remote may redirect `smmariquit/room-tba` → **`uplbtools/room-tba`** — use `gh` against **`uplbtools/room-tba`** (`gh pr create`, `gh secret set`, `gh issue view`, etc.).
+
+### CLI default for agents
+
+Maintainer sessions have **GitHub CLI** and **Vercel CLI** ready. Prefer the CLI over “go to Settings in the browser” unless the CLI errors or the value is not available locally (e.g. encrypted `vercel env pull` omitting `DATABASE_URL`).
+
+| Task | Run (agent) | Do not default to |
+| ---- | ----------- | ----------------- |
+| Open/update PR | `gh pr create`, `gh pr view`, `gh pr checks` | Asking user to open GitHub UI |
+| Issues | `gh issue view/create/edit`, `gh issue comment` | Manual issue paste-only |
+| GitHub Actions secrets | `gh secret set`, `gh secret list --repo uplbtools/room-tba` | “Add this in repo Settings” |
+| Vercel env vars | `vercel env ls`, `vercel env add … preview staging --yes --force` | Vercel UI only |
+| Refresh local env hints | `vercel env pull .env.vercel --environment=preview --yes` | Assuming empty pull means unset |
+| Inspect deploys | `vercel ls`, `vercel inspect <url>` | — |
+| Prod deploy | **`staging → main` merge only** | `vercel deploy --prod` except hotfix + `main` checkout |
+
+**Secrets:** read values from local gitignored `.env` (or generate e.g. `openssl rand -hex 32`); pass via `--body` / `--value`. Never commit secrets or paste them into issues, PRs, or chat.
+
+**Verify once per session if unsure:** `gh auth status`, `vercel whoami`, `test -f .vercel/project.json`.
 
 ### Branch → deploy target
 
@@ -366,9 +488,14 @@ vercel env ls
 vercel env pull .env.vercel --environment=production --yes   # or preview / development
 vercel env add DATABASE_URL production --value "$DATABASE_URL" --yes --force
 vercel env add DATABASE_URL preview staging --value "$DATABASE_URL" --yes --force
+vercel env add PUBLIC_SUPABASE_URL preview staging --value "$PUBLIC_SUPABASE_URL" --yes --force
 vercel ls
 vercel inspect <deployment-url>
 vercel deploy --prod --yes   # manual prod redeploy — only from main checkout
+
+gh secret set E2E_DATABASE_URL --repo uplbtools/room-tba --body "$E2E_DATABASE_URL"
+gh secret list --repo uplbtools/room-tba
+gh pr checks <number> --repo uplbtools/room-tba
 ```
 
 ### Pitfalls
