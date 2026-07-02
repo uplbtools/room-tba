@@ -57,7 +57,7 @@ jobs:
         run: |
           fuser -k 4321/tcp 2>/dev/null || true
           sleep 2
-          bun run preview:e2e &
+          ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT=1 bun run preview:e2e &
           for i in $(seq 1 60); do
             curl -sf http://127.0.0.1:4321/api/health && exit 0
             sleep 2
