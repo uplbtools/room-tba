@@ -43,7 +43,7 @@ Run only what applies to the PR scope:
 | Editor / admin API      | yes  | yes               | yes           | auth + one PATCH                      |
 | Drizzle migration       | yes  | yes               | yes           | confirm migration applied on Supabase |
 
-PR CI (GitHub Actions) runs **Prettier check + unit tests + component tests**; integration and E2E run in separate jobs. See [docs/testing.md](testing.md). Run full `bun run lint` (ESLint + Prettier) and `bun run build` locally before merge when the change is substantive.
+PR CI (GitHub Actions) runs **verify + migrations on every push**. **Integration, E2E, and bundle advisory** run only when the PR is ready for review or labeled `run/e2e`. See [docs/testing.md § Heavy CI gating](testing.md#heavy-ci-gating-prs). Run `bun run test:integration:live` and `bun run e2e` locally before marking ready on API/UI changes.
 
 ## Automated Checks
 
@@ -70,7 +70,7 @@ bun -e 'import { config } from "dotenv"; import pg from "pg"; config({ path: ".e
 
 Expected automated evidence for the current editor foundation:
 
-- `bunx prettier --check .` passes (PR CI).
+- `bunx biome format .` passes (PR CI).
 - `bun test src` passes (PR CI).
 - `/admin` redirects to `/?editor=login`.
 - `/admin/login` redirects to `/?editor=login`.
@@ -131,7 +131,7 @@ Use this structure in the PR comment or PR body (also in [.github/pull_request_t
 
 Automated:
 
-- [ ] Prettier passed: `bunx prettier --check .` (PR CI)
+- [ ] Biome format passed: `bunx biome format .` (PR CI)
 - [ ] Unit tests passed: `bun test src` (PR CI)
 - [ ] Full lint passed (local): `bun run lint`
 - [ ] Build passed (local): `bun run build`

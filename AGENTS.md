@@ -291,21 +291,44 @@ Partnerships, legal/MOUs, AMIS live fetch, subjective animation “feel,” prod
 
 ## Verify before done
 
-Adjust checks to change size. PR CI runs **Prettier + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
+Adjust checks to change size. PR CI runs **Biome format + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
 
 | Step                                                         | When                                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| `bun run lint` (or targeted prettier/eslint on edited files) | Always before commit/PR                                                   |
+| `bun run lint` (or targeted biome format / eslint on edited files) | Always before commit/PR                                                   |
 | `bun test src` (or targeted test files)                      | When logic, lib, or API behavior changed                                  |
 | `bun run test:components`                                    | When stores or Svelte UI changed                                          |
-| `bun run test:integration`                                   | When services, admin PATCH, or HTTP routes changed (E2E DB + preview)     |
+| `bun run test:integration`                                   | When services, admin PATCH, or HTTP routes changed — **local before marking PR ready**; CI runs in gated E2E job |
 | Issue-linked work                                            | Tests per [§ Tests with GitHub issues](#tests-with-github-issues) — same PR |
 | `bun run build`                                              | Once before commit/PR on substantive changes (requires `DATABASE_URL`)    |
 | Manual browser / editor checklist                            | Map chrome, editor drag/save, side panel UX                               |
 | **Agentic browser** (when available)                         | UI flows, console/`pageerror` checks, staging/prod smoke — see below      |
-| **Dependabot PRs**                                           | Run Prettier + tests before merge; read CodeQL / dependency-review checks |
+| **Dependabot PRs**                                           | Run Biome format + tests before merge; read CodeQL / dependency-review checks |
 
 Do not run full build after every small edit. See the workflow skill for session cadence.
+
+### Heavy CI gating (integration + E2E)
+
+Integration and Playwright are **not** on every draft push. Policy ([docs/testing.md § Heavy CI gating](docs/testing.md#heavy-ci-gating-prs)):
+
+| When | What runs |
+| ---- | --------- |
+| Every PR push (incl. drafts) | verify + migrations only (~6–9 min) |
+| PR **ready for review** or opened non-draft | integration + blocking E2E (one job), advisory E2E, bundle advisory |
+| Label **`run/e2e`** | Re-run the gated stack after fixes |
+| Push to **`staging`** | blocking stack (integration + E2E) via **E2E staging** |
+| **Nightly** 02:00 Asia/Manila | same on `staging` branch |
+
+Blocking job order: reset DB → `build:e2e` → preview → `test:integration` → Playwright (no duplicate build).
+
+**Agent protocol:**
+
+1. **Draft PRs** — rely on verify + local `bun run test:integration` / `bun run e2e` for API/UI work.
+2. **Before merge** — mark ready; wait for **E2E / e2e** green (integration runs inside that job).
+3. **After fixes** — `gh pr edit <n> --add-label run/e2e`.
+4. **Do not** expect integration or E2E on every commit after ready.
+
+Most Playwright failures are **test harness** issues — fix helpers before changing UI.
 
 ### Agentic browser
 
@@ -337,7 +360,7 @@ Production readiness is backed by repo automation; do not disable without replac
 | **Dependabot**        | [`.github/dependabot.yml`](.github/dependabot.yml)                                   | Weekly Bun + GitHub Actions version PRs          |
 | **CodeQL**            | [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)                       | Static analysis on push/PR + weekly schedule     |
 | **Dependency Review** | [`.github/workflows/dependency-review.yml`](.github/workflows/dependency-review.yml) | Blocks PRs introducing critical CVEs in new deps |
-| **CI**                | [`.github/workflows/ci.yml`](.github/workflows/ci.yml)                               | Prettier + unit tests                            |
+| **CI**                | [`.github/workflows/ci.yml`](.github/workflows/ci.yml)                               | Biome format + unit tests                        |
 
 Enable **Dependabot security updates** and **secret scanning** in GitHub repo Settings → Code security if not already on (org defaults may apply). CodeQL SARIF appears under Security → Code scanning.
 
@@ -532,7 +555,7 @@ Human setup detail: [docs/developer-guide.md](docs/developer-guide.md). Cursor C
 | `astro.config.mjs` / `.env.example` env vars | Required vs optional vars, where to get values              |
 | Database provider, Drizzle, migrations       | Supabase Postgres + `drizzle/` — not SQLite/Neon as runtime |
 | Astro / Bun / major deps                     | Version labels that match `package.json`                    |
-| CI workflows (`.github/workflows/*`)         | What runs on PRs (`bun test src`, Prettier, etc.)           |
+| CI workflows (`.github/workflows/*`)         | What runs on PRs (`bun test src`, Biome format, etc.)        |
 | Live URL, repo org, default term label       | Links, “current semester” data note, changelog path         |
 | Editor login entry points                    | `/?editor=login`, in-app editing — not a separate admin app |
 | Project layout (`src/pages`, `src/lib`, …)   | Folder tree in README matches reality                       |
@@ -566,4 +589,4 @@ README-only overhauls are welcome; they still must pass `check:readme` and stay 
 - This is **Astro 7 SSR** (Vercel adapter). API routes under `src/pages/api/*` are server-rendered (`prerender = false`), and SSG entity pages (e.g. `/room/[slug]`) query the DB at build time; so `bun run build` fails without a working `DATABASE_URL`.
 - `@electric-sql/pglite` (`idb://site-data`) is a **browser-side cache only**, not a server/dev database fallback.
 - **PWA:** Workbox precaches `dist/client`; large client bundles affect offline install. See `astro.config.mjs` PWA config before adding heavy dependencies.
-- Standard scripts: `bun dev` (`http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint`, `bun run format`, `bun test src`, `bun run check:readme`. PR CI runs Prettier check + unit tests; run full lint and build locally before merge.
+- Standard scripts: `bun dev` (`http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint`, `bun run format`, `bun test src`, `bun run check:readme`. PR CI runs Biome format check + unit tests; run full lint and build locally before merge.

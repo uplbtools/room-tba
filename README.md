@@ -131,10 +131,10 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 | `bun test src/lib src/constants` | Unit + store tests (no DB required)                                                                                |
 | `bun run test:components`        | Vitest component/layout tests                                                                                      |
 | `bun run test:integration`       | API + DB integration (E2E DB; see `docs/testing.md`)                                                               |
-| `bun run e2e`                    | Playwright blocking E2E (E2E DB + preview)                                                                         |
+| `bun run e2e`                    | Playwright blocking suite (uses `serve:e2e` — node adapter build + preview) |
 | `bun run e2e:advisory`           | Playwright advisory (non-blocking in CI)                                                                           |
-| `bun run lint`                   | Prettier + ESLint                                                                                                  |
-| `bun run format`                 | Prettier write                                                                                                     |
+| `bun run lint`                   | Biome format check + ESLint                                                                                        |
+| `bun run format`                 | Biome format write                                                                                                 |
 | `bunx drizzle-kit studio`        | Browse/edit Postgres visually                                                                                      |
 | `bun run seed:aliases`           | Seed building aliases from `public/room_info.json`                                                                 |
 | `bun run import:amis-classes`    | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`)                                                           |

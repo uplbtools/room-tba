@@ -55,3 +55,19 @@ Commit policy, Conventional Commits format, and GPG signing: [AGENTS.md § Commi
 5. Push with `-u origin HEAD` only when the user asked to push/open a PR.
 6. **Base branch:** feature work → `staging`. "PR to main" / prod ship → `staging` → `main` release only ([AGENTS.md § Branches and pull requests](../../AGENTS.md#branches-and-pull-requests)). Direct push to `staging` when the user asks — see [§ Worktrees and multiple agents](../../AGENTS.md#worktrees-and-multiple-agents).
 7. **`data` / `qa` issues:** reporter does not PR; implement and link the PR on the issue.
+
+## Heavy CI (integration + E2E)
+
+Read [docs/testing.md § Heavy CI gating](../../docs/testing.md#heavy-ci-gating-prs) and [AGENTS.md § Heavy CI gating](../../AGENTS.md#heavy-ci-gating-integration--e2e).
+
+- **Every push (incl. drafts):** verify + migrations only.
+- **Ready for review:** integration + blocking E2E in **one job** (shared preview), plus advisory E2E + bundle advisory.
+- **After fixes:** `run/e2e` label — ordinary pushes do not re-trigger.
+- **Staging merge + nightly:** full blocking stack on `staging`.
+
+```sh
+gh pr ready <number>
+bun run test:integration:live   # local, before ready, when touching APIs
+bun run e2e                     # local, before ready, when touching UI
+gh pr edit <number> --add-label run/e2e
+```
