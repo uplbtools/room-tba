@@ -3,7 +3,12 @@ export type NotificationEventType =
   | "proposal.reviewed"
   | "deploy.succeeded"
   | "deploy.failed"
-  | "release.published";
+  | "release.published"
+  | "ci.e2e.failed"
+  | "ci.e2e.passed"
+  | "ci.e2e.advisory.failed"
+  | "ci.staging-e2e.failed"
+  | "ci.staging-smoke.failed";
 
 export type NotificationSource = "room-tba" | "vercel" | "github";
 
