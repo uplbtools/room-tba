@@ -35,8 +35,8 @@ jobs:
       - name: Biome format
         run: bunx biome format .
 
-      - name: ESLint
-        run: bunx eslint .
+      - name: ESLint (test harness)
+        run: bunx eslint integration e2e vitest.config.ts playwright.config.ts playwright.advisory.config.ts
 
       - name: Unit tests
         run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'
