@@ -61,6 +61,7 @@ jobs:
 
       - name: Playwright advisory tests
         if: inputs.suite == 'advisory'
+        continue-on-error: true
         run: bun run e2e:advisory
 
       - name: Advisory failure notice
