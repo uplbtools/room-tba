@@ -9,7 +9,7 @@
     type BuildingTypeFilter,
   } from "@constants/building-types";
   import { getAppData } from "@lib/context";
-  import { buildingTypeFilter, jeepneyStore } from "@lib/store.svelte";
+  import { buildingTypeFilter, jeepneyStore, queryStore } from "@lib/store.svelte";
   import "./map-chrome/map-chrome.css";
 
   const appData = getAppData();
@@ -33,6 +33,10 @@
     "non-up-managed-dorm": House,
   } as const;
 
+  const pinFilterContext = $derived(
+    queryStore.category !== "classes" && queryStore.category !== "browse",
+  );
+
   function selectFilter(value: BuildingTypeFilter) {
     // Non-All pin filters are mutually exclusive with the transit layer:
     // turn off jeepney routes/stops so filtered pins aren't obscured (#325).
@@ -49,7 +53,8 @@
   <span class="filter-heading sr-only">Show</span>
   <div class="filter-chips">
     {#each options as option (option.value)}
-      {@const isActive = buildingTypeFilter.value === option.value}
+      {@const isActive =
+        pinFilterContext && buildingTypeFilter.value === option.value}
       {@const Icon = FILTER_ICONS[option.value]}
       <button
         type="button"
