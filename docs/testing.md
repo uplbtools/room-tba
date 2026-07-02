@@ -6,8 +6,8 @@ Production-grade test pyramid for CI and local development.
 
 | Command                          | What                                      |
 | -------------------------------- | ----------------------------------------- |
-| `bun test src/lib src/constants` | Unit + store tests (no DB)                |
-| `bun run test:components`        | Vitest Svelte layout/component tests      |
+| `bun test src/lib src/constants` | Unit tests (Bun; excludes `*.store.test.ts`) |
+| `bun run test:components`        | Vitest store + Svelte component tests       |
 | `bun run test:integration`       | HTTP + service tests (E2E DB + preview)   |
 | `bun run e2e:reset-db`           | Truncate + seed E2E Supabase (host guard) |
 | `bun run e2e`                    | Playwright blocking suite                 |
@@ -63,3 +63,13 @@ Do **not** run `import:amis-classes --fetch` in CI. The script exits when `CI=tr
 - Post-deploy prod spot-check
 
 See also [docs/editor-foundation-test-plan.md](editor-foundation-test-plan.md) and [docs/agentic-qa-process.md](agentic-qa-process.md).
+
+## Tests with issues
+
+When implementing a GitHub issue, add tests in the **same PR** — do not defer. Use [issue-test-matrix.md](issue-test-matrix.md) for tier hints (unit / integration / component / E2E). Regenerate:
+
+```sh
+bun run generate:issue-test-matrix
+```
+
+Agent policy: [AGENTS.md § Tests with GitHub issues](../AGENTS.md#tests-with-github-issues).

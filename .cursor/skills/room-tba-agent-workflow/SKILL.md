@@ -19,7 +19,10 @@ Policy (commits, verification tiers, architecture, product rules) lives in [AGEN
 
 ## Verification cadence
 
-Follow [AGENTS.md § Verify before done](../../AGENTS.md#verify-before-done) for the canonical checklist. Session tips:
+Follow [AGENTS.md § Verify before done](../../AGENTS.md#verify-before-done) and [§ Tests with GitHub issues](../../AGENTS.md#tests-with-github-issues) for the canonical checklist. Session tips:
+
+- **Issue-linked work:** add tests in the same PR — see [docs/issue-test-matrix.md](../../docs/issue-test-matrix.md). **Do not defer** test/spec/issue-AC work to a follow-up turn when unblocked.
+- **Do not end with optional next steps** you could execute now — see [AGENTS.md § Do not defer executable work](../../AGENTS.md#do-not-defer-executable-work).
 
 - During iterative edits, prefer targeted lint/tests on changed files; not full repo lint every edit.
 - Do not run `bun run build` after every small edit.
