@@ -41,12 +41,11 @@ bun run lint && bun run test:all && bun run build && bun run e2e
 | Staging                      | Local dev, staging smoke — read-only in automation |
 | Production                   | **Never** automated writes                         |
 
-Set locally (gitignored):
+Set locally (gitignored — copy from `.env.example`):
 
 ```sh
-E2E_DATABASE_URL=postgresql://postgres.yhzinxlakcewqjaqbbaj:…@….pooler.supabase.com:5432/postgres
-E2E_ADMIN_PASSWORD=…
-E2E_ADMIN_SESSION_SECRET=…   # 32+ chars
+cp .env.example .env.local    # bun dev + E2E vars
+cp .env.example .env.staging  # optional: staging smoke / preview DB only
 ```
 
 GitHub Actions uses secrets `E2E_DATABASE_URL`, `E2E_ADMIN_PASSWORD`, `E2E_ADMIN_SESSION_SECRET`.

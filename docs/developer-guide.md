@@ -11,8 +11,8 @@ For human developers contributing code. Start with [CONTRIBUTING.md](../CONTRIBU
 | `ADMIN_PASSWORD` | Optional; enables in-app editor login locally                   |
 
 ```sh
-cp .env.example .env
-# Edit .env: DATABASE_URL is required for pages that hit the DB
+cp .env.example .env.local
+# Edit .env.local: DATABASE_URL (staging Supabase pooler) is required for pages that hit the DB
 
 bun install
 bun dev   # http://localhost:4321
