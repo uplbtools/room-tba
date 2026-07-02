@@ -1,34 +1,32 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeAll } from "bun:test";
+import { E2E_FIXTURES, loginViaApi, patchBuilding } from "../helpers/http";
 import {
-  E2E_FIXTURES,
-  loginViaApi,
-  patchBuilding,
-} from "../helpers/http";
-import { PREVIEW_BASE, skipWithoutE2eDb, integrationDatabaseUrl } from "../helpers/env";
+  PREVIEW_BASE,
+  requirePreview,
+  previewFetchInit,
+  skipWithoutE2eDb,
+  integrationDatabaseUrl,
+} from "../helpers/env";
 
 const describeIntegration = skipWithoutE2eDb() ? describe.skip : describe;
 
-let previewUp = false;
-
 describeIntegration("admin PATCH HTTP", () => {
+  beforeAll(async () => {
+    await requirePreview(PREVIEW_BASE);
+  });
+
   test("PATCH without cookie returns 401", async () => {
-    try {
-      const res = await fetch(`${PREVIEW_BASE}/api/admin/buildings/1`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lat: 14.17, version: 1 }),
-      });
-      previewUp = true;
-      expect(res.status).toBe(401);
-    } catch {
-      previewUp = false;
-    }
+    const res = await fetch(`${PREVIEW_BASE}/api/admin/buildings/1`, previewFetchInit({
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat: 14.17, version: 1 }),
+    }));
+    expect(res.status).toBe(401);
   });
 
   test("stale version returns 409", async () => {
-    if (!previewUp) return;
     const cookie = await loginViaApi(E2E_FIXTURES.users.admin);
-    if (!cookie) return;
+    expect(cookie).toBeTruthy();
 
     const pg = await import("pg");
     const client = new pg.default.Client({
@@ -44,7 +42,7 @@ describeIntegration("admin PATCH HTTP", () => {
     const stale = await patchBuilding(
       1,
       { lat: 14.1702, version: version - 1 },
-      cookie,
+      cookie!,
     );
     expect(stale.status).toBe(409);
   });
@@ -104,14 +102,7 @@ describeIntegration("proposals service", () => {
 
   test("approve proposal via HTTP when preview is up", async () => {
     if (!integrationDatabaseUrl()) return;
-    try {
-      const health = await fetch(`${PREVIEW_BASE}/api/health`, {
-        signal: AbortSignal.timeout(2000),
-      });
-      if (!health.ok) return;
-    } catch {
-      return;
-    }
+    await requirePreview(PREVIEW_BASE);
 
     const pg = await import("pg");
     const client = new pg.default.Client({
@@ -135,11 +126,13 @@ describeIntegration("proposals service", () => {
       proposalId: null,
     });
 
-    const { loginViaApi, approveProposalHttp } = await import("../helpers/http");
+    const { loginViaApi, approveProposalHttp } = await import(
+      "../helpers/http"
+    );
     const cookie = await loginViaApi(E2E_FIXTURES.users.admin);
-    if (!cookie) return;
+    expect(cookie).toBeTruthy();
 
-    const res = await approveProposalHttp(proposal.id, cookie);
+    const res = await approveProposalHttp(proposal.id, cookie!);
     expect(res.status).toBe(200);
   });
 });
