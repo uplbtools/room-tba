@@ -29,6 +29,10 @@ backups/
 # jetbrains setting folder
 .idea/
 
+# test artifacts
+playwright-report/
+test-results/
+
 classes.json
 .vercel/
 server/**/*

@@ -1,7 +1,9 @@
 import { focusSearch } from "./search-focus";
 
 export type GlobalShortcutAction =
-  "focus-search" | "open-shortcuts-help" | "open-term-picker";
+  | "focus-search"
+  | "open-shortcuts-help"
+  | "open-term-picker";
 
 export function isTypingTarget(target: EventTarget | null) {
   if (!target || typeof target !== "object") return false;

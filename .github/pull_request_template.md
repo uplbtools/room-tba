@@ -13,15 +13,17 @@
 ## Developer checklist
 
 - [ ] `bun test src`
-- [ ] `bun run lint` (or Prettier on touched files)
+- [ ] `bun run lint` (or Biome format on touched files)
 - [ ] Linked issue commented with this PR URL
+- [ ] **Heavy CI:** PR marked ready for review (or `run/e2e` label) before merge — integration + E2E are gated ([testing.md § Heavy CI gating](docs/testing.md#heavy-ci-gating-prs))
 
 ## QA Summary (code changes)
 
 Automated:
 
-- [ ] Prettier passed: `bunx prettier --check .` (PR CI)
+- [ ] Biome format passed: `bunx biome format .` (PR CI)
 - [ ] Unit tests passed: `bun test src` (PR CI)
+- [ ] E2E + integration passed: mark PR ready or add `run/e2e` label ([testing.md](docs/testing.md#heavy-ci-gating-prs))
 - [ ] Full lint passed (local): `bun run lint`
 - [ ] Build passed (local): `bun run build` (needs `DATABASE_URL`; not run in PR CI)
 

@@ -207,6 +207,13 @@ async function resolveRawRows(options: CliOptions) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
 
+  if (options.fetch && process.env.CI === "true") {
+    console.error(
+      "Refusing AMIS --fetch in CI (token expiry and manual ops only). Use cached JSON or unit tests.",
+    );
+    process.exit(1);
+  }
+
   if (options.scrubExports) {
     scrubAllExports();
     return;

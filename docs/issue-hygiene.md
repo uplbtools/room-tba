@@ -78,6 +78,27 @@ For `data` / `qa` issues, steps 2–4 are optional until converting to an implem
 3. Implement; commit with `type(scope): summary (refs #N)` when tied to an issue.
 4. Update issue AC + `Last verified` before or immediately after opening the PR.
 5. PR description lists which AC items this PR satisfies and which remain.
+6. **Tests:** list new/updated test files; link [issue-test-matrix](issue-test-matrix.md) tier if non-obvious.
+
+## Tests on implementation (agents)
+
+When shipping code for `#NNN`:
+
+1. Read the **Tests** section in the issue (add it from the template below if missing).
+2. Cross-check [issue-test-matrix.md](issue-test-matrix.md) — regenerate with `bun run generate:issue-test-matrix` after bulk triage.
+3. Add regression tests in the **same PR**; check off test AC on the issue before merge.
+4. For `bug` and `qa` issues, a Playwright or integration repro is **mandatory** unless the matrix marks `manual-only`.
+
+### Tests AC block (paste into new spec issues)
+
+```markdown
+## Tests (required in implementation PR)
+- [ ] Unit: …
+- [ ] Integration: …
+- [ ] Component (320px): …
+- [ ] E2E blocking: …
+- [ ] Manual: …
+```
 
 ## Examples of drift (fix these when you see them)
 

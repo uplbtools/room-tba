@@ -11,8 +11,8 @@ For human developers contributing code. Start with [CONTRIBUTING.md](../CONTRIBU
 | `ADMIN_PASSWORD` | Optional; enables in-app editor login locally                   |
 
 ```sh
-cp .env.example .env
-# Edit .env: DATABASE_URL is required for pages that hit the DB
+cp .env.example .env.local
+# Edit .env.local: DATABASE_URL (staging Supabase pooler) is required for pages that hit the DB
 
 bun install
 bun dev   # http://localhost:4321
@@ -28,12 +28,12 @@ Refreshing a stale `.env`: see [AGENTS.md § Cursor Cloud](../AGENTS.md#cursor-c
 | ------------------------- | --------------------------------------- |
 | `bun dev`                 | Dev server                              |
 | `bun test src`            | Unit tests (no DB required)             |
-| `bun run lint`            | Prettier + ESLint                       |
-| `bun run format`          | Prettier write                          |
+| `bun run lint`            | Biome format check + ESLint             |
+| `bun run format`          | Biome format write                      |
 | `bun run build`           | Production build (needs `DATABASE_URL`) |
 | `bunx drizzle-kit studio` | Browse Postgres                         |
 
-PR CI runs Prettier check + `bun test src` only. Run full lint and build locally before merge on substantive changes.
+PR CI runs verify + migrations on every push. Integration, E2E, and bundle advisory run when the PR is **ready for review** or labeled **`run/e2e`**. See [testing.md § Heavy CI gating](testing.md#heavy-ci-gating-prs). Run integration/E2E locally before marking ready on substantive changes.
 
 ## Project layout
 
