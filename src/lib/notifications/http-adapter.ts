@@ -17,7 +17,9 @@ export class HttpNotificationAdapter implements NotificationAdapter {
       body: JSON.stringify(event),
     });
     if (!res.ok) {
-      throw new Error(`Notification gateway ${res.status}: ${await res.text()}`);
+      throw new Error(
+        `Notification gateway ${res.status}: ${await res.text()}`,
+      );
     }
   }
 }
