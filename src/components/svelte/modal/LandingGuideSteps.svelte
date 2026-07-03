@@ -10,6 +10,7 @@
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
   import Plus from "@lucide/svelte/icons/plus";
   import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
+  import { DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
 
   const features = [
     { icon: Search, label: "Search rooms", hint: "Room codes and buildings" },
@@ -122,13 +123,13 @@
   <p class="guide-footnote">
     Questions or want to volunteer? Use <strong>Suggest an edit</strong> on the
     map, or reach us on
-    <a href="/discord" target="_blank" rel="noopener noreferrer" class="guide-community-link">
+    <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" class="guide-community-link">
       <CommunityBrandIcon brand="discord" size={14} />
       Discord
     </a>
     /
     <a
-      href="/messenger/contribute"
+      href={MESSENGER_CONTRIBUTE_TARGET}
       target="_blank"
       rel="noopener noreferrer"
       class="guide-community-link"

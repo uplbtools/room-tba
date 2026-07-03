@@ -20,5 +20,8 @@ describe("AdminLoginModal", () => {
     expectNoHorizontalOverflow(frame);
     expect(screen.getByLabelText("Username")).toBeVisible();
     expect(screen.getByLabelText("Password")).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: /Message maintainers/i }),
+    ).toHaveAttribute("href", "https://m.me/j/AbZtqMU8UUTiwQfn/");
   });
 });

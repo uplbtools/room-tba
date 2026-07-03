@@ -1,3 +1,11 @@
+# [1.21.0](https://github.com/uplbtools/room-tba/compare/v1.20.0...v1.21.0) (2026-07-03)
+
+
+### Features
+
+* **community:** Messenger role links and brand icons ([#217](https://github.com/uplbtools/room-tba/issues/217), [#406](https://github.com/uplbtools/room-tba/issues/406)) ([8b21958](https://github.com/uplbtools/room-tba/commit/8b21958f7b16851aa994e58eb097414eab0740fa))
+* **notifications:** emit proposal.reviewed on admin approve/reject/changes ([#464](https://github.com/uplbtools/room-tba/issues/464)) ([369a52e](https://github.com/uplbtools/room-tba/commit/369a52e328696a77dacb9588f5038e97ec913856)), closes [#222](https://github.com/uplbtools/room-tba/issues/222)
+
 # [1.17.1](https://github.com/uplbtools/room-tba/compare/v1.17.0...v1.17.1) (2026-06-29)
 
 
