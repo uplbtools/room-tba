@@ -3,9 +3,9 @@ contact_links:
   - name: Discord
     url: https://discord.uplbtools.me
     about: Chat with the team and report issues
-  - name: Messenger
-    url: https://messenger.uplbtools.me
-    about: Message the team
+  - name: Messenger (contribute)
+    url: https://messenger.uplbtools.me/contribute
+    about: Message the team about data fixes or volunteering
   - name: Contributing guide
     url: https://github.com/uplbtools/room-tba/blob/staging/CONTRIBUTING.md
     about: Pick your path (report data, QA, or code)

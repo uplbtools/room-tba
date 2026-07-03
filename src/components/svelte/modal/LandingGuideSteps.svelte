@@ -123,7 +123,7 @@
     map, or reach us on
     <a href="/discord" target="_blank" rel="noopener noreferrer">Discord</a>
     /
-    <a href="/messenger" target="_blank" rel="noopener noreferrer">Messenger</a
+    <a href="/messenger/contribute" target="_blank" rel="noopener noreferrer">Messenger</a
     >.
   </p>
 </section>
