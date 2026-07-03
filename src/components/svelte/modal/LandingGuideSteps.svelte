@@ -9,6 +9,7 @@
   import WifiOff from "@lucide/svelte/icons/wifi-off";
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
   import Plus from "@lucide/svelte/icons/plus";
+  import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
 
   const features = [
     { icon: Search, label: "Search rooms", hint: "Room codes and buildings" },
@@ -121,10 +122,20 @@
   <p class="guide-footnote">
     Questions or want to volunteer? Use <strong>Suggest an edit</strong> on the
     map, or reach us on
-    <a href="/discord" target="_blank" rel="noopener noreferrer">Discord</a>
+    <a href="/discord" target="_blank" rel="noopener noreferrer" class="guide-community-link">
+      <CommunityBrandIcon brand="discord" size={14} />
+      Discord
+    </a>
     /
-    <a href="/messenger/contribute" target="_blank" rel="noopener noreferrer">Messenger</a
-    >.
+    <a
+      href="/messenger/contribute"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="guide-community-link"
+    >
+      <CommunityBrandIcon brand="messenger" size={14} />
+      Messenger
+    </a>.
   </p>
 </section>
 
@@ -392,6 +403,13 @@
     font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 2px;
+  }
+
+  .guide-community-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    vertical-align: middle;
   }
 
   @media screen and (max-width: 36rem) {
