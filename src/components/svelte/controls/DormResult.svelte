@@ -289,7 +289,7 @@
   }
 
   function syncDormFromServer(updated: DormData) {
-    appActions.replaceDorm(updated);
+    appActions.upsertDorm(updated);
     queryStore.hydrateQuery({
       type: "result",
       category: "dorm",

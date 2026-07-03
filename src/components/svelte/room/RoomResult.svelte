@@ -29,6 +29,7 @@
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
   import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
@@ -652,6 +653,10 @@
         </div>
       {/if}
     </section>
+
+    {#if currentRoom.value}
+      <EntityLastUpdated updatedAt={currentRoom.value.updatedAt} />
+    {/if}
 
     <section
       class="entity-list-section entity-schedule"

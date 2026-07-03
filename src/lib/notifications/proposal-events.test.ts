@@ -1,6 +1,15 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, mock } from "bun:test";
 import type { EditProposalSummary } from "@lib/services/proposal-service";
-import { emitProposalReviewed, emitProposalSubmitted } from "./proposal-events";
+
+const notify = mock(async () => {});
+
+mock.module("./index", () => ({
+  getNotificationAdapter: () => ({ notify }),
+}));
+
+const { emitProposalReviewed, emitProposalSubmitted } = await import(
+  "./proposal-events"
+);
 
 const sampleProposal = {
   id: 42,
@@ -26,9 +35,18 @@ describe("proposal notification events", () => {
     ).resolves.toBeUndefined();
   });
 
-  test("emitProposalReviewed uses NoOp adapter without error", async () => {
-    await expect(
-      emitProposalReviewed(sampleProposal, "approved"),
-    ).resolves.toBeUndefined();
+  test("emitProposalReviewed sends proposal.reviewed envelope", async () => {
+    notify.mockClear();
+    await emitProposalReviewed(sampleProposal, "approved");
+    expect(notify).toHaveBeenCalledTimes(1);
+    const envelope = notify.mock.calls[0]?.[0] as {
+      type: string;
+      idempotencyKey: string;
+      payload: { outcome: string; entityLabel: string };
+    };
+    expect(envelope.type).toBe("proposal.reviewed");
+    expect(envelope.idempotencyKey).toBe("proposal:42:reviewed:approved");
+    expect(envelope.payload.outcome).toBe("approved");
+    expect(envelope.payload.entityLabel).toBe("CEM 203");
   });
 });

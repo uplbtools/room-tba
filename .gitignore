@@ -26,8 +26,11 @@ backups/
 # macOS-specific files
 .DS_Store
 
-# jetbrains setting folder
-.idea/
+# Cursor agent skills installed locally (Caveman etc.)
+.agents/
+
+# Cursor local agent config (not shared)
+.cursor/agents/
 
 # test artifacts
 playwright-report/
