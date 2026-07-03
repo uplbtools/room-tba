@@ -7,38 +7,39 @@ bun run generate:test-inventory
 ```
 
 **Last generated:** 2026-07-03  
-**Total spec files:** 104
+**Total spec files:** 106
 
 See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked expectations: [issue-test-matrix.md](issue-test-matrix.md).
 
 ## Summary by tier
 
-| Command                    | Config / runner                         | Files    |
-| -------------------------- | --------------------------------------- | -------- |
-| `bun test src`             | Bun — unit (`src/lib`, `src/constants`) | 42       |
-| `bun run test:components`  | Vitest — stores + Svelte @320px         | 17       |
-| `bun run test:integration` | Bun — HTTP + services (E2E DB)          | 5        |
-| `bun run e2e`              | Playwright blocking — local preview     | 26       |
-| `bun run e2e:advisory`     | Playwright advisory — non-blocking CI   | 11       |
-| `bun run e2e:staging`      | Playwright — live staging URL           | 3        |
-| `bun run check:migrations` | Schema table guard (not a spec file)    | 1 script |
+| Command | Config / runner | Files |
+| ------- | ---------------- | ----- |
+| `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 43 |
+| `bun run test:components` | Vitest — stores + Svelte @320px | 17 |
+| `bun run test:integration` | Bun — HTTP + services (E2E DB) | 5 |
+| `bun run e2e` | Playwright blocking — local preview | 26 |
+| `bun run e2e:advisory` | Playwright advisory — non-blocking CI | 11 |
+| `bun run e2e:staging` | Playwright — live staging URL | 3 |
+| `bun run check:migrations` | Schema table guard (not a spec file) | 1 script |
+
 
 ## CI mapping
 
-| Workflow                                                                      | What runs                                                |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------- |
-| [ci.yml](../.github/workflows/ci.yml)                                         | `bun test src`, `test:components`, lint, prod build      |
-| [ci.yml](../.github/workflows/ci.yml) migrations job                          | `check:migrations` on E2E DB                             |
-| [e2e.yml](../.github/workflows/e2e.yml)                                       | reset DB → build:e2e → integration → Playwright blocking |
-| [e2e-advisory.yml](../.github/workflows/e2e-advisory.yml)                     | Playwright advisory                                      |
-| [e2e-staging.yml](../.github/workflows/e2e-staging.yml)                       | Same blocking stack on `staging` branch + nightly        |
-| [staging-smoke.yml](../.github/workflows/staging-smoke.yml)                   | Read-only staging Playwright (subset)                    |
-| [bundle-advisory.yml](../.github/workflows/bundle-advisory.yml)               | JS bundle budget                                         |
-| [discord-test-inventory.yml](../.github/workflows/discord-test-inventory.yml) | Refresh #test-suite on Discord                           |
+| Workflow | What runs |
+| -------- | --------- |
+| [ci.yml](../.github/workflows/ci.yml) | `bun test src`, `test:components`, lint, prod build |
+| [ci.yml](../.github/workflows/ci.yml) migrations job | `check:migrations` on E2E DB |
+| [e2e.yml](../.github/workflows/e2e.yml) | reset DB → build:e2e → integration → Playwright blocking |
+| [e2e-advisory.yml](../.github/workflows/e2e-advisory.yml) | Playwright advisory |
+| [e2e-staging.yml](../.github/workflows/e2e-staging.yml) | Same blocking stack on `staging` branch + nightly |
+| [staging-smoke.yml](../.github/workflows/staging-smoke.yml) | Read-only staging Playwright (subset) |
+| [bundle-advisory.yml](../.github/workflows/bundle-advisory.yml) | JS bundle budget |
+| [discord-test-inventory.yml](../.github/workflows/discord-test-inventory.yml) | Refresh #test-suite on Discord |
 
 Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`testDir: e2e`, ignores `advisory/` + `staging/`). Projects: **desktop-chrome**, **mobile-chrome** (skips `@desktop-only`).
 
-## Unit tests (Bun) — 42 files
+## Unit tests (Bun) — 43 files
 
 `bun test src/lib src/constants` (excludes `*.store.test.ts`).
 
@@ -69,6 +70,7 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/landing-modal-auto-open.test.ts`
 - `src/lib/map-chrome.test.ts`
 - `src/lib/notifications/notifications.test.ts`
+- `src/lib/notifications/proposal-events.test.ts`
 - `src/lib/proposals/client.test.ts`
 - `src/lib/r2-upload.test.ts`
 - `src/lib/route-slugs.test.ts`
@@ -85,6 +87,7 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/term-calendar.test.ts`
 - `src/lib/term-url.test.ts`
 
+
 ## Store tests (Vitest) — 7 files
 
 Included in `bun run test:components`.
@@ -96,6 +99,7 @@ Included in `bun run test:components`.
 - `src/lib/stores/map-stores.store.test.ts`
 - `src/lib/stores/schedule-route.store.test.ts`
 - `src/lib/stores/sync-stores.store.test.ts`
+
 
 ## Component tests (Vitest) — 10 files
 
@@ -112,6 +116,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `src/components/svelte/status-bar/StatusBarLinkGroups.component.test.ts`
 - `src/test/map-chrome-layout.component.test.ts`
 
+
 ## Integration tests — 5 files
 
 `bun run test:integration` (E2E Supabase; HTTP suites need preview — use `test:integration:live`).
@@ -121,6 +126,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `integration/services/admin.integration.test.ts`
 - `integration/services/merge.integration.test.ts`
 - `integration/services/proposals.integration.test.ts`
+
 
 ## E2E blocking (Playwright) — 26 files
 
@@ -133,6 +139,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/smoke/redirects.spec.ts`
 - `e2e/smoke/term-classes.spec.ts`
 
+
 ### Browse (9)
 
 - `e2e/browse/building-filters.spec.ts`
@@ -144,6 +151,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/browse/search-collapse.spec.ts`
 - `e2e/browse/search-flow.spec.ts`
 - `e2e/browse/side-panel.spec.ts`
+
 
 ### Admin / editor (13)
 
@@ -161,6 +169,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/admin/room-edit.spec.ts`
 - `e2e/admin/undo-redo.spec.ts`
 
+
 ## E2E advisory (Playwright) — 11 files
 
 `bun run e2e:advisory` — a11y, offline, touch, cross-browser, etc.
@@ -177,6 +186,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/advisory/schedule-import.spec.ts`
 - `e2e/advisory/transit-jeepney.spec.ts`
 
+
 ## E2E staging (Playwright) — 3 files
 
 `bun run e2e:staging` — read-only against `staging.room-tba.uplbtools.me`.
@@ -185,14 +195,15 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/staging/live-boot.spec.ts`
 - `e2e/staging/live-browse.spec.ts`
 
+
 ## Other checks
 
-| Script                     | Purpose                        |
-| -------------------------- | ------------------------------ |
+| Script | Purpose |
+| ------ | ------- |
 | `bun run check:migrations` | Required Postgres tables exist |
-| `bun run check:readme`     | README onboarding facts        |
-| `bun run check:pwa-legal`  | PWA legal routes               |
-| `bun run check:bundle`     | Client JS budget (advisory CI) |
+| `bun run check:readme` | README onboarding facts |
+| `bun run check:pwa-legal` | PWA legal routes |
+| `bun run check:bundle` | Client JS budget (advisory CI) |
 
 ## Manual only (not in this list)
 

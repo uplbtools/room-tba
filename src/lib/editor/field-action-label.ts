@@ -24,7 +24,22 @@ export function editorToggleLabel(options: {
 }
 
 export function proposalStatusMessage(status: string): string {
-  return `Status: ${status.replace("_", " ")}. Waiting for editor review.`;
+  switch (status) {
+    case "pending":
+      return "Status: pending. Waiting for editor review.";
+    case "needs_changes":
+      return "Status: needs changes. Update your suggestion below or withdraw it.";
+    case "withdrawn":
+      return "You withdrew this suggestion.";
+    default:
+      return `Status: ${status.replaceAll("_", " ")}.`;
+  }
+}
+
+export function canShowWithdrawProposal(
+  status: string | null | undefined,
+): boolean {
+  return status === "pending" || status === "needs_changes";
 }
 
 export function entityEditorSavedMessage(options: {

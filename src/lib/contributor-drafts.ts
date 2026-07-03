@@ -31,6 +31,7 @@ export type SuggestAdditionDraft = {
   dormGender: string;
   roomCode: string;
   roomDirections: string;
+  roomBuildingDraft: string;
   collegeName: string;
   divisionCollegeDraft: string;
   divisionName: string;

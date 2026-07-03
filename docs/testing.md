@@ -110,6 +110,6 @@ bun run generate:issue-test-matrix
 bun run generate:test-inventory
 ```
 
-**Discord `#test-suite`:** CI posts a pinned, auto-updated inventory (embed + `test-inventory.md` attachment) via [discord-test-inventory.yml](../.github/workflows/discord-test-inventory.yml). Local dry-run: `GATEWAY_URL=… SECRET=… bun run post:test-inventory-discord`.
+**Discord `#test-suite`:** CI posts a pinned, auto-updated inventory (summary embed + tier embeds with full file lists) via [discord-test-inventory.yml](../.github/workflows/discord-test-inventory.yml). Local dry-run: `GATEWAY_URL=… SECRET=… bun run post:test-inventory-discord`.
 
 Agent policy: [AGENTS.md § Tests with GitHub issues](../AGENTS.md#tests-with-github-issues).

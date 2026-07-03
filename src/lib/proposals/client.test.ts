@@ -1,11 +1,63 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { publishEntityPatch } from "./client";
+import {
+  getStoredPendingCreateProposal,
+  publishEntityPatch,
+  readStoredProposals,
+  rememberProposal,
+} from "./client";
 
 const originalFetch = globalThis.fetch;
+const storage = new Map<string, string>();
+
+const localStorageMock = {
+  getItem: (key: string) => storage.get(key) ?? null,
+  setItem: (key: string, value: string) => {
+    storage.set(key, value);
+  },
+  removeItem: (key: string) => {
+    storage.delete(key);
+  },
+  clear: () => {
+    storage.clear();
+  },
+  key: () => null,
+  length: 0,
+} as Storage;
+
+if (typeof globalThis.localStorage === "undefined") {
+  globalThis.localStorage = localStorageMock;
+}
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
   mock.restore();
+  storage.clear();
+});
+
+describe("stored proposal refs", () => {
+  test("getStoredPendingCreateProposal finds open create_building", () => {
+    rememberProposal({
+      id: 42,
+      entityType: "create_building",
+      entityId: 0,
+      status: "pending",
+    });
+    rememberProposal({
+      id: 7,
+      entityType: "create_room",
+      entityId: 0,
+      status: "rejected",
+    });
+
+    expect(getStoredPendingCreateProposal("create_building")).toEqual({
+      id: 42,
+      entityType: "create_building",
+      entityId: 0,
+      status: "pending",
+    });
+    expect(getStoredPendingCreateProposal("create_room")).toBeNull();
+    expect(readStoredProposals()).toHaveLength(2);
+  });
 });
 
 describe("publishEntityPatch", () => {

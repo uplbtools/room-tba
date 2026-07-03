@@ -11,8 +11,12 @@
     resolveSubmitterName,
     publishEntityCreate,
     submitCreateProposal,
+    getStoredPendingCreateProposal,
+    fetchPublicProposalSummary,
+    withdrawEntityProposal,
     type ProposalCreateType,
   } from "@lib/proposals/client";
+  import { canShowWithdrawProposal } from "@lib/editor/field-action-label";
   import { validateSubmitterName } from "@constants/proposals";
   import { instantToCampusWallString } from "@lib/event-time";
   import { slugifySegment } from "@lib/site";
@@ -83,15 +87,38 @@
   let dormGender = $state("coed");
   let roomCode = $state("");
   let roomDirections = $state("");
+  let roomBuildingDraft = $state("");
   let collegeName = $state("");
   let divisionCollegeDraft = $state("");
   let divisionName = $state("");
   let submitting = $state(false);
   let error = $state<string | null>(null);
   let draftReady = $state(false);
+  let pendingBuildingLabel = $state<string | null>(null);
+  let pendingCreateProposalId = $state<number | null>(null);
+  let pendingCreateStatus = $state<string | null>(null);
+  let withdrawingCreate = $state(false);
 
   const appData = getAppData();
   const colleges = $derived(appData().loaded ? appData().colleges : []);
+  const buildings = $derived(
+    appData().loaded
+      ? [...appData().buildings].sort((a, b) =>
+          a.buildingName.localeCompare(b.buildingName),
+        )
+      : [],
+  );
+
+  const roomBuildingNotice = $derived.by(() => {
+    if (kind !== "create_room" || isPublish) return null;
+    if (pendingBuildingLabel) {
+      return `Your building suggestion "${pendingBuildingLabel}" is still waiting for editor review. You can add rooms in that building after it is approved and appears on the map.`;
+    }
+    if (buildings.length === 0) {
+      return "Rooms must belong to a building that is already on the map. Suggest a building first, then come back to add rooms after editors approve it.";
+    }
+    return "Rooms must belong to a building that is already on the map. Pick one below, or open a building in the side panel and use Suggest an edit on an existing room.";
+  });
 
   const needsPin = $derived(
     kind === "create_building" ||
@@ -115,6 +142,7 @@
     dormGender = "coed";
     roomCode = "";
     roomDirections = "";
+    roomBuildingDraft = "";
     collegeName = "";
     divisionCollegeDraft = "";
     divisionName = "";
@@ -136,6 +164,7 @@
       dormGender,
       roomCode,
       roomDirections,
+      roomBuildingDraft,
       collegeName,
       divisionCollegeDraft,
       divisionName,
@@ -159,6 +188,7 @@
     dormGender = saved.dormGender;
     roomCode = saved.roomCode;
     roomDirections = saved.roomDirections;
+    roomBuildingDraft = saved.roomBuildingDraft ?? "";
     collegeName = saved.collegeName;
     divisionCollegeDraft = saved.divisionCollegeDraft;
     divisionName = saved.divisionName;
@@ -167,9 +197,62 @@
     }
   }
 
+  async function refreshPendingCreateProposal() {
+    pendingCreateProposalId = null;
+    pendingCreateStatus = null;
+    pendingBuildingLabel = null;
+
+    if (isPublish) return;
+
+    const pendingForKind = getStoredPendingCreateProposal(kind);
+    if (pendingForKind) {
+      pendingCreateProposalId = pendingForKind.id;
+      pendingCreateStatus = pendingForKind.status;
+    }
+
+    if (kind === "create_room") {
+      const pendingBuilding = getStoredPendingCreateProposal("create_building");
+      if (!pendingBuilding) return;
+      const summary = await fetchPublicProposalSummary(pendingBuilding.id);
+      pendingBuildingLabel = summary?.entityLabel ?? "New building";
+    }
+  }
+
+  async function withdrawPendingCreate() {
+    if (!pendingCreateProposalId) return;
+    error = null;
+    withdrawingCreate = true;
+    try {
+      const name = resolveSubmitterName({
+        displayName: adminAuthStore.displayName,
+        username: adminAuthStore.username,
+        draftName: submitterName,
+      });
+      const result = await withdrawEntityProposal({
+        proposalId: pendingCreateProposalId,
+        submitterName: name || undefined,
+      });
+      if (!result.ok) {
+        error = result.error ?? "Could not withdraw suggestion.";
+        return;
+      }
+      toastStore.show("Suggestion withdrawn.", "success");
+      await refreshPendingCreateProposal();
+    } finally {
+      withdrawingCreate = false;
+    }
+  }
+
   onMount(() => {
     if (!isPublish) restoreAdditionDraft();
     draftReady = true;
+    void refreshPendingCreateProposal();
+  });
+
+  $effect(() => {
+    if (isPublish || !draftReady) return;
+    kind;
+    void refreshPendingCreateProposal();
   });
 
   $effect(() => {
@@ -187,6 +270,7 @@
     dormGender;
     roomCode;
     roomDirections;
+    roomBuildingDraft;
     collegeName;
     divisionCollegeDraft;
     divisionName;
@@ -301,6 +385,7 @@
         return {
           roomCode: roomCode.trim(),
           directions: roomDirections.trim() || null,
+          buildingId: Number(roomBuildingDraft),
         };
       case "create_college":
         return { collegeName: collegeName.trim() };
@@ -339,6 +424,13 @@
       error = "Room code is required.";
       return;
     }
+    if (kind === "create_room") {
+      const buildingId = Number(roomBuildingDraft);
+      if (!Number.isInteger(buildingId) || buildingId < 1) {
+        error = "Pick the building this room belongs to.";
+        return;
+      }
+    }
     if (kind === "create_dorm" && !dormName.trim()) {
       error = "Dorm name is required.";
       return;
@@ -376,16 +468,27 @@
         username: adminAuthStore.username,
         draftName: submitterName,
       })!;
+      const pendingCreate = getStoredPendingCreateProposal(kind);
       const result = await submitCreateProposal({
         entityType: kind,
         patch,
         submitterName: name,
+        proposalId:
+          pendingCreate?.status === "needs_changes" ? pendingCreate.id : null,
       });
       if (!result.ok) {
         error = result.error ?? "Could not submit proposal.";
         return;
       }
-      toastStore.show("Thanks. We'll review your suggestion soon.", "success");
+      if (kind === "create_building") {
+        toastStore.show(
+          "Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.",
+          "success",
+        );
+        await refreshPendingCreateProposal();
+      } else {
+        toastStore.show("Thanks. We'll review your suggestion soon.", "success");
+      }
       clearSuggestAdditionDraft();
       resetFields();
       dismissHost();
@@ -566,6 +669,31 @@
         {/snippet}
       </EntityEditorFormField>
     {:else if kind === "create_room"}
+      {#if roomBuildingNotice}
+        <EntityEditorMessage variant="pending" message={roomBuildingNotice} />
+      {/if}
+      <EntityEditorFormField
+        label="Which building is it in?"
+        inputId="addition-room-building"
+        hint="Only buildings already on the map appear here."
+      >
+        {#snippet control()}
+          <select
+            id="addition-room-building"
+            bind:value={roomBuildingDraft}
+            disabled={buildings.length === 0}
+          >
+            <option value="">
+              {buildings.length === 0
+                ? "No buildings on the map yet"
+                : "Select a building"}
+            </option>
+            {#each buildings as building (building.id)}
+              <option value={String(building.id)}>{building.buildingName}</option>
+            {/each}
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
       <EntityEditorFormField
         label="Room number or code"
         inputId="addition-room-code"
@@ -654,6 +782,18 @@
 
   {#if error}
     <EntityEditorMessage variant="error" message={error} />
+  {/if}
+
+  {#if !isPublish && pendingCreateProposalId && canShowWithdrawProposal(pendingCreateStatus)}
+    <div class="entity-editor-form-actions">
+      <EntityEditorSubmitButton
+        label="Withdraw pending suggestion"
+        savingLabel="Withdrawing…"
+        saving={withdrawingCreate}
+        variant="secondary"
+        onclick={withdrawPendingCreate}
+      />
+    </div>
   {/if}
 
   <EntityEditorSubmitButton
