@@ -1,5 +1,5 @@
 import { and, eq, ne, sql } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import {
   buildingsTable,
   collegesTable,
@@ -299,15 +299,15 @@ export async function updateRoom(
   editedBy = "admin",
 ): Promise<RoomData | null> {
   const updates: Record<string, unknown> = {};
-  if (input.roomCode !== undefined) updates["roomCode"] = input.roomCode;
+  if (input.roomCode !== undefined) updates.roomCode = input.roomCode;
   if (input.directions !== undefined)
-    updates["directions"] = input.directions || null;
+    updates.directions = input.directions || null;
   if (input.buildingId !== undefined)
-    updates["buildingId"] = input.buildingId ?? null;
+    updates.buildingId = input.buildingId ?? null;
   if (input.collegeId !== undefined)
-    updates["collegeId"] = input.collegeId ?? null;
+    updates.collegeId = input.collegeId ?? null;
   if (input.divisionId !== undefined)
-    updates["divisionId"] = input.divisionId ?? null;
+    updates.divisionId = input.divisionId ?? null;
 
   if (Object.keys(updates).length > 0) {
     if (input.roomCode !== undefined) {
@@ -604,12 +604,12 @@ export async function updateBuilding(
 ): Promise<BuildingAdmin | null> {
   const updates: Record<string, unknown> = {};
   if (input.buildingName !== undefined)
-    updates["buildingName"] = input.buildingName;
-  if (input.lat !== undefined) updates["lat"] = input.lat;
-  if (input.lon !== undefined) updates["lon"] = input.lon;
+    updates.buildingName = input.buildingName;
+  if (input.lat !== undefined) updates.lat = input.lat;
+  if (input.lon !== undefined) updates.lon = input.lon;
   if (input.buildingType !== undefined)
-    updates["buildingType"] = input.buildingType;
-  if (input.directions !== undefined) updates["directions"] = input.directions;
+    updates.buildingType = input.buildingType;
+  if (input.directions !== undefined) updates.directions = input.directions;
 
   if (Object.keys(updates).length > 0) {
     if (input.buildingName !== undefined) {
@@ -834,10 +834,10 @@ export async function updateDivision(
 ): Promise<DivisionAdmin | null> {
   const updates: Record<string, unknown> = {};
   if (input.divisionName !== undefined) {
-    updates["divisionName"] = input.divisionName;
+    updates.divisionName = input.divisionName;
   }
   if (input.collegeId !== undefined) {
-    updates["collegeId"] = input.collegeId ?? null;
+    updates.collegeId = input.collegeId ?? null;
   }
 
   if (Object.keys(updates).length === 0) {
@@ -1136,21 +1136,20 @@ async function refreshEventSyncKeys(revalidatePaths?: string[]) {
 
 function getEventUpdates(input: EventWriteInput) {
   const updates: Record<string, unknown> = {};
-  if (input.slug !== undefined) updates["slug"] = input.slug;
-  if (input.title !== undefined) updates["title"] = input.title;
-  if (input.description !== undefined)
-    updates["description"] = input.description;
-  if (input.category !== undefined) updates["category"] = input.category;
-  if (input.startsAt !== undefined) updates["startsAt"] = input.startsAt;
-  if (input.endsAt !== undefined) updates["endsAt"] = input.endsAt;
-  if (input.timezone !== undefined) updates["timezone"] = input.timezone;
-  if (input.recurrence !== undefined) updates["recurrence"] = input.recurrence;
-  if (input.isActive !== undefined) updates["isActive"] = input.isActive;
-  if (input.sourceUrl !== undefined) updates["sourceUrl"] = input.sourceUrl;
-  if (input.imageUrl !== undefined) updates["imageUrl"] = input.imageUrl;
-  if (input.priority !== undefined) updates["priority"] = input.priority;
+  if (input.slug !== undefined) updates.slug = input.slug;
+  if (input.title !== undefined) updates.title = input.title;
+  if (input.description !== undefined) updates.description = input.description;
+  if (input.category !== undefined) updates.category = input.category;
+  if (input.startsAt !== undefined) updates.startsAt = input.startsAt;
+  if (input.endsAt !== undefined) updates.endsAt = input.endsAt;
+  if (input.timezone !== undefined) updates.timezone = input.timezone;
+  if (input.recurrence !== undefined) updates.recurrence = input.recurrence;
+  if (input.isActive !== undefined) updates.isActive = input.isActive;
+  if (input.sourceUrl !== undefined) updates.sourceUrl = input.sourceUrl;
+  if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
+  if (input.priority !== undefined) updates.priority = input.priority;
   if (input.includeInSeo !== undefined)
-    updates["includeInSeo"] = input.includeInSeo;
+    updates.includeInSeo = input.includeInSeo;
   return updates;
 }
 

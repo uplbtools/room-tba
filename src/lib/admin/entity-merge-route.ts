@@ -42,8 +42,8 @@ export function createEntityMergeRoute<TEntity>(options: {
     const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
     if (auth instanceof Response) return auth;
 
-    const sourceId = parseInt(params["id"] ?? "");
-    if (isNaN(sourceId)) {
+    const sourceId = parseInt(params.id ?? "", 10);
+    if (Number.isNaN(sourceId)) {
       return json({ error: `Invalid ${options.entityLabel} ID` }, 400);
     }
 

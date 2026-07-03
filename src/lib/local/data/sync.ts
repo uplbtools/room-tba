@@ -458,7 +458,7 @@ export async function resetBuildingsSyncStatus() {
   try {
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`UPDATE buildings SET rooms_fetched = false`);
+    await localDB.exec("UPDATE buildings SET rooms_fetched = false");
   } catch (e) {
     console.error(e);
   }
@@ -521,7 +521,7 @@ export async function getLocalBuildingRooms(id: number) {
 /** True when the stored rooms sync key matches the live one (online + fresh). */
 function roomsSyncKeyMatches(remoteSyncKey: string | null): boolean {
   const syncKeyLs = getSyncKeysFromLs();
-  const roomSyncKey = syncKeyLs?.["rooms"];
+  const roomSyncKey = syncKeyLs?.rooms;
   return (
     typeof roomSyncKey === "string" &&
     remoteSyncKey !== null &&
@@ -594,7 +594,7 @@ export async function syncBuildingRooms(
     }
   }
   await localDB.query(
-    `UPDATE buildings SET rooms_fetched = true WHERE id = $1`,
+    "UPDATE buildings SET rooms_fetched = true WHERE id = $1",
     [id],
   );
 }
@@ -603,7 +603,7 @@ export async function resetCollegesSyncStatus() {
   try {
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`UPDATE colleges SET rooms_fetched = false`);
+    await localDB.exec("UPDATE colleges SET rooms_fetched = false");
   } catch (e) {
     console.error(e);
   }
@@ -722,7 +722,7 @@ export async function syncCollegeRooms(
     }
   }
   await localDB.query(
-    `UPDATE colleges SET rooms_fetched = true WHERE id = $1`,
+    "UPDATE colleges SET rooms_fetched = true WHERE id = $1",
     [id],
   );
 }
@@ -731,7 +731,7 @@ export async function resetDivisionsSyncStatus() {
   try {
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`UPDATE divisions SET rooms_fetched = false`);
+    await localDB.exec("UPDATE divisions SET rooms_fetched = false");
   } catch (e) {
     console.error(e);
   }
@@ -850,7 +850,7 @@ export async function syncDivisionRooms(
     }
   }
   await localDB.query(
-    `UPDATE divisions SET rooms_fetched = true WHERE id = $1`,
+    "UPDATE divisions SET rooms_fetched = true WHERE id = $1",
     [id],
   );
 }
@@ -876,7 +876,7 @@ export async function syncAliasCache() {
 
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`DELETE FROM aliases`);
+    await localDB.exec("DELETE FROM aliases");
     if (rows.length === 0) return;
 
     syncToastStore.startAliasesSync(rows.length);
@@ -927,7 +927,7 @@ export async function syncClasses(
   syncToastStore.startClassesSync(remoteClasses.length);
 
   try {
-    await localDB.exec(`DELETE FROM classes`);
+    await localDB.exec("DELETE FROM classes");
     for (const c of remoteClasses) {
       await localDB.query(
         `

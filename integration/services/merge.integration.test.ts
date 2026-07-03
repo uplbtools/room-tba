@@ -38,7 +38,7 @@ describeIntegration("merge service", () => {
 
     const verify = new pg.Client({ connectionString: url });
     await verify.connect();
-    const gone = await verify.query(`SELECT id FROM buildings WHERE id = $1`, [
+    const gone = await verify.query("SELECT id FROM buildings WHERE id = $1", [
       sourceId,
     ]);
     expect(gone.rowCount).toBe(0);

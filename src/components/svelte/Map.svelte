@@ -205,7 +205,7 @@
         routes?: { geometry?: LineString }[];
       };
       const geometry = data.routes?.[0]?.geometry;
-      if (!geometry || geometry.type !== "LineString") return null;
+      if (geometry?.type !== "LineString") return null;
       jeepneyRouteGeometryCache.set(route.id, geometry);
       return geometry;
     } catch {
@@ -628,7 +628,7 @@
           (building) => building.buildingName === value,
         );
 
-        if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
+        if (currentBuilding?.lon && currentBuilding.lat) {
           map.flyTo({
             center: [currentBuilding.lon, currentBuilding.lat],
             zoom: 18,
@@ -643,9 +643,7 @@
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
-            currentRoom.value &&
-            currentRoom.value.building &&
-            currentRoom.value.building.lat &&
+            currentRoom.value?.building?.lat &&
             currentRoom.value.building.lon &&
             !terrainStore.enabled
           ) {
@@ -665,7 +663,7 @@
         if (!loaded) return;
 
         const currentDorm = dorms.find((dorm) => dorm.dormName === value);
-        if (currentDorm && currentDorm.lon && currentDorm.lat) {
+        if (currentDorm?.lon && currentDorm.lat) {
           map.flyTo({
             center: [currentDorm.lon, currentDorm.lat],
             zoom: 18,
@@ -1792,7 +1790,7 @@
           (building) => building.buildingName === value,
         );
 
-        if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
+        if (currentBuilding?.lon && currentBuilding.lat) {
           map.flyTo({
             center: [currentBuilding.lon, currentBuilding.lat],
             zoom: 18,
@@ -1810,9 +1808,7 @@
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
-            currentRoom.value &&
-            currentRoom.value.building &&
-            currentRoom.value.building.lat &&
+            currentRoom.value?.building?.lat &&
             currentRoom.value.building.lon
           ) {
             map.flyTo({
@@ -1831,7 +1827,7 @@
         if (!loaded) return;
 
         const currentDorm = dorms.find((dorm) => dorm.dormName === value);
-        if (currentDorm && currentDorm.lon && currentDorm.lat) {
+        if (currentDorm?.lon && currentDorm.lat) {
           map.flyTo({
             center: [currentDorm.lon, currentDorm.lat],
             zoom: 18,

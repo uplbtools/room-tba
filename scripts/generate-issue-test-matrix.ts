@@ -40,7 +40,7 @@ const HUMAN_COORDINATION =
   /partnership|MOU|volunteer onboarding|stakeholder review|human coordination/i;
 const NO_AUTO =
   /prettier|eslint|biome|semantic-release|dependabot|changelog only|documentation only|README only/i;
-const RELEASED = /released/i;
+const _RELEASED = /released/i;
 
 function labelNames(issue: Issue): string[] {
   return issue.labels.map((l) => l.name);
@@ -282,8 +282,8 @@ function main() {
     "",
     "## Summary",
     "",
-    `| Metric | Count |`,
-    `| ------ | ----- |`,
+    "| Metric | Count |",
+    "| ------ | ----- |",
     `| Total issues | ${rows.length} |`,
     `| Open | ${open.length} |`,
     `| Open — add/extend tests on implement | ${needsWork.length} |`,

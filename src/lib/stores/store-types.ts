@@ -1,4 +1,4 @@
-import { modalOptions } from "@constants/modal-states";
+import type { modalOptions } from "@constants/modal-states";
 import type {
   ImportedScheduleRow,
   Weekday,

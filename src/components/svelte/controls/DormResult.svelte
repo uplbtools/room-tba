@@ -144,7 +144,7 @@
 
   /** Only show shortName when it's a real abbreviation, not just the first word */
   const showShortName = $derived.by(() => {
-    if (!dorm || !dorm.shortName) return false;
+    if (!dorm?.shortName) return false;
     const first = dorm.dormName.split(/\s+/)[0].toLowerCase();
     return dorm.shortName.toLowerCase() !== first;
   });

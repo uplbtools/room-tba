@@ -170,7 +170,7 @@
       ]);
 
       // Layer in any saved positions before we compute placements / build meshes.
-      if (savedRes && savedRes.ok) {
+      if (savedRes?.ok) {
         try {
           const data = (await savedRes.json()) as {
             positions?: Array<{

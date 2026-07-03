@@ -47,7 +47,7 @@ export default defineConfig({
           /^\/maintain(\/|$)/,
           /^\/discord(\/|$)/,
         ],
-        swDest: `dist/client/sw.js`,
+        swDest: "dist/client/sw.js",
         // Cache third-party map resources at runtime so the campus map works
         // offline once visited (or after an explicit "download offline maps").
         runtimeCaching: [

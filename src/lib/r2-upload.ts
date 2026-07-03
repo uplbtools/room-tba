@@ -6,13 +6,7 @@ import {
   R2_PUBLIC_URL,
   R2_SECRET_ACCESS_KEY,
 } from "astro:env/server";
-import {
-  buildUploadKey,
-  publicUrlForKey,
-  UPLOAD_MAX_BYTES,
-  detectImageContentType,
-  sanitizeUploadPrefix,
-} from "./r2-upload-core";
+import { publicUrlForKey } from "./r2-upload-core";
 
 export {
   UPLOAD_MAX_BYTES,

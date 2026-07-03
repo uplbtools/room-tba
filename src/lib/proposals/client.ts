@@ -177,7 +177,7 @@ export function summarizeProposalPatch(
   patch: Record<string, unknown>,
   entityType?: ProposalEntityType,
 ): string[] {
-  if (entityType && entityType.startsWith("create_")) {
+  if (entityType?.startsWith("create_")) {
     const label = entityType.replace("create_", "");
     const details = summarizeProposalPatch(patch);
     if (entityType === "create_building" && Array.isArray(patch.rooms)) {

@@ -516,10 +516,10 @@ export async function getLocalRoomsCounts(): Promise<
     const localDB = getDB();
     await localDB.waitReady;
     const total = (await localDB.query(
-      `SELECT COUNT(*)::int AS count FROM rooms`,
+      "SELECT COUNT(*)::int AS count FROM rooms",
     )) as Results<{ count: number }>;
     const directed = (await localDB.query(
-      `SELECT COUNT(*)::int AS count FROM rooms WHERE directions IS NOT NULL`,
+      "SELECT COUNT(*)::int AS count FROM rooms WHERE directions IS NOT NULL",
     )) as Results<{ count: number }>;
     return {
       totalRooms: total.rows[0]?.count ?? 0,

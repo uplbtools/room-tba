@@ -63,7 +63,7 @@ export function updateTermAwareDocumentMeta(options: {
   ).toString();
   setOg("og:url", canonicalUrl);
 
-  let link = document.querySelector('link[rel="canonical"]');
+  const link = document.querySelector('link[rel="canonical"]');
   if (link) {
     link.setAttribute("href", canonicalUrl);
   }

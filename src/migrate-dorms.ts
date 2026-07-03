@@ -6,7 +6,7 @@ const client = new Database("data/info.db");
 
 // 1. Add facebook_link column
 try {
-  client.run(`ALTER TABLE dorms ADD COLUMN facebook_link TEXT`);
+  client.run("ALTER TABLE dorms ADD COLUMN facebook_link TEXT");
   console.log("Added facebook_link column");
 } catch (e: any) {
   if (e.message?.includes("duplicate column"))
@@ -24,7 +24,7 @@ const toRemove = [
 ];
 
 for (const name of toRemove) {
-  const result = client.run(`DELETE FROM dorms WHERE dorm_name = ?`, [name]);
+  const result = client.run("DELETE FROM dorms WHERE dorm_name = ?", [name]);
   console.log(`Deleted "${name}": ${result.changes} row(s)`);
 }
 
@@ -47,7 +47,7 @@ const facebookLinks: Record<string, string> = {
 
 for (const [name, link] of Object.entries(facebookLinks)) {
   const result = client.run(
-    `UPDATE dorms SET facebook_link = ? WHERE dorm_name = ?`,
+    "UPDATE dorms SET facebook_link = ? WHERE dorm_name = ?",
     [link, name],
   );
   console.log(`Set FB link for "${name}": ${result.changes} row(s)`);
@@ -55,7 +55,7 @@ for (const [name, link] of Object.entries(facebookLinks)) {
 
 // 4. Fix short_name: only keep abbreviations, clear ones that just repeat first word
 const dorms = client
-  .query(`SELECT id, dorm_name, short_name FROM dorms`)
+  .query("SELECT id, dorm_name, short_name FROM dorms")
   .all() as { id: number; dorm_name: string; short_name: string | null }[];
 for (const dorm of dorms) {
   if (!dorm.short_name) continue;
@@ -64,14 +64,14 @@ for (const dorm of dorms) {
   // If short_name is just the first word of the dorm name (e.g. "Westbrook" for "Westbrook Residences"), clear it
   if (
     firstName === shortLower ||
-    dorm.dorm_name.toLowerCase().startsWith(shortLower + " ")
+    dorm.dorm_name.toLowerCase().startsWith(`${shortLower} `)
   ) {
     // But keep actual abbreviations like MRH, IH, MAREHA, etc.
     const isAbbreviation =
       dorm.short_name.toUpperCase() === dorm.short_name ||
       !dorm.dorm_name.toLowerCase().includes(shortLower);
     if (!isAbbreviation) {
-      client.run(`UPDATE dorms SET short_name = NULL WHERE id = ?`, [dorm.id]);
+      client.run("UPDATE dorms SET short_name = NULL WHERE id = ?", [dorm.id]);
       console.log(
         `Cleared redundant short_name "${dorm.short_name}" for "${dorm.dorm_name}"`,
       );
@@ -82,7 +82,7 @@ for (const dorm of dorms) {
 // Verify final state
 const remaining = client
   .query(
-    `SELECT id, dorm_name, short_name, is_up_managed, facebook_link FROM dorms`,
+    "SELECT id, dorm_name, short_name, is_up_managed, facebook_link FROM dorms",
   )
   .all();
 console.log("\n--- Final dorms ---");

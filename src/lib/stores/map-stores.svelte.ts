@@ -1,4 +1,4 @@
-import * as maplibre from "maplibre-gl";
+import type * as maplibre from "maplibre-gl";
 import { DEFAULT_TERRAIN_EXAGGERATION } from "@constants/map-terrain";
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import { deactivateMapModesExcept } from "./map-modes.js";

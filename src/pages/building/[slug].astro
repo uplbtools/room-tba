@@ -41,7 +41,7 @@ const facts = [
   termLabel ? `Schedule term: ${termLabel}` : null,
   `${roomCount} room${roomCount === 1 ? "" : "s"} listed in this building`,
   `${classCount} class${classCount === 1 ? "" : "es"} listed in this building${termPhrase}`,
-  building.directions ? `Directions available for this building` : null,
+  building.directions ? "Directions available for this building" : null,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(

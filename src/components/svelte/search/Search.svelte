@@ -866,7 +866,7 @@
   .map-search-chrome__chips :global(.building-filter-bar) {
     flex: 0 0 auto;
     min-width: 0;
-    padding: 0 !important;
+    padding: 0;
   }
 
   .map-search-chrome__chips :global(.term-selector) {

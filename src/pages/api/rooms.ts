@@ -63,9 +63,9 @@ export const GET = (async ({ url }) => {
     );
   }
 
-  const id = parseInt(url.searchParams.get(searchField) as string);
+  const id = parseInt(url.searchParams.get(searchField) as string, 10);
   let data: null | RoomData[] = null;
-  if (isNaN(id))
+  if (Number.isNaN(id))
     return new Response("Error with your request", {
       status: 400,
       statusText: "Bad request",
