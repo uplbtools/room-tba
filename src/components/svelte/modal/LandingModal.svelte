@@ -219,7 +219,7 @@
             </li>
             <li>
               <a
-                href="/messenger"
+                href="/messenger/contribute"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="inline-link">Messenger</a
