@@ -34,11 +34,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Biome format
-        run: bunx biome format .
-
-      - name: ESLint (test harness)
-        run: bunx eslint integration e2e vitest.config.ts playwright.config.ts playwright.advisory.config.ts
+      - name: Biome check (format + lint)
+        run: bunx biome ci .
 
       - name: Unit tests
         run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'
