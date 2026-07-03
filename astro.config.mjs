@@ -4,6 +4,10 @@ import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import node from "@astrojs/node";
 import vercel from "@astrojs/vercel";
+import {
+  MESSENGER_CONTRIBUTE_TARGET,
+  MESSENGER_MAINTAIN_TARGET,
+} from "./src/constants/community-links.ts";
 
 /** Local E2E + integration preview — Vercel adapter does not support `astro preview`. */
 const e2eNodeAdapter = process.env.ASTRO_E2E_NODE === "1";
@@ -112,7 +116,10 @@ export default defineConfig({
   redirects: {
     "/contribute": "/?contribute=1",
     "/discord": "https://discord.uplbtools.me",
-    "/messenger": "https://messenger.uplbtools.me",
+    "/messenger": MESSENGER_CONTRIBUTE_TARGET,
+    "/messenger/contribute": MESSENGER_CONTRIBUTE_TARGET,
+    "/messenger/maintain": MESSENGER_MAINTAIN_TARGET,
+    "/maintain": MESSENGER_MAINTAIN_TARGET,
   },
 
   // adapter: vercel(),

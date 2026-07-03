@@ -12,7 +12,7 @@ Thanks for helping UPLB students find rooms. You do **not** need to clone this r
 | [Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aopen+label%3A%22good+first+issue%22) | New devs          | Smaller coding tasks                    | Yes        |
 | [Maintainers / AI agents](#maintainers-and-agents)                                                           | Core team, Cursor | See [AGENTS.md](AGENTS.md)              | Yes        |
 
-**Community:** [Discord](https://discord.uplbtools.me) · [Messenger](https://messenger.uplbtools.me) · [UPLB Tools](https://uplbtools.me)
+**Community:** [Discord](https://discord.uplbtools.me) · [Messenger (contribute)](https://messenger.uplbtools.me/contribute) · [UPLB Tools](https://uplbtools.me)
 
 ---
 
@@ -22,7 +22,7 @@ Use this when a schedule, pin, direction, or building name is wrong.
 
 1. **In the app:** open the room or building → **Suggest an edit** (if you have contributor access).
 2. **On GitHub:** [New data correction issue](https://github.com/uplbtools/room-tba/issues/new?template=data_correction.yml).
-3. **Chat:** Discord or Messenger (link above) if GitHub is awkward.
+3. **Chat:** [Discord](https://discord.uplbtools.me) or [Messenger](https://messenger.uplbtools.me/contribute) if GitHub is awkward.
 
 Include:
 
@@ -101,6 +101,8 @@ If someone filed a `data` or `qa` issue without code:
 [AGENTS.md](AGENTS.md) is for AI assistants and maintainers who ship quickly across many files. **Human developers do not need to read it.**
 
 Includes: branch rules, issue hygiene for detailed specs, Cursor workflow skill, map chrome guardrails.
+
+**Maintainer chat:** [Discord](https://discord.uplbtools.me) · [Messenger (maintain)](https://messenger.uplbtools.me/maintain)
 
 ---
 
