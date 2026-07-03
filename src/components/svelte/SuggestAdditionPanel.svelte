@@ -425,10 +425,13 @@
         username: adminAuthStore.username,
         draftName: submitterName,
       })!;
+      const pendingCreate = getStoredPendingCreateProposal(kind);
       const result = await submitCreateProposal({
         entityType: kind,
         patch,
         submitterName: name,
+        proposalId:
+          pendingCreate?.status === "needs_changes" ? pendingCreate.id : null,
       });
       if (!result.ok) {
         error = result.error ?? "Could not submit proposal.";
