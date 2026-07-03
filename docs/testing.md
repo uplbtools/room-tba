@@ -26,7 +26,7 @@ bun run e2e                     # Playwright starts its own preview (~16 min fir
 
 `bun run test:integration` alone runs **service/DB tests** only when preview is offline; **HTTP suites fail fast** with instructions. Do not treat a green `test:integration` without preview as full coverage.
 
-E2E runs `serve:e2e`, which rebuilds with `@astrojs/node` because `@astrojs/vercel` does not support `astro preview`. After the first `build:e2e`, speed up reruns with `SKIP_E2E_BUILD=1 bun run e2e`. For fast iteration on an already-running preview, set `PLAYWRIGHT_REUSE_SERVER=1`. Default Playwright workers are **2** (override with `PLAYWRIGHT_WORKERS`); the full suite is heavy on one preview server (~16 min locally; ~25 min wall clock in CI).
+E2E runs `serve:e2e`, which rebuilds with `@astrojs/node` because `@astrojs/vercel` does not support `astro preview`. After the first `build:e2e`, speed up reruns with `SKIP_E2E_BUILD=1 bun run e2e`. For fast iteration on an already-running preview, set `PLAYWRIGHT_REUSE_SERVER=1`. Default Playwright workers are **2** locally (**1** in CI via `PLAYWRIGHT_WORKERS`; override either way); the full suite is heavy on one preview server (~16 min locally; ~25 min wall clock in CI).
 
 ## CI (every PR push, including drafts)
 

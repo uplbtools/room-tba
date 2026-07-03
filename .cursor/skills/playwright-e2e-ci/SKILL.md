@@ -71,7 +71,7 @@ Wall clock ~28–35 min in CI.
 
 | Error | Likely cause | Mitigation |
 | --- | --- | --- |
-| `EMAXCONNSESSION max clients reached` | Too many parallel PG connections in integration job | Serialize tests, lower concurrency, or pooler limits |
+| `EMAXCONNSESSION max clients reached` | Too many parallel PG connections in integration job | CI sets `PLAYWRIGHT_WORKERS=1` and `DATABASE_POOL_MAX=4`; integration runs with `--concurrency 1` |
 | Preview failed to start | build:e2e or port conflict | Read job log before Playwright step |
 | staging-smoke `/admin` redirect | Staging deploy lag vs test expectation | Wait for Vercel staging deploy; check live URL |
 | Integration pass locally, fail CI | Missing preview or wrong `PREVIEW_BASE_URL` | Use `test:integration:live` |
