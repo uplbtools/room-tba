@@ -112,10 +112,24 @@ export async function getEntityLabel(
         return typeof p.dormName === "string" && p.dormName.trim()
           ? `New dorm: ${p.dormName.trim()}`
           : "New dorm";
-      case "create_room":
-        return typeof p.roomCode === "string" && p.roomCode.trim()
-          ? `New room: ${p.roomCode.trim()}`
-          : "New room";
+      case "create_room": {
+        const code =
+          typeof p.roomCode === "string" && p.roomCode.trim()
+            ? p.roomCode.trim()
+            : null;
+        const buildingId = Number(p.buildingId);
+        if (code && Number.isInteger(buildingId) && buildingId >= 1) {
+          const [row] = await db
+            .select({ label: buildingsTable.buildingName })
+            .from(buildingsTable)
+            .where(eq(buildingsTable.id, buildingId))
+            .limit(1);
+          if (row?.label) {
+            return `New room: ${code} (${row.label})`;
+          }
+        }
+        return code ? `New room: ${code}` : "New room";
+      }
       case "create_college":
         return typeof p.collegeName === "string" && p.collegeName.trim()
           ? `New college: ${p.collegeName.trim()}`
@@ -294,66 +308,10 @@ async function withEntityLabel(
   };
 }
 
-function validateCreatePatch(
-  entityType: ProposalCreateType,
-  patch: Record<string, unknown>,
-) {
-  switch (entityType) {
-    case "create_building": {
-      const name =
-        typeof patch.buildingName === "string" ? patch.buildingName.trim() : "";
-      if (!name)
-        throw new ProposalValidationError("Building name is required.");
-      if (typeof patch.lat !== "number" || typeof patch.lon !== "number") {
-        throw new ProposalValidationError(
-          "Pick a map location for the new building.",
-        );
-      }
-      return;
-    }
-    case "create_event": {
-      const title = typeof patch.title === "string" ? patch.title.trim() : "";
-      if (!title) throw new ProposalValidationError("Event title is required.");
-      if (
-        typeof patch.startsAt !== "string" ||
-        typeof patch.endsAt !== "string"
-      ) {
-        throw new ProposalValidationError("Event start and end are required.");
-      }
-      return;
-    }
-    case "create_dorm": {
-      const name =
-        typeof patch.dormName === "string" ? patch.dormName.trim() : "";
-      const gender =
-        typeof patch.gender === "string" ? patch.gender.trim() : "";
-      if (!name) throw new ProposalValidationError("Dorm name is required.");
-      if (!gender)
-        throw new ProposalValidationError("Dorm gender is required.");
-      return;
-    }
-    case "create_room": {
-      const code =
-        typeof patch.roomCode === "string" ? patch.roomCode.trim() : "";
-      if (!code) throw new ProposalValidationError("Room code is required.");
-      return;
-    }
-    case "create_college": {
-      const name =
-        typeof patch.collegeName === "string" ? patch.collegeName.trim() : "";
-      if (!name) throw new ProposalValidationError("College name is required.");
-      return;
-    }
-    case "create_division": {
-      const name =
-        typeof patch.divisionName === "string" ? patch.divisionName.trim() : "";
-      if (!name)
-        throw new ProposalValidationError("Division name is required.");
-      return;
-    }
-  }
-}
-
+import {
+  ProposalValidationError,
+  validateCreateProposalPatch,
+} from "@lib/proposals/create-proposal-validation";
 export async function listPendingProposals(): Promise<EditProposalSummary[]> {
   const rows = await db
     .select()
@@ -431,9 +389,8 @@ export async function submitProposal(
     throw new ProposalValidationError("No changes to submit.");
   }
 
-  if (isCreate) {
-    validateCreatePatch(input.entityType, input.patch);
-  } else if (
+  if (
+    !isCreate &&
     !(await entityExists(
       input.entityType as ProposalUpdateType,
       input.entityId,
@@ -484,6 +441,23 @@ export async function submitProposal(
       }
     : input.patch;
 
+  if (isCreate) {
+    validateCreateProposalPatch(input.entityType, mergedPatch);
+    if (input.entityType === "create_room") {
+      const buildingId = Number(mergedPatch.buildingId);
+      const [row] = await db
+        .select({ id: buildingsTable.id })
+        .from(buildingsTable)
+        .where(eq(buildingsTable.id, buildingId))
+        .limit(1);
+      if (!row) {
+        throw new ProposalValidationError(
+          "That building is not on the map yet. Wait for editors to approve your building suggestion, or pick a building that already exists.",
+        );
+      }
+    }
+  }
+
   if (existing) {
     const [updated] = await db
       .update(editProposalsTable)
@@ -519,12 +493,7 @@ export async function submitProposal(
   return withEntityLabel(created);
 }
 
-export class ProposalValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ProposalValidationError";
-  }
-}
+export { ProposalValidationError } from "@lib/proposals/create-proposal-validation";
 
 export class ProposalActionError extends Error {
   status: number;
