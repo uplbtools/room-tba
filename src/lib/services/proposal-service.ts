@@ -37,7 +37,6 @@ import {
   updateEvent,
   updateEventLocations,
   updateRoom,
-  type BuildingCreateInput,
   type BuildingUpdateInput,
   type DormCreateInput,
   type DormUpdateInput,

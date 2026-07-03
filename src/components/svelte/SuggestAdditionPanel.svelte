@@ -99,8 +99,6 @@
   let error = $state<string | null>(null);
   let draftReady = $state(false);
   let pendingBuildingLabel = $state<string | null>(null);
-  let pendingCreateProposalId = $state<number | null>(null);
-  let pendingCreateStatus = $state<string | null>(null);
   let pendingListVersion = $state(0);
   let bundledRooms = $state<BundledRoomDraft[]>([]);
 
@@ -214,17 +212,9 @@
   }
 
   async function refreshPendingCreateProposal() {
-    pendingCreateProposalId = null;
-    pendingCreateStatus = null;
     pendingBuildingLabel = null;
 
     if (isPublish) return;
-
-    const pendingForKind = getStoredPendingCreateProposal(kind);
-    if (pendingForKind) {
-      pendingCreateProposalId = pendingForKind.id;
-      pendingCreateStatus = pendingForKind.status;
-    }
 
     if (kind === "create_room") {
       const pendingBuilding = getStoredPendingCreateProposal("create_building");
