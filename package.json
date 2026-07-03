@@ -18,7 +18,8 @@
     "preview:e2e": "bash scripts/preview-e2e.sh",
     "serve:e2e": "bash scripts/serve-e2e.sh",
     "astro": "astro",
-    "lint": "biome format . && eslint .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write --unsafe .",
     "format": "biome format --write .",
     "test": "bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'",
     "test:components": "vitest run",
@@ -74,8 +75,6 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@biomejs/biome": "^2.5.2",
-    "@eslint/compat": "^2.1.0",
-    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
@@ -95,17 +94,9 @@
     "@vitest/browser": "^4.1.9",
     "bun": "^1.3.14",
     "drizzle-kit": "^0.31.10",
-    "eslint": "^10.5.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-astro": "^2.1.1",
-    "eslint-plugin-svelte": "^3.19.0",
     "globals": "^17.7.0",
     "happy-dom": "^20.10.6",
-    "prettier": "^3.8.4",
-    "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-svelte": "^4.1.1",
     "semantic-release": "^25.0.5",
-    "typescript-eslint": "^8.62.0",
     "vitest": "^4.1.9"
   }
 }
