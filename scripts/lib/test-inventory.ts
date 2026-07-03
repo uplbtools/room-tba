@@ -63,6 +63,44 @@ export async function scanTestInventory(root: string): Promise<TestInventory> {
   };
 }
 
+export type TestInventoryDiscordTiers = {
+  unit: string[];
+  store: string[];
+  component: string[];
+  integration: string[];
+  e2eBlockingSmoke: string[];
+  e2eBlockingBrowse: string[];
+  e2eBlockingAdmin: string[];
+  e2eAdvisory: string[];
+  e2eStaging: string[];
+};
+
+/** File lists per tier for Discord embed payloads. */
+export function testInventoryDiscordTiers(
+  inv: TestInventory,
+): TestInventoryDiscordTiers {
+  const smoke: string[] = [];
+  const browse: string[] = [];
+  const admin: string[] = [];
+  for (const f of inv.e2eBlocking) {
+    if (f.includes("/smoke/")) smoke.push(f);
+    else if (f.includes("/browse/")) browse.push(f);
+    else if (f.includes("/admin/")) admin.push(f);
+    else admin.push(f);
+  }
+  return {
+    unit: inv.unit,
+    store: inv.store,
+    component: inv.component,
+    integration: inv.integration,
+    e2eBlockingSmoke: smoke,
+    e2eBlockingBrowse: browse,
+    e2eBlockingAdmin: admin,
+    e2eAdvisory: inv.e2eAdvisory,
+    e2eStaging: inv.e2eStaging,
+  };
+}
+
 function mdList(files: string[]): string {
   if (files.length === 0) return "_None_\n";
   return files.map((f) => `- \`${f}\``).join("\n") + "\n";
