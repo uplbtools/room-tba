@@ -13,8 +13,10 @@
     submitCreateProposal,
     getStoredPendingCreateProposal,
     fetchPublicProposalSummary,
+    withdrawEntityProposal,
     type ProposalCreateType,
   } from "@lib/proposals/client";
+  import { canShowWithdrawProposal } from "@lib/editor/field-action-label";
   import { validateSubmitterName } from "@constants/proposals";
   import { instantToCampusWallString } from "@lib/event-time";
   import { slugifySegment } from "@lib/site";
@@ -93,6 +95,9 @@
   let error = $state<string | null>(null);
   let draftReady = $state(false);
   let pendingBuildingLabel = $state<string | null>(null);
+  let pendingCreateProposalId = $state<number | null>(null);
+  let pendingCreateStatus = $state<string | null>(null);
+  let withdrawingCreate = $state(false);
 
   const appData = getAppData();
   const colleges = $derived(appData().loaded ? appData().colleges : []);
@@ -192,24 +197,62 @@
     }
   }
 
-  async function refreshPendingBuildingLabel() {
+  async function refreshPendingCreateProposal() {
+    pendingCreateProposalId = null;
+    pendingCreateStatus = null;
     pendingBuildingLabel = null;
-    const pending = getStoredPendingCreateProposal("create_building");
-    if (!pending) return;
-    const summary = await fetchPublicProposalSummary(pending.id);
-    pendingBuildingLabel = summary?.entityLabel ?? "New building";
+
+    if (isPublish) return;
+
+    const pendingForKind = getStoredPendingCreateProposal(kind);
+    if (pendingForKind) {
+      pendingCreateProposalId = pendingForKind.id;
+      pendingCreateStatus = pendingForKind.status;
+    }
+
+    if (kind === "create_room") {
+      const pendingBuilding = getStoredPendingCreateProposal("create_building");
+      if (!pendingBuilding) return;
+      const summary = await fetchPublicProposalSummary(pendingBuilding.id);
+      pendingBuildingLabel = summary?.entityLabel ?? "New building";
+    }
+  }
+
+  async function withdrawPendingCreate() {
+    if (!pendingCreateProposalId) return;
+    error = null;
+    withdrawingCreate = true;
+    try {
+      const name = resolveSubmitterName({
+        displayName: adminAuthStore.displayName,
+        username: adminAuthStore.username,
+        draftName: submitterName,
+      });
+      const result = await withdrawEntityProposal({
+        proposalId: pendingCreateProposalId,
+        submitterName: name || undefined,
+      });
+      if (!result.ok) {
+        error = result.error ?? "Could not withdraw suggestion.";
+        return;
+      }
+      toastStore.show("Suggestion withdrawn.", "success");
+      await refreshPendingCreateProposal();
+    } finally {
+      withdrawingCreate = false;
+    }
   }
 
   onMount(() => {
     if (!isPublish) restoreAdditionDraft();
     draftReady = true;
-    void refreshPendingBuildingLabel();
+    void refreshPendingCreateProposal();
   });
 
   $effect(() => {
-    if (kind === "create_room" && !isPublish) {
-      void refreshPendingBuildingLabel();
-    }
+    if (isPublish || !draftReady) return;
+    kind;
+    void refreshPendingCreateProposal();
   });
 
   $effect(() => {
@@ -442,7 +485,7 @@
           "Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.",
           "success",
         );
-        await refreshPendingBuildingLabel();
+        await refreshPendingCreateProposal();
       } else {
         toastStore.show("Thanks. We'll review your suggestion soon.", "success");
       }
@@ -739,6 +782,18 @@
 
   {#if error}
     <EntityEditorMessage variant="error" message={error} />
+  {/if}
+
+  {#if !isPublish && pendingCreateProposalId && canShowWithdrawProposal(pendingCreateStatus)}
+    <div class="entity-editor-form-actions">
+      <EntityEditorSubmitButton
+        label="Withdraw pending suggestion"
+        savingLabel="Withdrawing…"
+        saving={withdrawingCreate}
+        variant="secondary"
+        onclick={withdrawPendingCreate}
+      />
+    </div>
   {/if}
 
   <EntityEditorSubmitButton

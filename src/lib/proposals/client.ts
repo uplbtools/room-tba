@@ -30,6 +30,20 @@ export function rememberProposal(ref: StoredProposalRef) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([ref, ...existing]));
 }
 
+export function removeStoredProposal(id: number) {
+  if (typeof localStorage === "undefined") return;
+  const next = readStoredProposals().filter((item) => item.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+}
+
+export function updateStoredProposalStatus(id: number, status: string) {
+  const refs = readStoredProposals();
+  const index = refs.findIndex((item) => item.id === id);
+  if (index === -1) return;
+  refs[index] = { ...refs[index]!, status };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(refs));
+}
+
 export function getStoredProposalForEntity(
   entityType: ProposalEntityType,
   entityId: number,
@@ -470,6 +484,26 @@ export async function submitEntityProposal(input: {
     rememberProposal(ref);
     return { ok: true, proposal: ref };
   }
+  return { ok: true };
+}
+
+export async function withdrawEntityProposal(input: {
+  proposalId: number;
+  submitterName?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch(`/api/proposals/${input.proposalId}/withdraw`, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(
+      input.submitterName ? { submitterName: input.submitterName } : {},
+    ),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { ok: false, error: (data as { error?: string }).error };
+  }
+  removeStoredProposal(input.proposalId);
   return { ok: true };
 }
 

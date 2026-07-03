@@ -445,6 +445,11 @@
           submitterNameId="building-submitter-name"
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
+          activeProposalId={activeProposalId}
+          onWithdrawn={() => {
+            activeProposalId = null;
+            proposalStatus = null;
+          }}
           successMessage={savedField
             ? entityEditorSavedMessage({
                 canPublish,

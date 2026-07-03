@@ -2,7 +2,13 @@
   import type { Snippet } from "svelte";
   import SubmitterNameField from "@ui/SubmitterNameField.svelte";
   import EntityEditorMessage from "./EntityEditorMessage.svelte";
-  import { proposalStatusMessage } from "@lib/editor/field-action-label";
+  import EntityEditorSubmitButton from "./EntityEditorSubmitButton.svelte";
+  import {
+    canShowWithdrawProposal,
+    proposalStatusMessage,
+  } from "@lib/editor/field-action-label";
+  import { withdrawEntityProposal } from "@lib/proposals/client";
+  import { toastStore } from "@lib/store.svelte";
   import "./entity-editor.css";
 
   type Props = {
@@ -11,6 +17,8 @@
     submitterNameId: string;
     submitterName?: string;
     proposalStatus?: string | null;
+    activeProposalId?: number | null;
+    onWithdrawn?: () => void;
     successMessage?: string | null;
     errorMessage?: string | null;
     children?: Snippet;
@@ -22,10 +30,35 @@
     submitterNameId,
     submitterName = $bindable(""),
     proposalStatus = null,
+    activeProposalId = null,
+    onWithdrawn,
     successMessage = null,
     errorMessage = null,
     children,
   }: Props = $props();
+
+  let withdrawing = $state(false);
+  let withdrawError = $state<string | null>(null);
+
+  async function withdrawSuggestion() {
+    if (!activeProposalId || canPublish) return;
+    withdrawError = null;
+    withdrawing = true;
+    try {
+      const result = await withdrawEntityProposal({
+        proposalId: activeProposalId,
+        submitterName: submitterName.trim() || undefined,
+      });
+      if (!result.ok) {
+        withdrawError = result.error ?? "Could not withdraw suggestion.";
+        return;
+      }
+      toastStore.show("Suggestion withdrawn.", "success");
+      onWithdrawn?.();
+    } finally {
+      withdrawing = false;
+    }
+  }
 </script>
 
 <div class="entity-editor-panel" class:contributor-form={!canPublish}>
@@ -44,7 +77,23 @@
     />
   {/if}
 
+  {#if !canPublish && activeProposalId && canShowWithdrawProposal(proposalStatus)}
+    <div class="entity-editor-form-actions">
+      <EntityEditorSubmitButton
+        label="Withdraw suggestion"
+        savingLabel="Withdrawing…"
+        saving={withdrawing}
+        variant="secondary"
+        onclick={withdrawSuggestion}
+      />
+    </div>
+  {/if}
+
   {@render children?.()}
+
+  {#if withdrawError}
+    <EntityEditorMessage variant="error" message={withdrawError} />
+  {/if}
 
   {#if successMessage}
     <EntityEditorMessage variant="success" message={successMessage} />
