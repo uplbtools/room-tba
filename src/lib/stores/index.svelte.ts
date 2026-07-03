@@ -445,7 +445,7 @@ class AdminAuthStore {
           (res.status === 401
             ? "Invalid username or password"
             : res.status === 429
-              ? "Too many attempts. Wait a few minutes and try again."
+              ? "Too many sign-in attempts. Wait about 30 seconds and try again."
               : res.status >= 500
                 ? "Sign-in failed on our side. Try again later."
                 : "Could not sign in. Check your username and password.")
