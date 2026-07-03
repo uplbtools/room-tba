@@ -47,10 +47,32 @@ describeIntegration("admin building service integration", () => {
 });
 
 describeIntegration("admin auth integration", () => {
-  test("disabled user cannot authenticate", async () => {
-    const { authenticateAdminUser } = await import(
-      "@lib/services/admin-user-service"
+  let client: pg.Client;
+  let hasEmailColumn = false;
+
+  beforeAll(async () => {
+    const url = integrationDatabaseUrl();
+    if (!url) return;
+    client = new pg.Client({ connectionString: url });
+    await client.connect();
+    const { rows } = await client.query<{ exists: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name = 'admin_users'
+           AND column_name = 'email'
+       ) AS exists`,
     );
+    hasEmailColumn = rows[0]?.exists ?? false;
+  });
+
+  afterAll(async () => {
+    await client?.end();
+  });
+
+  test("disabled user cannot authenticate", async () => {
+    const { authenticateAdminUser } =
+      await import("@lib/services/admin-user-service");
     const user = await authenticateAdminUser(
       "e2e-disabled",
       integrationPassword(),
@@ -59,13 +81,36 @@ describeIntegration("admin auth integration", () => {
   });
 
   test("admin user authenticates", async () => {
-    const { authenticateAdminUser } = await import(
-      "@lib/services/admin-user-service"
-    );
+    const { authenticateAdminUser } =
+      await import("@lib/services/admin-user-service");
     const user = await authenticateAdminUser(
       "e2e-admin",
       integrationPassword(),
     );
     expect(user?.username).toBe("e2e-admin");
+  });
+
+  test("admin user authenticates by email when email column exists", async () => {
+    if (!hasEmailColumn) return;
+
+    const testEmail = "e2e-admin-login@room-tba.test";
+    await client.query(
+      `UPDATE admin_users SET email = $1 WHERE username = 'e2e-admin'`,
+      [testEmail],
+    );
+
+    try {
+      const { authenticateAdminUser } =
+        await import("@lib/services/admin-user-service");
+      const user = await authenticateAdminUser(
+        testEmail,
+        integrationPassword(),
+      );
+      expect(user?.username).toBe("e2e-admin");
+    } finally {
+      await client.query(
+        `UPDATE admin_users SET email = NULL WHERE username = 'e2e-admin'`,
+      );
+    }
   });
 });

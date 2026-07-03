@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { ADMIN_PASSWORD } from "astro:env/server";
 import { adminUsersTable } from "@drizzle/schema";
 import { db } from "@lib/db";
@@ -76,13 +76,16 @@ export async function authenticateAdminUser(
     .from(adminUsersTable)
     .where(
       and(
-        eq(adminUsersTable.username, normalized),
         eq(adminUsersTable.isActive, true),
+        or(
+          eq(adminUsersTable.username, normalized),
+          sql`lower(email) = ${normalized}`,
+        ),
       ),
     )
     .limit(1);
 
-  if (!user) return null;
+  if (!user?.passwordHash) return null;
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return null;
 
