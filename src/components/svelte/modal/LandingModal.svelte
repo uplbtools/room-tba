@@ -2,6 +2,7 @@
   import { modalStore } from "@lib/store.svelte";
   import { contributors, designers } from "@constants/contributors";
   import { UPLB_TOOLS_URL } from "@constants/community-links";
+  import CommunityPlatformLink from "@ui/community/CommunityPlatformLink.svelte";
   import {
     fetchGithubContributors,
     type GithubContributor,
@@ -210,20 +211,14 @@
               >
             </li>
             <li>
-              <a
-                href="/discord"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-link">Discord</a
-              >
+              <CommunityPlatformLink brand="discord" href="/discord" label="Discord" />
             </li>
             <li>
-              <a
-                href="/messenger"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-link">Messenger</a
-              >
+              <CommunityPlatformLink
+                brand="messenger"
+                href="/messenger/contribute"
+                label="Messenger"
+              />
             </li>
           </ul>
         </section>
