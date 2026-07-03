@@ -313,7 +313,7 @@ export function toSubmitterProposalView(
     submitterName: summary.submitterName,
   };
 }
-async function withEntityLabel(
+export async function withEntityLabel(
   row: EditProposalRow,
 ): Promise<EditProposalSummary> {
   return {
