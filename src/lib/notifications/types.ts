@@ -29,3 +29,16 @@ export type ProposalSubmittedPayload = {
   submitterName: string;
   isAnonymous: boolean;
 };
+
+export type ProposalReviewOutcome = "approved" | "rejected" | "needs_changes";
+
+export type ProposalReviewedPayload = {
+  proposalId: number;
+  outcome: ProposalReviewOutcome;
+  entityType: string;
+  entityId: number;
+  entityLabel: string;
+  submitterName: string;
+  reviewedBy: string;
+  adminNote: string | null;
+};
