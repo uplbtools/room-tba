@@ -2,7 +2,7 @@
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { UPLB_TOOLS_URL } from "@constants/community-links";
+import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
 ---
 
 <Layout
@@ -124,11 +124,11 @@ import { UPLB_TOOLS_URL } from "@constants/community-links";
         <h2>Contact</h2>
         <p>
           Questions? Reach us on
-          <a href="/discord" target="_blank" rel="noopener noreferrer"
+          <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
             >Discord</a
           >
           or
-          <a href="/messenger/contribute" target="_blank" rel="noopener noreferrer"
+          <a href={MESSENGER_CONTRIBUTE_TARGET} target="_blank" rel="noopener noreferrer"
             >Messenger</a
           >, or open an issue on
           <a

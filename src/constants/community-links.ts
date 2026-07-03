@@ -1,6 +1,7 @@
 /** External UPLB Tools community and org links (also wired as short redirects in astro.config). */
 
-import { SITE_URL } from "@lib/site";
+/** Canonical production origin — literal so astro.config can import this module. */
+const ROOM_TBA_SITE_URL = "https://room-tba.uplbtools.me";
 
 export const UPLB_TOOLS_URL = "https://uplbtools.me";
 export const DISCORD_URL = "https://discord.uplbtools.me";
@@ -16,8 +17,8 @@ export const MESSENGER_SHORT_MAINTAIN_URL =
   "https://messenger.uplbtools.me/maintain";
 
 /** App-stable redirect URLs on room-tba (avoids messenger subdomain DNS cache misses). */
-export const MESSENGER_CONTRIBUTE_URL = `${SITE_URL}/messenger/contribute`;
-export const MESSENGER_MAINTAIN_URL = `${SITE_URL}/messenger/maintain`;
+export const MESSENGER_CONTRIBUTE_URL = `${ROOM_TBA_SITE_URL}/messenger/contribute`;
+export const MESSENGER_MAINTAIN_URL = `${ROOM_TBA_SITE_URL}/messenger/maintain`;
 
 /** Default volunteer-facing Messenger entry. */
 export const MESSENGER_URL = MESSENGER_CONTRIBUTE_URL;
