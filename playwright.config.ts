@@ -6,7 +6,9 @@ loadEnv();
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:4321";
 const workers = process.env.PLAYWRIGHT_WORKERS
   ? Number(process.env.PLAYWRIGHT_WORKERS)
-  : 2;
+  : process.env.CI
+    ? 1
+    : 2;
 
 export default defineConfig({
   testDir: "e2e",
