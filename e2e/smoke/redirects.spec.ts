@@ -16,6 +16,13 @@ test.describe("community redirects", () => {
     expect(res.headers().location).toBe(MESSENGER_CONTRIBUTE_TARGET);
   });
 
+  test("/messenger/contribute navigates to Messenger in browser", async ({
+    page,
+  }) => {
+    await page.goto("/messenger/contribute");
+    await expect(page).toHaveURL(/m\.me\/j\/Aba1V0prvQyLrafZ/);
+  });
+
   test("/messenger/maintain redirects to maintainers Messenger GC", async ({
     request,
   }) => {

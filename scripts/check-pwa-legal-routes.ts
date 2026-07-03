@@ -20,6 +20,9 @@ const requiredDenylist = [
   String.raw`/^\/privacy(\/|$)/`,
   String.raw`/^\/terms(\/|$)/`,
   String.raw`/^\/changelog(\/|$)/`,
+  String.raw`/^\/messenger(\/|$)/`,
+  String.raw`/^\/maintain(\/|$)/`,
+  String.raw`/^\/discord(\/|$)/`,
 ];
 
 let failed = false;

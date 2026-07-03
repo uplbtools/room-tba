@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/svelte";
 import { describe, expect, test } from "vitest";
 import StatusBarLinkGroups from "@ui/status-bar/StatusBarLinkGroups.svelte";
 import { STATUS_BAR_COMMUNITY_GROUP } from "@constants/status-bar-links";
+import { MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
 import { mountAtWidth } from "@test/layout-assertions";
 
 describe("StatusBarLinkGroups", () => {
@@ -20,7 +21,7 @@ describe("StatusBarLinkGroups", () => {
     expect(screen.getByRole("link", { name: /UPLB Tools/i })).toBeVisible();
     expect(screen.getByRole("link", { name: /Messenger/i })).toHaveAttribute(
       "href",
-      "/messenger/contribute",
+      MESSENGER_CONTRIBUTE_TARGET,
     );
   });
 });

@@ -1,7 +1,12 @@
 <script lang="ts">
   import { modalStore } from "@lib/store.svelte";
   import { contributors, designers } from "@constants/contributors";
-  import { UPLB_TOOLS_URL } from "@constants/community-links";
+  import {
+    UPLB_TOOLS_URL,
+    DISCORD_URL,
+    MESSENGER_CONTRIBUTE_TARGET,
+    MESSENGER_MAINTAIN_TARGET,
+  } from "@constants/community-links";
   import CommunityPlatformLink from "@ui/community/CommunityPlatformLink.svelte";
   import {
     fetchGithubContributors,
@@ -211,13 +216,20 @@
               >
             </li>
             <li>
-              <CommunityPlatformLink brand="discord" href="/discord" label="Discord" />
+              <CommunityPlatformLink brand="discord" href={DISCORD_URL} label="Discord" />
             </li>
             <li>
               <CommunityPlatformLink
                 brand="messenger"
-                href="/messenger/contribute"
-                label="Messenger"
+                href={MESSENGER_CONTRIBUTE_TARGET}
+                label="Messenger (contribute)"
+              />
+            </li>
+            <li>
+              <CommunityPlatformLink
+                brand="messenger"
+                href={MESSENGER_MAINTAIN_TARGET}
+                label="Maintainer chat"
               />
             </li>
           </ul>
