@@ -1,5 +1,7 @@
 import {
   LEGAL_LINKS,
+  MESSENGER_CONTRIBUTE_TARGET,
+  MESSENGER_MAINTAIN_TARGET,
   UPLB_TOOLS_URL,
   DISCORD_URL,
 } from "@constants/community-links";
@@ -53,7 +55,7 @@ export const STATUS_BAR_COMMUNITY_GROUP: StatusBarNavGroup = {
       kind: "link",
       id: "messenger",
       label: "Messenger",
-      href: "/messenger/contribute",
+      href: MESSENGER_CONTRIBUTE_TARGET,
       external: true,
       icon: "messenger",
     },
@@ -128,7 +130,19 @@ export function statusBarNavGroups(options: {
 }): StatusBarNavGroup[] {
   const appItems: StatusBarNavItem[] = [
     STATUS_BAR_APP_ACTIONS[0]!,
-    ...(options.showEditorLogin ? [STATUS_BAR_APP_ACTIONS[1]!] : []),
+    ...(options.showEditorLogin
+      ? [
+          STATUS_BAR_APP_ACTIONS[1]!,
+          {
+            kind: "link" as const,
+            id: "messenger-maintain",
+            label: "Maintainer chat",
+            href: MESSENGER_MAINTAIN_TARGET,
+            external: true,
+            icon: "messenger" as const,
+          },
+        ]
+      : []),
   ];
 
   return [

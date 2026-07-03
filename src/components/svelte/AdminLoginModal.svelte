@@ -11,6 +11,8 @@
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
+  import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
+  import { MESSENGER_MAINTAIN_TARGET } from "@constants/community-links";
   import "./editor/entity-editor.css";
   import { MediaQuery } from "svelte/reactivity";
 
@@ -117,6 +119,18 @@
         saving={adminAuthStore.loading}
       />
     </form>
+    <p class="login-footer">
+      Need editor access?
+      <a
+        href={MESSENGER_MAINTAIN_TARGET}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="login-footer-link"
+      >
+        <CommunityBrandIcon brand="messenger" size={14} />
+        Message maintainers
+      </a>
+    </p>
   </div>
 </div>
 
@@ -169,5 +183,28 @@
   }
   .login-body {
     padding: 1rem;
+  }
+  .login-footer {
+    margin: 0;
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid hsl(0, 0%, 92%);
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 38%);
+    line-height: 1.5;
+    text-align: center;
+  }
+  .login-footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-left: 0.25rem;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .login-footer-link:hover,
+  .login-footer-link:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 </style>

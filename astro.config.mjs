@@ -42,6 +42,10 @@ export default defineConfig({
           /^\/privacy(\/|$)/,
           /^\/terms(\/|$)/,
           /^\/changelog(\/|$)/,
+          // Server redirects — must hit network, not offline app shell (#471).
+          /^\/messenger(\/|$)/,
+          /^\/maintain(\/|$)/,
+          /^\/discord(\/|$)/,
         ],
         swDest: `dist/client/sw.js`,
         // Cache third-party map resources at runtime so the campus map works
