@@ -14,7 +14,7 @@ on:
       - ".cursor/**"
 
 concurrency:
-  group: e2e-stack-${{ github.event.pull_request.number }}
+  group: e2e-blocking-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
