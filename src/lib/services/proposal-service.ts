@@ -13,8 +13,8 @@ import { type SessionUser } from "@lib/admin/auth";
 import { validateSubmitterName } from "@constants/proposals";
 import { parseEventImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
-import { canViewProposalSubmitterDetails } from "./proposal-access";
-export { canViewProposalSubmitterDetails } from "./proposal-access";
+import { canViewProposalSubmitterDetails, canWithdrawProposal } from "./proposal-access";
+export { canViewProposalSubmitterDetails, canWithdrawProposal } from "./proposal-access";
 import {
   EditConflictError,
   DuplicateSlugError,
@@ -745,4 +745,44 @@ export async function requestProposalChanges(
   );
   if (!finalized) throw new ProposalActionError("Proposal not found.", 404);
   return withEntityLabel(finalized);
+}
+
+export async function withdrawProposal(
+  id: number,
+  session: SessionUser | null,
+  submitterName?: string,
+) {
+  const proposal = await getProposalById(id);
+  if (!proposal) throw new ProposalActionError("Proposal not found.", 404);
+  if (!canWithdrawProposal(session, proposal, submitterName)) {
+    throw new ProposalActionError("Not allowed to withdraw this proposal.", 403);
+  }
+
+  const withdrawnBy =
+    session?.displayName || session?.username || proposal.submitterName;
+
+  const [updated] = await db
+    .update(editProposalsTable)
+    .set({
+      status: "withdrawn",
+      reviewedBy: withdrawnBy,
+      reviewedAt: sql`now()`,
+      adminNote: null,
+      updatedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(editProposalsTable.id, id),
+        inArray(editProposalsTable.status, [
+          "pending",
+          "needs_changes",
+        ] as const),
+      ),
+    )
+    .returning();
+
+  if (!updated) {
+    throw new ProposalActionError("This proposal is no longer open.", 409);
+  }
+  return withEntityLabel(updated);
 }
