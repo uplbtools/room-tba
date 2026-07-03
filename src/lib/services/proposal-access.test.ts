@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { canViewProposalSubmitterDetails, canWithdrawProposal } from "./proposal-access";
+import {
+  canViewProposalSubmitterDetails,
+  canWithdrawProposal,
+} from "./proposal-access";
 
 describe("canViewProposalSubmitterDetails", () => {
   const proposal = {
@@ -77,11 +80,7 @@ describe("canWithdrawProposal", () => {
 
   test("anonymous submitter can withdraw with matching display name", () => {
     expect(
-      canWithdrawProposal(
-        null,
-        { ...proposal, submitterUserId: null },
-        "Ana",
-      ),
+      canWithdrawProposal(null, { ...proposal, submitterUserId: null }, "Ana"),
     ).toBe(true);
   });
 
