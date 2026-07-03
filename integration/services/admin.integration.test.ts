@@ -71,8 +71,9 @@ describeIntegration("admin auth integration", () => {
   });
 
   test("disabled user cannot authenticate", async () => {
-    const { authenticateAdminUser } =
-      await import("@lib/services/admin-user-service");
+    const { authenticateAdminUser } = await import(
+      "@lib/services/admin-user-service"
+    );
     const user = await authenticateAdminUser(
       "e2e-disabled",
       integrationPassword(),
@@ -81,8 +82,9 @@ describeIntegration("admin auth integration", () => {
   });
 
   test("admin user authenticates", async () => {
-    const { authenticateAdminUser } =
-      await import("@lib/services/admin-user-service");
+    const { authenticateAdminUser } = await import(
+      "@lib/services/admin-user-service"
+    );
     const user = await authenticateAdminUser(
       "e2e-admin",
       integrationPassword(),
@@ -100,8 +102,9 @@ describeIntegration("admin auth integration", () => {
     );
 
     try {
-      const { authenticateAdminUser } =
-        await import("@lib/services/admin-user-service");
+      const { authenticateAdminUser } = await import(
+        "@lib/services/admin-user-service"
+      );
       const user = await authenticateAdminUser(
         testEmail,
         integrationPassword(),
