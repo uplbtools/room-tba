@@ -420,6 +420,7 @@ export async function submitCreateProposal(input: {
   entityType: ProposalCreateType;
   patch: Record<string, unknown>;
   submitterName?: string;
+  proposalId?: number | null;
 }): Promise<{ ok: boolean; error?: string; proposal?: StoredProposalRef }> {
   return submitEntityProposal({
     entityType: input.entityType,
@@ -427,6 +428,7 @@ export async function submitCreateProposal(input: {
     baseVersion: 0,
     patch: input.patch,
     submitterName: input.submitterName,
+    proposalId: input.proposalId,
   });
 }
 
