@@ -63,6 +63,7 @@ async function main() {
     await client.query(`
       TRUNCATE TABLE
         editor_history,
+        contributions,
         edit_proposals,
         event_route_stops,
         event_routes,
