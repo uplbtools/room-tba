@@ -11,6 +11,8 @@
     resolveSubmitterName,
     publishEntityCreate,
     submitCreateProposal,
+    getStoredPendingCreateProposal,
+    fetchPublicProposalSummary,
     type ProposalCreateType,
   } from "@lib/proposals/client";
   import { validateSubmitterName } from "@constants/proposals";
@@ -83,15 +85,35 @@
   let dormGender = $state("coed");
   let roomCode = $state("");
   let roomDirections = $state("");
+  let roomBuildingDraft = $state("");
   let collegeName = $state("");
   let divisionCollegeDraft = $state("");
   let divisionName = $state("");
   let submitting = $state(false);
   let error = $state<string | null>(null);
   let draftReady = $state(false);
+  let pendingBuildingLabel = $state<string | null>(null);
 
   const appData = getAppData();
   const colleges = $derived(appData().loaded ? appData().colleges : []);
+  const buildings = $derived(
+    appData().loaded
+      ? [...appData().buildings].sort((a, b) =>
+          a.buildingName.localeCompare(b.buildingName),
+        )
+      : [],
+  );
+
+  const roomBuildingNotice = $derived.by(() => {
+    if (kind !== "create_room" || isPublish) return null;
+    if (pendingBuildingLabel) {
+      return `Your building suggestion "${pendingBuildingLabel}" is still waiting for editor review. You can add rooms in that building after it is approved and appears on the map.`;
+    }
+    if (buildings.length === 0) {
+      return "Rooms must belong to a building that is already on the map. Suggest a building first, then come back to add rooms after editors approve it.";
+    }
+    return "Rooms must belong to a building that is already on the map. Pick one below, or open a building in the side panel and use Suggest an edit on an existing room.";
+  });
 
   const needsPin = $derived(
     kind === "create_building" ||
@@ -115,6 +137,7 @@
     dormGender = "coed";
     roomCode = "";
     roomDirections = "";
+    roomBuildingDraft = "";
     collegeName = "";
     divisionCollegeDraft = "";
     divisionName = "";
@@ -136,6 +159,7 @@
       dormGender,
       roomCode,
       roomDirections,
+      roomBuildingDraft,
       collegeName,
       divisionCollegeDraft,
       divisionName,
@@ -159,6 +183,7 @@
     dormGender = saved.dormGender;
     roomCode = saved.roomCode;
     roomDirections = saved.roomDirections;
+    roomBuildingDraft = saved.roomBuildingDraft ?? "";
     collegeName = saved.collegeName;
     divisionCollegeDraft = saved.divisionCollegeDraft;
     divisionName = saved.divisionName;
@@ -167,9 +192,24 @@
     }
   }
 
+  async function refreshPendingBuildingLabel() {
+    pendingBuildingLabel = null;
+    const pending = getStoredPendingCreateProposal("create_building");
+    if (!pending) return;
+    const summary = await fetchPublicProposalSummary(pending.id);
+    pendingBuildingLabel = summary?.entityLabel ?? "New building";
+  }
+
   onMount(() => {
     if (!isPublish) restoreAdditionDraft();
     draftReady = true;
+    void refreshPendingBuildingLabel();
+  });
+
+  $effect(() => {
+    if (kind === "create_room" && !isPublish) {
+      void refreshPendingBuildingLabel();
+    }
   });
 
   $effect(() => {
@@ -187,6 +227,7 @@
     dormGender;
     roomCode;
     roomDirections;
+    roomBuildingDraft;
     collegeName;
     divisionCollegeDraft;
     divisionName;
@@ -301,6 +342,7 @@
         return {
           roomCode: roomCode.trim(),
           directions: roomDirections.trim() || null,
+          buildingId: Number(roomBuildingDraft),
         };
       case "create_college":
         return { collegeName: collegeName.trim() };
@@ -338,6 +380,13 @@
     if (kind === "create_room" && !roomCode.trim()) {
       error = "Room code is required.";
       return;
+    }
+    if (kind === "create_room") {
+      const buildingId = Number(roomBuildingDraft);
+      if (!Number.isInteger(buildingId) || buildingId < 1) {
+        error = "Pick the building this room belongs to.";
+        return;
+      }
     }
     if (kind === "create_dorm" && !dormName.trim()) {
       error = "Dorm name is required.";
@@ -385,7 +434,15 @@
         error = result.error ?? "Could not submit proposal.";
         return;
       }
-      toastStore.show("Thanks. We'll review your suggestion soon.", "success");
+      if (kind === "create_building") {
+        toastStore.show(
+          "Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.",
+          "success",
+        );
+        await refreshPendingBuildingLabel();
+      } else {
+        toastStore.show("Thanks. We'll review your suggestion soon.", "success");
+      }
       clearSuggestAdditionDraft();
       resetFields();
       dismissHost();
@@ -566,6 +623,31 @@
         {/snippet}
       </EntityEditorFormField>
     {:else if kind === "create_room"}
+      {#if roomBuildingNotice}
+        <EntityEditorMessage variant="pending" message={roomBuildingNotice} />
+      {/if}
+      <EntityEditorFormField
+        label="Which building is it in?"
+        inputId="addition-room-building"
+        hint="Only buildings already on the map appear here."
+      >
+        {#snippet control()}
+          <select
+            id="addition-room-building"
+            bind:value={roomBuildingDraft}
+            disabled={buildings.length === 0}
+          >
+            <option value="">
+              {buildings.length === 0
+                ? "No buildings on the map yet"
+                : "Select a building"}
+            </option>
+            {#each buildings as building (building.id)}
+              <option value={String(building.id)}>{building.buildingName}</option>
+            {/each}
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
       <EntityEditorFormField
         label="Room number or code"
         inputId="addition-room-code"

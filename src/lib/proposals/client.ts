@@ -44,12 +44,40 @@ export function getStoredProposalForEntity(
   );
 }
 
+export function getStoredPendingCreateProposal(
+  entityType: ProposalCreateType,
+): StoredProposalRef | null {
+  return getStoredProposalForEntity(entityType, 0);
+}
+
+export type PublicProposalSummary = {
+  id: number;
+  entityType: string;
+  entityLabel: string;
+  status: string;
+  adminNote: string | null;
+};
+
+export async function fetchPublicProposalSummary(
+  proposalId: number,
+): Promise<PublicProposalSummary | null> {
+  const res = await fetch(`/api/proposals/${proposalId}`, {
+    credentials: "same-origin",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => ({}))) as {
+    proposal?: PublicProposalSummary;
+  };
+  return data.proposal ?? null;
+}
+
 const FIELD_LABELS: Record<string, string> = {
   buildingName: "Building name",
   directions: "Directions",
   buildingType: "Building type",
   lat: "Latitude",
   lon: "Longitude",
+  buildingId: "Building",
   dormName: "Dorm name",
   shortName: "Short name",
   gender: "Gender",
