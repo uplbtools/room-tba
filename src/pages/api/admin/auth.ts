@@ -21,8 +21,11 @@ import { createServerSupabaseClient } from "@lib/supabase/server";
 
 export const prerender = false;
 
-const LOGIN_IP_LIMIT = { max: 12, windowMs: 15 * 60 * 1000 };
-const LOGIN_USER_LIMIT = { max: 8, windowMs: 15 * 60 * 1000 };
+const LOGIN_RATE_LIMIT_WINDOW_MS = 30 * 1000;
+const LOGIN_IP_LIMIT = { max: 12, windowMs: LOGIN_RATE_LIMIT_WINDOW_MS };
+const LOGIN_USER_LIMIT = { max: 8, windowMs: LOGIN_RATE_LIMIT_WINDOW_MS };
+const LOGIN_RATE_LIMIT_MESSAGE =
+  "Too many sign-in attempts. Wait about 30 seconds and try again.";
 
 export const GET: APIRoute = async ({ cookies }) => {
   const session = getEditorSession(cookies);
@@ -55,7 +58,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         LOGIN_IP_LIMIT.windowMs,
       );
       if (!ipRate.allowed) {
-        return rateLimitResponse(ipRate.resetAt);
+        return rateLimitResponse(ipRate.resetAt, LOGIN_RATE_LIMIT_MESSAGE);
       }
     }
 
@@ -72,7 +75,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         LOGIN_USER_LIMIT.windowMs,
       );
       if (!userRate.allowed) {
-        return rateLimitResponse(userRate.resetAt);
+        return rateLimitResponse(userRate.resetAt, LOGIN_RATE_LIMIT_MESSAGE);
       }
     }
 
