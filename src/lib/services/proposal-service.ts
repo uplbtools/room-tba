@@ -9,6 +9,7 @@ import {
   roomsTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
+import { validateSubmitterName } from "@constants/proposals";
 import { type SessionUser } from "@lib/admin/auth";
 import { recordProposalContribution } from "./contribution-service";
 import { parseEventImageUrl } from "@lib/r2-upload";
