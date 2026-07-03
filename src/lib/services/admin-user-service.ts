@@ -64,25 +64,50 @@ export async function getAdminUserBySupabaseId(
   }
 }
 
-export async function authenticateAdminUser(
-  username: string,
-  password: string,
-): Promise<SessionUser | null> {
-  const normalized = username.trim().toLowerCase();
-  if (!normalized || password.length === 0) return null;
+async function findUserByLogin(login: string) {
+  const normalized = login.trim().toLowerCase();
+  if (!normalized) return null;
 
-  const [user] = await db
+  const [byUsername] = await db
     .select(adminUserCredentialColumns)
     .from(adminUsersTable)
     .where(
       and(
-        eq(adminUsersTable.username, normalized),
         eq(adminUsersTable.isActive, true),
+        eq(adminUsersTable.username, normalized),
       ),
     )
     .limit(1);
+  if (byUsername) return byUsername;
 
-  if (!user) return null;
+  if (!normalized.includes("@")) return null;
+
+  try {
+    const [byEmail] = await db
+      .select(adminUserCredentialColumns)
+      .from(adminUsersTable)
+      .where(
+        and(
+          eq(adminUsersTable.isActive, true),
+          sql`lower(email) = ${normalized}`,
+        ),
+      )
+      .limit(1);
+    return byEmail ?? null;
+  } catch {
+    // `admin_users.email` added in drizzle/0018; skip until migrated.
+    return null;
+  }
+}
+
+export async function authenticateAdminUser(
+  login: string,
+  password: string,
+): Promise<SessionUser | null> {
+  if (!login.trim() || password.length === 0) return null;
+
+  const user = await findUserByLogin(login);
+  if (!user?.passwordHash) return null;
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return null;
 
