@@ -11,6 +11,11 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Human volunteers, developers (default)           | [CONTRIBUTING.md](CONTRIBUTING.md)                                                                                                             |
 | Developer setup detail                           | [docs/developer-guide.md](docs/developer-guide.md)                                                                                             |
 | Starting a coding session, commit, or PR         | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md)                                             |
+| Contributor proposals, review queue, suggest edit | [.cursor/skills/contributor-proposals/SKILL.md](.cursor/skills/contributor-proposals/SKILL.md)                                                  |
+| Discord notifications (room-tba + discord-bot)   | [.cursor/skills/discord-notifications/SKILL.md](.cursor/skills/discord-notifications/SKILL.md)                                                 |
+| AMIS class import, term_id triage                | [.cursor/skills/amis-term-import/SKILL.md](.cursor/skills/amis-term-import/SKILL.md)                                                           |
+| Vercel env, deploy guards, Supabase migrations   | [.cursor/skills/vercel-supabase-ops/SKILL.md](.cursor/skills/vercel-supabase-ops/SKILL.md)                                                   |
+| Playwright E2E, integration CI, `run/e2e` label  | [.cursor/skills/playwright-e2e-ci/SKILL.md](.cursor/skills/playwright-e2e-ci/SKILL.md)                                                         |
 | Worktrees, multiple agents, push to `staging`    | [AGENTS.md § Worktrees and multiple agents](#worktrees-and-multiple-agents)                                                                    |
 | Map chrome, Entry zones, flyouts, 320/768 layout | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md)                        |
 | Side panel / entity detail views                 | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc)                                                                                   |

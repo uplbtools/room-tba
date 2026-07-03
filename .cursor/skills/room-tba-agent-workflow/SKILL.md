@@ -7,6 +7,8 @@ description: Guides agentic coding workflow in Room TBA, including scoped edits,
 
 Policy (commits, verification tiers, architecture, product rules) lives in [AGENTS.md](../../AGENTS.md). This skill covers **session execution**.
 
+Domain skills (read when the task matches): [contributor-proposals](../contributor-proposals/SKILL.md), [discord-notifications](../discord-notifications/SKILL.md), [amis-term-import](../amis-term-import/SKILL.md), [vercel-supabase-ops](../vercel-supabase-ops/SKILL.md), [playwright-e2e-ci](../playwright-e2e-ci/SKILL.md).
+
 ## Coding practices
 
 - Read the relevant existing code paths and local conventions before editing.
