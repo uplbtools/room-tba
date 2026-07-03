@@ -8,6 +8,7 @@ import path from "node:path";
 import {
   renderTestInventoryMarkdown,
   scanTestInventory,
+  testInventoryDiscordTiers,
 } from "./lib/test-inventory.ts";
 
 const ROOT = path.join(import.meta.dir, "..");
@@ -22,6 +23,7 @@ async function main() {
 
   const inv = await scanTestInventory(ROOT);
   const markdown = renderTestInventoryMarkdown(inv);
+  const tiers = testInventoryDiscordTiers(inv);
   writeFileSync(OUT, markdown);
 
   const repo = process.env.GITHUB_REPOSITORY ?? "uplbtools/room-tba";
@@ -58,7 +60,7 @@ async function main() {
       e2eBlocking: inv.e2eBlocking.length,
       e2eAdvisory: inv.e2eAdvisory.length,
       e2eStaging: inv.e2eStaging.length,
-      markdown,
+      tiers,
     },
   };
 
