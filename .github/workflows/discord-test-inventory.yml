@@ -1,0 +1,47 @@
+name: Discord test inventory
+
+# Refresh #test-suite pinned inventory when specs change or on schedule.
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+    paths:
+      - "**/*.test.ts"
+      - "**/*.spec.ts"
+      - "scripts/generate-test-inventory.ts"
+      - "scripts/lib/test-inventory.ts"
+      - "scripts/post-test-inventory-discord.ts"
+      - "playwright.config.ts"
+      - "playwright.advisory.config.ts"
+      - "playwright.staging.config.ts"
+      - "vitest.config.ts"
+      - ".github/workflows/discord-test-inventory.yml"
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Post test inventory to Discord
+        env:
+          GATEWAY_URL: ${{ secrets.NOTIFICATION_GATEWAY_URL }}
+          SECRET: ${{ secrets.NOTIFICATION_INGRESS_SECRET }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$GATEWAY_URL" ] || [ -z "$SECRET" ]; then
+            echo "::warning::NOTIFICATION_GATEWAY_URL or NOTIFICATION_INGRESS_SECRET not set — Discord test inventory skipped"
+            exit 0
+          fi
+          bun run scripts/post-test-inventory-discord.ts
