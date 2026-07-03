@@ -13,8 +13,14 @@ import { type SessionUser } from "@lib/admin/auth";
 import { validateSubmitterName } from "@constants/proposals";
 import { parseEventImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
-import { canViewProposalSubmitterDetails, canWithdrawProposal } from "./proposal-access";
-export { canViewProposalSubmitterDetails, canWithdrawProposal } from "./proposal-access";
+import {
+  canViewProposalSubmitterDetails,
+  canWithdrawProposal,
+} from "./proposal-access";
+export {
+  canViewProposalSubmitterDetails,
+  canWithdrawProposal,
+} from "./proposal-access";
 import {
   EditConflictError,
   DuplicateSlugError,
@@ -755,7 +761,10 @@ export async function withdrawProposal(
   const proposal = await getProposalById(id);
   if (!proposal) throw new ProposalActionError("Proposal not found.", 404);
   if (!canWithdrawProposal(session, proposal, submitterName)) {
-    throw new ProposalActionError("Not allowed to withdraw this proposal.", 403);
+    throw new ProposalActionError(
+      "Not allowed to withdraw this proposal.",
+      403,
+    );
   }
 
   const withdrawnBy =

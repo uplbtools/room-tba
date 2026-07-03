@@ -36,7 +36,9 @@ export function proposalStatusMessage(status: string): string {
   }
 }
 
-export function canShowWithdrawProposal(status: string | null | undefined): boolean {
+export function canShowWithdrawProposal(
+  status: string | null | undefined,
+): boolean {
   return status === "pending" || status === "needs_changes";
 }
 
