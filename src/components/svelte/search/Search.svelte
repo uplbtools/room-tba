@@ -297,9 +297,9 @@
                 onblur={() => {
                   searchFocused = false;
                 }}
-                aria-expanded={showSearchDropdown}
                 aria-controls="search-suggestions"
                 aria-autocomplete="list"
+                aria-haspopup="listbox"
                 placeholder="Search room, building, dorm, event, division..."
               />
               {#if draftInput !== "" || queryStore.category !== null}
