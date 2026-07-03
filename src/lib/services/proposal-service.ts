@@ -751,7 +751,8 @@ export async function rejectProposal(
     reviewer.displayName || reviewer.username,
     note,
   );
-  return finalized;
+  if (!finalized) throw new ProposalActionError("Proposal not found.", 404);
+  return withEntityLabel(finalized);
 }
 
 export async function requestProposalChanges(
@@ -775,5 +776,6 @@ export async function requestProposalChanges(
     reviewer.displayName || reviewer.username,
     note,
   );
-  return finalized;
+  if (!finalized) throw new ProposalActionError("Proposal not found.", 404);
+  return withEntityLabel(finalized);
 }

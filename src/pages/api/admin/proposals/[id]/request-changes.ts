@@ -5,6 +5,10 @@ import {
   ProposalValidationError,
   requestProposalChanges,
 } from "@lib/services/proposal-service";
+import {
+  emitProposalReviewed,
+  logNotificationEmitFailure,
+} from "@lib/notifications/proposal-events";
 
 export const prerender = false;
 
@@ -21,6 +25,14 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 
   try {
     const proposal = await requestProposalChanges(id, auth.session, body.note);
+    if (proposal) {
+      void emitProposalReviewed(proposal, "needs_changes").catch((err) => {
+        logNotificationEmitFailure(
+          "Proposal reviewed notification failed",
+          err,
+        );
+      });
+    }
     return json({ success: true, proposal });
   } catch (err) {
     if (err instanceof ProposalValidationError) {
