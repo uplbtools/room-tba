@@ -4,6 +4,10 @@ import {
   approveProposal,
   ProposalActionError,
 } from "@lib/services/proposal-service";
+import {
+  emitProposalReviewed,
+  logNotificationEmitFailure,
+} from "@lib/notifications/proposal-events";
 
 export const prerender = false;
 
@@ -16,6 +20,9 @@ export const POST: APIRoute = async ({ cookies, params }) => {
 
   try {
     const result = await approveProposal(id, auth.session);
+    void emitProposalReviewed(result.proposal, "approved").catch((err) => {
+      logNotificationEmitFailure("Proposal reviewed notification failed", err);
+    });
     return json({ success: true, ...result });
   } catch (err) {
     if (err instanceof ProposalActionError) {
