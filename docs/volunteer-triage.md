@@ -28,8 +28,15 @@ Every Monday at 09:00 UTC (or async if no one is online).
    - Flag any `size/S` or `size/XS` issues that could be picked up by new volunteers.
 
 4. **Action items (5 min)**
-   - Scribe posts summary in `#dev` Discord channel.
+   - Scribe posts summary in `#development` Discord channel.
    - Update project board columns if using GitHub Projects.
+
+## Community links
+
+| Role | Discord | Messenger |
+| --- | --- | --- |
+| Volunteers (data, QA, contribute) | [discord.uplbtools.me](https://discord.uplbtools.me) | [messenger.uplbtools.me/contribute](https://messenger.uplbtools.me/contribute) |
+| Maintainers (triage, shipping) | `#development` | [messenger.uplbtools.me/maintain](https://messenger.uplbtools.me/maintain) |
 
 ## Runbook
 

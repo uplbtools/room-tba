@@ -61,5 +61,7 @@ Unit tests live under `src/**/*.test.ts`. Run all: `bun test src`. Add tests whe
 
 ## Getting help
 
-- [Discord](https://discord.uplbtools.me) or [Messenger](https://messenger.uplbtools.me)
+- [Discord](https://discord.uplbtools.me) or [Messenger (contribute)](https://messenger.uplbtools.me/contribute)
 - Open a [coding task issue](https://github.com/uplbtools/room-tba/issues/new?template=coding_task.yml) or draft PR early for feedback
+
+**Messenger host:** `messenger.uplbtools.me/contribute` and `/maintain` redirect via Cloudflare Worker [`uplbtools.me/workers/messenger-redirect`](https://github.com/uplbtools/uplbtools.me/tree/main/workers/messenger-redirect) to the `MESSENGER_*_TARGET` URLs in [`src/constants/community-links.ts`](../src/constants/community-links.ts). Room TBA also exposes `/messenger/contribute`, `/messenger/maintain`, and `/maintain` on the app domain.
