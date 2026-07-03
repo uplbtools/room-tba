@@ -1,8 +1,7 @@
 <script lang="ts">
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import GitFork from "@lucide/svelte/icons/git-fork";
-  import MessageCircle from "@lucide/svelte/icons/message-circle";
-  import MessagesSquare from "@lucide/svelte/icons/messages-square";
+  import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
   import type { StatusBarNavGroup } from "@constants/status-bar-links";
 
@@ -49,9 +48,9 @@
             {#if item.icon === "external"}
               <ExternalLink size={14} aria-hidden="true" />
             {:else if item.icon === "discord"}
-              <MessagesSquare size={14} aria-hidden="true" />
+              <CommunityBrandIcon brand="discord" size={14} />
             {:else if item.icon === "messenger"}
-              <MessageCircle size={14} aria-hidden="true" />
+              <CommunityBrandIcon brand="messenger" size={14} />
             {:else if item.icon === "version"}
               <GitFork size={14} aria-hidden="true" />
             {/if}
