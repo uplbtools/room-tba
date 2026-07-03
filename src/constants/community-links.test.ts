@@ -5,6 +5,7 @@ import {
   MESSENGER_CONTRIBUTE_URL,
   MESSENGER_MAINTAIN_TARGET,
   MESSENGER_MAINTAIN_URL,
+  MESSENGER_SHORT_CONTRIBUTE_URL,
   MESSENGER_URL,
 } from "./community-links.ts";
 
@@ -12,10 +13,13 @@ describe("community-links", () => {
   test("volunteer Messenger defaults to contribute short link", () => {
     expect(MESSENGER_URL).toBe(MESSENGER_CONTRIBUTE_URL);
     expect(MESSENGER_CONTRIBUTE_URL).toBe(
-      "https://messenger.uplbtools.me/contribute",
+      "https://room-tba.uplbtools.me/messenger/contribute",
     );
     expect(MESSENGER_MAINTAIN_URL).toBe(
-      "https://messenger.uplbtools.me/maintain",
+      "https://room-tba.uplbtools.me/messenger/maintain",
+    );
+    expect(MESSENGER_SHORT_CONTRIBUTE_URL).toBe(
+      "https://messenger.uplbtools.me/contribute",
     );
   });
 
