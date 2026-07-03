@@ -9,9 +9,11 @@ import { validateSubmitterName } from "@constants/proposals";
 import {
   ProposalValidationError,
   submitProposal,
-  type EditProposalSummary,
 } from "@lib/services/proposal-service";
-import { getNotificationAdapter } from "@lib/notifications";
+import {
+  emitProposalSubmitted,
+  logNotificationEmitFailure,
+} from "@lib/notifications/proposal-events";
 
 export const prerender = false;
 
@@ -71,7 +73,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     });
 
     void emitProposalSubmitted(proposal, session?.id).catch((err) => {
-      console.error("Notification emit failed:", err);
+      logNotificationEmitFailure("Notification emit failed", err);
     });
 
     return json({ success: true, proposal }, 201);
@@ -88,27 +90,5 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json" },
-  });
-}
-
-async function emitProposalSubmitted(
-  proposal: EditProposalSummary,
-  sessionUserId: number | undefined,
-): Promise<void> {
-  const notifications = getNotificationAdapter();
-  await notifications.notify({
-    schemaVersion: 1,
-    type: "proposal.submitted",
-    source: "room-tba",
-    occurredAt: new Date().toISOString(),
-    idempotencyKey: `proposal:${proposal.id}:submitted`,
-    payload: {
-      proposalId: proposal.id,
-      entityType: proposal.entityType,
-      entityId: proposal.entityId,
-      entityLabel: proposal.entityLabel,
-      submitterName: proposal.submitterName,
-      isAnonymous: !sessionUserId,
-    },
   });
 }
