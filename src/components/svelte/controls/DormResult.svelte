@@ -593,6 +593,11 @@
           {savedField}
           {fieldError}
           {proposalStatus}
+          activeProposalId={activeProposalId}
+          onWithdrawn={() => {
+            activeProposalId = null;
+            proposalStatus = null;
+          }}
           bind:submitterNameDraft
           bind:nameDraft
           bind:shortNameDraft

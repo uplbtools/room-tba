@@ -46,7 +46,7 @@ describe("editorToggleLabel", () => {
 describe("proposalStatusMessage", () => {
   test("formats pending statuses", () => {
     expect(proposalStatusMessage("needs_changes")).toBe(
-      "Status: needs changes. Waiting for editor review.",
+      "Status: needs changes. Update your suggestion below or withdraw it.",
     );
   });
 });

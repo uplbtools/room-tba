@@ -46,6 +46,7 @@ export const editProposalStatusEnum = pgEnum("edit_proposal_status", [
   "approved",
   "rejected",
   "needs_changes",
+  "withdrawn",
 ]);
 
 // Academic terms. `id` mirrors the CRS/SAIS term_id (e.g. 1252) rather than

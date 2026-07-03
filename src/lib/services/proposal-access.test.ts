@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { canViewProposalSubmitterDetails } from "./proposal-access";
+import {
+  canViewProposalSubmitterDetails,
+  canWithdrawProposal,
+} from "./proposal-access";
 
 describe("canViewProposalSubmitterDetails", () => {
   const proposal = {
@@ -50,6 +53,40 @@ describe("canViewProposalSubmitterDetails", () => {
         },
         proposal,
       ),
+    ).toBe(false);
+  });
+});
+
+describe("canWithdrawProposal", () => {
+  const proposal = {
+    submitterUserId: 5,
+    submitterName: "Ana",
+    status: "pending",
+  };
+
+  test("matching signed-in submitter can withdraw open proposals", () => {
+    expect(
+      canWithdrawProposal(
+        {
+          id: 5,
+          username: "ana",
+          displayName: "Ana",
+          role: "contributor",
+        },
+        proposal,
+      ),
+    ).toBe(true);
+  });
+
+  test("anonymous submitter can withdraw with matching display name", () => {
+    expect(
+      canWithdrawProposal(null, { ...proposal, submitterUserId: null }, "Ana"),
+    ).toBe(true);
+  });
+
+  test("closed proposals cannot be withdrawn", () => {
+    expect(
+      canWithdrawProposal(null, { ...proposal, status: "approved" }, "Ana"),
     ).toBe(false);
   });
 });

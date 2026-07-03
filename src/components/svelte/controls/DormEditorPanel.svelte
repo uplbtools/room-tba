@@ -34,6 +34,8 @@
     savedField: DormEditableField | null;
     fieldError: string | null;
     proposalStatus: string | null;
+    activeProposalId?: number | null;
+    onWithdrawn?: () => void;
     submitterNameDraft?: string;
     nameDraft: string;
     shortNameDraft: string;
@@ -61,6 +63,8 @@
     savedField,
     fieldError,
     proposalStatus,
+    activeProposalId = null,
+    onWithdrawn,
     submitterNameDraft = $bindable(""),
     nameDraft = $bindable(""),
     shortNameDraft = $bindable(""),
@@ -90,6 +94,8 @@
   submitterNameId="dorm-submitter-name"
   bind:submitterName={submitterNameDraft}
   {proposalStatus}
+  {activeProposalId}
+  {onWithdrawn}
   successMessage={savedField
     ? entityEditorSavedMessage({
         canPublish,
