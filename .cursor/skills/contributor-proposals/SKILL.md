@@ -67,7 +67,7 @@ Editors use shield menu → review queue:
 ## Known edge cases (check before closing issues)
 
 - Revise pending: merge patch if same submitter + open status; anonymous needs same browser/`proposalId`.
-- Multiple pending `create_*` from one logged-in user may collide on `(entity_type, entity_id=0)`.
+- Multiple pending `create_*` from one logged-in user may collide on `(entity_type, entity_id=0)` — fixed: create merges only via explicit `proposalId` ([#255](https://github.com/uplbtools/room-tba/issues/255) PR pending).
 - No **withdraw** API yet.
 - Contributor credit on approve: proposal row only today; ledger is [#450](https://github.com/uplbtools/room-tba/issues/450).
 

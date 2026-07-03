@@ -41,6 +41,8 @@ import {
   type RoomCreateInput,
   type RoomUpdateInput,
 } from "./admin-service";
+import { allowEntityScopedProposalMerge } from "@lib/proposals/proposal-merge-policy";
+import { validateCreateProposalPatch } from "@lib/proposals/create-proposal-validation";
 
 export const PROPOSAL_UPDATE_TYPES = [
   "building",
@@ -308,10 +310,6 @@ async function withEntityLabel(
   };
 }
 
-import {
-  ProposalValidationError,
-  validateCreateProposalPatch,
-} from "@lib/proposals/create-proposal-validation";
 export async function listPendingProposals(): Promise<EditProposalSummary[]> {
   const rows = await db
     .select()
@@ -416,7 +414,7 @@ export async function submitProposal(
     ) {
       existing = undefined;
     }
-  } else if (input.submitterUserId) {
+  } else if (allowEntityScopedProposalMerge(isCreate, input.submitterUserId)) {
     [existing] = await db
       .select()
       .from(editProposalsTable)
