@@ -37,6 +37,23 @@ bun run install:agent-plugins   # Claude Code + Codex: ponytail + caveman plugin
 
 Restart Cursor after the first command.
 
+### Shopped skills (aisles 1–4)
+
+```sh
+bun run install:shopped-skills
+```
+
+| Aisle | Skills | Scope |
+| --- | --- | --- |
+| 1 Workflow | `systematic-debugging`, `verification-before-completion`, `using-git-worktrees`, `finishing-a-development-branch` | project |
+| 2 Stack | `playwright-best-practices`, `svelte-code-writer`, `svelte-core-bestpractices`, `web-design-guidelines` | project |
+| 3 Anti-slop | `fuck-slop`, `context-canary`, `grill-me`, `junior-to-senior` | **global** (`~/.agents/skills/`) |
+| 4 UI | `interface-kit` | project |
+
+Project skills install to `.agents/skills/` (gitignored). Pin versions in committed `skills-lock.json`; teammates run `npx skills experimental_install` after `install:agent-tooling` to sync project skills from the lockfile.
+
+**Triggers:** `grill-me` / `junior-to-senior` before big epics · `fuck-slop` on issue/PR prose · `web-design-guidelines` at 320px map QA · `interface-kit` only on UI sprints (pairs with Ponytail).
+
 ## Caveman (local install per clone)
 
 Compresses **reply prose** (~50–65% fewer output tokens). Code blocks stay normal.

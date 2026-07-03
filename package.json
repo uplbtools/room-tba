@@ -37,6 +37,7 @@
     "check:readme": "bun run scripts/check-readme-drift.ts",
     "install:agent-tooling": "bash scripts/install-agent-tooling.sh",
     "install:agent-plugins": "bash scripts/install-agent-plugins.sh",
+    "install:shopped-skills": "bash scripts/install-shopped-skills.sh",
     "check:pwa-legal": "bun run scripts/check-pwa-legal-routes.ts",
     "seed:events": "bun src/seed-events.ts",
     "seed:aliases": "bun run scripts/seed-aliases.ts",
