@@ -46,11 +46,14 @@ export function clientIp(request: Request): string {
   return "unknown";
 }
 
-export function rateLimitResponse(resetAt: number) {
+export function rateLimitResponse(
+  resetAt: number,
+  message = "Too many requests. Wait a few minutes and try again.",
+) {
   const retryAfter = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
   return new Response(
     JSON.stringify({
-      error: "Too many requests. Wait a few minutes and try again.",
+      error: message,
     }),
     {
       status: 429,
