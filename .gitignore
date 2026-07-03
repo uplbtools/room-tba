@@ -29,6 +29,9 @@ backups/
 # jetbrains setting folder
 .idea/
 
+# Cursor agent skills installed locally (Caveman etc.)
+.agents/
+
 # test artifacts
 playwright-report/
 test-results/

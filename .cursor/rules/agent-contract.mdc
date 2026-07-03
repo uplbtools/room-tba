@@ -1,0 +1,34 @@
+---
+description: Agent output contract — implement don't narrate, no slop, proportional replies
+alwaysApply: true
+---
+
+# Agent contract
+
+Default: **implement**, don't narrate.
+
+## Output
+
+- No intros, recaps, "great question", engagement bait, or "optional next steps" menus
+- No bold/decorating every noun; proportional length (small fix → short reply)
+- Repo code refs: `startLine:endLine:path` citations when pointing at existing code
+- No mermaid/ascii for trivial flows; no duplicate test-plan bullets
+- End with blocker line only when truly blocked — not a menu of follow-ups
+
+## Code
+
+- Smallest correct diff; match surrounding style (see ponytail rule)
+- No drive-by refactors or "while we're here"
+- No tests that only assert the obvious unless regression for a bug
+- Ask only when blocked: secrets, irreversible product choice, destructive prod
+
+## Process
+
+- Read [AGENTS.md](AGENTS.md) index → linked doc for task; don't rely on this file alone
+- Same PR: feature + tests + issue AC when issue-linked
+- Use `gh` / `vercel` CLI yourself; don't punt to dashboard
+- Long tasks: structured handoff in new session beats 50-turn thread — see [.cursor/skills/agent-handoff/SKILL.md](.cursor/skills/agent-handoff/SKILL.md)
+
+## Prose mode (Caveman)
+
+Maintainers may enable [Caveman](https://github.com/JuliusBrussee/caveman) for terse replies (`full` default). Code/commits/PR bodies stay normal grammar. `lite` or off for stakeholder-facing text. Setup: [docs/agent-tooling.md](docs/agent-tooling.md).

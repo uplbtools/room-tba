@@ -1,0 +1,14 @@
+---
+description: Default Caveman full intensity for terse agent prose (code/commits stay normal)
+alwaysApply: true
+---
+
+# Caveman default
+
+Use the **caveman** skill at **full** intensity for conversational replies in this repo.
+
+- Code blocks, commits, and PR descriptions: normal grammar
+- User may say `stop caveman`, `normal mode`, or `/caveman lite` to adjust
+- Skill files: `.agents/skills/caveman/` after `bun run install:agent-tooling`
+
+See [docs/agent-tooling.md](docs/agent-tooling.md).

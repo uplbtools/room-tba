@@ -100,7 +100,9 @@ If someone filed a `data` or `qa` issue without code:
 
 [AGENTS.md](AGENTS.md) is for AI assistants and maintainers who ship quickly across many files. **Human developers do not need to read it.**
 
-Includes: branch rules, issue hygiene for detailed specs, Cursor workflow skill, map chrome guardrails.
+Includes: branch rules, issue hygiene for detailed specs, Cursor workflow skill, map chrome guardrails, [agent tooling](docs/agent-tooling.md) (Caveman + Ponytail).
+
+**One-time agent setup (maintainers):** `bun run install:agent-tooling` then `bun run install:agent-plugins` — see [agent tooling](docs/agent-tooling.md).
 
 **Maintainer chat:** [Discord](https://discord.uplbtools.me) · [Messenger (maintain)](https://messenger.uplbtools.me/maintain)
 
