@@ -18,6 +18,20 @@ See [docs/e2e-discord-handoff.md](e2e-discord-handoff.md).
 
 Emitted fire-and-forget after successful `POST /api/proposals`.
 
+## proposal.reviewed
+
+Emitted fire-and-forget after successful admin review:
+
+- `POST /api/admin/proposals/[id]/approve` → `outcome: approved`
+- `POST /api/admin/proposals/[id]/reject` → `outcome: rejected`
+- `POST /api/admin/proposals/[id]/request-changes` → `outcome: needs_changes`
+
+Not emitted when approve fails with `409` (publish conflict — proposal stays pending).
+
+Payload: `proposalId`, `outcome`, `entityType`, `entityId`, `entityLabel`, `submitterName`, `reviewedBy`, `adminNote`.
+
+Discord bot posts to `#contributors` (see discord-bot repo).
+
 ## Leaderboard API (future)
 
 Discord-only leaderboard UX. Room TBA will expose `GET /api/contributors/leaderboard?window=month|semester|all`. See GitHub issue under #220.
