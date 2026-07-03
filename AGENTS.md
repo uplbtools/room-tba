@@ -2,6 +2,8 @@
 
 **Human developers and campus volunteers:** start with [CONTRIBUTING.md](CONTRIBUTING.md). You do not need this file.
 
+> **Org template:** Other [uplbtools](https://github.com/uplbtools) repos maintain a shorter `AGENTS.md` adapted from this file for their stack (discord-bot, gradesim, uplbtools.me, punta, iskedyul, laro-tayo, …).
+
 ## Doc map
 
 Read the right doc for the task; do not rely on this file alone for detailed checklists.
