@@ -71,17 +71,12 @@ export async function dragEntityMapMarker(
     .then(() => true)
     .catch(() => false);
 
-  const dragged = await dragMarkerLocator(page, entityMarker(page, entityLabel));
+  const dragged = await dragMarkerLocator(
+    page,
+    entityMarker(page, entityLabel),
+  );
   if (!dragged) return false;
   return patchPromise;
-}
-
-/** @deprecated Prefer dragEntityMapMarker with a fixture label. */
-export async function dragFirstMapMarker(
-  page: Page,
-  patchUrlPart: string,
-): Promise<boolean> {
-  return dragEntityMapMarker(page, "", patchUrlPart);
 }
 
 /** Assert pin drag persisted; fails the test instead of skipping. */
