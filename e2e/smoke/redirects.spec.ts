@@ -20,7 +20,8 @@ test.describe("community redirects", () => {
     page,
   }) => {
     await page.goto("/messenger/contribute");
-    await expect(page).toHaveURL(/m\.me\/j\/Aba1V0prvQyLrafZ/);
+    // m.me redirects to www.messenger.com in real browsers.
+    await expect(page).toHaveURL(/\/j\/Aba1V0prvQyLrafZ/);
   });
 
   test("/messenger/maintain redirects to maintainers Messenger GC", async ({
