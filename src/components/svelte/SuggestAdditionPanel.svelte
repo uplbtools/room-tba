@@ -13,10 +13,8 @@
     submitCreateProposal,
     getStoredPendingCreateProposal,
     fetchPublicProposalSummary,
-    withdrawEntityProposal,
     type ProposalCreateType,
   } from "@lib/proposals/client";
-  import { canShowWithdrawProposal } from "@lib/editor/field-action-label";
   import { validateSubmitterName } from "@constants/proposals";
   import { instantToCampusWallString } from "@lib/event-time";
   import { slugifySegment } from "@lib/site";
@@ -30,7 +28,13 @@
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
   import ImageUpload from "@ui/editor/ImageUpload.svelte";
-  import { onMount } from "svelte";
+  import ContributorPendingProposals from "./ContributorPendingProposals.svelte";
+  import type { BundledRoomDraft } from "@lib/proposals/create-proposal-validation";
+  import {
+    parseBundledRooms,
+    ProposalValidationError,
+    validateBundledRooms,
+  } from "@lib/proposals/create-proposal-validation";
 
   type AdditionOption = {
     value: ProposalCreateType;
@@ -97,7 +101,8 @@
   let pendingBuildingLabel = $state<string | null>(null);
   let pendingCreateProposalId = $state<number | null>(null);
   let pendingCreateStatus = $state<string | null>(null);
-  let withdrawingCreate = $state(false);
+  let pendingListVersion = $state(0);
+  let bundledRooms = $state<BundledRoomDraft[]>([]);
 
   const appData = getAppData();
   const colleges = $derived(appData().loaded ? appData().colleges : []);
@@ -146,7 +151,16 @@
     collegeName = "";
     divisionCollegeDraft = "";
     divisionName = "";
+    bundledRooms = [];
     error = null;
+  }
+
+  function addBundledRoom() {
+    bundledRooms = [...bundledRooms, { roomCode: "", directions: "" }];
+  }
+
+  function removeBundledRoom(index: number) {
+    bundledRooms = bundledRooms.filter((_, i) => i !== index);
   }
 
   function snapshotAdditionDraft() {
@@ -168,6 +182,7 @@
       collegeName,
       divisionCollegeDraft,
       divisionName,
+      bundledRooms,
       draftPin: additionProposalStore.draftPin,
     };
   }
@@ -192,6 +207,7 @@
     collegeName = saved.collegeName;
     divisionCollegeDraft = saved.divisionCollegeDraft;
     divisionName = saved.divisionName;
+    bundledRooms = saved.bundledRooms ?? [];
     if (saved.draftPin) {
       additionProposalStore.setDraftPin(saved.draftPin);
     }
@@ -218,29 +234,9 @@
     }
   }
 
-  async function withdrawPendingCreate() {
-    if (!pendingCreateProposalId) return;
-    error = null;
-    withdrawingCreate = true;
-    try {
-      const name = resolveSubmitterName({
-        displayName: adminAuthStore.displayName,
-        username: adminAuthStore.username,
-        draftName: submitterName,
-      });
-      const result = await withdrawEntityProposal({
-        proposalId: pendingCreateProposalId,
-        submitterName: name || undefined,
-      });
-      if (!result.ok) {
-        error = result.error ?? "Could not withdraw suggestion.";
-        return;
-      }
-      toastStore.show("Suggestion withdrawn.", "success");
-      await refreshPendingCreateProposal();
-    } finally {
-      withdrawingCreate = false;
-    }
+  function bumpPendingList() {
+    pendingListVersion += 1;
+    void refreshPendingCreateProposal();
   }
 
   onMount(() => {
@@ -274,6 +270,7 @@
     collegeName;
     divisionCollegeDraft;
     divisionName;
+    bundledRooms;
     additionProposalStore.draftPin;
     scheduleSuggestAdditionDraftSave(snapshotAdditionDraft);
   });
@@ -337,14 +334,22 @@
 
   function buildPatch(): Record<string, unknown> {
     switch (kind) {
-      case "create_building":
+      case "create_building": {
+        const rooms = bundledRooms
+          .map((room) => ({
+            roomCode: room.roomCode.trim(),
+            directions: room.directions.trim() || null,
+          }))
+          .filter((room) => room.roomCode);
         return {
           buildingName: buildingName.trim(),
           directions: buildingDirections.trim(),
           buildingType,
           lat: draftPin?.lat,
           lon: draftPin?.lon,
+          ...(rooms.length > 0 ? { rooms } : {}),
         };
+      }
       case "create_event": {
         const title = eventTitle.trim();
         return {
@@ -447,6 +452,17 @@
     submitting = true;
     try {
       const patch = buildPatch();
+      if (kind === "create_building" && !isPublish) {
+        try {
+          validateBundledRooms(parseBundledRooms(patch));
+        } catch (err) {
+          error =
+            err instanceof ProposalValidationError
+              ? err.message
+              : "Check the room list and try again.";
+          return;
+        }
+      }
       if (isPublish) {
         const result = await publishEntityCreate(kind, patch);
         if (!result.ok) {
@@ -481,8 +497,11 @@
         return;
       }
       if (kind === "create_building") {
+        const hasBundledRooms = parseBundledRooms(patch).length > 0;
         toastStore.show(
-          "Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.",
+          hasBundledRooms
+            ? "Thanks. We'll review your building and room suggestions together."
+            : "Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.",
           "success",
         );
         await refreshPendingCreateProposal();
@@ -491,6 +510,7 @@
       }
       clearSuggestAdditionDraft();
       resetFields();
+      bumpPendingList();
       dismissHost();
     } finally {
       submitting = false;
@@ -512,6 +532,15 @@
       suggestion before it goes live.
     {/if}
   </p>
+
+  {#if !isPublish}
+    {#key pendingListVersion}
+      <ContributorPendingProposals
+        {submitterName}
+        onChanged={bumpPendingList}
+      />
+    {/key}
+  {/if}
 
   <EntityEditorFormField
     label="What are you adding?"
@@ -579,6 +608,58 @@
           </select>
         {/snippet}
       </EntityEditorFormField>
+      {#if !isPublish}
+        <div class="bundled-rooms">
+          <p class="bundled-rooms__lead">
+            Rooms in this building (optional). Add them here if the building is
+            not on the map yet — they go live when editors approve the building.
+          </p>
+          {#each bundledRooms as room, index (index)}
+            <div class="bundled-rooms__row">
+              <EntityEditorFormField
+                label="Room code"
+                inputId={`addition-bundled-room-code-${index}`}
+              >
+                {#snippet control()}
+                  <input
+                    id={`addition-bundled-room-code-${index}`}
+                    bind:value={room.roomCode}
+                    maxlength="80"
+                    placeholder="e.g. 301"
+                  />
+                {/snippet}
+              </EntityEditorFormField>
+              <EntityEditorFormField
+                label="Directions"
+                inputId={`addition-bundled-room-directions-${index}`}
+              >
+                {#snippet control()}
+                  <input
+                    id={`addition-bundled-room-directions-${index}`}
+                    bind:value={room.directions}
+                    maxlength="200"
+                    placeholder="Optional"
+                  />
+                {/snippet}
+              </EntityEditorFormField>
+              <button
+                type="button"
+                class="bundled-rooms__remove"
+                onclick={() => removeBundledRoom(index)}
+              >
+                Remove
+              </button>
+            </div>
+          {/each}
+          <button
+            type="button"
+            class="bundled-rooms__add"
+            onclick={addBundledRoom}
+          >
+            Add room
+          </button>
+        </div>
+      {/if}
     {:else if kind === "create_event"}
       <EntityEditorFormField
         label="What's the event called?"
@@ -784,18 +865,6 @@
     <EntityEditorMessage variant="error" message={error} />
   {/if}
 
-  {#if !isPublish && pendingCreateProposalId && canShowWithdrawProposal(pendingCreateStatus)}
-    <div class="entity-editor-form-actions">
-      <EntityEditorSubmitButton
-        label="Withdraw pending suggestion"
-        savingLabel="Withdrawing…"
-        saving={withdrawingCreate}
-        variant="secondary"
-        onclick={withdrawPendingCreate}
-      />
-    </div>
-  {/if}
-
   <EntityEditorSubmitButton
     label={isPublish ? "Create now" : "Send suggestion"}
     savingLabel={isPublish ? "Creating…" : "Sending…"}
@@ -811,5 +880,43 @@
   .addition-panel {
     max-height: none;
     overflow: visible;
+  }
+
+  .bundled-rooms {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .bundled-rooms__lead {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    color: var(--text-muted, #64748b);
+  }
+
+  .bundled-rooms__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.5rem;
+    border: 1px dashed var(--border-subtle, #e2e8f0);
+    border-radius: 0.5rem;
+  }
+
+  .bundled-rooms__remove,
+  .bundled-rooms__add {
+    align-self: flex-start;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.35rem;
+    border: 1px solid var(--border-subtle, #e2e8f0);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .bundled-rooms__add {
+    font-weight: 600;
   }
 </style>

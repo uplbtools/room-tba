@@ -48,7 +48,11 @@ import {
   type RoomUpdateInput,
 } from "./admin-service";
 import { allowEntityScopedProposalMerge } from "@lib/proposals/proposal-merge-policy";
-import { validateCreateProposalPatch } from "@lib/proposals/create-proposal-validation";
+import {
+  ProposalValidationError,
+  parseBundledRooms,
+  validateCreateProposalPatch,
+} from "@lib/proposals/create-proposal-validation";
 
 export const PROPOSAL_UPDATE_TYPES = [
   "building",
@@ -108,10 +112,17 @@ export async function getEntityLabel(
   if (isCreateProposalType(entityType)) {
     const p = patch ?? {};
     switch (entityType) {
-      case "create_building":
-        return typeof p.buildingName === "string" && p.buildingName.trim()
-          ? `New building: ${p.buildingName.trim()}`
-          : "New building";
+      case "create_building": {
+        const name =
+          typeof p.buildingName === "string" && p.buildingName.trim()
+            ? p.buildingName.trim()
+            : null;
+        const rooms = parseBundledRooms(p);
+        if (name && rooms.length > 0) {
+          return `New building: ${name} (+ ${rooms.length} room${rooms.length === 1 ? "" : "s"})`;
+        }
+        return name ? `New building: ${name}` : "New building";
+      }
       case "create_event":
         return typeof p.title === "string" && p.title.trim()
           ? `New event: ${p.title.trim()}`
@@ -497,7 +508,12 @@ export async function submitProposal(
   return withEntityLabel(created);
 }
 
-export { ProposalValidationError } from "@lib/proposals/create-proposal-validation";
+export {
+  ProposalValidationError,
+  parseBundledRooms,
+  validateBundledRooms,
+  type BundledRoomDraft,
+} from "@lib/proposals/create-proposal-validation";
 
 export class ProposalActionError extends Error {
   status: number;
@@ -530,8 +546,36 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
 
   if (isCreateProposalType(entityType)) {
     switch (entityType) {
-      case "create_building":
-        return createBuilding(patch as BuildingCreateInput, editedBy);
+      case "create_building": {
+        const rooms = parseBundledRooms(patch);
+        const building = await createBuilding(
+          {
+            buildingName:
+              typeof patch.buildingName === "string" ? patch.buildingName : "",
+            directions:
+              typeof patch.directions === "string" ? patch.directions : "",
+            buildingType:
+              patch.buildingType === "admin" ? "admin" : "non-admin",
+            lat: patch.lat as number,
+            lon: patch.lon as number,
+          },
+          editedBy,
+        );
+        if (!building) {
+          throw new ProposalActionError("Failed to create building.", 500);
+        }
+        for (const room of rooms) {
+          await createRoom(
+            {
+              roomCode: room.roomCode,
+              directions: room.directions || null,
+              buildingId: building.id,
+            },
+            editedBy,
+          );
+        }
+        return building;
+      }
       case "create_college": {
         const collegeName =
           typeof patch.collegeName === "string" ? patch.collegeName : "";

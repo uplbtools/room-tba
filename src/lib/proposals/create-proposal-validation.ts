@@ -1,5 +1,49 @@
 import type { ProposalCreateType } from "@lib/services/proposal-service";
 
+export type BundledRoomDraft = {
+  roomCode: string;
+  directions: string;
+};
+
+export function parseBundledRooms(
+  patch: Record<string, unknown>,
+): BundledRoomDraft[] {
+  if (!Array.isArray(patch.rooms)) return [];
+  const rooms: BundledRoomDraft[] = [];
+  for (const entry of patch.rooms) {
+    if (!entry || typeof entry !== "object") continue;
+    const row = entry as Record<string, unknown>;
+    const roomCode =
+      typeof row.roomCode === "string" ? row.roomCode.trim() : "";
+    if (!roomCode) continue;
+    const directions =
+      typeof row.directions === "string" ? row.directions.trim() : "";
+    rooms.push({ roomCode, directions });
+  }
+  return rooms;
+}
+
+export function validateBundledRooms(
+  rooms: BundledRoomDraft[],
+  maxRooms = 20,
+): void {
+  if (rooms.length > maxRooms) {
+    throw new ProposalValidationError(
+      `Add at most ${maxRooms} rooms in one building suggestion.`,
+    );
+  }
+  const codes = new Set<string>();
+  for (const room of rooms) {
+    const key = room.roomCode.toLowerCase();
+    if (codes.has(key)) {
+      throw new ProposalValidationError(
+        `Duplicate room code in this suggestion: ${room.roomCode}`,
+      );
+    }
+    codes.add(key);
+  }
+}
+
 export class ProposalValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -22,6 +66,7 @@ export function validateCreateProposalPatch(
           "Pick a map location for the new building.",
         );
       }
+      validateBundledRooms(parseBundledRooms(patch));
       return;
     }
     case "create_event": {
