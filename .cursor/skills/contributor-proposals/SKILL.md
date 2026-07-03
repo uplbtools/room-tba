@@ -62,7 +62,7 @@ Editors use shield menu → review queue:
 
 - `entity_id = 0`, `base_version = 0`.
 - Approved → `applyProposalPatch()` calls `createBuilding`, `createRoom`, etc. in `admin-service.ts`.
-- **Gap:** new building pending → rooms in that building blocked until approve ([#255](https://github.com/uplbtools/room-tba/issues/255)).
+- **Gap (v1 UX):** new building pending → room create form explains the wait and requires a live building picker ([#255](https://github.com/uplbtools/room-tba/issues/255)). Bundled building+rooms and dependency graph are follow-ups.
 
 ## Known edge cases (check before closing issues)
 
