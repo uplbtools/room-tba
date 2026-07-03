@@ -32,6 +32,8 @@
     "check:migrations": "bun run scripts/check-migrations.ts",
     "check:bundle": "bun run scripts/check-bundle-budget.ts",
     "generate:issue-test-matrix": "bun run scripts/generate-issue-test-matrix.ts /tmp/all-issues.json",
+    "generate:test-inventory": "bun run scripts/generate-test-inventory.ts",
+    "post:test-inventory-discord": "bun run scripts/post-test-inventory-discord.ts",
     "check:readme": "bun run scripts/check-readme-drift.ts",
     "check:pwa-legal": "bun run scripts/check-pwa-legal-routes.ts",
     "seed:events": "bun src/seed-events.ts",

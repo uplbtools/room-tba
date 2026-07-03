@@ -4,17 +4,17 @@ Production-grade test pyramid for CI and local development.
 
 ## Commands
 
-| Command                          | What                                      |
-| -------------------------------- | ----------------------------------------- |
-| `bun test src/lib src/constants` | Unit tests (Bun; excludes `*.store.test.ts`) |
-| `bun run test:components`        | Vitest store + Svelte component tests       |
-| `bun run test:integration`       | HTTP + service tests (E2E DB; service-only without preview)   |
+| Command                          | What                                                         |
+| -------------------------------- | ------------------------------------------------------------ |
+| `bun test src/lib src/constants` | Unit tests (Bun; excludes `*.store.test.ts`)                 |
+| `bun run test:components`        | Vitest store + Svelte component tests                        |
+| `bun run test:integration`       | HTTP + service tests (E2E DB; service-only without preview)  |
 | `bun run test:integration:live`  | Same as CI: `build:e2e` → preview → integration (incl. HTTP) |
-| `bun run e2e:reset-db`           | Truncate + seed E2E Supabase (host guard) |
-| `bun run e2e`                    | Playwright blocking suite                 |
-| `bun run e2e:advisory`           | Playwright advisory (non-blocking in CI)  |
-| `bun run e2e:staging`            | Live staging smoke                        |
-| `bun run check:migrations`       | Required tables exist on `DATABASE_URL`   |
+| `bun run e2e:reset-db`           | Truncate + seed E2E Supabase (host guard)                    |
+| `bun run e2e`                    | Playwright blocking suite                                    |
+| `bun run e2e:advisory`           | Playwright advisory (non-blocking in CI)                     |
+| `bun run e2e:staging`            | Live staging smoke                                           |
+| `bun run check:migrations`       | Required tables exist on `DATABASE_URL`                      |
 
 Full local gate (before marking PR ready):
 
@@ -47,12 +47,12 @@ Heavy DB + preview work runs **once before merge**, not on every draft push:
 
 Integration + Playwright share one preview build in the blocking job (~30 min wall clock). **Draft pushes skip all of this.**
 
-| Trigger | Integration + blocking E2E | Advisory E2E + bundle |
-| ------- | -------------------------- | --------------------- |
-| **Ready for review** | Yes (first time) | Yes |
-| **`run/e2e` label** | Re-run after fixes | Re-run |
-| **Reopened** (non-draft) | Yes | Yes |
-| **Draft push** | No | No |
+| Trigger                  | Integration + blocking E2E | Advisory E2E + bundle |
+| ------------------------ | -------------------------- | --------------------- |
+| **Ready for review**     | Yes (first time)           | Yes                   |
+| **`run/e2e` label**      | Re-run after fixes         | Re-run                |
+| **Reopened** (non-draft) | Yes                        | Yes                   |
+| **Draft push**           | No                         | No                    |
 
 **Always on every push:** verify + migrations only.
 
@@ -103,10 +103,13 @@ See also [docs/editor-foundation-test-plan.md](editor-foundation-test-plan.md) a
 
 ## Tests with issues
 
-When implementing a GitHub issue, add tests in the **same PR** — do not defer. Use [issue-test-matrix.md](issue-test-matrix.md) for tier hints (unit / integration / component / E2E). Regenerate:
+When implementing a GitHub issue, add tests in the **same PR** — do not defer. Use [issue-test-matrix.md](issue-test-matrix.md) for tier hints (unit / integration / component / E2E). Full file list: [test-inventory.md](test-inventory.md). Regenerate:
 
 ```sh
 bun run generate:issue-test-matrix
+bun run generate:test-inventory
 ```
+
+**Discord `#test-suite`:** CI posts a pinned, auto-updated inventory (embed + `test-inventory.md` attachment) via [discord-test-inventory.yml](../.github/workflows/discord-test-inventory.yml). Local dry-run: `GATEWAY_URL=… SECRET=… bun run post:test-inventory-discord`.
 
 Agent policy: [AGENTS.md § Tests with GitHub issues](../AGENTS.md#tests-with-github-issues).
