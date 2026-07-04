@@ -45,6 +45,7 @@
     syncAliasCache,
     syncClasses,
   } from "@lib/local/data/sync";
+  import { getDB, initPGLiteDB } from "@lib/local/data/pgliteDB";
   import { CAMPUS_DATA_REFRESH_EVENT } from "@lib/local/data/invalidate-sync-key";
 
   type MetadataProps = {
