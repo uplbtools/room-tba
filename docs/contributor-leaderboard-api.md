@@ -1,6 +1,6 @@
 # Contributor leaderboard API
 
-Discord `/leaderboard` and other bots consume this read-only endpoint. **Scoring lives in room-tba** — bots must not re-aggregate.
+Discord `/leaderboard` and other bots consume this read-only endpoint. **Scoring lives in room-tba**: bots must not re-aggregate.
 
 ## `GET /api/contributors/leaderboard`
 
