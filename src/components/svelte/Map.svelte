@@ -19,6 +19,7 @@
     terrainStore,
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
+  import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -33,6 +34,7 @@
   import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import { observeBlockHeight } from "@lib/layout-css-vars";
+  import type { StyleSpecification } from "maplibre-gl";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
   import type { BuildingData, DormData, EventData } from "@lib/types";
@@ -51,10 +53,11 @@
     TERRAIN_HILLSHADE_LAYER_ID,
     TERRAIN_SOURCE_ID,
     TERRAIN_TILE_FAILURE_MESSAGE,
-    TERRAIN_TILEJSON_URL,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
+    getTerrainTileJsonUrl,
   } from "@constants/map-terrain";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
+  import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
   import {
@@ -123,6 +126,21 @@
     );
   }
   let directions: MapLibreGlDirections | undefined = $state.raw();
+  let mapStyle = $state<StyleSpecification | null>(null);
+
+  onMount(() => {
+    void loadCampusMapStyle<StyleSpecification>()
+      .then((style) => {
+        mapStyle = style;
+      })
+      .catch((error) => {
+        console.error("Failed to load campus map style", error);
+        toastStore.show(
+          "Campus map tiles could not load. Check MapTiler configuration.",
+          "error",
+        );
+      });
+  });
 
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_ID = "jeepney-route-line";
@@ -536,7 +554,7 @@
     if (!map.getSource(TERRAIN_SOURCE_ID)) {
       map.addSource(TERRAIN_SOURCE_ID, {
         type: "raster-dem",
-        url: TERRAIN_TILEJSON_URL,
+        url: getTerrainTileJsonUrl(),
         bounds: MAKILING_TERRAIN_SOURCE_BOUNDS,
         maxzoom: 14,
         tileSize: 512,
@@ -2415,9 +2433,10 @@
       </div>
     {/if}
   {/if}
-  <MapLibre
-    bind:map={mapStore.mapInstance}
-    style="/liberty-customized.json"
+  {#if mapStyle}
+    <MapLibre
+      bind:map={mapStore.mapInstance}
+      style={mapStyle}
     maxBounds={CAMPUS_MAX_BOUNDS}
     center={CAMPUS_DEFAULT_CAMERA.center}
     zoom={17}
@@ -2784,6 +2803,7 @@
       {/each}
     {/if}
   </MapLibre>
+  {/if}
 </div>
 
 <style>

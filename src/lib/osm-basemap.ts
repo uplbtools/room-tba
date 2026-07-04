@@ -9,12 +9,12 @@
  * contributors + MapTiler).
  */
 
-/**
- *
- API key */
-const MAPTILER_KEY = "__MAPTILER_KEY__";
+import { MAPTILER_KEY_PLACEHOLDER, withMaptilerKey } from "@lib/maptiler-key";
+
 const TILE_URL = (z: number, x: number, y: number) =>
-  `https://api.maptiler.com/maps/streets-v2/256/${z}/${x}/${y}.png?key=${MAPTILER_KEY}`;
+  withMaptilerKey(
+    `https://api.maptiler.com/maps/streets-v2/256/${z}/${x}/${y}.png?key=${MAPTILER_KEY_PLACEHOLDER}`,
+  );
 
 const TILE_SIZE = 256;
 const METERS_PER_DEGREE_LAT = 111_320;
