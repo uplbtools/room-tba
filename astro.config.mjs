@@ -145,6 +145,11 @@ export default defineConfig({
         context: "client",
         optional: true,
       }),
+      PUBLIC_MAPTILER_KEY: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
       ADMIN_PASSWORD: envField.string({
         access: "secret",
         context: "server",
