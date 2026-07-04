@@ -48,7 +48,10 @@ const E2E_MIGRATION_FILES = [
 
 async function applyE2eMigrations(client: pg.Client) {
   for (const file of E2E_MIGRATION_FILES) {
-    const sql = readFileSync(join(import.meta.dir, "..", "drizzle", file), "utf8");
+    const sql = readFileSync(
+      join(import.meta.dir, "..", "drizzle", file),
+      "utf8",
+    );
     await client.query(sql);
   }
 }

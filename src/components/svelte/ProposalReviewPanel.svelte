@@ -6,13 +6,15 @@
   } from "@lib/store.svelte";
   import { summarizeProposalPatch } from "@lib/proposals/client";
   import { afterProposalPublished } from "@lib/proposals/apply-published-entity";
-  import { getAppActions } from "@lib/context";
+  import { syncOpenEntityQueryAfterPublish } from "@lib/proposals/sync-open-entity-query";
+  import { getAppActions, getAppData } from "@lib/context";
   import type { ProposalEntityType } from "@lib/services/proposal-service";
   import { parseBundledRooms } from "@lib/proposals/create-proposal-validation";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityReviewActions from "@ui/editor/EntityReviewActions.svelte";
 
   const appActions = getAppActions();
+  const appData = getAppData();
 
   function bundledRoomsSummary(
     entityType: ProposalEntityType,
@@ -56,6 +58,12 @@
         if (entityType) {
           afterProposalPublished(
             appActions,
+            appData,
+            entityType as ProposalEntityType,
+            published,
+          );
+          syncOpenEntityQueryAfterPublish(
+            appData,
             entityType as ProposalEntityType,
             published,
           );
