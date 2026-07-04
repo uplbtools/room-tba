@@ -8,38 +8,38 @@ import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 const { divisions, rooms } = await loadAppData();
 
 const items = divisions
-.slice()
-.sort((a, b) => a.divisionName.localeCompare(b.divisionName))
-.map((division) => {
- const roomCount = rooms.filter(
- (room) => room.divisionName === division.divisionName,
- ).length;
+  .slice()
+  .sort((a, b) => a.divisionName.localeCompare(b.divisionName))
+  .map((division) => {
+    const roomCount = rooms.filter(
+      (room) => room.divisionName === division.divisionName,
+    ).length;
 
- return {
- href: `/division/${getDivisionSlug(division)}/`,
- label: division.divisionName,
- description: `${roomCount} room${roomCount === 1 ? "" : "s"} connected to this division`,
- };
- });
+    return {
+      href: `/division/${getDivisionSlug(division)}/`,
+      label: division.divisionName,
+      description: `${roomCount} room${roomCount === 1 ? "" : "s"} connected to this division`,
+    };
+  });
 
 const title = "UPLB divisions | Room TBA";
 const description =
- "Browse division pages on Room TBA to find UPLB rooms associated with each division.";
+  "Browse division pages on Room TBA to find UPLB rooms associated with each division.";
 const structuredData = jsonLd(
- webpageSchema({ title, description, path: "/division/" }),
- breadcrumbSchema([
- { name: "Home", path: "/" },
- { name: "Divisions", path: "/division/" },
- ]),
+  webpageSchema({ title, description, path: "/division/" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Divisions", path: "/division/" },
+  ]),
 );
 ---
 
 <EntityIndexPage
- title={title}
- description={description}
- canonicalPath="/division/"
- heading="UPLB division pages"
- intro="Browse crawlable division pages for Room TBA. Each page opens the division result view and groups the rooms linked to that division."
- {items}
- structuredData={structuredData}
+  title={title}
+  description={description}
+  canonicalPath="/division/"
+  heading="UPLB division pages"
+  intro="Browse crawlable division pages for Room TBA. Each page opens the division result view and groups the rooms linked to that division."
+  {items}
+  structuredData={structuredData}
 />

@@ -4,31 +4,31 @@ export const prerender = false;
 import EntityPage from "@seo/EntityPage.astro";
 import { getCollegeSlug } from "@lib/app-data";
 import {
- getCollegePageData,
- resolveCollegeNameFromSlug,
+  getCollegePageData,
+  resolveCollegeNameFromSlug,
 } from "@lib/services/ssg-service";
 import {
- absoluteUrl,
- breadcrumbSchema,
- jsonLd,
- ogImageUrl,
- webpageSchema,
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  ogImageUrl,
+  webpageSchema,
 } from "@lib/site";
 
 const slug = Astro.params.slug;
 if (!slug) {
- return new Response(null, { status: 404, statusText: "Not Found" });
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const collegeName = await resolveCollegeNameFromSlug(slug);
 if (!collegeName) {
- return new Response(null, { status: 404, statusText: "Not Found" });
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const appData = await getCollegePageData(collegeName);
 
 if (appData === null) {
- return new Response(null, { status: 404, statusText: "Not Found" });
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const { college, roomCount } = appData;
@@ -39,43 +39,43 @@ const description = `Find rooms associated with ${college.collegeName} at UPLB. 
 const intro = `${college.collegeName} currently has ${roomCount} room${roomCount === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the college result view.`;
 
 const facts = [
- `${roomCount} room${roomCount === 1 ? "" : "s"} linked to this college`,
+  `${roomCount} room${roomCount === 1 ? "" : "s"} linked to this college`,
 ];
 
 const structuredData = jsonLd(
- webpageSchema({ title, description, path: canonicalPath }),
- breadcrumbSchema([
- { name: "Home", path: "/" },
- { name: "Colleges", path: "/college/" },
- { name: college.collegeName, path: canonicalPath },
- ]),
- {
- "@context": "https://schema.org",
- "@type": "EducationalOrganization",
- name: college.collegeName,
- description,
- url: absoluteUrl(canonicalPath),
- image: ogImageUrl(),
- parentOrganization: {
- "@type": "CollegeOrUniversity",
- name: "University of the Philippines Los Banos",
- },
- },
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Colleges", path: "/college/" },
+    { name: college.collegeName, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    name: college.collegeName,
+    description,
+    url: absoluteUrl(canonicalPath),
+    image: ogImageUrl(),
+    parentOrganization: {
+      "@type": "CollegeOrUniversity",
+      name: "University of the Philippines Los Banos",
+    },
+  },
 );
 ---
 
 <EntityPage
- title={title}
- description={description}
- {canonicalPath}
- heading={`${college.collegeName} at UPLB`}
- {intro}
- {facts}
- breadcrumbs={[
- { href: "/", label: "Home" },
- { href: "/college/", label: "Colleges" },
- { href: canonicalPath, label: college.collegeName },
- ]}
- structuredData={structuredData}
- initialSearch={{ category: "college", value: college.collegeName }}
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${college.collegeName} at UPLB`}
+  {intro}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/college/", label: "Colleges" },
+    { href: canonicalPath, label: college.collegeName },
+  ]}
+  structuredData={structuredData}
+  initialSearch={{ category: "college", value: college.collegeName }}
 />

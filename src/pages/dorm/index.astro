@@ -9,38 +9,38 @@ import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 const dorms = await getAllDorms();
 
 const items = dorms
-.slice()
-.sort((a, b) => a.dormName.localeCompare(b.dormName))
-.map((dorm) => ({
- href: `/dorm/${getDormRouteSlug(dorm)}/`,
- label: dorm.dormName,
- description: [
- dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
- dorm.shortName ? `short name: ${dorm.shortName}` : null,
- dorm.priceRange,
- ]
-.filter((value): value is string => Boolean(value))
-.join(" · "),
- }));
+  .slice()
+  .sort((a, b) => a.dormName.localeCompare(b.dormName))
+  .map((dorm) => ({
+    href: `/dorm/${getDormRouteSlug(dorm)}/`,
+    label: dorm.dormName,
+    description: [
+      dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
+      dorm.shortName ? `short name: ${dorm.shortName}` : null,
+      dorm.priceRange,
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join(" · "),
+  }));
 
 const title = "Dorms at UPLB | Room TBA";
 const description =
- "Browse Room TBA dorm pages for UPLB and open each dorm with map context, contacts, and available housing details.";
+  "Browse Room TBA dorm pages for UPLB and open each dorm with map context, contacts, and available housing details.";
 const structuredData = jsonLd(
- webpageSchema({ title, description, path: "/dorm/" }),
- breadcrumbSchema([
- { name: "Home", path: "/" },
- { name: "Dorms", path: "/dorm/" },
- ]),
+  webpageSchema({ title, description, path: "/dorm/" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Dorms", path: "/dorm/" },
+  ]),
 );
 ---
 
 <EntityIndexPage
- title={title}
- description={description}
- canonicalPath="/dorm/"
- heading="UPLB dorm pages"
- intro="Browse crawlable dorm pages for Room TBA. Each page links to the live dorm view with map context, contacts, amenities, and housing details when available."
- {items}
- structuredData={structuredData}
+  title={title}
+  description={description}
+  canonicalPath="/dorm/"
+  heading="UPLB dorm pages"
+  intro="Browse crawlable dorm pages for Room TBA. Each page links to the live dorm view with map context, contacts, amenities, and housing details when available."
+  {items}
+  structuredData={structuredData}
 />

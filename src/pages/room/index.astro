@@ -11,35 +11,35 @@ const defaultTerm = await getDefaultTerm();
 const termPhrase = defaultTerm?.label ? ` for ${defaultTerm.label}` : "";
 
 const items = rooms
-.slice()
-.sort((a, b) => a.code.localeCompare(b.code))
-.map((room) => ({
- href: `/room/${getRoomRouteSlug(room)}/`,
- label: room.code,
- description: room.building?.name
- ? `${room.building.name} at UPLB${classesMap.has(room.code) ? ` · ${classesMap.get(room.code)?.length ?? 0} classes${termPhrase}` : ""}`
- : "UPLB room listing",
- }));
+  .slice()
+  .sort((a, b) => a.code.localeCompare(b.code))
+  .map((room) => ({
+    href: `/room/${getRoomRouteSlug(room)}/`,
+    label: room.code,
+    description: room.building?.name
+      ? `${room.building.name} at UPLB${classesMap.has(room.code) ? ` · ${classesMap.get(room.code)?.length ?? 0} classes${termPhrase}` : ""}`
+      : "UPLB room listing",
+  }));
 
 const title = "Rooms at UPLB | Room TBA";
 const description = defaultTerm?.label
- ? `Browse Room TBA room pages for UPLB. Class listings reflect ${defaultTerm.label}. Open each room for directions, building context, and schedules.`
- : "Browse Room TBA room pages for UPLB and open each room with directions, building context, and listed classes.";
+  ? `Browse Room TBA room pages for UPLB. Class listings reflect ${defaultTerm.label}. Open each room for directions, building context, and schedules.`
+  : "Browse Room TBA room pages for UPLB and open each room with directions, building context, and listed classes.";
 const structuredData = jsonLd(
- webpageSchema({ title, description, path: "/room/" }),
- breadcrumbSchema([
- { name: "Home", path: "/" },
- { name: "Rooms", path: "/room/" },
- ]),
+  webpageSchema({ title, description, path: "/room/" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Rooms", path: "/room/" },
+  ]),
 );
 ---
 
 <EntityIndexPage
- title={title}
- description={description}
- canonicalPath="/room/"
- heading="UPLB room pages"
- intro="Browse crawlable room pages for Room TBA. Each page links to the live room view with directions, building details, and the classes currently associated with that room for the active schedule term."
- {items}
- structuredData={structuredData}
+  title={title}
+  description={description}
+  canonicalPath="/room/"
+  heading="UPLB room pages"
+  intro="Browse crawlable room pages for Room TBA. Each page links to the live room view with directions, building details, and the classes currently associated with that room for the active schedule term."
+  {items}
+  structuredData={structuredData}
 />

@@ -6,23 +6,23 @@ import { getRoomRouteSlug } from "@lib/app-data";
 import { parseIdRouteSlug } from "@lib/route-slugs";
 import { getRoomPageData } from "@lib/services/ssg-service";
 import {
- absoluteUrl,
- breadcrumbSchema,
- jsonLd,
- ogImageUrl,
- webpageSchema,
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  ogImageUrl,
+  webpageSchema,
 } from "@lib/site";
 
 const slug = Astro.params.slug;
 const roomId = slug ? parseIdRouteSlug(slug) : null;
 if (!roomId) {
- return new Response(null, { status: 404, statusText: "Not Found" });
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const appData = await getRoomPageData(roomId);
 
 if (appData === null) {
- return new Response(null, { status: 404, statusText: "Not Found" });
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const { room, classCount, termLabel } = appData;
@@ -31,56 +31,56 @@ const termPhrase = termLabel ? ` for ${termLabel}` : "";
 const canonicalPath = `/room/${getRoomRouteSlug(room)}/`;
 const title = `${room.code} | Room at UPLB | Room TBA`;
 const description = room.building?.name
- ? `Find ${room.code} at UPLB. View building context, directions, and ${classCount} listed class${classCount === 1 ? "" : "es"}${termPhrase} in ${room.building.name} on Room TBA.`
- : `Find ${room.code} at UPLB with Room TBA. View room details and ${classCount} listed class${classCount === 1 ? "" : "es"}${termPhrase}.`;
+  ? `Find ${room.code} at UPLB. View building context, directions, and ${classCount} listed class${classCount === 1 ? "" : "es"}${termPhrase} in ${room.building.name} on Room TBA.`
+  : `Find ${room.code} at UPLB with Room TBA. View room details and ${classCount} listed class${classCount === 1 ? "" : "es"}${termPhrase}.`;
 const intro = room.building?.name
- ? `${room.code} is listed under ${room.building.name} in Room TBA. Open this page for directions and class listings${termPhrase}.`
- : `${room.code} is listed in Room TBA. Open this page to browse class listings${termPhrase}.`;
+  ? `${room.code} is listed under ${room.building.name} in Room TBA. Open this page for directions and class listings${termPhrase}.`
+  : `${room.code} is listed in Room TBA. Open this page to browse class listings${termPhrase}.`;
 
 const facts = [
- room.building?.name ? `Building: ${room.building.name}` : null,
- room.collegeName ? `College: ${room.collegeName}` : null,
- room.divisionName ? `Division: ${room.divisionName}` : null,
- termLabel ? `Schedule term: ${termLabel}` : null,
- `${classCount} class${classCount === 1 ? "" : "es"} listed for this room${termPhrase}`,
+  room.building?.name ? `Building: ${room.building.name}` : null,
+  room.collegeName ? `College: ${room.collegeName}` : null,
+  room.divisionName ? `Division: ${room.divisionName}` : null,
+  termLabel ? `Schedule term: ${termLabel}` : null,
+  `${classCount} class${classCount === 1 ? "" : "es"} listed for this room${termPhrase}`,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(
- webpageSchema({ title, description, path: canonicalPath }),
- breadcrumbSchema([
- { name: "Home", path: "/" },
- { name: "Rooms", path: "/room/" },
- { name: room.code, path: canonicalPath },
- ]),
- {
- "@context": "https://schema.org",
- "@type": "Place",
- name: room.code,
- description,
- url: absoluteUrl(canonicalPath),
- image: ogImageUrl(),
- containedInPlace: room.building?.name
- ? {
- "@type": "Place",
- name: room.building.name,
- }
- : undefined,
- },
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Rooms", path: "/room/" },
+    { name: room.code, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: room.code,
+    description,
+    url: absoluteUrl(canonicalPath),
+    image: ogImageUrl(),
+    containedInPlace: room.building?.name
+      ? {
+          "@type": "Place",
+          name: room.building.name,
+        }
+      : undefined,
+  },
 );
 ---
 
 <EntityPage
- title={title}
- description={description}
- {canonicalPath}
- heading={`${room.code} at UPLB`}
- {intro}
- {facts}
- breadcrumbs={[
- { href: "/", label: "Home" },
- { href: "/room/", label: "Rooms" },
- { href: canonicalPath, label: room.code },
- ]}
- structuredData={structuredData}
- initialSearch={{ category: "room", value: room.code }}
+  title={title}
+  description={description}
+  {canonicalPath}
+  heading={`${room.code} at UPLB`}
+  {intro}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: "/room/", label: "Rooms" },
+    { href: canonicalPath, label: room.code },
+  ]}
+  structuredData={structuredData}
+  initialSearch={{ category: "room", value: room.code }}
 />

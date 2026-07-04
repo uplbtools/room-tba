@@ -7,21 +7,21 @@ import { getEventImage } from "@lib/event-images";
 import { formatCampusDateTime } from "@lib/event-time";
 import { getEventPageData } from "@lib/services/ssg-service";
 import {
- absoluteUrl,
- breadcrumbSchema,
- jsonLd,
- webpageSchema,
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
 } from "@lib/site";
 
 const { slug } = Astro.params;
 if (!slug) {
- return new Response(null, { status: 404, statusText: "Not Found" });
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const appData = await getEventPageData(slug);
 
 if (appData === null) {
- return new Response(null, { status: 404, statusText: "Not Found" });
+  return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const { event } = appData;
@@ -29,93 +29,93 @@ const eventImage = getEventImage(event.slug, event.imageUrl, event.title);
 const canonicalPath = `/event/${event.slug}/`;
 const title = `${event.title} | UPLB event | Room TBA`;
 const description =
- event.description ??
- `Open ${event.title} on Room TBA for event-linked UPLB map markers and routes.`;
+  event.description ??
+  `Open ${event.title} on Room TBA for event-linked UPLB map markers and routes.`;
 
 const primaryLocation =
- event.locations.find((location) => location.isPrimary) ??
- event.locations[0] ??
- null;
+  event.locations.find((location) => location.isPrimary) ??
+  event.locations[0] ??
+  null;
 
 const structuredData = jsonLd(
- webpageSchema({ title, description, path: canonicalPath }),
- breadcrumbSchema([
- { name: "Home", path: "/" },
- { name: "Events", path: "/event/" },
- { name: event.title, path: canonicalPath },
- ]),
- {
- "@context": "https://schema.org",
- "@type": "Event",
- name: event.title,
- description,
- url: absoluteUrl(canonicalPath),
- startDate: event.occurrenceStartsAt,
- endDate: event.occurrenceEndsAt,
- image: eventImage ? absoluteUrl(eventImage.src) : undefined,
- eventStatus: "https://schema.org/EventScheduled",
- eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
- location:
- primaryLocation &&
- primaryLocation.resolvedLat !== null &&
- primaryLocation.resolvedLon !== null
- ? {
- "@type": "Place",
- name: primaryLocation.resolvedLabel,
- geo: {
- "@type": "GeoCoordinates",
- latitude: primaryLocation.resolvedLat,
- longitude: primaryLocation.resolvedLon,
- },
- }
- : undefined,
- },
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Events", path: "/event/" },
+    { name: event.title, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    description,
+    url: absoluteUrl(canonicalPath),
+    startDate: event.occurrenceStartsAt,
+    endDate: event.occurrenceEndsAt,
+    image: eventImage ? absoluteUrl(eventImage.src) : undefined,
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location:
+      primaryLocation &&
+      primaryLocation.resolvedLat !== null &&
+      primaryLocation.resolvedLon !== null
+        ? {
+            "@type": "Place",
+            name: primaryLocation.resolvedLabel,
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: primaryLocation.resolvedLat,
+              longitude: primaryLocation.resolvedLon,
+            },
+          }
+        : undefined,
+  },
 );
 ---
 
 <Layout
- title={title}
- description={description}
- canonicalPath={canonicalPath}
- imagePath={eventImage?.src}
- structuredData={structuredData}
+  title={title}
+  description={description}
+  canonicalPath={canonicalPath}
+  imagePath={eventImage?.src}
+  structuredData={structuredData}
 >
- <main class="event-map-page">
- <article class="sr-only">
- <h1>{event.title} at UPLB</h1>
- <p>{description}</p>
- <p>
- Starts {formatCampusDateTime(event.occurrenceStartsAt)} (campus time).
- </p>
- {primaryLocation && <p>Location: {primaryLocation.resolvedLabel}</p>}
- </article>
- <AppRoot
- initialSearch={{
- category: "event",
- value: event.title,
- eventSlug: event.slug,
- }}
- suppressLandingModal={true}
- client:only="svelte"
- />
- </main>
+  <main class="event-map-page">
+    <article class="sr-only">
+      <h1>{event.title} at UPLB</h1>
+      <p>{description}</p>
+      <p>
+        Starts {formatCampusDateTime(event.occurrenceStartsAt)} (campus time).
+      </p>
+      {primaryLocation && <p>Location: {primaryLocation.resolvedLabel}</p>}
+    </article>
+    <AppRoot
+      initialSearch={{
+        category: "event",
+        value: event.title,
+        eventSlug: event.slug,
+      }}
+      suppressLandingModal={true}
+      client:only="svelte"
+    />
+  </main>
 </Layout>
 
 <style>
-.event-map-page {
- height: 100dvh;
- overflow: hidden;
- }
+  .event-map-page {
+    height: 100dvh;
+    overflow: hidden;
+  }
 
-.sr-only {
- position: absolute;
- width: 1px;
- height: 1px;
- padding: 0;
- margin: -1px;
- overflow: hidden;
- clip: rect(0, 0, 0, 0);
- white-space: nowrap;
- border: 0;
- }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
 </style>
