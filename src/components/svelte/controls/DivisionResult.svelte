@@ -163,7 +163,7 @@
   });
 
   function syncDivisionFromServer(updated: DivisionData) {
-    appActions.replaceDivision(updated);
+    appActions.upsertDivision(updated);
     queryStore.hydrateQuery({
       type: "result",
       category: "division",

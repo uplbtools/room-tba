@@ -16,6 +16,7 @@
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
@@ -245,7 +246,7 @@
   }
 
   function syncBuildingFromServer(updated: BuildingData) {
-    appActions.replaceBuilding(updated);
+    appActions.upsertBuilding(updated);
     queryStore.hydrateQuery({
       type: "result",
       category: "building",
@@ -569,6 +570,7 @@
             <p class="entity-directions__empty">No directions listed.</p>
           {/if}
         </div>
+        <EntityLastUpdated updatedAt={building.updatedAt} />
       </section>
     {/if}
   {:else}
