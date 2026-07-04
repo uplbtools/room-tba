@@ -13,7 +13,19 @@ const EDIT_ENTITY_BUTTON: Record<MapEditEntity, RegExp> = {
 function entityMarker(page: Page, entityLabel: string): Locator {
   return page
     .locator(".maplibregl-marker")
-    .filter({ has: page.getByLabel(entityLabel, { exact: true }) });
+    .filter({ has: page.locator(`[aria-label="${entityLabel}"]`) });
+}
+
+/** Collapse the entity details sheet so map pins are visible for drag. */
+async function revealMapForPinDrag(page: Page) {
+  const collapse = page.getByRole("button", {
+    name: /collapse details panel/i,
+  });
+  if (await collapse.isVisible({ timeout: 3000 }).catch(() => false)) {
+    if ((await collapse.getAttribute("aria-expanded")) === "true") {
+      await collapse.click();
+    }
+  }
 }
 
 async function openEntityMapEditControls(page: Page, entity: MapEditEntity) {
@@ -62,10 +74,10 @@ export async function enableMapEdit(
 }
 
 async function dragMarkerLocator(page: Page, marker: Locator) {
-  await marker.waitFor({ state: "visible", timeout: 20_000 });
+  await marker.waitFor({ state: "attached", timeout: 20_000 });
   await marker.scrollIntoViewIfNeeded();
   const box = await marker.boundingBox();
-  if (!box) return false;
+  if (!box || box.width < 1 || box.height < 1) return false;
 
   const startX = box.x + box.width / 2;
   const startY = box.y + box.height / 2;
@@ -87,6 +99,8 @@ export async function dragEntityMapMarker(
   entityLabel: string,
   patchUrlPart: string,
 ): Promise<boolean> {
+  await revealMapForPinDrag(page);
+
   const patchPromise = page
     .waitForResponse(
       (res) =>
@@ -98,10 +112,9 @@ export async function dragEntityMapMarker(
     .then(() => true)
     .catch(() => false);
 
-  const dragged = await dragMarkerLocator(
-    page,
-    entityMarker(page, entityLabel),
-  );
+  const marker = entityMarker(page, entityLabel);
+  await expect(marker).toBeVisible({ timeout: 20_000 });
+  const dragged = await dragMarkerLocator(page, marker);
   if (!dragged) return false;
   return patchPromise;
 }
