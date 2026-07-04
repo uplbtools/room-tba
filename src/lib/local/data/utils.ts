@@ -354,6 +354,7 @@ export function getEntity<T>(
 ): (checker: TableSyncInfo) => Promise<EntityLoadResult<T>> {
   return async (checker: TableSyncInfo) => {
     const local = async () => (await getLocalEntity()) ?? [];
+    let initialSnapshot: T[] = await local();
     // Offline (sync endpoint unreachable): prefer stale local cache over
     // failing to remote. Only treat invalid checker as "must refetch" when
     // we actually got a newKey back (confirmed sync mismatch) (#169).
@@ -380,8 +381,17 @@ export function getEntity<T>(
       const cached = await local();
       return { rows: cached, source: "cache" };
     } catch {
-      const cached = await local();
-      return { rows: cached, source: "cache" };
+      try {
+        const cached = await local();
+        if (cached.length === 0) {
+          // if cache is gone, return previous snapshot of local data
+          return { rows: initialSnapshot, source: "cache" };
+        }
+        return { rows: cached, source: "cache" };
+      } catch {
+        // If cache existed but failed, return previous snapshot of local data
+        return { rows: initialSnapshot, source: "cache" };
+      }
     }
   };
 }
