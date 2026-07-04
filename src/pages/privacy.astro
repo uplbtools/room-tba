@@ -6,227 +6,227 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
 ---
 
 <Layout
-  title="Privacy Policy | Room TBA"
-  description="How Room TBA handles data, analytics, editor accounts, and offline storage."
-  canonicalPath="/privacy"
-  showAppLoadingShell={false}
+ title="Privacy Policy | Room TBA"
+ description="How Room TBA handles data, analytics, editor accounts, and offline storage."
+ canonicalPath="/privacy"
+ showAppLoadingShell={false}
 >
-  <main class="legal-page">
-    <a href="/" class="back-link">Back to Room TBA</a>
+ <main class="legal-page">
+ <a href="/" class="back-link">Back to Room TBA</a>
 
-    <header class="hero">
-      <p class="eyebrow">Legal</p>
-      <h1>Privacy Policy</h1>
-      <p class="lede">
-        Last updated: June 29, 2026. Room TBA is operated by
-        <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
-          >UPLB Tools</a
-        > volunteers. This policy explains what we collect and why.
-      </p>
-    </header>
+ <header class="hero">
+ <p class="eyebrow">Legal</p>
+ <h1>Privacy Policy</h1>
+ <p class="lede">
+ Last updated: June 29, 2026. Room TBA is operated by
+ <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
+ >UPLB Tools</a
+ > volunteers. This policy explains what we collect and why.
+ </p>
+ </header>
 
-    <article class="legal-body">
-      <section>
-        <h2>What Room TBA is</h2>
-        <p>
-          Room TBA is a free campus map and schedule finder for UPLB students.
-          It is <strong>not</strong> an official University of the Philippines Los
-          Baños website. Class and room data are maintained by volunteers and may
-          be incomplete or out of date.
-        </p>
-      </section>
+ <article class="legal-body">
+ <section>
+ <h2>What Room TBA is</h2>
+ <p>
+ Room TBA is a free campus map and schedule finder for UPLB students.
+ It is <strong>not</strong> an official University of the Philippines Los
+ Baños website. Class and room data are maintained by volunteers and may
+ be incomplete or out of date.
+ </p>
+ </section>
 
-      <section>
-        <h2>Information we process</h2>
-        <h3>Browsing the map (no account)</h3>
-        <ul>
-          <li>
-            <strong>Usage analytics.</strong> We use Vercel Analytics on the public
-            site to understand traffic patterns (page views, referrers). We do not
-            intentionally collect your name or student number through analytics.
-          </li>
-          <li>
-            <strong>Device storage.</strong> The app caches campus data in your browser
-            (PGlite / IndexedDB) and may store preferences such as recent searches,
-            term selection, and “don’t show again” for the welcome modal.
-          </li>
-          <li>
-            <strong>Location (optional).</strong> If you enable location on your device,
-            the map may use your coordinates locally to show where you are. We do
-            not persist your live GPS track on our servers.
-          </li>
-        </ul>
+ <section>
+ <h2>Information we process</h2>
+ <h3>Browsing the map (no account)</h3>
+ <ul>
+ <li>
+ <strong>Usage analytics.</strong> We use Vercel Analytics on the public
+ site to understand traffic patterns (page views, referrers). We do not
+ intentionally collect your name or student number through analytics.
+ </li>
+ <li>
+ <strong>Device storage.</strong> The app caches campus data in your browser
+ (PGlite / IndexedDB) and may store preferences such as recent searches,
+ term selection, and “don’t show again” for the welcome modal.
+ </li>
+ <li>
+ <strong>Location (optional).</strong> If you enable location on your device,
+ the map may use your coordinates locally to show where you are. We do
+ not persist your live GPS track on our servers.
+ </li>
+ </ul>
 
-        <h3>Contributors and editors (signed in)</h3>
-        <ul>
-          <li>
-            <strong>Account identifiers.</strong> Editor/contributor accounts store
-            a username, hashed password, role, and optional display name.
-          </li>
-          <li>
-            <strong>Edit proposals and published changes.</strong> Suggestions and
-            approved edits record who submitted or approved them (`edited_by` and
-            related audit fields).
-          </li>
-          <li>
-            <strong>Session cookies.</strong> Signed-in sessions use httpOnly cookies
-            scoped to this site.
-          </li>
-        </ul>
+ <h3>Contributors and editors (signed in)</h3>
+ <ul>
+ <li>
+ <strong>Account identifiers.</strong> Editor/contributor accounts store
+ a username, hashed password, role, and optional display name.
+ </li>
+ <li>
+ <strong>Edit proposals and published changes.</strong> Suggestions and
+ approved edits record who submitted or approved them (`edited_by` and
+ related audit fields).
+ </li>
+ <li>
+ <strong>Session cookies.</strong> Signed-in sessions use httpOnly cookies
+ scoped to this site.
+ </li>
+ </ul>
 
-        <h3>Server and hosting</h3>
-        <ul>
-          <li>
-            Campus data lives in a Postgres database (Supabase) accessed by our
-            API routes. Hosting and logs are provided by Vercel and our database
-            provider under their respective privacy policies.
-          </li>
-          <li>
-            Optional event image uploads may be stored in Cloudflare R2 when
-            configured.
-          </li>
-        </ul>
-      </section>
+ <h3>Server and hosting</h3>
+ <ul>
+ <li>
+ Campus data lives in a Postgres database (Supabase) accessed by our
+ API routes. Hosting and logs are provided by Vercel and our database
+ provider under their respective privacy policies.
+ </li>
+ <li>
+ Optional event image uploads may be stored in Cloudflare R2 when
+ configured.
+ </li>
+ </ul>
+ </section>
 
-      <section>
-        <h2>What we do not sell</h2>
-        <p>
-          We do not sell your personal information. We do not run third-party ad
-          networks on Room TBA.
-        </p>
-      </section>
+ <section>
+ <h2>What we do not sell</h2>
+ <p>
+ We do not sell your personal information. We do not run third-party ad
+ networks on Room TBA.
+ </p>
+ </section>
 
-      <section>
-        <h2>Community channels</h2>
-        <p>
-          If you contact us on Discord or Messenger, those platforms handle
-          messages under their own policies. Do not send passwords or sensitive
-          personal data in public channels.
-        </p>
-      </section>
+ <section>
+ <h2>Community channels</h2>
+ <p>
+ If you contact us on Discord or Messenger, those platforms handle
+ messages under their own policies. Do not send passwords or sensitive
+ personal data in public channels.
+ </p>
+ </section>
 
-      <section>
-        <h2>Your choices</h2>
-        <ul>
-          <li>Clear site data in your browser to remove local caches.</li>
-          <li>
-            Sign out of editor/contributor sessions when using shared devices.
-          </li>
-          <li>
-            Ask a maintainer to deactivate an editor account you no longer need.
-          </li>
-        </ul>
-      </section>
+ <section>
+ <h2>Your choices</h2>
+ <ul>
+ <li>Clear site data in your browser to remove local caches.</li>
+ <li>
+ Sign out of editor/contributor sessions when using shared devices.
+ </li>
+ <li>
+ Ask a maintainer to deactivate an editor account you no longer need.
+ </li>
+ </ul>
+ </section>
 
-      <section>
-        <h2>Changes</h2>
-        <p>
-          We may update this policy as the app evolves. Material changes will be
-          reflected on this page with an updated date.
-        </p>
-      </section>
+ <section>
+ <h2>Changes</h2>
+ <p>
+ We may update this policy as the app evolves. Material changes will be
+ reflected on this page with an updated date.
+ </p>
+ </section>
 
-      <section>
-        <h2>Contact</h2>
-        <p>
-          Questions about privacy? Reach the team via
-          <a href={MESSENGER_CONTRIBUTE_TARGET} target="_blank" rel="noopener noreferrer"
-            >Messenger</a
-          >
-          or
-          <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
-            >Discord</a
-          >.
-        </p>
-      </section>
-    </article>
+ <section>
+ <h2>Contact</h2>
+ <p>
+ Questions about privacy? Reach the team via
+ <a href={MESSENGER_CONTRIBUTE_TARGET} target="_blank" rel="noopener noreferrer"
+ >Messenger</a
+ >
+ or
+ <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
+ >Discord</a
+ >.
+ </p>
+ </section>
+ </article>
 
-    <SiteFooter />
-  </main>
+ <SiteFooter />
+ </main>
 </Layout>
 
 <style>
-  .legal-page {
-    max-width: 42rem;
-    margin: 0 auto;
-    padding: 2rem 1rem 4rem;
-  }
+.legal-page {
+ max-width: 42rem;
+ margin: 0 auto;
+ padding: 2rem 1rem 4rem;
+ }
 
-  .back-link {
-    display: inline-flex;
-    margin-bottom: 1.5rem;
-    text-decoration: none;
-    color: hsl(5, 53%, 32%);
-    font-weight: 600;
-  }
+.back-link {
+ display: inline-flex;
+ margin-bottom: 1.5rem;
+ text-decoration: none;
+ color: hsl(5, 53%, 32%);
+ font-weight: 600;
+ }
 
-  .hero {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-  }
+.hero {
+ display: flex;
+ flex-direction: column;
+ gap: 0.5rem;
+ margin-bottom: 2rem;
+ }
 
-  .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
-    margin: 0;
-  }
+.eyebrow {
+ text-transform: uppercase;
+ letter-spacing: 0.08em;
+ font-size: 0.75rem;
+ color: hsl(0, 0%, 40%);
+ margin: 0;
+ }
 
-  h1 {
-    font-size: clamp(2rem, 5vw, 2.75rem);
-    line-height: 1.05;
-    margin: 0;
-  }
+ h1 {
+ font-size: clamp(2rem, 5vw, 2.75rem);
+ line-height: 1.05;
+ margin: 0;
+ }
 
-  .lede {
-    margin: 0;
-    max-width: 38rem;
-    color: hsl(0, 0%, 28%);
-    line-height: 1.6;
-  }
+.lede {
+ margin: 0;
+ max-width: 38rem;
+ color: hsl(0, 0%, 28%);
+ line-height: 1.6;
+ }
 
-  .lede a {
-    color: hsl(5, 53%, 32%);
-    font-weight: 600;
-  }
+.lede a {
+ color: hsl(5, 53%, 32%);
+ font-weight: 600;
+ }
 
-  .legal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    color: hsl(0, 0%, 22%);
-    line-height: 1.65;
-  }
+.legal-body {
+ display: flex;
+ flex-direction: column;
+ gap: 1.5rem;
+ color: hsl(0, 0%, 22%);
+ line-height: 1.65;
+ }
 
-  .legal-body h2 {
-    font-size: 1.125rem;
-    margin: 0 0 0.375rem;
-    color: hsl(5, 53%, 28%);
-  }
+.legal-body h2 {
+ font-size: 1.125rem;
+ margin: 0 0 0.375rem;
+ color: hsl(5, 53%, 28%);
+ }
 
-  .legal-body h3 {
-    font-size: 0.9375rem;
-    margin: 0.75rem 0 0.25rem;
-  }
+.legal-body h3 {
+ font-size: 0.9375rem;
+ margin: 0.75rem 0 0.25rem;
+ }
 
-  .legal-body p,
-  .legal-body ul {
-    margin: 0;
-  }
+.legal-body p,
+.legal-body ul {
+ margin: 0;
+ }
 
-  .legal-body ul {
-    padding-left: 1.25rem;
-  }
+.legal-body ul {
+ padding-left: 1.25rem;
+ }
 
-  .legal-body li + li {
-    margin-top: 0.375rem;
-  }
+.legal-body li + li {
+ margin-top: 0.375rem;
+ }
 
-  .legal-body a {
-    color: hsl(5, 53%, 32%);
-    font-weight: 600;
-  }
+.legal-body a {
+ color: hsl(5, 53%, 32%);
+ font-weight: 600;
+ }
 </style>

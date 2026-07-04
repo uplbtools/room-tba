@@ -4,31 +4,31 @@ export const prerender = false;
 import EntityPage from "@seo/EntityPage.astro";
 import { getDivisionSlug } from "@lib/app-data";
 import {
-  getDivisionPageData,
-  resolveDivisionNameFromSlug,
+ getDivisionPageData,
+ resolveDivisionNameFromSlug,
 } from "@lib/services/ssg-service";
 import {
-  absoluteUrl,
-  breadcrumbSchema,
-  jsonLd,
-  ogImageUrl,
-  webpageSchema,
+ absoluteUrl,
+ breadcrumbSchema,
+ jsonLd,
+ ogImageUrl,
+ webpageSchema,
 } from "@lib/site";
 
 const slug = Astro.params.slug;
 if (!slug) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const divisionName = await resolveDivisionNameFromSlug(slug);
 if (!divisionName) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const appData = await getDivisionPageData(divisionName);
 
 if (appData === null) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 const { division, roomCount } = appData;
 
@@ -38,43 +38,43 @@ const description = `Find rooms associated with ${division.divisionName} at UPLB
 const intro = `${division.divisionName} currently has ${roomCount} room${roomCount === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the division result view.`;
 
 const facts = [
-  `${roomCount} room${roomCount === 1 ? "" : "s"} linked to this division`,
+ `${roomCount} room${roomCount === 1 ? "" : "s"} linked to this division`,
 ];
 
 const structuredData = jsonLd(
-  webpageSchema({ title, description, path: canonicalPath }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Divisions", path: "/division/" },
-    { name: division.divisionName, path: canonicalPath },
-  ]),
-  {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    name: division.divisionName,
-    description,
-    url: absoluteUrl(canonicalPath),
-    image: ogImageUrl(),
-    parentOrganization: {
-      "@type": "CollegeOrUniversity",
-      name: "University of the Philippines Los Banos",
-    },
-  },
+ webpageSchema({ title, description, path: canonicalPath }),
+ breadcrumbSchema([
+ { name: "Home", path: "/" },
+ { name: "Divisions", path: "/division/" },
+ { name: division.divisionName, path: canonicalPath },
+ ]),
+ {
+ "@context": "https://schema.org",
+ "@type": "EducationalOrganization",
+ name: division.divisionName,
+ description,
+ url: absoluteUrl(canonicalPath),
+ image: ogImageUrl(),
+ parentOrganization: {
+ "@type": "CollegeOrUniversity",
+ name: "University of the Philippines Los Banos",
+ },
+ },
 );
 ---
 
 <EntityPage
-  title={title}
-  description={description}
-  {canonicalPath}
-  heading={`${division.divisionName} at UPLB`}
-  {intro}
-  {facts}
-  breadcrumbs={[
-    { href: "/", label: "Home" },
-    { href: "/division/", label: "Divisions" },
-    { href: canonicalPath, label: division.divisionName },
-  ]}
-  structuredData={structuredData}
-  initialSearch={{ category: "division", value: division.divisionName }}
+ title={title}
+ description={description}
+ {canonicalPath}
+ heading={`${division.divisionName} at UPLB`}
+ {intro}
+ {facts}
+ breadcrumbs={[
+ { href: "/", label: "Home" },
+ { href: "/division/", label: "Divisions" },
+ { href: canonicalPath, label: division.divisionName },
+ ]}
+ structuredData={structuredData}
+ initialSearch={{ category: "division", value: division.divisionName }}
 />

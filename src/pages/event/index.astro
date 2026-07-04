@@ -5,42 +5,42 @@ import EntityIndexPage from "@seo/EntityIndexPage.astro";
 import { formatCampusDateLong } from "@lib/event-time";
 import { getSeoEvents } from "@lib/services/event-service";
 import {
-  absoluteUrl,
-  breadcrumbSchema,
-  jsonLd,
-  webpageSchema,
+ absoluteUrl,
+ breadcrumbSchema,
+ jsonLd,
+ webpageSchema,
 } from "@lib/site";
 
 const events = await getSeoEvents();
 const items = events.map((event) => {
-  const href = `/event/${event.slug}/`;
-  return {
-    href,
-    label: event.title,
-    description: `${event.category} · ${formatCampusDateLong(event.occurrenceStartsAt)}`,
-    copyUrl: absoluteUrl(href),
-    copyLabel: `Copy link to ${event.title}`,
-  };
+ const href = `/event/${event.slug}/`;
+ return {
+ href,
+ label: event.title,
+ description: `${event.category} · ${formatCampusDateLong(event.occurrenceStartsAt)}`,
+ copyUrl: absoluteUrl(href),
+ copyLabel: `Copy link to ${event.title}`,
+ };
 });
 
 const title = "UPLB events | Room TBA";
 const description =
-  "Browse campus event map pages on Room TBA for seasonal UPLB markers, routes, and event-linked locations.";
+ "Browse campus event map pages on Room TBA for seasonal UPLB markers, routes, and event-linked locations.";
 const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/event/" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Events", path: "/event/" },
-  ]),
+ webpageSchema({ title, description, path: "/event/" }),
+ breadcrumbSchema([
+ { name: "Home", path: "/" },
+ { name: "Events", path: "/event/" },
+ ]),
 );
 ---
 
 <EntityIndexPage
-  title={title}
-  description={description}
-  canonicalPath="/event/"
-  heading="UPLB event pages"
-  intro="Browse stable campus event pages. Each page opens the event result view with linked map markers and routes when available."
-  {items}
-  structuredData={structuredData}
+ title={title}
+ description={description}
+ canonicalPath="/event/"
+ heading="UPLB event pages"
+ intro="Browse stable campus event pages. Each page opens the event result view with linked map markers and routes when available."
+ {items}
+ structuredData={structuredData}
 />

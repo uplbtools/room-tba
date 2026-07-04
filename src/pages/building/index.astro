@@ -5,52 +5,52 @@ import EntityIndexPage from "@seo/EntityIndexPage.astro";
 import { getBuildingSlug, loadAppData } from "@lib/app-data";
 import { getDefaultTerm } from "@lib/services/term-service";
 import {
-  absoluteUrl,
-  breadcrumbSchema,
-  jsonLd,
-  webpageSchema,
+ absoluteUrl,
+ breadcrumbSchema,
+ jsonLd,
+ webpageSchema,
 } from "@lib/site";
 
 const { buildings, rooms } = await loadAppData();
 const defaultTerm = await getDefaultTerm();
 
 const items = buildings
-  .slice()
-  .sort((a, b) => a.buildingName.localeCompare(b.buildingName))
-  .map((building) => {
-    const roomCount = rooms.filter(
-      (room) => room.building?.name === building.buildingName,
-    ).length;
-    const href = `/building/${getBuildingSlug(building)}/`;
+.slice()
+.sort((a, b) => a.buildingName.localeCompare(b.buildingName))
+.map((building) => {
+ const roomCount = rooms.filter(
+ (room) => room.building?.name === building.buildingName,
+ ).length;
+ const href = `/building/${getBuildingSlug(building)}/`;
 
-    return {
-      href,
-      label: building.buildingName,
-      description: `${roomCount} room${roomCount === 1 ? "" : "s"} listed${building.directions ? " · includes directions" : ""}`,
-      copyUrl: absoluteUrl(href),
-      copyLabel: `Copy link to ${building.buildingName}`,
-    };
-  });
+ return {
+ href,
+ label: building.buildingName,
+ description: `${roomCount} room${roomCount === 1 ? "" : "s"} listed${building.directions ? " · includes directions" : ""}`,
+ copyUrl: absoluteUrl(href),
+ copyLabel: `Copy link to ${building.buildingName}`,
+ };
+ });
 
 const title = "UPLB buildings | Room TBA";
 const description = defaultTerm?.label
-  ? `Browse building pages on Room TBA to find UPLB rooms, map context, and class schedules for ${defaultTerm.label}.`
-  : "Browse building pages on Room TBA to find UPLB rooms, map context, and available building directions.";
+ ? `Browse building pages on Room TBA to find UPLB rooms, map context, and class schedules for ${defaultTerm.label}.`
+ : "Browse building pages on Room TBA to find UPLB rooms, map context, and available building directions.";
 const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/building/" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Buildings", path: "/building/" },
-  ]),
+ webpageSchema({ title, description, path: "/building/" }),
+ breadcrumbSchema([
+ { name: "Home", path: "/" },
+ { name: "Buildings", path: "/building/" },
+ ]),
 );
 ---
 
 <EntityIndexPage
-  title={title}
-  description={description}
-  canonicalPath="/building/"
-  heading="UPLB building pages"
-  intro="Browse crawlable building pages for Room TBA. Each page opens the building result view and lists the rooms mapped to that building."
-  {items}
-  structuredData={structuredData}
+ title={title}
+ description={description}
+ canonicalPath="/building/"
+ heading="UPLB building pages"
+ intro="Browse crawlable building pages for Room TBA. Each page opens the building result view and lists the rooms mapped to that building."
+ {items}
+ structuredData={structuredData}
 />

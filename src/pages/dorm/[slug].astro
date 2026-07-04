@@ -6,90 +6,90 @@ import { getDormRouteSlug } from "@lib/app-data";
 import { parseIdRouteSlug } from "@lib/route-slugs";
 import { getDormPageData } from "@lib/services/ssg-service";
 import {
-  absoluteUrl,
-  breadcrumbSchema,
-  jsonLd,
-  ogImageUrl,
-  webpageSchema,
+ absoluteUrl,
+ breadcrumbSchema,
+ jsonLd,
+ ogImageUrl,
+ webpageSchema,
 } from "@lib/site";
 
 const slug = Astro.params.slug;
 const dormId = slug ? parseIdRouteSlug(slug) : null;
 if (!dormId) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const appData = await getDormPageData(dormId);
 
 if (appData === null) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 const { dorm } = appData;
 
 const canonicalPath = `/dorm/${getDormRouteSlug(dorm)}/`;
 const title = `${dorm.dormName} | Dorm at UPLB | Room TBA`;
 const description = [
-  `Find ${dorm.dormName} at UPLB on Room TBA.`,
-  dorm.isUpManaged ? "UP-managed housing listing." : "Private housing listing.",
-  dorm.priceRange ? `Price range: ${dorm.priceRange}.` : null,
+ `Find ${dorm.dormName} at UPLB on Room TBA.`,
+ dorm.isUpManaged ? "UP-managed housing listing." : "Private housing listing.",
+ dorm.priceRange ? `Price range: ${dorm.priceRange}.` : null,
 ]
-  .filter((value): value is string => Boolean(value))
-  .join(" ");
+.filter((value): value is string => Boolean(value))
+.join(" ");
 const intro = `${dorm.dormName} is listed in Room TBA. Open this page to jump straight into the dorm result view with map context, amenities, contacts, and housing details when available.`;
 
 const facts = [
-  dorm.shortName ? `Short name: ${dorm.shortName}` : null,
-  dorm.gender ? `Assigned housing: ${dorm.gender}` : null,
-  dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
-  dorm.capacity ? `${dorm.capacity} beds listed` : null,
-  dorm.priceRange ? `Price range: ${dorm.priceRange}` : null,
-  dorm.managingOffice ? `Managing office: ${dorm.managingOffice}` : null,
+ dorm.shortName ? `Short name: ${dorm.shortName}` : null,
+ dorm.gender ? `Assigned housing: ${dorm.gender}` : null,
+ dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
+ dorm.capacity ? `${dorm.capacity} beds listed` : null,
+ dorm.priceRange ? `Price range: ${dorm.priceRange}` : null,
+ dorm.managingOffice ? `Managing office: ${dorm.managingOffice}` : null,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(
-  webpageSchema({ title, description, path: canonicalPath }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Dorms", path: "/dorm/" },
-    { name: dorm.dormName, path: canonicalPath },
-  ]),
-  {
-    "@context": "https://schema.org",
-    "@type": "Place",
-    name: dorm.dormName,
-    description,
-    url: absoluteUrl(canonicalPath),
-    image: ogImageUrl(),
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Los Banos",
-      addressRegion: "Laguna",
-      addressCountry: "PH",
-    },
-    geo:
-      dorm.lat !== null && dorm.lon !== null
-        ? {
-            "@type": "GeoCoordinates",
-            latitude: dorm.lat,
-            longitude: dorm.lon,
-          }
-        : undefined,
-  },
+ webpageSchema({ title, description, path: canonicalPath }),
+ breadcrumbSchema([
+ { name: "Home", path: "/" },
+ { name: "Dorms", path: "/dorm/" },
+ { name: dorm.dormName, path: canonicalPath },
+ ]),
+ {
+ "@context": "https://schema.org",
+ "@type": "Place",
+ name: dorm.dormName,
+ description,
+ url: absoluteUrl(canonicalPath),
+ image: ogImageUrl(),
+ address: {
+ "@type": "PostalAddress",
+ addressLocality: "Los Banos",
+ addressRegion: "Laguna",
+ addressCountry: "PH",
+ },
+ geo:
+ dorm.lat !== null && dorm.lon !== null
+ ? {
+ "@type": "GeoCoordinates",
+ latitude: dorm.lat,
+ longitude: dorm.lon,
+ }
+ : undefined,
+ },
 );
 ---
 
 <EntityPage
-  title={title}
-  description={description}
-  {canonicalPath}
-  heading={`${dorm.dormName} at UPLB`}
-  {intro}
-  {facts}
-  breadcrumbs={[
-    { href: "/", label: "Home" },
-    { href: "/dorm/", label: "Dorms" },
-    { href: canonicalPath, label: dorm.dormName },
-  ]}
-  structuredData={structuredData}
-  initialSearch={{ category: "dorm", value: dorm.dormName }}
+ title={title}
+ description={description}
+ {canonicalPath}
+ heading={`${dorm.dormName} at UPLB`}
+ {intro}
+ {facts}
+ breadcrumbs={[
+ { href: "/", label: "Home" },
+ { href: "/dorm/", label: "Dorms" },
+ { href: canonicalPath, label: dorm.dormName },
+ ]}
+ structuredData={structuredData}
+ initialSearch={{ category: "dorm", value: dorm.dormName }}
 />

@@ -5,33 +5,33 @@ import "../styles/app-loading.css";
 import Analytics from "@vercel/analytics/astro";
 import { LOADING_SPLASH_FIRST } from "@lib/loading-splash-messages";
 import {
-  DEFAULT_DESCRIPTION,
-  DEFAULT_TITLE,
-  SITE_URL,
-  absoluteUrl,
+ DEFAULT_DESCRIPTION,
+ DEFAULT_TITLE,
+ SITE_URL,
+ absoluteUrl,
 } from "@lib/site";
 
 type StructuredData = Record<string, unknown>;
 
 type Props = {
-  title?: string;
-  description?: string;
-  canonicalPath?: string;
-  imagePath?: string;
-  robots?: string;
-  structuredData?: StructuredData[];
-  /** Map app shell only — static pages (changelog, legal) should disable this. */
-  showAppLoadingShell?: boolean;
+ title?: string;
+ description?: string;
+ canonicalPath?: string;
+ imagePath?: string;
+ robots?: string;
+ structuredData?: StructuredData[];
+ /** Map app shell only: static pages (changelog, legal) should disable this. */
+ showAppLoadingShell?: boolean;
 };
 
 const {
-  title = DEFAULT_TITLE,
-  description = DEFAULT_DESCRIPTION,
-  canonicalPath = "/",
-  imagePath = "/socmed.png",
-  robots = "index,follow",
-  structuredData = [],
-  showAppLoadingShell = true,
+ title = DEFAULT_TITLE,
+ description = DEFAULT_DESCRIPTION,
+ canonicalPath = "/",
+ imagePath = "/socmed.png",
+ robots = "index,follow",
+ structuredData = [],
+ showAppLoadingShell = true,
 }: Props = Astro.props;
 
 const canonicalUrl = absoluteUrl(canonicalPath);
@@ -40,227 +40,227 @@ const imageUrl = absoluteUrl(imagePath);
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/favicon.ico" sizes="48x48" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-    <meta name="theme-color" content="#a30e00" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <meta name="robots" content={robots} />
-    <link rel="canonical" href={canonicalUrl} />
+ <head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <link rel="icon" href="/favicon.ico" sizes="48x48" />
+ <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+ <meta name="theme-color" content="#a30e00" />
+ <meta name="generator" content={Astro.generator} />
+ <title>{title}</title>
+ <meta name="description" content={description} />
+ <meta name="robots" content={robots} />
+ <link rel="canonical" href={canonicalUrl} />
 
-    <meta property="og:site_name" content="Room TBA" />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={imageUrl} />
-    <meta property="og:image:alt" content={title} />
-    <meta property="og:locale" content="en_US" />
+ <meta property="og:site_name" content="Room TBA" />
+ <meta property="og:url" content={canonicalUrl} />
+ <meta property="og:type" content="website" />
+ <meta property="og:title" content={title} />
+ <meta property="og:description" content={description} />
+ <meta property="og:image" content={imageUrl} />
+ <meta property="og:image:alt" content={title} />
+ <meta property="og:locale" content="en_US" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta property="twitter:domain" content={new URL(SITE_URL).hostname} />
-    <meta property="twitter:url" content={canonicalUrl} />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={imageUrl} />
-    <meta name="twitter:image:alt" content={title} />
-    {
-      structuredData.map((entry) => (
-        <script type="application/ld+json" set:html={JSON.stringify(entry)} />
-      ))
-    }
-    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+ <meta name="twitter:card" content="summary_large_image" />
+ <meta property="twitter:domain" content={new URL(SITE_URL).hostname} />
+ <meta property="twitter:url" content={canonicalUrl} />
+ <meta name="twitter:title" content={title} />
+ <meta name="twitter:description" content={description} />
+ <meta name="twitter:image" content={imageUrl} />
+ <meta name="twitter:image:alt" content={title} />
+ {
+ structuredData.map((entry) => (
+ <script type="application/ld+json" set:html={JSON.stringify(entry)} />
+ ))
+ }
+ {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin="anonymous"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
+ <link rel="preconnect" href="https://fonts.googleapis.com" />
+ <link
+ rel="preconnect"
+ href="https://fonts.gstatic.com"
+ crossorigin="anonymous"
+ />
+ <link
+ href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
+ rel="stylesheet"
+ />
 
-    <style is:global>
-      * {
-        font-family:
-          "Inter",
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
-        font-variation-settings: "opsz" 14;
-      }
+ <style is:global>
+ * {
+ font-family:
+ "Inter",
+ system-ui,
+ -apple-system,
+ BlinkMacSystemFont,
+ "Segoe UI",
+ Roboto,
+ sans-serif;
+ font-variation-settings: "opsz" 14;
+ }
 
-      :root {
-        --font-display: "Cormorant Garamond", serif;
-      }
+ :root {
+, font-display: "Cormorant Garamond", serif;
+ }
 
-      button {
-        all: unset;
-      }
-      button,
-      a,
-      input {
-        outline: 2px solid transparent;
-        outline-offset: 2px;
+ button {
+ all: unset;
+ }
+ button,
+ a,
+ input {
+ outline: 2px solid transparent;
+ outline-offset: 2px;
 
-        &:focus-visible {
-          outline-color: hsl(5, 53%, 32%);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    {
-      showAppLoadingShell ? (
-        <div
-          id="app-loading-shell"
-          class="app-loading-shell"
-          role="status"
-          aria-live="polite"
-        >
-          <div class="app-loading-shell__card">
-            <div class="app-loading-mark" aria-hidden="true">
-              <div class="app-loading-mark__loader">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="app-loading-spinner app-loading-spinner--spin"
-                >
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-              </div>
-              <div class="app-loading-mark__pin">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.25"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <>
-                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                    <circle cx="12" cy="10" r="3" />
-                  </>
-                </svg>
-              </div>
-            </div>
-            <div class="app-loading-mark__context" aria-hidden="true">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="app-loading-mark__context-icon"
-              >
-                <>
-                  <path d="M10 12h4" />
-                  <path d="M10 8h4" />
-                  <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
-                  <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2" />
-                  <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />
-                </>
-              </svg>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="app-loading-mark__context-icon"
-              >
-                <>
-                  <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                  <circle cx="12" cy="10" r="3" />
-                </>
-              </svg>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="app-loading-mark__context-icon"
-              >
-                <>
-                  <path d="M10 10v.2A3 3 0 0 1 8.8 15H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z" />
-                  <path d="M14 10v.2A3 3 0 0 0 15.2 15H19a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z" />
-                  <path d="M12 22v-3" />
-                  <path d="M12 15V9m-4 0a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0Z" />
-                </>
-              </svg>
-            </div>
-            <p class="app-loading-shell__message">Loading campus data</p>
-            <p class="app-loading-shell__splash" aria-hidden="true">
-              {LOADING_SPLASH_FIRST}
-            </p>
-          </div>
-        </div>
-      ) : null
-    }
-    <slot />
-    <Analytics />
-    <script is:inline>
-      (function () {
-        function dismissLoadingShell() {
-          document.getElementById("app-loading-shell")?.remove();
-        }
-        document.addEventListener(
-          "astro:before-prehydration",
-          dismissLoadingShell,
-          { once: true },
-        );
-        window.addEventListener("DOMContentLoaded", function () {
-          setTimeout(dismissLoadingShell, 12_000);
-        });
-      })();
-    </script>
-  </body>
+ &:focus-visible {
+ outline-color: hsl(5, 53%, 32%);
+ }
+ }
+ </style>
+ </head>
+ <body>
+ {
+ showAppLoadingShell ? (
+ <div
+ id="app-loading-shell"
+ class="app-loading-shell"
+ role="status"
+ aria-live="polite"
+ >
+ <div class="app-loading-shell__card">
+ <div class="app-loading-mark" aria-hidden="true">
+ <div class="app-loading-mark__loader">
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ width="28"
+ height="28"
+ viewBox="0 0 24 24"
+ fill="none"
+ stroke="currentColor"
+ stroke-width="2"
+ stroke-linecap="round"
+ stroke-linejoin="round"
+ class="app-loading-spinner app-loading-spinner, spin"
+ >
+ <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+ </svg>
+ </div>
+ <div class="app-loading-mark__pin">
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ width="14"
+ height="14"
+ viewBox="0 0 24 24"
+ fill="none"
+ stroke="currentColor"
+ stroke-width="2.25"
+ stroke-linecap="round"
+ stroke-linejoin="round"
+ >
+ <>
+ <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+ <circle cx="12" cy="10" r="3" />
+ </>
+ </svg>
+ </div>
+ </div>
+ <div class="app-loading-mark__context" aria-hidden="true">
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ width="13"
+ height="13"
+ viewBox="0 0 24 24"
+ fill="none"
+ stroke="currentColor"
+ stroke-width="2"
+ stroke-linecap="round"
+ stroke-linejoin="round"
+ class="app-loading-mark__context-icon"
+ >
+ <>
+ <path d="M10 12h4" />
+ <path d="M10 8h4" />
+ <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
+ <path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2" />
+ <path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16" />
+ </>
+ </svg>
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ width="13"
+ height="13"
+ viewBox="0 0 24 24"
+ fill="none"
+ stroke="currentColor"
+ stroke-width="2"
+ stroke-linecap="round"
+ stroke-linejoin="round"
+ class="app-loading-mark__context-icon"
+ >
+ <>
+ <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+ <circle cx="12" cy="10" r="3" />
+ </>
+ </svg>
+ <svg
+ xmlns="http://www.w3.org/2000/svg"
+ width="13"
+ height="13"
+ viewBox="0 0 24 24"
+ fill="none"
+ stroke="currentColor"
+ stroke-width="2"
+ stroke-linecap="round"
+ stroke-linejoin="round"
+ class="app-loading-mark__context-icon"
+ >
+ <>
+ <path d="M10 10v.2A3 3 0 0 1 8.8 15H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2z" />
+ <path d="M14 10v.2A3 3 0 0 0 15.2 15H19a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z" />
+ <path d="M12 22v-3" />
+ <path d="M12 15V9m-4 0a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0Z" />
+ </>
+ </svg>
+ </div>
+ <p class="app-loading-shell__message">Loading campus data</p>
+ <p class="app-loading-shell__splash" aria-hidden="true">
+ {LOADING_SPLASH_FIRST}
+ </p>
+ </div>
+ </div>
+ ) : null
+ }
+ <slot />
+ <Analytics />
+ <script is:inline>
+ (function () {
+ function dismissLoadingShell() {
+ document.getElementById("app-loading-shell")?.remove();
+ }
+ document.addEventListener(
+ "astro:before-prehydration",
+ dismissLoadingShell,
+ { once: true },
+ );
+ window.addEventListener("DOMContentLoaded", function () {
+ setTimeout(dismissLoadingShell, 12_000);
+ });
+ })();
+ </script>
+ </body>
 </html>
 
 <style>
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    min-height: 100%;
-  }
+ html,
+ body {
+ margin: 0;
+ width: 100%;
+ min-height: 100%;
+ }
 
-  @media only screen and (max-width: 600px) {
-    .container {
-      padding: 1rem;
-    }
-  }
+ @media only screen and (max-width: 600px) {
+.container {
+ padding: 1rem;
+ }
+ }
 </style>

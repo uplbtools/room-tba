@@ -4,31 +4,31 @@ export const prerender = false;
 import EntityPage from "@seo/EntityPage.astro";
 import { getBuildingSlug } from "@lib/app-data";
 import {
-  getBuildingPageData,
-  resolveBuildingNameFromSlug,
+ getBuildingPageData,
+ resolveBuildingNameFromSlug,
 } from "@lib/services/ssg-service";
 import {
-  absoluteUrl,
-  breadcrumbSchema,
-  jsonLd,
-  ogImageUrl,
-  webpageSchema,
+ absoluteUrl,
+ breadcrumbSchema,
+ jsonLd,
+ ogImageUrl,
+ webpageSchema,
 } from "@lib/site";
 
 const slug = Astro.params.slug;
 if (!slug) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const buildingName = await resolveBuildingNameFromSlug(slug);
 if (!buildingName) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 const appData = await getBuildingPageData(buildingName);
 
 if (appData === null) {
-  return new Response(null, { status: 404, statusText: "Not Found" });
+ return new Response(null, { status: 404, statusText: "Not Found" });
 }
 const { building, roomCount, classCount, termLabel } = appData;
 const termPhrase = termLabel ? ` for ${termLabel}` : "";
@@ -38,50 +38,50 @@ const description = `Find rooms in ${buildingName} at UPLB. Browse ${roomCount} 
 const intro = `${buildingName} has ${roomCount} room${roomCount === 1 ? "" : "s"} and ${classCount} class listing${classCount === 1 ? "" : "s"}${termPhrase} in Room TBA. Open this page to browse rooms and schedules.`;
 
 const facts = [
-  termLabel ? `Schedule term: ${termLabel}` : null,
-  `${roomCount} room${roomCount === 1 ? "" : "s"} listed in this building`,
-  `${classCount} class${classCount === 1 ? "" : "es"} listed in this building${termPhrase}`,
-  building.directions ? `Directions available for this building` : null,
+ termLabel ? `Schedule term: ${termLabel}` : null,
+ `${roomCount} room${roomCount === 1 ? "" : "s"} listed in this building`,
+ `${classCount} class${classCount === 1 ? "" : "es"} listed in this building${termPhrase}`,
+ building.directions ? `Directions available for this building` : null,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(
-  webpageSchema({ title, description, path: canonicalPath }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Buildings", path: "/building/" },
-    { name: buildingName, path: canonicalPath },
-  ]),
-  {
-    "@context": "https://schema.org",
-    "@type": "Place",
-    name: buildingName,
-    description: building.directions ?? description,
-    url: absoluteUrl(canonicalPath),
-    image: ogImageUrl(),
-    geo:
-      building.lat !== null && building.lon !== null
-        ? {
-            "@type": "GeoCoordinates",
-            latitude: building.lat,
-            longitude: building.lon,
-          }
-        : undefined,
-  },
+ webpageSchema({ title, description, path: canonicalPath }),
+ breadcrumbSchema([
+ { name: "Home", path: "/" },
+ { name: "Buildings", path: "/building/" },
+ { name: buildingName, path: canonicalPath },
+ ]),
+ {
+ "@context": "https://schema.org",
+ "@type": "Place",
+ name: buildingName,
+ description: building.directions ?? description,
+ url: absoluteUrl(canonicalPath),
+ image: ogImageUrl(),
+ geo:
+ building.lat !== null && building.lon !== null
+ ? {
+ "@type": "GeoCoordinates",
+ latitude: building.lat,
+ longitude: building.lon,
+ }
+ : undefined,
+ },
 );
 ---
 
 <EntityPage
-  title={title}
-  description={description}
-  {canonicalPath}
-  heading={`${buildingName} at UPLB`}
-  {intro}
-  {facts}
-  breadcrumbs={[
-    { href: "/", label: "Home" },
-    { href: "/building/", label: "Buildings" },
-    { href: canonicalPath, label: buildingName },
-  ]}
-  structuredData={structuredData}
-  initialSearch={{ category: "building", value: buildingName }}
+ title={title}
+ description={description}
+ {canonicalPath}
+ heading={`${buildingName} at UPLB`}
+ {intro}
+ {facts}
+ breadcrumbs={[
+ { href: "/", label: "Home" },
+ { href: "/building/", label: "Buildings" },
+ { href: canonicalPath, label: buildingName },
+ ]}
+ structuredData={structuredData}
+ initialSearch={{ category: "building", value: buildingName }}
 />
