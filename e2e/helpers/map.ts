@@ -1,8 +1,90 @@
-import type { Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
-/** Drag the first MapLibre marker; returns whether a PATCH request was observed. */
-export async function dragFirstMapMarker(
+const DRAG_DELTA_PX = 120;
+const DRAG_STEPS = 16;
+
+type MapEditEntity = "building" | "dorm";
+
+const EDIT_ENTITY_BUTTON: Record<MapEditEntity, RegExp> = {
+  building: /^Edit building$/i,
+  dorm: /^Edit dorm$/i,
+};
+
+function entityMarker(page: Page, entityLabel: string): Locator {
+  return page
+    .locator(".maplibregl-marker")
+    .filter({ has: page.getByLabel(entityLabel, { exact: true }) });
+}
+
+async function openEntityMapEditControls(page: Page, entity: MapEditEntity) {
+  const enableInPanel = page.getByRole("button", {
+    name: /^Enable map edit$/i,
+  });
+  if (await enableInPanel.isVisible({ timeout: 1500 }).catch(() => false)) {
+    return enableInPanel;
+  }
+
+  const editEntity = page.getByRole("button", {
+    name: EDIT_ENTITY_BUTTON[entity],
+  });
+  if (await editEntity.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await editEntity.click();
+  }
+
+  await expect(enableInPanel).toBeVisible({ timeout: 10_000 });
+  return enableInPanel;
+}
+
+/** Enable map edit from the entity panel or editor shelf. */
+export async function enableMapEdit(
   page: Page,
+  entity: MapEditEntity = "building",
+) {
+  const enableInPanel = await openEntityMapEditControls(page, entity).catch(
+    () => null,
+  );
+  if (enableInPanel) {
+    await enableInPanel.click();
+  } else {
+    const turnOn = page.getByRole("button", { name: /turn on map edit/i });
+    if (await turnOn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await turnOn.click();
+    } else {
+      const editorTools = page.getByRole("button", {
+        name: /open editor tools/i,
+      });
+      await editorTools.click({ timeout: 10_000 });
+      await turnOn.click({ timeout: 10_000 });
+    }
+  }
+
+  await expect(page.getByText("Editing map")).toBeVisible({ timeout: 10_000 });
+}
+
+async function dragMarkerLocator(page: Page, marker: Locator) {
+  await marker.waitFor({ state: "visible", timeout: 20_000 });
+  await marker.scrollIntoViewIfNeeded();
+  const box = await marker.boundingBox();
+  if (!box) return false;
+
+  const startX = box.x + box.width / 2;
+  const startY = box.y + box.height / 2;
+  const endX = startX + DRAG_DELTA_PX;
+  const endY = startY + DRAG_DELTA_PX * 0.65;
+
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(endX, endY, { steps: DRAG_STEPS });
+  await page.mouse.up();
+  return true;
+}
+
+/**
+ * Drag a building/dorm pin by accessible label; returns whether PATCH 200 was observed.
+ */
+export async function dragEntityMapMarker(
+  page: Page,
+  entityLabel: string,
   patchUrlPart: string,
 ): Promise<boolean> {
   const patchPromise = page
@@ -16,24 +98,20 @@ export async function dragFirstMapMarker(
     .then(() => true)
     .catch(() => false);
 
-  const marker = page.locator(".maplibregl-marker").first();
-  await marker.waitFor({ state: "visible", timeout: 15_000 }).catch(() => {});
-  const box = await marker.boundingBox();
-  if (!box) return false;
-
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2);
-  await page.mouse.up();
-
+  const dragged = await dragMarkerLocator(
+    page,
+    entityMarker(page, entityLabel),
+  );
+  if (!dragged) return false;
   return patchPromise;
 }
 
-export async function enableMapEdit(page: Page) {
-  const editToggle = page.getByRole("button", {
-    name: /map edit|edit map|turn on map edit/i,
-  });
-  if (await editToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await editToggle.click();
-  }
+/** Assert pin drag persisted; fails the test instead of skipping. */
+export async function expectPinDragSave(
+  page: Page,
+  entityLabel: string,
+  patchUrlPart: string,
+) {
+  const saved = await dragEntityMapMarker(page, entityLabel, patchUrlPart);
+  expect(saved, `Pin drag for ${entityLabel} did not trigger PATCH`).toBe(true);
 }
