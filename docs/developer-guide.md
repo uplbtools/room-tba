@@ -4,11 +4,11 @@ For human developers contributing code. Start with [CONTRIBUTING.md](../CONTRIBU
 
 ## Local setup
 
-| Requirement      | Notes                                                           |
+| Requirement | Notes |
 | ---------------- | --------------------------------------------------------------- |
-| Bun 1.3+         | Package manager and test runner                                 |
-| `DATABASE_URL`   | Supabase Postgres; use the **session pooler** URL for local dev |
-| `ADMIN_PASSWORD` | Optional; enables in-app editor login locally                   |
+| Bun 1.3+ | Package manager and test runner |
+| `DATABASE_URL` | Supabase Postgres; use the **session pooler** URL for local dev |
+| `ADMIN_PASSWORD` | Optional; enables in-app editor login locally |
 
 ```sh
 cp .env.example .env.local
@@ -24,14 +24,14 @@ Refreshing a stale `.env`: see [AGENTS.md § Cursor Cloud](../AGENTS.md#cursor-c
 
 ## Commands
 
-| Command                   | Purpose                                 |
+| Command | Purpose |
 | ------------------------- | --------------------------------------- |
-| `bun dev`                 | Dev server                              |
-| `bun test src`            | Unit tests (no DB required)             |
-| `bun run lint`            | Biome format check + ESLint             |
-| `bun run format`          | Biome format write                      |
-| `bun run build`           | Production build (needs `DATABASE_URL`) |
-| `bunx drizzle-kit studio` | Browse Postgres                         |
+| `bun dev` | Dev server |
+| `bun test src` | Unit tests (no DB required) |
+| `bun run lint` | Biome format check + ESLint |
+| `bun run format` | Biome format write |
+| `bun run build` | Production build (needs `DATABASE_URL`) |
+| `bunx drizzle-kit studio` | Browse Postgres |
 
 PR CI runs verify + migrations on every push. Integration, E2E, and bundle advisory run when the PR is **ready for review** or labeled **`run/e2e`**. See [testing.md § Heavy CI gating](testing.md#heavy-ci-gating-prs). Run integration/E2E locally before marking ready on substantive changes.
 
