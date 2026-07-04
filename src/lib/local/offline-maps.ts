@@ -3,6 +3,7 @@
 // service worker's `map-tiles` runtime cache stores them (see astro.config.mjs).
 
 import { CAMPUS_BOUNDS } from "@constants/map-terrain";
+import { CAMPUS_MAP_STYLE_URL, injectMaptilerKey } from "@lib/maptiler-key";
 
 // Campus bounds — mirrors `CAMPUS_MAX_BOUNDS` in src/constants/map-terrain.ts.
 const CAMPUS_BOUNDS_LON_LAT = {
@@ -70,7 +71,9 @@ let cachedSource: TileSource | null = null;
 export async function getTileTemplate(): Promise<TileSource | null> {
   if (cachedSource) return cachedSource;
   try {
-    const style = await (await fetch("/liberty-customized.json")).json();
+    const style = injectMaptilerKey(
+      await (await fetch(CAMPUS_MAP_STYLE_URL)).json(),
+    );
     const src = style?.sources?.openmaptiles;
     if (!src) return null;
 
