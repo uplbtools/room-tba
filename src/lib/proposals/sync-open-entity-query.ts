@@ -37,7 +37,8 @@ function openEntityId(
     }
     case "event": {
       const row = data.events.find(
-        (e) => e.title === queryValue || e.slug === queryStore.selectedEventSlug,
+        (e) =>
+          e.title === queryValue || e.slug === queryStore.selectedEventSlug,
       );
       return row?.id ?? null;
     }

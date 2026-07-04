@@ -7,7 +7,10 @@ import type {
   EventData,
 } from "@lib/types";
 import type { ProposalEntityType } from "@lib/services/proposal-service";
-import { invalidateLocalSyncKeys, requestCampusDataRefresh } from "@lib/local/data/invalidate-sync-key";
+import {
+  invalidateLocalSyncKeys,
+  requestCampusDataRefresh,
+} from "@lib/local/data/invalidate-sync-key";
 
 const ENTITY_SYNC_TABLES: Partial<Record<ProposalEntityType, string[]>> = {
   building: ["buildings"],
@@ -113,12 +116,7 @@ export function afterProposalPublished(
   entityType: ProposalEntityType,
   published: unknown,
 ): void {
-  const applied = applyPublishedEntity(
-    actions,
-    entityType,
-    published,
-    getData,
-  );
+  const applied = applyPublishedEntity(actions, entityType, published, getData);
   const tables = syncTablesForEntityType(entityType);
   if (tables.length > 0) {
     invalidateLocalSyncKeys(tables);
