@@ -9,6 +9,8 @@
   --motion-duration-shelf: 260ms;
   --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --map-chrome-scrollbar-thumb: #d4d4d8;
+  --map-chrome-scrollbar-thumb-hover: #a1a1aa;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -18,6 +20,31 @@
     --motion-duration-panel: 0ms;
     --motion-duration-shelf: 0ms;
   }
+}
+
+.map-chrome-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--map-chrome-scrollbar-thumb, #d4d4d8) transparent;
+}
+
+.map-chrome-scroll::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.map-chrome-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.map-chrome-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-color: var(--map-chrome-scrollbar-thumb, #d4d4d8);
+  background-clip: content-box;
+}
+
+.map-chrome-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: var(--map-chrome-scrollbar-thumb-hover, #a1a1aa);
 }
 
 .map-chrome-toggle-btn,

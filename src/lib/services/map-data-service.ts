@@ -9,6 +9,7 @@ import {
   finalExamsTable,
   roomsTable,
 } from "@drizzle/schema";
+import { clampLimitValue } from "@lib/api/pagination";
 import { db } from "@lib/db";
 import { normalizeCourseCode } from "@lib/final-exams/normalize";
 import { normalizeAlias } from "@lib/site";
@@ -345,7 +346,10 @@ export async function queryClasses(options: {
   offset?: number;
 }): Promise<ClassQueryPage> {
   try {
-    const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+    const limit = clampLimitValue(options.limit, {
+      defaultValue: 50,
+      max: 100,
+    });
     const offset = Math.max(options.offset ?? 0, 0);
     const where = classListWhere(options.termId, options.courseCodePrefix);
 

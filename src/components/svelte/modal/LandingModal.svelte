@@ -156,7 +156,7 @@
     </div>
   </header>
 
-  <div class="scroll-region">
+  <div class="scroll-region map-chrome-scroll">
     {#if activeTab === "welcome"}
       <div
         class="tab-panel"

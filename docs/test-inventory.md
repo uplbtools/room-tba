@@ -6,8 +6,8 @@ Running list of **automated** tests in this repo. Regenerate after adding or mov
 bun run generate:test-inventory
 ```
 
-**Last generated:** 2026-07-03  
-**Total spec files:** 106
+**Last generated:** 2026-07-04
+**Total spec files:** 113
 
 See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked expectations: [issue-test-matrix.md](issue-test-matrix.md).
 
@@ -15,10 +15,10 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 
 | Command | Config / runner | Files |
 | ------- | ---------------- | ----- |
-| `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 43 |
-| `bun run test:components` | Vitest — stores + Svelte @320px | 17 |
+| `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 47 |
+| `bun run test:components` | Vitest — stores + Svelte @320px | 19 |
 | `bun run test:integration` | Bun — HTTP + services (E2E DB) | 5 |
-| `bun run e2e` | Playwright blocking — local preview | 26 |
+| `bun run e2e` | Playwright blocking — local preview | 27 |
 | `bun run e2e:advisory` | Playwright advisory — non-blocking CI | 11 |
 | `bun run e2e:staging` | Playwright — live staging URL | 3 |
 | `bun run check:migrations` | Schema table guard (not a spec file) | 1 script |
@@ -39,10 +39,11 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 
 Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`testDir: e2e`, ignores `advisory/` + `staging/`). Projects: **desktop-chrome**, **mobile-chrome** (skips `@desktop-only`).
 
-## Unit tests (Bun) — 43 files
+## Unit tests (Bun) — 47 files
 
 `bun test src/lib src/constants` (excludes `*.store.test.ts`).
 
+- `src/constants/community-links.test.ts`
 - `src/constants/proposals.test.ts`
 - `src/lib/__tests__/latency-tracker.test.ts`
 - `src/lib/__tests__/normalize-room-code.test.ts`
@@ -56,6 +57,7 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/amis/normalize-class.test.ts`
 - `src/lib/amis/room-scheduled-types.test.ts`
 - `src/lib/amis/sanitize-row.test.ts`
+- `src/lib/api/pagination.test.ts`
 - `src/lib/api/rate-limit.test.ts`
 - `src/lib/browse-campus.test.ts`
 - `src/lib/changelog-highlights.test.ts`
@@ -72,6 +74,8 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/notifications/notifications.test.ts`
 - `src/lib/notifications/proposal-events.test.ts`
 - `src/lib/proposals/client.test.ts`
+- `src/lib/proposals/create-proposal-validation.test.ts`
+- `src/lib/proposals/proposal-merge-policy.test.ts`
 - `src/lib/r2-upload.test.ts`
 - `src/lib/route-slugs.test.ts`
 - `src/lib/schedule-import/day-stops.test.ts`
@@ -101,18 +105,20 @@ Included in `bun run test:components`.
 - `src/lib/stores/sync-stores.store.test.ts`
 
 
-## Component tests (Vitest) — 10 files
+## Component tests (Vitest) — 12 files
 
 Layout guards at 320px / 768px where noted. Included in `bun run test:components`.
 
 - `src/components/svelte/AdminLoginModal.component.test.ts`
 - `src/components/svelte/BuildingTypeFilterBar.component.test.ts`
 - `src/components/svelte/EditorShelf.component.test.ts`
+- `src/components/svelte/community/CommunityBrandIcon.component.test.ts`
 - `src/components/svelte/controls/EntityDirectionsChip.component.test.ts`
 - `src/components/svelte/controls/EntityPanelHeader.component.test.ts`
 - `src/components/svelte/map-chrome/MapChromeActionChip.component.test.ts`
 - `src/components/svelte/map-chrome/MapChromeGhostButton.component.test.ts`
 - `src/components/svelte/map-chrome/MapChromeToggleButton.component.test.ts`
+- `src/components/svelte/modal/ModalScrollbars.component.test.ts`
 - `src/components/svelte/status-bar/StatusBarLinkGroups.component.test.ts`
 - `src/test/map-chrome-layout.component.test.ts`
 
@@ -128,7 +134,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `integration/services/proposals.integration.test.ts`
 
 
-## E2E blocking (Playwright) — 26 files
+## E2E blocking (Playwright) — 27 files
 
 `bun run e2e` — smoke, browse, admin.
 
@@ -140,7 +146,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/smoke/term-classes.spec.ts`
 
 
-### Browse (9)
+### Browse (10)
 
 - `e2e/browse/building-filters.spec.ts`
 - `e2e/browse/campus-browse-chips.spec.ts`
@@ -148,6 +154,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/browse/entity-seo.spec.ts`
 - `e2e/browse/final-exams.spec.ts`
 - `e2e/browse/map-tools.spec.ts`
+- `e2e/browse/modal-scrollbars.spec.ts`
 - `e2e/browse/search-collapse.spec.ts`
 - `e2e/browse/search-flow.spec.ts`
 - `e2e/browse/side-panel.spec.ts`

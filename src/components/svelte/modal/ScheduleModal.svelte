@@ -14,15 +14,17 @@
       <span class="schedule-modal__term">{termLabel}</span>
     {/if}
   </div>
-  {#if roomClassesStore.loading}
-    <p class="schedule-modal__empty">Loading classes…</p>
-  {:else if room && classes.length > 0}
-    <ScheduleRender roomCode={room.code} {classes} />
-  {:else}
-    <p class="schedule-modal__empty">
-      No classes to display for this room{termLabel ? ` in ${termLabel}` : ""}.
-    </p>
-  {/if}
+  <div class="schedule-modal__body map-chrome-scroll">
+    {#if roomClassesStore.loading}
+      <p class="schedule-modal__empty">Loading classes…</p>
+    {:else if room && classes.length > 0}
+      <ScheduleRender roomCode={room.code} {classes} />
+    {:else}
+      <p class="schedule-modal__empty">
+        No classes to display for this room{termLabel ? ` in ${termLabel}` : ""}.
+      </p>
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -31,6 +33,8 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.75rem;
+    max-height: 100%;
+    min-height: 0;
     background: var(--map-chrome-surface, hsl(5 20% 97%));
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
     border-radius: var(--map-chrome-radius, 1rem);
@@ -57,6 +61,13 @@
     font-size: 0.8125rem;
     font-weight: 600;
     color: hsl(5, 53%, 32%);
+  }
+
+  .schedule-modal__body {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .schedule-modal__empty {

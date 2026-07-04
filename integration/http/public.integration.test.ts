@@ -35,6 +35,22 @@ describeIntegration("HTTP redirects", () => {
     expect(Array.isArray(body)).toBe(true);
   });
 
+  test("GET /api/classes caps inflated limits", async () => {
+    const res = await fetch(`${PREVIEW_BASE}/api/classes?limit=1000000`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { rows: unknown[]; total: number };
+    expect(Array.isArray(body.rows)).toBe(true);
+    expect(body.rows.length).toBeLessThanOrEqual(100);
+    expect(typeof body.total).toBe("number");
+  });
+
+  test("GET /api/classes rejects invalid pagination params", async () => {
+    const res = await fetch(`${PREVIEW_BASE}/api/classes?limit=banana`);
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("limit");
+  });
+
   test("POST /api/admin/auth rejects bad password", async () => {
     const form = new FormData();
     form.set("username", "e2e-admin");

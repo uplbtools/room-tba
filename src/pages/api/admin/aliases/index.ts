@@ -1,8 +1,9 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { clampLimitParam, paginationErrorResponse } from "@lib/api/pagination";
 import { db } from "@lib/db";
 import { aliasesTable } from "@drizzle/schema";
-import { eq, ilike, sql } from "drizzle-orm";
+import { ilike, sql } from "drizzle-orm";
 import { normalizeAlias } from "@lib/site";
 
 export const prerender = false;
@@ -20,14 +21,18 @@ export const GET: APIRoute = async ({ cookies, url }) => {
   if (auth instanceof Response) return auth;
 
   const q = url.searchParams.get("q")?.trim() ?? "";
-  const limit = Math.min(Number(url.searchParams.get("limit") ?? "50"), 200);
+  const limit = clampLimitParam(url.searchParams.get("limit"), {
+    defaultValue: 50,
+    max: 200,
+  });
+  if (!limit.ok) return paginationErrorResponse(limit.error);
 
   try {
     const rows = await db
       .select()
       .from(aliasesTable)
       .where(q ? ilike(aliasesTable.alias, `%${q}%`) : sql`true`)
-      .limit(limit);
+      .limit(limit.value);
     return json({ data: rows });
   } catch (err) {
     console.error("Failed to list aliases:", err);
