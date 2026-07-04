@@ -51,11 +51,23 @@
   const appActions = getAppActions();
   const { buildings, loaded } = $derived(appData());
 
-  const building = $derived(
-    loaded
-      ? buildings.find((b) => b.buildingName === queryStore.queryValue)
-      : null,
-  );
+  let pinnedBuildingId = $state<number | null>(null);
+
+  const building = $derived.by(() => {
+    if (!loaded) return null;
+    const byName = buildings.find(
+      (b) => b.buildingName === queryStore.queryValue,
+    );
+    if (byName) return byName;
+    if (queryStore.category === "building" && pinnedBuildingId !== null) {
+      return buildings.find((b) => b.id === pinnedBuildingId) ?? null;
+    }
+    return null;
+  });
+
+  $effect(() => {
+    if (building?.id) pinnedBuildingId = building.id;
+  });
   const buildingShareUrl = $derived(
     building ? getBuildingShareUrl(building.buildingName) : "",
   );
