@@ -1,0 +1,53 @@
+---
+description: Louis Rossmann anti-AI-slop prose rules (realrossmanngroup/no_ai_slop_writing_rules). Apply when writing READMEs, docs, PR bodies, comments, blog/MDX — not when writing code.
+alwaysApply: true
+---
+
+# No AI slop (Louis Rossmann rules)
+
+Source: https://github.com/realrossmanngroup/no_ai_slop_writing_rules
+
+**Scope:** prose only (README, docs, MDX, PR descriptions, issue text, comments). Code, configs, and commit subjects are exempt unless they contain marketing copy.
+
+## Voice
+
+Researcher who opened the device and read the filing. Contempt through precision, not adjectives. Every claim needs a testable detail: amount, date, part number, named source.
+
+## 24 rules (non-negotiable for prose)
+
+1. **No em dashes.** Use period, semicolon, comma, or restructure.
+2. **No unsourced statistics.** Real number + attribution, or cut it.
+3. **No parenthetical clarifications in headings.**
+4. **No intensifiers.** Banned: significantly, dramatically, extremely, incredibly, truly, absolutely, literally, remarkably, exceptionally.
+5. **No hollow statements.** Every claim ends on a concrete, verifiable detail or gets deleted.
+6. **No repeated talking points.** Say it once.
+7. **Vary structure.** Three identical section shapes = machine output.
+8. **No narrating references.** No "as discussed above" / "as we will see."
+9. **No performative urgency** without a concrete deadline or penalty in the same sentence.
+10. **No scare quotes** on normal words.
+11. **No filler phrases.** Banned: "In today's world", "It's important to note", "When it comes to", "At the end of the day", "In the realm of", "It goes without saying", "This is where X comes in", "Look no further", "Our team of experts."
+12. **Never start with "Whether you're."**
+13. **Write like a researcher, not a copywriter.** If a sentence works on any generic site unchanged, delete or anchor it to a fact.
+14. **No synthetic enthusiasm.** No exclamation-mark cheerleading.
+15. **No weasel words.** "May potentially", "helps ensure", "can help to" — commit or cut.
+16. **No dramatic headings.** Name what the section contains, not a tease ("Economic impact of shortened lifespans" not "The Hidden Cost of…").
+17. **No fabricated case studies or scenarios.**
+18. **No fabricated dates or milestones.**
+19. **No fabricated attributions.** No "Senator X argued…" without a real source.
+20. **No AI transitions.** Banned: Furthermore, Moreover, Notwithstanding, That being said, At its core, In essence, It is worth noting that, In the landscape of, To put it simply.
+21. **No AI verbs.** Banned: delve, leverage, utilize, facilitate, foster, bolster, underscore, unveil, navigate (metaphorical), streamline, endeavour, ascertain, elucidate. Use: explore, use, help, strengthen, highlight, reveal, manage, simplify, try, find out, explain.
+22. **No academic AI tells.** Banned: shed light on, pave the way for, a myriad of, a plethora of, paramount, pertaining to, prior to/subsequent to, in light of, with respect to, in terms of, the fact that.
+23. **Quote sources accurately.** Long quotes (>~15 words) as indented blocks with attribution.
+24. **No research-process narration.** Don't write "could not be located" or list what you failed to find. Omit unsupported facts silently.
+
+## Self-check before returning prose
+
+- Scan for em dashes and banned words above.
+- Every number real? Every sentence ends on a detail?
+- Headings descriptive, not dramatic?
+- Read aloud: would you say this to a colleague?
+
+## Conflicts
+
+- **Code:** ponytail still wins (minimal diff).
+- **Chat:** caveman can compress replies; these rules apply when drafting publishable prose inside the reply.
