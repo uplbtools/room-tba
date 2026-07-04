@@ -3,6 +3,8 @@
  * Refuses to run unless DATABASE_URL host contains the E2E project ref.
  */
 import bcrypt from "bcrypt";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import pg from "pg";
 import { loadEnv } from "./load-env";
 
@@ -38,6 +40,19 @@ function assertE2eDatabase(url: string) {
   }
 }
 
+/** Idempotent migrations needed before truncate/seed on the shared E2E project. */
+const E2E_MIGRATION_FILES = [
+  "0017_add_withdrawn_proposal_status.sql",
+  "0018_contributions_ledger.sql",
+] as const;
+
+async function applyE2eMigrations(client: pg.Client) {
+  for (const file of E2E_MIGRATION_FILES) {
+    const sql = readFileSync(join(import.meta.dir, "..", "drizzle", file), "utf8");
+    await client.query(sql);
+  }
+}
+
 async function main() {
   const databaseUrl =
     process.env.E2E_DATABASE_URL?.trim() ||
@@ -60,9 +75,12 @@ async function main() {
   try {
     await client.query(`SELECT pg_advisory_lock($1)`, [E2E_RESET_LOCK]);
 
+    await applyE2eMigrations(client);
+
     await client.query(`
       TRUNCATE TABLE
         editor_history,
+        contributions,
         edit_proposals,
         event_route_stops,
         event_routes,

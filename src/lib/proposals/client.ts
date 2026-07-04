@@ -4,6 +4,10 @@ import type {
 } from "@lib/services/proposal-service";
 import { validateSubmitterName } from "@constants/proposals";
 import type { RoomData } from "@lib/types";
+import {
+  isOpenProposalStatus,
+  type PendingProposalRow,
+} from "./pending-proposals";
 
 export type StoredProposalRef = {
   id: number;
@@ -85,6 +89,61 @@ export async function fetchPublicProposalSummary(
   return data.proposal ?? null;
 }
 
+export async function loadOpenPendingProposals(options?: {
+  preferServer?: boolean;
+}): Promise<PendingProposalRow[]> {
+  if (options?.preferServer && typeof fetch !== "undefined") {
+    try {
+      const res = await fetch("/api/proposals/mine", {
+        credentials: "same-origin",
+      });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          proposals?: Array<{
+            id: number;
+            entityType: string;
+            entityId: number;
+            status: string;
+            entityLabel?: string;
+            adminNote?: string | null;
+          }>;
+        };
+        return (data.proposals ?? [])
+          .filter((p) => isOpenProposalStatus(p.status))
+          .map(
+            (p) =>
+              ({
+                id: p.id,
+                entityType: p.entityType,
+                entityId: p.entityId,
+                status: p.status,
+                entityLabel: p.entityLabel ?? `${p.entityType} #${p.id}`,
+                adminNote: p.adminNote ?? null,
+              }) satisfies PendingProposalRow,
+          );
+      }
+    } catch {
+      // fall through to localStorage
+    }
+  }
+
+  const open = readStoredProposals().filter((ref) =>
+    isOpenProposalStatus(ref.status),
+  );
+  const rows = await Promise.all(
+    open.map(async (ref) => {
+      const summary = await fetchPublicProposalSummary(ref.id);
+      return {
+        ...ref,
+        status: summary?.status ?? ref.status,
+        entityLabel: summary?.entityLabel ?? `${ref.entityType} #${ref.id}`,
+        adminNote: summary?.adminNote ?? null,
+      } satisfies PendingProposalRow;
+    }),
+  );
+  return rows.filter((row) => isOpenProposalStatus(row.status));
+}
+
 const FIELD_LABELS: Record<string, string> = {
   buildingName: "Building name",
   directions: "Directions",
@@ -111,8 +170,7 @@ const FIELD_LABELS: Record<string, string> = {
   sourceUrl: "Source URL",
   imageUrl: "Event image",
   recurrence: "Recurrence",
-  routes: "Routes",
-  locations: "Map locations",
+  rooms: "Bundled rooms",
 };
 
 export function summarizeProposalPatch(
@@ -122,6 +180,15 @@ export function summarizeProposalPatch(
   if (entityType && entityType.startsWith("create_")) {
     const label = entityType.replace("create_", "");
     const details = summarizeProposalPatch(patch);
+    if (entityType === "create_building" && Array.isArray(patch.rooms)) {
+      const rooms = patch.rooms as Array<{ roomCode?: string }>;
+      const roomLabels = rooms
+        .map((room) => room.roomCode?.trim())
+        .filter(Boolean);
+      if (roomLabels.length > 0) {
+        details.push(`Rooms: ${roomLabels.join(", ")}`);
+      }
+    }
     return [`New ${label}`, ...details];
   }
   if (Array.isArray(patch.locations)) {
@@ -134,14 +201,16 @@ export function summarizeProposalPatch(
   ) {
     return [`Map pin: ${patch.lat}, ${patch.lon}`];
   }
-  return Object.entries(patch).map(([key, value]) => {
-    const label = FIELD_LABELS[key] ?? key;
-    const rendered =
-      typeof value === "string" || typeof value === "number"
-        ? String(value)
-        : JSON.stringify(value);
-    return `${label}: ${rendered}`;
-  });
+  return Object.entries(patch)
+    .filter(([key]) => key !== "rooms")
+    .map(([key, value]) => {
+      const label = FIELD_LABELS[key] ?? key;
+      const rendered =
+        typeof value === "string" || typeof value === "number"
+          ? String(value)
+          : JSON.stringify(value);
+      return `${label}: ${rendered}`;
+    });
 }
 
 type PersistEntityChangeInput = {
