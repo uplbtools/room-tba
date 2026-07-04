@@ -26,8 +26,23 @@ export function injectMaptilerKey<T>(style: T): T {
 
 export const CAMPUS_MAP_STYLE_URL = "/liberty-customized.json";
 
+const DEMO_MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json";
+
+function hasUsableMaptilerKey(): boolean {
+  const key = import.meta.env.PUBLIC_MAPTILER_KEY?.trim();
+  return Boolean(key && key.length > 8);
+}
+
 /** Load the campus MapLibre style with the runtime MapTiler key applied. */
 export async function loadCampusMapStyle<T>(): Promise<T> {
+  if (!hasUsableMaptilerKey()) {
+    const res = await fetch(DEMO_MAP_STYLE_URL);
+    if (!res.ok) {
+      throw new Error(`Failed to load fallback map style (${res.status})`);
+    }
+    return (await res.json()) as T;
+  }
+
   const res = await fetch(CAMPUS_MAP_STYLE_URL);
   if (!res.ok) {
     throw new Error(`Failed to load map style (${res.status})`);
