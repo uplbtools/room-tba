@@ -1,4 +1,4 @@
-# Lighthouse audit — top 10 Vercel apps (2026-07-04)
+# Lighthouse audit: top 10 Vercel apps (2026-07-04)
 
 Audit of the ten most recently updated production Vercel projects under `stimmie`, ranked by deployment recency. Raw Lighthouse JSON was captured to `/tmp/lighthouse-audits/` during the agent session.
 
@@ -32,7 +32,7 @@ Audit of the ten most recently updated production Vercel projects under `stimmie
 | smmariquit/math-mock | `<main>` landmark, contrast | `main` |
 | smmariquit/curriculum | `<main>` landmark, footer link underline | `main` |
 
-## Deferred — tracked as GitHub issues
+## Deferred: tracked as GitHub issues
 
 | Area | Issue |
 | --- | --- |
