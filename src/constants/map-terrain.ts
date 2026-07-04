@@ -1,7 +1,4 @@
-import {
-  MAPTILER_KEY_PLACEHOLDER,
-  withMaptilerKey,
-} from "@lib/maptiler-key";
+import { MAPTILER_KEY_PLACEHOLDER, withMaptilerKey } from "@lib/maptiler-key";
 
 export const TERRAIN_SOURCE_ID = "makiling-terrain-dem";
 export const TERRAIN_HILLSHADE_LAYER_ID = "makiling-terrain-hillshade";
