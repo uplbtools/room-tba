@@ -2,7 +2,11 @@
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
+import {
+  UPLB_TOOLS_URL,
+  DISCORD_URL,
+  MESSENGER_CONTRIBUTE_TARGET,
+} from "@constants/community-links";
 ---
 
 <Layout
@@ -12,16 +16,19 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
   showAppLoadingShell={false}
 >
   <main class="legal-page">
-    <a href="/" class="back-link">Back to Room TBA</a>
+    <a href="/" class="back-link">
+      <span aria-hidden="true">←</span> Back to Room TBA
+    </a>
 
     <header class="hero">
       <p class="eyebrow">Legal</p>
       <h1>Terms of Service</h1>
       <p class="lede">
         Last updated: June 29, 2026. By using Room TBA you agree to these terms.
-        The service is provided by
-        <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
-          >UPLB Tools</a
+        The service is provided by <a
+          href={UPLB_TOOLS_URL}
+          target="_blank"
+          rel="noopener noreferrer">UPLB Tools</a
         > volunteers.
       </p>
     </header>
@@ -123,15 +130,15 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
       <section>
         <h2>Contact</h2>
         <p>
-          Questions? Reach us on
-          <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
-            >Discord</a
-          >
-          or
-          <a href={MESSENGER_CONTRIBUTE_TARGET} target="_blank" rel="noopener noreferrer"
-            >Messenger</a
-          >, or open an issue on
-          <a
+          Questions? Reach us on <a
+            href={DISCORD_URL}
+            target="_blank"
+            rel="noopener noreferrer">Discord</a
+          > or <a
+            href={MESSENGER_CONTRIBUTE_TARGET}
+            target="_blank"
+            rel="noopener noreferrer">Messenger</a
+          >, or open an issue on <a
             href="https://github.com/uplbtools/room-tba"
             target="_blank"
             rel="noopener noreferrer">GitHub</a
@@ -153,10 +160,25 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
 
   .back-link {
     display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsl(5 53% 32% / 0.08);
+    border: 1px solid hsl(5 53% 32% / 0.25);
     text-decoration: none;
     color: hsl(5, 53%, 32%);
     font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .back-link:hover {
+    background: hsl(5 53% 32% / 0.14);
+    border-color: hsl(5 53% 32% / 0.4);
   }
 
   .hero {
