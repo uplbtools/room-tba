@@ -655,7 +655,11 @@
     </section>
 
     {#if currentRoom.value}
-      <EntityLastUpdated updatedAt={currentRoom.value.updatedAt} />
+      <EntityLastUpdated
+        updatedAt={currentRoom.value.updatedAt}
+        entityType="room"
+        entityId={currentRoom.value.id}
+      />
     {/if}
 
     <section

@@ -582,7 +582,11 @@
             <p class="entity-directions__empty">No directions listed.</p>
           {/if}
         </div>
-        <EntityLastUpdated updatedAt={building.updatedAt} />
+        <EntityLastUpdated
+          updatedAt={building.updatedAt}
+          entityType="building"
+          entityId={building.id}
+        />
       </section>
     {/if}
   {:else}

@@ -31,6 +31,7 @@
   } from "@lib/contributor-drafts";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
@@ -579,6 +580,11 @@
     {#if !editing && dorm.description}
       <div class="entity-body entity-body--compact">
         <p class="entity-directions__text">{dorm.description}</p>
+        <EntityLastUpdated
+          updatedAt={dorm.updatedAt}
+          entityType="dorm"
+          entityId={dorm.id}
+        />
       </div>
     {/if}
 

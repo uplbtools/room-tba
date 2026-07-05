@@ -476,8 +476,6 @@ export async function localBuildingSyncStatus(id: number) {
         `,
       [id],
     )) as Results<{ roomsFetched: boolean }>;
-    if (data.rows.length === 0)
-      throw new Error("Can't fetch a missing building row");
     return data.rows[0];
   } catch (e) {
     console.error(e);
@@ -621,8 +619,6 @@ export async function localCollegeSyncStatus(id: number) {
         `,
       [id],
     )) as Results<{ roomsFetched: boolean }>;
-    if (data.rows.length === 0)
-      throw new Error("Can't fetch a missing college row");
     return data.rows[0];
   } catch (e) {
     console.error(e);
@@ -749,8 +745,6 @@ export async function localDivisionSyncStatus(id: number) {
         `,
       [id],
     )) as Results<{ roomsFetched: boolean }>;
-    if (data.rows.length === 0)
-      throw new Error("Can't fetch a missing division row");
     return data.rows[0];
   } catch (e) {
     console.error(e);
