@@ -20,20 +20,23 @@ describe("ScheduleRouteStore", () => {
         const url = String(input);
         if (url.includes("/api/classes")) {
           return new Response(
-            JSON.stringify([
-              {
-                id: 1,
-                courseCode: "E2E 101",
-                section: "AB",
-                type: "LEC",
-                schedule: ["MWF 8-9"],
-                roomCode: "E2E-101",
-                roomId: 1,
-                termId: 1252,
-                directions: null,
-                courseTitle: "E2E Course",
-              },
-            ]),
+            JSON.stringify({
+              rows: [
+                {
+                  id: 1,
+                  courseCode: "E2E 101",
+                  section: "AB",
+                  type: "LEC",
+                  schedule: ["MWF 8-9"],
+                  roomCode: "E2E-101",
+                  roomId: 1,
+                  termId: 1252,
+                  directions: null,
+                  courseTitle: "E2E Course",
+                },
+              ],
+              total: 1,
+            }),
             { status: 200 },
           );
         }

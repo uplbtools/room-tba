@@ -9,6 +9,7 @@ import type { BuildingTypeFilter } from "@constants/building-types";
 import { orderDayStops, type Weekday } from "../schedule-import/day-stops.js";
 import { matchImportedScheduleRows } from "../schedule-import/match-classes.js";
 import { parseScheduleImport } from "../schedule-import/parse-import.js";
+import type { ClassQueryPage } from "../classes-api.js";
 import type {
   ImportedScheduleRow,
   ScheduleMatchResult,
@@ -635,12 +636,26 @@ class ScheduleRouteStore {
   private async fetchClassesForTerm(
     termId: number | null,
   ): Promise<ClassMapValue[]> {
-    const params = new URLSearchParams();
-    if (termId != null) params.set("term_id", String(termId));
-    const query = params.toString();
-    return getJSONFetch<ClassMapValue[]>(
-      query ? `/api/classes?${query}` : "/api/classes",
-    );
+    const pageSize = 100;
+    let offset = 0;
+    const classes: ClassMapValue[] = [];
+
+    while (true) {
+      const params = new URLSearchParams({
+        limit: String(pageSize),
+        offset: String(offset),
+      });
+      if (termId != null) params.set("term_id", String(termId));
+
+      const page = await getJSONFetch<ClassQueryPage>(
+        `/api/classes?${params.toString()}`,
+      );
+      classes.push(...page.rows);
+      if (classes.length >= page.total || page.rows.length === 0) {
+        return classes;
+      }
+      offset += page.rows.length;
+    }
   }
 
   rematch = async () => {
