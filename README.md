@@ -172,7 +172,7 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for how to help:
 
 - **Report wrong data** or **campus QA:** no clone, no PR
 - **Write code:** branch off `staging`, PR to `staging` ([developer guide](docs/developer-guide.md))
-- **Maintainers / agents:** [AGENTS.md](AGENTS.md)
+- **Maintainers / agents:** [AGENTS.md](AGENTS.md) · [agent tooling](docs/agent-tooling.md) (`bun run install:agent-tooling` + `install:agent-plugins` once per machine)
 
 [Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) · **Data:** label `data` · **QA:** label `qa`
 
