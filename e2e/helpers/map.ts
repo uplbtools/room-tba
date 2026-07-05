@@ -28,6 +28,24 @@ async function revealMapForPinDrag(page: Page) {
   }
 }
 
+async function isMobileViewport(page: Page) {
+  return page.evaluate(() => window.matchMedia("(max-width: 48rem)").matches);
+}
+
+async function enableMapEditViaEditorShelf(page: Page) {
+  const editorTools = page.getByRole("button", { name: /open editor tools/i });
+  await editorTools.click({ timeout: 10_000 });
+  await page.getByRole("button", { name: /turn on map edit/i }).click({
+    timeout: 10_000,
+  });
+  const backToMap = page
+    .locator("#editor-screen")
+    .getByRole("button", { name: /^map$/i });
+  if (await backToMap.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await backToMap.click();
+  }
+}
+
 async function openEntityMapEditControls(page: Page, entity: MapEditEntity) {
   const enableInPanel = page.getByRole("button", {
     name: /^Enable map edit$/i,
@@ -47,31 +65,7 @@ async function openEntityMapEditControls(page: Page, entity: MapEditEntity) {
   return enableInPanel;
 }
 
-/** Enable map edit from the entity panel or editor shelf. */
-export async function enableMapEdit(
-  page: Page,
-  entity: MapEditEntity = "building",
-) {
-  await revealMapForPinDrag(page);
-
-  const enableInPanel = await openEntityMapEditControls(page, entity).catch(
-    () => null,
-  );
-  if (enableInPanel) {
-    await enableInPanel.click();
-  } else {
-    const turnOn = page.getByRole("button", { name: /turn on map edit/i });
-    if (await turnOn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await turnOn.click();
-    } else {
-      const editorTools = page.getByRole("button", {
-        name: /open editor tools/i,
-      });
-      await editorTools.click({ timeout: 10_000 });
-      await turnOn.click({ timeout: 10_000 });
-    }
-  }
-
+async function assertMapEditEnabled(page: Page) {
   const editingBanner = page.getByText("Editing map");
   const turnOffMapEdit = page.getByRole("button", {
     name: /turn off map edit/i,
@@ -79,6 +73,27 @@ export async function enableMapEdit(
   await expect(editingBanner.or(turnOffMapEdit)).toBeVisible({
     timeout: 10_000,
   });
+}
+
+/** Enable map edit from the entity panel or editor shelf. */
+export async function enableMapEdit(
+  page: Page,
+  entity: MapEditEntity = "building",
+) {
+  if (await isMobileViewport(page)) {
+    await enableMapEditViaEditorShelf(page);
+  } else {
+    const enableInPanel = await openEntityMapEditControls(page, entity).catch(
+      () => null,
+    );
+    if (enableInPanel) {
+      await enableInPanel.click();
+    } else {
+      await enableMapEditViaEditorShelf(page);
+    }
+  }
+
+  await assertMapEditEnabled(page);
 }
 
 /** Wait until an entity pin is on the map (bootstrap + sync). */
