@@ -38,6 +38,10 @@ async function enableMapEditViaEditorShelf(page: Page) {
   await page.getByRole("button", { name: /turn on map edit/i }).click({
     timeout: 10_000,
   });
+  await expect(
+    page.getByRole("button", { name: /turn off map edit/i }),
+  ).toBeVisible({ timeout: 10_000 });
+
   const backToMap = page
     .locator("#editor-screen")
     .getByRole("button", { name: /^map$/i });
@@ -66,6 +70,14 @@ async function openEntityMapEditControls(page: Page, entity: MapEditEntity) {
 }
 
 async function assertMapEditEnabled(page: Page) {
+  if (await isMobileViewport(page)) {
+    // Mobile uses the compact edit dock (undo/redo), not the desktop "Editing map" banner.
+    await expect(
+      page.getByRole("button", { name: /undo last pin move/i }),
+    ).toBeVisible({ timeout: 15_000 });
+    return;
+  }
+
   const editingBanner = page.getByText("Editing map");
   const turnOffMapEdit = page.getByRole("button", {
     name: /turn off map edit/i,

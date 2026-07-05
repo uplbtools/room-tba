@@ -2,7 +2,11 @@ import { test } from "@playwright/test";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 import { waitForAppBoot } from "../helpers/app";
 import { loginAsAdmin, logout } from "../helpers/auth";
-import { enableMapEdit, expectPinDragSave, waitForEntityPin } from "../helpers/map";
+import {
+  enableMapEdit,
+  expectPinDragSave,
+  waitForEntityPin,
+} from "../helpers/map";
 import { openBuilding } from "../helpers/search";
 
 test.describe("undo redo", () => {
