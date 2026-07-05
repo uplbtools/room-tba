@@ -73,6 +73,13 @@ export async function enableMapEdit(
   await expect(page.getByText("Editing map")).toBeVisible({ timeout: 10_000 });
 }
 
+/** Wait until an entity pin is on the map (bootstrap + sync). */
+export async function waitForEntityPin(page: Page, entityLabel: string) {
+  await expect(page.locator(`[aria-label="${entityLabel}"]`)).toBeAttached({
+    timeout: 60_000,
+  });
+}
+
 async function dragMarkerLocator(page: Page, marker: Locator) {
   await marker.waitFor({ state: "attached", timeout: 20_000 });
   await marker.scrollIntoViewIfNeeded();

@@ -2,7 +2,11 @@ import { test } from "@playwright/test";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 import { waitForAppBoot } from "../helpers/app";
 import { loginAsAdmin, logout } from "../helpers/auth";
-import { enableMapEdit, expectPinDragSave } from "../helpers/map";
+import {
+  enableMapEdit,
+  expectPinDragSave,
+  waitForEntityPin,
+} from "../helpers/map";
 import { openBuilding, openDorm } from "../helpers/search";
 
 test.describe("map edit", () => {
@@ -21,6 +25,7 @@ test.describe("map edit", () => {
 
   test("building pin drag saves coordinates", async ({ page }) => {
     await openBuilding(page);
+    await waitForEntityPin(page, E2E_FIXTURES.buildingName);
     await enableMapEdit(page, "building");
     await expectPinDragSave(
       page,
@@ -31,6 +36,7 @@ test.describe("map edit", () => {
 
   test("dorm pin drag saves coordinates", async ({ page }) => {
     await openDorm(page);
+    await waitForEntityPin(page, E2E_FIXTURES.dormName);
     await enableMapEdit(page, "dorm");
     await expectPinDragSave(page, E2E_FIXTURES.dormName, "/api/admin/dorms/");
   });

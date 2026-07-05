@@ -26,7 +26,19 @@ export function injectMaptilerKey<T>(style: T): T {
 
 export const CAMPUS_MAP_STYLE_URL = "/liberty-customized.json";
 
-const DEMO_MAP_STYLE_URL = "https://demotiles.maplibre.org/style.json";
+/** Minimal raster style for CI/E2E when MapTiler is unavailable (no external style fetch). */
+const E2E_FALLBACK_MAP_STYLE = {
+  version: 8,
+  sources: {
+    osm: {
+      type: "raster",
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors",
+    },
+  },
+  layers: [{ id: "osm", type: "raster", source: "osm" }],
+} as const;
 
 function hasUsableMaptilerKey(): boolean {
   const key = import.meta.env.PUBLIC_MAPTILER_KEY?.trim();
@@ -36,11 +48,7 @@ function hasUsableMaptilerKey(): boolean {
 /** Load the campus MapLibre style with the runtime MapTiler key applied. */
 export async function loadCampusMapStyle<T>(): Promise<T> {
   if (!hasUsableMaptilerKey()) {
-    const res = await fetch(DEMO_MAP_STYLE_URL);
-    if (!res.ok) {
-      throw new Error(`Failed to load fallback map style (${res.status})`);
-    }
-    return (await res.json()) as T;
+    return E2E_FALLBACK_MAP_STYLE as T;
   }
 
   const res = await fetch(CAMPUS_MAP_STYLE_URL);
