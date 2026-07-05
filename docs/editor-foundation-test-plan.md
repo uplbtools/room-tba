@@ -130,3 +130,20 @@ See also `docs/map-ui-mode-matrix.md` for chrome visibility by mode. Verify at *
 - Room updates create an `editor_history` row.
 - History rows include `entity_type`, `entity_id`, `action`, `before_snapshot`, `after_snapshot`, `version_before`, `version_after`, `edited_by`, and `created_at`.
 - Reverts in future PRs should create new history rows rather than mutating old history.
+
+## Version history UI and restore (#202)
+
+- Signed-in publisher opens an entity edit panel (building, room, dorm, college, division, event) and sees a **History** section in the editor chrome; contributors do not see it.
+- Entries list newest first with action, version, editor name, timestamp, and edit summary; pagination loads older entries (capped at 50 per page).
+- Each entry shows readable field-level changes (labels, before → after), never raw JSON.
+- **Restore** requires a short edit summary before confirming; it publishes the selected snapshot as a new write and the panel/map reflect it immediately.
+- After restore, the timeline gains a new `revert` entry with the summary; older rows are unchanged.
+- If another editor changed the entity since the panel loaded, restore returns a conflict (409) toast and does not publish.
+- Deleted entries and event locations/routes restores are excluded in v1 and return a clear error.
+
+## Review queue before/after diff (#227)
+
+- Each pending proposal in the shield-menu queue lists changed fields as before → after against the currently published entity.
+- Create proposals show an em dash baseline (no published entity yet).
+- A stale notice appears when the published entity's version moved past the proposal's `base_version`; approve still surfaces `409` cleanly.
+- Layout holds at 320px: field rows wrap, long values break instead of overflowing.

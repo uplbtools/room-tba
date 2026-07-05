@@ -26,8 +26,9 @@ describeIntegration("editor history revert integration", () => {
 
   test("revert restores the snapshot and records a revert history row", async () => {
     const { updateBuilding } = await import("@lib/services/admin-service");
-    const { getEntityHistory, revertToHistoryEntry } =
-      await import("@lib/services/history-service");
+    const { getEntityHistory, revertToHistoryEntry } = await import(
+      "@lib/services/history-service"
+    );
 
     const original = await client.query<{
       version: number;
@@ -70,8 +71,9 @@ describeIntegration("editor history revert integration", () => {
 
   test("revert with stale expectedVersion throws EditConflictError", async () => {
     const { EditConflictError } = await import("@lib/services/admin-service");
-    const { getEntityHistory, revertToHistoryEntry } =
-      await import("@lib/services/history-service");
+    const { getEntityHistory, revertToHistoryEntry } = await import(
+      "@lib/services/history-service"
+    );
     const [latest] = await getEntityHistory("building", buildingId);
     expect(latest?.after).toBeTruthy();
 
