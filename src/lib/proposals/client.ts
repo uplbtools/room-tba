@@ -89,9 +89,44 @@ export async function fetchPublicProposalSummary(
   return data.proposal ?? null;
 }
 
-export async function loadOpenPendingProposals(): Promise<
-  PendingProposalRow[]
-> {
+export async function loadOpenPendingProposals(options?: {
+  preferServer?: boolean;
+}): Promise<PendingProposalRow[]> {
+  if (options?.preferServer && typeof fetch !== "undefined") {
+    try {
+      const res = await fetch("/api/proposals/mine", {
+        credentials: "same-origin",
+      });
+      if (res.ok) {
+        const data = (await res.json()) as {
+          proposals?: Array<{
+            id: number;
+            entityType: string;
+            entityId: number;
+            status: string;
+            entityLabel?: string;
+            adminNote?: string | null;
+          }>;
+        };
+        return (data.proposals ?? [])
+          .filter((p) => isOpenProposalStatus(p.status))
+          .map(
+            (p) =>
+              ({
+                id: p.id,
+                entityType: p.entityType,
+                entityId: p.entityId,
+                status: p.status,
+                entityLabel: p.entityLabel ?? `${p.entityType} #${p.id}`,
+                adminNote: p.adminNote ?? null,
+              }) satisfies PendingProposalRow,
+          );
+      }
+    } catch {
+      // fall through to localStorage
+    }
+  }
+
   const open = readStoredProposals().filter((ref) =>
     isOpenProposalStatus(ref.status),
   );

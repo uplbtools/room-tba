@@ -25,7 +25,7 @@ This **upserts** by natural key (`term_id` + course + section + type):
 - New sections are inserted
 - Changed schedules/rooms/titles are updated
 - Unchanged rows are left alone
-- Stale sections **remain** unless you pass `--replace-term`
+- Stale sections **remain** unless you pass `, replace-term`
 
 The script prints a categorized report (room matches, TBA/missing, unmatched facilities, DB diff).
 
@@ -47,7 +47,7 @@ bun run import:amis-classes -- --term-id 1252 --dry-run
 
 ## Verify in the app
 
-1. Import bumps the `classes` sync key — browsers refetch on next online visit (no redeploy).
+1. Import bumps the `classes` sync key: browsers refetch on next online visit (no redeploy).
 2. Open the map, pick the term in the status bar, search a course that changed.
 3. Confirm room and schedule match the latest export.
 
@@ -61,4 +61,4 @@ Unmatched AMIS facility strings can be mapped via `aliases` rows with `target_ty
 
 ## TBA sections
 
-Rows with no `facility_id` are **not imported** (no map pin). They appear in the import report under “Missing facility”. Product policy: list-only / no pin until a room is known — see issue #300.
+Rows with no `facility_id` are **not imported** (no map pin). They appear in the import report under “Missing facility”. Product policy: list-only / no pin until a room is known: see issue #300.

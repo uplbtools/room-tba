@@ -17,10 +17,10 @@
   setAppActions({
     replaceEvent: () => {},
     removeEvent: () => {},
-    replaceBuilding: () => {},
-    replaceDorm: () => {},
-    replaceCollege: () => {},
-    replaceDivision: () => {},
+    upsertBuilding: () => {},
+    upsertDorm: () => {},
+    upsertCollege: () => {},
+    upsertDivision: () => {},
   });
 </script>
 

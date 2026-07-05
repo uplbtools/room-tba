@@ -1,8 +1,8 @@
 # E2E → Discord integration handoff
 
-**Audience:** agent wiring [uplbtools/discord-bot](https://github.com/uplbtools/discord-bot) to Room TBA Playwright CI.  
-**App repo:** `uplbtools/room-tba`  
-**Branch status (2026-07-03):** workflow gating + `e2e-reusable.yml` live on **`feat/testing-pyramid`** (13 commits ahead of origin); **not merged to `staging`/`main` yet**. `ci-notify-discord.yml` **does not exist** in room-tba — treat as planned/discord-bot-side draft only.
+**Audience:** agent wiring [uplbtools/discord-bot](https://github.com/uplbtools/discord-bot) to Room TBA Playwright CI. 
+**App repo:** `uplbtools/room-tba` 
+**Branch status (2026-07-03):** workflow gating + `e2e-reusable.yml` live on **`feat/testing-pyramid`** (13 commits ahead of origin); **not merged to `staging`/`main` yet**. `ci-notify-discord.yml` **does not exist** in room-tba: treat as planned/discord-bot-side draft only.
 
 ---
 
@@ -15,11 +15,11 @@
 | `.github/workflows/e2e.yml` | **`E2E`** | `e2e` | `e2e` (in `E2E (reusable)`) | PR `opened` (non-draft), `ready_for_review`, `reopened`, label **`run/e2e`** | **Yes** | **Yes** (same job) | ~28–35 min |
 | `.github/workflows/e2e-advisory.yml` | **`E2E advisory`** | `e2e-advisory` | `e2e` | Same PR gates as `E2E` | No (`continue-on-error: true`) | No | ~15–20 min |
 | `.github/workflows/e2e-staging.yml` | **`E2E staging`** | `e2e` | `e2e` | Push to **`staging`**; cron **`0 18 * * *`** (02:00 Asia/Manila) | **Yes** | **Yes** | ~28–35 min |
-| `.github/workflows/staging-smoke.yml` | **`Staging smoke`** | `staging-smoke` | — | Push to **`staging`** only | No | No | ~2–4 min |
+| `.github/workflows/staging-smoke.yml` | **`Staging smoke`** | `staging-smoke` |: | Push to **`staging`** only | No | No | ~2–4 min |
 
 **Draft PR pushes:** E2E workflows **do not run**. Only `CI` verify + migrations run (~6–9 min).
 
-**Related (no Playwright):** `.github/workflows/bundle-advisory.yml` (`Bundle advisory`) — gated like E2E, non-blocking, prod build + JS budget (~5 min).
+**Related (no Playwright):** `.github/workflows/bundle-advisory.yml` (`Bundle advisory`): gated like E2E, non-blocking, prod build + JS budget (~5 min).
 
 ### Reusable job step order (`.github/workflows/e2e-reusable.yml`, job `e2e`)
 
@@ -42,7 +42,7 @@ on:
     types: [completed]
 ```
 
-Job-level filter inside reusable callers is not visible to `workflow_run` — use **workflow `name:`** only.
+Job-level filter inside reusable callers is not visible to `workflow_run`: use **workflow `name:`** only.
 
 ---
 
@@ -57,9 +57,9 @@ Job-level filter inside reusable callers is not visible to `workflow_run` — us
 - **Timeout:** 90s
 - **Retries:** 1 in CI
 - **Trace:** `on-first-retry`; **screenshot:** `only-on-failure`
-- **Count:** **112 tests** (local `--list`, Jul 2026)
+- **Count:** **112 tests** (local `, list`, Jul 2026)
 
-#### Smoke — `e2e/smoke/` (blocking)
+#### Smoke: `e2e/smoke/` (blocking)
 
 | File | Purpose |
 |------|---------|
@@ -68,7 +68,7 @@ Job-level filter inside reusable callers is not visible to `workflow_run` — us
 | `redirects.spec.ts` | `/admin` → in-app login |
 | `term-classes.spec.ts` | Term selector + class browse |
 
-#### Browse — `e2e/browse/` (blocking)
+#### Browse: `e2e/browse/` (blocking)
 
 | File | Purpose |
 |------|---------|
@@ -82,7 +82,7 @@ Job-level filter inside reusable callers is not visible to `workflow_run` — us
 | `search-flow.spec.ts` | Search → side panel |
 | `side-panel.spec.ts` | Panel layout desktop + mobile overflow |
 
-#### Admin — `e2e/admin/` (blocking)
+#### Admin: `e2e/admin/` (blocking)
 
 | File | Purpose |
 |------|---------|
@@ -102,8 +102,8 @@ Job-level filter inside reusable callers is not visible to `workflow_run` — us
 
 **Intentionally skipped in blocking suite:**
 
-- `proposals.spec.ts` — admin review queue (`test.skip(true, …)`)
-- `map-edit.spec.ts` / `undo-redo.spec.ts` — skip when pin drag doesn’t PATCH (flake guard)
+- `proposals.spec.ts`: admin review queue (`test.skip(true, …)`)
+- `map-edit.spec.ts` / `undo-redo.spec.ts`: skip when pin drag doesn’t PATCH (flake guard)
 - Some `@mobile` tests skip on desktop project
 
 ### Advisory (`playwright.advisory.config.ts`)
@@ -142,7 +142,7 @@ Job-level filter inside reusable callers is not visible to `workflow_run` — us
 
 ### New specs on `feat/testing-pyramid` (not on staging)
 
-No brand-new spec **files** beyond the pyramid layout above; work is mostly **helpers** (`e2e/helpers/*.ts`), seed (`scripts/e2e-reset-db.ts`), and CI wiring. Uncommitted WIP may exist locally — re-run `bun run e2e -- --list` before shipping Discord copy that cites test counts.
+No brand-new spec **files** beyond the pyramid layout above; work is mostly **helpers** (`e2e/helpers/*.ts`), seed (`scripts/e2e-reset-db.ts`), and CI wiring. Uncommitted WIP may exist locally: re-run `bun run e2e,, list` before shipping Discord copy that cites test counts.
 
 ---
 
@@ -152,11 +152,11 @@ No brand-new spec **files** beyond the pyramid layout above; work is mostly **he
 
 | Item | Detail |
 |------|--------|
-| **Artifact name** | `playwright-report-{suite}-{github.run_id}` — e.g. `playwright-report-blocking-123456789` |
+| **Artifact name** | `playwright-report-{suite}-{github.run_id}`: e.g. `playwright-report-blocking-123456789` |
 | **Path uploaded** | `playwright-report/` (Playwright HTML report only) |
-| **Traces** | Written under `test-results/` on retry — **not uploaded** (gitignored) |
+| **Traces** | Written under `test-results/` on retry: **not uploaded** (gitignored) |
 | **Screenshots** | Embedded in HTML report when step fails (`only-on-failure`) |
-| **Staging smoke** | **No artifact upload today** — failure is log-only |
+| **Staging smoke** | **No artifact upload today**: failure is log-only |
 
 ### Maintainer links
 
@@ -171,7 +171,7 @@ No brand-new spec **files** beyond the pyramid layout above; work is mostly **he
 | 1 | Reset E2E database | Supabase/env/seed script |
 | 2 | Build for E2E preview | `DATABASE_URL`, Astro build |
 | 3 | Start preview server | Health check timeout (120s) |
-| 4 | **Integration tests** | `bun test integration` exit 1 — **Playwright never runs** |
+| 4 | **Integration tests** | `bun test integration` exit 1: **Playwright never runs** |
 | 5 | Playwright blocking tests | Playwright exit 1 |
 
 Advisory job: Playwright step only (after reset + build); integration skipped.
@@ -184,18 +184,18 @@ Advisory job: Playwright step only (after reset + build); integration skipped.
 
 | Event | Channel | Blocking? | Notify? | Example message |
 |-------|---------|-----------|---------|-----------------|
-| **E2E** (`E2E`) failed on PR | `#development` (`1522346697282425082`) | Yes | **Yes** | `❌ Room TBA E2E failed on PR #447 (feat/testing-pyramid) — integration step` / `Playwright step` + link to Actions run |
-| **E2E advisory** failed on PR | `#development` | No | **Yes, one line** | `⚠️ E2E advisory failed (non-blocking) on PR #447 — {run_url}` |
+| **E2E** (`E2E`) failed on PR | `#development` (`1522346697282425082`) | Yes | **Yes** | `❌ Room TBA E2E failed on PR #447 (feat/testing-pyramid): integration step` / `Playwright step` + link to Actions run |
+| **E2E advisory** failed on PR | `#development` | No | **Yes, one line** | `⚠️ E2E advisory failed (non-blocking) on PR #447: {run_url}` |
 | **E2E staging** failed on **push** to staging | `#development` | Yes | **Yes** | `❌ Staging E2E failed after merge to staging @ {short_sha}` |
-| **E2E staging** failed **nightly** cron | `#development` | Yes | **Digest-style** | `🌙 Nightly staging E2E failed on staging @ {short_sha}` — suppress if same `{sha}` already notified in last 24h |
-| **Staging smoke** failed | `#deploys` | No | **Yes** | `⚠️ Staging smoke failed (live URL) — staging.room-tba.uplbtools.me` |
+| **E2E staging** failed **nightly** cron | `#development` | Yes | **Digest-style** | `🌙 Nightly staging E2E failed on staging @ {short_sha}`: suppress if same `{sha}` already notified in last 24h |
+| **Staging smoke** failed | `#deploys` | No | **Yes** | `⚠️ Staging smoke failed (live URL): staging.room-tba.uplbtools.me` |
 | **Bundle advisory** failed | `#development` | No | Optional / muted | Only if you want bundle noise; recommend **silent** or weekly digest |
-| E2E passed after prior failure on same PR | `#development` | — | **Optional** | `✅ E2E recovered on PR #447` — only if bot tracks last conclusion per PR |
-| Draft PR | — | — | **Silent** | Workflows don’t run |
+| E2E passed after prior failure on same PR | `#development` |: | **Optional** | `✅ E2E recovered on PR #447`: only if bot tracks last conclusion per PR |
+| Draft PR |: |: | **Silent** | Workflows don’t run |
 
 **Digest vs per-run:** per-run for **blocking** PR + staging push failures; **dedupe nightly** staging E2E against recent push failure (same SHA); advisory **per-run but single-line** (no `@everyone`).
 
-**#contributors:** no E2E failure posts — keep for human-facing contribution wins (`release.published`, etc.).
+**#contributors:** no E2E failure posts: keep for human-facing contribution wins (`release.published`, etc.).
 
 ---
 
@@ -206,13 +206,13 @@ Advisory job: Playwright step only (after reset + build); integration skipped.
 | Piece | Role |
 |-------|------|
 | **A. `workflow_run` → POST `/notifications`** | Primary: one workflow `discord-notify-e2e.yml` listens for completed Playwright workflows; maps conclusion → event type; stable idempotency |
-| **B. Optional failure step in `e2e-reusable.yml`** | Enrich payload with failed spec list via JSON reporter (see below) — only when `failure()` |
+| **B. Optional failure step in `e2e-reusable.yml`** | Enrich payload with failed spec list via JSON reporter (see below): only when `failure()` |
 
-**Do not use** raw Discord webhook (draft `ci-notify-discord.yml`) — bypasses bot routing, idempotency, and channel policy.
+**Do not use** raw Discord webhook (draft `ci-notify-discord.yml`): bypasses bot routing, idempotency, and channel policy.
 
-**Do not rely on D alone** (`/ci` only) — E2E is gated; maintainers won’t run `/ci` for nightly/staging failures.
+**Do not rely on D alone** (`/ci` only): E2E is gated; maintainers won’t run `/ci` for nightly/staging failures.
 
-**Room TBA `NotificationAdapter`:** use for **in-app producers** (proposals, future deploy hooks). **CI should POST directly from GitHub Actions** — Astro app isn’t running during test jobs.
+**Room TBA `NotificationAdapter`:** use for **in-app producers** (proposals, future deploy hooks). **CI should POST directly from GitHub Actions**: Astro app isn’t running during test jobs.
 
 ### New event types (extend `src/lib/notifications/types.ts` + bot)
 
@@ -260,9 +260,9 @@ Uses existing envelope (`schemaVersion: 1`, `source: "github"`):
 
 **Field notes:**
 
-- `failedStep` — parse from GitHub Actions API jobs API, or set in notify step env
-- `failedTests` — requires adding JSON reporter to Playwright CI (see blocker below); omit until then
-- `trigger` — `ready_for_review` \| `run/e2e` \| `push` \| `schedule` \| `opened`
+- `failedStep`: parse from GitHub Actions API jobs API, or set in notify step env
+- `failedTests`: requires adding JSON reporter to Playwright CI (see blocker below); omit until then
+- `trigger`: `ready_for_review` \| `run/e2e` \| `push` \| `schedule` \| `opened`
 - Staging/nightly: `prNumber` null, `branch` = `staging`
 
 ### GitHub secrets (room-tba)
@@ -325,26 +325,26 @@ Refine `if:` to skip cancelled runs and optionally skip advisory unless `conclus
 
 | Surface | Recommendation |
 |---------|----------------|
-| **`/e2e-last-failure`** | **Yes**, maintainer-only — calls GitHub API for latest `E2E` / `E2E staging` conclusion + link |
-| **`/e2e-status [pr]`** | **Yes**, public read-only — latest workflow runs for PR or `staging` branch |
-| **Cron weekly flake digest** | **Later** — parse advisory history; not blocking v1 |
+| **`/e2e-last-failure`** | **Yes**, maintainer-only: calls GitHub API for latest `E2E` / `E2E staging` conclusion + link |
+| **`/e2e-status [pr]`** | **Yes**, public read-only: latest workflow runs for PR or `staging` branch |
+| **Cron weekly flake digest** | **Later**: parse advisory history; not blocking v1 |
 | **Extend `/ci`** | Show E2E + integration job status separately from verify (integration is inside `E2E` job now) |
 
 ---
 
 ## 7. Secrets & env checklist
 
-### GitHub Actions — `uplbtools/room-tba`
+### GitHub Actions: `uplbtools/room-tba`
 
 | Name | Playwright | Discord notify |
 |------|------------|----------------|
-| `E2E_DATABASE_URL` | ✅ | — |
-| `E2E_ADMIN_PASSWORD` | ✅ | — |
-| `E2E_ADMIN_SESSION_SECRET` | ✅ | — |
-| `NOTIFICATION_GATEWAY_URL` | — | ✅ new |
-| `NOTIFICATION_INGRESS_SECRET` | — | ✅ new |
+| `E2E_DATABASE_URL` | ✅ |: |
+| `E2E_ADMIN_PASSWORD` | ✅ |: |
+| `E2E_ADMIN_SESSION_SECRET` | ✅ |: |
+| `NOTIFICATION_GATEWAY_URL` |: | ✅ new |
+| `NOTIFICATION_INGRESS_SECRET` |: | ✅ new |
 
-### Heroku — `uplbtools-discord-bot`
+### Heroku: `uplbtools-discord-bot`
 
 | Item | Action |
 |------|--------|
@@ -352,21 +352,21 @@ Refine `if:` to skip cancelled runs and optionally skip advisory unless `conclus
 | Channel map | Route `ci.e2e.*` → `#development` (`1522346697282425082`); `ci.staging-smoke.failed` → `#deploys` |
 | Event handlers | Add translators for new `type` values; embed template with workflow link + PR link |
 
-### Vercel — room-tba
+### Vercel: room-tba
 
 | Item | Action |
 |------|--------|
-| Staging smoke | **No Vercel secret needed** — smoke hits public staging URL |
+| Staging smoke | **No Vercel secret needed**: smoke hits public staging URL |
 | Optional | `NOTIFICATION_*` on Vercel only if app emits `deploy.succeeded/failed` at runtime (separate from E2E CI) |
 
-### Room TBA runtime (proposals — already wired)
+### Room TBA runtime (proposals: already wired)
 
 `.env` / Vercel optional:
 
 - `NOTIFICATION_GATEWAY_URL`
 - `NOTIFICATION_INGRESS_SECRET`
 
-Code: `src/lib/notifications/` — `getNotificationAdapter()` → `HttpNotificationAdapter`.
+Code: `src/lib/notifications/`: `getNotificationAdapter()` → `HttpNotificationAdapter`.
 
 ---
 
@@ -374,7 +374,7 @@ Code: `src/lib/notifications/` — `getNotificationAdapter()` → `HttpNotificat
 
 1. **Add secrets** `NOTIFICATION_GATEWAY_URL` + `NOTIFICATION_INGRESS_SECRET` to room-tba repo.
 2. **Deploy bot** handlers for `ci.e2e.failed` (embed + channel routing).
-3. **Merge** `discord-notify-e2e.yml` (or enable on feature branch with `workflow_run` — note: listener must be on **default branch** to receive events; for testing, use temporary failure step in `e2e-reusable.yml` on a branch).
+3. **Merge** `discord-notify-e2e.yml` (or enable on feature branch with `workflow_run`: note: listener must be on **default branch** to receive events; for testing, use temporary failure step in `e2e-reusable.yml` on a branch).
 4. **Force failure:** add `test.fail('discord wiring smoke')` in `e2e/smoke/boot.spec.ts` on a test PR → mark ready → expect `#development` message within **~35 min** (full job) + **<30 s** after job completes.
 5. **Verify payload:** PR number, workflow URL, artifact name present.
 6. **Fix test** → re-run with `run/e2e` label → optional recovery message if implemented.
@@ -387,18 +387,18 @@ Code: `src/lib/notifications/` — `getNotificationAdapter()` → `HttpNotificat
 
 | # | Blocker | Owner |
 |---|---------|-------|
-| 1 | **`failedTests` list** — CI only uploads HTML report; add `--reporter=json,json=playwright-report/results.json` and parse in notify step, or upload `test-results/` artifact | room-tba |
-| 2 | **New `NotificationEventType` values** — bot must accept `ci.e2e.*` or return 400 | discord-bot |
-| 3 | **`workflow_run` on default branch** — notify workflow must live on `staging`/`main` to fire for PR workflows | room-tba |
-| 4 | **Embed size** — failed test list may exceed Discord 4096 embed field; cap at 10 tests + “+N more” + link to Actions | discord-bot |
-| 5 | **Rate limits** — advisory + blocking + bundle on same `ready_for_review` = 3 posts; consider 60s debounce per PR | discord-bot |
-| 6 | **Integration failure message** — distinguish “integration failed (N tests)” vs “Playwright failed (N tests)” via `failedStep` from GitHub API | notify workflow |
-| 7 | **Merge gating** — E2E workflow changes on `feat/testing-pyramid` (#447) must land before production CI matches this doc | room-tba |
-| 8 | **`ci-notify-discord.yml`** — confirm discard in favor of bot `/notifications` | both |
+| 1 | **`failedTests` list**: CI only uploads HTML report; add `, reporter=json,json=playwright-report/results.json` and parse in notify step, or upload `test-results/` artifact | room-tba |
+| 2 | **New `NotificationEventType` values**: bot must accept `ci.e2e.*` or return 400 | discord-bot |
+| 3 | **`workflow_run` on default branch**: notify workflow must live on `staging`/`main` to fire for PR workflows | room-tba |
+| 4 | **Embed size**: failed test list may exceed Discord 4096 embed field; cap at 10 tests + “+N more” + link to Actions | discord-bot |
+| 5 | **Rate limits**: advisory + blocking + bundle on same `ready_for_review` = 3 posts; consider 60s debounce per PR | discord-bot |
+| 6 | **Integration failure message**: distinguish “integration failed (N tests)” vs “Playwright failed (N tests)” via `failedStep` from GitHub API | notify workflow |
+| 7 | **Merge gating**: E2E workflow changes on `feat/testing-pyramid` (#447) must land before production CI matches this doc | room-tba |
+| 8 | **`ci-notify-discord.yml`**: confirm discard in favor of bot `/notifications` | both |
 
 ---
 
-## Quick reference — npm scripts
+## Quick reference: npm scripts
 
 | Script | Command |
 |--------|---------|
@@ -408,4 +408,4 @@ Code: `src/lib/notifications/` — `getNotificationAdapter()` → `HttpNotificat
 | Integration (local) | `bun run test:integration:live` |
 | Reset DB | `bun run e2e:reset-db` |
 
-**Local note:** `bun run e2e` does **not** run integration — only Playwright. Integration is separate locally; CI runs both in blocking job.
+**Local note:** `bun run e2e` does **not** run integration: only Playwright. Integration is separate locally; CI runs both in blocking job.

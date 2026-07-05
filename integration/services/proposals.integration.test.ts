@@ -10,6 +10,16 @@ import {
 
 const describeIntegration = skipWithoutE2eDb() ? describe.skip : describe;
 
+function readEntityVersion(
+  rows: Array<{ version: number | string | null | undefined }>,
+): number {
+  const version = Number(rows[0]?.version ?? 1);
+  if (!Number.isInteger(version) || version < 1) {
+    throw new Error(`Expected entity version >= 1, got ${rows[0]?.version}`);
+  }
+  return version;
+}
+
 describeIntegration("admin PATCH HTTP", () => {
   beforeAll(async () => {
     await requirePreview(PREVIEW_BASE);
@@ -39,7 +49,7 @@ describeIntegration("admin PATCH HTTP", () => {
     const { rows } = await client.query<{ version: number }>(
       `SELECT version FROM buildings WHERE id = 1`,
     );
-    const version = rows[0]?.version ?? 1;
+    const version = readEntityVersion(rows);
     await client.end();
 
     const stale = await patchBuilding(
@@ -62,7 +72,7 @@ describeIntegration("room service", () => {
     const { rows } = await client.query<{ version: number }>(
       `SELECT version FROM rooms WHERE id = 1`,
     );
-    const version = rows[0]?.version ?? 1;
+    const version = readEntityVersion(rows);
     await client.end();
 
     const { updateRoom } = await import("@lib/services/admin-service");
@@ -87,7 +97,7 @@ describeIntegration("proposals service", () => {
     const { rows } = await client.query<{ version: number }>(
       `SELECT version FROM rooms WHERE id = 1`,
     );
-    const version = rows[0]?.version ?? 1;
+    const version = readEntityVersion(rows);
     await client.end();
 
     const { submitProposal } = await import("@lib/services/proposal-service");
@@ -115,7 +125,7 @@ describeIntegration("proposals service", () => {
     const { rows } = await client.query<{ version: number }>(
       `SELECT version FROM rooms WHERE id = 1`,
     );
-    const version = rows[0]?.version ?? 1;
+    const version = readEntityVersion(rows);
     await client.end();
 
     const { submitProposal } = await import("@lib/services/proposal-service");

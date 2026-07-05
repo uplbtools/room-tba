@@ -27,7 +27,9 @@
     loading = true;
     error = null;
     try {
-      rows = await loadOpenPendingProposals();
+      rows = await loadOpenPendingProposals({
+        preferServer: adminAuthStore.isLoggedIn,
+      });
     } catch {
       error = "Could not load your pending suggestions.";
       rows = [];

@@ -4,7 +4,7 @@
 
 **Saan sa UPLB ang \___?**
 
-[![Live app](https://img.shields.io/badge/open-room--tba.uplbtools.me-maroon?style=for-the-badge)](https://room-tba.uplbtools.me)
+[![Live app](https://img.shields.io/badge/open-room, tba.uplbtools.me-maroon?style=for-the-badge)](https://room-tba.uplbtools.me)
 [![MIT](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 [![Bun](https://img.shields.io/badge/bun-1.3+-black?style=flat-square&logo=bun)](https://bun.sh)
 [![Astro](https://img.shields.io/badge/Astro-7-BC52EE?style=flat-square&logo=astro)](https://astro.build)
@@ -23,34 +23,34 @@ _Schedules, buildings, jeepney routes, and "where is PSLH 1?" on one campus map.
 
 No account needed to browse. Editors and contributors fix data in the same app (login popup on the map, not a separate admin site).
 
-> **Data note:** Room and class listings are updated each term by volunteers. The active term follows the academic calendar (midyear Jun–Jul, 2nd sem Jan–May, etc.). Schedules show **lecture and lab** sections with assigned rooms — thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS. Wrong schedule? [Open an issue](https://github.com/uplbtools/room-tba/issues/new/choose).
+> **Data note:** Room and class listings are updated each term by volunteers. The active term follows the academic calendar (midyear Jun–Jul, 2nd sem Jan–May, etc.). Schedules show **lecture and lab** sections with assigned rooms: thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS. Wrong schedule? [Open an issue](https://github.com/uplbtools/room-tba/issues/new/choose).
 
 ---
 
 ## What you can do
 
-| Goal                          | How                                                              |
+| Goal | How |
 | ----------------------------- | ---------------------------------------------------------------- |
-| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)                            |
-| Room schedule this sem        | Term filter + timetable                                          |
-| Browse all classes            | Status bar → Browse classes; search by course code               |
-| Final exam time & room        | Search course code → finals panel; room panel during finals week |
-| Building location             | Map, pins, directions, Google Maps                               |
-| Offline / bad signal          | PWA + local cache; tiles if already loaded                       |
-| Campus events                 | Events on map with routes                                        |
-| Jeepney routes                | Route overlays                                                   |
-| 3D view                       | Buildings + Makiling terrain (online)                            |
+| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …) |
+| Room schedule this sem | Term filter + timetable |
+| Browse all classes | Status bar → Browse classes; search by course code |
+| Final exam time & room | Search course code → finals panel; room panel during finals week |
+| Building location | Map, pins, directions, Google Maps |
+| Offline / bad signal | PWA + local cache; tiles if already loaded |
+| Campus events | Events on map with routes |
+| Jeepney routes | Route overlays |
+| 3D view | Buildings + Makiling terrain (online) |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
 
-| Power                            | Where                                                                                                            |
+| Power | Where |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Move building & dorm pins        | Map edit mode (pencil)                                                                                           |
-| Fix room/building/college copy   | Side panel → Edit                                                                                                |
-| Suggest edits without publishing | **Suggest an edit** → admin review queue                                                                         |
-| Upload event posters             | Event editor + R2 image upload (when configured)                                                                 |
-| Undo a pin drag                  | Toolbar undo/redo (session); durable history tracked in [#202](https://github.com/uplbtools/room-tba/issues/202) |
+| Move building & dorm pins | Map edit mode (pencil) |
+| Fix room/building/college copy | Side panel → Edit |
+| Suggest edits without publishing | **Suggest an edit** → admin review queue |
+| Upload event posters | Event editor + R2 image upload (when configured) |
+| Undo a pin drag | Toolbar undo/redo (session); durable history tracked in [#202](https://github.com/uplbtools/room-tba/issues/202) |
 
 Login: **`/?editor=login`** or the shield / status bar in the app. `/admin` URLs redirect back into the map.
 
@@ -124,23 +124,23 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 
 ### Commands worth knowing
 
-| Command                          | Does what                                                                                                          |
+| Command | Does what |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `bun dev`                        | Dev server                                                                                                         |
-| `bun run build`                  | Production build (**needs** `DATABASE_URL`; entity SEO pages render on first request via Vercel ISR, not at build) |
-| `bun test src/lib src/constants` | Unit + store tests (no DB required)                                                                                |
-| `bun run test:components`        | Vitest component/layout tests                                                                                      |
-| `bun run test:integration`       | API + DB integration (E2E DB; see `docs/testing.md`)                                                               |
-| `bun run e2e`                    | Playwright blocking suite (uses `serve:e2e` — node adapter build + preview) |
-| `bun run e2e:advisory`           | Playwright advisory (non-blocking in CI)                                                                           |
-| `bun run lint`                   | Biome format check + ESLint                                                                                        |
-| `bun run format`                 | Biome format write                                                                                                 |
-| `bunx drizzle-kit studio`        | Browse/edit Postgres visually                                                                                      |
-| `bun run seed:aliases`           | Seed building aliases from `public/room_info.json`                                                                 |
-| `bun run import:amis-classes`    | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`)                                                           |
-| `bun run import:final-exams`     | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`)                       |
+| `bun dev` | Dev server |
+| `bun run build` | Production build (**needs** `DATABASE_URL`; entity SEO pages render on first request via Vercel ISR, not at build) |
+| `bun test src/lib src/constants` | Unit + store tests (no DB required) |
+| `bun run test:components` | Vitest component/layout tests |
+| `bun run test:integration` | API + DB integration (E2E DB; see `docs/testing.md`) |
+| `bun run e2e` | Playwright blocking suite (uses `serve:e2e`: node adapter build + preview) |
+| `bun run e2e:advisory` | Playwright advisory (non-blocking in CI) |
+| `bun run lint` | Biome format check + ESLint |
+| `bun run format` | Biome format write |
+| `bunx drizzle-kit studio` | Browse/edit Postgres visually |
+| `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
+| `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`) |
+| `bun run import:final-exams` | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
 
-Legacy **`data/info.db`** SQLite is only for old seed/export scripts (`bun:sqlite`, not runtime). Production uses Supabase Postgres via `DATABASE_URL`. Archived SQLite migrations live in `drizzle-migrations/` — do not edit; active schema is `drizzle/`.
+Legacy **`data/info.db`** SQLite is only for old seed/export scripts (`bun:sqlite`, not runtime). Production uses Supabase Postgres via `DATABASE_URL`. Archived SQLite migrations live in `drizzle-migrations/`: do not edit; active schema is `drizzle/`.
 
 Optional env vars (R2 uploads, Supabase Auth client): see [`.env.example`](.env.example).
 
@@ -161,7 +161,7 @@ flowchart TB
   src --> lib["lib/ stores, services, PGlite sync"]
 ```
 
-Deep editor QA: [`docs/editor-foundation-test-plan.md`](docs/editor-foundation-test-plan.md)  
+Deep editor QA: [`docs/editor-foundation-test-plan.md`](docs/editor-foundation-test-plan.md) 
 PR checklist: [`docs/agentic-qa-process.md`](docs/agentic-qa-process.md)
 
 ---
@@ -194,14 +194,14 @@ Dry run: `bun run release:dry`
 
 **Built with help from:**
 
-| Person                  | Helped with                            |
+| Person | Helped with |
 | ----------------------- | -------------------------------------- |
-| Ken Ramiscal            | UI, offline support, map               |
-| Kalinaw Lukas Aom Bebis | UI, bug fixes, map                     |
-| Niño Anthony Marmeto    | Electrical Engineering building info   |
-| Rosh Almario            | Institute of Chemistry room directions |
-| Eunice Almeyda          | Logo                                   |
-| Mary Gwyneth Telmosa    | UI design                              |
+| Ken Ramiscal | UI, offline support, map |
+| Kalinaw Lukas Aom Bebis | UI, bug fixes, map |
+| Niño Anthony Marmeto | Electrical Engineering building info |
+| Rosh Almario | Institute of Chemistry room directions |
+| Eunice Almeyda | Logo |
+| Mary Gwyneth Telmosa | UI design |
 
 Org: [uplbtools](https://github.com/uplbtools) · Campus tool, not an official UPLB product.
 
