@@ -4,13 +4,13 @@ Thanks for helping UPLB students find rooms. You do **not** need to clone this r
 
 **Start here:** pick the path that fits you.
 
-| Path                                                                                                         | Who               | What to do                              | Open a PR? |
+| Path | Who | What to do | Open a PR? |
 | ------------------------------------------------------------------------------------------------------------ | ----------------- | --------------------------------------- | ---------- |
-| [Report wrong data](#report-wrong-data)                                                                      | Anyone on campus  | File a data issue or use in-app suggest | No         |
-| [Campus QA](#campus-qa)                                                                                      | Testers           | Verify the app on your phone            | No         |
-| [Developers](#developers-no-ai-required)                                                                     | Coders            | Branch, code, PR to `staging`           | Yes        |
-| [Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aopen+label%3A%22good+first+issue%22) | New devs          | Smaller coding tasks                    | Yes        |
-| [Maintainers / AI agents](#maintainers-and-agents)                                                           | Core team, Cursor | See [AGENTS.md](AGENTS.md)              | Yes        |
+| [Report wrong data](#report-wrong-data) | Anyone on campus | File a data issue or use in-app suggest | No |
+| [Campus QA](#campus-qa) | Testers | Verify the app on your phone | No |
+| [Developers](#developers-no-ai-required) | Coders | Branch, code, PR to `staging` | Yes |
+| [Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aopen+label%3A%22good+first+issue%22) | New devs | Smaller coding tasks | Yes |
+| [Maintainers / AI agents](#maintainers-and-agents) | Core team, Cursor | See [AGENTS.md](AGENTS.md) | Yes |
 
 **Community:** [Discord](https://discord.uplbtools.me) · [Messenger (contribute)](https://messenger.uplbtools.me/contribute) · [UPLB Tools](https://uplbtools.me)
 
@@ -72,9 +72,9 @@ Open http://localhost:4321. More setup help: [docs/developer-guide.md](docs/deve
 2. Branch off **`staging`** (not `main`).
 3. Make your change.
 4. Before opening a PR:
-   - `bun test src`
-   - `bun run lint` (or `bunx biome format` on files you touched)
-   - `bun run build` for substantive changes (needs `DATABASE_URL`)
+ - `bun test src`
+ - `bun run lint` (or `bunx biome format` on files you touched)
+ - `bun run build` for substantive changes (needs `DATABASE_URL`)
 5. Open a PR to **`staging`**. Use the PR template checkboxes.
 6. Use [Conventional Commits](https://www.conventionalcommits.org/) in commit messages (`fix(map): …`, `feat(api): …`).
 

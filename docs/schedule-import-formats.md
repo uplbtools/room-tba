@@ -8,12 +8,12 @@ Top-level array of class rows, or a paginated wrapper (`classes.data` / `data`).
 
 Required fields per row:
 
-| Field         | Aliases                   | Example                  |
+| Field | Aliases | Example |
 | ------------- | ------------------------- | ------------------------ |
-| `course_code` | `courseCode`, `course`    | `"CMSC 123"`             |
-| `section`     | `sec`                     | `"A"`                    |
-| `type`        | `class_type`, `classType` | `"LEC"`                  |
-| `schedule`    | —                         | `["MW 08:00AM-09:00AM"]` |
+| `course_code` | `courseCode`, `course` | `"CMSC 123"` |
+| `section` | `sec` | `"A"` |
+| `type` | `class_type`, `classType` | `"LEC"` |
+| `schedule` |: | `["MW 08:00AM-09:00AM"]` |
 
 Schedule slots use the same compact AMIS format parsed by `parseScheduleTime()` in `src/lib/schedule-renderer.ts` (e.g. `TTh 01:00PM-02:30PM`).
 

@@ -8,7 +8,12 @@ test.describe("staging live boot", () => {
     await expect(campusSearchBox(page)).toBeVisible();
   });
 
-  test("/admin redirects", async ({ page }) => {
+  test("/admin redirects", async ({ page, request }) => {
+    const res = await request.get("/admin", { maxRedirects: 0 });
+    expect(res.status()).toBeGreaterThanOrEqual(300);
+    expect(res.status()).toBeLessThan(400);
+    expect(res.headers().location ?? "").toMatch(/editor=login/);
+
     await page.goto("/admin");
     await expect(page).toHaveURL(/editor=login/);
   });

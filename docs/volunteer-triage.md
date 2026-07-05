@@ -14,22 +14,22 @@ Every Monday at 09:00 UTC (or async if no one is online).
 ## Agenda (30 min)
 
 1. **Open issues review (10 min)**
-   - Sort by `priority/high` then `priority/medium`.
-   - Check issues untouched for >14 days; ping assignee or unassign.
-   - Close stale `qa` issues that have been verified.
+ - Sort by `priority/high` then `priority/medium`.
+ - Check issues untouched for >14 days; ping assignee or unassign.
+ - Close stale `qa` issues that have been verified.
 
 2. **PR queue (10 min)**
-   - List open PRs targeting `staging`.
-   - Identify blockers (missing reviews, CI failures, merge conflicts).
-   - Assign reviewers or mark as `ready for review`.
+ - List open PRs targeting `staging`.
+ - Identify blockers (missing reviews, CI failures, merge conflicts).
+ - Assign reviewers or mark as `ready for review`.
 
 3. **Sprint health (5 min)**
-   - Count closed vs opened issues in the last 7 days.
-   - Flag any `size/S` or `size/XS` issues that could be picked up by new volunteers.
+ - Count closed vs opened issues in the last 7 days.
+ - Flag any `size/S` or `size/XS` issues that could be picked up by new volunteers.
 
 4. **Action items (5 min)**
-   - Scribe posts summary in `#development` Discord channel.
-   - Update project board columns if using GitHub Projects.
+ - Scribe posts summary in `#development` Discord channel.
+ - Update project board columns if using GitHub Projects.
 
 ## Community links
 
