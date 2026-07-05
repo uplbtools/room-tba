@@ -52,6 +52,8 @@ export async function enableMapEdit(
   page: Page,
   entity: MapEditEntity = "building",
 ) {
+  await revealMapForPinDrag(page);
+
   const enableInPanel = await openEntityMapEditControls(page, entity).catch(
     () => null,
   );
@@ -70,7 +72,13 @@ export async function enableMapEdit(
     }
   }
 
-  await expect(page.getByText("Editing map")).toBeVisible({ timeout: 10_000 });
+  const editingBanner = page.getByText("Editing map");
+  const turnOffMapEdit = page.getByRole("button", {
+    name: /turn off map edit/i,
+  });
+  await expect(editingBanner.or(turnOffMapEdit)).toBeVisible({
+    timeout: 10_000,
+  });
 }
 
 /** Wait until an entity pin is on the map (bootstrap + sync). */
