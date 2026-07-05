@@ -953,7 +953,6 @@
     margin-top: 0.25rem;
     padding-top: 0;
     overflow-y: auto;
-    overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }

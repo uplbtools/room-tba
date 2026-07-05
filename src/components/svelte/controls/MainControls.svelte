@@ -177,7 +177,6 @@
   }
 
   .side-panel-controls {
-    position: relative;
     display: flex;
     flex: 1;
     align-items: flex-end;
@@ -198,13 +197,13 @@
     transform: translateX(-100%);
   }
 
-  /* Desktop: pin the open drawer to the viewport band between search and status bar. */
+  /* Desktop: pin the open drawer to the flex space between search and status bar. */
   @media (min-width: 48.0625rem) {
     .drawer:not(.is-collapsed) {
-      position: fixed;
-      top: var(--side-panel-top-inset);
-      bottom: var(--side-panel-bottom-inset);
-      left: var(--map-ui-padding, 0.5rem);
+      position: absolute;
+      top: calc(var(--search-block-height, 3.25rem) + 0.75rem);
+      bottom: 0;
+      left: 0;
       height: auto;
     }
   }

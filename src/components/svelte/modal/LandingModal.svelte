@@ -13,7 +13,6 @@
     type GithubContributor,
   } from "@lib/github-contributors";
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
-  import LeaderboardPanel from "@ui/status-bar/LeaderboardPanel.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
   import ContributorProgressPanel from "@ui/status-bar/ContributorProgressPanel.svelte";
@@ -252,7 +251,13 @@
           <p class="section-note">
             Top volunteers helping map the campus and verify room schedules.
           </p>
-          <LeaderboardPanel />
+          <button
+            type="button"
+            class="secondary-btn"
+            onclick={() => modalStore.openModal("leaderboard")}
+          >
+            View Leaderboard
+          </button>
         </section>
       </div>
     {/if}
@@ -542,6 +547,26 @@
 
   .primary-btn:hover {
     background-color: hsl(5, 75%, 22%);
+  }
+
+  .secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: hsl(0, 0%, 96%);
+    color: hsl(0, 0%, 20%);
+    border: 1px solid hsl(0, 0%, 85%);
+    transition: background-color 0.15s ease-out;
+  }
+
+  .secondary-btn:hover {
+    background-color: hsl(0, 0%, 92%);
   }
 
   .install-btn {
