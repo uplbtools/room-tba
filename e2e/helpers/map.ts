@@ -35,18 +35,20 @@ async function isMobileViewport(page: Page) {
 async function enableMapEditViaEditorShelf(page: Page) {
   const editorTools = page.getByRole("button", { name: /open editor tools/i });
   await editorTools.click({ timeout: 10_000 });
-  await page.getByRole("button", { name: /turn on map edit/i }).click({
-    timeout: 10_000,
-  });
-  await expect(
-    page.getByRole("button", { name: /turn off map edit/i }),
-  ).toBeVisible({ timeout: 10_000 });
 
-  const backToMap = page
-    .locator("#editor-screen")
-    .getByRole("button", { name: /^map$/i });
-  if (await backToMap.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await backToMap.click();
+  const isMobile = await isMobileViewport(page);
+  const shelfRoot = isMobile
+    ? page.locator("#editor-screen")
+    : page.locator("#editor-shelf-panel");
+  await expect(shelfRoot).toBeVisible({ timeout: 10_000 });
+
+  const mapEditToggle = shelfRoot.getByRole("button", {
+    name: /turn (on|off) map edit/i,
+  });
+  if ((await mapEditToggle.getAttribute("aria-pressed")) !== "true") {
+    await mapEditToggle.click();
+    // Enabling map edit closes the shelf (see Search.svelte editMode effect).
+    await expect(shelfRoot).toBeHidden({ timeout: 10_000 });
   }
 }
 
@@ -92,17 +94,13 @@ export async function enableMapEdit(
   page: Page,
   entity: MapEditEntity = "building",
 ) {
-  if (await isMobileViewport(page)) {
-    await enableMapEditViaEditorShelf(page);
+  const enableInPanel = await openEntityMapEditControls(page, entity).catch(
+    () => null,
+  );
+  if (enableInPanel) {
+    await enableInPanel.click();
   } else {
-    const enableInPanel = await openEntityMapEditControls(page, entity).catch(
-      () => null,
-    );
-    if (enableInPanel) {
-      await enableInPanel.click();
-    } else {
-      await enableMapEditViaEditorShelf(page);
-    }
+    await enableMapEditViaEditorShelf(page);
   }
 
   await assertMapEditEnabled(page);
