@@ -218,20 +218,20 @@
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
   <div class="ui-layer">
-    <div
+    <section
       class="top-right-map-stack"
       aria-label="Map tools"
       bind:this={mapToolsStackEl}
     >
       <MapToolsFlyout />
-      <div class="desktop-camera-controls" aria-label="Map camera">
+      <section class="desktop-camera-controls" aria-label="Map camera">
         <div class="camera-controls-card">
           <MapDimensionToggle embedded />
           <div class="camera-controls-card__divider" aria-hidden="true"></div>
           <MapViewControls variant="camera" embedded />
         </div>
-      </div>
-    </div>
+      </section>
+    </section>
     <div class="inner-layer">
       <MainControls />
       <div class="bottom-band">
@@ -355,6 +355,15 @@
     width: 100%;
     height: 100dvh;
     overflow: hidden;
+  }
+
+  .app-layout.edit-mode {
+    /* Keep the mobile detail drawer peek above the measured edit dock. */
+    --side-panel-bottom-inset: calc(
+      var(--side-panel-bottom-inset-measured) +
+        var(--side-panel-bottom-gap, 0.375rem) + var(--edit-bar-height, 0rem) +
+        var(--bottom-fab-gap, 0.5rem)
+    );
   }
 
   .inner-layer {

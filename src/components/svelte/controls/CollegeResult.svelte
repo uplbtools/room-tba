@@ -157,7 +157,7 @@
   });
 
   function syncCollegeFromServer(updated: CollegeData) {
-    appActions.replaceCollege(updated);
+    appActions.upsertCollege(updated);
     queryStore.hydrateQuery({
       type: "result",
       category: "college",

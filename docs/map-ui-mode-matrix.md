@@ -61,7 +61,7 @@ MapLibre attribution is disabled on the map canvas (`attributionControl={false}`
 - `--search-block-height`
 - `--status-bar-block-height` (measured from full `.bottom-chrome` tray)
 - `--side-panel-top-inset` (search block + map padding; desktop fixed drawer top)
-- `--side-panel-bottom-inset` (measured from `.bottom-chrome` top edge + `--side-panel-bottom-gap`; fixed drawer/sheet bottom)
+- `--side-panel-bottom-inset` (measured from `.bottom-chrome` top edge + `--side-panel-bottom-gap`; fixed drawer/sheet bottom; in map edit mode also adds `--edit-bar-height` + `--bottom-fab-gap` so the mobile peek tab clears the edit dock)
 - `--side-panel-bottom-inset-measured` (runtime px distance from viewport bottom to status tray top; set in `Entry.svelte`)
 - `--side-panel-bottom-gap` (extra clearance between drawer and status tray)
 - `--drawer-peek-offset`

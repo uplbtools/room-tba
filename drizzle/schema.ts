@@ -376,6 +376,25 @@ export const editorHistoryTable = pgTable("editor_history", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+export const contributionsTable = pgTable("contributions", {
+  id: integer().primaryKey().generatedByDefaultAsIdentity({
+    name: "contributions_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 2147483647,
+    cache: 1,
+  }),
+  userId: integer("user_id").references(() => adminUsersTable.id),
+  submitterName: varchar("submitter_name", { length: 100 }),
+  entityType: varchar("entity_type", { length: 32 }).notNull(),
+  entityId: integer("entity_id").notNull(),
+  entityLabel: text("entity_label").notNull(),
+  source: varchar({ length: 32 }).notNull(),
+  proposalId: integer("proposal_id").references(() => editProposalsTable.id),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
 export const eventsTable = pgTable(
   "events",
   {

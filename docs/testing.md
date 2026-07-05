@@ -4,17 +4,17 @@ Production-grade test pyramid for CI and local development.
 
 ## Commands
 
-| Command                          | What                                                         |
+| Command | What |
 | -------------------------------- | ------------------------------------------------------------ |
-| `bun test src/lib src/constants` | Unit tests (Bun; excludes `*.store.test.ts`)                 |
-| `bun run test:components`        | Vitest store + Svelte component tests                        |
-| `bun run test:integration`       | HTTP + service tests (E2E DB; service-only without preview)  |
-| `bun run test:integration:live`  | Same as CI: `build:e2e` → preview → integration (incl. HTTP) |
-| `bun run e2e:reset-db`           | Truncate + seed E2E Supabase (host guard)                    |
-| `bun run e2e`                    | Playwright blocking suite                                    |
-| `bun run e2e:advisory`           | Playwright advisory (non-blocking in CI)                     |
-| `bun run e2e:staging`            | Live staging smoke                                           |
-| `bun run check:migrations`       | Required tables exist on `DATABASE_URL`                      |
+| `bun test src/lib src/constants` | Unit tests (Bun; excludes `*.store.test.ts`) |
+| `bun run test:components` | Vitest store + Svelte component tests |
+| `bun run test:integration` | HTTP + service tests (E2E DB; service-only without preview) |
+| `bun run test:integration:live` | Same as CI: `build:e2e` → preview → integration (incl. HTTP) |
+| `bun run e2e:reset-db` | Truncate + seed E2E Supabase (host guard) |
+| `bun run e2e` | Playwright blocking suite |
+| `bun run e2e:advisory` | Playwright advisory (non-blocking in CI) |
+| `bun run e2e:staging` | Live staging smoke |
+| `bun run check:migrations` | Required tables exist on `DATABASE_URL` |
 
 Full local gate (before marking PR ready):
 
@@ -30,33 +30,33 @@ E2E runs `serve:e2e`, which rebuilds with `@astrojs/node` because `@astrojs/verc
 
 ## CI (every PR push, including drafts)
 
-- **CI / verify** — Biome format, ESLint, unit, components, PWA legal, prod build (~5–8 min)
-- **CI / migrations** — schema table check on E2E DB (~1 min)
+- **CI / verify**: Biome format, ESLint, unit, components, PWA legal, prod build (~5–8 min)
+- **CI / migrations**: schema table check on E2E DB (~1 min)
 
-## CI (gated — ready for review or `run/e2e`)
+## CI (gated: ready for review or `run/e2e`)
 
 Heavy DB + preview work runs **once before merge**, not on every draft push:
 
-- **E2E / e2e** — reset DB → `build:e2e` → preview → **integration** → Playwright blocking (~30 min total)
-- **E2E advisory** — reset DB → `build:e2e` → Playwright advisory (non-blocking)
-- **Bundle advisory** — prod build + JS budget (non-blocking)
+- **E2E / e2e**: reset DB → `build:e2e` → preview → **integration** → Playwright blocking (~30 min total)
+- **E2E advisory**: reset DB → `build:e2e` → Playwright advisory (non-blocking)
+- **Bundle advisory**: prod build + JS budget (non-blocking)
 
-**E2E staging / e2e** — same blocking stack (integration + Playwright) on every **`staging` push** and **nightly** (02:00 Asia/Manila)
+**E2E staging / e2e**: same blocking stack (integration + Playwright) on every **`staging` push** and **nightly** (02:00 Asia/Manila)
 
 ## Heavy CI gating (PRs)
 
 Integration + Playwright share one preview build in the blocking job (~30 min wall clock). **Draft pushes skip all of this.**
 
-| Trigger                  | Integration + blocking E2E | Advisory E2E + bundle |
+| Trigger | Integration + blocking E2E | Advisory E2E + bundle |
 | ------------------------ | -------------------------- | --------------------- |
-| **Ready for review**     | Yes (first time)           | Yes                   |
-| **`run/e2e` label**      | Re-run after fixes         | Re-run                |
-| **Reopened** (non-draft) | Yes                        | Yes                   |
-| **Draft push**           | No                         | No                    |
+| **Ready for review** | Yes (first time) | Yes |
+| **`run/e2e` label** | Re-run after fixes | Re-run |
+| **Reopened** (non-draft) | Yes | Yes |
+| **Draft push** | No | No |
 
 **Always on every push:** verify + migrations only.
 
-**Before merge to `staging`:** mark ready (or add `run/e2e`) and wait for **E2E / e2e** green. Pushes after ready do not re-trigger — add the label again.
+**Before merge to `staging`:** mark ready (or add `run/e2e`) and wait for **E2E / e2e** green. Pushes after ready do not re-trigger: add the label again.
 
 ```sh
 gh pr ready <number>
@@ -67,19 +67,19 @@ Workflows: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), [`.github/
 
 ## CI (advisory, non-blocking)
 
-- **E2E advisory** — axe, touch drag, offline, jeepney, etc. (gated like blocking)
-- **Bundle advisory** — PWA JS size budget (gated like blocking)
-- **Staging smoke** — read-only Playwright against live `staging.room-tba.uplbtools.me` (non-blocking)
+- **E2E advisory**: axe, touch drag, offline, jeepney, etc. (gated like blocking)
+- **Bundle advisory**: PWA JS size budget (gated like blocking)
+- **Staging smoke**: read-only Playwright against live `staging.room-tba.uplbtools.me` (non-blocking)
 
 ## Databases
 
-| DB                           | Use in tests                                       |
+| DB | Use in tests |
 | ---------------------------- | -------------------------------------------------- |
-| E2E (`yhzinxlakcewqjaqbbaj`) | CI build, integration, Playwright — **mutating**   |
-| Staging                      | Local dev, staging smoke — read-only in automation |
-| Production                   | **Never** automated writes                         |
+| E2E (`yhzinxlakcewqjaqbbaj`) | CI build, integration, Playwright: **mutating** |
+| Staging | Local dev, staging smoke: read-only in automation |
+| Production | **Never** automated writes |
 
-Set locally (gitignored — copy from `.env.example`):
+Set locally (gitignored: copy from `.env.example`):
 
 ```sh
 cp .env.example .env.local    # bun dev + E2E vars
@@ -88,9 +88,9 @@ cp .env.example .env.staging  # optional: staging smoke / preview DB only
 
 GitHub Actions uses secrets `E2E_DATABASE_URL`, `E2E_ADMIN_PASSWORD`, `E2E_ADMIN_SESSION_SECRET`.
 
-## AMIS — never in CI
+## AMIS: never in CI
 
-Do **not** run `import:amis-classes --fetch` in CI. The script exits when `CI=true` and `--fetch` is passed. Unit tests use fixture JSON only.
+Do **not** run `import:amis-classes, fetch` in CI. The script exits when `CI=true` and `, fetch` is passed. Unit tests use fixture JSON only.
 
 ## Manual only
 
@@ -103,7 +103,7 @@ See also [docs/editor-foundation-test-plan.md](editor-foundation-test-plan.md) a
 
 ## Tests with issues
 
-When implementing a GitHub issue, add tests in the **same PR** — do not defer. Use [issue-test-matrix.md](issue-test-matrix.md) for tier hints (unit / integration / component / E2E). Full file list: [test-inventory.md](test-inventory.md). Regenerate:
+When implementing a GitHub issue, add tests in the **same PR**: do not defer. Use [issue-test-matrix.md](issue-test-matrix.md) for tier hints (unit / integration / component / E2E). Full file list: [test-inventory.md](test-inventory.md). Regenerate:
 
 ```sh
 bun run generate:issue-test-matrix

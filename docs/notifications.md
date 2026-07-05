@@ -2,7 +2,7 @@
 
 Shared with [uplbtools/discord-bot](https://github.com/uplbtools/discord-bot). See `src/lib/notifications/types.ts`.
 
-Producers emit versioned JSON; the Discord bot routes to channels. Room TBA uses `NotificationAdapter` — `HttpNotificationAdapter` when `NOTIFICATION_GATEWAY_URL` + `NOTIFICATION_INGRESS_SECRET` are set, else `NoOpNotificationAdapter`.
+Producers emit versioned JSON; the Discord bot routes to channels. Room TBA uses `NotificationAdapter`: `HttpNotificationAdapter` when `NOTIFICATION_GATEWAY_URL` + `NOTIFICATION_INGRESS_SECRET` are set, else `NoOpNotificationAdapter`.
 
 ## CI E2E failures (GitHub Actions)
 
@@ -26,7 +26,7 @@ Emitted fire-and-forget after successful admin review:
 - `POST /api/admin/proposals/[id]/reject` → `outcome: rejected`
 - `POST /api/admin/proposals/[id]/request-changes` → `outcome: needs_changes`
 
-Not emitted when approve fails with `409` (publish conflict — proposal stays pending).
+Not emitted when approve fails with `409` (publish conflict: proposal stays pending).
 
 Payload: `proposalId`, `outcome`, `entityType`, `entityId`, `entityLabel`, `submitterName`, `reviewedBy`, `adminNote`.
 

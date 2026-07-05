@@ -16,6 +16,7 @@
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
@@ -50,11 +51,23 @@
   const appActions = getAppActions();
   const { buildings, loaded } = $derived(appData());
 
-  const building = $derived(
-    loaded
-      ? buildings.find((b) => b.buildingName === queryStore.queryValue)
-      : null,
-  );
+  let pinnedBuildingId = $state<number | null>(null);
+
+  const building = $derived.by(() => {
+    if (!loaded) return null;
+    const byName = buildings.find(
+      (b) => b.buildingName === queryStore.queryValue,
+    );
+    if (byName) return byName;
+    if (queryStore.category === "building" && pinnedBuildingId !== null) {
+      return buildings.find((b) => b.id === pinnedBuildingId) ?? null;
+    }
+    return null;
+  });
+
+  $effect(() => {
+    if (building?.id) pinnedBuildingId = building.id;
+  });
   const buildingShareUrl = $derived(
     building ? getBuildingShareUrl(building.buildingName) : "",
   );
@@ -245,7 +258,7 @@
   }
 
   function syncBuildingFromServer(updated: BuildingData) {
-    appActions.replaceBuilding(updated);
+    appActions.upsertBuilding(updated);
     queryStore.hydrateQuery({
       type: "result",
       category: "building",
@@ -569,6 +582,7 @@
             <p class="entity-directions__empty">No directions listed.</p>
           {/if}
         </div>
+        <EntityLastUpdated updatedAt={building.updatedAt} />
       </section>
     {/if}
   {:else}

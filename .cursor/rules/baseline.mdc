@@ -1,0 +1,14 @@
+---
+description: Baseline agent behavior for all smmariquit repos
+alwaysApply: true
+---
+
+# Baseline
+
+- Read the README and existing code before large changes. Match project style.
+- Minimize diff scope. Do not refactor unrelated code.
+- Never commit secrets (.env, tokens, keys). Warn if asked to commit them.
+- Only create git commits when the user asks.
+- Run the project's existing lint/build/test scripts when you change code.
+- If `.cursor/skills/` exists in this repo, read relevant skills before implementing.
+- Definition of done: changes in the real repo branch, not a scratchpad or uncommitted local-only work.

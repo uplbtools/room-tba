@@ -6,7 +6,7 @@
 
 ## Summary
 
-<!-- What changed and why (1–3 sentences). -->
+<!, What changed and why (1–3 sentences)., >
 
 **Linked issues:** Closes # / Refs #
 
@@ -15,13 +15,13 @@
 - [ ] `bun test src`
 - [ ] `bun run lint` (or Biome format on touched files)
 - [ ] Linked issue commented with this PR URL
-- [ ] **Heavy CI:** PR marked ready for review (or `run/e2e` label) before merge — integration + E2E are gated ([testing.md § Heavy CI gating](docs/testing.md#heavy-ci-gating-prs))
+- [ ] **Heavy CI:** PR marked ready for review (or `run/e2e` label) before merge: integration + E2E are gated ([testing.md § Heavy CI gating](docs/testing.md#heavy-ci-gating-prs))
 
 ## QA Summary (code changes)
 
 Automated:
 
-- [ ] Biome format passed: `bunx biome format .` (PR CI)
+- [ ] Biome format passed: `bunx biome format.` (PR CI)
 - [ ] Unit tests passed: `bun test src` (PR CI)
 - [ ] E2E + integration passed: mark PR ready or add `run/e2e` label ([testing.md](docs/testing.md#heavy-ci-gating-prs))
 - [ ] Full lint passed (local): `bun run lint`
@@ -39,11 +39,11 @@ If map chrome, editor, or side panel changed:
 
 Known gaps:
 
-- <!-- Anything not tested and why -->
+- <!, Anything not tested and why, >
 
 Follow-up:
 
-- <!-- Issues or PRs to file next -->
+- <!, Issues or PRs to file next, >
 
 ## Issues updated (maintainers / detailed specs)
 
@@ -53,4 +53,4 @@ Follow-up:
 
 ## Test plan
 
-<!-- Optional: steps a reviewer can run locally. -->
+<!, Optional: steps a reviewer can run locally., >
