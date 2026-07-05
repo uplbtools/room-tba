@@ -564,14 +564,31 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
         if (!building) {
           throw new ProposalActionError("Failed to create building.", 500);
         }
-        for (const room of rooms) {
-          await createRoom(
-            {
-              roomCode: room.roomCode,
-              directions: room.directions || null,
-              buildingId: building.id,
-            },
-            editedBy,
+        try {
+          for (const room of rooms) {
+            await createRoom(
+              {
+                roomCode: room.roomCode,
+                directions: room.directions || null,
+                buildingId: building.id,
+              },
+              editedBy,
+            );
+          }
+        } catch (error) {
+          // Roll back the building so a failed bundle doesn't leave an
+          // orphaned building on the map. Editor history keeps the attempt.
+          await db
+            .delete(roomsTable)
+            .where(eq(roomsTable.buildingId, building.id));
+          await db
+            .delete(buildingsTable)
+            .where(eq(buildingsTable.id, building.id));
+          const reason =
+            error instanceof Error ? error.message : "unknown error";
+          throw new ProposalActionError(
+            `Failed to create bundled rooms (${reason}); building was rolled back.`,
+            500,
           );
         }
         return building;
