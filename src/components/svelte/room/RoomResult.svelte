@@ -496,13 +496,14 @@
             ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
           />
         {/if}
-        {#if canPublish && parentBuilding?.lat && parentBuilding.lon}
+        {#if parentBuilding?.lat && parentBuilding.lon}
           <MapChromeActionChip
             toolbar
+            ariaLabel="Move in 3D"
             onclick={() =>
               building3DStore.open(parentBuilding.name, {
                 roomCode: currentRoom.value?.code,
-                editMode: true,
+                editMode: canPublish,
               })}
           >
             <Box size={14} aria-hidden="true" />
@@ -881,9 +882,12 @@
 
   .entity-schedule__scope {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     line-height: 1.4;
     color: #71717a;
+    background-color: #f4f4f5;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.25rem;
   }
 
   .entity-schedule__empty {

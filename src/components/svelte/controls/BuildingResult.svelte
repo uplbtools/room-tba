@@ -501,6 +501,7 @@
         {#if hasMapPin}
           <MapChromeActionChip
             toolbar
+            ariaLabel="3D view"
             onclick={() => building3DStore.open(building.buildingName)}
           >
             <Box size={14} aria-hidden="true" />

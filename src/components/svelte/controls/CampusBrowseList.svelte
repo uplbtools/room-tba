@@ -217,6 +217,5 @@
     font-family: inherit;
   }
 
-  .campus-browse-body {
-  }
+
 </style>

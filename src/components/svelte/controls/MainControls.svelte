@@ -202,7 +202,7 @@
     .drawer:not(.is-collapsed) {
       position: absolute;
       top: calc(var(--search-block-height, 3.25rem) + 0.75rem);
-      bottom: 0;
+      bottom: calc(var(--status-bar-block-height, 2.75rem) + var(--side-panel-bottom-gap, 0.375rem));
       left: 0;
       height: auto;
     }
