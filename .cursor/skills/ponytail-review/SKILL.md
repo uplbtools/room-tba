@@ -24,6 +24,6 @@ Correctness, security, performance — normal review. Do not apply fixes; list o
 
 ## Room TBA
 
-Pair with [agent-contract](.cursor/rules/agent-contract.mdc). Flag drive-by refactors and duplicate UI surfaces.
+Pair with [agent-contract](../../rules/agent-contract.mdc). Flag drive-by refactors and duplicate UI surfaces.
 
 Upstream: https://github.com/DietrichGebert/ponytail — `skills/ponytail-review/SKILL.md`

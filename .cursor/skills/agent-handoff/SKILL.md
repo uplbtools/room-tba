@@ -63,4 +63,4 @@ One sentence goal.
 - Flow: feature → `staging` → `main` only when user says ship
 - `gh` / `vercel` on maintainer machine
 - Tests in same PR as feature
-- See [docs/agent-tooling.md](../../docs/agent-tooling.md) for Caveman/Ponytail
+- See [docs/agent-tooling.md](../../../docs/agent-tooling.md) for Caveman/Ponytail
