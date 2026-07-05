@@ -89,6 +89,12 @@ type EditorHistoryInput = {
   versionBefore?: number | null;
   versionAfter?: number | null;
   editedBy?: string;
+  summary?: string | null;
+};
+
+export type EditorHistoryOverride = {
+  action?: string;
+  summary?: string | null;
 };
 
 export async function recordEditorHistory({
@@ -100,6 +106,7 @@ export async function recordEditorHistory({
   versionBefore,
   versionAfter,
   editedBy = "admin",
+  summary = null,
 }: EditorHistoryInput): Promise<void> {
   await db.insert(editorHistoryTable).values({
     entityType,
@@ -110,6 +117,7 @@ export async function recordEditorHistory({
     versionBefore,
     versionAfter,
     editedBy,
+    summary,
   });
 }
 
@@ -300,6 +308,7 @@ export async function updateRoom(
   input: RoomUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<RoomData | null> {
   const updates: Record<string, unknown> = {};
   if (input.roomCode !== undefined) updates["roomCode"] = input.roomCode;
@@ -345,12 +354,13 @@ export async function updateRoom(
       await recordEditorHistory({
         entityType: "room",
         entityId: id,
-        action: "update",
+        action: history?.action ?? "update",
         before,
         after,
         versionBefore: before.version,
         versionAfter: after.version,
         editedBy,
+        summary: history?.summary ?? null,
       });
     }
 
@@ -606,6 +616,7 @@ export async function updateBuilding(
   input: BuildingUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<BuildingAdmin | null> {
   const updates: Record<string, unknown> = {};
   if (input.buildingName !== undefined)
@@ -654,12 +665,13 @@ export async function updateBuilding(
       await recordEditorHistory({
         entityType: "building",
         entityId: id,
-        action: "update",
+        action: history?.action ?? "update",
         before,
         after: updated,
         versionBefore: before.version,
         versionAfter: updated.version,
         editedBy,
+        summary: history?.summary ?? null,
       });
     }
 
@@ -735,6 +747,7 @@ export async function updateCollege(
   collegeName: string,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<CollegeAdmin | null> {
   const candidate = await findCollegeMergeCandidate(collegeName, id);
   if (candidate) {
@@ -767,12 +780,13 @@ export async function updateCollege(
     await recordEditorHistory({
       entityType: "college",
       entityId: id,
-      action: "update",
+      action: history?.action ?? "update",
       before,
       after: updated,
       versionBefore: before.version,
       versionAfter: updated.version,
       editedBy,
+      summary: history?.summary ?? null,
     });
   }
 
@@ -837,6 +851,7 @@ export async function updateDivision(
   input: DivisionUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<DivisionAdmin | null> {
   const updates: Record<string, unknown> = {};
   if (input.divisionName !== undefined) {
@@ -883,12 +898,13 @@ export async function updateDivision(
     await recordEditorHistory({
       entityType: "division",
       entityId: id,
-      action: "update",
+      action: history?.action ?? "update",
       before,
       after: updated,
       versionBefore: before.version,
       versionAfter: updated.version,
       editedBy,
+      summary: history?.summary ?? null,
     });
   }
 
@@ -980,6 +996,7 @@ export async function updateDorm(
   input: DormUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<DormAdmin | null> {
   const updates: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(input)) {
@@ -1016,12 +1033,13 @@ export async function updateDorm(
       await recordEditorHistory({
         entityType: "dorm",
         entityId: id,
-        action: "update",
+        action: history?.action ?? "update",
         before,
         after: updated,
         versionBefore: before.version,
         versionAfter: updated.version,
         editedBy,
+        summary: history?.summary ?? null,
       });
     }
 
@@ -1220,6 +1238,7 @@ export async function updateEvent(
   input: EventWriteInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<EventData | null> {
   const before = await getEventById(id, { includeInactive: true });
   if (!before) return null;
@@ -1262,12 +1281,13 @@ export async function updateEvent(
     await recordEditorHistory({
       entityType: "event",
       entityId: id,
-      action: "update",
+      action: history?.action ?? "update",
       before,
       after,
       versionBefore: before.version,
       versionAfter: after.version,
       editedBy,
+      summary: history?.summary ?? null,
     });
   }
   const eventPaths = ["/event/"];

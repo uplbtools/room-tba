@@ -3,6 +3,7 @@
   import SubmitterNameField from "@ui/SubmitterNameField.svelte";
   import EntityEditorMessage from "./EntityEditorMessage.svelte";
   import EntityEditorSubmitButton from "./EntityEditorSubmitButton.svelte";
+  import EntityHistoryPanel from "./EntityHistoryPanel.svelte";
   import {
     canShowWithdrawProposal,
     proposalStatusMessage,
@@ -21,6 +22,12 @@
     onWithdrawn?: () => void;
     successMessage?: string | null;
     errorMessage?: string | null;
+    /** Enables the version-history section for publishers. */
+    historyEntity?: {
+      entityType: string;
+      entityId: number;
+      version: number;
+    } | null;
     children?: Snippet;
   };
 
@@ -34,6 +41,7 @@
     onWithdrawn,
     successMessage = null,
     errorMessage = null,
+    historyEntity = null,
     children,
   }: Props = $props();
 
@@ -101,6 +109,14 @@
 
   {#if errorMessage}
     <EntityEditorMessage variant="error" message={errorMessage} />
+  {/if}
+
+  {#if canPublish && historyEntity}
+    <EntityHistoryPanel
+      entityType={historyEntity.entityType}
+      entityId={historyEntity.entityId}
+      version={historyEntity.version}
+    />
   {/if}
 </div>
 

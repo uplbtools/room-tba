@@ -97,6 +97,7 @@
   {canPublish}
   showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
   submitterNameId="dorm-submitter-name"
+  historyEntity={{ entityType: "dorm", entityId: dorm.id, version: dorm.version }}
   bind:submitterName={submitterNameDraft}
   {proposalStatus}
   {activeProposalId}

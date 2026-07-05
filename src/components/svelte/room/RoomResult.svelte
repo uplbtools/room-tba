@@ -457,6 +457,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="room-submitter-name"
+          historyEntity={currentRoom.value ? { entityType: "room", entityId: currentRoom.value.id, version: currentRoom.value.version } : null}
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
           activeProposalId={activeProposalId}
