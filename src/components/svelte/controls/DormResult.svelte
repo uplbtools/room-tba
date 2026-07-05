@@ -32,6 +32,7 @@
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityExternalLink from "./EntityExternalLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
   type DormEditableField =
     | "dormName"
@@ -689,14 +690,11 @@
         {#if dorm.isUpManaged || dorm.facebookLink || (!dorm.isUpManaged && dorm.priceRange)}
           <div class="entity-dorm-details__links">
             {#if dorm.isUpManaged}
-              <a
+              <EntityExternalLink
                 href="https://uplbosa.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="entity-footer__link"
-              >
-                UPLB OSA website →
-              </a>
+                label="UPLB OSA website"
+                ariaLabel="Open UPLB OSA website (opens in new tab)"
+              />
             {:else if dorm.priceRange}
               <span class="price-disclaimer">
                 <TriangleAlert size={12} />
@@ -704,14 +702,11 @@
               </span>
             {/if}
             {#if dorm.facebookLink}
-              <a
+              <EntityExternalLink
                 href={dorm.facebookLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="entity-footer__link"
-              >
-                Facebook →
-              </a>
+                label="Facebook"
+                ariaLabel="Open {dorm.dormName} Facebook page (opens in new tab)"
+              />
             {/if}
           </div>
         {/if}
