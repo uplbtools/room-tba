@@ -594,6 +594,9 @@ class ProposalsStore {
       proposedPatch: Record<string, unknown>;
       adminNote?: string | null;
       createdAt: string;
+      baseVersion: number;
+      currentValues?: Record<string, unknown> | null;
+      currentVersion?: number | null;
     }>
   >([]);
 
