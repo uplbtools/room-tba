@@ -357,6 +357,15 @@
     overflow: hidden;
   }
 
+  .app-layout.edit-mode {
+    /* Keep the mobile detail drawer peek above the measured edit dock. */
+    --side-panel-bottom-inset: calc(
+      var(--side-panel-bottom-inset-measured) +
+        var(--side-panel-bottom-gap, 0.375rem) + var(--edit-bar-height, 0rem) +
+        var(--bottom-fab-gap, 0.5rem)
+    );
+  }
+
   .inner-layer {
     display: flex;
     flex-direction: column;

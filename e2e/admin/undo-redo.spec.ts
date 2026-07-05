@@ -13,7 +13,7 @@ test.describe("undo redo", () => {
   test.slow();
   test.describe.configure({ retries: 1 });
 
-  test("undo after pin drag via keyboard", async ({ page }) => {
+  test("undo and redo after pin drag", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
     await loginAsAdmin(page);
@@ -28,8 +28,11 @@ test.describe("undo redo", () => {
     );
 
     const undo = page.getByRole("button", { name: /undo last pin move/i });
+    const redo = page.getByRole("button", { name: /redo last pin move/i });
     await expect(undo).toBeEnabled({ timeout: 10_000 });
-    await page.keyboard.press("Control+Z");
+    await undo.click();
+    await expect(redo).toBeEnabled({ timeout: 10_000 });
+    await redo.click();
     await logout(page);
   });
 });
