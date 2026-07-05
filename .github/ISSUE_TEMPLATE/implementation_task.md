@@ -6,20 +6,20 @@ labels: enhancement
 assignees: ""
 ---
 
-**Status:** proposed  
-**Last verified against staging:** <!-- YYYY-MM-DD; update whenever paths or AC change -->
+**Status:** proposed 
+**Last verified against staging:** <!, YYYY-MM-DD; update whenever paths or AC change, >
 
 ## Problem
 
-<!-- What hurts today? Link related issues. -->
+<!, What hurts today? Link related issues., >
 
 ## Proposal
 
-<!-- Approach, constraints, non-goals. -->
+<!, Approach, constraints, non-goals., >
 
 ## Implementation pointers
 
-<!-- Keep these current for anyone implementing (human dev or maintainer) -->
+<!, Keep these current for anyone implementing (human dev or maintainer), >
 
 - **Files / routes:**
 - **Schema / migrations:**
@@ -37,4 +37,4 @@ assignees: ""
 
 ## Superseded
 
-<!-- Move obsolete paragraphs here instead of deleting -->
+<!, Move obsolete paragraphs here instead of deleting, >

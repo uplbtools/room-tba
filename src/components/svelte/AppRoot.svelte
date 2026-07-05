@@ -46,6 +46,7 @@
     syncClasses,
   } from "@lib/local/data/sync";
   import { getDB, initPGLiteDB } from "@lib/local/data/pgliteDB";
+  import { CAMPUS_DATA_REFRESH_EVENT } from "@lib/local/data/invalidate-sync-key";
 
   type MetadataProps = {
     initialSearch?: InitialSearchState;
@@ -312,6 +313,10 @@
     };
     window.addEventListener("offline", onOffline);
     window.addEventListener("online", onOnline);
+    const onCampusRefresh = () => {
+      void refreshFromNetwork(appBootstrapStore.hasCachedData);
+    };
+    window.addEventListener(CAMPUS_DATA_REFRESH_EVENT, onCampusRefresh);
 
     void (async () => {
       try {
@@ -354,6 +359,7 @@
     return () => {
       window.removeEventListener("offline", onOffline);
       window.removeEventListener("online", onOnline);
+      window.removeEventListener(CAMPUS_DATA_REFRESH_EVENT, onCampusRefresh);
     };
   });
 
@@ -374,38 +380,58 @@
       if (!events) return;
       events = events.filter((event) => event.id !== eventId);
     },
-    replaceBuilding: (updated) => {
+    upsertBuilding: (updated) => {
       if (!buildings) return;
       const index = buildings.findIndex(
         (building) => building.id === updated.id,
       );
-      if (index === -1) return;
+      if (index === -1) {
+        buildings = [...buildings, updated].sort((a, b) =>
+          a.buildingName.localeCompare(b.buildingName),
+        );
+        return;
+      }
       const next = buildings.slice();
       next[index] = updated;
       buildings = next;
     },
-    replaceDorm: (updated) => {
+    upsertDorm: (updated) => {
       if (!dorms) return;
       const index = dorms.findIndex((dorm) => dorm.id === updated.id);
-      if (index === -1) return;
+      if (index === -1) {
+        dorms = [...dorms, normalizeDormListFields(updated)].sort((a, b) =>
+          a.dormName.localeCompare(b.dormName),
+        );
+        return;
+      }
       const next = dorms.slice();
       next[index] = normalizeDormListFields(updated);
       dorms = next;
     },
-    replaceCollege: (updated) => {
+    upsertCollege: (updated) => {
       if (!colleges) return;
       const index = colleges.findIndex((college) => college.id === updated.id);
-      if (index === -1) return;
+      if (index === -1) {
+        colleges = [...colleges, updated].sort((a, b) =>
+          a.collegeName.localeCompare(b.collegeName),
+        );
+        return;
+      }
       const next = colleges.slice();
       next[index] = updated;
       colleges = next;
     },
-    replaceDivision: (updated) => {
+    upsertDivision: (updated) => {
       if (!divisions) return;
       const index = divisions.findIndex(
         (division) => division.id === updated.id,
       );
-      if (index === -1) return;
+      if (index === -1) {
+        divisions = [...divisions, updated].sort((a, b) =>
+          a.divisionName.localeCompare(b.divisionName),
+        );
+        return;
+      }
       const next = divisions.slice();
       next[index] = updated;
       divisions = next;

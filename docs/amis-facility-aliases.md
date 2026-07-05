@@ -2,8 +2,8 @@
 
 AMIS `facility_id` strings often differ from `rooms.room_code` (hyphens, spacing, abbreviations). The import script resolves rooms in two passes:
 
-1. **Direct match** — normalized facility string equals a room code
-2. **Alias match** — normalized string matches an `aliases` row with `target_type = room`
+1. **Direct match**: normalized facility string equals a room code
+2. **Alias match**: normalized string matches an `aliases` row with `target_type = room`
 
 ## Add an alias (editor / admin)
 
@@ -18,12 +18,12 @@ Re-run the import for the term; the report shows **alias-matched** counts separa
 
 ## Import report categories
 
-| Category           | Meaning                                                         |
+| Category | Meaning |
 | ------------------ | --------------------------------------------------------------- |
-| Direct room match  | Facility string matched `rooms.room_code`                       |
-| Via alias          | Matched through `aliases` (`target_type = room`)                |
-| Missing facility   | AMIS row has no facility (TBA) — **skipped**, not pinned        |
-| Unmatched facility | Non-empty string with no room or alias — fix alias or room data |
+| Direct room match | Facility string matched `rooms.room_code` |
+| Via alias | Matched through `aliases` (`target_type = room`) |
+| Missing facility | AMIS row has no facility (TBA): **skipped**, not pinned |
+| Unmatched facility | Non-empty string with no room or alias: fix alias or room data |
 
 ## TBA policy
 

@@ -5,9 +5,26 @@
     toastStore,
   } from "@lib/store.svelte";
   import { summarizeProposalPatch } from "@lib/proposals/client";
+  import { afterProposalPublished } from "@lib/proposals/apply-published-entity";
+  import { syncOpenEntityQueryAfterPublish } from "@lib/proposals/sync-open-entity-query";
+  import { getAppActions, getAppData } from "@lib/context";
   import type { ProposalEntityType } from "@lib/services/proposal-service";
+  import { parseBundledRooms } from "@lib/proposals/create-proposal-validation";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityReviewActions from "@ui/editor/EntityReviewActions.svelte";
+
+  const appActions = getAppActions();
+  const appData = getAppData();
+
+  function bundledRoomsSummary(
+    entityType: ProposalEntityType,
+    patch: Record<string, unknown>,
+  ): string | null {
+    if (entityType !== "create_building") return null;
+    const rooms = parseBundledRooms(patch);
+    if (rooms.length === 0) return null;
+    return `Will create building + ${rooms.length} room${rooms.length === 1 ? "" : "s"}: ${rooms.map((r) => r.roomCode).join(", ")}`;
+  }
 
   let noteById = $state<Record<number, string>>({});
   let actingId = $state<number | null>(null);
@@ -33,6 +50,24 @@
           "error",
         );
         return;
+      }
+      if (action === "approve") {
+        const published = (data as { published?: unknown }).published;
+        const entityType = (data as { proposal?: { entityType?: string } })
+          .proposal?.entityType;
+        if (entityType) {
+          afterProposalPublished(
+            appActions,
+            appData,
+            entityType as ProposalEntityType,
+            published,
+          );
+          syncOpenEntityQueryAfterPublish(
+            appData,
+            entityType as ProposalEntityType,
+            published,
+          );
+        }
       }
       toastStore.show(
         action === "approve"
@@ -83,6 +118,14 @@
                 <li>{line}</li>
               {/each}
             </ul>
+            {#if bundledRoomsSummary(proposal.entityType as ProposalEntityType, proposal.proposedPatch as Record<string, unknown>)}
+              <p class="entity-review-bundled">
+                {bundledRoomsSummary(
+                  proposal.entityType as ProposalEntityType,
+                  proposal.proposedPatch as Record<string, unknown>,
+                )}
+              </p>
+            {/if}
             {#if proposal.status === "needs_changes" && proposal.adminNote}
               <p class="entity-review-note">
                 Previous note: {proposal.adminNote}
@@ -117,4 +160,11 @@
 <style>
   @import "./editor/review-panel.css";
   @import "./editor/entity-editor.css";
+
+  .entity-review-bundled {
+    margin: 0.35rem 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
 </style>

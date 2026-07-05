@@ -18,6 +18,7 @@ jobs:
       E2E_ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
       ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
       ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
+      PUBLIC_MAPTILER_KEY: ${{ secrets.PUBLIC_MAPTILER_KEY }}
       CI: true
       SKIP_E2E_BUILD: "1"
       DATABASE_POOL_MAX: "4"
@@ -37,6 +38,8 @@ jobs:
         run: bun run e2e:reset-db
 
       - name: Build for E2E preview
+        env:
+          PUBLIC_MAPTILER_KEY: ${{ secrets.PUBLIC_MAPTILER_KEY }}
         run: bun run build:e2e
 
       - name: Start preview server
@@ -72,6 +75,7 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_WEBSERVER: "1"
           ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT: "1"
+          PUBLIC_MAPTILER_KEY: ${{ secrets.PUBLIC_MAPTILER_KEY }}
         run: bun run e2e
 
       - name: Playwright advisory tests
@@ -79,6 +83,7 @@ jobs:
         continue-on-error: true
         env:
           ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT: "1"
+          PUBLIC_MAPTILER_KEY: ${{ secrets.PUBLIC_MAPTILER_KEY }}
         run: bun run e2e:advisory
 
       - name: Advisory failure notice

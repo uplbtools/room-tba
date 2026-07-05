@@ -6,8 +6,8 @@ Running list of **automated** tests in this repo. Regenerate after adding or mov
 bun run generate:test-inventory
 ```
 
-**Last generated:** 2026-07-04
-**Total spec files:** 113
+**Last generated:** 2026-07-05  
+**Total spec files:** 116
 
 See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked expectations: [issue-test-matrix.md](issue-test-matrix.md).
 
@@ -15,7 +15,7 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 
 | Command | Config / runner | Files |
 | ------- | ---------------- | ----- |
-| `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 47 |
+| `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 50 |
 | `bun run test:components` | Vitest — stores + Svelte @320px | 19 |
 | `bun run test:integration` | Bun — HTTP + services (E2E DB) | 5 |
 | `bun run e2e` | Playwright blocking — local preview | 27 |
@@ -39,7 +39,7 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 
 Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`testDir: e2e`, ignores `advisory/` + `staging/`). Projects: **desktop-chrome**, **mobile-chrome** (skips `@desktop-only`).
 
-## Unit tests (Bun) — 47 files
+## Unit tests (Bun) — 50 files
 
 `bun test src/lib src/constants` (excludes `*.store.test.ts`).
 
@@ -71,10 +71,13 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/keyboard-shortcuts.test.ts`
 - `src/lib/landing-modal-auto-open.test.ts`
 - `src/lib/map-chrome.test.ts`
+- `src/lib/maptiler-key.test.ts`
 - `src/lib/notifications/notifications.test.ts`
 - `src/lib/notifications/proposal-events.test.ts`
+- `src/lib/proposals/apply-published-entity.test.ts`
 - `src/lib/proposals/client.test.ts`
 - `src/lib/proposals/create-proposal-validation.test.ts`
+- `src/lib/proposals/pending-proposals.test.ts`
 - `src/lib/proposals/proposal-merge-policy.test.ts`
 - `src/lib/r2-upload.test.ts`
 - `src/lib/route-slugs.test.ts`

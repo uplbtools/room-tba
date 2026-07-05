@@ -36,12 +36,12 @@ Do not close issues with unchecked AC or outdated implementation notes.
 
 Run only what applies to the PR scope:
 
-| Change type             | lint | `bun test src`    | build (local) | browser                               |
+| Change type | lint | `bun test src` | build (local) | browser |
 | ----------------------- | ---- | ----------------- | ------------- | ------------------------------------- |
-| Lib/helper only         | yes  | yes (or targeted) | yes           | skip                                  |
-| Map chrome / side panel | yes  | yes               | yes           | 320px + 768px                         |
-| Editor / admin API      | yes  | yes               | yes           | auth + one PATCH                      |
-| Drizzle migration       | yes  | yes               | yes           | confirm migration applied on Supabase |
+| Lib/helper only | yes | yes (or targeted) | yes | skip |
+| Map chrome / side panel | yes | yes | yes | 320px + 768px |
+| Editor / admin API | yes | yes | yes | auth + one PATCH |
+| Drizzle migration | yes | yes | yes | confirm migration applied on Supabase |
 
 PR CI (GitHub Actions) runs **verify + migrations on every push**. **Integration, E2E, and bundle advisory** run only when the PR is ready for review or labeled `run/e2e`. See [docs/testing.md § Heavy CI gating](testing.md#heavy-ci-gating-prs). Run `bun run test:integration:live` and `bun run e2e` locally before marking ready on API/UI changes.
 
@@ -60,7 +60,7 @@ curl -I http://localhost:4321/admin/login
 curl -I 'http://localhost:4321/?editor=login'
 ```
 
-If the branch changed env vars, scripts, stack versions, CI, or contributor workflow, confirm `README.md` and `.env.example` were updated in the same PR — not a follow-up. `check:readme` catches known stale onboarding text; a passing check does not replace reading the sections you touched.
+If the branch changed env vars, scripts, stack versions, CI, or contributor workflow, confirm `README.md` and `.env.example` were updated in the same PR: not a follow-up. `check:readme` catches known stale onboarding text; a passing check does not replace reading the sections you touched.
 
 For editor-history work, also confirm the table exists:
 
@@ -70,7 +70,7 @@ bun -e 'import { config } from "dotenv"; import pg from "pg"; config({ path: ".e
 
 Expected automated evidence for the current editor foundation:
 
-- `bunx biome format .` passes (PR CI).
+- `bunx biome format.` passes (PR CI).
 - `bun test src` passes (PR CI).
 - `/admin` redirects to `/?editor=login`.
 - `/admin/login` redirects to `/?editor=login`.

@@ -32,6 +32,7 @@ export type SuggestAdditionDraft = {
   roomCode: string;
   roomDirections: string;
   roomBuildingDraft: string;
+  bundledRooms: Array<{ roomCode: string; directions: string }>;
   collegeName: string;
   divisionCollegeDraft: string;
   divisionName: string;
