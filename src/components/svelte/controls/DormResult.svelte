@@ -685,7 +685,11 @@
         {#if dorm.isUpManaged || dorm.facebookLink || (!dorm.isUpManaged && dorm.priceRange)}
           <div class="entity-dorm-details__links">
             {#if dorm.isUpManaged}
-              <EntityExternalLink href="https://uplbosa.org" label="UPLB OSA website" />
+              <EntityExternalLink
+                href="https://uplbosa.org"
+                label="UPLB OSA website"
+                ariaLabel="Open UPLB OSA website (opens in new tab)"
+              />
             {:else if dorm.priceRange}
               <span class="price-disclaimer">
                 <TriangleAlert size={12} />
