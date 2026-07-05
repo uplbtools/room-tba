@@ -1,4 +1,4 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 import { waitForAppBoot } from "../helpers/app";
 import { loginAsAdmin, logout } from "../helpers/auth";
@@ -28,10 +28,8 @@ test.describe("undo redo", () => {
     );
 
     const undo = page.getByRole("button", { name: /undo last pin move/i });
-    if (await undo.isEnabled({ timeout: 5000 }).catch(() => false)) {
-      await undo.click();
-      await page.keyboard.press("Control+Z");
-    }
+    await expect(undo).toBeEnabled({ timeout: 10_000 });
+    await page.keyboard.press("Control+Z");
     await logout(page);
   });
 });
