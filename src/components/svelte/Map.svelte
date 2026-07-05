@@ -2247,9 +2247,405 @@
 
 <svelte:window onkeydown={handleMapEditKeydown} />
 
-<div class="map-container">
+<div class="map-shell">
+  <div class="map-container">
+    {#if eventPlacementStore.active}
+      <EventPlacementImageField />
+    {/if}
+    {#if mapStyle}
+      <MapLibre
+        bind:map={mapStore.mapInstance}
+        style={mapStyle}
+        maxBounds={CAMPUS_MAX_BOUNDS}
+        center={CAMPUS_DEFAULT_CAMERA.center}
+        zoom={17}
+        pitch={CAMPUS_DEFAULT_CAMERA.pitch}
+        bearing={CAMPUS_DEFAULT_CAMERA.bearing}
+        minZoom={13}
+        class="map"
+        attributionControl={false}
+      >
+        {#if locationStore.coords}
+          <Marker lngLat={locationStore.coords}>
+            <div class="user-location-pin"></div>
+          </Marker>
+        {/if}
+        {#if additionProposalStore.draftPin}
+          <Marker
+            lngLat={{
+              lng: additionProposalStore.draftPin.lon,
+              lat: additionProposalStore.draftPin.lat,
+            }}
+          >
+            <div class="addition-draft-pin" aria-hidden="true"></div>
+          </Marker>
+        {/if}
+        {#if loaded}
+          {#if editableEventLocation}
+            {@const editKey = eventLocationEditKey(
+              editableEventLocation.event.id,
+            )}
+            <Marker
+              lngLat={getEventMarkerLngLat(editableEventLocation)}
+              draggable={canDragPin(editKey)}
+              onclick={() =>
+                handleEventMarkerClick(editableEventLocation.event)}
+              ondragstart={() => beginMarkerDrag(editKey)}
+              ondragend={(e) =>
+                handleEventLocationDragEnd(
+                  e,
+                  editableEventLocation.event,
+                  editableEventLocation.location,
+                )}
+            >
+              <div class="event-marker-anchor event-edit-anchor">
+                <span class="event-anchor-dot event-edit-dot" aria-hidden="true"
+                ></span>
+                <div
+                  class="event-edit-pin"
+                  class:editing={selectedEditKey === editKey}
+                  class:hovered={hoveredEditKey === editKey}
+                  class:saving={savingEditKey === editKey}
+                  class:saved={savedEditKey === editKey}
+                  class:failed={failedEditKey === editKey}
+                  title={`Drag to move ${editableEventLocation.event.title}`}
+                  onpointerenter={() => handleEditablePinEnter(editKey)}
+                  onpointerleave={() => handleEditablePinLeave(editKey)}
+                >
+                  <span class="event-edit-icon" aria-hidden="true">
+                    <CalendarDays size={18} />
+                  </span>
+                  <span class="event-edit-copy">
+                    <span>{editableEventLocation.event.title}</span>
+                    {#if savingEditKey === editKey}
+                      <strong>Saving</strong>
+                    {:else if savedEditKey === editKey}
+                      <strong>Saved</strong>
+                    {:else if failedEditKey === editKey}
+                      <strong>Failed</strong>
+                    {:else}
+                      <strong>Drag location</strong>
+                    {/if}
+                  </span>
+                  <span class="event-edit-handle" aria-hidden="true">
+                    <Move size={16} />
+                  </span>
+                </div>
+              </div>
+            </Marker>
+          {/if}
+          {#each eventMarkerGroups as group (`event-group:${group.key}`)}
+            <Marker lngLat={group.lngLat}>
+              <div class="event-marker-anchor" class:anchored={group.anchored}>
+                <span class="event-anchor-connector" aria-hidden="true"></span>
+                <span class="event-anchor-dot" aria-hidden="true"></span>
+                <div class="event-callout" class:anchored={group.anchored}>
+                  {#if group.entries.length === 1}
+                    {@const entry = group.entries[0]}
+                    {#if entry}
+                      {@const image = getEventImage(
+                        entry.event.slug,
+                        entry.event.imageUrl,
+                        entry.event.title,
+                      )}
+                      {@const active = isSelectedEvent(entry.event)}
+                      {@const centralHoverPreview =
+                        shouldShowEntityHoverPreview()}
+                      {@const previewSuppressed =
+                        centralHoverPreview &&
+                        isEventHoverPreview(
+                          entityHoverPreviewStore.entity,
+                          entry.event.slug,
+                        )}
+                      <EventMapPin
+                        {active}
+                        useCentralHoverPreview={centralHoverPreview}
+                        {previewSuppressed}
+                        anchored={group.anchored}
+                        imageSrc={image?.src ?? null}
+                        dateLabel={formatEventMarkerDate(
+                          entry.event.occurrenceStartsAt,
+                        )}
+                        status={entry.event.status}
+                        title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
+                        ariaLabel={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
+                        labelTitle={entry.event.title}
+                        labelMeta={`${getEventStatusLabel(entry.event)} · ${formatEventMarkerDateTime(
+                          entry.event.occurrenceStartsAt,
+                        )}`}
+                        labelVisible={zoomLevel >= 17 || active}
+                        onclick={() => handleEventMarkerClick(entry.event)}
+                        onpointerenter={(event) =>
+                          handleEventPinPointerEnter(entry.event, event)}
+                        onpointerleave={handleEventPinPointerLeave}
+                      />
+                    {/if}
+                  {:else}
+                    {@const primaryEntry = group.entries[0]}
+                    {@const isExpanded = expandedEventGroupKey === group.key}
+                    {#if primaryEntry}
+                      {@const primaryImage = getEventImage(
+                        primaryEntry.event.slug,
+                        primaryEntry.event.imageUrl,
+                        primaryEntry.event.title,
+                      )}
+                      <EventMapPin
+                        variant="group"
+                        anchored={group.anchored}
+                        expanded={isExpanded}
+                        ariaExpanded={isExpanded}
+                        count={group.entries.length}
+                        imageSrc={primaryImage?.src ?? null}
+                        dateLabel={formatEventMarkerDate(
+                          primaryEntry.event.occurrenceStartsAt,
+                        )}
+                        status={primaryEntry.event.status}
+                        title={`${group.entries.length} events at ${group.label}`}
+                        ariaLabel={`${isExpanded ? "Collapse" : "Expand"} ${group.entries.length} events at ${group.label}`}
+                        onclick={() => toggleEventMarkerGroup(group.key)}
+                        onpointerenter={(event) =>
+                          handleEventPinPointerEnter(primaryEntry.event, event)}
+                        onpointerleave={handleEventPinPointerLeave}
+                      />
+                      {#if isExpanded}
+                        <div
+                          class="event-pin-stack"
+                          role="group"
+                          aria-label={`${group.entries.length} events at ${group.label}`}
+                          transition:fade
+                        >
+                          <div class="event-stack-header">
+                            <span class="event-stack-heading">
+                              <strong>{group.entries.length} events</strong>
+                              <span>{group.label}</span>
+                            </span>
+                            <button
+                              class="event-stack-close"
+                              type="button"
+                              aria-label={`Collapse events at ${group.label}`}
+                              onclick={collapseEventMarkerGroup}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                          <div class="event-stack-list">
+                            {#each group.entries as entry (`event-stack:${entry.event.id}:${entry.location.id}`)}
+                              {@const image = getEventImage(
+                                entry.event.slug,
+                                entry.event.imageUrl,
+                                entry.event.title,
+                              )}
+                              <button
+                                type="button"
+                                class="event-stack-item"
+                                class:active={isSelectedEvent(entry.event)}
+                                class:upcoming={entry.event.status ===
+                                  "upcoming"}
+                                title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
+                                aria-label={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
+                                onclick={() =>
+                                  handleEventMarkerClick(entry.event)}
+                              >
+                                {#if image}
+                                  <img
+                                    class="event-stack-thumb"
+                                    src={image.src}
+                                    alt=""
+                                  />
+                                {:else}
+                                  <span
+                                    class="event-stack-icon"
+                                    aria-hidden="true"
+                                  >
+                                    <CalendarDays size={14} />
+                                  </span>
+                                {/if}
+                                <span class="event-stack-copy">
+                                  <span class="event-stack-title"
+                                    >{entry.event.title}</span
+                                  >
+                                  <span class="event-stack-meta">
+                                    {formatEventMarkerDate(
+                                      entry.event.occurrenceStartsAt,
+                                    )}
+                                    at {formatEventMarkerTime(
+                                      entry.event.occurrenceStartsAt,
+                                    )}
+                                    - {getEventStatusLabel(entry.event)}
+                                  </span>
+                                </span>
+                              </button>
+                            {/each}
+                          </div>
+                        </div>
+                      {/if}
+                    {/if}
+                  {/if}
+                </div>
+              </div>
+            </Marker>
+          {/each}
+          {#each selectedEventRouteStops as stop (`event-stop:${stop.id}`)}
+            <Marker
+              lngLat={[Number(stop.resolvedLon), Number(stop.resolvedLat)]}
+            >
+              <div class="event-route-stop-pin" title={stop.resolvedLabel}>
+                <span>{stop.sortOrder + 1}</span>
+                <span class="event-route-stop-label" transition:fade>
+                  {stop.resolvedLabel}
+                </span>
+              </div>
+            </Marker>
+          {/each}
+        {/if}
+        {#if !mapViewStore.eventsOnly}
+          {#each filteredBuildings as building (`building:${building.id}`)}
+            {#if building.lat && building.lon}
+              {@const editKey = buildingEditKey(building.id)}
+              {@const position = getEditablePosition(editKey, {
+                lat: building.lat,
+                lon: building.lon,
+                version: getLoadedVersion(building.version),
+              })}
+              {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+              {@const previewSuppressed =
+                centralHoverPreview &&
+                isBuildingHoverPreview(
+                  entityHoverPreviewStore.entity,
+                  building.id,
+                )}
+              {#key `${editKey}:${canDragPin(editKey)}`}
+                <Marker
+                  lngLat={[position.lon, position.lat]}
+                  draggable={canDragPin(editKey)}
+                  onclick={() => handleMarkerClick(building.buildingName)}
+                  ondragstart={() => beginMarkerDrag(editKey)}
+                  ondragend={(e) =>
+                    handleBuildingDragEnd(
+                      e,
+                      building.id,
+                      building.buildingName,
+                      position,
+                    )}
+                >
+                  <MapEntityPin
+                    label={building.buildingName}
+                    active={activeBuildingName === building.buildingName}
+                    editable={canDragPin(editKey)}
+                    editing={selectedEditKey === editKey}
+                    dimmed={isBuildingDimmedForEventFocus(building.id)}
+                    eventLinked={isBuildingEventLinked(building.id)}
+                    hovered={hoveredEditKey === editKey}
+                    saveState={savingEditKey === editKey
+                      ? "saving"
+                      : savedEditKey === editKey
+                        ? "saved"
+                        : failedEditKey === editKey
+                          ? "failed"
+                          : "idle"}
+                    labelVisible={zoomLevel >= 17 ||
+                      activeBuildingName === building.buildingName}
+                    useCentralHoverPreview={centralHoverPreview}
+                    {previewSuppressed}
+                    onpointerenter={(event) =>
+                      handleBuildingPinPointerEnter(building, editKey, event)}
+                    onpointerleave={() =>
+                      handleBuildingPinPointerLeave(editKey)}
+                  >
+                    <University size="20" />
+                  </MapEntityPin>
+                </Marker>
+              {/key}
+            {/if}
+          {/each}
+        {/if}
+        {#if activeRouteId}
+          {#each activeRouteStops as stop, i (`${activeRouteId}-${i}-${stop.name}`)}
+            {@const isHovered = jeepneyStore.hoveredStopIndex === i}
+            {@const isSelected = jeepneyStore.selectedStopIndex === i}
+            <Marker lngLat={[stop.lon, stop.lat]}>
+              <button
+                type="button"
+                class="jeepney-stop-pin"
+                class:jeepney-stop-pin--hovered={isHovered}
+                class:jeepney-stop-pin--selected={isSelected}
+                style:--stop-color={activeRouteColor}
+                aria-label={`Jeepney stop ${i + 1}: ${stop.name}`}
+                aria-pressed={isSelected}
+                onclick={(event) => {
+                  event.stopPropagation();
+                  jeepneyStore.openStop(i);
+                }}
+                onmouseenter={() => jeepneyStore.setHoveredStop(i)}
+                onmouseleave={() => jeepneyStore.setHoveredStop(null)}
+                onfocus={() => jeepneyStore.setHoveredStop(i)}
+                onblur={() => jeepneyStore.setHoveredStop(null)}
+              >
+                <span class="stop-index" aria-hidden="true">{i + 1}</span>
+                <span class="stop-label" transition:fade>{stop.name}</span>
+              </button>
+            </Marker>
+          {/each}
+        {/if}
+
+        {#if !mapViewStore.eventsOnly}
+          {#each filteredDorms as dorm (`dorm:${dorm.id}`)}
+            {#if dorm.lat && dorm.lon}
+              {@const editKey = dormEditKey(dorm.id)}
+              {@const position = getEditablePosition(editKey, {
+                lat: dorm.lat,
+                lon: dorm.lon,
+                version: getLoadedVersion(dorm.version),
+              })}
+              {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+              {@const previewSuppressed =
+                centralHoverPreview &&
+                isDormHoverPreview(entityHoverPreviewStore.entity, dorm.id)}
+              {#key `${editKey}:${canDragPin(editKey)}`}
+                <Marker
+                  lngLat={[position.lon, position.lat]}
+                  draggable={canDragPin(editKey)}
+                  onclick={() => handleDormMarkerClick(dorm.dormName)}
+                  ondragstart={() => beginMarkerDrag(editKey)}
+                  ondragend={(e) =>
+                    handleDormDragEnd(e, dorm.id, dorm.dormName, position)}
+                >
+                  <MapEntityPin
+                    label={dorm.dormName}
+                    tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
+                    active={activeDormName === dorm.dormName}
+                    dimmed={isDormDimmedForEventFocus(dorm.id)}
+                    eventLinked={isDormEventLinked(dorm.id)}
+                    editable={canDragPin(editKey)}
+                    editing={selectedEditKey === editKey}
+                    hovered={hoveredEditKey === editKey}
+                    saveState={savingEditKey === editKey
+                      ? "saving"
+                      : savedEditKey === editKey
+                        ? "saved"
+                        : failedEditKey === editKey
+                          ? "failed"
+                          : "idle"}
+                    labelVisible={zoomLevel >= 17 ||
+                      activeDormName === dorm.dormName}
+                    useCentralHoverPreview={centralHoverPreview}
+                    {previewSuppressed}
+                    onpointerenter={(event) =>
+                      handleDormPinPointerEnter(dorm, editKey, event)}
+                    onpointerleave={() => handleDormPinPointerLeave(editKey)}
+                  >
+                    <House size="18" />
+                  </MapEntityPin>
+                </Marker>
+              {/key}
+            {/if}
+          {/each}
+        {/if}
+      </MapLibre>
+    {/if}
+  </div>
+
   {#if eventPlacementStore.active}
-    <EventPlacementImageField />
     {#if md.current}
       <div
         bind:this={editChromeEl}
@@ -2433,380 +2829,16 @@
       </div>
     {/if}
   {/if}
-  {#if mapStyle}
-    <MapLibre
-      bind:map={mapStore.mapInstance}
-      style={mapStyle}
-    maxBounds={CAMPUS_MAX_BOUNDS}
-    center={CAMPUS_DEFAULT_CAMERA.center}
-    zoom={17}
-    pitch={CAMPUS_DEFAULT_CAMERA.pitch}
-    bearing={CAMPUS_DEFAULT_CAMERA.bearing}
-    minZoom={13}
-    class="map"
-    attributionControl={false}
-  >
-    {#if locationStore.coords}
-      <Marker lngLat={locationStore.coords}>
-        <div class="user-location-pin"></div>
-      </Marker>
-    {/if}
-    {#if additionProposalStore.draftPin}
-      <Marker
-        lngLat={{
-          lng: additionProposalStore.draftPin.lon,
-          lat: additionProposalStore.draftPin.lat,
-        }}
-      >
-        <div class="addition-draft-pin" aria-hidden="true"></div>
-      </Marker>
-    {/if}
-    {#if loaded}
-      {#if editableEventLocation}
-        {@const editKey = eventLocationEditKey(editableEventLocation.event.id)}
-        <Marker
-          lngLat={getEventMarkerLngLat(editableEventLocation)}
-          draggable={canDragPin(editKey)}
-          onclick={() => handleEventMarkerClick(editableEventLocation.event)}
-          ondragstart={() => beginMarkerDrag(editKey)}
-          ondragend={(e) =>
-            handleEventLocationDragEnd(
-              e,
-              editableEventLocation.event,
-              editableEventLocation.location,
-            )}
-        >
-          <div class="event-marker-anchor event-edit-anchor">
-            <span class="event-anchor-dot event-edit-dot" aria-hidden="true"
-            ></span>
-            <div
-              class="event-edit-pin"
-              class:editing={selectedEditKey === editKey}
-              class:hovered={hoveredEditKey === editKey}
-              class:saving={savingEditKey === editKey}
-              class:saved={savedEditKey === editKey}
-              class:failed={failedEditKey === editKey}
-              title={`Drag to move ${editableEventLocation.event.title}`}
-              onpointerenter={() => handleEditablePinEnter(editKey)}
-              onpointerleave={() => handleEditablePinLeave(editKey)}
-            >
-              <span class="event-edit-icon" aria-hidden="true">
-                <CalendarDays size={18} />
-              </span>
-              <span class="event-edit-copy">
-                <span>{editableEventLocation.event.title}</span>
-                {#if savingEditKey === editKey}
-                  <strong>Saving</strong>
-                {:else if savedEditKey === editKey}
-                  <strong>Saved</strong>
-                {:else if failedEditKey === editKey}
-                  <strong>Failed</strong>
-                {:else}
-                  <strong>Drag location</strong>
-                {/if}
-              </span>
-              <span class="event-edit-handle" aria-hidden="true">
-                <Move size={16} />
-              </span>
-            </div>
-          </div>
-        </Marker>
-      {/if}
-      {#each eventMarkerGroups as group (`event-group:${group.key}`)}
-        <Marker lngLat={group.lngLat}>
-          <div class="event-marker-anchor" class:anchored={group.anchored}>
-            <span class="event-anchor-connector" aria-hidden="true"></span>
-            <span class="event-anchor-dot" aria-hidden="true"></span>
-            <div class="event-callout" class:anchored={group.anchored}>
-              {#if group.entries.length === 1}
-                {@const entry = group.entries[0]}
-                {#if entry}
-                  {@const image = getEventImage(
-                    entry.event.slug,
-                    entry.event.imageUrl,
-                    entry.event.title,
-                  )}
-                  {@const active = isSelectedEvent(entry.event)}
-                  {@const centralHoverPreview = shouldShowEntityHoverPreview()}
-                  {@const previewSuppressed =
-                    centralHoverPreview &&
-                    isEventHoverPreview(
-                      entityHoverPreviewStore.entity,
-                      entry.event.slug,
-                    )}
-                  <EventMapPin
-                    {active}
-                    useCentralHoverPreview={centralHoverPreview}
-                    {previewSuppressed}
-                    anchored={group.anchored}
-                    imageSrc={image?.src ?? null}
-                    dateLabel={formatEventMarkerDate(
-                      entry.event.occurrenceStartsAt,
-                    )}
-                    status={entry.event.status}
-                    title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
-                    ariaLabel={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
-                    labelTitle={entry.event.title}
-                    labelMeta={`${getEventStatusLabel(entry.event)} · ${formatEventMarkerDateTime(
-                      entry.event.occurrenceStartsAt,
-                    )}`}
-                    labelVisible={zoomLevel >= 17 || active}
-                    onclick={() => handleEventMarkerClick(entry.event)}
-                    onpointerenter={(event) =>
-                      handleEventPinPointerEnter(entry.event, event)}
-                    onpointerleave={handleEventPinPointerLeave}
-                  />
-                {/if}
-              {:else}
-                {@const primaryEntry = group.entries[0]}
-                {@const isExpanded = expandedEventGroupKey === group.key}
-                {#if primaryEntry}
-                  {@const primaryImage = getEventImage(
-                    primaryEntry.event.slug,
-                    primaryEntry.event.imageUrl,
-                    primaryEntry.event.title,
-                  )}
-                  <EventMapPin
-                    variant="group"
-                    anchored={group.anchored}
-                    expanded={isExpanded}
-                    ariaExpanded={isExpanded}
-                    count={group.entries.length}
-                    imageSrc={primaryImage?.src ?? null}
-                    dateLabel={formatEventMarkerDate(
-                      primaryEntry.event.occurrenceStartsAt,
-                    )}
-                    status={primaryEntry.event.status}
-                    title={`${group.entries.length} events at ${group.label}`}
-                    ariaLabel={`${isExpanded ? "Collapse" : "Expand"} ${group.entries.length} events at ${group.label}`}
-                    onclick={() => toggleEventMarkerGroup(group.key)}
-                    onpointerenter={(event) =>
-                      handleEventPinPointerEnter(primaryEntry.event, event)}
-                    onpointerleave={handleEventPinPointerLeave}
-                  />
-                  {#if isExpanded}
-                    <div
-                      class="event-pin-stack"
-                      role="group"
-                      aria-label={`${group.entries.length} events at ${group.label}`}
-                      transition:fade
-                    >
-                      <div class="event-stack-header">
-                        <span class="event-stack-heading">
-                          <strong>{group.entries.length} events</strong>
-                          <span>{group.label}</span>
-                        </span>
-                        <button
-                          class="event-stack-close"
-                          type="button"
-                          aria-label={`Collapse events at ${group.label}`}
-                          onclick={collapseEventMarkerGroup}
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                      <div class="event-stack-list">
-                        {#each group.entries as entry (`event-stack:${entry.event.id}:${entry.location.id}`)}
-                          {@const image = getEventImage(
-                            entry.event.slug,
-                            entry.event.imageUrl,
-                            entry.event.title,
-                          )}
-                          <button
-                            type="button"
-                            class="event-stack-item"
-                            class:active={isSelectedEvent(entry.event)}
-                            class:upcoming={entry.event.status === "upcoming"}
-                            title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
-                            aria-label={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
-                            onclick={() => handleEventMarkerClick(entry.event)}
-                          >
-                            {#if image}
-                              <img
-                                class="event-stack-thumb"
-                                src={image.src}
-                                alt=""
-                              />
-                            {:else}
-                              <span class="event-stack-icon" aria-hidden="true">
-                                <CalendarDays size={14} />
-                              </span>
-                            {/if}
-                            <span class="event-stack-copy">
-                              <span class="event-stack-title"
-                                >{entry.event.title}</span
-                              >
-                              <span class="event-stack-meta">
-                                {formatEventMarkerDate(
-                                  entry.event.occurrenceStartsAt,
-                                )}
-                                at {formatEventMarkerTime(
-                                  entry.event.occurrenceStartsAt,
-                                )}
-                                - {getEventStatusLabel(entry.event)}
-                              </span>
-                            </span>
-                          </button>
-                        {/each}
-                      </div>
-                    </div>
-                  {/if}
-                {/if}
-              {/if}
-            </div>
-          </div>
-        </Marker>
-      {/each}
-      {#each selectedEventRouteStops as stop (`event-stop:${stop.id}`)}
-        <Marker lngLat={[Number(stop.resolvedLon), Number(stop.resolvedLat)]}>
-          <div class="event-route-stop-pin" title={stop.resolvedLabel}>
-            <span>{stop.sortOrder + 1}</span>
-            <span class="event-route-stop-label" transition:fade>
-              {stop.resolvedLabel}
-            </span>
-          </div>
-        </Marker>
-      {/each}
-    {/if}
-    {#if !mapViewStore.eventsOnly}
-      {#each filteredBuildings as building (`building:${building.id}`)}
-        {#if building.lat && building.lon}
-          {@const editKey = buildingEditKey(building.id)}
-          {@const position = getEditablePosition(editKey, {
-            lat: building.lat,
-            lon: building.lon,
-            version: getLoadedVersion(building.version),
-          })}
-          {@const centralHoverPreview = shouldShowEntityHoverPreview()}
-          {@const previewSuppressed =
-            centralHoverPreview &&
-            isBuildingHoverPreview(entityHoverPreviewStore.entity, building.id)}
-          <Marker
-            lngLat={[position.lon, position.lat]}
-            draggable={canDragPin(editKey)}
-            onclick={() => handleMarkerClick(building.buildingName)}
-            ondragstart={() => beginMarkerDrag(editKey)}
-            ondragend={(e) =>
-              handleBuildingDragEnd(
-                e,
-                building.id,
-                building.buildingName,
-                position,
-              )}
-          >
-            <MapEntityPin
-              label={building.buildingName}
-              active={activeBuildingName === building.buildingName}
-              editable={canDragPin(editKey)}
-              editing={selectedEditKey === editKey}
-              dimmed={isBuildingDimmedForEventFocus(building.id)}
-              eventLinked={isBuildingEventLinked(building.id)}
-              hovered={hoveredEditKey === editKey}
-              saveState={savingEditKey === editKey
-                ? "saving"
-                : savedEditKey === editKey
-                  ? "saved"
-                  : failedEditKey === editKey
-                    ? "failed"
-                    : "idle"}
-              labelVisible={zoomLevel >= 17 ||
-                activeBuildingName === building.buildingName}
-              useCentralHoverPreview={centralHoverPreview}
-              {previewSuppressed}
-              onpointerenter={(event) =>
-                handleBuildingPinPointerEnter(building, editKey, event)}
-              onpointerleave={() => handleBuildingPinPointerLeave(editKey)}
-            >
-              <University size="20" />
-            </MapEntityPin>
-          </Marker>
-        {/if}
-      {/each}
-    {/if}
-    {#if activeRouteId}
-      {#each activeRouteStops as stop, i (`${activeRouteId}-${i}-${stop.name}`)}
-        {@const isHovered = jeepneyStore.hoveredStopIndex === i}
-        {@const isSelected = jeepneyStore.selectedStopIndex === i}
-        <Marker lngLat={[stop.lon, stop.lat]}>
-          <button
-            type="button"
-            class="jeepney-stop-pin"
-            class:jeepney-stop-pin--hovered={isHovered}
-            class:jeepney-stop-pin--selected={isSelected}
-            style:--stop-color={activeRouteColor}
-            aria-label={`Jeepney stop ${i + 1}: ${stop.name}`}
-            aria-pressed={isSelected}
-            onclick={(event) => {
-              event.stopPropagation();
-              jeepneyStore.openStop(i);
-            }}
-            onmouseenter={() => jeepneyStore.setHoveredStop(i)}
-            onmouseleave={() => jeepneyStore.setHoveredStop(null)}
-            onfocus={() => jeepneyStore.setHoveredStop(i)}
-            onblur={() => jeepneyStore.setHoveredStop(null)}
-          >
-            <span class="stop-index" aria-hidden="true">{i + 1}</span>
-            <span class="stop-label" transition:fade>{stop.name}</span>
-          </button>
-        </Marker>
-      {/each}
-    {/if}
-
-    {#if !mapViewStore.eventsOnly}
-      {#each filteredDorms as dorm (`dorm:${dorm.id}`)}
-        {#if dorm.lat && dorm.lon}
-          {@const editKey = dormEditKey(dorm.id)}
-          {@const position = getEditablePosition(editKey, {
-            lat: dorm.lat,
-            lon: dorm.lon,
-            version: getLoadedVersion(dorm.version),
-          })}
-          {@const centralHoverPreview = shouldShowEntityHoverPreview()}
-          {@const previewSuppressed =
-            centralHoverPreview &&
-            isDormHoverPreview(entityHoverPreviewStore.entity, dorm.id)}
-          <Marker
-            lngLat={[position.lon, position.lat]}
-            draggable={canDragPin(editKey)}
-            onclick={() => handleDormMarkerClick(dorm.dormName)}
-            ondragstart={() => beginMarkerDrag(editKey)}
-            ondragend={(e) =>
-              handleDormDragEnd(e, dorm.id, dorm.dormName, position)}
-          >
-            <MapEntityPin
-              label={dorm.dormName}
-              tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
-              active={activeDormName === dorm.dormName}
-              dimmed={isDormDimmedForEventFocus(dorm.id)}
-              eventLinked={isDormEventLinked(dorm.id)}
-              editable={canDragPin(editKey)}
-              editing={selectedEditKey === editKey}
-              hovered={hoveredEditKey === editKey}
-              saveState={savingEditKey === editKey
-                ? "saving"
-                : savedEditKey === editKey
-                  ? "saved"
-                  : failedEditKey === editKey
-                    ? "failed"
-                    : "idle"}
-              labelVisible={zoomLevel >= 17 || activeDormName === dorm.dormName}
-              useCentralHoverPreview={centralHoverPreview}
-              {previewSuppressed}
-              onpointerenter={(event) =>
-                handleDormPinPointerEnter(dorm, editKey, event)}
-              onpointerleave={() => handleDormPinPointerLeave(editKey)}
-            >
-              <House size="18" />
-            </MapEntityPin>
-          </Marker>
-        {/if}
-      {/each}
-    {/if}
-  </MapLibre>
-  {/if}
 </div>
 
 <style>
+  .map-shell {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .map-container {
     position: fixed;
     top: 0;
@@ -2814,6 +2846,14 @@
     width: 100%;
     height: 100%;
     z-index: 0;
+    pointer-events: auto;
+  }
+
+  .map-shell :global(.edit-dock),
+  .map-shell :global(.map-edit-toolbar),
+  .map-shell :global(.event-placement-toolbar) {
+    pointer-events: auto;
+    z-index: 18;
   }
 
   .map-edit-toolbar {

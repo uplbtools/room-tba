@@ -23,3 +23,7 @@ exportLine(
   "ADMIN_SESSION_SECRET",
   process.env.E2E_ADMIN_SESSION_SECRET ?? process.env.ADMIN_SESSION_SECRET,
 );
+exportLine("PUBLIC_MAPTILER_KEY", process.env.PUBLIC_MAPTILER_KEY);
+if (process.env.ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === "1") {
+  process.stdout.write(`export ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT=1\n`);
+}
