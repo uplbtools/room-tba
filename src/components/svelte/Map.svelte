@@ -2681,45 +2681,47 @@
           {@const previewSuppressed =
             centralHoverPreview &&
             isBuildingHoverPreview(entityHoverPreviewStore.entity, building.id)}
-          <Marker
-            lngLat={[position.lon, position.lat]}
-            draggable={canDragPin(editKey)}
-            onclick={() => handleMarkerClick(building.buildingName)}
-            ondragstart={() => beginMarkerDrag(editKey)}
-            ondragend={(e) =>
-              handleBuildingDragEnd(
-                e,
-                building.id,
-                building.buildingName,
-                position,
-              )}
-          >
-            <MapEntityPin
-              label={building.buildingName}
-              active={activeBuildingName === building.buildingName}
-              editable={canDragPin(editKey)}
-              editing={selectedEditKey === editKey}
-              dimmed={isBuildingDimmedForEventFocus(building.id)}
-              eventLinked={isBuildingEventLinked(building.id)}
-              hovered={hoveredEditKey === editKey}
-              saveState={savingEditKey === editKey
-                ? "saving"
-                : savedEditKey === editKey
-                  ? "saved"
-                  : failedEditKey === editKey
-                    ? "failed"
-                    : "idle"}
-              labelVisible={zoomLevel >= 17 ||
-                activeBuildingName === building.buildingName}
-              useCentralHoverPreview={centralHoverPreview}
-              {previewSuppressed}
-              onpointerenter={(event) =>
-                handleBuildingPinPointerEnter(building, editKey, event)}
-              onpointerleave={() => handleBuildingPinPointerLeave(editKey)}
+          {#key `${editKey}:${canDragPin(editKey)}`}
+            <Marker
+              lngLat={[position.lon, position.lat]}
+              draggable={canDragPin(editKey)}
+              onclick={() => handleMarkerClick(building.buildingName)}
+              ondragstart={() => beginMarkerDrag(editKey)}
+              ondragend={(e) =>
+                handleBuildingDragEnd(
+                  e,
+                  building.id,
+                  building.buildingName,
+                  position,
+                )}
             >
-              <University size="20" />
-            </MapEntityPin>
-          </Marker>
+              <MapEntityPin
+                label={building.buildingName}
+                active={activeBuildingName === building.buildingName}
+                editable={canDragPin(editKey)}
+                editing={selectedEditKey === editKey}
+                dimmed={isBuildingDimmedForEventFocus(building.id)}
+                eventLinked={isBuildingEventLinked(building.id)}
+                hovered={hoveredEditKey === editKey}
+                saveState={savingEditKey === editKey
+                  ? "saving"
+                  : savedEditKey === editKey
+                    ? "saved"
+                    : failedEditKey === editKey
+                      ? "failed"
+                      : "idle"}
+                labelVisible={zoomLevel >= 17 ||
+                  activeBuildingName === building.buildingName}
+                useCentralHoverPreview={centralHoverPreview}
+                {previewSuppressed}
+                onpointerenter={(event) =>
+                  handleBuildingPinPointerEnter(building, editKey, event)}
+                onpointerleave={() => handleBuildingPinPointerLeave(editKey)}
+              >
+                <University size="20" />
+              </MapEntityPin>
+            </Marker>
+          {/key}
         {/if}
       {/each}
     {/if}
@@ -2765,40 +2767,42 @@
           {@const previewSuppressed =
             centralHoverPreview &&
             isDormHoverPreview(entityHoverPreviewStore.entity, dorm.id)}
-          <Marker
-            lngLat={[position.lon, position.lat]}
-            draggable={canDragPin(editKey)}
-            onclick={() => handleDormMarkerClick(dorm.dormName)}
-            ondragstart={() => beginMarkerDrag(editKey)}
-            ondragend={(e) =>
-              handleDormDragEnd(e, dorm.id, dorm.dormName, position)}
-          >
-            <MapEntityPin
-              label={dorm.dormName}
-              tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
-              active={activeDormName === dorm.dormName}
-              dimmed={isDormDimmedForEventFocus(dorm.id)}
-              eventLinked={isDormEventLinked(dorm.id)}
-              editable={canDragPin(editKey)}
-              editing={selectedEditKey === editKey}
-              hovered={hoveredEditKey === editKey}
-              saveState={savingEditKey === editKey
-                ? "saving"
-                : savedEditKey === editKey
-                  ? "saved"
-                  : failedEditKey === editKey
-                    ? "failed"
-                    : "idle"}
-              labelVisible={zoomLevel >= 17 || activeDormName === dorm.dormName}
-              useCentralHoverPreview={centralHoverPreview}
-              {previewSuppressed}
-              onpointerenter={(event) =>
-                handleDormPinPointerEnter(dorm, editKey, event)}
-              onpointerleave={() => handleDormPinPointerLeave(editKey)}
+          {#key `${editKey}:${canDragPin(editKey)}`}
+            <Marker
+              lngLat={[position.lon, position.lat]}
+              draggable={canDragPin(editKey)}
+              onclick={() => handleDormMarkerClick(dorm.dormName)}
+              ondragstart={() => beginMarkerDrag(editKey)}
+              ondragend={(e) =>
+                handleDormDragEnd(e, dorm.id, dorm.dormName, position)}
             >
-              <House size="18" />
-            </MapEntityPin>
-          </Marker>
+              <MapEntityPin
+                label={dorm.dormName}
+                tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
+                active={activeDormName === dorm.dormName}
+                dimmed={isDormDimmedForEventFocus(dorm.id)}
+                eventLinked={isDormEventLinked(dorm.id)}
+                editable={canDragPin(editKey)}
+                editing={selectedEditKey === editKey}
+                hovered={hoveredEditKey === editKey}
+                saveState={savingEditKey === editKey
+                  ? "saving"
+                  : savedEditKey === editKey
+                    ? "saved"
+                    : failedEditKey === editKey
+                      ? "failed"
+                      : "idle"}
+                labelVisible={zoomLevel >= 17 || activeDormName === dorm.dormName}
+                useCentralHoverPreview={centralHoverPreview}
+                {previewSuppressed}
+                onpointerenter={(event) =>
+                  handleDormPinPointerEnter(dorm, editKey, event)}
+                onpointerleave={() => handleDormPinPointerLeave(editKey)}
+              >
+                <House size="18" />
+              </MapEntityPin>
+            </Marker>
+          {/key}
         {/if}
       {/each}
     {/if}

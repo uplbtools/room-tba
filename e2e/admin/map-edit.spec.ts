@@ -1,8 +1,13 @@
 import { test } from "@playwright/test";
+import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 import { waitForAppBoot } from "../helpers/app";
 import { loginAsAdmin, logout } from "../helpers/auth";
+import {
+  enableMapEdit,
+  expectPinDragSave,
+  waitForEntityPin,
+} from "../helpers/map";
 import { openBuilding, openDorm } from "../helpers/search";
-import { dragFirstMapMarker, enableMapEdit } from "../helpers/map";
 
 test.describe("map edit", () => {
   test.slow();
@@ -20,15 +25,19 @@ test.describe("map edit", () => {
 
   test("building pin drag saves coordinates", async ({ page }) => {
     await openBuilding(page);
-    await enableMapEdit(page);
-    const saved = await dragFirstMapMarker(page, "/api/admin/buildings/");
-    test.skip(!saved, "Pin drag did not trigger PATCH");
+    await waitForEntityPin(page, E2E_FIXTURES.buildingName);
+    await enableMapEdit(page, "building");
+    await expectPinDragSave(
+      page,
+      E2E_FIXTURES.buildingName,
+      "/api/admin/buildings/",
+    );
   });
 
   test("dorm pin drag saves coordinates", async ({ page }) => {
     await openDorm(page);
-    await enableMapEdit(page);
-    const saved = await dragFirstMapMarker(page, "/api/admin/dorms/");
-    test.skip(!saved, "Dorm pin drag did not trigger PATCH");
+    await waitForEntityPin(page, E2E_FIXTURES.dormName);
+    await enableMapEdit(page, "dorm");
+    await expectPinDragSave(page, E2E_FIXTURES.dormName, "/api/admin/dorms/");
   });
 });
