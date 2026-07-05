@@ -530,11 +530,16 @@ export async function submitEntityProposal(input: {
     }
   }
 
+  const proposalId =
+    input.proposalId ??
+    getStoredProposalForEntity(input.entityType, input.entityId)?.id ??
+    null;
+
   const res = await fetch("/api/proposals", {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify({ ...input, proposalId }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

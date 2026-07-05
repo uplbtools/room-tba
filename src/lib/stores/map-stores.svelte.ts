@@ -120,13 +120,22 @@ export class TerrainStore {
 
 export class Building3DStore {
   buildingName: string | null = $state(null);
+  initialRoomCode: string | null = $state(null);
+  initialEditMode: boolean = $state(false);
 
-  open = (name: string) => {
+  open = (
+    name: string,
+    options?: { roomCode?: string; editMode?: boolean },
+  ) => {
     dismissEphemeralOverlays();
     this.buildingName = name;
+    this.initialRoomCode = options?.roomCode ?? null;
+    this.initialEditMode = options?.editMode ?? false;
   };
 
   close = () => {
     this.buildingName = null;
+    this.initialRoomCode = null;
+    this.initialEditMode = false;
   };
 }

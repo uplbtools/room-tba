@@ -13,6 +13,7 @@
     type GithubContributor,
   } from "@lib/github-contributors";
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
+  import LeaderboardPanel from "@ui/status-bar/LeaderboardPanel.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
   import ContributorProgressPanel from "@ui/status-bar/ContributorProgressPanel.svelte";
@@ -246,16 +247,12 @@
           />
         </section>
 
-        <section class="people-block">
-          <h3>Campus editors &amp; contributors</h3>
+        <section class="leaderboard-block">
+          <h3>Campus contributor leaderboard</h3>
           <p class="section-note">
-            Students who verify rooms and events on campus (manual credits, not
-            from GitHub commits).
+            Top volunteers helping map the campus and verify room schedules.
           </p>
-          <PeopleAvatarGrid
-            people={campusContributorPeople}
-            imageFolder="contributors"
-          />
+          <LeaderboardPanel />
         </section>
       </div>
     {/if}

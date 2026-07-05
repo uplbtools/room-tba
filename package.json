@@ -48,6 +48,7 @@
     "release:dry": "semantic-release --dry-run"
   },
   "dependencies": {
+    "@astrojs/check": "^0.9.9",
     "@astrojs/node": "^11.0.0",
     "@astrojs/svelte": "^9.0.0",
     "@astrojs/vercel": "^11.0.0",

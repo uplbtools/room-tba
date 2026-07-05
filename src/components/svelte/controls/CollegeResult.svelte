@@ -6,6 +6,7 @@
     termStore,
   } from "@lib/store.svelte";
   import {
+    getStoredProposalForEntity,
     persistEntityChange,
     mergeEntityRecord,
   } from "@lib/proposals/client";
@@ -21,6 +22,7 @@
   import type { CollegeData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import { getCollegeShareUrl } from "@lib/share-links";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
@@ -66,6 +68,8 @@
   let saved = $state(false);
   let fieldError = $state<string | null>(null);
   let submitterNameDraft = $state("");
+  let activeProposalId = $state<number | null>(null);
+  let proposalStatus = $state<string | null>(null);
   let mergePrompt = $state<{
     candidate: CollegeData;
     attemptedName: string;
@@ -136,6 +140,10 @@
     saved = false;
     fieldError = null;
     mergePrompt = null;
+    proposalStatus = null;
+    const stored = getStoredProposalForEntity("college", current.id);
+    activeProposalId = stored?.id ?? null;
+    if (stored) proposalStatus = stored.status;
 
     if (!canPublish) {
       const savedDraft = readEntityContributorDraft("college", current.id);
@@ -191,6 +199,7 @@
           adminAuthStore.displayName ??
           adminAuthStore.username ??
           submitterNameDraft,
+        proposalId: activeProposalId,
       });
 
       const outcome = handlePersistEntityResult<CollegeData>(result, {
@@ -212,17 +221,21 @@
         return;
       }
 
-      if (!outcome.published) {
+      if (outcome.proposal) {
+        activeProposalId = outcome.proposal.id;
+        proposalStatus = outcome.proposal.status;
         clearEntityContributorDraft("college", current.id);
         toastStore.show(
           "College name suggestion submitted for review.",
           "success",
         );
       }
-      saved = true;
-      setTimeout(() => {
-        saved = false;
-      }, 1800);
+      if (outcome.published) {
+        saved = true;
+        setTimeout(() => {
+          saved = false;
+        }, 1800);
+      }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
       fieldError = `${current.collegeName} failed to save: ${reason}`;
@@ -285,6 +298,9 @@
       value: divisionName,
     });
   }
+  const allFieldsUnchanged = $derived.by(() => {
+    return nameDraft.trim() === (college?.collegeName ?? "");
+  });
 </script>
 
 <div class="entity-detail college-query-wrapper">
@@ -306,6 +322,12 @@
       </div>
     </header>
 
+    <EntityLastUpdated
+      updatedAt={college.updatedAt}
+      entityType="college"
+      entityId={college.id}
+    />
+
     {#if editing}
       <section class="entity-editor" aria-label="Edit college details">
         <EntityEditorPanel
@@ -313,10 +335,19 @@
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="college-submitter-name"
           bind:submitterName={submitterNameDraft}
+          {proposalStatus}
+          {activeProposalId}
+          onWithdrawn={() => {
+            activeProposalId = null;
+            proposalStatus = null;
+          }}
+          onsubmit={saveName}
+          submitting={saving}
+          submitDisabled={allFieldsUnchanged}
           successMessage={saved
             ? entityEditorSavedMessage({
                 canPublish,
-                savedFieldLabel: "College name",
+                savedFieldLabel: "Name",
               })
             : null}
           errorMessage={fieldError}
