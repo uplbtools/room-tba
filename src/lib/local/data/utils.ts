@@ -1,4 +1,4 @@
-import { type DBData } from "@lib/context";
+import type { DBData } from "@lib/context";
 import type {
   BuildingData,
   ClassMapValue,
@@ -353,7 +353,16 @@ export function getEntity<T>(
   getLocalEntity: () => Promise<T[] | undefined>,
 ): (checker: TableSyncInfo) => Promise<EntityLoadResult<T>> {
   return async (checker: TableSyncInfo) => {
-    const local = async () => (await getLocalEntity()) ?? [];
+    // local() never throws: a broken PGlite must not take down the whole
+    // load path — every branch below relies on it as the safe fallback.
+    const local = async () => {
+      try {
+        return (await getLocalEntity()) ?? [];
+      } catch {
+        return [];
+      }
+    };
+    const initialSnapshot: T[] = await local();
     // Offline (sync endpoint unreachable): prefer stale local cache over
     // failing to remote. Only treat invalid checker as "must refetch" when
     // we actually got a newKey back (confirmed sync mismatch) (#169).
@@ -381,7 +390,11 @@ export function getEntity<T>(
       return { rows: cached, source: "cache" };
     } catch {
       const cached = await local();
-      return { rows: cached, source: "cache" };
+      // if cache is gone, return the snapshot taken before the fetch
+      return {
+        rows: cached.length > 0 ? cached : initialSnapshot,
+        source: "cache",
+      };
     }
   };
 }
