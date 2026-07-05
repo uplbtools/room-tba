@@ -9,8 +9,9 @@ import {
   roomsTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
-import { type SessionUser } from "@lib/admin/auth";
 import { validateSubmitterName } from "@constants/proposals";
+import { type SessionUser } from "@lib/admin/auth";
+import { recordProposalContribution } from "./contribution-service";
 import { parseEventImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
 import {
@@ -313,7 +314,7 @@ export function toSubmitterProposalView(
     submitterName: summary.submitterName,
   };
 }
-async function withEntityLabel(
+export async function withEntityLabel(
   row: EditProposalRow,
 ): Promise<EditProposalSummary> {
   return {
@@ -742,7 +743,9 @@ export async function approveProposal(id: number, reviewer: SessionUser) {
 
   try {
     const published = await applyProposalPatch(claimed, reviewedBy);
-    return { proposal: await withEntityLabel(claimed), published };
+    const proposal = await withEntityLabel(claimed);
+    await recordProposalContribution(proposal);
+    return { proposal, published };
   } catch (err) {
     await db
       .update(editProposalsTable)
