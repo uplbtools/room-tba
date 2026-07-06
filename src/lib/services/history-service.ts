@@ -134,6 +134,15 @@ export async function revertToHistoryEntry({
 
   const history = { action: "revert", summary };
   const input = pickRevertInput(entry.entityType, snapshot);
+  // Room snapshots come from getRoomById (RoomData), which exposes the room
+  // code as `code`, not `roomCode` — map it or code changes never restore.
+  if (
+    entry.entityType === "room" &&
+    input.roomCode === undefined &&
+    typeof snapshot.code === "string"
+  ) {
+    input.roomCode = snapshot.code;
+  }
   if (Object.keys(input).length === 0) {
     throw new HistoryRevertError("Nothing restorable in this snapshot.");
   }

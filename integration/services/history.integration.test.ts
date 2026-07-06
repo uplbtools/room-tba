@@ -69,6 +69,63 @@ describeIntegration("editor history revert integration", () => {
     expect(latest.summary).toBe("integration revert test");
   });
 
+  test("room revert restores the room code (snapshot stores it as `code`)", async () => {
+    const { updateRoom } = await import("@lib/services/admin-service");
+    const { getEntityHistory, revertToHistoryEntry } = await import(
+      "@lib/services/history-service"
+    );
+
+    const room = await client.query<{
+      id: number;
+      room_code: string;
+      version: number;
+    }>(`SELECT id, room_code, version FROM rooms ORDER BY id LIMIT 1`);
+    const roomId = room.rows[0]?.id ?? 0;
+    const originalCode = room.rows[0]?.room_code ?? "";
+    const roomVersion = room.rows[0]?.version ?? 1;
+    expect(roomId).toBeGreaterThan(0);
+
+    // Two renames so an entry exists whose after-snapshot holds -H1.
+    const firstRename = await updateRoom(
+      roomId,
+      { roomCode: `${originalCode}-H1` },
+      roomVersion,
+      "e2e-admin",
+    );
+    expect(firstRename?.code).toBe(`${originalCode}-H1`);
+    const secondRename = await updateRoom(
+      roomId,
+      { roomCode: `${originalCode}-H2` },
+      firstRename?.version,
+      "e2e-admin",
+    );
+    expect(secondRename?.code).toBe(`${originalCode}-H2`);
+
+    const entries = await getEntityHistory("room", roomId);
+    const target = entries.find(
+      (entry) =>
+        (entry.after as { code?: string })?.code === `${originalCode}-H1`,
+    );
+    expect(target).toBeTruthy();
+
+    const restored = (await revertToHistoryEntry({
+      historyId: target?.id ?? 0,
+      expectedVersion: secondRename?.version ?? 0,
+      editedBy: "e2e-admin",
+      summary: "restore earlier room code",
+    })) as { code?: string; version?: number } | null;
+    expect(restored?.code).toBe(`${originalCode}-H1`);
+
+    // Leave the shared fixture as we found it.
+    const cleanup = await updateRoom(
+      roomId,
+      { roomCode: originalCode },
+      restored?.version,
+      "e2e-admin",
+    );
+    expect(cleanup?.code).toBe(originalCode);
+  });
+
   test("revert with stale expectedVersion throws EditConflictError", async () => {
     const { EditConflictError } = await import("@lib/services/admin-service");
     const { getEntityHistory, revertToHistoryEntry } = await import(
