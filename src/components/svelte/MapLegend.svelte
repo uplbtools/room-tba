@@ -55,6 +55,11 @@
       label: "Jeepney stop",
       description: "Stop on a jeepney route.",
     },
+    {
+      key: "schedule-stop",
+      label: "Schedule stop",
+      description: "Class stop from a routed schedule.",
+    },
   ] as const;
 
   const eventItems = [
@@ -396,6 +401,10 @@
 
   .legend-swatch.jeepney-stop {
     background-color: #dc2626;
+  }
+
+  .legend-swatch.schedule-stop {
+    background-color: #2563eb;
   }
 
   .legend-swatch.event-active {
