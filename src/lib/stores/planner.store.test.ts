@@ -28,7 +28,7 @@ describe("PlannerStore", () => {
     return store;
   };
 
-  test("addOffering creates plan A and adds LEC+LAB together, deduped", () => {
+  test("addOffering creates first plan and adds LEC+LAB together, deduped", () => {
     const store = makeStore();
     const rows = [
       row({}),
@@ -36,7 +36,7 @@ describe("PlannerStore", () => {
     ];
     store.addOffering(rows);
     store.addOffering(rows);
-    expect(store.activePlan?.label).toBe("A");
+    expect(store.activePlan?.label).toBe("Plan 1");
     expect(store.activePlan?.sections).toHaveLength(2);
     expect(store.addedKeys.has("CMSC 128::AB-1L")).toBe(true);
   });
@@ -55,15 +55,15 @@ describe("PlannerStore", () => {
     expect(store.plans).toEqual([]);
   });
 
-  test("plans are per term and labels cycle A, B", () => {
+  test("plans are per term and labels count up Plan 1, Plan 2", () => {
     const store = makeStore();
     store.addOffering([row({})]);
     const planB = store.createPlan();
-    expect(planB?.label).toBe("B");
+    expect(planB?.label).toBe("Plan 2");
     expect(store.activePlan?.id).toBe(planB?.id);
     expect(store.plansForTerm).toHaveLength(2);
     store.addOffering([row({ id: 3, termId: 1253, courseCode: "MATH 27" })]);
-    expect(store.plans.find((p) => p.termId === 1253)?.label).toBe("A");
+    expect(store.plans.find((p) => p.termId === 1253)?.label).toBe("Plan 1");
     expect(store.plansForTerm).toHaveLength(2); // active term still 1252
   });
 
@@ -99,7 +99,7 @@ describe("PlannerStore", () => {
 
     const rehydrated = makeStore();
     expect(rehydrated.activePlan?.sections).toHaveLength(1);
-    expect(rehydrated.activePlan?.label).toBe("A");
+    expect(rehydrated.activePlan?.label).toBe("Plan 1");
   });
 
   test("importShared creates and selects a new plan", () => {
@@ -116,7 +116,7 @@ describe("PlannerStore", () => {
       },
     ]);
     expect(store.activePlan?.id).toBe(imported.id);
-    expect(imported.label).toBe("B");
+    expect(imported.label).toBe("Plan 2");
   });
 
   test("refreshActivePlan updates matches and marks misses stale", () => {

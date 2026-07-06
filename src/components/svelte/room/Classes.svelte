@@ -44,7 +44,7 @@
     } else {
       plannerStore.addOffering(group.sections);
       toastStore.show(
-        `${group.courseCode} ${group.section} added to plan ${plannerStore.activePlan?.label ?? ""}`.trim(),
+        `${group.courseCode} ${group.section} added to ${plannerStore.activePlan?.label ?? "plan"}`,
         "success",
       );
     }

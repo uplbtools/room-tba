@@ -43,13 +43,12 @@ describe("PlannerScreen", () => {
     plannerStore.open = true;
   });
 
-  test("renders as a dialog with an empty state", () => {
+  test("renders as a dialog with course search and an empty grid", () => {
     render(PlannerScreen);
     expect(screen.getByRole("dialog")).toBeTruthy();
-    expect(screen.getByText(/No classes in this plan yet/)).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: /Browse classes/i }),
-    ).toBeVisible();
+    expect(screen.getByPlaceholderText(/Search courses/i)).toBeVisible();
+    expect(document.querySelector(".planner-grid")).toBeTruthy();
+    expect(document.querySelectorAll(".planner-block")).toHaveLength(0);
   });
 
   test("renders grid blocks and section list for a seeded plan", () => {
@@ -95,6 +94,9 @@ describe("PlannerScreen", () => {
     plannerStore.createPlan();
     render(PlannerScreen);
     const tabs = screen.getAllByRole("tab");
-    expect(tabs.map((t) => t.textContent?.trim())).toEqual(["A", "B"]);
+    expect(tabs.map((t) => t.textContent?.trim())).toEqual([
+      "Plan 1",
+      "Plan 2",
+    ]);
   });
 });

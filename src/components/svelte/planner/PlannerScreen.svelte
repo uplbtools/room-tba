@@ -6,17 +6,16 @@
   import {
     plannerStore,
     queryStore,
-    sidePanelStore,
     termStore,
     toastStore,
   } from "@lib/store.svelte";
-  import { openBrowseClasses } from "@lib/browse-campus";
   import { fetchClassPage } from "@lib/classes-api";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import { isUnscheduled } from "@lib/planner/conflicts";
   import { buildPlanIcs } from "@lib/planner/ics";
   import { encodeSharePlan } from "@lib/planner/share-codec";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
+  import PlannerCourseSearch from "./PlannerCourseSearch.svelte";
   import PlannerGrid from "./PlannerGrid.svelte";
   import type { FinalExamRow } from "@lib/types";
   import { MediaQuery } from "svelte/reactivity";
@@ -83,11 +82,6 @@
     close();
   }
 
-  function browseClasses() {
-    close();
-    openBrowseClasses(queryStore, sidePanelStore);
-  }
-
   async function copyShareLink() {
     if (!plan) return;
     const url = `${location.origin}/?plan=${encodeSharePlan(plan)}`;
@@ -110,14 +104,14 @@
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `planner-${plan.label}-${plan.termId}.ics`;
+    link.download = `${plan.label.toLowerCase().replaceAll(" ", "-")}-${plan.termId}.ics`;
     link.click();
     URL.revokeObjectURL(url);
   }
 
   function deleteActivePlan() {
     if (!plan) return;
-    if (!window.confirm(`Delete plan ${plan.label}?`)) return;
+    if (!window.confirm(`Delete ${plan.label}?`)) return;
     plannerStore.deletePlan(plan.id);
   }
 
@@ -224,7 +218,7 @@
           type="button"
           class="planner-tab planner-tab--delete"
           onclick={deleteActivePlan}
-          aria-label="Delete plan {plan.label}"
+          aria-label="Delete {plan.label}"
         >
           Delete
         </button>
@@ -246,22 +240,20 @@
       {/if}
     </div>
 
-    <div class="planner-body">
-      {#if !plan || plan.sections.length === 0}
-        <div class="planner-empty">
-          <p>No classes in this plan yet.</p>
-          <button type="button" class="planner-browse" onclick={browseClasses}>
-            Browse classes
-          </button>
-        </div>
-      {:else}
-        <PlannerGrid
-          sections={plan.sections}
-          conflicts={plannerStore.conflicts}
-          onremove={plannerStore.removeOffering}
-          onopenroom={openRoom}
-        />
+    <div
+      class="planner-body"
+      class:planner-body--no-side={!plan || plan.sections.length === 0}
+    >
+      <PlannerCourseSearch />
 
+      <PlannerGrid
+        sections={plan?.sections ?? []}
+        conflicts={plannerStore.conflicts}
+        onremove={plannerStore.removeOffering}
+        onopenroom={openRoom}
+      />
+
+      {#if plan && plan.sections.length > 0}
         <section class="planner-side" aria-label="Plan details">
           <h2 class="planner-side__heading">
             Sections ({offerings.length})
@@ -472,46 +464,21 @@
     overscroll-behavior: contain;
     padding: 0.625rem 0.625rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 18rem;
+    grid-template-columns: 17rem minmax(0, 1fr) 18rem;
     gap: 0.75rem;
     align-content: start;
     -webkit-overflow-scrolling: touch;
   }
 
+  .planner-body--no-side {
+    grid-template-columns: 17rem minmax(0, 1fr);
+  }
+
   @media (max-width: 48rem) {
-    .planner-body {
+    .planner-body,
+    .planner-body--no-side {
       grid-template-columns: minmax(0, 1fr);
     }
-  }
-
-  .planner-empty {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 3rem 1rem;
-    color: hsl(0, 0%, 40%);
-  }
-
-  .planner-empty p {
-    margin: 0;
-  }
-
-  .planner-browse {
-    all: unset;
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    background: hsl(5, 53%, 32%);
-    color: white;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .planner-browse:hover,
-  .planner-browse:focus-visible {
-    background: hsl(5, 53%, 26%);
   }
 
   .planner-side {
