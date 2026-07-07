@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   countPendingProposals,
-  listPendingProposals,
+  listPendingProposalsForReview,
 } from "@lib/services/proposal-service";
 
 export const prerender = false;
@@ -12,7 +12,7 @@ export const GET: APIRoute = async ({ cookies }) => {
   if (auth instanceof Response) return auth;
 
   const [proposals, pendingCount] = await Promise.all([
-    listPendingProposals(),
+    listPendingProposalsForReview(),
     countPendingProposals(),
   ]);
 
