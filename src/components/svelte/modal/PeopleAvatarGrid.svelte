@@ -53,7 +53,6 @@
         target="_blank"
         rel="noopener noreferrer"
         data-tooltip={label}
-        role="listitem"
       >
         <img
           src={imageFor(person)}

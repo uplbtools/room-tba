@@ -26,9 +26,9 @@ export function editorToggleLabel(options: {
 export function proposalStatusMessage(status: string): string {
   switch (status) {
     case "pending":
-      return "Status: pending. Waiting for editor review.";
+      return "Status: pending. You can update this suggestion below while it waits for review.";
     case "needs_changes":
-      return "Status: needs changes. Update your suggestion below or withdraw it.";
+      return "Status: needs changes. Update your suggestion below, then submit again.";
     case "withdrawn":
       return "You withdrew this suggestion.";
     default:

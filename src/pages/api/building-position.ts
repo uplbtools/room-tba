@@ -73,7 +73,7 @@ export const PUT: APIRoute = async ({ request, cookies, url }) => {
     await refreshSyncKey("buildings");
 
     return jsonOk({ success: true, lon, lat });
-  } catch (error) {
+  } catch (_error) {
     return jsonError(500, "Failed to update building position");
   }
 };

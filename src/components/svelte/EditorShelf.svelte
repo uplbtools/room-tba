@@ -4,6 +4,8 @@
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
   import Pencil from "@lucide/svelte/icons/pencil";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
+  import Settings from "@lucide/svelte/icons/settings";
+  import Users from "@lucide/svelte/icons/users";
   import {
     adminAuthStore,
     editorChromeStore,
@@ -60,6 +62,18 @@
     toastStore.show("Signed out.", "info");
   }
 
+  function handleAccountSettings() {
+    editorChromeStore.closeShelf();
+    onclose?.();
+    adminAuthStore.openAccountSettings();
+  }
+
+  function handleManageUsers() {
+    editorChromeStore.closeShelf();
+    onclose?.();
+    adminAuthStore.openManageUsers();
+  }
+
   function addEventLabel() {
     if (eventPlacementStore.creating) return "Creating event…";
     if (eventPlacementStore.active) return "Choose event location";
@@ -114,6 +128,26 @@
   {/if}
 
   <ProposalReviewPanel />
+
+  <button
+    type="button"
+    class="editor-shelf-action"
+    onclick={handleAccountSettings}
+  >
+    <Settings size={16} aria-hidden="true" />
+    Account settings
+  </button>
+
+  {#if adminAuthStore.role === "admin"}
+    <button
+      type="button"
+      class="editor-shelf-action"
+      onclick={handleManageUsers}
+    >
+      <Users size={16} aria-hidden="true" />
+      Manage users
+    </button>
+  {/if}
 
   <button
     type="button"

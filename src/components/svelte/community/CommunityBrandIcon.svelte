@@ -26,27 +26,35 @@
     />
   </svg>
 {:else}
+  <!-- Official Meta Messenger logo (2020 redesign): radial gradient bubble + bolt. -->
   <svg
     class="community-brand-icon"
     width={size}
     height={size}
-    viewBox="0 0 36 36"
+    viewBox="0 0 800 800"
     aria-hidden="true"
     focusable="false"
   >
-    <defs>
-      <linearGradient id={gradientId} x1="50%" x2="50%" y1="0%" y2="100%">
-        <stop offset="0%" stop-color="#00B2FF" />
-        <stop offset="100%" stop-color="#006AFF" />
-      </linearGradient>
-    </defs>
+    <radialGradient
+      id={gradientId}
+      cx="101.9"
+      cy="809"
+      r="1.1"
+      gradientTransform="matrix(800 0 0 -800 -81386 648000)"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" style="stop-color:#09f" />
+      <stop offset=".6" style="stop-color:#a033ff" />
+      <stop offset=".9" style="stop-color:#ff5280" />
+      <stop offset="1" style="stop-color:#ff7061" />
+    </radialGradient>
     <path
       fill={`url(#${gradientId})`}
-      d="M18 0C8.059 0 0 7.875 0 17.604c0 5.487 2.713 10.366 6.939 13.489V36l6.098-3.347c1.626.448 3.347.687 5.147.687 9.941 0 18-7.875 18-17.604C36 7.875 28.059 0 18 0z"
+      d="M400 0C174.7 0 0 165.1 0 388c0 116.6 47.8 217.4 125.6 287 6.5 5.8 10.5 14 10.7 22.8l2.2 71.2a32 32 0 0 0 44.9 28.3l79.4-35c6.7-3 14.3-3.5 21.4-1.6 36.5 10 75.3 15.4 115.8 15.4 225.3 0 400-165.1 400-388S625.3 0 400 0z"
     />
     <path
       fill="#FFF"
-      d="m23.5 18.5-5.5-5.875-10.75 5.875L15.25 13l5.5 5.875L26.25 13l-2.75 5.5z"
+      d="m159.8 501.5 117.5-186.4a60 60 0 0 1 86.8-16l93.5 70.1a24 24 0 0 0 28.9-.1l126.2-95.8c16.8-12.8 38.8 7.4 27.6 25.3L522.7 484.9a60 60 0 0 1-86.8 16l-93.5-70.1a24 24 0 0 0-28.9.1l-126.2 95.8c-16.8 12.8-38.8-7.3-27.5-25.2z"
     />
   </svg>
 {/if}

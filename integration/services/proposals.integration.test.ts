@@ -47,7 +47,7 @@ describeIntegration("admin PATCH HTTP", () => {
     });
     await client.connect();
     const { rows } = await client.query<{ version: number }>(
-      `SELECT version FROM buildings WHERE id = 1`,
+      "SELECT version FROM buildings WHERE id = 1",
     );
     const version = readEntityVersion(rows);
     await client.end();
@@ -70,7 +70,7 @@ describeIntegration("room service", () => {
     });
     await client.connect();
     const { rows } = await client.query<{ version: number }>(
-      `SELECT version FROM rooms WHERE id = 1`,
+      "SELECT version FROM rooms WHERE id = 1",
     );
     const version = readEntityVersion(rows);
     await client.end();
@@ -95,7 +95,7 @@ describeIntegration("proposals service", () => {
     });
     await client.connect();
     const { rows } = await client.query<{ version: number }>(
-      `SELECT version FROM rooms WHERE id = 1`,
+      "SELECT version FROM rooms WHERE id = 1",
     );
     const version = readEntityVersion(rows);
     await client.end();
@@ -123,7 +123,7 @@ describeIntegration("proposals service", () => {
     });
     await client.connect();
     const { rows } = await client.query<{ version: number }>(
-      `SELECT version FROM rooms WHERE id = 1`,
+      "SELECT version FROM rooms WHERE id = 1",
     );
     const version = readEntityVersion(rows);
     await client.end();

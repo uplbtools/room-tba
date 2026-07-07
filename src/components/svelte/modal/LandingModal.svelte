@@ -156,7 +156,7 @@
     </div>
   </header>
 
-  <div class="scroll-region">
+  <div class="scroll-region map-chrome-scroll">
     {#if activeTab === "welcome"}
       <div
         class="tab-panel"
@@ -246,16 +246,18 @@
           />
         </section>
 
-        <section class="people-block">
-          <h3>Campus editors &amp; contributors</h3>
+        <section class="leaderboard-block">
+          <h3>Campus contributor leaderboard</h3>
           <p class="section-note">
-            Students who verify rooms and events on campus (manual credits, not
-            from GitHub commits).
+            Top volunteers helping map the campus and verify room schedules.
           </p>
-          <PeopleAvatarGrid
-            people={campusContributorPeople}
-            imageFolder="contributors"
-          />
+          <button
+            type="button"
+            class="secondary-btn"
+            onclick={() => modalStore.openModal("leaderboard")}
+          >
+            View Leaderboard
+          </button>
         </section>
       </div>
     {/if}
@@ -545,6 +547,26 @@
 
   .primary-btn:hover {
     background-color: hsl(5, 75%, 22%);
+  }
+
+  .secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: hsl(0, 0%, 96%);
+    color: hsl(0, 0%, 20%);
+    border: 1px solid hsl(0, 0%, 85%);
+    transition: background-color 0.15s ease-out;
+  }
+
+  .secondary-btn:hover {
+    background-color: hsl(0, 0%, 92%);
   }
 
   .install-btn {

@@ -10,6 +10,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
+  import LeaderboardModal from "./LeaderboardModal.svelte";
   import X from "@lucide/svelte/icons/x";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -32,6 +33,7 @@
   const modalAriaLabel = $derived.by(() => {
     if (modalStore.type === "landing") return undefined;
     if (modalStore.type === "schedule-expand") return "Room schedule";
+    if (modalStore.type === "leaderboard") return "Contributor leaderboard";
     return "Dialog";
   });
 
@@ -71,7 +73,9 @@
       aria-modal="true"
       aria-labelledby={modalStore.type === "landing"
         ? "landing-modal-title"
-        : undefined}
+        : modalStore.type === "leaderboard"
+          ? "leaderboard-modal-title"
+          : undefined}
       aria-label={modalAriaLabel}
       in:fly={modalContentReveal(reducedMotion.current)}
       out:fly={modalContentDismiss(reducedMotion.current)}
@@ -88,6 +92,16 @@
           <X size={20} aria-hidden="true" />
         </button>
         <ScheduleModal />
+      {:else if modalStore.type === "leaderboard"}
+        <button
+          type="button"
+          class="modal-content__close-icon"
+          aria-label="Close leaderboard"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+        <LeaderboardModal />
       {/if}
     </div>
   </div>

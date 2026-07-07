@@ -2,7 +2,11 @@
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
+import {
+  UPLB_TOOLS_URL,
+  DISCORD_URL,
+  MESSENGER_CONTRIBUTE_TARGET,
+} from "@constants/community-links";
 ---
 
 <Layout
@@ -12,15 +16,18 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
   showAppLoadingShell={false}
 >
   <main class="legal-page">
-    <a href="/" class="back-link">Back to Room TBA</a>
+    <a href="/" class="back-link">
+      <span aria-hidden="true">←</span> Back to Room TBA
+    </a>
 
     <header class="hero">
       <p class="eyebrow">Legal</p>
       <h1>Privacy Policy</h1>
       <p class="lede">
-        Last updated: June 29, 2026. Room TBA is operated by
-        <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
-          >UPLB Tools</a
+        Last updated: June 29, 2026. Room TBA is operated by <a
+          href={UPLB_TOOLS_URL}
+          target="_blank"
+          rel="noopener noreferrer">UPLB Tools</a
         > volunteers. This policy explains what we collect and why.
       </p>
     </header>
@@ -113,7 +120,14 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
             Sign out of editor/contributor sessions when using shared devices.
           </li>
           <li>
-            Ask a maintainer to deactivate an editor account you no longer need.
+            If you have an editor or contributor account, open <strong
+              >Account settings</strong
+            > (from the app menu) to change your display name, email, or password;
+            connect or disconnect a Google sign-in; download a copy of your account
+            data; or delete your account. Deleting an account removes your email,
+            display name, and password — past proposals and edit history remain on
+            record, attributed to a deleted user, so the audit trail for published
+            changes stays intact.
           </li>
         </ul>
       </section>
@@ -129,12 +143,11 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
       <section>
         <h2>Contact</h2>
         <p>
-          Questions about privacy? Reach the team via
-          <a href={MESSENGER_CONTRIBUTE_TARGET} target="_blank" rel="noopener noreferrer"
-            >Messenger</a
-          >
-          or
-          <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
+          Questions about privacy? Reach the team via <a
+            href={MESSENGER_CONTRIBUTE_TARGET}
+            target="_blank"
+            rel="noopener noreferrer">Messenger</a
+          > or <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
             >Discord</a
           >.
         </p>
@@ -154,10 +167,25 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
 
   .back-link {
     display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsl(5 53% 32% / 0.08);
+    border: 1px solid hsl(5 53% 32% / 0.25);
     text-decoration: none;
     color: hsl(5, 53%, 32%);
     font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .back-link:hover {
+    background: hsl(5 53% 32% / 0.14);
+    border-color: hsl(5 53% 32% / 0.4);
   }
 
   .hero {
@@ -179,6 +207,29 @@ import { UPLB_TOOLS_URL, DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@const
     font-size: clamp(2rem, 5vw, 2.75rem);
     line-height: 1.05;
     margin: 0;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsl(5 53% 32% / 0.08);
+    border: 1px solid hsl(5 53% 32% / 0.25);
+    text-decoration: none;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .back-link:hover {
+    background: hsl(5 53% 32% / 0.14);
+    border-color: hsl(5 53% 32% / 0.4);
   }
 
   .lede {

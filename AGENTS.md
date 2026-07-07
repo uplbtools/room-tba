@@ -13,6 +13,8 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Human volunteers, developers (default) | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Developer setup detail | [docs/developer-guide.md](docs/developer-guide.md) |
 | Starting a coding session, commit, or PR | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md) |
+| Agent handoff to another session / model | [.cursor/skills/agent-handoff/SKILL.md](.cursor/skills/agent-handoff/SKILL.md) |
+| Caveman, Ponytail, token efficiency, Claude/Codex | [docs/agent-tooling.md](docs/agent-tooling.md) + [docs/agent-contract.md](docs/agent-contract.md) |
 | Contributor proposals, review queue, suggest edit | [.cursor/skills/contributor-proposals/SKILL.md](.cursor/skills/contributor-proposals/SKILL.md) |
 | Discord notifications (room-tba + discord-bot) | [.cursor/skills/discord-notifications/SKILL.md](.cursor/skills/discord-notifications/SKILL.md) |
 | AMIS class import, term_id triage | [.cursor/skills/amis-term-import/SKILL.md](.cursor/skills/amis-term-import/SKILL.md) |
@@ -31,9 +33,9 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Issue-linked work / keeping specs current | [docs/issue-hygiene.md](docs/issue-hygiene.md) |
 | Volunteer triage | [docs/volunteer-triage.md](docs/volunteer-triage.md) |
 | Vercel env, deploy guards, Supabase ops | [AGENTS.md § Vercel CLI and environment ops](#vercel-cli-and-environment-ops) |
-
 ## How to work
 
+- **Agent efficiency:** Ponytail + agent contract rules in `.cursor/rules/`. Caveman: `bun run install:agent-tooling`. Claude/Codex plugins: `bun run install:agent-plugins`. [docs/agent-tooling.md](docs/agent-tooling.md).
 - **Bias toward action.** Do not pad estimates, over-explain tradeoffs, or defer work that is clearly scoped.
 - **Default to implementing** when the request is concrete and the codebase path is discoverable. Ask only when a product decision is genuinely ambiguous or irreversible.
 - **One pass is often enough.** Prefer a focused implementation plus verification over long planning loops or repeated “want me to…?” prompts.

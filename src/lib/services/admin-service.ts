@@ -1,5 +1,5 @@
 import { and, eq, ne, sql } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import {
   buildingsTable,
   collegesTable,
@@ -89,6 +89,12 @@ type EditorHistoryInput = {
   versionBefore?: number | null;
   versionAfter?: number | null;
   editedBy?: string;
+  summary?: string | null;
+};
+
+export type EditorHistoryOverride = {
+  action?: string;
+  summary?: string | null;
 };
 
 export async function recordEditorHistory({
@@ -100,6 +106,7 @@ export async function recordEditorHistory({
   versionBefore,
   versionAfter,
   editedBy = "admin",
+  summary = null,
 }: EditorHistoryInput): Promise<void> {
   await db.insert(editorHistoryTable).values({
     entityType,
@@ -110,6 +117,7 @@ export async function recordEditorHistory({
     versionBefore,
     versionAfter,
     editedBy,
+    summary,
   });
 }
 
@@ -134,6 +142,7 @@ export async function getRoomById(id: number): Promise<RoomData | null> {
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      imageUrl: roomsTable.imageUrl,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -163,6 +172,7 @@ export async function getAllRoomsAdmin(): Promise<RoomWithRelations[]> {
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      imageUrl: roomsTable.imageUrl,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -179,6 +189,7 @@ export type RoomUpdateInput = {
   buildingId?: number | null;
   collegeId?: number | null;
   divisionId?: number | null;
+  imageUrl?: string | null;
 };
 
 export async function findRoomMergeCandidate(
@@ -297,17 +308,19 @@ export async function updateRoom(
   input: RoomUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<RoomData | null> {
   const updates: Record<string, unknown> = {};
-  if (input.roomCode !== undefined) updates["roomCode"] = input.roomCode;
+  if (input.roomCode !== undefined) updates.roomCode = input.roomCode;
   if (input.directions !== undefined)
-    updates["directions"] = input.directions || null;
+    updates.directions = input.directions || null;
   if (input.buildingId !== undefined)
-    updates["buildingId"] = input.buildingId ?? null;
+    updates.buildingId = input.buildingId ?? null;
   if (input.collegeId !== undefined)
-    updates["collegeId"] = input.collegeId ?? null;
+    updates.collegeId = input.collegeId ?? null;
   if (input.divisionId !== undefined)
-    updates["divisionId"] = input.divisionId ?? null;
+    updates.divisionId = input.divisionId ?? null;
+  if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
 
   if (Object.keys(updates).length > 0) {
     if (input.roomCode !== undefined) {
@@ -341,12 +354,13 @@ export async function updateRoom(
       await recordEditorHistory({
         entityType: "room",
         entityId: id,
-        action: "update",
+        action: history?.action ?? "update",
         before,
         after,
         versionBefore: before.version,
         versionAfter: after.version,
         editedBy,
+        summary: history?.summary ?? null,
       });
     }
 
@@ -594,6 +608,7 @@ export type BuildingUpdateInput = {
   lon?: number;
   buildingType?: "admin" | "non-admin";
   directions?: string;
+  imageUrl?: string | null;
 };
 
 export async function updateBuilding(
@@ -601,15 +616,17 @@ export async function updateBuilding(
   input: BuildingUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<BuildingAdmin | null> {
   const updates: Record<string, unknown> = {};
   if (input.buildingName !== undefined)
-    updates["buildingName"] = input.buildingName;
-  if (input.lat !== undefined) updates["lat"] = input.lat;
-  if (input.lon !== undefined) updates["lon"] = input.lon;
+    updates.buildingName = input.buildingName;
+  if (input.lat !== undefined) updates.lat = input.lat;
+  if (input.lon !== undefined) updates.lon = input.lon;
   if (input.buildingType !== undefined)
-    updates["buildingType"] = input.buildingType;
-  if (input.directions !== undefined) updates["directions"] = input.directions;
+    updates.buildingType = input.buildingType;
+  if (input.directions !== undefined) updates.directions = input.directions;
+  if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
 
   if (Object.keys(updates).length > 0) {
     if (input.buildingName !== undefined) {
@@ -648,12 +665,13 @@ export async function updateBuilding(
       await recordEditorHistory({
         entityType: "building",
         entityId: id,
-        action: "update",
+        action: history?.action ?? "update",
         before,
         after: updated,
         versionBefore: before.version,
         versionAfter: updated.version,
         editedBy,
+        summary: history?.summary ?? null,
       });
     }
 
@@ -729,6 +747,7 @@ export async function updateCollege(
   collegeName: string,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<CollegeAdmin | null> {
   const candidate = await findCollegeMergeCandidate(collegeName, id);
   if (candidate) {
@@ -761,12 +780,13 @@ export async function updateCollege(
     await recordEditorHistory({
       entityType: "college",
       entityId: id,
-      action: "update",
+      action: history?.action ?? "update",
       before,
       after: updated,
       versionBefore: before.version,
       versionAfter: updated.version,
       editedBy,
+      summary: history?.summary ?? null,
     });
   }
 
@@ -831,13 +851,14 @@ export async function updateDivision(
   input: DivisionUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<DivisionAdmin | null> {
   const updates: Record<string, unknown> = {};
   if (input.divisionName !== undefined) {
-    updates["divisionName"] = input.divisionName;
+    updates.divisionName = input.divisionName;
   }
   if (input.collegeId !== undefined) {
-    updates["collegeId"] = input.collegeId ?? null;
+    updates.collegeId = input.collegeId ?? null;
   }
 
   if (Object.keys(updates).length === 0) {
@@ -877,12 +898,13 @@ export async function updateDivision(
     await recordEditorHistory({
       entityType: "division",
       entityId: id,
-      action: "update",
+      action: history?.action ?? "update",
       before,
       after: updated,
       versionBefore: before.version,
       versionAfter: updated.version,
       editedBy,
+      summary: history?.summary ?? null,
     });
   }
 
@@ -966,6 +988,7 @@ export type DormUpdateInput = Partial<{
   priceRange: string | null;
   contactPhone: string[];
   facebookLink: string | null;
+  imageUrl: string | null;
 }>;
 
 export async function updateDorm(
@@ -973,6 +996,7 @@ export async function updateDorm(
   input: DormUpdateInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<DormAdmin | null> {
   const updates: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(input)) {
@@ -1009,12 +1033,13 @@ export async function updateDorm(
       await recordEditorHistory({
         entityType: "dorm",
         entityId: id,
-        action: "update",
+        action: history?.action ?? "update",
         before,
         after: updated,
         versionBefore: before.version,
         versionAfter: updated.version,
         editedBy,
+        summary: history?.summary ?? null,
       });
     }
 
@@ -1136,21 +1161,20 @@ async function refreshEventSyncKeys(revalidatePaths?: string[]) {
 
 function getEventUpdates(input: EventWriteInput) {
   const updates: Record<string, unknown> = {};
-  if (input.slug !== undefined) updates["slug"] = input.slug;
-  if (input.title !== undefined) updates["title"] = input.title;
-  if (input.description !== undefined)
-    updates["description"] = input.description;
-  if (input.category !== undefined) updates["category"] = input.category;
-  if (input.startsAt !== undefined) updates["startsAt"] = input.startsAt;
-  if (input.endsAt !== undefined) updates["endsAt"] = input.endsAt;
-  if (input.timezone !== undefined) updates["timezone"] = input.timezone;
-  if (input.recurrence !== undefined) updates["recurrence"] = input.recurrence;
-  if (input.isActive !== undefined) updates["isActive"] = input.isActive;
-  if (input.sourceUrl !== undefined) updates["sourceUrl"] = input.sourceUrl;
-  if (input.imageUrl !== undefined) updates["imageUrl"] = input.imageUrl;
-  if (input.priority !== undefined) updates["priority"] = input.priority;
+  if (input.slug !== undefined) updates.slug = input.slug;
+  if (input.title !== undefined) updates.title = input.title;
+  if (input.description !== undefined) updates.description = input.description;
+  if (input.category !== undefined) updates.category = input.category;
+  if (input.startsAt !== undefined) updates.startsAt = input.startsAt;
+  if (input.endsAt !== undefined) updates.endsAt = input.endsAt;
+  if (input.timezone !== undefined) updates.timezone = input.timezone;
+  if (input.recurrence !== undefined) updates.recurrence = input.recurrence;
+  if (input.isActive !== undefined) updates.isActive = input.isActive;
+  if (input.sourceUrl !== undefined) updates.sourceUrl = input.sourceUrl;
+  if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
+  if (input.priority !== undefined) updates.priority = input.priority;
   if (input.includeInSeo !== undefined)
-    updates["includeInSeo"] = input.includeInSeo;
+    updates.includeInSeo = input.includeInSeo;
   return updates;
 }
 
@@ -1213,6 +1237,7 @@ export async function updateEvent(
   input: EventWriteInput,
   expectedVersion?: number,
   editedBy = "admin",
+  history?: EditorHistoryOverride,
 ): Promise<EventData | null> {
   const before = await getEventById(id, { includeInactive: true });
   if (!before) return null;
@@ -1255,12 +1280,13 @@ export async function updateEvent(
     await recordEditorHistory({
       entityType: "event",
       entityId: id,
-      action: "update",
+      action: history?.action ?? "update",
       before,
       after,
       versionBefore: before.version,
       versionAfter: after.version,
       editedBy,
+      summary: history?.summary ?? null,
     });
   }
   const eventPaths = ["/event/"];

@@ -4,5 +4,11 @@
       "main": true,
       "staging": true
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/proposal-digest",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }

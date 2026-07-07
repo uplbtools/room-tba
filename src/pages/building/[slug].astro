@@ -41,7 +41,7 @@ const facts = [
   termLabel ? `Schedule term: ${termLabel}` : null,
   `${roomCount} room${roomCount === 1 ? "" : "s"} listed in this building`,
   `${classCount} class${classCount === 1 ? "" : "es"} listed in this building${termPhrase}`,
-  building.directions ? `Directions available for this building` : null,
+  building.directions ? "Directions available for this building" : null,
 ].filter((fact): fact is string => Boolean(fact));
 
 const structuredData = jsonLd(
@@ -57,7 +57,7 @@ const structuredData = jsonLd(
     name: buildingName,
     description: building.directions ?? description,
     url: absoluteUrl(canonicalPath),
-    image: ogImageUrl(),
+    image: ogImageUrl(building.imageUrl ?? undefined),
     geo:
       building.lat !== null && building.lon !== null
         ? {
@@ -74,6 +74,9 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   {canonicalPath}
+  image={building.imageUrl
+    ? { src: building.imageUrl, alt: `Photo of ${buildingName}` }
+    : null}
   heading={`${buildingName} at UPLB`}
   {intro}
   {facts}

@@ -87,16 +87,17 @@ export function publicUrlForKey(
   return key;
 }
 
-const EVENT_IMAGE_URL_MAX_LENGTH = 2048;
+const IMAGE_URL_MAX_LENGTH = 2048;
 
 export type ParsedEventImageUrl =
   | { ok: true; imageUrl: string | null; provided: boolean }
   | { ok: false; error: string };
 
-/** Validates image URLs saved on events (typically from /api/admin/upload). */
-export function parseEventImageUrl(
+/** Validates image URLs saved on entities (typically from /api/admin/upload). */
+export function parseImageUrl(
   value: unknown,
   publicBaseUrl?: string | null,
+  label = "Image",
 ): ParsedEventImageUrl {
   if (value === undefined) {
     return { ok: true, imageUrl: null, provided: false };
@@ -105,33 +106,32 @@ export function parseEventImageUrl(
     return { ok: true, imageUrl: null, provided: true };
   }
   if (typeof value !== "string") {
-    return { ok: false, error: "Event image URL must be a string" };
+    return { ok: false, error: `${label} URL must be a string` };
   }
 
   const trimmed = value.trim();
   if (!trimmed) {
     return { ok: true, imageUrl: null, provided: true };
   }
-  if (trimmed.length > EVENT_IMAGE_URL_MAX_LENGTH) {
-    return { ok: false, error: "Event image URL is too long" };
+  if (trimmed.length > IMAGE_URL_MAX_LENGTH) {
+    return { ok: false, error: `${label} URL is too long` };
   }
 
   let parsed: URL;
   try {
     parsed = new URL(trimmed);
   } catch {
-    return { ok: false, error: "Event image URL is invalid" };
+    return { ok: false, error: `${label} URL is invalid` };
   }
   if (parsed.protocol !== "https:") {
-    return { ok: false, error: "Event image URL must use HTTPS" };
+    return { ok: false, error: `${label} URL must use HTTPS` };
   }
 
   const base = publicBaseUrl?.trim().replace(/\/$/, "") ?? "";
   if (!base) {
     return {
       ok: false,
-      error:
-        "Event image URL requires upload storage (R2_PUBLIC_URL) to be configured",
+      error: `${label} URL requires upload storage (R2_PUBLIC_URL) to be configured`,
     };
   }
 
@@ -152,9 +152,16 @@ export function parseEventImageUrl(
   ) {
     return {
       ok: false,
-      error: "Event image URL must come from this site's upload storage",
+      error: `${label} URL must come from this site's upload storage`,
     };
   }
 
   return { ok: true, imageUrl: trimmed, provided: true };
+}
+
+export function parseEventImageUrl(
+  value: unknown,
+  publicBaseUrl?: string | null,
+): ParsedEventImageUrl {
+  return parseImageUrl(value, publicBaseUrl, "Event image");
 }

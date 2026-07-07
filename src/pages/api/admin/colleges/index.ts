@@ -12,7 +12,9 @@ function json(data: unknown, status = 200) {
 }
 
 export const POST: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   let body: Record<string, unknown>;

@@ -1,8 +1,9 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { clampLimitParam, paginationErrorResponse } from "@lib/api/pagination";
 import { db } from "@lib/db";
 import { aliasesTable } from "@drizzle/schema";
-import { eq, ilike, sql } from "drizzle-orm";
+import { ilike, sql } from "drizzle-orm";
 import { normalizeAlias } from "@lib/site";
 
 export const prerender = false;
@@ -16,18 +17,22 @@ function json(data: unknown, status = 200) {
 
 /** List aliases with optional search. */
 export const GET: APIRoute = async ({ cookies, url }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   const q = url.searchParams.get("q")?.trim() ?? "";
-  const limit = Math.min(Number(url.searchParams.get("limit") ?? "50"), 200);
+  const limit = clampLimitParam(url.searchParams.get("limit"), {
+    defaultValue: 50,
+    max: 200,
+  });
+  if (!limit.ok) return paginationErrorResponse(limit.error);
 
   try {
     const rows = await db
       .select()
       .from(aliasesTable)
       .where(q ? ilike(aliasesTable.alias, `%${q}%`) : sql`true`)
-      .limit(limit);
+      .limit(limit.value);
     return json({ data: rows });
   } catch (err) {
     console.error("Failed to list aliases:", err);
@@ -37,7 +42,9 @@ export const GET: APIRoute = async ({ cookies, url }) => {
 
 /** Create a new alias. */
 export const POST: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   let body: Record<string, unknown>;
@@ -89,7 +96,9 @@ export const POST: APIRoute = async ({ cookies, request }) => {
 
 /** Bulk-delete aliases by IDs. */
 export const DELETE: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   let body: Record<string, unknown>;

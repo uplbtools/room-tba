@@ -62,7 +62,8 @@ CMSC 123,A,LAB,T 01:00PM-04:00PM
 1. Rows match institutional `classes` for the active term (`course_code` + `section` + `type`).
 2. Room codes resolve to building coordinates via local PGlite cache or `/api/rooms`.
 3. Unresolved rows (no match, no room, thesis/special-problem types) appear in the UI but are skipped for routing.
-4. Imported data persists in `sessionStorage` only for the current browser tab session.
+4. The selected weekday renders numbered class-stop pins on the map; routing the day connects those stops with the foot-route layer.
+5. Imported data persists in `sessionStorage` only for the current browser tab session.
 
 ## Related code
 

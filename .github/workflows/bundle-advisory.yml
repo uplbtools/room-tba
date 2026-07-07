@@ -13,10 +13,11 @@ on:
 jobs:
   bundle:
     if: |
-      github.event.action == 'ready_for_review' ||
+      github.actor != 'dependabot[bot]' &&
+      (github.event.action == 'ready_for_review' ||
       (github.event.action == 'opened' && github.event.pull_request.draft == false) ||
       (github.event.action == 'reopened' && github.event.pull_request.draft == false) ||
-      (github.event.action == 'labeled' && github.event.label.name == 'run/e2e')
+      (github.event.action == 'labeled' && github.event.label.name == 'run/e2e'))
     runs-on: ubuntu-latest
     continue-on-error: true
     env:

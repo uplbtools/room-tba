@@ -208,7 +208,7 @@
       </div>
     {/if}
     {#if visibleEvents.length > 0}
-      <div class="event-list">
+      <div class="event-list map-chrome-scroll">
         {#each visibleEvents as event (event.id)}
           {@const image = getEventImage(
             event.slug,

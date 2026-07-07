@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import {
     adminAuthStore,
+    building3DStore,
     currentRoom,
     modalStore,
     queryStore,
@@ -26,20 +27,28 @@
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
+  import ImageUpload from "@ui/editor/ImageUpload.svelte";
+  import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import Box from "@lucide/svelte/icons/box";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
+  import MapChromeActionChip from "../map-chrome/MapChromeActionChip.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
   import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import type { FinalExamRow, RoomData } from "@lib/types";
-  import { tick } from "svelte";
   import Classes from "./Classes.svelte";
   import FinalExamsList from "./FinalExamsList.svelte";
 
   type RoomEditableField =
-    "roomCode" | "directions" | "buildingId" | "collegeId" | "divisionId";
+    | "roomCode"
+    | "directions"
+    | "buildingId"
+    | "collegeId"
+    | "divisionId"
+    | "imageUrl";
 
   const appData = getAppData();
   const app = $derived(appData());
@@ -53,6 +62,7 @@
     buildingId: "Building",
     collegeId: "College",
     divisionId: "Division",
+    imageUrl: "Room photo",
   };
 
   let draftRoomId = $state<number | null>(null);
@@ -62,6 +72,7 @@
   let buildingDraft = $state("");
   let collegeDraft = $state("");
   let divisionDraft = $state("");
+  let imageDraft = $state<string | null>(null);
   let savingField = $state<RoomEditableField | null>(null);
   let savedField = $state<RoomEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -131,6 +142,7 @@
     buildingDraft = room.buildingId === null ? "" : String(room.buildingId);
     collegeDraft = room.collegeId === null ? "" : String(room.collegeId);
     divisionDraft = room.divisionId === null ? "" : String(room.divisionId);
+    imageDraft = room.imageUrl ?? null;
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -205,6 +217,7 @@
       buildingId?: number | null;
       collegeId?: number | null;
       divisionId?: number | null;
+      imageUrl?: string | null;
     } = { version: room.version };
 
     if (field === "roomCode") {
@@ -222,6 +235,8 @@
       body.collegeId = selectValueToId(collegeDraft);
     } else if (field === "divisionId") {
       body.divisionId = selectValueToId(divisionDraft);
+    } else if (field === "imageUrl") {
+      body.imageUrl = imageDraft || null;
     }
 
     savingField = field;
@@ -367,25 +382,95 @@
     });
   }
 
-  async function suggestRoomDirections() {
-    editing = true;
-    await tick();
-    document.getElementById("room-directions-editor")?.focus();
+  const allFieldsUnchanged = $derived.by(() => {
+    const room = currentRoom.value;
+    if (!room) return true;
+    return (
+      codeDraft.trim() === room.code &&
+      directionsDraft.trim() === (room.directions ?? "") &&
+      buildingDraft === String(room.buildingId ?? "") &&
+      collegeDraft === String(room.collegeId ?? "") &&
+      divisionDraft === String(room.divisionId ?? "")
+    );
+  });
+
+  async function submitAllChanges() {
+    const room = currentRoom.value;
+    if (!room || allFieldsUnchanged) return;
+
+    const patch: Record<string, unknown> = {};
+    if (codeDraft.trim() !== room.code) {
+      const trimmedCode = codeDraft.trim();
+      if (trimmedCode.length === 0) {
+        fieldError = `${room.code} room code cannot be empty.`;
+        return;
+      }
+      patch.roomCode = trimmedCode;
+    }
+    if (directionsDraft.trim() !== (room.directions ?? "")) {
+      patch.directions = directionsDraft.trim() || null;
+    }
+    if (buildingDraft !== String(room.buildingId ?? "")) {
+      patch.buildingId = selectValueToId(buildingDraft);
+    }
+    if (collegeDraft !== String(room.collegeId ?? "")) {
+      patch.collegeId = selectValueToId(collegeDraft);
+    }
+    if (divisionDraft !== String(room.divisionId ?? "")) {
+      patch.divisionId = selectValueToId(divisionDraft);
+    }
+
+    savingField = "roomCode" as RoomEditableField;
+    savedField = null;
+    fieldError = null;
+    mergePrompt = null;
+
+    try {
+      const result = await persistEntityChange({
+        entityType: "room",
+        entityId: room.id,
+        baseVersion: room.version,
+        patch,
+        entityLabel: room.code,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
+      });
+
+      const outcome = handlePersistEntityResult<RoomData>(result, {
+        syncFromServer: syncRoomFromServer,
+        fallbackError: `${room.code} could not be saved.`,
+      });
+
+      if (outcome.error) {
+        fieldError = outcome.error;
+        return;
+      }
+
+      if (outcome.proposal) {
+        activeProposalId = outcome.proposal.id;
+        proposalStatus = outcome.proposal.status;
+        clearEntityContributorDraft("room", room.id);
+        toastStore.show(
+          `Suggestion for ${room.code} submitted for review.`,
+          "success",
+        );
+      }
+      savedField = "roomCode" as RoomEditableField;
+      setTimeout(() => {
+        if (savedField === "roomCode") savedField = null;
+      }, 1800);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${room.code} failed to save: ${reason}`;
+    } finally {
+      savingField = null;
+    }
   }
 
-  function suggestBuildingDirections() {
-    const buildingName = parentBuilding?.name;
-    if (!buildingName) return;
-    sessionStorage.setItem(
-      "room-tba:auto-edit",
-      JSON.stringify({
-        entity: "building",
-        field: "directions",
-        buildingName,
-      }),
-    );
-    openBuildingResult();
-  }
 </script>
 
 <div class="entity-detail">
@@ -424,6 +509,20 @@
             ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
           />
         {/if}
+        {#if parentBuilding?.lat && parentBuilding.lon}
+          <MapChromeActionChip
+            toolbar
+            ariaLabel="Move in 3D"
+            onclick={() =>
+              building3DStore.open(parentBuilding.name, {
+                roomCode: currentRoom.value?.code,
+                editMode: canPublish,
+              })}
+          >
+            <Box size={14} aria-hidden="true" />
+            Move in 3D
+          </MapChromeActionChip>
+        {/if}
         <EntityShareCopyLink
           url={roomShareUrl}
           entityLabel={currentRoom.value.code}
@@ -444,6 +543,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="room-submitter-name"
+          historyEntity={currentRoom.value ? { entityType: "room", entityId: currentRoom.value.id, version: currentRoom.value.version } : null}
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
           activeProposalId={activeProposalId}
@@ -451,6 +551,9 @@
             activeProposalId = null;
             proposalStatus = null;
           }}
+          onsubmit={submitAllChanges}
+          submitting={savingField !== null}
+          submitDisabled={allFieldsUnchanged}
           successMessage={savedField
             ? entityEditorSavedMessage({
                 canPublish,
@@ -576,6 +679,31 @@
                 </select>
               {/snippet}
             </EntityEditorField>
+
+            {#if adminAuthStore.isLoggedIn}
+              <div class="editor-image-row">
+                <ImageUpload
+                  label="Room photo"
+                  inputId="room-image-editor"
+                  prefix="rooms"
+                  bind:value={imageDraft}
+                  disabled={savingField !== null}
+                />
+                <button
+                  type="button"
+                  class="field-save-btn"
+                  disabled={savingField !== null ||
+                    (imageDraft ?? null) ===
+                      (currentRoom.value.imageUrl ?? null)}
+                  onclick={() => saveField("imageUrl")}
+                >
+                  {fieldSaveActionLabel({
+                    canPublish,
+                    isSaving: savingField === "imageUrl",
+                  })}
+                </button>
+              </div>
+            {/if}
           </div>
 
           {#if mergePrompt}
@@ -614,6 +742,15 @@
       </section>
     {/if}
 
+    {#if currentRoom.value.imageUrl}
+      <img
+        class="entity-image"
+        src={currentRoom.value.imageUrl}
+        alt={currentRoom.value.code}
+        loading="lazy"
+      />
+    {/if}
+
     <section class="entity-directions" aria-label="Directions">
       <div class="entity-directions__segment">
         <p class="entity-directions__label">Room directions</p>
@@ -622,13 +759,6 @@
         {:else}
           <p class="entity-directions__empty">
             No directions listed.
-            <button
-              type="button"
-              class="entity-suggest-link"
-              onclick={suggestRoomDirections}
-            >
-              Suggest directions
-            </button>
           </p>
         {/if}
       </div>
@@ -639,23 +769,18 @@
           {#if parentBuilding.directions}
             <p class="entity-directions__text">{parentBuilding.directions}</p>
           {:else}
-            <p class="entity-directions__empty">
-              No building directions.
-              <button
-                type="button"
-                class="entity-suggest-link"
-                onclick={suggestBuildingDirections}
-              >
-                Suggest building directions
-              </button>
-            </p>
+            <p class="entity-directions__empty">No building directions.</p>
           {/if}
         </div>
       {/if}
     </section>
 
     {#if currentRoom.value}
-      <EntityLastUpdated updatedAt={currentRoom.value.updatedAt} />
+      <EntityLastUpdated
+        updatedAt={currentRoom.value.updatedAt}
+        entityType="room"
+        entityId={currentRoom.value.id}
+      />
     {/if}
 
     <section
@@ -805,9 +930,12 @@
 
   .entity-schedule__scope {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     line-height: 1.4;
     color: #71717a;
+    background-color: #f4f4f5;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.25rem;
   }
 
   .entity-schedule__empty {

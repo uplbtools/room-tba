@@ -2,6 +2,7 @@ import type {
   ProposalCreateType,
   ProposalEntityType,
 } from "@lib/services/proposal-service";
+import { FIELD_LABELS } from "./diff";
 import { validateSubmitterName } from "@constants/proposals";
 import type { RoomData } from "@lib/types";
 import {
@@ -144,40 +145,11 @@ export async function loadOpenPendingProposals(options?: {
   return rows.filter((row) => isOpenProposalStatus(row.status));
 }
 
-const FIELD_LABELS: Record<string, string> = {
-  buildingName: "Building name",
-  directions: "Directions",
-  buildingType: "Building type",
-  lat: "Latitude",
-  lon: "Longitude",
-  buildingId: "Building",
-  dormName: "Dorm name",
-  shortName: "Short name",
-  gender: "Gender",
-  capacity: "Capacity",
-  roomCode: "Room code",
-  collegeName: "College name",
-  collegeId: "Parent college",
-  divisionName: "Division name",
-  description: "Description",
-  managingOffice: "Managing office",
-  contactEmail: "Contact email",
-  isUpManaged: "UP managed",
-  title: "Title",
-  category: "Category",
-  startsAt: "Starts",
-  endsAt: "Ends",
-  sourceUrl: "Source URL",
-  imageUrl: "Event image",
-  recurrence: "Recurrence",
-  rooms: "Bundled rooms",
-};
-
 export function summarizeProposalPatch(
   patch: Record<string, unknown>,
   entityType?: ProposalEntityType,
 ): string[] {
-  if (entityType && entityType.startsWith("create_")) {
+  if (entityType?.startsWith("create_")) {
     const label = entityType.replace("create_", "");
     const details = summarizeProposalPatch(patch);
     if (entityType === "create_building" && Array.isArray(patch.rooms)) {
@@ -530,11 +502,16 @@ export async function submitEntityProposal(input: {
     }
   }
 
+  const proposalId =
+    input.proposalId ??
+    getStoredProposalForEntity(input.entityType, input.entityId)?.id ??
+    null;
+
   const res = await fetch("/api/proposals", {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify({ ...input, proposalId }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

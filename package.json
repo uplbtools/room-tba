@@ -18,7 +18,8 @@
     "preview:e2e": "bash scripts/preview-e2e.sh",
     "serve:e2e": "bash scripts/serve-e2e.sh",
     "astro": "astro",
-    "lint": "biome format . && eslint .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write --unsafe .",
     "format": "biome format --write .",
     "test": "bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'",
     "test:components": "vitest run",
@@ -35,6 +36,9 @@
     "generate:test-inventory": "bun run scripts/generate-test-inventory.ts",
     "post:test-inventory-discord": "bun run scripts/post-test-inventory-discord.ts",
     "check:readme": "bun run scripts/check-readme-drift.ts",
+    "install:agent-tooling": "bash scripts/install-agent-tooling.sh",
+    "install:agent-plugins": "bash scripts/install-agent-plugins.sh",
+    "install:shopped-skills": "bash scripts/install-shopped-skills.sh",
     "check:pwa-legal": "bun run scripts/check-pwa-legal-routes.ts",
     "seed:events": "bun src/seed-events.ts",
     "seed:aliases": "bun run scripts/seed-aliases.ts",
@@ -44,6 +48,7 @@
     "release:dry": "semantic-release --dry-run"
   },
   "dependencies": {
+    "@astrojs/check": "^0.9.9",
     "@astrojs/node": "^11.0.0",
     "@astrojs/svelte": "^9.0.0",
     "@astrojs/vercel": "^11.0.0",
@@ -71,8 +76,6 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@biomejs/biome": "^2.5.2",
-    "@eslint/compat": "^2.1.0",
-    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
@@ -92,17 +95,9 @@
     "@vitest/browser": "^4.1.9",
     "bun": "^1.3.14",
     "drizzle-kit": "^0.31.10",
-    "eslint": "^10.5.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-astro": "^2.1.1",
-    "eslint-plugin-svelte": "^3.19.0",
     "globals": "^17.7.0",
     "happy-dom": "^20.10.6",
-    "prettier": "^3.8.4",
-    "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-svelte": "^4.1.1",
     "semantic-release": "^25.0.5",
-    "typescript-eslint": "^8.62.0",
     "vitest": "^4.1.9"
   }
 }

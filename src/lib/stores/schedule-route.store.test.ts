@@ -1,18 +1,19 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { scheduleRouteStore } from "@lib/store.svelte";
+import { locationStore, scheduleRouteStore } from "@lib/store.svelte";
 
 const SAMPLE_JSON = JSON.stringify([
   {
     course_code: "E2E 101",
     section: "AB",
     type: "LEC",
-    schedule: ["MWF 8-9"],
+    schedule: ["MWF 08:00AM-09:00AM"],
   },
 ]);
 
 describe("ScheduleRouteStore", () => {
   beforeEach(() => {
     scheduleRouteStore.clearImport();
+    locationStore.coords = null;
     sessionStorage.clear();
     vi.stubGlobal(
       "fetch",
@@ -20,20 +21,23 @@ describe("ScheduleRouteStore", () => {
         const url = String(input);
         if (url.includes("/api/classes")) {
           return new Response(
-            JSON.stringify([
-              {
-                id: 1,
-                courseCode: "E2E 101",
-                section: "AB",
-                type: "LEC",
-                schedule: ["MWF 8-9"],
-                roomCode: "E2E-101",
-                roomId: 1,
-                termId: 1252,
-                directions: null,
-                courseTitle: "E2E Course",
-              },
-            ]),
+            JSON.stringify({
+              rows: [
+                {
+                  id: 1,
+                  courseCode: "E2E 101",
+                  section: "AB",
+                  type: "LEC",
+                  schedule: ["MWF 08:00AM-09:00AM"],
+                  roomCode: "E2E-101",
+                  roomId: 1,
+                  termId: 1252,
+                  directions: null,
+                  courseTitle: "E2E Course",
+                },
+              ],
+              total: 1,
+            }),
             { status: 200 },
           );
         }
@@ -76,5 +80,26 @@ describe("ScheduleRouteStore", () => {
     expect(scheduleRouteStore.selectedWeekday).toBe("T");
     const stored = sessionStorage.getItem("room-tba-schedule-import");
     expect(stored).toContain('"T"');
+  });
+
+  test("routeDay generates map waypoints and clears stale route state", async () => {
+    await scheduleRouteStore.importText(SAMPLE_JSON);
+    locationStore.coords = [121.24, 14.16];
+
+    scheduleRouteStore.routeDay("M");
+
+    expect(scheduleRouteStore.routedWeekday).toBe("M");
+    expect(locationStore.routeWaypoints).toEqual([
+      [121.24, 14.16],
+      [121.241, 14.165],
+    ]);
+
+    scheduleRouteStore.focusStop(0);
+    expect(scheduleRouteStore.focusedStopIndex).toBe(0);
+
+    scheduleRouteStore.selectWeekday("T");
+    expect(scheduleRouteStore.routedWeekday).toBeNull();
+    expect(scheduleRouteStore.focusedStopIndex).toBeNull();
+    expect(locationStore.routeWaypoints).toBeNull();
   });
 });

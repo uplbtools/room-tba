@@ -108,8 +108,8 @@ export async function syncBuildings(
     try {
       await localDB.query(
         `
-        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched, version, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, false, $7, $8)
+        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched, image_url, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, false, $7, $8, $9)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         building_name = EXCLUDED.building_name,
@@ -118,6 +118,7 @@ export async function syncBuildings(
         directions = EXCLUDED.directions,
         type = EXCLUDED.type,
         rooms_fetched = EXCLUDED.rooms_fetched,
+        image_url = EXCLUDED.image_url,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
         `,
@@ -128,6 +129,7 @@ export async function syncBuildings(
           b.lat,
           b.directions,
           b.buildingType,
+          b.imageUrl ?? null,
           b.version,
           b.updatedAt,
         ],
@@ -252,8 +254,8 @@ export async function syncDorms(
     try {
       await localDB.query(
         `
-        INSERT INTO dorms (id, dorm_name, short_name, lat, lon, gender, capacity, managing_office, contact_email, amenities, osm_link, description, is_up_managed, price_range, contact_phone, facebook_link, version, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+        INSERT INTO dorms (id, dorm_name, short_name, lat, lon, gender, capacity, managing_office, contact_email, amenities, osm_link, description, is_up_managed, price_range, contact_phone, facebook_link, image_url, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         dorm_name = EXCLUDED.dorm_name,
@@ -271,6 +273,7 @@ export async function syncDorms(
         price_range = EXCLUDED.price_range,
         contact_phone = EXCLUDED.contact_phone,
         facebook_link = EXCLUDED.facebook_link,
+        image_url = EXCLUDED.image_url,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
         `,
@@ -291,6 +294,7 @@ export async function syncDorms(
           b.priceRange,
           b.contactPhone,
           b.facebookLink,
+          b.imageUrl ?? null,
           b.version,
           b.updatedAt,
         ],
@@ -458,7 +462,7 @@ export async function resetBuildingsSyncStatus() {
   try {
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`UPDATE buildings SET rooms_fetched = false`);
+    await localDB.exec("UPDATE buildings SET rooms_fetched = false");
   } catch (e) {
     console.error(e);
   }
@@ -476,8 +480,6 @@ export async function localBuildingSyncStatus(id: number) {
         `,
       [id],
     )) as Results<{ roomsFetched: boolean }>;
-    if (data.rows.length === 0)
-      throw new Error("Can't fetch a missing building row");
     return data.rows[0];
   } catch (e) {
     console.error(e);
@@ -521,7 +523,7 @@ export async function getLocalBuildingRooms(id: number) {
 /** True when the stored rooms sync key matches the live one (online + fresh). */
 function roomsSyncKeyMatches(remoteSyncKey: string | null): boolean {
   const syncKeyLs = getSyncKeysFromLs();
-  const roomSyncKey = syncKeyLs?.["rooms"];
+  const roomSyncKey = syncKeyLs?.rooms;
   return (
     typeof roomSyncKey === "string" &&
     remoteSyncKey !== null &&
@@ -566,8 +568,8 @@ export async function syncBuildingRooms(
     try {
       await localDB.query(
         `
-            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, version, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, image_url, version, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (id) DO UPDATE SET
             id = EXCLUDED.id,
             room_code = EXCLUDED.room_code,
@@ -575,6 +577,7 @@ export async function syncBuildingRooms(
             building_id = EXCLUDED.building_id,
             college_id = EXCLUDED.college_id,
             division_id = EXCLUDED.division_id,
+            image_url = EXCLUDED.image_url,
             version = EXCLUDED.version,
             updated_at = EXCLUDED.updated_at;
             `,
@@ -585,6 +588,7 @@ export async function syncBuildingRooms(
           room.buildingId,
           room.collegeId,
           room.divisionId,
+          room.imageUrl ?? null,
           room.version,
           room.updatedAt,
         ],
@@ -594,7 +598,7 @@ export async function syncBuildingRooms(
     }
   }
   await localDB.query(
-    `UPDATE buildings SET rooms_fetched = true WHERE id = $1`,
+    "UPDATE buildings SET rooms_fetched = true WHERE id = $1",
     [id],
   );
 }
@@ -603,7 +607,7 @@ export async function resetCollegesSyncStatus() {
   try {
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`UPDATE colleges SET rooms_fetched = false`);
+    await localDB.exec("UPDATE colleges SET rooms_fetched = false");
   } catch (e) {
     console.error(e);
   }
@@ -621,8 +625,6 @@ export async function localCollegeSyncStatus(id: number) {
         `,
       [id],
     )) as Results<{ roomsFetched: boolean }>;
-    if (data.rows.length === 0)
-      throw new Error("Can't fetch a missing college row");
     return data.rows[0];
   } catch (e) {
     console.error(e);
@@ -694,8 +696,8 @@ export async function syncCollegeRooms(
     try {
       await localDB.query(
         `
-            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, version, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, image_url, version, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (id) DO UPDATE SET
             id = EXCLUDED.id,
             room_code = EXCLUDED.room_code,
@@ -703,6 +705,7 @@ export async function syncCollegeRooms(
             building_id = EXCLUDED.building_id,
             college_id = EXCLUDED.college_id,
             division_id = EXCLUDED.division_id,
+            image_url = EXCLUDED.image_url,
             version = EXCLUDED.version,
             updated_at = EXCLUDED.updated_at;
             `,
@@ -713,6 +716,7 @@ export async function syncCollegeRooms(
           room.buildingId,
           room.collegeId,
           room.divisionId,
+          room.imageUrl ?? null,
           room.version,
           room.updatedAt,
         ],
@@ -722,7 +726,7 @@ export async function syncCollegeRooms(
     }
   }
   await localDB.query(
-    `UPDATE colleges SET rooms_fetched = true WHERE id = $1`,
+    "UPDATE colleges SET rooms_fetched = true WHERE id = $1",
     [id],
   );
 }
@@ -731,7 +735,7 @@ export async function resetDivisionsSyncStatus() {
   try {
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`UPDATE divisions SET rooms_fetched = false`);
+    await localDB.exec("UPDATE divisions SET rooms_fetched = false");
   } catch (e) {
     console.error(e);
   }
@@ -749,8 +753,6 @@ export async function localDivisionSyncStatus(id: number) {
         `,
       [id],
     )) as Results<{ roomsFetched: boolean }>;
-    if (data.rows.length === 0)
-      throw new Error("Can't fetch a missing division row");
     return data.rows[0];
   } catch (e) {
     console.error(e);
@@ -822,8 +824,8 @@ export async function syncDivisionRooms(
     try {
       await localDB.query(
         `
-            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, version, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, image_url, version, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (id) DO UPDATE SET
             id = EXCLUDED.id,
             room_code = EXCLUDED.room_code,
@@ -831,6 +833,7 @@ export async function syncDivisionRooms(
             building_id = EXCLUDED.building_id,
             college_id = EXCLUDED.college_id,
             division_id = EXCLUDED.division_id,
+            image_url = EXCLUDED.image_url,
             version = EXCLUDED.version,
             updated_at = EXCLUDED.updated_at;
             `,
@@ -841,6 +844,7 @@ export async function syncDivisionRooms(
           room.buildingId,
           room.collegeId,
           room.divisionId,
+          room.imageUrl ?? null,
           room.version,
           room.updatedAt,
         ],
@@ -850,7 +854,7 @@ export async function syncDivisionRooms(
     }
   }
   await localDB.query(
-    `UPDATE divisions SET rooms_fetched = true WHERE id = $1`,
+    "UPDATE divisions SET rooms_fetched = true WHERE id = $1",
     [id],
   );
 }
@@ -876,7 +880,7 @@ export async function syncAliasCache() {
 
     const localDB = getDB();
     await localDB.waitReady;
-    await localDB.exec(`DELETE FROM aliases`);
+    await localDB.exec("DELETE FROM aliases");
     if (rows.length === 0) return;
 
     syncToastStore.startAliasesSync(rows.length);
@@ -927,7 +931,7 @@ export async function syncClasses(
   syncToastStore.startClassesSync(remoteClasses.length);
 
   try {
-    await localDB.exec(`DELETE FROM classes`);
+    await localDB.exec("DELETE FROM classes");
     for (const c of remoteClasses) {
       await localDB.query(
         `

@@ -60,14 +60,14 @@ export function buildEntitySuggestions(
       data.filteredDorms,
       ({ dormName, shortName }) =>
         dormName.toLowerCase().includes(needle) ||
-        Boolean(shortName && shortName.toLowerCase().includes(needle)),
+        Boolean(shortName?.toLowerCase().includes(needle)),
       ({ dormName }) => ({ value: dormName, category: "dorm" }),
     ),
     ...takeMatches(
       data.events,
       ({ title, description }) =>
         title.toLowerCase().includes(needle) ||
-        Boolean(description && description.toLowerCase().includes(needle)),
+        Boolean(description?.toLowerCase().includes(needle)),
       (e) => ({
         value: e.title,
         category: "event",

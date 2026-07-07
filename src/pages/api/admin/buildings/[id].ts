@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
+import { R2_PUBLIC_URL } from "astro:env/server";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
+import { parseImageUrl } from "@lib/r2-upload-core";
 import {
   EditConflictError,
   updateBuilding,
@@ -15,15 +17,18 @@ type BuildingPatchBody = {
   lon?: number;
   buildingType?: "admin" | "non-admin";
   directions?: string;
+  imageUrl?: string | null;
   version?: number;
 };
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
-  const id = parseInt(params["id"] ?? "");
-  if (isNaN(id)) {
+  const id = parseInt(params.id ?? "", 10);
+  if (Number.isNaN(id)) {
     return new Response(JSON.stringify({ error: "Invalid building ID" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -63,6 +68,18 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     });
   }
 
+  const parsedImageUrl = parseImageUrl(
+    body.imageUrl,
+    R2_PUBLIC_URL,
+    "Building image",
+  );
+  if (!parsedImageUrl.ok) {
+    return new Response(JSON.stringify({ error: parsedImageUrl.error }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const parsedVersion = parseRequiredEditorVersion(body.version);
   if (!parsedVersion.ok) return parsedVersion.response;
   const expectedVersion = parsedVersion.version;
@@ -76,6 +93,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     if (body.buildingType !== undefined)
       updates.buildingType = body.buildingType;
     if (body.directions !== undefined) updates.directions = body.directions;
+    if (parsedImageUrl.provided) updates.imageUrl = parsedImageUrl.imageUrl;
 
     const building = await updateBuilding(
       id,

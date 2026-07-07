@@ -30,6 +30,7 @@ export async function initPGLiteDB(db: PGlite) {
    	"section" varchar(16),
    	"type" varchar(12),
    	"schedule" text[],
+    "directions" text,
    	"room_id" integer,
    	"course_title" text,
    	"term_id" integer
@@ -182,6 +183,9 @@ export async function initPGLiteDB(db: PGlite) {
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
+    ALTER TABLE classes
+    ADD COLUMN IF NOT EXISTS "directions" text;
+
     ALTER TABLE events
     ADD COLUMN IF NOT EXISTS "status" varchar(16) NOT NULL DEFAULT 'past';
 
@@ -192,6 +196,15 @@ export async function initPGLiteDB(db: PGlite) {
     ADD COLUMN IF NOT EXISTS "occurrence_ends_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
     ALTER TABLE events
+    ADD COLUMN IF NOT EXISTS "image_url" text;
+
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "image_url" text;
+
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "image_url" text;
+
+    ALTER TABLE dorms
     ADD COLUMN IF NOT EXISTS "image_url" text;
 
     ALTER TABLE buildings

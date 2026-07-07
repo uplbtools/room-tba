@@ -60,7 +60,7 @@
           <X size={18} aria-hidden="true" />
         </button>
       </header>
-      <div class="editor-addition-body">
+      <div class="editor-addition-body map-chrome-scroll">
         <SuggestAdditionPanel
           mode="publish"
           onDismiss={() => editorChromeStore.closeAdditionModal()}

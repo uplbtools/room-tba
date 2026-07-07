@@ -39,11 +39,13 @@ export function createEntityMergeRoute<TEntity>(options: {
   merge: MergeHandler<TEntity>;
 }): APIRoute {
   return async ({ cookies, params, request }) => {
-    const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+    const auth = await editorSessionOrUnauthorized(cookies, {
+      requirePublish: true,
+    });
     if (auth instanceof Response) return auth;
 
-    const sourceId = parseInt(params["id"] ?? "");
-    if (isNaN(sourceId)) {
+    const sourceId = parseInt(params.id ?? "", 10);
+    if (Number.isNaN(sourceId)) {
       return json({ error: `Invalid ${options.entityLabel} ID` }, 400);
     }
 

@@ -33,6 +33,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | ----------------------------- | ---------------------------------------------------------------- |
 | Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …) |
 | Room schedule this sem | Term filter + timetable |
+| Personal schedule route | Map tools → Schedule → import, pick a day, route stops |
 | Browse all classes | Status bar → Browse classes; search by course code |
 | Plan your classes | Planner view to build a draft schedule |
 | Final exam time & room | Search course code → finals panel; room panel during finals week |
@@ -123,10 +124,27 @@ bun dev
 
 Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts but pages that hit the DB will 500. That is expected.
 
+### Linting and formatting
+
+This project uses [Biome](https://biomejs.dev/) for both formatting and linting (replacing Prettier and ESLint).
+
+```sh
+# Check format + lint (no writes):
+bun run lint
+
+# Auto-fix all safe issues:
+bun run lint:fix
+
+# Format only:
+bun run format
+```
+
+Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items?itemName=biomejs.biome) for format-on-save support. The workspace settings in `.vscode/settings.json` configure this automatically.
+
 ### Commands worth knowing
 
 | Command | Does what |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| --- | --- |
 | `bun dev` | Dev server |
 | `bun run build` | Production build (**needs** `DATABASE_URL`; entity SEO pages render on first request via Vercel ISR, not at build) |
 | `bun test src/lib src/constants` | Unit + store tests (no DB required) |
@@ -134,7 +152,8 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 | `bun run test:integration` | API + DB integration (E2E DB; see `docs/testing.md`) |
 | `bun run e2e` | Playwright blocking suite (uses `serve:e2e`: node adapter build + preview) |
 | `bun run e2e:advisory` | Playwright advisory (non-blocking in CI) |
-| `bun run lint` | Biome format check + ESLint |
+| `bun run lint` | Biome check (format + lint) |
+| `bun run lint:fix` | Biome check with auto-fixes |
 | `bun run format` | Biome format write |
 | `bunx drizzle-kit studio` | Browse/edit Postgres visually |
 | `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
@@ -173,7 +192,7 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for how to help:
 
 - **Report wrong data** or **campus QA:** no clone, no PR
 - **Write code:** branch off `staging`, PR to `staging` ([developer guide](docs/developer-guide.md))
-- **Maintainers / agents:** [AGENTS.md](AGENTS.md)
+- **Maintainers / agents:** [AGENTS.md](AGENTS.md) · [agent tooling](docs/agent-tooling.md) (`bun run install:agent-tooling` + `install:agent-plugins` once per machine)
 
 [Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) · **Data:** label `data` · **QA:** label `qa`
 
