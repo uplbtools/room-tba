@@ -1,17 +1,35 @@
 <script lang="ts">
   import { getColorForCourse } from "@lib/schedule-renderer";
   import { sectionBlocks } from "@lib/planner/conflicts";
+  import { alternativeOfferings } from "@lib/planner/alternatives";
+  import { groupClassesByOffering } from "@lib/class-offering-groups";
   import type { Conflict, ScheduleBlock } from "@lib/planner/conflicts";
   import type { PlannedSection } from "@lib/planner/types";
+  import type { ClassMapValue } from "@lib/types";
 
   interface Props {
     sections: PlannedSection[];
     conflicts: Conflict[];
+    /** All class rows for the plan's courses — the source for drag targets (#506). */
+    alternatives?: ClassMapValue[];
     onremove: (courseCode: string, section: string) => void;
     onopenroom: (roomCode: string) => void;
+    onswap?: (
+      courseCode: string,
+      fromSection: string,
+      fromSections: ClassMapValue[],
+      toSections: ClassMapValue[],
+    ) => void;
   }
 
-  const { sections, conflicts, onremove, onopenroom }: Props = $props();
+  const {
+    sections,
+    conflicts,
+    alternatives = [],
+    onremove,
+    onopenroom,
+    onswap,
+  }: Props = $props();
 
   // Same window as the room-schedule canvas (ScheduleRenderer.config).
   const START_HOUR = 7;
@@ -41,7 +59,7 @@
     for (const section of sections) {
       for (const block of sectionBlocks(section)) {
         if (block.dayIndex < 0 || block.dayIndex >= DAYS.length) continue;
-        byDay[block.dayIndex].push({
+        byDay[block.dayIndex]?.push({
           ...block,
           key: blockKey(block),
           roomCode: section.roomCode,
@@ -54,6 +72,176 @@
 
   let selectedKey = $state<string | null>(null);
 
+  // --- Drag to switch section (#506) -------------------------------------
+  type Drag = { courseCode: string; fromSection: string; fromKey: string };
+  let drag = $state<Drag | null>(null);
+  let hoverGhost = $state<string | null>(null);
+  let pointerPos = $state<{ x: number; y: number } | null>(null);
+
+  let pointerId: number | null = null;
+  let startX = 0;
+  let startY = 0;
+  let pending: { block: GridBlock; el: HTMLElement } | null = null;
+  let longPress: ReturnType<typeof setTimeout> | null = null;
+  let suppressClick = false;
+
+  const THRESHOLD = 6;
+  const LONG_PRESS_MS = 400;
+
+  const ghostBlocksByDay = $derived.by(() => {
+    const byDay: {
+      dayIndex: number;
+      startMin: number;
+      endMin: number;
+      ghostKey: string;
+      roomCode: string | null;
+    }[][] = DAYS.map(() => []);
+    if (!drag) return byDay;
+    const offerings = alternativeOfferings(
+      alternatives,
+      drag.courseCode,
+      drag.fromSection,
+    );
+    for (const offering of offerings) {
+      for (const row of offering.sections) {
+        const blocks = sectionBlocks({
+          courseCode: row.courseCode ?? drag.courseCode,
+          section: row.section ?? offering.section,
+          type: row.type ?? "",
+          schedule: row.schedule ?? [],
+          roomCode: row.roomCode ?? null,
+          courseTitle: row.courseTitle ?? null,
+        });
+        for (const b of blocks) {
+          if (b.dayIndex < 0 || b.dayIndex >= DAYS.length) continue;
+          byDay[b.dayIndex]?.push({
+            dayIndex: b.dayIndex,
+            startMin: b.startMin,
+            endMin: b.endMin,
+            ghostKey: offering.section,
+            roomCode: row.roomCode ?? null,
+          });
+        }
+      }
+    }
+    return byDay;
+  });
+
+  function beginDrag(block: GridBlock, el: HTMLElement, e: PointerEvent) {
+    drag = {
+      courseCode: block.courseCode,
+      fromSection: block.section,
+      fromKey: block.key,
+    };
+    selectedKey = null;
+    pointerPos = { x: e.clientX, y: e.clientY };
+    // Stop the browser from scrolling the grid once a drag is underway.
+    el.style.touchAction = "none";
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      // capture unsupported — pointer events still bubble to the element
+    }
+  }
+
+  function cleanup() {
+    if (longPress) clearTimeout(longPress);
+    longPress = null;
+    if (drag && pending && pointerId !== null) {
+      pending.el.style.touchAction = "";
+      try {
+        pending.el.releasePointerCapture(pointerId);
+      } catch {
+        // capture may already be released
+      }
+    }
+    if (drag) suppressClick = true;
+    drag = null;
+    hoverGhost = null;
+    pointerPos = null;
+    pointerId = null;
+    pending = null;
+  }
+
+  function onBlockPointerDown(e: PointerEvent, block: GridBlock) {
+    if (e.button > 0) return; // ignore right/middle click
+    suppressClick = false; // clear any stale post-drag guard from a prior gesture
+    pointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    pending = { block, el: e.currentTarget as HTMLElement };
+    if (e.pointerType !== "mouse") {
+      // Touch/pen: only a stationary long-press starts a drag, so a normal
+      // tap still selects and a swipe still scrolls the grid.
+      longPress = setTimeout(() => {
+        longPress = null;
+        if (pending) beginDrag(pending.block, pending.el, e);
+      }, LONG_PRESS_MS);
+    }
+  }
+
+  function onBlockPointerMove(e: PointerEvent) {
+    if (pointerId === null || e.pointerId !== pointerId || !pending) return;
+    const moved = Math.hypot(e.clientX - startX, e.clientY - startY);
+    if (!drag) {
+      if (e.pointerType === "mouse") {
+        if (moved > THRESHOLD) beginDrag(pending.block, pending.el, e);
+      } else if (moved > THRESHOLD && longPress) {
+        // Moved before the long-press fired — treat as a scroll, not a drag.
+        clearTimeout(longPress);
+        cleanup();
+      }
+      return;
+    }
+    e.preventDefault();
+    pointerPos = { x: e.clientX, y: e.clientY };
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    hoverGhost =
+      el?.closest<HTMLElement>("[data-ghost]")?.dataset["ghost"] ?? null;
+  }
+
+  function onBlockPointerUp(e: PointerEvent) {
+    if (pointerId === null || e.pointerId !== pointerId) return;
+    if (drag && hoverGhost) {
+      const courseOfferings = groupClassesByOffering(alternatives).filter(
+        (o) => o.courseCode === drag?.courseCode,
+      );
+      const offerings = courseOfferings.filter(
+        (o) => o.section !== drag?.fromSection,
+      );
+      const current = courseOfferings.find(
+        (o) => o.section === drag?.fromSection,
+      );
+      const target = offerings.find((o) => o.section === hoverGhost);
+      if (target) {
+        onswap?.(
+          drag.courseCode,
+          drag.fromSection,
+          current?.sections ?? [],
+          target.sections,
+        );
+      }
+    }
+    cleanup();
+  }
+
+  function onBlockClick(block: GridBlock) {
+    if (suppressClick) {
+      suppressClick = false;
+      return;
+    }
+    selectedKey = selectedKey === block.key ? null : block.key;
+  }
+
+  $effect(() => {
+    if (!drag) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") cleanup();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   const hourLabel = (hour: number) =>
     `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? "PM" : "AM"}`;
 
@@ -64,7 +252,7 @@
 </script>
 
 <div class="planner-grid-scroll">
-  <div class="planner-grid">
+  <div class="planner-grid" class:planner-grid--dragging={drag}>
     <div class="planner-grid__time" aria-hidden="true">
       {#each HOURS as hour (hour)}
         <div class="planner-grid__hour">{hourLabel(hour)}</div>
@@ -79,6 +267,7 @@
               class="planner-block"
               class:planner-block--conflict={block.conflicted}
               class:planner-block--selected={selectedKey === block.key}
+              class:planner-block--dragging={drag?.fromKey === block.key}
               style:top="{topPct(block.startMin)}%"
               style:height="{heightPct(block.startMin, block.endMin)}%"
               style:background-color={getColorForCourse(block.courseCode)}
@@ -88,10 +277,12 @@
                 class="planner-block__label"
                 title="{block.courseCode} {block.type} {block.section}{block.roomCode
                   ? ` · ${block.roomCode}`
-                  : ''}"
-                onclick={() =>
-                  (selectedKey =
-                    selectedKey === block.key ? null : block.key)}
+                  : ''} — drag to switch section"
+                onclick={() => onBlockClick(block)}
+                onpointerdown={(e) => onBlockPointerDown(e, block)}
+                onpointermove={onBlockPointerMove}
+                onpointerup={onBlockPointerUp}
+                onpointercancel={cleanup}
               >
                 <span class="planner-block__course">{block.courseCode}</span>
                 <span class="planner-block__section">
@@ -118,11 +309,38 @@
               {/if}
             </div>
           {/each}
+
+          {#if drag}
+            {#each ghostBlocksByDay[dayIndex] as ghost (ghost.ghostKey + ghost.startMin)}
+              <div
+                class="planner-ghost"
+                class:planner-ghost--hover={hoverGhost === ghost.ghostKey}
+                data-ghost={ghost.ghostKey}
+                style:top="{topPct(ghost.startMin)}%"
+                style:height="{heightPct(ghost.startMin, ghost.endMin)}%"
+                style:border-color={getColorForCourse(drag.courseCode)}
+              >
+                <span class="planner-ghost__label">{ghost.ghostKey}</span>
+              </div>
+            {/each}
+          {/if}
         </div>
       </div>
     {/each}
   </div>
 </div>
+
+{#if drag && pointerPos}
+  <div
+    class="planner-drag-pill"
+    style:left="{pointerPos.x}px"
+    style:top="{pointerPos.y}px"
+    aria-hidden="true"
+  >
+    {drag.courseCode}
+    {#if hoverGhost}→ {hoverGhost}{:else}· drop on a section{/if}
+  </div>
+{/if}
 
 <style>
   .planner-grid-scroll {
@@ -195,6 +413,20 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    touch-action: pan-x pan-y;
+  }
+
+  /* While dragging, other blocks stop intercepting hit-tests so
+     elementFromPoint resolves to the ghost drop targets under the pointer.
+     The dragged block keeps pointer-events so its captured pointer stream
+     (move/up) keeps flowing — it only ever covers its own cell, never a ghost. */
+  .planner-grid--dragging .planner-block {
+    pointer-events: none;
+  }
+
+  .planner-grid--dragging .planner-block--dragging {
+    pointer-events: auto;
+    opacity: 0.4;
   }
 
   .planner-block--conflict {
@@ -216,7 +448,7 @@
     width: 100%;
     padding: 0.125rem 0.25rem;
     color: white;
-    cursor: pointer;
+    cursor: grab;
     overflow: hidden;
   }
 
@@ -272,5 +504,52 @@
   .planner-block__actions button:hover,
   .planner-block__actions button:focus-visible {
     background: hsl(5, 53%, 96%);
+  }
+
+  .planner-ghost {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed hsl(0, 0%, 55%);
+    border-radius: 0.25rem;
+    background: hsl(0, 0%, 100%, 0.55);
+    color: hsl(0, 0%, 25%);
+    cursor: copy;
+  }
+
+  .planner-ghost--hover {
+    background: hsl(140, 60%, 92%, 0.9);
+    border-style: solid;
+    box-shadow: 0 0 0 2px hsl(140, 60%, 35%);
+  }
+
+  .planner-ghost__label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .planner-drag-pill {
+    position: fixed;
+    z-index: 40;
+    transform: translate(-50%, calc(-100% - 0.75rem));
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: hsl(0, 0%, 12%);
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .planner-ghost {
+      transition: none;
+    }
   }
 </style>

@@ -17,13 +17,14 @@
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
   import PlannerCourseSearch from "./PlannerCourseSearch.svelte";
   import PlannerGrid from "./PlannerGrid.svelte";
-  import type { FinalExamRow } from "@lib/types";
+  import type { ClassMapValue, FinalExamRow } from "@lib/types";
   import { MediaQuery } from "svelte/reactivity";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   let screenEl = $state<HTMLDivElement | null>(null);
   let finals = $state<FinalExamRow[]>([]);
+  let courseRows = $state<ClassMapValue[]>([]);
   let lastRefreshKey = $state<string | null>(null);
 
   const plan = $derived(plannerStore.activePlan);
@@ -69,6 +70,20 @@
 
   function close() {
     plannerStore.close();
+  }
+
+  function swapSection(
+    courseCode: string,
+    fromSection: string,
+    fromSections: ClassMapValue[],
+    toSections: ClassMapValue[],
+  ) {
+    if (fromSections.length > 0) {
+      plannerStore.removeSections(fromSections);
+    } else {
+      plannerStore.removeOffering(courseCode, fromSection);
+    }
+    plannerStore.addOffering(toSections);
   }
 
   function openRoom(roomCode: string) {
@@ -141,6 +156,7 @@
       ),
     ).then((pages) => {
       const rows = pages.flat();
+      courseRows = rows;
       if (rows.length > 0) plannerStore.refreshActivePlan(rows);
     });
 
@@ -249,8 +265,10 @@
       <PlannerGrid
         sections={plan?.sections ?? []}
         conflicts={plannerStore.conflicts}
+        alternatives={courseRows}
         onremove={plannerStore.removeOffering}
         onopenroom={openRoom}
+        onswap={swapSection}
       />
 
       {#if plan && plan.sections.length > 0}
