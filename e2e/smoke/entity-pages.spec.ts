@@ -12,14 +12,21 @@ test.describe("entity pages", () => {
     const res = await page.goto(buildingPagePath());
     expect(res?.status()).toBeLessThan(400);
     await expect(page.locator("body")).toContainText(E2E_FIXTURES.buildingName);
-    await expect(page.locator("body")).toContainText("3D view");
+    // Panel content renders only after the client app boots.
+    await waitForAppBoot(page);
+    await expect(page.locator("body")).toContainText("3D view", {
+      timeout: 30_000,
+    });
   });
 
   test("seeded room page 200", async ({ page }) => {
     const res = await page.goto(roomPagePath());
     expect(res?.status()).toBeLessThan(400);
     await expect(page.locator("body")).toContainText(E2E_FIXTURES.roomCode);
-    await expect(page.locator("body")).toContainText("Move in 3D");
+    await waitForAppBoot(page);
+    await expect(page.locator("body")).toContainText("Move in 3D", {
+      timeout: 30_000,
+    });
   });
 
   test("seeded event page 200", async ({ page }) => {

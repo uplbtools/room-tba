@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { campusSearchBox, waitForAppBoot } from "../helpers/app";
 
 test("Layout remains functional at 150% zoom", async ({ page }) => {
   await page.goto("/");
+  await waitForAppBoot(page);
 
   // Simulate 150% zoom (accessibility test)
   await page.evaluate(() => {
@@ -10,9 +12,7 @@ test("Layout remains functional at 150% zoom", async ({ page }) => {
   });
 
   // Check if main UI elements are still accessible
-  await expect(
-    page.locator("button.map-chrome-chip", { hasText: "Search" }),
-  ).toBeVisible();
+  await expect(campusSearchBox(page)).toBeVisible();
   await expect(page.locator("button.app-menu__trigger")).toBeVisible();
 
   // Open sidebar to ensure it doesn't break
