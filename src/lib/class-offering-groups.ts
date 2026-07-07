@@ -14,6 +14,19 @@ const TYPE_ORDER: Record<string, number> = {
   SEM: 2,
 };
 
+function classType(row: ClassMapValue): string {
+  return (row.type ?? "").trim().toUpperCase();
+}
+
+export function parentLectureSection(row: ClassMapValue): string | null {
+  if (classType(row) !== "LAB" || !row.section) return null;
+  const section = row.section.trim().toUpperCase();
+  const hyphenated = section.match(/^(.+)-\d+L$/);
+  if (hyphenated?.[1]) return hyphenated[1];
+  const compact = section.match(/^(.+)\dL$/);
+  return compact?.[1] ?? null;
+}
+
 export function offeringGroupKey(
   courseCode: string | null | undefined,
   section: string | null | undefined,
@@ -58,16 +71,38 @@ export function groupClassesByOffering(
     }
   }
 
+  const linkedLectureKeys = new Set<string>();
+  for (const group of groups.values()) {
+    const linkedLectures = new Map<number, ClassMapValue>();
+    for (const row of group.sections) {
+      const parentSection = parentLectureSection(row);
+      const parentKey = offeringGroupKey(row.courseCode, parentSection);
+      const parent = parentKey ? groups.get(parentKey) : null;
+      if (!parent || parent === group) continue;
+      for (const parentRow of parent.sections) {
+        if (classType(parentRow) === "LEC") {
+          linkedLectures.set(parentRow.id, parentRow);
+        }
+      }
+      if (linkedLectures.size > 0) linkedLectureKeys.add(parent.key);
+    }
+    group.sections.unshift(...linkedLectures.values());
+  }
+
   for (const group of groups.values()) {
     group.sections.sort((a, b) => {
-      const ta = TYPE_ORDER[a.type ?? ""] ?? 9;
-      const tb = TYPE_ORDER[b.type ?? ""] ?? 9;
+      const ta = TYPE_ORDER[classType(a)] ?? 9;
+      const tb = TYPE_ORDER[classType(b)] ?? 9;
       if (ta !== tb) return ta - tb;
       return (a.roomCode ?? "").localeCompare(b.roomCode ?? "");
     });
   }
 
-  return [...groups.values()].sort((a, b) =>
-    a.courseCode.localeCompare(b.courseCode),
-  );
+  return [...groups.values()]
+    .filter(
+      (group) =>
+        !linkedLectureKeys.has(group.key) ||
+        group.sections.some((row) => classType(row) !== "LEC"),
+    )
+    .sort((a, b) => a.courseCode.localeCompare(b.courseCode));
 }

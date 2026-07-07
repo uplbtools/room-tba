@@ -8,10 +8,10 @@ const rows: ClassMapValue[] = [
   {
     id: 1,
     courseCode: "CMSC 12",
-    section: "G-1L",
+    section: "G",
     type: "LEC",
-    schedule: ["T 07:00AM-10:00AM"],
-    roomCode: "ICS PC2",
+    schedule: ["WF 04:00PM-05:00PM"],
+    roomCode: "EAA LH",
     directions: null,
     courseTitle: "Foundations of Computer Science",
     roomId: 1,
@@ -23,6 +23,18 @@ const rows: ClassMapValue[] = [
     section: "G-1L",
     type: "LAB",
     schedule: ["F 01:00PM-04:00PM"],
+    roomCode: "ICS PC2",
+    directions: null,
+    courseTitle: "Foundations of Computer Science",
+    roomId: 1,
+    termId: 1253,
+  },
+  {
+    id: 3,
+    courseCode: "CMSC 12",
+    section: "G-5L",
+    type: "LAB",
+    schedule: ["TH 07:00AM-10:00AM"],
     roomCode: "ICS PC2",
     directions: null,
     courseTitle: "Foundations of Computer Science",
@@ -58,11 +70,13 @@ describe("PlannerCourseSearch", () => {
     });
     expect(courseButton).toBeVisible();
     expect(courseButton.textContent?.replace(/\s+/g, " ")).toContain(
-      "1 section",
+      "2 sections",
     );
 
     await fireEvent.click(courseButton);
-    const addButton = await screen.findByRole("button", { name: "Add" });
+    const addButton = (
+      await screen.findAllByRole("button", { name: "Add" })
+    )[0];
     await fireEvent.click(addButton);
 
     await waitFor(() => {

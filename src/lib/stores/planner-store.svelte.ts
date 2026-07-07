@@ -90,6 +90,22 @@ export class PlannerStore {
     this.persist();
   };
 
+  removeSections = (rows: ClassMapValue[]) => {
+    const plan = this.activePlan;
+    if (!plan) return;
+    const removeKeys = new Set(
+      rows
+        .map(rowToPlannedSection)
+        .filter((s): s is PlannedSection => s !== null)
+        .map(sectionNaturalKey),
+    );
+    if (removeKeys.size === 0) return;
+    plan.sections = plan.sections.filter(
+      (section) => !removeKeys.has(sectionNaturalKey(section)),
+    );
+    this.persist();
+  };
+
   removeOffering = (courseCode: string, section: string) => {
     const plan = this.activePlan;
     if (!plan) return;

@@ -49,6 +49,17 @@ describe("PlannerStore", () => {
     expect(store.addedKeys.size).toBe(0);
   });
 
+  test("removeSections removes exact linked lecture and lab rows", () => {
+    const store = makeStore();
+    const rows = [
+      row({ id: 1, section: "AB", type: "LEC" }),
+      row({ id: 2, section: "AB-1L", type: "LAB" }),
+    ];
+    store.addOffering(rows);
+    store.removeSections(rows);
+    expect(store.activePlan?.sections).toEqual([]);
+  });
+
   test("rows without natural key are skipped", () => {
     const store = makeStore();
     store.addOffering([row({ courseCode: null })]);

@@ -90,7 +90,7 @@
     const key = offeringGroupKey(offering.courseCode, offering.section);
     if (!key) return;
     if (plannerStore.addedKeys.has(key)) {
-      plannerStore.removeOffering(offering.courseCode, offering.section);
+      plannerStore.removeSections(offering.sections);
     } else {
       plannerStore.addOffering(offering.sections);
       toastStore.show(
