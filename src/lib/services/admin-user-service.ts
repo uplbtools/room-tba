@@ -418,7 +418,7 @@ export async function requestPasswordReset(login: string): Promise<void> {
       "",
       `Choose a new password: ${resetUrl}`,
       "",
-      "This link expires in 30 minutes. If you didn't request this, ignore this email — your password stays unchanged.",
+      "This link expires in 30 minutes. If you didn't request this, ignore this email. Your password stays unchanged.",
     ].join("\n"),
   });
 }
