@@ -23,6 +23,18 @@ describeIntegration(
     let oauthUserId: number;
 
     const cleanup = async () => {
+      // Delete dependent rows first — if an earlier test's own inline
+      // cleanup didn't run (e.g. an assertion above it threw), a leftover
+      // edit_proposals/contributions row would otherwise block every
+      // subsequent DELETE FROM admin_users via the FK constraint.
+      await client.query(
+        `DELETE FROM edit_proposals WHERE submitter_user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)`,
+        [`${PREFIX}%`],
+      );
+      await client.query(
+        `DELETE FROM contributions WHERE user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)`,
+        [`${PREFIX}%`],
+      );
       await client.query(`DELETE FROM admin_users WHERE username LIKE $1`, [
         `${PREFIX}%`,
       ]);
