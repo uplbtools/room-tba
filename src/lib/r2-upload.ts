@@ -19,6 +19,7 @@ export {
   buildUploadKey,
   detectImageContentType,
   parseEventImageUrl,
+  parseImageUrl,
   sanitizeUploadPrefix,
 } from "./r2-upload-core";
 

@@ -32,7 +32,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
   const buildingIdRaw = url.searchParams.get("buildingId");
 
   if (scope === "mine") {
-    const auth = editorSessionOrUnauthorized(cookies);
+    const auth = await editorSessionOrUnauthorized(cookies);
     if (auth instanceof Response) return auth;
     return json(await fetchMineProgress(sessionEditedBy(auth.session)));
   }

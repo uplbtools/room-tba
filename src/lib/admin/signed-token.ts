@@ -1,13 +1,13 @@
-import { ADMIN_PASSWORD, ADMIN_SESSION_SECRET } from "astro:env/server";
+import { ADMIN_SESSION_SECRET } from "astro:env/server";
 import {
   createSignedToken as createSignedTokenCore,
   verifySignedToken as verifySignedTokenCore,
 } from "./signed-token-core";
 
+// No ADMIN_PASSWORD fallback — see signingSecret() in ./auth.ts.
 function signingSecret(): string {
   if (ADMIN_SESSION_SECRET) return ADMIN_SESSION_SECRET;
-  if (ADMIN_PASSWORD) return ADMIN_PASSWORD;
-  throw new Error("ADMIN_SESSION_SECRET or ADMIN_PASSWORD must be configured");
+  throw new Error("ADMIN_SESSION_SECRET must be configured");
 }
 
 export function createSignedToken<T extends Record<string, unknown>>(

@@ -15,7 +15,7 @@ export const prerender = false;
 const LIMIT = { max: 5, windowMs: 60 * 1000 };
 
 export const POST: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   const rate = checkRateLimit(
