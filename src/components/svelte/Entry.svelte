@@ -78,6 +78,13 @@
       window.history.replaceState({}, "", window.location.pathname);
     }
 
+    const authError = urlParams.get("auth_error");
+    if (authError) {
+      adminAuthStore.oauthError = authError;
+      adminAuthStore.openLogin();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
     if (urlParams.get("contribute") === "1") {
       floatingControlPanelStore.openPanel = "suggest-addition";
       window.history.replaceState({}, "", window.location.pathname);

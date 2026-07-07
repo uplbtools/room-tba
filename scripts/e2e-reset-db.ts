@@ -44,6 +44,8 @@ function assertE2eDatabase(url: string) {
 const E2E_MIGRATION_FILES = [
   "0017_add_withdrawn_proposal_status.sql",
   "0018_contributions_ledger.sql",
+  "0019_add_entity_image_url.sql",
+  "0020_add_admin_user_email.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {

@@ -134,6 +134,7 @@ export async function getRoomById(id: number): Promise<RoomData | null> {
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      imageUrl: roomsTable.imageUrl,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -163,6 +164,7 @@ export async function getAllRoomsAdmin(): Promise<RoomWithRelations[]> {
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      imageUrl: roomsTable.imageUrl,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -179,6 +181,7 @@ export type RoomUpdateInput = {
   buildingId?: number | null;
   collegeId?: number | null;
   divisionId?: number | null;
+  imageUrl?: string | null;
 };
 
 export async function findRoomMergeCandidate(
@@ -308,6 +311,7 @@ export async function updateRoom(
     updates["collegeId"] = input.collegeId ?? null;
   if (input.divisionId !== undefined)
     updates["divisionId"] = input.divisionId ?? null;
+  if (input.imageUrl !== undefined) updates["imageUrl"] = input.imageUrl;
 
   if (Object.keys(updates).length > 0) {
     if (input.roomCode !== undefined) {
@@ -594,6 +598,7 @@ export type BuildingUpdateInput = {
   lon?: number;
   buildingType?: "admin" | "non-admin";
   directions?: string;
+  imageUrl?: string | null;
 };
 
 export async function updateBuilding(
@@ -610,6 +615,7 @@ export async function updateBuilding(
   if (input.buildingType !== undefined)
     updates["buildingType"] = input.buildingType;
   if (input.directions !== undefined) updates["directions"] = input.directions;
+  if (input.imageUrl !== undefined) updates["imageUrl"] = input.imageUrl;
 
   if (Object.keys(updates).length > 0) {
     if (input.buildingName !== undefined) {
@@ -966,6 +972,7 @@ export type DormUpdateInput = Partial<{
   priceRange: string | null;
   contactPhone: string[];
   facebookLink: string | null;
+  imageUrl: string | null;
 }>;
 
 export async function updateDorm(

@@ -168,7 +168,7 @@ const FIELD_LABELS: Record<string, string> = {
   startsAt: "Starts",
   endsAt: "Ends",
   sourceUrl: "Source URL",
-  imageUrl: "Event image",
+  imageUrl: "Image",
   recurrence: "Recurrence",
   rooms: "Bundled rooms",
 };
