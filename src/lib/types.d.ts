@@ -57,6 +57,7 @@ type RoomData = {
   divisionId: number | null;
   collegeName: string | null;
   divisionName: string | null;
+  imageUrl?: string | null;
   version: number;
   updatedAt: string;
   floor?: number | null;

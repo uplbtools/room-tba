@@ -5,19 +5,17 @@ import {
   divisionsTable,
   dormsTable,
   editProposalsTable,
+  eventLocationsTable,
   eventsTable,
   roomsTable,
 } from "@drizzle/schema";
+import type { SessionUser } from "@lib/admin/auth";
 import { db } from "@lib/db";
 import { validateSubmitterName } from "@constants/proposals";
-import { type SessionUser } from "@lib/admin/auth";
 import { recordProposalContribution } from "./contribution-service";
-import { parseEventImageUrl } from "@lib/r2-upload";
+import { parseImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
-import {
-  canViewProposalSubmitterDetails,
-  canWithdrawProposal,
-} from "./proposal-access";
+import { canWithdrawProposal } from "./proposal-access";
 export {
   canViewProposalSubmitterDetails,
   canWithdrawProposal,
@@ -339,6 +337,116 @@ export async function listPendingProposals(): Promise<EditProposalSummary[]> {
   return Promise.all(rows.map(withEntityLabel));
 }
 
+export async function getCurrentEntityValues(
+  entityType: ProposalUpdateType,
+  entityId: number,
+): Promise<Record<string, unknown> | null> {
+  switch (entityType) {
+    case "building": {
+      const [row] = await db
+        .select()
+        .from(buildingsTable)
+        .where(eq(buildingsTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "dorm": {
+      const [row] = await db
+        .select()
+        .from(dormsTable)
+        .where(eq(dormsTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "room": {
+      const [row] = await db
+        .select()
+        .from(roomsTable)
+        .where(eq(roomsTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "college": {
+      const [row] = await db
+        .select()
+        .from(collegesTable)
+        .where(eq(collegesTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "division": {
+      const [row] = await db
+        .select()
+        .from(divisionsTable)
+        .where(eq(divisionsTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "event": {
+      const [row] = await db
+        .select()
+        .from(eventsTable)
+        .where(eq(eventsTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "event_locations": {
+      const [row] = await db
+        .select()
+        .from(eventsTable)
+        .where(eq(eventsTable.id, entityId))
+        .limit(1);
+      if (!row) return null;
+      // Patch key is `locations`; include the published ones so the review
+      // queue renders a real before/after instead of a blank diff.
+      const locations = await db
+        .select()
+        .from(eventLocationsTable)
+        .where(eq(eventLocationsTable.eventId, entityId))
+        .orderBy(eventLocationsTable.sortOrder, eventLocationsTable.id);
+      return { ...row, locations };
+    }
+  }
+}
+
+export type ReviewProposalSummary = EditProposalSummary & {
+  /** Published values for the patched fields; null for create_* or deleted entities. */
+  currentValues: Record<string, unknown> | null;
+  currentVersion: number | null;
+};
+
+export async function listPendingProposalsForReview(): Promise<
+  ReviewProposalSummary[]
+> {
+  const rows = await listPendingProposals();
+  return Promise.all(
+    rows.map(async (row) => {
+      if (isCreateProposalType(row.entityType)) {
+        return { ...row, currentValues: null, currentVersion: null };
+      }
+      const current = await getCurrentEntityValues(
+        row.entityType as ProposalUpdateType,
+        row.entityId,
+      );
+      if (!current) {
+        return { ...row, currentValues: null, currentVersion: null };
+      }
+      const patch = row.proposedPatch as Record<string, unknown>;
+      const currentValues = Object.fromEntries(
+        Object.keys(patch)
+          .filter((key) => key in current)
+          .map((key) => [key, current[key]]),
+      );
+      const version = current.version;
+      return {
+        ...row,
+        currentValues,
+        currentVersion: typeof version === "number" ? version : null,
+      };
+    }),
+  );
+}
+
 export async function countPendingProposals(): Promise<number> {
   const rows = await db
     .select({ c: sql<number>`count(*)` })
@@ -525,9 +633,12 @@ export class ProposalActionError extends Error {
   }
 }
 
-function validateProposalEventImageUrl(patch: Record<string, unknown>) {
+function validateProposalImageUrl(
+  patch: Record<string, unknown>,
+  label: string,
+) {
   if (!("imageUrl" in patch)) return;
-  const parsed = parseEventImageUrl(patch.imageUrl, R2_PUBLIC_URL);
+  const parsed = parseImageUrl(patch.imageUrl, R2_PUBLIC_URL, label);
   if (!parsed.ok) {
     throw new ProposalActionError(parsed.error);
   }
@@ -536,12 +647,22 @@ function validateProposalEventImageUrl(patch: Record<string, unknown>) {
   }
 }
 
+const IMAGE_PATCH_ENTITY_LABELS: Readonly<Record<string, string>> = {
+  create_event: "Event image",
+  event: "Event image",
+  building: "Building image",
+  room: "Room image",
+  dorm: "Dorm image",
+  create_dorm: "Dorm image",
+};
+
 async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
   const patch = proposal.proposedPatch as Record<string, unknown>;
   const entityType = proposal.entityType as ProposalEntityType;
 
-  if (entityType === "create_event" || entityType === "event") {
-    validateProposalEventImageUrl(patch);
+  const imageLabel = IMAGE_PATCH_ENTITY_LABELS[entityType];
+  if (imageLabel) {
+    validateProposalImageUrl(patch, imageLabel);
   }
 
   if (isCreateProposalType(entityType)) {

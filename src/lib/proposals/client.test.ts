@@ -4,6 +4,7 @@ import {
   publishEntityPatch,
   readStoredProposals,
   rememberProposal,
+  submitEntityProposal,
 } from "./client";
 
 const originalFetch = globalThis.fetch;
@@ -57,6 +58,43 @@ describe("stored proposal refs", () => {
     });
     expect(getStoredPendingCreateProposal("create_room")).toBeNull();
     expect(readStoredProposals()).toHaveLength(2);
+  });
+});
+
+describe("submitEntityProposal", () => {
+  test("reuses stored open proposal when revising", async () => {
+    rememberProposal({
+      id: 42,
+      entityType: "room",
+      entityId: 7,
+      status: "pending",
+    });
+    globalThis.fetch = mock(async (_url, init) => {
+      expect(JSON.parse(String(init?.body))).toMatchObject({
+        proposalId: 42,
+        entityType: "room",
+        entityId: 7,
+      });
+      return Response.json({
+        proposal: {
+          id: 42,
+          entityType: "room",
+          entityId: 7,
+          status: "pending",
+        },
+      });
+    }) as typeof fetch;
+
+    const result = await submitEntityProposal({
+      entityType: "room",
+      entityId: 7,
+      baseVersion: 2,
+      patch: { directions: "Updated" },
+      submitterName: "Ana",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.proposal?.id).toBe(42);
   });
 });
 

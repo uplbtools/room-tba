@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
+import { R2_PUBLIC_URL } from "astro:env/server";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
+import { parseImageUrl } from "@lib/r2-upload-core";
 import {
   EditConflictError,
   updateDorm,
@@ -10,6 +12,7 @@ import {
 export const prerender = false;
 
 type DormPatchBody = {
+  imageUrl?: string | null;
   dormName?: string;
   shortName?: string;
   lat?: number | null;
@@ -29,11 +32,13 @@ type DormPatchBody = {
 };
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
-  const id = parseInt(params["id"] ?? "");
-  if (isNaN(id)) {
+  const id = parseInt(params.id ?? "", 10);
+  if (Number.isNaN(id)) {
     return new Response(JSON.stringify({ error: "Invalid dorm ID" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -57,12 +62,25 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     });
   }
 
+  const parsedImageUrl = parseImageUrl(
+    body.imageUrl,
+    R2_PUBLIC_URL,
+    "Dorm image",
+  );
+  if (!parsedImageUrl.ok) {
+    return new Response(JSON.stringify({ error: parsedImageUrl.error }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const parsedVersion = parseRequiredEditorVersion(body.version);
   if (!parsedVersion.ok) return parsedVersion.response;
   const expectedVersion = parsedVersion.version;
 
   try {
     const updates: Parameters<typeof updateDorm>[1] = {};
+    if (parsedImageUrl.provided) updates.imageUrl = parsedImageUrl.imageUrl;
     if (body.dormName !== undefined) updates.dormName = body.dormName.trim();
     if (body.shortName !== undefined)
       updates.shortName = body.shortName || null;

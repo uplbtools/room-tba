@@ -70,8 +70,8 @@ export class ScheduleRenderer {
     );
     this.canvas.width = cssWidth * dpr;
     this.canvas.height = cssHeight * dpr;
-    this.canvas.style.width = cssWidth + "px";
-    this.canvas.style.height = cssHeight + "px";
+    this.canvas.style.width = `${cssWidth}px`;
+    this.canvas.style.height = `${cssHeight}px`;
     this.ctx.scale(dpr, dpr);
     this.config.width = cssWidth;
     this.config.height = cssHeight;
@@ -140,7 +140,7 @@ export class ScheduleRenderer {
         (hour - cfg.startHour) * this.cellHeight +
         this.cellHeight / 2;
       const displayHour = hour > 12 ? hour - 12 : hour;
-      const period = hour >= 12 ? "PM" : "AM";
+      const _period = hour >= 12 ? "PM" : "AM";
       const label = `${displayHour}:00`;
       ctx.fillText(label, cfg.timeColumnWidth / 2, y);
     }
@@ -239,10 +239,10 @@ export class ScheduleRenderer {
       return [null, null];
     }
 
-    let startHour = parseInt(match[1]);
-    let startMin = match[2] ? parseInt(match[2]) : 0;
-    let endHour = parseInt(match[3]);
-    let endMin = match[4] ? parseInt(match[4]) : 0;
+    let startHour = parseInt(match[1], 10);
+    const startMin = match[2] ? parseInt(match[2], 10) : 0;
+    let endHour = parseInt(match[3], 10);
+    const endMin = match[4] ? parseInt(match[4], 10) : 0;
 
     if (startHour >= 1 && startHour <= 6) startHour += 12;
     if (endHour >= 1 && endHour <= 6) endHour += 12;
@@ -262,11 +262,11 @@ export class ScheduleRenderer {
     let truncated = text;
     while (
       truncated.length > 0 &&
-      ctx.measureText(truncated + "..").width > maxWidth
+      ctx.measureText(`${truncated}..`).width > maxWidth
     ) {
       truncated = truncated.slice(0, -1);
     }
-    return truncated.length > 0 ? truncated + ".." : "";
+    return truncated.length > 0 ? `${truncated}..` : "";
   }
 
   clear() {
@@ -274,7 +274,7 @@ export class ScheduleRenderer {
     this.draw();
   }
 }
-const courseColors = [
+const _courseColors = [
   "#2E7D32",
   "#1565C0",
   "#6A1B9A",
@@ -328,34 +328,34 @@ export function parseScheduleTime(scheduleStr: string) {
   );
   if (!match) return null;
 
-  let days = match[1];
-  let startHour = parseInt(match[2]);
-  let startMin = parseInt(match[3]);
-  let startPeriod = match[4].toUpperCase();
-  let endHour = parseInt(match[5]);
-  let endMin = parseInt(match[6]);
-  let endPeriod = match[7].toUpperCase();
+  const days = match[1];
+  let startHour = parseInt(match[2], 10);
+  const startMin = parseInt(match[3], 10);
+  const startPeriod = match[4].toUpperCase();
+  let endHour = parseInt(match[5], 10);
+  const endMin = parseInt(match[6], 10);
+  const endPeriod = match[7].toUpperCase();
 
   if (startPeriod === "PM" && startHour !== 12) startHour += 12;
   if (startPeriod === "AM" && startHour === 12) startHour = 0;
   if (endPeriod === "PM" && endHour !== 12) endHour += 12;
   if (endPeriod === "AM" && endHour === 12) endHour = 0;
 
-  let formattedStartHour =
+  const formattedStartHour =
     startHour > 12 ? startHour - 12 : startHour === 0 ? 12 : startHour;
-  let formattedEndHour =
+  const formattedEndHour =
     endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
 
-  let startStr =
+  const startStr =
     formattedStartHour +
-    (startMin > 0 ? ":" + String(startMin).padStart(2, "0") : "");
-  let endStr =
+    (startMin > 0 ? `:${String(startMin).padStart(2, "0")}` : "");
+  const endStr =
     formattedEndHour +
-    (endMin > 0 ? ":" + String(endMin).padStart(2, "0") : "");
+    (endMin > 0 ? `:${String(endMin).padStart(2, "0")}` : "");
 
   return {
     days: days,
-    time: startStr + "-" + endStr,
+    time: `${startStr}-${endStr}`,
     // 24h minutes since midnight — exact, unlike parseTime's PM heuristic.
     startMinutes: startHour * 60 + startMin,
     endMinutes: endHour * 60 + endMin,

@@ -27,7 +27,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", version, updated_at AS "updatedAt" FROM buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", version, updated_at AS "updatedAt" FROM buildings
       `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {
@@ -86,6 +86,7 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         price_range AS "priceRange",
         contact_phone AS "contactPhone",
         facebook_link AS "facebookLink",
+        image_url AS "imageUrl",
         version,
         updated_at AS "updatedAt"
       FROM dorms;
@@ -215,6 +216,7 @@ export async function getLocalRoomByCode(code: string) {
             r.building_id as "buildingId",
             r.college_id as "collegeId",
             r.division_id as "divisionId",
+            r.image_url as "imageUrl",
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r
@@ -250,6 +252,7 @@ export async function getLocalRoomById(id: number) {
             r.building_id as "buildingId",
             r.college_id as "collegeId",
             r.division_id as "divisionId",
+            r.image_url as "imageUrl",
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r
@@ -516,10 +519,10 @@ export async function getLocalRoomsCounts(): Promise<
     const localDB = getDB();
     await localDB.waitReady;
     const total = (await localDB.query(
-      `SELECT COUNT(*)::int AS count FROM rooms`,
+      "SELECT COUNT(*)::int AS count FROM rooms",
     )) as Results<{ count: number }>;
     const directed = (await localDB.query(
-      `SELECT COUNT(*)::int AS count FROM rooms WHERE directions IS NOT NULL`,
+      "SELECT COUNT(*)::int AS count FROM rooms WHERE directions IS NOT NULL",
     )) as Results<{ count: number }>;
     return {
       totalRooms: total.rows[0]?.count ?? 0,

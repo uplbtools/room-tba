@@ -12,7 +12,6 @@ import {
 import { db } from "./db";
 import { getDefaultTerm } from "./services/term-service";
 import { slugifySegment } from "./site";
-import { getDormRouteSlug, getRoomRouteSlug } from "./route-slugs";
 import { getAllEvents } from "./services/event-service";
 import type {
   BuildingData,

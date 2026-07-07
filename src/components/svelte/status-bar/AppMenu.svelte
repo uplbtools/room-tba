@@ -120,9 +120,14 @@
     closePanel();
   }
 
-  function handleNavAction(id: "contributors" | "editor-login") {
+  function handleNavAction(id: "contributors" | "editor-login" | "leaderboard") {
     if (id === "contributors") {
       modalStore.openModal("landing", { landingTab: "campus" });
+      closePanel();
+      return;
+    }
+    if (id === "leaderboard") {
+      modalStore.openModal("leaderboard");
       closePanel();
       return;
     }

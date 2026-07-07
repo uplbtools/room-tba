@@ -220,10 +220,8 @@
 
 .entity-directions__label {
   margin: 0;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: #52525b;
 }
 
@@ -333,11 +331,9 @@
 
 .entity-section-heading {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: #71717a;
+  color: #3f3f46;
 }
 
 .entity-dorm-details {
@@ -790,4 +786,13 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: #71717a;
+}
+
+.entity-image {
+  width: 100%;
+  max-height: 12rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(5, 53%, 90%);
+  background: white;
 }

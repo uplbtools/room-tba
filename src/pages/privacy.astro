@@ -120,7 +120,14 @@ import {
             Sign out of editor/contributor sessions when using shared devices.
           </li>
           <li>
-            Ask a maintainer to deactivate an editor account you no longer need.
+            If you have an editor or contributor account, open <strong
+              >Account settings</strong
+            > (from the app menu) to change your display name, email, or password;
+            connect or disconnect a Google sign-in; download a copy of your account
+            data; or delete your account. Deleting an account removes your email,
+            display name, and password — past proposals and edit history remain on
+            record, attributed to a deleted user, so the audit trail for published
+            changes stays intact.
           </li>
         </ul>
       </section>
@@ -200,6 +207,29 @@ import {
     font-size: clamp(2rem, 5vw, 2.75rem);
     line-height: 1.05;
     margin: 0;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsl(5 53% 32% / 0.08);
+    border: 1px solid hsl(5 53% 32% / 0.25);
+    text-decoration: none;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .back-link:hover {
+    background: hsl(5 53% 32% / 0.14);
+    border-color: hsl(5 53% 32% / 0.4);
   }
 
   .lede {

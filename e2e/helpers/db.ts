@@ -31,7 +31,7 @@ export async function withE2eClient<T>(
 export async function getBuildingCoords(id = 1) {
   return withE2eClient(async (client) => {
     const { rows } = await client.query<{ lat: number; lon: number }>(
-      `SELECT lat, lon FROM buildings WHERE id = $1`,
+      "SELECT lat, lon FROM buildings WHERE id = $1",
       [id],
     );
     return rows[0] ?? null;
@@ -41,7 +41,7 @@ export async function getBuildingCoords(id = 1) {
 export async function countEditorHistory(entityType: string, entityId: number) {
   return withE2eClient(async (client) => {
     const { rows } = await client.query<{ c: string }>(
-      `SELECT count(*)::text AS c FROM editor_history WHERE entity_type = $1 AND entity_id = $2`,
+      "SELECT count(*)::text AS c FROM editor_history WHERE entity_type = $1 AND entity_id = $2",
       [entityType, entityId],
     );
     return Number(rows[0]?.c ?? 0);

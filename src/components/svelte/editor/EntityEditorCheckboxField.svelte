@@ -34,12 +34,14 @@
     <input id={inputId} type="checkbox" bind:checked {disabled} />
     {label}
   </label>
-  <button
-    type="button"
-    class="field-save-btn"
-    disabled={disabled || unchanged}
-    onclick={onsave}
-  >
-    {saveLabel}
-  </button>
+  {#if canPublish}
+    <button
+      type="button"
+      class="field-save-btn"
+      disabled={disabled || unchanged}
+      onclick={onsave}
+    >
+      {saveLabel}
+    </button>
+  {/if}
 </div>
