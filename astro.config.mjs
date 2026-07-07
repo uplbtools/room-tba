@@ -215,6 +215,18 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
+      // Cloudflare Turnstile on editor login (#443). Widget is hidden and
+      // server verification skipped when unset (local dev).
+      PUBLIC_TURNSTILE_SITE_KEY: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      TURNSTILE_SECRET_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
     },
   },
   adapter: e2eNodeAdapter

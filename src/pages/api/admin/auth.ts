@@ -18,6 +18,7 @@ import {
   getAdminUserBySupabaseId,
 } from "@lib/services/admin-user-service";
 import { createServerSupabaseClient } from "@lib/supabase/server";
+import { verifyTurnstileToken } from "@lib/turnstile";
 
 export const prerender = false;
 
@@ -81,6 +82,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (!password) {
       return json({ error: "Password is required" }, 400);
+    }
+
+    const turnstileToken = formData.get("turnstileToken");
+    const turnstileOk = await verifyTurnstileToken(
+      typeof turnstileToken === "string" ? turnstileToken : null,
+      ip,
+    );
+    if (!turnstileOk) {
+      return json(
+        { error: "Verification failed. Refresh the page and try again." },
+        400,
+      );
     }
 
     let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
