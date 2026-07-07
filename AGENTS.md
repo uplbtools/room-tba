@@ -123,6 +123,13 @@ When the user asks to **ship** a feature or fix, they mean the **full integratio
 
 Direct commit + push to `staging` without a PR is fine for solo touch-ups ([§ Push to staging directly](#push-to-staging-directly)): but that is **not** “shipped” until stage 2 (`staging` → `main`) is also reviewed, built, and merged.
 
+**Merge the release PR with a merge commit, not squash** — semantic-release reads the individual conventional commits to build the changelog; a squash collapses them to one message.
+
+**Release-step (`main`) gotchas — semantic-release.** Pushing to `main` runs `bunx semantic-release` (`.github/workflows/release.yml`). Two failure modes seen in practice:
+
+- **Tag/history divergence → first-release `v1.0.0` collision.** If `main` was ever rewritten so no `vX.Y.Z` tag is reachable from it (`git describe --tags origin/main` says "no tags can describe"), semantic-release assumes a first release, tries `git tag v1.0.0`, and dies (`already exists`). Fix: re-point the highest version tag onto `main`'s current tip as a **lightweight** tag — `git update-ref refs/tags/vX.Y.Z <main-sha>` then `git push origin refs/tags/vX.Y.Z --force`. Use `update-ref`, **not** `git tag -a`: `tag.gpgsign true` forces annotated tags, and semantic-release's ancestor check rejects annotated tags (it compares the tag-object SHA, which isn't a commit). Always **dry-run first**: on a local `staging→main` merge, `GITHUB_REF=refs/heads/main GITHUB_ACTIONS=true bunx semantic-release --dry-run --no-ci` — confirm "next release version is X.Y.Z" (not 1.0.0), and make sure the checked-out `main` ref equals the merge commit or it reads the wrong history.
+- **Version-sync PR fails silently.** The auto step that writes the bumped `package.json` + `CHANGELOG.md` back to `main` fails because the org **blocks GitHub Actions from opening PRs** (`continue-on-error`, so the release still "succeeds"). Open it manually: branch off `main`, bump `package.json` version, prepend the GitHub release body to `CHANGELOG.md`, commit `chore(release): X.Y.Z [skip ci]`, merge.
+
 ### Push to `staging` directly
 
 For scoped fixes and solo/maintainer sessions, **committing on `staging` and pushing is fine**: you do not need a feature branch for every change.
@@ -340,6 +347,12 @@ Blocking job order: reset DB → `build:e2e` → preview → `test:integration` 
 
 Most Playwright failures are **test harness** issues: fix helpers before changing UI.
 
+**Shared E2E DB pooler — rerun failed E2E solo, never in parallel.** All CI integration/E2E share **one** Supabase E2E project through a session pooler (`pool_size: 15`). Two E2E runs at once (two PRs labelled `run/e2e`, or a PR racing a `staging→main` release run) exhaust it, and the failure surfaces as **misleading** errors — `EMAXCONNSESSION max clients reached`, or logic-level lies like `AccountActionError: Account not found` / `changePassword` failing. Before diagnosing an E2E failure as a real bug: check `gh run list` for another in-progress E2E run; if present, **rerun this one alone** (`gh run rerun <id> --failed`) once the other finishes. Do not trigger `run/e2e` on multiple PRs simultaneously.
+
+**`run/e2e` label is load-bearing.** E2E specs run only when a PR is ready-for-review/non-draft **or** carries `run/e2e`. A PR that changes UI or E2E specs but never gets the label **never runs those specs** — it can merge green and break every downstream branch's E2E (a "tooling" PR once bundled untested UI + new specs this way and broke the suite for days). Label any PR that touches UI or `e2e/`.
+
+**Reproduce a CI E2E failure locally** (to tell a real bug from pooler flake): podman Postgres → `drizzle-kit push` (config without the `loadEnv` import) → `bun run e2e:reset-db` (the URL **must** contain the E2E project ref or `assertE2eDatabase` rejects it) → `bun run build:e2e` → `bun run preview:e2e`; then run the failing spec with `PLAYWRIGHT_REUSE_SERVER=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:4321`. If it passes locally, it was pooler contention.
+
 ### Agentic browser
 
 When the agent session has **browser automation** (Cursor agentic browser, Playwright MCP, or headless Playwright in the shell), **use it** for UI verification instead of skipping straight to “needs manual QA.”
@@ -543,11 +556,19 @@ gh pr checks <number> --repo uplbtools/room-tba
 
 **API fallback (all Preview branches, non-interactive):** `POST /v10/projects/{projectId}/env?teamId={teamId}` with `{ "key": "DATABASE_URL", "value": "…", "type": "encrypted", "target": ["preview"] }`. Never paste connection strings into issues or commits.
 
+**More env traps:**
+
+| Trap | Reality |
+| --- | --- |
+| Map renders flat (no 3D building extrusions) locally | `PUBLIC_MAPTILER_KEY` unset → `loadCampusMapStyle` returns the raster fallback (`E2E_FALLBACK_MAP_STYLE`). **Not a regression** — prod has the key; local `.env` usually doesn't. Verify prod on `room-tba.uplbtools.me` (loads `api.maptiler.com/tiles/v3-openmaptiles`). |
+| Fork PR `verify` fails: `DATABASE_URL is missing` | Fork PRs **can't read Actions secrets** — the build's prerender has no DB. For trivial fork docs, `gh pr merge --admin` (staging is unprotected). Real fork code needs a maintainer-run build. |
+| Dependabot PR CI fails the same way | Dependabot uses the **Dependabot** secret store, not Actions — mirror the secret there, or the CI workflow skips secret-dependent jobs for `github.actor == 'dependabot[bot]'`. |
+
 ### Supabase ops
 
 - **Runtime Postgres:** Supabase via **`DATABASE_URL`** (Drizzle in `src/lib/db.ts`). Not PGlite, not Neon at runtime.
 - **Migrations:** SQL in `drizzle/`: apply to Supabase **before** deploying code that depends on new columns (`psql "$DATABASE_URL" -f drizzle/….sql` or dashboard SQL editor). Repo does not use `supabase db push` as the primary flow.
-- **Connection string:** Prefer **session pooler** (`*.pooler.supabase.com`) from Supabase dashboard → Settings → Database.
+- **Connection string / serverless pooling.** The **session pooler** (`*.pooler.supabase.com:5432`) caps at `pool_size` (15). `src/lib/db.ts` opens `DATABASE_POOL_MAX` (default **10**) connections *per serverless instance*, so a Vercel cold-start burst (every route after a deploy, or concurrent traffic) exhausts the pooler → intermittent **500/503 that self-recover once warm** (`EMAXCONNSESSION`, or `Failed query … NodePgPreparedQuery`). Reported as "the serverless function crashed" but static pages + warm/cached routes stay fine. **Quick mitigation:** `vercel env add DATABASE_POOL_MAX production` = `2` (and `preview`), then redeploy. **Durable fix:** point `DATABASE_URL` at the Supabase **transaction pooler** (port **6543**) and set `prepare: false` in `db.ts` — it's built for many short serverless connections. A fresh deploy always triggers a brief cold-start burst; diagnose with `vercel logs <deployment-url>` and confirm via a *sequential* probe (real users are fine) vs a concurrent one.
 - **Optional CLI:** `supabase login`, `supabase projects list`; `bunx drizzle-kit studio` to browse schema locally (needs working `DATABASE_URL`).
 - After fixing Vercel env, **redeploy**: failed deployments are not auto-retried.
 
