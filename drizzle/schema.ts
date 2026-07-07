@@ -332,6 +332,7 @@ export const adminUsersTable = pgTable(
     email: text(),
     isActive: boolean("is_active").default(true).notNull(),
     supabaseUserId: uuid("supabase_user_id"),
+    deletedAt: timestamp("deleted_at", { mode: "string" }),
     createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
       .notNull(),

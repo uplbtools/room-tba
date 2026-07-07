@@ -365,6 +365,8 @@ class AdminAuthStore {
   loginOpen: boolean = $state(false);
   /** Error code from a failed OAuth redirect (`?auth_error=`). */
   oauthError: string | null = $state(null);
+  accountSettingsOpen: boolean = $state(false);
+  manageUsersOpen: boolean = $state(false);
   private _hydrated = false;
 
   private applySession(data: {
@@ -497,6 +499,33 @@ class AdminAuthStore {
     }
   };
 
+  /** Start Google OAuth to link an identity onto the *already logged-in*
+   * account (Account settings → Connect Google), distinct from
+   * `loginWithGoogle` which creates/logs into a new account. */
+  linkGoogle = async (): Promise<string | null> => {
+    try {
+      const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] =
+        await Promise.all([
+          import("@lib/supabase/env"),
+          import("@lib/supabase/client"),
+        ]);
+      if (!isSupabaseConfigured()) {
+        return "Google sign-in is not configured on this server.";
+      }
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/link-callback`,
+        },
+      });
+      if (error) return error.message;
+      return null;
+    } catch {
+      return "Google sign-in failed to start. Try again.";
+    }
+  };
+
   logout = async () => {
     try {
       await fetch("/api/admin/auth", {
@@ -525,6 +554,26 @@ class AdminAuthStore {
   closeLogin = () => {
     this.loginOpen = false;
     this.oauthError = null;
+  };
+
+  openAccountSettings = () => {
+    dismissEphemeralOverlays();
+    modalStore.closeModal();
+    this.accountSettingsOpen = true;
+  };
+
+  closeAccountSettings = () => {
+    this.accountSettingsOpen = false;
+  };
+
+  openManageUsers = () => {
+    dismissEphemeralOverlays();
+    modalStore.closeModal();
+    this.manageUsersOpen = true;
+  };
+
+  closeManageUsers = () => {
+    this.manageUsersOpen = false;
   };
 }
 

@@ -35,6 +35,38 @@
   let error: string | null = $state(null);
   let googleLoading = $state(false);
 
+  let showForgotPassword = $state(false);
+  let forgotLoginDraft = $state("");
+  let forgotPasswordSending = $state(false);
+  let forgotPasswordSent = $state(false);
+  let forgotPasswordError = $state<string | null>(null);
+
+  async function sendForgotPassword() {
+    forgotPasswordSending = true;
+    forgotPasswordError = null;
+    try {
+      const res = await fetch("/api/account/request-password-reset", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login: forgotLoginDraft }),
+      });
+      if (!res.ok && res.status === 429) {
+        const data = await res.json().catch(() => ({}) as { error?: string });
+        forgotPasswordError =
+          data.error ?? "Too many attempts. Wait a bit and try again.";
+        return;
+      }
+      // Always show success — the endpoint never reveals whether the
+      // account exists, so neither should the UI.
+      forgotPasswordSent = true;
+    } catch {
+      forgotPasswordError = "Network error. Try again.";
+    } finally {
+      forgotPasswordSending = false;
+    }
+  }
+
   $effect(() => {
     const code = adminAuthStore.oauthError;
     if (code) {
@@ -136,6 +168,15 @@
           />
         {/snippet}
       </EntityEditorFormField>
+      {#if !showForgotPassword}
+        <button
+          type="button"
+          class="forgot-password-link"
+          onclick={() => (showForgotPassword = true)}
+        >
+          Forgot password?
+        </button>
+      {/if}
       {#if error}
         <EntityEditorMessage
           variant="error"
@@ -143,13 +184,70 @@
           id={loginErrorId}
         />
       {/if}
-      <EntityEditorSubmitButton
-        type="submit"
-        label="Sign in"
-        savingLabel="Signing in…"
-        saving={adminAuthStore.loading}
-      />
-      {#if googleEnabled}
+      {#if !showForgotPassword}
+        <EntityEditorSubmitButton
+          type="submit"
+          label="Sign in"
+          savingLabel="Signing in…"
+          saving={adminAuthStore.loading}
+        />
+      {/if}
+      {#if showForgotPassword}
+        <div class="forgot-password-panel">
+          {#if forgotPasswordSent}
+            <EntityEditorMessage
+              variant="success"
+              message="If that account exists, check its email for a reset link."
+            />
+            <button
+              type="button"
+              class="forgot-password-link"
+              onclick={() => {
+                showForgotPassword = false;
+                forgotPasswordSent = false;
+                forgotLoginDraft = "";
+              }}
+            >
+              Back to sign in
+            </button>
+          {:else}
+            <EntityEditorFormField
+              label="Username or email"
+              inputId="forgot-password-login"
+            >
+              {#snippet control()}
+                <input
+                  id="forgot-password-login"
+                  type="text"
+                  autocomplete="username"
+                  bind:value={forgotLoginDraft}
+                  disabled={forgotPasswordSending}
+                />
+              {/snippet}
+            </EntityEditorFormField>
+            {#if forgotPasswordError}
+              <EntityEditorMessage variant="error" message={forgotPasswordError} />
+            {/if}
+            <div class="forgot-password-actions">
+              <EntityEditorSubmitButton
+                label="Send reset link"
+                savingLabel="Sending…"
+                saving={forgotPasswordSending}
+                disabled={!forgotLoginDraft.trim()}
+                onclick={sendForgotPassword}
+              />
+              <button
+                type="button"
+                class="forgot-password-link"
+                onclick={() => (showForgotPassword = false)}
+              >
+                Cancel
+              </button>
+            </div>
+          {/if}
+        </div>
+      {/if}
+      {#if googleEnabled && !showForgotPassword}
         <div class="login-divider" aria-hidden="true">or</div>
         <button
           type="button"
@@ -244,6 +342,9 @@
   .login-body {
     padding: 1rem;
   }
+  .login-body :global(.entity-editor-submit) {
+    width: 100%;
+  }
   .login-footer {
     margin: 0;
     padding: 0.75rem 1rem 1rem;
@@ -282,6 +383,7 @@
     border-top: 1px solid hsl(0, 0%, 90%);
   }
   .google-login-btn {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -305,5 +407,28 @@
   .google-login-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+  .forgot-password-link {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    padding: 0;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .forgot-password-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .forgot-password-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
   }
 </style>

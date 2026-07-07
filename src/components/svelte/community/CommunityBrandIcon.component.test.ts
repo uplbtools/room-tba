@@ -10,7 +10,7 @@ describe("CommunityBrandIcon", () => {
     const svg = container.querySelector("svg");
     expect(svg).toBeTruthy();
     expect(svg?.getAttribute("width")).toBe("18");
-    expect(container.querySelector("linearGradient")).toBeTruthy();
+    expect(container.querySelector("radialGradient")).toBeTruthy();
   });
 
   test("renders Discord brand SVG", () => {
