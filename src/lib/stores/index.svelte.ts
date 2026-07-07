@@ -72,6 +72,7 @@ type RoomData = {
   divisionId: number | null;
   collegeName: string | null;
   divisionName: string | null;
+  imageUrl?: string | null;
   version: number;
   updatedAt: string;
 };
@@ -362,6 +363,8 @@ class AdminAuthStore {
   canReview: boolean = $state(false);
   loading: boolean = $state(false);
   loginOpen: boolean = $state(false);
+  /** Error code from a failed OAuth redirect (`?auth_error=`). */
+  oauthError: string | null = $state(null);
   private _hydrated = false;
 
   private applySession(data: {
@@ -469,6 +472,31 @@ class AdminAuthStore {
     }
   };
 
+  /** Start Google OAuth (#456); resolves to an error message or redirects away. */
+  loginWithGoogle = async (): Promise<string | null> => {
+    try {
+      const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] =
+        await Promise.all([
+          import("@lib/supabase/env"),
+          import("@lib/supabase/client"),
+        ]);
+      if (!isSupabaseConfigured()) {
+        return "Google sign-in is not configured on this server.";
+      }
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback`,
+        },
+      });
+      if (error) return error.message;
+      return null;
+    } catch {
+      return "Google sign-in failed to start. Try again.";
+    }
+  };
+
   logout = async () => {
     try {
       await fetch("/api/admin/auth", {
@@ -496,6 +524,7 @@ class AdminAuthStore {
 
   closeLogin = () => {
     this.loginOpen = false;
+    this.oauthError = null;
   };
 }
 

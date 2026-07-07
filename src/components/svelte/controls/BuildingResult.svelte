@@ -21,6 +21,8 @@
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
+  import ImageUpload from "@ui/editor/ImageUpload.svelte";
+  import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import { tick } from "svelte";
   import {
@@ -45,7 +47,11 @@
     scheduleEntityContributorDraftSave,
   } from "@lib/contributor-drafts";
 
-  type BuildingEditableField = "buildingName" | "directions" | "buildingType";
+  type BuildingEditableField =
+    | "buildingName"
+    | "directions"
+    | "buildingType"
+    | "imageUrl";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -88,6 +94,7 @@
   let nameDraft = $state("");
   let directionsDraft = $state("");
   let typeDraft = $state<BuildingData["buildingType"]>("non-admin");
+  let imageDraft = $state<string | null>(null);
   let savingField = $state<BuildingEditableField | null>(null);
   let savedField = $state<BuildingEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -107,6 +114,7 @@
     buildingName: "Building name",
     directions: "Building directions",
     buildingType: "Building type",
+    imageUrl: "Building photo",
   };
 
   // Room list must reload when the selected building changes (search result,
@@ -198,6 +206,7 @@
     nameDraft = current.buildingName;
     directionsDraft = current.directions ?? "";
     typeDraft = current.buildingType;
+    imageDraft = current.imageUrl ?? null;
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -275,6 +284,7 @@
       buildingName?: string;
       directions?: string;
       buildingType?: BuildingData["buildingType"];
+      imageUrl?: string | null;
     } = { version: current.version };
 
     if (field === "buildingName") {
@@ -288,6 +298,8 @@
       body.directions = directionsDraft.trim();
     } else if (field === "buildingType") {
       body.buildingType = typeDraft;
+    } else if (field === "imageUrl") {
+      body.imageUrl = imageDraft || null;
     }
 
     savingField = field;
@@ -568,11 +580,43 @@
                   </select>
                 {/snippet}
               </EntityEditorField>
+
+              {#if adminAuthStore.isLoggedIn}
+                <div class="editor-image-row">
+                  <ImageUpload
+                    label="Building photo"
+                    inputId="building-image-editor"
+                    prefix="buildings"
+                    bind:value={imageDraft}
+                    disabled={savingField !== null}
+                  />
+                  <button
+                    type="button"
+                    class="field-save-btn"
+                    disabled={savingField !== null ||
+                      (imageDraft ?? null) === (building.imageUrl ?? null)}
+                    onclick={() => saveField("imageUrl")}
+                  >
+                    {fieldSaveActionLabel({
+                      canPublish,
+                      isSaving: savingField === "imageUrl",
+                    })}
+                  </button>
+                </div>
+              {/if}
             </div>
           </details>
         </EntityEditorPanel>
       </section>
     {:else}
+      {#if building.imageUrl}
+        <img
+          class="entity-image"
+          src={building.imageUrl}
+          alt="Photo of {building.buildingName}"
+          loading="lazy"
+        />
+      {/if}
       <section class="entity-directions" aria-label="Directions">
         <div class="entity-directions__segment">
           {#if building.directions}

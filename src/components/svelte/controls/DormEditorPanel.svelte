@@ -4,6 +4,8 @@
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import EntityEditorCheckboxField from "@ui/editor/EntityEditorCheckboxField.svelte";
+  import ImageUpload from "@ui/editor/ImageUpload.svelte";
+  import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import {
     adminAuthStore,
@@ -25,7 +27,8 @@
     | "contactPhone"
     | "amenities"
     | "facebookLink"
-    | "osmLink";
+    | "osmLink"
+    | "imageUrl";
 
   type Props = {
     dorm: DormData;
@@ -50,6 +53,7 @@
     amenitiesDraft: string;
     facebookLinkDraft: string;
     osmLinkDraft: string;
+    imageDraft: string | null;
     fieldLabel: (field: DormEditableField) => string;
     fieldIsUnchanged: (field: DormEditableField, current: DormData) => boolean;
     saveField: (field: DormEditableField) => void;
@@ -79,6 +83,7 @@
     amenitiesDraft = $bindable(""),
     facebookLinkDraft = $bindable(""),
     osmLinkDraft = $bindable(""),
+    imageDraft = $bindable(null),
     fieldLabel,
     fieldIsUnchanged,
     saveField,
@@ -341,6 +346,29 @@
       />
     {/snippet}
   </EntityEditorField>
+
+  {#if adminAuthStore.isLoggedIn}
+    <div class="editor-image-row">
+      <ImageUpload
+        label="Dorm photo"
+        inputId="dorm-image-editor"
+        prefix="dorms"
+        bind:value={imageDraft}
+        {disabled}
+      />
+      <button
+        type="button"
+        class="field-save-btn"
+        disabled={disabled || fieldIsUnchanged("imageUrl", dorm)}
+        onclick={() => saveField("imageUrl")}
+      >
+        {fieldSaveActionLabel({
+          canPublish,
+          isSaving: savingField === "imageUrl",
+        })}
+      </button>
+    </div>
+  {/if}
 
   <p class="editor-note">
     {#if canPublish}

@@ -101,6 +101,7 @@ export const dormsTable = pgTable("dorms", {
   priceRange: text("price_range"),
   contactPhone: varchar("contact_phone", { length: 20 }).array(),
   facebookLink: text("facebook_link"),
+  imageUrl: text("image_url"),
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
@@ -204,6 +205,7 @@ export const buildingsTable = pgTable("buildings", {
   buildingType: buildingEnum("type").default("non-admin").notNull(),
   lat: doublePrecision().notNull(),
   directions: text().notNull(),
+  imageUrl: text("image_url"),
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
@@ -277,6 +279,7 @@ export const roomsTable = pgTable(
     buildingId: integer("building_id"),
     collegeId: integer("college_id"),
     divisionId: integer("division_id"),
+    imageUrl: text("image_url"),
     version: integer().default(1).notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()
@@ -326,6 +329,7 @@ export const adminUsersTable = pgTable(
     displayName: varchar("display_name", { length: 100 }),
     passwordHash: text("password_hash").notNull(),
     role: adminRoleEnum().default("editor").notNull(),
+    email: text(),
     isActive: boolean("is_active").default(true).notNull(),
     supabaseUserId: uuid("supabase_user_id"),
     createdAt: timestamp("created_at", { mode: "string" })

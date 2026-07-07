@@ -414,3 +414,13 @@
   color: hsl(0, 0%, 46%);
   line-height: 1.4;
 }
+
+.editor-image-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.editor-image-row .field-save-btn {
+  align-self: flex-start;
+}

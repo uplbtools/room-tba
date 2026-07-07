@@ -57,7 +57,7 @@ const structuredData = jsonLd(
     name: buildingName,
     description: building.directions ?? description,
     url: absoluteUrl(canonicalPath),
-    image: ogImageUrl(),
+    image: ogImageUrl(building.imageUrl ?? undefined),
     geo:
       building.lat !== null && building.lon !== null
         ? {
@@ -74,6 +74,9 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   {canonicalPath}
+  image={building.imageUrl
+    ? { src: building.imageUrl, alt: `Photo of ${buildingName}` }
+    : null}
   heading={`${buildingName} at UPLB`}
   {intro}
   {facts}

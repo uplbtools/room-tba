@@ -11,6 +11,10 @@ export default defineConfig({
       "@constants": path.resolve(__dirname, "src/constants"),
       "@drizzle": path.resolve(__dirname, "drizzle"),
       "@test": path.resolve(__dirname, "src/test"),
+      "astro:env/client": path.resolve(
+        __dirname,
+        "src/test/astro-env-client-stub.ts",
+      ),
     },
     conditions: ["browser"],
   },

@@ -64,6 +64,85 @@ export async function getAdminUserBySupabaseId(
   }
 }
 
+export type SupabaseIdentity = {
+  id: string;
+  email: string | null;
+  name?: string | null;
+};
+
+/**
+ * Resolve an OAuth (e.g. Google) Supabase user to an `admin_users` row.
+ * Links by supabase id, then by email (existing account without a link),
+ * else creates a new `contributor` account (#456).
+ */
+export async function linkOrCreateContributorFromSupabase(
+  identity: SupabaseIdentity,
+): Promise<SessionUser | null> {
+  const linked = await getAdminUserBySupabaseId(identity.id);
+  if (linked) return linked;
+
+  const email = identity.email?.trim().toLowerCase() ?? null;
+
+  if (email) {
+    const [byEmail] = await db
+      .select({
+        id: adminUsersTable.id,
+        username: adminUsersTable.username,
+        displayName: adminUsersTable.displayName,
+        role: adminUsersTable.role,
+        isActive: adminUsersTable.isActive,
+      })
+      .from(adminUsersTable)
+      .where(sql`lower(email) = ${email}`)
+      .limit(1);
+    if (byEmail) {
+      if (!byEmail.isActive) return null;
+      await db
+        .update(adminUsersTable)
+        .set({ supabaseUserId: identity.id, updatedAt: sql`now()` })
+        .where(eq(adminUsersTable.id, byEmail.id));
+      return toSessionUser(byEmail);
+    }
+  }
+
+  const base = (email?.split("@")[0] ?? `google-${identity.id.slice(0, 8)}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, "")
+    .slice(0, 48);
+  const displayName = identity.name?.trim() || base;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const username =
+      attempt === 0 ? base : `${base.slice(0, 44)}-${attempt + 1}`;
+    try {
+      const [created] = await db
+        .insert(adminUsersTable)
+        .values({
+          username,
+          displayName,
+          // OAuth-only account: no usable password login.
+          passwordHash: "",
+          role: "contributor",
+          email,
+          isActive: true,
+          supabaseUserId: identity.id,
+        })
+        .returning({
+          id: adminUsersTable.id,
+          username: adminUsersTable.username,
+          displayName: adminUsersTable.displayName,
+          role: adminUsersTable.role,
+        });
+      if (created) return toSessionUser(created);
+    } catch (error) {
+      // Unique violation on username → retry with a suffix.
+      const code = (error as { code?: string })?.code;
+      if (code !== "23505") throw error;
+    }
+  }
+  return null;
+}
+
 async function findUserByLogin(login: string) {
   const normalized = login.trim().toLowerCase();
   if (!normalized) return null;
