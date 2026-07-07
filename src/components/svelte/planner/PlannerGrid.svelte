@@ -2,7 +2,6 @@
   import { getColorForCourse } from "@lib/schedule-renderer";
   import { sectionBlocks } from "@lib/planner/conflicts";
   import { alternativeOfferings } from "@lib/planner/alternatives";
-  import { groupClassesByOffering } from "@lib/class-offering-groups";
   import type { Conflict, ScheduleBlock } from "@lib/planner/conflicts";
   import type { PlannedSection } from "@lib/planner/types";
   import type { ClassMapValue } from "@lib/types";
@@ -14,12 +13,7 @@
     alternatives?: ClassMapValue[];
     onremove: (courseCode: string, section: string) => void;
     onopenroom: (roomCode: string) => void;
-    onswap?: (
-      courseCode: string,
-      fromSection: string,
-      fromSections: ClassMapValue[],
-      toSections: ClassMapValue[],
-    ) => void;
+    onswap?: (courseCode: string, toSections: ClassMapValue[]) => void;
   }
 
   const {
@@ -203,24 +197,12 @@
   function onBlockPointerUp(e: PointerEvent) {
     if (pointerId === null || e.pointerId !== pointerId) return;
     if (drag && hoverGhost) {
-      const courseOfferings = groupClassesByOffering(alternatives).filter(
-        (o) => o.courseCode === drag?.courseCode,
-      );
-      const offerings = courseOfferings.filter(
-        (o) => o.section !== drag?.fromSection,
-      );
-      const current = courseOfferings.find(
-        (o) => o.section === drag?.fromSection,
-      );
-      const target = offerings.find((o) => o.section === hoverGhost);
-      if (target) {
-        onswap?.(
-          drag.courseCode,
-          drag.fromSection,
-          current?.sections ?? [],
-          target.sections,
-        );
-      }
+      const target = alternativeOfferings(
+        alternatives,
+        drag.courseCode,
+        drag.fromSection,
+      ).find((o) => o.section === hoverGhost);
+      if (target) onswap?.(drag.courseCode, target.sections);
     }
     cleanup();
   }

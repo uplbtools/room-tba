@@ -60,6 +60,22 @@ describe("PlannerStore", () => {
     expect(store.activePlan?.sections).toEqual([]);
   });
 
+  test("replaceCourse swaps every planned row of the course, labs included", () => {
+    const store = makeStore();
+    store.addOffering([
+      row({ id: 1, section: "AB", type: "LEC" }),
+      row({ id: 2, section: "AB-1L", type: "LAB" }),
+    ]);
+    store.replaceCourse("CMSC 128", [
+      row({ id: 3, section: "CD", type: "LEC" }),
+      row({ id: 4, section: "CD-2L", type: "LAB" }),
+    ]);
+    expect(store.activePlan?.sections.map((s) => s.section).sort()).toEqual([
+      "CD",
+      "CD-2L",
+    ]);
+  });
+
   test("rows without natural key are skipped", () => {
     const store = makeStore();
     store.addOffering([row({ courseCode: null })]);

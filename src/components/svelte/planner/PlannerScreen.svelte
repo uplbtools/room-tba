@@ -72,18 +72,8 @@
     plannerStore.close();
   }
 
-  function swapSection(
-    courseCode: string,
-    fromSection: string,
-    fromSections: ClassMapValue[],
-    toSections: ClassMapValue[],
-  ) {
-    if (fromSections.length > 0) {
-      plannerStore.removeSections(fromSections);
-    } else {
-      plannerStore.removeOffering(courseCode, fromSection);
-    }
-    plannerStore.addOffering(toSections);
+  function swapSection(courseCode: string, toSections: ClassMapValue[]) {
+    plannerStore.replaceCourse(courseCode, toSections);
   }
 
   function openRoom(roomCode: string) {

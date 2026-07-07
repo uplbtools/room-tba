@@ -106,6 +106,15 @@ export class PlannerStore {
     this.persist();
   };
 
+  /** Swap a course to another section: drop every planned row of the course, add the new offering. */
+  replaceCourse = (courseCode: string, rows: ClassMapValue[]) => {
+    const plan = this.activePlan;
+    if (!plan) return;
+    plan.sections = plan.sections.filter((s) => s.courseCode !== courseCode);
+    this.addOffering(rows);
+    this.persist();
+  };
+
   removeOffering = (courseCode: string, section: string) => {
     const plan = this.activePlan;
     if (!plan) return;
