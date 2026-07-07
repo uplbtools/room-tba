@@ -227,32 +227,7 @@ export class ScheduleRenderer {
   }
 
   parseDays(dayStr: string) {
-    const dayMap: { [key: string]: number } = {
-      M: 0,
-      T: 1,
-      W: 2,
-      Th: 3,
-      F: 4,
-      S: 5,
-    };
-    const indices = [];
-
-    let str = dayStr;
-
-    if (str.includes("Th")) {
-      indices.push(3);
-      str = str.replace(/Th/g, "");
-    }
-
-    for (const char of str) {
-      if (Object.hasOwn(dayMap, char) && char !== "h") {
-        indices.push(dayMap[char]);
-      }
-    }
-
-    return Array.from(new Set(indices).values()).sort((a, b) =>
-      a && b ? a - b : 0,
-    );
+    return parseDays(dayStr);
   }
 
   parseTime(timeStr: string) {
@@ -299,7 +274,7 @@ export class ScheduleRenderer {
     this.draw();
   }
 }
-const courseColors = [
+const _courseColors = [
   "#2E7D32",
   "#1565C0",
   "#6A1B9A",
@@ -316,6 +291,34 @@ const courseColors = [
   "#4A148C",
   "#B71C1C",
 ] as const;
+
+/** Map an AMIS day string ("MWF", "TTh", …) to indices 0-5 (M-S). */
+export function parseDays(dayStr: string): number[] {
+  const dayMap: { [key: string]: number } = {
+    M: 0,
+    T: 1,
+    W: 2,
+    Th: 3,
+    F: 4,
+    S: 5,
+  };
+  const indices = [];
+
+  let str = dayStr;
+
+  if (str.includes("Th")) {
+    indices.push(3);
+    str = str.replace(/Th/g, "");
+  }
+
+  for (const char of str) {
+    if (Object.hasOwn(dayMap, char) && char !== "h") {
+      indices.push(dayMap[char]);
+    }
+  }
+
+  return Array.from(new Set(indices).values()).sort((a, b) => a - b);
+}
 
 export function parseScheduleTime(scheduleStr: string) {
   if (!scheduleStr || scheduleStr === "TBA") return null;
@@ -353,6 +356,9 @@ export function parseScheduleTime(scheduleStr: string) {
   return {
     days: days,
     time: `${startStr}-${endStr}`,
+    // 24h minutes since midnight — exact, unlike parseTime's PM heuristic.
+    startMinutes: startHour * 60 + startMin,
+    endMinutes: endHour * 60 + endMin,
   };
 }
 

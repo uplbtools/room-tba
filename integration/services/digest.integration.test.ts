@@ -17,7 +17,7 @@ describeIntegration("digest service integration (#272 follow-up)", () => {
   let client: pg.Client;
 
   const cleanup = async () => {
-    await client.query(`DELETE FROM admin_users WHERE username LIKE $1`, [
+    await client.query("DELETE FROM admin_users WHERE username LIKE $1", [
       `${PREFIX}%`,
     ]);
   };
