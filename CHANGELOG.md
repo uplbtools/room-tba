@@ -1,3 +1,18 @@
+# [1.23.0](https://github.com/uplbtools/room-tba/compare/v1.22.0...v1.23.0) (2026-07-07)
+
+
+### Bug Fixes
+
+* **e2e:** unbreak post-[#503](https://github.com/uplbtools/room-tba/issues/503) e2e suite — boot races and buried drawer handle ([#531](https://github.com/uplbtools/room-tba/issues/531)) ([9aaf672](https://github.com/uplbtools/room-tba/commit/9aaf672e4d973fc63296e6a17536ab24b7b80e5c))
+* **security:** harden account tokens, sessions, and review flows ([#529](https://github.com/uplbtools/room-tba/issues/529)) ([b64ed8f](https://github.com/uplbtools/room-tba/commit/b64ed8fd313d925a029e947d34583d532dc06ef3)), closes [#admin-login-error](https://github.com/uplbtools/room-tba/issues/admin-login-error)
+
+
+### Features
+
+* **planner:** core plan model, conflicts, share codec, ICS, store ([#504](https://github.com/uplbtools/room-tba/issues/504)) ([86e3e69](https://github.com/uplbtools/room-tba/commit/86e3e69cbe2532cec31b0bd0524505cbd3df110a))
+* **planner:** course planner UI — grid, share links, finals, ICS export ([#505](https://github.com/uplbtools/room-tba/issues/505)) ([b9a91e9](https://github.com/uplbtools/room-tba/commit/b9a91e91ff9194b6f8a6883616790792c1b15ecc)), closes [#506](https://github.com/uplbtools/room-tba/issues/506)
+
+
 # [1.21.0](https://github.com/uplbtools/room-tba/compare/v1.20.0...v1.21.0) (2026-07-03)
 
 
