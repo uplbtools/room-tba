@@ -274,7 +274,7 @@ export class ScheduleRenderer {
     this.draw();
   }
 }
-const _courseColors = [
+const courseColors = [
   "#2E7D32",
   "#1565C0",
   "#6A1B9A",
