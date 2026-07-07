@@ -384,6 +384,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="division-submitter-name"
+          historyEntity={division ? { entityType: "division", entityId: division.id, version: division.version } : null}
           bind:submitterName={submitterNameDraft}
           successMessage={divisionSavedMessage(savedField)}
           errorMessage={fieldError}

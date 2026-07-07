@@ -18,6 +18,7 @@ import {
   getAdminUserBySupabaseId,
 } from "@lib/services/admin-user-service";
 import { createServerSupabaseClient } from "@lib/supabase/server";
+import { verifyTurnstileToken } from "@lib/turnstile";
 
 export const prerender = false;
 
@@ -83,18 +84,38 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       return json({ error: "Password is required" }, 400);
     }
 
+    const turnstileToken = formData.get("turnstileToken");
+    const turnstileOk = await verifyTurnstileToken(
+      typeof turnstileToken === "string" ? turnstileToken : null,
+      ip,
+    );
+    if (!turnstileOk) {
+      return json(
+        { error: "Verification failed. Refresh the page and try again." },
+        400,
+      );
+    }
+
     let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
 
-    // Try Supabase Auth when configured (#293)
+    // Try Supabase Auth when configured (#293). Bounded with a timeout — a
+    // slow/unreachable Supabase Auth call must not block sign-in forever;
+    // fall through to bcrypt just like the "not configured" case.
     try {
       const supabase = createServerSupabaseClient({
         request,
         cookies,
       });
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: username,
-        password,
-      });
+      const SUPABASE_LOGIN_TIMEOUT_MS = 5000;
+      const { data, error } = await Promise.race([
+        supabase.auth.signInWithPassword({ email: username, password }),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Supabase sign-in timed out")),
+            SUPABASE_LOGIN_TIMEOUT_MS,
+          ),
+        ),
+      ]);
       if (data.user && !error) {
         user = await getAdminUserBySupabaseId(data.user.id);
       }

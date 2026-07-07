@@ -113,7 +113,9 @@
 </script>
 
 <div class="editor-field image-upload">
-  <label for={inputId}>{label}</label>
+  {#if label}
+    <label for={inputId}>{label}</label>
+  {/if}
   {#if value}
     <div class="image-upload-preview">
       <img src={value} alt="" loading="lazy" />
@@ -150,8 +152,8 @@
   />
   <p class="entity-editor-muted image-upload-hint">
     {#if uploadConfigured === false}
-      Image uploads are not configured on this server. You can still save the
-      event without a photo.
+      Image uploads are not configured on this server. You can still save
+      without a photo.
     {:else}
       JPEG, PNG, or WebP up to {maxSizeLabel}.
     {/if}

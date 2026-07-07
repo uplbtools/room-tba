@@ -69,6 +69,7 @@ type RoomData = {
   divisionId: number | null;
   collegeName: string | null;
   divisionName: string | null;
+  imageUrl?: string | null;
   version: number;
   updatedAt: string;
 };
@@ -359,6 +360,10 @@ class AdminAuthStore {
   canReview: boolean = $state(false);
   loading: boolean = $state(false);
   loginOpen: boolean = $state(false);
+  /** Error code from a failed OAuth redirect (`?auth_error=`). */
+  oauthError: string | null = $state(null);
+  accountSettingsOpen: boolean = $state(false);
+  manageUsersOpen: boolean = $state(false);
   private _hydrated = false;
 
   private applySession(data: {
@@ -414,12 +419,14 @@ class AdminAuthStore {
   login = async (
     username: string,
     password: string,
+    turnstileToken?: string | null,
   ): Promise<string | null> => {
     this.loading = true;
     try {
       const formData = new FormData();
       formData.set("username", username.trim());
       formData.set("password", password);
+      if (turnstileToken) formData.set("turnstileToken", turnstileToken);
 
       const res = await fetch("/api/admin/auth", {
         method: "POST",
@@ -466,6 +473,58 @@ class AdminAuthStore {
     }
   };
 
+  /** Start Google OAuth (#456); resolves to an error message or redirects away. */
+  loginWithGoogle = async (): Promise<string | null> => {
+    try {
+      const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] =
+        await Promise.all([
+          import("@lib/supabase/env"),
+          import("@lib/supabase/client"),
+        ]);
+      if (!isSupabaseConfigured()) {
+        return "Google sign-in is not configured on this server.";
+      }
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback`,
+        },
+      });
+      if (error) return error.message;
+      return null;
+    } catch {
+      return "Google sign-in failed to start. Try again.";
+    }
+  };
+
+  /** Start Google OAuth to link an identity onto the *already logged-in*
+   * account (Account settings → Connect Google), distinct from
+   * `loginWithGoogle` which creates/logs into a new account. */
+  linkGoogle = async (): Promise<string | null> => {
+    try {
+      const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] =
+        await Promise.all([
+          import("@lib/supabase/env"),
+          import("@lib/supabase/client"),
+        ]);
+      if (!isSupabaseConfigured()) {
+        return "Google sign-in is not configured on this server.";
+      }
+      const supabase = createBrowserSupabaseClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/link-callback`,
+        },
+      });
+      if (error) return error.message;
+      return null;
+    } catch {
+      return "Google sign-in failed to start. Try again.";
+    }
+  };
+
   logout = async () => {
     try {
       await fetch("/api/admin/auth", {
@@ -493,6 +552,27 @@ class AdminAuthStore {
 
   closeLogin = () => {
     this.loginOpen = false;
+    this.oauthError = null;
+  };
+
+  openAccountSettings = () => {
+    dismissEphemeralOverlays();
+    modalStore.closeModal();
+    this.accountSettingsOpen = true;
+  };
+
+  closeAccountSettings = () => {
+    this.accountSettingsOpen = false;
+  };
+
+  openManageUsers = () => {
+    dismissEphemeralOverlays();
+    modalStore.closeModal();
+    this.manageUsersOpen = true;
+  };
+
+  closeManageUsers = () => {
+    this.manageUsersOpen = false;
   };
 }
 
@@ -511,6 +591,9 @@ class ProposalsStore {
       proposedPatch: Record<string, unknown>;
       adminNote?: string | null;
       createdAt: string;
+      baseVersion: number;
+      currentValues?: Record<string, unknown> | null;
+      currentVersion?: number | null;
     }>
   >([]);
 
@@ -553,6 +636,8 @@ class ScheduleRouteStore {
   importedRows = $state<ImportedScheduleRow[]>([]);
   matches = $state<ScheduleMatchResult[]>([]);
   selectedWeekday = $state<Weekday>("M");
+  routedWeekday: Weekday | null = $state(null);
+  focusedStopIndex: number | null = $state(null);
   matching = $state(false);
   importError: string | null = $state(null);
   private _roomCoordCache = new Map<string, [number, number] | null>();
@@ -698,6 +783,7 @@ class ScheduleRouteStore {
     this.importedRows = parsed.rows;
     this.importError = null;
     this._roomCoordCache.clear();
+    this.clearRoute();
     this.persist();
     await this.rematch();
     toastStore.show(
@@ -709,7 +795,18 @@ class ScheduleRouteStore {
 
   selectWeekday = (weekday: Weekday) => {
     this.selectedWeekday = weekday;
+    this.clearRoute();
     this.persist();
+  };
+
+  focusStop = (index: number) => {
+    this.focusedStopIndex = this.dayStops[index] ? index : null;
+  };
+
+  clearRoute = () => {
+    this.routedWeekday = null;
+    this.focusedStopIndex = null;
+    locationStore.clearRouteWaypoints();
   };
 
   routeDay = (weekday: Weekday = this.selectedWeekday) => {
@@ -721,6 +818,7 @@ class ScheduleRouteStore {
       .filter((coords): coords is [number, number] => coords !== null);
 
     if (stopCoords.length === 0) {
+      this.clearRoute();
       toastStore.show("No routable classes on this day.", "info");
       return;
     }
@@ -732,6 +830,7 @@ class ScheduleRouteStore {
     waypoints.push(...stopCoords);
 
     if (waypoints.length < 2) {
+      this.clearRoute();
       toastStore.show(
         "Need at least two stops. Enable location or add more classes.",
         "error",
@@ -740,6 +839,7 @@ class ScheduleRouteStore {
     }
 
     locationStore.setRouteWaypoints(waypoints);
+    this.routedWeekday = weekday;
     toastStore.show(
       `Routing ${stops.length} class stop${stops.length === 1 ? "" : "s"}.`,
       "success",
@@ -751,7 +851,7 @@ class ScheduleRouteStore {
     this.matches = [];
     this.importError = null;
     this._roomCoordCache.clear();
-    locationStore.clearRouteWaypoints();
+    this.clearRoute();
     this.persist();
   };
 }

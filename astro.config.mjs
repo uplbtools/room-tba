@@ -197,6 +197,36 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
+      // Resend (editor email digests, #272). Digest is skipped when unset.
+      RESEND_API_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // From address, e.g. "Room TBA <digest@uplbtools.me>".
+      RESEND_FROM_EMAIL: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Vercel injects CRON_SECRET; /api/cron/* requires it as a Bearer token.
+      CRON_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Cloudflare Turnstile on editor login (#443). Widget is hidden and
+      // server verification skipped when unset (local dev).
+      PUBLIC_TURNSTILE_SITE_KEY: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      TURNSTILE_SECRET_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
     },
   },
   adapter: e2eNodeAdapter

@@ -143,6 +143,7 @@ export async function getRoomPageData(roomId: number) {
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      imageUrl: roomsTable.imageUrl,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })

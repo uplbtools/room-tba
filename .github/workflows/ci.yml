@@ -1,6 +1,6 @@
 name: CI
 
-# Verify: Biome format, scoped ESLint, unit + component tests, build.
+# Verify: Biome check (format + lint), unit + component tests, build.
 
 on:
   pull_request:

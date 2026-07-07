@@ -58,7 +58,7 @@ const structuredData = jsonLd(
     name: room.code,
     description,
     url: absoluteUrl(canonicalPath),
-    image: ogImageUrl(),
+    image: ogImageUrl(room.imageUrl ?? undefined),
     containedInPlace: room.building?.name
       ? {
           "@type": "Place",
@@ -73,6 +73,9 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   {canonicalPath}
+  image={room.imageUrl
+    ? { src: room.imageUrl, alt: `Photo of ${room.code}` }
+    : null}
   heading={`${room.code} at UPLB`}
   {intro}
   {facts}

@@ -4,7 +4,7 @@
     proposalsStore,
     toastStore,
   } from "@lib/store.svelte";
-  import { summarizeProposalPatch } from "@lib/proposals/client";
+  import { buildFieldDiffs } from "@lib/proposals/diff";
   import { afterProposalPublished } from "@lib/proposals/apply-published-entity";
   import { syncOpenEntityQueryAfterPublish } from "@lib/proposals/sync-open-entity-query";
   import { getAppActions, getAppData } from "@lib/context";
@@ -113,9 +113,31 @@
                 >{proposal.submitterName}</span
               >
             </div>
+            {#if proposal.currentVersion != null && proposal.currentVersion !== proposal.baseVersion}
+              <p class="entity-review-stale" role="alert">
+                Published data changed since this was submitted. Compare
+                carefully — approving may conflict.
+              </p>
+            {/if}
             <ul class="entity-review-changes">
-              {#each summarizeProposalPatch(proposal.proposedPatch, proposal.entityType as ProposalEntityType) as line}
-                <li>{line}</li>
+              {#each buildFieldDiffs(proposal.currentValues ?? null, proposal.proposedPatch) as diff (diff.field)}
+                <li class="entity-review-diff">
+                  <span class="entity-review-diff-label">{diff.label}</span>
+                  <span class="entity-review-diff-values">
+                    <span
+                      class="entity-review-diff-old"
+                      class:entity-review-diff-before={diff.before != null}
+                      >{proposal.currentValues == null &&
+                      proposal.entityType.startsWith("create_")
+                        ? "New entry"
+                        : (diff.before ?? "—")}</span
+                    >
+                    <span aria-hidden="true">→</span>
+                    <span class="entity-review-diff-after"
+                      >{diff.after ?? "—"}</span
+                    >
+                  </span>
+                </li>
               {/each}
             </ul>
             {#if bundledRoomsSummary(proposal.entityType as ProposalEntityType, proposal.proposedPatch as Record<string, unknown>)}
@@ -166,5 +188,49 @@
     font-size: 0.85rem;
     font-weight: 600;
     line-height: 1.35;
+  }
+
+  .entity-review-stale {
+    margin: 0.35rem 0;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    background: hsl(40 90% 92%);
+    border: 1px solid hsl(40 70% 70%);
+    color: hsl(30 60% 25%);
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .entity-review-diff {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.5rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .entity-review-diff-label {
+    font-weight: 600;
+  }
+
+  .entity-review-diff-values {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .entity-review-diff-old {
+    color: hsl(0 0% 45%);
+    overflow-wrap: anywhere;
+  }
+
+  .entity-review-diff-before {
+    text-decoration: line-through;
+  }
+
+  .entity-review-diff-after {
+    font-weight: 600;
+    overflow-wrap: anywhere;
   }
 </style>

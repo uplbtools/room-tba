@@ -48,7 +48,8 @@
     | "contactPhone"
     | "amenities"
     | "facebookLink"
-    | "osmLink";
+    | "osmLink"
+    | "imageUrl";
 
   type DormPatchResponse = {
     success?: boolean;
@@ -81,6 +82,7 @@
   let amenitiesDraft = $state("");
   let facebookLinkDraft = $state("");
   let osmLinkDraft = $state("");
+  let imageDraft = $state<string | null>(null);
   let savingField = $state<DormEditableField | null>(null);
   let savedField = $state<DormEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -110,6 +112,7 @@
     amenities: "Amenities",
     facebookLink: "Facebook link",
     osmLink: "OpenStreetMap link",
+    imageUrl: "Dorm photo",
   };
 
   const amenities = $derived(dorm?.amenities ?? []);
@@ -191,6 +194,7 @@
     amenitiesDraft = listToLines(current.amenities);
     facebookLinkDraft = current.facebookLink ?? "";
     osmLinkDraft = current.osmLink ?? "";
+    imageDraft = current.imageUrl ?? null;
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -336,6 +340,8 @@
         return facebookLinkDraft.trim() === (current.facebookLink ?? "");
       case "osmLink":
         return osmLinkDraft.trim() === (current.osmLink ?? "");
+      case "imageUrl":
+        return (imageDraft ?? null) === (current.imageUrl ?? null);
     }
   }
 
@@ -358,6 +364,7 @@
       amenities?: string[];
       facebookLink?: string | null;
       osmLink?: string | null;
+      imageUrl?: string | null;
     } = { version: current.version };
 
     if (field === "dormName") {
@@ -400,6 +407,8 @@
       body.facebookLink = facebookLinkDraft.trim() || null;
     } else if (field === "osmLink") {
       body.osmLink = osmLinkDraft.trim() || null;
+    } else if (field === "imageUrl") {
+      body.imageUrl = imageDraft || null;
     }
 
     savingField = field;
@@ -691,6 +700,15 @@
       </div>
     {/if}
 
+    {#if !editing && dorm.imageUrl}
+      <img
+        class="entity-image"
+        src={dorm.imageUrl}
+        alt={dorm.dormName}
+        loading="lazy"
+      />
+    {/if}
+
     {#if editing}
       <section
         class="entity-editor"
@@ -725,6 +743,7 @@
           bind:amenitiesDraft
           bind:facebookLinkDraft
           bind:osmLinkDraft
+          bind:imageDraft
           {fieldLabel}
           {fieldIsUnchanged}
           {saveField}
