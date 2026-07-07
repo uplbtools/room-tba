@@ -27,6 +27,8 @@
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
+  import AccountSettingsModal from "@ui/AccountSettingsModal.svelte";
+  import ManageUsersModal from "@ui/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import EditorScreen from "@ui/EditorScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
@@ -82,6 +84,37 @@
     if (authError) {
       adminAuthStore.oauthError = authError;
       adminAuthStore.openLogin();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    const accountEvent = urlParams.get("account");
+    if (accountEvent === "email-changed") {
+      toastStore.show("Email address updated.", "success");
+      adminAuthStore.openAccountSettings();
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (accountEvent === "google-linked") {
+      toastStore.show("Google account connected.", "success");
+      adminAuthStore.openAccountSettings();
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    const accountError = urlParams.get("account_error");
+    if (accountError) {
+      const messages: Record<string, string> = {
+        missing_token: "That confirmation link is missing its token.",
+        invalid_or_expired_token:
+          "That confirmation link is invalid or has expired. Request a new one.",
+        not_logged_in: "Sign in first, then connect Google from account settings.",
+        missing_code: "Google sign-in was cancelled or incomplete. Try again.",
+        oauth_failed: "Connecting Google failed. Try again.",
+        already_linked:
+          "That Google account is already connected to a different Room TBA account.",
+      };
+      toastStore.show(
+        messages[accountError] ?? "Something went wrong. Try again.",
+        "error",
+      );
+      adminAuthStore.openAccountSettings();
       window.history.replaceState({}, "", window.location.pathname);
     }
 
@@ -273,6 +306,12 @@
   {/if}
   {#if adminAuthStore.loginOpen}
     <AdminLoginModal />
+  {/if}
+  {#if adminAuthStore.accountSettingsOpen}
+    <AccountSettingsModal />
+  {/if}
+  {#if adminAuthStore.manageUsersOpen}
+    <ManageUsersModal />
   {/if}
   <EditorAdditionModal />
   <EditorScreen />

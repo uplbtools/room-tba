@@ -1,6 +1,8 @@
 <script lang="ts">
   import LogOut from "@lucide/svelte/icons/log-out";
+  import Settings from "@lucide/svelte/icons/settings";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
+  import { adminAuthStore } from "@lib/store.svelte";
   import MapChromeGhostButton from "./MapChromeGhostButton.svelte";
   import "./map-chrome.css";
 
@@ -50,6 +52,10 @@
       <ShieldCheck size={14} aria-hidden="true" />
       <span>{roleLabel}</span>
     </span>
+    <MapChromeGhostButton onclick={() => adminAuthStore.openAccountSettings()}>
+      <Settings size={14} aria-hidden="true" />
+      Account
+    </MapChromeGhostButton>
     <MapChromeGhostButton onclick={() => void onSignOut()}>
       <LogOut size={14} aria-hidden="true" />
       Sign out
@@ -61,6 +67,10 @@
       <ShieldCheck size={16} aria-hidden="true" />
       <span>{expandedLabel}</span>
     </div>
+    <MapChromeGhostButton onclick={() => adminAuthStore.openAccountSettings()}>
+      <Settings size={14} aria-hidden="true" />
+      Account
+    </MapChromeGhostButton>
     <MapChromeGhostButton onclick={() => void onSignOut()}>
       <LogOut size={14} aria-hidden="true" />
       Sign out

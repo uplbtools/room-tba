@@ -187,6 +187,7 @@
 .entity-editor-form .editor-field input,
 .entity-editor-form .editor-field select,
 .entity-editor-form .editor-field textarea {
+  box-sizing: border-box;
   min-width: 0;
   width: 100%;
   border: 1px solid #d8d8d8;
@@ -231,6 +232,7 @@
 }
 
 .entity-editor-submit {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;

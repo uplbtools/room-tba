@@ -17,6 +17,7 @@ export function getEditorSession(cookies: AstroCookies): SessionUser | null {
 type EditorSessionOptions = {
   requirePublish?: boolean;
   requireReview?: boolean;
+  requireAdmin?: boolean;
 };
 
 export function editorSessionOrUnauthorized(
@@ -34,6 +35,9 @@ export function editorSessionOrUnauthorized(
   }
   if (options.requireReview && !canReviewProposals(session.role)) {
     return forbidden("Your account cannot review edit proposals.");
+  }
+  if (options.requireAdmin && session.role !== "admin") {
+    return forbidden("Your account cannot manage other users.");
   }
   return {
     session,
