@@ -5,7 +5,9 @@ import { getEntityHistory } from "@lib/services/history-service";
 export const prerender = false;
 
 export const GET: APIRoute = async ({ cookies, url }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   const entityType = url.searchParams.get("entityType") ?? "";

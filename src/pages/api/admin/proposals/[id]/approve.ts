@@ -12,7 +12,9 @@ import {
 export const prerender = false;
 
 export const POST: APIRoute = async ({ cookies, params }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requireReview: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requireReview: true,
+  });
   if (auth instanceof Response) return auth;
 
   const id = Number(params.id);

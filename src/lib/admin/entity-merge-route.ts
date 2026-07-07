@@ -39,7 +39,9 @@ export function createEntityMergeRoute<TEntity>(options: {
   merge: MergeHandler<TEntity>;
 }): APIRoute {
   return async ({ cookies, params, request }) => {
-    const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+    const auth = await editorSessionOrUnauthorized(cookies, {
+      requirePublish: true,
+    });
     if (auth instanceof Response) return auth;
 
     const sourceId = parseInt(params["id"] ?? "");
