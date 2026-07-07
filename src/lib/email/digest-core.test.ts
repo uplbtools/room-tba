@@ -28,9 +28,7 @@ describe("buildProposalDigest", () => {
     );
     expect(digest).not.toBeNull();
     expect(digest?.subject).toBe("Room TBA: 2 proposals awaiting review");
-    expect(digest?.text).toContain(
-      "- building: Physical Sciences, from Yeyel",
-    );
+    expect(digest?.text).toContain("- building: Physical Sciences, from Yeyel");
     expect(digest?.text).toContain(
       "- new room: CEM 203, from Anonymous (resubmit requested)",
     );
