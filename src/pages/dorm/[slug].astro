@@ -59,7 +59,7 @@ const structuredData = jsonLd(
     name: dorm.dormName,
     description,
     url: absoluteUrl(canonicalPath),
-    image: ogImageUrl(),
+    image: ogImageUrl(dorm.imageUrl ?? undefined),
     address: {
       "@type": "PostalAddress",
       addressLocality: "Los Banos",
@@ -82,6 +82,9 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   {canonicalPath}
+  image={dorm.imageUrl
+    ? { src: dorm.imageUrl, alt: `Photo of ${dorm.dormName}` }
+    : null}
   heading={`${dorm.dormName} at UPLB`}
   {intro}
   {facts}

@@ -732,6 +732,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="event-submitter-name"
+          historyEntity={event ? { entityType: "event", entityId: event.id, version: event.version } : null}
           bind:submitterName={submitterNameDraft}
         >
           <form

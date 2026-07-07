@@ -32,6 +32,7 @@
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityExternalLink from "./EntityExternalLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
   type DormEditableField =
     | "dormName"
@@ -46,7 +47,8 @@
     | "contactPhone"
     | "amenities"
     | "facebookLink"
-    | "osmLink";
+    | "osmLink"
+    | "imageUrl";
 
   type DormPatchResponse = {
     success?: boolean;
@@ -79,6 +81,7 @@
   let amenitiesDraft = $state("");
   let facebookLinkDraft = $state("");
   let osmLinkDraft = $state("");
+  let imageDraft = $state<string | null>(null);
   let savingField = $state<DormEditableField | null>(null);
   let savedField = $state<DormEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -108,6 +111,7 @@
     amenities: "Amenities",
     facebookLink: "Facebook link",
     osmLink: "OpenStreetMap link",
+    imageUrl: "Dorm photo",
   };
 
   const amenities = $derived(dorm?.amenities ?? []);
@@ -189,6 +193,7 @@
     amenitiesDraft = listToLines(current.amenities);
     facebookLinkDraft = current.facebookLink ?? "";
     osmLinkDraft = current.osmLink ?? "";
+    imageDraft = current.imageUrl ?? null;
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -334,6 +339,8 @@
         return facebookLinkDraft.trim() === (current.facebookLink ?? "");
       case "osmLink":
         return osmLinkDraft.trim() === (current.osmLink ?? "");
+      case "imageUrl":
+        return (imageDraft ?? null) === (current.imageUrl ?? null);
     }
   }
 
@@ -356,6 +363,7 @@
       amenities?: string[];
       facebookLink?: string | null;
       osmLink?: string | null;
+      imageUrl?: string | null;
     } = { version: current.version };
 
     if (field === "dormName") {
@@ -398,6 +406,8 @@
       body.facebookLink = facebookLinkDraft.trim() || null;
     } else if (field === "osmLink") {
       body.osmLink = osmLinkDraft.trim() || null;
+    } else if (field === "imageUrl") {
+      body.imageUrl = imageDraft || null;
     }
 
     savingField = field;
@@ -581,6 +591,15 @@
       </div>
     {/if}
 
+    {#if !editing && dorm.imageUrl}
+      <img
+        class="entity-image"
+        src={dorm.imageUrl}
+        alt="Photo of {dorm.dormName}"
+        loading="lazy"
+      />
+    {/if}
+
     {#if editing}
       <section
         class="entity-editor"
@@ -612,6 +631,7 @@
           bind:amenitiesDraft
           bind:facebookLinkDraft
           bind:osmLinkDraft
+          bind:imageDraft
           {fieldLabel}
           {fieldIsUnchanged}
           {saveField}
@@ -689,14 +709,11 @@
         {#if dorm.isUpManaged || dorm.facebookLink || (!dorm.isUpManaged && dorm.priceRange)}
           <div class="entity-dorm-details__links">
             {#if dorm.isUpManaged}
-              <a
+              <EntityExternalLink
                 href="https://uplbosa.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="entity-footer__link"
-              >
-                UPLB OSA website →
-              </a>
+                label="UPLB OSA website"
+                ariaLabel="Open UPLB OSA website (opens in new tab)"
+              />
             {:else if dorm.priceRange}
               <span class="price-disclaimer">
                 <TriangleAlert size={12} />
@@ -704,14 +721,11 @@
               </span>
             {/if}
             {#if dorm.facebookLink}
-              <a
+              <EntityExternalLink
                 href={dorm.facebookLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="entity-footer__link"
-              >
-                Facebook →
-              </a>
+                label="Facebook"
+                ariaLabel="Open {dorm.dormName} Facebook page (opens in new tab)"
+              />
             {/if}
           </div>
         {/if}

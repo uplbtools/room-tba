@@ -791,3 +791,12 @@
   font-weight: 600;
   color: #71717a;
 }
+
+.entity-image {
+  width: 100%;
+  max-height: 12rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(5, 53%, 90%);
+  background: white;
+}

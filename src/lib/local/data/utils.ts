@@ -1,4 +1,4 @@
-import { type DBData } from "@lib/context";
+import type { DBData } from "@lib/context";
 import type {
   BuildingData,
   ClassMapValue,
@@ -27,7 +27,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", version, updated_at AS "updatedAt" FROM buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", version, updated_at AS "updatedAt" FROM buildings
       `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {
@@ -86,6 +86,7 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         price_range AS "priceRange",
         contact_phone AS "contactPhone",
         facebook_link AS "facebookLink",
+        image_url AS "imageUrl",
         version,
         updated_at AS "updatedAt"
       FROM dorms;
@@ -215,6 +216,7 @@ export async function getLocalRoomByCode(code: string) {
             r.building_id as "buildingId",
             r.college_id as "collegeId",
             r.division_id as "divisionId",
+            r.image_url as "imageUrl",
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r
@@ -250,6 +252,7 @@ export async function getLocalRoomById(id: number) {
             r.building_id as "buildingId",
             r.college_id as "collegeId",
             r.division_id as "divisionId",
+            r.image_url as "imageUrl",
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r
@@ -353,7 +356,16 @@ export function getEntity<T>(
   getLocalEntity: () => Promise<T[] | undefined>,
 ): (checker: TableSyncInfo) => Promise<EntityLoadResult<T>> {
   return async (checker: TableSyncInfo) => {
-    const local = async () => (await getLocalEntity()) ?? [];
+    // local() never throws: a broken PGlite must not take down the whole
+    // load path — every branch below relies on it as the safe fallback.
+    const local = async () => {
+      try {
+        return (await getLocalEntity()) ?? [];
+      } catch {
+        return [];
+      }
+    };
+    const initialSnapshot: T[] = await local();
     // Offline (sync endpoint unreachable): prefer stale local cache over
     // failing to remote. Only treat invalid checker as "must refetch" when
     // we actually got a newKey back (confirmed sync mismatch) (#169).
@@ -381,7 +393,11 @@ export function getEntity<T>(
       return { rows: cached, source: "cache" };
     } catch {
       const cached = await local();
-      return { rows: cached, source: "cache" };
+      // if cache is gone, return the snapshot taken before the fetch
+      return {
+        rows: cached.length > 0 ? cached : initialSnapshot,
+        source: "cache",
+      };
     }
   };
 }

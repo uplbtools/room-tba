@@ -26,6 +26,8 @@
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
+  import ImageUpload from "@ui/editor/ImageUpload.svelte";
+  import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
@@ -39,7 +41,12 @@
   import FinalExamsList from "./FinalExamsList.svelte";
 
   type RoomEditableField =
-    "roomCode" | "directions" | "buildingId" | "collegeId" | "divisionId";
+    | "roomCode"
+    | "directions"
+    | "buildingId"
+    | "collegeId"
+    | "divisionId"
+    | "imageUrl";
 
   const appData = getAppData();
   const app = $derived(appData());
@@ -53,6 +60,7 @@
     buildingId: "Building",
     collegeId: "College",
     divisionId: "Division",
+    imageUrl: "Room photo",
   };
 
   let draftRoomId = $state<number | null>(null);
@@ -62,6 +70,7 @@
   let buildingDraft = $state("");
   let collegeDraft = $state("");
   let divisionDraft = $state("");
+  let imageDraft = $state<string | null>(null);
   let savingField = $state<RoomEditableField | null>(null);
   let savedField = $state<RoomEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -131,6 +140,7 @@
     buildingDraft = room.buildingId === null ? "" : String(room.buildingId);
     collegeDraft = room.collegeId === null ? "" : String(room.collegeId);
     divisionDraft = room.divisionId === null ? "" : String(room.divisionId);
+    imageDraft = room.imageUrl ?? null;
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -205,6 +215,7 @@
       buildingId?: number | null;
       collegeId?: number | null;
       divisionId?: number | null;
+      imageUrl?: string | null;
     } = { version: room.version };
 
     if (field === "roomCode") {
@@ -222,6 +233,8 @@
       body.collegeId = selectValueToId(collegeDraft);
     } else if (field === "divisionId") {
       body.divisionId = selectValueToId(divisionDraft);
+    } else if (field === "imageUrl") {
+      body.imageUrl = imageDraft || null;
     }
 
     savingField = field;
@@ -444,6 +457,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="room-submitter-name"
+          historyEntity={currentRoom.value ? { entityType: "room", entityId: currentRoom.value.id, version: currentRoom.value.version } : null}
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
           activeProposalId={activeProposalId}
@@ -576,6 +590,31 @@
                 </select>
               {/snippet}
             </EntityEditorField>
+
+            {#if adminAuthStore.isLoggedIn}
+              <div class="editor-image-row">
+                <ImageUpload
+                  label="Room photo"
+                  inputId="room-image-editor"
+                  prefix="rooms"
+                  bind:value={imageDraft}
+                  disabled={savingField !== null}
+                />
+                <button
+                  type="button"
+                  class="field-save-btn"
+                  disabled={savingField !== null ||
+                    (imageDraft ?? null) ===
+                      (currentRoom.value.imageUrl ?? null)}
+                  onclick={() => saveField("imageUrl")}
+                >
+                  {fieldSaveActionLabel({
+                    canPublish,
+                    isSaving: savingField === "imageUrl",
+                  })}
+                </button>
+              </div>
+            {/if}
           </div>
 
           {#if mergePrompt}
@@ -612,6 +651,15 @@
           {/if}
         </EntityEditorPanel>
       </section>
+    {/if}
+
+    {#if currentRoom.value.imageUrl}
+      <img
+        class="entity-image"
+        src={currentRoom.value.imageUrl}
+        alt="Photo of {currentRoom.value.code}"
+        loading="lazy"
+      />
     {/if}
 
     <section class="entity-directions" aria-label="Directions">

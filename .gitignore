@@ -32,6 +32,9 @@ backups/
 # Cursor local agent config (not shared)
 .cursor/agents/
 
+# Cursor agent skills installed locally (Caveman etc.)
+.agents/
+
 # test artifacts
 playwright-report/
 test-results/

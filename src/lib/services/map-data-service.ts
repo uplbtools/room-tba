@@ -9,6 +9,7 @@ import {
   finalExamsTable,
   roomsTable,
 } from "@drizzle/schema";
+import { clampLimitValue } from "@lib/api/pagination";
 import { db } from "@lib/db";
 import { normalizeCourseCode } from "@lib/final-exams/normalize";
 import { normalizeAlias } from "@lib/site";
@@ -52,6 +53,7 @@ export async function getAllRoomsCached(): Promise<RoomData[]> {
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      imageUrl: roomsTable.imageUrl,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -116,6 +118,7 @@ export async function getAllRooms(): Promise<RoomData[]> {
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        imageUrl: roomsTable.imageUrl,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -149,6 +152,7 @@ export async function getRoomByCode(code: string) {
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        imageUrl: roomsTable.imageUrl,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -206,6 +210,7 @@ export async function getBuildingRooms(
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        imageUrl: roomsTable.imageUrl,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -238,6 +243,7 @@ export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        imageUrl: roomsTable.imageUrl,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -272,6 +278,7 @@ export async function getDivisionRooms(
         buildingId: roomsTable.buildingId,
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
+        imageUrl: roomsTable.imageUrl,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -345,7 +352,10 @@ export async function queryClasses(options: {
   offset?: number;
 }): Promise<ClassQueryPage> {
   try {
-    const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+    const limit = clampLimitValue(options.limit, {
+      defaultValue: 50,
+      max: 100,
+    });
     const offset = Math.max(options.offset ?? 0, 0);
     const where = classListWhere(options.termId, options.courseCodePrefix);
 

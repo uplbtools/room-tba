@@ -17,6 +17,7 @@
     additionProposalStore,
     buildingTypeFilter,
     terrainStore,
+    scheduleRouteStore,
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
@@ -89,6 +90,7 @@
     isEventHoverPreview,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
+  import { formatMinutes } from "@lib/schedule-import/day-stops";
   import type {
     EditableCoords,
     EditableEntityType,
@@ -1601,6 +1603,20 @@
   });
 
   $effect(() => {
+    const map = mapStore.mapInstance;
+    const index = scheduleRouteStore.focusedStopIndex;
+    const stop =
+      index === null ? null : (scheduleRouteStore.dayStops[index] ?? null);
+    if (!map || !stop?.coords) return;
+
+    map.easeTo({
+      center: stop.coords,
+      zoom: Math.max(map.getZoom(), 17),
+      duration: 650,
+    });
+  });
+
+  $effect(() => {
     if (!adminAuthStore.canPublish && mapEditStore.enabled) {
       mapEditStore.close();
     }
@@ -2498,6 +2514,32 @@
             </Marker>
           {/each}
         {/if}
+        {#each scheduleRouteStore.dayStops as stop, index (`schedule-stop:${index}:${stop.courseCode}:${stop.roomCode}:${stop.scheduleSlot}`)}
+          {#if stop.coords}
+            {@const routeActive =
+              scheduleRouteStore.routedWeekday ===
+                scheduleRouteStore.selectedWeekday &&
+              locationStore.routeWaypoints !== null}
+            <Marker lngLat={stop.coords}>
+              <button
+                type="button"
+                class="schedule-route-stop-pin"
+                class:focused={scheduleRouteStore.focusedStopIndex === index}
+                class:routed={routeActive}
+                title={`${stop.courseCode} ${stop.section} at ${stop.roomCode ?? "room TBA"}`}
+                aria-label={`Show ${stop.courseCode} ${stop.roomCode ?? ""} schedule stop`}
+                onclick={() => scheduleRouteStore.focusStop(index)}
+              >
+                <span>{index + 1}</span>
+                <span class="schedule-route-stop-label" transition:fade>
+                  {formatMinutes(stop.startMinutes)}
+                  {stop.courseCode}
+                  {#if stop.roomCode} · {stop.roomCode}{/if}
+                </span>
+              </button>
+            </Marker>
+          {/if}
+        {/each}
         {#if !mapViewStore.eventsOnly}
           {#each filteredBuildings as building (`building:${building.id}`)}
             {#if building.lat && building.lon}
@@ -3547,6 +3589,81 @@
 
   .event-route-stop-pin:hover .event-route-stop-label {
     opacity: 1;
+  }
+
+  .schedule-route-stop-pin {
+    all: unset;
+    position: relative;
+    z-index: 66;
+    box-sizing: border-box;
+    display: flex;
+    width: 1.45rem;
+    height: 1.45rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 800;
+    box-shadow: 0 2px 0.5rem rgba(0, 0, 0, 0.32);
+    transition:
+      background-color 0.15s ease,
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  .schedule-route-stop-pin.routed {
+    background: #7b1113;
+  }
+
+  .schedule-route-stop-pin.focused,
+  .schedule-route-stop-pin:hover,
+  .schedule-route-stop-pin:focus-visible {
+    transform: translateY(-1px) scale(1.08);
+    box-shadow:
+      0 0 0 0.18rem rgba(250, 204, 21, 0.88),
+      0 2px 0.5rem rgba(0, 0, 0, 0.32);
+  }
+
+  .schedule-route-stop-pin:focus-visible {
+    outline: 2px solid #7b1113;
+    outline-offset: 3px;
+  }
+
+  .schedule-route-stop-label {
+    position: absolute;
+    bottom: calc(100% + 0.35rem);
+    left: 50%;
+    translate: -50% 0;
+    width: max-content;
+    max-width: 12rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    background: white;
+    color: #18181b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: 0 2px 0.5rem rgba(0, 0, 0, 0.2);
+  }
+
+  .schedule-route-stop-pin.focused .schedule-route-stop-label,
+  .schedule-route-stop-pin:hover .schedule-route-stop-label,
+  .schedule-route-stop-pin:focus-visible .schedule-route-stop-label {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .schedule-route-stop-pin {
+      transition: none;
+    }
   }
 
   .jeepney-stop-pin {
