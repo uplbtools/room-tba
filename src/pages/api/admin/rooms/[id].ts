@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
+import { R2_PUBLIC_URL } from "astro:env/server";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
+import { parseImageUrl } from "@lib/r2-upload-core";
 import {
   EditConflictError,
   DuplicateNameError,
@@ -16,6 +18,7 @@ type RoomPatchBody = {
   buildingId?: number | null;
   collegeId?: number | null;
   divisionId?: number | null;
+  imageUrl?: string | null;
   version?: number;
   position?: { floor: number; posX: string; posY: string };
 };
@@ -44,11 +47,13 @@ function invalidPosition(value: unknown) {
 }
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
-  const id = parseInt(params["id"] ?? "");
-  if (isNaN(id)) {
+  const id = parseInt(params.id ?? "", 10);
+  if (Number.isNaN(id)) {
     return json({ error: "Invalid room ID" }, 400);
   }
 
@@ -79,6 +84,15 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     );
   }
 
+  const parsedImageUrl = parseImageUrl(
+    body.imageUrl,
+    R2_PUBLIC_URL,
+    "Room image",
+  );
+  if (!parsedImageUrl.ok) {
+    return json({ error: parsedImageUrl.error }, 400);
+  }
+
   const parsedVersion = parseRequiredEditorVersion(body.version);
   if (!parsedVersion.ok) return parsedVersion.response;
   const expectedVersion = parsedVersion.version;
@@ -92,6 +106,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     if (body.buildingId !== undefined) updates.buildingId = body.buildingId;
     if (body.collegeId !== undefined) updates.collegeId = body.collegeId;
     if (body.divisionId !== undefined) updates.divisionId = body.divisionId;
+    if (parsedImageUrl.provided) updates.imageUrl = parsedImageUrl.imageUrl;
     const hasRoomFieldUpdates = Object.keys(updates).length > 0;
 
     if (body.position && hasRoomFieldUpdates) {

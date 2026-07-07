@@ -177,7 +177,7 @@
   </EntityPanelHeader>
 
   <div
-    class="entity-panel-body campus-browse-body"
+    class="entity-panel-body campus-browse-body map-chrome-scroll"
     role="region"
     aria-label={`${tabMeta.plural} list`}
   >
@@ -217,8 +217,5 @@
     font-family: inherit;
   }
 
-  .campus-browse-body {
-    scrollbar-width: thin;
-    scrollbar-color: #d4d4d8 transparent;
-  }
+
 </style>

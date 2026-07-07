@@ -44,6 +44,10 @@ function assertE2eDatabase(url: string) {
 const E2E_MIGRATION_FILES = [
   "0017_add_withdrawn_proposal_status.sql",
   "0018_contributions_ledger.sql",
+  "0019_add_entity_image_url.sql",
+  "0020_add_admin_user_email.sql",
+  "0021_account_management.sql",
+  "0022_history_summary_index.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {
@@ -76,7 +80,7 @@ async function main() {
   const E2E_RESET_LOCK = 447265; // serialize concurrent CI resets on shared E2E DB
 
   try {
-    await client.query(`SELECT pg_advisory_lock($1)`, [E2E_RESET_LOCK]);
+    await client.query("SELECT pg_advisory_lock($1)", [E2E_RESET_LOCK]);
 
     await applyE2eMigrations(client);
 
@@ -211,7 +215,7 @@ async function main() {
     );
   } finally {
     try {
-      await client.query(`SELECT pg_advisory_unlock($1)`, [E2E_RESET_LOCK]);
+      await client.query("SELECT pg_advisory_unlock($1)", [E2E_RESET_LOCK]);
     } catch {
       // connection may already be closed after a failed reset
     }

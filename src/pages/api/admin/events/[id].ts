@@ -18,7 +18,9 @@ type EventPatchBody = EventWriteInput & {
 };
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   const id = parseEventId(params.id);
@@ -68,7 +70,9 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
 };
 
 export const DELETE: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   const id = parseEventId(params.id);

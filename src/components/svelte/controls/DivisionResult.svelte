@@ -6,6 +6,7 @@
     termStore,
   } from "@lib/store.svelte";
   import {
+    getStoredProposalForEntity,
     persistEntityChange,
     mergeEntityRecord,
   } from "@lib/proposals/client";
@@ -24,6 +25,7 @@
   } from "@lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import { getDivisionShareUrl } from "@lib/share-links";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
@@ -68,6 +70,8 @@
   let savedField = $state<"divisionName" | "collegeId" | null>(null);
   let fieldError = $state<string | null>(null);
   let submitterNameDraft = $state("");
+  let activeProposalId = $state<number | null>(null);
+  let proposalStatus = $state<string | null>(null);
   let mergePrompt = $state<{
     candidate: DivisionData;
     attemptedName: string;
@@ -139,6 +143,10 @@
     savedField = null;
     fieldError = null;
     mergePrompt = null;
+    proposalStatus = null;
+    const stored = getStoredProposalForEntity("division", current.id);
+    activeProposalId = stored?.id ?? null;
+    if (stored) proposalStatus = stored.status;
 
     if (!canPublish) {
       const savedDraft = readEntityContributorDraft("division", current.id);
@@ -171,44 +179,51 @@
     });
   }
 
-  async function saveField(field: "divisionName" | "collegeId") {
+  const allFieldsUnchanged = $derived.by(() => {
     const current = division;
-    if (!current) return;
+    if (!current) return true;
+    return (
+      nameDraft.trim() === current.divisionName &&
+      collegeDraft === (current.collegeId === null ? "" : String(current.collegeId))
+    );
+  });
 
-    const patch: {
-      version: number;
-      divisionName?: string;
-      collegeId?: number | null;
-    } = { version: current.version };
+  async function submitAllChanges() {
+    const current = division;
+    if (!current || allFieldsUnchanged) return;
 
-    if (field === "divisionName") {
+    const patch: Record<string, unknown> = {};
+
+    if (nameDraft.trim() !== current.divisionName) {
       const trimmedName = nameDraft.trim();
       if (trimmedName.length === 0) {
         fieldError = `${current.divisionName} name cannot be empty.`;
         return;
       }
       patch.divisionName = trimmedName;
-    } else {
+    }
+    
+    if (collegeDraft !== (current.collegeId === null ? "" : String(current.collegeId))) {
       patch.collegeId = collegeDraft === "" ? null : Number(collegeDraft);
     }
 
-    savingField = field;
+    savingField = "divisionName"; // fallback indicator
     savedField = null;
     fieldError = null;
 
     try {
-      const { version, ...bodyPatch } = patch;
       const result = await persistEntityChange({
         entityType: "division",
         entityId: current.id,
         baseVersion: current.version,
-        patch: bodyPatch,
+        patch,
         entityLabel: current.divisionName,
         canPublish,
         submitterName:
           adminAuthStore.displayName ??
           adminAuthStore.username ??
           submitterNameDraft,
+        proposalId: activeProposalId,
       });
 
       const outcome = handlePersistEntityResult<DivisionData>(result, {
@@ -217,10 +232,10 @@
       });
 
       if (outcome.error) {
-        if (outcome.mergeCandidate && field === "divisionName") {
+        if (outcome.mergeCandidate && patch.divisionName) {
           mergePrompt = {
             candidate: outcome.mergeCandidate as DivisionData,
-            attemptedName: patch.divisionName ?? nameDraft.trim(),
+            attemptedName: patch.divisionName as string,
             sourceVersion: current.version,
           };
           fieldError = null;
@@ -230,17 +245,21 @@
         return;
       }
 
-      if (!outcome.published) {
+      if (outcome.proposal) {
+        activeProposalId = outcome.proposal.id;
+        proposalStatus = outcome.proposal.status;
         clearEntityContributorDraft("division", current.id);
         toastStore.show(
           "Division change suggestion submitted for review.",
           "success",
         );
       }
-      savedField = field;
-      setTimeout(() => {
-        if (savedField === field) savedField = null;
-      }, 1800);
+      if (outcome.published) {
+        savedField = "divisionName";
+        setTimeout(() => {
+          if (savedField === "divisionName") savedField = null;
+        }, 1800);
+      }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
       fieldError = `${current.divisionName} failed to save: ${reason}`;
@@ -353,12 +372,19 @@
       </div>
     </header>
 
+    <EntityLastUpdated
+      updatedAt={division.updatedAt}
+      entityType="division"
+      entityId={division.id}
+    />
+
     {#if editing}
       <section class="entity-editor" aria-label="Edit division details">
         <EntityEditorPanel
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="division-submitter-name"
+          historyEntity={division ? { entityType: "division", entityId: division.id, version: division.version } : null}
           bind:submitterName={submitterNameDraft}
           successMessage={divisionSavedMessage(savedField)}
           errorMessage={fieldError}

@@ -379,7 +379,7 @@
       {/if}
 
       {#if (mobile.current || chrome.showSearchSuggestions || chrome.editMode) && !(showSearchDropdown && draftInput.trim() !== "")}
-        <div class="map-search-chrome__chips">
+        <div class="map-search-chrome__chips" onmousedown={(event) => event.preventDefault()}>
           {#if mobile.current}
             <MapDimensionToggle compact />
           {/if}
@@ -447,7 +447,7 @@
 
       {#if showEditorInline}
         <div
-          class="map-search-chrome__editor"
+          class="map-search-chrome__editor map-chrome-scroll"
           id="editor-shelf-panel"
           aria-label="Editor tools"
           in:fade={panelFadeIn(reducedMotion.current)}
@@ -866,7 +866,7 @@
   .map-search-chrome__chips :global(.building-filter-bar) {
     flex: 0 0 auto;
     min-width: 0;
-    padding: 0 !important;
+    padding: 0;
   }
 
   .map-search-chrome__chips :global(.term-selector) {
@@ -954,27 +954,7 @@
     padding-top: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: hsl(0, 0%, 72%) transparent;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .map-search-chrome__events :global(.event-list)::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background-color: hsl(0, 0%, 72%);
-  }
-
-  .map-search-chrome__events
-    :global(.event-list):hover::-webkit-scrollbar-thumb {
-    background-color: hsl(0, 0%, 58%);
   }
 
   .map-search-chrome__editor {
@@ -998,22 +978,7 @@
     overscroll-behavior: contain;
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
     padding: 0.375rem 0.625rem 0.625rem;
-    scrollbar-width: thin;
-    scrollbar-color: hsl(0, 0%, 72%) transparent;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .map-search-chrome__editor::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .map-search-chrome__editor::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .map-search-chrome__editor::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background-color: hsl(0, 0%, 72%);
   }
 
   .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__editor {

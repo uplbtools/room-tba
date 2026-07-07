@@ -143,6 +143,7 @@ export async function getRoomPageData(roomId: number) {
       buildingId: roomsTable.buildingId,
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
+      imageUrl: roomsTable.imageUrl,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -176,6 +177,6 @@ export async function getRoomPageData(roomId: number) {
 
 export async function getEventPageData(slug: string) {
   const event = await getEventBySlug(slug);
-  if (!event || !event.includeInSeo) return null;
+  if (!event?.includeInSeo) return null;
   return { event };
 }

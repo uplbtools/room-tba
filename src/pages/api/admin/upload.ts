@@ -23,7 +23,7 @@ export const prerender = false;
 const UPLOAD_LIMIT = { max: 30, windowMs: 10 * 60 * 1000 };
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   return json({
@@ -34,7 +34,7 @@ export const GET: APIRoute = async ({ cookies }) => {
 };
 
 export const POST: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   const ip = clientIp(request);

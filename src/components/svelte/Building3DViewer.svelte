@@ -170,7 +170,7 @@
       ]);
 
       // Layer in any saved positions before we compute placements / build meshes.
-      if (savedRes && savedRes.ok) {
+      if (savedRes?.ok) {
         try {
           const data = (await savedRes.json()) as {
             positions?: Array<{
@@ -583,6 +583,20 @@
       };
 
       loading = false;
+
+      // Apply initial room/edit from store
+      if (building3DStore.initialRoomCode) {
+        const targetCode = building3DStore.initialRoomCode;
+        activeRoomCode = targetCode;
+        const roomPlacement = placements.find((p) => p.code === targetCode);
+        if (roomPlacement) {
+          selectedFloor = roomPlacement.floor;
+        }
+      }
+      if (building3DStore.initialEditMode && adminAuthStore.canPublish) {
+        editMode = true;
+      }
+
       animate();
     } catch (err) {
       console.error("Building3DViewer init failed", err);

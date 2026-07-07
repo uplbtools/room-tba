@@ -5,6 +5,7 @@
   import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
@@ -663,6 +664,11 @@
           onclick={() => (editing = !editing)}
         />
       </div>
+      <EntityLastUpdated
+        updatedAt={event.updatedAt}
+        entityType="event"
+        entityId={event.id}
+      />
     </header>
 
     <section class="event-section">
@@ -732,6 +738,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="event-submitter-name"
+          historyEntity={event ? { entityType: "event", entityId: event.id, version: event.version } : null}
           bind:submitterName={submitterNameDraft}
         >
           <form
@@ -985,12 +992,6 @@
                       onclick={placePrimaryLocationAtMapCenter}
                     />
                   {/if}
-                {:else if primaryLocation && primaryLocation.resolvedLat !== null && primaryLocation.resolvedLon !== null && !mapProposalStore.allowsKey(`event:${event.id}:location`)}
-                  <EntityEditorSubmitButton
-                    variant="secondary"
-                    label="Enable pin move"
-                    onclick={enableEventPinProposal}
-                  />
                 {/if}
               </div>
             </EntityEditorCard>

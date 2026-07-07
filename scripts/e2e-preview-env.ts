@@ -25,5 +25,5 @@ exportLine(
 );
 exportLine("PUBLIC_MAPTILER_KEY", process.env.PUBLIC_MAPTILER_KEY);
 if (process.env.ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === "1") {
-  process.stdout.write(`export ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT=1\n`);
+  process.stdout.write("export ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT=1\n");
 }

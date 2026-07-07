@@ -1,6 +1,11 @@
 <script lang="ts">
-  import { scheduleRouteStore, type Weekday } from "@lib/store.svelte";
+  import {
+    locationStore,
+    scheduleRouteStore,
+    type Weekday,
+  } from "@lib/store.svelte";
   import { onMount } from "svelte";
+  import { flip } from "svelte/animate";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
   import { WEEKDAY_LABELS, WEEKDAYS } from "@lib/schedule-import/types";
 
@@ -14,6 +19,10 @@
 
   const pastePlaceholder =
     '[{"course_code":"CMSC 123","section":"A","type":"LEC","schedule":["MW 08:00AM-09:00AM"]}]';
+  const routeActive = $derived(
+    scheduleRouteStore.routedWeekday === scheduleRouteStore.selectedWeekday &&
+      locationStore.routeWaypoints !== null,
+  );
 
   onMount(() => {
     scheduleRouteStore.init();
@@ -30,6 +39,10 @@
 
   function routeDay() {
     scheduleRouteStore.routeDay();
+  }
+
+  function clearRoute() {
+    scheduleRouteStore.clearRoute();
   }
 
   function clearImport() {
@@ -113,23 +126,37 @@
         aria-label="Class stops for selected day"
       >
         {#each scheduleRouteStore.dayStops as stop, index (stop.courseCode + stop.type + stop.scheduleSlot)}
-          <li class="schedule-import-panel__stop">
-            <span class="schedule-import-panel__stop-time">
-              {formatMinutes(stop.startMinutes)}–{formatMinutes(
-                stop.endMinutes,
-              )}
-            </span>
-            <span class="schedule-import-panel__stop-title">
-              {stop.courseCode}
-              {stop.section} ({stop.type})
-            </span>
-            <span class="schedule-import-panel__stop-room">{stop.roomCode}</span
+          <li class="schedule-import-panel__stop" animate:flip={{ duration: 160 }}>
+            <button
+              type="button"
+              class="schedule-import-panel__stop-card"
+              class:schedule-import-panel__stop-card--focused={scheduleRouteStore.focusedStopIndex ===
+                index}
+              class:schedule-import-panel__stop-card--routed={routeActive}
+              onclick={() => scheduleRouteStore.focusStop(index)}
+              aria-label={`Show ${stop.courseCode} ${stop.roomCode ?? ""} on the map`}
             >
-            {#if stop.gapMinutesAfter !== null && index < scheduleRouteStore.dayStops.length - 1}
-              <span class="schedule-import-panel__gap">
-                {stop.gapMinutesAfter} min until next
+              <span class="schedule-import-panel__stop-index">{index + 1}</span>
+              <span class="schedule-import-panel__stop-copy">
+                <span class="schedule-import-panel__stop-time">
+                  {formatMinutes(stop.startMinutes)}–{formatMinutes(
+                    stop.endMinutes,
+                  )}
+                </span>
+                <span class="schedule-import-panel__stop-title">
+                  {stop.courseCode}
+                  {stop.section} ({stop.type})
+                </span>
+                <span class="schedule-import-panel__stop-room"
+                  >{stop.roomCode}</span
+                >
+                {#if stop.gapMinutesAfter !== null && index < scheduleRouteStore.dayStops.length - 1}
+                  <span class="schedule-import-panel__gap">
+                    {stop.gapMinutesAfter} min until next
+                  </span>
+                {/if}
               </span>
-            {/if}
+            </button>
           </li>
         {:else}
           <li class="schedule-import-panel__empty">
@@ -155,14 +182,25 @@
         </details>
       {/if}
 
-      <button
-        type="button"
-        class="schedule-import-panel__primary schedule-import-panel__route"
-        disabled={scheduleRouteStore.dayStops.length === 0}
-        onclick={routeDay}
-      >
-        Route this day
-      </button>
+      <div class="schedule-import-panel__route-actions">
+        <button
+          type="button"
+          class="schedule-import-panel__primary schedule-import-panel__route"
+          disabled={scheduleRouteStore.dayStops.length === 0}
+          onclick={routeDay}
+        >
+          {routeActive ? "Re-route day" : "Route this day"}
+        </button>
+        {#if routeActive}
+          <button
+            type="button"
+            class="schedule-import-panel__secondary"
+            onclick={clearRoute}
+          >
+            Clear route
+          </button>
+        {/if}
+      </div>
     {/if}
   {/if}
 </div>
@@ -277,13 +315,69 @@
   }
 
   .schedule-import-panel__stop {
+    min-width: 0;
+  }
+
+  .schedule-import-panel__stop-card {
     display: grid;
-    gap: 0.125rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    width: 100%;
+    gap: 0.5rem;
+    align-items: start;
     padding: 0.4375rem 0.5rem;
+    border: 1px solid transparent;
     border-radius: 0.5rem;
     background: hsl(0, 0%, 98%);
+    color: inherit;
+    cursor: pointer;
     font-size: 0.8125rem;
+    text-align: left;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  .schedule-import-panel__stop-card:hover,
+  .schedule-import-panel__stop-card:focus-visible,
+  .schedule-import-panel__stop-card--focused {
+    border-color: hsl(5, 53%, 58%);
+    box-shadow: 0 2px 0.5rem rgba(0, 0, 0, 0.1);
+  }
+
+  .schedule-import-panel__stop-card:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
+  }
+
+  .schedule-import-panel__stop-card:active {
+    transform: translateY(1px);
+  }
+
+  .schedule-import-panel__stop-card--routed {
+    background: hsl(5, 53%, 97%);
+  }
+
+  .schedule-import-panel__stop-index {
+    display: inline-flex;
+    width: 1.35rem;
+    height: 1.35rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    border-radius: 999px;
+    background: hsl(5, 53%, 32%);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 1px 0.25rem rgba(0, 0, 0, 0.18);
+  }
+
+  .schedule-import-panel__stop-copy {
+    display: grid;
     min-width: 0;
+    gap: 0.125rem;
   }
 
   .schedule-import-panel__stop-time {
@@ -320,7 +414,19 @@
     padding-left: 1rem;
   }
 
+  .schedule-import-panel__route-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
   .schedule-import-panel__route {
-    width: 100%;
+    flex: 1 1 auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .schedule-import-panel__stop-card {
+      transition: none;
+    }
   }
 </style>

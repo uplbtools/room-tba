@@ -21,6 +21,8 @@
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorField from "@ui/editor/EntityEditorField.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
+  import ImageUpload from "@ui/editor/ImageUpload.svelte";
+  import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import { tick } from "svelte";
   import {
@@ -45,7 +47,11 @@
     scheduleEntityContributorDraftSave,
   } from "@lib/contributor-drafts";
 
-  type BuildingEditableField = "buildingName" | "directions" | "buildingType";
+  type BuildingEditableField =
+    | "buildingName"
+    | "directions"
+    | "buildingType"
+    | "imageUrl";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -88,6 +94,7 @@
   let nameDraft = $state("");
   let directionsDraft = $state("");
   let typeDraft = $state<BuildingData["buildingType"]>("non-admin");
+  let imageDraft = $state<string | null>(null);
   let savingField = $state<BuildingEditableField | null>(null);
   let savedField = $state<BuildingEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -107,6 +114,7 @@
     buildingName: "Building name",
     directions: "Building directions",
     buildingType: "Building type",
+    imageUrl: "Building photo",
   };
 
   // Room list must reload when the selected building changes (search result,
@@ -198,6 +206,7 @@
     nameDraft = current.buildingName;
     directionsDraft = current.directions ?? "";
     typeDraft = current.buildingType;
+    imageDraft = current.imageUrl ?? null;
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -275,6 +284,7 @@
       buildingName?: string;
       directions?: string;
       buildingType?: BuildingData["buildingType"];
+      imageUrl?: string | null;
     } = { version: current.version };
 
     if (field === "buildingName") {
@@ -288,6 +298,8 @@
       body.directions = directionsDraft.trim();
     } else if (field === "buildingType") {
       body.buildingType = typeDraft;
+    } else if (field === "imageUrl") {
+      body.imageUrl = imageDraft || null;
     }
 
     savingField = field;
@@ -295,11 +307,12 @@
     fieldError = null;
 
     try {
+      const { version: _version, ...patch } = body;
       const result = await persistEntityChange({
         entityType: "building",
         entityId: current.id,
         baseVersion: current.version,
-        patch: body,
+        patch,
         entityLabel: current.buildingName,
         canPublish,
         submitterName:
@@ -401,6 +414,91 @@
       mergingEntity = false;
     }
   }
+
+  const allFieldsUnchanged = $derived.by(() => {
+    const current = building;
+    if (!current) return true;
+    return (
+      nameDraft.trim() === current.buildingName &&
+      directionsDraft.trim() === (current.directions ?? "") &&
+      typeDraft === current.buildingType
+    );
+  });
+
+  async function submitAllChanges() {
+    const current = building;
+    if (!current || allFieldsUnchanged) return;
+
+    const patch: Record<string, unknown> = {};
+    if (nameDraft.trim() !== current.buildingName) {
+      const trimmedName = nameDraft.trim();
+      if (trimmedName.length === 0) {
+        fieldError = `${current.buildingName} name cannot be empty.`;
+        return;
+      }
+      patch.buildingName = trimmedName;
+    }
+    if (directionsDraft.trim() !== (current.directions ?? "")) {
+      patch.directions = directionsDraft.trim();
+    }
+    if (typeDraft !== current.buildingType) {
+      patch.buildingType = typeDraft;
+    }
+
+    savingField = "buildingName" as BuildingEditableField;
+    savedField = null;
+    fieldError = null;
+
+    try {
+      const result = await persistEntityChange({
+        entityType: "building",
+        entityId: current.id,
+        baseVersion: current.version,
+        patch,
+        entityLabel: current.buildingName,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
+      });
+
+      const outcome = handlePersistEntityResult<BuildingData>(result, {
+        syncFromServer: syncBuildingFromServer,
+        fallbackError: `${current.buildingName} could not be saved.`,
+      });
+
+      if (outcome.error) {
+        fieldError = outcome.error;
+        return;
+      }
+
+      if (outcome.published) {
+        savedField = "buildingName" as BuildingEditableField;
+        setTimeout(() => {
+          if (savedField === "buildingName") savedField = null;
+        }, 1800);
+        return;
+      }
+
+      if (outcome.proposal) {
+        activeProposalId = outcome.proposal.id;
+        proposalStatus = outcome.proposal.status;
+        clearEntityContributorDraft("building", current.id);
+        savedField = "buildingName" as BuildingEditableField;
+        toastStore.show(
+          `Suggestion for ${current.buildingName} submitted for review.`,
+          "success",
+        );
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${current.buildingName} failed to save: ${reason}`;
+    } finally {
+      savingField = null;
+    }
+  }
 </script>
 
 <div class="entity-detail building-query-wrapper">
@@ -415,6 +513,7 @@
         {#if hasMapPin}
           <MapChromeActionChip
             toolbar
+            ariaLabel="3D view"
             onclick={() => building3DStore.open(building.buildingName)}
           >
             <Box size={14} aria-hidden="true" />
@@ -456,6 +555,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="building-submitter-name"
+          historyEntity={building ? { entityType: "building", entityId: building.id, version: building.version } : null}
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
           activeProposalId={activeProposalId}
@@ -463,6 +563,9 @@
             activeProposalId = null;
             proposalStatus = null;
           }}
+          onsubmit={submitAllChanges}
+          submitting={savingField !== null}
+          submitDisabled={allFieldsUnchanged}
           successMessage={savedField
             ? entityEditorSavedMessage({
                 canPublish,
@@ -568,11 +671,43 @@
                   </select>
                 {/snippet}
               </EntityEditorField>
+
+              {#if adminAuthStore.isLoggedIn}
+                <div class="editor-image-row">
+                  <ImageUpload
+                    label="Building photo"
+                    inputId="building-image-editor"
+                    prefix="buildings"
+                    bind:value={imageDraft}
+                    disabled={savingField !== null}
+                  />
+                  <button
+                    type="button"
+                    class="field-save-btn"
+                    disabled={savingField !== null ||
+                      (imageDraft ?? null) === (building.imageUrl ?? null)}
+                    onclick={() => saveField("imageUrl")}
+                  >
+                    {fieldSaveActionLabel({
+                      canPublish,
+                      isSaving: savingField === "imageUrl",
+                    })}
+                  </button>
+                </div>
+              {/if}
             </div>
           </details>
         </EntityEditorPanel>
       </section>
     {:else}
+      {#if building.imageUrl}
+        <img
+          class="entity-image"
+          src={building.imageUrl}
+          alt={building.buildingName}
+          loading="lazy"
+        />
+      {/if}
       <section class="entity-directions" aria-label="Directions">
         <div class="entity-directions__segment">
           {#if building.directions}
@@ -582,7 +717,11 @@
             <p class="entity-directions__empty">No directions listed.</p>
           {/if}
         </div>
-        <EntityLastUpdated updatedAt={building.updatedAt} />
+        <EntityLastUpdated
+          updatedAt={building.updatedAt}
+          entityType="building"
+          entityId={building.id}
+        />
       </section>
     {/if}
   {:else}
