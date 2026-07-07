@@ -258,7 +258,6 @@
     color: #7b1113;
     cursor: pointer;
     box-shadow: var(--map-chrome-shadow);
-    z-index: -1;
   }
   .drawer-handle:hover,
   .drawer-handle:focus-visible {
