@@ -2,21 +2,12 @@
 // src/seed.ts
 
 import Database from "bun:sqlite";
-import { sql, SQL } from "bun";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import {
-  buildingsTable,
-  classesTable,
-  collegesTable,
-  divisionsTable,
-  dormsTable,
-  roomsTable,
-} from "@drizzle/schema";
-import { getTableColumns, eq } from "drizzle-orm";
+import { dormsTable } from "@drizzle/schema";
 const client = new Database("data/info.db");
 const db = drizzle({ client });
 
-const dorms = (await db.select().from(dormsTable)).map(
+const _dorms = (await db.select().from(dormsTable)).map(
   ({ amenities, contact_phone, ...others }) => ({
     contact_phone: contact_phone
       ? `{${contact_phone

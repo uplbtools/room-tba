@@ -20,6 +20,9 @@
     proposalStatus?: string | null;
     activeProposalId?: number | null;
     onWithdrawn?: () => void;
+    onsubmit?: () => void;
+    submitting?: boolean;
+    submitDisabled?: boolean;
     successMessage?: string | null;
     errorMessage?: string | null;
     /** Enables the version-history section for publishers. */
@@ -39,6 +42,9 @@
     proposalStatus = null,
     activeProposalId = null,
     onWithdrawn,
+    onsubmit,
+    submitting = false,
+    submitDisabled = false,
     successMessage = null,
     errorMessage = null,
     historyEntity = null,
@@ -98,6 +104,18 @@
   {/if}
 
   {@render children?.()}
+
+  {#if !canPublish && onsubmit}
+    <div class="entity-editor-form-actions">
+      <EntityEditorSubmitButton
+        label="Submit suggestion"
+        savingLabel="Submitting…"
+        saving={submitting}
+        disabled={submitDisabled}
+        onclick={onsubmit}
+      />
+    </div>
+  {/if}
 
   {#if withdrawError}
     <EntityEditorMessage variant="error" message={withdrawError} />

@@ -27,8 +27,8 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
   });
   if (auth instanceof Response) return auth;
 
-  const sourceId = parseInt(params["id"] ?? "");
-  if (isNaN(sourceId)) {
+  const sourceId = parseInt(params.id ?? "", 10);
+  if (Number.isNaN(sourceId)) {
     return json({ error: "Invalid room ID" }, 400);
   }
 

@@ -307,11 +307,12 @@
     fieldError = null;
 
     try {
+      const { version: _version, ...patch } = body;
       const result = await persistEntityChange({
         entityType: "building",
         entityId: current.id,
         baseVersion: current.version,
-        patch: body,
+        patch,
         entityLabel: current.buildingName,
         canPublish,
         submitterName:
@@ -413,6 +414,91 @@
       mergingEntity = false;
     }
   }
+
+  const allFieldsUnchanged = $derived.by(() => {
+    const current = building;
+    if (!current) return true;
+    return (
+      nameDraft.trim() === current.buildingName &&
+      directionsDraft.trim() === (current.directions ?? "") &&
+      typeDraft === current.buildingType
+    );
+  });
+
+  async function submitAllChanges() {
+    const current = building;
+    if (!current || allFieldsUnchanged) return;
+
+    const patch: Record<string, unknown> = {};
+    if (nameDraft.trim() !== current.buildingName) {
+      const trimmedName = nameDraft.trim();
+      if (trimmedName.length === 0) {
+        fieldError = `${current.buildingName} name cannot be empty.`;
+        return;
+      }
+      patch.buildingName = trimmedName;
+    }
+    if (directionsDraft.trim() !== (current.directions ?? "")) {
+      patch.directions = directionsDraft.trim();
+    }
+    if (typeDraft !== current.buildingType) {
+      patch.buildingType = typeDraft;
+    }
+
+    savingField = "buildingName" as BuildingEditableField;
+    savedField = null;
+    fieldError = null;
+
+    try {
+      const result = await persistEntityChange({
+        entityType: "building",
+        entityId: current.id,
+        baseVersion: current.version,
+        patch,
+        entityLabel: current.buildingName,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
+      });
+
+      const outcome = handlePersistEntityResult<BuildingData>(result, {
+        syncFromServer: syncBuildingFromServer,
+        fallbackError: `${current.buildingName} could not be saved.`,
+      });
+
+      if (outcome.error) {
+        fieldError = outcome.error;
+        return;
+      }
+
+      if (outcome.published) {
+        savedField = "buildingName" as BuildingEditableField;
+        setTimeout(() => {
+          if (savedField === "buildingName") savedField = null;
+        }, 1800);
+        return;
+      }
+
+      if (outcome.proposal) {
+        activeProposalId = outcome.proposal.id;
+        proposalStatus = outcome.proposal.status;
+        clearEntityContributorDraft("building", current.id);
+        savedField = "buildingName" as BuildingEditableField;
+        toastStore.show(
+          `Suggestion for ${current.buildingName} submitted for review.`,
+          "success",
+        );
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${current.buildingName} failed to save: ${reason}`;
+    } finally {
+      savingField = null;
+    }
+  }
 </script>
 
 <div class="entity-detail building-query-wrapper">
@@ -427,6 +513,7 @@
         {#if hasMapPin}
           <MapChromeActionChip
             toolbar
+            ariaLabel="3D view"
             onclick={() => building3DStore.open(building.buildingName)}
           >
             <Box size={14} aria-hidden="true" />
@@ -476,6 +563,9 @@
             activeProposalId = null;
             proposalStatus = null;
           }}
+          onsubmit={submitAllChanges}
+          submitting={savingField !== null}
+          submitDisabled={allFieldsUnchanged}
           successMessage={savedField
             ? entityEditorSavedMessage({
                 canPublish,
@@ -614,7 +704,7 @@
         <img
           class="entity-image"
           src={building.imageUrl}
-          alt="Photo of {building.buildingName}"
+          alt={building.buildingName}
           loading="lazy"
         />
       {/if}
@@ -627,7 +717,11 @@
             <p class="entity-directions__empty">No directions listed.</p>
           {/if}
         </div>
-        <EntityLastUpdated updatedAt={building.updatedAt} />
+        <EntityLastUpdated
+          updatedAt={building.updatedAt}
+          entityType="building"
+          entityId={building.id}
+        />
       </section>
     {/if}
   {:else}

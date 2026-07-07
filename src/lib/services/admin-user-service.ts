@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import bcrypt from "bcrypt";
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { ADMIN_PASSWORD } from "astro:env/server";
@@ -479,8 +479,7 @@ export async function confirmPasswordReset(
   }
   const payload = verifySignedToken<PasswordResetTokenPayload>(token);
   if (
-    !payload ||
-    payload.purpose !== "password-reset" ||
+    payload?.purpose !== "password-reset" ||
     !Number.isInteger(payload.userId) ||
     typeof payload.pwFp !== "string"
   ) {
@@ -508,8 +507,7 @@ export async function confirmPasswordReset(
 export async function confirmEmailChange(token: string): Promise<void> {
   const payload = verifySignedToken<EmailChangeTokenPayload>(token);
   if (
-    !payload ||
-    payload.purpose !== "email-change" ||
+    payload?.purpose !== "email-change" ||
     !Number.isInteger(payload.userId) ||
     !payload.newEmail
   ) {
@@ -800,8 +798,8 @@ export async function updateManagedUser(
     }
 
     const updates: Record<string, unknown> = { updatedAt: sql`now()` };
-    if (input.role !== undefined) updates["role"] = input.role;
-    if (input.isActive !== undefined) updates["isActive"] = input.isActive;
+    if (input.role !== undefined) updates.role = input.role;
+    if (input.isActive !== undefined) updates.isActive = input.isActive;
 
     const [updated] = await tx
       .update(adminUsersTable)

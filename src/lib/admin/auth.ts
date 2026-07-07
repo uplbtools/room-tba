@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { ADMIN_SESSION_SECRET } from "astro:env/server";
 import type { AdminRole } from "./roles";
 export type { AdminRole } from "./roles";

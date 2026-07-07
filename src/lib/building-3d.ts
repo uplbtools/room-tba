@@ -50,7 +50,7 @@ export function footprintToLocalPolygon(
   footprint: OsmBuildingFootprint,
 ): LocalPolygonData {
   const cycle = footprint.outline;
-  let [centroidX, centroidY] = getCentroid(cycle);
+  const [centroidX, centroidY] = getCentroid(cycle);
 
   const lonScale =
     Math.cos((centroidY * Math.PI) / 180) * METERS_PER_DEGREE_LAT;

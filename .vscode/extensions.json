@@ -1,8 +1,11 @@
 {
   "recommendations": [
     "astro-build.astro-vscode",
-    "biomejs.biome",
-    "dbaeumer.vscode-eslint"
+    "svelte.svelte-vscode",
+    "biomejs.biome"
   ],
-  "unwantedRecommendations": []
+  "unwantedRecommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint"
+  ]
 }

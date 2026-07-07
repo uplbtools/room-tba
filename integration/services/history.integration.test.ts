@@ -33,7 +33,7 @@ describeIntegration("editor history revert integration", () => {
     const original = await client.query<{
       version: number;
       directions: string;
-    }>(`SELECT version, directions FROM buildings WHERE id = $1`, [buildingId]);
+    }>("SELECT version, directions FROM buildings WHERE id = $1", [buildingId]);
     const startVersion = original.rows[0]?.version ?? 1;
 
     // Make an edit we will restore over.
@@ -79,7 +79,7 @@ describeIntegration("editor history revert integration", () => {
       id: number;
       room_code: string;
       version: number;
-    }>(`SELECT id, room_code, version FROM rooms ORDER BY id LIMIT 1`);
+    }>("SELECT id, room_code, version FROM rooms ORDER BY id LIMIT 1");
     const roomId = room.rows[0]?.id ?? 0;
     const originalCode = room.rows[0]?.room_code ?? "";
     const roomVersion = room.rows[0]?.version ?? 1;

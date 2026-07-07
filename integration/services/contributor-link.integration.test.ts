@@ -14,7 +14,7 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
 
   const cleanup = async () => {
     await client.query(
-      `DELETE FROM admin_users WHERE email IN ($1, $2) OR supabase_user_id IN ($3, $4)`,
+      "DELETE FROM admin_users WHERE email IN ($1, $2) OR supabase_user_id IN ($3, $4)",
       [EMAIL_NEW, EMAIL_LINK, SUPABASE_ID_NEW, SUPABASE_ID_LINK],
     );
   };
@@ -47,7 +47,7 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
     expect(user?.displayName).toBe("E2E Google User");
 
     const { rows } = await client.query(
-      `SELECT role, email, supabase_user_id FROM admin_users WHERE supabase_user_id = $1`,
+      "SELECT role, email, supabase_user_id FROM admin_users WHERE supabase_user_id = $1",
       [SUPABASE_ID_NEW],
     );
     expect(rows[0]?.role).toBe("contributor");
@@ -89,7 +89,7 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
     expect(user?.role).toBe("editor");
 
     const { rows } = await client.query(
-      `SELECT supabase_user_id FROM admin_users WHERE email = $1`,
+      "SELECT supabase_user_id FROM admin_users WHERE email = $1",
       [EMAIL_LINK],
     );
     expect(rows[0]?.supabase_user_id).toBe(SUPABASE_ID_LINK);
@@ -121,7 +121,7 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
       expect(user?.username).not.toBe("e2e-google-unverified-victim");
 
       const { rows } = await client.query(
-        `SELECT email, supabase_user_id FROM admin_users WHERE supabase_user_id = $1`,
+        "SELECT email, supabase_user_id FROM admin_users WHERE supabase_user_id = $1",
         [unverifiedId],
       );
       // New account stores no unverified email.

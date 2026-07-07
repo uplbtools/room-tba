@@ -28,14 +28,14 @@ describeIntegration(
       // edit_proposals/contributions row would otherwise block every
       // subsequent DELETE FROM admin_users via the FK constraint.
       await client.query(
-        `DELETE FROM edit_proposals WHERE submitter_user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)`,
+        "DELETE FROM edit_proposals WHERE submitter_user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)",
         [`${PREFIX}%`],
       );
       await client.query(
-        `DELETE FROM contributions WHERE user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)`,
+        "DELETE FROM contributions WHERE user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)",
         [`${PREFIX}%`],
       );
-      await client.query(`DELETE FROM admin_users WHERE username LIKE $1`, [
+      await client.query("DELETE FROM admin_users WHERE username LIKE $1", [
         `${PREFIX}%`,
       ]);
     };
@@ -89,7 +89,7 @@ describeIntegration(
       );
       await changePassword(passwordUserId, PASSWORD, "a-new-password-123");
       const { rows } = await client.query<{ password_hash: string }>(
-        `SELECT password_hash FROM admin_users WHERE id = $1`,
+        "SELECT password_hash FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(
@@ -103,7 +103,7 @@ describeIntegration(
       );
       await changePassword(oauthUserId, null, "first-password-123");
       const { rows } = await client.query<{ password_hash: string }>(
-        `SELECT password_hash FROM admin_users WHERE id = $1`,
+        "SELECT password_hash FROM admin_users WHERE id = $1",
         [oauthUserId],
       );
       expect(rows[0]!.password_hash).not.toBe("");
@@ -142,7 +142,7 @@ describeIntegration(
       );
       await confirmEmailChange(token);
       const { rows } = await client.query<{ email: string }>(
-        `SELECT email FROM admin_users WHERE id = $1`,
+        "SELECT email FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(rows[0]!.email).toBe(newEmail);
@@ -200,10 +200,10 @@ describeIntegration(
         "@lib/services/admin-user-service"
       );
       const { createSignedToken } = await import("@lib/admin/signed-token");
-      const { createHash } = await import("crypto");
+      const { createHash } = await import("node:crypto");
 
       const { rows } = await client.query<{ password_hash: string }>(
-        `SELECT password_hash FROM admin_users WHERE id = $1`,
+        "SELECT password_hash FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       const pwFp = createHash("sha256")
@@ -222,7 +222,7 @@ describeIntegration(
       ).rejects.toBeInstanceOf(AccountActionError);
 
       const after = await client.query<{ password_hash: string }>(
-        `SELECT password_hash FROM admin_users WHERE id = $1`,
+        "SELECT password_hash FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(
@@ -238,7 +238,7 @@ describeIntegration(
         "@lib/services/admin-user-service"
       );
       const { rows } = await client.query<{ supabase_user_id: string }>(
-        `SELECT supabase_user_id FROM admin_users WHERE id = $1`,
+        "SELECT supabase_user_id FROM admin_users WHERE id = $1",
         [oauthUserId],
       );
       await expect(
@@ -267,7 +267,7 @@ describeIntegration(
         password_hash: string;
         deleted_at: string | null;
       }>(
-        `SELECT is_active, email, password_hash, deleted_at FROM admin_users WHERE id = $1`,
+        "SELECT is_active, email, password_hash, deleted_at FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(rows[0]!.is_active).toBe(false);
@@ -300,12 +300,12 @@ describeIntegration(
       await softDeleteAccount(passwordUserId, PASSWORD);
 
       const { rows } = await client.query<{ submitter_user_id: number }>(
-        `SELECT submitter_user_id FROM edit_proposals WHERE id = $1`,
+        "SELECT submitter_user_id FROM edit_proposals WHERE id = $1",
         [proposalRows[0]!.id],
       );
       expect(rows[0]!.submitter_user_id).toBe(passwordUserId);
 
-      await client.query(`DELETE FROM edit_proposals WHERE id = $1`, [
+      await client.query("DELETE FROM edit_proposals WHERE id = $1", [
         proposalRows[0]!.id,
       ]);
     });
@@ -360,7 +360,7 @@ describeIntegration(
         ).rejects.toBeInstanceOf(AccountActionError);
       } finally {
         for (const admin of otherAdmins) {
-          await client.query(`UPDATE admin_users SET role = $1 WHERE id = $2`, [
+          await client.query("UPDATE admin_users SET role = $1 WHERE id = $2", [
             admin.role,
             admin.id,
           ]);

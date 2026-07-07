@@ -5,14 +5,14 @@ import Database from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { classesTable, roomsTable } from "@drizzle/schema";
 import amisClasses from "../data/AMIS subjects.json";
-import { getTableColumns, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 const client = new Database("data/info.db");
 const db = drizzle({ client });
 
 // console.log(scrapedData[0]);
 // console.log(scrapedData.filter((data) => data.course_code === "CMSC 200"));
 
-(async function () {
+(async () => {
   const scrapedData = await Promise.all(
     (amisClasses.classes as any[]).map(async (classInfo: any) => ({
       type: classInfo.type,

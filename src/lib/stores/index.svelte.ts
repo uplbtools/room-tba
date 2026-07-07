@@ -1,9 +1,6 @@
 // src/lib/store.svelte.ts
 
-import {
-  DEFAULT_TERRAIN_EXAGGERATION,
-  CAMPUS_BOUNDS,
-} from "@constants/map-terrain";
+import { CAMPUS_BOUNDS } from "@constants/map-terrain";
 import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
 import { orderDayStops, type Weekday } from "../schedule-import/day-stops.js";

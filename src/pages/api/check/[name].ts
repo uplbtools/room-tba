@@ -20,7 +20,7 @@ const PATHS = [
 ];
 
 export const GET = (async ({ params }) => {
-  const tableName = params["name"] as string;
+  const tableName = params.name as string;
   if (!PATHS.includes(tableName as string))
     return new Response(
       JSON.stringify({

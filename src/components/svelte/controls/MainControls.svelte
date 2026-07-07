@@ -130,7 +130,7 @@
           <div class="drawer-card">
             <div
               id="side-panel-details"
-              class="side-panel-details"
+              class="side-panel-details map-chrome-scroll"
               aria-hidden={sidePanelStore.collapsed}
             >
               {#if jeepneyStore.selectedStopIndex !== null}
@@ -177,7 +177,6 @@
   }
 
   .side-panel-controls {
-    position: relative;
     display: flex;
     flex: 1;
     align-items: flex-end;
@@ -198,13 +197,13 @@
     transform: translateX(-100%);
   }
 
-  /* Desktop: pin the open drawer to the viewport band between search and status bar. */
+  /* Desktop: pin the open drawer to the flex space between search and status bar. */
   @media (min-width: 48.0625rem) {
     .drawer:not(.is-collapsed) {
-      position: fixed;
-      top: var(--side-panel-top-inset);
-      bottom: var(--side-panel-bottom-inset);
-      left: var(--map-ui-padding, 0.5rem);
+      position: absolute;
+      top: calc(var(--search-block-height, 3.25rem) + 0.75rem);
+      bottom: calc(var(--status-bar-block-height, 2.75rem) + var(--side-panel-bottom-gap, 0.375rem));
+      left: 0;
       height: auto;
     }
   }
@@ -234,8 +233,6 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     scroll-padding: 4px;
-    scrollbar-width: thin;
-    scrollbar-color: #d4d4d8 transparent;
   }
   .side-panel-details > :global(*) {
     flex: 0 1 auto;
@@ -261,6 +258,7 @@
     color: #7b1113;
     cursor: pointer;
     box-shadow: var(--map-chrome-shadow);
+    z-index: -1;
   }
   .drawer-handle:hover,
   .drawer-handle:focus-visible {

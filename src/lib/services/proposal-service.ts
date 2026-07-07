@@ -9,16 +9,13 @@ import {
   eventsTable,
   roomsTable,
 } from "@drizzle/schema";
+import type { SessionUser } from "@lib/admin/auth";
 import { db } from "@lib/db";
 import { validateSubmitterName } from "@constants/proposals";
-import { type SessionUser } from "@lib/admin/auth";
 import { recordProposalContribution } from "./contribution-service";
 import { parseImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
-import {
-  canViewProposalSubmitterDetails,
-  canWithdrawProposal,
-} from "./proposal-access";
+import { canWithdrawProposal } from "./proposal-access";
 export {
   canViewProposalSubmitterDetails,
   canWithdrawProposal,

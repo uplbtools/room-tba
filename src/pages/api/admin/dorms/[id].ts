@@ -37,8 +37,8 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
   });
   if (auth instanceof Response) return auth;
 
-  const id = parseInt(params["id"] ?? "");
-  if (isNaN(id)) {
+  const id = parseInt(params.id ?? "", 10);
+  if (Number.isNaN(id)) {
     return new Response(JSON.stringify({ error: "Invalid dorm ID" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
