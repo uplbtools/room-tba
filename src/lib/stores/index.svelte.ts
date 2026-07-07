@@ -422,12 +422,14 @@ class AdminAuthStore {
   login = async (
     username: string,
     password: string,
+    turnstileToken?: string | null,
   ): Promise<string | null> => {
     this.loading = true;
     try {
       const formData = new FormData();
       formData.set("username", username.trim());
       formData.set("password", password);
+      if (turnstileToken) formData.set("turnstileToken", turnstileToken);
 
       const res = await fetch("/api/admin/auth", {
         method: "POST",

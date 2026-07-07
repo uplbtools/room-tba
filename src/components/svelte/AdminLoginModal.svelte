@@ -12,15 +12,22 @@
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
   import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
+  import TurnstileWidget from "@ui/TurnstileWidget.svelte";
   import { MESSENGER_MAINTAIN_TARGET } from "@constants/community-links";
   import "./editor/entity-editor.css";
   import { MediaQuery } from "svelte/reactivity";
 
   import { isSupabaseConfigured } from "@lib/supabase/env";
+  import {
+    getTurnstileSiteKey,
+    isTurnstileWidgetConfigured,
+  } from "@lib/turnstile-client";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const loginErrorId = "admin-login-error";
   const googleEnabled = isSupabaseConfigured();
+  const turnstileEnabled = isTurnstileWidgetConfigured();
+  const turnstileSiteKey = turnstileEnabled ? getTurnstileSiteKey() : "";
 
   const OAUTH_ERROR_MESSAGES: Record<string, string> = {
     missing_code: "Google sign-in was cancelled or incomplete. Try again.",
@@ -34,6 +41,7 @@
   let password = $state("");
   let error: string | null = $state(null);
   let googleLoading = $state(false);
+  let turnstileToken = $state<string | null>(null);
 
   let showForgotPassword = $state(false);
   let forgotLoginDraft = $state("");
@@ -89,8 +97,12 @@
 
   async function submit(e: Event) {
     e.preventDefault();
+    if (turnstileEnabled && !turnstileToken) {
+      error = "Complete the verification check, then try again.";
+      return;
+    }
     error = null;
-    const err = await adminAuthStore.login(username, password);
+    const err = await adminAuthStore.login(username, password, turnstileToken);
     if (err) {
       error = err;
       return;
@@ -144,31 +156,34 @@
       </button>
     </header>
     <form class="login-body entity-editor-form" onsubmit={submit}>
-      <EntityEditorFormField label="Username" inputId="admin-login-username">
-        {#snippet control()}
-          <input
-            id="admin-login-username"
-            type="text"
-            autocomplete="username"
-            bind:value={username}
-            required
-          />
-        {/snippet}
-      </EntityEditorFormField>
-      <EntityEditorFormField label="Password" inputId="admin-login-password">
-        {#snippet control()}
-          <input
-            id="admin-login-password"
-            type="password"
-            autocomplete="current-password"
-            bind:value={password}
-            required
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? loginErrorId : undefined}
-          />
-        {/snippet}
-      </EntityEditorFormField>
       {#if !showForgotPassword}
+        <EntityEditorFormField
+          label="Username or email"
+          inputId="admin-login-username"
+        >
+          {#snippet control()}
+            <input
+              id="admin-login-username"
+              type="text"
+              autocomplete="username"
+              bind:value={username}
+              required
+            />
+          {/snippet}
+        </EntityEditorFormField>
+        <EntityEditorFormField label="Password" inputId="admin-login-password">
+          {#snippet control()}
+            <input
+              id="admin-login-password"
+              type="password"
+              autocomplete="current-password"
+              bind:value={password}
+              required
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? loginErrorId : undefined}
+            />
+          {/snippet}
+        </EntityEditorFormField>
         <button
           type="button"
           class="forgot-password-link"
@@ -176,6 +191,9 @@
         >
           Forgot password?
         </button>
+      {/if}
+      {#if turnstileEnabled && !showForgotPassword}
+        <TurnstileWidget siteKey={turnstileSiteKey} bind:token={turnstileToken} />
       {/if}
       {#if error}
         <EntityEditorMessage
@@ -190,6 +208,7 @@
           label="Sign in"
           savingLabel="Signing in…"
           saving={adminAuthStore.loading}
+          disabled={turnstileEnabled && !turnstileToken}
         />
       {/if}
       {#if showForgotPassword}
