@@ -378,6 +378,7 @@ export const editorHistoryTable = pgTable("editor_history", {
   versionBefore: integer("version_before"),
   versionAfter: integer("version_after"),
   editedBy: varchar("edited_by", { length: 100 }).default("admin").notNull(),
+  summary: text(),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 

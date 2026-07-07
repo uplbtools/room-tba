@@ -639,6 +639,8 @@ class ScheduleRouteStore {
   importedRows = $state<ImportedScheduleRow[]>([]);
   matches = $state<ScheduleMatchResult[]>([]);
   selectedWeekday = $state<Weekday>("M");
+  routedWeekday: Weekday | null = $state(null);
+  focusedStopIndex: number | null = $state(null);
   matching = $state(false);
   importError: string | null = $state(null);
   private _roomCoordCache = new Map<string, [number, number] | null>();
@@ -784,6 +786,7 @@ class ScheduleRouteStore {
     this.importedRows = parsed.rows;
     this.importError = null;
     this._roomCoordCache.clear();
+    this.clearRoute();
     this.persist();
     await this.rematch();
     toastStore.show(
@@ -795,7 +798,18 @@ class ScheduleRouteStore {
 
   selectWeekday = (weekday: Weekday) => {
     this.selectedWeekday = weekday;
+    this.clearRoute();
     this.persist();
+  };
+
+  focusStop = (index: number) => {
+    this.focusedStopIndex = this.dayStops[index] ? index : null;
+  };
+
+  clearRoute = () => {
+    this.routedWeekday = null;
+    this.focusedStopIndex = null;
+    locationStore.clearRouteWaypoints();
   };
 
   routeDay = (weekday: Weekday = this.selectedWeekday) => {
@@ -807,6 +821,7 @@ class ScheduleRouteStore {
       .filter((coords): coords is [number, number] => coords !== null);
 
     if (stopCoords.length === 0) {
+      this.clearRoute();
       toastStore.show("No routable classes on this day.", "info");
       return;
     }
@@ -818,6 +833,7 @@ class ScheduleRouteStore {
     waypoints.push(...stopCoords);
 
     if (waypoints.length < 2) {
+      this.clearRoute();
       toastStore.show(
         "Need at least two stops. Enable location or add more classes.",
         "error",
@@ -826,6 +842,7 @@ class ScheduleRouteStore {
     }
 
     locationStore.setRouteWaypoints(waypoints);
+    this.routedWeekday = weekday;
     toastStore.show(
       `Routing ${stops.length} class stop${stops.length === 1 ? "" : "s"}.`,
       "success",
@@ -837,7 +854,7 @@ class ScheduleRouteStore {
     this.matches = [];
     this.importError = null;
     this._roomCoordCache.clear();
-    locationStore.clearRouteWaypoints();
+    this.clearRoute();
     this.persist();
   };
 }

@@ -312,6 +312,7 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="college-submitter-name"
+          historyEntity={college ? { entityType: "college", entityId: college.id, version: college.version } : null}
           bind:submitterName={submitterNameDraft}
           successMessage={saved
             ? entityEditorSavedMessage({
