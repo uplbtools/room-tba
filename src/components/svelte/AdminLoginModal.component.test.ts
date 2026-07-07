@@ -18,7 +18,7 @@ describe("AdminLoginModal", () => {
     const frame = document.querySelector(".login-frame") as HTMLElement;
     expect(frame).toBeTruthy();
     expectNoHorizontalOverflow(frame);
-    expect(screen.getByLabelText("Username")).toBeVisible();
+    expect(screen.getByLabelText("Username or email")).toBeVisible();
     expect(screen.getByLabelText("Password")).toBeVisible();
     expect(
       screen.getByRole("link", { name: /Message maintainers/i }),

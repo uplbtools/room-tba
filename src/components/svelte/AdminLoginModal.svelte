@@ -156,31 +156,34 @@
       </button>
     </header>
     <form class="login-body entity-editor-form" onsubmit={submit}>
-      <EntityEditorFormField label="Username" inputId="admin-login-username">
-        {#snippet control()}
-          <input
-            id="admin-login-username"
-            type="text"
-            autocomplete="username"
-            bind:value={username}
-            required
-          />
-        {/snippet}
-      </EntityEditorFormField>
-      <EntityEditorFormField label="Password" inputId="admin-login-password">
-        {#snippet control()}
-          <input
-            id="admin-login-password"
-            type="password"
-            autocomplete="current-password"
-            bind:value={password}
-            required
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? loginErrorId : undefined}
-          />
-        {/snippet}
-      </EntityEditorFormField>
       {#if !showForgotPassword}
+        <EntityEditorFormField
+          label="Username or email"
+          inputId="admin-login-username"
+        >
+          {#snippet control()}
+            <input
+              id="admin-login-username"
+              type="text"
+              autocomplete="username"
+              bind:value={username}
+              required
+            />
+          {/snippet}
+        </EntityEditorFormField>
+        <EntityEditorFormField label="Password" inputId="admin-login-password">
+          {#snippet control()}
+            <input
+              id="admin-login-password"
+              type="password"
+              autocomplete="current-password"
+              bind:value={password}
+              required
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? loginErrorId : undefined}
+            />
+          {/snippet}
+        </EntityEditorFormField>
         <button
           type="button"
           class="forgot-password-link"
