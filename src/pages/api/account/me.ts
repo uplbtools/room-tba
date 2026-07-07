@@ -9,7 +9,7 @@ import {
 export const prerender = false;
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   const profile = await getAccountProfile(auth.session.id);
@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ cookies }) => {
 };
 
 export const PATCH: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   let body: { displayName?: string };

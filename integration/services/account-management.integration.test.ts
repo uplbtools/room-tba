@@ -131,13 +131,106 @@ describeIntegration(
         requestEmailChange(passwordUserId, "not-an-email"),
       ).rejects.toThrow();
 
-      const token = createSignedToken({ userId: passwordUserId, newEmail }, 60);
+      const token = createSignedToken(
+        {
+          purpose: "email-change",
+          userId: passwordUserId,
+          newEmail,
+          fromEmail: `${PREFIX}-password@example.com`,
+        },
+        60,
+      );
       await confirmEmailChange(token);
       const { rows } = await client.query<{ email: string }>(
         "SELECT email FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(rows[0]!.email).toBe(newEmail);
+    });
+
+    test("email-change token is single-use (replay rejected after apply)", async () => {
+      const { confirmEmailChange, AccountActionError } = await import(
+        "@lib/services/admin-user-service"
+      );
+      const { createSignedToken } = await import("@lib/admin/signed-token");
+      const token = createSignedToken(
+        {
+          purpose: "email-change",
+          userId: passwordUserId,
+          newEmail: `${PREFIX}-replayed@example.com`,
+          fromEmail: `${PREFIX}-password@example.com`,
+        },
+        60,
+      );
+      await confirmEmailChange(token);
+      // Email no longer matches fromEmail — the same token must now die.
+      await expect(confirmEmailChange(token)).rejects.toBeInstanceOf(
+        AccountActionError,
+      );
+    });
+
+    test("an email-change token cannot reset a password (purpose confusion)", async () => {
+      const { confirmPasswordReset, AccountActionError } = await import(
+        "@lib/services/admin-user-service"
+      );
+      const { createSignedToken } = await import("@lib/admin/signed-token");
+      // Both token kinds share the HMAC secret; only `purpose` separates
+      // them. This was exploitable before the purpose check existed.
+      const emailChangeToken = createSignedToken(
+        {
+          purpose: "email-change",
+          userId: passwordUserId,
+          newEmail: `${PREFIX}-evil@example.com`,
+          fromEmail: `${PREFIX}-password@example.com`,
+        },
+        60,
+      );
+      await expect(
+        confirmPasswordReset(emailChangeToken, "attacker-password-123"),
+      ).rejects.toBeInstanceOf(AccountActionError);
+      // Legacy shape without purpose must also be rejected.
+      const legacyToken = createSignedToken({ userId: passwordUserId }, 60);
+      await expect(
+        confirmPasswordReset(legacyToken, "attacker-password-123"),
+      ).rejects.toBeInstanceOf(AccountActionError);
+    });
+
+    test("password-reset token is single-use (fingerprint invalidated by the reset)", async () => {
+      const { confirmPasswordReset, AccountActionError } = await import(
+        "@lib/services/admin-user-service"
+      );
+      const { createSignedToken } = await import("@lib/admin/signed-token");
+      const { createHash } = await import("node:crypto");
+
+      const { rows } = await client.query<{ password_hash: string }>(
+        "SELECT password_hash FROM admin_users WHERE id = $1",
+        [passwordUserId],
+      );
+      const pwFp = createHash("sha256")
+        .update(rows[0]!.password_hash)
+        .digest("hex")
+        .slice(0, 16);
+      const token = createSignedToken(
+        { purpose: "password-reset", userId: passwordUserId, pwFp },
+        60,
+      );
+
+      await confirmPasswordReset(token, "brand-new-password-123");
+      // Hash changed → fingerprint mismatch → replay dies.
+      await expect(
+        confirmPasswordReset(token, "second-password-456"),
+      ).rejects.toBeInstanceOf(AccountActionError);
+
+      const after = await client.query<{ password_hash: string }>(
+        "SELECT password_hash FROM admin_users WHERE id = $1",
+        [passwordUserId],
+      );
+      expect(
+        await bcrypt.compare(
+          "brand-new-password-123",
+          after.rows[0]!.password_hash,
+        ),
+      ).toBe(true);
     });
 
     test("linkGoogleIdentity rejects an identity already linked to another account", async () => {

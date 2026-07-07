@@ -39,6 +39,7 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
     const user = await linkOrCreateContributorFromSupabase({
       id: SUPABASE_ID_NEW,
       email: EMAIL_NEW,
+      emailConfirmed: true,
       name: "E2E Google User",
     });
     expect(user).not.toBeNull();
@@ -60,10 +61,12 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
     const first = await linkOrCreateContributorFromSupabase({
       id: SUPABASE_ID_NEW,
       email: EMAIL_NEW,
+      emailConfirmed: true,
     });
     const second = await linkOrCreateContributorFromSupabase({
       id: SUPABASE_ID_NEW,
       email: EMAIL_NEW,
+      emailConfirmed: true,
     });
     expect(second?.id).toBe(first?.id ?? -1);
   });
@@ -80,6 +83,7 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
     const user = await linkOrCreateContributorFromSupabase({
       id: SUPABASE_ID_LINK,
       email: EMAIL_LINK.toUpperCase(),
+      emailConfirmed: true,
     });
     expect(user?.username).toBe("e2e-google-link");
     expect(user?.role).toBe("editor");
@@ -89,5 +93,49 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
       [EMAIL_LINK],
     );
     expect(rows[0]?.supabase_user_id).toBe(SUPABASE_ID_LINK);
+  });
+
+  test("unverified email never links to an existing account nor gets stored", async () => {
+    const unverifiedId = "00000000-0000-4000-8000-00000000e2e3";
+    const existingEmail = "e2e-google-unverified@example.com";
+    await client.query(
+      `DELETE FROM admin_users WHERE email = $1 OR supabase_user_id = $2 OR username LIKE 'e2e-google-unverified%'`,
+      [existingEmail, unverifiedId],
+    );
+    await client.query(
+      `INSERT INTO admin_users (username, display_name, password_hash, role, email, is_active)
+       VALUES ('e2e-google-unverified-victim', 'Victim Admin', 'x', 'admin', $1, true)`,
+      [existingEmail],
+    );
+    const { linkOrCreateContributorFromSupabase } = await import(
+      "@lib/services/admin-user-service"
+    );
+    try {
+      const user = await linkOrCreateContributorFromSupabase({
+        id: unverifiedId,
+        email: existingEmail,
+        emailConfirmed: false,
+      });
+      // Must NOT resolve to the existing admin row.
+      expect(user?.role).toBe("contributor");
+      expect(user?.username).not.toBe("e2e-google-unverified-victim");
+
+      const { rows } = await client.query(
+        "SELECT email, supabase_user_id FROM admin_users WHERE supabase_user_id = $1",
+        [unverifiedId],
+      );
+      // New account stores no unverified email.
+      expect(rows[0]?.email).toBeNull();
+
+      const victim = await client.query(
+        `SELECT supabase_user_id FROM admin_users WHERE username = 'e2e-google-unverified-victim'`,
+      );
+      expect(victim.rows[0]?.supabase_user_id).toBeNull();
+    } finally {
+      await client.query(
+        `DELETE FROM admin_users WHERE email = $1 OR supabase_user_id = $2 OR username LIKE 'e2e-google-unverified%'`,
+        [existingEmail, unverifiedId],
+      );
+    }
   });
 });

@@ -17,7 +17,7 @@ function json(data: unknown, status = 200) {
 
 /** List aliases with optional search. */
 export const GET: APIRoute = async ({ cookies, url }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   const q = url.searchParams.get("q")?.trim() ?? "";
@@ -42,7 +42,9 @@ export const GET: APIRoute = async ({ cookies, url }) => {
 
 /** Create a new alias. */
 export const POST: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   let body: Record<string, unknown>;
@@ -94,7 +96,9 @@ export const POST: APIRoute = async ({ cookies, request }) => {
 
 /** Bulk-delete aliases by IDs. */
 export const DELETE: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
   let body: Record<string, unknown>;

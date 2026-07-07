@@ -124,7 +124,9 @@ describeIntegration("editor history revert integration", () => {
       "e2e-admin",
     );
     expect(cleanup?.code).toBe(originalCode);
-  });
+    // Four sequential writes against the remote E2E DB routinely brush past
+    // bun's 5s default; give the round-trips room like merge tests do.
+  }, 30_000);
 
   test("revert with stale expectedVersion throws EditConflictError", async () => {
     const { EditConflictError } = await import("@lib/services/admin-service");

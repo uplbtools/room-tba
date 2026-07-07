@@ -8,7 +8,9 @@ import {
 export const prerender = false;
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requireReview: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requireReview: true,
+  });
   if (auth instanceof Response) return auth;
 
   const [proposals, pendingCount] = await Promise.all([
