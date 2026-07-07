@@ -15,6 +15,7 @@
   const features = [
     { icon: Search, label: "Search rooms", hint: "Room codes and buildings" },
     { icon: Map, label: "Explore the map", hint: "Buildings, dorms, and pins" },
+    { icon: CalendarDays, label: "Plan classes", hint: "Build a draft schedule" },
     { icon: CalendarDays, label: "Events", hint: "Where things happen" },
     {
       icon: UserRound,
