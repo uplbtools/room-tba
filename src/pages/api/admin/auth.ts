@@ -107,17 +107,25 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         cookies,
       });
       const SUPABASE_LOGIN_TIMEOUT_MS = 5000;
-      const { data, error } = await Promise.race([
-        supabase.auth.signInWithPassword({ email: username, password }),
-        new Promise<never>((_, reject) =>
-          setTimeout(
-            () => reject(new Error("Supabase sign-in timed out")),
-            SUPABASE_LOGIN_TIMEOUT_MS,
-          ),
-        ),
-      ]);
-      if (data.user && !error) {
-        user = await getAdminUserBySupabaseId(data.user.id);
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        const { data, error } = await Promise.race([
+          supabase.auth.signInWithPassword({ email: username, password }),
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(
+              () => reject(new Error("Supabase sign-in timed out")),
+              SUPABASE_LOGIN_TIMEOUT_MS,
+            );
+          }),
+        ]);
+        if (data.user && !error) {
+          user = await getAdminUserBySupabaseId(data.user.id);
+        }
+      } finally {
+        // Always clear the timer so a fast response doesn't leave a live
+        // handle behind. The losing signInWithPassword call can't be
+        // aborted (supabase-js takes no signal); it settles unobserved.
+        clearTimeout(timer);
       }
     } catch {
       // Supabase not configured or unavailable → fall through to bcrypt

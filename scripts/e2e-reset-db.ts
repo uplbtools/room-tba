@@ -80,7 +80,7 @@ async function main() {
   const E2E_RESET_LOCK = 447265; // serialize concurrent CI resets on shared E2E DB
 
   try {
-    await client.query(`SELECT pg_advisory_lock($1)`, [E2E_RESET_LOCK]);
+    await client.query("SELECT pg_advisory_lock($1)", [E2E_RESET_LOCK]);
 
     await applyE2eMigrations(client);
 
@@ -215,7 +215,7 @@ async function main() {
     );
   } finally {
     try {
-      await client.query(`SELECT pg_advisory_unlock($1)`, [E2E_RESET_LOCK]);
+      await client.query("SELECT pg_advisory_unlock($1)", [E2E_RESET_LOCK]);
     } catch {
       // connection may already be closed after a failed reset
     }

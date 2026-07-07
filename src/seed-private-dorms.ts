@@ -10,7 +10,7 @@ const db = drizzle({ client });
 // Add new columns to existing dorms table
 try {
   client.run(
-    `ALTER TABLE dorms ADD COLUMN is_up_managed INTEGER NOT NULL DEFAULT 1`,
+    "ALTER TABLE dorms ADD COLUMN is_up_managed INTEGER NOT NULL DEFAULT 1",
   );
   console.log("Added is_up_managed column");
 } catch (e: any) {
@@ -19,7 +19,7 @@ try {
   else throw e;
 }
 try {
-  client.run(`ALTER TABLE dorms ADD COLUMN price_range TEXT`);
+  client.run("ALTER TABLE dorms ADD COLUMN price_range TEXT");
   console.log("Added price_range column");
 } catch (e: any) {
   if (e.message?.includes("duplicate column"))
@@ -27,7 +27,7 @@ try {
   else throw e;
 }
 try {
-  client.run(`ALTER TABLE dorms ADD COLUMN contact_phone TEXT`);
+  client.run("ALTER TABLE dorms ADD COLUMN contact_phone TEXT");
   console.log("Added contact_phone column");
 } catch (e: any) {
   if (e.message?.includes("duplicate column"))

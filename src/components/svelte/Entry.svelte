@@ -14,7 +14,11 @@
     floatingControlPanelStore,
     jeepneyStore,
     appBootstrapStore,
+    plannerStore,
+    termStore,
   } from "@lib/store.svelte";
+  import { decodeSharePlan } from "@lib/planner/share-codec";
+  import { resolveSharedPlan } from "@lib/planner/import-shared";
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
   import Map from "@ui/Map.svelte";
@@ -31,6 +35,7 @@
   import ManageUsersModal from "@ui/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import EditorScreen from "@ui/EditorScreen.svelte";
+  import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
@@ -121,6 +126,33 @@
     if (urlParams.get("contribute") === "1") {
       floatingControlPanelStore.openPanel = "suggest-addition";
       window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    plannerStore.init();
+    const planParam = urlParams.get("plan");
+    if (planParam) {
+      window.history.replaceState({}, "", window.location.pathname);
+      const decoded = decodeSharePlan(planParam);
+      if (!decoded) {
+        toastStore.show("That plan link is invalid.", "error");
+      } else {
+        void termStore
+          .init()
+          .then(() => resolveSharedPlan(decoded))
+          .then(({ sections, missing }) => {
+            plannerStore.importShared(decoded.termId, sections);
+            if (termStore.terms.some((term) => term.id === decoded.termId)) {
+              termStore.setTerm(decoded.termId);
+            }
+            plannerStore.openPlanner();
+            if (missing > 0) {
+              toastStore.show(
+                `${missing} shared ${missing === 1 ? "section is" : "sections are"} no longer offered.`,
+                "info",
+              );
+            }
+          });
+      }
     }
   });
 
@@ -315,6 +347,7 @@
   {/if}
   <EditorAdditionModal />
   <EditorScreen />
+  <PlannerScreen />
 </div>
 
 <style>

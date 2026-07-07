@@ -3,6 +3,7 @@ import {
   buildUploadKey,
   detectImageContentType,
   parseEventImageUrl,
+  parseImageUrl,
   sanitizeUploadPrefix,
 } from "./r2-upload-core";
 
@@ -88,6 +89,70 @@ describe("parseEventImageUrl", () => {
     ).toEqual({
       ok: false,
       error: "Event image URL must come from this site's upload storage",
+    });
+  });
+});
+
+describe("parseImageUrl (generic entity images, #191)", () => {
+  test("uses the given label in error messages", () => {
+    expect(
+      parseImageUrl(
+        "http://cdn.example.com/a.jpg",
+        "https://cdn.example.com",
+        "Building image",
+      ),
+    ).toEqual({
+      ok: false,
+      error: "Building image URL must use HTTPS",
+    });
+    expect(
+      parseImageUrl("https://cdn.example.com/a.jpg", null, "Room image"),
+    ).toEqual({
+      ok: false,
+      error:
+        "Room image URL requires upload storage (R2_PUBLIC_URL) to be configured",
+    });
+  });
+
+  test("accepts a valid URL from the configured storage origin", () => {
+    expect(
+      parseImageUrl(
+        "https://cdn.example.com/dorms/a.jpg",
+        "https://cdn.example.com",
+        "Dorm image",
+      ),
+    ).toEqual({
+      ok: true,
+      imageUrl: "https://cdn.example.com/dorms/a.jpg",
+      provided: true,
+    });
+  });
+
+  test("rejects a URL from a different origin", () => {
+    expect(
+      parseImageUrl(
+        "https://evil.example/photo.jpg",
+        "https://cdn.example.com",
+        "Building image",
+      ),
+    ).toEqual({
+      ok: false,
+      error: "Building image URL must come from this site's upload storage",
+    });
+  });
+
+  test("treats empty string as clearing the image", () => {
+    expect(parseImageUrl("", "https://cdn.example.com", "Room image")).toEqual({
+      ok: true,
+      imageUrl: null,
+      provided: true,
+    });
+  });
+
+  test("defaults to 'Image' label when none given", () => {
+    expect(parseImageUrl("http://cdn.example.com/a.jpg")).toEqual({
+      ok: false,
+      error: "Image URL must use HTTPS",
     });
   });
 });

@@ -8,7 +8,7 @@ export type ClassInsertRow = {
   type: string | null;
   courseTitle: string | null;
   schedule: string[];
-  roomId: number;
+  roomId: number | null;
   termId: number;
 };
 
@@ -91,27 +91,24 @@ export function resolveImportRows(
     }
 
     const facility = row.facilityCode?.trim();
+    let roomId: number | null = null;
     if (!facility) {
       stats.missingFacility += 1;
       unmatched.set(
         "(missing facility)",
         (unmatched.get("(missing facility)") ?? 0) + 1,
       );
-      continue;
-    }
-
-    const key = normalizeFacilityKey(facility);
-    const roomId = lookup.combinedRoomIdByKey.get(key);
-    if (roomId == null) {
-      stats.unmatchedFacility += 1;
-      unmatched.set(facility, (unmatched.get(facility) ?? 0) + 1);
-      continue;
-    }
-
-    if (lookup.directRoomIdByKey.has(key)) {
-      stats.directRoomMatch += 1;
     } else {
-      stats.aliasRoomMatch += 1;
+      const key = normalizeFacilityKey(facility);
+      roomId = lookup.combinedRoomIdByKey.get(key) ?? null;
+      if (roomId == null) {
+        stats.unmatchedFacility += 1;
+        unmatched.set(facility, (unmatched.get(facility) ?? 0) + 1);
+      } else if (lookup.directRoomIdByKey.has(key)) {
+        stats.directRoomMatch += 1;
+      } else {
+        stats.aliasRoomMatch += 1;
+      }
     }
 
     rows.push({

@@ -44,6 +44,7 @@
     type JeepneyRoute,
     type JeepneyStop,
   } from "@constants/jeepney-routes";
+  import jeepneyGeometries from "@constants/jeepney-geometries.json";
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
@@ -194,25 +195,13 @@
     const cached = jeepneyRouteGeometryCache.get(route.id);
     if (cached) return cached;
 
-    if (route.stops.length < 2) return null;
-    const coordsParam = route.stops
-      .map((stop) => `${stop.lon},${stop.lat}`)
-      .join(";");
-    const url = `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
-
-    try {
-      const res = await fetch(url);
-      if (!res.ok) return null;
-      const data = (await res.json()) as {
-        routes?: { geometry?: LineString }[];
-      };
-      const geometry = data.routes?.[0]?.geometry;
-      if (!geometry || geometry.type !== "LineString") return null;
+    const geometry = (jeepneyGeometries as Record<string, LineString | null>)[route.id];
+    if (geometry) {
       jeepneyRouteGeometryCache.set(route.id, geometry);
       return geometry;
-    } catch {
-      return null;
     }
+    
+    return null;
   }
 
   function ensureJeepneyRouteLayers(map: mapGl.MapLibreMap, color: string) {
@@ -630,7 +619,7 @@
           (building) => building.buildingName === value,
         );
 
-        if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
+        if (currentBuilding?.lon && currentBuilding.lat) {
           map.flyTo({
             center: [currentBuilding.lon, currentBuilding.lat],
             zoom: 18,
@@ -645,9 +634,7 @@
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
-            currentRoom.value &&
-            currentRoom.value.building &&
-            currentRoom.value.building.lat &&
+            currentRoom.value?.building?.lat &&
             currentRoom.value.building.lon &&
             !terrainStore.enabled
           ) {
@@ -667,7 +654,7 @@
         if (!loaded) return;
 
         const currentDorm = dorms.find((dorm) => dorm.dormName === value);
-        if (currentDorm && currentDorm.lon && currentDorm.lat) {
+        if (currentDorm?.lon && currentDorm.lat) {
           map.flyTo({
             center: [currentDorm.lon, currentDorm.lat],
             zoom: 18,
@@ -1808,7 +1795,7 @@
           (building) => building.buildingName === value,
         );
 
-        if (currentBuilding && currentBuilding.lon && currentBuilding.lat) {
+        if (currentBuilding?.lon && currentBuilding.lat) {
           map.flyTo({
             center: [currentBuilding.lon, currentBuilding.lat],
             zoom: 18,
@@ -1826,9 +1813,7 @@
       } else if (category === "room") {
         currentRoom.getRoomByCode(value).then(() => {
           if (
-            currentRoom.value &&
-            currentRoom.value.building &&
-            currentRoom.value.building.lat &&
+            currentRoom.value?.building?.lat &&
             currentRoom.value.building.lon
           ) {
             map.flyTo({
@@ -1847,7 +1832,7 @@
         if (!loaded) return;
 
         const currentDorm = dorms.find((dorm) => dorm.dormName === value);
-        if (currentDorm && currentDorm.lon && currentDorm.lat) {
+        if (currentDorm?.lon && currentDorm.lat) {
           map.flyTo({
             center: [currentDorm.lon, currentDorm.lat],
             zoom: 18,

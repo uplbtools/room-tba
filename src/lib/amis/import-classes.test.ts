@@ -77,6 +77,38 @@ describe("resolveImportRows", () => {
     expect(stats.skippedByType).toBe(1);
     expect(stats.missingFacility).toBe(0);
   });
+
+  test("keeps scheduled rows even when the room is missing or unmatched", () => {
+    const lookup = buildRoomLookup([], []);
+    const { stats, rows } = resolveImportRows(
+      [
+        {
+          courseCode: "CMSC 12",
+          section: "G",
+          type: "LEC",
+          courseTitle: "Foundations of Computer Science",
+          schedule: ["WF 4-5"],
+          facilityCode: "EAA LH",
+          termId: 1252,
+        },
+        {
+          courseCode: "CMSC 12",
+          section: "G-1L",
+          type: "LAB",
+          courseTitle: "Foundations of Computer Science",
+          schedule: ["T 7-10"],
+          facilityCode: "",
+          termId: 1252,
+        },
+      ],
+      lookup,
+    );
+
+    expect(rows).toHaveLength(2);
+    expect(rows.map((row) => row.roomId)).toEqual([null, null]);
+    expect(stats.unmatchedFacility).toBe(1);
+    expect(stats.missingFacility).toBe(1);
+  });
 });
 
 describe("summarizeImportChanges", () => {

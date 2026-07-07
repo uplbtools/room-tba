@@ -143,7 +143,7 @@ function parseLevels(tags: Record<string, string> | undefined): number | null {
   if (!tags) return null;
   const raw =
     tags["building:levels"] ??
-    tags["levels"] ??
+    tags.levels ??
     tags["building:levels:aboveground"];
   if (!raw) return null;
   const n = parseInt(raw, 10);
@@ -153,7 +153,7 @@ function parseLevels(tags: Record<string, string> | undefined): number | null {
 
 function parseHeight(tags: Record<string, string> | undefined): number | null {
   if (!tags) return null;
-  const raw = tags["height"] ?? tags["building:height"];
+  const raw = tags.height ?? tags["building:height"];
   if (!raw) return null;
   const n = parseFloat(raw);
   if (Number.isFinite(n) && n > 0 && n < 500) return n;

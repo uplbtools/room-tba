@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ url, request, cookies }) => {
       headers: { Location: `/?account_error=${encodeURIComponent(reason)}` },
     });
 
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return fail("not_logged_in");
 
   const code = url.searchParams.get("code");
