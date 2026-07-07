@@ -5,7 +5,7 @@ import { exportAccountData } from "@lib/services/admin-user-service";
 export const prerender = false;
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const auth = editorSessionOrUnauthorized(cookies);
+  const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
   const data = await exportAccountData(auth.session.id);

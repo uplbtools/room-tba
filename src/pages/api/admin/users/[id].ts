@@ -8,7 +8,9 @@ import {
 export const prerender = false;
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requireAdmin: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requireAdmin: true,
+  });
   if (auth instanceof Response) return auth;
 
   const id = parseInt(params["id"] ?? "");

@@ -14,7 +14,9 @@ export const prerender = false;
 type RejectBody = { note?: string };
 
 export const POST: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requireReview: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requireReview: true,
+  });
   if (auth instanceof Response) return auth;
 
   const id = Number(params.id);

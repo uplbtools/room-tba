@@ -27,4 +27,8 @@ mock.module("astro:env/server", () => ({
   R2_SECRET_ACCESS_KEY: "",
   R2_BUCKET_NAME: "",
   R2_PUBLIC_URL: "",
+  // Unconfigured on purpose: services must take their skip/bypass paths.
+  RESEND_API_KEY: "",
+  RESEND_FROM_EMAIL: "",
+  TURNSTILE_SECRET_KEY: "",
 }));

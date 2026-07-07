@@ -31,6 +31,7 @@ export const GET: APIRoute = async ({ url, request, cookies }) => {
     const user = await linkOrCreateContributorFromSupabase({
       id: data.user.id,
       email: data.user.email ?? null,
+      emailConfirmed: Boolean(data.user.email_confirmed_at),
       name: meta?.full_name ?? meta?.name ?? null,
     });
     if (!user) return fail("account_unavailable");
