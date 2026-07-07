@@ -18,7 +18,7 @@
  * See docs/amis-com-refresh-runbook.md for COM refresh workflow.
  *
  * CRS term_id is chronological within the AY: 1251 = 1st sem, 1252 = 2nd sem, 1253 = midyear.
- * Only LEC and LAB rows with a resolvable room are imported (thesis, special problem, etc. usually have no room in AMIS).
+ * LEC and LAB rows are imported even when the room is unresolved; roomId stays null so the planner still sees the section.
  * Local exports live at data/amis-*-{termId}.json (gitignored).
  * AMIS responses include instructor names — never commit raw exports or store names.
  */
