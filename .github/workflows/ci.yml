@@ -50,11 +50,14 @@ jobs:
         run: bun run check:pwa-legal
 
       - name: Build
+        # Dependabot runs have no secrets; skip DB-dependent build (unit/lint above still verify the bump).
+        if: github.actor != 'dependabot[bot]'
         env:
           DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
         run: bun run build
 
   migrations:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
