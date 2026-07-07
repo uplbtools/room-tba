@@ -1,5 +1,5 @@
-import { createHmac, timingSafeEqual } from "crypto";
-import { ADMIN_PASSWORD, ADMIN_SESSION_SECRET } from "astro:env/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { ADMIN_SESSION_SECRET } from "astro:env/server";
 import type { AdminRole } from "./roles";
 export type { AdminRole } from "./roles";
 export { canPublishDirectly, canReviewProposals } from "./roles";
@@ -16,10 +16,12 @@ type SessionPayload = SessionUser & { exp: number };
 const COOKIE_NAME = "admin_session";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
+// No ADMIN_PASSWORD fallback: the login password must never double as the
+// key that signs sessions and reset tokens (knowing it would let anyone
+// forge a session for any user).
 function signingSecret(): string {
   if (ADMIN_SESSION_SECRET) return ADMIN_SESSION_SECRET;
-  if (ADMIN_PASSWORD) return ADMIN_PASSWORD;
-  throw new Error("ADMIN_SESSION_SECRET or ADMIN_PASSWORD must be configured");
+  throw new Error("ADMIN_SESSION_SECRET must be configured");
 }
 
 function signBody(body: string): string {

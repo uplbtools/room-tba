@@ -1,9 +1,6 @@
 // src/lib/store.svelte.ts
 
-import {
-  DEFAULT_TERRAIN_EXAGGERATION,
-  CAMPUS_BOUNDS,
-} from "@constants/map-terrain";
+import { CAMPUS_BOUNDS } from "@constants/map-terrain";
 import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
 import { orderDayStops, type Weekday } from "../schedule-import/day-stops.js";
@@ -159,6 +156,7 @@ import {
   OfflineStore,
 } from "./sync-stores.svelte.js";
 import { TermStore, RoomClassesStore } from "./data-stores.svelte.js";
+import { PlannerStore } from "./planner-store.svelte.js";
 
 class LocationStore {
   coords: [number, number] | null = $state(null);
@@ -862,6 +860,7 @@ class ScheduleRouteStore {
 export const queryStore = new QueryStore();
 export const termStore = new TermStore();
 export const roomClassesStore = new RoomClassesStore();
+export const plannerStore = new PlannerStore(() => termStore.activeTermId);
 export const scheduleRouteStore = new ScheduleRouteStore();
 export const offlineStore = new OfflineStore();
 export const modalStore = new ModalStore();

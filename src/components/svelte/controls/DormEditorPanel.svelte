@@ -39,6 +39,9 @@
     proposalStatus: string | null;
     activeProposalId?: number | null;
     onWithdrawn?: () => void;
+    onsubmit?: () => void;
+    submitting?: boolean;
+    submitDisabled?: boolean;
     submitterNameDraft?: string;
     nameDraft: string;
     shortNameDraft: string;
@@ -69,6 +72,9 @@
     proposalStatus,
     activeProposalId = null,
     onWithdrawn,
+    onsubmit,
+    submitting = false,
+    submitDisabled = false,
     submitterNameDraft = $bindable(""),
     nameDraft = $bindable(""),
     shortNameDraft = $bindable(""),
@@ -102,6 +108,9 @@
   {proposalStatus}
   {activeProposalId}
   {onWithdrawn}
+  {onsubmit}
+  {submitting}
+  {submitDisabled}
   successMessage={savedField
     ? entityEditorSavedMessage({
         canPublish,

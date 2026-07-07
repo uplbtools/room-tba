@@ -22,11 +22,13 @@ type BuildingPatchBody = {
 };
 
 export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requirePublish: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
   if (auth instanceof Response) return auth;
 
-  const id = parseInt(params["id"] ?? "");
-  if (isNaN(id)) {
+  const id = parseInt(params.id ?? "", 10);
+  if (Number.isNaN(id)) {
     return new Response(JSON.stringify({ error: "Invalid building ID" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

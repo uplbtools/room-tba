@@ -103,7 +103,7 @@ export function testInventoryDiscordTiers(
 
 function mdList(files: string[]): string {
   if (files.length === 0) return "_None_\n";
-  return files.map((f) => `- \`${f}\``).join("\n") + "\n";
+  return `${files.map((f) => `- \`${f}\``).join("\n")}\n`;
 }
 
 function mdTable(rows: [string, string, number | string][]): string {
@@ -112,7 +112,7 @@ function mdTable(rows: [string, string, number | string][]): string {
     "| ------- | ---------------- | ----- |",
     ...rows.map(([cmd, runner, n]) => `| \`${cmd}\` | ${runner} | ${n} |`),
   ];
-  return lines.join("\n") + "\n";
+  return `${lines.join("\n")}\n`;
 }
 
 export function renderTestInventoryMarkdown(inv: TestInventory): string {

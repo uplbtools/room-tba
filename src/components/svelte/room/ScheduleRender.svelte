@@ -41,7 +41,7 @@
         const color = getColorForCourse(sectionClass.courseCode ?? "");
         const label =
           sectionClass.courseCode +
-          (sectionClass.type ? " (" + sectionClass.type + ")" : "");
+          (sectionClass.type ? ` (${sectionClass.type})` : "");
 
         renderer.addCourse({
           day: parsed.days,

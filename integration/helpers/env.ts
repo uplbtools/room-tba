@@ -10,7 +10,7 @@ export function integrationDatabaseUrl(): string | null {
     process.env.E2E_DATABASE_URL?.trim() ||
     process.env.DATABASE_URL?.trim() ||
     "";
-  if (!url || !url.includes(E2E_PROJECT_REF)) return null;
+  if (!url?.includes(E2E_PROJECT_REF)) return null;
   return url;
 }
 

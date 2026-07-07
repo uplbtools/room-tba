@@ -31,7 +31,7 @@ describeIntegration("admin building service integration", () => {
   test("updateBuilding bumps version", async () => {
     const { updateBuilding } = await import("@lib/services/admin-service");
     const before = await client.query<{ version: number; lat: number }>(
-      `SELECT version, lat FROM buildings WHERE id = $1`,
+      "SELECT version, lat FROM buildings WHERE id = $1",
       [buildingId],
     );
     const version = before.rows[0]?.version ?? 1;

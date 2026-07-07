@@ -36,13 +36,15 @@
   <label for={inputId}>{label}</label>
   <div class="editor-control-row" class:stacked>
     {@render control()}
-    <button
-      type="button"
-      class="field-save-btn"
-      disabled={disabled || unchanged}
-      onclick={onsave}
-    >
-      {saveLabel}
-    </button>
+    {#if canPublish}
+      <button
+        type="button"
+        class="field-save-btn"
+        disabled={disabled || unchanged}
+        onclick={onsave}
+      >
+        {saveLabel}
+      </button>
+    {/if}
   </div>
 </div>

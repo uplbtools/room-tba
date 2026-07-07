@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 function signBody(body: string, secret: string): string {
   return createHmac("sha256", secret).update(body).digest("base64url");

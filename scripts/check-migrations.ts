@@ -39,7 +39,7 @@ async function main() {
     const missing: string[] = [];
     for (const table of REQUIRED_TABLES) {
       const { rows } = await client.query<{ reg: string | null }>(
-        `SELECT to_regclass($1) AS reg`,
+        "SELECT to_regclass($1) AS reg",
         [`public.${table}`],
       );
       if (!rows[0]?.reg) missing.push(table);

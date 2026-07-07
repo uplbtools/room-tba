@@ -31,6 +31,7 @@
   } from "@lib/contributor-drafts";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
@@ -147,7 +148,7 @@
 
   /** Only show shortName when it's a real abbreviation, not just the first word */
   const showShortName = $derived.by(() => {
-    if (!dorm || !dorm.shortName) return false;
+    if (!dorm?.shortName) return false;
     const first = dorm.dormName.split(/\s+/)[0].toLowerCase();
     return dorm.shortName.toLowerCase() !== first;
   });
@@ -511,9 +512,110 @@
       editing = false;
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.dormName} merge failed: ${reason}`;
+      fieldError = `Merge failed: ${reason}`;
     } finally {
       mergingEntity = false;
+    }
+  }
+
+  const ALL_DORM_FIELDS: DormEditableField[] = [
+    "dormName",
+    "shortName",
+    "description",
+    "gender",
+    "isUpManaged",
+    "capacity",
+    "priceRange",
+    "managingOffice",
+    "contactEmail",
+    "contactPhone",
+    "amenities",
+    "facebookLink",
+    "osmLink",
+  ];
+
+  const allFieldsUnchanged = $derived.by(() => {
+    const current = dorm;
+    if (!current) return true;
+    return ALL_DORM_FIELDS.every((field) => fieldIsUnchanged(field, current));
+  });
+
+  async function submitAllChanges() {
+    const current = dorm;
+    if (!current || allFieldsUnchanged) return;
+
+    const patch: Record<string, unknown> = {};
+
+    if (!fieldIsUnchanged("dormName", current)) {
+      const trimmedName = nameDraft.trim();
+      if (trimmedName.length === 0) {
+        fieldError = `${current.dormName} name cannot be empty.`;
+        return;
+      }
+      patch.dormName = trimmedName;
+    }
+    if (!fieldIsUnchanged("shortName", current)) patch.shortName = shortNameDraft.trim() || null;
+    if (!fieldIsUnchanged("description", current)) patch.description = descriptionDraft.trim() || null;
+    if (!fieldIsUnchanged("gender", current)) patch.gender = genderDraft;
+    if (!fieldIsUnchanged("isUpManaged", current)) patch.isUpManaged = isUpManagedDraft;
+    if (!fieldIsUnchanged("capacity", current)) {
+      patch.capacity = capacityDraft.trim() === "" ? null : Number(capacityDraft);
+    }
+    if (!fieldIsUnchanged("priceRange", current)) patch.priceRange = priceRangeDraft.trim() || null;
+    if (!fieldIsUnchanged("managingOffice", current)) patch.managingOffice = managingOfficeDraft.trim() || null;
+    if (!fieldIsUnchanged("contactEmail", current)) patch.contactEmail = contactEmailDraft.trim() || null;
+    if (!fieldIsUnchanged("contactPhone", current)) patch.contactPhone = linesToList(contactPhoneDraft);
+    if (!fieldIsUnchanged("amenities", current)) patch.amenities = linesToList(amenitiesDraft);
+    if (!fieldIsUnchanged("facebookLink", current)) patch.facebookLink = facebookLinkDraft.trim() || null;
+    if (!fieldIsUnchanged("osmLink", current)) patch.osmLink = osmLinkDraft.trim() || null;
+
+    savingField = "dormName" as DormEditableField;
+    savedField = null;
+    fieldError = null;
+
+    try {
+      const result = await persistEntityChange({
+        entityType: "dorm",
+        entityId: current.id,
+        baseVersion: current.version,
+        patch,
+        entityLabel: current.dormName,
+        canPublish,
+        submitterName:
+          adminAuthStore.displayName ??
+          adminAuthStore.username ??
+          submitterNameDraft,
+        proposalId: activeProposalId,
+      });
+
+      const outcome = handlePersistEntityResult<DormData>(result, {
+        syncFromServer: syncDormFromServer,
+        fallbackError: `${current.dormName} could not be saved.`,
+      });
+
+      if (outcome.error) {
+        fieldError = outcome.error;
+        return;
+      }
+
+      if (outcome.proposal) {
+        activeProposalId = outcome.proposal.id;
+        proposalStatus = outcome.proposal.status;
+        clearEntityContributorDraft("dorm", current.id);
+        toastStore.show(
+          `Suggestion for ${current.dormName} submitted for review.`,
+          "success",
+        );
+      }
+      savedField = "dormName" as DormEditableField;
+      setTimeout(() => {
+        if (savedField === "dormName") savedField = null;
+      }, 1800);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Network error";
+      fieldError = `${current.dormName} failed to save: ${reason}`;
+    } finally {
+      savingField = null;
     }
   }
 </script>
@@ -585,9 +687,16 @@
       </div>
     </header>
 
-    {#if !editing && dorm.description}
+    {#if !editing}
       <div class="entity-body entity-body--compact">
-        <p class="entity-directions__text">{dorm.description}</p>
+        {#if dorm.description}
+          <p class="entity-directions__text">{dorm.description}</p>
+        {/if}
+        <EntityLastUpdated
+          updatedAt={dorm.updatedAt}
+          entityType="dorm"
+          entityId={dorm.id}
+        />
       </div>
     {/if}
 
@@ -595,7 +704,7 @@
       <img
         class="entity-image"
         src={dorm.imageUrl}
-        alt="Photo of {dorm.dormName}"
+        alt={dorm.dormName}
         loading="lazy"
       />
     {/if}
@@ -617,6 +726,9 @@
             activeProposalId = null;
             proposalStatus = null;
           }}
+          onsubmit={submitAllChanges}
+          submitting={savingField !== null}
+          submitDisabled={allFieldsUnchanged}
           bind:submitterNameDraft
           bind:nameDraft
           bind:shortNameDraft

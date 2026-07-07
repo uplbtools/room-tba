@@ -1,4 +1,4 @@
-import { modalOptions } from "@constants/modal-states";
+import type { modalOptions } from "@constants/modal-states";
 import type {
   ImportedScheduleRow,
   Weekday,
@@ -111,6 +111,8 @@ export function syncTableLabel(table: SyncTableKey): string {
 }
 
 export const ACTIVE_TERM_LS_KEY = "active-term-id";
+
+export const PLANNER_LS_KEY = "room-tba-planner";
 
 export const SCHEDULE_IMPORT_SS_KEY = "room-tba-schedule-import";
 

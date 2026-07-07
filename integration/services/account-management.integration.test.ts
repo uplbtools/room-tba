@@ -28,14 +28,14 @@ describeIntegration(
       // edit_proposals/contributions row would otherwise block every
       // subsequent DELETE FROM admin_users via the FK constraint.
       await client.query(
-        `DELETE FROM edit_proposals WHERE submitter_user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)`,
+        "DELETE FROM edit_proposals WHERE submitter_user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)",
         [`${PREFIX}%`],
       );
       await client.query(
-        `DELETE FROM contributions WHERE user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)`,
+        "DELETE FROM contributions WHERE user_id IN (SELECT id FROM admin_users WHERE username LIKE $1)",
         [`${PREFIX}%`],
       );
-      await client.query(`DELETE FROM admin_users WHERE username LIKE $1`, [
+      await client.query("DELETE FROM admin_users WHERE username LIKE $1", [
         `${PREFIX}%`,
       ]);
     };
@@ -89,7 +89,7 @@ describeIntegration(
       );
       await changePassword(passwordUserId, PASSWORD, "a-new-password-123");
       const { rows } = await client.query<{ password_hash: string }>(
-        `SELECT password_hash FROM admin_users WHERE id = $1`,
+        "SELECT password_hash FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(
@@ -103,7 +103,7 @@ describeIntegration(
       );
       await changePassword(oauthUserId, null, "first-password-123");
       const { rows } = await client.query<{ password_hash: string }>(
-        `SELECT password_hash FROM admin_users WHERE id = $1`,
+        "SELECT password_hash FROM admin_users WHERE id = $1",
         [oauthUserId],
       );
       expect(rows[0]!.password_hash).not.toBe("");
@@ -131,13 +131,106 @@ describeIntegration(
         requestEmailChange(passwordUserId, "not-an-email"),
       ).rejects.toThrow();
 
-      const token = createSignedToken({ userId: passwordUserId, newEmail }, 60);
+      const token = createSignedToken(
+        {
+          purpose: "email-change",
+          userId: passwordUserId,
+          newEmail,
+          fromEmail: `${PREFIX}-password@example.com`,
+        },
+        60,
+      );
       await confirmEmailChange(token);
       const { rows } = await client.query<{ email: string }>(
-        `SELECT email FROM admin_users WHERE id = $1`,
+        "SELECT email FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(rows[0]!.email).toBe(newEmail);
+    });
+
+    test("email-change token is single-use (replay rejected after apply)", async () => {
+      const { confirmEmailChange, AccountActionError } = await import(
+        "@lib/services/admin-user-service"
+      );
+      const { createSignedToken } = await import("@lib/admin/signed-token");
+      const token = createSignedToken(
+        {
+          purpose: "email-change",
+          userId: passwordUserId,
+          newEmail: `${PREFIX}-replayed@example.com`,
+          fromEmail: `${PREFIX}-password@example.com`,
+        },
+        60,
+      );
+      await confirmEmailChange(token);
+      // Email no longer matches fromEmail — the same token must now die.
+      await expect(confirmEmailChange(token)).rejects.toBeInstanceOf(
+        AccountActionError,
+      );
+    });
+
+    test("an email-change token cannot reset a password (purpose confusion)", async () => {
+      const { confirmPasswordReset, AccountActionError } = await import(
+        "@lib/services/admin-user-service"
+      );
+      const { createSignedToken } = await import("@lib/admin/signed-token");
+      // Both token kinds share the HMAC secret; only `purpose` separates
+      // them. This was exploitable before the purpose check existed.
+      const emailChangeToken = createSignedToken(
+        {
+          purpose: "email-change",
+          userId: passwordUserId,
+          newEmail: `${PREFIX}-evil@example.com`,
+          fromEmail: `${PREFIX}-password@example.com`,
+        },
+        60,
+      );
+      await expect(
+        confirmPasswordReset(emailChangeToken, "attacker-password-123"),
+      ).rejects.toBeInstanceOf(AccountActionError);
+      // Legacy shape without purpose must also be rejected.
+      const legacyToken = createSignedToken({ userId: passwordUserId }, 60);
+      await expect(
+        confirmPasswordReset(legacyToken, "attacker-password-123"),
+      ).rejects.toBeInstanceOf(AccountActionError);
+    });
+
+    test("password-reset token is single-use (fingerprint invalidated by the reset)", async () => {
+      const { confirmPasswordReset, AccountActionError } = await import(
+        "@lib/services/admin-user-service"
+      );
+      const { createSignedToken } = await import("@lib/admin/signed-token");
+      const { createHash } = await import("node:crypto");
+
+      const { rows } = await client.query<{ password_hash: string }>(
+        "SELECT password_hash FROM admin_users WHERE id = $1",
+        [passwordUserId],
+      );
+      const pwFp = createHash("sha256")
+        .update(rows[0]!.password_hash)
+        .digest("hex")
+        .slice(0, 16);
+      const token = createSignedToken(
+        { purpose: "password-reset", userId: passwordUserId, pwFp },
+        60,
+      );
+
+      await confirmPasswordReset(token, "brand-new-password-123");
+      // Hash changed → fingerprint mismatch → replay dies.
+      await expect(
+        confirmPasswordReset(token, "second-password-456"),
+      ).rejects.toBeInstanceOf(AccountActionError);
+
+      const after = await client.query<{ password_hash: string }>(
+        "SELECT password_hash FROM admin_users WHERE id = $1",
+        [passwordUserId],
+      );
+      expect(
+        await bcrypt.compare(
+          "brand-new-password-123",
+          after.rows[0]!.password_hash,
+        ),
+      ).toBe(true);
     });
 
     test("linkGoogleIdentity rejects an identity already linked to another account", async () => {
@@ -145,7 +238,7 @@ describeIntegration(
         "@lib/services/admin-user-service"
       );
       const { rows } = await client.query<{ supabase_user_id: string }>(
-        `SELECT supabase_user_id FROM admin_users WHERE id = $1`,
+        "SELECT supabase_user_id FROM admin_users WHERE id = $1",
         [oauthUserId],
       );
       await expect(
@@ -174,7 +267,7 @@ describeIntegration(
         password_hash: string;
         deleted_at: string | null;
       }>(
-        `SELECT is_active, email, password_hash, deleted_at FROM admin_users WHERE id = $1`,
+        "SELECT is_active, email, password_hash, deleted_at FROM admin_users WHERE id = $1",
         [passwordUserId],
       );
       expect(rows[0]!.is_active).toBe(false);
@@ -207,12 +300,12 @@ describeIntegration(
       await softDeleteAccount(passwordUserId, PASSWORD);
 
       const { rows } = await client.query<{ submitter_user_id: number }>(
-        `SELECT submitter_user_id FROM edit_proposals WHERE id = $1`,
+        "SELECT submitter_user_id FROM edit_proposals WHERE id = $1",
         [proposalRows[0]!.id],
       );
       expect(rows[0]!.submitter_user_id).toBe(passwordUserId);
 
-      await client.query(`DELETE FROM edit_proposals WHERE id = $1`, [
+      await client.query("DELETE FROM edit_proposals WHERE id = $1", [
         proposalRows[0]!.id,
       ]);
     });
@@ -267,7 +360,7 @@ describeIntegration(
         ).rejects.toBeInstanceOf(AccountActionError);
       } finally {
         for (const admin of otherAdmins) {
-          await client.query(`UPDATE admin_users SET role = $1 WHERE id = $2`, [
+          await client.query("UPDATE admin_users SET role = $1 WHERE id = $2", [
             admin.role,
             admin.id,
           ]);

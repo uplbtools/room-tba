@@ -9,7 +9,9 @@ import {
 export const prerender = false;
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requireAdmin: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requireAdmin: true,
+  });
   if (auth instanceof Response) return auth;
 
   const users = await listAllAdminUsers();
@@ -17,7 +19,9 @@ export const GET: APIRoute = async ({ cookies }) => {
 };
 
 export const POST: APIRoute = async ({ cookies, request }) => {
-  const auth = editorSessionOrUnauthorized(cookies, { requireAdmin: true });
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requireAdmin: true,
+  });
   if (auth instanceof Response) return auth;
 
   let body: {

@@ -25,6 +25,7 @@ export const FIELD_LABELS: Record<string, string> = {
   imageUrl: "Image",
   recurrence: "Recurrence",
   rooms: "Bundled rooms",
+  locations: "Locations",
 };
 
 export type FieldDiff = {
@@ -35,8 +36,29 @@ export type FieldDiff = {
   after: string | null;
 };
 
-// Keys with their own review summaries (bundled rooms, event locations).
-const SKIPPED_KEYS = new Set(["rooms", "locations"]);
+// Keys with their own review summary (create_building bundled rooms).
+const SKIPPED_KEYS = new Set(["rooms"]);
+
+/** One-line summary per event location so reviewers see what changes. */
+function formatLocations(value: unknown): string | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  return value
+    .map((item) => {
+      const loc = item as {
+        label?: unknown;
+        lat?: unknown;
+        lon?: unknown;
+      };
+      const name =
+        typeof loc.label === "string" && loc.label.trim()
+          ? loc.label.trim()
+          : "Unnamed";
+      return typeof loc.lat === "number" && typeof loc.lon === "number"
+        ? `${name} (${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)})`
+        : name;
+    })
+    .join("; ");
+}
 
 function formatValue(value: unknown): string | null {
   if (value === null || value === undefined) return null;
@@ -62,8 +84,9 @@ export function buildFieldDiffs(
   const diffs: FieldDiff[] = [];
   for (const [field, proposed] of Object.entries(patch)) {
     if (SKIPPED_KEYS.has(field)) continue;
-    const before = current ? formatValue(current[field]) : null;
-    const after = formatValue(proposed);
+    const format = field === "locations" ? formatLocations : formatValue;
+    const before = current ? format(current[field]) : null;
+    const after = format(proposed);
     if (current && before === after) continue;
     diffs.push({
       field,

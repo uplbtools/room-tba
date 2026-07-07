@@ -5,19 +5,17 @@ import {
   divisionsTable,
   dormsTable,
   editProposalsTable,
+  eventLocationsTable,
   eventsTable,
   roomsTable,
 } from "@drizzle/schema";
+import type { SessionUser } from "@lib/admin/auth";
 import { db } from "@lib/db";
 import { validateSubmitterName } from "@constants/proposals";
-import { type SessionUser } from "@lib/admin/auth";
 import { recordProposalContribution } from "./contribution-service";
-import { parseEventImageUrl } from "@lib/r2-upload";
+import { parseImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
-import {
-  canViewProposalSubmitterDetails,
-  canWithdrawProposal,
-} from "./proposal-access";
+import { canWithdrawProposal } from "./proposal-access";
 export {
   canViewProposalSubmitterDetails,
   canWithdrawProposal,
@@ -384,14 +382,29 @@ export async function getCurrentEntityValues(
         .limit(1);
       return row ?? null;
     }
-    case "event":
-    case "event_locations": {
+    case "event": {
       const [row] = await db
         .select()
         .from(eventsTable)
         .where(eq(eventsTable.id, entityId))
         .limit(1);
       return row ?? null;
+    }
+    case "event_locations": {
+      const [row] = await db
+        .select()
+        .from(eventsTable)
+        .where(eq(eventsTable.id, entityId))
+        .limit(1);
+      if (!row) return null;
+      // Patch key is `locations`; include the published ones so the review
+      // queue renders a real before/after instead of a blank diff.
+      const locations = await db
+        .select()
+        .from(eventLocationsTable)
+        .where(eq(eventLocationsTable.eventId, entityId))
+        .orderBy(eventLocationsTable.sortOrder, eventLocationsTable.id);
+      return { ...row, locations };
     }
   }
 }
@@ -620,9 +633,12 @@ export class ProposalActionError extends Error {
   }
 }
 
-function validateProposalImageUrl(patch: Record<string, unknown>) {
+function validateProposalImageUrl(
+  patch: Record<string, unknown>,
+  label: string,
+) {
   if (!("imageUrl" in patch)) return;
-  const parsed = parseEventImageUrl(patch.imageUrl, R2_PUBLIC_URL);
+  const parsed = parseImageUrl(patch.imageUrl, R2_PUBLIC_URL, label);
   if (!parsed.ok) {
     throw new ProposalActionError(parsed.error);
   }
@@ -631,21 +647,22 @@ function validateProposalImageUrl(patch: Record<string, unknown>) {
   }
 }
 
-const IMAGE_PATCH_ENTITY_TYPES: ReadonlySet<string> = new Set([
-  "create_event",
-  "event",
-  "building",
-  "room",
-  "dorm",
-  "create_dorm",
-]);
+const IMAGE_PATCH_ENTITY_LABELS: Readonly<Record<string, string>> = {
+  create_event: "Event image",
+  event: "Event image",
+  building: "Building image",
+  room: "Room image",
+  dorm: "Dorm image",
+  create_dorm: "Dorm image",
+};
 
 async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
   const patch = proposal.proposedPatch as Record<string, unknown>;
   const entityType = proposal.entityType as ProposalEntityType;
 
-  if (IMAGE_PATCH_ENTITY_TYPES.has(entityType)) {
-    validateProposalImageUrl(patch);
+  const imageLabel = IMAGE_PATCH_ENTITY_LABELS[entityType];
+  if (imageLabel) {
+    validateProposalImageUrl(patch, imageLabel);
   }
 
   if (isCreateProposalType(entityType)) {

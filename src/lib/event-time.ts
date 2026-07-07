@@ -198,7 +198,6 @@ export function getStoredEventOccurrence(
         now,
         event.recurrence,
       );
-    case "annual":
     default:
       return projectCampusOccurrence(event.startsAt, event.endsAt, now);
   }

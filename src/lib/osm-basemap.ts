@@ -21,14 +21,13 @@ const METERS_PER_DEGREE_LAT = 111_320;
 const EARTH_CIRCUMFERENCE_M = 156_543.03;
 
 function lonToTileX(lon: number, z: number): number {
-  return ((lon + 180) / 360) * Math.pow(2, z);
+  return ((lon + 180) / 360) * 2 ** z;
 }
 
 function latToTileY(lat: number, z: number): number {
   const rad = (lat * Math.PI) / 180;
   return (
-    ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) *
-    Math.pow(2, z)
+    ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * 2 ** z
   );
 }
 
@@ -136,8 +135,7 @@ export async function fetchBasemap(opts: {
 
   // Web Mercator: meters per pixel at this zoom and latitude.
   const metersPerPixel =
-    (EARTH_CIRCUMFERENCE_M * Math.cos((centerLat * Math.PI) / 180)) /
-    Math.pow(2, zoom);
+    (EARTH_CIRCUMFERENCE_M * Math.cos((centerLat * Math.PI) / 180)) / 2 ** zoom;
   const halfPx = radiusMeters / metersPerPixel;
 
   const cropLeft = Math.max(0, Math.floor(centerPxX - halfPx));

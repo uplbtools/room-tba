@@ -55,13 +55,33 @@ describe("buildFieldDiffs", () => {
     ]);
   });
 
-  test("skips bundled rooms and event locations keys", () => {
+  test("skips bundled rooms (own summary) but renders event locations", () => {
     const diffs = buildFieldDiffs(null, {
       rooms: [{ roomCode: "A" }],
       locations: [{ label: "gate" }],
       title: "Fair",
     });
-    expect(diffs.map((d) => d.field)).toEqual(["title"]);
+    expect(diffs.map((d) => d.field)).toEqual(["locations", "title"]);
+  });
+
+  test("summarizes event locations as label (lat, lon) lists", () => {
+    const diffs = buildFieldDiffs(
+      { locations: [{ label: "Old gate", lat: 14.16, lon: 121.24 }] },
+      {
+        locations: [
+          { label: "Main gate", lat: 14.16723, lon: 121.24341 },
+          { label: "", lat: null, lon: null },
+        ],
+      },
+    );
+    expect(diffs).toEqual([
+      {
+        field: "locations",
+        label: "Locations",
+        before: "Old gate (14.16000, 121.24000)",
+        after: "Main gate (14.16723, 121.24341); Unnamed",
+      },
+    ]);
   });
 
   test("treats empty strings as unset", () => {
