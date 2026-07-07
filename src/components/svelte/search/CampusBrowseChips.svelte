@@ -1,5 +1,6 @@
 <script lang="ts">
   import BookText from "@lucide/svelte/icons/book-text";
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
   import University from "@lucide/svelte/icons/university";
@@ -8,11 +9,17 @@
     openCampusBrowse,
     type CampusBrowseTab,
   } from "@lib/browse-campus";
-  import { queryStore, sidePanelStore } from "@lib/store.svelte";
+  import {
+    plannerStore,
+    queryStore,
+    sidePanelStore,
+  } from "@lib/store.svelte";
   import "../map-chrome/map-chrome.css";
 
+  type ChipId = CampusBrowseTab | "classes" | "planner";
+
   const tabs: {
-    id: CampusBrowseTab | "classes";
+    id: ChipId;
     label: string;
     icon: typeof University;
   }[] = [
@@ -20,9 +27,11 @@
     { id: "colleges", label: "Colleges", icon: GraduationCap },
     { id: "divisions", label: "Divisions", icon: Landmark },
     { id: "classes", label: "Classes", icon: BookText },
+    { id: "planner", label: "Planner", icon: CalendarDays },
   ];
 
-  const activeTab = $derived.by((): CampusBrowseTab | "classes" | null => {
+  const activeTab = $derived.by((): ChipId | null => {
+    if (plannerStore.open) return "planner";
     if (queryStore.category === "classes") return "classes";
     if (queryStore.category !== "browse") return null;
     if (
@@ -34,7 +43,11 @@
     return "buildings";
   });
 
-  function handleBrowse(id: CampusBrowseTab | "classes") {
+  function handleBrowse(id: ChipId) {
+    if (id === "planner") {
+      plannerStore.openPlanner();
+      return;
+    }
     if (id === "classes") {
       openBrowseClasses(queryStore, sidePanelStore);
       return;
@@ -52,7 +65,9 @@
       aria-pressed={activeTab === tab.id}
       aria-label={tab.id === "classes"
         ? "Browse all classes"
-        : `Browse ${tab.label.toLowerCase()}`}
+        : tab.id === "planner"
+          ? "Open course planner"
+          : `Browse ${tab.label.toLowerCase()}`}
       onclick={(event) => {
         event.preventDefault();
         event.stopPropagation();

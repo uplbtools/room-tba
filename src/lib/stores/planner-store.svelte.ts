@@ -7,8 +7,6 @@ import type { PlannedSection, PlannerPlan } from "../planner/types.js";
 import type { ClassMapValue } from "@lib/types";
 import { PLANNER_LS_KEY } from "./store-types.js";
 
-const PLAN_LABELS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
 function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
   if (!row.courseCode || !row.section || !row.type) return null;
   return {
@@ -92,6 +90,31 @@ export class PlannerStore {
     this.persist();
   };
 
+  removeSections = (rows: ClassMapValue[]) => {
+    const plan = this.activePlan;
+    if (!plan) return;
+    const removeKeys = new Set(
+      rows
+        .map(rowToPlannedSection)
+        .filter((s): s is PlannedSection => s !== null)
+        .map(sectionNaturalKey),
+    );
+    if (removeKeys.size === 0) return;
+    plan.sections = plan.sections.filter(
+      (section) => !removeKeys.has(sectionNaturalKey(section)),
+    );
+    this.persist();
+  };
+
+  /** Swap a course to another section: drop every planned row of the course, add the new offering. */
+  replaceCourse = (courseCode: string, rows: ClassMapValue[]) => {
+    const plan = this.activePlan;
+    if (!plan) return;
+    plan.sections = plan.sections.filter((s) => s.courseCode !== courseCode);
+    this.addOffering(rows);
+    this.persist();
+  };
+
   removeOffering = (courseCode: string, section: string) => {
     const plan = this.activePlan;
     if (!plan) return;
@@ -171,9 +194,14 @@ export class PlannerStore {
     const used = new Set(
       this.plans.filter((p) => p.termId === termId).map((p) => p.label),
     );
-    const label =
-      [...PLAN_LABELS].find((l) => !used.has(l)) ?? `#${used.size + 1}`;
-    return { id: crypto.randomUUID(), label, termId, sections: [] };
+    let n = 1;
+    while (used.has(`Plan ${n}`)) n++;
+    return {
+      id: crypto.randomUUID(),
+      label: `Plan ${n}`,
+      termId,
+      sections: [],
+    };
   }
 
   private persist() {
