@@ -22,7 +22,7 @@ export function buildProposalDigest(
     const kind = p.entityType.replace("create_", "new ");
     const submitter = p.submitterName?.trim() || "Anonymous";
     const status = p.status === "needs_changes" ? " (resubmit requested)" : "";
-    return `- ${kind}: ${p.entityLabel ?? "(unnamed)"} — from ${submitter}${status}`;
+    return `- ${kind}: ${p.entityLabel ?? "(unnamed)"}, from ${submitter}${status}`;
   });
 
   const count = proposals.length;
