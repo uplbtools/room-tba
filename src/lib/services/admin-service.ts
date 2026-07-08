@@ -1103,7 +1103,7 @@ export async function updatePlace(
     throw new EditConflictError(await getPlaceById(id));
   }
   await refreshSyncKey("places");
-  return updated ?? getPlaceById(id);
+  return updated ?? (await getPlaceById(id));
 }
 
 export type PlaceCreateInput = PlaceUpdateInput & {
