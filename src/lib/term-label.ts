@@ -7,6 +7,16 @@ export function termChipLabel(term: Pick<Term, "label" | "semester">) {
   return term.label.replace(/^AY \d{4}-\d{4} /, "");
 }
 
+/** "1st sem AY 2026 - 2027" — semester plus academic year for the term picker. */
+export function termFullLabel(
+  term: Pick<Term, "label" | "semester" | "schoolYear">,
+) {
+  const semester = termChipLabel(term);
+  if (!term.schoolYear) return semester;
+  const ay = `AY ${term.schoolYear.replace("-", " - ")}`;
+  return `${semester} ${ay}`;
+}
+
 export function termSeoPhrase(term: Pick<Term, "label">) {
   return term.label;
 }
