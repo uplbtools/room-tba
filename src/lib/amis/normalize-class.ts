@@ -60,6 +60,19 @@ function scheduleFromClassDates(row: AmisClassRow): string[] | null {
   return slots.length > 0 ? slots : null;
 }
 
+/**
+ * Fallback for terms (e.g. CRS 1231) where AMIS leaves `class_dates` empty and
+ * carries the single meeting slot on the row itself as `date` + `start_time` /
+ * `end_time`. Same output shape as {@link scheduleFromClassDates}.
+ */
+function scheduleFromRowFields(row: AmisClassRow): string[] | null {
+  const day = asString(row.date);
+  const start = normalizeTimeToken(row.start_time);
+  const end = normalizeTimeToken(row.end_time);
+  if (!day || !start || !end) return null;
+  return [`${day} ${start}-${end}`];
+}
+
 function scheduleFromScheduleField(row: AmisClassRow): string[] | null {
   const schedule = row.schedule;
   if (Array.isArray(schedule)) {
@@ -124,7 +137,10 @@ export function normalizeAmisClass(
   if (!courseCode || !section) return null;
 
   const schedule =
-    scheduleFromClassDates(row) ?? scheduleFromScheduleField(row) ?? [];
+    scheduleFromClassDates(row) ??
+    scheduleFromScheduleField(row) ??
+    scheduleFromRowFields(row) ??
+    [];
 
   return {
     courseCode,

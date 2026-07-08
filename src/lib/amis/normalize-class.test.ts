@@ -46,4 +46,23 @@ describe("amis normalize", () => {
       facilityCode: "PSLH A",
     });
   });
+
+  it("builds schedule from top-level date/time when class_dates is empty (CRS 1231)", () => {
+    const normalized = normalizeAmisClass(
+      {
+        course_code: "AAE 10",
+        section: "B",
+        type: "LEC",
+        facility_id: "CEM 111",
+        term_id: 1231,
+        date: "TTH",
+        start_time: "02:00PM",
+        end_time: "05:00PM",
+        class_dates: [],
+      },
+      1231,
+    );
+
+    expect(normalized?.schedule).toEqual(["TTH 02:00PM-05:00PM"]);
+  });
 });
