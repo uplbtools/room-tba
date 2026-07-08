@@ -417,13 +417,6 @@
     white-space: nowrap;
   }
 
-  .planner-term {
-    margin-left: 0.375rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: hsl(0, 0%, 45%);
-  }
-
   .planner-action {
     all: unset;
     flex: 0 0 auto;

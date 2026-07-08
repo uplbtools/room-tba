@@ -8,14 +8,10 @@
     openCampusBrowse,
     type CampusBrowseTab,
   } from "@lib/browse-campus";
-  import {
-    plannerStore,
-    queryStore,
-    sidePanelStore,
-  } from "@lib/store.svelte";
+  import { queryStore, sidePanelStore } from "@lib/store.svelte";
   import "../map-chrome/map-chrome.css";
 
-  type ChipId = CampusBrowseTab | "classes" | "planner";
+  type ChipId = CampusBrowseTab | "classes";
 
   const tabs: {
     id: ChipId;
@@ -30,7 +26,6 @@
   ];
 
   const activeTab = $derived.by((): ChipId | null => {
-    if (plannerStore.open) return "planner";
     if (queryStore.category === "classes") return "classes";
     if (queryStore.category !== "browse") return null;
     if (
@@ -43,10 +38,6 @@
   });
 
   function handleBrowse(id: ChipId) {
-    if (id === "planner") {
-      plannerStore.openPlanner();
-      return;
-    }
     if (id === "classes") {
       openBrowseClasses(queryStore, sidePanelStore);
       return;
@@ -64,9 +55,7 @@
       aria-pressed={activeTab === tab.id}
       aria-label={tab.id === "classes"
         ? "Browse all classes"
-        : tab.id === "planner"
-          ? "Open course planner"
-          : `Browse ${tab.label.toLowerCase()}`}
+        : `Browse ${tab.label.toLowerCase()}`}
       onclick={(event) => {
         event.preventDefault();
         event.stopPropagation();

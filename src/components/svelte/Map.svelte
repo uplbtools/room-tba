@@ -113,7 +113,7 @@
   // or an offline sync lands, so dual-role buildings (admin + class venue)
   // filter correctly.
   $effect(() => {
-    void termStore.activeTermId;
+    // Re-run after a sync lands (allSynced isn't read by load's argument).
     void syncToastStore.allSynced;
     void classVenuesStore.load(termStore.activeTermId);
   });

@@ -364,8 +364,8 @@
 
           <button
             type="button"
-            class="map-search-chrome__planner-btn"
-            class:map-search-chrome__planner-btn--active={plannerStore.open}
+            class="map-chrome-chip map-search-chrome__planner-btn"
+            class:map-chrome-chip--toggle-active={plannerStore.open}
             aria-pressed={plannerStore.open}
             aria-label="Open course planner"
             title="Course planner"
@@ -375,7 +375,7 @@
               plannerStore.openPlanner();
             }}
           >
-            <CalendarDays size={18} aria-hidden="true" />
+            <CalendarDays size={14} aria-hidden="true" />
             <span class="map-search-chrome__planner-label">Planner</span>
           </button>
         </div>
@@ -719,51 +719,16 @@
     color: hsl(5, 53%, 22%);
   }
 
-  /* Pinned Planner chip — always visible next to the search input so the
-     planner is reachable in the default state, not gated behind focus. */
+  /* Pinned Planner chip reuses .map-chrome-chip; keep it maroon and collapse
+     to icon-only on narrow screens so it always fits beside the search input. */
   .map-search-chrome__planner-btn {
-    all: unset;
-    box-sizing: border-box;
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 0.3125rem;
-    height: 2rem;
-    padding: 0 0.625rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 999px;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     color: hsl(5, 53%, 32%);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    pointer-events: auto;
-    touch-action: manipulation;
-    white-space: nowrap;
   }
 
-  .map-search-chrome__planner-btn:hover,
-  .map-search-chrome__planner-btn:focus-visible {
-    border-color: hsl(5, 40%, 72%);
-    background-color: hsl(5, 53%, 96%);
-  }
-
-  .map-search-chrome__planner-btn:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
-  }
-
-  .map-search-chrome__planner-btn--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 92%);
-    color: hsl(5, 53%, 22%);
-  }
-
-  /* Icon-only on narrow screens so it always fits beside the search input. */
   @media (max-width: 30rem) {
     .map-search-chrome__planner-btn {
       padding: 0;
-      width: 2rem;
+      width: 1.75rem;
       justify-content: center;
     }
 
