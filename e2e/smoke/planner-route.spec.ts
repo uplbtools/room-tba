@@ -23,6 +23,9 @@ test.describe("planner route", () => {
     const planner = page.getByRole("dialog", { name: "Class Planner" });
     await expect(planner).toBeVisible();
     await expect(planner.getByText(/change of matriculation/i)).toBeVisible();
+    // The URL must stay /planner (regression: the prod island dropped the
+    // openPlanner prop, so the planner never opened and the path fell back to /).
+    await expect(page).toHaveURL(/\/planner(\/|\?|$)/);
   });
 
   test("/planner?term still opens the planner", async ({ page }) => {

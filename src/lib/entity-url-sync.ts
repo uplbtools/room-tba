@@ -36,6 +36,9 @@ export type EntityUrlSyncSnapshot = RoutableQueryState & {
 
 const HOME_PATH = "/";
 const PLANNER_PATH = "/planner";
+// currentPathname() runs through normalizePathname (adds a trailing slash), so
+// compare against the normalized form, not the raw "/planner".
+const PLANNER_PATH_NORMALIZED = normalizePathname(PLANNER_PATH);
 
 export function createEntityUrlSync(context: EntityUrlSyncContext) {
   let applyingFromHistory = false;
@@ -128,7 +131,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     try {
       termStore.applyFromUrl();
       // Back/forward into or out of /planner toggles the planner overlay.
-      context.setPlannerOpen(currentPathname() === PLANNER_PATH);
+      context.setPlannerOpen(currentPathname() === PLANNER_PATH_NORMALIZED);
       const state = (event.state ?? null) as EntityHistoryState | null;
       if (state?.query) {
         context.hydrateQuery(state.query);
@@ -187,12 +190,11 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
         snapshot.termId,
         snapshot.defaultTermId,
       );
-      const plannerPathname = plannerPath.split("?")[0] ?? PLANNER_PATH;
       const plannerSearch = plannerPath.includes("?")
         ? plannerPath.slice(plannerPath.indexOf("?"))
         : "";
       if (
-        currentPathname() !== plannerPathname ||
+        currentPathname() !== PLANNER_PATH_NORMALIZED ||
         window.location.search !== plannerSearch
       ) {
         const carried =
