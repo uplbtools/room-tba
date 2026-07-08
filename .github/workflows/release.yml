@@ -67,6 +67,16 @@ jobs:
             CHANGELOG.md
             package.json
 
+      - name: Auto-merge version sync PR
+        if: steps.pkg.outputs.published == 'true' && steps.sync_pr.outputs.pull-request-number
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "${{ steps.sync_pr.outputs.pull-request-number }}" \
+            --repo "${{ github.repository }}" --squash --auto \
+          || echo "::warning::Could not enable auto-merge on the sync PR — merge it manually, and enable repo Settings > General > Pull Requests > 'Allow auto-merge'."
+
       - name: Version sync PR failed
         if: steps.pkg.outputs.published == 'true' && steps.sync_pr.outcome == 'failure'
         run: |
