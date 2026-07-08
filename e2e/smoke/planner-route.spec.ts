@@ -34,4 +34,19 @@ test.describe("planner route", () => {
       page.getByRole("dialog", { name: "Class Planner" }),
     ).toBeVisible();
   });
+
+  test("opening the planner from the map updates the URL to /planner", async ({
+    page,
+  }) => {
+    await suppressLandingModal(page);
+    await page.goto("/");
+    await waitForPlannerBoot(page);
+
+    // click() auto-waits for the chrome button to be actionable.
+    await page
+      .getByRole("button", { name: "Open course planner" })
+      .click({ timeout: 60_000 });
+    await expect(page.getByRole("dialog", { name: "Class Planner" })).toBeVisible();
+    await expect(page).toHaveURL(/\/planner(\?|$)/);
+  });
 });

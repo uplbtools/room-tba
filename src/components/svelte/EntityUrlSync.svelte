@@ -13,6 +13,7 @@
   import {
     currentRoom,
     mapEditStore,
+    plannerStore,
     queryStore,
     termStore,
   } from "@lib/store.svelte";
@@ -40,6 +41,10 @@
         value: queryStore.queryValue,
         eventSlug: queryStore.selectedEventSlug ?? undefined,
       }),
+      setPlannerOpen: (open) => {
+        if (open) plannerStore.openPlanner();
+        else plannerStore.close();
+      },
     });
 
     controller.init();
@@ -63,6 +68,7 @@
       editMode: mapEditStore.enabled,
       termId: termStore.activeTermId,
       defaultTermId: termStore.defaultTermId,
+      plannerOpen: plannerStore.open,
     });
   });
 
