@@ -46,40 +46,6 @@ const {
   structuredData={structuredData}
 >
   <main class="entity-page">
-    <article class="entity-page__content">
-      <nav aria-label="Breadcrumb" class="breadcrumbs">
-        <ol>
-          {
-            breadcrumbs.map((item) => (
-              <li>
-                <a href={item.href}>{item.label}</a>
-              </li>
-            ))
-          }
-        </ol>
-      </nav>
-      <h1>{heading}</h1>
-      {
-        image && (
-          <img
-            class="entity-page__image"
-            src={image.src}
-            alt={image.alt}
-            loading="lazy"
-          />
-        )
-      }
-      <p class="entity-page__intro">{intro}</p>
-      {
-        facts.length > 0 && (
-          <ul class="entity-page__facts">
-            {facts.map((fact) => (
-              <li>{fact}</li>
-            ))}
-          </ul>
-        )
-      }
-    </article>
     <div class="entity-page__app">
       <AppRoot
         initialSearch={initialSearch}

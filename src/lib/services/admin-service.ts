@@ -17,6 +17,7 @@ import {
 } from "@drizzle/schema";
 import { normalizeEntityName } from "@lib/entity-names";
 import { normalizePlaceCategory } from "@constants/place-categories";
+import { normalizeRoomCategory } from "@constants/room-categories";
 import { db } from "@lib/db";
 import {
   buildingIsrPath,
@@ -192,6 +193,7 @@ export type RoomUpdateInput = {
   collegeId?: number | null;
   divisionId?: number | null;
   imageUrl?: string | null;
+  category?: string | null;
 };
 
 export async function findRoomMergeCandidate(
@@ -323,6 +325,8 @@ export async function updateRoom(
   if (input.divisionId !== undefined)
     updates.divisionId = input.divisionId ?? null;
   if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
+  if (input.category !== undefined)
+    updates.category = normalizeRoomCategory(input.category);
 
   if (Object.keys(updates).length > 0) {
     if (input.roomCode !== undefined) {
