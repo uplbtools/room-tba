@@ -1,6 +1,5 @@
 <script lang="ts">
   import BookText from "@lucide/svelte/icons/book-text";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
   import University from "@lucide/svelte/icons/university";
@@ -27,7 +26,7 @@
     { id: "colleges", label: "Colleges", icon: GraduationCap },
     { id: "divisions", label: "Divisions", icon: Landmark },
     { id: "classes", label: "Classes", icon: BookText },
-    { id: "planner", label: "Planner", icon: CalendarDays },
+    // Planner is pinned as a standalone always-visible chip in Search.svelte.
   ];
 
   const activeTab = $derived.by((): ChipId | null => {
