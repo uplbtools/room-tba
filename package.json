@@ -52,7 +52,7 @@
     "@astrojs/node": "^11.0.2",
     "@astrojs/svelte": "^9.0.1",
     "@astrojs/vercel": "^11.0.2",
-    "@aws-sdk/client-s3": "^3.1075.0",
+    "@aws-sdk/client-s3": "^3.1081.0",
     "@electric-sql/pglite": "^0.5.3",
     "@lucide/svelte": "^1.23.0",
     "@maplibre/maplibre-gl-directions": "^0.9.1",
