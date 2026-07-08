@@ -62,6 +62,14 @@
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
   };
+
+  // Capture one-shot URL params (editor=login, auth_error, account, share
+  // codes) at script init. Child components like EntityUrlSync normalize the
+  // URL in their onMount, which fires before this parent component's onMount,
+  // so reading window.location.search there would see an already-stripped URL.
+  const initialUrlSearch =
+    typeof window !== "undefined" ? window.location.search : "";
+
   onMount(() => {
     const recentSearchesLS = localStorage.getItem("recent-search");
     try {
@@ -83,7 +91,7 @@
       });
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(initialUrlSearch);
 
     if (urlParams.get("editor") === "login") {
       adminAuthStore.openLogin();
