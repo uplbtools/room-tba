@@ -58,6 +58,8 @@ type RoomData = {
   collegeName: string | null;
   divisionName: string | null;
   imageUrl?: string | null;
+  /** Room purpose category (#537): classroom | office | org-tambayan | … | null. */
+  category?: string | null;
   version: number;
   updatedAt: string;
   floor?: number | null;

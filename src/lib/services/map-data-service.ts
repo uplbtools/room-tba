@@ -54,6 +54,7 @@ export async function getAllRoomsCached(): Promise<RoomData[]> {
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
       imageUrl: roomsTable.imageUrl,
+      category: roomsTable.category,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -119,6 +120,7 @@ export async function getAllRooms(): Promise<RoomData[]> {
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -153,6 +155,7 @@ export async function getRoomByCode(code: string) {
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -211,6 +214,7 @@ export async function getBuildingRooms(
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -244,6 +248,7 @@ export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -279,6 +284,7 @@ export async function getDivisionRooms(
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })

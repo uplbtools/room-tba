@@ -280,6 +280,7 @@ export const roomsTable = pgTable(
     collegeId: integer("college_id"),
     divisionId: integer("division_id"),
     imageUrl: text("image_url"),
+    category: varchar({ length: 24 }),
     version: integer().default(1).notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()

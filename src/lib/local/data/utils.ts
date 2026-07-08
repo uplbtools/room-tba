@@ -217,6 +217,7 @@ export async function getLocalRoomByCode(code: string) {
             r.college_id as "collegeId",
             r.division_id as "divisionId",
             r.image_url as "imageUrl",
+            r.category as category,
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r
@@ -253,6 +254,7 @@ export async function getLocalRoomById(id: number) {
             r.college_id as "collegeId",
             r.division_id as "divisionId",
             r.image_url as "imageUrl",
+            r.category as category,
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r

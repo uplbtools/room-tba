@@ -90,6 +90,7 @@ export async function initPGLiteDB(db: PGlite) {
    	"building_id" integer,
    	"college_id" integer,
    	"division_id" integer,
+    "category" varchar(24),
     "version" integer NOT NULL DEFAULT 1,
     "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "classes_fetched" boolean NOT NULL DEFAULT false
@@ -203,6 +204,9 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "image_url" text;
+
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "category" varchar(24);
 
     ALTER TABLE dorms
     ADD COLUMN IF NOT EXISTS "image_url" text;
