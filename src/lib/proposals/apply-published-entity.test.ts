@@ -18,6 +18,7 @@ function mockActions() {
     upsertDorm: () => {},
     upsertCollege: () => {},
     upsertDivision: () => {},
+    upsertOrganization: () => {},
   };
   return {
     actions,
@@ -45,6 +46,7 @@ const loadedData = (): AppContextData => ({
   divisions: [],
   dorms: [],
   events: [],
+  organizations: [],
   totalRooms: 1,
   directionCount: 1,
 });

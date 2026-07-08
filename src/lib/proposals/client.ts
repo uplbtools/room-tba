@@ -359,7 +359,7 @@ type MergeEntityConfig = {
 };
 
 const MERGE_ENTITY_CONFIG: Record<
-  Exclude<ProposalEntityType, "event" | "event_locations">,
+  Exclude<ProposalEntityType, "event" | "event_locations" | "organization">,
   MergeEntityConfig
 > = {
   building: {
@@ -390,7 +390,10 @@ const MERGE_ENTITY_CONFIG: Record<
 };
 
 export async function mergeEntityRecord(input: {
-  entityType: Exclude<ProposalEntityType, "event" | "event_locations">;
+  entityType: Exclude<
+    ProposalEntityType,
+    "event" | "event_locations" | "organization"
+  >;
   sourceId: number;
   targetId: number;
   sourceVersion: number;
