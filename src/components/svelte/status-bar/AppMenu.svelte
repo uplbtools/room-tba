@@ -1,6 +1,7 @@
 <script lang="ts">
   import Menu from "@lucide/svelte/icons/menu";
   import Keyboard from "@lucide/svelte/icons/keyboard";
+  import FileText from "@lucide/svelte/icons/file-text";
   import { onMount } from "svelte";
   import { formatCatalogUpdatedDate } from "@constants/data-catalog";
   import { APP_VERSION_LABEL } from "@constants/version";
@@ -139,6 +140,11 @@
     closePanel();
     openShortcutsHelp();
   }
+
+  function handleWhatsNew() {
+    closePanel();
+    modalStore.openModal("changelog");
+  }
 </script>
 
 <svelte:window onpointerdown={handleDocumentPointerDown} />
@@ -213,6 +219,14 @@
         aria-labelledby="app-menu-help-heading"
       >
         <h3 id="app-menu-help-heading" class="app-menu__heading">Help</h3>
+        <button
+          type="button"
+          class="app-menu__action map-chrome-chip"
+          onclick={handleWhatsNew}
+        >
+          <FileText size={14} aria-hidden="true" />
+          <span>What's new</span>
+        </button>
         <button
           type="button"
           class="app-menu__action map-chrome-chip"

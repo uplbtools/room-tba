@@ -10,6 +10,7 @@
     syncToastStore,
     adminAuthStore,
     toastStore,
+    modalStore,
   } from "@lib/store.svelte";
   import AppMenu from "./status-bar/AppMenu.svelte";
   import "./status-bar/status-bar.css";
@@ -45,7 +46,13 @@
       };
     }
     if (syncToastStore.needRefresh) {
-      return { kind: "update", label: "Update", action: () => syncToastStore.reload() };
+      // Show the changelog + require an explicit confirm before reloading,
+      // instead of reloading immediately on click.
+      return {
+        kind: "update",
+        label: "Update",
+        action: () => modalStore.openModal("changelog"),
+      };
     }
     if (syncToastStore.isSyncing) {
       return { kind: "syncing", label: "Syncing", action: null };
