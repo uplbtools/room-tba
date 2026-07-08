@@ -300,7 +300,7 @@
                 aria-controls="search-suggestions"
                 aria-autocomplete="list"
                 aria-haspopup="listbox"
-                placeholder="Search room, building, dorm, event, division..."
+                placeholder="Search room, building, org, event, division..."
               />
               {#if draftInput !== "" || queryStore.category !== null}
                 <button

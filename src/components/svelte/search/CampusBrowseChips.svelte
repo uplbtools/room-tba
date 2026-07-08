@@ -3,6 +3,7 @@
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
   import University from "@lucide/svelte/icons/university";
+  import Users from "@lucide/svelte/icons/users";
   import {
     openBrowseClasses,
     openCampusBrowse,
@@ -21,6 +22,7 @@
     { id: "buildings", label: "Buildings", icon: University },
     { id: "colleges", label: "Colleges", icon: GraduationCap },
     { id: "divisions", label: "Divisions", icon: Landmark },
+    { id: "organizations", label: "Orgs", icon: Users },
     { id: "classes", label: "Classes", icon: BookText },
     // Planner is pinned as a standalone always-visible chip in Search.svelte.
   ];
@@ -30,7 +32,8 @@
     if (queryStore.category !== "browse") return null;
     if (
       queryStore.queryValue === "colleges" ||
-      queryStore.queryValue === "divisions"
+      queryStore.queryValue === "divisions" ||
+      queryStore.queryValue === "organizations"
     ) {
       return queryStore.queryValue;
     }
