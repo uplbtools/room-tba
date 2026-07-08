@@ -38,7 +38,8 @@
   import type { StyleSpecification } from "maplibre-gl";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { BuildingData, DormData, EventData } from "@lib/types";
+  import type { BuildingData, DormData, EventData, PlaceData } from "@lib/types";
+  import MapPin from "@lucide/svelte/icons/map-pin";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
@@ -105,7 +106,7 @@
   } from "@lib/proposals/client";
   const data = getAppData();
   const appActions = getAppActions();
-  const { buildings, dorms, events, loaded } = $derived(data());
+  const { buildings, dorms, events, places, loaded } = $derived(data());
   const filteredBuildings = $derived.by(() => {
     if (!loaded) return [];
     return buildings.filter((building) =>
@@ -118,6 +119,18 @@
       dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
     );
   });
+  const filteredPlaces = $derived.by(() => {
+    if (!loaded) return [];
+    return places.filter((place) => place.lat != null && place.lon != null);
+  });
+
+  function handlePlaceMarkerClick(place: PlaceData) {
+    queryStore.updateQuery({
+      category: "place",
+      type: "result",
+      value: place.name,
+    });
+  }
 
   // Event titles are not unique, so resolve the selected event by its slug when
   // one is available, falling back to the title only for legacy/partial state.
@@ -2667,6 +2680,26 @@
               {/key}
             {/if}
           {/each}
+
+          {#each filteredPlaces as place (`place:${place.id}`)}
+            {#if place.lat != null && place.lon != null}
+              <Marker
+                lngLat={[place.lon, place.lat]}
+                onclick={() => handlePlaceMarkerClick(place)}
+              >
+                <button
+                  type="button"
+                  class="place-pin"
+                  class:place-pin--active={queryStore.category === "place" &&
+                    queryStore.inputValue === place.name}
+                  title={place.name}
+                  aria-label={place.name}
+                >
+                  <MapPin size="13" />
+                </button>
+              </Marker>
+            {/if}
+          {/each}
         {/if}
       </MapLibre>
     {/if}
@@ -2859,6 +2892,25 @@
 </div>
 
 <style>
+  .place-pin {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 2px solid white;
+    background: #0d7a5f;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    padding: 0;
+  }
+  .place-pin--active {
+    outline: 2px solid #0d7a5f;
+    outline-offset: 1px;
+    transform: scale(1.15);
+  }
+
   .map-shell {
     position: fixed;
     inset: 0;
