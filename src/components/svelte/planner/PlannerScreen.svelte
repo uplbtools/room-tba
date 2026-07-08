@@ -138,11 +138,14 @@
   // Re-resolve natural keys and load finals once per plan per open (#planner).
   $effect(() => {
     if (!plannerStore.open || !plan || plan.sections.length === 0) return;
-    const refreshKey = `${plan.id}::${plan.termId}`;
+    // Key on the course set too: adding a course to the plan must refetch its
+    // sections, otherwise dragging a newly added block has no alternatives to
+    // drop onto (drag "doesn't work" for just-added courses).
+    const courseCodes = [...new Set(plan.sections.map((s) => s.courseCode))].sort();
+    const refreshKey = `${plan.id}::${plan.termId}::${courseCodes.join(",")}`;
     if (refreshKey === lastRefreshKey) return;
     lastRefreshKey = refreshKey;
 
-    const courseCodes = [...new Set(plan.sections.map((s) => s.courseCode))];
     Promise.all(
       courseCodes.map((code) =>
         fetchClassPage({
