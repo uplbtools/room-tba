@@ -3,11 +3,14 @@
   import GitFork from "@lucide/svelte/icons/git-fork";
   import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
-  import type { StatusBarNavGroup } from "@constants/status-bar-links";
+  import type {
+    StatusBarNavGroup,
+    StatusBarActionItem,
+  } from "@constants/status-bar-links";
 
   type Props = {
     groups: StatusBarNavGroup[];
-    onAction: (id: "contributors" | "editor-login") => void;
+    onAction: (id: StatusBarActionItem["id"]) => void;
   };
 
   const { groups, onAction }: Props = $props();
