@@ -46,6 +46,67 @@
   white-space: nowrap;
 }
 
+/* Compact status pill — fixed size, never claims the flex track, so it
+   cannot squeeze sibling controls. Full detail lives in the App menu. */
+.status-bar__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+  cursor: default;
+}
+
+button.status-bar__pill {
+  cursor: pointer;
+}
+
+button.status-bar__pill:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+.status-bar__pill--update {
+  border-color: hsl(210, 70%, 78%);
+  background: hsl(210, 80%, 96%);
+  color: hsl(210, 70%, 38%);
+}
+
+.status-bar__pill--error {
+  border-color: hsl(0, 60%, 80%);
+  background: hsl(0, 80%, 97%);
+  color: hsl(0, 60%, 42%);
+}
+
+.status-bar__pill--syncing {
+  border-color: hsl(0, 0%, 84%);
+  background: hsl(0, 0%, 97%);
+  color: hsl(0, 0%, 42%);
+}
+
+.status-bar__pill :global(.status-bar__spin) {
+  animation: status-bar-spin 0.9s linear infinite;
+}
+
+@keyframes status-bar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-bar__pill :global(.status-bar__spin) {
+    animation: none;
+  }
+}
+
 .status-bar__directions {
   display: inline-flex;
   align-items: center;
