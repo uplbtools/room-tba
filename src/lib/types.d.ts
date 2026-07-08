@@ -5,6 +5,7 @@ import {
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
+  placesTable,
   roomPositionsTable,
   termsTable,
 } from "@drizzle/schema";
@@ -114,6 +115,8 @@ type DivisionData = {
 };
 
 type DormData = typeof dormsTable.$inferSelect;
+
+type PlaceData = typeof placesTable.$inferSelect;
 
 type Term = typeof termsTable.$inferSelect;
 

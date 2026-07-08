@@ -68,6 +68,21 @@ export async function initPGLiteDB(db: PGlite) {
    	"facebook_link" text
     );
 
+    CREATE TABLE IF NOT EXISTS "places" (
+   	"id" integer PRIMARY KEY,
+   	"name" text NOT NULL,
+   	"category" varchar(24) NOT NULL,
+   	"lat" double precision,
+   	"lon" double precision,
+   	"description" text,
+   	"hours" text,
+   	"website_link" text,
+   	"facebook_link" text,
+   	"image_url" text,
+    "version" integer NOT NULL DEFAULT 1,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS "room_positions" (
    	"id" integer PRIMARY KEY,
    	"floor" integer NOT NULL,

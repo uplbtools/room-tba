@@ -90,6 +90,15 @@ export function validateCreateProposalPatch(
         throw new ProposalValidationError("Dorm gender is required.");
       return;
     }
+    case "create_place": {
+      const name = typeof patch.name === "string" ? patch.name.trim() : "";
+      const category =
+        typeof patch.category === "string" ? patch.category.trim() : "";
+      if (!name) throw new ProposalValidationError("Place name is required.");
+      if (!category)
+        throw new ProposalValidationError("Place category is required.");
+      return;
+    }
     case "create_room": {
       const code =
         typeof patch.roomCode === "string" ? patch.roomCode.trim() : "";

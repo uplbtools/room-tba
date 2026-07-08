@@ -10,11 +10,13 @@ import {
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
+  placesTable,
   roomsTable,
   roomPositionsTable,
   updateTable,
 } from "@drizzle/schema";
 import { normalizeEntityName } from "@lib/entity-names";
+import { normalizePlaceCategory } from "@constants/place-categories";
 import { normalizeRoomCategory } from "@constants/room-categories";
 import { db } from "@lib/db";
 import {
@@ -27,7 +29,7 @@ import {
   roomIsrPath,
 } from "@lib/isr-revalidate";
 import { getEventById } from "./event-service";
-import type { EventData, RoomData } from "@lib/types";
+import type { EventData, PlaceData, RoomData } from "@lib/types";
 import { EditConflictError } from "./edit-conflict-error";
 
 export { EditConflictError } from "./edit-conflict-error";
@@ -1052,6 +1054,87 @@ export async function updateDorm(
   }
 
   return getDormById(id);
+}
+
+export type PlaceUpdateInput = Partial<{
+  name: string;
+  category: string;
+  lat: number | null;
+  lon: number | null;
+  description: string | null;
+  hours: string | null;
+  websiteLink: string | null;
+  facebookLink: string | null;
+  imageUrl: string | null;
+}>;
+
+async function getPlaceById(id: number): Promise<PlaceData | null> {
+  const [row] = await db
+    .select()
+    .from(placesTable)
+    .where(eq(placesTable.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function updatePlace(
+  id: number,
+  input: PlaceUpdateInput,
+  expectedVersion?: number,
+  _editedBy = "admin",
+  _history?: EditorHistoryOverride,
+): Promise<PlaceData | null> {
+  const updates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) updates[key] = value;
+  }
+  if (input.category !== undefined) {
+    updates.category = normalizePlaceCategory(input.category) ?? "landmark";
+  }
+  if (Object.keys(updates).length === 0) return getPlaceById(id);
+
+  const where =
+    expectedVersion === undefined
+      ? eq(placesTable.id, id)
+      : and(eq(placesTable.id, id), eq(placesTable.version, expectedVersion));
+  const [updated] = await db
+    .update(placesTable)
+    .set({ ...updates, version: sql`"version" + 1`, updatedAt: sql`now()` })
+    .where(where)
+    .returning();
+
+  if (!updated && expectedVersion !== undefined) {
+    throw new EditConflictError(await getPlaceById(id));
+  }
+  await refreshSyncKey("places");
+  return updated ?? (await getPlaceById(id));
+}
+
+export type PlaceCreateInput = PlaceUpdateInput & {
+  name: string;
+  category: string;
+};
+
+export async function createPlace(
+  input: PlaceCreateInput,
+  _editedBy = "admin",
+): Promise<PlaceData | null> {
+  const [inserted] = await db
+    .insert(placesTable)
+    .values({
+      name: input.name.trim(),
+      category: normalizePlaceCategory(input.category) ?? "landmark",
+      lat: input.lat ?? null,
+      lon: input.lon ?? null,
+      description: input.description ?? null,
+      hours: input.hours ?? null,
+      websiteLink: input.websiteLink ?? null,
+      facebookLink: input.facebookLink ?? null,
+      imageUrl: input.imageUrl ?? null,
+    })
+    .returning();
+  await refreshSyncKey("places");
+  return inserted ?? null;
 }
 
 export type DormCreateInput = DormUpdateInput & {
