@@ -23,7 +23,7 @@
   $effect(() => {
     const q = query.trim();
     const t = termId;
-    const timer = window.setTimeout(
+    const timer = setTimeout(
       () => {
         loading = true;
         fetchClassPage({
@@ -45,7 +45,7 @@
       },
       q ? 250 : 0,
     );
-    return () => window.clearTimeout(timer);
+    return () => clearTimeout(timer);
   });
 
   type CourseGroup = {
@@ -77,7 +77,9 @@
 
   function selectedCount(course: CourseGroup): number {
     return course.offerings.filter((o) =>
-      plannerStore.addedKeys.has(offeringGroupKey(o.courseCode, o.section) ?? ""),
+      plannerStore.addedKeys.has(
+        offeringGroupKey(o.courseCode, o.section) ?? "",
+      ),
     ).length;
   }
 
@@ -127,58 +129,60 @@
       {query.trim() ? "No courses found this term." : "No classes this term."}
     </p>
   {:else}
-    <ul class="course-search__list">
-      {#each courses as course (course.courseCode)}
-        {@const picked = selectedCount(course)}
-        <li class="course-item">
-          <button
-            type="button"
-            class="course-item__header"
-            aria-expanded={expanded.has(course.courseCode)}
-            onclick={() => toggleExpanded(course.courseCode)}
-          >
-            <span class="course-item__code">{course.courseCode}</span>
-            <span class="course-item__meta">
-              {#if picked > 0}
-                <span class="course-item__picked">{picked} in plan</span>
+    <div class="course-search__list">
+      <div class="course-search__list-container">
+        {#each courses as course (course.courseCode)}
+          {@const picked = selectedCount(course)}
+          <div class="course-item">
+            <button
+              type="button"
+              class="course-item__header"
+              aria-expanded={expanded.has(course.courseCode)}
+              onclick={() => toggleExpanded(course.courseCode)}
+            >
+              <span class="course-item__code">{course.courseCode}</span>
+              <span class="course-item__meta">
+                {#if picked > 0}
+                  <span class="course-item__picked">{picked} in plan</span>
+                {/if}
+                {course.offerings.length}
+                section{course.offerings.length === 1 ? "" : "s"}
+              </span>
+              {#if course.title}
+                <span class="course-item__title">{course.title}</span>
               {/if}
-              {course.offerings.length}
-              section{course.offerings.length === 1 ? "" : "s"}
-            </span>
-            {#if course.title}
-              <span class="course-item__title">{course.title}</span>
+            </button>
+            {#if expanded.has(course.courseCode)}
+              <ul class="course-item__sections">
+                {#each course.offerings as offering (offering.key)}
+                  {@const key = offeringGroupKey(
+                    offering.courseCode,
+                    offering.section,
+                  )}
+                  {@const added = plannerStore.addedKeys.has(key ?? "")}
+                  <li class="section-row">
+                    <div class="section-row__main">
+                      <span class="section-row__name">{offering.section}</span>
+                      <span class="section-row__schedule">
+                        {offeringSchedule(offering)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      class="section-row__toggle"
+                      class:section-row__toggle--added={added}
+                      onclick={() => togglePlan(offering)}
+                    >
+                      {added ? "✓" : "Add"}
+                    </button>
+                  </li>
+                {/each}
+              </ul>
             {/if}
-          </button>
-          {#if expanded.has(course.courseCode)}
-            <ul class="course-item__sections">
-              {#each course.offerings as offering (offering.key)}
-                {@const key = offeringGroupKey(
-                  offering.courseCode,
-                  offering.section,
-                )}
-                {@const added = plannerStore.addedKeys.has(key ?? "")}
-                <li class="section-row">
-                  <div class="section-row__main">
-                    <span class="section-row__name">{offering.section}</span>
-                    <span class="section-row__schedule">
-                      {offeringSchedule(offering)}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    class="section-row__toggle"
-                    class:section-row__toggle--added={added}
-                    onclick={() => togglePlan(offering)}
-                  >
-                    {added ? "✓" : "Add"}
-                  </button>
-                </li>
-              {/each}
-            </ul>
-          {/if}
-        </li>
-      {/each}
-    </ul>
+          </div>
+        {/each}
+      </div>
+    </div>
     {#if rows.length < total}
       <p class="course-search__note">
         Showing first {rows.length} of {total} sections — refine the search.
@@ -205,6 +209,7 @@
     border-radius: 0.5rem;
     background: white;
     color: hsl(0, 0%, 45%);
+    flex: 0 0 auto;
   }
 
   .course-search__box:focus-within {
@@ -226,14 +231,17 @@
   }
 
   .course-search__list {
-    list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
     gap: 0.375rem;
     overflow-y: auto;
     min-height: 0;
+  }
+
+  .course-search__list-container {
+      display:flex;
+      flex-direction: column;
+      gap:.375rem;
   }
 
   .course-item {
