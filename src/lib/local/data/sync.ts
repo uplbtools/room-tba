@@ -4,6 +4,7 @@ import type {
   DivisionData,
   DormData,
   EventData,
+  PlaceData,
   RoomData,
   TableSyncInfo,
 } from "@lib/types";
@@ -306,6 +307,60 @@ export async function syncDorms(
   }
   if (trustedRemote) {
     updateSyncKeyFromLs("dorms", checker.newKey ?? "");
+  }
+}
+
+export async function syncPlaces(
+  checker: TableSyncInfo,
+  remotePlaces: PlaceData[],
+  trustedRemote = false,
+) {
+  if (await shouldSkipValidSync(checker, "places")) return;
+  if (checker.newKey === null) return;
+  if (!trustedRemote) return;
+
+  const localDB = getDB();
+  await localDB.waitReady;
+  for (const p of remotePlaces) {
+    try {
+      await localDB.query(
+        `
+        INSERT INTO places (id, name, category, lat, lon, description, hours, website_link, facebook_link, image_url, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        category = EXCLUDED.category,
+        lat = EXCLUDED.lat,
+        lon = EXCLUDED.lon,
+        description = EXCLUDED.description,
+        hours = EXCLUDED.hours,
+        website_link = EXCLUDED.website_link,
+        facebook_link = EXCLUDED.facebook_link,
+        image_url = EXCLUDED.image_url,
+        version = EXCLUDED.version,
+        updated_at = EXCLUDED.updated_at;
+        `,
+        [
+          p.id,
+          p.name,
+          p.category,
+          p.lat,
+          p.lon,
+          p.description,
+          p.hours,
+          p.websiteLink,
+          p.facebookLink,
+          p.imageUrl ?? null,
+          p.version,
+          p.updatedAt,
+        ],
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  if (trustedRemote) {
+    updateSyncKeyFromLs("places", checker.newKey ?? "");
   }
 }
 
