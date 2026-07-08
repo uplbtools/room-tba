@@ -18,6 +18,7 @@
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
+  import TermSelector from "@ui/TermSelector.svelte";
   import TransitFilterChip from "@ui/TransitFilterChip.svelte";
   import TransitRoutePanel from "@ui/TransitRoutePanel.svelte";
   import { jeepneyStore, plannerStore } from "@lib/store.svelte";
@@ -383,6 +384,7 @@
       {#if chrome.showSearchSuggestions}
         <div class="campus-browse-chips__container">
           <CampusBrowseChips />
+          <TermSelector />
         </div>
       {/if}
 
