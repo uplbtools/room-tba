@@ -380,12 +380,13 @@
         </div>
       </div>
 
+      {#if chrome.showSearchSuggestions}
+        <div class="campus-browse-chips__container">
+          <CampusBrowseChips />
+        </div>
+      {/if}
+
       {#if showSearchDropdown}
-          <div class="campus-browse-chips__container">
-            {#if chrome.showSearchSuggestions}
-            <CampusBrowseChips />
-            {/if}
-          </div>
         <!-- svelte-ignore a11y_interactive_supports_focus -->
         <div
           id="search-suggestions"
