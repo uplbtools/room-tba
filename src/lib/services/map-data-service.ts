@@ -6,6 +6,8 @@ import {
   collegesTable,
   divisionsTable,
   dormsTable,
+  organizationsTable,
+  placesTable,
   finalExamsTable,
   roomsTable,
 } from "@drizzle/schema";
@@ -21,6 +23,8 @@ import type {
   CollegeData,
   DivisionData,
   DormData,
+  OrgData,
+  PlaceData,
   FinalExamRow,
   RoomData,
 } from "@lib/types";
@@ -54,6 +58,7 @@ export async function getAllRoomsCached(): Promise<RoomData[]> {
       collegeId: roomsTable.collegeId,
       divisionId: roomsTable.divisionId,
       imageUrl: roomsTable.imageUrl,
+      category: roomsTable.category,
       version: roomsTable.version,
       updatedAt: roomsTable.updatedAt,
     })
@@ -119,6 +124,7 @@ export async function getAllRooms(): Promise<RoomData[]> {
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -153,6 +159,7 @@ export async function getRoomByCode(code: string) {
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -211,6 +218,7 @@ export async function getBuildingRooms(
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -244,6 +252,7 @@ export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -279,6 +288,7 @@ export async function getDivisionRooms(
         collegeId: roomsTable.collegeId,
         divisionId: roomsTable.divisionId,
         imageUrl: roomsTable.imageUrl,
+        category: roomsTable.category,
         version: roomsTable.version,
         updatedAt: roomsTable.updatedAt,
       })
@@ -633,6 +643,40 @@ export async function getAllDorms(): Promise<DormData[]> {
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for dorms", { cause: e });
+  }
+}
+
+export async function getAllOrganizationsCached(): Promise<OrgData[]> {
+  const cache = getBuildCache();
+  if (cache.organizations) return cache.organizations;
+  const data = await db.select().from(organizationsTable);
+  cache.organizations = data;
+  return data;
+}
+
+export async function getAllOrganizations(): Promise<OrgData[]> {
+  try {
+    return await db.select().from(organizationsTable);
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch data for organizations", { cause: e });
+  }
+}
+
+export async function getAllPlacesCached(): Promise<PlaceData[]> {
+  const cache = getBuildCache();
+  if (cache.places) return cache.places;
+  const data = await db.select().from(placesTable);
+  cache.places = data;
+  return data;
+}
+
+export async function getAllPlaces(): Promise<PlaceData[]> {
+  try {
+    return await db.select().from(placesTable);
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch data for places", { cause: e });
   }
 }
 

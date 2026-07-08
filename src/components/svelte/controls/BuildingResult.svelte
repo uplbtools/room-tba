@@ -55,7 +55,7 @@
 
   const appData = getAppData();
   const appActions = getAppActions();
-  const { buildings, loaded } = $derived(appData());
+  const { buildings, organizations, loaded } = $derived(appData());
 
   let pinnedBuildingId = $state<number | null>(null);
 
@@ -74,6 +74,22 @@
   $effect(() => {
     if (building?.id) pinnedBuildingId = building.id;
   });
+
+  // Reverse-lookup: orgs and offices housed in this building.
+  const buildingOrgs = $derived(
+    building && organizations
+      ? organizations.filter((o) => o.buildingId === building.id)
+      : [],
+  );
+
+  function openOrg(name: string) {
+    queryStore.updateQuery({
+      category: "organization",
+      type: "result",
+      value: name,
+    });
+    queryStore.inputValue = name;
+  }
   const buildingShareUrl = $derived(
     building ? getBuildingShareUrl(building.buildingName) : "",
   );
@@ -228,7 +244,6 @@
     if (!canPublish) {
       const saved = readEntityContributorDraft("building", current.id);
       if (saved) {
-        if (saved.editing) editing = true;
         if (typeof saved.fields.nameDraft === "string") {
           nameDraft = saved.fields.nameDraft;
         }
@@ -738,6 +753,23 @@
     <p class="entity-loading-note">Loading building…</p>
   {/if}
 
+  {#if buildingOrgs.length > 0}
+    <section class="building-orgs" aria-label="Organizations and offices here">
+      <h3 class="entity-section-heading">Orgs &amp; offices here</h3>
+      <div class="entity-tag-list">
+        {#each buildingOrgs as org (org.id)}
+          <button
+            type="button"
+            class="entity-tag-chip building-orgs__chip"
+            onclick={() => openOrg(org.name)}
+          >
+            {org.name}
+          </button>
+        {/each}
+      </div>
+    </section>
+  {/if}
+
   {#if buildingRooms}
     <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
   {:else if building}
@@ -751,6 +783,17 @@
   @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
+
+  .building-orgs {
+    padding: 0.5rem 0.25rem 0;
+  }
+
+  .building-orgs__chip {
+    border: none;
+    cursor: pointer;
+    background-color: hsl(265, 45%, 92%);
+    color: hsl(265, 45%, 34%);
+  }
 
   .building-query-wrapper {
     gap: 0.625rem;

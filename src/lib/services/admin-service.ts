@@ -10,11 +10,15 @@ import {
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
+  organizationsTable,
+  placesTable,
   roomsTable,
   roomPositionsTable,
   updateTable,
 } from "@drizzle/schema";
 import { normalizeEntityName } from "@lib/entity-names";
+import { normalizePlaceCategory } from "@constants/place-categories";
+import { normalizeRoomCategory } from "@constants/room-categories";
 import { db } from "@lib/db";
 import {
   buildingIsrPath,
@@ -26,7 +30,7 @@ import {
   roomIsrPath,
 } from "@lib/isr-revalidate";
 import { getEventById } from "./event-service";
-import type { EventData, RoomData } from "@lib/types";
+import type { EventData, PlaceData, RoomData } from "@lib/types";
 import { EditConflictError } from "./edit-conflict-error";
 
 export { EditConflictError } from "./edit-conflict-error";
@@ -190,6 +194,7 @@ export type RoomUpdateInput = {
   collegeId?: number | null;
   divisionId?: number | null;
   imageUrl?: string | null;
+  category?: string | null;
 };
 
 export async function findRoomMergeCandidate(
@@ -321,6 +326,8 @@ export async function updateRoom(
   if (input.divisionId !== undefined)
     updates.divisionId = input.divisionId ?? null;
   if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
+  if (input.category !== undefined)
+    updates.category = normalizeRoomCategory(input.category);
 
   if (Object.keys(updates).length > 0) {
     if (input.roomCode !== undefined) {
@@ -1050,6 +1057,87 @@ export async function updateDorm(
   return getDormById(id);
 }
 
+export type PlaceUpdateInput = Partial<{
+  name: string;
+  category: string;
+  lat: number | null;
+  lon: number | null;
+  description: string | null;
+  hours: string | null;
+  websiteLink: string | null;
+  facebookLink: string | null;
+  imageUrl: string | null;
+}>;
+
+async function getPlaceById(id: number): Promise<PlaceData | null> {
+  const [row] = await db
+    .select()
+    .from(placesTable)
+    .where(eq(placesTable.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function updatePlace(
+  id: number,
+  input: PlaceUpdateInput,
+  expectedVersion?: number,
+  _editedBy = "admin",
+  _history?: EditorHistoryOverride,
+): Promise<PlaceData | null> {
+  const updates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) updates[key] = value;
+  }
+  if (input.category !== undefined) {
+    updates.category = normalizePlaceCategory(input.category) ?? "landmark";
+  }
+  if (Object.keys(updates).length === 0) return getPlaceById(id);
+
+  const where =
+    expectedVersion === undefined
+      ? eq(placesTable.id, id)
+      : and(eq(placesTable.id, id), eq(placesTable.version, expectedVersion));
+  const [updated] = await db
+    .update(placesTable)
+    .set({ ...updates, version: sql`"version" + 1`, updatedAt: sql`now()` })
+    .where(where)
+    .returning();
+
+  if (!updated && expectedVersion !== undefined) {
+    throw new EditConflictError(await getPlaceById(id));
+  }
+  await refreshSyncKey("places");
+  return updated ?? (await getPlaceById(id));
+}
+
+export type PlaceCreateInput = PlaceUpdateInput & {
+  name: string;
+  category: string;
+};
+
+export async function createPlace(
+  input: PlaceCreateInput,
+  _editedBy = "admin",
+): Promise<PlaceData | null> {
+  const [inserted] = await db
+    .insert(placesTable)
+    .values({
+      name: input.name.trim(),
+      category: normalizePlaceCategory(input.category) ?? "landmark",
+      lat: input.lat ?? null,
+      lon: input.lon ?? null,
+      description: input.description ?? null,
+      hours: input.hours ?? null,
+      websiteLink: input.websiteLink ?? null,
+      facebookLink: input.facebookLink ?? null,
+      imageUrl: input.imageUrl ?? null,
+    })
+    .returning();
+  await refreshSyncKey("places");
+  return inserted ?? null;
+}
+
 export type DormCreateInput = DormUpdateInput & {
   dormName: string;
   gender: string;
@@ -1092,6 +1180,135 @@ export async function createDorm(
     editedBy,
   });
   await refreshSyncKey("dorms", [dormIsrPath(inserted), "/dorm/"]);
+  return inserted;
+}
+
+// ── Organizations ──
+
+export type OrgAdmin = typeof organizationsTable.$inferSelect;
+
+export async function getOrganizationById(
+  id: number,
+): Promise<OrgAdmin | null> {
+  const rows = await db
+    .select()
+    .from(organizationsTable)
+    .where(eq(organizationsTable.id, id))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getAllOrganizationsAdmin(): Promise<OrgAdmin[]> {
+  return db.select().from(organizationsTable).orderBy(organizationsTable.name);
+}
+
+export type OrgUpdateInput = Partial<{
+  name: string;
+  category: string;
+  buildingId: number | null;
+  roomId: number | null;
+  lat: number | null;
+  lon: number | null;
+  description: string | null;
+  websiteLink: string | null;
+  facebookLink: string | null;
+  email: string | null;
+  imageUrl: string | null;
+}>;
+
+export async function updateOrganization(
+  id: number,
+  input: OrgUpdateInput,
+  expectedVersion?: number,
+  editedBy = "admin",
+  history?: EditorHistoryOverride,
+): Promise<OrgAdmin | null> {
+  const updates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) updates[key] = value;
+  }
+  if (Object.keys(updates).length > 0) {
+    const before = await getOrganizationById(id);
+    const where =
+      expectedVersion === undefined
+        ? eq(organizationsTable.id, id)
+        : and(
+            eq(organizationsTable.id, id),
+            eq(organizationsTable.version, expectedVersion),
+          );
+    const [updated] = await db
+      .update(organizationsTable)
+      .set({
+        ...updates,
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning();
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(await getOrganizationById(id));
+    }
+
+    if (before && updated) {
+      await recordEditorHistory({
+        entityType: "organization",
+        entityId: id,
+        action: history?.action ?? "update",
+        before,
+        after: updated,
+        versionBefore: before.version,
+        versionAfter: updated.version,
+        editedBy,
+        summary: history?.summary ?? null,
+      });
+    }
+
+    await refreshSyncKey("organizations", []);
+    return updated ?? (await getOrganizationById(id));
+  }
+
+  return getOrganizationById(id);
+}
+
+export type OrgCreateInput = OrgUpdateInput & {
+  name: string;
+  category: string;
+};
+
+export async function createOrganization(
+  input: OrgCreateInput,
+  editedBy = "admin",
+): Promise<OrgAdmin | null> {
+  const [inserted] = await db
+    .insert(organizationsTable)
+    .values({
+      name: input.name.trim(),
+      category: input.category.trim(),
+      buildingId: input.buildingId ?? null,
+      roomId: input.roomId ?? null,
+      lat: input.lat ?? null,
+      lon: input.lon ?? null,
+      description: input.description ?? null,
+      websiteLink: input.websiteLink ?? null,
+      facebookLink: input.facebookLink ?? null,
+      email: input.email ?? null,
+      imageUrl: input.imageUrl ?? null,
+    })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "organization",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("organizations", []);
   return inserted;
 }
 

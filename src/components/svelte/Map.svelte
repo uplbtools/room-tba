@@ -29,6 +29,7 @@
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import X from "@lucide/svelte/icons/x";
   import House from "@lucide/svelte/icons/house";
+  import Users from "@lucide/svelte/icons/users";
   import Move from "@lucide/svelte/icons/move";
   import Undo2 from "@lucide/svelte/icons/undo-2";
   import Redo2 from "@lucide/svelte/icons/redo-2";
@@ -41,7 +42,8 @@
   import type { StyleSpecification } from "maplibre-gl";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { BuildingData, DormData, EventData } from "@lib/types";
+  import type { BuildingData, DormData, EventData, PlaceData } from "@lib/types";
+  import MapPin from "@lucide/svelte/icons/map-pin";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
@@ -108,7 +110,8 @@
   } from "@lib/proposals/client";
   const data = getAppData();
   const appActions = getAppActions();
-  const { buildings, dorms, events, loaded } = $derived(data());
+  const { buildings, dorms, events, organizations, places, loaded } =
+    $derived(data());
   // Refresh the set of buildings that host classes whenever the term changes
   // or an offline sync lands, so dual-role buildings (admin + class venue)
   // filter correctly.
@@ -134,6 +137,41 @@
       dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
     );
   });
+  // Organizations pin at their own coordinate, else fall back to the coords of
+  // the building they sit in. Orgs without any resolvable location are dropped
+  // from the map (they still appear in the directory list).
+  const filteredOrganizations = $derived.by(() => {
+    if (!loaded) return [];
+    return organizations
+      .map((org) => {
+        let lat = org.lat;
+        let lon = org.lon;
+        if ((lat === null || lon === null) && org.buildingId !== null) {
+          const host = buildings.find((b) => b.id === org.buildingId);
+          if (host) {
+            lat = host.lat;
+            lon = host.lon;
+          }
+        }
+        return { org, lat, lon };
+      })
+      .filter(
+        (entry): entry is { org: (typeof organizations)[number]; lat: number; lon: number } =>
+          entry.lat !== null && entry.lon !== null,
+      );
+  });
+  const filteredPlaces = $derived.by(() => {
+    if (!loaded) return [];
+    return places.filter((place) => place.lat != null && place.lon != null);
+  });
+
+  function handlePlaceMarkerClick(place: PlaceData) {
+    queryStore.updateQuery({
+      category: "place",
+      type: "result",
+      value: place.name,
+    });
+  }
 
   // Event titles are not unique, so resolve the selected event by its slug when
   // one is available, falling back to the title only for legacy/partial state.
@@ -1889,6 +1927,18 @@
     queryStore.inputValue = dormName;
   }
 
+  function handleOrgMarkerClick(name: string) {
+    if (eventPlacementStore.active) return;
+    if (isMapEditEnabled() && selectedEditKey !== null) return;
+    if (name === queryStore.inputValue) return;
+    queryStore.updateQuery({
+      category: "organization",
+      type: "result",
+      value: name,
+    });
+    queryStore.inputValue = name;
+  }
+
   function handleEventMarkerClick(event: EventData) {
     if (eventPlacementStore.active) return;
     if (isMapEditEnabled() && selectedEditKey !== null) return;
@@ -2231,6 +2281,13 @@
 
   let activeDormName = $derived.by(() => {
     if (queryStore.category === "dorm" && queryStore.type === "result") {
+      return queryStore.inputValue;
+    }
+    return null;
+  });
+
+  let activeOrgName = $derived.by(() => {
+    if (queryStore.category === "organization" && queryStore.type === "result") {
       return queryStore.inputValue;
     }
     return null;
@@ -2683,6 +2740,42 @@
               {/key}
             {/if}
           {/each}
+
+          {#each filteredPlaces as place (`place:${place.id}`)}
+            {#if place.lat != null && place.lon != null}
+              <Marker
+                lngLat={[place.lon, place.lat]}
+                onclick={() => handlePlaceMarkerClick(place)}
+              >
+                <button
+                  type="button"
+                  class="place-pin"
+                  class:place-pin--active={queryStore.category === "place" &&
+                    queryStore.inputValue === place.name}
+                  title={place.name}
+                  aria-label={place.name}
+                >
+                  <MapPin size="13" />
+                </button>
+              </Marker>
+            {/if}
+          {/each}
+        {/if}
+
+        {#if !mapViewStore.eventsOnly}
+          {#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
+            <Marker lngLat={[lon, lat]}>
+              <MapEntityPin
+                label={org.name}
+                tone="organization"
+                active={activeOrgName === org.name}
+                labelVisible={zoomLevel >= 17 || activeOrgName === org.name}
+                onclick={() => handleOrgMarkerClick(org.name)}
+              >
+                <Users size="16" />
+              </MapEntityPin>
+            </Marker>
+          {/each}
         {/if}
       </MapLibre>
     {/if}
@@ -2875,6 +2968,25 @@
 </div>
 
 <style>
+  .place-pin {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 2px solid white;
+    background: #0d7a5f;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    padding: 0;
+  }
+  .place-pin--active {
+    outline: 2px solid #0d7a5f;
+    outline-offset: 1px;
+    transform: scale(1.15);
+  }
+
   .map-shell {
     position: fixed;
     inset: 0;
