@@ -94,7 +94,9 @@
     if (plannerStore.addedKeys.has(key)) {
       plannerStore.removeSections(offering.sections);
     } else {
-      plannerStore.addOffering(offering.sections);
+      // One section per course: picking a different section of a course you've
+      // already added swaps it in rather than stacking multiple labs (#13).
+      plannerStore.replaceCourse(offering.courseCode, offering.sections);
       toastStore.show(
         `${offering.courseCode} ${offering.section} added to ${plannerStore.activePlan?.label ?? "plan"}`,
         "success",
