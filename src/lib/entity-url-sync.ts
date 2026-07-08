@@ -22,6 +22,8 @@ export type EntityUrlSyncContext = {
   hydrateQuery: (query: RoutableQueryState) => void;
   clearQuery: () => void;
   getQuerySnapshot: () => RoutableQueryState;
+  /** Open/close the planner in response to /planner navigations (back/forward). */
+  setPlannerOpen: (open: boolean) => void;
 };
 
 export type EntityUrlSyncSnapshot = RoutableQueryState & {
@@ -29,9 +31,11 @@ export type EntityUrlSyncSnapshot = RoutableQueryState & {
   editMode: boolean;
   termId: number | null;
   defaultTermId: number | null;
+  plannerOpen: boolean;
 };
 
 const HOME_PATH = "/";
+const PLANNER_PATH = "/planner";
 
 export function createEntityUrlSync(context: EntityUrlSyncContext) {
   let applyingFromHistory = false;
@@ -123,6 +127,8 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     applyingFromHistory = true;
     try {
       termStore.applyFromUrl();
+      // Back/forward into or out of /planner toggles the planner overlay.
+      context.setPlannerOpen(currentPathname() === PLANNER_PATH);
       const state = (event.state ?? null) as EntityHistoryState | null;
       if (state?.query) {
         context.hydrateQuery(state.query);
@@ -171,6 +177,41 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
 
   function syncFromQuery(snapshot: EntityUrlSyncSnapshot) {
     if (!initialized || applyingFromHistory || snapshot.editMode) return;
+
+    // Planner takes over the URL while open, so clicking "Class Planner" moves
+    // to /planner (shareable, refreshable). Closing falls through to the
+    // entity/home logic below and restores the prior path.
+    if (snapshot.plannerOpen) {
+      const plannerPath = withTermQuery(
+        PLANNER_PATH,
+        snapshot.termId,
+        snapshot.defaultTermId,
+      );
+      const plannerPathname = plannerPath.split("?")[0] ?? PLANNER_PATH;
+      const plannerSearch = plannerPath.includes("?")
+        ? plannerPath.slice(plannerPath.indexOf("?"))
+        : "";
+      if (
+        currentPathname() !== plannerPathname ||
+        window.location.search !== plannerSearch
+      ) {
+        const carried =
+          snapshot.type === "result" && snapshot.category !== null
+            ? {
+                type: "result" as const,
+                category: snapshot.category,
+                value: snapshot.value,
+                eventSlug: snapshot.eventSlug,
+              }
+            : null;
+        window.history.pushState(
+          buildHistoryState(carried, HOME_PATH),
+          "",
+          plannerPath,
+        );
+      }
+      return;
+    }
 
     if (snapshot.type !== "result" || snapshot.category === null) {
       const pathname = currentPathname();
