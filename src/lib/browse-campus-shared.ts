@@ -1,4 +1,8 @@
-export type CampusBrowseTab = "buildings" | "colleges" | "divisions";
+export type CampusBrowseTab =
+  | "buildings"
+  | "colleges"
+  | "divisions"
+  | "organizations";
 
 export function campusBrowseQuery(tab: CampusBrowseTab) {
   return {

@@ -16,6 +16,7 @@ const DEFAULT_E2E_PASSWORD = "e2e-test-password-change-me";
 export const E2E_FIXTURES = {
   buildingName: "E2E Test Hall",
   dormName: "E2E Test Dorm",
+  orgName: "E2E Test Office",
   roomCode: "E2E-101",
   eventSlug: "e2e-test-event",
   eventTitle: "E2E Test Event",
@@ -152,6 +153,14 @@ async function main() {
     const roomId = room.rows[0]?.id;
     if (!roomId) throw new Error("Failed to seed room");
 
+    const organization = await client.query<{ id: number }>(
+      `INSERT INTO organizations (name, category, building_id, description, version)
+       VALUES ($1, 'office', $2, 'E2E seeded office', 1) RETURNING id`,
+      [E2E_FIXTURES.orgName, buildingId],
+    );
+    const orgId = organization.rows[0]?.id;
+    if (!orgId) throw new Error("Failed to seed organization");
+
     await client.query(
       `INSERT INTO events (slug, title, description, category, starts_at, ends_at, timezone, recurrence, is_active, include_in_seo, version)
        VALUES ($1, $2, 'E2E event', 'other', NOW() + interval '1 day', NOW() + interval '2 days', 'Asia/Manila', 'none', true, true, 1)`,
@@ -198,6 +207,7 @@ async function main() {
       "events",
       "classes",
       "terms",
+      "organizations",
     ]) {
       await client.query(
         `INSERT INTO update (table_name, sync_key) VALUES ($1, gen_random_uuid())
@@ -214,6 +224,7 @@ async function main() {
         roomId,
         collegeId,
         divisionId,
+        orgId,
       }),
     );
   } finally {
