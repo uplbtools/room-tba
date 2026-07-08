@@ -11,6 +11,7 @@
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
   import LeaderboardModal from "./LeaderboardModal.svelte";
+  import ChangelogModal from "../ChangelogModal.svelte";
   import X from "@lucide/svelte/icons/x";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -34,6 +35,7 @@
     if (modalStore.type === "landing") return undefined;
     if (modalStore.type === "schedule-expand") return "Room schedule";
     if (modalStore.type === "leaderboard") return "Contributor leaderboard";
+    if (modalStore.type === "changelog") return "What's new";
     return "Dialog";
   });
 
@@ -104,6 +106,16 @@
           <X size={20} aria-hidden="true" />
         </button>
         <LeaderboardModal />
+      {:else if modalStore.type === "changelog"}
+        <button
+          type="button"
+          class="modal-content__close-icon"
+          aria-label="Close changelog"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+        <ChangelogModal />
       {/if}
     </div>
   </div>
