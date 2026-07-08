@@ -324,6 +324,40 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
   }
 }
 
+/**
+ * Building ids that host at least one class for a term (or any term when
+ * termId is omitted). Derived from the classes -> rooms -> building chain;
+ * used to surface dual-role buildings (admin AND class venue) in the class
+ * filter. Returns an empty set on any error so callers degrade gracefully.
+ */
+export async function getBuildingIdsWithClasses(
+  termId?: number | null,
+): Promise<Set<number>> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const scoped = termId != null;
+    const data = (await localDB.query(
+      `
+      SELECT DISTINCT r.building_id AS "buildingId"
+      FROM classes AS c
+      JOIN rooms AS r ON r.id = c.room_id
+      WHERE r.building_id IS NOT NULL
+      ${scoped ? "AND c.term_id = $1" : ""};
+    `,
+      scoped ? [termId] : [],
+    )) as Results<{ buildingId: number | null }>;
+    return new Set(
+      data.rows
+        .map((row) => row.buildingId)
+        .filter((id): id is number => id !== null),
+    );
+  } catch (e) {
+    console.error("Error: ", e);
+    return new Set<number>();
+  }
+}
+
 export async function loadCachedAppData(): Promise<DBData> {
   const [buildings, colleges, divisions, dorms, events, roomsMeta] =
     await Promise.all([

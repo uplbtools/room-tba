@@ -155,7 +155,11 @@ import {
   SyncToastStore,
   OfflineStore,
 } from "./sync-stores.svelte.js";
-import { TermStore, RoomClassesStore } from "./data-stores.svelte.js";
+import {
+  TermStore,
+  RoomClassesStore,
+  ClassVenuesStore,
+} from "./data-stores.svelte.js";
 import { PlannerStore } from "./planner-store.svelte.js";
 
 class LocationStore {
@@ -860,6 +864,7 @@ class ScheduleRouteStore {
 export const queryStore = new QueryStore();
 export const termStore = new TermStore();
 export const roomClassesStore = new RoomClassesStore();
+export const classVenuesStore = new ClassVenuesStore();
 export const plannerStore = new PlannerStore(() => termStore.activeTermId);
 export const scheduleRouteStore = new ScheduleRouteStore();
 export const offlineStore = new OfflineStore();

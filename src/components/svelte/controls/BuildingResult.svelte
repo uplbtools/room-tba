@@ -77,9 +77,18 @@
   const buildingShareUrl = $derived(
     building ? getBuildingShareUrl(building.buildingName) : "",
   );
-  const buildingTypeLabel = $derived(
-    building?.buildingType === "admin" ? "Administrative" : "Class building",
-  );
+  // A building can be both: the stored admin flag AND a class venue (it has
+  // rooms hosting classes this term). Surface both roles in the badge.
+  const hostsClasses = $derived.by(() => {
+    if (!classCounts) return false;
+    for (const count of classCounts.values()) if (count > 0) return true;
+    return false;
+  });
+  const buildingTypeLabel = $derived.by(() => {
+    const isAdmin = building?.buildingType === "admin";
+    if (isAdmin && hostsClasses) return "Administrative · Class venue";
+    return isAdmin ? "Administrative" : "Class building";
+  });
   const hasMapPin = $derived(Boolean(building?.lat && building?.lon));
   const pinProposalActive = $derived(
     building ? mapProposalStore.allowsKey(`building:${building.id}`) : false,

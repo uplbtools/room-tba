@@ -9,13 +9,24 @@
     type BuildingTypeFilter,
   } from "@constants/building-types";
   import { getAppData } from "@lib/context";
-  import { buildingTypeFilter, jeepneyStore, queryStore } from "@lib/store.svelte";
+  import {
+    buildingTypeFilter,
+    jeepneyStore,
+    queryStore,
+    classVenuesStore,
+  } from "@lib/store.svelte";
   import "./map-chrome/map-chrome.css";
 
   const appData = getAppData();
   const { buildings, dorms } = $derived(appData());
 
-  const options = $derived(getBuildingTypeFilterOptions(buildings, dorms));
+  const options = $derived(
+    getBuildingTypeFilterOptions(
+      buildings,
+      dorms,
+      classVenuesStore.buildingIdsWithClasses,
+    ),
+  );
 
   const CHIP_LABELS: Record<BuildingTypeFilter, string> = {
     all: "All",
