@@ -11,9 +11,12 @@ test.describe("entity pages", () => {
   test("seeded building page 200", async ({ page }) => {
     const res = await page.goto(buildingPagePath());
     expect(res?.status()).toBeLessThan(400);
-    await expect(page.locator("body")).toContainText(E2E_FIXTURES.buildingName);
-    // Panel content renders only after the client app boots.
+    // The SSR name is replaced when the client app takes over; assert the
+    // rendered name after boot (panel + data load), not the transient SSR HTML.
     await waitForAppBoot(page);
+    await expect(page.locator("body")).toContainText(E2E_FIXTURES.buildingName, {
+      timeout: 30_000,
+    });
     await expect(page.locator("body")).toContainText("3D view", {
       timeout: 30_000,
     });
@@ -22,8 +25,10 @@ test.describe("entity pages", () => {
   test("seeded room page 200", async ({ page }) => {
     const res = await page.goto(roomPagePath());
     expect(res?.status()).toBeLessThan(400);
-    await expect(page.locator("body")).toContainText(E2E_FIXTURES.roomCode);
     await waitForAppBoot(page);
+    await expect(page.locator("body")).toContainText(E2E_FIXTURES.roomCode, {
+      timeout: 30_000,
+    });
     await expect(page.locator("body")).toContainText("Move in 3D", {
       timeout: 30_000,
     });

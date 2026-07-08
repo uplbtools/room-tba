@@ -2083,11 +2083,8 @@
     >();
 
     for (const event of events) {
-      if (
-        event.status !== "active" &&
-        event.status !== "upcoming" &&
-        event.status !== "past"
-      ) {
+      // Past events are dropped from the map (#17); only active/upcoming pin.
+      if (event.status !== "active" && event.status !== "upcoming") {
         continue;
       }
       for (const location of event.locations) {
