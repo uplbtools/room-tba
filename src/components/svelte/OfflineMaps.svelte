@@ -2,10 +2,7 @@
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
   import { mapToolsStore, offlineStore } from "@lib/store.svelte";
-  import {
-    registerEphemeralOverlayDismisser,
-    openEphemeralOverlay,
-  } from "@lib/overlay-stack";
+  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
@@ -54,11 +51,13 @@
 
   function toggleOpen() {
     if (!open) {
-      openEphemeralOverlay(() => {
-        mapToolsStore.close();
-        open = true;
-        queueMicrotask(updatePopoverPosition);
-      });
+      // Open directly rather than via openEphemeralOverlay: this popover is
+      // nested inside the App menu, and dismissing all ephemeral overlays would
+      // also close the App menu (its dismisser), unmounting this popover before
+      // it renders. Outside-click + Escape are handled locally below.
+      mapToolsStore.close();
+      open = true;
+      queueMicrotask(updatePopoverPosition);
       return;
     }
     open = false;

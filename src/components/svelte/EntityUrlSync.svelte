@@ -21,26 +21,30 @@
   let sync = $state<ReturnType<typeof createEntityUrlSync> | null>(null);
 
   onMount(() => {
-    void termStore.init().then(() => {
-      const controller = createEntityUrlSync({
-        getAppData: appData,
-        hydrateQuery: (query) => {
-          queryStore.hydrateQuery(query);
-        },
-        clearQuery: () => {
-          queryStore.clearQuery();
-        },
-        getQuerySnapshot: () => ({
-          type: queryStore.type,
-          category: queryStore.category,
-          value: queryStore.queryValue,
-          eventSlug: queryStore.selectedEventSlug ?? undefined,
-        }),
-      });
-
-      controller.init();
-      sync = controller;
+    // Create + init synchronously. Don't gate the controller on termStore.init()
+    // resolving: init() only reads the current term ids (and the term param
+    // already in the URL), and the $effect below re-syncs reactively once term
+    // data arrives. Gating meant a slow/failed term load left `sync` null and
+    // silently broke all entity URL syncing (SEO + shareable links).
+    const controller = createEntityUrlSync({
+      getAppData: appData,
+      hydrateQuery: (query) => {
+        queryStore.hydrateQuery(query);
+      },
+      clearQuery: () => {
+        queryStore.clearQuery();
+      },
+      getQuerySnapshot: () => ({
+        type: queryStore.type,
+        category: queryStore.category,
+        value: queryStore.queryValue,
+        eventSlug: queryStore.selectedEventSlug ?? undefined,
+      }),
     });
+
+    controller.init();
+    sync = controller;
+    void termStore.init();
 
     return () => {
       sync?.destroy();

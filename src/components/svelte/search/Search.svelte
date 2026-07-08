@@ -376,7 +376,7 @@
             }}
           >
             <CalendarDays size={14} aria-hidden="true" />
-            <span class="map-search-chrome__planner-label">Planner</span>
+            <span class="map-search-chrome__planner-label">Class Planner</span>
           </button>
         </div>
       </div>

@@ -16,6 +16,25 @@
 
 .app-loading-shell {
   z-index: 9999;
+  /* Blurred campus backdrop instead of a flat white void (#19). The wash keeps
+     the loading card readable; background-color above is the fallback. */
+  background-image: url("/uplb-bg.webp");
+  background-size: cover;
+  background-position: center;
+}
+
+.app-loading-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: hsla(5, 22%, 94%, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.app-loading-shell .app-loading-shell__card {
+  position: relative;
+  z-index: 1;
 }
 
 .app-loading-overlay {
