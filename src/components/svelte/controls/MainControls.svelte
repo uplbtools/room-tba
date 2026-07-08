@@ -19,6 +19,7 @@
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import X from "@lucide/svelte/icons/x";
   import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+  import { resolveDrawerDragIntent } from "@lib/drawer-drag";
   import { MediaQuery } from "svelte/reactivity";
 
   const mobile = new MediaQuery("max-width:48rem");
@@ -71,6 +72,40 @@
     sidePanelStore.collapsed = !sidePanelStore.collapsed;
   }
 
+  // Drag-to-resize the mobile sheet: drag the handle down to collapse, up to
+  // expand. Small movements fall through to the click handler as a tap toggle.
+  let dragStartY: number | null = null;
+  let dragMoved = false;
+
+  function onHandlePointerDown(event: PointerEvent) {
+    if (!mobile.current || event.pointerType === "mouse") return;
+    dragStartY = event.clientY;
+    dragMoved = false;
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
+  function onHandlePointerMove(event: PointerEvent) {
+    if (dragStartY === null) return;
+    if (Math.abs(event.clientY - dragStartY) > 6) dragMoved = true;
+  }
+
+  function onHandlePointerUp(event: PointerEvent) {
+    if (dragStartY === null) return;
+    const intent = resolveDrawerDragIntent(event.clientY - dragStartY);
+    dragStartY = null;
+    if (intent === "expand") sidePanelStore.expand();
+    else if (intent === "collapse") sidePanelStore.collapse();
+  }
+
+  function onHandleClick() {
+    // Swallow the click that fires after a drag so it doesn't re-toggle.
+    if (dragMoved) {
+      dragMoved = false;
+      return;
+    }
+    togglePanel();
+  }
+
   function closeSelection() {
     if (jeepneyStore.selectedStopIndex !== null) {
       jeepneyStore.closeStop();
@@ -95,7 +130,10 @@
                 aria-controls="side-panel-details"
                 aria-label={toggleLabel}
                 title={toggleLabel}
-                onclick={togglePanel}
+                onclick={onHandleClick}
+                onpointerdown={onHandlePointerDown}
+                onpointermove={onHandlePointerMove}
+                onpointerup={onHandlePointerUp}
               >
                 <span class="drawer-peek-label">{peekLabel}</span>
                 <ChevronUp size={16} aria-hidden="true" />
@@ -118,7 +156,10 @@
               aria-controls="side-panel-details"
               aria-label={toggleLabel}
               title={toggleLabel}
-              onclick={togglePanel}
+              onclick={onHandleClick}
+              onpointerdown={onHandlePointerDown}
+              onpointermove={onHandlePointerMove}
+              onpointerup={onHandlePointerUp}
             >
               {#if mobile.current}
                 <span class="drawer-grab" aria-hidden="true"></span>
@@ -372,6 +413,7 @@
       background: transparent;
       color: #18181b;
       cursor: pointer;
+      touch-action: none;
     }
 
     .drawer-peek-expand:hover,
@@ -496,7 +538,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+      cursor: grab;
+      /* Let the handle own vertical drags instead of scrolling the page. */
+      touch-action: none;
     }
 
     .drawer-grab {
