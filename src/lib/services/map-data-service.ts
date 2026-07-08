@@ -6,6 +6,7 @@ import {
   collegesTable,
   divisionsTable,
   dormsTable,
+  organizationsTable,
   finalExamsTable,
   roomsTable,
 } from "@drizzle/schema";
@@ -21,6 +22,7 @@ import type {
   CollegeData,
   DivisionData,
   DormData,
+  OrgData,
   FinalExamRow,
   RoomData,
 } from "@lib/types";
@@ -633,6 +635,23 @@ export async function getAllDorms(): Promise<DormData[]> {
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for dorms", { cause: e });
+  }
+}
+
+export async function getAllOrganizationsCached(): Promise<OrgData[]> {
+  const cache = getBuildCache();
+  if (cache.organizations) return cache.organizations;
+  const data = await db.select().from(organizationsTable);
+  cache.organizations = data;
+  return data;
+}
+
+export async function getAllOrganizations(): Promise<OrgData[]> {
+  try {
+    return await db.select().from(organizationsTable);
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch data for organizations", { cause: e });
   }
 }
 

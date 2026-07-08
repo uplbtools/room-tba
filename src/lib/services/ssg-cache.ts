@@ -12,6 +12,7 @@ import type {
   CollegeData,
   DivisionData,
   DormData,
+  OrgData,
   EventData,
   RoomData,
 } from "@lib/types";
@@ -22,6 +23,7 @@ interface SSGCache {
   colleges: CollegeData[] | null;
   divisions: DivisionData[] | null;
   dorms: DormData[] | null;
+  organizations: OrgData[] | null;
   events: EventData[] | null;
   defaultTerm: { id: number; label: string } | null;
   classCounts: Map<string, number>;
@@ -34,6 +36,7 @@ const cache: SSGCache = {
   colleges: null,
   divisions: null,
   dorms: null,
+  organizations: null,
   events: null,
   defaultTerm: null,
   classCounts: new Map(),
@@ -50,6 +53,7 @@ export function clearBuildCache() {
   cache.colleges = null;
   cache.divisions = null;
   cache.dorms = null;
+  cache.organizations = null;
   cache.events = null;
   cache.defaultTerm = null;
   cache.classCounts.clear();
