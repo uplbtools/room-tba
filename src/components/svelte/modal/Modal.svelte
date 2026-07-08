@@ -67,7 +67,9 @@
       bind:this={modalContentEl}
       class="modal-content {modalStore.type === 'landing'
         ? 'landing-modal-container'
-        : ''}"
+        : modalStore.type === 'leaderboard'
+          ? 'leaderboard-modal-container'
+          : ''}"
       id="modal-content"
       role="dialog"
       aria-modal="true"
@@ -163,6 +165,9 @@
         outline-offset: 1px;
       }
     }
+  }
+  .leaderboard-modal-container {
+    flex: 0 1 32rem;
   }
   .landing-modal-container {
     flex: 0 1 48rem;

@@ -6,7 +6,11 @@
     searchLocalRooms,
   } from "@lib/local/data/utils";
   import { buildEntitySuggestions } from "@lib/search-suggestions";
-  import { queryStore, buildingTypeFilter } from "@lib/store.svelte";
+  import {
+    queryStore,
+    buildingTypeFilter,
+    classVenuesStore,
+  } from "@lib/store.svelte";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -28,7 +32,11 @@
   const filteredBuildings = $derived.by(() => {
     if (!loaded) return [];
     return buildings.filter((building) =>
-      buildingMatchesTypeFilter(building, buildingTypeFilter.value),
+      buildingMatchesTypeFilter(
+        building,
+        buildingTypeFilter.value,
+        classVenuesStore.buildingIdsWithClasses,
+      ),
     );
   });
 

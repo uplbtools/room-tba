@@ -30,25 +30,28 @@ export function parseSlotMinutes(
 
 /** Tokenize AMIS day string (handles T vs Th). */
 export function tokenizeScheduleDays(days: string): Weekday[] {
+  // Case-insensitive: AMIS/DB data mixes casing — seed "Th"/"TTh" vs
+  // production "TH"/"TTH". Check the 2-char Thursday token before single T.
+  const upper = days.toUpperCase();
   const tokens: Weekday[] = [];
   let i = 0;
-  while (i < days.length) {
-    if (days.startsWith("Th", i)) {
+  while (i < upper.length) {
+    if (upper.startsWith("TH", i)) {
       tokens.push("Th");
       i += 2;
-    } else if (days[i] === "T") {
+    } else if (upper[i] === "T") {
       tokens.push("T");
       i += 1;
-    } else if (days[i] === "M") {
+    } else if (upper[i] === "M") {
       tokens.push("M");
       i += 1;
-    } else if (days[i] === "W") {
+    } else if (upper[i] === "W") {
       tokens.push("W");
       i += 1;
-    } else if (days[i] === "F") {
+    } else if (upper[i] === "F") {
       tokens.push("F");
       i += 1;
-    } else if (days[i] === "S") {
+    } else if (upper[i] === "S") {
       tokens.push("S");
       i += 1;
     } else {

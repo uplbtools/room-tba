@@ -18,6 +18,9 @@
     buildingTypeFilter,
     terrainStore,
     scheduleRouteStore,
+    classVenuesStore,
+    termStore,
+    syncToastStore,
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
@@ -109,10 +112,23 @@
   const appActions = getAppActions();
   const { buildings, dorms, events, organizations, places, loaded } =
     $derived(data());
+  // Refresh the set of buildings that host classes whenever the term changes
+  // or an offline sync lands, so dual-role buildings (admin + class venue)
+  // filter correctly.
+  $effect(() => {
+    // Re-run after a sync lands (allSynced isn't read by load's argument).
+    void syncToastStore.allSynced;
+    void classVenuesStore.load(termStore.activeTermId);
+  });
+
   const filteredBuildings = $derived.by(() => {
     if (!loaded) return [];
     return buildings.filter((building) =>
-      buildingMatchesTypeFilter(building, buildingTypeFilter.value),
+      buildingMatchesTypeFilter(
+        building,
+        buildingTypeFilter.value,
+        classVenuesStore.buildingIdsWithClasses,
+      ),
     );
   });
   const filteredDorms = $derived.by(() => {

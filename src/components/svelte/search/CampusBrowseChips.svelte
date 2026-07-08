@@ -1,6 +1,5 @@
 <script lang="ts">
   import BookText from "@lucide/svelte/icons/book-text";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
   import University from "@lucide/svelte/icons/university";
@@ -9,14 +8,10 @@
     openCampusBrowse,
     type CampusBrowseTab,
   } from "@lib/browse-campus";
-  import {
-    plannerStore,
-    queryStore,
-    sidePanelStore,
-  } from "@lib/store.svelte";
+  import { queryStore, sidePanelStore } from "@lib/store.svelte";
   import "../map-chrome/map-chrome.css";
 
-  type ChipId = CampusBrowseTab | "classes" | "planner";
+  type ChipId = CampusBrowseTab | "classes";
 
   const tabs: {
     id: ChipId;
@@ -27,11 +22,10 @@
     { id: "colleges", label: "Colleges", icon: GraduationCap },
     { id: "divisions", label: "Divisions", icon: Landmark },
     { id: "classes", label: "Classes", icon: BookText },
-    { id: "planner", label: "Planner", icon: CalendarDays },
+    // Planner is pinned as a standalone always-visible chip in Search.svelte.
   ];
 
   const activeTab = $derived.by((): ChipId | null => {
-    if (plannerStore.open) return "planner";
     if (queryStore.category === "classes") return "classes";
     if (queryStore.category !== "browse") return null;
     if (
@@ -44,10 +38,6 @@
   });
 
   function handleBrowse(id: ChipId) {
-    if (id === "planner") {
-      plannerStore.openPlanner();
-      return;
-    }
     if (id === "classes") {
       openBrowseClasses(queryStore, sidePanelStore);
       return;
@@ -65,9 +55,7 @@
       aria-pressed={activeTab === tab.id}
       aria-label={tab.id === "classes"
         ? "Browse all classes"
-        : tab.id === "planner"
-          ? "Open course planner"
-          : `Browse ${tab.label.toLowerCase()}`}
+        : `Browse ${tab.label.toLowerCase()}`}
       onclick={(event) => {
         event.preventDefault();
         event.stopPropagation();

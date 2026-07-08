@@ -61,4 +61,11 @@ describe("parseDays", () => {
   it("ignores unknown characters", () => {
     expect(parseDays("XZ")).toEqual([]);
   });
+
+  it("handles uppercase production tokens (TH not Th)", () => {
+    // Production DB stores days uppercase; Thursday must not collapse to Tuesday.
+    expect(parseDays("TTH")).toEqual([1, 3]);
+    expect(parseDays("MTHF")).toEqual([0, 3, 4]);
+    expect(parseDays("MTWTHFS")).toEqual([0, 1, 2, 3, 4, 5]);
+  });
 });

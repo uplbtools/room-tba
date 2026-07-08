@@ -184,7 +184,7 @@
         aria-label="Reset map orientation to north"
       >
         <span class="north-icon" style:rotate={`${northRotation}deg`}>
-          <Navigation2 size={15} stroke-width={2} aria-hidden="true" />
+          <Navigation2 size={16} stroke-width={2} aria-hidden="true" />
         </span>
       </button>
       <button
@@ -251,7 +251,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.0625rem;
+    gap: 0.125rem;
   }
 
   .map-view-controls.embedded {
