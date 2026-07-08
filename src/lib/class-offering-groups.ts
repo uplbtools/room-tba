@@ -19,11 +19,17 @@ function classType(row: ClassMapValue): string {
 }
 
 export function parentLectureSection(row: ClassMapValue): string | null {
-  if (classType(row) !== "LAB" || !row.section) return null;
+  if (!row.section) return null;
   const section = row.section.trim().toUpperCase();
-  const hyphenated = section.match(/^(.+)-\d+L$/);
+  // A lab or recit section encodes its parent lecture as the prefix before its
+  // numbered slot: "G-1L"/"UV-1R" (dashed) or "ST11L" (compact). Any trailing
+  // letter run marks a child (L = lab, R = recit, …), so match [A-Z]+ not just
+  // "L". The prefix is everything up to the dash/number, which preserves
+  // multi-letter lecture codes like "UV". Not gated on type: recits are not
+  // typed "LAB", and the section shape alone identifies a child.
+  const hyphenated = section.match(/^(.+)-\d+[A-Z]+$/);
   if (hyphenated?.[1]) return hyphenated[1];
-  const compact = section.match(/^(.+)\dL$/);
+  const compact = section.match(/^(.+)\d[A-Z]+$/);
   return compact?.[1] ?? null;
 }
 
