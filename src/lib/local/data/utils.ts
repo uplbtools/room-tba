@@ -7,6 +7,8 @@ import type {
   DormData,
   EntityLoadResult,
   EventData,
+  OrgData,
+  PlaceData,
   RoomData,
   TableSyncInfo,
 } from "@lib/types";
@@ -92,6 +94,62 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
       FROM dorms;
       `)) as Results<DormData>;
     return data.rows.map((row) => normalizeDormListFields(row));
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalOrganizations(): Promise<OrgData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+      SELECT
+        id,
+        name,
+        category,
+        building_id AS "buildingId",
+        room_id AS "roomId",
+        lat,
+        lon,
+        description,
+        website_link AS "websiteLink",
+        facebook_link AS "facebookLink",
+        email,
+        image_url AS "imageUrl",
+        version,
+        updated_at AS "updatedAt"
+      FROM organizations;
+      `)) as Results<OrgData>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalPlaces(): Promise<PlaceData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+      SELECT
+        id,
+        name,
+        category,
+        lat,
+        lon,
+        description,
+        hours,
+        website_link AS "websiteLink",
+        facebook_link AS "facebookLink",
+        image_url AS "imageUrl",
+        version,
+        updated_at AS "updatedAt"
+      FROM places;
+      `)) as Results<PlaceData>;
+    return data.rows;
   } catch (e) {
     console.error("Error: ", e);
     return undefined;
@@ -217,6 +275,7 @@ export async function getLocalRoomByCode(code: string) {
             r.college_id as "collegeId",
             r.division_id as "divisionId",
             r.image_url as "imageUrl",
+            r.category as category,
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r
@@ -253,6 +312,7 @@ export async function getLocalRoomById(id: number) {
             r.college_id as "collegeId",
             r.division_id as "divisionId",
             r.image_url as "imageUrl",
+            r.category as category,
             r.version,
             r.updated_at as "updatedAt"
             FROM rooms AS r
@@ -325,15 +385,25 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
 }
 
 export async function loadCachedAppData(): Promise<DBData> {
-  const [buildings, colleges, divisions, dorms, events, roomsMeta] =
-    await Promise.all([
-      getLocalBuildings().then((rows) => rows ?? []),
-      getLocalColleges().then((rows) => rows ?? []),
-      getLocalDivisions().then((rows) => rows ?? []),
-      getLocalDorms().then((rows) => rows ?? []),
-      getLocalEvents().then((rows) => rows ?? []),
-      getLocalRoomsCounts(),
-    ]);
+  const [
+    buildings,
+    colleges,
+    divisions,
+    dorms,
+    events,
+    organizations,
+    places,
+    roomsMeta,
+  ] = await Promise.all([
+    getLocalBuildings().then((rows) => rows ?? []),
+    getLocalColleges().then((rows) => rows ?? []),
+    getLocalDivisions().then((rows) => rows ?? []),
+    getLocalDorms().then((rows) => rows ?? []),
+    getLocalEvents().then((rows) => rows ?? []),
+    getLocalOrganizations().then((rows) => rows ?? []),
+    getLocalPlaces().then((rows) => rows ?? []),
+    getLocalRoomsCounts(),
+  ]);
 
   return {
     buildings,
@@ -341,6 +411,8 @@ export async function loadCachedAppData(): Promise<DBData> {
     divisions,
     dorms,
     events,
+    organizations,
+    places,
     directionCount: roomsMeta.directionCount,
     totalRooms: roomsMeta.totalRooms,
   };
@@ -419,6 +491,12 @@ export const getDivisions = getEntity<DivisionData>(
 );
 
 export const getDorms = getEntity<DormData>("dorms", getLocalDorms);
+
+export const getOrganizations = getEntity<OrgData>(
+  "organizations",
+  getLocalOrganizations,
+);
+export const getPlaces = getEntity<PlaceData>("places", getLocalPlaces);
 
 export const getEvents = getEntity<EventData>("events", getLocalEvents);
 

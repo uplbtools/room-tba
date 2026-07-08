@@ -38,6 +38,11 @@
   import { getRoomShareUrl } from "@lib/share-links";
   import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
+  import {
+    ROOM_CATEGORIES,
+    ROOM_CATEGORY_LABELS,
+    roomCategoryLabel,
+  } from "@constants/room-categories";
   import type { FinalExamRow, RoomData } from "@lib/types";
   import Classes from "./Classes.svelte";
   import FinalExamsList from "./FinalExamsList.svelte";
@@ -49,7 +54,8 @@
     | "buildingId"
     | "collegeId"
     | "divisionId"
-    | "imageUrl";
+    | "imageUrl"
+    | "category";
 
   const appData = getAppData();
   const app = $derived(appData());
@@ -64,6 +70,7 @@
     collegeId: "College",
     divisionId: "Division",
     imageUrl: "Room photo",
+    category: "Room category",
   };
 
   let draftRoomId = $state<number | null>(null);
@@ -74,6 +81,7 @@
   let collegeDraft = $state("");
   let divisionDraft = $state("");
   let imageDraft = $state<string | null>(null);
+  let categoryDraft = $state("");
   let savingField = $state<RoomEditableField | null>(null);
   let savedField = $state<RoomEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -144,6 +152,7 @@
     collegeDraft = room.collegeId === null ? "" : String(room.collegeId);
     divisionDraft = room.divisionId === null ? "" : String(room.divisionId);
     imageDraft = room.imageUrl ?? null;
+    categoryDraft = room.category ?? "";
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -219,6 +228,7 @@
       collegeId?: number | null;
       divisionId?: number | null;
       imageUrl?: string | null;
+      category?: string | null;
     } = { version: room.version };
 
     if (field === "roomCode") {
@@ -238,6 +248,8 @@
       body.divisionId = selectValueToId(divisionDraft);
     } else if (field === "imageUrl") {
       body.imageUrl = imageDraft || null;
+    } else if (field === "category") {
+      body.category = categoryDraft || null;
     }
 
     savingField = field;
@@ -391,7 +403,8 @@
       directionsDraft.trim() === (room.directions ?? "") &&
       buildingDraft === String(room.buildingId ?? "") &&
       collegeDraft === String(room.collegeId ?? "") &&
-      divisionDraft === String(room.divisionId ?? "")
+      divisionDraft === String(room.divisionId ?? "") &&
+      categoryDraft === (room.category ?? "")
     );
   });
 
@@ -419,6 +432,9 @@
     }
     if (divisionDraft !== String(room.divisionId ?? "")) {
       patch.divisionId = selectValueToId(divisionDraft);
+    }
+    if (categoryDraft !== (room.category ?? "")) {
+      patch.category = categoryDraft || null;
     }
 
     savingField = "roomCode" as RoomEditableField;
@@ -490,6 +506,12 @@
       {/if}
 
       <h2 class="entity-header__title">{currentRoom.value.code}</h2>
+
+      {#if roomCategoryLabel(currentRoom.value.category)}
+        <span class="room-category-badge"
+          >{roomCategoryLabel(currentRoom.value.category)}</span
+        >
+      {/if}
 
       {#if currentRoom.value.collegeName}
         <p class="entity-header__context">
@@ -599,6 +621,29 @@
                 bind:value={directionsDraft}
                 disabled={savingField !== null}
                 rows="3"></textarea>
+            {/snippet}
+          </EntityEditorField>
+
+          <EntityEditorField
+            label="Room category"
+            inputId="room-category-editor"
+            {canPublish}
+            disabled={savingField !== null}
+            fieldSaving={savingField === "category"}
+            unchanged={categoryDraft === (currentRoom.value.category ?? "")}
+            onsave={() => saveField("category")}
+          >
+            {#snippet control()}
+              <select
+                id="room-category-editor"
+                bind:value={categoryDraft}
+                disabled={savingField !== null}
+              >
+                <option value="">Untagged (classroom)</option>
+                {#each ROOM_CATEGORIES as cat (cat)}
+                  <option value={cat}>{ROOM_CATEGORY_LABELS[cat]}</option>
+                {/each}
+              </select>
             {/snippet}
           </EntityEditorField>
 
@@ -855,6 +900,17 @@
   @import "../controls/entity-detail.css";
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
+
+  .room-category-badge {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: hsl(5, 40%, 94%);
+    color: #7b1113;
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
 
   .merge-prompt {
     display: flex;

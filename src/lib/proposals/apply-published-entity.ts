@@ -5,6 +5,7 @@ import type {
   DivisionData,
   DormData,
   EventData,
+  OrgData,
 } from "@lib/types";
 import type { ProposalEntityType } from "@lib/services/proposal-service";
 import {
@@ -26,6 +27,8 @@ const ENTITY_SYNC_TABLES: Partial<Record<ProposalEntityType, string[]>> = {
   event: ["events"],
   create_event: ["events"],
   event_locations: ["events"],
+  organization: ["organizations"],
+  create_organization: ["organizations"],
 };
 
 export function syncTablesForEntityType(
@@ -101,6 +104,16 @@ export function applyPublishedEntity(
     case "create_event":
       actions.replaceEvent(published as EventData);
       return true;
+    case "organization":
+    case "create_organization": {
+      const row = mergePublishedRow(
+        getData,
+        data?.loaded ? data.organizations : undefined,
+        published as OrgData,
+      );
+      actions.upsertOrganization(row);
+      return true;
+    }
     case "room":
     case "create_room":
     case "event_locations":
