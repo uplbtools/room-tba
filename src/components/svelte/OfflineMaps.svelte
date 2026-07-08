@@ -32,7 +32,10 @@
     if (!open || !triggerEl) return;
     const rect = triggerEl.getBoundingClientRect();
     const width = Math.min(288, window.innerWidth - 16);
-    const right = Math.max(8, window.innerWidth - rect.right);
+    // Anchor to the trigger's right edge, but never let the left edge overflow
+    // the viewport (happens when the trigger sits left / on narrow screens).
+    const maxRight = window.innerWidth - width - 8;
+    const right = Math.min(Math.max(8, window.innerWidth - rect.right), maxRight);
     const bottom = Math.max(8, window.innerHeight - rect.top + 8);
     popoverStyle = `right: ${right}px; bottom: ${bottom}px; width: ${width}px;`;
   }
