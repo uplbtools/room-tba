@@ -15,6 +15,7 @@
   import { buildPlanIcs } from "@lib/planner/ics";
   import { encodeSharePlan } from "@lib/planner/share-codec";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
+  import TermSelector from "@ui/TermSelector.svelte";
   import PlannerCourseSearch from "./PlannerCourseSearch.svelte";
   import PlannerGrid from "./PlannerGrid.svelte";
   import type { ClassMapValue, FinalExamRow } from "@lib/types";
@@ -114,11 +115,19 @@
     URL.revokeObjectURL(url);
   }
 
-  function deleteActivePlan() {
+  let confirmingDelete = $state(false);
+
+  function confirmDeletePlan() {
     if (!plan) return;
-    if (!window.confirm(`Delete ${plan.label}?`)) return;
     plannerStore.deletePlan(plan.id);
+    confirmingDelete = false;
   }
+
+  // Switching plans cancels a pending delete confirmation.
+  $effect(() => {
+    void plan?.id;
+    confirmingDelete = false;
+  });
 
   $effect(() => {
     if (!plannerStore.open || !screenEl) return;
@@ -182,12 +191,10 @@
         <ChevronLeft size={22} aria-hidden="true" />
         <span>Map</span>
       </button>
-      <h1 class="planner-title" id="planner-screen-title">
-        Planner
-        {#if termStore.activeTerm}
-          <span class="planner-term">{termStore.activeTerm.label}</span>
-        {/if}
-      </h1>
+      <h1 class="planner-title" id="planner-screen-title">Planner</h1>
+      {#if termStore.terms.length > 0}
+        <TermSelector variant="chip" />
+      {/if}
       {#if plan && plan.sections.length > 0}
         <button type="button" class="planner-action" onclick={copyShareLink}>
           Share
@@ -220,14 +227,34 @@
         +
       </button>
       {#if plan}
-        <button
-          type="button"
-          class="planner-tab planner-tab--delete"
-          onclick={deleteActivePlan}
-          aria-label="Delete {plan.label}"
-        >
-          Delete
-        </button>
+        {#if confirmingDelete}
+          <span class="planner-delete-confirm" role="group" aria-label="Confirm delete plan">
+            <span class="planner-delete-confirm__label">Delete {plan.label}?</span>
+            <button
+              type="button"
+              class="planner-tab planner-tab--delete"
+              onclick={confirmDeletePlan}
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              class="planner-tab"
+              onclick={() => (confirmingDelete = false)}
+            >
+              Cancel
+            </button>
+          </span>
+        {:else}
+          <button
+            type="button"
+            class="planner-tab planner-tab--delete"
+            onclick={() => (confirmingDelete = true)}
+            aria-label="Delete {plan.label}"
+          >
+            Delete
+          </button>
+        {/if}
       {/if}
       {#if plannerStore.conflicts.length > 0}
         <span class="planner-conflict-badge" role="status">
@@ -327,7 +354,9 @@
   .planner-screen {
     position: fixed;
     inset: 0;
-    z-index: 18;
+    /* Below the chrome-popover tier (17) so the term picker portal floats
+       above the planner; still above all map chrome (map-tools 15). */
+    z-index: 16;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -446,6 +475,21 @@
   .planner-tab--delete {
     border-color: hsl(0, 60%, 80%);
     color: hsl(0, 60%, 40%);
+  }
+
+  .planner-delete-confirm {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.5rem;
+    background: hsl(0, 85%, 96%);
+  }
+
+  .planner-delete-confirm__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(0, 60%, 32%);
   }
 
   .planner-conflict-badge {
