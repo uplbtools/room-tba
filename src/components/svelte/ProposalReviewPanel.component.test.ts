@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/svelte";
-import { beforeEach, describe, expect, test } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import ProposalReviewPanelHost from "@test/components/ProposalReviewPanelHost.svelte";
 import { adminAuthStore, proposalsStore } from "@lib/store.svelte";
 import { mountAtWidth } from "@test/layout-assertions";
@@ -62,5 +62,55 @@ describe("ProposalReviewPanel diffs", () => {
     render(ProposalReviewPanelHost);
     expect(screen.getByText("New entry")).toBeVisible();
     expect(screen.getByText("CEM 203")).toBeVisible();
+  });
+});
+
+describe("ProposalReviewPanel batch approve", () => {
+  beforeEach(() => {
+    adminAuthStore.isLoggedIn = true;
+    adminAuthStore.canReview = true;
+    proposalsStore.loading = false;
+    proposalsStore.pendingCount = 2;
+    proposalsStore.refresh = vi.fn(() => Promise.resolve());
+    proposalsStore.proposals = [
+      { ...baseProposal(), id: 7, entityLabel: "Old Hall" },
+      { ...baseProposal(), id: 8, entityLabel: "New Hall" },
+    ];
+  });
+
+  test("select all then approve posts an approve for every selected proposal", async () => {
+    // Response omits proposal.entityType so approveOne skips the
+    // published-entity side effects (no app-context dependency in the test).
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({}),
+      } as Response),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(ProposalReviewPanelHost);
+
+    const approveBtn = screen.getByRole("button", {
+      name: /approve 0 selected/i,
+    });
+    expect(approveBtn).toBeDisabled();
+
+    await fireEvent.click(screen.getByLabelText(/select all/i));
+    expect(
+      screen.getByRole("button", { name: /approve 2 selected/i }),
+    ).toBeEnabled();
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: /approve 2 selected/i }),
+    );
+
+    await waitFor(() => {
+      const urls = fetchMock.mock.calls.map((c) => String(c[0]));
+      expect(urls).toContain("/api/admin/proposals/7/approve");
+      expect(urls).toContain("/api/admin/proposals/8/approve");
+    });
+
+    vi.unstubAllGlobals();
   });
 });
