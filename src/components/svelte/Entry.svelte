@@ -50,9 +50,14 @@
   type Props = {
     initialSearch?: InitialSearchState;
     suppressLandingModal?: boolean;
+    openPlanner?: boolean;
   };
 
-  const { initialSearch, suppressLandingModal = false }: Props = $props();
+  const {
+    initialSearch,
+    suppressLandingModal = false,
+    openPlanner = false,
+  }: Props = $props();
 
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
@@ -129,6 +134,15 @@
     }
 
     plannerStore.init();
+
+    // /planner deep link (prop set by the planner.astro page). Driven by a prop,
+    // not window.location, because the SPA URL router normalizes the path to "/"
+    // on boot before this runs. ?term still flows through termStore.
+    if (openPlanner) {
+      void termStore.init();
+      plannerStore.openPlanner();
+    }
+
     const planParam = urlParams.get("plan");
     if (planParam) {
       window.history.replaceState({}, "", window.location.pathname);
