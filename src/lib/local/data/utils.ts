@@ -7,6 +7,7 @@ import type {
   DormData,
   EntityLoadResult,
   EventData,
+  PlaceData,
   RoomData,
   TableSyncInfo,
 } from "@lib/types";
@@ -92,6 +93,33 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
       FROM dorms;
       `)) as Results<DormData>;
     return data.rows.map((row) => normalizeDormListFields(row));
+  } catch (e) {
+    console.error("Error: ", e);
+    return undefined;
+  }
+}
+
+export async function getLocalPlaces(): Promise<PlaceData[] | undefined> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const data = (await localDB.query(`
+      SELECT
+        id,
+        name,
+        category,
+        lat,
+        lon,
+        description,
+        hours,
+        website_link AS "websiteLink",
+        facebook_link AS "facebookLink",
+        image_url AS "imageUrl",
+        version,
+        updated_at AS "updatedAt"
+      FROM places;
+      `)) as Results<PlaceData>;
+    return data.rows;
   } catch (e) {
     console.error("Error: ", e);
     return undefined;
@@ -325,13 +353,14 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
 }
 
 export async function loadCachedAppData(): Promise<DBData> {
-  const [buildings, colleges, divisions, dorms, events, roomsMeta] =
+  const [buildings, colleges, divisions, dorms, events, places, roomsMeta] =
     await Promise.all([
       getLocalBuildings().then((rows) => rows ?? []),
       getLocalColleges().then((rows) => rows ?? []),
       getLocalDivisions().then((rows) => rows ?? []),
       getLocalDorms().then((rows) => rows ?? []),
       getLocalEvents().then((rows) => rows ?? []),
+      getLocalPlaces().then((rows) => rows ?? []),
       getLocalRoomsCounts(),
     ]);
 
@@ -341,6 +370,7 @@ export async function loadCachedAppData(): Promise<DBData> {
     divisions,
     dorms,
     events,
+    places,
     directionCount: roomsMeta.directionCount,
     totalRooms: roomsMeta.totalRooms,
   };
@@ -419,6 +449,8 @@ export const getDivisions = getEntity<DivisionData>(
 );
 
 export const getDorms = getEntity<DormData>("dorms", getLocalDorms);
+
+export const getPlaces = getEntity<PlaceData>("places", getLocalPlaces);
 
 export const getEvents = getEntity<EventData>("events", getLocalEvents);
 

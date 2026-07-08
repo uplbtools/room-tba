@@ -5,6 +5,7 @@ import type {
   DivisionData,
   DormData,
   EventData,
+  PlaceData,
 } from "@lib/types";
 export type AppContextData =
   | {
@@ -13,6 +14,7 @@ export type AppContextData =
       divisions: DivisionData[];
       dorms: DormData[];
       events: EventData[];
+      places: PlaceData[];
       totalRooms: number;
       directionCount: number;
       loaded: true;
@@ -23,6 +25,7 @@ export type AppContextData =
       divisions: null;
       dorms: null;
       events: null;
+      places: null;
       totalRooms: null;
       directionCount: null;
       loaded: false;
@@ -36,6 +39,7 @@ export type AppActions = {
   upsertDorm: (dorm: DormData) => void;
   upsertCollege: (college: CollegeData) => void;
   upsertDivision: (division: DivisionData) => void;
+  upsertPlace: (place: PlaceData) => void;
 };
 
 export const [getAppData, setAppData] = createContext<() => AppContextData>();
