@@ -1,12 +1,21 @@
 <script lang="ts">
   import { RefreshCw, FileText } from "@lucide/svelte";
   import { syncToastStore, modalStore } from "@lib/store.svelte";
-  import { APP_VERSION_LABEL } from "@constants/version";
-  import { parseChangelogHighlights } from "@lib/changelog-highlights";
+  import { APP_VERSION, APP_VERSION_LABEL } from "@constants/version";
+  import {
+    parseChangelogHighlights,
+    isChangelogCurrent,
+  } from "@lib/changelog-highlights";
   import changelogRaw from "../../../CHANGELOG.md?raw";
 
   const highlights = $derived(parseChangelogHighlights(changelogRaw));
   const hasUpdate = $derived(syncToastStore.needRefresh);
+  // Only show the parsed highlights when the changelog matches the installed
+  // version. A stale CHANGELOG (version bumped without regenerating it) would
+  // otherwise claim an older version than the one already running.
+  const showHighlights = $derived(
+    highlights !== null && isChangelogCurrent(highlights.version, APP_VERSION),
+  );
 
   let reloading = $state(false);
 
@@ -19,11 +28,7 @@
 
 <div class="changelog-modal">
   <p class="changelog-modal__version">
-    {#if highlights}
-      What's new in v{highlights.version}
-    {:else}
-      Room TBA {APP_VERSION_LABEL}
-    {/if}
+    Room TBA {APP_VERSION_LABEL}
   </p>
 
   {#if hasUpdate}
@@ -32,7 +37,7 @@
     </p>
   {/if}
 
-  {#if highlights && highlights.items.length > 0}
+  {#if showHighlights && highlights}
     <ul class="changelog-modal__list">
       {#each highlights.items as item (item)}
         <li>{item}</li>
@@ -44,7 +49,9 @@
       </p>
     {/if}
   {:else}
-    <p class="changelog-modal__lead">See the full changelog for details.</p>
+    <p class="changelog-modal__lead">
+      See the full changelog for what's new.
+    </p>
   {/if}
 
   <a

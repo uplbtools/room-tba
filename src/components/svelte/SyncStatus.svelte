@@ -12,8 +12,11 @@
     appBootstrapStore,
     modalStore,
   } from "@lib/store.svelte";
-  import { APP_VERSION_LABEL } from "@constants/version";
-  import { parseChangelogHighlights } from "@lib/changelog-highlights";
+  import { APP_VERSION, APP_VERSION_LABEL } from "@constants/version";
+  import {
+    parseChangelogHighlights,
+    isChangelogCurrent,
+  } from "@lib/changelog-highlights";
   import changelogRaw from "../../../CHANGELOG.md?raw";
 
   type Props = {
@@ -102,7 +105,9 @@
       showDetail &&
       !compact &&
       updateHighlights !== null &&
-      updateHighlights.items.length > 0,
+      updateHighlights.items.length > 0 &&
+      // Don't show stale changelog bullets that predate the installed version.
+      isChangelogCurrent(updateHighlights.version, APP_VERSION),
   );
 
   const statusLabel = $derived.by(() => {
