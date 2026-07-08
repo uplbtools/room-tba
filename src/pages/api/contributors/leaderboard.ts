@@ -14,8 +14,16 @@ export const GET: APIRoute = async ({ url }) => {
     ? (windowParam as LeaderboardWindow)
     : "month";
 
-  const rows = await getContributorLeaderboard(window);
-  return json({ window, rows });
+  try {
+    const rows = await getContributorLeaderboard(window);
+    return json({ window, rows });
+  } catch (error) {
+    console.error("leaderboard query failed:", error);
+    return json(
+      { error: "Leaderboard is temporarily unavailable." },
+      500,
+    );
+  }
 };
 
 function json(body: unknown, status = 200) {
