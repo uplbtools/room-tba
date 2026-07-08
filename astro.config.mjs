@@ -42,6 +42,10 @@ export default defineConfig({
           /^\/privacy(\/|$)/,
           /^\/terms(\/|$)/,
           /^\/changelog(\/|$)/,
+          // /planner is its own page; without this the nav fallback serves the
+          // map shell and the planner never opens for returning (SW-cached)
+          // users. Network-first; the in-app planner button covers offline.
+          /^\/planner(\/|$)/,
           // Server redirects — must hit network, not offline app shell (#471).
           /^\/messenger(\/|$)/,
           /^\/maintain(\/|$)/,
