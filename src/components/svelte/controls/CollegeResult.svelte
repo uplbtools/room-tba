@@ -148,7 +148,7 @@
     if (!canPublish) {
       const savedDraft = readEntityContributorDraft("college", current.id);
       if (savedDraft) {
-        if (savedDraft.editing) editing = true;
+        // if (savedDraft.editing) editing = true;
         if (typeof savedDraft.fields.nameDraft === "string") {
           nameDraft = savedDraft.fields.nameDraft;
         }

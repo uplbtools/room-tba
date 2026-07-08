@@ -151,7 +151,7 @@
     if (!canPublish) {
       const savedDraft = readEntityContributorDraft("division", current.id);
       if (savedDraft) {
-        if (savedDraft.editing) editing = true;
+        // if (savedDraft.editing) editing = true;
         if (typeof savedDraft.fields.nameDraft === "string") {
           nameDraft = savedDraft.fields.nameDraft;
         }
@@ -202,7 +202,7 @@
       }
       patch.divisionName = trimmedName;
     }
-    
+
     if (collegeDraft !== (current.collegeId === null ? "" : String(current.collegeId))) {
       patch.collegeId = collegeDraft === "" ? null : Number(collegeDraft);
     }

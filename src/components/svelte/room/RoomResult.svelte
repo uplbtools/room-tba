@@ -155,7 +155,7 @@
     if (!canPublish) {
       const saved = readEntityContributorDraft("room", room.id);
       if (saved) {
-        if (saved.editing) editing = true;
+        // if (saved.editing) editing = true;
         if (typeof saved.fields.codeDraft === "string") {
           codeDraft = saved.fields.codeDraft;
         }

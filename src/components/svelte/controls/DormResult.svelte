@@ -206,7 +206,7 @@
     if (!canPublish) {
       const saved = readEntityContributorDraft("dorm", current.id);
       if (saved) {
-        if (saved.editing) editing = true;
+        // if (saved.editing) editing = true;
         const { fields } = saved;
         if (typeof fields.nameDraft === "string") nameDraft = fields.nameDraft;
         if (typeof fields.shortNameDraft === "string") {
