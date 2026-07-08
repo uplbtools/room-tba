@@ -109,7 +109,7 @@
     if (canPublish) return;
     const saved = readEntityContributorDraft("event", current.id);
     if (!saved) return;
-    if (saved.editing) editing = true;
+    // if (saved.editing) editing = true;
     const savedForm = saved.fields.form;
     if (savedForm && typeof savedForm === "object") {
       form = { ...form, ...(savedForm as typeof form) };

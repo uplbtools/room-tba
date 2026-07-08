@@ -41,6 +41,7 @@
   import type { FinalExamRow, RoomData } from "@lib/types";
   import Classes from "./Classes.svelte";
   import FinalExamsList from "./FinalExamsList.svelte";
+    import TermSelector from "@ui/TermSelector.svelte";
 
   type RoomEditableField =
     | "roomCode"
@@ -154,7 +155,7 @@
     if (!canPublish) {
       const saved = readEntityContributorDraft("room", room.id);
       if (saved) {
-        if (saved.editing) editing = true;
+        // if (saved.editing) editing = true;
         if (typeof saved.fields.codeDraft === "string") {
           codeDraft = saved.fields.codeDraft;
         }
@@ -806,9 +807,7 @@
           </button>
         {/if}
       </div>
-      {#if activeTermLabel}
-        <p class="entity-schedule__term">{activeTermLabel}</p>
-      {/if}
+      <TermSelector />
       <p class="entity-schedule__scope">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
       {#if roomClassesStore.loading}
         <p class="entity-schedule__empty">Loading classes…</p>
