@@ -8,6 +8,8 @@ import {
   resolveInitialTermId,
 } from "../term-calendar.js";
 import type { TermWithCount } from "@lib/types";
+import { missingParentLectures } from "../class-offering-groups.js";
+import { fetchClassPage } from "../classes-api.js";
 import { ACTIVE_TERM_LS_KEY } from "./store-types.js";
 
 export class TermStore {
@@ -113,14 +115,62 @@ export class RoomClassesStore {
       const data = await getJSONFetch<ClassMapValue[]>(
         `/api/classes?${params.toString()}`,
       );
-      this._cache.set(key, data);
-      if (this._requestKey === key) this.classes = data;
+      // A lab/recit's parent lecture usually meets in a different room, so it
+      // isn't in this room's list. Fetch those lectures so the offering
+      // grouping can show each lab/recit alongside its lecture (#301).
+      const withParents = await this.#addParentLectures(data, termId);
+      this._cache.set(key, withParents);
+      if (this._requestKey === key) this.classes = withParents;
     } catch (e) {
       console.error("Failed to load room classes:", e);
       if (this._requestKey === key) this.classes = [];
     } finally {
       if (this._requestKey === key) this.loading = false;
     }
+  };
+
+  // Fetch the parent lectures referenced by labs/recits in `roomClasses` that
+  // aren't already present (they meet in other rooms) and merge them in.
+  #addParentLectures = async (
+    roomClasses: ClassMapValue[],
+    termId: number | null,
+  ): Promise<ClassMapValue[]> => {
+    const missing = missingParentLectures(roomClasses);
+    if (missing.length === 0) return roomClasses;
+
+    const sectionsByCourse = new Map<string, Set<string>>();
+    for (const { courseCode, section } of missing) {
+      const set = sectionsByCourse.get(courseCode) ?? new Set<string>();
+      set.add(section);
+      sectionsByCourse.set(courseCode, set);
+    }
+
+    const haveIds = new Set(roomClasses.map((row) => row.id));
+    const extra: ClassMapValue[] = [];
+    await Promise.all(
+      [...sectionsByCourse].map(async ([courseCode, sections]) => {
+        try {
+          const page = await fetchClassPage({
+            termId,
+            courseCodePrefix: courseCode,
+            limit: 100,
+          });
+          for (const row of page.rows) {
+            if (row.courseCode !== courseCode) continue;
+            const section = (row.section ?? "").trim().toUpperCase();
+            if (sections.has(section) && !haveIds.has(row.id)) {
+              haveIds.add(row.id);
+              extra.push(row);
+            }
+          }
+        } catch {
+          // Best effort — if a course fetch fails, omit that lecture rather
+          // than failing the whole room load.
+        }
+      }),
+    );
+
+    return extra.length > 0 ? [...roomClasses, ...extra] : roomClasses;
   };
 
   clear = () => {

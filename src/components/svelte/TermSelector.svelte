@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
-  import { termChipLabel } from "@lib/term-label";
+  import { termFullLabel } from "@lib/term-label";
   import { formatTermDateRange } from "@lib/term-calendar";
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
@@ -42,7 +42,7 @@
 
   const active = $derived(termStore.activeTerm);
 
-  const activeChipLabel = $derived(active ? termChipLabel(active) : "Term");
+  const activeChipLabel = $derived(active ? termFullLabel(active) : "Term");
 
   const activeDateRange = $derived(active ? formatTermDateRange(active) : null);
 

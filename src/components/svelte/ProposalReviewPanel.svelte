@@ -13,6 +13,7 @@
   import { parseBundledRooms } from "@lib/proposals/create-proposal-validation";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityReviewActions from "@ui/editor/EntityReviewActions.svelte";
+  import Avatar from "@ui/Avatar.svelte";
 
   const appActions = getAppActions();
   const appData = getAppData();
@@ -217,9 +218,10 @@
                 {proposal.entityLabel}
                 <small>({proposal.entityType})</small>
               </span>
-              <span class="entity-review-submitter"
-                >{proposal.submitterName}</span
-              >
+              <span class="entity-review-submitter">
+                <Avatar name={proposal.submitterName} size={20} />
+                {proposal.submitterName}
+              </span>
             </div>
             {#if proposal.currentVersion != null && proposal.currentVersion !== proposal.baseVersion}
               <p class="entity-review-stale" role="alert">
@@ -333,6 +335,12 @@
     display: inline-flex;
     align-items: center;
     margin-right: 0.375rem;
+  }
+
+  .entity-review-submitter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
   }
 
   .entity-review-bundled {

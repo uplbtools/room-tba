@@ -123,6 +123,14 @@ When the user asks to **ship** a feature or fix, they mean the **full integratio
 
 Direct commit + push to `staging` without a PR is fine for solo touch-ups ([§ Push to staging directly](#push-to-staging-directly)): but that is **not** “shipped” until stage 2 (`staging` → `main`) is also reviewed, built, and merged.
 
+### Minimize deploys — the Vercel free tier has a daily cap
+
+Every push to `staging` or `main` (and every PR preview) triggers a Vercel deployment, and the free tier caps deployments per day ("Deployment rate limited — retry in 24 hours"). Hitting the cap **freezes all prod deploys for ~24h**.
+
+- **Batch features into one release.** When several fixes/features are ready, land them all on `staging`, then do **one** `staging` → `main` release — not a release per feature. One-PR-per-feature releases burned the cap once already.
+- Don't open/refresh PRs just to re-trigger builds; don't push trivial follow-up commits that each redeploy.
+- If the cap is hit, further merges only queue undeployed commits — wait for the reset or upgrade the Vercel plan; don't keep merging.
+
 **Merge the release PR with a merge commit, not squash** — semantic-release reads the individual conventional commits to build the changelog; a squash collapses them to one message.
 
 **Release-step (`main`) gotchas — semantic-release.** Pushing to `main` runs `bunx semantic-release` (`.github/workflows/release.yml`). Two failure modes seen in practice:

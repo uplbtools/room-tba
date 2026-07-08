@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   groupClassesByOffering,
   parentLectureSection,
+  missingParentLectures,
 } from "./class-offering-groups.js";
 import type { ClassMapValue } from "@lib/types";
 
@@ -51,6 +52,35 @@ describe("parentLectureSection", () => {
     expect(
       parentLectureSection(row({ section: "UV", type: "LEC" })),
     ).toBeNull();
+  });
+});
+
+describe("missingParentLectures", () => {
+  test("reports a lab's parent lecture when it's not in the set (other room)", () => {
+    const result = missingParentLectures([
+      row({ id: 2, section: "G-1L", type: "LAB", roomCode: "ICS PC2" }),
+    ]);
+    expect(result).toEqual([{ courseCode: "CMSC 12", section: "G" }]);
+  });
+
+  test("reports nothing when the parent lecture is already present", () => {
+    const result = missingParentLectures([
+      row({ id: 1, section: "G", type: "LEC" }),
+      row({ id: 2, section: "G-1L", type: "LAB" }),
+    ]);
+    expect(result).toEqual([]);
+  });
+
+  test("dedupes across multiple labs sharing a lecture", () => {
+    const result = missingParentLectures([
+      row({ id: 2, section: "G-1L", type: "LAB" }),
+      row({ id: 3, section: "G-5L", type: "LAB" }),
+      row({ id: 4, section: "UV-1R", type: "REC", courseCode: "SPCM 1" }),
+    ]);
+    expect(result).toEqual([
+      { courseCode: "CMSC 12", section: "G" },
+      { courseCode: "SPCM 1", section: "UV" },
+    ]);
   });
 });
 

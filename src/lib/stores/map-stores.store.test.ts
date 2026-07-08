@@ -64,6 +64,26 @@ describe("MapViewStore", () => {
     store.showAll();
     expect(store.eventsOnly).toBe(false);
   });
+
+  test("org and place layers default on and toggle independently", () => {
+    const store = new MapViewStore();
+    expect(store.showOrgs).toBe(true);
+    expect(store.showPlaces).toBe(true);
+    store.toggleOrgs();
+    expect(store.showOrgs).toBe(false);
+    expect(store.showPlaces).toBe(true);
+    store.togglePlaces();
+    expect(store.showPlaces).toBe(false);
+  });
+
+  test("showAll restores hidden pin layers", () => {
+    const store = new MapViewStore();
+    store.toggleOrgs();
+    store.togglePlaces();
+    store.showAll();
+    expect(store.showOrgs).toBe(true);
+    expect(store.showPlaces).toBe(true);
+  });
 });
 
 describe("Building3DStore", () => {
