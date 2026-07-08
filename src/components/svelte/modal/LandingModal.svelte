@@ -129,9 +129,9 @@
           Find rooms, explore the map, and discover campus events at UPLB.
         </p>
         <ul class="hero-pitches">
-          <li>No account needed — search and browse right away.</li>
+          <li>No account needed. Search and browse without signing in.</li>
           <li>
-            Works on spotty campus Wi‑Fi — data saves locally after your first
+            Works offline. Campus data is saved to your device after the first
             visit.
           </li>
         </ul>

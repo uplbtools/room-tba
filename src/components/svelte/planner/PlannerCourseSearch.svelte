@@ -185,7 +185,8 @@
     </div>
     {#if rows.length < total}
       <p class="course-search__note">
-        Showing first {rows.length} of {total} sections — refine the search.
+        Showing {rows.length} of {total} sections. Search a course code to find
+        the rest.
       </p>
     {/if}
   {/if}
@@ -225,9 +226,15 @@
   }
 
   .course-search__note {
+    position: sticky;
+    bottom: 0;
     margin: 0;
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 50%);
+    padding: 0.5rem 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 28%);
+    background: hsl(0, 0%, 100%);
+    border-top: 1px solid hsl(0, 0%, 90%);
   }
 
   .course-search__list {
