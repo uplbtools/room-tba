@@ -31,6 +31,27 @@ describe("parentLectureSection", () => {
       "A2",
     );
   });
+
+  test("maps recit section names to their parent lecture (any type)", () => {
+    // Recits use an R suffix and a multi-letter lecture prefix (UV); they are
+    // not typed "LAB" but must still resolve to their parent lecture.
+    expect(parentLectureSection(row({ section: "UV-1R", type: "REC" }))).toBe(
+      "UV",
+    );
+    expect(parentLectureSection(row({ section: "G-2R", type: "RECIT" }))).toBe(
+      "G",
+    );
+    expect(parentLectureSection(row({ section: "ST11R", type: "REC" }))).toBe(
+      "ST1",
+    );
+  });
+
+  test("returns null for standalone lecture/seminar sections", () => {
+    expect(parentLectureSection(row({ section: "G", type: "LEC" }))).toBeNull();
+    expect(
+      parentLectureSection(row({ section: "UV", type: "LEC" })),
+    ).toBeNull();
+  });
 });
 
 describe("groupClassesByOffering", () => {
@@ -50,5 +71,18 @@ describe("groupClassesByOffering", () => {
       "G",
       "G-5L",
     ]);
+  });
+
+  test("adds the parent lecture row to each recit offering", () => {
+    const groups = groupClassesByOffering([
+      row({ id: 1, courseCode: "SPCM 1", section: "UV", type: "LEC" }),
+      row({ id: 2, courseCode: "SPCM 1", section: "UV-1R", type: "REC" }),
+      row({ id: 3, courseCode: "SPCM 1", section: "UV-2R", type: "REC" }),
+    ]);
+
+    // The standalone lecture group is folded into its recits, not listed alone.
+    expect(groups.map((group) => group.section)).toEqual(["UV-1R", "UV-2R"]);
+    expect(groups[0]?.sections.map((s) => s.section)).toEqual(["UV", "UV-1R"]);
+    expect(groups[1]?.sections.map((s) => s.section)).toEqual(["UV", "UV-2R"]);
   });
 });
