@@ -8,17 +8,11 @@ export const prerender = false;
 
 const WINDOWS = new Set<LeaderboardWindow>(["month", "semester", "all"]);
 
-export const GET: APIRoute = async ({ url, request }) => {
+export const GET: APIRoute = async ({ url }) => {
   const windowParam = url.searchParams.get("window") ?? "month";
   const window = WINDOWS.has(windowParam as LeaderboardWindow)
     ? (windowParam as LeaderboardWindow)
     : "month";
-
-  const auth = request.headers.get("authorization");
-  const expected = process.env.ROOM_TBA_BOT_API_KEY;
-  if (expected && auth !== `Bearer ${expected}`) {
-    return json({ error: "Unauthorized" }, 401);
-  }
 
   const rows = await getContributorLeaderboard(window);
   return json({ window, rows });
