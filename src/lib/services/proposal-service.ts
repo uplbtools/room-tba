@@ -4,6 +4,7 @@ import {
   collegesTable,
   divisionsTable,
   dormsTable,
+  placesTable,
   editProposalsTable,
   eventLocationsTable,
   eventsTable,
@@ -30,11 +31,13 @@ import {
   createDorm,
   createEvent,
   createOrganization,
+  createPlace,
   createRoom,
   updateBuilding,
   updateCollege,
   updateDivision,
   updateDorm,
+  updatePlace,
   updateEvent,
   updateEventLocations,
   updateOrganization,
@@ -47,6 +50,8 @@ import {
   type DivisionUpdateInput,
   type EventLocationWriteInput,
   type EventWriteInput,
+  type PlaceCreateInput,
+  type PlaceUpdateInput,
   type RoomCreateInput,
   type RoomUpdateInput,
 } from "./admin-service";
@@ -60,6 +65,7 @@ import {
 export const PROPOSAL_UPDATE_TYPES = [
   "building",
   "dorm",
+  "place",
   "room",
   "college",
   "division",
@@ -72,6 +78,7 @@ export const PROPOSAL_CREATE_TYPES = [
   "create_building",
   "create_event",
   "create_dorm",
+  "create_place",
   "create_room",
   "create_college",
   "create_division",
@@ -136,6 +143,10 @@ export async function getEntityLabel(
         return typeof p.dormName === "string" && p.dormName.trim()
           ? `New dorm: ${p.dormName.trim()}`
           : "New dorm";
+      case "create_place":
+        return typeof p.name === "string" && p.name.trim()
+          ? `New place: ${p.name.trim()}`
+          : "New place";
       case "create_room": {
         const code =
           typeof p.roomCode === "string" && p.roomCode.trim()
@@ -185,6 +196,14 @@ export async function getEntityLabel(
         .where(eq(dormsTable.id, entityId))
         .limit(1);
       return row?.label ?? `Dorm #${entityId}`;
+    }
+    case "place": {
+      const [row] = await db
+        .select({ label: placesTable.name })
+        .from(placesTable)
+        .where(eq(placesTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Place #${entityId}`;
     }
     case "room": {
       const [row] = await db
@@ -248,6 +267,14 @@ async function entityExists(
         .select({ id: dormsTable.id })
         .from(dormsTable)
         .where(eq(dormsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "place": {
+      const [row] = await db
+        .select({ id: placesTable.id })
+        .from(placesTable)
+        .where(eq(placesTable.id, entityId))
         .limit(1);
       return row !== undefined;
     }
@@ -438,6 +465,14 @@ export async function getCurrentEntityValues(
         .select()
         .from(organizationsTable)
         .where(eq(organizationsTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "place": {
+      const [row] = await db
+        .select()
+        .from(placesTable)
+        .where(eq(placesTable.id, entityId))
         .limit(1);
       return row ?? null;
     }
@@ -771,6 +806,8 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
       }
       case "create_dorm":
         return createDorm(patch as DormCreateInput, editedBy);
+      case "create_place":
+        return createPlace(patch as PlaceCreateInput, editedBy);
       case "create_room":
         return createRoom(patch as RoomCreateInput, editedBy);
       case "create_event":
@@ -794,6 +831,13 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
       return updateDorm(
         proposal.entityId,
         patch as DormUpdateInput,
+        version,
+        editedBy,
+      );
+    case "place":
+      return updatePlace(
+        proposal.entityId,
+        patch as PlaceUpdateInput,
         version,
         editedBy,
       );

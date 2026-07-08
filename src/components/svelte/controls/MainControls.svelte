@@ -6,6 +6,7 @@
   import DivisionResult from "./DivisionResult.svelte";
   import DormResult from "./DormResult.svelte";
   import OrgResult from "./OrgResult.svelte";
+  import PlaceResult from "./PlaceResult.svelte";
   import EventsList from "./EventsList.svelte";
   import EventResult from "./EventResult.svelte";
   import RoomResult from "@ui/room/RoomResult.svelte";
@@ -154,6 +155,8 @@
                 <DormResult />
               {:else if queryStore.category === "organization"}
                 <OrgResult />
+              {:else if queryStore.category === "place"}
+                <PlaceResult />
               {:else if queryStore.category === "event"}
                 <EventResult />
               {:else if queryStore.category === "events"}

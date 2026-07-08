@@ -23,6 +23,7 @@ export interface QueryStoreState {
     | "classes"
     | "browse"
     | "dorm"
+    | "place"
     | "event"
     | "events"
     | "organization"

@@ -130,6 +130,28 @@ export const organizationsTable = pgTable("organizations", {
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+export const placesTable = pgTable("places", {
+  id: integer().primaryKey().generatedByDefaultAsIdentity({
+    name: "places_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 2147483647,
+    cache: 1,
+  }),
+  name: text().notNull(),
+  category: varchar({ length: 24 }).notNull(),
+  lat: doublePrecision(),
+  lon: doublePrecision(),
+  description: text(),
+  hours: text(),
+  websiteLink: text("website_link"),
+  facebookLink: text("facebook_link"),
+  imageUrl: text("image_url"),
+  version: integer().default(1).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
 export const collegesTable = pgTable("colleges", {
   id: integer().primaryKey().generatedByDefaultAsIdentity({
     name: "colleges_id_seq",
@@ -304,6 +326,7 @@ export const roomsTable = pgTable(
     collegeId: integer("college_id"),
     divisionId: integer("division_id"),
     imageUrl: text("image_url"),
+    category: varchar({ length: 24 }),
     version: integer().default(1).notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()

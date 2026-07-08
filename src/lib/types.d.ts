@@ -6,6 +6,7 @@ import {
   eventRoutesTable,
   eventsTable,
   organizationsTable,
+  placesTable,
   roomPositionsTable,
   termsTable,
 } from "@drizzle/schema";
@@ -59,6 +60,8 @@ type RoomData = {
   collegeName: string | null;
   divisionName: string | null;
   imageUrl?: string | null;
+  /** Room purpose category (#537): classroom | office | org-tambayan | … | null. */
+  category?: string | null;
   version: number;
   updatedAt: string;
   floor?: number | null;
@@ -115,6 +118,7 @@ type DivisionData = {
 type DormData = typeof dormsTable.$inferSelect;
 
 type OrgData = typeof organizationsTable.$inferSelect;
+type PlaceData = typeof placesTable.$inferSelect;
 
 type Term = typeof termsTable.$inferSelect;
 

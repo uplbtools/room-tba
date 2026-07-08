@@ -85,6 +85,21 @@ export async function initPGLiteDB(db: PGlite) {
     "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS "places" (
+   	"id" integer PRIMARY KEY,
+   	"name" text NOT NULL,
+   	"category" varchar(24) NOT NULL,
+   	"lat" double precision,
+   	"lon" double precision,
+   	"description" text,
+   	"hours" text,
+   	"website_link" text,
+   	"facebook_link" text,
+   	"image_url" text,
+    "version" integer NOT NULL DEFAULT 1,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS "room_positions" (
    	"id" integer PRIMARY KEY,
    	"floor" integer NOT NULL,
@@ -107,6 +122,7 @@ export async function initPGLiteDB(db: PGlite) {
    	"building_id" integer,
    	"college_id" integer,
    	"division_id" integer,
+    "category" varchar(24),
     "version" integer NOT NULL DEFAULT 1,
     "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "classes_fetched" boolean NOT NULL DEFAULT false
@@ -220,6 +236,9 @@ export async function initPGLiteDB(db: PGlite) {
 
     ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS "image_url" text;
+
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS "category" varchar(24);
 
     ALTER TABLE dorms
     ADD COLUMN IF NOT EXISTS "image_url" text;

@@ -15,6 +15,7 @@ const PATHS = [
   "final_exams",
   "events",
   "organizations",
+  "places",
   "event_locations",
   "event_routes",
   "event_route_stops",
