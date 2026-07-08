@@ -33,6 +33,33 @@ export function serializePlanner(
   } satisfies PlannerPersisted);
 }
 
+/**
+ * Union two planner states for account sync: keep every plan from both, with
+ * the remote (account) version winning on a shared plan id. Prevents losing
+ * local-only plans when a user signs in on a device that already has plans,
+ * while treating the account copy as authoritative for plans it also has.
+ */
+export function mergePlannerState(
+  local: Pick<PlannerPersisted, "plans" | "activePlanIdByTerm">,
+  remote: Pick<PlannerPersisted, "plans" | "activePlanIdByTerm">,
+): PlannerPersisted {
+  const byId = new Map<string, PlannerPlan>();
+  for (const plan of remote.plans) byId.set(plan.id, plan);
+  for (const plan of local.plans)
+    if (!byId.has(plan.id)) byId.set(plan.id, plan);
+  const plans = [...byId.values()];
+  const planIds = new Set(plans.map((p) => p.id));
+  // Remote's active-plan choices win; keep local's for terms remote doesn't set.
+  const activePlanIdByTerm: Record<string, string> = {};
+  for (const [termId, planId] of Object.entries({
+    ...local.activePlanIdByTerm,
+    ...remote.activePlanIdByTerm,
+  })) {
+    if (planIds.has(planId)) activePlanIdByTerm[termId] = planId;
+  }
+  return { v: 1, plans, activePlanIdByTerm };
+}
+
 /** Parse persisted planner state; invalid plans/sections are dropped, never fatal. */
 export function parsePlanner(raw: string | null): PlannerPersisted {
   if (!raw) return { ...EMPTY_PLANNER };

@@ -387,6 +387,8 @@ class AdminAuthStore {
     this.canPublish = data.canPublish ?? false;
     this.canReview = data.canReview ?? false;
     if (data.canReview) void proposalsStore.refresh();
+    if (this.isLoggedIn) void plannerStore.enableAccountSync();
+    else plannerStore.disableAccountSync();
   }
 
   hydrate = async () => {
@@ -547,6 +549,7 @@ class AdminAuthStore {
     this.canReview = false;
     proposalsStore.pendingCount = 0;
     proposalsStore.proposals = [];
+    plannerStore.disableAccountSync();
   };
 
   openLogin = () => {

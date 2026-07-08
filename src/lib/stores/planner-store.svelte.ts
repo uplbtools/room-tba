@@ -1,7 +1,11 @@
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import { offeringGroupKey } from "../class-offering-groups.js";
 import { findConflicts } from "../planner/conflicts.js";
-import { parsePlanner, serializePlanner } from "../planner/persist.js";
+import {
+  mergePlannerState,
+  parsePlanner,
+  serializePlanner,
+} from "../planner/persist.js";
 import { sectionNaturalKey } from "../planner/types.js";
 import type { PlannedSection, PlannerPlan } from "../planner/types.js";
 import type { ClassMapValue } from "@lib/types";
@@ -220,5 +224,71 @@ export class PlannerStore {
       // localStorage may be unavailable (private mode); plan still works
       // for the current session.
     }
+    this.#pushToAccount();
   }
+
+  // --- Account sync (#2) --------------------------------------------------
+  // When signed in, plans persist to the account so they follow the user
+  // across devices; localStorage stays the offline/anon cache.
+  #accountSync = false;
+  #saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Called on sign-in: pull the account's plans, merge, and start syncing. */
+  enableAccountSync = async () => {
+    if (this.#accountSync) return;
+    this.#accountSync = true;
+    await this.#hydrateFromAccount();
+  };
+
+  /** Called on sign-out: stop pushing to the account (localStorage remains). */
+  disableAccountSync = () => {
+    this.#accountSync = false;
+    if (this.#saveTimer) {
+      clearTimeout(this.#saveTimer);
+      this.#saveTimer = null;
+    }
+  };
+
+  #hydrateFromAccount = async () => {
+    try {
+      const res = await fetch("/api/account/plans", {
+        credentials: "same-origin",
+      });
+      if (!res.ok) return;
+      const { data } = (await res.json()) as { data: unknown };
+      const remote = parsePlanner(data ? JSON.stringify(data) : null);
+      const merged = mergePlannerState(
+        { plans: this.plans, activePlanIdByTerm: this.activePlanIdByTerm },
+        remote,
+      );
+      this.plans = merged.plans;
+      this.activePlanIdByTerm = merged.activePlanIdByTerm;
+      // Writes local cache and pushes the merged union back to the account.
+      this.persist();
+    } catch {
+      // Offline or request failed — keep the local plans as-is.
+    }
+  };
+
+  #pushToAccount = () => {
+    if (!this.#accountSync || typeof fetch === "undefined") return;
+    if (this.#saveTimer) clearTimeout(this.#saveTimer);
+    this.#saveTimer = setTimeout(() => {
+      this.#saveTimer = null;
+      const data = JSON.parse(
+        serializePlanner({
+          plans: this.plans,
+          activePlanIdByTerm: this.activePlanIdByTerm,
+        }),
+      );
+      void fetch("/api/account/plans", {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ data }),
+      }).catch(() => {
+        // Best effort; localStorage already holds the change.
+      });
+    }, 1200);
+  };
 }
