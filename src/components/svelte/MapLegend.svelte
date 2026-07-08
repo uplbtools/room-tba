@@ -174,6 +174,42 @@
             {/each}
           </div>
         </section>
+
+        <section class="legend-section" aria-labelledby="legend-layers">
+          <h3 id="legend-layers" class="legend-section-title">Layers</h3>
+          <div class="legend-list">
+            <button
+              type="button"
+              class="legend-item legend-toggle"
+              class:legend-toggle--off={!mapViewStore.showOrgs}
+              aria-pressed={mapViewStore.showOrgs}
+              onclick={() => mapViewStore.toggleOrgs()}
+            >
+              <span class="legend-swatch organization" aria-hidden="true"></span>
+              <span class="legend-copy">
+                <span class="legend-label">Orgs &amp; offices</span>
+                <span class="legend-description">
+                  {mapViewStore.showOrgs ? "Shown" : "Hidden"} — tap to toggle.
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              class="legend-item legend-toggle"
+              class:legend-toggle--off={!mapViewStore.showPlaces}
+              aria-pressed={mapViewStore.showPlaces}
+              onclick={() => mapViewStore.togglePlaces()}
+            >
+              <span class="legend-swatch place" aria-hidden="true"></span>
+              <span class="legend-copy">
+                <span class="legend-label">Places</span>
+                <span class="legend-description">
+                  {mapViewStore.showPlaces ? "Shown" : "Hidden"} — tap to toggle.
+                </span>
+              </span>
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   {/if}
@@ -397,6 +433,41 @@
 
   .legend-swatch.location {
     background-color: #4285f4;
+  }
+
+  .legend-swatch.organization {
+    background-color: hsl(262, 52%, 47%);
+  }
+
+  .legend-swatch.place {
+    background-color: hsl(28, 80%, 45%);
+  }
+
+  .legend-toggle {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+    max-width: 100%;
+    border-radius: 0.625rem;
+    background-color: hsl(0, 0%, 98%);
+    padding: 0.45rem 0.625rem;
+    cursor: pointer;
+  }
+
+  .legend-toggle:hover,
+  .legend-toggle:focus-visible {
+    background-color: hsl(5, 30%, 95%);
+  }
+
+  .legend-toggle--off {
+    opacity: 0.55;
+  }
+
+  .legend-toggle--off .legend-swatch {
+    filter: grayscale(1);
   }
 
   .legend-swatch.jeepney-stop {

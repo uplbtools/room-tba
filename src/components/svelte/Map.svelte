@@ -141,7 +141,7 @@
   // the building they sit in. Orgs without any resolvable location are dropped
   // from the map (they still appear in the directory list).
   const filteredOrganizations = $derived.by(() => {
-    if (!loaded) return [];
+    if (!loaded || !mapViewStore.showOrgs) return [];
     return organizations
       .map((org) => {
         let lat = org.lat;
@@ -161,7 +161,7 @@
       );
   });
   const filteredPlaces = $derived.by(() => {
-    if (!loaded) return [];
+    if (!loaded || !mapViewStore.showPlaces) return [];
     return places.filter((place) => place.lat != null && place.lon != null);
   });
 
