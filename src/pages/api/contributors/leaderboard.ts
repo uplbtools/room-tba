@@ -19,10 +19,7 @@ export const GET: APIRoute = async ({ url }) => {
     return json({ window, rows });
   } catch (error) {
     console.error("leaderboard query failed:", error);
-    return json(
-      { error: "Leaderboard is temporarily unavailable." },
-      500,
-    );
+    return json({ error: "Leaderboard is temporarily unavailable." }, 500);
   }
 };
 

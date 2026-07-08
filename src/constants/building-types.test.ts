@@ -15,7 +15,10 @@ describe("buildingMatchesTypeFilter", () => {
 
   it("matches admin buildings to the administrative filter", () => {
     expect(
-      buildingMatchesTypeFilter(building(1, "admin"), "administrative-building"),
+      buildingMatchesTypeFilter(
+        building(1, "admin"),
+        "administrative-building",
+      ),
     ).toBe(true);
     expect(
       buildingMatchesTypeFilter(
