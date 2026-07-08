@@ -12,6 +12,7 @@
   import ScheduleModal from "./ScheduleModal.svelte";
   import LeaderboardModal from "./LeaderboardModal.svelte";
   import ChangelogModal from "../ChangelogModal.svelte";
+  import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
   import X from "@lucide/svelte/icons/x";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -36,6 +37,7 @@
     if (modalStore.type === "schedule-expand") return "Room schedule";
     if (modalStore.type === "leaderboard") return "Contributor leaderboard";
     if (modalStore.type === "changelog") return "What's new";
+    if (modalStore.type === "review") return "Review suggested edits";
     return "Dialog";
   });
 
@@ -116,6 +118,18 @@
           <X size={20} aria-hidden="true" />
         </button>
         <ChangelogModal />
+      {:else if modalStore.type === "review"}
+        <button
+          type="button"
+          class="modal-content__close-icon"
+          aria-label="Close review"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+        <div class="review-modal-scroll">
+          <ProposalReviewPanel />
+        </div>
       {/if}
     </div>
   </div>
@@ -146,6 +160,13 @@
     box-sizing: border-box;
     pointer-events: auto;
   }
+  .review-modal-scroll {
+    min-height: 0;
+    max-height: min(70vh, 40rem);
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem 0.25rem;
+  }
+
   .modal-content {
     position: relative;
     flex: 0 1 64rem;
