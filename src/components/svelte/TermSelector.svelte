@@ -213,9 +213,6 @@
       >
         <GraduationCap size={14} aria-hidden="true" />
         <span class="term-filter-chip__label">{activeChipLabel}</span>
-        {#if active && active.classCount > 0}
-          <span class="map-chrome-chip__count">{active.classCount}</span>
-        {/if}
         <ChevronDown
           size={14}
           class="term-filter-chip__chevron"
@@ -250,7 +247,7 @@
                 {/if}
               </span>
               {#if term.classCount > 0}
-                <span class="term-picker-option__count">{term.classCount}</span>
+                <span class="term-picker-option__count">{term.classCount} {term.classCount === 1 ? "classes" : "class"}</span>
               {/if}
             </button>
           {/each}

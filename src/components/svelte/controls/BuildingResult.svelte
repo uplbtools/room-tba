@@ -218,7 +218,6 @@
     if (!canPublish) {
       const saved = readEntityContributorDraft("building", current.id);
       if (saved) {
-        if (saved.editing) editing = true;
         if (typeof saved.fields.nameDraft === "string") {
           nameDraft = saved.fields.nameDraft;
         }

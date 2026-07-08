@@ -18,7 +18,6 @@
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
-  import TermSelector from "@ui/TermSelector.svelte";
   import TransitFilterChip from "@ui/TransitFilterChip.svelte";
   import TransitRoutePanel from "@ui/TransitRoutePanel.svelte";
   import { jeepneyStore } from "@lib/store.svelte";
@@ -365,6 +364,12 @@
       </div>
 
       {#if showSearchDropdown}
+          <div class="campus-browse-chips__container">
+            {#if chrome.showSearchSuggestions}
+            <CampusBrowseChips />
+            {/if}
+          </div>
+        <!-- svelte-ignore a11y_interactive_supports_focus -->
         <div
           id="search-suggestions"
           class="map-search-chrome__suggestions"
@@ -379,14 +384,16 @@
       {/if}
 
       {#if (mobile.current || chrome.showSearchSuggestions || chrome.editMode) && !(showSearchDropdown && draftInput.trim() !== "")}
-        <div class="map-search-chrome__chips" onmousedown={(event) => event.preventDefault()}>
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <div
+          class="map-search-chrome__chips"
+          onmousedown={(event) => event.preventDefault()}
+          role="list"
+        >
           {#if mobile.current}
             <MapDimensionToggle compact />
           {/if}
-          {#if chrome.showSearchSuggestions}
-            <CampusBrowseChips />
-          {/if}
-          <TermSelector />
+
           {#if chrome.showSearchSuggestions}
             {#if showIdleEventsChrome}
               <button
@@ -461,6 +468,9 @@
 </div>
 
 <style>
+    .campus-browse-chips__container {
+        padding: .5rem .75rem;
+    }
   .sr-only {
     position: absolute;
     width: 1px;
