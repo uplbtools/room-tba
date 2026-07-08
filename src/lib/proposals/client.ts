@@ -266,6 +266,10 @@ export function adminPatchPath(
       return `/api/admin/events/${entityId}`;
     case "event_locations":
       return `/api/admin/events/${entityId}/locations`;
+    case "organization":
+      return `/api/admin/organizations/${entityId}`;
+    default:
+      return `/api/admin/${entityType}/${entityId}`;
   }
 }
 
@@ -316,7 +320,8 @@ export async function publishEntityPatch(
     payload.room ??
     payload.college ??
     payload.division ??
-    payload.event;
+    payload.event ??
+    payload.organization;
   return { ok: true, data: entity ?? payload };
 }
 
@@ -446,6 +451,8 @@ function adminCreatePath(entityType: ProposalCreateType): string {
       return "/api/admin/divisions";
     case "create_event":
       return "/api/admin/events";
+    case "create_organization":
+      return "/api/admin/organizations";
   }
 }
 
@@ -470,7 +477,8 @@ export async function publishEntityCreate(
     payload.dorm ??
     payload.college ??
     payload.division ??
-    payload.event;
+    payload.event ??
+    payload.organization;
   return { ok: true, data: entity ?? payload };
 }
 
