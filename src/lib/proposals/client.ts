@@ -266,6 +266,10 @@ export function adminPatchPath(
       return `/api/admin/events/${entityId}`;
     case "event_locations":
       return `/api/admin/events/${entityId}/locations`;
+    case "organization":
+      return `/api/admin/organizations/${entityId}`;
+    default:
+      return `/api/admin/${entityType}/${entityId}`;
   }
 }
 
@@ -316,7 +320,8 @@ export async function publishEntityPatch(
     payload.room ??
     payload.college ??
     payload.division ??
-    payload.event;
+    payload.event ??
+    payload.organization;
   return { ok: true, data: entity ?? payload };
 }
 
@@ -359,7 +364,7 @@ type MergeEntityConfig = {
 };
 
 const MERGE_ENTITY_CONFIG: Record<
-  Exclude<ProposalEntityType, "event" | "event_locations">,
+  Exclude<ProposalEntityType, "event" | "event_locations" | "organization">,
   MergeEntityConfig
 > = {
   building: {
@@ -390,7 +395,10 @@ const MERGE_ENTITY_CONFIG: Record<
 };
 
 export async function mergeEntityRecord(input: {
-  entityType: Exclude<ProposalEntityType, "event" | "event_locations">;
+  entityType: Exclude<
+    ProposalEntityType,
+    "event" | "event_locations" | "organization"
+  >;
   sourceId: number;
   targetId: number;
   sourceVersion: number;
@@ -443,6 +451,8 @@ function adminCreatePath(entityType: ProposalCreateType): string {
       return "/api/admin/divisions";
     case "create_event":
       return "/api/admin/events";
+    case "create_organization":
+      return "/api/admin/organizations";
   }
 }
 
@@ -467,7 +477,8 @@ export async function publishEntityCreate(
     payload.dorm ??
     payload.college ??
     payload.division ??
-    payload.event;
+    payload.event ??
+    payload.organization;
   return { ok: true, data: entity ?? payload };
 }
 

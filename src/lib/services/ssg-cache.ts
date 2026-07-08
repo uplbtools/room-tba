@@ -12,6 +12,7 @@ import type {
   CollegeData,
   DivisionData,
   DormData,
+  OrgData,
   EventData,
   PlaceData,
   RoomData,
@@ -23,6 +24,7 @@ interface SSGCache {
   colleges: CollegeData[] | null;
   divisions: DivisionData[] | null;
   dorms: DormData[] | null;
+  organizations: OrgData[] | null;
   events: EventData[] | null;
   places: PlaceData[] | null;
   defaultTerm: { id: number; label: string } | null;
@@ -36,6 +38,7 @@ const cache: SSGCache = {
   colleges: null,
   divisions: null,
   dorms: null,
+  organizations: null,
   events: null,
   places: null,
   defaultTerm: null,
@@ -53,6 +56,7 @@ export function clearBuildCache() {
   cache.colleges = null;
   cache.divisions = null;
   cache.dorms = null;
+  cache.organizations = null;
   cache.events = null;
   cache.places = null;
   cache.defaultTerm = null;

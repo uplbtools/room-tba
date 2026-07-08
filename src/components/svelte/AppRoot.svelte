@@ -17,6 +17,7 @@
     CollegeData,
     DivisionData,
     DormData,
+    OrgData,
     PlaceData,
     EventData,
     TableSyncInfo,
@@ -30,6 +31,7 @@
     getColleges,
     getDivisions,
     getDorms,
+    getOrganizations,
     getEvents,
     getClasses,
     getPlaces,
@@ -43,6 +45,7 @@
     syncColleges,
     syncDivisions,
     syncDorms,
+    syncOrganizations,
     syncPlaces,
     syncEvents,
     syncAliasCache,
@@ -62,6 +65,7 @@
   let directionCount: number | null = $state.raw(null);
   let divisions: DivisionData[] | null = $state.raw(null);
   let dorms: DormData[] | null = $state.raw(null);
+  let organizations: OrgData[] | null = $state.raw(null);
   let events: EventData[] | null = $state.raw(null);
   let places: PlaceData[] | null = $state.raw(null);
   let totalRooms: number | null = $state.raw(null);
@@ -73,6 +77,7 @@
     divisions,
     dorms,
     events,
+    organizations,
     places,
     totalRooms,
     loaded,
@@ -100,6 +105,7 @@
     divisions = data.divisions;
     dorms = data.dorms.map(normalizeDormListFields);
     events = data.events;
+    organizations = data.organizations;
     places = data.places;
     totalRooms = data.totalRooms;
   }
@@ -125,6 +131,7 @@
     divisions: [],
     dorms: [],
     events: [],
+    organizations: [],
     places: [],
     directionCount: 0,
     totalRooms: 0,
@@ -165,6 +172,7 @@
         dormCheck,
         eventCheck,
         classCheck,
+        organizationCheck,
         placeCheck,
       ] = await Promise.all([
         localTableSyncCheck("buildings"),
@@ -173,6 +181,7 @@
         localTableSyncCheck("dorms"),
         localTableSyncCheck("events"),
         localTableSyncCheck("classes"),
+        localTableSyncCheck("organizations"),
         localTableSyncCheck("places"),
       ]);
 
@@ -190,6 +199,7 @@
         dormLoad,
         eventLoad,
         classLoad,
+        organizationLoad,
         placeLoad,
         roomsData,
       ] = await Promise.all([
@@ -199,6 +209,7 @@
         trackFetch(getDorms(dormCheck)),
         trackFetch(getEvents(eventCheck)),
         trackFetch(getClasses(classCheck)),
+        trackFetch(getOrganizations(organizationCheck)),
         trackFetch(getPlaces(placeCheck)),
         trackFetch(getRoomsData()),
       ]);
@@ -209,6 +220,7 @@
         divisions: divisionLoad.rows,
         dorms: dormLoad.rows,
         events: eventLoad.rows,
+        organizations: organizationLoad.rows,
         places: placeLoad.rows,
         directionCount: roomsData.directionCount,
         totalRooms: roomsData.totalRooms,
@@ -255,6 +267,11 @@
         divisionLoad.source === "remote",
       );
       await syncDorms(dormCheck, dormLoad.rows, dormLoad.source === "remote");
+      await syncOrganizations(
+        organizationCheck,
+        organizationLoad.rows,
+        organizationLoad.source === "remote",
+      );
       await syncPlaces(
         placeCheck,
         placeLoad.rows,
@@ -424,6 +441,19 @@
       const next = dorms.slice();
       next[index] = normalizeDormListFields(updated);
       dorms = next;
+    },
+    upsertOrganization: (updated) => {
+      if (!organizations) return;
+      const index = organizations.findIndex((o) => o.id === updated.id);
+      if (index === -1) {
+        organizations = [...organizations, updated].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+        return;
+      }
+      const next = organizations.slice();
+      next[index] = updated;
+      organizations = next;
     },
     upsertPlace: (updated) => {
       if (!places) return;

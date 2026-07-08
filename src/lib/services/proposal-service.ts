@@ -8,6 +8,7 @@ import {
   editProposalsTable,
   eventLocationsTable,
   eventsTable,
+  organizationsTable,
   roomsTable,
 } from "@drizzle/schema";
 import type { SessionUser } from "@lib/admin/auth";
@@ -29,6 +30,7 @@ import {
   createDivision,
   createDorm,
   createEvent,
+  createOrganization,
   createPlace,
   createRoom,
   updateBuilding,
@@ -38,10 +40,13 @@ import {
   updatePlace,
   updateEvent,
   updateEventLocations,
+  updateOrganization,
   updateRoom,
   type BuildingUpdateInput,
   type DormCreateInput,
   type DormUpdateInput,
+  type OrgCreateInput,
+  type OrgUpdateInput,
   type DivisionUpdateInput,
   type EventLocationWriteInput,
   type EventWriteInput,
@@ -66,6 +71,7 @@ export const PROPOSAL_UPDATE_TYPES = [
   "division",
   "event",
   "event_locations",
+  "organization",
 ] as const;
 
 export const PROPOSAL_CREATE_TYPES = [
@@ -76,6 +82,7 @@ export const PROPOSAL_CREATE_TYPES = [
   "create_room",
   "create_college",
   "create_division",
+  "create_organization",
 ] as const;
 
 export const PROPOSAL_ENTITY_TYPES = [
@@ -166,6 +173,10 @@ export async function getEntityLabel(
         return typeof p.divisionName === "string" && p.divisionName.trim()
           ? `New division: ${p.divisionName.trim()}`
           : "New division";
+      case "create_organization":
+        return typeof p.name === "string" && p.name.trim()
+          ? `New org: ${p.name.trim()}`
+          : "New organization";
     }
   }
 
@@ -226,6 +237,14 @@ export async function getEntityLabel(
         .where(eq(eventsTable.id, entityId))
         .limit(1);
       return row?.label ?? `Event #${entityId}`;
+    }
+    case "organization": {
+      const [row] = await db
+        .select({ label: organizationsTable.name })
+        .from(organizationsTable)
+        .where(eq(organizationsTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Organization #${entityId}`;
     }
   }
 }
@@ -289,6 +308,14 @@ async function entityExists(
         .select({ id: eventsTable.id })
         .from(eventsTable)
         .where(eq(eventsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "organization": {
+      const [row] = await db
+        .select({ id: organizationsTable.id })
+        .from(organizationsTable)
+        .where(eq(organizationsTable.id, entityId))
         .limit(1);
       return row !== undefined;
     }
@@ -432,6 +459,22 @@ export async function getCurrentEntityValues(
         .where(eq(eventLocationsTable.eventId, entityId))
         .orderBy(eventLocationsTable.sortOrder, eventLocationsTable.id);
       return { ...row, locations };
+    }
+    case "organization": {
+      const [row] = await db
+        .select()
+        .from(organizationsTable)
+        .where(eq(organizationsTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "place": {
+      const [row] = await db
+        .select()
+        .from(placesTable)
+        .where(eq(placesTable.id, entityId))
+        .limit(1);
+      return row ?? null;
     }
   }
 }
@@ -769,6 +812,8 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
         return createRoom(patch as RoomCreateInput, editedBy);
       case "create_event":
         return createEvent(patch as EventWriteInput, editedBy);
+      case "create_organization":
+        return createOrganization(patch as OrgCreateInput, editedBy);
     }
   }
 
@@ -838,6 +883,13 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
         editedBy,
       );
     }
+    case "organization":
+      return updateOrganization(
+        proposal.entityId,
+        patch as OrgUpdateInput,
+        version,
+        editedBy,
+      );
     default:
       throw new ProposalActionError("Unsupported entity type.");
   }

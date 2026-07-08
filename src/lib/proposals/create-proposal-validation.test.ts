@@ -73,4 +73,26 @@ describe("validateCreateProposalPatch", () => {
       }),
     ).not.toThrow();
   });
+
+  test("create_organization requires name and valid category", () => {
+    expect(() =>
+      validateCreateProposalPatch("create_organization", {
+        name: "UP Circle",
+      }),
+    ).toThrow(ProposalValidationError);
+
+    expect(() =>
+      validateCreateProposalPatch("create_organization", {
+        name: "UP Circle",
+        category: "not-a-category",
+      }),
+    ).toThrow(ProposalValidationError);
+
+    expect(() =>
+      validateCreateProposalPatch("create_organization", {
+        name: "UP Circle",
+        category: "student-org",
+      }),
+    ).not.toThrow();
+  });
 });

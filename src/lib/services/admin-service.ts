@@ -10,6 +10,7 @@ import {
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
+  organizationsTable,
   placesTable,
   roomsTable,
   roomPositionsTable,
@@ -1179,6 +1180,135 @@ export async function createDorm(
     editedBy,
   });
   await refreshSyncKey("dorms", [dormIsrPath(inserted), "/dorm/"]);
+  return inserted;
+}
+
+// ── Organizations ──
+
+export type OrgAdmin = typeof organizationsTable.$inferSelect;
+
+export async function getOrganizationById(
+  id: number,
+): Promise<OrgAdmin | null> {
+  const rows = await db
+    .select()
+    .from(organizationsTable)
+    .where(eq(organizationsTable.id, id))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getAllOrganizationsAdmin(): Promise<OrgAdmin[]> {
+  return db.select().from(organizationsTable).orderBy(organizationsTable.name);
+}
+
+export type OrgUpdateInput = Partial<{
+  name: string;
+  category: string;
+  buildingId: number | null;
+  roomId: number | null;
+  lat: number | null;
+  lon: number | null;
+  description: string | null;
+  websiteLink: string | null;
+  facebookLink: string | null;
+  email: string | null;
+  imageUrl: string | null;
+}>;
+
+export async function updateOrganization(
+  id: number,
+  input: OrgUpdateInput,
+  expectedVersion?: number,
+  editedBy = "admin",
+  history?: EditorHistoryOverride,
+): Promise<OrgAdmin | null> {
+  const updates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) updates[key] = value;
+  }
+  if (Object.keys(updates).length > 0) {
+    const before = await getOrganizationById(id);
+    const where =
+      expectedVersion === undefined
+        ? eq(organizationsTable.id, id)
+        : and(
+            eq(organizationsTable.id, id),
+            eq(organizationsTable.version, expectedVersion),
+          );
+    const [updated] = await db
+      .update(organizationsTable)
+      .set({
+        ...updates,
+        version: sql`"version" + 1`,
+        updatedAt: sql`now()`,
+      })
+      .where(where)
+      .returning();
+
+    if (!updated && expectedVersion !== undefined) {
+      throw new EditConflictError(await getOrganizationById(id));
+    }
+
+    if (before && updated) {
+      await recordEditorHistory({
+        entityType: "organization",
+        entityId: id,
+        action: history?.action ?? "update",
+        before,
+        after: updated,
+        versionBefore: before.version,
+        versionAfter: updated.version,
+        editedBy,
+        summary: history?.summary ?? null,
+      });
+    }
+
+    await refreshSyncKey("organizations", []);
+    return updated ?? (await getOrganizationById(id));
+  }
+
+  return getOrganizationById(id);
+}
+
+export type OrgCreateInput = OrgUpdateInput & {
+  name: string;
+  category: string;
+};
+
+export async function createOrganization(
+  input: OrgCreateInput,
+  editedBy = "admin",
+): Promise<OrgAdmin | null> {
+  const [inserted] = await db
+    .insert(organizationsTable)
+    .values({
+      name: input.name.trim(),
+      category: input.category.trim(),
+      buildingId: input.buildingId ?? null,
+      roomId: input.roomId ?? null,
+      lat: input.lat ?? null,
+      lon: input.lon ?? null,
+      description: input.description ?? null,
+      websiteLink: input.websiteLink ?? null,
+      facebookLink: input.facebookLink ?? null,
+      email: input.email ?? null,
+      imageUrl: input.imageUrl ?? null,
+    })
+    .returning();
+
+  if (!inserted) return null;
+
+  await recordEditorHistory({
+    entityType: "organization",
+    entityId: inserted.id,
+    action: "create",
+    before: null,
+    after: inserted,
+    versionAfter: inserted.version,
+    editedBy,
+  });
+  await refreshSyncKey("organizations", []);
   return inserted;
 }
 

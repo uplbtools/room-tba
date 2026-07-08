@@ -5,6 +5,7 @@ import type {
   DivisionData,
   DormData,
   EventData,
+  OrgData,
   PlaceData,
 } from "@lib/types";
 export type AppContextData =
@@ -14,6 +15,7 @@ export type AppContextData =
       divisions: DivisionData[];
       dorms: DormData[];
       events: EventData[];
+      organizations: OrgData[];
       places: PlaceData[];
       totalRooms: number;
       directionCount: number;
@@ -25,6 +27,7 @@ export type AppContextData =
       divisions: null;
       dorms: null;
       events: null;
+      organizations: null;
       places: null;
       totalRooms: null;
       directionCount: null;
@@ -39,6 +42,7 @@ export type AppActions = {
   upsertDorm: (dorm: DormData) => void;
   upsertCollege: (college: CollegeData) => void;
   upsertDivision: (division: DivisionData) => void;
+  upsertOrganization: (org: OrgData) => void;
   upsertPlace: (place: PlaceData) => void;
 };
 

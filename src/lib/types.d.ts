@@ -5,6 +5,7 @@ import {
   eventRouteStopsTable,
   eventRoutesTable,
   eventsTable,
+  organizationsTable,
   placesTable,
   roomPositionsTable,
   termsTable,
@@ -116,6 +117,7 @@ type DivisionData = {
 
 type DormData = typeof dormsTable.$inferSelect;
 
+type OrgData = typeof organizationsTable.$inferSelect;
 type PlaceData = typeof placesTable.$inferSelect;
 
 type Term = typeof termsTable.$inferSelect;
