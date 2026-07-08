@@ -7,7 +7,11 @@
     X,
     FileText,
   } from "@lucide/svelte";
-  import { syncToastStore, appBootstrapStore } from "@lib/store.svelte";
+  import {
+    syncToastStore,
+    appBootstrapStore,
+    modalStore,
+  } from "@lib/store.svelte";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { parseChangelogHighlights } from "@lib/changelog-highlights";
   import changelogRaw from "../../../CHANGELOG.md?raw";
@@ -24,7 +28,6 @@
   let { compact = false, expanded = false, inline = false }: Props = $props();
 
   let manualClosed = $state<boolean>(false);
-  let reloading = $state<boolean>(false);
   let retrying = $state<boolean>(false);
 
   const LABEL_HOLD_MS = 650;
@@ -292,15 +295,10 @@
         <button
           class="sync-action reload-button"
           type="button"
-          onclick={() => syncToastStore.reload()}
-          disabled={reloading}
+          onclick={() => modalStore.openModal("changelog")}
         >
-          <RefreshCw
-            size={14}
-            class={reloading ? "loading-icon" : ""}
-            aria-hidden="true"
-          />
-          {reloading ? "Reloading…" : "Reload"}
+          <RefreshCw size={14} aria-hidden="true" />
+          Update
         </button>
       {/if}
       {#if showDismiss}
