@@ -57,6 +57,7 @@
   type MetadataProps = {
     initialSearch?: InitialSearchState;
     suppressLandingModal?: boolean;
+    openPlanner?: boolean;
   };
   const metadata: MetadataProps = $props();
 
@@ -502,4 +503,5 @@
 <Entry
   initialSearch={metadata.initialSearch}
   suppressLandingModal={metadata.suppressLandingModal ?? false}
+  openPlanner={metadata.openPlanner ?? false}
 />
