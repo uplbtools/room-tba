@@ -108,9 +108,12 @@ export class PlannerStore {
 
   /** Swap a course to another section: drop every planned row of the course, add the new offering. */
   replaceCourse = (courseCode: string, rows: ClassMapValue[]) => {
+    // Only prune when a plan already exists; addOffering lazily creates the
+    // plan for the term, so the first add (no active plan yet) must not bail.
     const plan = this.activePlan;
-    if (!plan) return;
-    plan.sections = plan.sections.filter((s) => s.courseCode !== courseCode);
+    if (plan) {
+      plan.sections = plan.sections.filter((s) => s.courseCode !== courseCode);
+    }
     this.addOffering(rows);
     this.persist();
   };
