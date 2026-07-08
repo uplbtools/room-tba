@@ -35,6 +35,7 @@
     ProposalValidationError,
     validateBundledRooms,
   } from "@lib/proposals/create-proposal-validation";
+    import { onMount } from "svelte";
 
   type AdditionOption = {
     value: ProposalCreateType;
