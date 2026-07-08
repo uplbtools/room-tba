@@ -1,4 +1,4 @@
-import type { BuildingData, BuildingType, DormData } from "@lib/types";
+import type { BuildingData, DormData } from "@lib/types";
 
 export type BuildingTypeFilter =
   | "all"
@@ -20,11 +20,6 @@ const ALL_BUILDINGS_OPTION = {
   tone: "all",
 } as const;
 
-const BUILDING_TYPE_FILTERS = {
-  admin: "administrative-building",
-  "non-admin": "class-building",
-} satisfies Record<BuildingType, BuildingTypeFilter>;
-
 const BUILDING_TYPE_LABELS: Record<BuildingTypeFilter, string> = {
   all: "All",
   "class-building": "Class Building",
@@ -37,12 +32,29 @@ export function getBuildingTypeFilterLabel(filter: BuildingTypeFilter) {
   return BUILDING_TYPE_LABELS[filter];
 }
 
+/**
+ * A building can hold two roles at once: `buildingType === "admin"` is the
+ * stored administrative flag, and hosting classes (derived — it has rooms with
+ * classes this term) makes it a class venue. `buildingIdsWithClasses` carries
+ * that derived signal; a building that is both admin and a venue matches the
+ * "administrative-building" AND "class-building" filters.
+ */
 export function buildingMatchesTypeFilter(
   building: BuildingData,
   filter: BuildingTypeFilter,
+  buildingIdsWithClasses?: Set<number>,
 ) {
   if (filter === "all") return true;
-  return BUILDING_TYPE_FILTERS[building.buildingType] === filter;
+  if (filter === "administrative-building") {
+    return building.buildingType === "admin";
+  }
+  if (filter === "class-building") {
+    return (
+      building.buildingType === "non-admin" ||
+      (buildingIdsWithClasses?.has(building.id) ?? false)
+    );
+  }
+  return false;
 }
 
 export function dormMatchesTypeFilter(
@@ -58,12 +70,22 @@ export function dormMatchesTypeFilter(
 export function getBuildingTypeFilterOptions(
   buildings: BuildingData[] | null,
   dorms: DormData[] | null,
+  buildingIdsWithClasses?: Set<number>,
 ): BuildingTypeFilterOption[] {
   const counts = new Map<BuildingTypeFilter, number>();
-
-  for (const building of buildings ?? []) {
-    const filter = BUILDING_TYPE_FILTERS[building.buildingType];
+  const bump = (filter: BuildingTypeFilter) =>
     counts.set(filter, (counts.get(filter) ?? 0) + 1);
+
+  // A building is counted into every bucket it qualifies for — a dual-role
+  // building (admin + class venue) increments both.
+  for (const building of buildings ?? []) {
+    if (building.buildingType === "admin") bump("administrative-building");
+    if (
+      building.buildingType === "non-admin" ||
+      (buildingIdsWithClasses?.has(building.id) ?? false)
+    ) {
+      bump("class-building");
+    }
   }
 
   for (const dorm of dorms ?? []) {

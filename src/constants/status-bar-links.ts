@@ -129,11 +129,14 @@ export function statusBarNavGroups(options: {
   versionLabel: string;
   showEditorLogin: boolean;
 }): StatusBarNavGroup[] {
+  const action = (id: StatusBarActionItem["id"]) =>
+    STATUS_BAR_APP_ACTIONS.find((a) => a.id === id)!;
   const appItems: StatusBarNavItem[] = [
-    STATUS_BAR_APP_ACTIONS[0]!,
+    action("contributors"),
+    action("leaderboard"),
     ...(options.showEditorLogin
       ? [
-          STATUS_BAR_APP_ACTIONS[1]!,
+          action("editor-login"),
           {
             kind: "link" as const,
             id: "messenger-maintain",

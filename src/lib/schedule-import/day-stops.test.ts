@@ -13,6 +13,20 @@ describe("tokenizeScheduleDays", () => {
     expect(tokenizeScheduleDays("TTh")).toEqual(["T", "Th"]);
     expect(tokenizeScheduleDays("MWF")).toEqual(["M", "W", "F"]);
   });
+
+  it("handles uppercase production tokens (TH not Th)", () => {
+    // Production/DB data stores days uppercase; Thursday must not collapse to T.
+    expect(tokenizeScheduleDays("TTH")).toEqual(["T", "Th"]);
+    expect(tokenizeScheduleDays("MTHF")).toEqual(["M", "Th", "F"]);
+    expect(tokenizeScheduleDays("MTWTHFS")).toEqual([
+      "M",
+      "T",
+      "W",
+      "Th",
+      "F",
+      "S",
+    ]);
+  });
 });
 
 describe("scheduleSlotOnWeekday", () => {

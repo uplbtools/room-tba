@@ -308,11 +308,13 @@
       <MainControls />
       <div class="bottom-band">
         <div class="bottom-chrome" bind:this={bottomChromeEl}>
-          <div class="bottom-chrome__leading">
-            <MapAttribution />
-          </div>
-          <div class="bottom-chrome__status">
-            <StatusBar />
+          <div class="bottom-chrome__bar">
+            <div class="bottom-chrome__leading">
+              <MapAttribution />
+            </div>
+            <div class="bottom-chrome__status">
+              <StatusBar />
+            </div>
           </div>
           <div
             class="bottom-chrome__actions"
@@ -473,9 +475,26 @@
     z-index: var(--z-status-bar, 3);
     display: flex;
     flex-direction: row;
-    align-items: stretch;
-    gap: 0.375rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.5rem;
     width: 100%;
+    min-width: 0;
+    min-height: 2rem;
+    box-sizing: border-box;
+    /* Transparent shell so the bar hugs its content on the left and the
+       location controls sit on the right — no full-width empty stretch. */
+    pointer-events: none;
+  }
+
+  /* The bordered pill only wraps the left cluster (attribution + menu +
+     status), so it no longer sprawls across the whole viewport. */
+  .bottom-chrome__bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.375rem;
+    flex: 0 1 auto;
     min-width: 0;
     min-height: 2rem;
     box-sizing: border-box;
@@ -503,7 +522,7 @@
 
   .bottom-chrome__status {
     display: flex;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     align-items: center;
     min-width: 0;
     overflow: hidden;
@@ -527,12 +546,20 @@
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-    align-self: stretch;
-    min-width: 2.75rem;
+    gap: 0.125rem;
     min-height: 2.75rem;
-    padding-left: 0.25rem;
-    margin-left: 0.0625rem;
-    border-left: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    padding: 0.125rem;
+    pointer-events: auto;
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border-radius: var(--map-chrome-radius, 1rem);
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 0 0 1px hsla(15, 8%, 20%, 0.16),
+      0 2px 8px hsla(0, 0%, 0%, 0.14),
+      0 8px 20px hsla(0, 0%, 0%, 0.18)
+    );
   }
 
   .bottom-band::before {
@@ -609,7 +636,7 @@
     align-items: stretch;
     width: calc(var(--map-chrome-toggle-size, 2rem) + 0.375rem);
     box-sizing: border-box;
-    gap: 0.0625rem;
+    gap: 0.125rem;
     padding: 0.1875rem;
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     backdrop-filter: blur(10px);
@@ -625,7 +652,7 @@
 
   .camera-controls-card__divider {
     height: 1px;
-    margin: 0.0625rem 0.125rem;
+    margin: 0 0.125rem;
     background-color: var(--map-chrome-divider, hsl(5 12% 88%));
   }
 

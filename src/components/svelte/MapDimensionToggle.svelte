@@ -149,7 +149,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.0625rem;
+    gap: 0.125rem;
     width: var(--map-chrome-toggle-size, 2rem);
     padding: 0;
     border: none;

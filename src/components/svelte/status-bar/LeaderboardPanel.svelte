@@ -30,6 +30,15 @@
     window = (event.currentTarget as HTMLSelectElement).value as any;
     loadLeaderboard();
   }
+
+  const MEDALS = ["🥇", "🥈", "🥉"];
+  function initials(name: string) {
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("");
+  }
 </script>
 
 <div class="leaderboard-panel">
@@ -50,10 +59,18 @@
   {:else}
     <ul class="leaderboard-list">
       {#each rows as row (row.rank)}
-        <li class="leaderboard-item">
-          <span class="leaderboard-rank">#{row.rank}</span>
+        <li class="leaderboard-item" class:top={row.rank <= 3}>
+          <span class="leaderboard-rank">
+            {#if row.rank <= 3}{MEDALS[row.rank - 1]}{:else}{row.rank}{/if}
+          </span>
+          <span class="leaderboard-avatar" aria-hidden="true"
+            >{initials(row.displayName || "Anonymous")}</span
+          >
           <span class="leaderboard-name">{row.displayName || "Anonymous"}</span>
-          <span class="leaderboard-score">{row.contributionCount}</span>
+          <span class="leaderboard-score">
+            {row.contributionCount}
+            <span class="leaderboard-score-unit">edits</span>
+          </span>
         </li>
       {/each}
     </ul>
@@ -97,37 +114,68 @@
     list-style: none;
     display: flex;
     flex-direction: column;
+    gap: 0.375rem;
   }
 
   .leaderboard-item {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid hsl(0, 0%, 90%);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.625rem;
+    background: hsl(0, 0%, 97%);
   }
 
-  .leaderboard-item:last-child {
-    border-bottom: none;
+  .leaderboard-item.top {
+    background: hsl(5, 60%, 96%);
   }
 
   .leaderboard-rank {
-    font-size: 0.875rem;
+    flex-shrink: 0;
+    width: 1.75rem;
+    text-align: center;
+    font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(0, 0%, 50%);
+    color: hsl(0, 0%, 45%);
+  }
+
+  .leaderboard-avatar {
+    flex-shrink: 0;
     width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--map-ui-primary, hsl(5, 70%, 50%));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
   }
 
   .leaderboard-name {
     flex: 1;
-    font-size: 0.875rem;
+    min-width: 0;
+    font-size: 0.9375rem;
     font-weight: 600;
     color: hsl(0, 0%, 20%);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .leaderboard-score {
-    font-size: 0.875rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--map-ui-primary, hsl(5, 70%, 50%));
+  }
+
+  .leaderboard-score-unit {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 55%);
   }
 </style>
