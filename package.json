@@ -57,7 +57,7 @@
     "@lucide/svelte": "^1.23.0",
     "@maplibre/maplibre-gl-directions": "^0.9.1",
     "@supabase/ssr": "^0.12.0",
-    "@supabase/supabase-js": "^2.108.2",
+    "@supabase/supabase-js": "^2.110.1",
     "@vercel/analytics": "^2.0.1",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "astro": "^7.0.6",
