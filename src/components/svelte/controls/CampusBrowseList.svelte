@@ -4,16 +4,24 @@
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
   import { getAppData } from "@lib/context";
   import type { CampusBrowseTab } from "@lib/browse-campus";
+  import { orgCategoryLabel } from "@constants/org-categories";
   import { queryStore } from "@lib/store.svelte";
 
   const appData = getAppData();
-  const { buildings, colleges, divisions, loaded } = $derived(appData());
+  const { buildings, colleges, divisions, organizations, loaded } =
+    $derived(appData());
 
   let filterText = $state("");
 
   const activeTab = $derived.by((): CampusBrowseTab => {
     const value = queryStore.queryValue;
-    if (value === "colleges" || value === "divisions") return value;
+    if (
+      value === "colleges" ||
+      value === "divisions" ||
+      value === "organizations"
+    ) {
+      return value;
+    }
     return "buildings";
   });
 
@@ -23,6 +31,8 @@
         return "Colleges";
       case "divisions":
         return "Divisions";
+      case "organizations":
+        return "Orgs & Offices";
       default:
         return "Buildings";
     }
@@ -41,6 +51,12 @@
           noun: "division",
           plural: "divisions",
           placeholder: "Search divisions…",
+        };
+      case "organizations":
+        return {
+          noun: "org or office",
+          plural: "orgs & offices",
+          placeholder: "Search orgs & offices…",
         };
       default:
         return {
@@ -85,11 +101,22 @@
     );
   });
 
+  const filteredOrganizations = $derived.by(() => {
+    if (!loaded || !organizations) return [];
+    const needle = filterText.trim().toLowerCase();
+    const rows = [...organizations].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    if (!needle) return rows;
+    return rows.filter((row) => row.name.toLowerCase().includes(needle));
+  });
+
   const visibleItems = $derived.by(() => {
     if (activeTab === "colleges") {
       return filteredColleges.map((row) => ({
         id: row.id,
         label: row.collegeName,
+        meta: null as string | null,
         open: () => openCollege(row.collegeName),
       }));
     }
@@ -97,12 +124,22 @@
       return filteredDivisions.map((row) => ({
         id: row.id,
         label: row.divisionName,
+        meta: null as string | null,
         open: () => openDivision(row.divisionName),
+      }));
+    }
+    if (activeTab === "organizations") {
+      return filteredOrganizations.map((row) => ({
+        id: row.id,
+        label: row.name,
+        meta: orgCategoryLabel(row.category),
+        open: () => openOrg(row.name),
       }));
     }
     return filteredBuildings.map((row) => ({
       id: row.id,
       label: row.buildingName,
+      meta: null as string | null,
       open: () => openBuilding(row.buildingName),
     }));
   });
@@ -142,6 +179,15 @@
   function openDivision(name: string) {
     queryStore.updateQuery({
       category: "division",
+      type: "result",
+      value: name,
+    });
+    queryStore.inputValue = name;
+  }
+
+  function openOrg(name: string) {
+    queryStore.updateQuery({
+      category: "organization",
       type: "result",
       value: name,
     });
@@ -192,6 +238,9 @@
               onclick={item.open}
             >
               <span class="entity-list-row__label">{item.label}</span>
+              {#if item.meta}
+                <span class="entity-list-row__meta">{item.meta}</span>
+              {/if}
               <ChevronRight
                 size={16}
                 aria-hidden="true"
@@ -215,6 +264,18 @@
     height: 100%;
     min-height: 0;
     font-family: inherit;
+  }
+
+  .entity-list-row__meta {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 0.0625rem 0.4375rem;
+    border-radius: 999px;
+    background: hsl(5, 30%, 94%);
+    color: hsl(5, 40%, 34%);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
 
