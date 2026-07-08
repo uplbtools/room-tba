@@ -191,7 +191,7 @@
         <ChevronLeft size={22} aria-hidden="true" />
         <span>Map</span>
       </button>
-      <h1 class="planner-title" id="planner-screen-title">Planner</h1>
+      <h1 class="planner-title" id="planner-screen-title">Class Planner</h1>
       {#if termStore.terms.length > 0}
         <TermSelector variant="chip" />
       {/if}
@@ -199,8 +199,13 @@
         <button type="button" class="planner-action" onclick={copyShareLink}>
           Share
         </button>
-        <button type="button" class="planner-action" onclick={downloadIcs}>
-          .ics
+        <button
+          type="button"
+          class="planner-action"
+          onclick={downloadIcs}
+          title="Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
+        >
+          Add to Google Calendar
         </button>
       {/if}
     </header>

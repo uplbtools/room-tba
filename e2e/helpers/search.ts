@@ -12,8 +12,14 @@ export async function searchAndSelect(
   optionPattern: RegExp,
 ) {
   await campusSearchBox(page).fill(query);
+  // Target the entity suggestion (button.suggestion) specifically, not the
+  // "Search for classes of <query> in rooms" fallback — a bare <button> whose
+  // text also matches optionPattern and which sets category="class" (no
+  // canonical entity URL). The fallback is the only match until appData loads,
+  // so a loose .first() would grab it in a cold context and skip the entity.
   const suggestion = searchSuggestions(page)
-    .getByRole("button", { name: optionPattern })
+    .locator("button.suggestion")
+    .filter({ hasText: optionPattern })
     .first();
   await suggestion.waitFor({ state: "visible", timeout: 30_000 });
   await suggestion.click({ timeout: 15_000 });
