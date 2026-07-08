@@ -4,6 +4,8 @@ import {
   getColleges,
   getDivisions,
   getDorms,
+  getOrganizations,
+  getPlaces,
   getBuildingRooms,
   getCollegeRooms,
   getDivisionRooms,
@@ -21,6 +23,8 @@ import {
   syncDivisionRooms,
   syncDivisions,
   syncDorms,
+  syncOrganizations,
+  syncPlaces,
 } from "./sync";
 
 export const OFFLINE_DIRECTORY_SYNCED_AT_KEY = "offline-directory-synced-at";
@@ -40,21 +44,37 @@ export async function syncCampusDirectoryForOffline(options?: {
   };
 
   try {
-    const [buildingCheck, collegeCheck, divisionCheck, dormCheck] =
-      await Promise.all([
-        localTableSyncCheck("buildings"),
-        localTableSyncCheck("colleges"),
-        localTableSyncCheck("divisions"),
-        localTableSyncCheck("dorms"),
-      ]);
+    const [
+      buildingCheck,
+      collegeCheck,
+      divisionCheck,
+      dormCheck,
+      organizationCheck,
+      placeCheck,
+    ] = await Promise.all([
+      localTableSyncCheck("buildings"),
+      localTableSyncCheck("colleges"),
+      localTableSyncCheck("divisions"),
+      localTableSyncCheck("dorms"),
+      localTableSyncCheck("organizations"),
+      localTableSyncCheck("places"),
+    ]);
 
-    const [buildingLoad, collegeLoad, divisionLoad, dormLoad] =
-      await Promise.all([
-        getBuildings(buildingCheck),
-        getColleges(collegeCheck),
-        getDivisions(divisionCheck),
-        getDorms(dormCheck),
-      ]);
+    const [
+      buildingLoad,
+      collegeLoad,
+      divisionLoad,
+      dormLoad,
+      organizationLoad,
+      placeLoad,
+    ] = await Promise.all([
+      getBuildings(buildingCheck),
+      getColleges(collegeCheck),
+      getDivisions(divisionCheck),
+      getDorms(dormCheck),
+      getOrganizations(organizationCheck),
+      getPlaces(placeCheck),
+    ]);
 
     report({
       phase: "entities",
@@ -79,6 +99,12 @@ export async function syncCampusDirectoryForOffline(options?: {
       divisionLoad.source === "remote",
     );
     await syncDorms(dormCheck, dormLoad.rows, dormLoad.source === "remote");
+    await syncOrganizations(
+      organizationCheck,
+      organizationLoad.rows,
+      organizationLoad.source === "remote",
+    );
+    await syncPlaces(placeCheck, placeLoad.rows, placeLoad.source === "remote");
 
     const roomTargets: Array<{
       kind: "building" | "college" | "division";
