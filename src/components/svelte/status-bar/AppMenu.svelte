@@ -2,6 +2,7 @@
   import Menu from "@lucide/svelte/icons/menu";
   import Keyboard from "@lucide/svelte/icons/keyboard";
   import FileText from "@lucide/svelte/icons/file-text";
+  import Inbox from "@lucide/svelte/icons/inbox";
   import { onMount } from "svelte";
   import { formatCatalogUpdatedDate } from "@constants/data-catalog";
   import { APP_VERSION_LABEL } from "@constants/version";
@@ -14,7 +15,12 @@
     openEphemeralOverlay,
   } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
-  import { adminAuthStore, mapToolsStore, modalStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    mapToolsStore,
+    modalStore,
+    proposalsStore,
+  } from "@lib/store.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
   import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
@@ -145,6 +151,11 @@
     closePanel();
     modalStore.openModal("changelog");
   }
+
+  function handleReview() {
+    closePanel();
+    modalStore.openModal("review");
+  }
 </script>
 
 <svelte:window onpointerdown={handleDocumentPointerDown} />
@@ -187,6 +198,24 @@
             utilities
             {onSignOut}
           />
+        </section>
+      {/if}
+
+      {#if adminAuthStore.canReview}
+        <section class="app-menu__section" aria-label="Review">
+          <button
+            type="button"
+            class="app-menu__action map-chrome-chip"
+            onclick={handleReview}
+          >
+            <Inbox size={14} aria-hidden="true" />
+            <span>
+              Review suggested edits
+              {#if proposalsStore.pendingCount > 0}
+                <span class="app-menu__badge">{proposalsStore.pendingCount}</span>
+              {/if}
+            </span>
+          </button>
         </section>
       {/if}
 
@@ -279,6 +308,20 @@
   .app-menu__action {
     align-self: flex-start;
     cursor: pointer;
+  }
+
+  .app-menu__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.1rem;
+    margin-left: 0.25rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: hsl(5, 53%, 32%);
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 700;
   }
 
   .app-menu__panel {

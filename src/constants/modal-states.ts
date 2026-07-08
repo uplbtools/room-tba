@@ -5,4 +5,5 @@ export const modalOptions = [
   "schedule-expand",
   "leaderboard",
   "changelog",
+  "review",
 ] as const;
