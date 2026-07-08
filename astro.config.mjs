@@ -39,17 +39,19 @@ export default defineConfig({
         navigateFallback: "/",
         navigateFallbackDenylist: [
           /^\/api\//,
-          /^\/privacy(\/|$)/,
-          /^\/terms(\/|$)/,
-          /^\/changelog(\/|$)/,
+          /^\/privacy(\/|\?|$)/,
+          /^\/terms(\/|\?|$)/,
+          /^\/changelog(\/|\?|$)/,
           // /planner is its own page; without this the nav fallback serves the
           // map shell and the planner never opens for returning (SW-cached)
-          // users. Network-first; the in-app planner button covers offline.
-          /^\/planner(\/|$)/,
+          // users. The `\?` matters: workbox matches denylist against
+          // pathname+search, so /planner?term=… must be covered too (#planner).
+          // Network-first; the in-app planner button covers offline.
+          /^\/planner(\/|\?|$)/,
           // Server redirects — must hit network, not offline app shell (#471).
-          /^\/messenger(\/|$)/,
-          /^\/maintain(\/|$)/,
-          /^\/discord(\/|$)/,
+          /^\/messenger(\/|\?|$)/,
+          /^\/maintain(\/|\?|$)/,
+          /^\/discord(\/|\?|$)/,
         ],
         swDest: "dist/client/sw.js",
         // Cache third-party map resources at runtime so the campus map works
