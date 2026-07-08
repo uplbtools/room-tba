@@ -10,13 +10,27 @@ export class MapStore {
 
 export class MapViewStore {
   eventsOnly: boolean = $state(false);
+  // Org/office and place (POI) pin layers — on by default, toggled from the
+  // map legend so users can declutter the map (#18b).
+  showOrgs: boolean = $state(true);
+  showPlaces: boolean = $state(true);
 
   toggleEventsOnly = () => {
     this.eventsOnly = !this.eventsOnly;
   };
 
+  toggleOrgs = () => {
+    this.showOrgs = !this.showOrgs;
+  };
+
+  togglePlaces = () => {
+    this.showPlaces = !this.showPlaces;
+  };
+
   showAll = () => {
     this.eventsOnly = false;
+    this.showOrgs = true;
+    this.showPlaces = true;
   };
 }
 
