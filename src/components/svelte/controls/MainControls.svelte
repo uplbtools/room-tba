@@ -5,6 +5,7 @@
   import CollegeResult from "./CollegeResult.svelte";
   import DivisionResult from "./DivisionResult.svelte";
   import DormResult from "./DormResult.svelte";
+  import OrgResult from "./OrgResult.svelte";
   import EventsList from "./EventsList.svelte";
   import EventResult from "./EventResult.svelte";
   import RoomResult from "@ui/room/RoomResult.svelte";
@@ -151,6 +152,8 @@
                 <CampusBrowseList />
               {:else if queryStore.category === "dorm"}
                 <DormResult />
+              {:else if queryStore.category === "organization"}
+                <OrgResult />
               {:else if queryStore.category === "event"}
                 <EventResult />
               {:else if queryStore.category === "events"}

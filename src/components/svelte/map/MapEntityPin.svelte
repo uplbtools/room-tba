@@ -2,7 +2,7 @@
   import Move from "@lucide/svelte/icons/move";
   import type { Snippet } from "svelte";
 
-  type EntityPinTone = "building" | "dorm" | "privateDorm";
+  type EntityPinTone = "building" | "dorm" | "privateDorm" | "organization";
   type EntityPinSaveState = "idle" | "saving" | "saved" | "failed";
 
   type Props = {
@@ -67,6 +67,7 @@
   class:building={tone === "building"}
   class:dorm={tone === "dorm"}
   class:private={tone === "privateDorm"}
+  class:organization={tone === "organization"}
   class:central-hover-preview={useCentralHoverPreview}
   class:editable={showExpandedPin}
   class:editing
@@ -129,6 +130,10 @@
     background-color: hsl(25, 70%, 50%);
   }
 
+  .map-entity-pin.organization {
+    background-color: hsl(265, 45%, 48%);
+  }
+
   .map-entity-pin.active {
     z-index: 85;
   }
@@ -151,6 +156,19 @@
 
   .map-entity-pin.private.active::before {
     outline-color: hsl(25, 70%, 60%);
+  }
+
+  .map-entity-pin.organization.active::before {
+    outline-color: hsl(265, 45%, 58%);
+  }
+
+  .map-entity-pin:hover.organization {
+    background-color: hsl(265, 45%, 58%);
+  }
+
+  .map-entity-pin.active.organization .pin-label {
+    background-color: hsl(265, 45%, 48%);
+    color: white;
   }
 
   .map-entity-pin.editable {

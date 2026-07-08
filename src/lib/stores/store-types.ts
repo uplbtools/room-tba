@@ -25,6 +25,7 @@ export interface QueryStoreState {
     | "dorm"
     | "event"
     | "events"
+    | "organization"
     | null;
   value: string;
   eventSlug?: string;
