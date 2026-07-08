@@ -32,6 +32,14 @@ export const NON_ROOM_CLASS_TYPES: Readonly<
 export const ROOM_SCHEDULE_SCOPE_NOTE =
   "Schedules list lecture and lab sections with assigned rooms. Thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS, so they do not appear here.";
 
+/**
+ * Disclaimer for course/section data during enrollment. Offerings are not final
+ * until the last day of change of matriculation. Kept date-free on purpose so it
+ * stays correct across terms.
+ */
+export const COURSE_CHANGE_DISCLAIMER =
+  "Course offerings may still change up to the last day of change of matriculation.";
+
 export function isRoomScheduledClassType(type: string | null | undefined) {
   if (!type) return false;
   return ROOM_SCHEDULED_CLASS_TYPES.has(type.trim().toUpperCase());

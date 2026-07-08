@@ -1,0 +1,33 @@
+---
+import AppRoot from "@ui/AppRoot.svelte";
+import Layout from "@layouts/Layout.astro";
+import {
+  breadcrumbSchema,
+  jsonLd,
+  webpageSchema,
+  websiteSchema,
+} from "@lib/site";
+
+// Deep link to the class planner: /planner?term=<crs_id>. Entry.svelte opens
+// the planner on this path; the term comes from ?term via termStore.
+const title = "Class Planner | Room TBA";
+const description =
+  "Plan your UPLB class schedule: add sections by term, spot conflicts, and export to your calendar.";
+const structuredData = jsonLd(
+  websiteSchema(),
+  webpageSchema({ title, description, path: "/planner" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Class Planner", path: "/planner" },
+  ]),
+);
+---
+
+<Layout
+  title={title}
+  description={description}
+  canonicalPath="/planner"
+  structuredData={structuredData}
+>
+  <AppRoot client:only="svelte" openPlanner suppressLandingModal />
+</Layout>

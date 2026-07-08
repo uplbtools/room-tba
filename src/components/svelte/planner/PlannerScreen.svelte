@@ -10,6 +10,7 @@
     toastStore,
   } from "@lib/store.svelte";
   import { fetchClassPage } from "@lib/classes-api";
+  import { COURSE_CHANGE_DISCLAIMER } from "@lib/amis/room-scheduled-types";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import { isUnscheduled } from "@lib/planner/conflicts";
   import { buildPlanIcs } from "@lib/planner/ics";
@@ -209,6 +210,8 @@
         </button>
       {/if}
     </header>
+
+    <p class="planner-disclaimer" role="note">{COURSE_CHANGE_DISCLAIMER}</p>
 
     <div class="planner-tabs" role="tablist" aria-label="Plans">
       {#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
@@ -438,6 +441,18 @@
   .planner-action:hover,
   .planner-action:focus-visible {
     background: hsl(5, 53%, 96%);
+  }
+
+  .planner-disclaimer {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0.4375rem 0.75rem;
+    background: hsl(38, 92%, 95%);
+    border-bottom: 1px solid hsl(38, 70%, 85%);
+    color: hsl(32, 60%, 30%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.35;
   }
 
   .planner-tabs {

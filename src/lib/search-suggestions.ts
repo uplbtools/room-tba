@@ -1,4 +1,10 @@
-import type { BuildingData, DormData, EventData, OrgData } from "./types";
+import type {
+  BuildingData,
+  DormData,
+  EventData,
+  OrgData,
+  PlaceData,
+} from "./types";
 import type { QueryStoreState } from "./store.svelte";
 
 type Suggestion = {
@@ -36,6 +42,7 @@ export function buildEntitySuggestions(
     divisions: { divisionName: string }[];
     events: EventData[];
     organizations: OrgData[];
+    places: PlaceData[];
   },
 ): Suggestion[] {
   const needle = searchString.trim().toLowerCase();
@@ -82,6 +89,13 @@ export function buildEntitySuggestions(
         name.toLowerCase().includes(needle) ||
         Boolean(description?.toLowerCase().includes(needle)),
       ({ name }) => ({ value: name, category: "organization" }),
+    ),
+    ...takeMatches(
+      data.places,
+      ({ name, description }) =>
+        name.toLowerCase().includes(needle) ||
+        Boolean(description?.toLowerCase().includes(needle)),
+      ({ name }) => ({ value: name, category: "place" }),
     ),
   ];
 

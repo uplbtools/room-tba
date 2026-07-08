@@ -20,8 +20,16 @@
   import Suggestion from "./Suggestion.svelte";
 
   const appData = getAppData();
-  const { buildings, colleges, divisions, dorms, events, organizations, loaded } =
-    $derived(appData());
+  const {
+    buildings,
+    colleges,
+    divisions,
+    dorms,
+    events,
+    organizations,
+    places,
+    loaded,
+  } = $derived(appData());
 
   const filteredDorms = $derived.by(() => {
     if (!loaded) return [];
@@ -49,6 +57,7 @@
       divisions,
       events,
       organizations,
+      places,
     }),
   );
 

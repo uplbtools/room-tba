@@ -17,6 +17,7 @@ export const E2E_FIXTURES = {
   buildingName: "E2E Test Hall",
   dormName: "E2E Test Dorm",
   orgName: "E2E Test Office",
+  placeName: "E2E Test Cafe",
   roomCode: "E2E-101",
   eventSlug: "e2e-test-event",
   eventTitle: "E2E Test Event",
@@ -102,6 +103,8 @@ async function main() {
         room_positions,
         rooms,
         aliases,
+        organizations,
+        places,
         buildings,
         dorms,
         divisions,
@@ -161,6 +164,18 @@ async function main() {
     const orgId = organization.rows[0]?.id;
     if (!orgId) throw new Error("Failed to seed organization");
 
+    const place = await client.query<{ id: number }>(
+      `INSERT INTO places (name, category, lat, lon, description, version)
+       VALUES ($1, 'food', $2, $3, 'E2E seeded place', 1) RETURNING id`,
+      [
+        E2E_FIXTURES.placeName,
+        E2E_FIXTURES.buildingLat,
+        E2E_FIXTURES.buildingLon,
+      ],
+    );
+    const placeId = place.rows[0]?.id;
+    if (!placeId) throw new Error("Failed to seed place");
+
     await client.query(
       `INSERT INTO events (slug, title, description, category, starts_at, ends_at, timezone, recurrence, is_active, include_in_seo, version)
        VALUES ($1, $2, 'E2E event', 'other', NOW() + interval '1 day', NOW() + interval '2 days', 'Asia/Manila', 'none', true, true, 1)`,
@@ -208,6 +223,7 @@ async function main() {
       "classes",
       "terms",
       "organizations",
+      "places",
     ]) {
       await client.query(
         `INSERT INTO update (table_name, sync_key) VALUES ($1, gen_random_uuid())
@@ -225,6 +241,7 @@ async function main() {
         collegeId,
         divisionId,
         orgId,
+        placeId,
       }),
     );
   } finally {
