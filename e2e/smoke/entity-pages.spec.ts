@@ -14,9 +14,12 @@ test.describe("entity pages", () => {
     // The SSR name is replaced when the client app takes over; assert the
     // rendered name after boot (panel + data load), not the transient SSR HTML.
     await waitForAppBoot(page);
-    await expect(page.locator("body")).toContainText(E2E_FIXTURES.buildingName, {
-      timeout: 30_000,
-    });
+    await expect(page.locator("body")).toContainText(
+      E2E_FIXTURES.buildingName,
+      {
+        timeout: 30_000,
+      },
+    );
     await expect(page.locator("body")).toContainText("3D view", {
       timeout: 30_000,
     });
