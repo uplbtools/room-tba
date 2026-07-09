@@ -67,6 +67,11 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   {canonicalPath}
+  ogCard={{
+    title: division.divisionName,
+    subtitle: "Division · UPLB Los Baños",
+    kicker: "Division",
+  }}
   heading={`${division.divisionName} at UPLB`}
   {intro}
   {facts}

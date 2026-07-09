@@ -8,6 +8,7 @@ import { formatCampusDateTime } from "@lib/event-time";
 import { getEventPageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
+  ogCardPath,
   breadcrumbSchema,
   jsonLd,
   webpageSchema,
@@ -77,7 +78,12 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   canonicalPath={canonicalPath}
-  imagePath={eventImage?.src}
+  imagePath={eventImage?.src ??
+    ogCardPath({
+      title: event.title,
+      subtitle: "Campus event · UPLB Los Baños",
+      kicker: "Event",
+    })}
   structuredData={structuredData}
 >
   <main class="event-map-page">

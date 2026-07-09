@@ -4,6 +4,7 @@ import Layout from "@layouts/Layout.astro";
 import {
   breadcrumbSchema,
   jsonLd,
+  ogCardPath,
   webpageSchema,
   websiteSchema,
 } from "@lib/site";
@@ -27,6 +28,11 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   canonicalPath="/planner"
+  imagePath={ogCardPath({
+    title: "Class Planner",
+    subtitle: "Plan your UPLB class schedule by term",
+    kicker: "Planner",
+  })}
   structuredData={structuredData}
 >
   <AppRoot client:only="svelte" openPlanner={true} suppressLandingModal={true} />

@@ -1,6 +1,7 @@
 ---
 import AppRoot from "@ui/AppRoot.svelte";
 import Layout from "@layouts/Layout.astro";
+import { ogCardPath } from "@lib/site";
 import type { InitialSearchState } from "@lib/app-data";
 
 type Breadcrumb = {
@@ -22,6 +23,12 @@ type Props = {
   breadcrumbs: Breadcrumb[];
   structuredData?: Record<string, unknown>[];
   initialSearch: InitialSearchState;
+  /** Renders the exact-URL OG card when there is no real photo to share. */
+  ogCard?: {
+    title: string;
+    subtitle?: string | null;
+    kicker?: string | null;
+  } | null;
 };
 
 const {
@@ -35,14 +42,19 @@ const {
   breadcrumbs,
   structuredData = [],
   initialSearch,
+  ogCard = null,
 }: Props = Astro.props;
+
+// Real photo wins for the share image; otherwise the generated per-URL card.
+const ogImagePath =
+  image?.src ?? (ogCard ? ogCardPath(ogCard) : undefined);
 ---
 
 <Layout
   title={title}
   description={description}
   canonicalPath={canonicalPath}
-  imagePath={image?.src}
+  imagePath={ogImagePath}
   structuredData={structuredData}
 >
   <main class="entity-page">

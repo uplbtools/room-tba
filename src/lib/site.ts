@@ -16,6 +16,20 @@ export function ogImageUrl(path: string = DEFAULT_OG_IMAGE) {
   return absoluteUrl(path);
 }
 
+/** Path to the dynamic OG card (/og.png) for this exact URL — a rendered card
+ * with the entity's own title/subtitle instead of the generic social image.
+ * kicker is the short type label (Room, Building, Planner, …). */
+export function ogCardPath(opts: {
+  title: string;
+  subtitle?: string | null;
+  kicker?: string | null;
+}): string {
+  const params = new URLSearchParams({ t: opts.title });
+  if (opts.subtitle) params.set("s", opts.subtitle);
+  if (opts.kicker) params.set("k", opts.kicker);
+  return `/og.png?${params.toString()}`;
+}
+
 /** Normalize a search term / alias for matching: NFKD, lowercase, and strip
  * everything that is not a letter or digit (so "PhySci", "CAS A1", and "CASA1"
  * collapse to comparable keys). Used for the alias synonym map (#155). */
