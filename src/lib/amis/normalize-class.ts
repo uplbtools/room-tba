@@ -17,11 +17,10 @@ function asString(value: unknown): string | null {
   return null;
 }
 
-/** Unwrap paginated / nested AMIS responses into flat class rows. */
-export function extractClassRows(payload: unknown): AmisClassRow[] {
+function extractRawClassRows(payload: unknown): AmisClassRow[] {
   if (payload == null) return [];
   if (Array.isArray(payload)) {
-    return payload.flatMap((entry) => extractClassRows(entry));
+    return payload.flatMap((entry) => extractRawClassRows(entry));
   }
 
   const obj = asRecord(payload);
@@ -36,6 +35,37 @@ export function extractClassRows(payload: unknown): AmisClassRow[] {
   if (Array.isArray(obj.classes)) return obj.classes as AmisClassRow[];
 
   return [];
+}
+
+/**
+ * AMIS lists child sections (LAB/RCT/CPT) but omits their parent LEC as its own
+ * list row — the lecture only appears embedded in each child's `parent` field.
+ * Surface those parents (deduped by id, skipping any already listed) so lectures
+ * actually import. The embedded parent lacks course_code/course, so inherit them
+ * from the child that carried it.
+ */
+function withEmbeddedParents(rows: AmisClassRow[]): AmisClassRow[] {
+  const existingIds = new Set(rows.map((r) => r.id).filter((id) => id != null));
+  const parents = new Map<unknown, AmisClassRow>();
+  for (const row of rows) {
+    const parent = asRecord(row.parent);
+    if (!parent) continue;
+    const pid = parent.id;
+    if (pid == null || existingIds.has(pid) || parents.has(pid)) continue;
+    parents.set(pid, {
+      ...parent,
+      course_code: parent.course_code ?? row.course_code,
+      course: parent.course ?? row.course,
+      parent: undefined,
+    });
+  }
+  return parents.size > 0 ? [...rows, ...parents.values()] : rows;
+}
+
+/** Unwrap paginated / nested AMIS responses into flat class rows, including the
+ *  parent lectures AMIS only embeds inside child sections. */
+export function extractClassRows(payload: unknown): AmisClassRow[] {
+  return withEmbeddedParents(extractRawClassRows(payload));
 }
 
 function normalizeTimeToken(value: unknown) {
