@@ -26,6 +26,31 @@ export const TERM_CALENDAR_WINDOWS: Record<
   },
 };
 
+/**
+ * Last day of change of matriculation per term (Asia/Manila, date-only). Until
+ * this date, course offerings can still change — surfaced in the planner note.
+ */
+export const CHANGE_OF_MATRICULATION_ENDS: Record<number, string> = {
+  // CRS 1261 — AY 2026–2027 1st sem (classes start Aug 3).
+  1261: "2026-08-07",
+};
+
+/** Human date ("August 7, 2026") for a term's last day of change of
+ *  matriculation, or null when unknown. */
+export function changeOfMatriculationLabel(
+  termId: number | null | undefined,
+): string | null {
+  const iso = termId == null ? undefined : CHANGE_OF_MATRICULATION_ENDS[termId];
+  if (!iso) return null;
+  const [year, month, day] = iso.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-PH", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function toManilaDateKey(date: Date) {
   return date.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
 }
