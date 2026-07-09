@@ -365,4 +365,65 @@
     border-color: hsl(5, 53%, 32%);
     color: white;
   }
+
+  /* --- Mobile (phones): readable rows and ≥44px tap targets for the search
+     field, course headers, and Add/✓ toggles. --- */
+  @media (max-width: 640px) {
+    /* 1rem input avoids the iOS focus zoom; roomier field overall. */
+    .course-search__box {
+      padding: 0.625rem 0.75rem;
+    }
+
+    .course-search__box input {
+      font-size: 1rem;
+    }
+
+    .course-search__note {
+      font-size: 0.875rem;
+    }
+
+    .course-item__header {
+      min-height: 2.75rem;
+      padding: 0.75rem;
+    }
+
+    .course-item__code {
+      font-size: 0.9375rem;
+    }
+
+    .course-item__meta {
+      font-size: 0.75rem;
+    }
+
+    .course-item__title {
+      font-size: 0.8125rem;
+    }
+
+    .course-item__sections {
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem 0.75rem;
+    }
+
+    .section-row {
+      gap: 0.75rem;
+    }
+
+    .section-row__name {
+      font-size: 0.875rem;
+    }
+
+    .section-row__schedule {
+      font-size: 0.8125rem;
+    }
+
+    .section-row__toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3.5rem;
+      min-height: 2.75rem;
+      padding: 0.5rem 0.875rem;
+      font-size: 0.875rem;
+    }
+  }
 </style>
