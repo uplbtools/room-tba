@@ -118,6 +118,21 @@
   color: hsl(0, 70%, 32%);
 }
 
+.entity-review-actions button:hover:not(:disabled) {
+  border-color: #c58f91;
+  background: #fdf3f3;
+}
+
+.entity-review-actions button.approve:hover:not(:disabled) {
+  border-color: hsl(160, 84%, 30%);
+  background: hsl(160, 60%, 96%);
+}
+
+.entity-review-actions button.reject:hover:not(:disabled) {
+  border-color: hsl(0, 70%, 78%);
+  background: hsl(0, 80%, 97%);
+}
+
 .entity-review-actions button:disabled {
   opacity: 0.65;
   color: hsl(0, 0%, 38%);

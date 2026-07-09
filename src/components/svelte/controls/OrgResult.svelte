@@ -407,6 +407,11 @@
     cursor: pointer;
   }
 
+  .building-badge:hover,
+  .building-badge:focus-visible {
+    background-color: hsl(5, 40%, 88%);
+  }
+
   .org-field {
     display: flex;
     flex-direction: column;

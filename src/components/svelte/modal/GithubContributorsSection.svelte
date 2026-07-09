@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import type { GithubContributor } from "@lib/github-contributors";
   import { formatGithubContributions } from "@lib/github-contributors";
@@ -32,7 +33,9 @@
   <p class="section-note">{note}</p>
 
   {#if loading && !loaded}
-    <p class="status-line" aria-live="polite">Loading from GitHub...</p>
+    <p class="status-line">
+      <LoadingIndicator label="Loading from GitHub…" />
+    </p>
     <div class="people-grid-skeleton" aria-hidden="true">
       {#each Array(6) as _, index (index)}
         <div class="skeleton-card"></div>
@@ -108,5 +111,9 @@
     background: white;
     color: hsl(5, 53%, 28%);
     border: 1px solid hsl(5, 35%, 80%);
+  }
+
+  .secondary-btn:hover {
+    background-color: hsl(0, 0%, 92%);
   }
 </style>

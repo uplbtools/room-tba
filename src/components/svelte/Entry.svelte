@@ -734,19 +734,18 @@
 
     .top-right-map-stack :global(.map-chrome-panel) {
       position: fixed;
-      top: var(--search-block-height);
-      right: 0;
-      left: 0;
+      /* Float below the search block with a gap, inset + rounded to match the
+         search chrome, instead of butting edge-to-edge against the top bar. */
+      top: calc(var(--search-block-height) + var(--map-ui-padding, 0.375rem));
+      right: var(--map-ui-padding, 0.375rem);
+      left: var(--map-ui-padding, 0.375rem);
       width: auto;
       max-width: none;
       max-height: calc(
-        100dvh - var(--search-block-height) - var(--status-bar-block-height)
+        100dvh - var(--search-block-height) - var(--map-ui-padding, 0.375rem) -
+          var(--status-bar-block-height)
       );
       margin: 0;
-      border-radius: 0;
-      border-top: none;
-      border-left: none;
-      border-right: none;
       pointer-events: auto;
     }
 
@@ -756,8 +755,8 @@
       max-height: min(
         42dvh,
         calc(
-          100dvh - var(--search-block-height) - var(--status-bar-block-height) -
-            0.5rem
+          100dvh - var(--search-block-height) - var(--map-ui-padding, 0.375rem) -
+            var(--status-bar-block-height) - 0.5rem
         )
       );
       padding: 0.5rem 0.625rem;

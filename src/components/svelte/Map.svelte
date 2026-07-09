@@ -2978,6 +2978,11 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
     padding: 0;
   }
+  .place-pin:hover,
+  .place-pin:focus-visible {
+    transform: scale(1.12);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  }
   .place-pin--active {
     outline: 2px solid #0d7a5f;
     outline-offset: 1px;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
@@ -101,7 +102,9 @@
     >
       {#snippet trailing()}
         <h2 class="entity-header__title">Campus events</h2>
-        <p class="entity-panel-note">Loading campus events…</p>
+        <p class="entity-panel-note">
+          <LoadingIndicator label="Loading campus events…" />
+        </p>
       {/snippet}
     </EntityPanelHeader>
     <div class="events-tabs skeleton-tabs" aria-hidden="true">

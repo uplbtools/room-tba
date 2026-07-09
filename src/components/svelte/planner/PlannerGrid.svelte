@@ -166,6 +166,10 @@
     pointerPos = { x: e.clientX, y: e.clientY };
     // Stop the browser from scrolling the grid once a drag is underway.
     el.style.touchAction = "none";
+    // touch-action changes are ignored mid-gesture: once the finger moves the
+    // browser pans the grid and fires pointercancel, killing the drag. Cancel
+    // the pan directly with a non-passive touchmove preventer instead.
+    el.addEventListener("touchmove", preventTouchScroll, { passive: false });
     try {
       el.setPointerCapture(e.pointerId);
     } catch {
@@ -173,11 +177,16 @@
     }
   }
 
+  function preventTouchScroll(e: TouchEvent) {
+    e.preventDefault();
+  }
+
   function cleanup() {
     if (longPress) clearTimeout(longPress);
     longPress = null;
     if (drag && pending && pointerId !== null) {
       pending.el.style.touchAction = "";
+      pending.el.removeEventListener("touchmove", preventTouchScroll);
       try {
         pending.el.releasePointerCapture(pointerId);
       } catch {
@@ -532,6 +541,10 @@
     color: white;
     cursor: grab;
     overflow: hidden;
+    /* Long-press starts a drag; don't let iOS select text or show the callout. */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
 
   .planner-block__label:focus-visible {

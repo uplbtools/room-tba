@@ -334,6 +334,10 @@
     padding: 0.25rem 0.5rem;
   }
 
+  .terrain-option:hover {
+    background-color: hsl(5, 53%, 98%);
+  }
+
   .terrain-option.active {
     border-color: hsl(5, 53%, 32%);
     background-color: hsl(5, 53%, 96%);

@@ -68,6 +68,10 @@ button.status-bar__pill {
   cursor: pointer;
 }
 
+button.status-bar__pill:hover {
+  background-color: hsla(0, 0%, 0%, 0.08);
+}
+
 button.status-bar__pill:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 1px;

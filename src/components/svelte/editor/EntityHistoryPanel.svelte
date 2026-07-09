@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { buildFieldDiffs } from "@lib/proposals/diff";
   import { afterProposalPublished } from "@lib/proposals/apply-published-entity";
   import { syncOpenEntityQueryAfterPublish } from "@lib/proposals/sync-open-entity-query";
@@ -134,7 +135,9 @@
 
   {#if open}
     {#if loading}
-      <p class="entity-history-note" aria-live="polite">Loading history…</p>
+      <p class="entity-history-note">
+        <LoadingIndicator label="Loading history…" />
+      </p>
     {:else if error}
       <p class="entity-history-error" role="alert">{error}</p>
     {:else if entries.length === 0}
@@ -223,6 +226,14 @@
     color: hsl(5, 53%, 32%);
     cursor: pointer;
     text-decoration: underline;
+  }
+
+  .entity-history-toggle:hover {
+    background: hsl(0, 0%, 94%);
+  }
+
+  .entity-history-restore:hover {
+    background: #fdf3f3;
   }
 
   .entity-history-note,

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  parseChangelogEntries,
   parseChangelogHighlights,
   isChangelogCurrent,
 } from "./changelog-highlights";
@@ -49,5 +50,67 @@ describe("parseChangelogHighlights", () => {
     expect(
       parseChangelogHighlights("# [1.0.0](https://example.com)\n"),
     ).toBeNull();
+  });
+
+  test("accepts dash bullets (prettier rewrites * to -)", () => {
+    const md = `# [1.36.0](https://example.com) (2026-07-09)
+
+### Features
+
+- **account:** include saved planner plans in the data export ([#2](https://example.com/2))
+`;
+    const result = parseChangelogHighlights(md);
+    expect(result?.items).toEqual([
+      "account: include saved planner plans in the data export",
+    ]);
+  });
+});
+
+describe("parseChangelogEntries", () => {
+  test("parses every release with sections and dates", () => {
+    const md = `# [1.36.0](https://example.com) (2026-07-09)
+
+### Features
+
+- **account:** include saved planner plans ([abc](https://example.com))
+
+# [1.35.2](https://example.com) (2026-07-09)
+
+### Bug Fixes
+
+- **planner:** tile same-timeslot drag ghosts
+
+# [1.35.1](https://example.com)
+
+- sectionless bullet
+`;
+    const entries = parseChangelogEntries(md);
+    expect(entries).toHaveLength(3);
+    expect(entries[0]).toEqual({
+      version: "1.36.0",
+      date: "2026-07-09",
+      sections: [
+        { title: "Features", items: ["account: include saved planner plans"] },
+      ],
+    });
+    expect(entries[1]?.sections[0]?.title).toBe("Bug Fixes");
+    expect(entries[2]).toEqual({
+      version: "1.35.1",
+      date: null,
+      sections: [{ title: "", items: ["sectionless bullet"] }],
+    });
+  });
+
+  test("drops releases with no bullets and accepts h2 version headings", () => {
+    const md = `# [2.0.0](https://example.com) (2026-01-01)
+
+## [1.9.9](https://example.com) (2025-12-31)
+
+### Bug Fixes
+
+- real fix
+`;
+    const entries = parseChangelogEntries(md);
+    expect(entries.map((e) => e.version)).toEqual(["1.9.9"]);
   });
 });
