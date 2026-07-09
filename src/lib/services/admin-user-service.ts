@@ -6,6 +6,7 @@ import {
   adminUsersTable,
   contributionsTable,
   editProposalsTable,
+  plannerPlansTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
 import type { SessionUser } from "@lib/admin/auth";
@@ -615,6 +616,7 @@ export type AccountDataExport = {
   profile: AccountProfile;
   proposals: unknown[];
   contributions: unknown[];
+  plans: unknown;
 };
 
 export async function exportAccountData(
@@ -623,7 +625,7 @@ export async function exportAccountData(
   const profile = await getAccountProfile(userId);
   if (!profile) return null;
 
-  const [proposals, contributions] = await Promise.all([
+  const [proposals, contributions, plannerRows] = await Promise.all([
     db
       .select()
       .from(editProposalsTable)
@@ -634,9 +636,19 @@ export async function exportAccountData(
       .from(contributionsTable)
       .where(eq(contributionsTable.userId, userId))
       .orderBy(desc(contributionsTable.createdAt)),
+    db
+      .select({ data: plannerPlansTable.data })
+      .from(plannerPlansTable)
+      .where(eq(plannerPlansTable.userId, userId))
+      .limit(1),
   ]);
 
-  return { profile, proposals, contributions };
+  return {
+    profile,
+    proposals,
+    contributions,
+    plans: plannerRows[0]?.data ?? null,
+  };
 }
 
 // ── Admin-managed users (#225 follow-up: admin creates admin/editor) ──
