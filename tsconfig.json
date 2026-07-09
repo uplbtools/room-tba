@@ -27,7 +27,8 @@
       "@constants/*": ["./src/constants/*"],
       "@lib/*": ["./src/lib/*"],
       "@drizzle/*": ["./drizzle/*"],
-      "@layouts/*": ["./src/layouts/*"]
+      "@layouts/*": ["./src/layouts/*"],
+      "@test/*": ["./src/test/*"]
     }
   }
 }
