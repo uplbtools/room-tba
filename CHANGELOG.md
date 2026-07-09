@@ -1,3 +1,20 @@
+# [1.45.0](https://github.com/uplbtools/room-tba/compare/v1.44.2...v1.45.0) (2026-07-09)
+
+
+### Bug Fixes
+
+* **map-chrome:** float the mobile map-tools panel below the top bar ([bed84b0](https://github.com/uplbtools/room-tba/commit/bed84b0341765dbfc6b35a14bd1f41864e861c3d))
+* **map-chrome:** stop the mobile sheet handle inheriting 4rem height ([268560a](https://github.com/uplbtools/room-tba/commit/268560a1ed617415d68688effd7f5732a55e9d19))
+* **planner:** make section drag work on touch ([aae6662](https://github.com/uplbtools/room-tba/commit/aae66627221ce8f8ccefbb8b97af8b550b79aff2))
+* **planner:** prevent mobile course-result overlap ([edd32a9](https://github.com/uplbtools/room-tba/commit/edd32a9dec0b938905fc38ad78b0c0aa38ee9686))
+* **search:** place browse-chip and term rows in the mobile grid shell ([52d2eda](https://github.com/uplbtools/room-tba/commit/52d2eda89418a1332eccea2f21e29cc5582734fc))
+
+
+### Features
+
+* **modal:** full changelog in one click; review queue in a large modal ([0dd32aa](https://github.com/uplbtools/room-tba/commit/0dd32aa82c7af492ea184cb5db567cacc0f4aeda))
+* **ui:** shared LoadingIndicator and complete button hover coverage ([a02f9a9](https://github.com/uplbtools/room-tba/commit/a02f9a9e868bc4402e3cefcb0108f01ec14c1b3e))
+
 # [1.36.0](https://github.com/uplbtools/room-tba/compare/v1.35.2...v1.36.0) (2026-07-09)
 
 ### Features
