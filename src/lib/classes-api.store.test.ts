@@ -20,7 +20,10 @@ describe("fetchClassPage", () => {
   });
 
   it("hits /api/classes and encodes every provided option", async () => {
-    const result: ClassQueryPage = { rows: [{ courseCode: "CMSC 128" }], total: 1 };
+    const result: ClassQueryPage = {
+      rows: [{ courseCode: "CMSC 128" }],
+      total: 1,
+    };
     getJSONFetch.mockResolvedValueOnce(result);
 
     const page = await fetchClassPage({
