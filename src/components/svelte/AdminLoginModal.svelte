@@ -22,6 +22,7 @@
     getTurnstileSiteKey,
     isTurnstileWidgetConfigured,
   } from "@lib/turnstile-client";
+  import { MIN_CONTRIBUTOR_PASSWORD_LENGTH } from "@lib/auth/contributor-signup";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const loginErrorId = "admin-login-error";
@@ -36,12 +37,27 @@
       "This Google account cannot be used to sign in. Contact the maintainers.",
   };
 
+  type Mode = "signin" | "signup";
+
   let loginFrameEl = $state<HTMLDivElement | null>(null);
+  let mode = $state<Mode>("signin");
   let username = $state("admin");
   let password = $state("");
+  let confirmPassword = $state("");
+  let signupEmail = $state("");
   let error: string | null = $state(null);
   let googleLoading = $state(false);
   let turnstileToken = $state<string | null>(null);
+
+  const isSignup = $derived(mode === "signup");
+
+  function switchMode(next: Mode) {
+    mode = next;
+    error = null;
+    password = "";
+    confirmPassword = "";
+    if (next === "signup") username = "";
+  }
 
   let showForgotPassword = $state(false);
   let forgotLoginDraft = $state("");
@@ -102,6 +118,30 @@
       return;
     }
     error = null;
+
+    if (isSignup) {
+      if (password !== confirmPassword) {
+        error = "Passwords do not match.";
+        return;
+      }
+      const err = await adminAuthStore.signup({
+        username,
+        password,
+        email: signupEmail,
+        turnstileToken,
+      });
+      if (err) {
+        error = err;
+        return;
+      }
+      password = "";
+      confirmPassword = "";
+      const label =
+        adminAuthStore.displayName ?? adminAuthStore.username ?? "contributor";
+      toastStore.show(`Signed in as ${label}.`, "success");
+      return;
+    }
+
     const err = await adminAuthStore.login(username, password, turnstileToken);
     if (err) {
       error = err;
@@ -117,6 +157,9 @@
     adminAuthStore.closeLogin();
     error = null;
     password = "";
+    confirmPassword = "";
+    signupEmail = "";
+    mode = "signin";
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -144,7 +187,7 @@
     <header class="login-header">
       <div class="login-title" id="admin-login-title">
         <Lock size={16} aria-hidden="true" />
-        <span>Editor login</span>
+        <span>{isSignup ? "Create contributor account" : "Editor login"}</span>
       </div>
       <button
         type="button"
@@ -157,8 +200,15 @@
     </header>
     <form class="login-body entity-editor-form" onsubmit={submit}>
       {#if !showForgotPassword}
+        {#if isSignup}
+          <p class="login-lead">
+            Create a free contributor account so your proposals are credited to
+            you and your username is reserved. Editors and admins sign in here
+            too.
+          </p>
+        {/if}
         <EntityEditorFormField
-          label="Username or email"
+          label={isSignup ? "Username" : "Username or email"}
           inputId="admin-login-username"
         >
           {#snippet control()}
@@ -166,6 +216,8 @@
               id="admin-login-username"
               type="text"
               autocomplete="username"
+              autocapitalize="none"
+              spellcheck="false"
               bind:value={username}
               required
             />
@@ -176,7 +228,8 @@
             <input
               id="admin-login-password"
               type="password"
-              autocomplete="current-password"
+              autocomplete={isSignup ? "new-password" : "current-password"}
+              minlength={isSignup ? MIN_CONTRIBUTOR_PASSWORD_LENGTH : undefined}
               bind:value={password}
               required
               aria-invalid={error ? true : undefined}
@@ -184,13 +237,46 @@
             />
           {/snippet}
         </EntityEditorFormField>
-        <button
-          type="button"
-          class="forgot-password-link"
-          onclick={() => (showForgotPassword = true)}
-        >
-          Forgot password?
-        </button>
+        {#if isSignup}
+          <EntityEditorFormField
+            label="Confirm password"
+            inputId="admin-signup-confirm"
+          >
+            {#snippet control()}
+              <input
+                id="admin-signup-confirm"
+                type="password"
+                autocomplete="new-password"
+                minlength={MIN_CONTRIBUTOR_PASSWORD_LENGTH}
+                bind:value={confirmPassword}
+                required
+              />
+            {/snippet}
+          </EntityEditorFormField>
+          <EntityEditorFormField
+            label="Email (optional)"
+            inputId="admin-signup-email"
+          >
+            {#snippet control()}
+              <input
+                id="admin-signup-email"
+                type="email"
+                autocomplete="email"
+                autocapitalize="none"
+                spellcheck="false"
+                bind:value={signupEmail}
+              />
+            {/snippet}
+          </EntityEditorFormField>
+        {:else}
+          <button
+            type="button"
+            class="forgot-password-link"
+            onclick={() => (showForgotPassword = true)}
+          >
+            Forgot password?
+          </button>
+        {/if}
       {/if}
       {#if turnstileEnabled && !showForgotPassword}
         <TurnstileWidget siteKey={turnstileSiteKey} bind:token={turnstileToken} />
@@ -205,11 +291,32 @@
       {#if !showForgotPassword}
         <EntityEditorSubmitButton
           type="submit"
-          label="Sign in"
-          savingLabel="Signing in…"
+          label={isSignup ? "Create account" : "Sign in"}
+          savingLabel={isSignup ? "Creating account…" : "Signing in…"}
           saving={adminAuthStore.loading}
           disabled={turnstileEnabled && !turnstileToken}
         />
+        <p class="login-mode-toggle">
+          {#if isSignup}
+            Already have an account?
+            <button
+              type="button"
+              class="login-mode-btn"
+              onclick={() => switchMode("signin")}
+            >
+              Sign in
+            </button>
+          {:else}
+            No account yet?
+            <button
+              type="button"
+              class="login-mode-btn"
+              onclick={() => switchMode("signup")}
+            >
+              Sign up
+            </button>
+          {/if}
+        </p>
       {/if}
       {#if showForgotPassword}
         <div class="forgot-password-panel">
@@ -363,6 +470,34 @@
   }
   .login-body :global(.entity-editor-submit) {
     width: 100%;
+  }
+  .login-lead {
+    margin: 0 0 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: hsl(0, 0%, 38%);
+  }
+  .login-mode-toggle {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 38%);
+    text-align: center;
+    line-height: 1.45;
+  }
+  .login-mode-btn {
+    margin-left: 0.25rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .login-mode-btn:hover,
+  .login-mode-btn:focus-visible {
+    color: hsl(5, 53%, 24%);
   }
   .login-footer {
     margin: 0;
