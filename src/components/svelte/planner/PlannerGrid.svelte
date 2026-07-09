@@ -89,6 +89,8 @@
       endMin: number;
       ghostKey: string;
       roomCode: string | null;
+      col: number;
+      colCount: number;
     }[][] = DAYS.map(() => []);
     if (!drag) return byDay;
     const offerings = alternativeOfferings(
@@ -114,8 +116,28 @@
             endMin: b.endMin,
             ghostKey: offering.section,
             roomCode: row.roomCode ?? null,
+            col: 0,
+            colCount: 1,
           });
         }
+      }
+    }
+    // Sections at the same day+time (e.g. HUM 3 C1 & C2, both WF 10:00) would
+    // otherwise stack exactly and hide all but the top ghost. Split each shared
+    // slot into side-by-side columns so every alternative stays droppable.
+    for (const dayGhosts of byDay) {
+      const bySlot = new Map<string, typeof dayGhosts>();
+      for (const g of dayGhosts) {
+        const slot = `${g.startMin}-${g.endMin}`;
+        const list = bySlot.get(slot) ?? [];
+        list.push(g);
+        bySlot.set(slot, list);
+      }
+      for (const list of bySlot.values()) {
+        list.forEach((g, i) => {
+          g.col = i;
+          g.colCount = list.length;
+        });
       }
     }
     return byDay;
@@ -300,6 +322,8 @@
                 data-ghost={ghost.ghostKey}
                 style:top="{topPct(ghost.startMin)}%"
                 style:height="{heightPct(ghost.startMin, ghost.endMin)}%"
+                style:left="calc({(ghost.col / ghost.colCount) * 100}% + 1px)"
+                style:width="calc({100 / ghost.colCount}% - 2px)"
                 style:border-color={getColorForCourse(drag.courseCode)}
               >
                 <span class="planner-ghost__label">{ghost.ghostKey}</span>
@@ -490,8 +514,8 @@
 
   .planner-ghost {
     position: absolute;
-    left: 1px;
-    right: 1px;
+    /* left/width are set inline so same-slot ghosts tile into columns. */
+    box-sizing: border-box;
     z-index: 5;
     display: flex;
     align-items: center;
