@@ -19,6 +19,7 @@
   import { encodeSharePlan } from "@lib/planner/share-codec";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
+  import GoogleCalendarIcon from "@ui/icons/GoogleCalendarIcon.svelte";
   import PlannerCourseSearch from "./PlannerCourseSearch.svelte";
   import PlannerGrid from "./PlannerGrid.svelte";
   import type { ClassMapValue, FinalExamRow } from "@lib/types";
@@ -321,6 +322,7 @@
             ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
             : "Add a scheduled class first"}
         >
+          <GoogleCalendarIcon size={15} />
           Add to Google Calendar
         </button>
         <button
@@ -606,6 +608,9 @@
 
   .planner-action {
     all: unset;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
     flex: 0 0 auto;
     padding: 0.375rem 0.625rem;
     border: 1px solid hsl(5, 53%, 82%);
@@ -615,6 +620,15 @@
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
+  }
+
+  .planner-action :global(svg) {
+    flex: 0 0 auto;
+  }
+
+  /* Keep the Google mark full-colour even when the button is disabled. */
+  .planner-action:disabled :global(svg) {
+    opacity: 0.6;
   }
 
   .planner-action:hover:not(:disabled),
