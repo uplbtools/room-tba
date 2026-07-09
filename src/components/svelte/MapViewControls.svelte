@@ -204,7 +204,7 @@
         aria-label="Decrease map tilt"
         disabled={pitch <= 0}
       >
-        <ChevronDown size={16} aria-hidden="true" />
+        <ChevronUp size={16} aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -214,7 +214,7 @@
         aria-label="Increase map tilt"
         disabled={pitch >= MAX_PITCH}
       >
-        <ChevronUp size={16} aria-hidden="true" />
+        <ChevronDown size={16} aria-hidden="true" />
       </button>
     </div>
   {/if}

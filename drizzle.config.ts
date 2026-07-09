@@ -1,7 +1,7 @@
 // drizzle.config.ts
 
 import { defineConfig } from "drizzle-kit";
-import { loadEnv } from "./load-env";
+import { loadEnv } from "./scripts/load-env";
 
 loadEnv();
 

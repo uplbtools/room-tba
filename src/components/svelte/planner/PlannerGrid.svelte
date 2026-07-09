@@ -262,115 +262,117 @@
   const hourLabel = (hour: number) =>
     `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? "PM" : "AM"}`;
 
-  const topPct = (min: number) =>
-    ((min - START_HOUR * 60) / TOTAL_MIN) * 100;
+  const topPct = (min: number) => ((min - START_HOUR * 60) / TOTAL_MIN) * 100;
   const heightPct = (startMin: number, endMin: number) =>
     ((endMin - startMin) / TOTAL_MIN) * 100;
 </script>
 
-<div class="planner-legend" aria-label="Block colors">
-  <span class="planner-legend__item">
-    <span
-      class="planner-legend__dot"
-      style:background-color={getPlannerBlockColor("LEC")}
-    ></span>
-    Lecture
-  </span>
-  <span class="planner-legend__item">
-    <span
-      class="planner-legend__dot"
-      style:background-color={getPlannerBlockColor("LAB")}
-    ></span>
-    Lab
-  </span>
-  <span class="planner-legend__item">
-    <span
-      class="planner-legend__dot"
-      style:background-color={getPlannerBlockColor("RCT")}
-    ></span>
-    Recitation
-  </span>
-</div>
+<div>
+  <div class="planner-legend" aria-label="Block colors">
+    <span class="planner-legend__item">
+      <span
+        class="planner-legend__dot"
+        style:background-color={getPlannerBlockColor("LEC")}
+      ></span>
+      Lecture
+    </span>
+    <span class="planner-legend__item">
+      <span
+        class="planner-legend__dot"
+        style:background-color={getPlannerBlockColor("LAB")}
+      ></span>
+      Lab
+    </span>
+    <span class="planner-legend__item">
+      <span
+        class="planner-legend__dot"
+        style:background-color={getPlannerBlockColor("RCT")}
+      ></span>
+      Recitation
+    </span>
+  </div>
 
-<p class="planner-grid__scroll-hint" aria-hidden="true">Swipe to see all days →</p>
-
-<div class="planner-grid-scroll">
-  <div class="planner-grid" class:planner-grid--dragging={drag}>
-    <div class="planner-grid__time" aria-hidden="true">
-      {#each HOURS as hour (hour)}
-        <div class="planner-grid__hour">{hourLabel(hour)}</div>
-      {/each}
-    </div>
-    {#each DAYS as day, dayIndex (day)}
-      <div class="planner-grid__day">
-        <div class="planner-grid__day-label">{day}</div>
-        <div class="planner-grid__day-body">
-          {#each blocksByDay[dayIndex] as block (block.key)}
-            <div
-              class="planner-block"
-              class:planner-block--conflict={block.conflicted}
-              class:planner-block--selected={selectedKey === block.key}
-              class:planner-block--dragging={drag?.fromKey === block.key}
-              style:top="{topPct(block.startMin)}%"
-              style:height="{heightPct(block.startMin, block.endMin)}%"
-              style:background-color={getPlannerBlockColor(block.type)}
-            >
-              <button
-                type="button"
-                class="planner-block__label"
-                title="{block.courseCode} {block.type} {block.section}{block.roomCode
-                  ? ` · ${block.roomCode}`
-                  : ''} — drag to switch section"
-                onclick={() => onBlockClick(block)}
-                onpointerdown={(e) => onBlockPointerDown(e, block)}
-                onpointermove={onBlockPointerMove}
-                onpointerup={onBlockPointerUp}
-                onpointercancel={cleanup}
+  <p class="planner-grid__scroll-hint" aria-hidden="true">
+    Swipe to see all days →
+  </p>
+  <div class="planner-grid-scroll">
+    <div class="planner-grid" class:planner-grid--dragging={drag}>
+      <div class="planner-grid__time" aria-hidden="true">
+        {#each HOURS as hour (hour)}
+          <div class="planner-grid__hour">{hourLabel(hour)}</div>
+        {/each}
+      </div>
+      {#each DAYS as day, dayIndex (day)}
+        <div class="planner-grid__day">
+          <div class="planner-grid__day-label">{day}</div>
+          <div class="planner-grid__day-body">
+            {#each blocksByDay[dayIndex] as block (block.key)}
+              <div
+                class="planner-block"
+                class:planner-block--conflict={block.conflicted}
+                class:planner-block--selected={selectedKey === block.key}
+                class:planner-block--dragging={drag?.fromKey === block.key}
+                style:top="{topPct(block.startMin)}%"
+                style:height="{heightPct(block.startMin, block.endMin)}%"
+                style:background-color={getPlannerBlockColor(block.type)}
               >
-                <span class="planner-block__course">{block.courseCode}</span>
-                <span class="planner-block__section">
-                  {block.type} · {block.section}
-                </span>
-              </button>
-              {#if selectedKey === block.key}
-                <div class="planner-block__actions">
-                  <button
-                    type="button"
-                    onclick={() => onremove(block.courseCode, block.section)}
-                  >
-                    Remove
-                  </button>
-                  {#if block.roomCode}
+                <button
+                  type="button"
+                  class="planner-block__label"
+                  title="{block.courseCode} {block.type} {block.section}{block.roomCode
+                    ? ` · ${block.roomCode}`
+                    : ''} — drag to switch section"
+                  onclick={() => onBlockClick(block)}
+                  onpointerdown={(e) => onBlockPointerDown(e, block)}
+                  onpointermove={onBlockPointerMove}
+                  onpointerup={onBlockPointerUp}
+                  onpointercancel={cleanup}
+                >
+                  <span class="planner-block__course">{block.courseCode}</span>
+                  <span class="planner-block__section">
+                    {block.type} · {block.section}
+                  </span>
+                </button>
+                {#if selectedKey === block.key}
+                  <div class="planner-block__actions">
                     <button
                       type="button"
-                      onclick={() => onopenroom(block.roomCode ?? "")}
+                      onclick={() => onremove(block.courseCode, block.section)}
                     >
-                      Room
+                      Remove
                     </button>
-                  {/if}
-                </div>
-              {/if}
-            </div>
-          {/each}
-
-          {#if drag}
-            {#each ghostBlocksByDay[dayIndex] as ghost (ghost.ghostKey + ghost.startMin)}
-              <div
-                class="planner-ghost"
-                class:planner-ghost--hover={hoverGhost === ghost.ghostKey}
-                data-ghost={ghost.ghostKey}
-                style:top="{topPct(ghost.startMin)}%"
-                style:height="{heightPct(ghost.startMin, ghost.endMin)}%"
-                style:left="calc({(ghost.col / ghost.colCount) * 100}% + 1px)"
-                style:width="calc({100 / ghost.colCount}% - 2px)"
-              >
-                <span class="planner-ghost__label">{ghost.ghostKey}</span>
+                    {#if block.roomCode}
+                      <button
+                        type="button"
+                        onclick={() => onopenroom(block.roomCode ?? "")}
+                      >
+                        Room
+                      </button>
+                    {/if}
+                  </div>
+                {/if}
               </div>
             {/each}
-          {/if}
+
+            {#if drag}
+              {#each ghostBlocksByDay[dayIndex] as ghost (ghost.ghostKey + ghost.startMin)}
+                <div
+                  class="planner-ghost"
+                  class:planner-ghost--hover={hoverGhost === ghost.ghostKey}
+                  data-ghost={ghost.ghostKey}
+                  style:top="{topPct(ghost.startMin)}%"
+                  style:height="{heightPct(ghost.startMin, ghost.endMin)}%"
+                  style:left="calc({(ghost.col / ghost.colCount) * 100}% + 1px)"
+                  style:width="calc({100 / ghost.colCount}% - 2px)"
+                >
+                  <span class="planner-ghost__label">{ghost.ghostKey}</span>
+                </div>
+              {/each}
+            {/if}
+          </div>
         </div>
-      </div>
-    {/each}
+      {/each}
+    </div>
   </div>
 </div>
 
