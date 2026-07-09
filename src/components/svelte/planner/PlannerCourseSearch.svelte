@@ -427,4 +427,17 @@
       font-size: 0.875rem;
     }
   }
+
+  /* The planner stacks this panel above the week grid below 48rem. Let its
+     results take their natural height so the grid cannot paint over a course
+     header and capture its tap. The planner body owns vertical scrolling. */
+  @media (max-width: 48rem) {
+    .course-search {
+      min-height: auto;
+    }
+
+    .course-search__list {
+      overflow-y: visible;
+    }
+  }
 </style>

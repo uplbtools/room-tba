@@ -51,10 +51,11 @@ test.describe("planner interactions", () => {
   }) => {
     await suppressLandingModal(page);
     // Seed a plan with two overlapping sections. The schedule strings overlap on
-    // Monday 9:00-9:30, so the store derives exactly one conflict. Fake course
-    // codes return no rows from /api/classes, so refreshActivePlan leaves them
-    // intact. This exercises the badge render path deterministically, without
-    // depending on which real classes the e2e DB happens to hold.
+    // Monday 9:00-9:30, so the store derives exactly one conflict. Abort their
+    // refresh requests: a successful empty response correctly marks persisted
+    // sections stale, which would hide them from the current-offerings list.
+    // This keeps the fixture independent of e2e DB contents.
+    await page.route("**/api/classes?*", (route) => route.abort());
     await page.addInitScript(() => {
       const plan = {
         id: "e2e-conflict-plan",
@@ -96,8 +97,13 @@ test.describe("planner interactions", () => {
     await expect(planner).toBeVisible();
 
     // Both seeded offerings render, and the badge reports the conflict.
-    await expect(planner.getByText(/ZZZ 1\s*·\s*A/)).toBeVisible();
-    await expect(planner.getByText(/1 conflict\b/i)).toBeVisible();
+    await expect(
+      planner.locator(".planner-offering", { hasText: "ZZZ 1" }),
+    ).toBeVisible();
+    const conflictBadge = planner.locator(".planner-conflict-badge");
+    await expect(
+      conflictBadge.filter({ hasText: /^1 conflict$/ }),
+    ).toBeVisible();
 
     // Remove one side of the clash -> no more overlap -> "All clear".
     await planner
@@ -105,7 +111,11 @@ test.describe("planner interactions", () => {
       .getByRole("button", { name: "Remove" })
       .click();
 
-    await expect(planner.getByText(/all clear/i)).toBeVisible();
-    await expect(planner.getByText(/\d+ conflict/i)).toHaveCount(0);
+    await expect(
+      conflictBadge.filter({ hasText: /^All clear$/i }),
+    ).toBeVisible();
+    await expect(
+      conflictBadge.filter({ hasText: /\d+ conflict/i }),
+    ).toHaveCount(0);
   });
 });
