@@ -2,6 +2,7 @@
   import Menu from "@lucide/svelte/icons/menu";
   import Keyboard from "@lucide/svelte/icons/keyboard";
   import FileText from "@lucide/svelte/icons/file-text";
+  import LifeBuoy from "@lucide/svelte/icons/life-buoy";
   import Inbox from "@lucide/svelte/icons/inbox";
   import { onMount } from "svelte";
   import { formatCatalogUpdatedDate } from "@constants/data-catalog";
@@ -152,6 +153,11 @@
     modalStore.openModal("changelog");
   }
 
+  function handleHowItWorks() {
+    closePanel();
+    modalStore.openModal("landing", { landingTab: "welcome" });
+  }
+
   function handleReview() {
     closePanel();
     modalStore.openModal("review");
@@ -248,6 +254,14 @@
         aria-labelledby="app-menu-help-heading"
       >
         <h3 id="app-menu-help-heading" class="app-menu__heading">Help</h3>
+        <button
+          type="button"
+          class="app-menu__action map-chrome-chip"
+          onclick={handleHowItWorks}
+        >
+          <LifeBuoy size={14} aria-hidden="true" />
+          <span>How Room TBA works</span>
+        </button>
         <button
           type="button"
           class="app-menu__action map-chrome-chip"

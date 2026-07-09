@@ -39,3 +39,21 @@ describe("AppMenu review entry", () => {
     ).toBeNull();
   });
 });
+
+describe("AppMenu help entry", () => {
+  beforeEach(() => {
+    modalStore.closeModal();
+    adminAuthStore.canReview = false;
+  });
+
+  test("'How Room TBA works' opens the landing modal on the welcome tab", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: /how room tba works/i }),
+    );
+    expect(modalStore.open).toBe(true);
+    expect(modalStore.type).toBe("landing");
+    expect(modalStore.landingTab).toBe("welcome");
+  });
+});
