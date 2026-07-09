@@ -1,3 +1,10 @@
+## [1.44.2](https://github.com/uplbtools/room-tba/compare/v1.44.1...v1.44.2) (2026-07-09)
+
+
+### Bug Fixes
+
+* **ci:** mkdir node_modules before frozen install (flaky ENOENT) ([#633](https://github.com/uplbtools/room-tba/issues/633)) ([52098ca](https://github.com/uplbtools/room-tba/commit/52098ca2a69724de4c610f067e4de731bca7b5ea))
+
 # [1.36.0](https://github.com/uplbtools/room-tba/compare/v1.35.2...v1.36.0) (2026-07-09)
 
 ### Features
