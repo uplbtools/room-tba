@@ -107,8 +107,18 @@ describe("groupClassesByOffering", () => {
     // C1 and C2 are two distinct lecture sections, not a lab/recit of a "C"
     // lecture — they must stay as separate offerings, never folded together.
     const groups = groupClassesByOffering([
-      row({ id: 1, section: "C1", type: "LEC", schedule: ["MW 10:00AM-11:30AM"] }),
-      row({ id: 2, section: "C2", type: "LEC", schedule: ["MW 10:00AM-11:30AM"] }),
+      row({
+        id: 1,
+        section: "C1",
+        type: "LEC",
+        schedule: ["MW 10:00AM-11:30AM"],
+      }),
+      row({
+        id: 2,
+        section: "C2",
+        type: "LEC",
+        schedule: ["MW 10:00AM-11:30AM"],
+      }),
     ]);
 
     expect(groups.map((g) => g.section).sort()).toEqual(["C1", "C2"]);

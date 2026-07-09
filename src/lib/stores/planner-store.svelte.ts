@@ -174,10 +174,7 @@ export class PlannerStore {
   };
 
   /** Overwrite matching sections with fresh rows; mark unresolved ones stale. */
-  refreshActivePlan = (
-    rows: ClassMapValue[],
-    fetchedCourses?: Set<string>,
-  ) => {
+  refreshActivePlan = (rows: ClassMapValue[], fetchedCourses?: Set<string>) => {
     const plan = this.activePlan;
     if (!plan) return;
     const fresh = new Map(

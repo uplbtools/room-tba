@@ -49,7 +49,9 @@ test.describe("planner route", () => {
     await page
       .getByRole("button", { name: "Open course planner" })
       .click({ timeout: 60_000 });
-    await expect(page.getByRole("dialog", { name: "Class Planner" })).toBeVisible();
+    await expect(
+      page.getByRole("dialog", { name: "Class Planner" }),
+    ).toBeVisible();
     await expect(page).toHaveURL(/\/planner(\?|$)/);
   });
 });
