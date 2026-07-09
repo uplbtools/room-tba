@@ -262,7 +262,7 @@
     position: relative;
     flex: 0 0 auto;
     min-width: 0;
-    max-width: min(100%, 11rem);
+    max-width: min(100%, 15rem);
     margin-top: 0vh;
   }
 
@@ -277,7 +277,7 @@
   }
 
   .term-filter-chip__label {
-    max-width: 5.5rem;
+    max-width: 11rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

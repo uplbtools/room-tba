@@ -448,6 +448,19 @@ export const contributionsTable = pgTable("contributions", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+/**
+ * A signed-in user's saved course planner (#2). One row per user holding the
+ * whole PlannerPersisted blob ({ v, plans, activePlanIdByTerm }) as jsonb, so
+ * the existing serialize/parsePlanner codec round-trips it unchanged.
+ */
+export const plannerPlansTable = pgTable("planner_plans", {
+  userId: integer("user_id")
+    .primaryKey()
+    .references(() => adminUsersTable.id, { onDelete: "cascade" }),
+  data: jsonb().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
 export const eventsTable = pgTable(
   "events",
   {
