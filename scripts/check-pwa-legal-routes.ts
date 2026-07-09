@@ -16,13 +16,16 @@ const requiredPrecache = [
   "changelog/index.html",
 ];
 
-const requiredDenylist = [
-  String.raw`/^\/privacy(\/|$)/`,
-  String.raw`/^\/terms(\/|$)/`,
-  String.raw`/^\/changelog(\/|$)/`,
-  String.raw`/^\/messenger(\/|$)/`,
-  String.raw`/^\/maintain(\/|$)/`,
-  String.raw`/^\/discord(\/|$)/`,
+// Match the anchored route stem only, not the trailing boundary group — the
+// group varies (e.g. `(\/|$)` vs `(\/|\?|$)` once search strings are covered)
+// and hard-coding it made this guardrail break on unrelated denylist edits.
+const requiredDenylistRoutes = [
+  "privacy",
+  "terms",
+  "changelog",
+  "messenger",
+  "maintain",
+  "discord",
 ];
 
 let failed = false;
@@ -34,9 +37,10 @@ for (const pattern of requiredPrecache) {
   }
 }
 
-for (const pattern of requiredDenylist) {
-  if (!source.includes(pattern)) {
-    console.error(`Missing navigateFallbackDenylist entry: ${pattern}`);
+for (const route of requiredDenylistRoutes) {
+  const anchored = String.raw`/^\/${route}(`;
+  if (!source.includes(anchored)) {
+    console.error(`Missing navigateFallbackDenylist entry for /${route}`);
     failed = true;
   }
 }
