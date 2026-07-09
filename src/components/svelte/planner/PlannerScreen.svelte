@@ -51,6 +51,35 @@
     }
     return [...seen.values()];
   });
+  // Group a course's components (LEC + its lab/recit) so the list visually
+  // links them as one enrollment unit. Excludes stale rows (shown separately).
+  const courseGroups = $derived.by(() => {
+    const byCourse = new Map<
+      string,
+      {
+        courseCode: string;
+        title: string | null;
+        sections: (typeof plan)["sections"];
+      }
+    >();
+    for (const s of plan?.sections ?? []) {
+      if (s.stale) continue;
+      let g = byCourse.get(s.courseCode);
+      if (!g) {
+        g = { courseCode: s.courseCode, title: s.courseTitle ?? null, sections: [] };
+        byCourse.set(s.courseCode, g);
+      }
+      if (!g.title && s.courseTitle) g.title = s.courseTitle;
+      g.sections.push(s);
+    }
+    for (const g of byCourse.values()) {
+      g.sections.sort(
+        (a, b) => (a.type === "LEC" ? 0 : 1) - (b.type === "LEC" ? 0 : 1),
+      );
+    }
+    return [...byCourse.values()];
+  });
+
   const unscheduled = $derived(
     (plan?.sections ?? []).filter((s) => !s.stale && isUnscheduled(s)),
   );
@@ -293,6 +322,11 @@
       {/if}
     </div>
 
+    <p class="planner-save-note" role="note">
+      Plans save automatically on this device. Use <strong>Share</strong> to copy
+      a link you can reopen anywhere or send to someone.
+    </p>
+
     <div
       class="planner-body"
       class:planner-body--no-side={!plan || plan.sections.length === 0}
@@ -314,29 +348,41 @@
             Sections ({offerings.length})
           </h2>
           <ul class="planner-offerings">
-            {#each offerings as offering (offering.courseCode + offering.section)}
-              <li class="planner-offering">
-                <div class="planner-offering__main">
-                  <span class="planner-offering__course">
-                    {offering.courseCode} · {offering.section}
-                  </span>
-                  {#if offering.titles[0]}
-                    <span class="planner-offering__title">
-                      {offering.titles[0]}
+            {#each courseGroups as group (group.courseCode)}
+              <li class="planner-offering planner-offering--group">
+                <div class="planner-offering__head">
+                  <div class="planner-offering__main">
+                    <span class="planner-offering__course">
+                      {group.courseCode}
                     </span>
-                  {/if}
+                    {#if group.title}
+                      <span class="planner-offering__title">{group.title}</span>
+                    {/if}
+                  </div>
+                  <button
+                    type="button"
+                    class="planner-offering__remove"
+                    onclick={() =>
+                      plannerStore.removeOffering(
+                        group.courseCode,
+                        group.sections[0]?.section ?? "",
+                      )}
+                  >
+                    Remove
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  class="planner-offering__remove"
-                  onclick={() =>
-                    plannerStore.removeOffering(
-                      offering.courseCode,
-                      offering.section,
-                    )}
-                >
-                  Remove
-                </button>
+                <ul class="planner-offering__parts">
+                  {#each group.sections as s (s.type + s.section)}
+                    <li class="planner-offering__part">
+                      <span class="planner-offering__part-type">
+                        {s.type ?? "Class"}
+                      </span>
+                      <span class="planner-offering__part-section">
+                        {s.section}
+                      </span>
+                    </li>
+                  {/each}
+                </ul>
               </li>
             {/each}
           </ul>
@@ -467,6 +513,19 @@
     line-height: 1.35;
   }
 
+  .planner-save-note {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0.375rem 0.75rem;
+    color: hsl(0, 0%, 42%);
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .planner-save-note strong {
+    color: hsl(5, 53%, 32%);
+  }
+
   .planner-tabs {
     display: flex;
     flex-shrink: 0;
@@ -591,6 +650,48 @@
     border: 1px solid hsl(0, 0%, 90%);
     border-radius: 0.5rem;
     background: white;
+  }
+
+  .planner-offering--group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.375rem;
+  }
+
+  .planner-offering__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  /* Rail visually links a course's lecture + its lab/recit as one unit. */
+  .planner-offering__parts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    border-left: 2px solid hsl(5, 40%, 82%);
+  }
+
+  .planner-offering__part {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.0625rem 0 0.0625rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .planner-offering__part-type {
+    min-width: 2.4rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 32%);
+  }
+
+  .planner-offering__part-section {
+    color: hsl(0, 0%, 30%);
   }
 
   .planner-offering__main {
