@@ -1,5 +1,8 @@
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
-import { offeringGroupKey } from "../class-offering-groups.js";
+import {
+  offeringGroupKey,
+  parentLectureSection,
+} from "../class-offering-groups.js";
 import { findConflicts } from "../planner/conflicts.js";
 import {
   mergePlannerState,
@@ -125,9 +128,14 @@ export class PlannerStore {
   removeOffering = (courseCode: string, section: string) => {
     const plan = this.activePlan;
     if (!plan) return;
-    const key = offeringGroupKey(courseCode, section);
+    // A lecture and its lab/recit are one enrollment unit — removing any
+    // component removes the whole unit. Resolve each section to its lecture
+    // (itself if it is the lecture, else the parent encoded in a child section
+    // like "C-4L" -> "C") and drop everything in that unit for the course.
+    const unitOf = (s: string) => parentLectureSection({ section: s }) ?? s;
+    const targetUnit = unitOf(section);
     plan.sections = plan.sections.filter(
-      (s) => offeringGroupKey(s.courseCode, s.section) !== key,
+      (s) => s.courseCode !== courseCode || unitOf(s.section) !== targetUnit,
     );
     this.persist();
   };
@@ -166,7 +174,10 @@ export class PlannerStore {
   };
 
   /** Overwrite matching sections with fresh rows; mark unresolved ones stale. */
-  refreshActivePlan = (rows: ClassMapValue[]) => {
+  refreshActivePlan = (
+    rows: ClassMapValue[],
+    fetchedCourses?: Set<string>,
+  ) => {
     const plan = this.activePlan;
     if (!plan) return;
     const fresh = new Map(
@@ -177,7 +188,14 @@ export class PlannerStore {
     );
     plan.sections = plan.sections.map((section) => {
       const updated = fresh.get(sectionNaturalKey(section));
-      return updated ?? { ...section, stale: true };
+      if (updated) return updated;
+      // Only mark "no longer offered" when this course was actually fetched
+      // successfully and the section is genuinely gone — never on a failed or
+      // not-yet-loaded fetch, which would flag a just-added section.
+      if (fetchedCourses && !fetchedCourses.has(section.courseCode)) {
+        return section;
+      }
+      return { ...section, stale: true };
     });
     this.persist();
   };

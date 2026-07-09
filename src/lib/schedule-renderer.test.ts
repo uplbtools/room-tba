@@ -1,5 +1,21 @@
 import { describe, expect, it } from "bun:test";
-import { parseDays, parseScheduleTime } from "@lib/schedule-renderer";
+import {
+  getPlannerBlockColor,
+  parseDays,
+  parseScheduleTime,
+} from "@lib/schedule-renderer";
+
+describe("getPlannerBlockColor", () => {
+  it("colors by component type, not course", () => {
+    expect(getPlannerBlockColor("LEC")).toBe("#1565C0");
+    expect(getPlannerBlockColor("lab")).toBe("#2E7D32");
+    expect(getPlannerBlockColor("RCT")).toBe("#EF6C00");
+  });
+  it("falls back to a neutral color for other/unknown types", () => {
+    expect(getPlannerBlockColor("CPT")).toBe("#546E7A");
+    expect(getPlannerBlockColor(null)).toBe("#546E7A");
+  });
+});
 
 describe("parseScheduleTime", () => {
   it("parses AMIS-style compact times", () => {

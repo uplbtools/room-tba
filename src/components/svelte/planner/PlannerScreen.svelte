@@ -28,6 +28,9 @@
   let finals = $state<FinalExamRow[]>([]);
   let courseRows = $state<ClassMapValue[]>([]);
   let lastRefreshKey = $state<string | null>(null);
+  // Monotonic id so an out-of-order fetch (older, fewer courses) can't overwrite
+  // a newer one and wrongly flag just-added sections as "no longer offered".
+  let refreshSeq = 0;
 
   const plan = $derived(plannerStore.activePlan);
   const offerings = $derived.by(() => {
@@ -146,6 +149,7 @@
     if (refreshKey === lastRefreshKey) return;
     lastRefreshKey = refreshKey;
 
+    const seq = ++refreshSeq;
     Promise.all(
       courseCodes.map((code) =>
         fetchClassPage({
@@ -153,14 +157,19 @@
           courseCodePrefix: code,
           limit: 100,
         }).then(
-          (page) => page.rows,
-          () => [],
+          (page) => ({ code, rows: page.rows, ok: true }),
+          () => ({ code, rows: [] as ClassMapValue[], ok: false }),
         ),
       ),
-    ).then((pages) => {
-      const rows = pages.flat();
+    ).then((results) => {
+      if (seq !== refreshSeq) return; // superseded by a newer refresh
+      const okResults = results.filter((r) => r.ok);
+      const rows = okResults.flatMap((r) => r.rows);
+      const fetchedCourses = new Set(okResults.map((r) => r.code));
       courseRows = rows;
-      if (rows.length > 0) plannerStore.refreshActivePlan(rows);
+      if (fetchedCourses.size > 0) {
+        plannerStore.refreshActivePlan(rows, fetchedCourses);
+      }
     });
 
     Promise.all(
