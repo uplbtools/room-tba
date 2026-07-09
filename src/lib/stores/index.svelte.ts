@@ -480,6 +480,69 @@ class AdminAuthStore {
     }
   };
 
+  /** Self-signup a contributor account (attribution + username reservation).
+   * Logs the new account in on success. Resolves to an error message or null. */
+  signup = async (input: {
+    username: string;
+    password: string;
+    email?: string;
+    displayName?: string;
+    turnstileToken?: string | null;
+  }): Promise<string | null> => {
+    this.loading = true;
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: input.username.trim(),
+          password: input.password,
+          email: input.email?.trim() || undefined,
+          displayName: input.displayName?.trim() || undefined,
+          turnstileToken: input.turnstileToken ?? undefined,
+        }),
+      });
+      const data = await res.json().catch(
+        () =>
+          ({}) as {
+            error?: string;
+            username?: string;
+            displayName?: string;
+            role?: "admin" | "editor" | "contributor";
+            canPublish?: boolean;
+            canReview?: boolean;
+          },
+      );
+      if (!res.ok) {
+        return (
+          data.error ??
+          (res.status === 409
+            ? "That username is already taken. Try another."
+            : res.status === 429
+              ? "Too many sign-up attempts. Wait about a minute and try again."
+              : res.status >= 500
+                ? "Sign-up failed on our side. Try again later."
+                : "Could not create your account. Check the form and try again.")
+        );
+      }
+      this.applySession({
+        loggedIn: true,
+        username: data.username ?? input.username.trim().toLowerCase(),
+        displayName: data.displayName,
+        role: data.role ?? "contributor",
+        canPublish: data.canPublish,
+        canReview: data.canReview,
+      });
+      this.loginOpen = false;
+      return null;
+    } catch {
+      return "Network error. Try again.";
+    } finally {
+      this.loading = false;
+    }
+  };
+
   /** Start Google OAuth (#456); resolves to an error message or redirects away. */
   loginWithGoogle = async (): Promise<string | null> => {
     try {
