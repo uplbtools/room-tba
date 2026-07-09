@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { onMount } from "svelte";
   import {
     adminAuthStore,
@@ -855,7 +856,9 @@
       <TermSelector />
       <p class="entity-schedule__scope">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
       {#if roomClassesStore.loading}
-        <p class="entity-schedule__empty">Loading classes…</p>
+        <p class="entity-schedule__empty">
+          <LoadingIndicator label="Loading classes…" />
+        </p>
       {:else if roomClassesStore.classes.length > 0}
         <Classes
           classes={roomClassesStore.classes}
@@ -885,7 +888,9 @@
         {/if}
         <p class="entity-schedule__scope">{FINALS_SCOPE_NOTE}</p>
         {#if finalExamsLoading}
-          <p class="entity-schedule__empty">Loading final exams…</p>
+          <p class="entity-schedule__empty">
+            <LoadingIndicator label="Loading final exams…" />
+          </p>
         {:else}
           <FinalExamsList exams={finalExams} />
         {/if}
@@ -950,6 +955,16 @@
     border-color: hsl(5, 53%, 32%);
     background-color: hsl(5, 53%, 32%);
     color: white;
+  }
+
+  .merge-btn:hover:not(:disabled) {
+    border-color: #c58f91;
+    background: #fdf3f3;
+  }
+
+  .merge-btn-primary:hover:not(:disabled) {
+    border-color: hsl(5, 53%, 32%);
+    background-color: hsl(5, 53%, 38%);
   }
 
   .merge-btn:disabled {

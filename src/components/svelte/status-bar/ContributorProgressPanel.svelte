@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { onMount } from "svelte";
   import { getAppData } from "@lib/context";
   import {
@@ -149,7 +150,9 @@
   {/if}
 
   {#if loading}
-    <p class="contributor-progress__status">Loading progress…</p>
+    <p class="contributor-progress__status">
+      <LoadingIndicator label="Loading progress…" />
+    </p>
   {:else if error}
     <p class="contributor-progress__status contributor-progress__status--error">
       {error}

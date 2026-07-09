@@ -4,7 +4,9 @@ export type ChangelogHighlight = {
   totalCount: number;
 };
 
-const VERSION_HEADING = /^# \[([^\]]+)\]/;
+const VERSION_HEADING = /^#{1,2} \[([^\]]+)\]/;
+// Prettier rewrites "* item" bullets to "- item"; accept both.
+const BULLET = /^[*-] (.+)$/;
 
 /** Human-readable bullets for the update prompt (#212). */
 export function parseChangelogHighlights(
@@ -25,7 +27,7 @@ export function parseChangelogHighlights(
     }
     if (version === null) continue;
 
-    const bulletMatch = line.match(/^\* (.+)$/);
+    const bulletMatch = line.match(BULLET);
     if (bulletMatch?.[1]) {
       bullets.push(sanitizeBullet(bulletMatch[1]));
     }
@@ -38,6 +40,53 @@ export function parseChangelogHighlights(
     items: bullets.slice(0, maxItems),
     totalCount: bullets.length,
   };
+}
+
+export type ChangelogEntry = {
+  version: string;
+  date: string | null;
+  sections: { title: string; items: string[] }[];
+};
+
+/** Every release in the changelog, for the in-app full-changelog view. */
+export function parseChangelogEntries(markdown: string): ChangelogEntry[] {
+  const entries: ChangelogEntry[] = [];
+  let entry: ChangelogEntry | null = null;
+  let section: ChangelogEntry["sections"][number] | null = null;
+
+  for (const line of markdown.split(/\r?\n/)) {
+    const versionMatch = line.match(VERSION_HEADING);
+    if (versionMatch?.[1]) {
+      entry = {
+        version: versionMatch[1],
+        date: line.match(/\((\d{4}-\d{2}-\d{2})\)\s*$/)?.[1] ?? null,
+        sections: [],
+      };
+      section = null;
+      entries.push(entry);
+      continue;
+    }
+    if (!entry) continue;
+
+    const sectionMatch = line.match(/^### (.+)$/);
+    if (sectionMatch?.[1]) {
+      section = { title: sectionMatch[1].trim(), items: [] };
+      entry.sections.push(section);
+      continue;
+    }
+
+    const bulletMatch = line.match(BULLET);
+    if (bulletMatch?.[1]) {
+      // Releases without "###" sections list bullets directly under the version.
+      if (!section) {
+        section = { title: "", items: [] };
+        entry.sections.push(section);
+      }
+      section.items.push(sanitizeBullet(bulletMatch[1]));
+    }
+  }
+
+  return entries.filter((e) => e.sections.some((s) => s.items.length > 0));
 }
 
 /** Compare dotted numeric versions ("1.31.1"); returns <0, 0, or >0. */

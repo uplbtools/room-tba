@@ -75,7 +75,9 @@
         ? 'landing-modal-container'
         : modalStore.type === 'leaderboard'
           ? 'leaderboard-modal-container'
-          : ''}"
+          : modalStore.type === 'changelog' || modalStore.type === 'review'
+            ? 'modal-content--large'
+            : ''}"
       id="modal-content"
       role="dialog"
       aria-modal="true"
@@ -174,7 +176,7 @@
   }
   .review-modal-scroll {
     min-height: 0;
-    max-height: min(70vh, 40rem);
+    flex: 1 1 auto;
     overflow-y: auto;
     padding: 0.5rem 0.75rem 0.25rem;
   }
@@ -210,6 +212,12 @@
         outline-offset: 1px;
       }
     }
+  }
+  /* Task-focused dialogs (review queue, changelog) take most of the screen. */
+  .modal-content--large {
+    flex: 0 1 72rem;
+    width: 100%;
+    height: min(90dvh, 56rem);
   }
   .leaderboard-modal-container {
     flex: 0 1 32rem;

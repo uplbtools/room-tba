@@ -120,6 +120,10 @@
     text-underline-offset: 0.125rem;
   }
 
+  button.final-exam-row__room:hover {
+    color: #7b1113;
+  }
+
   .final-exam-row__room--tba {
     cursor: default;
     text-decoration: none;

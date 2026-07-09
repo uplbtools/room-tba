@@ -910,4 +910,9 @@
   .bundled-rooms__add {
     font-weight: 600;
   }
+
+  .bundled-rooms__remove:hover,
+  .bundled-rooms__add:hover {
+    background-color: hsla(0, 0%, 0%, 0.08);
+  }
 </style>

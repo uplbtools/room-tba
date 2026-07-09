@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import EntityPanelFilter from "./EntityPanelFilter.svelte";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
@@ -218,7 +219,13 @@
         search
         oninput={onFilterInput}
       />
-      <p class="entity-panel-status" aria-live="polite">{statusLine}</p>
+      {#if !loaded}
+        <p class="entity-panel-status">
+          <LoadingIndicator label="Loading campus directory…" />
+        </p>
+      {:else}
+        <p class="entity-panel-status" aria-live="polite">{statusLine}</p>
+      {/if}
     {/snippet}
   </EntityPanelHeader>
 

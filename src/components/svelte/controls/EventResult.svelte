@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
@@ -1019,7 +1020,7 @@
       </section>
     {/if}
   {:else}
-    <p>Loading event...</p>
+    <p><LoadingIndicator label="Loading event…" /></p>
   {/if}
 </div>
 

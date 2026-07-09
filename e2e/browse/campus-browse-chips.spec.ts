@@ -32,6 +32,28 @@ test.describe("campus browse chips", () => {
     );
   });
 
+  test("mobile top bar: term selector does not overlap browse chips", async ({
+    page,
+  }) => {
+    // Regression guard: on the mobile grid shell, the browse-chip row and the
+    // term-selector row must be explicitly placed. Auto-placement stuffed them
+    // side by side into the menu column, drawing the term selector on top of
+    // the chips.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const chips = page.locator(".campus-browse-chips__container");
+    const term = page.locator(".campus-browse-chips__term");
+    await expect(chips).toBeVisible();
+    await expect(term).toBeVisible();
+
+    const chipsBox = await chips.boundingBox();
+    const termBox = await term.boundingBox();
+    if (!chipsBox || !termBox) throw new Error("missing bounding boxes");
+    // The term row must start at or below the bottom of the chips row.
+    expect(termBox.y).toBeGreaterThanOrEqual(chipsBox.y + chipsBox.height - 1);
+    // And both rows span the shell instead of hiding in the 2rem menu column.
+    expect(chipsBox.width).toBeGreaterThan(200);
+  });
+
   test("Classes opens class list without toggling building filter chip", async ({
     page,
   }) => {
