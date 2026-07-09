@@ -292,6 +292,8 @@
   </span>
 </div>
 
+<p class="planner-grid__scroll-hint" aria-hidden="true">Swipe to see all days →</p>
+
 <div class="planner-grid-scroll">
   <div class="planner-grid" class:planner-grid--dragging={drag}>
     <div class="planner-grid__time" aria-hidden="true">
@@ -392,6 +394,19 @@
     padding: 0.375rem 0.125rem;
     font-size: 0.75rem;
     color: hsl(0, 0%, 35%);
+  }
+
+  /* Mobile-only affordance that the week grid scrolls sideways (hidden on
+     desktop, where all six days already fit). */
+  .planner-grid__scroll-hint {
+    display: none;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 0 0.125rem 0.375rem;
+    color: hsl(0, 0%, 45%);
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
   .planner-legend__item {
@@ -615,6 +630,78 @@
   @media (prefers-reduced-motion: reduce) {
     .planner-ghost {
       transition: none;
+    }
+  }
+
+  /* --- Mobile (phones): bigger text, taller rows, wider day columns, and a
+     horizontally-scrollable week grid instead of a squeezed six-up view. --- */
+  @media (max-width: 640px) {
+    .planner-legend {
+      gap: 0.375rem 1.25rem;
+      font-size: 0.8125rem;
+    }
+
+    .planner-legend__dot {
+      width: 0.875rem;
+      height: 0.875rem;
+    }
+
+    .planner-grid__scroll-hint {
+      display: flex;
+    }
+
+    /* Wider day columns so blocks are readable and tappable; the grid overflows
+       its scroll container and scrolls sideways on a narrow phone. */
+    .planner-grid {
+      grid-template-columns: 3.25rem repeat(6, minmax(5.25rem, 1fr));
+      min-width: 34.75rem;
+    }
+
+    /* Taller rows use the phone's vertical space and give a 1-hour block a
+       3rem (48px) height — above the 44px tap-target minimum. */
+    .planner-grid__day-body {
+      height: 39rem; /* 13 hours × 3rem */
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent calc(3rem - 1px),
+        hsl(0, 0%, 93%) calc(3rem - 1px),
+        hsl(0, 0%, 93%) 3rem
+      );
+    }
+
+    .planner-grid__day-label {
+      font-size: 0.875rem;
+    }
+
+    .planner-grid__hour {
+      font-size: 0.75rem;
+    }
+
+    .planner-block__label {
+      padding: 0.25rem 0.375rem;
+    }
+
+    .planner-block__course {
+      font-size: 0.8125rem;
+    }
+
+    .planner-block__section {
+      font-size: 0.75rem;
+    }
+
+    .planner-block__actions {
+      gap: 0.375rem;
+      padding: 0.375rem;
+    }
+
+    .planner-block__actions button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      padding: 0.5rem 0.875rem;
+      font-size: 0.875rem;
     }
   }
 </style>

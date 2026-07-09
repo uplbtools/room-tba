@@ -755,4 +755,108 @@
     font-size: 0.6875rem;
     color: hsl(0, 0%, 50%);
   }
+
+  /* --- Mobile (phones): readable text, ≥44px tap targets, a header that wraps
+     instead of overflowing, and roomier stacked sections. --- */
+  @media (max-width: 640px) {
+    /* Share + "Add to Google Calendar" wrap onto their own row rather than
+       overflowing the top bar. */
+    .planner-header {
+      flex-wrap: wrap;
+      row-gap: 0.5rem;
+    }
+
+    .planner-back {
+      min-height: 2.75rem;
+      font-size: 1rem;
+    }
+
+    .planner-title {
+      font-size: 1.0625rem;
+    }
+
+    .planner-action {
+      flex: 1 1 45%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      padding: 0.5rem 0.875rem;
+      font-size: 0.875rem;
+    }
+
+    .planner-disclaimer,
+    .planner-save-note {
+      font-size: 0.8125rem;
+    }
+
+    .planner-tabs {
+      gap: 0.5rem;
+    }
+
+    .planner-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      padding: 0.375rem 0.875rem;
+      font-size: 0.875rem;
+    }
+
+    .planner-tab--new {
+      min-width: 2.75rem;
+      font-size: 1.25rem;
+    }
+
+    .planner-conflict-badge {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8125rem;
+    }
+
+    .planner-delete-confirm__label {
+      font-size: 0.875rem;
+    }
+
+    .planner-body {
+      gap: 1rem;
+      padding: 0.75rem 0.75rem calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .planner-side__heading {
+      font-size: 0.9375rem;
+    }
+
+    .planner-offering {
+      padding: 0.75rem;
+    }
+
+    .planner-offering__course {
+      font-size: 0.9375rem;
+    }
+
+    .planner-offering__title,
+    .planner-offering__part {
+      font-size: 0.8125rem;
+    }
+
+    /* Obvious, tappable Remove. */
+    .planner-offering__remove {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      padding: 0.5rem 0.875rem;
+      border: 1px solid hsl(0, 60%, 80%);
+      font-size: 0.875rem;
+    }
+
+    .planner-plain-list {
+      gap: 0.375rem;
+      font-size: 0.875rem;
+    }
+
+    .planner-finals-note {
+      font-size: 0.8125rem;
+    }
+  }
 </style>
