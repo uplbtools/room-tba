@@ -9,8 +9,15 @@ export const GET: APIRoute = async ({ cookies }) => {
   const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
-  const data = await getPlannerData(auth.session.id);
-  return json({ data });
+  try {
+    const data = await getPlannerData(auth.session.id);
+    return json({ data });
+  } catch (error) {
+    // Degrade gracefully if the table isn't present yet (migration pending):
+    // the client keeps its localStorage plans instead of erroring.
+    console.error("Load planner failed:", error);
+    return json({ data: null });
+  }
 };
 
 // Upsert the user's planner blob. Body: { data: PlannerPersisted }.
