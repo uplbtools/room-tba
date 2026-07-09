@@ -1,6 +1,53 @@
 import { describe, expect, it } from "bun:test";
-import { parsePlanner, serializePlanner } from "./persist.js";
+import {
+  mergePlannerState,
+  parsePlanner,
+  serializePlanner,
+} from "./persist.js";
 import type { PlannerPlan } from "./types.js";
+
+const makePlan = (id: string, termId = 1252): PlannerPlan => ({
+  id,
+  label: id,
+  termId,
+  sections: [],
+});
+
+describe("mergePlannerState", () => {
+  it("unions local-only and remote-only plans", () => {
+    const merged = mergePlannerState(
+      { plans: [makePlan("local")], activePlanIdByTerm: {} },
+      { plans: [makePlan("remote")], activePlanIdByTerm: {} },
+    );
+    expect(merged.plans.map((p) => p.id).sort()).toEqual(["local", "remote"]);
+  });
+
+  it("remote wins on a shared plan id", () => {
+    const merged = mergePlannerState(
+      {
+        plans: [{ ...makePlan("p1"), label: "local" }],
+        activePlanIdByTerm: {},
+      },
+      {
+        plans: [{ ...makePlan("p1"), label: "remote" }],
+        activePlanIdByTerm: {},
+      },
+    );
+    expect(merged.plans).toHaveLength(1);
+    expect(merged.plans[0]?.label).toBe("remote");
+  });
+
+  it("keeps active-plan choices only for plans that survive the merge", () => {
+    const merged = mergePlannerState(
+      { plans: [makePlan("local")], activePlanIdByTerm: { "1252": "local" } },
+      {
+        plans: [makePlan("remote")],
+        activePlanIdByTerm: { "1253": "gone" },
+      },
+    );
+    expect(merged.activePlanIdByTerm).toEqual({ "1252": "local" });
+  });
+});
 
 const plan: PlannerPlan = {
   id: "p1",
