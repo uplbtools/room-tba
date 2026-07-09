@@ -20,7 +20,7 @@ export type StatusBarLinkItem = {
 
 export type StatusBarActionItem = {
   kind: "action";
-  id: "contributors" | "editor-login" | "leaderboard";
+  id: "contributors" | "editor-login" | "leaderboard" | "sign-up";
   label: string;
 };
 
@@ -66,6 +66,7 @@ export const STATUS_BAR_COMMUNITY_GROUP: StatusBarNavGroup = {
 export const STATUS_BAR_APP_ACTIONS: StatusBarActionItem[] = [
   { kind: "action", id: "contributors", label: "Contributors" },
   { kind: "action", id: "leaderboard", label: "Leaderboard" },
+  { kind: "action", id: "sign-up", label: "Sign up to contribute" },
   { kind: "action", id: "editor-login", label: "Editor sign in" },
 ];
 
@@ -136,6 +137,7 @@ export function statusBarNavGroups(options: {
     action("leaderboard"),
     ...(options.showEditorLogin
       ? [
+          action("sign-up"),
           action("editor-login"),
           {
             kind: "link" as const,

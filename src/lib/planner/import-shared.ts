@@ -1,4 +1,4 @@
-import { fetchClassPage } from "@lib/classes-api";
+import { fetchAllClasses } from "@lib/classes-api";
 import type { DecodedSharePlan } from "./share-codec.js";
 import { sectionNaturalKey, type PlannedSection } from "./types.js";
 
@@ -13,10 +13,9 @@ export async function resolveSharedPlan(decoded: DecodedSharePlan): Promise<{
   const courseCodes = [...new Set(decoded.refs.map((ref) => ref.courseCode))];
   const pages = await Promise.all(
     courseCodes.map((code) =>
-      fetchClassPage({
+      fetchAllClasses({
         termId: decoded.termId,
         courseCodePrefix: code,
-        limit: 100,
       }).then(
         (page) => page.rows,
         () => [],

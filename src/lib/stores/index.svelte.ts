@@ -365,6 +365,9 @@ class AdminAuthStore {
   canReview: boolean = $state(false);
   loading: boolean = $state(false);
   loginOpen: boolean = $state(false);
+  /** Which tab the login modal opens on — "signup" from the "create account"
+   * entry points, "signin" everywhere else. */
+  loginInitialMode: "signin" | "signup" = $state("signin");
   /** Error code from a failed OAuth redirect (`?auth_error=`). */
   oauthError: string | null = $state(null);
   accountSettingsOpen: boolean = $state(false);
@@ -615,9 +618,10 @@ class AdminAuthStore {
     plannerStore.disableAccountSync();
   };
 
-  openLogin = () => {
+  openLogin = (mode: "signin" | "signup" = "signin") => {
     dismissEphemeralOverlays();
     modalStore.closeModal();
+    this.loginInitialMode = mode;
     this.loginOpen = true;
   };
 

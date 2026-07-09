@@ -128,7 +128,9 @@
     closePanel();
   }
 
-  function handleNavAction(id: "contributors" | "editor-login" | "leaderboard") {
+  function handleNavAction(
+    id: "contributors" | "editor-login" | "leaderboard" | "sign-up",
+  ) {
     if (id === "contributors") {
       modalStore.openModal("landing", { landingTab: "campus" });
       closePanel();
@@ -139,7 +141,7 @@
       closePanel();
       return;
     }
-    adminAuthStore.openLogin();
+    adminAuthStore.openLogin(id === "sign-up" ? "signup" : "signin");
     closePanel();
   }
 

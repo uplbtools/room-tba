@@ -1,7 +1,7 @@
 <script lang="ts">
   import Search from "@lucide/svelte/icons/search";
   import { SvelteSet } from "svelte/reactivity";
-  import { fetchClassPage } from "@lib/classes-api";
+  import { fetchClassPage, fetchAllClasses } from "@lib/classes-api";
   import {
     groupClassesByOffering,
     offeringGroupKey,
@@ -26,11 +26,12 @@
     const timer = setTimeout(
       () => {
         loading = true;
-        fetchClassPage({
-          termId: t,
-          courseCodePrefix: q || undefined,
-          limit: 100,
-        })
+        // With a course code typed, pull every section (HK 12 has 147, past the
+        // 100/page cap). Browsing the whole term stays a single capped page.
+        const request = q
+          ? fetchAllClasses({ termId: t, courseCodePrefix: q })
+          : fetchClassPage({ termId: t, limit: 100 });
+        request
           .then((page) => {
             rows = page.rows;
             total = page.total;

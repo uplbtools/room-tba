@@ -99,6 +99,16 @@
     }
   });
 
+  // Each time the modal opens, land on the tab the entry point requested
+  // (the "Sign up" menu entry opens straight into signup).
+  let wasOpen = false;
+  $effect(() => {
+    if (adminAuthStore.loginOpen && !wasOpen) {
+      switchMode(adminAuthStore.loginInitialMode);
+    }
+    wasOpen = adminAuthStore.loginOpen;
+  });
+
   async function signInWithGoogle() {
     error = null;
     adminAuthStore.oauthError = null;
