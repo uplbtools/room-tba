@@ -1,3 +1,10 @@
+## [1.43.1](https://github.com/uplbtools/room-tba/compare/v1.43.0...v1.43.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **planner:** update planner styling to fix bug ([1066d06](https://github.com/uplbtools/room-tba/commit/1066d0636df963a4a28335eb6a700ef584a681a9))
+
 # [1.36.0](https://github.com/uplbtools/room-tba/compare/v1.35.2...v1.36.0) (2026-07-09)
 
 ### Features
