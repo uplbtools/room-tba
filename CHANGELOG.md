@@ -1,3 +1,10 @@
+# [1.44.0](https://github.com/uplbtools/room-tba/compare/v1.43.1...v1.44.0) (2026-07-09)
+
+
+### Features
+
+* **planner:** duplicate/rename plans, image export, all-sections fetch; student-org info modal; surface signup ([#629](https://github.com/uplbtools/room-tba/issues/629)) ([319d9c6](https://github.com/uplbtools/room-tba/commit/319d9c60ed6c267f73a8848cf9bcdc1ad6f010cb))
+
 # [1.36.0](https://github.com/uplbtools/room-tba/compare/v1.35.2...v1.36.0) (2026-07-09)
 
 ### Features
