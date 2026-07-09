@@ -247,7 +247,7 @@
                 {/if}
               </span>
               {#if term.classCount > 0}
-                <span class="term-picker-option__count">{term.classCount} {term.classCount === 1 ? "classes" : "class"}</span>
+                <span class="term-picker-option__count">{term.classCount} {term.classCount === 1 ? "class" : "classes"}</span>
               {/if}
             </button>
           {/each}
