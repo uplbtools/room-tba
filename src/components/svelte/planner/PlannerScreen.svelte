@@ -11,6 +11,7 @@
   } from "@lib/store.svelte";
   import { fetchClassPage } from "@lib/classes-api";
   import { COURSE_CHANGE_DISCLAIMER } from "@lib/amis/room-scheduled-types";
+  import { changeOfMatriculationLabel } from "@lib/term-calendar";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import { isUnscheduled } from "@lib/planner/conflicts";
   import { buildPlanIcs } from "@lib/planner/ics";
@@ -252,7 +253,11 @@
       {/if}
     </header>
 
-    <p class="planner-disclaimer" role="note">{COURSE_CHANGE_DISCLAIMER}</p>
+    <p class="planner-disclaimer" role="note">
+      {COURSE_CHANGE_DISCLAIMER}{changeOfMatriculationLabel(termStore.activeTermId)
+        ? ` (${changeOfMatriculationLabel(termStore.activeTermId)})`
+        : ""}
+    </p>
 
     <div class="planner-tabs" role="tablist" aria-label="Plans">
       {#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
@@ -709,9 +714,9 @@
   .planner-offering__title {
     font-size: 0.75rem;
     color: hsl(0, 0%, 40%);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.3;
+    /* Show the full course title (its description) — wrap instead of truncate. */
+    overflow-wrap: anywhere;
   }
 
   .planner-offering__remove {

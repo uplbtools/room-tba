@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  changeOfMatriculationLabel,
   isDateWithinTerm,
   resolveActiveTermByDate,
   resolveInitialTermId,
@@ -90,5 +91,15 @@ describe("term-calendar", () => {
         date: midyearDay,
       }),
     ).toBe(1253);
+  });
+});
+
+describe("changeOfMatriculationLabel", () => {
+  it("formats the last day for a known term", () => {
+    expect(changeOfMatriculationLabel(1261)).toBe("August 7, 2026");
+  });
+  it("returns null for unknown terms / null", () => {
+    expect(changeOfMatriculationLabel(1252)).toBeNull();
+    expect(changeOfMatriculationLabel(null)).toBeNull();
   });
 });
