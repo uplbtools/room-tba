@@ -9,12 +9,13 @@
     termStore,
     toastStore,
   } from "@lib/store.svelte";
-  import { fetchClassPage } from "@lib/classes-api";
+  import { fetchAllClasses } from "@lib/classes-api";
   import { COURSE_CHANGE_DISCLAIMER } from "@lib/amis/room-scheduled-types";
   import { changeOfMatriculationLabel } from "@lib/term-calendar";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import { isUnscheduled } from "@lib/planner/conflicts";
   import { buildPlanIcs } from "@lib/planner/ics";
+  import { renderPlanToPng } from "@lib/planner/plan-image";
   import { encodeSharePlan } from "@lib/planner/share-codec";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
@@ -123,7 +124,7 @@
   }
 
   async function copyShareLink() {
-    if (!plan) return;
+    if (!plan || !hasSchedule) return;
     const url = `${location.origin}/?plan=${encodeSharePlan(plan)}`;
     try {
       await navigator.clipboard.writeText(url);
@@ -134,7 +135,7 @@
   }
 
   function downloadIcs() {
-    if (!plan) return;
+    if (!plan || !hasSchedule) return;
     const term = termStore.activeTerm;
     const ics = buildPlanIcs(
       plan,
@@ -144,10 +145,42 @@
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${plan.label.toLowerCase().replaceAll(" ", "-")}-${plan.termId}.ics`;
+    link.download = `${planFileSlug(plan.label)}-${plan.termId}.ics`;
     link.click();
     URL.revokeObjectURL(url);
   }
+
+  let exportingImage = $state(false);
+
+  async function saveAsImage() {
+    if (!plan || !hasSchedule || exportingImage) return;
+    exportingImage = true;
+    try {
+      const blob = await renderPlanToPng(plan, {
+        termLabel: termStore.activeTerm?.label ?? null,
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${planFileSlug(plan.label)}-${plan.termId}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toastStore.show("Could not create the image", "error");
+    } finally {
+      exportingImage = false;
+    }
+  }
+
+  function planFileSlug(label: string): string {
+    return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "plan";
+  }
+
+  // Share / calendar / image only make sense once something is scheduled; the
+  // buttons stay visible but disabled before then so the affordance is known.
+  const hasSchedule = $derived(
+    (plan?.sections ?? []).some((s) => !s.stale && !isUnscheduled(s)),
+  );
 
   let confirmingDelete = $state(false);
 
@@ -157,10 +190,38 @@
     confirmingDelete = false;
   }
 
-  // Switching plans cancels a pending delete confirmation.
+  // --- Rename -------------------------------------------------------------
+  let renaming = $state(false);
+  let renameDraft = $state("");
+
+  function startRename() {
+    if (!plan) return;
+    renameDraft = plan.label;
+    renaming = true;
+  }
+
+  function commitRename() {
+    if (!plan) return;
+    plannerStore.renamePlan(plan.id, renameDraft);
+    renaming = false;
+  }
+
+  function onRenameKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter") commitRename();
+    else if (event.key === "Escape") renaming = false;
+  }
+
+  // Focus + select the rename field the moment it appears.
+  function autofocus(node: HTMLInputElement) {
+    node.focus();
+    node.select();
+  }
+
+  // Switching plans cancels a pending delete confirmation or rename.
   $effect(() => {
     void plan?.id;
     confirmingDelete = false;
+    renaming = false;
   });
 
   $effect(() => {
@@ -182,10 +243,11 @@
     const seq = ++refreshSeq;
     Promise.all(
       courseCodes.map((code) =>
-        fetchClassPage({
+        // fetchAllClasses (not a single 100-cap page) so a big course like
+        // HK 12 (147 sections) surfaces every drag alternative, not just 100.
+        fetchAllClasses({
           termId: plan.termId,
           courseCodePrefix: code,
-          limit: 100,
         }).then(
           (page) => ({ code, rows: page.rows, ok: true }),
           () => ({ code, rows: [] as ClassMapValue[], ok: false }),
@@ -238,17 +300,39 @@
       {#if termStore.terms.length > 0}
         <TermSelector variant="chip" />
       {/if}
-      {#if plan && plan.sections.length > 0}
-        <button type="button" class="planner-action" onclick={copyShareLink}>
+      {#if plan}
+        <button
+          type="button"
+          class="planner-action"
+          onclick={copyShareLink}
+          disabled={!hasSchedule}
+          title={hasSchedule
+            ? "Copy a link that reopens this plan"
+            : "Add a scheduled class first"}
+        >
           Share
         </button>
         <button
           type="button"
           class="planner-action"
           onclick={downloadIcs}
-          title="Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
+          disabled={!hasSchedule}
+          title={hasSchedule
+            ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
+            : "Add a scheduled class first"}
         >
           Add to Google Calendar
+        </button>
+        <button
+          type="button"
+          class="planner-action"
+          onclick={saveAsImage}
+          disabled={!hasSchedule || exportingImage}
+          title={hasSchedule
+            ? "Download the timetable as an image"
+            : "Add a scheduled class first"}
+        >
+          {exportingImage ? "Saving…" : "Save image"}
         </button>
       {/if}
     </header>
@@ -261,16 +345,30 @@
 
     <div class="planner-tabs" role="tablist" aria-label="Plans">
       {#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
-        <button
-          type="button"
-          role="tab"
-          class="planner-tab"
-          class:planner-tab--active={tabPlan.id === plan?.id}
-          aria-selected={tabPlan.id === plan?.id}
-          onclick={() => plannerStore.selectPlan(tabPlan.id)}
-        >
-          {tabPlan.label}
-        </button>
+        {#if renaming && tabPlan.id === plan?.id}
+          <input
+            class="planner-tab planner-tab--rename"
+            bind:value={renameDraft}
+            onkeydown={onRenameKeydown}
+            onblur={commitRename}
+            use:autofocus
+            aria-label="Rename plan"
+            maxlength="40"
+          />
+        {:else}
+          <button
+            type="button"
+            role="tab"
+            class="planner-tab"
+            class:planner-tab--active={tabPlan.id === plan?.id}
+            aria-selected={tabPlan.id === plan?.id}
+            onclick={() => plannerStore.selectPlan(tabPlan.id)}
+            ondblclick={() =>
+              tabPlan.id === plan?.id ? startRename() : undefined}
+          >
+            {tabPlan.label}
+          </button>
+        {/if}
       {/each}
       <button
         type="button"
@@ -280,6 +378,24 @@
       >
         +
       </button>
+      {#if plan && !renaming}
+        <button
+          type="button"
+          class="planner-tab"
+          onclick={startRename}
+          aria-label="Rename {plan.label}"
+        >
+          Rename
+        </button>
+        <button
+          type="button"
+          class="planner-tab"
+          onclick={() => plannerStore.duplicatePlan(plan.id)}
+          aria-label="Duplicate {plan.label}"
+        >
+          Duplicate
+        </button>
+      {/if}
       {#if plan}
         {#if confirmingDelete}
           <span class="planner-delete-confirm" role="group" aria-label="Confirm delete plan">
@@ -501,9 +617,16 @@
     cursor: pointer;
   }
 
-  .planner-action:hover,
-  .planner-action:focus-visible {
+  .planner-action:hover:not(:disabled),
+  .planner-action:focus-visible:not(:disabled) {
     background: hsl(5, 53%, 96%);
+  }
+
+  .planner-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: hsl(0, 0%, 82%);
+    color: hsl(0, 0%, 55%);
   }
 
   .planner-disclaimer {
@@ -555,10 +678,30 @@
     cursor: pointer;
   }
 
+  .planner-tab:hover,
+  .planner-tab:focus-visible {
+    border-color: hsl(5, 53%, 55%);
+    background: hsl(5, 53%, 97%);
+    color: hsl(5, 53%, 28%);
+  }
+
   .planner-tab--active {
     background: hsl(5, 53%, 32%);
     border-color: hsl(5, 53%, 32%);
     color: white;
+  }
+
+  .planner-tab--active:hover {
+    background: hsl(5, 53%, 28%);
+    color: white;
+  }
+
+  .planner-tab--rename {
+    min-width: 7rem;
+    background: white;
+    border-color: hsl(5, 53%, 50%);
+    color: hsl(0, 0%, 15%);
+    text-align: left;
   }
 
   .planner-tab--delete {

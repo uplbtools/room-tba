@@ -163,6 +163,32 @@ export class PlannerStore {
     this.persist();
   };
 
+  /** Clone a plan (sections and all) into a new plan for the same term. */
+  duplicatePlan = (id: string): PlannerPlan | null => {
+    const source = this.plans.find((p) => p.id === id);
+    if (!source) return null;
+    const copy: PlannerPlan = {
+      id: crypto.randomUUID(),
+      label: this.uniqueLabel(`${source.label} copy`, source.termId),
+      termId: source.termId,
+      sections: source.sections.map((s) => ({ ...s })),
+    };
+    this.plans.push(copy);
+    this.activePlanIdByTerm[String(copy.termId)] = copy.id;
+    this.persist();
+    return copy;
+  };
+
+  /** Rename a plan; empty names are ignored, collisions get a numeric suffix. */
+  renamePlan = (id: string, label: string) => {
+    const plan = this.plans.find((p) => p.id === id);
+    if (!plan) return;
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    plan.label = this.uniqueLabel(trimmed, plan.termId, plan.id);
+    this.persist();
+  };
+
   /** Add a decoded share payload as a new plan for its term and select it. */
   importShared = (termId: number, sections: PlannedSection[]): PlannerPlan => {
     const plan = this.newPlan(termId);
@@ -213,17 +239,31 @@ export class PlannerStore {
   }
 
   private newPlan(termId: number): PlannerPlan {
-    const used = new Set(
-      this.plans.filter((p) => p.termId === termId).map((p) => p.label),
-    );
-    let n = 1;
-    while (used.has(`Plan ${n}`)) n++;
     return {
       id: crypto.randomUUID(),
-      label: `Plan ${n}`,
+      label: this.uniqueLabel("Plan 1", termId),
       termId,
       sections: [],
     };
+  }
+
+  /** A label unique within the term. Falls back to "<base> (2)", "(3)", … on
+   * collision (and "Plan 1" → "Plan 1 (2)" gives the familiar Plan 2/3 feel). */
+  private uniqueLabel(base: string, termId: number, exceptId?: string): string {
+    const used = new Set(
+      this.plans
+        .filter((p) => p.termId === termId && p.id !== exceptId)
+        .map((p) => p.label),
+    );
+    if (base === "Plan 1") {
+      let n = 1;
+      while (used.has(`Plan ${n}`)) n++;
+      return `Plan ${n}`;
+    }
+    if (!used.has(base)) return base;
+    let n = 2;
+    while (used.has(`${base} (${n})`)) n++;
+    return `${base} (${n})`;
   }
 
   private persist() {

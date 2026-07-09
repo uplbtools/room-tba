@@ -13,6 +13,7 @@
   import LeaderboardModal from "./LeaderboardModal.svelte";
   import ChangelogModal from "../ChangelogModal.svelte";
   import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
+  import StudentOrgsModal from "./StudentOrgsModal.svelte";
   import X from "@lucide/svelte/icons/x";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -38,6 +39,7 @@
     if (modalStore.type === "leaderboard") return "Contributor leaderboard";
     if (modalStore.type === "changelog") return "What's new";
     if (modalStore.type === "review") return "Review suggested edits";
+    if (modalStore.type === "student-orgs") return "Student organizations";
     return "Dialog";
   });
 
@@ -130,6 +132,16 @@
         <div class="review-modal-scroll">
           <ProposalReviewPanel />
         </div>
+      {:else if modalStore.type === "student-orgs"}
+        <button
+          type="button"
+          class="modal-content__close-icon"
+          aria-label="Close student organizations"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+        <StudentOrgsModal />
       {/if}
     </div>
   </div>

@@ -1,8 +1,14 @@
 <script lang="ts">
-  import { adminAuthStore, queryStore, toastStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    modalStore,
+    queryStore,
+    toastStore,
+  } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
+  import Info from "@lucide/svelte/icons/info";
   import Building2 from "@lucide/svelte/icons/building-2";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
@@ -166,6 +172,15 @@
     <header class="entity-header">
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">{org.name}</h2>
+        <button
+          type="button"
+          class="org-info-btn"
+          onclick={() => modalStore.openModal("student-orgs")}
+          aria-label="About student organization listings"
+          title="About student organization listings"
+        >
+          <Info size={16} aria-hidden="true" />
+        </button>
       </div>
 
       <div class="entity-meta-row">
@@ -356,6 +371,29 @@
   @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
+
+  .entity-header__title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .org-info-btn {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    color: hsl(265, 45%, 45%);
+    cursor: pointer;
+  }
+
+  .org-info-btn:hover,
+  .org-info-btn:focus-visible {
+    background-color: hsl(265, 45%, 94%);
+  }
 
   .org-badge {
     background-color: hsl(265, 45%, 92%);
