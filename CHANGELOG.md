@@ -1,3 +1,10 @@
+## [1.44.1](https://github.com/uplbtools/room-tba/compare/v1.44.0...v1.44.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **ci:** pin bun to 1.3.12 (1.3.14 broke --frozen-lockfile) ([#632](https://github.com/uplbtools/room-tba/issues/632)) ([cc278c9](https://github.com/uplbtools/room-tba/commit/cc278c9d341de7939dc1351375fbba678af52714))
+
 # [1.36.0](https://github.com/uplbtools/room-tba/compare/v1.35.2...v1.36.0) (2026-07-09)
 
 ### Features
