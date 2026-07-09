@@ -99,7 +99,20 @@
       drag.fromSection,
     );
     for (const offering of offerings) {
+      // The lecture is shared across all of a course's lab offerings, so a ghost
+      // at the lecture slot would show the lab key ("C-4L") over the lecture and
+      // repeat for every offering. When an offering has a distinguishing lab/
+      // recit, ghost only that; keep the lecture ghost for lecture-only offerings.
+      const hasDistinguishing = offering.sections.some(
+        (r) => (r.type ?? "").trim().toUpperCase() !== "LEC",
+      );
       for (const row of offering.sections) {
+        if (
+          hasDistinguishing &&
+          (row.type ?? "").trim().toUpperCase() === "LEC"
+        ) {
+          continue;
+        }
         const blocks = sectionBlocks({
           courseCode: row.courseCode ?? drag.courseCode,
           section: row.section ?? offering.section,
