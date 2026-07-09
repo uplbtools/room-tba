@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import {
     adminAuthStore,
     queryStore,
@@ -422,7 +423,7 @@
     />
   {:else if college}
     <p class="entity-loading-note">
-      Loading rooms for {college.collegeName}…
+      <LoadingIndicator label="Loading rooms for {college.collegeName}…" />
     </p>
   {/if}
 </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { fade, fly } from "svelte/transition";
   import { X, Users } from "@lucide/svelte";
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
@@ -184,7 +185,7 @@
       {#if loadError}
         <EntityEditorMessage variant="error" message={loadError} />
       {:else if !users}
-        <p class="settings-loading">Loading…</p>
+        <p class="settings-loading"><LoadingIndicator /></p>
       {:else}
         {#if rowError}
           <EntityEditorMessage variant="error" message={rowError} />

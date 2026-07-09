@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { currentRoom, roomClassesStore, termStore } from "@lib/store.svelte";
   import ScheduleRender from "@ui/room/ScheduleRender.svelte";
 
@@ -16,7 +17,9 @@
   </div>
   <div class="schedule-modal__body map-chrome-scroll">
     {#if roomClassesStore.loading}
-      <p class="schedule-modal__empty">Loading classes…</p>
+      <p class="schedule-modal__empty">
+        <LoadingIndicator label="Loading classes…" />
+      </p>
     {:else if room && classes.length > 0}
       <ScheduleRender roomCode={room.code} {classes} />
     {:else}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { getAppData } from "@lib/context";
   import {
     getJSONFetch,
@@ -179,7 +180,9 @@
 
   {#if queryStore.inputValue !== ""}
     {#if roomLoading}
-      <p class="suggestions-status" aria-live="polite">Loading rooms…</p>
+      <p class="suggestions-status">
+        <LoadingIndicator label="Loading rooms…" />
+      </p>
     {:else}
       {#each roomResults as roomResult (roomResult.value)}
         <Suggestion {...roomResult} />

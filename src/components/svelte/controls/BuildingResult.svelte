@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import {
     adminAuthStore,
     mapEditStore,
@@ -750,7 +751,7 @@
       </section>
     {/if}
   {:else}
-    <p class="entity-loading-note">Loading building…</p>
+    <p class="entity-loading-note"><LoadingIndicator label="Loading building…" /></p>
   {/if}
 
   {#if buildingOrgs.length > 0}
@@ -774,7 +775,7 @@
     <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
   {:else if building}
     <p class="entity-loading-note">
-      Loading rooms for {building.buildingName}…
+      <LoadingIndicator label="Loading rooms for {building.buildingName}…" />
     </p>
   {/if}
 </div>

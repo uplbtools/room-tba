@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { onMount } from "svelte";
   import EntityPagination from "./EntityPagination.svelte";
   import Classes from "@ui/room/Classes.svelte";
@@ -139,7 +140,7 @@
         </button>
       </div>
     {:else if classesLoading}
-      <p class="status">Loading classes…</p>
+      <p class="status"><LoadingIndicator label="Loading classes…" /></p>
     {:else if classesError}
       <div class="no-results">
         <p class="status">{classesError}</p>
@@ -194,7 +195,7 @@
       <h3 class="entity-section-heading">Final exams</h3>
       <p class="entity-panel-note">{FINALS_SCOPE_NOTE}</p>
       {#if finalsLoading}
-        <p class="status">Loading final exams…</p>
+        <p class="status"><LoadingIndicator label="Loading final exams…" /></p>
       {:else if finalExams.length > 0}
         <FinalExamsList exams={finalExams} showRoom />
       {:else}

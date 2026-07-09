@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { SvelteSet } from "svelte/reactivity";
   import {
     adminAuthStore,
@@ -178,7 +179,9 @@
     </div>
 
     {#if proposalsStore.loading}
-      <p class="entity-review-empty" aria-live="polite">Loading proposals…</p>
+      <p class="entity-review-empty">
+        <LoadingIndicator label="Loading proposals…" />
+      </p>
     {:else if proposalsStore.proposals.length === 0}
       <p class="entity-review-empty">No pending suggestions.</p>
     {:else}
@@ -324,6 +327,11 @@
     font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
+  }
+
+  .entity-review-batch-approve:hover:not(:disabled) {
+    border-color: hsl(140, 45%, 44%);
+    background: hsl(140, 45%, 44%);
   }
 
   .entity-review-batch-approve:disabled {

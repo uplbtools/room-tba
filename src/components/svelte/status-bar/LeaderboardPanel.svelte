@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { onMount } from "svelte";
   import type { LeaderboardRow } from "@lib/services/contribution-service";
   
@@ -51,7 +52,9 @@
   </header>
 
   {#if loading}
-    <p class="leaderboard-status">Loading leaderboard…</p>
+    <p class="leaderboard-status">
+      <LoadingIndicator label="Loading leaderboard…" />
+    </p>
   {:else if error}
     <p class="leaderboard-status error">{error}</p>
   {:else if rows.length === 0}

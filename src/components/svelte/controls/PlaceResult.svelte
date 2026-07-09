@@ -259,12 +259,19 @@
     font-weight: 600;
     cursor: pointer;
   }
+  .place-edit-btn:hover:not(:disabled) {
+    background: #0b6851;
+  }
   .place-cancel-btn {
     padding: 0.375rem 0.75rem;
     border: 1px solid hsl(0, 0%, 80%);
     border-radius: 0.375rem;
     background: white;
     cursor: pointer;
+  }
+  .place-cancel-btn:hover:not(:disabled) {
+    border-color: #c58f91;
+    background: #fdf3f3;
   }
   .place-empty {
     padding: 1rem;

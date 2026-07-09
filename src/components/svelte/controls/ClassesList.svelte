@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import Classes from "@ui/room/Classes.svelte";
   import EntityPanelFilter from "./EntityPanelFilter.svelte";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
@@ -97,7 +98,7 @@
 
   <div class="entity-panel-body">
     {#if loading}
-      <p class="entity-panel-note">Loading classes…</p>
+      <p class="entity-panel-note"><LoadingIndicator label="Loading classes…" /></p>
     {:else if loadError}
       <p class="entity-panel-note">{loadError}</p>
     {:else if classes.length === 0}
