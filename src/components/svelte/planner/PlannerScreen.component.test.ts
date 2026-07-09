@@ -59,7 +59,15 @@ describe("PlannerScreen", () => {
     render(PlannerScreen);
     // MW LEC = 2 blocks + F LAB = 1 block
     expect(document.querySelectorAll(".planner-block")).toHaveLength(3);
-    expect(screen.getByText("CMSC 128 · AB-1L")).toBeVisible();
+    // Sections list groups by course: a "CMSC 128" header + its parts.
+    expect(
+      document.querySelector(".planner-offering__course")?.textContent,
+    ).toContain("CMSC 128");
+    expect(
+      [...document.querySelectorAll(".planner-offering__part-section")].map(
+        (el) => el.textContent?.trim(),
+      ),
+    ).toContain("AB-1L");
     expect(screen.getByText("All clear")).toBeVisible();
   });
 
