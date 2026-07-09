@@ -76,6 +76,11 @@ const structuredData = jsonLd(
   image={room.imageUrl
     ? { src: room.imageUrl, alt: `Photo of ${room.code}` }
     : null}
+  ogCard={{
+    title: room.code,
+    subtitle: room.building?.name ?? "UPLB Los Baños",
+    kicker: "Room",
+  }}
   heading={`${room.code} at UPLB`}
   {intro}
   {facts}
