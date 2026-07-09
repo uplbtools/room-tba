@@ -360,3 +360,22 @@ export function getColorForCourse(courseCode: string) {
   }
   return courseColors[Math.abs(hash) % courseColors.length];
 }
+
+/**
+ * Planner grid block color keyed on component type, not course: lectures,
+ * labs, and recitations each read as one consistent kind at a glance (a hashed
+ * per-course palette collided — different courses shared a color). Room-view
+ * coloring still uses getColorForCourse.
+ */
+export function getPlannerBlockColor(type: string | null | undefined): string {
+  switch ((type ?? "").trim().toUpperCase()) {
+    case "LEC":
+      return "#1565C0"; // blue — lecture
+    case "LAB":
+      return "#2E7D32"; // green — lab
+    case "RCT":
+      return "#EF6C00"; // amber — recitation
+    default:
+      return "#546E7A"; // slate — other (e.g. CPT)
+  }
+}

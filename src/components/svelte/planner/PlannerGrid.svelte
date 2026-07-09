@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getColorForCourse } from "@lib/schedule-renderer";
+  import { getPlannerBlockColor } from "@lib/schedule-renderer";
   import { sectionBlocks } from "@lib/planner/conflicts";
   import { alternativeOfferings } from "@lib/planner/alternatives";
   import type { Conflict, ScheduleBlock } from "@lib/planner/conflicts";
@@ -274,7 +274,7 @@
               class:planner-block--dragging={drag?.fromKey === block.key}
               style:top="{topPct(block.startMin)}%"
               style:height="{heightPct(block.startMin, block.endMin)}%"
-              style:background-color={getColorForCourse(block.courseCode)}
+              style:background-color={getPlannerBlockColor(block.type)}
             >
               <button
                 type="button"
@@ -324,7 +324,6 @@
                 style:height="{heightPct(ghost.startMin, ghost.endMin)}%"
                 style:left="calc({(ghost.col / ghost.colCount) * 100}% + 1px)"
                 style:width="calc({100 / ghost.colCount}% - 2px)"
-                style:border-color={getColorForCourse(drag.courseCode)}
               >
                 <span class="planner-ghost__label">{ghost.ghostKey}</span>
               </div>
