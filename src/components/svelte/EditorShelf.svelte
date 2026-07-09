@@ -1,5 +1,6 @@
 <script lang="ts">
   import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
+  import ClipboardCheck from "@lucide/svelte/icons/clipboard-check";
   import LogOut from "@lucide/svelte/icons/log-out";
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
   import Pencil from "@lucide/svelte/icons/pencil";
@@ -11,11 +12,11 @@
     editorChromeStore,
     eventPlacementStore,
     mapEditStore,
+    modalStore,
     proposalsStore,
     toastStore,
   } from "@lib/store.svelte";
   import { beginEventPlacement } from "@lib/event-placement";
-  import ProposalReviewPanel from "@ui/ProposalReviewPanel.svelte";
 
   type Props = {
     onclose?: () => void;
@@ -74,6 +75,12 @@
     adminAuthStore.openManageUsers();
   }
 
+  function handleReviewQueue() {
+    editorChromeStore.closeShelf();
+    onclose?.();
+    modalStore.openModal("review");
+  }
+
   function addEventLabel() {
     if (eventPlacementStore.creating) return "Creating event…";
     if (eventPlacementStore.active) return "Choose event location";
@@ -127,7 +134,18 @@
     </div>
   {/if}
 
-  <ProposalReviewPanel />
+  {#if adminAuthStore.canReview}
+    <button
+      type="button"
+      class="editor-shelf-action"
+      onclick={handleReviewQueue}
+    >
+      <ClipboardCheck size={16} aria-hidden="true" />
+      Review suggested edits{proposalsStore.pendingCount > 0
+        ? ` (${proposalsStore.pendingCount})`
+        : ""}
+    </button>
+  {/if}
 
   <button
     type="button"

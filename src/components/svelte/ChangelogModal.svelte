@@ -1,21 +1,12 @@
 <script lang="ts">
-  import { RefreshCw, FileText } from "@lucide/svelte";
+  import { RefreshCw } from "@lucide/svelte";
   import { syncToastStore, modalStore } from "@lib/store.svelte";
-  import { APP_VERSION, APP_VERSION_LABEL } from "@constants/version";
-  import {
-    parseChangelogHighlights,
-    isChangelogCurrent,
-  } from "@lib/changelog-highlights";
+  import { APP_VERSION_LABEL } from "@constants/version";
+  import { parseChangelogEntries } from "@lib/changelog-highlights";
   import changelogRaw from "../../../CHANGELOG.md?raw";
 
-  const highlights = $derived(parseChangelogHighlights(changelogRaw));
+  const entries = $derived(parseChangelogEntries(changelogRaw));
   const hasUpdate = $derived(syncToastStore.needRefresh);
-  // Only show the parsed highlights when the changelog matches the installed
-  // version. A stale CHANGELOG (version bumped without regenerating it) would
-  // otherwise claim an older version than the one already running.
-  const showHighlights = $derived(
-    highlights !== null && isChangelogCurrent(highlights.version, APP_VERSION),
-  );
 
   let reloading = $state(false);
 
@@ -27,42 +18,44 @@
 </script>
 
 <div class="changelog-modal">
-  <p class="changelog-modal__version">
-    Room TBA {APP_VERSION_LABEL}
-  </p>
-
-  {#if hasUpdate}
-    <p class="changelog-modal__lead">
-      A new version is ready. Review what changed, then reload to update.
+  <header class="changelog-modal__header">
+    <p class="changelog-modal__version">
+      Room TBA {APP_VERSION_LABEL}
     </p>
-  {/if}
-
-  {#if showHighlights && highlights}
-    <ul class="changelog-modal__list">
-      {#each highlights.items as item (item)}
-        <li>{item}</li>
-      {/each}
-    </ul>
-    {#if highlights.totalCount > highlights.items.length}
-      <p class="changelog-modal__more">
-        + {highlights.totalCount - highlights.items.length} more in the full changelog
+    {#if hasUpdate}
+      <p class="changelog-modal__lead">
+        A new version is ready. Review what changed, then reload to update.
       </p>
     {/if}
-  {:else}
-    <p class="changelog-modal__lead">
-      See the full changelog for what's new.
-    </p>
-  {/if}
+  </header>
 
-  <a
-    class="changelog-modal__full-link"
-    href="/changelog"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <FileText size={14} aria-hidden="true" />
-    Full changelog
-  </a>
+  <div class="changelog-modal__scroll">
+    {#if entries.length === 0}
+      <p class="changelog-modal__lead">
+        No changelog entries found. See <a href="/changelog">/changelog</a>.
+      </p>
+    {/if}
+    {#each entries as entry (entry.version)}
+      <section class="changelog-modal__entry">
+        <h3 class="changelog-modal__entry-version">
+          v{entry.version}
+          {#if entry.date}
+            <span class="changelog-modal__entry-date">{entry.date}</span>
+          {/if}
+        </h3>
+        {#each entry.sections as section}
+          {#if section.title}
+            <h4 class="changelog-modal__section-title">{section.title}</h4>
+          {/if}
+          <ul class="changelog-modal__list">
+            {#each section.items as item}
+              <li>{item}</li>
+            {/each}
+          </ul>
+        {/each}
+      </section>
+    {/each}
+  </div>
 
   <div class="changelog-modal__actions">
     {#if hasUpdate}
@@ -104,7 +97,15 @@
     flex-direction: column;
     gap: 0.625rem;
     padding: 0.25rem 0.25rem 0;
-    max-width: 26rem;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .changelog-modal__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding-right: 2.25rem;
   }
 
   .changelog-modal__version {
@@ -121,6 +122,53 @@
     line-height: 1.4;
   }
 
+  .changelog-modal__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-right: 0.5rem;
+  }
+
+  .changelog-modal__entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    border-bottom: 1px solid hsl(0, 0%, 92%);
+    padding-bottom: 0.875rem;
+  }
+
+  .changelog-modal__entry:last-child {
+    border-bottom: none;
+  }
+
+  .changelog-modal__entry-version {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 32%);
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .changelog-modal__entry-date {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: hsl(0, 0%, 50%);
+  }
+
+  .changelog-modal__section-title {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 35%);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
   .changelog-modal__list {
     margin: 0;
     padding-left: 1.1rem;
@@ -133,36 +181,12 @@
     list-style: disc;
   }
 
-  .changelog-modal__more {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: hsl(0, 0%, 45%);
-  }
-
-  .changelog-modal__full-link {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.625rem;
-    border: 1px solid hsl(5, 34%, 82%);
-    border-radius: 0.5rem;
-    color: hsl(5, 53%, 32%);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-decoration: none;
-  }
-
-  .changelog-modal__full-link:hover,
-  .changelog-modal__full-link:focus-visible {
-    background: hsl(5, 20%, 96%);
-  }
-
   .changelog-modal__actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    margin-top: 0.25rem;
+    padding: 0.25rem 0 0.375rem;
+    border-top: 1px solid hsl(0, 0%, 92%);
   }
 
   .changelog-modal__btn {

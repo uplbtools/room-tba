@@ -8,11 +8,14 @@ describe("ChangelogModal", () => {
     syncToastStore.needRefresh = false;
   });
 
-  test("without a pending update: shows Close and the full-changelog link, no reload", () => {
+  test("without a pending update: shows the full changelog inline and Close, no reload", () => {
     syncToastStore.needRefresh = false;
     render(ChangelogModal);
     expect(screen.getByRole("button", { name: /close/i })).toBeVisible();
-    expect(screen.getByRole("link", { name: /full changelog/i })).toBeVisible();
+    // The changelog itself renders in the modal — no second click needed (#5).
+    const versions = screen.getAllByRole("heading", { level: 3 });
+    expect(versions.length).toBeGreaterThan(1);
+    expect(versions[0]?.textContent).toMatch(/^v\d+\.\d+\.\d+/);
     expect(
       screen.queryByRole("button", { name: /reload to update/i }),
     ).toBeNull();

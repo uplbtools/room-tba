@@ -25,6 +25,25 @@ test.describe("app menu", () => {
     ).toBeVisible();
   });
 
+  test("What's new opens the full changelog in one click", async ({ page }) => {
+    await page.goto("/");
+    await waitForAppBoot(page);
+
+    await page.getByRole("button", { name: "App menu" }).click();
+    const panel = page.getByRole("dialog", { name: "App menu" });
+    await expect(panel).toBeVisible();
+
+    await panel.getByRole("button", { name: /what's new/i }).click();
+    const modal = page.getByRole("dialog", { name: "What's new" });
+    await expect(modal).toBeVisible();
+
+    // The changelog content itself must render in the modal — no second
+    // "Full changelog" click (#5). Expect several release headings.
+    const versions = modal.getByRole("heading", { level: 3 });
+    await expect(versions.first()).toHaveText(/^v\d+\.\d+\.\d+/);
+    expect(await versions.count()).toBeGreaterThan(1);
+  });
+
   test("offline popover opens without closing the App menu", async ({
     page,
   }) => {
