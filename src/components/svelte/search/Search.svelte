@@ -384,6 +384,8 @@
       {#if chrome.showSearchSuggestions}
         <div class="campus-browse-chips__container">
           <CampusBrowseChips />
+        </div>
+        <div class="campus-browse-chips__term">
           <TermSelector />
         </div>
       {/if}
@@ -491,6 +493,9 @@
     .campus-browse-chips__container {
         padding: .5rem .75rem;
     }
+  .campus-browse-chips__term {
+    padding: 0 0.75rem 0.5rem;
+  }
   .sr-only {
     position: absolute;
     width: 1px;
