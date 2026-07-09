@@ -268,6 +268,30 @@
     ((endMin - startMin) / TOTAL_MIN) * 100;
 </script>
 
+<div class="planner-legend" aria-label="Block colors">
+  <span class="planner-legend__item">
+    <span
+      class="planner-legend__dot"
+      style:background-color={getPlannerBlockColor("LEC")}
+    ></span>
+    Lecture
+  </span>
+  <span class="planner-legend__item">
+    <span
+      class="planner-legend__dot"
+      style:background-color={getPlannerBlockColor("LAB")}
+    ></span>
+    Lab
+  </span>
+  <span class="planner-legend__item">
+    <span
+      class="planner-legend__dot"
+      style:background-color={getPlannerBlockColor("RCT")}
+    ></span>
+    Recitation
+  </span>
+</div>
+
 <div class="planner-grid-scroll">
   <div class="planner-grid" class:planner-grid--dragging={drag}>
     <div class="planner-grid__time" aria-hidden="true">
@@ -361,6 +385,29 @@
 {/if}
 
 <style>
+  .planner-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    padding: 0.375rem 0.125rem;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 35%);
+  }
+
+  .planner-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 600;
+  }
+
+  .planner-legend__dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.1875rem;
+    flex: 0 0 auto;
+  }
+
   .planner-grid-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
