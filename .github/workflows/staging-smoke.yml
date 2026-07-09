@@ -19,6 +19,6 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.12" # pin: bun 1.3.14 broke --frozen-lockfile
-      - run: bun install --frozen-lockfile
+      - run: mkdir -p node_modules && bun install --frozen-lockfile
       - run: bunx playwright install chromium --with-deps
       - run: bun run e2e:staging
