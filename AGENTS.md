@@ -8,31 +8,32 @@
 
 Read the right doc for the task; do not rely on this file alone for detailed checklists.
 
-| When | Read |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Human volunteers, developers (default) | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Developer setup detail | [docs/developer-guide.md](docs/developer-guide.md) |
-| Starting a coding session, commit, or PR | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md) |
-| Agent handoff to another session / model | [.cursor/skills/agent-handoff/SKILL.md](.cursor/skills/agent-handoff/SKILL.md) |
-| Caveman, Ponytail, token efficiency, Claude/Codex | [docs/agent-tooling.md](docs/agent-tooling.md) + [docs/agent-contract.md](docs/agent-contract.md) |
-| Contributor proposals, review queue, suggest edit | [.cursor/skills/contributor-proposals/SKILL.md](.cursor/skills/contributor-proposals/SKILL.md) |
-| Discord notifications (room-tba + discord-bot) | [.cursor/skills/discord-notifications/SKILL.md](.cursor/skills/discord-notifications/SKILL.md) |
-| AMIS class import, term_id triage | [.cursor/skills/amis-term-import/SKILL.md](.cursor/skills/amis-term-import/SKILL.md) |
-| Vercel env, deploy guards, Supabase migrations | [.cursor/skills/vercel-supabase-ops/SKILL.md](.cursor/skills/vercel-supabase-ops/SKILL.md) |
-| Playwright E2E, integration CI, `run/e2e` label | [.cursor/skills/playwright-e2e-ci/SKILL.md](.cursor/skills/playwright-e2e-ci/SKILL.md) |
-| Worktrees, multiple agents, push to `staging` | [AGENTS.md § Worktrees and multiple agents](#worktrees-and-multiple-agents) |
-| Map chrome, Entry zones, flyouts, 320/768 layout | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md) |
-| Side panel / entity detail views | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc) |
-| Drizzle, API routes, migrations, PGlite | [.cursor/rules/data-and-migrations.mdc](.cursor/rules/data-and-migrations.mdc) |
-| Stores and client state | [.cursor/rules/svelte-stores.mdc](.cursor/rules/svelte-stores.mdc) |
-| PR QA evidence and reporting | [docs/agentic-qa-process.md](docs/agentic-qa-process.md) |
-| **Tests for an issue / test backlog** | [docs/issue-test-matrix.md](docs/issue-test-matrix.md) + [docs/testing.md](docs/testing.md) + [docs/test-inventory.md](docs/test-inventory.md) |
-| Editor manual checklist | [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md) |
-| When | Read |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Issue-linked work / keeping specs current | [docs/issue-hygiene.md](docs/issue-hygiene.md) |
-| Volunteer triage | [docs/volunteer-triage.md](docs/volunteer-triage.md) |
-| Vercel env, deploy guards, Supabase ops | [AGENTS.md § Vercel CLI and environment ops](#vercel-cli-and-environment-ops) |
+| When                                              | Read                                                                                                                                           |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Human volunteers, developers (default)            | [CONTRIBUTING.md](CONTRIBUTING.md)                                                                                                             |
+| Developer setup detail                            | [docs/developer-guide.md](docs/developer-guide.md)                                                                                             |
+| Starting a coding session, commit, or PR          | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md)                                             |
+| Agent handoff to another session / model          | [.cursor/skills/agent-handoff/SKILL.md](.cursor/skills/agent-handoff/SKILL.md)                                                                 |
+| Caveman, Ponytail, token efficiency, Claude/Codex | [docs/agent-tooling.md](docs/agent-tooling.md) + [docs/agent-contract.md](docs/agent-contract.md)                                              |
+| Contributor proposals, review queue, suggest edit | [.cursor/skills/contributor-proposals/SKILL.md](.cursor/skills/contributor-proposals/SKILL.md)                                                 |
+| Discord notifications (room-tba + discord-bot)    | [.cursor/skills/discord-notifications/SKILL.md](.cursor/skills/discord-notifications/SKILL.md)                                                 |
+| AMIS class import, term_id triage                 | [.cursor/skills/amis-term-import/SKILL.md](.cursor/skills/amis-term-import/SKILL.md)                                                           |
+| Vercel env, deploy guards, Supabase migrations    | [.cursor/skills/vercel-supabase-ops/SKILL.md](.cursor/skills/vercel-supabase-ops/SKILL.md)                                                     |
+| Playwright E2E, integration CI, `run/e2e` label   | [.cursor/skills/playwright-e2e-ci/SKILL.md](.cursor/skills/playwright-e2e-ci/SKILL.md)                                                         |
+| Worktrees, multiple agents, push to `staging`     | [AGENTS.md § Worktrees and multiple agents](#worktrees-and-multiple-agents)                                                                    |
+| Map chrome, Entry zones, flyouts, 320/768 layout  | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md)                        |
+| Side panel / entity detail views                  | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc)                                                                                   |
+| Drizzle, API routes, migrations, PGlite           | [.cursor/rules/data-and-migrations.mdc](.cursor/rules/data-and-migrations.mdc)                                                                 |
+| Stores and client state                           | [.cursor/rules/svelte-stores.mdc](.cursor/rules/svelte-stores.mdc)                                                                             |
+| PR QA evidence and reporting                      | [docs/agentic-qa-process.md](docs/agentic-qa-process.md)                                                                                       |
+| **Tests for an issue / test backlog**             | [docs/issue-test-matrix.md](docs/issue-test-matrix.md) + [docs/testing.md](docs/testing.md) + [docs/test-inventory.md](docs/test-inventory.md) |
+| Editor manual checklist                           | [docs/editor-foundation-test-plan.md](docs/editor-foundation-test-plan.md)                                                                     |
+| When                                              | Read                                                                                                                                           |
+| ------------------------------------------------  | -----------------------------------------------------------------------------------------------------------------------                        |
+| Issue-linked work / keeping specs current         | [docs/issue-hygiene.md](docs/issue-hygiene.md)                                                                                                 |
+| Volunteer triage                                  | [docs/volunteer-triage.md](docs/volunteer-triage.md)                                                                                           |
+| Vercel env, deploy guards, Supabase ops           | [AGENTS.md § Vercel CLI and environment ops](#vercel-cli-and-environment-ops)                                                                  |
+
 ## How to work
 
 - **Agent efficiency:** Ponytail + agent contract rules in `.cursor/rules/`. Caveman: `bun run install:agent-tooling`. Claude/Codex plugins: `bun run install:agent-plugins`. [docs/agent-tooling.md](docs/agent-tooling.md).
@@ -43,11 +44,11 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 - **Keep scope tight.** Avoid opportunistic refactors outside the request.
 - **Keep GitHub issues current** when work is tied to `#NNN`; issues hold implementation specifics that drift fast. See [docs/issue-hygiene.md](docs/issue-hygiene.md).
 - **Infer intent over typos.** User messages are often rushed; read for what they mean, not only literal wording. Common patterns:
- - **"PR to main" / "merge to prod"** → release step only: **`staging` → `main`** PR (see [What “ship” means](#what-ship, shipped-means) for the full pipeline).
- - **"Ship" / "ship it" / "shipped"** → **two-PR pipeline**: integration PR → `staging`, then release PR → `main`; review and **`bun run build`** at each stage. See [§ What “ship” means](#what-ship, shipped-means).
- - **"PR to staging"** → feature branch → `staging` (integration step only).
- - **"Push staging" / "ship to staging"** → land on integration only (stage 1); stop before `main` unless the user also asked to ship to prod.
- - Minor typos (`pr`, `stagign`, `mrege`, doubled letters); do not ask for clarification when context makes the goal obvious.
+- **"PR to main" / "merge to prod"** → release step only: **`staging` → `main`** PR (see [What “ship” means](#what-ship, shipped-means) for the full pipeline).
+- **"Ship" / "ship it" / "shipped"** → **two-PR pipeline**: integration PR → `staging`, then release PR → `main`; review and **`bun run build`** at each stage. See [§ What “ship” means](#what-ship, shipped-means).
+- **"PR to staging"** → feature branch → `staging` (integration step only).
+- **"Push staging" / "ship to staging"** → land on integration only (stage 1); stop before `main` unless the user also asked to ship to prod.
+- Minor typos (`pr`, `stagign`, `mrege`, doubled letters); do not ask for clarification when context makes the goal obvious.
 - **`data` / `qa` issues:** reporters do not open PRs. Implement on their behalf; credit in issue comments.
 - **GitHub + Vercel CLI on maintainer machine:** `gh` and `vercel` are installed, authenticated, and linked (see [§ Vercel CLI and environment ops](#vercel-cli-and-environment-ops)). **Run them yourself by default** for PRs, issues, Actions secrets, env vars, check status, and deploy inspection: do not tell the user to use the dashboard when the CLI can do it. Only stop if auth fails (`gh auth status`, `vercel whoami`), the repo is not linked, or the action is destructive on prod without explicit approval.
 
@@ -61,15 +62,15 @@ Estimate like **Composer with repo + shell access**, not like a human developer 
 - **Say “blocked on you”** when waiting on secrets, passwords, or product decisions: not “implementation takes a day.”
 - **Infra cooldowns (rate limits, Supabase circuit breaker):** try once → if blocked, **~5 minutes + one retry** → report and parallelize other work. Do **not** default to “wait 30–60 minutes” unless a second failure proves a longer lockout.
 
-| Bad | Better |
+| Bad                                                               | Better                                                                                     |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| “Playwright will take 2–3 days” | “PR1 infra + smoke in this turn; admin specs next PR if needed.” |
-| “Wait 30–60 min for circuit breaker” | “Breaker hit: retry in ~5 min; I’ll continue X meanwhile.” |
-| “Want me to implement?” on obvious scope | Implement, then report what shipped. |
+| “Playwright will take 2–3 days”                                   | “PR1 infra + smoke in this turn; admin specs next PR if needed.”                           |
+| “Wait 30–60 min for circuit breaker”                              | “Breaker hit: retry in ~5 min; I’ll continue X meanwhile.”                                 |
+| “Want me to implement?” on obvious scope                          | Implement, then report what shipped.                                                       |
 | “Optional next steps: …” / “Want me to commit?” after clear scope | **Do the steps.** Only ask when blocked on secrets, product call, or destructive prod ops. |
-| “Suggested next session: add Tests AC to issues” | Open `gh issue view`, edit the issue body, add the spec file: same turn. |
-| “CI enforcement can come later” | Add the script/check in the same PR as the policy doc. |
-| “Defer store tests: `$state` in Bun” | Run store tests in Vitest (`*.store.test.ts`); ship in this session. |
+| “Suggested next session: add Tests AC to issues”                  | Open `gh issue view`, edit the issue body, add the spec file: same turn.                   |
+| “CI enforcement can come later”                                   | Add the script/check in the same PR as the policy doc.                                     |
+| “Defer store tests: `$state` in Bun”                              | Run store tests in Vitest (`*.store.test.ts`); ship in this session.                       |
 
 ### Do not defer executable work
 
@@ -88,13 +89,13 @@ If the path is in the repo and the user did not say “plan only” or “don’
 
 Default flow: **feature branch → `staging` → `main`**.
 
-| User says (approx.) | Do this | Do **not** do this |
-| ------------------------------ | ----------------------------------------------------- | ------------------------------------------------------ |
-| Open a PR / PR to staging | `gh pr create, base staging, head <feature-branch>` | Open feature PRs against `main` for routine work |
-| Ship / ship it / shipped | Full [two-PR pipeline](#what-ship, shipped-means) | Merge only to `staging` or only to `main` |
-| PR to main / merge to prod | Release PR **`staging` → `main`** (stage 2 of ship) | `, base main, head <feature-branch>` for routine work |
-| Merge the feature PR | Squash/merge into **`staging`** first (stage 1) | Skip `staging` and land features directly on `main` |
-| Ship to staging / push staging | Stage 1 only: integration PR or push to `staging` | Open release PR to `main` unless user asked for prod |
+| User says (approx.)            | Do this                                             | Do **not** do this                                    |
+| ------------------------------ | --------------------------------------------------- | ----------------------------------------------------- |
+| Open a PR / PR to staging      | `gh pr create, base staging, head <feature-branch>` | Open feature PRs against `main` for routine work      |
+| Ship / ship it / shipped       | Full [two-PR pipeline](#what-ship, shipped-means)   | Merge only to `staging` or only to `main`             |
+| PR to main / merge to prod     | Release PR **`staging` → `main`** (stage 2 of ship) | `, base main, head <feature-branch>` for routine work |
+| Merge the feature PR           | Squash/merge into **`staging`** first (stage 1)     | Skip `staging` and land features directly on `main`   |
+| Ship to staging / push staging | Stage 1 only: integration PR or push to `staging`   | Open release PR to `main` unless user asked for prod  |
 
 - **`main`** is production; semantic-release runs there.
 - **`staging`** is integration; feature PRs land here first unless the user explicitly asks for a hotfix straight to `main`.
@@ -104,10 +105,10 @@ Default flow: **feature branch → `staging` → `main`**.
 
 When the user asks to **ship** a feature or fix, they mean the **full integration → production pipeline**: not a direct push, not release-only, not “merge to staging and stop.”
 
-| Stage | PR | After merge |
-| ------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Stage              | PR                                                                                  | After merge                                              |
+| ------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | **1: Integration** | `<feature-branch>` → **`staging`** (or equivalent PR landing the work on `staging`) | Staging preview deploy (`staging.room-tba.uplbtools.me`) |
-| **2: Release** | **`staging` → `main`** | Production deploy (`room-tba.uplbtools.me`) |
+| **2: Release**     | **`staging` → `main`**                                                              | Production deploy (`room-tba.uplbtools.me`)              |
 
 **Before each merge (both stages):**
 
@@ -136,7 +137,30 @@ Every push to `staging` or `main` (and every PR preview) triggers a Vercel deplo
 **Release-step (`main`) gotchas — semantic-release.** Pushing to `main` runs `bunx semantic-release` (`.github/workflows/release.yml`). Two failure modes seen in practice:
 
 - **Tag/history divergence → first-release `v1.0.0` collision.** If `main` was ever rewritten so no `vX.Y.Z` tag is reachable from it (`git describe --tags origin/main` says "no tags can describe"), semantic-release assumes a first release, tries `git tag v1.0.0`, and dies (`already exists`). Fix: re-point the highest version tag onto `main`'s current tip as a **lightweight** tag — `git update-ref refs/tags/vX.Y.Z <main-sha>` then `git push origin refs/tags/vX.Y.Z --force`. Use `update-ref`, **not** `git tag -a`: `tag.gpgsign true` forces annotated tags, and semantic-release's ancestor check rejects annotated tags (it compares the tag-object SHA, which isn't a commit). Always **dry-run first**: on a local `staging→main` merge, `GITHUB_REF=refs/heads/main GITHUB_ACTIONS=true bunx semantic-release --dry-run --no-ci` — confirm "next release version is X.Y.Z" (not 1.0.0), and make sure the checked-out `main` ref equals the merge commit or it reads the wrong history.
-- **Version-sync PR fails silently.** The auto step that writes the bumped `package.json` + `CHANGELOG.md` back to `main` fails because the org **blocks GitHub Actions from opening PRs** (`continue-on-error`, so the release still "succeeds"). Open it manually: branch off `main`, bump `package.json` version, prepend the GitHub release body to `CHANGELOG.md`, commit `chore(release): X.Y.Z [skip ci]`, merge.
+- **Version-sync PR fails silently.** The auto step that writes the bumped `package.json` + `CHANGELOG.md` back to `main` fails because the org **blocks GitHub Actions from opening PRs** (`continue-on-error`, so the release still "succeeds"). Open it manually: branch off `main`, bump `package.json` version, prepend the GitHub release body to `CHANGELOG.md`, commit `chore(release): X.Y.Z [skip ci]`, merge. Symptom: `CHANGELOG.md` drifts behind the version (froze at 1.23.0 while tags reached 1.36.0); the in-app "What's new"/`/changelog` go stale. To catch up in one shot: pull every release body newer than the CHANGELOG top with `gh release view <tag> --json body`, `sed 's/^## \[/# \[/'` (CHANGELOG uses `#` h1, release bodies use `##`), prepend newest-first, `prettier --write CHANGELOG.md`. The permanent fix is the org toggle **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests."**
+
+### Databases, migrations, and the E2E secret — gotchas
+
+- **The E2E CI secret must be the POOLER connection string, not the direct one.** `migrations` + `e2e` jobs use `secrets.E2E_DATABASE_URL`. The **direct** form (`postgres@db.<ref>.supabase.co:5432`) fails in CI with `28P01 password authentication failed for user "postgres"` (and the direct host is IPv6-only, unreachable from Actions). Use the **pooler** form: `postgres.<ref>:<pw>@aws-1-<region>.pooler.supabase.com:5432/postgres`. Verify a candidate value locally with `DATABASE_URL="<val>" bun run check:migrations` → expect "OK: N required tables present".
+- **Migrations are hand-applied to Supabase, not auto-run.** A new `drizzle/NNNN_*.sql` must be (1) added to `schema.ts` for type inference, (2) applied to the prod DB before/with the deploy, and (3) registered in `scripts/e2e-reset-db.ts` in **both** `E2E_MIGRATION_FILES` and the `TRUNCATE` list. Make routes that hit a new table degrade gracefully (try/catch → empty) so the code can ship before the table exists.
+- **The maintainer's local `.env` `DATABASE_URL` IS the prod DB** (verify: it has the real dataset — ~50 buildings, tens of thousands of classes). The Vercel **production** `DATABASE_URL`/`PUBLIC_SUPABASE_URL` are marked Sensitive, so `vercel env pull` returns them **empty** — you can't read prod creds that way; use the local `.env` (which points at the same DB) to apply migrations.
+
+### Verifying UI in-browser: unregister the service worker first
+
+This is a PWA with a service worker that caches assets aggressively. After a rebuild, a browser that visited the origin before serves **stale** JS/CSS. Before trusting an in-browser check, run in the page: unregister all `navigator.serviceWorker` registrations, `caches.delete` every key, then reload. Otherwise you'll debug a build that isn't the one you just made.
+
+### E2E helper gotchas
+
+- **Select entity suggestions by `button.suggestion`, not a loose name regex.** The "Search for classes of `<q>` in rooms" fallback is a bare `<button>` whose text also matches an entity name and sets `category="class"` (no canonical URL). In a cold context it's the only match, so a loose `.first()` grabs it and entity URL-sync silently no-ops.
+- **`page.request` does not reliably carry the login cookie** set by `loginViaApi` (in-page fetch). For authenticated API assertions, do the fetch **inside the page** (`page.evaluate(() => fetch(url, {credentials:"same-origin"}))`) so the httpOnly `admin_session` cookie is sent.
+
+### Search chrome: the browse-chip row can't hold many chips
+
+The top-left search chrome's browse-chip row (`campus-browse-chips__container`) overflows/clips past ~5 chips — a 6th chip pushed "Classes" off and clipped it. Put wide or additional controls (e.g. the term selector) on **their own row** rather than inline with the browse chips.
+
+### Class offerings: a lab/recit's parent lecture must be in the same set
+
+`groupClassesByOffering` links a lab/recit (`G-1L`, `UV-1R`) to its lecture by the section prefix before the dash — but only if the **lecture row is in the array passed in**. In the room view the lecture meets in a different room, so `/api/classes?room_code=` never returns it; `RoomClassesStore` must fetch the missing parent lectures (`missingParentLectures` → `fetchClassPage` by course) and merge them, or the lecture won't show.
 
 ### Push to `staging` directly
 
@@ -170,14 +194,14 @@ git status --short --branch
 
 Multiple Cursor agents (or human + agent) on the **same path and branch** cause lost work, surprise merges, and “it built locally but Vercel failed” confusion.
 
-| Do | Don't |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| **One active agent per worktree path** | Two agents editing `/home/…/room-tba` on `staging` at once |
-| `git fetch` + `git status` before editing | Assume the tree matches remote |
-| `git pull, rebase origin staging` before push when others may be active | Force-push `staging` or `main` |
-| Commit only your scoped changes; preserve unrelated dirty files | Revert or `git checkout, ` user WIP |
-| Open a **separate worktree + branch** for parallel long tasks | Long-lived stashes as a substitute for branches |
-| `git stash drop` / `git stash clear` only when the user asks | Bulk-drop stashes to “clean up” without checking |
+| Do                                                                      | Don't                                                      |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **One active agent per worktree path**                                  | Two agents editing `/home/…/room-tba` on `staging` at once |
+| `git fetch` + `git status` before editing                               | Assume the tree matches remote                             |
+| `git pull, rebase origin staging` before push when others may be active | Force-push `staging` or `main`                             |
+| Commit only your scoped changes; preserve unrelated dirty files         | Revert or `git checkout, ` user WIP                        |
+| Open a **separate worktree + branch** for parallel long tasks           | Long-lived stashes as a substitute for branches            |
+| `git stash drop` / `git stash clear` only when the user asks            | Bulk-drop stashes to “clean up” without checking           |
 
 ### Optional: extra worktrees
 
@@ -219,11 +243,11 @@ Full checklist: [docs/issue-hygiene.md](docs/issue-hygiene.md).
 
 Whenever an agent (or maintainer) **files a new GitHub issue**, set triage metadata at creation time: not “later.”
 
-| Required | Label(s) | Rule |
+| Required             | Label(s)                                                          | Rule                                                                                                                                                                                  |
 | -------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Size** | Exactly one of `size/XS` … `size/XL` | Estimate effort for one focused PR (see label descriptions on GitHub). |
-| **Priority** | Exactly one of `priority/high`, `priority/medium`, `priority/low` | `high` = user-visible break or blocker; `medium` = planned improvement; `low` = backlog/nice-to-have. |
-| **Good first issue** | `good first issue` **or omit** | Add only when the task is newcomer-safe: clear AC, small surface, no prod DB/auth/security surprises, paths documented. **Do not** tag epics, migrations, or coordination-heavy work. |
+| **Size**             | Exactly one of `size/XS` … `size/XL`                              | Estimate effort for one focused PR (see label descriptions on GitHub).                                                                                                                |
+| **Priority**         | Exactly one of `priority/high`, `priority/medium`, `priority/low` | `high` = user-visible break or blocker; `medium` = planned improvement; `low` = backlog/nice-to-have.                                                                                 |
+| **Good first issue** | `good first issue` **or omit**                                    | Add only when the task is newcomer-safe: clear AC, small surface, no prod DB/auth/security surprises, paths documented. **Do not** tag epics, migrations, or coordination-heavy work. |
 
 **Optional but common:** `bug`, `enhancement`, `design improvement`, `data`, `qa`, `help wanted`: type labels are separate from size/priority.
 
@@ -285,15 +309,15 @@ When in doubt, ask the user: "Does this issue require external coordination, or 
 
 ### Same-PR minimum by change type
 
-| Change | Add in the same PR |
+| Change                     | Add in the same PR                                                              |
 | -------------------------- | ------------------------------------------------------------------------------- |
-| Bug fix | Regression test that would have failed before the fix |
-| New lib/helper/parser | `src/**/*.test.ts` or `*.store.test.ts` (Vitest for `$state` stores) |
-| API route / service | `integration/http/*` or `integration/services/*` |
+| Bug fix                    | Regression test that would have failed before the fix                           |
+| New lib/helper/parser      | `src/**/*.test.ts` or `*.store.test.ts` (Vitest for `$state` stores)            |
+| API route / service        | `integration/http/*` or `integration/services/*`                                |
 | Map chrome / side panel UI | Vitest `@320px` component test + Playwright browse/admin spec when user-visible |
-| Editor / PATCH / 409 | Integration stale-version test + E2E when UI surfaces conflict |
-| `data` / AMIS import | Fixture JSON unit test only: **never** live `, fetch` in CI |
-| Subjective design / whimsy | Component layout guards + manual QA note in PR; do not skip all automation |
+| Editor / PATCH / 409       | Integration stale-version test + E2E when UI surfaces conflict                  |
+| `data` / AMIS import       | Fixture JSON unit test only: **never** live `, fetch` in CI                     |
+| Subjective design / whimsy | Component layout guards + manual QA note in PR; do not skip all automation      |
 
 ### Issue acceptance criteria template
 
@@ -318,17 +342,17 @@ Partnerships, legal/MOUs, AMIS live fetch, subjective animation “feel,” prod
 
 Adjust checks to change size. PR CI runs **Biome format + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
 
-| Step | When |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `bun run lint` (or targeted biome format / eslint on edited files) | Always before commit/PR |
-| `bun test src` (or targeted test files) | When logic, lib, or API behavior changed |
-| `bun run test:components` | When stores or Svelte UI changed |
-| `bun run test:integration` | When services, admin PATCH, or HTTP routes changed: **local before marking PR ready**; CI runs in gated E2E job |
-| Issue-linked work | Tests per [§ Tests with GitHub issues](#tests-with-github-issues): same PR |
-| `bun run build` | Once before commit/PR on substantive changes (requires `DATABASE_URL`) |
-| Manual browser / editor checklist | Map chrome, editor drag/save, side panel UX |
-| **Agentic browser** (when available) | UI flows, console/`pageerror` checks, staging/prod smoke: see below |
-| **Dependabot PRs** | Run Biome format + tests before merge; read CodeQL / dependency-review checks |
+| Step                                                               | When                                                                                                            |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `bun run lint` (or targeted biome format / eslint on edited files) | Always before commit/PR                                                                                         |
+| `bun test src` (or targeted test files)                            | When logic, lib, or API behavior changed                                                                        |
+| `bun run test:components`                                          | When stores or Svelte UI changed                                                                                |
+| `bun run test:integration`                                         | When services, admin PATCH, or HTTP routes changed: **local before marking PR ready**; CI runs in gated E2E job |
+| Issue-linked work                                                  | Tests per [§ Tests with GitHub issues](#tests-with-github-issues): same PR                                      |
+| `bun run build`                                                    | Once before commit/PR on substantive changes (requires `DATABASE_URL`)                                          |
+| Manual browser / editor checklist                                  | Map chrome, editor drag/save, side panel UX                                                                     |
+| **Agentic browser** (when available)                               | UI flows, console/`pageerror` checks, staging/prod smoke: see below                                             |
+| **Dependabot PRs**                                                 | Run Biome format + tests before merge; read CodeQL / dependency-review checks                                   |
 
 Do not run full build after every small edit. See the workflow skill for session cadence.
 
@@ -336,13 +360,13 @@ Do not run full build after every small edit. See the workflow skill for session
 
 Integration and Playwright are **not** on every draft push. Policy ([docs/testing.md § Heavy CI gating](docs/testing.md#heavy-ci-gating-prs)):
 
-| When | What runs |
+| When                                        | What runs                                                           |
 | ------------------------------------------- | ------------------------------------------------------------------- |
-| Every PR push (incl. drafts) | verify + migrations only (~6–9 min) |
+| Every PR push (incl. drafts)                | verify + migrations only (~6–9 min)                                 |
 | PR **ready for review** or opened non-draft | integration + blocking E2E (one job), advisory E2E, bundle advisory |
-| Label **`run/e2e`** | Re-run the gated stack after fixes |
-| Push to **`staging`** | blocking stack (integration + E2E) via **E2E staging** |
-| **Nightly** 02:00 Asia/Manila | same on `staging` branch |
+| Label **`run/e2e`**                         | Re-run the gated stack after fixes                                  |
+| Push to **`staging`**                       | blocking stack (integration + E2E) via **E2E staging**              |
+| **Nightly** 02:00 Asia/Manila               | same on `staging` branch                                            |
 
 Blocking job order: reset DB → `build:e2e` → preview → `test:integration` → Playwright (no duplicate build).
 
@@ -365,13 +389,13 @@ Most Playwright failures are **test harness** issues: fix helpers before changin
 
 When the agent session has **browser automation** (Cursor agentic browser, Playwright MCP, or headless Playwright in the shell), **use it** for UI verification instead of skipping straight to “needs manual QA.”
 
-| Use agentic browser for | Still human-only |
+| Use agentic browser for                                                       | Still human-only                     |
 | ----------------------------------------------------------------------------- | ------------------------------------ |
-| Open entity side panels (building, dorm, room, event) | Drag/drop pin polish, animation feel |
-| Map chrome at 320px / 768px viewport | Subjective visual design judgment |
-| Capture `pageerror` / console errors after navigation | Long editor save/conflict sessions |
-| Dismiss landing modal, wait for bootstrap (`campus-browse-chips`, map canvas) | Production account-specific data |
-| Staging or prod smoke after deploy (`room-tba.uplbtools.me`) | |
+| Open entity side panels (building, dorm, room, event)                         | Drag/drop pin polish, animation feel |
+| Map chrome at 320px / 768px viewport                                          | Subjective visual design judgment    |
+| Capture `pageerror` / console errors after navigation                         | Long editor save/conflict sessions   |
+| Dismiss landing modal, wait for bootstrap (`campus-browse-chips`, map canvas) | Production account-specific data     |
+| Staging or prod smoke after deploy (`room-tba.uplbtools.me`)                  |                                      |
 
 **Practices:**
 
@@ -386,12 +410,12 @@ If no browser tools are available, say so and list the manual checks still neede
 
 Production readiness is backed by repo automation; do not disable without replacing:
 
-| Tool | Config | What it does |
+| Tool                  | Config                                                                               | What it does                                     |
 | --------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| **Dependabot** | [`.github/dependabot.yml`](.github/dependabot.yml) | Weekly Bun + GitHub Actions version PRs |
-| **CodeQL** | [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml) | Static analysis on push/PR + weekly schedule |
+| **Dependabot**        | [`.github/dependabot.yml`](.github/dependabot.yml)                                   | Weekly Bun + GitHub Actions version PRs          |
+| **CodeQL**            | [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)                       | Static analysis on push/PR + weekly schedule     |
 | **Dependency Review** | [`.github/workflows/dependency-review.yml`](.github/workflows/dependency-review.yml) | Blocks PRs introducing critical CVEs in new deps |
-| **CI** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Biome format + unit tests |
+| **CI**                | [`.github/workflows/ci.yml`](.github/workflows/ci.yml)                               | Biome format + unit tests                        |
 
 Enable **Dependabot security updates** and **secret scanning** in GitHub repo Settings → Code security if not already on (org defaults may apply). CodeQL SARIF appears under Security → Code scanning.
 
@@ -450,11 +474,11 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 
 CRS/AMIS `term_id` values are **chronological within the academic year**: the number is not a semantic label:
 
-| CRS id | Period | Typical dates (AY 2025–2026) |
+| CRS id   | Period       | Typical dates (AY 2025–2026) |
 | -------- | ------------ | ---------------------------- |
-| **1251** | 1st semester | Aug–Dec |
-| **1252** | 2nd semester | Jan–May |
-| **1253** | Midyear | Jun–Jul |
+| **1251** | 1st semester | Aug–Dec                      |
+| **1252** | 2nd semester | Jan–May                      |
+| **1253** | Midyear      | Jun–Jul                      |
 
 - **`terms.id` must equal the CRS id** you pass to `, term-id` / AMIS fetch. Fix labels and calendar dates in the `terms` row; **never move class rows between ids** to “fix” a naming mix-up.
 - Import commands: 2nd sem `, term-id 1252, fetch`; midyear `, term-id 1253, fetch`.
@@ -463,13 +487,17 @@ CRS/AMIS `term_id` values are **chronological within the academic year**: the nu
 ### Pitfalls (read before triaging “wrong term” bugs)
 
 1. **Do not infer term type from row count.** A term with 3k+ rows is not automatically “2nd sem”; a term with ~200 rows is not automatically “broken.” Check **schedule patterns** in `classes.schedule`:
- - **Midyear (1253):** intensive daily blocks: `MTWTHFS`, `MTWTHF`, `TTHS`, Saturday-heavy slots.
- - **2nd sem (1252):** regular semester: mostly `TTH`, `MWF`, single-day weekly slots.
+
+- **Midyear (1253):** intensive daily blocks: `MTWTHFS`, `MTWTHF`, `TTHS`, Saturday-heavy slots.
+- **2nd sem (1252):** regular semester: mostly `TTH`, `MWF`, single-day weekly slots.
+
 2. **Do not conflate CRS id with English name.** Early agents assumed “1252 sounds like midyear slot”: wrong. Always trust the chronological table above and what AMIS returns for that numeric id.
 3. **Thousands fetched, hundreds imported is normal.** AMIS returns every section type; Room TBA imports only **LEC/LAB with a matched room** (see below). A 12k fetch → ~3k import for 2nd sem is expected; a 6k fetch → ~120 for midyear can be expected too.
 4. **Two different “skipped row” buckets**: do not treat them as the same bug:
- - **By design:** THE (thesis), SPR (special problem), PRA (practicum), DSR (dissertation), IND, etc. usually have **no `facility_id`** in AMIS. Skipped on purpose; users are told on the room panel. See `src/lib/amis/room-scheduled-types.ts`.
- - **Data gap (#300):** LEC/LAB rows **with** a facility string that does not match `rooms.room_code` (aliases, typos, `PSLH-A` vs `PSLH A`). Needs alias work, not term-id surgery.
+
+- **By design:** THE (thesis), SPR (special problem), PRA (practicum), DSR (dissertation), IND, etc. usually have **no `facility_id`** in AMIS. Skipped on purpose; users are told on the room panel. See `src/lib/amis/room-scheduled-types.ts`.
+- **Data gap (#300):** LEC/LAB rows **with** a facility string that does not match `rooms.room_code` (aliases, typos, `PSLH-A` vs `PSLH A`). Needs alias work, not term-id surgery.
+
 5. **Validate before “re-import to fix term”.** Query sample schedules per `term_id`, confirm `/api/terms` labels match CRS table, then re-import the **correct CRS id** with `, replace`. Do not run 0012-style mass `UPDATE term_id`.
 
 ### Workflow
@@ -497,15 +525,15 @@ The project deploys on Vercel (`stimmie/saan-ang-room`, see `.vercel/project.jso
 
 Maintainer sessions have **GitHub CLI** and **Vercel CLI** ready. Prefer the CLI over “go to Settings in the browser” unless the CLI errors or the value is not available locally (e.g. encrypted `vercel env pull` omitting `DATABASE_URL`).
 
-| Task | Run (agent) | Do not default to |
-| ----------------------- | ----------------------------------------------------------------- | ------------------------------------------------------ |
-| Open/update PR | `gh pr create`, `gh pr view`, `gh pr checks` | Asking user to open GitHub UI |
-| Issues | `gh issue view/create/edit`, `gh issue comment` | Manual issue paste-only |
-| GitHub Actions secrets | `gh secret set`, `gh secret list, repo uplbtools/room-tba` | “Add this in repo Settings” |
-| Vercel env vars | `vercel env ls`, `vercel env add … preview staging, yes, force` | Vercel UI only |
-| Refresh local env hints | `vercel env pull.env.vercel, environment=preview, yes` | Assuming empty pull means unset |
-| Inspect deploys | `vercel ls`, `vercel inspect <url>` |: |
-| Prod deploy | **`staging → main` merge only** | `vercel deploy, prod` except hotfix + `main` checkout |
+| Task                    | Run (agent)                                                     | Do not default to                                     |
+| ----------------------- | --------------------------------------------------------------- | ----------------------------------------------------- |
+| Open/update PR          | `gh pr create`, `gh pr view`, `gh pr checks`                    | Asking user to open GitHub UI                         |
+| Issues                  | `gh issue view/create/edit`, `gh issue comment`                 | Manual issue paste-only                               |
+| GitHub Actions secrets  | `gh secret set`, `gh secret list, repo uplbtools/room-tba`      | “Add this in repo Settings”                           |
+| Vercel env vars         | `vercel env ls`, `vercel env add … preview staging, yes, force` | Vercel UI only                                        |
+| Refresh local env hints | `vercel env pull.env.vercel, environment=preview, yes`          | Assuming empty pull means unset                       |
+| Inspect deploys         | `vercel ls`, `vercel inspect <url>`                             | :                                                     |
+| Prod deploy             | **`staging → main` merge only**                                 | `vercel deploy, prod` except hotfix + `main` checkout |
 
 **Secrets:** read values from local gitignored `.env` (or generate e.g. `openssl rand -hex 32`); pass via `, body` / `, value`. Never commit secrets or paste them into issues, PRs, or chat.
 
@@ -513,11 +541,11 @@ Maintainer sessions have **GitHub CLI** and **Vercel CLI** ready. Prefer the CLI
 
 ### Branch → deploy target
 
-| Git branch | Vercel target | URL (approx.) |
+| Git branch       | Vercel target    | URL (approx.)                   |
 | ---------------- | ---------------- | ------------------------------- |
-| `main` | **Production** | `room-tba.uplbtools.me` |
-| `staging` | **Preview** only | `staging.room-tba.uplbtools.me` |
-| feature branches | **Preview** | `*.vercel.app` |
+| `main`           | **Production**   | `room-tba.uplbtools.me`         |
+| `staging`        | **Preview** only | `staging.room-tba.uplbtools.me` |
+| feature branches | **Preview**      | `*.vercel.app`                  |
 
 Code reaches production **only** when `staging → main` is merged (release PR), then Vercel builds **`main`**. Confirm Vercel → Project → Settings → Git has **Production Branch = `main`**.
 
@@ -554,29 +582,29 @@ gh pr checks <number> --repo uplbtools/room-tba
 
 ### Pitfalls
 
-| Trap | Reality |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `vercel env pull` shows `DATABASE_URL=""` | Encrypted values often **omit** in pull output: not proof the var is unset. Verify via successful build or Vercel UI. |
-| Var listed as “Encrypted” in `vercel env ls` | Can still be an **empty string**: causes `[EnvInvalidVariables] DATABASE_URL is missing`. |
-| `vercel env add DATABASE_URL preview` (no branch) non-interactive | CLI returns `git_branch_required`; use branch arg (`staging`) or Vercel API for all Preview targets. |
-| Only `Preview (staging)` has `DATABASE_URL` | PR previews on other branches still fail. |
-| `vercel deploy, prod` from `staging` checkout | Bypasses release gate: blocked by `check-production-branch.sh` on Vercel production builds. |
+| Trap                                                              | Reality                                                                                                               |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `vercel env pull` shows `DATABASE_URL=""`                         | Encrypted values often **omit** in pull output: not proof the var is unset. Verify via successful build or Vercel UI. |
+| Var listed as “Encrypted” in `vercel env ls`                      | Can still be an **empty string**: causes `[EnvInvalidVariables] DATABASE_URL is missing`.                             |
+| `vercel env add DATABASE_URL preview` (no branch) non-interactive | CLI returns `git_branch_required`; use branch arg (`staging`) or Vercel API for all Preview targets.                  |
+| Only `Preview (staging)` has `DATABASE_URL`                       | PR previews on other branches still fail.                                                                             |
+| `vercel deploy, prod` from `staging` checkout                     | Bypasses release gate: blocked by `check-production-branch.sh` on Vercel production builds.                           |
 
 **API fallback (all Preview branches, non-interactive):** `POST /v10/projects/{projectId}/env?teamId={teamId}` with `{ "key": "DATABASE_URL", "value": "…", "type": "encrypted", "target": ["preview"] }`. Never paste connection strings into issues or commits.
 
 **More env traps:**
 
-| Trap | Reality |
-| --- | --- |
+| Trap                                                 | Reality                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Map renders flat (no 3D building extrusions) locally | `PUBLIC_MAPTILER_KEY` unset → `loadCampusMapStyle` returns the raster fallback (`E2E_FALLBACK_MAP_STYLE`). **Not a regression** — prod has the key; local `.env` usually doesn't. Verify prod on `room-tba.uplbtools.me` (loads `api.maptiler.com/tiles/v3-openmaptiles`). |
-| Fork PR `verify` fails: `DATABASE_URL is missing` | Fork PRs **can't read Actions secrets** — the build's prerender has no DB. For trivial fork docs, `gh pr merge --admin` (staging is unprotected). Real fork code needs a maintainer-run build. |
-| Dependabot PR CI fails the same way | Dependabot uses the **Dependabot** secret store, not Actions — mirror the secret there, or the CI workflow skips secret-dependent jobs for `github.actor == 'dependabot[bot]'`. |
+| Fork PR `verify` fails: `DATABASE_URL is missing`    | Fork PRs **can't read Actions secrets** — the build's prerender has no DB. For trivial fork docs, `gh pr merge --admin` (staging is unprotected). Real fork code needs a maintainer-run build.                                                                             |
+| Dependabot PR CI fails the same way                  | Dependabot uses the **Dependabot** secret store, not Actions — mirror the secret there, or the CI workflow skips secret-dependent jobs for `github.actor == 'dependabot[bot]'`.                                                                                            |
 
 ### Supabase ops
 
 - **Runtime Postgres:** Supabase via **`DATABASE_URL`** (Drizzle in `src/lib/db.ts`). Not PGlite, not Neon at runtime.
 - **Migrations:** SQL in `drizzle/`: apply to Supabase **before** deploying code that depends on new columns (`psql "$DATABASE_URL" -f drizzle/….sql` or dashboard SQL editor). Repo does not use `supabase db push` as the primary flow.
-- **Connection string / serverless pooling.** The **session pooler** (`*.pooler.supabase.com:5432`) caps at `pool_size` (15). `src/lib/db.ts` opens `DATABASE_POOL_MAX` (default **10**) connections *per serverless instance*, so a Vercel cold-start burst (every route after a deploy, or concurrent traffic) exhausts the pooler → intermittent **500/503 that self-recover once warm** (`EMAXCONNSESSION`, or `Failed query … NodePgPreparedQuery`). Reported as "the serverless function crashed" but static pages + warm/cached routes stay fine. **Quick mitigation:** `vercel env add DATABASE_POOL_MAX production` = `2` (and `preview`), then redeploy. **Durable fix:** point `DATABASE_URL` at the Supabase **transaction pooler** (port **6543**) and set `prepare: false` in `db.ts` — it's built for many short serverless connections. A fresh deploy always triggers a brief cold-start burst; diagnose with `vercel logs <deployment-url>` and confirm via a *sequential* probe (real users are fine) vs a concurrent one.
+- **Connection string / serverless pooling.** The **session pooler** (`*.pooler.supabase.com:5432`) caps at `pool_size` (15). `src/lib/db.ts` opens `DATABASE_POOL_MAX` (default **10**) connections _per serverless instance_, so a Vercel cold-start burst (every route after a deploy, or concurrent traffic) exhausts the pooler → intermittent **500/503 that self-recover once warm** (`EMAXCONNSESSION`, or `Failed query … NodePgPreparedQuery`). Reported as "the serverless function crashed" but static pages + warm/cached routes stay fine. **Quick mitigation:** `vercel env add DATABASE_POOL_MAX production` = `2` (and `preview`), then redeploy. **Durable fix:** point `DATABASE_URL` at the Supabase **transaction pooler** (port **6543**) and set `prepare: false` in `db.ts` — it's built for many short serverless connections. A fresh deploy always triggers a brief cold-start burst; diagnose with `vercel logs <deployment-url>` and confirm via a _sequential_ probe (real users are fine) vs a concurrent one.
 - **Optional CLI:** `supabase login`, `supabase projects list`; `bunx drizzle-kit studio` to browse schema locally (needs working `DATABASE_URL`).
 - After fixing Vercel env, **redeploy**: failed deployments are not auto-retried.
 
@@ -588,17 +616,17 @@ Human setup detail: [docs/developer-guide.md](docs/developer-guide.md). Cursor C
 
 ### Update README when you change…
 
-| If you touch… | README must reflect… |
-| -------------------------------------------- | ----------------------------------------------------------- |
-| `package.json` scripts | Command names, what they do, when they need `DATABASE_URL` |
-| `astro.config.mjs` / `.env.example` env vars | Required vs optional vars, where to get values |
-| Database provider, Drizzle, migrations | Supabase Postgres + `drizzle/`: not SQLite/Neon as runtime |
-| Astro / Bun / major deps | Version labels that match `package.json` |
-| CI workflows (`.github/workflows/*`) | What runs on PRs (`bun test src`, Biome format, etc.) |
-| Live URL, repo org, default term label | Links, “current semester” data note, changelog path |
-| Editor login entry points | `/?editor=login`, in-app editing: not a separate admin app |
-| Project layout (`src/pages`, `src/lib`, …) | Folder tree in README matches reality |
-| New user-visible features | Feature table or student-mode bullets |
+| If you touch…                                | README must reflect…                                       |
+| -------------------------------------------- | ---------------------------------------------------------- |
+| `package.json` scripts                       | Command names, what they do, when they need `DATABASE_URL` |
+| `astro.config.mjs` / `.env.example` env vars | Required vs optional vars, where to get values             |
+| Database provider, Drizzle, migrations       | Supabase Postgres + `drizzle/`: not SQLite/Neon as runtime |
+| Astro / Bun / major deps                     | Version labels that match `package.json`                   |
+| CI workflows (`.github/workflows/*`)         | What runs on PRs (`bun test src`, Biome format, etc.)      |
+| Live URL, repo org, default term label       | Links, “current semester” data note, changelog path        |
+| Editor login entry points                    | `/?editor=login`, in-app editing: not a separate admin app |
+| Project layout (`src/pages`, `src/lib`, …)   | Folder tree in README matches reality                      |
+| New user-visible features                    | Feature table or student-mode bullets                      |
 
 **Pair with `.env.example`:** new server env vars get a commented line in `.env.example` and a README mention in the same change set.
 
