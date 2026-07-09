@@ -605,14 +605,14 @@
     overscroll-behavior: contain;
     padding: 0.625rem 0.625rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
     display: grid;
-    grid-template-columns: 17rem minmax(0, 1fr) 18rem;
+    grid-template-columns: 17rem auto 18rem;
     gap: 0.75rem;
     align-content: start;
     -webkit-overflow-scrolling: touch;
   }
 
   .planner-body--no-side {
-    grid-template-columns: 17rem minmax(0, 1fr);
+    grid-template-columns: 17rem minmax(auto, 80rem);
   }
 
   @media (max-width: 48rem) {
