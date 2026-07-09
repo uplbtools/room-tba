@@ -373,8 +373,7 @@ button.map-chrome-chip:disabled {
 .map-chrome-fab-trigger {
   display: flex;
   flex-shrink: 0;
-  width: 3rem;
-  height: 3rem;
+  padding:.75rem;
   align-items: center;
   justify-content: center;
   border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));

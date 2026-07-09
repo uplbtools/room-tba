@@ -572,16 +572,6 @@
     min-height: 2.75rem;
     padding: 0.125rem;
     pointer-events: auto;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-    border-radius: var(--map-chrome-radius, 1rem);
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(15, 8%, 20%, 0.16),
-      0 2px 8px hsla(0, 0%, 0%, 0.14),
-      0 8px 20px hsla(0, 0%, 0%, 0.18)
-    );
   }
 
   .bottom-band::before {
@@ -656,7 +646,6 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    width: calc(var(--map-chrome-toggle-size, 2rem) + 0.375rem);
     box-sizing: border-box;
     gap: 0.125rem;
     padding: 0.1875rem;
@@ -673,9 +662,9 @@
   }
 
   .camera-controls-card__divider {
-    height: 1px;
-    margin: 0 0.125rem;
-    background-color: var(--map-chrome-divider, hsl(5 12% 88%));
+    height: 2px;
+    margin: .5rem 0.125rem;
+    background-color: var(--map-chrome-divider, hsl(5 12% 70%));
   }
 
   @media (prefers-reduced-motion: reduce) {

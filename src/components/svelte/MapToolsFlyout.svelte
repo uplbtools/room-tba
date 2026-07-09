@@ -54,7 +54,7 @@
     ariaLabel="Map tools"
     onclick={() => mapToolsStore.toggle()}
   >
-    <Layers size={20} aria-hidden="true" />
+    <Layers size={16} aria-hidden="true" />
   </MapChromeFabTrigger>
 
   {#if mapToolsStore.open}
