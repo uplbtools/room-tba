@@ -32,6 +32,8 @@ export interface QueryStoreState {
   eventSlug?: string;
 }
 
+export type SidebarOpenType = "map" | "planner";
+
 export type RecentSearch = {
   category: Exclude<QueryStoreState["category"], null>;
   value: string;
