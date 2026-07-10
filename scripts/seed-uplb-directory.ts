@@ -95,7 +95,11 @@ for (const entry of entries as Entry[]) {
   const keys = nameKeys(entry.name);
   // Residence halls live in the dorms table; UPOU is not a UPLB campus POI.
   const isDormRow = /residence hall/i.test(entry.name);
-  const isOrg = ORG_TYPES.has(entry.type) || (entry.type === "service" && !isDormRow && !/church|chapel/i.test(entry.name));
+  const isOrg =
+    ORG_TYPES.has(entry.type) ||
+    (entry.type === "service" &&
+      !isDormRow &&
+      !/church|chapel/i.test(entry.name));
   const isPlace =
     PLACE_TYPES.has(entry.type) ||
     (entry.type === "service" && /church|chapel/i.test(entry.name));

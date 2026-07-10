@@ -1,126 +1,1118 @@
 [
-{"name": "College of Agriculture and Food Science (CAFS)", "type": "academic", "building_or_area": "CAFS complex near A.G. Samonte Building, central main campus", "description": "UPLB's founding college (est. 1909 as UP College of Agriculture); agriculture and food science education and research.", "lat": 14.166594, "lng": 121.243326, "source": "https://www.openstreetmap.org/way/227117663"},
-{"name": "College of Arts and Sciences (CAS)", "type": "academic", "building_or_area": "CAS complex, central main campus", "description": "UPLB's largest college, home of the basic sciences, humanities, and social sciences institutes.", "lat": 14.165364, "lng": 121.240937, "source": "https://www.openstreetmap.org/way/227117664"},
-{"name": "College of Development Communication (CDC)", "type": "academic", "building_or_area": "CDC building, central main campus beside CEM", "description": "Pioneer college of development communication in Asia.", "lat": 14.167046, "lng": 121.242583, "source": "https://www.openstreetmap.org/way/227117665"},
-{"name": "College of Economics and Management (CEM)", "type": "academic", "building_or_area": "CEM complex, central main campus", "description": "College for economics, agricultural economics, and agribusiness management programs.", "lat": 14.16719, "lng": 121.241604, "source": "https://www.openstreetmap.org/way/60798742"},
-{"name": "College of Engineering and Agro-Industrial Technology (CEAT)", "type": "academic", "building_or_area": "CEAT complex, eastern main campus", "description": "Engineering college of UPLB (civil, chemical, electrical, industrial, agricultural and biosystems engineering).", "lat": 14.162271, "lng": 121.247953, "source": "https://www.openstreetmap.org/relation/3018366"},
-{"name": "College of Forestry and Natural Resources (CFNR)", "type": "academic", "building_or_area": "Forestry (upper) campus, foothills of Mt. Makiling", "description": "Forestry and natural resources college on the upper campus; administers Makiling-related units.", "lat": 14.154433, "lng": 121.234541, "source": "https://www.openstreetmap.org/way/226828346"},
-{"name": "College of Human Ecology (CHE)", "type": "academic", "building_or_area": "CHE building, central main campus", "description": "College covering human ecology, nutrition, human and family development studies.", "lat": 14.164666, "lng": 121.242834, "source": "https://www.openstreetmap.org/way/153334157"},
-{"name": "College of Public Affairs and Development (CPAf)", "type": "academic", "building_or_area": "CPAf complex, southwestern main campus", "description": "Graduate college for public affairs, governance, and rural development.", "lat": 14.16031, "lng": 121.237609, "source": "https://www.openstreetmap.org/relation/10758935"},
-{"name": "College of Veterinary Medicine (CVM)", "type": "academic", "building_or_area": "CVM complex, southern main campus", "description": "The country's oldest veterinary school; runs the Veterinary Teaching Hospital.", "lat": 14.157853, "lng": 121.243017, "source": "https://www.openstreetmap.org/way/226827292"},
-{"name": "UPLB Graduate School", "type": "academic", "building_or_area": "Graduate School building, western main campus near UHS", "description": "Administers UPLB's masters and doctoral programs.", "lat": 14.163693, "lng": 121.239325, "source": "https://www.openstreetmap.org/way/37331969"},
-{"name": "School of Environmental Science and Management (SESAM)", "type": "academic", "building_or_area": "SESAM building, central main campus near IBS", "description": "Graduate school for interdisciplinary environmental science and management.", "lat": 14.166246, "lng": 121.241518, "source": "https://www.openstreetmap.org/way/486586075"},
-{"name": "Institute of Biological Sciences (IBS)", "type": "academic", "building_or_area": "IBS complex, CAS, central main campus", "description": "CAS institute for biology; largest institute in the university.", "lat": 14.16633, "lng": 121.239555, "source": "https://www.openstreetmap.org/way/136462397"},
-{"name": "Institute of Chemistry (IC)", "type": "academic", "building_or_area": "Physical Sciences complex, CAS", "description": "CAS institute for chemistry teaching and research.", "lat": 14.164055, "lng": 121.242049, "source": "https://www.openstreetmap.org/node/1426038564"},
-{"name": "Institute of Computer Science (ICS)", "type": "academic", "building_or_area": "Physical Sciences complex, CAS", "description": "CAS institute for computer science; runs the BS Computer Science program.", "lat": 14.164603, "lng": 121.241953, "source": "https://www.openstreetmap.org/node/1426038567"},
-{"name": "Institute of Mathematical Sciences and Physics / New Mathematics Building", "type": "academic", "building_or_area": "New Mathematics Building, CAS, central main campus", "description": "Home of mathematics instruction at UPLB.", "lat": 14.1648, "lng": 121.2436, "source": "https://www.openstreetmap.org/relation/4194171"},
-{"name": "Institute of Statistics (INSTAT)", "type": "academic", "building_or_area": "Physical Sciences complex, CAS", "description": "CAS institute for statistics.", "lat": 14.164669, "lng": 121.242104, "source": "https://www.openstreetmap.org/node/1426038586"},
-{"name": "Institute of Physics (IoP)", "type": "academic", "building_or_area": "Physical Sciences complex, CAS", "description": "CAS institute for physics.", "lat": 14.164457, "lng": 121.241758, "source": "https://www.openstreetmap.org/node/1426038585"},
-{"name": "Institute of Food Science and Technology (IFST)", "type": "academic", "building_or_area": "IFST building, CAFS, southern main campus", "description": "CAFS institute for food science and technology.", "lat": 14.160287, "lng": 121.24413, "source": "https://www.openstreetmap.org/way/139810604"},
-{"name": "Institute of Animal Science (IAS)", "type": "academic", "building_or_area": "F.M. Fronda Hall, B.M. Gonzales Animal Science Complex, southern main campus", "description": "CAFS institute for animal science.", "lat": 14.158168, "lng": 121.243955, "source": "https://www.openstreetmap.org/relation/2992278"},
-{"name": "Institute of Crop Science (ICropS)", "type": "academic", "building_or_area": "Nemesio B. Mendiola Hall, southern main campus", "description": "CAFS institute for crop science.", "lat": 14.159786, "lng": 121.244805, "source": "https://www.openstreetmap.org/way/139810598"},
-{"name": "Institute of Human Nutrition and Food (IHNF)", "type": "academic", "building_or_area": "IHNF building, CHE, central main campus", "description": "CHE institute for nutrition and food studies.", "lat": 14.16422, "lng": 121.242703, "source": "https://www.openstreetmap.org/way/38063757"},
-{"name": "Institute of Cooperatives and Bio-Enterprise Development (ICOPED)", "type": "academic", "building_or_area": "ICOPED building, CEM, central main campus", "description": "CEM institute for cooperatives and bio-enterprise development.", "lat": 14.167506, "lng": 121.242245, "source": "https://www.openstreetmap.org/way/139810603"},
-{"name": "Institute of Renewable Natural Resources (IRNR)", "type": "academic", "building_or_area": "Forestry (upper) campus", "description": "CFNR institute for renewable natural resources.", "lat": 14.1544, "lng": 121.236022, "source": "https://www.openstreetmap.org/way/118883866"},
-{"name": "Department of Social Forestry and Forest Governance", "type": "academic", "building_or_area": "Forestry (upper) campus", "description": "CFNR department for social forestry and forest governance.", "lat": 14.15362, "lng": 121.235406, "source": "https://www.openstreetmap.org/way/96698728"},
-{"name": "Department of Basic Veterinary Sciences", "type": "academic", "building_or_area": "CVM complex, southern main campus", "description": "CVM department for basic veterinary sciences.", "lat": 14.158241, "lng": 121.242733, "source": "https://www.openstreetmap.org/way/55414956"},
-{"name": "Department of Veterinary Paraclinical Sciences", "type": "academic", "building_or_area": "CVM complex, southern main campus", "description": "CVM department for veterinary paraclinical sciences.", "lat": 14.157943, "lng": 121.242878, "source": "https://www.openstreetmap.org/way/60890352"},
-{"name": "Institute of Plant Breeding (IPB)", "type": "unit", "building_or_area": "Eastern campus research area near BIOTECH", "description": "CAFS research institute for crop improvement and plant breeding.", "lat": 14.151468, "lng": 121.262073, "source": "https://www.openstreetmap.org/relation/4752003"},
-{"name": "BIOTECH (National Institute of Molecular Biology and Biotechnology)", "type": "unit", "building_or_area": "Eastern campus research area", "description": "National research institute for molecular biology and biotechnology under OVCRE.", "lat": 14.149591, "lng": 121.261088, "source": "https://www.openstreetmap.org/way/109369362"},
-{"name": "National Crop Protection Center (NCPC)", "type": "unit", "building_or_area": "Eastern campus research area", "description": "National research center for crop protection under CAFS.", "lat": 14.150893, "lng": 121.259432, "source": "https://www.openstreetmap.org/way/109369419"},
-{"name": "Postharvest Horticulture Training and Research Center (PHTRC)", "type": "unit", "building_or_area": "Southern main campus near CEAT", "description": "CAFS center for postharvest horticulture research and training.", "lat": 14.161148, "lng": 121.24426, "source": "https://www.openstreetmap.org/way/139810611"},
-{"name": "Agricultural Machinery Testing and Evaluation Center (AMTEC)", "type": "unit", "building_or_area": "Eastern campus research area", "description": "CEAT center that tests and evaluates agricultural machinery.", "lat": 14.149911, "lng": 121.257836, "source": "https://www.openstreetmap.org/way/109369355"},
-{"name": "Dairy Training and Research Institute (DTRI)", "type": "unit", "building_or_area": "DTRI complex, southeastern main campus", "description": "CAFS institute for dairy production research and training; famous for its Dairy Bar products.", "lat": 14.15625, "lng": 121.246071, "source": "https://www.openstreetmap.org/way/97328141"},
-{"name": "Makiling Center for Mountain Ecosystems (MCME)", "type": "unit", "building_or_area": "Forestry (upper) campus, base of Mt. Makiling", "description": "CFNR unit managing the Mount Makiling Forest Reserve; issues trail permits.", "lat": 14.151709, "lng": 121.233654, "source": "https://www.openstreetmap.org/way/368470229"},
-{"name": "UPLB Museum of Natural History (MNH)", "type": "tourist-spot", "building_or_area": "Forestry (upper) campus, foothills of Mt. Makiling", "description": "Natural history museum (est. 1976) showcasing Philippine flora and fauna collections.", "lat": 14.15601, "lng": 121.236467, "source": "https://www.openstreetmap.org/way/144375323"},
-{"name": "Veterinary Teaching Hospital (VTH)", "type": "service", "building_or_area": "College of Veterinary Medicine complex, southern main campus", "description": "CVM's animal hospital offering clinical services to the public.", "lat": null, "lng": null, "source": "https://www.facebook.com/uplbvthsas/"},
-{"name": "Veterinary Pathology Resource Facility (VPRF)", "type": "unit", "building_or_area": "CVM complex, southern main campus", "description": "CVM facility for veterinary pathology diagnostics.", "lat": 14.157122, "lng": 121.243097, "source": "https://www.openstreetmap.org/way/116588583"},
-{"name": "Philippine Carabao Center at UPLB", "type": "unit", "building_or_area": "Animal Science complex, southern main campus", "description": "DA-attached carabao research center hosted at UPLB; sells fresh carabao milk products.", "lat": 14.158756, "lng": 121.244665, "source": "https://www.openstreetmap.org/way/54602943"},
-{"name": "Philippine Rice Research Institute (PhilRice) Los Baños", "type": "unit", "building_or_area": "PhilRice station, southeastern main campus near CEAT", "description": "DA rice research station co-located on the UPLB campus.", "lat": 14.160698, "lng": 121.247349, "source": "https://www.openstreetmap.org/way/102814182"},
-{"name": "Ecosystems Research and Development Bureau (DENR-ERDB)", "type": "unit", "building_or_area": "Forestry (upper) campus near MNH", "description": "DENR research bureau headquartered on the Forestry campus.", "lat": 14.155302, "lng": 121.237015, "source": "https://www.openstreetmap.org/way/144375343"},
-{"name": "International Rice Research Institute (IRRI)", "type": "unit", "building_or_area": "IRRI headquarters campus, east of UPLB main campus", "description": "World's premier rice research organization, hosted on UPLB land since 1960.", "lat": 14.168834, "lng": 121.255221, "source": "https://www.openstreetmap.org/node/7572834137"},
-{"name": "Riceworld Museum (IRRI)", "type": "tourist-spot", "building_or_area": "IRRI headquarters campus", "description": "Museum on rice science and culture at IRRI headquarters.", "lat": 14.168444, "lng": 121.254548, "source": "https://www.openstreetmap.org/node/995847421"},
-{"name": "SEARCA (Southeast Asian Regional Center for Graduate Study and Research in Agriculture)", "type": "unit", "building_or_area": "SEARCA building, central main campus beside DL Umali Hall", "description": "Regional graduate study and agriculture research center hosted at UPLB.", "lat": 14.164999, "lng": 121.240133, "source": "https://www.openstreetmap.org/way/109353070"},
-{"name": "UP Open University (UPOU)", "type": "academic", "building_or_area": "UPOU headquarters, Brgy. Maahas, Los Baños", "description": "The UP System's distance-education university, headquartered near the UPLB campus.", "lat": 14.174569, "lng": 121.263009, "source": "https://www.openstreetmap.org/relation/3010583"},
-{"name": "Office of the Chancellor (OC)", "type": "office", "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus", "description": "Highest administrative office of UPLB.", "lat": 14.165517, "lng": 121.239035, "source": "https://uplb.edu.ph/oc/"},
-{"name": "Office of the Vice Chancellor for Academic Affairs (OVCAA)", "type": "office", "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus", "description": "Oversees curricula, instruction, and academic units.", "lat": 14.165517, "lng": 121.239035, "source": "https://uplb.edu.ph/vice-chancellors/"},
-{"name": "Office of the Vice Chancellor for Administration (OVCA)", "type": "office", "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus", "description": "Handles administrative management: HR, procurement, records, supply.", "lat": 14.165517, "lng": 121.239035, "source": "https://uplb.edu.ph/vice-chancellors/"},
-{"name": "Office of the Vice Chancellor for Community Affairs (OVCCA)", "type": "office", "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus", "description": "Oversees housing, security, and community services.", "lat": 14.165517, "lng": 121.239035, "source": "https://uplb.edu.ph/vice-chancellors/"},
-{"name": "Office of the Vice Chancellor for Planning and Development (OVCPD)", "type": "office", "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus", "description": "Oversees campus planning, maintenance, and development projects.", "lat": 14.165517, "lng": 121.239035, "source": "https://uplb.edu.ph/vice-chancellors/"},
-{"name": "Office of the Vice Chancellor for Research and Extension (OVCRE)", "type": "office", "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus", "description": "Coordinates university research and extension programs.", "lat": 14.165517, "lng": 121.239035, "source": "https://uplb.edu.ph/vice-chancellors/"},
-{"name": "Office of the Vice Chancellor for Student Affairs (OVCSA)", "type": "office", "building_or_area": "Room 2, 2/F Student Union Building, main campus", "description": "Oversees student services: activities, scholarships, housing, counseling.", "lat": 14.163283, "lng": 121.241334, "source": "https://uplb.edu.ph/vice-chancellors/"},
-{"name": "Office of the Vice Chancellor for Innovation and Enterprise Management (OVCIEM)", "type": "office", "building_or_area": "Mondoñedo Avenue, UPLB campus", "description": "Oversees technology transfer, business affairs, and enterprise units.", "lat": null, "lng": null, "source": "https://uplb.edu.ph/vice-chancellors/"},
-{"name": "Office of the University Registrar (OUR)", "type": "office", "building_or_area": "G/F CAS Annex 1 Building, main campus", "description": "Handles registration, student records, transcripts, and admissions.", "lat": 14.165472, "lng": 121.241405, "source": "https://our.uplb.edu.ph/contact-us/"},
-{"name": "Office of Student Activities (OSA)", "type": "office", "building_or_area": "2/F Student Union Building, main campus", "description": "OVCSA unit handling student organizations and activities.", "lat": 14.163283, "lng": 121.241334, "source": "https://uplbosa.org/"},
-{"name": "Student Disciplinary Tribunal (SDT)", "type": "office", "building_or_area": "2/F Student Union Building, main campus", "description": "OVCSA unit handling student disciplinary cases.", "lat": 14.163283, "lng": 121.241334, "source": "https://dev.ovcsa.uplb.edu.ph/offices-units"},
-{"name": "Office of Scholarships and Grants (OSG)", "type": "office", "building_or_area": "Student Union Building, main campus", "description": "OVCSA unit administering scholarships and financial assistance.", "lat": 14.163283, "lng": 121.241334, "source": "https://dev.ovcsa.uplb.edu.ph/offices-units"},
-{"name": "Learning Resource Center (LRC)", "type": "office", "building_or_area": "LRC Learning Hub beside the Student Union Building", "description": "OVCSA unit providing study spaces and academic support services.", "lat": 14.16307, "lng": 121.241488, "source": "https://www.openstreetmap.org/node/10066599413"},
-{"name": "University Housing Office (UHO)", "type": "office", "building_or_area": "Near the dormitory area, southwestern main campus", "description": "OVCCA unit managing university housing and dormitories.", "lat": 14.15916, "lng": 121.241789, "source": "https://www.openstreetmap.org/node/3730591725"},
-{"name": "UPLB Gender Center", "type": "office", "building_or_area": "Near Graduate School, western main campus", "description": "OVCCA unit promoting gender equality and handling gender concerns.", "lat": 14.163765, "lng": 121.239401, "source": "https://www.openstreetmap.org/node/1030726166"},
-{"name": "Digital Innovation Center (DIC)", "type": "office", "building_or_area": "Near CAFS complex, central main campus", "description": "OVCPD unit for campus IT systems and digital services.", "lat": 14.16683, "lng": 121.243362, "source": "https://www.openstreetmap.org/node/1471921959"},
-{"name": "Office of Alumni Relations (OAR)", "type": "office", "building_or_area": "Near UHS, western main campus", "description": "Office of the Chancellor unit for alumni affairs.", "lat": 14.16286, "lng": 121.238833, "source": "https://www.openstreetmap.org/node/13020187159"},
-{"name": "Office of International Linkages (OIL)", "type": "office", "building_or_area": "Near Graduate School, western main campus", "description": "Office of the Chancellor unit for international partnerships and exchange.", "lat": 14.163266, "lng": 121.23947, "source": "https://www.openstreetmap.org/way/37331990"},
-{"name": "Ugnayan ng Pahinungod (Bahay ng Pahinungod)", "type": "office", "building_or_area": "Bahay ng Pahinungod, southwestern main campus", "description": "UPLB's official volunteer service arm.", "lat": 14.159779, "lng": 121.241421, "source": "https://www.openstreetmap.org/way/46220299"},
-{"name": "UPLB Foundation, Inc. (UPLBFI)", "type": "unit", "building_or_area": "UPLBFI Building beside the Student Union Building", "description": "Non-profit foundation supporting UPLB research and development projects.", "lat": 14.163558, "lng": 121.241853, "source": "https://www.openstreetmap.org/node/6158418815"},
-{"name": "University Library (Main Library)", "type": "service", "building_or_area": "Bienvenido M. Gonzalez Hall, main campus", "description": "UPLB's main library, housed in B.M. Gonzalez Hall.", "lat": 14.165565, "lng": 121.239004, "source": "https://www.openstreetmap.org/node/391723445"},
-{"name": "University Health Service (UHS)", "type": "service", "building_or_area": "UHS compound, western main campus", "description": "Campus hospital providing medical services to the UPLB community.", "lat": 14.162659, "lng": 121.238383, "source": "https://www.openstreetmap.org/way/96323121"},
-{"name": "UPLB Post Office", "type": "service", "building_or_area": "Near Student Union Building, main campus", "description": "Campus post office.", "lat": 14.163526, "lng": 121.242078, "source": "https://www.openstreetmap.org/way/109349304"},
-{"name": "University Bookstore", "type": "service", "building_or_area": "UPLBFI Building near the Student Union Building", "description": "Campus bookstore for school supplies and UPLB merchandise.", "lat": 14.163559, "lng": 121.241767, "source": "https://www.openstreetmap.org/node/3706025964"},
-{"name": "Church Among the Palms", "type": "service", "building_or_area": "Northern main campus near IBS", "description": "Protestant church serving the campus community since the UPCA era.", "lat": 14.167641, "lng": 121.240362, "source": "https://www.openstreetmap.org/node/435133712"},
-{"name": "Saint John Paul II Chapel and Pastoral Center", "type": "service", "building_or_area": "Batong Malake, near Grove area", "description": "Catholic chapel and pastoral center serving the UPLB community.", "lat": 14.171955, "lng": 121.241767, "source": "https://www.openstreetmap.org/way/364528104"},
-{"name": "Makiling Residence Hall", "type": "service", "building_or_area": "Forestry (upper) campus", "description": "University dormitory on the Forestry campus.", "lat": 14.151829, "lng": 121.235084, "source": "https://www.openstreetmap.org/way/96698729"},
-{"name": "Forestry Residence Hall", "type": "service", "building_or_area": "Forestry (upper) campus", "description": "University dormitory on the Forestry campus.", "lat": 14.152468, "lng": 121.234908, "source": "https://www.openstreetmap.org/way/96698725"},
-{"name": "New Forestry Residence Hall", "type": "service", "building_or_area": "Forestry (upper) campus", "description": "University dormitory on the Forestry campus.", "lat": 14.152119, "lng": 121.234358, "source": "https://www.openstreetmap.org/relation/1954827"},
-{"name": "International House Residence Hall", "type": "service", "building_or_area": "Western main campus near Graduate School", "description": "University dormitory for international and graduate students.", "lat": 14.163476, "lng": 121.23913, "source": "https://www.openstreetmap.org/way/37331964"},
-{"name": "New Dormitory Residence Hall", "type": "service", "building_or_area": "Dormitory area, southwestern main campus", "description": "University dormitory near Copeland Gymnasium.", "lat": 14.155648, "lng": 121.240998, "source": "https://www.openstreetmap.org/way/54603534"},
-{"name": "UPLB Oblation (Oblation Park)", "type": "landmark", "building_or_area": "Oblation Park fronting B.M. Gonzalez Hall", "description": "UPLB's Oblation statue, the UP System's iconic symbol of selfless offering.", "lat": 14.165003, "lng": 121.241552, "source": "https://www.openstreetmap.org/node/382803333"},
-{"name": "Carabao Park (UPCA Alumni Plaza)", "type": "landmark", "building_or_area": "In front of the CAFS/Agriculture area, central main campus", "description": "Plaza with carabao head sculptures; popular gathering and picture spot.", "lat": 14.166851, "lng": 121.242972, "source": "https://www.openstreetmap.org/way/40549560"},
-{"name": "Freedom Park (D.L. Umali Freedom Park)", "type": "landmark", "building_or_area": "Central main campus, along the academic oval", "description": "Large open field used for gatherings, sports, and university events.", "lat": 14.161281, "lng": 121.241725, "source": "https://www.openstreetmap.org/way/33541968"},
-{"name": "Fertility Tree", "type": "landmark", "building_or_area": "Campus oval area between Freedom Park and UPLB Alumni Plaza", "description": "Old rubber tree steeped in campus folklore about couples who pass beneath it.", "lat": 14.159816, "lng": 121.24259, "source": "https://www.openstreetmap.org/node/438057680"},
-{"name": "Dioscoro L. Umali Hall", "type": "landmark", "building_or_area": "Central main campus beside SEARCA", "description": "UPLB's main auditorium and theater, designed by National Artist Leandro Locsin.", "lat": 14.163982, "lng": 121.240132, "source": "https://www.openstreetmap.org/way/33541381"},
-{"name": "Charles Fuller Baker Memorial Hall", "type": "landmark", "building_or_area": "Along the campus oval near Freedom Park", "description": "Historic gymnasium-auditorium; served as a WWII internment camp site.", "lat": 14.161758, "lng": 121.242768, "source": "https://www.openstreetmap.org/way/37449973"},
-{"name": "Edwin B. Copeland Gymnasium", "type": "landmark", "building_or_area": "Southern main campus near CVM", "description": "UPLB's main gymnasium for sports and large events.", "lat": 14.156942, "lng": 121.242532, "source": "https://www.openstreetmap.org/way/54601562"},
-{"name": "Student Union Building (SU)", "type": "landmark", "building_or_area": "Central main campus near the Post Office", "description": "Locsin-designed student center housing OVCSA offices, USC, student publications, and food stalls.", "lat": 14.163283, "lng": 121.241334, "source": "https://www.openstreetmap.org/way/37450035"},
-{"name": "Obdulia F. Sison Hall", "type": "landmark", "building_or_area": "Southwestern main campus near the dormitory area", "description": "Locsin-designed hall, formerly the Continuing Education Center.", "lat": 14.159227, "lng": 121.241571, "source": "https://www.openstreetmap.org/relation/1856183"},
-{"name": "UPLB Carillon Tower", "type": "landmark", "building_or_area": "Campus oval area near UPLB Alumni Plaza", "description": "Bell tower landmark on the main campus oval.", "lat": 14.159262, "lng": 121.242376, "source": "https://www.openstreetmap.org/way/37450231"},
-{"name": "UPLB Academic Heritage Tower", "type": "landmark", "building_or_area": "Near Carabao Park, central main campus", "description": "Monument tower commemorating UPLB's academic heritage.", "lat": 14.166277, "lng": 121.242652, "source": "https://www.openstreetmap.org/way/55418064"},
-{"name": "UPLB Alumni Plaza", "type": "landmark", "building_or_area": "Campus oval area near the Carillon Tower", "description": "Plaza honoring UPLB alumni.", "lat": 14.159576, "lng": 121.243083, "source": "https://www.openstreetmap.org/way/184152794"},
-{"name": "Seniors' Social Garden", "type": "landmark", "building_or_area": "Between Freedom Park and the Mathematics Building", "description": "Garden donated by graduating classes; venue for socials and hangouts.", "lat": 14.162502, "lng": 121.243688, "source": "https://www.openstreetmap.org/way/64056189"},
-{"name": "UPLB Centennial Tree Park", "type": "landmark", "building_or_area": "Western main campus near the Graduate School", "description": "Tree park established for the UP centennial.", "lat": 14.162986, "lng": 121.239119, "source": "https://www.openstreetmap.org/way/127593022"},
-{"name": "UPLB Sculpture Garden", "type": "landmark", "building_or_area": "Campus oval area near UPLB Alumni Plaza", "description": "Outdoor garden of sculptures on the main campus.", "lat": 14.159285, "lng": 121.24358, "source": "https://www.openstreetmap.org/node/10959223305"},
-{"name": "Hortorium", "type": "landmark", "building_or_area": "Western main campus near IBS", "description": "Botanical garden and plant collection area of the university.", "lat": 14.165108, "lng": 121.238154, "source": "https://www.openstreetmap.org/way/139071732"},
-{"name": "UPLB Grandstand", "type": "landmark", "building_or_area": "Freedom Park, campus oval", "description": "Grandstand facing Freedom Park, used during university events.", "lat": 14.160519, "lng": 121.242869, "source": "https://www.openstreetmap.org/way/139810612"},
-{"name": "UPLB Founding Site", "type": "landmark", "building_or_area": "Near Los Baños town center, Brgy. Baybayin area", "description": "Commemorative marker at the original 1909 founding site of the UP College of Agriculture.", "lat": 14.177519, "lng": 121.221577, "source": "https://www.openstreetmap.org/way/552256905"},
-{"name": "Abelardo G. Samonte Building", "type": "landmark", "building_or_area": "CAFS area, central main campus", "description": "Locsin-designed former administration building, now used by the agriculture college offices.", "lat": 14.166605, "lng": 121.24333, "source": "https://www.openstreetmap.org/relation/965400"},
-{"name": "Bienvenido M. Gonzalez Hall", "type": "landmark", "building_or_area": "Central main campus fronting Oblation Park", "description": "Main administration building; houses the Office of the Chancellor, VC offices, and the Main Library.", "lat": 14.165517, "lng": 121.239035, "source": "https://www.openstreetmap.org/relation/5475275"},
-{"name": "Mount Makiling", "type": "tourist-spot", "building_or_area": "Makiling Forest Reserve, upper campus", "description": "Dormant volcano and legendary mountain overlooking UPLB; popular hiking destination.", "lat": 14.135224, "lng": 121.194452, "source": "https://www.openstreetmap.org/node/320129564"},
-{"name": "Mount Makiling Forest Reserve", "type": "tourist-spot", "building_or_area": "Upper campus, administered by UPLB", "description": "4,000+ hectare forest reserve managed by UPLB as a research and conservation area.", "lat": 14.138012, "lng": 121.211992, "source": "https://www.openstreetmap.org/way/542884941"},
-{"name": "Makiling Botanic Gardens (MBG)", "type": "tourist-spot", "building_or_area": "Forestry (upper) campus", "description": "Botanic gardens with forest trails, swimming spots, and picnic areas under CFNR.", "lat": 14.156688, "lng": 121.233989, "source": "https://www.openstreetmap.org/node/797775790"},
-{"name": "Mud Springs", "type": "tourist-spot", "building_or_area": "Mt. Makiling trail, Makiling Forest Reserve", "description": "Bubbling geothermal mud pool along the Mt. Makiling hiking trail.", "lat": 14.136626, "lng": 121.221184, "source": "https://www.openstreetmap.org/node/945030123"},
-{"name": "Flat Rocks", "type": "tourist-spot", "building_or_area": "Molawin Creek, Mt. Makiling trail", "description": "Rocky creek-side rest stop along the lower Makiling trail; popular picnic spot.", "lat": 14.147574, "lng": 121.229785, "source": "https://www.openstreetmap.org/node/659629116"},
-{"name": "Mount Makiling Peak 2", "type": "tourist-spot", "building_or_area": "Mt. Makiling summit area", "description": "Highest accessible peak of Mt. Makiling, endpoint of the UPLB hiking trail.", "lat": 14.135847, "lng": 121.193905, "source": "https://www.openstreetmap.org/node/332020189"},
-{"name": "Maria Makiling Trail Station 1 (trailhead)", "type": "tourist-spot", "building_or_area": "Forestry (upper) campus near MCME", "description": "First station of the Maria Makiling hiking trail up the mountain.", "lat": 14.15132, "lng": 121.233701, "source": "https://www.openstreetmap.org/node/606531743"},
-{"name": "Molawin River Natural Pool", "type": "tourist-spot", "building_or_area": "Makiling Botanic Gardens area", "description": "Natural swimming pool on the Molawin River inside the botanic gardens.", "lat": 14.156953, "lng": 121.233282, "source": "https://www.openstreetmap.org/node/10048422590"},
-{"name": "Pook ni Maria Makiling", "type": "tourist-spot", "building_or_area": "Upper campus along the road to Makiling", "description": "Recreation and lodging site with a swimming pool on the slopes of Mt. Makiling.", "lat": 14.155877, "lng": 121.226918, "source": "https://www.openstreetmap.org/node/945030668"},
-{"name": "Makiling Rainforest Park - Central Nursery", "type": "tourist-spot", "building_or_area": "Makiling Forest Reserve, along the summit trail", "description": "Rainforest park and nursery station within the forest reserve.", "lat": 14.135151, "lng": 121.228216, "source": "https://www.openstreetmap.org/node/5401070922"},
-{"name": "Makiling National Scout Reservation", "type": "tourist-spot", "building_or_area": "Upper campus area, adjacent to the forest reserve", "description": "Boy Scouts of the Philippines camping reservation on Makiling's slopes; site of the 1959 World Jamboree.", "lat": 14.160041, "lng": 121.226365, "source": "https://www.openstreetmap.org/way/243409879"},
-{"name": "UPLB-EDC Binhi Biodiversity Park", "type": "tourist-spot", "building_or_area": "Forestry (upper) campus", "description": "Native-tree biodiversity park established with the Energy Development Corporation.", "lat": 14.154423, "lng": 121.236677, "source": "https://www.openstreetmap.org/way/364274104"},
-{"name": "CFNR Alumni Forest and Nature Park", "type": "tourist-spot", "building_or_area": "Forestry (upper) campus", "description": "Forest park maintained by CFNR alumni.", "lat": 14.152002, "lng": 121.236362, "source": "https://www.openstreetmap.org/way/386337387"},
-{"name": "DTRI Dairy Bar", "type": "food", "building_or_area": "DTRI complex, southeastern main campus", "description": "Iconic campus stop for fresh milk, cheese, and ice cream from the dairy institute.", "lat": 14.156264, "lng": 121.245852, "source": "https://www.openstreetmap.org/node/527835123"},
-{"name": "University Cafeteria", "type": "food", "building_or_area": "Beside the Student Union Building", "description": "Long-running university-run cafeteria.", "lat": 14.163538, "lng": 121.241707, "source": "https://www.openstreetmap.org/node/3345258485"},
-{"name": "Student Union Canteen", "type": "food", "building_or_area": "Student Union Building", "description": "Food stalls inside the Student Union Building.", "lat": 14.163391, "lng": 121.24128, "source": "https://www.openstreetmap.org/node/10218006805"},
-{"name": "But First, Coffee", "type": "food", "building_or_area": "Grove area, Batong Malake", "description": "Popular student cafe just outside campus.", "lat": 14.168824, "lng": 121.243993, "source": "https://www.openstreetmap.org/node/1426668938"},
-{"name": "Aling Glo's Restaurant", "type": "food", "building_or_area": "Grove area, Batong Malake", "description": "Budget eatery popular with students.", "lat": 14.169234, "lng": 121.244272, "source": "https://www.openstreetmap.org/node/2199698807"},
-{"name": "R.M. Cadapan's Canteen", "type": "food", "building_or_area": "Raymundo Gate area, Batong Malake", "description": "Long-standing budget canteen near campus.", "lat": 14.168689, "lng": 121.241126, "source": "https://www.openstreetmap.org/way/303040678"},
-{"name": "Vega Centre", "type": "food", "building_or_area": "Grove area, Batong Malake", "description": "Commercial arcade with food stalls and services frequented by students.", "lat": 14.167642, "lng": 121.243778, "source": "https://www.openstreetmap.org/way/33541341"},
-{"name": "IRRI Cafeteria", "type": "food", "building_or_area": "IRRI headquarters campus", "description": "Cafeteria at IRRI headquarters, open to visitors.", "lat": 14.16929, "lng": 121.25497, "source": "https://www.openstreetmap.org/node/995847429"},
-{"name": "SEARCA Canteen", "type": "food", "building_or_area": "SEARCA building, central main campus", "description": "Canteen at the SEARCA building.", "lat": 14.164943, "lng": 121.240009, "source": "https://www.openstreetmap.org/node/4308325496"},
-{"name": "Vraja Cuisine - Vegetarian and Vegan Cafe", "type": "food", "building_or_area": "Campus oval area near UPLB Alumni Plaza", "description": "Vegetarian and vegan cafe near the campus oval.", "lat": 14.159856, "lng": 121.243205, "source": "https://www.openstreetmap.org/way/397914525"},
-{"name": "Black And Brew Cafe", "type": "food", "building_or_area": "Grove area, Batong Malake", "description": "Coffee shop near the Vega Centre strip.", "lat": 14.167579, "lng": 121.243625, "source": "https://www.openstreetmap.org/node/11688947827"},
-{"name": "SNODLOB UPLB - Jubileeville stop", "type": "transport", "building_or_area": "Near CAFS complex, central main campus", "description": "Bus/jeepney stop on campus for the Jubileeville route.", "lat": 14.166029, "lng": 121.243866, "source": "https://www.openstreetmap.org/node/12777009142"},
-{"name": "Makiling Botanic Gardens Bus Parking", "type": "transport", "building_or_area": "Forestry (upper) campus, MBG entrance", "description": "Bus and visitor parking at the Makiling Botanic Gardens entrance.", "lat": 14.15613, "lng": 121.235524, "source": "https://www.openstreetmap.org/way/65249944"},
-{"name": "UPLB University Student Council (USC)", "type": "student-org", "building_or_area": "Student Union Building, main campus", "description": "The highest student governing body of UPLB.", "lat": 14.163211, "lng": 121.24136, "source": "https://www.openstreetmap.org/node/3777706880"},
-{"name": "UPLB Perspective", "type": "student-org", "building_or_area": "Student Union Building, main campus", "description": "The official student publication of UPLB.", "lat": 14.163256, "lng": 121.241312, "source": "https://www.openstreetmap.org/node/3777706879"},
-{"name": "UPLB DevComSoc (tambayan)", "type": "college-org", "building_or_area": "CDC grounds, central main campus", "description": "Development Communication Society of UPLB; tambayan at the CDC grounds.", "lat": 14.166965, "lng": 121.242573, "source": "https://www.openstreetmap.org/node/774674657"},
-{"name": "UPLB Babaylan", "type": "student-org", "building_or_area": "CAS area, central main campus", "description": "LGBTQ+ student organization of UPLB.", "lat": 14.164643, "lng": 121.241124, "source": "https://www.openstreetmap.org/node/7785052612"}
+  {
+    "name": "College of Agriculture and Food Science (CAFS)",
+    "type": "academic",
+    "building_or_area": "CAFS complex near A.G. Samonte Building, central main campus",
+    "description": "UPLB's founding college (est. 1909 as UP College of Agriculture); agriculture and food science education and research.",
+    "lat": 14.166594,
+    "lng": 121.243326,
+    "source": "https://www.openstreetmap.org/way/227117663"
+  },
+  {
+    "name": "College of Arts and Sciences (CAS)",
+    "type": "academic",
+    "building_or_area": "CAS complex, central main campus",
+    "description": "UPLB's largest college, home of the basic sciences, humanities, and social sciences institutes.",
+    "lat": 14.165364,
+    "lng": 121.240937,
+    "source": "https://www.openstreetmap.org/way/227117664"
+  },
+  {
+    "name": "College of Development Communication (CDC)",
+    "type": "academic",
+    "building_or_area": "CDC building, central main campus beside CEM",
+    "description": "Pioneer college of development communication in Asia.",
+    "lat": 14.167046,
+    "lng": 121.242583,
+    "source": "https://www.openstreetmap.org/way/227117665"
+  },
+  {
+    "name": "College of Economics and Management (CEM)",
+    "type": "academic",
+    "building_or_area": "CEM complex, central main campus",
+    "description": "College for economics, agricultural economics, and agribusiness management programs.",
+    "lat": 14.16719,
+    "lng": 121.241604,
+    "source": "https://www.openstreetmap.org/way/60798742"
+  },
+  {
+    "name": "College of Engineering and Agro-Industrial Technology (CEAT)",
+    "type": "academic",
+    "building_or_area": "CEAT complex, eastern main campus",
+    "description": "Engineering college of UPLB (civil, chemical, electrical, industrial, agricultural and biosystems engineering).",
+    "lat": 14.162271,
+    "lng": 121.247953,
+    "source": "https://www.openstreetmap.org/relation/3018366"
+  },
+  {
+    "name": "College of Forestry and Natural Resources (CFNR)",
+    "type": "academic",
+    "building_or_area": "Forestry (upper) campus, foothills of Mt. Makiling",
+    "description": "Forestry and natural resources college on the upper campus; administers Makiling-related units.",
+    "lat": 14.154433,
+    "lng": 121.234541,
+    "source": "https://www.openstreetmap.org/way/226828346"
+  },
+  {
+    "name": "College of Human Ecology (CHE)",
+    "type": "academic",
+    "building_or_area": "CHE building, central main campus",
+    "description": "College covering human ecology, nutrition, human and family development studies.",
+    "lat": 14.164666,
+    "lng": 121.242834,
+    "source": "https://www.openstreetmap.org/way/153334157"
+  },
+  {
+    "name": "College of Public Affairs and Development (CPAf)",
+    "type": "academic",
+    "building_or_area": "CPAf complex, southwestern main campus",
+    "description": "Graduate college for public affairs, governance, and rural development.",
+    "lat": 14.16031,
+    "lng": 121.237609,
+    "source": "https://www.openstreetmap.org/relation/10758935"
+  },
+  {
+    "name": "College of Veterinary Medicine (CVM)",
+    "type": "academic",
+    "building_or_area": "CVM complex, southern main campus",
+    "description": "The country's oldest veterinary school; runs the Veterinary Teaching Hospital.",
+    "lat": 14.157853,
+    "lng": 121.243017,
+    "source": "https://www.openstreetmap.org/way/226827292"
+  },
+  {
+    "name": "UPLB Graduate School",
+    "type": "academic",
+    "building_or_area": "Graduate School building, western main campus near UHS",
+    "description": "Administers UPLB's masters and doctoral programs.",
+    "lat": 14.163693,
+    "lng": 121.239325,
+    "source": "https://www.openstreetmap.org/way/37331969"
+  },
+  {
+    "name": "School of Environmental Science and Management (SESAM)",
+    "type": "academic",
+    "building_or_area": "SESAM building, central main campus near IBS",
+    "description": "Graduate school for interdisciplinary environmental science and management.",
+    "lat": 14.166246,
+    "lng": 121.241518,
+    "source": "https://www.openstreetmap.org/way/486586075"
+  },
+  {
+    "name": "Institute of Biological Sciences (IBS)",
+    "type": "academic",
+    "building_or_area": "IBS complex, CAS, central main campus",
+    "description": "CAS institute for biology; largest institute in the university.",
+    "lat": 14.16633,
+    "lng": 121.239555,
+    "source": "https://www.openstreetmap.org/way/136462397"
+  },
+  {
+    "name": "Institute of Chemistry (IC)",
+    "type": "academic",
+    "building_or_area": "Physical Sciences complex, CAS",
+    "description": "CAS institute for chemistry teaching and research.",
+    "lat": 14.164055,
+    "lng": 121.242049,
+    "source": "https://www.openstreetmap.org/node/1426038564"
+  },
+  {
+    "name": "Institute of Computer Science (ICS)",
+    "type": "academic",
+    "building_or_area": "Physical Sciences complex, CAS",
+    "description": "CAS institute for computer science; runs the BS Computer Science program.",
+    "lat": 14.164603,
+    "lng": 121.241953,
+    "source": "https://www.openstreetmap.org/node/1426038567"
+  },
+  {
+    "name": "Institute of Mathematical Sciences and Physics / New Mathematics Building",
+    "type": "academic",
+    "building_or_area": "New Mathematics Building, CAS, central main campus",
+    "description": "Home of mathematics instruction at UPLB.",
+    "lat": 14.1648,
+    "lng": 121.2436,
+    "source": "https://www.openstreetmap.org/relation/4194171"
+  },
+  {
+    "name": "Institute of Statistics (INSTAT)",
+    "type": "academic",
+    "building_or_area": "Physical Sciences complex, CAS",
+    "description": "CAS institute for statistics.",
+    "lat": 14.164669,
+    "lng": 121.242104,
+    "source": "https://www.openstreetmap.org/node/1426038586"
+  },
+  {
+    "name": "Institute of Physics (IoP)",
+    "type": "academic",
+    "building_or_area": "Physical Sciences complex, CAS",
+    "description": "CAS institute for physics.",
+    "lat": 14.164457,
+    "lng": 121.241758,
+    "source": "https://www.openstreetmap.org/node/1426038585"
+  },
+  {
+    "name": "Institute of Food Science and Technology (IFST)",
+    "type": "academic",
+    "building_or_area": "IFST building, CAFS, southern main campus",
+    "description": "CAFS institute for food science and technology.",
+    "lat": 14.160287,
+    "lng": 121.24413,
+    "source": "https://www.openstreetmap.org/way/139810604"
+  },
+  {
+    "name": "Institute of Animal Science (IAS)",
+    "type": "academic",
+    "building_or_area": "F.M. Fronda Hall, B.M. Gonzales Animal Science Complex, southern main campus",
+    "description": "CAFS institute for animal science.",
+    "lat": 14.158168,
+    "lng": 121.243955,
+    "source": "https://www.openstreetmap.org/relation/2992278"
+  },
+  {
+    "name": "Institute of Crop Science (ICropS)",
+    "type": "academic",
+    "building_or_area": "Nemesio B. Mendiola Hall, southern main campus",
+    "description": "CAFS institute for crop science.",
+    "lat": 14.159786,
+    "lng": 121.244805,
+    "source": "https://www.openstreetmap.org/way/139810598"
+  },
+  {
+    "name": "Institute of Human Nutrition and Food (IHNF)",
+    "type": "academic",
+    "building_or_area": "IHNF building, CHE, central main campus",
+    "description": "CHE institute for nutrition and food studies.",
+    "lat": 14.16422,
+    "lng": 121.242703,
+    "source": "https://www.openstreetmap.org/way/38063757"
+  },
+  {
+    "name": "Institute of Cooperatives and Bio-Enterprise Development (ICOPED)",
+    "type": "academic",
+    "building_or_area": "ICOPED building, CEM, central main campus",
+    "description": "CEM institute for cooperatives and bio-enterprise development.",
+    "lat": 14.167506,
+    "lng": 121.242245,
+    "source": "https://www.openstreetmap.org/way/139810603"
+  },
+  {
+    "name": "Institute of Renewable Natural Resources (IRNR)",
+    "type": "academic",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "CFNR institute for renewable natural resources.",
+    "lat": 14.1544,
+    "lng": 121.236022,
+    "source": "https://www.openstreetmap.org/way/118883866"
+  },
+  {
+    "name": "Department of Social Forestry and Forest Governance",
+    "type": "academic",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "CFNR department for social forestry and forest governance.",
+    "lat": 14.15362,
+    "lng": 121.235406,
+    "source": "https://www.openstreetmap.org/way/96698728"
+  },
+  {
+    "name": "Department of Basic Veterinary Sciences",
+    "type": "academic",
+    "building_or_area": "CVM complex, southern main campus",
+    "description": "CVM department for basic veterinary sciences.",
+    "lat": 14.158241,
+    "lng": 121.242733,
+    "source": "https://www.openstreetmap.org/way/55414956"
+  },
+  {
+    "name": "Department of Veterinary Paraclinical Sciences",
+    "type": "academic",
+    "building_or_area": "CVM complex, southern main campus",
+    "description": "CVM department for veterinary paraclinical sciences.",
+    "lat": 14.157943,
+    "lng": 121.242878,
+    "source": "https://www.openstreetmap.org/way/60890352"
+  },
+  {
+    "name": "Institute of Plant Breeding (IPB)",
+    "type": "unit",
+    "building_or_area": "Eastern campus research area near BIOTECH",
+    "description": "CAFS research institute for crop improvement and plant breeding.",
+    "lat": 14.151468,
+    "lng": 121.262073,
+    "source": "https://www.openstreetmap.org/relation/4752003"
+  },
+  {
+    "name": "BIOTECH (National Institute of Molecular Biology and Biotechnology)",
+    "type": "unit",
+    "building_or_area": "Eastern campus research area",
+    "description": "National research institute for molecular biology and biotechnology under OVCRE.",
+    "lat": 14.149591,
+    "lng": 121.261088,
+    "source": "https://www.openstreetmap.org/way/109369362"
+  },
+  {
+    "name": "National Crop Protection Center (NCPC)",
+    "type": "unit",
+    "building_or_area": "Eastern campus research area",
+    "description": "National research center for crop protection under CAFS.",
+    "lat": 14.150893,
+    "lng": 121.259432,
+    "source": "https://www.openstreetmap.org/way/109369419"
+  },
+  {
+    "name": "Postharvest Horticulture Training and Research Center (PHTRC)",
+    "type": "unit",
+    "building_or_area": "Southern main campus near CEAT",
+    "description": "CAFS center for postharvest horticulture research and training.",
+    "lat": 14.161148,
+    "lng": 121.24426,
+    "source": "https://www.openstreetmap.org/way/139810611"
+  },
+  {
+    "name": "Agricultural Machinery Testing and Evaluation Center (AMTEC)",
+    "type": "unit",
+    "building_or_area": "Eastern campus research area",
+    "description": "CEAT center that tests and evaluates agricultural machinery.",
+    "lat": 14.149911,
+    "lng": 121.257836,
+    "source": "https://www.openstreetmap.org/way/109369355"
+  },
+  {
+    "name": "Dairy Training and Research Institute (DTRI)",
+    "type": "unit",
+    "building_or_area": "DTRI complex, southeastern main campus",
+    "description": "CAFS institute for dairy production research and training; famous for its Dairy Bar products.",
+    "lat": 14.15625,
+    "lng": 121.246071,
+    "source": "https://www.openstreetmap.org/way/97328141"
+  },
+  {
+    "name": "Makiling Center for Mountain Ecosystems (MCME)",
+    "type": "unit",
+    "building_or_area": "Forestry (upper) campus, base of Mt. Makiling",
+    "description": "CFNR unit managing the Mount Makiling Forest Reserve; issues trail permits.",
+    "lat": 14.151709,
+    "lng": 121.233654,
+    "source": "https://www.openstreetmap.org/way/368470229"
+  },
+  {
+    "name": "UPLB Museum of Natural History (MNH)",
+    "type": "tourist-spot",
+    "building_or_area": "Forestry (upper) campus, foothills of Mt. Makiling",
+    "description": "Natural history museum (est. 1976) showcasing Philippine flora and fauna collections.",
+    "lat": 14.15601,
+    "lng": 121.236467,
+    "source": "https://www.openstreetmap.org/way/144375323"
+  },
+  {
+    "name": "Veterinary Teaching Hospital (VTH)",
+    "type": "service",
+    "building_or_area": "College of Veterinary Medicine complex, southern main campus",
+    "description": "CVM's animal hospital offering clinical services to the public.",
+    "lat": null,
+    "lng": null,
+    "source": "https://www.facebook.com/uplbvthsas/"
+  },
+  {
+    "name": "Veterinary Pathology Resource Facility (VPRF)",
+    "type": "unit",
+    "building_or_area": "CVM complex, southern main campus",
+    "description": "CVM facility for veterinary pathology diagnostics.",
+    "lat": 14.157122,
+    "lng": 121.243097,
+    "source": "https://www.openstreetmap.org/way/116588583"
+  },
+  {
+    "name": "Philippine Carabao Center at UPLB",
+    "type": "unit",
+    "building_or_area": "Animal Science complex, southern main campus",
+    "description": "DA-attached carabao research center hosted at UPLB; sells fresh carabao milk products.",
+    "lat": 14.158756,
+    "lng": 121.244665,
+    "source": "https://www.openstreetmap.org/way/54602943"
+  },
+  {
+    "name": "Philippine Rice Research Institute (PhilRice) Los Baños",
+    "type": "unit",
+    "building_or_area": "PhilRice station, southeastern main campus near CEAT",
+    "description": "DA rice research station co-located on the UPLB campus.",
+    "lat": 14.160698,
+    "lng": 121.247349,
+    "source": "https://www.openstreetmap.org/way/102814182"
+  },
+  {
+    "name": "Ecosystems Research and Development Bureau (DENR-ERDB)",
+    "type": "unit",
+    "building_or_area": "Forestry (upper) campus near MNH",
+    "description": "DENR research bureau headquartered on the Forestry campus.",
+    "lat": 14.155302,
+    "lng": 121.237015,
+    "source": "https://www.openstreetmap.org/way/144375343"
+  },
+  {
+    "name": "International Rice Research Institute (IRRI)",
+    "type": "unit",
+    "building_or_area": "IRRI headquarters campus, east of UPLB main campus",
+    "description": "World's premier rice research organization, hosted on UPLB land since 1960.",
+    "lat": 14.168834,
+    "lng": 121.255221,
+    "source": "https://www.openstreetmap.org/node/7572834137"
+  },
+  {
+    "name": "Riceworld Museum (IRRI)",
+    "type": "tourist-spot",
+    "building_or_area": "IRRI headquarters campus",
+    "description": "Museum on rice science and culture at IRRI headquarters.",
+    "lat": 14.168444,
+    "lng": 121.254548,
+    "source": "https://www.openstreetmap.org/node/995847421"
+  },
+  {
+    "name": "SEARCA (Southeast Asian Regional Center for Graduate Study and Research in Agriculture)",
+    "type": "unit",
+    "building_or_area": "SEARCA building, central main campus beside DL Umali Hall",
+    "description": "Regional graduate study and agriculture research center hosted at UPLB.",
+    "lat": 14.164999,
+    "lng": 121.240133,
+    "source": "https://www.openstreetmap.org/way/109353070"
+  },
+  {
+    "name": "UP Open University (UPOU)",
+    "type": "academic",
+    "building_or_area": "UPOU headquarters, Brgy. Maahas, Los Baños",
+    "description": "The UP System's distance-education university, headquartered near the UPLB campus.",
+    "lat": 14.174569,
+    "lng": 121.263009,
+    "source": "https://www.openstreetmap.org/relation/3010583"
+  },
+  {
+    "name": "Office of the Chancellor (OC)",
+    "type": "office",
+    "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus",
+    "description": "Highest administrative office of UPLB.",
+    "lat": 14.165517,
+    "lng": 121.239035,
+    "source": "https://uplb.edu.ph/oc/"
+  },
+  {
+    "name": "Office of the Vice Chancellor for Academic Affairs (OVCAA)",
+    "type": "office",
+    "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus",
+    "description": "Oversees curricula, instruction, and academic units.",
+    "lat": 14.165517,
+    "lng": 121.239035,
+    "source": "https://uplb.edu.ph/vice-chancellors/"
+  },
+  {
+    "name": "Office of the Vice Chancellor for Administration (OVCA)",
+    "type": "office",
+    "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus",
+    "description": "Handles administrative management: HR, procurement, records, supply.",
+    "lat": 14.165517,
+    "lng": 121.239035,
+    "source": "https://uplb.edu.ph/vice-chancellors/"
+  },
+  {
+    "name": "Office of the Vice Chancellor for Community Affairs (OVCCA)",
+    "type": "office",
+    "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus",
+    "description": "Oversees housing, security, and community services.",
+    "lat": 14.165517,
+    "lng": 121.239035,
+    "source": "https://uplb.edu.ph/vice-chancellors/"
+  },
+  {
+    "name": "Office of the Vice Chancellor for Planning and Development (OVCPD)",
+    "type": "office",
+    "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus",
+    "description": "Oversees campus planning, maintenance, and development projects.",
+    "lat": 14.165517,
+    "lng": 121.239035,
+    "source": "https://uplb.edu.ph/vice-chancellors/"
+  },
+  {
+    "name": "Office of the Vice Chancellor for Research and Extension (OVCRE)",
+    "type": "office",
+    "building_or_area": "3/F Bienvenido M. Gonzalez Hall, main campus",
+    "description": "Coordinates university research and extension programs.",
+    "lat": 14.165517,
+    "lng": 121.239035,
+    "source": "https://uplb.edu.ph/vice-chancellors/"
+  },
+  {
+    "name": "Office of the Vice Chancellor for Student Affairs (OVCSA)",
+    "type": "office",
+    "building_or_area": "Room 2, 2/F Student Union Building, main campus",
+    "description": "Oversees student services: activities, scholarships, housing, counseling.",
+    "lat": 14.163283,
+    "lng": 121.241334,
+    "source": "https://uplb.edu.ph/vice-chancellors/"
+  },
+  {
+    "name": "Office of the Vice Chancellor for Innovation and Enterprise Management (OVCIEM)",
+    "type": "office",
+    "building_or_area": "Mondoñedo Avenue, UPLB campus",
+    "description": "Oversees technology transfer, business affairs, and enterprise units.",
+    "lat": null,
+    "lng": null,
+    "source": "https://uplb.edu.ph/vice-chancellors/"
+  },
+  {
+    "name": "Office of the University Registrar (OUR)",
+    "type": "office",
+    "building_or_area": "G/F CAS Annex 1 Building, main campus",
+    "description": "Handles registration, student records, transcripts, and admissions.",
+    "lat": 14.165472,
+    "lng": 121.241405,
+    "source": "https://our.uplb.edu.ph/contact-us/"
+  },
+  {
+    "name": "Office of Student Activities (OSA)",
+    "type": "office",
+    "building_or_area": "2/F Student Union Building, main campus",
+    "description": "OVCSA unit handling student organizations and activities.",
+    "lat": 14.163283,
+    "lng": 121.241334,
+    "source": "https://uplbosa.org/"
+  },
+  {
+    "name": "Student Disciplinary Tribunal (SDT)",
+    "type": "office",
+    "building_or_area": "2/F Student Union Building, main campus",
+    "description": "OVCSA unit handling student disciplinary cases.",
+    "lat": 14.163283,
+    "lng": 121.241334,
+    "source": "https://dev.ovcsa.uplb.edu.ph/offices-units"
+  },
+  {
+    "name": "Office of Scholarships and Grants (OSG)",
+    "type": "office",
+    "building_or_area": "Student Union Building, main campus",
+    "description": "OVCSA unit administering scholarships and financial assistance.",
+    "lat": 14.163283,
+    "lng": 121.241334,
+    "source": "https://dev.ovcsa.uplb.edu.ph/offices-units"
+  },
+  {
+    "name": "Learning Resource Center (LRC)",
+    "type": "office",
+    "building_or_area": "LRC Learning Hub beside the Student Union Building",
+    "description": "OVCSA unit providing study spaces and academic support services.",
+    "lat": 14.16307,
+    "lng": 121.241488,
+    "source": "https://www.openstreetmap.org/node/10066599413"
+  },
+  {
+    "name": "University Housing Office (UHO)",
+    "type": "office",
+    "building_or_area": "Near the dormitory area, southwestern main campus",
+    "description": "OVCCA unit managing university housing and dormitories.",
+    "lat": 14.15916,
+    "lng": 121.241789,
+    "source": "https://www.openstreetmap.org/node/3730591725"
+  },
+  {
+    "name": "UPLB Gender Center",
+    "type": "office",
+    "building_or_area": "Near Graduate School, western main campus",
+    "description": "OVCCA unit promoting gender equality and handling gender concerns.",
+    "lat": 14.163765,
+    "lng": 121.239401,
+    "source": "https://www.openstreetmap.org/node/1030726166"
+  },
+  {
+    "name": "Digital Innovation Center (DIC)",
+    "type": "office",
+    "building_or_area": "Near CAFS complex, central main campus",
+    "description": "OVCPD unit for campus IT systems and digital services.",
+    "lat": 14.16683,
+    "lng": 121.243362,
+    "source": "https://www.openstreetmap.org/node/1471921959"
+  },
+  {
+    "name": "Office of Alumni Relations (OAR)",
+    "type": "office",
+    "building_or_area": "Near UHS, western main campus",
+    "description": "Office of the Chancellor unit for alumni affairs.",
+    "lat": 14.16286,
+    "lng": 121.238833,
+    "source": "https://www.openstreetmap.org/node/13020187159"
+  },
+  {
+    "name": "Office of International Linkages (OIL)",
+    "type": "office",
+    "building_or_area": "Near Graduate School, western main campus",
+    "description": "Office of the Chancellor unit for international partnerships and exchange.",
+    "lat": 14.163266,
+    "lng": 121.23947,
+    "source": "https://www.openstreetmap.org/way/37331990"
+  },
+  {
+    "name": "Ugnayan ng Pahinungod (Bahay ng Pahinungod)",
+    "type": "office",
+    "building_or_area": "Bahay ng Pahinungod, southwestern main campus",
+    "description": "UPLB's official volunteer service arm.",
+    "lat": 14.159779,
+    "lng": 121.241421,
+    "source": "https://www.openstreetmap.org/way/46220299"
+  },
+  {
+    "name": "UPLB Foundation, Inc. (UPLBFI)",
+    "type": "unit",
+    "building_or_area": "UPLBFI Building beside the Student Union Building",
+    "description": "Non-profit foundation supporting UPLB research and development projects.",
+    "lat": 14.163558,
+    "lng": 121.241853,
+    "source": "https://www.openstreetmap.org/node/6158418815"
+  },
+  {
+    "name": "University Library (Main Library)",
+    "type": "service",
+    "building_or_area": "Bienvenido M. Gonzalez Hall, main campus",
+    "description": "UPLB's main library, housed in B.M. Gonzalez Hall.",
+    "lat": 14.165565,
+    "lng": 121.239004,
+    "source": "https://www.openstreetmap.org/node/391723445"
+  },
+  {
+    "name": "University Health Service (UHS)",
+    "type": "service",
+    "building_or_area": "UHS compound, western main campus",
+    "description": "Campus hospital providing medical services to the UPLB community.",
+    "lat": 14.162659,
+    "lng": 121.238383,
+    "source": "https://www.openstreetmap.org/way/96323121"
+  },
+  {
+    "name": "UPLB Post Office",
+    "type": "service",
+    "building_or_area": "Near Student Union Building, main campus",
+    "description": "Campus post office.",
+    "lat": 14.163526,
+    "lng": 121.242078,
+    "source": "https://www.openstreetmap.org/way/109349304"
+  },
+  {
+    "name": "University Bookstore",
+    "type": "service",
+    "building_or_area": "UPLBFI Building near the Student Union Building",
+    "description": "Campus bookstore for school supplies and UPLB merchandise.",
+    "lat": 14.163559,
+    "lng": 121.241767,
+    "source": "https://www.openstreetmap.org/node/3706025964"
+  },
+  {
+    "name": "Church Among the Palms",
+    "type": "service",
+    "building_or_area": "Northern main campus near IBS",
+    "description": "Protestant church serving the campus community since the UPCA era.",
+    "lat": 14.167641,
+    "lng": 121.240362,
+    "source": "https://www.openstreetmap.org/node/435133712"
+  },
+  {
+    "name": "Saint John Paul II Chapel and Pastoral Center",
+    "type": "service",
+    "building_or_area": "Batong Malake, near Grove area",
+    "description": "Catholic chapel and pastoral center serving the UPLB community.",
+    "lat": 14.171955,
+    "lng": 121.241767,
+    "source": "https://www.openstreetmap.org/way/364528104"
+  },
+  {
+    "name": "Makiling Residence Hall",
+    "type": "service",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "University dormitory on the Forestry campus.",
+    "lat": 14.151829,
+    "lng": 121.235084,
+    "source": "https://www.openstreetmap.org/way/96698729"
+  },
+  {
+    "name": "Forestry Residence Hall",
+    "type": "service",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "University dormitory on the Forestry campus.",
+    "lat": 14.152468,
+    "lng": 121.234908,
+    "source": "https://www.openstreetmap.org/way/96698725"
+  },
+  {
+    "name": "New Forestry Residence Hall",
+    "type": "service",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "University dormitory on the Forestry campus.",
+    "lat": 14.152119,
+    "lng": 121.234358,
+    "source": "https://www.openstreetmap.org/relation/1954827"
+  },
+  {
+    "name": "International House Residence Hall",
+    "type": "service",
+    "building_or_area": "Western main campus near Graduate School",
+    "description": "University dormitory for international and graduate students.",
+    "lat": 14.163476,
+    "lng": 121.23913,
+    "source": "https://www.openstreetmap.org/way/37331964"
+  },
+  {
+    "name": "New Dormitory Residence Hall",
+    "type": "service",
+    "building_or_area": "Dormitory area, southwestern main campus",
+    "description": "University dormitory near Copeland Gymnasium.",
+    "lat": 14.155648,
+    "lng": 121.240998,
+    "source": "https://www.openstreetmap.org/way/54603534"
+  },
+  {
+    "name": "UPLB Oblation (Oblation Park)",
+    "type": "landmark",
+    "building_or_area": "Oblation Park fronting B.M. Gonzalez Hall",
+    "description": "UPLB's Oblation statue, the UP System's iconic symbol of selfless offering.",
+    "lat": 14.165003,
+    "lng": 121.241552,
+    "source": "https://www.openstreetmap.org/node/382803333"
+  },
+  {
+    "name": "Carabao Park (UPCA Alumni Plaza)",
+    "type": "landmark",
+    "building_or_area": "In front of the CAFS/Agriculture area, central main campus",
+    "description": "Plaza with carabao head sculptures; popular gathering and picture spot.",
+    "lat": 14.166851,
+    "lng": 121.242972,
+    "source": "https://www.openstreetmap.org/way/40549560"
+  },
+  {
+    "name": "Freedom Park (D.L. Umali Freedom Park)",
+    "type": "landmark",
+    "building_or_area": "Central main campus, along the academic oval",
+    "description": "Large open field used for gatherings, sports, and university events.",
+    "lat": 14.161281,
+    "lng": 121.241725,
+    "source": "https://www.openstreetmap.org/way/33541968"
+  },
+  {
+    "name": "Fertility Tree",
+    "type": "landmark",
+    "building_or_area": "Campus oval area between Freedom Park and UPLB Alumni Plaza",
+    "description": "Old rubber tree steeped in campus folklore about couples who pass beneath it.",
+    "lat": 14.159816,
+    "lng": 121.24259,
+    "source": "https://www.openstreetmap.org/node/438057680"
+  },
+  {
+    "name": "Dioscoro L. Umali Hall",
+    "type": "landmark",
+    "building_or_area": "Central main campus beside SEARCA",
+    "description": "UPLB's main auditorium and theater, designed by National Artist Leandro Locsin.",
+    "lat": 14.163982,
+    "lng": 121.240132,
+    "source": "https://www.openstreetmap.org/way/33541381"
+  },
+  {
+    "name": "Charles Fuller Baker Memorial Hall",
+    "type": "landmark",
+    "building_or_area": "Along the campus oval near Freedom Park",
+    "description": "Historic gymnasium-auditorium; served as a WWII internment camp site.",
+    "lat": 14.161758,
+    "lng": 121.242768,
+    "source": "https://www.openstreetmap.org/way/37449973"
+  },
+  {
+    "name": "Edwin B. Copeland Gymnasium",
+    "type": "landmark",
+    "building_or_area": "Southern main campus near CVM",
+    "description": "UPLB's main gymnasium for sports and large events.",
+    "lat": 14.156942,
+    "lng": 121.242532,
+    "source": "https://www.openstreetmap.org/way/54601562"
+  },
+  {
+    "name": "Student Union Building (SU)",
+    "type": "landmark",
+    "building_or_area": "Central main campus near the Post Office",
+    "description": "Locsin-designed student center housing OVCSA offices, USC, student publications, and food stalls.",
+    "lat": 14.163283,
+    "lng": 121.241334,
+    "source": "https://www.openstreetmap.org/way/37450035"
+  },
+  {
+    "name": "Obdulia F. Sison Hall",
+    "type": "landmark",
+    "building_or_area": "Southwestern main campus near the dormitory area",
+    "description": "Locsin-designed hall, formerly the Continuing Education Center.",
+    "lat": 14.159227,
+    "lng": 121.241571,
+    "source": "https://www.openstreetmap.org/relation/1856183"
+  },
+  {
+    "name": "UPLB Carillon Tower",
+    "type": "landmark",
+    "building_or_area": "Campus oval area near UPLB Alumni Plaza",
+    "description": "Bell tower landmark on the main campus oval.",
+    "lat": 14.159262,
+    "lng": 121.242376,
+    "source": "https://www.openstreetmap.org/way/37450231"
+  },
+  {
+    "name": "UPLB Academic Heritage Tower",
+    "type": "landmark",
+    "building_or_area": "Near Carabao Park, central main campus",
+    "description": "Monument tower commemorating UPLB's academic heritage.",
+    "lat": 14.166277,
+    "lng": 121.242652,
+    "source": "https://www.openstreetmap.org/way/55418064"
+  },
+  {
+    "name": "UPLB Alumni Plaza",
+    "type": "landmark",
+    "building_or_area": "Campus oval area near the Carillon Tower",
+    "description": "Plaza honoring UPLB alumni.",
+    "lat": 14.159576,
+    "lng": 121.243083,
+    "source": "https://www.openstreetmap.org/way/184152794"
+  },
+  {
+    "name": "Seniors' Social Garden",
+    "type": "landmark",
+    "building_or_area": "Between Freedom Park and the Mathematics Building",
+    "description": "Garden donated by graduating classes; venue for socials and hangouts.",
+    "lat": 14.162502,
+    "lng": 121.243688,
+    "source": "https://www.openstreetmap.org/way/64056189"
+  },
+  {
+    "name": "UPLB Centennial Tree Park",
+    "type": "landmark",
+    "building_or_area": "Western main campus near the Graduate School",
+    "description": "Tree park established for the UP centennial.",
+    "lat": 14.162986,
+    "lng": 121.239119,
+    "source": "https://www.openstreetmap.org/way/127593022"
+  },
+  {
+    "name": "UPLB Sculpture Garden",
+    "type": "landmark",
+    "building_or_area": "Campus oval area near UPLB Alumni Plaza",
+    "description": "Outdoor garden of sculptures on the main campus.",
+    "lat": 14.159285,
+    "lng": 121.24358,
+    "source": "https://www.openstreetmap.org/node/10959223305"
+  },
+  {
+    "name": "Hortorium",
+    "type": "landmark",
+    "building_or_area": "Western main campus near IBS",
+    "description": "Botanical garden and plant collection area of the university.",
+    "lat": 14.165108,
+    "lng": 121.238154,
+    "source": "https://www.openstreetmap.org/way/139071732"
+  },
+  {
+    "name": "UPLB Grandstand",
+    "type": "landmark",
+    "building_or_area": "Freedom Park, campus oval",
+    "description": "Grandstand facing Freedom Park, used during university events.",
+    "lat": 14.160519,
+    "lng": 121.242869,
+    "source": "https://www.openstreetmap.org/way/139810612"
+  },
+  {
+    "name": "UPLB Founding Site",
+    "type": "landmark",
+    "building_or_area": "Near Los Baños town center, Brgy. Baybayin area",
+    "description": "Commemorative marker at the original 1909 founding site of the UP College of Agriculture.",
+    "lat": 14.177519,
+    "lng": 121.221577,
+    "source": "https://www.openstreetmap.org/way/552256905"
+  },
+  {
+    "name": "Abelardo G. Samonte Building",
+    "type": "landmark",
+    "building_or_area": "CAFS area, central main campus",
+    "description": "Locsin-designed former administration building, now used by the agriculture college offices.",
+    "lat": 14.166605,
+    "lng": 121.24333,
+    "source": "https://www.openstreetmap.org/relation/965400"
+  },
+  {
+    "name": "Bienvenido M. Gonzalez Hall",
+    "type": "landmark",
+    "building_or_area": "Central main campus fronting Oblation Park",
+    "description": "Main administration building; houses the Office of the Chancellor, VC offices, and the Main Library.",
+    "lat": 14.165517,
+    "lng": 121.239035,
+    "source": "https://www.openstreetmap.org/relation/5475275"
+  },
+  {
+    "name": "Mount Makiling",
+    "type": "tourist-spot",
+    "building_or_area": "Makiling Forest Reserve, upper campus",
+    "description": "Dormant volcano and legendary mountain overlooking UPLB; popular hiking destination.",
+    "lat": 14.135224,
+    "lng": 121.194452,
+    "source": "https://www.openstreetmap.org/node/320129564"
+  },
+  {
+    "name": "Mount Makiling Forest Reserve",
+    "type": "tourist-spot",
+    "building_or_area": "Upper campus, administered by UPLB",
+    "description": "4,000+ hectare forest reserve managed by UPLB as a research and conservation area.",
+    "lat": 14.138012,
+    "lng": 121.211992,
+    "source": "https://www.openstreetmap.org/way/542884941"
+  },
+  {
+    "name": "Makiling Botanic Gardens (MBG)",
+    "type": "tourist-spot",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "Botanic gardens with forest trails, swimming spots, and picnic areas under CFNR.",
+    "lat": 14.156688,
+    "lng": 121.233989,
+    "source": "https://www.openstreetmap.org/node/797775790"
+  },
+  {
+    "name": "Mud Springs",
+    "type": "tourist-spot",
+    "building_or_area": "Mt. Makiling trail, Makiling Forest Reserve",
+    "description": "Bubbling geothermal mud pool along the Mt. Makiling hiking trail.",
+    "lat": 14.136626,
+    "lng": 121.221184,
+    "source": "https://www.openstreetmap.org/node/945030123"
+  },
+  {
+    "name": "Flat Rocks",
+    "type": "tourist-spot",
+    "building_or_area": "Molawin Creek, Mt. Makiling trail",
+    "description": "Rocky creek-side rest stop along the lower Makiling trail; popular picnic spot.",
+    "lat": 14.147574,
+    "lng": 121.229785,
+    "source": "https://www.openstreetmap.org/node/659629116"
+  },
+  {
+    "name": "Mount Makiling Peak 2",
+    "type": "tourist-spot",
+    "building_or_area": "Mt. Makiling summit area",
+    "description": "Highest accessible peak of Mt. Makiling, endpoint of the UPLB hiking trail.",
+    "lat": 14.135847,
+    "lng": 121.193905,
+    "source": "https://www.openstreetmap.org/node/332020189"
+  },
+  {
+    "name": "Maria Makiling Trail Station 1 (trailhead)",
+    "type": "tourist-spot",
+    "building_or_area": "Forestry (upper) campus near MCME",
+    "description": "First station of the Maria Makiling hiking trail up the mountain.",
+    "lat": 14.15132,
+    "lng": 121.233701,
+    "source": "https://www.openstreetmap.org/node/606531743"
+  },
+  {
+    "name": "Molawin River Natural Pool",
+    "type": "tourist-spot",
+    "building_or_area": "Makiling Botanic Gardens area",
+    "description": "Natural swimming pool on the Molawin River inside the botanic gardens.",
+    "lat": 14.156953,
+    "lng": 121.233282,
+    "source": "https://www.openstreetmap.org/node/10048422590"
+  },
+  {
+    "name": "Pook ni Maria Makiling",
+    "type": "tourist-spot",
+    "building_or_area": "Upper campus along the road to Makiling",
+    "description": "Recreation and lodging site with a swimming pool on the slopes of Mt. Makiling.",
+    "lat": 14.155877,
+    "lng": 121.226918,
+    "source": "https://www.openstreetmap.org/node/945030668"
+  },
+  {
+    "name": "Makiling Rainforest Park - Central Nursery",
+    "type": "tourist-spot",
+    "building_or_area": "Makiling Forest Reserve, along the summit trail",
+    "description": "Rainforest park and nursery station within the forest reserve.",
+    "lat": 14.135151,
+    "lng": 121.228216,
+    "source": "https://www.openstreetmap.org/node/5401070922"
+  },
+  {
+    "name": "Makiling National Scout Reservation",
+    "type": "tourist-spot",
+    "building_or_area": "Upper campus area, adjacent to the forest reserve",
+    "description": "Boy Scouts of the Philippines camping reservation on Makiling's slopes; site of the 1959 World Jamboree.",
+    "lat": 14.160041,
+    "lng": 121.226365,
+    "source": "https://www.openstreetmap.org/way/243409879"
+  },
+  {
+    "name": "UPLB-EDC Binhi Biodiversity Park",
+    "type": "tourist-spot",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "Native-tree biodiversity park established with the Energy Development Corporation.",
+    "lat": 14.154423,
+    "lng": 121.236677,
+    "source": "https://www.openstreetmap.org/way/364274104"
+  },
+  {
+    "name": "CFNR Alumni Forest and Nature Park",
+    "type": "tourist-spot",
+    "building_or_area": "Forestry (upper) campus",
+    "description": "Forest park maintained by CFNR alumni.",
+    "lat": 14.152002,
+    "lng": 121.236362,
+    "source": "https://www.openstreetmap.org/way/386337387"
+  },
+  {
+    "name": "DTRI Dairy Bar",
+    "type": "food",
+    "building_or_area": "DTRI complex, southeastern main campus",
+    "description": "Iconic campus stop for fresh milk, cheese, and ice cream from the dairy institute.",
+    "lat": 14.156264,
+    "lng": 121.245852,
+    "source": "https://www.openstreetmap.org/node/527835123"
+  },
+  {
+    "name": "University Cafeteria",
+    "type": "food",
+    "building_or_area": "Beside the Student Union Building",
+    "description": "Long-running university-run cafeteria.",
+    "lat": 14.163538,
+    "lng": 121.241707,
+    "source": "https://www.openstreetmap.org/node/3345258485"
+  },
+  {
+    "name": "Student Union Canteen",
+    "type": "food",
+    "building_or_area": "Student Union Building",
+    "description": "Food stalls inside the Student Union Building.",
+    "lat": 14.163391,
+    "lng": 121.24128,
+    "source": "https://www.openstreetmap.org/node/10218006805"
+  },
+  {
+    "name": "But First, Coffee",
+    "type": "food",
+    "building_or_area": "Grove area, Batong Malake",
+    "description": "Popular student cafe just outside campus.",
+    "lat": 14.168824,
+    "lng": 121.243993,
+    "source": "https://www.openstreetmap.org/node/1426668938"
+  },
+  {
+    "name": "Aling Glo's Restaurant",
+    "type": "food",
+    "building_or_area": "Grove area, Batong Malake",
+    "description": "Budget eatery popular with students.",
+    "lat": 14.169234,
+    "lng": 121.244272,
+    "source": "https://www.openstreetmap.org/node/2199698807"
+  },
+  {
+    "name": "R.M. Cadapan's Canteen",
+    "type": "food",
+    "building_or_area": "Raymundo Gate area, Batong Malake",
+    "description": "Long-standing budget canteen near campus.",
+    "lat": 14.168689,
+    "lng": 121.241126,
+    "source": "https://www.openstreetmap.org/way/303040678"
+  },
+  {
+    "name": "Vega Centre",
+    "type": "food",
+    "building_or_area": "Grove area, Batong Malake",
+    "description": "Commercial arcade with food stalls and services frequented by students.",
+    "lat": 14.167642,
+    "lng": 121.243778,
+    "source": "https://www.openstreetmap.org/way/33541341"
+  },
+  {
+    "name": "IRRI Cafeteria",
+    "type": "food",
+    "building_or_area": "IRRI headquarters campus",
+    "description": "Cafeteria at IRRI headquarters, open to visitors.",
+    "lat": 14.16929,
+    "lng": 121.25497,
+    "source": "https://www.openstreetmap.org/node/995847429"
+  },
+  {
+    "name": "SEARCA Canteen",
+    "type": "food",
+    "building_or_area": "SEARCA building, central main campus",
+    "description": "Canteen at the SEARCA building.",
+    "lat": 14.164943,
+    "lng": 121.240009,
+    "source": "https://www.openstreetmap.org/node/4308325496"
+  },
+  {
+    "name": "Vraja Cuisine - Vegetarian and Vegan Cafe",
+    "type": "food",
+    "building_or_area": "Campus oval area near UPLB Alumni Plaza",
+    "description": "Vegetarian and vegan cafe near the campus oval.",
+    "lat": 14.159856,
+    "lng": 121.243205,
+    "source": "https://www.openstreetmap.org/way/397914525"
+  },
+  {
+    "name": "Black And Brew Cafe",
+    "type": "food",
+    "building_or_area": "Grove area, Batong Malake",
+    "description": "Coffee shop near the Vega Centre strip.",
+    "lat": 14.167579,
+    "lng": 121.243625,
+    "source": "https://www.openstreetmap.org/node/11688947827"
+  },
+  {
+    "name": "SNODLOB UPLB - Jubileeville stop",
+    "type": "transport",
+    "building_or_area": "Near CAFS complex, central main campus",
+    "description": "Bus/jeepney stop on campus for the Jubileeville route.",
+    "lat": 14.166029,
+    "lng": 121.243866,
+    "source": "https://www.openstreetmap.org/node/12777009142"
+  },
+  {
+    "name": "Makiling Botanic Gardens Bus Parking",
+    "type": "transport",
+    "building_or_area": "Forestry (upper) campus, MBG entrance",
+    "description": "Bus and visitor parking at the Makiling Botanic Gardens entrance.",
+    "lat": 14.15613,
+    "lng": 121.235524,
+    "source": "https://www.openstreetmap.org/way/65249944"
+  },
+  {
+    "name": "UPLB University Student Council (USC)",
+    "type": "student-org",
+    "building_or_area": "Student Union Building, main campus",
+    "description": "The highest student governing body of UPLB.",
+    "lat": 14.163211,
+    "lng": 121.24136,
+    "source": "https://www.openstreetmap.org/node/3777706880"
+  },
+  {
+    "name": "UPLB Perspective",
+    "type": "student-org",
+    "building_or_area": "Student Union Building, main campus",
+    "description": "The official student publication of UPLB.",
+    "lat": 14.163256,
+    "lng": 121.241312,
+    "source": "https://www.openstreetmap.org/node/3777706879"
+  },
+  {
+    "name": "UPLB DevComSoc (tambayan)",
+    "type": "college-org",
+    "building_or_area": "CDC grounds, central main campus",
+    "description": "Development Communication Society of UPLB; tambayan at the CDC grounds.",
+    "lat": 14.166965,
+    "lng": 121.242573,
+    "source": "https://www.openstreetmap.org/node/774674657"
+  },
+  {
+    "name": "UPLB Babaylan",
+    "type": "student-org",
+    "building_or_area": "CAS area, central main campus",
+    "description": "LGBTQ+ student organization of UPLB.",
+    "lat": 14.164643,
+    "lng": 121.241124,
+    "source": "https://www.openstreetmap.org/node/7785052612"
+  }
 ]

@@ -54,9 +54,7 @@ test.describe("app menu", () => {
     const panel = page.getByRole("dialog", { name: "App menu" });
     await expect(panel).toBeVisible();
 
-    await panel
-      .getByRole("button", { name: /campus data coverage/i })
-      .click();
+    await panel.getByRole("button", { name: /campus data coverage/i }).click();
     const modal = page.getByRole("dialog", { name: "Campus data coverage" });
     await expect(modal).toBeVisible();
     await expect(
