@@ -6,14 +6,22 @@
   import University from "@lucide/svelte/icons/university";
   import Users from "@lucide/svelte/icons/users";
   import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
-  import { queryStore, sidebarStore, sidePanelStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    modalStore,
+    queryStore,
+    sidebarStore,
+    sidePanelStore,
+  } from "@lib/store.svelte";
   import Map from "@lucide/svelte/icons/map";
   import Keyboard from "@lucide/svelte/icons/keyboard";
   import Cookie from "@lucide/svelte/icons/cookie";
   import { slide } from "svelte/transition";
   import CircleQuestionMark from "@lucide/svelte/icons/circle-question-mark";
   import Tag from "@lucide/svelte/icons/tag";
-    import { LogIn } from "@lucide/svelte";
+  import { LogIn, LogOut } from "@lucide/svelte";
+  import NavLink from "./NavLink.svelte";
+  import { APP_VERSION_LABEL } from "@constants/version";
 
   const entityButtonsInfo: {
     id: string;
@@ -184,15 +192,16 @@
       </defs>
     </svg>
     <div class="categories">
-      <button
-        class="category"
+      <NavLink
         onclick={() => {
           sidebarStore.changeOpened("map");
         }}
-        class:category--hard-active={sidebarStore.panelOpen === "map"}
+        active={sidebarStore.panelOpen === "map"}
+        tooltip="Maps"
+        hard={true}
       >
         <Map size={20} />
-      </button>
+      </NavLink>
       {#if mapCategoriesOpen}
         <div
           class="map-categories"
@@ -202,37 +211,39 @@
           }}
         >
           {#each entityButtonsInfo as entityButtonInfo (entityButtonInfo.id)}
-            <button
-              class="category"
+            <NavLink
               onclick={() => {
                 handleBrowse(entityButtonInfo.id);
               }}
-              class:category--soft-active={activeTab === entityButtonInfo.id}
+              active={activeTab === entityButtonInfo.id}
+              hard={false}
+              tooltip={entityButtonInfo.label}
             >
               <entityButtonInfo.icon size={20} />
-            </button>
+            </NavLink>
           {/each}
         </div>
       {/if}
 
-      <button
-        class="category"
+      <NavLink
         onclick={() => {
           sidebarStore.changeOpened("planner");
         }}
-        class:category--hard-active={sidebarStore.panelOpen === "planner"}
+        active={sidebarStore.panelOpen === "planner"}
+        hard={true}
+        tooltip="Planner"
       >
         <CalendarDays size={20} />
-      </button>
+      </NavLink>
     </div>
   </div>
 
   <div class="bottom">
     <div class="nav-links">
-      <a
+      <NavLink
         href="https://discord.uplbtools.me"
-        class="nav-link"
         aria-label="Join Discord"
+        tooltip="Join Discord"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -246,11 +257,11 @@
             fill="black"
           />
         </svg>
-      </a>
-      <a
+      </NavLink>
+      <NavLink
         href="https://messenger.uplbtools.me"
-        class="nav-link"
         aria-label="Join our Contributors GC"
+        tooltip="Join our Contributors GC"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -284,24 +295,63 @@
             d="M318.88,313.31l87.04-134.52c8.75-13.52-7.46-29.26-20.72-20.11l-90.86,62.67c-3.06,2.11-7.1,2.17-10.22.15l-80.65-52.18c-6.83-4.42-15.94-2.46-20.35,4.36l-87.05,134.52c-8.75,13.52,7.46,29.26,20.72,20.11l90.88-62.68c3.06-2.11,7.1-2.17,10.22-.15l80.63,52.17c6.83,4.42,15.94,2.46,20.36-4.36Z"
           />
         </svg>
-      </a>
+      </NavLink>
     </div>
     <div class="nav-support">
-      <button class="nav-support__button">
-        <LogIn size={20} />
-      </button>
-      <button class="nav-support__button">
+      <NavLink
+        active={false}
+        hard={false}
+        tooltip={adminAuthStore.isLoggedIn ? "Logout" : "Admin login"}
+        onclick={() => {
+            if (!adminAuthStore.isLoggedIn) {
+                adminAuthStore.openLogin("signin");
+            } else {
+                adminAuthStore.logout();
+            }
+        }}
+      >
+        {#if adminAuthStore.isLoggedIn}
+          <LogOut size={20} />
+        {:else}
+          <LogIn size={20} />
+        {/if}
+      </NavLink>
+      <NavLink
+        active={false}
+        hard={false}
+        onclick={() => {
+          window.open("/changelog", "_blank", "popup=yes");
+        }}
+        tooltip={APP_VERSION_LABEL}
+      >
         <Tag size={20} />
-      </button>
-      <button class="nav-support__button">
+      </NavLink>
+      <NavLink
+        active={false}
+        hard={false}
+        onclick={() => window.open("/privacy", "_blank", "popup=yes")}
+        tooltip="Privacy"
+      >
         <Cookie size={20} />
-      </button>
-      <button class="nav-support__button">
+      </NavLink>
+      <NavLink
+        active={false}
+        hard={false}
+        onclick={() => modalStore.openModal("changelog")}
+        tooltip="What's new?"
+      >
         <CircleQuestionMark size={20} />
-      </button>
-      <button class="nav-support__button">
+      </NavLink>
+      <NavLink
+        active={false}
+        hard={false}
+        onclick={() => {
+          window.dispatchEvent(new CustomEvent("room-tba:open-shortcuts-help"));
+        }}
+        tooltip="Keyboard Shortcuts"
+      >
         <Keyboard size={20} />
-      </button>
+      </NavLink>
     </div>
   </div>
 </aside>
@@ -313,6 +363,10 @@
     pointer-events: auto;
     display: flex;
     flex-direction: column;
+    box-shadow:
+      0 1px 3px hsla(0, 0%, 0%, 0.12),
+      0 4px 12px hsla(0, 0%, 0%, 0.16),
+      0 10px 24px hsla(0, 0%, 0%, 0.1);
   }
   div.top,
   div.bottom {
