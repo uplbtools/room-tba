@@ -1,3 +1,24 @@
+# [1.46.0](https://github.com/uplbtools/room-tba/compare/v1.45.0...v1.46.0) (2026-07-10)
+
+
+### Bug Fixes
+
+* **map-chrome:** equal-size bottom bar pills; single Messenger link ([2be567e](https://github.com/uplbtools/room-tba/commit/2be567ea215573b0ce5b20414761123467fdf7cc))
+* **og:** restore designed social card on home; logo + no em dash on entity cards ([9731e4c](https://github.com/uplbtools/room-tba/commit/9731e4c7e4855761efac6c6a3f31dd90c04de16e))
+* **search:** clear pin filter when a result outside its domain is selected ([81f39a4](https://github.com/uplbtools/room-tba/commit/81f39a4b1c2bbae92fbf91c7e59dd51ac1fbb34e))
+* **security:** parse hostname instead of unanchored regex in seed link filter ([4401b9c](https://github.com/uplbtools/room-tba/commit/4401b9c08c3260a9dcc16c973dfe0b2d979b5c40))
+* **ui:** real logo on splash badge; unscope entity-meta-chip base rule ([e431b05](https://github.com/uplbtools/room-tba/commit/e431b052f619c36586d92fbfe19f9329ee901696))
+
+
+### Features
+
+* **data:** seed 108 UPLB orgs, offices, and spots from researched directory ([95f26df](https://github.com/uplbtools/room-tba/commit/95f26df1bd1b5739ea2b049471221155f7535c6b))
+* **map-chrome:** open suggest-addition as a centered modal, not a FAB popover ([c6b3a88](https://github.com/uplbtools/room-tba/commit/c6b3a886df0fe250336b7f5681a3494a33812558))
+* **modal:** split leaderboard and data coverage out of Campus team tab ([d3a15d1](https://github.com/uplbtools/room-tba/commit/d3a15d10c1437bd5bee24b5c7bd67f5520ed54a8))
+* **planner:** mobile-first chrome, action icons, browse pagination ([8a5dafd](https://github.com/uplbtools/room-tba/commit/8a5dafd561e75da2a94fbbae300279919c809597))
+* **proposals:** reject anonymous submitter names reserved by accounts ([0e52448](https://github.com/uplbtools/room-tba/commit/0e52448f924a5df79b4cf056b468e06c8d5bfe32))
+* **ui:** redesign loading splash as brand lockup ([51b1107](https://github.com/uplbtools/room-tba/commit/51b110724a0b6a2675bbd1e2800151c7682ff874)), closes [#app-loading-shell](https://github.com/uplbtools/room-tba/issues/app-loading-shell)
+
 # [1.45.0](https://github.com/uplbtools/room-tba/compare/v1.44.2...v1.45.0) (2026-07-09)
 
 
