@@ -29,6 +29,9 @@
   );
 
   const categoryLabel = $derived(org ? orgCategoryLabel(org.category) : null);
+  const isStudentOrganization = $derived(
+    org?.category === "student-org" || org?.category === "college-org",
+  );
 
   // Resolve the host building (for the "located in" link and coord fallback).
   const hostBuilding = $derived(
@@ -172,21 +175,27 @@
     <header class="entity-header">
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">{org.name}</h2>
-        <button
-          type="button"
-          class="org-info-btn"
-          onclick={() => modalStore.openModal("student-orgs")}
-          aria-label="About student organization listings"
-          title="About student organization listings"
-        >
-          <Info size={16} aria-hidden="true" />
-        </button>
+        {#if isStudentOrganization}
+          <button
+            type="button"
+            class="org-info-btn"
+            onclick={() => modalStore.openModal("student-orgs")}
+            aria-label="About student organization listings"
+            title="About student organization listings"
+          >
+            <Info size={16} aria-hidden="true" />
+          </button>
+        {/if}
       </div>
 
       <div class="entity-meta-row">
         {#if categoryLabel}
           <span class="entity-meta-chip org-badge">
-            <Users size={12} />
+            {#if isStudentOrganization}
+              <Users size={12} />
+            {:else}
+              <Building2 size={12} />
+            {/if}
             {categoryLabel}
           </span>
         {/if}

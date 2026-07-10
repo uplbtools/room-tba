@@ -9,6 +9,10 @@
     sidePanelStore,
   } from "@lib/store.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
+  import {
+    UPLB_OSA_ORGANIZATIONS_URL,
+    UPLB_TRAIL_URL,
+  } from "@constants/community-links";
 
   function browseOrganizations() {
     openCampusBrowse(queryStore, sidePanelStore, "organizations");
@@ -25,8 +29,9 @@
   <header class="orgs-modal__header">
     <h2 id="student-orgs-modal-title">Student organizations</h2>
     <p class="orgs-modal__lead">
-      Room TBA lists UPLB student organizations and their tambayans so you can
-      find where an org is based and how to reach it.
+      Room TBA lists UPLB student organizations and maps their tambayans when
+      a location is known. Every OSA-imported listing links back to its
+      official profile.
     </p>
   </header>
 
@@ -61,6 +66,22 @@
     <button type="button" class="orgs-modal__btn orgs-modal__btn--primary" onclick={browseOrganizations}>
       Browse organizations
     </button>
+    <a
+      class="orgs-modal__btn"
+      href={UPLB_OSA_ORGANIZATIONS_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Official OSA directory
+    </a>
+    <a
+      class="orgs-modal__btn"
+      href={UPLB_TRAIL_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      UPLB Trail links
+    </a>
     {#if !adminAuthStore.isLoggedIn}
       <button type="button" class="orgs-modal__btn" onclick={signUp}>
         Sign up to contribute
@@ -130,6 +151,8 @@
 
   .orgs-modal__btn {
     flex: 1 1 auto;
+    text-align: center;
+    text-decoration: none;
     padding: 0.5rem 1rem;
     border: 1px solid hsl(265, 45%, 80%);
     border-radius: 0.5rem;
