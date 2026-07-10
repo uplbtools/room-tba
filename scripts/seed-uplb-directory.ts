@@ -1,7 +1,7 @@
 /**
  * Seed UPLB organizations/offices/spots from data/uplb-directory.json into the
  * `organizations` and `places` tables. Entries were researched from
- * uplb-trail.vercel.app, uplb.edu.ph, and OpenStreetMap (source URL per row).
+ * public university directories and OpenStreetMap (source URL per row).
  *
  * Idempotent: rows whose normalized name already exists in the target table
  * (or as a dorm/college/building for org-like entries) are skipped.

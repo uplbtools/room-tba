@@ -9,10 +9,7 @@
     sidePanelStore,
   } from "@lib/store.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
-  import {
-    UPLB_OSA_ORGANIZATIONS_URL,
-    UPLB_TRAIL_URL,
-  } from "@constants/community-links";
+  import { UPLB_OSA_ORGANIZATIONS_URL } from "@constants/community-links";
 
   function browseOrganizations() {
     openCampusBrowse(queryStore, sidePanelStore, "organizations");
@@ -73,14 +70,6 @@
       rel="noopener noreferrer"
     >
       Official OSA directory
-    </a>
-    <a
-      class="orgs-modal__btn"
-      href={UPLB_TRAIL_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      UPLB Trail links
     </a>
     {#if !adminAuthStore.isLoggedIn}
       <button type="button" class="orgs-modal__btn" onclick={signUp}>

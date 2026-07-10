@@ -50,44 +50,52 @@ test.describe("campus browse chips", () => {
     await expect(
       page.getByRole("heading", { name: "Offices & Academic Units" }),
     ).toBeVisible({ timeout: 10_000 });
-    await page.locator("button.entity-list-row").first().click();
-    await expect(
-      page.locator(".entity-detail h2"),
-    ).toBeVisible({ timeout: 10_000 });
+    const office = page.locator("button.entity-list-row").first();
+    const officeName = await office
+      .locator(".entity-list-row__label")
+      .textContent();
+    if (!officeName) throw new Error("missing office name");
+    await office.click();
+    await expect(page.locator(".entity-detail h2")).toBeVisible({
+      timeout: 10_000,
+    });
+
+    const pin = page.locator(`.map-entity-pin[aria-label="${officeName}"]`);
+    await expect(pin).toHaveClass(/active/);
+    await expect(pin.locator("svg")).toHaveClass(/landmark/);
+
+    await page.getByRole("button", { name: "Collapse details panel" }).click();
+    await expect(page.locator("#side-panel-details")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    await pin.click();
+    await expect(page.locator("#side-panel-details")).toHaveAttribute(
+      "aria-hidden",
+      "false",
+    );
   });
 
-  test("mobile top bar: term selector does not overlap browse chips", async ({
+  test("mobile top bar keeps browse and term controls in one scroll row", async ({
     page,
   }) => {
-    // Regression guard: on the mobile grid shell, the browse-chip row and the
-    // term-selector row must be explicitly placed. Auto-placement stuffed them
-    // side by side into the menu column, drawing the term selector on top of
-    // the chips.
     await page.setViewportSize({ width: 390, height: 844 });
-    const chips = page.locator(".campus-browse-chips__container");
-    const directoryChips = page.locator(".campus-directory-chips");
-    const term = page.locator(".campus-browse-chips__term");
+    const controls = page.locator(".map-search-chrome__chips");
+    const chips = page.locator(".campus-browse-chips");
+    const term = page.locator(".term-filter-chip");
+    await expect(controls).toBeVisible();
     await expect(chips).toBeVisible();
-    await expect(directoryChips).toBeVisible();
     await expect(term).toBeVisible();
 
+    const controlsBox = await controls.boundingBox();
     const chipsBox = await chips.boundingBox();
     const termBox = await term.boundingBox();
-    if (!chipsBox || !termBox) throw new Error("missing bounding boxes");
-    // The term row must start at or below the bottom of the chips row.
-    expect(termBox.y).toBeGreaterThanOrEqual(chipsBox.y + chipsBox.height - 1);
-    // And both rows span the shell instead of hiding in the 2rem menu column.
-    expect(chipsBox.width).toBeGreaterThan(200);
-
-    const orgsBox = await page
-      .getByRole("button", { name: "Browse student organizations" })
-      .boundingBox();
-    const officesBox = await page
-      .getByRole("button", { name: "Browse offices and academic units" })
-      .boundingBox();
-    if (!orgsBox || !officesBox) throw new Error("missing directory chips");
-    expect(Math.abs(orgsBox.y - officesBox.y)).toBeLessThanOrEqual(1);
-    expect(officesBox.x + officesBox.width).toBeLessThanOrEqual(390);
+    if (!controlsBox || !chipsBox || !termBox) {
+      throw new Error("missing compact controls");
+    }
+    expect(Math.abs(chipsBox.y - termBox.y)).toBeLessThanOrEqual(1);
+    expect(chipsBox.y).toBeGreaterThanOrEqual(controlsBox.y);
+    expect(controlsBox.height).toBeLessThan(56);
   });
 
   test("Classes opens class list without toggling building filter chip", async ({
