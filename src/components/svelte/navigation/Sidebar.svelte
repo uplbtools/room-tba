@@ -6,13 +6,14 @@
   import University from "@lucide/svelte/icons/university";
   import Users from "@lucide/svelte/icons/users";
   import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
-  import {
-    queryStore,
-    sidebarStore,
-    sidePanelStore,
-  } from "@lib/store.svelte";
-  import { Map } from "@lucide/svelte";
-    import { slide } from "svelte/transition";
+  import { queryStore, sidebarStore, sidePanelStore } from "@lib/store.svelte";
+  import Map from "@lucide/svelte/icons/map";
+  import Keyboard from "@lucide/svelte/icons/keyboard";
+  import Cookie from "@lucide/svelte/icons/cookie";
+  import { slide } from "svelte/transition";
+  import CircleQuestionMark from "@lucide/svelte/icons/circle-question-mark";
+  import Tag from "@lucide/svelte/icons/tag";
+    import { LogIn } from "@lucide/svelte";
 
   const entityButtonsInfo: {
     id: string;
@@ -193,10 +194,13 @@
         <Map size={20} />
       </button>
       {#if mapCategoriesOpen}
-        <div class="map-categories" transition:slide={{
+        <div
+          class="map-categories"
+          transition:slide={{
             axis: "y",
-            duration: 500
-        }}>
+            duration: 500,
+          }}
+        >
           {#each entityButtonsInfo as entityButtonInfo (entityButtonInfo.id)}
             <button
               class="category"
@@ -222,6 +226,84 @@
       </button>
     </div>
   </div>
+
+  <div class="bottom">
+    <div class="nav-links">
+      <a
+        href="https://discord.uplbtools.me"
+        class="nav-link"
+        aria-label="Join Discord"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="16"
+          viewBox="0 0 64 48"
+          fill="none"
+        >
+          <path
+            d="M40.9051 0C40.2863 1.09866 39.7306 2.2352 39.2255 3.397C34.4268 2.67719 29.5396 2.67719 24.7283 3.397C24.2358 2.2352 23.6675 1.09866 23.0487 0C18.5404 0.770324 14.1458 2.12155 9.97847 4.02841C1.71959 16.2652 -0.51561 28.1863 0.595677 39.9432C5.4323 43.517 10.8498 46.2447 16.6209 47.9874C17.9216 46.2447 19.0708 44.3883 20.0558 42.4562C18.1868 41.7616 16.381 40.8903 14.6509 39.88C15.1055 39.5517 15.5475 39.2107 15.9769 38.8824C26.1174 43.6559 37.8617 43.6559 48.0148 38.8824C48.4441 39.236 48.8861 39.577 49.3407 39.88C47.6107 40.9029 45.8048 41.7616 43.9232 42.4688C44.9082 44.4009 46.0574 46.2573 47.3581 48C53.1292 46.2573 58.5467 43.5422 63.3834 39.9684C64.6967 26.3299 61.1355 14.5099 53.9753 4.04104C49.8206 2.13418 45.426 0.782952 40.9177 0.0252565L40.9051 0ZM21.4702 32.7072C18.351 32.7072 15.7622 29.8785 15.7622 26.3804C15.7622 22.8824 18.25 20.041 21.4576 20.041C24.6651 20.041 27.216 22.895 27.1655 26.3804C27.115 29.8658 24.6525 32.7072 21.4702 32.7072ZM42.5089 32.7072C39.3771 32.7072 36.8135 29.8785 36.8135 26.3804C36.8135 22.8824 39.3013 20.041 42.5089 20.041C45.7164 20.041 48.2547 22.895 48.2042 26.3804C48.1537 29.8658 45.6912 32.7072 42.5089 32.7072Z"
+            fill="black"
+          />
+        </svg>
+      </a>
+      <a
+        href="https://messenger.uplbtools.me"
+        class="nav-link"
+        aria-label="Join our Contributors GC"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          id="Logo"
+          viewBox="0 0 502 502"
+          width="20"
+          height="20"
+        >
+          <defs>
+            <style>
+              .cls-1 {
+                fill: #fff;
+              }
+
+              .cls-1,
+              .cls-2 {
+                stroke-width: 0px;
+              }
+
+              .cls-2 {
+                fill: #0866ff;
+              }
+            </style>
+          </defs>
+          <path
+            class="cls-2"
+            d="M501,243.5c0,139.34-109.17,242.5-250,242.5-25.29,0-49.56-3.34-72.37-9.61-4.43-1.23-9.14-.88-13.35.97l-49.62,21.91c-12.98,5.73-27.63-3.5-28.06-17.68l-1.36-44.48c-.17-5.48-2.63-10.6-6.72-14.25C30.87,379.36,1,316.39,1,243.5,1,104.16,110.17,1,251,1s250,103.16,250,242.5Z"
+          />
+          <path
+            class="cls-1"
+            d="M318.88,313.31l87.04-134.52c8.75-13.52-7.46-29.26-20.72-20.11l-90.86,62.67c-3.06,2.11-7.1,2.17-10.22.15l-80.65-52.18c-6.83-4.42-15.94-2.46-20.35,4.36l-87.05,134.52c-8.75,13.52,7.46,29.26,20.72,20.11l90.88-62.68c3.06-2.11,7.1-2.17,10.22-.15l80.63,52.17c6.83,4.42,15.94,2.46,20.36-4.36Z"
+          />
+        </svg>
+      </a>
+    </div>
+    <div class="nav-support">
+      <button class="nav-support__button">
+        <LogIn size={20} />
+      </button>
+      <button class="nav-support__button">
+        <Tag size={20} />
+      </button>
+      <button class="nav-support__button">
+        <Cookie size={20} />
+      </button>
+      <button class="nav-support__button">
+        <CircleQuestionMark size={20} />
+      </button>
+      <button class="nav-support__button">
+        <Keyboard size={20} />
+      </button>
+    </div>
+  </div>
 </aside>
 
 <style>
@@ -229,19 +311,30 @@
     padding: 0.5rem;
     background: white;
     pointer-events: auto;
-  }
-  div.top {
     display: flex;
     flex-direction: column;
+  }
+  div.top,
+  div.bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 1.25rem;
   }
-  div.categories, div.map-categories {
+  div.bottom {
+    margin-top: auto;
+  }
+  div.categories,
+  div.map-categories,
+  div.nav-support {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
   }
-  button.category {
+  button.category,
+  a.nav-link,
+  button.nav-support__button {
     padding: 0.75rem;
     display: flex;
     color: hsl(0, 0%, 20%);
@@ -250,6 +343,7 @@
     &:hover:not(.category--soft-active, .category--hard-active) {
       background-color: hsl(0, 0%, 90%);
     }
+    justify-content: center;
   }
   button.category--soft-active {
     color: hsl(5, 53%, 32%);
