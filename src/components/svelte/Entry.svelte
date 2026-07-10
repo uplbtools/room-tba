@@ -527,17 +527,6 @@
     min-height: 2rem;
     box-sizing: border-box;
     pointer-events: auto;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-    border-radius: var(--map-chrome-radius, 1rem);
-    padding: 0.125rem 0.375rem;
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 0 0 1px hsla(15, 8%, 20%, 0.16),
-      0 2px 8px hsla(0, 0%, 0%, 0.14),
-      0 8px 20px hsla(0, 0%, 0%, 0.18)
-    );
   }
 
   .bottom-chrome__leading {

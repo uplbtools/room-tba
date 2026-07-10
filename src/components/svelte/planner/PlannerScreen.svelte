@@ -574,7 +574,6 @@
     min-width: 0;
     padding: calc(env(safe-area-inset-top, 0px) + 0.375rem) 0.625rem 0.375rem;
     border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    box-shadow: var(--map-chrome-shadow);
   }
 
   .planner-back {
