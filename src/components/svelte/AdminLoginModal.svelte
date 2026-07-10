@@ -1,6 +1,7 @@
 <script lang="ts">
   import { fade, fly } from "svelte/transition";
   import { X, Lock } from "@lucide/svelte";
+  import IconButton from "@ui/IconButton.svelte";
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
   import {
     modalContentDismiss,
@@ -199,14 +200,9 @@
         <Lock size={16} aria-hidden="true" />
         <span>{isSignup ? "Create contributor account" : "Editor login"}</span>
       </div>
-      <button
-        type="button"
-        class="login-close"
-        onclick={close}
-        aria-label="Close login"
-      >
+      <IconButton size="sm" shape="rounded" label="Close login" onclick={close}>
         <X size={18} aria-hidden="true" />
-      </button>
+      </IconButton>
     </header>
     <form class="login-body entity-editor-form" onsubmit={submit}>
       {#if !showForgotPassword}
@@ -459,21 +455,6 @@
     gap: 0.5rem;
     font-weight: 600;
     color: hsl(0, 0%, 15%);
-  }
-  .login-close {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.375rem;
-    color: hsl(0, 0%, 30%);
-    display: flex;
-  }
-  .login-close:hover,
-  .login-close:focus-visible {
-    background-color: hsl(0, 0%, 95%);
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
   }
   .login-body {
     padding: 1rem;

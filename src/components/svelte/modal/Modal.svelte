@@ -11,9 +11,11 @@
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
   import LeaderboardModal from "./LeaderboardModal.svelte";
+  import CoverageModal from "./CoverageModal.svelte";
   import ChangelogModal from "../ChangelogModal.svelte";
   import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
   import StudentOrgsModal from "./StudentOrgsModal.svelte";
+  import IconButton from "@ui/IconButton.svelte";
   import X from "@lucide/svelte/icons/x";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -37,6 +39,7 @@
     if (modalStore.type === "landing") return undefined;
     if (modalStore.type === "schedule-expand") return "Room schedule";
     if (modalStore.type === "leaderboard") return "Contributor leaderboard";
+    if (modalStore.type === "coverage") return "Campus data coverage";
     if (modalStore.type === "changelog") return "What's new";
     if (modalStore.type === "review") return "Review suggested edits";
     if (modalStore.type === "student-orgs") return "Student organizations";
@@ -73,7 +76,7 @@
       bind:this={modalContentEl}
       class="modal-content {modalStore.type === 'landing'
         ? 'landing-modal-container'
-        : modalStore.type === 'leaderboard'
+        : modalStore.type === 'leaderboard' || modalStore.type === 'coverage'
           ? 'leaderboard-modal-container'
           : modalStore.type === 'changelog' || modalStore.type === 'review'
             ? 'modal-content--large'
@@ -85,7 +88,9 @@
         ? "landing-modal-title"
         : modalStore.type === "leaderboard"
           ? "leaderboard-modal-title"
-          : undefined}
+          : modalStore.type === "coverage"
+            ? "coverage-modal-title"
+            : undefined}
       aria-label={modalAriaLabel}
       in:fly={modalContentReveal(reducedMotion.current)}
       out:fly={modalContentDismiss(reducedMotion.current)}
@@ -93,56 +98,60 @@
       {#if modalStore.type === "landing"}
         <LandingModal />
       {:else if modalStore.type === "schedule-expand"}
-        <button
-          type="button"
+        <IconButton
           class="modal-content__close-icon"
-          aria-label="Close schedule"
+          label="Close schedule"
           onclick={closeDialog}
         >
           <X size={20} aria-hidden="true" />
-        </button>
+        </IconButton>
         <ScheduleModal />
       {:else if modalStore.type === "leaderboard"}
-        <button
-          type="button"
+        <IconButton
           class="modal-content__close-icon"
-          aria-label="Close leaderboard"
+          label="Close leaderboard"
           onclick={closeDialog}
         >
           <X size={20} aria-hidden="true" />
-        </button>
+        </IconButton>
         <LeaderboardModal />
-      {:else if modalStore.type === "changelog"}
-        <button
-          type="button"
+      {:else if modalStore.type === "coverage"}
+        <IconButton
           class="modal-content__close-icon"
-          aria-label="Close changelog"
+          label="Close data coverage"
           onclick={closeDialog}
         >
           <X size={20} aria-hidden="true" />
-        </button>
+        </IconButton>
+        <CoverageModal />
+      {:else if modalStore.type === "changelog"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close changelog"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
         <ChangelogModal />
       {:else if modalStore.type === "review"}
-        <button
-          type="button"
+        <IconButton
           class="modal-content__close-icon"
-          aria-label="Close review"
+          label="Close review"
           onclick={closeDialog}
         >
           <X size={20} aria-hidden="true" />
-        </button>
+        </IconButton>
         <div class="review-modal-scroll">
           <ProposalReviewPanel />
         </div>
       {:else if modalStore.type === "student-orgs"}
-        <button
-          type="button"
+        <IconButton
           class="modal-content__close-icon"
-          aria-label="Close student organizations"
+          label="Close student organizations"
           onclick={closeDialog}
         >
           <X size={20} aria-hidden="true" />
-        </button>
+        </IconButton>
         <StudentOrgsModal />
       {/if}
     </div>
@@ -193,24 +202,12 @@
     display: flex;
     flex-flow: column nowrap;
     overflow: hidden;
-    .modal-content__close-icon {
+    :global(.modal-content__close-icon) {
       position: absolute;
       right: 0.25rem;
       top: 0.25rem;
-      color: hsl(0, 0%, 18%);
-      padding: 0.375rem;
-      border-radius: 0.25rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      z-index: 1;
       background-color: #fff;
-      &:hover {
-        background-color: #f0f0f0;
-      }
-      &:focus-visible {
-        outline: 2px solid hsl(5, 53%, 32%);
-        outline-offset: 1px;
-      }
     }
   }
   /* Task-focused dialogs (review queue, changelog) take most of the screen. */

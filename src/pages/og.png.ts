@@ -79,12 +79,18 @@ export const GET: APIRoute = async ({ url }) => {
           style: {
             display: "flex",
             alignItems: "center",
+            gap: 18,
             fontSize: 34,
             fontWeight: 700,
             letterSpacing: "-0.02em",
             color: BRAND,
           },
         },
+        h("img", {
+          src: new URL("/logo.png", url.origin).toString(),
+          width: 52,
+          height: 52,
+        }),
         "Room TBA",
       ),
       kicker
@@ -148,7 +154,7 @@ export const GET: APIRoute = async ({ url }) => {
       {
         style: { display: "flex", fontSize: 24, fontWeight: 500, color: MUTED },
       },
-      "UPLB campus — find rooms, plan classes",
+      "Find rooms and plan classes at UPLB",
     ),
   );
 

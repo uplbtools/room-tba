@@ -34,31 +34,36 @@
 .status-bar__offline {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.75rem;
+  gap: 0.3rem;
+  box-sizing: border-box;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
   border: 1px solid hsl(0, 0%, 82%);
   background: hsl(0, 0%, 97%);
   color: hsl(0, 0%, 38%);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
   line-height: 1.15;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-/* Compact status pill — fixed size, never claims the flex track, so it
-   cannot squeeze sibling controls. Full detail lives in the App menu. */
+/* Compact status pill — matches .map-chrome-chip metrics so Map data / Menu /
+   status read as one row of equal pills. Full detail lives in the App menu. */
 .status-bar__pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
   flex-shrink: 0;
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.75rem;
+  box-sizing: border-box;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
   border: 1px solid transparent;
   font: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   line-height: 1.15;
   white-space: nowrap;
   cursor: default;

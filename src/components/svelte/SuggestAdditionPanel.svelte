@@ -2,7 +2,6 @@
   import {
     adminAuthStore,
     additionProposalStore,
-    floatingControlPanelStore,
     toastStore,
   } from "@lib/store.svelte";
   import { getAppData } from "@lib/context";
@@ -44,12 +43,10 @@
 
   let {
     mode = "proposal",
-    panelId = "suggest-addition",
     onDismiss,
     onRestore,
   }: {
     mode?: "proposal" | "publish";
-    panelId?: string;
     onDismiss?: () => void;
     onRestore?: () => void;
   } = $props();
@@ -267,19 +264,11 @@
   });
 
   function dismissHost() {
-    if (onDismiss) {
-      onDismiss();
-      return;
-    }
-    floatingControlPanelStore.close(panelId);
+    onDismiss?.();
   }
 
   function restoreHost() {
-    if (onRestore) {
-      onRestore();
-      return;
-    }
-    floatingControlPanelStore.openPanel = panelId;
+    onRestore?.();
   }
 
   const pickPinBlockedMessage =

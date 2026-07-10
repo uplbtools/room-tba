@@ -1,5 +1,7 @@
 <script lang="ts">
+  import Layers from "@lucide/svelte/icons/layers";
   import { terrainStore } from "@lib/store.svelte";
+  import "./map-chrome/map-chrome.css";
 
   let expanded = $state(false);
 
@@ -16,16 +18,14 @@
 >
   <button
     type="button"
-    class="attrib-toggle"
+    class="map-chrome-chip"
+    class:map-chrome-chip--toggle-active={expanded}
     aria-expanded={expanded}
     aria-controls="map-attribution-details"
     onclick={toggleExpanded}
   >
-    {#if expanded}
-      Hide map data
-    {:else}
-      Map data
-    {/if}
+    <Layers size={14} aria-hidden="true" />
+    <span>Map data</span>
   </button>
   {#if expanded}
     <div id="map-attribution-details" class="attrib-body">
@@ -77,37 +77,8 @@
     align-items: center;
     gap: 0.375rem;
     flex: 0 0 auto;
-    max-width: min(9rem, 32vw);
     pointer-events: auto;
     isolation: isolate;
-  }
-
-  .attrib-toggle {
-    box-sizing: border-box;
-    margin: 0;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-    border-radius: 0.5rem;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
-    background-clip: padding-box;
-    color: hsl(0, 0%, 20%);
-    font: inherit;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    line-height: 1.2;
-    padding: 0.25rem 0.5rem;
-    min-width: 6.875rem;
-    text-align: center;
-    white-space: nowrap;
-    cursor: pointer;
-    /* Single edge layer: border only — avoid stacking with shadow 1px rings. */
-    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);
-  }
-
-  .attrib-toggle:hover,
-  .attrib-toggle:focus-visible {
-    background-color: hsl(5 25% 98%);
-    outline: 2px solid #7b1113;
-    outline-offset: 1px;
   }
 
   .attrib-body {

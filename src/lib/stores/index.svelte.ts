@@ -74,27 +74,12 @@ type RoomData = {
   updatedAt: string;
 };
 
-export type DormFilterType = "all" | "up" | "private";
-
-let _dormFilter = $state<DormFilterType>("all");
-export const dormFilter = {
-  get value() {
-    return _dormFilter;
-  },
-  set(v: DormFilterType) {
-    _dormFilter = v;
-  },
-};
-
-let _buildingTypeFilter = $state<BuildingTypeFilter>("all");
-export const buildingTypeFilter = {
-  get value() {
-    return _buildingTypeFilter;
-  },
-  set(v: BuildingTypeFilter) {
-    _buildingTypeFilter = v;
-  },
-};
+export {
+  buildingTypeFilter,
+  dormFilter,
+  type DormFilterType,
+} from "./filter-stores.svelte.js";
+import { buildingTypeFilter } from "./filter-stores.svelte.js";
 
 let _currentRoom = $state<RoomData | null>(null);
 export const currentRoom = {

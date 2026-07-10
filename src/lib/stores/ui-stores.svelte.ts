@@ -1,5 +1,6 @@
 import { SvelteMap } from "svelte/reactivity";
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
+import { buildingTypeFilter } from "./filter-stores.svelte.js";
 import type {
   FloatingControlPanel,
   LandingModalTab,
@@ -75,6 +76,19 @@ export class QueryStore {
         value: obj.value,
         eventSlug: obj.eventSlug,
       });
+
+      // Committing a result outside the pin filter's domain (e.g. an office
+      // while "Other dorms" is filtered) ends the browsing context — clear the
+      // filter so its chip doesn't mislabel the selected entity.
+      const filter = buildingTypeFilter.value;
+      const filterCoversResult =
+        filter === "all" ||
+        (obj.category === "building" &&
+          (filter === "class-building" ||
+            filter === "administrative-building")) ||
+        (obj.category === "dorm" &&
+          (filter === "up-managed-dorm" || filter === "non-up-managed-dorm"));
+      if (!filterCoversResult) buildingTypeFilter.set("all");
     }
   };
 

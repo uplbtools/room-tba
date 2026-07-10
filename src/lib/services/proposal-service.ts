@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import {
+  adminUsersTable,
   buildingsTable,
   collegesTable,
   divisionsTable,
@@ -11,6 +12,7 @@ import {
   organizationsTable,
   roomsTable,
 } from "@drizzle/schema";
+import { normalizeAlias } from "@lib/site";
 import type { SessionUser } from "@lib/admin/auth";
 import { db } from "@lib/db";
 import { validateSubmitterName } from "@constants/proposals";
@@ -549,6 +551,29 @@ type SubmitProposalInput = {
   proposalId?: number | null;
 };
 
+/** Anonymous submitters cannot borrow a registered contributor's identity:
+ * signup reserves usernames, so a free-text name that normalizes to an
+ * account's username or display name ("Stimmie", "STIMMIE", "St immie") is
+ * rejected with a sign-in hint. Case/spacing/punctuation collapse via
+ * normalizeAlias.
+ * ponytail: full-table scan of admin_users; index a normalized column if the
+ * account list ever grows past a few thousand. */
+async function isReservedContributorName(name: string): Promise<boolean> {
+  const key = normalizeAlias(name);
+  if (!key) return false;
+  const accounts = await db
+    .select({
+      username: adminUsersTable.username,
+      displayName: adminUsersTable.displayName,
+    })
+    .from(adminUsersTable);
+  return accounts.some(
+    (account) =>
+      normalizeAlias(account.username ?? "") === key ||
+      normalizeAlias(account.displayName ?? "") === key,
+  );
+}
+
 export async function submitProposal(
   input: SubmitProposalInput,
 ): Promise<EditProposalSummary> {
@@ -578,6 +603,11 @@ export async function submitProposal(
     throw new ProposalValidationError(validation.error);
   }
   const name = validation.name;
+  if (!input.submitterUserId && (await isReservedContributorName(name))) {
+    throw new ProposalValidationError(
+      "That name belongs to a registered contributor. Sign in to use it, or pick a different name.",
+    );
+  }
   if (Object.keys(input.patch).length === 0) {
     throw new ProposalValidationError("No changes to submit.");
   }

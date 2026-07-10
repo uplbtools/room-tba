@@ -1,3 +1,125 @@
+# [1.45.0](https://github.com/uplbtools/room-tba/compare/v1.44.2...v1.45.0) (2026-07-09)
+
+
+### Bug Fixes
+
+* **map-chrome:** float the mobile map-tools panel below the top bar ([bed84b0](https://github.com/uplbtools/room-tba/commit/bed84b0341765dbfc6b35a14bd1f41864e861c3d))
+* **map-chrome:** stop the mobile sheet handle inheriting 4rem height ([268560a](https://github.com/uplbtools/room-tba/commit/268560a1ed617415d68688effd7f5732a55e9d19))
+* **planner:** make section drag work on touch ([aae6662](https://github.com/uplbtools/room-tba/commit/aae66627221ce8f8ccefbb8b97af8b550b79aff2))
+* **planner:** prevent mobile course-result overlap ([edd32a9](https://github.com/uplbtools/room-tba/commit/edd32a9dec0b938905fc38ad78b0c0aa38ee9686))
+* **search:** place browse-chip and term rows in the mobile grid shell ([52d2eda](https://github.com/uplbtools/room-tba/commit/52d2eda89418a1332eccea2f21e29cc5582734fc))
+
+
+### Features
+
+* **modal:** full changelog in one click; review queue in a large modal ([0dd32aa](https://github.com/uplbtools/room-tba/commit/0dd32aa82c7af492ea184cb5db567cacc0f4aeda))
+* **ui:** shared LoadingIndicator and complete button hover coverage ([a02f9a9](https://github.com/uplbtools/room-tba/commit/a02f9a9e868bc4402e3cefcb0108f01ec14c1b3e))
+
+
+## [1.44.2](https://github.com/uplbtools/room-tba/compare/v1.44.1...v1.44.2) (2026-07-09)
+
+
+### Bug Fixes
+
+* **ci:** mkdir node_modules before frozen install (flaky ENOENT) ([#633](https://github.com/uplbtools/room-tba/issues/633)) ([52098ca](https://github.com/uplbtools/room-tba/commit/52098ca2a69724de4c610f067e4de731bca7b5ea))
+
+
+## [1.44.1](https://github.com/uplbtools/room-tba/compare/v1.44.0...v1.44.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **ci:** pin bun to 1.3.12 (1.3.14 broke --frozen-lockfile) ([#632](https://github.com/uplbtools/room-tba/issues/632)) ([cc278c9](https://github.com/uplbtools/room-tba/commit/cc278c9d341de7939dc1351375fbba678af52714))
+
+
+# [1.44.0](https://github.com/uplbtools/room-tba/compare/v1.43.1...v1.44.0) (2026-07-09)
+
+
+### Features
+
+* **planner:** duplicate/rename plans, image export, all-sections fetch; student-org info modal; surface signup ([#629](https://github.com/uplbtools/room-tba/issues/629)) ([319d9c6](https://github.com/uplbtools/room-tba/commit/319d9c60ed6c267f73a8848cf9bcdc1ad6f010cb))
+
+
+## [1.43.1](https://github.com/uplbtools/room-tba/compare/v1.43.0...v1.43.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **planner:** update planner styling to fix bug ([1066d06](https://github.com/uplbtools/room-tba/commit/1066d0636df963a4a28335eb6a700ef584a681a9))
+
+
+# [1.43.0](https://github.com/uplbtools/room-tba/compare/v1.42.1...v1.43.0) (2026-07-09)
+
+
+### Features
+
+* **auth:** contributor self-signup (attribution + username reservation) ([#623](https://github.com/uplbtools/room-tba/issues/623)) ([216813e](https://github.com/uplbtools/room-tba/commit/216813e9e8c2e5638e8d98c6ac0624d3d480b5db))
+
+
+## [1.42.1](https://github.com/uplbtools/room-tba/compare/v1.42.0...v1.42.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **ci:** make pwa-legal guardrail tolerant of the denylist boundary group ([#625](https://github.com/uplbtools/room-tba/issues/625)) ([c195047](https://github.com/uplbtools/room-tba/commit/c1950476562ce0c8882034f4bf800e8178d0a581))
+
+
+# [1.42.0](https://github.com/uplbtools/room-tba/compare/v1.41.0...v1.42.0) (2026-07-09)
+
+
+### Features
+
+* **planner:** intentional mobile layout (first pass) ([#621](https://github.com/uplbtools/room-tba/issues/621)) ([79b9dbe](https://github.com/uplbtools/room-tba/commit/79b9dbe2213f70832686a32f689e60a407a390f9))
+
+
+# [1.41.0](https://github.com/uplbtools/room-tba/compare/v1.40.0...v1.41.0) (2026-07-09)
+
+
+### Features
+
+* **planner:** add a color legend for block types ([#620](https://github.com/uplbtools/room-tba/issues/620)) ([1dc2ba4](https://github.com/uplbtools/room-tba/commit/1dc2ba4b7638009dda129d37aeb2c9433c25ddba))
+
+
+# [1.40.0](https://github.com/uplbtools/room-tba/compare/v1.39.0...v1.40.0) (2026-07-09)
+
+
+### Features
+
+* **planner:** wrap full course title + show change-of-matriculation date ([#618](https://github.com/uplbtools/room-tba/issues/618)) ([c19f455](https://github.com/uplbtools/room-tba/commit/c19f4551d3fc26200b598ce5bae14825a8a6b27b))
+
+
+# [1.39.0](https://github.com/uplbtools/room-tba/compare/v1.38.1...v1.39.0) (2026-07-09)
+
+
+### Features
+
+* **og:** dynamic per-URL Open Graph images ([#617](https://github.com/uplbtools/room-tba/issues/617)) ([7a7f0e6](https://github.com/uplbtools/room-tba/commit/7a7f0e64efd5ba8a01a2ea8654e2bccfc343b3cc))
+
+
+## [1.38.1](https://github.com/uplbtools/room-tba/compare/v1.38.0...v1.38.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **terms:** pluralize the term-picker class count correctly ([#616](https://github.com/uplbtools/room-tba/issues/616)) ([87bdeac](https://github.com/uplbtools/room-tba/commit/87bdeac6d72cd57fbbd732d5f37c57b1bf7e80ec))
+
+
+# [1.38.0](https://github.com/uplbtools/room-tba/compare/v1.37.0...v1.38.0) (2026-07-09)
+
+
+### Features
+
+* **planner:** link lec/lab in list, fix drag label, clarify saving ([#613](https://github.com/uplbtools/room-tba/issues/613)) ([099c234](https://github.com/uplbtools/room-tba/commit/099c234c66bbaedfba1c577d374174b00682baea))
+
+
+# [1.37.0](https://github.com/uplbtools/room-tba/compare/v1.36.1...v1.37.0) (2026-07-09)
+
+
+### Features
+
+* **help:** reach the "How Room TBA works" guide from the App menu ([#6](https://github.com/uplbtools/room-tba/issues/6)) ([d777691](https://github.com/uplbtools/room-tba/commit/d7776919b1d603e84dd0655bed2635da5cf589b9))
+
+
 # [1.36.0](https://github.com/uplbtools/room-tba/compare/v1.35.2...v1.36.0) (2026-07-09)
 
 ### Features

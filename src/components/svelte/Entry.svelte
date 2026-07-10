@@ -11,7 +11,6 @@
     mapEditStore,
     mapToolsStore,
     editorChromeStore,
-    floatingControlPanelStore,
     jeepneyStore,
     appBootstrapStore,
     plannerStore,
@@ -137,7 +136,7 @@
     }
 
     if (urlParams.get("contribute") === "1") {
-      floatingControlPanelStore.openPanel = "suggest-addition";
+      editorChromeStore.openAdditionModal();
       window.history.replaceState({}, "", window.location.pathname);
     }
 

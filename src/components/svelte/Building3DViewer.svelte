@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
+  import IconButton from "@ui/IconButton.svelte";
   import { fade, fly } from "svelte/transition";
   import { X, Building2, Loader, RotateCcw, Pencil } from "@lucide/svelte";
   import { building3DStore, adminAuthStore } from "@lib/store.svelte";
@@ -987,9 +988,9 @@
           </div>
         </div>
       </div>
-      <button class="viewer-close" onclick={close} aria-label="Close 3D viewer">
+      <IconButton shape="rounded" label="Close 3D viewer" onclick={close}>
         <X size={20} />
-      </button>
+      </IconButton>
     </header>
 
     <div class="viewer-body">
@@ -1231,19 +1232,6 @@
     color: hsl(0, 0%, 45%);
     margin-top: 0.125rem;
   }
-  .viewer-close {
-    background: transparent;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    padding: 0.375rem;
-    color: hsl(0, 0%, 30%);
-    display: flex;
-  }
-  .viewer-close:hover {
-    background-color: hsl(0, 0%, 95%);
-  }
-
   .viewer-body {
     flex: 1 1 auto;
     display: flex;
