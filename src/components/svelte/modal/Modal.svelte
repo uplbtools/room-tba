@@ -11,6 +11,7 @@
   import LandingModal from "./LandingModal.svelte";
   import ScheduleModal from "./ScheduleModal.svelte";
   import LeaderboardModal from "./LeaderboardModal.svelte";
+  import CoverageModal from "./CoverageModal.svelte";
   import ChangelogModal from "../ChangelogModal.svelte";
   import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
   import StudentOrgsModal from "./StudentOrgsModal.svelte";
@@ -37,6 +38,7 @@
     if (modalStore.type === "landing") return undefined;
     if (modalStore.type === "schedule-expand") return "Room schedule";
     if (modalStore.type === "leaderboard") return "Contributor leaderboard";
+    if (modalStore.type === "coverage") return "Campus data coverage";
     if (modalStore.type === "changelog") return "What's new";
     if (modalStore.type === "review") return "Review suggested edits";
     if (modalStore.type === "student-orgs") return "Student organizations";
@@ -73,7 +75,7 @@
       bind:this={modalContentEl}
       class="modal-content {modalStore.type === 'landing'
         ? 'landing-modal-container'
-        : modalStore.type === 'leaderboard'
+        : modalStore.type === 'leaderboard' || modalStore.type === 'coverage'
           ? 'leaderboard-modal-container'
           : modalStore.type === 'changelog' || modalStore.type === 'review'
             ? 'modal-content--large'
@@ -85,7 +87,9 @@
         ? "landing-modal-title"
         : modalStore.type === "leaderboard"
           ? "leaderboard-modal-title"
-          : undefined}
+          : modalStore.type === "coverage"
+            ? "coverage-modal-title"
+            : undefined}
       aria-label={modalAriaLabel}
       in:fly={modalContentReveal(reducedMotion.current)}
       out:fly={modalContentDismiss(reducedMotion.current)}
@@ -112,6 +116,16 @@
           <X size={20} aria-hidden="true" />
         </button>
         <LeaderboardModal />
+      {:else if modalStore.type === "coverage"}
+        <button
+          type="button"
+          class="modal-content__close-icon"
+          aria-label="Close data coverage"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+        <CoverageModal />
       {:else if modalStore.type === "changelog"}
         <button
           type="button"
