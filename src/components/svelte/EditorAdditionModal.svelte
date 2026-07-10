@@ -2,7 +2,7 @@
   import { fade, fly } from "svelte/transition";
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
   import X from "@lucide/svelte/icons/x";
-  import { editorChromeStore } from "@lib/store.svelte";
+  import { adminAuthStore, editorChromeStore } from "@lib/store.svelte";
   import { trapFocus } from "@lib/focus-trap";
   import {
     modalContentDismiss,
@@ -62,7 +62,7 @@
       </header>
       <div class="editor-addition-body map-chrome-scroll">
         <SuggestAdditionPanel
-          mode="publish"
+          mode={adminAuthStore.canPublish ? "publish" : "proposal"}
           onDismiss={() => editorChromeStore.closeAdditionModal()}
           onRestore={() => editorChromeStore.openAdditionModal()}
         />
