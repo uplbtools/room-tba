@@ -106,11 +106,46 @@ describeIntegration("proposals service", () => {
       entityId: 1,
       baseVersion: version,
       patch: { directions: "Proposed directions" },
-      submitterName: "E2E Contributor",
+      submitterName: "E2E Anonymous",
       submitterUserId: null,
       proposalId: null,
     });
     expect(proposal.status).toBe("pending");
+  });
+
+  test("anonymous proposal cannot use a registered contributor's name", async () => {
+    if (!integrationDatabaseUrl()) return;
+    const pg = await import("pg");
+    const client = new pg.default.Client({
+      connectionString: integrationDatabaseUrl()!,
+    });
+    await client.connect();
+    const { rows } = await client.query<{
+      version: number;
+      username: string;
+    }>(
+      "SELECT r.version, u.username FROM rooms r, admin_users u WHERE r.id = 1 LIMIT 1",
+    );
+    const version = readEntityVersion(rows);
+    const username = rows[0]?.username;
+    await client.end();
+    if (!username) return; // no accounts seeded — nothing to reserve
+
+    const { submitProposal, ProposalValidationError } = await import(
+      "@lib/services/proposal-service"
+    );
+    // Case/spacing variants collapse to the reserved account name.
+    await expect(
+      submitProposal({
+        entityType: "room",
+        entityId: 1,
+        baseVersion: version,
+        patch: { directions: "Impersonation attempt" },
+        submitterName: ` ${username.toUpperCase()} `,
+        submitterUserId: null,
+        proposalId: null,
+      }),
+    ).rejects.toThrow(ProposalValidationError);
   });
 
   test("approve proposal via HTTP when preview is up", async () => {
@@ -134,7 +169,7 @@ describeIntegration("proposals service", () => {
       entityId: 1,
       baseVersion: version,
       patch: { directions: `Approve flow ${Date.now()}` },
-      submitterName: "E2E Contributor",
+      submitterName: "E2E Anonymous",
       submitterUserId: null,
       proposalId: null,
     });

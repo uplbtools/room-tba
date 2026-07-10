@@ -2,7 +2,8 @@
   import { fade, fly } from "svelte/transition";
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
   import X from "@lucide/svelte/icons/x";
-  import { editorChromeStore } from "@lib/store.svelte";
+  import IconButton from "@ui/IconButton.svelte";
+  import { adminAuthStore, editorChromeStore } from "@lib/store.svelte";
   import { trapFocus } from "@lib/focus-trap";
   import {
     modalContentDismiss,
@@ -51,18 +52,13 @@
           <MapPinPlus size={16} aria-hidden="true" />
           <span>Add to map</span>
         </div>
-        <button
-          type="button"
-          class="editor-addition-close"
-          onclick={close}
-          aria-label="Close add to map"
-        >
+        <IconButton size="sm" shape="rounded" label="Close add to map" onclick={close}>
           <X size={18} aria-hidden="true" />
-        </button>
+        </IconButton>
       </header>
       <div class="editor-addition-body map-chrome-scroll">
         <SuggestAdditionPanel
-          mode="publish"
+          mode={adminAuthStore.canPublish ? "publish" : "proposal"}
           onDismiss={() => editorChromeStore.closeAdditionModal()}
           onRestore={() => editorChromeStore.openAdditionModal()}
         />
@@ -111,23 +107,6 @@
     gap: 0.5rem;
     font-weight: 600;
     color: hsl(0, 0%, 15%);
-  }
-
-  .editor-addition-close {
-    display: flex;
-    border: none;
-    border-radius: 0.375rem;
-    background: transparent;
-    color: hsl(0, 0%, 30%);
-    cursor: pointer;
-    padding: 0.25rem;
-  }
-
-  .editor-addition-close:hover,
-  .editor-addition-close:focus-visible {
-    background-color: hsl(0, 0%, 95%);
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
   }
 
   .editor-addition-body {

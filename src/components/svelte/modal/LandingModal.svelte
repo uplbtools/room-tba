@@ -15,7 +15,6 @@
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
-  import ContributorProgressPanel from "@ui/status-bar/ContributorProgressPanel.svelte";
   import Download from "@lucide/svelte/icons/download";
   import { untrack } from "svelte";
 
@@ -173,14 +172,6 @@
         id="landing-panel-campus"
         aria-labelledby="landing-tab-campus"
       >
-        <section class="coverage-block">
-          <h3>Campus data coverage</h3>
-          <p class="section-note">
-            Track directions, schedules, and map pins across campus buildings.
-          </p>
-          <ContributorProgressPanel />
-        </section>
-
         <GithubContributorsSection
           title="Developers"
           note="From GitHub commit history on the Room TBA repo."
@@ -246,19 +237,6 @@
           />
         </section>
 
-        <section class="leaderboard-block">
-          <h3>Campus contributor leaderboard</h3>
-          <p class="section-note">
-            Top volunteers helping map the campus and verify room schedules.
-          </p>
-          <button
-            type="button"
-            class="secondary-btn"
-            onclick={() => modalStore.openModal("leaderboard")}
-          >
-            View Leaderboard
-          </button>
-        </section>
       </div>
     {/if}
   </div>
@@ -442,25 +420,6 @@
     color: hsl(5, 53%, 28%);
   }
 
-  .coverage-block {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .coverage-block h3 {
-    margin: 0;
-    font-size: 0.9375rem;
-    font-weight: 700;
-    color: hsl(5, 53%, 28%);
-    text-align: center;
-  }
-
-  .coverage-block :global(.contributor-progress) {
-    width: 100%;
-  }
-
   .section-note {
     margin: 0;
     font-size: 0.75rem;
@@ -547,26 +506,6 @@
 
   .primary-btn:hover {
     background-color: hsl(5, 75%, 22%);
-  }
-
-  .secondary-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border-radius: 0.375rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    background-color: hsl(0, 0%, 96%);
-    color: hsl(0, 0%, 20%);
-    border: 1px solid hsl(0, 0%, 85%);
-    transition: background-color 0.15s ease-out;
-  }
-
-  .secondary-btn:hover {
-    background-color: hsl(0, 0%, 92%);
   }
 
   .install-btn {

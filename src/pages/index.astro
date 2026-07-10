@@ -6,7 +6,6 @@ import {
   jsonLd,
   webpageSchema,
   websiteSchema,
-  ogCardPath,
 } from "@lib/site";
 
 const title =
@@ -24,11 +23,6 @@ const structuredData = jsonLd(
   title={title}
   description={description}
   canonicalPath="/"
-  imagePath={ogCardPath({
-    title: "Room TBA",
-    subtitle: "Find rooms and plan classes across UPLB Los Baños",
-    kicker: "Campus map",
-  })}
   structuredData={structuredData}
 >
   <AppRoot client:only="svelte" />

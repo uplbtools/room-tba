@@ -44,6 +44,24 @@ test.describe("app menu", () => {
     expect(await versions.count()).toBeGreaterThan(1);
   });
 
+  test("Campus data coverage opens its own modal from the Data section", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await waitForAppBoot(page);
+
+    await page.getByRole("button", { name: "App menu" }).click();
+    const panel = page.getByRole("dialog", { name: "App menu" });
+    await expect(panel).toBeVisible();
+
+    await panel.getByRole("button", { name: /campus data coverage/i }).click();
+    const modal = page.getByRole("dialog", { name: "Campus data coverage" });
+    await expect(modal).toBeVisible();
+    await expect(
+      modal.getByRole("heading", { name: "Campus data coverage" }),
+    ).toBeVisible();
+  });
+
   test("offline popover opens without closing the App menu", async ({
     page,
   }) => {

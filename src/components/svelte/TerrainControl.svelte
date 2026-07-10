@@ -3,6 +3,7 @@
   import Mountain from "@lucide/svelte/icons/mountain";
   import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
   import X from "@lucide/svelte/icons/x";
+  import IconButton from "@ui/IconButton.svelte";
   import {
     TERRAIN_EXAGGERATION_OPTIONS,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
@@ -95,14 +96,14 @@
       {#if !embedded}
         <div class="terrain-panel-header">
           <span>Makiling Terrain</span>
-          <button
-            type="button"
-            class="close-btn"
+          <IconButton
+            size="sm"
+            shape="rounded"
+            label="Close terrain menu"
             onclick={() => floatingControlPanelStore.close(panelId)}
-            aria-label="Close terrain menu"
           >
-            <X size="16" />
-          </button>
+            <X size={16} />
+          </IconButton>
         </div>
       {/if}
 
@@ -250,22 +251,6 @@
     color: hsl(0, 0%, 20%);
     font-size: 0.875rem;
     font-weight: 600;
-  }
-
-  .close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 0.375rem;
-    background: transparent;
-    color: hsl(0, 0%, 40%);
-    cursor: pointer;
-    padding: 0.125rem;
-  }
-
-  .close-btn:hover {
-    background-color: hsl(0, 0%, 95%);
   }
 
   .terrain-copy,

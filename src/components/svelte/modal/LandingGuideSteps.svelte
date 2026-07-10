@@ -423,6 +423,33 @@
       flex-direction: column;
     }
 
+    /* Stacked cards would stretch the mock graphics edge to edge; pin them
+       as a compact thumbnail beside the copy instead. */
+    .step-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 5.5rem;
+      grid-template-areas:
+        "head mock"
+        "text mock";
+      align-items: center;
+      column-gap: 0.625rem;
+      row-gap: 0.25rem;
+    }
+
+    .step-head {
+      grid-area: head;
+    }
+
+    .step-mock {
+      grid-area: mock;
+      min-height: 0;
+      align-self: center;
+    }
+
+    .step-text {
+      grid-area: text;
+    }
+
     .step-connector {
       justify-content: center;
       rotate: 90deg;

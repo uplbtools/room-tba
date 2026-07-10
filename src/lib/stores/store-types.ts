@@ -42,8 +42,7 @@ export type FloatingControlPanel =
   | "legend"
   | "building-type"
   | "terrain"
-  | "admin"
-  | "suggest-addition";
+  | "admin";
 
 export type MapToolsSection = "view" | "legend" | "terrain" | "jeepney";
 

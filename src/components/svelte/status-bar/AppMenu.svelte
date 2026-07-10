@@ -1,6 +1,7 @@
 <script lang="ts">
   import Menu from "@lucide/svelte/icons/menu";
   import Keyboard from "@lucide/svelte/icons/keyboard";
+  import ChartColumn from "@lucide/svelte/icons/chart-column";
   import FileText from "@lucide/svelte/icons/file-text";
   import LifeBuoy from "@lucide/svelte/icons/life-buoy";
   import Inbox from "@lucide/svelte/icons/inbox";
@@ -155,6 +156,11 @@
     modalStore.openModal("changelog");
   }
 
+  function handleCoverage() {
+    closePanel();
+    modalStore.openModal("coverage");
+  }
+
   function handleHowItWorks() {
     closePanel();
     modalStore.openModal("landing", { landingTab: "welcome" });
@@ -238,6 +244,14 @@
         <div class="app-menu__offline">
           <OfflineMaps compact={false} />
         </div>
+        <button
+          type="button"
+          class="app-menu__action map-chrome-chip"
+          onclick={handleCoverage}
+        >
+          <ChartColumn size={14} aria-hidden="true" />
+          <span>Campus data coverage</span>
+        </button>
         <p class="app-menu__meta">Updated {catalogUpdatedLabel}</p>
       </section>
 

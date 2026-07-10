@@ -1,5 +1,11 @@
 <script lang="ts">
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import Share2 from "@lucide/svelte/icons/share-2";
+  import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
+  import ImageDown from "@lucide/svelte/icons/image-down";
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Copy from "@lucide/svelte/icons/copy";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import { fly } from "svelte/transition";
   import { trapFocus } from "@lib/focus-trap";
   import { fullScreenDismiss, fullScreenReveal } from "@lib/motion";
@@ -306,33 +312,41 @@
           class="planner-action"
           onclick={copyShareLink}
           disabled={!hasSchedule}
+          aria-label="Share plan"
           title={hasSchedule
             ? "Copy a link that reopens this plan"
             : "Add a scheduled class first"}
         >
-          Share
+          <Share2 size={15} aria-hidden="true" />
+          <span class="planner-action__label">Share</span>
         </button>
         <button
           type="button"
           class="planner-action"
           onclick={downloadIcs}
           disabled={!hasSchedule}
+          aria-label="Add to Google Calendar"
           title={hasSchedule
             ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
             : "Add a scheduled class first"}
         >
-          Add to Google Calendar
+          <CalendarPlus size={15} aria-hidden="true" />
+          <span class="planner-action__label">Add to Google Calendar</span>
         </button>
         <button
           type="button"
           class="planner-action"
           onclick={saveAsImage}
           disabled={!hasSchedule || exportingImage}
+          aria-label="Save image"
           title={hasSchedule
             ? "Download the timetable as an image"
             : "Add a scheduled class first"}
         >
-          {exportingImage ? "Saving…" : "Save image"}
+          <ImageDown size={15} aria-hidden="true" />
+          <span class="planner-action__label">
+            {exportingImage ? "Saving…" : "Save image"}
+          </span>
         </button>
       {/if}
     </header>
@@ -381,19 +395,23 @@
       {#if plan && !renaming}
         <button
           type="button"
-          class="planner-tab"
+          class="planner-tab planner-tab--tool"
           onclick={startRename}
           aria-label="Rename {plan.label}"
+          title="Rename {plan.label}"
         >
-          Rename
+          <Pencil size={13} aria-hidden="true" />
+          <span class="planner-tab__label">Rename</span>
         </button>
         <button
           type="button"
-          class="planner-tab"
+          class="planner-tab planner-tab--tool"
           onclick={() => plannerStore.duplicatePlan(plan.id)}
           aria-label="Duplicate {plan.label}"
+          title="Duplicate {plan.label}"
         >
-          Duplicate
+          <Copy size={13} aria-hidden="true" />
+          <span class="planner-tab__label">Duplicate</span>
         </button>
       {/if}
       {#if plan}
@@ -418,11 +436,13 @@
         {:else}
           <button
             type="button"
-            class="planner-tab planner-tab--delete"
+            class="planner-tab planner-tab--tool planner-tab--delete"
             onclick={() => (confirmingDelete = true)}
             aria-label="Delete {plan.label}"
+            title="Delete {plan.label}"
           >
-            Delete
+            <Trash2 size={13} aria-hidden="true" />
+            <span class="planner-tab__label">Delete</span>
           </button>
         {/if}
       {/if}
@@ -606,6 +626,10 @@
 
   .planner-action {
     all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
     flex: 0 0 auto;
     padding: 0.375rem 0.625rem;
     border: 1px solid hsl(5, 53%, 82%);
@@ -667,6 +691,10 @@
   .planner-tab {
     all: unset;
     box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
     min-width: 2rem;
     padding: 0.25rem 0.625rem;
     border: 1px solid hsl(0, 0%, 85%);
@@ -899,70 +927,101 @@
     color: hsl(0, 0%, 50%);
   }
 
-  /* --- Mobile (phones): readable text, ≥44px tap targets, a header that wraps
-     instead of overflowing, and roomier stacked sections. --- */
+  /* 320px: the back chevron + term + actions are the essentials; the plan
+     tabs below already identify the screen. Title stays for aria-labelledby. */
+  @media (max-width: 400px) {
+    .planner-title {
+      display: none;
+    }
+  }
+
+  /* --- Mobile (phones): designed as its own screen, not the desktop clipped.
+     One compact header row (icon-only actions), slim tabs, no hint prose —
+     the schedule gets the viewport. --- */
   @media (max-width: 640px) {
-    /* Share + "Add to Google Calendar" wrap onto their own row rather than
-       overflowing the top bar. */
     .planner-header {
-      flex-wrap: wrap;
-      row-gap: 0.5rem;
+      gap: 0.375rem;
+      padding-left: 0.375rem;
+      padding-right: 0.5rem;
     }
 
+    /* Icon-only chevron; "Class Planner" beside it already says where you are. */
     .planner-back {
-      min-height: 2.75rem;
-      font-size: 1rem;
+      min-height: 2.5rem;
+      padding: 0.25rem;
+    }
+
+    .planner-back span {
+      display: none;
     }
 
     .planner-title {
-      font-size: 1.0625rem;
+      flex: 0 1 auto;
+      font-size: 0.9375rem;
     }
 
+    /* Term selector takes the leftover slack between title and actions. */
+    .planner-header :global(.term-filter-chip) {
+      margin-left: auto;
+    }
+
+    /* Actions collapse to round icon buttons; the label lives in aria/title. */
     .planner-action {
-      flex: 1 1 45%;
-      display: inline-flex;
-      align-items: center;
       justify-content: center;
-      min-height: 2.75rem;
-      padding: 0.5rem 0.875rem;
-      font-size: 0.875rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      border-radius: 999px;
     }
 
-    .planner-disclaimer,
+    .planner-action__label {
+      display: none;
+    }
+
+    .planner-disclaimer {
+      padding: 0.3125rem 0.625rem;
+      font-size: 0.6875rem;
+    }
+
+    /* Device-save hint is desktop prose; Share's tooltip covers it here. */
     .planner-save-note {
-      font-size: 0.8125rem;
+      display: none;
     }
 
     .planner-tabs {
-      gap: 0.5rem;
+      gap: 0.375rem;
+      padding: 0.375rem 0.5rem;
     }
 
     .planner-tab {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 2.75rem;
-      padding: 0.375rem 0.875rem;
-      font-size: 0.875rem;
-    }
-
-    .planner-tab--new {
-      min-width: 2.75rem;
-      font-size: 1.25rem;
-    }
-
-    .planner-conflict-badge {
-      padding: 0.5rem 0.75rem;
+      min-height: 2.5rem;
+      padding: 0.25rem 0.75rem;
       font-size: 0.8125rem;
     }
 
-    .planner-delete-confirm__label {
-      font-size: 0.875rem;
+    /* Plan tools shrink to icons; plan-name tabs keep their labels. */
+    .planner-tab--tool {
+      min-width: 2.5rem;
+      padding: 0.25rem;
+    }
+
+    .planner-tab--tool .planner-tab__label {
+      display: none;
+    }
+
+    .planner-tab--new {
+      min-width: 2.5rem;
+      font-size: 1.125rem;
+    }
+
+    .planner-conflict-badge {
+      padding: 0.375rem 0.625rem;
+      font-size: 0.75rem;
     }
 
     .planner-body {
-      gap: 1rem;
-      padding: 0.75rem 0.75rem calc(1rem + env(safe-area-inset-bottom, 0px));
+      gap: 0.75rem;
+      padding: 0.625rem 0.625rem calc(1rem + env(safe-area-inset-bottom, 0px));
     }
 
     .planner-side__heading {
@@ -987,10 +1046,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 2.75rem;
-      padding: 0.5rem 0.875rem;
+      min-height: 2.5rem;
+      padding: 0.375rem 0.75rem;
       border: 1px solid hsl(0, 60%, 80%);
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
     }
 
     .planner-plain-list {

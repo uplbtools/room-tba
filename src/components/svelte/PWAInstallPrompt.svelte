@@ -3,6 +3,7 @@
   import { toastStore } from "@lib/store.svelte";
   import Download from "@lucide/svelte/icons/download";
   import X from "@lucide/svelte/icons/x";
+  import IconButton from "@ui/IconButton.svelte";
 
   const INSTALL_DISMISS_KEY = "room-tba:install-dismissed";
   const INSTALL_DISMISS_DAYS = 14;
@@ -89,14 +90,14 @@
     <button class="pwa-install-action" type="button" onclick={promptInstall}>
       Install
     </button>
-    <button
+    <IconButton
+      size="sm"
       class="pwa-install-dismiss"
-      type="button"
-      aria-label="Dismiss install prompt"
+      label="Dismiss install prompt"
       onclick={dismiss}
     >
       <X size={12} aria-hidden="true" />
-    </button>
+    </IconButton>
   </div>
 {/if}
 
@@ -143,23 +144,15 @@
     background: hsl(5, 53%, 28%);
   }
 
-  .pwa-install-dismiss {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* Compact override: the prompt pill is short, keep the X small. */
+  .pwa-install-prompt :global(.pwa-install-dismiss) {
     width: 1.25rem;
     height: 1.25rem;
-    padding: 0;
-    border: none;
-    background: transparent;
     color: hsl(0, 0%, 50%);
-    cursor: pointer;
-    border-radius: 0.25rem;
   }
 
-  .pwa-install-dismiss:hover,
-  .pwa-install-dismiss:focus-visible {
+  .pwa-install-prompt :global(.pwa-install-dismiss:hover),
+  .pwa-install-prompt :global(.pwa-install-dismiss:focus-visible) {
     color: hsl(5, 53%, 32%);
     background: hsl(5, 20%, 96%);
   }

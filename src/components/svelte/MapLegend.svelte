@@ -1,6 +1,7 @@
 <script lang="ts">
   import Info from "@lucide/svelte/icons/info";
   import X from "@lucide/svelte/icons/x";
+  import IconButton from "@ui/IconButton.svelte";
   import { getAppData } from "@lib/context";
   import {
     floatingControlPanelStore,
@@ -102,14 +103,14 @@
       {#if !embedded}
         <div class="legend-panel-header">
           <span>Map legend</span>
-          <button
-            type="button"
-            class="close-btn"
+          <IconButton
+            size="sm"
+            shape="rounded"
+            label="Close map legend"
             onclick={() => floatingControlPanelStore.close(panelId)}
-            aria-label="Close map legend"
           >
             <X size={16} />
-          </button>
+          </IconButton>
         </div>
       {/if}
 
@@ -346,22 +347,6 @@
     color: hsl(0, 0%, 20%);
     font-size: 0.875rem;
     font-weight: 600;
-  }
-
-  .close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 0.375rem;
-    background: transparent;
-    color: hsl(0, 0%, 40%);
-    cursor: pointer;
-    padding: 0.125rem;
-  }
-
-  .close-btn:hover {
-    background-color: hsl(0, 0%, 95%);
   }
 
   .legend-sections {

@@ -1,7 +1,6 @@
 import {
   LEGAL_LINKS,
   MESSENGER_CONTRIBUTE_TARGET,
-  MESSENGER_MAINTAIN_TARGET,
   UPLB_TOOLS_URL,
   DISCORD_URL,
 } from "@constants/community-links";
@@ -132,22 +131,13 @@ export function statusBarNavGroups(options: {
 }): StatusBarNavGroup[] {
   const action = (id: StatusBarActionItem["id"]) =>
     STATUS_BAR_APP_ACTIONS.find((a) => a.id === id)!;
+  // One Messenger entry total — the community group already links Messenger;
+  // maintainer chat stays discoverable in the Campus team modal.
   const appItems: StatusBarNavItem[] = [
     action("contributors"),
     action("leaderboard"),
     ...(options.showEditorLogin
-      ? [
-          action("sign-up"),
-          action("editor-login"),
-          {
-            kind: "link" as const,
-            id: "messenger-maintain",
-            label: "Maintainer chat",
-            href: MESSENGER_MAINTAIN_TARGET,
-            external: true,
-            icon: "messenger" as const,
-          },
-        ]
+      ? [action("sign-up"), action("editor-login")]
       : []),
   ];
 

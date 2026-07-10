@@ -5,12 +5,11 @@
   import Plus from "@lucide/svelte/icons/plus";
   import {
     adminAuthStore,
-    floatingControlPanelStore,
+    editorChromeStore,
     locationStore,
     mapStore,
     toastStore,
   } from "@lib/store.svelte";
-  import SuggestAdditionPanel from "@ui/SuggestAdditionPanel.svelte";
 
   type Props = {
     /** When true, render as inline actions inside the bottom chrome tray. */
@@ -20,10 +19,6 @@
   let { embedded = false }: Props = $props();
 
   let centered: boolean = $state(false);
-  const suggestPanelId = "suggest-addition";
-  const suggestMenuOpen = $derived(
-    floatingControlPanelStore.openPanel === suggestPanelId,
-  );
 
   onMount(() => {
     adminAuthStore.hydrate();
@@ -54,28 +49,15 @@
 
 <div class="map-control-stack" class:embedded>
   {#if showSuggestAddition}
-    <div class="admin-control">
-      {#if suggestMenuOpen}
-        <div
-          id="suggest-addition-menu"
-          class="admin-panel suggest-panel"
-          role="menu"
-          aria-label="Propose a campus addition"
-        >
-          <SuggestAdditionPanel />
-        </div>
-      {/if}
-      <button
-        class="map-control-btn"
-        onclick={() => floatingControlPanelStore.toggle(suggestPanelId)}
-        title="Add something to the map"
-        aria-label="Add something to the map"
-        aria-expanded={suggestMenuOpen}
-        aria-controls="suggest-addition-menu"
-      >
-        <Plus aria-hidden="true" />
-      </button>
-    </div>
+    <button
+      class="map-control-btn"
+      onclick={() => editorChromeStore.openAdditionModal()}
+      title="Add something to the map"
+      aria-label="Add something to the map"
+      aria-haspopup="dialog"
+    >
+      <Plus aria-hidden="true" />
+    </button>
   {/if}
 
   <button
@@ -104,20 +86,6 @@
   .map-control-stack.embedded {
     flex-direction: row;
     align-items: center;
-    gap: 0.375rem;
-  }
-
-  .admin-control {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-  }
-
-  .embedded .admin-control {
-    position: relative;
-    flex-direction: column-reverse;
-    align-items: flex-end;
     gap: 0.375rem;
   }
 
@@ -171,33 +139,4 @@
     outline-offset: 2px;
   }
 
-  .admin-panel {
-    display: flex;
-    width: min(18rem, calc(100vw - 1rem));
-    max-width: calc(100vw - 1rem);
-    max-height: min(70vh, 28rem);
-    flex-direction: column;
-    gap: 0.5rem;
-    border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
-    border-radius: 0.875rem;
-    background-color: var(--map-chrome-surface, rgba(255, 250, 250, 0.98));
-    padding: 0.75rem;
-    box-shadow: var(
-      --map-chrome-panel-shadow,
-      0 4px 14px hsla(0, 0%, 0%, 0.16)
-    );
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
-  .embedded .admin-panel {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 0.375rem);
-    width: min(18rem, calc(100vw - 1.5rem));
-  }
-
-  .suggest-panel {
-    width: min(18rem, calc(100vw - 1rem));
-  }
 </style>

@@ -14,6 +14,7 @@
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
+  import KeyRound from "@lucide/svelte/icons/key-round";
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
   import type { DormData } from "@lib/types";
@@ -639,7 +640,10 @@
             UP-managed
           </span>
         {:else}
-          <span class="entity-meta-chip private-badge">Private</span>
+          <span class="entity-meta-chip private-badge">
+            <KeyRound size={12} />
+            Private
+          </span>
         {/if}
         <span
           class="entity-meta-chip gender-badge"
@@ -853,29 +857,25 @@
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
 
+  /* Each badge only sets its tone; .entity-meta-chip derives border + wash. */
   .gender-badge {
-    background-color: color-mix(in srgb, var(--badge-color) 18%, white);
-    color: color-mix(in srgb, var(--badge-color) 88%, black);
+    color: color-mix(in srgb, var(--badge-color) 85%, black);
   }
 
   .capacity-badge {
-    background-color: hsl(0, 0%, 92%);
-    color: hsl(0, 0%, 22%);
+    color: hsl(0, 0%, 30%);
   }
 
   .up-badge {
-    background-color: hsl(5, 53%, 92%);
-    color: hsl(5, 53%, 28%);
+    color: hsl(5, 53%, 32%);
   }
 
   .private-badge {
-    background-color: hsl(210, 45%, 92%);
-    color: hsl(210, 55%, 32%);
+    color: hsl(210, 55%, 36%);
   }
 
   .price-badge {
-    background-color: hsl(150, 30%, 91%);
-    color: hsl(150, 45%, 24%);
+    color: hsl(150, 45%, 27%);
   }
 
   .price-disclaimer {

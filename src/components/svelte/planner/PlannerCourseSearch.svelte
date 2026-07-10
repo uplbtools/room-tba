@@ -16,9 +16,29 @@
 
   let query = $state("");
   let loading = $state(false);
+  let loadingMore = $state(false);
   let rows = $state<ClassMapValue[]>([]);
   let total = $state(0);
   const expanded = new SvelteSet<string>();
+
+  // Browse mode (no query) pages through the term 100 at a time (#planner).
+  async function loadMore() {
+    if (loadingMore || query.trim()) return;
+    loadingMore = true;
+    try {
+      const page = await fetchClassPage({
+        termId,
+        limit: 100,
+        offset: rows.length,
+      });
+      rows = [...rows, ...page.rows];
+      total = page.total;
+    } catch {
+      // keep what we have; the note still offers searching by course code
+    } finally {
+      loadingMore = false;
+    }
+  }
 
   $effect(() => {
     const q = query.trim();
@@ -188,8 +208,19 @@
     </div>
     {#if rows.length < total}
       <p class="course-search__note">
-        Showing {rows.length} of {total} sections. Search a course code to find
-        the rest.
+        Showing {rows.length} of {total} sections.
+        {#if !query.trim()}
+          <button
+            type="button"
+            class="course-search__more"
+            onclick={loadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? "Loading…" : "Show more"}
+          </button>
+        {:else}
+          Search a course code to find the rest.
+        {/if}
       </p>
     {/if}
   {/if}
@@ -238,6 +269,28 @@
     color: hsl(0, 0%, 28%);
     background: hsl(0, 0%, 100%);
     border-top: 1px solid hsl(0, 0%, 90%);
+  }
+
+  .course-search__more {
+    all: unset;
+    margin-left: 0.25rem;
+    padding: 0.125rem 0.625rem;
+    border: 1px solid hsl(5, 53%, 82%);
+    border-radius: 999px;
+    color: hsl(5, 53%, 32%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .course-search__more:hover:not(:disabled),
+  .course-search__more:focus-visible {
+    background: hsl(5, 53%, 96%);
+  }
+
+  .course-search__more:disabled {
+    opacity: 0.6;
+    cursor: progress;
   }
 
   .course-search__list {
