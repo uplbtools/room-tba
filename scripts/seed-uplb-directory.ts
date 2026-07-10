@@ -57,7 +57,15 @@ const PLACE_TYPES = new Set(["food", "tourist-spot", "landmark", "transport"]);
 
 /** Official pages are real websites; OSM element URLs are provenance only. */
 function websiteLink(source: string): string | null {
-  return /openstreetmap\.org|facebook\.com/.test(source) ? null : source;
+  try {
+    const host = new URL(source).hostname;
+    const provenanceOnly = ["openstreetmap.org", "facebook.com"].some(
+      (domain) => host === domain || host.endsWith(`.${domain}`),
+    );
+    return provenanceOnly ? null : source;
+  } catch {
+    return null;
+  }
 }
 
 const [orgs, places, dorms, colleges, buildings] = await Promise.all([
