@@ -94,14 +94,14 @@
     };
   });
 
-  async function handleSignOut() {
-    await adminAuthStore.logout();
-    toastStore.show("Signed out.", "info");
-  }
+  // async function handleSignOut() {
+  //   await adminAuthStore.logout();
+  //   toastStore.show("Signed out.", "info");
+  // }
 </script>
 
 <div class="status-bar">
-  <AppMenu onSignOut={handleSignOut} />
+  <!-- <AppMenu onSignOut={handleSignOut} /> -->
 
   <div class="status-bar__badges" aria-live="polite">
     {#if statusPill}
