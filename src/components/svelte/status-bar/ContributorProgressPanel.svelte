@@ -13,7 +13,7 @@
     type MineContributorProgress,
     type RoomFieldCategory,
   } from "@lib/contributor-progress";
-  import { adminAuthStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
 
   type ScopeTab = "campus" | "building" | "mine";

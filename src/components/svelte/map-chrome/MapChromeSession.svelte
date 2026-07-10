@@ -2,7 +2,7 @@
   import LogOut from "@lucide/svelte/icons/log-out";
   import Settings from "@lucide/svelte/icons/settings";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
-  import { adminAuthStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import MapChromeGhostButton from "./MapChromeGhostButton.svelte";
   import "./map-chrome.css";
 

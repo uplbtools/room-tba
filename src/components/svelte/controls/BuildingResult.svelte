@@ -1,7 +1,6 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import {
-    adminAuthStore,
     mapEditStore,
     mapProposalStore,
     queryStore,
@@ -9,6 +8,7 @@
     toastStore,
     termStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import Box from "@lucide/svelte/icons/box";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
@@ -49,10 +49,7 @@
   } from "@lib/contributor-drafts";
 
   type BuildingEditableField =
-    | "buildingName"
-    | "directions"
-    | "buildingType"
-    | "imageUrl";
+    "buildingName" | "directions" | "buildingType" | "imageUrl";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -581,10 +578,16 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="building-submitter-name"
-          historyEntity={building ? { entityType: "building", entityId: building.id, version: building.version } : null}
+          historyEntity={building
+            ? {
+                entityType: "building",
+                entityId: building.id,
+                version: building.version,
+              }
+            : null}
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
-          activeProposalId={activeProposalId}
+          {activeProposalId}
           onWithdrawn={() => {
             activeProposalId = null;
             proposalStatus = null;
@@ -751,7 +754,9 @@
       </section>
     {/if}
   {:else}
-    <p class="entity-loading-note"><LoadingIndicator label="Loading building…" /></p>
+    <p class="entity-loading-note">
+      <LoadingIndicator label="Loading building…" />
+    </p>
   {/if}
 
   {#if buildingOrgs.length > 0}

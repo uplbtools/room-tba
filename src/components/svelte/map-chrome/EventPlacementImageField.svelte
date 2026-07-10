@@ -1,6 +1,7 @@
 <script lang="ts">
   import ImageUpload from "@ui/editor/ImageUpload.svelte";
-  import { adminAuthStore, eventPlacementStore } from "@lib/store.svelte";
+  import { eventPlacementStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
 
   const draft = $derived(eventPlacementStore.draft);
   const uploadPrefix = $derived(draft ? `events/${draft.slug}` : "events");

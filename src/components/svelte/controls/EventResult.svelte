@@ -17,7 +17,6 @@
   import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { getAppActions, getAppData } from "@lib/context";
   import {
-    adminAuthStore,
     eventPlacementStore,
     mapEditStore,
     mapProposalStore,
@@ -25,6 +24,7 @@
     queryStore,
     toastStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     getStoredProposalForEntity,
     persistEntityChange,
@@ -739,7 +739,13 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="event-submitter-name"
-          historyEntity={event ? { entityType: "event", entityId: event.id, version: event.version } : null}
+          historyEntity={event
+            ? {
+                entityType: "event",
+                entityId: event.id,
+                version: event.version,
+              }
+            : null}
           bind:submitterName={submitterNameDraft}
         >
           <form

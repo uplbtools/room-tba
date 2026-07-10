@@ -3,7 +3,8 @@
   import IconButton from "@ui/IconButton.svelte";
   import { fade, fly } from "svelte/transition";
   import { X, Building2, Loader, RotateCcw, Pencil } from "@lucide/svelte";
-  import { building3DStore, adminAuthStore } from "@lib/store.svelte";
+  import { building3DStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     modalContentDismiss,
     modalContentReveal,

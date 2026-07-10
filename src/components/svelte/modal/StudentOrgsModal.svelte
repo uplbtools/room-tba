@@ -3,11 +3,11 @@
   import Building2 from "@lucide/svelte/icons/building-2";
   import Pencil from "@lucide/svelte/icons/pencil";
   import {
-    adminAuthStore,
     modalStore,
     queryStore,
     sidePanelStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
 
   function browseOrganizations() {
@@ -34,31 +34,33 @@
     <li>
       <Users size={18} aria-hidden="true" />
       <span>
-        <strong>Find an org.</strong> Search its name, or browse the Orgs
-        category. Each listing shows its category, host building, and contact
-        links.
+        <strong>Find an org.</strong> Search its name, or browse the Orgs category.
+        Each listing shows its category, host building, and contact links.
       </span>
     </li>
     <li>
       <Building2 size={18} aria-hidden="true" />
       <span>
-        <strong>Locate the tambayan.</strong> Listings pin to the org's own
-        location when known, otherwise to its host building, so directions
-        always resolve.
+        <strong>Locate the tambayan.</strong> Listings pin to the org's own location
+        when known, otherwise to its host building, so directions always resolve.
       </span>
     </li>
     <li>
       <Pencil size={18} aria-hidden="true" />
       <span>
         <strong>Keep it accurate.</strong> Open any listing and hit
-        <em>Edit</em> to suggest a fix. Signed-in contributors have their
-        suggestions credited to them.
+        <em>Edit</em> to suggest a fix. Signed-in contributors have their suggestions
+        credited to them.
       </span>
     </li>
   </ul>
 
   <div class="orgs-modal__actions">
-    <button type="button" class="orgs-modal__btn orgs-modal__btn--primary" onclick={browseOrganizations}>
+    <button
+      type="button"
+      class="orgs-modal__btn orgs-modal__btn--primary"
+      onclick={browseOrganizations}
+    >
       Browse organizations
     </button>
     {#if !adminAuthStore.isLoggedIn}

@@ -2,7 +2,8 @@
   import { fade, fly } from "svelte/transition";
   import { X, Lock } from "@lucide/svelte";
   import IconButton from "@ui/IconButton.svelte";
-  import { adminAuthStore, toastStore } from "@lib/store.svelte";
+  import { toastStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     modalContentDismiss,
     modalContentReveal,
@@ -95,8 +96,7 @@
   $effect(() => {
     const code = adminAuthStore.oauthError;
     if (code) {
-      error =
-        OAUTH_ERROR_MESSAGES[code] ?? "Google sign-in failed. Try again.";
+      error = OAUTH_ERROR_MESSAGES[code] ?? "Google sign-in failed. Try again.";
     }
   });
 
@@ -285,7 +285,10 @@
         {/if}
       {/if}
       {#if turnstileEnabled && !showForgotPassword}
-        <TurnstileWidget siteKey={turnstileSiteKey} bind:token={turnstileToken} />
+        <TurnstileWidget
+          siteKey={turnstileSiteKey}
+          bind:token={turnstileToken}
+        />
       {/if}
       {#if error}
         <EntityEditorMessage
@@ -358,7 +361,10 @@
               {/snippet}
             </EntityEditorFormField>
             {#if forgotPasswordError}
-              <EntityEditorMessage variant="error" message={forgotPasswordError} />
+              <EntityEditorMessage
+                variant="error"
+                message={forgotPasswordError}
+              />
             {/if}
             <div class="forgot-password-actions">
               <EntityEditorSubmitButton

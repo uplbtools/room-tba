@@ -11,7 +11,6 @@
     sidePanelStore,
     jeepneyStore,
     currentRoom,
-    adminAuthStore,
     toastStore,
     mapProposalStore,
     additionProposalStore,
@@ -22,6 +21,7 @@
     termStore,
     syncToastStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
@@ -42,7 +42,12 @@
   import type { StyleSpecification } from "maplibre-gl";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { BuildingData, DormData, EventData, PlaceData } from "@lib/types";
+  import type {
+    BuildingData,
+    DormData,
+    EventData,
+    PlaceData,
+  } from "@lib/types";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import {
     JEEPNEY_ROUTES,
@@ -156,8 +161,13 @@
         return { org, lat, lon };
       })
       .filter(
-        (entry): entry is { org: (typeof organizations)[number]; lat: number; lon: number } =>
-          entry.lat !== null && entry.lon !== null,
+        (
+          entry,
+        ): entry is {
+          org: (typeof organizations)[number];
+          lat: number;
+          lon: number;
+        } => entry.lat !== null && entry.lon !== null,
       );
   });
   const filteredPlaces = $derived.by(() => {
@@ -249,12 +259,14 @@
     const cached = jeepneyRouteGeometryCache.get(route.id);
     if (cached) return cached;
 
-    const geometry = (jeepneyGeometries as Record<string, LineString | null>)[route.id];
+    const geometry = (jeepneyGeometries as Record<string, LineString | null>)[
+      route.id
+    ];
     if (geometry) {
       jeepneyRouteGeometryCache.set(route.id, geometry);
       return geometry;
     }
-    
+
     return null;
   }
 
@@ -2284,7 +2296,10 @@
   });
 
   let activeOrgName = $derived.by(() => {
-    if (queryStore.category === "organization" && queryStore.type === "result") {
+    if (
+      queryStore.category === "organization" &&
+      queryStore.type === "result"
+    ) {
       return queryStore.inputValue;
     }
     return null;
@@ -2589,7 +2604,8 @@
                 <span class="schedule-route-stop-label" transition:fade>
                   {formatMinutes(stop.startMinutes)}
                   {stop.courseCode}
-                  {#if stop.roomCode} · {stop.roomCode}{/if}
+                  {#if stop.roomCode}
+                    · {stop.roomCode}{/if}
                 </span>
               </button>
             </Marker>

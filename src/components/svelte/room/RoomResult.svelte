@@ -2,7 +2,6 @@
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { onMount } from "svelte";
   import {
-    adminAuthStore,
     building3DStore,
     currentRoom,
     modalStore,
@@ -11,6 +10,7 @@
     termStore,
     toastStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     getStoredProposalForEntity,
     mergeEntityRooms,
@@ -47,7 +47,7 @@
   import type { FinalExamRow, RoomData } from "@lib/types";
   import Classes from "./Classes.svelte";
   import FinalExamsList from "./FinalExamsList.svelte";
-    import TermSelector from "@ui/TermSelector.svelte";
+  import TermSelector from "@ui/TermSelector.svelte";
 
   type RoomEditableField =
     | "roomCode"
@@ -488,7 +488,6 @@
       savingField = null;
     }
   }
-
 </script>
 
 <div class="entity-detail">
@@ -567,10 +566,16 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="room-submitter-name"
-          historyEntity={currentRoom.value ? { entityType: "room", entityId: currentRoom.value.id, version: currentRoom.value.version } : null}
+          historyEntity={currentRoom.value
+            ? {
+                entityType: "room",
+                entityId: currentRoom.value.id,
+                version: currentRoom.value.version,
+              }
+            : null}
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
-          activeProposalId={activeProposalId}
+          {activeProposalId}
           onWithdrawn={() => {
             activeProposalId = null;
             proposalStatus = null;
@@ -804,9 +809,7 @@
         {#if currentRoom.value.directions}
           <p class="entity-directions__text">{currentRoom.value.directions}</p>
         {:else}
-          <p class="entity-directions__empty">
-            No directions listed.
-          </p>
+          <p class="entity-directions__empty">No directions listed.</p>
         {/if}
       </div>
 

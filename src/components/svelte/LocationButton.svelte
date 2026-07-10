@@ -4,12 +4,12 @@
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import Plus from "@lucide/svelte/icons/plus";
   import {
-    adminAuthStore,
     editorChromeStore,
     locationStore,
     mapStore,
     toastStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
 
   type Props = {
     /** When true, render as inline actions inside the bottom chrome tray. */
@@ -138,5 +138,4 @@
     outline: 2px solid hsl(5, 53%, 32%);
     outline-offset: 2px;
   }
-
 </style>

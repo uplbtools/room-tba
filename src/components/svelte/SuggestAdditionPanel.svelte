@@ -1,9 +1,6 @@
 <script lang="ts">
-  import {
-    adminAuthStore,
-    additionProposalStore,
-    toastStore,
-  } from "@lib/store.svelte";
+  import { additionProposalStore, toastStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { getAppData } from "@lib/context";
   import SubmitterNameField from "./SubmitterNameField.svelte";
   import {
@@ -34,7 +31,7 @@
     ProposalValidationError,
     validateBundledRooms,
   } from "@lib/proposals/create-proposal-validation";
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
 
   type AdditionOption = {
     value: ProposalCreateType;
@@ -486,7 +483,10 @@
         );
         await refreshPendingCreateProposal();
       } else {
-        toastStore.show("Thanks. We'll review your suggestion soon.", "success");
+        toastStore.show(
+          "Thanks. We'll review your suggestion soon.",
+          "success",
+        );
       }
       clearSuggestAdditionDraft();
       resetFields();
@@ -750,7 +750,9 @@
                 : "Select a building"}
             </option>
             {#each buildings as building (building.id)}
-              <option value={String(building.id)}>{building.buildingName}</option>
+              <option value={String(building.id)}
+                >{building.buildingName}</option
+              >
             {/each}
           </select>
         {/snippet}

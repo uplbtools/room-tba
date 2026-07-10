@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { adminAuthStore, eventPlacementStore } from "@lib/store.svelte";
+  import { eventPlacementStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";

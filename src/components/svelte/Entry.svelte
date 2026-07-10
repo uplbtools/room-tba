@@ -7,7 +7,6 @@
     locationStore,
     toastStore,
     building3DStore,
-    adminAuthStore,
     mapEditStore,
     mapToolsStore,
     editorChromeStore,
@@ -16,6 +15,7 @@
     plannerStore,
     termStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { decodeSharePlan } from "@lib/planner/share-codec";
   import { resolveSharedPlan } from "@lib/planner/import-shared";
   import Modal from "@ui/modal/Modal.svelte";
@@ -45,6 +45,7 @@
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
+  import type { RecentSearch } from "@lib/types";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -121,7 +122,8 @@
         missing_token: "That confirmation link is missing its token.",
         invalid_or_expired_token:
           "That confirmation link is invalid or has expired. Request a new one.",
-        not_logged_in: "Sign in first, then connect Google from account settings.",
+        not_logged_in:
+          "Sign in first, then connect Google from account settings.",
         missing_code: "Google sign-in was cancelled or incomplete. Try again.",
         oauth_failed: "Connecting Google failed. Try again.",
         already_linked:
@@ -662,7 +664,7 @@
 
   .camera-controls-card__divider {
     height: 2px;
-    margin: .5rem 0.125rem;
+    margin: 0.5rem 0.125rem;
     background-color: var(--map-chrome-divider, hsl(5 12% 70%));
   }
 
@@ -754,8 +756,9 @@
       max-height: min(
         42dvh,
         calc(
-          100dvh - var(--search-block-height) - var(--map-ui-padding, 0.375rem) -
-            var(--status-bar-block-height) - 0.5rem
+          100dvh - var(--search-block-height) -
+            var(--map-ui-padding, 0.375rem) - var(--status-bar-block-height) -
+            0.5rem
         )
       );
       padding: 0.5rem 0.625rem;

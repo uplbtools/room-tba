@@ -18,11 +18,11 @@
   } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
   import {
-    adminAuthStore,
     mapToolsStore,
     modalStore,
     proposalsStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
   import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
@@ -226,7 +226,9 @@
             <span>
               Review suggested edits
               {#if proposalsStore.pendingCount > 0}
-                <span class="app-menu__badge">{proposalsStore.pendingCount}</span>
+                <span class="app-menu__badge"
+                  >{proposalsStore.pendingCount}</span
+                >
               {/if}
             </span>
           </button>

@@ -3,7 +3,8 @@
   import IconButton from "@ui/IconButton.svelte";
   import { fade, fly } from "svelte/transition";
   import { X, User2 } from "@lucide/svelte";
-  import { adminAuthStore, toastStore } from "@lib/store.svelte";
+  import { toastStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     modalContentDismiss,
     modalContentReveal,
@@ -59,7 +60,9 @@
   async function loadProfile() {
     loadError = null;
     try {
-      const res = await fetch("/api/account/me", { credentials: "same-origin" });
+      const res = await fetch("/api/account/me", {
+        credentials: "same-origin",
+      });
       if (!res.ok) {
         loadError = "Could not load your account.";
         return;
@@ -154,7 +157,9 @@
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          currentPassword: profile.hasPassword ? currentPasswordDraft : undefined,
+          currentPassword: profile.hasPassword
+            ? currentPasswordDraft
+            : undefined,
           newPassword: newPasswordDraft,
         }),
       });
@@ -220,7 +225,9 @@
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          currentPassword: profile.hasPassword ? deletePasswordDraft : undefined,
+          currentPassword: profile.hasPassword
+            ? deletePasswordDraft
+            : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}) as { error?: string });
@@ -241,7 +248,10 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="settings-overlay" transition:fade={overlayFade(reducedMotion.current)}>
+<div
+  class="settings-overlay"
+  transition:fade={overlayFade(reducedMotion.current)}
+>
   <div
     bind:this={frameEl}
     class="settings-frame"
@@ -256,7 +266,12 @@
         <User2 size={16} aria-hidden="true" />
         <span>Account settings</span>
       </div>
-      <IconButton size="sm" shape="rounded" label="Close account settings" onclick={close}>
+      <IconButton
+        size="sm"
+        shape="rounded"
+        label="Close account settings"
+        onclick={close}
+      >
         <X size={18} aria-hidden="true" />
       </IconButton>
     </header>
@@ -279,7 +294,10 @@
               <input id="account-role" value={profile.role} disabled />
             {/snippet}
           </EntityEditorFormField>
-          <EntityEditorFormField label="Display name" inputId="account-display-name">
+          <EntityEditorFormField
+            label="Display name"
+            inputId="account-display-name"
+          >
             {#snippet control()}
               <input
                 id="account-display-name"
@@ -292,7 +310,10 @@
             <EntityEditorMessage variant="error" message={displayNameError} />
           {/if}
           {#if displayNameSaved}
-            <EntityEditorMessage variant="success" message="Display name saved." />
+            <EntityEditorMessage
+              variant="success"
+              message="Display name saved."
+            />
           {/if}
           <EntityEditorSubmitButton
             label="Save display name"
@@ -304,7 +325,11 @@
 
           <EntityEditorFormField label="Email" inputId="account-email">
             {#snippet control()}
-              <input id="account-email" value={profile.email ?? "(none)"} disabled />
+              <input
+                id="account-email"
+                value={profile.email ?? "(none)"}
+                disabled
+              />
             {/snippet}
           </EntityEditorFormField>
           {#if !showChangeEmail}
@@ -316,7 +341,10 @@
               Change email
             </button>
           {:else}
-            <EntityEditorFormField label="New email" inputId="account-new-email">
+            <EntityEditorFormField
+              label="New email"
+              inputId="account-new-email"
+            >
               {#snippet control()}
                 <input
                   id="account-new-email"
@@ -348,7 +376,10 @@
         <section class="settings-section">
           <h3>{profile.hasPassword ? "Change password" : "Set a password"}</h3>
           {#if profile.hasPassword}
-            <EntityEditorFormField label="Current password" inputId="account-current-password">
+            <EntityEditorFormField
+              label="Current password"
+              inputId="account-current-password"
+            >
               {#snippet control()}
                 <input
                   id="account-current-password"
@@ -407,7 +438,9 @@
               onclick={disconnectGoogle}
             />
             {#if !profile.hasPassword}
-              <p class="field-hint">Set a password first to disconnect Google.</p>
+              <p class="field-hint">
+                Set a password first to disconnect Google.
+              </p>
             {/if}
           {:else}
             <EntityEditorSubmitButton
@@ -438,11 +471,14 @@
             <div class="settings-danger-zone">
               <p>
                 This deactivates your account and removes your email, display
-                name, and password. Your past proposals and edit history stay
-                on record, attributed to a deleted user.
+                name, and password. Your past proposals and edit history stay on
+                record, attributed to a deleted user.
               </p>
               {#if profile.hasPassword}
-                <EntityEditorFormField label="Confirm password" inputId="account-delete-password">
+                <EntityEditorFormField
+                  label="Confirm password"
+                  inputId="account-delete-password"
+                >
                   {#snippet control()}
                     <input
                       id="account-delete-password"

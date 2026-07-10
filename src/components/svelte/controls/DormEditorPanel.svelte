@@ -7,11 +7,8 @@
   import ImageUpload from "@ui/editor/ImageUpload.svelte";
   import { fieldSaveActionLabel } from "@lib/editor/field-action-label";
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
-  import {
-    adminAuthStore,
-    mapEditStore,
-    mapProposalStore,
-  } from "@lib/store.svelte";
+  import { mapEditStore, mapProposalStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import "../editor/entity-editor.css";
 
   type DormEditableField =
@@ -103,7 +100,11 @@
   {canPublish}
   showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
   submitterNameId="dorm-submitter-name"
-  historyEntity={{ entityType: "dorm", entityId: dorm.id, version: dorm.version }}
+  historyEntity={{
+    entityType: "dorm",
+    entityId: dorm.id,
+    version: dorm.version,
+  }}
   bind:submitterName={submitterNameDraft}
   {proposalStatus}
   {activeProposalId}

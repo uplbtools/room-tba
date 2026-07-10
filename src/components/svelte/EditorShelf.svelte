@@ -8,7 +8,6 @@
   import Settings from "@lucide/svelte/icons/settings";
   import Users from "@lucide/svelte/icons/users";
   import {
-    adminAuthStore,
     editorChromeStore,
     eventPlacementStore,
     mapEditStore,
@@ -16,6 +15,7 @@
     proposalsStore,
     toastStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { beginEventPlacement } from "@lib/event-placement";
 
   type Props = {

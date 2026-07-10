@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    adminAuthStore,
-    modalStore,
-    queryStore,
-    toastStore,
-  } from "@lib/store.svelte";
+  import { modalStore, queryStore, toastStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
@@ -304,10 +300,7 @@
         </label>
         <label class="org-field">
           <span class="entity-detail-row__label">Description</span>
-          <textarea
-            class="org-input"
-            rows="3"
-            bind:value={descriptionDraft}
+          <textarea class="org-input" rows="3" bind:value={descriptionDraft}
           ></textarea>
         </label>
         <label class="org-field">

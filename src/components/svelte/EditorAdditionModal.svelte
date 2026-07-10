@@ -3,7 +3,8 @@
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
   import X from "@lucide/svelte/icons/x";
   import IconButton from "@ui/IconButton.svelte";
-  import { adminAuthStore, editorChromeStore } from "@lib/store.svelte";
+  import { editorChromeStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { trapFocus } from "@lib/focus-trap";
   import {
     modalContentDismiss,
@@ -52,7 +53,12 @@
           <MapPinPlus size={16} aria-hidden="true" />
           <span>Add to map</span>
         </div>
-        <IconButton size="sm" shape="rounded" label="Close add to map" onclick={close}>
+        <IconButton
+          size="sm"
+          shape="rounded"
+          label="Close add to map"
+          onclick={close}
+        >
           <X size={18} aria-hidden="true" />
         </IconButton>
       </header>

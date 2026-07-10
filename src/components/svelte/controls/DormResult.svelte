@@ -1,11 +1,11 @@
 <script lang="ts">
   import {
-    adminAuthStore,
     mapEditStore,
     mapProposalStore,
     queryStore,
     toastStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
@@ -555,20 +555,31 @@
       }
       patch.dormName = trimmedName;
     }
-    if (!fieldIsUnchanged("shortName", current)) patch.shortName = shortNameDraft.trim() || null;
-    if (!fieldIsUnchanged("description", current)) patch.description = descriptionDraft.trim() || null;
+    if (!fieldIsUnchanged("shortName", current))
+      patch.shortName = shortNameDraft.trim() || null;
+    if (!fieldIsUnchanged("description", current))
+      patch.description = descriptionDraft.trim() || null;
     if (!fieldIsUnchanged("gender", current)) patch.gender = genderDraft;
-    if (!fieldIsUnchanged("isUpManaged", current)) patch.isUpManaged = isUpManagedDraft;
+    if (!fieldIsUnchanged("isUpManaged", current))
+      patch.isUpManaged = isUpManagedDraft;
     if (!fieldIsUnchanged("capacity", current)) {
-      patch.capacity = capacityDraft.trim() === "" ? null : Number(capacityDraft);
+      patch.capacity =
+        capacityDraft.trim() === "" ? null : Number(capacityDraft);
     }
-    if (!fieldIsUnchanged("priceRange", current)) patch.priceRange = priceRangeDraft.trim() || null;
-    if (!fieldIsUnchanged("managingOffice", current)) patch.managingOffice = managingOfficeDraft.trim() || null;
-    if (!fieldIsUnchanged("contactEmail", current)) patch.contactEmail = contactEmailDraft.trim() || null;
-    if (!fieldIsUnchanged("contactPhone", current)) patch.contactPhone = linesToList(contactPhoneDraft);
-    if (!fieldIsUnchanged("amenities", current)) patch.amenities = linesToList(amenitiesDraft);
-    if (!fieldIsUnchanged("facebookLink", current)) patch.facebookLink = facebookLinkDraft.trim() || null;
-    if (!fieldIsUnchanged("osmLink", current)) patch.osmLink = osmLinkDraft.trim() || null;
+    if (!fieldIsUnchanged("priceRange", current))
+      patch.priceRange = priceRangeDraft.trim() || null;
+    if (!fieldIsUnchanged("managingOffice", current))
+      patch.managingOffice = managingOfficeDraft.trim() || null;
+    if (!fieldIsUnchanged("contactEmail", current))
+      patch.contactEmail = contactEmailDraft.trim() || null;
+    if (!fieldIsUnchanged("contactPhone", current))
+      patch.contactPhone = linesToList(contactPhoneDraft);
+    if (!fieldIsUnchanged("amenities", current))
+      patch.amenities = linesToList(amenitiesDraft);
+    if (!fieldIsUnchanged("facebookLink", current))
+      patch.facebookLink = facebookLinkDraft.trim() || null;
+    if (!fieldIsUnchanged("osmLink", current))
+      patch.osmLink = osmLinkDraft.trim() || null;
 
     savingField = "dormName" as DormEditableField;
     savedField = null;
@@ -725,7 +736,7 @@
           {savedField}
           {fieldError}
           {proposalStatus}
-          activeProposalId={activeProposalId}
+          {activeProposalId}
           onWithdrawn={() => {
             activeProposalId = null;
             proposalStatus = null;

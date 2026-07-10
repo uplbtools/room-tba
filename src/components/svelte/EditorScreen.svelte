@@ -4,7 +4,8 @@
   import { getMapChromeVisibility } from "@lib/map-chrome";
   import { trapFocus } from "@lib/focus-trap";
   import { fullScreenDismiss, fullScreenReveal } from "@lib/motion";
-  import { adminAuthStore, editorChromeStore } from "@lib/store.svelte";
+  import { editorChromeStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import EditorShelf from "@ui/EditorShelf.svelte";
   import { MediaQuery } from "svelte/reactivity";
 

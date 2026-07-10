@@ -3,7 +3,8 @@
   import IconButton from "@ui/IconButton.svelte";
   import { fade, fly } from "svelte/transition";
   import { X, Users } from "@lucide/svelte";
-  import { adminAuthStore, toastStore } from "@lib/store.svelte";
+  import { toastStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     modalContentDismiss,
     modalContentReveal,
@@ -45,7 +46,9 @@
   async function loadUsers() {
     loadError = null;
     try {
-      const res = await fetch("/api/admin/users", { credentials: "same-origin" });
+      const res = await fetch("/api/admin/users", {
+        credentials: "same-origin",
+      });
       if (!res.ok) {
         loadError = "Could not load users.";
         return;
@@ -144,7 +147,10 @@
         createError = data.error ?? "Could not create account.";
         return;
       }
-      toastStore.show(`${newUsername} created. Share the temp password with them.`, "success");
+      toastStore.show(
+        `${newUsername} created. Share the temp password with them.`,
+        "success",
+      );
       newUsername = "";
       newDisplayName = "";
       newEmail = "";
@@ -162,7 +168,10 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="settings-overlay" transition:fade={overlayFade(reducedMotion.current)}>
+<div
+  class="settings-overlay"
+  transition:fade={overlayFade(reducedMotion.current)}
+>
   <div
     bind:this={frameEl}
     class="settings-frame"
@@ -196,13 +205,19 @@
             <li class="user-row" class:user-row--inactive={!user.isActive}>
               <div class="user-row-info">
                 <strong>{user.displayName}</strong>
-                <small>{user.username}{user.email ? ` · ${user.email}` : ""}</small>
+                <small
+                  >{user.username}{user.email ? ` · ${user.email}` : ""}</small
+                >
               </div>
               <select
                 value={user.role}
                 disabled={savingUserId === user.id}
                 onchange={(e) =>
-                  changeRole(user, (e.currentTarget as HTMLSelectElement).value as ManagedUser["role"])}
+                  changeRole(
+                    user,
+                    (e.currentTarget as HTMLSelectElement)
+                      .value as ManagedUser["role"],
+                  )}
               >
                 <option value="admin">Admin</option>
                 <option value="editor">Editor</option>
@@ -231,10 +246,17 @@
             <h3>Invite admin / editor</h3>
             <EntityEditorFormField label="Username" inputId="new-user-username">
               {#snippet control()}
-                <input id="new-user-username" bind:value={newUsername} disabled={creating} />
+                <input
+                  id="new-user-username"
+                  bind:value={newUsername}
+                  disabled={creating}
+                />
               {/snippet}
             </EntityEditorFormField>
-            <EntityEditorFormField label="Display name" inputId="new-user-display-name">
+            <EntityEditorFormField
+              label="Display name"
+              inputId="new-user-display-name"
+            >
               {#snippet control()}
                 <input
                   id="new-user-display-name"
@@ -269,7 +291,11 @@
             </EntityEditorFormField>
             <EntityEditorFormField label="Role" inputId="new-user-role">
               {#snippet control()}
-                <select id="new-user-role" bind:value={newRole} disabled={creating}>
+                <select
+                  id="new-user-role"
+                  bind:value={newRole}
+                  disabled={creating}
+                >
                   <option value="admin">Admin</option>
                   <option value="editor">Editor</option>
                   <option value="contributor">Contributor</option>

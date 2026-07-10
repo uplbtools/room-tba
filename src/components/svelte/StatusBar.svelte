@@ -8,10 +8,10 @@
   import {
     appBootstrapStore,
     syncToastStore,
-    adminAuthStore,
     toastStore,
     modalStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import AppMenu from "./status-bar/AppMenu.svelte";
   import "./status-bar/status-bar.css";
 
@@ -116,14 +116,22 @@
           {:else if statusPill.kind === "error"}
             <TriangleAlert size={12} aria-hidden="true" />
           {:else}
-            <LoaderCircle size={12} class="status-bar__spin" aria-hidden="true" />
+            <LoaderCircle
+              size={12}
+              class="status-bar__spin"
+              aria-hidden="true"
+            />
           {/if}
           {statusPill.label}
         </button>
       {:else}
         <span class="status-bar__pill status-bar__pill--{statusPill.kind}">
           {#if statusPill.kind === "syncing"}
-            <LoaderCircle size={12} class="status-bar__spin" aria-hidden="true" />
+            <LoaderCircle
+              size={12}
+              class="status-bar__spin"
+              aria-hidden="true"
+            />
           {:else if statusPill.kind === "error"}
             <TriangleAlert size={12} aria-hidden="true" />
           {/if}

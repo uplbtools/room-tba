@@ -8,13 +8,13 @@
   import { getAppData } from "@lib/context";
   import { getMapChromeVisibility } from "@lib/map-chrome";
   import {
-    adminAuthStore,
     editorChromeStore,
     mapEditStore,
     mapToolsStore,
     proposalsStore,
     queryStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
@@ -490,9 +490,9 @@
 </div>
 
 <style>
-    .campus-browse-chips__container {
-        padding: .5rem .75rem;
-    }
+  .campus-browse-chips__container {
+    padding: 0.5rem 0.75rem;
+  }
   .campus-browse-chips__term {
     padding: 0 0.75rem 0.5rem;
   }
@@ -649,8 +649,7 @@
     grid-row: 4;
   }
 
-  .search-root.mobile-shell.search-suggestions-open
-    .campus-browse-chips__term {
+  .search-root.mobile-shell.search-suggestions-open .campus-browse-chips__term {
     grid-row: 5;
   }
 

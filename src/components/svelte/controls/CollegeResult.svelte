@@ -1,11 +1,7 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
-  import {
-    adminAuthStore,
-    queryStore,
-    toastStore,
-    termStore,
-  } from "@lib/store.svelte";
+  import { queryStore, toastStore, termStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     getStoredProposalForEntity,
     persistEntityChange,
@@ -335,7 +331,13 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="college-submitter-name"
-          historyEntity={college ? { entityType: "college", entityId: college.id, version: college.version } : null}
+          historyEntity={college
+            ? {
+                entityType: "college",
+                entityId: college.id,
+                version: college.version,
+              }
+            : null}
           bind:submitterName={submitterNameDraft}
           {proposalStatus}
           {activeProposalId}

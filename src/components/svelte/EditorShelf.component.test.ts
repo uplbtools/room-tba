@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test } from "vitest";
 import EditorShelfHost from "@test/components/EditorShelfHost.svelte";
-import { adminAuthStore } from "@lib/store.svelte";
+import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
 import { mountAtWidth } from "@test/layout-assertions";
 
 describe("EditorShelf", () => {

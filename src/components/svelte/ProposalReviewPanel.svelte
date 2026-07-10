@@ -1,11 +1,8 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { SvelteSet } from "svelte/reactivity";
-  import {
-    adminAuthStore,
-    proposalsStore,
-    toastStore,
-  } from "@lib/store.svelte";
+  import { proposalsStore, toastStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import { buildFieldDiffs } from "@lib/proposals/diff";
   import { afterProposalPublished } from "@lib/proposals/apply-published-entity";
   import { syncOpenEntityQueryAfterPublish } from "@lib/proposals/sync-open-entity-query";
@@ -36,7 +33,9 @@
 
   // Approve a single proposal: POST + apply the published entity to local
   // state. No toast/refresh — callers (single action, batch) decide those.
-  async function approveOne(id: number): Promise<{ ok: boolean; error?: string }> {
+  async function approveOne(
+    id: number,
+  ): Promise<{ ok: boolean; error?: string }> {
     const res = await fetch(`/api/admin/proposals/${id}/approve`, {
       method: "POST",
       credentials: "same-origin",
@@ -200,9 +199,7 @@
           disabled={selectedIds.size === 0 || batchRunning}
           onclick={runBatchApprove}
         >
-          {batchRunning
-            ? "Approving…"
-            : `Approve ${selectedIds.size} selected`}
+          {batchRunning ? "Approving…" : `Approve ${selectedIds.size} selected`}
         </button>
       </div>
       <ul class="entity-review-list">

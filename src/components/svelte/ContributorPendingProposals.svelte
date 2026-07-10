@@ -5,7 +5,8 @@
   } from "@lib/proposals/client";
   import type { PendingProposalRow } from "@lib/proposals/pending-proposals";
   import { formatProposalStatusLabel } from "@lib/proposals/pending-proposals";
-  import { adminAuthStore, toastStore } from "@lib/store.svelte";
+  import { toastStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import { onMount } from "svelte";
@@ -135,7 +136,11 @@
     padding: 0.5rem 0.6rem;
     border: 1px solid var(--border-subtle, #e2e8f0);
     border-radius: 0.5rem;
-    background: color-mix(in srgb, var(--surface-muted, #f8fafc) 80%, transparent);
+    background: color-mix(
+      in srgb,
+      var(--surface-muted, #f8fafc) 80%,
+      transparent
+    );
   }
 
   .pending-proposals__meta {

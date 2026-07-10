@@ -1,11 +1,7 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
-  import {
-    adminAuthStore,
-    queryStore,
-    toastStore,
-    termStore,
-  } from "@lib/store.svelte";
+  import { queryStore, toastStore, termStore } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     getStoredProposalForEntity,
     persistEntityChange,
@@ -185,7 +181,8 @@
     if (!current) return true;
     return (
       nameDraft.trim() === current.divisionName &&
-      collegeDraft === (current.collegeId === null ? "" : String(current.collegeId))
+      collegeDraft ===
+        (current.collegeId === null ? "" : String(current.collegeId))
     );
   });
 
@@ -204,7 +201,10 @@
       patch.divisionName = trimmedName;
     }
 
-    if (collegeDraft !== (current.collegeId === null ? "" : String(current.collegeId))) {
+    if (
+      collegeDraft !==
+      (current.collegeId === null ? "" : String(current.collegeId))
+    ) {
       patch.collegeId = collegeDraft === "" ? null : Number(collegeDraft);
     }
 
@@ -385,7 +385,13 @@
           {canPublish}
           showSubmitterName={!canPublish && !adminAuthStore.isLoggedIn}
           submitterNameId="division-submitter-name"
-          historyEntity={division ? { entityType: "division", entityId: division.id, version: division.version } : null}
+          historyEntity={division
+            ? {
+                entityType: "division",
+                entityId: division.id,
+                version: division.version,
+              }
+            : null}
           bind:submitterName={submitterNameDraft}
           successMessage={divisionSavedMessage(savedField)}
           errorMessage={fieldError}

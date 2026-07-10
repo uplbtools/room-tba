@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { queryStore, adminAuthStore, toastStore } from "@lib/store.svelte";
+  import { queryStore, toastStore } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import { persistEntityChange } from "@lib/proposals/client";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import {
     PLACE_CATEGORIES,
     PLACE_CATEGORY_LABELS,
@@ -172,8 +173,7 @@
         <label>Website<input bind:value={websiteDraft} /></label>
         <label>Facebook<input bind:value={facebookDraft} /></label>
         {#if !canPublish}
-          <label
-            >Your name (optional)<input bind:value={submitterName} /></label
+          <label>Your name (optional)<input bind:value={submitterName} /></label
           >
         {/if}
         <div class="place-form__actions">

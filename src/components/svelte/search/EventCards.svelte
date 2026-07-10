@@ -12,13 +12,13 @@
     scheduleProposeEventDraftSave,
   } from "@lib/contributor-drafts";
   import {
-    adminAuthStore,
     eventPlacementStore,
     queryStore,
     sidePanelStore,
     syncToastStore,
     toastStore,
   } from "@lib/store.svelte";
+  import { adminAuthStore } from "@lib/stores/admin-auth.svelte";
   import type { EventData } from "@lib/types";
   import { onMount } from "svelte";
 
