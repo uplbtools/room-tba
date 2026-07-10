@@ -193,8 +193,10 @@
 }
 
 /* Tone comes from each badge's `color`; border and wash derive from it so
-   every chip reads as one system instead of flat colored rectangles. */
-.entity-meta-chip {
+   every chip reads as one system instead of flat colored rectangles.
+   :global — the svelte scoper mangles this selector in components that also
+   pull editor css (merged under .entity-actions .editor-toggle--toolbar). */
+:global(.entity-meta-chip) {
   display: inline-flex;
   align-items: center;
   gap: 0.3125rem;

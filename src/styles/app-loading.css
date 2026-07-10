@@ -50,12 +50,18 @@
   width: 4.25rem;
   height: 4.25rem;
   border-radius: 1.25rem;
-  color: white;
   background: linear-gradient(160deg, hsl(5, 58%, 40%), hsl(5, 55%, 27%));
   box-shadow:
     0 1px 0 hsla(0, 0%, 100%, 0.25) inset,
     0 10px 24px hsla(5, 60%, 25%, 0.35),
     0 2px 6px hsla(5, 60%, 25%, 0.28);
+}
+
+.app-loading-badge__logo {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  object-fit: contain;
 }
 
 .app-loading-name {
