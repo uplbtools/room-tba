@@ -19,7 +19,8 @@
     if (
       value === "colleges" ||
       value === "divisions" ||
-      value === "organizations"
+      value === "organizations" ||
+      value === "offices"
     ) {
       return value;
     }
@@ -33,7 +34,9 @@
       case "divisions":
         return "Divisions";
       case "organizations":
-        return "Orgs & Offices";
+        return "Student Organizations";
+      case "offices":
+        return "Offices & Academic Units";
       default:
         return "Buildings";
     }
@@ -55,9 +58,15 @@
         };
       case "organizations":
         return {
-          noun: "org or office",
-          plural: "orgs & offices",
-          placeholder: "Search orgs & offices…",
+          noun: "student organization",
+          plural: "student organizations",
+          placeholder: "Search student organizations…",
+        };
+      case "offices":
+        return {
+          noun: "office or academic unit",
+          plural: "offices & academic units",
+          placeholder: "Search offices & academic units…",
         };
       default:
         return {
@@ -104,8 +113,13 @@
 
   const filteredOrganizations = $derived.by(() => {
     if (!loaded || !organizations) return [];
+    if (activeTab !== "organizations" && activeTab !== "offices") return [];
     const needle = filterText.trim().toLowerCase();
-    const rows = [...organizations].sort((a, b) =>
+    const rows = organizations.filter((row) => {
+      const isStudentOrg =
+        row.category === "student-org" || row.category === "college-org";
+      return activeTab === "organizations" ? isStudentOrg : !isStudentOrg;
+    }).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
     if (!needle) return rows;
@@ -129,7 +143,7 @@
         open: () => openDivision(row.divisionName),
       }));
     }
-    if (activeTab === "organizations") {
+    if (activeTab === "organizations" || activeTab === "offices") {
       return filteredOrganizations.map((row) => ({
         id: row.id,
         label: row.name,
