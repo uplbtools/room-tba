@@ -18,6 +18,7 @@
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import X from "@lucide/svelte/icons/x";
+  import IconButton from "@ui/IconButton.svelte";
   import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
   import { resolveDrawerDragIntent } from "@lib/drawer-drag";
   import { MediaQuery } from "svelte/reactivity";
@@ -138,15 +139,15 @@
                 <span class="drawer-peek-label">{peekLabel}</span>
                 <ChevronUp size={16} aria-hidden="true" />
               </button>
-              <button
+              <IconButton
+                size="sm"
+                shape="rounded"
                 class="drawer-peek-close"
-                type="button"
-                aria-label="Close details"
-                title="Close details"
+                label="Close details"
                 onclick={closeSelection}
               >
                 <X size={16} aria-hidden="true" />
-              </button>
+              </IconButton>
             </div>
           {:else}
             <button
@@ -443,30 +444,15 @@
       color: #7b1113;
     }
 
-    .drawer-peek-close {
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2rem;
-      height: 2rem;
-      padding: 0;
-      border: none;
-      border-radius: 0.375rem;
-      background: transparent;
+    /* Brand-tinted hover on top of the shared IconButton. */
+    .drawer-peek :global(.drawer-peek-close) {
       color: #71717a;
-      cursor: pointer;
     }
 
-    .drawer-peek-close:hover,
-    .drawer-peek-close:focus-visible {
+    .drawer-peek :global(.drawer-peek-close:hover),
+    .drawer-peek :global(.drawer-peek-close:focus-visible) {
       background: hsl(5 53% 95% / 0.65);
       color: #7b1113;
-    }
-
-    .drawer-peek-close:focus-visible {
-      outline: 2px solid #7b1113;
-      outline-offset: 1px;
     }
 
     .drawer.is-collapsed .drawer-card {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
+  import IconButton from "@ui/IconButton.svelte";
   import { fade, fly } from "svelte/transition";
   import { X, Users } from "@lucide/svelte";
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
@@ -176,9 +177,9 @@
         <Users size={16} aria-hidden="true" />
         <span>Manage users</span>
       </div>
-      <button type="button" class="settings-close" onclick={close} aria-label="Close">
+      <IconButton size="sm" shape="rounded" label="Close" onclick={close}>
         <X size={18} aria-hidden="true" />
-      </button>
+      </IconButton>
     </header>
 
     <div class="settings-body">
@@ -334,21 +335,6 @@
     gap: 0.5rem;
     font-weight: 600;
     color: hsl(0, 0%, 15%);
-  }
-  .settings-close {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.375rem;
-    color: hsl(0, 0%, 30%);
-    display: flex;
-  }
-  .settings-close:hover,
-  .settings-close:focus-visible {
-    background-color: hsl(0, 0%, 95%);
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
   }
   .settings-body {
     padding: 1rem;
