@@ -120,32 +120,33 @@ import {
   ToastStore,
   MainControlsStore,
   FloatingControlPanelStore,
-} from "./ui-stores.svelte.js";
+  SidebarStore,
+} from "./ui-stores.svelte";
 import {
   MapStore,
   MapViewStore,
   MapToolsStore,
   TerrainStore,
   Building3DStore,
-} from "./map-stores.svelte.js";
+} from "./map-stores.svelte";
 import {
   EditorChromeStore,
   MapEditStore,
   MapProposalStore,
   AdditionProposalStore,
   EventPlacementStore,
-} from "./editor-stores.svelte.js";
+} from "./editor-stores.svelte";
 import {
   AppBootstrapStore,
   SyncToastStore,
   OfflineStore,
-} from "./sync-stores.svelte.js";
+} from "./sync-stores.svelte";
 import {
   TermStore,
   RoomClassesStore,
   ClassVenuesStore,
-} from "./data-stores.svelte.js";
-import { PlannerStore } from "./planner-store.svelte.js";
+} from "./data-stores.svelte";
+import { PlannerStore } from "./planner-store.svelte";
 
 class LocationStore {
   coords: [number, number] | null = $state(null);
@@ -943,6 +944,7 @@ export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
 export const proposalsStore = new ProposalsStore();
+export const sidebarStore = new SidebarStore();
 
 // Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive.
 registerMapMode("edit", {
