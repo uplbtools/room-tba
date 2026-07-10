@@ -361,34 +361,8 @@
               {/if}
             </button>
           {/if}
-
-          <button
-            type="button"
-            class="map-chrome-chip map-search-chrome__planner-btn"
-            class:map-chrome-chip--toggle-active={plannerStore.open}
-            aria-pressed={plannerStore.open}
-            aria-label="Open course planner"
-            title="Course planner"
-            onclick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              plannerStore.openPlanner();
-            }}
-          >
-            <CalendarDays size={14} aria-hidden="true" />
-            <span class="map-search-chrome__planner-label">Class Planner</span>
-          </button>
         </div>
       </div>
-
-      {#if chrome.showSearchSuggestions}
-        <div class="campus-browse-chips__container">
-          <CampusBrowseChips />
-        </div>
-        <div class="campus-browse-chips__term">
-          <TermSelector />
-        </div>
-      {/if}
 
       {#if showSearchDropdown}
         <!-- svelte-ignore a11y_interactive_supports_focus -->
