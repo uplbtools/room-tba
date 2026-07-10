@@ -57,3 +57,19 @@ describe("AppMenu help entry", () => {
     expect(modalStore.landingTab).toBe("welcome");
   });
 });
+
+describe("AppMenu resource entry", () => {
+  beforeEach(() => {
+    modalStore.closeModal();
+  });
+
+  test("opens the UPLB resource directory", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: /uplb resources/i }),
+    );
+    expect(modalStore.open).toBe(true);
+    expect(modalStore.type).toBe("uplb-resources");
+  });
+});

@@ -15,6 +15,7 @@
   import ChangelogModal from "../ChangelogModal.svelte";
   import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
   import StudentOrgsModal from "./StudentOrgsModal.svelte";
+  import UplbResourcesModal from "./UplbResourcesModal.svelte";
   import IconButton from "@ui/IconButton.svelte";
   import X from "@lucide/svelte/icons/x";
 
@@ -43,6 +44,7 @@
     if (modalStore.type === "changelog") return "What's new";
     if (modalStore.type === "review") return "Review suggested edits";
     if (modalStore.type === "student-orgs") return "Student organizations";
+    if (modalStore.type === "uplb-resources") return "UPLB student resources";
     return "Dialog";
   });
 
@@ -81,6 +83,7 @@
           : modalStore.type === 'changelog' || modalStore.type === 'review'
             ? 'modal-content--large'
             : ''}"
+      class:uplb-resources-modal-container={modalStore.type === "uplb-resources"}
       id="modal-content"
       role="dialog"
       aria-modal="true"
@@ -153,6 +156,15 @@
           <X size={20} aria-hidden="true" />
         </IconButton>
         <StudentOrgsModal />
+      {:else if modalStore.type === "uplb-resources"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close UPLB student resources"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <UplbResourcesModal />
       {/if}
     </div>
   </div>
@@ -218,6 +230,11 @@
   }
   .leaderboard-modal-container {
     flex: 0 1 32rem;
+  }
+  .uplb-resources-modal-container {
+    flex: 0 1 46rem;
+    width: 100%;
+    height: min(90dvh, 46rem);
   }
   .landing-modal-container {
     flex: 0 1 48rem;
