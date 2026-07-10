@@ -8,5 +8,4 @@ export const modalOptions = [
   "changelog",
   "review",
   "student-orgs",
-  "uplb-resources",
 ] as const;

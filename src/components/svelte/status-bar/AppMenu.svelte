@@ -130,18 +130,8 @@
   }
 
   function handleNavAction(
-    id:
-      | "contributors"
-      | "editor-login"
-      | "leaderboard"
-      | "sign-up"
-      | "uplb-resources",
+    id: "contributors" | "editor-login" | "leaderboard" | "sign-up",
   ) {
-    if (id === "uplb-resources") {
-      modalStore.openModal("uplb-resources");
-      closePanel();
-      return;
-    }
     if (id === "contributors") {
       modalStore.openModal("landing", { landingTab: "campus" });
       closePanel();

@@ -41,7 +41,6 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Offline / bad signal | PWA + local cache; tiles if already loaded |
 | Campus events | Events on map with routes |
 | Jeepney routes | Route overlays |
-| UPLB services and links | Menu → UPLB resources |
 | 3D view | Buildings + Makiling terrain (online) |
 
 <details>
@@ -159,6 +158,7 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bunx drizzle-kit studio` | Browse/edit Postgres visually |
 | `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
 | `bun run import:osa-orgs` | Add the current public OSA organization directory (`DATABASE_URL`; safe to rerun) |
+| `bun run import:uplb-trail` | Add missing UPLB TRAIL offices and units (`DATABASE_URL`; safe to rerun) |
 | `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`) |
 | `bun run import:final-exams` | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
 

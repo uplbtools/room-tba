@@ -19,12 +19,7 @@ export type StatusBarLinkItem = {
 
 export type StatusBarActionItem = {
   kind: "action";
-  id:
-    | "contributors"
-    | "editor-login"
-    | "leaderboard"
-    | "sign-up"
-    | "uplb-resources";
+  id: "contributors" | "editor-login" | "leaderboard" | "sign-up";
   label: string;
 };
 
@@ -68,7 +63,6 @@ export const STATUS_BAR_COMMUNITY_GROUP: StatusBarNavGroup = {
 
 /** In-app actions (rendered via StatusBar action handler). */
 export const STATUS_BAR_APP_ACTIONS: StatusBarActionItem[] = [
-  { kind: "action", id: "uplb-resources", label: "UPLB resources" },
   { kind: "action", id: "contributors", label: "Contributors" },
   { kind: "action", id: "leaderboard", label: "Leaderboard" },
   { kind: "action", id: "sign-up", label: "Sign up to contribute" },
@@ -140,7 +134,6 @@ export function statusBarNavGroups(options: {
   // One Messenger entry total — the community group already links Messenger;
   // maintainer chat stays discoverable in the Campus team modal.
   const appItems: StatusBarNavItem[] = [
-    action("uplb-resources"),
     action("contributors"),
     action("leaderboard"),
     ...(options.showEditorLogin
