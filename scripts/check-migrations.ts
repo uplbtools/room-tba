@@ -20,12 +20,16 @@ const REQUIRED_TABLES = [
   "event_locations",
   "event_routes",
   "event_route_stops",
+  "organizations",
+  "places",
   "aliases",
   "update",
   "admin_users",
   "editor_history",
   "edit_proposals",
 ];
+
+const REQUIRED_SYNC_ROWS = ["organizations", "places"];
 
 async function main() {
   const databaseUrl = process.env.DATABASE_URL?.trim();
@@ -49,7 +53,22 @@ async function main() {
         `Missing tables (apply drizzle migrations): ${missing.join(", ")}`,
       );
     }
-    console.log(`OK: ${REQUIRED_TABLES.length} required tables present`);
+    const { rows: syncRows } = await client.query<{ tableName: string }>(
+      'SELECT table_name AS "tableName" FROM "update" WHERE table_name = ANY($1)',
+      [REQUIRED_SYNC_ROWS],
+    );
+    const presentSyncRows = new Set(syncRows.map((row) => row.tableName));
+    const missingSyncRows = REQUIRED_SYNC_ROWS.filter(
+      (table) => !presentSyncRows.has(table),
+    );
+    if (missingSyncRows.length > 0) {
+      throw new Error(
+        `Missing sync registry rows (apply drizzle migrations): ${missingSyncRows.join(", ")}`,
+      );
+    }
+    console.log(
+      `OK: ${REQUIRED_TABLES.length} required tables and ${REQUIRED_SYNC_ROWS.length} sync rows present`,
+    );
   } finally {
     await client.end();
   }

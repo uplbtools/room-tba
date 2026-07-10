@@ -22,7 +22,6 @@
     { id: "buildings", label: "Buildings", icon: University },
     { id: "colleges", label: "Colleges", icon: GraduationCap },
     { id: "divisions", label: "Divisions", icon: Landmark },
-    { id: "organizations", label: "Orgs", icon: Users },
     { id: "classes", label: "Classes", icon: BookText },
     // Planner is pinned as a standalone always-visible chip in Search.svelte.
   ];
@@ -33,7 +32,8 @@
     if (
       queryStore.queryValue === "colleges" ||
       queryStore.queryValue === "divisions" ||
-      queryStore.queryValue === "organizations"
+      queryStore.queryValue === "organizations" ||
+      queryStore.queryValue === "offices"
     ) {
       return queryStore.queryValue;
     }
@@ -73,12 +73,59 @@
   {/each}
 </div>
 
+<div class="campus-directory-chips" role="toolbar" aria-label="Browse campus directory">
+  <button
+    type="button"
+    class="map-chrome-chip campus-browse-chip"
+    class:map-chrome-chip--toggle-active={activeTab === "organizations"}
+    aria-pressed={activeTab === "organizations"}
+    aria-label="Browse student organizations"
+    onclick={(event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleBrowse("organizations");
+    }}
+  >
+    <span class="map-chrome-chip__icon" aria-hidden="true">
+      <Users size={14} />
+    </span>
+    <span>Student orgs</span>
+  </button>
+  <button
+    type="button"
+    class="map-chrome-chip campus-browse-chip"
+    class:map-chrome-chip--toggle-active={activeTab === "offices"}
+    aria-pressed={activeTab === "offices"}
+    aria-label="Browse offices and academic units"
+    onclick={(event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleBrowse("offices");
+    }}
+  >
+    <span class="map-chrome-chip__icon" aria-hidden="true">
+      <Landmark size={14} />
+    </span>
+    <span>Offices &amp; units</span>
+  </button>
+</div>
+
 <style>
   .campus-browse-chips {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
     gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .campus-directory-chips {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
     min-width: 0;
   }
 </style>

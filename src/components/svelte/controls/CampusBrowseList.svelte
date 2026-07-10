@@ -19,7 +19,8 @@
     if (
       value === "colleges" ||
       value === "divisions" ||
-      value === "organizations"
+      value === "organizations" ||
+      value === "offices"
     ) {
       return value;
     }
@@ -33,7 +34,9 @@
       case "divisions":
         return "Divisions";
       case "organizations":
-        return "Orgs & Offices";
+        return "Student Organizations";
+      case "offices":
+        return "Offices & Academic Units";
       default:
         return "Buildings";
     }
@@ -55,9 +58,15 @@
         };
       case "organizations":
         return {
-          noun: "org or office",
-          plural: "orgs & offices",
-          placeholder: "Search orgs & offices…",
+          noun: "student organization",
+          plural: "student organizations",
+          placeholder: "Search student organizations…",
+        };
+      case "offices":
+        return {
+          noun: "office or academic unit",
+          plural: "offices & academic units",
+          placeholder: "Search offices & academic units…",
         };
       default:
         return {
@@ -104,8 +113,13 @@
 
   const filteredOrganizations = $derived.by(() => {
     if (!loaded || !organizations) return [];
+    if (activeTab !== "organizations" && activeTab !== "offices") return [];
     const needle = filterText.trim().toLowerCase();
-    const rows = [...organizations].sort((a, b) =>
+    const rows = organizations.filter((row) => {
+      const isStudentOrg =
+        row.category === "student-org" || row.category === "college-org";
+      return activeTab === "organizations" ? isStudentOrg : !isStudentOrg;
+    }).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
     if (!needle) return rows;
@@ -129,7 +143,7 @@
         open: () => openDivision(row.divisionName),
       }));
     }
-    if (activeTab === "organizations") {
+    if (activeTab === "organizations" || activeTab === "offices") {
       return filteredOrganizations.map((row) => ({
         id: row.id,
         label: row.name,
@@ -146,6 +160,20 @@
   });
 
   const visibleCount = $derived(visibleItems.length);
+
+  const emptyState = $derived.by(() => {
+    const query = filterText.trim();
+    if (query) {
+      return {
+        title: "Nothing in this corner of campus",
+        description: `No ${tabMeta.plural} match “${query}”. Try a shorter name or another keyword.`,
+      };
+    }
+    return {
+      title: "This corner is still being mapped",
+      description: `No ${tabMeta.plural} are listed yet. Check another directory while we fill this one in.`,
+    };
+  });
 
   const statusLine = $derived.by(() => {
     if (!loaded) return "Loading campus directory…";
@@ -223,7 +251,7 @@
         <p class="entity-panel-status">
           <LoadingIndicator label="Loading campus directory…" />
         </p>
-      {:else}
+      {:else if visibleCount > 0}
         <p class="entity-panel-status" aria-live="polite">{statusLine}</p>
       {/if}
     {/snippet}
@@ -257,6 +285,54 @@
           </li>
         {/each}
       </ul>
+    {:else if loaded}
+      <div class="campus-browse-empty" role="status">
+        <svg
+          class="campus-browse-empty__art"
+          viewBox="0 0 180 128"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M24 98c11-24 28-35 51-35 29 0 41 20 65 14 8-2 14-7 19-13"
+            stroke="currentColor"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-dasharray="2 9"
+          />
+          <path
+            d="M44 29h33l8 18H36l8-18Z"
+            fill="currentColor"
+            opacity=".14"
+          />
+          <path
+            d="M53 31v16M68 31v16"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <path
+            d="M116 34c0-12 20-12 20 0 0 9-10 16-10 16s-10-7-10-16Z"
+            fill="currentColor"
+            opacity=".2"
+          />
+          <circle cx="126" cy="34" r="3" fill="currentColor" />
+          <path
+            d="M94 80c7-12 27-10 31 4 4 14-14 24-23 14-5-6-4-14 2-19"
+            stroke="currentColor"
+            stroke-width="4"
+            stroke-linecap="round"
+          />
+          <circle cx="106" cy="93" r="5" fill="currentColor" />
+          <path
+            d="M37 76c0-8 11-14 16-5 5-9 16-3 16 5 0 9-16 18-16 18S37 85 37 76Z"
+            fill="currentColor"
+            opacity=".22"
+          />
+        </svg>
+        <h3>{emptyState.title}</h3>
+        <p>{emptyState.description}</p>
+      </div>
     {/if}
   </div>
 </div>
@@ -283,6 +359,37 @@
     font-size: 0.6875rem;
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  .campus-browse-empty {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    min-height: 100%;
+    padding: 1.5rem 1rem 2rem;
+    color: #8d393b;
+    text-align: center;
+  }
+
+  .campus-browse-empty__art {
+    width: min(10.5rem, 55vw);
+    margin-bottom: 0.875rem;
+  }
+
+  .campus-browse-empty h3 {
+    margin: 0;
+    color: #3f3f46;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+  }
+
+  .campus-browse-empty p {
+    max-width: 19rem;
+    margin: 0.375rem 0 0;
+    color: #71717a;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.45;
   }
 
 
