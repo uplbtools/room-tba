@@ -319,16 +319,6 @@
       <NavLink
         active={false}
         hard={false}
-        onclick={() => {
-          window.open("/changelog", "_blank", "popup=yes");
-        }}
-        tooltip={APP_VERSION_LABEL}
-      >
-        <Tag size={20} />
-      </NavLink>
-      <NavLink
-        active={false}
-        hard={false}
         onclick={() => window.open("/privacy", "_blank", "popup=yes")}
         tooltip="Privacy"
       >
@@ -367,6 +357,8 @@
       0 1px 3px hsla(0, 0%, 0%, 0.12),
       0 4px 12px hsla(0, 0%, 0%, 0.16),
       0 10px 24px hsla(0, 0%, 0%, 0.1);
+      position:relative;
+      z-index:200;
   }
   div.top,
   div.bottom {
@@ -385,26 +377,5 @@
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
-  }
-  button.category,
-  a.nav-link,
-  button.nav-support__button {
-    padding: 0.75rem;
-    display: flex;
-    color: hsl(0, 0%, 20%);
-    border-radius: 0.5rem;
-    transition: 75ms ease-in-out;
-    &:hover:not(.category--soft-active, .category--hard-active) {
-      background-color: hsl(0, 0%, 90%);
-    }
-    justify-content: center;
-  }
-  button.category--soft-active {
-    color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
-  }
-  button.category--hard-active {
-    background-color: hsl(5, 53%, 32%);
-    color: hsl(5, 53%, 96%);
   }
 </style>
