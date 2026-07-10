@@ -1,13 +1,14 @@
 import { SvelteMap } from "svelte/reactivity";
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
-import { buildingTypeFilter } from "./filter-stores.svelte.js";
+import { buildingTypeFilter } from "./filter-stores.svelte";
 import type {
   FloatingControlPanel,
   LandingModalTab,
   ModalStoreState,
   QueryStoreState,
   RecentSearch,
-} from "./store-types.js";
+  SidebarOpenType,
+} from "./store-types";
 
 export class ModalStore {
   private _modalStore: ModalStoreState = $state({
@@ -202,4 +203,15 @@ export class FloatingControlPanelStore {
       this.openPanel = null;
     }
   };
+}
+
+export class SidebarStore {
+    private _panelOpen = $state<SidebarOpenType>("map");
+    // private _open = $state<boolean>(false)
+    panelOpen = $derived(this._panelOpen);
+
+    changeOpened = (panel: SidebarOpenType) => {
+        this._panelOpen = panel;
+    }
+
 }
