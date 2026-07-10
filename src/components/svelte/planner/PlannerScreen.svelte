@@ -112,10 +112,6 @@
     );
   });
 
-  function close() {
-    plannerStore.close();
-  }
-
   function swapSection(courseCode: string, toSections: ClassMapValue[]) {
     plannerStore.replaceCourse(courseCode, toSections);
   }
@@ -563,15 +559,9 @@
 
 <style>
   .planner-screen {
-    position: fixed;
-    inset: 0;
-    /* Below the chrome-popover tier (17) so the term picker portal floats
-       above the planner; still above all map chrome (map-tools 15). */
-    z-index: 16;
+    flex: 1 0 auto;
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    min-height: 0;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     pointer-events: auto;
   }
