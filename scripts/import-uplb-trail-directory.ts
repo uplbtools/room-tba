@@ -6,7 +6,7 @@
  */
 
 import { config } from "dotenv";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
@@ -14,6 +14,7 @@ import {
   collegesTable,
   dormsTable,
   organizationsTable,
+  updateTable,
 } from "@drizzle/schema";
 import { normalizeAlias } from "@lib/site";
 import {
@@ -137,6 +138,15 @@ try {
               : { websiteLink: update.url },
           )
           .where(eq(organizationsTable.id, update.id));
+      }
+      if (additions.length || linkUpdates.length) {
+        await tx
+          .insert(updateTable)
+          .values({ tableName: "organizations" })
+          .onConflictDoUpdate({
+            target: updateTable.tableName,
+            set: { syncKey: sql`gen_random_uuid()` },
+          });
       }
     });
     console.log(

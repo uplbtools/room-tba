@@ -8,7 +8,8 @@
 import { config } from "dotenv";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { organizationsTable } from "@drizzle/schema";
+import { organizationsTable, updateTable } from "@drizzle/schema";
+import { sql } from "drizzle-orm";
 import { UPLB_OSA_ORGANIZATIONS_URL } from "@constants/community-links";
 import { parseOsaOrganizations } from "@lib/osa-organization-directory";
 import { normalizeAlias } from "@lib/site";
@@ -62,15 +63,26 @@ try {
       `OSA directory: ${sourceOrganizations.length} listed, ${additions.length} to add.`,
     );
   } else {
-    await db.insert(organizationsTable).values(
-      additions.map((organization) => ({
-        name: organization.name,
-        category: "student-org",
-        description:
-          "Listed by the UPLB Office of Student Activities for Second Semester, AY 2025–2026.",
-        websiteLink: organization.officialUrl,
-      })),
-    );
+    if (additions.length) {
+      await db.transaction(async (tx) => {
+        await tx.insert(organizationsTable).values(
+          additions.map((organization) => ({
+            name: organization.name,
+            category: "student-org",
+            description:
+              "Listed by the UPLB Office of Student Activities for Second Semester, AY 2025–2026.",
+            websiteLink: organization.officialUrl,
+          })),
+        );
+        await tx
+          .insert(updateTable)
+          .values({ tableName: "organizations" })
+          .onConflictDoUpdate({
+            target: updateTable.tableName,
+            set: { syncKey: sql`gen_random_uuid()` },
+          });
+      });
+    }
     console.log(`Added ${additions.length} OSA organization listings.`);
   }
 } finally {
