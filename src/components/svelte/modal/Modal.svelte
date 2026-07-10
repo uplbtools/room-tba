@@ -12,7 +12,7 @@
   import ScheduleModal from "./ScheduleModal.svelte";
   import LeaderboardModal from "./LeaderboardModal.svelte";
   import CoverageModal from "./CoverageModal.svelte";
-  import ChangelogModal from "../ChangelogModal.svelte";
+  import ChangelogModal from "./ChangelogModal.svelte";
   import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
   import StudentOrgsModal from "./StudentOrgsModal.svelte";
   import IconButton from "@ui/IconButton.svelte";

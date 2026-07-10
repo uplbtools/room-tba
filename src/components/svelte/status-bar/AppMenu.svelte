@@ -186,8 +186,7 @@
     onclick={toggleOpen}
   >
     <Menu size={14} aria-hidden="true" />
-    <span>Menu</span>
-  </button>
+    <span>Menu</span></button>
 
   <div class="app-menu__shortcuts-host" aria-hidden="true">
     <KeyboardShortcutsChip compact />

@@ -32,7 +32,7 @@
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
   import AccountSettingsModal from "@ui/AccountSettingsModal.svelte";
-  import ManageUsersModal from "@ui/ManageUsersModal.svelte";
+  import ManageUsersModal from "@ui/modal/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import EditorScreen from "@ui/EditorScreen.svelte";
   import PlannerScreen from "@ui/planner/PlannerScreen.svelte";

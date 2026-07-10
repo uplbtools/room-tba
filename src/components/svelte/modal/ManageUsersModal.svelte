@@ -13,7 +13,7 @@
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
-  import "./editor/entity-editor.css";
+  import "../editor/entity-editor.css";
   import { MediaQuery } from "svelte/reactivity";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
