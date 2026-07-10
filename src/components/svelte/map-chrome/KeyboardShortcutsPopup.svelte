@@ -113,27 +113,8 @@
 <svelte:window onpointerdown={handleDocumentPointerDown} />
 
 <div class="shortcuts-chip">
-  <button
-    bind:this={triggerEl}
-    type="button"
-    class="map-chrome-chip shortcuts-chip__trigger"
-    aria-expanded={open}
-    aria-haspopup="dialog"
-    aria-controls="keyboard-shortcuts-panel"
-    aria-label="Keyboard shortcuts"
-    aria-keyshortcuts="?"
-    title="Keyboard shortcuts (?)"
-    onclick={toggleOpen}
-  >
-    <Keyboard size={14} aria-hidden="true" />
-    {#if !compact}
-      <span>Shortcuts</span>
-    {/if}
-  </button>
-
   {#if open}
     <div
-      bind:this={panelEl}
       id="keyboard-shortcuts-panel"
       class="shortcuts-panel map-chrome-popover"
       style={panelStyle}
@@ -188,6 +169,9 @@
     gap: 0.625rem;
     overflow-y: auto;
     box-sizing: border-box;
+    top:50%;
+    left:50%;
+    translate: -50% -50%;
   }
 
   .shortcuts-panel__lead {

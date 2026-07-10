@@ -47,6 +47,7 @@
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
   import Sidebar from "./navigation/Sidebar.svelte";
+    import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -364,6 +365,7 @@
     />
   {/if}
   <Modal />
+  <KeyboardShortcutsPopup />
   {#if building3DStore.buildingName}
     <Building3DViewer name={building3DStore.buildingName} />
   {/if}
