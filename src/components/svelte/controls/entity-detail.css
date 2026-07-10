@@ -192,14 +192,20 @@
   align-items: center;
 }
 
+/* Tone comes from each badge's `color`; border and wash derive from it so
+   every chip reads as one system instead of flat colored rectangles. */
 .entity-meta-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.125rem 0.5rem;
-  border-radius: 1rem;
+  gap: 0.3125rem;
+  padding: 0.1875rem 0.5625rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  background-color: color-mix(in srgb, currentColor 7%, white);
+  box-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.05);
   font-size: 0.6875rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 

@@ -395,21 +395,19 @@
     background-color: hsl(265, 45%, 94%);
   }
 
+  /* Tone only; .entity-meta-chip derives the border + wash. */
   .org-badge {
-    background-color: hsl(265, 45%, 92%);
-    color: hsl(265, 45%, 34%);
+    color: hsl(265, 45%, 36%);
   }
 
   .building-badge {
-    background-color: hsl(5, 40%, 92%);
-    color: hsl(5, 45%, 32%);
-    border: none;
+    color: hsl(5, 45%, 34%);
     cursor: pointer;
   }
 
   .building-badge:hover,
   .building-badge:focus-visible {
-    background-color: hsl(5, 40%, 88%);
+    background-color: color-mix(in srgb, currentColor 14%, white);
   }
 
   .org-field {
