@@ -1,8 +1,10 @@
 <script lang="ts">
   import {
     adminAuthStore,
+    additionProposalStore,
     modalStore,
     queryStore,
+    sidePanelStore,
     toastStore,
   } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
@@ -11,14 +13,23 @@
   import Info from "@lucide/svelte/icons/info";
   import Building2 from "@lucide/svelte/icons/building-2";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityBackToList from "./EntityBackToList.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
+  import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import type { OrgData } from "@lib/types";
-  import { orgCategoryLabel, ORG_CATEGORIES } from "@constants/org-categories";
+  import {
+    isStudentOrganization,
+    orgCategoryLabel,
+    ORG_CATEGORIES,
+  } from "@constants/org-categories";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import { getOrganizationShareUrl } from "@lib/share-links";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -29,6 +40,7 @@
   );
 
   const categoryLabel = $derived(org ? orgCategoryLabel(org.category) : null);
+  const isStudentOrg = $derived(isStudentOrganization(org?.category));
 
   // Resolve the host building (for the "located in" link and coord fallback).
   const hostBuilding = $derived(
@@ -40,6 +52,10 @@
   const resolvedLon = $derived(org?.lon ?? hostBuilding?.lon ?? null);
 
   const canPublish = $derived(adminAuthStore.canPublish);
+  const organizationShareUrl = $derived(
+    org ? getOrganizationShareUrl(org) : "",
+  );
+  const draftPin = $derived(additionProposalStore.draftPin);
 
   let editing = $state(false);
   let draftId = $state<number | null>(null);
@@ -67,6 +83,15 @@
     facebookDraft = current.facebookLink ?? "";
     emailDraft = current.email ?? "";
     fieldError = null;
+  });
+
+  $effect(() => {
+    if (!editing || !org) return;
+    additionProposalStore.setDraftPin(
+      org.lat !== null && org.lon !== null
+        ? { lat: org.lat, lon: org.lon }
+        : null,
+    );
   });
 
   function syncFromServer(updated: OrgData) {
@@ -111,7 +136,22 @@
     if (emailDraft.trim() !== (current.email ?? "")) {
       patch.email = emailDraft.trim() || null;
     }
+    if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
+      patch.lat = draftPin?.lat ?? null;
+      patch.lon = draftPin?.lon ?? null;
+    }
     return patch;
+  }
+
+  async function pickOnMap() {
+    sidePanelStore.collapse();
+    try {
+      await additionProposalStore.requestMapPin();
+    } catch {
+      // The map picker was cancelled.
+    } finally {
+      sidePanelStore.expand();
+    }
   }
 
   async function submitChanges() {
@@ -122,6 +162,7 @@
     if (!patch) return;
     if (Object.keys(patch).length === 0) {
       editing = false;
+      additionProposalStore.clearDraftPin();
       return;
     }
 
@@ -158,6 +199,7 @@
         toastStore.show(`${current.name} updated.`, "success");
       }
       editing = false;
+      additionProposalStore.clearDraftPin();
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
       fieldError = `${current.name} failed to save: ${reason}`;
@@ -170,25 +212,34 @@
 <div class="entity-detail">
   {#if org}
     <header class="entity-header">
+      {#if isStudentOrg}
+        <EntityBackToList tab="organizations" label="Back to student orgs" />
+      {:else}
+        <EntityBackToList tab="offices" label="Back to offices & units" />
+      {/if}
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">{org.name}</h2>
-        <button
-          type="button"
-          class="org-info-btn"
-          onclick={() => modalStore.openModal("student-orgs")}
-          aria-label="About student organization listings"
-          title="About student organization listings"
-        >
-          <Info size={16} aria-hidden="true" />
-        </button>
       </div>
 
       <div class="entity-meta-row">
         {#if categoryLabel}
           <span class="entity-meta-chip org-badge">
-            <Users size={12} />
+            {#if isStudentOrg}
+              <Users size={12} />
+            {:else}
+              <Building2 size={12} />
+            {/if}
             {categoryLabel}
           </span>
+        {/if}
+        {#if org.orgType && org.orgType !== categoryLabel}
+          <span class="entity-meta-chip org-badge">{org.orgType}</span>
+        {/if}
+        {#if org.establishedYear}
+          <span class="entity-meta-chip org-badge">Est. {org.establishedYear}</span>
+        {/if}
+        {#if org.memberCount}
+          <span class="entity-meta-chip org-badge">{org.memberCount} members</span>
         {/if}
         {#if hostBuilding}
           <button
@@ -198,6 +249,17 @@
           >
             <Building2 size={12} />
             {hostBuilding.buildingName}
+          </button>
+        {/if}
+        {#if isStudentOrg}
+          <button
+            type="button"
+            class="org-info-btn"
+            onclick={() => modalStore.openModal("student-orgs")}
+            aria-label="About student organization listings"
+            title="About student organization listings"
+          >
+            <Info size={14} aria-hidden="true" />
           </button>
         {/if}
       </div>
@@ -215,20 +277,35 @@
             ariaLabel={`Open ${org.name} in Google Maps`}
           />
         {/if}
+        <EntityShareCopyLink url={organizationShareUrl} entityLabel={org.name} />
         <EntityEditorToggle
           expanded={editing}
           {canPublish}
           publishOpenLabel="Edit"
           closeLabel={canPublish ? "Close editor" : "Close"}
           variant="toolbar"
-          onclick={() => (editing = !editing)}
+          onclick={() => {
+            editing = !editing;
+            if (!editing) additionProposalStore.clearDraftPin();
+          }}
         />
       </div>
     </header>
 
     {#if !editing}
       <div class="entity-body entity-body--compact">
-        {#if org.description}
+        {#if resolvedLat != null && resolvedLon != null}
+          <EntityStreetAddress lat={resolvedLat} lon={resolvedLon} />
+        {/if}
+        {#if org.bio}
+          <section class="org-about">
+            <h3 class="org-about__title">About the org</h3>
+            <p class="entity-directions__text">{org.bio}</p>
+          </section>
+        {:else if org.description}
+          <p class="entity-directions__text">{org.description}</p>
+        {/if}
+        {#if org.bio && org.description && org.description !== org.bio && !org.description.startsWith("Recognized UPLB student organization")}
           <p class="entity-directions__text">{org.description}</p>
         {/if}
 
@@ -294,6 +371,14 @@
           <span class="entity-detail-row__label">Name</span>
           <input class="org-input" type="text" bind:value={nameDraft} />
         </label>
+        <EntityEditorPinRow
+          label={draftPin
+            ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+            : "Drop a pin on the map"}
+          pickLabel={draftPin ? "Move pin" : "Pick on map"}
+          disabled={saving}
+          onclick={pickOnMap}
+        />
         <label class="org-field">
           <span class="entity-detail-row__label">Category</span>
           <select class="org-input" bind:value={categoryDraft}>
@@ -383,8 +468,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 1.375rem;
+    height: 1.375rem;
     border-radius: 999px;
     color: hsl(265, 45%, 45%);
     cursor: pointer;
@@ -410,6 +495,19 @@
     background-color: color-mix(in srgb, currentColor 14%, white);
   }
 
+  .org-about {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .org-about__title {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #27272a;
+  }
+
   .org-field {
     display: flex;
     flex-direction: column;
@@ -418,11 +516,20 @@
   }
 
   .org-input {
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     padding: 0.4rem 0.55rem;
-    border: 1px solid hsl(0, 0%, 82%);
+    border: 1px solid hsl(0, 0%, 62%);
     border-radius: 0.375rem;
     font: inherit;
+    color: #18181b;
+    background: white;
+  }
+
+  /* Editor labels need real contrast on the warm panel background. */
+  .org-field .entity-detail-row__label {
+    color: #3f3f46;
   }
 
   .org-error {

@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
-  import { jeepneyStore } from "@lib/store.svelte";
+  import { jeepneyStore, transitStore } from "@lib/store.svelte";
 
   type Props = {
     /** Compact row for the search chrome sub-panel. */
@@ -20,31 +19,33 @@
   role="listbox"
   aria-label="Jeepney routes"
 >
-  {#each JEEPNEY_ROUTES as route (route.id)}
+  {#each transitStore.routes as route (route.id)}
     {@const isActive = jeepneyStore.selectedRouteId === route.id}
-    <button
-      type="button"
-      class="transit-route-option"
-      class:transit-route-option--active={isActive}
-      role="option"
-      aria-selected={isActive}
-      aria-label={`${route.name}: ${route.description}`}
-      onclick={() => selectRoute(route.id)}
-    >
-      <span
-        class="transit-route-option__color"
-        style:background-color={route.color}
-        aria-hidden="true"
-      ></span>
-      <span class="transit-route-option__copy">
-        <span class="transit-route-option__name">{route.name}</span>
-        {#if !compact}
-          <span class="transit-route-option__description"
-            >{route.description}</span
-          >
-        {/if}
-      </span>
-    </button>
+    <div class="transit-route-row">
+      <button
+        type="button"
+        class="transit-route-option"
+        class:transit-route-option--active={isActive}
+        role="option"
+        aria-selected={isActive}
+        aria-label={`${route.name}: ${route.description}`}
+        onclick={() => selectRoute(route.id)}
+      >
+        <span
+          class="transit-route-option__color"
+          style:background-color={route.color}
+          aria-hidden="true"
+        ></span>
+        <span class="transit-route-option__copy">
+          <span class="transit-route-option__name">{route.name}</span>
+          {#if !compact}
+            <span class="transit-route-option__description"
+              >{route.description}</span
+            >
+          {/if}
+        </span>
+      </button>
+    </div>
   {/each}
   {#if jeepneyStore.selectedRouteId !== null}
     <button
@@ -73,8 +74,24 @@
     gap: 0.375rem;
   }
 
+  .transit-route-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+    min-width: 0;
+    width: 100%;
+    /* all:unset on the option button makes pointer-events inherit; force auto so
+       the row stays clickable inside pointer-events:none map chrome. */
+    pointer-events: auto;
+  }
+
+  .transit-route-panel--compact .transit-route-row {
+    width: auto;
+  }
+
   .transit-route-option {
     box-sizing: border-box;
+    pointer-events: auto;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -94,7 +111,8 @@
 
   .transit-route-panel:not(.transit-route-panel--compact)
     .transit-route-option {
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     border-radius: 0.625rem;
     background-color: hsl(0, 0%, 98%);
     border-color: transparent;

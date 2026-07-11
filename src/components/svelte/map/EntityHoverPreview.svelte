@@ -5,11 +5,17 @@
   const preview = $derived(entityHoverPreviewStore.entity);
   const anchor = $derived(entityHoverPreviewStore.anchor);
 
+  // Card floats ABOVE the anchor (centered), flipping below near the top edge.
   const style = $derived.by(() => {
     if (!anchor) return "display: none;";
-    const left = Math.min(anchor.x + 12, window.innerWidth - 240);
-    const top = Math.max(8, anchor.y - 8);
-    return `left: ${left}px; top: ${top}px;`;
+    const half = 120; // ~half the 14rem card width
+    const left = Math.min(
+      Math.max(anchor.x, half + 8),
+      window.innerWidth - half - 8,
+    );
+    const flipBelow = anchor.y < 200;
+    const top = flipBelow ? anchor.y + 14 : anchor.y - 14;
+    return `left: ${left}px; top: ${top}px; translate: -50% ${flipBelow ? "0%" : "-100%"};`;
   });
 
   const buildingBadge = $derived(
@@ -51,6 +57,10 @@
         <p class="entity-hover-preview__meta">{dormBadge}</p>
       {:else if preview.kind === "event" && preview.category}
         <p class="entity-hover-preview__meta">{preview.category}</p>
+      {:else if preview.kind === "organization" && preview.category}
+        <p class="entity-hover-preview__meta">{preview.category}</p>
+      {:else if preview.kind === "place" && preview.category}
+        <p class="entity-hover-preview__meta">{preview.category}</p>
       {/if}
       {#if preview.kind === "building" && preview.directions}
         <p class="entity-hover-preview__hint">
@@ -66,6 +76,20 @@
         </p>
       {:else if preview.kind === "event"}
         <p class="entity-hover-preview__hint">Tap to open event details</p>
+      {:else if preview.kind === "organization" && preview.description}
+        <p class="entity-hover-preview__hint">
+          {preview.description.slice(0, 120)}{preview.description.length > 120
+            ? "…"
+            : ""}
+        </p>
+      {:else if preview.kind === "place" && preview.description}
+        <p class="entity-hover-preview__hint">
+          {preview.description.slice(0, 120)}{preview.description.length > 120
+            ? "…"
+            : ""}
+        </p>
+      {:else if preview.kind === "organization" || preview.kind === "place"}
+        <p class="entity-hover-preview__hint">Tap to open details</p>
       {/if}
     </div>
   </div>
@@ -111,13 +135,13 @@
     margin: 0;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: hsl(5, 53%, 25%);
   }
 
   .entity-hover-preview__hint {
     margin: 0;
     font-size: 0.6875rem;
     line-height: 1.35;
-    color: hsl(0, 0%, 35%);
+    color: hsl(0, 0%, 22%);
   }
 </style>

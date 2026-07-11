@@ -3,7 +3,8 @@
   import { syncToastStore, modalStore } from "@lib/store.svelte";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { parseChangelogEntries } from "@lib/changelog-highlights";
-  import changelogRaw from "../../../CHANGELOG.md?raw";
+  import { releaseTimestampLabel } from "@lib/release-timestamps";
+  import changelogRaw from "../../../../CHANGELOG.md?raw";
 
   const entries = $derived(parseChangelogEntries(changelogRaw));
   const hasUpdate = $derived(syncToastStore.needRefresh);
@@ -39,7 +40,11 @@
       <section class="changelog-modal__entry">
         <h3 class="changelog-modal__entry-version">
           v{entry.version}
-          {#if entry.date}
+          {#if releaseTimestampLabel(entry.version)}
+            <span class="changelog-modal__entry-date"
+              >{releaseTimestampLabel(entry.version)}</span
+            >
+          {:else if entry.date}
             <span class="changelog-modal__entry-date">{entry.date}</span>
           {/if}
         </h3>

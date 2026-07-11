@@ -35,7 +35,7 @@ const { college, roomCount } = appData;
 
 const canonicalPath = `/college/${getCollegeSlug(college)}/`;
 const title = `${college.collegeName} | College at UPLB | Room TBA`;
-const description = `Find rooms associated with ${college.collegeName} at UPLB. Open the college view on Room TBA to browse linked rooms.`;
+const description = `${college.collegeName} has ${roomCount} room${roomCount === 1 ? "" : "s"} listed at UPLB. Open the college view on Room TBA to browse linked rooms.`;
 const intro = `${college.collegeName} currently has ${roomCount} room${roomCount === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the college result view.`;
 
 const facts = [
@@ -70,8 +70,8 @@ const structuredData = jsonLd(
   {canonicalPath}
   ogCard={{
     title: college.collegeName,
-    subtitle: "College · UPLB Los Baños",
-    kicker: "College",
+    subtitle: `${roomCount} room${roomCount === 1 ? "" : "s"} linked · UPLB Los Baños`,
+    kicker: "College at UPLB",
   }}
   heading={`${college.collegeName} at UPLB`}
   {intro}

@@ -34,7 +34,7 @@ const { division, roomCount } = appData;
 
 const canonicalPath = `/division/${getDivisionSlug(division)}/`;
 const title = `${division.divisionName} | Division at UPLB | Room TBA`;
-const description = `Find rooms associated with ${division.divisionName} at UPLB. Open the division view on Room TBA to browse linked rooms.`;
+const description = `${division.divisionName} has ${roomCount} room${roomCount === 1 ? "" : "s"} listed at UPLB. Open the division view on Room TBA to browse linked rooms.`;
 const intro = `${division.divisionName} currently has ${roomCount} room${roomCount === 1 ? "" : "s"} listed in Room TBA. Open this page to jump straight into the division result view.`;
 
 const facts = [
@@ -69,8 +69,8 @@ const structuredData = jsonLd(
   {canonicalPath}
   ogCard={{
     title: division.divisionName,
-    subtitle: "Division · UPLB Los Baños",
-    kicker: "Division",
+    subtitle: `${roomCount} room${roomCount === 1 ? "" : "s"} linked · UPLB Los Baños`,
+    kicker: "Division at UPLB",
   }}
   heading={`${division.divisionName} at UPLB`}
   {intro}

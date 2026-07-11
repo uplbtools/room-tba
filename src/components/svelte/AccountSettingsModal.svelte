@@ -267,7 +267,7 @@
       {:else if !profile}
         <p class="settings-loading"><LoadingIndicator /></p>
       {:else}
-        <section class="settings-section">
+        <section class="settings-section entity-editor-form">
           <h3>Profile</h3>
           <EntityEditorFormField label="Username" inputId="account-username">
             {#snippet control()}
@@ -345,7 +345,7 @@
           {/if}
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section entity-editor-form">
           <h3>{profile.hasPassword ? "Change password" : "Set a password"}</h3>
           {#if profile.hasPassword}
             <EntityEditorFormField label="Current password" inputId="account-current-password">
@@ -391,7 +391,7 @@
           />
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section entity-editor-form">
           <h3>Connected accounts</h3>
           {#if identityError}
             <EntityEditorMessage variant="error" message={identityError} />
@@ -418,7 +418,7 @@
           {/if}
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section entity-editor-form">
           <h3>Data &amp; privacy</h3>
           <EntityEditorSubmitButton
             label="Download my data"
@@ -536,6 +536,22 @@
   .settings-section:last-child {
     border-bottom: none;
     padding-bottom: 0;
+  }
+  /* Shared entity-editor input geometry comes from entity-editor.css via the
+     entity-editor-form class; the rules below only add what it lacks. */
+  .settings-body :global(.field-hint) {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: hsl(0, 0%, 45%);
+  }
+  .settings-body :global(.editor-field input:disabled) {
+    background: hsl(0, 0%, 96%);
+    color: hsl(0, 0%, 38%);
+  }
+  .settings-body :global(.editor-field input:focus-visible) {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
   }
   .settings-section h3 {
     margin: 0 0 0.25rem;

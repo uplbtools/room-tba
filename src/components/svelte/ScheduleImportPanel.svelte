@@ -56,9 +56,9 @@
   class:schedule-import-panel--embedded={embedded}
 >
   <p class="schedule-import-panel__note">
-    Personal import stays in this browser tab only (session storage). Room TBA
-    matches your rows against institutional lecture and lab data for the active
-    term — not your enlistment account.
+    Your imported schedule stays in this browser tab and is never uploaded. We
+    match your rows against the official class list for the current term. Your
+    enlistment account is not touched.
   </p>
   <p class="schedule-import-panel__scope">{scheduleRouteStore.scopeNote}</p>
 
@@ -218,9 +218,9 @@
   .schedule-import-panel__note,
   .schedule-import-panel__scope {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     line-height: 1.35;
-    color: hsl(0, 0%, 35%);
+    color: hsl(0, 0%, 22%);
   }
 
   .schedule-import-panel__label {
@@ -366,7 +366,7 @@
 
   .schedule-import-panel__stop-card:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
+    outline-offset: -2px; /* modal/flyout scroll body clips outward rings */
   }
 
   .schedule-import-panel__stop-card:active {

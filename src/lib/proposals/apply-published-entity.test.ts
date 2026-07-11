@@ -8,6 +8,7 @@ import type { AppActions, AppContextData } from "@lib/context";
 function mockActions() {
   const calls: string[] = [];
   let lastBuilding: unknown;
+  let lastPlace: unknown;
   const actions: AppActions = {
     replaceEvent: () => calls.push("event"),
     removeEvent: () => {},
@@ -19,12 +20,16 @@ function mockActions() {
     upsertCollege: () => {},
     upsertDivision: () => {},
     upsertOrganization: () => {},
-    upsertPlace: () => {},
+    upsertPlace: (row) => {
+      calls.push("place");
+      lastPlace = row;
+    },
   };
   return {
     actions,
     calls,
     getLastBuilding: () => lastBuilding,
+    getLastPlace: () => lastPlace,
   };
 }
 
@@ -91,5 +96,24 @@ describe("applyPublishedEntity", () => {
       "rooms",
       "buildings",
     ]);
+    expect(syncTablesForEntityType("jeepney_stop")).toEqual(["jeepney_routes"]);
+  });
+
+  test("upserts a newly approved place", () => {
+    const { actions, calls, getLastPlace } = mockActions();
+    expect(
+      applyPublishedEntity(
+        actions,
+        "create_place",
+        { id: 7, name: "But First Coffee", category: "food" },
+        loadedData,
+      ),
+    ).toBe(true);
+    expect(calls).toEqual(["place"]);
+    expect(getLastPlace()).toEqual({
+      id: 7,
+      name: "But First Coffee",
+      category: "food",
+    });
   });
 });

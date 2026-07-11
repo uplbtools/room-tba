@@ -1,13 +1,29 @@
 <script lang="ts">
-  import { queryStore, adminAuthStore, toastStore } from "@lib/store.svelte";
+  import {
+    additionProposalStore,
+    queryStore,
+    adminAuthStore,
+    sidePanelStore,
+    toastStore,
+  } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import { persistEntityChange } from "@lib/proposals/client";
   import {
     PLACE_CATEGORIES,
     PLACE_CATEGORY_LABELS,
-    placeCategoryLabel,
+    isLandmarkPlaceCategory,
+    placeDirectoryLabel,
   } from "@constants/place-categories";
   import type { PlaceData } from "@lib/types";
+  import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
+  import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
+  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
+  import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityStreetAddress from "./EntityStreetAddress.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityExternalLink from "./EntityExternalLink.svelte";
+  import EntityBackToList from "./EntityBackToList.svelte";
+  import { getPlaceShareUrl } from "@lib/share-links";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -18,12 +34,8 @@
       : null,
   );
   const canPublish = $derived(adminAuthStore.canPublish);
-
-  const mapsUrl = $derived(
-    place?.lat != null && place?.lon != null
-      ? `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`
-      : null,
-  );
+  const draftPin = $derived(additionProposalStore.draftPin);
+  const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : "");
 
   let editing = $state(false);
   let submitting = $state(false);
@@ -43,7 +55,23 @@
     hoursDraft = place.hours ?? "";
     websiteDraft = place.websiteLink ?? "";
     facebookDraft = place.facebookLink ?? "";
+    additionProposalStore.setDraftPin(
+      place.lat !== null && place.lon !== null
+        ? { lat: place.lat, lon: place.lon }
+        : null,
+    );
     editing = true;
+  }
+
+  async function pickOnMap() {
+    sidePanelStore.collapse();
+    try {
+      await additionProposalStore.requestMapPin();
+    } catch {
+      // The map picker was cancelled.
+    } finally {
+      sidePanelStore.expand();
+    }
   }
 
   async function submit() {
@@ -63,9 +91,14 @@
       patch.websiteLink = websiteDraft.trim() || null;
     if (facebookDraft.trim() !== (current.facebookLink ?? ""))
       patch.facebookLink = facebookDraft.trim() || null;
+    if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
+      patch.lat = draftPin?.lat ?? null;
+      patch.lon = draftPin?.lon ?? null;
+    }
 
     if (Object.keys(patch).length === 0) {
       editing = false;
+      additionProposalStore.clearDraftPin();
       return;
     }
 
@@ -94,6 +127,7 @@
           );
         }
         editing = false;
+        additionProposalStore.clearDraftPin();
       } else {
         toastStore.show(result.error ?? "Could not save changes.", "error");
       }
@@ -108,51 +142,71 @@
 {#if place}
   <div class="entity-detail">
     <header class="entity-header">
+      {#if isLandmarkPlaceCategory(place.category)}
+        <EntityBackToList tab="landmarks" label="Back to landmarks" />
+      {:else}
+        <EntityBackToList tab="services" label="Back to establishments" />
+      {/if}
       <h2 class="entity-header__title">{place.name}</h2>
-      {#if placeCategoryLabel(place.category)}
+      {#if placeDirectoryLabel(place.category)}
         <span class="place-category-badge"
-          >{placeCategoryLabel(place.category)}</span
+          >{placeDirectoryLabel(place.category)}</span
         >
       {/if}
+      <div class="entity-actions">
+        {#if place.lat != null && place.lon != null}
+          <EntityDirectionsChip
+            lat={place.lat}
+            lon={place.lon}
+            destinationLabel={place.name}
+          />
+          <EntityGoogleMapsLink
+            lat={place.lat}
+            lon={place.lon}
+            ariaLabel={`Open ${place.name} in Google Maps`}
+          />
+        {/if}
+        <EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit place"
+          closeLabel={canPublish ? "Close editor" : "Close"}
+          variant="toolbar"
+          onclick={() => {
+            if (editing) {
+              editing = false;
+              additionProposalStore.clearDraftPin();
+            } else {
+              startEdit();
+            }
+          }}
+        />
+      </div>
     </header>
 
     {#if !editing}
+      {#if place.lat != null && place.lon != null}
+        <EntityStreetAddress lat={place.lat} lon={place.lon} />
+      {/if}
       {#if place.description}
-        <p class="place-description">{place.description}</p>
+        <p class="entity-directions__text">{place.description}</p>
       {/if}
       <ul class="place-facts">
         {#if place.hours}
           <li><strong>Hours:</strong> {place.hours}</li>
         {/if}
-        {#if mapsUrl}
-          <li>
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-              >Open in Google Maps</a
-            >
-          </li>
-        {/if}
         {#if place.websiteLink}
           <li>
-            <a
-              href={place.websiteLink}
-              target="_blank"
-              rel="noopener noreferrer">Website</a
-            >
+            <EntityExternalLink href={place.websiteLink} label="Website" />
           </li>
         {/if}
         {#if place.facebookLink}
           <li>
-            <a
-              href={place.facebookLink}
-              target="_blank"
-              rel="noopener noreferrer">Facebook</a
-            >
+            <EntityExternalLink href={place.facebookLink} label="Facebook" />
           </li>
         {/if}
       </ul>
-      <button type="button" class="place-edit-btn" onclick={startEdit}>
-        {canPublish ? "Edit place" : "Suggest an edit"}
-      </button>
     {:else}
       <div class="place-form">
         <label>Name<input bind:value={nameDraft} /></label>
@@ -171,6 +225,14 @@
         <label>Hours<input bind:value={hoursDraft} /></label>
         <label>Website<input bind:value={websiteDraft} /></label>
         <label>Facebook<input bind:value={facebookDraft} /></label>
+        <EntityEditorPinRow
+          label={draftPin
+            ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+            : "Drop a pin on the map"}
+          pickLabel={draftPin ? "Move pin" : "Pick on map"}
+          disabled={submitting}
+          onclick={pickOnMap}
+        />
         {#if !canPublish}
           <label
             >Your name (optional)<input bind:value={submitterName} /></label
@@ -189,7 +251,10 @@
             type="button"
             class="place-cancel-btn"
             disabled={submitting}
-            onclick={() => (editing = false)}
+            onclick={() => {
+              editing = false;
+              additionProposalStore.clearDraftPin();
+            }}
           >
             Cancel
           </button>
@@ -214,10 +279,6 @@
     font-size: 0.6875rem;
     font-weight: 600;
   }
-  .place-description {
-    margin: 0.5rem 0;
-    line-height: 1.4;
-  }
   .place-facts {
     list-style: none;
     padding: 0;
@@ -225,6 +286,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #27272a;
   }
   .place-form {
     display: flex;
@@ -248,6 +312,11 @@
   }
   .place-form__actions {
     display: flex;
+    gap: 0.5rem;
+  }
+  .place-actions {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
   .place-edit-btn {

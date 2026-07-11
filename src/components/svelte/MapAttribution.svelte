@@ -18,8 +18,8 @@
 >
   <button
     type="button"
-    class="map-chrome-chip"
-    class:map-chrome-chip--toggle-active={expanded}
+    class="map-attribution__toggle"
+    class:map-attribution__toggle--active={expanded}
     aria-expanded={expanded}
     aria-controls="map-attribution-details"
     onclick={toggleExpanded}
@@ -99,6 +99,26 @@
     font-size: 0.6875rem;
     line-height: 1.35;
     box-shadow: 0 2px 8px hsla(0, 0%, 0%, 0.12);
+  }
+
+  .map-attribution__toggle {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 1.75rem;
+    padding: 0.25rem 0.5rem;
+    color: hsl(0, 0%, 22%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .map-attribution__toggle:hover,
+  .map-attribution__toggle:focus-visible,
+  .map-attribution__toggle--active {
+    color: hsl(5, 53%, 32%);
   }
 
   .attrib-body a {

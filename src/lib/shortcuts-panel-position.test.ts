@@ -15,7 +15,7 @@ describe("computeShortcutsPanelLayout", () => {
 
     expect(layout.bottom).toBe(48);
     expect(layout.left).toBe(8);
-    expect(layout.width).toBe(288);
+    expect(layout.width).toBe(480);
     expect(layout.maxHeight).toBeGreaterThan(0);
     expect(formatShortcutsPanelStyle(layout)).toContain("bottom: 48px");
   });

@@ -26,6 +26,7 @@
   } from "@lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import { getDivisionShareUrl } from "@lib/share-links";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
@@ -373,6 +374,16 @@
       </div>
     </header>
 
+    {#if division.websiteLink}
+      <div class="entity-dorm-details__links">
+        <EntityExternalLink
+          href={division.websiteLink}
+          label="Website"
+          ariaLabel={`Open ${division.divisionName} website (opens in new tab)`}
+        />
+      </div>
+    {/if}
+
     <EntityLastUpdated
       updatedAt={division.updatedAt}
       entityType="division"
@@ -459,9 +470,7 @@
       groupByBuilding
     />
   {:else if division}
-    <p class="entity-loading-note">
-      <LoadingIndicator label="Loading rooms for {division.divisionName}…" />
-    </p>
+    <LoadingIndicator block label="Loading rooms for {division.divisionName}…" />
   {/if}
 </div>
 

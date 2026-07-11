@@ -29,6 +29,25 @@ export type SuggestAdditionDraft = {
   eventImageUrl: string | null;
   dormName: string;
   dormGender: string;
+  placeName?: string;
+  placeCategory?:
+    | "food"
+    | "tourist-spot"
+    | "landmark"
+    | "service"
+    | "transport";
+  placeDescription?: string;
+  placeHours?: string;
+  organizationName?: string;
+  organizationCategory?:
+    | "student-org"
+    | "college-org"
+    | "office"
+    | "unit"
+    | "academic"
+    | "service";
+  organizationDescription?: string;
+  organizationBuildingDraft?: string;
   roomCode: string;
   roomDirections: string;
   roomBuildingDraft: string;

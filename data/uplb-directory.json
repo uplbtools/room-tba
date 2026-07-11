@@ -459,6 +459,15 @@
     "source": "https://uplb.edu.ph/vice-chancellors/"
   },
   {
+    "name": "Technology Transfer and Business Development Office (TTBDO)",
+    "type": "office",
+    "building_or_area": "Mondoñedo Avenue, UPLB campus",
+    "description": "Manages intellectual property, technology commercialization, and business development for UPLB, under OVCIEM.",
+    "lat": null,
+    "lng": null,
+    "source": "https://uplb.edu.ph/"
+  },
+  {
     "name": "Office of the University Registrar (OUR)",
     "type": "office",
     "building_or_area": "G/F CAS Annex 1 Building, main campus",
@@ -592,15 +601,6 @@
     "lat": 14.163526,
     "lng": 121.242078,
     "source": "https://www.openstreetmap.org/way/109349304"
-  },
-  {
-    "name": "University Bookstore",
-    "type": "service",
-    "building_or_area": "UPLBFI Building near the Student Union Building",
-    "description": "Campus bookstore for school supplies and UPLB merchandise.",
-    "lat": 14.163559,
-    "lng": 121.241767,
-    "source": "https://www.openstreetmap.org/node/3706025964"
   },
   {
     "name": "Church Among the Palms",
@@ -972,15 +972,6 @@
     "source": "https://www.openstreetmap.org/node/527835123"
   },
   {
-    "name": "University Cafeteria",
-    "type": "food",
-    "building_or_area": "Beside the Student Union Building",
-    "description": "Long-running university-run cafeteria.",
-    "lat": 14.163538,
-    "lng": 121.241707,
-    "source": "https://www.openstreetmap.org/node/3345258485"
-  },
-  {
     "name": "Student Union Canteen",
     "type": "food",
     "building_or_area": "Student Union Building",
@@ -1081,7 +1072,7 @@
   },
   {
     "name": "UPLB University Student Council (USC)",
-    "type": "student-org",
+    "type": "student-council",
     "building_or_area": "Student Union Building, main campus",
     "description": "The highest student governing body of UPLB.",
     "lat": 14.163211,
@@ -1090,7 +1081,7 @@
   },
   {
     "name": "UPLB Perspective",
-    "type": "student-org",
+    "type": "publication",
     "building_or_area": "Student Union Building, main campus",
     "description": "The official student publication of UPLB.",
     "lat": 14.163256,

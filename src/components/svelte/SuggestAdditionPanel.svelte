@@ -34,7 +34,13 @@
     ProposalValidationError,
     validateBundledRooms,
   } from "@lib/proposals/create-proposal-validation";
-    import { onMount } from "svelte";
+  import { PLACE_CATEGORIES, type PlaceCategory } from "@constants/place-categories";
+  import {
+    ORG_CATEGORIES,
+    type OrgCategory,
+    orgCategoryLabel,
+  } from "@constants/org-categories";
+  import { onMount } from "svelte";
 
   type AdditionOption = {
     value: ProposalCreateType;
@@ -55,6 +61,8 @@
     { value: "create_building", label: "Building" },
     { value: "create_event", label: "Campus event" },
     { value: "create_dorm", label: "Dorm" },
+    { value: "create_place", label: "Landmark or establishment" },
+    { value: "create_organization", label: "Organization, office, or unit" },
     { value: "create_room", label: "Room" },
     { value: "create_college", label: "College" },
     { value: "create_division", label: "Division" },
@@ -63,6 +71,8 @@
   const PUBLISH_OPTIONS: AdditionOption[] = [
     { value: "create_building", label: "Building" },
     { value: "create_dorm", label: "Dorm" },
+    { value: "create_place", label: "Landmark or establishment" },
+    { value: "create_organization", label: "Organization, office, or unit" },
     { value: "create_room", label: "Room" },
     { value: "create_college", label: "College" },
     { value: "create_division", label: "Division" },
@@ -87,6 +97,14 @@
   let eventImageUrl = $state<string | null>(null);
   let dormName = $state("");
   let dormGender = $state("coed");
+  let placeName = $state("");
+  let placeCategory = $state<PlaceCategory>("landmark");
+  let placeDescription = $state("");
+  let placeHours = $state("");
+  let organizationName = $state("");
+  let organizationCategory = $state<OrgCategory>("student-org");
+  let organizationDescription = $state("");
+  let organizationBuildingDraft = $state("");
   let roomCode = $state("");
   let roomDirections = $state("");
   let roomBuildingDraft = $state("");
@@ -124,6 +142,8 @@
   const needsPin = $derived(
     kind === "create_building" ||
       kind === "create_dorm" ||
+      kind === "create_place" ||
+      kind === "create_organization" ||
       kind === "create_event",
   );
 
@@ -141,6 +161,14 @@
     eventImageUrl = null;
     dormName = "";
     dormGender = "coed";
+    placeName = "";
+    placeCategory = "landmark";
+    placeDescription = "";
+    placeHours = "";
+    organizationName = "";
+    organizationCategory = "student-org";
+    organizationDescription = "";
+    organizationBuildingDraft = "";
     roomCode = "";
     roomDirections = "";
     roomBuildingDraft = "";
@@ -172,6 +200,14 @@
       eventImageUrl,
       dormName,
       dormGender,
+      placeName,
+      placeCategory,
+      placeDescription,
+      placeHours,
+      organizationName,
+      organizationCategory,
+      organizationDescription,
+      organizationBuildingDraft,
       roomCode,
       roomDirections,
       roomBuildingDraft,
@@ -197,6 +233,14 @@
     eventImageUrl = saved.eventImageUrl;
     dormName = saved.dormName;
     dormGender = saved.dormGender;
+    placeName = saved.placeName ?? "";
+    placeCategory = saved.placeCategory ?? "landmark";
+    placeDescription = saved.placeDescription ?? "";
+    placeHours = saved.placeHours ?? "";
+    organizationName = saved.organizationName ?? "";
+    organizationCategory = saved.organizationCategory ?? "student-org";
+    organizationDescription = saved.organizationDescription ?? "";
+    organizationBuildingDraft = saved.organizationBuildingDraft ?? "";
     roomCode = saved.roomCode;
     roomDirections = saved.roomDirections;
     roomBuildingDraft = saved.roomBuildingDraft ?? "";
@@ -252,6 +296,14 @@
     eventImageUrl;
     dormName;
     dormGender;
+    placeName;
+    placeCategory;
+    placeDescription;
+    placeHours;
+    organizationName;
+    organizationCategory;
+    organizationDescription;
+    organizationBuildingDraft;
     roomCode;
     roomDirections;
     roomBuildingDraft;
@@ -292,6 +344,14 @@
       return;
     }
     if (kind === "create_dorm" && !dormName.trim()) {
+      blockPickOnMap();
+      return;
+    }
+    if (kind === "create_place" && !placeName.trim()) {
+      blockPickOnMap();
+      return;
+    }
+    if (kind === "create_organization" && !organizationName.trim()) {
       blockPickOnMap();
       return;
     }
@@ -366,6 +426,27 @@
           lat: draftPin?.lat ?? null,
           lon: draftPin?.lon ?? null,
         };
+      case "create_place":
+        return {
+          name: placeName.trim(),
+          category: placeCategory,
+          description: placeDescription.trim() || null,
+          hours: placeHours.trim() || null,
+          lat: draftPin?.lat ?? null,
+          lon: draftPin?.lon ?? null,
+        };
+      case "create_organization":
+        return {
+          name: organizationName.trim(),
+          category: organizationCategory,
+          description: organizationDescription.trim() || null,
+          buildingId:
+            organizationBuildingDraft === ""
+              ? null
+              : Number(organizationBuildingDraft),
+          lat: draftPin?.lat ?? null,
+          lon: draftPin?.lon ?? null,
+        };
       case "create_room":
         return {
           roomCode: roomCode.trim(),
@@ -418,6 +499,14 @@
     }
     if (kind === "create_dorm" && !dormName.trim()) {
       error = "Dorm name is required.";
+      return;
+    }
+    if (kind === "create_place" && !placeName.trim()) {
+      error = "Place name is required.";
+      return;
+    }
+    if (kind === "create_organization" && !organizationName.trim()) {
+      error = "Organization, office, or unit name is required.";
       return;
     }
     if (kind === "create_college" && !collegeName.trim()) {
@@ -505,8 +594,8 @@
 >
   <p class="entity-editor-lead">
     {#if isPublish}
-      Add a missing building, room, dorm, college, or division. Buildings and
-      dorms need a map pin before you create them.
+      Add a missing building, room, dorm, landmark, establishment, organization,
+      office, unit, college, or division. Mapped entries need a map pin.
     {:else}
       Spot something missing on the map? Describe it below. Editors review every
       suggestion before it goes live.
@@ -727,6 +816,119 @@
             maxlength="40"
             placeholder="e.g. coed"
           />
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_place"}
+      <EntityEditorFormField
+        label="What's it called?"
+        inputId="addition-place-name"
+        hint="Use the name people see on campus."
+      >
+        {#snippet control()}
+          <input
+            id="addition-place-name"
+            bind:value={placeName}
+            maxlength="120"
+            placeholder="e.g. But First Coffee"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="What kind of place?"
+        inputId="addition-place-category"
+      >
+        {#snippet control()}
+          <select id="addition-place-category" bind:value={placeCategory}>
+            {#each PLACE_CATEGORIES as category}
+              <option value={category}>{category === "food"
+                ? "Service / establishment — food"
+                : category === "service"
+                  ? "Service / establishment"
+                  : category === "transport"
+                    ? "Service / establishment — transport"
+                    : category === "tourist-spot"
+                      ? "Landmark — tourist spot"
+                      : "Landmark"}</option>
+            {/each}
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="What should people know?"
+        inputId="addition-place-description"
+        hint="Optional details that help someone recognize or find it."
+      >
+        {#snippet control()}
+          <textarea
+            id="addition-place-description"
+            bind:value={placeDescription}
+            rows="2"
+            placeholder="Near the main entrance…"></textarea>
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField label="Hours" inputId="addition-place-hours">
+        {#snippet control()}
+          <input
+            id="addition-place-hours"
+            bind:value={placeHours}
+            maxlength="120"
+            placeholder="Optional"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+    {:else if kind === "create_organization"}
+      <EntityEditorFormField
+        label="What's it called?"
+        inputId="addition-organization-name"
+      >
+        {#snippet control()}
+          <input
+            id="addition-organization-name"
+            bind:value={organizationName}
+            maxlength="160"
+            placeholder="e.g. Office of the University Registrar"
+          />
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField label="What kind of entry?" inputId="addition-organization-category">
+        {#snippet control()}
+          <select
+            id="addition-organization-category"
+            bind:value={organizationCategory}
+          >
+            {#each ORG_CATEGORIES as category}
+              <option value={category}>{orgCategoryLabel(category)}</option>
+            {/each}
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="Host building"
+        inputId="addition-organization-building"
+        hint="Optional; choose the building where it is based."
+      >
+        {#snippet control()}
+          <select
+            id="addition-organization-building"
+            bind:value={organizationBuildingDraft}
+          >
+            <option value="">No building selected</option>
+            {#each buildings as building (building.id)}
+              <option value={String(building.id)}>{building.buildingName}</option>
+            {/each}
+          </select>
+        {/snippet}
+      </EntityEditorFormField>
+      <EntityEditorFormField
+        label="What should people know?"
+        inputId="addition-organization-description"
+      >
+        {#snippet control()}
+          <textarea
+            id="addition-organization-description"
+            bind:value={organizationDescription}
+            rows="2"
+            placeholder="Optional description or location detail."></textarea>
         {/snippet}
       </EntityEditorFormField>
     {:else if kind === "create_room"}

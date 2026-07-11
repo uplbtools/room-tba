@@ -1,5 +1,5 @@
 import { slugifySegment } from "./site";
-import type { DormData, RoomData } from "./types";
+import type { DormData, OrgData, PlaceData, RoomData } from "./types";
 
 export function getRoomRouteSlug(room: Pick<RoomData, "id" | "code">) {
   return `${slugifySegment(room.code)}-${room.id}`;
@@ -7,6 +7,16 @@ export function getRoomRouteSlug(room: Pick<RoomData, "id" | "code">) {
 
 export function getDormRouteSlug(dorm: Pick<DormData, "id" | "dormName">) {
   return `${slugifySegment(dorm.dormName)}-${dorm.id}`;
+}
+
+export function getOrganizationRouteSlug(
+  organization: Pick<OrgData, "id" | "name">,
+) {
+  return `${slugifySegment(organization.name)}-${organization.id}`;
+}
+
+export function getPlaceRouteSlug(place: Pick<PlaceData, "id" | "name">) {
+  return `${slugifySegment(place.name)}-${place.id}`;
 }
 
 /** Parse numeric id suffix from room/dorm route slugs (`code-123` → 123). */

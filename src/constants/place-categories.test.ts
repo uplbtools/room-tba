@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
   PLACE_CATEGORIES,
+  isLandmarkPlaceCategory,
   normalizePlaceCategory,
   placeCategoryLabel,
+  placeDirectoryLabel,
 } from "./place-categories.js";
 
 describe("normalizePlaceCategory", () => {
@@ -24,5 +26,13 @@ describe("normalizePlaceCategory", () => {
       expect(normalizePlaceCategory(c)).toBe(c);
       expect(placeCategoryLabel(c)).toBeTruthy();
     }
+  });
+
+  test("separates landmarks from services and establishments", () => {
+    expect(isLandmarkPlaceCategory("landmark")).toBe(true);
+    expect(isLandmarkPlaceCategory("tourist-spot")).toBe(true);
+    expect(isLandmarkPlaceCategory("food")).toBe(false);
+    expect(placeDirectoryLabel("landmark")).toBe("Landmark");
+    expect(placeDirectoryLabel("food")).toBe("Service / establishment · Food");
   });
 });

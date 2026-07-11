@@ -44,9 +44,11 @@
   color: #7b1113;
 }
 
+/* Negative outline-offset app-wide in panel bodies: the side-panel scroll
+   container clips anything drawn outside the element box. */
 .entity-header__breadcrumb:focus-visible {
   outline: 2px solid #7b1113;
-  outline-offset: 2px;
+  outline-offset: -2px;
   border-radius: 0.25rem;
 }
 
@@ -185,7 +187,7 @@
   gap: 0.25rem;
 }
 
-.entity-meta-row {
+:global(.entity-meta-row) {
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
@@ -294,9 +296,21 @@
   color: hsl(5, 53%, 22%);
 }
 
+.entity-footer__link--button {
+  border: 1px solid hsl(5, 53%, 72%);
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  text-decoration: none;
+}
+
+.entity-footer__link--button:hover,
+.entity-footer__link--button:focus-visible {
+  background: hsl(5, 53%, 96%);
+}
+
 .entity-footer__link:focus-visible {
   outline: 2px solid #7b1113;
-  outline-offset: 2px;
+  outline-offset: -2px;
   border-radius: 0.25rem;
 }
 
@@ -641,7 +655,7 @@
 
 .entity-panel-filter input:focus-visible {
   outline: 2px solid #7b1113;
-  outline-offset: 1px;
+  outline-offset: -2px;
   border-color: #c58f91;
 }
 
@@ -661,7 +675,7 @@
 
 .entity-panel-filter--search:focus-within {
   outline: 2px solid #7b1113;
-  outline-offset: 1px;
+  outline-offset: -2px;
   border-color: #c58f91;
 }
 

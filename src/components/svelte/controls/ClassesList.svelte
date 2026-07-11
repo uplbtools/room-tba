@@ -9,6 +9,7 @@
   import { queryStore, termStore } from "@lib/store.svelte";
   import type { ClassMapValue } from "@lib/types";
   import { onMount } from "svelte";
+    import TermSelector from "@ui/TermSelector.svelte";
 
   const PAGE_SIZE = 25;
 
@@ -82,9 +83,6 @@
     {#snippet trailing()}
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">All classes</h2>
-        {#if termStore.activeTerm?.label}
-          <span class="entity-header__badge">{termStore.activeTerm.label}</span>
-        {/if}
       </div>
       <p class="entity-panel-note">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
       <EntityPanelFilter
@@ -93,6 +91,7 @@
         placeholder="Filter by course code (e.g. CMSC)"
         oninput={onFilterInput}
       />
+    <TermSelector />
     {/snippet}
   </EntityPanelHeader>
 

@@ -113,27 +113,8 @@
 <svelte:window onpointerdown={handleDocumentPointerDown} />
 
 <div class="shortcuts-chip">
-  <button
-    bind:this={triggerEl}
-    type="button"
-    class="map-chrome-chip shortcuts-chip__trigger"
-    aria-expanded={open}
-    aria-haspopup="dialog"
-    aria-controls="keyboard-shortcuts-panel"
-    aria-label="Keyboard shortcuts"
-    aria-keyshortcuts="?"
-    title="Keyboard shortcuts (?)"
-    onclick={toggleOpen}
-  >
-    <Keyboard size={14} aria-hidden="true" />
-    {#if !compact}
-      <span>Shortcuts</span>
-    {/if}
-  </button>
-
   {#if open}
     <div
-      bind:this={panelEl}
       id="keyboard-shortcuts-panel"
       class="shortcuts-panel map-chrome-popover"
       style={panelStyle}
@@ -182,19 +163,22 @@
     position: fixed;
     z-index: var(--z-chrome-popover, 17);
     border-radius: 0.75rem;
-    padding: 0.625rem 0.75rem;
+    padding: 1.125rem 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
+    gap: 0.875rem;
     overflow-y: auto;
     box-sizing: border-box;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
   }
 
   .shortcuts-panel__lead {
     margin: 0;
-    font-size: 0.6875rem;
-    line-height: 1.35;
-    color: hsl(0, 0%, 40%);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: hsl(0, 0%, 38%);
   }
 
   .shortcuts-panel__group {
@@ -206,7 +190,7 @@
   .shortcuts-panel__title {
     margin: 0;
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -227,8 +211,8 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 0.75rem;
-    font-size: 0.75rem;
-    line-height: 1.35;
+    font-size: 0.875rem;
+    line-height: 1.4;
     color: hsl(0, 0%, 22%);
   }
 
@@ -246,12 +230,12 @@
 
   kbd {
     display: inline-block;
-    padding: 0.125rem 0.375rem;
-    border: 1px solid hsl(0, 0%, 82%);
+    padding: 0.1875rem 0.4375rem;
+    border: 1px solid hsl(0, 0%, 78%);
     border-radius: 0.375rem;
     background: hsl(0, 0%, 98%);
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.2;
   }

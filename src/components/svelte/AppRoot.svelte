@@ -11,6 +11,7 @@
     syncToastStore,
     appBootstrapStore,
     toastStore,
+    transitStore,
   } from "@lib/store.svelte";
   import type {
     BuildingData,
@@ -350,6 +351,7 @@
     window.addEventListener("online", onOnline);
     const onCampusRefresh = () => {
       void refreshFromNetwork(appBootstrapStore.hasCachedData);
+      void transitStore.refresh();
     };
     window.addEventListener(CAMPUS_DATA_REFRESH_EVENT, onCampusRefresh);
 
@@ -359,6 +361,7 @@
         const localDB = getDB();
         try {
           await initPGLiteDB(localDB);
+          void transitStore.refresh();
         } catch (error) {
           console.error(error);
         }

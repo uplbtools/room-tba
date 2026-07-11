@@ -26,8 +26,9 @@ export type ShortcutsPanelLayout = {
 
 const DEFAULT_MARGIN = 8;
 const DEFAULT_TRIGGER_GAP = 8;
-const DEFAULT_MAX_WIDTH = 18 * 16;
-const DEFAULT_MAX_HEIGHT = 20 * 16;
+// Roomier shortcuts sheet (#kbd-modal): wider + taller than the old 18×20rem.
+const DEFAULT_MAX_WIDTH = 30 * 16;
+const DEFAULT_MAX_HEIGHT = 34 * 16;
 
 /** Anchor shortcuts help above the status bar; stay in the map column when the drawer is open. */
 export function computeShortcutsPanelLayout(

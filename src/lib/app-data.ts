@@ -29,6 +29,8 @@ export type SearchCategory =
   | "college"
   | "room"
   | "dorm"
+  | "organization"
+  | "place"
   | "event";
 
 export type InitialSearchState = {

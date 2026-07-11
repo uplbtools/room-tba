@@ -120,32 +120,34 @@ import {
   ToastStore,
   MainControlsStore,
   FloatingControlPanelStore,
-} from "./ui-stores.svelte.js";
+  SidebarStore,
+} from "./ui-stores.svelte";
 import {
   MapStore,
   MapViewStore,
   MapToolsStore,
   TerrainStore,
   Building3DStore,
-} from "./map-stores.svelte.js";
+} from "./map-stores.svelte";
 import {
   EditorChromeStore,
   MapEditStore,
   MapProposalStore,
   AdditionProposalStore,
   EventPlacementStore,
-} from "./editor-stores.svelte.js";
+} from "./editor-stores.svelte";
 import {
   AppBootstrapStore,
   SyncToastStore,
   OfflineStore,
-} from "./sync-stores.svelte.js";
+} from "./sync-stores.svelte";
 import {
   TermStore,
   RoomClassesStore,
   ClassVenuesStore,
-} from "./data-stores.svelte.js";
-import { PlannerStore } from "./planner-store.svelte.js";
+} from "./data-stores.svelte";
+import { PlannerStore } from "./planner-store.svelte";
+import { TransitStore } from "./transit-store.svelte";
 
 class LocationStore {
   coords: [number, number] | null = $state(null);
@@ -269,6 +271,8 @@ class JeepneyStore {
   menuOpen: boolean = $state(false);
   selectedStopIndex: number | null = $state(null);
   hoveredStopIndex: number | null = $state(null);
+  /** Route shown in the jeepney-route modal (independent of the map layer). */
+  modalRouteId: string | null = $state(null);
 
   toggleMenu = () => {
     this.menuOpen = !this.menuOpen;
@@ -322,6 +326,19 @@ class JeepneyStore {
   clearRoute = () => {
     this.selectedRouteId = null;
     this.closeStop();
+  };
+
+  /** Activate the layer with `id` selected (no toggle, unlike selectRoute). */
+  openRouteOnMap = (id: string) => {
+    this.enableLayer();
+    if (this.selectedRouteId !== id) this.closeStop();
+    this.selectedRouteId = id;
+    this.menuOpen = false;
+  };
+
+  openRouteModal = (id: string) => {
+    this.modalRouteId = id;
+    modalStore.openModal("jeepney-route");
   };
 
   setHoveredStop = (index: number | null) => {
@@ -938,11 +955,13 @@ export const additionProposalStore = new AdditionProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
+export const transitStore = new TransitStore();
 export const appBootstrapStore = new AppBootstrapStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
 export const proposalsStore = new ProposalsStore();
+export const sidebarStore = new SidebarStore();
 
 // Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive.
 registerMapMode("edit", {

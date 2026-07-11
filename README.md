@@ -38,6 +38,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Plan your classes | Planner view to build a draft schedule |
 | Final exam time & room | Search course code → finals panel; room panel during finals week |
 | Building location | Map, pins, directions, Google Maps |
+| Landmarks, services, orgs & offices | Sidebar directories, distinct map pins, and shareable detail links |
 | Offline / bad signal | PWA + local cache; tiles if already loaded |
 | Campus events | Events on map with routes |
 | Jeepney routes | Route overlays |
@@ -49,6 +50,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Power | Where |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Move building & dorm pins | Map edit mode (pencil) |
+| Add or correct landmarks, services, organizations, offices & units | **Add something to the map** or the side-panel editor; pick the map pin |
 | Fix room/building/college copy | Side panel → Edit |
 | Suggest edits without publishing | **Suggest an edit** → admin review queue |
 | Upload event posters | Event editor + R2 image upload (when configured) |
@@ -157,6 +159,8 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bun run format` | Biome format write |
 | `bunx drizzle-kit studio` | Browse/edit Postgres visually |
 | `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
+| `bun run import:osa-orgs` | Add the current public OSA organization directory (`DATABASE_URL`; safe to rerun) |
+| `bun run import:campus-offices` | Add missing campus offices and units (`DATABASE_URL`; safe to rerun) |
 | `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`) |
 | `bun run import:final-exams` | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
 

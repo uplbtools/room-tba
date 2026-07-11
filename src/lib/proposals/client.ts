@@ -256,6 +256,8 @@ export function adminPatchPath(
       return `/api/admin/buildings/${entityId}`;
     case "dorm":
       return `/api/admin/dorms/${entityId}`;
+    case "place":
+      return `/api/admin/places/${entityId}`;
     case "room":
       return `/api/admin/rooms/${entityId}`;
     case "college":
@@ -268,6 +270,8 @@ export function adminPatchPath(
       return `/api/admin/events/${entityId}/locations`;
     case "organization":
       return `/api/admin/organizations/${entityId}`;
+    case "jeepney_stop":
+      return `/api/admin/transit/stops/${entityId}`;
     default:
       return `/api/admin/${entityType}/${entityId}`;
   }
@@ -317,11 +321,13 @@ export async function publishEntityPatch(
   const entity =
     payload.building ??
     payload.dorm ??
+    payload.place ??
     payload.room ??
     payload.college ??
     payload.division ??
     payload.event ??
-    payload.organization;
+    payload.organization ??
+    payload.stop;
   return { ok: true, data: entity ?? payload };
 }
 
@@ -445,6 +451,8 @@ function adminCreatePath(entityType: ProposalCreateType): string {
       return "/api/admin/rooms";
     case "create_dorm":
       return "/api/admin/dorms";
+    case "create_place":
+      return "/api/admin/places";
     case "create_college":
       return "/api/admin/colleges";
     case "create_division":
@@ -453,6 +461,8 @@ function adminCreatePath(entityType: ProposalCreateType): string {
       return "/api/admin/events";
     case "create_organization":
       return "/api/admin/organizations";
+    case "create_jeepney_stop":
+      return "/api/admin/transit/stops";
   }
 }
 
@@ -468,17 +478,22 @@ export async function publishEntityCreate(
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { ok: false, error: (data as { error?: string }).error };
+    return {
+      ok: false,
+      error: readApiError(data, res.status),
+    };
   }
   const payload = data as Record<string, unknown>;
   const entity =
     payload.building ??
     payload.room ??
     payload.dorm ??
+    payload.place ??
     payload.college ??
     payload.division ??
     payload.event ??
-    payload.organization;
+    payload.organization ??
+    payload.stop;
   return { ok: true, data: entity ?? payload };
 }
 
@@ -526,7 +541,10 @@ export async function submitEntityProposal(input: {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { ok: false, error: (data as { error?: string }).error };
+    return {
+      ok: false,
+      error: readApiError(data, res.status),
+    };
   }
   const proposal = (
     data as { proposal?: StoredProposalRef & { status: string } }
@@ -610,4 +628,12 @@ export function resolveSubmitterName(input: {
     input.draftName?.trim() ||
     ""
   );
+}
+
+function readApiError(data: unknown, status: number) {
+  if (data && typeof data === "object" && "error" in data) {
+    const message = (data as { error?: unknown }).error;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return `Request failed (${status}).`;
 }

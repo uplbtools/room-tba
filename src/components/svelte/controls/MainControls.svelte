@@ -14,12 +14,9 @@
   import ClassesList from "./ClassesList.svelte";
   import CampusBrowseList from "./CampusBrowseList.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
+  import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import ChevronUp from "@lucide/svelte/icons/chevron-up";
-  import X from "@lucide/svelte/icons/x";
-  import IconButton from "@ui/IconButton.svelte";
-  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
   import { resolveDrawerDragIntent } from "@lib/drawer-drag";
   import { MediaQuery } from "svelte/reactivity";
 
@@ -37,28 +34,6 @@
       ? "Expand details panel"
       : "Collapse details panel",
   );
-
-  const peekLabel = $derived.by(() => {
-    if (jeepneyStore.selectedStopIndex !== null) {
-      const route = jeepneyStore.selectedRouteId
-        ? (JEEPNEY_ROUTES.find(
-            (entry) => entry.id === jeepneyStore.selectedRouteId,
-          ) ?? null)
-        : null;
-      const stop =
-        route && jeepneyStore.selectedStopIndex !== null
-          ? (route.stops[jeepneyStore.selectedStopIndex] ?? null)
-          : null;
-      return stop?.name ?? "Jeepney stop";
-    }
-    if (queryStore.category === null) return "Details";
-    if (queryStore.category === "classes") return "All classes";
-    if (queryStore.category === "events") return "Campus events";
-    if (queryStore.category === "browse") {
-      return queryStore.queryValue || "Browse campus";
-    }
-    return queryStore.queryValue || queryStore.inputValue || "Details";
-  });
 
   $effect(() => {
     const identity = panelIdentity;
@@ -107,70 +82,34 @@
     togglePanel();
   }
 
-  function closeSelection() {
-    if (jeepneyStore.selectedStopIndex !== null) {
-      jeepneyStore.closeStop();
-      return;
-    }
-    queryStore.clearQuery();
-  }
 </script>
 
 <div class="side-panel-wrapper">
   <Search />
   <div class="side-panel-controls">
-    {#if queryStore.category !== null || jeepneyStore.selectedStopIndex !== null}
+    {#if (queryStore.category !== null || jeepneyStore.selectedStopIndex !== null) && !(mobile.current && sidePanelStore.collapsed)}
       <div class="drawer" class:is-collapsed={sidePanelStore.collapsed}>
         <div class="drawer-sheet">
-          {#if mobile.current && sidePanelStore.collapsed}
-            <div class="drawer-peek">
-              <button
-                class="drawer-peek-expand"
-                type="button"
-                aria-expanded={false}
-                aria-controls="side-panel-details"
-                aria-label={toggleLabel}
-                title={toggleLabel}
-                onclick={onHandleClick}
-                onpointerdown={onHandlePointerDown}
-                onpointermove={onHandlePointerMove}
-                onpointerup={onHandlePointerUp}
-              >
-                <span class="drawer-peek-label">{peekLabel}</span>
-                <ChevronUp size={16} aria-hidden="true" />
-              </button>
-              <IconButton
-                size="sm"
-                shape="rounded"
-                class="drawer-peek-close"
-                label="Close details"
-                onclick={closeSelection}
-              >
-                <X size={16} aria-hidden="true" />
-              </IconButton>
-            </div>
-          {:else}
-            <button
-              class="drawer-handle"
-              type="button"
-              aria-expanded={!sidePanelStore.collapsed}
-              aria-controls="side-panel-details"
-              aria-label={toggleLabel}
-              title={toggleLabel}
-              onclick={onHandleClick}
-              onpointerdown={onHandlePointerDown}
-              onpointermove={onHandlePointerMove}
-              onpointerup={onHandlePointerUp}
-            >
-              {#if mobile.current}
-                <span class="drawer-grab" aria-hidden="true"></span>
-              {:else if sidePanelStore.collapsed}
-                <ChevronRight size={20} aria-hidden="true" />
-              {:else}
-                <ChevronLeft size={20} aria-hidden="true" />
-              {/if}
-            </button>
-          {/if}
+          <button
+            class="drawer-handle"
+            type="button"
+            aria-expanded={!sidePanelStore.collapsed}
+            aria-controls="side-panel-details"
+            aria-label={toggleLabel}
+            title={toggleLabel}
+            onclick={onHandleClick}
+            onpointerdown={onHandlePointerDown}
+            onpointermove={onHandlePointerMove}
+            onpointerup={onHandlePointerUp}
+          >
+            {#if mobile.current}
+              <span class="drawer-grab" aria-hidden="true"></span>
+            {:else if sidePanelStore.collapsed}
+              <ChevronRight size={20} aria-hidden="true" />
+            {:else}
+              <ChevronLeft size={20} aria-hidden="true" />
+            {/if}
+          </button>
           <div class="drawer-card">
             <div
               id="side-panel-details"
@@ -179,6 +118,11 @@
             >
               {#if jeepneyStore.selectedStopIndex !== null}
                 <JeepneyStopPanel />
+              {:else if jeepneyStore.selectedRouteId !== null && queryStore.category === "browse" && queryStore.queryValue === "jeepney"}
+                <JeepneyRouteModal
+                  routeId={jeepneyStore.selectedRouteId}
+                  onback={() => jeepneyStore.clearRoute()}
+                />
               {:else if queryStore.category === "building"}
                 <BuildingResult />
               {:else if queryStore.category === "college"}
@@ -245,9 +189,11 @@
     transform: translateX(-100%);
   }
 
-  /* Desktop: pin the open drawer to the flex space between search and status bar. */
+  /* Desktop: pin the drawer to the flex space between search and status bar —
+     collapsed too, so the retracted sliver doesn't reach up behind the search
+     bar. */
   @media (min-width: 48.0625rem) {
-    .drawer:not(.is-collapsed) {
+    .drawer {
       position: absolute;
       top: calc(var(--search-block-height, 3.25rem) + 0.75rem);
       bottom: calc(var(--status-bar-block-height, 2.75rem) + var(--side-panel-bottom-gap, 0.375rem));
@@ -305,7 +251,6 @@
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     color: #7b1113;
     cursor: pointer;
-    box-shadow: var(--map-chrome-shadow);
   }
   .drawer-handle:hover,
   .drawer-handle:focus-visible {
@@ -381,78 +326,6 @@
       flex: 0 0 auto;
       border-radius: var(--map-chrome-radius, 1rem);
       border-bottom: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-    }
-
-    .drawer-peek {
-      display: flex;
-      align-items: stretch;
-      flex-shrink: 0;
-      min-height: 2rem;
-      padding: 0.25rem
-        max(
-          var(--map-search-inline-pad, 0.625rem),
-          env(safe-area-inset-right, 0px)
-        )
-        0.25rem
-        max(
-          var(--map-search-inline-pad, 0.625rem),
-          env(safe-area-inset-left, 0px)
-        );
-      gap: 0.25rem;
-    }
-
-    .drawer-peek-expand {
-      flex: 1 1 auto;
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.375rem;
-      padding: 0.125rem 0.375rem;
-      border: none;
-      border-radius: 0.375rem;
-      background: transparent;
-      color: #18181b;
-      cursor: pointer;
-      touch-action: none;
-    }
-
-    .drawer-peek-expand:hover,
-    .drawer-peek-expand:focus-visible {
-      background: hsl(5 53% 95% / 0.65);
-    }
-
-    .drawer-peek-expand:focus-visible {
-      outline: 2px solid #7b1113;
-      outline-offset: 1px;
-    }
-
-    .drawer-peek-label {
-      flex: 1 1 auto;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      line-height: 1.2;
-      text-align: left;
-    }
-
-    .drawer-peek-expand :global(svg) {
-      flex-shrink: 0;
-      color: #7b1113;
-    }
-
-    /* Brand-tinted hover on top of the shared IconButton. */
-    .drawer-peek :global(.drawer-peek-close) {
-      color: #71717a;
-    }
-
-    .drawer-peek :global(.drawer-peek-close:hover),
-    .drawer-peek :global(.drawer-peek-close:focus-visible) {
-      background: hsl(5 53% 95% / 0.65);
-      color: #7b1113;
     }
 
     .drawer.is-collapsed .drawer-card {

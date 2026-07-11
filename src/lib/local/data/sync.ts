@@ -14,6 +14,7 @@ import { fetchJsonWithRetry, SYNC_CHECK_FETCH_OPTIONS } from "./fetch-json";
 import { syncToastStore } from "@lib/store.svelte";
 import type { Results } from "@electric-sql/pglite";
 import { getSyncKeysFromLs } from "./sync-keys";
+import type { JeepneyRoute } from "@constants/jeepney-routes";
 
 export { getSyncKeysFromLs };
 
@@ -166,16 +167,23 @@ export async function syncColleges(
     try {
       await localDB.query(
         `
-        INSERT INTO colleges (id, college_name, rooms_fetched, version, updated_at)
-        VALUES ($1, $2, false, $3, $4)
+        INSERT INTO colleges (id, college_name, website_link, rooms_fetched, version, updated_at)
+        VALUES ($1, $2, $3, false, $4, $5)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         college_name = EXCLUDED.college_name,
+        website_link = EXCLUDED.website_link,
         rooms_fetched = EXCLUDED.rooms_fetched,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
         `,
-        [college.id, college.collegeName, college.version, college.updatedAt],
+        [
+          college.id,
+          college.collegeName,
+          college.websiteLink ?? null,
+          college.version,
+          college.updatedAt,
+        ],
       );
       syncToastStore.updateCollegesSync();
     } catch (e) {
@@ -208,12 +216,13 @@ export async function syncDivisions(
     try {
       await localDB.query(
         `
-        INSERT INTO divisions (id, division_name, college_id, rooms_fetched, version, updated_at)
-        VALUES ($1, $2, $3, false, $4, $5)
+        INSERT INTO divisions (id, division_name, college_id, website_link, rooms_fetched, version, updated_at)
+        VALUES ($1, $2, $3, $4, false, $5, $6)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         division_name = EXCLUDED.division_name,
         college_id = EXCLUDED.college_id,
+        website_link = EXCLUDED.website_link,
         rooms_fetched = EXCLUDED.rooms_fetched,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
@@ -222,6 +231,7 @@ export async function syncDivisions(
           division.id,
           division.divisionName,
           division.collegeId,
+          division.websiteLink ?? null,
           division.version,
           division.updatedAt,
         ],
@@ -326,8 +336,8 @@ export async function syncOrganizations(
     try {
       await localDB.query(
         `
-        INSERT INTO organizations (id, name, category, building_id, room_id, lat, lon, description, website_link, facebook_link, email, image_url, version, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        INSERT INTO organizations (id, name, category, building_id, room_id, lat, lon, description, website_link, facebook_link, email, image_url, bio, org_type, established_year, member_count, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         category = EXCLUDED.category,
@@ -340,6 +350,10 @@ export async function syncOrganizations(
         facebook_link = EXCLUDED.facebook_link,
         email = EXCLUDED.email,
         image_url = EXCLUDED.image_url,
+        bio = EXCLUDED.bio,
+        org_type = EXCLUDED.org_type,
+        established_year = EXCLUDED.established_year,
+        member_count = EXCLUDED.member_count,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
         `,
@@ -356,6 +370,10 @@ export async function syncOrganizations(
           o.facebookLink,
           o.email,
           o.imageUrl ?? null,
+          o.bio ?? null,
+          o.orgType ?? null,
+          o.establishedYear ?? null,
+          o.memberCount ?? null,
           o.version,
           o.updatedAt,
         ],
@@ -420,6 +438,62 @@ export async function syncPlaces(
   }
   if (trustedRemote) {
     updateSyncKeyFromLs("places", checker.newKey ?? "");
+  }
+}
+
+export async function syncJeepneyRoutes(
+  checker: TableSyncInfo,
+  routes: JeepneyRoute[],
+  trustedRemote = false,
+) {
+  if (await shouldSkipValidSync(checker, "jeepney_routes")) return;
+  if (checker.newKey === null || !trustedRemote) return;
+
+  const localDB = getDB();
+  await localDB.waitReady;
+  try {
+    await localDB.transaction(async (tx) => {
+      await tx.exec("DELETE FROM jeepney_stops; DELETE FROM jeepney_routes;");
+      for (const route of routes) {
+        await tx.query(
+          `INSERT INTO jeepney_routes (id, name, description, direction_note, color, fare_regular, fare_discounted)
+           VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+          [
+            route.id,
+            route.name,
+            route.description,
+            route.directionNote ?? null,
+            route.color,
+            route.fare.regular,
+            route.fare.discounted,
+          ],
+        );
+        for (const stop of route.stops) {
+          if (stop.id === undefined) continue;
+          await tx.query(
+            `INSERT INTO jeepney_stops (id, route_id, name, description, lat, lon, sort_order, version, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`,
+            [
+              stop.id,
+              route.id,
+              stop.name,
+              stop.description,
+              stop.lat,
+              stop.lon,
+              stop.sortOrder ?? 0,
+              stop.version ?? 1,
+              stop.updatedAt ?? new Date().toISOString(),
+            ],
+          );
+        }
+      }
+    });
+    updateSyncKeyFromLs("jeepney_routes", checker.newKey);
+  } catch (error) {
+    console.error(
+      "Failed to sync jeepney routes; keeping previous cache",
+      error,
+    );
   }
 }
 

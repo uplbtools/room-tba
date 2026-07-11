@@ -2,20 +2,29 @@
   import { onMount } from "svelte";
   import { getAppData } from "@lib/context";
   import { createEntityUrlSync } from "@lib/entity-url-sync";
+  import { openCampusBrowse } from "@lib/browse-campus";
+  import { getTransitStopIndex } from "@lib/transit-urls";
   import {
     getBuildingCanonicalPath,
+    getOrganizationCanonicalPath,
+    getPlaceCanonicalPath,
     getRoomCanonicalPath,
   } from "@lib/entity-urls";
+  import { orgCategoryLabel } from "@constants/org-categories";
+  import { placeCategoryLabel } from "@constants/place-categories";
   import {
     resetDocumentMeta,
     updateTermAwareDocumentMeta,
   } from "@lib/term-document-meta";
   import {
     currentRoom,
+    jeepneyStore,
     mapEditStore,
-    plannerStore,
     queryStore,
+    sidePanelStore,
+    sidebarStore,
     termStore,
+    transitStore,
   } from "@lib/store.svelte";
 
   const appData = getAppData();
@@ -42,8 +51,19 @@
         eventSlug: queryStore.selectedEventSlug ?? undefined,
       }),
       setPlannerOpen: (open) => {
-        if (open) plannerStore.openPlanner();
-        else plannerStore.close();
+        sidebarStore.changeOpened(open ? "planner" : "map");
+      },
+      setTransit: async ({ routeId, stopSlug }) => {
+        openCampusBrowse(queryStore, sidePanelStore, "jeepney");
+        if (!routeId) return;
+        await transitStore.refresh();
+        const route = transitStore.getRoute(routeId);
+        if (!route) return;
+        jeepneyStore.openRouteOnMap(route.id);
+        const stopIndex = stopSlug ? getTransitStopIndex(route, stopSlug) : -1;
+        if (stopIndex >= 0) {
+          requestAnimationFrame(() => jeepneyStore.openStop(stopIndex));
+        }
       },
     });
 
@@ -68,7 +88,10 @@
       editMode: mapEditStore.enabled,
       termId: termStore.activeTermId,
       defaultTermId: termStore.defaultTermId,
-      plannerOpen: plannerStore.open,
+      plannerOpen: sidebarStore.panelOpen === "planner",
+      transitRouteId: jeepneyStore.selectedRouteId,
+      transitStopIndex: jeepneyStore.selectedStopIndex,
+      transitRoute: transitStore.getRoute(jeepneyStore.selectedRouteId),
     });
   });
 
@@ -103,6 +126,42 @@
         baseTitle: `${buildingName} | Building at UPLB`,
         baseDescription: `Find rooms in ${buildingName} at UPLB with map context and class schedules by room.`,
         canonicalPath: getBuildingCanonicalPath(buildingName),
+        termLabel,
+        termId,
+        defaultTermId,
+      });
+      return;
+    }
+
+    if (queryStore.category === "organization") {
+      const organization = appData().organizations?.find(
+        (entry) => entry.name === queryStore.queryValue,
+      );
+      if (!organization) return;
+      const category = orgCategoryLabel(organization.category) ?? "Organization";
+      updateTermAwareDocumentMeta({
+        baseTitle: `${organization.name} | ${category} at UPLB`,
+        baseDescription: organization.description ??
+          `Find ${organization.name}, a ${category.toLowerCase()} at UPLB, on the campus map.`,
+        canonicalPath: getOrganizationCanonicalPath(organization),
+        termLabel,
+        termId,
+        defaultTermId,
+      });
+      return;
+    }
+
+    if (queryStore.category === "place") {
+      const place = appData().places?.find(
+        (entry) => entry.name === queryStore.queryValue,
+      );
+      if (!place) return;
+      const category = placeCategoryLabel(place.category) ?? "Campus place";
+      updateTermAwareDocumentMeta({
+        baseTitle: `${place.name} | ${category} at UPLB`,
+        baseDescription: place.description ??
+          `Find ${place.name}, a ${category.toLowerCase()} at UPLB, on the campus map.`,
+        canonicalPath: getPlaceCanonicalPath(place),
         termLabel,
         termId,
         defaultTermId,

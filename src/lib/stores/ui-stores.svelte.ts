@@ -1,13 +1,14 @@
 import { SvelteMap } from "svelte/reactivity";
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
-import { buildingTypeFilter } from "./filter-stores.svelte.js";
+import { buildingTypeFilter } from "./filter-stores.svelte";
 import type {
   FloatingControlPanel,
   LandingModalTab,
   ModalStoreState,
   QueryStoreState,
   RecentSearch,
-} from "./store-types.js";
+  SidebarOpenType,
+} from "./store-types";
 
 export class ModalStore {
   private _modalStore: ModalStoreState = $state({
@@ -201,5 +202,37 @@ export class FloatingControlPanelStore {
     if (panel === undefined || this.openPanel === panel) {
       this.openPanel = null;
     }
+  };
+}
+
+export class SidebarStore {
+  private _panelOpen = $state<SidebarOpenType>("map");
+  panelOpen = $derived(this._panelOpen);
+  /** Mobile-only rail visibility; the hamburger toggles it. Desktop ignores it. */
+  railOpen = $state(false);
+  /** Desktop label mode for the rail; persisted across reloads. */
+  expanded = $state(
+    typeof localStorage !== "undefined" &&
+      localStorage.getItem("sidebar-expanded") === "true",
+  );
+
+  toggleExpanded = () => {
+    this.expanded = !this.expanded;
+    localStorage.setItem("sidebar-expanded", String(this.expanded));
+  };
+
+  changeOpened = (panel: SidebarOpenType) => {
+    this._panelOpen = panel;
+    // Switching the main surface closes the mobile overlay rail so it doesn't
+    // sit on top of the content the user just navigated to.
+    this.railOpen = false;
+  };
+
+  toggleRail = () => {
+    this.railOpen = !this.railOpen;
+  };
+
+  closeRail = () => {
+    this.railOpen = false;
   };
 }

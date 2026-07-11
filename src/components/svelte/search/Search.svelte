@@ -2,46 +2,32 @@
   import { onMount } from "svelte";
   import { debounce } from "es-toolkit";
   import { fade } from "svelte/transition";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import Menu from "@lucide/svelte/icons/menu";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import { getAppData } from "@lib/context";
   import { getMapChromeVisibility } from "@lib/map-chrome";
   import {
     adminAuthStore,
-    editorChromeStore,
     mapEditStore,
-    mapToolsStore,
+    modalStore,
     proposalsStore,
     queryStore,
+    sidebarStore,
   } from "@lib/store.svelte";
-  import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
-  import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
-  import TransitFilterChip from "@ui/TransitFilterChip.svelte";
-  import TransitRoutePanel from "@ui/TransitRoutePanel.svelte";
-  import { jeepneyStore, plannerStore } from "@lib/store.svelte";
-  import EditorShelf from "@ui/EditorShelf.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
-  import CampusBrowseChips from "@ui/search/CampusBrowseChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
-  import {
-    dropdownFadeIn,
-    dropdownFadeOut,
-    panelFadeIn,
-    panelFadeOut,
-  } from "@lib/motion";
+  import { dropdownFadeIn, dropdownFadeOut } from "@lib/motion";
   import { MediaQuery } from "svelte/reactivity";
 
   let searchElement = $state<HTMLInputElement | null>(null);
   let shellMainEl = $state<HTMLDivElement | null>(null);
   let chromeEl = $state<HTMLDivElement | null>(null);
   let draftInput = $state("");
-  let eventsCollapsed = $state(true);
   let searchFocused = $state(false);
   const mobile = new MediaQuery("max-width:48rem");
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -103,55 +89,16 @@
     searchElement?.focus();
   }
 
-  function openEventsShelf() {
-    searchFocused = false;
-    searchElement?.blur();
-    jeepneyStore.disableLayer();
-    if (mobile.current) {
-      mapToolsStore.close();
-    }
-    eventsCollapsed = false;
-  }
-
-  function closeEventsShelf() {
-    eventsCollapsed = true;
-  }
-
-  function toggleEventsShelf() {
-    if (eventsCollapsed) {
-      openEventsShelf();
-    } else {
-      closeEventsShelf();
-    }
-  }
-
   const clearSelectionLabel = $derived(
     queryStore.type === "result" && queryStore.category !== null
       ? "Close details"
       : "Clear search",
   );
 
-  const showIdleEventsChrome = $derived(
-    chrome.showEventsShelf && queryStore.category === null && draftInput === "",
-  );
-
-  function closeEditorShelf() {
-    editorChromeStore.closeShelf();
-  }
-
-  function openEditorShelf() {
+  function openEditorTools() {
     searchFocused = false;
     searchElement?.blur();
-    closeEventsShelf();
-    editorChromeStore.openShelf();
-  }
-
-  function toggleEditorShelf() {
-    if (editorChromeStore.shelfOpen) {
-      closeEditorShelf();
-    } else {
-      openEditorShelf();
-    }
+    modalStore.openModal("editor-tools");
   }
 
   const showEditorChrome = $derived(
@@ -167,62 +114,12 @@
   );
 
   const showSearchDropdown = $derived(
-    chrome.showSearchSuggestions &&
-      searchFocused &&
-      eventsCollapsed &&
-      !editorChromeStore.shelfOpen,
+    chrome.showSearchSuggestions && searchFocused,
   );
-
-  const showEventsSheet = $derived(showIdleEventsChrome && !eventsCollapsed);
-
-  const showEditorSheet = $derived(
-    showEditorChrome && editorChromeStore.shelfOpen,
-  );
-  const showEditorInline = $derived(showEditorSheet && !mobile.current);
-
-  const showTransitRoutePanel = $derived(
-    chrome.showSearchSuggestions &&
-      jeepneyStore.layerActive &&
-      !mapToolsStore.open,
-  );
-
-  $effect(() => {
-    if (draftInput.trim() !== "") {
-      closeEventsShelf();
-      closeEditorShelf();
-    }
-  });
 
   $effect(() => {
     if (queryStore.category !== null && queryStore.type === "result") {
-      closeEventsShelf();
-      closeEditorShelf();
       searchElement?.blur();
-    }
-  });
-
-  $effect(() => {
-    if (editorChromeStore.shelfOpen) {
-      closeEventsShelf();
-    }
-  });
-
-  $effect(() => {
-    if (jeepneyStore.layerActive) {
-      closeEventsShelf();
-      closeEditorShelf();
-    }
-  });
-
-  $effect(() => {
-    if (chrome.editMode) {
-      closeEditorShelf();
-    }
-  });
-
-  $effect(() => {
-    if (mobile.current && mapToolsStore.open) {
-      closeEventsShelf();
     }
   });
 </script>
@@ -233,24 +130,21 @@
   class:search-input-focused={searchFocused}
   class:search-suggestions-open={showSearchDropdown}
   class:search-query-active={draftInput.trim() !== ""}
-  class:events-panel-open={showEventsSheet}
-  class:editor-panel-open={showEditorInline}
-  class:transit-panel-open={showTransitRoutePanel}
 >
   <div class="search-shell-main" bind:this={shellMainEl}>
     {#if mobile.current}
       <MapChromeToggleButton
         class="map-menu-btn"
-        ariaLabel="Map menu"
-        ariaExpanded={mapToolsStore.open}
-        ariaControls="map-tools-panel"
-        title="Map menu"
+        ariaLabel="App menu"
+        ariaExpanded={sidebarStore.railOpen}
+        ariaControls="app-sidebar"
+        title="App menu"
         onclick={() => {
-          if (!mapToolsStore.open) {
+          if (!sidebarStore.railOpen) {
             searchFocused = false;
             searchElement?.blur();
           }
-          mapToolsStore.toggle();
+          sidebarStore.toggleRail();
         }}
       >
         <Menu size={20} aria-hidden="true" />
@@ -337,20 +231,14 @@
             <button
               type="button"
               class="map-search-chrome__editor-btn"
-              class:map-search-chrome__editor-btn--active={showEditorSheet}
               class:map-search-chrome__editor-btn--editing={mapEditStore.enabled}
-              aria-expanded={showEditorSheet}
-              aria-controls={mobile.current
-                ? "editor-screen"
-                : "editor-shelf-panel"}
-              aria-label={showEditorSheet
-                ? "Close editor tools"
-                : editorOpenLabel}
-              title={showEditorSheet ? "Close editor tools" : editorChipLabel}
+              aria-haspopup="dialog"
+              aria-label={editorOpenLabel}
+              title={editorChipLabel}
               onclick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                toggleEditorShelf();
+                openEditorTools();
               }}
             >
               <ShieldCheck size={18} aria-hidden="true" />
@@ -361,34 +249,8 @@
               {/if}
             </button>
           {/if}
-
-          <button
-            type="button"
-            class="map-chrome-chip map-search-chrome__planner-btn"
-            class:map-chrome-chip--toggle-active={plannerStore.open}
-            aria-pressed={plannerStore.open}
-            aria-label="Open course planner"
-            title="Course planner"
-            onclick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              plannerStore.openPlanner();
-            }}
-          >
-            <CalendarDays size={14} aria-hidden="true" />
-            <span class="map-search-chrome__planner-label">Class Planner</span>
-          </button>
         </div>
       </div>
-
-      {#if chrome.showSearchSuggestions}
-        <div class="campus-browse-chips__container">
-          <CampusBrowseChips />
-        </div>
-        <div class="campus-browse-chips__term">
-          <TermSelector />
-        </div>
-      {/if}
 
       {#if showSearchDropdown}
         <!-- svelte-ignore a11y_interactive_supports_focus -->
@@ -417,85 +279,17 @@
           {/if}
 
           {#if chrome.showSearchSuggestions}
-            {#if showIdleEventsChrome}
-              <button
-                type="button"
-                class="map-chrome-chip"
-                class:map-chrome-chip--toggle-active={showEventsSheet}
-                aria-expanded={showEventsSheet}
-                aria-controls="persistent-campus-events"
-                aria-label={showEventsSheet
-                  ? "Close campus events"
-                  : "Open campus events"}
-                onclick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  closeEditorShelf();
-                  toggleEventsShelf();
-                }}
-                disabled={!loaded}
-              >
-                <CalendarDays size={14} aria-hidden="true" />
-                <span>Events</span>
-              </button>
-            {/if}
-            <BuildingTypeFilterBar />
-            <TransitFilterChip />
+            <!-- Browsing lives in the sidebar; only the term switch stays here. -->
+            <TermSelector />
           {/if}
         </div>
       {/if}
 
-      {#if showTransitRoutePanel}
-        <div
-          class="map-search-chrome__transit-routes"
-          id="transit-route-picker"
-          aria-label="Transit route picker"
-          in:fade={panelFadeIn(reducedMotion.current)}
-          out:fade={panelFadeOut(reducedMotion.current)}
-        >
-          <TransitRoutePanel compact />
-        </div>
-      {/if}
-
-      {#if showEventsSheet}
-        <div
-          class="map-search-chrome__events"
-          id="persistent-campus-events"
-          aria-labelledby="persistent-campus-events-heading"
-          in:fade={panelFadeIn(reducedMotion.current)}
-          out:fade={panelFadeOut(reducedMotion.current)}
-        >
-          <EventCards
-            headingId="persistent-campus-events-heading"
-            showHeading={false}
-            showRetract={false}
-            oncollapse={closeEventsShelf}
-          />
-        </div>
-      {/if}
-
-      {#if showEditorInline}
-        <div
-          class="map-search-chrome__editor map-chrome-scroll"
-          id="editor-shelf-panel"
-          aria-label="Editor tools"
-          in:fade={panelFadeIn(reducedMotion.current)}
-          out:fade={panelFadeOut(reducedMotion.current)}
-        >
-          <EditorShelf onclose={closeEditorShelf} />
-        </div>
-      {/if}
     </div>
   </div>
 </div>
 
 <style>
-    .campus-browse-chips__container {
-        padding: .5rem .75rem;
-    }
-  .campus-browse-chips__term {
-    padding: 0 0.75rem 0.5rem;
-  }
   .sr-only {
     position: absolute;
     width: 1px;
@@ -621,65 +415,26 @@
     grid-row: 3;
   }
 
-  /* Browse chips + term selector stack as their own full-width rows under the
-     filter chips. Without explicit placement they auto-flow side by side into
-     the menu-button column and overlap (mobile top-bar regression). */
-  .search-root.mobile-shell .campus-browse-chips__container,
-  .search-root.mobile-shell .campus-browse-chips__term {
-    grid-column: 1 / -1;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  .search-root.mobile-shell .campus-browse-chips__container {
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__transit-routes,
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__events {
     grid-row: 3;
-    padding: 0.4375rem 0 0;
-    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
-  .search-root.mobile-shell .campus-browse-chips__term {
-    grid-row: 4;
-    padding: 0.375rem 0 0.1875rem;
-  }
-
-  .search-root.mobile-shell.search-suggestions-open
-    .campus-browse-chips__container {
+  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
+    .map-search-chrome__transit-routes,
+  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
+    .map-search-chrome__events {
     grid-row: 4;
   }
 
-  .search-root.mobile-shell.search-suggestions-open
-    .campus-browse-chips__term {
-    grid-row: 5;
-  }
-
-  .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__transit-routes,
-  .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__events,
-  .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__editor {
-    grid-row: 6;
-  }
-
-  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
-    .map-search-chrome__transit-routes,
-  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
-    .map-search-chrome__events,
-  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
-    .map-search-chrome__editor {
-    grid-row: 6;
-  }
-
   .search-root.mobile-shell:not(.search-suggestions-open)
     .map-search-chrome__transit-routes,
   .search-root.mobile-shell:not(.search-suggestions-open)
-    .map-search-chrome__events,
-  .search-root.mobile-shell:not(.search-suggestions-open)
-    .map-search-chrome__editor {
+    .map-search-chrome__events {
     grid-column: 1 / -1;
-    grid-row: 5;
+    grid-row: 3;
     min-width: 0;
     width: 100%;
     max-width: 100%;
@@ -762,12 +517,6 @@
   .map-search-chrome__editor-btn:focus-visible {
     outline: 2px solid hsl(160, 84%, 22%);
     outline-offset: 1px;
-  }
-
-  .map-search-chrome__editor-btn--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 22%);
   }
 
   /* Pinned Planner chip reuses .map-chrome-chip; keep it maroon and collapse
@@ -894,7 +643,7 @@
 
   .search-root.search-suggestions-open:not(.mobile-shell):not(
       .events-panel-open
-    ):not(.editor-panel-open):not(.transit-panel-open)
+    ):not(.transit-panel-open)
     .map-search-chrome__suggestions {
     border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
     border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
@@ -938,7 +687,6 @@
     border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
   }
 
-  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__chips,
   .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips,
   .search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips {
     border-bottom-left-radius: 0;
@@ -1043,39 +791,4 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .map-search-chrome__editor {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    min-height: 0;
-    /* Viewport cap below status bar; dvh-only limits ignore search/chip rows. */
-    max-height: min(
-      24rem,
-      calc(
-        100dvh - var(--status-bar-block-height, 2.75rem) -
-          var(--map-ui-padding, 0.5rem) * 2 - 4.75rem
-      )
-    );
-    overflow-x: clip;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-    padding: 0.375rem 0.625rem 0.625rem;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__editor {
-    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-  }
-
-  .map-search-chrome__editor :global(.editor-shelf) {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
 </style>

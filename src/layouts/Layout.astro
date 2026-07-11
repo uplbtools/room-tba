@@ -3,7 +3,10 @@ import { pwaInfo } from "virtual:pwa-info";
 import "../styles/font-face.css";
 import "../styles/app-loading.css";
 import Analytics from "@vercel/analytics/astro";
-import { LOADING_SPLASH_FIRST } from "@lib/loading-splash-messages";
+import {
+  LOADING_SPLASH_FIRST,
+  LOADING_SPLASH_MESSAGES,
+} from "@lib/loading-splash-messages";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
@@ -15,6 +18,10 @@ type StructuredData = Record<string, unknown>;
 
 type Props = {
   title?: string;
+  /** Short share title (og:title / twitter:title) — the entity name only.
+   * og:site_name already says "Room TBA", so the full <title> chain is
+   * redundant on share cards. Defaults to title. */
+  ogTitle?: string;
   description?: string;
   canonicalPath?: string;
   imagePath?: string;
@@ -26,6 +33,7 @@ type Props = {
 
 const {
   title = DEFAULT_TITLE,
+  ogTitle = undefined,
   description = DEFAULT_DESCRIPTION,
   canonicalPath = "/",
   imagePath = "/socmed.png",
@@ -36,6 +44,7 @@ const {
 
 const canonicalUrl = absoluteUrl(canonicalPath);
 const imageUrl = absoluteUrl(imagePath);
+const shareTitle = ogTitle ?? title;
 ---
 
 <!doctype html>
@@ -55,19 +64,19 @@ const imageUrl = absoluteUrl(imagePath);
     <meta property="og:site_name" content="Room TBA" />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={shareTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={imageUrl} />
-    <meta property="og:image:alt" content={title} />
+    <meta property="og:image:alt" content={shareTitle} />
     <meta property="og:locale" content="en_US" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta property="twitter:domain" content={new URL(SITE_URL).hostname} />
     <meta property="twitter:url" content={canonicalUrl} />
-    <meta name="twitter:title" content={title} />
+    <meta name="twitter:title" content={shareTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
-    <meta name="twitter:image:alt" content={title} />
+    <meta name="twitter:image:alt" content={shareTitle} />
     {
       structuredData.map((entry) => (
         <script type="application/ld+json" set:html={JSON.stringify(entry)} />
@@ -151,9 +160,32 @@ const imageUrl = absoluteUrl(imagePath);
     }
     <slot />
     <Analytics />
-    <script is:inline>
+    <script is:inline define:vars={{ splashLines: LOADING_SPLASH_MESSAGES }}>
       (() => {
+        const splashEl = document.querySelector(".app-loading-shell__splash");
+        let splashIndex = 0;
+        let splashTimer = null;
+
+        function showSplashLine() {
+          if (!splashEl) return;
+          splashEl.textContent = splashLines[splashIndex % splashLines.length];
+          splashIndex += 1;
+        }
+
+        function stopSplashRotation() {
+          if (splashTimer !== null) {
+            clearInterval(splashTimer);
+            splashTimer = null;
+          }
+        }
+
+        if (splashEl) {
+          showSplashLine();
+          splashTimer = setInterval(showSplashLine, 3_500);
+        }
+
         function dismissLoadingShell() {
+          stopSplashRotation();
           document.getElementById("app-loading-shell")?.remove();
         }
         document.addEventListener(

@@ -4,6 +4,7 @@
   import {
     modalStore,
     queryStore,
+    sidePanelStore,
     locationStore,
     toastStore,
     building3DStore,
@@ -15,25 +16,25 @@
     appBootstrapStore,
     plannerStore,
     termStore,
+    sidebarStore,
   } from "@lib/store.svelte";
   import { decodeSharePlan } from "@lib/planner/share-codec";
   import { resolveSharedPlan } from "@lib/planner/import-shared";
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
   import Map from "@ui/Map.svelte";
-  import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
   import MapViewControls from "@ui/MapViewControls.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import LocationButton from "@ui/LocationButton.svelte";
   import MapAttribution from "@ui/MapAttribution.svelte";
+  import MapLegend from "@ui/MapLegend.svelte";
   import StatusBar from "@ui/StatusBar.svelte";
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
   import AccountSettingsModal from "@ui/AccountSettingsModal.svelte";
-  import ManageUsersModal from "@ui/ManageUsersModal.svelte";
+  import ManageUsersModal from "@ui/modal/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
-  import EditorScreen from "@ui/EditorScreen.svelte";
   import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
@@ -44,7 +45,11 @@
     getGlobalShortcutAction,
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
+  import { openCampusBrowse } from "@lib/browse-campus";
+  import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
+  import Sidebar from "./navigation/Sidebar.svelte";
+  import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -121,7 +126,8 @@
         missing_token: "That confirmation link is missing its token.",
         invalid_or_expired_token:
           "That confirmation link is invalid or has expired. Request a new one.",
-        not_logged_in: "Sign in first, then connect Google from account settings.",
+        not_logged_in:
+          "Sign in first, then connect Google from account settings.",
         missing_code: "Google sign-in was cancelled or incomplete. Try again.",
         oauth_failed: "Connecting Google failed. Try again.",
         already_linked:
@@ -140,6 +146,32 @@
       window.history.replaceState({}, "", window.location.pathname);
     }
 
+    // 3D deep link: /building/<slug>/?3d=1 opens the building's 3D viewer.
+    if (urlParams.get("3d") === "1" && initialSearch?.category === "building") {
+      building3DStore.open(initialSearch.value);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    // Jeepney deep link: ?jeepney=<routeId>[&stop=<index>] opens the route on
+    // the map (and focuses a stop when given). Shared from the route modal /
+    // stop panel copy-link.
+    const jeepneyRouteId = urlParams.get("jeepney");
+    if (jeepneyRouteId) {
+      openCampusBrowse(queryStore, sidePanelStore, "jeepney");
+      jeepneyStore.openRouteOnMap(jeepneyRouteId);
+      const stopParam = Number.parseInt(urlParams.get("stop") ?? "", 10);
+      if (Number.isInteger(stopParam)) {
+        jeepneyStore.openStop(stopParam);
+      }
+      window.history.replaceState(
+        {},
+        "",
+        Number.isInteger(stopParam)
+          ? getTransitStopPath(jeepneyRouteId, stopParam)
+          : getTransitRoutePath(jeepneyRouteId),
+      );
+    }
+
     plannerStore.init();
 
     // /planner deep link (prop set by the planner.astro page). Driven by a prop,
@@ -147,7 +179,7 @@
     // on boot before this runs. ?term still flows through termStore.
     if (openPlanner) {
       void termStore.init();
-      plannerStore.openPlanner();
+      sidebarStore.changeOpened("planner");
     }
 
     const planParam = urlParams.get("plan");
@@ -165,7 +197,7 @@
             if (termStore.terms.some((term) => term.id === decoded.termId)) {
               termStore.setTerm(decoded.termId);
             }
-            plannerStore.openPlanner();
+            sidebarStore.changeOpened("planner");
             if (missing > 0) {
               toastStore.show(
                 `${missing} shared ${missing === 1 ? "section is" : "sections are"} no longer offered.`,
@@ -287,8 +319,6 @@
         adminAuthStore.closeLogin();
       } else if (editorChromeStore.additionModalOpen) {
         editorChromeStore.closeAdditionModal();
-      } else if (editorChromeStore.shelfOpen) {
-        editorChromeStore.closeShelf();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
       } else if (jeepneyStore.selectedStopIndex !== null) {
@@ -311,42 +341,47 @@
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
   <div class="ui-layer">
-    <section
-      class="top-right-map-stack"
-      aria-label="Map tools"
-      bind:this={mapToolsStackEl}
-    >
-      <MapToolsFlyout />
-      <section class="desktop-camera-controls" aria-label="Map camera">
-        <div class="camera-controls-card">
-          <MapDimensionToggle embedded />
-          <div class="camera-controls-card__divider" aria-hidden="true"></div>
-          <MapViewControls variant="camera" embedded />
-        </div>
-      </section>
-    </section>
-    <div class="inner-layer">
-      <MainControls />
-      <div class="bottom-band">
-        <div class="bottom-chrome" bind:this={bottomChromeEl}>
-          <div class="bottom-chrome__bar">
-            <div class="bottom-chrome__leading">
-              <MapAttribution />
-            </div>
-            <div class="bottom-chrome__status">
-              <StatusBar />
-            </div>
+    <Sidebar />
+    {#if sidebarStore.panelOpen === "map"}
+      <section
+        class="top-right-map-stack"
+        aria-label="Map camera controls"
+        bind:this={mapToolsStackEl}
+      >
+        <section class="desktop-camera-controls" aria-label="Map camera">
+          <div class="camera-controls-card">
+            <MapDimensionToggle embedded />
+            <div class="camera-controls-card__divider" aria-hidden="true"></div>
+            <MapViewControls variant="camera" embedded />
           </div>
-          <div
-            class="bottom-chrome__actions"
-            bind:this={bottomChromeActionsEl}
-            aria-label="Location controls"
-          >
-            <LocationButton embedded />
+        </section>
+      </section>
+      <div class="inner-layer">
+        <MainControls />
+        <div class="bottom-band">
+          <div class="bottom-chrome" bind:this={bottomChromeEl}>
+            <div class="bottom-chrome__bar">
+              <div class="bottom-chrome__leading">
+                <MapAttribution />
+              </div>
+              <div class="bottom-chrome__status">
+                <StatusBar />
+              </div>
+            </div>
+            <div
+              class="bottom-chrome__actions"
+              bind:this={bottomChromeActionsEl}
+              aria-label="Location controls"
+            >
+              <MapLegend trigger="chip" />
+              <LocationButton embedded />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    {:else if sidebarStore.panelOpen === "planner"}
+      <PlannerScreen />
+    {/if}
   </div>
   {#if toastStore.message}
     <Toast
@@ -356,6 +391,7 @@
     />
   {/if}
   <Modal />
+  <KeyboardShortcutsPopup />
   {#if building3DStore.buildingName}
     <Building3DViewer name={building3DStore.buildingName} />
   {/if}
@@ -369,8 +405,6 @@
     <ManageUsersModal />
   {/if}
   <EditorAdditionModal />
-  <EditorScreen />
-  <PlannerScreen />
 </div>
 
 <style>
@@ -518,8 +552,6 @@
     flex: 0 1 auto;
     min-width: 0;
     min-height: 2rem;
-    box-sizing: border-box;
-    pointer-events: auto;
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     backdrop-filter: blur(10px);
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
@@ -531,6 +563,8 @@
       0 2px 8px hsla(0, 0%, 0%, 0.14),
       0 8px 20px hsla(0, 0%, 0%, 0.18)
     );
+    box-sizing: border-box;
+    pointer-events: auto;
   }
 
   .bottom-chrome__leading {
@@ -566,11 +600,26 @@
   .bottom-chrome__actions {
     display: flex;
     flex: 0 0 auto;
-    align-items: center;
-    gap: 0.125rem;
-    min-height: 2.75rem;
-    padding: 0.125rem;
+    /* Bottom-align controls so an open legend panel grows upward without
+       floating +/locate over the panel body. */
+    align-items: flex-end;
+    gap: 0.375rem;
+    padding: 0;
     pointer-events: auto;
+  }
+
+  .bottom-chrome__actions :global(.map-legend--open) {
+    position: relative;
+    z-index: 2;
+  }
+
+  .bottom-chrome__actions :global(.map-control-stack.embedded) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .bottom-chrome__actions :global(.map-chrome-control-btn--compact) {
+    flex-shrink: 0;
   }
 
   .bottom-band::before {
@@ -607,7 +656,6 @@
     z-index: 10;
     pointer-events: none;
     display: flex;
-    flex-direction: column;
   }
 
   .top-right-map-stack {
@@ -662,7 +710,7 @@
 
   .camera-controls-card__divider {
     height: 2px;
-    margin: .5rem 0.125rem;
+    margin: 0.5rem 0.125rem;
     background-color: var(--map-chrome-divider, hsl(5 12% 70%));
   }
 
@@ -754,8 +802,9 @@
       max-height: min(
         42dvh,
         calc(
-          100dvh - var(--search-block-height) - var(--map-ui-padding, 0.375rem) -
-            var(--status-bar-block-height) - 0.5rem
+          100dvh - var(--search-block-height) -
+            var(--map-ui-padding, 0.375rem) - var(--status-bar-block-height) -
+            0.5rem
         )
       );
       padding: 0.5rem 0.625rem;

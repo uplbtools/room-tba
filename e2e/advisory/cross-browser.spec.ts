@@ -6,6 +6,6 @@ test.describe("cross browser smoke @advisory", () => {
     test.skip(browserName !== "webkit", "webkit advisory only");
     await page.goto("/");
     await waitForAppBoot(page);
-    await expect(page.locator(".campus-browse-chips")).toBeVisible();
+    await expect(page.locator(".term-filter-chip")).toBeVisible();
   });
 });

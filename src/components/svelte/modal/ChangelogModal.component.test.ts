@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import ChangelogModal from "@ui/ChangelogModal.svelte";
+import ChangelogModal from "./ChangelogModal.svelte";
 import { syncToastStore } from "@lib/store.svelte";
 
 describe("ChangelogModal", () => {

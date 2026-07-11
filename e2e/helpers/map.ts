@@ -36,10 +36,7 @@ async function enableMapEditViaEditorShelf(page: Page) {
   const editorTools = page.getByRole("button", { name: /open editor tools/i });
   await editorTools.click({ timeout: 10_000 });
 
-  const isMobile = await isMobileViewport(page);
-  const shelfRoot = isMobile
-    ? page.locator("#editor-screen")
-    : page.locator("#editor-shelf-panel");
+  const shelfRoot = page.getByRole("dialog", { name: "Editor tools" });
   await expect(shelfRoot).toBeVisible({ timeout: 10_000 });
 
   const mapEditToggle = shelfRoot.getByRole("button", {
@@ -47,7 +44,10 @@ async function enableMapEditViaEditorShelf(page: Page) {
   });
   if ((await mapEditToggle.getAttribute("aria-pressed")) !== "true") {
     await mapEditToggle.click();
-    // Enabling map edit closes the shelf (see Search.svelte editMode effect).
+    // Toggling map edit closes the editor tools dialog (EditorShelf onclose).
+    await expect(shelfRoot).toBeHidden({ timeout: 10_000 });
+  } else {
+    await page.keyboard.press("Escape");
     await expect(shelfRoot).toBeHidden({ timeout: 10_000 });
   }
 }

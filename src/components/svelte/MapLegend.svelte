@@ -1,19 +1,27 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Info from "@lucide/svelte/icons/info";
+  import Layers from "@lucide/svelte/icons/layers";
   import X from "@lucide/svelte/icons/x";
   import IconButton from "@ui/IconButton.svelte";
+  import "./map-chrome/map-chrome.css";
   import { getAppData } from "@lib/context";
   import {
     floatingControlPanelStore,
     mapViewStore,
     queryStore,
   } from "@lib/store.svelte";
+  import {
+    openEphemeralOverlay,
+    registerEphemeralOverlayDismisser,
+  } from "@lib/overlay-stack";
 
   type Props = {
     embedded?: boolean;
+    trigger?: "icon" | "chip";
   };
 
-  let { embedded = false }: Props = $props();
+  let { embedded = false, trigger = "icon" }: Props = $props();
 
   const panelId = "legend";
   const open = $derived(floatingControlPanelStore.openPanel === panelId);
@@ -42,6 +50,16 @@
       key: "dorm",
       label: "Dorm",
       description: "UP-managed or private dorm.",
+    },
+    {
+      key: "landmark",
+      label: "Landmark",
+      description: "Memorials, sights, and campus points of interest.",
+    },
+    {
+      key: "establishment",
+      label: "Service / establishment",
+      description: "Food, services, and transport points.",
     },
     {
       key: "location",
@@ -90,9 +108,23 @@
       description: "Building or dorm tied to a live event.",
     },
   ] as const;
+
+  onMount(() =>
+    registerEphemeralOverlayDismisser(() =>
+      floatingControlPanelStore.close(panelId),
+    ),
+  );
+
+  function togglePanel() {
+    if (open) {
+      floatingControlPanelStore.close(panelId);
+      return;
+    }
+    openEphemeralOverlay(() => floatingControlPanelStore.toggle(panelId));
+  }
 </script>
 
-<div class="map-legend" class:embedded>
+<div class="map-legend" class:embedded class:map-legend--open={open}>
   {#if showPanel}
     <div
       id="map-icon-legend"
@@ -188,7 +220,7 @@
             >
               <span class="legend-swatch organization" aria-hidden="true"></span>
               <span class="legend-copy">
-                <span class="legend-label">Orgs &amp; offices</span>
+                <span class="legend-label">Orgs, units &amp; offices</span>
                 <span class="legend-description">
                   {mapViewStore.showOrgs ? "Shown" : "Hidden"} — tap to toggle.
                 </span>
@@ -201,9 +233,9 @@
               aria-pressed={mapViewStore.showPlaces}
               onclick={() => mapViewStore.togglePlaces()}
             >
-              <span class="legend-swatch place" aria-hidden="true"></span>
+              <span class="legend-swatch establishment" aria-hidden="true"></span>
               <span class="legend-copy">
-                <span class="legend-label">Places</span>
+                <span class="legend-label">Landmarks &amp; establishments</span>
                 <span class="legend-description">
                   {mapViewStore.showPlaces ? "Shown" : "Hidden"} — tap to toggle.
                 </span>
@@ -217,16 +249,22 @@
 
   {#if !embedded}
     <button
-      class="legend-btn"
+      class={trigger === "chip"
+        ? "map-chrome-control-btn map-chrome-control-btn--compact"
+        : "legend-btn"}
       class:active={open}
       type="button"
-      onclick={() => floatingControlPanelStore.toggle(panelId)}
+      onclick={togglePanel}
       title="Map legend"
       aria-label="Map legend"
       aria-expanded={open}
       aria-controls="map-icon-legend"
     >
-      <Info />
+      {#if trigger === "chip"}
+        <Layers size={18} aria-hidden="true" />
+      {:else}
+        <Info />
+      {/if}
     </button>
   {/if}
 </div>
@@ -296,32 +334,52 @@
     pointer-events: auto;
   }
 
+  .map-legend--open .legend-panel {
+    position: relative;
+    z-index: 1;
+  }
+
   .legend-btn {
     display: flex;
     width: 3rem;
     height: 3rem;
     align-items: center;
     justify-content: center;
-    border: 1px solid #ececec;
+    border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
     border-radius: 50%;
-    background-color: white;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    backdrop-filter: blur(10px);
     color: hsl(5, 53%, 32%);
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(
+      --map-chrome-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.18),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14)
+    );
     transition:
       background-color 0.2s,
-      transform 0.2s;
+      border-color 0.2s;
   }
 
   .legend-btn:hover {
-    background-color: hsl(5, 53%, 98%);
-    transform: scale(1.05);
+    background-color: hsl(0, 0%, 99%);
+    border-color: hsl(5, 53%, 32%);
+  }
+
+  .legend-btn:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
   }
 
   .legend-btn.active {
-    border-color: hsl(5, 53%, 75%);
+    border-color: hsl(5, 53%, 32%);
     background-color: hsl(5, 53%, 32%);
     color: white;
+    box-shadow:
+      inset 0 0 0 1px hsla(0, 0%, 100%, 0.2),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 6px 14px hsla(0, 0%, 0%, 0.12);
   }
 
   .legend-panel {
@@ -356,8 +414,12 @@
     flex-direction: column;
     gap: 0.75rem;
     overflow-x: clip;
-    overflow-y: visible;
+    overflow-y: auto;
     padding-right: 0;
+  }
+
+  .legend-panel.embedded .legend-sections {
+    overflow-y: visible;
   }
 
   .legend-section {
@@ -379,6 +441,12 @@
   .legend-list {
     display: grid;
     gap: 0.35rem;
+  }
+
+  @media (min-width: 30rem) {
+    .map-legend.embedded .legend-list {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
   }
 
   .legend-item {
@@ -424,8 +492,12 @@
     background-color: hsl(262, 52%, 47%);
   }
 
-  .legend-swatch.place {
-    background-color: hsl(28, 80%, 45%);
+  .legend-swatch.landmark {
+    background-color: hsl(34, 62%, 42%);
+  }
+
+  .legend-swatch.establishment {
+    background-color: hsl(334, 54%, 43%);
   }
 
   .legend-toggle {
@@ -518,6 +590,13 @@
 
     .legend-description {
       display: none;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .legend-panel:not(.embedded) {
+      max-height: 40dvh;
+      overflow-y: auto;
     }
   }
 </style>

@@ -1,12 +1,14 @@
 import { test, expect } from "@playwright/test";
+import { waitForAppBoot } from "../helpers/app";
 
 test.describe("staging browse", () => {
-  test("map tools flyout opens", async ({ page }) => {
+  test("map shell boots with search chrome", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: /map tools/i }).click();
-    await expect(page.getByRole("dialog", { name: /map tools/i })).toBeVisible({
-      timeout: 15_000,
-    });
+    await waitForAppBoot(page);
+    await expect(
+      page.getByRole("searchbox", { name: /search campus/i }),
+    ).toBeVisible();
+    await expect(page.locator(".term-filter-chip")).toBeVisible();
   });
 });
 

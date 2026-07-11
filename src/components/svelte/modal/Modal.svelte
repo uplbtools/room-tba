@@ -12,9 +12,14 @@
   import ScheduleModal from "./ScheduleModal.svelte";
   import LeaderboardModal from "./LeaderboardModal.svelte";
   import CoverageModal from "./CoverageModal.svelte";
-  import ChangelogModal from "../ChangelogModal.svelte";
+  import ChangelogModal from "./ChangelogModal.svelte";
   import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
   import StudentOrgsModal from "./StudentOrgsModal.svelte";
+  import SettingsModal from "./SettingsModal.svelte";
+  import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
+  import EditorToolsModal from "./EditorToolsModal.svelte";
+  import PrivacyModal from "./PrivacyModal.svelte";
+  import OfflineMapsModal from "./OfflineMapsModal.svelte";
   import IconButton from "@ui/IconButton.svelte";
   import X from "@lucide/svelte/icons/x";
 
@@ -43,6 +48,11 @@
     if (modalStore.type === "changelog") return "What's new";
     if (modalStore.type === "review") return "Review suggested edits";
     if (modalStore.type === "student-orgs") return "Student organizations";
+    if (modalStore.type === "settings") return "Settings";
+    if (modalStore.type === "jeepney-route") return "Jeepney route";
+    if (modalStore.type === "editor-tools") return "Editor tools";
+    if (modalStore.type === "privacy") return "Privacy policy";
+    if (modalStore.type === "offline-maps") return "Offline maps";
     return "Dialog";
   });
 
@@ -80,7 +90,13 @@
           ? 'leaderboard-modal-container'
           : modalStore.type === 'changelog' || modalStore.type === 'review'
             ? 'modal-content--large'
-            : ''}"
+            : modalStore.type === 'settings' ||
+                modalStore.type === 'jeepney-route' ||
+                modalStore.type === 'editor-tools' ||
+                modalStore.type === 'privacy' ||
+                modalStore.type === 'offline-maps'
+              ? 'modal-content--reading'
+              : ''}"
       id="modal-content"
       role="dialog"
       aria-modal="true"
@@ -153,6 +169,51 @@
           <X size={20} aria-hidden="true" />
         </IconButton>
         <StudentOrgsModal />
+      {:else if modalStore.type === "settings"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close settings"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <SettingsModal />
+      {:else if modalStore.type === "jeepney-route"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close jeepney route"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <JeepneyRouteModal />
+      {:else if modalStore.type === "editor-tools"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close editor tools"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <EditorToolsModal />
+      {:else if modalStore.type === "privacy"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close privacy policy"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <PrivacyModal />
+      {:else if modalStore.type === "offline-maps"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close offline maps"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <OfflineMapsModal />
       {/if}
     </div>
   </div>
@@ -215,6 +276,10 @@
     flex: 0 1 72rem;
     width: 100%;
     height: min(90dvh, 56rem);
+  }
+  /* Settings/route dialogs cap at a readable measure so lines stay short. */
+  .modal-content--reading {
+    flex: 0 1 38rem;
   }
   .leaderboard-modal-container {
     flex: 0 1 32rem;

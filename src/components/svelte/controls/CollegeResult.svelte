@@ -23,6 +23,7 @@
   import type { CollegeData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import { getCollegeShareUrl } from "@lib/share-links";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
@@ -323,6 +324,16 @@
       </div>
     </header>
 
+    {#if college.websiteLink}
+      <div class="entity-dorm-details__links">
+        <EntityExternalLink
+          href={college.websiteLink}
+          label="Website"
+          ariaLabel={`Open ${college.collegeName} website (opens in new tab)`}
+        />
+      </div>
+    {/if}
+
     <EntityLastUpdated
       updatedAt={college.updatedAt}
       entityType="college"
@@ -422,9 +433,7 @@
       groupByBuilding
     />
   {:else if college}
-    <p class="entity-loading-note">
-      <LoadingIndicator label="Loading rooms for {college.collegeName}…" />
-    </p>
+    <LoadingIndicator block label="Loading rooms for {college.collegeName}…" />
   {/if}
 </div>
 

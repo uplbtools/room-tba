@@ -1,11 +1,20 @@
 import type { SearchCategory } from "./app-data";
+import { isLandmarkPlaceCategory } from "@constants/place-categories";
+import { isStudentOrganization } from "@constants/org-categories";
 import { slugifySegment } from "./site";
-import { getDormRouteSlug, getRoomRouteSlug } from "./route-slugs";
+import {
+  getDormRouteSlug,
+  getOrganizationRouteSlug,
+  getPlaceRouteSlug,
+  getRoomRouteSlug,
+} from "./route-slugs";
 import type {
   BuildingData,
   CollegeData,
   DivisionData,
   DormData,
+  OrgData,
+  PlaceData,
   RoomData,
 } from "./types";
 
@@ -32,8 +41,11 @@ export type RoutableQueryState = {
     | "room"
     | "class"
     | "dorm"
+    | "organization"
+    | "place"
     | "event"
     | "events"
+    | "browse"
     | null;
   value: string;
   eventSlug?: string;
@@ -45,7 +57,7 @@ export type ParsedEntityPath = {
 };
 
 const ENTITY_PATH_PATTERN =
-  /^\/(building|college|division|room|dorm|event)\/([^/]+)\/?$/;
+  /^\/(building|college|division|room|dorm|organization|unit|landmark|establishment|event)\/([^/]+)\/?$/;
 
 export function normalizePathname(pathname: string) {
   if (pathname === "/") return "/";
@@ -57,7 +69,12 @@ export function parseEntityPathname(pathname: string): ParsedEntityPath | null {
   const match = pathname.match(ENTITY_PATH_PATTERN);
   if (!match) return null;
   return {
-    category: match[1] as RoutableCategory,
+    category:
+      match[1] === "landmark" || match[1] === "establishment"
+        ? "place"
+        : match[1] === "unit"
+          ? "organization"
+          : (match[1] as RoutableCategory),
     slug: decodeURIComponent(match[2]),
   };
 }
@@ -90,6 +107,29 @@ export function getDormCanonicalPath(dorm: Pick<DormData, "id" | "dormName">) {
   return `/dorm/${getDormRouteSlug(dorm)}/`;
 }
 
+export function getOrganizationCanonicalPath(
+  organization: Pick<OrgData, "id" | "name"> &
+    Partial<Pick<OrgData, "category">>,
+) {
+  // Student community entities live under /organization/; offices and academic
+  // units get /unit/ so their links aren't mislabeled. Old /organization/ links
+  // for units keep resolving via parseEntityPathname.
+  const section =
+    organization.category && !isStudentOrganization(organization.category)
+      ? "unit"
+      : "organization";
+  return `/${section}/${getOrganizationRouteSlug(organization)}/`;
+}
+
+export function getPlaceCanonicalPath(
+  place: Pick<PlaceData, "id" | "name" | "category">,
+) {
+  const section = isLandmarkPlaceCategory(place.category)
+    ? "landmark"
+    : "establishment";
+  return `/${section}/${getPlaceRouteSlug(place)}/`;
+}
+
 export function getEventCanonicalPath(slug: string) {
   return `/event/${slug}/`;
 }
@@ -99,6 +139,8 @@ export function getEntityCanonicalPath(
   context: {
     room?: Pick<RoomData, "id" | "code"> | null;
     dorm?: Pick<DormData, "id" | "dormName"> | null;
+    organization?: Pick<OrgData, "id" | "name"> | null;
+    place?: Pick<PlaceData, "id" | "name" | "category"> | null;
   } = {},
 ): string | null {
   if (query.type !== "result" || query.category === null) return null;
@@ -114,10 +156,17 @@ export function getEntityCanonicalPath(
       return context.room ? getRoomCanonicalPath(context.room) : null;
     case "dorm":
       return context.dorm ? getDormCanonicalPath(context.dorm) : null;
+    case "organization":
+      return context.organization
+        ? getOrganizationCanonicalPath(context.organization)
+        : null;
+    case "place":
+      return context.place ? getPlaceCanonicalPath(context.place) : null;
     case "event":
       return query.eventSlug ? getEventCanonicalPath(query.eventSlug) : null;
     case "class":
     case "events":
+    case "browse":
       return null;
     default:
       return null;
@@ -131,6 +180,8 @@ export function resolveQueryFromEntityPath(
     colleges?: CollegeData[] | null;
     divisions?: DivisionData[] | null;
     dorms?: DormData[] | null;
+    organizations?: OrgData[] | null;
+    places?: PlaceData[] | null;
   },
 ): RoutableQueryState | null {
   const { category, slug } = parsed;
@@ -180,6 +231,30 @@ export function resolveQueryFromEntityPath(
     }
     case "room":
       return null;
+    case "organization": {
+      const { id } = parseRouteSlug(slug);
+      const organization =
+        id === null
+          ? context.organizations?.find(
+              (entry) => getOrganizationRouteSlug(entry) === slug,
+            )
+          : context.organizations?.find((entry) => entry.id === id);
+      if (!organization) return null;
+      return {
+        type: "result",
+        category: "organization",
+        value: organization.name,
+      };
+    }
+    case "place": {
+      const { id } = parseRouteSlug(slug);
+      const place =
+        id === null
+          ? context.places?.find((entry) => getPlaceRouteSlug(entry) === slug)
+          : context.places?.find((entry) => entry.id === id);
+      if (!place) return null;
+      return { type: "result", category: "place", value: place.name };
+    }
     case "event":
       return {
         type: "result",

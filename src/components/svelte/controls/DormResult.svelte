@@ -12,6 +12,7 @@
   import Phone from "@lucide/svelte/icons/phone";
   import Building2 from "@lucide/svelte/icons/building-2";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
   import KeyRound from "@lucide/svelte/icons/key-round";
@@ -693,6 +694,9 @@
 
     {#if !editing}
       <div class="entity-body entity-body--compact">
+        {#if dorm.lat && dorm.lon}
+          <EntityStreetAddress lat={dorm.lat} lon={dorm.lon} />
+        {/if}
         {#if dorm.description}
           <p class="entity-directions__text">{dorm.description}</p>
         {/if}

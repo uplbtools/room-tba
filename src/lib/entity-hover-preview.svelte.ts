@@ -1,4 +1,12 @@
-import type { BuildingData, DormData, EventData } from "@lib/types";
+import { orgCategoryLabel } from "@constants/org-categories";
+import { placeDirectoryLabel } from "@constants/place-categories";
+import type {
+  BuildingData,
+  DormData,
+  EventData,
+  OrgData,
+  PlaceData,
+} from "@lib/types";
 
 export type EntityHoverPreview =
   | {
@@ -21,6 +29,20 @@ export type EntityHoverPreview =
       title: string;
       category: string | null;
       imageUrl: string | null;
+    }
+  | {
+      kind: "organization";
+      id: number;
+      name: string;
+      category: string | null;
+      description: string | null;
+    }
+  | {
+      kind: "place";
+      id: number;
+      name: string;
+      category: string | null;
+      description: string | null;
     };
 
 export type HoverAnchor = {
@@ -93,6 +115,28 @@ export function eventPreviewFromRow(event: EventData): EntityHoverPreview {
   };
 }
 
+export function organizationPreviewFromRow(
+  organization: OrgData,
+): EntityHoverPreview {
+  return {
+    kind: "organization",
+    id: organization.id,
+    name: organization.name,
+    category: orgCategoryLabel(organization.category),
+    description: organization.description ?? null,
+  };
+}
+
+export function placePreviewFromRow(place: PlaceData): EntityHoverPreview {
+  return {
+    kind: "place",
+    id: place.id,
+    name: place.name,
+    category: placeDirectoryLabel(place.category),
+    description: place.description ?? null,
+  };
+}
+
 export function isBuildingHoverPreview(
   entity: EntityHoverPreview | null,
   buildingId: number,
@@ -112,4 +156,18 @@ export function isEventHoverPreview(
   eventSlug: string,
 ): boolean {
   return entity?.kind === "event" && entity.slug === eventSlug;
+}
+
+export function isOrganizationHoverPreview(
+  entity: EntityHoverPreview | null,
+  organizationId: number,
+): boolean {
+  return entity?.kind === "organization" && entity.id === organizationId;
+}
+
+export function isPlaceHoverPreview(
+  entity: EntityHoverPreview | null,
+  placeId: number,
+): boolean {
+  return entity?.kind === "place" && entity.id === placeId;
 }

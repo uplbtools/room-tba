@@ -1,0 +1,90 @@
+---
+export const prerender = false;
+
+import EntityPage from "@seo/EntityPage.astro";
+import {
+  isStudentOrganization,
+  orgCategoryLabel,
+} from "@constants/org-categories";
+import { getOrganizationCanonicalPath, parseRouteSlug } from "@lib/entity-urls";
+import { getOrganizationPageData } from "@lib/services/ssg-service";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  ogImageUrl,
+  webpageSchema,
+} from "@lib/site";
+
+const slug = Astro.params.slug;
+const organizationId = slug ? parseRouteSlug(slug).id : null;
+if (!organizationId) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const appData = await getOrganizationPageData(organizationId);
+if (!appData) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const { organization, buildingName } = appData;
+const category = orgCategoryLabel(organization.category) ?? "Organization";
+const kind = isStudentOrganization(organization.category)
+  ? "Student organization"
+  : "Office or academic unit";
+const canonicalPath = getOrganizationCanonicalPath(organization);
+const title = `${organization.name} | ${kind} at UPLB | Room TBA`;
+const description = organization.description
+  ? `${organization.name} is a ${kind.toLowerCase()} at UPLB. ${organization.description}`
+  : `Find ${organization.name}, a ${kind.toLowerCase()} at UPLB, on the Room TBA campus map.`;
+const facts = [
+  category,
+  buildingName ? `Located in ${buildingName}` : null,
+  organization.email ? `Email: ${organization.email}` : null,
+  organization.websiteLink ? "Website available" : null,
+].filter((fact): fact is string => Boolean(fact));
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: kind, path: canonicalPath },
+    { name: organization.name, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: organization.name,
+    description,
+    url: absoluteUrl(canonicalPath),
+    image: ogImageUrl(organization.imageUrl ?? undefined),
+    email: organization.email ?? undefined,
+    sameAs: [organization.websiteLink, organization.facebookLink].filter(
+      (value): value is string => Boolean(value),
+    ),
+  },
+);
+---
+
+<EntityPage
+  {title}
+  {description}
+  {canonicalPath}
+  image={organization.imageUrl
+    ? { src: organization.imageUrl, alt: organization.name }
+    : null}
+  ogCard={{
+    title: organization.name,
+    subtitle: buildingName ? `${category} · ${buildingName}` : category,
+    kicker: `${kind} at UPLB`,
+  }}
+  heading={`${organization.name} at UPLB`}
+  intro={description}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: canonicalPath, label: kind },
+    { href: canonicalPath, label: organization.name },
+  ]}
+  {structuredData}
+  initialSearch={{ category: "organization", value: organization.name }}
+/>

@@ -2,7 +2,14 @@
   import Move from "@lucide/svelte/icons/move";
   import type { Snippet } from "svelte";
 
-  type EntityPinTone = "building" | "dorm" | "privateDorm" | "organization";
+  type EntityPinTone =
+    | "building"
+    | "dorm"
+    | "privateDorm"
+    | "organization"
+    | "office"
+    | "landmark"
+    | "establishment";
   type EntityPinSaveState = "idle" | "saving" | "saved" | "failed";
 
   type Props = {
@@ -15,6 +22,7 @@
     hovered?: boolean;
     label: string;
     labelVisible?: boolean;
+    onclick?: (event: MouseEvent | KeyboardEvent) => void;
     /** Hide inline pin label while the shared EntityHoverPreview is shown for this pin. */
     previewSuppressed?: boolean;
     onpointerenter?: (event: PointerEvent) => void;
@@ -35,6 +43,7 @@
     hovered = false,
     label,
     labelVisible = false,
+    onclick,
     previewSuppressed = false,
     onpointerenter,
     onpointerleave,
@@ -59,6 +68,12 @@
     editable && (hovered || editing || active || saveState !== "idle"),
   );
   const showExpandedPin = $derived(editable && showDragAffordance);
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (!onclick || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    onclick(event);
+  }
 </script>
 
 <div
@@ -68,6 +83,9 @@
   class:dorm={tone === "dorm"}
   class:private={tone === "privateDorm"}
   class:organization={tone === "organization"}
+  class:office={tone === "office"}
+  class:landmark={tone === "landmark"}
+  class:establishment={tone === "establishment"}
   class:central-hover-preview={useCentralHoverPreview}
   class:editable={showExpandedPin}
   class:editing
@@ -79,6 +97,10 @@
   class:saved={saveState === "saved"}
   class:failed={saveState === "failed"}
   aria-label={label}
+  role={onclick ? "button" : undefined}
+  tabindex={onclick ? 0 : undefined}
+  {onclick}
+  onkeydown={handleKeydown}
   {onpointerenter}
   {onpointerleave}
 >
@@ -134,6 +156,18 @@
     background-color: hsl(265, 45%, 48%);
   }
 
+  .map-entity-pin.office {
+    background-color: hsl(208, 52%, 42%);
+  }
+
+  .map-entity-pin.landmark {
+    background-color: hsl(34, 62%, 42%);
+  }
+
+  .map-entity-pin.establishment {
+    background-color: hsl(334, 54%, 43%);
+  }
+
   .map-entity-pin.active {
     z-index: 85;
   }
@@ -162,12 +196,51 @@
     outline-color: hsl(265, 45%, 58%);
   }
 
+  .map-entity-pin.office.active::before {
+    outline-color: hsl(208, 52%, 52%);
+  }
+
+  .map-entity-pin.landmark.active::before {
+    outline-color: hsl(34, 62%, 52%);
+  }
+
+  .map-entity-pin.establishment.active::before {
+    outline-color: hsl(334, 54%, 53%);
+  }
+
   .map-entity-pin:hover.organization {
     background-color: hsl(265, 45%, 58%);
   }
 
+  .map-entity-pin:hover.office {
+    background-color: hsl(208, 52%, 52%);
+  }
+
+  .map-entity-pin:hover.landmark {
+    background-color: hsl(34, 62%, 52%);
+  }
+
+  .map-entity-pin:hover.establishment {
+    background-color: hsl(334, 54%, 53%);
+  }
+
   .map-entity-pin.active.organization .pin-label {
     background-color: hsl(265, 45%, 48%);
+    color: white;
+  }
+
+  .map-entity-pin.active.office .pin-label {
+    background-color: hsl(208, 52%, 42%);
+    color: white;
+  }
+
+  .map-entity-pin.active.landmark .pin-label {
+    background-color: hsl(34, 62%, 42%);
+    color: white;
+  }
+
+  .map-entity-pin.active.establishment .pin-label {
+    background-color: hsl(334, 54%, 43%);
     color: white;
   }
 

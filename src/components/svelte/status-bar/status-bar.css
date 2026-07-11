@@ -23,7 +23,7 @@
   overflow: hidden;
 }
 
-.status-bar__badges :global(.sync-status--inline) {
+.status-bar__badges .sync-status--inline {
   border-right: none;
   padding-right: 0;
   margin-right: 0;
@@ -79,7 +79,7 @@ button.status-bar__pill:hover {
 
 button.status-bar__pill:focus-visible {
   outline: 2px solid currentColor;
-  outline-offset: 1px;
+  outline-offset: -2px; /* badges row clips outward rings */
 }
 
 .status-bar__pill--update {
@@ -100,7 +100,7 @@ button.status-bar__pill:focus-visible {
   color: hsl(0, 0%, 42%);
 }
 
-.status-bar__pill :global(.status-bar__spin) {
+.status-bar__pill .status-bar__spin {
   animation: status-bar-spin 0.9s linear infinite;
 }
 
@@ -111,7 +111,7 @@ button.status-bar__pill:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .status-bar__pill :global(.status-bar__spin) {
+  .status-bar__pill .status-bar__spin {
     animation: none;
   }
 }

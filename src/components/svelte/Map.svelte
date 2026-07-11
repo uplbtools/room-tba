@@ -1,5 +1,14 @@
 <script lang="ts">
   import { MapLibre, Marker } from "svelte-maplibre";
+  import maplibregl from "maplibre-gl";
+  import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-csp-worker.js?url";
+
+  // In production Vite inlines maplibre into the app chunk and boots its
+  // worker by importScripts-ing that same chunk; vector tiles survive but the
+  // GeoJSON source path dies inside the worker ("f is not defined"), so no
+  // geojson line layer (jeepney/event routes) ever rendered on prod. Point
+  // maplibre at its self-contained CSP worker bundle instead.
+  maplibregl.setWorkerUrl(maplibreWorkerUrl);
   import { getAppActions, getAppData } from "@lib/context";
   import {
     queryStore,
@@ -21,6 +30,7 @@
     classVenuesStore,
     termStore,
     syncToastStore,
+    transitStore,
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
@@ -34,6 +44,9 @@
   import Undo2 from "@lucide/svelte/icons/undo-2";
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import University from "@lucide/svelte/icons/university";
+  import Landmark from "@lucide/svelte/icons/landmark";
+  import Briefcase from "@lucide/svelte/icons/briefcase";
+  import Store from "@lucide/svelte/icons/store";
   import EventMapPin from "./map/EventMapPin.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
@@ -42,10 +55,17 @@
   import type { StyleSpecification } from "maplibre-gl";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { BuildingData, DormData, EventData, PlaceData } from "@lib/types";
-  import MapPin from "@lucide/svelte/icons/map-pin";
+  import type {
+    BuildingData,
+    DormData,
+    EventData,
+    OrgData,
+    PlaceData,
+  } from "@lib/types";
+  import { isStudentOrganization } from "@constants/org-categories";
+  import { isLandmarkPlaceCategory } from "@constants/place-categories";
   import {
-    JEEPNEY_ROUTES,
+    deriveRouteLineFromStops,
     type JeepneyRoute,
     type JeepneyStop,
   } from "@constants/jeepney-routes";
@@ -94,6 +114,10 @@
     isBuildingHoverPreview,
     isDormHoverPreview,
     isEventHoverPreview,
+    isOrganizationHoverPreview,
+    isPlaceHoverPreview,
+    organizationPreviewFromRow,
+    placePreviewFromRow,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
@@ -121,8 +145,35 @@
     void classVenuesStore.load(termStore.activeTermId);
   });
 
+  // Browsing a sidebar directory declutters the map to just that category's
+  // pins; null means no browse filter (all pin kinds show).
+  const browseTab = $derived(
+    queryStore.category === "browse" ? queryStore.queryValue : null,
+  );
+  const showBuildingPins = $derived(
+    browseTab === null ||
+      browseTab === "buildings" ||
+      browseTab === "colleges" ||
+      browseTab === "divisions",
+  );
+  const showDormPins = $derived(browseTab === null || browseTab === "dorms");
+  const orgPinFilter = $derived.by((): "all" | "student" | "office" | "none" => {
+    if (browseTab === null) return "all";
+    if (browseTab === "organizations") return "student";
+    if (browseTab === "offices") return "office";
+    return "none";
+  });
+  const placePinFilter = $derived.by(
+    (): "all" | "landmark" | "establishment" | "none" => {
+      if (browseTab === null) return "all";
+      if (browseTab === "landmarks") return "landmark";
+      if (browseTab === "services") return "establishment";
+      return "none";
+    },
+  );
+
   const filteredBuildings = $derived.by(() => {
-    if (!loaded) return [];
+    if (!loaded || !showBuildingPins) return [];
     return buildings.filter((building) =>
       buildingMatchesTypeFilter(
         building,
@@ -132,7 +183,7 @@
     );
   });
   const filteredDorms = $derived.by(() => {
-    if (!loaded) return [];
+    if (!loaded || !showDormPins) return [];
     return dorms.filter((dorm) =>
       dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
     );
@@ -140,37 +191,64 @@
   // Organizations pin at their own coordinate, else fall back to the coords of
   // the building they sit in. Orgs without any resolvable location are dropped
   // from the map (they still appear in the directory list).
+  function organizationPosition(org: OrgData) {
+    let lat = org.lat;
+    let lon = org.lon;
+    if ((lat === null || lon === null) && org.buildingId !== null) {
+      const host = buildings.find((building) => building.id === org.buildingId);
+      if (host) {
+        lat = host.lat;
+        lon = host.lon;
+      }
+    }
+    return lat !== null && lon !== null ? { lat, lon } : null;
+  }
+
   const filteredOrganizations = $derived.by(() => {
-    if (!loaded || !mapViewStore.showOrgs) return [];
-    return organizations
-      .map((org) => {
-        let lat = org.lat;
-        let lon = org.lon;
-        if ((lat === null || lon === null) && org.buildingId !== null) {
-          const host = buildings.find((b) => b.id === org.buildingId);
-          if (host) {
-            lat = host.lat;
-            lon = host.lon;
-          }
-        }
-        return { org, lat, lon };
-      })
-      .filter(
-        (entry): entry is { org: (typeof organizations)[number]; lat: number; lon: number } =>
-          entry.lat !== null && entry.lon !== null,
-      );
+    if (!loaded || !mapViewStore.showOrgs || orgPinFilter === "none") return [];
+    return organizations.flatMap((org) => {
+      if (orgPinFilter === "student" && !isStudentOrganization(org.category)) {
+        return [];
+      }
+      if (orgPinFilter === "office" && isStudentOrganization(org.category)) {
+        return [];
+      }
+      const position = organizationPosition(org);
+      return position ? [{ org, ...position }] : [];
+    });
   });
   const filteredPlaces = $derived.by(() => {
-    if (!loaded || !mapViewStore.showPlaces) return [];
-    return places.filter((place) => place.lat != null && place.lon != null);
+    if (!loaded || !mapViewStore.showPlaces || placePinFilter === "none") {
+      return [];
+    }
+    return places.filter(
+      (place) =>
+        place.lat != null &&
+        place.lon != null &&
+        (placePinFilter === "all" ||
+          (placePinFilter === "landmark") === isLandmarkPlaceCategory(place.category)),
+    );
   });
 
+  function isLandmarkPlace(place: PlaceData) {
+    return isLandmarkPlaceCategory(place.category);
+  }
+
   function handlePlaceMarkerClick(place: PlaceData) {
+    if (
+      queryStore.category === "place" &&
+      queryStore.inputValue === place.name
+    ) {
+      sidePanelStore.expand();
+      return;
+    }
     queryStore.updateQuery({
       category: "place",
       type: "result",
       value: place.name,
     });
+    queryStore.inputValue = place.name;
+    sidePanelStore.expand();
   }
 
   // Event titles are not unique, so resolve the selected event by its slug when
@@ -243,19 +321,20 @@
   const undoMove = $derived(undoStack.at(-1) ?? null);
   const redoMove = $derived(redoStack.at(-1) ?? null);
 
-  async function fetchRouteGeometry(
-    route: JeepneyRoute,
-  ): Promise<LineString | null> {
+  function resolveRouteGeometry(route: JeepneyRoute): LineString | null {
     const cached = jeepneyRouteGeometryCache.get(route.id);
     if (cached) return cached;
 
-    const geometry = (jeepneyGeometries as Record<string, LineString | null>)[route.id];
+    const geometry = (jeepneyGeometries as Record<string, LineString | null>)[
+      route.id
+    ];
     if (geometry) {
       jeepneyRouteGeometryCache.set(route.id, geometry);
       return geometry;
     }
-    
-    return null;
+
+    // No road-snapped geometry for this route: connect its stops directly.
+    return deriveRouteLineFromStops(route.stops);
   }
 
   function ensureJeepneyRouteLayers(map: mapGl.MapLibreMap, color: string) {
@@ -397,17 +476,22 @@
       if (stop.lat < minLat) minLat = stop.lat;
       if (stop.lat > maxLat) maxLat = stop.lat;
     }
-    map.fitBounds(
-      [
-        [minLng, minLat],
-        [maxLng, maxLat],
-      ],
-      {
-        padding: { top: 80, bottom: 80, left: 80, right: 80 },
-        duration: 1200,
-        pitch: 30,
-      },
-    );
+    // rAF: camera moves fire map event handlers synchronously; keep their
+    // state writes out of the reactive flush that called us (see stop flyTo
+    // effect) or the scheduler can die with effect_update_depth_exceeded.
+    requestAnimationFrame(() => {
+      map.fitBounds(
+        [
+          [minLng, minLat],
+          [maxLng, maxLat],
+        ],
+        {
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          duration: 1200,
+          pitch: 30,
+        },
+      );
+    });
   }
 
   function getEventMapLocations(event: EventData) {
@@ -721,6 +805,33 @@
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
         if (currentEvent) focusMapOnEvent(map, currentEvent);
+      } else if (category === "organization") {
+        if (!loaded) return;
+        mapViewStore.showOrgs = true;
+        const currentOrg = organizations.find((org) => org.name === value);
+        const position = currentOrg ? organizationPosition(currentOrg) : null;
+        if (position) {
+          map.flyTo({
+            center: [position.lon, position.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
+      } else if (category === "place") {
+        if (!loaded) return;
+        mapViewStore.showPlaces = true;
+        const currentPlace = places.find((place) => place.name === value);
+        if (currentPlace?.lon != null && currentPlace.lat != null) {
+          map.flyTo({
+            center: [currentPlace.lon, currentPlace.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
       }
     });
   }
@@ -883,6 +994,30 @@
   }
 
   function handleEventPinPointerLeave() {
+    if (!shouldShowEntityHoverPreview()) return;
+    entityHoverPreviewStore.scheduleHide();
+  }
+
+  function handleOrganizationPinPointerEnter(
+    organization: OrgData,
+    pointer: PointerEvent,
+  ) {
+    if (!shouldShowEntityHoverPreview()) return;
+    entityHoverPreviewStore.show(organizationPreviewFromRow(organization), {
+      x: pointer.clientX,
+      y: pointer.clientY,
+    });
+  }
+
+  function handlePlacePinPointerEnter(place: PlaceData, pointer: PointerEvent) {
+    if (!shouldShowEntityHoverPreview()) return;
+    entityHoverPreviewStore.show(placePreviewFromRow(place), {
+      x: pointer.clientX,
+      y: pointer.clientY,
+    });
+  }
+
+  function handleDetailPinPointerLeave() {
     if (!shouldShowEntityHoverPreview()) return;
     entityHoverPreviewStore.scheduleHide();
   }
@@ -1715,62 +1850,67 @@
     const map = mapStore.mapInstance;
     if (!map) return;
 
-    let cancelled = false;
+    const route = selectedId
+      ? transitStore.getRoute(selectedId)
+      : null;
 
-    const apply = async () => {
-      const route = selectedId
-        ? (JEEPNEY_ROUTES.find((r) => r.id === selectedId) ?? null)
-        : null;
-
-      if (!route) {
+    if (!route) {
+      activeRouteId = null;
+      activeRouteStops = [];
+      // Clear immediately — NEVER queue this on "load"/"styledata". A queued
+      // clear registered at mount (style still streaming) fires AFTER a later
+      // route draw and silently wipes its layers; that was the prod-only
+      // missing-polyline bug (dev styles settle before anyone clicks).
+      try {
         clearJeepneyRouteLayers(map);
-        activeRouteId = null;
-        activeRouteStops = [];
-        return;
+      } catch {
+        // Style not ready yet, so nothing was drawn and there is nothing to clear.
       }
+      return;
+    }
 
-      activeRouteId = route.id;
-      activeRouteStops = route.stops;
-      activeRouteColor = route.color;
+    activeRouteId = route.id;
+    activeRouteStops = route.stops;
+    activeRouteColor = route.color;
 
-      const ensureLayersAndPaint = (geometry: LineString) => {
-        if (cancelled) return;
-        ensureJeepneyRouteLayers(map, route.color);
-        const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
-          mapGl.GeoJSONSource | undefined;
-        const featureCollection: FeatureCollection<LineString> = {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              geometry,
-              properties: { routeId: route.id },
-            },
-          ],
-        };
-        source?.setData(featureCollection);
-      };
-
-      const drawWhenReady = (action: () => void) => {
-        if (map.isStyleLoaded()) action();
-        else map.once("load", action);
-      };
-
-      drawWhenReady(() => {
-        clearJeepneyRouteLayers(map);
-        fitMapToRoute(map, route);
+    // Geometry is resolved synchronously (static import + stop fallback).
+    // Readiness gating is deliberately attempt-based: isStyleLoaded() is false
+    // during ANY repaint and "load" fires only once per map lifetime, so
+    // gating on either deadlocks and the polyline never draws. addSource /
+    // addLayer only throw before the initial style load; try now and retry on
+    // "styledata" until one attempt succeeds.
+    const geometry = resolveRouteGeometry(route);
+    const draw = () => {
+      ensureJeepneyRouteLayers(map, route.color);
+      const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
+        | mapGl.GeoJSONSource
+        | undefined;
+      source?.setData({
+        type: "FeatureCollection",
+        features: geometry
+          ? [{ type: "Feature", geometry, properties: { routeId: route.id } }]
+          : [],
       });
+      fitMapToRoute(map, route);
+    };
 
-      const snapped = await fetchRouteGeometry(route);
-      if (!cancelled && snapped) {
-        drawWhenReady(() => ensureLayersAndPaint(snapped));
+    const tryDraw = () => {
+      try {
+        draw();
+        return true;
+      } catch (error) {
+        console.warn("jeepney route draw failed; retrying on styledata", error);
+        return false;
       }
     };
 
-    apply();
-
+    if (tryDraw()) return;
+    const onStyleData = () => {
+      if (tryDraw()) map.off("styledata", onStyleData);
+    };
+    map.on("styledata", onStyleData);
     return () => {
-      cancelled = true;
+      map.off("styledata", onStyleData);
     };
   });
 
@@ -1780,16 +1920,24 @@
     const stopIndex = jeepneyStore.selectedStopIndex;
     if (!map || routeId === null || stopIndex === null) return;
 
-    const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);
+    const route = transitStore.getRoute(routeId);
     const stop = route?.stops[stopIndex];
     if (!stop) return;
 
-    map.flyTo({
-      center: [stop.lon, stop.lat],
-      zoom: Math.max(map.getZoom(), 16),
-      duration: 700,
-      essential: true,
+    // Defer the camera move out of the reactive flush: flyTo fires zoom/move
+    // handlers synchronously (reduced-motion jumps instantly), and their state
+    // writes inside this flush can chain into effect_update_depth_exceeded,
+    // which kills the whole Svelte scheduler (app looks frozen, hover still
+    // works). Same guard as fitMapToRoute below.
+    const frame = requestAnimationFrame(() => {
+      map.flyTo({
+        center: [stop.lon, stop.lat],
+        zoom: Math.max(map.getZoom(), 16),
+        duration: 700,
+        essential: true,
+      });
     });
+    return () => cancelAnimationFrame(frame);
   });
 
   $effect(() => {
@@ -1899,6 +2047,33 @@
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
         if (currentEvent) focusMapOnEvent(map, currentEvent);
+      } else if (category === "organization") {
+        if (!loaded) return;
+        mapViewStore.showOrgs = true;
+        const currentOrg = organizations.find((org) => org.name === value);
+        const position = currentOrg ? organizationPosition(currentOrg) : null;
+        if (position) {
+          map.flyTo({
+            center: [position.lon, position.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
+      } else if (category === "place") {
+        if (!loaded) return;
+        mapViewStore.showPlaces = true;
+        const currentPlace = places.find((place) => place.name === value);
+        if (currentPlace?.lon != null && currentPlace.lat != null) {
+          map.flyTo({
+            center: [currentPlace.lon, currentPlace.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
       }
     });
   });
@@ -1930,13 +2105,20 @@
   function handleOrgMarkerClick(name: string) {
     if (eventPlacementStore.active) return;
     if (isMapEditEnabled() && selectedEditKey !== null) return;
-    if (name === queryStore.inputValue) return;
+    if (
+      queryStore.category === "organization" &&
+      name === queryStore.inputValue
+    ) {
+      sidePanelStore.expand();
+      return;
+    }
     queryStore.updateQuery({
       category: "organization",
       type: "result",
       value: name,
     });
     queryStore.inputValue = name;
+    sidePanelStore.expand();
   }
 
   function handleEventMarkerClick(event: EventData) {
@@ -2740,20 +2922,32 @@
 
           {#each filteredPlaces as place (`place:${place.id}`)}
             {#if place.lat != null && place.lon != null}
-              <Marker
-                lngLat={[place.lon, place.lat]}
-                onclick={() => handlePlaceMarkerClick(place)}
-              >
-                <button
-                  type="button"
-                  class="place-pin"
-                  class:place-pin--active={queryStore.category === "place" &&
+              {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+              {@const previewSuppressed =
+                centralHoverPreview &&
+                isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
+              <Marker lngLat={[place.lon, place.lat]}>
+                <MapEntityPin
+                  label={place.name}
+                  tone={isLandmarkPlace(place) ? "landmark" : "establishment"}
+                  active={queryStore.category === "place" &&
                     queryStore.inputValue === place.name}
-                  title={place.name}
-                  aria-label={place.name}
+                  labelVisible={zoomLevel >= 17 ||
+                    (queryStore.category === "place" &&
+                      queryStore.inputValue === place.name)}
+                  useCentralHoverPreview={centralHoverPreview}
+                  {previewSuppressed}
+                  onclick={() => handlePlaceMarkerClick(place)}
+                  onpointerenter={(event) =>
+                    handlePlacePinPointerEnter(place, event)}
+                  onpointerleave={handleDetailPinPointerLeave}
                 >
-                  <MapPin size="13" />
-                </button>
+                  {#if isLandmarkPlace(place)}
+                    <Landmark size="16" />
+                  {:else}
+                    <Store size="16" />
+                  {/if}
+                </MapEntityPin>
               </Marker>
             {/if}
           {/each}
@@ -2761,15 +2955,30 @@
 
         {#if !mapViewStore.eventsOnly}
           {#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
+            {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+            {@const previewSuppressed =
+              centralHoverPreview &&
+              isOrganizationHoverPreview(entityHoverPreviewStore.entity, org.id)}
             <Marker lngLat={[lon, lat]}>
               <MapEntityPin
                 label={org.name}
-                tone="organization"
+                tone={isStudentOrganization(org.category)
+                  ? "organization"
+                  : "office"}
                 active={activeOrgName === org.name}
                 labelVisible={zoomLevel >= 17 || activeOrgName === org.name}
+                useCentralHoverPreview={centralHoverPreview}
+                {previewSuppressed}
                 onclick={() => handleOrgMarkerClick(org.name)}
+                onpointerenter={(event) =>
+                  handleOrganizationPinPointerEnter(org, event)}
+                onpointerleave={handleDetailPinPointerLeave}
               >
-                <Users size="16" />
+                {#if isStudentOrganization(org.category)}
+                  <Users size="16" />
+                {:else}
+                  <Briefcase size="16" />
+                {/if}
               </MapEntityPin>
             </Marker>
           {/each}
@@ -2965,30 +3174,6 @@
 </div>
 
 <style>
-  .place-pin {
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    border: 2px solid white;
-    background: #0d7a5f;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-    padding: 0;
-  }
-  .place-pin:hover,
-  .place-pin:focus-visible {
-    transform: scale(1.12);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
-  }
-  .place-pin--active {
-    outline: 2px solid #0d7a5f;
-    outline-offset: 1px;
-    transform: scale(1.15);
-  }
-
   .map-shell {
     position: fixed;
     inset: 0;

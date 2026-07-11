@@ -273,7 +273,7 @@
   .term-filter-chip__button:focus-visible,
   .term-inline__trigger:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
+    outline-offset: -2px; /* chips row clips outward rings */
   }
 
   .term-filter-chip__label {

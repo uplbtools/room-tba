@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
+  import Download from "@lucide/svelte/icons/download";
   import { mapToolsStore, offlineStore } from "@lib/store.svelte";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
@@ -11,11 +12,14 @@
   type Props = {
     /** Icon-only trigger for the mobile status strip. */
     compact?: boolean;
+    /** Render the download sections directly (no trigger/popover) — used by
+     * the offline-maps modal. */
+    inline?: boolean;
   };
 
-  let { compact = false }: Props = $props();
+  let { compact = false, inline = false }: Props = $props();
 
-  let open = $state(false);
+  let open = $state(inline);
   let triggerEl = $state<HTMLButtonElement | null>(null);
   let popoverEl = $state<HTMLDivElement | null>(null);
   let popoverStyle = $state("");
@@ -23,13 +27,13 @@
   onMount(() => {
     offlineStore.prepareEstimate();
     const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
-      open = false;
+      if (!inline) open = false;
     });
     return unregisterDismiss;
   });
 
   function updatePopoverPosition() {
-    if (!open || !triggerEl) return;
+    if (inline || !open || !triggerEl) return;
     const rect = triggerEl.getBoundingClientRect();
     const width = Math.min(288, window.innerWidth - 16);
     // Anchor to the trigger's right edge, but never let the left edge overflow
@@ -41,7 +45,7 @@
   }
 
   $effect(() => {
-    if (!open) return;
+    if (inline || !open) return;
     updatePopoverPosition();
     const handleLayout = rafThrottle(updatePopoverPosition);
     window.addEventListener("resize", handleLayout);
@@ -53,6 +57,7 @@
   });
 
   function toggleOpen() {
+    if (inline) return;
     if (!open) {
       // Open directly rather than via openEphemeralOverlay: this popover is
       // nested inside the App menu, and dismissing all ephemeral overlays would
@@ -71,12 +76,12 @@
   }
 
   $effect(() => {
-    if (!open || !popoverEl) return;
+    if (inline || !open || !popoverEl) return;
     return trapFocus(popoverEl, { onEscape: closePopover });
   });
 
   function handleDocumentPointerDown(event: PointerEvent) {
-    if (!open) return;
+    if (inline || !open) return;
     const target = event.target;
     if (!(target instanceof Node)) return;
     if (triggerEl?.contains(target)) return;
@@ -102,11 +107,16 @@
   const directoryPct = $derived(
     Math.round(offlineStore.directoryProgress * 100),
   );
+
+  function portalWhenFloating(node: HTMLElement) {
+    return inline ? undefined : portal(node);
+  }
 </script>
 
 <svelte:window onpointerdown={handleDocumentPointerDown} />
 
-<div class="offline-maps" class:compact>
+<div class="offline-maps" class:compact class:offline-maps--inline={inline}>
+  {#if !inline}
   <button
     bind:this={triggerEl}
     class="offline-trigger"
@@ -124,17 +134,19 @@
       <span class="sr-only">Offline downloads</span>
     {/if}
   </button>
+  {/if}
 
   {#if open}
     <div
       bind:this={popoverEl}
       id="offline-maps-dialog"
       class="map-chrome-popover offline-popover"
-      style={popoverStyle}
-      role="dialog"
-      aria-modal="true"
+      class:offline-popover--inline={inline}
+      style={inline ? undefined : popoverStyle}
+      role={inline ? undefined : "dialog"}
+      aria-modal={inline ? undefined : true}
       aria-label="Offline downloads"
-      use:portal
+      use:portalWhenFloating
     >
       <p class="map-chrome-popover-line">Download for offline use</p>
 
@@ -187,7 +199,8 @@
             class="offline-btn"
             onclick={() => offlineStore.downloadCampus()}
           >
-            Download campus map
+            <Download size={14} aria-hidden="true" />
+            <span>Download campus map</span>
           </button>
         {/if}
       </section>
@@ -218,7 +231,9 @@
           </div>
         {:else if offlineStore.directoryStatus === "done"}
           <p class="map-chrome-popover-sub">
-            Buildings, rooms, and search aliases saved for offline search.
+            Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices,
+            landmarks &amp; establishments, and events saved for offline
+            search.
           </p>
           <button
             class="offline-btn ghost"
@@ -234,7 +249,8 @@
           </button>
         {:else}
           <p class="map-chrome-popover-sub">
-            Buildings, colleges, divisions, dorms, rooms, and aliases.
+            Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices,
+            landmarks &amp; establishments, and events.
           </p>
           {#if offlineStore.directoryStatus === "error" && offlineStore.directoryError}
             <p class="offline-error">{offlineStore.directoryError}</p>
@@ -243,7 +259,8 @@
             class="offline-btn"
             onclick={() => offlineStore.downloadCampusDirectory()}
           >
-            Download campus directory
+            <Download size={14} aria-hidden="true" />
+            <span>Download campus directory</span>
           </button>
         {/if}
       </section>
@@ -292,7 +309,8 @@
             class="offline-btn"
             onclick={() => offlineStore.downloadClassSchedules()}
           >
-            Download class schedules
+            <Download size={14} aria-hidden="true" />
+            <span>Download class schedules</span>
           </button>
         {/if}
       </section>
@@ -330,7 +348,7 @@
   }
   .offline-trigger:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
+    outline-offset: -2px; /* status-bar badges row clips outward rings */
   }
 
   .offline-maps.compact {
@@ -339,6 +357,12 @@
 
   .offline-maps.compact .offline-trigger {
     padding: 0.125rem;
+  }
+
+  .offline-maps--inline {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .sr-only {
@@ -360,6 +384,24 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .offline-popover--inline {
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+    max-height: none;
+    flex: 0 0 auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .offline-popover--inline .offline-category:first-of-type {
+    border-top: none;
+    padding-top: 0;
   }
 
   .offline-category {
@@ -397,16 +439,30 @@
   }
 
   .offline-btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    gap: 0.375rem;
+    width: auto;
+    max-width: 100%;
     margin-top: 0.125rem;
     border: none;
     border-radius: 0.5rem;
-    padding: 0.375rem 0.625rem;
+    padding: 0.4375rem 0.75rem;
     background-color: hsl(5, 53%, 32%);
     color: white;
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
+    line-height: 1.2;
     cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .offline-btn :global(svg) {
+    flex-shrink: 0;
   }
   .offline-btn:hover {
     background-color: hsl(5, 53%, 40%);

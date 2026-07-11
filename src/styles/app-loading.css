@@ -27,9 +27,9 @@
   z-index: 0;
   background: radial-gradient(
     ellipse at center,
-    hsla(5, 25%, 96%, 0.92) 0%,
-    hsla(5, 25%, 95%, 0.82) 55%,
-    hsla(5, 25%, 94%, 0.66) 100%
+    hsla(5, 25%, 96%, 0.86) 0%,
+    hsla(5, 25%, 95%, 0.72) 55%,
+    hsla(5, 25%, 94%, 0.52) 100%
   );
   backdrop-filter: blur(14px);
 }

@@ -15,11 +15,11 @@ describe("EditorChromeStore", () => {
     store = new EditorChromeStore();
   });
 
-  test("openAdditionModal closes shelf", () => {
-    store.openShelf();
+  test("openAdditionModal opens the addition modal", () => {
     store.openAdditionModal();
-    expect(store.shelfOpen).toBe(false);
     expect(store.additionModalOpen).toBe(true);
+    store.closeAdditionModal();
+    expect(store.additionModalOpen).toBe(false);
   });
 });
 

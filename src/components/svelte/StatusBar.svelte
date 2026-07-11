@@ -12,14 +12,13 @@
     toastStore,
     modalStore,
   } from "@lib/store.svelte";
-  import AppMenu from "./status-bar/AppMenu.svelte";
   import "./status-bar/status-bar.css";
+  import SyncStatus from "./SyncStatus.svelte";
+
+  import { getSyncLadderState } from "@lib/stores/sync-ladder.svelte";
 
   let isOnline = $state(true);
 
-  // A single compact status pill — the sprawling step-by-step detail lives in
-  // the App menu's Data section (SyncStatus expanded), one tap away. Priority:
-  // data load failed > sync failed > update ready > syncing.
   type StatusPill = {
     kind: "error" | "update" | "syncing";
     label: string;
@@ -27,34 +26,14 @@
   };
 
   const statusPill = $derived.by<StatusPill | null>(() => {
-    if (appBootstrapStore.phase === "error") {
-      return {
-        kind: "error",
-        label: "Retry",
-        action: appBootstrapStore.canRetry
-          ? () => appBootstrapStore.retry()
-          : null,
-      };
+    const state = getSyncLadderState();
+    if (state.kind === "bootstrap_error" || state.kind === "sync_error") {
+      return { kind: "error", label: "Retry", action: state.action };
     }
-    if (syncToastStore.syncError !== null) {
-      return {
-        kind: "error",
-        label: "Retry",
-        action: syncToastStore.canRetrySync
-          ? () => syncToastStore.retrySync()
-          : null,
-      };
+    if (state.kind === "update_ready") {
+      return { kind: "update", label: "Update", action: state.action };
     }
-    if (syncToastStore.needRefresh) {
-      // Show the changelog + require an explicit confirm before reloading,
-      // instead of reloading immediately on click.
-      return {
-        kind: "update",
-        label: "Update",
-        action: () => modalStore.openModal("changelog"),
-      };
-    }
-    if (syncToastStore.isSyncing) {
+    if (state.kind === "syncing") {
       return { kind: "syncing", label: "Syncing", action: null };
     }
     return null;
@@ -94,14 +73,16 @@
     };
   });
 
-  async function handleSignOut() {
-    await adminAuthStore.logout();
-    toastStore.show("Signed out.", "info");
-  }
+  // async function handleSignOut() {
+  //   await adminAuthStore.logout();
+  //   toastStore.show("Signed out.", "info");
+  // }
 </script>
 
 <div class="status-bar">
-  <AppMenu onSignOut={handleSignOut} />
+  <!-- <AppMenu onSignOut={handleSignOut} /> -->
+
+  <SyncStatus inline compact={false} expanded />
 
   <div class="status-bar__badges" aria-live="polite">
     {#if statusPill}
@@ -116,14 +97,22 @@
           {:else if statusPill.kind === "error"}
             <TriangleAlert size={12} aria-hidden="true" />
           {:else}
-            <LoaderCircle size={12} class="status-bar__spin" aria-hidden="true" />
+            <LoaderCircle
+              size={12}
+              class="status-bar__spin"
+              aria-hidden="true"
+            />
           {/if}
           {statusPill.label}
         </button>
       {:else}
         <span class="status-bar__pill status-bar__pill--{statusPill.kind}">
           {#if statusPill.kind === "syncing"}
-            <LoaderCircle size={12} class="status-bar__spin" aria-hidden="true" />
+            <LoaderCircle
+              size={12}
+              class="status-bar__spin"
+              aria-hidden="true"
+            />
           {:else if statusPill.kind === "error"}
             <TriangleAlert size={12} aria-hidden="true" />
           {/if}
