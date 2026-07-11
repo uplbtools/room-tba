@@ -6,6 +6,8 @@
 export const ORG_CATEGORIES = [
   "student-org",
   "college-org",
+  "student-council",
+  "publication",
   "office",
   "unit",
   "academic",
@@ -19,6 +21,8 @@ const ORG_CATEGORY_SET = new Set<string>(ORG_CATEGORIES);
 export const ORG_CATEGORY_LABELS: Record<OrgCategory, string> = {
   "student-org": "Student Org",
   "college-org": "College Org",
+  "student-council": "Student Council",
+  publication: "Student Publication",
   office: "Office",
   unit: "Unit",
   academic: "Academic",
@@ -36,7 +40,16 @@ export function orgCategoryLabel(value: unknown): string | null {
   return c ? ORG_CATEGORY_LABELS[c] : null;
 }
 
+/**
+ * Student-community entities (orgs, councils, publications) share the student
+ * directory tab and Users map pin; offices/units/services do not.
+ */
 export function isStudentOrganization(value: unknown): boolean {
   const category = normalizeOrgCategory(value);
-  return category === "student-org" || category === "college-org";
+  return (
+    category === "student-org" ||
+    category === "college-org" ||
+    category === "student-council" ||
+    category === "publication"
+  );
 }

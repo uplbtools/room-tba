@@ -43,7 +43,7 @@ export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT college_name AS "collegeName", id, version, updated_at AS "updatedAt" FROM colleges;
+        SELECT college_name AS "collegeName", website_link AS "websiteLink", id, version, updated_at AS "updatedAt" FROM colleges;
       `)) as Results<CollegeData>;
     return data.rows;
   } catch (e) {
@@ -57,7 +57,7 @@ export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT division_name AS "divisionName", id, version, updated_at AS "updatedAt" FROM divisions;
+        SELECT division_name AS "divisionName", website_link AS "websiteLink", id, version, updated_at AS "updatedAt" FROM divisions;
       `)) as Results<DivisionData>;
     return data.rows;
   } catch (e) {
@@ -118,6 +118,10 @@ export async function getLocalOrganizations(): Promise<OrgData[] | undefined> {
         facebook_link AS "facebookLink",
         email,
         image_url AS "imageUrl",
+        bio,
+        org_type AS "orgType",
+        established_year AS "establishedYear",
+        member_count AS "memberCount",
         version,
         updated_at AS "updatedAt"
       FROM organizations;

@@ -972,15 +972,6 @@
     "source": "https://www.openstreetmap.org/node/527835123"
   },
   {
-    "name": "University Cafeteria",
-    "type": "food",
-    "building_or_area": "Beside the Student Union Building",
-    "description": "Long-running university-run cafeteria.",
-    "lat": 14.163538,
-    "lng": 121.241707,
-    "source": "https://www.openstreetmap.org/node/3345258485"
-  },
-  {
     "name": "Student Union Canteen",
     "type": "food",
     "building_or_area": "Student Union Building",
@@ -1081,7 +1072,7 @@
   },
   {
     "name": "UPLB University Student Council (USC)",
-    "type": "student-org",
+    "type": "student-council",
     "building_or_area": "Student Union Building, main campus",
     "description": "The highest student governing body of UPLB.",
     "lat": 14.163211,
@@ -1090,7 +1081,7 @@
   },
   {
     "name": "UPLB Perspective",
-    "type": "student-org",
+    "type": "publication",
     "building_or_area": "Student Union Building, main campus",
     "description": "The official student publication of UPLB.",
     "lat": 14.163256,

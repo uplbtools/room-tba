@@ -126,6 +126,10 @@ export const organizationsTable = pgTable("organizations", {
   facebookLink: text("facebook_link"),
   email: text(),
   imageUrl: text("image_url"),
+  bio: text(),
+  orgType: varchar("org_type", { length: 32 }),
+  establishedYear: varchar("established_year", { length: 8 }),
+  memberCount: varchar("member_count", { length: 16 }),
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
@@ -162,6 +166,7 @@ export const collegesTable = pgTable("colleges", {
     cache: 1,
   }),
   collegeName: varchar("college_name", { length: 100 }).notNull(),
+  websiteLink: text("website_link"),
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
@@ -295,6 +300,7 @@ export const divisionsTable = pgTable(
     }),
     divisionName: varchar("division_name", { length: 100 }).notNull(),
     collegeId: integer("college_id"),
+    websiteLink: text("website_link"),
     version: integer().default(1).notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()

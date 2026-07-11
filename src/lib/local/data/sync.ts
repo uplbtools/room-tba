@@ -166,16 +166,23 @@ export async function syncColleges(
     try {
       await localDB.query(
         `
-        INSERT INTO colleges (id, college_name, rooms_fetched, version, updated_at)
-        VALUES ($1, $2, false, $3, $4)
+        INSERT INTO colleges (id, college_name, website_link, rooms_fetched, version, updated_at)
+        VALUES ($1, $2, $3, false, $4, $5)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         college_name = EXCLUDED.college_name,
+        website_link = EXCLUDED.website_link,
         rooms_fetched = EXCLUDED.rooms_fetched,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
         `,
-        [college.id, college.collegeName, college.version, college.updatedAt],
+        [
+          college.id,
+          college.collegeName,
+          college.websiteLink ?? null,
+          college.version,
+          college.updatedAt,
+        ],
       );
       syncToastStore.updateCollegesSync();
     } catch (e) {
@@ -208,12 +215,13 @@ export async function syncDivisions(
     try {
       await localDB.query(
         `
-        INSERT INTO divisions (id, division_name, college_id, rooms_fetched, version, updated_at)
-        VALUES ($1, $2, $3, false, $4, $5)
+        INSERT INTO divisions (id, division_name, college_id, website_link, rooms_fetched, version, updated_at)
+        VALUES ($1, $2, $3, $4, false, $5, $6)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         division_name = EXCLUDED.division_name,
         college_id = EXCLUDED.college_id,
+        website_link = EXCLUDED.website_link,
         rooms_fetched = EXCLUDED.rooms_fetched,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
@@ -222,6 +230,7 @@ export async function syncDivisions(
           division.id,
           division.divisionName,
           division.collegeId,
+          division.websiteLink ?? null,
           division.version,
           division.updatedAt,
         ],
@@ -326,8 +335,8 @@ export async function syncOrganizations(
     try {
       await localDB.query(
         `
-        INSERT INTO organizations (id, name, category, building_id, room_id, lat, lon, description, website_link, facebook_link, email, image_url, version, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        INSERT INTO organizations (id, name, category, building_id, room_id, lat, lon, description, website_link, facebook_link, email, image_url, bio, org_type, established_year, member_count, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         category = EXCLUDED.category,
@@ -340,6 +349,10 @@ export async function syncOrganizations(
         facebook_link = EXCLUDED.facebook_link,
         email = EXCLUDED.email,
         image_url = EXCLUDED.image_url,
+        bio = EXCLUDED.bio,
+        org_type = EXCLUDED.org_type,
+        established_year = EXCLUDED.established_year,
+        member_count = EXCLUDED.member_count,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
         `,
@@ -356,6 +369,10 @@ export async function syncOrganizations(
           o.facebookLink,
           o.email,
           o.imageUrl ?? null,
+          o.bio ?? null,
+          o.orgType ?? null,
+          o.establishedYear ?? null,
+          o.memberCount ?? null,
           o.version,
           o.updatedAt,
         ],

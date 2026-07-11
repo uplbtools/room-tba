@@ -278,7 +278,33 @@
 
     {#if !editing}
       <div class="entity-body entity-body--compact">
-        {#if org.description}
+        {#if org.orgType || org.establishedYear || org.memberCount}
+          <div class="entity-meta-row org-about-badges">
+            {#if org.orgType}
+              <span class="entity-meta-chip org-badge">{org.orgType}</span>
+            {/if}
+            {#if org.establishedYear}
+              <span class="entity-meta-chip org-badge"
+                >Est. {org.establishedYear}</span
+              >
+            {/if}
+            {#if org.memberCount}
+              <span class="entity-meta-chip org-badge"
+                >{org.memberCount} members</span
+              >
+            {/if}
+          </div>
+        {/if}
+
+        {#if org.bio}
+          <section class="org-about">
+            <h3 class="org-about__title">About the org</h3>
+            <p class="entity-directions__text">{org.bio}</p>
+          </section>
+        {:else if org.description}
+          <p class="entity-directions__text">{org.description}</p>
+        {/if}
+        {#if org.bio && org.description && org.description !== org.bio && !org.description.startsWith("Recognized UPLB student organization")}
           <p class="entity-directions__text">{org.description}</p>
         {/if}
 
@@ -468,6 +494,24 @@
     background-color: color-mix(in srgb, currentColor 14%, white);
   }
 
+  .org-about {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .org-about__title {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #27272a;
+  }
+
+  .org-about-badges {
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
   .org-field {
     display: flex;
     flex-direction: column;
@@ -476,11 +520,20 @@
   }
 
   .org-input {
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     padding: 0.4rem 0.55rem;
-    border: 1px solid hsl(0, 0%, 82%);
+    border: 1px solid hsl(0, 0%, 62%);
     border-radius: 0.375rem;
     font: inherit;
+    color: #18181b;
+    background: white;
+  }
+
+  /* Editor labels need real contrast on the warm panel background. */
+  .org-field .entity-detail-row__label {
+    color: #3f3f46;
   }
 
   .org-error {

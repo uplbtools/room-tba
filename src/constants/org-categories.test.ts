@@ -26,6 +26,9 @@ describe("normalizeOrgCategory", () => {
   test("only student-facing categories use the organization marker", () => {
     expect(isStudentOrganization("student-org")).toBe(true);
     expect(isStudentOrganization("college-org")).toBe(true);
+    expect(isStudentOrganization("student-council")).toBe(true);
+    expect(isStudentOrganization("publication")).toBe(true);
     expect(isStudentOrganization("office")).toBe(false);
+    expect(isStudentOrganization("unit")).toBe(false);
   });
 });

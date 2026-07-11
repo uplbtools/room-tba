@@ -270,6 +270,24 @@ export async function initPGLiteDB(db: PGlite) {
     ALTER TABLE divisions
     ADD COLUMN IF NOT EXISTS "college_id" integer;
 
+    ALTER TABLE colleges
+    ADD COLUMN IF NOT EXISTS "website_link" text;
+
+    ALTER TABLE divisions
+    ADD COLUMN IF NOT EXISTS "website_link" text;
+
+    ALTER TABLE organizations
+    ADD COLUMN IF NOT EXISTS "bio" text;
+
+    ALTER TABLE organizations
+    ADD COLUMN IF NOT EXISTS "org_type" varchar(32);
+
+    ALTER TABLE organizations
+    ADD COLUMN IF NOT EXISTS "established_year" varchar(8);
+
+    ALTER TABLE organizations
+    ADD COLUMN IF NOT EXISTS "member_count" varchar(16);
+
     CREATE TABLE IF NOT EXISTS "aliases" (
     "id" integer PRIMARY KEY,
     "alias" text NOT NULL,
