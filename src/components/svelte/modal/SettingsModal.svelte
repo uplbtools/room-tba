@@ -1,6 +1,5 @@
 <script lang="ts">
   import MapViewControls from "@ui/MapViewControls.svelte";
-  import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import "../map-chrome/map-chrome.css";
@@ -12,10 +11,6 @@
     <section class="settings-modal__section">
       <h3>View</h3>
       <MapViewControls embedded variant="modes" />
-    </section>
-    <section class="settings-modal__section">
-      <h3>Legend</h3>
-      <MapLegend embedded />
     </section>
     <section class="settings-modal__section">
       <h3>Terrain</h3>
@@ -53,7 +48,9 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding-right: 0.375rem;
+    /* Left padding keeps glyph edges out of the overflow clip (the "E" in
+       Explore was losing its left stem). */
+    padding: 0 0.375rem 0 0.25rem;
   }
 
   .settings-modal__section {

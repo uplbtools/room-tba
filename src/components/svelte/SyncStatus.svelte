@@ -12,6 +12,7 @@
     appBootstrapStore,
     modalStore,
   } from "@lib/store.svelte";
+  import { getSyncLadderState } from "@lib/stores/sync-ladder.svelte";
   import { APP_VERSION, APP_VERSION_LABEL } from "@constants/version";
   import {
     parseChangelogHighlights,
@@ -38,18 +39,20 @@
   let displayedDetail = $state<string | null>(null);
   let labelHoldTimeout: ReturnType<typeof setTimeout> | undefined;
 
+  const syncLadder = $derived(getSyncLadderState());
+
   const manualCloseResetKey = $derived(
     `${syncToastStore.recentlySynced}:${syncToastStore.allSynced}:${syncToastStore.currentSync}:${syncToastStore.syncError}:${syncToastStore.isSyncing}`,
   );
 
   const isActive = $derived(
-    appBootstrapStore.phase === "error" ||
-      syncToastStore.syncError !== null ||
-      syncToastStore.needRefresh ||
-      syncToastStore.isSyncing ||
+    syncLadder.kind === "bootstrap_error" ||
+      syncLadder.kind === "sync_error" ||
+      syncLadder.kind === "update_ready" ||
+      syncLadder.kind === "syncing" ||
       ((syncToastStore.recentlySynced === null ||
         syncToastStore.recentlySynced) &&
-        syncToastStore.allSynced &&
+        syncLadder.kind === "synced" &&
         !manualClosed),
   );
 
@@ -78,9 +81,9 @@
     if (inline) {
       if (compact && !expanded) return false;
       return (
-        appBootstrapStore.phase === "error" ||
-        syncToastStore.syncError !== null ||
-        syncToastStore.needRefresh
+        syncLadder.kind === "bootstrap_error" ||
+        syncLadder.kind === "sync_error" ||
+        syncLadder.kind === "update_ready"
       );
     }
     return expanded || (!compact && !inline);
@@ -101,7 +104,7 @@
 
   const updateHighlights = $derived(parseChangelogHighlights(changelogRaw));
   const showUpdateHighlights = $derived(
-    syncToastStore.needRefresh &&
+    syncLadder.kind === "update_ready" &&
       showDetail &&
       !compact &&
       updateHighlights !== null &&
@@ -110,24 +113,13 @@
       isChangelogCurrent(updateHighlights.version, APP_VERSION),
   );
 
-  const statusLabel = $derived.by(() => {
-    if (appBootstrapStore.phase === "error") {
-      return appBootstrapStore.errorMessage ?? "Could not load campus data";
-    }
-    return syncToastStore.stepLabel;
-  });
-
-  const statusDetail = $derived.by(() => {
-    if (appBootstrapStore.phase === "error") {
-      return "Map is available; campus data failed to load.";
-    }
-    return syncToastStore.stepDetail;
-  });
+  const statusLabel = $derived(syncLadder.label);
+  const statusDetail = $derived(syncLadder.detail);
 
   const urgentStatus = $derived(
-    appBootstrapStore.phase === "error" ||
-      syncToastStore.syncError !== null ||
-      syncToastStore.needRefresh,
+    syncLadder.kind === "bootstrap_error" ||
+      syncLadder.kind === "sync_error" ||
+      syncLadder.kind === "update_ready",
   );
 
   $effect(() => {
@@ -171,16 +163,16 @@
   });
 
   const showBootstrapRetry = $derived(
-    appBootstrapStore.phase === "error" && appBootstrapStore.canRetry,
+    syncLadder.kind === "bootstrap_error" && syncLadder.canRetry,
   );
   const showSyncRetry = $derived(
-    syncToastStore.syncError !== null && syncToastStore.canRetrySync,
+    syncLadder.kind === "sync_error" && syncLadder.canRetry,
   );
 
   async function handleBootstrapRetry() {
     retrying = true;
     try {
-      appBootstrapStore.retry();
+      if (syncLadder.kind === "bootstrap_error" && syncLadder.action) syncLadder.action();
     } finally {
       retrying = false;
     }
@@ -189,7 +181,7 @@
   async function handleSyncRetry() {
     retrying = true;
     try {
-      syncToastStore.retrySync();
+      if (syncLadder.kind === "sync_error" && syncLadder.action) syncLadder.action();
     } finally {
       retrying = false;
     }
@@ -201,20 +193,18 @@
     class="sync-status"
     class:sync-status--inline={inline}
     class:sync-status--compact={compact && !expanded}
-    class:sync-status--success={syncToastStore.allSynced &&
-      !syncToastStore.needRefresh &&
-      appBootstrapStore.phase !== "error" &&
-      syncToastStore.syncError === null}
-    class:sync-status--update={syncToastStore.needRefresh}
-    class:sync-status--error={appBootstrapStore.phase === "error" ||
-      syncToastStore.syncError !== null}
-    class:sync-status--syncing={syncToastStore.isSyncing}
-    role={appBootstrapStore.phase === "error" || syncToastStore.syncError
+    class:sync-status--success={syncLadder.kind === "synced" &&
+      !syncToastStore.needRefresh}
+    class:sync-status--update={syncLadder.kind === "update_ready"}
+    class:sync-status--error={syncLadder.kind === "bootstrap_error" ||
+      syncLadder.kind === "sync_error"}
+    class:sync-status--syncing={syncLadder.kind === "syncing"}
+    role={syncLadder.kind === "bootstrap_error" || syncLadder.kind === "sync_error"
       ? "alert"
       : "status"}
     aria-live="polite"
   >
-    {#if appBootstrapStore.phase === "error"}
+    {#if syncLadder.kind === "bootstrap_error"}
       <Info size={16} aria-hidden="true" />
       <div class="sync-status-copy">
         <span class="sync-status-label">{displayedLabel}</span>
@@ -237,7 +227,7 @@
           {retrying ? "Retrying…" : "Try again"}
         </button>
       {/if}
-    {:else if syncToastStore.syncError !== null}
+    {:else if syncLadder.kind === "sync_error"}
       <Info size={16} aria-hidden="true" />
       <div class="sync-status-copy">
         <span class="sync-status-label">{displayedLabel}</span>
@@ -260,7 +250,7 @@
           {retrying ? "Retrying…" : "Retry"}
         </button>
       {/if}
-    {:else if syncToastStore.needRefresh}
+    {:else if syncLadder.kind === "update_ready"}
       <Info size={16} aria-hidden="true" />
       <div class="sync-status-copy">
         <span class="sync-status-label">
@@ -316,7 +306,7 @@
           <X size={14} aria-hidden="true" />
         </button>
       {/if}
-    {:else if syncToastStore.allSynced}
+    {:else if syncLadder.kind === "synced"}
       <CircleCheckBig size={16} aria-hidden="true" />
       <div class="sync-status-copy">
         <span class="sync-status-label">{displayedLabel}</span>

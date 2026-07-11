@@ -26,6 +26,8 @@ export const FIELD_LABELS: Record<string, string> = {
   recurrence: "Recurrence",
   rooms: "Bundled rooms",
   locations: "Locations",
+  routeId: "Jeepney route",
+  isActive: "Listed",
 };
 
 export type FieldDiff = {

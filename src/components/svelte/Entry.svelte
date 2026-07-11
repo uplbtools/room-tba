@@ -4,6 +4,7 @@
   import {
     modalStore,
     queryStore,
+    sidePanelStore,
     locationStore,
     toastStore,
     building3DStore,
@@ -26,6 +27,7 @@
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import LocationButton from "@ui/LocationButton.svelte";
   import MapAttribution from "@ui/MapAttribution.svelte";
+  import MapLegend from "@ui/MapLegend.svelte";
   import StatusBar from "@ui/StatusBar.svelte";
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
@@ -43,6 +45,8 @@
     getGlobalShortcutAction,
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
+  import { openCampusBrowse } from "@lib/browse-campus";
+  import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
   import Sidebar from "./navigation/Sidebar.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
@@ -153,10 +157,19 @@
     // stop panel copy-link.
     const jeepneyRouteId = urlParams.get("jeepney");
     if (jeepneyRouteId) {
+      openCampusBrowse(queryStore, sidePanelStore, "jeepney");
       jeepneyStore.openRouteOnMap(jeepneyRouteId);
       const stopParam = Number.parseInt(urlParams.get("stop") ?? "", 10);
-      if (Number.isInteger(stopParam)) jeepneyStore.openStop(stopParam);
-      window.history.replaceState({}, "", window.location.pathname);
+      if (Number.isInteger(stopParam)) {
+        jeepneyStore.openStop(stopParam);
+      }
+      window.history.replaceState(
+        {},
+        "",
+        Number.isInteger(stopParam)
+          ? getTransitStopPath(jeepneyRouteId, stopParam)
+          : getTransitRoutePath(jeepneyRouteId),
+      );
     }
 
     plannerStore.init();
@@ -360,6 +373,7 @@
               bind:this={bottomChromeActionsEl}
               aria-label="Location controls"
             >
+              <MapLegend trigger="chip" />
               <LocationButton embedded />
             </div>
           </div>
@@ -586,7 +600,9 @@
   .bottom-chrome__actions {
     display: flex;
     flex: 0 0 auto;
-    align-items: center;
+    /* Bottom-align so the open legend panel grows upward without dragging the
+       add/locate buttons to the middle of the screen. */
+    align-items: flex-end;
     gap: 0.125rem;
     min-height: 2.75rem;
     padding: 0.125rem;

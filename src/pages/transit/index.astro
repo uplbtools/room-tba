@@ -1,0 +1,45 @@
+---
+import AppRoot from "@ui/AppRoot.svelte";
+import Layout from "@layouts/Layout.astro";
+import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
+
+const title = "UPLB Jeepney Routes | Room TBA";
+const description =
+  "Browse UPLB jeepney routes, stops, fares, and map paths for Kaliwa / Kanan and Forestry.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/transit/" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Jeepney routes", path: "/transit/" },
+  ]),
+);
+---
+
+<Layout
+  {title}
+  description={description}
+  canonicalPath="/transit/"
+  imagePath={ogCardPath({
+    title: "UPLB Jeepney Routes",
+    subtitle: JEEPNEY_ROUTES.map((route) => route.name).join(" · "),
+    kicker: "Transit at UPLB",
+  })}
+  {structuredData}
+>
+  <main class="transit-page">
+    <article class="sr-only">
+      <h1>UPLB jeepney routes</h1>
+      <p>{description}</p>
+      <ul>
+        {JEEPNEY_ROUTES.map((route) => <li>{route.name}: {route.description}</li>)}
+      </ul>
+    </article>
+    <AppRoot client:only="svelte" suppressLandingModal={true} />
+  </main>
+</Layout>
+
+<style>
+  .transit-page { height: 100dvh; overflow: hidden; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+</style>

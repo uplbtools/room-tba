@@ -1,4 +1,3 @@
-import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import {
   offeringGroupKey,
   parentLectureSection,
@@ -8,6 +7,9 @@ import {
   mergePlannerState,
   parsePlanner,
   serializePlanner,
+  collectSectionNotes,
+  applySectionNotes,
+  stripSectionNotesForAccount,
 } from "../planner/persist.js";
 import { sectionNaturalKey } from "../planner/types.js";
 import type { PlannedSection, PlannerPlan } from "../planner/types.js";
@@ -128,6 +130,24 @@ export class PlannerStore {
       (s) => s.courseCode !== courseCode || unitOf(s.section) !== targetUnit,
     );
     this.persist();
+  };
+
+  updateSectionNote = (
+    courseCode: string,
+    section: string,
+    type: string,
+    note: string,
+  ) => {
+    const plan = this.activePlan;
+    if (!plan) return;
+    const target = plan.sections.find(
+      (s) =>
+        s.courseCode === courseCode && s.section === section && s.type === type,
+    );
+    if (target) {
+      target.note = note.trim() || undefined;
+      this.persist();
+    }
   };
 
   createPlan = (): PlannerPlan | null => {
@@ -302,11 +322,12 @@ export class PlannerStore {
       if (!res.ok) return;
       const { data } = (await res.json()) as { data: unknown };
       const remote = parsePlanner(data ? JSON.stringify(data) : null);
+      const localNotes = collectSectionNotes(this.plans);
       const merged = mergePlannerState(
         { plans: this.plans, activePlanIdByTerm: this.activePlanIdByTerm },
         remote,
       );
-      this.plans = merged.plans;
+      this.plans = applySectionNotes(merged.plans, localNotes);
       this.activePlanIdByTerm = merged.activePlanIdByTerm;
       // Writes local cache and pushes the merged union back to the account.
       this.persist();
@@ -321,10 +342,12 @@ export class PlannerStore {
     this.#saveTimer = setTimeout(() => {
       this.#saveTimer = null;
       const data = JSON.parse(
-        serializePlanner({
-          plans: this.plans,
-          activePlanIdByTerm: this.activePlanIdByTerm,
-        }),
+        serializePlanner(
+          stripSectionNotesForAccount({
+            plans: this.plans,
+            activePlanIdByTerm: this.activePlanIdByTerm,
+          }),
+        ),
       );
       void fetch("/api/account/plans", {
         method: "PUT",

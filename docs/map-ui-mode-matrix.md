@@ -2,14 +2,14 @@
 
 Source of truth for which map chrome is visible in each mode.
 
-| Mode                          | Search dropdown | Event banner | Events shelf | Map tools      | Pin filters | Edit dock             | Sync UI    | Map attribution |
-| ----------------------------- | --------------- | ------------ | ------------ | -------------- | ----------- | --------------------- | ---------- | --------------- |
-| Browse                        | yes             | yes          | yes          | closed default | Map tools   | hidden                | status bar | bottom band     |
-| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | Map tools   | hidden                | status bar | bottom band     |
-| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **no**      | **yes (mobile dock)** | status bar | bottom band     |
-| Event placement               | **no**          | **no**       | **no**       | closed default | **no**      | cancel dock           | status bar | bottom band     |
-| Terrain active                | yes             | yes          | flyout section | Map tools    | Map tools   | hidden                | status bar | bottom band     |
-| Transit active                | yes             | yes          | yes          | open section   | Map tools   | hidden                | status bar | bottom band     |
+| Mode                          | Search dropdown | Event banner | Events shelf | Settings / legend | Pin filters | Edit dock             | Sync UI    | Map attribution |
+| ----------------------------- | --------------- | ------------ | ------------ | ----------------- | ----------- | --------------------- | ---------- | --------------- |
+| Browse                        | yes             | yes          | yes          | closed default    | sidebar     | hidden                | status bar | bottom band     |
+| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default    | sidebar     | hidden                | status bar | bottom band     |
+| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default    | **no**      | **yes (mobile dock)** | status bar | bottom band     |
+| Event placement               | **no**          | **no**       | **no**       | closed default    | **no**      | cancel dock           | status bar | bottom band     |
+| Terrain active                | yes             | yes          | flyout section | Settings modal   | sidebar     | hidden                | status bar | bottom band     |
+| Transit active                | yes             | yes          | yes          | legend available  | sidebar     | hidden                | status bar | bottom band     |
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
@@ -47,10 +47,10 @@ Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome 
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column (editor icon button when signed in), a single horizontally scrollable browse/term strip (`CampusBrowseChips.svelte` and `TermSelector.svelte`), event banner, and Map tools trigger. Pin filters, transit, and individual jeepney routes live in Map tools; no filter strip sits below the search field. The sidebar directories are Buildings, Dorms, Colleges, Divisions, Student orgs, Units & offices, Landmarks, Services & establishments, and Classes. Each directory opens its own `CampusBrowseList.svelte` view in the side drawer and an entry then opens the regular entity detail view; they are not centered modals. The search suggestions dropdown is for recent searches and typed results only. **Keyboard shortcuts** are opened from the app menu (`AppMenu.svelte`) or the `?` key, not from search chrome. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
+- **Top band:** search column (editor icon button when signed in), term selector, and event banner. The sidebar directories are Buildings, Dorms, Colleges, Divisions, Student orgs, Units & offices, Landmarks, Services & establishments, Classes, Events, and Jeepney routes. Each directory opens its own `CampusBrowseList.svelte` view in the side drawer and an entry then opens the regular entity detail view; they are not centered modals. The search suggestions dropdown is for recent searches and typed results only. **Keyboard shortcuts** are opened from the Help & settings group or the `?` key. Editor tools open in a modal.
 - **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north)
-- **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, location/propose actions trailing; one shared surface
-- **Ephemeral:** toast, modals, mobile editor screen (`EditorScreen.svelte` when `editorChromeStore.shelfOpen`)
+- **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, compact Legend chip plus location/propose actions trailing; one shared surface
+- **Ephemeral:** toast and modals
 
 MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.
 

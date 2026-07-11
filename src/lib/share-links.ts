@@ -10,7 +10,9 @@ import {
 } from "./entity-urls";
 import { withTermQuery } from "./term-url";
 import { absoluteUrl } from "./site";
+import { getTransitRoutePath, getTransitStopPath } from "./transit-urls";
 import type { DormData, OrgData, PlaceData, RoomData } from "./types";
+import type { JeepneyRoute } from "@constants/jeepney-routes";
 
 export function getBuildingShareUrl(
   buildingName: string,
@@ -65,10 +67,14 @@ export function getEventShareUrl(slug: string) {
 }
 
 /** Deep link that reopens the app with a jeepney route active on the map. */
-export function getJeepneyRouteShareUrl(routeId: string, stopIndex?: number) {
-  const query =
+export function getJeepneyRouteShareUrl(
+  routeId: string,
+  stopIndex?: number,
+  route?: JeepneyRoute,
+) {
+  return absoluteUrl(
     stopIndex != null
-      ? `?jeepney=${encodeURIComponent(routeId)}&stop=${stopIndex}`
-      : `?jeepney=${encodeURIComponent(routeId)}`;
-  return absoluteUrl(`/${query}`);
+      ? getTransitStopPath(routeId, stopIndex, route)
+      : getTransitRoutePath(routeId),
+  );
 }

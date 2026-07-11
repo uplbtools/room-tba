@@ -846,10 +846,10 @@
         {#if roomClassesStore.classes.length > 0}
           <button
             type="button"
-            class="entity-footer__link"
+            class="entity-footer__link entity-footer__link--button"
             onclick={() => modalStore.openModal("schedule-expand")}
           >
-            Open schedule →
+            Open schedule
           </button>
         {/if}
       </div>

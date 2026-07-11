@@ -507,6 +507,10 @@
         <h2 class="planner-side__heading">
           Sections ({offerings.length})
         </h2>
+        <p class="planner-side__hint" role="note">
+          Room TBA cannot show instructor names from AMIS. Write the professor for
+          each section here — stored only on this device, never uploaded or shared.
+        </p>
         <ul class="planner-offerings">
           {#each courseGroups as group (group.courseCode)}
             <li class="planner-offering planner-offering--group">
@@ -533,13 +537,29 @@
               </div>
               <ul class="planner-offering__parts">
                 {#each group.sections as s (s.type + s.section)}
-                  <li class="planner-offering__part">
-                    <span class="planner-offering__part-type">
-                      {s.type ?? "Class"}
-                    </span>
-                    <span class="planner-offering__part-section">
-                      {s.section}
-                    </span>
+                  <li class="planner-offering__part planner-offering__part--with-note">
+                    <div class="planner-offering__part-head">
+                      <span class="planner-offering__part-type">
+                        {s.type ?? "Class"}
+                      </span>
+                      <span class="planner-offering__part-section">
+                        {s.section}
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      class="planner-offering__part-note"
+                      placeholder="Professor (e.g. Dr. Santos)"
+                      aria-label="Professor for {group.courseCode} {s.type} {s.section}"
+                      value={s.note ?? ""}
+                      oninput={(e) =>
+                        plannerStore.updateSectionNote(
+                          s.courseCode,
+                          s.section,
+                          s.type ?? "Class",
+                          e.currentTarget.value,
+                        )}
+                    />
                   </li>
                 {/each}
               </ul>
@@ -832,6 +852,13 @@
     margin-top: 0;
   }
 
+  .planner-side__hint {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: hsl(0, 0%, 38%);
+  }
+
   .planner-offerings {
     list-style: none;
     margin: 0;
@@ -878,10 +905,37 @@
 
   .planner-offering__part {
     display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.25rem 0 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .planner-offering__part-head {
+    display: flex;
     align-items: baseline;
     gap: 0.5rem;
-    padding: 0.0625rem 0 0.0625rem 0.5rem;
+  }
+
+  .planner-offering__part-note {
+    width: 100%;
+    background: transparent;
+    border: none;
     font-size: 0.75rem;
+    color: hsl(0, 0%, 40%);
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+  }
+
+  .planner-offering__part-note::placeholder {
+    color: hsl(0, 0%, 65%);
+    font-style: italic;
+  }
+  
+  .planner-offering__part-note:focus {
+    outline: none;
+    color: hsl(0, 0%, 15%);
   }
 
   .planner-offering__part-type {

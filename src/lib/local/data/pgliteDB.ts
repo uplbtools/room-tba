@@ -193,6 +193,30 @@ export async function initPGLiteDB(db: PGlite) {
     "resolved_label" text NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS "jeepney_routes" (
+    "id" varchar(64) PRIMARY KEY,
+    "name" varchar(120) NOT NULL,
+    "description" text NOT NULL,
+    "direction_note" text,
+    "color" varchar(16) NOT NULL,
+    "fare_regular" double precision NOT NULL,
+    "fare_discounted" double precision NOT NULL,
+    "version" integer NOT NULL DEFAULT 1,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS "jeepney_stops" (
+    "id" integer PRIMARY KEY,
+    "route_id" varchar(64) NOT NULL,
+    "name" varchar(160) NOT NULL,
+    "description" text NOT NULL,
+    "lat" double precision NOT NULL,
+    "lon" double precision NOT NULL,
+    "sort_order" integer NOT NULL,
+    "version" integer NOT NULL DEFAULT 1,
+    "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     -- DB MIGRATION WHEN TABLE IS OUTDATED
 
     ALTER TABLE buildings

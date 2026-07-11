@@ -1,8 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import {
+  applySectionNotes,
+  collectSectionNotes,
   mergePlannerState,
   parsePlanner,
   serializePlanner,
+  stripSectionNotesForAccount,
 } from "./persist.js";
 import type { PlannerPlan } from "./types.js";
 
@@ -100,5 +103,50 @@ describe("planner persistence", () => {
     expect(parsed.plans.map((p) => p.id)).toEqual(["p1", "p2"]);
     expect(parsed.plans[1].sections).toEqual([]);
     expect(parsed.activePlanIdByTerm).toEqual({ "1252": "p1" });
+  });
+});
+
+describe("section notes (device-local)", () => {
+  const planWithNote: PlannerPlan = {
+    id: "p1",
+    label: "A",
+    termId: 1252,
+    sections: [
+      {
+        courseCode: "CRS 100",
+        section: "A1",
+        type: "LEC",
+        schedule: ["MW 07:00AM-08:00AM"],
+        roomCode: null,
+        courseTitle: null,
+        note: "Dr. Santos",
+      },
+    ],
+  };
+
+  it("strips notes before account upload", () => {
+    const stripped = stripSectionNotesForAccount({
+      plans: [planWithNote],
+      activePlanIdByTerm: {},
+    });
+    expect(stripped.plans[0].sections[0]).not.toHaveProperty("note");
+  });
+
+  it("re-applies local notes after account merge", () => {
+    const notes = collectSectionNotes([planWithNote]);
+    const merged = mergePlannerState(
+      { plans: [planWithNote], activePlanIdByTerm: {} },
+      {
+        plans: [
+          {
+            ...planWithNote,
+            sections: planWithNote.sections.map(({ note: _n, ...s }) => s),
+          },
+        ],
+        activePlanIdByTerm: {},
+      },
+    );
+    const restored = applySectionNotes(merged.plans, notes);
+    expect(restored[0].sections[0].note).toBe("Dr. Santos");
   });
 });

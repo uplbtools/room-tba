@@ -11,11 +11,14 @@
   type Props = {
     /** Icon-only trigger for the mobile status strip. */
     compact?: boolean;
+    /** Render the download sections directly (no trigger/popover) — used by
+     * the offline-maps modal. */
+    inline?: boolean;
   };
 
-  let { compact = false }: Props = $props();
+  let { compact = false, inline = false }: Props = $props();
 
-  let open = $state(false);
+  let open = $state(inline);
   let triggerEl = $state<HTMLButtonElement | null>(null);
   let popoverEl = $state<HTMLDivElement | null>(null);
   let popoverStyle = $state("");
@@ -23,13 +26,13 @@
   onMount(() => {
     offlineStore.prepareEstimate();
     const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
-      open = false;
+      if (!inline) open = false;
     });
     return unregisterDismiss;
   });
 
   function updatePopoverPosition() {
-    if (!open || !triggerEl) return;
+    if (inline || !open || !triggerEl) return;
     const rect = triggerEl.getBoundingClientRect();
     const width = Math.min(288, window.innerWidth - 16);
     // Anchor to the trigger's right edge, but never let the left edge overflow
@@ -41,7 +44,7 @@
   }
 
   $effect(() => {
-    if (!open) return;
+    if (inline || !open) return;
     updatePopoverPosition();
     const handleLayout = rafThrottle(updatePopoverPosition);
     window.addEventListener("resize", handleLayout);
@@ -53,6 +56,7 @@
   });
 
   function toggleOpen() {
+    if (inline) return;
     if (!open) {
       // Open directly rather than via openEphemeralOverlay: this popover is
       // nested inside the App menu, and dismissing all ephemeral overlays would
@@ -71,12 +75,12 @@
   }
 
   $effect(() => {
-    if (!open || !popoverEl) return;
+    if (inline || !open || !popoverEl) return;
     return trapFocus(popoverEl, { onEscape: closePopover });
   });
 
   function handleDocumentPointerDown(event: PointerEvent) {
-    if (!open) return;
+    if (inline || !open) return;
     const target = event.target;
     if (!(target instanceof Node)) return;
     if (triggerEl?.contains(target)) return;
@@ -102,11 +106,16 @@
   const directoryPct = $derived(
     Math.round(offlineStore.directoryProgress * 100),
   );
+
+  function portalWhenFloating(node: HTMLElement) {
+    return inline ? undefined : portal(node);
+  }
 </script>
 
 <svelte:window onpointerdown={handleDocumentPointerDown} />
 
-<div class="offline-maps" class:compact>
+<div class="offline-maps" class:compact class:offline-maps--inline={inline}>
+  {#if !inline}
   <button
     bind:this={triggerEl}
     class="offline-trigger"
@@ -124,17 +133,19 @@
       <span class="sr-only">Offline downloads</span>
     {/if}
   </button>
+  {/if}
 
   {#if open}
     <div
       bind:this={popoverEl}
       id="offline-maps-dialog"
       class="map-chrome-popover offline-popover"
-      style={popoverStyle}
-      role="dialog"
-      aria-modal="true"
+      class:offline-popover--inline={inline}
+      style={inline ? undefined : popoverStyle}
+      role={inline ? undefined : "dialog"}
+      aria-modal={inline ? undefined : true}
       aria-label="Offline downloads"
-      use:portal
+      use:portalWhenFloating
     >
       <p class="map-chrome-popover-line">Download for offline use</p>
 
@@ -218,7 +229,9 @@
           </div>
         {:else if offlineStore.directoryStatus === "done"}
           <p class="map-chrome-popover-sub">
-            Buildings, rooms, and search aliases saved for offline search.
+            Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices,
+            landmarks &amp; establishments, and events saved for offline
+            search.
           </p>
           <button
             class="offline-btn ghost"
@@ -234,7 +247,8 @@
           </button>
         {:else}
           <p class="map-chrome-popover-sub">
-            Buildings, colleges, divisions, dorms, rooms, and aliases.
+            Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices,
+            landmarks &amp; establishments, and events.
           </p>
           {#if offlineStore.directoryStatus === "error" && offlineStore.directoryError}
             <p class="offline-error">{offlineStore.directoryError}</p>
@@ -341,6 +355,10 @@
     padding: 0.125rem;
   }
 
+  .offline-maps--inline {
+    width: 100%;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;
@@ -360,6 +378,16 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .offline-popover--inline {
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+    max-height: none;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .offline-category {

@@ -2,6 +2,8 @@
   import { onMount } from "svelte";
   import { getAppData } from "@lib/context";
   import { createEntityUrlSync } from "@lib/entity-url-sync";
+  import { openCampusBrowse } from "@lib/browse-campus";
+  import { getTransitStopIndex } from "@lib/transit-urls";
   import {
     getBuildingCanonicalPath,
     getOrganizationCanonicalPath,
@@ -16,10 +18,13 @@
   } from "@lib/term-document-meta";
   import {
     currentRoom,
+    jeepneyStore,
     mapEditStore,
     queryStore,
+    sidePanelStore,
     sidebarStore,
     termStore,
+    transitStore,
   } from "@lib/store.svelte";
 
   const appData = getAppData();
@@ -48,6 +53,18 @@
       setPlannerOpen: (open) => {
         sidebarStore.changeOpened(open ? "planner" : "map");
       },
+      setTransit: async ({ routeId, stopSlug }) => {
+        openCampusBrowse(queryStore, sidePanelStore, "jeepney");
+        if (!routeId) return;
+        await transitStore.refresh();
+        const route = transitStore.getRoute(routeId);
+        if (!route) return;
+        jeepneyStore.openRouteOnMap(route.id);
+        const stopIndex = stopSlug ? getTransitStopIndex(route, stopSlug) : -1;
+        if (stopIndex >= 0) {
+          requestAnimationFrame(() => jeepneyStore.openStop(stopIndex));
+        }
+      },
     });
 
     controller.init();
@@ -72,6 +89,9 @@
       termId: termStore.activeTermId,
       defaultTermId: termStore.defaultTermId,
       plannerOpen: sidebarStore.panelOpen === "planner",
+      transitRouteId: jeepneyStore.selectedRouteId,
+      transitStopIndex: jeepneyStore.selectedStopIndex,
+      transitRoute: transitStore.getRoute(jeepneyStore.selectedRouteId),
     });
   });
 

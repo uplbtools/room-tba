@@ -94,7 +94,7 @@ test.describe("sidebar campus browsing", () => {
       page.getByRole("heading", { name: /Jeepney Routes/i }),
     ).toBeVisible({ timeout: 10_000 });
     await expect(
-      page.getByRole("button", { name: /show kaliwa \/ kanan on the map/i }),
+      page.getByRole("button", { name: /open .+ route details/i }).first(),
     ).toBeVisible();
   });
 

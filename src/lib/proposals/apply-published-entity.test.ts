@@ -96,6 +96,7 @@ describe("applyPublishedEntity", () => {
       "rooms",
       "buildings",
     ]);
+    expect(syncTablesForEntityType("jeepney_stop")).toEqual(["jeepney_routes"]);
   });
 
   test("upserts a newly approved place", () => {

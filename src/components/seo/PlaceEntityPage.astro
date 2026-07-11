@@ -54,7 +54,13 @@ const structuredData = jsonLd(
   {description}
   {canonicalPath}
   image={place.imageUrl ? { src: place.imageUrl, alt: place.name } : null}
-  ogCard={{ title: place.name, subtitle: "UPLB Los Baños", kicker: category }}
+  ogCard={{
+    title: place.name,
+    subtitle: place.hours
+      ? `UPLB Los Baños · ${place.hours}`
+      : "UPLB Los Baños",
+    kicker: `${category} at UPLB`,
+  }}
   heading={`${place.name} at UPLB`}
   intro={description}
   {facts}

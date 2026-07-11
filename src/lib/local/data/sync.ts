@@ -14,6 +14,7 @@ import { fetchJsonWithRetry, SYNC_CHECK_FETCH_OPTIONS } from "./fetch-json";
 import { syncToastStore } from "@lib/store.svelte";
 import type { Results } from "@electric-sql/pglite";
 import { getSyncKeysFromLs } from "./sync-keys";
+import type { JeepneyRoute } from "@constants/jeepney-routes";
 
 export { getSyncKeysFromLs };
 
@@ -437,6 +438,62 @@ export async function syncPlaces(
   }
   if (trustedRemote) {
     updateSyncKeyFromLs("places", checker.newKey ?? "");
+  }
+}
+
+export async function syncJeepneyRoutes(
+  checker: TableSyncInfo,
+  routes: JeepneyRoute[],
+  trustedRemote = false,
+) {
+  if (await shouldSkipValidSync(checker, "jeepney_routes")) return;
+  if (checker.newKey === null || !trustedRemote) return;
+
+  const localDB = getDB();
+  await localDB.waitReady;
+  try {
+    await localDB.transaction(async (tx) => {
+      await tx.exec("DELETE FROM jeepney_stops; DELETE FROM jeepney_routes;");
+      for (const route of routes) {
+        await tx.query(
+          `INSERT INTO jeepney_routes (id, name, description, direction_note, color, fare_regular, fare_discounted)
+           VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+          [
+            route.id,
+            route.name,
+            route.description,
+            route.directionNote ?? null,
+            route.color,
+            route.fare.regular,
+            route.fare.discounted,
+          ],
+        );
+        for (const stop of route.stops) {
+          if (stop.id === undefined) continue;
+          await tx.query(
+            `INSERT INTO jeepney_stops (id, route_id, name, description, lat, lon, sort_order, version, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`,
+            [
+              stop.id,
+              route.id,
+              stop.name,
+              stop.description,
+              stop.lat,
+              stop.lon,
+              stop.sortOrder ?? 0,
+              stop.version ?? 1,
+              stop.updatedAt ?? new Date().toISOString(),
+            ],
+          );
+        }
+      }
+    });
+    updateSyncKeyFromLs("jeepney_routes", checker.newKey);
+  } catch (error) {
+    console.error(
+      "Failed to sync jeepney routes; keeping previous cache",
+      error,
+    );
   }
 }
 

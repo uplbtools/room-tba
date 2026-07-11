@@ -218,9 +218,9 @@
   .schedule-import-panel__note,
   .schedule-import-panel__scope {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     line-height: 1.35;
-    color: hsl(0, 0%, 35%);
+    color: hsl(0, 0%, 22%);
   }
 
   .schedule-import-panel__label {

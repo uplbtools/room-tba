@@ -1,0 +1,54 @@
+---
+export const prerender = false;
+
+import AppRoot from "@ui/AppRoot.svelte";
+import Layout from "@layouts/Layout.astro";
+import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
+
+const routeId = Astro.params.route;
+const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);
+const routeName = route?.name ?? "UPLB jeepney route";
+const canonicalPath = `/transit/${encodeURIComponent(routeId ?? "")}/`;
+const title = `${routeName} | UPLB Transit | Room TBA`;
+const description =
+  route?.description ??
+  "View this UPLB jeepney route, its stops, and map context in Room TBA.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Jeepney routes", path: "/transit/" },
+    { name: routeName, path: canonicalPath },
+  ]),
+);
+---
+
+<Layout
+  {title}
+  ogTitle={routeName}
+  description={description}
+  {canonicalPath}
+  imagePath={ogCardPath({
+    title: routeName,
+    subtitle: route
+      ? `${route.stops.length} stops · ₱${route.fare.regular} regular · ₱${route.fare.discounted} discounted`
+      : "Transit at UPLB",
+    kicker: "Transit at UPLB",
+  })}
+  {structuredData}
+>
+  <main class="transit-page">
+    <article class="sr-only">
+      <h1>{routeName}</h1>
+      <p>{description}</p>
+      {route && <p>{route.stops.length} stops. Regular fare: ₱{route.fare.regular}.</p>}
+    </article>
+    <AppRoot client:only="svelte" suppressLandingModal={true} />
+  </main>
+</Layout>
+
+<style>
+  .transit-page { height: 100dvh; overflow: hidden; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+</style>

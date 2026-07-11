@@ -13,9 +13,7 @@
     isLandmarkPlaceCategory,
     placeDirectoryLabel,
   } from "@constants/place-categories";
-  import Info from "@lucide/svelte/icons/info";
-  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
-  import { jeepneyStore, queryStore } from "@lib/store.svelte";
+  import { jeepneyStore, queryStore, transitStore } from "@lib/store.svelte";
 
   const appData = getAppData();
   const { buildings, colleges, divisions, dorms, organizations, places, loaded } =
@@ -338,8 +336,8 @@
   const filteredJeepneyRoutes = $derived.by(() => {
     if (activeTab !== "jeepney") return [];
     const needle = filterText.trim().toLowerCase();
-    if (!needle) return JEEPNEY_ROUTES;
-    return JEEPNEY_ROUTES.filter(
+    if (!needle) return transitStore.routes;
+    return transitStore.routes.filter(
       (route) =>
         route.name.toLowerCase().includes(needle) ||
         route.description.toLowerCase().includes(needle) ||
@@ -393,13 +391,12 @@
     {#if activeTab === "jeepney" && filteredJeepneyRoutes.length > 0}
       <ul class="entity-nav-list">
         {#each filteredJeepneyRoutes as route (route.id)}
-          <li class="jeepney-route-item">
+          <li>
             <button
               type="button"
               class="entity-list-row"
-              class:jeepney-route-item--active={jeepneyStore.selectedRouteId ===
-                route.id}
-              title={`Show ${route.name} on the map`}
+              class:jeepney-route-item--active={jeepneyStore.selectedRouteId === route.id}
+              title={`Open ${route.name} route details`}
               onclick={() => openJeepneyRoute(route.id)}
             >
               <span
@@ -411,15 +408,6 @@
               <span class="entity-list-row__meta"
                 >{route.stops.length} stops</span
               >
-            </button>
-            <button
-              type="button"
-              class="jeepney-route-item__info"
-              aria-label={`${route.name} route details`}
-              title="Route details, fare, and stops"
-              onclick={() => jeepneyStore.openRouteModal(route.id)}
-            >
-              <Info size={16} aria-hidden="true" />
             </button>
           </li>
         {/each}
@@ -526,17 +514,6 @@
     white-space: nowrap;
   }
 
-  .jeepney-route-item {
-    display: flex;
-    align-items: stretch;
-    gap: 0.25rem;
-  }
-
-  .jeepney-route-item .entity-list-row {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
   .jeepney-route-item--active {
     background: hsl(5, 53%, 96%);
   }
@@ -547,24 +524,6 @@
     height: 0.625rem;
     border-radius: 999px;
     box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.85);
-  }
-
-  .jeepney-route-item__info {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    border: none;
-    border-radius: 0.5rem;
-    background: transparent;
-    color: hsl(5, 53%, 32%);
-    cursor: pointer;
-  }
-
-  .jeepney-route-item__info:hover,
-  .jeepney-route-item__info:focus-visible {
-    background: hsl(5, 53%, 96%);
   }
 
   .campus-browse-empty {

@@ -74,6 +74,18 @@ function normalizeTimeToken(value: unknown) {
   return raw.replace(/\s+/g, "");
 }
 
+function canonicalizeDays(dayStr: string): string {
+  return dayStr.toUpperCase().replace(/TH/g, "Th");
+}
+
+function canonicalizeScheduleSlot(slot: string): string {
+  const match = slot.match(/^([a-zA-Z]+)(.*)$/);
+  if (match) {
+    return canonicalizeDays(match[1]) + match[2];
+  }
+  return slot;
+}
+
 function scheduleFromClassDates(row: AmisClassRow): string[] | null {
   if (!Array.isArray(row.class_dates)) return null;
   const slots = row.class_dates
@@ -84,7 +96,7 @@ function scheduleFromClassDates(row: AmisClassRow): string[] | null {
       const start = normalizeTimeToken(dateRow.start_time);
       const end = normalizeTimeToken(dateRow.end_time);
       if (!day || !start || !end) return null;
-      return `${day} ${start}-${end}`;
+      return `${canonicalizeDays(day)} ${start}-${end}`;
     })
     .filter((slot): slot is string => slot !== null);
   return slots.length > 0 ? slots : null;
@@ -100,7 +112,7 @@ function scheduleFromRowFields(row: AmisClassRow): string[] | null {
   const start = normalizeTimeToken(row.start_time);
   const end = normalizeTimeToken(row.end_time);
   if (!day || !start || !end) return null;
-  return [`${day} ${start}-${end}`];
+  return [`${canonicalizeDays(day)} ${start}-${end}`];
 }
 
 function scheduleFromScheduleField(row: AmisClassRow): string[] | null {
@@ -108,14 +120,16 @@ function scheduleFromScheduleField(row: AmisClassRow): string[] | null {
   if (Array.isArray(schedule)) {
     const slots = schedule
       .map(asString)
-      .filter((slot): slot is string => slot !== null);
+      .filter((slot): slot is string => slot !== null)
+      .map(canonicalizeScheduleSlot);
     return slots.length > 0 ? slots : null;
   }
   if (typeof schedule === "string") {
     const slots = schedule
       .split(",")
       .map((slot) => slot.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(canonicalizeScheduleSlot);
     return slots.length > 0 ? slots : null;
   }
   return null;

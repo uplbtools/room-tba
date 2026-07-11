@@ -19,7 +19,9 @@
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
 
@@ -184,8 +186,11 @@
     </header>
 
     {#if !editing}
+      {#if place.lat != null && place.lon != null}
+        <EntityStreetAddress lat={place.lat} lon={place.lon} />
+      {/if}
       {#if place.description}
-        <p class="place-description">{place.description}</p>
+        <p class="entity-directions__text">{place.description}</p>
       {/if}
       <ul class="place-facts">
         {#if place.hours}
@@ -193,20 +198,12 @@
         {/if}
         {#if place.websiteLink}
           <li>
-            <a
-              href={place.websiteLink}
-              target="_blank"
-              rel="noopener noreferrer">Website</a
-            >
+            <EntityExternalLink href={place.websiteLink} label="Website" />
           </li>
         {/if}
         {#if place.facebookLink}
           <li>
-            <a
-              href={place.facebookLink}
-              target="_blank"
-              rel="noopener noreferrer">Facebook</a
-            >
+            <EntityExternalLink href={place.facebookLink} label="Facebook" />
           </li>
         {/if}
       </ul>
@@ -282,10 +279,6 @@
     font-size: 0.6875rem;
     font-weight: 600;
   }
-  .place-description {
-    margin: 0.5rem 0;
-    line-height: 1.4;
-  }
   .place-facts {
     list-style: none;
     padding: 0;
@@ -293,6 +286,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #27272a;
   }
   .place-form {
     display: flex;

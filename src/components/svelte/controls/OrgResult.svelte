@@ -13,6 +13,7 @@
   import Info from "@lucide/svelte/icons/info";
   import Building2 from "@lucide/svelte/icons/building-2";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
@@ -293,6 +294,9 @@
 
     {#if !editing}
       <div class="entity-body entity-body--compact">
+        {#if resolvedLat != null && resolvedLon != null}
+          <EntityStreetAddress lat={resolvedLat} lon={resolvedLon} />
+        {/if}
         {#if org.bio}
           <section class="org-about">
             <h3 class="org-about__title">About the org</h3>

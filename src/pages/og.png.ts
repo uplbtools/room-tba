@@ -37,7 +37,7 @@ function clamp(value: string | null, max: number): string {
 
 export const GET: APIRoute = async ({ url }) => {
   // Exact-URL content is passed by the page: t=title, s=subtitle, k=kicker.
-  const title = clamp(url.searchParams.get("t"), 64) || "Room TBA";
+  const title = clamp(url.searchParams.get("t"), 90) || "Room TBA";
   const subtitle = clamp(url.searchParams.get("s"), 96);
   const kicker = clamp(url.searchParams.get("k"), 40);
 
@@ -121,8 +121,11 @@ export const GET: APIRoute = async ({ url }) => {
         "div",
         {
           style: {
-            display: "flex",
-            fontSize: title.length > 34 ? 74 : 92,
+            // block + lineClamp: long titles wrap to a second line and only
+            // then ellipsize, instead of overflowing off the card.
+            display: "block",
+            lineClamp: 2,
+            fontSize: title.length > 40 ? 62 : title.length > 34 ? 74 : 92,
             fontWeight: 700,
             lineHeight: 1.05,
             letterSpacing: "-0.03em",

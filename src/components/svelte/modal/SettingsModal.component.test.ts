@@ -13,7 +13,7 @@ describe("SettingsModal", () => {
 
     expect(screen.getByRole("heading", { name: "Settings" })).toBeVisible();
     // Transit moved to the sidebar's Jeepney routes browse panel.
-    for (const section of ["View", "Legend", "Terrain", "Schedule"]) {
+    for (const section of ["View", "Terrain", "Schedule"]) {
       expect(
         screen.getByRole("heading", { name: section }),
       ).toBeInTheDocument();

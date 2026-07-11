@@ -76,13 +76,14 @@ const structuredData = jsonLd(
 
 <Layout
   title={title}
+  ogTitle={event.title}
   description={description}
   canonicalPath={canonicalPath}
   imagePath={eventImage?.src ??
     ogCardPath({
       title: event.title,
-      subtitle: "Campus event · UPLB Los Baños",
-      kicker: "Event",
+      subtitle: `${formatCampusDateTime(event.occurrenceStartsAt)}${primaryLocation ? ` · ${primaryLocation.resolvedLabel}` : ""}`,
+      kicker: "Event at UPLB",
     })}
   structuredData={structuredData}
 >

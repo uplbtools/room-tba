@@ -470,9 +470,7 @@
       groupByBuilding
     />
   {:else if division}
-    <p class="entity-loading-note">
-      <LoadingIndicator label="Loading rooms for {division.divisionName}…" />
-    </p>
+    <LoadingIndicator block label="Loading rooms for {division.divisionName}…" />
   {/if}
 </div>
 

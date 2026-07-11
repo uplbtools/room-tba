@@ -9,6 +9,7 @@ import {
   editProposalsTable,
   eventLocationsTable,
   eventsTable,
+  jeepneyStopsTable,
   organizationsTable,
   roomsTable,
 } from "@drizzle/schema";
@@ -57,6 +58,12 @@ import {
   type RoomCreateInput,
   type RoomUpdateInput,
 } from "./admin-service";
+import {
+  createJeepneyStop,
+  updateJeepneyStop,
+  type JeepneyStopCreateInput,
+  type JeepneyStopWriteInput,
+} from "./transit-service";
 import { allowEntityScopedProposalMerge } from "@lib/proposals/proposal-merge-policy";
 import {
   ProposalValidationError,
@@ -74,6 +81,7 @@ export const PROPOSAL_UPDATE_TYPES = [
   "event",
   "event_locations",
   "organization",
+  "jeepney_stop",
 ] as const;
 
 export const PROPOSAL_CREATE_TYPES = [
@@ -85,6 +93,7 @@ export const PROPOSAL_CREATE_TYPES = [
   "create_college",
   "create_division",
   "create_organization",
+  "create_jeepney_stop",
 ] as const;
 
 export const PROPOSAL_ENTITY_TYPES = [
@@ -179,6 +188,10 @@ export async function getEntityLabel(
         return typeof p.name === "string" && p.name.trim()
           ? `New org: ${p.name.trim()}`
           : "New organization";
+      case "create_jeepney_stop":
+        return typeof p.name === "string" && p.name.trim()
+          ? `New jeepney stop: ${p.name.trim()}`
+          : "New jeepney stop";
     }
   }
 
@@ -247,6 +260,14 @@ export async function getEntityLabel(
         .where(eq(organizationsTable.id, entityId))
         .limit(1);
       return row?.label ?? `Organization #${entityId}`;
+    }
+    case "jeepney_stop": {
+      const [row] = await db
+        .select({ label: jeepneyStopsTable.name })
+        .from(jeepneyStopsTable)
+        .where(eq(jeepneyStopsTable.id, entityId))
+        .limit(1);
+      return row?.label ?? `Jeepney stop #${entityId}`;
     }
   }
 }
@@ -318,6 +339,14 @@ async function entityExists(
         .select({ id: organizationsTable.id })
         .from(organizationsTable)
         .where(eq(organizationsTable.id, entityId))
+        .limit(1);
+      return row !== undefined;
+    }
+    case "jeepney_stop": {
+      const [row] = await db
+        .select({ id: jeepneyStopsTable.id })
+        .from(jeepneyStopsTable)
+        .where(eq(jeepneyStopsTable.id, entityId))
         .limit(1);
       return row !== undefined;
     }
@@ -475,6 +504,14 @@ export async function getCurrentEntityValues(
         .select()
         .from(placesTable)
         .where(eq(placesTable.id, entityId))
+        .limit(1);
+      return row ?? null;
+    }
+    case "jeepney_stop": {
+      const [row] = await db
+        .select()
+        .from(jeepneyStopsTable)
+        .where(eq(jeepneyStopsTable.id, entityId))
         .limit(1);
       return row ?? null;
     }
@@ -844,6 +881,16 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
         return createEvent(patch as EventWriteInput, editedBy);
       case "create_organization":
         return createOrganization(patch as OrgCreateInput, editedBy);
+      case "create_jeepney_stop": {
+        const stop = await createJeepneyStop(
+          patch as JeepneyStopCreateInput,
+          editedBy,
+        );
+        if (!stop) {
+          throw new ProposalActionError("Jeepney route no longer exists.", 409);
+        }
+        return stop;
+      }
     }
   }
 
@@ -920,6 +967,18 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
         version,
         editedBy,
       );
+    case "jeepney_stop": {
+      const stop = await updateJeepneyStop(
+        proposal.entityId,
+        patch as JeepneyStopWriteInput,
+        version,
+        editedBy,
+      );
+      if (!stop) {
+        throw new ProposalActionError("Jeepney stop no longer exists.", 409);
+      }
+      return stop;
+    }
     default:
       throw new ProposalActionError("Unsupported entity type.");
   }

@@ -29,6 +29,9 @@
     sidePanelStore,
   } from "@lib/store.svelte";
   import Map from "@lucide/svelte/icons/map";
+  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import CloudDownload from "@lucide/svelte/icons/cloud-download";
   import Keyboard from "@lucide/svelte/icons/keyboard";
   import Cookie from "@lucide/svelte/icons/cookie";
   import { slide } from "svelte/transition";
@@ -107,14 +110,23 @@
   // Grouped bottom rail: collapsed by default so the rail stays short.
   let communityOpen = $state(false);
   let supportOpen = $state(false);
+
+  // Labels show when the rail is expanded (desktop toggle) or when the
+  // mobile drawer is open — a drawer has the room, so always label it.
+  const labeled = $derived(sidebarStore.expanded || sidebarStore.railOpen);
 </script>
 
-<aside id="app-sidebar" class:retracted={!sidebarStore.railOpen}>
+<aside
+  id="app-sidebar"
+  class:retracted={!sidebarStore.railOpen}
+  class:sidebar--expanded={sidebarStore.expanded}
+>
   <div class="rail-close">
     <NavLink
       active={false}
       hard={false}
       tooltip="Close menu"
+      expanded={labeled}
       aria-label="Close menu"
       onclick={() => sidebarStore.closeRail()}
     >
@@ -122,7 +134,17 @@
     </NavLink>
   </div>
   <div class="top">
-    <svg
+    <button
+      type="button"
+      class="sidebar-home"
+      aria-label="Room TBA home"
+      onclick={() => {
+        queryStore.clearQuery();
+        sidebarStore.changeOpened("map");
+        sidebarStore.closeRail();
+      }}
+    >
+      <svg
       xmlns="http://www.w3.org/2000/svg"
       width="48"
       height="48"
@@ -253,13 +275,31 @@
           <rect width="48" height="48" fill="white" />
         </clipPath>
       </defs>
-    </svg>
+      </svg>
+      {#if labeled}
+        <span class="sidebar-home__wordmark">Room TBA</span>
+      {/if}
+    </button>
+    <NavLink
+      active={false}
+      hard={false}
+      expanded={labeled}
+      tooltip={sidebarStore.expanded ? "Collapse menu" : "Expand menu"}
+      onclick={() => sidebarStore.toggleExpanded()}
+    >
+      {#if sidebarStore.expanded}
+        <ChevronLeft size={20} />
+      {:else}
+        <ChevronRight size={20} />
+      {/if}
+    </NavLink>
     <div class="categories">
       <NavLink
         onclick={() => {
           sidebarStore.changeOpened("map");
         }}
         active={sidebarStore.panelOpen === "map"}
+        expanded={labeled}
         tooltip="Maps"
         hard={true}
       >
@@ -280,6 +320,7 @@
               }}
               active={activeTab === entityButtonInfo.id}
               hard={false}
+              expanded={labeled}
               tooltip={entityButtonInfo.label}
             >
               <entityButtonInfo.icon size={20} />
@@ -294,6 +335,7 @@
         }}
         active={sidebarStore.panelOpen === "planner"}
         hard={true}
+        expanded={labeled}
         tooltip="Planner"
       >
         <CalendarDays size={20} />
@@ -302,6 +344,7 @@
   </div>
 
   <div class="bottom">
+    <section class="nav-group">
     <div class="nav-support">
       <NavLink
         onclick={() => {
@@ -310,6 +353,7 @@
         }}
         active={communityOpen}
         hard={true}
+        expanded={labeled}
         tooltip="Contributors"
       >
         <HeartHandshake size={20} />
@@ -320,6 +364,7 @@
       <NavLink
         href="https://discord.uplbtools.me"
         aria-label="Join Discord"
+        expanded={labeled}
         tooltip="Join Discord"
       >
         <svg
@@ -338,6 +383,7 @@
       <NavLink
         href="https://messenger.uplbtools.me"
         aria-label="Join our Contributors GC"
+        expanded={labeled}
         tooltip="Join our Contributors GC"
       >
         <svg
@@ -376,6 +422,7 @@
       <NavLink
         href="https://guide.stimmie.dev"
         aria-label="UPLB resources & guides"
+        expanded={labeled}
         tooltip="UPLB resources & guides"
       >
         <Globe size={20} />
@@ -383,6 +430,7 @@
       <NavLink
         href="https://uplbtools.me"
         aria-label="More UPLB tools"
+        expanded={labeled}
         tooltip="More UPLB tools"
       >
         <Wrench size={20} />
@@ -390,6 +438,7 @@
       <NavLink
         active={false}
         hard={false}
+        expanded={labeled}
         tooltip="Contributor leaderboard"
         onclick={() => modalStore.openModal("leaderboard")}
       >
@@ -398,6 +447,7 @@
       <NavLink
         active={false}
         hard={false}
+        expanded={labeled}
         tooltip="Project contributors"
         onclick={() =>
           modalStore.openModal("landing", { landingTab: "campus" })}
@@ -408,6 +458,7 @@
         <NavLink
           active={false}
           hard={false}
+          expanded={labeled}
           tooltip="Create contributor account"
           onclick={() => adminAuthStore.openLogin("signup")}
         >
@@ -417,6 +468,7 @@
       <NavLink
         active={false}
         hard={false}
+        expanded={labeled}
         tooltip={adminAuthStore.isLoggedIn ? "Logout" : "Login"}
         onclick={() => {
             if (!adminAuthStore.isLoggedIn) {
@@ -434,6 +486,8 @@
       </NavLink>
     </div>
     {/if}
+    </section>
+    <section class="nav-group">
     <div class="nav-support">
       <NavLink
         onclick={() => {
@@ -442,6 +496,7 @@
         }}
         active={supportOpen}
         hard={true}
+        expanded={labeled}
         tooltip="Help & settings"
       >
         <CircleQuestionMark size={20} />
@@ -452,6 +507,7 @@
       <NavLink
         active={false}
         hard={false}
+        expanded={labeled}
         tooltip="Settings"
         onclick={() => modalStore.openModal("settings")}
       >
@@ -460,9 +516,8 @@
       <NavLink
         active={false}
         hard={false}
-        onclick={() => {
-          window.location.href = "/privacy";
-        }}
+        expanded={labeled}
+        onclick={() => modalStore.openModal("privacy")}
         tooltip="Privacy"
       >
         <Cookie size={20} />
@@ -470,6 +525,16 @@
       <NavLink
         active={false}
         hard={false}
+        expanded={labeled}
+        onclick={() => modalStore.openModal("offline-maps")}
+        tooltip="Offline maps"
+      >
+        <CloudDownload size={20} />
+      </NavLink>
+      <NavLink
+        active={false}
+        hard={false}
+        expanded={labeled}
         onclick={() => modalStore.openModal("changelog")}
         tooltip="What's new?"
       >
@@ -478,6 +543,7 @@
       <NavLink
         active={false}
         hard={false}
+        expanded={labeled}
         onclick={() => {
           window.dispatchEvent(new CustomEvent("room-tba:open-shortcuts-help"));
         }}
@@ -487,11 +553,14 @@
       </NavLink>
     </div>
     {/if}
+    </section>
   </div>
 </aside>
 
 <style>
   aside {
+    width: 4rem;
+    box-sizing: border-box;
     padding: 0.5rem 0.5rem 1.25rem;
     background: white;
     pointer-events: auto;
@@ -499,14 +568,19 @@
     flex-direction: column;
     /* Expanded groups can outgrow the viewport; the rail itself scrolls. */
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     box-shadow:
       0 1px 3px hsla(0, 0%, 0%, 0.12),
       0 4px 12px hsla(0, 0%, 0%, 0.16),
       0 10px 24px hsla(0, 0%, 0%, 0.1);
-      position:relative;
-      z-index:200;
+    position: relative;
+    z-index: 200;
+    transition: width var(--motion-duration-fast, 150ms) ease;
+  }
+  aside.sidebar--expanded {
+    width: 13rem;
   }
   div.top,
   div.bottom {
@@ -517,6 +591,7 @@
   }
   div.bottom {
     margin-top: auto;
+    padding-top: 1rem;
   }
   div.categories,
   div.map-categories,
@@ -525,6 +600,55 @@
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  .sidebar-home {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    cursor: pointer;
+    border-radius: 0.75rem;
+  }
+
+  .sidebar-home__wordmark {
+    order: 1;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: hsl(5, 53%, 32%);
+    white-space: nowrap;
+  }
+
+  .sidebar-home:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: -2px;
+  }
+
+  .nav-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    background: hsl(5 30% 96%);
+    padding: 0.25rem;
+    box-sizing: border-box;
+  }
+
+  aside.sidebar--expanded .categories,
+  aside.sidebar--expanded .map-categories,
+  aside.sidebar--expanded .nav-support,
+  aside.sidebar--expanded .nav-group {
+    align-items: stretch;
+  }
+
+  /* Pin the nav column to the rail width; otherwise it shrinks to the widest
+     visible label and floats centered (planner open hides the long browse
+     labels, leaving Maps/Planner oddly indented). */
+  aside.sidebar--expanded .categories {
+    width: 100%;
   }
 
   /* Rail close affordance is a mobile-overlay concern only. */
@@ -545,6 +669,7 @@
       padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
       padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
       transition: transform var(--motion-duration-fast, 150ms) ease;
+      width: 13rem;
     }
 
     aside.retracted {
@@ -559,9 +684,20 @@
     }
 
     /* Tighter rhythm so the full rail fits small screens. */
-    aside > .top > svg {
+    aside > .top > .sidebar-home > svg {
       width: 2.25rem;
       height: 2.25rem;
+    }
+
+    aside .categories,
+    aside .map-categories,
+    aside .nav-support,
+    aside .nav-group {
+      align-items: stretch;
+    }
+
+    aside .categories {
+      width: 100%;
     }
 
     div.top,
