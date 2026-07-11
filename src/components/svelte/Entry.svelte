@@ -15,6 +15,7 @@
     appBootstrapStore,
     plannerStore,
     termStore,
+    sidebarStore,
   } from "@lib/store.svelte";
   import { decodeSharePlan } from "@lib/planner/share-codec";
   import { resolveSharedPlan } from "@lib/planner/import-shared";
@@ -31,7 +32,7 @@
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
   import AccountSettingsModal from "@ui/AccountSettingsModal.svelte";
-  import ManageUsersModal from "@ui/ManageUsersModal.svelte";
+  import ManageUsersModal from "@ui/modal/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import EditorScreen from "@ui/EditorScreen.svelte";
   import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
@@ -45,6 +46,8 @@
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
+  import Sidebar from "./navigation/Sidebar.svelte";
+  import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -121,7 +124,8 @@
         missing_token: "That confirmation link is missing its token.",
         invalid_or_expired_token:
           "That confirmation link is invalid or has expired. Request a new one.",
-        not_logged_in: "Sign in first, then connect Google from account settings.",
+        not_logged_in:
+          "Sign in first, then connect Google from account settings.",
         missing_code: "Google sign-in was cancelled or incomplete. Try again.",
         oauth_failed: "Connecting Google failed. Try again.",
         already_linked:
@@ -311,42 +315,47 @@
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
   <div class="ui-layer">
-    <section
-      class="top-right-map-stack"
-      aria-label="Map tools"
-      bind:this={mapToolsStackEl}
-    >
-      <MapToolsFlyout />
-      <section class="desktop-camera-controls" aria-label="Map camera">
-        <div class="camera-controls-card">
-          <MapDimensionToggle embedded />
-          <div class="camera-controls-card__divider" aria-hidden="true"></div>
-          <MapViewControls variant="camera" embedded />
-        </div>
-      </section>
-    </section>
-    <div class="inner-layer">
-      <MainControls />
-      <div class="bottom-band">
-        <div class="bottom-chrome" bind:this={bottomChromeEl}>
-          <div class="bottom-chrome__bar">
-            <div class="bottom-chrome__leading">
-              <MapAttribution />
-            </div>
-            <div class="bottom-chrome__status">
-              <StatusBar />
-            </div>
+    <Sidebar />
+    {#if sidebarStore.panelOpen === "map"}
+      <section
+        class="top-right-map-stack"
+        aria-label="Map tools"
+        bind:this={mapToolsStackEl}
+      >
+        <MapToolsFlyout />
+        <section class="desktop-camera-controls" aria-label="Map camera">
+          <div class="camera-controls-card">
+            <MapDimensionToggle embedded />
+            <div class="camera-controls-card__divider" aria-hidden="true"></div>
+            <MapViewControls variant="camera" embedded />
           </div>
-          <div
-            class="bottom-chrome__actions"
-            bind:this={bottomChromeActionsEl}
-            aria-label="Location controls"
-          >
-            <LocationButton embedded />
+        </section>
+      </section>
+      <div class="inner-layer">
+        <MainControls />
+        <div class="bottom-band">
+          <div class="bottom-chrome" bind:this={bottomChromeEl}>
+            <div class="bottom-chrome__bar">
+              <div class="bottom-chrome__leading">
+                <MapAttribution />
+              </div>
+              <div class="bottom-chrome__status">
+                <StatusBar />
+              </div>
+            </div>
+            <div
+              class="bottom-chrome__actions"
+              bind:this={bottomChromeActionsEl}
+              aria-label="Location controls"
+            >
+              <LocationButton embedded />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    {:else if sidebarStore.panelOpen === "planner"}
+      <PlannerScreen />
+    {/if}
   </div>
   {#if toastStore.message}
     <Toast
@@ -356,6 +365,7 @@
     />
   {/if}
   <Modal />
+  <KeyboardShortcutsPopup />
   {#if building3DStore.buildingName}
     <Building3DViewer name={building3DStore.buildingName} />
   {/if}
@@ -370,7 +380,6 @@
   {/if}
   <EditorAdditionModal />
   <EditorScreen />
-  <PlannerScreen />
 </div>
 
 <style>
@@ -518,8 +527,6 @@
     flex: 0 1 auto;
     min-width: 0;
     min-height: 2rem;
-    box-sizing: border-box;
-    pointer-events: auto;
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     backdrop-filter: blur(10px);
     border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
@@ -531,6 +538,8 @@
       0 2px 8px hsla(0, 0%, 0%, 0.14),
       0 8px 20px hsla(0, 0%, 0%, 0.18)
     );
+    box-sizing: border-box;
+    pointer-events: auto;
   }
 
   .bottom-chrome__leading {
@@ -607,7 +616,6 @@
     z-index: 10;
     pointer-events: none;
     display: flex;
-    flex-direction: column;
   }
 
   .top-right-map-stack {
@@ -662,7 +670,7 @@
 
   .camera-controls-card__divider {
     height: 2px;
-    margin: .5rem 0.125rem;
+    margin: 0.5rem 0.125rem;
     background-color: var(--map-chrome-divider, hsl(5 12% 70%));
   }
 
@@ -754,8 +762,9 @@
       max-height: min(
         42dvh,
         calc(
-          100dvh - var(--search-block-height) - var(--map-ui-padding, 0.375rem) -
-            var(--status-bar-block-height) - 0.5rem
+          100dvh - var(--search-block-height) -
+            var(--map-ui-padding, 0.375rem) - var(--status-bar-block-height) -
+            0.5rem
         )
       );
       padding: 0.5rem 0.625rem;

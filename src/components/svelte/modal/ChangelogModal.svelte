@@ -3,7 +3,7 @@
   import { syncToastStore, modalStore } from "@lib/store.svelte";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { parseChangelogEntries } from "@lib/changelog-highlights";
-  import changelogRaw from "../../../CHANGELOG.md?raw";
+  import changelogRaw from "../../../../CHANGELOG.md?raw";
 
   const entries = $derived(parseChangelogEntries(changelogRaw));
   const hasUpdate = $derived(syncToastStore.needRefresh);

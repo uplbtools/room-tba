@@ -74,7 +74,11 @@
       if (s.stale) continue;
       let g = byCourse.get(s.courseCode);
       if (!g) {
-        g = { courseCode: s.courseCode, title: s.courseTitle ?? null, sections: [] };
+        g = {
+          courseCode: s.courseCode,
+          title: s.courseTitle ?? null,
+          sections: [],
+        };
         byCourse.set(s.courseCode, g);
       }
       if (!g.title && s.courseTitle) g.title = s.courseTitle;
@@ -91,9 +95,7 @@
   const unscheduled = $derived(
     (plan?.sections ?? []).filter((s) => !s.stale && isUnscheduled(s)),
   );
-  const staleSections = $derived(
-    (plan?.sections ?? []).filter((s) => s.stale),
-  );
+  const staleSections = $derived((plan?.sections ?? []).filter((s) => s.stale));
   const planFinals = $derived.by(() => {
     const sectionsByCourse = new Map<string, Set<string>>();
     for (const s of plan?.sections ?? []) {
@@ -109,10 +111,6 @@
           sectionsByCourse.get(exam.courseCode)?.has(exam.section)),
     );
   });
-
-  function close() {
-    plannerStore.close();
-  }
 
   function swapSection(courseCode: string, toSections: ClassMapValue[]) {
     plannerStore.replaceCourse(courseCode, toSections);
@@ -179,7 +177,12 @@
   }
 
   function planFileSlug(label: string): string {
-    return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "plan";
+    return (
+      label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "plan"
+    );
   }
 
   // Share / calendar / image only make sense once something is scheduled; the
@@ -241,7 +244,9 @@
     // Key on the course set too: adding a course to the plan must refetch its
     // sections, otherwise dragging a newly added block has no alternatives to
     // drop onto (drag "doesn't work" for just-added courses).
-    const courseCodes = [...new Set(plan.sections.map((s) => s.courseCode))].sort();
+    const courseCodes = [
+      ...new Set(plan.sections.map((s) => s.courseCode)),
+    ].sort();
     const refreshKey = `${plan.id}::${plan.termId}::${courseCodes.join(",")}`;
     if (refreshKey === lastRefreshKey) return;
     lastRefreshKey = refreshKey;
@@ -282,292 +287,281 @@
   });
 </script>
 
-{#if plannerStore.open}
-  <div
-    bind:this={screenEl}
-    class="planner-screen"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="planner-screen-title"
-    in:fly={fullScreenReveal(reducedMotion.current)}
-    out:fly={fullScreenDismiss(reducedMotion.current)}
-  >
-    <header class="planner-header">
+<div
+  bind:this={screenEl}
+  class="planner-screen"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="planner-screen-title"
+  in:fly={fullScreenReveal(reducedMotion.current)}
+>
+  <header class="planner-header">
+    <h1 class="planner-title" id="planner-screen-title">Class Planner</h1>
+    {#if termStore.terms.length > 0}
+      <TermSelector variant="chip" />
+    {/if}
+    {#if plan}
       <button
         type="button"
-        class="planner-back"
-        onclick={close}
-        aria-label="Back to map"
+        class="planner-action"
+        onclick={copyShareLink}
+        disabled={!hasSchedule}
+        aria-label="Share plan"
+        title={hasSchedule
+          ? "Copy a link that reopens this plan"
+          : "Add a scheduled class first"}
       >
-        <ChevronLeft size={22} aria-hidden="true" />
-        <span>Map</span>
+        <Share2 size={15} aria-hidden="true" />
+        <span class="planner-action__label">Share</span>
       </button>
-      <h1 class="planner-title" id="planner-screen-title">Class Planner</h1>
-      {#if termStore.terms.length > 0}
-        <TermSelector variant="chip" />
-      {/if}
-      {#if plan}
-        <button
-          type="button"
-          class="planner-action"
-          onclick={copyShareLink}
-          disabled={!hasSchedule}
-          aria-label="Share plan"
-          title={hasSchedule
-            ? "Copy a link that reopens this plan"
-            : "Add a scheduled class first"}
-        >
-          <Share2 size={15} aria-hidden="true" />
-          <span class="planner-action__label">Share</span>
-        </button>
-        <button
-          type="button"
-          class="planner-action"
-          onclick={downloadIcs}
-          disabled={!hasSchedule}
-          aria-label="Add to Google Calendar"
-          title={hasSchedule
-            ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
-            : "Add a scheduled class first"}
-        >
-          <CalendarPlus size={15} aria-hidden="true" />
-          <span class="planner-action__label">Add to Google Calendar</span>
-        </button>
-        <button
-          type="button"
-          class="planner-action"
-          onclick={saveAsImage}
-          disabled={!hasSchedule || exportingImage}
-          aria-label="Save image"
-          title={hasSchedule
-            ? "Download the timetable as an image"
-            : "Add a scheduled class first"}
-        >
-          <ImageDown size={15} aria-hidden="true" />
-          <span class="planner-action__label">
-            {exportingImage ? "Saving…" : "Save image"}
-          </span>
-        </button>
-      {/if}
-    </header>
-
-    <p class="planner-disclaimer" role="note">
-      {COURSE_CHANGE_DISCLAIMER}{changeOfMatriculationLabel(termStore.activeTermId)
-        ? ` (${changeOfMatriculationLabel(termStore.activeTermId)})`
-        : ""}
-    </p>
-
-    <div class="planner-tabs" role="tablist" aria-label="Plans">
-      {#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
-        {#if renaming && tabPlan.id === plan?.id}
-          <input
-            class="planner-tab planner-tab--rename"
-            bind:value={renameDraft}
-            onkeydown={onRenameKeydown}
-            onblur={commitRename}
-            use:autofocus
-            aria-label="Rename plan"
-            maxlength="40"
-          />
-        {:else}
-          <button
-            type="button"
-            role="tab"
-            class="planner-tab"
-            class:planner-tab--active={tabPlan.id === plan?.id}
-            aria-selected={tabPlan.id === plan?.id}
-            onclick={() => plannerStore.selectPlan(tabPlan.id)}
-            ondblclick={() =>
-              tabPlan.id === plan?.id ? startRename() : undefined}
-          >
-            {tabPlan.label}
-          </button>
-        {/if}
-      {/each}
       <button
         type="button"
-        class="planner-tab planner-tab--new"
-        onclick={() => plannerStore.createPlan()}
-        aria-label="New plan"
+        class="planner-action"
+        onclick={downloadIcs}
+        disabled={!hasSchedule}
+        aria-label="Add to Google Calendar"
+        title={hasSchedule
+          ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
+          : "Add a scheduled class first"}
       >
-        +
+        <CalendarPlus size={15} aria-hidden="true" />
+        <span class="planner-action__label">Add to Google Calendar</span>
       </button>
-      {#if plan && !renaming}
+      <button
+        type="button"
+        class="planner-action"
+        onclick={saveAsImage}
+        disabled={!hasSchedule || exportingImage}
+        aria-label="Save image"
+        title={hasSchedule
+          ? "Download the timetable as an image"
+          : "Add a scheduled class first"}
+      >
+        <ImageDown size={15} aria-hidden="true" />
+        <span class="planner-action__label">
+          {exportingImage ? "Saving…" : "Save image"}
+        </span>
+      </button>
+    {/if}
+  </header>
+
+  <p class="planner-disclaimer" role="note">
+    {COURSE_CHANGE_DISCLAIMER}{changeOfMatriculationLabel(
+      termStore.activeTermId,
+    )
+      ? ` (${changeOfMatriculationLabel(termStore.activeTermId)})`
+      : ""}
+  </p>
+
+  <div class="planner-tabs" role="tablist" aria-label="Plans">
+    {#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
+      {#if renaming && tabPlan.id === plan?.id}
+        <input
+          class="planner-tab planner-tab--rename"
+          bind:value={renameDraft}
+          onkeydown={onRenameKeydown}
+          onblur={commitRename}
+          use:autofocus
+          aria-label="Rename plan"
+          maxlength="40"
+        />
+      {:else}
         <button
           type="button"
-          class="planner-tab planner-tab--tool"
-          onclick={startRename}
-          aria-label="Rename {plan.label}"
-          title="Rename {plan.label}"
+          role="tab"
+          class="planner-tab"
+          class:planner-tab--active={tabPlan.id === plan?.id}
+          aria-selected={tabPlan.id === plan?.id}
+          onclick={() => plannerStore.selectPlan(tabPlan.id)}
+          ondblclick={() =>
+            tabPlan.id === plan?.id ? startRename() : undefined}
         >
-          <Pencil size={13} aria-hidden="true" />
-          <span class="planner-tab__label">Rename</span>
-        </button>
-        <button
-          type="button"
-          class="planner-tab planner-tab--tool"
-          onclick={() => plannerStore.duplicatePlan(plan.id)}
-          aria-label="Duplicate {plan.label}"
-          title="Duplicate {plan.label}"
-        >
-          <Copy size={13} aria-hidden="true" />
-          <span class="planner-tab__label">Duplicate</span>
+          {tabPlan.label}
         </button>
       {/if}
-      {#if plan}
-        {#if confirmingDelete}
-          <span class="planner-delete-confirm" role="group" aria-label="Confirm delete plan">
-            <span class="planner-delete-confirm__label">Delete {plan.label}?</span>
-            <button
-              type="button"
-              class="planner-tab planner-tab--delete"
-              onclick={confirmDeletePlan}
-            >
-              Delete
-            </button>
-            <button
-              type="button"
-              class="planner-tab"
-              onclick={() => (confirmingDelete = false)}
-            >
-              Cancel
-            </button>
-          </span>
-        {:else}
-          <button
-            type="button"
-            class="planner-tab planner-tab--tool planner-tab--delete"
-            onclick={() => (confirmingDelete = true)}
-            aria-label="Delete {plan.label}"
-            title="Delete {plan.label}"
-          >
-            <Trash2 size={13} aria-hidden="true" />
-            <span class="planner-tab__label">Delete</span>
-          </button>
-        {/if}
-      {/if}
-      {#if plannerStore.conflicts.length > 0}
-        <span class="planner-conflict-badge" role="status">
-          {plannerStore.conflicts.length} conflict{plannerStore.conflicts
-            .length === 1
-            ? ""
-            : "s"}
-        </span>
-      {:else if plan && plan.sections.length > 0}
-        <span
-          class="planner-conflict-badge planner-conflict-badge--clear"
-          role="status"
-        >
-          All clear
-        </span>
-      {/if}
-    </div>
-
-    <p class="planner-save-note" role="note">
-      Plans save automatically on this device. Use <strong>Share</strong> to copy
-      a link you can reopen anywhere or send to someone.
-    </p>
-
-    <div
-      class="planner-body"
-      class:planner-body--no-side={!plan || plan.sections.length === 0}
+    {/each}
+    <button
+      type="button"
+      class="planner-tab planner-tab--new"
+      onclick={() => plannerStore.createPlan()}
+      aria-label="New plan"
     >
-      <PlannerCourseSearch />
+      +
+    </button>
+    {#if plan && !renaming}
+      <button
+        type="button"
+        class="planner-tab planner-tab--tool"
+        onclick={startRename}
+        aria-label="Rename {plan.label}"
+        title="Rename {plan.label}"
+      >
+        <Pencil size={13} aria-hidden="true" />
+        <span class="planner-tab__label">Rename</span>
+      </button>
+      <button
+        type="button"
+        class="planner-tab planner-tab--tool"
+        onclick={() => plannerStore.duplicatePlan(plan.id)}
+        aria-label="Duplicate {plan.label}"
+        title="Duplicate {plan.label}"
+      >
+        <Copy size={13} aria-hidden="true" />
+        <span class="planner-tab__label">Duplicate</span>
+      </button>
+    {/if}
+    {#if plan}
+      {#if confirmingDelete}
+        <span
+          class="planner-delete-confirm"
+          role="group"
+          aria-label="Confirm delete plan"
+        >
+          <span class="planner-delete-confirm__label">Delete {plan.label}?</span
+          >
+          <button
+            type="button"
+            class="planner-tab planner-tab--delete"
+            onclick={confirmDeletePlan}
+          >
+            Delete
+          </button>
+          <button
+            type="button"
+            class="planner-tab"
+            onclick={() => (confirmingDelete = false)}
+          >
+            Cancel
+          </button>
+        </span>
+      {:else}
+        <button
+          type="button"
+          class="planner-tab planner-tab--tool planner-tab--delete"
+          onclick={() => (confirmingDelete = true)}
+          aria-label="Delete {plan.label}"
+          title="Delete {plan.label}"
+        >
+          <Trash2 size={13} aria-hidden="true" />
+          <span class="planner-tab__label">Delete</span>
+        </button>
+      {/if}
+    {/if}
+    {#if plannerStore.conflicts.length > 0}
+      <span class="planner-conflict-badge" role="status">
+        {plannerStore.conflicts.length} conflict{plannerStore.conflicts
+          .length === 1
+          ? ""
+          : "s"}
+      </span>
+    {:else if plan && plan.sections.length > 0}
+      <span
+        class="planner-conflict-badge planner-conflict-badge--clear"
+        role="status"
+      >
+        All clear
+      </span>
+    {/if}
+  </div>
 
-      <PlannerGrid
-        sections={plan?.sections ?? []}
-        conflicts={plannerStore.conflicts}
-        alternatives={courseRows}
-        onremove={plannerStore.removeOffering}
-        onopenroom={openRoom}
-        onswap={swapSection}
-      />
+  <p class="planner-save-note" role="note">
+    Plans save automatically on this device. Use <strong>Share</strong> to copy a
+    link you can reopen anywhere or send to someone.
+  </p>
 
-      {#if plan && plan.sections.length > 0}
-        <section class="planner-side" aria-label="Plan details">
-          <h2 class="planner-side__heading">
-            Sections ({offerings.length})
-          </h2>
-          <ul class="planner-offerings">
-            {#each courseGroups as group (group.courseCode)}
-              <li class="planner-offering planner-offering--group">
-                <div class="planner-offering__head">
-                  <div class="planner-offering__main">
-                    <span class="planner-offering__course">
-                      {group.courseCode}
-                    </span>
-                    {#if group.title}
-                      <span class="planner-offering__title">{group.title}</span>
-                    {/if}
-                  </div>
-                  <button
-                    type="button"
-                    class="planner-offering__remove"
-                    onclick={() =>
-                      plannerStore.removeOffering(
-                        group.courseCode,
-                        group.sections[0]?.section ?? "",
-                      )}
-                  >
-                    Remove
-                  </button>
+  <div
+    class="planner-body"
+    class:planner-body--no-side={!plan || plan.sections.length === 0}
+  >
+    <PlannerCourseSearch />
+
+    <PlannerGrid
+      sections={plan?.sections ?? []}
+      conflicts={plannerStore.conflicts}
+      alternatives={courseRows}
+      onremove={plannerStore.removeOffering}
+      onopenroom={openRoom}
+      onswap={swapSection}
+    />
+
+    {#if plan && plan.sections.length > 0}
+      <section class="planner-side" aria-label="Plan details">
+        <h2 class="planner-side__heading">
+          Sections ({offerings.length})
+        </h2>
+        <ul class="planner-offerings">
+          {#each courseGroups as group (group.courseCode)}
+            <li class="planner-offering planner-offering--group">
+              <div class="planner-offering__head">
+                <div class="planner-offering__main">
+                  <span class="planner-offering__course">
+                    {group.courseCode}
+                  </span>
+                  {#if group.title}
+                    <span class="planner-offering__title">{group.title}</span>
+                  {/if}
                 </div>
-                <ul class="planner-offering__parts">
-                  {#each group.sections as s (s.type + s.section)}
-                    <li class="planner-offering__part">
-                      <span class="planner-offering__part-type">
-                        {s.type ?? "Class"}
-                      </span>
-                      <span class="planner-offering__part-section">
-                        {s.section}
-                      </span>
-                    </li>
-                  {/each}
-                </ul>
-              </li>
+                <button
+                  type="button"
+                  class="planner-offering__remove"
+                  onclick={() =>
+                    plannerStore.removeOffering(
+                      group.courseCode,
+                      group.sections[0]?.section ?? "",
+                    )}
+                >
+                  Remove
+                </button>
+              </div>
+              <ul class="planner-offering__parts">
+                {#each group.sections as s (s.type + s.section)}
+                  <li class="planner-offering__part">
+                    <span class="planner-offering__part-type">
+                      {s.type ?? "Class"}
+                    </span>
+                    <span class="planner-offering__part-section">
+                      {s.section}
+                    </span>
+                  </li>
+                {/each}
+              </ul>
+            </li>
+          {/each}
+        </ul>
+
+        {#if unscheduled.length > 0}
+          <h2 class="planner-side__heading">Unscheduled (TBA)</h2>
+          <ul class="planner-plain-list">
+            {#each unscheduled as s (s.courseCode + s.section + s.type)}
+              <li>{s.courseCode} {s.type} · {s.section}</li>
             {/each}
           </ul>
+        {/if}
 
-          {#if unscheduled.length > 0}
-            <h2 class="planner-side__heading">Unscheduled (TBA)</h2>
-            <ul class="planner-plain-list">
-              {#each unscheduled as s (s.courseCode + s.section + s.type)}
-                <li>{s.courseCode} {s.type} · {s.section}</li>
-              {/each}
-            </ul>
-          {/if}
+        {#if staleSections.length > 0}
+          <h2 class="planner-side__heading">No longer offered</h2>
+          <ul class="planner-plain-list planner-plain-list--stale">
+            {#each staleSections as s (s.courseCode + s.section + s.type)}
+              <li>{s.courseCode} {s.type} · {s.section}</li>
+            {/each}
+          </ul>
+        {/if}
 
-          {#if staleSections.length > 0}
-            <h2 class="planner-side__heading">No longer offered</h2>
-            <ul class="planner-plain-list planner-plain-list--stale">
-              {#each staleSections as s (s.courseCode + s.section + s.type)}
-                <li>{s.courseCode} {s.type} · {s.section}</li>
-              {/each}
-            </ul>
-          {/if}
-
-          {#if planFinals.length > 0}
-            <h2 class="planner-side__heading">Final exams</h2>
-            <FinalExamsList exams={planFinals} showRoom={true} />
-            <p class="planner-finals-note">{FINALS_SCOPE_NOTE}</p>
-          {/if}
-        </section>
-      {/if}
-    </div>
+        {#if planFinals.length > 0}
+          <h2 class="planner-side__heading">Final exams</h2>
+          <FinalExamsList exams={planFinals} showRoom={true} />
+          <p class="planner-finals-note">{FINALS_SCOPE_NOTE}</p>
+        {/if}
+      </section>
+    {/if}
   </div>
-{/if}
+</div>
 
 <style>
   .planner-screen {
-    position: fixed;
-    inset: 0;
-    /* Below the chrome-popover tier (17) so the term picker portal floats
-       above the planner; still above all map chrome (map-tools 15). */
-    z-index: 16;
+    flex: 1 0 auto;
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    min-height: 0;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     pointer-events: auto;
   }
@@ -580,7 +574,6 @@
     min-width: 0;
     padding: calc(env(safe-area-inset-top, 0px) + 0.375rem) 0.625rem 0.375rem;
     border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    box-shadow: var(--map-chrome-shadow);
   }
 
   .planner-back {

@@ -3,6 +3,7 @@
   import { queryStore } from "@lib/store.svelte";
   import type { RoomData } from "@lib/types";
   import RoomDisplay from "./RoomDisplay.svelte";
+  import TermSelector from "@ui/TermSelector.svelte";
 
   const MAX_DISPLAY_RESULT = 12;
   let paginateOffset = $state(0);
@@ -78,6 +79,7 @@
 
 <section class="entity-list-section rooms-section">
   <h3 class="entity-section-heading">{sectionTitle}</h3>
+  <TermSelector />
   {#if groupByBuilding && buildingGroups}
     {#if buildingGroups.length === 0}
       <p class="entity-empty-state">{emptyMessage}</p>

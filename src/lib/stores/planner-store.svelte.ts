@@ -27,7 +27,6 @@ function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
 }
 
 export class PlannerStore {
-  open = $state(false);
   plans = $state<PlannerPlan[]>([]);
   activePlanIdByTerm = $state<Record<string, string>>({});
   private _hydrated = false;
@@ -67,15 +66,6 @@ export class PlannerStore {
     const state = parsePlanner(localStorage.getItem(PLANNER_LS_KEY));
     this.plans = state.plans;
     this.activePlanIdByTerm = state.activePlanIdByTerm;
-  };
-
-  openPlanner = () => {
-    dismissEphemeralOverlays();
-    this.open = true;
-  };
-
-  close = () => {
-    this.open = false;
   };
 
   /** Add every LEC/LAB row of one offering group. Rows without a natural key are skipped. */
