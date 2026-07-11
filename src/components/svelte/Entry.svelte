@@ -22,7 +22,6 @@
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
   import Map from "@ui/Map.svelte";
-  import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
   import MapViewControls from "@ui/MapViewControls.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import LocationButton from "@ui/LocationButton.svelte";
@@ -34,7 +33,6 @@
   import AccountSettingsModal from "@ui/AccountSettingsModal.svelte";
   import ManageUsersModal from "@ui/modal/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
-  import EditorScreen from "@ui/EditorScreen.svelte";
   import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
@@ -302,8 +300,6 @@
         adminAuthStore.closeLogin();
       } else if (editorChromeStore.additionModalOpen) {
         editorChromeStore.closeAdditionModal();
-      } else if (editorChromeStore.shelfOpen) {
-        editorChromeStore.closeShelf();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
       } else if (jeepneyStore.selectedStopIndex !== null) {
@@ -330,10 +326,9 @@
     {#if sidebarStore.panelOpen === "map"}
       <section
         class="top-right-map-stack"
-        aria-label="Map tools"
+        aria-label="Map camera controls"
         bind:this={mapToolsStackEl}
       >
-        <MapToolsFlyout />
         <section class="desktop-camera-controls" aria-label="Map camera">
           <div class="camera-controls-card">
             <MapDimensionToggle embedded />
@@ -390,7 +385,6 @@
     <ManageUsersModal />
   {/if}
   <EditorAdditionModal />
-  <EditorScreen />
 </div>
 
 <style>

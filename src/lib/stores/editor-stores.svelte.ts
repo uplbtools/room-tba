@@ -3,24 +3,10 @@ import { deactivateMapModesExcept } from "./map-modes.js";
 import type { EventPlacementDraft, MapProposalTarget } from "./store-types.js";
 
 export class EditorChromeStore {
-  shelfOpen = $state(false);
   additionModalOpen = $state(false);
-
-  openShelf = () => {
-    this.shelfOpen = true;
-  };
-
-  closeShelf = () => {
-    this.shelfOpen = false;
-  };
-
-  toggleShelf = () => {
-    this.shelfOpen = !this.shelfOpen;
-  };
 
   openAdditionModal = () => {
     this.additionModalOpen = true;
-    this.shelfOpen = false;
   };
 
   closeAdditionModal = () => {

@@ -12,7 +12,9 @@
   import BusFront from "@lucide/svelte/icons/bus-front";
   import Trophy from "@lucide/svelte/icons/trophy";
   import Globe from "@lucide/svelte/icons/globe";
+  import Wrench from "@lucide/svelte/icons/wrench";
   import HeartHandshake from "@lucide/svelte/icons/heart-handshake";
+  import X from "@lucide/svelte/icons/x";
   import Sparkles from "@lucide/svelte/icons/sparkles";
   import University from "@lucide/svelte/icons/university";
   import UserPlus from "@lucide/svelte/icons/user-plus";
@@ -21,7 +23,6 @@
   import {
     adminAuthStore,
     jeepneyStore,
-    mapToolsStore,
     modalStore,
     queryStore,
     sidebarStore,
@@ -60,13 +61,9 @@
       return;
     }
     if (id === "jeepney") {
-      // Show the routes/stops on the map, then open the Map tools flyout to the
-      // Transit section so the route list is visible to pick from.
+      // Routes browse panel + the transit layer on the map behind it.
       jeepneyStore.enableLayer();
-      mapToolsStore.open = true;
-      mapToolsStore.activeSection = "jeepney";
-      mapToolsStore.expandedSections = new Set(["jeepney"]);
-      sidebarStore.closeRail();
+      openCampusBrowse(queryStore, sidePanelStore, "jeepney");
       return;
     }
     if (id === "events") {
@@ -98,7 +95,8 @@
       queryStore.queryValue === "offices" ||
       queryStore.queryValue === "dorms" ||
       queryStore.queryValue === "landmarks" ||
-      queryStore.queryValue === "services"
+      queryStore.queryValue === "services" ||
+      queryStore.queryValue === "jeepney"
     ) {
       return queryStore.queryValue;
     }
@@ -112,6 +110,17 @@
 </script>
 
 <aside id="app-sidebar" class:retracted={!sidebarStore.railOpen}>
+  <div class="rail-close">
+    <NavLink
+      active={false}
+      hard={false}
+      tooltip="Close menu"
+      aria-label="Close menu"
+      onclick={() => sidebarStore.closeRail()}
+    >
+      <X size={20} />
+    </NavLink>
+  </div>
   <div class="top">
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -365,11 +374,18 @@
         </svg>
       </NavLink>
       <NavLink
-        href="https://uplbtools.me"
-        aria-label="UPLB resources"
-        tooltip="UPLB resources"
+        href="https://guide.stimmie.dev"
+        aria-label="UPLB resources & guides"
+        tooltip="UPLB resources & guides"
       >
         <Globe size={20} />
+      </NavLink>
+      <NavLink
+        href="https://uplbtools.me"
+        aria-label="More UPLB tools"
+        tooltip="More UPLB tools"
+      >
+        <Wrench size={20} />
       </NavLink>
       <NavLink
         active={false}
@@ -435,7 +451,9 @@
       <NavLink
         active={false}
         hard={false}
-        onclick={() => window.open("/privacy", "_blank", "popup=yes")}
+        onclick={() => {
+          window.location.href = "/privacy";
+        }}
         tooltip="Privacy"
       >
         <Cookie size={20} />
@@ -465,11 +483,15 @@
 
 <style>
   aside {
-    padding: 0.5rem;
+    padding: 0.5rem 0.5rem 1.25rem;
     background: white;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
+    /* Expanded groups can outgrow the viewport; the rail itself scrolls. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
     box-shadow:
       0 1px 3px hsla(0, 0%, 0%, 0.12),
       0 4px 12px hsla(0, 0%, 0%, 0.16),
@@ -496,6 +518,11 @@
     gap: 0.25rem;
   }
 
+  /* Rail close affordance is a mobile-overlay concern only. */
+  div.rail-close {
+    display: none;
+  }
+
   @media (max-width: 48rem) {
     /* Overlay drawer: leaves no reserved flex column behind, so the search
        chrome and map data pill hug the viewport edge when it is closed. */
@@ -514,6 +541,12 @@
     aside.retracted {
       transform: translateX(calc(-100% - 0.5rem));
       pointer-events: none;
+    }
+
+    div.rail-close {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0.25rem;
     }
 
     /* Tighter rhythm so the full rail fits small screens. */

@@ -12,13 +12,8 @@ describe("SettingsModal", () => {
     const { container } = render(SettingsModalHost);
 
     expect(screen.getByRole("heading", { name: "Settings" })).toBeVisible();
-    for (const section of [
-      "View",
-      "Legend",
-      "Terrain",
-      "Transit",
-      "Schedule",
-    ]) {
+    // Transit moved to the sidebar's Jeepney routes browse panel.
+    for (const section of ["View", "Legend", "Terrain", "Schedule"]) {
       expect(
         screen.getByRole("heading", { name: section }),
       ).toBeInTheDocument();

@@ -2,7 +2,6 @@
   import MapViewControls from "@ui/MapViewControls.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
-  import JeepneyMenu from "@ui/JeepneyMenu.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import "../map-chrome/map-chrome.css";
 </script>
@@ -21,10 +20,6 @@
     <section class="settings-modal__section">
       <h3>Terrain</h3>
       <TerrainControl embedded />
-    </section>
-    <section class="settings-modal__section">
-      <h3>Transit</h3>
-      <JeepneyMenu embedded />
     </section>
     <section class="settings-modal__section">
       <h3>Schedule</h3>

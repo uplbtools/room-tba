@@ -40,22 +40,22 @@
 
   function toggleMapEditMode() {
     mapEditStore.toggle();
+    // Editing happens on the map; leaving the dialog open would cover it.
+    onclose?.();
   }
 
   function handleAddEvent() {
     if (!beginEventPlacement({ propose: false })) return;
-    editorChromeStore.closeShelf();
     onclose?.();
     toastStore.show("Click the map to place the new event.", "info");
   }
 
   function handleAddToMap() {
-    editorChromeStore.openAdditionModal();
     onclose?.();
+    editorChromeStore.openAdditionModal();
   }
 
   async function handleLogout() {
-    editorChromeStore.closeShelf();
     editorChromeStore.closeAdditionModal();
     mapEditStore.close();
     onclose?.();
@@ -64,19 +64,16 @@
   }
 
   function handleAccountSettings() {
-    editorChromeStore.closeShelf();
     onclose?.();
     adminAuthStore.openAccountSettings();
   }
 
   function handleManageUsers() {
-    editorChromeStore.closeShelf();
     onclose?.();
     adminAuthStore.openManageUsers();
   }
 
   function handleReviewQueue() {
-    editorChromeStore.closeShelf();
     onclose?.();
     modalStore.openModal("review");
   }

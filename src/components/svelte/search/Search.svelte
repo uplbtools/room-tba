@@ -2,44 +2,32 @@
   import { onMount } from "svelte";
   import { debounce } from "es-toolkit";
   import { fade } from "svelte/transition";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import Menu from "@lucide/svelte/icons/menu";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
   import { getAppData } from "@lib/context";
   import { getMapChromeVisibility } from "@lib/map-chrome";
   import {
     adminAuthStore,
-    editorChromeStore,
     mapEditStore,
-    mapToolsStore,
+    modalStore,
     proposalsStore,
     queryStore,
     sidebarStore,
   } from "@lib/store.svelte";
-  import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
-  import { jeepneyStore, plannerStore } from "@lib/store.svelte";
-  import EditorShelf from "@ui/EditorShelf.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
-  import CampusBrowseChips from "@ui/search/CampusBrowseChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
-  import {
-    dropdownFadeIn,
-    dropdownFadeOut,
-    panelFadeIn,
-    panelFadeOut,
-  } from "@lib/motion";
+  import { dropdownFadeIn, dropdownFadeOut } from "@lib/motion";
   import { MediaQuery } from "svelte/reactivity";
 
   let searchElement = $state<HTMLInputElement | null>(null);
   let shellMainEl = $state<HTMLDivElement | null>(null);
   let chromeEl = $state<HTMLDivElement | null>(null);
   let draftInput = $state("");
-  let eventsCollapsed = $state(true);
   let searchFocused = $state(false);
   const mobile = new MediaQuery("max-width:48rem");
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -101,55 +89,16 @@
     searchElement?.focus();
   }
 
-  function openEventsShelf() {
-    searchFocused = false;
-    searchElement?.blur();
-    jeepneyStore.disableLayer();
-    if (mobile.current) {
-      mapToolsStore.close();
-    }
-    eventsCollapsed = false;
-  }
-
-  function closeEventsShelf() {
-    eventsCollapsed = true;
-  }
-
-  function toggleEventsShelf() {
-    if (eventsCollapsed) {
-      openEventsShelf();
-    } else {
-      closeEventsShelf();
-    }
-  }
-
   const clearSelectionLabel = $derived(
     queryStore.type === "result" && queryStore.category !== null
       ? "Close details"
       : "Clear search",
   );
 
-  const showIdleEventsChrome = $derived(
-    chrome.showEventsShelf && queryStore.category === null && draftInput === "",
-  );
-
-  function closeEditorShelf() {
-    editorChromeStore.closeShelf();
-  }
-
-  function openEditorShelf() {
+  function openEditorTools() {
     searchFocused = false;
     searchElement?.blur();
-    closeEventsShelf();
-    editorChromeStore.openShelf();
-  }
-
-  function toggleEditorShelf() {
-    if (editorChromeStore.shelfOpen) {
-      closeEditorShelf();
-    } else {
-      openEditorShelf();
-    }
+    modalStore.openModal("editor-tools");
   }
 
   const showEditorChrome = $derived(
@@ -165,56 +114,12 @@
   );
 
   const showSearchDropdown = $derived(
-    chrome.showSearchSuggestions &&
-      searchFocused &&
-      eventsCollapsed &&
-      !editorChromeStore.shelfOpen,
+    chrome.showSearchSuggestions && searchFocused,
   );
-
-  const showEventsSheet = $derived(showIdleEventsChrome && !eventsCollapsed);
-
-  const showEditorSheet = $derived(
-    showEditorChrome && editorChromeStore.shelfOpen,
-  );
-  const showEditorInline = $derived(showEditorSheet && !mobile.current);
-
-  $effect(() => {
-    if (draftInput.trim() !== "") {
-      closeEventsShelf();
-      closeEditorShelf();
-    }
-  });
 
   $effect(() => {
     if (queryStore.category !== null && queryStore.type === "result") {
-      closeEventsShelf();
-      closeEditorShelf();
       searchElement?.blur();
-    }
-  });
-
-  $effect(() => {
-    if (editorChromeStore.shelfOpen) {
-      closeEventsShelf();
-    }
-  });
-
-  $effect(() => {
-    if (jeepneyStore.layerActive) {
-      closeEventsShelf();
-      closeEditorShelf();
-    }
-  });
-
-  $effect(() => {
-    if (chrome.editMode) {
-      closeEditorShelf();
-    }
-  });
-
-  $effect(() => {
-    if (mobile.current && mapToolsStore.open) {
-      closeEventsShelf();
     }
   });
 </script>
@@ -225,8 +130,6 @@
   class:search-input-focused={searchFocused}
   class:search-suggestions-open={showSearchDropdown}
   class:search-query-active={draftInput.trim() !== ""}
-  class:events-panel-open={showEventsSheet}
-  class:editor-panel-open={showEditorInline}
 >
   <div class="search-shell-main" bind:this={shellMainEl}>
     {#if mobile.current}
@@ -328,20 +231,14 @@
             <button
               type="button"
               class="map-search-chrome__editor-btn"
-              class:map-search-chrome__editor-btn--active={showEditorSheet}
               class:map-search-chrome__editor-btn--editing={mapEditStore.enabled}
-              aria-expanded={showEditorSheet}
-              aria-controls={mobile.current
-                ? "editor-screen"
-                : "editor-shelf-panel"}
-              aria-label={showEditorSheet
-                ? "Close editor tools"
-                : editorOpenLabel}
-              title={showEditorSheet ? "Close editor tools" : editorChipLabel}
+              aria-haspopup="dialog"
+              aria-label={editorOpenLabel}
+              title={editorChipLabel}
               onclick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                toggleEditorShelf();
+                openEditorTools();
               }}
             >
               <ShieldCheck size={18} aria-hidden="true" />
@@ -382,62 +279,12 @@
           {/if}
 
           {#if chrome.showSearchSuggestions}
-            <CampusBrowseChips />
+            <!-- Browsing lives in the sidebar; only the term switch stays here. -->
             <TermSelector />
-            {#if showIdleEventsChrome}
-              <button
-                type="button"
-                class="map-chrome-chip"
-                class:map-chrome-chip--toggle-active={showEventsSheet}
-                aria-expanded={showEventsSheet}
-                aria-controls="persistent-campus-events"
-                aria-label={showEventsSheet
-                  ? "Close campus events"
-                  : "Open campus events"}
-                onclick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  closeEditorShelf();
-                  toggleEventsShelf();
-                }}
-                disabled={!loaded}
-              >
-                <CalendarDays size={14} aria-hidden="true" />
-                <span>Events</span>
-              </button>
-            {/if}
           {/if}
         </div>
       {/if}
 
-      {#if showEventsSheet}
-        <div
-          class="map-search-chrome__events"
-          id="persistent-campus-events"
-          aria-labelledby="persistent-campus-events-heading"
-          in:fade={panelFadeIn(reducedMotion.current)}
-          out:fade={panelFadeOut(reducedMotion.current)}
-        >
-          <EventCards
-            headingId="persistent-campus-events-heading"
-            showHeading={false}
-            showRetract={false}
-            oncollapse={closeEventsShelf}
-          />
-        </div>
-      {/if}
-
-      {#if showEditorInline}
-        <div
-          class="map-search-chrome__editor map-chrome-scroll"
-          id="editor-shelf-panel"
-          aria-label="Editor tools"
-          in:fade={panelFadeIn(reducedMotion.current)}
-          out:fade={panelFadeOut(reducedMotion.current)}
-        >
-          <EditorShelf onclose={closeEditorShelf} />
-        </div>
-      {/if}
     </div>
   </div>
 </div>
@@ -571,27 +418,21 @@
   .search-root.mobile-shell.search-suggestions-open.search-query-active
     .map-search-chrome__transit-routes,
   .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__events,
-  .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__editor {
+    .map-search-chrome__events {
     grid-row: 3;
   }
 
   .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
     .map-search-chrome__transit-routes,
   .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
-    .map-search-chrome__events,
-  .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
-    .map-search-chrome__editor {
+    .map-search-chrome__events {
     grid-row: 4;
   }
 
   .search-root.mobile-shell:not(.search-suggestions-open)
     .map-search-chrome__transit-routes,
   .search-root.mobile-shell:not(.search-suggestions-open)
-    .map-search-chrome__events,
-  .search-root.mobile-shell:not(.search-suggestions-open)
-    .map-search-chrome__editor {
+    .map-search-chrome__events {
     grid-column: 1 / -1;
     grid-row: 3;
     min-width: 0;
@@ -676,12 +517,6 @@
   .map-search-chrome__editor-btn:focus-visible {
     outline: 2px solid hsl(160, 84%, 22%);
     outline-offset: 1px;
-  }
-
-  .map-search-chrome__editor-btn--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 22%);
   }
 
   /* Pinned Planner chip reuses .map-chrome-chip; keep it maroon and collapse
@@ -808,7 +643,7 @@
 
   .search-root.search-suggestions-open:not(.mobile-shell):not(
       .events-panel-open
-    ):not(.editor-panel-open):not(.transit-panel-open)
+    ):not(.transit-panel-open)
     .map-search-chrome__suggestions {
     border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
     border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
@@ -852,7 +687,6 @@
     border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
   }
 
-  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__chips,
   .search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips,
   .search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips {
     border-bottom-left-radius: 0;
@@ -957,39 +791,4 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .map-search-chrome__editor {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    min-height: 0;
-    /* Viewport cap below status bar; dvh-only limits ignore search/chip rows. */
-    max-height: min(
-      24rem,
-      calc(
-        100dvh - var(--status-bar-block-height, 2.75rem) -
-          var(--map-ui-padding, 0.5rem) * 2 - 4.75rem
-      )
-    );
-    overflow-x: clip;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-    padding: 0.375rem 0.625rem 0.625rem;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .search-root.editor-panel-open:not(.mobile-shell) .map-search-chrome__editor {
-    border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-    border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-  }
-
-  .map-search-chrome__editor :global(.editor-shelf) {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
 </style>

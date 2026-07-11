@@ -17,6 +17,7 @@
   import StudentOrgsModal from "./StudentOrgsModal.svelte";
   import SettingsModal from "./SettingsModal.svelte";
   import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
+  import EditorToolsModal from "./EditorToolsModal.svelte";
   import IconButton from "@ui/IconButton.svelte";
   import X from "@lucide/svelte/icons/x";
 
@@ -47,6 +48,7 @@
     if (modalStore.type === "student-orgs") return "Student organizations";
     if (modalStore.type === "settings") return "Settings";
     if (modalStore.type === "jeepney-route") return "Jeepney route";
+    if (modalStore.type === "editor-tools") return "Editor tools";
     return "Dialog";
   });
 
@@ -84,7 +86,11 @@
           ? 'leaderboard-modal-container'
           : modalStore.type === 'changelog' || modalStore.type === 'review'
             ? 'modal-content--large'
-            : ''}"
+            : modalStore.type === 'settings' ||
+                modalStore.type === 'jeepney-route' ||
+                modalStore.type === 'editor-tools'
+              ? 'modal-content--reading'
+              : ''}"
       id="modal-content"
       role="dialog"
       aria-modal="true"
@@ -175,6 +181,15 @@
           <X size={20} aria-hidden="true" />
         </IconButton>
         <JeepneyRouteModal />
+      {:else if modalStore.type === "editor-tools"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close editor tools"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <EditorToolsModal />
       {/if}
     </div>
   </div>
@@ -237,6 +252,10 @@
     flex: 0 1 72rem;
     width: 100%;
     height: min(90dvh, 56rem);
+  }
+  /* Settings/route dialogs cap at a readable measure so lines stay short. */
+  .modal-content--reading {
+    flex: 0 1 38rem;
   }
   .leaderboard-modal-container {
     flex: 0 1 32rem;

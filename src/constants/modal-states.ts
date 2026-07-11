@@ -10,4 +10,5 @@ export const modalOptions = [
   "student-orgs",
   "settings",
   "jeepney-route",
+  "editor-tools",
 ] as const;

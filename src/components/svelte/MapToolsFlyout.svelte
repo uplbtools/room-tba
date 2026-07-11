@@ -19,11 +19,12 @@
   let panelEl = $state<HTMLDivElement | null>(null);
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const mobile = new MediaQuery("max-width:48rem");
+  // Transit moved to the sidebar's Jeepney routes browse panel; Map tools now
+  // mirrors the Settings modal sections.
   const sections: { id: MapToolsSection; label: string }[] = [
     { id: "view", label: "View" },
     { id: "legend", label: "Legend" },
     { id: "terrain", label: "Terrain" },
-    { id: "jeepney", label: "Transit" },
     { id: "schedule", label: "Schedule" },
   ];
 
