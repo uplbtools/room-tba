@@ -27,7 +27,7 @@
   import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
-  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
+  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsPopup.svelte";
   import StatusBarLinkGroups from "./StatusBarLinkGroups.svelte";
   import "../map-chrome/map-chrome.css";
 
