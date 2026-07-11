@@ -12,6 +12,8 @@ export type PlannedSection = {
   courseTitle: string | null;
   /** Natural key no longer resolves after a term reimport. */
   stale?: boolean;
+  /** Personal note attached to the section in this plan. */
+  note?: string;
 };
 
 export type PlannerPlan = {

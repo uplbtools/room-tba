@@ -19,6 +19,7 @@ export default defineConfig({
   integrations: [
     svelte(),
     AstroPWA({
+      registerType: "autoUpdate",
       workbox: {
         // AppRoot includes map + editor + PGlite; auth/proposals pushed it past 2 MiB.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,

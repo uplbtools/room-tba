@@ -15,11 +15,10 @@
   import "./status-bar/status-bar.css";
   import SyncStatus from "./SyncStatus.svelte";
 
+  import { getSyncLadderState } from "@lib/stores/sync-ladder.svelte";
+
   let isOnline = $state(true);
 
-  // A single compact status pill — the sprawling step-by-step detail lives in
-  // the App menu's Data section (SyncStatus expanded), one tap away. Priority:
-  // data load failed > sync failed > update ready > syncing.
   type StatusPill = {
     kind: "error" | "update" | "syncing";
     label: string;
@@ -27,34 +26,14 @@
   };
 
   const statusPill = $derived.by<StatusPill | null>(() => {
-    if (appBootstrapStore.phase === "error") {
-      return {
-        kind: "error",
-        label: "Retry",
-        action: appBootstrapStore.canRetry
-          ? () => appBootstrapStore.retry()
-          : null,
-      };
+    const state = getSyncLadderState();
+    if (state.kind === "bootstrap_error" || state.kind === "sync_error") {
+      return { kind: "error", label: "Retry", action: state.action };
     }
-    if (syncToastStore.syncError !== null) {
-      return {
-        kind: "error",
-        label: "Retry",
-        action: syncToastStore.canRetrySync
-          ? () => syncToastStore.retrySync()
-          : null,
-      };
+    if (state.kind === "update_ready") {
+      return { kind: "update", label: "Update", action: state.action };
     }
-    if (syncToastStore.needRefresh) {
-      // Show the changelog + require an explicit confirm before reloading,
-      // instead of reloading immediately on click.
-      return {
-        kind: "update",
-        label: "Update",
-        action: () => modalStore.openModal("changelog"),
-      };
-    }
-    if (syncToastStore.isSyncing) {
+    if (state.kind === "syncing") {
       return { kind: "syncing", label: "Syncing", action: null };
     }
     return null;

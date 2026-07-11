@@ -116,6 +116,6 @@ describe("amis normalize", () => {
       1231,
     );
 
-    expect(normalized?.schedule).toEqual(["TTH 02:00PM-05:00PM"]);
+    expect(normalized?.schedule).toEqual(["TTh 02:00PM-05:00PM"]);
   });
 });

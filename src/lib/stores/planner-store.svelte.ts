@@ -129,6 +129,18 @@ export class PlannerStore {
     this.persist();
   };
 
+  updateSectionNote = (courseCode: string, section: string, type: string, note: string) => {
+    const plan = this.activePlan;
+    if (!plan) return;
+    const target = plan.sections.find(
+      (s) => s.courseCode === courseCode && s.section === section && s.type === type,
+    );
+    if (target) {
+      target.note = note.trim() || undefined;
+      this.persist();
+    }
+  };
+
   createPlan = (): PlannerPlan | null => {
     if (this.activeTermId == null) return null;
     const plan = this.newPlan(this.activeTermId);
