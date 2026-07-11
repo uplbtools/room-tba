@@ -218,17 +218,6 @@
       {/if}
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">{org.name}</h2>
-        {#if isStudentOrg}
-          <button
-            type="button"
-            class="org-info-btn"
-            onclick={() => modalStore.openModal("student-orgs")}
-            aria-label="About student organization listings"
-            title="About student organization listings"
-          >
-            <Info size={16} aria-hidden="true" />
-          </button>
-        {/if}
       </div>
 
       <div class="entity-meta-row">
@@ -242,6 +231,15 @@
             {categoryLabel}
           </span>
         {/if}
+        {#if org.orgType && org.orgType !== categoryLabel}
+          <span class="entity-meta-chip org-badge">{org.orgType}</span>
+        {/if}
+        {#if org.establishedYear}
+          <span class="entity-meta-chip org-badge">Est. {org.establishedYear}</span>
+        {/if}
+        {#if org.memberCount}
+          <span class="entity-meta-chip org-badge">{org.memberCount} members</span>
+        {/if}
         {#if hostBuilding}
           <button
             type="button"
@@ -250,6 +248,17 @@
           >
             <Building2 size={12} />
             {hostBuilding.buildingName}
+          </button>
+        {/if}
+        {#if isStudentOrg}
+          <button
+            type="button"
+            class="org-info-btn"
+            onclick={() => modalStore.openModal("student-orgs")}
+            aria-label="About student organization listings"
+            title="About student organization listings"
+          >
+            <Info size={14} aria-hidden="true" />
           </button>
         {/if}
       </div>
@@ -284,24 +293,6 @@
 
     {#if !editing}
       <div class="entity-body entity-body--compact">
-        {#if org.orgType || org.establishedYear || org.memberCount}
-          <div class="entity-meta-row org-about-badges">
-            {#if org.orgType}
-              <span class="entity-meta-chip org-badge">{org.orgType}</span>
-            {/if}
-            {#if org.establishedYear}
-              <span class="entity-meta-chip org-badge"
-                >Est. {org.establishedYear}</span
-              >
-            {/if}
-            {#if org.memberCount}
-              <span class="entity-meta-chip org-badge"
-                >{org.memberCount} members</span
-              >
-            {/if}
-          </div>
-        {/if}
-
         {#if org.bio}
           <section class="org-about">
             <h3 class="org-about__title">About the org</h3>
@@ -473,8 +464,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 1.375rem;
+    height: 1.375rem;
     border-radius: 999px;
     color: hsl(265, 45%, 45%);
     cursor: pointer;
@@ -511,11 +502,6 @@
     font-size: 0.8125rem;
     font-weight: 700;
     color: #27272a;
-  }
-
-  .org-about-badges {
-    flex-wrap: wrap;
-    gap: 0.375rem;
   }
 
   .org-field {

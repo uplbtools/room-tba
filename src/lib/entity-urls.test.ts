@@ -66,6 +66,20 @@ describe("entity-urls", () => {
       getOrganizationCanonicalPath({ id: 7, name: "Debate Society" }),
     ).toBe("/organization/debate-society-7/");
     expect(
+      getOrganizationCanonicalPath({
+        id: 7,
+        name: "Debate Society",
+        category: "student-org",
+      }),
+    ).toBe("/organization/debate-society-7/");
+    expect(
+      getOrganizationCanonicalPath({
+        id: 22,
+        name: "Postharvest Center",
+        category: "unit",
+      }),
+    ).toBe("/unit/postharvest-center-22/");
+    expect(
       getPlaceCanonicalPath({
         id: 8,
         name: "But First Coffee",

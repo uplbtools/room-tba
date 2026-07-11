@@ -1,5 +1,6 @@
 import type { SearchCategory } from "./app-data";
 import { isLandmarkPlaceCategory } from "@constants/place-categories";
+import { isStudentOrganization } from "@constants/org-categories";
 import { slugifySegment } from "./site";
 import {
   getDormRouteSlug,
@@ -55,7 +56,7 @@ export type ParsedEntityPath = {
 };
 
 const ENTITY_PATH_PATTERN =
-  /^\/(building|college|division|room|dorm|organization|landmark|establishment|event)\/([^/]+)\/?$/;
+  /^\/(building|college|division|room|dorm|organization|unit|landmark|establishment|event)\/([^/]+)\/?$/;
 
 export function normalizePathname(pathname: string) {
   if (pathname === "/") return "/";
@@ -70,7 +71,9 @@ export function parseEntityPathname(pathname: string): ParsedEntityPath | null {
     category:
       match[1] === "landmark" || match[1] === "establishment"
         ? "place"
-        : (match[1] as RoutableCategory),
+        : match[1] === "unit"
+          ? "organization"
+          : (match[1] as RoutableCategory),
     slug: decodeURIComponent(match[2]),
   };
 }
@@ -104,9 +107,17 @@ export function getDormCanonicalPath(dorm: Pick<DormData, "id" | "dormName">) {
 }
 
 export function getOrganizationCanonicalPath(
-  organization: Pick<OrgData, "id" | "name">,
+  organization: Pick<OrgData, "id" | "name"> &
+    Partial<Pick<OrgData, "category">>,
 ) {
-  return `/organization/${getOrganizationRouteSlug(organization)}/`;
+  // Student community entities live under /organization/; offices and academic
+  // units get /unit/ so their links aren't mislabeled. Old /organization/ links
+  // for units keep resolving via parseEntityPathname.
+  const section =
+    organization.category && !isStudentOrganization(organization.category)
+      ? "unit"
+      : "organization";
+  return `/${section}/${getOrganizationRouteSlug(organization)}/`;
 }
 
 export function getPlaceCanonicalPath(

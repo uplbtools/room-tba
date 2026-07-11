@@ -603,15 +603,6 @@
     "source": "https://www.openstreetmap.org/way/109349304"
   },
   {
-    "name": "University Bookstore",
-    "type": "service",
-    "building_or_area": "UPLBFI Building near the Student Union Building",
-    "description": "Campus bookstore for school supplies and UPLB merchandise.",
-    "lat": 14.163559,
-    "lng": 121.241767,
-    "source": "https://www.openstreetmap.org/node/3706025964"
-  },
-  {
     "name": "Church Among the Palms",
     "type": "service",
     "building_or_area": "Northern main campus near IBS",

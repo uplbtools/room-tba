@@ -58,6 +58,7 @@ const E2E_MIGRATION_FILES = [
   "0028_add_org_about_fields.sql",
   "0029_add_college_division_websites.sql",
   "0030_directory_data_fixes.sql",
+  "0031_directory_data_fixes_2.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {
