@@ -19,6 +19,9 @@ export type JeepneyRoute = {
   id: string;
   name: string;
   description: string;
+  /** How to read the stop order, e.g. Kaliwa vs Kanan running the loop in
+   * opposite directions. Shown prominently in the route modal. */
+  directionNote?: string;
   color: string;
   fare: JeepneyFare;
   stops: JeepneyStop[];
@@ -47,7 +50,9 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     id: "kaliwa-kanan",
     name: "Kaliwa / Kanan",
     description:
-      "Loop between Olivarez Plaza in Los Baños town and the UPLB academic core, passing Raymundo Gate, the Main Library, the dormitories, and CEAT. Kaliwa and Kanan jeeps run the same loop in opposite directions.",
+      "Loop between Olivarez Plaza in Los Baños town and the UPLB academic core, passing Raymundo Gate, the Main Library, the dormitories, and CEAT.",
+    directionNote:
+      "Kaliwa and Kanan are the same loop; the name says which way the jeep turns after entering the UPLB gate. Kaliwa turns left and follows the stops as listed (Carabao Park / DevCom first); Kanan turns right and serves the same stops in reverse (Carabao Park / Landbank first).",
     color: "#dc2626",
     fare: STANDARD_CAMPUS_FARE,
     stops: [

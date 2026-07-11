@@ -136,8 +136,35 @@
     void classVenuesStore.load(termStore.activeTermId);
   });
 
+  // Browsing a sidebar directory declutters the map to just that category's
+  // pins; null means no browse filter (all pin kinds show).
+  const browseTab = $derived(
+    queryStore.category === "browse" ? queryStore.queryValue : null,
+  );
+  const showBuildingPins = $derived(
+    browseTab === null ||
+      browseTab === "buildings" ||
+      browseTab === "colleges" ||
+      browseTab === "divisions",
+  );
+  const showDormPins = $derived(browseTab === null || browseTab === "dorms");
+  const orgPinFilter = $derived.by((): "all" | "student" | "office" | "none" => {
+    if (browseTab === null) return "all";
+    if (browseTab === "organizations") return "student";
+    if (browseTab === "offices") return "office";
+    return "none";
+  });
+  const placePinFilter = $derived.by(
+    (): "all" | "landmark" | "establishment" | "none" => {
+      if (browseTab === null) return "all";
+      if (browseTab === "landmarks") return "landmark";
+      if (browseTab === "services") return "establishment";
+      return "none";
+    },
+  );
+
   const filteredBuildings = $derived.by(() => {
-    if (!loaded) return [];
+    if (!loaded || !showBuildingPins) return [];
     return buildings.filter((building) =>
       buildingMatchesTypeFilter(
         building,
@@ -147,7 +174,7 @@
     );
   });
   const filteredDorms = $derived.by(() => {
-    if (!loaded) return [];
+    if (!loaded || !showDormPins) return [];
     return dorms.filter((dorm) =>
       dormMatchesTypeFilter(dorm, buildingTypeFilter.value),
     );
@@ -169,15 +196,29 @@
   }
 
   const filteredOrganizations = $derived.by(() => {
-    if (!loaded || !mapViewStore.showOrgs) return [];
+    if (!loaded || !mapViewStore.showOrgs || orgPinFilter === "none") return [];
     return organizations.flatMap((org) => {
+      if (orgPinFilter === "student" && !isStudentOrganization(org.category)) {
+        return [];
+      }
+      if (orgPinFilter === "office" && isStudentOrganization(org.category)) {
+        return [];
+      }
       const position = organizationPosition(org);
       return position ? [{ org, ...position }] : [];
     });
   });
   const filteredPlaces = $derived.by(() => {
-    if (!loaded || !mapViewStore.showPlaces) return [];
-    return places.filter((place) => place.lat != null && place.lon != null);
+    if (!loaded || !mapViewStore.showPlaces || placePinFilter === "none") {
+      return [];
+    }
+    return places.filter(
+      (place) =>
+        place.lat != null &&
+        place.lon != null &&
+        (placePinFilter === "all" ||
+          (placePinFilter === "landmark") === isLandmarkPlaceCategory(place.category)),
+    );
   });
 
   function isLandmarkPlace(place: PlaceData) {
@@ -1812,10 +1853,12 @@
     activeRouteStops = route.stops;
     activeRouteColor = route.color;
 
-    // Geometry is resolved synchronously (static import + stop fallback), so the
-    // draw mirrors the event-route layer: paint now if the style is ready, else
-    // once on "load". No "idle" wait — idle may never re-fire on a settled map,
-    // which is why the polyline previously never drew.
+    // Geometry is resolved synchronously (static import + stop fallback).
+    // Readiness gating is deliberately attempt-based: isStyleLoaded() is false
+    // during ANY repaint and "load" fires only once per map lifetime, so
+    // gating on either deadlocks and the polyline never draws. addSource /
+    // addLayer only throw before the initial style load; try now and retry on
+    // "styledata" until one attempt succeeds.
     const geometry = resolveRouteGeometry(route);
     const draw = () => {
       ensureJeepneyRouteLayers(map, route.color);
@@ -1831,13 +1874,22 @@
       fitMapToRoute(map, route);
     };
 
-    if (map.isStyleLoaded()) {
-      draw();
-      return;
-    }
-    map.once("load", draw);
+    const tryDraw = () => {
+      try {
+        draw();
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    if (tryDraw()) return;
+    const onStyleData = () => {
+      if (tryDraw()) map.off("styledata", onStyleData);
+    };
+    map.on("styledata", onStyleData);
     return () => {
-      map.off("load", draw);
+      map.off("styledata", onStyleData);
     };
   });
 

@@ -21,7 +21,7 @@
 </script>
 
 {#if route}
-  <div class="jeepney-modal">
+  <div class="jeepney-modal" style:--route-color={route.color}>
     <header class="jeepney-modal__header">
       <span
         class="jeepney-modal__swatch"
@@ -33,6 +33,10 @@
 
     <div class="jeepney-modal__scroll">
       <p class="jeepney-modal__desc">{route.description}</p>
+
+      {#if route.directionNote}
+        <p class="jeepney-modal__direction">{route.directionNote}</p>
+      {/if}
 
       <dl class="jeepney-modal__fare">
         <div>
@@ -119,7 +123,18 @@
     margin: 0;
     font-size: 0.9375rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 25%);
+    color: hsl(0, 0%, 12%);
+  }
+
+  .jeepney-modal__direction {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border-left: 3px solid var(--route-color, hsl(5, 53%, 32%));
+    border-radius: 0.375rem;
+    background: hsl(40, 60%, 95%);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: hsl(0, 0%, 15%);
   }
 
   .jeepney-modal__fare {
@@ -137,7 +152,8 @@
 
   .jeepney-modal__fare dt {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    font-weight: 600;
+    color: hsl(0, 0%, 28%);
   }
 
   .jeepney-modal__fare dd {
@@ -150,7 +166,7 @@
   .jeepney-modal__fare-note {
     margin: 0;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 45%);
+    color: hsl(0, 0%, 32%);
   }
 
   .jeepney-modal__stops-title {
@@ -166,24 +182,48 @@
     color: hsl(0, 0%, 60%);
   }
 
+  /* Metro-map style: numbered dots in the route color, joined by a line. */
   .jeepney-modal__stops {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
   }
 
   .jeepney-modal__stops li {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.625rem;
+    min-height: 2rem;
+    padding-left: 2.125rem;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 20%);
+    font-weight: 500;
+    color: hsl(0, 0%, 10%);
+  }
+
+  .jeepney-modal__stops li::before {
+    content: "";
+    position: absolute;
+    left: calc(0.75rem - 1.5px);
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: color-mix(in srgb, var(--route-color, #7b1113) 55%, white);
+  }
+
+  .jeepney-modal__stops li:first-child::before {
+    top: 50%;
+  }
+
+  .jeepney-modal__stops li:last-child::before {
+    bottom: 50%;
   }
 
   .jeepney-modal__stop-index {
+    position: absolute;
+    left: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -191,9 +231,11 @@
     height: 1.5rem;
     flex-shrink: 0;
     border-radius: 999px;
-    background: hsl(5, 30%, 94%);
-    color: hsl(5, 40%, 34%);
-    font-size: 0.75rem;
+    background: var(--route-color, hsl(5, 40%, 34%));
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--route-color, #7b1113) 45%, white);
+    color: white;
+    font-size: 0.6875rem;
     font-weight: 700;
   }
 

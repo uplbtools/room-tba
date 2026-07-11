@@ -13,7 +13,9 @@
     isLandmarkPlaceCategory,
     placeDirectoryLabel,
   } from "@constants/place-categories";
-  import { queryStore } from "@lib/store.svelte";
+  import Info from "@lucide/svelte/icons/info";
+  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+  import { jeepneyStore, queryStore } from "@lib/store.svelte";
 
   const appData = getAppData();
   const { buildings, colleges, divisions, dorms, organizations, places, loaded } =
@@ -30,7 +32,8 @@
       value === "organizations" ||
       value === "offices" ||
       value === "landmarks" ||
-      value === "services"
+      value === "services" ||
+      value === "jeepney"
     ) {
       return value;
     }
@@ -53,6 +56,8 @@
         return "Landmarks";
       case "services":
         return "Services & Establishments";
+      case "jeepney":
+        return "Jeepney Routes";
       default:
         return "Buildings";
     }
@@ -101,6 +106,12 @@
           noun: "service or establishment",
           plural: "services & establishments",
           placeholder: "Search services & establishments…",
+        };
+      case "jeepney":
+        return {
+          noun: "jeepney route",
+          plural: "jeepney routes",
+          placeholder: "Search jeepney routes…",
         };
       default:
         return {
@@ -226,6 +237,14 @@
         open: () => openPlace(row.name),
       }));
     }
+    if (activeTab === "jeepney") {
+      return filteredJeepneyRoutes.map((route) => ({
+        id: route.id,
+        label: route.name,
+        meta: `${route.stops.length} stops`,
+        open: () => openJeepneyRoute(route.id),
+      }));
+    }
     return filteredBuildings.map((row) => ({
       id: row.id,
       label: row.buildingName,
@@ -316,6 +335,22 @@
     queryStore.inputValue = name;
   }
 
+  const filteredJeepneyRoutes = $derived.by(() => {
+    if (activeTab !== "jeepney") return [];
+    const needle = filterText.trim().toLowerCase();
+    if (!needle) return JEEPNEY_ROUTES;
+    return JEEPNEY_ROUTES.filter(
+      (route) =>
+        route.name.toLowerCase().includes(needle) ||
+        route.description.toLowerCase().includes(needle) ||
+        route.stops.some((stop) => stop.name.toLowerCase().includes(needle)),
+    );
+  });
+
+  function openJeepneyRoute(id: string) {
+    jeepneyStore.openRouteOnMap(id);
+  }
+
   function closeList() {
     queryStore.clearQuery();
   }
@@ -355,7 +390,41 @@
     role="region"
     aria-label={`${tabMeta.plural} list`}
   >
-    {#if loaded && visibleCount > 0}
+    {#if activeTab === "jeepney" && filteredJeepneyRoutes.length > 0}
+      <ul class="entity-nav-list">
+        {#each filteredJeepneyRoutes as route (route.id)}
+          <li class="jeepney-route-item">
+            <button
+              type="button"
+              class="entity-list-row"
+              class:jeepney-route-item--active={jeepneyStore.selectedRouteId ===
+                route.id}
+              title={`Show ${route.name} on the map`}
+              onclick={() => openJeepneyRoute(route.id)}
+            >
+              <span
+                class="jeepney-route-item__dot"
+                style:background-color={route.color}
+                aria-hidden="true"
+              ></span>
+              <span class="entity-list-row__label">{route.name}</span>
+              <span class="entity-list-row__meta"
+                >{route.stops.length} stops</span
+              >
+            </button>
+            <button
+              type="button"
+              class="jeepney-route-item__info"
+              aria-label={`${route.name} route details`}
+              title="Route details, fare, and stops"
+              onclick={() => jeepneyStore.openRouteModal(route.id)}
+            >
+              <Info size={16} aria-hidden="true" />
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {:else if activeTab !== "jeepney" && loaded && visibleCount > 0}
       <ul class="entity-nav-list">
         {#each visibleItems as item (item.id)}
           <li>
@@ -455,6 +524,47 @@
     font-size: 0.6875rem;
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  .jeepney-route-item {
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+
+  .jeepney-route-item .entity-list-row {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .jeepney-route-item--active {
+    background: hsl(5, 53%, 96%);
+  }
+
+  .jeepney-route-item__dot {
+    flex-shrink: 0;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.85);
+  }
+
+  .jeepney-route-item__info {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: hsl(5, 53%, 32%);
+    cursor: pointer;
+  }
+
+  .jeepney-route-item__info:hover,
+  .jeepney-route-item__info:focus-visible {
+    background: hsl(5, 53%, 96%);
   }
 
   .campus-browse-empty {

@@ -1,27 +1,24 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openMapTools, expandMapToolsSection } from "../helpers/map-tools";
+import { openAppSidebar } from "../helpers/map-tools";
 
 // Advisory (non-blocking): exercises the jeepney transit surface end to end -
-// Map tools → Transit route list → per-route "route details" → JeepneyRouteModal.
-// Kept advisory because it depends on the heavy E2E preview + DB; promote to a
-// blocking smoke spec once the app-menu jeepney entry has a stable seam.
+// sidebar "Jeepney routes" -> browse panel -> per-route details -> modal.
 test.describe("jeepney route details @advisory", () => {
-  test("opens the transit route list and a route details modal", async ({
+  test("opens the transit browse panel and a route details modal", async ({
     page,
   }) => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    await openMapTools(page);
-    await expandMapToolsSection(page, "Transit");
+    const sidebar = await openAppSidebar(page);
+    await sidebar.getByRole("button", { name: /^jeepney routes$/i }).click();
 
-    // The route list is a listbox of route options.
-    const routes = page.getByRole("listbox", { name: /jeepney routes/i });
-    await expect(routes).toBeVisible();
-    await expect(routes.getByRole("option").first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Jeepney Routes/i }),
+    ).toBeVisible({ timeout: 10_000 });
 
-    // Each route exposes a details button that opens the fare/stops modal.
+    // Each route row exposes a details button that opens the fare/stops modal.
     await page
       .getByRole("button", { name: /route details/i })
       .first()
@@ -35,5 +32,9 @@ test.describe("jeepney route details @advisory", () => {
     await expect(
       modal.getByRole("button", { name: /view on map/i }),
     ).toBeVisible();
+
+    // Fare + direction note render.
+    await expect(modal.getByText("₱13")).toBeVisible();
+    await expect(modal.getByText(/same loop/i)).toBeVisible();
   });
 });

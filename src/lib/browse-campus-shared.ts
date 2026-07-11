@@ -6,7 +6,8 @@ export type CampusBrowseTab =
   | "organizations"
   | "offices"
   | "landmarks"
-  | "services";
+  | "services"
+  | "jeepney";
 
 export function campusBrowseQuery(tab: CampusBrowseTab) {
   return {
