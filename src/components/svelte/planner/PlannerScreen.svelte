@@ -1,7 +1,6 @@
 <script lang="ts">
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import Share2 from "@lucide/svelte/icons/share-2";
-  import CalendarPlus from "@lucide/svelte/icons/calendar-plus";
   import ImageDown from "@lucide/svelte/icons/image-down";
   import Pencil from "@lucide/svelte/icons/pencil";
   import Copy from "@lucide/svelte/icons/copy";
@@ -25,6 +24,7 @@
   import { encodeSharePlan } from "@lib/planner/share-codec";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
+  import GoogleCalendarIcon from "@ui/icons/GoogleCalendarIcon.svelte";
   import PlannerCourseSearch from "./PlannerCourseSearch.svelte";
   import PlannerGrid from "./PlannerGrid.svelte";
   import type { ClassMapValue, FinalExamRow } from "@lib/types";
@@ -324,7 +324,7 @@
           ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
           : "Add a scheduled class first"}
       >
-        <CalendarPlus size={15} aria-hidden="true" />
+        <GoogleCalendarIcon size={15} />
         <span class="planner-action__label">Add to Google Calendar</span>
       </button>
       <button
