@@ -142,6 +142,12 @@
       window.history.replaceState({}, "", window.location.pathname);
     }
 
+    // 3D deep link: /building/<slug>/?3d=1 opens the building's 3D viewer.
+    if (urlParams.get("3d") === "1" && initialSearch?.category === "building") {
+      building3DStore.open(initialSearch.value);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
     // Jeepney deep link: ?jeepney=<routeId>[&stop=<index>] opens the route on
     // the map (and focuses a stop when given). Shared from the route modal /
     // stop panel copy-link.
