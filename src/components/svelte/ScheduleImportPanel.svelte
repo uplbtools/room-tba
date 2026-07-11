@@ -5,7 +5,7 @@
     scheduleRouteStore,
     type Weekday,
   } from "@lib/store.svelte";
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { flip } from "svelte/animate";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
   import { WEEKDAY_LABELS, WEEKDAYS } from "@lib/schedule-import/types";
@@ -33,9 +33,14 @@
     plannerStore.init();
   });
 
+  // Track only planKey; importFromPlanner reads/writes other stores and must
+  // stay out of the effect's dependency graph (effect_update_depth_exceeded).
+  let lastPlanKey: string | null = null;
   $effect(() => {
-    void planKey;
-    void scheduleRouteStore.importFromPlanner();
+    const key = planKey;
+    if (key === lastPlanKey) return;
+    lastPlanKey = key;
+    untrack(() => void scheduleRouteStore.importFromPlanner());
   });
 
   function selectWeekday(day: Weekday) {
