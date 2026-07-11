@@ -79,7 +79,7 @@ button.status-bar__pill:hover {
 
 button.status-bar__pill:focus-visible {
   outline: 2px solid currentColor;
-  outline-offset: 1px;
+  outline-offset: -2px; /* badges row clips outward rings */
 }
 
 .status-bar__pill--update {

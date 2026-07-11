@@ -1128,6 +1128,6 @@
 
   .source-link:focus-visible {
     outline: 2px solid #7b1113;
-    outline-offset: 2px;
+    outline-offset: -2px; /* panel scroll body clips outward rings */
   }
 </style>

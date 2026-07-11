@@ -131,6 +131,18 @@
   min-height: 4rem;
 }
 
+/* Inset ring: UA outlines draw outside the box and the editor scroll body
+   (overflow clip) trims them. */
+.editor-control-row input:focus-visible,
+.editor-control-row select:focus-visible,
+.editor-control-row textarea:focus-visible,
+.entity-editor-form .editor-field input:focus-visible,
+.entity-editor-form .editor-field select:focus-visible,
+.entity-editor-form .editor-field textarea:focus-visible {
+  outline: 2px solid #7b1113;
+  outline-offset: -2px;
+}
+
 .field-save-btn {
   flex-shrink: 0;
   border: 1px solid #d8b9ba;
@@ -270,7 +282,7 @@
 
 .entity-editor-submit:focus-visible {
   outline: 2px solid #7b1113;
-  outline-offset: 2px;
+  outline-offset: -2px; /* editor scroll body clips outward rings */
 }
 
 .entity-editor-submit:disabled {
@@ -378,7 +390,7 @@
 .contributor-form .editor-control-row textarea:focus {
   outline: none;
   border-color: hsl(5, 53%, 42%);
-  box-shadow: 0 0 0 2px hsla(5, 53%, 32%, 0.12);
+  box-shadow: inset 0 0 0 2px hsla(5, 53%, 32%, 0.12);
 }
 
 .contributor-form .editor-field textarea,

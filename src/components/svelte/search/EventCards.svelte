@@ -361,7 +361,7 @@
   }
   .event-card:focus-within {
     outline: 2px solid #7b1113;
-    outline-offset: 2px;
+    outline-offset: -2px; /* results scroll body clips outward rings */
   }
   .event-card-main {
     all: unset;

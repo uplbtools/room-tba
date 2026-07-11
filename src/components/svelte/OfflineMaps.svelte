@@ -330,7 +330,7 @@
   }
   .offline-trigger:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
+    outline-offset: -2px; /* status-bar badges row clips outward rings */
   }
 
   .offline-maps.compact {

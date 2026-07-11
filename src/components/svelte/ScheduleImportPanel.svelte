@@ -366,7 +366,7 @@
 
   .schedule-import-panel__stop-card:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
+    outline-offset: -2px; /* modal/flyout scroll body clips outward rings */
   }
 
   .schedule-import-panel__stop-card:active {
