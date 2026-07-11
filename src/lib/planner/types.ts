@@ -12,7 +12,7 @@ export type PlannedSection = {
   courseTitle: string | null;
   /** Natural key no longer resolves after a term reimport. */
   stale?: boolean;
-  /** Personal note attached to the section in this plan. */
+  /** Instructor / section reminder — device-local only, never synced to your account. */
   note?: string;
 };
 

@@ -507,6 +507,10 @@
         <h2 class="planner-side__heading">
           Sections ({offerings.length})
         </h2>
+        <p class="planner-side__hint" role="note">
+          Room TBA cannot show instructor names from AMIS. Write the professor for
+          each section here — stored only on this device, never uploaded or shared.
+        </p>
         <ul class="planner-offerings">
           {#each courseGroups as group (group.courseCode)}
             <li class="planner-offering planner-offering--group">
@@ -545,9 +549,16 @@
                     <input
                       type="text"
                       class="planner-offering__part-note"
-                      placeholder="Add personal note..."
+                      placeholder="Professor (e.g. Dr. Santos)"
+                      aria-label="Professor for {group.courseCode} {s.type} {s.section}"
                       value={s.note ?? ""}
-                      onchange={(e) => plannerStore.updateSectionNote(s.courseCode, s.section, s.type ?? "Class", e.currentTarget.value)}
+                      oninput={(e) =>
+                        plannerStore.updateSectionNote(
+                          s.courseCode,
+                          s.section,
+                          s.type ?? "Class",
+                          e.currentTarget.value,
+                        )}
                     />
                   </li>
                 {/each}
@@ -839,6 +850,13 @@
 
   .planner-side__heading:first-child {
     margin-top: 0;
+  }
+
+  .planner-side__hint {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: hsl(0, 0%, 38%);
   }
 
   .planner-offerings {

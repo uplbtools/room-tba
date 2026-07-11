@@ -12,10 +12,15 @@
     fetchGithubContributors,
     type GithubContributor,
   } from "@lib/github-contributors";
+  import {
+    fetchGithubStarCountCached,
+  } from "@lib/github-stars";
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
   import VisitorCounter from "@ui/VisitorCounter.svelte";
+  import GithubStarLink from "@ui/GithubStarLink.svelte";
+  import { GITHUB_ROOM_TBA_URL } from "@constants/community-links";
   import Download from "@lucide/svelte/icons/download";
   import { untrack } from "svelte";
 
@@ -36,6 +41,7 @@
   let githubLoading = $state(false);
   let githubError = $state<string | null>(null);
   let githubLoaded = $state(false);
+  let githubRepoStars = $state<number | null>(null);
 
   const tabs: { id: LandingTab; label: string }[] = [
     { id: "welcome", label: "Welcome" },
@@ -53,29 +59,34 @@
   const designerPeople = $derived(toAvatarPeople(designers));
   const campusContributorPeople = $derived(toAvatarPeople(contributors));
 
-  async function loadGithubContributors() {
+  async function loadGithubData() {
     if (githubLoaded || githubLoading) return;
     githubLoading = true;
     githubError = null;
     try {
-      githubContributors = await fetchGithubContributors();
+      const [contributorsRes, repoStarsRes] = await Promise.all([
+        fetchGithubContributors(),
+        fetchGithubStarCountCached(),
+      ]);
+      githubContributors = contributorsRes;
+      githubRepoStars = repoStarsRes;
       githubLoaded = true;
     } catch (err) {
       githubError =
-        err instanceof Error ? err.message : "Could not load contributors";
+        err instanceof Error ? err.message : "Could not load GitHub data";
     } finally {
       githubLoading = false;
     }
   }
 
-  function retryGithubContributors() {
+  function retryGithubData() {
     githubLoaded = false;
-    void loadGithubContributors();
+    void loadGithubData();
   }
 
   function selectTab(tab: LandingTab) {
     activeTab = tab;
-    if (tab === "campus") void loadGithubContributors();
+    if (tab === "campus") void loadGithubData();
   }
 
   function handleGetStarted() {
@@ -180,17 +191,24 @@
           loading={githubLoading}
           loaded={githubLoaded}
           error={githubError}
-          onRetry={retryGithubContributors}
+          onRetry={retryGithubData}
         />
 
-        <p class="repo-link">
+        <div class="github-cta">
+          <p class="cta-text">Like the project? Support us by starring the repository!</p>
           <a
             href="https://github.com/uplbtools/room-tba"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-link">View repo on GitHub</a
+            class="cta-button"
           >
-        </p>
+            <span class="cta-button__icon">★</span>
+            <span class="cta-button__text">Star on GitHub</span>
+            {#if githubRepoStars !== null}
+              <span class="cta-button__count">{githubRepoStars.toLocaleString()}</span>
+            {/if}
+          </a>
+        </div>
 
         <section class="community-block">
           <h3>Join the community</h3>
@@ -243,7 +261,10 @@
   </div>
 
   <footer class="actions">
-    <VisitorCounter />
+    <div class="footer-meta">
+      <VisitorCounter />
+      <GithubStarLink />
+    </div>
     <p class="legal-hint">
       <a href="/privacy" class="inline-link">Privacy</a>
       ·
@@ -438,15 +459,60 @@
     text-underline-offset: 2px;
   }
 
-  .repo-link {
-    margin: 0;
-    font-size: 0.8125rem;
+  .github-cta {
+    margin: 1.25rem 0 0.5rem;
+    padding: 1rem;
+    background: hsl(0, 0%, 98%);
+    border: 1px solid hsl(0, 0%, 90%);
+    border-radius: 0.75rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    box-sizing: border-box;
   }
 
-  .repo-link .inline-link {
+  .cta-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: hsl(0, 0%, 25%);
+    font-weight: 500;
+  }
+
+  .cta-button {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    background-color: #24292e;
+    color: white;
+    padding: 0.5rem 1.125rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  .cta-button:hover {
+    background-color: #000000;
+    transform: translateY(-1px);
+  }
+
+  .cta-button:active {
+    transform: translateY(0);
+  }
+
+  .cta-button__icon {
+    margin-right: 0.5rem;
+    font-size: 1.1em;
+  }
+
+  .cta-button__count {
+    margin-left: 0.625rem;
+    padding-left: 0.625rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    font-weight: 700;
   }
 
   .community-block {
@@ -473,6 +539,14 @@
     justify-content: center;
     gap: 0.375rem 0.75rem;
     font-size: 0.8125rem;
+  }
+
+  .footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 0.875rem;
   }
 
   .legal-hint {
