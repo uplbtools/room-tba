@@ -28,7 +28,7 @@ export type JeepneyRoute = {
 export const JEEPNEY_FARE_NOTE =
   "Indicative fare for the 2025-2026 school year; confirm with the driver.";
 
-const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 15, discounted: 12 };
+const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 13, discounted: 11 };
 
 /** Fallback route line when no road-snapped geometry exists: a straight
  * polyline through the route's stops, in GeoJSON [lon, lat] order. */

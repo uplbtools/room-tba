@@ -271,9 +271,7 @@
   const undoMove = $derived(undoStack.at(-1) ?? null);
   const redoMove = $derived(redoStack.at(-1) ?? null);
 
-  async function fetchRouteGeometry(
-    route: JeepneyRoute,
-  ): Promise<LineString | null> {
+  function resolveRouteGeometry(route: JeepneyRoute): LineString | null {
     const cached = jeepneyRouteGeometryCache.get(route.id);
     if (cached) return cached;
 
@@ -1797,67 +1795,49 @@
     const map = mapStore.mapInstance;
     if (!map) return;
 
-    let cancelled = false;
+    const route = selectedId
+      ? (JEEPNEY_ROUTES.find((r) => r.id === selectedId) ?? null)
+      : null;
 
-    const apply = async () => {
-      const route = selectedId
-        ? (JEEPNEY_ROUTES.find((r) => r.id === selectedId) ?? null)
-        : null;
+    if (!route) {
+      activeRouteId = null;
+      activeRouteStops = [];
+      const clear = () => clearJeepneyRouteLayers(map);
+      if (map.isStyleLoaded()) clear();
+      else map.once("load", clear);
+      return;
+    }
 
-      if (!route) {
-        clearJeepneyRouteLayers(map);
-        activeRouteId = null;
-        activeRouteStops = [];
-        return;
-      }
+    activeRouteId = route.id;
+    activeRouteStops = route.stops;
+    activeRouteColor = route.color;
 
-      activeRouteId = route.id;
-      activeRouteStops = route.stops;
-      activeRouteColor = route.color;
-
-      const ensureLayersAndPaint = (geometry: LineString) => {
-        if (cancelled) return;
-        ensureJeepneyRouteLayers(map, route.color);
-        const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
-          mapGl.GeoJSONSource | undefined;
-        const featureCollection: FeatureCollection<LineString> = {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              geometry,
-              properties: { routeId: route.id },
-            },
-          ],
-        };
-        source?.setData(featureCollection);
-      };
-
-      const drawWhenReady = (action: () => void) => {
-        // "load" fires only once per map lifetime, and isStyleLoaded() is
-        // false whenever tiles are still streaming (fitMapToRoute above
-        // guarantees they are), so a "load" listener registered here never
-        // ran and the route polyline silently never drew. "idle" re-fires
-        // after every render settle.
-        if (map.isStyleLoaded()) action();
-        else map.once("idle", action);
-      };
-
-      drawWhenReady(() => {
-        clearJeepneyRouteLayers(map);
-        fitMapToRoute(map, route);
+    // Geometry is resolved synchronously (static import + stop fallback), so the
+    // draw mirrors the event-route layer: paint now if the style is ready, else
+    // once on "load". No "idle" wait — idle may never re-fire on a settled map,
+    // which is why the polyline previously never drew.
+    const geometry = resolveRouteGeometry(route);
+    const draw = () => {
+      ensureJeepneyRouteLayers(map, route.color);
+      const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
+        | mapGl.GeoJSONSource
+        | undefined;
+      source?.setData({
+        type: "FeatureCollection",
+        features: geometry
+          ? [{ type: "Feature", geometry, properties: { routeId: route.id } }]
+          : [],
       });
-
-      const snapped = await fetchRouteGeometry(route);
-      if (!cancelled && snapped) {
-        drawWhenReady(() => ensureLayersAndPaint(snapped));
-      }
+      fitMapToRoute(map, route);
     };
 
-    apply();
-
+    if (map.isStyleLoaded()) {
+      draw();
+      return;
+    }
+    map.once("load", draw);
     return () => {
-      cancelled = true;
+      map.off("load", draw);
     };
   });
 

@@ -93,6 +93,9 @@
     gap: 0.25rem;
     min-width: 0;
     width: 100%;
+    /* all:unset on the option button makes pointer-events inherit; force auto so
+       the row stays clickable inside pointer-events:none map chrome. */
+    pointer-events: auto;
   }
 
   .transit-route-panel--compact .transit-route-row {
@@ -120,6 +123,7 @@
 
   .transit-route-option {
     box-sizing: border-box;
+    pointer-events: auto;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
