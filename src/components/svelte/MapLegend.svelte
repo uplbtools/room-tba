@@ -4,6 +4,7 @@
   import Layers from "@lucide/svelte/icons/layers";
   import X from "@lucide/svelte/icons/x";
   import IconButton from "@ui/IconButton.svelte";
+  import "./map-chrome/map-chrome.css";
   import { getAppData } from "@lib/context";
   import {
     floatingControlPanelStore,
@@ -123,7 +124,7 @@
   }
 </script>
 
-<div class="map-legend" class:embedded>
+<div class="map-legend" class:embedded class:map-legend--open={open}>
   {#if showPanel}
     <div
       id="map-icon-legend"
@@ -248,8 +249,9 @@
 
   {#if !embedded}
     <button
-      class="legend-btn"
-      class:legend-btn--chip={trigger === "chip"}
+      class={trigger === "chip"
+        ? "map-chrome-control-btn map-chrome-control-btn--compact"
+        : "legend-btn"}
       class:active={open}
       type="button"
       onclick={togglePanel}
@@ -259,8 +261,7 @@
       aria-controls="map-icon-legend"
     >
       {#if trigger === "chip"}
-        <Layers size={16} aria-hidden="true" />
-        <span>Legend</span>
+        <Layers size={18} aria-hidden="true" />
       {:else}
         <Info />
       {/if}
@@ -333,45 +334,52 @@
     pointer-events: auto;
   }
 
+  .map-legend--open .legend-panel {
+    position: relative;
+    z-index: 1;
+  }
+
   .legend-btn {
     display: flex;
     width: 3rem;
     height: 3rem;
     align-items: center;
     justify-content: center;
-    border: 1px solid #ececec;
+    border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
     border-radius: 50%;
-    background-color: white;
+    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    backdrop-filter: blur(10px);
     color: hsl(5, 53%, 32%);
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(
+      --map-chrome-shadow,
+      0 0 0 1px hsla(0, 0%, 0%, 0.18),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 8px 20px hsla(0, 0%, 0%, 0.14)
+    );
     transition:
       background-color 0.2s,
-      transform 0.2s;
+      border-color 0.2s;
   }
 
   .legend-btn:hover {
-    background-color: hsl(5, 53%, 98%);
-    transform: scale(1.05);
+    background-color: hsl(0, 0%, 99%);
+    border-color: hsl(5, 53%, 32%);
+  }
+
+  .legend-btn:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
   }
 
   .legend-btn.active {
-    border-color: hsl(5, 53%, 75%);
+    border-color: hsl(5, 53%, 32%);
     background-color: hsl(5, 53%, 32%);
     color: white;
-  }
-
-  .legend-btn--chip {
-    width: auto;
-    /* Match the 3rem circular add/locate buttons beside it. */
-    min-height: 3rem;
-    height: auto;
-    gap: 0.375rem;
-    border-radius: 999px;
-    padding: 0.375rem 0.875rem;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 700;
+    box-shadow:
+      inset 0 0 0 1px hsla(0, 0%, 100%, 0.2),
+      0 2px 6px hsla(0, 0%, 0%, 0.18),
+      0 6px 14px hsla(0, 0%, 0%, 0.12);
   }
 
   .legend-panel {

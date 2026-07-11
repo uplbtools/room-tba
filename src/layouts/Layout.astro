@@ -162,13 +162,30 @@ const shareTitle = ogTitle ?? title;
     <Analytics />
     <script is:inline define:vars={{ splashLines: LOADING_SPLASH_MESSAGES }}>
       (() => {
-        // Deterministic witty splash line: rotates by wall-clock minute.
         const splashEl = document.querySelector(".app-loading-shell__splash");
-        if (splashEl) {
-          splashEl.textContent =
-            splashLines[new Date().getMinutes() % splashLines.length];
+        let splashIndex = 0;
+        let splashTimer = null;
+
+        function showSplashLine() {
+          if (!splashEl) return;
+          splashEl.textContent = splashLines[splashIndex % splashLines.length];
+          splashIndex += 1;
         }
+
+        function stopSplashRotation() {
+          if (splashTimer !== null) {
+            clearInterval(splashTimer);
+            splashTimer = null;
+          }
+        }
+
+        if (splashEl) {
+          showSplashLine();
+          splashTimer = setInterval(showSplashLine, 3_500);
+        }
+
         function dismissLoadingShell() {
+          stopSplashRotation();
           document.getElementById("app-loading-shell")?.remove();
         }
         document.addEventListener(
