@@ -32,6 +32,7 @@
     "e2e:staging": "playwright test -c playwright.staging.config.ts",
     "e2e:reset-db": "bun run scripts/e2e-reset-db.ts",
     "check:migrations": "bun run scripts/check-migrations.ts",
+    "apply:migrations:prod": "bun run scripts/apply-migrations.ts --prod",
     "check:bundle": "bun run scripts/check-bundle-budget.ts",
     "generate:issue-test-matrix": "bun run scripts/generate-issue-test-matrix.ts /tmp/all-issues.json",
     "generate:test-inventory": "bun run scripts/generate-test-inventory.ts",
