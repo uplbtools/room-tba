@@ -3,6 +3,7 @@ export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import * as changelog from "../../CHANGELOG.md";
+import releaseTimestamps from "../generated/release-timestamps.json";
 ---
 
 <Layout
@@ -32,7 +33,7 @@ import * as changelog from "../../CHANGELOG.md";
     <SiteFooter />
   </main>
 
-  <script is:inline>
+  <script is:inline define:vars={{ releaseTimestamps }}>
     (() => {
       const container = document.querySelector(".changelog-page div.entries");
       if (!container) return;
@@ -56,6 +57,36 @@ import * as changelog from "../../CHANGELOG.md";
       }
 
       container.replaceChildren(fragment);
+
+      // Swap the date-only heading suffix for the exact release timestamp.
+      const formatter = new Intl.DateTimeFormat("en-PH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "Asia/Manila",
+      });
+      for (const heading of container.querySelectorAll("h1, h2")) {
+        const version = heading
+          .querySelector("a")
+          ?.textContent?.trim()
+          .replace(/^v/, "");
+        const iso = version ? releaseTimestamps[version] : null;
+        if (!iso) continue;
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) continue;
+        const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+        for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+          if (/\(\d{4}-\d{2}-\d{2}\)/.test(text.nodeValue ?? "")) {
+            text.nodeValue = text.nodeValue.replace(
+              /\(\d{4}-\d{2}-\d{2}\)/,
+              `(${formatter.format(date)})`,
+            );
+            break;
+          }
+        }
+      }
     })();
   </script>
 </Layout>
