@@ -492,5 +492,13 @@
     .course-search__list {
       overflow-y: visible;
     }
+
+    /* With the list unscrolled, sticky would pin the "Showing X of Y" note to
+       the planner-body scrollport and paint it over course rows; keep it in
+       flow at the end of the list instead. */
+    .course-search__note {
+      position: static;
+      border-top: 0;
+    }
   }
 </style>

@@ -304,6 +304,16 @@
   in:fly={fullScreenReveal(reducedMotion.current)}
 >
   <header class="planner-header">
+    <button
+      type="button"
+      class="planner-back"
+      onclick={close}
+      aria-label="Back to map"
+      title="Back to map"
+    >
+      <ChevronLeft size={18} aria-hidden="true" />
+      <span>Back to map</span>
+    </button>
     <h1 class="planner-title" id="planner-screen-title">Class Planner</h1>
     {#if termStore.terms.length > 0}
       <TermSelector variant="chip" />
@@ -567,7 +577,14 @@
 
 <style>
   .planner-screen {
-    flex: 1 0 auto;
+    /* Shrinkable (flex 1 1) + min-width 0: the .ui-layer parent is a row flex
+       pinned to the viewport, so a shrink-0 child inherits its widest row's
+       min-content width and pushes the page sideways on phones. Inner rows
+       (tabs, week grid) own their horizontal scrolling; the root never does. */
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
     display: flex;
     flex-direction: column;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
@@ -582,6 +599,12 @@
     min-width: 0;
     padding: calc(env(safe-area-inset-top, 0px) + 0.375rem) 0.625rem 0.375rem;
     border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+  }
+
+  /* The chip ships flex: 0 0 auto; let it shrink here (its label already
+     ellipsizes) so the header row fits 320-375px without clipping actions. */
+  .planner-header :global(.term-filter-chip) {
+    flex-shrink: 1;
   }
 
   .planner-back {
