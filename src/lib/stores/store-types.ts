@@ -1,8 +1,5 @@
 import type { modalOptions } from "@constants/modal-states";
-import type {
-  ImportedScheduleRow,
-  Weekday,
-} from "@lib/schedule-import/types.js";
+import type { Weekday } from "@lib/schedule-import/types.js";
 
 export type LandingModalTab = "welcome" | "campus";
 
@@ -120,6 +117,5 @@ export const PLANNER_LS_KEY = "room-tba-planner";
 export const SCHEDULE_IMPORT_SS_KEY = "room-tba-schedule-import";
 
 export type ScheduleImportPersisted = {
-  importedRows: ImportedScheduleRow[];
   selectedWeekday: Weekday;
 };
