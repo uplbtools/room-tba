@@ -1,6 +1,16 @@
-import { appBootstrapStore, syncToastStore, modalStore } from "@lib/store.svelte";
+import {
+  appBootstrapStore,
+  syncToastStore,
+  modalStore,
+} from "@lib/store.svelte";
 
-export type SyncLadderKind = "bootstrap_error" | "sync_error" | "update_ready" | "syncing" | "synced" | "initializing";
+export type SyncLadderKind =
+  | "bootstrap_error"
+  | "sync_error"
+  | "update_ready"
+  | "syncing"
+  | "synced"
+  | "initializing";
 
 export function getSyncLadderState() {
   if (appBootstrapStore.phase === "error") {
@@ -9,7 +19,9 @@ export function getSyncLadderState() {
       label: appBootstrapStore.errorMessage ?? "Could not load campus data",
       detail: "Map is available; campus data failed to load.",
       actionLabel: "Try again",
-      action: appBootstrapStore.canRetry ? () => appBootstrapStore.retry() : null,
+      action: appBootstrapStore.canRetry
+        ? () => appBootstrapStore.retry()
+        : null,
       canRetry: appBootstrapStore.canRetry,
     };
   }
@@ -19,7 +31,9 @@ export function getSyncLadderState() {
       label: syncToastStore.stepLabel,
       detail: syncToastStore.stepDetail,
       actionLabel: "Retry",
-      action: syncToastStore.canRetrySync ? () => syncToastStore.retrySync() : null,
+      action: syncToastStore.canRetrySync
+        ? () => syncToastStore.retrySync()
+        : null,
       canRetry: syncToastStore.canRetrySync,
     };
   }

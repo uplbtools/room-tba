@@ -21,6 +21,7 @@
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
 
@@ -197,20 +198,12 @@
         {/if}
         {#if place.websiteLink}
           <li>
-            <a
-              href={place.websiteLink}
-              target="_blank"
-              rel="noopener noreferrer">Website</a
-            >
+            <EntityExternalLink href={place.websiteLink} label="Website" />
           </li>
         {/if}
         {#if place.facebookLink}
           <li>
-            <a
-              href={place.facebookLink}
-              target="_blank"
-              rel="noopener noreferrer">Facebook</a
-            >
+            <EntityExternalLink href={place.facebookLink} label="Facebook" />
           </li>
         {/if}
       </ul>
