@@ -1,8 +1,8 @@
 /**
- * Add missing UPLB offices and units from UPLB TRAIL's public website directory.
+ * Add missing UPLB offices and units from the public campus website directory.
  *
  * Usage:
- *   DATABASE_URL=... bun run scripts/import-uplb-trail-directory.ts [--dry-run]
+ *   DATABASE_URL=... bun run scripts/import-campus-office-directory.ts [--dry-run]
  */
 
 import { config } from "dotenv";
@@ -18,34 +18,37 @@ import {
 } from "@drizzle/schema";
 import { normalizeAlias } from "@lib/site";
 import {
-  trailDirectoryEntries,
-  type TrailWebsite,
-} from "@lib/uplb-trail-directory";
+  campusOfficeDirectoryEntries,
+  type CampusWebsite,
+} from "@lib/campus-office-directory";
 
-const TRAIL_WEBSITES_API =
+const CAMPUS_WEBSITES_API =
   "https://iaepijmnqstgxtivmlsh.supabase.co/rest/v1/websites?select=name,url,description,category&order=name";
-const TRAIL_PUBLIC_KEY = "sb_publishable_JL-xKlm48a57Lkoi7JK1MQ_6lBlLxGL";
+const CAMPUS_DIRECTORY_PUBLIC_KEY =
+  "sb_publishable_JL-xKlm48a57Lkoi7JK1MQ_6lBlLxGL";
 
 config({ path: ".env" });
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required");
 
-const response = await fetch(TRAIL_WEBSITES_API, {
-  headers: { apikey: TRAIL_PUBLIC_KEY },
+const response = await fetch(CAMPUS_WEBSITES_API, {
+  headers: { apikey: CAMPUS_DIRECTORY_PUBLIC_KEY },
 });
 if (!response.ok) {
   throw new Error(
-    `UPLB TRAIL request failed: ${response.status} ${response.statusText}`,
+    `Campus directory request failed: ${response.status} ${response.statusText}`,
   );
 }
 
-const sources = (await response.json()) as TrailWebsite[];
+const sources = (await response.json()) as CampusWebsite[];
 if (sources.length < 150) {
-  throw new Error(`UPLB TRAIL returned only ${sources.length} website records`);
+  throw new Error(
+    `Campus directory returned only ${sources.length} website records`,
+  );
 }
 
-const entries = trailDirectoryEntries(sources);
+const entries = campusOfficeDirectoryEntries(sources);
 const nameKeys = (name: string) => {
   const keys = [normalizeAlias(name)];
   const bare = name.replace(/\s*\([^)]*\)\s*$/, "");
@@ -113,7 +116,7 @@ try {
 
   if (process.argv.includes("--dry-run")) {
     console.log(
-      `UPLB TRAIL: ${sources.length} links, ${entries.length} eligible units, ${additions.length} to add, ${linkUpdates.length} links to enrich, ${covered} covered elsewhere.`,
+      `Campus offices: ${sources.length} links, ${entries.length} eligible units, ${additions.length} to add, ${linkUpdates.length} links to enrich, ${covered} covered elsewhere.`,
     );
   } else {
     await db.transaction(async (tx) => {
@@ -150,7 +153,7 @@ try {
       }
     });
     console.log(
-      `Added ${additions.length} UPLB TRAIL units and enriched ${linkUpdates.length} existing links.`,
+      `Added ${additions.length} campus units and enriched ${linkUpdates.length} existing links.`,
     );
   }
 } finally {

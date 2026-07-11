@@ -34,6 +34,7 @@
   import Undo2 from "@lucide/svelte/icons/undo-2";
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import University from "@lucide/svelte/icons/university";
+  import Landmark from "@lucide/svelte/icons/landmark";
   import EventMapPin from "./map/EventMapPin.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
@@ -42,7 +43,14 @@
   import type { StyleSpecification } from "maplibre-gl";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { BuildingData, DormData, EventData, PlaceData } from "@lib/types";
+  import type {
+    BuildingData,
+    DormData,
+    EventData,
+    OrgData,
+    PlaceData,
+  } from "@lib/types";
+  import { isStudentOrganization } from "@constants/org-categories";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import {
     JEEPNEY_ROUTES,
@@ -140,25 +148,25 @@
   // Organizations pin at their own coordinate, else fall back to the coords of
   // the building they sit in. Orgs without any resolvable location are dropped
   // from the map (they still appear in the directory list).
+  function organizationPosition(org: OrgData) {
+    let lat = org.lat;
+    let lon = org.lon;
+    if ((lat === null || lon === null) && org.buildingId !== null) {
+      const host = buildings.find((building) => building.id === org.buildingId);
+      if (host) {
+        lat = host.lat;
+        lon = host.lon;
+      }
+    }
+    return lat !== null && lon !== null ? { lat, lon } : null;
+  }
+
   const filteredOrganizations = $derived.by(() => {
     if (!loaded || !mapViewStore.showOrgs) return [];
-    return organizations
-      .map((org) => {
-        let lat = org.lat;
-        let lon = org.lon;
-        if ((lat === null || lon === null) && org.buildingId !== null) {
-          const host = buildings.find((b) => b.id === org.buildingId);
-          if (host) {
-            lat = host.lat;
-            lon = host.lon;
-          }
-        }
-        return { org, lat, lon };
-      })
-      .filter(
-        (entry): entry is { org: (typeof organizations)[number]; lat: number; lon: number } =>
-          entry.lat !== null && entry.lon !== null,
-      );
+    return organizations.flatMap((org) => {
+      const position = organizationPosition(org);
+      return position ? [{ org, ...position }] : [];
+    });
   });
   const filteredPlaces = $derived.by(() => {
     if (!loaded || !mapViewStore.showPlaces) return [];
@@ -721,6 +729,20 @@
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
         if (currentEvent) focusMapOnEvent(map, currentEvent);
+      } else if (category === "organization") {
+        if (!loaded) return;
+        mapViewStore.showOrgs = true;
+        const currentOrg = organizations.find((org) => org.name === value);
+        const position = currentOrg ? organizationPosition(currentOrg) : null;
+        if (position) {
+          map.flyTo({
+            center: [position.lon, position.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
       }
     });
   }
@@ -1930,13 +1952,20 @@
   function handleOrgMarkerClick(name: string) {
     if (eventPlacementStore.active) return;
     if (isMapEditEnabled() && selectedEditKey !== null) return;
-    if (name === queryStore.inputValue) return;
+    if (
+      queryStore.category === "organization" &&
+      name === queryStore.inputValue
+    ) {
+      sidePanelStore.expand();
+      return;
+    }
     queryStore.updateQuery({
       category: "organization",
       type: "result",
       value: name,
     });
     queryStore.inputValue = name;
+    sidePanelStore.expand();
   }
 
   function handleEventMarkerClick(event: EventData) {
@@ -2764,12 +2793,18 @@
             <Marker lngLat={[lon, lat]}>
               <MapEntityPin
                 label={org.name}
-                tone="organization"
+                tone={isStudentOrganization(org.category)
+                  ? "organization"
+                  : "office"}
                 active={activeOrgName === org.name}
                 labelVisible={zoomLevel >= 17 || activeOrgName === org.name}
                 onclick={() => handleOrgMarkerClick(org.name)}
               >
-                <Users size="16" />
+                {#if isStudentOrganization(org.category)}
+                  <Users size="16" />
+                {:else}
+                  <Landmark size="16" />
+                {/if}
               </MapEntityPin>
             </Marker>
           {/each}

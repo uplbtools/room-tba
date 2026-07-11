@@ -16,7 +16,11 @@
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import type { OrgData } from "@lib/types";
-  import { orgCategoryLabel, ORG_CATEGORIES } from "@constants/org-categories";
+  import {
+    isStudentOrganization,
+    orgCategoryLabel,
+    ORG_CATEGORIES,
+  } from "@constants/org-categories";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
 
@@ -29,9 +33,7 @@
   );
 
   const categoryLabel = $derived(org ? orgCategoryLabel(org.category) : null);
-  const isStudentOrganization = $derived(
-    org?.category === "student-org" || org?.category === "college-org",
-  );
+  const isStudentOrg = $derived(isStudentOrganization(org?.category));
 
   // Resolve the host building (for the "located in" link and coord fallback).
   const hostBuilding = $derived(
@@ -175,7 +177,7 @@
     <header class="entity-header">
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">{org.name}</h2>
-        {#if isStudentOrganization}
+        {#if isStudentOrg}
           <button
             type="button"
             class="org-info-btn"
@@ -191,7 +193,7 @@
       <div class="entity-meta-row">
         {#if categoryLabel}
           <span class="entity-meta-chip org-badge">
-            {#if isStudentOrganization}
+            {#if isStudentOrg}
               <Users size={12} />
             {:else}
               <Building2 size={12} />

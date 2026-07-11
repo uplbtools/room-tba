@@ -43,7 +43,7 @@
     "seed:events": "bun src/seed-events.ts",
     "seed:aliases": "bun run scripts/seed-aliases.ts",
     "import:osa-orgs": "bun run scripts/import-osa-organizations.ts",
-    "import:uplb-trail": "bun run scripts/import-uplb-trail-directory.ts",
+    "import:campus-offices": "bun run scripts/import-campus-office-directory.ts",
     "import:amis-classes": "bun run scripts/import-amis-classes.ts",
     "import:final-exams": "bun run scripts/import-final-exams.ts",
     "release": "semantic-release",

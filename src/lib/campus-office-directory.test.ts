@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { trailDirectoryEntries } from "./uplb-trail-directory.ts";
+import { campusOfficeDirectoryEntries } from "./campus-office-directory.ts";
 
-describe("trailDirectoryEntries", () => {
+describe("campusOfficeDirectoryEntries", () => {
   test("keeps a canonical office entry and prefers its official site", () => {
-    const entries = trailDirectoryEntries([
+    const entries = campusOfficeDirectoryEntries([
       {
         name: "OSA FB Page",
         url: "https://www.facebook.com/uplbosa.ovcsa/",
