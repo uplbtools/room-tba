@@ -1,4 +1,16 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
+
+export async function openAppSidebar(page: Page): Promise<Locator> {
+  const sidebar = page.locator("#app-sidebar");
+  const menuButton = page.getByRole("button", { name: /app menu/i });
+
+  if (await sidebar.evaluate((el) => el.classList.contains("retracted"))) {
+    await menuButton.click();
+  }
+
+  await expect(sidebar).not.toHaveClass(/retracted/);
+  return sidebar;
+}
 
 export async function openMapTools(page: Page) {
   const mapMenu = page.getByRole("button", { name: /map menu/i });
