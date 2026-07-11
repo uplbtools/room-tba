@@ -3,6 +3,8 @@
   import BookText from "@lucide/svelte/icons/book-text";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
+  import House from "@lucide/svelte/icons/house";
+  import Store from "@lucide/svelte/icons/store";
   import University from "@lucide/svelte/icons/university";
   import Users from "@lucide/svelte/icons/users";
   import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
@@ -29,9 +31,13 @@
     icon: typeof University;
   }[] = [
     { id: "buildings", label: "Buildings", icon: University },
+    { id: "dorms", label: "Dorms", icon: House },
     { id: "colleges", label: "Colleges", icon: GraduationCap },
     { id: "divisions", label: "Divisions", icon: Landmark },
     { id: "organizations", label: "Orgs", icon: Users },
+    { id: "offices", label: "Units & offices", icon: Landmark },
+    { id: "landmarks", label: "Landmarks", icon: Landmark },
+    { id: "services", label: "Services & establishments", icon: Store },
     { id: "classes", label: "Classes", icon: BookText },
   ];
   function handleBrowse(id: string) {
@@ -48,7 +54,11 @@
     if (
       queryStore.queryValue === "colleges" ||
       queryStore.queryValue === "divisions" ||
-      queryStore.queryValue === "organizations"
+      queryStore.queryValue === "organizations" ||
+      queryStore.queryValue === "offices" ||
+      queryStore.queryValue === "dorms" ||
+      queryStore.queryValue === "landmarks" ||
+      queryStore.queryValue === "services"
     ) {
       return queryStore.queryValue;
     }
@@ -57,7 +67,7 @@
   const mapCategoriesOpen = $derived(sidebarStore.panelOpen === "map");
 </script>
 
-<aside>
+<aside class:retracted={queryStore.category !== null}>
   <div class="top">
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -377,5 +387,16 @@
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  @media (max-width: 48rem) {
+    aside {
+      transition: transform var(--motion-duration-fast, 150ms) ease;
+    }
+
+    aside.retracted {
+      transform: translateX(calc(-100% - 0.5rem));
+      pointer-events: none;
+    }
   }
 </style>

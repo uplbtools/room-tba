@@ -256,6 +256,8 @@ export function adminPatchPath(
       return `/api/admin/buildings/${entityId}`;
     case "dorm":
       return `/api/admin/dorms/${entityId}`;
+    case "place":
+      return `/api/admin/places/${entityId}`;
     case "room":
       return `/api/admin/rooms/${entityId}`;
     case "college":
@@ -317,6 +319,7 @@ export async function publishEntityPatch(
   const entity =
     payload.building ??
     payload.dorm ??
+    payload.place ??
     payload.room ??
     payload.college ??
     payload.division ??
@@ -445,6 +448,8 @@ function adminCreatePath(entityType: ProposalCreateType): string {
       return "/api/admin/rooms";
     case "create_dorm":
       return "/api/admin/dorms";
+    case "create_place":
+      return "/api/admin/places";
     case "create_college":
       return "/api/admin/colleges";
     case "create_division":
@@ -475,6 +480,7 @@ export async function publishEntityCreate(
     payload.building ??
     payload.room ??
     payload.dorm ??
+    payload.place ??
     payload.college ??
     payload.division ??
     payload.event ??

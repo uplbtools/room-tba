@@ -1,0 +1,68 @@
+---
+import EntityPage from "@seo/EntityPage.astro";
+import { placeCategoryLabel } from "@constants/place-categories";
+import { getPlaceCanonicalPath } from "@lib/entity-urls";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  ogImageUrl,
+  webpageSchema,
+} from "@lib/site";
+import type { PlaceData } from "@lib/types";
+
+const { place } = Astro.props as { place: PlaceData };
+const category = placeCategoryLabel(place.category) ?? "Campus place";
+const canonicalPath = getPlaceCanonicalPath(place);
+const title = `${place.name} | ${category} at UPLB | Room TBA`;
+const description = place.description
+  ? `${place.name} is listed as a ${category.toLowerCase()} at UPLB. ${place.description}`
+  : `Find ${place.name}, a ${category.toLowerCase()} at UPLB, on the Room TBA campus map.`;
+const facts = [
+  category,
+  place.hours ? `Hours: ${place.hours}` : null,
+  place.websiteLink ? "Website available" : null,
+].filter((fact): fact is string => Boolean(fact));
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: category, path: canonicalPath },
+    { name: place.name, path: canonicalPath },
+  ]),
+  {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: place.name,
+    description,
+    url: absoluteUrl(canonicalPath),
+    image: ogImageUrl(place.imageUrl ?? undefined),
+    geo:
+      place.lat !== null && place.lon !== null
+        ? {
+            "@type": "GeoCoordinates",
+            latitude: place.lat,
+            longitude: place.lon,
+          }
+        : undefined,
+  },
+);
+---
+
+<EntityPage
+  {title}
+  {description}
+  {canonicalPath}
+  image={place.imageUrl ? { src: place.imageUrl, alt: place.name } : null}
+  ogCard={{ title: place.name, subtitle: "UPLB Los Baños", kicker: category }}
+  heading={`${place.name} at UPLB`}
+  intro={description}
+  {facts}
+  breadcrumbs={[
+    { href: "/", label: "Home" },
+    { href: canonicalPath, label: category },
+    { href: canonicalPath, label: place.name },
+  ]}
+  {structuredData}
+  initialSearch={{ category: "place", value: place.name }}
+/>

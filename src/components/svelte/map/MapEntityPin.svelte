@@ -7,7 +7,9 @@
     | "dorm"
     | "privateDorm"
     | "organization"
-    | "office";
+    | "office"
+    | "landmark"
+    | "establishment";
   type EntityPinSaveState = "idle" | "saving" | "saved" | "failed";
 
   type Props = {
@@ -82,6 +84,8 @@
   class:private={tone === "privateDorm"}
   class:organization={tone === "organization"}
   class:office={tone === "office"}
+  class:landmark={tone === "landmark"}
+  class:establishment={tone === "establishment"}
   class:central-hover-preview={useCentralHoverPreview}
   class:editable={showExpandedPin}
   class:editing
@@ -156,6 +160,14 @@
     background-color: hsl(208, 52%, 42%);
   }
 
+  .map-entity-pin.landmark {
+    background-color: hsl(34, 62%, 42%);
+  }
+
+  .map-entity-pin.establishment {
+    background-color: hsl(334, 54%, 43%);
+  }
+
   .map-entity-pin.active {
     z-index: 85;
   }
@@ -188,12 +200,28 @@
     outline-color: hsl(208, 52%, 52%);
   }
 
+  .map-entity-pin.landmark.active::before {
+    outline-color: hsl(34, 62%, 52%);
+  }
+
+  .map-entity-pin.establishment.active::before {
+    outline-color: hsl(334, 54%, 53%);
+  }
+
   .map-entity-pin:hover.organization {
     background-color: hsl(265, 45%, 58%);
   }
 
   .map-entity-pin:hover.office {
     background-color: hsl(208, 52%, 52%);
+  }
+
+  .map-entity-pin:hover.landmark {
+    background-color: hsl(34, 62%, 52%);
+  }
+
+  .map-entity-pin:hover.establishment {
+    background-color: hsl(334, 54%, 53%);
   }
 
   .map-entity-pin.active.organization .pin-label {
@@ -203,6 +231,16 @@
 
   .map-entity-pin.active.office .pin-label {
     background-color: hsl(208, 52%, 42%);
+    color: white;
+  }
+
+  .map-entity-pin.active.landmark .pin-label {
+    background-color: hsl(34, 62%, 42%);
+    color: white;
+  }
+
+  .map-entity-pin.active.establishment .pin-label {
+    background-color: hsl(334, 54%, 43%);
     color: white;
   }
 

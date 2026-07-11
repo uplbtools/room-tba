@@ -64,10 +64,21 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
         ? (appData.dorms?.find((entry) => entry.dormName === query.value) ??
           null)
         : null;
+    const organization =
+      query.category === "organization"
+        ? (appData.organizations?.find((entry) => entry.name === query.value) ??
+          null)
+        : null;
+    const place =
+      query.category === "place"
+        ? (appData.places?.find((entry) => entry.name === query.value) ?? null)
+        : null;
 
     return getEntityCanonicalPath(query, {
       room: currentRoom.value,
       dorm,
+      organization,
+      place,
     });
   }
 
@@ -107,6 +118,8 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       colleges: appData.colleges,
       divisions: appData.divisions,
       dorms: appData.dorms,
+      organizations: appData.organizations,
+      places: appData.places,
     });
 
     if (!resolved) return;

@@ -74,7 +74,7 @@ describe("validateCreateProposalPatch", () => {
     ).not.toThrow();
   });
 
-  test("create_organization requires name and valid category", () => {
+  test("create_organization requires a name, valid category, and map pin", () => {
     expect(() =>
       validateCreateProposalPatch("create_organization", {
         name: "UP Circle",
@@ -92,6 +92,28 @@ describe("validateCreateProposalPatch", () => {
       validateCreateProposalPatch("create_organization", {
         name: "UP Circle",
         category: "student-org",
+        lat: 14.165,
+        lon: 121.242,
+      }),
+    ).not.toThrow();
+  });
+
+  test("create_place requires a valid category and map pin", () => {
+    expect(() =>
+      validateCreateProposalPatch("create_place", {
+        name: "But First Coffee",
+        category: "not-a-category",
+        lat: 14.165,
+        lon: 121.242,
+      }),
+    ).toThrow(ProposalValidationError);
+
+    expect(() =>
+      validateCreateProposalPatch("create_place", {
+        name: "But First Coffee",
+        category: "food",
+        lat: 14.165,
+        lon: 121.242,
       }),
     ).not.toThrow();
   });

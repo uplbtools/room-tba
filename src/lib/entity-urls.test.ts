@@ -4,6 +4,8 @@ import {
   getDormCanonicalPath,
   getEntityCanonicalPath,
   getEventCanonicalPath,
+  getOrganizationCanonicalPath,
+  getPlaceCanonicalPath,
   getRoomCanonicalPath,
   normalizePathname,
   parseEntityPathname,
@@ -26,6 +28,14 @@ describe("entity-urls", () => {
     expect(parseEntityPathname("/event/my-event/")).toEqual({
       category: "event",
       slug: "my-event",
+    });
+    expect(parseEntityPathname("/organization/debate-society-7/")).toEqual({
+      category: "organization",
+      slug: "debate-society-7",
+    });
+    expect(parseEntityPathname("/establishment/but-first-coffee-8/")).toEqual({
+      category: "place",
+      slug: "but-first-coffee-8",
     });
     expect(parseEntityPathname("/changelog")).toBeNull();
   });
@@ -52,6 +62,16 @@ describe("entity-urls", () => {
       "/dorm/sjd-3/",
     );
     expect(getEventCanonicalPath("uplb-fair")).toBe("/event/uplb-fair/");
+    expect(
+      getOrganizationCanonicalPath({ id: 7, name: "Debate Society" }),
+    ).toBe("/organization/debate-society-7/");
+    expect(
+      getPlaceCanonicalPath({
+        id: 8,
+        name: "But First Coffee",
+        category: "food",
+      }),
+    ).toBe("/establishment/but-first-coffee-8/");
   });
 
   it("resolves query state from entity paths when app data is available", () => {
@@ -84,6 +104,31 @@ describe("entity-urls", () => {
     expect(
       resolveQueryFromEntityPath({ category: "room", slug: "ics-260-12" }, {}),
     ).toBeNull();
+  });
+
+  it("resolves organizations and places by their stable URL id", () => {
+    expect(
+      resolveQueryFromEntityPath(
+        { category: "organization", slug: "debate-society-7" },
+        {
+          organizations: [{ id: 7, name: "Debate Society" }] as never,
+        },
+      ),
+    ).toEqual({
+      type: "result",
+      category: "organization",
+      value: "Debate Society",
+    });
+    expect(
+      resolveQueryFromEntityPath(
+        { category: "place", slug: "but-first-coffee-8" },
+        {
+          places: [
+            { id: 8, name: "But First Coffee", category: "food" },
+          ] as never,
+        },
+      ),
+    ).toEqual({ type: "result", category: "place", value: "But First Coffee" });
   });
 
   it("builds paths from query state when entity context is present", () => {

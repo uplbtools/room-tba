@@ -5,6 +5,8 @@ import {
   collegesTable,
   divisionsTable,
   dormsTable,
+  organizationsTable,
+  placesTable,
   roomsTable,
 } from "@drizzle/schema";
 import {
@@ -122,6 +124,33 @@ export async function getDormPageData(dormId: number) {
 
   if (data.length === 0 || !data[0]) return null;
   return { dorm: data[0] };
+}
+
+export async function getOrganizationPageData(organizationId: number) {
+  const [row] = await db
+    .select({
+      organization: organizationsTable,
+      buildingName: buildingsTable.buildingName,
+    })
+    .from(organizationsTable)
+    .leftJoin(
+      buildingsTable,
+      eq(organizationsTable.buildingId, buildingsTable.id),
+    )
+    .where(eq(organizationsTable.id, organizationId))
+    .limit(1);
+
+  if (!row) return null;
+  return row;
+}
+
+export async function getPlacePageData(placeId: number) {
+  const [place] = await db
+    .select()
+    .from(placesTable)
+    .where(eq(placesTable.id, placeId))
+    .limit(1);
+  return place ?? null;
 }
 
 export async function getRoomPageData(roomId: number) {

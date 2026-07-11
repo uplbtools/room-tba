@@ -32,3 +32,17 @@ export function placeCategoryLabel(value: unknown): string | null {
   const c = normalizePlaceCategory(value);
   return c ? PLACE_CATEGORY_LABELS[c] : null;
 }
+
+export function isLandmarkPlaceCategory(value: unknown): boolean {
+  const category = normalizePlaceCategory(value);
+  return category === "landmark" || category === "tourist-spot";
+}
+
+/** Human-facing grouping used where places share a map or directory with landmarks. */
+export function placeDirectoryLabel(value: unknown): string | null {
+  const category = normalizePlaceCategory(value);
+  if (!category) return null;
+  if (category === "landmark") return "Landmark";
+  if (category === "tourist-spot") return "Landmark · Tourist spot";
+  return `Service / establishment · ${PLACE_CATEGORY_LABELS[category]}`;
+}

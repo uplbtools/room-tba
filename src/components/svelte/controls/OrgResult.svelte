@@ -1,8 +1,10 @@
 <script lang="ts">
   import {
     adminAuthStore,
+    additionProposalStore,
     modalStore,
     queryStore,
+    sidePanelStore,
     toastStore,
   } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
@@ -14,7 +16,9 @@
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
+  import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import type { OrgData } from "@lib/types";
   import {
     isStudentOrganization,
@@ -23,6 +27,7 @@
   } from "@constants/org-categories";
   import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
+  import { getOrganizationShareUrl } from "@lib/share-links";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -45,6 +50,10 @@
   const resolvedLon = $derived(org?.lon ?? hostBuilding?.lon ?? null);
 
   const canPublish = $derived(adminAuthStore.canPublish);
+  const organizationShareUrl = $derived(
+    org ? getOrganizationShareUrl(org) : "",
+  );
+  const draftPin = $derived(additionProposalStore.draftPin);
 
   let editing = $state(false);
   let draftId = $state<number | null>(null);
@@ -72,6 +81,15 @@
     facebookDraft = current.facebookLink ?? "";
     emailDraft = current.email ?? "";
     fieldError = null;
+  });
+
+  $effect(() => {
+    if (!editing || !org) return;
+    additionProposalStore.setDraftPin(
+      org.lat !== null && org.lon !== null
+        ? { lat: org.lat, lon: org.lon }
+        : null,
+    );
   });
 
   function syncFromServer(updated: OrgData) {
@@ -116,7 +134,22 @@
     if (emailDraft.trim() !== (current.email ?? "")) {
       patch.email = emailDraft.trim() || null;
     }
+    if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
+      patch.lat = draftPin?.lat ?? null;
+      patch.lon = draftPin?.lon ?? null;
+    }
     return patch;
+  }
+
+  async function pickOnMap() {
+    sidePanelStore.collapse();
+    try {
+      await additionProposalStore.requestMapPin();
+    } catch {
+      // The map picker was cancelled.
+    } finally {
+      sidePanelStore.expand();
+    }
   }
 
   async function submitChanges() {
@@ -127,6 +160,7 @@
     if (!patch) return;
     if (Object.keys(patch).length === 0) {
       editing = false;
+      additionProposalStore.clearDraftPin();
       return;
     }
 
@@ -163,6 +197,7 @@
         toastStore.show(`${current.name} updated.`, "success");
       }
       editing = false;
+      additionProposalStore.clearDraftPin();
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
       fieldError = `${current.name} failed to save: ${reason}`;
@@ -226,13 +261,17 @@
             ariaLabel={`Open ${org.name} in Google Maps`}
           />
         {/if}
+        <EntityShareCopyLink url={organizationShareUrl} entityLabel={org.name} />
         <EntityEditorToggle
           expanded={editing}
           {canPublish}
           publishOpenLabel="Edit"
           closeLabel={canPublish ? "Close editor" : "Close"}
           variant="toolbar"
-          onclick={() => (editing = !editing)}
+          onclick={() => {
+            editing = !editing;
+            if (!editing) additionProposalStore.clearDraftPin();
+          }}
         />
       </div>
     </header>
@@ -305,6 +344,14 @@
           <span class="entity-detail-row__label">Name</span>
           <input class="org-input" type="text" bind:value={nameDraft} />
         </label>
+        <EntityEditorPinRow
+          label={draftPin
+            ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+            : "Drop a pin on the map"}
+          pickLabel={draftPin ? "Move pin" : "Pick on map"}
+          disabled={saving}
+          onclick={pickOnMap}
+        />
         <label class="org-field">
           <span class="entity-detail-row__label">Category</span>
           <select class="org-input" bind:value={categoryDraft}>

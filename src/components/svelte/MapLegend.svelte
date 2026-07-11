@@ -44,6 +44,16 @@
       description: "UP-managed or private dorm.",
     },
     {
+      key: "landmark",
+      label: "Landmark",
+      description: "Memorials, sights, and campus points of interest.",
+    },
+    {
+      key: "establishment",
+      label: "Service / establishment",
+      description: "Food, services, and transport points.",
+    },
+    {
       key: "location",
       label: "Your location",
       description: "Device location when enabled.",
@@ -188,7 +198,7 @@
             >
               <span class="legend-swatch organization" aria-hidden="true"></span>
               <span class="legend-copy">
-                <span class="legend-label">Orgs &amp; offices</span>
+                <span class="legend-label">Orgs, units &amp; offices</span>
                 <span class="legend-description">
                   {mapViewStore.showOrgs ? "Shown" : "Hidden"} — tap to toggle.
                 </span>
@@ -201,9 +211,9 @@
               aria-pressed={mapViewStore.showPlaces}
               onclick={() => mapViewStore.togglePlaces()}
             >
-              <span class="legend-swatch place" aria-hidden="true"></span>
+              <span class="legend-swatch establishment" aria-hidden="true"></span>
               <span class="legend-copy">
-                <span class="legend-label">Places</span>
+                <span class="legend-label">Landmarks &amp; establishments</span>
                 <span class="legend-description">
                   {mapViewStore.showPlaces ? "Shown" : "Hidden"} — tap to toggle.
                 </span>
@@ -424,8 +434,12 @@
     background-color: hsl(262, 52%, 47%);
   }
 
-  .legend-swatch.place {
-    background-color: hsl(28, 80%, 45%);
+  .legend-swatch.landmark {
+    background-color: hsl(34, 62%, 42%);
+  }
+
+  .legend-swatch.establishment {
+    background-color: hsl(334, 54%, 43%);
   }
 
   .legend-toggle {

@@ -1,5 +1,6 @@
 import type { ProposalCreateType } from "@lib/services/proposal-service";
 import { ORG_CATEGORIES, type OrgCategory } from "@constants/org-categories";
+import { normalizePlaceCategory } from "@constants/place-categories";
 
 export type BundledRoomDraft = {
   roomCode: string;
@@ -93,11 +94,16 @@ export function validateCreateProposalPatch(
     }
     case "create_place": {
       const name = typeof patch.name === "string" ? patch.name.trim() : "";
-      const category =
-        typeof patch.category === "string" ? patch.category.trim() : "";
+      const category = normalizePlaceCategory(patch.category);
       if (!name) throw new ProposalValidationError("Place name is required.");
-      if (!category)
-        throw new ProposalValidationError("Place category is required.");
+      if (!category) {
+        throw new ProposalValidationError("Pick a valid place category.");
+      }
+      if (typeof patch.lat !== "number" || typeof patch.lon !== "number") {
+        throw new ProposalValidationError(
+          "Pick a map location for the new place.",
+        );
+      }
       return;
     }
     case "create_room": {
@@ -134,6 +140,11 @@ export function validateCreateProposalPatch(
       if (!ORG_CATEGORIES.includes(category as OrgCategory)) {
         throw new ProposalValidationError(
           "Pick a valid organization category.",
+        );
+      }
+      if (typeof patch.lat !== "number" || typeof patch.lon !== "number") {
+        throw new ProposalValidationError(
+          "Pick a map location for the new organization.",
         );
       }
       return;

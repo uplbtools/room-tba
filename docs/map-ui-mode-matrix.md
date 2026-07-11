@@ -2,22 +2,22 @@
 
 Source of truth for which map chrome is visible in each mode.
 
-| Mode                          | Search dropdown | Event banner | Events shelf | Map tools      | Building filters   | Edit dock             | Sync UI    | Map attribution |
-| ----------------------------- | --------------- | ------------ | ------------ | -------------- | ------------------ | --------------------- | ---------- | --------------- |
-| Browse                        | yes             | yes          | yes          | closed default | **yes (chip bar)** | hidden                | status bar | bottom band     |
-| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | **yes (chip bar)** | hidden                | status bar | bottom band     |
-| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **no**             | **yes (mobile dock)** | status bar | bottom band     |
-| Event placement               | **no**          | **no**       | **no**       | closed default | **no**             | cancel dock           | status bar | bottom band     |
-| Terrain active                | yes             | yes          | yes          | flyout section | **yes (chip bar)** | hidden                | status bar | bottom band     |
-| Transit active                | yes             | yes          | yes          | closed default | **yes (chip bar)** | hidden                | status bar | bottom band     |
+| Mode                          | Search dropdown | Event banner | Events shelf | Map tools      | Pin filters | Edit dock             | Sync UI    | Map attribution |
+| ----------------------------- | --------------- | ------------ | ------------ | -------------- | ----------- | --------------------- | ---------- | --------------- |
+| Browse                        | yes             | yes          | yes          | closed default | Map tools   | hidden                | status bar | bottom band     |
+| Browse (search collapsed)     | on expand       | on expand    | on expand    | closed default | Map tools   | hidden                | status bar | bottom band     |
+| Edit (`mapEditStore.enabled`) | **no**          | **no**       | **no**       | closed default | **no**      | **yes (mobile dock)** | status bar | bottom band     |
+| Event placement               | **no**          | **no**       | **no**       | closed default | **no**      | cancel dock           | status bar | bottom band     |
+| Terrain active                | yes             | yes          | flyout section | Map tools    | Map tools   | hidden                | status bar | bottom band     |
+| Transit active                | yes             | yes          | yes          | open section   | Map tools   | hidden                | status bar | bottom band     |
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
-## Browse overlay exclusivity (chip row)
+## Browse and map-tools exclusivity
 
 Only one browse overlay from the chip row is active at a time (except **All** pins, the neutral default):
 
-- **Transit on** → building/dorm pin filter resets to **All** (`jeepneyStore.enableLayer` sets `buildingTypeFilter` to `"all"`). Covers the search chip, Map tools → Transit, and the route sub-panel — every enable path funnels through `enableLayer`.
+- **Transit on** → building/dorm pin filter resets to **All** (`jeepneyStore.enableLayer` sets `buildingTypeFilter` to `"all"`). Map tools owns the transit toggle and route picker.
 - **Non-All pin filter selected** (Class / Admin / UP dorms / Other dorms) → transit layer + selected route/stop turn off (`BuildingTypeFilterBar.selectFilter` calls `jeepneyStore.disableLayer`).
 - **Events shelf** ↔ Transit exclusivity is unchanged (`openEventsShelf` disables transit; transit active closes the events shelf).
 - **All** is neutral: selecting it does not touch transit.
@@ -47,7 +47,7 @@ Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome 
 
 ## Layout zones (Entry.svelte)
 
-- **Top band:** search column (editor icon button when signed in), **campus browse chips** (`CampusBrowseChips.svelte`: Buildings / Colleges / Divisions / Classes) plus a dedicated second row for **Student orgs** and **Offices & units**. Each directory chip opens its own `CampusBrowseList.svelte` view in the side drawer and an entry then opens the regular entity detail view; they are not centered modals. The **term selector chip** (`TermSelector.svelte`, class schedules), building pin filter chips (`BuildingTypeFilterBar.svelte`), transit toggle chip (`TransitFilterChip.svelte`, count badge + route sub-panel when active), event banner, and Map tools trigger remain in their existing bands; mobile chip row includes compact `MapDimensionToggle` (2D/3D only). The search suggestions dropdown is for recent searches and typed results only. **Keyboard shortcuts** are opened from the app menu (`AppMenu.svelte`) or the `?` key, not from search chrome. Individual jeepney routes are picked in the transit sub-panel under the chip row or in Map tools → Transit (`JeepneyMenu.svelte` / `TransitRoutePanel.svelte`), not as top-level chips. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
+- **Top band:** search column (editor icon button when signed in), a single horizontally scrollable browse/term strip (`CampusBrowseChips.svelte` and `TermSelector.svelte`), event banner, and Map tools trigger. Pin filters, transit, and individual jeepney routes live in Map tools; no filter strip sits below the search field. The sidebar directories are Buildings, Dorms, Colleges, Divisions, Student orgs, Units & offices, Landmarks, Services & establishments, and Classes. Each directory opens its own `CampusBrowseList.svelte` view in the side drawer and an entry then opens the regular entity detail view; they are not centered modals. The search suggestions dropdown is for recent searches and typed results only. **Keyboard shortcuts** are opened from the app menu (`AppMenu.svelte`) or the `?` key, not from search chrome. On mobile (≤48rem), the editor icon opens a full-screen editor dashboard (`EditorScreen.svelte`) instead of an inline shelf under the chip row.
 - **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north)
 - **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, location/propose actions trailing; one shared surface
 - **Ephemeral:** toast, modals, mobile editor screen (`EditorScreen.svelte` when `editorChromeStore.shelfOpen`)
@@ -88,6 +88,8 @@ Entity detail views (`RoomResult`, `BuildingResult`, `DormResult`, etc.) use sha
 | Footer     | Secondary links only (e.g. classes schedule, external refs)                                          |
 
 Do not add duplicate action rows or colored highlight boxes. See `.cursor/rules/side-panel.mdc`.
+
+On mobile, the left navigation sidebar retracts while a browse or entity drawer is open, so it cannot overlap the detail sheet. Closing that drawer returns the sidebar.
 
 ## Verification viewports
 

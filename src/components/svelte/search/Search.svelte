@@ -17,10 +17,7 @@
   } from "@lib/store.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
-  import BuildingTypeFilterBar from "@ui/BuildingTypeFilterBar.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
-  import TransitFilterChip from "@ui/TransitFilterChip.svelte";
-  import TransitRoutePanel from "@ui/TransitRoutePanel.svelte";
   import { jeepneyStore, plannerStore } from "@lib/store.svelte";
   import EditorShelf from "@ui/EditorShelf.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
@@ -180,12 +177,6 @@
   );
   const showEditorInline = $derived(showEditorSheet && !mobile.current);
 
-  const showTransitRoutePanel = $derived(
-    chrome.showSearchSuggestions &&
-      jeepneyStore.layerActive &&
-      !mapToolsStore.open,
-  );
-
   $effect(() => {
     if (draftInput.trim() !== "") {
       closeEventsShelf();
@@ -235,7 +226,6 @@
   class:search-query-active={draftInput.trim() !== ""}
   class:events-panel-open={showEventsSheet}
   class:editor-panel-open={showEditorInline}
-  class:transit-panel-open={showTransitRoutePanel}
 >
   <div class="search-shell-main" bind:this={shellMainEl}>
     {#if mobile.current}
@@ -415,21 +405,7 @@
                 <span>Events</span>
               </button>
             {/if}
-            <BuildingTypeFilterBar />
-            <TransitFilterChip />
           {/if}
-        </div>
-      {/if}
-
-      {#if showTransitRoutePanel}
-        <div
-          class="map-search-chrome__transit-routes"
-          id="transit-route-picker"
-          aria-label="Transit route picker"
-          in:fade={panelFadeIn(reducedMotion.current)}
-          out:fade={panelFadeOut(reducedMotion.current)}
-        >
-          <TransitRoutePanel compact />
         </div>
       {/if}
 

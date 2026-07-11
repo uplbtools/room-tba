@@ -76,6 +76,21 @@ test.describe("campus browse chips", () => {
     );
   });
 
+  test("sidebar opens landmark and service directories", async ({ page }) => {
+    await page.getByRole("button", { name: "Landmarks" }).click();
+    await expect(page.getByRole("heading", { name: "Landmarks" })).toBeVisible({
+      timeout: 10_000,
+    });
+
+    await page.getByRole("button", { name: "Close browse list" }).click();
+    await page
+      .getByRole("button", { name: "Services & establishments" })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Services & Establishments" }),
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
   test("mobile top bar keeps browse and term controls in one scroll row", async ({
     page,
   }) => {
@@ -98,15 +113,25 @@ test.describe("campus browse chips", () => {
     expect(controlsBox.height).toBeLessThan(56);
   });
 
-  test("Classes opens class list without toggling building filter chip", async ({
+  test("mobile retracts navigation while a detail drawer is open", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("button", { name: "Landmarks" }).click();
+    await expect(page.getByRole("heading", { name: "Landmarks" })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.locator("aside")).toHaveClass(/retracted/);
+  });
+
+  test("Classes opens class list without a retired top filter strip", async ({
     page,
   }) => {
     await page.getByRole("button", { name: "Browse all classes" }).click();
     await expect(page.getByText(/All classes/i).first()).toBeVisible({
       timeout: 10_000,
     });
-    const allFilter = page.getByRole("button", { name: /^All,/i });
-    await expect(allFilter).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByRole("button", { name: /^All,/i })).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "Browse all classes" }),
     ).toHaveAttribute("aria-pressed", "true");

@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+import PlaceEntityPage from "@seo/PlaceEntityPage.astro";
+import { parseRouteSlug } from "@lib/entity-urls";
+import { getPlacePageData } from "@lib/services/ssg-service";
+
+const slug = Astro.params.slug;
+const placeId = slug ? parseRouteSlug(slug).id : null;
+if (!placeId) return new Response(null, { status: 404, statusText: "Not Found" });
+
+const place = await getPlacePageData(placeId);
+if (!place) return new Response(null, { status: 404, statusText: "Not Found" });
+---
+
+<PlaceEntityPage {place} />

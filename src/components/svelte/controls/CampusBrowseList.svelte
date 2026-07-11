@@ -9,10 +9,14 @@
     isStudentOrganization,
     orgCategoryLabel,
   } from "@constants/org-categories";
+  import {
+    isLandmarkPlaceCategory,
+    placeDirectoryLabel,
+  } from "@constants/place-categories";
   import { queryStore } from "@lib/store.svelte";
 
   const appData = getAppData();
-  const { buildings, colleges, divisions, organizations, loaded } =
+  const { buildings, colleges, divisions, dorms, organizations, places, loaded } =
     $derived(appData());
 
   let filterText = $state("");
@@ -22,8 +26,11 @@
     if (
       value === "colleges" ||
       value === "divisions" ||
+      value === "dorms" ||
       value === "organizations" ||
-      value === "offices"
+      value === "offices" ||
+      value === "landmarks" ||
+      value === "services"
     ) {
       return value;
     }
@@ -34,12 +41,18 @@
     switch (activeTab) {
       case "colleges":
         return "Colleges";
+      case "dorms":
+        return "Dorms";
       case "divisions":
         return "Divisions";
       case "organizations":
         return "Student Organizations";
       case "offices":
         return "Offices & Academic Units";
+      case "landmarks":
+        return "Landmarks";
+      case "services":
+        return "Services & Establishments";
       default:
         return "Buildings";
     }
@@ -52,6 +65,12 @@
           noun: "college",
           plural: "colleges",
           placeholder: "Search colleges…",
+        };
+      case "dorms":
+        return {
+          noun: "dorm",
+          plural: "dorms",
+          placeholder: "Search dorms…",
         };
       case "divisions":
         return {
@@ -70,6 +89,18 @@
           noun: "office or academic unit",
           plural: "offices & academic units",
           placeholder: "Search offices & academic units…",
+        };
+      case "landmarks":
+        return {
+          noun: "landmark",
+          plural: "landmarks",
+          placeholder: "Search landmarks…",
+        };
+      case "services":
+        return {
+          noun: "service or establishment",
+          plural: "services & establishments",
+          placeholder: "Search services & establishments…",
         };
       default:
         return {
@@ -129,6 +160,31 @@
     return rows.filter((row) => row.name.toLowerCase().includes(needle));
   });
 
+  const filteredDorms = $derived.by(() => {
+    if (!loaded || !dorms || activeTab !== "dorms") return [];
+    const needle = filterText.trim().toLowerCase();
+    const rows = [...dorms].sort((a, b) => a.dormName.localeCompare(b.dormName));
+    return needle
+      ? rows.filter((row) => row.dormName.toLowerCase().includes(needle))
+      : rows;
+  });
+
+  const filteredPlaces = $derived.by(() => {
+    if (!loaded || !places || (activeTab !== "landmarks" && activeTab !== "services")) {
+      return [];
+    }
+    const needle = filterText.trim().toLowerCase();
+    const rows = places
+      .filter((row) => {
+        const landmark = isLandmarkPlaceCategory(row.category);
+        return activeTab === "landmarks" ? landmark : !landmark;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return needle
+      ? rows.filter((row) => row.name.toLowerCase().includes(needle))
+      : rows;
+  });
+
   const visibleItems = $derived.by(() => {
     if (activeTab === "colleges") {
       return filteredColleges.map((row) => ({
@@ -136,6 +192,14 @@
         label: row.collegeName,
         meta: null as string | null,
         open: () => openCollege(row.collegeName),
+      }));
+    }
+    if (activeTab === "dorms") {
+      return filteredDorms.map((row) => ({
+        id: row.id,
+        label: row.dormName,
+        meta: row.isUpManaged ? "UP-managed dorm" : "Private dorm",
+        open: () => openDorm(row.dormName),
       }));
     }
     if (activeTab === "divisions") {
@@ -152,6 +216,14 @@
         label: row.name,
         meta: orgCategoryLabel(row.category),
         open: () => openOrg(row.name),
+      }));
+    }
+    if (activeTab === "landmarks" || activeTab === "services") {
+      return filteredPlaces.map((row) => ({
+        id: row.id,
+        label: row.name,
+        meta: placeDirectoryLabel(row.category),
+        open: () => openPlace(row.name),
       }));
     }
     return filteredBuildings.map((row) => ({
@@ -220,6 +292,24 @@
   function openOrg(name: string) {
     queryStore.updateQuery({
       category: "organization",
+      type: "result",
+      value: name,
+    });
+    queryStore.inputValue = name;
+  }
+
+  function openDorm(name: string) {
+    queryStore.updateQuery({
+      category: "dorm",
+      type: "result",
+      value: name,
+    });
+    queryStore.inputValue = name;
+  }
+
+  function openPlace(name: string) {
+    queryStore.updateQuery({
+      category: "place",
       type: "result",
       value: name,
     });

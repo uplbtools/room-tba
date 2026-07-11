@@ -35,6 +35,7 @@
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import University from "@lucide/svelte/icons/university";
   import Landmark from "@lucide/svelte/icons/landmark";
+  import Store from "@lucide/svelte/icons/store";
   import EventMapPin from "./map/EventMapPin.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
@@ -51,7 +52,7 @@
     PlaceData,
   } from "@lib/types";
   import { isStudentOrganization } from "@constants/org-categories";
-  import MapPin from "@lucide/svelte/icons/map-pin";
+  import { isLandmarkPlaceCategory } from "@constants/place-categories";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
@@ -102,6 +103,10 @@
     isBuildingHoverPreview,
     isDormHoverPreview,
     isEventHoverPreview,
+    isOrganizationHoverPreview,
+    isPlaceHoverPreview,
+    organizationPreviewFromRow,
+    placePreviewFromRow,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
@@ -173,12 +178,25 @@
     return places.filter((place) => place.lat != null && place.lon != null);
   });
 
+  function isLandmarkPlace(place: PlaceData) {
+    return isLandmarkPlaceCategory(place.category);
+  }
+
   function handlePlaceMarkerClick(place: PlaceData) {
+    if (
+      queryStore.category === "place" &&
+      queryStore.inputValue === place.name
+    ) {
+      sidePanelStore.expand();
+      return;
+    }
     queryStore.updateQuery({
       category: "place",
       type: "result",
       value: place.name,
     });
+    queryStore.inputValue = place.name;
+    sidePanelStore.expand();
   }
 
   // Event titles are not unique, so resolve the selected event by its slug when
@@ -743,6 +761,19 @@
             duration: 1500,
           });
         }
+      } else if (category === "place") {
+        if (!loaded) return;
+        mapViewStore.showPlaces = true;
+        const currentPlace = places.find((place) => place.name === value);
+        if (currentPlace?.lon != null && currentPlace.lat != null) {
+          map.flyTo({
+            center: [currentPlace.lon, currentPlace.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
       }
     });
   }
@@ -905,6 +936,30 @@
   }
 
   function handleEventPinPointerLeave() {
+    if (!shouldShowEntityHoverPreview()) return;
+    entityHoverPreviewStore.scheduleHide();
+  }
+
+  function handleOrganizationPinPointerEnter(
+    organization: OrgData,
+    pointer: PointerEvent,
+  ) {
+    if (!shouldShowEntityHoverPreview()) return;
+    entityHoverPreviewStore.show(organizationPreviewFromRow(organization), {
+      x: pointer.clientX,
+      y: pointer.clientY,
+    });
+  }
+
+  function handlePlacePinPointerEnter(place: PlaceData, pointer: PointerEvent) {
+    if (!shouldShowEntityHoverPreview()) return;
+    entityHoverPreviewStore.show(placePreviewFromRow(place), {
+      x: pointer.clientX,
+      y: pointer.clientY,
+    });
+  }
+
+  function handleDetailPinPointerLeave() {
     if (!shouldShowEntityHoverPreview()) return;
     entityHoverPreviewStore.scheduleHide();
   }
@@ -1921,6 +1976,33 @@
         if (!loaded) return;
         const currentEvent = findSelectedEvent(events);
         if (currentEvent) focusMapOnEvent(map, currentEvent);
+      } else if (category === "organization") {
+        if (!loaded) return;
+        mapViewStore.showOrgs = true;
+        const currentOrg = organizations.find((org) => org.name === value);
+        const position = currentOrg ? organizationPosition(currentOrg) : null;
+        if (position) {
+          map.flyTo({
+            center: [position.lon, position.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
+      } else if (category === "place") {
+        if (!loaded) return;
+        mapViewStore.showPlaces = true;
+        const currentPlace = places.find((place) => place.name === value);
+        if (currentPlace?.lon != null && currentPlace.lat != null) {
+          map.flyTo({
+            center: [currentPlace.lon, currentPlace.lat],
+            zoom: 18,
+            pitch: 60,
+            padding: calculatePadding(md.current),
+            duration: 1500,
+          });
+        }
       }
     });
   });
@@ -2769,20 +2851,32 @@
 
           {#each filteredPlaces as place (`place:${place.id}`)}
             {#if place.lat != null && place.lon != null}
-              <Marker
-                lngLat={[place.lon, place.lat]}
-                onclick={() => handlePlaceMarkerClick(place)}
-              >
-                <button
-                  type="button"
-                  class="place-pin"
-                  class:place-pin--active={queryStore.category === "place" &&
+              {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+              {@const previewSuppressed =
+                centralHoverPreview &&
+                isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
+              <Marker lngLat={[place.lon, place.lat]}>
+                <MapEntityPin
+                  label={place.name}
+                  tone={isLandmarkPlace(place) ? "landmark" : "establishment"}
+                  active={queryStore.category === "place" &&
                     queryStore.inputValue === place.name}
-                  title={place.name}
-                  aria-label={place.name}
+                  labelVisible={zoomLevel >= 17 ||
+                    (queryStore.category === "place" &&
+                      queryStore.inputValue === place.name)}
+                  useCentralHoverPreview={centralHoverPreview}
+                  {previewSuppressed}
+                  onclick={() => handlePlaceMarkerClick(place)}
+                  onpointerenter={(event) =>
+                    handlePlacePinPointerEnter(place, event)}
+                  onpointerleave={handleDetailPinPointerLeave}
                 >
-                  <MapPin size="13" />
-                </button>
+                  {#if isLandmarkPlace(place)}
+                    <Landmark size="16" />
+                  {:else}
+                    <Store size="16" />
+                  {/if}
+                </MapEntityPin>
               </Marker>
             {/if}
           {/each}
@@ -2790,6 +2884,10 @@
 
         {#if !mapViewStore.eventsOnly}
           {#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
+            {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+            {@const previewSuppressed =
+              centralHoverPreview &&
+              isOrganizationHoverPreview(entityHoverPreviewStore.entity, org.id)}
             <Marker lngLat={[lon, lat]}>
               <MapEntityPin
                 label={org.name}
@@ -2798,7 +2896,12 @@
                   : "office"}
                 active={activeOrgName === org.name}
                 labelVisible={zoomLevel >= 17 || activeOrgName === org.name}
+                useCentralHoverPreview={centralHoverPreview}
+                {previewSuppressed}
                 onclick={() => handleOrgMarkerClick(org.name)}
+                onpointerenter={(event) =>
+                  handleOrganizationPinPointerEnter(org, event)}
+                onpointerleave={handleDetailPinPointerLeave}
               >
                 {#if isStudentOrganization(org.category)}
                   <Users size="16" />
@@ -3000,30 +3103,6 @@
 </div>
 
 <style>
-  .place-pin {
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    border: 2px solid white;
-    background: #0d7a5f;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-    padding: 0;
-  }
-  .place-pin:hover,
-  .place-pin:focus-visible {
-    transform: scale(1.12);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
-  }
-  .place-pin--active {
-    outline: 2px solid #0d7a5f;
-    outline-offset: 1px;
-    transform: scale(1.15);
-  }
-
   .map-shell {
     position: fixed;
     inset: 0;

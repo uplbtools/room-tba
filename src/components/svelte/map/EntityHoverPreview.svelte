@@ -51,6 +51,10 @@
         <p class="entity-hover-preview__meta">{dormBadge}</p>
       {:else if preview.kind === "event" && preview.category}
         <p class="entity-hover-preview__meta">{preview.category}</p>
+      {:else if preview.kind === "organization" && preview.category}
+        <p class="entity-hover-preview__meta">{preview.category}</p>
+      {:else if preview.kind === "place" && preview.category}
+        <p class="entity-hover-preview__meta">{preview.category}</p>
       {/if}
       {#if preview.kind === "building" && preview.directions}
         <p class="entity-hover-preview__hint">
@@ -66,6 +70,20 @@
         </p>
       {:else if preview.kind === "event"}
         <p class="entity-hover-preview__hint">Tap to open event details</p>
+      {:else if preview.kind === "organization" && preview.description}
+        <p class="entity-hover-preview__hint">
+          {preview.description.slice(0, 120)}{preview.description.length > 120
+            ? "…"
+            : ""}
+        </p>
+      {:else if preview.kind === "place" && preview.description}
+        <p class="entity-hover-preview__hint">
+          {preview.description.slice(0, 120)}{preview.description.length > 120
+            ? "…"
+            : ""}
+        </p>
+      {:else if preview.kind === "organization" || preview.kind === "place"}
+        <p class="entity-hover-preview__hint">Tap to open details</p>
       {/if}
     </div>
   </div>

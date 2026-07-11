@@ -1,13 +1,22 @@
 <script lang="ts">
-  import { queryStore, adminAuthStore, toastStore } from "@lib/store.svelte";
+  import {
+    additionProposalStore,
+    queryStore,
+    adminAuthStore,
+    sidePanelStore,
+    toastStore,
+  } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
   import { persistEntityChange } from "@lib/proposals/client";
   import {
     PLACE_CATEGORIES,
     PLACE_CATEGORY_LABELS,
-    placeCategoryLabel,
+    placeDirectoryLabel,
   } from "@constants/place-categories";
   import type { PlaceData } from "@lib/types";
+  import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import { getPlaceShareUrl } from "@lib/share-links";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -18,6 +27,8 @@
       : null,
   );
   const canPublish = $derived(adminAuthStore.canPublish);
+  const draftPin = $derived(additionProposalStore.draftPin);
+  const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : "");
 
   const mapsUrl = $derived(
     place?.lat != null && place?.lon != null
@@ -43,7 +54,23 @@
     hoursDraft = place.hours ?? "";
     websiteDraft = place.websiteLink ?? "";
     facebookDraft = place.facebookLink ?? "";
+    additionProposalStore.setDraftPin(
+      place.lat !== null && place.lon !== null
+        ? { lat: place.lat, lon: place.lon }
+        : null,
+    );
     editing = true;
+  }
+
+  async function pickOnMap() {
+    sidePanelStore.collapse();
+    try {
+      await additionProposalStore.requestMapPin();
+    } catch {
+      // The map picker was cancelled.
+    } finally {
+      sidePanelStore.expand();
+    }
   }
 
   async function submit() {
@@ -63,9 +90,14 @@
       patch.websiteLink = websiteDraft.trim() || null;
     if (facebookDraft.trim() !== (current.facebookLink ?? ""))
       patch.facebookLink = facebookDraft.trim() || null;
+    if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
+      patch.lat = draftPin?.lat ?? null;
+      patch.lon = draftPin?.lon ?? null;
+    }
 
     if (Object.keys(patch).length === 0) {
       editing = false;
+      additionProposalStore.clearDraftPin();
       return;
     }
 
@@ -94,6 +126,7 @@
           );
         }
         editing = false;
+        additionProposalStore.clearDraftPin();
       } else {
         toastStore.show(result.error ?? "Could not save changes.", "error");
       }
@@ -109,9 +142,9 @@
   <div class="entity-detail">
     <header class="entity-header">
       <h2 class="entity-header__title">{place.name}</h2>
-      {#if placeCategoryLabel(place.category)}
+      {#if placeDirectoryLabel(place.category)}
         <span class="place-category-badge"
-          >{placeCategoryLabel(place.category)}</span
+          >{placeDirectoryLabel(place.category)}</span
         >
       {/if}
     </header>
@@ -150,9 +183,12 @@
           </li>
         {/if}
       </ul>
-      <button type="button" class="place-edit-btn" onclick={startEdit}>
-        {canPublish ? "Edit place" : "Suggest an edit"}
-      </button>
+      <div class="place-actions">
+        <EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
+        <button type="button" class="place-edit-btn" onclick={startEdit}>
+          {canPublish ? "Edit place" : "Suggest an edit"}
+        </button>
+      </div>
     {:else}
       <div class="place-form">
         <label>Name<input bind:value={nameDraft} /></label>
@@ -171,6 +207,14 @@
         <label>Hours<input bind:value={hoursDraft} /></label>
         <label>Website<input bind:value={websiteDraft} /></label>
         <label>Facebook<input bind:value={facebookDraft} /></label>
+        <EntityEditorPinRow
+          label={draftPin
+            ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+            : "Drop a pin on the map"}
+          pickLabel={draftPin ? "Move pin" : "Pick on map"}
+          disabled={submitting}
+          onclick={pickOnMap}
+        />
         {#if !canPublish}
           <label
             >Your name (optional)<input bind:value={submitterName} /></label
@@ -189,7 +233,10 @@
             type="button"
             class="place-cancel-btn"
             disabled={submitting}
-            onclick={() => (editing = false)}
+            onclick={() => {
+              editing = false;
+              additionProposalStore.clearDraftPin();
+            }}
           >
             Cancel
           </button>
@@ -248,6 +295,11 @@
   }
   .place-form__actions {
     display: flex;
+    gap: 0.5rem;
+  }
+  .place-actions {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
   .place-edit-btn {

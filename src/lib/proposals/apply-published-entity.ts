@@ -6,6 +6,7 @@ import type {
   DormData,
   EventData,
   OrgData,
+  PlaceData,
 } from "@lib/types";
 import type { ProposalEntityType } from "@lib/services/proposal-service";
 import {
@@ -18,6 +19,8 @@ const ENTITY_SYNC_TABLES: Partial<Record<ProposalEntityType, string[]>> = {
   create_building: ["buildings"],
   dorm: ["dorms"],
   create_dorm: ["dorms"],
+  place: ["places"],
+  create_place: ["places"],
   college: ["colleges"],
   create_college: ["colleges"],
   division: ["divisions"],
@@ -104,6 +107,16 @@ export function applyPublishedEntity(
     case "create_event":
       actions.replaceEvent(published as EventData);
       return true;
+    case "place":
+    case "create_place": {
+      const row = mergePublishedRow(
+        getData,
+        data?.loaded ? data.places : undefined,
+        published as PlaceData,
+      );
+      actions.upsertPlace(row);
+      return true;
+    }
     case "organization":
     case "create_organization": {
       const row = mergePublishedRow(

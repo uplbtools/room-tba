@@ -4,8 +4,12 @@
   import { createEntityUrlSync } from "@lib/entity-url-sync";
   import {
     getBuildingCanonicalPath,
+    getOrganizationCanonicalPath,
+    getPlaceCanonicalPath,
     getRoomCanonicalPath,
   } from "@lib/entity-urls";
+  import { orgCategoryLabel } from "@constants/org-categories";
+  import { placeCategoryLabel } from "@constants/place-categories";
   import {
     resetDocumentMeta,
     updateTermAwareDocumentMeta,
@@ -103,6 +107,42 @@
         baseTitle: `${buildingName} | Building at UPLB`,
         baseDescription: `Find rooms in ${buildingName} at UPLB with map context and class schedules by room.`,
         canonicalPath: getBuildingCanonicalPath(buildingName),
+        termLabel,
+        termId,
+        defaultTermId,
+      });
+      return;
+    }
+
+    if (queryStore.category === "organization") {
+      const organization = appData().organizations?.find(
+        (entry) => entry.name === queryStore.queryValue,
+      );
+      if (!organization) return;
+      const category = orgCategoryLabel(organization.category) ?? "Organization";
+      updateTermAwareDocumentMeta({
+        baseTitle: `${organization.name} | ${category} at UPLB`,
+        baseDescription: organization.description ??
+          `Find ${organization.name}, a ${category.toLowerCase()} at UPLB, on the campus map.`,
+        canonicalPath: getOrganizationCanonicalPath(organization),
+        termLabel,
+        termId,
+        defaultTermId,
+      });
+      return;
+    }
+
+    if (queryStore.category === "place") {
+      const place = appData().places?.find(
+        (entry) => entry.name === queryStore.queryValue,
+      );
+      if (!place) return;
+      const category = placeCategoryLabel(place.category) ?? "Campus place";
+      updateTermAwareDocumentMeta({
+        baseTitle: `${place.name} | ${category} at UPLB`,
+        baseDescription: place.description ??
+          `Find ${place.name}, a ${category.toLowerCase()} at UPLB, on the campus map.`,
+        canonicalPath: getPlaceCanonicalPath(place),
         termLabel,
         termId,
         defaultTermId,
