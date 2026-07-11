@@ -56,7 +56,7 @@ test.describe("landing", () => {
     if (await getStarted.isVisible({ timeout: 3000 }).catch(() => false)) {
       await getStarted.click();
     }
-    await expect(page.locator(".campus-browse-chips")).toBeVisible();
+    await expect(page.locator(".term-filter-chip")).toBeVisible();
   });
 
   test("don't show again persists", async ({ page }) => {

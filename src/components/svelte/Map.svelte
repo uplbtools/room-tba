@@ -1,5 +1,14 @@
 <script lang="ts">
   import { MapLibre, Marker } from "svelte-maplibre";
+  import maplibregl from "maplibre-gl";
+  import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-csp-worker.js?url";
+
+  // In production Vite inlines maplibre into the app chunk and boots its
+  // worker by importScripts-ing that same chunk; vector tiles survive but the
+  // GeoJSON source path dies inside the worker ("f is not defined"), so no
+  // geojson line layer (jeepney/event routes) ever rendered on prod. Point
+  // maplibre at its self-contained CSP worker bundle instead.
+  maplibregl.setWorkerUrl(maplibreWorkerUrl);
   import { getAppActions, getAppData } from "@lib/context";
   import {
     queryStore,
@@ -1843,9 +1852,15 @@
     if (!route) {
       activeRouteId = null;
       activeRouteStops = [];
-      const clear = () => clearJeepneyRouteLayers(map);
-      if (map.isStyleLoaded()) clear();
-      else map.once("load", clear);
+      // Clear immediately — NEVER queue this on "load"/"styledata". A queued
+      // clear registered at mount (style still streaming) fires AFTER a later
+      // route draw and silently wipes its layers; that was the prod-only
+      // missing-polyline bug (dev styles settle before anyone clicks).
+      try {
+        clearJeepneyRouteLayers(map);
+      } catch {
+        // Style not ready yet, so nothing was drawn and there is nothing to clear.
+      }
       return;
     }
 
@@ -1878,7 +1893,8 @@
       try {
         draw();
         return true;
-      } catch {
+      } catch (error) {
+        console.warn("jeepney route draw failed; retrying on styledata", error);
         return false;
       }
     };
