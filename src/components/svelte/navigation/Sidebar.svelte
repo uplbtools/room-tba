@@ -14,7 +14,6 @@
   import Globe from "@lucide/svelte/icons/globe";
   import Wrench from "@lucide/svelte/icons/wrench";
   import HeartHandshake from "@lucide/svelte/icons/heart-handshake";
-  import X from "@lucide/svelte/icons/x";
   import Sparkles from "@lucide/svelte/icons/sparkles";
   import University from "@lucide/svelte/icons/university";
   import UserPlus from "@lucide/svelte/icons/user-plus";
@@ -34,6 +33,7 @@
   import CloudDownload from "@lucide/svelte/icons/cloud-download";
   import Keyboard from "@lucide/svelte/icons/keyboard";
   import Cookie from "@lucide/svelte/icons/cookie";
+  import { MediaQuery } from "svelte/reactivity";
   import { slide } from "svelte/transition";
   import CircleQuestionMark from "@lucide/svelte/icons/circle-question-mark";
   import Tag from "@lucide/svelte/icons/tag";
@@ -114,6 +114,24 @@
   // Labels show when the rail is expanded (desktop toggle) or when the
   // mobile drawer is open — a drawer has the room, so always label it.
   const labeled = $derived(sidebarStore.expanded || sidebarStore.railOpen);
+
+  const isMobileRail = new MediaQuery("max-width: 48rem");
+
+  function handleRailToggle() {
+    if (isMobileRail.current) {
+      sidebarStore.closeRail();
+      return;
+    }
+    sidebarStore.toggleExpanded();
+  }
+
+  const railToggleLabel = $derived(
+    isMobileRail.current
+      ? "Close menu"
+      : sidebarStore.expanded
+        ? "Collapse menu"
+        : "Expand menu",
+  );
 </script>
 
 <aside
@@ -121,18 +139,6 @@
   class:retracted={!sidebarStore.railOpen}
   class:sidebar--expanded={sidebarStore.expanded}
 >
-  <div class="rail-close">
-    <NavLink
-      active={false}
-      hard={false}
-      tooltip="Close menu"
-      expanded={labeled}
-      aria-label="Close menu"
-      onclick={() => sidebarStore.closeRail()}
-    >
-      <X size={20} />
-    </NavLink>
-  </div>
   <div class="top">
     <button
       type="button"
@@ -284,10 +290,11 @@
       active={false}
       hard={false}
       expanded={labeled}
-      tooltip={sidebarStore.expanded ? "Collapse menu" : "Expand menu"}
-      onclick={() => sidebarStore.toggleExpanded()}
+      tooltip={railToggleLabel}
+      aria-label={railToggleLabel}
+      onclick={handleRailToggle}
     >
-      {#if sidebarStore.expanded}
+      {#if isMobileRail.current || sidebarStore.expanded}
         <ChevronLeft size={20} />
       {:else}
         <ChevronRight size={20} />
@@ -651,11 +658,6 @@
     width: 100%;
   }
 
-  /* Rail close affordance is a mobile-overlay concern only. */
-  div.rail-close {
-    display: none;
-  }
-
   @media (max-width: 48rem) {
     /* Overlay drawer: leaves no reserved flex column behind, so the search
        chrome and map data pill hug the viewport edge when it is closed. */
@@ -675,12 +677,6 @@
     aside.retracted {
       transform: translateX(calc(-100% - 0.5rem));
       pointer-events: none;
-    }
-
-    div.rail-close {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 0.25rem;
     }
 
     /* Tighter rhythm so the full rail fits small screens. */

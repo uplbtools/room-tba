@@ -600,13 +600,26 @@
   .bottom-chrome__actions {
     display: flex;
     flex: 0 0 auto;
-    /* Bottom-align so the open legend panel grows upward without dragging the
-       add/locate buttons to the middle of the screen. */
+    /* Bottom-align controls so an open legend panel grows upward without
+       floating +/locate over the panel body. */
     align-items: flex-end;
-    gap: 0.125rem;
-    min-height: 2.75rem;
-    padding: 0.125rem;
+    gap: 0.375rem;
+    padding: 0;
     pointer-events: auto;
+  }
+
+  .bottom-chrome__actions :global(.map-legend--open) {
+    position: relative;
+    z-index: 2;
+  }
+
+  .bottom-chrome__actions :global(.map-control-stack.embedded) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .bottom-chrome__actions :global(.map-chrome-control-btn--compact) {
+    flex-shrink: 0;
   }
 
   .bottom-band::before {

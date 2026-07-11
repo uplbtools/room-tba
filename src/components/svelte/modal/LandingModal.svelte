@@ -544,9 +544,11 @@
   .footer-meta {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
-    gap: 0.5rem 0.875rem;
+    gap: 0.625rem;
+    width: 100%;
+    padding: 0.125rem 0 0.25rem;
   }
 
   .legal-hint {
@@ -560,8 +562,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem 1rem;
+    gap: 0.625rem;
+    padding: 0.875rem 1rem 1rem;
     border-top: 1px solid hsl(0, 0%, 92%);
     background: white;
     width: 100%;

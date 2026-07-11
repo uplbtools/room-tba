@@ -1,5 +1,4 @@
-/** Whimsical one-liners shown below the loading phase label (not error state).
- * One is picked deterministically by minute (Layout.astro inline script). */
+/** Whimsical one-liners shown below the loading phase label (not error state). */
 export const LOADING_SPLASH_MESSAGES = [
   "Finding where you need to be",
   "Asking the guard where AnSci is",

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import DownloadCloud from "@lucide/svelte/icons/download-cloud";
+  import Download from "@lucide/svelte/icons/download";
   import { mapToolsStore, offlineStore } from "@lib/store.svelte";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
@@ -198,7 +199,8 @@
             class="offline-btn"
             onclick={() => offlineStore.downloadCampus()}
           >
-            Download campus map
+            <Download size={14} aria-hidden="true" />
+            <span>Download campus map</span>
           </button>
         {/if}
       </section>
@@ -257,7 +259,8 @@
             class="offline-btn"
             onclick={() => offlineStore.downloadCampusDirectory()}
           >
-            Download campus directory
+            <Download size={14} aria-hidden="true" />
+            <span>Download campus directory</span>
           </button>
         {/if}
       </section>
@@ -306,7 +309,8 @@
             class="offline-btn"
             onclick={() => offlineStore.downloadClassSchedules()}
           >
-            Download class schedules
+            <Download size={14} aria-hidden="true" />
+            <span>Download class schedules</span>
           </button>
         {/if}
       </section>
@@ -357,6 +361,8 @@
 
   .offline-maps--inline {
     width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .sr-only {
@@ -385,9 +391,17 @@
     width: 100%;
     box-sizing: border-box;
     max-height: none;
+    flex: 0 0 auto;
     padding: 0;
+    border: none;
     background: transparent;
     box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .offline-popover--inline .offline-category:first-of-type {
+    border-top: none;
+    padding-top: 0;
   }
 
   .offline-category {
@@ -425,16 +439,30 @@
   }
 
   .offline-btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    gap: 0.375rem;
+    width: auto;
+    max-width: 100%;
     margin-top: 0.125rem;
     border: none;
     border-radius: 0.5rem;
-    padding: 0.375rem 0.625rem;
+    padding: 0.4375rem 0.75rem;
     background-color: hsl(5, 53%, 32%);
     color: white;
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
+    line-height: 1.2;
     cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .offline-btn :global(svg) {
+    flex-shrink: 0;
   }
   .offline-btn:hover {
     background-color: hsl(5, 53%, 40%);

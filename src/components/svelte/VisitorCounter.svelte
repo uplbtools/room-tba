@@ -1,7 +1,8 @@
 <script lang="ts">
+  import Users from "@lucide/svelte/icons/users";
   import { fetchVisitorCount } from "@lib/visitor-count";
 
-  let { digits = 6, label = "You are visitor #" }: {
+  let { digits = 6, label = "Visitor #" }: {
     digits?: number;
     label?: string;
   } = $props();
@@ -38,38 +39,71 @@
 </script>
 
 <p class="visitor-counter" role="status" aria-live="polite" aria-label={announce}>
-  <span class="visitor-counter__label">{label}</span>
-  {#each display.split("") as char, i (i)}
-    <span class="visitor-counter__digit" aria-hidden="true">{char}</span>
-  {/each}
+  <Users size={16} aria-hidden="true" class="visitor-counter__icon" />
+  <span class="visitor-counter__copy">
+    <span class="visitor-counter__label">{label}</span>
+    <span class="visitor-counter__digits" aria-hidden="true">
+      {#each display.split("") as char, i (i)}
+        <span class="visitor-counter__digit">{char}</span>
+      {/each}
+    </span>
+  </span>
 </p>
 
 <style>
   .visitor-counter {
     display: inline-flex;
     align-items: center;
-    gap: 0.125rem;
+    gap: 0.5rem;
     margin: 0;
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 45%);
+    padding: 0.5rem 0.875rem;
+    border-radius: 999px;
+    background: hsl(5, 32%, 95%);
+    border: 1px solid hsl(5, 28%, 78%);
+    color: hsl(5, 58%, 22%);
+    box-shadow: 0 1px 2px hsla(5, 40%, 20%, 0.06);
+  }
+
+  .visitor-counter :global(.visitor-counter__icon) {
+    flex-shrink: 0;
+    color: hsl(5, 65%, 32%);
+  }
+
+  .visitor-counter__copy {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.375rem;
+    min-width: 0;
   }
 
   .visitor-counter__label {
-    margin-right: 0.25rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .visitor-counter__digits {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
   }
 
   .visitor-counter__digit {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 1rem;
-    padding: 0.125rem 0;
-    border-radius: 0.25rem;
-    background: hsl(5, 25%, 18%);
-    color: hsl(45, 90%, 70%);
+    min-width: 1.0625rem;
+    padding: 0.1875rem 0.25rem;
+    border-radius: 0.3125rem;
+    background: white;
+    border: 1px solid hsl(5, 24%, 72%);
+    color: hsl(5, 70%, 22%);
     font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.875rem;
+    font-weight: 800;
     line-height: 1;
+    box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.9);
   }
 </style>
