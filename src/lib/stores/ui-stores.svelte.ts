@@ -206,12 +206,11 @@ export class FloatingControlPanelStore {
 }
 
 export class SidebarStore {
-    private _panelOpen = $state<SidebarOpenType>("map");
-    // private _open = $state<boolean>(false)
-    panelOpen = $derived(this._panelOpen);
+  private _panelOpen = $state<SidebarOpenType>("map");
+  // private _open = $state<boolean>(false)
+  panelOpen = $derived(this._panelOpen);
 
-    changeOpened = (panel: SidebarOpenType) => {
-        this._panelOpen = panel;
-    }
-
+  changeOpened = (panel: SidebarOpenType) => {
+    this._panelOpen = panel;
+  };
 }
