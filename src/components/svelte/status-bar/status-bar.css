@@ -23,7 +23,7 @@
   overflow: hidden;
 }
 
-.status-bar__badges :global(.sync-status--inline) {
+.status-bar__badges .sync-status--inline {
   border-right: none;
   padding-right: 0;
   margin-right: 0;

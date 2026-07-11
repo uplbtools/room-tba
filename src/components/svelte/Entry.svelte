@@ -47,7 +47,7 @@
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
   import Sidebar from "./navigation/Sidebar.svelte";
-    import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
+  import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -317,20 +317,20 @@
   <div class="ui-layer">
     <Sidebar />
     {#if sidebarStore.panelOpen === "map"}
-    <section
-      class="top-right-map-stack"
-      aria-label="Map tools"
-      bind:this={mapToolsStackEl}
-    >
-      <MapToolsFlyout />
-      <section class="desktop-camera-controls" aria-label="Map camera">
-        <div class="camera-controls-card">
-          <MapDimensionToggle embedded />
-          <div class="camera-controls-card__divider" aria-hidden="true"></div>
-          <MapViewControls variant="camera" embedded />
-        </div>
+      <section
+        class="top-right-map-stack"
+        aria-label="Map tools"
+        bind:this={mapToolsStackEl}
+      >
+        <MapToolsFlyout />
+        <section class="desktop-camera-controls" aria-label="Map camera">
+          <div class="camera-controls-card">
+            <MapDimensionToggle embedded />
+            <div class="camera-controls-card__divider" aria-hidden="true"></div>
+            <MapViewControls variant="camera" embedded />
+          </div>
+        </section>
       </section>
-    </section>
       <div class="inner-layer">
         <MainControls />
         <div class="bottom-band">
@@ -527,6 +527,17 @@
     flex: 0 1 auto;
     min-width: 0;
     min-height: 2rem;
+    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border-radius: var(--map-chrome-radius, 1rem);
+    padding: 0.125rem 0.375rem;
+    box-shadow: var(
+      --map-chrome-panel-shadow,
+      0 0 0 1px hsla(15, 8%, 20%, 0.16),
+      0 2px 8px hsla(0, 0%, 0%, 0.14),
+      0 8px 20px hsla(0, 0%, 0%, 0.18)
+    );
     box-sizing: border-box;
     pointer-events: auto;
   }
