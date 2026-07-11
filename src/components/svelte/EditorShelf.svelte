@@ -176,8 +176,8 @@
 
 <style>
   .editor-shelf {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
     gap: 0.375rem;
     box-sizing: border-box;
     min-width: 0;
@@ -186,6 +186,7 @@
   }
 
   .editor-shelf-status {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -224,9 +225,7 @@
   }
 
   .editor-shelf-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    display: contents;
   }
 
   .editor-shelf-action {
@@ -255,7 +254,7 @@
 
   .editor-shelf-action:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 1px;
+    outline-offset: -2px;
   }
 
   .editor-shelf-action:disabled {

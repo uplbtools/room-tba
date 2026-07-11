@@ -1,10 +1,9 @@
 <script lang="ts">
   import Bus from "@lucide/svelte/icons/bus";
-  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
-  import { jeepneyStore } from "@lib/store.svelte";
+  import { jeepneyStore, transitStore } from "@lib/store.svelte";
   import "./map-chrome/map-chrome.css";
 
-  const routeCount = JEEPNEY_ROUTES.length;
+  const routeCount = $derived(transitStore.routes.length);
   const isActive = $derived(jeepneyStore.layerActive);
 </script>
 

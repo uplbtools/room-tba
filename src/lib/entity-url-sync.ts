@@ -10,6 +10,14 @@ import {
 import { getLocalRoomById } from "./local/data/utils";
 import { currentRoom, termStore } from "./store.svelte";
 import { parseTermIdFromSearch, withTermQuery } from "./term-url";
+import {
+  getTransitRoutePath,
+  getTransitStopPath,
+  parseTransitPathname,
+  TRANSIT_INDEX_PATH,
+  type TransitPath,
+} from "./transit-urls";
+import type { JeepneyRoute } from "@constants/jeepney-routes";
 
 type EntityHistoryState = {
   rtbaEntity?: true;
@@ -24,6 +32,7 @@ export type EntityUrlSyncContext = {
   getQuerySnapshot: () => RoutableQueryState;
   /** Open/close the planner in response to /planner navigations (back/forward). */
   setPlannerOpen: (open: boolean) => void;
+  setTransit: (transit: TransitPath) => void;
 };
 
 export type EntityUrlSyncSnapshot = RoutableQueryState & {
@@ -32,6 +41,9 @@ export type EntityUrlSyncSnapshot = RoutableQueryState & {
   termId: number | null;
   defaultTermId: number | null;
   plannerOpen: boolean;
+  transitRouteId: string | null;
+  transitStopIndex: number | null;
+  transitRoute: JeepneyRoute | null;
 };
 
 const HOME_PATH = "/";
@@ -155,6 +167,11 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       termStore.applyFromUrl();
       // Back/forward into or out of /planner toggles the planner overlay.
       context.setPlannerOpen(currentPathname() === PLANNER_PATH_NORMALIZED);
+      const transit = parseTransitPathname(currentPathname());
+      if (transit) {
+        context.setTransit(transit);
+        return;
+      }
       const state = (event.state ?? null) as EntityHistoryState | null;
       if (state?.query) {
         context.hydrateQuery(state.query);
@@ -179,9 +196,15 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     initialized = true;
 
     const pathname = currentPathname();
+    const transit = parseTransitPathname(pathname);
+    if (transit) context.setTransit(transit);
     const query = context.getQuerySnapshot();
     const initialState = buildHistoryState(
-      query.type === "result" && query.category !== null ? query : null,
+      transit
+        ? null
+        : query.type === "result" && query.category !== null
+          ? query
+          : null,
       HOME_PATH,
     );
 
@@ -240,6 +263,30 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
           buildHistoryState(carried, HOME_PATH),
           "",
           plannerPath,
+        );
+      }
+      return;
+    }
+
+    const transitBrowse =
+      snapshot.type === "result" &&
+      snapshot.category === "browse" &&
+      snapshot.value === "jeepney";
+    if (transitBrowse) {
+      const transitPath = snapshot.transitRouteId
+        ? snapshot.transitStopIndex !== null
+          ? getTransitStopPath(
+              snapshot.transitRouteId,
+              snapshot.transitStopIndex,
+              snapshot.transitRoute ?? undefined,
+            )
+          : getTransitRoutePath(snapshot.transitRouteId)
+        : TRANSIT_INDEX_PATH;
+      if (currentPathname() !== transitPath || window.location.search !== "") {
+        window.history.pushState(
+          buildHistoryState(null, transitPath),
+          "",
+          transitPath,
         );
       }
       return;

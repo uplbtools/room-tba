@@ -185,7 +185,7 @@
 
     {#if !editing}
       {#if place.description}
-        <p class="place-description">{place.description}</p>
+        <p class="entity-directions__text">{place.description}</p>
       {/if}
       <ul class="place-facts">
         {#if place.hours}
@@ -282,10 +282,6 @@
     font-size: 0.6875rem;
     font-weight: 600;
   }
-  .place-description {
-    margin: 0.5rem 0;
-    line-height: 1.4;
-  }
   .place-facts {
     list-style: none;
     padding: 0;
@@ -293,6 +289,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #27272a;
   }
   .place-form {
     display: flex;

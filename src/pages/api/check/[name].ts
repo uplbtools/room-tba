@@ -19,6 +19,7 @@ const PATHS = [
   "event_locations",
   "event_routes",
   "event_route_stops",
+  "jeepney_routes",
 ];
 
 export const GET = (async ({ params }) => {

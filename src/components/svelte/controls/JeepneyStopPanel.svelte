@@ -1,21 +1,19 @@
 <script lang="ts">
   import Bus from "@lucide/svelte/icons/bus";
+  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
-  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+  import TransitStopEditor from "./TransitStopEditor.svelte";
   import { getJeepneyRouteShareUrl } from "@lib/share-links";
-  import { jeepneyStore } from "@lib/store.svelte";
+  import { jeepneyStore, transitStore } from "@lib/store.svelte";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import "@ui/map-chrome/map-chrome.css";
 
   const route = $derived(
-    jeepneyStore.selectedRouteId
-      ? (JEEPNEY_ROUTES.find(
-          (entry) => entry.id === jeepneyStore.selectedRouteId,
-        ) ?? null)
-      : null,
+    transitStore.getRoute(jeepneyStore.selectedRouteId),
   );
 
   const stopIndex = $derived(jeepneyStore.selectedStopIndex);
@@ -39,6 +37,11 @@
   function closeStop() {
     jeepneyStore.closeStop();
   }
+
+  function openRouteDetails() {
+    if (!route) return;
+    jeepneyStore.closeStop();
+  }
 </script>
 
 {#if route && stop && stopIndex !== null}
@@ -58,42 +61,48 @@
       <p class="entity-header__context">
         Stop {stopIndex + 1} of {route.stops.length}
       </p>
+      <MapChromeActionChip toolbar onclick={openRouteDetails}>
+        <ChevronLeft size={14} aria-hidden="true" />
+        Back to {route.name} route
+      </MapChromeActionChip>
     </header>
 
-    <details class="entity-details-collapse">
-      <summary>About this route</summary>
-      <div class="entity-details-collapse__body">
-        <p class="entity-panel-note">{route.description}</p>
-        <button
-          type="button"
-          class="jeepney-stop-panel__route-link"
-          onclick={() => jeepneyStore.openRouteModal(route.id)}
-        >
-          View full route details
-        </button>
-      </div>
-    </details>
+    <p class="entity-directions__text">{stop.description}</p>
+    <p class="entity-panel-note">{route.description}</p>
 
     <p class="jeepney-stop-panel__coords">
       <MapPin size={14} aria-hidden="true" />
       <span>{stop.lat.toFixed(5)}, {stop.lon.toFixed(5)}</span>
     </p>
 
+    {#key stop.id ?? stopIndex}
+      <TransitStopEditor
+        routeId={route.id}
+        routeName={route.name}
+        {stop}
+        onRemoved={closeStop}
+      />
+    {/key}
+
     <div class="entity-actions">
-      <MapChromeActionChip
-        toolbar
-        disabled={stopIndex <= 0}
-        onclick={openPreviousStop}
-      >
-        Previous stop
-      </MapChromeActionChip>
-      <MapChromeActionChip
-        toolbar
-        disabled={stopIndex >= route.stops.length - 1}
-        onclick={openNextStop}
-      >
-        Next stop
-      </MapChromeActionChip>
+      <div class="jeepney-stop-panel__pager" aria-label="Route stops">
+        <MapChromeActionChip
+          toolbar
+          disabled={stopIndex <= 0}
+          onclick={openPreviousStop}
+        >
+          <ChevronLeft size={14} aria-hidden="true" />
+          Previous stop
+        </MapChromeActionChip>
+        <MapChromeActionChip
+          toolbar
+          disabled={stopIndex >= route.stops.length - 1}
+          onclick={openNextStop}
+        >
+          Next stop
+          <ChevronRight size={14} aria-hidden="true" />
+        </MapChromeActionChip>
+      </div>
       {#if mapsUrl}
         <EntityGoogleMapsLink
           lat={mapsUrl.lat}
@@ -102,7 +111,7 @@
         />
       {/if}
       <EntityShareCopyLink
-        url={getJeepneyRouteShareUrl(route.id, stopIndex)}
+        url={getJeepneyRouteShareUrl(route.id, stopIndex, route)}
         entityLabel={stop.name}
       />
     </div>
@@ -144,16 +153,20 @@
     color: #71717a;
   }
 
-  .jeepney-stop-panel__route-link {
-    margin-top: 0.375rem;
-    padding: 0;
-    border: none;
-    background: none;
-    color: hsl(5, 53%, 32%);
-    font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: underline;
+  .jeepney-stop-panel__pager {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding-right: 0.5rem;
+    border-right: 1px solid hsl(0 0% 86%);
   }
+
+  @media (max-width: 30rem) {
+    .jeepney-stop-panel__pager {
+      width: 100%;
+      padding: 0 0 0.5rem;
+      border: 0;
+      border-bottom: 1px solid hsl(0 0% 86%);
+    }
+  }
+
 </style>

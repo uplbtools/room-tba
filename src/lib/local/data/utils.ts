@@ -23,6 +23,54 @@ import { refreshStoredEventTiming, sortStoredEvents } from "@lib/event-time";
 import { normalizeAlias } from "@lib/site";
 import { normalizeDormListFields } from "@lib/string-lists";
 import type { Results } from "@electric-sql/pglite";
+import type { JeepneyRoute, JeepneyStop } from "@constants/jeepney-routes";
+
+export async function getLocalJeepneyRoutes(): Promise<
+  JeepneyRoute[] | undefined
+> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const [routes, stops] = await Promise.all([
+      localDB.query(`
+        SELECT id, name, description, direction_note AS "directionNote", color,
+          fare_regular AS "fareRegular", fare_discounted AS "fareDiscounted"
+        FROM jeepney_routes ORDER BY name;
+      `) as Promise<
+        Results<{
+          id: string;
+          name: string;
+          description: string;
+          directionNote: string | null;
+          color: string;
+          fareRegular: number;
+          fareDiscounted: number;
+        }>
+      >,
+      localDB.query(`
+        SELECT id, route_id AS "routeId", name, description, lat, lon,
+          sort_order AS "sortOrder", version, updated_at AS "updatedAt"
+        FROM jeepney_stops ORDER BY route_id, sort_order;
+      `) as Promise<Results<JeepneyStop & { routeId: string }>>,
+    ]);
+    return routes.rows.map((route) => ({
+      id: route.id,
+      name: route.name,
+      description: route.description,
+      directionNote: route.directionNote ?? undefined,
+      color: route.color,
+      fare: {
+        regular: route.fareRegular,
+        discounted: route.fareDiscounted,
+      },
+      stops: stops.rows
+        .filter((stop) => stop.routeId === route.id)
+        .map(({ routeId: _, ...stop }) => stop),
+    }));
+  } catch {
+    return undefined;
+  }
+}
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {

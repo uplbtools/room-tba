@@ -14,6 +14,7 @@
   import ClassesList from "./ClassesList.svelte";
   import CampusBrowseList from "./CampusBrowseList.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
+  import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import { resolveDrawerDragIntent } from "@lib/drawer-drag";
@@ -117,6 +118,11 @@
             >
               {#if jeepneyStore.selectedStopIndex !== null}
                 <JeepneyStopPanel />
+              {:else if jeepneyStore.selectedRouteId !== null && queryStore.category === "browse" && queryStore.queryValue === "jeepney"}
+                <JeepneyRouteModal
+                  routeId={jeepneyStore.selectedRouteId}
+                  onback={() => jeepneyStore.clearRoute()}
+                />
               {:else if queryStore.category === "building"}
                 <BuildingResult />
               {:else if queryStore.category === "college"}
@@ -183,9 +189,11 @@
     transform: translateX(-100%);
   }
 
-  /* Desktop: pin the open drawer to the flex space between search and status bar. */
+  /* Desktop: pin the drawer to the flex space between search and status bar —
+     collapsed too, so the retracted sliver doesn't reach up behind the search
+     bar. */
   @media (min-width: 48.0625rem) {
-    .drawer:not(.is-collapsed) {
+    .drawer {
       position: absolute;
       top: calc(var(--search-block-height, 3.25rem) + 0.75rem);
       bottom: calc(var(--status-bar-block-height, 2.75rem) + var(--side-panel-bottom-gap, 0.375rem));
@@ -243,7 +251,6 @@
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     color: #7b1113;
     cursor: pointer;
-    box-shadow: var(--map-chrome-shadow);
   }
   .drawer-handle:hover,
   .drawer-handle:focus-visible {

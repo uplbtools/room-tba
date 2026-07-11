@@ -147,6 +147,7 @@ import {
   ClassVenuesStore,
 } from "./data-stores.svelte";
 import { PlannerStore } from "./planner-store.svelte";
+import { TransitStore } from "./transit-store.svelte";
 
 class LocationStore {
   coords: [number, number] | null = $state(null);
@@ -954,6 +955,7 @@ export const additionProposalStore = new AdditionProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const jeepneyStore = new JeepneyStore();
+export const transitStore = new TransitStore();
 export const appBootstrapStore = new AppBootstrapStore();
 export const syncToastStore = new SyncToastStore();
 export const building3DStore = new Building3DStore();

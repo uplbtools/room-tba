@@ -367,6 +367,52 @@ export const updateTable = pgTable(
   (table) => [uniqueIndex("update_table_name_key").on(table.tableName)],
 );
 
+export const jeepneyRoutesTable = pgTable("jeepney_routes", {
+  id: varchar({ length: 64 }).primaryKey(),
+  name: varchar({ length: 120 }).notNull(),
+  description: text().notNull(),
+  directionNote: text("direction_note"),
+  color: varchar({ length: 16 }).notNull(),
+  fareRegular: doublePrecision("fare_regular").notNull(),
+  fareDiscounted: doublePrecision("fare_discounted").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  version: integer().default(1).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const jeepneyStopsTable = pgTable(
+  "jeepney_stops",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "jeepney_stops_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    routeId: varchar("route_id", { length: 64 })
+      .notNull()
+      .references(() => jeepneyRoutesTable.id, { onDelete: "cascade" }),
+    name: varchar({ length: 160 }).notNull(),
+    description: text().notNull(),
+    lat: doublePrecision().notNull(),
+    lon: doublePrecision().notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    version: integer().default(1).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("jeepney_stops_route_sort_order").on(
+      table.routeId,
+      table.sortOrder,
+    ),
+  ],
+);
+
 export const adminUsersTable = pgTable(
   "admin_users",
   {

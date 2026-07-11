@@ -59,6 +59,7 @@ const E2E_MIGRATION_FILES = [
   "0029_add_college_division_websites.sql",
   "0030_directory_data_fixes.sql",
   "0031_directory_data_fixes_2.sql",
+  "0032_add_jeepney_transit.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {
@@ -101,6 +102,8 @@ async function main() {
         editor_history,
         contributions,
         edit_proposals,
+        jeepney_stops,
+        jeepney_routes,
         event_route_stops,
         event_routes,
         event_locations,
@@ -196,6 +199,15 @@ async function main() {
     );
 
     await client.query(
+      `INSERT INTO jeepney_routes (id, name, description, color, fare_regular, fare_discounted)
+       VALUES ('e2e-route', 'E2E Route', 'E2E jeepney route', '#dc2626', 13, 11)`,
+    );
+    await client.query(
+      `INSERT INTO jeepney_stops (route_id, name, description, lat, lon, sort_order)
+       VALUES ('e2e-route', 'E2E Stop', 'E2E jeepney stop', 14.1655, 121.2412, 1)`,
+    );
+
+    await client.query(
       `INSERT INTO classes (course_code, section, type, schedule, room_id, course_title, term_id, version)
        VALUES ('E2E 101', 'AB', 'LEC', ARRAY['MWF 8-9'], $1, 'E2E Course', $2, 1)`,
       [roomId, E2E_FIXTURES.termId],
@@ -231,6 +243,7 @@ async function main() {
       "terms",
       "organizations",
       "places",
+      "jeepney_routes",
     ]) {
       await client.query(
         `INSERT INTO update (table_name, sync_key) VALUES ($1, gen_random_uuid())

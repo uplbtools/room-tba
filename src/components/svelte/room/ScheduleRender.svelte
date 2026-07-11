@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    getColorForCourse,
+    getPlannerBlockColor,
     parseScheduleTime,
     ScheduleRenderer,
   } from "@lib/schedule-renderer";
@@ -38,7 +38,7 @@
         if (!parsed) {
           return;
         }
-        const color = getColorForCourse(sectionClass.courseCode ?? "");
+        const color = getPlannerBlockColor(sectionClass.type);
         const label =
           sectionClass.courseCode +
           (sectionClass.type ? ` (${sectionClass.type})` : "");

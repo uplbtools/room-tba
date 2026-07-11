@@ -135,13 +135,13 @@
     margin: 0;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: hsl(5, 53%, 25%);
   }
 
   .entity-hover-preview__hint {
     margin: 0;
     font-size: 0.6875rem;
     line-height: 1.35;
-    color: hsl(0, 0%, 35%);
+    color: hsl(0, 0%, 22%);
   }
 </style>

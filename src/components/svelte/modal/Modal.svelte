@@ -18,6 +18,8 @@
   import SettingsModal from "./SettingsModal.svelte";
   import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
   import EditorToolsModal from "./EditorToolsModal.svelte";
+  import PrivacyModal from "./PrivacyModal.svelte";
+  import OfflineMapsModal from "./OfflineMapsModal.svelte";
   import IconButton from "@ui/IconButton.svelte";
   import X from "@lucide/svelte/icons/x";
 
@@ -49,6 +51,8 @@
     if (modalStore.type === "settings") return "Settings";
     if (modalStore.type === "jeepney-route") return "Jeepney route";
     if (modalStore.type === "editor-tools") return "Editor tools";
+    if (modalStore.type === "privacy") return "Privacy policy";
+    if (modalStore.type === "offline-maps") return "Offline maps";
     return "Dialog";
   });
 
@@ -88,7 +92,9 @@
             ? 'modal-content--large'
             : modalStore.type === 'settings' ||
                 modalStore.type === 'jeepney-route' ||
-                modalStore.type === 'editor-tools'
+                modalStore.type === 'editor-tools' ||
+                modalStore.type === 'privacy' ||
+                modalStore.type === 'offline-maps'
               ? 'modal-content--reading'
               : ''}"
       id="modal-content"
@@ -190,6 +196,24 @@
           <X size={20} aria-hidden="true" />
         </IconButton>
         <EditorToolsModal />
+      {:else if modalStore.type === "privacy"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close privacy policy"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <PrivacyModal />
+      {:else if modalStore.type === "offline-maps"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close offline maps"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <OfflineMapsModal />
       {/if}
     </div>
   </div>

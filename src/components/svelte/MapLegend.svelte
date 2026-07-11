@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Info from "@lucide/svelte/icons/info";
+  import Layers from "@lucide/svelte/icons/layers";
   import X from "@lucide/svelte/icons/x";
   import IconButton from "@ui/IconButton.svelte";
   import { getAppData } from "@lib/context";
@@ -8,12 +10,17 @@
     mapViewStore,
     queryStore,
   } from "@lib/store.svelte";
+  import {
+    openEphemeralOverlay,
+    registerEphemeralOverlayDismisser,
+  } from "@lib/overlay-stack";
 
   type Props = {
     embedded?: boolean;
+    trigger?: "icon" | "chip";
   };
 
-  let { embedded = false }: Props = $props();
+  let { embedded = false, trigger = "icon" }: Props = $props();
 
   const panelId = "legend";
   const open = $derived(floatingControlPanelStore.openPanel === panelId);
@@ -100,6 +107,20 @@
       description: "Building or dorm tied to a live event.",
     },
   ] as const;
+
+  onMount(() =>
+    registerEphemeralOverlayDismisser(() =>
+      floatingControlPanelStore.close(panelId),
+    ),
+  );
+
+  function togglePanel() {
+    if (open) {
+      floatingControlPanelStore.close(panelId);
+      return;
+    }
+    openEphemeralOverlay(() => floatingControlPanelStore.toggle(panelId));
+  }
 </script>
 
 <div class="map-legend" class:embedded>
@@ -228,15 +249,21 @@
   {#if !embedded}
     <button
       class="legend-btn"
+      class:legend-btn--chip={trigger === "chip"}
       class:active={open}
       type="button"
-      onclick={() => floatingControlPanelStore.toggle(panelId)}
+      onclick={togglePanel}
       title="Map legend"
       aria-label="Map legend"
       aria-expanded={open}
       aria-controls="map-icon-legend"
     >
-      <Info />
+      {#if trigger === "chip"}
+        <Layers size={16} aria-hidden="true" />
+        <span>Legend</span>
+      {:else}
+        <Info />
+      {/if}
     </button>
   {/if}
 </div>
@@ -334,6 +361,19 @@
     color: white;
   }
 
+  .legend-btn--chip {
+    width: auto;
+    /* Match the 3rem circular add/locate buttons beside it. */
+    min-height: 3rem;
+    height: auto;
+    gap: 0.375rem;
+    border-radius: 999px;
+    padding: 0.375rem 0.875rem;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
   .legend-panel {
     display: flex;
     width: 18rem;
@@ -366,8 +406,12 @@
     flex-direction: column;
     gap: 0.75rem;
     overflow-x: clip;
-    overflow-y: visible;
+    overflow-y: auto;
     padding-right: 0;
+  }
+
+  .legend-panel.embedded .legend-sections {
+    overflow-y: visible;
   }
 
   .legend-section {
@@ -389,6 +433,12 @@
   .legend-list {
     display: grid;
     gap: 0.35rem;
+  }
+
+  @media (min-width: 30rem) {
+    .map-legend.embedded .legend-list {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
   }
 
   .legend-item {
@@ -532,6 +582,13 @@
 
     .legend-description {
       display: none;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .legend-panel:not(.embedded) {
+      max-height: 40dvh;
+      overflow-y: auto;
     }
   }
 </style>

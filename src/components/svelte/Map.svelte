@@ -30,6 +30,7 @@
     classVenuesStore,
     termStore,
     syncToastStore,
+    transitStore,
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
@@ -65,7 +66,6 @@
   import { isLandmarkPlaceCategory } from "@constants/place-categories";
   import {
     deriveRouteLineFromStops,
-    JEEPNEY_ROUTES,
     type JeepneyRoute,
     type JeepneyStop,
   } from "@constants/jeepney-routes";
@@ -476,17 +476,22 @@
       if (stop.lat < minLat) minLat = stop.lat;
       if (stop.lat > maxLat) maxLat = stop.lat;
     }
-    map.fitBounds(
-      [
-        [minLng, minLat],
-        [maxLng, maxLat],
-      ],
-      {
-        padding: { top: 80, bottom: 80, left: 80, right: 80 },
-        duration: 1200,
-        pitch: 30,
-      },
-    );
+    // rAF: camera moves fire map event handlers synchronously; keep their
+    // state writes out of the reactive flush that called us (see stop flyTo
+    // effect) or the scheduler can die with effect_update_depth_exceeded.
+    requestAnimationFrame(() => {
+      map.fitBounds(
+        [
+          [minLng, minLat],
+          [maxLng, maxLat],
+        ],
+        {
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          duration: 1200,
+          pitch: 30,
+        },
+      );
+    });
   }
 
   function getEventMapLocations(event: EventData) {
@@ -1846,7 +1851,7 @@
     if (!map) return;
 
     const route = selectedId
-      ? (JEEPNEY_ROUTES.find((r) => r.id === selectedId) ?? null)
+      ? transitStore.getRoute(selectedId)
       : null;
 
     if (!route) {
@@ -1915,16 +1920,24 @@
     const stopIndex = jeepneyStore.selectedStopIndex;
     if (!map || routeId === null || stopIndex === null) return;
 
-    const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);
+    const route = transitStore.getRoute(routeId);
     const stop = route?.stops[stopIndex];
     if (!stop) return;
 
-    map.flyTo({
-      center: [stop.lon, stop.lat],
-      zoom: Math.max(map.getZoom(), 16),
-      duration: 700,
-      essential: true,
+    // Defer the camera move out of the reactive flush: flyTo fires zoom/move
+    // handlers synchronously (reduced-motion jumps instantly), and their state
+    // writes inside this flush can chain into effect_update_depth_exceeded,
+    // which kills the whole Svelte scheduler (app looks frozen, hover still
+    // works). Same guard as fitMapToRoute below.
+    const frame = requestAnimationFrame(() => {
+      map.flyTo({
+        center: [stop.lon, stop.lat],
+        zoom: Math.max(map.getZoom(), 16),
+        duration: 700,
+        essential: true,
+      });
     });
+    return () => cancelAnimationFrame(frame);
   });
 
   $effect(() => {

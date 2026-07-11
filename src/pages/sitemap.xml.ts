@@ -13,6 +13,12 @@ import {
   loadAppData,
 } from "@lib/app-data";
 import { absoluteUrl } from "@lib/site";
+import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+import {
+  getTransitRoutePath,
+  getTransitStopPath,
+  TRANSIT_INDEX_PATH,
+} from "@lib/transit-urls";
 
 export const GET: APIRoute = async () => {
   const { rooms, buildings, divisions, colleges, dorms, events } =
@@ -29,6 +35,7 @@ export const GET: APIRoute = async () => {
     "/college/",
     "/dorm/",
     "/event/",
+    TRANSIT_INDEX_PATH,
     ...rooms.map((room) => `/room/${getRoomRouteSlug(room)}/`),
     ...buildings.map((building) => `/building/${getBuildingSlug(building)}/`),
     ...divisions.map((division) => `/division/${getDivisionSlug(division)}/`),
@@ -37,6 +44,10 @@ export const GET: APIRoute = async () => {
     ...events
       .filter((event) => event.includeInSeo)
       .map((event) => `/event/${getEventSlug(event)}/`),
+    ...JEEPNEY_ROUTES.flatMap((route) => [
+      getTransitRoutePath(route.id),
+      ...route.stops.map((_, index) => getTransitStopPath(route.id, index)),
+    ]),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>

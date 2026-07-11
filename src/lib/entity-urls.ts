@@ -45,6 +45,7 @@ export type RoutableQueryState = {
     | "place"
     | "event"
     | "events"
+    | "browse"
     | null;
   value: string;
   eventSlug?: string;
@@ -165,6 +166,7 @@ export function getEntityCanonicalPath(
       return query.eventSlug ? getEventCanonicalPath(query.eventSlug) : null;
     case "class":
     case "events":
+    case "browse":
       return null;
     default:
       return null;

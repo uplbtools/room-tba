@@ -1,16 +1,23 @@
 <script lang="ts">
+  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import MapPinned from "@lucide/svelte/icons/map-pinned";
-  import { jeepneyStore, modalStore } from "@lib/store.svelte";
+  import { jeepneyStore, modalStore, transitStore } from "@lib/store.svelte";
   import {
-    JEEPNEY_ROUTES,
     JEEPNEY_FARE_NOTE,
   } from "@constants/jeepney-routes";
   import { getJeepneyRouteShareUrl } from "@lib/share-links";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
+  import TransitStopEditor from "../controls/TransitStopEditor.svelte";
+
+  type Props = {
+    routeId?: string | null;
+    onback?: () => void;
+  };
+
+  let { routeId = null, onback }: Props = $props();
 
   const route = $derived(
-    JEEPNEY_ROUTES.find((entry) => entry.id === jeepneyStore.modalRouteId) ??
-      null,
+    transitStore.getRoute(routeId ?? jeepneyStore.modalRouteId),
   );
 
   function viewOnMap() {
@@ -22,6 +29,12 @@
 
 {#if route}
   <div class="jeepney-modal" style:--route-color={route.color}>
+    {#if onback}
+      <button type="button" class="jeepney-modal__back" onclick={onback}>
+        <ChevronLeft size={16} aria-hidden="true" />
+        Jeepney routes
+      </button>
+    {/if}
     <header class="jeepney-modal__header">
       <span
         class="jeepney-modal__swatch"
@@ -61,6 +74,7 @@
           </li>
         {/each}
       </ol>
+      <TransitStopEditor routeId={route.id} routeName={route.name} />
     </div>
 
     <div class="jeepney-modal__actions">
@@ -68,10 +82,12 @@
         url={getJeepneyRouteShareUrl(route.id)}
         entityLabel={`${route.name} route`}
       />
-      <button type="button" class="jeepney-modal__view" onclick={viewOnMap}>
-        <MapPinned size={16} aria-hidden="true" />
-        View on map
-      </button>
+      {#if routeId === null}
+        <button type="button" class="jeepney-modal__view" onclick={viewOnMap}>
+          <MapPinned size={16} aria-hidden="true" />
+          View on map
+        </button>
+      {/if}
     </div>
   </div>
 {:else}
@@ -93,6 +109,24 @@
     align-items: center;
     gap: 0.5rem;
     padding-right: 2.25rem;
+  }
+
+  .jeepney-modal__back {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.25rem;
+    color: hsl(5, 53%, 32%);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+
+  .jeepney-modal__back:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: -2px;
+    border-radius: 0.25rem;
   }
 
   .jeepney-modal__swatch {
@@ -128,13 +162,9 @@
 
   .jeepney-modal__direction {
     margin: 0;
-    padding: 0.5rem 0.75rem;
-    border-left: 3px solid var(--route-color, hsl(5, 53%, 32%));
-    border-radius: 0.375rem;
-    background: hsl(40, 60%, 95%);
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 15%);
+    color: hsl(0, 0%, 12%);
   }
 
   .jeepney-modal__fare {
@@ -246,6 +276,10 @@
     gap: 0.5rem;
     padding: 0.25rem 0 0.375rem;
     border-top: 1px solid hsl(0, 0%, 92%);
+  }
+
+  .jeepney-modal__actions :global(.map-chrome-action-chip) {
+    min-height: 2.25rem;
   }
 
   .jeepney-modal__view {

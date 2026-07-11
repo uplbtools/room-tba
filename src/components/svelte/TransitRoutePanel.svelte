@@ -1,7 +1,5 @@
 <script lang="ts">
-  import Info from "@lucide/svelte/icons/info";
-  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
-  import { jeepneyStore } from "@lib/store.svelte";
+  import { jeepneyStore, transitStore } from "@lib/store.svelte";
 
   type Props = {
     /** Compact row for the search chrome sub-panel. */
@@ -21,7 +19,7 @@
   role="listbox"
   aria-label="Jeepney routes"
 >
-  {#each JEEPNEY_ROUTES as route (route.id)}
+  {#each transitStore.routes as route (route.id)}
     {@const isActive = jeepneyStore.selectedRouteId === route.id}
     <div class="transit-route-row">
       <button
@@ -47,17 +45,6 @@
           {/if}
         </span>
       </button>
-      {#if !compact}
-        <button
-          type="button"
-          class="transit-route-details"
-          aria-label={`${route.name} route details`}
-          title="Route details, fare, and stops"
-          onclick={() => jeepneyStore.openRouteModal(route.id)}
-        >
-          <Info size={16} aria-hidden="true" />
-        </button>
-      {/if}
     </div>
   {/each}
   {#if jeepneyStore.selectedRouteId !== null}
@@ -100,25 +87,6 @@
 
   .transit-route-panel--compact .transit-route-row {
     width: auto;
-  }
-
-  .transit-route-details {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    border-radius: 0.625rem;
-    border: 1px solid transparent;
-    background-color: hsl(0, 0%, 98%);
-    color: hsl(5, 53%, 32%);
-    cursor: pointer;
-  }
-
-  .transit-route-details:hover,
-  .transit-route-details:focus-visible {
-    border-color: hsl(5, 40%, 72%);
-    background-color: hsl(5, 53%, 96%);
   }
 
   .transit-route-option {

@@ -1,4 +1,3 @@
-import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import {
   offeringGroupKey,
   parentLectureSection,

@@ -15,6 +15,7 @@
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
+  import VisitorCounter from "@ui/VisitorCounter.svelte";
   import Download from "@lucide/svelte/icons/download";
   import { untrack } from "svelte";
 
@@ -242,6 +243,7 @@
   </div>
 
   <footer class="actions">
+    <VisitorCounter />
     <p class="legal-hint">
       <a href="/privacy" class="inline-link">Privacy</a>
       ·
@@ -439,6 +441,12 @@
   .repo-link {
     margin: 0;
     font-size: 0.8125rem;
+  }
+
+  .repo-link .inline-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
   }
 
   .community-block {

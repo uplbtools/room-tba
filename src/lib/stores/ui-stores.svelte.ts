@@ -210,6 +210,16 @@ export class SidebarStore {
   panelOpen = $derived(this._panelOpen);
   /** Mobile-only rail visibility; the hamburger toggles it. Desktop ignores it. */
   railOpen = $state(false);
+  /** Desktop label mode for the rail; persisted across reloads. */
+  expanded = $state(
+    typeof localStorage !== "undefined" &&
+      localStorage.getItem("sidebar-expanded") === "true",
+  );
+
+  toggleExpanded = () => {
+    this.expanded = !this.expanded;
+    localStorage.setItem("sidebar-expanded", String(this.expanded));
+  };
 
   changeOpened = (panel: SidebarOpenType) => {
     this._panelOpen = panel;

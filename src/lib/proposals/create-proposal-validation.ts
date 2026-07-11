@@ -149,5 +149,26 @@ export function validateCreateProposalPatch(
       }
       return;
     }
+    case "create_jeepney_stop": {
+      const routeId =
+        typeof patch.routeId === "string" ? patch.routeId.trim() : "";
+      const name = typeof patch.name === "string" ? patch.name.trim() : "";
+      const description =
+        typeof patch.description === "string" ? patch.description.trim() : "";
+      if (!routeId || !name || !description) {
+        throw new ProposalValidationError(
+          "Route, stop name, and description are required.",
+        );
+      }
+      if (
+        typeof patch.lat !== "number" ||
+        typeof patch.lon !== "number" ||
+        !Number.isFinite(patch.lat) ||
+        !Number.isFinite(patch.lon)
+      ) {
+        throw new ProposalValidationError("Pick a valid stop location.");
+      }
+      return;
+    }
   }
 }

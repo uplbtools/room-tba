@@ -1,0 +1,59 @@
+---
+export const prerender = false;
+
+import AppRoot from "@ui/AppRoot.svelte";
+import Layout from "@layouts/Layout.astro";
+import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+import { getTransitStopIndex } from "@lib/transit-urls";
+import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
+
+const routeId = Astro.params.route;
+const stopSlug = Astro.params.stop;
+const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);
+const stopIndex = route && stopSlug ? getTransitStopIndex(route, stopSlug) : -1;
+const stop = route?.stops[stopIndex] ?? null;
+const routeName = route?.name ?? "UPLB jeepney route";
+const stopName = stop?.name ?? "Jeepney stop";
+const canonicalPath = `/transit/${encodeURIComponent(routeId ?? "")}/${encodeURIComponent(stopSlug ?? "")}/`;
+const title = `${stopName} | ${routeName} | Room TBA`;
+const description = stop
+  ? `${stop.description} Stop ${stopIndex + 1} of ${route!.stops.length} on the ${routeName}.`
+  : "View this UPLB jeepney stop and its route on the Room TBA campus map.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Jeepney routes", path: "/transit/" },
+    { name: routeName, path: `/transit/${encodeURIComponent(routeId ?? "")}/` },
+    { name: stopName, path: canonicalPath },
+  ]),
+);
+---
+
+<Layout
+  {title}
+  ogTitle={stopName}
+  description={description}
+  {canonicalPath}
+  imagePath={ogCardPath({
+    title: stopName,
+    subtitle: route && stop
+      ? `${routeName} · Stop ${stopIndex + 1} of ${route.stops.length}`
+      : routeName,
+    kicker: "UPLB jeepney stop",
+  })}
+  {structuredData}
+>
+  <main class="transit-page">
+    <article class="sr-only">
+      <h1>{stopName}</h1>
+      <p>{description}</p>
+    </article>
+    <AppRoot client:only="svelte" suppressLandingModal={true} />
+  </main>
+</Layout>
+
+<style>
+  .transit-page { height: 100dvh; overflow: hidden; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+</style>

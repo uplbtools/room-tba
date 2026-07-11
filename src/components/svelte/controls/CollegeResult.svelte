@@ -433,9 +433,7 @@
       groupByBuilding
     />
   {:else if college}
-    <p class="entity-loading-note">
-      <LoadingIndicator label="Loading rooms for {college.collegeName}…" />
-    </p>
+    <LoadingIndicator block label="Loading rooms for {college.collegeName}…" />
   {/if}
 </div>
 

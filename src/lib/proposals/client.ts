@@ -270,6 +270,8 @@ export function adminPatchPath(
       return `/api/admin/events/${entityId}/locations`;
     case "organization":
       return `/api/admin/organizations/${entityId}`;
+    case "jeepney_stop":
+      return `/api/admin/transit/stops/${entityId}`;
     default:
       return `/api/admin/${entityType}/${entityId}`;
   }
@@ -324,7 +326,8 @@ export async function publishEntityPatch(
     payload.college ??
     payload.division ??
     payload.event ??
-    payload.organization;
+    payload.organization ??
+    payload.stop;
   return { ok: true, data: entity ?? payload };
 }
 
@@ -458,6 +461,8 @@ function adminCreatePath(entityType: ProposalCreateType): string {
       return "/api/admin/events";
     case "create_organization":
       return "/api/admin/organizations";
+    case "create_jeepney_stop":
+      return "/api/admin/transit/stops";
   }
 }
 
@@ -484,7 +489,8 @@ export async function publishEntityCreate(
     payload.college ??
     payload.division ??
     payload.event ??
-    payload.organization;
+    payload.organization ??
+    payload.stop;
   return { ok: true, data: entity ?? payload };
 }
 

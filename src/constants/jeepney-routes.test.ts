@@ -7,6 +7,7 @@ import {
 
 const stop = (name: string, lat: number, lon: number): JeepneyStop => ({
   name,
+  description: `${name} stop.`,
   lat,
   lon,
 });
@@ -42,6 +43,9 @@ describe("JEEPNEY_ROUTES data", () => {
       expect(route.description.trim().length).toBeGreaterThan(0);
       expect(route.description).not.toMatch(/mock/i);
       expect(route.stops.length).toBeGreaterThanOrEqual(2);
+      for (const stop of route.stops) {
+        expect(stop.description.trim().length).toBeGreaterThan(0);
+      }
     }
   });
 });
