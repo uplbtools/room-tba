@@ -6,7 +6,6 @@ const ROOM_TBA_SITE_URL = "https://room-tba.uplbtools.me";
 export const UPLB_TOOLS_URL = "https://uplbtools.me";
 export const DISCORD_URL = "https://discord.uplbtools.me";
 export const UPLB_OSA_ORGANIZATIONS_URL = "https://uplbosa.org/orgs";
-export const UPLB_TRAIL_URL = "https://uplb-trail.vercel.app/";
 
 /** Facebook Messenger group chat invites (targets for redirect workers). */
 export const MESSENGER_CONTRIBUTE_TARGET = "https://m.me/j/Aba1V0prvQyLrafZ/";

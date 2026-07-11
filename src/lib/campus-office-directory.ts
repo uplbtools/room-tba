@@ -1,11 +1,11 @@
-export type TrailWebsite = {
+export type CampusWebsite = {
   name: string;
   url: string;
   description: string;
   category: string;
 };
 
-export type TrailDirectoryEntry = {
+export type CampusOfficeDirectoryEntry = {
   name: string;
   description: string;
   category: "academic" | "office" | "service" | "unit";
@@ -15,7 +15,7 @@ export type TrailDirectoryEntry = {
 
 const EXCLUDED_CATEGORIES = new Set(["Colleges & Schools", "Main Portals"]);
 
-function titleFromSource(source: TrailWebsite) {
+function titleFromSource(source: CampusWebsite) {
   const description = source.description.trim();
   const title = description
     .replace(/^The official (?:page|website) of\s+/i, "")
@@ -32,7 +32,7 @@ function titleFromSource(source: TrailWebsite) {
   return title.split(".")[0].trim() || source.name;
 }
 
-function shortName(source: TrailWebsite) {
+function shortName(source: CampusWebsite) {
   return source.name.replace(/\s+(?:FB Page|OCS Website|Website)$/i, "").trim();
 }
 
@@ -40,7 +40,7 @@ function normalized(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-function directoryName(source: TrailWebsite) {
+function directoryName(source: CampusWebsite) {
   const title = titleFromSource(source);
   const short = shortName(source);
   return normalized(title).includes(normalized(short))
@@ -49,9 +49,9 @@ function directoryName(source: TrailWebsite) {
 }
 
 function directoryCategory(
-  source: TrailWebsite,
+  source: CampusWebsite,
   name: string,
-): TrailDirectoryEntry["category"] {
+): CampusOfficeDirectoryEntry["category"] {
   if (source.category === "Major Offices & Services") return "service";
   if (/^Units Under (?:OC|OV)/.test(source.category)) return "office";
   if (
@@ -77,13 +77,13 @@ function isFacebook(url: string) {
 }
 
 /**
- * Converts TRAIL's public websites directory to map-searchable UPLB units.
+ * Converts the public campus websites directory to map-searchable UPLB units.
  * Colleges and broad portals remain in their existing dedicated app surfaces.
  */
-export function trailDirectoryEntries(
-  sources: TrailWebsite[],
-): TrailDirectoryEntry[] {
-  const groups = new Map<string, TrailWebsite[]>();
+export function campusOfficeDirectoryEntries(
+  sources: CampusWebsite[],
+): CampusOfficeDirectoryEntry[] {
+  const groups = new Map<string, CampusWebsite[]>();
   for (const source of sources) {
     if (EXCLUDED_CATEGORIES.has(source.category)) continue;
     const key = normalized(titleFromSource(source));

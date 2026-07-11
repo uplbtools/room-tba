@@ -5,7 +5,10 @@
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
   import { getAppData } from "@lib/context";
   import type { CampusBrowseTab } from "@lib/browse-campus";
-  import { orgCategoryLabel } from "@constants/org-categories";
+  import {
+    isStudentOrganization,
+    orgCategoryLabel,
+  } from "@constants/org-categories";
   import { queryStore } from "@lib/store.svelte";
 
   const appData = getAppData();
@@ -116,9 +119,9 @@
     if (activeTab !== "organizations" && activeTab !== "offices") return [];
     const needle = filterText.trim().toLowerCase();
     const rows = organizations.filter((row) => {
-      const isStudentOrg =
-        row.category === "student-org" || row.category === "college-org";
-      return activeTab === "organizations" ? isStudentOrg : !isStudentOrg;
+      return activeTab === "organizations"
+        ? isStudentOrganization(row.category)
+        : !isStudentOrganization(row.category);
     }).sort((a, b) =>
       a.name.localeCompare(b.name),
     );

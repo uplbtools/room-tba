@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   ORG_CATEGORIES,
+  isStudentOrganization,
   normalizeOrgCategory,
   orgCategoryLabel,
 } from "./org-categories.js";
@@ -21,5 +22,10 @@ describe("normalizeOrgCategory", () => {
       expect(normalizeOrgCategory(c)).toBe(c);
       expect(orgCategoryLabel(c)).toBeTruthy();
     }
+  });
+  test("only student-facing categories use the organization marker", () => {
+    expect(isStudentOrganization("student-org")).toBe(true);
+    expect(isStudentOrganization("college-org")).toBe(true);
+    expect(isStudentOrganization("office")).toBe(false);
   });
 });

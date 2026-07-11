@@ -35,3 +35,8 @@ export function orgCategoryLabel(value: unknown): string | null {
   const c = normalizeOrgCategory(value);
   return c ? ORG_CATEGORY_LABELS[c] : null;
 }
+
+export function isStudentOrganization(value: unknown): boolean {
+  const category = normalizeOrgCategory(value);
+  return category === "student-org" || category === "college-org";
+}

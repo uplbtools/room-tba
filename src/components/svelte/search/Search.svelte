@@ -391,6 +391,8 @@
           {/if}
 
           {#if chrome.showSearchSuggestions}
+            <CampusBrowseChips />
+            <TermSelector />
             {#if showIdleEventsChrome}
               <button
                 type="button"
@@ -464,12 +466,6 @@
 </div>
 
 <style>
-    .campus-browse-chips__container {
-        padding: .5rem .75rem;
-    }
-  .campus-browse-chips__term {
-    padding: 0 0.75rem 0.5rem;
-  }
   .sr-only {
     position: absolute;
     width: 1px;
@@ -595,46 +591,13 @@
     grid-row: 3;
   }
 
-  /* Browse chips + term selector stack as their own full-width rows under the
-     filter chips. Without explicit placement they auto-flow side by side into
-     the menu-button column and overlap (mobile top-bar regression). */
-  .search-root.mobile-shell .campus-browse-chips__container,
-  .search-root.mobile-shell .campus-browse-chips__term {
-    grid-column: 1 / -1;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  .search-root.mobile-shell .campus-browse-chips__container {
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__transit-routes,
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__events,
+  .search-root.mobile-shell.search-suggestions-open.search-query-active
+    .map-search-chrome__editor {
     grid-row: 3;
-    padding: 0.4375rem 0 0;
-    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-  }
-
-  .search-root.mobile-shell .campus-browse-chips__term {
-    grid-row: 4;
-    padding: 0.375rem 0 0.1875rem;
-  }
-
-  .search-root.mobile-shell.search-suggestions-open
-    .campus-browse-chips__container {
-    grid-row: 4;
-  }
-
-  .search-root.mobile-shell.search-suggestions-open
-    .campus-browse-chips__term {
-    grid-row: 5;
-  }
-
-  .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__transit-routes,
-  .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__events,
-  .search-root.mobile-shell.search-suggestions-open.search-query-active
-    .map-search-chrome__editor {
-    grid-row: 6;
   }
 
   .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
@@ -643,7 +606,7 @@
     .map-search-chrome__events,
   .search-root.mobile-shell.search-suggestions-open:not(.search-query-active)
     .map-search-chrome__editor {
-    grid-row: 6;
+    grid-row: 4;
   }
 
   .search-root.mobile-shell:not(.search-suggestions-open)
@@ -653,7 +616,7 @@
   .search-root.mobile-shell:not(.search-suggestions-open)
     .map-search-chrome__editor {
     grid-column: 1 / -1;
-    grid-row: 5;
+    grid-row: 3;
     min-width: 0;
     width: 100%;
     max-width: 100%;
