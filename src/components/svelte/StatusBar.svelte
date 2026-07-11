@@ -12,8 +12,8 @@
     toastStore,
     modalStore,
   } from "@lib/store.svelte";
-  import AppMenu from "./status-bar/AppMenu.svelte";
   import "./status-bar/status-bar.css";
+  import SyncStatus from "./SyncStatus.svelte";
 
   let isOnline = $state(true);
 
@@ -103,6 +103,8 @@
 <div class="status-bar">
   <!-- <AppMenu onSignOut={handleSignOut} /> -->
 
+  <SyncStatus inline compact={false} expanded />
+
   <div class="status-bar__badges" aria-live="polite">
     {#if statusPill}
       {#if statusPill.action}
@@ -116,14 +118,22 @@
           {:else if statusPill.kind === "error"}
             <TriangleAlert size={12} aria-hidden="true" />
           {:else}
-            <LoaderCircle size={12} class="status-bar__spin" aria-hidden="true" />
+            <LoaderCircle
+              size={12}
+              class="status-bar__spin"
+              aria-hidden="true"
+            />
           {/if}
           {statusPill.label}
         </button>
       {:else}
         <span class="status-bar__pill status-bar__pill--{statusPill.kind}">
           {#if statusPill.kind === "syncing"}
-            <LoaderCircle size={12} class="status-bar__spin" aria-hidden="true" />
+            <LoaderCircle
+              size={12}
+              class="status-bar__spin"
+              aria-hidden="true"
+            />
           {:else if statusPill.kind === "error"}
             <TriangleAlert size={12} aria-hidden="true" />
           {/if}

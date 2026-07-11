@@ -186,7 +186,8 @@
     onclick={toggleOpen}
   >
     <Menu size={14} aria-hidden="true" />
-    <span>Menu</span></button>
+    <span>Menu</span></button
+  >
 
   <div class="app-menu__shortcuts-host" aria-hidden="true">
     <KeyboardShortcutsChip compact />
@@ -225,7 +226,9 @@
             <span>
               Review suggested edits
               {#if proposalsStore.pendingCount > 0}
-                <span class="app-menu__badge">{proposalsStore.pendingCount}</span>
+                <span class="app-menu__badge"
+                  >{proposalsStore.pendingCount}</span
+                >
               {/if}
             </span>
           </button>
@@ -237,9 +240,7 @@
         aria-labelledby="app-menu-data-heading"
       >
         <h3 id="app-menu-data-heading" class="app-menu__heading">Data</h3>
-        <div class="app-menu__sync">
-          <SyncStatus inline compact={false} expanded />
-        </div>
+        <div class="app-menu__sync"></div>
         <div class="app-menu__offline">
           <OfflineMaps compact={false} />
         </div>
