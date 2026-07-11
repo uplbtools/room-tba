@@ -78,14 +78,28 @@ async function loadSampleSchedule(page: Page) {
 
       return {
         weekdayLabel: WEEKDAY_BUTTON[weekday],
-        schedule: JSON.stringify([
-          {
-            course_code: row.courseCode,
-            section: row.section,
-            type,
-            schedule: [slot],
-          },
-        ]),
+        termId: activeTermId,
+        planner: JSON.stringify({
+          v: 1,
+          plans: [
+            {
+              id: "e2e-plan",
+              label: "A",
+              termId: activeTermId,
+              sections: [
+                {
+                  courseCode: row.courseCode,
+                  section: row.section,
+                  type,
+                  schedule: [slot],
+                  roomCode: row.roomCode,
+                  courseTitle: null,
+                },
+              ],
+            },
+          ],
+          activePlanIdByTerm: { [String(activeTermId)]: "e2e-plan" },
+        }),
       };
     }
   }
@@ -94,24 +108,28 @@ async function loadSampleSchedule(page: Page) {
   throw new Error("unreachable");
 }
 
-test.describe("schedule import @advisory", () => {
-  test("paste JSON and import in map tools", async ({ page }) => {
+test.describe("schedule route from planner @advisory", () => {
+  test("planner plan drives day stops in map tools", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
     const sample = await loadSampleSchedule(page);
+    test.skip(sample.termId === null, "No active term in this DB");
+
+    await page.evaluate(
+      (planner) => localStorage.setItem("room-tba-planner", planner),
+      sample.planner,
+    );
+    await page.reload();
+    await waitForAppBoot(page);
+
     await page.getByRole("button", { name: /map tools/i }).click();
     await page.getByRole("button", { name: /schedule/i }).click();
 
-    const textarea = page.locator("#schedule-import-paste");
-    if (await textarea.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await textarea.fill(sample.schedule);
-      await page
-        .getByRole("button", { name: /import|match/i })
-        .first()
-        .click();
-      await expect(page.locator(".schedule-import-panel")).toBeVisible();
-      await page.getByRole("button", { name: sample.weekdayLabel }).click();
-      await expect(page.locator(".schedule-route-stop-pin")).toHaveCount(1);
-    }
+    await expect(page.locator(".schedule-import-panel")).toBeVisible();
+    await expect(page.locator(".schedule-import-panel__plan")).toContainText(
+      "1 section",
+    );
+    await page.getByRole("button", { name: sample.weekdayLabel }).click();
+    await expect(page.locator(".schedule-route-stop-pin")).toHaveCount(1);
   });
 });

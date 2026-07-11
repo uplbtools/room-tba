@@ -1,20 +1,42 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { locationStore, scheduleRouteStore } from "@lib/store.svelte";
+import {
+  locationStore,
+  plannerStore,
+  scheduleRouteStore,
+  termStore,
+} from "@lib/store.svelte";
 
-const SAMPLE_JSON = JSON.stringify([
-  {
-    course_code: "E2E 101",
-    section: "AB",
-    type: "LEC",
-    schedule: ["MWF 08:00AM-09:00AM"],
-  },
-]);
+function seedPlan() {
+  termStore.activeTermId = 1252;
+  plannerStore.init();
+  plannerStore.plans = [
+    {
+      id: "p1",
+      label: "A",
+      termId: 1252,
+      sections: [
+        {
+          courseCode: "E2E 101",
+          section: "AB",
+          type: "LEC",
+          schedule: ["MWF 08:00AM-09:00AM"],
+          roomCode: "E2E-101",
+          courseTitle: "E2E Course",
+        },
+      ],
+    },
+  ];
+  plannerStore.activePlanIdByTerm = { "1252": "p1" };
+}
 
 describe("ScheduleRouteStore", () => {
   beforeEach(() => {
     scheduleRouteStore.clearImport();
+    plannerStore.plans = [];
+    plannerStore.activePlanIdByTerm = {};
     locationStore.coords = null;
     sessionStorage.clear();
+    localStorage.clear();
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -60,22 +82,25 @@ describe("ScheduleRouteStore", () => {
     vi.unstubAllGlobals();
   });
 
-  test("importText parses rows and matches classes", async () => {
-    const ok = await scheduleRouteStore.importText(SAMPLE_JSON);
+  test("importFromPlanner loads active plan rows and matches classes", async () => {
+    seedPlan();
+    const ok = await scheduleRouteStore.importFromPlanner();
     expect(ok).toBe(true);
     expect(scheduleRouteStore.importedRows).toHaveLength(1);
     expect(scheduleRouteStore.hasImport).toBe(true);
     expect(scheduleRouteStore.matches.length).toBeGreaterThan(0);
   });
 
-  test("importText rejects invalid payload", async () => {
-    const ok = await scheduleRouteStore.importText("not json");
+  test("importFromPlanner with empty plan clears rows without error", async () => {
+    const ok = await scheduleRouteStore.importFromPlanner();
     expect(ok).toBe(false);
-    expect(scheduleRouteStore.importError).toBeTruthy();
+    expect(scheduleRouteStore.hasImport).toBe(false);
+    expect(scheduleRouteStore.importError).toBeNull();
   });
 
   test("selectWeekday updates weekday state", async () => {
-    await scheduleRouteStore.importText(SAMPLE_JSON);
+    seedPlan();
+    await scheduleRouteStore.importFromPlanner();
     scheduleRouteStore.selectWeekday("T");
     expect(scheduleRouteStore.selectedWeekday).toBe("T");
     const stored = sessionStorage.getItem("room-tba-schedule-import");
@@ -83,7 +108,8 @@ describe("ScheduleRouteStore", () => {
   });
 
   test("routeDay generates map waypoints and clears stale route state", async () => {
-    await scheduleRouteStore.importText(SAMPLE_JSON);
+    seedPlan();
+    await scheduleRouteStore.importFromPlanner();
     locationStore.coords = [121.24, 14.16];
 
     scheduleRouteStore.routeDay("M");
