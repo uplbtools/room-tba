@@ -160,7 +160,7 @@
     }
     password = "";
     const label =
-      adminAuthStore.displayName ?? adminAuthStore.username ?? "editor";
+      adminAuthStore.displayName ?? adminAuthStore.username ?? "contributor";
     toastStore.show(`Logged in as ${label}.`, "success");
   }
 
@@ -198,7 +198,9 @@
     <header class="login-header">
       <div class="login-title" id="admin-login-title">
         <Lock size={16} aria-hidden="true" />
-        <span>{isSignup ? "Create contributor account" : "Editor login"}</span>
+        <span>
+          {isSignup ? "Create contributor account" : "Contributor sign in"}
+        </span>
       </div>
       <IconButton size="sm" shape="rounded" label="Close login" onclick={close}>
         <X size={18} aria-hidden="true" />

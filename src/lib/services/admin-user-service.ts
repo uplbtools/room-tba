@@ -732,7 +732,12 @@ export async function createAdminUser(
       role: created.role ?? "editor",
     };
   } catch (error) {
-    const code = (error as { code?: string })?.code;
+    // drizzle wraps the pg error; the unique-violation code lives on `cause`.
+    const code =
+      (error as { code?: string })?.code ??
+      ((error as { cause?: { code?: string } })?.cause?.code as
+        | string
+        | undefined);
     if (code === "23505") {
       throw new AccountActionError(
         "That username or email is already taken.",
