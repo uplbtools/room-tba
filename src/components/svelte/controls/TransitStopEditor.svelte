@@ -12,6 +12,10 @@
     resolveSubmitterName,
     submitEntityProposal,
   } from "@lib/proposals/client";
+  import {
+    ProposalValidationError,
+    validateCreateProposalPatch,
+  } from "@lib/proposals/create-proposal-validation";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
@@ -39,6 +43,7 @@
   let activeProposalId = $state<number | null>(null);
   let name = $state(stop?.name ?? "");
   let description = $state(stop?.description ?? "");
+  let sortPosition = $state(String((stop?.sortOrder ?? 0) + 1));
   let pin = $state<{ lat: number; lon: number } | null>(
     stop ? { lat: stop.lat, lon: stop.lon } : null,
   );
@@ -62,13 +67,31 @@
   }
 
   function buildPatch() {
-    return {
+    const patch: Record<string, unknown> = {
       ...(isNew ? { routeId } : {}),
       name: name.trim(),
       description: description.trim(),
       lat: pin?.lat ?? Number.NaN,
       lon: pin?.lon ?? Number.NaN,
     };
+    if (!isNew) {
+      const position = Number.parseInt(sortPosition, 10);
+      if (Number.isInteger(position) && position > 0) {
+        patch.sortOrder = position - 1;
+      }
+    }
+    return patch;
+  }
+
+  function validateCreatePatch(patch: Record<string, unknown>) {
+    try {
+      validateCreateProposalPatch("create_jeepney_stop", patch);
+      return null;
+    } catch (caught) {
+      return caught instanceof ProposalValidationError
+        ? caught.message
+        : "Could not submit stop suggestion.";
+    }
   }
 
   function validate() {
@@ -81,6 +104,13 @@
       error = "Drop a pin on the map to mark the stop.";
       return null;
     }
+    if (!isNew) {
+      const position = Number.parseInt(sortPosition, 10);
+      if (!Number.isInteger(position) || position < 1) {
+        error = "Enter a valid stop order (1 or higher).";
+        return null;
+      }
+    }
     return patch;
   }
 
@@ -92,6 +122,11 @@
     submitting = true;
     try {
       if (isNew) {
+        const createError = validateCreatePatch(patch);
+        if (createError) {
+          error = createError;
+          return;
+        }
         if (canPublish) {
           const result = await publishEntityCreate("create_jeepney_stop", patch);
           if (!result.ok) {
@@ -231,6 +266,20 @@
             <textarea id={`stop-description-${stop?.id ?? routeId}`} bind:value={description} rows="3" disabled={submitting}></textarea>
           {/snippet}
         </EntityEditorFormField>
+        {#if !isNew}
+          <EntityEditorFormField label="Stop order" inputId={`stop-order-${stop?.id ?? routeId}`}>
+            {#snippet control()}
+              <input
+                id={`stop-order-${stop?.id ?? routeId}`}
+                type="number"
+                min="1"
+                step="1"
+                bind:value={sortPosition}
+                disabled={submitting}
+              />
+            {/snippet}
+          </EntityEditorFormField>
+        {/if}
         <EntityEditorPinRow
           label={pin
             ? `Pin set · ${pin.lat.toFixed(5)}, ${pin.lon.toFixed(5)}`

@@ -19,6 +19,7 @@
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
@@ -184,6 +185,9 @@
     </header>
 
     {#if !editing}
+      {#if place.lat != null && place.lon != null}
+        <EntityStreetAddress lat={place.lat} lon={place.lon} />
+      {/if}
       {#if place.description}
         <p class="entity-directions__text">{place.description}</p>
       {/if}

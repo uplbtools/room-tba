@@ -53,6 +53,13 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       updates[field] = value;
     }
   }
+  if (body.sortOrder !== undefined) {
+    const sortOrder = Number(body.sortOrder);
+    if (!Number.isInteger(sortOrder) || sortOrder < 0) {
+      return json({ error: "Enter a valid stop order." }, 400);
+    }
+    updates.sortOrder = sortOrder;
+  }
   if (body.isActive !== undefined) {
     if (typeof body.isActive !== "boolean") {
       return json({ error: "Invalid stop status." }, 400);

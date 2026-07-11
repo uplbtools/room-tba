@@ -10,6 +10,7 @@ export type JeepneyStopWriteInput = Partial<{
   description: string;
   lat: number;
   lon: number;
+  sortOrder: number;
   isActive: boolean;
 }>;
 

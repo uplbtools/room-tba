@@ -27,10 +27,18 @@ describeIntegration("jeepney stop service", () => {
     );
     expect(updated?.version).toBe(2);
 
+    const reordered = await updateJeepneyStop(
+      created!.id,
+      { sortOrder: 0 },
+      updated!.version,
+      "e2e-editor",
+    );
+    expect(reordered?.sortOrder).toBe(0);
+
     const removed = await updateJeepneyStop(
       created!.id,
       { isActive: false },
-      updated!.version,
+      reordered!.version,
       "e2e-editor",
     );
     expect(removed?.isActive).toBe(false);

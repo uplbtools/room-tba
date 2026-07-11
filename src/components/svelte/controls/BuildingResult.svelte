@@ -16,6 +16,7 @@
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
@@ -736,6 +737,12 @@
       {/if}
       <section class="entity-directions" aria-label="Directions">
         <div class="entity-directions__segment">
+          {#if hasMapPin}
+            <EntityStreetAddress
+              lat={building.lat ?? 0}
+              lon={building.lon ?? 0}
+            />
+          {/if}
           {#if building.directions}
             <p class="entity-directions__label">Directions</p>
             <p class="entity-directions__text">{building.directions}</p>

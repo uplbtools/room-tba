@@ -478,7 +478,10 @@ export async function publishEntityCreate(
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { ok: false, error: (data as { error?: string }).error };
+    return {
+      ok: false,
+      error: readApiError(data, res.status),
+    };
   }
   const payload = data as Record<string, unknown>;
   const entity =
@@ -538,7 +541,10 @@ export async function submitEntityProposal(input: {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { ok: false, error: (data as { error?: string }).error };
+    return {
+      ok: false,
+      error: readApiError(data, res.status),
+    };
   }
   const proposal = (
     data as { proposal?: StoredProposalRef & { status: string } }
@@ -622,4 +628,12 @@ export function resolveSubmitterName(input: {
     input.draftName?.trim() ||
     ""
   );
+}
+
+function readApiError(data: unknown, status: number) {
+  if (data && typeof data === "object" && "error" in data) {
+    const message = (data as { error?: unknown }).error;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return `Request failed (${status}).`;
 }
