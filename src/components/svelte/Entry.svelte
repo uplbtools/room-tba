@@ -144,6 +144,17 @@
       window.history.replaceState({}, "", window.location.pathname);
     }
 
+    // Jeepney deep link: ?jeepney=<routeId>[&stop=<index>] opens the route on
+    // the map (and focuses a stop when given). Shared from the route modal /
+    // stop panel copy-link.
+    const jeepneyRouteId = urlParams.get("jeepney");
+    if (jeepneyRouteId) {
+      jeepneyStore.openRouteOnMap(jeepneyRouteId);
+      const stopParam = Number.parseInt(urlParams.get("stop") ?? "", 10);
+      if (Number.isInteger(stopParam)) jeepneyStore.openStop(stopParam);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
     plannerStore.init();
 
     // /planner deep link (prop set by the planner.astro page). Driven by a prop,
@@ -151,7 +162,7 @@
     // on boot before this runs. ?term still flows through termStore.
     if (openPlanner) {
       void termStore.init();
-      plannerStore.openPlanner();
+      sidebarStore.changeOpened("planner");
     }
 
     const planParam = urlParams.get("plan");
@@ -169,7 +180,7 @@
             if (termStore.terms.some((term) => term.id === decoded.termId)) {
               termStore.setTerm(decoded.termId);
             }
-            plannerStore.openPlanner();
+            sidebarStore.changeOpened("planner");
             if (missing > 0) {
               toastStore.show(
                 `${missing} shared ${missing === 1 ? "section is" : "sections are"} no longer offered.`,

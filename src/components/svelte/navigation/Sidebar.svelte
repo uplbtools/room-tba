@@ -4,12 +4,24 @@
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
   import House from "@lucide/svelte/icons/house";
+  import School from "@lucide/svelte/icons/school";
+  import Briefcase from "@lucide/svelte/icons/briefcase";
+  import Settings from "@lucide/svelte/icons/settings";
   import Store from "@lucide/svelte/icons/store";
+  import Ticket from "@lucide/svelte/icons/ticket";
+  import BusFront from "@lucide/svelte/icons/bus-front";
+  import Trophy from "@lucide/svelte/icons/trophy";
+  import Globe from "@lucide/svelte/icons/globe";
+  import HeartHandshake from "@lucide/svelte/icons/heart-handshake";
+  import Sparkles from "@lucide/svelte/icons/sparkles";
   import University from "@lucide/svelte/icons/university";
+  import UserPlus from "@lucide/svelte/icons/user-plus";
   import Users from "@lucide/svelte/icons/users";
   import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
   import {
     adminAuthStore,
+    jeepneyStore,
+    mapToolsStore,
     modalStore,
     queryStore,
     sidebarStore,
@@ -33,23 +45,51 @@
     { id: "buildings", label: "Buildings", icon: University },
     { id: "dorms", label: "Dorms", icon: House },
     { id: "colleges", label: "Colleges", icon: GraduationCap },
-    { id: "divisions", label: "Divisions", icon: Landmark },
+    { id: "divisions", label: "Divisions", icon: School },
     { id: "organizations", label: "Orgs", icon: Users },
-    { id: "offices", label: "Units & offices", icon: Landmark },
+    { id: "offices", label: "Units & offices", icon: Briefcase },
     { id: "landmarks", label: "Landmarks", icon: Landmark },
     { id: "services", label: "Services & establishments", icon: Store },
     { id: "classes", label: "Classes", icon: BookText },
+    { id: "events", label: "Events", icon: Ticket },
+    { id: "jeepney", label: "Jeepney routes", icon: BusFront },
   ];
   function handleBrowse(id: string) {
     if (id === "classes") {
       openBrowseClasses(queryStore, sidePanelStore);
       return;
     }
+    if (id === "jeepney") {
+      // Show the routes/stops on the map, then open the Map tools flyout to the
+      // Transit section so the route list is visible to pick from.
+      jeepneyStore.enableLayer();
+      mapToolsStore.open = true;
+      mapToolsStore.activeSection = "jeepney";
+      mapToolsStore.expandedSections = new Set(["jeepney"]);
+      sidebarStore.closeRail();
+      return;
+    }
+    if (id === "events") {
+      queryStore.updateQuery({
+        category: "events",
+        type: "result",
+        value: "Campus events",
+      });
+      queryStore.inputValue = "";
+      sidePanelStore.expand();
+      return;
+    }
     openCampusBrowse(queryStore, sidePanelStore, id);
   }
 
+  // Selecting anything auto-closes the mobile rail; the hamburger reopens it.
+  $effect(() => {
+    if (queryStore.category !== null) sidebarStore.closeRail();
+  });
+
   const activeTab = $derived.by((): string | null => {
     if (queryStore.category === "classes") return "classes";
+    if (queryStore.category === "events") return "events";
     if (queryStore.category !== "browse") return null;
     if (
       queryStore.queryValue === "colleges" ||
@@ -65,9 +105,13 @@
     return "buildings";
   });
   const mapCategoriesOpen = $derived(sidebarStore.panelOpen === "map");
+
+  // Grouped bottom rail: collapsed by default so the rail stays short.
+  let communityOpen = $state(false);
+  let supportOpen = $state(false);
 </script>
 
-<aside class:retracted={queryStore.category !== null}>
+<aside id="app-sidebar" class:retracted={!sidebarStore.railOpen}>
   <div class="top">
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -249,7 +293,21 @@
   </div>
 
   <div class="bottom">
-    <div class="nav-links">
+    <div class="nav-support">
+      <NavLink
+        onclick={() => {
+          communityOpen = !communityOpen;
+          if (communityOpen) supportOpen = false;
+        }}
+        active={communityOpen}
+        hard={true}
+        tooltip="Contributors"
+      >
+        <HeartHandshake size={20} />
+      </NavLink>
+    </div>
+    {#if communityOpen}
+    <div class="nav-links map-categories" transition:slide={{ axis: "y", duration: 300 }}>
       <NavLink
         href="https://discord.uplbtools.me"
         aria-label="Join Discord"
@@ -306,12 +364,35 @@
           />
         </svg>
       </NavLink>
-    </div>
-    <div class="nav-support">
+      <NavLink
+        href="https://uplbtools.me"
+        aria-label="UPLB resources"
+        tooltip="UPLB resources"
+      >
+        <Globe size={20} />
+      </NavLink>
       <NavLink
         active={false}
         hard={false}
-        tooltip={adminAuthStore.isLoggedIn ? "Logout" : "Admin login"}
+        tooltip="Contributor leaderboard"
+        onclick={() => modalStore.openModal("leaderboard")}
+      >
+        <Trophy size={20} />
+      </NavLink>
+      {#if !adminAuthStore.isLoggedIn}
+        <NavLink
+          active={false}
+          hard={false}
+          tooltip="Create contributor account"
+          onclick={() => adminAuthStore.openLogin("signup")}
+        >
+          <UserPlus size={20} />
+        </NavLink>
+      {/if}
+      <NavLink
+        active={false}
+        hard={false}
+        tooltip={adminAuthStore.isLoggedIn ? "Logout" : "Login"}
         onclick={() => {
             if (!adminAuthStore.isLoggedIn) {
                 adminAuthStore.openLogin("signin");
@@ -325,6 +406,31 @@
         {:else}
           <LogIn size={20} />
         {/if}
+      </NavLink>
+    </div>
+    {/if}
+    <div class="nav-support">
+      <NavLink
+        onclick={() => {
+          supportOpen = !supportOpen;
+          if (supportOpen) communityOpen = false;
+        }}
+        active={supportOpen}
+        hard={true}
+        tooltip="Help & settings"
+      >
+        <CircleQuestionMark size={20} />
+      </NavLink>
+    </div>
+    {#if supportOpen}
+    <div class="nav-support map-categories" transition:slide={{ axis: "y", duration: 300 }}>
+      <NavLink
+        active={false}
+        hard={false}
+        tooltip="Settings"
+        onclick={() => modalStore.openModal("settings")}
+      >
+        <Settings size={20} />
       </NavLink>
       <NavLink
         active={false}
@@ -340,7 +446,7 @@
         onclick={() => modalStore.openModal("changelog")}
         tooltip="What's new?"
       >
-        <CircleQuestionMark size={20} />
+        <Sparkles size={20} />
       </NavLink>
       <NavLink
         active={false}
@@ -353,6 +459,7 @@
         <Keyboard size={20} />
       </NavLink>
     </div>
+    {/if}
   </div>
 </aside>
 
@@ -390,13 +497,38 @@
   }
 
   @media (max-width: 48rem) {
+    /* Overlay drawer: leaves no reserved flex column behind, so the search
+       chrome and map data pill hug the viewport edge when it is closed. */
     aside {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
       transition: transform var(--motion-duration-fast, 150ms) ease;
     }
 
     aside.retracted {
       transform: translateX(calc(-100% - 0.5rem));
       pointer-events: none;
+    }
+
+    /* Tighter rhythm so the full rail fits small screens. */
+    aside > .top > svg {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+
+    div.top,
+    div.bottom {
+      gap: 0.625rem;
+    }
+
+    aside :global(.nav-link) {
+      padding: 0.5rem;
     }
   }
 </style>

@@ -207,10 +207,22 @@ export class FloatingControlPanelStore {
 
 export class SidebarStore {
   private _panelOpen = $state<SidebarOpenType>("map");
-  // private _open = $state<boolean>(false)
   panelOpen = $derived(this._panelOpen);
+  /** Mobile-only rail visibility; the hamburger toggles it. Desktop ignores it. */
+  railOpen = $state(false);
 
   changeOpened = (panel: SidebarOpenType) => {
     this._panelOpen = panel;
+    // Switching the main surface closes the mobile overlay rail so it doesn't
+    // sit on top of the content the user just navigated to.
+    this.railOpen = false;
+  };
+
+  toggleRail = () => {
+    this.railOpen = !this.railOpen;
+  };
+
+  closeRail = () => {
+    this.railOpen = false;
   };
 }

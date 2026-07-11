@@ -15,6 +15,8 @@
   import ChangelogModal from "./ChangelogModal.svelte";
   import ProposalReviewPanel from "../ProposalReviewPanel.svelte";
   import StudentOrgsModal from "./StudentOrgsModal.svelte";
+  import SettingsModal from "./SettingsModal.svelte";
+  import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
   import IconButton from "@ui/IconButton.svelte";
   import X from "@lucide/svelte/icons/x";
 
@@ -43,6 +45,8 @@
     if (modalStore.type === "changelog") return "What's new";
     if (modalStore.type === "review") return "Review suggested edits";
     if (modalStore.type === "student-orgs") return "Student organizations";
+    if (modalStore.type === "settings") return "Settings";
+    if (modalStore.type === "jeepney-route") return "Jeepney route";
     return "Dialog";
   });
 
@@ -153,6 +157,24 @@
           <X size={20} aria-hidden="true" />
         </IconButton>
         <StudentOrgsModal />
+      {:else if modalStore.type === "settings"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close settings"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <SettingsModal />
+      {:else if modalStore.type === "jeepney-route"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close jeepney route"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <JeepneyRouteModal />
       {/if}
     </div>
   </div>

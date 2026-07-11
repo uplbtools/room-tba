@@ -1,7 +1,8 @@
 <script lang="ts">
   import BookText from "@lucide/svelte/icons/book-text";
+  import Briefcase from "@lucide/svelte/icons/briefcase";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
-  import Landmark from "@lucide/svelte/icons/landmark";
+  import School from "@lucide/svelte/icons/school";
   import University from "@lucide/svelte/icons/university";
   import Users from "@lucide/svelte/icons/users";
   import {
@@ -21,9 +22,9 @@
   }[] = [
     { id: "buildings", label: "Buildings", icon: University },
     { id: "colleges", label: "Colleges", icon: GraduationCap },
-    { id: "divisions", label: "Divisions", icon: Landmark },
+    { id: "divisions", label: "Divisions", icon: School },
     { id: "organizations", label: "Student orgs", icon: Users },
-    { id: "offices", label: "Offices & units", icon: Landmark },
+    { id: "offices", label: "Offices & units", icon: Briefcase },
     { id: "classes", label: "Classes", icon: BookText },
     // Planner is pinned as a standalone always-visible chip in Search.svelte.
   ];

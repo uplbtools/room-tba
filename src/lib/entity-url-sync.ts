@@ -36,6 +36,16 @@ export type EntityUrlSyncSnapshot = RoutableQueryState & {
 
 const HOME_PATH = "/";
 const PLANNER_PATH = "/planner";
+
+/**
+ * Only schedule-bearing surfaces carry ?term=. Establishments, offices/units,
+ * landmarks, orgs, dorms, etc. are term-less; their URLs stay clean (#term-urls).
+ */
+function isTermAwareCategory(
+  category: RoutableQueryState["category"] | null,
+): boolean {
+  return category === "room" || category === "class";
+}
 // currentPathname() runs through normalizePathname (adds a trailing slash), so
 // compare against the normalized form, not the raw "/planner".
 const PLANNER_PATH_NORMALIZED = normalizePathname(PLANNER_PATH);
@@ -175,11 +185,18 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       HOME_PATH,
     );
 
-    const initialPath = withTermQuery(
-      pathname,
-      parseTermIdFromSearch(window.location.search) ?? termStore.activeTermId,
-      termStore.defaultTermId,
-    );
+    const initialTermAware =
+      pathname === HOME_PATH ||
+      pathname === PLANNER_PATH_NORMALIZED ||
+      pathname.startsWith("/room/");
+    const initialPath = initialTermAware
+      ? withTermQuery(
+          pathname,
+          parseTermIdFromSearch(window.location.search) ??
+            termStore.activeTermId,
+          termStore.defaultTermId,
+        )
+      : pathname;
 
     window.history.replaceState(initialState, "", initialPath);
     window.addEventListener("popstate", handlePopState);
@@ -252,11 +269,9 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     const path = resolvePathForQuery(snapshot);
     if (!path) return;
 
-    const pathWithTerm = withTermQuery(
-      path,
-      snapshot.termId,
-      snapshot.defaultTermId,
-    );
+    const pathWithTerm = isTermAwareCategory(snapshot.category)
+      ? withTermQuery(path, snapshot.termId, snapshot.defaultTermId)
+      : path;
     const pathname = currentPathname();
     const currentSearch = window.location.search;
     const targetPath = pathWithTerm;

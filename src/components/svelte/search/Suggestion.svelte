@@ -12,8 +12,10 @@
   import DoorClosed from "@lucide/svelte/icons/door-closed";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Home from "@lucide/svelte/icons/home";
+  import MapPin from "@lucide/svelte/icons/map-pin";
   import School from "@lucide/svelte/icons/school";
   import University from "@lucide/svelte/icons/university";
+  import Users from "@lucide/svelte/icons/users";
   import X from "@lucide/svelte/icons/x";
 
   let {
@@ -93,6 +95,12 @@
       <Home size={20} />
     {:else if type === "event" || type === "events"}
       <CalendarDays size={20} />
+    {:else if type === "organization"}
+      <Users size={20} />
+    {:else if type === "place"}
+      <MapPin size={20} />
+    {:else}
+      <MapPin size={20} />
     {/if}
   </span>
 {/snippet}

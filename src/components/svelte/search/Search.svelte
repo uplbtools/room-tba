@@ -14,6 +14,7 @@
     mapToolsStore,
     proposalsStore,
     queryStore,
+    sidebarStore,
   } from "@lib/store.svelte";
   import EventCards from "./EventCards.svelte";
   import Suggestions from "./Suggestions.svelte";
@@ -231,16 +232,16 @@
     {#if mobile.current}
       <MapChromeToggleButton
         class="map-menu-btn"
-        ariaLabel="Map menu"
-        ariaExpanded={mapToolsStore.open}
-        ariaControls="map-tools-panel"
-        title="Map menu"
+        ariaLabel="App menu"
+        ariaExpanded={sidebarStore.railOpen}
+        ariaControls="app-sidebar"
+        title="App menu"
         onclick={() => {
-          if (!mapToolsStore.open) {
+          if (!sidebarStore.railOpen) {
             searchFocused = false;
             searchElement?.blur();
           }
-          mapToolsStore.toggle();
+          sidebarStore.toggleRail();
         }}
       >
         <Menu size={20} aria-hidden="true" />

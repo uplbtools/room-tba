@@ -386,42 +386,45 @@
           fill="none"
           aria-hidden="true"
         >
-          <path
-            d="M24 98c11-24 28-35 51-35 29 0 41 20 65 14 8-2 14-7 19-13"
-            stroke="currentColor"
-            stroke-width="4"
-            stroke-linecap="round"
-            stroke-dasharray="2 9"
-          />
-          <path
-            d="M44 29h33l8 18H36l8-18Z"
+          <!-- Folded campus map with a dotted route and a location pin. -->
+          <rect
+            x="28"
+            y="34"
+            width="124"
+            height="70"
+            rx="10"
             fill="currentColor"
-            opacity=".14"
+            opacity=".1"
           />
-          <path
-            d="M53 31v16M68 31v16"
+          <rect
+            x="28"
+            y="34"
+            width="124"
+            height="70"
+            rx="10"
             stroke="currentColor"
             stroke-width="3"
-            stroke-linecap="round"
           />
           <path
-            d="M116 34c0-12 20-12 20 0 0 9-10 16-10 16s-10-7-10-16Z"
-            fill="currentColor"
-            opacity=".2"
-          />
-          <circle cx="126" cy="34" r="3" fill="currentColor" />
-          <path
-            d="M94 80c7-12 27-10 31 4 4 14-14 24-23 14-5-6-4-14 2-19"
+            d="M69 36v66M111 36v66"
             stroke="currentColor"
-            stroke-width="4"
-            stroke-linecap="round"
+            stroke-width="2"
+            opacity=".25"
           />
-          <circle cx="106" cy="93" r="5" fill="currentColor" />
           <path
-            d="M37 76c0-8 11-14 16-5 5-9 16-3 16 5 0 9-16 18-16 18S37 85 37 76Z"
-            fill="currentColor"
-            opacity=".22"
+            d="M42 90c12-8 20-24 34-20s22 18 44-2"
+            stroke="currentColor"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-dasharray="1 8"
           />
+          <circle cx="42" cy="90" r="4" fill="currentColor" />
+          <path
+            d="M124 22c-8.8 0-16 7-16 15.6 0 10.8 16 26.4 16 26.4s16-15.6 16-26.4C140 29 132.8 22 124 22Z"
+            fill="currentColor"
+            opacity=".85"
+          />
+          <circle cx="124" cy="38" r="5.5" fill="white" />
         </svg>
         <h3>{emptyState.title}</h3>
         <p>{emptyState.description}</p>

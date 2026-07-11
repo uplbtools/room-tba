@@ -5,11 +5,17 @@
   const preview = $derived(entityHoverPreviewStore.entity);
   const anchor = $derived(entityHoverPreviewStore.anchor);
 
+  // Card floats ABOVE the anchor (centered), flipping below near the top edge.
   const style = $derived.by(() => {
     if (!anchor) return "display: none;";
-    const left = Math.min(anchor.x + 12, window.innerWidth - 240);
-    const top = Math.max(8, anchor.y - 8);
-    return `left: ${left}px; top: ${top}px;`;
+    const half = 120; // ~half the 14rem card width
+    const left = Math.min(
+      Math.max(anchor.x, half + 8),
+      window.innerWidth - half - 8,
+    );
+    const flipBelow = anchor.y < 200;
+    const top = flipBelow ? anchor.y + 14 : anchor.y - 14;
+    return `left: ${left}px; top: ${top}px; translate: -50% ${flipBelow ? "0%" : "-100%"};`;
   });
 
   const buildingBadge = $derived(

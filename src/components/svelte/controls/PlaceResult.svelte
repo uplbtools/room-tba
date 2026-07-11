@@ -15,6 +15,8 @@
   } from "@constants/place-categories";
   import type { PlaceData } from "@lib/types";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
+  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
+  import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
 
@@ -29,12 +31,6 @@
   const canPublish = $derived(adminAuthStore.canPublish);
   const draftPin = $derived(additionProposalStore.draftPin);
   const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : "");
-
-  const mapsUrl = $derived(
-    place?.lat != null && place?.lon != null
-      ? `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`
-      : null,
-  );
 
   let editing = $state(false);
   let submitting = $state(false);
@@ -147,6 +143,21 @@
           >{placeDirectoryLabel(place.category)}</span
         >
       {/if}
+      <div class="entity-actions">
+        {#if place.lat != null && place.lon != null}
+          <EntityDirectionsChip
+            lat={place.lat}
+            lon={place.lon}
+            destinationLabel={place.name}
+          />
+          <EntityGoogleMapsLink
+            lat={place.lat}
+            lon={place.lon}
+            ariaLabel={`Open ${place.name} in Google Maps`}
+          />
+        {/if}
+        <EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
+      </div>
     </header>
 
     {#if !editing}
@@ -156,13 +167,6 @@
       <ul class="place-facts">
         {#if place.hours}
           <li><strong>Hours:</strong> {place.hours}</li>
-        {/if}
-        {#if mapsUrl}
-          <li>
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-              >Open in Google Maps</a
-            >
-          </li>
         {/if}
         {#if place.websiteLink}
           <li>
@@ -184,7 +188,6 @@
         {/if}
       </ul>
       <div class="place-actions">
-        <EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
         <button type="button" class="place-edit-btn" onclick={startEdit}>
           {canPublish ? "Edit place" : "Suggest an edit"}
         </button>

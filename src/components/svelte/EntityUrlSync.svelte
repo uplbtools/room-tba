@@ -17,8 +17,8 @@
   import {
     currentRoom,
     mapEditStore,
-    plannerStore,
     queryStore,
+    sidebarStore,
     termStore,
   } from "@lib/store.svelte";
 
@@ -46,8 +46,7 @@
         eventSlug: queryStore.selectedEventSlug ?? undefined,
       }),
       setPlannerOpen: (open) => {
-        if (open) plannerStore.openPlanner();
-        else plannerStore.close();
+        sidebarStore.changeOpened(open ? "planner" : "map");
       },
     });
 
@@ -72,7 +71,7 @@
       editMode: mapEditStore.enabled,
       termId: termStore.activeTermId,
       defaultTermId: termStore.defaultTermId,
-      plannerOpen: plannerStore.open,
+      plannerOpen: sidebarStore.panelOpen === "planner",
     });
   });
 
