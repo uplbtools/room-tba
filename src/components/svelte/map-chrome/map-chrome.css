@@ -439,8 +439,8 @@ button.map-chrome-chip:disabled {
   backdrop-filter: blur(10px);
   color: hsl(5, 53%, 32%);
   cursor: pointer;
-  line-height: 0;
   font: inherit;
+  line-height: 0;
   box-shadow: var(
     --map-chrome-shadow,
     0 0 0 1px hsla(0, 0%, 0%, 0.18),

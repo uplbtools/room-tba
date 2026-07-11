@@ -1,14 +1,16 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
+/** Ensure the app sidebar rail is open (mobile hides it behind the App menu
+ * button) and return its locator for scoping browse-entry clicks. */
 export async function openAppSidebar(page: Page): Promise<Locator> {
   const sidebar = page.locator("#app-sidebar");
-  const menuButton = page.getByRole("button", { name: /app menu/i });
-
-  if (await sidebar.evaluate((el) => el.classList.contains("retracted"))) {
-    await menuButton.click();
+  const retracted = await sidebar
+    .evaluate((el) => el.classList.contains("retracted"))
+    .catch(() => true);
+  if (retracted) {
+    await page.getByRole("button", { name: /app menu/i }).click();
+    await expect(sidebar).not.toHaveClass(/retracted/, { timeout: 10_000 });
   }
-
-  await expect(sidebar).not.toHaveClass(/retracted/);
   return sidebar;
 }
 
@@ -31,20 +33,4 @@ export async function expandMapToolsSection(page: Page, section: string) {
   await page
     .getByRole("button", { name: new RegExp(`^${section}$`, "i") })
     .click();
-}
-
-/** Ensure the app sidebar rail is open (mobile hides it behind the App menu
- * button) and return its locator for scoping browse-entry clicks. */
-export async function openAppSidebar(page: Page) {
-  const sidebar = page.locator("#app-sidebar");
-  // Mobile keeps the rail mounted but retracted (translated off-canvas), so
-  // check the class rather than visibility.
-  const retracted = await sidebar
-    .evaluate((el) => el.classList.contains("retracted"))
-    .catch(() => true);
-  if (retracted) {
-    await page.getByRole("button", { name: /app menu/i }).click();
-    await expect(sidebar).not.toHaveClass(/retracted/, { timeout: 10_000 });
-  }
-  return sidebar;
 }
