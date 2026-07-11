@@ -35,6 +35,7 @@
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import University from "@lucide/svelte/icons/university";
   import Landmark from "@lucide/svelte/icons/landmark";
+  import Briefcase from "@lucide/svelte/icons/briefcase";
   import Store from "@lucide/svelte/icons/store";
   import EventMapPin from "./map/EventMapPin.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
@@ -54,6 +55,7 @@
   import { isStudentOrganization } from "@constants/org-categories";
   import { isLandmarkPlaceCategory } from "@constants/place-categories";
   import {
+    deriveRouteLineFromStops,
     JEEPNEY_ROUTES,
     type JeepneyRoute,
     type JeepneyStop,
@@ -275,13 +277,16 @@
     const cached = jeepneyRouteGeometryCache.get(route.id);
     if (cached) return cached;
 
-    const geometry = (jeepneyGeometries as Record<string, LineString | null>)[route.id];
+    const geometry = (jeepneyGeometries as Record<string, LineString | null>)[
+      route.id
+    ];
     if (geometry) {
       jeepneyRouteGeometryCache.set(route.id, geometry);
       return geometry;
     }
-    
-    return null;
+
+    // No road-snapped geometry for this route: connect its stops directly.
+    return deriveRouteLineFromStops(route.stops);
   }
 
   function ensureJeepneyRouteLayers(map: mapGl.MapLibreMap, color: string) {
@@ -1829,8 +1834,13 @@
       };
 
       const drawWhenReady = (action: () => void) => {
+        // "load" fires only once per map lifetime, and isStyleLoaded() is
+        // false whenever tiles are still streaming (fitMapToRoute above
+        // guarantees they are), so a "load" listener registered here never
+        // ran and the route polyline silently never drew. "idle" re-fires
+        // after every render settle.
         if (map.isStyleLoaded()) action();
-        else map.once("load", action);
+        else map.once("idle", action);
       };
 
       drawWhenReady(() => {
@@ -2906,7 +2916,7 @@
                 {#if isStudentOrganization(org.category)}
                   <Users size="16" />
                 {:else}
-                  <Landmark size="16" />
+                  <Briefcase size="16" />
                 {/if}
               </MapEntityPin>
             </Marker>

@@ -63,3 +63,12 @@ export function getPlaceShareUrl(
 export function getEventShareUrl(slug: string) {
   return absoluteUrl(getEventCanonicalPath(slug));
 }
+
+/** Deep link that reopens the app with a jeepney route active on the map. */
+export function getJeepneyRouteShareUrl(routeId: string, stopIndex?: number) {
+  const query =
+    stopIndex != null
+      ? `?jeepney=${encodeURIComponent(routeId)}&stop=${stopIndex}`
+      : `?jeepney=${encodeURIComponent(routeId)}`;
+  return absoluteUrl(`/${query}`);
+}

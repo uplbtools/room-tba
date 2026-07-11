@@ -270,6 +270,8 @@ class JeepneyStore {
   menuOpen: boolean = $state(false);
   selectedStopIndex: number | null = $state(null);
   hoveredStopIndex: number | null = $state(null);
+  /** Route shown in the jeepney-route modal (independent of the map layer). */
+  modalRouteId: string | null = $state(null);
 
   toggleMenu = () => {
     this.menuOpen = !this.menuOpen;
@@ -323,6 +325,19 @@ class JeepneyStore {
   clearRoute = () => {
     this.selectedRouteId = null;
     this.closeStop();
+  };
+
+  /** Activate the layer with `id` selected (no toggle, unlike selectRoute). */
+  openRouteOnMap = (id: string) => {
+    this.enableLayer();
+    if (this.selectedRouteId !== id) this.closeStop();
+    this.selectedRouteId = id;
+    this.menuOpen = false;
+  };
+
+  openRouteModal = (id: string) => {
+    this.modalRouteId = id;
+    modalStore.openModal("jeepney-route");
   };
 
   setHoveredStop = (index: number | null) => {

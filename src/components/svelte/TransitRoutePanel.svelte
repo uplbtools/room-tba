@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Info from "@lucide/svelte/icons/info";
   import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
   import { jeepneyStore } from "@lib/store.svelte";
 
@@ -22,29 +23,42 @@
 >
   {#each JEEPNEY_ROUTES as route (route.id)}
     {@const isActive = jeepneyStore.selectedRouteId === route.id}
-    <button
-      type="button"
-      class="transit-route-option"
-      class:transit-route-option--active={isActive}
-      role="option"
-      aria-selected={isActive}
-      aria-label={`${route.name}: ${route.description}`}
-      onclick={() => selectRoute(route.id)}
-    >
-      <span
-        class="transit-route-option__color"
-        style:background-color={route.color}
-        aria-hidden="true"
-      ></span>
-      <span class="transit-route-option__copy">
-        <span class="transit-route-option__name">{route.name}</span>
-        {#if !compact}
-          <span class="transit-route-option__description"
-            >{route.description}</span
-          >
-        {/if}
-      </span>
-    </button>
+    <div class="transit-route-row">
+      <button
+        type="button"
+        class="transit-route-option"
+        class:transit-route-option--active={isActive}
+        role="option"
+        aria-selected={isActive}
+        aria-label={`${route.name}: ${route.description}`}
+        onclick={() => selectRoute(route.id)}
+      >
+        <span
+          class="transit-route-option__color"
+          style:background-color={route.color}
+          aria-hidden="true"
+        ></span>
+        <span class="transit-route-option__copy">
+          <span class="transit-route-option__name">{route.name}</span>
+          {#if !compact}
+            <span class="transit-route-option__description"
+              >{route.description}</span
+            >
+          {/if}
+        </span>
+      </button>
+      {#if !compact}
+        <button
+          type="button"
+          class="transit-route-details"
+          aria-label={`${route.name} route details`}
+          title="Route details, fare, and stops"
+          onclick={() => jeepneyStore.openRouteModal(route.id)}
+        >
+          <Info size={16} aria-hidden="true" />
+        </button>
+      {/if}
+    </div>
   {/each}
   {#if jeepneyStore.selectedRouteId !== null}
     <button
@@ -73,6 +87,37 @@
     gap: 0.375rem;
   }
 
+  .transit-route-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .transit-route-panel--compact .transit-route-row {
+    width: auto;
+  }
+
+  .transit-route-details {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    border-radius: 0.625rem;
+    border: 1px solid transparent;
+    background-color: hsl(0, 0%, 98%);
+    color: hsl(5, 53%, 32%);
+    cursor: pointer;
+  }
+
+  .transit-route-details:hover,
+  .transit-route-details:focus-visible {
+    border-color: hsl(5, 40%, 72%);
+    background-color: hsl(5, 53%, 96%);
+  }
+
   .transit-route-option {
     box-sizing: border-box;
     display: inline-flex;
@@ -94,7 +139,8 @@
 
   .transit-route-panel:not(.transit-route-panel--compact)
     .transit-route-option {
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     border-radius: 0.625rem;
     background-color: hsl(0, 0%, 98%);
     border-color: transparent;

@@ -1,9 +1,18 @@
 // src/constants/jeepney-routes.ts
 
+import type { LineString } from "geojson";
+
 export type JeepneyStop = {
   name: string;
   lat: number;
   lon: number;
+};
+
+export type JeepneyFare = {
+  /** Cash fare in PHP. */
+  regular: number;
+  /** Student / senior / PWD fare in PHP. */
+  discounted: number;
 };
 
 export type JeepneyRoute = {
@@ -11,15 +20,36 @@ export type JeepneyRoute = {
   name: string;
   description: string;
   color: string;
+  fare: JeepneyFare;
   stops: JeepneyStop[];
 };
+
+/** Campus jeepney fares are set campus-wide, not per route. */
+export const JEEPNEY_FARE_NOTE =
+  "Indicative fare for the 2025-2026 school year; confirm with the driver.";
+
+const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 15, discounted: 12 };
+
+/** Fallback route line when no road-snapped geometry exists: a straight
+ * polyline through the route's stops, in GeoJSON [lon, lat] order. */
+export function deriveRouteLineFromStops(
+  stops: JeepneyStop[],
+): LineString | null {
+  if (stops.length < 2) return null;
+  return {
+    type: "LineString",
+    coordinates: stops.map((stop) => [stop.lon, stop.lat]),
+  };
+}
 
 export const JEEPNEY_ROUTES: JeepneyRoute[] = [
   {
     id: "kaliwa-kanan",
     name: "Kaliwa / Kanan",
-    description: "Mock loop around the main UPLB campus.",
+    description:
+      "Loop between Olivarez Plaza in Los Baños town and the UPLB academic core, passing Raymundo Gate, the Main Library, the dormitories, and CEAT. Kaliwa and Kanan jeeps run the same loop in opposite directions.",
     color: "#dc2626",
+    fare: STANDARD_CAMPUS_FARE,
     stops: [
       { name: "Olivarez Plaza Mall", lat: 14.17903, lon: 121.23908 },
       {
@@ -94,8 +124,10 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
   {
     id: "forestry",
     name: "Forestry",
-    description: "Mock route from main campus down to the Forestry area.",
+    description:
+      "Connects the campus core to the upper Forestry campus: from the Forestry jeep terminal past the Main Library area, Narra Bridge, and the University Health Service, climbing to the College of Forestry and Natural Resources.",
     color: "#15803d",
+    fare: STANDARD_CAMPUS_FARE,
     stops: [
       {
         name: "Forestry Jeep Terminal",

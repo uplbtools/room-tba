@@ -3,7 +3,9 @@
   import MapPin from "@lucide/svelte/icons/map-pin";
   import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+  import { getJeepneyRouteShareUrl } from "@lib/share-links";
   import { jeepneyStore } from "@lib/store.svelte";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import "@ui/map-chrome/map-chrome.css";
@@ -62,6 +64,13 @@
       <summary>About this route</summary>
       <div class="entity-details-collapse__body">
         <p class="entity-panel-note">{route.description}</p>
+        <button
+          type="button"
+          class="jeepney-stop-panel__route-link"
+          onclick={() => jeepneyStore.openRouteModal(route.id)}
+        >
+          View full route details
+        </button>
       </div>
     </details>
 
@@ -92,6 +101,10 @@
           ariaLabel={`Open ${stop.name} in Google Maps`}
         />
       {/if}
+      <EntityShareCopyLink
+        url={getJeepneyRouteShareUrl(route.id, stopIndex)}
+        entityLabel={stop.name}
+      />
     </div>
   </div>
 {/if}
@@ -129,5 +142,18 @@
     font-size: 0.75rem;
     font-weight: 600;
     color: #71717a;
+  }
+
+  .jeepney-stop-panel__route-link {
+    margin-top: 0.375rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: hsl(5, 53%, 32%);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
   }
 </style>

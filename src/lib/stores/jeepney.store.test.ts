@@ -3,6 +3,7 @@ import {
   buildingTypeFilter,
   jeepneyStore,
   mapToolsStore,
+  modalStore,
 } from "@lib/store.svelte";
 
 describe("JeepneyStore", () => {
@@ -41,5 +42,24 @@ describe("JeepneyStore", () => {
     expect(jeepneyStore.layerActive).toBe(false);
     expect(jeepneyStore.selectedRouteId).toBeNull();
     expect(jeepneyStore.selectedStopIndex).toBeNull();
+  });
+
+  test("openRouteModal sets the modal route and opens the jeepney modal", () => {
+    modalStore.closeModal();
+    jeepneyStore.openRouteModal("route-b");
+    expect(jeepneyStore.modalRouteId).toBe("route-b");
+    expect(modalStore.open).toBe(true);
+    expect(modalStore.type).toBe("jeepney-route");
+    modalStore.closeModal();
+  });
+
+  test("openRouteOnMap selects the route without toggling it off", () => {
+    jeepneyStore.disableLayer();
+    jeepneyStore.openRouteOnMap("route-c");
+    expect(jeepneyStore.layerActive).toBe(true);
+    expect(jeepneyStore.selectedRouteId).toBe("route-c");
+    // Unlike selectRoute, a repeat call keeps the route selected (no toggle).
+    jeepneyStore.openRouteOnMap("route-c");
+    expect(jeepneyStore.selectedRouteId).toBe("route-c");
   });
 });

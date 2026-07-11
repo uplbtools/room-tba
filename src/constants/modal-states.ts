@@ -8,4 +8,6 @@ export const modalOptions = [
   "changelog",
   "review",
   "student-orgs",
+  "settings",
+  "jeepney-route",
 ] as const;
