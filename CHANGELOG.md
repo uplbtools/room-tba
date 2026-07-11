@@ -1,3 +1,62 @@
+# [2.0.0](https://github.com/uplbtools/room-tba/compare/v1.46.0...v2.0.0) (2026-07-11)
+
+
+* refactor!: PlannerScreen component changes - remove if statement for opening the sidebar - remove button that navigates back to map since it's now a flex item ([babff7b](https://github.com/uplbtools/room-tba/commit/babff7bde81975de04815c20d79952cc12eab829))
+
+
+### Bug Fixes
+
+* **auth:** contributor wording, duplicate-name error, settings polish ([fd11fca](https://github.com/uplbtools/room-tba/commit/fd11fcaae31537ff903c1db7c88bca89051f5fbb))
+* **ci:** dedupe openAppSidebar helper and satisfy Biome CSS lint ([5573527](https://github.com/uplbtools/room-tba/commit/5573527fb47e53c8985c5e409386e030d08e0fce))
+* **ci:** drop agent scratch files and satisfy Biome on sync-ladder ([f4292a7](https://github.com/uplbtools/room-tba/commit/f4292a73ccc04d56dbadd9762a7c46c0ad197ec4))
+* **directory:** clarify organization map pins ([c2a8109](https://github.com/uplbtools/room-tba/commit/c2a81099f82ecb3dd18221b2f4dc1f22f6b94c7d))
+* duplicate version update button ([a3c24d3](https://github.com/uplbtools/room-tba/commit/a3c24d390286061b8d94daecfdd43f190a056f4f))
+* **e2e:** restore sidebar helper and harden staging smoke ([6b36d72](https://github.com/uplbtools/room-tba/commit/6b36d72c49c42a4bf26e64d9bca35f07d54242b4))
+* **e2e:** update staging smoke for sidebar-first chrome ([79459ab](https://github.com/uplbtools/room-tba/commit/79459ab5b5529969695be483ea083b02feda0663))
+* **jeepney:** draw route polyline, correct fare, restore clickable routes ([6b23468](https://github.com/uplbtools/room-tba/commit/6b2346810f00c6088281c87b19431787c8fd55a8))
+* **jeepney:** reliable polyline, correct fares, routes browse panel ([a3c2f4e](https://github.com/uplbtools/room-tba/commit/a3c2f4ea14792fcf3cf90ccc10ed6a277268ed8a))
+* **map:** load maplibre's own worker so GeoJSON layers render in prod ([ddabaed](https://github.com/uplbtools/room-tba/commit/ddabaed3f1e53ec480fdf8a4a2a4b9e21ebf2040))
+* **planner:** fit mobile viewports and restore back-to-map ([60f2566](https://github.com/uplbtools/room-tba/commit/60f25669772ca69d8de550dc154778d22a2f9aa2))
+* **planner:** restore drag-to-switch-section ([958f4f3](https://github.com/uplbtools/room-tba/commit/958f4f3df1f28b82b0bf0adca5803f052e281f7c))
+* **ui:** keyboard shortcut not appearing ([d038c54](https://github.com/uplbtools/room-tba/commit/d038c544afd027f35800ea30894a5c70faad5ddb))
+* **ui:** polish sidebar, legend, landing stats, and splash ([f424f06](https://github.com/uplbtools/room-tba/commit/f424f06ec13fb4044f7f7c5dd368fcd278cf84a5))
+* **ui:** restore org directory sync ([8104002](https://github.com/uplbtools/room-tba/commit/81040022f5038604f3c5fb624e2fd8dbf18669f6))
+* update naming import to prevent error ([d9c1a83](https://github.com/uplbtools/room-tba/commit/d9c1a838cc2e19822181409dc12c7afdba4b8efe))
+
+
+### Features
+
+* add buttons to sidebar ([7929150](https://github.com/uplbtools/room-tba/commit/79291503cc8a789e741813234ed4fdadac73efcb))
+* add new types for sidebar open type ([23f0b0a](https://github.com/uplbtools/room-tba/commit/23f0b0a1e2f1ccbd4ceeca8bea58d84c29c381da))
+* add term selector chip to classes list component ([5eb5621](https://github.com/uplbtools/room-tba/commit/5eb562172ae3da91a98f2c4dae820409485aac62))
+* added new sidebarStore to default import ([bdc4e78](https://github.com/uplbtools/room-tba/commit/bdc4e7899b08eeabe11f4987ddc9e2649b07c94a))
+* **building:** 3D-view deep link ([8d1d825](https://github.com/uplbtools/room-tba/commit/8d1d825a1a89834e26212fe80a850ccfcb7e6914))
+* change component instance of term selector and syncstatus ([5e7b611](https://github.com/uplbtools/room-tba/commit/5e7b6110432e206825772d003d09d5c375403dc8))
+* **changelog:** show exact release timestamps ([e093788](https://github.com/uplbtools/room-tba/commit/e093788247cefc623f5253b1cd0e3e8f4ee06e4b))
+* created sidebar component ([0105537](https://github.com/uplbtools/room-tba/commit/0105537242c8291eb8972e531ed77325ac43dc10))
+* **directory:** /unit/ URLs, data fixes, unified org header pills ([9a16107](https://github.com/uplbtools/room-tba/commit/9a16107d65e0873b54f691e8bbda9bf576375a35))
+* **directory:** back-to-list buttons and shared editor toggle on details ([ddc180e](https://github.com/uplbtools/room-tba/commit/ddc180e288cfb80208db012dcc724e5bc903547b))
+* **directory:** import UPLB office records ([5b5d2e2](https://github.com/uplbtools/room-tba/commit/5b5d2e21d17b1b286331f1bb524a76b6d402aad9))
+* **directory:** org about section, unit/college/division websites, data fixes ([9406356](https://github.com/uplbtools/room-tba/commit/9406356be1ef99b9e6f904be66e82c3f1f97d0bf))
+* **directory:** split orgs from offices ([89908b4](https://github.com/uplbtools/room-tba/commit/89908b4f735bde698f6583b7579b4aa81ca1129d))
+* implement issue fixes (630, 499, 556, 557) ([cb5d779](https://github.com/uplbtools/room-tba/commit/cb5d779b80e852397c904b107e2cafb015c236b2))
+* **jeepney:** draw route line, add route modal and deep links ([15b2d4c](https://github.com/uplbtools/room-tba/commit/15b2d4ca6a19a15c51b0ecf250cdee48e7313a33))
+* **map-chrome:** overlay sidebar, groupings, settings modal, and polish ([1f2fa14](https://github.com/uplbtools/room-tba/commit/1f2fa143846fd9baed32d785d8100f543b0340e3))
+* **map:** add canonical campus directories ([329bb01](https://github.com/uplbtools/room-tba/commit/329bb01802b31b5ad236698d25ead469e20d4bef))
+* **planner:** add Google Calendar icon ([a6c5e07](https://github.com/uplbtools/room-tba/commit/a6c5e0723a5fbb9a07fa198591872dae88f14f1c))
+* **planner:** device-local professor notes + GitHub star CTA ([71dfee8](https://github.com/uplbtools/room-tba/commit/71dfee8fb9067a3ada4fe5a138647ef6ae90859c))
+* **resources:** add UPLB student directory ([4248560](https://github.com/uplbtools/room-tba/commit/42485601285f5a899205fd2653c8ac85e503e7b6))
+* **sidebar:** add new component, tooltips, and functions ([75216aa](https://github.com/uplbtools/room-tba/commit/75216aaa35084ea58da183336550bf110b9fd25d))
+* **sidebar:** project contributors entry ([376f9fa](https://github.com/uplbtools/room-tba/commit/376f9fa5c1feaf692e27b477b381de1a24d993b3))
+* **transit:** move jeepney routes to DB + admin CRUD ([86aa95e](https://github.com/uplbtools/room-tba/commit/86aa95e474b7958512b3466243a77b3d6c2dc6b0))
+* **transit:** street addresses, stop order editing, clearer proposal errors ([a6d6134](https://github.com/uplbtools/room-tba/commit/a6d613435d4ba0f6b9a52fff016234aeff2b5781))
+* update layout and children template of Entry component ([232ea84](https://github.com/uplbtools/room-tba/commit/232ea8414b7b2fdf9a2261121c1aa9f0685b1925))
+
+
+### BREAKING CHANGES
+
+* open property is now removed from the properties
+
 # [1.46.0](https://github.com/uplbtools/room-tba/compare/v1.45.0...v1.46.0) (2026-07-10)
 
 
