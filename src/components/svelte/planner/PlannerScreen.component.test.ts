@@ -40,7 +40,7 @@ describe("PlannerScreen", () => {
     termStore.activeTermId = 1252;
     plannerStore.plans = [];
     plannerStore.activePlanIdByTerm = {};
-    plannerStore.open = true;
+    vi.mocked(fetch).mockClear();
   });
 
   test("renders as a dialog with course search and an empty grid", () => {
@@ -95,6 +95,22 @@ describe("PlannerScreen", () => {
     render(PlannerScreen);
     expect(screen.getByText("Unscheduled (TBA)")).toBeVisible();
     expect(document.querySelectorAll(".planner-block")).toHaveLength(0);
+  });
+
+  // Regression (#506 drag-to-switch-section): the store's `open` flag was
+  // removed, but the refresh effect still gated on it, so section
+  // alternatives were never fetched and dragging a block had no targets.
+  test("fetches section alternatives on mount so drag-to-switch has targets", async () => {
+    plannerStore.addOffering([row({})]);
+    render(PlannerScreen);
+    await vi.waitFor(() => {
+      const urls = vi.mocked(fetch).mock.calls.map((c) => String(c[0]));
+      expect(
+        urls.some(
+          (u) => u.includes("/api/classes") && u.includes("course_code=CMSC"),
+        ),
+      ).toBe(true);
+    });
   });
 
   test("plan tabs switch between plans", async () => {

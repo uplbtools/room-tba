@@ -11,6 +11,7 @@
   import {
     plannerStore,
     queryStore,
+    sidebarStore,
     termStore,
     toastStore,
   } from "@lib/store.svelte";
@@ -114,6 +115,12 @@
 
   function swapSection(courseCode: string, toSections: ClassMapValue[]) {
     plannerStore.replaceCourse(courseCode, toSections);
+  }
+
+  // The store's open/close was removed (babff7b) - the screen now mounts only
+  // while the sidebar's planner panel is active, so closing = back to the map.
+  function close() {
+    sidebarStore.changeOpened("map");
   }
 
   function openRoom(roomCode: string) {
@@ -234,13 +241,14 @@
   });
 
   $effect(() => {
-    if (!plannerStore.open || !screenEl) return;
+    if (!screenEl) return;
     return trapFocus(screenEl, { onEscape: close });
   });
 
   // Re-resolve natural keys and load finals once per plan per open (#planner).
+  // No `open` gate: the component only exists while the planner panel is open.
   $effect(() => {
-    if (!plannerStore.open || !plan || plan.sections.length === 0) return;
+    if (!plan || plan.sections.length === 0) return;
     // Key on the course set too: adding a course to the plan must refetch its
     // sections, otherwise dragging a newly added block has no alternatives to
     // drop onto (drag "doesn't work" for just-added courses).
@@ -879,7 +887,7 @@
     font-size: 0.75rem;
     color: hsl(0, 0%, 40%);
     line-height: 1.3;
-    /* Show the full course title (its description) — wrap instead of truncate. */
+    /* Show the full course title (its description) - wrap instead of truncate. */
     overflow-wrap: anywhere;
   }
 
@@ -929,7 +937,7 @@
   }
 
   /* --- Mobile (phones): designed as its own screen, not the desktop clipped.
-     One compact header row (icon-only actions), slim tabs, no hint prose —
+     One compact header row (icon-only actions), slim tabs, no hint prose -
      the schedule gets the viewport. --- */
   @media (max-width: 640px) {
     .planner-header {
