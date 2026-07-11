@@ -395,6 +395,15 @@
       >
         <Trophy size={20} />
       </NavLink>
+      <NavLink
+        active={false}
+        hard={false}
+        tooltip="Project contributors"
+        onclick={() =>
+          modalStore.openModal("landing", { landingTab: "campus" })}
+      >
+        <Users size={20} />
+      </NavLink>
       {#if !adminAuthStore.isLoggedIn}
         <NavLink
           active={false}
