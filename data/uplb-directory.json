@@ -459,6 +459,15 @@
     "source": "https://uplb.edu.ph/vice-chancellors/"
   },
   {
+    "name": "Technology Transfer and Business Development Office (TTBDO)",
+    "type": "office",
+    "building_or_area": "Mondoñedo Avenue, UPLB campus",
+    "description": "Manages intellectual property, technology commercialization, and business development for UPLB, under OVCIEM.",
+    "lat": null,
+    "lng": null,
+    "source": "https://uplb.edu.ph/"
+  },
+  {
     "name": "Office of the University Registrar (OUR)",
     "type": "office",
     "building_or_area": "G/F CAS Annex 1 Building, main campus",

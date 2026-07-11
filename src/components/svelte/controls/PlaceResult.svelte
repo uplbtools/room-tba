@@ -11,13 +11,16 @@
   import {
     PLACE_CATEGORIES,
     PLACE_CATEGORY_LABELS,
+    isLandmarkPlaceCategory,
     placeDirectoryLabel,
   } from "@constants/place-categories";
   import type { PlaceData } from "@lib/types";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
+  import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityBackToList from "./EntityBackToList.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
 
   const appData = getAppData();
@@ -137,6 +140,11 @@
 {#if place}
   <div class="entity-detail">
     <header class="entity-header">
+      {#if isLandmarkPlaceCategory(place.category)}
+        <EntityBackToList tab="landmarks" label="Back to landmarks" />
+      {:else}
+        <EntityBackToList tab="services" label="Back to establishments" />
+      {/if}
       <h2 class="entity-header__title">{place.name}</h2>
       {#if placeDirectoryLabel(place.category)}
         <span class="place-category-badge"
@@ -157,6 +165,21 @@
           />
         {/if}
         <EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit place"
+          closeLabel={canPublish ? "Close editor" : "Close"}
+          variant="toolbar"
+          onclick={() => {
+            if (editing) {
+              editing = false;
+              additionProposalStore.clearDraftPin();
+            } else {
+              startEdit();
+            }
+          }}
+        />
       </div>
     </header>
 
@@ -187,11 +210,6 @@
           </li>
         {/if}
       </ul>
-      <div class="place-actions">
-        <button type="button" class="place-edit-btn" onclick={startEdit}>
-          {canPublish ? "Edit place" : "Suggest an edit"}
-        </button>
-      </div>
     {:else}
       <div class="place-form">
         <label>Name<input bind:value={nameDraft} /></label>

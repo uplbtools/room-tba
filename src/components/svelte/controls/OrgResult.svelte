@@ -17,6 +17,7 @@
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityBackToList from "./EntityBackToList.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import type { OrgData } from "@lib/types";
@@ -210,6 +211,11 @@
 <div class="entity-detail">
   {#if org}
     <header class="entity-header">
+      {#if isStudentOrg}
+        <EntityBackToList tab="organizations" label="Back to student orgs" />
+      {:else}
+        <EntityBackToList tab="offices" label="Back to offices & units" />
+      {/if}
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">{org.name}</h2>
         {#if isStudentOrg}
