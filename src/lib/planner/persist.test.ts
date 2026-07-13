@@ -1,11 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import {
-  applySectionNotes,
-  collectSectionNotes,
   mergePlannerState,
   parsePlanner,
   serializePlanner,
-  stripSectionNotesForAccount,
 } from "./persist.js";
 import type { PlannerPlan } from "./types.js";
 
@@ -106,7 +103,7 @@ describe("planner persistence", () => {
   });
 });
 
-describe("section notes (device-local)", () => {
+describe("section notes", () => {
   const planWithNote: PlannerPlan = {
     id: "p1",
     label: "A",
@@ -124,29 +121,30 @@ describe("section notes (device-local)", () => {
     ],
   };
 
-  it("strips notes before account upload", () => {
-    const stripped = stripSectionNotesForAccount({
+  it("round-trips notes for account persistence", () => {
+    const raw = serializePlanner({
       plans: [planWithNote],
       activePlanIdByTerm: {},
     });
-    expect(stripped.plans[0].sections[0]).not.toHaveProperty("note");
+    expect(parsePlanner(raw).plans[0]?.sections[0]?.note).toBe("Dr. Santos");
   });
 
-  it("re-applies local notes after account merge", () => {
-    const notes = collectSectionNotes([planWithNote]);
+  it("keeps the account note when it wins a shared plan merge", () => {
     const merged = mergePlannerState(
-      { plans: [planWithNote], activePlanIdByTerm: {} },
       {
         plans: [
           {
             ...planWithNote,
-            sections: planWithNote.sections.map(({ note: _n, ...s }) => s),
+            sections: planWithNote.sections.map(({ note: _note, ...s }) => s),
           },
         ],
         activePlanIdByTerm: {},
       },
+      {
+        plans: [planWithNote],
+        activePlanIdByTerm: {},
+      },
     );
-    const restored = applySectionNotes(merged.plans, notes);
-    expect(restored[0].sections[0].note).toBe("Dr. Santos");
+    expect(merged.plans[0]?.sections[0]?.note).toBe("Dr. Santos");
   });
 });

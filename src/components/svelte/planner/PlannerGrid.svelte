@@ -11,6 +11,8 @@
     conflicts: Conflict[];
     /** All class rows for the plan's courses — the source for drag targets (#506). */
     alternatives?: ClassMapValue[];
+    /** Courses whose alternate-section lookup has finished (successfully or not). */
+    resolvedAlternativeCourses?: string[];
     onremove: (courseCode: string, section: string) => void;
     onopenroom: (roomCode: string) => void;
     onswap?: (courseCode: string, toSections: ClassMapValue[]) => void;
@@ -20,6 +22,7 @@
     sections,
     conflicts,
     alternatives = [],
+    resolvedAlternativeCourses = [],
     onremove,
     onopenroom,
     onswap,
@@ -156,6 +159,22 @@
     return byDay;
   });
 
+  const hasGhostTargets = $derived(
+    ghostBlocksByDay.some((dayGhosts) => dayGhosts.length > 0),
+  );
+  const alternativesLoading = $derived(
+    !!drag && !resolvedAlternativeCourses.includes(drag.courseCode),
+  );
+
+  function ghostAtPoint(x: number, y: number): string | null {
+    return (
+      document
+        .elementFromPoint(x, y)
+        ?.closest<HTMLElement>("[data-ghost]")
+        ?.dataset.ghost ?? null
+    );
+  }
+
   function beginDrag(block: GridBlock, el: HTMLElement, e: PointerEvent) {
     drag = {
       courseCode: block.courseCode,
@@ -184,7 +203,7 @@
   function cleanup() {
     if (longPress) clearTimeout(longPress);
     longPress = null;
-    if (drag && pending && pointerId !== null) {
+    if (pending && pointerId !== null) {
       pending.el.style.touchAction = "";
       pending.el.removeEventListener("touchmove", preventTouchScroll);
       try {
@@ -208,6 +227,14 @@
     startX = e.clientX;
     startY = e.clientY;
     pending = { block, el: e.currentTarget as HTMLElement };
+    // Capture on press, before the movement threshold. Otherwise a quick
+    // pointer can leave a short timetable block before its first move handler
+    // gets to start the drag, so the gesture silently becomes a no-op.
+    try {
+      pending.el.setPointerCapture(e.pointerId);
+    } catch {
+      // capture unsupported — move/up events still bubble while in the block
+    }
     if (e.pointerType !== "mouse") {
       // Touch/pen: only a stationary long-press starts a drag, so a normal
       // tap still selects and a swipe still scrolls the grid.
@@ -233,19 +260,21 @@
     }
     e.preventDefault();
     pointerPos = { x: e.clientX, y: e.clientY };
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    hoverGhost =
-      el?.closest<HTMLElement>("[data-ghost]")?.dataset["ghost"] ?? null;
+    hoverGhost = ghostAtPoint(e.clientX, e.clientY);
   }
 
   function onBlockPointerUp(e: PointerEvent) {
     if (pointerId === null || e.pointerId !== pointerId) return;
-    if (drag && hoverGhost) {
+    // The first move starts the drag and renders its ghosts. A quick mouse
+    // gesture can then release directly over a ghost before a second move has
+    // updated hoverGhost, so resolve the final pointer position again here.
+    const targetGhost = ghostAtPoint(e.clientX, e.clientY) ?? hoverGhost;
+    if (drag && targetGhost) {
       const target = alternativeOfferings(
         alternatives,
         drag.courseCode,
         drag.fromSection,
-      ).find((o) => o.section === hoverGhost);
+      ).find((o) => o.section === targetGhost);
       if (target) onswap?.(drag.courseCode, target.sections);
     }
     cleanup();
@@ -303,6 +332,9 @@
 
   <p class="planner-grid__scroll-hint" aria-hidden="true">
     Swipe to see all days →
+  </p>
+  <p class="planner-grid__drag-hint" role="note">
+    Drag a class onto a dashed section to switch it. On touch, hold first.
   </p>
   <div class="planner-grid-scroll">
     <div class="planner-grid" class:planner-grid--dragging={drag}>
@@ -393,7 +425,15 @@
     aria-hidden="true"
   >
     {drag.courseCode}
-    {#if hoverGhost}→ {hoverGhost}{:else}· drop on a section{/if}
+    {#if hoverGhost}
+      → {hoverGhost}
+    {:else if alternativesLoading}
+      · loading other sections…
+    {:else if !hasGhostTargets}
+      · no scheduled alternate section
+    {:else}
+      · drop on a section
+    {/if}
   </div>
 {/if}
 
@@ -418,6 +458,13 @@
     color: hsl(0, 0%, 45%);
     font-size: 0.75rem;
     font-weight: 600;
+  }
+
+  .planner-grid__drag-hint {
+    margin: 0;
+    padding: 0 0.125rem 0.375rem;
+    color: hsl(0, 0%, 35%);
+    font-size: 0.75rem;
   }
 
   .planner-legend__item {

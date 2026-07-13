@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import Locate from "@lucide/svelte/icons/locate";
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import Plus from "@lucide/svelte/icons/plus";
@@ -20,10 +19,6 @@
   let { embedded = false }: Props = $props();
 
   let centered: boolean = $state(false);
-
-  onMount(() => {
-    adminAuthStore.hydrate();
-  });
 
   const showSuggestAddition = $derived(!adminAuthStore.canPublish);
 

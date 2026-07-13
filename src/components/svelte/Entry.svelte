@@ -78,6 +78,11 @@
     typeof window !== "undefined" ? window.location.search : "";
 
   onMount(() => {
+    // Session state drives account-backed planner sync too. This belongs at the
+    // app root: /planner renders without the map-only location control that
+    // used to hydrate auth, so direct planner visits were treated as guests.
+    void adminAuthStore.hydrate();
+
     const recentSearchesLS = localStorage.getItem("recent-search");
     try {
       const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? "[]");

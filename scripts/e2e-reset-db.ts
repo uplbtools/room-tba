@@ -209,7 +209,7 @@ async function main() {
 
     await client.query(
       `INSERT INTO classes (course_code, section, type, schedule, room_id, course_title, term_id, version)
-       VALUES ('E2E 101', 'AB', 'LEC', ARRAY['MWF 8-9'], $1, 'E2E Course', $2, 1)`,
+       VALUES ('E2E 101', 'AB', 'LEC', ARRAY['MWF 08:00AM-09:00AM'], $1, 'E2E Course', $2, 1)`,
       [roomId, E2E_FIXTURES.termId],
     );
 
