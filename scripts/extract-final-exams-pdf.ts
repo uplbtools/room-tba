@@ -6,8 +6,10 @@
  * (exam day × time slot), rows are `COURSE CODE  ROOM[, ROOM…]`, and the
  * slot time (e.g. "2:00 - 4:00") is printed once per page.
  *
+ * Source PDFs live in data/registrar/ (final-exams-{AY}-{sem}.pdf).
+ *
  * Usage:
- *   bun run scripts/extract-final-exams-pdf.ts <pdf> --term-id 1251 --source our-finals-pdf
+ *   bun run scripts/extract-final-exams-pdf.ts data/registrar/final-exams-2025-2026-1st-sem.pdf --term-id 1251 --source our-finals-pdf
  *
  * Requires `pdftotext` (poppler-utils) on PATH.
  */
