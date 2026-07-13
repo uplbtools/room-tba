@@ -160,6 +160,10 @@ const shareTitle = ogTitle ?? title;
     }
     <slot />
     <Analytics />
+    <script>
+      import { initDatadogRum } from "@lib/datadog-rum";
+      initDatadogRum();
+    </script>
     <script is:inline define:vars={{ splashLines: LOADING_SPLASH_MESSAGES }}>
       (() => {
         const splashEl = document.querySelector(".app-loading-shell__splash");

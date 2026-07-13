@@ -1,4 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
+import { bootstrapObservability } from "./lib/observability/bootstrap";
 import { getSessionUser, ADMIN_COOKIE_NAME } from "./lib/admin/auth";
 import {
   applySupabaseCacheHeaders,
@@ -8,6 +9,8 @@ import { getAdminUserBySupabaseId } from "./lib/services/admin-user-service";
 import { recordLatency } from "./lib/latency-tracker";
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  bootstrapObservability();
+
   const { pathname } = context.url;
   const start = performance.now();
 
