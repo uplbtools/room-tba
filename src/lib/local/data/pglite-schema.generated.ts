@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS "buildings" (
   "lat" double precision NOT NULL,
   "directions" text NOT NULL,
   "image_url" text,
+  "cr_facilities" text[],
   "version" integer DEFAULT 1 NOT NULL,
   "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL,
   "rooms_fetched" boolean DEFAULT false NOT NULL
@@ -21,6 +22,7 @@ ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "type" text DEFAULT 'non-admin'
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "lat" double precision;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "directions" text;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "cr_facilities" text[];
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean DEFAULT false NOT NULL;
