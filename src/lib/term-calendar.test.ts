@@ -1,7 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import {
   changeOfMatriculationLabel,
+  finalsWindowLabel,
   isDateWithinTerm,
+  isFinalsWeek,
   resolveActiveTermByDate,
   resolveInitialTermId,
   TERM_CALENDAR_WINDOWS,
@@ -91,6 +93,40 @@ describe("term-calendar", () => {
         date: midyearDay,
       }),
     ).toBe(1253);
+  });
+});
+
+describe("isFinalsWeek", () => {
+  it("detects 2nd sem finals window in Manila", () => {
+    expect(
+      isFinalsWeek(new Date("2026-05-14T12:00:00+08:00"), term(1252)),
+    ).toBe(true);
+    expect(
+      isFinalsWeek(new Date("2026-05-20T12:00:00+08:00"), term(1252)),
+    ).toBe(false);
+  });
+
+  it("loads AY 2026-2027 windows from the academic calendar data", () => {
+    expect(TERM_CALENDAR_WINDOWS[1261]).toEqual({
+      startsOn: "2026-08-03",
+      endsOn: "2026-12-07",
+      finalsStartsOn: "2026-12-01",
+      finalsEndsOn: "2026-12-07",
+    });
+    expect(
+      isFinalsWeek(new Date("2026-12-03T12:00:00+08:00"), term(1261)),
+    ).toBe(true);
+    expect(
+      isFinalsWeek(new Date("2026-12-08T12:00:00+08:00"), term(1261)),
+    ).toBe(false);
+  });
+});
+
+describe("finalsWindowLabel", () => {
+  it("formats the official window and handles unknown terms", () => {
+    expect(finalsWindowLabel(1261)).toBe("Dec 1 – Dec 7");
+    expect(finalsWindowLabel(1251)).toBeNull();
+    expect(finalsWindowLabel(null)).toBeNull();
   });
 });
 

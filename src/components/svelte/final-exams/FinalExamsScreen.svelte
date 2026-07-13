@@ -11,6 +11,7 @@
     FINALS_SCOPE_NOTE,
     formatExamDate,
   } from "@lib/final-exams";
+  import { finalsWindowLabel } from "@lib/term-calendar";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
   import type { FinalExamRow } from "@lib/types";
@@ -49,6 +50,8 @@
       loading = false;
     });
   });
+
+  const finalsWindow = $derived(finalsWindowLabel(termStore.activeTermId));
 
   const filtered = $derived.by(() => {
     const needle = filter.trim().toUpperCase();
@@ -113,7 +116,8 @@
       <p class="finals-status" role="status">Loading final exams…</p>
     {:else if exams.length === 0}
       <p class="finals-status">
-        No final exam schedule published for this term yet.
+        No final exam schedule published for this term yet.{#if finalsWindow}
+          The academic calendar sets final exams for {finalsWindow}.{/if}
       </p>
     {:else if filtered.length === 0}
       <p class="finals-status">No exams match “{filter}”.</p>
