@@ -1,3 +1,4 @@
+import academicCalendar2026 from "../../data/academic-calendar-2026-2027.json";
 import type { Term } from "@lib/types";
 
 /** Official-ish AY 2025-2026 instructional windows (date-only, Asia/Manila). */
@@ -30,10 +31,20 @@ export const TERM_CALENDAR_WINDOWS: Record<
  * Last day of change of matriculation per term (Asia/Manila, date-only). Until
  * this date, course offerings can still change — surfaced in the planner note.
  */
-export const CHANGE_OF_MATRICULATION_ENDS: Record<number, string> = {
-  // CRS 1261 — AY 2026–2027 1st sem (classes start Aug 3).
-  1261: "2026-08-07",
-};
+export const CHANGE_OF_MATRICULATION_ENDS: Record<number, string> = {};
+
+// AY 2026-2027 onward comes straight from the registrar's academic calendar
+// PDF via scripts/extract-academic-calendar-pdf.ts.
+for (const [termId, window] of Object.entries(academicCalendar2026)) {
+  TERM_CALENDAR_WINDOWS[Number(termId)] = {
+    startsOn: window.startsOn,
+    endsOn: window.endsOn,
+    finalsStartsOn: window.finalsStartsOn,
+    finalsEndsOn: window.finalsEndsOn,
+  };
+  CHANGE_OF_MATRICULATION_ENDS[Number(termId)] =
+    window.changeOfMatriculationEndsOn;
+}
 
 /** Human date ("August 7, 2026") for a term's last day of change of
  *  matriculation, or null when unknown. */
@@ -174,6 +185,16 @@ export function resolveInitialTermId(
   const fallback = resolveDefaultTermFromList(terms, options.date);
   if (storedValid) return options.storedId;
   return fallback?.id ?? null;
+}
+
+/** "Dec 1 – Dec 7" official finals window for a term, or null when unknown. */
+export function finalsWindowLabel(termId: number | null | undefined) {
+  const window = termId == null ? undefined : TERM_CALENDAR_WINDOWS[termId];
+  if (!window?.finalsStartsOn || !window.finalsEndsOn) return null;
+  return formatTermDateRange({
+    startsOn: window.finalsStartsOn,
+    endsOn: window.finalsEndsOn,
+  });
 }
 
 export function formatTermDateRange(term: Pick<Term, "startsOn" | "endsOn">) {
