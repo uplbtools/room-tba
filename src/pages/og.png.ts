@@ -22,9 +22,7 @@ function h(
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const BRAND = "#a30e00";
-const INK = "#1a1a1a";
-const MUTED = "#6b6b6b";
+const WHITE = "#ffffff";
 
 let fontPromise: Promise<ArrayBuffer> | null = null;
 // A static Inter weight (no fvar table) — satori/@vercel/og crash on variable
@@ -63,110 +61,142 @@ export const GET: APIRoute = async ({ url }) => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "72px 80px",
-        background: "#faf7f6",
-        borderTop: `18px solid ${BRAND}`,
+        position: "relative",
+        overflow: "hidden",
         fontFamily: "Inter",
       },
     },
-    // top row: wordmark + kicker
+    h("img", {
+      src: new URL("/uplb-bg-og.jpg", url.origin).toString(),
+      width: WIDTH,
+      height: HEIGHT,
+      style: {
+        position: "absolute",
+        inset: 0,
+        objectFit: "cover",
+      },
+    }),
+    h("div", {
+      style: {
+        position: "absolute",
+        inset: 0,
+        display: "flex",
+        backgroundColor: "rgba(28, 8, 7, 0.48)",
+      },
+    }),
     h(
       "div",
       {
         style: {
+          position: "relative",
+          zIndex: 1,
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          padding: "56px 72px",
         },
       },
+      // top row: wordmark + type
       h(
         "div",
         {
           style: {
             display: "flex",
             alignItems: "center",
-            gap: 18,
-            fontSize: 34,
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
-            color: BRAND,
+            justifyContent: "space-between",
           },
         },
-        h("img", {
-          src: new URL("/logo.png", url.origin).toString(),
-          width: 52,
-          height: 52,
-        }),
-        "Room TBA",
-      ),
-      kicker
-        ? h(
-            "div",
-            {
-              style: {
-                display: "flex",
-                fontSize: 26,
-                fontWeight: 600,
-                color: "#fff",
-                background: BRAND,
-                borderRadius: 999,
-                padding: "8px 22px",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-              },
+        h(
+          "div",
+          {
+            style: {
+              display: "flex",
+              alignItems: "center",
+              gap: 18,
+              padding: "10px 14px",
+              backgroundColor: "rgba(28, 8, 7, 0.62)",
+              borderRadius: 18,
+              fontSize: 32,
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              color: WHITE,
             },
-            kicker,
-          )
-        : h("div", { style: { display: "flex" } }),
-    ),
-    // main: title + subtitle
-    h(
-      "div",
-      { style: { display: "flex", flexDirection: "column" } },
+          },
+          h("img", {
+            src: new URL("/logo.png", url.origin).toString(),
+            width: 50,
+            height: 50,
+          }),
+          "Room TBA",
+        ),
+        kicker
+          ? h(
+              "div",
+              {
+                style: {
+                  display: "flex",
+                  fontSize: 20,
+                  fontWeight: 600,
+                  color: WHITE,
+                  background: "rgba(163, 14, 0, 0.9)",
+                  borderRadius: 999,
+                  padding: "9px 18px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                },
+              },
+              kicker,
+            )
+          : h("div", { style: { display: "flex" } }),
+      ),
+      // main: entity-specific title + context
       h(
         "div",
         {
           style: {
-            // block + lineClamp: long titles wrap to a second line and only
-            // then ellipsize, instead of overflowing off the card. Needs the
-            // bare-string child from h() above; flex renders but drops the
-            // clamp (title overflows as one line).
-            display: "block",
-            lineClamp: 2,
-            fontSize: title.length > 40 ? 62 : title.length > 34 ? 74 : 92,
-            fontWeight: 700,
-            lineHeight: 1.05,
-            letterSpacing: "-0.03em",
-            color: INK,
+            display: "flex",
+            flexDirection: "column",
+            marginTop: "auto",
+            maxWidth: 1040,
           },
         },
-        title,
-      ),
-      subtitle
-        ? h(
-            "div",
-            {
-              style: {
-                display: "flex",
-                marginTop: 22,
-                fontSize: 36,
-                fontWeight: 500,
-                lineHeight: 1.25,
-                color: MUTED,
-              },
+        h(
+          "div",
+          {
+            style: {
+              // block + lineClamp keeps entity names inside the card.
+              display: "block",
+              lineClamp: 2,
+              fontSize: title.length > 42 ? 60 : title.length > 30 ? 72 : 86,
+              fontWeight: 700,
+              lineHeight: 1.04,
+              letterSpacing: "-0.03em",
+              color: WHITE,
+              textShadow: "0 3px 10px rgba(0, 0, 0, 0.55)",
             },
-            subtitle,
-          )
-        : h("div", { style: { display: "flex" } }),
-    ),
-    // footer
-    h(
-      "div",
-      {
-        style: { display: "flex", fontSize: 24, fontWeight: 500, color: MUTED },
-      },
-      "Find rooms and plan classes at UPLB",
+          },
+          title,
+        ),
+        subtitle
+          ? h(
+              "div",
+              {
+                style: {
+                  display: "block",
+                  lineClamp: 2,
+                  marginTop: 18,
+                  fontSize: 30,
+                  fontWeight: 500,
+                  lineHeight: 1.25,
+                  color: "rgba(255, 255, 255, 0.9)",
+                  textShadow: "0 2px 8px rgba(0, 0, 0, 0.6)",
+                },
+              },
+              subtitle,
+            )
+          : h("div", { style: { display: "flex" } }),
+      ),
     ),
   );
 

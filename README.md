@@ -36,6 +36,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Personal schedule route | Build a plan in Planner → Map tools → Schedule → pick a day, route stops |
 | Browse all classes | Status bar → Browse classes; search by course code |
 | Plan your classes | Planner view to build a draft schedule |
+| Course Planner explainer | [Four-panel, screenshot-ready guide](https://room-tba.uplbtools.me/pubmat/course-planner/) |
 | Final exam time & room | Search course code → finals panel; room panel during finals week |
 | Building location | Map, pins, directions, Google Maps |
 | Landmarks, services, orgs & offices | Sidebar directories, distinct map pins, and shareable detail links |
