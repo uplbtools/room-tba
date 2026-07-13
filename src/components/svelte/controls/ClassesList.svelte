@@ -5,7 +5,7 @@
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
   import EntityPagination from "./EntityPagination.svelte";
   import { fetchClassPage } from "@lib/classes-api";
-  import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
+  import { CLASS_BROWSE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import { queryStore, termStore } from "@lib/store.svelte";
   import type { ClassMapValue } from "@lib/types";
   import { onMount } from "svelte";
@@ -84,7 +84,7 @@
       <div class="entity-header__title-row">
         <h2 class="entity-header__title">All classes</h2>
       </div>
-      <p class="entity-panel-note">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
+      <p class="entity-panel-note">{CLASS_BROWSE_SCOPE_NOTE}</p>
       <EntityPanelFilter
         value={filterText}
         label="Filter by course code"

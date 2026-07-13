@@ -1,6 +1,9 @@
 import type { NormalizedAmisClass } from "./types";
 import { normalizeFacilityKey } from "./normalize-class";
-import { isRoomScheduledClassType } from "./room-scheduled-types";
+import {
+  isNonRoomClassType,
+  isRoomScheduledClassType,
+} from "./room-scheduled-types";
 
 export type ClassInsertRow = {
   courseCode: string;
@@ -17,7 +20,8 @@ export type ImportRowStats = {
   aliasRoomMatch: number;
   missingFacility: number;
   unmatchedFacility: number;
-  skippedByType: number;
+  importedRoomless: number;
+  skippedUnknownType: number;
 };
 
 export type ImportRowOutcome =
@@ -66,6 +70,43 @@ export function buildRoomLookup(
   return { directRoomIdByKey, aliasRoomIdByKey, combinedRoomIdByKey };
 }
 
+function resolveRoomId(
+  facility: string | undefined,
+  lookup: ReturnType<typeof buildRoomLookup>,
+  stats: ImportRowStats,
+  unmatched: Map<string, number>,
+  trackMissing: boolean,
+): number | null {
+  const trimmed = facility?.trim();
+  if (!trimmed) {
+    if (trackMissing) {
+      stats.missingFacility += 1;
+      unmatched.set(
+        "(missing facility)",
+        (unmatched.get("(missing facility)") ?? 0) + 1,
+      );
+    }
+    return null;
+  }
+
+  const key = normalizeFacilityKey(trimmed);
+  const roomId = lookup.combinedRoomIdByKey.get(key) ?? null;
+  if (roomId == null) {
+    if (trackMissing) {
+      stats.unmatchedFacility += 1;
+      unmatched.set(trimmed, (unmatched.get(trimmed) ?? 0) + 1);
+    }
+    return null;
+  }
+
+  if (lookup.directRoomIdByKey.has(key)) {
+    stats.directRoomMatch += 1;
+  } else {
+    stats.aliasRoomMatch += 1;
+  }
+  return roomId;
+}
+
 export function resolveImportRows(
   normalized: NormalizedAmisClass[],
   lookup: ReturnType<typeof buildRoomLookup>,
@@ -79,37 +120,46 @@ export function resolveImportRows(
     aliasRoomMatch: 0,
     missingFacility: 0,
     unmatchedFacility: 0,
-    skippedByType: 0,
+    importedRoomless: 0,
+    skippedUnknownType: 0,
   };
   const unmatched = new Map<string, number>();
   const rows: ClassInsertRow[] = [];
 
   for (const row of normalized) {
-    if (!isRoomScheduledClassType(row.type)) {
-      stats.skippedByType += 1;
+    if (isNonRoomClassType(row.type)) {
+      const roomId = resolveRoomId(
+        row.facilityCode,
+        lookup,
+        stats,
+        unmatched,
+        false,
+      );
+      stats.importedRoomless += 1;
+      rows.push({
+        courseCode: row.courseCode,
+        section: row.section,
+        type: row.type,
+        courseTitle: row.courseTitle,
+        schedule: row.schedule,
+        roomId,
+        termId: row.termId,
+      });
       continue;
     }
 
-    const facility = row.facilityCode?.trim();
-    let roomId: number | null = null;
-    if (!facility) {
-      stats.missingFacility += 1;
-      unmatched.set(
-        "(missing facility)",
-        (unmatched.get("(missing facility)") ?? 0) + 1,
-      );
-    } else {
-      const key = normalizeFacilityKey(facility);
-      roomId = lookup.combinedRoomIdByKey.get(key) ?? null;
-      if (roomId == null) {
-        stats.unmatchedFacility += 1;
-        unmatched.set(facility, (unmatched.get(facility) ?? 0) + 1);
-      } else if (lookup.directRoomIdByKey.has(key)) {
-        stats.directRoomMatch += 1;
-      } else {
-        stats.aliasRoomMatch += 1;
-      }
+    if (!isRoomScheduledClassType(row.type)) {
+      stats.skippedUnknownType += 1;
+      continue;
     }
+
+    const roomId = resolveRoomId(
+      row.facilityCode,
+      lookup,
+      stats,
+      unmatched,
+      true,
+    );
 
     rows.push({
       courseCode: row.courseCode,
@@ -217,9 +267,10 @@ export function formatImportReport(input: {
     `  Raw rows: ${input.rawCount}`,
     `  Normalized: ${input.normalizedCount}`,
     `  Room matches: ${input.stats.directRoomMatch} direct, ${input.stats.aliasRoomMatch} via alias`,
-    `  Skipped by type: ${input.stats.skippedByType}`,
-    `  Missing facility: ${input.stats.missingFacility}`,
-    `  Unmatched facility: ${input.stats.unmatchedFacility}`,
+    `  Imported roomless (THE/SPR/…): ${input.stats.importedRoomless}`,
+    `  Skipped unknown type: ${input.stats.skippedUnknownType}`,
+    `  LEC/LAB missing facility: ${input.stats.missingFacility}`,
+    `  LEC/LAB unmatched facility: ${input.stats.unmatchedFacility}`,
     `  DB changes: +${input.summary.inserted} ~${input.summary.updated} =${input.summary.unchanged} -${input.summary.removed}`,
   ];
 
