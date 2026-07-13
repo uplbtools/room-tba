@@ -50,8 +50,8 @@
         value: queryStore.queryValue,
         eventSlug: queryStore.selectedEventSlug ?? undefined,
       }),
-      setPlannerOpen: (open) => {
-        sidebarStore.changeOpened(open ? "planner" : "map");
+      setScreen: (screen) => {
+        sidebarStore.changeOpened(screen ?? "map");
       },
       setTransit: async ({ routeId, stopSlug }) => {
         openCampusBrowse(queryStore, sidePanelStore, "jeepney");
@@ -88,7 +88,11 @@
       editMode: mapEditStore.enabled,
       termId: termStore.activeTermId,
       defaultTermId: termStore.defaultTermId,
-      plannerOpen: sidebarStore.panelOpen === "planner",
+      screen:
+        sidebarStore.panelOpen === "planner" ||
+        sidebarStore.panelOpen === "finals"
+          ? sidebarStore.panelOpen
+          : null,
       transitRouteId: jeepneyStore.selectedRouteId,
       transitStopIndex: jeepneyStore.selectedStopIndex,
       transitRoute: transitStore.getRoute(jeepneyStore.selectedRouteId),

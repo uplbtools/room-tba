@@ -3,6 +3,7 @@ import {
   buildRoomLookup,
   classNaturalKey,
   formatImportReport,
+  matchRoomId,
   resolveImportRows,
   summarizeImportChanges,
 } from "./import-classes";
@@ -29,6 +30,107 @@ describe("buildRoomLookup", () => {
     expect(lookup.directRoomIdByKey.get("PS B 203")).toBe(1);
     expect(lookup.aliasRoomIdByKey.get("PS B 203")).toBe(1);
     expect(lookup.combinedRoomIdByKey.get("PS B 203")).toBe(1);
+  });
+
+  test("flags DB rooms that collapse to the same squashed key", () => {
+    const lookup = buildRoomLookup(
+      [
+        { id: 1, code: "BALH 1" },
+        { id: 2, code: "BALH1" },
+      ],
+      [],
+    );
+    expect(lookup.squashedRoomIdByKey.get("BALH1")).toBeNull();
+    expect(lookup.duplicateRoomCodes.get("BALH1")).toEqual(["BALH 1", "BALH1"]);
+  });
+});
+
+describe("matchRoomId", () => {
+  const lookup = buildRoomLookup(
+    [
+      { id: 1, code: "IBSLH2" },
+      { id: 2, code: "CHE Conference Room" },
+      { id: 3, code: "EAA LH" },
+      { id: 4, code: "FRONDA RM. 24" },
+      { id: 5, code: "BALH 1" },
+      { id: 6, code: "BALH1" },
+    ],
+    [{ alias: "MEGA HALL", targetId: 3 }],
+  );
+
+  test("exact after dash/dot normalization", () => {
+    expect(matchRoomId(lookup, "FRONDA RM 24")).toEqual({
+      roomId: 4,
+      kind: "direct",
+    });
+  });
+
+  test("alias table match", () => {
+    expect(matchRoomId(lookup, "Mega Hall")).toEqual({
+      roomId: 3,
+      kind: "alias",
+    });
+  });
+
+  test("spacing variants via squashed key", () => {
+    expect(matchRoomId(lookup, "IBSLH 2")).toEqual({
+      roomId: 1,
+      kind: "fuzzy",
+    });
+  });
+
+  test("abbreviation expansion", () => {
+    expect(matchRoomId(lookup, "CHE CONF RM")).toEqual({
+      roomId: 2,
+      kind: "fuzzy",
+    });
+  });
+
+  test("parenthetical suffix stripped", () => {
+    expect(matchRoomId(lookup, "EAA LH (ICS Mega Hall)")).toEqual({
+      roomId: 3,
+      kind: "direct",
+    });
+  });
+
+  test("ambiguous squashed key does not match", () => {
+    expect(matchRoomId(lookup, "BA LH1")).toBeNull();
+  });
+
+  test("unknown room returns null", () => {
+    expect(matchRoomId(lookup, "MAQUILING ROOM 22")).toBeNull();
+  });
+
+  test("registrar column bleed takes the last segment", () => {
+    expect(matchRoomId(lookup, "CHEM 161B    FRONDA RM 24")).toEqual({
+      roomId: 4,
+      kind: "direct",
+    });
+  });
+
+  test("AMIS 10-char truncation completes to a unique room", () => {
+    const truncLookup = buildRoomLookup([{ id: 9, code: "ASILH B125" }], []);
+    expect(matchRoomId(truncLookup, "ASILH B-12")).toEqual({
+      roomId: 9,
+      kind: "fuzzy",
+    });
+    // ambiguous completion stays unmatched
+    const ambiguous = buildRoomLookup(
+      [
+        { id: 1, code: "IMSP PC203" },
+        { id: 2, code: "IMSP PC204" },
+      ],
+      [],
+    );
+    expect(matchRoomId(ambiguous, "IMSP PC20")).toBeNull();
+  });
+
+  test("slash combo falls back to the room before the slash", () => {
+    const slashLookup = buildRoomLookup([{ id: 7, code: "ICROPS 134" }], []);
+    expect(matchRoomId(slashLookup, "ICROPS 134/AVR")).toEqual({
+      roomId: 7,
+      kind: "fuzzy",
+    });
   });
 });
 
@@ -221,6 +323,7 @@ describe("formatImportReport", () => {
       stats: {
         directRoomMatch: 40,
         aliasRoomMatch: 5,
+        fuzzyRoomMatch: 0,
         missingFacility: 30,
         unmatchedFacility: 10,
         importedRoomless: 8,

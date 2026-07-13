@@ -7,6 +7,7 @@
   import { fetchClassPage } from "@lib/classes-api";
   import { CLASS_BROWSE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import { queryStore, termStore } from "@lib/store.svelte";
+  import ScheduleFreshnessNote from "@ui/ScheduleFreshnessNote.svelte";
   import type { ClassMapValue } from "@lib/types";
   import { onMount } from "svelte";
     import TermSelector from "@ui/TermSelector.svelte";
@@ -92,6 +93,7 @@
         oninput={onFilterInput}
       />
     <TermSelector />
+    <ScheduleFreshnessNote importedAt={termStore.activeTerm?.classesImportedAt} />
     {/snippet}
   </EntityPanelHeader>
 

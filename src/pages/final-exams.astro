@@ -1,0 +1,39 @@
+---
+import AppRoot from "@ui/AppRoot.svelte";
+import Layout from "@layouts/Layout.astro";
+import {
+  breadcrumbSchema,
+  jsonLd,
+  ogCardPath,
+  webpageSchema,
+  websiteSchema,
+} from "@lib/site";
+
+// Deep link to the finals browser: /final-exams?term=<crs_id>. Entry.svelte
+// opens the screen on this path; the term comes from ?term via termStore.
+const title = "Final Exam Schedule | Room TBA";
+const description =
+  "Browse the UPLB final exam schedule by term: search courses, sections, and rooms with dates and times from OUR releases.";
+const structuredData = jsonLd(
+  websiteSchema(),
+  webpageSchema({ title, description, path: "/final-exams" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Final Exams", path: "/final-exams" },
+  ]),
+);
+---
+
+<Layout
+  title={title}
+  description={description}
+  canonicalPath="/final-exams"
+  imagePath={ogCardPath({
+    title: "Final Exam Schedule",
+    subtitle: "UPLB finals by course, section, and room",
+    kicker: "Finals",
+  })}
+  structuredData={structuredData}
+>
+  <AppRoot client:only="svelte" openFinals={true} suppressLandingModal={true} />
+</Layout>

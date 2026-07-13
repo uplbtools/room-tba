@@ -18,6 +18,7 @@ export type ClassInsertRow = {
 export type ImportRowStats = {
   directRoomMatch: number;
   aliasRoomMatch: number;
+  fuzzyRoomMatch: number;
   missingFacility: number;
   unmatchedFacility: number;
   importedRoomless: number;
@@ -51,26 +52,164 @@ export function classNaturalKey(row: {
   ].join("|");
 }
 
+// AMIS/registrar venues are free-typed strings, so exact keys miss spacing,
+// abbreviation, and punctuation variants ("IBSLH 2" vs "IBSLH2", "CHE CONF RM"
+// vs "CHE Conference Room"). Fuzzy tiers below recover those; truly irregular
+// names persist as rows in the aliases table (targetType='room').
+const FACILITY_ABBREVIATIONS: [RegExp, string][] = [
+  [/\bRM\b/g, "ROOM"],
+  [/\bCONF\b/g, "CONFERENCE"],
+  [/\bAUD\b/g, "AUDI"],
+  [/\bGRAD\b/g, "GRADUATE"],
+];
+
+function expandFacilityAbbreviations(key: string) {
+  let expanded = key;
+  for (const [pattern, replacement] of FACILITY_ABBREVIATIONS) {
+    expanded = expanded.replace(pattern, replacement);
+  }
+  return expanded;
+}
+
+/** Alphanumerics only — collapses every spacing/punctuation variant. */
+function squashFacilityKey(key: string) {
+  return key.replace(/[^A-Z0-9]/g, "");
+}
+
+function stripParenthetical(code: string) {
+  return code.replace(/\(.*?\)/g, " ");
+}
+
 export function buildRoomLookup(
   rooms: { id: number; code: string }[],
   roomAliases: { alias: string; targetId: number }[],
 ) {
   const directRoomIdByKey = new Map<string, number>();
   const aliasRoomIdByKey = new Map<string, number>();
+  const expandedRoomIdByKey = new Map<string, number>();
+  // null marks a squashed key claimed by two different rooms (DB duplicates
+  // like "BALH 1" vs "BALH1") — too ambiguous to auto-match.
+  const squashedRoomIdByKey = new Map<string, number | null>();
+  const duplicateRoomCodes = new Map<string, string[]>();
+
+  const addSquashed = (key: string, id: number, code: string) => {
+    const existing = squashedRoomIdByKey.get(key);
+    if (existing === undefined) {
+      squashedRoomIdByKey.set(key, id);
+      duplicateRoomCodes.set(key, [code]);
+    } else if (existing !== id) {
+      squashedRoomIdByKey.set(key, null);
+      const codes = duplicateRoomCodes.get(key);
+      if (codes && !codes.includes(code)) codes.push(code);
+    }
+  };
+
   for (const room of rooms) {
-    directRoomIdByKey.set(normalizeFacilityKey(room.code), room.id);
+    const key = normalizeFacilityKey(room.code);
+    directRoomIdByKey.set(key, room.id);
+    expandedRoomIdByKey.set(expandFacilityAbbreviations(key), room.id);
+    addSquashed(squashFacilityKey(key), room.id, room.code);
+    addSquashed(
+      squashFacilityKey(expandFacilityAbbreviations(key)),
+      room.id,
+      room.code,
+    );
   }
   for (const alias of roomAliases) {
-    aliasRoomIdByKey.set(normalizeFacilityKey(alias.alias), alias.targetId);
+    const key = normalizeFacilityKey(alias.alias);
+    aliasRoomIdByKey.set(key, alias.targetId);
+    if (!expandedRoomIdByKey.has(expandFacilityAbbreviations(key))) {
+      expandedRoomIdByKey.set(expandFacilityAbbreviations(key), alias.targetId);
+    }
+    addSquashed(squashFacilityKey(key), alias.targetId, alias.alias);
   }
   const combinedRoomIdByKey = new Map([
     ...directRoomIdByKey,
     ...aliasRoomIdByKey,
   ]);
-  return { directRoomIdByKey, aliasRoomIdByKey, combinedRoomIdByKey };
+  for (const key of [...duplicateRoomCodes.keys()]) {
+    if (squashedRoomIdByKey.get(key) !== null) duplicateRoomCodes.delete(key);
+  }
+  return {
+    directRoomIdByKey,
+    aliasRoomIdByKey,
+    combinedRoomIdByKey,
+    expandedRoomIdByKey,
+    squashedRoomIdByKey,
+    duplicateRoomCodes,
+  };
 }
 
-function resolveRoomId(
+export type RoomMatch = {
+  roomId: number;
+  kind: "direct" | "alias" | "fuzzy";
+};
+
+/** Tiered lookup: exact/alias → abbreviation-expanded → squashed (unambiguous only), each also tried with any "(...)" suffix removed. */
+export function matchRoomId(
+  lookup: ReturnType<typeof buildRoomLookup>,
+  facility: string,
+): RoomMatch | null {
+  const candidates = [facility];
+  const stripped = stripParenthetical(facility);
+  if (stripped.trim() !== facility.trim()) candidates.push(stripped);
+  // Registrar PDF column bleed: "CHEM 161B    PS A-232" — the venue is the
+  // segment after the 2+-space run.
+  const segments = facility.split(/\s{2,}/);
+  if (segments.length > 1) candidates.push(segments[segments.length - 1]);
+  // Slash combos ("ICROPS 134/AVR") fall back to the room before the slash —
+  // only after the full string (real combo rooms like "FBS 155/FBS 051"
+  // exist) misses every tier below.
+  const slash = facility.split("/");
+  const slashFallback = slash.length > 1 ? slash[0] : null;
+
+  for (const candidate of candidates) {
+    const key = normalizeFacilityKey(candidate);
+    if (lookup.directRoomIdByKey.has(key)) {
+      return { roomId: lookup.directRoomIdByKey.get(key)!, kind: "direct" };
+    }
+    if (lookup.aliasRoomIdByKey.has(key)) {
+      return { roomId: lookup.aliasRoomIdByKey.get(key)!, kind: "alias" };
+    }
+  }
+  for (const candidate of candidates) {
+    const expanded = expandFacilityAbbreviations(
+      normalizeFacilityKey(candidate),
+    );
+    const viaExpansion = lookup.expandedRoomIdByKey.get(expanded);
+    if (viaExpansion != null) return { roomId: viaExpansion, kind: "fuzzy" };
+
+    for (const squashKey of [
+      squashFacilityKey(normalizeFacilityKey(candidate)),
+      squashFacilityKey(expanded),
+    ]) {
+      const viaSquash = lookup.squashedRoomIdByKey.get(squashKey);
+      if (viaSquash != null) return { roomId: viaSquash, kind: "fuzzy" };
+    }
+  }
+  // AMIS truncates facility ids to 10 chars ("ASILH B-12" = ASILH B-125).
+  // Accept only a unique squashed-prefix completion.
+  if (facility.trim().length >= 9) {
+    const truncated = squashFacilityKey(normalizeFacilityKey(facility));
+    let completion: number | null | undefined;
+    for (const [key, roomId] of lookup.squashedRoomIdByKey) {
+      if (!key.startsWith(truncated)) continue;
+      if (completion !== undefined) {
+        completion = undefined; // second hit: ambiguous
+        break;
+      }
+      completion = roomId;
+    }
+    if (completion != null) return { roomId: completion, kind: "fuzzy" };
+  }
+  if (slashFallback) {
+    const viaSlash = matchRoomId(lookup, slashFallback);
+    if (viaSlash) return { roomId: viaSlash.roomId, kind: "fuzzy" };
+  }
+  return null;
+}
+
+function applyRoomMatch(
   facility: string | undefined,
   lookup: ReturnType<typeof buildRoomLookup>,
   stats: ImportRowStats,
@@ -89,9 +228,8 @@ function resolveRoomId(
     return null;
   }
 
-  const key = normalizeFacilityKey(trimmed);
-  const roomId = lookup.combinedRoomIdByKey.get(key) ?? null;
-  if (roomId == null) {
+  const match = matchRoomId(lookup, trimmed);
+  if (match == null) {
     if (trackMissing) {
       stats.unmatchedFacility += 1;
       unmatched.set(trimmed, (unmatched.get(trimmed) ?? 0) + 1);
@@ -99,12 +237,14 @@ function resolveRoomId(
     return null;
   }
 
-  if (lookup.directRoomIdByKey.has(key)) {
+  if (match.kind === "direct") {
     stats.directRoomMatch += 1;
-  } else {
+  } else if (match.kind === "alias") {
     stats.aliasRoomMatch += 1;
+  } else {
+    stats.fuzzyRoomMatch += 1;
   }
-  return roomId;
+  return match.roomId;
 }
 
 export function resolveImportRows(
@@ -118,6 +258,7 @@ export function resolveImportRows(
   const stats: ImportRowStats = {
     directRoomMatch: 0,
     aliasRoomMatch: 0,
+    fuzzyRoomMatch: 0,
     missingFacility: 0,
     unmatchedFacility: 0,
     importedRoomless: 0,
@@ -128,7 +269,7 @@ export function resolveImportRows(
 
   for (const row of normalized) {
     if (isNonRoomClassType(row.type)) {
-      const roomId = resolveRoomId(
+      const roomId = applyRoomMatch(
         row.facilityCode,
         lookup,
         stats,
@@ -153,7 +294,7 @@ export function resolveImportRows(
       continue;
     }
 
-    const roomId = resolveRoomId(
+    const roomId = applyRoomMatch(
       row.facilityCode,
       lookup,
       stats,
@@ -266,7 +407,7 @@ export function formatImportReport(input: {
     `AMIS import summary (term_id=${input.termId})`,
     `  Raw rows: ${input.rawCount}`,
     `  Normalized: ${input.normalizedCount}`,
-    `  Room matches: ${input.stats.directRoomMatch} direct, ${input.stats.aliasRoomMatch} via alias`,
+    `  Room matches: ${input.stats.directRoomMatch} direct, ${input.stats.aliasRoomMatch} via alias, ${input.stats.fuzzyRoomMatch} fuzzy`,
     `  Imported roomless (THE/SPR/…): ${input.stats.importedRoomless}`,
     `  Skipped unknown type: ${input.stats.skippedUnknownType}`,
     `  LEC/LAB missing facility: ${input.stats.missingFacility}`,

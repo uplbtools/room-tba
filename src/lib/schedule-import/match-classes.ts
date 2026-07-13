@@ -3,8 +3,15 @@ import {
   NON_ROOM_CLASS_TYPES,
 } from "@lib/amis/room-scheduled-types";
 import type { ClassMapValue } from "@lib/types";
-import { matchKey } from "./parse-import";
 import type { ImportedScheduleRow, ScheduleMatchResult } from "./types";
+
+export function matchKey(
+  courseCode: string,
+  section: string,
+  type: string,
+): string {
+  return `${courseCode.trim().toUpperCase()}::${section.trim().toUpperCase()}::${type.trim().toUpperCase()}`;
+}
 
 export type RoomCoordLookup = (
   roomCode: string,

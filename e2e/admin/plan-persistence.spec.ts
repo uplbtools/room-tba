@@ -21,7 +21,17 @@ test.describe("plan persistence (#2)", () => {
           id: "e2e-plan-1",
           label: "E2E Plan",
           termId: E2E_FIXTURES.termId,
-          sections: [],
+          sections: [
+            {
+              courseCode: "E2E 101",
+              section: "A",
+              type: "LEC",
+              schedule: ["MWF 08:00AM-09:00AM"],
+              roomCode: null,
+              courseTitle: "E2E Course",
+              note: "Dr. Santos",
+            },
+          ],
         },
       ],
       activePlanIdByTerm: {},
@@ -44,7 +54,10 @@ test.describe("plan persistence (#2)", () => {
         credentials: "same-origin",
       });
       return res.json();
-    })) as { data?: { plans?: { id?: string }[] } };
+    })) as {
+      data?: { plans?: { id?: string; sections?: { note?: string }[] }[] };
+    };
     expect(body.data?.plans?.[0]?.id).toBe("e2e-plan-1");
+    expect(body.data?.plans?.[0]?.sections?.[0]?.note).toBe("Dr. Santos");
   });
 });

@@ -4,13 +4,20 @@ import { ImageResponse } from "@vercel/og";
 export const prerender = false;
 
 // Hyperscript so we can build Satori elements without JSX in a .ts endpoint.
+// A single child is passed bare, not array-wrapped: satori counts a
+// one-string array as "more than one child node" and then demands
+// display:flex, which silently disables lineClamp ellipsis (#651).
 type El = { type: string; props: Record<string, unknown> };
 function h(
   type: string,
   props: Record<string, unknown>,
   ...children: unknown[]
 ): El {
-  return { type, props: { ...props, children: children.flat() } };
+  const flat = children.flat();
+  return {
+    type,
+    props: { ...props, children: flat.length === 1 ? flat[0] : flat },
+  };
 }
 
 const WIDTH = 1200;
@@ -122,7 +129,9 @@ export const GET: APIRoute = async ({ url }) => {
         {
           style: {
             // block + lineClamp: long titles wrap to a second line and only
-            // then ellipsize, instead of overflowing off the card.
+            // then ellipsize, instead of overflowing off the card. Needs the
+            // bare-string child from h() above; flex renders but drops the
+            // clamp (title overflows as one line).
             display: "block",
             lineClamp: 2,
             fontSize: title.length > 40 ? 62 : title.length > 34 ? 74 : 92,

@@ -266,25 +266,6 @@
           <Suggestions />
         </div>
       {/if}
-
-      {#if (mobile.current || chrome.showSearchSuggestions || chrome.editMode) && !(showSearchDropdown && draftInput.trim() !== "")}
-        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-        <div
-          class="map-search-chrome__chips"
-          onmousedown={(event) => event.preventDefault()}
-          role="list"
-        >
-          {#if mobile.current}
-            <MapDimensionToggle compact />
-          {/if}
-
-          {#if chrome.showSearchSuggestions}
-            <!-- Browsing lives in the sidebar; only the term switch stays here. -->
-            <TermSelector />
-          {/if}
-        </div>
-      {/if}
-
     </div>
   </div>
 </div>
@@ -304,6 +285,7 @@
 
   .search-root {
     display: contents;
+    margin-top:.25rem;
   }
 
   .search-root.mobile-shell {
@@ -790,5 +772,4 @@
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
-
 </style>

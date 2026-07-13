@@ -256,6 +256,39 @@
           />
         </section>
 
+        <section class="inspiration-block">
+          <h3>Inspiration &amp; similar tools</h3>
+          <ul class="inspiration-links">
+            <li>
+              <a
+                href="https://upsked.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">Upsked.com</a
+              >
+              by John Paul Poliquit
+            </li>
+            <li>
+              <a
+                href="https://uplb-trail.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">UPLB Trail</a
+              >
+              by Bernard Jezua Tandang
+            </li>
+            <li>
+              <a
+                href="https://chromewebstore.google.com/detail/amissu/mkdgckblaojfigmbnknehcmnjpkcehcj"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">AMISSU</a
+              >
+              by Garth Hendrich Lapitan
+            </li>
+          </ul>
+        </section>
+
       </div>
     {/if}
   </div>
@@ -441,6 +474,33 @@
     font-size: 0.9375rem;
     font-weight: 700;
     color: hsl(5, 53%, 28%);
+  }
+
+  .inspiration-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    width: 100%;
+  }
+
+  .inspiration-block h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 28%);
+  }
+
+  .inspiration-links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.75rem;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 30%);
   }
 
   .section-note {

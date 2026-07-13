@@ -24,6 +24,7 @@ export async function getAllTerms(): Promise<TermWithCount[]> {
         sortOrder: termsTable.sortOrder,
         version: termsTable.version,
         updatedAt: termsTable.updatedAt,
+        classesImportedAt: termsTable.classesImportedAt,
         classCount: sql<number>`count(${classesTable.id})::int`,
       })
       .from(termsTable)

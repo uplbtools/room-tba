@@ -1,6 +1,11 @@
+import academicCalendar2024 from "../../data/academic-calendar-2024-2025.json";
+import academicCalendar2026 from "../../data/academic-calendar-2026-2027.json";
 import type { Term } from "@lib/types";
 
-/** Official-ish AY 2025-2026 instructional windows (date-only, Asia/Manila). */
+/** Hand-kept instructional windows (date-only, Asia/Manila) for AYs whose
+ *  registrar calendar PDF has no text layer (2025-2026) or only OCR garbage
+ *  (2023-2024). Finals windows verified against the finals-schedule PDFs in
+ *  data/registrar/. */
 export const TERM_CALENDAR_WINDOWS: Record<
   number,
   {
@@ -10,12 +15,26 @@ export const TERM_CALENDAR_WINDOWS: Record<
     finalsEndsOn?: string;
   }
 > = {
+  // CRS 1231 — AY 2023-2024 1st semester (Aug–Jan)
+  1231: {
+    startsOn: "2023-08-29",
+    endsOn: "2024-01-11",
+    finalsStartsOn: "2024-01-04",
+    finalsEndsOn: "2024-01-11",
+  },
+  // CRS 1232 — AY 2023-2024 2nd semester (Feb–Jun)
+  1232: {
+    startsOn: "2024-02-05",
+    endsOn: "2024-06-10",
+    finalsStartsOn: "2024-06-03",
+    finalsEndsOn: "2024-06-10",
+  },
   // CRS 1252 — 2nd semester (Jan–May)
   1252: {
     startsOn: "2026-01-19",
     endsOn: "2026-05-31",
-    finalsStartsOn: "2026-05-12",
-    finalsEndsOn: "2026-05-16",
+    finalsStartsOn: "2026-05-15",
+    finalsEndsOn: "2026-05-22",
   },
   // CRS 1253 — midyear (Jun–Jul)
   1253: {
@@ -30,10 +49,22 @@ export const TERM_CALENDAR_WINDOWS: Record<
  * Last day of change of matriculation per term (Asia/Manila, date-only). Until
  * this date, course offerings can still change — surfaced in the planner note.
  */
-export const CHANGE_OF_MATRICULATION_ENDS: Record<number, string> = {
-  // CRS 1261 — AY 2026–2027 1st sem (classes start Aug 3).
-  1261: "2026-08-07",
-};
+export const CHANGE_OF_MATRICULATION_ENDS: Record<number, string> = {};
+
+// AYs with a machine-readable registrar calendar PDF come straight from
+// scripts/extract-academic-calendar-pdf.ts output.
+for (const calendar of [academicCalendar2024, academicCalendar2026]) {
+  for (const [termId, window] of Object.entries(calendar)) {
+    TERM_CALENDAR_WINDOWS[Number(termId)] = {
+      startsOn: window.startsOn,
+      endsOn: window.endsOn,
+      finalsStartsOn: window.finalsStartsOn,
+      finalsEndsOn: window.finalsEndsOn,
+    };
+    CHANGE_OF_MATRICULATION_ENDS[Number(termId)] =
+      window.changeOfMatriculationEndsOn;
+  }
+}
 
 /** Human date ("August 7, 2026") for a term's last day of change of
  *  matriculation, or null when unknown. */
@@ -174,6 +205,16 @@ export function resolveInitialTermId(
   const fallback = resolveDefaultTermFromList(terms, options.date);
   if (storedValid) return options.storedId;
   return fallback?.id ?? null;
+}
+
+/** "Dec 1 – Dec 7" official finals window for a term, or null when unknown. */
+export function finalsWindowLabel(termId: number | null | undefined) {
+  const window = termId == null ? undefined : TERM_CALENDAR_WINDOWS[termId];
+  if (!window?.finalsStartsOn || !window.finalsEndsOn) return null;
+  return formatTermDateRange({
+    startsOn: window.finalsStartsOn,
+    endsOn: window.finalsEndsOn,
+  });
 }
 
 export function formatTermDateRange(term: Pick<Term, "startsOn" | "endsOn">) {

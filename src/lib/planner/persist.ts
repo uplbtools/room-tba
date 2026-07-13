@@ -1,5 +1,4 @@
 import type { PlannedSection, PlannerPersisted, PlannerPlan } from "./types.js";
-import { sectionNaturalKey } from "./types.js";
 
 const isPlannedSection = (value: unknown): value is PlannedSection =>
   !!value &&
@@ -8,7 +7,9 @@ const isPlannedSection = (value: unknown): value is PlannedSection =>
   typeof (value as PlannedSection).section === "string" &&
   typeof (value as PlannedSection).type === "string" &&
   Array.isArray((value as PlannedSection).schedule) &&
-  (value as PlannedSection).schedule.every((s) => typeof s === "string");
+  (value as PlannedSection).schedule.every((s) => typeof s === "string") &&
+  ((value as PlannedSection).note === undefined ||
+    typeof (value as PlannedSection).note === "string");
 
 const isPlannerPlan = (value: unknown): value is PlannerPlan =>
   !!value &&
@@ -59,52 +60,6 @@ export function mergePlannerState(
     if (planIds.has(planId)) activePlanIdByTerm[termId] = planId;
   }
   return { v: 1, plans, activePlanIdByTerm };
-}
-
-function sectionNoteKey(
-  planId: string,
-  section: Pick<PlannedSection, "courseCode" | "section" | "type">,
-) {
-  return `${planId}::${sectionNaturalKey(section)}`;
-}
-
-/** Collect professor/section notes for re-applying after account merge. */
-export function collectSectionNotes(plans: PlannerPlan[]): Map<string, string> {
-  const notes = new Map<string, string>();
-  for (const plan of plans) {
-    for (const section of plan.sections) {
-      const trimmed = section.note?.trim();
-      if (trimmed) notes.set(sectionNoteKey(plan.id, section), trimmed);
-    }
-  }
-  return notes;
-}
-
-export function applySectionNotes(
-  plans: PlannerPlan[],
-  notes: Map<string, string>,
-): PlannerPlan[] {
-  if (notes.size === 0) return plans;
-  return plans.map((plan) => ({
-    ...plan,
-    sections: plan.sections.map((section) => {
-      const note = notes.get(sectionNoteKey(plan.id, section));
-      return note ? { ...section, note } : section;
-    }),
-  }));
-}
-
-/** Account sync stores schedules only — instructor notes stay on this device. */
-export function stripSectionNotesForAccount(
-  state: Pick<PlannerPersisted, "plans" | "activePlanIdByTerm">,
-): Pick<PlannerPersisted, "plans" | "activePlanIdByTerm"> {
-  return {
-    activePlanIdByTerm: state.activePlanIdByTerm,
-    plans: state.plans.map((plan) => ({
-      ...plan,
-      sections: plan.sections.map(({ note: _note, ...section }) => section),
-    })),
-  };
 }
 
 /** Parse persisted planner state; invalid plans/sections are dropped, never fatal. */

@@ -2,6 +2,7 @@
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { currentRoom, roomClassesStore, termStore } from "@lib/store.svelte";
   import ScheduleRender from "@ui/room/ScheduleRender.svelte";
+  import ScheduleFreshnessNote from "@ui/ScheduleFreshnessNote.svelte";
 
   const room = $derived(currentRoom.value);
   const classes = $derived(roomClassesStore.classes);
@@ -14,6 +15,7 @@
     {#if termLabel}
       <span class="schedule-modal__term">{termLabel}</span>
     {/if}
+    <ScheduleFreshnessNote importedAt={termStore.activeTerm?.classesImportedAt} />
   </div>
   <div class="schedule-modal__body map-chrome-scroll">
     {#if roomClassesStore.loading}

@@ -51,7 +51,7 @@ export async function waitForAppBoot(page: Page, timeout = 120_000) {
 
   // The browse chips are gone; the term chip is the always-present signal that
   // the search chrome finished booting.
-  const termChip = page.locator(".term-filter-chip");
+  const termChip = page.locator(".term-filter-chip").first();
   await termChip.waitFor({ state: "visible", timeout: 30_000 });
   await termChip.click({ trial: true, timeout: 30_000 });
 }
