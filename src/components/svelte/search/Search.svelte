@@ -277,11 +277,6 @@
           {#if mobile.current}
             <MapDimensionToggle compact />
           {/if}
-
-          {#if chrome.showSearchSuggestions}
-            <!-- Browsing lives in the sidebar; only the term switch stays here. -->
-            <TermSelector />
-          {/if}
         </div>
       {/if}
 
