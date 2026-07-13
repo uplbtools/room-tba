@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { suppressLandingModal } from "../helpers/app";
+import { suppressLandingModal, waitForAppBoot } from "../helpers/app";
+import { openAppSidebar } from "../helpers/map-tools";
 
 // /planner is a deep link that must open the Class Planner overlay directly.
 // Without a blocking e2e this route silently breaks (cf. app-menu regressions).
@@ -43,12 +44,10 @@ test.describe("planner route", () => {
   }) => {
     await suppressLandingModal(page);
     await page.goto("/");
-    await waitForPlannerBoot(page);
+    await waitForAppBoot(page);
 
-    // click() auto-waits for the chrome button to be actionable.
-    await page
-      .getByRole("button", { name: "Open course planner" })
-      .click({ timeout: 60_000 });
+    const sidebar = await openAppSidebar(page);
+    await sidebar.getByRole("button", { name: "Planner" }).click();
     await expect(
       page.getByRole("dialog", { name: "Class Planner" }),
     ).toBeVisible();

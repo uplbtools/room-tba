@@ -107,7 +107,6 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/route-slugs.test.ts`
 - `src/lib/schedule-import/day-stops.test.ts`
 - `src/lib/schedule-import/match-classes.test.ts`
-- `src/lib/schedule-import/parse-import.test.ts`
 - `src/lib/schedule-renderer.test.ts`
 - `src/lib/services/admin-service.test.ts`
 - `src/lib/services/merge-service.test.ts`

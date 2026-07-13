@@ -108,6 +108,7 @@
   }
   .nav-link--expanded {
     width: 100%;
+    box-sizing: border-box;
     justify-content: flex-start;
     gap: 0.625rem;
     .tooltip,

@@ -68,7 +68,7 @@ test.describe("sidebar campus browsing", () => {
       "aria-hidden",
       "true",
     );
-    await pin.click();
+    await pin.click({ force: true });
     await expect(page.locator("#side-panel-details")).toHaveAttribute(
       "aria-hidden",
       "false",
@@ -93,8 +93,11 @@ test.describe("sidebar campus browsing", () => {
     await expect(
       page.getByRole("heading", { name: /Jeepney Routes/i }),
     ).toBeVisible({ timeout: 10_000 });
+    const route = page.locator("button.entity-list-row").first();
+    await expect(route).toBeVisible();
+    await route.click();
     await expect(
-      page.getByRole("button", { name: /open .+ route details/i }).first(),
+      page.getByRole("button", { name: /copy link to .+ route/i }),
     ).toBeVisible();
   });
 

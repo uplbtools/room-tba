@@ -187,9 +187,7 @@
     grid-template-columns: 1fr 1fr;
     align-items: stretch;
     box-sizing: border-box;
-    width: 4.125rem;
-    height: 1.75rem;
-    padding: 0.125rem;
+    padding: 0;
     border-width: 1px;
     border-radius: 999px;
     overflow: hidden;
@@ -206,15 +204,15 @@
     min-width: 0;
     height: 100%;
     min-height: 0;
-    padding: 0;
+    padding: 0.75rem;
     border-radius: 999px;
     font-size: 0.6875rem;
     font-weight: 600;
   }
 
   .map-dimension-toggle.compact .segment.active {
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 22%);
+    background-color: hsl(5, 53%, 22%);
+    color: hsl(5, 53%, 96%);
     font-weight: 600;
   }
 </style>
