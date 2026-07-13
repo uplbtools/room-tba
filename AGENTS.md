@@ -158,9 +158,9 @@ This is a PWA with a service worker that caches assets aggressively. After a reb
 
 The top-left search chrome's browse-chip row (`campus-browse-chips__container`) overflows/clips past ~5 chips — a 6th chip pushed "Classes" off and clipped it. Put wide or additional controls (e.g. the term selector) on **their own row** rather than inline with the browse chips.
 
-### Class offerings: a lab/recit's parent lecture must be in the same set
+### Room schedules contain only classes assigned to that room
 
-`groupClassesByOffering` links a lab/recit (`G-1L`, `UV-1R`) to its lecture by the section prefix before the dash — but only if the **lecture row is in the array passed in**. In the room view the lecture meets in a different room, so `/api/classes?room_code=` never returns it; `RoomClassesStore` must fetch the missing parent lectures (`missingParentLectures` → `fetchClassPage` by course) and merge them, or the lecture won't show.
+`/api/classes?room_code=` and `RoomClassesStore` must not hydrate LEC/LAB siblings from other rooms. Cross-room rows make “Classes in this room” misleading and create overlaps in the room timetable. `groupClassesByOffering` may group related rows already present in the selected room; class search and the planner are the surfaces for the full offering.
 
 ### Push to `staging` directly
 
