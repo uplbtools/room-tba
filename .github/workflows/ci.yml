@@ -60,11 +60,21 @@ jobs:
 
       - name: Upload git metadata to Datadog
         if: always()
-        run: bunx datadog-ci git-metadata upload
+        run: |
+          if [ -z "$DD_API_KEY" ]; then
+            echo "Skipping Datadog git metadata upload: DD_API_KEY not configured"
+            exit 0
+          fi
+          bunx datadog-ci git-metadata upload
 
       - name: Upload test results to Datadog
         if: always()
-        run: bunx datadog-ci junit upload --service room-tba junit-unit.xml junit-components.xml
+        run: |
+          if [ -z "$DD_API_KEY" ]; then
+            echo "Skipping Datadog junit upload: DD_API_KEY not configured"
+            exit 0
+          fi
+          bunx datadog-ci junit upload --service room-tba junit-unit.xml junit-components.xml
 
       - name: Build
         if: github.actor != 'dependabot[bot]'
