@@ -285,6 +285,7 @@
 
   .search-root {
     display: contents;
+    margin-top:.25rem;
   }
 
   .search-root.mobile-shell {
