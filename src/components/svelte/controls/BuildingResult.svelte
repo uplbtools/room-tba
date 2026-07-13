@@ -814,8 +814,9 @@
   .editor-advanced summary {
     cursor: pointer;
     padding: 0.45rem 0.55rem;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 700;
+    line-height: 1.3;
     color: hsl(5, 53%, 32%);
     list-style: none;
   }
