@@ -64,6 +64,7 @@ const E2E_MIGRATION_FILES = [
   "0034_historical_term_dates.sql",
   "0035_add_term_classes_imported_at.sql",
   "0036_add_building_cr_facilities.sql",
+  "0037_editor_credits_profiles.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {

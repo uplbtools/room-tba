@@ -124,7 +124,7 @@ Running list of **automated** tests in this repo. Regenerate after adding or mov
 bun run generate:test-inventory
 \`\`\`
 
-**Last generated:** ${inv.generated}  
+**Last generated:** ${inv.generated}<br>
 **Total spec files:** ${inv.total}
 
 See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked expectations: [issue-test-matrix.md](issue-test-matrix.md).
