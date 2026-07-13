@@ -12,8 +12,7 @@
   import Ticket from "@lucide/svelte/icons/ticket";
   import BusFront from "@lucide/svelte/icons/bus-front";
   import Trophy from "@lucide/svelte/icons/trophy";
-  import Globe from "@lucide/svelte/icons/globe";
-  import Wrench from "@lucide/svelte/icons/wrench";
+  import Library from "@lucide/svelte/icons/library";
   import HeartHandshake from "@lucide/svelte/icons/heart-handshake";
   import Sparkles from "@lucide/svelte/icons/sparkles";
   import University from "@lucide/svelte/icons/university";
@@ -360,6 +359,10 @@
       >
         <FileCheck size={20} />
       </NavLink>
+
+      <NavLink href="/wiki" expanded={labeled} tooltip="Wiki">
+        <Library size={20} />
+      </NavLink>
     </div>
   </div>
 
@@ -438,22 +441,6 @@
             d="M318.88,313.31l87.04-134.52c8.75-13.52-7.46-29.26-20.72-20.11l-90.86,62.67c-3.06,2.11-7.1,2.17-10.22.15l-80.65-52.18c-6.83-4.42-15.94-2.46-20.35,4.36l-87.05,134.52c-8.75,13.52,7.46,29.26,20.72,20.11l90.88-62.68c3.06-2.11,7.1-2.17,10.22-.15l80.63,52.17c6.83,4.42,15.94,2.46,20.36-4.36Z"
           />
         </svg>
-      </NavLink>
-      <NavLink
-        href="https://guide.stimmie.dev"
-        aria-label="UPLB resources & guides"
-        expanded={labeled}
-        tooltip="UPLB resources & guides"
-      >
-        <Globe size={20} />
-      </NavLink>
-      <NavLink
-        href="https://uplbtools.me"
-        aria-label="More UPLB tools"
-        expanded={labeled}
-        tooltip="More UPLB tools"
-      >
-        <Wrench size={20} />
       </NavLink>
       <NavLink
         active={false}

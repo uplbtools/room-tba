@@ -11,7 +11,7 @@
 
 _Schedules, buildings, jeepney routes, and "where is PSLH 1?" on one campus map._
 
-[Open the map](https://room-tba.uplbtools.me) · [Report wrong data](https://github.com/uplbtools/room-tba/issues/new/choose) · [Changelog](https://room-tba.uplbtools.me/changelog)
+[Open the map](https://room-tba.uplbtools.me) · [Wiki](https://room-tba.uplbtools.me/wiki) · [Report wrong data](https://github.com/uplbtools/room-tba/issues/new/choose) · [Changelog](https://room-tba.uplbtools.me/changelog)
 
 </div>
 
@@ -43,6 +43,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Campus events | Events on map with routes |
 | Jeepney routes | Route overlays |
 | 3D view | Buildings + Makiling terrain (online) |
+| Understand section names | Wiki guide to the A–H / S–Z class time blocks |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
