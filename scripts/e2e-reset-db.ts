@@ -61,6 +61,7 @@ const E2E_MIGRATION_FILES = [
   "0031_directory_data_fixes_2.sql",
   "0032_add_jeepney_transit.sql",
   "0033_ay_2026_2027_term_dates.sql",
+  "0034_historical_term_dates.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {

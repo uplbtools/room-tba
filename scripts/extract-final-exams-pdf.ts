@@ -44,16 +44,24 @@ const MONTHS: Record<string, string> = {
 // "FRIDAY, DECEMBER 05 (FIRST DAY)" or "FRIDAY, 05 DECEMBER 2025"
 const DAY_HEADER =
   /^(?:MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY),\s*(?:([A-Z]+)\s+(\d{1,2})|(\d{1,2})\s+([A-Z]+))/;
-const SLOT = /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$/;
+// Trailing meridiem appears from AY 2023-2024 midyear onward: "7:00 - 9:00 AM",
+// "10:00 - 12:00 NOON", "2:00 - 4:00 pm", "7:00-9:00 a.m".
+const SLOT =
+  /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*(A\.?M\.?|P\.?M\.?|NOON|NN)?\s*$/i;
 // "AAE 151", "APHY 10.1", "ChE 32", "SCIENCE 10". A trailing letter after the
 // number ("RINR 271A") marks a wrapped room line, not a course.
 const COURSE_ROW = /^([A-Z][A-Za-z]{1,7}\s+\d+(?:\.\d+)?)(?:\s{2,}(.*))?$/;
 const NOISE =
   /^(Subject\b|All section\b|NO FINAL EXAMINATION|EXAMINATION BY ARRANGEMENT|Department of Human Kinetics|UNIVERSITY OF|OFFICE OF)/i;
 
-/** Registrar slots print without AM/PM; afternoon hours appear as 1–6. */
-function to24h(hour: number, minute: number): string {
-  const h = hour >= 1 && hour <= 6 ? hour + 12 : hour;
+/** Slots print a trailing meridiem in newer PDFs; without one, afternoon
+ *  hours appear as 1–6. */
+function to24h(hour: number, minute: number, meridiem?: string): string {
+  const m = meridiem?.replace(/\./g, "").toUpperCase();
+  let h = hour;
+  if (m?.startsWith("P")) h = hour === 12 ? 12 : hour + 12;
+  else if (m?.startsWith("A")) h = hour;
+  else h = hour >= 1 && hour <= 6 ? hour + 12 : hour;
   return `${String(h).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
@@ -175,10 +183,14 @@ for (const rawLine of lines) {
   const slot = line.match(SLOT);
   const body = slot ? line.slice(0, slot.index).trimEnd() : line;
   if (slot) {
-    blockSlot = {
-      starts: to24h(Number(slot[1]), Number(slot[2])),
-      ends: to24h(Number(slot[3]), Number(slot[4])),
-    };
+    // The meridiem describes the end time; "2:00 - 4:00 PM" is all-PM but a
+    // cross-noon slot would overshoot the start, so pull it back 12h.
+    let starts = to24h(Number(slot[1]), Number(slot[2]), slot[5]);
+    const ends = to24h(Number(slot[3]), Number(slot[4]), slot[5]);
+    if (starts > ends) {
+      starts = `${String(Number(starts.slice(0, 2)) - 12).padStart(2, "0")}${starts.slice(2)}`;
+    }
+    blockSlot = { starts, ends };
   }
 
   if (!body) continue;

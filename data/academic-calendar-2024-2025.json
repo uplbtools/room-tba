@@ -1,0 +1,23 @@
+{
+  "1241": {
+    "startsOn": "2024-08-19",
+    "endsOn": "2024-12-20",
+    "finalsStartsOn": "2024-12-14",
+    "finalsEndsOn": "2024-12-20",
+    "changeOfMatriculationEndsOn": "2024-08-27"
+  },
+  "1242": {
+    "startsOn": "2025-01-27",
+    "endsOn": "2025-05-31",
+    "finalsStartsOn": "2025-05-26",
+    "finalsEndsOn": "2025-05-31",
+    "changeOfMatriculationEndsOn": "2025-02-03"
+  },
+  "1243": {
+    "startsOn": "2025-06-16",
+    "endsOn": "2025-07-23",
+    "finalsStartsOn": "2025-07-22",
+    "finalsEndsOn": "2025-07-23",
+    "changeOfMatriculationEndsOn": "2025-06-17"
+  }
+}

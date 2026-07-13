@@ -98,12 +98,22 @@ describe("term-calendar", () => {
 
 describe("isFinalsWeek", () => {
   it("detects 2nd sem finals window in Manila", () => {
+    // Registrar finals-schedule PDF: 15–22 May 2026.
     expect(
-      isFinalsWeek(new Date("2026-05-14T12:00:00+08:00"), term(1252)),
+      isFinalsWeek(new Date("2026-05-18T12:00:00+08:00"), term(1252)),
     ).toBe(true);
     expect(
-      isFinalsWeek(new Date("2026-05-20T12:00:00+08:00"), term(1252)),
+      isFinalsWeek(new Date("2026-05-14T12:00:00+08:00"), term(1252)),
     ).toBe(false);
+  });
+
+  it("loads AY 2024-2025 windows from the academic calendar data", () => {
+    expect(TERM_CALENDAR_WINDOWS[1241]).toEqual({
+      startsOn: "2024-08-19",
+      endsOn: "2024-12-20",
+      finalsStartsOn: "2024-12-14",
+      finalsEndsOn: "2024-12-20",
+    });
   });
 
   it("loads AY 2026-2027 windows from the academic calendar data", () => {
