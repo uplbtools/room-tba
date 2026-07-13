@@ -11,8 +11,10 @@
  * year comes from the AY in the title (Aug–Dec = first year, Jan–Jul =
  * second year).
  *
+ * Source PDFs live in data/registrar/ (academic-calendar-{AY}.pdf).
+ *
  * Usage:
- *   bun run scripts/extract-academic-calendar-pdf.ts <pdf>
+ *   bun run scripts/extract-academic-calendar-pdf.ts data/registrar/academic-calendar-2026-2027.pdf
  *
  * Requires `pdftotext` (poppler-utils) on PATH.
  */
