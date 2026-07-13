@@ -137,14 +137,13 @@
 
 <style>
   .finals-screen {
-    position: absolute;
-    inset: 0;
     z-index: 150;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
     background: hsl(0, 0%, 98%);
+    flex:1 1 auto;
     pointer-events: auto;
     overflow: hidden;
   }
