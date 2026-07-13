@@ -371,11 +371,11 @@
         appBootstrapStore.setHasCachedData(hasCache);
         if (hasCache) {
           applyData(cached);
+          appBootstrapStore.complete();
           dismissStaticLoadingShell();
-        }
-
-        await refreshFromNetwork(hasCache);
-        if (!hasCache) {
+          void refreshFromNetwork(true);
+        } else {
+          await refreshFromNetwork(false);
           dismissStaticLoadingShell();
         }
       } catch (error) {

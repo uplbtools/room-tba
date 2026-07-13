@@ -1,6 +1,7 @@
 import {
   getJSONFetch,
   getBuildingIdsWithClasses,
+  getLocalClassesForRoom,
 } from "../local/data/utils.js";
 import { parseTermIdFromSearch, syncTermQueryParam } from "../term-url.js";
 import {
@@ -108,6 +109,21 @@ export class RoomClassesStore {
       return;
     }
 
+    const local = await getLocalClassesForRoom(roomCode, termId);
+    if (local !== null) {
+      this.loading = local.length === 0;
+      if (local.length > 0) {
+        const withParents = await this.#addParentLectures(local, termId);
+        this._cache.set(key, withParents);
+        if (this._requestKey === key) {
+          this.classes = withParents;
+          this.loading = false;
+        }
+        void this.#refreshFromApi(roomCode, termId, key);
+        return;
+      }
+    }
+
     this.loading = true;
     try {
       const params = new URLSearchParams({ room_code: roomCode });
@@ -126,6 +142,25 @@ export class RoomClassesStore {
       if (this._requestKey === key) this.classes = [];
     } finally {
       if (this._requestKey === key) this.loading = false;
+    }
+  };
+
+  #refreshFromApi = async (
+    roomCode: string,
+    termId: number | null,
+    key: string,
+  ) => {
+    try {
+      const params = new URLSearchParams({ room_code: roomCode });
+      if (termId != null) params.set("term_id", String(termId));
+      const data = await getJSONFetch<ClassMapValue[]>(
+        `/api/classes?${params.toString()}`,
+      );
+      const withParents = await this.#addParentLectures(data, termId);
+      this._cache.set(key, withParents);
+      if (this._requestKey === key) this.classes = withParents;
+    } catch {
+      // Keep PGlite rows on background refresh failure.
     }
   };
 

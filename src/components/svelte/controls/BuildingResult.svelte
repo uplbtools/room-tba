@@ -30,9 +30,11 @@
   import {
     getBuildingRooms,
     fetchRoomClassCounts,
+    fetchEntityRoomsRemote,
   } from "@lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
+    getLocalBuildingRooms,
     syncBuildingRooms,
   } from "@lib/local/data/sync";
   import { getBuildingShareUrl } from "@lib/share-links";
@@ -158,13 +160,28 @@
       return;
     }
     const gen = ++roomLoadGeneration;
-    buildingRooms = null;
     void (async () => {
+      const local = (await getLocalBuildingRooms(id)) ?? [];
+      if (gen === roomLoadGeneration && local.length > 0) {
+        buildingRooms = local;
+      }
+
       const buildingChecker = await checkLocalBuildingRoom(id);
       const rooms = await getBuildingRooms(buildingChecker, id);
       if (gen !== roomLoadGeneration) return;
       buildingRooms = rooms;
       await syncBuildingRooms(buildingChecker, id, rooms);
+
+      if (!buildingChecker && local.length > 0) {
+        try {
+          const remote = await fetchEntityRoomsRemote("building", id);
+          if (gen !== roomLoadGeneration || remote.length === 0) return;
+          buildingRooms = remote;
+          await syncBuildingRooms(false, id, remote);
+        } catch {
+          // Keep cached rows when background refresh fails.
+        }
+      }
     })();
   });
 
