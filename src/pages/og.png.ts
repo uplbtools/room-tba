@@ -123,7 +123,7 @@ export const GET: APIRoute = async ({ url }) => {
           style: {
             // block + lineClamp: long titles wrap to a second line and only
             // then ellipsize, instead of overflowing off the card.
-            display: "block",
+            display: "flex",
             lineClamp: 2,
             fontSize: title.length > 40 ? 62 : title.length > 34 ? 74 : 92,
             fontWeight: 700,
