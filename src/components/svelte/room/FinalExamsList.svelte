@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { queryStore } from "@lib/store.svelte";
+  import { queryStore, sidebarStore } from "@lib/store.svelte";
   import { formatExamDate, formatExamTimeRange } from "@lib/final-exams";
   import type { FinalExamRow } from "@lib/types";
 
@@ -18,6 +18,9 @@
       value: roomCode,
     });
     queryStore.inputValue = roomCode;
+    // The room panel lives on the map view; leave any full screen (planner,
+    // finals) that hosted this list.
+    sidebarStore.changeOpened("map");
   }
 </script>
 

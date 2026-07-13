@@ -17,11 +17,16 @@ import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
-import { finalExamsTable, roomsTable, updateTable } from "@drizzle/schema";
+import {
+  aliasesTable,
+  finalExamsTable,
+  roomsTable,
+  updateTable,
+} from "@drizzle/schema";
+import { buildRoomLookup, matchRoomId } from "@lib/amis/import-classes";
 import {
   defaultFinalExamsExportPath,
   extractFinalExamRows,
-  normalizeFacilityKey,
   normalizeFinalExamRow,
   type FinalExamExportPayload,
 } from "@lib/final-exams/normalize";
@@ -132,13 +137,16 @@ async function main() {
   const db = drizzle(pool);
 
   try {
-    const rooms = await db
-      .select({ id: roomsTable.id, code: roomsTable.roomCode })
-      .from(roomsTable);
-    const roomIdByKey = new Map<string, number>();
-    for (const room of rooms) {
-      roomIdByKey.set(normalizeFacilityKey(room.code), room.id);
-    }
+    const [rooms, roomAliases] = await Promise.all([
+      db
+        .select({ id: roomsTable.id, code: roomsTable.roomCode })
+        .from(roomsTable),
+      db
+        .select({ alias: aliasesTable.alias, targetId: aliasesTable.targetId })
+        .from(aliasesTable)
+        .where(eq(aliasesTable.targetType, "room")),
+    ]);
+    const lookup = buildRoomLookup(rooms, roomAliases);
 
     const unmatched = new Map<string, number>();
     const inserts: (typeof finalExamsTable.$inferInsert)[] = [];
@@ -147,7 +155,7 @@ async function main() {
       let roomId: number | null = null;
       const facility = row.facilityCode?.trim();
       if (facility) {
-        roomId = roomIdByKey.get(normalizeFacilityKey(facility)) ?? null;
+        roomId = matchRoomId(lookup, facility)?.roomId ?? null;
         if (roomId == null) {
           unmatched.set(facility, (unmatched.get(facility) ?? 0) + 1);
         }

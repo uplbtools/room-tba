@@ -49,6 +49,7 @@ export default defineConfig({
           // pathname+search, so /planner?term=… must be covered too (#planner).
           // Network-first; the in-app planner button covers offline.
           /^\/planner(\/|\?|$)/,
+          /^\/final-exams(\/|\?|$)/,
           // Server redirects — must hit network, not offline app shell (#471).
           /^\/messenger(\/|\?|$)/,
           /^\/maintain(\/|\?|$)/,

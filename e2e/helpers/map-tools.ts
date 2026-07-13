@@ -1,14 +1,20 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 /** Ensure the app sidebar rail is open (mobile hides it behind the App menu
- * button) and return its locator for scoping browse-entry clicks. */
+ * button) and return its locator for scoping browse-entry clicks.
+ *
+ * The `retracted` class alone is not the signal: desktop keeps it while the
+ * rail stays visible (the hiding CSS is mobile-only), and the App menu button
+ * only exists on mobile — waiting for it on desktop hangs. Gate on the button
+ * actually being there. */
 export async function openAppSidebar(page: Page): Promise<Locator> {
   const sidebar = page.locator("#app-sidebar");
+  const appMenu = page.getByRole("button", { name: /app menu/i });
   const retracted = await sidebar
     .evaluate((el) => el.classList.contains("retracted"))
     .catch(() => true);
-  if (retracted) {
-    await page.getByRole("button", { name: /app menu/i }).click();
+  if (retracted && (await appMenu.isVisible().catch(() => false))) {
+    await appMenu.click();
     await expect(sidebar).not.toHaveClass(/retracted/, { timeout: 10_000 });
   }
   return sidebar;

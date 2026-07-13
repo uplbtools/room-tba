@@ -1,5 +1,6 @@
 <script lang="ts">
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
+  import FileCheck from "@lucide/svelte/icons/file-check";
   import BookText from "@lucide/svelte/icons/book-text";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
@@ -346,6 +347,18 @@
         tooltip="Planner"
       >
         <CalendarDays size={20} />
+      </NavLink>
+
+      <NavLink
+        onclick={() => {
+          sidebarStore.changeOpened("finals");
+        }}
+        active={sidebarStore.panelOpen === "finals"}
+        hard={true}
+        expanded={labeled}
+        tooltip="Final exams"
+      >
+        <FileCheck size={20} />
       </NavLink>
     </div>
   </div>

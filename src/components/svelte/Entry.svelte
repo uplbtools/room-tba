@@ -36,6 +36,7 @@
   import ManageUsersModal from "@ui/modal/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
+  import FinalExamsScreen from "@ui/finals/FinalExamsScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
@@ -55,12 +56,14 @@
     initialSearch?: InitialSearchState;
     suppressLandingModal?: boolean;
     openPlanner?: boolean;
+    openFinals?: boolean;
   };
 
   const {
     initialSearch,
     suppressLandingModal = false,
     openPlanner = false,
+    openFinals = false,
   }: Props = $props();
 
   const updateData = (queryHistory: RecentSearch[]) => {
@@ -180,6 +183,12 @@
     if (openPlanner) {
       void termStore.init();
       sidebarStore.changeOpened("planner");
+    }
+
+    // /final-exams deep link (prop set by final-exams.astro), same shape.
+    if (openFinals) {
+      void termStore.init();
+      sidebarStore.changeOpened("finals");
     }
 
     const planParam = urlParams.get("plan");
@@ -381,6 +390,8 @@
       </div>
     {:else if sidebarStore.panelOpen === "planner"}
       <PlannerScreen />
+    {:else if sidebarStore.panelOpen === "finals"}
+      <FinalExamsScreen />
     {/if}
   </div>
   {#if toastStore.message}

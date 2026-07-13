@@ -155,7 +155,12 @@ function resolveFacilityCode(row: AmisClassRow): string | null {
 }
 
 export function normalizeFacilityKey(code: string) {
-  return code.trim().toUpperCase().replace(/-/g, " ").replace(/\s+/g, " ");
+  return code
+    .trim()
+    .toUpperCase()
+    .replace(/[-.]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function resolveCourseTitle(row: AmisClassRow, courseCode: string): string {
