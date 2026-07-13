@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   changeOfMatriculationLabel,
   isDateWithinTerm,
+  isFinalsWeek,
   resolveActiveTermByDate,
   resolveInitialTermId,
   TERM_CALENDAR_WINDOWS,
@@ -91,6 +92,17 @@ describe("term-calendar", () => {
         date: midyearDay,
       }),
     ).toBe(1253);
+  });
+});
+
+describe("isFinalsWeek", () => {
+  it("detects 2nd sem finals window in Manila", () => {
+    expect(
+      isFinalsWeek(new Date("2026-05-14T12:00:00+08:00"), term(1252)),
+    ).toBe(true);
+    expect(
+      isFinalsWeek(new Date("2026-05-20T12:00:00+08:00"), term(1252)),
+    ).toBe(false);
   });
 });
 

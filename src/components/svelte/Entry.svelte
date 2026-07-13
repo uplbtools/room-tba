@@ -36,7 +36,7 @@
   import ManageUsersModal from "@ui/modal/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
-  import FinalExamsScreen from "@ui/finals/FinalExamsScreen.svelte";
+  import FinalExamsScreen from "@ui/final-exams/FinalExamsScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
