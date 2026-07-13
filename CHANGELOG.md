@@ -1,3 +1,24 @@
+# [2.1.0](https://github.com/uplbtools/room-tba/compare/v2.0.0...v2.1.0) (2026-07-13)
+
+
+### Bug Fixes
+
+* **ci:** skip Datadog upload when DD_API_KEY unset ([b0b41f8](https://github.com/uplbtools/room-tba/commit/b0b41f822c05785916171042b7d1a135b019f17a))
+* **og:** change og container's div display to flex to prevent satori crash ([#665](https://github.com/uplbtools/room-tba/issues/665)) ([c93ad71](https://github.com/uplbtools/room-tba/commit/c93ad71ed6dbccddb39ef94540c189786ebfb664))
+* **og:** pass single children bare so satori block + lineClamp works ([64feec2](https://github.com/uplbtools/room-tba/commit/64feec265b713db313163efc499feeff86c6fd82))
+* **planner:** sync notes and repair drags ([4f9605e](https://github.com/uplbtools/room-tba/commit/4f9605e6e9a12f7c4dc374cc3b91838c24ee8ed7))
+
+
+### Features
+
+* academic calendar dates (AY 2026-2027) + finals naming cleanup ([#662](https://github.com/uplbtools/room-tba/issues/662)) ([51682e2](https://github.com/uplbtools/room-tba/commit/51682e2ec8dc7c66a6972f94d730b81e3afde2e9))
+* change toggle dimension button location ([b7cae9a](https://github.com/uplbtools/room-tba/commit/b7cae9aec5e5a7ca3a66f8fadd70e485646a5c1c))
+* **data:** AMIS contingency runbook, import codes, stale schedule UI ([#318](https://github.com/uplbtools/room-tba/issues/318)) ([c5b8dc1](https://github.com/uplbtools/room-tba/commit/c5b8dc1d85dbb121e9bae8aa7555b685b0253ece))
+* **finals:** add schedule browser and venue matching ([d735966](https://github.com/uplbtools/room-tba/commit/d735966be24017684291fafb9a8422df4a3c3a94))
+* **finals:** historical finals imports + term dates from registrar PDFs ([a6d0a3c](https://github.com/uplbtools/room-tba/commit/a6d0a3ca43ac97b5635a5806f4f3d5411c7b7a0a))
+* **observability:** Datadog RUM, CI, logs, and APM ([#495](https://github.com/uplbtools/room-tba/issues/495)) ([62a4041](https://github.com/uplbtools/room-tba/commit/62a4041d9481fc1227d7b442c3a43caba13bbbcb))
+* planner-native day routes, UPLB search aliases, finals PDF extractor ([#654](https://github.com/uplbtools/room-tba/issues/654)) ([9c55ca3](https://github.com/uplbtools/room-tba/commit/9c55ca377bbc6940d38d33ccda1fc0e79f56ca9a))
+
 # [1.46.0](https://github.com/uplbtools/room-tba/compare/v1.45.0...v1.46.0) (2026-07-10)
 
 
