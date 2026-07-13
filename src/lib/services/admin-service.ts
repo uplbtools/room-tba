@@ -17,6 +17,7 @@ import {
   updateTable,
 } from "@drizzle/schema";
 import { normalizeEntityName } from "@lib/entity-names";
+import { sanitizeCrFacilities } from "@constants/cr-facilities";
 import { normalizePlaceCategory } from "@constants/place-categories";
 import { normalizeRoomCategory } from "@constants/room-categories";
 import { db } from "@lib/db";
@@ -616,6 +617,7 @@ export type BuildingUpdateInput = {
   buildingType?: "admin" | "non-admin";
   directions?: string;
   imageUrl?: string | null;
+  crFacilities?: string[] | null;
 };
 
 export async function updateBuilding(
@@ -634,6 +636,8 @@ export async function updateBuilding(
     updates.buildingType = input.buildingType;
   if (input.directions !== undefined) updates.directions = input.directions;
   if (input.imageUrl !== undefined) updates.imageUrl = input.imageUrl;
+  if (input.crFacilities !== undefined)
+    updates.crFacilities = sanitizeCrFacilities(input.crFacilities);
 
   if (Object.keys(updates).length > 0) {
     if (input.buildingName !== undefined) {

@@ -273,6 +273,9 @@ export async function initPGLiteDB(db: PGlite) {
     ALTER TABLE buildings
     ADD COLUMN IF NOT EXISTS "updated_at" text NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
+    ALTER TABLE buildings
+    ADD COLUMN IF NOT EXISTS "cr_facilities" text[];
+
     ALTER TABLE dorms
     ADD COLUMN IF NOT EXISTS "version" integer NOT NULL DEFAULT 1;
 

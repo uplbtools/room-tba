@@ -48,12 +48,18 @@
     readEntityContributorDraft,
     scheduleEntityContributorDraftSave,
   } from "@lib/contributor-drafts";
+  import {
+    CR_FACILITIES,
+    crFacilityLabel,
+    sanitizeCrFacilities,
+  } from "@constants/cr-facilities";
 
   type BuildingEditableField =
     | "buildingName"
     | "directions"
     | "buildingType"
-    | "imageUrl";
+    | "imageUrl"
+    | "crFacilities";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -123,6 +129,7 @@
   let directionsDraft = $state("");
   let typeDraft = $state<BuildingData["buildingType"]>("non-admin");
   let imageDraft = $state<string | null>(null);
+  let crFacilitiesDraft = $state<string[]>([]);
   let savingField = $state<BuildingEditableField | null>(null);
   let savedField = $state<BuildingEditableField | null>(null);
   let fieldError = $state<string | null>(null);
@@ -143,6 +150,7 @@
     directions: "Building directions",
     buildingType: "Building type",
     imageUrl: "Building photo",
+    crFacilities: "CR facilities",
   };
 
   // Room list must reload when the selected building changes (search result,
@@ -235,6 +243,7 @@
     directionsDraft = current.directions ?? "";
     typeDraft = current.buildingType;
     imageDraft = current.imageUrl ?? null;
+    crFacilitiesDraft = sanitizeCrFacilities(current.crFacilities);
     savedField = null;
     fieldError = null;
     mergePrompt = null;
@@ -312,6 +321,7 @@
       directions?: string;
       buildingType?: BuildingData["buildingType"];
       imageUrl?: string | null;
+      crFacilities?: string[];
     } = { version: current.version };
 
     if (field === "buildingName") {
@@ -327,6 +337,8 @@
       body.buildingType = typeDraft;
     } else if (field === "imageUrl") {
       body.imageUrl = imageDraft || null;
+    } else if (field === "crFacilities") {
+      body.crFacilities = sanitizeCrFacilities(crFacilitiesDraft);
     }
 
     savingField = field;
@@ -442,13 +454,29 @@
     }
   }
 
+  const crFacilitiesChanged = $derived.by(() => {
+    const current = building;
+    if (!current) return false;
+    return (
+      sanitizeCrFacilities(crFacilitiesDraft).join("|") !==
+      sanitizeCrFacilities(current.crFacilities).join("|")
+    );
+  });
+
+  function toggleCrFacility(slug: string) {
+    crFacilitiesDraft = crFacilitiesDraft.includes(slug)
+      ? crFacilitiesDraft.filter((item) => item !== slug)
+      : [...crFacilitiesDraft, slug];
+  }
+
   const allFieldsUnchanged = $derived.by(() => {
     const current = building;
     if (!current) return true;
     return (
       nameDraft.trim() === current.buildingName &&
       directionsDraft.trim() === (current.directions ?? "") &&
-      typeDraft === current.buildingType
+      typeDraft === current.buildingType &&
+      !crFacilitiesChanged
     );
   });
 
@@ -470,6 +498,9 @@
     }
     if (typeDraft !== current.buildingType) {
       patch.buildingType = typeDraft;
+    }
+    if (crFacilitiesChanged) {
+      patch.crFacilities = sanitizeCrFacilities(crFacilitiesDraft);
     }
 
     savingField = "buildingName" as BuildingEditableField;
@@ -699,6 +730,38 @@
                 {/snippet}
               </EntityEditorField>
 
+              <EntityEditorField
+                label="CR facilities"
+                inputId="building-cr-facilities-editor"
+                {canPublish}
+                disabled={savingField !== null}
+                fieldSaving={savingField === "crFacilities"}
+                stacked
+                unchanged={!crFacilitiesChanged}
+                onsave={() => saveField("crFacilities")}
+              >
+                {#snippet control()}
+                  <div
+                    id="building-cr-facilities-editor"
+                    class="cr-facilities-editor"
+                    role="group"
+                    aria-label="CR facilities"
+                  >
+                    {#each CR_FACILITIES as facility (facility.slug)}
+                      <label class="cr-facilities-editor__option">
+                        <input
+                          type="checkbox"
+                          checked={crFacilitiesDraft.includes(facility.slug)}
+                          disabled={savingField !== null}
+                          onchange={() => toggleCrFacility(facility.slug)}
+                        />
+                        {facility.label}
+                      </label>
+                    {/each}
+                  </div>
+                {/snippet}
+              </EntityEditorField>
+
               {#if adminAuthStore.isLoggedIn}
                 <div class="editor-image-row">
                   <ImageUpload
@@ -756,6 +819,18 @@
           entityId={building.id}
         />
       </section>
+      {#if sanitizeCrFacilities(building.crFacilities).length > 0}
+        <section class="building-cr" aria-label="CR facilities">
+          <h3 class="entity-section-heading">CR facilities</h3>
+          <div class="entity-tag-list">
+            {#each sanitizeCrFacilities(building.crFacilities) as slug (slug)}
+              <span class="entity-tag-chip building-cr__chip"
+                >{crFacilityLabel(slug)}</span
+              >
+            {/each}
+          </div>
+        </section>
+      {/if}
     {/if}
   {:else}
     <p class="entity-loading-note"><LoadingIndicator label="Loading building…" /></p>
@@ -792,6 +867,23 @@
 
   .building-orgs {
     padding: 0.5rem 0.25rem 0;
+  }
+
+  .building-cr {
+    padding: 0.5rem 0.25rem 0;
+  }
+
+  .cr-facilities-editor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem 0.75rem;
+  }
+
+  .cr-facilities-editor__option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
   }
 
   .building-orgs__chip {

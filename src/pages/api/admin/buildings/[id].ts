@@ -18,6 +18,7 @@ type BuildingPatchBody = {
   buildingType?: "admin" | "non-admin";
   directions?: string;
   imageUrl?: string | null;
+  crFacilities?: string[] | null;
   version?: number;
 };
 
@@ -94,6 +95,8 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       updates.buildingType = body.buildingType;
     if (body.directions !== undefined) updates.directions = body.directions;
     if (parsedImageUrl.provided) updates.imageUrl = parsedImageUrl.imageUrl;
+    if (body.crFacilities !== undefined)
+      updates.crFacilities = body.crFacilities;
 
     const building = await updateBuilding(
       id,

@@ -111,8 +111,8 @@ export async function syncBuildings(
     try {
       await localDB.query(
         `
-        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched, image_url, version, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, false, $7, $8, $9)
+        INSERT INTO buildings (id, building_name, lon, lat, directions, type, rooms_fetched, image_url, cr_facilities, version, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, false, $7, $8, $9, $10)
         ON CONFLICT (id) DO UPDATE SET
         id = EXCLUDED.id,
         building_name = EXCLUDED.building_name,
@@ -122,6 +122,7 @@ export async function syncBuildings(
         type = EXCLUDED.type,
         rooms_fetched = EXCLUDED.rooms_fetched,
         image_url = EXCLUDED.image_url,
+        cr_facilities = EXCLUDED.cr_facilities,
         version = EXCLUDED.version,
         updated_at = EXCLUDED.updated_at;
         `,
@@ -133,6 +134,7 @@ export async function syncBuildings(
           b.directions,
           b.buildingType,
           b.imageUrl ?? null,
+          b.crFacilities ?? null,
           b.version,
           b.updatedAt,
         ],

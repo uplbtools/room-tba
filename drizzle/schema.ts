@@ -257,6 +257,7 @@ export const buildingsTable = pgTable("buildings", {
   lat: doublePrecision().notNull(),
   directions: text().notNull(),
   imageUrl: text("image_url"),
+  crFacilities: text("cr_facilities").array(),
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
