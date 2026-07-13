@@ -51,6 +51,8 @@
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
   import Sidebar from "./navigation/Sidebar.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
+  import { MediaQuery } from "svelte/reactivity";
+  import type { RecentSearch } from "@lib/types";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -59,6 +61,7 @@
     openFinals?: boolean;
   };
 
+  const mobile = new MediaQuery("max-width:48rem");
   const {
     initialSearch,
     suppressLandingModal = false,
@@ -387,8 +390,15 @@
               bind:this={bottomChromeActionsEl}
               aria-label="Location controls"
             >
-              <MapLegend trigger="chip" />
-              <LocationButton embedded />
+              {#if mobile.current}
+                <div>
+                  <MapDimensionToggle compact />
+                </div>
+              {/if}
+              <div class="bottom-chrome__triggers">
+                <MapLegend trigger="chip" />
+                <LocationButton embedded />
+              </div>
             </div>
           </div>
         </div>
@@ -616,6 +626,7 @@
   .bottom-chrome__actions {
     display: flex;
     flex: 0 0 auto;
+    flex-direction: column;
     /* Bottom-align controls so an open legend panel grows upward without
        floating +/locate over the panel body. */
     align-items: flex-end;
@@ -636,6 +647,10 @@
 
   .bottom-chrome__actions :global(.map-chrome-control-btn--compact) {
     flex-shrink: 0;
+  }
+  .bottom-chrome__triggers {
+    display: flex;
+    gap: 0.375rem;
   }
 
   .bottom-band::before {
