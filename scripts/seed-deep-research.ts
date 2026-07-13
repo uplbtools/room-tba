@@ -113,6 +113,94 @@ const DIVISION_WEBSITES: { id: number; nameLike: string; url: string }[] = [
     url: "https://imsp.cas.uplb.edu.ph",
   },
   { id: 42, nameLike: "Statistics", url: "https://instat.uplb.edu.ph" },
+  // Second research pass (2026-07-14): each URL below was HTTP-checked live
+  // before inclusion. Report-claimed URLs that were dead or mis-pointed are
+  // deliberately excluded: DIE ied.ceat (dead), IBS ibs.cas (dead),
+  // IFST ifst.cafs (301s to the ASI site), IWEP iwep.cafs (inferred, sibling
+  // proved wrong). DHK/DME/DSS have no confirmed site.
+  {
+    id: 1,
+    nameLike: "Agricultural Systems Institute",
+    url: "https://cafs.uplb.edu.ph/asi/",
+  },
+  {
+    id: 2,
+    nameLike: "Agribusiness Management",
+    url: "https://cem.uplb.edu.ph",
+  },
+  {
+    id: 3,
+    nameLike: "Agricultural Machinery and Power",
+    url: "https://iabe.uplb.edu.ph",
+  },
+  {
+    id: 4,
+    nameLike: "Agricultural and Applied Economics",
+    url: "https://cem.uplb.edu.ph",
+  },
+  {
+    id: 10,
+    nameLike: "Development Broadcasting",
+    url: "https://cdc.uplb.edu.ph",
+  },
+  {
+    id: 11,
+    nameLike: "Development Journalism",
+    url: "https://cdc.uplb.edu.ph",
+  },
+  {
+    id: 12,
+    nameLike: "Department of Economics",
+    url: "https://cem.uplb.edu.ph",
+  },
+  {
+    id: 13,
+    nameLike: "Educational Communication",
+    url: "https://cdc.uplb.edu.ph",
+  },
+  {
+    id: 14,
+    nameLike: "Electrical Engineering",
+    url: "https://ceat.uplb.edu.ph",
+  },
+  { id: 15, nameLike: "Engineering Science", url: "https://des.uplb.edu.ph" },
+  {
+    id: 16,
+    nameLike: "Forest Biological Sciences",
+    url: "https://cfnr.uplb.edu.ph/fbs/",
+  },
+  {
+    id: 17,
+    nameLike: "Forest Products and Paper Science",
+    url: "https://cfnr.uplb.edu.ph/fpps/",
+  },
+  { id: 20, nameLike: "Humanities", url: "https://dhum.uplb.edu.ph" },
+  {
+    id: 22,
+    nameLike: "Land and Water Resources Engineering",
+    url: "https://iabe.uplb.edu.ph",
+  },
+  {
+    id: 24,
+    nameLike: "Science Communication",
+    url: "https://cdc.uplb.edu.ph",
+  },
+  {
+    id: 26,
+    nameLike: "Social Forestry and Forest Governance",
+    url: "https://dsffg.cfnr.uplb.edu.ph",
+  },
+  {
+    id: 35,
+    nameLike: "Cooperatives and Bio-Enterprise",
+    url: "https://cem.uplb.edu.ph",
+  },
+  { id: 40, nameLike: "Institute of Physics", url: "https://iop.uplb.edu.ph" },
+  {
+    id: 41,
+    nameLike: "Renewable Natural Resources",
+    url: "https://cfnr.uplb.edu.ph/irnr/",
+  },
 ];
 
 // Per-hall capacities from UPLB Perspective (Aug 2025); landlines from the
