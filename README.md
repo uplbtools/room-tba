@@ -23,7 +23,7 @@ _Schedules, buildings, jeepney routes, and "where is PSLH 1?" on one campus map.
 
 No account needed to browse. Editors and contributors fix data in the same app (login popup on the map, not a separate admin site).
 
-> **Data note:** Room and class listings are updated each term by volunteers. The active term follows the academic calendar (midyear Jun–Jul, 2nd sem Jan–May, etc.). Schedules show **lecture and lab** sections with assigned rooms: thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS. Wrong schedule? [Open an issue](https://github.com/uplbtools/room-tba/issues/new/choose).
+> **Data note:** Room and class listings are updated each term by volunteers. The active term follows the academic calendar (midyear Jun–Jul, 2nd sem Jan–May, etc.). **Class search** lists lecture, lab, thesis, special problem, and similar sections; ones without a room in AMIS show as unassigned. **Room schedules** list only lecture and lab sections with assigned rooms. Wrong schedule? [Open an issue](https://github.com/uplbtools/room-tba/issues/new/choose).
 
 ---
 

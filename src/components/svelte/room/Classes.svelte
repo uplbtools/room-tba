@@ -1,11 +1,15 @@
 <script lang="ts">
-  import { plannerStore, queryStore, toastStore } from "@lib/store.svelte";
+  import {
+    classTypeDisplayLabel,
+    NO_ASSIGNED_ROOM_LABEL,
+  } from "@lib/amis/room-scheduled-types";
   import {
     groupClassesByOffering,
     offeringGroupKey,
   } from "@lib/class-offering-groups";
   import type { ClassOfferingGroup } from "@lib/class-offering-groups";
   import type { ClassMapValue } from "@lib/types";
+  import { plannerStore, queryStore, toastStore } from "@lib/store.svelte";
 
   interface Props {
     classes: ClassMapValue[];
@@ -87,10 +91,14 @@
           <article class="class-section-row">
             <div class="class-section-row__main">
               <div class="class-section-row__type">
-                {sectionClass.type ?? "Class"}
+                {classTypeDisplayLabel(sectionClass.type)}
                 {#if showRoomLink && sectionClass.roomCode}
                   <span class="class-section-row__room">
                     in {sectionClass.roomCode}
+                  </span>
+                {:else if !sectionClass.roomCode}
+                  <span class="class-section-row__room class-section-row__room--unassigned">
+                    · {NO_ASSIGNED_ROOM_LABEL}
                   </span>
                 {/if}
               </div>
@@ -224,6 +232,11 @@
     margin-left: 0.25rem;
     font-weight: 500;
     color: #666;
+  }
+
+  .class-section-row__room--unassigned {
+    font-weight: 400;
+    font-style: italic;
   }
 
   .class-section-row__schedule {

@@ -7,7 +7,7 @@ bun run generate:test-inventory
 ```
 
 **Last generated:** 2026-07-13<br>
-**Total spec files:** 180
+**Total spec files:** 181
 
 See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked expectations: [issue-test-matrix.md](issue-test-matrix.md).
 
@@ -16,7 +16,7 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 | Command | Config / runner | Files |
 | ------- | ---------------- | ----- |
 | `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 81 |
-| `bun run test:components` | Vitest — stores + Svelte @320px | 32 |
+| `bun run test:components` | Vitest — stores + Svelte @320px | 33 |
 | `bun run test:integration` | Bun — HTTP + services (E2E DB) | 12 |
 | `bun run e2e` | Playwright blocking — local preview | 39 |
 | `bun run e2e:advisory` | Playwright advisory — non-blocking CI | 12 |
@@ -144,7 +144,7 @@ Included in `bun run test:components`.
 - `src/lib/stores/ui-stores.store.test.ts`
 
 
-## Component tests (Vitest) — 20 files
+## Component tests (Vitest) — 21 files
 
 Layout guards at 320px / 768px where noted. Included in `bun run test:components`.
 
@@ -165,6 +165,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `src/components/svelte/navigation/Sidebar.component.test.ts`
 - `src/components/svelte/planner/PlannerCourseSearch.component.test.ts`
 - `src/components/svelte/planner/PlannerScreen.component.test.ts`
+- `src/components/svelte/room/Classes.component.test.ts`
 - `src/components/svelte/status-bar/AppMenu.component.test.ts`
 - `src/components/svelte/status-bar/StatusBarLinkGroups.component.test.ts`
 - `src/test/map-chrome-layout.component.test.ts`
