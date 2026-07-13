@@ -59,6 +59,10 @@ During active COM (midyear Jun–Jul, sem start Jan/May), refresh **weekly** or 
 
 Unmatched AMIS facility strings can be mapped via `aliases` rows with `target_type = room`. See [amis-facility-aliases.md](./amis-facility-aliases.md).
 
+## When AMIS fetch fails
+
+See [amis-contingency-runbook.md](./amis-contingency-runbook.md) for 403, rate limits, token expiry, and offline import paths.
+
 ## TBA sections
 
 Rows with no `facility_id` are **not imported** (no map pin). They appear in the import report under “Missing facility”. Product policy: list-only / no pin until a room is known: see issue #300.

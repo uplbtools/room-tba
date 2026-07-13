@@ -64,6 +64,7 @@ export const termsTable = pgTable(
     isDefault: boolean("is_default").default(false).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     sortOrder: integer("sort_order").default(0).notNull(),
+    classesImportedAt: timestamp("classes_imported_at", { mode: "string" }),
     version: integer().default(1).notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()
