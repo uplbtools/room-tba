@@ -54,6 +54,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Fix room/building/college copy | Side panel → Edit |
 | Suggest edits without publishing | **Suggest an edit** → admin review queue |
 | Upload event posters | Event editor + R2 image upload (when configured) |
+| Manage public credit | Account settings → optional HTTPS avatar/profile link; uncheck credits to opt out |
 | Undo a pin drag | Toolbar undo/redo (session); durable history tracked in [#202](https://github.com/uplbtools/room-tba/issues/202) |
 
 Login: **`/?editor=login`** or the shield / status bar in the app. `/admin` URLs redirect back into the map.

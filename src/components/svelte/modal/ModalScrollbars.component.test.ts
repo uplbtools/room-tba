@@ -1,9 +1,33 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import LandingModal from "./LandingModal.svelte";
 import ScheduleModal from "./ScheduleModal.svelte";
 
 describe("modal scroll chrome", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        if (String(input) === "/api/editor-credits") {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify([
+                {
+                  name: "Live Editor",
+                  avatarUrl: "https://example.com/avatar.png",
+                  profileUrl: "https://example.com/profile",
+                },
+              ]),
+            ),
+          );
+        }
+        return Promise.resolve(new Response(JSON.stringify([])));
+      }),
+    );
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
   test("landing modal content uses shared scroll chrome", () => {
     render(LandingModal);
     expect(document.querySelector(".scroll-region")).toHaveClass(
@@ -30,6 +54,20 @@ describe("modal scroll chrome", () => {
       "https://chromewebstore.google.com/detail/amissu/mkdgckblaojfigmbnknehcmnjpkcehcj",
     );
     expect(screen.getByText(/Garth Hendrich Lapitan/)).toBeVisible();
+  });
+
+  test("campus team renders live editor credits with optional profile links", async () => {
+    render(LandingModal);
+    await fireEvent.click(screen.getByRole("tab", { name: "Campus team" }));
+    const name = await screen.findByText("Live Editor");
+    expect(name.closest("a")).toHaveAttribute(
+      "href",
+      "https://example.com/profile",
+    );
+    expect(screen.getByAltText("Live Editor")).toHaveAttribute(
+      "src",
+      "https://example.com/avatar.png",
+    );
   });
 
   test("schedule modal body uses shared scroll chrome", () => {
