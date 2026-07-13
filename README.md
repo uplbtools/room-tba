@@ -160,6 +160,8 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bun run format` | Biome format write |
 | `bunx drizzle-kit studio` | Browse/edit Postgres visually |
 | `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
+| `bun run seed:deep-research` | Fill-only data-gap seed from the 2026-07 research report (`DATABASE_URL`; `--dry-run` supported) |
+| `bun run generate:pglite-schema` | Regenerate the offline PGlite init SQL from `drizzle/schema.ts` |
 | `bun run import:osa-orgs` | Add the current public OSA organization directory (`DATABASE_URL`; safe to rerun) |
 | `bun run import:campus-offices` | Add missing campus offices and units (`DATABASE_URL`; safe to rerun) |
 | `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`) |

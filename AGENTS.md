@@ -431,7 +431,7 @@ Enable **Dependabot security updates** and **secret scanning** in GitHub repo Se
 
 - **App:** Astro 7 SSR + Svelte 5 islands, Vercel adapter, Bun.
 - **Server data:** Supabase Postgres via Drizzle ([`src/lib/db.ts`](src/lib/db.ts), [`drizzle/schema.ts`](drizzle/schema.ts), migrations in `drizzle/`).
-- **Client offline cache:** PGlite in IndexedDB ([`src/lib/local/data/pgliteDB.ts`](src/lib/local/data/pgliteDB.ts)); schema is maintained separately and **can drift** from Drizzle; update both when changing tables.
+- **Client offline cache:** PGlite in IndexedDB ([`src/lib/local/data/pgliteDB.ts`](src/lib/local/data/pgliteDB.ts)); its init SQL is **generated from `drizzle/schema.ts`** via `bun run generate:pglite-schema` (local-only columns live in the generator's `LOCAL_ONLY` overlay). After schema changes, regenerate and commit `pglite-schema.generated.ts`; `pglite-schema.test.ts` fails on drift.
 - **Client state:** [`src/lib/store.svelte.ts`](src/lib/store.svelte.ts) (monolithic store module; import via `@lib/store.svelte`).
 - **Auth:** HMAC cookie `admin_session` + bcrypt `admin_users` gates `/api/admin/*`. Supabase Auth ([`src/lib/supabase/*`](src/lib/supabase/)) is additive in middleware; intended long-term consolidation target.
 - **Do not edit:** `drizzle-migrations/` (archived SQLite history). Do not add browser `/admin` pages as the editor surface.
@@ -513,7 +513,7 @@ CRS/AMIS `term_id` values are **chronological within the academic year**: the nu
 - Supabase Postgres is the runtime source of truth via `DATABASE_URL` (not `NEON_CONNECTION_STRING`). Code, Drizzle, seeds, and the Astro env schema all use `DATABASE_URL`. On Vercel, name the env var `DATABASE_URL`.
 - Supabase JS (`@supabase/supabase-js` + `@supabase/ssr`) is additive: `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` power Auth/client features via `src/lib/supabase/*`. Keep using Drizzle + `DATABASE_URL` for existing Postgres queries unless a feature explicitly needs the JS client.
 - Drizzle schema changes need a matching SQL migration in `drizzle/`. Apply pending migrations to Supabase before deploying code that depends on them; skipped migrations cause runtime query failures (e.g. missing `0007_add_event_image_url.sql` leaves out `events.image_url` and breaks event loading).
-- **PGlite drift:** offline tables in `pgliteDB.ts` must stay aligned with server schema and with [`src/lib/local/data/sync.ts`](src/lib/local/data/sync.ts) consumers.
+- **PGlite drift:** offline DDL is generated (`bun run generate:pglite-schema`) from `drizzle/schema.ts`; after schema changes regenerate + commit, and verify [`src/lib/local/data/sync.ts`](src/lib/local/data/sync.ts) consumers still match.
 - Admin API routes live under `/api/admin/*` and must keep auth checks.
 - Keep PATCH routes field-level and partial so unrelated edits do not clobber each other.
 
