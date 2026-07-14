@@ -98,6 +98,7 @@ Do **not** run `import:amis-classes, fetch` in CI. The script exits when `CI=tru
 - AMIS live fetch (maintainer runbook)
 - Mobile drag “feel”
 - Post-deploy prod spot-check
+- Contributor proposal staging QA: [contributor-proposal-qa.md](contributor-proposal-qa.md). It is read-only except for deliberately submitted throwaway proposals that are promptly withdrawn or rejected.
 
 See also [docs/editor-foundation-test-plan.md](editor-foundation-test-plan.md) and [docs/agentic-qa-process.md](agentic-qa-process.md).
 
