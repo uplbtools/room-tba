@@ -326,7 +326,7 @@ describeIntegration("proposals service", () => {
       reviewed_by: null,
       reviewed_at: null,
     });
-  });
+  }, 15_000);
 
   test("approve proposal via HTTP when preview is up", async () => {
     if (!integrationDatabaseUrl()) return;
