@@ -1,13 +1,45 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { describe, expect, test } from "vitest";
+import { tick } from "svelte";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { modalStore } from "@lib/store.svelte";
+
+vi.mock("@lib/github-contributors", () => ({
+  fetchGithubContributors: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@lib/github-stars", () => ({
+  fetchGithubStarCountCached: vi.fn().mockResolvedValue(0),
+}));
+
 import LandingModal from "./LandingModal.svelte";
 import ScheduleModal from "./ScheduleModal.svelte";
+
+afterEach(() => {
+  modalStore.closeModal();
+});
 
 describe("modal scroll chrome", () => {
   test("landing modal content uses shared scroll chrome", () => {
     render(LandingModal);
     expect(document.querySelector(".scroll-region")).toHaveClass(
       "map-chrome-scroll",
+    );
+  });
+
+  test("opens Campus team when callers request the campus landing tab", async () => {
+    modalStore.closeModal();
+    render(LandingModal);
+
+    modalStore.openModal("landing", { landingTab: "campus" });
+    await tick();
+
+    expect(screen.getByRole("tab", { name: "Campus team" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tabpanel")).toHaveAttribute(
+      "id",
+      "landing-panel-campus",
     );
   });
 

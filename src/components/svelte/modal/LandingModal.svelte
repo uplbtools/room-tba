@@ -122,7 +122,7 @@
   $effect(() => {
     if (!modalStore.open) return;
     activeTab = untrack(() => modalStore.landingTab) ?? "welcome";
-    if (untrack(() => activeTab) === "campus") void loadGithubContributors();
+    if (untrack(() => activeTab) === "campus") void loadGithubData();
   });
 </script>
 
