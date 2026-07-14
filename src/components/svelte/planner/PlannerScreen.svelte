@@ -9,6 +9,7 @@
   import { trapFocus } from "@lib/focus-trap";
   import { fullScreenDismiss, fullScreenReveal } from "@lib/motion";
   import {
+    adminAuthStore,
     plannerStore,
     queryStore,
     sidebarStore,
@@ -36,6 +37,7 @@
   let screenEl = $state<HTMLDivElement | null>(null);
   let finals = $state<FinalExamRow[]>([]);
   let courseRows = $state<ClassMapValue[]>([]);
+  let resolvedAlternativeCourses = $state<string[]>([]);
   let lastRefreshKey = $state<string | null>(null);
   // Monotonic id so an out-of-order fetch (older, fewer courses) can't overwrite
   // a newer one and wrongly flag just-added sections as "no longer offered".
@@ -258,6 +260,8 @@
     const refreshKey = `${plan.id}::${plan.termId}::${courseCodes.join(",")}`;
     if (refreshKey === lastRefreshKey) return;
     lastRefreshKey = refreshKey;
+    courseRows = [];
+    resolvedAlternativeCourses = [];
 
     const seq = ++refreshSeq;
     Promise.all(
@@ -278,6 +282,9 @@
       const rows = okResults.flatMap((r) => r.rows);
       const fetchedCourses = new Set(okResults.map((r) => r.code));
       courseRows = rows;
+      // A failed lookup is resolved too: the grid should say that no alternate
+      // section is available, rather than leaving a permanent loading state.
+      resolvedAlternativeCourses = results.map((r) => r.code);
       if (fetchedCourses.size > 0) {
         plannerStore.refreshActivePlan(rows, fetchedCourses);
       }
@@ -483,8 +490,14 @@
   </div>
 
   <p class="planner-save-note" role="note">
-    Plans save automatically on this device. Use <strong>Share</strong> to copy a
-    link you can reopen anywhere or send to someone.
+    {#if adminAuthStore.isLoggedIn}
+      Plans and professor notes save automatically on this device and sync to your
+      account.
+    {:else}
+      Plans save automatically on this device. Sign in to keep your plans across
+      devices. Use <strong>Share</strong> to copy a link you can reopen anywhere
+      or send to someone.
+    {/if}
   </p>
 
   <div
@@ -497,6 +510,7 @@
       sections={plan?.sections ?? []}
       conflicts={plannerStore.conflicts}
       alternatives={courseRows}
+      {resolvedAlternativeCourses}
       onremove={plannerStore.removeOffering}
       onopenroom={openRoom}
       onswap={swapSection}
@@ -509,7 +523,7 @@
         </h2>
         <p class="planner-side__hint" role="note">
           Room TBA cannot show instructor names from AMIS. Write the professor for
-          each section here — stored only on this device, never uploaded or shared.
+          each section here — saved to your account when signed in, never shared.
         </p>
         <ul class="planner-offerings">
           {#each courseGroups as group (group.courseCode)}
@@ -1061,9 +1075,10 @@
       font-size: 0.6875rem;
     }
 
-    /* Device-save hint is desktop prose; Share's tooltip covers it here. */
+    /* Keep the account-sync and privacy status visible on small screens too. */
     .planner-save-note {
-      display: none;
+      padding: 0.25rem 0.625rem;
+      font-size: 0.6875rem;
     }
 
     .planner-tabs {

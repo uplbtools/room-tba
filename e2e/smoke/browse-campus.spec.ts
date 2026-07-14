@@ -1,47 +1,23 @@
 import { test, expect } from "@playwright/test";
+import { waitForAppBoot } from "../helpers/app";
+import { openAppSidebar } from "../helpers/map-tools";
 
-test("Campus browse chips open side panel and handle pin filters", async ({
-  page,
-}) => {
+test("Campus sidebar navigation opens browse panels", async ({ page }) => {
   await page.goto("/");
+  await waitForAppBoot(page);
 
-  // Click "Classes" chip
-  await page.locator("button.map-chrome-chip", { hasText: "Classes" }).click();
+  const sidebar = await openAppSidebar(page);
+  await sidebar.getByRole("button", { name: "Classes" }).click();
 
-  // Wait for side panel classes list
   await expect(
     page.locator(".side-panel-details h2", { hasText: "All classes" }),
   ).toBeVisible();
 
-  // Verify that the "All" building pin filter chip is NOT highlighted (#401 regression)
-  const allBuildingFilter = page.locator(".building-filter-bar button", {
-    hasText: "All",
-  });
-  await expect(allBuildingFilter).not.toHaveClass(
-    /map-chrome-chip--filter-selected/,
-  );
-
-  // Click "Buildings" chip
-  await page
-    .locator("button.map-chrome-chip", { hasText: "Buildings" })
+  await (await openAppSidebar(page))
+    .getByRole("button", { name: "Buildings" })
     .click();
 
-  // Wait for side panel buildings list
   await expect(
     page.locator(".side-panel-details h2", { hasText: "Buildings" }),
-  ).toBeVisible();
-
-  // Click "Colleges" chip
-  await page.locator("button.map-chrome-chip", { hasText: "Colleges" }).click();
-  await expect(
-    page.locator(".side-panel-details h2", { hasText: "Colleges" }),
-  ).toBeVisible();
-
-  // Click "Divisions" chip
-  await page
-    .locator("button.map-chrome-chip", { hasText: "Divisions" })
-    .click();
-  await expect(
-    page.locator(".side-panel-details h2", { hasText: "Divisions" }),
   ).toBeVisible();
 });

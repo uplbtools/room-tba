@@ -410,19 +410,8 @@ export async function getClassesForRoom(
   termId?: number,
 ): Promise<ClassMapValue[]> {
   try {
-    const inRoom = await db
-      .select({
-        id: classesTable.id,
-        termId: classesTable.termId,
-        roomId: classesTable.roomId,
-        courseCode: classesTable.courseCode,
-        roomCode: roomsTable.roomCode,
-        section: classesTable.section,
-        type: classesTable.type,
-        schedule: classesTable.schedule,
-        directions: roomsTable.directions,
-        courseTitle: classesTable.courseTitle,
-      })
+    return await db
+      .select(classListSelect)
       .from(classesTable)
       .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
       .where(
@@ -431,61 +420,6 @@ export async function getClassesForRoom(
           termId != null ? eq(classesTable.termId, termId) : undefined,
         ),
       );
-
-    if (inRoom.length === 0) return inRoom;
-
-    const pairKeys = [
-      ...new Map(
-        inRoom
-          .filter((row) => row.courseCode && row.section)
-          .map((row) => [
-            `${row.courseCode}::${row.section}`,
-            { courseCode: row.courseCode!, section: row.section! },
-          ]),
-      ).values(),
-    ];
-
-    if (pairKeys.length === 0) return inRoom;
-
-    const offeringRows = await db
-      .select({
-        id: classesTable.id,
-        termId: classesTable.termId,
-        roomId: classesTable.roomId,
-        courseCode: classesTable.courseCode,
-        roomCode: roomsTable.roomCode,
-        section: classesTable.section,
-        type: classesTable.type,
-        schedule: classesTable.schedule,
-        directions: roomsTable.directions,
-        courseTitle: classesTable.courseTitle,
-      })
-      .from(classesTable)
-      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
-      .where(
-        and(
-          termId != null ? eq(classesTable.termId, termId) : undefined,
-          or(
-            ...pairKeys.map((pair) =>
-              and(
-                eq(classesTable.courseCode, pair.courseCode),
-                eq(classesTable.section, pair.section),
-              ),
-            ),
-          ),
-        ),
-      );
-
-    const byId = new Map<number, ClassMapValue>();
-    for (const row of [...inRoom, ...offeringRows]) {
-      byId.set(row.id, row);
-    }
-
-    return [...byId.values()].sort((a, b) => {
-      const code = (a.courseCode ?? "").localeCompare(b.courseCode ?? "");
-      if (code !== 0) return code;
-      return (a.section ?? "").localeCompare(b.section ?? "");
-    });
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch classes for room", { cause: e });

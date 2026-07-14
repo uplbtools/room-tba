@@ -10,6 +10,8 @@ import {
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
+  OG_IMAGE_HEIGHT,
+  OG_IMAGE_WIDTH,
   SITE_URL,
   absoluteUrl,
 } from "@lib/site";
@@ -36,7 +38,7 @@ const {
   ogTitle = undefined,
   description = DEFAULT_DESCRIPTION,
   canonicalPath = "/",
-  imagePath = "/socmed.png",
+  imagePath = "/og.png",
   robots = "index,follow",
   structuredData = [],
   showAppLoadingShell = true,
@@ -67,6 +69,9 @@ const shareTitle = ogTitle ?? title;
     <meta property="og:title" content={shareTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:url" content={imageUrl} />
+    <meta property="og:image:width" content={String(OG_IMAGE_WIDTH)} />
+    <meta property="og:image:height" content={String(OG_IMAGE_HEIGHT)} />
     <meta property="og:image:alt" content={shareTitle} />
     <meta property="og:locale" content="en_US" />
 
@@ -160,6 +165,10 @@ const shareTitle = ogTitle ?? title;
     }
     <slot />
     <Analytics />
+    <script>
+      import { initDatadogRum } from "@lib/datadog-rum";
+      initDatadogRum();
+    </script>
     <script is:inline define:vars={{ splashLines: LOADING_SPLASH_MESSAGES }}>
       (() => {
         const splashEl = document.querySelector(".app-loading-shell__splash");

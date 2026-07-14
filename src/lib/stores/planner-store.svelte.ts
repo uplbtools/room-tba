@@ -7,9 +7,6 @@ import {
   mergePlannerState,
   parsePlanner,
   serializePlanner,
-  collectSectionNotes,
-  applySectionNotes,
-  stripSectionNotesForAccount,
 } from "../planner/persist.js";
 import { sectionNaturalKey } from "../planner/types.js";
 import type { PlannedSection, PlannerPlan } from "../planner/types.js";
@@ -293,8 +290,9 @@ export class PlannerStore {
   }
 
   // --- Account sync (#2) --------------------------------------------------
-  // When signed in, plans persist to the account so they follow the user
-  // across devices; localStorage stays the offline/anon cache.
+  // When signed in, plans (including professor notes) persist to the account
+  // so they follow the user across devices; localStorage stays the offline/anon
+  // cache.
   #accountSync = false;
   #saveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -322,12 +320,11 @@ export class PlannerStore {
       if (!res.ok) return;
       const { data } = (await res.json()) as { data: unknown };
       const remote = parsePlanner(data ? JSON.stringify(data) : null);
-      const localNotes = collectSectionNotes(this.plans);
       const merged = mergePlannerState(
         { plans: this.plans, activePlanIdByTerm: this.activePlanIdByTerm },
         remote,
       );
-      this.plans = applySectionNotes(merged.plans, localNotes);
+      this.plans = merged.plans;
       this.activePlanIdByTerm = merged.activePlanIdByTerm;
       // Writes local cache and pushes the merged union back to the account.
       this.persist();
@@ -342,12 +339,10 @@ export class PlannerStore {
     this.#saveTimer = setTimeout(() => {
       this.#saveTimer = null;
       const data = JSON.parse(
-        serializePlanner(
-          stripSectionNotesForAccount({
-            plans: this.plans,
-            activePlanIdByTerm: this.activePlanIdByTerm,
-          }),
-        ),
+        serializePlanner({
+          plans: this.plans,
+          activePlanIdByTerm: this.activePlanIdByTerm,
+        }),
       );
       void fetch("/api/account/plans", {
         method: "PUT",

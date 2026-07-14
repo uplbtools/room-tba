@@ -24,16 +24,22 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      DD_SITE: us5.datadoghq.com
+      DD_ENV: ci
+      DD_SERVICE: room-tba
+      DD_CIVISIBILITY_AGENTLESS_ENABLED: "true"
+      DD_CIVISIBILITY_ENABLED: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          # Pin: bun 1.3.14 regressed `--frozen-lockfile` (ENOENT: could not
-          # open the "node_modules" directory on a fresh checkout), breaking
-          # every job. Unpin once upstream ships a fix.
           bun-version: 1.3.12
 
       - name: Install dependencies
@@ -43,19 +49,48 @@ jobs:
         run: bunx biome ci .
 
       - name: Unit tests
-        run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts'
+        run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts' --reporter=junit --reporter-outfile=junit-unit.xml
+
+      - name: Retire feature coverage with retired pages
+        env:
+          TEST_RETIREMENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bun run check:feature-test-retirement
 
       - name: Component tests
-        run: bun run test:components
+        env:
+          NODE_OPTIONS: -r dd-trace/ci/init
+        run:
+          bun run test:components -- --reporter=junit --outputFile=junit-components.xml
 
       - name: PWA legal route guardrails
         run: bun run check:pwa-legal
 
+      - name: Upload git metadata to Datadog
+        if: always()
+        run: |
+          if [ -z "$DD_API_KEY" ]; then
+            echo "Skipping Datadog git metadata upload: DD_API_KEY not configured"
+            exit 0
+          fi
+          bunx datadog-ci git-metadata upload
+
+      - name: Upload test results to Datadog
+        if: always()
+        run: |
+          if [ -z "$DD_API_KEY" ]; then
+            echo "Skipping Datadog junit upload: DD_API_KEY not configured"
+            exit 0
+          fi
+          bunx datadog-ci junit upload --service room-tba junit-unit.xml junit-components.xml
+
       - name: Build
-        # Dependabot runs have no secrets; skip DB-dependent build (unit/lint above still verify the bump).
         if: github.actor != 'dependabot[bot]'
         env:
           DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+          DD_GIT_COMMIT_SHA: ${{ github.sha }}
+          DD_GIT_REPOSITORY_URL: https://github.com/${{ github.repository }}
+          DD_GIT_BRANCH: ${{ github.ref_name }}
+          DD_VERSION: ${{ github.sha }}
         run: bun run build
 
   migrations:

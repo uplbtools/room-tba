@@ -36,6 +36,7 @@
   import ManageUsersModal from "@ui/modal/ManageUsersModal.svelte";
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
+  import FinalExamsScreen from "@ui/final-exams/FinalExamsScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
@@ -50,17 +51,22 @@
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
   import Sidebar from "./navigation/Sidebar.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
+  import { MediaQuery } from "svelte/reactivity";
+  import type { RecentSearch } from "@lib/types";
 
   type Props = {
     initialSearch?: InitialSearchState;
     suppressLandingModal?: boolean;
     openPlanner?: boolean;
+    openFinals?: boolean;
   };
 
+  const mobile = new MediaQuery("max-width:48rem");
   const {
     initialSearch,
     suppressLandingModal = false,
     openPlanner = false,
+    openFinals = false,
   }: Props = $props();
 
   const updateData = (queryHistory: RecentSearch[]) => {
@@ -75,6 +81,11 @@
     typeof window !== "undefined" ? window.location.search : "";
 
   onMount(() => {
+    // Session state drives account-backed planner sync too. This belongs at the
+    // app root: /planner renders without the map-only location control that
+    // used to hydrate auth, so direct planner visits were treated as guests.
+    void adminAuthStore.hydrate();
+
     const recentSearchesLS = localStorage.getItem("recent-search");
     try {
       const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? "[]");
@@ -180,6 +191,12 @@
     if (openPlanner) {
       void termStore.init();
       sidebarStore.changeOpened("planner");
+    }
+
+    // /final-exams deep link (prop set by final-exams.astro), same shape.
+    if (openFinals) {
+      void termStore.init();
+      sidebarStore.changeOpened("finals");
     }
 
     const planParam = urlParams.get("plan");
@@ -373,14 +390,23 @@
               bind:this={bottomChromeActionsEl}
               aria-label="Location controls"
             >
-              <MapLegend trigger="chip" />
-              <LocationButton embedded />
+              {#if mobile.current}
+                <div>
+                  <MapDimensionToggle compact />
+                </div>
+              {/if}
+              <div class="bottom-chrome__triggers">
+                <MapLegend trigger="chip" />
+                <LocationButton embedded />
+              </div>
             </div>
           </div>
         </div>
       </div>
     {:else if sidebarStore.panelOpen === "planner"}
       <PlannerScreen />
+    {:else if sidebarStore.panelOpen === "finals"}
+      <FinalExamsScreen />
     {/if}
   </div>
   {#if toastStore.message}
@@ -600,6 +626,7 @@
   .bottom-chrome__actions {
     display: flex;
     flex: 0 0 auto;
+    flex-direction: column;
     /* Bottom-align controls so an open legend panel grows upward without
        floating +/locate over the panel body. */
     align-items: flex-end;
@@ -620,6 +647,10 @@
 
   .bottom-chrome__actions :global(.map-chrome-control-btn--compact) {
     flex-shrink: 0;
+  }
+  .bottom-chrome__triggers {
+    display: flex;
+    gap: 0.375rem;
   }
 
   .bottom-band::before {

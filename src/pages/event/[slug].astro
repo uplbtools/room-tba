@@ -79,12 +79,11 @@ const structuredData = jsonLd(
   ogTitle={event.title}
   description={description}
   canonicalPath={canonicalPath}
-  imagePath={eventImage?.src ??
-    ogCardPath({
-      title: event.title,
-      subtitle: `${formatCampusDateTime(event.occurrenceStartsAt)}${primaryLocation ? ` · ${primaryLocation.resolvedLabel}` : ""}`,
-      kicker: "Event at UPLB",
-    })}
+  imagePath={ogCardPath({
+    title: event.title,
+    subtitle: `${formatCampusDateTime(event.occurrenceStartsAt)}${primaryLocation ? ` · ${primaryLocation.resolvedLabel}` : ""}`,
+    kicker: "Event at UPLB",
+  })}
   structuredData={structuredData}
 >
   <main class="event-map-page">

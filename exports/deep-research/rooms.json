@@ -424,14 +424,6 @@
     "division_name": "Agricultural Systems Institute"
   },
   {
-    "id": 54,
-    "room_code": "ASR 1",
-    "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
-    "building_name": "Agricultural Systems Institute Building",
-    "college_name": "College of Agriculture and Food Science",
-    "division_name": "Agricultural Systems Institute"
-  },
-  {
     "id": 55,
     "room_code": "ASR 3",
     "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
@@ -874,14 +866,6 @@
   {
     "id": 110,
     "room_code": "CAS 103",
-    "directions": "First floor of CAS Main Building.",
-    "building_name": "CAS Main Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Department of Humanities"
-  },
-  {
-    "id": 111,
-    "room_code": "CAS 104",
     "directions": "First floor of CAS Main Building.",
     "building_name": "CAS Main Building",
     "college_name": "College of Arts and Sciences",
@@ -2376,6 +2360,14 @@
     "division_name": "Department of Electrical Engineering"
   },
   {
+    "id": 504,
+    "room_code": "Soils Lab",
+    "directions": null,
+    "building_name": "CAFS Admin Building",
+    "college_name": "College of Forestry and Natural Resources",
+    "division_name": "Institute of Renewable Natural Resources"
+  },
+  {
     "id": 298,
     "room_code": "EE 303",
     "directions": "Main entrance - stairs - right hallway.",
@@ -3328,36 +3320,12 @@
     "division_name": "Department of Social Sciences"
   },
   {
-    "id": 417,
-    "room_code": "LHKCB 101B",
-    "directions": null,
-    "building_name": "LHKCB Building",
-    "college_name": "College of Agriculture and Food Science",
-    "division_name": "Institute of Crop Science"
-  },
-  {
-    "id": 418,
-    "room_code": "LHKCB 204",
-    "directions": null,
-    "building_name": "LHKCB Building",
-    "college_name": "College of Agriculture and Food Science",
-    "division_name": "Institute of Crop Science"
-  },
-  {
     "id": 419,
     "room_code": "LR1",
     "directions": null,
     "building_name": "CDC Building",
     "college_name": "College of Development Communication",
     "division_name": "Department of Science Communication"
-  },
-  {
-    "id": 420,
-    "room_code": "LR2A",
-    "directions": "Copeland Gym, Wing B, 3rd Floor, Lecture Room. Wing B is towards the parking at the back of Copeland.",
-    "building_name": "Copeland Gymnasium",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Department of Human Kinetics"
   },
   {
     "id": 421,
@@ -3392,112 +3360,8 @@
     "division_name": "Department of Human Kinetics"
   },
   {
-    "id": 425,
-    "room_code": "MB 100",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
     "id": 426,
     "room_code": "MB 101A",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 427,
-    "room_code": "MB 101B",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 428,
-    "room_code": "MB 102",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 429,
-    "room_code": "MB 103A",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 430,
-    "room_code": "MB 104",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 431,
-    "room_code": "MB 301",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 432,
-    "room_code": "MB 302",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 433,
-    "room_code": "MB 303",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 434,
-    "room_code": "MB 304",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 435,
-    "room_code": "MB 305",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 436,
-    "room_code": "MB 307",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 437,
-    "room_code": "MB 308",
-    "directions": null,
-    "building_name": "New Math Building",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Institute of Mathematical Sciences and Physics"
-  },
-  {
-    "id": 438,
-    "room_code": "MB 309",
     "directions": null,
     "building_name": "New Math Building",
     "college_name": "College of Arts and Sciences",
@@ -3710,6 +3574,86 @@
     "building_name": "Physical Sciences Building",
     "college_name": "College of Arts and Sciences",
     "division_name": "Institute of Chemistry"
+  },
+  {
+    "id": 417,
+    "room_code": "LHKCB 101B",
+    "directions": null,
+    "building_name": "LHKCB Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 427,
+    "room_code": "MB 101B",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 437,
+    "room_code": "MB 308",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 430,
+    "room_code": "MB 104",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 431,
+    "room_code": "MB 301",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 428,
+    "room_code": "MB 102",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 436,
+    "room_code": "MB 307",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 429,
+    "room_code": "MB 103A",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 433,
+    "room_code": "MB 303",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 425,
+    "room_code": "MB 100",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
   },
   {
     "id": 465,
@@ -4016,22 +3960,6 @@
     "division_name": "Department of Forest Products and Paper Science"
   },
   {
-    "id": 503,
-    "room_code": "SWIMMING POOL",
-    "directions": null,
-    "building_name": "Baker Hall Pool",
-    "college_name": "College of Arts and Sciences",
-    "division_name": "Department of Human Kinetics"
-  },
-  {
-    "id": 504,
-    "room_code": "Soils Lab",
-    "directions": null,
-    "building_name": "CAFS Admin Building",
-    "college_name": "College of Forestry and Natural Resources",
-    "division_name": "Institute of Renewable Natural Resources"
-  },
-  {
     "id": 505,
     "room_code": "TABLE TENNIS AREA",
     "directions": null,
@@ -4214,5 +4142,101 @@
     "building_name": "AMPED Building",
     "college_name": "College of Agriculture and Food Science",
     "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 418,
+    "room_code": "LHKCB 204",
+    "directions": null,
+    "building_name": "LHKCB Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Crop Science"
+  },
+  {
+    "id": 503,
+    "room_code": "SWIMMING POOL",
+    "directions": null,
+    "building_name": "Baker Hall Pool",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 528,
+    "room_code": "NCAS Auditorium",
+    "directions": "NCAS Auditorium in CAS Annex 1.",
+    "building_name": "CAS Annex 1",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Computer Science"
+  },
+  {
+    "id": 432,
+    "room_code": "MB 302",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 434,
+    "room_code": "MB 304",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 435,
+    "room_code": "MB 305",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 438,
+    "room_code": "MB 309",
+    "directions": null,
+    "building_name": "New Math Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Institute of Mathematical Sciences and Physics"
+  },
+  {
+    "id": 54,
+    "room_code": "ASR 1",
+    "directions": "Located at the first building on the left side after passing the Animal Husbandry Arch.",
+    "building_name": "Animal Husbandry Building",
+    "college_name": "College of Agriculture and Food Science",
+    "division_name": "Institute of Animal Science"
+  },
+  {
+    "id": 529,
+    "room_code": "ASLH 2",
+    "directions": "As you enter the building, just simply walk straight in the middle and there you will find the room at its further end. This is where AGRI 22 Lecture, some AGRI 171, and some ANSC courses are usually held",
+    "building_name": null,
+    "college_name": null,
+    "division_name": null
+  },
+  {
+    "id": 530,
+    "room_code": "ASLH 1",
+    "directions": "It is located at the left side of the building's front. This is where AGRI 21 Lecture, AGRI 11, and ABT 11 classes are usually held.",
+    "building_name": null,
+    "college_name": null,
+    "division_name": null
+  },
+  {
+    "id": 420,
+    "room_code": "LR2A",
+    "directions": "Copeland Gym, Wing B, 2rd Floor, Lecture Room. Wing B is towards the parking at the back of Copeland.",
+    "building_name": "Copeland Gymnasium",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Human Kinetics"
+  },
+  {
+    "id": 111,
+    "room_code": "CAS 1043",
+    "directions": "First floor of CAS Main Building. very far away",
+    "building_name": "CAS Main Building",
+    "college_name": "College of Arts and Sciences",
+    "division_name": "Department of Humanities"
   }
 ]

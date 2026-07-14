@@ -36,10 +36,12 @@
 
 {#if "href" in props}
 {@const {href, tooltip, expanded, children, ...rest} = props}
+  {@const isExternal = /^https?:\/\//.test(href)}
   <a
     class="nav-link"
     class:nav-link--expanded={expanded}
-    target="_blank"
+    target={isExternal ? "_blank" : undefined}
+    rel={isExternal ? "noopener noreferrer" : undefined}
     href={href}
     {...rest}
     onmouseenter={placeTooltip}
@@ -49,7 +51,7 @@
       {tooltip}
     </div>
     {@render children()}
-    {#if expanded}
+    {#if expanded && isExternal}
       <span class="external-hint" aria-hidden="true">
         <ExternalLink size={12} />
       </span>
@@ -108,6 +110,7 @@
   }
   .nav-link--expanded {
     width: 100%;
+    box-sizing: border-box;
     justify-content: flex-start;
     gap: 0.625rem;
     .tooltip,

@@ -3,7 +3,7 @@ import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   AccountActionError,
   getAccountProfile,
-  updateDisplayName,
+  updateAccountProfile,
 } from "@lib/services/admin-user-service";
 
 export const prerender = false;
@@ -21,7 +21,12 @@ export const PATCH: APIRoute = async ({ cookies, request }) => {
   const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
-  let body: { displayName?: string };
+  let body: {
+    displayName?: string;
+    avatarUrl?: string | null;
+    profileUrl?: string | null;
+    showInCredits?: boolean;
+  };
   try {
     body = await request.json();
   } catch {
@@ -31,17 +36,29 @@ export const PATCH: APIRoute = async ({ cookies, request }) => {
   if (typeof body.displayName !== "string") {
     return json({ error: "displayName is required." }, 400);
   }
+  if (
+    (body.avatarUrl !== undefined &&
+      body.avatarUrl !== null &&
+      typeof body.avatarUrl !== "string") ||
+    (body.profileUrl !== undefined &&
+      body.profileUrl !== null &&
+      typeof body.profileUrl !== "string") ||
+    (body.showInCredits !== undefined &&
+      typeof body.showInCredits !== "boolean")
+  ) {
+    return json({ error: "Invalid profile fields." }, 400);
+  }
 
   try {
-    await updateDisplayName(auth.session.id, body.displayName);
+    await updateAccountProfile(auth.session.id, body);
     const profile = await getAccountProfile(auth.session.id);
     return json({ success: true, profile });
   } catch (error) {
     if (error instanceof AccountActionError) {
       return json({ error: error.message }, error.status);
     }
-    console.error("Update display name failed:", error);
-    return json({ error: "Failed to update display name." }, 500);
+    console.error("Update account profile failed:", error);
+    return json({ error: "Failed to update account profile." }, 500);
   }
 };
 

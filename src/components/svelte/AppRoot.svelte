@@ -59,6 +59,7 @@
     initialSearch?: InitialSearchState;
     suppressLandingModal?: boolean;
     openPlanner?: boolean;
+    openFinals?: boolean;
   };
   const metadata: MetadataProps = $props();
 
@@ -507,4 +508,5 @@
   initialSearch={metadata.initialSearch}
   suppressLandingModal={metadata.suppressLandingModal ?? false}
   openPlanner={metadata.openPlanner ?? false}
+  openFinals={metadata.openFinals ?? false}
 />

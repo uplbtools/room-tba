@@ -7,43 +7,70 @@
   },
   "buildings": {
     "Physical Sciences Building": {
-      "aliases": ["PhySci", "Francisco O. Santos Hall", "PS"],
+      "aliases": [
+        "PhySci",
+        "Francisco O. Santos Hall",
+        "PS",
+        "Physci",
+        "FO Santos Hall"
+      ],
       "description": "Main building for physical sciences, located right of Oblation statue",
       "general_directions": "From the main gate, walk towards the Oblation statue. The Physical Sciences Building is the wide building to the right of Oble. You should see the sign 'Francisco O. Santos Hall'.",
       "coordinates": ""
     },
-    "CAS Building": {
-      "aliases": ["Humanities Building", "HUM", "CAS Main"],
+    "CAS Main Building": {
+      "aliases": [
+        "Humanities Building",
+        "HUM",
+        "CAS Main",
+        "CAS Building",
+        "Humin"
+      ],
       "description": "College of Arts and Sciences main building, behind Oblation statue",
       "general_directions": "Located directly behind the Oblation statue. Walk up the Humanities steps (hum steps) from Oble. The basement rooms are accessible from the ground floor.",
       "coordinates": ""
     },
     "CAS Annex 1": {
-      "aliases": ["CAS A1", "CASA1"],
+      "aliases": ["CAS A1", "CASA1", "Annex 1"],
       "description": "Four-story building to the left of Oblation, near OUR",
       "general_directions": "From Oblation, turn left. CAS Annex 1 is the tall four-story building beside the Office of the University Registrar (OUR). It's also near the ruins.",
       "coordinates": ""
     },
     "CAS Annex 2": {
-      "aliases": ["CAS A2", "CASA2"],
+      "aliases": ["CAS A2", "CASA2", "Annex 2"],
       "description": "Building across from the registrar",
       "general_directions": "Located across from the Office of the University Registrar. The Multi-Purpose Hall (MPH) is on the first floor, near the side facing the ruins.",
       "coordinates": ""
     },
-    "E.B. Copeland Gymnasium": {
-      "aliases": ["Copeland", "Copeland Gym", "EB Copeland", "EB GYM"],
+    "Copeland Gymnasium": {
+      "aliases": [
+        "Copeland",
+        "Copeland Gym",
+        "EB Copeland",
+        "EB GYM",
+        "E.B. Copeland Gymnasium",
+        "Gym"
+      ],
       "description": "Main gymnasium with lecture rooms on upper floors",
       "general_directions": "Located across from the Raymundo Gate. Has multiple floors with lecture rooms. Wing B is towards the parking area at the back.",
       "coordinates": ""
     },
-    "Math Building": {
-      "aliases": ["IMSP Building", "Mathematics Building", "MB"],
+    "New Math Building": {
+      "aliases": [
+        "IMSP Building",
+        "Mathematics Building",
+        "MB",
+        "Math Building",
+        "Math",
+        "IMSP",
+        "Institute of Mathematical Sciences and Physics"
+      ],
       "description": "Institute of Mathematical Sciences and Physics building",
       "general_directions": "From Physical Sciences Building, take the path behind towards the Nutrition/CHE buildings area. The Math Building is across from St. Therese church area.",
       "coordinates": ""
     },
     "Biological Sciences Building": {
-      "aliases": ["BioSci", "IBS", "BS Building"],
+      "aliases": ["BioSci", "IBS", "BS Building", "Biosci"],
       "description": "Institute of Biological Sciences building",
       "general_directions": "Located in front of CAS Annex 1 and to the left of SEARCA. Near the BioSci area past the CAS buildings.",
       "coordinates": ""
@@ -55,13 +82,23 @@
       "coordinates": ""
     },
     "CEAT Building": {
-      "aliases": ["Engineering Building", "College of Engineering"],
+      "aliases": [
+        "Engineering Building",
+        "College of Engineering",
+        "CEAT",
+        "College of Engineering and Agro-industrial Technology"
+      ],
       "description": "College of Engineering and Agro-Industrial Technology",
       "general_directions": "Located in the engineering area of the campus.",
       "coordinates": ""
     },
-    "ICoPED Building": {
-      "aliases": ["ICoPED", "College of Public Affairs and Development"],
+    "ICOPED Building": {
+      "aliases": [
+        "ICoPED",
+        "College of Public Affairs and Development",
+        "ICOPED",
+        "CPAf"
+      ],
       "description": "Institute for Governance and Rural Development",
       "general_directions": "Located across from Raymundo Gate, near E.B. Copeland Gymnasium. About 400 meters from BioSci.",
       "coordinates": ""
@@ -78,14 +115,20 @@
       "general_directions": "Located in the agriculture complex area.",
       "coordinates": ""
     },
-    "DevCom Building": {
-      "aliases": ["Development Communication", "CDC"],
+    "CDC Building": {
+      "aliases": [
+        "Development Communication",
+        "CDC",
+        "DevCom",
+        "DevCom Building",
+        "College of Development Communication"
+      ],
       "description": "College of Development Communication, near Carabao Park",
       "general_directions": "Located near Carabao Park (C-Park), which is the first area you see from the main gate with carabao statues. DevCom people usually hang out here.",
       "coordinates": ""
     },
     "Student Union Building": {
-      "aliases": ["SU", "Student Union"],
+      "aliases": ["SU", "Student Union", "SUB"],
       "description": "Student services building with billiards and bowling in basement",
       "general_directions": "Has offices on second floor, billiards and bowling in basement. Printing services available at the far end.",
       "coordinates": ""
@@ -97,7 +140,7 @@
       "coordinates": ""
     },
     "Main Library": {
-      "aliases": ["Library", "UPLB Library"],
+      "aliases": ["Library", "UPLB Library", "Main Lib", "UPLB Main Library"],
       "description": "Main campus library with Pegaraw statue in front",
       "general_directions": "Has the Pegaraw statue (winged tamaraw) in front. The Infinity Bridge (Never-Ending Bridge) is behind it, leading to the Forestry area.",
       "coordinates": ""
@@ -115,7 +158,13 @@
       "coordinates": ""
     },
     "CHE Building": {
-      "aliases": ["College of Human Ecology", "CHE", "Nutrition Building"],
+      "aliases": [
+        "College of Human Ecology",
+        "CHE",
+        "Nutrition Building",
+        "HumEco",
+        "Human Ecology"
+      ],
       "description": "College of Human Ecology and Nutrition programs",
       "general_directions": "Located behind Physical Sciences Building, in the area near UPF and the Nutrition buildings.",
       "coordinates": ""
@@ -127,10 +176,87 @@
       "coordinates": ""
     },
     "ICropS Building": {
-      "aliases": ["Institute of Crop Science", "ICropS"],
+      "aliases": ["Institute of Crop Science", "ICropS", "Crop Science"],
       "description": "Institute of Crop Science with Gonzales Wing",
       "general_directions": "ICropS 200 Gonzales Wing is on the 2nd floor.",
       "coordinates": ""
+    },
+    "Baker Hall Pool": {
+      "aliases": ["Baker Hall", "Baker", "Pool"]
+    },
+    "Old Math/Old Rural Building": {
+      "aliases": ["Old Math", "Old Rural"]
+    },
+    "CEM Building": {
+      "aliases": ["CEM", "College of Economics and Management", "Econ"]
+    },
+    "CFNR Admin Building": {
+      "aliases": [
+        "CFNR",
+        "Forestry",
+        "College of Forestry and Natural Resources"
+      ]
+    },
+    "CVM-IAS Communal Building": {
+      "aliases": ["CVM", "VetMed", "College of Veterinary Medicine"]
+    },
+    "Veterinary Teaching Hospital": {
+      "aliases": ["VTH"]
+    },
+    "Graduate School Building": {
+      "aliases": ["Grad School", "GS Building"]
+    },
+    "UPRHS Building": {
+      "aliases": ["UPRHS", "Rural High", "UP Rural High School", "RHS"]
+    },
+    "Temporary Common Classrooms": {
+      "aliases": ["TCC"]
+    },
+    "IFST Building": {
+      "aliases": [
+        "IFST",
+        "Food Science",
+        "Institute of Food Science and Technology"
+      ]
+    },
+    "IHNF Building": {
+      "aliases": ["IHNF", "Institute of Human Nutrition and Food"]
+    },
+    "IRNR Building": {
+      "aliases": ["IRNR", "Institute of Renewable Natural Resources"]
+    },
+    "IABE Building": {
+      "aliases": [
+        "IABE",
+        "Institute of Agricultural and Biosystems Engineering"
+      ]
+    },
+    "DAAE Building": {
+      "aliases": ["DAAE", "Department of Agricultural and Applied Economics"]
+    },
+    "Electrical Engineering Building": {
+      "aliases": ["EE Building"]
+    },
+    "Civil Engineering Building": {
+      "aliases": ["CE Building"]
+    },
+    "Industrial Engineering Building": {
+      "aliases": ["IE Building"]
+    },
+    "Agricultural Systems Institute Building": {
+      "aliases": ["ASI"]
+    },
+    "CAFS Admin Building": {
+      "aliases": ["CAFS", "College of Agriculture and Food Science"]
+    },
+    "Agricultural Machinery Testing and Evaluation Center": {
+      "aliases": ["AMTEC"]
+    },
+    "PHTRC Building": {
+      "aliases": ["PHTRC", "Postharvest"]
+    },
+    "Department of Military Sciences and Tactics": {
+      "aliases": ["DMST", "ROTC"]
     }
   },
   "rooms": {

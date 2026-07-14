@@ -4,7 +4,7 @@ import { absoluteUrl, ogCardPath, ogImageUrl } from "@lib/site";
 describe("OG meta helpers", () => {
   it("ogImageUrl returns absolute image URL", () => {
     const url = ogImageUrl();
-    expect(url).toContain("/socmed.png");
+    expect(url).toContain("/og.png");
     expect(url.startsWith("http")).toBe(true);
   });
 

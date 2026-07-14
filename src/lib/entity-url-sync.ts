@@ -30,8 +30,8 @@ export type EntityUrlSyncContext = {
   hydrateQuery: (query: RoutableQueryState) => void;
   clearQuery: () => void;
   getQuerySnapshot: () => RoutableQueryState;
-  /** Open/close the planner in response to /planner navigations (back/forward). */
-  setPlannerOpen: (open: boolean) => void;
+  /** Open/close a full screen (planner, finals) in response to its path navigations (back/forward). */
+  setScreen: (screen: ScreenId | null) => void;
   setTransit: (transit: TransitPath) => void;
 };
 
@@ -40,14 +40,21 @@ export type EntityUrlSyncSnapshot = RoutableQueryState & {
   editMode: boolean;
   termId: number | null;
   defaultTermId: number | null;
-  plannerOpen: boolean;
+  screen: ScreenId | null;
   transitRouteId: string | null;
   transitStopIndex: number | null;
   transitRoute: JeepneyRoute | null;
 };
 
 const HOME_PATH = "/";
-const PLANNER_PATH = "/planner";
+// Full-screen overlays that own the URL while open (see the planner deep-link
+// notes: bare island props, trailing slash, and the SW denylist in
+// astro.config.mjs must cover each path here).
+const SCREEN_PATHS = {
+  planner: "/planner",
+  finals: "/final-exams",
+} as const;
+export type ScreenId = keyof typeof SCREEN_PATHS;
 
 /**
  * Only schedule-bearing surfaces carry ?term=. Establishments, offices/units,
@@ -60,7 +67,11 @@ function isTermAwareCategory(
 }
 // currentPathname() runs through normalizePathname (adds a trailing slash), so
 // compare against the normalized form, not the raw "/planner".
-const PLANNER_PATH_NORMALIZED = normalizePathname(PLANNER_PATH);
+const SCREEN_BY_NORMALIZED_PATH = new Map(
+  (Object.entries(SCREEN_PATHS) as [ScreenId, string][]).map(
+    ([screen, path]) => [normalizePathname(path), screen],
+  ),
+);
 
 export function createEntityUrlSync(context: EntityUrlSyncContext) {
   let applyingFromHistory = false;
@@ -165,8 +176,10 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     applyingFromHistory = true;
     try {
       termStore.applyFromUrl();
-      // Back/forward into or out of /planner toggles the planner overlay.
-      context.setPlannerOpen(currentPathname() === PLANNER_PATH_NORMALIZED);
+      // Back/forward into or out of /planner, /final-exams toggles that screen.
+      context.setScreen(
+        SCREEN_BY_NORMALIZED_PATH.get(currentPathname()) ?? null,
+      );
       const transit = parseTransitPathname(currentPathname());
       if (transit) {
         context.setTransit(transit);
@@ -210,7 +223,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
 
     const initialTermAware =
       pathname === HOME_PATH ||
-      pathname === PLANNER_PATH_NORMALIZED ||
+      SCREEN_BY_NORMALIZED_PATH.has(pathname) ||
       pathname.startsWith("/room/");
     const initialPath = initialTermAware
       ? withTermQuery(
@@ -234,21 +247,22 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
   function syncFromQuery(snapshot: EntityUrlSyncSnapshot) {
     if (!initialized || applyingFromHistory || snapshot.editMode) return;
 
-    // Planner takes over the URL while open, so clicking "Class Planner" moves
-    // to /planner (shareable, refreshable). Closing falls through to the
+    // A full screen takes over the URL while open, so clicking "Class Planner"
+    // moves to /planner (shareable, refreshable). Closing falls through to the
     // entity/home logic below and restores the prior path.
-    if (snapshot.plannerOpen) {
-      const plannerPath = withTermQuery(
-        PLANNER_PATH,
+    if (snapshot.screen) {
+      const screenPath = withTermQuery(
+        SCREEN_PATHS[snapshot.screen],
         snapshot.termId,
         snapshot.defaultTermId,
       );
-      const plannerSearch = plannerPath.includes("?")
-        ? plannerPath.slice(plannerPath.indexOf("?"))
+      const screenSearch = screenPath.includes("?")
+        ? screenPath.slice(screenPath.indexOf("?"))
         : "";
       if (
-        currentPathname() !== PLANNER_PATH_NORMALIZED ||
-        window.location.search !== plannerSearch
+        currentPathname() !==
+          normalizePathname(SCREEN_PATHS[snapshot.screen]) ||
+        window.location.search !== screenSearch
       ) {
         const carried =
           snapshot.type === "result" && snapshot.category !== null
@@ -262,7 +276,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
         window.history.pushState(
           buildHistoryState(carried, HOME_PATH),
           "",
-          plannerPath,
+          screenPath,
         );
       }
       return;

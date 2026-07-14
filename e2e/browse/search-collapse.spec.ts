@@ -4,7 +4,7 @@ import { openBuilding } from "../helpers/search";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
 test.describe("mobile search collapse", () => {
-  test("map menu blur preserves query and panel @mobile", async ({
+  test("app menu blur preserves query and panel @mobile", async ({
     page,
     isMobile,
   }) => {
@@ -18,8 +18,8 @@ test.describe("mobile search collapse", () => {
       page.getByText(E2E_FIXTURES.buildingName).first(),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: /map menu/i }).click();
-    await page.getByRole("button", { name: /map menu/i }).click();
+    await page.getByRole("button", { name: /app menu/i }).click();
+    await page.getByRole("button", { name: "Close menu" }).click();
 
     const search = campusSearchBox(page);
     await search.click();

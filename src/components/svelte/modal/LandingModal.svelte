@@ -1,6 +1,6 @@
 <script lang="ts">
   import { modalStore } from "@lib/store.svelte";
-  import { contributors, designers } from "@constants/contributors";
+  import { designers } from "@constants/contributors";
   import {
     UPLB_TOOLS_URL,
     DISCORD_URL,
@@ -42,6 +42,14 @@
   let githubError = $state<string | null>(null);
   let githubLoaded = $state(false);
   let githubRepoStars = $state<number | null>(null);
+  type EditorCredit = {
+    name: string;
+    avatarUrl: string | null;
+    profileUrl: string | null;
+  };
+  let campusCredits = $state<EditorCredit[]>([]);
+  let creditsLoading = $state(false);
+  let creditsLoaded = $state(false);
 
   const tabs: { id: LandingTab; label: string }[] = [
     { id: "welcome", label: "Welcome" },
@@ -57,7 +65,27 @@
   }
 
   const designerPeople = $derived(toAvatarPeople(designers));
-  const campusContributorPeople = $derived(toAvatarPeople(contributors));
+  const campusCreditPeople = $derived(
+    campusCredits.map((person) => ({
+      name: person.name,
+      href: person.profileUrl ?? undefined,
+      imageSrc: person.avatarUrl ?? "/profile.svg",
+    })),
+  );
+
+  async function loadCampusCredits() {
+    if (creditsLoaded || creditsLoading) return;
+    creditsLoading = true;
+    try {
+      const res = await fetch("/api/editor-credits");
+      campusCredits = res.ok ? ((await res.json()) as EditorCredit[]) : [];
+      creditsLoaded = true;
+    } catch {
+      campusCredits = [];
+    } finally {
+      creditsLoading = false;
+    }
+  }
 
   async function loadGithubData() {
     if (githubLoaded || githubLoading) return;
@@ -86,7 +114,10 @@
 
   function selectTab(tab: LandingTab) {
     activeTab = tab;
-    if (tab === "campus") void loadGithubData();
+    if (tab === "campus") {
+      void loadGithubData();
+      void loadCampusCredits();
+    }
   }
 
   function handleGetStarted() {
@@ -122,7 +153,10 @@
   $effect(() => {
     if (!modalStore.open) return;
     activeTab = untrack(() => modalStore.landingTab) ?? "welcome";
-    if (untrack(() => activeTab) === "campus") void loadGithubContributors();
+    if (untrack(() => activeTab) === "campus") {
+      void loadGithubData();
+      void loadCampusCredits();
+    }
   });
 </script>
 
@@ -184,6 +218,18 @@
         id="landing-panel-campus"
         aria-labelledby="landing-tab-campus"
       >
+        <section class="people-block">
+          <h3>Campus editors &amp; contributors</h3>
+          <p class="section-note">People credited for published campus data changes.</p>
+          {#if creditsLoading}
+            <p class="section-note">Loading credits…</p>
+          {:else if campusCredits.length > 0}
+            <PeopleAvatarGrid people={campusCreditPeople} />
+          {:else if creditsLoaded}
+            <p class="section-note">No public credits yet.</p>
+          {/if}
+        </section>
+
         <GithubContributorsSection
           title="Developers"
           note="From GitHub commit history on the Room TBA repo."
@@ -254,6 +300,39 @@
             people={designerPeople}
             imageFolder="contributors"
           />
+        </section>
+
+        <section class="inspiration-block">
+          <h3>Inspiration &amp; similar tools</h3>
+          <ul class="inspiration-links">
+            <li>
+              <a
+                href="https://upsked.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">Upsked.com</a
+              >
+              by John Paul Poliquit
+            </li>
+            <li>
+              <a
+                href="https://uplb-trail.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">UPLB Trail</a
+              >
+              by Bernard Jezua Tandang
+            </li>
+            <li>
+              <a
+                href="https://chromewebstore.google.com/detail/amissu/mkdgckblaojfigmbnknehcmnjpkcehcj"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-link">AMISSU</a
+              >
+              by Garth Hendrich Lapitan
+            </li>
+          </ul>
         </section>
 
       </div>
@@ -441,6 +520,33 @@
     font-size: 0.9375rem;
     font-weight: 700;
     color: hsl(5, 53%, 28%);
+  }
+
+  .inspiration-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    width: 100%;
+  }
+
+  .inspiration-block h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 28%);
+  }
+
+  .inspiration-links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.75rem;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 30%);
   }
 
   .section-note {

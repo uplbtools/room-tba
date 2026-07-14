@@ -11,7 +11,7 @@
 
 _Schedules, buildings, jeepney routes, and "where is PSLH 1?" on one campus map._
 
-[Open the map](https://room-tba.uplbtools.me) · [Report wrong data](https://github.com/uplbtools/room-tba/issues/new/choose) · [Changelog](https://room-tba.uplbtools.me/changelog)
+[Open the map](https://room-tba.uplbtools.me) · [Wiki](https://room-tba.uplbtools.me/wiki) · [Report wrong data](https://github.com/uplbtools/room-tba/issues/new/choose) · [Changelog](https://room-tba.uplbtools.me/changelog)
 
 </div>
 
@@ -23,7 +23,7 @@ _Schedules, buildings, jeepney routes, and "where is PSLH 1?" on one campus map.
 
 No account needed to browse. Editors and contributors fix data in the same app (login popup on the map, not a separate admin site).
 
-> **Data note:** Room and class listings are updated each term by volunteers. The active term follows the academic calendar (midyear Jun–Jul, 2nd sem Jan–May, etc.). Schedules show **lecture and lab** sections with assigned rooms: thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS. Wrong schedule? [Open an issue](https://github.com/uplbtools/room-tba/issues/new/choose).
+> **Data note:** Room and class listings are updated each term by volunteers. The active term follows the academic calendar (midyear Jun–Jul, 2nd sem Jan–May, etc.). **Class search** lists lecture, lab, thesis, special problem, and similar sections; ones without a room in AMIS show as unassigned. **Room schedules** list only lecture and lab sections with assigned rooms. Wrong schedule? [Open an issue](https://github.com/uplbtools/room-tba/issues/new/choose).
 
 ---
 
@@ -33,9 +33,10 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | ----------------------------- | ---------------------------------------------------------------- |
 | Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …) |
 | Room schedule this sem | Term filter + timetable |
-| Personal schedule route | Map tools → Schedule → import, pick a day, route stops |
+| Personal schedule route | Build a plan in Planner → Map tools → Schedule → pick a day, route stops |
 | Browse all classes | Status bar → Browse classes; search by course code |
 | Plan your classes | Planner view to build a draft schedule |
+| Course Planner explainer | [Four-panel, screenshot-ready guide](https://room-tba.uplbtools.me/pubmat/course-planner/) |
 | Final exam time & room | Search course code → finals panel; room panel during finals week |
 | Building location | Map, pins, directions, Google Maps |
 | Landmarks, services, orgs & offices | Sidebar directories, distinct map pins, and shareable detail links |
@@ -43,6 +44,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Campus events | Events on map with routes |
 | Jeepney routes | Route overlays |
 | 3D view | Buildings + Makiling terrain (online) |
+| Understand section names | Wiki guide to the A–H / S–Z class time blocks |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
@@ -54,6 +56,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Fix room/building/college copy | Side panel → Edit |
 | Suggest edits without publishing | **Suggest an edit** → admin review queue |
 | Upload event posters | Event editor + R2 image upload (when configured) |
+| Manage public credit | Account settings → optional HTTPS avatar/profile link; uncheck credits to opt out |
 | Undo a pin drag | Toolbar undo/redo (session); durable history tracked in [#202](https://github.com/uplbtools/room-tba/issues/202) |
 
 Login: **`/?editor=login`** or the shield / status bar in the app. `/admin` URLs redirect back into the map.
@@ -159,6 +162,8 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bun run format` | Biome format write |
 | `bunx drizzle-kit studio` | Browse/edit Postgres visually |
 | `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
+| `bun run seed:deep-research` | Fill-only data-gap seed from the 2026-07 research report (`DATABASE_URL`; `--dry-run` supported) |
+| `bun run generate:pglite-schema` | Regenerate the offline PGlite init SQL from `drizzle/schema.ts` |
 | `bun run import:osa-orgs` | Add the current public OSA organization directory (`DATABASE_URL`; safe to rerun) |
 | `bun run import:campus-offices` | Add missing campus offices and units (`DATABASE_URL`; safe to rerun) |
 | `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`) |

@@ -38,7 +38,3 @@ export type ScheduleDayStop = {
   endMinutes: number;
   gapMinutesAfter: number | null;
 };
-
-export type ParseImportResult =
-  | { ok: true; rows: ImportedScheduleRow[] }
-  | { ok: false; error: string };

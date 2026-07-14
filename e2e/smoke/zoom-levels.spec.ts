@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { campusSearchBox, waitForAppBoot } from "../helpers/app";
+import { openAppSidebar } from "../helpers/map-tools";
 
 test("Layout remains functional at 150% zoom", async ({ page }) => {
   await page.goto("/");
@@ -13,12 +14,10 @@ test("Layout remains functional at 150% zoom", async ({ page }) => {
 
   // Check if main UI elements are still accessible
   await expect(campusSearchBox(page)).toBeVisible();
-  await expect(page.locator("button.app-menu__trigger")).toBeVisible();
 
   // Open sidebar to ensure it doesn't break
-  await page
-    .locator("button.map-chrome-chip", { hasText: "Buildings" })
-    .click();
+  const sidebar = await openAppSidebar(page);
+  await sidebar.getByRole("button", { name: "Buildings" }).click();
   await expect(
     page.locator(".side-panel-details h2", { hasText: "Buildings" }),
   ).toBeVisible();

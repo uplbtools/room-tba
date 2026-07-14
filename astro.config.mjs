@@ -49,6 +49,7 @@ export default defineConfig({
           // pathname+search, so /planner?term=… must be covered too (#planner).
           // Network-first; the in-app planner button covers offline.
           /^\/planner(\/|\?|$)/,
+          /^\/final-exams(\/|\?|$)/,
           // Server redirects — must hit network, not offline app shell (#471).
           /^\/messenger(\/|\?|$)/,
           /^\/maintain(\/|\?|$)/,
@@ -230,6 +231,50 @@ export default defineConfig({
         optional: true,
       }),
       TURNSTILE_SECRET_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Datadog RUM (client) + server observability (#495). RUM tokens are
+      // public by design; omit locally to disable.
+      DD_RUM_APPLICATION_ID: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      DD_RUM_CLIENT_TOKEN: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      DD_SITE: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+        default: "us5.datadoghq.com",
+      }),
+      DD_SERVICE: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+        default: "room-tba",
+      }),
+      DD_ENV: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      DD_VERSION: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
+      DD_API_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      DD_OTLP_ENDPOINT: envField.string({
         access: "secret",
         context: "server",
         optional: true,

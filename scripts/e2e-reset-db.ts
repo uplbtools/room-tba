@@ -60,6 +60,11 @@ const E2E_MIGRATION_FILES = [
   "0030_directory_data_fixes.sql",
   "0031_directory_data_fixes_2.sql",
   "0032_add_jeepney_transit.sql",
+  "0033_ay_2026_2027_term_dates.sql",
+  "0034_historical_term_dates.sql",
+  "0035_add_term_classes_imported_at.sql",
+  "0036_add_building_cr_facilities.sql",
+  "0037_editor_credits_profiles.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {
@@ -209,7 +214,7 @@ async function main() {
 
     await client.query(
       `INSERT INTO classes (course_code, section, type, schedule, room_id, course_title, term_id, version)
-       VALUES ('E2E 101', 'AB', 'LEC', ARRAY['MWF 8-9'], $1, 'E2E Course', $2, 1)`,
+       VALUES ('E2E 101', 'AB', 'LEC', ARRAY['MWF 08:00AM-09:00AM'], $1, 'E2E Course', $2, 1)`,
       [roomId, E2E_FIXTURES.termId],
     );
 

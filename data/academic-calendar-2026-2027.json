@@ -1,0 +1,23 @@
+{
+  "1261": {
+    "startsOn": "2026-08-03",
+    "endsOn": "2026-12-07",
+    "finalsStartsOn": "2026-12-01",
+    "finalsEndsOn": "2026-12-07",
+    "changeOfMatriculationEndsOn": "2026-08-07"
+  },
+  "1262": {
+    "startsOn": "2027-01-18",
+    "endsOn": "2027-05-22",
+    "finalsStartsOn": "2027-05-17",
+    "finalsEndsOn": "2027-05-22",
+    "changeOfMatriculationEndsOn": "2027-01-22"
+  },
+  "1263": {
+    "startsOn": "2027-06-07",
+    "endsOn": "2027-07-16",
+    "finalsStartsOn": "2027-07-15",
+    "finalsEndsOn": "2027-07-16",
+    "changeOfMatriculationEndsOn": "2027-06-08"
+  }
+}

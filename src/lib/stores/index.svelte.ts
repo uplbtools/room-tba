@@ -5,7 +5,6 @@ import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
 import { orderDayStops, type Weekday } from "../schedule-import/day-stops.js";
 import { matchImportedScheduleRows } from "../schedule-import/match-classes.js";
-import { parseScheduleImport } from "../schedule-import/parse-import.js";
 import type { ClassQueryPage } from "../classes-api.js";
 import type {
   ImportedScheduleRow,
@@ -737,25 +736,17 @@ class ScheduleRouteStore {
       const raw = sessionStorage.getItem(SCHEDULE_IMPORT_SS_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as ScheduleImportPersisted;
-      if (!Array.isArray(parsed.importedRows)) return;
-      this.importedRows = parsed.importedRows;
       if (parsed.selectedWeekday) {
         this.selectedWeekday = parsed.selectedWeekday;
       }
-      void this.rematch();
     } catch (e) {
-      console.error("Failed to hydrate schedule import:", e);
+      console.error("Failed to hydrate schedule weekday:", e);
     }
   };
 
   private persist = () => {
     if (typeof window === "undefined") return;
-    if (this.importedRows.length === 0) {
-      sessionStorage.removeItem(SCHEDULE_IMPORT_SS_KEY);
-      return;
-    }
     const payload: ScheduleImportPersisted = {
-      importedRows: this.importedRows,
       selectedWeekday: this.selectedWeekday,
     };
     sessionStorage.setItem(SCHEDULE_IMPORT_SS_KEY, JSON.stringify(payload));
@@ -850,24 +841,23 @@ class ScheduleRouteStore {
     }
   };
 
-  importText = async (text: string) => {
-    const parsed = parseScheduleImport(text);
-    if (!parsed.ok) {
-      this.importError = parsed.error;
-      return false;
-    }
-
-    this.importedRows = parsed.rows;
+  /** Load the active planner plan's sections as the routed schedule. */
+  importFromPlanner = async () => {
+    plannerStore.init();
+    const rows: ImportedScheduleRow[] = (
+      plannerStore.activePlan?.sections ?? []
+    ).map(({ courseCode, section, type, schedule }) => ({
+      courseCode,
+      section,
+      type,
+      schedule,
+    }));
+    this.importedRows = rows;
     this.importError = null;
     this._roomCoordCache.clear();
     this.clearRoute();
-    this.persist();
     await this.rematch();
-    toastStore.show(
-      `Imported ${parsed.rows.length} schedule row${parsed.rows.length === 1 ? "" : "s"}.`,
-      "success",
-    );
-    return true;
+    return rows.length > 0;
   };
 
   selectWeekday = (weekday: Weekday) => {

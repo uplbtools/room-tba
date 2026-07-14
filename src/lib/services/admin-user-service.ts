@@ -259,6 +259,9 @@ export type AccountProfile = {
   role: SessionUser["role"];
   hasPassword: boolean;
   linkedGoogle: boolean;
+  avatarUrl: string | null;
+  profileUrl: string | null;
+  showInCredits: boolean;
   createdAt: string;
 };
 
@@ -274,6 +277,9 @@ export async function getAccountProfile(
       role: adminUsersTable.role,
       passwordHash: adminUsersTable.passwordHash,
       supabaseUserId: adminUsersTable.supabaseUserId,
+      avatarUrl: adminUsersTable.avatarUrl,
+      profileUrl: adminUsersTable.profileUrl,
+      showInCredits: adminUsersTable.showInCredits,
       createdAt: adminUsersTable.createdAt,
     })
     .from(adminUsersTable)
@@ -290,8 +296,82 @@ export async function getAccountProfile(
     role: row.role ?? "editor",
     hasPassword: hasPassword(row.passwordHash),
     linkedGoogle: row.supabaseUserId !== null,
+    avatarUrl: row.avatarUrl,
+    profileUrl: row.profileUrl,
+    showInCredits: row.showInCredits,
     createdAt: row.createdAt,
   };
+}
+
+function optionalHttpsUrl(value: string | null | undefined, label: string) {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return null;
+  try {
+    if (new URL(trimmed).protocol !== "https:") throw new Error();
+  } catch {
+    throw new AccountActionError(`${label} must be a valid HTTPS URL.`);
+  }
+  return trimmed;
+}
+
+export async function updateAccountProfile(
+  userId: number,
+  input: {
+    displayName: string;
+    avatarUrl?: string | null;
+    profileUrl?: string | null;
+    showInCredits?: boolean;
+  },
+): Promise<void> {
+  const displayName = input.displayName.trim();
+  if (!displayName)
+    throw new AccountActionError("Display name cannot be empty.");
+  if (
+    (input.avatarUrl !== undefined &&
+      input.avatarUrl !== null &&
+      typeof input.avatarUrl !== "string") ||
+    (input.profileUrl !== undefined &&
+      input.profileUrl !== null &&
+      typeof input.profileUrl !== "string")
+  ) {
+    throw new AccountActionError("Avatar and profile URLs must be strings.");
+  }
+  if (
+    typeof input.showInCredits !== "undefined" &&
+    typeof input.showInCredits !== "boolean"
+  ) {
+    throw new AccountActionError("showInCredits must be a boolean.");
+  }
+  const [existing] = await db
+    .select({
+      avatarUrl: adminUsersTable.avatarUrl,
+      profileUrl: adminUsersTable.profileUrl,
+      showInCredits: adminUsersTable.showInCredits,
+    })
+    .from(adminUsersTable)
+    .where(
+      and(eq(adminUsersTable.id, userId), eq(adminUsersTable.isActive, true)),
+    )
+    .limit(1);
+  if (!existing) throw new AccountActionError("Account not found.", 404);
+  await db
+    .update(adminUsersTable)
+    .set({
+      displayName,
+      avatarUrl: optionalHttpsUrl(
+        input.avatarUrl ?? existing.avatarUrl,
+        "Avatar URL",
+      ),
+      profileUrl: optionalHttpsUrl(
+        input.profileUrl ?? existing.profileUrl,
+        "Profile URL",
+      ),
+      showInCredits: input.showInCredits ?? existing.showInCredits,
+      updatedAt: sql`now()`,
+    })
+    .where(
+      and(eq(adminUsersTable.id, userId), eq(adminUsersTable.isActive, true)),
+    );
 }
 
 export async function updateDisplayName(

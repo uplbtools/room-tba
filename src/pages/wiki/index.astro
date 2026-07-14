@@ -1,0 +1,131 @@
+---
+export const prerender = true;
+
+import WikiLayout from "@layouts/WikiLayout.astro";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+
+const title = "Wiki | Room TBA";
+const description =
+  "Plain-language guides to UPLB class schedules, section names, rooms, and campus systems, backed by Room TBA data.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/wiki" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Wiki", path: "/wiki" },
+  ]),
+);
+---
+
+<WikiLayout
+  {title}
+  {description}
+  canonicalPath="/wiki"
+  {structuredData}
+>
+  <header class="wiki-hero">
+    <p class="wiki-eyebrow">Room TBA Wiki</p>
+    <h1 class="wiki-title">The campus details nobody explains</h1>
+    <p class="wiki-lede">
+      Short guides built from Room TBA's schedule and campus data. Each article
+      shows its evidence and the cases where the pattern breaks.
+    </p>
+  </header>
+
+  <section class="wiki-section" aria-labelledby="articles-heading">
+    <h2 id="articles-heading">Articles</h2>
+    <a class="article-card" href="/wiki/section-times">
+      <span class="article-card__kicker">Class schedules · 6 min read</span>
+      <strong>What times do section names correspond to?</strong>
+      <span>
+        Why A and S are early-morning sections, how the two letter sequences
+        work, and what labels such as B3L leave out.
+      </span>
+    </a>
+  </section>
+
+  <section class="wiki-section" aria-labelledby="resources-heading">
+    <h2 id="resources-heading">More UPLB resources</h2>
+    <div class="resource-links">
+      <a href="https://guide.stimmie.dev" target="_blank" rel="noopener noreferrer">
+        UPLB resources and guides <span aria-hidden="true">↗</span>
+      </a>
+      <a href="https://uplbtools.me" target="_blank" rel="noopener noreferrer">
+        More UPLB Tools <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+</WikiLayout>
+
+<style>
+  .wiki-hero {
+    padding: 2rem 0 2.5rem;
+    border-bottom: 1px solid hsl(0, 0%, 88%);
+  }
+
+  .wiki-section {
+    margin-top: 2.5rem;
+  }
+
+  .wiki-section h2 {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+  }
+
+  .article-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 42rem;
+    padding: 1.25rem;
+    border: 1px solid hsl(5, 28%, 82%);
+    border-radius: 1rem;
+    background: hsl(5, 35%, 98%);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      border-color 120ms ease,
+      transform 120ms ease;
+  }
+
+  .article-card:hover,
+  .article-card:focus-visible {
+    border-color: hsl(5, 53%, 50%);
+    transform: translateY(-2px);
+  }
+
+  .article-card__kicker {
+    color: hsl(5, 53%, 36%);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .article-card strong {
+    font-size: 1.35rem;
+    line-height: 1.2;
+  }
+
+  .article-card > span:last-child {
+    color: hsl(0, 0%, 35%);
+    line-height: 1.55;
+  }
+
+  .resource-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .resource-links a {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid hsl(0, 0%, 86%);
+    border-radius: 0.75rem;
+    color: hsl(5, 53%, 32%);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .resource-links a:hover,
+  .resource-links a:focus-visible {
+    background: hsl(5, 35%, 97%);
+  }
+</style>

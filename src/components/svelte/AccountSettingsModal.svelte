@@ -25,6 +25,9 @@
     role: "admin" | "editor" | "contributor";
     hasPassword: boolean;
     linkedGoogle: boolean;
+    avatarUrl: string | null;
+    profileUrl: string | null;
+    showInCredits: boolean;
   };
 
   let frameEl = $state<HTMLDivElement | null>(null);
@@ -32,9 +35,12 @@
   let loadError = $state<string | null>(null);
 
   let displayNameDraft = $state("");
-  let savingDisplayName = $state(false);
-  let displayNameError = $state<string | null>(null);
-  let displayNameSaved = $state(false);
+  let avatarUrlDraft = $state("");
+  let profileUrlDraft = $state("");
+  let showInCreditsDraft = $state(true);
+  let savingProfile = $state(false);
+  let profileError = $state<string | null>(null);
+  let profileSaved = $state(false);
 
   let newEmailDraft = $state("");
   let showChangeEmail = $state(false);
@@ -66,6 +72,9 @@
       }
       profile = (await res.json()) as Profile;
       displayNameDraft = profile.displayName;
+      avatarUrlDraft = profile.avatarUrl ?? "";
+      profileUrlDraft = profile.profileUrl ?? "";
+      showInCreditsDraft = profile.showInCredits;
     } catch {
       loadError = "Network error loading your account.";
     }
@@ -88,33 +97,44 @@
     return trapFocus(frameEl, { onEscape: close });
   });
 
-  async function saveDisplayName() {
+  async function saveProfile() {
     if (!profile) return;
-    savingDisplayName = true;
-    displayNameError = null;
-    displayNameSaved = false;
+    savingProfile = true;
+    profileError = null;
+    profileSaved = false;
     try {
       const res = await fetch("/api/account/me", {
         method: "PATCH",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName: displayNameDraft }),
+        body: JSON.stringify({
+          displayName: displayNameDraft,
+          avatarUrl: avatarUrlDraft,
+          profileUrl: profileUrlDraft,
+          showInCredits: showInCreditsDraft,
+        }),
       });
       const data = await res.json().catch(() => ({}) as { error?: string });
       if (!res.ok) {
-        displayNameError = data.error ?? "Could not save display name.";
+        profileError = data.error ?? "Could not save profile.";
         return;
       }
-      profile = { ...profile, displayName: displayNameDraft.trim() };
+      profile = {
+        ...profile,
+        displayName: displayNameDraft.trim(),
+        avatarUrl: avatarUrlDraft.trim() || null,
+        profileUrl: profileUrlDraft.trim() || null,
+        showInCredits: showInCreditsDraft,
+      };
       await adminAuthStore.refresh();
-      displayNameSaved = true;
+      profileSaved = true;
       setTimeout(() => {
-        displayNameSaved = false;
+        profileSaved = false;
       }, 1800);
     } catch {
-      displayNameError = "Network error. Try again.";
+      profileError = "Network error. Try again.";
     } finally {
-      savingDisplayName = false;
+      savingProfile = false;
     }
   }
 
@@ -284,22 +304,61 @@
               <input
                 id="account-display-name"
                 bind:value={displayNameDraft}
-                disabled={savingDisplayName}
+                disabled={savingProfile}
               />
             {/snippet}
           </EntityEditorFormField>
-          {#if displayNameError}
-            <EntityEditorMessage variant="error" message={displayNameError} />
+          <EntityEditorFormField
+            label="Avatar URL"
+            inputId="account-avatar-url"
+            hint="Optional HTTPS image URL shown in public credits."
+          >
+            {#snippet control()}
+              <input
+                id="account-avatar-url"
+                type="url"
+                placeholder="https://example.com/avatar.png"
+                bind:value={avatarUrlDraft}
+                disabled={savingProfile}
+              />
+            {/snippet}
+          </EntityEditorFormField>
+          <EntityEditorFormField
+            label="Profile URL"
+            inputId="account-profile-url"
+            hint="Optional HTTPS link shown from your public credit."
+          >
+            {#snippet control()}
+              <input
+                id="account-profile-url"
+                type="url"
+                placeholder="https://example.com"
+                bind:value={profileUrlDraft}
+                disabled={savingProfile}
+              />
+            {/snippet}
+          </EntityEditorFormField>
+          <label class="credits-visibility">
+            <input type="checkbox" bind:checked={showInCreditsDraft} disabled={savingProfile} />
+            Show my contributions in public credits
+          </label>
+          {#if profileError}
+            <EntityEditorMessage variant="error" message={profileError} />
           {/if}
-          {#if displayNameSaved}
-            <EntityEditorMessage variant="success" message="Display name saved." />
+          {#if profileSaved}
+            <EntityEditorMessage variant="success" message="Profile saved." />
           {/if}
           <EntityEditorSubmitButton
-            label="Save display name"
+            label="Save profile"
             savingLabel="Saving…"
-            saving={savingDisplayName}
-            disabled={displayNameDraft.trim() === profile.displayName}
-            onclick={saveDisplayName}
+            saving={savingProfile}
+            disabled={
+              displayNameDraft.trim() === profile.displayName &&
+              avatarUrlDraft.trim() === (profile.avatarUrl ?? "") &&
+              profileUrlDraft.trim() === (profile.profileUrl ?? "") &&
+              showInCreditsDraft === profile.showInCredits
+            }
+            onclick={saveProfile}
           />
 
           <EntityEditorFormField label="Email" inputId="account-email">
@@ -575,6 +634,13 @@
     cursor: pointer;
     text-decoration: underline;
     text-underline-offset: 2px;
+  }
+
+  .credits-visibility {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
   }
   .settings-link-btn--danger {
     color: #9a1b1b;

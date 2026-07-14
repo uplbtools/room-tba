@@ -124,7 +124,7 @@ Job-level filter inside reusable callers is not visible to `workflow_run`: use *
 | `mobile-touch-drag.spec.ts` | Touch drag mobile |
 | `offline-boot.spec.ts` | Offline bootstrap |
 | `offline-pwa.spec.ts` | PWA installability hints |
-| `schedule-import.spec.ts` | Schedule import UI |
+| `schedule-import.spec.ts` | Planner-sourced day route UI |
 | `transit-jeepney.spec.ts` | Jeepney layer |
 
 ### Staging live URL (`playwright.staging.config.ts`)

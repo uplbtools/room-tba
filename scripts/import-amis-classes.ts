@@ -15,10 +15,11 @@
  *   --no-replace       Legacy alias; upsert without stale removal (default)
  *
  * Default import upserts by natural key (term + course + section + type).
- * See docs/amis-com-refresh-runbook.md for COM refresh workflow.
+ * See docs/amis-com-refresh-runbook.md and docs/amis-contingency-runbook.md.
  *
  * CRS term_id is chronological within the AY: 1251 = 1st sem, 1252 = 2nd sem, 1253 = midyear.
  * LEC and LAB rows are imported even when the room is unresolved; roomId stays null so the planner still sees the section.
+ * Thesis, special problem, dissertation, practicum, and independent study import with roomId null when AMIS has no facility.
  * Local exports live at data/amis-*-{termId}.json (gitignored).
  * AMIS responses include instructor names — never commit raw exports or store names.
  */
@@ -35,10 +36,12 @@ import { dirname } from "node:path";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import {
   aliasesTable,
   classesTable,
   roomsTable,
+  termsTable,
   updateTable,
 } from "@drizzle/schema";
 import { fetchAmisClasses } from "@lib/amis/fetch-classes";
@@ -56,7 +59,11 @@ import {
   amisExportContainsInstructorPii,
   sanitizeAmisRows,
 } from "@lib/amis/sanitize-row";
-import { randomUUID } from "node:crypto";
+import {
+  amisImportExitCode,
+  AmisImportError,
+  operatorHintForCode,
+} from "@lib/amis/import-errors";
 
 config({ path: ".env" });
 
@@ -135,7 +142,10 @@ function loadSanitizedExport(path: string, expectedTermId: number) {
   }
   const rows = sanitizeAmisRows(extractClassRows(payload));
   if (rows.length === 0) {
-    throw new Error(`${path} did not contain any class rows.`);
+    throw new AmisImportError(
+      "SCHEMA_MISMATCH",
+      `${path} did not contain any class rows.`,
+    );
   }
   return rows;
 }
@@ -174,7 +184,10 @@ async function resolveRawRows(options: CliOptions) {
   if (options.fetch) {
     const bearerToken = process.env.AMIS_BEARER_TOKEN?.trim();
     if (!bearerToken) {
-      throw new Error("AMIS_BEARER_TOKEN is required for --fetch");
+      throw new AmisImportError(
+        "AUTH_EXPIRED",
+        "AMIS_BEARER_TOKEN is required for --fetch",
+      );
     }
     console.log(`Fetching AMIS classes for term_id=${options.termId}…`);
     const fetched = await fetchAmisClasses({
@@ -199,7 +212,8 @@ async function resolveRawRows(options: CliOptions) {
     return rows;
   }
 
-  throw new Error(
+  throw new AmisImportError(
+    "MISSING_EXPORT",
     `No local export at ${exportPath}. Run once with --fetch to download from AMIS and save JSON.`,
   );
 }
@@ -211,7 +225,7 @@ async function main() {
     console.error(
       "Refusing AMIS --fetch in CI (token expiry and manual ops only). Use cached JSON or unit tests.",
     );
-    process.exit(1);
+    process.exit(amisImportExitCode("CI_FETCH_BLOCKED"));
   }
 
   if (options.scrubExports) {
@@ -222,7 +236,7 @@ async function main() {
   const connectionString = process.env.DATABASE_URL?.trim();
   if (!connectionString && !options.dryRun) {
     console.error("DATABASE_URL is required unless --dry-run");
-    process.exit(1);
+    process.exit(amisImportExitCode("MISSING_DATABASE_URL"));
   }
 
   const rawRows = await resolveRawRows(options);
@@ -233,7 +247,7 @@ async function main() {
 
   if (normalized.length === 0) {
     console.error("No rows could be normalized — inspect the local export.");
-    process.exit(1);
+    process.exit(amisImportExitCode("NO_NORMALIZED_ROWS"));
   }
 
   if (options.dryRun) {
@@ -329,6 +343,10 @@ async function main() {
       }
 
       await refreshSyncKey(tx, "classes");
+      await tx
+        .update(termsTable)
+        .set({ classesImportedAt: new Date().toISOString() })
+        .where(eq(termsTable.id, options.termId));
     });
 
     console.log(
@@ -347,6 +365,11 @@ async function main() {
 }
 
 main().catch((error) => {
+  if (error instanceof AmisImportError) {
+    console.error(`${error.code}: ${error.message}`);
+    console.error(`Operator: ${operatorHintForCode(error.code)}`);
+    process.exit(amisImportExitCode(error.code));
+  }
   console.error(error instanceof Error ? error.message : error);
-  process.exit(1);
+  process.exit(amisImportExitCode("UNKNOWN"));
 });

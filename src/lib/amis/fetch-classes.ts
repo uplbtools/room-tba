@@ -1,4 +1,5 @@
 import { extractClassRows } from "./normalize-class";
+import { AmisImportError, classifyAmisHttpStatus } from "./import-errors";
 import type { AmisClassRow, AmisFetchOptions } from "./types";
 
 const AMIS_CLASSES_URL = "https://api-amis.uplb.edu.ph/api/students/classes";
@@ -88,7 +89,11 @@ async function fetchAmisPage(
       typeof (payload as { message: unknown }).message === "string"
         ? (payload as { message: string }).message
         : `HTTP ${response.status}`;
-    throw new Error(`AMIS fetch failed (page ${page}): ${message}`);
+    const code = classifyAmisHttpStatus(response.status);
+    throw new AmisImportError(
+      code,
+      `AMIS fetch failed (page ${page}): ${message}`,
+    );
   }
 
   return payload;
@@ -145,7 +150,8 @@ export async function fetchAmisClasses(
   } while (page <= lastPage);
 
   if (rows.length === 0) {
-    throw new Error(
+    throw new AmisImportError(
+      "SCHEMA_MISMATCH",
       "AMIS response did not contain class rows — check token, term_id, or response shape.",
     );
   }

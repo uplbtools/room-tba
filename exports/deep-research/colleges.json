@@ -1,34 +1,79 @@
 [
   {
     "id": 1,
-    "collegeName": "College of Agriculture and Food Science"
+    "collegeName": "College of Agriculture and Food Science",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
   },
   {
     "id": 2,
-    "collegeName": "College of Arts and Sciences"
+    "collegeName": "College of Arts and Sciences",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
   },
   {
     "id": 3,
-    "collegeName": "College of Development Communication"
+    "collegeName": "College of Development Communication",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
   },
   {
     "id": 4,
-    "collegeName": "College of Economics and Management"
+    "collegeName": "College of Economics and Management",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
   },
   {
     "id": 5,
-    "collegeName": "College of Engineering and Agro-Industrial Technology"
+    "collegeName": "College of Engineering and Agro-Industrial Technology",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
   },
   {
     "id": 6,
-    "collegeName": "College of Forestry and Natural Resources"
+    "collegeName": "College of Forestry and Natural Resources",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
   },
   {
     "id": 7,
-    "collegeName": "College of Human Ecology"
+    "collegeName": "College of Human Ecology",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
   },
   {
     "id": 8,
-    "collegeName": "College of Veterinary Medicine"
+    "collegeName": "College of Veterinary Medicine",
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.55"
+  },
+  {
+    "id": 9,
+    "collegeName": "College of Public Affairs and Development (CPAf)",
+    "websiteLink": "https://cpaf.uplb.edu.ph",
+    "version": 1,
+    "updatedAt": "2026-07-11 14:24:04.828665"
+  },
+  {
+    "id": 10,
+    "collegeName": "School of Environmental Science and Management (SESAM)",
+    "websiteLink": "https://sesam.uplb.edu.ph",
+    "version": 1,
+    "updatedAt": "2026-07-11 14:24:05.015275"
+  },
+  {
+    "id": 11,
+    "collegeName": "Graduate School",
+    "websiteLink": "https://gs.uplb.edu.ph",
+    "version": 1,
+    "updatedAt": "2026-07-11 14:24:05.18875"
   }
 ]

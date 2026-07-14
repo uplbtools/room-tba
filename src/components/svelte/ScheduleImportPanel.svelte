@@ -1,10 +1,11 @@
 <script lang="ts">
   import {
     locationStore,
+    plannerStore,
     scheduleRouteStore,
     type Weekday,
   } from "@lib/store.svelte";
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
   import { flip } from "svelte/animate";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
   import { WEEKDAY_LABELS, WEEKDAYS } from "@lib/schedule-import/types";
@@ -15,23 +16,32 @@
 
   let { embedded = false }: Props = $props();
 
-  let pasteText = $state("");
-
-  const pastePlaceholder =
-    '[{"course_code":"CMSC 123","section":"A","type":"LEC","schedule":["MW 08:00AM-09:00AM"]}]';
   const routeActive = $derived(
     scheduleRouteStore.routedWeekday === scheduleRouteStore.selectedWeekday &&
       locationStore.routeWaypoints !== null,
   );
 
+  // Natural keys + slots of the active plan; drives reload when the plan changes.
+  const planKey = $derived(
+    (plannerStore.activePlan?.sections ?? [])
+      .map((s) => `${s.courseCode}::${s.section}::${s.type}::${s.schedule.join("|")}`)
+      .join(";"),
+  );
+
   onMount(() => {
     scheduleRouteStore.init();
+    plannerStore.init();
   });
 
-  async function handleImport() {
-    const ok = await scheduleRouteStore.importText(pasteText);
-    if (ok) pasteText = "";
-  }
+  // Track only planKey; importFromPlanner reads/writes other stores and must
+  // stay out of the effect's dependency graph (effect_update_depth_exceeded).
+  let lastPlanKey: string | null = null;
+  $effect(() => {
+    const key = planKey;
+    if (key === lastPlanKey) return;
+    lastPlanKey = key;
+    untrack(() => void scheduleRouteStore.importFromPlanner());
+  });
 
   function selectWeekday(day: Weekday) {
     scheduleRouteStore.selectWeekday(day);
@@ -44,11 +54,6 @@
   function clearRoute() {
     scheduleRouteStore.clearRoute();
   }
-
-  function clearImport() {
-    scheduleRouteStore.clearImport();
-    pasteText = "";
-  }
 </script>
 
 <div
@@ -56,21 +61,10 @@
   class:schedule-import-panel--embedded={embedded}
 >
   <p class="schedule-import-panel__note">
-    Your imported schedule stays in this browser tab and is never uploaded. We
-    match your rows against the official class list for the current term. Your
-    enlistment account is not touched.
+    Class stops come from your Planner plan for the current term. Everything
+    stays on this device.
   </p>
   <p class="schedule-import-panel__scope">{scheduleRouteStore.scopeNote}</p>
-
-  <label class="schedule-import-panel__label" for="schedule-import-paste">
-    Paste JSON or CSV export
-  </label>
-  <textarea
-    id="schedule-import-paste"
-    class="schedule-import-panel__textarea"
-    bind:value={pasteText}
-    rows="4"
-    placeholder={pastePlaceholder}></textarea>
 
   {#if scheduleRouteStore.importError}
     <p class="schedule-import-panel__error" role="alert">
@@ -78,25 +72,24 @@
     </p>
   {/if}
 
-  <div class="schedule-import-panel__actions">
-    <button
-      type="button"
-      class="schedule-import-panel__primary"
-      disabled={!pasteText.trim() || scheduleRouteStore.matching}
-      onclick={handleImport}
-    >
-      {scheduleRouteStore.matching ? "Matching…" : "Import schedule"}
-    </button>
-    {#if scheduleRouteStore.hasImport}
-      <button
-        type="button"
-        class="schedule-import-panel__secondary"
-        onclick={clearImport}
+  {#if scheduleRouteStore.hasImport}
+    <p class="schedule-import-panel__plan">
+      Plan {plannerStore.activePlan?.label ?? ""} ·
+      {scheduleRouteStore.importedRows.length} section{scheduleRouteStore
+        .importedRows.length === 1
+        ? ""
+        : "s"}
+      <a class="schedule-import-panel__planner-link" href="/planner"
+        >Edit in Planner</a
       >
-        Clear
-      </button>
-    {/if}
-  </div>
+    </p>
+  {:else if !scheduleRouteStore.matching}
+    <p class="schedule-import-panel__empty">
+      No plan for this term yet. Build one in the
+      <a class="schedule-import-panel__planner-link" href="/planner">Planner</a>
+      and your class stops will show up here.
+    </p>
+  {/if}
 
   {#if scheduleRouteStore.hasImport}
     <div
@@ -223,34 +216,22 @@
     color: hsl(0, 0%, 22%);
   }
 
-  .schedule-import-panel__label {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: hsl(5, 53%, 22%);
-  }
-
-  .schedule-import-panel__textarea {
-    box-sizing: border-box;
-    width: 100%;
-    min-height: 5.5rem;
-    padding: 0.5rem 0.625rem;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    border-radius: 0.5rem;
-    font: inherit;
-    font-size: 0.8125rem;
-    resize: vertical;
-  }
-
   .schedule-import-panel__error {
     margin: 0;
     font-size: 0.8125rem;
     color: hsl(0, 65%, 40%);
   }
 
-  .schedule-import-panel__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
+  .schedule-import-panel__plan {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: hsl(5, 53%, 22%);
+  }
+
+  .schedule-import-panel__planner-link {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: underline;
   }
 
   .schedule-import-panel__primary,
