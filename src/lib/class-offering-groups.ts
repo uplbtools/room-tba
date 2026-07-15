@@ -41,36 +41,6 @@ export function offeringGroupKey(
   return `${courseCode}::${section}`;
 }
 
-/**
- * Parent-lecture (courseCode, section) pairs that a lab/recit in `classes`
- * points to but that aren't present — e.g. in a room view, the lecture meets
- * in a different room so it isn't in that room's class list. Callers fetch
- * these and merge them in so groupClassesByOffering can attach the lecture.
- */
-export function missingParentLectures(
-  classes: ClassMapValue[],
-): { courseCode: string; section: string }[] {
-  const presentLectures = new Set(
-    classes
-      .filter((row) => classType(row) === "LEC")
-      .map(
-        (row) =>
-          `${row.courseCode}::${(row.section ?? "").trim().toUpperCase()}`,
-      ),
-  );
-  const seen = new Set<string>();
-  const out: { courseCode: string; section: string }[] = [];
-  for (const row of classes) {
-    const section = parentLectureSection(row);
-    if (!section || !row.courseCode) continue;
-    const key = `${row.courseCode}::${section}`;
-    if (presentLectures.has(key) || seen.has(key)) continue;
-    seen.add(key);
-    out.push({ courseCode: row.courseCode, section });
-  }
-  return out;
-}
-
 /** Group LEC/LAB/SEM rows that share course code + section (#301). */
 export function groupClassesByOffering(
   classes: ClassMapValue[],

@@ -77,7 +77,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", version, updated_at AS "updatedAt" FROM buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", cr_facilities AS "crFacilities", version, updated_at AS "updatedAt" FROM buildings
       `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {

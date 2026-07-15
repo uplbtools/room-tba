@@ -95,9 +95,10 @@
 
   .submitter-name-hint {
     margin: 0.125rem 0 0;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
     font-weight: 500;
-    color: hsl(0, 0%, 48%);
+    color: hsl(0, 0%, 34%);
   }
 
   .submitter-name-hint.at-limit {

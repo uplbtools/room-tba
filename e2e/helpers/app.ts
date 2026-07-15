@@ -38,7 +38,7 @@ export async function dismissLandingIfPresent(page: Page) {
   await modal.waitFor({ state: "hidden", timeout: 15_000 }).catch(() => {});
 }
 
-/** Wait until map chrome is interactive (loading shell gone, browse chips clickable). */
+/** Wait until map chrome is interactive (loading shell gone, search ready). */
 export async function waitForAppBoot(page: Page, timeout = 120_000) {
   await dismissLandingIfPresent(page);
 
@@ -49,11 +49,11 @@ export async function waitForAppBoot(page: Page, timeout = 120_000) {
 
   await dismissLandingIfPresent(page);
 
-  // The browse chips are gone; the term chip is the always-present signal that
-  // the search chrome finished booting.
-  const termChip = page.locator(".term-filter-chip").first();
-  await termChip.waitFor({ state: "visible", timeout: 30_000 });
-  await termChip.click({ trial: true, timeout: 30_000 });
+  // Search is present in every map mode. The retired term chip was removed
+  // from the chrome, so it must not gate the entire E2E suite.
+  const search = campusSearchBox(page);
+  await search.waitFor({ state: "visible", timeout: 30_000 });
+  await search.focus();
 }
 
 export async function gotoHome(page: Page) {

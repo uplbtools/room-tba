@@ -946,7 +946,7 @@
     color: hsl(0, 0%, 65%);
     font-style: italic;
   }
-  
+
   .planner-offering__part-note:focus {
     outline: none;
     color: hsl(0, 0%, 15%);

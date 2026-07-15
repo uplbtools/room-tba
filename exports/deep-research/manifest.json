@@ -1,14 +1,14 @@
 {
-  "exported_at": "2026-06-24T15:07:59.977Z",
-  "term_target": "AY 2025-2026 2nd Semester",
-  "source": "sqlite",
+  "exported_at": "2026-07-13T17:04:37.828Z",
+  "term_target": "AY 2025-2026 Midyear",
+  "source": "postgres",
   "counts": {
     "buildings": 52,
-    "colleges": 8,
+    "colleges": 11,
     "divisions": 43,
     "dorms": 14,
-    "rooms": 527,
-    "classes": 10561
+    "rooms": 530,
+    "classes": 35607
   },
   "files": [
     "buildings.json",
