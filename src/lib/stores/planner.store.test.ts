@@ -36,7 +36,7 @@ describe("PlannerStore", () => {
     ];
     store.addOffering(rows);
     store.addOffering(rows);
-    expect(store.activePlan?.label).toBe("Plan 1");
+    expect(store.activePlan?.label).toBe("Untitled Plan 1");
     expect(store.activePlan?.sections).toHaveLength(2);
     expect(store.addedKeys.has("CMSC 128::AB-1L")).toBe(true);
   });
@@ -118,15 +118,17 @@ describe("PlannerStore", () => {
     expect(store.plans).toEqual([]);
   });
 
-  test("plans are per term and labels count up Plan 1, Plan 2", () => {
+  test("plans are per term and labels count up Untitled Plan 1, Untitled Plan 2", () => {
     const store = makeStore();
     store.addOffering([row({})]);
     const planB = store.createPlan();
-    expect(planB?.label).toBe("Plan 2");
+    expect(planB?.label).toBe("Untitled Plan 2");
     expect(store.activePlan?.id).toBe(planB?.id);
     expect(store.plansForTerm).toHaveLength(2);
     store.addOffering([row({ id: 3, termId: 1253, courseCode: "MATH 27" })]);
-    expect(store.plans.find((p) => p.termId === 1253)?.label).toBe("Plan 1");
+    expect(store.plans.find((p) => p.termId === 1253)?.label).toBe(
+      "Untitled Plan 1",
+    );
     expect(store.plansForTerm).toHaveLength(2); // active term still 1252
   });
 
@@ -149,7 +151,7 @@ describe("PlannerStore", () => {
     expect(store.plansForTerm).toHaveLength(1);
     expect(store.activePlan?.id).not.toBe(only.id);
     expect(store.activePlan?.sections).toEqual([]);
-    expect(store.activePlan?.label).toBe("Plan 1");
+    expect(store.activePlan?.label).toBe("Untitled Plan 1");
   });
 
   test("ensurePlanForActiveTerm creates a plan when the term has none", () => {
@@ -183,7 +185,7 @@ describe("PlannerStore", () => {
 
     const rehydrated = makeStore();
     expect(rehydrated.activePlan?.sections).toHaveLength(1);
-    expect(rehydrated.activePlan?.label).toBe("Plan 1");
+    expect(rehydrated.activePlan?.label).toBe("Untitled Plan 1");
   });
 
   test("importShared creates and selects a new plan", () => {
@@ -200,7 +202,7 @@ describe("PlannerStore", () => {
       },
     ]);
     expect(store.activePlan?.id).toBe(imported.id);
-    expect(imported.label).toBe("Plan 2");
+    expect(imported.label).toBe("Untitled Plan 2");
   });
 
   test("refreshActivePlan updates matches and marks misses stale", () => {
@@ -219,7 +221,7 @@ describe("PlannerStore", () => {
     const copy = store.duplicatePlan(source.id);
     expect(copy).not.toBeNull();
     expect(copy!.id).not.toBe(source.id);
-    expect(copy!.label).toBe("Plan 1 copy");
+    expect(copy!.label).toBe("Untitled Plan 1 copy");
     expect(copy!.sections).toHaveLength(2);
     // Deep copy — mutating the copy must not touch the source.
     copy!.sections.pop();
@@ -233,19 +235,21 @@ describe("PlannerStore", () => {
     const source = store.activePlan!;
     store.duplicatePlan(source.id);
     const second = store.duplicatePlan(source.id);
-    expect(second!.label).toBe("Plan 1 copy (2)");
+    expect(second!.label).toBe("Untitled Plan 1 copy (2)");
   });
 
   test("renamePlan trims, ignores empty, and de-duplicates", () => {
     const store = makeStore();
     store.addOffering([row({})]);
     const a = store.activePlan!;
-    const b = store.createPlan()!; // "Plan 2"
+    const b = store.createPlan()!; // "Untitled Plan 2"
     store.renamePlan(a.id, "  My schedule  ");
     expect(store.plans.find((p) => p.id === a.id)?.label).toBe("My schedule");
     // Empty rename is ignored.
     store.renamePlan(b.id, "   ");
-    expect(store.plans.find((p) => p.id === b.id)?.label).toBe("Plan 2");
+    expect(store.plans.find((p) => p.id === b.id)?.label).toBe(
+      "Untitled Plan 2",
+    );
     // Collision with an existing label gets a numeric suffix.
     store.renamePlan(b.id, "My schedule");
     expect(store.plans.find((p) => p.id === b.id)?.label).toBe(
