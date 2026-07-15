@@ -2,6 +2,7 @@
 export const PUBLIC_SUPABASE_URL = undefined;
 export const PUBLIC_SUPABASE_PUBLISHABLE_KEY = undefined;
 export const PUBLIC_MAPTILER_KEY = undefined;
+export const PUBLIC_APP_ENV = undefined;
 export const PUBLIC_TURNSTILE_SITE_KEY = undefined;
 export const DD_RUM_APPLICATION_ID = undefined;
 export const DD_RUM_CLIENT_TOKEN = undefined;
