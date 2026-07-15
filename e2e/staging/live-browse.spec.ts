@@ -8,7 +8,9 @@ test.describe("staging browse", () => {
     await expect(
       page.getByRole("searchbox", { name: /search campus/i }),
     ).toBeVisible();
-    await expect(page.locator(".term-filter-chip")).toBeVisible();
+    // Term chip lives in entity/class panels now, not the base map chrome, so
+    // it is not asserted on plain boot. See data-fidelity.spec.ts for the
+    // active-semester data check.
   });
 });
 
