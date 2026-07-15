@@ -4,7 +4,8 @@
   import ImageDown from "@lucide/svelte/icons/image-down";
   import Pencil from "@lucide/svelte/icons/pencil";
   import Copy from "@lucide/svelte/icons/copy";
-  import Trash2 from "@lucide/svelte/icons/trash-2";
+  import Plus from "@lucide/svelte/icons/plus";
+  import X from "@lucide/svelte/icons/x";
   import { fly } from "svelte/transition";
   import { trapFocus } from "@lib/focus-trap";
   import { fullScreenDismiss, fullScreenReveal } from "@lib/motion";
@@ -30,8 +31,8 @@
   import PlannerCourseSearch from "./PlannerCourseSearch.svelte";
   import PlannerGrid from "./PlannerGrid.svelte";
   import type { ClassMapValue, FinalExamRow } from "@lib/types";
+  import { tick } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
-  import { Plus } from "@lucide/svelte";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
@@ -201,21 +202,19 @@
     (plan?.sections ?? []).some((s) => !s.stale && !isUnscheduled(s)),
   );
 
-  let confirmingDelete = $state(false);
-
-  function confirmDeletePlan() {
-    if (!plan) return;
-    plannerStore.deletePlan(plan.id);
-    confirmingDelete = false;
-  }
-
   // --- Rename -------------------------------------------------------------
   let renaming = $state(false);
   let renameDraft = $state("");
 
-  function startRename() {
-    if (!plan) return;
-    renameDraft = plan.label;
+  async function startRename(tabPlan?: { id: string; label: string }) {
+    const target = tabPlan ?? plan;
+    if (!target) return;
+    if (plan?.id !== target.id) {
+      plannerStore.selectPlan(target.id);
+      // Plan-switch effect clears renaming; wait a tick before enabling it.
+      await tick();
+    }
+    renameDraft = target.label;
     renaming = true;
   }
 
@@ -233,14 +232,19 @@
   // Focus + select the rename field the moment it appears.
   function autofocus(node: HTMLInputElement) {
     node.focus();
-    node.select();
   }
 
-  // Switching plans cancels a pending delete confirmation or rename.
+  // Switching plans cancels an in-progress rename.
   $effect(() => {
     void plan?.id;
-    confirmingDelete = false;
     renaming = false;
+  });
+
+  // Never leave the active term with zero plans — empty chrome is unusable.
+  $effect(() => {
+    void plannerStore.activeTermId;
+    void plannerStore.plansForTerm.length;
+    plannerStore.ensurePlanForActiveTerm();
   });
 
   $effect(() => {
@@ -381,30 +385,62 @@
 
   <div class="planner-tabs" role="tablist" aria-label="Plans">
     {#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
-      {#if renaming && tabPlan.id === plan?.id}
-        <input
-          class="planner-tab planner-tab--rename"
-          bind:value={renameDraft}
-          onkeydown={onRenameKeydown}
-          onblur={commitRename}
-          use:autofocus
-          aria-label="Rename plan"
-          maxlength="40"
-        />
-      {:else}
-        <button
-          type="button"
-          role="tab"
-          class="planner-tab"
-          class:planner-tab--active={tabPlan.id === plan?.id}
-          aria-selected={tabPlan.id === plan?.id}
-          onclick={() => plannerStore.selectPlan(tabPlan.id)}
-          ondblclick={() =>
-            tabPlan.id === plan?.id ? startRename() : undefined}
-        >
-          {tabPlan.label}
-        </button>
-      {/if}
+      <div
+        class="planner-tab-item"
+        class:planner-tab-item--active={tabPlan.id === plan?.id}
+      >
+        {#if renaming && tabPlan.id === plan?.id}
+          <input
+            class="planner-tab planner-tab--rename"
+            bind:value={renameDraft}
+            onkeydown={onRenameKeydown}
+            onblur={commitRename}
+            use:autofocus
+            aria-label="Rename plan"
+            maxlength="40"
+          />
+        {:else}
+          <button
+            type="button"
+            role="tab"
+            class="planner-tab"
+            aria-selected={tabPlan.id === plan?.id}
+            onclick={() => plannerStore.selectPlan(tabPlan.id)}
+            ondblclick={() => startRename(tabPlan)}
+          >
+            <span class="planner-tab__name">{tabPlan.label}</span>
+          </button>
+          <div class="planner-tab__actions">
+            <button
+              type="button"
+              class="planner-tab__action"
+              onclick={() => startRename(tabPlan)}
+              aria-label="Rename {tabPlan.label}"
+              title="Rename"
+            >
+              <Pencil size={12} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="planner-tab__action"
+              onclick={() => plannerStore.duplicatePlan(tabPlan.id)}
+              aria-label="Duplicate {tabPlan.label}"
+              title="Duplicate"
+            >
+              <Copy size={12} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="planner-tab__action planner-tab__action--danger"
+              onclick={() => plannerStore.deletePlan(tabPlan.id)}
+              aria-label="Delete {tabPlan.label}"
+              title="Delete"
+            >
+              <X size={12} aria-hidden="true" />
+            </button>
+          </div>
+        {/if}
+      </div>
     {/each}
     <div class="planner-tab__tools">
       <button
@@ -415,81 +451,6 @@
       >
         <Plus size={16} aria-hidden="true" />
       </button>
-      {#if plan && !renaming}
-        <button
-          type="button"
-          class="planner-tab__tool"
-          onclick={startRename}
-          aria-label="Rename {plan.label}"
-          title="Rename {plan.label}"
-        >
-          <Pencil size={13} aria-hidden="true" />
-          <span class="planner-tab__label">Rename</span>
-        </button>
-        <button
-          type="button"
-          class="planner-tab__tool"
-          onclick={() => plannerStore.duplicatePlan(plan.id)}
-          aria-label="Duplicate {plan.label}"
-          title="Duplicate {plan.label}"
-        >
-          <Copy size={13} aria-hidden="true" />
-          <span class="planner-tab__label">Duplicate</span>
-        </button>
-      {/if}
-      {#if plan}
-        {#if confirmingDelete}
-          <span
-            class="planner-delete-confirm"
-            role="group"
-            aria-label="Confirm delete plan"
-          >
-            <span class="planner-delete-confirm__label"
-              >Delete {plan.label}?</span
-            >
-            <button
-              type="button"
-              class="planner-tab planner-tab--delete"
-              onclick={confirmDeletePlan}
-            >
-              Delete
-            </button>
-            <button
-              type="button"
-              class="planner-tab"
-              onclick={() => (confirmingDelete = false)}
-            >
-              Cancel
-            </button>
-          </span>
-        {:else}
-          <button
-            type="button"
-            class="planner-tab__tool planner-tab--delete"
-            onclick={() => (confirmingDelete = true)}
-            aria-label="Delete {plan.label}"
-            title="Delete {plan.label}"
-          >
-            <Trash2 size={13} aria-hidden="true" />
-            <span class="planner-tab__label">Delete</span>
-          </button>
-        {/if}
-      {/if}
-      {#if plannerStore.conflicts.length > 0}
-        <span class="planner-conflict-badge" role="status">
-          {plannerStore.conflicts.length} conflict{plannerStore.conflicts
-            .length === 1
-            ? ""
-            : "s"}
-        </span>
-      {:else if plan && plan.sections.length > 0}
-        <span
-          class="planner-conflict-badge planner-conflict-badge--clear"
-          role="status"
-        >
-          All clear
-        </span>
-      {/if}
     </div>
   </div>
 
@@ -524,6 +485,21 @@
       <section class="planner-side" aria-label="Plan details">
         <h2 class="planner-side__heading">
           Sections ({offerings.length})
+          {#if plannerStore.conflicts.length > 0}
+            <span class="planner-conflict-badge" role="status">
+              {plannerStore.conflicts.length} conflict{plannerStore.conflicts
+                .length === 1
+                ? ""
+                : "s"}
+            </span>
+          {:else if plan && plan.sections.length > 0}
+            <span
+              class="planner-conflict-badge planner-conflict-badge--clear"
+              role="status"
+            >
+              All clear
+            </span>
+          {/if}
         </h2>
         <p class="planner-side__hint" role="note">
           Room TBA cannot show instructor names from AMIS. Write the professor
@@ -753,40 +729,27 @@
     overflow-x: auto;
   }
 
-  .planner-tab {
-    all: unset;
-    box-sizing: border-box;
+  /* Prefer a fixed tab width; flex-shrink compresses when the row is tight. */
+  .planner-tab-item {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    align-self: stretch;
-    min-width: 2rem;
-    padding: 0.5rem 0.875rem;
+    align-items: stretch;
+    flex: 0 1 13rem;
+    width: 13rem;
+    min-width: 7.5rem;
+    max-width: 13rem;
     border: 1px solid transparent;
     border-bottom: none;
     border-radius: 0.5rem 0.5rem 0 0;
     background: transparent;
-    text-align: center;
-    font-size: 0.75rem;
-    font-weight: 600;
     color: hsl(0, 0%, 35%);
-    cursor: pointer;
-    white-space: nowrap;
   }
 
-  .planner-tab:hover,
-  .planner-tab:focus-visible {
+  .planner-tab-item:hover {
     background: hsl(0, 0%, 98%);
     color: hsl(5, 53%, 28%);
   }
 
-  .planner-tab:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: -2px;
-  }
-
-  .planner-tab--active {
+  .planner-tab-item--active {
     position: relative;
     z-index: 1;
     margin-bottom: -1px;
@@ -795,87 +758,134 @@
     color: hsl(5, 53%, 28%);
   }
 
-  .planner-tab--active:hover {
+  .planner-tab-item--active:hover {
     background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
     color: hsl(5, 53%, 28%);
   }
 
-  .planner-tab--rename {
-    width: min-content;
-    border-color: hsl(5, 53%, 50%);
-    background: white;
-    color: hsl(0, 0%, 15%);
-    text-align: left;
-  }
-
-  .planner-tab__tool--new,
-  .planner-tab__tool {
+  .planner-tab {
     all: unset;
     box-sizing: border-box;
-    border-radius: 1rem;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    padding: 0.5rem 0.25rem 0.5rem 0.75rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .planner-tab:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: -2px;
+  }
+
+  .planner-tab__name {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .planner-tab__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: center;
+    gap: 0.05rem;
+    padding-inline-end: 0.25rem;
+  }
+
+  .planner-tab__action {
+    all: unset;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    color: inherit;
     cursor: pointer;
+  }
+
+  .planner-tab__action:hover,
+  .planner-tab__action:focus-visible {
+    background: hsl(5, 30%, 90%);
+    color: hsl(5, 53%, 28%);
+  }
+
+  .planner-tab__action--danger:hover,
+  .planner-tab__action--danger:focus-visible {
+    background: hsl(0, 60%, 92%);
+    color: hsl(0, 60%, 32%);
+  }
+
+  .planner-tab__action:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
+  }
+
+  .planner-tab--rename {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    background: white;
+    color: hsl(0, 0%, 15%);
     font: inherit;
     font-size: 0.75rem;
     font-weight: 600;
-    border: 1px solid transparent;
+    text-align: left;
+    box-shadow: inset 0 0 0 1px hsl(5, 53%, 50%);
   }
 
-  .planner-tab__tool {
-    padding: 0.25rem 0.5rem;
-    background-color: hsl(0, 0%, 98%);
-    border-color: hsl(0, 0%, 86%);
+  .planner-tab-item:has(.planner-tab--rename) {
+    border-color: hsl(5, 53%, 50%);
+    background: white;
   }
 
   .planner-tab__tool--new {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 0.25rem;
+    border: 1px solid transparent;
+    border-radius: 1rem;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+
+  .planner-tab__tool--new:hover,
+  .planner-tab__tool--new:focus-visible {
+    border-color: hsl(5, 53%, 55%);
+    background: hsl(5, 53%, 97%);
+  }
+
+  .planner-tab__tool--new:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 1px;
   }
 
   .planner-tab__tools {
     display: flex;
+    flex: 0 0 auto;
     align-self: stretch;
     align-items: center;
     font-size: 0.75rem;
     gap: 0.5rem;
     padding-left: 0.5rem;
-  }
-
-  /* .planner-tab__tool--new:hover, */
-  /* .planner-tab__tool--new:focus-visible, */
-  .planner-tab__tool:hover,
-  .planner-tab__tool:focus-visible {
-    /* background: hsl(0, 0%, 98%); */
-    border-color: hsl(5, 53%, 55%);
-    background: hsl(5, 53%, 97%);
-  }
-
-  .planner-tab--delete {
-    color: hsl(0, 60%, 40%);
-  }
-
-  .planner-tab--delete:hover,
-  .planner-tab--delete:focus-visible {
-    background: hsl(0, 85%, 97%);
-    color: hsl(0, 60%, 32%);
-  }
-
-  .planner-delete-confirm {
-    display: inline-flex;
-    align-items: center;
-    align-self: center;
-    gap: 0.375rem;
-    margin-inline: 0.25rem;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.5rem;
-    background: hsl(0, 85%, 96%);
-  }
-
-  .planner-delete-confirm__label {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: hsl(0, 60%, 32%);
   }
 
   .planner-conflict-badge {
@@ -1153,16 +1163,6 @@
 
     .planner-tabs {
       min-height: 2.75rem;
-    }
-
-    /* Plan tools shrink to icons; plan-name tabs keep their labels. */
-    .planner-tab__tool {
-      min-width: 2.5rem;
-      padding: 0.25rem 0.5rem;
-    }
-
-    .planner-tab__tool .planner-tab__label {
-      display: none;
     }
 
     .planner-conflict-badge {
