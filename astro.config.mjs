@@ -158,6 +158,13 @@ export default defineConfig({
         context: "client",
         optional: true,
       }),
+      // staging | production — drives the staging environment banner (#289).
+      PUBLIC_APP_ENV: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+        default: "production",
+      }),
       ADMIN_PASSWORD: envField.string({
         access: "secret",
         context: "server",

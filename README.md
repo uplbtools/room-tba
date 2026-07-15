@@ -171,7 +171,7 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 
 Legacy **`data/info.db`** SQLite is only for old seed/export scripts (`bun:sqlite`, not runtime). Production uses Supabase Postgres via `DATABASE_URL`. Archived SQLite migrations live in `drizzle-migrations/`: do not edit; active schema is `drizzle/`.
 
-Optional env vars (R2 uploads, Supabase Auth client): see [`.env.example`](.env.example).
+Optional env vars (R2 uploads, Supabase Auth client): see [`.env.example`](.env.example). Staging vs production: set `PUBLIC_APP_ENV=staging` on Vercel Preview and local dev; production uses `production` (default) and hides the staging banner.
 
 ---
 
