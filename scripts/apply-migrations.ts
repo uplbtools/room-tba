@@ -19,7 +19,9 @@ const SKIP_FILES = new Set(["0000_smooth_spitfire.sql"]);
 
 const MIGRATIONS_TABLE = "schema_migrations";
 
-export function listMigrationFiles(drizzleDir = join(import.meta.dir, "..", "drizzle")): string[] {
+export function listMigrationFiles(
+  drizzleDir = join(import.meta.dir, "..", "drizzle"),
+): string[] {
   return readdirSync(drizzleDir)
     .filter((name) => name.endsWith(".sql") && !SKIP_FILES.has(name))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
