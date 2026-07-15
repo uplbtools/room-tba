@@ -141,6 +141,27 @@ describe("PlannerStore", () => {
     expect(store.activePlan?.id).toBe(planB.id);
   });
 
+  test("deletePlan replaces the last plan for a term with a fresh empty plan", () => {
+    const store = makeStore();
+    store.addOffering([row({})]);
+    const only = store.activePlan!;
+    store.deletePlan(only.id);
+    expect(store.plansForTerm).toHaveLength(1);
+    expect(store.activePlan?.id).not.toBe(only.id);
+    expect(store.activePlan?.sections).toEqual([]);
+    expect(store.activePlan?.label).toBe("Plan 1");
+  });
+
+  test("ensurePlanForActiveTerm creates a plan when the term has none", () => {
+    const store = makeStore();
+    expect(store.plansForTerm).toHaveLength(0);
+    const created = store.ensurePlanForActiveTerm();
+    expect(created).not.toBeNull();
+    expect(store.plansForTerm).toHaveLength(1);
+    expect(store.activePlan?.id).toBe(created!.id);
+    expect(store.ensurePlanForActiveTerm()?.id).toBe(created!.id);
+  });
+
   test("conflicts derive from the active plan", () => {
     const store = makeStore();
     store.addOffering([row({})]);

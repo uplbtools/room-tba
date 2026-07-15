@@ -1,0 +1,98 @@
+---
+import Layout from "@layouts/Layout.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+type Props = {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  structuredData?: Record<string, unknown>[];
+};
+
+const { title, description, canonicalPath, structuredData = [] } = Astro.props;
+---
+
+<Layout
+  {title}
+  {description}
+  {canonicalPath}
+  {structuredData}
+  showAppLoadingShell={false}
+>
+  <main class="wiki-page">
+    <nav class="wiki-breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Room TBA</a>
+      <span aria-hidden="true">/</span>
+      <a href="/wiki">Wiki</a>
+    </nav>
+    <slot />
+    <SiteFooter />
+  </main>
+</Layout>
+
+<style is:global>
+  .wiki-page {
+    width: min(62rem, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+    color: hsl(0, 0%, 15%);
+  }
+
+  .wiki-breadcrumb {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    color: hsl(0, 0%, 46%);
+    font-size: 0.875rem;
+  }
+
+  .wiki-breadcrumb a,
+  .wiki-page .wiki-link {
+    color: hsl(5, 53%, 32%);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .wiki-breadcrumb a:hover,
+  .wiki-page .wiki-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .wiki-eyebrow {
+    margin: 0 0 0.5rem;
+    color: hsl(5, 53%, 36%);
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .wiki-title {
+    max-width: 48rem;
+    margin: 0;
+    font-size: clamp(2.25rem, 7vw, 4.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+
+  .wiki-lede {
+    max-width: 44rem;
+    margin: 1rem 0 0;
+    color: hsl(0, 0%, 32%);
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 36rem) {
+    .wiki-page {
+      width: min(100% - 1.25rem, 62rem);
+      padding-top: 1rem;
+    }
+
+    .wiki-breadcrumb {
+      margin-bottom: 1.25rem;
+    }
+  }
+</style>

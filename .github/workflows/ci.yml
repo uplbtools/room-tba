@@ -34,6 +34,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -48,6 +50,11 @@ jobs:
 
       - name: Unit tests
         run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts' --reporter=junit --reporter-outfile=junit-unit.xml
+
+      - name: Retire feature coverage with retired pages
+        env:
+          TEST_RETIREMENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bun run check:feature-test-retirement
 
       - name: Component tests
         env:

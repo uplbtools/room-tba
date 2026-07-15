@@ -2,417 +2,573 @@
   {
     "id": 1,
     "buildingName": "AMPED Building",
-    "lon": 121.24887496575178,
-    "buildingType": "type",
-    "lat": 14.16185446751079,
-    "directions": "Alejandro B. Catambay Hall. Along Pili Drive, this building is to the right of EE Auditorium facing the field.\n"
+    "lon": 121.248874965752,
+    "buildingType": "non-admin",
+    "lat": 14.1618544675108,
+    "directions": "Alejandro B. Catambay Hall. Along Pili Drive, this building is to the right of EE Auditorium facing the field.\n",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 2,
     "buildingName": "AFBED Building",
-    "lon": 121.24897575586841,
-    "buildingType": "type",
-    "lat": 14.161507508780282,
-    "directions": "Alejandro B. Catambay Hall. Along Pili Drive, this building is to the right of EE Auditorium facing the field.\n"
-  },
-  {
-    "id": 3,
-    "buildingName": "Agricultural Systems Institute Building",
-    "lon": 121.24578782602823,
-    "buildingType": "type",
-    "lat": 14.160539636836502,
-    "directions": "Along Pili Drive, past ICRops. Has a curved driveway in front of the building.\n"
-  },
-  {
-    "id": 4,
-    "buildingName": "Biological Sciences Building",
-    "lon": 121.24025466867974,
-    "buildingType": "type",
-    "lat": 14.16642081971833,
-    "directions": "In front of CAS Annex 1, to the left of SEARCA. Has multiple wings housing the Institute of Biological Sciences and the Institute of Weed Science, Entomology, and Plant Pathology (IWEP)"
+    "lon": 121.248975755868,
+    "buildingType": "non-admin",
+    "lat": 14.1615075087803,
+    "directions": "Alejandro B. Catambay Hall. Along Pili Drive, this building is to the right of EE Auditorium facing the field.\n",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 5,
     "buildingName": "CAFS Admin Building",
-    "lon": 121.24508768282763,
-    "buildingType": "type",
-    "lat": 14.160329177519289,
-    "directions": "College of Agriculture and Food Science cluster. In the upper campus area near the agriculture facilities."
+    "lon": 121.245087682828,
+    "buildingType": "non-admin",
+    "lat": 14.1603291775193,
+    "directions": "College of Agriculture and Food Science cluster. In the upper campus area near the agriculture facilities.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
-    "id": 6,
-    "buildingName": "CAS Main Building",
-    "lon": 121.24116485649184,
-    "buildingType": "type",
-    "lat": 14.164912488568103,
-    "directions": "The main CAS building is BEHIND the Oblation statue. CAS Bxx rooms are in the basement (stairs in front of OCS kiosks). CAS 1xx rooms are on the first floor. CAS LITE rooms are on the 2nd floor."
-  },
-  {
-    "id": 7,
-    "buildingName": "CAS Annex 1",
-    "lon": 121.24109655582862,
-    "buildingType": "type",
-    "lat": 14.165447317040943,
-    "directions": "The tall 4-floor building to the LEFT of Oble, beside OUR (Office of the University Registrar). Has galleries (GAL) on lower floors and lecture rooms on floors 3-4."
-  },
-  {
-    "id": 8,
-    "buildingName": "CAS Annex 2",
-    "lon": 121.24174014661752,
-    "buildingType": "type",
-    "lat": 14.165737291426693,
-    "directions": "The 2-storey building beside CAS Annex 1, to the left of Oble."
+    "id": 25,
+    "buildingName": "Industrial Engineering Building",
+    "lon": 121.249713351694,
+    "buildingType": "non-admin",
+    "lat": 14.162785386849,
+    "directions": "Part of CEAT. Contains IE lecture rooms and labs.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:24:17.444"
   },
   {
     "id": 9,
     "buildingName": "CDC Building",
     "lon": 121.2426,
-    "buildingType": "type",
+    "buildingType": "non-admin",
     "lat": 14.167,
-    "directions": "College of Development Communication building. Located at Carabao Park, in front of the Administration Building."
-  },
-  {
-    "id": 10,
-    "buildingName": "Civil Engineering Building",
-    "lon": 121.24593450652578,
-    "buildingType": "type",
-    "lat": 14.161170333376587,
-    "directions": "Part of the CEAT complex. A small building in front of the Agricultural Sciences Institute."
-  },
-  {
-    "id": 11,
-    "buildingName": "CEAT Building",
-    "lon": 121.2454,
-    "buildingType": "type",
-    "lat": 14.1613,
-    "directions": "College of Engineering and Agro-Industrial Technology complex. The small building-complex where the Kanan jeeps turns left from Pili Drive."
+    "directions": "College of Development Communication building. Located at Carabao Park, in front of the Administration Building.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 12,
     "buildingName": "CEM Building",
-    "lon": 121.24154179173773,
-    "buildingType": "type",
-    "lat": 14.167236083513867,
-    "directions": "College of Economics and Management. The first cluster of buildings if you follow the Kanan road from the main gate. A large building complex with many lecture rooms (CEM 101-118, 201-205)."
+    "lon": 121.241541791738,
+    "buildingType": "non-admin",
+    "lat": 14.1672360835139,
+    "directions": "College of Economics and Management. The first cluster of buildings if you follow the Kanan road from the main gate. A large building complex with many lecture rooms (CEM 101-118, 201-205).",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 13,
     "buildingName": "CFNR Admin Building",
-    "lon": 121.23526061387795,
-    "buildingType": "type",
-    "lat": 14.154921647256353,
-    "directions": "Housing the Lansigan Hall, look for a big parking space in front of this massive building in between FPPS and Forest Science"
-  },
-  {
-    "id": 14,
-    "buildingName": "CHE Building",
-    "lon": 121.24226528794843,
-    "buildingType": "type",
-    "lat": 14.165081445955138,
-    "directions": "College of Human Ecology (Gil F. Saguiguit Hall). Located beside Physical Sciences, on the left side of OPark when facing the Oblation."
+    "lon": 121.235260613878,
+    "buildingType": "non-admin",
+    "lat": 14.1549216472564,
+    "directions": "Housing the Lansigan Hall, look for a big parking space in front of this massive building in between FPPS and Forest Science",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 15,
     "buildingName": "Chemical Engineering Building",
-    "lon": 121.24491783371528,
-    "buildingType": "type",
-    "lat": 14.161394388594255,
-    "directions": "A small building complex in front of PHTRC and beside the main CEAT complex housing ENSC classes."
-  },
-  {
-    "id": 16,
-    "buildingName": "CVM-IAS Communal Building",
-    "lon": 121.24337360519496,
-    "buildingType": "type",
-    "lat": 14.157635352067222,
-    "directions": "Beside Copeland Gym, this building houses the CVM-IAS Library and has a curved driveway in front of it.\n"
-  },
-  {
-    "id": 17,
-    "buildingName": "DAAE Building",
-    "lon": 121.24073570307466,
-    "buildingType": "type",
-    "lat": 14.167117835374897,
-    "directions": "Department of Agricultural and Applied Economics. Part of the main CEM buiilding"
+    "lon": 121.244917833715,
+    "buildingType": "non-admin",
+    "lat": 14.1613943885943,
+    "directions": "A small building complex in front of PHTRC and beside the main CEAT complex housing ENSC classes.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 18,
     "buildingName": "Electrical Engineering Building",
-    "lon": 121.24783967751902,
-    "buildingType": "type",
-    "lat": 14.161580616694565,
-    "directions": "White, three-storey building beside ICrops in Pili Drive. Part of CEAT complex. Houses EE lecture rooms and the EE Auditorium."
+    "lon": 121.247839677519,
+    "buildingType": "non-admin",
+    "lat": 14.1615806166946,
+    "directions": "White, three-storey building beside ICrops in Pili Drive. Part of CEAT complex. Houses EE lecture rooms and the EE Auditorium.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 19,
     "buildingName": "Forest Biological Sciences Building",
-    "lon": 121.23602886419194,
-    "buildingType": "type",
-    "lat": 14.154625718533666,
-    "directions": "The building to the left when facing the CFNR admin building. It has a big label of \"FOREST SCIENCE\""
-  },
-  {
-    "id": 20,
-    "buildingName": "Graduate School Building",
-    "lon": 121.239,
-    "buildingType": "type",
-    "lat": 14.1638,
-    "directions": "Behind the International House dormitory, at the foot of the ascent going to UHS and Forestry."
-  },
-  {
-    "id": 21,
-    "buildingName": "Hydraulics Laboratory",
-    "lon": 121.24565592852576,
-    "buildingType": "type",
-    "lat": 14.161320578762176,
-    "directions": "The HL Building is behind the Civil Engineering Building."
-  },
-  {
-    "id": 22,
-    "buildingName": "IABE Building",
-    "lon": 121.2507631989964,
-    "buildingType": "type",
-    "lat": 14.163418346032937,
-    "directions": "Institute of Agricultural and Biosystems Engineering. In the CEAT area."
-  },
-  {
-    "id": 23,
-    "buildingName": "ICOPED Building",
-    "lon": 121.24232357078375,
-    "buildingType": "type",
-    "lat": 14.167409105993643,
-    "directions": "Institute of Cooperatives and Bio-Enterprise Development. Part of the CEM area."
+    "lon": 121.236028864192,
+    "buildingType": "non-admin",
+    "lat": 14.1546257185337,
+    "directions": "The building to the left when facing the CFNR admin building. It has a big label of \"FOREST SCIENCE\"",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 24,
     "buildingName": "ICropS Building",
-    "lon": 121.24445757476262,
-    "buildingType": "type",
-    "lat": 14.160010594216441,
-    "directions": "Institute of Crop Science building. In the CAFS cluster."
-  },
-  {
-    "id": 25,
-    "buildingName": "Industrial Engineering Building",
-    "lon": 121.24974760807048,
-    "buildingType": "type",
-    "lat": 14.162916816243179,
-    "directions": "Part of CEAT. Contains IE lecture rooms and labs."
-  },
-  {
-    "id": 26,
-    "buildingName": "IFST Building",
-    "lon": 121.244204322354,
-    "buildingType": "type",
-    "lat": 14.160318945835,
-    "directions": "Institute of Food Science and Technology. In the CAFS cluster, has main building and several annexes (A, B, C, D) including pilot plant facilities."
-  },
-  {
-    "id": 27,
-    "buildingName": "IHNF Building",
-    "lon": 121.2425772968384,
-    "buildingType": "type",
-    "lat": 14.164242023427763,
-    "directions": "Institute of Human Nutrition and Food. Part of the CHE building complex."
+    "lon": 121.244457574763,
+    "buildingType": "non-admin",
+    "lat": 14.1600105942164,
+    "directions": "Institute of Crop Science building. In the CAFS cluster.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 28,
     "buildingName": "IRNR Building",
-    "lon": 121.23591863277854,
-    "buildingType": "type",
-    "lat": 14.15441172745883,
-    "directions": "Institute of Renewable Natural Resources. Part of the CFNR complex in the upper campus."
-  },
-  {
-    "id": 29,
-    "buildingName": "IWEP Building",
-    "lon": 121.24030370544838,
-    "buildingType": "type",
-    "lat": 14.165798090117553,
-    "directions": "Institute of Weed Science, Entomology and Plant Pathology. Technically under one roof with BioSci."
-  },
-  {
-    "id": 30,
-    "buildingName": "LHKCB Building",
-    "lon": 121.2434630206941,
-    "buildingType": "type",
-    "lat": 14.163975878331296,
-    "directions": "Also called the Landscape Horticulture Knowledge Center Building, this can be found in front of the University Police Force (UPF) headquarters "
-  },
-  {
-    "id": 31,
-    "buildingName": "New Math Building",
-    "lon": 121.2434992956288,
-    "buildingType": "type",
-    "lat": 14.16484950526925,
-    "directions": "The newer Math Building behind the Old Math Building is white and has three stories."
-  },
-  {
-    "id": 32,
-    "buildingName": "Copeland Gymnasium",
-    "lon": 121.24257206290764,
-    "buildingType": "type",
-    "lat": 14.156981891926568,
-    "directions": "The main gym facility. From the main gate, it's on the right side before reaching the academic buildings. Has 3 floors - Wing B is towards the parking at the back. Contains various sports facilities including courts and training areas."
-  },
-  {
-    "id": 33,
-    "buildingName": "Baker Hall Pool",
-    "lon": 121.24266929817223,
-    "buildingType": "type",
-    "lat": 14.162253497902821,
-    "directions": "The swimming pool area, located behind Baker Hall, which is at Freedom Park. Managed by the Department of Human Kinetics (CAS)."
-  },
-  {
-    "id": 34,
-    "buildingName": "PHTRC Building",
-    "lon": 121.24423447525513,
-    "buildingType": "type",
-    "lat": 14.161207166160585,
-    "directions": "Post-Harvest Training and Research Center. In the CAFS area."
-  },
-  {
-    "id": 35,
-    "buildingName": "Physical Sciences Building",
-    "lon": 121.24211938499701,
-    "buildingType": "type",
-    "lat": 14.164396420564213,
-    "directions": "Francisco O. Santos Hall. A wide building to the RIGHT of Oble. Has PSLH (Physical Science Lecture Halls) A and B, plus many PS rooms (B-100 to B-205, C-101 to C-320)."
-  },
-  {
-    "id": 36,
-    "buildingName": "PTCF Building",
-    "lon": 121.24603382364124,
-    "buildingType": "type",
-    "lat": 14.159859181898748,
-    "directions": "The Plant Tissue Culture Facility is located behind the Agricultural Systems Institute (ASI) building in front of the CEAT complex"
+    "lon": 121.235918632779,
+    "buildingType": "non-admin",
+    "lat": 14.1544117274588,
+    "directions": "Institute of Renewable Natural Resources. Part of the CFNR complex in the upper campus.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 37,
     "buildingName": "Temporary Common Classrooms",
     "lon": 121.243003124553,
-    "buildingType": "type",
-    "lat": 14.16574893221993,
-    "directions": "Temporary Common Classroom at the Old Maquiling School. Located beside the CHE building, behind the Administration Building. Has multiple rooms (TCC 1, 2, 4, 5, 11, 22)."
-  },
-  {
-    "id": 38,
-    "buildingName": "Main Library",
-    "lon": 121.23919075095945,
-    "buildingType": "type",
-    "lat": 14.165370203813325,
-    "directions": "The main library building. Located behind the Pegaraw statue (winged tamaraw)."
+    "buildingType": "non-admin",
+    "lat": 14.1657489322199,
+    "directions": "Temporary Common Classroom at the Old Maquiling School. Located beside the CHE building, behind the Administration Building. Has multiple rooms (TCC 1, 2, 4, 5, 11, 22).",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 39,
     "buildingName": "UPRHS Building",
-    "lon": 121.27134891640044,
-    "buildingType": "type",
-    "lat": 14.15151290659347,
-    "directions": "UP Rural High School. Located in Bay, Laguna, OUTSIDE the main UPLB campus."
+    "lon": 121.2713489164,
+    "buildingType": "non-admin",
+    "lat": 14.1515129065935,
+    "directions": "UP Rural High School. Located in Bay, Laguna, OUTSIDE the main UPLB campus.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 40,
     "buildingName": "Social Forestry and Forestry Governance",
-    "lon": 121.23542916910532,
-    "buildingType": "type",
-    "lat": 14.153716056954927,
-    "directions": "Having a big label of \"FORESTRY INFORMATION\" at the front, this building is beside the Institute of Renewable Natural Resources building"
+    "lon": 121.235429169105,
+    "buildingType": "non-admin",
+    "lat": 14.1537160569549,
+    "directions": "Having a big label of \"FORESTRY INFORMATION\" at the front, this building is beside the Institute of Renewable Natural Resources building",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 41,
     "buildingName": "Forest Products and Paper Science\t",
-    "lon": 121.2347060868259,
-    "buildingType": "type",
-    "lat": 14.15563093405588,
-    "directions": "Having a big label of \"WOOD SCIENCE\" at the front, this building is to the right facing the CAFS admin building."
+    "lon": 121.234706086826,
+    "buildingType": "non-admin",
+    "lat": 14.1556309340559,
+    "directions": "Having a big label of \"WOOD SCIENCE\" at the front, this building is to the right facing the CAFS admin building.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 42,
     "buildingName": "Fronda Hall",
-    "lon": 121.24408768848146,
-    "buildingType": "type",
-    "lat": 14.158275672343123,
-    "directions": "The Franciso M. Fronda Hall under CAFS-IAS houses some labs and lecture halls of CAFS. Go past the  "
+    "lon": 121.244087688481,
+    "buildingType": "non-admin",
+    "lat": 14.1582756723431,
+    "directions": "The Franciso M. Fronda Hall under CAFS-IAS houses some labs and lecture halls of CAFS. Go past the  ",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
-    "id": 43,
-    "buildingName": "Basic Veterinary Sciences",
-    "lon": 121.2428670858315,
-    "buildingType": "type",
-    "lat": 14.15844041699746,
-    "directions": "Beside the Veterinary Paraclinical Sciences Building, this building is in front of the CVM admin building in the CVM cluster\n"
+    "id": 22,
+    "buildingName": "IABE Building",
+    "lon": 121.250519445458,
+    "buildingType": "non-admin",
+    "lat": 14.1635810304916,
+    "directions": "Institute of Agricultural and Biosystems Engineering. In the CEAT area.",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 01:24:15.421"
   },
   {
-    "id": 44,
-    "buildingName": "Veterinary Paraclinical Sciences Building",
-    "lon": 121.24306910700636,
-    "buildingType": "type",
-    "lat": 14.158224879758036,
-    "directions": "Beside the Basic Veterinary Sciences Building, this building is in front of the CVM-IAS building in the CVM cluster.\n"
+    "id": 27,
+    "buildingName": "IHNF Building",
+    "lon": 121.242574438014,
+    "buildingType": "non-admin",
+    "lat": 14.1642085758793,
+    "directions": "Institute of Human Nutrition and Food. Part of the CHE building complex.",
+    "imageUrl": null,
+    "version": 5,
+    "updatedAt": "2026-06-25 01:27:23.234"
   },
   {
-    "id": 45,
-    "buildingName": "Villegas Hall\t",
-    "lon": 121.24349958748785,
-    "buildingType": "type",
-    "lat": 14.158776822515135,
-    "directions": "Housing the Animal and Dairy Sciences Cluster, this building is a bit behind Vraja Cuisine and beside the CVM admin building."
+    "id": 14,
+    "buildingName": "CHE Building",
+    "lon": 121.242142561802,
+    "buildingType": "non-admin",
+    "lat": 14.1650539223755,
+    "directions": "College of Human Ecology (Gil F. Saguiguit Hall). Located beside Physical Sciences, on the left side of OPark when facing the Oblation.",
+    "imageUrl": null,
+    "version": 4,
+    "updatedAt": "2026-06-25 01:19:30.591"
   },
   {
-    "id": 46,
-    "buildingName": "Meat Science Building",
-    "lon": 121.24494260967283,
-    "buildingType": "type",
-    "lat": 14.15833144597098,
-    "directions": "Past the Animal Husbandry Arch, the Meat Science Building is beside the Animal Husbandry Building.\n"
+    "id": 23,
+    "buildingName": "ICOPED Building",
+    "lon": 121.242251383207,
+    "buildingType": "non-admin",
+    "lat": 14.1674706449989,
+    "directions": "Institute of Cooperatives and Bio-Enterprise Development. Part of the CEM area.",
+    "imageUrl": null,
+    "version": 4,
+    "updatedAt": "2026-06-24 18:19:52.3"
   },
   {
-    "id": 47,
-    "buildingName": "Animal Husbandry Building",
-    "lon": 121.2445954612577,
-    "buildingType": "type",
-    "lat": 14.158780497990485,
-    "directions": "Housing the various Animal Science Lecture Halls (ASLH), this building is beside Fronda Hall past the Animal Husbandry Arch "
+    "id": 4,
+    "buildingName": "Biological Sciences Building",
+    "lon": 121.240295874232,
+    "buildingType": "non-admin",
+    "lat": 14.1663395408121,
+    "directions": "In front of CAS Annex 1, to the left of SEARCA. Has multiple wings housing the Institute of Biological Sciences and the Institute of Weed Science, Entomology, and Plant Pathology (IWEP)",
+    "imageUrl": null,
+    "version": 4,
+    "updatedAt": "2026-06-25 01:19:39.555"
   },
   {
-    "id": 48,
-    "buildingName": "Department of Military Sciences and Tactics\t",
-    "lon": 121.24346326935343,
-    "buildingType": "type",
-    "lat": 14.160754113543794,
-    "directions": "The short building complex beside Baker Hall, this building houses some ROTC classes and is the headquarters of the UPLB ROTC unit"
+    "id": 38,
+    "buildingName": "Main Library",
+    "lon": 121.239240341191,
+    "buildingType": "non-admin",
+    "lat": 14.1655002207618,
+    "directions": "The main library building. Located behind the Pegaraw statue (winged tamaraw).",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:41.777"
+  },
+  {
+    "id": 29,
+    "buildingName": "IWEP Building",
+    "lon": 121.240197867595,
+    "buildingType": "non-admin",
+    "lat": 14.1660627800205,
+    "directions": "Institute of Weed Science, Entomology and Plant Pathology. Technically under one roof with BioSci.",
+    "imageUrl": null,
+    "version": 16,
+    "updatedAt": "2026-06-27 13:22:15.535"
+  },
+  {
+    "id": 17,
+    "buildingName": "DAAE Building",
+    "lon": 121.241006523796,
+    "buildingType": "non-admin",
+    "lat": 14.1669589170645,
+    "directions": "Department of Agricultural and Applied Economics. Part of the main CEM buiilding",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 01:18:48.027"
+  },
+  {
+    "id": 8,
+    "buildingName": "CAS Annex 2",
+    "lon": 121.241791407374,
+    "buildingType": "non-admin",
+    "lat": 14.1656699585313,
+    "directions": "The 2-storey building beside CAS Annex 1, to the left of Oble.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:31.606"
+  },
+  {
+    "id": 30,
+    "buildingName": "LHKCB Building",
+    "lon": 121.241385077738,
+    "buildingType": "non-admin",
+    "lat": 14.1641313825217,
+    "directions": "Also called the Landscape Horticulture Knowledge Center Building, this can be found in front of the University Police Force (UPF) headquarters ",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 15:27:18.703"
+  },
+  {
+    "id": 20,
+    "buildingName": "Graduate School Building",
+    "lon": 121.240810800661,
+    "buildingType": "non-admin",
+    "lat": 14.1640193548794,
+    "directions": "Behind the International House dormitory, at the foot of the ascent going to UHS and Forestry.",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 15:27:21.014"
+  },
+  {
+    "id": 33,
+    "buildingName": "Baker Hall Pool",
+    "lon": 121.242556021587,
+    "buildingType": "non-admin",
+    "lat": 14.1621441475055,
+    "directions": "The swimming pool area, located behind Baker Hall, which is at Freedom Park. Managed by the Department of Human Kinetics (CAS).",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:47.136"
+  },
+  {
+    "id": 34,
+    "buildingName": "PHTRC Building",
+    "lon": 121.244345029575,
+    "buildingType": "non-admin",
+    "lat": 14.1610179873713,
+    "directions": "Post-Harvest Training and Research Center. In the CAFS area.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:50.87"
+  },
+  {
+    "id": 26,
+    "buildingName": "IFST Building",
+    "lon": 121.244154163232,
+    "buildingType": "non-admin",
+    "lat": 14.1602019821866,
+    "directions": "Institute of Food Science and Technology. In the CAFS cluster, has main building and several annexes (A, B, C, D) including pilot plant facilities.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:53.252"
+  },
+  {
+    "id": 10,
+    "buildingName": "Civil Engineering Building",
+    "lon": 121.245919001731,
+    "buildingType": "non-admin",
+    "lat": 14.1610802306548,
+    "directions": "Part of the CEAT complex. A small building in front of the Agricultural Sciences Institute.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:56.101"
+  },
+  {
+    "id": 21,
+    "buildingName": "Hydraulics Laboratory",
+    "lon": 121.245639607745,
+    "buildingType": "non-admin",
+    "lat": 14.1612677958838,
+    "directions": "The HL Building is behind the Civil Engineering Building.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:57.149"
+  },
+  {
+    "id": 11,
+    "buildingName": "CEAT Building",
+    "lon": 121.245339953157,
+    "buildingType": "non-admin",
+    "lat": 14.1611645381363,
+    "directions": "College of Engineering and Agro-Industrial Technology complex. The small building-complex where the Kanan jeeps turns left from Pili Drive.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:58.274"
+  },
+  {
+    "id": 3,
+    "buildingName": "Agricultural Systems Institute Building",
+    "lon": 121.245787546245,
+    "buildingType": "non-admin",
+    "lat": 14.1604548553132,
+    "directions": "Along Pili Drive, past ICRops. Has a curved driveway in front of the building.\n",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:20:00.41"
+  },
+  {
+    "id": 32,
+    "buildingName": "Copeland Gymnasium",
+    "lon": 121.242655337659,
+    "buildingType": "non-admin",
+    "lat": 14.1567119704847,
+    "directions": "The main gym facility. From the main gate, it's on the right side before reaching the academic buildings. Has 3 floors - Wing B is towards the parking at the back. Contains various sports facilities including courts and training areas.",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:20:12.785"
+  },
+  {
+    "id": 16,
+    "buildingName": "CVM-IAS Communal Building",
+    "lon": 121.243408338305,
+    "buildingType": "non-admin",
+    "lat": 14.157706836316,
+    "directions": "Beside Copeland Gym, this building houses the CVM-IAS Library and has a curved driveway in front of it.\n",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 06:00:02.075"
+  },
+  {
+    "id": 36,
+    "buildingName": "PTCF Building",
+    "lon": 121.246022003599,
+    "buildingType": "non-admin",
+    "lat": 14.1598111917239,
+    "directions": "The Plant Tissue Culture Facility is located behind the Agricultural Systems Institute (ASI) building in front of the CEAT complex",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 06:00:20.564"
+  },
+  {
+    "id": 31,
+    "buildingName": "New Math Building",
+    "lon": 121.243664369023,
+    "buildingType": "non-admin",
+    "lat": 14.164626812368,
+    "directions": "The newer Math Building behind the Old Math Building is white and has three stories.",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 06:00:27.048"
   },
   {
     "id": 49,
     "buildingName": "Freedom Park",
-    "lon": 121.24145764949195,
-    "buildingType": "type",
-    "lat": 14.16176601590053,
-    "directions": "The big grassy field in the center of the campus, this is where some ROTC classes take place. This is in front of DL Umali Hall and the SU Building.\n"
-  },
-  {
-    "id": 50,
-    "buildingName": "Agricultural Machinery Testing and Evaluation Center",
-    "lon": 121.24877398198485,
-    "buildingType": "type",
-    "lat": 14.162996881099152,
-    "directions": "Officially the Roberto C. Bautista Hall, this building can be found on the left side while traversing Pili Drive going to IRRI. It's beside the Tau Alpha Sports Complex. "
-  },
-  {
-    "id": 51,
-    "buildingName": "Old Math/Old Rural Building",
-    "lon": 121.24410984116788,
-    "buildingType": "type",
-    "lat": 14.165027748683974,
-    "directions": "The old-looking building on the left before the bridge to CEAT, just across the Diocesan Shrine of St. Therese."
+    "lon": 121.241457649492,
+    "buildingType": "non-admin",
+    "lat": 14.1617660159005,
+    "directions": "The big grassy field in the center of the campus, this is where some ROTC classes take place. This is in front of DL Umali Hall and the SU Building.\n",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
   },
   {
     "id": 52,
     "buildingName": "Veterinary Teaching Hospital",
     "lon": 121.2644819,
-    "buildingType": "type",
+    "buildingType": "non-admin",
     "lat": 14.1732785,
-    "directions": "Part of the UP Open University Campus"
+    "directions": "Part of the UP Open University Campus",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
+  },
+  {
+    "id": 48,
+    "buildingName": "Department of Military Sciences and Tactics\t",
+    "lon": 121.243254526898,
+    "buildingType": "non-admin",
+    "lat": 14.1606091732855,
+    "directions": "The short building complex beside Baker Hall, this building houses some ROTC classes and is the headquarters of the UPLB ROTC unit",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:19:49.151"
+  },
+  {
+    "id": 51,
+    "buildingName": "Old Math/Old Rural Building",
+    "lon": 121.244109841168,
+    "buildingType": "non-admin",
+    "lat": 14.165027748684,
+    "directions": "The old-looking building on the left before the bridge to CEAT, just across the Diocesan Shrine of St. Therese.",
+    "imageUrl": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.686"
+  },
+  {
+    "id": 47,
+    "buildingName": "Animal Husbandry Building",
+    "lon": 121.244444474833,
+    "buildingType": "non-admin",
+    "lat": 14.1587435760786,
+    "directions": "Housing the various Animal Science Lecture Halls (ASLH), this building is beside Fronda Hall past the Animal Husbandry Arch ",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 01:20:09.52"
+  },
+  {
+    "id": 50,
+    "buildingName": "Agricultural Machinery Testing and Evaluation Center",
+    "lon": 121.248845917595,
+    "buildingType": "non-admin",
+    "lat": 14.1629346586829,
+    "directions": "Officially the Roberto C. Bautista Hall, this building can be found on the left side while traversing Pili Drive going to IRRI. It's beside the Tau Alpha Sports Complex. ",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 01:24:23.67"
+  },
+  {
+    "id": 45,
+    "buildingName": "Villegas Hall\t",
+    "lon": 121.243394567734,
+    "buildingType": "non-admin",
+    "lat": 14.1586658862821,
+    "directions": "Housing the Animal and Dairy Sciences Cluster, this building is a bit behind Vraja Cuisine and beside the CVM admin building.",
+    "imageUrl": null,
+    "version": 4,
+    "updatedAt": "2026-06-25 05:59:54.341"
+  },
+  {
+    "id": 46,
+    "buildingName": "Meat Science Building",
+    "lon": 121.244864897433,
+    "buildingType": "non-admin",
+    "lat": 14.1583636390904,
+    "directions": "Past the Animal Husbandry Arch, the Meat Science Building is beside the Animal Husbandry Building.\n",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 05:59:59.144"
+  },
+  {
+    "id": 44,
+    "buildingName": "Veterinary Paraclinical Sciences Building",
+    "lon": 121.243146001042,
+    "buildingType": "non-admin",
+    "lat": 14.1581776084402,
+    "directions": "Beside the Basic Veterinary Sciences Building, this building is in front of the CVM-IAS building in the CVM cluster.\n",
+    "imageUrl": null,
+    "version": 2,
+    "updatedAt": "2026-06-25 06:00:10.42"
+  },
+  {
+    "id": 43,
+    "buildingName": "Basic Veterinary Sciences",
+    "lon": 121.242938480522,
+    "buildingType": "non-admin",
+    "lat": 14.158431976843,
+    "directions": "Beside the Veterinary Paraclinical Sciences Building, this building is in front of the CVM admin building in the CVM cluster\n",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 06:00:13.755"
+  },
+  {
+    "id": 6,
+    "buildingName": "CAS Main Building",
+    "lon": 121.241164856492,
+    "buildingType": "non-admin",
+    "lat": 14.1649124885681,
+    "directions": "The main CAS building is BEHIND the Oblation statue. CAS Bxx rooms are in the basement (stairs in front of OCS kiosks). CAS 1xx rooms are on the first floor. CAS LITE rooms are on the 2nd floor.",
+    "imageUrl": null,
+    "version": 3,
+    "updatedAt": "2026-06-25 17:49:44.116"
+  },
+  {
+    "id": 7,
+    "buildingName": "CAS Annex 1",
+    "lon": 121.24111345933,
+    "buildingType": "non-admin",
+    "lat": 14.1656175129359,
+    "directions": "The tall 4-floor building to the LEFT of Oble, beside OUR (Office of the University Registrar). Has galleries (GAL) on lower floors and lecture rooms on floors 3-4.",
+    "imageUrl": null,
+    "version": 7,
+    "updatedAt": "2026-06-26 05:49:38.33"
+  },
+  {
+    "id": 35,
+    "buildingName": "Physical Sciences Building",
+    "lon": 121.241803648353,
+    "buildingType": "non-admin",
+    "lat": 14.164378759022,
+    "directions": "Francisco O. Santos Hall. A wide building to the RIGHT of Oble. Has PSLH (Physical Science Lecture Halls) A and B, plus many PS rooms (B-100 to B-205, C-101 to C-320).",
+    "imageUrl": null,
+    "version": 8,
+    "updatedAt": "2026-07-06 17:08:09.891338"
   }
 ]

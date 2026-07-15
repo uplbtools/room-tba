@@ -14,6 +14,7 @@
 
 - [ ] `bun test src`
 - [ ] `bun run lint` (or Biome format on touched files)
+- [ ] If a feature/page was removed, its automated test was removed or repurposed and `bun run generate:test-inventory` was run.
 - [ ] Linked issue commented with this PR URL
 - [ ] **Heavy CI:** PR marked ready for review (or `run/e2e` label) before merge: integration + E2E are gated ([testing.md § Heavy CI gating](docs/testing.md#heavy-ci-gating-prs))
 

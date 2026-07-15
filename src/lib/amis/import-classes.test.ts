@@ -176,8 +176,42 @@ describe("resolveImportRows", () => {
     expect(rows).toHaveLength(2);
     expect(stats.directRoomMatch).toBe(1);
     expect(stats.aliasRoomMatch).toBe(1);
-    expect(stats.skippedByType).toBe(1);
+    expect(stats.skippedUnknownType).toBe(1);
+    expect(stats.importedRoomless).toBe(0);
     expect(stats.missingFacility).toBe(0);
+  });
+
+  test("imports roomless thesis and special-problem types with null room", () => {
+    const lookup = buildRoomLookup([], []);
+    const { stats, rows } = resolveImportRows(
+      [
+        {
+          courseCode: "CMSC 199",
+          section: "A",
+          type: "THE",
+          courseTitle: "Undergraduate Thesis",
+          schedule: [],
+          facilityCode: "",
+          termId: 1252,
+        },
+        {
+          courseCode: "CMSC 190",
+          section: "B",
+          type: "SPR",
+          courseTitle: "Special Problem",
+          schedule: ["TBA"],
+          facilityCode: "",
+          termId: 1252,
+        },
+      ],
+      lookup,
+    );
+
+    expect(rows).toHaveLength(2);
+    expect(rows.map((row) => row.roomId)).toEqual([null, null]);
+    expect(stats.importedRoomless).toBe(2);
+    expect(stats.missingFacility).toBe(0);
+    expect(stats.unmatchedFacility).toBe(0);
   });
 
   test("keeps scheduled rows even when the room is missing or unmatched", () => {
@@ -292,7 +326,8 @@ describe("formatImportReport", () => {
         fuzzyRoomMatch: 0,
         missingFacility: 30,
         unmatchedFacility: 10,
-        skippedByType: 10,
+        importedRoomless: 8,
+        skippedUnknownType: 2,
       },
       summary: {
         inserted: 3,
@@ -307,7 +342,9 @@ describe("formatImportReport", () => {
     });
 
     expect(report).toContain("direct, 5 via alias");
-    expect(report).toContain("Missing facility: 30");
+    expect(report).toContain("Imported roomless (THE/SPR/…): 8");
+    expect(report).toContain("Skipped unknown type: 2");
+    expect(report).toContain("LEC/LAB missing facility: 30");
     expect(report).toContain("+3 ~2 =35 -1");
   });
 });

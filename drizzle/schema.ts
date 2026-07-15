@@ -258,6 +258,7 @@ export const buildingsTable = pgTable("buildings", {
   lat: doublePrecision().notNull(),
   directions: text().notNull(),
   imageUrl: text("image_url"),
+  crFacilities: text("cr_facilities").array(),
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
@@ -430,6 +431,10 @@ export const adminUsersTable = pgTable(
     passwordHash: text("password_hash").notNull(),
     role: adminRoleEnum().default("editor").notNull(),
     email: text(),
+    avatarUrl: text("avatar_url"),
+    profileUrl: text("profile_url"),
+    showInCredits: boolean("show_in_credits").default(true).notNull(),
+    legacyCredit: boolean("legacy_credit").default(false).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     supabaseUserId: uuid("supabase_user_id"),
     deletedAt: timestamp("deleted_at", { mode: "string" }),

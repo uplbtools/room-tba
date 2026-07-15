@@ -1,5 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import {
+  classTypeDisplayLabel,
+  CLASS_BROWSE_SCOPE_NOTE,
+  isNonRoomClassType,
   isRoomScheduledClassType,
   ROOM_SCHEDULE_SCOPE_NOTE,
 } from "./room-scheduled-types";
@@ -10,15 +13,25 @@ describe("room-scheduled-types", () => {
     expect(isRoomScheduledClassType("lab")).toBe(true);
   });
 
-  it("excludes thesis and special-problem types", () => {
-    expect(isRoomScheduledClassType("THE")).toBe(false);
-    expect(isRoomScheduledClassType("SPR")).toBe(false);
-    expect(isRoomScheduledClassType("DSR")).toBe(false);
-    expect(isRoomScheduledClassType("PRA")).toBe(false);
+  it("recognizes roomless import types", () => {
+    expect(isNonRoomClassType("THE")).toBe(true);
+    expect(isNonRoomClassType("SPR")).toBe(true);
+    expect(isNonRoomClassType("DSR")).toBe(true);
+    expect(isNonRoomClassType("PRA")).toBe(true);
+    expect(isNonRoomClassType("IND")).toBe(true);
+    expect(isNonRoomClassType("LEC")).toBe(false);
+    expect(isNonRoomClassType("THS")).toBe(false);
   });
 
-  it("documents scope for users", () => {
-    expect(ROOM_SCHEDULE_SCOPE_NOTE).toContain("Thesis");
-    expect(ROOM_SCHEDULE_SCOPE_NOTE).toContain("special problem");
+  it("maps roomless types to display labels", () => {
+    expect(classTypeDisplayLabel("THE")).toBe("Thesis");
+    expect(classTypeDisplayLabel("spr")).toBe("Special problem");
+    expect(classTypeDisplayLabel("LEC")).toBe("LEC");
+  });
+
+  it("documents scope for room schedules vs class browse", () => {
+    expect(ROOM_SCHEDULE_SCOPE_NOTE).toContain("do not appear here");
+    expect(CLASS_BROWSE_SCOPE_NOTE).toContain("thesis");
+    expect(CLASS_BROWSE_SCOPE_NOTE).toContain("unassigned");
   });
 });

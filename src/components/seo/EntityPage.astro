@@ -45,9 +45,9 @@ const {
   ogCard = null,
 }: Props = Astro.props;
 
-// Real photo wins for the share image; otherwise the generated per-URL card.
-const ogImagePath =
-  image?.src ?? (ogCard ? ogCardPath(ogCard) : undefined);
+// Every entity shares the same legible UPLB card treatment; its own photo
+// remains available in structured data and the app surface.
+const ogImagePath = ogCard ? ogCardPath(ogCard) : image?.src;
 ---
 
 <Layout

@@ -32,6 +32,7 @@ E2E runs `serve:e2e`, which rebuilds with `@astrojs/node` because `@astrojs/verc
 
 - **CI / verify**: Biome format, ESLint, unit, components, PWA legal, prod build (~5–8 min)
 - **CI / migrations**: schema table check on E2E DB (~1 min)
+- **CI / feature retirement**: a deleted `src/pages/` entry must retire or repurpose an automated spec and refresh `docs/test-inventory.md`.
 
 ## CI (gated: ready for review or `run/e2e`)
 
@@ -113,3 +114,7 @@ bun run generate:test-inventory
 **Discord `#test-suite`:** CI posts a pinned, auto-updated inventory (summary embed + tier embeds with full file lists) via [discord-test-inventory.yml](../.github/workflows/discord-test-inventory.yml). Local dry-run: `GATEWAY_URL=… SECRET=… bun run post:test-inventory-discord`.
 
 Agent policy: [AGENTS.md § Tests with GitHub issues](../AGENTS.md#tests-with-github-issues).
+
+## Retiring a feature
+
+When removing a user-facing page, remove or repurpose its unit, component, integration, or E2E coverage in the same PR. Then run `bun run generate:test-inventory`. CI compares the PR diff and blocks a page deletion when no test and inventory update accompanies it. This prevents an obsolete feature spec from reaching `main` after its feature is gone.

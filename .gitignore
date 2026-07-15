@@ -38,6 +38,7 @@ backups/
 # test artifacts
 playwright-report/
 test-results/
+docs/reports/
 
 classes.json
 .vercel/
