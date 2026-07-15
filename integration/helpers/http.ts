@@ -67,4 +67,14 @@ export async function approveProposalHttp(id: number, cookie: string) {
   );
 }
 
+export async function withdrawProposalHttp(id: number, cookie: string) {
+  return fetch(
+    `${PREVIEW_BASE}/api/proposals/${id}/withdraw`,
+    previewFetchInit({
+      method: "POST",
+      headers: { Cookie: cookie },
+    }),
+  );
+}
+
 export { E2E_FIXTURES };
