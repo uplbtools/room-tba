@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { loginAsContributor, logout } from "../helpers/users";
+import { loginAsContributor, loginAsEditor, logout } from "../helpers/users";
 import { openRoom } from "../helpers/search";
 
 test.describe("contributor proposals", () => {
@@ -14,10 +14,45 @@ test.describe("contributor proposals", () => {
     await logout(page);
   });
 
-  test("admin sees review queue after contributor proposal", async () => {
-    test.skip(
-      true,
-      "Requires stable proposal UI flow — covered in integration",
-    );
+  test("contributor suggestion can be reviewed and published @desktop-only", async ({
+    page,
+  }) => {
+    const marker = `QA-255 ${Date.now()}`;
+
+    await page.goto("/");
+    await waitForAppBoot(page);
+    await loginAsContributor(page);
+    await openRoom(page);
+
+    await page
+      .getByRole("button", { name: /suggest an edit/i })
+      .first()
+      .click();
+    await page.getByLabel("Room directions").fill(marker);
+    await page.getByRole("button", { name: "Submit suggestion" }).click();
+    await expect(page.getByText(/submitted for review/i)).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await logout(page);
+    await loginAsEditor(page);
+    await page.getByRole("button", { name: /open editor tools/i }).click();
+    await page.getByRole("button", { name: /review suggested edits/i }).click();
+
+    const queue = page.getByRole("region", {
+      name: "Edit proposals review queue",
+    });
+    const proposal = queue.locator("li.entity-review-item", {
+      hasText: marker,
+    });
+    await expect(proposal).toBeVisible({ timeout: 15_000 });
+    await expect(proposal.getByText(marker)).toBeVisible();
+    await proposal.getByRole("button", { name: "Approve" }).click();
+    await expect(proposal).toBeHidden({ timeout: 15_000 });
+
+    await page.getByRole("button", { name: "Close review" }).click();
+    await openRoom(page);
+    await expect(page.getByText(marker)).toBeVisible({ timeout: 15_000 });
+    await logout(page);
   });
 });

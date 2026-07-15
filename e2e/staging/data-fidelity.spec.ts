@@ -15,12 +15,13 @@ test.describe("staging data fidelity", () => {
   });
 
   test("term selector shows an active semester", async ({ page }) => {
-    await page.goto("/");
-    await waitForAppBoot(page);
-    await expect(
-      page.locator(".term-selector, .term-filter-chip").first(),
-    ).toBeVisible({
-      timeout: 15_000,
-    });
+    // The term chip moved off the base map chrome into entity/class panels, so
+    // it is no longer on the plain boot. Verify the data-fidelity intent
+    // directly: staging serves terms with an active semester.
+    const terms = await page.request
+      .get("/api/terms")
+      .then((r) => r.json() as Promise<Array<{ isActive: boolean }>>);
+    expect(terms.length).toBeGreaterThan(0);
+    expect(terms.some((t) => t.isActive)).toBe(true);
   });
 });

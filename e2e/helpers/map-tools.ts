@@ -20,6 +20,24 @@ export async function openAppSidebar(page: Page): Promise<Locator> {
   return sidebar;
 }
 
+/** Click a sidebar nav button after scrolling the rail so mobile submenu items are reachable. */
+export async function clickSidebarNav(
+  sidebar: Locator,
+  name: string | RegExp,
+  options?: { exact?: boolean },
+) {
+  const button = sidebar.getByRole("button", { name, exact: options?.exact });
+  await button.scrollIntoViewIfNeeded();
+  await expect(button).toBeVisible();
+  await button.click();
+}
+
+/** Expand Help & settings and return the sidebar locator for follow-up clicks. */
+export async function openHelpSettingsSection(sidebar: Locator) {
+  await clickSidebarNav(sidebar, "Help & settings");
+  return sidebar;
+}
+
 export async function openMapTools(page: Page) {
   const mapMenu = page.getByRole("button", { name: /map menu/i });
   const mapToolsFab = page.getByRole("button", { name: /^Map tools$/i });

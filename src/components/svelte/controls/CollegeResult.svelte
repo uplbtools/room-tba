@@ -19,7 +19,11 @@
     scheduleEntityContributorDraftSave,
   } from "@lib/contributor-drafts";
   import { getAppActions, getAppData } from "@lib/context";
-  import { getCollegeRooms, fetchRoomClassCounts } from "@lib/local/data/utils";
+  import {
+    getCollegeRooms,
+    fetchRoomClassCounts,
+    fetchEntityRoomsRemote,
+  } from "@lib/local/data/utils";
   import type { CollegeData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
@@ -32,6 +36,7 @@
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import {
     checkLocalCollegeRoom,
+    getLocalCollegeRooms,
     syncCollegeRooms,
   } from "@lib/local/data/sync";
 
@@ -95,13 +100,28 @@
       return;
     }
     const gen = ++roomLoadGeneration;
-    collegeRooms = null;
     void (async () => {
+      const local = (await getLocalCollegeRooms(id)) ?? [];
+      if (gen === roomLoadGeneration && local.length > 0) {
+        collegeRooms = local;
+      }
+
       const collegeChecker = await checkLocalCollegeRoom(id);
       const rooms = await getCollegeRooms(collegeChecker, id);
       if (gen !== roomLoadGeneration) return;
       collegeRooms = rooms;
       await syncCollegeRooms(collegeChecker, id, rooms);
+
+      if (!collegeChecker && local.length > 0) {
+        try {
+          const remote = await fetchEntityRoomsRemote("college", id);
+          if (gen !== roomLoadGeneration || remote.length === 0) return;
+          collegeRooms = remote;
+          await syncCollegeRooms(false, id, remote);
+        } catch {
+          // Keep cached rows when background refresh fails.
+        }
+      }
     })();
   });
 

@@ -22,7 +22,7 @@
       "!**/bun.lockb",
       "!**/data/app_data.json",
       "!**/public/app_data.json",
-      "!**/.cursor"
+      "!**/skills/impeccable"
     ]
   },
   "assist": {
