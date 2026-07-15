@@ -119,8 +119,8 @@ describe("PlannerScreen", () => {
     render(PlannerScreen);
     const tabs = screen.getAllByRole("tab");
     expect(tabs.map((t) => t.textContent?.trim())).toEqual([
-      "Plan 1",
-      "Plan 2",
+      "Untitled Plan 1",
+      "Untitled Plan 2",
     ]);
   });
 });
