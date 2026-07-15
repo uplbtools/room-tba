@@ -135,5 +135,5 @@ export function buildPlanIcs(
   }
 
   lines.push("END:VCALENDAR");
-  return lines.join("\r\n") + "\r\n";
+  return `${lines.join("\r\n")}\r\n`;
 }

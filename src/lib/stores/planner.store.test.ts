@@ -247,7 +247,9 @@ describe("PlannerStore", () => {
     expect(store.plans.find((p) => p.id === a.id)?.label).toBe("My schedule");
     // Empty rename is ignored.
     store.renamePlan(b.id, "   ");
-    expect(store.plans.find((p) => p.id === b.id)?.label).toBe("Untitled Plan 2");
+    expect(store.plans.find((p) => p.id === b.id)?.label).toBe(
+      "Untitled Plan 2",
+    );
     // Collision with an existing label gets a numeric suffix.
     store.renamePlan(b.id, "My schedule");
     expect(store.plans.find((p) => p.id === b.id)?.label).toBe(
