@@ -15,7 +15,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  migrate-prod:
+    runs-on: ubuntu-latest
+    if: "${{ !contains(github.event.head_commit.message, '[skip ci]') }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.12" # pin: bun 1.3.14 broke --frozen-lockfile
+
+      - name: Install dependencies
+        run: mkdir -p node_modules && bun install --frozen-lockfile
+
+      - name: Apply prod migrations
+        env:
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: bun run apply:migrations:prod
+
+      - name: Verify prod schema
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: bun run check:migrations
+
   release:
+    needs: migrate-prod
     runs-on: ubuntu-latest
     if: "${{ !contains(github.event.head_commit.message, '[skip ci]') }}"
     steps:
