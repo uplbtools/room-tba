@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openAppSidebar, openHelpSettingsSection, clickSidebarNav } from "../helpers/map-tools";
+import {
+  openAppSidebar,
+  openHelpSettingsSection,
+  clickSidebarNav,
+} from "../helpers/map-tools";
 
 test.describe("map settings", () => {
   test.beforeEach(async ({ page }) => {
