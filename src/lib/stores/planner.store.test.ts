@@ -126,7 +126,9 @@ describe("PlannerStore", () => {
     expect(store.activePlan?.id).toBe(planB?.id);
     expect(store.plansForTerm).toHaveLength(2);
     store.addOffering([row({ id: 3, termId: 1253, courseCode: "MATH 27" })]);
-    expect(store.plans.find((p) => p.termId === 1253)?.label).toBe("Untitled Plan 1");
+    expect(store.plans.find((p) => p.termId === 1253)?.label).toBe(
+      "Untitled Plan 1",
+    );
     expect(store.plansForTerm).toHaveLength(2); // active term still 1252
   });
 
@@ -245,7 +247,9 @@ describe("PlannerStore", () => {
     expect(store.plans.find((p) => p.id === a.id)?.label).toBe("My schedule");
     // Empty rename is ignored.
     store.renamePlan(b.id, "   ");
-    expect(store.plans.find((p) => p.id === b.id)?.label).toBe("Untitled Plan 2");
+    expect(store.plans.find((p) => p.id === b.id)?.label).toBe(
+      "Untitled Plan 2",
+    );
     // Collision with an existing label gets a numeric suffix.
     store.renamePlan(b.id, "My schedule");
     expect(store.plans.find((p) => p.id === b.id)?.label).toBe(
