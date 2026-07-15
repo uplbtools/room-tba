@@ -12,13 +12,13 @@
       } & HTMLAnchorAttributes)
     | ({
         active: boolean;
-        hard: boolean;
       } & HTMLButtonAttributes)
   ) & {
     children: Snippet;
     tooltip: string;
     /** Inline-label mode: tooltip text sits beside the icon, popup disabled. */
     expanded?: boolean;
+    sublink?: boolean;
   };
 
   const props: Props = $props();
@@ -35,14 +35,14 @@
 </script>
 
 {#if "href" in props}
-{@const {href, tooltip, expanded, children, ...rest} = props}
+  {@const { href, tooltip, expanded, children, ...rest } = props}
   {@const isExternal = /^https?:\/\//.test(href)}
   <a
     class="nav-link"
     class:nav-link--expanded={expanded}
     target={isExternal ? "_blank" : undefined}
     rel={isExternal ? "noopener noreferrer" : undefined}
-    href={href}
+    {href}
     {...rest}
     onmouseenter={placeTooltip}
     onfocus={placeTooltip}
@@ -58,12 +58,12 @@
     {/if}
   </a>
 {:else}
-    {@const {active, hard, tooltip, expanded, children, ...rest} = props}
+  {@const { active, tooltip, expanded, children, sublink, ...rest } = props}
   <button
     class="nav-link"
     class:nav-link--expanded={expanded}
-    class:nav-link--soft-active={!hard && active}
-    class:nav-link--hard-active={hard && active}
+    class:nav-link--hard-active={!sublink && active}
+    class:nav-link--sublink-active={sublink && active}
     {...rest}
     onmouseenter={placeTooltip}
     onfocus={placeTooltip}
@@ -71,21 +71,26 @@
     <div class="tooltip">
       {tooltip}
     </div>
-    {@render children()}
+    <div class="icon">
+      {@render children()}
+    </div>
   </button>
 {/if}
 
 <style>
   .nav-link {
     position: relative;
-    padding: 0.75rem;
+    padding: 0.5rem 0rem;
     display: flex;
     align-items: center;
-    color: hsl(0, 0%, 20%);
+    color: hsl(0, 0%, 40%);
     border-radius: 0.5rem;
     transition: 75ms ease-in-out;
     justify-content: center;
-    &:hover:not(.nav-link--soft-active, .nav-link--hard-active) {
+    font-weight: 600;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    &:hover:not(.nav-link--sublink-active, .nav-link--hard-active) {
       background-color: hsl(0, 0%, 90%);
     }
     .tooltip {
@@ -102,7 +107,10 @@
       z-index: 999;
       width: max-content;
       font-size: 0.75rem;
-      transition:opacity .125s;
+      transition: opacity 0.125s;
+    }
+    .icon {
+      color: hsl(0, 0%, 50%);
     }
     &:hover .tooltip {
       opacity: 1;
@@ -112,7 +120,11 @@
     width: 100%;
     box-sizing: border-box;
     justify-content: flex-start;
-    gap: 0.625rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    &:hover:not(.nav-link--sublink-active, .nav-link--hard-active) {
+        color: hsl(0, 0%, 20%);
+    }
     .tooltip,
     &:hover .tooltip {
       /* Tooltip doubles as the inline label; no popup in this mode. */
@@ -137,12 +149,22 @@
     color: hsl(0, 0%, 55%);
   }
 
-  .nav-link--soft-active {
+  .nav-link--sublink-active {
     color: hsl(5, 53%, 32%);
     background-color: hsl(5, 53%, 96%);
+
+    &.nav-link--expanded {
+      border-left: 8px solid hsl(5, 53%, 32%);
+    }
+    .icon {
+      color: hsl(5, 53%, 32%);
+    }
   }
   .nav-link--hard-active {
     background-color: hsl(5, 53%, 32%);
     color: hsl(5, 53%, 96%);
+    .icon {
+      color: hsl(5, 53%, 96%);
+    }
   }
 </style>

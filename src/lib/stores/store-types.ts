@@ -29,7 +29,12 @@ export interface QueryStoreState {
   eventSlug?: string;
 }
 
-export type SidebarOpenType = "map" | "planner" | "finals";
+export type SidebarOpenType =
+  | "map"
+  | "planner"
+  | "finals"
+  | "contributors"
+  | "settings";
 
 export type RecentSearch = {
   category: Exclude<QueryStoreState["category"], null>;

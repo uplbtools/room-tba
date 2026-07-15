@@ -359,7 +359,7 @@
   <Map />
   <div class="ui-layer">
     <Sidebar />
-    {#if sidebarStore.panelOpen === "map"}
+    {#if ["map", "contributors", "settings"].includes(sidebarStore.panelOpen)}
       <section
         class="top-right-map-stack"
         aria-label="Map camera controls"
