@@ -62,6 +62,8 @@
   <button
     class="nav-link"
     class:nav-link--expanded={expanded}
+
+    class:nav-link--sublink={sublink}
     class:nav-link--hard-active={!sublink && active}
     class:nav-link--sublink-active={sublink && active}
     {...rest}
@@ -141,6 +143,9 @@
       order: 1;
       transition: none;
     }
+  }
+  .nav-link--sublink {
+      font-weight:500;
   }
   .external-hint {
     display: inline-flex;

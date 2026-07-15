@@ -600,6 +600,10 @@
     gap: 0.25rem;
   }
 
+  div.map-categories {
+      margin-bottom:1rem;
+  }
+
   .sidebar-home {
     all: unset;
     display: flex;
