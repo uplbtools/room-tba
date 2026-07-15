@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openAppSidebar, openHelpSettingsSection, clickSidebarNav } from "../helpers/map-tools";
 
 test.describe("map settings", () => {
   test.beforeEach(async ({ page }) => {
@@ -10,10 +10,8 @@ test.describe("map settings", () => {
 
   async function openSettings(page: import("@playwright/test").Page) {
     const sidebar = await openAppSidebar(page);
-    await sidebar.getByRole("button", { name: "Help & settings" }).click();
-    await sidebar
-      .getByRole("button", { name: "Settings", exact: true })
-      .click();
+    await openHelpSettingsSection(sidebar);
+    await clickSidebarNav(sidebar, "Settings", { exact: true });
     const settings = page.getByRole("dialog", { name: "Settings" });
     await expect(settings).toBeVisible();
     return settings;

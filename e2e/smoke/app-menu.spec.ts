@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openAppSidebar, openHelpSettingsSection, clickSidebarNav } from "../helpers/map-tools";
 
 test.describe("sidebar support menus", () => {
   async function openSection(
@@ -8,7 +8,11 @@ test.describe("sidebar support menus", () => {
     name: "Contributors" | "Help & settings",
   ) {
     const sidebar = await openAppSidebar(page);
-    await sidebar.getByRole("button", { name }).click();
+    if (name === "Help & settings") {
+      await openHelpSettingsSection(sidebar);
+    } else {
+      await clickSidebarNav(sidebar, name);
+    }
     return sidebar;
   }
 
@@ -28,7 +32,7 @@ test.describe("sidebar support menus", () => {
     await waitForAppBoot(page);
 
     const sidebar = await openSection(page, "Help & settings");
-    await sidebar.getByRole("button", { name: /what's new/i }).click();
+    await clickSidebarNav(sidebar, /what's new/i);
     const modal = page.getByRole("dialog", { name: "What's new" });
     await expect(modal).toBeVisible();
 
@@ -44,9 +48,7 @@ test.describe("sidebar support menus", () => {
     await waitForAppBoot(page);
 
     const sidebar = await openSection(page, "Help & settings");
-    await sidebar
-      .getByRole("button", { name: "Settings", exact: true })
-      .click();
+    await clickSidebarNav(sidebar, "Settings", { exact: true });
     const modal = page.getByRole("dialog", { name: "Settings" });
     await expect(modal).toBeVisible();
   });
@@ -56,7 +58,7 @@ test.describe("sidebar support menus", () => {
     await waitForAppBoot(page);
 
     const sidebar = await openSection(page, "Help & settings");
-    await sidebar.getByRole("button", { name: "Offline maps" }).click();
+    await clickSidebarNav(sidebar, "Offline maps");
     await expect(
       page.getByRole("dialog", { name: "Offline maps" }),
     ).toBeVisible();
