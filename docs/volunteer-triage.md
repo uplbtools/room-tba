@@ -50,5 +50,6 @@ gh pr list --state open --base staging
 
 ## Resources
 
+- [CONTRIBUTING.md § Batch building pin audit](../CONTRIBUTING.md#batch-building-pin-audit-volunteers) (spreadsheet template + issue form)
 - [Issue hygiene](issue-hygiene.md)
 - [Volunteer triage](volunteer-triage.md)

@@ -1,0 +1,47 @@
+name: Building pin audit (batch)
+description: Submit a completed spreadsheet batch verifying building map pins
+title: "[DATA] Pin audit batch: "
+labels:
+  - data
+body:
+  - type: markdown
+    value: |
+      **No pull request required.** Fill the [pin audit spreadsheet template](https://github.com/uplbtools/room-tba/blob/staging/data/building-pin-audit-template.csv) first. Step-by-step: [CONTRIBUTING.md § Batch building pin audit](https://github.com/uplbtools/room-tba/blob/staging/CONTRIBUTING.md#batch-building-pin-audit-volunteers).
+
+      One-off wrong pins can use the **Data correction** template instead.
+  - type: input
+    id: batch_name
+    attributes:
+      label: Batch name or building list
+      description: e.g. Batch 1 — 50 CAS buildings, or paste the building names you audited
+      placeholder: Batch 1 — PhySci cluster
+    validations:
+      required: true
+  - type: input
+    id: rows_completed
+    attributes:
+      label: Number of buildings audited
+      placeholder: "50"
+    validations:
+      required: true
+  - type: input
+    id: spreadsheet_link
+    attributes:
+      label: Google Sheet or CSV link
+      description: Share link (Anyone with the link can view) or attach a CSV export after filing
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: How many pins are OK vs need a fix? Any buildings you could not find?
+    validations:
+      required: true
+  - type: textarea
+    id: verified
+    attributes:
+      label: How did you verify?
+      description: On-campus walk, Google Maps satellite, org map, photo, etc.
+    validations:
+      required: true

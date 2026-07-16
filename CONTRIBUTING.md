@@ -33,6 +33,17 @@ Include:
 
 **You do not need to open a pull request.** Someone else will ship the fix and reply on the issue.
 
+### Batch building pin audit (volunteers)
+
+Use this when you are checking many building pins at once (campus map audits, e.g. [#232](https://github.com/uplbtools/room-tba/issues/232)).
+
+1. **Get the spreadsheet template:** download [`data/building-pin-audit-template.csv`](data/building-pin-audit-template.csv) from this repo, or open the [raw file on GitHub](https://github.com/uplbtools/room-tba/blob/staging/data/building-pin-audit-template.csv) and save it.
+2. **Copy into Google Sheets:** [sheets.new](https://sheets.new) → **File → Import → Upload** (or **Import → URL** with the raw GitHub link above). One row per building.
+3. **Fill a row for each building:** search the building on [room-tba.uplbtools.me](https://room-tba.uplbtools.me), compare the map pin to where you stand or satellite view, set `pin_status` to `ok`, `wrong`, `missing`, or `not_found`. If the pin is wrong, put the correct coordinates in `verified_lat` / `verified_lon`. Spell `building_name` exactly as the app search shows it.
+4. **Submit the batch:** [New pin audit batch issue](https://github.com/uplbtools/room-tba/issues/new?template=pin_audit_batch.yml) with a view-only Google Sheet link or attach a CSV export after you file.
+
+**No PR required.** A developer imports verified fixes from your sheet.
+
 ---
 
 ## Campus QA

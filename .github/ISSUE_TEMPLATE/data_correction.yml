@@ -9,6 +9,8 @@ body:
       **No pull request required.** A developer or maintainer will implement the fix. Thank you for keeping campus data accurate.
 
       Prefer the [in-app suggest flow](https://room-tba.uplbtools.me) if you have contributor access.
+
+      Auditing many building pins? Use the [pin audit batch template](https://github.com/uplbtools/room-tba/issues/new?template=pin_audit_batch.yml) and [spreadsheet](https://github.com/uplbtools/room-tba/blob/staging/data/building-pin-audit-template.csv) instead.
   - type: dropdown
     id: entity_type
     attributes:

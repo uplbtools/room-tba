@@ -1,0 +1,4 @@
+building_name,pin_status,app_lat,app_lon,verified_lat,verified_lon,verified_how,notes
+AMPED Building,ok,14.161854,121.248875,,,walked_on_campus,EXAMPLE — pin matches main entrance; leave verified_lat/lon blank when ok
+AFBED Building,wrong,14.161508,121.248976,14.161420,121.249010,satellite,EXAMPLE — pin sits on parking; verified_* is where the pin should move
+,,,,,,,,"ADD ROWS BELOW — pin_status: ok|wrong|missing|not_found; building_name must match the app search spelling exactly"
