@@ -17,23 +17,36 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.12" # pin: avoid bun 1.3.14 frozen-lockfile regression
-      - name: Install pg_dump
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Run backup
+        id: dump
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
         run: |
+          if [ -z "$PROD_DATABASE_URL" ]; then
+            echo "::error::PROD_DATABASE_URL secret not set"
+            exit 1
+          fi
           mkdir -p backups
           stamp=$(date +%Y%m%d-%H%M%S)
-          pg_dump "$DATABASE_URL" --format=custom --file="backups/room-tba-${stamp}.dump"
-          pg_dump "$DATABASE_URL" --format=plain --file="backups/room-tba-${stamp}.sql"
-          echo "Backup completed: room-tba-${stamp}.dump"
+          base="room-tba-${stamp}"
+          docker run --rm \
+            -e PROD_DATABASE_URL \
+            -v "$PWD/backups:/backups" \
+            postgres:17-alpine \
+            sh -c "pg_dump \"\$PROD_DATABASE_URL\" --format=custom --file=\"/backups/${base}.dump\" && pg_dump \"\$PROD_DATABASE_URL\" --format=plain --file=\"/backups/${base}.sql\""
+          echo "dump_path=backups/${base}.dump" >> "$GITHUB_OUTPUT"
+          echo "Backup completed: ${base}.dump"
+      - name: Upload long-term copy to R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_BACKUP_PREFIX: ${{ vars.R2_BACKUP_PREFIX }}
+        run: bun scripts/upload-db-backup-to-r2.ts "${{ steps.dump.outputs.dump_path }}"
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: db-backup-${{ github.run_id }}
           path: backups/
           retention-days: 7
-      - name: Notify on failure
-        if: failure()
-        run: echo "::error::Database backup failed"

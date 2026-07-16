@@ -1,5 +1,10 @@
 /** AMIS class types that normally meet in a campus room (import + room schedules). */
-export const ROOM_SCHEDULED_CLASS_TYPES = new Set(["LEC", "LAB", "RCT"]);
+export const ROOM_SCHEDULED_CLASS_TYPES = new Set([
+  "LEC",
+  "LAB",
+  "RCT", // recitation — child of LEC, usually has its own facility_id
+  "CPT", // computime / computer lab sibling of LAB
+]);
 
 /** AMIS types imported without a required room (thesis, SP, etc.). */
 export const NON_ROOM_CLASS_TYPES: Readonly<
@@ -30,7 +35,7 @@ export const NON_ROOM_CLASS_TYPES: Readonly<
 
 /** Short copy for room schedule panels (per-room class lists). */
 export const ROOM_SCHEDULE_SCOPE_NOTE =
-  "Schedules list lecture, lab, and recitation sections with assigned rooms. Thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS, so they do not appear here.";
+  "Schedules list lecture, lab, recitation, and similar sections with assigned rooms. Thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS, so they do not appear here.";
 
 /** Short copy for class browse / course-prefix search. */
 export const CLASS_BROWSE_SCOPE_NOTE =

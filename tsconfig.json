@@ -4,11 +4,13 @@
     ".astro/types.d.ts",
     "src/**/*.ts",
     "src/**/*.astro",
-    "src/**/*.svelte"
+    "src/**/*.svelte",
+    "scripts/**/*.ts",
+    "drizzle/**/*.ts",
+    "drizzle.config.ts"
   ],
-  "exclude": ["dist"],
+  "exclude": ["dist", "node_modules", ".vercel", "coverage"],
   "compilerOptions": {
-    "baseUrl": ".",
     "strict": true,
     "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info", "svelte"],
     "noUnusedLocals": true,

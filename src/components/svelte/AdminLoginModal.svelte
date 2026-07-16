@@ -49,6 +49,13 @@
   let error: string | null = $state(null);
   let googleLoading = $state(false);
   let turnstileToken = $state<string | null>(null);
+  /** Bump to remount Turnstile after a failed siteverify (token is single-use). */
+  let turnstileMountKey = $state(0);
+
+  function refreshTurnstile() {
+    turnstileToken = null;
+    turnstileMountKey += 1;
+  }
 
   const isSignup = $derived(mode === "signup");
 
@@ -143,6 +150,7 @@
       });
       if (err) {
         error = err;
+        refreshTurnstile();
         return;
       }
       password = "";
@@ -156,6 +164,7 @@
     const err = await adminAuthStore.login(username, password, turnstileToken);
     if (err) {
       error = err;
+      refreshTurnstile();
       return;
     }
     password = "";
@@ -287,7 +296,12 @@
         {/if}
       {/if}
       {#if turnstileEnabled && !showForgotPassword}
-        <TurnstileWidget siteKey={turnstileSiteKey} bind:token={turnstileToken} />
+        {#key turnstileMountKey}
+          <TurnstileWidget
+            siteKey={turnstileSiteKey}
+            bind:token={turnstileToken}
+          />
+        {/key}
       {/if}
       {#if error}
         <EntityEditorMessage
