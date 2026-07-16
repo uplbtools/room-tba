@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
 import { getEditorSession } from "@lib/admin/require-editor";
+import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
 import {
-  checkRateLimit,
-  clientIp,
-  rateLimitResponse,
-} from "@lib/api/rate-limit";
+  enforceProposalSubmitLimits,
+  isProposalHoneypotTripped,
+} from "@lib/api/proposal-rate-limit";
 import { validateSubmitterName } from "@constants/proposals";
 import {
   ProposalValidationError,
@@ -17,9 +17,6 @@ import {
 
 export const prerender = false;
 
-const ANON_LIMIT = { max: 8, windowMs: 10 * 60 * 1000 };
-const AUTH_LIMIT = { max: 24, windowMs: 10 * 60 * 1000 };
-
 type ProposalBody = {
   entityType?: string;
   entityId?: number;
@@ -27,19 +24,15 @@ type ProposalBody = {
   patch?: Record<string, unknown>;
   submitterName?: string;
   proposalId?: number;
+  _hp?: string;
 };
 
 export const POST: APIRoute = async ({ cookies, request }) => {
   const session = getEditorSession(cookies);
   const ip = clientIp(request);
-  const limit = session ? AUTH_LIMIT : ANON_LIMIT;
-  const rate = checkRateLimit(
-    `proposals:${session?.id ?? ip}`,
-    limit.max,
-    limit.windowMs,
-  );
-  if (!rate.allowed) {
-    return rateLimitResponse(rate.resetAt);
+  const denied = enforceProposalSubmitLimits(session, ip);
+  if (denied) {
+    return rateLimitResponse(denied.resetAt);
   }
 
   let body: ProposalBody;
@@ -47,6 +40,10 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     body = await request.json();
   } catch {
     return json({ error: "Invalid JSON body" }, 400);
+  }
+
+  if (isProposalHoneypotTripped(body as Record<string, unknown>)) {
+    return json({ success: true }, 201);
   }
 
   const submitterName =
