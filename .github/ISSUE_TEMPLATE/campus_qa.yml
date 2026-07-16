@@ -48,4 +48,4 @@ body:
     id: screenshots
     attributes:
       label: Screenshots (optional)
-      description: Drag images into the comment after filing, or paste links here
+      description: Leave blank when filing if needed. After submit, edit the issue or reply and drag images into the comment. See CONTRIBUTING.md § Campus QA → Screenshots for phone and desktop capture steps.

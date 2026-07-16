@@ -50,5 +50,5 @@ gh pr list --state open --base staging
 
 ## Resources
 
+- [CONTRIBUTING.md § Campus QA](../CONTRIBUTING.md#campus-qa) (issue template + screenshot how-to)
 - [Issue hygiene](issue-hygiene.md)
-- [Volunteer triage](volunteer-triage.md)

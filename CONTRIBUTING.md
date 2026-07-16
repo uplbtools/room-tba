@@ -42,7 +42,24 @@ Use this when you can test the live or staging app on a real device.
 1. [New campus QA issue](https://github.com/uplbtools/room-tba/issues/new?template=campus_qa.yml)
 2. Label `qa` is applied automatically.
 
+The template asks for device, URL, steps, expected vs actual behavior, and optional screenshots.
+
 Helpful checks: search a room you know, open schedules for the current term, try offline mode after loading once, check layout at narrow phone width.
+
+### Screenshots (recommended)
+
+Screenshots help developers reproduce layout bugs. You do not need to clone the repo.
+
+**After you submit the issue**, edit the comment or add a reply with images:
+
+| Device | Capture | Attach on GitHub |
+| --- | --- | --- |
+| Windows / Linux | `Win + Shift + S` or your desktop screenshot tool | Paste into the comment (`Ctrl + V`) or drag a file into the box |
+| macOS | `Cmd + Shift + 4` (region) or `Cmd + Shift + 5` (menu) | Drag the `.png` into the comment or paste from clipboard |
+| Android | Usually Power + Volume Down (varies by phone) | Open the issue in Chrome → **Attach files**, or drag from Gallery |
+| iPhone / iPad | Side button + Volume Up | In Safari, tap the comment field → photo picker, or paste from Photos |
+
+Include the URL bar when the bug depends on staging vs production. Crop to the broken control if the full screen is noisy. One screenshot per step is enough; a short screen recording is fine for animation glitches.
 
 **No PR required.** Describe what you saw. A developer will fix it from your report.
 
