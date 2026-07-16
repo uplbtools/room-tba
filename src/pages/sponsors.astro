@@ -39,9 +39,9 @@ const hasSponsors =
       <h1>Room TBA is supported by</h1>
       <p class="lede">
         Room TBA is a free, open-source campus map run by student volunteers.
-        Curated, campus-relevant sponsors — food spots, boarding houses,
-        printing shops — keep it running. No ad networks, no tracking pixels,
-        and every placement is clearly labeled “Sponsored.”
+        Curated local sponsors like food spots, boarding houses, and printing
+        shops keep it running. No ad networks, no tracking pixels, and every
+        placement is clearly labeled “Sponsored.”
       </p>
     </header>
 
@@ -125,7 +125,7 @@ const hasSponsors =
                     >
                       {sponsor.name}
                     </a>
-                    {sponsor.tagline && <span> — {sponsor.tagline}</span>}
+                    {sponsor.tagline && <span>: {sponsor.tagline}</span>}
                   </li>
                 ))}
               </ul>
@@ -135,7 +135,7 @@ const hasSponsors =
             <section class="tier">
               <h2>Student orgs</h2>
               <p class="tier__note">
-                Student org events get free promotion — no payment involved.
+                Student org events get free promotion. No payment involved.
               </p>
               <ul class="list">
                 {studentOrgs.map((sponsor) => (
@@ -157,7 +157,7 @@ const hasSponsors =
       ) : (
         <section class="tier">
           <p class="tier__note">
-            No active sponsors right now — your business could be the first.
+            No active sponsors yet. Your business could be the first.
           </p>
         </section>
       )
