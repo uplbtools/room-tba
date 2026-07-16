@@ -656,6 +656,7 @@
   .bottom-chrome__triggers {
     display: flex;
     gap: 0.375rem;
+    align-items: flex-end;
   }
 
   .bottom-band::before {
