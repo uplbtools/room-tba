@@ -409,6 +409,20 @@ const nstpPrefixes = [
   { prefix: "RO1x / RO2x", unit: "ROTC component platoons", rows: 36 },
 ] as const;
 
+
+/** Oldest→newest term trend (AMIS normalize + prod DB counts, July 16, 2026). */
+const termTrends = [
+  { term: "1231", label: "AY 23–24 1st", db: 5096, lecSched: 2729, tth: 35.4, wf: 31.1, single: 30.9, dense: 0, d90: 1387, note: "DB: LEC+LAB only" },
+  { term: "1232", label: "AY 23–24 2nd", db: 4875, lecSched: 2600, tth: 37.2, wf: 32.3, single: 28.5, dense: 0, d90: 1371, note: "DB: LEC+LAB only" },
+  { term: "1241", label: "AY 24–25 1st", db: 5117, lecSched: 2800, tth: 36.2, wf: 31.2, single: 30.1, dense: 0, d90: 1474, note: "DB: LEC+LAB only" },
+  { term: "1242", label: "AY 24–25 2nd", db: 4824, lecSched: 2596, tth: 38.3, wf: 33.4, single: 26.4, dense: 0, d90: 1462, note: "DB: LEC+LAB only" },
+  { term: "1243", label: "AY 24–25 Mid", db: 231, lecSched: 122, tth: 1.6, wf: 0, single: 0.8, dense: 73.0, d90: 0, note: "105-min dense grid" },
+  { term: "1251", label: "AY 25–26 1st", db: 5596, lecSched: 2669, tth: 35.7, wf: 32.3, single: 29.8, dense: 0, d90: 1456, note: "RCT + trickle of THE/SPR" },
+  { term: "1252", label: "AY 25–26 2nd", db: 12613, lecSched: 2651, tth: 37.3, wf: 32.4, single: 27.9, dense: 0, d90: 1473, note: "DB adds ~7.5k THE/SPR/PRA/DSR" },
+  { term: "1253", label: "AY 25–26 Mid", db: 229, lecSched: 130, tth: 1.5, wf: 0, single: 0.8, dense: 71.2, d90: 1, note: "Same midyear shape as 1243" },
+  { term: "1261", label: "AY 26–27 1st", db: 12876, lecSched: 2466, tth: 36.9, wf: 32.3, single: 28.4, dense: 0, d90: 1364, note: "DB still full roomless import" },
+] as const;
+
 const structuredData = jsonLd(
   webpageSchema({ title, description, path: "/wiki/section-times" }),
   breadcrumbSchema([
@@ -439,7 +453,8 @@ const structuredData = jsonLd(
       <p class="article-meta">
         Glossary census: July 16, 2026 · all terms in prod. Letter-ladder match
         test: July 14, 2026 · 8,917 single-letter regular-semester lectures
-        (87.5%). Day-structure slice: CRS 1252 vs 1253 LEC slots.
+        (87.5%). Term-trend pass: July 16, 2026 · AMIS caches 1231→1261 + prod
+        row counts.
       </p>
     </header>
 
@@ -454,6 +469,7 @@ const structuredData = jsonLd(
         <li><a href="#numbers-suffixes">Numbers and L / R / C suffixes</a></li>
         <li><a href="#special-courses">NSTP, HK, GI, residency, ROTC</a></li>
         <li><a href="#grad-courses">MS / PhD course numbers (200+ / 300+ / 400+)</a></li>
+        <li><a href="#term-trends">What changed across terms</a></li>
         <li><a href="#regular-sem">Regular semester day structure</a></li>
         <li><a href="#midyear">Midyear calendar</a></li>
         <li><a href="#midyear-names">Midyear section names</a></li>
@@ -880,6 +896,126 @@ const structuredData = jsonLd(
       </p>
     </section>
 
+
+    <section aria-labelledby="term-trends">
+      <h2 id="term-trends">What changed across terms</h2>
+      <p>
+        Oldest archive term is CRS <strong>1231</strong> (AY 2023–2024 1st
+        semester); newest is <strong>1261</strong> (AY 2026–2027 1st). Reading
+        AMIS exports through the same normalizer, the <em>calendar</em> barely
+        moved. What jumped in Room TBA’s table is mostly <em>import scope</em>.
+      </p>
+      <h3 id="term-trends-schedule">Schedule shape (stable)</h3>
+      <ul class="break-list">
+        <li>
+          Regular-semester scheduled LEC slots stay on the same mix:
+          <strong>~35–38% TTh</strong>, <strong>~31–33% WF</strong>,
+          <strong>~26–31% single-day</strong>. That band holds from 1231 through
+          1261.
+        </li>
+        <li>
+          <strong>90-minute</strong> blocks remain the modal length (~1,300–1,500
+          LEC slots per regular term). Three-hour (180 min) single-day lectures
+          stay a minority (~300–390 slots).
+        </li>
+        <li>
+          Peak starts stay <strong>1:00 PM</strong>, <strong>10:00 AM</strong>,
+          <strong>4:00 PM</strong>, then 8:30 / 9:00 AM. the letter-ladder
+          clocks.
+        </li>
+        <li>
+          Midyear (1243, 1253) is a different calendar every year:
+          <strong>~71–73% dense MTWThFS</strong>, almost no WF, and
+          <strong>105-minute</strong> blocks (not 90). That is semester type,
+          not a multi-year drift.
+        </li>
+      </ul>
+      <h3 id="term-trends-import">Room TBA row counts (import policy)</h3>
+      <ul class="break-list">
+        <li>
+          Terms <strong>1231–1243</strong> and midyear <strong>1253</strong> in
+          prod are still mostly <strong>LEC + LAB</strong> (~4.8k–5.1k regular;
+          ~230 midyear). AMIS itself already had ~4k THE rows each term; Room TBA
+          simply did not import them yet.
+        </li>
+        <li>
+          <strong>1251</strong> adds RCT (~100) and a small THE/SPR/PRA/DSR
+          trickle (~300). Scheduled LEC count is unchanged in shape.
+        </li>
+        <li>
+          <strong>1252</strong> and <strong>1261</strong> jump to ~12.6k–12.9k
+          DB rows because the importer started keeping thesis / SP / practicum /
+          dissertation with null rooms (~7.5k roomless rows). AMIS LEC/LAB volume
+          did not double. Room TBA’s catalog got wider.
+        </li>
+      </ul>
+      <p class="table-hint">Scroll sideways for the full table.</p>
+      <div class="table-wrap">
+        <table class="dense">
+          <thead>
+            <tr>
+              <th scope="col">Term</th>
+              <th scope="col">DB rows</th>
+              <th scope="col">Sched. LEC</th>
+              <th scope="col">TTh%</th>
+              <th scope="col">WF%</th>
+              <th scope="col">Single%</th>
+              <th scope="col">Dense%</th>
+              <th scope="col">90-min LEC slots</th>
+              <th scope="col">What changed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {termTrends.map((row) => (
+              <tr>
+                <td>
+                  <code>{row.term}</code> {row.label}
+                </td>
+                <td class="num">{row.db.toLocaleString("en-US")}</td>
+                <td class="num">{row.lecSched.toLocaleString("en-US")}</td>
+                <td class="num">{row.tth}</td>
+                <td class="num">{row.wf}</td>
+                <td class="num">{row.single}</td>
+                <td class="num">{row.dense}</td>
+                <td class="num">{row.d90.toLocaleString("en-US")}</td>
+                <td>{row.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <h3 id="term-trends-why">Likely reasons</h3>
+      <ul class="break-list">
+        <li>
+          <strong>Import policy, not campus growth.</strong> AMIS regular-term
+          dumps stay ~11k–13k rows across the archive. The DB doubling at 1252/1261
+          matches turning on NON_ROOM types (THE/SPR/PRA/DSR/IND) in the importer,
+          plus RCT for the planner. see
+          <code>room-scheduled-types.ts</code>.
+        </li>
+        <li>
+          <strong>Letter ladder still maps the same grid.</strong> Stable TTh/WF
+          shares mean A–H / S–Z time inference did not rot between AY 2023–2024 and
+          AY 2026–2027.
+        </li>
+        <li>
+          <strong>Midyear is a fixed alternate calendar.</strong> Dense daily
+          meetings and 105-minute offsets appear in both 1243 and 1253; do not
+          read them as a trend away from WF/TTh.
+        </li>
+        <li>
+          <strong>1261 scheduled LEC is a bit lower</strong> (2,466 vs ~2,600–2,800
+          earlier). Early-term / incomplete offering data is the boring
+          explanation; re-check after COM if the gap remains.
+        </li>
+      </ul>
+      <p class="figure-note">
+        Day % are shares of normalized LEC schedule slots from local AMIS JSON
+        caches (not raw mon–sat flags). DB row counts are prod
+        <code>classes</code> as of July 16, 2026.
+      </p>
+    </section>
+
     <section aria-labelledby="regular-sem">
       <h2 id="regular-sem">Regular semester day structure</h2>
       <p>
@@ -1104,7 +1240,9 @@ const structuredData = jsonLd(
       </p>
       <p>
         Day-structure figures use CRS terms <strong>1252</strong> and
-        <strong>1253</strong> LEC slots only (July 16, 2026 pass).
+        <strong>1253</strong> LEC slots only (July 16, 2026 pass). The
+        across-terms table normalizes every local <code>data/amis-*.json</code>
+        cache from CRS 1231 through 1261 and compares against prod row counts.
       </p>
     </section>
 
@@ -1115,7 +1253,7 @@ const structuredData = jsonLd(
 <style>
   .wiki-article {
     max-width: 52rem;
-    background: #fff; /* new asset hash; busts CF immutable 404 on old /_astro/*.css */
+    background: #ffffff; /* asset-hash bump after term-trends */
   }
 
   .article-hero {
