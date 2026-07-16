@@ -215,14 +215,11 @@
     color: hsl(5, 53%, 32%);
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition:
-      background-color 0.2s,
-      transform 0.2s;
+    transition: background-color 0.2s;
   }
 
   .terrain-btn:hover {
     background-color: hsl(5, 53%, 98%);
-    transform: scale(1.05);
   }
 
   .terrain-btn.active {
