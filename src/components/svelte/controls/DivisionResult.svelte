@@ -23,6 +23,7 @@
   import {
     getDivisionRooms,
     fetchRoomClassCounts,
+    fetchEntityRoomsRemote,
   } from "@lib/local/data/utils";
   import ResultDisplay from "./ResultDisplay.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
@@ -35,6 +36,7 @@
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import {
     checkLocalDivisionRoom,
+    getLocalDivisionRooms,
     syncDivisionRooms,
   } from "@lib/local/data/sync";
 
@@ -97,13 +99,28 @@
       return;
     }
     const gen = ++roomLoadGeneration;
-    divisionRooms = null;
     void (async () => {
+      const local = (await getLocalDivisionRooms(id)) ?? [];
+      if (gen === roomLoadGeneration && local.length > 0) {
+        divisionRooms = local;
+      }
+
       const divisionChecker = await checkLocalDivisionRoom(id);
       const rooms = await getDivisionRooms(divisionChecker, id);
       if (gen !== roomLoadGeneration) return;
       divisionRooms = rooms;
       await syncDivisionRooms(divisionChecker, id, rooms);
+
+      if (!divisionChecker && local.length > 0) {
+        try {
+          const remote = await fetchEntityRoomsRemote("division", id);
+          if (gen !== roomLoadGeneration || remote.length === 0) return;
+          divisionRooms = remote;
+          await syncDivisionRooms(false, id, remote);
+        } catch {
+          // Keep cached rows when background refresh fails.
+        }
+      }
     })();
   });
 

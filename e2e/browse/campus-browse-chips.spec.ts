@@ -101,8 +101,14 @@ test.describe("sidebar campus browsing", () => {
     ).toBeVisible();
   });
 
-  test("term selector stays in the search chrome", async ({ page }) => {
-    await expect(page.locator(".term-filter-chip")).toBeVisible({
+  test("classes panel includes term selector", async ({ page }) => {
+    await browse(page, /^classes$/i);
+    await expect(page.getByText(/All classes/i).first()).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(
+      page.getByRole("button", { name: /E2E 2nd Sem|academic term/i }).first(),
+    ).toBeVisible({
       timeout: 10_000,
     });
     // The retired browse chips are gone from the search chrome.

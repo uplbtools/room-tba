@@ -155,10 +155,30 @@ export class PlannerStore {
     return plan;
   };
 
+  /**
+   * Keep the active term from hitting an empty plan list (incomprehensible UI).
+   * No-op when there is no active term or a plan already exists for it.
+   */
+  ensurePlanForActiveTerm = (): PlannerPlan | null => {
+    if (this.activeTermId == null) return null;
+    if (this.plansForTerm.length > 0) return this.activePlan;
+    return this.createPlan();
+  };
+
   deletePlan = (id: string) => {
+    const deleted = this.plans.find((plan) => plan.id === id);
     this.plans = this.plans.filter((plan) => plan.id !== id);
     for (const [termId, planId] of Object.entries(this.activePlanIdByTerm)) {
       if (planId === id) delete this.activePlanIdByTerm[termId];
+    }
+    // Deleting the last plan for a term must leave a fresh empty plan, not a blank tab strip.
+    if (
+      deleted != null &&
+      !this.plans.some((plan) => plan.termId === deleted.termId)
+    ) {
+      const replacement = this.newPlan(deleted.termId);
+      this.plans.push(replacement);
+      this.activePlanIdByTerm[String(deleted.termId)] = replacement.id;
     }
     this.persist();
   };
@@ -248,7 +268,7 @@ export class PlannerStore {
   private newPlan(termId: number): PlannerPlan {
     return {
       id: crypto.randomUUID(),
-      label: this.uniqueLabel("Plan 1", termId),
+      label: this.uniqueLabel("Untitled Plan 1", termId),
       termId,
       sections: [],
     };
@@ -262,10 +282,10 @@ export class PlannerStore {
         .filter((p) => p.termId === termId && p.id !== exceptId)
         .map((p) => p.label),
     );
-    if (base === "Plan 1") {
+    if (base === "Untitled Plan 1") {
       let n = 1;
-      while (used.has(`Plan ${n}`)) n++;
-      return `Plan ${n}`;
+      while (used.has(`Untitled Plan ${n}`)) n++;
+      return `Untitled Plan ${n}`;
     }
     if (!used.has(base)) return base;
     let n = 2;

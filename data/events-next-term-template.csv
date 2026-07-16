@@ -1,0 +1,4 @@
+slug,title,description,category,starts_at,ends_at,recurrence,building_name,location_label,priority,include_in_seo,source_url,notes
+university-graduation-2026,University Graduation,UPLB University Graduation ceremony at Copeland Gymnasium.,ceremony,2026-07-04T08:00:00+08:00,2026-07-04T17:00:00+08:00,none,Copeland Gymnasium,Copeland Gymnasium,100,true,,EXAMPLE — already in seed-events.ts
+institute-of-computer-science-testimonials-2026,Institute of Computer Science Testimonials,Institute of Computer Science testimonials at NCAS Auditorium in CAS Annex 1.,ceremony,2026-07-01T14:00:00+08:00,2026-07-01T17:00:00+08:00,none,CAS Annex 1,NCAS Auditorium,95,true,,EXAMPLE — building_name must match DB exactly
+,,,,,,,,,,,,"ADD ROWS BELOW — category: tradition|fair|ceremony|sports|other; recurrence: none|annual|every_1st_sem|every_2nd_sem; times Asia/Manila (+08:00)"
