@@ -57,7 +57,10 @@
         <img
           src={imageFor(person)}
           alt={person.name}
+          width="44"
+          height="44"
           loading="lazy"
+          decoding="async"
           onerror={handleImageError}
         />
         <span class="person-name">{person.name}</span>
@@ -73,7 +76,10 @@
         <img
           src={imageFor(person)}
           alt={person.name}
+          width="44"
+          height="44"
           loading="lazy"
+          decoding="async"
           onerror={handleImageError}
         />
         <span class="person-name">{person.name}</span>

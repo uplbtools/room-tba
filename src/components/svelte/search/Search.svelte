@@ -306,7 +306,7 @@
 
   .search-root.mobile-shell .search-shell-main {
     display: grid;
-    grid-template-columns: var(--map-chrome-toggle-size, 2rem) minmax(0, 1fr);
+    grid-template-columns: var(--map-chrome-toggle-size, 2.75rem) minmax(0, 1fr);
     align-items: center;
     justify-items: stretch;
     column-gap: 0.375rem;
@@ -479,8 +479,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
     border-radius: 999px;
     background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
@@ -510,7 +512,9 @@
   @media (max-width: 30rem) {
     .map-search-chrome__planner-btn {
       padding: 0;
-      width: 1.75rem;
+      width: 2.75rem;
+      min-width: 2.75rem;
+      min-height: 2.75rem;
       justify-content: center;
     }
 
@@ -584,10 +588,15 @@
 
   .clear-btn {
     all: unset;
+    box-sizing: border-box;
     display: flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     cursor: pointer;
     color: hsl(0, 0%, 28%);
     border-radius: 999px;

@@ -713,7 +713,10 @@
         class="entity-image"
         src={dorm.imageUrl}
         alt={dorm.dormName}
+        width="800"
+        height="450"
         loading="lazy"
+        decoding="async"
       />
     {/if}
 

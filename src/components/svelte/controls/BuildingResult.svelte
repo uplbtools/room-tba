@@ -812,7 +812,10 @@
           class="entity-image"
           src={building.imageUrl}
           alt={building.buildingName}
+          width="800"
+          height="450"
           loading="lazy"
+          decoding="async"
         />
       {/if}
       <section class="entity-directions" aria-label="Directions">

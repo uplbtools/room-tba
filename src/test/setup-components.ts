@@ -3,7 +3,7 @@ import { cleanup } from "@testing-library/svelte";
 import { afterEach } from "vitest";
 import "@ui/map-chrome/map-chrome.css";
 
-document.documentElement.style.setProperty("--map-chrome-toggle-size", "2rem");
+document.documentElement.style.setProperty("--map-chrome-toggle-size", "2.75rem");
 
 if (!Element.prototype.animate) {
   Element.prototype.animate = () =>
