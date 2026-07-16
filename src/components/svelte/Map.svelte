@@ -48,6 +48,7 @@
   import Briefcase from "@lucide/svelte/icons/briefcase";
   import Store from "@lucide/svelte/icons/store";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
@@ -1824,6 +1825,19 @@
 
   $effect(() => {
     const map = mapStore.mapInstance;
+    const pin = additionProposalStore.draftPin;
+    if (!map || !pin) return;
+
+    map.easeTo({
+      center: [pin.lon, pin.lat],
+      zoom: Math.max(map.getZoom(), 17),
+      duration: 650,
+      padding: calculatePadding(untrack(() => md.current)),
+    });
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
     if (!map || !eventPlacementStore.active) return;
 
     const canvas = map.getCanvas();
@@ -2530,7 +2544,13 @@
               lat: additionProposalStore.draftPin.lat,
             }}
           >
-            <div class="addition-draft-pin" aria-hidden="true"></div>
+            {#if additionProposalStore.draftPinPreview}
+              <ContributorDraftPinMarker
+                preview={additionProposalStore.draftPinPreview}
+              />
+            {:else}
+              <div class="addition-draft-pin" aria-hidden="true"></div>
+            {/if}
           </Marker>
         {/if}
         {#if loaded}
@@ -3046,7 +3066,10 @@
         role="status"
         aria-live="polite"
       >
-        <p class="edit-dock-status">Tap the map to set the pin location</p>
+        <p class="edit-dock-status">
+          Tap the map to set the pin location. The preview shows how it will
+          look after approval.
+        </p>
         <button
           class="edit-dock-action cancel"
           type="button"
@@ -3064,7 +3087,10 @@
       >
         <div class="event-placement-copy">
           <strong>Choose a map pin location</strong>
-          <span>Click or tap the map where this entry should appear.</span>
+          <span>
+            Click or tap the map where this entry should appear. The preview
+            pin shows how it will look after approval.
+          </span>
         </div>
         <button
           class="event-placement-cancel"
