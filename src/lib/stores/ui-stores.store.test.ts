@@ -74,4 +74,15 @@ describe("SidebarStore mobile rail", () => {
     expect(sidebarStore.panelOpen).toBe("planner");
     expect(sidebarStore.railOpen).toBe(false);
   });
+
+  test("changeOpened keeps the rail open for settings and contributors", () => {
+    sidebarStore.toggleRail();
+    sidebarStore.changeOpened("settings");
+    expect(sidebarStore.panelOpen).toBe("settings");
+    expect(sidebarStore.railOpen).toBe(true);
+
+    sidebarStore.changeOpened("contributors");
+    expect(sidebarStore.panelOpen).toBe("contributors");
+    expect(sidebarStore.railOpen).toBe(true);
+  });
 });

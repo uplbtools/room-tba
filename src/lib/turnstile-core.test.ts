@@ -26,6 +26,19 @@ describe("verifyTurnstileToken", () => {
     expect(await verifyTurnstileToken("good-token", "secret")).toBe(true);
   });
 
+  test("trims secret whitespace and never sends remoteip", async () => {
+    let posted: string | null = null;
+    globalThis.fetch = (async (_url, init) => {
+      posted = String(init?.body ?? "");
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }) as typeof fetch;
+    expect(
+      await verifyTurnstileToken("good-token", "  secret  ", "1.2.3.4"),
+    ).toBe(true);
+    expect(posted).toContain("secret=secret");
+    expect(posted).not.toContain("remoteip");
+  });
+
   test("rejects a token Cloudflare marks invalid", async () => {
     globalThis.fetch = (async () =>
       new Response(JSON.stringify({ success: false }), {
