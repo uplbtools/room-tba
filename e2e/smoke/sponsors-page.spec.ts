@@ -22,6 +22,22 @@ test.describe("sponsors page", () => {
     await expect(page).toHaveURL(/\/sponsors\/?$/);
   });
 
+  test("/donate renders the donation form", async ({ page }) => {
+    await page.goto("/donate");
+    await expect(
+      page.getByRole("heading", { name: "Buy the volunteers a kape" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "₱100" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Donate" })).toBeVisible();
+  });
+
+  test("POST /api/donate rejects invalid amounts", async ({ request }) => {
+    const res = await request.post("/api/donate", {
+      data: { amount: 1 },
+    });
+    expect(res.status()).toBe(400);
+  });
+
   test("POST /api/sponsor-event accepts a beacon", async ({ request }) => {
     const res = await request.post("/api/sponsor-event", {
       data: {

@@ -44,6 +44,13 @@ Sponsored map pins (Gold/Silver) require a real physical location near campus
 registered as a `places` entity — see the map-pin rules in
 [ad-policy.md](ad-policy.md). Max 3 pins at once, gold priority.
 
+## One-time donations
+
+`/donate` accepts one-time donations (₱10–₱50,000) through a PayMongo
+Checkout Session (QR Ph). The API route (`/api/donate`) needs
+`PAYMONGO_SECRET_KEY` set on Vercel; without it the page shows a
+not-configured error. Donations follow the same 40/30/30 split.
+
 ## Impression guarantee
 
 - **Gold:** minimum 3,000 impressions/month

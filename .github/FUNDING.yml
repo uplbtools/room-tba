@@ -1,2 +1,6 @@
 github: [uplbtools]
-custom: ["https://room-tba.uplbtools.me/sponsors"]
+custom:
+  [
+    "https://room-tba.uplbtools.me/donate",
+    "https://room-tba.uplbtools.me/sponsors",
+  ]
