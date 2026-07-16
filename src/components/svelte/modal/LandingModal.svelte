@@ -12,9 +12,7 @@
     fetchGithubContributors,
     type GithubContributor,
   } from "@lib/github-contributors";
-  import {
-    fetchGithubStarCountCached,
-  } from "@lib/github-stars";
+  import { fetchGithubStarCountCached } from "@lib/github-stars";
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
@@ -166,7 +164,15 @@
       <div class="hero-overlay">
         <h2>
           <span class="hero-title" id="landing-modal-title">
-            <img src="/logo.png" alt="" class="hero-logo" aria-hidden="true" width="512" height="512" decoding="async" />
+            <img
+              src="/logo.png"
+              alt=""
+              class="hero-logo"
+              aria-hidden="true"
+              width="512"
+              height="512"
+              decoding="async"
+            />
             Room TBA
           </span>
         </h2>
@@ -220,7 +226,9 @@
       >
         <section class="people-block">
           <h3>Campus editors &amp; contributors</h3>
-          <p class="section-note">People credited for published campus data changes.</p>
+          <p class="section-note">
+            People credited for published campus data changes.
+          </p>
           {#if creditsLoading}
             <p class="section-note">Loading credits…</p>
           {:else if campusCredits.length > 0}
@@ -240,8 +248,21 @@
           onRetry={retryGithubData}
         />
 
+        <section class="people-block">
+          <h3>Design</h3>
+          <p class="section-note">
+            Visual and UX design (manual credits, not from GitHub commits).
+          </p>
+          <PeopleAvatarGrid
+            people={designerPeople}
+            imageFolder="contributors"
+          />
+        </section>
+
         <div class="github-cta">
-          <p class="cta-text">Like the project? Support us by starring the repository!</p>
+          <p class="cta-text">
+            Like the project? Support us by starring the repository!
+          </p>
           <a
             href="https://github.com/uplbtools/room-tba"
             target="_blank"
@@ -251,7 +272,9 @@
             <span class="cta-button__icon">★</span>
             <span class="cta-button__text">Star on GitHub</span>
             {#if githubRepoStars !== null}
-              <span class="cta-button__count">{githubRepoStars.toLocaleString()}</span>
+              <span class="cta-button__count"
+                >{githubRepoStars.toLocaleString()}</span
+              >
             {/if}
           </a>
         </div>
@@ -272,7 +295,11 @@
               >
             </li>
             <li>
-              <CommunityPlatformLink brand="discord" href={DISCORD_URL} label="Discord" />
+              <CommunityPlatformLink
+                brand="discord"
+                href={DISCORD_URL}
+                label="Discord"
+              />
             </li>
             <li>
               <CommunityPlatformLink
@@ -289,17 +316,6 @@
               />
             </li>
           </ul>
-        </section>
-
-        <section class="people-block">
-          <h3>Design</h3>
-          <p class="section-note">
-            Visual and UX design (manual credits, not from GitHub commits).
-          </p>
-          <PeopleAvatarGrid
-            people={designerPeople}
-            imageFolder="contributors"
-          />
         </section>
 
         <section class="inspiration-block">
@@ -334,7 +350,6 @@
             </li>
           </ul>
         </section>
-
       </div>
     {/if}
   </div>
@@ -543,7 +558,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.25rem 0.75rem;
+    gap: 0.25rem 0.25rem;
     margin: 0;
     padding: 0;
     font-size: 0.8125rem;
