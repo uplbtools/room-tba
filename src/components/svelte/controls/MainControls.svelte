@@ -237,9 +237,10 @@
   .drawer-handle {
     position: absolute;
     top: 50%;
-    right: -1.875rem;
+    right: -2.75rem;
     translate: 0 -50%;
-    width: 1.875rem;
+    width: 2.75rem;
+    min-height: 2.75rem;
     height: 4rem;
     display: flex;
     align-items: center;
@@ -378,13 +379,13 @@
       align-self: stretch;
       width: auto;
       height: auto;
-      min-height: 1rem;
-      padding: 0.1875rem
+      min-height: 2.75rem;
+      padding: 0.5rem
         max(
           var(--map-search-inline-pad, 0.625rem),
           env(safe-area-inset-right, 0px)
         )
-        0.25rem
+        0.5rem
         max(
           var(--map-search-inline-pad, 0.625rem),
           env(safe-area-inset-left, 0px)
