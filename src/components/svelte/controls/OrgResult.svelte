@@ -356,7 +356,10 @@
         class="entity-image"
         src={org.imageUrl}
         alt={org.name}
+        width="800"
+        height="450"
         loading="lazy"
+        decoding="async"
       />
     {/if}
 

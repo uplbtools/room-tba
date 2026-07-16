@@ -461,6 +461,7 @@
   .tab-btn {
     flex: 1;
     min-width: 0;
+    min-height: 2.75rem;
     border: none;
     background: transparent;
     color: hsl(0, 0%, 32%);
@@ -681,6 +682,7 @@
     justify-content: center;
     text-align: center;
     border-radius: 0.5rem;
+    min-height: 2.75rem;
     padding: 0.6875rem 1.75rem;
     font-size: 0.9375rem;
     font-weight: 700;
@@ -695,6 +697,11 @@
 
   .primary-btn:hover {
     background-color: hsl(5, 75%, 22%);
+  }
+
+  .primary-btn:focus-visible {
+    outline: 2px solid hsl(5, 75%, 22%);
+    outline-offset: 2px;
   }
 
   .install-btn {

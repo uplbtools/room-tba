@@ -194,6 +194,57 @@ const midyearQuartet = [
   "2:45–4:30",
 ] as const;
 
+
+/** Midyear (CRS 1253) section-name patterns — AMIS export + Room TBA census. */
+const midyearSectionPatterns = [
+  {
+    pattern: "A–H (single letter)",
+    example: "C, B, H, G",
+    meaning:
+      "Most common midyear LEC labels, but they almost always meet MTWThFS (or MTWThF), not WF. Do not read C as “WF 10:00.”",
+  },
+  {
+    pattern: "S–Z (single letter)",
+    example: "W, X, Z",
+    meaning:
+      "Rare in midyear LEC. When present, still usually on the dense daily grid — not the regular TTh ladder.",
+  },
+  {
+    pattern: "Two-letter pairs",
+    example: "AB, BC, FG, CU",
+    meaning:
+      "Same strings as regular-sem doubles, but schedules are midyear blocks (often MTWTh / MTWThFS).",
+  },
+  {
+    pattern: "Cross-ladder compounds",
+    example: "BCTU, FGXY, CDUV, GHYZ, ABST, DEVW",
+    meaning:
+      "Midyear-specific: stitches a WF-family pair with a TTh-family pair into one section name for a long daily lecture (e.g. B+C with T+U).",
+  },
+  {
+    pattern: "Letter + digits",
+    example: "B1, E2, G1",
+    meaning:
+      "Parallel midyear lecture groups under the same letter label; still dense daily meetings.",
+  },
+  {
+    pattern: "Labs",
+    example: "1L, 2L, AB1L, BC-1L, U-2L",
+    meaning:
+      "Bare nL is common in midyear CHEM/PHYS-style labs. Parent-letter labs still do not inherit the lecture’s MTWThFS clock.",
+  },
+] as const;
+
+/** Notable midyear compound section codes from the CRS 1253 AMIS export. */
+const midyearCompounds = [
+  { code: "ABST", bridge: "AB + ST", note: "Early WF pair + early TTh pair" },
+  { code: "BCTU", bridge: "BC + TU", note: "Common on CHEM midyear lectures" },
+  { code: "CDUV", bridge: "CD + UV", note: "Mid-morning bridge" },
+  { code: "DEVW", bridge: "DE + VW", note: "Late-morning / noon bridge" },
+  { code: "FGXY", bridge: "FG + XY", note: "Afternoon bridge (e.g. CHEM 32/40)" },
+  { code: "GHYZ", bridge: "GH + YZ", note: "Late-afternoon bridge" },
+] as const;
+
 const letterUseful = [
   {
     mode: "Regular paired LEC",
@@ -211,7 +262,7 @@ const letterUseful = [
     mode: "Midyear LEC",
     days: "Usually MTWThFS",
     block: "105 min",
-    useful: "No",
+    useful: "No — letters label groups; compounds like BCTU are midyear-only",
   },
   {
     mode: "Midyear LAB",
@@ -351,6 +402,7 @@ const structuredData = jsonLd(
         <li><a href="#special-courses">NSTP, HK, GI, residency, ROTC</a></li>
         <li><a href="#regular-sem">Regular semester day structure</a></li>
         <li><a href="#midyear">Midyear calendar</a></li>
+        <li><a href="#midyear-names">Midyear section names</a></li>
         <li><a href="#when-useful">When the letter is useful</a></li>
         <li><a href="#why-not-perfect">Why the code is not perfect</a></li>
         <li><a href="#method">How we checked</a></li>
@@ -776,6 +828,68 @@ const structuredData = jsonLd(
         Lengths cluster around 210 minutes, with occasional multi-hour
         marathons.
       </p>
+
+      <h3 id="midyear-names">Midyear section names</h3>
+      <p>
+        Midyear reuses the same alphabet soup as regular semesters, then bends
+        it. Single letters <strong>A–H</strong> still dominate lecture labels
+        (C, B, H, G are the busiest in the CRS 1253 AMIS export), but those
+        rows meet <strong>MTWThFS</strong> — so the regular “A–H = WF” rule is
+        false for midyear. S–Z singles are rare.
+      </p>
+      <p>
+        Departments also invent <strong>cross-ladder compounds</strong>: one
+        section string that concatenates a WF-family pair with a TTh-family
+        pair so the name covers a long daily block.
+      </p>
+      <div class="table-wrap">
+        <table class="dense">
+          <thead>
+            <tr>
+              <th scope="col">Pattern</th>
+              <th scope="col">Examples</th>
+              <th scope="col">Meaning in midyear</th>
+            </tr>
+          </thead>
+          <tbody>
+            {midyearSectionPatterns.map((row) => (
+              <tr>
+                <td>{row.pattern}</td>
+                <td><code>{row.example}</code></td>
+                <td>{row.meaning}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="midyear-compounds">Cross-ladder compounds (CRS 1253)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Section</th>
+              <th scope="col">Letter bridge</th>
+              <th scope="col">Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {midyearCompounds.map((row) => (
+              <tr>
+                <td><code>{row.code}</code></td>
+                <td><code>{row.bridge}</code></td>
+                <td>{row.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="figure-note">
+        Observed on midyear AMIS lecture rows (e.g. CHEM 32 <code>BCTU</code> /
+        <code>FGXY</code> on MTWThFS). Treat these as midyear labels, not as
+        “take both a BC and a TU regular-sem section.”
+      </p>
+
     </section>
 
     <section aria-labelledby="when-useful">
@@ -813,8 +927,9 @@ const structuredData = jsonLd(
       </p>
       <ul class="break-list">
         <li>
-          <strong>Midyear</strong> — MTWThFS and 105-minute offsets, not the
-          TTh/WF ladder.
+          <strong>Midyear</strong> — MTWThFS and 105-minute offsets; A–H labels
+          no longer mean WF; compounds like <code>BCTU</code> /
+          <code>FGXY</code> stitch both letter ladders.
         </li>
         <li>
           <strong>Labs</strong> — letter echoes the lecture; lab time is
