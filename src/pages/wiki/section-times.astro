@@ -6,7 +6,7 @@ import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const title = "What times do UPLB section names correspond to? | Room TBA Wiki";
 const description =
-  "Exhaustive glossary of UPLB AMIS section codes: letter ladders, NSTP/HK/GI/residency/ROTC special courses, every activity type, and L/R/C suffixes.";
+  "Exhaustive glossary of UPLB AMIS section codes: letter ladders, NSTP/HK/GI/residency/ROTC, MS/PhD course numbers (200+/300+/400+), every activity type, and L/R/C suffixes.";
 
 const timeBlocks = [
   { wf: "A", tth: "S", time: "7:00", windows: "7:00–8:00 or 7:00–8:30", wfMatch: 78.4, tthMatch: 86.8 },
@@ -245,6 +245,53 @@ const midyearCompounds = [
   { code: "GHYZ", bridge: "GH + YZ", note: "Late-afternoon bridge" },
 ] as const;
 
+
+/** Graduate / research course-number bands in Room TBA (prod census). */
+const gradCourseBands = [
+  {
+    band: "Below 200",
+    level: "Undergraduate coursework",
+    rows: "LEC ~16k, LAB ~12k",
+    sectionNote: "A–H / S–Z clock letters apply most often here.",
+  },
+  {
+    band: "200–299",
+    level: "Mixed: many Undergraduate Thesis / Major Practice rows; also MS coursework LEC",
+    rows: "THE ~4.5k, LEC ~5.2k, PRA ~2.1k",
+    sectionNote: "Thesis/practicum sections are usually advisor initials + digits (AAB1, MCR3), not clock letters. Coursework LEC may still use AB/ST-style labels.",
+  },
+  {
+    band: "300–399",
+    level: "Mostly Master's Thesis; some MS/PhD coursework",
+    rows: "THE ~3.6k, LEC ~0.8k",
+    sectionNote: "Titles are usually “Master's Thesis.” Section codes are faculty-style (FOR 300 AAB1). Letter ladder does not apply.",
+  },
+  {
+    band: "400+",
+    level: "Doctoral dissertation",
+    rows: "THE ~1.7k, DSR ~0.7k",
+    sectionNote: "Almost all Dissertation / Doctoral Dissertation. Type THE or DSR; empty schedules are normal.",
+  },
+] as const;
+
+const gradSectionPatterns = [
+  {
+    pattern: "Initials + digits",
+    example: "AAB1, MCR3, RPG1, ALA1",
+    meaning: "Thesis / SP / dissertation advisor or panel code. Dominates 200+ THE/SPR/DSR rows.",
+  },
+  {
+    pattern: "Letter pairs on grad LEC",
+    example: "AENG 201 B, DEVC 311 YZ, CED 210 TV",
+    meaning: "Graduate coursework can still reuse campus letter labels; meetings are often single-day, Saturday, or 3-hour blocks — weaker than undergrad WF/TTh mapping.",
+  },
+  {
+    pattern: "TBA section",
+    example: "VPAR 236 TBA",
+    meaning: "Common on graduate LEC when the meeting is not fixed in AMIS.",
+  },
+] as const;
+
 const letterUseful = [
   {
     mode: "Regular paired LEC",
@@ -281,6 +328,12 @@ const letterUseful = [
     days: "Varies / none",
     block: "3–4 h or empty",
     useful: "No — college/component codes, not clock letters",
+  },
+  {
+    mode: "MS / PhD research (200+/300+/400+)",
+    days: "Usually none",
+    block: "Empty / TBA",
+    useful: "No — advisor initials, not clock letters",
   },
 ] as const;
 
@@ -400,6 +453,7 @@ const structuredData = jsonLd(
         <li><a href="#two-letters">Every two-letter LEC code</a></li>
         <li><a href="#numbers-suffixes">Numbers and L / R / C suffixes</a></li>
         <li><a href="#special-courses">NSTP, HK, GI, residency, ROTC</a></li>
+        <li><a href="#grad-courses">MS / PhD course numbers (200+ / 300+ / 400+)</a></li>
         <li><a href="#regular-sem">Regular semester day structure</a></li>
         <li><a href="#midyear">Midyear calendar</a></li>
         <li><a href="#midyear-names">Midyear section names</a></li>
@@ -425,6 +479,9 @@ const structuredData = jsonLd(
         different section grammars — college/component codes, activity titles,
         or enrollment placeholders. See
         <a href="#special-courses">NSTP, HK, GI, residency, ROTC</a>.
+        Graduate research uses course numbers
+        <a href="#grad-courses">200+ / 300+ / 400+</a> with advisor-style
+        section codes.
       </p>
       <p>
         The AMIS schedule row remains the source of truth. Codes below are a
@@ -743,6 +800,83 @@ const structuredData = jsonLd(
         No separate PATHFIT / PE / CWTS / LTS course codes appear in Room TBA
         beyond NSTP and HK; those components live inside NSTP section prefixes
         or HK activity titles.
+      </p>
+    </section>
+
+
+    <section aria-labelledby="grad-courses">
+      <h2 id="grad-courses">MS / PhD course numbers (200+, 300+, 400+)</h2>
+      <p>
+        UPLB course numbers encode level. In campus talk, people often say
+        <strong>200+</strong> for master’s work and <strong>300+</strong> for
+        doctoral work. Room TBA’s imported rows are a bit finer-grained —
+        read the title and type, not only the number.
+      </p>
+      <div class="table-wrap">
+        <table class="dense">
+          <thead>
+            <tr>
+              <th scope="col">Number band</th>
+              <th scope="col">What it usually is in Room TBA</th>
+              <th scope="col">Approx. row mix</th>
+              <th scope="col">Section codes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {gradCourseBands.map((row) => (
+              <tr>
+                <td><code>{row.band}</code></td>
+                <td>{row.level}</td>
+                <td>{row.rows}</td>
+                <td>{row.sectionNote}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>Practical decoding:</p>
+      <ul class="break-list">
+        <li>
+          <strong>200</strong> titled “Undergraduate Thesis” / “Major Practice”
+          → senior undergrad research (type THE / PRA), not an MS class.
+        </li>
+        <li>
+          <strong>200–299 LEC</strong> with a real subject title (e.g. AENG 201
+          Advanced Engineering Mathematics) → graduate coursework; may still
+          show a letter section.
+        </li>
+        <li>
+          <strong>300</strong> titled “Master's Thesis” → MS research (type THE).
+        </li>
+        <li>
+          <strong>400+</strong> titled “Dissertation” / “Doctoral Dissertation”
+          → PhD research (type THE or DSR).
+        </li>
+      </ul>
+      <h3 id="grad-section-codes">Section codes on research courses</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Pattern</th>
+              <th scope="col">Examples</th>
+              <th scope="col">Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            {gradSectionPatterns.map((row) => (
+              <tr>
+                <td>{row.pattern}</td>
+                <td><code>{row.example}</code></td>
+                <td>{row.meaning}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="figure-note">
+        Census from prod <code>classes</code> (all terms). Do not use A–H /
+        S–Z time inference on THE / SPR / DSR / IND rows.
       </p>
     </section>
 
