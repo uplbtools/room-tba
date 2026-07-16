@@ -181,6 +181,30 @@ describe("resolveImportRows", () => {
     expect(stats.missingFacility).toBe(0);
   });
 
+  test("imports RCT (recitation) as a room-scheduled type", () => {
+    const lookup = buildRoomLookup([{ id: 7, code: "ASI B-126" }], []);
+    const { stats, rows } = resolveImportRows(
+      [
+        {
+          courseCode: "AGRI 61",
+          section: "AB1R",
+          type: "RCT",
+          courseTitle: "Fundamentals of Agricultural Extension Communication",
+          schedule: ["W 09:00AM-10:00AM"],
+          facilityCode: "ASI B-126",
+          termId: 1261,
+        },
+      ],
+      lookup,
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.type).toBe("RCT");
+    expect(rows[0]?.roomId).toBe(7);
+    expect(stats.directRoomMatch).toBe(1);
+    expect(stats.skippedUnknownType).toBe(0);
+  });
+
   test("imports roomless thesis and special-problem types with null room", () => {
     const lookup = buildRoomLookup([], []);
     const { stats, rows } = resolveImportRows(

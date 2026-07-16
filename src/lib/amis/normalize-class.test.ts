@@ -15,6 +15,38 @@ describe("amis normalize", () => {
     expect(rows).toHaveLength(1);
   });
 
+  it("keeps a bare array of class rows (incl. RCT) instead of recursing to empty", () => {
+    const rows = extractClassRows([
+      {
+        id: 1,
+        course_code: "AGRI 61",
+        section: "AB1R",
+        type: "RCT",
+        facility_id: "ASI B-126",
+      },
+      {
+        id: 2,
+        course_code: "AGRI 61",
+        section: "AB2R",
+        type: "RCT",
+        facility_id: "ASI B-127",
+      },
+    ]);
+    expect(rows).toHaveLength(2);
+    expect(rows.every((r) => r.type === "RCT")).toBe(true);
+  });
+
+  it("unwraps { term_id, classes: [...] } envelopes used by local exports", () => {
+    const rows = extractClassRows({
+      term_id: 1261,
+      classes: [
+        { id: 1, course_code: "CMSC 12", section: "A", type: "LEC" },
+        { id: 2, course_code: "CMSC 12", section: "A-1L", type: "LAB" },
+      ],
+    });
+    expect(rows).toHaveLength(2);
+  });
+
   it("surfaces the parent lecture embedded in a child section", () => {
     const rows = extractClassRows({
       classes: {
