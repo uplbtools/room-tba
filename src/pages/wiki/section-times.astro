@@ -6,7 +6,7 @@ import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const title = "What times do UPLB section names correspond to? | Room TBA Wiki";
 const description =
-  "UPLB section letters map to WF and TTh lecture blocks in regular semesters. Midyear uses a different 105-minute daily grid; labs and single-day lectures often ignore the letter ladder.";
+  "Exhaustive glossary of UPLB AMIS section codes and class types in Room TBA: every single letter A–Z, two-letter compounds, L/R/C suffixes, and LEC/LAB/RCT/THE and related activity types.";
 
 const timeBlocks = [
   { wf: "A", tth: "S", time: "7:00", windows: "7:00–8:00 or 7:00–8:30", wfMatch: 78.4, tthMatch: 86.8 },
@@ -19,7 +19,160 @@ const timeBlocks = [
   { wf: "H", tth: "Z", time: "5:30 / 6:00", windows: "5:30–7:00 or 6:00–7:00", wfMatch: 71.7, tthMatch: 83.2 },
 ] as const;
 
-/** Prod LEC slots, CRS 1252 vs 1253, July 16 2026 */
+/** Every single-letter section that appears in Room TBA (prod, all terms). */
+const singleLetters = [
+  { code: "A", family: "WF", meaning: "First morning WF block (~7:00)", rows: 320 },
+  { code: "B", family: "WF", meaning: "Second WF block (~8:30 / 9:00)", rows: 941 },
+  { code: "C", family: "WF", meaning: "Mid-morning WF block (~10:00)", rows: 841 },
+  { code: "D", family: "WF", meaning: "Late-morning WF block (~11:30 / 12:00)", rows: 448 },
+  { code: "E", family: "WF", meaning: "Early-afternoon WF block (~1:00)", rows: 618 },
+  { code: "F", family: "WF", meaning: "Mid-afternoon WF block (~2:30 / 3:00)", rows: 499 },
+  { code: "G", family: "WF", meaning: "Late-afternoon WF block (~4:00)", rows: 668 },
+  { code: "H", family: "WF", meaning: "Evening WF block (~5:30 / 6:00)", rows: 232 },
+  { code: "I", family: "rare", meaning: "Almost unused as a standalone lecture code (1 row in the archive)", rows: 1 },
+  { code: "S", family: "TTh", meaning: "First morning TTh block (~7:00)", rows: 327 },
+  { code: "T", family: "TTh", meaning: "Second TTh block (~8:30 / 9:00)", rows: 888 },
+  { code: "U", family: "TTh", meaning: "Mid-morning TTh block (~10:00)", rows: 865 },
+  { code: "V", family: "TTh", meaning: "Late-morning TTh block (~11:30 / 12:00)", rows: 457 },
+  { code: "W", family: "TTh", meaning: "Early-afternoon TTh block (~1:00)", rows: 617 },
+  { code: "X", family: "TTh", meaning: "Mid-afternoon TTh block (~2:30 / 3:00)", rows: 555 },
+  { code: "Y", family: "TTh", meaning: "Late-afternoon TTh block (~4:00)", rows: 653 },
+  { code: "Z", family: "TTh", meaning: "Evening TTh block (~5:30 / 6:00)", rows: 260 },
+] as const;
+
+const missingLetters = "J, K, L, M, N, O, P, Q, R";
+
+/** AMIS activity types present in Room TBA classes table (prod census). */
+const activityTypes = [
+  { code: "LEC", meaning: "Lecture", rows: 22547, note: "Primary class meeting; section letter often encodes day + start." },
+  { code: "LAB", meaning: "Laboratory", rows: 12679, note: "Usually ends in L (B3L, G-1L). Letter echoes parent lecture; time is independent." },
+  { code: "THE", meaning: "Thesis", rows: 9651, note: "Usually no fixed room/schedule in AMIS. Section often advisor initials + number." },
+  { code: "SPR", meaning: "Special problem", rows: 2509, note: "Usually roomless. Section often initials + number." },
+  { code: "PRA", meaning: "Practicum", rows: 2372, note: "May meet off-campus; rarely has a campus room code." },
+  { code: "DSR", meaning: "Dissertation", rows: 700, note: "Graduate thesis-level; almost never scheduled on the map." },
+  { code: "RCT", meaning: "Recitation", rows: 203, note: "Usually ends in R (AB2R, UV-1R). Bundled with its parent lecture in the planner." },
+  { code: "SEM", meaning: "Seminar", rows: 78, note: "Small discussion section; may reuse a single letter or a numbered code." },
+  { code: "IND", meaning: "Independent study", rows: 69, note: "No fixed room; section often faculty initials." },
+  { code: "CPT", meaning: "Computational / computer laboratory", rows: 55, note: "Often ends in C (AB-1C, UV-2C). Same parent-letter idea as labs." },
+  { code: "STO", meaning: "Special topics", rows: 45, note: "Department-defined topics; letter ladder rarely applies." },
+  { code: "FLD", meaning: "Fieldwork", rows: 13, note: "Off-site or field meetings; schedule may be empty or atypical." },
+] as const;
+
+/**
+ * Every two-letter LEC section code observed in prod (all terms), with family tag.
+ * Family is inferred from letter pair + dominant schedules, not a registrar rulebook.
+ */
+const twoLetterCodes = [
+  { code: "AB", family: "WF pair", meaning: "Early WF-family double section (often WF 8–9 or M/W/F 8–10)", rows: 504 },
+  { code: "AC", family: "WF span", meaning: "Spans A–C WF blocks; uncommon", rows: 6 },
+  { code: "AD", family: "WF span", meaning: "Spans A–D; uncommon", rows: 4 },
+  { code: "AR", family: "special", meaning: "Often graduate / HUME-style codes; many rows have empty schedules", rows: 76 },
+  { code: "AS", family: "cross", meaning: "Mixes WF A with TTh S; rare", rows: 6 },
+  { code: "AV", family: "cross", meaning: "Rare cross-family code", rows: 1 },
+  { code: "BC", family: "WF pair", meaning: "Adjacent WF B–C pair", rows: 68 },
+  { code: "BD", family: "WF span / 3h", meaning: "Often a single weekday 9:00–12:00 (3 h) under a B–D label", rows: 136 },
+  { code: "BT", family: "cross", meaning: "Rare", rows: 5 },
+  { code: "BU", family: "cross", meaning: "Rare", rows: 1 },
+  { code: "CD", family: "WF pair", meaning: "Mid-morning WF-family double (often WF 11–12 or W/F 10–12)", rows: 392 },
+  { code: "CE", family: "WF span", meaning: "Uncommon", rows: 2 },
+  { code: "CT", family: "cross", meaning: "Rare", rows: 1 },
+  { code: "CU", family: "cross", meaning: "Uncommon cross-family", rows: 13 },
+  { code: "DE", family: "WF pair", meaning: "Adjacent WF D–E", rows: 9 },
+  { code: "DV", family: "cross", meaning: "Uncommon", rows: 13 },
+  { code: "EF", family: "WF pair / 3h", meaning: "Afternoon WF-family; often single-day 1:00–4:00", rows: 435 },
+  { code: "EG", family: "WF span", meaning: "Uncommon", rows: 12 },
+  { code: "EW", family: "cross", meaning: "Uncommon (also appears on midyear-style grids)", rows: 11 },
+  { code: "FC", family: "cross", meaning: "Rare", rows: 1 },
+  { code: "FG", family: "WF pair", meaning: "Adjacent WF F–G", rows: 42 },
+  { code: "FH", family: "WF span", meaning: "Rare", rows: 1 },
+  { code: "FT", family: "cross", meaning: "Rare", rows: 1 },
+  { code: "FX", family: "cross", meaning: "Uncommon", rows: 5 },
+  { code: "GH", family: "WF pair / 3h", meaning: "Late WF-family; often M/W/F 4:00–7:00", rows: 298 },
+  { code: "GY", family: "cross", meaning: "Uncommon", rows: 12 },
+  { code: "HI", family: "WF edge", meaning: "H with rare I; uncommon", rows: 7 },
+  { code: "HZ", family: "cross", meaning: "Rare", rows: 2 },
+  { code: "SB", family: "cross", meaning: "Rare", rows: 3 },
+  { code: "SE", family: "cross", meaning: "Rare", rows: 1 },
+  { code: "ST", family: "TTh pair", meaning: "Early TTh-family double (often TTh 8–9)", rows: 428 },
+  { code: "SU", family: "TTh span", meaning: "S–U span", rows: 31 },
+  { code: "SV", family: "TTh span", meaning: "Uncommon", rows: 5 },
+  { code: "SY", family: "TTh span", meaning: "Uncommon", rows: 3 },
+  { code: "SZ", family: "TTh span", meaning: "Uncommon", rows: 4 },
+  { code: "TB", family: "cross", meaning: "Rare", rows: 3 },
+  { code: "TU", family: "TTh pair", meaning: "Adjacent TTh T–U", rows: 40 },
+  { code: "TV", family: "TTh span / 3h", meaning: "Often Saturday or single-day 9:00–12:00", rows: 149 },
+  { code: "TX", family: "TTh span", meaning: "Uncommon", rows: 11 },
+  { code: "UC", family: "cross", meaning: "Rare", rows: 1 },
+  { code: "UV", family: "TTh pair", meaning: "Mid-morning TTh-family double (often TTh 11–12)", rows: 284 },
+  { code: "UW", family: "TTh span", meaning: "U–W span", rows: 23 },
+  { code: "UX", family: "TTh span", meaning: "Rare", rows: 1 },
+  { code: "UZ", family: "TTh span", meaning: "Rare", rows: 1 },
+  { code: "VW", family: "TTh pair", meaning: "Adjacent TTh V–W", rows: 11 },
+  { code: "WX", family: "TTh pair / 3h", meaning: "Afternoon TTh-family; often T/Th/S 1:00–4:00", rows: 402 },
+  { code: "WY", family: "TTh span / 3h", meaning: "Often a long single-day afternoon block", rows: 48 },
+  { code: "WZ", family: "TTh span", meaning: "Rare", rows: 1 },
+  { code: "XY", family: "TTh pair", meaning: "Adjacent TTh X–Y", rows: 31 },
+  { code: "YZ", family: "TTh pair / 3h", meaning: "Late TTh-family; often T/Th 4:00–7:00", rows: 256 },
+] as const;
+
+const morphology = [
+  {
+    pattern: "X",
+    example: "B, U",
+    meaning: "Single letter = one lecture section on the WF (A–H) or TTh (S–Z) ladder.",
+  },
+  {
+    pattern: "XY",
+    example: "AB, ST, UV",
+    meaning: "Two-letter code = larger or multi-hour offering that still sits near those letter blocks.",
+  },
+  {
+    pattern: "Xn / XYn",
+    example: "B1, AB2, ST3",
+    meaning: "Digits distinguish parallel lecture sections that share the same letter family.",
+  },
+  {
+    pattern: "XnL / XYnL",
+    example: "B3L, AB1L, ST11L",
+    meaning: "Compact lab: parent lecture + group number + L.",
+  },
+  {
+    pattern: "X-nL / XY-nL",
+    example: "G-1L, UV-2L, A2-7L",
+    meaning: "Dashed lab form (same meaning as compact L).",
+  },
+  {
+    pattern: "XnR / XYnR",
+    example: "AB2R, ST1R",
+    meaning: "Compact recitation (RCT): parent lecture + number + R.",
+  },
+  {
+    pattern: "X-nR / XY-nR",
+    example: "UV-1R, B-2R",
+    meaning: "Dashed recitation form.",
+  },
+  {
+    pattern: "…C",
+    example: "AB-1C, UV-2C",
+    meaning: "Computational lab (CPT) slot under the parent letter.",
+  },
+  {
+    pattern: "nL",
+    example: "1L, 3L",
+    meaning: "Lab numbered without a parent letter (common in CHEM / PHYS / ENSC).",
+  },
+  {
+    pattern: "TBA",
+    example: "TBA",
+    meaning: "To be announced — section code, not a time block.",
+  },
+  {
+    pattern: "Initials+n",
+    example: "AAB1, DRD3",
+    meaning: "Thesis / SP / dissertation / independent study keyed to faculty initials, not the clock ladder.",
+  },
+] as const;
+
 const dayShare1252 = [
   { label: "TTh", pct: 37.3, n: 990 },
   { label: "WF", pct: 32.4, n: 860 },
@@ -89,39 +242,158 @@ const structuredData = jsonLd(
       <p class="wiki-eyebrow">Class schedules</p>
       <h1 class="wiki-title">What times do section names correspond to?</h1>
       <p class="wiki-lede">
-        A section letter often tells you its usual meeting days and start time.
-        Room TBA's records show two parallel sequences: A–H mostly run on WF,
-        while S–Z cover the same time blocks on TTh. That preview holds for
-        regular-semester lectures. Midyear and labs use different calendars.
+        Every class row in Room TBA has an AMIS <strong>activity type</strong>
+        (LEC, LAB, RCT, …) and a <strong>section code</strong> (B, ST, AB2R,
+        G-1L, …). This page lists every type and every section-code pattern
+        observed in the archive, then shows which letters preview WF vs TTh
+        lecture times.
       </p>
       <p class="article-meta">
-        Letter ladder: July 14, 2026 · 35,607 class records. Day-structure
-        comparison: July 16, 2026 · CRS 1252 (2nd sem) and 1253 (midyear) LEC
-        slots.
+        Glossary census: July 16, 2026 · all terms in prod. Letter-ladder match
+        test: July 14, 2026 · 8,917 single-letter regular-semester lectures
+        (87.5%). Day-structure slice: CRS 1252 vs 1253 LEC slots.
       </p>
     </header>
+
+    <nav class="toc" aria-label="On this page">
+      <p class="toc__title">On this page</p>
+      <ol>
+        <li><a href="#activity-types">Activity type codes</a></li>
+        <li><a href="#morphology">How a section label is built</a></li>
+        <li><a href="#single-letters">Every single-letter code</a></li>
+        <li><a href="#paired-blocks">Paired WF / TTh time blocks</a></li>
+        <li><a href="#two-letters">Every two-letter LEC code</a></li>
+        <li><a href="#numbers-suffixes">Numbers and L / R / C suffixes</a></li>
+        <li><a href="#regular-sem">Regular semester day structure</a></li>
+        <li><a href="#midyear">Midyear calendar</a></li>
+        <li><a href="#when-useful">When the letter is useful</a></li>
+        <li><a href="#why-not-perfect">Why the code is not perfect</a></li>
+        <li><a href="#method">How we checked</a></li>
+      </ol>
+    </nav>
 
     <section aria-labelledby="short-answer">
       <h2 id="short-answer">The short answer</h2>
       <p>
-        Think of the letter as a time-block code for regular-semester lectures.
-        A and S are the first morning blocks. Each following letter moves later
-        in the day. The first sequence uses WF; the second uses TTh.
+        For regular-semester lectures, treat the letter as a time-block code.
+        <strong>A–H</strong> mostly mean WF; <strong>S–Z</strong> mean the same
+        clock starts on TTh. Digits and trailing <strong>L</strong> /
+        <strong>R</strong> / <strong>C</strong> mark parallel groups, labs,
+        recitations, and computational labs. Thesis and special-problem
+        sections use faculty-style codes, not the clock ladder.
       </p>
       <p>
-        Duration still varies. In the records, T most often appears as
-        <strong>TTh 8:30–10:00</strong> or <strong>TTh 9:00–10:00</strong>.
-        A most often appears as <strong>WF 7:00–8:30</strong> or
-        <strong>WF 7:00–8:00</strong>.
-      </p>
-      <p>
-        The AMIS schedule row remains the source of truth. The letter is a
-        preview for regular LEC only.
+        The AMIS schedule row remains the source of truth. Codes below are a
+        preview built from Room TBA’s imported rows.
       </p>
     </section>
 
-    <figure class="time-code">
-      <figcaption>Common regular-semester lecture blocks</figcaption>
+    <section aria-labelledby="activity-types">
+      <h2 id="activity-types">Activity type codes</h2>
+      <p>
+        These are the twelve <code>type</code> values present in Room TBA’s
+        <code>classes</code> table. Row counts are across all imported terms.
+      </p>
+      <p class="table-hint">Scroll sideways for the full table.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Meaning</th>
+              <th scope="col">Rows</th>
+              <th scope="col">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activityTypes.map((row) => (
+              <tr>
+                <td><code>{row.code}</code></td>
+                <td>{row.meaning}</td>
+                <td class="num">{row.rows.toLocaleString("en-US")}</td>
+                <td>{row.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="morphology">
+      <h2 id="morphology">How a section label is built</h2>
+      <p>
+        A section string is usually <em>parent letter(s)</em> + optional
+        <em>group number</em> + optional <em>activity suffix</em>. Read left to
+        right.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Pattern</th>
+              <th scope="col">Examples</th>
+              <th scope="col">Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            {morphology.map((row) => (
+              <tr>
+                <td><code>{row.pattern}</code></td>
+                <td><code>{row.example}</code></td>
+                <td>{row.meaning}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="single-letters">
+      <h2 id="single-letters">Every single-letter code</h2>
+      <p>
+        Letters that appear as standalone section codes in Room TBA. Letters
+        <strong>{missingLetters}</strong> do not appear as single-letter
+        sections in the archive. <strong>L</strong> and <strong>R</strong> show
+        up as lab/recit suffixes instead.
+      </p>
+      <p class="table-hint">Scroll sideways for the full table.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Day family</th>
+              <th scope="col">Usual meaning</th>
+              <th scope="col">Rows</th>
+            </tr>
+          </thead>
+          <tbody>
+            {singleLetters.map((row) => (
+              <tr>
+                <td>
+                  <span
+                    class:list={[
+                      "section-letter",
+                      row.family === "WF" && "section-letter--wf",
+                      row.family === "TTh" && "section-letter--tth",
+                      row.family === "rare" && "section-letter--rare",
+                    ]}
+                  >
+                    {row.code}
+                  </span>
+                </td>
+                <td>{row.family}</td>
+                <td>{row.meaning}</td>
+                <td class="num">{row.rows.toLocaleString("en-US")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <figure class="time-code" id="paired-blocks">
+      <figcaption>Paired WF / TTh lecture blocks</figcaption>
       <p class="table-hint">Scroll sideways for the full table.</p>
       <div class="table-wrap">
         <table>
@@ -158,6 +430,76 @@ const structuredData = jsonLd(
       </p>
     </figure>
 
+    <section aria-labelledby="two-letters">
+      <h2 id="two-letters">Every two-letter LEC code</h2>
+      <p>
+        All distinct two-letter lecture section codes in the archive, sorted
+        A→Z. High-count pairs are usually adjacent letters from the same day
+        family (AB, CD, ST, UV). Codes such as BD, EF, TV, WX, YZ often mark
+        three-hour single-day meetings that still sit near those letter blocks.
+      </p>
+      <p class="table-hint">Scroll sideways for the full table.</p>
+      <div class="table-wrap">
+        <table class="dense">
+          <thead>
+            <tr>
+              <th scope="col">Code</th>
+              <th scope="col">Family</th>
+              <th scope="col">Meaning in practice</th>
+              <th scope="col">LEC rows</th>
+            </tr>
+          </thead>
+          <tbody>
+            {twoLetterCodes.map((row) => (
+              <tr>
+                <td><code>{row.code}</code></td>
+                <td>{row.family}</td>
+                <td>{row.meaning}</td>
+                <td class="num">{row.rows.toLocaleString("en-US")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="figure-note">
+        {twoLetterCodes.length} distinct two-letter LEC codes. Counts are LEC
+        rows only; the same string can appear again as a lab parent or with
+        digits (AB1, ST2).
+      </p>
+    </section>
+
+    <section aria-labelledby="numbers-suffixes">
+      <h2 id="numbers-suffixes">Numbers and L / R / C suffixes</h2>
+      <ul class="break-list">
+        <li>
+          <strong>Digits</strong> (<code>AB1</code>, <code>ST3</code>,
+          <code>B2</code>) — parallel lecture sections in the same letter
+          family. About 5,600 one-letter+digit and 1,800 two-letter+digit LEC
+          rows in the archive.
+        </li>
+        <li>
+          <strong>L</strong> — laboratory. Compact (<code>B3L</code>,
+          <code>ST11L</code>) or dashed (<code>G-1L</code>,
+          <code>UV-2L</code>). ~11,900 LAB rows end in L. The parent lecture is
+          the letter run before the number; the lab clock is independent.
+        </li>
+        <li>
+          <strong>R</strong> — recitation (<code>RCT</code>). Compact
+          (<code>AB2R</code>) or dashed (<code>UV-1R</code>). All 203 RCT rows
+          in Room TBA use an R suffix. Planner offerings bundle the parent LEC
+          with its RCT.
+        </li>
+        <li>
+          <strong>C</strong> — computational lab (<code>CPT</code>), e.g.
+          <code>AB-1C</code>, <code>UV-2C</code>.
+        </li>
+        <li>
+          <strong>Bare <code>nL</code></strong> — labs without a parent letter
+          (CHEM, PHYS, ENSC). Still type LAB; no WF/TTh preview from a letter.
+        </li>
+      </ul>
+    </section>
+
     <section aria-labelledby="regular-sem">
       <h2 id="regular-sem">Regular semester day structure</h2>
       <p>
@@ -179,10 +521,7 @@ const structuredData = jsonLd(
           {dayShare1252.map((row) => (
             <li>
               <span class="share-bars__label">{row.label}</span>
-              <span
-                class="share-bars__track"
-                aria-hidden="true"
-              >
+              <span class="share-bars__track" aria-hidden="true">
                 <span
                   class="share-bars__fill share-bars__fill--reg"
                   style={`width: ${row.pct}%`}
@@ -206,9 +545,7 @@ const structuredData = jsonLd(
         <strong>86%</strong> are <strong>105-minute</strong> blocks that start
         on :45 or :15 offsets, not the regular :00/:30 ladder.
       </p>
-      <p>
-        Four windows hold most midyear lectures (~61% of LEC slots):
-      </p>
+      <p>Four windows hold most midyear lectures (~61% of LEC slots):</p>
       <ul class="quartet">
         {midyearQuartet.map((window) => (
           <li><code>{window}</code></li>
@@ -218,7 +555,8 @@ const structuredData = jsonLd(
         Weekly contact for a typical midyear LEC is about
         <strong>10.5 hours</strong> (6 × 105 min), versus roughly
         <strong>3 hours</strong> for a regular TTh or WF paired lecture
-        (2 × 90 min). Same course credit, denser calendar.
+        (2 × 90 min). Same course credit, denser calendar. Do not use A–H /
+        S–Z inference for midyear or for <code>*L</code> labs.
       </p>
       <figure class="share-chart">
         <figcaption>LEC day patterns · term 1253 (132 slots)</figcaption>
@@ -240,26 +578,9 @@ const structuredData = jsonLd(
         </ul>
       </figure>
       <p>
-        Midyear labs do not follow the lecture rhythm. Labs lean on MWF, TThS,
-        or TWThF rather than daily MTWThFS. Lengths cluster around 210 minutes,
-        with occasional multi-hour marathons. The section letter usually echoes
-        the parent lecture; the lab time is independent.
-      </p>
-    </section>
-
-    <section aria-labelledby="suffixes">
-      <h2 id="suffixes">What numbers and suffixes mean</h2>
-      <p>
-        A label such as <strong>B3L</strong> carries more than one piece of
-        information. B points back to the lecture block. The number distinguishes
-        a smaller group, and L marks a laboratory. R commonly marks a recitation.
-      </p>
-      <p>
-        The lab's own meeting time can be anywhere the department has space. HNF
-        101 B3L, for example, can meet late in the afternoon even when its B
-        lecture is a morning class. Use the schedule row for the actual time.
-        Do not infer midyear or <code>*L</code> meeting times from the letter
-        ladder above.
+        Midyear labs lean on MWF, TThS, or TWThF rather than daily MTWThFS.
+        Lengths cluster around 210 minutes, with occasional multi-hour
+        marathons.
       </p>
     </section>
 
@@ -314,8 +635,8 @@ const structuredData = jsonLd(
           <code>WF 04:00AM-05:30AM</code>; Room TBA parses the text literally.
         </li>
         <li>
-          <strong>Graduate / special topics</strong> — often ignore the campus
-          undergrad grid.
+          <strong>Graduate / special topics</strong> — THE, SPR, DSR, IND, STO
+          often ignore the undergrad grid.
         </li>
       </ul>
       <p>
@@ -328,17 +649,19 @@ const structuredData = jsonLd(
     <section aria-labelledby="method">
       <h2 id="method">How we checked</h2>
       <p>
-        The letter-ladder scan covered all 35,607 class records in Room TBA:
-        nine terms from AY 2023–2024 through AY 2026–2027, including two
-        midyears. Of those, 31,480 records had a schedule. Pattern match used
-        8,917 scheduled lecture meetings with a single-letter section from the
-        seven regular semesters: 7,804 matched (<strong>87.5%</strong>).
+        Glossary tables enumerate every <code>type</code> value and every
+        single-letter and two-letter LEC <code>section</code> observed in the
+        prod <code>classes</code> table as of July 16, 2026.
       </p>
       <p>
-        The day-structure and midyear figures above come from a second pass on
-        prod <code>classes</code> rows for CRS terms <strong>1252</strong> and
-        <strong>1253</strong> on July 16, 2026, counting lecture
-        (<code>type = LEC</code>) slots only.
+        The letter-ladder match scan covered 35,607 class records across nine
+        terms (AY 2023–2024 through AY 2026–2027). Pattern match used 8,917
+        scheduled single-letter lectures from seven regular semesters: 7,804
+        matched (<strong>87.5%</strong>).
+      </p>
+      <p>
+        Day-structure figures use CRS terms <strong>1252</strong> and
+        <strong>1253</strong> LEC slots only (July 16, 2026 pass).
       </p>
     </section>
 
@@ -362,8 +685,38 @@ const structuredData = jsonLd(
     font-size: 0.8rem;
   }
 
+  .toc {
+    margin: 2rem 0 0;
+    padding: 1rem 1.15rem;
+    border: 1px solid hsl(0, 0%, 88%);
+    border-radius: 0.85rem;
+    background: hsl(0, 0%, 99%);
+  }
+
+  .toc__title {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 750;
+    color: hsl(0, 0%, 35%);
+  }
+
+  .toc ol {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+    color: hsl(0, 0%, 30%);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  .toc a {
+    color: hsl(5, 53%, 32%);
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+  }
+
   .wiki-article section,
-  .article-callout {
+  .article-callout,
+  .time-code {
     margin-top: 2.5rem;
   }
 
@@ -381,7 +734,6 @@ const structuredData = jsonLd(
     line-height: 1.72;
   }
 
-  .time-code,
   .share-chart {
     margin: 2.5rem 0 0;
   }
@@ -401,6 +753,7 @@ const structuredData = jsonLd(
     overflow-x: auto;
     border: 1px solid hsl(0, 0%, 86%);
     border-radius: 1rem;
+    margin-top: 0.75rem;
   }
 
   table {
@@ -409,6 +762,11 @@ const structuredData = jsonLd(
     border-collapse: collapse;
     background: white;
     font-size: 0.875rem;
+  }
+
+  table.dense {
+    min-width: 48rem;
+    font-size: 0.8125rem;
   }
 
   th,
@@ -430,6 +788,11 @@ const structuredData = jsonLd(
     border-bottom: 0;
   }
 
+  td.num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   .section-letter {
     display: inline-grid;
     width: 2rem;
@@ -446,6 +809,10 @@ const structuredData = jsonLd(
 
   .section-letter--tth {
     background: hsl(126, 50%, 34%);
+  }
+
+  .section-letter--rare {
+    background: hsl(0, 0%, 45%);
   }
 
   .time-code__start {
@@ -596,7 +963,7 @@ const structuredData = jsonLd(
 
     .wiki-article .table-hint {
       display: block;
-      margin: -0.25rem 0 0.5rem;
+      margin: 0.5rem 0 0;
       color: hsl(0, 0%, 46%);
       font-size: 0.8rem;
     }
