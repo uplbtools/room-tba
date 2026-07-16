@@ -5,4 +5,5 @@
   src:
     url("/InterVariable.ttf") format("truetype"),
     url("/InterVariable-Italic.ttf") format("truetype");
+  font-display: swap;
 }
