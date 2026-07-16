@@ -23,6 +23,9 @@ export interface Sponsor {
   endDate: string;
   active: boolean;
   category: string;
+  /** Exact `places.name` of the sponsor's real physical location — grants a
+   * labeled "Sponsored" map pin (docs/ad-policy.md: real locations only). */
+  placeName?: string;
 }
 
 export interface SponsorsConfig {
@@ -77,6 +80,30 @@ export function rotateSponsor(
     (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000,
   );
   return sponsors[dayOfYear % sponsors.length] ?? null;
+}
+
+/** Ad-policy cap: at most this many sponsored pins on the map at once. */
+export const MAX_SPONSORED_PINS = 3;
+
+/**
+ * Map of place name → sponsor id for active Gold/Silver sponsors anchored to
+ * a real place entity. Capped at MAX_SPONSORED_PINS, gold first.
+ */
+export function getSponsoredPlacePins(
+  sponsors: Sponsor[],
+  now?: Date,
+): Map<string, string> {
+  const pool = [
+    ...getByTier(sponsors, "gold", now),
+    ...getByTier(sponsors, "silver", now),
+  ];
+  const pins = new Map<string, string>();
+  for (const sponsor of pool) {
+    if (!sponsor.placeName) continue;
+    if (pins.size >= MAX_SPONSORED_PINS) break;
+    if (!pins.has(sponsor.placeName)) pins.set(sponsor.placeName, sponsor.id);
+  }
+  return pins;
 }
 
 /** Client-side loader; resolves null when the config is missing or malformed. */

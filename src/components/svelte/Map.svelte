@@ -34,6 +34,11 @@
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
+  import { getSponsoredPlacePins, loadSponsors } from "@lib/sponsors";
+  import {
+    trackSponsorClick,
+    trackSponsorImpression,
+  } from "@lib/sponsor-tracking";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -263,7 +268,22 @@
   let directions: MapLibreGlDirections | undefined = $state.raw();
   let mapStyle = $state<StyleSpecification | null>(null);
 
+  // Sponsored place pins (docs/ad-policy.md: real locations only, capped).
+  let sponsoredPlacePins = $state<Map<string, string>>(new Map());
+
+  // Impression per sponsored pin actually on the map (session-deduped in lib).
+  $effect(() => {
+    if (sponsoredPlacePins.size === 0) return;
+    for (const place of filteredPlaces) {
+      const sponsorId = sponsoredPlacePins.get(place.name);
+      if (sponsorId) trackSponsorImpression(sponsorId, "map_pin");
+    }
+  });
+
   onMount(() => {
+    void loadSponsors().then((data) => {
+      if (data) sponsoredPlacePins = getSponsoredPlacePins(data.sponsors);
+    });
     void loadCampusMapStyle<StyleSpecification>()
       .then((style) => {
         mapStyle = style;
@@ -2930,6 +2950,7 @@
               {@const previewSuppressed =
                 centralHoverPreview &&
                 isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
+              {@const pinSponsorId = sponsoredPlacePins.get(place.name)}
               <Marker lngLat={[place.lon, place.lat]}>
                 <MapEntityPin
                   label={place.name}
@@ -2939,9 +2960,13 @@
                   labelVisible={zoomLevel >= 17 ||
                     (queryStore.category === "place" &&
                       queryStore.inputValue === place.name)}
+                  sponsored={pinSponsorId !== undefined}
                   useCentralHoverPreview={centralHoverPreview}
                   {previewSuppressed}
-                  onclick={() => handlePlaceMarkerClick(place)}
+                  onclick={() => {
+                    if (pinSponsorId) trackSponsorClick(pinSponsorId, "map_pin");
+                    handlePlaceMarkerClick(place);
+                  }}
                   onpointerenter={(event) =>
                     handlePlacePinPointerEnter(place, event)}
                   onpointerleave={handleDetailPinPointerLeave}
@@ -3193,6 +3218,12 @@
     height: 100%;
     z-index: 0;
     pointer-events: auto;
+  }
+
+  /* Marker wrappers are stacking contexts (transform), so pin-level z-index
+     can't lift a pin above sibling markers — raise the wrapper instead. */
+  .map-container :global(.maplibregl-marker:has(.map-entity-pin.sponsored)) {
+    z-index: 2;
   }
 
   .map-shell :global(.edit-dock),

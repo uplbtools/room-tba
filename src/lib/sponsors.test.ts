@@ -4,6 +4,8 @@ import {
   getByTier,
   getGoldSponsor,
   getSilverSponsors,
+  getSponsoredPlacePins,
+  MAX_SPONSORED_PINS,
   rotateSponsor,
   type Sponsor,
 } from "./sponsors";
@@ -66,6 +68,28 @@ describe("tier selectors", () => {
 
   test("getSilverSponsors returns all active silvers", () => {
     expect(getSilverSponsors(list, NOW)).toHaveLength(2);
+  });
+});
+
+describe("getSponsoredPlacePins", () => {
+  test("maps active gold/silver placeName sponsors, gold first, capped", () => {
+    const list = [
+      sponsor({ id: "s1", tier: "silver", placeName: "Silver Spot" }),
+      sponsor({ id: "g1", tier: "gold", placeName: "Gold Spot" }),
+      sponsor({ id: "g2", tier: "gold" }), // no placeName — no pin
+      sponsor({ id: "b1", tier: "bronze", placeName: "Bronze Spot" }), // tier too low
+      sponsor({ id: "off", tier: "gold", placeName: "Closed", active: false }),
+      sponsor({ id: "s2", tier: "silver", placeName: "Extra One" }),
+      sponsor({ id: "s3", tier: "silver", placeName: "Extra Two" }),
+      sponsor({ id: "s4", tier: "silver", placeName: "Over Cap" }),
+    ];
+    const pins = getSponsoredPlacePins(list, NOW);
+    expect(pins.size).toBe(MAX_SPONSORED_PINS);
+    expect(pins.get("Gold Spot")).toBe("g1");
+    expect(pins.get("Silver Spot")).toBe("s1");
+    expect(pins.has("Bronze Spot")).toBe(false);
+    expect(pins.has("Closed")).toBe(false);
+    expect(pins.has("Over Cap")).toBe(false);
   });
 });
 

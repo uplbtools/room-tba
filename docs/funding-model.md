@@ -32,13 +32,17 @@ Minimum **5 points/month** to receive a payout for that month.
 
 ## Sponsor tiers
 
-| Tier         | Monthly | Semester | Placement                                        |
-| ------------ | ------- | -------- | ------------------------------------------------ |
-| Gold         | ₱2,000  | ₱8,000   | Status bar badge, side panel, sponsors page hero |
-| Silver       | ₱1,000  | ₱4,000   | Side panel rotation, sponsors page grid          |
-| Bronze       | ₱500    | ₱2,000   | Sponsors page list, static page strip            |
-| Campus Promo | ₱800    | ₱3,200   | Time-boxed campus promos                         |
-| Student Org  | Free    | Free     | Event promotion, sponsors page mention           |
+| Tier         | Monthly | Semester | Placement                                                       |
+| ------------ | ------- | -------- | --------------------------------------------------------------- |
+| Gold         | ₱2,000  | ₱8,000   | Status bar badge, side panel, sponsors page hero, sponsored pin |
+| Silver       | ₱1,000  | ₱4,000   | Side panel rotation, sponsors page grid, sponsored pin          |
+| Bronze       | ₱500    | ₱2,000   | Sponsors page list, static page strip                           |
+| Campus Promo | ₱800    | ₱3,200   | Time-boxed campus promos                                        |
+| Student Org  | Free    | Free     | Event promotion, sponsors page mention                          |
+
+Sponsored map pins (Gold/Silver) require a real physical location near campus
+registered as a `places` entity — see the map-pin rules in
+[ad-policy.md](ad-policy.md). Max 3 pins at once, gold priority.
 
 ## Impression guarantee
 

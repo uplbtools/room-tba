@@ -11,7 +11,8 @@
       "startDate": "2026-07-01",
       "endDate": "2026-08-31",
       "active": true,
-      "category": "food"
+      "category": "food",
+      "placeName": "Kape Kalabaw"
     },
     {
       "id": "sample-sponsor",
