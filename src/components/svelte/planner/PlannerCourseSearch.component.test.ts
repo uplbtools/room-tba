@@ -82,7 +82,7 @@ describe("PlannerCourseSearch", () => {
     await waitFor(() => {
       expect(plannerStore.activePlan?.sections).toHaveLength(2);
     });
-    expect(plannerStore.activePlan?.label).toBe("Plan 1");
+    expect(plannerStore.activePlan?.label).toBe("Untitled Plan 1");
     expect(await screen.findByRole("button", { name: "✓" })).toBeVisible();
   });
 });

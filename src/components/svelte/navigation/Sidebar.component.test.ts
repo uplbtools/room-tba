@@ -27,4 +27,12 @@ describe("Sidebar", () => {
     await fireEvent.click(help.closest("button")!);
     expect(screen.getByText("Settings")).toBeInTheDocument();
   });
+
+  test("links to the dedicated Wiki without expanding the rail", () => {
+    render(Sidebar);
+
+    const wiki = screen.getByText("Wiki").closest("a");
+    expect(wiki).toHaveAttribute("href", "/wiki");
+    expect(wiki).not.toHaveAttribute("target");
+  });
 });

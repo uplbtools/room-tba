@@ -1,15 +1,14 @@
 import {
   getJSONFetch,
   getBuildingIdsWithClasses,
+  getLocalClassesForRoom,
 } from "../local/data/utils.js";
 import { parseTermIdFromSearch, syncTermQueryParam } from "../term-url.js";
 import {
   resolveDefaultTermFromList,
   resolveInitialTermId,
 } from "../term-calendar.js";
-import type { TermWithCount } from "@lib/types";
-import { missingParentLectures } from "../class-offering-groups.js";
-import { fetchClassPage } from "../classes-api.js";
+import type { ClassMapValue, TermWithCount } from "@lib/types";
 import { ACTIVE_TERM_LS_KEY } from "./store-types.js";
 
 export class TermStore {
@@ -98,7 +97,12 @@ export class RoomClassesStore {
   private _requestKey: string | null = null;
 
   load = async (roomCode: string, termId: number | null) => {
-    const key = `${roomCode}::${termId ?? "all"}`;
+    if (termId == null) {
+      this.clear();
+      this.loading = false;
+      return;
+    }
+    const key = `${roomCode}::${termId}`;
     this._requestKey = key;
 
     const cached = this._cache.get(key);
@@ -108,19 +112,28 @@ export class RoomClassesStore {
       return;
     }
 
+    // Cache-first (#415): paint PGlite rows immediately, then refresh from API.
+    // Room schedules stay room-scoped — do not hydrate LEC/LAB siblings from
+    // other rooms (see AGENTS.md / cadf0843).
+    const local = await getLocalClassesForRoom(roomCode, termId);
+    if (local !== null) {
+      this.loading = local.length === 0;
+      if (local.length > 0) {
+        this._cache.set(key, local);
+        if (this._requestKey === key) {
+          this.classes = local;
+          this.loading = false;
+        }
+        void this.#refreshFromApi(roomCode, termId, key);
+        return;
+      }
+    }
+
     this.loading = true;
     try {
-      const params = new URLSearchParams({ room_code: roomCode });
-      if (termId != null) params.set("term_id", String(termId));
-      const data = await getJSONFetch<ClassMapValue[]>(
-        `/api/classes?${params.toString()}`,
-      );
-      // A lab/recit's parent lecture usually meets in a different room, so it
-      // isn't in this room's list. Fetch those lectures so the offering
-      // grouping can show each lab/recit alongside its lecture (#301).
-      const withParents = await this.#addParentLectures(data, termId);
-      this._cache.set(key, withParents);
-      if (this._requestKey === key) this.classes = withParents;
+      const data = await this.#fetchRoomClasses(roomCode, termId);
+      this._cache.set(key, data);
+      if (this._requestKey === key) this.classes = data;
     } catch (e) {
       console.error("Failed to load room classes:", e);
       if (this._requestKey === key) this.classes = [];
@@ -129,48 +142,25 @@ export class RoomClassesStore {
     }
   };
 
-  // Fetch the parent lectures referenced by labs/recits in `roomClasses` that
-  // aren't already present (they meet in other rooms) and merge them in.
-  #addParentLectures = async (
-    roomClasses: ClassMapValue[],
-    termId: number | null,
+  #fetchRoomClasses = async (
+    roomCode: string,
+    termId: number,
   ): Promise<ClassMapValue[]> => {
-    const missing = missingParentLectures(roomClasses);
-    if (missing.length === 0) return roomClasses;
+    const params = new URLSearchParams({
+      room_code: roomCode,
+      term_id: String(termId),
+    });
+    return getJSONFetch<ClassMapValue[]>(`/api/classes?${params.toString()}`);
+  };
 
-    const sectionsByCourse = new Map<string, Set<string>>();
-    for (const { courseCode, section } of missing) {
-      const set = sectionsByCourse.get(courseCode) ?? new Set<string>();
-      set.add(section);
-      sectionsByCourse.set(courseCode, set);
+  #refreshFromApi = async (roomCode: string, termId: number, key: string) => {
+    try {
+      const data = await this.#fetchRoomClasses(roomCode, termId);
+      this._cache.set(key, data);
+      if (this._requestKey === key) this.classes = data;
+    } catch {
+      // Keep PGlite rows on background refresh failure.
     }
-
-    const haveIds = new Set(roomClasses.map((row) => row.id));
-    const extra: ClassMapValue[] = [];
-    await Promise.all(
-      [...sectionsByCourse].map(async ([courseCode, sections]) => {
-        try {
-          const page = await fetchClassPage({
-            termId,
-            courseCodePrefix: courseCode,
-            limit: 100,
-          });
-          for (const row of page.rows) {
-            if (row.courseCode !== courseCode) continue;
-            const section = (row.section ?? "").trim().toUpperCase();
-            if (sections.has(section) && !haveIds.has(row.id)) {
-              haveIds.add(row.id);
-              extra.push(row);
-            }
-          }
-        } catch {
-          // Best effort — if a course fetch fails, omit that lecture rather
-          // than failing the whole room load.
-        }
-      }),
-    );
-
-    return extra.length > 0 ? [...roomClasses, ...extra] : roomClasses;
   };
 
   clear = () => {

@@ -1121,6 +1121,9 @@ export async function withdrawProposal(
 ) {
   const proposal = await getProposalById(id);
   if (!proposal) throw new ProposalActionError("Proposal not found.", 404);
+  if (!["pending", "needs_changes"].includes(proposal.status)) {
+    throw new ProposalActionError("This proposal is no longer open.", 409);
+  }
   if (!canWithdrawProposal(session, proposal, submitterName)) {
     throw new ProposalActionError(
       "Not allowed to withdraw this proposal.",

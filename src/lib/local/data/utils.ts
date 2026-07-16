@@ -77,7 +77,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
     const localDB = getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
-        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", version, updated_at AS "updatedAt" FROM buildings
+        SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", cr_facilities AS "crFacilities", version, updated_at AS "updatedAt" FROM buildings
       `)) as Results<BuildingData>;
     return data.rows;
   } catch (e) {
@@ -588,31 +588,126 @@ export const getEvents = getEntity<EventData>("events", getLocalEvents);
 
 export const getClasses = getEntity<ClassMapValue>("classes", getLocalClasses);
 
+/** Room list from the API; used when PGlite has no rows or for background refresh. */
+export async function fetchEntityRoomsRemote(
+  entityName: "building" | "college" | "division",
+  id: number,
+): Promise<RoomData[]> {
+  const url = `/api/rooms?${entityName}_id=${id}`;
+  try {
+    const response = await fetch(url);
+    const fetchedData = (await response.json()) as { data?: RoomData[] };
+    if (response.ok && Array.isArray(fetchedData?.data)) {
+      return fetchedData.data;
+    }
+    if (response.status === 404) {
+      return [];
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
 export function getEntityRooms(
   entityName: string,
   getLocalTableRoom: (id: number) => Promise<RoomData[] | undefined>,
 ) {
   return async (validSync: boolean, id: number) => {
     const loadLocal = async () => (await getLocalTableRoom(id)) ?? [];
-    if (validSync) return loadLocal();
-    const url = `/api/rooms?${entityName}_id=${id}`;
-    try {
-      const response = await fetch(url);
-      const fetchedData = (await response.json()) as { data?: RoomData[] };
-      if (response.ok && Array.isArray(fetchedData?.data)) {
-        return fetchedData.data;
-      }
-      // Authoritative empty entity (e.g. 404): do not resurrect stale cache.
-      if (response.status === 404) {
-        return [];
-      }
-      const cached = await loadLocal();
-      return cached.length > 0 ? cached : [];
-    } catch {
-      const cached = await loadLocal();
-      return cached;
-    }
+    const cached = await loadLocal();
+    // Cache-first: paint from PGlite when rows exist (#415).
+    if (cached.length > 0) return cached;
+    if (validSync) return cached;
+    const remote = await fetchEntityRoomsRemote(
+      entityName as "building" | "college" | "division",
+      id,
+    );
+    return remote.length > 0 ? remote : cached;
   };
+}
+
+const CLASS_ROW_SELECT = `
+  c.id,
+  c.course_code as "courseCode",
+  c.section,
+  c.type,
+  c.schedule,
+  c.directions,
+  c.course_title as "courseTitle",
+  c.term_id as "termId",
+  c.room_id as "roomId"
+`;
+
+/** Classes for one room from PGlite; null when the classes table is empty (#415). */
+export async function getLocalClassesForRoom(
+  roomCode: string,
+  termId: number | null,
+): Promise<ClassMapValue[] | null> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const hasAny = (await localDB.query(
+      "SELECT 1 FROM classes LIMIT 1",
+    )) as Results<Record<string, unknown>>;
+    if (hasAny.rows.length === 0) return null;
+
+    const scoped = termId != null;
+    const data = (await localDB.query(
+      `
+      SELECT ${CLASS_ROW_SELECT}
+      FROM classes AS c
+      JOIN rooms AS r ON r.id = c.room_id
+      WHERE upper(r.room_code) = upper($1)
+      ${scoped ? "AND c.term_id = $2" : ""}
+      `,
+      scoped ? [roomCode, termId] : [roomCode],
+    )) as Results<ClassMapValue>;
+    return data.rows;
+  } catch (e) {
+    console.error("Error: ", e);
+    return null;
+  }
+}
+
+const ENTITY_ROOM_FILTER: Record<"building" | "college" | "division", string> =
+  {
+    building: "r.building_id = $1",
+    college: "r.college_id = $1",
+    division: "r.division_id = $1",
+  };
+
+/** Per-room class counts from PGlite; null when classes were never synced (#415). */
+export async function getLocalRoomClassCounts(
+  entityName: "building" | "college" | "division",
+  id: number,
+  termId?: number,
+): Promise<Map<number, number> | null> {
+  try {
+    const localDB = getDB();
+    await localDB.waitReady;
+    const hasAny = (await localDB.query(
+      "SELECT 1 FROM classes LIMIT 1",
+    )) as Results<Record<string, unknown>>;
+    if (hasAny.rows.length === 0) return null;
+
+    const scoped = termId != null;
+    const data = (await localDB.query(
+      `
+      SELECT c.room_id AS "roomId", COUNT(*)::int AS count
+      FROM classes AS c
+      JOIN rooms AS r ON r.id = c.room_id
+      WHERE ${ENTITY_ROOM_FILTER[entityName]}
+      ${scoped ? "AND c.term_id = $2" : ""}
+      GROUP BY c.room_id
+      `,
+      scoped ? [id, termId] : [id],
+    )) as Results<{ roomId: number; count: number }>;
+    return new Map(data.rows.map((row) => [row.roomId, row.count]));
+  } catch (e) {
+    console.error("Error: ", e);
+    return null;
+  }
 }
 
 export const getBuildingRooms = getEntityRooms(
@@ -636,6 +731,9 @@ export async function fetchRoomClassCounts(
   id: number,
   termId?: number,
 ): Promise<Map<number, number> | null> {
+  const local = await getLocalRoomClassCounts(entityName, id, termId);
+  if (local !== null) return local;
+
   const params = new URLSearchParams({ [`${entityName}_id`]: String(id) });
   if (termId != null) params.set("term_id", String(termId));
   try {

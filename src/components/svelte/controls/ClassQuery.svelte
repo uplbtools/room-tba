@@ -5,7 +5,7 @@
   import Classes from "@ui/room/Classes.svelte";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
   import { fetchClassPage } from "@lib/classes-api";
-  import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
+  import { CLASS_BROWSE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
   import {
     fetchFinalExams,
     FINALS_SCOPE_NOTE,
@@ -122,7 +122,7 @@
         <span class="entity-header__badge">{termStore.activeTerm.label}</span>
       {/if}
     </div>
-    <p class="entity-panel-note">{ROOM_SCHEDULE_SCOPE_NOTE}</p>
+    <p class="entity-panel-note">{CLASS_BROWSE_SCOPE_NOTE}</p>
   </header>
 
   <div class="results-list">
@@ -171,8 +171,7 @@
     {:else if looksLikeCourseCode(courseQuery)}
       <div class="no-results">
         <p>
-          No LEC/LAB sections listed for {courseQuery}{termStore.activeTerm
-            ?.label
+          No sections listed for {courseQuery}{termStore.activeTerm?.label
             ? ` in ${termStore.activeTerm.label}`
             : ""}.
         </p>

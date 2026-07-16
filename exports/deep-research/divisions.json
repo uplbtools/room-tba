@@ -1,174 +1,346 @@
 [
   {
     "id": 1,
-    "divisionName": "Agricultural Systems Institute"
+    "divisionName": "Agricultural Systems Institute",
+    "collegeId": 1,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 2,
-    "divisionName": "Department of Agribusiness Management and Entrepreneurship"
+    "divisionName": "Department of Agribusiness Management and Entrepreneurship",
+    "collegeId": 4,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 3,
-    "divisionName": "Department of Agricultural Machinery and Power Engineering"
+    "divisionName": "Department of Agricultural Machinery and Power Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 4,
-    "divisionName": "Department of Agricultural and Applied Economics"
+    "divisionName": "Department of Agricultural and Applied Economics",
+    "collegeId": 4,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 5,
-    "divisionName": "Department of Agricultural and Biosystems Engineering"
+    "divisionName": "Department of Agricultural and Biosystems Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 6,
-    "divisionName": "Department of Basic Veterinary Sciences"
+    "divisionName": "Department of Basic Veterinary Sciences",
+    "collegeId": 8,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 7,
-    "divisionName": "Department of Chemical Engineering"
+    "divisionName": "Department of Chemical Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 8,
-    "divisionName": "Department of Civil Engineering"
+    "divisionName": "Department of Civil Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 9,
-    "divisionName": "Department of Community and Environmental Resource Planning"
+    "divisionName": "Department of Community and Environmental Resource Planning",
+    "collegeId": 7,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 10,
-    "divisionName": "Department of Development Broadcasting and Telecommunication"
+    "divisionName": "Department of Development Broadcasting and Telecommunication",
+    "collegeId": 3,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 11,
-    "divisionName": "Department of Development Journalism"
+    "divisionName": "Department of Development Journalism",
+    "collegeId": 3,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 12,
-    "divisionName": "Department of Economics"
+    "divisionName": "Department of Economics",
+    "collegeId": 4,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 13,
-    "divisionName": "Department of Educational Communication"
+    "divisionName": "Department of Educational Communication",
+    "collegeId": 3,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 14,
-    "divisionName": "Department of Electrical Engineering"
+    "divisionName": "Department of Electrical Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 15,
-    "divisionName": "Department of Engineering Science"
+    "divisionName": "Department of Engineering Science",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 16,
-    "divisionName": "Department of Forest Biological Sciences"
+    "divisionName": "Department of Forest Biological Sciences",
+    "collegeId": 6,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 17,
-    "divisionName": "Department of Forest Products and Paper Science"
+    "divisionName": "Department of Forest Products and Paper Science",
+    "collegeId": 6,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 18,
-    "divisionName": "Department of Human Kinetics"
+    "divisionName": "Department of Human Kinetics",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 19,
-    "divisionName": "Department of Human and Family Development Studies"
+    "divisionName": "Department of Human and Family Development Studies",
+    "collegeId": 7,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 20,
-    "divisionName": "Department of Humanities"
+    "divisionName": "Department of Humanities",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 21,
-    "divisionName": "Department of Industrial Engineering"
+    "divisionName": "Department of Industrial Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 22,
-    "divisionName": "Department of Land and Water Resources Engineering"
+    "divisionName": "Department of Land and Water Resources Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 23,
-    "divisionName": "Department of Mechanical Engineering"
+    "divisionName": "Department of Mechanical Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 24,
-    "divisionName": "Department of Science Communication"
+    "divisionName": "Department of Science Communication",
+    "collegeId": 3,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 25,
-    "divisionName": "Department of Social Development Services"
+    "divisionName": "Department of Social Development Services",
+    "collegeId": 7,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 26,
-    "divisionName": "Department of Social Forestry and Forest Governance"
+    "divisionName": "Department of Social Forestry and Forest Governance",
+    "collegeId": 6,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 27,
-    "divisionName": "Department of Social Sciences"
+    "divisionName": "Department of Social Sciences",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 28,
-    "divisionName": "Department of Veterinary Clinical Sciences"
+    "divisionName": "Department of Veterinary Clinical Sciences",
+    "collegeId": 8,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 29,
-    "divisionName": "Department of Veterinary Paraclinical Sciences"
+    "divisionName": "Department of Veterinary Paraclinical Sciences",
+    "collegeId": 8,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 30,
-    "divisionName": "Institute of Agricultural and Biosystems Engineering"
+    "divisionName": "Institute of Agricultural and Biosystems Engineering",
+    "collegeId": 5,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 31,
-    "divisionName": "Institute of Animal Science"
+    "divisionName": "Institute of Animal Science",
+    "collegeId": 1,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 32,
-    "divisionName": "Institute of Biological Sciences"
+    "divisionName": "Institute of Biological Sciences",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 33,
-    "divisionName": "Institute of Chemistry"
+    "divisionName": "Institute of Chemistry",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 34,
-    "divisionName": "Institute of Computer Science"
+    "divisionName": "Institute of Computer Science",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 35,
-    "divisionName": "Institute of Cooperatives and Bio-Enterprise Development"
+    "divisionName": "Institute of Cooperatives and Bio-Enterprise Development",
+    "collegeId": 4,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 36,
-    "divisionName": "Institute of Crop Science"
+    "divisionName": "Institute of Crop Science",
+    "collegeId": 1,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 37,
-    "divisionName": "Institute of Food Science and Technology"
+    "divisionName": "Institute of Food Science and Technology",
+    "collegeId": 1,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 38,
-    "divisionName": "Institute of Human Nutrition and Food"
+    "divisionName": "Institute of Human Nutrition and Food",
+    "collegeId": 7,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 39,
-    "divisionName": "Institute of Mathematical Sciences and Physics"
+    "divisionName": "Institute of Mathematical Sciences and Physics",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 40,
-    "divisionName": "Institute of Physics"
+    "divisionName": "Institute of Physics",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 41,
-    "divisionName": "Institute of Renewable Natural Resources"
+    "divisionName": "Institute of Renewable Natural Resources",
+    "collegeId": 6,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 42,
-    "divisionName": "Institute of Statistics"
+    "divisionName": "Institute of Statistics",
+    "collegeId": 2,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   },
   {
     "id": 43,
-    "divisionName": "Institute of Weed Science, Entomology and Plant Pathology"
+    "divisionName": "Institute of Weed Science, Entomology and Plant Pathology",
+    "collegeId": 1,
+    "websiteLink": null,
+    "version": 1,
+    "updatedAt": "2026-06-24 17:18:05.758"
   }
 ]

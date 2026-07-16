@@ -134,7 +134,9 @@ Every push to `staging` or `main` (and every PR preview) triggers a Vercel deplo
 
 **Merge the release PR with a merge commit, not squash** — semantic-release reads the individual conventional commits to build the changelog; a squash collapses them to one message.
 
-**Release-step (`main`) gotchas — semantic-release.** Pushing to `main` runs `bunx semantic-release` (`.github/workflows/release.yml`). Two failure modes seen in practice:
+**Release-step (`main`) gotchas — semantic-release.** Pushing to `main` runs `migrate-prod` then `bunx semantic-release` (`.github/workflows/release.yml`). Two failure modes seen in practice:
+
+- **Prod schema drift (colleges/orgs API 500).** If code merged before `drizzle/*.sql` hit prod, Drizzle selects missing columns → `/api/colleges` etc. return 500 while buildings work. Release workflow now applies pending migrations first; still add new SQL files under `drizzle/` in the same release batch. Vercel production deploys on push in parallel with Actions — migrations usually finish first (~seconds vs minutes), but enable Vercel **Deployment Protection → Wait for GitHub Actions** on production if you want a hard gate.
 
 - **Tag/history divergence → first-release `v1.0.0` collision.** If `main` was ever rewritten so no `vX.Y.Z` tag is reachable from it (`git describe --tags origin/main` says "no tags can describe"), semantic-release assumes a first release, tries `git tag v1.0.0`, and dies (`already exists`). Fix: re-point the highest version tag onto `main`'s current tip as a **lightweight** tag — `git update-ref refs/tags/vX.Y.Z <main-sha>` then `git push origin refs/tags/vX.Y.Z --force`. Use `update-ref`, **not** `git tag -a`: `tag.gpgsign true` forces annotated tags, and semantic-release's ancestor check rejects annotated tags (it compares the tag-object SHA, which isn't a commit). Always **dry-run first**: on a local `staging→main` merge, `GITHUB_REF=refs/heads/main GITHUB_ACTIONS=true bunx semantic-release --dry-run --no-ci` — confirm "next release version is X.Y.Z" (not 1.0.0), and make sure the checked-out `main` ref equals the merge commit or it reads the wrong history.
 - **Version-sync PR fails silently.** The auto step that writes the bumped `package.json` + `CHANGELOG.md` back to `main` fails because the org **blocks GitHub Actions from opening PRs** (`continue-on-error`, so the release still "succeeds"). Open it manually: branch off `main`, bump `package.json` version, prepend the GitHub release body to `CHANGELOG.md`, commit `chore(release): X.Y.Z [skip ci]`, merge. Symptom: `CHANGELOG.md` drifts behind the version (froze at 1.23.0 while tags reached 1.36.0); the in-app "What's new"/`/changelog` go stale. To catch up in one shot: pull every release body newer than the CHANGELOG top with `gh release view <tag> --json body`, `sed 's/^## \[/# \[/'` (CHANGELOG uses `#` h1, release bodies use `##`), prepend newest-first, `prettier --write CHANGELOG.md`. The permanent fix is the org toggle **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests."**
@@ -158,9 +160,9 @@ This is a PWA with a service worker that caches assets aggressively. After a reb
 
 The top-left search chrome's browse-chip row (`campus-browse-chips__container`) overflows/clips past ~5 chips — a 6th chip pushed "Classes" off and clipped it. Put wide or additional controls (e.g. the term selector) on **their own row** rather than inline with the browse chips.
 
-### Class offerings: a lab/recit's parent lecture must be in the same set
+### Room schedules contain only classes assigned to that room
 
-`groupClassesByOffering` links a lab/recit (`G-1L`, `UV-1R`) to its lecture by the section prefix before the dash — but only if the **lecture row is in the array passed in**. In the room view the lecture meets in a different room, so `/api/classes?room_code=` never returns it; `RoomClassesStore` must fetch the missing parent lectures (`missingParentLectures` → `fetchClassPage` by course) and merge them, or the lecture won't show.
+`/api/classes?room_code=` and `RoomClassesStore` must not hydrate LEC/LAB siblings from other rooms. Cross-room rows make “Classes in this room” misleading and create overlaps in the room timetable. `groupClassesByOffering` may group related rows already present in the selected room; class search and the planner are the surfaces for the full offering.
 
 ### Push to `staging` directly
 
@@ -431,7 +433,7 @@ Enable **Dependabot security updates** and **secret scanning** in GitHub repo Se
 
 - **App:** Astro 7 SSR + Svelte 5 islands, Vercel adapter, Bun.
 - **Server data:** Supabase Postgres via Drizzle ([`src/lib/db.ts`](src/lib/db.ts), [`drizzle/schema.ts`](drizzle/schema.ts), migrations in `drizzle/`).
-- **Client offline cache:** PGlite in IndexedDB ([`src/lib/local/data/pgliteDB.ts`](src/lib/local/data/pgliteDB.ts)); schema is maintained separately and **can drift** from Drizzle; update both when changing tables.
+- **Client offline cache:** PGlite in IndexedDB ([`src/lib/local/data/pgliteDB.ts`](src/lib/local/data/pgliteDB.ts)); its init SQL is **generated from `drizzle/schema.ts`** via `bun run generate:pglite-schema` (local-only columns live in the generator's `LOCAL_ONLY` overlay). After schema changes, regenerate and commit `pglite-schema.generated.ts`; `pglite-schema.test.ts` fails on drift.
 - **Client state:** [`src/lib/store.svelte.ts`](src/lib/store.svelte.ts) (monolithic store module; import via `@lib/store.svelte`).
 - **Auth:** HMAC cookie `admin_session` + bcrypt `admin_users` gates `/api/admin/*`. Supabase Auth ([`src/lib/supabase/*`](src/lib/supabase/)) is additive in middleware; intended long-term consolidation target.
 - **Do not edit:** `drizzle-migrations/` (archived SQLite history). Do not add browser `/admin` pages as the editor surface.
@@ -513,7 +515,7 @@ CRS/AMIS `term_id` values are **chronological within the academic year**: the nu
 - Supabase Postgres is the runtime source of truth via `DATABASE_URL` (not `NEON_CONNECTION_STRING`). Code, Drizzle, seeds, and the Astro env schema all use `DATABASE_URL`. On Vercel, name the env var `DATABASE_URL`.
 - Supabase JS (`@supabase/supabase-js` + `@supabase/ssr`) is additive: `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` power Auth/client features via `src/lib/supabase/*`. Keep using Drizzle + `DATABASE_URL` for existing Postgres queries unless a feature explicitly needs the JS client.
 - Drizzle schema changes need a matching SQL migration in `drizzle/`. Apply pending migrations to Supabase before deploying code that depends on them; skipped migrations cause runtime query failures (e.g. missing `0007_add_event_image_url.sql` leaves out `events.image_url` and breaks event loading).
-- **PGlite drift:** offline tables in `pgliteDB.ts` must stay aligned with server schema and with [`src/lib/local/data/sync.ts`](src/lib/local/data/sync.ts) consumers.
+- **PGlite drift:** offline DDL is generated (`bun run generate:pglite-schema`) from `drizzle/schema.ts`; after schema changes regenerate + commit, and verify [`src/lib/local/data/sync.ts`](src/lib/local/data/sync.ts) consumers still match.
 - Admin API routes live under `/api/admin/*` and must keep auth checks.
 - Keep PATCH routes field-level and partial so unrelated edits do not clobber each other.
 
@@ -603,7 +605,7 @@ gh pr checks <number> --repo uplbtools/room-tba
 ### Supabase ops
 
 - **Runtime Postgres:** Supabase via **`DATABASE_URL`** (Drizzle in `src/lib/db.ts`). Not PGlite, not Neon at runtime.
-- **Migrations:** SQL in `drizzle/`: apply to Supabase **before** deploying code that depends on new columns (`psql "$DATABASE_URL" -f drizzle/….sql` or dashboard SQL editor). Repo does not use `supabase db push` as the primary flow.
+- **Migrations:** SQL in `drizzle/`. **Production:** push to `main` runs `migrate-prod` in `.github/workflows/release.yml` (`bun run apply:migrations:prod` against `secrets.PROD_DATABASE_URL`) before semantic-release. Ledger table `schema_migrations` tracks applied files; existing prod DBs baseline once without re-running history. **Local/staging:** `bun run scripts/apply-migrations.ts` with `DATABASE_URL`, or apply individual files via `psql`. Repo does not use `supabase db push` as the primary flow.
 - **Connection string / serverless pooling.** The **session pooler** (`*.pooler.supabase.com:5432`) caps at `pool_size` (15). `src/lib/db.ts` opens `DATABASE_POOL_MAX` (default **10**) connections _per serverless instance_, so a Vercel cold-start burst (every route after a deploy, or concurrent traffic) exhausts the pooler → intermittent **500/503 that self-recover once warm** (`EMAXCONNSESSION`, or `Failed query … NodePgPreparedQuery`). Reported as "the serverless function crashed" but static pages + warm/cached routes stay fine. **Quick mitigation:** `vercel env add DATABASE_POOL_MAX production` = `2` (and `preview`), then redeploy. **Durable fix:** point `DATABASE_URL` at the Supabase **transaction pooler** (port **6543**) and set `prepare: false` in `db.ts` — it's built for many short serverless connections. A fresh deploy always triggers a brief cold-start burst; diagnose with `vercel logs <deployment-url>` and confirm via a _sequential_ probe (real users are fine) vs a concurrent one.
 - **Optional CLI:** `supabase login`, `supabase projects list`; `bunx drizzle-kit studio` to browse schema locally (needs working `DATABASE_URL`).
 - After fixing Vercel env, **redeploy**: failed deployments are not auto-retried.

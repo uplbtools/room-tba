@@ -50,6 +50,7 @@
   import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
   import Sidebar from "./navigation/Sidebar.svelte";
+  import StagingBanner from "./StagingBanner.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import type { RecentSearch } from "@lib/types";
@@ -357,9 +358,10 @@
 
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
+  <StagingBanner />
   <div class="ui-layer">
     <Sidebar />
-    {#if sidebarStore.panelOpen === "map"}
+    {#if ["map", "contributors", "settings"].includes(sidebarStore.panelOpen)}
       <section
         class="top-right-map-stack"
         aria-label="Map camera controls"
@@ -440,6 +442,7 @@
     --bottom-fab-gap: var(--map-ui-padding, 0.5rem);
     --bottom-chrome-gap: var(--bottom-fab-gap, 0.5rem);
     --search-block-height: 3.25rem;
+    --staging-banner-height: 0px;
     /* Top-left search card + drawer: use viewport minus right-side map chrome. */
     --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
     --status-bar-block-height: 2rem;
@@ -454,15 +457,16 @@
         var(--side-panel-bottom-gap, 0.375rem)
     );
     --side-panel-top-inset: calc(
-      var(--search-block-height, 3.25rem) + var(--map-ui-padding, 0.5rem) +
-        var(--side-panel-top-gap, 0.75rem)
+      var(--staging-banner-height, 0px) + var(--search-block-height, 3.25rem) +
+        var(--map-ui-padding, 0.5rem) + var(--side-panel-top-gap, 0.75rem)
     );
     --side-panel-top-gap: 0.75rem;
     --drawer-peek-offset: 1.75rem;
     --map-tools-block-height: 3.25rem;
     --mobile-detail-sheet-top-inset: calc(
-      var(--search-block-height) + var(--map-tools-block-height) +
-        var(--map-ui-padding) * 2 + var(--mobile-detail-sheet-gap, 0.375rem)
+      var(--staging-banner-height, 0px) + var(--search-block-height) +
+        var(--map-tools-block-height) + var(--map-ui-padding) * 2 +
+        var(--mobile-detail-sheet-gap, 0.375rem)
     );
     --mobile-detail-sheet-gap: 0.375rem;
     --edit-bar-height: 0rem;
@@ -505,6 +509,7 @@
        map(0) < side-panel(2) < status-bar(5) < search-elevated(12) < map-tools(15) < chrome-popover(17)
        < modal(100) < login-modal(200) < toast(1000). (#302) */
     --z-map: 0;
+    --z-staging-banner: 20;
     --z-side-panel: 2;
     --z-search-elevated: 12;
     --z-status-bar: 5;
@@ -651,6 +656,7 @@
   .bottom-chrome__triggers {
     display: flex;
     gap: 0.375rem;
+    align-items: flex-end;
   }
 
   .bottom-band::before {

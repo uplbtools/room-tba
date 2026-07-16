@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
+import { openAppSidebar } from "../helpers/map-tools";
 import { openRoom } from "../helpers/search";
 
 test.describe("term and classes", () => {
@@ -9,8 +10,13 @@ test.describe("term and classes", () => {
   });
 
   test("term selector visible", async ({ page }) => {
+    const sidebar = await openAppSidebar(page);
+    await sidebar.getByRole("button", { name: /^classes$/i }).click();
+    await expect(page.getByText(/All classes/i).first()).toBeVisible({
+      timeout: 10_000,
+    });
     await expect(
-      page.getByRole("button", { name: /sem|term|1252/i }).first(),
+      page.getByRole("button", { name: /E2E 2nd Sem|academic term/i }).first(),
     ).toBeVisible({
       timeout: 10_000,
     });

@@ -1,7 +1,7 @@
 /** AMIS class types that normally meet in a campus room (import + room schedules). */
 export const ROOM_SCHEDULED_CLASS_TYPES = new Set(["LEC", "LAB"]);
 
-/** AMIS types we skip on import — usually no room assignment in AMIS. */
+/** AMIS types imported without a required room (thesis, SP, etc.). */
 export const NON_ROOM_CLASS_TYPES: Readonly<
   Record<string, { label: string; description: string }>
 > = {
@@ -28,9 +28,15 @@ export const NON_ROOM_CLASS_TYPES: Readonly<
   },
 };
 
-/** Short copy for the room schedule panel in the app. */
+/** Short copy for room schedule panels (per-room class lists). */
 export const ROOM_SCHEDULE_SCOPE_NOTE =
   "Schedules list lecture and lab sections with assigned rooms. Thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS, so they do not appear here.";
+
+/** Short copy for class browse / course-prefix search. */
+export const CLASS_BROWSE_SCOPE_NOTE =
+  "Class search lists lecture, lab, thesis, special problem, dissertation, and similar sections. Sections without a room in AMIS show as unassigned; open a room only when a room code is listed.";
+
+export const NO_ASSIGNED_ROOM_LABEL = "No assigned room";
 
 /**
  * Disclaimer for course/section data during enrollment. Offerings are not final
@@ -43,4 +49,15 @@ export const COURSE_CHANGE_DISCLAIMER =
 export function isRoomScheduledClassType(type: string | null | undefined) {
   if (!type) return false;
   return ROOM_SCHEDULED_CLASS_TYPES.has(type.trim().toUpperCase());
+}
+
+export function isNonRoomClassType(type: string | null | undefined) {
+  if (!type) return false;
+  return type.trim().toUpperCase() in NON_ROOM_CLASS_TYPES;
+}
+
+export function classTypeDisplayLabel(type: string | null | undefined) {
+  if (!type) return "Class";
+  const key = type.trim().toUpperCase();
+  return NON_ROOM_CLASS_TYPES[key]?.label ?? key;
 }

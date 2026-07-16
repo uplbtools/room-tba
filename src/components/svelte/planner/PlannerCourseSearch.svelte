@@ -70,30 +70,46 @@
   });
 
   type CourseGroup = {
+    /** Stable list/expand key: courseCode + title. */
+    key: string;
     courseCode: string;
     title: string | null;
     offerings: ClassOfferingGroup[];
   };
 
+  /** Bucket by code + title so shared codes with different titles (e.g. HK 12) split. */
+  function courseGroupKey(
+    courseCode: string,
+    title: string | null | undefined,
+  ): string {
+    return `${courseCode}::${title ?? ""}`;
+  }
+
   const courses = $derived.by(() => {
     const byCourse = new Map<string, CourseGroup>();
     for (const offering of groupClassesByOffering(rows)) {
       if (offering.key.startsWith("__solo__")) continue;
-      let course = byCourse.get(offering.courseCode);
+      const key = courseGroupKey(offering.courseCode, offering.courseTitle);
+      let course = byCourse.get(key);
       if (!course) {
         course = {
+          key,
           courseCode: offering.courseCode,
           title: offering.courseTitle,
           offerings: [],
         };
-        byCourse.set(offering.courseCode, course);
+        byCourse.set(key, course);
       }
       if (!course.title && offering.courseTitle) {
         course.title = offering.courseTitle;
       }
       course.offerings.push(offering);
     }
-    return [...byCourse.values()];
+    return [...byCourse.values()].sort((a, b) => {
+      const byCode = a.courseCode.localeCompare(b.courseCode);
+      if (byCode !== 0) return byCode;
+      return (a.title ?? "").localeCompare(b.title ?? "");
+    });
   });
 
   function selectedCount(course: CourseGroup): number {
@@ -104,9 +120,9 @@
     ).length;
   }
 
-  function toggleExpanded(courseCode: string) {
-    if (expanded.has(courseCode)) expanded.delete(courseCode);
-    else expanded.add(courseCode);
+  function toggleExpanded(key: string) {
+    if (expanded.has(key)) expanded.delete(key);
+    else expanded.add(key);
   }
 
   function togglePlan(offering: ClassOfferingGroup) {
@@ -132,6 +148,16 @@
     });
     return parts.join(" · ");
   }
+
+  /** Drop shared HK 12 base name + parens; leave the activity (e.g. Badminton). */
+  function stripHk12Title(title: string | null | undefined): string {
+    if (!title) return "";
+    return title
+      .replace(/Human Kinetics Activities/gi, "")
+      .replace(/[()]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
 </script>
 
 <aside class="course-search" aria-label="Search courses">
@@ -154,16 +180,25 @@
   {:else}
     <div class="course-search__list">
       <div class="course-search__list-container">
-        {#each courses as course (course.courseCode)}
+        {#each courses as course (course.key)}
           {@const picked = selectedCount(course)}
           <div class="course-item">
             <button
               type="button"
               class="course-item__header"
-              aria-expanded={expanded.has(course.courseCode)}
-              onclick={() => toggleExpanded(course.courseCode)}
+              aria-expanded={expanded.has(course.key)}
+              onclick={() => toggleExpanded(course.key)}
             >
-              <span class="course-item__code">{course.courseCode}</span>
+              <span class="course-item__code">
+                {#if course.courseCode.includes("HK 12")}
+                  {course.courseCode}
+                  {#if stripHk12Title(course.title)}
+                    {" "}({stripHk12Title(course.title)})
+                  {/if}
+                {:else}
+                  {course.courseCode}
+                {/if}
+              </span>
               <span class="course-item__meta">
                 {#if picked > 0}
                   <span class="course-item__picked">{picked} in plan</span>
@@ -172,10 +207,12 @@
                 section{course.offerings.length === 1 ? "" : "s"}
               </span>
               {#if course.title}
-                <span class="course-item__title">{course.title}</span>
+                <span class="course-item__title">
+                  {course.title}
+                </span>
               {/if}
             </button>
-            {#if expanded.has(course.courseCode)}
+            {#if expanded.has(course.key)}
               <ul class="course-item__sections">
                 {#each course.offerings as offering (offering.key)}
                   {@const key = offeringGroupKey(
@@ -302,9 +339,9 @@
   }
 
   .course-search__list-container {
-      display:flex;
-      flex-direction: column;
-      gap:.375rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
   }
 
   .course-item {

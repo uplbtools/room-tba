@@ -118,6 +118,30 @@ describeIntegration(
       ).rejects.toBeInstanceOf(AccountActionError);
     });
 
+    test("profile URLs require HTTPS and credits visibility persists", async () => {
+      const { AccountActionError, getAccountProfile, updateAccountProfile } =
+        await import("@lib/services/admin-user-service");
+      await expect(
+        updateAccountProfile(passwordUserId, {
+          displayName: "Password User",
+          avatarUrl: "http://example.com/avatar.png",
+        }),
+      ).rejects.toBeInstanceOf(AccountActionError);
+
+      await updateAccountProfile(passwordUserId, {
+        displayName: "Visible Profile",
+        avatarUrl: "https://example.com/avatar.png",
+        profileUrl: "https://example.com/about",
+        showInCredits: false,
+      });
+      await expect(getAccountProfile(passwordUserId)).resolves.toMatchObject({
+        displayName: "Visible Profile",
+        avatarUrl: "https://example.com/avatar.png",
+        profileUrl: "https://example.com/about",
+        showInCredits: false,
+      });
+    });
+
     test("email-change token round-trip updates the email", async () => {
       const { requestEmailChange, confirmEmailChange } = await import(
         "@lib/services/admin-user-service"

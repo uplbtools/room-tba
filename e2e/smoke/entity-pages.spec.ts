@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { waitForAppBoot } from "../helpers/app";
+import { campusSearchBox, waitForAppBoot } from "../helpers/app";
 import {
   buildingPagePath,
   eventPagePath,
@@ -56,7 +56,7 @@ test.describe("landing", () => {
     if (await getStarted.isVisible({ timeout: 3000 }).catch(() => false)) {
       await getStarted.click();
     }
-    await expect(page.locator(".term-filter-chip")).toBeVisible();
+    await expect(campusSearchBox(page)).toBeVisible();
   });
 
   test("don't show again persists", async ({ page }) => {

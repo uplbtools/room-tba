@@ -1,0 +1,252 @@
+---
+import Layout from "@layouts/Layout.astro";
+
+const panels = [
+  {
+    step: "01",
+    eyebrow: "ROOM TBA",
+    title: "Course\nPlanner",
+    copy: "Build a possible schedule before you register.",
+    detail: "room-tba.uplbtools.me/planner",
+    image: null,
+  },
+  {
+    step: "02",
+    eyebrow: "START HERE",
+    title: "Choose the\nterm.",
+    copy: "Open Planner. The term menu keeps the course list and timetable on the same semester.",
+    detail: "The planner opens from the map or /planner.",
+    image: "/pubmat/planner-start.png",
+    imageAlt: "Room TBA Class Planner with a selected Midyear term and weekly timetable",
+  },
+  {
+    step: "03",
+    eyebrow: "ADD A SECTION",
+    title: "Search.\nOpen. Add.",
+    copy: "Search a course code, open its available sections, then use Add on the section that fits.",
+    detail: "Lecture, lab, and recitation schedules stay together.",
+    image: "/pubmat/planner-sections.png",
+    imageAlt: "Room TBA Class Planner showing a searched course and its available section with an Add button",
+  },
+  {
+    step: "04",
+    eyebrow: "CHECK THE WEEK",
+    title: "Spot clashes\nbefore they do.",
+    copy: "The week view places each section by day and time. The conflict badge flags overlaps. Plans save on this device; Share creates a link.",
+    detail: "Course offerings can still change up to change of matriculation.",
+    image: "/pubmat/planner-start.png",
+    imageAlt: "Room TBA Class Planner weekly timetable",
+  },
+];
+---
+
+<Layout
+  title="Course Planner guide | Room TBA"
+  description="Four-panel guide to the Room TBA Course Planner."
+  canonicalPath="/pubmat/course-planner/"
+  robots="noindex,nofollow"
+  showAppLoadingShell={false}
+>
+  <main class="pubmat" aria-label="Course Planner four-panel guide">
+    {panels.map((panel) => (
+      <section class:list={["panel", panel.image ? "panel--screen" : "panel--cover"]}>
+        <div class="panel__topline">
+          <span>{panel.eyebrow}</span>
+          <span>{panel.step} / 04</span>
+        </div>
+
+        <div class="panel__copy">
+          <h1>{panel.title.split("\n").map((line) => <Fragment>{line}<br /></Fragment>)}</h1>
+          <p>{panel.copy}</p>
+        </div>
+
+        {panel.image ? (
+          <figure class="panel__screen">
+            <img src={panel.image} alt={panel.imageAlt} />
+          </figure>
+        ) : (
+          <div class="panel__cover-art" aria-hidden="true">
+            <img src="/logo.png" alt="" />
+            <span>Room TBA</span>
+          </div>
+        )}
+
+        <footer class="panel__footer">
+          <span>{panel.detail}</span>
+          <span>UPLB</span>
+        </footer>
+      </section>
+    ))}
+  </main>
+</Layout>
+
+<style>
+  :global(body) {
+    margin: 0;
+    background: #e9e3df;
+  }
+
+  .pubmat {
+    display: grid;
+    gap: 2rem;
+    width: min(100%, 67.5rem);
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  .panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    aspect-ratio: 4 / 5;
+    min-height: 0;
+    overflow: hidden;
+    padding: clamp(1.75rem, 4.5vw, 4.5rem);
+    color: #231c1b;
+    background: #f9f4f1;
+  }
+
+  .panel::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(128, 39, 30, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(128, 39, 30, 0.08) 1px, transparent 1px);
+    background-size: 2.5rem 2.5rem;
+    mask-image: linear-gradient(to bottom, black, transparent 70%);
+  }
+
+  .panel--cover {
+    color: #fffaf7;
+    background:
+      linear-gradient(145deg, rgba(86, 18, 13, 0.9), rgba(44, 11, 10, 0.92)),
+      url("/uplb-bg-og.jpg") center / cover;
+  }
+
+  .panel--cover::before {
+    opacity: 0.5;
+  }
+
+  .panel__topline,
+  .panel__copy,
+  .panel__screen,
+  .panel__cover-art,
+  .panel__footer {
+    position: relative;
+    z-index: 1;
+  }
+
+  .panel__topline,
+  .panel__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: clamp(0.65rem, 1.5vw, 0.9rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .panel__topline {
+    color: #8c231c;
+  }
+
+  .panel--cover .panel__topline {
+    color: #f6cec8;
+  }
+
+  .panel__copy {
+    max-width: 44rem;
+    margin-top: clamp(2rem, 7vw, 7rem);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(4.4rem, 11vw, 10rem);
+    font-weight: 700;
+    letter-spacing: -0.075em;
+    line-height: 0.82;
+  }
+
+  .panel--screen h1 {
+    font-size: clamp(4rem, 9.4vw, 8.5rem);
+  }
+
+  .panel__copy p {
+    max-width: 32rem;
+    margin: 1.75rem 0 0;
+    font-size: clamp(1.15rem, 2.7vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  .panel__screen {
+    width: 78%;
+    margin: auto 0 1.5rem auto;
+    overflow: hidden;
+    border: 0.55rem solid #fff;
+    border-radius: 1rem;
+    box-shadow: 0 1.25rem 3rem rgba(58, 17, 13, 0.25);
+  }
+
+  .panel__screen img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .panel__cover-art {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: auto 0;
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: 700;
+  }
+
+  .panel__cover-art img {
+    width: clamp(4.25rem, 9vw, 7rem);
+    border-radius: 1.25rem;
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.28);
+  }
+
+  .panel__footer {
+    color: #795955;
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+
+  .panel__footer span:last-child {
+    color: #8c231c;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .panel--cover .panel__footer,
+  .panel--cover .panel__footer span:last-child {
+    color: #f6cec8;
+  }
+
+  @media (max-width: 67.5rem) {
+    .pubmat {
+      gap: 0;
+      padding: 0;
+    }
+
+    .panel {
+      padding: 2rem;
+    }
+
+    .panel__screen {
+      width: 82%;
+      border-width: 0.35rem;
+    }
+  }
+</style>

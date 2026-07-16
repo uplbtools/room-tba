@@ -4,7 +4,9 @@ export const DEFAULT_TITLE =
   "Room TBA | Find Rooms, Buildings, Colleges, and Divisions at UPLB";
 export const DEFAULT_DESCRIPTION =
   "Room TBA helps UPLB students find rooms, buildings, colleges, and divisions across the Los Banos campus.";
-export const DEFAULT_OG_IMAGE = "/socmed.png";
+export const DEFAULT_OG_IMAGE = "/og.png";
+export const OG_IMAGE_WIDTH = 1200;
+export const OG_IMAGE_HEIGHT = 630;
 
 export function absoluteUrl(path = "/") {
   return new URL(path, SITE_URL).toString();

@@ -1,0 +1,309 @@
+---
+export const prerender = true;
+
+import WikiLayout from "@layouts/WikiLayout.astro";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+
+const title = "What times do UPLB section names correspond to? | Room TBA Wiki";
+const description =
+  "A data-backed guide to UPLB section letters: A–H for WF time blocks, S–Z for TTh blocks, plus the exceptions behind numbered lab and recitation sections.";
+
+const timeBlocks = [
+  { wf: "A", tth: "S", time: "7:00", windows: "7:00–8:00 or 7:00–8:30", wfMatch: 78.4, tthMatch: 86.8 },
+  { wf: "B", tth: "T", time: "8:30 / 9:00", windows: "8:30–10:00 or 9:00–10:00", wfMatch: 81.0, tthMatch: 90.9 },
+  { wf: "C", tth: "U", time: "10:00", windows: "10:00–11:00 or 10:00–11:30", wfMatch: 86.8, tthMatch: 95.5 },
+  { wf: "D", tth: "V", time: "11:30 / 12:00", windows: "11:30–1:00 or 12:00–1:00", wfMatch: 87.3, tthMatch: 93.1 },
+  { wf: "E", tth: "W", time: "1:00", windows: "1:00–2:00 or 1:00–2:30", wfMatch: 88.5, tthMatch: 93.1 },
+  { wf: "F", tth: "X", time: "2:30 / 3:00", windows: "2:30–4:00 or 3:00–4:00", wfMatch: 91.9, tthMatch: 92.5 },
+  { wf: "G", tth: "Y", time: "4:00", windows: "4:00–5:00 or 4:00–5:30", wfMatch: 73.9, tthMatch: 90.3 },
+  { wf: "H", tth: "Z", time: "5:30 / 6:00", windows: "5:30–7:00 or 6:00–7:00", wfMatch: 71.7, tthMatch: 83.2 },
+] as const;
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/wiki/section-times" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Wiki", path: "/wiki" },
+    { name: "Section times", path: "/wiki/section-times" },
+  ]),
+);
+---
+
+<WikiLayout
+  {title}
+  {description}
+  canonicalPath="/wiki/section-times"
+  {structuredData}
+>
+  <article class="wiki-article">
+    <header class="article-hero">
+      <p class="wiki-eyebrow">Class schedules</p>
+      <h1 class="wiki-title">What times do section names correspond to?</h1>
+      <p class="wiki-lede">
+        A section letter often tells you its usual meeting days and start time.
+        Room TBA's records show two parallel sequences: A–H mostly run on WF,
+        while S–Z cover the same time blocks on TTh.
+      </p>
+      <p class="article-meta">Dataset snapshot: July 14, 2026 · 35,607 class records</p>
+    </header>
+
+    <section aria-labelledby="short-answer">
+      <h2 id="short-answer">The short answer</h2>
+      <p>
+        Think of the letter as a time-block code. A and S are the first morning
+        blocks. Each following letter moves later in the day. The first sequence
+        uses WF; the second uses TTh.
+      </p>
+      <p>
+        Duration still varies. In the records, T most often appears as
+        <strong>TTh 8:30–10:00</strong> or <strong>TTh 9:00–10:00</strong>.
+        A most often appears as <strong>WF 7:00–8:30</strong> or
+        <strong>WF 7:00–8:00</strong>.
+      </p>
+    </section>
+
+    <figure class="time-code">
+      <figcaption>Common regular-semester lecture blocks</figcaption>
+      <p class="table-hint">Scroll sideways for the full table.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">WF section</th>
+              <th scope="col">TTh section</th>
+              <th scope="col">Usual start</th>
+              <th scope="col">Common observed windows</th>
+              <th scope="col">Pattern match</th>
+            </tr>
+          </thead>
+          <tbody>
+            {timeBlocks.map((block) => (
+              <tr>
+                <td><span class="section-letter section-letter--wf">{block.wf}</span></td>
+                <td><span class="section-letter section-letter--tth">{block.tth}</span></td>
+                <td class="time-code__start">{block.time}</td>
+                <td>{block.windows}</td>
+                <td>
+                  <span class="match-pair">
+                    <span>WF {block.wfMatch}%</span>
+                    <span>TTh {block.tthMatch}%</span>
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="figure-note">
+        “Pattern match” is the share of comparable lecture meetings that use
+        the expected day pair and one of the common starts shown here.
+      </p>
+    </figure>
+
+    <section aria-labelledby="suffixes">
+      <h2 id="suffixes">What numbers and suffixes mean</h2>
+      <p>
+        A label such as <strong>B3L</strong> carries more than one piece of
+        information. B points back to the lecture block. The number distinguishes
+        a smaller group, and L marks a laboratory. R commonly marks a recitation.
+      </p>
+      <p>
+        The lab's own meeting time can be anywhere the department has space. HNF
+        101 B3L, for example, can meet late in the afternoon even when its B
+        lecture is a morning class. Use the schedule row for the actual time.
+      </p>
+    </section>
+
+    <aside class="article-callout" aria-labelledby="why-not-perfect">
+      <h2 id="why-not-perfect">Why the code is not perfect</h2>
+      <p>
+        Midyear compresses classes into a different weekly pattern. Labs,
+        recitations, fieldwork, graduate courses, and special topics also follow
+        local scheduling needs. A few rows contain obvious encoding errors such
+        as an afternoon block entered as AM.
+      </p>
+      <p>
+        Treat the letter as a useful preview. The current AMIS or Room TBA
+        schedule remains the source for your exact days, time, and room.
+      </p>
+    </aside>
+
+    <section aria-labelledby="method">
+      <h2 id="method">How we checked</h2>
+      <p>
+        The scan covered all 35,607 class records in Room TBA: nine terms from
+        AY 2023–2024 through AY 2026–2027, including two midyears. Of those,
+        31,480 records had a schedule.
+      </p>
+      <p>
+        For a fair comparison, the pattern test used 8,917 scheduled lecture
+        meetings with a single-letter section from the seven regular semesters.
+        It excluded midyear, labs, recitations, and longer section codes. In
+        that subset, 7,804 meetings matched the expected day family and start
+        block: <strong>87.5%</strong>.
+      </p>
+    </section>
+
+    <p class="article-back"><a class="wiki-link" href="/wiki">Back to the Wiki</a></p>
+  </article>
+</WikiLayout>
+
+<style>
+  .wiki-article {
+    max-width: 52rem;
+  }
+
+  .article-hero {
+    padding: 1rem 0 2.5rem;
+    border-bottom: 1px solid hsl(0, 0%, 88%);
+  }
+
+  .article-meta {
+    margin: 1rem 0 0;
+    color: hsl(0, 0%, 48%);
+    font-size: 0.8rem;
+  }
+
+  .wiki-article section,
+  .article-callout {
+    margin-top: 2.5rem;
+  }
+
+  .wiki-article h2 {
+    margin: 0 0 0.75rem;
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    letter-spacing: -0.02em;
+  }
+
+  .wiki-article p {
+    max-width: 46rem;
+    margin: 0.75rem 0 0;
+    color: hsl(0, 0%, 27%);
+    font-size: 1rem;
+    line-height: 1.72;
+  }
+
+  .time-code {
+    margin: 2.5rem 0 0;
+  }
+
+  .time-code figcaption {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 750;
+  }
+
+  .table-hint {
+    display: none;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid hsl(0, 0%, 86%);
+    border-radius: 1rem;
+  }
+
+  table {
+    width: 100%;
+    min-width: 42rem;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.875rem;
+  }
+
+  th,
+  td {
+    padding: 0.75rem;
+    border-bottom: 1px solid hsl(0, 0%, 90%);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    background: hsl(5, 22%, 97%);
+    color: hsl(0, 0%, 36%);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .section-letter {
+    display: inline-grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 0.55rem;
+    color: white;
+    font-weight: 800;
+  }
+
+  .section-letter--wf {
+    background: hsl(211, 72%, 42%);
+  }
+
+  .section-letter--tth {
+    background: hsl(126, 50%, 34%);
+  }
+
+  .time-code__start {
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .match-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    color: hsl(0, 0%, 38%);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .wiki-article .figure-note {
+    margin-top: 0.6rem;
+    color: hsl(0, 0%, 46%);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .article-callout {
+    padding: 1.25rem;
+    border-left: 4px solid hsl(5, 53%, 42%);
+    border-radius: 0 0.75rem 0.75rem 0;
+    background: hsl(5, 34%, 97%);
+  }
+
+  .article-callout h2 {
+    font-size: 1.2rem;
+  }
+
+  .article-callout p:first-of-type {
+    margin-top: 0;
+  }
+
+  .article-back {
+    padding-top: 1.5rem;
+    border-top: 1px solid hsl(0, 0%, 88%);
+  }
+
+  @media (max-width: 36rem) {
+    .article-hero {
+      padding-top: 0.5rem;
+    }
+
+    th,
+    td {
+      padding: 0.65rem;
+    }
+
+    .wiki-article .table-hint {
+      display: block;
+      margin: -0.25rem 0 0.5rem;
+      color: hsl(0, 0%, 46%);
+      font-size: 0.8rem;
+    }
+  }
+</style>

@@ -23,6 +23,7 @@ export const FIELD_LABELS: Record<string, string> = {
   endsAt: "Ends",
   sourceUrl: "Source URL",
   imageUrl: "Image",
+  crFacilities: "CR facilities",
   recurrence: "Recurrence",
   rooms: "Bundled rooms",
   locations: "Locations",
