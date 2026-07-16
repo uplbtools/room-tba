@@ -43,6 +43,7 @@ export default defineConfig({
           /^\/privacy(\/|\?|$)/,
           /^\/terms(\/|\?|$)/,
           /^\/changelog(\/|\?|$)/,
+          /^\/wiki(\/|\?|$)/,
           // /planner is its own page; without this the nav fallback serves the
           // map shell and the planner never opens for returning (SW-cached)
           // users. The `\?` matters: workbox matches denylist against
@@ -157,6 +158,13 @@ export default defineConfig({
         access: "public",
         context: "client",
         optional: true,
+      }),
+      // staging | production — drives the staging environment banner (#289).
+      PUBLIC_APP_ENV: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+        default: "production",
       }),
       ADMIN_PASSWORD: envField.string({
         access: "secret",

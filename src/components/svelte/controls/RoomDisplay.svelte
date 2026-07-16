@@ -73,7 +73,9 @@
     border: 1px solid #ececec;
     border-radius: 0.5rem;
     cursor: pointer;
-    transition: all 0.125s;
+    transition:
+      border-color 0.125s,
+      background-color 0.125s;
     width: 100%;
     box-sizing: border-box;
   }

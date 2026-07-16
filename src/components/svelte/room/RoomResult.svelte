@@ -794,7 +794,10 @@
         class="entity-image"
         src={currentRoom.value.imageUrl}
         alt={currentRoom.value.code}
+        width="800"
+        height="450"
         loading="lazy"
+        decoding="async"
       />
     {/if}
 

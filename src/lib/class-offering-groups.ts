@@ -11,7 +11,9 @@ export type ClassOfferingGroup = {
 const TYPE_ORDER: Record<string, number> = {
   LEC: 0,
   LAB: 1,
-  SEM: 2,
+  RCT: 2,
+  REC: 2,
+  SEM: 3,
 };
 
 function classType(row: ClassMapValue): string {
@@ -21,16 +23,17 @@ function classType(row: ClassMapValue): string {
 export function parentLectureSection(row: ClassMapValue): string | null {
   if (!row.section) return null;
   const section = row.section.trim().toUpperCase();
-  // A lab or recit section encodes its parent lecture as the prefix before its
-  // numbered slot: "G-1L"/"UV-1R" (dashed) or "ST11L" (compact). Any trailing
-  // letter run marks a child (L = lab, R = recit, …), so match [A-Z]+ not just
-  // "L". The prefix is everything up to the dash/number, which preserves
-  // multi-letter lecture codes like "UV". Not gated on type: recits are not
-  // typed "LAB", and the section shape alone identifies a child.
+  // Hyphenated child slot: "G-1L", "UV-1R", "B-1R" → parent before "-<n>".
   const hyphenated = section.match(/^(.+)-\d+[A-Z]+$/);
   if (hyphenated?.[1]) return hyphenated[1];
-  const compact = section.match(/^(.+)\d[A-Z]+$/);
-  return compact?.[1] ?? null;
+  // Compact lab slot: "ST11L" → "ST1".
+  const compactLab = section.match(/^(.+)\dL$/);
+  if (compactLab?.[1]) return compactLab[1];
+  // Recit suffix on the lecture section: "AB1R", "ST2R" → drop trailing R.
+  if (section.endsWith("R") && section.length > 1) {
+    return section.slice(0, -1);
+  }
+  return null;
 }
 
 export function offeringGroupKey(

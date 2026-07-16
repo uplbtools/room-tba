@@ -1,5 +1,5 @@
 /** AMIS class types that normally meet in a campus room (import + room schedules). */
-export const ROOM_SCHEDULED_CLASS_TYPES = new Set(["LEC", "LAB"]);
+export const ROOM_SCHEDULED_CLASS_TYPES = new Set(["LEC", "LAB", "RCT"]);
 
 /** AMIS types imported without a required room (thesis, SP, etc.). */
 export const NON_ROOM_CLASS_TYPES: Readonly<
@@ -30,11 +30,11 @@ export const NON_ROOM_CLASS_TYPES: Readonly<
 
 /** Short copy for room schedule panels (per-room class lists). */
 export const ROOM_SCHEDULE_SCOPE_NOTE =
-  "Schedules list lecture and lab sections with assigned rooms. Thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS, so they do not appear here.";
+  "Schedules list lecture, lab, and recitation sections with assigned rooms. Thesis, special problem, dissertation, and similar sections usually are not tied to a room in AMIS, so they do not appear here.";
 
 /** Short copy for class browse / course-prefix search. */
 export const CLASS_BROWSE_SCOPE_NOTE =
-  "Class search lists lecture, lab, thesis, special problem, dissertation, and similar sections. Sections without a room in AMIS show as unassigned; open a room only when a room code is listed.";
+  "Class search lists lecture, lab, recitation, thesis, special problem, dissertation, and similar sections. Sections without a room in AMIS show as unassigned; open a room only when a room code is listed.";
 
 export const NO_ASSIGNED_ROOM_LABEL = "No assigned room";
 

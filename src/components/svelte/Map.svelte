@@ -2704,6 +2704,10 @@
                                     class="event-stack-thumb"
                                     src={image.src}
                                     alt=""
+                                    width="32"
+                                    height="32"
+                                    loading="lazy"
+                                    decoding="async"
                                   />
                                 {:else}
                                   <span

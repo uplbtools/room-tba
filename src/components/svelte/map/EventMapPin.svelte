@@ -75,7 +75,7 @@
   {onpointerleave}
 >
   {#if imageSrc}
-    <img class="event-pin-media" src={imageSrc} alt="" />
+    <img class="event-pin-media" src={imageSrc} alt="" width="40" height="40" loading="lazy" decoding="async" />
   {:else}
     <span class="event-pin-icon" aria-hidden="true">
       <CalendarDays size={14} />

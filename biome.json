@@ -22,7 +22,8 @@
       "!**/bun.lockb",
       "!**/data/app_data.json",
       "!**/public/app_data.json",
-      "!**/skills/impeccable"
+      "!**/skills/impeccable",
+      "!**/skills/hallmark"
     ]
   },
   "assist": {

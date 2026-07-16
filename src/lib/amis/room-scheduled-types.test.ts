@@ -8,9 +8,10 @@ import {
 } from "./room-scheduled-types";
 
 describe("room-scheduled-types", () => {
-  it("treats LEC and LAB as room-scheduled", () => {
+  it("treats LEC, LAB, and RCT as room-scheduled", () => {
     expect(isRoomScheduledClassType("LEC")).toBe(true);
     expect(isRoomScheduledClassType("lab")).toBe(true);
+    expect(isRoomScheduledClassType("RCT")).toBe(true);
   });
 
   it("recognizes roomless import types", () => {

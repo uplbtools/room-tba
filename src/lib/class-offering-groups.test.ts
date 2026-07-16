@@ -33,16 +33,17 @@ describe("parentLectureSection", () => {
   });
 
   test("maps recit section names to their parent lecture (any type)", () => {
-    // Recits use an R suffix and a multi-letter lecture prefix (UV); they are
-    // not typed "LAB" but must still resolve to their parent lecture.
     expect(parentLectureSection(row({ section: "UV-1R", type: "REC" }))).toBe(
       "UV",
     );
     expect(parentLectureSection(row({ section: "G-2R", type: "RECIT" }))).toBe(
       "G",
     );
-    expect(parentLectureSection(row({ section: "ST11R", type: "REC" }))).toBe(
-      "ST1",
+    expect(parentLectureSection(row({ section: "AB1R", type: "RCT" }))).toBe(
+      "AB1",
+    );
+    expect(parentLectureSection(row({ section: "ST2R", type: "RCT" }))).toBe(
+      "ST2",
     );
   });
 
@@ -106,5 +107,24 @@ describe("groupClassesByOffering", () => {
     expect(groups.map((group) => group.section)).toEqual(["UV-1R", "UV-2R"]);
     expect(groups[0]?.sections.map((s) => s.section)).toEqual(["UV", "UV-1R"]);
     expect(groups[1]?.sections.map((s) => s.section)).toEqual(["UV", "UV-2R"]);
+  });
+
+  test("links AGRI 61 compact recits to their lecture section", () => {
+    const groups = groupClassesByOffering([
+      row({ id: 1, courseCode: "AGRI 61", section: "AB2", type: "LEC" }),
+      row({ id: 2, courseCode: "AGRI 61", section: "AB2R", type: "RCT" }),
+      row({ id: 3, courseCode: "AGRI 61", section: "AB3", type: "LEC" }),
+      row({ id: 4, courseCode: "AGRI 61", section: "AB3R", type: "RCT" }),
+    ]);
+
+    expect(groups.map((group) => group.section).sort()).toEqual([
+      "AB2R",
+      "AB3R",
+    ]);
+    const ab2r = groups.find((g) => g.section === "AB2R");
+    expect(ab2r?.sections.map((s) => `${s.section}/${s.type}`)).toEqual([
+      "AB2/LEC",
+      "AB2R/RCT",
+    ]);
   });
 });
