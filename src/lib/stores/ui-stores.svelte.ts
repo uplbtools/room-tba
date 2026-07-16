@@ -223,8 +223,10 @@ export class SidebarStore {
 
   changeOpened = (panel: SidebarOpenType) => {
     this._panelOpen = panel;
-    // Switching the main surface closes the mobile overlay rail so it doesn't
-    // sit on top of the content the user just navigated to.
+    // Settings/contributors are accordion sections inside the drawer — keep
+    // the mobile rail open so sublinks (Settings, Offline maps, …) stay
+    // clickable. Map/planner/finals are full surfaces; close the overlay.
+    if (panel === "settings" || panel === "contributors") return;
     this.railOpen = false;
   };
 
