@@ -22,12 +22,12 @@ function looksLikeClassRow(value: unknown): value is AmisClassRow {
   const row = asRecord(value);
   if (!row) return false;
   // Page envelopes use `data` / nested `classes`; class rows carry section/type.
-  if (Array.isArray(row["data"]) || asRecord(row["classes"])) return false;
+  if (Array.isArray(row.data) || asRecord(row.classes)) return false;
   return (
-    row["section"] != null ||
-    row["course_code"] != null ||
-    row["courseCode"] != null ||
-    row["type"] != null
+    row.section != null ||
+    row.course_code != null ||
+    row.courseCode != null ||
+    row.type != null
   );
 }
 
@@ -48,22 +48,22 @@ function extractRawClassRows(payload: unknown): AmisClassRow[] {
   const obj = asRecord(payload);
   if (!obj) return [];
 
-  const data = obj["data"];
+  const data = obj.data;
   if (Array.isArray(data)) {
     return looksLikeClassRow(data[0])
       ? (data as AmisClassRow[])
       : data.flatMap((entry) => extractRawClassRows(entry));
   }
 
-  const classes = asRecord(obj["classes"]);
+  const classes = asRecord(obj.classes);
   if (classes) {
-    const classesData = classes["data"];
+    const classesData = classes.data;
     if (Array.isArray(classesData)) {
       return extractRawClassRows(classesData);
     }
   }
-  if (Array.isArray(obj["classes"])) {
-    return extractRawClassRows(obj["classes"]);
+  if (Array.isArray(obj.classes)) {
+    return extractRawClassRows(obj.classes);
   }
 
   // Single class row passed through (e.g. tests).
@@ -80,19 +80,17 @@ function extractRawClassRows(payload: unknown): AmisClassRow[] {
  * from the child that carried it.
  */
 function withEmbeddedParents(rows: AmisClassRow[]): AmisClassRow[] {
-  const existingIds = new Set(
-    rows.map((r) => r["id"]).filter((id) => id != null),
-  );
+  const existingIds = new Set(rows.map((r) => r.id).filter((id) => id != null));
   const parents = new Map<unknown, AmisClassRow>();
   for (const row of rows) {
-    const parent = asRecord(row["parent"]);
+    const parent = asRecord(row.parent);
     if (!parent) continue;
-    const pid = parent["id"];
+    const pid = parent.id;
     if (pid == null || existingIds.has(pid) || parents.has(pid)) continue;
     parents.set(pid, {
       ...parent,
-      course_code: parent["course_code"] ?? row["course_code"],
-      course: parent["course"] ?? row["course"],
+      course_code: parent.course_code ?? row.course_code,
+      course: parent.course ?? row.course,
       parent: undefined,
     });
   }
@@ -124,14 +122,14 @@ function canonicalizeScheduleSlot(slot: string): string {
 }
 
 function scheduleFromClassDates(row: AmisClassRow): string[] | null {
-  if (!Array.isArray(row["class_dates"])) return null;
-  const slots = row["class_dates"]
+  if (!Array.isArray(row.class_dates)) return null;
+  const slots = row.class_dates
     .map((entry) => {
       const dateRow = asRecord(entry);
       if (!dateRow) return null;
-      const day = asString(dateRow["date"]);
-      const start = normalizeTimeToken(dateRow["start_time"]);
-      const end = normalizeTimeToken(dateRow["end_time"]);
+      const day = asString(dateRow.date);
+      const start = normalizeTimeToken(dateRow.start_time);
+      const end = normalizeTimeToken(dateRow.end_time);
       if (!day || !start || !end) return null;
       return `${canonicalizeDays(day)} ${start}-${end}`;
     })
@@ -145,15 +143,15 @@ function scheduleFromClassDates(row: AmisClassRow): string[] | null {
  * `end_time`. Same output shape as {@link scheduleFromClassDates}.
  */
 function scheduleFromRowFields(row: AmisClassRow): string[] | null {
-  const day = asString(row["date"]);
-  const start = normalizeTimeToken(row["start_time"]);
-  const end = normalizeTimeToken(row["end_time"]);
+  const day = asString(row.date);
+  const start = normalizeTimeToken(row.start_time);
+  const end = normalizeTimeToken(row.end_time);
   if (!day || !start || !end) return null;
   return [`${canonicalizeDays(day)} ${start}-${end}`];
 }
 
 function scheduleFromScheduleField(row: AmisClassRow): string[] | null {
-  const schedule = row["schedule"];
+  const schedule = row.schedule;
   if (Array.isArray(schedule)) {
     const slots = schedule
       .map(asString)
@@ -174,23 +172,21 @@ function scheduleFromScheduleField(row: AmisClassRow): string[] | null {
 
 function resolveFacilityCode(row: AmisClassRow): string | null {
   const direct =
-    asString(row["facility_id"]) ??
-    asString(row["facility_code"]) ??
-    asString(row["room_code"]);
+    asString(row.facility_id) ??
+    asString(row.facility_code) ??
+    asString(row.room_code);
   if (direct) return direct;
 
-  const facility = asRecord(row["facility"]);
+  const facility = asRecord(row.facility);
   const nested =
-    asString(facility?.["code"]) ??
-    asString(facility?.["facility_code"]) ??
-    asString(facility?.["name"]) ??
-    asString(facility?.["facility_name"]);
+    asString(facility?.code) ??
+    asString(facility?.facility_code) ??
+    asString(facility?.name) ??
+    asString(facility?.facility_name);
   if (nested) return nested;
 
-  const parent = asRecord(row["parent"]);
-  return (
-    asString(parent?.["facility_id"]) ?? asString(parent?.["facility_code"])
-  );
+  const parent = asRecord(row.parent);
+  return asString(parent?.facility_id) ?? asString(parent?.facility_code);
 }
 
 export function normalizeFacilityKey(code: string) {
@@ -203,13 +199,13 @@ export function normalizeFacilityKey(code: string) {
 }
 
 function resolveCourseTitle(row: AmisClassRow, courseCode: string): string {
-  const course = asRecord(row["course"]);
+  const course = asRecord(row.course);
   const base =
-    asString(course?.["title"]) ??
-    asString(row["course_title"]) ??
-    asString(row["title"]) ??
+    asString(course?.title) ??
+    asString(row.course_title) ??
+    asString(row.title) ??
     courseCode;
-  const activity = asString(row["activity"]);
+  const activity = asString(row.activity);
   if (courseCode.includes("HK 12") && activity) {
     return `${base} (${activity})`;
   }
@@ -220,8 +216,8 @@ export function normalizeAmisClass(
   row: AmisClassRow,
   termId: number,
 ): NormalizedAmisClass | null {
-  const courseCode = asString(row["course_code"]) ?? asString(row["courseCode"]);
-  const section = asString(row["section"]);
+  const courseCode = asString(row.course_code) ?? asString(row.courseCode);
+  const section = asString(row.section);
   if (!courseCode || !section) return null;
 
   const schedule =
@@ -233,10 +229,10 @@ export function normalizeAmisClass(
   return {
     courseCode,
     section,
-    type: asString(row["type"]),
+    type: asString(row.type),
     courseTitle: resolveCourseTitle(row, courseCode),
     schedule,
-    termId: Number(row["term_id"] ?? row["termId"] ?? termId),
+    termId: Number(row.term_id ?? row.termId ?? termId),
     facilityCode: resolveFacilityCode(row),
   };
 }

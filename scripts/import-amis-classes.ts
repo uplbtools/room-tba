@@ -53,7 +53,10 @@ import {
   resolveImportRows,
   summarizeImportChanges,
 } from "@lib/amis/import-classes";
-import { extractClassRows, normalizeAmisClass } from "@lib/amis/normalize-class";
+import {
+  extractClassRows,
+  normalizeAmisClass,
+} from "@lib/amis/normalize-class";
 import {
   amisExportContainsInstructorPii,
   sanitizeAmisRows,
@@ -160,12 +163,15 @@ async function refreshSyncKey(
     .where(eq(updateTable.tableName, tableName));
 }
 
-function inferTermIdFromPayload(payload: unknown, rows: AmisClassRow[]): number {
+function inferTermIdFromPayload(
+  payload: unknown,
+  rows: AmisClassRow[],
+): number {
   const envelope = payload as { term_id?: number; termId?: number };
   if (Number.isFinite(envelope.term_id)) return Number(envelope.term_id);
   if (Number.isFinite(envelope.termId)) return Number(envelope.termId);
   for (const row of rows) {
-    const termId = Number(row["term_id"] ?? row["termId"]);
+    const termId = Number(row.term_id ?? row.termId);
     if (Number.isFinite(termId) && termId > 0) return termId;
   }
   return 0;
