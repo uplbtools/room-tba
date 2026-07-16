@@ -6,7 +6,7 @@ import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const title = "What times do UPLB section names correspond to? | Room TBA Wiki";
 const description =
-  "Exhaustive glossary of UPLB AMIS section codes and class types in Room TBA: every single letter A–Z, two-letter compounds, L/R/C suffixes, and LEC/LAB/RCT/THE and related activity types.";
+  "Exhaustive glossary of UPLB AMIS section codes: letter ladders, NSTP/HK/GI/residency/ROTC special courses, every activity type, and L/R/C suffixes.";
 
 const timeBlocks = [
   { wf: "A", tth: "S", time: "7:00", windows: "7:00–8:00 or 7:00–8:30", wfMatch: 78.4, tthMatch: 86.8 },
@@ -219,6 +219,90 @@ const letterUseful = [
     block: "105–450 min",
     useful: "Label only",
   },
+  {
+    mode: "HK 11 / HK 12",
+    days: "Often single day or dense midyear",
+    block: "2–3.5 h activity",
+    useful: "Soft — letter hints block; title has the sport",
+  },
+  {
+    mode: "NSTP / ROTC / GI / Residency",
+    days: "Varies / none",
+    block: "3–4 h or empty",
+    useful: "No — college/component codes, not clock letters",
+  },
+] as const;
+
+/** Non-academic / special enrollment courses in Room TBA (prod census). */
+const specialCourses = [
+  {
+    code: "NSTP 1 / NSTP 2",
+    title: "National Service Training Program I / II",
+    rows: 617,
+    type: "LEC",
+    sectionMeaning:
+      "College + component + group number. Prefix is the offering unit (AS, EN, AG, HE, EM, FR, VM, …). Trailing C vs L usually marks CWTS vs LTS (e.g. ASC3, ASL7, ENC1). RO1x / RO2x are ROTC platoon-style codes (often Saturday 8:00–12:00).",
+    letterUseful: "No — not the A–H / S–Z clock ladder",
+  },
+  {
+    code: "HK 12",
+    title: "Human Kinetics Activities (activity in parentheses)",
+    rows: 952,
+    type: "LAB + LEC",
+    sectionMeaning:
+      "Usually two-letter + digits (BC2, UV5, WX3). Letter pair still sits near the campus time blocks, but the real identity is the activity title (Badminton, Chess, Walking for Fitness, …). Planner splits HK 12 by title for that reason.",
+    letterUseful: "Soft preview only",
+  },
+  {
+    code: "HK 11",
+    title: "Wellness and Basic Injury Management",
+    rows: 340,
+    type: "LEC",
+    sectionMeaning:
+      "Same two-letter + digits pattern as HK 12 (AB1, ST2, WX1). Often 2-hour single-day or midyear TWThF blocks.",
+    letterUseful: "Soft preview only",
+  },
+  {
+    code: "GI .",
+    title: "Guidance Instructions",
+    rows: 327,
+    type: "LEC",
+    sectionMeaning:
+      "AMIS course code is literally \"GI .\". Sections look like F2, W1, ST1, CD3 — letter+number groups for 1-hour advising slots. Do not read F as the WF F-block; GI meetings are mostly single-day hour slots.",
+    letterUseful: "No",
+  },
+  {
+    code: "RESIDENCY (UGRD) / RESIDENCY (GRD)",
+    title: "Residency / Residency (Graduate)",
+    rows: 2,
+    type: "IND",
+    sectionMeaning:
+      "Sections are UGRD and GRAD. No schedule, no room — enrollment placeholders, not classes on the map. Unrelated to RES 201–205 (Resilience Studies), which are normal academic LEC rows.",
+    letterUseful: "N/A",
+  },
+  {
+    code: "MS 31–42",
+    title: "Advance ROTC",
+    rows: 13,
+    type: "LEC",
+    sectionMeaning:
+      "Section often repeats the course code (MS31, MS42). Meets Saturday morning/afternoon blocks (e.g. S 8:00–12:00).",
+    letterUseful: "No",
+  },
+] as const;
+
+/** NSTP college/unit prefixes observed before the C/L/digit tail. */
+const nstpPrefixes = [
+  { prefix: "AS / ASC / ASL", unit: "Arts and Sciences (CAS)", rows: 147 },
+  { prefix: "EN / ENC / ENL", unit: "Engineering (CEAT)", rows: 101 },
+  { prefix: "AG / AGC / AGL", unit: "Agriculture / CAFS family", rows: 87 },
+  { prefix: "HEC / HEL", unit: "Human Ecology (CHE)", rows: 56 },
+  { prefix: "EMC / EML", unit: "Economics and Management (CEM)", rows: 56 },
+  { prefix: "FRC / FRL / FLR", unit: "Forestry (CFNR)", rows: 54 },
+  { prefix: "AC / AL", unit: "Arts & Sciences variants", rows: 50 },
+  { prefix: "DCC / DCL", unit: "Development Communication / related", rows: 28 },
+  { prefix: "VMC / VML", unit: "Veterinary Medicine (CVM)", rows: 18 },
+  { prefix: "RO1x / RO2x", unit: "ROTC component platoons", rows: 36 },
 ] as const;
 
 const structuredData = jsonLd(
@@ -264,6 +348,7 @@ const structuredData = jsonLd(
         <li><a href="#paired-blocks">Paired WF / TTh time blocks</a></li>
         <li><a href="#two-letters">Every two-letter LEC code</a></li>
         <li><a href="#numbers-suffixes">Numbers and L / R / C suffixes</a></li>
+        <li><a href="#special-courses">NSTP, HK, GI, residency, ROTC</a></li>
         <li><a href="#regular-sem">Regular semester day structure</a></li>
         <li><a href="#midyear">Midyear calendar</a></li>
         <li><a href="#when-useful">When the letter is useful</a></li>
@@ -281,6 +366,13 @@ const structuredData = jsonLd(
         <strong>R</strong> / <strong>C</strong> mark parallel groups, labs,
         recitations, and computational labs. Thesis and special-problem
         sections use faculty-style codes, not the clock ladder.
+      </p>
+      <p>
+        <strong>NSTP</strong>, <strong>HK</strong>, <strong>GI</strong>,
+        <strong>residency</strong>, and <strong>ROTC / MS</strong> use
+        different section grammars — college/component codes, activity titles,
+        or enrollment placeholders. See
+        <a href="#special-courses">NSTP, HK, GI, residency, ROTC</a>.
       </p>
       <p>
         The AMIS schedule row remains the source of truth. Codes below are a
@@ -498,6 +590,108 @@ const structuredData = jsonLd(
           (CHEM, PHYS, ENSC). Still type LAB; no WF/TTh preview from a letter.
         </li>
       </ul>
+    </section>
+
+    <section aria-labelledby="special-courses">
+      <h2 id="special-courses">NSTP, HK, GI, residency, and ROTC</h2>
+      <p>
+        These courses show up often in student schedules but do not follow the
+        undergrad lecture letter ladder the same way. Counts are all imported
+        terms in Room TBA (July 16, 2026 census).
+      </p>
+      <p class="table-hint">Scroll sideways for the full table.</p>
+      <div class="table-wrap">
+        <table class="dense">
+          <thead>
+            <tr>
+              <th scope="col">Course</th>
+              <th scope="col">Title</th>
+              <th scope="col">Rows</th>
+              <th scope="col">Type</th>
+              <th scope="col">What the section code means</th>
+              <th scope="col">Letter useful?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {specialCourses.map((row) => (
+              <tr>
+                <td><code>{row.code}</code></td>
+                <td>{row.title}</td>
+                <td class="num">{row.rows.toLocaleString("en-US")}</td>
+                <td>{row.type}</td>
+                <td>{row.sectionMeaning}</td>
+                <td>{row.letterUseful}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="nstp-prefixes">NSTP section prefixes</h3>
+      <p>
+        NSTP 1 and NSTP 2 sections are almost all LEC. The letter run before the
+        digits is a <strong>college / unit offering code</strong>, not a clock
+        letter. A trailing <strong>C</strong> or <strong>L</strong> before the
+        number usually marks <strong>CWTS</strong> vs <strong>LTS</strong>
+        (civilian components). <strong>RO1*</strong> / <strong>RO2*</strong>
+        mark ROTC platoons.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Prefix pattern</th>
+              <th scope="col">Unit (inferred from campus usage)</th>
+              <th scope="col">Rows</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nstpPrefixes.map((row) => (
+              <tr>
+                <td><code>{row.prefix}</code></td>
+                <td>{row.unit}</td>
+                <td class="num">{row.rows.toLocaleString("en-US")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="figure-note">
+        Examples: <code>ASC3</code> = AS + CWTS + group 3;
+        <code>ASL7</code> = AS + LTS + group 7; <code>EN4</code> =
+        Engineering group 4; <code>RO1A</code> = ROTC. Typical NSTP meeting is
+        a single weekday 3-hour block (often Monday).
+      </p>
+
+      <h3 id="hk-notes">HK 11 and HK 12</h3>
+      <p>
+        <strong>HK 12</strong> is the PE activity course. Room TBA stores the
+        activity inside <code>course_title</code> (for example “Human Kinetics
+        Activities (Badminton)”). Section codes reuse AB/ST/UV-style pairs with
+        digits, and many rows are typed LAB even when the meeting is the main
+        activity. <strong>HK 11</strong> is the wellness lecture; same section
+        shape, usually type LEC.
+      </p>
+
+      <h3 id="gi-residency">GI and residency</h3>
+      <p>
+        <strong>GI .</strong> (Guidance Instructions) is a required advising
+        course with 1-hour slots. Section codes look like academic letters but
+        do not track the WF/TTh ladder reliably.
+      </p>
+      <p>
+        <strong>RESIDENCY (UGRD)</strong> and <strong>RESIDENCY (GRD)</strong>
+        are type <code>IND</code> with sections <code>UGRD</code> /
+        <code>GRAD</code> and empty schedules. They keep a student enrolled
+        without a meeting time. Do not confuse them with <code>RES 201</code>–
+        <code>RES 205</code> (Resilience Studies), which are ordinary academic
+        lectures.
+      </p>
+      <p>
+        No separate PATHFIT / PE / CWTS / LTS course codes appear in Room TBA
+        beyond NSTP and HK; those components live inside NSTP section prefixes
+        or HK activity titles.
+      </p>
     </section>
 
     <section aria-labelledby="regular-sem">
@@ -724,6 +918,12 @@ const structuredData = jsonLd(
     margin: 0 0 0.75rem;
     font-size: clamp(1.35rem, 3vw, 1.7rem);
     letter-spacing: -0.02em;
+  }
+
+  .wiki-article h3 {
+    margin: 1.75rem 0 0.5rem;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
   }
 
   .wiki-article p {
