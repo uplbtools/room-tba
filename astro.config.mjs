@@ -36,6 +36,7 @@ export default defineConfig({
           "privacy/index.html",
           "terms/index.html",
           "changelog/index.html",
+          "sponsors/index.html",
         ],
         navigateFallback: "/",
         navigateFallbackDenylist: [
@@ -43,6 +44,7 @@ export default defineConfig({
           /^\/privacy(\/|\?|$)/,
           /^\/terms(\/|\?|$)/,
           /^\/changelog(\/|\?|$)/,
+          /^\/sponsors(\/|\?|$)/,
           /^\/wiki(\/|\?|$)/,
           // /planner is its own page; without this the nav fallback serves the
           // map shell and the planner never opens for returning (SW-cached)

@@ -4,16 +4,20 @@ import {
   LEGAL_LINKS,
   UPLB_TOOLS_URL,
 } from "@constants/community-links";
+import SponsorStrip from "./SponsorStrip.astro";
 
 const externalCommunityLinks = COMMUNITY_LINKS.filter(
   (link) => link.href !== UPLB_TOOLS_URL,
 );
 ---
 
+<SponsorStrip />
+
 <footer class="site-footer">
   <nav class="site-footer__nav" aria-label="Site links">
     <span class="site-footer__group">
       {LEGAL_LINKS.map((link) => <a href={link.href}>{link.label}</a>)}
+      <a href="/sponsors">Sponsors</a>
     </span>
     <span class="site-footer__sep" aria-hidden="true">·</span>
     <span class="site-footer__group">

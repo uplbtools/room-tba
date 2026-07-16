@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   pgTable,
+  bigserial,
   integer,
   text,
   varchar,
@@ -690,3 +691,17 @@ export const aliasesTable = pgTable(
     ),
   ],
 );
+
+// First-party sponsor impression/click log (docs/ad-policy.md). Server-only —
+// not in the PGlite SYNCED_TABLES set. Written by /api/sponsor-event.
+export const sponsorImpressionsTable = pgTable("sponsor_impressions", {
+  id: bigserial({ mode: "number" }).primaryKey(),
+  sponsorId: text("sponsor_id").notNull(),
+  zone: text().notNull(),
+  eventType: text("event_type").notNull().default("impression"),
+  recordedAt: timestamp("recorded_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  userAgent: text("user_agent"),
+  pagePath: text("page_path"),
+});

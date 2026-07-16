@@ -1,0 +1,374 @@
+---
+export const prerender = true;
+import Layout from "@layouts/Layout.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import sponsorsData from "../../public/sponsors.json";
+import { getByTier, type Sponsor } from "@lib/sponsors";
+import {
+  DISCORD_URL,
+  MESSENGER_CONTRIBUTE_TARGET,
+  GITHUB_ROOM_TBA_URL,
+} from "@constants/community-links";
+
+const sponsors = sponsorsData.sponsors as Sponsor[];
+// Prerendered: the active window is evaluated at build time; sponsors starting
+// after the last deploy appear on the next build.
+const gold = getByTier(sponsors, "gold");
+const silver = getByTier(sponsors, "silver");
+const bronze = getByTier(sponsors, "bronze");
+const promo = getByTier(sponsors, "promo");
+const studentOrgs = getByTier(sponsors, "student-org");
+const hasSponsors =
+  gold.length + silver.length + bronze.length + promo.length + studentOrgs.length >
+  0;
+---
+
+<Layout
+  title="Sponsors | Room TBA"
+  description="Room TBA is funded by curated campus-relevant sponsors. See who supports the project and how the funding model works."
+  canonicalPath="/sponsors"
+  showAppLoadingShell={false}
+>
+  <main class="sponsors-page">
+    <a href="/" class="back-link">
+      <span aria-hidden="true">←</span> Back to Room TBA
+    </a>
+
+    <header class="hero">
+      <p class="eyebrow">Sponsors</p>
+      <h1>Room TBA is supported by</h1>
+      <p class="lede">
+        Room TBA is a free, open-source campus map run by student volunteers.
+        Curated, campus-relevant sponsors — food spots, boarding houses,
+        printing shops — keep it running. No ad networks, no tracking pixels,
+        and every placement is clearly labeled “Sponsored.”
+      </p>
+    </header>
+
+    {
+      hasSponsors ? (
+        <div class="tiers">
+          {gold.length > 0 && (
+            <section class="tier">
+              <h2>Gold</h2>
+              {gold.map((sponsor) => (
+                <a
+                  class="card card--gold"
+                  href={sponsor.url}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  aria-label={`Visit ${sponsor.name}, sponsor`}
+                  data-sponsor-id={sponsor.id}
+                >
+                  <img
+                    src={sponsor.logo}
+                    alt=""
+                    width="64"
+                    height="64"
+                    loading="lazy"
+                  />
+                  <span class="card__body">
+                    <span class="card__name">{sponsor.name}</span>
+                    {sponsor.tagline && (
+                      <span class="card__tagline">{sponsor.tagline}</span>
+                    )}
+                  </span>
+                  <span class="card__badge">Gold sponsor</span>
+                </a>
+              ))}
+            </section>
+          )}
+          {silver.length > 0 && (
+            <section class="tier">
+              <h2>Silver</h2>
+              <div class="grid">
+                {silver.map((sponsor) => (
+                  <a
+                    class="card"
+                    href={sponsor.url}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    aria-label={`Visit ${sponsor.name}, sponsor`}
+                    data-sponsor-id={sponsor.id}
+                  >
+                    <img
+                      src={sponsor.logo}
+                      alt=""
+                      width="48"
+                      height="48"
+                      loading="lazy"
+                    />
+                    <span class="card__body">
+                      <span class="card__name">{sponsor.name}</span>
+                      {sponsor.tagline && (
+                        <span class="card__tagline">{sponsor.tagline}</span>
+                      )}
+                    </span>
+                    <span class="card__badge">Silver</span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+          {(bronze.length > 0 || promo.length > 0) && (
+            <section class="tier">
+              <h2>Bronze &amp; campus promos</h2>
+              <ul class="list">
+                {[...bronze, ...promo].map((sponsor) => (
+                  <li>
+                    <a
+                      href={sponsor.url}
+                      target="_blank"
+                      rel="noopener noreferrer sponsored"
+                      aria-label={`Visit ${sponsor.name}, sponsor`}
+                      data-sponsor-id={sponsor.id}
+                    >
+                      {sponsor.name}
+                    </a>
+                    {sponsor.tagline && <span> — {sponsor.tagline}</span>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {studentOrgs.length > 0 && (
+            <section class="tier">
+              <h2>Student orgs</h2>
+              <p class="tier__note">
+                Student org events get free promotion — no payment involved.
+              </p>
+              <ul class="list">
+                {studentOrgs.map((sponsor) => (
+                  <li>
+                    <a
+                      href={sponsor.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-sponsor-id={sponsor.id}
+                    >
+                      {sponsor.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      ) : (
+        <section class="tier">
+          <p class="tier__note">
+            No active sponsors right now — your business could be the first.
+          </p>
+        </section>
+      )
+    }
+
+    <section class="funding">
+      <h2>Where the money goes</h2>
+      <p>
+        Sponsor revenue is split three ways: <strong>40%</strong> core team
+        incentives, <strong>30%</strong> contributor payouts, and
+        <strong>30%</strong> operational expenses (hosting, database, domains).
+        The full breakdown, tier pricing, and impression guarantees live in the
+        <a
+          href={`${GITHUB_ROOM_TBA_URL}/blob/main/docs/funding-model.md`}
+          target="_blank"
+          rel="noopener noreferrer">funding model</a
+        > and <a
+          href={`${GITHUB_ROOM_TBA_URL}/blob/main/docs/ad-policy.md`}
+          target="_blank"
+          rel="noopener noreferrer">ad policy</a
+        >.
+      </p>
+    </section>
+
+    <section class="become">
+      <h2>Become a sponsor</h2>
+      <p>
+        Run a food spot, boarding house, printing shop, or other
+        student-relevant business near UPLB? Reach the team via
+        <a
+          href={MESSENGER_CONTRIBUTE_TARGET}
+          target="_blank"
+          rel="noopener noreferrer">Messenger</a
+        > or <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
+          >Discord</a
+        >. See also our <a href="/terms">Terms</a> and
+        <a href="/privacy">Privacy Policy</a>.
+      </p>
+    </section>
+
+    <SiteFooter />
+  </main>
+</Layout>
+
+<script>
+  import { trackSponsorImpression } from "@lib/sponsor-tracking";
+
+  for (const el of document.querySelectorAll<HTMLElement>(
+    "[data-sponsor-id]",
+  )) {
+    const id = el.dataset.sponsorId;
+    if (id) trackSponsorImpression(id, "sponsors_page");
+  }
+</script>
+
+<style>
+  .sponsors-page {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsl(5 53% 32% / 0.08);
+    border: 1px solid hsl(5 53% 32% / 0.25);
+    text-decoration: none;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .back-link:hover {
+    background: hsl(5 53% 32% / 0.14);
+    border-color: hsl(5 53% 32% / 0.4);
+  }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 40%);
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.05;
+    margin: 0;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 38rem;
+    color: hsl(0, 0%, 28%);
+    line-height: 1.6;
+  }
+
+  .tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .tier h2,
+  .funding h2,
+  .become h2 {
+    font-size: 1.125rem;
+    margin: 0 0 0.5rem;
+    color: hsl(5, 53%, 28%);
+  }
+
+  .tier__note {
+    margin: 0 0 0.5rem;
+    color: hsl(0, 0%, 35%);
+    line-height: 1.6;
+  }
+
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid hsl(5 30% 88%);
+    background: hsl(5 20% 98%);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .card--gold {
+    border-color: hsl(42 65% 60%);
+    background: hsl(42 80% 97%);
+  }
+
+  .card img {
+    border-radius: 0.5rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .card__name {
+    font-weight: 700;
+    color: hsl(5, 53%, 32%);
+  }
+
+  .card__tagline {
+    font-size: 0.875rem;
+    color: hsl(0, 0%, 38%);
+  }
+
+  .card__badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: hsl(0, 0%, 45%);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .list {
+    margin: 0;
+    padding-left: 1.25rem;
+    line-height: 1.8;
+  }
+
+  .list a,
+  .funding a,
+  .become a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+  }
+
+  .funding,
+  .become {
+    margin-top: 2rem;
+  }
+
+  .funding p,
+  .become p {
+    margin: 0;
+    line-height: 1.65;
+    color: hsl(0, 0%, 22%);
+  }
+</style>

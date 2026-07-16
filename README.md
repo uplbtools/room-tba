@@ -236,6 +236,14 @@ Org: [uplbtools](https://github.com/uplbtools) · Campus tool, not an official U
 
 ---
 
+## Sponsors
+
+Room TBA is funded by curated campus-relevant sponsors. Revenue supports core team incentives (40%), contributor payouts (30%), and operational expenses (30%).
+
+**[Become a sponsor](https://room-tba.uplbtools.me/sponsors)** · [Funding model](docs/funding-model.md) · [Ad policy](docs/ad-policy.md)
+
+---
+
 ## License
 
 [MIT](LICENSE). Use it, fork it, teach with it. If you deploy a fork for another campus, change the data, not just the logo.

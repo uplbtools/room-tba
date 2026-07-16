@@ -15,12 +15,29 @@
   import CampusBrowseList from "./CampusBrowseList.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
+  import SponsorBanner from "@ui/SponsorBanner.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import { resolveDrawerDragIntent } from "@lib/drawer-drag";
   import { MediaQuery } from "svelte/reactivity";
 
   const mobile = new MediaQuery("max-width:48rem");
+  // Entity detail views only — never list/browse panels (docs/ad-policy.md).
+  const SPONSOR_CATEGORIES = new Set([
+    "building",
+    "college",
+    "division",
+    "room",
+    "dorm",
+    "organization",
+    "place",
+    "event",
+  ]);
+  const showSponsorBanner = $derived(
+    queryStore.category !== null &&
+      SPONSOR_CATEGORIES.has(queryStore.category) &&
+      jeepneyStore.selectedStopIndex === null,
+  );
   let lastPanelIdentity = $state<string | null>(null);
   const panelIdentity = $derived(
     queryStore.category === null
@@ -147,6 +164,9 @@
                 <EventResult />
               {:else if queryStore.category === "events"}
                 <EventsList />
+              {/if}
+              {#if showSponsorBanner}
+                <SponsorBanner />
               {/if}
             </div>
           </div>

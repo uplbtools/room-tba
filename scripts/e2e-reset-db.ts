@@ -65,6 +65,7 @@ const E2E_MIGRATION_FILES = [
   "0035_add_term_classes_imported_at.sql",
   "0036_add_building_cr_facilities.sql",
   "0037_editor_credits_profiles.sql",
+  "0038_sponsor_impressions.sql",
 ] as const;
 
 async function applyE2eMigrations(client: pg.Client) {
@@ -103,6 +104,7 @@ async function main() {
 
     await client.query(`
       TRUNCATE TABLE
+        sponsor_impressions,
         planner_plans,
         editor_history,
         contributions,

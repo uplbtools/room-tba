@@ -1,0 +1,24 @@
+{
+  "sponsors": [
+    {
+      "id": "sample-sponsor",
+      "name": "Sample Sponsor",
+      "tier": "gold",
+      "tagline": "Your tagline here",
+      "url": "https://example.com",
+      "logo": "/sponsors/sample-logo.png",
+      "banner": "/sponsors/sample-banner.png",
+      "startDate": "2026-08-01",
+      "endDate": "2026-12-31",
+      "active": false,
+      "category": "food"
+    }
+  ],
+  "config": {
+    "maxGold": 1,
+    "maxSilver": 3,
+    "maxBronze": 10,
+    "maxPromo": 5,
+    "rotationIntervalMs": 86400000
+  }
+}
