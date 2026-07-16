@@ -410,8 +410,8 @@ export function formatImportReport(input: {
     `  Room matches: ${input.stats.directRoomMatch} direct, ${input.stats.aliasRoomMatch} via alias, ${input.stats.fuzzyRoomMatch} fuzzy`,
     `  Imported roomless (THE/SPR/…): ${input.stats.importedRoomless}`,
     `  Skipped unknown type: ${input.stats.skippedUnknownType}`,
-    `  LEC/LAB missing facility: ${input.stats.missingFacility}`,
-    `  LEC/LAB unmatched facility: ${input.stats.unmatchedFacility}`,
+    `  LEC/LAB/RCT missing facility: ${input.stats.missingFacility}`,
+    `  LEC/LAB/RCT unmatched facility: ${input.stats.unmatchedFacility}`,
     `  DB changes: +${input.summary.inserted} ~${input.summary.updated} =${input.summary.unchanged} -${input.summary.removed}`,
   ];
 

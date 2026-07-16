@@ -14,7 +14,7 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Developer setup detail                            | [docs/developer-guide.md](docs/developer-guide.md)                                                                                             |
 | Starting a coding session, commit, or PR          | [.cursor/skills/room-tba-agent-workflow/SKILL.md](.cursor/skills/room-tba-agent-workflow/SKILL.md)                                             |
 | Agent handoff to another session / model          | [.cursor/skills/agent-handoff/SKILL.md](.cursor/skills/agent-handoff/SKILL.md)                                                                 |
-| Caveman, Ponytail, token efficiency, Claude/Codex | [docs/agent-tooling.md](docs/agent-tooling.md) + [docs/agent-contract.md](docs/agent-contract.md)                                              |
+| Caveman, Ponytail, Hallmark, token efficiency, Claude/Codex | [docs/agent-tooling.md](docs/agent-tooling.md) + [docs/agent-contract.md](docs/agent-contract.md)                                              |
 | Contributor proposals, review queue, suggest edit | [.cursor/skills/contributor-proposals/SKILL.md](.cursor/skills/contributor-proposals/SKILL.md)                                                 |
 | Discord notifications (room-tba + discord-bot)    | [.cursor/skills/discord-notifications/SKILL.md](.cursor/skills/discord-notifications/SKILL.md)                                                 |
 | AMIS class import, term_id triage                 | [.cursor/skills/amis-term-import/SKILL.md](.cursor/skills/amis-term-import/SKILL.md)                                                           |

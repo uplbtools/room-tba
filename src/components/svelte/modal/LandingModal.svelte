@@ -597,16 +597,15 @@
     text-decoration: none;
     font-size: 0.9375rem;
     font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease;
   }
 
   .cta-button:hover {
-    background-color: #000000;
-    transform: translateY(-1px);
+    background-color: hsl(0, 0%, 12%);
   }
 
   .cta-button:active {
-    transform: translateY(0);
+    background-color: hsl(0, 0%, 18%);
   }
 
   .cta-button__icon {
