@@ -6,7 +6,7 @@ import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const title = "What times do UPLB section names correspond to? | Room TBA Wiki";
 const description =
-  "A data-backed guide to UPLB section letters: A–H for WF time blocks, S–Z for TTh blocks, plus the exceptions behind numbered lab and recitation sections.";
+  "UPLB section letters map to WF and TTh lecture blocks in regular semesters. Midyear uses a different 105-minute daily grid; labs and single-day lectures often ignore the letter ladder.";
 
 const timeBlocks = [
   { wf: "A", tth: "S", time: "7:00", windows: "7:00–8:00 or 7:00–8:30", wfMatch: 78.4, tthMatch: 86.8 },
@@ -17,6 +17,55 @@ const timeBlocks = [
   { wf: "F", tth: "X", time: "2:30 / 3:00", windows: "2:30–4:00 or 3:00–4:00", wfMatch: 91.9, tthMatch: 92.5 },
   { wf: "G", tth: "Y", time: "4:00", windows: "4:00–5:00 or 4:00–5:30", wfMatch: 73.9, tthMatch: 90.3 },
   { wf: "H", tth: "Z", time: "5:30 / 6:00", windows: "5:30–7:00 or 6:00–7:00", wfMatch: 71.7, tthMatch: 83.2 },
+] as const;
+
+/** Prod LEC slots, CRS 1252 vs 1253, July 16 2026 */
+const dayShare1252 = [
+  { label: "TTh", pct: 37.3, n: 990 },
+  { label: "WF", pct: 32.4, n: 860 },
+  { label: "Single day", pct: 29.6, n: 786 },
+  { label: "Other", pct: 0.6, n: 17 },
+] as const;
+
+const dayShare1253 = [
+  { label: "MTWThFS", pct: 68.9, n: 91 },
+  { label: "Other multi-day", pct: 26.5, n: 35 },
+  { label: "Single day", pct: 3.0, n: 4 },
+  { label: "TTh", pct: 1.5, n: 2 },
+] as const;
+
+const midyearQuartet = [
+  "8:45–10:30",
+  "10:30–12:15",
+  "1:00–2:45",
+  "2:45–4:30",
+] as const;
+
+const letterUseful = [
+  {
+    mode: "Regular paired LEC",
+    days: "TTh / WF",
+    block: "90 min",
+    useful: "Yes (~88% in the letter test)",
+  },
+  {
+    mode: "Regular single-day LEC",
+    days: "One weekday",
+    block: "Often 180 min",
+    useful: "Weak",
+  },
+  {
+    mode: "Midyear LEC",
+    days: "Usually MTWThFS",
+    block: "105 min",
+    useful: "No",
+  },
+  {
+    mode: "Midyear LAB",
+    days: "MWF / TThS / TWThF",
+    block: "105–450 min",
+    useful: "Label only",
+  },
 ] as const;
 
 const structuredData = jsonLd(
@@ -42,23 +91,32 @@ const structuredData = jsonLd(
       <p class="wiki-lede">
         A section letter often tells you its usual meeting days and start time.
         Room TBA's records show two parallel sequences: A–H mostly run on WF,
-        while S–Z cover the same time blocks on TTh.
+        while S–Z cover the same time blocks on TTh. That preview holds for
+        regular-semester lectures. Midyear and labs use different calendars.
       </p>
-      <p class="article-meta">Dataset snapshot: July 14, 2026 · 35,607 class records</p>
+      <p class="article-meta">
+        Letter ladder: July 14, 2026 · 35,607 class records. Day-structure
+        comparison: July 16, 2026 · CRS 1252 (2nd sem) and 1253 (midyear) LEC
+        slots.
+      </p>
     </header>
 
     <section aria-labelledby="short-answer">
       <h2 id="short-answer">The short answer</h2>
       <p>
-        Think of the letter as a time-block code. A and S are the first morning
-        blocks. Each following letter moves later in the day. The first sequence
-        uses WF; the second uses TTh.
+        Think of the letter as a time-block code for regular-semester lectures.
+        A and S are the first morning blocks. Each following letter moves later
+        in the day. The first sequence uses WF; the second uses TTh.
       </p>
       <p>
         Duration still varies. In the records, T most often appears as
         <strong>TTh 8:30–10:00</strong> or <strong>TTh 9:00–10:00</strong>.
         A most often appears as <strong>WF 7:00–8:30</strong> or
         <strong>WF 7:00–8:00</strong>.
+      </p>
+      <p>
+        The AMIS schedule row remains the source of truth. The letter is a
+        preview for regular LEC only.
       </p>
     </section>
 
@@ -100,6 +158,95 @@ const structuredData = jsonLd(
       </p>
     </figure>
 
+    <section aria-labelledby="regular-sem">
+      <h2 id="regular-sem">Regular semester day structure</h2>
+      <p>
+        Among <strong>2,653</strong> lecture slots in term 1252 (AY 2025–2026
+        2nd semester), about <strong>70%</strong> sit on the TTh/WF ladder that
+        the letter code assumes. The rest are mostly single-day blocks.
+      </p>
+      <p>
+        About <strong>55%</strong> of those LEC slots are 90 minutes long
+        (1,472 of 2,653). On the TTh+WF pairs alone, 90-minute meetings make up
+        about <strong>78%</strong> of the slots. Peaks land on the wiki starts:
+        8:30, 10:00, 1:00, 2:30, 4:00, and the early/late edges at 7:00 and
+        5:30. Single-day lectures are often three hours (for example 1:00–4:00
+        PM or 9:00–12:00) on one weekday.
+      </p>
+      <figure class="share-chart">
+        <figcaption>LEC day patterns · term 1252 (2,653 slots)</figcaption>
+        <ul class="share-bars">
+          {dayShare1252.map((row) => (
+            <li>
+              <span class="share-bars__label">{row.label}</span>
+              <span
+                class="share-bars__track"
+                aria-hidden="true"
+              >
+                <span
+                  class="share-bars__fill share-bars__fill--reg"
+                  style={`width: ${row.pct}%`}
+                ></span>
+              </span>
+              <span class="share-bars__value">
+                {row.pct}% <span class="share-bars__n">({row.n})</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </figure>
+    </section>
+
+    <section aria-labelledby="midyear">
+      <h2 id="midyear">Midyear is a different calendar</h2>
+      <p>
+        Term 1253 (AY 2025–2026 midyear) had <strong>132</strong> scheduled
+        lecture slots in Room TBA. About <strong>69%</strong> meet
+        <strong>MTWThFS</strong> (six days a week). About
+        <strong>86%</strong> are <strong>105-minute</strong> blocks that start
+        on :45 or :15 offsets, not the regular :00/:30 ladder.
+      </p>
+      <p>
+        Four windows hold most midyear lectures (~61% of LEC slots):
+      </p>
+      <ul class="quartet">
+        {midyearQuartet.map((window) => (
+          <li><code>{window}</code></li>
+        ))}
+      </ul>
+      <p>
+        Weekly contact for a typical midyear LEC is about
+        <strong>10.5 hours</strong> (6 × 105 min), versus roughly
+        <strong>3 hours</strong> for a regular TTh or WF paired lecture
+        (2 × 90 min). Same course credit, denser calendar.
+      </p>
+      <figure class="share-chart">
+        <figcaption>LEC day patterns · term 1253 (132 slots)</figcaption>
+        <ul class="share-bars">
+          {dayShare1253.map((row) => (
+            <li>
+              <span class="share-bars__label">{row.label}</span>
+              <span class="share-bars__track" aria-hidden="true">
+                <span
+                  class="share-bars__fill share-bars__fill--mid"
+                  style={`width: ${row.pct}%`}
+                ></span>
+              </span>
+              <span class="share-bars__value">
+                {row.pct}% <span class="share-bars__n">({row.n})</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </figure>
+      <p>
+        Midyear labs do not follow the lecture rhythm. Labs lean on MWF, TThS,
+        or TWThF rather than daily MTWThFS. Lengths cluster around 210 minutes,
+        with occasional multi-hour marathons. The section letter usually echoes
+        the parent lecture; the lab time is independent.
+      </p>
+    </section>
+
     <section aria-labelledby="suffixes">
       <h2 id="suffixes">What numbers and suffixes mean</h2>
       <p>
@@ -111,36 +258,87 @@ const structuredData = jsonLd(
         The lab's own meeting time can be anywhere the department has space. HNF
         101 B3L, for example, can meet late in the afternoon even when its B
         lecture is a morning class. Use the schedule row for the actual time.
+        Do not infer midyear or <code>*L</code> meeting times from the letter
+        ladder above.
       </p>
+    </section>
+
+    <section aria-labelledby="when-useful">
+      <h2 id="when-useful">When the letter is useful</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Mode</th>
+              <th scope="col">Days</th>
+              <th scope="col">Typical block</th>
+              <th scope="col">Letter useful?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {letterUseful.map((row) => (
+              <tr>
+                <td>{row.mode}</td>
+                <td>{row.days}</td>
+                <td>{row.block}</td>
+                <td>{row.useful}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <aside class="article-callout" aria-labelledby="why-not-perfect">
       <h2 id="why-not-perfect">Why the code is not perfect</h2>
       <p>
-        Midyear compresses classes into a different weekly pattern. Labs,
-        recitations, fieldwork, graduate courses, and special topics also follow
-        local scheduling needs. A few rows contain obvious encoding errors such
-        as an afternoon block entered as AM.
+        The letter test covers 8,917 single-letter regular-semester lectures
+        only. It excludes midyear, labs, recitations, and longer codes. In that
+        subset, <strong>87.5%</strong> match A–H/WF or S–Z/TTh.
       </p>
+      <ul class="break-list">
+        <li>
+          <strong>Midyear</strong> — MTWThFS and 105-minute offsets, not the
+          TTh/WF ladder.
+        </li>
+        <li>
+          <strong>Labs</strong> — letter echoes the lecture; lab time is
+          independent.
+        </li>
+        <li>
+          <strong>Single-day LEC</strong> — about 29% of 1252 LEC slots; often
+          three hours on one weekday.
+        </li>
+        <li>
+          <strong>AM/PM typos</strong> — for example SFFG 123 G1 entered as
+          <code>WF 04:00AM-05:30AM</code>; Room TBA parses the text literally.
+        </li>
+        <li>
+          <strong>Graduate / special topics</strong> — often ignore the campus
+          undergrad grid.
+        </li>
+      </ul>
       <p>
-        Treat the letter as a useful preview. The current AMIS or Room TBA
-        schedule remains the source for your exact days, time, and room.
+        Treat the letter as a useful preview for regular paired lectures. The
+        current AMIS or Room TBA schedule remains the source for exact days,
+        time, and room.
       </p>
     </aside>
 
     <section aria-labelledby="method">
       <h2 id="method">How we checked</h2>
       <p>
-        The scan covered all 35,607 class records in Room TBA: nine terms from
-        AY 2023–2024 through AY 2026–2027, including two midyears. Of those,
-        31,480 records had a schedule.
+        The letter-ladder scan covered all 35,607 class records in Room TBA:
+        nine terms from AY 2023–2024 through AY 2026–2027, including two
+        midyears. Of those, 31,480 records had a schedule. Pattern match used
+        8,917 scheduled lecture meetings with a single-letter section from the
+        seven regular semesters: 7,804 matched (<strong>87.5%</strong>).
       </p>
       <p>
-        For a fair comparison, the pattern test used 8,917 scheduled lecture
-        meetings with a single-letter section from the seven regular semesters.
-        It excluded midyear, labs, recitations, and longer section codes. In
-        that subset, 7,804 meetings matched the expected day family and start
-        block: <strong>87.5%</strong>.
+        The day-structure and midyear figures above come from a second pass on
+        prod <code>classes</code> rows for CRS terms <strong>1252</strong> and
+        <strong>1253</strong> on July 16, 2026, counting lecture
+        (<code>type = LEC</code>) slots only.
       </p>
     </section>
 
@@ -183,11 +381,13 @@ const structuredData = jsonLd(
     line-height: 1.72;
   }
 
-  .time-code {
+  .time-code,
+  .share-chart {
     margin: 2.5rem 0 0;
   }
 
-  .time-code figcaption {
+  .time-code figcaption,
+  .share-chart figcaption {
     margin-bottom: 0.75rem;
     font-size: 1rem;
     font-weight: 750;
@@ -269,10 +469,105 @@ const structuredData = jsonLd(
     line-height: 1.5;
   }
 
+  .share-bars {
+    list-style: none;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid hsl(0, 0%, 86%);
+    border-radius: 1rem;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .share-bars li {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr 5.5rem;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .share-bars__label {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    color: hsl(0, 0%, 28%);
+  }
+
+  .share-bars__track {
+    display: block;
+    height: 0.65rem;
+    border-radius: 999px;
+    background: hsl(0, 0%, 92%);
+    overflow: hidden;
+  }
+
+  .share-bars__fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+  }
+
+  .share-bars__fill--reg {
+    background: hsl(211, 55%, 48%);
+  }
+
+  .share-bars__fill--mid {
+    background: hsl(5, 48%, 46%);
+  }
+
+  .share-bars__value {
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    color: hsl(0, 0%, 32%);
+    text-align: right;
+  }
+
+  .share-bars__n {
+    color: hsl(0, 0%, 50%);
+  }
+
+  .quartet {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+    max-width: 28rem;
+  }
+
+  .quartet li {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid hsl(0, 0%, 88%);
+    border-radius: 0.65rem;
+    background: hsl(0, 0%, 99%);
+    text-align: center;
+  }
+
+  .quartet code {
+    font-size: 0.9375rem;
+    font-weight: 650;
+    color: hsl(0, 0%, 18%);
+  }
+
+  .break-list {
+    margin: 0.85rem 0 0;
+    padding-left: 1.15rem;
+    color: hsl(0, 0%, 27%);
+    font-size: 1rem;
+    line-height: 1.72;
+    max-width: 46rem;
+  }
+
+  .break-list li + li {
+    margin-top: 0.4rem;
+  }
+
   .article-callout {
-    padding: 1.25rem;
-    border-left: 4px solid hsl(5, 53%, 42%);
-    border-radius: 0 0.75rem 0.75rem 0;
+    padding: 1.25rem 1.35rem;
+    border: 1px solid hsl(5, 35%, 88%);
+    border-radius: 0.85rem;
     background: hsl(5, 34%, 97%);
   }
 
@@ -304,6 +599,19 @@ const structuredData = jsonLd(
       margin: -0.25rem 0 0.5rem;
       color: hsl(0, 0%, 46%);
       font-size: 0.8rem;
+    }
+
+    .share-bars li {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+
+    .share-bars__value {
+      text-align: left;
+    }
+
+    .quartet {
+      grid-template-columns: 1fr;
     }
   }
 </style>
