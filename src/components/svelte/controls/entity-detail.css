@@ -607,8 +607,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  min-height: 2rem;
-  padding: 0.125rem 0.75rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid #d8b9ba;
   border-radius: 0.625rem;
   background: #fffafa;

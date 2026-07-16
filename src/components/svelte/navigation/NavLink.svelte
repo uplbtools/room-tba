@@ -87,7 +87,10 @@
     align-items: center;
     color: hsl(0, 0%, 40%);
     border-radius: 0.5rem;
-    transition: 75ms ease-in-out;
+    transition:
+      background-color 75ms ease-in-out,
+      color 75ms ease-in-out,
+      border-color 75ms ease-in-out;
     justify-content: center;
     font-weight: 600;
     border-left: 8px solid transparent;
@@ -100,7 +103,7 @@
       top: var(--tooltip-y, 50%);
       left: var(--tooltip-x, 100%);
       translate: 0% -50%;
-      background-color: black;
+      background-color: hsl(0, 0%, 12%);
       color: white;
       border-radius: 1rem;
       padding: 0.25rem 0.5rem;

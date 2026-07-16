@@ -24,6 +24,9 @@ Repo ships Ponytail + agent contract rules. Caveman installs locally via `bun ru
 | `.cursor/rules/caveman-default.mdc` | Caveman **full** activation (needs `install:agent-tooling`) |
 | `.cursor/skills/agent-handoff/SKILL.md` | Epic handoff template |
 | `.cursor/skills/ponytail-review/SKILL.md` | Over-engineering review (Cursor; mirrors plugin skill) |
+| `.cursor/skills/hallmark/` | Anti-AI-slop UI skill ([Nutlope/hallmark](https://github.com/Nutlope/hallmark)); Room TBA overlay in `references/room-tba.md` |
+| `.cursor/skills/impeccable/` | UI polish / critique / hooks on UI edits |
+| `.cursor/rules/hallmark.mdc` | Hallmark gates on Svelte/CSS/Astro UI (scoped) |
 | [CLAUDE.md](../CLAUDE.md) | Pointer for Claude Code / Codex |
 
 ---
@@ -50,9 +53,11 @@ bun run install:shopped-skills
 | 3 Anti-slop | `fuck-slop`, `context-canary`, `grill-me`, `junior-to-senior` | **global** (`~/.agents/skills/`) |
 | 4 UI | `interface-kit` | project |
 
+**Vendored in repo (no install):** `hallmark`, `impeccable` under `.cursor/skills/`. Rule: `.cursor/rules/hallmark.mdc` (map chrome, side panel, landing).
+
 Project skills install to `.agents/skills/` (gitignored). Pin versions in committed `skills-lock.json`; teammates run `npx skills experimental_install` after `install:agent-tooling` to sync project skills from the lockfile.
 
-**Triggers:** `grill-me` / `junior-to-senior` before big epics · `fuck-slop` on issue/PR prose · `web-design-guidelines` at 320px map QA · `interface-kit` only on UI sprints (pairs with Ponytail).
+**Triggers:** `grill-me` / `junior-to-senior` before big epics · `fuck-slop` on issue/PR prose · `web-design-guidelines` at 320px map QA · `interface-kit` only on UI sprints (pairs with Ponytail) · `hallmark audit <path>` before map chrome / sidebar redesigns · Impeccable hooks on direct UI file edits.
 
 ## Caveman (local install per clone)
 
@@ -160,5 +165,6 @@ Review pass after a fat diff: `@ponytail-review` (plugins) or ask Cursor to use 
 
 - Caveman: https://github.com/JuliusBrussee/caveman
 - Ponytail: https://github.com/DietrichGebert/ponytail
+- Hallmark: https://github.com/Nutlope/hallmark (vendored at `.cursor/skills/hallmark/`)
 
-Bump vendored `ponytail.mdc` when upstream ladder changes materially.
+Bump vendored `ponytail.mdc` when upstream ladder changes materially. Bump Hallmark by replacing `.cursor/skills/hallmark/` from upstream `skills/hallmark/`.

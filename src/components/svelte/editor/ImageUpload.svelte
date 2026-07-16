@@ -118,7 +118,7 @@
   {/if}
   {#if value}
     <div class="image-upload-preview">
-      <img src={value} alt="" loading="lazy" />
+      <img src={value} alt="" loading="lazy" decoding="async" width="320" height="180" />
       <div class="image-upload-actions">
         <label class="editor-toggle image-upload-button" for={inputId}>
           {uploading ? "Uploading..." : "Replace"}

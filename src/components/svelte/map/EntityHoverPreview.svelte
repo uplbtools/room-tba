@@ -44,7 +44,10 @@
         class="entity-hover-preview__image"
         src={preview.imageUrl}
         alt=""
+        width="320"
+        height="180"
         loading="lazy"
+        decoding="async"
       />
     {/if}
     <div class="entity-hover-preview__body">

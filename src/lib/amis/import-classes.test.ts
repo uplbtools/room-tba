@@ -368,7 +368,7 @@ describe("formatImportReport", () => {
     expect(report).toContain("direct, 5 via alias");
     expect(report).toContain("Imported roomless (THE/SPR/…): 8");
     expect(report).toContain("Skipped unknown type: 2");
-    expect(report).toContain("LEC/LAB missing facility: 30");
+    expect(report).toContain("LEC/LAB/RCT missing facility: 30");
     expect(report).toContain("+3 ~2 =35 -1");
   });
 });

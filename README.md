@@ -121,7 +121,7 @@ Contributor notes: [AGENTS.md](AGENTS.md)
 git clone https://github.com/uplbtools/room-tba.git
 cd room-tba
 cp .env.example .env.local
-# Fill DATABASE_URL (staging pooler) and ADMIN_PASSWORD — see .env.example for prod/E2E URLs
+# Fill DATABASE_URL (staging pooler) and ADMIN_PASSWORD; see .env.example for prod/E2E URLs
 
 bun install
 bun dev

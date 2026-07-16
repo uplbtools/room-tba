@@ -187,7 +187,10 @@
                   class="events-list-card-image"
                   src={image.src}
                   alt=""
+                  width="64"
+                  height="64"
                   loading="lazy"
+                  decoding="async"
                 />
               {:else}
                 <span class="events-list-card-icon" aria-hidden="true">

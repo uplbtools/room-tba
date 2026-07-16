@@ -166,7 +166,7 @@
       <div class="hero-overlay">
         <h2>
           <span class="hero-title" id="landing-modal-title">
-            <img src="/logo.png" alt="" class="hero-logo" aria-hidden="true" />
+            <img src="/logo.png" alt="" class="hero-logo" aria-hidden="true" width="512" height="512" decoding="async" />
             Room TBA
           </span>
         </h2>
@@ -461,6 +461,7 @@
   .tab-btn {
     flex: 1;
     min-width: 0;
+    min-height: 2.75rem;
     border: none;
     background: transparent;
     color: hsl(0, 0%, 32%);
@@ -597,16 +598,15 @@
     text-decoration: none;
     font-size: 0.9375rem;
     font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease;
   }
 
   .cta-button:hover {
-    background-color: #000000;
-    transform: translateY(-1px);
+    background-color: hsl(0, 0%, 12%);
   }
 
   .cta-button:active {
-    transform: translateY(0);
+    background-color: hsl(0, 0%, 18%);
   }
 
   .cta-button__icon {
@@ -682,6 +682,7 @@
     justify-content: center;
     text-align: center;
     border-radius: 0.5rem;
+    min-height: 2.75rem;
     padding: 0.6875rem 1.75rem;
     font-size: 0.9375rem;
     font-weight: 700;
@@ -696,6 +697,11 @@
 
   .primary-btn:hover {
     background-color: hsl(5, 75%, 22%);
+  }
+
+  .primary-btn:focus-visible {
+    outline: 2px solid hsl(5, 75%, 22%);
+    outline-offset: 2px;
   }
 
   .install-btn {

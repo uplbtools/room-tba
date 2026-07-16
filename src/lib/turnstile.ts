@@ -7,7 +7,7 @@ export function isTurnstileConfigured(): boolean {
 
 export async function verifyTurnstileToken(
   token: string | null | undefined,
-  remoteIp?: string,
+  _remoteIp?: string,
 ): Promise<boolean> {
-  return verifyTurnstileTokenCore(token, TURNSTILE_SECRET_KEY, remoteIp);
+  return verifyTurnstileTokenCore(token, TURNSTILE_SECRET_KEY ?? "");
 }

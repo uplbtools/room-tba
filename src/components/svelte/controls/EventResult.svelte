@@ -644,7 +644,10 @@
           class="event-image"
           src={eventImage.src}
           alt={eventImage.alt}
+          width="800"
+          height="450"
           loading="lazy"
+          decoding="async"
         />
       {/if}
       <div class="entity-actions">

@@ -9,7 +9,7 @@
 {#if block}
   <span class="loading-block" role="status">
     <span class="loading-block__badge" aria-hidden="true">
-      <img src="/logo.png" alt="" width="28" height="28" />
+      <img src="/logo.png" alt="" width="28" height="28" decoding="async" />
     </span>
     <span class="loading-block__track" aria-hidden="true">
       <span class="loading-block__fill"></span>

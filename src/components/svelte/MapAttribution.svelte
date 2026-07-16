@@ -63,6 +63,9 @@
       <img
         src="https://api.maptiler.com/resources/logo.svg"
         alt="MapTiler logo"
+        width="80"
+        height="20"
+        decoding="async"
       />
     </a>
   {/if}

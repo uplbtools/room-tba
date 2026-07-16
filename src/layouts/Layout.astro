@@ -101,6 +101,11 @@ const shareTitle = ogTitle ?? title;
     />
 
     <style is:global>
+      html,
+      body {
+        overflow-x: clip;
+      }
+
       * {
         font-family:
           "Inter",
@@ -148,6 +153,7 @@ const shareTitle = ogTitle ?? title;
                 alt=""
                 width="44"
                 height="44"
+                decoding="async"
                 class="app-loading-badge__logo"
               />
             </div>

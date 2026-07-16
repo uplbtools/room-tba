@@ -473,7 +473,7 @@
     --bottom-fab-inset: 3.75rem;
     --pill-padding-x: 0.875rem;
     --map-chrome-radius: 1rem;
-    --map-chrome-toggle-size: 2rem;
+    --map-chrome-toggle-size: 2.75rem;
     --map-chrome-toggle-radius: 0.625rem;
     /* Map chrome contrast: warm off-white surfaces + stronger edges so controls
        float above light basemap tiles without dimming the map itself. */

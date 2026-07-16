@@ -1,0 +1,29 @@
+---
+description: Hallmark anti-AI-slop UI gates for map chrome, side panel, search, and landing
+globs:
+  - src/components/svelte/**/*.svelte
+  - src/components/svelte/**/*.css
+  - src/styles/**/*.css
+  - src/pages/**/*.astro
+alwaysApply: false
+---
+
+# Hallmark (Room TBA)
+
+UI edits on matched files: read [.cursor/skills/hallmark/SKILL.md](../skills/hallmark/SKILL.md) and [.cursor/skills/hallmark/references/room-tba.md](../skills/hallmark/references/room-tba.md).
+
+## Quick gates (product UI)
+
+- No `transition: all` — list properties explicitly.
+- No hover `transform: scale()` on **toolbar / flyout / chip** controls (pins on map canvas exempt per room-tba.md).
+- No decorative gradients on buttons; skeleton loaders and brand splash gradients are OK.
+- Typography: body stays readable (≥4.5:1); do not swap Inter for another default sans without reason.
+- Verify **320px** after layout changes; see [map-layout.mdc](map-layout.mdc).
+
+## Verbs
+
+- User says **audit** → score target, punch list only, no edits unless they ask.
+- User says **redesign** → in-place visual layer; preserve routes, stores, copy intent.
+- Polish pass after fixes → Impeccable `/impeccable polish` optional; do not duplicate feedback surfaces.
+
+Ponytail still wins on diff size; Hallmark wins on slop tells.

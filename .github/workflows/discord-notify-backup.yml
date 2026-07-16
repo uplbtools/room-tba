@@ -1,0 +1,26 @@
+name: Discord notify backup
+
+on:
+  workflow_run:
+    workflows: [Database backup]
+    types: [completed]
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to Discord
+        env:
+          DISCORD_CI_WEBHOOK_URL: ${{ secrets.DISCORD_CI_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_CI_WEBHOOK_URL" ]; then
+            echo "::warning::DISCORD_CI_WEBHOOK_URL not set — skipped"
+            exit 0
+          fi
+          payload=$(jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg url "${{ github.event.workflow_run.html_url }}" \
+            --arg conclusion "${{ github.event.workflow_run.conclusion }}" \
+            '{embeds:[{title:"Database backup failed",description:("**"+$repo+"** — "+$conclusion),url:$url,color:15158332}]}')
+          curl -sf -H "Content-Type: application/json" -d "$payload" "$DISCORD_CI_WEBHOOK_URL"

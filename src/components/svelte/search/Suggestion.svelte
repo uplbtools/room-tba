@@ -181,7 +181,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #000;
+    color: #18181b;
     flex-shrink: 0;
   }
 
