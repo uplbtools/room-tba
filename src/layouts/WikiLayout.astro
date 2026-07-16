@@ -42,11 +42,22 @@ const { title, description, canonicalPath, structuredData = [] } = Astro.props;
 </Layout>
 
 <style is:global>
+  /* Light canvas so missing page CSS (CF 404 cache on hashed assets) stays readable. */
+  html {
+    color-scheme: only light;
+    background: #fff;
+  }
+
+  body {
+    background: #fff;
+  }
+
   .wiki-page {
     width: min(62rem, calc(100% - 2rem));
     margin: 0 auto;
     padding: 2rem 0 4rem;
     color: hsl(0, 0%, 15%);
+    background: #fff;
   }
 
   .wiki-brand {
