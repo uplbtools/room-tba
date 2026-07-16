@@ -20,8 +20,19 @@ const { title, description, canonicalPath, structuredData = [] } = Astro.props;
   showAppLoadingShell={false}
 >
   <main class="wiki-page">
+    <a class="wiki-brand" href="/" aria-label="Room TBA home">
+      <img
+        src="/logo.png"
+        alt=""
+        width="48"
+        height="48"
+        decoding="async"
+        class="wiki-brand__logo"
+      />
+      <span class="wiki-brand__name">Room TBA</span>
+    </a>
     <nav class="wiki-breadcrumb" aria-label="Breadcrumb">
-      <a href="/">Room TBA</a>
+      <a href="/">Home</a>
       <span aria-hidden="true">/</span>
       <a href="/wiki">Wiki</a>
     </nav>
@@ -36,6 +47,31 @@ const { title, description, canonicalPath, structuredData = [] } = Astro.props;
     margin: 0 auto;
     padding: 2rem 0 4rem;
     color: hsl(0, 0%, 15%);
+  }
+
+  .wiki-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    color: hsl(0, 0%, 12%);
+    font-weight: 750;
+    font-size: 1.125rem;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .wiki-brand:hover,
+  .wiki-brand:focus-visible {
+    color: hsl(5, 53%, 32%);
+  }
+
+  .wiki-brand__logo {
+    display: block;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.65rem;
+    object-fit: contain;
   }
 
   .wiki-breadcrumb {
@@ -89,6 +125,15 @@ const { title, description, canonicalPath, structuredData = [] } = Astro.props;
     .wiki-page {
       width: min(100% - 1.25rem, 62rem);
       padding-top: 1rem;
+    }
+
+    .wiki-brand {
+      margin-bottom: 1rem;
+    }
+
+    .wiki-brand__logo {
+      width: 2.5rem;
+      height: 2.5rem;
     }
 
     .wiki-breadcrumb {
