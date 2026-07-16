@@ -81,6 +81,7 @@
       onclick={() => sponsor && trackSponsorClick(sponsor.id, "side_panel")}
     >
       {#if sponsor.banner}
+        <!-- Banner art already carries name/tagline; keep text for AT only. -->
         <img
           class="sponsor-banner__image"
           src={sponsor.banner}
@@ -89,10 +90,12 @@
           height="80"
           loading="lazy"
         />
-      {/if}
-      <span class="sponsor-banner__name">{sponsor.name}</span>
-      {#if sponsor.tagline}
-        <span class="sponsor-banner__tagline">{sponsor.tagline}</span>
+        <span class="sponsor-banner__sr">{sponsor.name}</span>
+      {:else}
+        <span class="sponsor-banner__name">{sponsor.name}</span>
+        {#if sponsor.tagline}
+          <span class="sponsor-banner__tagline">{sponsor.tagline}</span>
+        {/if}
       {/if}
     </a>
   </aside>
@@ -157,6 +160,15 @@
     max-height: 5rem;
     object-fit: contain;
     border-radius: 0.5rem;
+  }
+
+  .sponsor-banner__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .sponsor-banner__name {

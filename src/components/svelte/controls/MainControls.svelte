@@ -242,6 +242,10 @@
 
   .side-panel-details {
     display: flex;
+    /* Wrap so a trailing full-width child (sponsor banner) lands on its own
+       row below the entity content instead of a side column. */
+    flex-wrap: wrap;
+    align-content: flex-start;
     flex: 1 1 0;
     min-height: 0;
     overflow-y: auto;

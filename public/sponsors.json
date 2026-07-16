@@ -1,6 +1,19 @@
 {
   "sponsors": [
     {
+      "id": "kape-kalabaw-demo",
+      "name": "Kape Kalabaw",
+      "tier": "gold",
+      "tagline": "Iced kape beside the Oval",
+      "url": "https://example.com/kape-kalabaw",
+      "logo": "/sponsors/kape-kalabaw-logo.png",
+      "banner": "/sponsors/kape-kalabaw-banner.png",
+      "startDate": "2026-07-01",
+      "endDate": "2026-08-31",
+      "active": true,
+      "category": "food"
+    },
+    {
       "id": "sample-sponsor",
       "name": "Sample Sponsor",
       "tier": "gold",
