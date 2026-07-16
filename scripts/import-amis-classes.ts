@@ -18,7 +18,7 @@
  * See docs/amis-com-refresh-runbook.md and docs/amis-contingency-runbook.md.
  *
  * CRS term_id is chronological within the AY: 1251 = 1st sem, 1252 = 2nd sem, 1253 = midyear.
- * LEC, LAB, and RCT rows are imported even when the room is unresolved; roomId stays null so the planner still sees the section.
+ * LEC/LAB/RCT/CPT rows are imported even when the room is unresolved; roomId stays null so the planner still sees the section.
  * Thesis, special problem, dissertation, practicum, and independent study import with roomId null when AMIS has no facility.
  * Local exports live at data/amis-*-{termId}.json (gitignored).
  * AMIS responses include instructor names — never commit raw exports or store names.
@@ -53,8 +53,7 @@ import {
   resolveImportRows,
   summarizeImportChanges,
 } from "@lib/amis/import-classes";
-import { extractClassRows } from "@lib/amis/normalize-class";
-import { normalizeAmisClass } from "@lib/amis/normalize-class";
+import { extractClassRows, normalizeAmisClass } from "@lib/amis/normalize-class";
 import {
   amisExportContainsInstructorPii,
   sanitizeAmisRows,
@@ -64,6 +63,7 @@ import {
   AmisImportError,
   operatorHintForCode,
 } from "@lib/amis/import-errors";
+import type { AmisClassRow } from "@lib/amis/types";
 
 config({ path: ".env" });
 
@@ -160,6 +160,17 @@ async function refreshSyncKey(
     .where(eq(updateTable.tableName, tableName));
 }
 
+function inferTermIdFromPayload(payload: unknown, rows: AmisClassRow[]): number {
+  const envelope = payload as { term_id?: number; termId?: number };
+  if (Number.isFinite(envelope.term_id)) return Number(envelope.term_id);
+  if (Number.isFinite(envelope.termId)) return Number(envelope.termId);
+  for (const row of rows) {
+    const termId = Number(row["term_id"] ?? row["termId"]);
+    if (Number.isFinite(termId) && termId > 0) return termId;
+  }
+  return 0;
+}
+
 function scrubAllExports() {
   const files = readdirSync("data").filter(
     (name) => name.startsWith("amis-") && name.endsWith(".json"),
@@ -172,8 +183,14 @@ function scrubAllExports() {
     const path = `data/${name}`;
     const payload = JSON.parse(readFileSync(path, "utf8"));
     const rows = sanitizeAmisRows(extractClassRows(payload));
-    const termId = Number((payload as { term_id?: number }).term_id ?? 0);
-    saveSanitizedExport(termId || 0, rows, path);
+    if (rows.length === 0) {
+      console.warn(
+        `Skipping ${path}: extractClassRows() found 0 class rows (refusing to overwrite with empty classes).`,
+      );
+      continue;
+    }
+    const termId = inferTermIdFromPayload(payload, rows);
+    saveSanitizedExport(termId, rows, path);
     console.log(`Scrubbed instructor PII from ${path} (${rows.length} rows).`);
   }
 }
