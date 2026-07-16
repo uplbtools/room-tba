@@ -227,7 +227,7 @@
               onclick={() => openEvent(event)}
             >
               {#if image}
-                <img class="event-card-image" src={image.src} alt="" />
+                <img class="event-card-image" src={image.src} alt="" width="72" height="72" loading="lazy" decoding="async" />
               {:else}
                 <span class="event-card-icon" aria-hidden="true">Event</span>
               {/if}

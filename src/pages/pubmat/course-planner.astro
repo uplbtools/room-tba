@@ -62,11 +62,11 @@ const panels = [
 
         {panel.image ? (
           <figure class="panel__screen">
-            <img src={panel.image} alt={panel.imageAlt} />
+            <img src={panel.image} alt={panel.imageAlt} width="1200" height="900" loading="lazy" decoding="async" />
           </figure>
         ) : (
           <div class="panel__cover-art" aria-hidden="true">
-            <img src="/logo.png" alt="" />
+            <img src="/logo.png" alt="" width="512" height="512" decoding="async" />
             <span>Room TBA</span>
           </div>
         )}

@@ -166,7 +166,7 @@
       <div class="hero-overlay">
         <h2>
           <span class="hero-title" id="landing-modal-title">
-            <img src="/logo.png" alt="" class="hero-logo" aria-hidden="true" />
+            <img src="/logo.png" alt="" class="hero-logo" aria-hidden="true" width="512" height="512" decoding="async" />
             Room TBA
           </span>
         </h2>
