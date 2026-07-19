@@ -257,6 +257,8 @@ The short version of what you replace:
 
 The hard part is class schedules. Room TBA pulls from AMIS, which is UPLB's system. You do not have AMIS — you need an importer for whatever your registrar gives you, pointed at the `classes` table, rerun each term. The existing import scripts are a template for the shape, not the source.
 
+After you think you've replaced everything, run `bun run fork:check` — it scans for hardcoded UPLB strings you missed and reports file:line hits. Wire it into your fork's CI so a stray UPLB string does not sneak back in on a merge from upstream.
+
 ---
 
 ## License

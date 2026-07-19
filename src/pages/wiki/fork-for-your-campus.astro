@@ -175,6 +175,18 @@ bunx drizzle-kit push</code></pre>
         Open <code>http://localhost:4321</code>. The map loads with your new
         center and bounds. Nothing is on it yet because the DB is empty.
       </p>
+
+      <h3>9. Run fork:check to catch what you missed</h3>
+      <pre><code>bun run fork:check</code></pre>
+      <p>
+        Scans the repo for hardcoded UPLB strings you forgot to replace
+        (<code>uplb</code>, <code>uplbtools.me</code>, <code>AMIS</code>,
+        <code>Makiling</code>, <code>PSLH</code>, the UPLB map center coords,
+        Messenger invites, …). Reports file:line hits with hints. On a finished
+        fork it should report zero. Wire it into your fork's CI
+        (<code>--silent</code> for exit-code-only) so a stray UPLB string does
+        not sneak back in on a merge from upstream.
+      </p>
     </section>
 
     <section aria-labelledby="data">
