@@ -8,13 +8,14 @@ import {
   MESSENGER_CONTRIBUTE_TARGET,
   MESSENGER_MAINTAIN_TARGET,
 } from "./src/constants/community-links.ts";
+import { campusCommunity, campusSite } from "./src/campus.config.ts";
 
 /** Local E2E + integration preview — Vercel adapter does not support `astro preview`. */
 const e2eNodeAdapter = process.env.ASTRO_E2E_NODE === "1";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://room-tba.uplbtools.me",
+  site: campusSite.url,
 
   integrations: [
     svelte(),
@@ -128,7 +129,7 @@ export default defineConfig({
 
   redirects: {
     "/contribute": "/?contribute=1",
-    "/discord": "https://discord.uplbtools.me",
+    "/discord": campusCommunity.discordUrl,
     "/messenger": MESSENGER_CONTRIBUTE_TARGET,
     "/messenger/contribute": MESSENGER_CONTRIBUTE_TARGET,
     "/messenger/maintain": MESSENGER_MAINTAIN_TARGET,
