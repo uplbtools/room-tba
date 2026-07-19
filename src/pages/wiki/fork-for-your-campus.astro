@@ -1,0 +1,439 @@
+---
+export const prerender = true;
+
+import WikiLayout from "@layouts/WikiLayout.astro";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+
+const title = "Fork this for your campus | Room TBA Wiki";
+const description =
+  "What you actually have to change to run Room TBA for a different campus: the UPLB-specific data and glue to rip out, the config to repoint, and the parts that are write-your-own.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/wiki/fork-for-your-campus" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Wiki", path: "/wiki" },
+    { name: "Fork for your campus", path: "/wiki/fork-for-your-campus" },
+  ]),
+);
+---
+
+<WikiLayout
+  {title}
+  {description}
+  canonicalPath="/wiki/fork-for-your-campus"
+  {structuredData}
+>
+  <article class="wiki-article">
+    <header class="article-hero">
+      <p class="wiki-eyebrow">For other campuses</p>
+      <h1 class="wiki-title">Fork this for your campus</h1>
+      <p class="wiki-lede">
+        Room TBA is built for UPLB. The license (MIT) lets you fork it. This is
+        not a "swap the logo and ship" kind of fork. A lot of the app is UPLB
+        data and UPLB-specific glue. Here is what you actually replace, in the
+        order that matters, with the real file paths.
+      </p>
+      <p class="article-meta">
+        Current as of v2.1.x. If the repo has moved, the file paths below are
+        still the map — re-check them.
+      </p>
+    </header>
+
+    <nav class="toc" aria-label="On this page">
+      <p class="toc__title">On this page</p>
+      <ol>
+        <li><a href="#what-is-generic">What you keep</a></li>
+        <li><a href="#what-is-uplb">What is UPLB-only</a></li>
+        <li><a href="#prereq">What you need before you start</a></li>
+        <li><a href="#steps">The actual steps</a></li>
+        <li><a href="#data">Loading your own data</a></li>
+        <li><a href="#deploy">Deploy</a></li>
+        <li><a href="#pain">The painful parts</a></li>
+        <li><a href="#license">License and credit</a></li>
+      </ol>
+    </nav>
+
+    <section aria-labelledby="what-is-generic">
+      <h2 id="what-is-generic">What you keep</h2>
+      <p>
+        The engine is generic. You do not rewrite these:
+      </p>
+      <ul>
+        <li>The map UI, search bar, side panel, and pin flyouts.</li>
+        <li>PGlite offline cache (the app answers "where is this room" with no signal).</li>
+        <li>The editor and the suggest-an-edit review queue.</li>
+        <li>The course planner and the personal-schedule routing.</li>
+        <li>Events on the map, alias synonym matching, share links.</li>
+        <li>The Drizzle schema. Tables for <code>buildings</code>, <code>rooms</code>, <code>classes</code>, <code>aliases</code>, <code>events</code>, <code>organizations</code>, <code>places</code>, <code>colleges</code>, <code>dorms</code>, <code>jeepney_routes</code>, and final exams are campus-shaped, not UPLB-shaped.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="what-is-uplb">
+      <h2 id="what-is-uplb">What is UPLB-only (you rip this out or replace it)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>File / thing</th><th>Why it is UPLB-only</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>src/lib/site.ts</code></td><td>Site name, URL, title, and description are UPLB.</td></tr>
+            <tr><td><code>src/constants/map-terrain.ts</code></td><td>Map bounds, default camera (center lng/lat, zoom, pitch), and the Mt. Makiling terrain source.</td></tr>
+            <tr><td><code>src/constants/community-links.ts</code> + <code>status-bar-links.ts</code></td><td>UPLB Tools, Discord, and Messenger links.</td></tr>
+            <tr><td><code>public/room_info.json</code></td><td>UPLB buildings, aliases, and walking directions. Seed file for aliases.</td></tr>
+            <tr><td><code>src/constants/jeepney-routes.ts</code> + <code>jeepney-geometries.json</code></td><td>UPLB jeepney routes. Delete if your campus has no equivalent.</td></tr>
+            <tr><td><code>scripts/import-amis-classes.ts</code></td><td>AMIS is UPLB's course system. You do not have AMIS.</td></tr>
+            <tr><td><code>scripts/import-final-exams.ts</code></td><td>Reads UPLB OUR finals JSON.</td></tr>
+            <tr><td><code>scripts/import-osa-orgs.ts</code> + <code>import-campus-offices.ts</code></td><td>UPLB org and office directories.</td></tr>
+            <tr><td><code>astro.config.mjs</code> <code>site</code></td><td>Hardcoded to <code>room-tba.uplbtools.me</code>.</td></tr>
+            <tr><td>The database contents</td><td>Every row is UPLB. The schema stays; the data goes.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        If a fork only changes the logo and the site name, it is still a UPLB
+        app pointing at UPLB data. That is the thing the license line in the
+        README is warning you about.
+      </p>
+    </section>
+
+    <section aria-labelledby="prereq">
+      <h2 id="prereq">What you need before you start</h2>
+      <ul>
+        <li>A GitHub account (to fork).</li>
+        <li><a href="https://bun.sh" class="wiki-link">Bun</a> 1.3+ on your machine.</li>
+        <li>A <a href="https://supabase.com" class="wiki-link">Supabase</a> project. Free tier is fine for a small campus.</li>
+        <li>A <a href="https://maptiler.com" class="wiki-link">MapTiler</a> key for vector and terrain tiles. Free tier exists; watch the quota.</li>
+        <li>Your campus data: a building list with coordinates, room codes, class schedules from your registrar or SAIS equivalent, and a final-exam schedule if you want that panel.</li>
+        <li>Somewhere to deploy. <a href="https://vercel.com" class="wiki-link">Vercel</a> free tier works; the app is built for the Vercel adapter.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="steps">
+      <h2 id="steps">The actual steps</h2>
+
+      <h3>1. Fork and clone</h3>
+      <p>Fork <code>uplbtools/room-tba</code> on GitHub, then:</p>
+      <pre><code>git clone https://github.com/&lt;your-org&gt;/room-tba.git
+cd room-tba
+cp .env.example .env.local</code></pre>
+
+      <h3>2. Make a Supabase project and grab the URL</h3>
+      <p>
+        Create a project. In SQL settings, copy the <strong>session pooler</strong>
+        connection string (the one ending in <code>*.pooler.supabase.com</code>).
+        Paste it as <code>DATABASE_URL</code> in <code>.env.local</code>. Set
+        <code>ADMIN_PASSWORD</code> to something long and random — you need it
+        to log into the editor.
+      </p>
+
+      <h3>3. Install and create the tables</h3>
+      <pre><code>bun install
+bunx drizzle-kit push</code></pre>
+      <p>
+        <code>drizzle-kit push</code> creates every table from
+        <code>drizzle/schema.ts</code> in your Supabase Postgres. You start
+        with an empty campus.
+      </p>
+
+      <h3>4. Edit <code>src/campus.config.ts</code> — the single config file</h3>
+      <p>
+        This is the one file for campus-specific config. It holds the site
+        name, URL, title, description, the map center / bounds / camera, and
+        the community links. The rest of the app
+        (<code>site.ts</code>, <code>map-terrain.ts</code>,
+        <code>community-links.ts</code>, <code>astro.config.mjs</code>) imports
+        from here. Change the values, save, and you are done with the code-side
+        rebrand.
+      </p>
+      <ul>
+        <li><code>campusSite</code> — <code>url</code>, <code>name</code>, <code>title</code>, <code>description</code>.</li>
+        <li><code>campusMap</code> — <code>maxBounds</code> (the lng/lat box that keeps the camera on your campus) and <code>defaultCamera</code> (<code>center: [lng, lat]</code>, <code>zoom</code>, <code>pitch</code>, <code>bearing</code>).</li>
+        <li><code>campusCommunity</code> — your org, GitHub, Discord, and Messenger links. Delete entries you do not have.</li>
+      </ul>
+      <p>
+        If your campus has no hill like Mt. Makiling, also disable the terrain
+        source in <code>src/constants/map-terrain.ts</code>
+        (<code>TERRAIN_SOURCE_ID</code>, <code>getTerrainTileJsonUrl</code>).
+        The 3D toggle just turns off. The terrain IDs are not in
+        <code>campus.config.ts</code> yet — they are a follow-up.
+      </p>
+
+      <h3>5. Delete or replace the UPLB data files</h3>
+      <ul>
+        <li>Replace <code>public/room_info.json</code> with your buildings (or delete it and seed the DB directly).</li>
+        <li>Delete <code>src/constants/jeepney-routes.ts</code> and <code>jeepney-geometries.json</code> if you have no campus transit overlay.</li>
+        <li>Delete the UPLB import scripts you cannot reuse: <code>import-amis-classes.ts</code>, <code>import-final-exams.ts</code>, <code>import-osa-orgs.ts</code>, <code>import-campus-offices.ts</code>. Keep them as reference while you write your own.</li>
+        <li>Delete <code>src/pages/wiki/section-times.astro</code> (the UPLB section-code glossary) and its card on the wiki index.</li>
+      </ul>
+
+      <h3>6. Start the dev server</h3>
+      <pre><code>bun dev</code></pre>
+      <p>
+        Open <code>http://localhost:4321</code>. The map loads with your new
+        center and bounds. Nothing is on it yet because the DB is empty.
+      </p>
+
+      <h3>7. Run fork:check to catch what you missed</h3>
+      <pre><code>bun run fork:check</code></pre>
+      <p>
+        Scans the repo for hardcoded UPLB strings you forgot to replace
+        (<code>uplb</code>, <code>uplbtools.me</code>, <code>AMIS</code>,
+        <code>Makiling</code>, <code>PSLH</code>, the UPLB map center coords,
+        Messenger invites, …). Reports file:line hits with hints. On a finished
+        fork it should report zero. Wire it into your fork's CI
+        (<code>--silent</code> for exit-code-only) so a stray UPLB string does
+        not sneak back in on a merge from upstream.
+      </p>
+    </section>
+
+    <section aria-labelledby="data">
+      <h2 id="data">Loading your own data</h2>
+      <p>
+        Two ways. Use both.
+      </p>
+      <p>
+        <strong>The in-app editor.</strong> Log in at
+        <code>/?editor=login</code> with your <code>ADMIN_PASSWORD</code>. Drop
+        pins, add buildings and rooms, set aliases. This is how you fix data
+        day-to-day and how volunteers contribute without touching the DB.
+      </p>
+      <p>
+        <strong>A seed script.</strong> For a first bulk load (every building,
+        every room, every class), write a script that reads your registrar's
+        export and upserts into Postgres. Use
+        <code>scripts/import-amis-classes.ts</code> as a <em>template for the
+        shape</em> — Drizzle upsert by natural key, term handling, the
+        class/room join — not the AMIS fetch. Your data source is different.
+        The import scripts read from files under <code>data/</code> (gitignored)
+        and write to <code>DATABASE_URL</code>; copy that pattern.
+      </p>
+      <p>
+        Class schedules are the hard part. Room TBA pulls from AMIS, which is
+        UPLB's system. You do not have AMIS. You need whatever export your
+        registrar or SAIS equivalent gives you — CSV, JSON, a scraped portal,
+        a PDF someone has to retype. Write one importer for it, point it at the
+        <code>classes</code> table, and rerun it each term.
+      </p>
+      <p>
+        After you change the Drizzle schema at all, regenerate the offline
+        cache schema so PGlite matches Postgres:
+      </p>
+      <pre><code>bun run generate:pglite-schema</code></pre>
+    </section>
+
+    <section aria-labelledby="deploy">
+      <h2 id="deploy">Deploy</h2>
+      <p>
+        Import your fork into Vercel. Set these env vars in the project
+        (Production and Preview):
+      </p>
+      <ul>
+        <li><code>DATABASE_URL</code> — your Supabase pooler URL.</li>
+        <li><code>ADMIN_PASSWORD</code> — same one you used locally.</li>
+        <li><code>ADMIN_SESSION_SECRET</code> — 32+ random chars, used to sign editor cookies.</li>
+        <li><code>ISR_BYPASS_TOKEN</code> — 32+ random chars, must match <code>bypassToken</code> in <code>astro.config.mjs</code>. Without it, editor publishes do not revalidate the SEO pages.</li>
+        <li><code>PUBLIC_MAPTILER_KEY</code> — your key.</li>
+        <li><code>PUBLIC_APP_ENV=production</code> on your production deploy; <code>staging</code> on preview.</li>
+      </ul>
+      <p>
+        Deploy. Push to your default branch and Vercel builds it. The build
+        needs <code>DATABASE_URL</code> or prerendered pages 500.
+      </p>
+    </section>
+
+    <section aria-labelledby="pain">
+      <h2 id="pain">The painful parts</h2>
+      <ul>
+        <li>
+          <strong>Class import is write-your-own.</strong> AMIS is UPLB-only.
+          Your registrar's export is the long pole. Budget time for it.
+        </li>
+        <li>
+          <strong>Map tiles cost money at scale.</strong> MapTiler free tier is
+          fine for a campus with a few thousand users. If the whole student
+          body hits it during enrollment, you may need a paid plan or a
+          self-hosted tile server.
+        </li>
+        <li>
+          <strong>The 3D terrain needs a DEM.</strong> If your campus is flat,
+          just disable the terrain source. No DEM, no 3D hills.
+        </li>
+        <li>
+          <strong>Supabase free tier pauses after a week of no activity.</strong>
+          Fine for a small campus. For high traffic, upgrade or self-host
+          Postgres.
+        </li>
+        <li>
+          <strong>You are maintaining a fork.</strong> Upstream moves. Rebase
+          pain is real. Keep your campus-specific changes in the clearly
+          UPLB-marked files above so merges do not stomp your data config.
+        </li>
+        <li>
+          <strong>The wiki page you are reading is UPLB-specific too.</strong>
+          Replace it with your own campus guide, or delete it.
+        </li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="license">
+      <h2 id="license">License and credit</h2>
+      <p>
+        MIT. Keep the <code>LICENSE</code> file. You can run a fork for your
+        campus, sell hosting around it, teach with it. You do not have to ask.
+      </p>
+      <p>
+        Credit is free. The README credits the people who built this. Do not
+        strip those names and pass the work off as yours. If your fork takes
+        off, a line back to <code>uplbtools/room-tba</code> is good manners.
+      </p>
+    </section>
+  </article>
+</WikiLayout>
+
+<style>
+  .wiki-article {
+    max-width: 52rem;
+  }
+
+  .article-hero {
+    padding: 1rem 0 2.5rem;
+    border-bottom: 1px solid hsl(0, 0%, 88%);
+  }
+
+  .article-meta {
+    margin: 1rem 0 0;
+    color: hsl(0, 0%, 48%);
+    font-size: 0.8rem;
+  }
+
+  .toc {
+    margin: 2rem 0 0;
+    padding: 1rem 1.15rem;
+    border: 1px solid hsl(0, 0%, 88%);
+    border-radius: 0.85rem;
+    background: hsl(0, 0%, 99%);
+  }
+
+  .toc__title {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 750;
+    color: hsl(0, 0%, 35%);
+  }
+
+  .toc ol {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+    color: hsl(0, 0%, 30%);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  .toc a {
+    color: hsl(5, 53%, 32%);
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+  }
+
+  .wiki-article section {
+    margin-top: 2.5rem;
+  }
+
+  .wiki-article h2 {
+    margin: 0 0 0.75rem;
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    letter-spacing: -0.02em;
+  }
+
+  .wiki-article h3 {
+    margin: 1.75rem 0 0.5rem;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .wiki-article p {
+    max-width: 46rem;
+    margin: 0.75rem 0 0;
+    color: hsl(0, 0%, 27%);
+    font-size: 1rem;
+    line-height: 1.72;
+  }
+
+  .wiki-article ul {
+    max-width: 46rem;
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+    color: hsl(0, 0%, 27%);
+    font-size: 1rem;
+    line-height: 1.72;
+  }
+
+  .wiki-article li {
+    margin: 0.35rem 0;
+  }
+
+  .wiki-article code {
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.3rem;
+    background: hsl(0, 0%, 94%);
+    color: hsl(5, 40%, 30%);
+    font-size: 0.85em;
+  }
+
+  .wiki-article pre {
+    max-width: 46rem;
+    margin: 0.75rem 0 0;
+    padding: 1rem 1.15rem;
+    border: 1px solid hsl(0, 0%, 86%);
+    border-radius: 0.75rem;
+    background: hsl(0, 0%, 97%);
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .wiki-article pre code {
+    padding: 0;
+    background: none;
+    color: hsl(0, 0%, 15%);
+    font-size: inherit;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid hsl(0, 0%, 86%);
+    border-radius: 1rem;
+    margin-top: 0.75rem;
+  }
+
+  table {
+    width: 100%;
+    min-width: 38rem;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.875rem;
+  }
+
+  th,
+  td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid hsl(0, 0%, 90%);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: hsl(5, 22%, 97%);
+    color: hsl(0, 0%, 36%);
+    font-size: 0.75rem;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  td code,
+  th code {
+    font-size: 0.8em;
+  }
+</style>
