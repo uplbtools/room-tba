@@ -135,33 +135,30 @@ bunx drizzle-kit push</code></pre>
         with an empty campus.
       </p>
 
-      <h3>4. Repoint the map to your campus</h3>
+      <h3>4. Edit <code>src/campus.config.ts</code> — the single config file</h3>
       <p>
-        Edit <code>src/constants/map-terrain.ts</code>:
+        This is the one file for campus-specific config. It holds the site
+        name, URL, title, description, the map center / bounds / camera, and
+        the community links. The rest of the app
+        (<code>site.ts</code>, <code>map-terrain.ts</code>,
+        <code>community-links.ts</code>, <code>astro.config.mjs</code>) imports
+        from here. Change the values, save, and you are done with the code-side
+        rebrand.
       </p>
       <ul>
-        <li><code>CAMPUS_MAX_BOUNDS</code> and <code>CAMPUS_BOUNDS</code> — the lng/lat box that keeps the camera on your campus.</li>
-        <li><code>CAMPUS_DEFAULT_CAMERA</code> — <code>center: [lng, lat]</code>, <code>zoom</code>, <code>pitch</code>, <code>bearing</code>. Pick a center point and a zoom that fits your campus.</li>
-        <li>If your campus has no hill like Mt. Makiling, remove or disable the terrain source (<code>TERRAIN_SOURCE_ID</code>, <code>getTerrainTileJsonUrl</code>). The 3D toggle just turns off.</li>
+        <li><code>campusSite</code> — <code>url</code>, <code>name</code>, <code>title</code>, <code>description</code>.</li>
+        <li><code>campusMap</code> — <code>maxBounds</code> (the lng/lat box that keeps the camera on your campus) and <code>defaultCamera</code> (<code>center: [lng, lat]</code>, <code>zoom</code>, <code>pitch</code>, <code>bearing</code>).</li>
+        <li><code>campusCommunity</code> — your org, GitHub, Discord, and Messenger links. Delete entries you do not have.</li>
       </ul>
-
-      <h3>5. Rename the app</h3>
       <p>
-        Edit <code>src/lib/site.ts</code>: <code>SITE_URL</code>,
-        <code>SITE_NAME</code>, <code>DEFAULT_TITLE</code>,
-        <code>DEFAULT_DESCRIPTION</code>. Edit <code>astro.config.mjs</code>
-        and change <code>site:</code> to your production domain.
+        If your campus has no hill like Mt. Makiling, also disable the terrain
+        source in <code>src/constants/map-terrain.ts</code>
+        (<code>TERRAIN_SOURCE_ID</code>, <code>getTerrainTileJsonUrl</code>).
+        The 3D toggle just turns off. The terrain IDs are not in
+        <code>campus.config.ts</code> yet — they are a follow-up.
       </p>
 
-      <h3>6. Rip the UPLB community links</h3>
-      <p>
-        Replace the URLs in <code>src/constants/community-links.ts</code> with
-        your own (or delete the entries). The status bar pulls from
-        <code>src/constants/status-bar-links.ts</code> — update or trim there
-        too.
-      </p>
-
-      <h3>7. Delete or replace the UPLB data files</h3>
+      <h3>5. Delete or replace the UPLB data files</h3>
       <ul>
         <li>Replace <code>public/room_info.json</code> with your buildings (or delete it and seed the DB directly).</li>
         <li>Delete <code>src/constants/jeepney-routes.ts</code> and <code>jeepney-geometries.json</code> if you have no campus transit overlay.</li>
@@ -169,14 +166,14 @@ bunx drizzle-kit push</code></pre>
         <li>Delete <code>src/pages/wiki/section-times.astro</code> (the UPLB section-code glossary) and its card on the wiki index.</li>
       </ul>
 
-      <h3>8. Start the dev server</h3>
+      <h3>6. Start the dev server</h3>
       <pre><code>bun dev</code></pre>
       <p>
         Open <code>http://localhost:4321</code>. The map loads with your new
         center and bounds. Nothing is on it yet because the DB is empty.
       </p>
 
-      <h3>9. Run fork:check to catch what you missed</h3>
+      <h3>7. Run fork:check to catch what you missed</h3>
       <pre><code>bun run fork:check</code></pre>
       <p>
         Scans the repo for hardcoded UPLB strings you forgot to replace

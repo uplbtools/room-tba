@@ -246,10 +246,8 @@ The short version of what you replace:
 
 | File | What to change |
 | --- | --- |
-| `src/lib/site.ts` | Site name, URL, title, description |
-| `src/constants/map-terrain.ts` | Campus bounds, default camera (center lng/lat, zoom), terrain source |
-| `src/constants/community-links.ts`, `status-bar-links.ts` | UPLB community links → your own |
-| `astro.config.mjs` | `site:` → your domain |
+| `src/campus.config.ts` | **The single config file.** Site name, URL, title, description, map center/bounds/camera, community links. The files below import from here. |
+| `src/constants/map-terrain.ts` | Terrain source (Makiling) — disable if your campus is flat. Bounds and camera come from `campus.config.ts`. |
 | `public/room_info.json` | UPLB building seed → your buildings |
 | `src/constants/jeepney-routes.ts` + geometries | Delete if no campus transit overlay |
 | `scripts/import-amis-classes.ts` and friends | UPLB data sources (AMIS, OUR finals, OSA). Write your own importer for your registrar's export. |
