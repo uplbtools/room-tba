@@ -1,22 +1,29 @@
-/** External UPLB Tools community and org links (also wired as short redirects in astro.config). */
+/** External community and org links (also wired as short redirects in astro.config).
+ *
+ * Campus-specific values live in src/campus.config.ts — a fork edits that one
+ * file. This module re-exports them under the names the rest of the app imports
+ * and derives the app-stable redirect URLs from the site URL. */
+import { campusCommunity, campusSite } from "../campus.config";
 
-/** Canonical production origin — literal so astro.config can import this module. */
-const ROOM_TBA_SITE_URL = "https://room-tba.uplbtools.me";
+/** Canonical production origin. */
+const ROOM_TBA_SITE_URL = campusSite.url;
 
-export const UPLB_TOOLS_URL = "https://uplbtools.me";
-export const GITHUB_ROOM_TBA_URL = "https://github.com/uplbtools/room-tba";
-export const DISCORD_URL = "https://discord.uplbtools.me";
-export const UPLB_OSA_ORGANIZATIONS_URL = "https://uplbosa.org/orgs";
+export const UPLB_TOOLS_URL = campusCommunity.orgUrl;
+export const GITHUB_ROOM_TBA_URL = campusCommunity.githubUrl;
+export const DISCORD_URL = campusCommunity.discordUrl;
+export const UPLB_OSA_ORGANIZATIONS_URL = campusCommunity.osaOrganizationsUrl;
 
 /** Facebook Messenger group chat invites (targets for redirect workers). */
-export const MESSENGER_CONTRIBUTE_TARGET = "https://m.me/j/Aba1V0prvQyLrafZ/";
-export const MESSENGER_MAINTAIN_TARGET = "https://m.me/j/AbZtqMU8UUTiwQfn/";
+export const MESSENGER_CONTRIBUTE_TARGET =
+  campusCommunity.messengerContributeTarget;
+export const MESSENGER_MAINTAIN_TARGET =
+  campusCommunity.messengerMaintainTarget;
 
-/** Short links on messenger.uplbtools.me (Cloudflare Worker). */
+/** Short links on a community subdomain (Cloudflare Worker). */
 export const MESSENGER_SHORT_CONTRIBUTE_URL =
-  "https://messenger.uplbtools.me/contribute";
+  campusCommunity.messengerShortContributeUrl;
 export const MESSENGER_SHORT_MAINTAIN_URL =
-  "https://messenger.uplbtools.me/maintain";
+  campusCommunity.messengerShortMaintainUrl;
 
 /** App-stable redirect URLs on room-tba (avoids messenger subdomain DNS cache misses). */
 export const MESSENGER_CONTRIBUTE_URL = `${ROOM_TBA_SITE_URL}/messenger/contribute`;
