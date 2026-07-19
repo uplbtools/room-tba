@@ -236,9 +236,32 @@ Org: [uplbtools](https://github.com/uplbtools) · Campus tool, not an official U
 
 ---
 
+## Fork this for your campus
+
+MIT lets you fork this and run it for a different school. This is not a "swap the logo and ship" fork — a lot of the app is UPLB data and UPLB-specific glue. You keep the engine (map UI, search, offline cache, editor, planner, the Drizzle schema) and replace the UPLB parts.
+
+Full guide with every file path and the painful parts: **[Fork this for your campus](https://room-tba.uplbtools.me/wiki/fork-for-your-campus)** in the wiki.
+
+The short version of what you replace:
+
+| File | What to change |
+| --- | --- |
+| `src/lib/site.ts` | Site name, URL, title, description |
+| `src/constants/map-terrain.ts` | Campus bounds, default camera (center lng/lat, zoom), terrain source |
+| `src/constants/community-links.ts`, `status-bar-links.ts` | UPLB community links → your own |
+| `astro.config.mjs` | `site:` → your domain |
+| `public/room_info.json` | UPLB building seed → your buildings |
+| `src/constants/jeepney-routes.ts` + geometries | Delete if no campus transit overlay |
+| `scripts/import-amis-classes.ts` and friends | UPLB data sources (AMIS, OUR finals, OSA). Write your own importer for your registrar's export. |
+| Supabase DB contents | Every row is UPLB. Schema stays; data goes. |
+
+The hard part is class schedules. Room TBA pulls from AMIS, which is UPLB's system. You do not have AMIS — you need an importer for whatever your registrar gives you, pointed at the `classes` table, rerun each term. The existing import scripts are a template for the shape, not the source.
+
+---
+
 ## License
 
-[MIT](LICENSE). Use it, fork it, teach with it. If you deploy a fork for another campus, change the data, not just the logo.
+[MIT](LICENSE). Use it, fork it, teach with it. If you deploy a fork for another campus, change the data, not just the logo. See the [fork guide](#fork-this-for-your-campus) above.
 
 ---
 
