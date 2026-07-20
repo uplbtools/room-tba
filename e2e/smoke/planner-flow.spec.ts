@@ -27,10 +27,23 @@ test.describe("planner interactions", () => {
     await expect(planner).toBeVisible();
 
     // "E2E 101" is the seeded class in the default term (scripts/e2e-reset-db.ts).
+    // Wait for the prefix search (not the initial unfiltered browse fetch).
+    const classesResponse = page.waitForResponse(
+      (res) => {
+        if (!res.url().includes("/api/classes") || !res.ok()) return false;
+        try {
+          return new URL(res.url()).searchParams.get("course_code") === "E2E";
+        } catch {
+          return false;
+        }
+      },
+      { timeout: 30_000 },
+    );
     await page.locator("#planner-course-search").fill("E2E");
+    await classesResponse;
 
     const courseHeader = planner.getByRole("button", { name: /E2E 101/ });
-    await expect(courseHeader).toBeVisible({ timeout: 15_000 });
+    await expect(courseHeader).toBeVisible({ timeout: 30_000 });
     await courseHeader.click(); // expand the section list
 
     await planner.getByRole("button", { name: "Add" }).first().click();
