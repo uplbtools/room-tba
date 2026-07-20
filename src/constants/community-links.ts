@@ -42,3 +42,5 @@ export const LEGAL_LINKS = [
   { label: "Privacy", href: "/privacy" },
   { label: "Terms", href: "/terms" },
 ] as const;
+
+export const DONATE_URL = "/donate";
