@@ -1,6 +1,7 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import Classes from "@ui/room/Classes.svelte";
+  import EntityEmptyState from "./EntityEmptyState.svelte";
   import EntityPanelFilter from "./EntityPanelFilter.svelte";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
   import EntityPagination from "./EntityPagination.svelte";
@@ -103,11 +104,57 @@
     {:else if loadError}
       <p class="entity-panel-note">{loadError}</p>
     {:else if classes.length === 0}
-      <p class="entity-panel-note">
-        No classes listed{termStore.activeTerm?.label
-          ? ` for ${termStore.activeTerm.label}`
-          : ""}{coursePrefix ? ` matching “${coursePrefix}”` : ""}.
-      </p>
+      <EntityEmptyState
+        title="No classes on the board"
+        description={coursePrefix
+          ? `Nothing matches “${coursePrefix}”${
+              termStore.activeTerm?.label
+                ? ` in ${termStore.activeTerm.label}`
+                : ""
+            }. Try a shorter code or another term.`
+          : `No classes listed${
+              termStore.activeTerm?.label
+                ? ` for ${termStore.activeTerm.label}`
+                : ""
+            } yet. Switch terms or check back after the next import.`}
+      >
+        {#snippet icon()}
+          <svg viewBox="0 0 180 128" fill="none" aria-hidden="true">
+            <!-- Open schedule booklet. -->
+            <rect
+              x="34"
+              y="28"
+              width="112"
+              height="76"
+              rx="10"
+              fill="currentColor"
+              opacity=".1"
+            />
+            <path
+              d="M90 30v72"
+              stroke="currentColor"
+              stroke-width="3"
+              opacity=".35"
+            />
+            <rect
+              x="34"
+              y="28"
+              width="112"
+              height="76"
+              rx="10"
+              stroke="currentColor"
+              stroke-width="3"
+            />
+            <path
+              d="M50 48h28M50 64h28M50 80h20M102 48h28M102 64h28M102 80h20"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              opacity=".55"
+            />
+          </svg>
+        {/snippet}
+      </EntityEmptyState>
     {:else}
       <Classes {classes} />
     {/if}
