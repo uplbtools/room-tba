@@ -32,17 +32,35 @@ const markers: Marker[] = [
     pattern: /m\.me\/j\/[A-Za-z0-9_-]+/gi,
     hint: "UPLB Messenger group invite — your community link, or delete.",
   },
-  { pattern: /\bMakiling\b/g, hint: "Mt. Makiling terrain — your terrain source, or disable 3D." },
+  {
+    pattern: /\bMakiling\b/g,
+    hint: "Mt. Makiling terrain — your terrain source, or disable 3D.",
+  },
   {
     pattern: /\bAMIS\b/g,
     hint: "UPLB course system. You do not have AMIS — write your own class importer.",
   },
-  { pattern: /\bSAIS\b/g, hint: "UPLB student system reference — repoint to your registrar." },
-  { pattern: /\bPSLH\b/g, hint: "UPLB building code (Physical Sciences Lecture Hall)." },
+  {
+    pattern: /\bSAIS\b/g,
+    hint: "UPLB student system reference — repoint to your registrar.",
+  },
+  {
+    pattern: /\bPSLH\b/g,
+    hint: "UPLB building code (Physical Sciences Lecture Hall).",
+  },
   { pattern: /\bPhySci\b/g, hint: "UPLB building alias (Physical Sciences)." },
-  { pattern: /\bOble\b|\bOblation\b/g, hint: "UPLB landmark — your campus landmark, or remove copy." },
-  { pattern: /Los Ba[ñn]os/g, hint: "UPLB campus locale — your campus location." },
-  { pattern: /r\/peyups/gi, hint: "UPLB subreddit source credit — remove or replace." },
+  {
+    pattern: /\bOble\b|\bOblation\b/g,
+    hint: "UPLB landmark — your campus landmark, or remove copy.",
+  },
+  {
+    pattern: /Los Ba[ñn]os/g,
+    hint: "UPLB campus locale — your campus location.",
+  },
+  {
+    pattern: /r\/peyups/gi,
+    hint: "UPLB subreddit source credit — remove or replace.",
+  },
   {
     pattern: /121\.24125948460573|14\.16323736946326/g,
     hint: "UPLB default map center — set to your campus center in map-terrain.ts.",
@@ -51,7 +69,10 @@ const markers: Marker[] = [
 
 // Files that mention UPLB by design (this scanner, the fork guide that tells
 // you to replace UPLB strings). Everything else is a real "you forgot this".
-const allowList = [/scripts\/fork-check\.ts$/, /src\/pages\/wiki\/fork-for-your-campus\.astro$/];
+const allowList = [
+  /scripts\/fork-check\.ts$/,
+  /src\/pages\/wiki\/fork-for-your-campus\.astro$/,
+];
 
 type Hit = { file: string; line: number; text: string; hint: string };
 
@@ -60,7 +81,9 @@ function isBinary(buf: Buffer): boolean {
 }
 
 function scan(): Hit[] {
-  const files = execSync("git ls-files", { encoding: "utf8" }).trim().split("\n");
+  const files = execSync("git ls-files", { encoding: "utf8" })
+    .trim()
+    .split("\n");
   const hits: Hit[] = [];
   for (const file of files) {
     if (allowList.some((re) => re.test(file))) continue;
@@ -78,7 +101,12 @@ function scan(): Hit[] {
       for (const { pattern, hint } of markers) {
         pattern.lastIndex = 0;
         if (pattern.test(line)) {
-          hits.push({ file, line: i + 1, text: line.trim().slice(0, 160), hint });
+          hits.push({
+            file,
+            line: i + 1,
+            text: line.trim().slice(0, 160),
+            hint,
+          });
         }
       }
     }
@@ -90,7 +118,8 @@ const silent = process.argv.includes("--silent");
 const hits = scan();
 
 if (hits.length === 0) {
-  if (!silent) console.log("fork:check passed — no UPLB-specific strings found.");
+  if (!silent)
+    console.log("fork:check passed — no UPLB-specific strings found.");
   process.exit(0);
 }
 
@@ -101,7 +130,9 @@ if (!silent) {
     arr.push(h);
     byFile.set(h.file, arr);
   }
-  console.error(`fork:check found ${hits.length} UPLB-specific hit(s) across ${byFile.size} file(s).\n`);
+  console.error(
+    `fork:check found ${hits.length} UPLB-specific hit(s) across ${byFile.size} file(s).\n`,
+  );
   for (const [file, fileHits] of byFile) {
     console.error(`  ${file}  (${fileHits.length})`);
     for (const h of fileHits.slice(0, 5)) {
