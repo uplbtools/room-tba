@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { timingSafeEqual } from "node:crypto";
 import { CRON_SECRET } from "astro:env/server";
 import { sendProposalDigest } from "@lib/services/digest-service";
 
@@ -9,7 +10,14 @@ export const GET: APIRoute = async ({ request }) => {
   if (!CRON_SECRET) {
     return json({ error: "Cron is not configured on this server." }, 503);
   }
-  if (request.headers.get("authorization") !== `Bearer ${CRON_SECRET}`) {
+  const authHeader = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${CRON_SECRET}`;
+  const authBuf = Buffer.from(authHeader);
+  const expectedBuf = Buffer.from(expected);
+  if (
+    authBuf.length !== expectedBuf.length ||
+    !timingSafeEqual(authBuf, expectedBuf)
+  ) {
     return json({ error: "Unauthorized" }, 401);
   }
 

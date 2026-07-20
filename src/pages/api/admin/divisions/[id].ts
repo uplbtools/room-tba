@@ -1,10 +1,9 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
-import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
+import { createEntityPatchRoute } from "@lib/admin/entity-patch-route";
+import { errorResponse } from "@lib/api/json";
 import {
-  EditConflictError,
   updateDivision,
-  DuplicateNameError,
+  type DivisionAdmin,
   type DivisionUpdateInput,
 } from "@lib/services/admin-service";
 
@@ -16,95 +15,41 @@ type DivisionPatchBody = {
   version?: number;
 };
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
 function invalidCollegeId(value: unknown) {
   return value !== undefined && value !== null && !Number.isInteger(value);
 }
 
-export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = await editorSessionOrUnauthorized(cookies, {
-    requirePublish: true,
-  });
-  if (auth instanceof Response) return auth;
-
-  const id = parseInt(params.id ?? "", 10);
-  if (Number.isNaN(id)) {
-    return json({ error: "Invalid division ID" }, 400);
-  }
-
-  let body: DivisionPatchBody;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Invalid JSON body" }, 400);
-  }
-
-  if (
-    body.divisionName !== undefined &&
-    body.divisionName.trim().length === 0
-  ) {
-    return json({ error: "Division name is required" }, 400);
-  }
-  if (invalidCollegeId(body.collegeId)) {
-    return json({ error: "College must be a valid selection" }, 400);
-  }
-
-  const parsedVersion = parseRequiredEditorVersion(body.version);
-  if (!parsedVersion.ok) return parsedVersion.response;
-  const expectedVersion = parsedVersion.version;
-
-  const updates: DivisionUpdateInput = {};
-  if (body.divisionName !== undefined) {
-    updates.divisionName = body.divisionName.trim();
-  }
-  if (body.collegeId !== undefined) {
-    updates.collegeId = body.collegeId;
-  }
-
-  if (Object.keys(updates).length === 0) {
-    return json({ error: "No division fields to update" }, 400);
-  }
-
-  try {
-    const division = await updateDivision(
-      id,
-      updates,
-      expectedVersion,
-      auth.editedBy,
-    );
-
-    return json({ success: true, division });
-  } catch (err) {
-    if (err instanceof EditConflictError) {
-      return json(
-        {
-          error: "This division was changed by another editor.",
-          latest: err.latest,
-        },
-        409,
-      );
+export const PATCH: APIRoute = createEntityPatchRoute<
+  DivisionAdmin,
+  DivisionUpdateInput
+>({
+  entityLabel: "division",
+  responseKey: "division",
+  validateAndBuild: (body) => {
+    const b = body as DivisionPatchBody;
+    if (b.divisionName !== undefined && b.divisionName.trim().length === 0) {
+      return {
+        ok: false,
+        response: errorResponse("Division name is required", 400),
+      };
     }
-
-    if (err instanceof DuplicateNameError) {
-      return json(
-        {
-          error: err.message,
-          code: "duplicate_name",
-          entityType: err.entityType,
-          mergeCandidate: err.candidate,
-          attemptedName: err.attemptedName,
-        },
-        409,
-      );
+    if (invalidCollegeId(b.collegeId)) {
+      return {
+        ok: false,
+        response: errorResponse("College must be a valid selection", 400),
+      };
     }
-
-    console.error("Failed to update division:", err);
-    return json({ error: "Failed to save division" }, 500);
-  }
-};
+    const input: DivisionUpdateInput = {};
+    if (b.divisionName !== undefined)
+      input.divisionName = b.divisionName.trim();
+    if (b.collegeId !== undefined) input.collegeId = b.collegeId;
+    if (Object.keys(input).length === 0) {
+      return {
+        ok: false,
+        response: errorResponse("No division fields to update", 400),
+      };
+    }
+    return { ok: true, input, version: b.version };
+  },
+  update: updateDivision,
+});
