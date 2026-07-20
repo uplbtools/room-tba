@@ -36,6 +36,7 @@ export default defineConfig({
           "index.html",
           "privacy/index.html",
           "terms/index.html",
+          "faq/index.html",
           "changelog/index.html",
         ],
         navigateFallback: "/",
@@ -43,6 +44,7 @@ export default defineConfig({
           /^\/api\//,
           /^\/privacy(\/|\?|$)/,
           /^\/terms(\/|\?|$)/,
+          /^\/faq(\/|\?|$)/,
           /^\/changelog(\/|\?|$)/,
           /^\/wiki(\/|\?|$)/,
           // /planner is its own page; without this the nav fallback serves the

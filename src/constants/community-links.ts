@@ -39,6 +39,7 @@ export const COMMUNITY_LINKS = [
 ] as const;
 
 export const LEGAL_LINKS = [
+  { label: "FAQ", href: "/faq" },
   { label: "Privacy", href: "/privacy" },
   { label: "Terms", href: "/terms" },
 ] as const;

@@ -66,12 +66,12 @@ test("planner manages plans and exports a scheduled plan", async ({ page }) => {
   const download = await downloadPromise;
   await expect(download.suggestedFilename()).toMatch(/plan-1-1252\.ics$/);
 
+  // createPlan() labels new tabs "Untitled Plan N" (see planner-store), not "Plan 2".
   await planner.getByRole("button", { name: "New plan" }).click();
-  await expect(planner.getByRole("tab", { name: "Plan 2" })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
-  await planner.getByRole("button", { name: "Rename Plan 2" }).click();
+  await expect(
+    planner.getByRole("tab", { name: "Untitled Plan 1" }),
+  ).toHaveAttribute("aria-selected", "true");
+  await planner.getByRole("button", { name: "Rename Untitled Plan 1" }).click();
   await planner.getByRole("textbox", { name: "Rename plan" }).fill("QA plan");
   await planner.getByRole("textbox", { name: "Rename plan" }).press("Enter");
   await expect(planner.getByRole("tab", { name: "QA plan" })).toBeVisible();
