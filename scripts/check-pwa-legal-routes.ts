@@ -13,6 +13,7 @@ const source = readFileSync(configPath, "utf8");
 const requiredPrecache = [
   "privacy/index.html",
   "terms/index.html",
+  "faq/index.html",
   "changelog/index.html",
 ];
 
@@ -22,6 +23,7 @@ const requiredPrecache = [
 const requiredDenylistRoutes = [
   "privacy",
   "terms",
+  "faq",
   "changelog",
   "messenger",
   "maintain",

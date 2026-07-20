@@ -1,0 +1,312 @@
+---
+export const prerender = true;
+import Layout from "@layouts/Layout.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import {
+  UPLB_TOOLS_URL,
+  GITHUB_ROOM_TBA_URL,
+  DISCORD_URL,
+} from "@constants/community-links";
+
+const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
+---
+
+<Layout
+  title="FAQ | Room TBA"
+  description="Student FAQ for Room TBA: 3D building models, data sources, offline use, and how to report mistakes."
+  canonicalPath="/faq"
+  showAppLoadingShell={false}
+>
+  <main class="legal-page">
+    <a href="/" class="back-link">
+      <span aria-hidden="true">←</span> Back to Room TBA
+    </a>
+
+    <header class="hero">
+      <p class="eyebrow">Help</p>
+      <h1>Student FAQ</h1>
+      <p class="lede">
+        Short answers to questions students ask often. Room TBA is a
+        <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
+          >UPLB Tools</a
+        > volunteer project.
+      </p>
+    </header>
+
+    <article class="faq-body">
+      <details class="faq-item" id="official" open>
+        <summary>Is Room TBA an official UPLB site?</summary>
+        <div class="faq-answer">
+          <p>
+            No. Room TBA is a student-run community tool under UPLB Tools. It is
+            not affiliated with, endorsed by, or operated by the University of
+            the Philippines Los Baños. For enrollment, grades, or official
+            announcements, use university channels.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item" id="3d-models">
+        <summary>Where do the 3D models come from?</summary>
+        <div class="faq-answer">
+          <p>
+            Building shapes are <strong>not</strong> imported CAD files or
+            photogrammetry scans. The app builds a simple 3D view by
+            <strong>extruding an OpenStreetMap (OSM) building footprint</strong>
+            for that place.
+          </p>
+          <ul>
+            <li>
+              Floor count comes from OSM tags such as <code>building:levels</code>
+              or <code>height</code>, or from a small default estimate when those
+              tags are missing.
+            </li>
+            <li>
+              Room dots on the model are placement markers aligned to the
+              footprint. They are <strong>not</strong> official floor plans.
+            </li>
+            <li>
+              Ground texture uses OSM-based map tiles. Map and building data ©
+              <a
+                href="https://www.openstreetmap.org/copyright"
+                target="_blank"
+                rel="noopener noreferrer">OpenStreetMap contributors</a
+              >.
+            </li>
+            <li>
+              If OSM has no footprint for a building, the 3D view explains that
+              the building may not be mapped yet.
+            </li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="faq-item" id="schedules">
+        <summary>Where does class and room schedule data come from?</summary>
+        <div class="faq-answer">
+          <p>
+            Volunteers import class offerings from AMIS/CRS each term. Class
+            search can list lecture, lab, recitation, thesis, special problem,
+            and similar sections; sections without a room in AMIS show as
+            unassigned. Room schedules list lecture, lab, and similar sections
+            that have an assigned room. Thesis and special-problem style rows
+            usually have no facility in AMIS, so they often do not appear on a
+            room timetable.
+          </p>
+          <p>
+            Offerings can still change up to the last day of change of
+            matriculation. Always double-check with your instructor or
+            department when it matters.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item" id="missing">
+        <summary>Why is my class or room missing?</summary>
+        <div class="faq-answer">
+          <p>Common reasons:</p>
+          <ul>
+            <li>
+              The section type is outside what room schedules show (for example
+              thesis or special problem with no facility in AMIS).
+            </li>
+            <li>
+              The AMIS facility string does not match our room codes yet (aliases
+              and typos). Volunteers track that as data work.
+            </li>
+            <li>
+              The building or room has not been added to the map database.
+            </li>
+          </ul>
+          <p>
+            See also how to
+            <a href="#report">report wrong or missing data</a>.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item" id="report">
+        <summary>How do I report wrong data?</summary>
+        <div class="faq-answer">
+          <p>
+            Open a GitHub issue with the room code, building name, or class
+            section and what is wrong:
+            <a href={reportIssueUrl} target="_blank" rel="noopener noreferrer"
+              >Report wrong data</a
+            >. You can also ask in
+            <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
+              >Discord</a
+            >. Signed-in contributors can use <strong>Suggest an edit</strong> in
+            the app for many map fields.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item" id="offline">
+        <summary>Does the app work offline?</summary>
+        <div class="faq-answer">
+          <p>
+            Yes, within limits. Room TBA is a PWA: after you visit online, campus
+            data can stay cached in your browser (PGlite). Map tiles work offline
+            if you already loaded them or used the offline maps download. A first
+            visit with no signal will not have a full cache yet.
+          </p>
+        </div>
+      </details>
+    </article>
+
+    <SiteFooter />
+  </main>
+</Layout>
+
+<style>
+  .legal-page {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsl(5 53% 32% / 0.08);
+    border: 1px solid hsl(5 53% 32% / 0.25);
+    text-decoration: none;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .back-link:hover {
+    background: hsl(5 53% 32% / 0.14);
+    border-color: hsl(5 53% 32% / 0.4);
+  }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 40%);
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.05;
+    margin: 0;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 38rem;
+    color: hsl(0, 0%, 28%);
+    line-height: 1.6;
+  }
+
+  .lede a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+  }
+
+  .faq-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .faq-item {
+    border: 1px solid hsl(0, 0%, 88%);
+    border-radius: 0.75rem;
+    background: hsl(0, 0%, 100%);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .faq-item summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 0.875rem 1rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    color: hsl(5, 53%, 28%);
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item summary::after {
+    content: "+";
+    float: right;
+    font-weight: 500;
+    color: hsl(0, 0%, 45%);
+  }
+
+  .faq-item[open] summary::after {
+    content: "−";
+  }
+
+  .faq-answer {
+    padding: 0 1rem 1rem;
+    color: hsl(0, 0%, 22%);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  .faq-answer p,
+  .faq-answer ul {
+    margin: 0;
+  }
+
+  .faq-answer p + p,
+  .faq-answer p + ul,
+  .faq-answer ul + p {
+    margin-top: 0.625rem;
+  }
+
+  .faq-answer ul {
+    padding-left: 1.25rem;
+  }
+
+  .faq-answer li + li {
+    margin-top: 0.375rem;
+  }
+
+  .faq-answer a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+  }
+
+  .faq-answer code {
+    font-size: 0.8125rem;
+    padding: 0.1em 0.3em;
+    border-radius: 0.25rem;
+    background: hsl(5, 30%, 96%);
+  }
+
+  @media (max-width: 320px) {
+    .legal-page {
+      padding: 1.25rem 0.75rem 3rem;
+    }
+
+    .faq-item summary {
+      font-size: 0.875rem;
+      padding: 0.75rem 0.875rem;
+    }
+  }
+</style>
