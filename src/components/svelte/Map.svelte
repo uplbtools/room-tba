@@ -118,6 +118,7 @@
     isPlaceHoverPreview,
     organizationPreviewFromRow,
     placePreviewFromRow,
+    type EntityHoverPreview,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
@@ -947,23 +948,37 @@
     );
   }
 
+  function handlePinPointerEnter(
+    preview: EntityHoverPreview,
+    pointer: PointerEvent,
+    editKey?: string,
+  ) {
+    if (editKey !== undefined) handleEditablePinEnter(editKey);
+    if (!shouldShowEntityHoverPreview()) return;
+    if (editKey !== undefined && canDragPin(editKey)) return;
+    entityHoverPreviewStore.show(preview, {
+      x: pointer.clientX,
+      y: pointer.clientY,
+    });
+  }
+
+  function handlePinPointerLeave(editKey?: string) {
+    if (editKey !== undefined) handleEditablePinLeave(editKey);
+    if (!shouldShowEntityHoverPreview()) return;
+    if (editKey !== undefined && canDragPin(editKey)) return;
+    entityHoverPreviewStore.scheduleHide();
+  }
+
   function handleBuildingPinPointerEnter(
     building: BuildingData,
     editKey: string,
     event: PointerEvent,
   ) {
-    handleEditablePinEnter(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.show(buildingPreviewFromRow(building), {
-      x: event.clientX,
-      y: event.clientY,
-    });
+    handlePinPointerEnter(buildingPreviewFromRow(building), event, editKey);
   }
 
   function handleBuildingPinPointerLeave(editKey: string) {
-    handleEditablePinLeave(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave(editKey);
   }
 
   function handleDormPinPointerEnter(
@@ -971,55 +986,34 @@
     editKey: string,
     event: PointerEvent,
   ) {
-    handleEditablePinEnter(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.show(dormPreviewFromRow(dorm), {
-      x: event.clientX,
-      y: event.clientY,
-    });
+    handlePinPointerEnter(dormPreviewFromRow(dorm), event, editKey);
   }
 
   function handleDormPinPointerLeave(editKey: string) {
-    handleEditablePinLeave(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave(editKey);
   }
 
   function handleEventPinPointerEnter(event: EventData, pointer: PointerEvent) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(eventPreviewFromRow(event), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(eventPreviewFromRow(event), pointer);
   }
 
   function handleEventPinPointerLeave() {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave();
   }
 
   function handleOrganizationPinPointerEnter(
     organization: OrgData,
     pointer: PointerEvent,
   ) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(organizationPreviewFromRow(organization), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(organizationPreviewFromRow(organization), pointer);
   }
 
   function handlePlacePinPointerEnter(place: PlaceData, pointer: PointerEvent) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(placePreviewFromRow(place), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(placePreviewFromRow(place), pointer);
   }
 
   function handleDetailPinPointerLeave() {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave();
   }
 
   function beginMarkerDrag(key: string) {

@@ -3,6 +3,7 @@ import { R2_PUBLIC_URL } from "astro:env/server";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
 import { parseImageUrl } from "@lib/r2-upload-core";
+import { json, errorResponse } from "@lib/api/json";
 import {
   EditConflictError,
   updateBuilding,
@@ -30,43 +31,28 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
 
   const id = parseInt(params.id ?? "", 10);
   if (Number.isNaN(id)) {
-    return new Response(JSON.stringify({ error: "Invalid building ID" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse("Invalid building ID", 400);
   }
 
   let body: BuildingPatchBody;
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse("Invalid JSON body", 400);
   }
 
   if (
     body.buildingName !== undefined &&
     body.buildingName.trim().length === 0
   ) {
-    return new Response(
-      JSON.stringify({ error: "Building name cannot be empty" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return errorResponse("Building name cannot be empty", 400);
   }
 
   if (
     body.buildingType &&
     !["admin", "non-admin"].includes(body.buildingType)
   ) {
-    return new Response(JSON.stringify({ error: "Invalid building type" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse("Invalid building type", 400);
   }
 
   const parsedImageUrl = parseImageUrl(
@@ -75,10 +61,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     "Building image",
   );
   if (!parsedImageUrl.ok) {
-    return new Response(JSON.stringify({ error: parsedImageUrl.error }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse(parsedImageUrl.error, 400);
   }
 
   const parsedVersion = parseRequiredEditorVersion(body.version);
@@ -105,44 +88,32 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       auth.editedBy,
     );
 
-    return new Response(JSON.stringify({ success: true, building }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ success: true, building });
   } catch (err) {
     if (err instanceof EditConflictError) {
-      return new Response(
-        JSON.stringify({
+      return json(
+        {
           error: "This building was changed by another editor.",
           latest: err.latest,
-        }),
-        {
-          status: 409,
-          headers: { "Content-Type": "application/json" },
         },
+        409,
       );
     }
 
     if (err instanceof DuplicateNameError) {
-      return new Response(
-        JSON.stringify({
+      return json(
+        {
           error: err.message,
           code: "duplicate_name",
           entityType: err.entityType,
           mergeCandidate: err.candidate,
           attemptedName: err.attemptedName,
-        }),
-        {
-          status: 409,
-          headers: { "Content-Type": "application/json" },
         },
+        409,
       );
     }
 
     console.error("Failed to update building:", err);
-    return new Response(JSON.stringify({ error: "Failed to save building" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return errorResponse("Failed to save building", 500);
   }
 };

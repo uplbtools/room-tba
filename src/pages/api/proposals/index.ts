@@ -81,12 +81,8 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     if (err instanceof ProposalValidationError) {
       return json({ error: err.message }, 400);
     }
-    const message =
-      err instanceof Error && err.message.trim()
-        ? err.message
-        : "Failed to submit proposal";
     console.error("Failed to submit proposal:", err);
-    return json({ error: message }, 500);
+    return json({ error: "Failed to submit proposal" }, 500);
   }
 };
 
