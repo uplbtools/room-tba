@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EntityEmptyState from "./EntityEmptyState.svelte";
   import EntityPagination from "./EntityPagination.svelte";
   import { queryStore } from "@lib/store.svelte";
   import type { RoomData } from "@lib/types";
@@ -77,12 +78,56 @@
   }
 </script>
 
+{#snippet roomsEmptyIcon()}
+  <svg viewBox="0 0 180 128" fill="none" aria-hidden="true">
+    <!-- Doorway with a quiet hallway hint. -->
+    <rect
+      x="52"
+      y="22"
+      width="76"
+      height="90"
+      rx="8"
+      fill="currentColor"
+      opacity=".1"
+    />
+    <rect
+      x="52"
+      y="22"
+      width="76"
+      height="90"
+      rx="8"
+      stroke="currentColor"
+      stroke-width="3"
+    />
+    <path
+      d="M70 112V38h40v74"
+      stroke="currentColor"
+      stroke-width="3"
+      stroke-linejoin="round"
+      fill="currentColor"
+      fill-opacity=".06"
+    />
+    <circle cx="102" cy="74" r="3.5" fill="currentColor" opacity=".85" />
+    <path
+      d="M40 112h100"
+      stroke="currentColor"
+      stroke-width="3"
+      stroke-linecap="round"
+      opacity=".35"
+    />
+  </svg>
+{/snippet}
+
 <section class="entity-list-section rooms-section">
   <h3 class="entity-section-heading">{sectionTitle}</h3>
   <TermSelector />
   {#if groupByBuilding && buildingGroups}
     {#if buildingGroups.length === 0}
-      <p class="entity-empty-state">{emptyMessage}</p>
+      <EntityEmptyState
+        title="Empty floors for now"
+        description={emptyMessage}
+        icon={roomsEmptyIcon}
+      />
     {:else}
       <div class="building-groups">
         {#each buildingGroups as group (group.key)}
@@ -125,7 +170,11 @@
       {/each}
 
       {#if filteredRooms.length === 0}
-        <p class="entity-empty-state">{emptyMessage}</p>
+        <EntityEmptyState
+          title="Empty floors for now"
+          description={emptyMessage}
+          icon={roomsEmptyIcon}
+        />
       {/if}
     </div>
   {/if}
