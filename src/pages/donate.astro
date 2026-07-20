@@ -1,0 +1,316 @@
+---
+export const prerender = true;
+import Layout from "@layouts/Layout.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { campusDonation } from "../campus.config";
+import {
+  UPLB_TOOLS_URL,
+  DISCORD_URL,
+  MESSENGER_CONTRIBUTE_TARGET,
+} from "@constants/community-links";
+
+const { gcashName, gcashNumber } = campusDonation;
+---
+
+<Layout
+  title="Donate | Room TBA"
+  description="Support Room TBA and UPLB Tools — a student-run project. Donations via GCash."
+  canonicalPath="/donate"
+  showAppLoadingShell={false}
+>
+  <main class="legal-page">
+    <a href="/" class="back-link">
+      <span aria-hidden="true">&larr;</span> Back to Room TBA
+    </a>
+
+    <header class="hero">
+      <p class="eyebrow">Support</p>
+      <h1>Donate</h1>
+      <p class="lede">
+        Room TBA is a free, student-run project under
+        <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
+          >UPLB Tools</a
+        >. We don't run ads or charge anyone. Donations help cover server costs,
+        domain renewal, and map data updates.
+      </p>
+    </header>
+
+    <article class="legal-body">
+      <section class="donate-card">
+        <h2>Send via GCash</h2>
+        <dl class="gcash-details">
+          <div class="gcash-row">
+            <dt>Recipient</dt>
+            <dd>{gcashName}</dd>
+          </div>
+          <div class="gcash-row">
+            <dt>Mobile number</dt>
+            <dd>
+              <code class="gcash-number" id="gcash-number">{gcashNumber}</code>
+              <button
+                type="button"
+                class="copy-btn"
+                data-copy-target="gcash-number"
+                aria-label="Copy GCash number"
+              >
+                Copy
+              </button>
+            </dd>
+          </div>
+        </dl>
+        <p class="donate-note">
+          Open your GCash app, choose <strong>Send Money</strong>, and enter the
+          details above. Any amount helps.
+        </p>
+      </section>
+
+      <section>
+        <h2>Other ways to help</h2>
+        <p>
+          Not able to donate? You can still help by contributing campus data,
+          reporting errors, or joining our community:
+        </p>
+        <ul>
+          <li>
+            <a href={MESSENGER_CONTRIBUTE_TARGET} target="_blank" rel="noopener noreferrer">
+              Join the Messenger group
+            </a>
+            to contribute room and building info.
+          </li>
+          <li>
+            <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
+              Join our Discord
+            </a>
+            for discussion and updates.
+          </li>
+          <li>
+            <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer">
+              Learn more about UPLB Tools
+            </a>.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Where your donation goes</h2>
+        <ul>
+          <li>Vercel hosting and build minutes</li>
+          <li>Domain registration (uplbtools.me)</li>
+          <li>Supabase database hosting</li>
+          <li>Map tile and geocoding API costs</li>
+        </ul>
+        <p>
+          Room TBA is not an official UPLB website. Donations are voluntary and
+          non-refundable. We are not a registered nonprofit &mdash; your support
+          goes directly to keeping the service online.
+        </p>
+      </section>
+    </article>
+
+    <SiteFooter />
+  </main>
+
+  <script>
+    document.querySelectorAll(".copy-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const targetId = btn.getAttribute("data-copy-target");
+        const text = document.getElementById(targetId)?.textContent ?? "";
+        try {
+          await navigator.clipboard.writeText(text);
+          const original = btn.textContent;
+          btn.textContent = "Copied!";
+          btn.classList.add("copied");
+          setTimeout(() => {
+            btn.textContent = original;
+            btn.classList.remove("copied");
+          }, 2000);
+        } catch {
+          // Clipboard API not available — select the text
+          const range = document.createRange();
+          const el = document.getElementById(targetId);
+          if (el) {
+            range.selectNode(el);
+            window.getSelection()?.removeAllRanges();
+            window.getSelection()?.addRange(range);
+          }
+        }
+      });
+    });
+  </script>
+</Layout>
+
+<style>
+  .legal-page {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  .hero {
+    margin-bottom: 2rem;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 40%);
+    margin: 0 0 0.5rem;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.05;
+    margin: 0;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: hsl(5 53% 32% / 0.08);
+    border: 1px solid hsl(5 53% 32% / 0.25);
+    text-decoration: none;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .back-link:hover {
+    background: hsl(5 53% 32% / 0.14);
+    border-color: hsl(5 53% 32% / 0.4);
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 38rem;
+    color: hsl(0, 0%, 28%);
+    line-height: 1.6;
+  }
+
+  .lede a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+  }
+
+  .legal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: hsl(0, 0%, 22%);
+    line-height: 1.65;
+  }
+
+  .legal-body h2 {
+    font-size: 1.125rem;
+    margin: 0 0 0.375rem;
+    color: hsl(5, 53%, 28%);
+  }
+
+  .legal-body h3 {
+    font-size: 0.9375rem;
+    margin: 0.75rem 0 0.25rem;
+  }
+
+  .legal-body p,
+  .legal-body ul {
+    margin: 0;
+  }
+
+  .legal-body ul {
+    padding-left: 1.25rem;
+  }
+
+  .legal-body li + li {
+    margin-top: 0.375rem;
+  }
+
+  .legal-body a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+  }
+
+  /* Donate card */
+  .donate-card {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    background: hsl(5 53% 32% / 0.04);
+    border: 1px solid hsl(5 53% 32% / 0.18);
+  }
+
+  .donate-card h2 {
+    margin-bottom: 1rem;
+  }
+
+  .gcash-details {
+    margin: 0 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .gcash-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .gcash-row dt {
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 45%);
+    margin: 0;
+    min-width: 7rem;
+  }
+
+  .gcash-row dd {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .gcash-number {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 22%);
+    letter-spacing: 0.02em;
+    user-select: all;
+  }
+
+  .copy-btn {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid hsl(5 53% 32% / 0.3);
+    background: hsl(5 53% 32% / 0.06);
+    color: hsl(5, 53%, 32%);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .copy-btn:hover {
+    background: hsl(5 53% 32% / 0.12);
+    border-color: hsl(5 53% 32% / 0.45);
+  }
+
+  .copy-btn.copied {
+    background: hsl(142 52% 28% / 0.12);
+    border-color: hsl(142 52% 28% / 0.4);
+    color: hsl(142 52% 28%);
+  }
+
+  .donate-note {
+    color: hsl(0, 0%, 35%);
+    font-size: 0.9375rem;
+  }
+</style>
