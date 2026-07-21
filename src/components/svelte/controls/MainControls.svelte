@@ -15,12 +15,29 @@
   import CampusBrowseList from "./CampusBrowseList.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
+  import SponsorBanner from "@ui/SponsorBanner.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import { MediaQuery } from "svelte/reactivity";
   import { resolveSheetDragReleaseIntent } from "@lib/sheet-drag-intent";
 
   const mobile = new MediaQuery("max-width:48rem");
+  // Entity detail views only — never list/browse panels (docs/ad-policy.md).
+  const SPONSOR_CATEGORIES = new Set([
+    "building",
+    "college",
+    "division",
+    "room",
+    "dorm",
+    "organization",
+    "place",
+    "event",
+  ]);
+  const showSponsorBanner = $derived(
+    queryStore.category !== null &&
+      SPONSOR_CATEGORIES.has(queryStore.category) &&
+      jeepneyStore.selectedStopIndex === null,
+  );
   let lastPanelIdentity = $state<string | null>(null);
   const panelIdentity = $derived(
     queryStore.category === null
@@ -221,6 +238,9 @@
               {:else if queryStore.category === "events"}
                 <EventsList />
               {/if}
+              {#if showSponsorBanner}
+                <SponsorBanner />
+              {/if}
             </div>
           </div>
         </div>
@@ -294,6 +314,10 @@
 
   .side-panel-details {
     display: flex;
+    /* Wrap so a trailing full-width child (sponsor banner) lands on its own
+       row below the entity content instead of a side column. */
+    flex-wrap: wrap;
+    align-content: flex-start;
     flex: 1 1 0;
     min-height: 0;
     overflow-y: auto;

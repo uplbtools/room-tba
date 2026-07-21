@@ -52,9 +52,3 @@ export const campusCommunity = {
   messengerShortContributeUrl: "https://messenger.uplbtools.me/contribute",
   messengerShortMaintainUrl: "https://messenger.uplbtools.me/maintain",
 } as const;
-
-export const campusDonation = {
-  /** GCash recipient name and number for community donations. */
-  gcashName: "Simonee Ezekiel Mariquit",
-  gcashNumber: "0960 687 8535",
-} as const;

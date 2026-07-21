@@ -34,6 +34,11 @@
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
+  import { getSponsoredPlacePins, loadSponsors } from "@lib/sponsors";
+  import {
+    trackSponsorClick,
+    trackSponsorImpression,
+  } from "@lib/sponsor-tracking";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -48,6 +53,7 @@
   import Briefcase from "@lucide/svelte/icons/briefcase";
   import Store from "@lucide/svelte/icons/store";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
@@ -264,7 +270,22 @@
   let directions: MapLibreGlDirections | undefined = $state.raw();
   let mapStyle = $state<StyleSpecification | null>(null);
 
+  // Sponsored place pins (docs/ad-policy.md: real locations only, capped).
+  let sponsoredPlacePins = $state<Map<string, string>>(new Map());
+
+  // Impression per sponsored pin actually on the map (session-deduped in lib).
+  $effect(() => {
+    if (sponsoredPlacePins.size === 0) return;
+    for (const place of filteredPlaces) {
+      const sponsorId = sponsoredPlacePins.get(place.name);
+      if (sponsorId) trackSponsorImpression(sponsorId, "map_pin");
+    }
+  });
+
   onMount(() => {
+    void loadSponsors().then((data) => {
+      if (data) sponsoredPlacePins = getSponsoredPlacePins(data.sponsors);
+    });
     void loadCampusMapStyle<StyleSpecification>()
       .then((style) => {
         mapStyle = style;
@@ -1818,6 +1839,28 @@
 
   $effect(() => {
     const map = mapStore.mapInstance;
+    const pin = additionProposalStore.draftPin;
+    if (!map || !pin) return;
+
+    // Defer the camera move out of the reactive flush: easeTo fires zoom/move
+    // handlers synchronously, and their state writes inside this flush can
+    // chain into effect_update_depth_exceeded, which kills the whole Svelte
+    // scheduler (app looks frozen, hover still works). Same guard as the
+    // jeepney stop-focus flyTo effect below.
+    const padding = calculatePadding(untrack(() => md.current));
+    const frame = requestAnimationFrame(() => {
+      map.easeTo({
+        center: [pin.lon, pin.lat],
+        zoom: Math.max(map.getZoom(), 17),
+        duration: 650,
+        padding,
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
     if (!map || !eventPlacementStore.active) return;
 
     const canvas = map.getCanvas();
@@ -2524,7 +2567,13 @@
               lat: additionProposalStore.draftPin.lat,
             }}
           >
-            <div class="addition-draft-pin" aria-hidden="true"></div>
+            {#if additionProposalStore.draftPinPreview}
+              <ContributorDraftPinMarker
+                preview={additionProposalStore.draftPinPreview}
+              />
+            {:else}
+              <div class="addition-draft-pin" aria-hidden="true"></div>
+            {/if}
           </Marker>
         {/if}
         {#if loaded}
@@ -2924,6 +2973,7 @@
               {@const previewSuppressed =
                 centralHoverPreview &&
                 isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
+              {@const pinSponsorId = sponsoredPlacePins.get(place.name)}
               <Marker lngLat={[place.lon, place.lat]}>
                 <MapEntityPin
                   label={place.name}
@@ -2933,9 +2983,13 @@
                   labelVisible={zoomLevel >= 17 ||
                     (queryStore.category === "place" &&
                       queryStore.inputValue === place.name)}
+                  sponsored={pinSponsorId !== undefined}
                   useCentralHoverPreview={centralHoverPreview}
                   {previewSuppressed}
-                  onclick={() => handlePlaceMarkerClick(place)}
+                  onclick={() => {
+                    if (pinSponsorId) trackSponsorClick(pinSponsorId, "map_pin");
+                    handlePlaceMarkerClick(place);
+                  }}
                   onpointerenter={(event) =>
                     handlePlacePinPointerEnter(place, event)}
                   onpointerleave={handleDetailPinPointerLeave}
@@ -3040,7 +3094,10 @@
         role="status"
         aria-live="polite"
       >
-        <p class="edit-dock-status">Tap the map to set the pin location</p>
+        <p class="edit-dock-status">
+          Tap the map to set the pin location. The preview shows how it will
+          look after approval.
+        </p>
         <button
           class="edit-dock-action cancel"
           type="button"
@@ -3058,7 +3115,10 @@
       >
         <div class="event-placement-copy">
           <strong>Choose a map pin location</strong>
-          <span>Click or tap the map where this entry should appear.</span>
+          <span>
+            Click or tap the map where this entry should appear. The preview
+            pin shows how it will look after approval.
+          </span>
         </div>
         <button
           class="event-placement-cancel"
@@ -3187,6 +3247,12 @@
     height: 100%;
     z-index: 0;
     pointer-events: auto;
+  }
+
+  /* Marker wrappers are stacking contexts (transform), so pin-level z-index
+     can't lift a pin above sibling markers — raise the wrapper instead. */
+  .map-container :global(.maplibregl-marker:has(.map-entity-pin.sponsored)) {
+    z-index: 2;
   }
 
   .map-shell :global(.edit-dock),

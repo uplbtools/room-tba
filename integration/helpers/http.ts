@@ -43,6 +43,7 @@ export async function patchBuilding(
 export async function submitProposal(
   body: Record<string, unknown>,
   cookie?: string,
+  extraHeaders?: Record<string, string>,
 ) {
   return fetch(
     `${PREVIEW_BASE}/api/proposals`,
@@ -51,6 +52,7 @@ export async function submitProposal(
       headers: {
         "Content-Type": "application/json",
         ...(cookie ? { Cookie: cookie } : {}),
+        ...extraHeaders,
       },
       body: JSON.stringify(body),
     }),

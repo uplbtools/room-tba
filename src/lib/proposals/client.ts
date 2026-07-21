@@ -537,7 +537,7 @@ export async function submitEntityProposal(input: {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ...input, proposalId }),
+    body: JSON.stringify({ ...input, proposalId, _hp: "" }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

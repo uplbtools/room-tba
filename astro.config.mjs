@@ -38,6 +38,8 @@ export default defineConfig({
           "terms/index.html",
           "faq/index.html",
           "changelog/index.html",
+          "sponsors/index.html",
+          "donate/index.html",
         ],
         // #716: desktop-only.css is never fetched by mobile viewports at
         // runtime — don't undo that by precaching it into every install
@@ -51,6 +53,8 @@ export default defineConfig({
           /^\/terms(\/|\?|$)/,
           /^\/faq(\/|\?|$)/,
           /^\/changelog(\/|\?|$)/,
+          /^\/sponsors(\/|\?|$)/,
+          /^\/donate(\/|\?|$)/,
           /^\/wiki(\/|\?|$)/,
           // /planner is its own page; without this the nav fallback serves the
           // map shell and the planner never opens for returning (SW-cached)
@@ -187,6 +191,12 @@ export default defineConfig({
         default: "production",
       }),
       ADMIN_PASSWORD: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // PayMongo secret key for one-time donations (/api/donate).
+      PAYMONGO_SECRET_KEY: envField.string({
         access: "secret",
         context: "server",
         optional: true,

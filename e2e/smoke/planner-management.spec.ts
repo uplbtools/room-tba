@@ -81,10 +81,6 @@ test("planner manages plans and exports a scheduled plan", async ({ page }) => {
     planner.getByRole("tab", { name: "QA plan copy" }),
   ).toHaveAttribute("aria-selected", "true");
   await planner.getByRole("button", { name: "Delete QA plan copy" }).click();
-  await planner
-    .getByRole("group", { name: "Confirm delete plan" })
-    .getByRole("button", { name: "Delete" })
-    .click();
   await expect(planner.getByRole("tab", { name: "QA plan copy" })).toHaveCount(
     0,
   );
