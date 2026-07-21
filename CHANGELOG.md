@@ -1,3 +1,40 @@
+# [2.3.0](https://github.com/uplbtools/room-tba/compare/v2.2.0...v2.3.0) (2026-07-21)
+
+
+### Bug Fixes
+
+* **ci:** preload path and biome format for staging CI/E2E ([948e5b3](https://github.com/uplbtools/room-tba/commit/948e5b3db0169f4ab449e45026faa595f80176fd))
+* **ci:** resolve integration preload path for bun test ([5490a82](https://github.com/uplbtools/room-tba/commit/5490a82272835b676b066ec50505c45273c503dd))
+* **map-tools:** drop leftover Makiling Trail wiring ([e5dc1a1](https://github.com/uplbtools/room-tba/commit/e5dc1a15e762156da4dd5981abcbeaaee84c876c))
+* **map:** defer draft-pin easeTo camera move to rAF ([020f8f6](https://github.com/uplbtools/room-tba/commit/020f8f6c1c09fe2b577a5f4f43041a795f8ab8d4))
+* **perf:** make desktop-only CSS split viewport-based, not UA-sniffed ([3ec954a](https://github.com/uplbtools/room-tba/commit/3ec954af10e37b9ac6e30720c0606e065b358788))
+* **proposals:** harden public submit abuse controls ([#223](https://github.com/uplbtools/room-tba/issues/223)) ([df15a54](https://github.com/uplbtools/room-tba/commit/df15a5438669f302d82e157d6562cc5e719c3205))
+* **proposals:** key rate-limit IP bucket by auth state ([2b21546](https://github.com/uplbtools/room-tba/commit/2b21546144d351c7f5182ec372bf6e6a8cb9f2a7))
+* **sheet:** handle pointercancel, fix no-op overflow clip, test drag logic ([fa0e6cf](https://github.com/uplbtools/room-tba/commit/fa0e6cfac8456a62b6ec9db581293d1d43332aa2))
+* **ui:** polish landing modal layout and privacy footer text ([7e6a300](https://github.com/uplbtools/room-tba/commit/7e6a30064a579cc21a772d0a4171c222b86a9c86))
+
+
+### Features
+
+* add Makiling Trail overlay with stations ([#716](https://github.com/uplbtools/room-tba/issues/716)) ([56a84eb](https://github.com/uplbtools/room-tba/commit/56a84eb192dd3e797495f754138e0c85df435744))
+* **contributions:** track direct editor publishes, expose "my contributions" ([9df8097](https://github.com/uplbtools/room-tba/commit/9df8097f0be5f2873c70d8240d6ee2e28611a177))
+* **contributor:** WYSIWYG draft pin preview for suggest addition ([6e9ce6b](https://github.com/uplbtools/room-tba/commit/6e9ce6bda7815aa4e3ecba1936485b167d0be552))
+* **donate:** one-time donations via PayMongo checkout ([8156795](https://github.com/uplbtools/room-tba/commit/81567952864f3d92e459b512d6ebac483b89872f))
+* donation page with GCash info for UPLB Tools ([#718](https://github.com/uplbtools/room-tba/issues/718)) ([b2568ea](https://github.com/uplbtools/room-tba/commit/b2568ea0cbd875eb4d124fa3fd232fd35d61253b))
+* **faq:** student FAQ page with 3D model answers ([2b93ffd](https://github.com/uplbtools/room-tba/commit/2b93ffd6ed6225bd2cc9ed1d5f9259c9f9d38ee9)), closes [#410](https://github.com/uplbtools/room-tba/issues/410)
+* Google Maps-style mobile detail sheet drag ([#411](https://github.com/uplbtools/room-tba/issues/411)) ([3816971](https://github.com/uplbtools/room-tba/commit/3816971ec50a8dc05d970d00aa8211eb2aa8a09e))
+* **map-tools:** wire Makiling Trail into the Map Tools flyout ([b1846f8](https://github.com/uplbtools/room-tba/commit/b1846f858198e210123290ee55ffc2c78aa16b56))
+* **scripts:** add fork:check — scan for UPLB strings a fork must replace ([#707](https://github.com/uplbtools/room-tba/issues/707)) ([46e995e](https://github.com/uplbtools/room-tba/commit/46e995eec16ca8902bd94af5c5694f092fcc21c7))
+* **side-panel:** whimsical EntityEmptyState for rooms and classes ([e170675](https://github.com/uplbtools/room-tba/commit/e170675b69cc17dbe476bd91bef35f4fb10cfba0)), closes [#427](https://github.com/uplbtools/room-tba/issues/427)
+* **sponsors:** add curated sponsor ad zones, tracking, and funding docs ([92ed2e3](https://github.com/uplbtools/room-tba/commit/92ed2e3c608ab6428890481b01fcfd6fb96a1712))
+* **sponsors:** add Kape Kalabaw demo sponsor and fix banner layout ([f1d7b5b](https://github.com/uplbtools/room-tba/commit/f1d7b5b891f14a5c094404f0bc879bb72c330c97))
+* **sponsors:** sponsored map pins at real sponsor locations ([4bb6037](https://github.com/uplbtools/room-tba/commit/4bb6037815f1377492a61407a467dd4c95c0b292))
+
+
+### Performance Improvements
+
+* split desktop-only CSS for mobile users ([#716](https://github.com/uplbtools/room-tba/issues/716)) ([0532ceb](https://github.com/uplbtools/room-tba/commit/0532cebb22a98a587443a7d1d887fa676fee601c))
+
 # [2.2.0](https://github.com/uplbtools/room-tba/compare/v2.1.1...v2.2.0) (2026-07-21)
 
 
