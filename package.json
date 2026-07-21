@@ -47,6 +47,7 @@
     "seed:events": "bun src/seed-events.ts",
     "seed:aliases": "bun run scripts/seed-aliases.ts",
     "seed:deep-research": "bun run scripts/seed-deep-research.ts",
+    "seed:kubo-dorms": "bun run scripts/seed-kubo-dorms.ts",
     "generate:pglite-schema": "bun run scripts/generate-pglite-schema.ts",
     "import:osa-orgs": "bun run scripts/import-osa-organizations.ts",
     "import:trail-org-about": "bun run scripts/import-trail-org-about.ts",
