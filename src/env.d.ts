@@ -7,6 +7,8 @@ declare namespace App {
     supabase?: SupabaseClient;
     supabaseUser?: User;
     supabaseCacheHeaders?: Record<string, string>;
+    /** True when the request comes from a mobile device (User-Agent heuristic). */
+    isMobile?: boolean;
   }
 }
 

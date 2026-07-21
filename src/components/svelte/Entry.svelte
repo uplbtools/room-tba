@@ -716,13 +716,13 @@
     pointer-events: none;
   }
 
-  @media (min-width: 48.0625rem) {
-    .desktop-camera-controls {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      pointer-events: none;
-    }
+  /* #716: desktop-only — was @media (min-width: 48.0625rem), now gated by
+     .desktop class on <html> (set by middleware + inline script) */
+  :global(.desktop) .desktop-camera-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    pointer-events: none;
   }
 
   .camera-controls-card {

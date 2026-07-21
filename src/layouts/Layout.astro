@@ -2,6 +2,7 @@
 import { pwaInfo } from "virtual:pwa-info";
 import "../styles/font-face.css";
 import "../styles/app-loading.css";
+import desktopOnlyUrl from "../styles/desktop-only.css?url";
 import Analytics from "@vercel/analytics/astro";
 import {
   LOADING_SPLASH_FIRST,
@@ -47,10 +48,13 @@ const {
 const canonicalUrl = absoluteUrl(canonicalPath);
 const imageUrl = absoluteUrl(imagePath);
 const shareTitle = ogTitle ?? title;
+
+// #716: skip desktop-only CSS for mobile devices (middleware User-Agent detection)
+const isMobile = Astro.locals.isMobile ?? false;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class={isMobile ? "mobile" : "desktop"}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -99,6 +103,23 @@ const shareTitle = ogTitle ?? title;
       href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- #716: desktop-only CSS — mobile users skip this file entirely -->
+    {!isMobile && <link rel="stylesheet" href={desktopOnlyUrl} />}
+
+    <!-- #716: correct <html> device class for prerendered (SSG) pages where
+         middleware cannot run. Synchronous in <head> — no flash before body. -->
+    <script is:inline>
+      (function () {
+        if (document.documentElement.classList.contains("mobile")) return;
+        var ua = navigator.userAgent;
+        var m = /\b(Android(?!\s+Tablet)|iPhone|iPod|Windows\s+Phone|BlackBerry|Mobile\s+Safari|Firefox\/.*Mobile|Opera\s+Mobi)\b/i.test(ua);
+        if (m) {
+          document.documentElement.classList.remove("desktop");
+          document.documentElement.classList.add("mobile");
+        }
+      })();
+    </script>
 
     <style is:global>
       html,

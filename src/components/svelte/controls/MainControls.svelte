@@ -191,15 +191,14 @@
 
   /* Desktop: pin the drawer to the flex space between search and status bar —
      collapsed too, so the retracted sliver doesn't reach up behind the search
-     bar. */
-  @media (min-width: 48.0625rem) {
-    .drawer {
-      position: absolute;
-      top: calc(var(--search-block-height, 3.25rem) + 0.75rem);
-      bottom: calc(var(--status-bar-block-height, 2.75rem) + var(--side-panel-bottom-gap, 0.375rem));
-      left: 0;
-      height: auto;
-    }
+     bar.
+     #716: was @media (min-width: 48.0625rem), now gated by .desktop class */
+  :global(.desktop) .drawer {
+    position: absolute;
+    top: calc(var(--search-block-height, 3.25rem) + 0.75rem);
+    bottom: calc(var(--status-bar-block-height, 2.75rem) + var(--side-panel-bottom-gap, 0.375rem));
+    left: 0;
+    height: auto;
   }
 
   .drawer-card {
