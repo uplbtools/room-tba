@@ -53,6 +53,7 @@
   import Briefcase from "@lucide/svelte/icons/briefcase";
   import Store from "@lucide/svelte/icons/store";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
@@ -123,6 +124,7 @@
     isPlaceHoverPreview,
     organizationPreviewFromRow,
     placePreviewFromRow,
+    type EntityHoverPreview,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
@@ -967,23 +969,37 @@
     );
   }
 
+  function handlePinPointerEnter(
+    preview: EntityHoverPreview,
+    pointer: PointerEvent,
+    editKey?: string,
+  ) {
+    if (editKey !== undefined) handleEditablePinEnter(editKey);
+    if (!shouldShowEntityHoverPreview()) return;
+    if (editKey !== undefined && canDragPin(editKey)) return;
+    entityHoverPreviewStore.show(preview, {
+      x: pointer.clientX,
+      y: pointer.clientY,
+    });
+  }
+
+  function handlePinPointerLeave(editKey?: string) {
+    if (editKey !== undefined) handleEditablePinLeave(editKey);
+    if (!shouldShowEntityHoverPreview()) return;
+    if (editKey !== undefined && canDragPin(editKey)) return;
+    entityHoverPreviewStore.scheduleHide();
+  }
+
   function handleBuildingPinPointerEnter(
     building: BuildingData,
     editKey: string,
     event: PointerEvent,
   ) {
-    handleEditablePinEnter(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.show(buildingPreviewFromRow(building), {
-      x: event.clientX,
-      y: event.clientY,
-    });
+    handlePinPointerEnter(buildingPreviewFromRow(building), event, editKey);
   }
 
   function handleBuildingPinPointerLeave(editKey: string) {
-    handleEditablePinLeave(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave(editKey);
   }
 
   function handleDormPinPointerEnter(
@@ -991,55 +1007,34 @@
     editKey: string,
     event: PointerEvent,
   ) {
-    handleEditablePinEnter(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.show(dormPreviewFromRow(dorm), {
-      x: event.clientX,
-      y: event.clientY,
-    });
+    handlePinPointerEnter(dormPreviewFromRow(dorm), event, editKey);
   }
 
   function handleDormPinPointerLeave(editKey: string) {
-    handleEditablePinLeave(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave(editKey);
   }
 
   function handleEventPinPointerEnter(event: EventData, pointer: PointerEvent) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(eventPreviewFromRow(event), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(eventPreviewFromRow(event), pointer);
   }
 
   function handleEventPinPointerLeave() {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave();
   }
 
   function handleOrganizationPinPointerEnter(
     organization: OrgData,
     pointer: PointerEvent,
   ) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(organizationPreviewFromRow(organization), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(organizationPreviewFromRow(organization), pointer);
   }
 
   function handlePlacePinPointerEnter(place: PlaceData, pointer: PointerEvent) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(placePreviewFromRow(place), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(placePreviewFromRow(place), pointer);
   }
 
   function handleDetailPinPointerLeave() {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave();
   }
 
   function beginMarkerDrag(key: string) {
@@ -1844,6 +1839,28 @@
 
   $effect(() => {
     const map = mapStore.mapInstance;
+    const pin = additionProposalStore.draftPin;
+    if (!map || !pin) return;
+
+    // Defer the camera move out of the reactive flush: easeTo fires zoom/move
+    // handlers synchronously, and their state writes inside this flush can
+    // chain into effect_update_depth_exceeded, which kills the whole Svelte
+    // scheduler (app looks frozen, hover still works). Same guard as the
+    // jeepney stop-focus flyTo effect below.
+    const padding = calculatePadding(untrack(() => md.current));
+    const frame = requestAnimationFrame(() => {
+      map.easeTo({
+        center: [pin.lon, pin.lat],
+        zoom: Math.max(map.getZoom(), 17),
+        duration: 650,
+        padding,
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
     if (!map || !eventPlacementStore.active) return;
 
     const canvas = map.getCanvas();
@@ -2550,7 +2567,13 @@
               lat: additionProposalStore.draftPin.lat,
             }}
           >
-            <div class="addition-draft-pin" aria-hidden="true"></div>
+            {#if additionProposalStore.draftPinPreview}
+              <ContributorDraftPinMarker
+                preview={additionProposalStore.draftPinPreview}
+              />
+            {:else}
+              <div class="addition-draft-pin" aria-hidden="true"></div>
+            {/if}
           </Marker>
         {/if}
         {#if loaded}
@@ -3071,7 +3094,10 @@
         role="status"
         aria-live="polite"
       >
-        <p class="edit-dock-status">Tap the map to set the pin location</p>
+        <p class="edit-dock-status">
+          Tap the map to set the pin location. The preview shows how it will
+          look after approval.
+        </p>
         <button
           class="edit-dock-action cancel"
           type="button"
@@ -3089,7 +3115,10 @@
       >
         <div class="event-placement-copy">
           <strong>Choose a map pin location</strong>
-          <span>Click or tap the map where this entry should appear.</span>
+          <span>
+            Click or tap the map where this entry should appear. The preview
+            pin shows how it will look after approval.
+          </span>
         </div>
         <button
           class="event-placement-cancel"

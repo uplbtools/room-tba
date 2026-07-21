@@ -3,6 +3,7 @@ import {
   COMMUNITY_LINKS,
   LEGAL_LINKS,
   UPLB_TOOLS_URL,
+  DONATE_URL,
 } from "@constants/community-links";
 import SponsorStrip from "./SponsorStrip.astro";
 
@@ -20,8 +21,9 @@ const externalCommunityLinks = COMMUNITY_LINKS.filter(
       <a href="/sponsors">Sponsors</a>
       <a href="/donate">Donate</a>
     </span>
-    <span class="site-footer__sep" aria-hidden="true">·</span>
+    <span class="site-footer__sep" aria-hidden="true">&middot;</span>
     <span class="site-footer__group">
+      <a href={DONATE_URL}>Donate</a>
       <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer">
         UPLB Tools
       </a>
@@ -35,9 +37,10 @@ const externalCommunityLinks = COMMUNITY_LINKS.filter(
     </span>
   </nav>
   <p class="site-footer__note">
-    Room TBA is a student-run project under
-    <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
-      >UPLB Tools</a
+    Room TBA is a student-run project under <a
+      href={UPLB_TOOLS_URL}
+      target="_blank"
+      rel="noopener noreferrer">UPLB Tools</a
     >. Not an official UPLB website.
   </p>
 </footer>

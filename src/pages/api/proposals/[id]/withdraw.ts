@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
 import { getEditorSession } from "@lib/admin/require-editor";
+import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { enforceProposalWithdrawLimits } from "@lib/api/proposal-rate-limit";
 import { validateSubmitterName } from "@constants/proposals";
 import {
   ProposalActionError,
@@ -12,12 +14,18 @@ export const prerender = false;
 type WithdrawBody = { submitterName?: string };
 
 export const POST: APIRoute = async ({ cookies, params, request }) => {
+  const session = getEditorSession(cookies);
+  const ip = clientIp(request);
+  const denied = enforceProposalWithdrawLimits(session, ip);
+  if (denied) {
+    return rateLimitResponse(denied.resetAt);
+  }
+
   const id = Number(params.id);
   if (!Number.isInteger(id)) {
     return json({ error: "Invalid proposal ID" }, 400);
   }
 
-  const session = getEditorSession(cookies);
   const body = await request.json().catch(() => ({}) as WithdrawBody);
   const submitterName =
     session?.displayName ||

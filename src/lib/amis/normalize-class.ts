@@ -216,8 +216,9 @@ export function normalizeAmisClass(
   row: AmisClassRow,
   termId: number,
 ): NormalizedAmisClass | null {
-  const courseCode = asString(row.course_code) ?? asString(row.courseCode);
-  const section = asString(row.section);
+  const courseCode =
+    asString(row["course_code"]) ?? asString(row["courseCode"]);
+  const section = asString(row["section"]);
   if (!courseCode || !section) return null;
 
   const schedule =

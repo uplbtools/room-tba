@@ -985,6 +985,9 @@
           <div class="viewer-name">{name}</div>
           <div class="viewer-subtitle">
             3D model from OpenStreetMap footprint
+            <a class="viewer-faq-link" href="/faq#3d-models"
+              >Learn about these models</a
+            >
           </div>
         </div>
       </div>
@@ -1228,9 +1231,25 @@
     line-height: 1.2;
   }
   .viewer-subtitle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.5rem;
     font-size: 0.75rem;
     color: hsl(0, 0%, 45%);
     margin-top: 0.125rem;
+  }
+
+  .viewer-faq-link {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .viewer-faq-link:hover,
+  .viewer-faq-link:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
   .viewer-body {
     flex: 1 1 auto;

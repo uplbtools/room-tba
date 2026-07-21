@@ -41,6 +41,10 @@
     orgCategoryLabel,
   } from "@constants/org-categories";
   import { onMount } from "svelte";
+  import {
+    buildDraftPinPreview,
+    draftPinRowLabel,
+  } from "@lib/editor/draft-pin-preview";
 
   type AdditionOption = {
     value: ProposalCreateType;
@@ -148,6 +152,10 @@
   );
 
   const draftPin = $derived(additionProposalStore.draftPin);
+  const draftPinPreview = $derived(additionProposalStore.draftPinPreview);
+  const draftPinRowText = $derived(
+    draftPinRowLabel(draftPinPreview, Boolean(draftPin)),
+  );
 
   function resetFields(clearPin = true) {
     buildingName = "";
@@ -313,6 +321,28 @@
     bundledRooms;
     additionProposalStore.draftPin;
     scheduleSuggestAdditionDraftSave(snapshotAdditionDraft);
+  });
+
+  $effect(() => {
+    if (!draftReady) return;
+    if (!needsPin) {
+      additionProposalStore.setDraftPinPreview(null);
+      return;
+    }
+    additionProposalStore.setDraftPinPreview(
+      buildDraftPinPreview({
+        kind,
+        buildingName,
+        dormName,
+        placeName,
+        placeCategory,
+        organizationName,
+        organizationCategory,
+        eventTitle,
+        eventStartsAt,
+        eventImageUrl,
+      }),
+    );
   });
 
   function dismissHost() {
@@ -1034,9 +1064,7 @@
 
   {#if needsPin}
     <EntityEditorPinRow
-      label={draftPin
-        ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
-        : "Drop a pin on the map"}
+      label={draftPinRowText}
       pickLabel={draftPin ? "Move pin" : "Pick on map"}
       disabled={submitting}
       onclick={pickOnMap}

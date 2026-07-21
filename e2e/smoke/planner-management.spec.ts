@@ -66,6 +66,7 @@ test("planner manages plans and exports a scheduled plan", async ({ page }) => {
   const download = await downloadPromise;
   await expect(download.suggestedFilename()).toMatch(/plan-1-1252\.ics$/);
 
+  // createPlan() labels new tabs "Untitled Plan N" (see planner-store), not "Plan 2".
   await planner.getByRole("button", { name: "New plan" }).click();
   await expect(
     planner.getByRole("tab", { name: "Untitled Plan 1" }),

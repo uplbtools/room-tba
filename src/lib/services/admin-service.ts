@@ -146,6 +146,58 @@ export async function recordEditorHistory({
   }
 }
 
+/**
+ * Generic entity update helper — factors out the shared update skeleton:
+ * fetch before → execute update → conflict check → record history →
+ * refresh sync key → return updated (or re-fetch).
+ *
+ * The caller provides entity-specific parts (building updates, dup checks,
+ * the Drizzle update query) via callbacks.
+ */
+async function performEntityUpdate<
+  TEntity extends { id: number; version: number },
+>(options: {
+  id: number;
+  expectedVersion?: number;
+  editedBy: string;
+  entityType: string;
+  getById: (id: number) => Promise<TEntity | null>;
+  executeUpdate: () => Promise<TEntity[]>;
+  history?: EditorHistoryOverride;
+  syncKeyType: string;
+  syncKeyPaths: (updated: TEntity | null, before: TEntity | null) => string[];
+}): Promise<TEntity | null> {
+  const before = await options.getById(options.id);
+
+  const rows = await options.executeUpdate();
+  const updated = rows[0];
+
+  if (!updated && options.expectedVersion !== undefined) {
+    throw new EditConflictError(await options.getById(options.id));
+  }
+
+  if (before && updated) {
+    await recordEditorHistory({
+      entityType: options.entityType,
+      entityId: options.id,
+      action: options.history?.action ?? "update",
+      before,
+      after: updated,
+      versionBefore: before.version,
+      versionAfter: updated.version,
+      editedBy: options.editedBy,
+      summary: options.history?.summary ?? null,
+    });
+  }
+
+  await refreshSyncKey(
+    options.syncKeyType,
+    options.syncKeyPaths(updated ?? null, before),
+  );
+
+  return updated ?? (await options.getById(options.id));
+}
+
 // ── Rooms ──
 
 export type RoomWithRelations = RoomData;
@@ -487,38 +539,6 @@ function serializeRoomPosition(position: RoomPosition | null) {
   };
 }
 
-export async function upsertRoomPosition(
-  roomId: number,
-  input: RoomPositionUpdateInput,
-): Promise<void> {
-  const existing = await getRoomPosition(roomId);
-  const updatedAt = new Date().toISOString();
-  if (existing) {
-    await db
-      .update(roomPositionsTable)
-      .set({
-        floor: input.floor,
-        posX: input.posX,
-        posY: input.posY,
-        updatedAt,
-      })
-      .where(eq(roomPositionsTable.id, existing.id));
-  } else {
-    await db.insert(roomPositionsTable).values({
-      floor: input.floor,
-      posX: input.posX,
-      posY: input.posY,
-      updatedAt,
-      roomId,
-    });
-  }
-  const room = await getRoomById(roomId);
-  await refreshSyncKey(
-    "rooms",
-    room ? [roomIsrPath(room), "/room/"] : ["/room/"],
-  );
-}
-
 export async function updateRoomPosition(
   roomId: number,
   input: RoomPositionUpdateInput,
@@ -624,10 +644,6 @@ export async function getBuildingById(
     .where(eq(buildingsTable.id, id))
     .limit(1);
   return rows[0] ?? null;
-}
-
-export async function getAllBuildingsAdmin(): Promise<BuildingAdmin[]> {
-  return db.select().from(buildingsTable).orderBy(buildingsTable.buildingName);
 }
 
 export type BuildingUpdateInput = {
@@ -769,10 +785,6 @@ export async function getCollegeById(id: number): Promise<CollegeAdmin | null> {
   return rows[0] ?? null;
 }
 
-export async function getAllCollegesAdmin(): Promise<CollegeAdmin[]> {
-  return db.select().from(collegesTable).orderBy(collegesTable.collegeName);
-}
-
 export async function updateCollege(
   id: number,
   collegeName: string,
@@ -785,47 +797,37 @@ export async function updateCollege(
     throw new DuplicateNameError("college", candidate, collegeName);
   }
 
-  const before = await getCollegeById(id);
-  const where =
-    expectedVersion === undefined
-      ? eq(collegesTable.id, id)
-      : and(
-          eq(collegesTable.id, id),
-          eq(collegesTable.version, expectedVersion),
-        );
-  const [updated] = await db
-    .update(collegesTable)
-    .set({
-      collegeName,
-      version: sql`"version" + 1`,
-      updatedAt: sql`now()`,
-    })
-    .where(where)
-    .returning();
-
-  if (!updated && expectedVersion !== undefined) {
-    throw new EditConflictError(await getCollegeById(id));
-  }
-
-  if (before && updated) {
-    await recordEditorHistory({
-      entityType: "college",
-      entityId: id,
-      action: history?.action ?? "update",
-      before,
-      after: updated,
-      versionBefore: before.version,
-      versionAfter: updated.version,
-      editedBy,
-      summary: history?.summary ?? null,
-    });
-  }
-
-  await refreshSyncKey("colleges", [
-    collegeIsrPath(updated ?? before),
-    "/college/",
-  ]);
-  return updated ?? (await getCollegeById(id));
+  return performEntityUpdate({
+    id,
+    expectedVersion,
+    editedBy,
+    entityType: "college",
+    getById: getCollegeById,
+    executeUpdate: async () => {
+      const where =
+        expectedVersion === undefined
+          ? eq(collegesTable.id, id)
+          : and(
+              eq(collegesTable.id, id),
+              eq(collegesTable.version, expectedVersion),
+            );
+      return db
+        .update(collegesTable)
+        .set({
+          collegeName,
+          version: sql`"version" + 1`,
+          updatedAt: sql`now()`,
+        })
+        .where(where)
+        .returning();
+    },
+    history,
+    syncKeyType: "colleges",
+    syncKeyPaths: (updated, before) => [
+      collegeIsrPath(updated ?? before),
+      "/college/",
+    ],
+  });
 }
 
 export async function createCollege(
@@ -868,10 +870,6 @@ export async function getDivisionById(
   return rows[0] ?? null;
 }
 
-export async function getAllDivisionsAdmin(): Promise<DivisionAdmin[]> {
-  return db.select().from(divisionsTable).orderBy(divisionsTable.divisionName);
-}
-
 export type DivisionUpdateInput = {
   divisionName?: string;
   collegeId?: number | null;
@@ -903,47 +901,37 @@ export async function updateDivision(
     }
   }
 
-  const before = await getDivisionById(id);
-  const where =
-    expectedVersion === undefined
-      ? eq(divisionsTable.id, id)
-      : and(
-          eq(divisionsTable.id, id),
-          eq(divisionsTable.version, expectedVersion),
-        );
-  const [updated] = await db
-    .update(divisionsTable)
-    .set({
-      ...updates,
-      version: sql`"version" + 1`,
-      updatedAt: sql`now()`,
-    })
-    .where(where)
-    .returning();
-
-  if (!updated && expectedVersion !== undefined) {
-    throw new EditConflictError(await getDivisionById(id));
-  }
-
-  if (before && updated) {
-    await recordEditorHistory({
-      entityType: "division",
-      entityId: id,
-      action: history?.action ?? "update",
-      before,
-      after: updated,
-      versionBefore: before.version,
-      versionAfter: updated.version,
-      editedBy,
-      summary: history?.summary ?? null,
-    });
-  }
-
-  await refreshSyncKey("divisions", [
-    divisionIsrPath(updated ?? before),
-    "/division/",
-  ]);
-  return updated ?? (await getDivisionById(id));
+  return performEntityUpdate({
+    id,
+    expectedVersion,
+    editedBy,
+    entityType: "division",
+    getById: getDivisionById,
+    executeUpdate: async () => {
+      const where =
+        expectedVersion === undefined
+          ? eq(divisionsTable.id, id)
+          : and(
+              eq(divisionsTable.id, id),
+              eq(divisionsTable.version, expectedVersion),
+            );
+      return db
+        .update(divisionsTable)
+        .set({
+          ...updates,
+          version: sql`"version" + 1`,
+          updatedAt: sql`now()`,
+        })
+        .where(where)
+        .returning();
+    },
+    history,
+    syncKeyType: "divisions",
+    syncKeyPaths: (updated, before) => [
+      divisionIsrPath(updated ?? before),
+      "/division/",
+    ],
+  });
 }
 
 export type DivisionCreateInput = {
@@ -997,10 +985,6 @@ export async function getDormById(id: number): Promise<DormAdmin | null> {
     .where(eq(dormsTable.id, id))
     .limit(1);
   return rows[0] ?? null;
-}
-
-export async function getAllDormsAdmin(): Promise<DormAdmin[]> {
-  return db.select().from(dormsTable).orderBy(dormsTable.dormName);
 }
 
 export type DormUpdateInput = Partial<{
@@ -1220,10 +1204,6 @@ export async function getOrganizationById(
     .where(eq(organizationsTable.id, id))
     .limit(1);
   return rows[0] ?? null;
-}
-
-export async function getAllOrganizationsAdmin(): Promise<OrgAdmin[]> {
-  return db.select().from(organizationsTable).orderBy(organizationsTable.name);
 }
 
 export type OrgUpdateInput = Partial<{
@@ -1482,6 +1462,19 @@ export async function updateEvent(
 ): Promise<EventData | null> {
   const before = await getEventById(id, { includeInactive: true });
   if (!before) return null;
+
+  // Check slug uniqueness if slug is changing (mirrors createEvent guard)
+  if (input.slug !== undefined && input.slug !== before.slug) {
+    const slug = input.slug;
+    if (slug) {
+      const [existing] = await db
+        .select({ id: eventsTable.id })
+        .from(eventsTable)
+        .where(and(eq(eventsTable.slug, slug), ne(eventsTable.id, id)))
+        .limit(1);
+      if (existing) throw new DuplicateSlugError(slug);
+    }
+  }
 
   const updates = getEventUpdates(input);
   const shouldReplaceChildren =
