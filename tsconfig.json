@@ -8,7 +8,6 @@
   ],
   "exclude": ["dist"],
   "compilerOptions": {
-    "baseUrl": ".",
     "strict": true,
     "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info", "svelte"],
     "noUnusedLocals": true,
