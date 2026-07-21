@@ -33,7 +33,7 @@ test.describe("planner interactions", () => {
     await expect(courseHeader).toBeVisible({ timeout: 15_000 });
     await courseHeader.click(); // expand the section list
 
-    await planner.getByRole("button", { name: "Add" }).first().click();
+    await planner.getByRole("button", { name: "Add", exact: true }).first().click();
 
     // The Sections side panel appears and lists the added offering.
     const offering = planner.getByText(/E2E 101\s*·\s*AB/);
