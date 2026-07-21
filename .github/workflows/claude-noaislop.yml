@@ -1,0 +1,30 @@
+name: NoAISlop review
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: noaislop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  slop:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            SHA: ${{ github.sha }}
+            This push just landed on main. Run git diff HEAD~1..HEAD and inspect ONLY human-facing prose in the changes: markdown, site copy in components, UI strings, READMEs, changelogs, docs. Ignore code identifiers, lockfiles, config, tests. If the diff has no prose changes, output "no prose" and stop; do not comment.
+            Otherwise fetch the writing rules from https://raw.githubusercontent.com/realrossmanngroup/no_ai_slop_writing_rules/main/CLAUDE.md and judge the changed prose against them: em dashes, banned intensifiers and transitions, hedging, AI-tell phrases and structures.
+            If violations exist, post ONE commit comment (gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments -f body='...') listing each: file, offending text, and a plain direct rewrite. If clean, post nothing.
+          claude_args: --allowed-tools "Bash(git diff:*),Bash(git show:*),Bash(git log:*),WebFetch,Bash(gh api:*)"
