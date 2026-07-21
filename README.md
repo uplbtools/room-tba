@@ -237,6 +237,14 @@ Org: [uplbtools](https://github.com/uplbtools) · Campus tool, not an official U
 
 ---
 
+## Sponsors
+
+Room TBA is funded by curated campus-relevant sponsors and one-time donations. Revenue supports core team incentives (40%), contributor payouts (30%), and operational expenses (30%).
+
+**[Donate](https://room-tba.uplbtools.me/donate)** · **[Become a sponsor](https://room-tba.uplbtools.me/sponsors)** · [Funding model](docs/funding-model.md) · [Ad policy](docs/ad-policy.md)
+
+---
+
 ## Fork this for your campus
 
 MIT lets you fork this and run it for a different school. This is not a "swap the logo and ship" fork — a lot of the app is UPLB data and UPLB-specific glue. You keep the engine (map UI, search, offline cache, editor, planner, the Drizzle schema) and replace the UPLB parts.

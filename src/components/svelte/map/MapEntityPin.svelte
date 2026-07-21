@@ -28,6 +28,9 @@
     onpointerenter?: (event: PointerEvent) => void;
     onpointerleave?: (event: PointerEvent) => void;
     saveState?: EntityPinSaveState;
+    /** Paid placement at the sponsor's real location (docs/ad-policy.md);
+     * gold ring + always-visible "Sponsored" label. */
+    sponsored?: boolean;
     tone?: EntityPinTone;
     /** Read mode: hover detail comes from EntityHoverPreview, not the pin label. */
     useCentralHoverPreview?: boolean;
@@ -48,11 +51,14 @@
     onpointerenter,
     onpointerleave,
     saveState = "idle",
+    sponsored = false,
     tone = "building",
     useCentralHoverPreview = false,
   }: Props = $props();
 
-  const showPinLabel = $derived((labelVisible || active) && !previewSuppressed);
+  const showPinLabel = $derived(
+    (labelVisible || active || sponsored) && !previewSuppressed,
+  );
 
   const statusLabel = $derived(
     saveState === "saving"
@@ -96,7 +102,8 @@
   class:saving={saveState === "saving"}
   class:saved={saveState === "saved"}
   class:failed={saveState === "failed"}
-  aria-label={label}
+  class:sponsored
+  aria-label={sponsored ? `${label}, sponsored` : label}
   role={onclick ? "button" : undefined}
   tabindex={onclick ? 0 : undefined}
   {onclick}
@@ -119,6 +126,9 @@
     aria-hidden="true"
   >
     {label}
+    {#if sponsored}
+      <span class="pin-status pin-sponsored">Sponsored</span>
+    {/if}
     {#if statusLabel}
       <span class="pin-status">{statusLabel}</span>
     {/if}
@@ -310,6 +320,22 @@
     box-shadow:
       0 0 0 0.22rem rgba(250, 204, 21, 0.8),
       0 2px 0.25rem rgba(0, 0, 0, 0.3);
+  }
+
+  /* Static gold ring — calm, no animation (editor UX rules). Elevated so
+     neighboring pins don't bury the paid placement; active (85) still wins. */
+  .map-entity-pin.sponsored {
+    z-index: 84;
+    box-shadow:
+      0 0 0 0.22rem hsl(42, 65%, 52%),
+      0 2px 0.25rem rgba(0, 0, 0, 0.3);
+  }
+
+  .pin-sponsored {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.625rem;
+    color: hsl(42, 65%, 32%);
   }
 
   .map-entity-pin.dimmed.event-linked {
