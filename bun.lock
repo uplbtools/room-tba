@@ -12,7 +12,7 @@
         "@aws-sdk/client-s3": "^3.1090.0",
         "@datadog/browser-rum": "^7.5.0",
         "@electric-sql/pglite": "^0.5.4",
-        "@lucide/svelte": "^1.23.0",
+        "@lucide/svelte": "^1.25.0",
         "@maplibre/maplibre-gl-directions": "^0.9.1",
         "@supabase/ssr": "^0.12.0",
         "@supabase/supabase-js": "^2.110.7",
@@ -26,7 +26,7 @@
         "es-toolkit": "^1.49.0",
         "maplibre-gl": "^5.24.0",
         "pg": "^8.22.0",
-        "svelte": "^5.56.4",
+        "svelte": "^5.56.6",
         "svelte-maplibre": "^1.3.0",
         "three": "^0.185.1",
         "typescript": "^6.0.3",
@@ -573,7 +573,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@lucide/svelte": ["@lucide/svelte@1.23.0", "", { "peerDependencies": { "svelte": "^5" } }, "sha512-3LQbKXx9vId6Nx4E2Nu2qwgJfdmr5+CVeVJbxe5cy+HcnCRd9QVVtZXqvgBYAV1OJrPmQAf9/3gJWLCpASC/Ng=="],
+    "@lucide/svelte": ["@lucide/svelte@1.25.0", "", { "peerDependencies": { "svelte": "^5" } }, "sha512-v9m+dD68jxVnqkU3K59mG/RSRFlPGzmKCGSyMfnXcaGv9jODDQMyQkcp1CGvk3Y/cUj9v7f8rw1n//K0B53xGQ=="],
 
     "@mapbox/jsonlint-lines-primitives": ["@mapbox/jsonlint-lines-primitives@2.0.3", "", {}, "sha512-0SElaV0uMxEnxzBhhX9WTuPyUeMsAN/SS0i16tjuba4/mio63MG9khjC1a0JAiPGXAwvwm4UfHJURCN7nyudQg=="],
 
@@ -2219,7 +2219,7 @@
 
     "supports-preserve-symlinks-flag": ["supports-preserve-symlinks-flag@1.0.0", "", {}, "sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w=="],
 
-    "svelte": ["svelte@5.56.4", "", { "dependencies": { "@jridgewell/remapping": "^2.3.4", "@jridgewell/sourcemap-codec": "^1.5.0", "@sveltejs/acorn-typescript": "^1.0.10", "@types/estree": "^1.0.5", "@types/trusted-types": "^2.0.7", "acorn": "^8.12.1", "aria-query": "5.3.1", "axobject-query": "^4.1.0", "clsx": "^2.1.1", "devalue": "^5.8.1", "esm-env": "^1.2.1", "esrap": "^2.2.12", "is-reference": "^3.0.3", "locate-character": "^3.0.0", "magic-string": "^0.30.11", "zimmerframe": "^1.1.2" } }, "sha512-/d0QHehmRuJW8gVz395MTkPcPozxzdjBMBE8oEYGz8O3b9KTMzzQ9ZHJQLuFKOHOPQbU6kx/X4iid/EBBzH7iw=="],
+    "svelte": ["svelte@5.56.6", "", { "dependencies": { "@jridgewell/remapping": "^2.3.4", "@jridgewell/sourcemap-codec": "^1.5.0", "@sveltejs/acorn-typescript": "^1.0.10", "@types/estree": "^1.0.5", "@types/trusted-types": "^2.0.7", "acorn": "^8.12.1", "aria-query": "5.3.1", "axobject-query": "^4.1.0", "clsx": "^2.1.1", "devalue": "^5.8.1", "esm-env": "^1.2.1", "esrap": "^2.2.12", "is-reference": "^3.0.3", "locate-character": "^3.0.0", "magic-string": "^0.30.11", "zimmerframe": "^1.1.2" } }, "sha512-p4HDLDogGHKRKCrgckQHNs5PEfXkju6JI5jTywueaKJI5hAdjPohEhRtQ0M1SWC/+TA73SPln+r7srr+7e4nZA=="],
 
     "svelte-maplibre": ["svelte-maplibre@1.3.0", "", { "dependencies": { "d3-geo": "^3.1.0", "dequal": "^2.0.3", "just-compare": "^2.3.0", "maplibre-gl": "^4.0.0 || ^5.0.1", "pmtiles": "^3.0.3" }, "peerDependencies": { "@deck.gl/core": "^9", "@deck.gl/layers": "^9", "@deck.gl/mapbox": "^9", "svelte": "^5.0.0", "topojson-client": "^3.0.0" }, "optionalPeers": ["@deck.gl/core", "@deck.gl/layers", "@deck.gl/mapbox", "topojson-client"] }, "sha512-p54dzfzWGiv0gwosxOMksLz7b9pJqPBJXi7MFebrvcnRZtO4H9efkb2bqSjXLY15oLcb5Be06siRXVdKDlMc9Q=="],
 
