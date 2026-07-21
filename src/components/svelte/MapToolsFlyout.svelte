@@ -8,7 +8,6 @@
   import MapViewControls from "@ui/MapViewControls.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
-  import TrailControl from "@ui/TrailControl.svelte";
   import JeepneyMenu from "@ui/JeepneyMenu.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import { trapFocus } from "@lib/focus-trap";
@@ -26,7 +25,6 @@
     { id: "view", label: "View" },
     { id: "legend", label: "Legend" },
     { id: "terrain", label: "Terrain" },
-    { id: "trail", label: "Makiling Trail" },
     { id: "schedule", label: "Schedule" },
   ];
 
@@ -100,8 +98,6 @@
                   <MapLegend embedded />
                 {:else if section.id === "terrain"}
                   <TerrainControl embedded />
-                {:else if section.id === "trail"}
-                  <TrailControl embedded />
                 {:else if section.id === "jeepney"}
                   <JeepneyMenu embedded />
                 {:else if section.id === "schedule"}
