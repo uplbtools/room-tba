@@ -12,19 +12,28 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
-      - uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: |
-            REPO: ${{ github.repository }}
-            SHA: ${{ github.sha }}
-            This push just landed on main. Run git diff HEAD~1..HEAD and inspect ONLY human-facing prose in the changes: markdown, site copy in components, UI strings, READMEs, changelogs, docs. Ignore code identifiers, lockfiles, config, tests. If the diff has no prose changes, output "no prose" and stop; do not comment.
-            Otherwise fetch the writing rules from https://raw.githubusercontent.com/realrossmanngroup/no_ai_slop_writing_rules/main/CLAUDE.md and judge the changed prose against them: em dashes, banned intensifiers and transitions, hedging, AI-tell phrases and structures.
-            If violations exist, post ONE commit comment (gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments -f body='...') listing each: file, offending text, and a plain direct rewrite. If clean, post nothing.
-          claude_args: --allowed-tools "Bash(git diff:*),Bash(git show:*),Bash(git log:*),WebFetch,Bash(gh api:*)"
+          fetch-depth: 20
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Slop check
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          range="$BEFORE..$AFTER"
+          case "$BEFORE" in 0000000*) range="HEAD~1..HEAD";; esac
+          git rev-parse "$BEFORE" >/dev/null 2>&1 || range="HEAD~1..HEAD"
+          prompt=$(cat <<EOF
+          A push landed on main of $REPO (range $range). Run: git diff $range. Inspect ONLY human-facing prose in the changes: markdown, site copy in components, UI strings, READMEs, changelogs, docs. Ignore code identifiers, lockfiles, config, tests. If the diff contains no prose changes, output "no prose" and stop; do not comment.
+          Otherwise fetch the writing rules from https://raw.githubusercontent.com/realrossmanngroup/no_ai_slop_writing_rules/main/CLAUDE.md and judge the changed prose against them: em dashes, banned intensifiers and transitions, hedging, AI-tell phrases and structures.
+          If violations exist, post ONE commit comment (gh api repos/$REPO/commits/$AFTER/comments -f body='...') listing each: file, offending text, and a plain direct rewrite. If clean, post nothing.
+          EOF
+          )
+          claude -p "$prompt" --allowedTools "Bash(git diff:*),Bash(git show:*),Bash(git log:*),WebFetch,Bash(gh api:*)"
