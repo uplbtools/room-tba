@@ -36,8 +36,12 @@ export function enforceProposalSubmitLimits(
   const signedIn = Boolean(session && session.id > 0);
   const ipShortMax = signedIn ? AUTH_IP_SHORT_MAX : ANON_IP_SHORT_MAX;
 
+  // Keyed separately per auth state: a shared "proposals:ip:${ip}" bucket
+  // would let authenticated traffic (capped at 24) push the counter past the
+  // anonymous cap (8), blocking a brand-new anonymous request from the same
+  // IP/NAT even though it's the first one that IP has ever sent.
   const ipShort = checkRateLimit(
-    `proposals:ip:${ip}`,
+    `proposals:ip:${signedIn ? "auth" : "anon"}:${ip}`,
     ipShortMax,
     SHORT_WINDOW_MS,
     now,

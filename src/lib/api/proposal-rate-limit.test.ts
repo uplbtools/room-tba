@@ -52,6 +52,18 @@ describe("enforceProposalSubmitLimits", () => {
     expect(blocked?.allowed).toBe(false);
   });
 
+  test("authenticated traffic on a shared IP does not block a fresh anonymous request", () => {
+    resetRateLimitsForTests();
+    const now = 3_500_000;
+    const ip = "198.51.100.60";
+    for (let i = 0; i < 20; i += 1) {
+      const result = enforceProposalSubmitLimits({ id: i + 1 }, ip, now);
+      expect(result).toBeNull();
+    }
+    const anonResult = enforceProposalSubmitLimits(null, ip, now);
+    expect(anonResult).toBeNull();
+  });
+
   test("daily window blocks after short window resets", () => {
     resetRateLimitsForTests();
     const ip = "198.51.100.50";

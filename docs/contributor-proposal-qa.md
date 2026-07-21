@@ -29,6 +29,8 @@ This is the repeatable QA record for [#255](https://github.com/uplbtools/room-tb
 
 `POST /api/proposals` and `POST /api/proposals/:id/withdraw` are rate-limited in [`src/lib/api/proposal-rate-limit.ts`](../src/lib/api/proposal-rate-limit.ts). Limits use an in-memory bucket **per serverless instance** (effective cap scales with cold-start fan-out; shared KV is deferred).
 
+The IP key comes from `x-forwarded-for` ([`src/lib/api/rate-limit.ts`](../src/lib/api/rate-limit.ts)), which is client-writable in general but is stripped/overwritten by Vercel's standard routing (not the paid Trusted Proxy tier) before it reaches the app. This limiter assumes that platform behavior; if a CDN/WAF is ever added in front without stripping client-supplied `x-forwarded-for`, or Trusted Proxy is enabled, this becomes spoofable and should move to `x-vercel-forwarded-for`.
+
 | Actor | Short window (10 min) | Daily window (24 h) |
 | --- | --- | --- |
 | Anonymous (by IP) | 8 submits | 40 submits |
