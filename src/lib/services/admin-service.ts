@@ -1,5 +1,7 @@
 import { and, eq, ne, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
+import { parsePublishingActor } from "@lib/admin/auth";
+import { recordEditorContribution } from "./contribution-service";
 import {
   buildingsTable,
   collegesTable,
@@ -113,6 +115,8 @@ export async function recordEditorHistory({
   editedBy = "admin",
   summary = null,
 }: EditorHistoryInput): Promise<void> {
+  const publishingActor = parsePublishingActor(editedBy);
+  const actorName = publishingActor?.displayName ?? editedBy;
   await db.insert(editorHistoryTable).values({
     entityType,
     entityId,
@@ -121,9 +125,25 @@ export async function recordEditorHistory({
     after,
     versionBefore,
     versionAfter,
-    editedBy,
+    editedBy: actorName,
     summary,
   });
+  if (publishingActor) {
+    const label =
+      typeof after === "object" && after
+        ? Object.values(after as Record<string, unknown>).find(
+            (value) => typeof value === "string" && value.trim(),
+          )
+        : null;
+    await recordEditorContribution({
+      userId: publishingActor.userId,
+      submitterName: publishingActor.displayName,
+      entityType,
+      entityId,
+      entityLabel:
+        typeof label === "string" ? label : `${entityType} #${entityId}`,
+    });
+  }
 }
 
 // ── Rooms ──
