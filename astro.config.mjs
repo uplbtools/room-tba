@@ -41,6 +41,11 @@ export default defineConfig({
           "sponsors/index.html",
           "donate/index.html",
         ],
+        // #716: desktop-only.css is never fetched by mobile viewports at
+        // runtime — don't undo that by precaching it into every install
+        // (including mobile) regardless of device. Cache it on-demand
+        // instead, via the runtimeCaching rule below.
+        globIgnores: ["**/desktop-only*"],
         navigateFallback: "/",
         navigateFallbackDenylist: [
           /^\/api\//,
@@ -67,6 +72,18 @@ export default defineConfig({
         // Cache third-party map resources at runtime so the campus map works
         // offline once visited (or after an explicit "download offline maps").
         runtimeCaching: [
+          {
+            // #716: desktop-only.css, excluded from precache above so mobile
+            // installs never fetch it — cached the first time a desktop
+            // viewport actually requests it, so repeat offline visits still work.
+            urlPattern: /\/desktop-only.*\.css$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "desktop-only-css",
+              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             // MapTiler vector tiles + tiles.json
             urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,

@@ -2,6 +2,7 @@
 import { pwaInfo } from "virtual:pwa-info";
 import "../styles/font-face.css";
 import "../styles/app-loading.css";
+import desktopOnlyUrl from "../styles/desktop-only.css?url";
 import Analytics from "@vercel/analytics/astro";
 import {
   LOADING_SPLASH_FIRST,
@@ -99,6 +100,38 @@ const shareTitle = ogTitle ?? title;
       href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- #716: desktop/mobile split is viewport-based (not User-Agent), so the
+         same check works for every render path (SSR and prerendered) without
+         varying cached HTML per request — CDN/ISR caching stays untouched.
+         Synchronous in <head>, before paint: no flash, and the change
+         listener keeps it live across resizes (devtools/QA responsive mode). -->
+    <script is:inline define:vars={{ desktopOnlyUrl }}>
+      (function () {
+        var html = document.documentElement;
+        var mql = window.matchMedia("(min-width: 48.0625rem)");
+        var link = null;
+
+        function apply(isDesktop) {
+          html.classList.toggle("desktop", isDesktop);
+          html.classList.toggle("mobile", !isDesktop);
+          if (isDesktop && !link) {
+            link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = desktopOnlyUrl;
+            document.head.appendChild(link);
+          } else if (!isDesktop && link) {
+            link.remove();
+            link = null;
+          }
+        }
+
+        apply(mql.matches);
+        mql.addEventListener("change", function (event) {
+          apply(event.matches);
+        });
+      })();
+    </script>
 
     <style is:global>
       html,
