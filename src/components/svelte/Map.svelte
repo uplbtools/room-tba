@@ -1828,12 +1828,21 @@
     const pin = additionProposalStore.draftPin;
     if (!map || !pin) return;
 
-    map.easeTo({
-      center: [pin.lon, pin.lat],
-      zoom: Math.max(map.getZoom(), 17),
-      duration: 650,
-      padding: calculatePadding(untrack(() => md.current)),
+    // Defer the camera move out of the reactive flush: easeTo fires zoom/move
+    // handlers synchronously, and their state writes inside this flush can
+    // chain into effect_update_depth_exceeded, which kills the whole Svelte
+    // scheduler (app looks frozen, hover still works). Same guard as the
+    // jeepney stop-focus flyTo effect below.
+    const padding = calculatePadding(untrack(() => md.current));
+    const frame = requestAnimationFrame(() => {
+      map.easeTo({
+        center: [pin.lon, pin.lat],
+        zoom: Math.max(map.getZoom(), 17),
+        duration: 650,
+        padding,
+      });
     });
+    return () => cancelAnimationFrame(frame);
   });
 
   $effect(() => {
