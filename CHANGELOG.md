@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/uplbtools/room-tba/compare/v2.1.0...v2.1.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* change stacking context of finalExamScreen ([#673](https://github.com/uplbtools/room-tba/issues/673)) ([6a93e84](https://github.com/uplbtools/room-tba/commit/6a93e848c150c987a8b5d3e31b9349c0608d6b39))
+
 # [1.46.0](https://github.com/uplbtools/room-tba/compare/v1.45.0...v1.46.0) (2026-07-10)
 
 
