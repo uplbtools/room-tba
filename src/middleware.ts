@@ -8,24 +8,8 @@ import {
 import { getAdminUserBySupabaseId } from "./lib/services/admin-user-service";
 import { recordLatency } from "./lib/latency-tracker";
 
-// Lightweight mobile User-Agent heuristic — no regex library, no external dep.
-// Matches the common mobile browsers that UPLB students use (Chrome Mobile,
-// Safari on iPhone, Firefox Mobile, Samsung Internet, Opera Mobile).
-// Tablets are treated as desktop (wider viewport, no redirect needed).
-const MOBILE_UA =
-  /\b(Android(?!\s+Tablet)|iPhone|iPod|Windows\s+Phone|BlackBerry|Mobile\s+Safari|Firefox\/.*Mobile|Opera\s+Mobi|OPR\/.*Mobi)\b/i;
-
-function isMobileRequest(request: Request): boolean {
-  const ua = request.headers.get("user-agent");
-  if (!ua) return false;
-  return MOBILE_UA.test(ua);
-}
-
 export const onRequest = defineMiddleware(async (context, next) => {
   bootstrapObservability();
-
-  // Detect mobile device so the layout can skip desktop-only CSS (#716).
-  context.locals.isMobile = isMobileRequest(context.request);
 
   const { pathname } = context.url;
   const start = performance.now();
@@ -76,10 +60,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const response = await next();
   const duration = Math.round(performance.now() - start);
   recordLatency(pathname, duration);
-
-  // #716: Vary cache by User-Agent so desktop/mobile HTML variants don't
-  // cross-serve through CDN caches.
-  response.headers.set("Vary", "User-Agent");
 
   // Add Server-Timing header for API routes so Vercel logs and browsers
   // can surface slow endpoints during QA (#313).

@@ -48,13 +48,10 @@ const {
 const canonicalUrl = absoluteUrl(canonicalPath);
 const imageUrl = absoluteUrl(imagePath);
 const shareTitle = ogTitle ?? title;
-
-// #716: skip desktop-only CSS for mobile devices (middleware User-Agent detection)
-const isMobile = Astro.locals.isMobile ?? false;
 ---
 
 <!doctype html>
-<html lang="en" class={isMobile ? "mobile" : "desktop"}>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -104,20 +101,35 @@ const isMobile = Astro.locals.isMobile ?? false;
       rel="stylesheet"
     />
 
-    <!-- #716: desktop-only CSS — mobile users skip this file entirely -->
-    {!isMobile && <link rel="stylesheet" href={desktopOnlyUrl} />}
-
-    <!-- #716: correct <html> device class for prerendered (SSG) pages where
-         middleware cannot run. Synchronous in <head> — no flash before body. -->
-    <script is:inline>
+    <!-- #716: desktop/mobile split is viewport-based (not User-Agent), so the
+         same check works for every render path (SSR and prerendered) without
+         varying cached HTML per request — CDN/ISR caching stays untouched.
+         Synchronous in <head>, before paint: no flash, and the change
+         listener keeps it live across resizes (devtools/QA responsive mode). -->
+    <script is:inline define:vars={{ desktopOnlyUrl }}>
       (function () {
-        if (document.documentElement.classList.contains("mobile")) return;
-        var ua = navigator.userAgent;
-        var m = /\b(Android(?!\s+Tablet)|iPhone|iPod|Windows\s+Phone|BlackBerry|Mobile\s+Safari|Firefox\/.*Mobile|Opera\s+Mobi)\b/i.test(ua);
-        if (m) {
-          document.documentElement.classList.remove("desktop");
-          document.documentElement.classList.add("mobile");
+        var html = document.documentElement;
+        var mql = window.matchMedia("(min-width: 48.0625rem)");
+        var link = null;
+
+        function apply(isDesktop) {
+          html.classList.toggle("desktop", isDesktop);
+          html.classList.toggle("mobile", !isDesktop);
+          if (isDesktop && !link) {
+            link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = desktopOnlyUrl;
+            document.head.appendChild(link);
+          } else if (!isDesktop && link) {
+            link.remove();
+            link = null;
+          }
         }
+
+        apply(mql.matches);
+        mql.addEventListener("change", function (event) {
+          apply(event.matches);
+        });
       })();
     </script>
 
