@@ -48,7 +48,12 @@ export type FloatingControlPanel =
   | "terrain"
   | "admin";
 
-export type MapToolsSection = "view" | "legend" | "terrain" | "jeepney";
+export type MapToolsSection =
+  | "view"
+  | "legend"
+  | "terrain"
+  | "trail"
+  | "jeepney";
 
 export type MapProposalTarget = {
   type: "building" | "dorm" | "event";
