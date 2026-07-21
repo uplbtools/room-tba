@@ -11,10 +11,9 @@ import {
   jsonLd,
   webpageSchema,
 } from "@lib/site";
-import { getSeoEventsCached } from "@lib/services/event-service";
 
 export async function getStaticPaths() {
-  const events = await getSeoEventsCached();
+  const events = await getSeoEvents();
   return events.map((event) => ({
     params: { slug: event.slug },
   }));

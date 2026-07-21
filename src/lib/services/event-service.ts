@@ -12,7 +12,6 @@ import {
   eventsTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
-import { getBuildCache } from "./ssg-cache";
 import type {
   BuildingData,
   DormData,
@@ -101,15 +100,6 @@ export async function getEventById(
 
 export async function getSeoEvents(): Promise<EventData[]> {
   return (await getAllEvents()).filter((event) => event.includeInSeo);
-}
-
-// Cached version for SSG (#331)
-export async function getSeoEventsCached(): Promise<EventData[]> {
-  const cache = getBuildCache();
-  if (cache.events) return cache.events;
-  const events = await getSeoEvents();
-  cache.events = events;
-  return events;
 }
 
 async function loadEventRows(includeInactive = false) {

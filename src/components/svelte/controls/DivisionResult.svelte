@@ -5,12 +5,8 @@
     toastStore,
     termStore,
   } from "@lib/store.svelte";
-  import {
-    persistEntityChange,
-    mergeEntityRecord,
-  } from "@lib/proposals/client";
+  import { persistEntityChange } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
-  import MergeEntityPrompt from "@ui/editor/MergeEntityPrompt.svelte";
   import {
     clearEntityContributorDraft,
     readEntityContributorDraft,
@@ -66,12 +62,6 @@
   let savedField = $state<"divisionName" | "collegeId" | null>(null);
   let fieldError = $state<string | null>(null);
   let submitterNameDraft = $state("");
-  let mergePrompt = $state<{
-    candidate: DivisionData;
-    attemptedName: string;
-    sourceVersion: number;
-  } | null>(null);
-  let mergingEntity = $state(false);
   const canPublish = $derived(adminAuthStore.canPublish);
 
   // Reload rooms when the selected division changes; DivisionResult is not
@@ -133,7 +123,6 @@
     collegeDraft = current.collegeId === null ? "" : String(current.collegeId);
     savedField = null;
     fieldError = null;
-    mergePrompt = null;
 
     if (!canPublish) {
       const savedDraft = readEntityContributorDraft("division", current.id);
@@ -212,15 +201,6 @@
       });
 
       if (outcome.error) {
-        if (outcome.mergeCandidate && field === "divisionName") {
-          mergePrompt = {
-            candidate: outcome.mergeCandidate as DivisionData,
-            attemptedName: patch.divisionName ?? nameDraft.trim(),
-            sourceVersion: current.version,
-          };
-          fieldError = null;
-          return;
-        }
         fieldError = outcome.error;
         return;
       }
@@ -241,54 +221,6 @@
       fieldError = `${current.divisionName} failed to save: ${reason}`;
     } finally {
       savingField = null;
-    }
-  }
-
-  function dismissMergePrompt() {
-    mergePrompt = null;
-    const current = division;
-    if (current) nameDraft = current.divisionName;
-  }
-
-  async function confirmDivisionMerge() {
-    const current = division;
-    if (!current || !mergePrompt) return;
-
-    mergingEntity = true;
-    fieldError = null;
-
-    try {
-      const result = await mergeEntityRecord({
-        entityType: "division",
-        sourceId: current.id,
-        targetId: mergePrompt.candidate.id,
-        sourceVersion: mergePrompt.sourceVersion,
-        preferredName: mergePrompt.attemptedName,
-      });
-
-      if (!result.ok) {
-        if (result.latest)
-          syncDivisionFromServer(result.latest as DivisionData);
-        fieldError =
-          result.error ??
-          `${current.divisionName} could not be merged into ${mergePrompt.candidate.divisionName}.`;
-        return;
-      }
-
-      if (result.entity) {
-        syncDivisionFromServer(result.entity as DivisionData);
-        toastStore.show(
-          `Merged ${current.divisionName} into ${mergePrompt.candidate.divisionName}.`,
-          "success",
-        );
-      }
-      mergePrompt = null;
-      editing = false;
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.divisionName} merge failed: ${reason}`;
-    } finally {
-      mergingEntity = false;
     }
   }
 
@@ -367,20 +299,6 @@
               />
             {/snippet}
           </EntityEditorField>
-
-          {#if mergePrompt}
-            <MergeEntityPrompt
-              entityKind="division"
-              sourceLabel={division.divisionName}
-              candidateLabel={mergePrompt.candidate.divisionName}
-              detail="Merge room links into the kept division;"
-              merging={mergingEntity}
-              disabled={savingField !== null}
-              onconfirm={confirmDivisionMerge}
-              ondismiss={dismissMergePrompt}
-            />
-          {/if}
-
           <EntityEditorField
             label="Parent college"
             inputId="division-college-editor"

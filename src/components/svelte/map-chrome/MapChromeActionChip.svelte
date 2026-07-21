@@ -18,25 +18,5 @@
 </script>
 
 <button {type} class="map-chrome-action-chip" {disabled} {onclick}>
-  <span class="map-chrome-action-chip__inner">
-    {@render children?.()}
-  </span>
+  {@render children?.()}
 </button>
-
-<style>
-  .map-chrome-action-chip__inner {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    min-width: 0;
-    line-height: 1.2;
-  }
-
-  .map-chrome-action-chip__inner :global(svg) {
-    display: block;
-    flex-shrink: 0;
-    width: 14px;
-    height: 14px;
-  }
-</style>

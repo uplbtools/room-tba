@@ -13,8 +13,6 @@ import {
   pgEnum,
   jsonb,
   uniqueIndex,
-  date,
-  time,
 } from "drizzle-orm/pg-core";
 
 export const buildingEnum = pgEnum("building_type", ["admin", "non-admin"]);
@@ -117,45 +115,6 @@ export const collegesTable = pgTable("colleges", {
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
-
-export const finalExamsTable = pgTable(
-  "final_exams",
-  {
-    id: integer().primaryKey().generatedByDefaultAsIdentity({
-      name: "final_exams_id_seq",
-      startWith: 1,
-      increment: 1,
-      minValue: 1,
-      maxValue: 2147483647,
-      cache: 1,
-    }),
-    termId: integer("term_id").notNull(),
-    courseCode: varchar("course_code", { length: 16 }).notNull(),
-    section: varchar({ length: 16 }),
-    courseTitle: text("course_title"),
-    roomId: integer("room_id"),
-    examDate: date("exam_date", { mode: "string" }).notNull(),
-    startsAt: time("starts_at", { mode: "string" }).notNull(),
-    endsAt: time("ends_at", { mode: "string" }).notNull(),
-    source: varchar({ length: 64 }).notNull(),
-    version: integer().default(1).notNull(),
-    updatedAt: timestamp("updated_at", { mode: "string" })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    foreignKey({
-      columns: [table.roomId],
-      foreignColumns: [roomsTable.id],
-      name: "final_exam_room",
-    }),
-    foreignKey({
-      columns: [table.termId],
-      foreignColumns: [termsTable.id],
-      name: "final_exam_term",
-    }),
-  ],
-);
 
 export const classesTable = pgTable(
   "classes",
@@ -322,7 +281,6 @@ export const adminUsersTable = pgTable(
     passwordHash: text("password_hash").notNull(),
     role: adminRoleEnum().default("editor").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
-    supabaseUserId: uuid("supabase_user_id"),
     createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
       .notNull(),

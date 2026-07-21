@@ -1,7 +1,7 @@
 ---
 import EntityPage from "@seo/EntityPage.astro";
 import { getCollegeSlug } from "@lib/app-data";
-import { getAllCollegesCached } from "@lib/services/map-data-service";
+import { getAllColleges } from "@lib/services/map-data-service";
 import { getCollegePageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
@@ -12,7 +12,7 @@ import {
 } from "@lib/site";
 
 export async function getStaticPaths() {
-  const colleges = await getAllCollegesCached();
+  const colleges = await getAllColleges();
 
   return colleges.map((college) => ({
     params: { slug: getCollegeSlug(college) },

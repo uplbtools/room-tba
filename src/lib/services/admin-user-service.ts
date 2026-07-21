@@ -12,29 +12,6 @@ export async function countAdminUsers(): Promise<number> {
   return Number(rows[0]?.c ?? 0);
 }
 
-export async function getAdminUserBySupabaseId(
-  supabaseUserId: string,
-): Promise<SessionUser | null> {
-  const [user] = await db
-    .select()
-    .from(adminUsersTable)
-    .where(
-      and(
-        eq(adminUsersTable.supabaseUserId, supabaseUserId),
-        eq(adminUsersTable.isActive, true),
-      ),
-    )
-    .limit(1);
-
-  if (!user) return null;
-  return {
-    id: user.id,
-    username: user.username,
-    displayName: user.displayName ?? user.username,
-    role: user.role ?? "editor",
-  };
-}
-
 export async function authenticateAdminUser(
   username: string,
   password: string,

@@ -9,7 +9,6 @@
   import EventResult from "./EventResult.svelte";
   import RoomResult from "@ui/room/RoomResult.svelte";
   import ClassQuery from "./ClassQuery.svelte";
-  import ClassesList from "./ClassesList.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
@@ -90,8 +89,6 @@
               <RoomResult />
             {:else if queryStore.category === "class"}
               <ClassQuery />
-            {:else if queryStore.category === "classes"}
-              <ClassesList />
             {:else if queryStore.category === "dorm"}
               <DormResult />
             {:else if queryStore.category === "event"}
@@ -140,23 +137,6 @@
     transform: translateX(-100%);
   }
 
-  /* Desktop: pin the open drawer to the viewport band between search and status bar. */
-  @media (min-width: 48.0625rem) {
-    .drawer:not(.is-collapsed) {
-      position: fixed;
-      top: calc(
-        var(--search-block-height, 3.25rem) + var(--map-ui-padding, 0.5rem)
-      );
-      bottom: calc(
-        var(--status-bar-block-height, 2.75rem) +
-          var(--map-ui-padding, 0.5rem) + 0.5rem +
-          env(safe-area-inset-bottom, 0px)
-      );
-      left: var(--map-ui-padding, 0.5rem);
-      height: auto;
-    }
-  }
-
   .drawer-card {
     pointer-events: auto;
     height: 100%;
@@ -177,7 +157,6 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scroll-padding: 4px;
     scrollbar-width: thin;
     scrollbar-color: hsl(6, 63%, 48%) hsl(0, 0%, 98%);
   }
@@ -245,8 +224,7 @@
       top: var(--mobile-detail-sheet-top-inset);
       right: 0;
       bottom: calc(
-        var(--status-bar-block-height, 2.75rem) +
-          env(safe-area-inset-bottom, 0px) + 0.25rem
+        var(--status-bar-block-height) + env(safe-area-inset-bottom, 0px)
       );
       left: 0;
       width: auto;

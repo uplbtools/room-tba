@@ -35,7 +35,7 @@
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import * as mapGl from "maplibre-gl";
   import type { FeatureCollection, LineString } from "geojson";
-  import type { BuildingData, EventData } from "@lib/types";
+  import type { EventData } from "@lib/types";
   import {
     JEEPNEY_ROUTES,
     type JeepneyRoute,
@@ -76,11 +76,6 @@
     ClientEventConflictError,
     editErrorMessage,
   } from "@lib/map-edit/errors";
-  import {
-    buildingPreviewFromRow,
-    entityHoverPreviewStore,
-    eventPreviewFromRow,
-  } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import type {
     EditableCoords,
@@ -761,46 +756,6 @@
   function handleEditablePinLeave(key: string) {
     if (!canDragPin(key)) return;
     if (hoveredEditKey === key) hoveredEditKey = null;
-  }
-
-  function shouldShowEntityHoverPreview() {
-    return (
-      !mapEditStore.enabled &&
-      !mapProposalStore.enabled &&
-      !eventPlacementStore.active
-    );
-  }
-
-  function handleBuildingPinPointerEnter(
-    building: BuildingData,
-    editKey: string,
-    event: PointerEvent,
-  ) {
-    handleEditablePinEnter(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.show(buildingPreviewFromRow(building), {
-      x: event.clientX,
-      y: event.clientY,
-    });
-  }
-
-  function handleBuildingPinPointerLeave(editKey: string) {
-    handleEditablePinLeave(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.scheduleHide();
-  }
-
-  function handleEventPinPointerEnter(event: EventData, pointer: PointerEvent) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(eventPreviewFromRow(event), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
-  }
-
-  function handleEventPinPointerLeave() {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.scheduleHide();
   }
 
   function beginMarkerDrag(key: string) {
@@ -1523,37 +1478,11 @@
   $effect(() => {
     if (!directions) return;
 
-    const waypoints = locationStore.routeWaypoints;
-    if (waypoints && waypoints.length >= 2) {
-      directions.setWaypoints(waypoints);
-      const map = mapStore.mapInstance;
-      if (map) {
-        const bounds = new mapGl.LngLatBounds();
-        for (const point of waypoints) {
-          bounds.extend(point);
-        }
-        map.fitBounds(bounds, {
-          padding: { top: 80, bottom: 80, left: 80, right: 80 },
-          duration: 1200,
-          maxZoom: 18,
-        });
-      }
-    } else if (locationStore.routeOrigin && locationStore.destination) {
+    if (locationStore.routeOrigin && locationStore.destination) {
       directions.setWaypoints([
         locationStore.routeOrigin,
         locationStore.destination,
       ]);
-      const map = mapStore.mapInstance;
-      if (map) {
-        const bounds = new mapGl.LngLatBounds();
-        bounds.extend(locationStore.routeOrigin);
-        bounds.extend(locationStore.destination);
-        map.fitBounds(bounds, {
-          padding: { top: 80, bottom: 120, left: 80, right: 80 },
-          duration: 1000,
-          maxZoom: 18,
-        });
-      }
     } else {
       directions.clear();
     }
@@ -2500,9 +2429,6 @@
                       entry.event.occurrenceStartsAt,
                     )}`}
                     onclick={() => handleEventMarkerClick(entry.event)}
-                    onpointerenter={(event) =>
-                      handleEventPinPointerEnter(entry.event, event)}
-                    onpointerleave={handleEventPinPointerLeave}
                   />
                 {/if}
               {:else}
@@ -2528,9 +2454,6 @@
                     title={`${group.entries.length} events at ${group.label}`}
                     ariaLabel={`${isExpanded ? "Collapse" : "Expand"} ${group.entries.length} events at ${group.label}`}
                     onclick={() => toggleEventMarkerGroup(group.key)}
-                    onpointerenter={(event) =>
-                      handleEventPinPointerEnter(primaryEntry.event, event)}
-                    onpointerleave={handleEventPinPointerLeave}
                   />
                   {#if isExpanded}
                     <div
@@ -2655,9 +2578,8 @@
                     : "idle"}
               title={building.buildingName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
-              onpointerenter={(event) =>
-                handleBuildingPinPointerEnter(building, editKey, event)}
-              onpointerleave={() => handleBuildingPinPointerLeave(editKey)}
+              onpointerenter={() => handleEditablePinEnter(editKey)}
+              onpointerleave={() => handleEditablePinLeave(editKey)}
             >
               <University size="20" />
             </MapEntityPin>
@@ -2729,7 +2651,7 @@
                     : "idle"}
               title={dorm.dormName}
               labelVisible={zoomLevel >= 17 || hoveredEditKey === editKey}
-              onpointerenter={(event) => handleEditablePinEnter(editKey)}
+              onpointerenter={() => handleEditablePinEnter(editKey)}
               onpointerleave={() => handleEditablePinLeave(editKey)}
             >
               <House size="18" />

@@ -1,7 +1,7 @@
 ---
 import EntityPage from "@seo/EntityPage.astro";
 import { getDormRouteSlug } from "@lib/app-data";
-import { getAllDormsCached } from "@lib/services/map-data-service";
+import { getAllDorms } from "@lib/services/map-data-service";
 import { getDormPageData } from "@lib/services/ssg-service";
 import {
   absoluteUrl,
@@ -12,7 +12,7 @@ import {
 } from "@lib/site";
 
 export async function getStaticPaths() {
-  const dorms = await getAllDormsCached();
+  const dorms = await getAllDorms();
 
   return dorms.map((dorm) => ({
     params: { slug: getDormRouteSlug(dorm) },

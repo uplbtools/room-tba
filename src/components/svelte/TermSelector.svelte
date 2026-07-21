@@ -7,10 +7,6 @@
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
   import { mapToolsStore, termStore } from "@lib/store.svelte";
-  import {
-    registerEphemeralOverlayDismisser,
-    openEphemeralOverlay,
-  } from "@lib/overlay-stack";
   import type { TermWithCount } from "@lib/types";
   import "./map-chrome/map-chrome.css";
 
@@ -27,17 +23,6 @@
 
   onMount(() => {
     termStore.init();
-    const onOpenRequest = () => {
-      if (!open) toggleOpen();
-    };
-    window.addEventListener("room-tba:open-term-picker", onOpenRequest);
-    const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
-      open = false;
-    });
-    return () => {
-      window.removeEventListener("room-tba:open-term-picker", onOpenRequest);
-      unregisterDismiss();
-    };
   });
 
   const active = $derived(termStore.activeTerm);
@@ -72,14 +57,10 @@
 
   function toggleOpen() {
     if (!open) {
-      openEphemeralOverlay(() => {
-        mapToolsStore.close();
-        open = true;
-        queueMicrotask(updatePanelPosition);
-      });
-      return;
+      mapToolsStore.close();
     }
-    open = false;
+    open = !open;
+    if (open) queueMicrotask(updatePanelPosition);
   }
 
   function closePanel() {
@@ -129,7 +110,6 @@
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls="term-picker-inline"
-        aria-label={active?.label ?? "Academic term for class schedules"}
         onclick={toggleOpen}
       >
         <span class="term-inline__trigger-label"
@@ -189,7 +169,6 @@
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls="term-picker-chip"
-        aria-label={active?.label ?? "Academic term for class schedules"}
         title={active?.label ?? "Academic term for class schedules"}
         onclick={toggleOpen}
       >
@@ -253,11 +232,6 @@
   .term-filter-chip__button {
     cursor: pointer;
     max-width: 100%;
-  }
-  .term-filter-chip__button:focus-visible,
-  .term-inline__trigger:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
   }
 
   .term-filter-chip__label {

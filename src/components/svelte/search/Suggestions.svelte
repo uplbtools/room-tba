@@ -12,10 +12,7 @@
     dormMatchesTypeFilter,
   } from "@constants/building-types";
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
-  import FinalExamSuggestion from "./FinalExamSuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
-  import CampusBrowseChips from "./CampusBrowseChips.svelte";
-  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
 
   const appData = getAppData();
   const { buildings, colleges, divisions, dorms, events, loaded } =
@@ -133,16 +130,9 @@
 </script>
 
 <!-- class:visible={queryStore.inputValue === ""} -->
-<div
-  class="suggestions-container search-suggestions"
-  onmousedown={(event) => event.preventDefault()}
->
+<div class="suggestions-container search-suggestions">
   <!-- class:force-visible={queryStore.inputValue === ""} -->
   {#if queryStore.inputValue === ""}
-    <CampusBrowseChips />
-    <div class="suggestions-toolbar">
-      <KeyboardShortcutsChip compact />
-    </div>
     {#if queryStore.recentSearches.length !== 0}
       <h2 class="suggestions-header">Recent searches</h2>
       {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
@@ -190,7 +180,6 @@
   {/if}
 
   {#if suggestedResult.length === 0 && queryStore.inputValue !== "" && !roomLoading}
-    <FinalExamSuggestion onSelect={() => {}} />
     <SearchQuerySuggestion />
   {/if}
 </div>
@@ -206,12 +195,6 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     contain: layout style;
-  }
-
-  .suggestions-toolbar {
-    display: flex;
-    justify-content: flex-start;
-    padding: 0 0.5rem 0.25rem;
   }
 
   .suggestions-header {

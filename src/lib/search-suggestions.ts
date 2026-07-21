@@ -5,8 +5,6 @@ type Suggestion = {
   value: string;
   category: Exclude<QueryStoreState["category"], null>;
   eventSlug?: string;
-  building?: BuildingData;
-  event?: EventData;
 };
 
 const MAX_SUGGESTIONS = 8;
@@ -44,7 +42,7 @@ export function buildEntitySuggestions(
     ...takeMatches(
       data.filteredBuildings,
       ({ buildingName }) => buildingName.toLowerCase().includes(needle),
-      (b) => ({ value: b.buildingName, category: "building", building: b }),
+      ({ buildingName }) => ({ value: buildingName, category: "building" }),
     ),
     ...takeMatches(
       data.colleges,
@@ -68,11 +66,10 @@ export function buildEntitySuggestions(
       ({ title, description }) =>
         title.toLowerCase().includes(needle) ||
         Boolean(description && description.toLowerCase().includes(needle)),
-      (e) => ({
-        value: e.title,
+      ({ title, slug }) => ({
+        value: title,
         category: "event",
-        eventSlug: e.slug,
-        event: e,
+        eventSlug: slug,
       }),
     ),
   ];

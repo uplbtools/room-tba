@@ -9,21 +9,11 @@
   import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
   import GithubContributorsSection from "./GithubContributorsSection.svelte";
   import LandingGuideSteps from "./LandingGuideSteps.svelte";
-  import ContributorProgressPanel from "@ui/status-bar/ContributorProgressPanel.svelte";
-  import Download from "@lucide/svelte/icons/download";
 
   type LandingTab = "welcome" | "campus";
 
   let activeTab = $state<LandingTab>("welcome");
   let dontShowAgain = $state(false);
-  let installPrompt = $state<
-    | (Event & {
-        prompt: () => Promise<void>;
-        userChoice: Promise<{ outcome: string }>;
-      })
-    | null
-  >(null);
-  let isInstalled = $state(false);
 
   let githubContributors = $state<GithubContributor[]>([]);
   let githubLoading = $state(false);
@@ -72,34 +62,11 @@
   }
 
   function handleGetStarted() {
-    if (installPrompt) {
-      void installPrompt.prompt();
-      installPrompt.userChoice.then(({ outcome }) => {
-        if (outcome === "accepted") isInstalled = true;
-      });
-      installPrompt = null;
-      return;
-    }
     if (dontShowAgain) {
       localStorage.setItem("hideLandingModal", "true");
     }
     modalStore.closeModal();
   }
-
-  $effect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      installPrompt = e as BeforeInstallPromptEvent;
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    const iosStandalone =
-      "standalone" in window.navigator &&
-      (window.navigator as unknown as { standalone: boolean }).standalone ===
-        true;
-    isInstalled =
-      iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  });
 
   $effect(() => {
     if (!modalStore.open || modalStore.type !== "landing") return;
@@ -159,14 +126,6 @@
         id="landing-panel-campus"
         aria-labelledby="landing-tab-campus"
       >
-        <section class="coverage-block">
-          <h3>Campus data coverage</h3>
-          <p class="section-note">
-            Track directions, schedules, and map pins across campus buildings.
-          </p>
-          <ContributorProgressPanel />
-        </section>
-
         <GithubContributorsSection
           title="Developers"
           note="From GitHub commit history on the Room TBA repo."
@@ -252,16 +211,7 @@
       ·
       <a href="/terms" class="inline-link">Terms</a>
     </p>
-    {#if installPrompt && !isInstalled}
-      <button class="primary-btn install-btn" onclick={handleGetStarted}>
-        <Download size={16} aria-hidden="true" />
-        Install Room TBA
-      </button>
-    {:else}
-      <button class="primary-btn" onclick={() => modalStore.closeModal()}
-        >Get Started</button
-      >
-    {/if}
+    <button class="primary-btn" onclick={handleGetStarted}>Get Started</button>
     <label class="checkbox-label">
       <input type="checkbox" bind:checked={dontShowAgain} />
       Don't show again
@@ -407,25 +357,6 @@
     color: hsl(5, 53%, 28%);
   }
 
-  .coverage-block {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .coverage-block h3 {
-    margin: 0;
-    font-size: 0.9375rem;
-    font-weight: 700;
-    color: hsl(5, 53%, 28%);
-    text-align: center;
-  }
-
-  .coverage-block :global(.contributor-progress) {
-    width: 100%;
-  }
-
   .section-note {
     margin: 0;
     font-size: 0.75rem;
@@ -512,13 +443,6 @@
 
   .primary-btn:hover {
     background-color: hsl(5, 75%, 22%);
-  }
-
-  .install-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background-color: hsl(5, 75%, 28%);
   }
 
   .checkbox-label {

@@ -27,7 +27,6 @@ export function getSyncKeysFromLs(): {
       "rooms": "",
       "dorms": "",
       "classes": "",
-      "final_exams": "",
       "events": ""
     }`,
     );
@@ -54,7 +53,6 @@ export function getSyncKeysFromLs(): {
       "rooms": "",
       "dorms": "",
       "classes": "",
-      "final_exams": "",
       "events": ""
     }`,
     );
@@ -548,13 +546,11 @@ export async function getLocalBuildingRooms(id: number) {
     r.college_id as "collegeId",
     r.division_id as "divisionId",
     r.version,
-    r.updated_at as "updatedAt",
-    rp.floor
+    r.updated_at as "updatedAt"
     FROM rooms AS r
     LEFT JOIN buildings AS b ON b.id = r.building_id
     LEFT JOIN colleges as c ON c.id = r.college_id
     LEFT JOIN divisions AS d ON d.id = r.division_id
-    LEFT JOIN room_positions AS rp ON rp.room_id = r.id
     WHERE r.building_id = $1;
     `,
       [id],
@@ -946,57 +942,5 @@ export async function syncAliasCache() {
     }
   } catch (e) {
     console.error(e);
-  }
-}
-
-/** Sync classes into PGlite cache (#231). */
-export async function syncClasses(
-  checker: TableSyncInfo,
-  remoteClasses: {
-    id: number;
-    courseCode: string;
-    section: string;
-    type: string;
-    schedule: string;
-    directions: string | null;
-    courseTitle: string;
-    termId: number;
-    roomId: number | null;
-  }[],
-  trustedRemote = false,
-) {
-  syncToastStore.markWritingPhase("classes");
-  if (!trustedRemote) return;
-  if (checker.newKey === null) return;
-
-  const localDB = getDB();
-  await localDB.waitReady;
-  syncToastStore.startClassesSync(remoteClasses.length);
-
-  try {
-    await localDB.exec(`DELETE FROM classes`);
-    for (const c of remoteClasses) {
-      await localDB.query(
-        `
-        INSERT INTO classes (id, course_code, section, type, schedule, directions, course_title, term_id, room_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
-        `,
-        [
-          c.id,
-          c.courseCode,
-          c.section,
-          c.type,
-          c.schedule,
-          c.directions,
-          c.courseTitle,
-          c.termId,
-          c.roomId,
-        ],
-      );
-      syncToastStore.updateClassesSync();
-    }
-    updateSyncKeyFromLs("classes", checker.newKey ?? "");
-  } catch (e) {
-    console.error("Failed to sync classes", e);
   }
 }

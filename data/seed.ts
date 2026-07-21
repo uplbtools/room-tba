@@ -1,4 +1,3 @@
-// Legacy SQLite seed only — runtime data is Supabase Postgres (DATABASE_URL).
 // src/seed.ts
 
 import Database from "bun:sqlite";

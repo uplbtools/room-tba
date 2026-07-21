@@ -1,7 +1,7 @@
 {
   "name": "astro-room",
   "type": "module",
-  "version": "1.17.1",
+  "version": "1.9.0",
   "packageManager": "bun@1.3.14",
   "license": "MIT",
   "engines": {
@@ -10,9 +10,7 @@
   "scripts": {
     "dev": "astro dev",
     "dev:debug": "astro dev --verbose",
-    "build": "bash scripts/vercel-build-guard.sh && astro build",
-    "check:vercel-env": "bash scripts/check-vercel-env.sh",
-    "check:prod-branch": "bash scripts/check-production-branch.sh",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "lint": "prettier --check . && eslint .",
@@ -23,7 +21,6 @@
     "seed:events": "bun src/seed-events.ts",
     "seed:aliases": "bun run scripts/seed-aliases.ts",
     "import:amis-classes": "bun run scripts/import-amis-classes.ts",
-    "import:final-exams": "bun run scripts/import-final-exams.ts",
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run"
   },
@@ -41,6 +38,7 @@
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "astro": "^7.0.3",
     "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.11.1",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "es-toolkit": "^1.49.0",

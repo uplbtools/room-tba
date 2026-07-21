@@ -183,8 +183,10 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
   min-height: 1.75rem;
-  padding: 0.3125rem 0.5rem;
+  height: 1.75rem;
+  padding: 0 0.5rem;
   white-space: nowrap;
   border: 1px solid #d8b9ba;
   border-radius: 0.75rem;
@@ -194,7 +196,7 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   font: inherit;
   font-size: 0.6875rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1;
   text-decoration: none;
   transition:
     background-color 0.16s,

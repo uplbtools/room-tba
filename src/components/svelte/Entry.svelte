@@ -14,7 +14,6 @@
     sidePanelStore,
     floatingControlPanelStore,
     jeepneyStore,
-    appBootstrapStore,
   } from "@lib/store.svelte";
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
@@ -31,15 +30,10 @@
   import EditorAdditionModal from "@ui/EditorAdditionModal.svelte";
   import EditorScreen from "@ui/EditorScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
-  import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight, observeBlockWidth } from "@lib/layout-css-vars";
-  import {
-    dispatchGlobalShortcut,
-    getGlobalShortcutAction,
-  } from "@lib/keyboard-shortcuts";
-  import { dismissEphemeralOverlays } from "@lib/overlay-stack";
-  import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
+  import type { RecentSearch } from "@lib/types";
+  import { isRecentSearch } from "@lib/locStorage";
 
   type Props = {
     initialSearch?: InitialSearchState;
@@ -52,6 +46,7 @@
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
   };
   onMount(() => {
+    const hideLanding = localStorage.getItem("hideLandingModal");
     const recentSearchesLS = localStorage.getItem("recent-search");
     try {
       const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? "[]");
@@ -83,24 +78,10 @@
       floatingControlPanelStore.openPanel = "suggest-addition";
       window.history.replaceState({}, "", window.location.pathname);
     }
-  });
 
-  let landingModalAutoOpenConsumed = $state(false);
-
-  $effect(() => {
-    if (
-      !shouldAutoOpenLandingModal({
-        consumed: landingModalAutoOpenConsumed,
-        phase: appBootstrapStore.phase,
-        suppressLandingModal,
-        hideLandingModal: localStorage.getItem("hideLandingModal") === "true",
-        modalOpen: modalStore.open,
-      })
-    ) {
-      return;
+    if (!suppressLandingModal && hideLanding !== "true") {
+      modalStore.openModal("landing");
     }
-    landingModalAutoOpenConsumed = true;
-    modalStore.openModal("landing");
   });
   $effect(() => {
     updateData(queryStore.recentSearches);
@@ -144,19 +125,9 @@
   });
 
   function handleKeydown(e: KeyboardEvent) {
-    const action = getGlobalShortcutAction(e);
-    if (action) {
-      e.preventDefault();
-      dispatchGlobalShortcut(action);
-      return;
-    }
-
     if (e.key === "Escape") {
-      dismissEphemeralOverlays();
       if (modalStore.open) {
         modalStore.closeModal();
-      } else if (building3DStore.buildingName) {
-        building3DStore.close();
       } else if (adminAuthStore.loginOpen) {
         adminAuthStore.closeLogin();
       } else if (editorChromeStore.additionModalOpen) {
@@ -180,7 +151,6 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <EntityUrlSync />
-<EntityHoverPreview />
 
 <div class="app-layout" class:edit-mode={mapEditStore.enabled}>
   <Map />
@@ -248,7 +218,7 @@
     --search-block-height: 3.25rem;
     /* Top-left search card + drawer: use viewport minus right-side map chrome. */
     --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
-    --status-bar-block-height: 2rem;
+    --status-bar-block-height: 2.75rem;
     --drawer-peek-offset: 1.75rem;
     --map-tools-block-height: 3.25rem;
     --mobile-detail-sheet-top-inset: calc(
@@ -285,18 +255,9 @@
     --motion-duration-shelf: 260ms;
     --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
-    @media (prefers-reduced-motion: reduce) {
-      --motion-duration-fast: 0ms;
-      --motion-duration-micro: 0ms;
-      --motion-duration-panel: 0ms;
-      --motion-duration-shelf: 0ms;
-    }
-    /* Stacking contract — highest first; blocking overlays dismiss ephemeral chrome.
-       map(0) < side-panel(2) < search-elevated(12) < map-tools(15) < chrome-popover(17)
-       < modal(100) < login-modal(200) < toast(1000). (#302) */
+    /* Stacking context tokens so status bar > side panel > map. */
     --z-map: 0;
     --z-side-panel: 2;
-    --z-search-elevated: 12;
     --z-status-bar: 3;
     --z-map-tools: 15;
     --z-chrome-popover: 17;
@@ -340,7 +301,7 @@
     gap: 0.375rem;
     width: 100%;
     min-width: 0;
-    min-height: 2rem;
+    min-height: 2.75rem;
     box-sizing: border-box;
     pointer-events: auto;
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));

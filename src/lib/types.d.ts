@@ -59,7 +59,6 @@ type RoomData = {
   divisionName: string | null;
   version: number;
   updatedAt: string;
-  floor?: number | null;
 };
 
 type BuildingData = typeof buildingsTable.$inferSelect;
@@ -79,26 +78,11 @@ type ClassMapValue = {
   id: number;
 };
 
-type FinalExamRow = {
-  id: number;
-  termId: number;
-  courseCode: string;
-  section: string | null;
-  courseTitle: string | null;
-  roomId: number | null;
-  roomCode: string | null;
-  examDate: string;
-  startsAt: string;
-  endsAt: string;
-  source: string;
-};
-
 type CollegeData = {
   id: number;
   collegeName: string;
   version: number;
   updatedAt: string;
-  floor?: number | null;
 };
 
 type DivisionData = {
@@ -107,7 +91,6 @@ type DivisionData = {
   collegeId: number | null;
   version: number;
   updatedAt: string;
-  floor?: number | null;
 };
 
 type DormData = typeof dormsTable.$inferSelect;

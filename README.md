@@ -29,17 +29,15 @@ No account needed to browse. Editors and contributors fix data in the same app (
 
 ## What you can do
 
-| Goal                          | How                                                              |
-| ----------------------------- | ---------------------------------------------------------------- |
-| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)                            |
-| Room schedule this sem        | Term filter + timetable                                          |
-| Browse all classes            | Status bar → Browse classes; search by course code               |
-| Final exam time & room        | Search course code → finals panel; room panel during finals week |
-| Building location             | Map, pins, directions, Google Maps                               |
-| Offline / bad signal          | PWA + local cache; tiles if already loaded                       |
-| Campus events                 | Events on map with routes                                        |
-| Jeepney routes                | Route overlays                                                   |
-| 3D view                       | Buildings + Makiling terrain (online)                            |
+| Goal                          | How                                        |
+| ----------------------------- | ------------------------------------------ |
+| Find **PSLH 1** or **PhySci** | Search + aliases (`PhySci`, `HUM`, …)      |
+| Room schedule this sem        | Term filter + timetable                    |
+| Building location             | Map, pins, directions, Google Maps         |
+| Offline / bad signal          | PWA + local cache; tiles if already loaded |
+| Campus events                 | Events on map with routes                  |
+| Jeepney routes                | Route overlays                             |
+| 3D view                       | Buildings + Makiling terrain (online)      |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
@@ -123,19 +121,17 @@ Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts bu
 
 ### Commands worth knowing
 
-| Command                       | Does what                                                                                    |
-| ----------------------------- | -------------------------------------------------------------------------------------------- |
-| `bun dev`                     | Dev server                                                                                   |
-| `bun run build`               | Production build (**needs** `DATABASE_URL`)                                                  |
-| `bun test src`                | Unit tests (no DB required)                                                                  |
-| `bun run lint`                | Prettier + ESLint                                                                            |
-| `bun run format`              | Prettier write                                                                               |
-| `bunx drizzle-kit studio`     | Browse/edit Postgres visually                                                                |
-| `bun run seed:aliases`        | Seed building aliases from `public/room_info.json`                                           |
-| `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`)                                     |
-| `bun run import:final-exams`  | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
+| Command                   | Does what                                          |
+| ------------------------- | -------------------------------------------------- |
+| `bun dev`                 | Dev server                                         |
+| `bun run build`           | Production build (**needs** `DATABASE_URL`)        |
+| `bun test src`            | Unit tests (no DB required)                        |
+| `bun run lint`            | Prettier + ESLint                                  |
+| `bun run format`          | Prettier write                                     |
+| `bunx drizzle-kit studio` | Browse/edit Postgres visually                      |
+| `bun run seed:aliases`    | Seed building aliases from `public/room_info.json` |
 
-Legacy **`data/info.db`** SQLite is only for old seed/export scripts (`bun:sqlite`, not runtime). Production uses Supabase Postgres via `DATABASE_URL`. Archived SQLite migrations live in `drizzle-migrations/` — do not edit; active schema is `drizzle/`.
+Legacy **`data/info.db`** SQLite is only for old seed/export scripts. Production does not use it.
 
 Optional env vars (R2 uploads, Supabase Auth client): see [`.env.example`](.env.example).
 

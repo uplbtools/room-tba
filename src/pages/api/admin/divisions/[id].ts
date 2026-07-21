@@ -4,7 +4,6 @@ import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
 import {
   EditConflictError,
   updateDivision,
-  DuplicateNameError,
   type DivisionUpdateInput,
 } from "@lib/services/admin-service";
 
@@ -84,19 +83,6 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
         {
           error: "This division was changed by another editor.",
           latest: err.latest,
-        },
-        409,
-      );
-    }
-
-    if (err instanceof DuplicateNameError) {
-      return json(
-        {
-          error: err.message,
-          code: "duplicate_name",
-          entityType: err.entityType,
-          mergeCandidate: err.candidate,
-          attemptedName: err.attemptedName,
         },
         409,
       );

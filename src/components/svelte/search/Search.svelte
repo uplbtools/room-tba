@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { debounce } from "es-toolkit";
   import { fade } from "svelte/transition";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -25,11 +24,7 @@
   import EditorShelf from "@ui/EditorShelf.svelte";
   import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
   import MapChromeToggleButton from "@ui/map-chrome/MapChromeToggleButton.svelte";
-  import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsChip.svelte";
-  import CampusBrowseChips from "@ui/search/CampusBrowseChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
-  import { registerSearchFocus } from "@lib/search-focus";
-  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import {
     dropdownFadeIn,
     dropdownFadeOut,
@@ -55,21 +50,6 @@
     const el = mobile.current ? shellMainEl : chromeEl;
     if (!el) return;
     return observeBlockHeight(el, "--search-block-height");
-  });
-
-  onMount(() => {
-    const unregisterFocus = registerSearchFocus(() => {
-      searchElement?.focus();
-      searchElement?.select();
-    });
-    const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
-      searchFocused = false;
-      searchElement?.blur();
-    });
-    return () => {
-      unregisterFocus();
-      unregisterDismiss();
-    };
   });
 
   const commitSearchInput = debounce((searchInput: string) => {
@@ -285,8 +265,6 @@
               <label class="sr-only" for="search">Search campus</label>
               <input
                 type="text"
-                role="searchbox"
-                enterkeyhint="search"
                 id="search"
                 autocomplete="off"
                 value={draftInput}
@@ -298,9 +276,6 @@
                 onblur={() => {
                   searchFocused = false;
                 }}
-                aria-expanded={showSearchDropdown}
-                aria-controls="search-suggestions"
-                aria-autocomplete="list"
                 placeholder="Search room, building, dorm, event, division..."
               />
               {#if draftInput !== "" || queryStore.category !== null}
@@ -367,11 +342,8 @@
 
       {#if showSearchDropdown}
         <div
-          id="search-suggestions"
           class="map-search-chrome__suggestions"
           role="listbox"
-          aria-label="Search suggestions"
-          onmousedown={(event) => event.preventDefault()}
           in:fade={dropdownFadeIn(reducedMotion.current)}
           out:fade={dropdownFadeOut(reducedMotion.current)}
         >
@@ -386,9 +358,6 @@
           {/if}
           <TermSelector />
           {#if chrome.showSearchSuggestions}
-            {#if !showSearchDropdown}
-              <CampusBrowseChips variant="inline" />
-            {/if}
             {#if showIdleEventsChrome}
               <button
                 type="button"
@@ -413,9 +382,6 @@
             {/if}
             <BuildingTypeFilterBar />
             <TransitFilterChip />
-          {/if}
-          {#if !(showSearchDropdown && draftInput.trim() === "")}
-            <KeyboardShortcutsChip compact={mobile.current} />
           {/if}
         </div>
       {/if}
@@ -557,7 +523,7 @@
     min-width: 0;
   }
 
-  .search-root.mobile-shell .map-search-chrome__pill input {
+  .search-root.mobile-shell input[type="text"] {
     min-width: 0;
   }
 
@@ -743,7 +709,7 @@
     color: hsl(0, 0%, 28%);
   }
 
-  .map-search-chrome__pill input {
+  input[type="text"] {
     flex: 1 1 auto;
     min-width: 8.5rem;
     border: none;
@@ -754,11 +720,11 @@
     text-overflow: ellipsis;
   }
 
-  .search-root:not(.mobile-shell) .map-search-chrome__pill input {
+  .search-root:not(.mobile-shell) input[type="text"] {
     min-width: 15rem;
   }
 
-  .map-search-chrome__pill input::placeholder {
+  input[type="text"]::placeholder {
     color: #6b6b6b;
   }
 

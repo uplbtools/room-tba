@@ -30,11 +30,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 0.75rem;
-    background: var(--map-chrome-surface, hsl(5 20% 97%));
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
-    border-radius: var(--map-chrome-radius, 1rem);
-    box-shadow: var(--map-chrome-panel-shadow);
+    padding: 0.5rem;
   }
 
   .schedule-modal__header {
@@ -42,15 +38,13 @@
     align-items: baseline;
     gap: 0.625rem;
     flex-wrap: wrap;
-    padding-bottom: 0.375rem;
-    border-bottom: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
   .schedule-modal__header h2 {
     margin: 0;
     font-size: 1.125rem;
     font-weight: 700;
-    color: hsl(5, 53%, 22%);
+    color: black;
   }
 
   .schedule-modal__term {

@@ -2,18 +2,10 @@ name: CI
 
 on:
   pull_request:
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - ".cursor/**"
   push:
     branches:
       - main
       - staging
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - ".cursor/**"
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -40,9 +32,3 @@ jobs:
 
       - name: PWA legal route guardrails
         run: bun run check:pwa-legal
-
-      - name: Build (smoke)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: bun run build
-        continue-on-error: true

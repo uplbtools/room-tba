@@ -9,7 +9,6 @@
   import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
   import JeepneyMenu from "@ui/JeepneyMenu.svelte";
-  import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import { trapFocus } from "@lib/focus-trap";
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
   import MapChromePanel from "@ui/map-chrome/MapChromePanel.svelte";
@@ -24,7 +23,6 @@
     { id: "legend", label: "Legend" },
     { id: "terrain", label: "Terrain" },
     { id: "jeepney", label: "Transit" },
-    { id: "schedule", label: "Schedule" },
   ];
 
   function toggleSection(id: MapToolsSection) {
@@ -99,8 +97,6 @@
                   <TerrainControl embedded />
                 {:else if section.id === "jeepney"}
                   <JeepneyMenu embedded />
-                {:else if section.id === "schedule"}
-                  <ScheduleImportPanel embedded />
                 {/if}
               </div>
             {/if}

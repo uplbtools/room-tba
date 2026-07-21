@@ -1,47 +1,52 @@
-# Weekly volunteer triage ritual
+# Volunteer triage
 
-A 30-minute weekly process to keep issues moving and volunteers unblocked.
+Lightweight process for non-coding volunteers and triage leads. You do **not** need [AGENTS.md](../AGENTS.md).
 
-## When
+## Weekly check (5–10 minutes)
 
-Every Monday at 09:00 UTC (or async if no one is online).
+1. Open [open issues](https://github.com/uplbtools/room-tba/issues).
+2. Sort by **`data`** and **`qa`** labels: campus reports.
+3. For each new issue:
+   - Is the report clear enough to act on? If not, ask one clarifying question in a comment.
+   - Add **`help wanted`** if it needs a developer and no one is assigned.
+   - Link related duplicates.
+4. Skim **`good first issue`**: ping Discord if something is unclaimed for 2+ weeks.
 
-## Roles
+## Who does what
 
-- **Scribe:** rotates weekly; updates issue labels and writes a brief summary.
-- **Driver:** the person with the most context on current sprint work.
-
-## Agenda (30 min)
-
-1. **Open issues review (10 min)**
-   - Sort by `priority/high` then `priority/medium`.
-   - Check issues untouched for >14 days; ping assignee or unassign.
-   - Close stale `qa` issues that have been verified.
-
-2. **PR queue (10 min)**
-   - List open PRs targeting `staging`.
-   - Identify blockers (missing reviews, CI failures, merge conflicts).
-   - Assign reviewers or mark as `ready for review`.
-
-3. **Sprint health (5 min)**
-   - Count closed vs opened issues in the last 7 days.
-   - Flag any `size/S` or `size/XS` issues that could be picked up by new volunteers.
-
-4. **Action items (5 min)**
-   - Scribe posts summary in `#dev` Discord channel.
-   - Update project board columns if using GitHub Projects.
-
-## Runbook
-
-```sh
-# Quick triage query
-cd room-tba
-gh issue list --state open --label "priority/high" --limit 20
-gh issue list --state open --label "priority/medium" --limit 20
-gh pr list --state open --base staging
+```mermaid
+flowchart LR
+  Reporter[Campus reporter]
+  Triage[Volunteer triage]
+  Dev[Developer PR]
+  Agent[Maintainer or agent]
+  Staging[staging]
+  Reporter --> Triage
+  Triage --> Dev
+  Triage --> Agent
+  Dev --> Staging
+  Agent --> Staging
 ```
 
-## Resources
+| Role               | Action                                                |
+| ------------------ | ----------------------------------------------------- |
+| Reporter           | Data / QA issue or in-app suggest: **no PR**          |
+| Triage             | Label, clarify, surface `help wanted`                 |
+| Developer          | Picks up issue, PR to `staging`, comments on issue    |
+| Maintainer / agent | Same; may implement data fixes on behalf of reporters |
 
-- [Issue hygiene](issue-hygiene.md)
-- [Volunteer triage](volunteer-triage.md)
+## Credit
+
+- Thank reporters in issue comments when a fix merges.
+- Contributor profiles (#310) will extend this later.
+
+## Templates
+
+| Template                                                         | Use                             |
+| ---------------------------------------------------------------- | ------------------------------- |
+| [Data correction](../.github/ISSUE_TEMPLATE/data_correction.yml) | Wrong schedule, pin, directions |
+| [Campus QA](../.github/ISSUE_TEMPLATE/campus_qa.yml)             | Manual testing on device        |
+
+Full contributor paths: [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+Epic: [#217](https://github.com/uplbtools/room-tba/issues/217).

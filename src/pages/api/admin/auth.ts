@@ -15,9 +15,7 @@ import {
 import {
   authenticateAdminUser,
   authenticateLegacyAdminPassword,
-  getAdminUserBySupabaseId,
 } from "@lib/services/admin-user-service";
-import { createServerSupabaseClient } from "@lib/supabase/server";
 
 export const prerender = false;
 
@@ -43,7 +41,7 @@ export const GET: APIRoute = async ({ cookies }) => {
   );
 };
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request }) => {
   const ip = clientIp(request);
   const ipRate = checkRateLimit(
     `admin-login:ip:${ip}`,
@@ -75,28 +73,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return json({ error: "Password is required" }, 400);
   }
 
-  let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
-
-  // Try Supabase Auth when configured (#293)
-  try {
-    const supabase = createServerSupabaseClient({
-      request,
-      cookies,
-    });
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: username,
-      password,
-    });
-    if (data.user && !error) {
-      user = await getAdminUserBySupabaseId(data.user.id);
-    }
-  } catch {
-    // Supabase not configured or unavailable → fall through to bcrypt
-  }
-
-  if (!user) {
-    user = username ? await authenticateAdminUser(username, password) : null;
-  }
+  let user = username ? await authenticateAdminUser(username, password) : null;
 
   if (!user && !username) {
     user = await authenticateLegacyAdminPassword(password);

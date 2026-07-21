@@ -55,9 +55,7 @@
       aria-modal="true"
       aria-labelledby={modalStore.type === "landing"
         ? "landing-modal-title"
-        : modalStore.type === "filter"
-          ? "filter-modal-title"
-          : undefined}
+        : undefined}
       aria-label={modalAriaLabel}
       in:fly={modalContentReveal(reducedMotion.current)}
       out:fly={modalContentDismiss(reducedMotion.current)}

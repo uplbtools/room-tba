@@ -1,4 +1,4 @@
-import { and, asc, count, eq, ilike, like, or, sql } from "drizzle-orm";
+import { and, eq, like, or, sql } from "drizzle-orm";
 import {
   aliasesTable,
   buildingsTable,
@@ -6,88 +6,20 @@ import {
   collegesTable,
   divisionsTable,
   dormsTable,
-  finalExamsTable,
   roomsTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
-import { normalizeCourseCode } from "@lib/final-exams/normalize";
 import { normalizeAlias } from "@lib/site";
 import { normalizeDormListFields } from "@lib/string-lists";
-import { getBuildCache } from "./ssg-cache";
 import type {
   BuildingData,
   ClassMapValue,
   CollegeData,
   DivisionData,
   DormData,
-  FinalExamRow,
   RoomData,
 } from "@lib/types";
 
-// Cached getters for SSG (#331)
-export async function getAllBuildingsCached(): Promise<BuildingData[]> {
-  const cache = getBuildCache();
-  if (cache.buildings) return cache.buildings;
-  const data = await db.select().from(buildingsTable);
-  cache.buildings = data;
-  return data;
-}
-
-export async function getAllRoomsCached(): Promise<RoomData[]> {
-  const cache = getBuildCache();
-  if (cache.rooms) return cache.rooms;
-  const data = await db
-    .select({
-      id: roomsTable.id,
-      code: roomsTable.roomCode,
-      directions: roomsTable.directions,
-      building: {
-        name: buildingsTable.buildingName,
-        lat: buildingsTable.lat,
-        lon: buildingsTable.lon,
-        directions: buildingsTable.directions,
-      },
-      collegeName: collegesTable.collegeName,
-      divisionName: divisionsTable.divisionName,
-      buildingId: roomsTable.buildingId,
-      collegeId: roomsTable.collegeId,
-      divisionId: roomsTable.divisionId,
-      version: roomsTable.version,
-      updatedAt: roomsTable.updatedAt,
-    })
-    .from(roomsTable)
-    .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-    .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-    .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
-  cache.rooms = data;
-  return data;
-}
-
-export async function getAllCollegesCached(): Promise<CollegeData[]> {
-  const cache = getBuildCache();
-  if (cache.colleges) return cache.colleges;
-  const data = await db.select().from(collegesTable);
-  cache.colleges = data;
-  return data;
-}
-
-export async function getAllDivisionsCached(): Promise<DivisionData[]> {
-  const cache = getBuildCache();
-  if (cache.divisions) return cache.divisions;
-  const data = await db.select().from(divisionsTable);
-  cache.divisions = data;
-  return data;
-}
-
-export async function getAllDormsCached(): Promise<DormData[]> {
-  const cache = getBuildCache();
-  if (cache.dorms) return cache.dorms;
-  const data = await db.select().from(dormsTable);
-  cache.dorms = data;
-  return data;
-}
-
-// Legacy non-cached versions for runtime use
 export async function getAllBuildings(): Promise<BuildingData[]> {
   try {
     const data = await db.select().from(buildingsTable);
@@ -308,73 +240,21 @@ export async function getAllDivisions(): Promise<DivisionData[]> {
   }
 }
 
-const classListSelect = {
-  id: classesTable.id,
-  termId: classesTable.termId,
-  roomId: classesTable.roomId,
-  courseCode: classesTable.courseCode,
-  roomCode: roomsTable.roomCode,
-  section: classesTable.section,
-  type: classesTable.type,
-  schedule: classesTable.schedule,
-  directions: roomsTable.directions,
-  courseTitle: classesTable.courseTitle,
-};
-
-function classListWhere(termId?: number, courseCodePrefix?: string) {
-  const filters = [];
-  if (termId != null) {
-    filters.push(eq(classesTable.termId, termId));
-  }
-  const prefix = courseCodePrefix?.trim();
-  if (prefix) {
-    filters.push(ilike(classesTable.courseCode, `${prefix.toUpperCase()}%`));
-  }
-  return filters.length > 0 ? and(...filters) : undefined;
-}
-
-export type ClassQueryPage = {
-  rows: ClassMapValue[];
-  total: number;
-};
-
-export async function queryClasses(options: {
-  termId?: number;
-  courseCodePrefix?: string;
-  limit?: number;
-  offset?: number;
-}): Promise<ClassQueryPage> {
-  try {
-    const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
-    const offset = Math.max(options.offset ?? 0, 0);
-    const where = classListWhere(options.termId, options.courseCodePrefix);
-
-    const [{ value: total }] = await db
-      .select({ value: count() })
-      .from(classesTable)
-      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
-      .where(where);
-
-    const rows = await db
-      .select(classListSelect)
-      .from(classesTable)
-      .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
-      .where(where)
-      .orderBy(asc(classesTable.courseCode), asc(classesTable.section))
-      .limit(limit)
-      .offset(offset);
-
-    return { rows, total: Number(total ?? 0) };
-  } catch (e) {
-    console.error("Error: ", e);
-    throw new Error("Failed to query classes", { cause: e });
-  }
-}
-
 export async function getAllClasses(termId?: number): Promise<ClassMapValue[]> {
   try {
     const data = await db
-      .select(classListSelect)
+      .select({
+        id: classesTable.id,
+        termId: classesTable.termId,
+        roomId: classesTable.roomId,
+        courseCode: classesTable.courseCode,
+        roomCode: roomsTable.roomCode,
+        section: classesTable.section,
+        type: classesTable.type,
+        schedule: classesTable.schedule,
+        directions: roomsTable.directions,
+        courseTitle: classesTable.courseTitle,
+      })
       .from(classesTable)
       .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
       .where(termId != null ? eq(classesTable.termId, termId) : undefined);
@@ -623,57 +503,5 @@ export async function getAllDorms(): Promise<DormData[]> {
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for dorms", { cause: e });
-  }
-}
-
-export async function queryFinalExams(filters: {
-  courseCode?: string;
-  roomCode?: string;
-  date?: string;
-  termId?: number;
-}): Promise<FinalExamRow[]> {
-  try {
-    const conditions = [];
-    if (filters.termId != null) {
-      conditions.push(eq(finalExamsTable.termId, filters.termId));
-    }
-    if (filters.courseCode) {
-      const code = normalizeCourseCode(filters.courseCode);
-      if (code) conditions.push(eq(finalExamsTable.courseCode, code));
-    }
-    if (filters.roomCode) {
-      conditions.push(eq(roomsTable.roomCode, filters.roomCode));
-    }
-    if (filters.date) {
-      conditions.push(eq(finalExamsTable.examDate, filters.date));
-    }
-
-    const data = await db
-      .select({
-        id: finalExamsTable.id,
-        termId: finalExamsTable.termId,
-        courseCode: finalExamsTable.courseCode,
-        section: finalExamsTable.section,
-        courseTitle: finalExamsTable.courseTitle,
-        roomId: finalExamsTable.roomId,
-        roomCode: roomsTable.roomCode,
-        examDate: finalExamsTable.examDate,
-        startsAt: finalExamsTable.startsAt,
-        endsAt: finalExamsTable.endsAt,
-        source: finalExamsTable.source,
-      })
-      .from(finalExamsTable)
-      .leftJoin(roomsTable, eq(roomsTable.id, finalExamsTable.roomId))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(
-        finalExamsTable.examDate,
-        finalExamsTable.startsAt,
-        finalExamsTable.courseCode,
-      );
-
-    return data;
-  } catch (e) {
-    console.error("Error: ", e);
-    throw new Error("Failed to fetch final exams", { cause: e });
   }
 }

@@ -21,11 +21,9 @@
   import type { DormData } from "@lib/types";
   import {
     getStoredProposalForEntity,
-    mergeEntityRecord,
     persistEntityChange,
   } from "@lib/proposals/client";
   import { handlePersistEntityResult } from "@lib/editor/handle-persist-result";
-  import MergeEntityPrompt from "@ui/editor/MergeEntityPrompt.svelte";
   import {
     clearEntityContributorDraft,
     readEntityContributorDraft,
@@ -88,12 +86,6 @@
   let submitterNameDraft = $state("");
   let proposalStatus = $state<string | null>(null);
   let activeProposalId = $state<number | null>(null);
-  let mergePrompt = $state<{
-    candidate: DormData;
-    attemptedName: string;
-    sourceVersion: number;
-  } | null>(null);
-  let mergingEntity = $state(false);
   const canPublish = $derived(adminAuthStore.canPublish);
   const dormShareUrl = $derived(dorm ? getDormShareUrl(dorm) : "");
 
@@ -200,7 +192,6 @@
     osmLinkDraft = current.osmLink ?? "";
     savedField = null;
     fieldError = null;
-    mergePrompt = null;
     proposalStatus = null;
     const stored = getStoredProposalForEntity("dorm", current.id);
     activeProposalId = stored?.id ?? null;
@@ -435,15 +426,6 @@
       });
 
       if (outcome.error) {
-        if (outcome.mergeCandidate && field === "dormName") {
-          mergePrompt = {
-            candidate: outcome.mergeCandidate as DormData,
-            attemptedName: body.dormName ?? nameDraft.trim(),
-            sourceVersion: current.version,
-          };
-          fieldError = null;
-          return;
-        }
         fieldError = outcome.error;
         return;
       }
@@ -466,53 +448,6 @@
       fieldError = `${current.dormName} ${fieldLabel(field)} failed to save: ${reason}`;
     } finally {
       savingField = null;
-    }
-  }
-
-  function dismissMergePrompt() {
-    mergePrompt = null;
-    const current = dorm;
-    if (current) nameDraft = current.dormName;
-  }
-
-  async function confirmDormMerge() {
-    const current = dorm;
-    if (!current || !mergePrompt) return;
-
-    mergingEntity = true;
-    fieldError = null;
-
-    try {
-      const result = await mergeEntityRecord({
-        entityType: "dorm",
-        sourceId: current.id,
-        targetId: mergePrompt.candidate.id,
-        sourceVersion: mergePrompt.sourceVersion,
-        preferredName: mergePrompt.attemptedName,
-      });
-
-      if (!result.ok) {
-        if (result.latest) syncDormFromServer(result.latest as DormData);
-        fieldError =
-          result.error ??
-          `${current.dormName} could not be merged into ${mergePrompt.candidate.dormName}.`;
-        return;
-      }
-
-      if (result.entity) {
-        syncDormFromServer(result.entity as DormData);
-        toastStore.show(
-          `Merged ${current.dormName} into ${mergePrompt.candidate.dormName}.`,
-          "success",
-        );
-      }
-      mergePrompt = null;
-      editing = false;
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.dormName} merge failed: ${reason}`;
-    } finally {
-      mergingEntity = false;
     }
   }
 </script>
@@ -643,19 +578,6 @@
           {saveField}
           {enablePinProposal}
         />
-
-        {#if mergePrompt}
-          <MergeEntityPrompt
-            entityKind="dorm"
-            sourceLabel={dorm.dormName}
-            candidateLabel={mergePrompt.candidate.dormName}
-            detail="Merge event links and metadata into the kept dorm;"
-            merging={mergingEntity}
-            disabled={savingField !== null}
-            onconfirm={confirmDormMerge}
-            ondismiss={dismissMergePrompt}
-          />
-        {/if}
       </section>
     {/if}
 

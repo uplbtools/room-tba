@@ -33,11 +33,9 @@
   import CopyLinkButton from "@ui/CopyLinkButton.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
   import { ROOM_SCHEDULE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
-  import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
-  import type { FinalExamRow, RoomData } from "@lib/types";
+  import type { RoomData } from "@lib/types";
   import { tick } from "svelte";
   import Classes from "./Classes.svelte";
-  import FinalExamsList from "./FinalExamsList.svelte";
 
   type RoomEditableField =
     "roomCode" | "directions" | "buildingId" | "collegeId" | "divisionId";
@@ -82,10 +80,6 @@
   );
   const activeTermLabel = $derived(termStore.activeTerm?.label ?? null);
 
-  let finalExams = $state<FinalExamRow[]>([]);
-  let finalExamsLoading = $state(false);
-  let finalExamsRequestKey = $state<string | null>(null);
-
   onMount(() => {
     termStore.init();
   });
@@ -98,26 +92,6 @@
       return;
     }
     void roomClassesStore.load(code, termId);
-  });
-
-  $effect(() => {
-    const code = currentRoom.value?.code;
-    const termId = termStore.activeTermId;
-    if (!code || termId == null) {
-      finalExams = [];
-      finalExamsLoading = false;
-      return;
-    }
-
-    const key = `${code}::${termId}`;
-    finalExamsRequestKey = key;
-    finalExamsLoading = true;
-
-    void fetchFinalExams({ roomCode: code, termId }).then((rows) => {
-      if (finalExamsRequestKey !== key) return;
-      finalExams = rows;
-      finalExamsLoading = false;
-    });
   });
 
   $effect(() => {
@@ -728,28 +702,6 @@
         </p>
       {/if}
     </section>
-
-    {#if finalExamsLoading || finalExams.length > 0}
-      <section class="entity-schedule" aria-label="Final exams in this room">
-        <div class="entity-schedule__header">
-          <h3 class="entity-schedule__title">
-            Final exams in this room
-            {#if !finalExamsLoading}
-              <span class="entity-schedule__count">({finalExams.length})</span>
-            {/if}
-          </h3>
-        </div>
-        {#if activeTermLabel}
-          <p class="entity-schedule__term">{activeTermLabel}</p>
-        {/if}
-        <p class="entity-schedule__scope">{FINALS_SCOPE_NOTE}</p>
-        {#if finalExamsLoading}
-          <p class="entity-schedule__empty">Loading final exams…</p>
-        {:else}
-          <FinalExamsList exams={finalExams} />
-        {/if}
-      </section>
-    {/if}
   {:else}
     <p>Room not found.</p>
   {/if}
