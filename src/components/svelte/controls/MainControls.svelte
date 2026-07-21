@@ -18,6 +18,7 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import { MediaQuery } from "svelte/reactivity";
+  import { resolveSheetDragReleaseIntent } from "@lib/sheet-drag-intent";
 
   const mobile = new MediaQuery("max-width:48rem");
   let lastPanelIdentity = $state<string | null>(null);
@@ -105,18 +106,25 @@
       return;
     }
 
-    // Flick: snap based on velocity direction regardless of distance.
-    if (velocity > FLICK_VELOCITY) {
-      if (delta > 0) sidePanelStore.collapse();
-      else sidePanelStore.expand();
-    } else if (sidePanelStore.collapsed) {
-      // Collapsed: negative delta means dragged up → expand.
-      if (delta < -DRAG_FOLLOW_THRESHOLD) sidePanelStore.expand();
-    } else {
-      // Expanded: positive delta means dragged down → collapse.
-      if (delta > DRAG_FOLLOW_THRESHOLD) sidePanelStore.collapse();
-    }
+    const intent = resolveSheetDragReleaseIntent({
+      delta,
+      velocity,
+      collapsed: sidePanelStore.collapsed,
+      followThreshold: DRAG_FOLLOW_THRESHOLD,
+      flickVelocity: FLICK_VELOCITY,
+    });
+    if (intent === "expand") sidePanelStore.expand();
+    else if (intent === "collapse") sidePanelStore.collapse();
 
+    dragMoved = false;
+    dragOffset = 0;
+  }
+
+  /** Multi-touch/OS gesture takeover cancels the pointer sequence without a
+   * pointerup — reset to the current committed position instead of leaving
+   * the sheet stuck mid-drag with transitions disabled. */
+  function onHandlePointerCancel() {
+    dragStartY = null;
     dragMoved = false;
     dragOffset = 0;
   }
@@ -164,6 +172,8 @@
             onpointerdown={onHandlePointerDown}
             onpointermove={onHandlePointerMove}
             onpointerup={onHandlePointerUp}
+            onpointercancel={onHandlePointerCancel}
+            onlostpointercapture={onHandlePointerCancel}
           >
             {#if mobile.current}
               <span class="drawer-grab" aria-hidden="true"></span>
@@ -287,9 +297,14 @@
     flex: 1 1 0;
     min-height: 0;
     overflow-y: auto;
-    /* #411: allow action chips and focus rings to extend horizontally
-       without being clipped by the vertical scroll container. */
-    overflow-x: visible;
+    /* #411: `overflow-x: visible` here is a no-op — per spec, pairing
+       `visible` on one axis with a non-`visible` value on the other
+       resolves the `visible` axis to `auto`, so it would still clip/scroll
+       like the y-axis. `clip` avoids that pairing rule entirely (it isn't
+       `visible`), and `overflow-clip-margin` gives chips/focus rings room
+       to bleed past the padding box without triggering a scrollbar. */
+    overflow-x: clip;
+    overflow-clip-margin: 0.5rem;
     overscroll-behavior: contain;
     scroll-padding: 4px 0 0.5rem;
   }
