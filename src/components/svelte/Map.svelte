@@ -26,6 +26,7 @@
     additionProposalStore,
     buildingTypeFilter,
     terrainStore,
+    trailStore,
     scheduleRouteStore,
     classVenuesStore,
     termStore,
@@ -76,6 +77,16 @@
     type JeepneyStop,
   } from "@constants/jeepney-routes";
   import jeepneyGeometries from "@constants/jeepney-geometries.json";
+  import {
+    MAKILING_TRAIL_COLOR,
+    MAKILING_TRAIL_LAYER_CASING_ID,
+    MAKILING_TRAIL_LAYER_ID,
+    MAKILING_TRAIL_LINE,
+    MAKILING_TRAIL_STATIONS,
+    MAKILING_TRAIL_STATIONS_LAYER_ID,
+    MAKILING_TRAIL_STATIONS_SOURCE_ID,
+    MAKILING_TRAIL_SOURCE_ID,
+  } from "@constants/makiling-trail";
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
@@ -458,6 +469,101 @@
     }
     if (map.getSource(EVENT_ROUTE_SOURCE_ID))
       map.removeSource(EVENT_ROUTE_SOURCE_ID);
+  }
+
+  function ensureTrailLayers(map: mapGl.MapLibreMap) {
+    // Trail line source + casing + line
+    if (!map.getSource(MAKILING_TRAIL_SOURCE_ID)) {
+      map.addSource(MAKILING_TRAIL_SOURCE_ID, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: MAKILING_TRAIL_LINE,
+          },
+          properties: {},
+        },
+      });
+    }
+
+    if (!map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID)) {
+      map.addLayer({
+        id: MAKILING_TRAIL_LAYER_CASING_ID,
+        type: "line",
+        source: MAKILING_TRAIL_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 7,
+          "line-opacity": 0.9,
+        },
+      });
+    }
+
+    if (!map.getLayer(MAKILING_TRAIL_LAYER_ID)) {
+      map.addLayer({
+        id: MAKILING_TRAIL_LAYER_ID,
+        type: "line",
+        source: MAKILING_TRAIL_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": MAKILING_TRAIL_COLOR,
+          "line-width": 4,
+          "line-opacity": 0.95,
+        },
+      });
+    }
+
+    // Station markers source + circle layer
+    if (!map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID)) {
+      map.addSource(MAKILING_TRAIL_STATIONS_SOURCE_ID, {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: MAKILING_TRAIL_STATIONS.map((s) => ({
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: [s.lon, s.lat],
+            },
+            properties: {
+              station: s.station,
+              name: s.name,
+              elevation: s.elevationMeters,
+            },
+          })),
+        },
+      });
+    }
+
+    if (!map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID)) {
+      map.addLayer({
+        id: MAKILING_TRAIL_STATIONS_LAYER_ID,
+        type: "circle",
+        source: MAKILING_TRAIL_STATIONS_SOURCE_ID,
+        paint: {
+          "circle-radius": 6,
+          "circle-color": MAKILING_TRAIL_COLOR,
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 2,
+          "circle-opacity": 0.95,
+        },
+      });
+    }
+  }
+
+  function clearTrailLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID))
+      map.removeLayer(MAKILING_TRAIL_STATIONS_LAYER_ID);
+    if (map.getLayer(MAKILING_TRAIL_LAYER_ID))
+      map.removeLayer(MAKILING_TRAIL_LAYER_ID);
+    if (map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID))
+      map.removeLayer(MAKILING_TRAIL_LAYER_CASING_ID);
+    if (map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID))
+      map.removeSource(MAKILING_TRAIL_STATIONS_SOURCE_ID);
+    if (map.getSource(MAKILING_TRAIL_SOURCE_ID))
+      map.removeSource(MAKILING_TRAIL_SOURCE_ID);
   }
 
   function buildEventRouteGeometry(
@@ -1975,6 +2081,19 @@
       });
     });
     return () => cancelAnimationFrame(frame);
+  });
+
+  // #716: Makiling trail overlay — toggle trail line + station markers
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const enabled = trailStore.enabled;
+    if (!map) return;
+
+    if (enabled) {
+      ensureTrailLayers(map);
+    } else {
+      clearTrailLayers(map);
+    }
   });
 
   $effect(() => {
