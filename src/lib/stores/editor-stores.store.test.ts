@@ -74,6 +74,21 @@ describe("AdditionProposalStore", () => {
     await expect(pending).resolves.toEqual({ lat: 14.1, lon: 121.2 });
     expect(store.pinPickActive).toBe(false);
   });
+
+  test("setDraftPinPreview stores preview metadata independently of coords", () => {
+    const store = new AdditionProposalStore();
+    store.setDraftPinPreview({ kind: "building", label: "Baker Hall" });
+    expect(store.draftPinPreview).toEqual({
+      kind: "building",
+      label: "Baker Hall",
+    });
+    store.clearDraftPin();
+    expect(store.draftPin).toBeNull();
+    expect(store.draftPinPreview).toEqual({
+      kind: "building",
+      label: "Baker Hall",
+    });
+  });
 });
 
 describe("EventPlacementStore", () => {
