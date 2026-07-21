@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/uplbtools/room-tba/compare/v2.3.0...v2.3.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* **backup:** install deps before R2 upload ([57b793f](https://github.com/uplbtools/room-tba/commit/57b793f2434da83777c8a7cdb9c9fa2e17b13326))
+
 # [2.3.0](https://github.com/uplbtools/room-tba/compare/v2.2.0...v2.3.0) (2026-07-21)
 
 
