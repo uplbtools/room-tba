@@ -52,3 +52,4 @@ gh pr list --state open --base staging
 
 - [Issue hygiene](issue-hygiene.md)
 - [Volunteer triage](volunteer-triage.md)
+- [Campus gate coordinates](../CONTRIBUTING.md#campus-gate-coordinates) — [`data/campus-gate-coordinates-template.csv`](../data/campus-gate-coordinates-template.csv) + [batch issue template](https://github.com/uplbtools/room-tba/issues/new?template=gate_coordinates_batch.yml) ([#249](https://github.com/uplbtools/room-tba/issues/249) / [#157](https://github.com/uplbtools/room-tba/issues/157))

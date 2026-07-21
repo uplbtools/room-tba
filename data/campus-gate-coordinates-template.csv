@@ -1,0 +1,6 @@
+name,short_name,slug,gate_type,lat,lon,is_primary,directions,osm_link,verified,verification_method,notes
+Raymundo Gate,Raymundo,raymundo-gate,both,,,false,,,no,,"STARTER — verify on site; referenced in jeepney routes and building directions"
+Main Gate (Oblation),Main Gate,main-gate-oblation,both,,,true,,,no,,"STARTER — verify on site; common origin in building directions"
+CEAT / Pili Drive,CEAT,pili-drive-ceat,vehicle,,,false,,,no,,"STARTER — verify on site; vehicle entrance near CEAT"
+CFNR Gate (Forestry),CFNR,cfnr-gate,vehicle,,,false,,,no,,"STARTER — verify on site; College of Forestry and Natural Resources"
+,,,,,,,,,,,"ADD ROWS BELOW — gate_type: vehicle|pedestrian|both; is_primary: true|false; verified: yes|no; lat/lon only after on-site GPS or map pin check"
