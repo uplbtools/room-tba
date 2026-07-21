@@ -25,5 +25,5 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            Review this pull request for real problems only: bugs, security issues, broken edge cases, data-loss risks, and spec or test drift. Read the diff with gh pr diff; read surrounding code when the diff alone is ambiguous. Leave short inline comments on specific lines for each finding, then one summary comment (or just "LGTM" if nothing found). No praise, no style nits, no em dashes anywhere.
-          claude_args: --allowed-tools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr checks:*)"
+            Review this pull request for real problems only: bugs, security issues, broken edge cases, data-loss risks, and spec or test drift. Read the diff with gh pr diff; read surrounding code when the diff alone is ambiguous. Leave short inline comments on specific lines for each finding (mcp inline tool if available, else gh api repos/OWNER/REPO/pulls/N/comments), then ALWAYS post one summary comment via gh pr comment (or just "LGTM" if nothing found). No praise, no style nits, no em dashes anywhere.
+          claude_args: --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh api:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr checks:*)"
