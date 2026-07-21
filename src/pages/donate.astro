@@ -2,166 +2,149 @@
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { campusDonation } from "../campus.config";
-import {
-  UPLB_TOOLS_URL,
-  DISCORD_URL,
-  MESSENGER_CONTRIBUTE_TARGET,
-} from "@constants/community-links";
-
-const { gcashName, gcashNumber } = campusDonation;
 ---
 
 <Layout
   title="Donate | Room TBA"
-  description="Support Room TBA and UPLB Tools — a student-run project. Donations via GCash."
+  description="Support Room TBA and UPLB Tools with a one-time donation. Every peso goes to hosting, contributor payouts, and keeping the map free."
   canonicalPath="/donate"
   showAppLoadingShell={false}
 >
-  <main class="legal-page">
+  <main class="donate-page">
     <a href="/" class="back-link">
-      <span aria-hidden="true">&larr;</span> Back to Room TBA
+      <span aria-hidden="true">←</span> Back to Room TBA
     </a>
 
     <header class="hero">
-      <p class="eyebrow">Support</p>
-      <h1>Donate</h1>
+      <p class="eyebrow">Support the project</p>
+      <h1>Buy the volunteers a kape</h1>
       <p class="lede">
-        Room TBA is a free, student-run project under
-        <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
-          >UPLB Tools</a
-        >. We don't run ads or charge anyone. Donations help cover server costs,
-        domain renewal, and map data updates.
+        Room TBA and the rest of UPLB Tools are free, open-source, and run by
+        student volunteers. One-time donations cover hosting, the database,
+        and contributor payouts, with the same 40/30/30 split
+        as <a href="/sponsors">sponsorships</a>.
       </p>
     </header>
 
-    <article class="legal-body">
-      <section class="donate-card">
-        <h2>Send via GCash</h2>
-        <dl class="gcash-details">
-          <div class="gcash-row">
-            <dt>Recipient</dt>
-            <dd>{gcashName}</dd>
-          </div>
-          <div class="gcash-row">
-            <dt>Mobile number</dt>
-            <dd>
-              <code class="gcash-number" id="gcash-number">{gcashNumber}</code>
-              <button
-                type="button"
-                class="copy-btn"
-                data-copy-target="gcash-number"
-                aria-label="Copy GCash number"
-              >
-                Copy
-              </button>
-            </dd>
-          </div>
-        </dl>
-        <p class="donate-note">
-          Open your GCash app, choose <strong>Send Money</strong>, and enter the
-          details above. Any amount helps.
-        </p>
-      </section>
-
-      <section>
-        <h2>Other ways to help</h2>
-        <p>
-          Not able to donate? You can still help by contributing campus data,
-          reporting errors, or joining our community:
-        </p>
-        <ul>
-          <li>
-            <a href={MESSENGER_CONTRIBUTE_TARGET} target="_blank" rel="noopener noreferrer">
-              Join the Messenger group
-            </a>
-            to contribute room and building info.
-          </li>
-          <li>
-            <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
-              Join our Discord
-            </a>
-            for discussion and updates.
-          </li>
-          <li>
-            <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer">
-              Learn more about UPLB Tools
-            </a>.
-          </li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>Where your donation goes</h2>
-        <ul>
-          <li>Vercel hosting and build minutes</li>
-          <li>Domain registration (uplbtools.me)</li>
-          <li>Supabase database hosting</li>
-          <li>Map tile and geocoding API costs</li>
-        </ul>
-        <p>
-          Room TBA is not an official UPLB website. Donations are voluntary and
-          non-refundable. We are not a registered nonprofit &mdash; your support
-          goes directly to keeping the service online.
-        </p>
-      </section>
-    </article>
+    <section class="donate-card" aria-label="Donation form">
+      <div id="donate-status" class="status" role="status" hidden></div>
+      <div class="amounts" role="group" aria-label="Choose an amount">
+        <button type="button" class="amount" data-amount="50">₱50</button>
+        <button type="button" class="amount" data-amount="100">₱100</button>
+        <button type="button" class="amount" data-amount="200">₱200</button>
+        <label class="custom">
+          <span>Custom</span>
+          <input
+            id="custom-amount"
+            type="number"
+            min="10"
+            max="50000"
+            placeholder="₱"
+            inputmode="numeric"
+          />
+        </label>
+      </div>
+      <label class="message">
+        <span>Message (optional)</span>
+        <input
+          id="donate-message"
+          type="text"
+          maxlength="200"
+          placeholder="Salamat sa Room TBA!"
+        />
+      </label>
+      <button type="button" id="donate-submit" class="submit">Donate</button>
+      <p class="fineprint">
+        Payments are processed
+        by <a
+          href="https://www.paymongo.com"
+          target="_blank"
+          rel="noopener noreferrer">PayMongo</a
+        > via QR Ph, which works with GCash, Maya, and bank apps. We never see
+        your payment details. ₱10 minimum. See
+        our <a href="/terms">Terms</a> and <a href="/privacy"
+          >Privacy Policy</a
+        >.
+      </p>
+    </section>
 
     <SiteFooter />
   </main>
-
-  <script>
-    document.querySelectorAll(".copy-btn").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const targetId = btn.getAttribute("data-copy-target");
-        const text = document.getElementById(targetId)?.textContent ?? "";
-        try {
-          await navigator.clipboard.writeText(text);
-          const original = btn.textContent;
-          btn.textContent = "Copied!";
-          btn.classList.add("copied");
-          setTimeout(() => {
-            btn.textContent = original;
-            btn.classList.remove("copied");
-          }, 2000);
-        } catch {
-          // Clipboard API not available — select the text
-          const range = document.createRange();
-          const el = document.getElementById(targetId);
-          if (el) {
-            range.selectNode(el);
-            window.getSelection()?.removeAllRanges();
-            window.getSelection()?.addRange(range);
-          }
-        }
-      });
-    });
-  </script>
 </Layout>
 
+<script>
+  const statusEl = document.getElementById("donate-status") as HTMLElement;
+  const customEl = document.getElementById("custom-amount") as HTMLInputElement;
+  const messageEl = document.getElementById("donate-message") as HTMLInputElement;
+  const submitEl = document.getElementById("donate-submit") as HTMLButtonElement;
+  let selected = 0;
+
+  function showStatus(text: string, kind: "info" | "error" | "success") {
+    statusEl.hidden = false;
+    statusEl.textContent = text;
+    statusEl.dataset.kind = kind;
+  }
+
+  const params = new URLSearchParams(location.search);
+  if (params.get("success")) {
+    showStatus("Salamat! Your donation went through. 💛", "success");
+  } else if (params.get("cancelled")) {
+    showStatus("Checkout cancelled — no charge was made.", "info");
+  }
+
+  for (const btn of document.querySelectorAll<HTMLButtonElement>(".amount")) {
+    btn.addEventListener("click", () => {
+      selected = Number(btn.dataset.amount);
+      customEl.value = "";
+      for (const other of document.querySelectorAll(".amount")) {
+        other.classList.toggle("selected", other === btn);
+      }
+    });
+  }
+  customEl.addEventListener("input", () => {
+    selected = 0;
+    for (const other of document.querySelectorAll(".amount")) {
+      other.classList.remove("selected");
+    }
+  });
+
+  submitEl.addEventListener("click", async () => {
+    const amount = selected || Math.floor(Number(customEl.value));
+    if (!amount || amount < 10 || amount > 50000) {
+      showStatus("Pick an amount between ₱10 and ₱50,000.", "error");
+      return;
+    }
+    submitEl.disabled = true;
+    submitEl.textContent = "Opening checkout…";
+    try {
+      const res = await fetch("/api/donate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ amount, message: messageEl.value }),
+      });
+      const data = (await res.json()) as {
+        checkout_url?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.checkout_url) {
+        showStatus(data.error ?? "Something went wrong — try again.", "error");
+        return;
+      }
+      location.href = data.checkout_url;
+    } catch {
+      showStatus("Network error — check your connection and retry.", "error");
+    } finally {
+      submitEl.disabled = false;
+      submitEl.textContent = "Donate";
+    }
+  });
+</script>
+
 <style>
-  .legal-page {
-    max-width: 44rem;
+  .donate-page {
+    max-width: 42rem;
     margin: 0 auto;
-    padding: 2rem 1.25rem 3rem;
-  }
-
-  .hero {
-    margin-bottom: 2rem;
-  }
-
-  .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
-    margin: 0 0 0.5rem;
-  }
-
-  h1 {
-    font-size: clamp(2rem, 5vw, 2.75rem);
-    line-height: 1.05;
-    margin: 0;
+    padding: 2rem 1rem 4rem;
   }
 
   .back-link {
@@ -177,14 +160,31 @@ const { gcashName, gcashNumber } = campusDonation;
     color: hsl(5, 53%, 32%);
     font-weight: 600;
     font-size: 0.9375rem;
-    transition:
-      background 0.15s ease,
-      border-color 0.15s ease;
   }
 
   .back-link:hover {
     background: hsl(5 53% 32% / 0.14);
-    border-color: hsl(5 53% 32% / 0.4);
+  }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 40%);
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.05;
+    margin: 0;
   }
 
   .lede {
@@ -194,123 +194,140 @@ const { gcashName, gcashNumber } = campusDonation;
     line-height: 1.6;
   }
 
-  .lede a {
+  .lede a,
+  .fineprint a {
     color: hsl(5, 53%, 32%);
     font-weight: 600;
   }
 
-  .legal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    color: hsl(0, 0%, 22%);
-    line-height: 1.65;
-  }
-
-  .legal-body h2 {
-    font-size: 1.125rem;
-    margin: 0 0 0.375rem;
-    color: hsl(5, 53%, 28%);
-  }
-
-  .legal-body h3 {
-    font-size: 0.9375rem;
-    margin: 0.75rem 0 0.25rem;
-  }
-
-  .legal-body p,
-  .legal-body ul {
-    margin: 0;
-  }
-
-  .legal-body ul {
-    padding-left: 1.25rem;
-  }
-
-  .legal-body li + li {
-    margin-top: 0.375rem;
-  }
-
-  .legal-body a {
-    color: hsl(5, 53%, 32%);
-    font-weight: 600;
-  }
-
-  /* Donate card */
   .donate-card {
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    background: hsl(5 53% 32% / 0.04);
-    border: 1px solid hsl(5 53% 32% / 0.18);
-  }
-
-  .donate-card h2 {
-    margin-bottom: 1rem;
-  }
-
-  .gcash-details {
-    margin: 0 0 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    border: 1px solid hsl(5 30% 88%);
+    background: hsl(5 20% 98%);
   }
 
-  .gcash-row {
+  .status {
+    margin: 0;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  .status[data-kind="success"] {
+    background: hsl(145 50% 94%);
+    color: hsl(145, 63%, 22%);
+  }
+
+  .status[data-kind="error"] {
+    background: hsl(0 70% 96%);
+    color: hsl(0, 72%, 35%);
+  }
+
+  .status[data-kind="info"] {
+    background: hsl(208 50% 95%);
+    color: hsl(208, 52%, 30%);
+  }
+
+  .amounts {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
     flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: stretch;
   }
 
-  .gcash-row dt {
-    font-size: 0.8125rem;
-    color: hsl(0, 0%, 45%);
-    margin: 0;
-    min-width: 7rem;
+  .amount {
+    flex: 1 1 4.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.625rem;
+    border: 1px solid hsl(5 30% 80%);
+    background: white;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 32%);
+    cursor: pointer;
   }
 
-  .gcash-row dd {
-    margin: 0;
-    display: inline-flex;
+  .amount:hover {
+    background: hsl(5 30% 96%);
+  }
+
+  .amount.selected {
+    background: hsl(5, 53%, 32%);
+    border-color: hsl(5, 53%, 32%);
+    color: white;
+  }
+
+  .custom {
+    flex: 1.5 1 7rem;
+    display: flex;
     align-items: center;
     gap: 0.5rem;
-  }
-
-  .gcash-number {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: hsl(5, 53%, 22%);
-    letter-spacing: 0.02em;
-    user-select: all;
-  }
-
-  .copy-btn {
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid hsl(5 53% 32% / 0.3);
-    background: hsl(5 53% 32% / 0.06);
-    color: hsl(5, 53%, 32%);
+    padding: 0 0.75rem;
+    border-radius: 0.625rem;
+    border: 1px solid hsl(5 30% 80%);
+    background: white;
     font-size: 0.8125rem;
     font-weight: 600;
-    cursor: pointer;
-    transition:
-      background 0.15s ease,
-      border-color 0.15s ease;
+    color: hsl(0, 0%, 40%);
   }
 
-  .copy-btn:hover {
-    background: hsl(5 53% 32% / 0.12);
-    border-color: hsl(5 53% 32% / 0.45);
+  .custom input {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+    padding: 0.75rem 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 32%);
+    background: transparent;
   }
 
-  .copy-btn.copied {
-    background: hsl(142 52% 28% / 0.12);
-    border-color: hsl(142 52% 28% / 0.4);
-    color: hsl(142 52% 28%);
+  .message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 40%);
   }
 
-  .donate-note {
-    color: hsl(0, 0%, 35%);
+  .message input {
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.625rem;
+    border: 1px solid hsl(5 30% 80%);
     font-size: 0.9375rem;
+  }
+
+  .submit {
+    padding: 0.875rem 1rem;
+    border-radius: 0.625rem;
+    border: none;
+    background: hsl(5, 53%, 32%);
+    color: white;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .submit:hover:not(:disabled) {
+    background: hsl(5, 53%, 40%);
+  }
+
+  .submit:disabled {
+    opacity: 0.7;
+    cursor: wait;
+  }
+
+  .fineprint {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 40%);
+    line-height: 1.55;
   }
 </style>

@@ -31,6 +31,17 @@ test.describe("sidebar support menus", () => {
     await expect(sidebar.getByRole("button", { name: "Login" })).toBeVisible();
   });
 
+  test("opens the contributor leaderboard", async ({ page }) => {
+    await page.goto("/");
+    await waitForAppBoot(page);
+
+    const sidebar = await openSection(page, "Contributors");
+    await sidebar.getByRole("button", { name: /leaderboard/i }).click();
+    await expect(
+      page.getByRole("dialog", { name: "Contributor leaderboard" }),
+    ).toBeVisible();
+  });
+
   test("What's new opens the full changelog in one click", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);

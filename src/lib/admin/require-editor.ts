@@ -7,6 +7,7 @@ import {
   canPublishDirectly,
   canReviewProposals,
   getSessionUser,
+  sessionPublishingActor,
   sessionEditedBy,
   type AdminRole,
   type SessionUser,
@@ -85,7 +86,9 @@ export async function editorSessionOrUnauthorized(
   }
   return {
     session,
-    editedBy: sessionEditedBy(session),
+    editedBy: options.requirePublish
+      ? sessionPublishingActor(session)
+      : sessionEditedBy(session),
     role: session.role,
   };
 }

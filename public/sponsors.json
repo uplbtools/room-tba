@@ -1,0 +1,38 @@
+{
+  "sponsors": [
+    {
+      "id": "kape-kalabaw-demo",
+      "name": "Kape Kalabaw",
+      "tier": "gold",
+      "tagline": "Iced kape beside the Oval",
+      "url": "https://example.com/kape-kalabaw",
+      "logo": "/sponsors/kape-kalabaw-logo.png",
+      "banner": "/sponsors/kape-kalabaw-banner.png",
+      "startDate": "2026-07-01",
+      "endDate": "2026-08-31",
+      "active": true,
+      "category": "food",
+      "placeName": "Kape Kalabaw"
+    },
+    {
+      "id": "sample-sponsor",
+      "name": "Sample Sponsor",
+      "tier": "gold",
+      "tagline": "Your tagline here",
+      "url": "https://example.com",
+      "logo": "/sponsors/sample-logo.png",
+      "banner": "/sponsors/sample-banner.png",
+      "startDate": "2026-08-01",
+      "endDate": "2026-12-31",
+      "active": false,
+      "category": "food"
+    }
+  ],
+  "config": {
+    "maxGold": 1,
+    "maxSilver": 3,
+    "maxBronze": 10,
+    "maxPromo": 5,
+    "rotationIntervalMs": 86400000
+  }
+}

@@ -25,6 +25,24 @@ This is the repeatable QA record for [#255](https://github.com/uplbtools/room-tb
 - Attempt withdrawal as another signed-in user; verify it is rejected with `403`.
 - Cause an approval conflict by changing the live entity after submission; verify approval returns `409`, leaves the proposal open, and clears any review claim.
 
+## Proposal rate limits ([#223](https://github.com/uplbtools/room-tba/issues/223))
+
+`POST /api/proposals` and `POST /api/proposals/:id/withdraw` are rate-limited in [`src/lib/api/proposal-rate-limit.ts`](../src/lib/api/proposal-rate-limit.ts). Limits use an in-memory bucket **per serverless instance** (effective cap scales with cold-start fan-out; shared KV is deferred).
+
+The IP key comes from `x-forwarded-for` ([`src/lib/api/rate-limit.ts`](../src/lib/api/rate-limit.ts)), which is client-writable in general but is stripped/overwritten by Vercel's standard routing (not the paid Trusted Proxy tier) before it reaches the app. This limiter assumes that platform behavior; if a CDN/WAF is ever added in front without stripping client-supplied `x-forwarded-for`, or Trusted Proxy is enabled, this becomes spoofable and should move to `x-vercel-forwarded-for`.
+
+| Actor | Short window (10 min) | Daily window (24 h) |
+| --- | --- | --- |
+| Anonymous (by IP) | 8 submits | 40 submits |
+| Signed-in (IP + user id) | 24 submits each | 40 per IP, 120 per user |
+| Withdraw (IP + user when signed in) | 12 per 10 min | — |
+
+- **429** response: JSON `{ "error": "Too many requests…" }` plus `Retry-After` (seconds).
+- **Honeypot:** non-empty `_hp` body field returns **201** `{ "success": true }` without creating a row or sending Discord.
+- **CI / E2E:** set `ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT=1` to skip proposal limits (same flag as login rate-limit tests).
+
+Manual check: from one browser session, submit nine anonymous suggestions within ten minutes; the ninth should fail with the rate-limit message.
+
 ## Scope and edge-case disposition
 
 | Scenario | Expected behavior today | Coverage | Disposition / follow-up |
@@ -39,7 +57,7 @@ This is the repeatable QA record for [#255](https://github.com/uplbtools/room-tb
 | C: duplicate create | Duplicate validation occurs during approval and returns `409`. | Manual | Shipped. |
 | D: anonymous pin move | Anonymous suggestions require a display name and local stored reference. | Manual | Shipped within same browser. |
 | E: contributor deletion | Deactivate/delete proposals are not a contributor v1 feature. | Manual | Won't fix v1. |
-| F: spam / abuse | Submission rate limiting exists; broader abuse controls remain separately tracked. | Manual | [#223](https://github.com/uplbtools/room-tba/issues/223). |
+| F: spam / abuse | Short + daily IP limits, dual-key for signed-in users, honeypot no-op, withdraw cap. In-memory per serverless instance. | Integration + manual | Shipped ([#223](https://github.com/uplbtools/room-tba/issues/223)). Turnstile / shared KV deferred. |
 | G: review notification failure | Notifications are fire-and-forget; record the configured staging result. | Manual | Ops/configuration follow-up if failed. |
 | H: wrong approval | Editors publish a corrective change; no contributor undo control exists. | Manual | [#202](https://github.com/uplbtools/room-tba/issues/202). |
 | I: request changes without note | The server rejects it. | Component/manual | Shipped. |

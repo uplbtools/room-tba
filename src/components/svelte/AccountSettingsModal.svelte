@@ -30,9 +30,17 @@
     showInCredits: boolean;
   };
 
+  type Contribution = {
+    id: number;
+    entityLabel: string;
+    createdAt: string;
+  };
+
   let frameEl = $state<HTMLDivElement | null>(null);
   let profile = $state<Profile | null>(null);
   let loadError = $state<string | null>(null);
+  let contributions = $state<Contribution[]>([]);
+  let contributionsError = $state<string | null>(null);
 
   let displayNameDraft = $state("");
   let avatarUrlDraft = $state("");
@@ -64,6 +72,8 @@
 
   async function loadProfile() {
     loadError = null;
+    contributionsError = null;
+    contributions = [];
     try {
       const res = await fetch("/api/account/me", { credentials: "same-origin" });
       if (!res.ok) {
@@ -75,6 +85,18 @@
       avatarUrlDraft = profile.avatarUrl ?? "";
       profileUrlDraft = profile.profileUrl ?? "";
       showInCreditsDraft = profile.showInCredits;
+
+      const contributionsRes = await fetch("/api/contributions/mine", {
+        credentials: "same-origin",
+      });
+      if (contributionsRes.ok) {
+        const data = (await contributionsRes.json()) as {
+          contributions?: Contribution[];
+        };
+        contributions = data.contributions ?? [];
+      } else {
+        contributionsError = "Could not load your contributions.";
+      }
     } catch {
       loadError = "Network error loading your account.";
     }
@@ -361,6 +383,26 @@
             onclick={saveProfile}
           />
 
+          <section class="contributions-section" aria-labelledby="my-contributions-heading">
+            <h4 id="my-contributions-heading">My contributions</h4>
+            {#if contributionsError}
+              <p>{contributionsError}</p>
+            {:else if contributions.length === 0}
+              <p>Your approved edits will appear here.</p>
+            {:else}
+              <ul>
+                {#each contributions as contribution (contribution.id)}
+                  <li>
+                    <span>{contribution.entityLabel}</span>
+                    <time datetime={contribution.createdAt}>
+                      {new Date(contribution.createdAt).toLocaleDateString()}
+                    </time>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          </section>
+
           <EntityEditorFormField label="Email" inputId="account-email">
             {#snippet control()}
               <input id="account-email" value={profile.email ?? "(none)"} disabled />
@@ -641,6 +683,40 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
+  }
+
+  .contributions-section {
+    margin: 1rem 0;
+  }
+
+  .contributions-section h4,
+  .contributions-section p {
+    margin: 0 0 0.5rem;
+  }
+
+  .contributions-section p {
+    color: hsl(0, 0%, 40%);
+    font-size: 0.875rem;
+  }
+
+  .contributions-section ul {
+    display: grid;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contributions-section li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .contributions-section time {
+    flex: 0 0 auto;
+    color: hsl(0, 0%, 40%);
   }
   .settings-link-btn--danger {
     color: #9a1b1b;

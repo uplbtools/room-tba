@@ -14,10 +14,13 @@
   } from "@lib/store.svelte";
   import "./status-bar/status-bar.css";
   import SyncStatus from "./SyncStatus.svelte";
+  import SponsorBadge from "./SponsorBadge.svelte";
+  import { getGoldSponsor, loadSponsors, type Sponsor } from "@lib/sponsors";
 
   import { getSyncLadderState } from "@lib/stores/sync-ladder.svelte";
 
   let isOnline = $state(true);
+  let goldSponsor = $state<Sponsor | null>(null);
 
   type StatusPill = {
     kind: "error" | "update" | "syncing";
@@ -66,6 +69,9 @@
     });
     syncToastStore.setRefreshHandler(() => {
       void updateSW(true);
+    });
+    void loadSponsors().then((data) => {
+      if (data) goldSponsor = getGoldSponsor(data.sponsors);
     });
     return () => {
       window.removeEventListener("online", onOnline);
@@ -127,4 +133,7 @@
       </span>
     {/if}
   </div>
+  {#if goldSponsor}
+    <SponsorBadge sponsor={goldSponsor} />
+  {/if}
 </div>

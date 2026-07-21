@@ -1,9 +1,23 @@
-import { describe, expect, test } from "bun:test";
-import { skipWithoutE2eDb } from "../helpers/env";
+import { beforeAll, describe, expect, test } from "bun:test";
+import { integrationDatabaseUrl, skipWithoutE2eDb } from "../helpers/env";
 
 const describeIntegration = skipWithoutE2eDb() ? describe.skip : describe;
 
 describeIntegration("jeepney stop service", () => {
+  beforeAll(async () => {
+    // A previous run's soft-removed stop still holds sort_order 0 and the
+    // (route_id, sort_order) unique constraint would reject reusing it.
+    const pg = await import("pg");
+    const client = new pg.default.Client({
+      connectionString: integrationDatabaseUrl()!,
+    });
+    await client.connect();
+    await client.query("DELETE FROM jeepney_stops WHERE route_id = $1", [
+      "e2e-route",
+    ]);
+    await client.end();
+  });
+
   test("creates, edits, and soft-removes a stop", async () => {
     const { createJeepneyStop, updateJeepneyStop } = await import(
       "@lib/services/transit-service"
