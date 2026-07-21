@@ -90,6 +90,24 @@ export function sessionEditedBy(session: SessionUser): string {
   return session.displayName || session.username;
 }
 
+const PUBLISHING_ACTOR_PREFIX = "room-tba-publisher:";
+
+export function sessionPublishingActor(session: SessionUser): string {
+  return `${PUBLISHING_ACTOR_PREFIX}${session.id}:${sessionEditedBy(session)}`;
+}
+
+export function parsePublishingActor(
+  actor: string,
+): { userId: number; displayName: string } | null {
+  if (!actor.startsWith(PUBLISHING_ACTOR_PREFIX)) return null;
+  const separator = actor.indexOf(":", PUBLISHING_ACTOR_PREFIX.length);
+  const userId = Number(actor.slice(PUBLISHING_ACTOR_PREFIX.length, separator));
+  const displayName = actor.slice(separator + 1);
+  return Number.isInteger(userId) && userId > 0 && displayName
+    ? { userId, displayName }
+    : null;
+}
+
 export function setSessionCookie(token: string): string {
   return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE}`;
 }

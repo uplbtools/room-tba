@@ -8,6 +8,7 @@
   import MapViewControls from "@ui/MapViewControls.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
+  import TrailControl from "@ui/TrailControl.svelte";
   import JeepneyMenu from "@ui/JeepneyMenu.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import { trapFocus } from "@lib/focus-trap";
@@ -25,6 +26,7 @@
     { id: "view", label: "View" },
     { id: "legend", label: "Legend" },
     { id: "terrain", label: "Terrain" },
+    { id: "trail", label: "Makiling Trail" },
     { id: "schedule", label: "Schedule" },
   ];
 
@@ -98,6 +100,8 @@
                   <MapLegend embedded />
                 {:else if section.id === "terrain"}
                   <TerrainControl embedded />
+                {:else if section.id === "trail"}
+                  <TrailControl embedded />
                 {:else if section.id === "jeepney"}
                   <JeepneyMenu embedded />
                 {:else if section.id === "schedule"}
@@ -132,19 +136,18 @@
   }
 
   /* Desktop: panel overlays below the Layers FAB without growing the stack
-     (camera controls stay fixed under the trigger). */
-  @media (min-width: 48.0625rem) {
-    .map-tools-flyout {
-      z-index: 1;
-    }
+     (camera controls stay fixed under the trigger).
+     #716: was @media (min-width: 48.0625rem), now gated by .desktop class */
+  :global(.desktop) .map-tools-flyout {
+    z-index: 1;
+  }
 
-    .map-tools-panel-shell {
-      position: absolute;
-      top: calc(100% + 0.5rem);
-      right: 0;
-      width: min(24rem, calc(100vw - 1rem));
-      z-index: 2;
-    }
+  :global(.desktop) .map-tools-panel-shell {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: min(24rem, calc(100vw - 1rem));
+    z-index: 2;
   }
 
   .accordion-section {

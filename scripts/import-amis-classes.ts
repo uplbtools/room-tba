@@ -171,7 +171,7 @@ function inferTermIdFromPayload(
   if (Number.isFinite(envelope.term_id)) return Number(envelope.term_id);
   if (Number.isFinite(envelope.termId)) return Number(envelope.termId);
   for (const row of rows) {
-    const termId = Number(row["term_id"] ?? row["termId"]);
+    const termId = Number(row.term_id ?? row.termId);
     if (Number.isFinite(termId) && termId > 0) return termId;
   }
   return 0;

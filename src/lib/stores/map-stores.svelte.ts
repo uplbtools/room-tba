@@ -132,6 +132,22 @@ export class TerrainStore {
   };
 }
 
+export class TrailStore {
+  enabled: boolean = $state(false);
+
+  toggle = () => {
+    this.enabled = !this.enabled;
+  };
+
+  enable = () => {
+    this.enabled = true;
+  };
+
+  disable = () => {
+    this.enabled = false;
+  };
+}
+
 export class Building3DStore {
   buildingName: string | null = $state(null);
   initialRoomCode: string | null = $state(null);

@@ -8,13 +8,14 @@ import {
   MESSENGER_CONTRIBUTE_TARGET,
   MESSENGER_MAINTAIN_TARGET,
 } from "./src/constants/community-links.ts";
+import { campusCommunity, campusSite } from "./src/campus.config.ts";
 
 /** Local E2E + integration preview — Vercel adapter does not support `astro preview`. */
 const e2eNodeAdapter = process.env.ASTRO_E2E_NODE === "1";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://room-tba.uplbtools.me",
+  site: campusSite.url,
 
   integrations: [
     svelte(),
@@ -35,14 +36,25 @@ export default defineConfig({
           "index.html",
           "privacy/index.html",
           "terms/index.html",
+          "faq/index.html",
           "changelog/index.html",
+          "sponsors/index.html",
+          "donate/index.html",
         ],
+        // #716: desktop-only.css is never fetched by mobile viewports at
+        // runtime — don't undo that by precaching it into every install
+        // (including mobile) regardless of device. Cache it on-demand
+        // instead, via the runtimeCaching rule below.
+        globIgnores: ["**/desktop-only*"],
         navigateFallback: "/",
         navigateFallbackDenylist: [
           /^\/api\//,
           /^\/privacy(\/|\?|$)/,
           /^\/terms(\/|\?|$)/,
+          /^\/faq(\/|\?|$)/,
           /^\/changelog(\/|\?|$)/,
+          /^\/sponsors(\/|\?|$)/,
+          /^\/donate(\/|\?|$)/,
           /^\/wiki(\/|\?|$)/,
           // /planner is its own page; without this the nav fallback serves the
           // map shell and the planner never opens for returning (SW-cached)
@@ -60,6 +72,18 @@ export default defineConfig({
         // Cache third-party map resources at runtime so the campus map works
         // offline once visited (or after an explicit "download offline maps").
         runtimeCaching: [
+          {
+            // #716: desktop-only.css, excluded from precache above so mobile
+            // installs never fetch it — cached the first time a desktop
+            // viewport actually requests it, so repeat offline visits still work.
+            urlPattern: /\/desktop-only.*\.css$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "desktop-only-css",
+              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             // MapTiler vector tiles + tiles.json
             urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,
@@ -128,7 +152,7 @@ export default defineConfig({
 
   redirects: {
     "/contribute": "/?contribute=1",
-    "/discord": "https://discord.uplbtools.me",
+    "/discord": campusCommunity.discordUrl,
     "/messenger": MESSENGER_CONTRIBUTE_TARGET,
     "/messenger/contribute": MESSENGER_CONTRIBUTE_TARGET,
     "/messenger/maintain": MESSENGER_MAINTAIN_TARGET,
@@ -167,6 +191,12 @@ export default defineConfig({
         default: "production",
       }),
       ADMIN_PASSWORD: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // PayMongo secret key for one-time donations (/api/donate).
+      PAYMONGO_SECRET_KEY: envField.string({
         access: "secret",
         context: "server",
         optional: true,

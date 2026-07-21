@@ -1,4 +1,5 @@
 import { MAPTILER_KEY_PLACEHOLDER, withMaptilerKey } from "@lib/maptiler-key";
+import { campusMap } from "../campus.config";
 
 export const TERRAIN_SOURCE_ID = "makiling-terrain-dem";
 export const TERRAIN_HILLSHADE_LAYER_ID = "makiling-terrain-hillshade";
@@ -13,11 +14,8 @@ export function getTerrainTileJsonUrl(): string {
 export const TERRAIN_EXAGGERATION_OPTIONS = [1, 1.5, 2] as const;
 export const DEFAULT_TERRAIN_EXAGGERATION = 1.5;
 
-export const CAMPUS_MAX_BOUNDS: [[number, number], [number, number]] = [
-  // West/south: Mt. Makiling foothills, BSP Jamboree site, National Arts Center corridor.
-  [121.168, 14.095],
-  [121.335, 14.215],
-];
+export const CAMPUS_MAX_BOUNDS: [[number, number], [number, number]] =
+  campusMap.maxBounds;
 
 /** Flat object form for bounds checks (offline tiles, geolocation, admin APIs). */
 export const CAMPUS_BOUNDS = {
@@ -27,12 +25,7 @@ export const CAMPUS_BOUNDS = {
   maxLat: CAMPUS_MAX_BOUNDS[1][1],
 } as const;
 
-export const CAMPUS_DEFAULT_CAMERA = {
-  center: [121.24125948460573, 14.16323736946326] as [number, number],
-  zoom: 15.81,
-  pitch: 60,
-  bearing: -154.48,
-};
+export const CAMPUS_DEFAULT_CAMERA = campusMap.defaultCamera;
 
 export const MAKILING_TERRAIN_MAX_BOUNDS: [[number, number], [number, number]] =
   [

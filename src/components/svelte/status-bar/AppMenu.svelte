@@ -4,6 +4,7 @@
   import ChartColumn from "@lucide/svelte/icons/chart-column";
   import FileText from "@lucide/svelte/icons/file-text";
   import LifeBuoy from "@lucide/svelte/icons/life-buoy";
+  import CircleHelp from "@lucide/svelte/icons/circle-help";
   import Inbox from "@lucide/svelte/icons/inbox";
   import { onMount } from "svelte";
   import { formatCatalogUpdatedDate } from "@constants/data-catalog";
@@ -270,6 +271,14 @@
         aria-labelledby="app-menu-help-heading"
       >
         <h3 id="app-menu-help-heading" class="app-menu__heading">Help</h3>
+        <a
+          class="app-menu__action map-chrome-chip"
+          href="/faq"
+          onclick={closePanel}
+        >
+          <CircleHelp size={14} aria-hidden="true" />
+          <span>Help &amp; FAQ</span>
+        </a>
         <button
           type="button"
           class="app-menu__action map-chrome-chip"
@@ -338,6 +347,7 @@
   .app-menu__action {
     align-self: flex-start;
     cursor: pointer;
+    text-decoration: none;
   }
 
   .app-menu__badge {

@@ -363,4 +363,80 @@ describeIntegration("proposals service", () => {
     const res = await approveProposalHttp(proposal.id, cookie!);
     expect(res.status).toBe(200);
   });
+
+  test("approval appends one ledger row for a signed-in contributor", async () => {
+    if (!integrationDatabaseUrl()) return;
+    const pg = await import("pg");
+    const client = new pg.default.Client({
+      connectionString: integrationDatabaseUrl()!,
+    });
+    await client.connect();
+    const { rows } = await client.query<{
+      version: number;
+      contributor_id: number;
+      contributor_name: string;
+      reviewer_id: number;
+      reviewer_name: string;
+    }>(
+      `
+      SELECT
+        r.version,
+        contributor.id AS contributor_id,
+        contributor.username AS contributor_name,
+        reviewer.id AS reviewer_id,
+        reviewer.username AS reviewer_name
+      FROM rooms r
+      CROSS JOIN admin_users contributor
+      CROSS JOIN admin_users reviewer
+      WHERE r.id = 1
+        AND contributor.username = $1
+        AND reviewer.username = $2
+      LIMIT 1
+    `,
+      [E2E_FIXTURES.users.contributor, E2E_FIXTURES.users.admin],
+    );
+    const fixture = rows[0];
+    await client.end();
+    if (!fixture) throw new Error("Contributor fixtures were not seeded.");
+
+    const { approveProposal, submitProposal } = await import(
+      "@lib/services/proposal-service"
+    );
+    const proposal = await submitProposal({
+      entityType: "room",
+      entityId: 1,
+      baseVersion: fixture.version,
+      patch: { directions: `Ledger approval ${Date.now()}` },
+      submitterName: fixture.contributor_name,
+      submitterUserId: fixture.contributor_id,
+      proposalId: null,
+    });
+    await approveProposal(proposal.id, {
+      id: fixture.reviewer_id,
+      username: fixture.reviewer_name,
+      displayName: fixture.reviewer_name,
+      role: "admin",
+    });
+
+    const verifyClient = new pg.default.Client({
+      connectionString: integrationDatabaseUrl()!,
+    });
+    await verifyClient.connect();
+    const ledger = await verifyClient.query<{
+      user_id: number;
+      proposal_id: number;
+      source: string;
+    }>(
+      "SELECT user_id, proposal_id, source FROM contributions WHERE proposal_id = $1",
+      [proposal.id],
+    );
+    await verifyClient.end();
+    expect(ledger.rows).toEqual([
+      {
+        user_id: fixture.contributor_id,
+        proposal_id: proposal.id,
+        source: "proposal_approved",
+      },
+    ]);
+  });
 });

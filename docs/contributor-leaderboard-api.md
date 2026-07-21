@@ -8,8 +8,6 @@ Discord `/leaderboard` and other bots consume this read-only endpoint. **Scoring
 | --- | --- | --- |
 | `window` | `month`, `semester`, `all` | `month` |
 
-Optional header: `Authorization: Bearer <ROOM_TBA_BOT_API_KEY>` when `ROOM_TBA_BOT_API_KEY` is set on the server.
-
 ### Example response
 
 ```json
@@ -28,7 +26,13 @@ Optional header: `Authorization: Bearer <ROOM_TBA_BOT_API_KEY>` when `ROOM_TBA_B
 
 ## Ledger writes
 
-A row is appended when a **signed-in** contributor's proposal is **approved** (`contributions.source = proposal_approved`). Anonymous proposals are unchanged.
+A row is appended when signed-in work is published: an approved proposal uses
+`contributions.source = proposal_approved`, while a direct editor publish uses
+`editor_published`. Anonymous proposals are unchanged.
+
+Users who turn off **Show my contributions in public credits** are excluded
+from the public leaderboard. Their own signed-in account can still read its
+ledger at `GET /api/contributions/mine`.
 
 ## Migration
 

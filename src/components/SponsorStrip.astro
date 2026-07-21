@@ -1,0 +1,83 @@
+---
+/**
+ * Static-page sponsor strip (Zone D) — shown above SiteFooter on prerendered
+ * pages. Active window is evaluated at build time; a redeploy picks up newly
+ * started sponsors. Renders nothing when no Gold/Silver sponsor is active.
+ */
+import sponsorsData from "../../public/sponsors.json";
+import { getByTier, type Sponsor } from "@lib/sponsors";
+
+const sponsors = sponsorsData.sponsors as Sponsor[];
+const featured = [...getByTier(sponsors, "gold"), ...getByTier(sponsors, "silver")];
+---
+
+{
+  featured.length > 0 && (
+    <aside class="sponsor-strip" aria-label="Sponsors">
+      <span class="sponsor-strip__lede">Room TBA is supported by</span>
+      <span class="sponsor-strip__logos">
+        {featured.map((sponsor) => (
+          <a
+            href="/sponsors"
+            class="sponsor-strip__sponsor"
+            title={`${sponsor.name} (see all sponsors)`}
+          >
+            <img
+              src={sponsor.logo}
+              alt={sponsor.name}
+              width="24"
+              height="24"
+              loading="lazy"
+            />
+            <span>{sponsor.name}</span>
+          </a>
+        ))}
+      </span>
+    </aside>
+  )
+}
+
+<style>
+  .sponsor-strip {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    color: hsl(0, 0%, 35%);
+  }
+
+  .sponsor-strip__lede {
+    font-weight: 600;
+  }
+
+  .sponsor-strip__logos {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.75rem;
+  }
+
+  .sponsor-strip__sponsor {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .sponsor-strip__sponsor img {
+    max-width: 1.5rem;
+    max-height: 1.5rem;
+    border-radius: 0.25rem;
+    object-fit: contain;
+  }
+
+  .sponsor-strip__sponsor:hover span,
+  .sponsor-strip__sponsor:focus-visible span {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>

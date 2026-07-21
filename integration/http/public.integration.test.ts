@@ -51,6 +51,41 @@ describeIntegration("HTTP redirects", () => {
     expect(body.error).toContain("limit");
   });
 
+  test("POST /api/sponsor-event accepts a valid beacon", async () => {
+    const res = await fetch(`${PREVIEW_BASE}/api/sponsor-event`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        sponsorId: "sample-sponsor",
+        zone: "status_bar",
+        eventType: "impression",
+        pagePath: "/",
+      }),
+    });
+    expect(res.status).toBe(200);
+  });
+
+  test("POST /api/sponsor-event rejects a body without sponsorId/zone", async () => {
+    const res = await fetch(`${PREVIEW_BASE}/api/sponsor-event`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ eventType: "impression" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("POST /api/sponsor-event silently drops bot traffic", async () => {
+    const res = await fetch(`${PREVIEW_BASE}/api/sponsor-event`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1)",
+      },
+      body: JSON.stringify({ sponsorId: "sample-sponsor", zone: "status_bar" }),
+    });
+    expect(res.status).toBe(200);
+  });
+
   test("POST /api/admin/auth rejects bad password", async () => {
     const form = new FormData();
     form.set("username", "e2e-admin");

@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { json } from "@lib/api/json";
 import {
   EditConflictError,
   DuplicateNameError,
@@ -23,13 +24,6 @@ type EntityMergeBody = {
   preferredRoomCode?: string;
   preferredName?: string;
 };
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
 
 export function createEntityMergeRoute<TEntity>(options: {
   entityLabel: string;

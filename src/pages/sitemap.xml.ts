@@ -27,6 +27,7 @@ export const GET: APIRoute = async () => {
   const urls = [
     "/",
     "/changelog",
+    "/faq",
     "/privacy",
     "/terms",
     "/wiki",

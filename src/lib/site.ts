@@ -1,9 +1,9 @@
-export const SITE_URL = "https://room-tba.uplbtools.me";
-export const SITE_NAME = "Room TBA";
-export const DEFAULT_TITLE =
-  "Room TBA | Find Rooms, Buildings, Colleges, and Divisions at UPLB";
-export const DEFAULT_DESCRIPTION =
-  "Room TBA helps UPLB students find rooms, buildings, colleges, and divisions across the Los Banos campus.";
+import { campusSite } from "../campus.config";
+
+export const SITE_URL = campusSite.url;
+export const SITE_NAME = campusSite.name;
+export const DEFAULT_TITLE = campusSite.title;
+export const DEFAULT_DESCRIPTION = campusSite.description;
 export const DEFAULT_OG_IMAGE = "/og.png";
 export const OG_IMAGE_WIDTH = 1200;
 export const OG_IMAGE_HEIGHT = 630;
