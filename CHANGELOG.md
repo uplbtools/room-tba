@@ -1,3 +1,93 @@
+# [2.3.0](https://github.com/uplbtools/room-tba/compare/v2.2.0...v2.3.0) (2026-07-21)
+
+
+### Bug Fixes
+
+* **ci:** preload path and biome format for staging CI/E2E ([948e5b3](https://github.com/uplbtools/room-tba/commit/948e5b3db0169f4ab449e45026faa595f80176fd))
+* **ci:** resolve integration preload path for bun test ([5490a82](https://github.com/uplbtools/room-tba/commit/5490a82272835b676b066ec50505c45273c503dd))
+* **map-tools:** drop leftover Makiling Trail wiring ([e5dc1a1](https://github.com/uplbtools/room-tba/commit/e5dc1a15e762156da4dd5981abcbeaaee84c876c))
+* **map:** defer draft-pin easeTo camera move to rAF ([020f8f6](https://github.com/uplbtools/room-tba/commit/020f8f6c1c09fe2b577a5f4f43041a795f8ab8d4))
+* **perf:** make desktop-only CSS split viewport-based, not UA-sniffed ([3ec954a](https://github.com/uplbtools/room-tba/commit/3ec954af10e37b9ac6e30720c0606e065b358788))
+* **proposals:** harden public submit abuse controls ([#223](https://github.com/uplbtools/room-tba/issues/223)) ([df15a54](https://github.com/uplbtools/room-tba/commit/df15a5438669f302d82e157d6562cc5e719c3205))
+* **proposals:** key rate-limit IP bucket by auth state ([2b21546](https://github.com/uplbtools/room-tba/commit/2b21546144d351c7f5182ec372bf6e6a8cb9f2a7))
+* **sheet:** handle pointercancel, fix no-op overflow clip, test drag logic ([fa0e6cf](https://github.com/uplbtools/room-tba/commit/fa0e6cfac8456a62b6ec9db581293d1d43332aa2))
+* **ui:** polish landing modal layout and privacy footer text ([7e6a300](https://github.com/uplbtools/room-tba/commit/7e6a30064a579cc21a772d0a4171c222b86a9c86))
+
+
+### Features
+
+* add Makiling Trail overlay with stations ([#716](https://github.com/uplbtools/room-tba/issues/716)) ([56a84eb](https://github.com/uplbtools/room-tba/commit/56a84eb192dd3e797495f754138e0c85df435744))
+* **contributions:** track direct editor publishes, expose "my contributions" ([9df8097](https://github.com/uplbtools/room-tba/commit/9df8097f0be5f2873c70d8240d6ee2e28611a177))
+* **contributor:** WYSIWYG draft pin preview for suggest addition ([6e9ce6b](https://github.com/uplbtools/room-tba/commit/6e9ce6bda7815aa4e3ecba1936485b167d0be552))
+* **donate:** one-time donations via PayMongo checkout ([8156795](https://github.com/uplbtools/room-tba/commit/81567952864f3d92e459b512d6ebac483b89872f))
+* donation page with GCash info for UPLB Tools ([#718](https://github.com/uplbtools/room-tba/issues/718)) ([b2568ea](https://github.com/uplbtools/room-tba/commit/b2568ea0cbd875eb4d124fa3fd232fd35d61253b))
+* **faq:** student FAQ page with 3D model answers ([2b93ffd](https://github.com/uplbtools/room-tba/commit/2b93ffd6ed6225bd2cc9ed1d5f9259c9f9d38ee9)), closes [#410](https://github.com/uplbtools/room-tba/issues/410)
+* Google Maps-style mobile detail sheet drag ([#411](https://github.com/uplbtools/room-tba/issues/411)) ([3816971](https://github.com/uplbtools/room-tba/commit/3816971ec50a8dc05d970d00aa8211eb2aa8a09e))
+* **map-tools:** wire Makiling Trail into the Map Tools flyout ([b1846f8](https://github.com/uplbtools/room-tba/commit/b1846f858198e210123290ee55ffc2c78aa16b56))
+* **scripts:** add fork:check — scan for UPLB strings a fork must replace ([#707](https://github.com/uplbtools/room-tba/issues/707)) ([46e995e](https://github.com/uplbtools/room-tba/commit/46e995eec16ca8902bd94af5c5694f092fcc21c7))
+* **side-panel:** whimsical EntityEmptyState for rooms and classes ([e170675](https://github.com/uplbtools/room-tba/commit/e170675b69cc17dbe476bd91bef35f4fb10cfba0)), closes [#427](https://github.com/uplbtools/room-tba/issues/427)
+* **sponsors:** add curated sponsor ad zones, tracking, and funding docs ([92ed2e3](https://github.com/uplbtools/room-tba/commit/92ed2e3c608ab6428890481b01fcfd6fb96a1712))
+* **sponsors:** add Kape Kalabaw demo sponsor and fix banner layout ([f1d7b5b](https://github.com/uplbtools/room-tba/commit/f1d7b5b891f14a5c094404f0bc879bb72c330c97))
+* **sponsors:** sponsored map pins at real sponsor locations ([4bb6037](https://github.com/uplbtools/room-tba/commit/4bb6037815f1377492a61407a467dd4c95c0b292))
+
+
+### Performance Improvements
+
+* split desktop-only CSS for mobile users ([#716](https://github.com/uplbtools/room-tba/issues/716)) ([0532ceb](https://github.com/uplbtools/room-tba/commit/0532cebb22a98a587443a7d1d887fa676fee601c))
+
+# [2.2.0](https://github.com/uplbtools/room-tba/compare/v2.1.1...v2.2.0) (2026-07-21)
+
+
+### Bug Fixes
+
+* **a11y:** image dims, 44px chrome controls, and drawer closes ([94dae9e](https://github.com/uplbtools/room-tba/commit/94dae9e21ff6cedabe5032c07b1d8b3c56a71ccd))
+* **a11y:** set width, height, and decoding on key images ([fddc3ab](https://github.com/uplbtools/room-tba/commit/fddc3ab2429c33f4b10e8fa788f21a50b82d19c6))
+* **amis:** import RCT/CPT and harden class-row extraction ([0f1478e](https://github.com/uplbtools/room-tba/commit/0f1478ecdcf67ae1021d5d4ff9d87f1ce42fc61a))
+* **auth:** stop Turnstile siteverify remoteip false fails ([4b57c75](https://github.com/uplbtools/room-tba/commit/4b57c756ce79f9d6eb4e436f8f98e635ad13d5ca))
+* **cache-first:** restore RoomClassesStore after room-scoped merge ([7919d37](https://github.com/uplbtools/room-tba/commit/7919d370f3d7d848c259cda16b40a71430d2b9eb))
+* change stacking context of finalExamScreen ([c81ac74](https://github.com/uplbtools/room-tba/commit/c81ac740a1ae404730b1ddf680fa17f4117be87b))
+* **css:** use font-display swap for Inter ([15ece7e](https://github.com/uplbtools/room-tba/commit/15ece7e4011f178d1094dc5eb4173ed47ea3c250))
+* **editor:** improve suggest form contrast ([883dac2](https://github.com/uplbtools/room-tba/commit/883dac28a3c04502fd43c4bcbe43c3c1ed7e7ac9))
+* **editor:** improve suggest form contrast ([822440c](https://github.com/uplbtools/room-tba/commit/822440c3fd4336bdfa4db6ef514150dbcdbaeb92)), closes [#426](https://github.com/uplbtools/room-tba/issues/426) [#238](https://github.com/uplbtools/room-tba/issues/238)
+* flex alignment messes up bottom right toolbar ([a87b3e0](https://github.com/uplbtools/room-tba/commit/a87b3e0701555cd845218940f46498737e73b1b2))
+* **modal:** open Project Contributors tab reliably ([#679](https://github.com/uplbtools/room-tba/issues/679)) ([27e84e0](https://github.com/uplbtools/room-tba/commit/27e84e066d86ba155d2989382b4ff383ec617cc7)), closes [#683](https://github.com/uplbtools/room-tba/issues/683)
+* **offline:** generate PGlite init SQL from drizzle/schema.ts ([3d48f27](https://github.com/uplbtools/room-tba/commit/3d48f27ca7621f780fa44b0d4b50589168676881))
+* **planner:** import and group recitation (RCT) sections ([5d31cf7](https://github.com/uplbtools/room-tba/commit/5d31cf7bd174bdf323def98ebf66431135d16302))
+* **quick:** change PWA config deny list to view wiki route ([6f9825e](https://github.com/uplbtools/room-tba/commit/6f9825ed95263db8eb8c089bb3a3bc152d2d10ca))
+* **room:** keep schedules room-scoped ([cadf084](https://github.com/uplbtools/room-tba/commit/cadf0843aecd79218cdc02d7053069d302407c83)), closes [#301](https://github.com/uplbtools/room-tba/issues/301)
+* **sidebar:** keep mobile rail open for settings accordion ([e31c0c3](https://github.com/uplbtools/room-tba/commit/e31c0c34156cb37dba6f07e851f84ba787d48e61))
+* **tsconfig:** typecheck scripts and drizzle with path aliases ([ac686d1](https://github.com/uplbtools/room-tba/commit/ac686d11700cfa11e98df325c41b9dc4368af218))
+* **ui:** grow side-panel handle and close to 44px targets ([49fce87](https://github.com/uplbtools/room-tba/commit/49fce87d95eeafa3a62ac1589af06f92cac5f6dc))
+* **wiki:** bust Cloudflare-poisoned CSS hash for section-times ([c060d84](https://github.com/uplbtools/room-tba/commit/c060d84378fab1edcb050331d15db3688a96f1b3))
+
+
+### Features
+
+* **agent-tooling:** vend Hallmark skill and apply UI slop fixes ([4ce71de](https://github.com/uplbtools/room-tba/commit/4ce71de6ecd72046f6f9ed00fddbbb31b2c3e4d9))
+* **buildings:** add CR facilities list ([27d7610](https://github.com/uplbtools/room-tba/commit/27d7610fec3672c83467893b932d3490e2996b9e))
+* **buildings:** CR facilities list — saan may bidet? ([5f50f0f](https://github.com/uplbtools/room-tba/commit/5f50f0f9e8165d6e3dd13eac967bf397ef1d97d3))
+* **cache-first:** paint PGlite data before network sync ([#415](https://github.com/uplbtools/room-tba/issues/415)) ([24512d1](https://github.com/uplbtools/room-tba/commit/24512d1a70e356ea642cdf116dafe545c9de0c0d))
+* **credits:** add live editor roster ([5b7f46d](https://github.com/uplbtools/room-tba/commit/5b7f46dd2eac31371c9fea95a9bdb99988e4a960))
+* **credits:** add live editor roster ([6726abd](https://github.com/uplbtools/room-tba/commit/6726abd2ef80589e745006093c00084c92f0ed6a))
+* **data:** add fill-only seed for 2026-07 deep-research findings ([1a5e838](https://github.com/uplbtools/room-tba/commit/1a5e8385da3072617e5b140a0ad1719ebe9f2c95))
+* **data:** fill 19 more division website links from report 2 ([bdf8351](https://github.com/uplbtools/room-tba/commit/bdf83519190a613505ca83628b9304a4d9eaa6c9))
+* **data:** import roomless class types for class search ([#418](https://github.com/uplbtools/room-tba/issues/418)) ([ffe0c79](https://github.com/uplbtools/room-tba/commit/ffe0c7926bdf0838dcde46b51d6dbac37763b3b8))
+* **data:** import roomless class types for search ([c35b6b4](https://github.com/uplbtools/room-tba/commit/c35b6b4211401afb67716cd7600064619dd4c25d))
+* **infra:** staging banner via PUBLIC_APP_ENV ([2f6d8cc](https://github.com/uplbtools/room-tba/commit/2f6d8ccbc7c1e26f355ec32fe00acc39b7c34a67))
+* **ops:** complete prod backup retention, alerts, and runbook ([17a3dd1](https://github.com/uplbtools/room-tba/commit/17a3dd147192dd5b865f5fd91926c1391b2848be)), closes [#281](https://github.com/uplbtools/room-tba/issues/281)
+* **planner:** group course search rows by title ([7ea1e92](https://github.com/uplbtools/room-tba/commit/7ea1e9295838a9391d3f9e6730d1e42243a7c0d8))
+* **share:** add premium entity cards and planner pubmat ([810886a](https://github.com/uplbtools/room-tba/commit/810886a00b59b6db0fb99d96551fe180d2090a28))
+* **transit:** seed 7 inter-town jeepney/bus routes ([2778e69](https://github.com/uplbtools/room-tba/commit/2778e69220668c4006fbcddab3fceb6d4570d24f))
+* **wiki:** add section-time guide ([dd97c99](https://github.com/uplbtools/room-tba/commit/dd97c9901636b381f6bcc9835c6f0b64fd4f7ab6))
+* **wiki:** show Room TBA logo at top of wiki pages ([0136777](https://github.com/uplbtools/room-tba/commit/01367770324ec60fdc1fc947a0554e55e15a1d69))
+
+## [2.1.1](https://github.com/uplbtools/room-tba/compare/v2.1.0...v2.1.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* change stacking context of finalExamScreen ([#673](https://github.com/uplbtools/room-tba/issues/673)) ([6a93e84](https://github.com/uplbtools/room-tba/commit/6a93e848c150c987a8b5d3e31b9349c0608d6b39))
+
 # [1.46.0](https://github.com/uplbtools/room-tba/compare/v1.45.0...v1.46.0) (2026-07-10)
 
 

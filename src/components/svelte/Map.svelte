@@ -26,6 +26,7 @@
     additionProposalStore,
     buildingTypeFilter,
     terrainStore,
+    trailStore,
     scheduleRouteStore,
     classVenuesStore,
     termStore,
@@ -34,6 +35,11 @@
   } from "@lib/store.svelte";
   import { untrack } from "svelte";
   import { onMount } from "svelte";
+  import { getSponsoredPlacePins, loadSponsors } from "@lib/sponsors";
+  import {
+    trackSponsorClick,
+    trackSponsorImpression,
+  } from "@lib/sponsor-tracking";
   import { fade } from "svelte/transition";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -48,6 +54,7 @@
   import Briefcase from "@lucide/svelte/icons/briefcase";
   import Store from "@lucide/svelte/icons/store";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
   import { MediaQuery } from "svelte/reactivity";
@@ -70,6 +77,16 @@
     type JeepneyStop,
   } from "@constants/jeepney-routes";
   import jeepneyGeometries from "@constants/jeepney-geometries.json";
+  import {
+    MAKILING_TRAIL_COLOR,
+    MAKILING_TRAIL_LAYER_CASING_ID,
+    MAKILING_TRAIL_LAYER_ID,
+    MAKILING_TRAIL_LINE,
+    MAKILING_TRAIL_STATIONS,
+    MAKILING_TRAIL_STATIONS_LAYER_ID,
+    MAKILING_TRAIL_STATIONS_SOURCE_ID,
+    MAKILING_TRAIL_SOURCE_ID,
+  } from "@constants/makiling-trail";
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
@@ -118,6 +135,7 @@
     isPlaceHoverPreview,
     organizationPreviewFromRow,
     placePreviewFromRow,
+    type EntityHoverPreview,
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
@@ -263,7 +281,22 @@
   let directions: MapLibreGlDirections | undefined = $state.raw();
   let mapStyle = $state<StyleSpecification | null>(null);
 
+  // Sponsored place pins (docs/ad-policy.md: real locations only, capped).
+  let sponsoredPlacePins = $state<Map<string, string>>(new Map());
+
+  // Impression per sponsored pin actually on the map (session-deduped in lib).
+  $effect(() => {
+    if (sponsoredPlacePins.size === 0) return;
+    for (const place of filteredPlaces) {
+      const sponsorId = sponsoredPlacePins.get(place.name);
+      if (sponsorId) trackSponsorImpression(sponsorId, "map_pin");
+    }
+  });
+
   onMount(() => {
+    void loadSponsors().then((data) => {
+      if (data) sponsoredPlacePins = getSponsoredPlacePins(data.sponsors);
+    });
     void loadCampusMapStyle<StyleSpecification>()
       .then((style) => {
         mapStyle = style;
@@ -436,6 +469,101 @@
     }
     if (map.getSource(EVENT_ROUTE_SOURCE_ID))
       map.removeSource(EVENT_ROUTE_SOURCE_ID);
+  }
+
+  function ensureTrailLayers(map: mapGl.MapLibreMap) {
+    // Trail line source + casing + line
+    if (!map.getSource(MAKILING_TRAIL_SOURCE_ID)) {
+      map.addSource(MAKILING_TRAIL_SOURCE_ID, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates: MAKILING_TRAIL_LINE,
+          },
+          properties: {},
+        },
+      });
+    }
+
+    if (!map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID)) {
+      map.addLayer({
+        id: MAKILING_TRAIL_LAYER_CASING_ID,
+        type: "line",
+        source: MAKILING_TRAIL_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 7,
+          "line-opacity": 0.9,
+        },
+      });
+    }
+
+    if (!map.getLayer(MAKILING_TRAIL_LAYER_ID)) {
+      map.addLayer({
+        id: MAKILING_TRAIL_LAYER_ID,
+        type: "line",
+        source: MAKILING_TRAIL_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": MAKILING_TRAIL_COLOR,
+          "line-width": 4,
+          "line-opacity": 0.95,
+        },
+      });
+    }
+
+    // Station markers source + circle layer
+    if (!map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID)) {
+      map.addSource(MAKILING_TRAIL_STATIONS_SOURCE_ID, {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: MAKILING_TRAIL_STATIONS.map((s) => ({
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: [s.lon, s.lat],
+            },
+            properties: {
+              station: s.station,
+              name: s.name,
+              elevation: s.elevationMeters,
+            },
+          })),
+        },
+      });
+    }
+
+    if (!map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID)) {
+      map.addLayer({
+        id: MAKILING_TRAIL_STATIONS_LAYER_ID,
+        type: "circle",
+        source: MAKILING_TRAIL_STATIONS_SOURCE_ID,
+        paint: {
+          "circle-radius": 6,
+          "circle-color": MAKILING_TRAIL_COLOR,
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 2,
+          "circle-opacity": 0.95,
+        },
+      });
+    }
+  }
+
+  function clearTrailLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID))
+      map.removeLayer(MAKILING_TRAIL_STATIONS_LAYER_ID);
+    if (map.getLayer(MAKILING_TRAIL_LAYER_ID))
+      map.removeLayer(MAKILING_TRAIL_LAYER_ID);
+    if (map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID))
+      map.removeLayer(MAKILING_TRAIL_LAYER_CASING_ID);
+    if (map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID))
+      map.removeSource(MAKILING_TRAIL_STATIONS_SOURCE_ID);
+    if (map.getSource(MAKILING_TRAIL_SOURCE_ID))
+      map.removeSource(MAKILING_TRAIL_SOURCE_ID);
   }
 
   function buildEventRouteGeometry(
@@ -947,23 +1075,37 @@
     );
   }
 
+  function handlePinPointerEnter(
+    preview: EntityHoverPreview,
+    pointer: PointerEvent,
+    editKey?: string,
+  ) {
+    if (editKey !== undefined) handleEditablePinEnter(editKey);
+    if (!shouldShowEntityHoverPreview()) return;
+    if (editKey !== undefined && canDragPin(editKey)) return;
+    entityHoverPreviewStore.show(preview, {
+      x: pointer.clientX,
+      y: pointer.clientY,
+    });
+  }
+
+  function handlePinPointerLeave(editKey?: string) {
+    if (editKey !== undefined) handleEditablePinLeave(editKey);
+    if (!shouldShowEntityHoverPreview()) return;
+    if (editKey !== undefined && canDragPin(editKey)) return;
+    entityHoverPreviewStore.scheduleHide();
+  }
+
   function handleBuildingPinPointerEnter(
     building: BuildingData,
     editKey: string,
     event: PointerEvent,
   ) {
-    handleEditablePinEnter(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.show(buildingPreviewFromRow(building), {
-      x: event.clientX,
-      y: event.clientY,
-    });
+    handlePinPointerEnter(buildingPreviewFromRow(building), event, editKey);
   }
 
   function handleBuildingPinPointerLeave(editKey: string) {
-    handleEditablePinLeave(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave(editKey);
   }
 
   function handleDormPinPointerEnter(
@@ -971,55 +1113,34 @@
     editKey: string,
     event: PointerEvent,
   ) {
-    handleEditablePinEnter(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.show(dormPreviewFromRow(dorm), {
-      x: event.clientX,
-      y: event.clientY,
-    });
+    handlePinPointerEnter(dormPreviewFromRow(dorm), event, editKey);
   }
 
   function handleDormPinPointerLeave(editKey: string) {
-    handleEditablePinLeave(editKey);
-    if (!shouldShowEntityHoverPreview() || canDragPin(editKey)) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave(editKey);
   }
 
   function handleEventPinPointerEnter(event: EventData, pointer: PointerEvent) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(eventPreviewFromRow(event), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(eventPreviewFromRow(event), pointer);
   }
 
   function handleEventPinPointerLeave() {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave();
   }
 
   function handleOrganizationPinPointerEnter(
     organization: OrgData,
     pointer: PointerEvent,
   ) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(organizationPreviewFromRow(organization), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(organizationPreviewFromRow(organization), pointer);
   }
 
   function handlePlacePinPointerEnter(place: PlaceData, pointer: PointerEvent) {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.show(placePreviewFromRow(place), {
-      x: pointer.clientX,
-      y: pointer.clientY,
-    });
+    handlePinPointerEnter(placePreviewFromRow(place), pointer);
   }
 
   function handleDetailPinPointerLeave() {
-    if (!shouldShowEntityHoverPreview()) return;
-    entityHoverPreviewStore.scheduleHide();
+    handlePinPointerLeave();
   }
 
   function beginMarkerDrag(key: string) {
@@ -1824,6 +1945,28 @@
 
   $effect(() => {
     const map = mapStore.mapInstance;
+    const pin = additionProposalStore.draftPin;
+    if (!map || !pin) return;
+
+    // Defer the camera move out of the reactive flush: easeTo fires zoom/move
+    // handlers synchronously, and their state writes inside this flush can
+    // chain into effect_update_depth_exceeded, which kills the whole Svelte
+    // scheduler (app looks frozen, hover still works). Same guard as the
+    // jeepney stop-focus flyTo effect below.
+    const padding = calculatePadding(untrack(() => md.current));
+    const frame = requestAnimationFrame(() => {
+      map.easeTo({
+        center: [pin.lon, pin.lat],
+        zoom: Math.max(map.getZoom(), 17),
+        duration: 650,
+        padding,
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
     if (!map || !eventPlacementStore.active) return;
 
     const canvas = map.getCanvas();
@@ -1938,6 +2081,19 @@
       });
     });
     return () => cancelAnimationFrame(frame);
+  });
+
+  // #716: Makiling trail overlay — toggle trail line + station markers
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const enabled = trailStore.enabled;
+    if (!map) return;
+
+    if (enabled) {
+      ensureTrailLayers(map);
+    } else {
+      clearTrailLayers(map);
+    }
   });
 
   $effect(() => {
@@ -2530,7 +2686,13 @@
               lat: additionProposalStore.draftPin.lat,
             }}
           >
-            <div class="addition-draft-pin" aria-hidden="true"></div>
+            {#if additionProposalStore.draftPinPreview}
+              <ContributorDraftPinMarker
+                preview={additionProposalStore.draftPinPreview}
+              />
+            {:else}
+              <div class="addition-draft-pin" aria-hidden="true"></div>
+            {/if}
           </Marker>
         {/if}
         {#if loaded}
@@ -2930,6 +3092,7 @@
               {@const previewSuppressed =
                 centralHoverPreview &&
                 isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
+              {@const pinSponsorId = sponsoredPlacePins.get(place.name)}
               <Marker lngLat={[place.lon, place.lat]}>
                 <MapEntityPin
                   label={place.name}
@@ -2939,9 +3102,13 @@
                   labelVisible={zoomLevel >= 17 ||
                     (queryStore.category === "place" &&
                       queryStore.inputValue === place.name)}
+                  sponsored={pinSponsorId !== undefined}
                   useCentralHoverPreview={centralHoverPreview}
                   {previewSuppressed}
-                  onclick={() => handlePlaceMarkerClick(place)}
+                  onclick={() => {
+                    if (pinSponsorId) trackSponsorClick(pinSponsorId, "map_pin");
+                    handlePlaceMarkerClick(place);
+                  }}
                   onpointerenter={(event) =>
                     handlePlacePinPointerEnter(place, event)}
                   onpointerleave={handleDetailPinPointerLeave}
@@ -3046,7 +3213,10 @@
         role="status"
         aria-live="polite"
       >
-        <p class="edit-dock-status">Tap the map to set the pin location</p>
+        <p class="edit-dock-status">
+          Tap the map to set the pin location. The preview shows how it will
+          look after approval.
+        </p>
         <button
           class="edit-dock-action cancel"
           type="button"
@@ -3064,7 +3234,10 @@
       >
         <div class="event-placement-copy">
           <strong>Choose a map pin location</strong>
-          <span>Click or tap the map where this entry should appear.</span>
+          <span>
+            Click or tap the map where this entry should appear. The preview
+            pin shows how it will look after approval.
+          </span>
         </div>
         <button
           class="event-placement-cancel"
@@ -3193,6 +3366,12 @@
     height: 100%;
     z-index: 0;
     pointer-events: auto;
+  }
+
+  /* Marker wrappers are stacking contexts (transform), so pin-level z-index
+     can't lift a pin above sibling markers — raise the wrapper instead. */
+  .map-container :global(.maplibregl-marker:has(.map-entity-pin.sponsored)) {
+    z-index: 2;
   }
 
   .map-shell :global(.edit-dock),

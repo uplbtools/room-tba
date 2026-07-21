@@ -1,11 +1,7 @@
 import type { APIRoute } from "astro";
-import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
-import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
-import {
-  EditConflictError,
-  updateCollege,
-  DuplicateNameError,
-} from "@lib/services/admin-service";
+import { createEntityPatchRoute } from "@lib/admin/entity-patch-route";
+import { errorResponse } from "@lib/api/json";
+import { updateCollege, type CollegeAdmin } from "@lib/services/admin-service";
 
 export const prerender = false;
 
@@ -14,87 +10,18 @@ type CollegePatchBody = {
   version?: number;
 };
 
-export const PATCH: APIRoute = async ({ cookies, params, request }) => {
-  const auth = await editorSessionOrUnauthorized(cookies, {
-    requirePublish: true,
-  });
-  if (auth instanceof Response) return auth;
-
-  const id = parseInt(params.id ?? "", 10);
-  if (Number.isNaN(id)) {
-    return new Response(JSON.stringify({ error: "Invalid college ID" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  let body: CollegePatchBody;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  if (!body.collegeName || body.collegeName.trim().length === 0) {
-    return new Response(JSON.stringify({ error: "College name is required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const parsedVersion = parseRequiredEditorVersion(body.version);
-  if (!parsedVersion.ok) return parsedVersion.response;
-  const expectedVersion = parsedVersion.version;
-
-  try {
-    const college = await updateCollege(
-      id,
-      body.collegeName.trim(),
-      expectedVersion,
-      auth.editedBy,
-    );
-
-    return new Response(JSON.stringify({ success: true, college }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    if (err instanceof EditConflictError) {
-      return new Response(
-        JSON.stringify({
-          error: "This college was changed by another editor.",
-          latest: err.latest,
-        }),
-        {
-          status: 409,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+export const PATCH: APIRoute = createEntityPatchRoute<CollegeAdmin, string>({
+  entityLabel: "college",
+  responseKey: "college",
+  validateAndBuild: (body) => {
+    const b = body as CollegePatchBody;
+    if (!b.collegeName || b.collegeName.trim().length === 0) {
+      return {
+        ok: false,
+        response: errorResponse("College name is required", 400),
+      };
     }
-
-    if (err instanceof DuplicateNameError) {
-      return new Response(
-        JSON.stringify({
-          error: err.message,
-          code: "duplicate_name",
-          entityType: err.entityType,
-          mergeCandidate: err.candidate,
-          attemptedName: err.attemptedName,
-        }),
-        {
-          status: 409,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    console.error("Failed to update college:", err);
-    return new Response(JSON.stringify({ error: "Failed to save college" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-};
+    return { ok: true, input: b.collegeName.trim(), version: b.version };
+  },
+  update: updateCollege,
+});

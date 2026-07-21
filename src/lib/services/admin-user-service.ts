@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcrypt";
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { ADMIN_PASSWORD } from "astro:env/server";
@@ -244,7 +244,14 @@ export async function ensureBootstrapAdminUser(): Promise<void> {
 export async function authenticateLegacyAdminPassword(
   password: string,
 ): Promise<SessionUser | null> {
-  if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD) return null;
+  if (!ADMIN_PASSWORD) return null;
+  const passwordBuf = Buffer.from(password);
+  const expectedBuf = Buffer.from(ADMIN_PASSWORD);
+  if (
+    passwordBuf.length !== expectedBuf.length ||
+    !timingSafeEqual(passwordBuf, expectedBuf)
+  )
+    return null;
   await ensureBootstrapAdminUser();
   return authenticateAdminUser("admin", password);
 }

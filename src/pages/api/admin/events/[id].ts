@@ -5,6 +5,7 @@ import { parseRequiredEditorVersion } from "@lib/admin/expected-version";
 import { parseEventImageUrl } from "@lib/r2-upload";
 import {
   deactivateEvent,
+  DuplicateSlugError,
   EditConflictError,
   updateEvent,
   type EventWriteInput,
@@ -96,6 +97,10 @@ function parseEventId(value: string | undefined) {
 }
 
 function handleEventError(err: unknown) {
+  if (err instanceof DuplicateSlugError) {
+    return json({ error: err.message }, 409);
+  }
+
   if (err instanceof EditConflictError) {
     return json(
       {

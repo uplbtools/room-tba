@@ -46,6 +46,14 @@ describe("AppMenu help entry", () => {
     adminAuthStore.canReview = false;
   });
 
+  test("Help & FAQ links to the student FAQ page", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    const faq = screen.getByRole("link", { name: /help & faq/i });
+    expect(faq).toBeVisible();
+    expect(faq).toHaveAttribute("href", "/faq");
+  });
+
   test("'How Room TBA works' opens the landing modal on the welcome tab", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
     await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));

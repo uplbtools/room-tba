@@ -57,7 +57,7 @@ jobs:
 
       - name: Integration tests
         if: inputs.suite == 'blocking'
-        run: PREVIEW_BASE_URL=http://127.0.0.1:4321 bun test ./integration --preload integration/preload.ts --concurrency 1
+        run: PREVIEW_BASE_URL=http://127.0.0.1:4321 bun test ./integration --preload ./integration/preload.ts --concurrency 1
 
       - name: Restart preview after integration
         if: inputs.suite == 'blocking'

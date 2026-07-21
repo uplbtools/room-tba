@@ -1,0 +1,48 @@
+name: Gate coordinates (batch)
+description: Submit verified campus gate / entry-point coordinates from the volunteer spreadsheet
+title: "[DATA] Gate coordinates batch: "
+labels:
+  - data
+body:
+  - type: markdown
+    value: |
+      **No pull request required.** Use this after filling [data/campus-gate-coordinates-template.csv](https://github.com/uplbtools/room-tba/blob/staging/data/campus-gate-coordinates-template.csv).
+
+      Workflow: [CONTRIBUTING.md § Campus gate coordinates](https://github.com/uplbtools/room-tba/blob/staging/CONTRIBUTING.md#campus-gate-coordinates). Parent feature: [#157](https://github.com/uplbtools/room-tba/issues/157).
+  - type: input
+    id: batch_label
+    attributes:
+      label: Batch label
+      description: e.g. "Batch 1 — Raymundo + main gate" or your org name
+      placeholder: Batch 1
+    validations:
+      required: true
+  - type: textarea
+    id: gates_summary
+    attributes:
+      label: Gates included
+      description: List gate names in this batch (one per line)
+      placeholder: |
+        Raymundo Gate
+        Main Gate (Oblation)
+    validations:
+      required: true
+  - type: textarea
+    id: spreadsheet
+    attributes:
+      label: Spreadsheet link or attachment
+      description: Google Sheets view link, or note that the filled CSV is attached to this issue
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: How coordinates were verified
+      description: On-site GPS, OpenStreetMap pin, walked perimeter, photo of gate sign, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes (optional)
+      description: Uncertain gates, duplicate names, vehicle vs pedestrian access, OSM links

@@ -1,6 +1,7 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import EntityEmptyState from "./EntityEmptyState.svelte";
   import EntityPanelFilter from "./EntityPanelFilter.svelte";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
   import { getAppData } from "@lib/context";
@@ -436,56 +437,54 @@
         {/each}
       </ul>
     {:else if loaded}
-      <div class="campus-browse-empty" role="status">
-        <svg
-          class="campus-browse-empty__art"
-          viewBox="0 0 180 128"
-          fill="none"
-          aria-hidden="true"
-        >
-          <!-- Folded campus map with a dotted route and a location pin. -->
-          <rect
-            x="28"
-            y="34"
-            width="124"
-            height="70"
-            rx="10"
-            fill="currentColor"
-            opacity=".1"
-          />
-          <rect
-            x="28"
-            y="34"
-            width="124"
-            height="70"
-            rx="10"
-            stroke="currentColor"
-            stroke-width="3"
-          />
-          <path
-            d="M69 36v66M111 36v66"
-            stroke="currentColor"
-            stroke-width="2"
-            opacity=".25"
-          />
-          <path
-            d="M42 90c12-8 20-24 34-20s22 18 44-2"
-            stroke="currentColor"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            stroke-dasharray="1 8"
-          />
-          <circle cx="42" cy="90" r="4" fill="currentColor" />
-          <path
-            d="M124 22c-8.8 0-16 7-16 15.6 0 10.8 16 26.4 16 26.4s16-15.6 16-26.4C140 29 132.8 22 124 22Z"
-            fill="currentColor"
-            opacity=".85"
-          />
-          <circle cx="124" cy="38" r="5.5" fill="white" />
-        </svg>
-        <h3>{emptyState.title}</h3>
-        <p>{emptyState.description}</p>
-      </div>
+      <EntityEmptyState
+        title={emptyState.title}
+        description={emptyState.description}
+      >
+        {#snippet icon()}
+          <svg viewBox="0 0 180 128" fill="none" aria-hidden="true">
+            <!-- Folded campus map with a dotted route and a location pin. -->
+            <rect
+              x="28"
+              y="34"
+              width="124"
+              height="70"
+              rx="10"
+              fill="currentColor"
+              opacity=".1"
+            />
+            <rect
+              x="28"
+              y="34"
+              width="124"
+              height="70"
+              rx="10"
+              stroke="currentColor"
+              stroke-width="3"
+            />
+            <path
+              d="M69 36v66M111 36v66"
+              stroke="currentColor"
+              stroke-width="2"
+              opacity=".25"
+            />
+            <path
+              d="M42 90c12-8 20-24 34-20s22 18 44-2"
+              stroke="currentColor"
+              stroke-width="3.5"
+              stroke-linecap="round"
+              stroke-dasharray="1 8"
+            />
+            <circle cx="42" cy="90" r="4" fill="currentColor" />
+            <path
+              d="M124 22c-8.8 0-16 7-16 15.6 0 10.8 16 26.4 16 26.4s16-15.6 16-26.4C140 29 132.8 22 124 22Z"
+              fill="currentColor"
+              opacity=".85"
+            />
+            <circle cx="124" cy="38" r="5.5" fill="white" />
+          </svg>
+        {/snippet}
+      </EntityEmptyState>
     {/if}
   </div>
 </div>
@@ -524,37 +523,6 @@
     height: 0.625rem;
     border-radius: 999px;
     box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.85);
-  }
-
-  .campus-browse-empty {
-    display: grid;
-    place-items: center;
-    align-content: center;
-    min-height: 100%;
-    padding: 1.5rem 1rem 2rem;
-    color: #8d393b;
-    text-align: center;
-  }
-
-  .campus-browse-empty__art {
-    width: min(10.5rem, 55vw);
-    margin-bottom: 0.875rem;
-  }
-
-  .campus-browse-empty h3 {
-    margin: 0;
-    color: #3f3f46;
-    font-size: 0.9375rem;
-    line-height: 1.3;
-  }
-
-  .campus-browse-empty p {
-    max-width: 19rem;
-    margin: 0.375rem 0 0;
-    color: #71717a;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    line-height: 1.45;
   }
 
 

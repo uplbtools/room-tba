@@ -7,6 +7,7 @@ Thanks for helping UPLB students find rooms. You do **not** need to clone this r
 | Path | Who | What to do | Open a PR? |
 | ------------------------------------------------------------------------------------------------------------ | ----------------- | --------------------------------------- | ---------- |
 | [Report wrong data](#report-wrong-data) | Anyone on campus | File a data issue or use in-app suggest | No |
+| [Campus gate coordinates](#campus-gate-coordinates) | Data volunteers | Fill gate spreadsheet, file batch issue | No |
 | [Campus QA](#campus-qa) | Testers | Verify the app on your phone | No |
 | [Developers](#developers-no-ai-required) | Coders | Branch, code, PR to `staging` | Yes |
 | [Good first issues](https://github.com/uplbtools/room-tba/issues?q=is%3Aopen+label%3A%22good+first+issue%22) | New devs | Smaller coding tasks | Yes |
@@ -32,6 +33,26 @@ Include:
 - How you verified (walked there, SAIS, org page, photo)
 
 **You do not need to open a pull request.** Someone else will ship the fix and reply on the issue.
+
+---
+
+## Campus gate coordinates
+
+Use this when you can verify where campus gates and entry points are on the map. This feeds [#157](https://github.com/uplbtools/room-tba/issues/157) (gates as searchable entities).
+
+1. Download [`data/campus-gate-coordinates-template.csv`](data/campus-gate-coordinates-template.csv) from this repo (or copy into Google Sheets via **File → Import**).
+2. Fill one row per gate. Starter rows list common gates from building directions and jeepney routes; **leave `lat`/`lon` blank until you verify on site** (do not copy coordinates from other apps without checking).
+3. For each gate you verify:
+   - Stand at the gate sign or main vehicle/pedestrian entry.
+   - Record `lat` and `lon` (phone GPS or OpenStreetMap pin at the entry).
+   - Set `gate_type` (`vehicle`, `pedestrian`, or `both`), `verified` to `yes`, and `verification_method` (e.g. "walked there 2026-07-16, GPS at sign").
+   - Optional: `directions` (one sentence for walkers), `osm_link`, `notes`.
+4. When a batch is ready, open a [Gate coordinates (batch)](https://github.com/uplbtools/room-tba/issues/new?template=gate_coordinates_batch.yml) issue. Attach the filled CSV or link your Google Sheet.
+5. A maintainer imports verified rows when the `entry_points` schema ships ([#157](https://github.com/uplbtools/room-tba/issues/157)).
+
+**You do not need to open a pull request.**
+
+Column reference: `name`, `short_name`, `slug`, `gate_type`, `lat`, `lon`, `is_primary`, `directions`, `osm_link`, `verified`, `verification_method`, `notes`.
 
 ---
 

@@ -126,6 +126,7 @@ import {
   MapViewStore,
   MapToolsStore,
   TerrainStore,
+  TrailStore,
   Building3DStore,
 } from "./map-stores.svelte";
 import {
@@ -944,6 +945,7 @@ export const mapProposalStore = new MapProposalStore();
 export const additionProposalStore = new AdditionProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
+export const trailStore = new TrailStore();
 export const jeepneyStore = new JeepneyStore();
 export const transitStore = new TransitStore();
 export const appBootstrapStore = new AppBootstrapStore();
