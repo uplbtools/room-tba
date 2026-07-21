@@ -13,17 +13,16 @@ describe("campusBrowseQuery", () => {
     });
   });
 
-  it.each([
-    "buildings",
-    "colleges",
-    "divisions",
-  ] as CampusBrowseTab[])("uses browse category for %s", (tab) => {
-    expect(campusBrowseQuery(tab)).toEqual({
-      category: "browse",
-      type: "result",
-      value: tab,
-    });
-  });
+  it.each(["buildings", "colleges", "divisions"] as CampusBrowseTab[])(
+    "uses browse category for %s",
+    (tab) => {
+      expect(campusBrowseQuery(tab)).toEqual({
+        category: "browse",
+        type: "result",
+        value: tab,
+      });
+    },
+  );
 });
 
 describe("classes browse query shape", () => {
