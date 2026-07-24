@@ -37,6 +37,11 @@
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import { getDormShareUrl } from "@lib/share-links";
+  import {
+    getKuboDormCta,
+    kuboDormDirectory,
+    loadKuboDormDirectory,
+  } from "@lib/kubo-dorms";
   type DormEditableField =
     | "dormName"
     | "shortName"
@@ -99,6 +104,15 @@
   let mergingEntity = $state(false);
   const canPublish = $derived(adminAuthStore.canPublish);
   const dormShareUrl = $derived(dorm ? getDormShareUrl(dorm) : "");
+  const kuboDormCta = $derived(
+    dorm
+      ? getKuboDormCta($kuboDormDirectory, dorm.id, dorm.dormName)
+      : null,
+  );
+
+  $effect(() => {
+    if (dorm) void loadKuboDormDirectory();
+  });
 
   const fieldLabels: Record<DormEditableField, string> = {
     dormName: "Dorm name",
@@ -128,6 +142,7 @@
         amenities.length > 0 ||
         dorm.isUpManaged ||
         dorm.facebookLink ||
+        kuboDormCta ||
         (!dorm.isUpManaged && dorm.priceRange)),
     ),
   );
@@ -829,8 +844,17 @@
           </div>
         {/if}
 
-        {#if dorm.isUpManaged || dorm.facebookLink || (!dorm.isUpManaged && dorm.priceRange)}
+        {#if dorm.isUpManaged || dorm.facebookLink || kuboDormCta || (!dorm.isUpManaged && dorm.priceRange)}
           <div class="entity-dorm-details__links">
+            {#if kuboDormCta}
+              <EntityExternalLink
+                href={kuboDormCta.href}
+                label={kuboDormCta.label}
+                ariaLabel={kuboDormCta.ariaLabel}
+                class="entity-footer__link--button entity-footer__link--kubo"
+                iconSrc="/kubo-logo.png"
+              />
+            {/if}
             {#if dorm.isUpManaged}
               <EntityExternalLink
                 href="https://uplbosa.org"
