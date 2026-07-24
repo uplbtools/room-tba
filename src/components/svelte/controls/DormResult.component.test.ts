@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/svelte";
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import DormResultHost from "@test/components/DormResultHost.svelte";
 import type { DormData } from "@lib/types";
 import { queryStore } from "@lib/store.svelte";
+import { kuboDormDirectory } from "@lib/kubo-dorms";
 import {
   expectNoHorizontalOverflow,
   mountAtWidth,
@@ -43,7 +44,28 @@ function renderDormResult(testDorm: DormData) {
 }
 
 describe("DormResult Kubo link", () => {
-  test("renders a safe Kubo CTA for a mapped dorm without mobile overflow", () => {
+  beforeEach(() => {
+    kuboDormDirectory.set(new Map());
+  });
+
+  test("renders a safe Kubo CTA for an API-confirmed dorm without mobile overflow", () => {
+    kuboDormDirectory.set(
+      new Map([
+        [
+          12,
+          {
+            roomTbaDormId: 12,
+            name: "Arable Premier Residences",
+            kuboSlug: "arable-premier-residences",
+            listingUrl:
+              "https://kubo.community/dorms/arable-premier-residences",
+            reservationStatus: "unknown",
+            reservationUrl: null,
+            updatedAt: "2026-07-22T08:00:00.000Z",
+          },
+        ],
+      ]),
+    );
     mountAtWidth(320);
     const { container } = renderDormResult(
       dorm({ facebookLink: "https://www.facebook.com/arablepremier" }),

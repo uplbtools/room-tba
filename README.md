@@ -131,17 +131,11 @@ bun dev
 
 Open **http://localhost:4321**. Without `DATABASE_URL`, the dev server starts but pages that hit the DB will 500. That is expected.
 
-To test the optional Kubo dorm link against a local Postgres database, initialize
-the schema and seed both mapped and unmapped dorm fixtures:
-
-```sh
-bunx drizzle-kit push
-bun run seed:kubo-dorms
-```
-
-The seed command refuses non-loopback database hosts, so it cannot modify staging
-or production. Search for **Arable Premier Residences** to see the Kubo CTA, then
-**Westbrook Residences** to confirm that an unmapped dorm does not show it.
+To test the optional Kubo dorm link, the CTA directory loads lazily from Kubo
+through Room TBA's cached proxy and starts empty, so no button appears until the
+API confirms a matching Room TBA dorm ID. Set `KUBO_ROOM_TBA_DIRECTORY_URL` to
+a local fixture server to test **Reserve on Kubo**, **Join waitlist on Kubo**,
+**View on Kubo**, and an unmapped dorm without Kubo production access.
 
 ### Linting and formatting
 
@@ -177,7 +171,7 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bunx drizzle-kit studio` | Browse/edit Postgres visually |
 | `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
 | `bun run seed:deep-research` | Fill-only data-gap seed from the 2026-07 research report (`DATABASE_URL`; `--dry-run` supported) |
-| `bun run seed:kubo-dorms` | Seed mapped and unmapped Kubo CTA fixtures into local Postgres only |
+
 | `bun run generate:pglite-schema` | Regenerate the offline PGlite init SQL from `drizzle/schema.ts` |
 | `bun run import:osa-orgs` | Add the current public OSA organization directory (`DATABASE_URL`; safe to rerun) |
 | `bun run import:campus-offices` | Add missing campus offices and units (`DATABASE_URL`; safe to rerun) |
