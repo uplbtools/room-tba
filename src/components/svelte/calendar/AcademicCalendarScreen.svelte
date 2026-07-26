@@ -2,18 +2,28 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import { fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
+  import { getAppData } from "@lib/context";
   import { trapFocus } from "@lib/focus-trap";
   import { fullScreenReveal } from "@lib/motion";
-  import { sidebarStore, termStore } from "@lib/store.svelte";
   import {
+    appBootstrapStore,
+    queryStore,
+    sidebarStore,
+    sidePanelStore,
+    termStore,
+  } from "@lib/store.svelte";
+  import {
+    buildEventTimeline,
     buildYearTimeline,
     currentAcademicYearTerms,
     resolveTermWindow,
     termWindowStatus,
     type TermStatus,
   } from "@lib/academic-calendar";
-  import { formatTermDateRange } from "@lib/term-calendar";
+  import { formatCampusRange } from "@lib/event-time";
+  import { formatTermDateRange, toManilaDateKey } from "@lib/term-calendar";
   import { termChipLabel, termFullLabel } from "@lib/term-label";
+  import type { EventData, EventRecurrence } from "@lib/types";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
@@ -67,6 +77,69 @@
       return { term, window, status };
     }),
   );
+
+  const RECURRENCE_LABEL: Partial<Record<EventRecurrence, string>> = {
+    annual: "Repeats yearly",
+    every_1st_sem: "Every 1st sem",
+    every_2nd_sem: "Every 2nd sem",
+  };
+
+  const appData = getAppData();
+  const events = $derived(appData().events ?? []);
+  // appData.loaded flips true on mount with an empty dataset, so it would flash
+  // "no events" on every cold load; the bootstrap phase is the honest signal.
+  const eventsPending = $derived(
+    events.length === 0 &&
+      appBootstrapStore.phase !== "ready" &&
+      appBootstrapStore.phase !== "error",
+  );
+
+  // Occurrences are already projected for recurring events (event-time.ts), so
+  // a yearly event lands on the year it next runs.
+  const eventTimeline = $derived(
+    timeline
+      ? buildEventTimeline(
+          timeline,
+          events.map((event) => ({
+            event,
+            startsOn: toManilaDateKey(new Date(event.occurrenceStartsAt)),
+            endsOn: toManilaDateKey(new Date(event.occurrenceEndsAt)),
+          })),
+        )
+      : null,
+  );
+
+  function markerTitle(entries: { event: EventData }[]) {
+    return entries
+      .map(
+        ({ event }) =>
+          `${event.title} — ${formatCampusRange(event.occurrenceStartsAt, event.occurrenceEndsAt)}`,
+      )
+      .join("\n");
+  }
+
+  function openEvent(event: EventData) {
+    queryStore.updateQuery({
+      category: "event",
+      type: "result",
+      value: event.title,
+      eventSlug: event.slug,
+    });
+    queryStore.inputValue = event.title;
+    sidePanelStore.expand();
+    close();
+  }
+
+  function openEventsList() {
+    queryStore.updateQuery({
+      category: "events",
+      type: "result",
+      value: "Campus events",
+    });
+    queryStore.inputValue = "";
+    sidePanelStore.expand();
+    close();
+  }
 </script>
 
 <div
@@ -123,6 +196,19 @@
                 <span class="acal-seg__label">{termChipLabel(segment.term)}</span>
               </div>
             {/each}
+            {#each eventTimeline?.markers ?? [] as marker (marker.leftPct)}
+              <span
+                class="acal-event-dot"
+                class:acal-event-dot--past={marker.events.every(
+                  (entry) => entry.event.status === "past",
+                )}
+                style="left: {marker.leftPct}%"
+                title={markerTitle(marker.events)}
+                aria-hidden="true"
+              >
+                {#if marker.events.length > 1}{marker.events.length}{/if}
+              </span>
+            {/each}
             {#if timeline.todayPct !== null}
               <div
                 class="acal-today"
@@ -132,6 +218,57 @@
             {/if}
           </div>
           <p class="acal-caption">Today: {todayLabel} (Asia/Manila)</p>
+        </section>
+
+        <section class="acal-events" aria-label="Campus events in {timelineHeading}">
+          <h2 class="acal-year__heading">Campus events in {timelineHeading}</h2>
+          {#each eventTimeline?.months ?? [] as group (group.key)}
+            <h3 class="acal-events__month">{group.label}</h3>
+            <ul class="acal-events__list">
+              {#each group.events as entry (entry.event.id)}
+                <li>
+                  <button
+                    type="button"
+                    class="acal-event"
+                    class:acal-event--past={entry.event.status === "past"}
+                    onclick={() => openEvent(entry.event)}
+                  >
+                    <span class="acal-event__title">{entry.event.title}</span>
+                    <span class="acal-event__meta">
+                      <span
+                        >{formatCampusRange(
+                          entry.event.occurrenceStartsAt,
+                          entry.event.occurrenceEndsAt,
+                        )}</span
+                      >
+                      <span class="acal-event__category"
+                        >{entry.event.category}</span
+                      >
+                      {#if RECURRENCE_LABEL[entry.event.recurrence]}
+                        <span>{RECURRENCE_LABEL[entry.event.recurrence]}</span>
+                      {/if}
+                    </span>
+                  </button>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <p class="acal-status">
+              {eventsPending
+                ? "Loading campus events…"
+                : `No campus events fall inside ${timelineHeading}.`}
+            </p>
+          {/each}
+          {#if eventTimeline && eventTimeline.outOfRangeCount > 0}
+            <p class="acal-events__note">
+              {eventTimeline.outOfRangeCount}
+              {eventTimeline.outOfRangeCount === 1 ? "event falls" : "events fall"}
+              outside {timelineHeading}.
+              <button type="button" class="acal-link" onclick={openEventsList}>
+                See all campus events
+              </button>
+            </p>
+          {/if}
         </section>
       {/if}
 
@@ -303,6 +440,29 @@
     padding: 0 0.25rem;
   }
 
+  /* Markers snap to a 5% grid (EVENT_MARKER_STEP_PCT), so this dot must stay
+     narrower than 5% of the strip at 320px (~15px) or clusters can touch. */
+  .acal-event-dot {
+    position: absolute;
+    top: 0.9rem;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 999px;
+    background: hsl(30, 85%, 45%);
+    color: white;
+    font-size: 0.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .acal-event-dot--past {
+    background: hsl(0, 0%, 62%);
+  }
+
   .acal-today {
     position: absolute;
     top: 0;
@@ -316,6 +476,100 @@
     font-size: 0.6875rem;
     font-weight: 600;
     color: hsl(210, 60%, 35%);
+  }
+
+  .acal-events {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    max-width: 52rem;
+  }
+
+  .acal-events__month {
+    margin: 0.25rem 0 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: hsl(0, 0%, 45%);
+  }
+
+  .acal-events__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .acal-event {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid hsl(0, 0%, 88%);
+    border-radius: 0.625rem;
+    background: white;
+    cursor: pointer;
+  }
+
+  /* Past events stay in the calendar, just quieter than what is still ahead. */
+  .acal-event--past {
+    background: hsl(0, 0%, 97%);
+  }
+
+  .acal-event--past .acal-event__title {
+    color: hsl(0, 0%, 38%);
+  }
+
+  .acal-event:hover {
+    background: hsl(30, 60%, 97%);
+  }
+
+  .acal-event:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: -2px;
+  }
+
+  .acal-event__title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: hsl(0, 0%, 16%);
+    overflow-wrap: anywhere;
+  }
+
+  .acal-event__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 42%);
+  }
+
+  .acal-event__category {
+    text-transform: capitalize;
+  }
+
+  .acal-events__note {
+    margin: 0.25rem 0 0;
+    font-size: 0.75rem;
+    color: hsl(0, 0%, 45%);
+  }
+
+  .acal-link {
+    all: unset;
+    color: hsl(5, 53%, 32%);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .acal-link:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
   }
 
   .acal-terms {

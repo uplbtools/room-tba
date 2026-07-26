@@ -1,7 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import {
+  buildEventTimeline,
   buildYearTimeline,
   currentAcademicYearTerms,
+  EVENT_MARKER_STEP_PCT,
   resolveTermWindow,
   termWindowStatus,
 } from "./academic-calendar";
@@ -122,6 +124,113 @@ describe("buildYearTimeline", () => {
     expect(
       buildYearTimeline([term(9999)], manilaNoon("2026-02-01")),
     ).toBeNull();
+  });
+});
+
+describe("buildEventTimeline", () => {
+  // Aug 1 → Dec 31 2026 = 153 days, the strip a single-term AY produces.
+  const strip = { rangeStart: "2026-08-01", rangeEnd: "2026-12-31" };
+  const event = (slug: string, startsOn: string, endsOn = startsOn) => ({
+    slug,
+    startsOn,
+    endsOn,
+  });
+
+  it("places one event per grid cell at the cell center", () => {
+    const { markers } = buildEventTimeline(strip, [
+      event("a", "2026-08-01"),
+      event("b", "2026-12-31"),
+    ]);
+    expect(markers.map((marker) => marker.leftPct)).toEqual([2.5, 97.5]);
+    expect(markers.map((marker) => marker.events.map((e) => e.slug))).toEqual([
+      ["a"],
+      ["b"],
+    ]);
+  });
+
+  it("clusters same-cell events into one marker with a count", () => {
+    // A 5% cell is ~7.6 days on this strip; Sep 2/5/8 share one.
+    const { markers } = buildEventTimeline(strip, [
+      event("first", "2026-09-02"),
+      event("second", "2026-09-05"),
+      event("third", "2026-09-08"),
+      event("later", "2026-11-20"),
+    ]);
+    expect(markers).toHaveLength(2);
+    expect(markers[0]?.events.map((e) => e.slug)).toEqual([
+      "first",
+      "second",
+      "third",
+    ]);
+    expect(markers[1]?.events.map((e) => e.slug)).toEqual(["later"]);
+  });
+
+  it("keeps every marker at least one grid step apart, even at 60 events", () => {
+    const dense = Array.from({ length: 60 }, (_, index) =>
+      event(
+        `e${index}`,
+        `2026-09-${String((index % 30) + 1).padStart(2, "0")}`,
+      ),
+    );
+    const { markers } = buildEventTimeline(strip, dense);
+    expect(markers.length).toBeGreaterThan(1);
+    for (const [index, marker] of markers.entries()) {
+      expect(marker.leftPct).toBeGreaterThanOrEqual(EVENT_MARKER_STEP_PCT / 2);
+      expect(marker.leftPct).toBeLessThanOrEqual(
+        100 - EVENT_MARKER_STEP_PCT / 2,
+      );
+      const previous = markers[index - 1];
+      if (previous) {
+        expect(marker.leftPct - previous.leftPct).toBeGreaterThanOrEqual(
+          EVENT_MARKER_STEP_PCT,
+        );
+      }
+    }
+    expect(
+      dense.every((entry) => markers.some((m) => m.events.includes(entry))),
+    ).toBe(true);
+  });
+
+  it("keeps events that overlap the strip and pins them to its first day", () => {
+    const { markers, months, outOfRangeCount } = buildEventTimeline(strip, [
+      // Started in June, still running when the semester opens.
+      event("long-run", "2026-06-01", "2026-09-30"),
+    ]);
+    expect(outOfRangeCount).toBe(0);
+    expect(markers[0]?.leftPct).toBe(2.5);
+    expect(months[0]?.label).toBe("Aug 2026");
+  });
+
+  it("counts events outside the strip instead of dropping them silently", () => {
+    const { markers, months, outOfRangeCount } = buildEventTimeline(strip, [
+      event("before", "2026-07-04"),
+      event("after", "2027-02-14"),
+      event("inside", "2026-10-05"),
+    ]);
+    expect(outOfRangeCount).toBe(2);
+    expect(markers).toHaveLength(1);
+    expect(months.map((group) => group.label)).toEqual(["Oct 2026"]);
+  });
+
+  it("groups the list by month in calendar order", () => {
+    const { months } = buildEventTimeline(strip, [
+      event("dec", "2026-12-15"),
+      event("aug-late", "2026-08-28"),
+      event("aug-early", "2026-08-03"),
+    ]);
+    expect(months.map((group) => group.key)).toEqual(["2026-08", "2026-12"]);
+    expect(months[0]?.events.map((e) => e.slug)).toEqual([
+      "aug-early",
+      "aug-late",
+    ]);
+  });
+
+  it("returns empty groups when nothing falls in the year", () => {
+    expect(buildEventTimeline(strip, [])).toEqual({
+      markers: [],
+      months: [],
+      outOfRangeCount: 0,
+    });
   });
 });
 

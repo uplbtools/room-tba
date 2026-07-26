@@ -144,6 +144,105 @@ export function buildYearTimeline<T extends DatableTerm>(
   return { rangeStart, rangeEnd, todayPct, months, segments };
 }
 
+/**
+ * Grid step for event markers, in strip percent. The narrowest strip we support
+ * is ~296px (320px viewport), where 5% is ~15px — wider than the 12px marker,
+ * so two markers can never touch.
+ *
+ * ponytail: fixed grid, no layout measuring. Events inside the same cell
+ * collapse into one dot-with-count instead of stacking; pass a step derived
+ * from the measured strip width if markers ever need day-level precision.
+ */
+export const EVENT_MARKER_STEP_PCT = 5;
+
+/** Manila day keys (YYYY-MM-DD) for one event occurrence. */
+type EventDays = { startsOn: string; endsOn: string };
+
+export type EventMarker<E> = {
+  /** Center of the marker's grid cell, 0–100 within the strip. */
+  leftPct: number;
+  events: E[];
+};
+
+export type EventMonthGroup<E> = {
+  /** "2026-08" */
+  key: string;
+  /** "Aug 2026" */
+  label: string;
+  events: E[];
+};
+
+export type EventTimeline<E> = {
+  markers: EventMarker<E>[];
+  months: EventMonthGroup<E>[];
+  /** Events whose occurrence misses the strip; surfaced, not silently dropped. */
+  outOfRangeCount: number;
+};
+
+function isoFromDayNumber(day: number) {
+  return new Date(day * DAY_MS).toISOString().slice(0, 10);
+}
+
+/**
+ * Place event occurrences on the year strip built by `buildYearTimeline`, and
+ * group them by month for the list under it.
+ */
+export function buildEventTimeline<E extends EventDays>(
+  strip: Pick<YearTimeline, "rangeStart" | "rangeEnd">,
+  events: E[],
+  stepPct = EVENT_MARKER_STEP_PCT,
+): EventTimeline<E> {
+  const startDay = dayNumber(strip.rangeStart);
+  const totalDays = dayNumber(strip.rangeEnd) - startDay + 1;
+  const cells = Math.ceil(100 / stepPct);
+
+  // Overlap, not containment: an event that started before the strip but runs
+  // into it still belongs to this year — pin it to the first day shown.
+  const placed = events
+    .filter(
+      (event) =>
+        event.startsOn <= strip.rangeEnd && event.endsOn >= strip.rangeStart,
+    )
+    .map((event) => ({
+      event,
+      day: Math.max(dayNumber(event.startsOn), startDay),
+    }))
+    .sort((a, b) => a.day - b.day);
+
+  const markers: EventMarker<E>[] = [];
+  const months: EventMonthGroup<E>[] = [];
+  let marker: EventMarker<E> | null = null;
+  let month: EventMonthGroup<E> | null = null;
+  let cell = -1;
+
+  for (const { event, day } of placed) {
+    const dayPct = ((day - startDay) / totalDays) * 100;
+    const nextCell = Math.min(Math.floor(dayPct / stepPct), cells - 1);
+    if (!marker || nextCell !== cell) {
+      cell = nextCell;
+      marker = {
+        leftPct: Math.min((cell + 0.5) * stepPct, 100 - stepPct / 2),
+        events: [],
+      };
+      markers.push(marker);
+    }
+    marker.events.push(event);
+
+    const key = isoFromDayNumber(day).slice(0, 7);
+    if (!month || month.key !== key) {
+      month = {
+        key,
+        label: `${shortMonthLabel(`${key}-01`)} ${key.slice(0, 4)}`,
+        events: [],
+      };
+      months.push(month);
+    }
+    month.events.push(event);
+  }
+
+  return { markers, months, outOfRangeCount: events.length - placed.length };
+}
+
 type CalendarTerm = DatableTerm &
   Pick<Term, "schoolYear" | "isActive" | "sortOrder">;
 
