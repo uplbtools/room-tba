@@ -62,6 +62,9 @@ export default defineConfig({
           /^\/sponsors(\/|\?|$)/,
           /^\/donate(\/|\?|$)/,
           /^\/wiki(\/|\?|$)/,
+          // Server-rendered per pair; the offline app shell would replace the
+          // directions with an empty map.
+          /^\/route(\/|\?|$)/,
           // /planner is its own page; without this the nav fallback serves the
           // map shell and the planner never opens for returning (SW-cached)
           // users. The `\?` matters: workbox matches denylist against
@@ -265,6 +268,14 @@ export default defineConfig({
       }),
       // From address, e.g. "Room TBA <digest@uplbtools.me>".
       RESEND_FROM_EMAIL: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Rewrites computed walking directions into prose on /route/*. Optional:
+      // unset, the route page ships the deterministic description instead, so
+      // local dev and forks work without an AI account.
+      ANTHROPIC_API_KEY: envField.string({
         access: "secret",
         context: "server",
         optional: true,

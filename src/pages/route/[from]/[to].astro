@@ -1,0 +1,241 @@
+---
+export const prerender = false;
+
+import Layout from "@layouts/Layout.astro";
+import { ANTHROPIC_API_KEY } from "astro:env/server";
+import {
+  fetchCampusRoute,
+  formatDistance,
+  formatDuration,
+} from "@lib/campus-route";
+import {
+  describeRoute,
+  generateRouteDescription,
+} from "@lib/route-description";
+import { getRoutePath } from "@lib/route-links";
+import { findBySlug, getRoutablePlaces } from "@lib/services/route-service";
+import { getBuildingCanonicalPath } from "@lib/entity-urls";
+import { absoluteUrl, breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+
+const { from: fromSlug, to: toSlug } = Astro.params;
+if (!fromSlug || !toSlug) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const places = await getRoutablePlaces();
+const from = findBySlug(places, fromSlug);
+const to = findBySlug(places, toSlug);
+if (!from || !to) {
+  return new Response(null, { status: 404, statusText: "Not Found" });
+}
+
+const route =
+  from.slug === to.slug ? null : await fetchCampusRoute(from, to, places);
+
+// The model only rewrites facts we computed. Without a key it is skipped and
+// the deterministic version ships, which is the normal case today.
+const aiDescription = route
+  ? await generateRouteDescription(from, to, route, ANTHROPIC_API_KEY)
+  : null;
+const factual = route ? describeRoute(from, to, route) : null;
+
+const canonicalPath = getRoutePath(from.name, to.name);
+const title = `${from.name} to ${to.name} | Walking route at UPLB | Room TBA`;
+const summary = route
+  ? `${formatDistance(route.meters)}, about ${formatDuration(route.seconds)} walking.`
+  : `Walking route between ${from.name} and ${to.name} at UPLB.`;
+const description = `How to walk from ${from.name} to ${to.name} at UP Los Banos. ${summary}`;
+
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: canonicalPath }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: `${from.name} to ${to.name}`, path: canonicalPath },
+  ]),
+);
+
+const mapUrl = `/?route=${encodeURIComponent(from.slug)},${encodeURIComponent(to.slug)}`;
+
+// Only buildings have a name-addressable page; dorms and places need ids we
+// did not fetch, so they simply get no context link.
+const contextLinks = [from, to]
+  .filter((place) => place.kind === "building")
+  .map((place) => ({
+    label: `About ${place.name}`,
+    href: getBuildingCanonicalPath(place.name),
+  }));
+---
+
+{/* Route pages are one per ordered pair, so the set is the square of the
+    campus directory. Letting crawlers walk it would spend an OSRM request and
+    an AI generation on tens of thousands of pages nobody asked for, which is
+    why this renders noindex and stays out of the sitemap. */}
+
+<Layout
+  {title}
+  {description}
+  canonicalPath={canonicalPath}
+  {structuredData}
+  showAppLoadingShell={false}
+  robots="noindex,follow"
+>
+  <main class="route-page">
+    <nav class="route-crumb">
+      <a href="/">Room TBA</a>
+    </nav>
+
+    <header class="route-head">
+      <p class="route-kicker">Walking route</p>
+      <h1>{from.name} to {to.name}</h1>
+      {
+        route ? (
+          <p class="route-stats">
+            <span>{formatDistance(route.meters)}</span>
+            <span aria-hidden="true">·</span>
+            <span>{formatDuration(route.seconds)} on foot</span>
+          </p>
+        ) : null
+      }
+    </header>
+
+    {
+      route ? (
+        <section class="route-body">
+          {aiDescription ? (
+            <p class="route-lede">{aiDescription}</p>
+          ) : (
+            <ol class="route-steps">
+              {factual
+                ?.split("\n")
+                .slice(1)
+                .map((line) => (
+                  <li>{line}</li>
+                ))}
+            </ol>
+          )}
+
+          <div class="route-actions">
+            <a class="route-btn route-btn--primary" href={mapUrl}>
+              Open on the map
+            </a>
+            {contextLinks.map((link) => (
+              <a class="route-btn" href={link.href}>
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          <p class="route-note">
+            Distance and time come from OpenStreetMap footpaths and assume an
+            unhurried walk. Campus shortcuts and closed gates are not accounted
+            for.
+          </p>
+        </section>
+      ) : (
+        <section class="route-body">
+          <p class="route-lede">
+            {from.slug === to.slug
+              ? "That is the same place twice. Pick a different destination."
+              : "No walking route could be worked out between these two right now. The routing service may be unavailable."}
+          </p>
+          <div class="route-actions">
+            <a class="route-btn route-btn--primary" href="/">
+              Open the map
+            </a>
+          </div>
+        </section>
+      )
+    }
+  </main>
+</Layout>
+
+<style>
+  .route-page {
+    width: min(48rem, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+  }
+
+  .route-crumb a {
+    color: hsl(5, 53%, 32%);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .route-head {
+    margin-top: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid hsl(0, 0%, 88%);
+  }
+
+  .route-kicker {
+    margin: 0;
+    color: hsl(5, 53%, 36%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .route-head h1 {
+    margin: 0.375rem 0 0;
+    font-size: clamp(1.5rem, 4vw, 2.125rem);
+    line-height: 1.15;
+  }
+
+  .route-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.625rem 0 0;
+    color: hsl(0, 0%, 35%);
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  .route-lede {
+    margin: 1.5rem 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  .route-steps {
+    margin: 1.5rem 0 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    line-height: 1.55;
+  }
+
+  .route-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+  }
+
+  .route-btn {
+    padding: 0.6rem 1rem;
+    border: 1px solid hsl(5, 28%, 80%);
+    border-radius: 0.625rem;
+    color: hsl(5, 53%, 32%);
+    font-size: 0.875rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .route-btn--primary {
+    border-color: transparent;
+    background: hsl(5, 53%, 32%);
+    color: white;
+  }
+
+  .route-note {
+    margin: 2rem 0 0;
+    color: hsl(0, 0%, 45%);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+</style>

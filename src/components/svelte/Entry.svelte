@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import type { InitialSearchState } from "@lib/app-data";
+  import { getAppData } from "@lib/context";
+  import { findCampusPointBySlug } from "@lib/route-links";
   import {
     modalStore,
     queryStore,
@@ -88,6 +90,8 @@
   // so reading window.location.search there would see an already-stripped URL.
   const initialUrlSearch =
     typeof window !== "undefined" ? window.location.search : "";
+
+  const appData = getAppData();
 
   onMount(() => {
     // Session state drives account-backed planner sync too. This belongs at the
@@ -194,6 +198,21 @@
           ? getTransitStopPath(jeepneyRouteId, stopParam)
           : getTransitRoutePath(jeepneyRouteId),
       );
+    }
+
+    // /route/<from>/<to> sends its two endpoints here as slugs. Resolving them
+    // against loaded campus data (rather than passing coordinates in the URL)
+    // keeps the link stable when an editor moves a pin.
+    const routeParam = urlParams.get("route");
+    if (routeParam) {
+      const [fromSlug, toSlug] = routeParam.split(",");
+      const waypoints = [fromSlug, toSlug]
+        .map((slug) => (slug ? findCampusPointBySlug(appData(), slug) : null))
+        .filter((point): point is [number, number] => point !== null);
+      if (waypoints.length === 2) {
+        locationStore.setWaypoints(waypoints);
+      }
+      window.history.replaceState({}, "", window.location.pathname);
     }
 
     plannerStore.init();
