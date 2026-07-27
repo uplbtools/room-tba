@@ -66,11 +66,6 @@ const contextLinks = [from, to]
   }));
 ---
 
-{/* Route pages are one per ordered pair, so the set is the square of the
-    campus directory. Letting crawlers walk it would spend an OSRM request and
-    an AI generation on tens of thousands of pages nobody asked for, which is
-    why this renders noindex and stays out of the sitemap. */}
-
 <Layout
   {title}
   {description}
