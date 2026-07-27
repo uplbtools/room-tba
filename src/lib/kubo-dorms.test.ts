@@ -96,20 +96,19 @@ describe("getKuboDormCta", () => {
     });
   });
 
-  test.each([
-    "paused",
-    "unavailable",
-    "unknown",
-  ] as const)("uses the listing link for %s status", (reservationStatus) => {
-    const record = { ...acceptingDirectory.dorms[0], reservationStatus };
-    const cta = getKuboDormCta(
-      new Map([[record.roomTbaDormId, record]]),
-      15,
-      "Scholar's Dormitory",
-    );
-    expect(cta?.label).toBe("View on Kubo");
-    expect(cta?.href).toBe(record.listingUrl);
-  });
+  test.each(["paused", "unavailable", "unknown"] as const)(
+    "uses the listing link for %s status",
+    (reservationStatus) => {
+      const record = { ...acceptingDirectory.dorms[0], reservationStatus };
+      const cta = getKuboDormCta(
+        new Map([[record.roomTbaDormId, record]]),
+        15,
+        "Scholar's Dormitory",
+      );
+      expect(cta?.label).toBe("View on Kubo");
+      expect(cta?.href).toBe(record.listingUrl);
+    },
+  );
 
   test("hides the CTA for an unlinked dorm", () => {
     expect(getKuboDormCta(new Map(), 13, "Westbrook Residences")).toBeNull();
