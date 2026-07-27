@@ -10,7 +10,7 @@
         "@astrojs/svelte": "^9.0.1",
         "@astrojs/vercel": "^11.0.3",
         "@aws-sdk/client-s3": "^3.1090.0",
-        "@datadog/browser-rum": "^7.5.0",
+        "@datadog/browser-rum": "^7.6.1",
         "@electric-sql/pglite": "^0.5.4",
         "@lucide/svelte": "^1.25.0",
         "@maplibre/maplibre-gl-directions": "^0.9.1",
@@ -399,17 +399,17 @@
 
     "@colors/colors": ["@colors/colors@1.5.0", "", {}, "sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="],
 
-    "@datadog/browser-core": ["@datadog/browser-core@7.5.0", "", { "dependencies": { "@datadog/js-core": "0.0.5" } }, "sha512-qvjv0Ox55+x/wxFT8cjIAse1voLVorJd3lg2Q53nJ0CREZ1bqqjo2gDz/Lm4t0fqQnqyqrOncc3X2pg4LxCFzg=="],
+    "@datadog/browser-core": ["@datadog/browser-core@7.6.1", "", { "dependencies": { "@datadog/js-core": "0.0.7" } }, "sha512-xfExkTuolUYO/OXOVX+8NY3qi0BQAD9D+FWG85VzkI+921HBpVuo79YRnKtIJlTIplSyJaBKF48voX6he9kpXw=="],
 
-    "@datadog/browser-rum": ["@datadog/browser-rum@7.5.0", "", { "dependencies": { "@datadog/browser-core": "7.5.0", "@datadog/browser-rum-core": "7.5.0", "@datadog/js-core": "0.0.5" }, "peerDependencies": { "@datadog/browser-logs": "7.5.0" }, "optionalPeers": ["@datadog/browser-logs"] }, "sha512-w7T0sAu9wx0zIdAmHM4avwdJW/gu+llCUCyeo5mQO5Qbf7VcA8K9Y+R4ZsNizRC14K5beAAkj5MqdaBC2x+yZg=="],
+    "@datadog/browser-rum": ["@datadog/browser-rum@7.6.1", "", { "dependencies": { "@datadog/browser-core": "7.6.1", "@datadog/browser-rum-core": "7.6.1", "@datadog/js-core": "0.0.7" }, "peerDependencies": { "@datadog/browser-logs": "7.6.1" }, "optionalPeers": ["@datadog/browser-logs"] }, "sha512-nNaAlRqW5estVXfayl+WSWyTGtue5l0VPyEJGHWsok2zd9BwlGZ62i1XgON9Mi/cP5U9IlUeRKfOkhq5DWcfNg=="],
 
-    "@datadog/browser-rum-core": ["@datadog/browser-rum-core@7.5.0", "", { "dependencies": { "@datadog/browser-core": "7.5.0", "@datadog/js-core": "0.0.5" } }, "sha512-Okyq2+y3Dtw5AL4xpw/fT1Dkmyr/Q4na3Wa+D9FU+i1g5i3BGyr6HNUv6L7vCrF6CyDVfCi3Nv90lgdprRCkyQ=="],
+    "@datadog/browser-rum-core": ["@datadog/browser-rum-core@7.6.1", "", { "dependencies": { "@datadog/browser-core": "7.6.1", "@datadog/js-core": "0.0.7" } }, "sha512-Dlk8ZRPZ/yjFKUq/swbWPHFg21YYzMPQEwNgdX9fmwWb4Z/Tpd8Tfjehe3Z7cy4SYYHwV8NuwjvseTaYHM4w7g=="],
 
     "@datadog/datadog-ci": ["@datadog/datadog-ci@5.21.2", "", { "bin": "dist/bundle.js" }, "sha512-DNSveS6vV6UWAL5BQbbFtQQnLvJlrTQnc0k7EonpJR9AA8RgTB3f9LYyXo1Qch8Z2IJK/+WrLPcK29Z94j/Waw=="],
 
     "@datadog/flagging-core": ["@datadog/flagging-core@1.2.1", "", { "dependencies": { "spark-md5": "^3.0.2" } }, "sha512-qeDkki9fFlqyoZBrn7tneT6pZ04EKKvf3xxisYw1a74zbJihvQui/ARUsjXCurRpzpFqGGTJw/oz+HnXaKhcdw=="],
 
-    "@datadog/js-core": ["@datadog/js-core@0.0.5", "", {}, "sha512-9cGazfbindLRCcHh7Pgle68SZrSKMr6ScIvtT7XwxTGp38RaskXA/CG4nUojb46nWnsmV+KyH3C8WymkXdgMJg=="],
+    "@datadog/js-core": ["@datadog/js-core@0.0.7", "", {}, "sha512-zthB0nZQ+spdeueG7doqdIxY1BVeOvCPqBDJjm2hyZNuci/wErLzfg/OW/3SvzPGeg8QJryMWIGgPyyw8owqkw=="],
 
     "@datadog/libdatadog": ["@datadog/libdatadog@0.9.4", "", {}, "sha512-55wHHAuhHOOrBGoWV+fRuEDypN6PMJZq4LTOwExnhoDMvVcZKtqYT05xea/toRs0o75+A1IeNAQHsRLbJMf5oA=="],
 
