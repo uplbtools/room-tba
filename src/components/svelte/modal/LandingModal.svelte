@@ -161,7 +161,7 @@
 <div class="landing-content">
   <header class="landing-header">
     <div class="hero-image">
-      <div class="hero-overlay">
+      <div class="hero-overlay" class:collapse-hero={activeTab === "campus"}>
         <h2>
           <span class="hero-title" id="landing-modal-title">
             <img
@@ -352,18 +352,21 @@
         </section>
       </div>
     {/if}
+
+    <div class="scroll-footer">
+      <div class="footer-meta">
+        <VisitorCounter />
+        <GithubStarLink />
+      </div>
+      <p class="legal-hint">
+        <a href="/privacy" class="inline-link">Privacy</a>
+        ·
+        <a href="/terms" class="inline-link">Terms</a>
+      </p>
+    </div>
   </div>
 
   <footer class="actions">
-    <div class="footer-meta">
-      <VisitorCounter />
-      <GithubStarLink />
-    </div>
-    <p class="legal-hint">
-      <a href="/privacy" class="inline-link">Privacy</a>
-      ·
-      <a href="/terms" class="inline-link">Terms</a>
-    </p>
     {#if installPrompt && !isInstalled}
       <button class="primary-btn install-btn" onclick={handleGetStarted}>
         <Download size={16} aria-hidden="true" />
@@ -678,6 +681,17 @@
     color: hsl(0, 0%, 38%);
   }
 
+  .scroll-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid hsl(0, 0%, 92%);
+    width: 100%;
+  }
+
   .actions {
     flex-shrink: 0;
     display: flex;
@@ -750,6 +764,16 @@
 
     .actions {
       padding: 0.625rem 0.875rem 0.875rem;
+    }
+
+    .hero-overlay.collapse-hero {
+      min-height: 0;
+      padding: 0.625rem 1rem;
+    }
+
+    .hero-overlay.collapse-hero .hero-tagline,
+    .hero-overlay.collapse-hero .hero-pitches {
+      display: none;
     }
   }
 </style>
