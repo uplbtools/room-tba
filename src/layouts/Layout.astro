@@ -289,19 +289,6 @@ const shareTitle = ogTitle ?? title;
                 .addEventListener("click", resetAppData);
             }
 
-            // A module script that 404s or fails to parse fires an error event
-            // on the element itself, which does not bubble: catch on capture.
-            window.addEventListener(
-              "error",
-              (event) => {
-                var el = event.target;
-                if (el && el !== window && el.tagName === "SCRIPT") {
-                  fail("script failed to load: " + (el.src || "inline"));
-                }
-              },
-              true,
-            );
-
             setTimeout(() => {
               fail("island never hydrated after " + TIMEOUT_MS + "ms");
             }, TIMEOUT_MS);
