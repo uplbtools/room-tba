@@ -21,7 +21,8 @@
   // Read-only over the planner's saved plan for the active term (#774).
   const sections = $derived(plannerStore.activePlan?.sections ?? []);
   const hasPlan = $derived(sections.length > 0);
-  const days = $derived(buildAgenda(sections));
+  const activeSections = $derived(offTermNote ? [] : sections);
+  const days = $derived(buildAgenda(activeSections));
 
   // A plan for a term that is not in session would otherwise read as "you have
   // nothing all week"; say which window the term actually covers instead.
@@ -86,10 +87,6 @@
         <button type="button" onclick={() => sidebarStore.changeOpened("planner")}>
           Open the Planner
         </button>
-      </p>
-    {:else if offTermNote}
-      <p class="today-empty-plan">
-        There are no classes today.
       </p>
     {:else}
       {#each days as day (day.dateKey)}
