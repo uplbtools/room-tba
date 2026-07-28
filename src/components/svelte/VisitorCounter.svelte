@@ -26,8 +26,10 @@
 
   const display = $derived(
     count !== null
-      ? String(count).padStart(digits, "0")
-      : (failed ? "?" : "0").repeat(digits),
+      ? count.toLocaleString()
+      : failed
+        ? "?"
+        : "...",
   );
   const announce = $derived(
     count !== null
@@ -43,9 +45,7 @@
   <span class="visitor-counter__copy">
     <span class="visitor-counter__label">{label}</span>
     <span class="visitor-counter__digits" aria-hidden="true">
-      {#each display.split("") as char, i (i)}
-        <span class="visitor-counter__digit">{char}</span>
-      {/each}
+      <span class="visitor-counter__plain">{display}</span>
     </span>
   </span>
 </p>
@@ -90,20 +90,9 @@
     gap: 0.125rem;
   }
 
-  .visitor-counter__digit {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.0625rem;
-    padding: 0.1875rem 0.25rem;
-    border-radius: 0.3125rem;
-    background: white;
-    border: 1px solid hsl(5, 24%, 72%);
-    color: hsl(5, 70%, 22%);
-    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  .visitor-counter__plain {
     font-size: 0.875rem;
     font-weight: 800;
-    line-height: 1;
-    box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.9);
+    color: hsl(5, 70%, 22%);
   }
 </style>

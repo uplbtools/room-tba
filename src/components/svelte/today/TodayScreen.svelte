@@ -13,7 +13,6 @@
   } from "@lib/store.svelte";
   import { buildAgenda } from "@lib/today-agenda";
   import { formatTermDateRange, isDateWithinTerm } from "@lib/term-calendar";
-  import TermSelector from "@ui/TermSelector.svelte";
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
@@ -74,9 +73,6 @@
       <span>Back to map</span>
     </button>
     <h1 class="today-title" id="today-screen-title">Today</h1>
-    {#if termStore.terms.length > 0}
-      <TermSelector variant="chip" />
-    {/if}
   </header>
 
   {#if offTermNote}
@@ -90,6 +86,10 @@
         <button type="button" onclick={() => sidebarStore.changeOpened("planner")}>
           Open the Planner
         </button>
+      </p>
+    {:else if offTermNote}
+      <p class="today-empty-plan">
+        There are no classes today.
       </p>
     {:else}
       {#each days as day (day.dateKey)}
