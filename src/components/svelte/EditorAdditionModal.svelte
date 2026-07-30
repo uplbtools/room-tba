@@ -37,11 +37,13 @@
   <div
     class="editor-addition-overlay"
     transition:fade={overlayFade(reducedMotion.current)}
+    onclick={close}
   >
     <div
       bind:this={dialogEl}
       class="editor-addition-frame"
       role="dialog"
+      onclick={(event) => event.stopPropagation()}
       aria-modal="true"
       aria-labelledby="editor-addition-title"
       in:fly={modalContentReveal(reducedMotion.current)}
@@ -52,7 +54,12 @@
           <MapPinPlus size={16} aria-hidden="true" />
           <span>Add to map</span>
         </div>
-        <IconButton size="sm" shape="rounded" label="Close add to map" onclick={close}>
+        <IconButton
+          size="sm"
+          shape="rounded"
+          label="Close add to map"
+          onclick={close}
+        >
           <X size={18} aria-hidden="true" />
         </IconButton>
       </header>
