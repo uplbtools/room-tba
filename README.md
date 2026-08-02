@@ -56,6 +56,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Campus events | Events on map with routes |
 | Jeepney routes | Route overlays |
 | Walking time from a point | Map tools → Travel time; tap the map, paths color by minutes |
+| Measure a route | Map tools → Measure route; drop waypoints, get walk / cycle / car times |
 | 3D view | Buildings + Makiling terrain (online) |
 | Common questions | [Student FAQ](https://room-tba.uplb.tools/faq) (3D models, data sources, offline) |
 | Understand section names | Wiki guide to the A–H / S–Z class time blocks |

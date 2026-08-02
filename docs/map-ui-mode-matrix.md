@@ -11,6 +11,7 @@ Source of truth for which map chrome is visible in each mode.
 | Terrain active                | yes             | yes          | flyout section | Settings modal   | sidebar     | hidden                | status bar | bottom band     |
 | Transit active                | yes             | yes          | yes          | legend available  | sidebar     | hidden                | status bar | bottom band     |
 | Travel time active (#847)     | yes             | yes          | yes          | closed default    | sidebar     | hidden                | status bar | bottom band     |
+| Measure route active (#848)   | yes             | yes          | yes          | closed default    | sidebar     | hidden                | status bar | bottom band     |
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
@@ -22,7 +23,7 @@ Only one browse overlay from the chip row is active at a time (except **All** pi
 - **Non-All pin filter selected** (Class / Admin / UP dorms / Other dorms) → transit layer + selected route/stop turn off (`BuildingTypeFilterBar.selectFilter` calls `jeepneyStore.disableLayer`).
 - **Events shelf** ↔ Transit exclusivity is unchanged (`openEventsShelf` disables transit; transit active closes the events shelf).
 - **All** is neutral: selecting it does not touch transit.
-- Edit/terrain exclusivity via `deactivateMapModesExcept` is unchanged; Travel time (#847) registers as the `travel-time` exclusive mode since it owns map clicks.
+- Edit/terrain exclusivity via `deactivateMapModesExcept` is unchanged; Travel time (#847) and Measure route (#848) register as the `travel-time` / `measure` exclusive modes since they own map clicks.
 
 Term-chip exclusivity: opening the term picker closes the map tools flyout (and vice versa) so top-band popovers do not stack on mobile.
 

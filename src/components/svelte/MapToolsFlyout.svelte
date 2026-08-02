@@ -1,10 +1,15 @@
 <script lang="ts">
+  import Ruler from "@lucide/svelte/icons/ruler";
   import Timer from "@lucide/svelte/icons/timer";
   import Wrench from "@lucide/svelte/icons/wrench";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
-  import { mapToolsStore, travelTimeStore } from "@lib/store.svelte";
+  import {
+    mapToolsStore,
+    measureRouteStore,
+    travelTimeStore,
+  } from "@lib/store.svelte";
   import { panelFadeIn, panelFadeOut } from "@lib/motion";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import { trapFocus } from "@lib/focus-trap";
@@ -25,6 +30,11 @@
     travelTimeStore.toggle();
     // Hand the map back so the user can tap an origin right away.
     if (travelTimeStore.active) mapToolsStore.close();
+  }
+
+  function toggleMeasureRoute() {
+    measureRouteStore.toggle();
+    if (measureRouteStore.active) mapToolsStore.close();
   }
 </script>
 
@@ -59,13 +69,32 @@
             </span>
           </span>
         </button>
+        <button
+          type="button"
+          class="map-tools-flyout__tool"
+          class:map-tools-flyout__tool--active={measureRouteStore.active}
+          aria-pressed={measureRouteStore.active}
+          onclick={toggleMeasureRoute}
+        >
+          <Ruler size={18} aria-hidden="true" />
+          <span class="map-tools-flyout__tool-copy">
+            <span class="map-tools-flyout__tool-label">Measure route</span>
+            <span class="map-tools-flyout__tool-description">
+              {measureRouteStore.active
+                ? "On — tap the map to drop waypoints"
+                : "Drop waypoints, get walk / cycle / car times"}
+            </span>
+          </span>
+        </button>
       </MapChromePanel>
     </div>
   {/if}
 
   <button
     class="map-chrome-control-btn map-chrome-control-btn--compact"
-    class:active={mapToolsStore.open || travelTimeStore.active}
+    class:active={mapToolsStore.open ||
+      travelTimeStore.active ||
+      measureRouteStore.active}
     type="button"
     onclick={() => mapToolsStore.toggle()}
     title="Map tools"

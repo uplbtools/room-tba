@@ -193,6 +193,81 @@ export class TravelTimeStore {
   };
 }
 
+export type MeasureLeg = { seconds: number; meters: number } | null;
+export type MeasureSummaries = {
+  walk: MeasureLeg[];
+  cycle: MeasureLeg[];
+  drive: MeasureLeg[];
+};
+
+const emptySummaries = (): MeasureSummaries => ({
+  walk: [],
+  cycle: [],
+  drive: [],
+});
+
+/**
+ * Measure-route tool (#848): tap to drop waypoints, legs snap to shortest
+ * paths on the walk graph, and the bottom card shows walk/cycle/drive times.
+ * Engine work happens in Map.svelte; this holds waypoints + computed legs.
+ */
+export class MeasureRouteStore {
+  active: boolean = $state(false);
+  waypoints: { lat: number; lng: number }[] = $state([]);
+  /** Waypoints snapped to graph nodes (same order), set after computing. */
+  snapped: { lat: number; lng: number }[] = $state([]);
+  mode: "walk" | "cycle" | "drive" = $state("walk");
+  summaries: MeasureSummaries = $state(emptySummaries());
+  loadFailed: boolean = $state(false);
+
+  enable = () => {
+    this.active = true;
+    deactivateMapModesExcept("measure");
+    dismissEphemeralOverlays();
+  };
+
+  disable = () => {
+    this.active = false;
+    this.clear();
+  };
+
+  toggle = () => {
+    if (this.active) this.disable();
+    else this.enable();
+  };
+
+  addWaypoint = (lat: number, lng: number) => {
+    this.waypoints = [...this.waypoints, { lat, lng }];
+  };
+
+  removeWaypoint = (index: number) => {
+    this.waypoints = this.waypoints.filter((_, i) => i !== index);
+  };
+
+  undo = () => {
+    this.waypoints = this.waypoints.slice(0, -1);
+  };
+
+  clear = () => {
+    this.waypoints = [];
+    this.snapped = [];
+    this.summaries = emptySummaries();
+  };
+
+  setMode = (mode: "walk" | "cycle" | "drive") => {
+    this.mode = mode;
+  };
+
+  setResults = (
+    snapped: { lat: number; lng: number }[],
+    summaries: MeasureSummaries,
+  ) => {
+    this.snapped = snapped;
+    this.summaries = summaries;
+    this.loadFailed = false;
+  };
+}
+
 export class Building3DStore {
   buildingName: string | null = $state(null);
   initialRoomCode: string | null = $state(null);

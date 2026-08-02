@@ -14,6 +14,7 @@
     mapEditStore,
     mapToolsStore,
     travelTimeStore,
+    measureRouteStore,
     editorChromeStore,
     jeepneyStore,
     appBootstrapStore,
@@ -33,6 +34,7 @@
   import MapAttribution from "@ui/MapAttribution.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
   import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
+  import MeasureRoutePanel from "@ui/MeasureRoutePanel.svelte";
   import TravelTimeLegend from "@ui/TravelTimeLegend.svelte";
   import StatusBar from "@ui/StatusBar.svelte";
   import Toast from "@ui/Toast.svelte";
@@ -388,6 +390,8 @@
         mapToolsStore.close();
       } else if (travelTimeStore.active) {
         travelTimeStore.disable();
+      } else if (measureRouteStore.active) {
+        measureRouteStore.disable();
       } else if (jeepneyStore.selectedStopIndex !== null) {
         jeepneyStore.closeStop();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
@@ -430,6 +434,9 @@
         <div class="bottom-band">
           {#if travelTimeStore.active}
             <TravelTimeLegend />
+          {/if}
+          {#if measureRouteStore.active}
+            <MeasureRoutePanel />
           {/if}
           <div class="bottom-chrome" bind:this={bottomChromeEl}>
             <div class="bottom-chrome__bar">

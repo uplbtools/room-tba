@@ -28,6 +28,7 @@
     terrainStore,
     trailStore,
     travelTimeStore,
+    measureRouteStore,
     scheduleRouteStore,
     classVenuesStore,
     termStore,
@@ -103,7 +104,13 @@
     ISOCHRONE_CAP_MINUTES,
     VIRIDIS_STOPS,
   } from "@constants/travel-modes";
-  import { dijkstra, isochroneFeatures, nearestNodeIndex } from "@lib/travel-graph/engine";
+  import {
+    dijkstra,
+    isochroneFeatures,
+    nearestNodeIndex,
+    shortestPath,
+    type TravelMode,
+  } from "@lib/travel-graph/engine";
   import { loadTravelGraph } from "@lib/travel-graph/load";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
@@ -472,6 +479,45 @@
     }
     if (map.getSource(TRAVEL_TIME_SOURCE_ID)) {
       map.removeSource(TRAVEL_TIME_SOURCE_ID);
+    }
+  }
+
+  const MEASURE_ROUTE_SOURCE_ID = "measure-route-line";
+  const MEASURE_ROUTE_LAYER_ID = "measure-route-line";
+
+  function ensureMeasureRouteLayers(map: mapGl.MapLibreMap) {
+    if (!map.getSource(MEASURE_ROUTE_SOURCE_ID)) {
+      map.addSource(MEASURE_ROUTE_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+
+    if (!map.getLayer(MEASURE_ROUTE_LAYER_ID)) {
+      // Dashed violet: deliberately unlike the solid casing-backed jeepney
+      // red / event maroon / trail green lines and the stock blue OSRM
+      // directions polyline — this is a measurement, not a route suggestion.
+      map.addLayer({
+        id: MEASURE_ROUTE_LAYER_ID,
+        type: "line",
+        source: MEASURE_ROUTE_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#7c3aed",
+          "line-width": 4,
+          "line-opacity": 0.9,
+          "line-dasharray": [0.2, 1.6],
+        },
+      });
+    }
+  }
+
+  function clearMeasureRouteLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(MEASURE_ROUTE_LAYER_ID)) {
+      map.removeLayer(MEASURE_ROUTE_LAYER_ID);
+    }
+    if (map.getSource(MEASURE_ROUTE_SOURCE_ID)) {
+      map.removeSource(MEASURE_ROUTE_SOURCE_ID);
     }
   }
 
@@ -2128,6 +2174,108 @@
     };
   });
 
+  // #848: measure route — while active, taps drop waypoints.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !measureRouteStore.active) return;
+
+    const canvas = map.getCanvas();
+    const previousCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    const handleMeasureClick = (event: mapGl.MapMouseEvent) => {
+      measureRouteStore.addWaypoint(event.lngLat.lat, event.lngLat.lng);
+    };
+
+    map.on("click", handleMeasureClick);
+    return () => {
+      map.off("click", handleMeasureClick);
+      if (canvas.style.cursor === "crosshair") {
+        canvas.style.cursor = previousCursor;
+      }
+    };
+  });
+
+  // #848: snap waypoints to the walk graph, compute per-leg shortest paths
+  // for every mode (pill minutes), and draw the selected mode's geometry.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const active = measureRouteStore.active;
+    const waypoints = measureRouteStore.waypoints;
+    const mode = measureRouteStore.mode;
+    if (!map) return;
+
+    if (!active || waypoints.length < 2) {
+      // Clear immediately — never queue clears (see the jeepney note below).
+      try {
+        clearMeasureRouteLayers(map);
+      } catch {
+        // Style not ready yet, so nothing was drawn.
+      }
+      return;
+    }
+
+    let cancelled = false;
+    loadTravelGraph()
+      .then((graph) => {
+        if (cancelled) return;
+        const nodes = waypoints.map((w) => nearestNodeIndex(graph, w.lat, w.lng));
+        const modes: TravelMode[] = ["walk", "cycle", "drive"];
+        const summaries = {
+          walk: [] as ({ seconds: number; meters: number } | null)[],
+          cycle: [] as ({ seconds: number; meters: number } | null)[],
+          drive: [] as ({ seconds: number; meters: number } | null)[],
+        };
+        const legFeatures: FeatureCollection = {
+          type: "FeatureCollection",
+          features: [],
+        };
+        for (let i = 0; i + 1 < nodes.length; i++) {
+          for (const legMode of modes) {
+            const route = shortestPath(graph, nodes[i], nodes[i + 1], legMode);
+            summaries[legMode].push(
+              route ? { seconds: route.seconds, meters: route.meters } : null,
+            );
+            if (legMode === mode && route && route.coordinates.length > 1) {
+              legFeatures.features.push({
+                type: "Feature",
+                geometry: { type: "LineString", coordinates: route.coordinates },
+                properties: { leg: i },
+              });
+            }
+          }
+        }
+        measureRouteStore.setResults(
+          nodes.map((n) => ({ lat: graph.lat[n], lng: graph.lng[n] })),
+          summaries,
+        );
+        const tryDraw = () => {
+          try {
+            ensureMeasureRouteLayers(map);
+            const source = map.getSource(MEASURE_ROUTE_SOURCE_ID) as
+              | mapGl.GeoJSONSource
+              | undefined;
+            source?.setData(legFeatures);
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        if (!tryDraw()) {
+          const onStyleData = () => {
+            if (cancelled || tryDraw()) map.off("styledata", onStyleData);
+          };
+          map.on("styledata", onStyleData);
+        }
+      })
+      .catch((error) => {
+        console.warn("measure-route graph load failed", error);
+        if (!cancelled) measureRouteStore.loadFailed = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  });
+
   $effect(() => {
     const selectedId = jeepneyStore.selectedRouteId;
     const map = mapStore.mapInstance;
@@ -2841,6 +2989,25 @@
           <Marker lngLat={locationStore.coords}>
             <div class="user-location-pin"></div>
           </Marker>
+        {/if}
+        {#if measureRouteStore.active}
+          {#each measureRouteStore.waypoints as waypoint, i (i)}
+            {@const snapped =
+              measureRouteStore.snapped.length ===
+              measureRouteStore.waypoints.length
+                ? measureRouteStore.snapped[i]
+                : waypoint}
+            <Marker lngLat={{ lng: snapped.lng, lat: snapped.lat }}>
+              <button
+                type="button"
+                class="measure-waypoint"
+                aria-label={`Remove waypoint ${i + 1}`}
+                onclick={() => measureRouteStore.removeWaypoint(i)}
+              >
+                {i + 1}
+              </button>
+            </Marker>
+          {/each}
         {/if}
         {#if additionProposalStore.draftPin}
           <Marker
@@ -3845,6 +4012,29 @@
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 70;
+  }
+
+  .measure-waypoint {
+    display: flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    border-radius: 50%;
+    background-color: #7c3aed;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    cursor: pointer;
+    position: relative;
+    z-index: 71;
+  }
+
+  .measure-waypoint:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 1px;
   }
 
   .addition-draft-pin {

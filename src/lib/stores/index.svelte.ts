@@ -52,6 +52,7 @@ export type {
   TerrainStatus,
 };
 export { deactivateMapModesExcept, syncTableLabel };
+export type { MeasureLeg, MeasureSummaries } from "./map-stores.svelte";
 
 type RoomData = {
   id: number;
@@ -150,6 +151,7 @@ import {
   TerrainStore,
   TrailStore,
   TravelTimeStore,
+  MeasureRouteStore,
   Building3DStore,
 } from "./map-stores.svelte";
 import {
@@ -973,6 +975,7 @@ export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const trailStore = new TrailStore();
 export const travelTimeStore = new TravelTimeStore();
+export const measureRouteStore = new MeasureRouteStore();
 export const jeepneyStore = new JeepneyStore();
 export const transitStore = new TransitStore();
 export const announcementsStore = new AnnouncementsStore();
@@ -1003,5 +1006,10 @@ registerMapMode("terrain", {
 registerMapMode("travel-time", {
   disable: () => {
     travelTimeStore.disable();
+  },
+});
+registerMapMode("measure", {
+  disable: () => {
+    measureRouteStore.disable();
   },
 });

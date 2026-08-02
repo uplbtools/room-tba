@@ -7,7 +7,7 @@ bun run generate:test-inventory
 ```
 
 **Last generated:** 2026-08-02<br>
-**Total spec files:** 220
+**Total spec files:** 222
 
 See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked expectations: [issue-test-matrix.md](issue-test-matrix.md).
 
@@ -16,10 +16,10 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 | Command | Config / runner | Files |
 | ------- | ---------------- | ----- |
 | `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 95 |
-| `bun run test:components` | Vitest — stores + Svelte @320px | 50 |
+| `bun run test:components` | Vitest — stores + Svelte @320px | 51 |
 | `bun run test:integration` | Bun — HTTP + services (E2E DB) | 14 |
 | `bun run e2e` | Playwright blocking — local preview | 42 |
-| `bun run e2e:advisory` | Playwright advisory — non-blocking CI | 13 |
+| `bun run e2e:advisory` | Playwright advisory — non-blocking CI | 14 |
 | `bun run e2e:staging` | Playwright — live staging URL | 3 |
 | `bun run check:migrations` | Schema table guard (not a spec file) | 1 script |
 
@@ -163,7 +163,7 @@ Included in `bun run test:components`.
 - `src/lib/stores/ui-stores.store.test.ts`
 
 
-## Component tests (Vitest) — 33 files
+## Component tests (Vitest) — 34 files
 
 Layout guards at 320px / 768px where noted. Included in `bun run test:components`.
 
@@ -173,6 +173,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `src/components/svelte/EditorShelf.component.test.ts`
 - `src/components/svelte/MapToolsFlyout.component.test.ts`
 - `src/components/svelte/MapViewControls.component.test.ts`
+- `src/components/svelte/MeasureRoutePanel.component.test.ts`
 - `src/components/svelte/ProposalReviewPanel.component.test.ts`
 - `src/components/svelte/SponsorBanner.component.test.ts`
 - `src/components/svelte/StagingBanner.component.test.ts`
@@ -280,7 +281,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/admin/undo-redo.spec.ts`
 
 
-## E2E advisory (Playwright) — 13 files
+## E2E advisory (Playwright) — 14 files
 
 `bun run e2e:advisory` — a11y, offline, touch, cross-browser, etc.
 
@@ -291,6 +292,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/advisory/keyboard-nav.spec.ts`
 - `e2e/advisory/layout-chrome.spec.ts`
 - `e2e/advisory/map-attribution.spec.ts`
+- `e2e/advisory/measure-route.spec.ts`
 - `e2e/advisory/mobile-touch-drag.spec.ts`
 - `e2e/advisory/offline-boot.spec.ts`
 - `e2e/advisory/offline-pwa.spec.ts`
