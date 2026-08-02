@@ -161,6 +161,38 @@ export class TrailStore {
   };
 }
 
+/**
+ * Travel-time isochrone tool (#847): tap the map, every path segment colors
+ * by walking minutes from that point. Owns map clicks, so it registers as an
+ * exclusive map mode. Engine work happens in Map.svelte; this holds UI state.
+ */
+export class TravelTimeStore {
+  active: boolean = $state(false);
+  origin: { lat: number; lng: number } | null = $state(null);
+  status: "idle" | "loading" | "ready" | "error" = $state("idle");
+
+  enable = () => {
+    this.active = true;
+    deactivateMapModesExcept("travel-time");
+    dismissEphemeralOverlays();
+  };
+
+  disable = () => {
+    this.active = false;
+    this.origin = null;
+    this.status = "idle";
+  };
+
+  toggle = () => {
+    if (this.active) this.disable();
+    else this.enable();
+  };
+
+  setOrigin = (lat: number, lng: number) => {
+    this.origin = { lat, lng };
+  };
+}
+
 export class Building3DStore {
   buildingName: string | null = $state(null);
   initialRoomCode: string | null = $state(null);

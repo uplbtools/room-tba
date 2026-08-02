@@ -149,6 +149,7 @@ import {
   MapToolsStore,
   TerrainStore,
   TrailStore,
+  TravelTimeStore,
   Building3DStore,
 } from "./map-stores.svelte";
 import {
@@ -971,6 +972,7 @@ export const additionProposalStore = new AdditionProposalStore();
 export const eventPlacementStore = new EventPlacementStore();
 export const terrainStore = new TerrainStore();
 export const trailStore = new TrailStore();
+export const travelTimeStore = new TravelTimeStore();
 export const jeepneyStore = new JeepneyStore();
 export const transitStore = new TransitStore();
 export const announcementsStore = new AnnouncementsStore();
@@ -996,5 +998,10 @@ registerMapMode("routes", {
 registerMapMode("terrain", {
   disable: () => {
     terrainStore.disable();
+  },
+});
+registerMapMode("travel-time", {
+  disable: () => {
+    travelTimeStore.disable();
   },
 });

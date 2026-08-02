@@ -55,6 +55,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Offline / bad signal | PWA + local cache; tiles if already loaded |
 | Campus events | Events on map with routes |
 | Jeepney routes | Route overlays |
+| Walking time from a point | Map tools → Travel time; tap the map, paths color by minutes |
 | 3D view | Buildings + Makiling terrain (online) |
 | Common questions | [Student FAQ](https://room-tba.uplb.tools/faq) (3D models, data sources, offline) |
 | Understand section names | Wiki guide to the A–H / S–Z class time blocks |
@@ -181,6 +182,7 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bun run format` | Biome format write |
 | `bunx drizzle-kit studio` | Browse/edit Postgres visually |
 | `bun run seed:aliases` | Seed building aliases from `public/room_info.json` |
+| `bun scripts/build-walk-graph.ts <graphml>` | Rebuild `src/generated/walk-graph.json` from an osmnx GraphML export (travel-time tools) |
 | `bun run seed:deep-research` | Fill-only data-gap seed from the 2026-07 research report (`DATABASE_URL`; `--dry-run` supported) |
 | `bun run generate:pglite-schema` | Regenerate the offline PGlite init SQL from `drizzle/schema.ts` |
 | `bun run import:osa-orgs` | Add the current public OSA organization directory (`DATABASE_URL`; safe to rerun) |
@@ -279,6 +281,7 @@ The short version of what you replace:
 | `src/constants/map-terrain.ts` | Terrain source (Makiling) — disable if your campus is flat. Bounds and camera come from `campus.config.ts`. |
 | `public/room_info.json` | UPLB building seed → your buildings |
 | `src/constants/jeepney-routes.ts` + geometries | Delete if no campus transit overlay |
+| `src/generated/walk-graph.json` | UPLB path network (travel-time tools). Rebuild from your campus's OSM extract: `bun scripts/build-walk-graph.ts <your-osmnx-export.graphml>`; speeds in `src/constants/travel-modes.ts`. |
 | `scripts/import-amis-classes.ts` and friends | UPLB data sources (AMIS, OUR finals, OSA). Use `bun run import:classes-generic` with your registrar's export instead ([guide](docs/fork-data-guide.md)). |
 | Supabase DB contents | Every row is UPLB. Schema stays; data goes. |
 

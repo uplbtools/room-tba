@@ -27,6 +27,7 @@
     buildingTypeFilter,
     terrainStore,
     trailStore,
+    travelTimeStore,
     scheduleRouteStore,
     classVenuesStore,
     termStore,
@@ -98,6 +99,12 @@
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
     getTerrainTileJsonUrl,
   } from "@constants/map-terrain";
+  import {
+    ISOCHRONE_CAP_MINUTES,
+    VIRIDIS_STOPS,
+  } from "@constants/travel-modes";
+  import { dijkstra, isochroneFeatures, nearestNodeIndex } from "@lib/travel-graph/engine";
+  import { loadTravelGraph } from "@lib/travel-graph/load";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
@@ -422,6 +429,49 @@
     }
     if (map.getSource(JEEPNEY_ROUTE_SOURCE_ID)) {
       map.removeSource(JEEPNEY_ROUTE_SOURCE_ID);
+    }
+  }
+
+  const TRAVEL_TIME_SOURCE_ID = "travel-time-isochrone";
+  const TRAVEL_TIME_LAYER_ID = "travel-time-isochrone";
+
+  function ensureTravelTimeLayers(map: mapGl.MapLibreMap) {
+    if (!map.getSource(TRAVEL_TIME_SOURCE_ID)) {
+      map.addSource(TRAVEL_TIME_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+
+    if (!map.getLayer(TRAVEL_TIME_LAYER_ID)) {
+      // Viridis ramp over per-edge walking minutes; values past the cap keep
+      // the last stop's color (interpolate clamps).
+      const rampStep = ISOCHRONE_CAP_MINUTES / (VIRIDIS_STOPS.length - 1);
+      map.addLayer({
+        id: TRAVEL_TIME_LAYER_ID,
+        type: "line",
+        source: TRAVEL_TIME_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "minutes"],
+            ...VIRIDIS_STOPS.flatMap((color, i) => [i * rampStep, color]),
+          ] as unknown as mapGl.ExpressionSpecification,
+          "line-width": 3,
+          "line-opacity": 0.85,
+        },
+      });
+    }
+  }
+
+  function clearTravelTimeLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(TRAVEL_TIME_LAYER_ID)) {
+      map.removeLayer(TRAVEL_TIME_LAYER_ID);
+    }
+    if (map.getSource(TRAVEL_TIME_SOURCE_ID)) {
+      map.removeSource(TRAVEL_TIME_SOURCE_ID);
     }
   }
 
@@ -1998,6 +2048,83 @@
       if (canvas.style.cursor === "crosshair") {
         canvas.style.cursor = previousCursor;
       }
+    };
+  });
+
+  // #847: travel-time isochrone — while active, taps pick the origin point.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !travelTimeStore.active) return;
+
+    const canvas = map.getCanvas();
+    const previousCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    const handleTravelTimeClick = (event: mapGl.MapMouseEvent) => {
+      travelTimeStore.setOrigin(event.lngLat.lat, event.lngLat.lng);
+    };
+
+    map.on("click", handleTravelTimeClick);
+    return () => {
+      map.off("click", handleTravelTimeClick);
+      if (canvas.style.cursor === "crosshair") {
+        canvas.style.cursor = previousCursor;
+      }
+    };
+  });
+
+  // #847: snap the tapped origin to the walk graph, run single-source
+  // Dijkstra, and paint every edge by walking minutes. The graph JSON is a
+  // lazy chunk loaded on first use.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const origin = travelTimeStore.active ? travelTimeStore.origin : null;
+    if (!map) return;
+
+    if (!origin) {
+      // Clear immediately — never queue clears on "load"/"styledata" (see the
+      // jeepney route effect below for the prod-only bug this avoids).
+      try {
+        clearTravelTimeLayers(map);
+      } catch {
+        // Style not ready yet, so nothing was drawn.
+      }
+      return;
+    }
+
+    let cancelled = false;
+    travelTimeStore.status = "loading";
+    loadTravelGraph()
+      .then((graph) => {
+        if (cancelled) return;
+        const sourceNode = nearestNodeIndex(graph, origin.lat, origin.lng);
+        const { seconds } = dijkstra(graph, sourceNode, "walk");
+        const data = isochroneFeatures(graph, seconds);
+        const tryDraw = () => {
+          try {
+            ensureTravelTimeLayers(map);
+            const source = map.getSource(TRAVEL_TIME_SOURCE_ID) as
+              | mapGl.GeoJSONSource
+              | undefined;
+            source?.setData(data);
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        if (!tryDraw()) {
+          const onStyleData = () => {
+            if (cancelled || tryDraw()) map.off("styledata", onStyleData);
+          };
+          map.on("styledata", onStyleData);
+        }
+        travelTimeStore.status = "ready";
+      })
+      .catch((error) => {
+        console.warn("travel-time graph load failed", error);
+        if (!cancelled) travelTimeStore.status = "error";
+      });
+    return () => {
+      cancelled = true;
     };
   });
 

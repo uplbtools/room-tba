@@ -1,4 +1,4 @@
-export type ExclusiveMapMode = "edit" | "routes" | "terrain";
+export type ExclusiveMapMode = "edit" | "routes" | "terrain" | "travel-time";
 
 type MapModeHandle = { disable: () => void };
 
