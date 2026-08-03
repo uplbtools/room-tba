@@ -39,6 +39,7 @@
     "post:test-inventory-discord": "bun run scripts/post-test-inventory-discord.ts",
     "check:readme": "bun run scripts/check-readme-drift.ts",
     "fork:check": "bun run scripts/fork-check.ts",
+    "fork:init": "bun run scripts/fork-init.ts",
     "install:agent-tooling": "bash scripts/install-agent-tooling.sh",
     "install:agent-plugins": "bash scripts/install-agent-plugins.sh",
     "install:shopped-skills": "bash scripts/install-shopped-skills.sh",
@@ -54,6 +55,7 @@
     "import:campus-offices": "bun run scripts/import-campus-office-directory.ts",
     "import:amis-classes": "bun run scripts/import-amis-classes.ts",
     "import:classes-generic": "bun run scripts/import-classes-generic.ts",
+    "backfill:acad-orgs": "for t in 1231 1232 1241 1242 1243 1251 1252 1253 1261; do bun run scripts/import-amis-classes.ts --term-id $t || exit 1; done",
     "import:final-exams": "bun run scripts/import-final-exams.ts",
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run"

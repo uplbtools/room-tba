@@ -83,6 +83,8 @@ type ClassMapValue = {
   roomId: number | null;
   termId: number | null;
   id: number;
+  /** Server-computed hint for unassigned sections (#846); assigned sections never carry it. */
+  probableLocation?: import("./probable-location").ProbableLocation | null;
 };
 
 type FinalExamRow = {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { jeepneyStore, transitStore } from "@lib/store.svelte";
+  import { campusTransit } from "../../campus.config";
 
   type Props = {
     /** Compact row for the search chrome sub-panel. */
@@ -17,7 +18,7 @@
   class="transit-route-panel"
   class:transit-route-panel--compact={compact}
   role="listbox"
-  aria-label="Jeepney routes"
+  aria-label={campusTransit.label}
 >
   {#each transitStore.routes as route (route.id)}
     {@const isActive = jeepneyStore.selectedRouteId === route.id}

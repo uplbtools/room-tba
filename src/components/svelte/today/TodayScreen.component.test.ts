@@ -4,6 +4,7 @@ import TodayScreen from "@ui/today/TodayScreen.svelte";
 import {
   plannerStore,
   queryStore,
+  scheduleRouteStore,
   sidebarStore,
   termStore,
 } from "@lib/store.svelte";
@@ -33,6 +34,8 @@ describe("TodayScreen", () => {
     termStore.activeTermId = 1252;
     plannerStore.plans = [];
     plannerStore.activePlanIdByTerm = {};
+    scheduleRouteStore.clearImport();
+    scheduleRouteStore.pendingDayRoute = false;
     sidebarStore.changeOpened("today");
   });
 
@@ -79,6 +82,30 @@ describe("TodayScreen", () => {
     expect(queryStore.queryValue).toBe("MB 101");
     // Opening a room leaves the screen for the map behind it.
     expect(sidebarStore.panelOpen).toBe("map");
+  });
+
+  // #839: the day-route action stays visible when unusable — disabled with a
+  // hint — so users learn it exists.
+  test("Route my day is enabled when today has classes", () => {
+    plannerStore.addOffering([row({ schedule: ["M 07:00AM-08:00AM"] })]);
+    render(TodayScreen);
+
+    expect(screen.getByRole("button", { name: /Route my day/ })).toBeEnabled();
+  });
+
+  test("Route my day is disabled with a hint when today has no classes", () => {
+    plannerStore.addOffering([row({ schedule: ["T 07:00AM-08:00AM"] })]);
+    render(TodayScreen);
+
+    expect(screen.getByRole("button", { name: /Route my day/ })).toBeDisabled();
+    expect(screen.getByText("No classes to route today.")).toBeVisible();
+  });
+
+  test("Route my day is disabled with a Planner hint when there is no plan", () => {
+    render(TodayScreen);
+
+    expect(screen.getByRole("button", { name: /Route my day/ })).toBeDisabled();
+    expect(screen.getByText("Add classes in the Planner first.")).toBeVisible();
   });
 
   test("renders an explicit empty state per day and a distinct Sunday", () => {

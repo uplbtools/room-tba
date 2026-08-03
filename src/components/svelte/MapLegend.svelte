@@ -15,6 +15,7 @@
     openEphemeralOverlay,
     registerEphemeralOverlayDismisser,
   } from "@lib/overlay-stack";
+  import { campusTransit } from "../../campus.config";
 
   type Props = {
     embedded?: boolean;
@@ -78,11 +79,15 @@
   ] as const;
 
   const routeItems = [
-    {
-      key: "jeepney-stop",
-      label: "Jeepney stop",
-      description: "Stop on a jeepney route.",
-    },
+    ...(campusTransit.enabled
+      ? [
+          {
+            key: "jeepney-stop",
+            label: "Jeepney stop",
+            description: "Stop on a jeepney route.",
+          },
+        ]
+      : []),
     {
       key: "schedule-stop",
       label: "Schedule stop",

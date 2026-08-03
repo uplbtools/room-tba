@@ -8,6 +8,7 @@
     offeringGroupKey,
   } from "@lib/class-offering-groups";
   import type { ClassOfferingGroup } from "@lib/class-offering-groups";
+  import type { ProbableLocation } from "@lib/probable-location";
   import type { ClassMapValue } from "@lib/types";
   import { plannerStore, queryStore, toastStore } from "@lib/store.svelte";
 
@@ -33,6 +34,27 @@
   function formatSchedule(schedule: string[] | null): string {
     if (!schedule?.length) return "Schedule TBA";
     return schedule.join(" · ");
+  }
+
+  /** "Offered by Institute of Computer Science (CAS)" — hedged, never "is at". */
+  function probableDeptLine(probable: ProbableLocation): string | null {
+    if (probable.deptName && probable.collegeCode) {
+      return `Offered by ${probable.deptName} (${probable.collegeCode})`;
+    }
+    if (probable.deptName) return `Offered by ${probable.deptName}`;
+    return null;
+  }
+
+  /** Select the department org / probable building; Map.svelte handles the camera. */
+  function showProbableLocation(probable: ProbableLocation) {
+    const target = probable.orgName
+      ? { category: "organization" as const, value: probable.orgName }
+      : probable.buildingName
+        ? { category: "building" as const, value: probable.buildingName }
+        : null;
+    if (!target) return;
+    queryStore.updateQuery({ type: "result", ...target });
+    queryStore.inputValue = target.value;
   }
 
   function planKey(group: ClassOfferingGroup): string | null {
@@ -105,6 +127,27 @@
               <div class="class-section-row__schedule">
                 {formatSchedule(sectionClass.schedule)}
               </div>
+              {#if !sectionClass.roomCode && sectionClass.probableLocation}
+                {@const probable = sectionClass.probableLocation}
+                <div class="class-section-row__probable">
+                  {#if probableDeptLine(probable)}
+                    <span>{probableDeptLine(probable)}</span>
+                  {/if}
+                  {#if probable.buildingName}
+                    <span>Usually meets around {probable.buildingName}</span>
+                  {/if}
+                  {#if probable.orgName || probable.buildingName}
+                    <button
+                      type="button"
+                      class="class-section-row__probable-pin"
+                      aria-label={`Show probable location of ${group.courseCode} ${group.section} on the map`}
+                      onclick={() => showProbableLocation(probable)}
+                    >
+                      Show on map
+                    </button>
+                  {/if}
+                </div>
+              {/if}
             </div>
             {#if showRoomLink && sectionClass.roomCode}
               <button
@@ -244,6 +287,36 @@
     font-size: 0.75rem;
     color: #555;
     line-height: 1.35;
+  }
+
+  /* Hedged Room TBA hint (#846) — subdued on purpose; the room link stays the
+     primary affordance. */
+  .class-section-row__probable {
+    margin-top: 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.5rem;
+    row-gap: 0.125rem;
+    font-size: 0.6875rem;
+    color: #777;
+    line-height: 1.4;
+  }
+
+  .class-section-row__probable-pin {
+    border: none;
+    background: none;
+    padding: 0.125rem 0;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #777;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .class-section-row__probable-pin:hover {
+    color: hsl(5, 53%, 32%);
   }
 
   .class-section-row__open {

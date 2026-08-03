@@ -1,0 +1,113 @@
+{
+  "$comment": "AMIS acad_org (PeopleSoft department code) -> display name + college code (#846). Curated: add codes as editors confirm them; unknown codes degrade to the acad_group college code in the UI. `entityName` overrides the organizations-table entity to pin when it differs from `name`. Frequencies measured across the 9 in-repo term JSONs (1231-1261); every code here has >=498 class rows and a verified UPLB unit name.",
+  "LBICROPS": { "name": "Institute of Crop Science", "collegeCode": "CAFS" },
+  "LBIBS": { "name": "Institute of Biological Sciences", "collegeCode": "CAS" },
+  "LBIAS": { "name": "Institute of Animal Science", "collegeCode": "CAFS" },
+  "LBDHUM": { "name": "Department of Humanities", "collegeCode": "CAS" },
+  "LBIRNR": {
+    "name": "Institute of Renewable Natural Resources",
+    "collegeCode": "CFNR"
+  },
+  "LBIC": { "name": "Institute of Chemistry", "collegeCode": "CAS" },
+  "LBIABE": {
+    "name": "Institute of Agricultural and Biosystems Engineering",
+    "collegeCode": "CEAT"
+  },
+  "LBDFBS": {
+    "name": "Department of Forest Biological Sciences",
+    "collegeCode": "CFNR"
+  },
+  "LBDFPPS": {
+    "name": "Department of Forest Products and Paper Science",
+    "collegeCode": "CFNR"
+  },
+  "LBICS": { "name": "Institute of Computer Science", "collegeCode": "CAS" },
+  "LBSESAM": {
+    "name": "School of Environmental Science and Management",
+    "collegeCode": "SESAM"
+  },
+  "LBDSS": { "name": "Department of Social Sciences", "collegeCode": "CAS" },
+  "LBIHNF": {
+    "name": "Institute of Human Nutrition and Food",
+    "collegeCode": "CHE"
+  },
+  "LBIFST": {
+    "name": "Institute of Food Science and Technology",
+    "collegeCode": "CAFS"
+  },
+  "LBDSFFG": {
+    "name": "Department of Social Forestry and Forest Governance",
+    "collegeCode": "CFNR"
+  },
+  "LBIWEP": {
+    "name": "Institute of Weed Science, Entomology and Plant Pathology",
+    "collegeCode": "CAFS"
+  },
+  "LBIMS": {
+    "name": "Institute of Mathematical Sciences and Physics",
+    "collegeCode": "CAS",
+    "entityName": "Institute of Mathematical Sciences and Physics / New Mathematics Building"
+  },
+  "LBASI": { "name": "Agricultural Systems Institute", "collegeCode": "CAFS" },
+  "LBDAAE": {
+    "name": "Department of Agricultural and Applied Economics",
+    "collegeCode": "CEM"
+  },
+  "LBIGRD": {
+    "name": "Institute for Governance and Rural Development",
+    "collegeCode": "CPAF"
+  },
+  "LBINSTAT": { "name": "Institute of Statistics", "collegeCode": "CAS" },
+  "LBDCHE": {
+    "name": "Department of Chemical Engineering",
+    "collegeCode": "CEAT"
+  },
+  "LBDHK": { "name": "Department of Human Kinetics", "collegeCode": "CAS" },
+  "LBDEE": {
+    "name": "Department of Electrical Engineering",
+    "collegeCode": "CEAT"
+  },
+  "LBDE": { "name": "Department of Economics", "collegeCode": "CEM" },
+  "LBDDJ": {
+    "name": "Department of Development Journalism",
+    "collegeCode": "CDC"
+  },
+  "LBDVCS": {
+    "name": "Department of Veterinary Clinical Sciences",
+    "collegeCode": "CVM"
+  },
+  "LBDVPS": {
+    "name": "Department of Veterinary Paraclinical Sciences",
+    "collegeCode": "CVM"
+  },
+  "LBDAME": {
+    "name": "Department of Agribusiness Management and Entrepreneurship",
+    "collegeCode": "CEM"
+  },
+  "LBIoP": { "name": "Institute of Physics", "collegeCode": "CAS" },
+  "LBDHFDS": {
+    "name": "Department of Human and Family Development Studies",
+    "collegeCode": "CHE"
+  },
+  "LBDCERP": {
+    "name": "Department of Community and Environmental Resource Planning",
+    "collegeCode": "CHE"
+  },
+  "LBDIE": {
+    "name": "Department of Industrial Engineering",
+    "collegeCode": "CEAT"
+  },
+  "LBDBVS": {
+    "name": "Department of Basic Veterinary Sciences",
+    "collegeCode": "CVM"
+  },
+  "LBDCE": { "name": "Department of Civil Engineering", "collegeCode": "CEAT" },
+  "LBDENSC": {
+    "name": "Department of Engineering Science",
+    "collegeCode": "CEAT"
+  },
+  "LBDSDS": {
+    "name": "Department of Social Development Services",
+    "collegeCode": "CHE"
+  }
+}

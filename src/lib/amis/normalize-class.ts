@@ -235,5 +235,7 @@ export function normalizeAmisClass(
     schedule,
     termId: Number(row.term_id ?? row.termId ?? termId),
     facilityCode: resolveFacilityCode(row),
+    acadGroup: asString(row.acad_group),
+    acadOrg: asString(row.acad_org),
   };
 }

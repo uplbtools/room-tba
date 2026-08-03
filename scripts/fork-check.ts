@@ -63,7 +63,34 @@ const markers: Marker[] = [
   },
   {
     pattern: /121\.24125948460573|14\.16323736946326/g,
-    hint: "UPLB default map center — set to your campus center in map-terrain.ts.",
+    hint: "UPLB default map center — set your campus center in src/campus.config.ts.",
+  },
+];
+
+/**
+ * Surfaces campus.config.ts owns. A hit here is a wiring regression even on
+ * upstream: the value must come from the config, not a hardcoded literal.
+ */
+const configOwned: (Marker & { file: RegExp })[] = [
+  {
+    file: /^src\/constants\/map-terrain\.ts$/,
+    pattern: /makiling|\b1[24]\d*\.\d{2,}/i,
+    hint: "map-terrain.ts must read terrain params from campusTerrain in src/campus.config.ts.",
+  },
+  {
+    file: /^src\/components\/svelte\/navigation\/Sidebar\.svelte$/,
+    pattern: /["'`]Jeepney/,
+    hint: "The transit menu label must come from campusTransit.label in src/campus.config.ts.",
+  },
+  {
+    file: /^src\/components\/svelte\/controls\/CampusBrowseList\.svelte$/,
+    pattern: /["'`]Jeepney|["'`]Search jeepney/,
+    hint: "Transit browse labels must derive from campusTransit.label in src/campus.config.ts.",
+  },
+  {
+    file: /^scripts\/e2e-reset-db\.ts$/,
+    pattern: /\b1[24]\d*\.\d{3,}/,
+    hint: "E2E fixture coordinates must come from campusTestFixtures in src/campus.config.ts.",
   },
 ];
 
@@ -96,10 +123,14 @@ function scan(): Hit[] {
     }
     if (isBinary(buf)) continue;
     const text = buf.toString("utf8");
+    const fileMarkers = [
+      ...markers,
+      ...configOwned.filter((marker) => marker.file.test(file)),
+    ];
     const lines = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      for (const { pattern, hint } of markers) {
+      for (const { pattern, hint } of fileMarkers) {
         pattern.lastIndex = 0;
         if (pattern.test(line)) {
           hits.push({

@@ -89,6 +89,8 @@ retyped PDF) and flatten it to one row per meeting slot:
 | `building_code` | no | `BSC` | Extra match candidate `"<building_code> <room_code>"` for registrars with per-building room numbers |
 | `term_id` | yes | `101` | Must already exist in the `terms` table |
 | `course_title` | no | `General Biology` | |
+| `acad_group` | no | `CAS` | Registrar college code; powers the probable-location hint for roomless sections (#846) |
+| `acad_org` | no | `LBICS` | Registrar department code; decoded via `data/acad-orgs.json`. Blank = keep any existing DB value |
 
 JSON is the same shape: an array of flat objects with those keys.
 

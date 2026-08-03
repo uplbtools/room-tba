@@ -1,5 +1,8 @@
 import type * as maplibre from "maplibre-gl";
-import { DEFAULT_TERRAIN_EXAGGERATION } from "@constants/map-terrain";
+import {
+  DEFAULT_TERRAIN_EXAGGERATION,
+  TERRAIN_ENABLED,
+} from "@constants/map-terrain";
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import { deactivateMapModesExcept } from "./map-modes.js";
 import type { MapToolsSection, TerrainStatus } from "./store-types.js";
@@ -101,6 +104,9 @@ export class TerrainStore {
   };
 
   enable = () => {
+    // Single gate for every enable path (toggle, controls, restored state):
+    // campuses without terrain data (campusTerrain.enabled = false) stay flat.
+    if (!TERRAIN_ENABLED) return;
     this.enabled = true;
     this.status = "loading";
     this.message = null;

@@ -6,6 +6,11 @@ import Layout from "@layouts/Layout.astro";
 import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
 import { getTransitStopIndex } from "@lib/transit-urls";
 import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
+import { campusTransit } from "../../../campus.config";
+
+if (!campusTransit.enabled) {
+  return new Response(null, { status: 404 });
+}
 
 const routeId = Astro.params.route;
 const stopSlug = Astro.params.stop;
