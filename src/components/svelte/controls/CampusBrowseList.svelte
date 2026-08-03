@@ -16,6 +16,17 @@
     placeDirectoryLabel,
   } from "@constants/place-categories";
   import { jeepneyStore, queryStore, transitStore } from "@lib/store.svelte";
+  import { campusTransit } from "../../../campus.config";
+
+  // Derived from campusTransit.label so a fork edits one place:
+  // label Jeepney routes → title Jeepney Routes, plural jeepney routes,
+  // noun jeepney route, placeholder Search jeepney routes…
+  const transitPlural = campusTransit.label.toLowerCase();
+  const transitTitle = campusTransit.label.replace(/(^|\s)\p{L}/gu, (c) =>
+    c.toUpperCase(),
+  );
+  // ponytail: trailing-s trim; give the label a regular plural or adjust here.
+  const transitNoun = transitPlural.replace(/s$/, "");
 
   const appData = getAppData();
   const { buildings, colleges, divisions, dorms, organizations, places, loaded } =
@@ -57,7 +68,7 @@
       case "services":
         return "Services & Establishments";
       case "jeepney":
-        return "Jeepney Routes";
+        return transitTitle;
       default:
         return "Buildings";
     }
@@ -109,9 +120,9 @@
         };
       case "jeepney":
         return {
-          noun: "jeepney route",
-          plural: "jeepney routes",
-          placeholder: "Search jeepney routes…",
+          noun: transitNoun,
+          plural: transitPlural,
+          placeholder: `Search ${transitPlural}…`,
         };
       default:
         return {

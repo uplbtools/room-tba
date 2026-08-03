@@ -116,6 +116,8 @@ function resolveRooms(
       schedule: row.schedule,
       roomId,
       termId: row.termId,
+      acadGroup: row.acadGroup,
+      acadOrg: row.acadOrg,
     };
   });
 
@@ -194,6 +196,8 @@ async function main() {
           schedule: classesTable.schedule,
           roomId: classesTable.roomId,
           termId: classesTable.termId,
+          acadGroup: classesTable.acadGroup,
+          acadOrg: classesTable.acadOrg,
         })
         .from(classesTable)
         .where(inArray(classesTable.termId, termIds)),

@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS "classes" (
   "room_id" integer,
   "course_title" text,
   "term_id" integer,
+  "acad_group" varchar(8),
+  "acad_org" varchar(16),
   "version" integer DEFAULT 1 NOT NULL,
   "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL,
   "directions" text
@@ -59,6 +61,8 @@ ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "schedule" text[];
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "room_id" integer;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "course_title" text;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "term_id" integer;
+ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "acad_group" varchar(8);
+ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "acad_org" varchar(16);
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "directions" text;

@@ -139,6 +139,35 @@ export async function fetchCampusRoute(
   }
 }
 
+export type RouteTotals = {
+  meters: number;
+  seconds: number;
+};
+
+/**
+ * Total walking distance/time across OSRM route legs (a day route has one leg
+ * per stop-to-stop hop). Legs come from the map's directions response, whose
+ * types leave distance/duration untyped, so non-numeric legs are skipped;
+ * null when nothing summable remains.
+ */
+export function sumRouteLegs(
+  legs: readonly { distance?: unknown; duration?: unknown }[],
+): RouteTotals | null {
+  let meters = 0;
+  let seconds = 0;
+  let counted = false;
+  for (const leg of legs) {
+    if (typeof leg.distance === "number" && typeof leg.duration === "number") {
+      meters += leg.distance;
+      seconds += leg.duration;
+      counted = true;
+    }
+  }
+  return counted
+    ? { meters: Math.round(meters), seconds: Math.round(seconds) }
+    : null;
+}
+
 export function formatDuration(seconds: number): string {
   const minutes = Math.max(1, Math.round(seconds / 60));
   if (minutes < 60) return `${minutes} min`;

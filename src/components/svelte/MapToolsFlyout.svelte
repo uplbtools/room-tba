@@ -1,34 +1,79 @@
 <script lang="ts">
+  import ChevronDown from "@lucide/svelte/icons/chevron-down";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import Layers from "@lucide/svelte/icons/layers";
   import Timer from "@lucide/svelte/icons/timer";
-  import Wrench from "@lucide/svelte/icons/wrench";
-  import { onMount } from "svelte";
   import { fade } from "svelte/transition";
-  import { MediaQuery } from "svelte/reactivity";
-  import { mapToolsStore, travelTimeStore } from "@lib/store.svelte";
+  import {
+    mapToolsStore,
+    travelTimeStore,
+    type MapToolsSection,
+  } from "@lib/store.svelte";
   import { panelFadeIn, panelFadeOut } from "@lib/motion";
-  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
+  import MapViewControls from "@ui/MapViewControls.svelte";
+  import MapLegend from "@ui/MapLegend.svelte";
+  import TerrainControl from "@ui/TerrainControl.svelte";
+  import { TERRAIN_ENABLED } from "@constants/map-terrain";
+  import TrailControl from "@ui/TrailControl.svelte";
+  import JeepneyMenu from "@ui/JeepneyMenu.svelte";
+  import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import { trapFocus } from "@lib/focus-trap";
+  import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
   import MapChromePanel from "@ui/map-chrome/MapChromePanel.svelte";
   import "./map-chrome/map-chrome.css";
+  import { MediaQuery } from "svelte/reactivity";
 
   let panelEl = $state<HTMLDivElement | null>(null);
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+  const mobile = new MediaQuery("max-width:48rem");
+  // Transit moved to the sidebar's Jeepney routes browse panel; Map tools now
+  // mirrors the Settings modal sections.
+  const sections: { id: MapToolsSection; label: string }[] = [
+    { id: "view", label: "View" },
+    { id: "legend", label: "Legend" },
+    ...(TERRAIN_ENABLED
+      ? [{ id: "terrain" as const, label: "Terrain" }]
+      : []),
+    { id: "trail", label: "Makiling Trail" },
+    { id: "schedule", label: "Schedule" },
+  ];
 
-  onMount(() => registerEphemeralOverlayDismisser(() => mapToolsStore.close()));
+  function toggleSection(id: MapToolsSection) {
+    if (mobile.current) {
+      const isOpen = mapToolsStore.expandedSections.has(id);
+      mapToolsStore.expandedSections = isOpen ? new Set() : new Set([id]);
+      mapToolsStore.activeSection = isOpen ? null : id;
+      return;
+    }
+    mapToolsStore.toggleSection(id);
+  }
 
-  $effect(() => {
-    if (!mapToolsStore.open || !panelEl) return;
-    return trapFocus(panelEl, { onEscape: () => mapToolsStore.close() });
-  });
+  function isExpanded(id: MapToolsSection) {
+    return mapToolsStore.expandedSections.has(id);
+  }
 
   function toggleTravelTime() {
     travelTimeStore.toggle();
     // Hand the map back so the user can tap an origin right away.
     if (travelTimeStore.active) mapToolsStore.close();
   }
+
+  $effect(() => {
+    if (!mapToolsStore.open || !panelEl) return;
+    return trapFocus(panelEl, { onEscape: () => mapToolsStore.close() });
+  });
 </script>
 
 <div class="map-tools-flyout">
+  <MapChromeFabTrigger
+    ariaExpanded={mapToolsStore.open}
+    ariaControls="map-tools-panel"
+    ariaLabel="Map tools"
+    onclick={() => mapToolsStore.toggle()}
+  >
+    <Layers size={16} aria-hidden="true" />
+  </MapChromeFabTrigger>
+
   {#if mapToolsStore.open}
     <div
       class="map-tools-panel-shell"
@@ -59,44 +104,88 @@
             </span>
           </span>
         </button>
+
+        {#each sections as section (section.id)}
+          <div class="accordion-section">
+            <button
+              type="button"
+              class="map-chrome-accordion-toggle"
+              aria-expanded={isExpanded(section.id)}
+              aria-controls={`map-tools-section-${section.id}`}
+              onclick={() => toggleSection(section.id)}
+            >
+              {#if isExpanded(section.id)}
+                <ChevronDown size={18} aria-hidden="true" />
+              {:else}
+                <ChevronRight size={18} aria-hidden="true" />
+              {/if}
+              <span>{section.label}</span>
+            </button>
+            {#if isExpanded(section.id)}
+              <div
+                id={`map-tools-section-${section.id}`}
+                class="map-chrome-accordion-body map-chrome-accordion-body--enter"
+              >
+                {#if section.id === "view"}
+                  <MapViewControls embedded variant="modes" />
+                {:else if section.id === "legend"}
+                  <MapLegend embedded />
+                {:else if section.id === "terrain"}
+                  <TerrainControl embedded />
+                {:else if section.id === "trail"}
+                  <TrailControl embedded />
+                {:else if section.id === "jeepney"}
+                  <JeepneyMenu embedded />
+                {:else if section.id === "schedule"}
+                  <ScheduleImportPanel embedded />
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/each}
       </MapChromePanel>
     </div>
   {/if}
-
-  <button
-    class="map-chrome-control-btn map-chrome-control-btn--compact"
-    class:active={mapToolsStore.open || travelTimeStore.active}
-    type="button"
-    onclick={() => mapToolsStore.toggle()}
-    title="Map tools"
-    aria-label="Map tools"
-    aria-expanded={mapToolsStore.open}
-    aria-controls="map-tools-panel"
-  >
-    <Wrench size={18} aria-hidden="true" />
-  </button>
 </div>
 
 <style>
   .map-tools-flyout {
     position: relative;
+    pointer-events: auto;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.5rem;
-    pointer-events: auto;
+    overflow: visible;
   }
 
   .map-tools-panel-shell {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    width: 100%;
     min-width: 0;
   }
 
-  .map-tools-flyout :global(.map-tools-panel) {
-    width: 16rem;
-    max-width: calc(100vw - 1rem);
+  /* Desktop: panel overlays below the Layers FAB without growing the stack
+     (camera controls stay fixed under the trigger).
+     #716: was @media (min-width: 48.0625rem), now gated by .desktop class */
+  :global(.desktop) .map-tools-flyout {
+    z-index: 1;
+  }
+
+  :global(.desktop) .map-tools-panel-shell {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: min(24rem, calc(100vw - 1rem));
+    z-index: 2;
+  }
+
+  .accordion-section {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
   }
 
   .map-tools-flyout__tool {

@@ -1,9 +1,15 @@
 import type { APIRoute } from "astro";
 import { getAllJeepneyRoutes } from "@lib/services/transit-service";
+import { campusTransit } from "../../campus.config";
 
 export const prerender = false;
 
 export const GET = (async () => {
+  if (!campusTransit.enabled) {
+    return new Response("[]", {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   try {
     return new Response(JSON.stringify(await getAllJeepneyRoutes()), {
       headers: { "Content-Type": "application/json" },

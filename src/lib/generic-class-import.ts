@@ -27,6 +27,10 @@ export const GENERIC_CLASS_REQUIRED_HEADERS = [
 export const GENERIC_CLASS_OPTIONAL_HEADERS = [
   "building_code",
   "course_title",
+  // Registrar college / department codes (#846), e.g. "CAS" / "LBICS". Blank
+  // or missing = leave any existing DB value untouched.
+  "acad_group",
+  "acad_org",
 ] as const;
 
 export const GENERIC_CLASS_HEADERS = [
@@ -52,6 +56,9 @@ export type NormalizedGenericClass = {
   termId: number;
   /** Free-text room names to try against rooms + aliases, in order. */
   roomCandidates: string[];
+  /** Optional college / department codes; undefined = column not provided. */
+  acadGroup?: string;
+  acadOrg?: string;
 };
 
 const CLASS_TYPE_MAP: Record<string, "LEC" | "LAB"> = {
@@ -311,6 +318,8 @@ export function normalizeGenericClasses(
         schedule: [slot],
         termId: Number(values.term_id),
         roomCandidates: candidates,
+        acadGroup: values.acad_group || undefined,
+        acadOrg: values.acad_org || undefined,
       });
       continue;
     }
@@ -322,6 +331,12 @@ export function normalizeGenericClasses(
     }
     if (!existing.courseTitle && values.course_title) {
       existing.courseTitle = values.course_title;
+    }
+    if (!existing.acadGroup && values.acad_group) {
+      existing.acadGroup = values.acad_group;
+    }
+    if (!existing.acadOrg && values.acad_org) {
+      existing.acadOrg = values.acad_org;
     }
   }
   return [...byKey.values()];
