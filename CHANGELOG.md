@@ -1,3 +1,11 @@
+## [2.11.1](https://github.com/uplbtools/room-tba/compare/v2.11.0...v2.11.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map:** credit the basemap that actually served the tiles ([#922](https://github.com/uplbtools/room-tba/issues/922)) ([36aeb16](https://github.com/uplbtools/room-tba/commit/36aeb162840f00dd152e936e8ba1cddefa114809)), closes [#863](https://github.com/uplbtools/room-tba/issues/863) [#883](https://github.com/uplbtools/room-tba/issues/883)
+* **settings:** restructure the settings modal into scannable rows ([#919](https://github.com/uplbtools/room-tba/issues/919)) ([8b47a39](https://github.com/uplbtools/room-tba/commit/8b47a39fe175cc20ea811e5630602b6bf2a96aa2))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
