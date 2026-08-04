@@ -24,7 +24,12 @@ const WIDTHS = [320, 375, 414, 768] as const;
 // Height, not just horizontal extent, is the assertion that catches it: the
 // original spec only checked that boxes sat inside the viewport, which stayed
 // true while the chrome doubled in height.
-const MAX_CHROME_HEIGHT_PX = 132;
+//
+// Measured at 320px: 127px healthy, 133px with the sync-action probe below
+// (the probe is a real 2rem button added to the pill), 147px when the pill
+// wrapped. 140 sits clear of both the probe case and the regression rather
+// than hugging either.
+const MAX_CHROME_HEIGHT_PX = 140;
 
 // One text line plus the pill's padding and border. A second row lands at ~52px.
 const MAX_BAR_HEIGHT_PX = 40;
