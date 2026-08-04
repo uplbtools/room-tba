@@ -292,14 +292,26 @@ test.describe("bottom chrome fits the viewport", () => {
         bar.appendChild(probe);
       }, RETRY_PROBE_PX);
 
+      // Report *which* box overflowed, not just how many. A bare count says
+      // "Expected 0, Received 1" and leaves the next reader guessing at which
+      // element and which width, which is exactly the position this test put
+      // its author in once already.
       await expect
-        .poll(async () => {
-          const m = await measure(page);
-          return m.boxes.filter(
-            (b) => b.right > m.viewportWidth + 0.5 || b.left < -0.5,
-          ).length;
-        })
-        .toBe(0);
+        .poll(
+          async () => {
+            const m = await measure(page);
+            return m.boxes
+              .filter((b) => b.right > m.viewportWidth + 0.5 || b.left < -0.5)
+              .map(
+                (b) =>
+                  `${b.name} [${Math.round(b.left)}..${Math.round(b.right)}]`,
+              );
+          },
+          {
+            message: `${width}px + ${RETRY_PROBE_PX}px sync action: boxes outside the viewport`,
+          },
+        )
+        .toEqual([]);
 
       const measured = await measure(page);
       expect(
