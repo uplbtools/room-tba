@@ -9,6 +9,7 @@
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
   } from "@constants/map-terrain";
   import { floatingControlPanelStore, terrainStore } from "@lib/store.svelte";
+  import "./map-chrome/map-chrome.css";
 
   type Props = {
     embedded?: boolean;
@@ -27,22 +28,32 @@
   const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
   const showPanel = $derived(embedded || menuOpen);
 
+  // Only says something when the state is not the plain "off and fine" one.
+  // The what-is-this copy lives on the toggle's title instead of a paragraph.
   const statusText = $derived.by(() => {
     if (!isOnline) return TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE;
-    if (terrainStore.status === "loading") {
-      return "Loading hosted elevation tiles...";
-    }
+    if (terrainStore.status === "loading") return "Loading elevation tiles...";
     if (terrainStore.status === "active") {
-      return "Terrain is contextual, not survey-grade elevation data.";
+      return "Contextual relief, not survey-grade elevation.";
     }
     if (terrainStore.status === "unavailable") {
       return terrainStore.message ?? "Terrain is unavailable right now.";
     }
-    if (lowDataConnection) {
-      return "Terrain uses online elevation tiles. Keep it off on low-data connections.";
-    }
-    return "Terrain loads hosted elevation tiles only when enabled.";
+    if (lowDataConnection) return "Uses online tiles. Keep it off on low data.";
+    return "";
   });
+
+  const statusWarns = $derived(
+    !isOnline || lowDataConnection || terrainStore.status === "unavailable",
+  );
+
+  // Visible label is "Off"/"On", so the accessible name has to contain it
+  // (WCAG 2.5.3) while still naming the action.
+  const toggleLabel = $derived(
+    terrainStore.enabled
+      ? "Terrain is on. Turn terrain off."
+      : "Terrain is off. Turn terrain on.",
+  );
 
   function getConnection(): NetworkInformation | undefined {
     return (navigator as Navigator & { connection?: NetworkInformation })
@@ -92,7 +103,7 @@
 
 <div class="terrain-control" class:embedded>
   {#if showPanel}
-    <div class="terrain-panel" class:embedded role="menu">
+    <div class="terrain-panel" class:embedded>
       {#if !embedded}
         <div class="terrain-panel-header">
           <span>Makiling Terrain</span>
@@ -107,29 +118,39 @@
         </div>
       {/if}
 
-      <p class="terrain-copy">
-        Explore Mt. Makiling in 3D context. This layer is online-only for now
-        and stays off until you enable it.
-      </p>
+      <div class="map-chrome-row">
+        <span class="map-chrome-row__label">Makiling terrain</span>
+        <div class="map-chrome-row__control">
+          <button
+            type="button"
+            class="map-chrome-chip"
+            class:map-chrome-chip--toggle-active={terrainStore.enabled}
+            onclick={handleToggle}
+            aria-pressed={terrainStore.enabled}
+            aria-label={toggleLabel}
+            title="Mt. Makiling in 3D. Loads elevation tiles over the network."
+          >
+            {terrainStore.enabled ? "On" : "Off"}
+          </button>
+        </div>
+      </div>
 
-      <button
-        type="button"
-        class="terrain-toggle"
-        class:active={terrainStore.enabled}
-        onclick={handleToggle}
-        aria-pressed={terrainStore.enabled}
-      >
-        {terrainStore.enabled ? "Turn terrain off" : "Turn terrain on"}
-      </button>
-
-      <div class="terrain-options" aria-label="Terrain exaggeration">
-        <span>Exaggeration</span>
-        <div class="terrain-option-buttons">
+      <div class="map-chrome-row">
+        <span class="map-chrome-row__label" id="terrain-exaggeration-label">
+          Exaggeration
+        </span>
+        <div
+          class="map-chrome-row__control"
+          role="group"
+          aria-labelledby="terrain-exaggeration-label"
+        >
           {#each TERRAIN_EXAGGERATION_OPTIONS as option (option)}
             <button
               type="button"
-              class="terrain-option"
-              class:active={terrainStore.exaggeration === option}
+              class="map-chrome-chip"
+              class:map-chrome-chip--toggle-active={terrainStore.exaggeration ===
+                option}
+              aria-pressed={terrainStore.exaggeration === option}
               onclick={() => terrainStore.setExaggeration(option)}
             >
               {option}x
@@ -138,32 +159,36 @@
         </div>
       </div>
 
-      <button
-        type="button"
-        class="reset-btn"
-        disabled={!terrainStore.enabled}
-        onclick={() => terrainStore.requestReset()}
-      >
-        <RotateCcw size="14" />
-        Reset Makiling view
-      </button>
+      <div class="map-chrome-row">
+        <span class="map-chrome-row__label">Camera</span>
+        <div class="map-chrome-row__control">
+          <button
+            type="button"
+            class="map-chrome-action-chip"
+            disabled={!terrainStore.enabled}
+            onclick={() => terrainStore.requestReset()}
+            title="Point the camera back at Mt. Makiling."
+          >
+            <RotateCcw size="14" aria-hidden="true" />
+            Reset view
+          </button>
+        </div>
+      </div>
 
-      <p
-        class="terrain-status"
-        class:warning={!isOnline ||
-          lowDataConnection ||
-          terrainStore.status === "unavailable"}
-        aria-live="polite"
-      >
-        {statusText}
-      </p>
+      <div class="terrain-status" aria-live="polite">
+        {#if statusText}
+          <p class="map-chrome-row-hint" class:map-chrome-row-hint--warn={statusWarns}>
+            {statusText}
+          </p>
+        {/if}
+      </div>
 
-      <p class="terrain-attribution">
-        Elevation tiles by
-        <a href="https://www.maptiler.com/" target="_blank" rel="noreferrer">
-          MapTiler
-        </a>
-        .
+      <p class="map-chrome-row-note">
+        Elevation tiles by <a
+          href="https://www.maptiler.com/"
+          target="_blank"
+          rel="noreferrer">MapTiler</a
+        >.
       </p>
     </div>
   {/if}
@@ -190,7 +215,9 @@
   .terrain-panel.embedded {
     width: 100%;
     max-width: 100%;
-    padding: 0;
+    /* 1px so overflow-x does not shave the left stem off the attribution's
+       "E" — same clip the settings scroll body already pads around. */
+    padding: 0 0 0 1px;
     box-shadow: none;
     overflow-x: hidden;
   }
@@ -233,7 +260,7 @@
     width: 18rem;
     max-width: calc(100vw - 1rem);
     flex-direction: column;
-    gap: 0.625rem;
+    gap: 0.25rem;
     border-radius: 0.875rem;
     background-color: white;
     padding: 0.75rem;
@@ -250,97 +277,16 @@
     font-weight: 600;
   }
 
-  .terrain-copy,
-  .terrain-status,
-  .terrain-attribution {
-    margin: 0;
-    color: hsl(0, 0%, 38%);
-    font-size: 0.75rem;
-    line-height: 1.35;
+  /* Live region, so it stays mounted; :empty keeps it out of the panel's gap
+     while the state is the plain "off and fine" one. */
+  .terrain-status:empty {
+    display: none;
   }
 
-  .terrain-toggle,
-  .reset-btn {
-    /* inline-flex, not flex: a block-level flex container stretched these to
-       the full panel width for a two-word label. */
-    display: inline-flex;
-    align-self: flex-start;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.625rem;
-    background-color: white;
-    color: hsl(5, 53%, 32%);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    padding: 0.55rem 0.625rem;
-  }
-
-  .terrain-toggle:hover,
-  .reset-btn:hover:not(:disabled) {
-    background-color: hsl(5, 53%, 98%);
-  }
-
-  .terrain-toggle.active {
-    border-color: hsl(160, 84%, 26%);
-    background-color: hsl(160, 84%, 26%);
-    color: white;
-  }
-
-  .terrain-options {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    min-width: 0;
-    color: hsl(0, 0%, 30%);
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-
-  .terrain-option-buttons {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .terrain-option {
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 999px;
-    background-color: white;
-    color: hsl(0, 0%, 30%);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .terrain-option:hover {
-    background-color: hsl(5, 53%, 98%);
-  }
-
-  .terrain-option.active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 32%);
-  }
-
-  .reset-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  .terrain-status.warning {
-    color: hsl(25, 80%, 35%);
-    font-weight: 600;
-  }
-
-  .terrain-attribution a {
-    color: hsl(5, 53%, 32%);
-    font-weight: 700;
+  /* Attribution is required by the basemap terms. Small print, with enough air
+     that it does not read as another setting row. */
+  .map-chrome-row-note {
+    margin-top: 0.25rem;
+    padding-left: 3px;
   }
 </style>

@@ -42,9 +42,9 @@ const lastEditedLabel = lastEdited
     )
   }
   {
-    lastEditedLabel && (
+    lastEditedLabel && lastEdited && (
       <span>
-        {" · "}Last edited {lastEditedLabel}
+        {" · "}Last edited <time datetime={lastEdited}>{lastEditedLabel}</time>
         {" · "}{revisions} {revisions === 1 ? "revision" : "revisions"}
       </span>
     )
@@ -54,17 +54,3 @@ const lastEditedLabel = lastEdited
     {" · "}<a class="wiki-link" href={editUrl} target="_blank" rel="noopener noreferrer">Edit on GitHub</a>
   </span>
 </p>
-
-<style>
-  .wiki-provenance {
-    margin: 1rem 0 0;
-    color: hsl(0, 0%, 46%);
-    font-size: 0.8125rem;
-    line-height: 1.7;
-  }
-
-  .wiki-provenance__authors {
-    font-weight: 650;
-    color: hsl(0, 0%, 32%);
-  }
-</style>

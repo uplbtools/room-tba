@@ -69,12 +69,6 @@
   class="schedule-import-panel"
   class:schedule-import-panel--embedded={embedded}
 >
-  <p class="schedule-import-panel__note">
-    Class stops come from your Planner plan for the current term. Everything
-    stays on this device.
-  </p>
-  <p class="schedule-import-panel__scope">{scheduleRouteStore.scopeNote}</p>
-
   {#if scheduleRouteStore.importError}
     <p class="schedule-import-panel__error" role="alert">
       {scheduleRouteStore.importError}
@@ -82,15 +76,22 @@
   {/if}
 
   {#if scheduleRouteStore.hasImport}
-    <p class="schedule-import-panel__plan">
-      Plan {plannerStore.activePlan?.label ?? ""} ·
-      {scheduleRouteStore.importedRows.length} section{scheduleRouteStore
-        .importedRows.length === 1
-        ? ""
-        : "s"}
-      <a class="schedule-import-panel__planner-link" href="/planner"
-        >Edit in Planner</a
-      >
+    <div class="map-chrome-row">
+      <span class="map-chrome-row__label">
+        Plan {plannerStore.activePlan?.label ?? ""}
+      </span>
+      <span class="map-chrome-row__value">
+        {scheduleRouteStore.importedRows.length} section{scheduleRouteStore
+          .importedRows.length === 1
+          ? ""
+          : "s"}
+      </span>
+      <div class="map-chrome-row__control">
+        <a class="map-chrome-action-chip" href="/planner">Edit in Planner</a>
+      </div>
+    </div>
+    <p class="map-chrome-row-hint">
+      Stops come from your Planner, on this device.
     </p>
   {:else if !scheduleRouteStore.matching}
     <p class="schedule-import-panel__empty">
@@ -176,7 +177,7 @@
             {#each scheduleRouteStore.unresolved as item (item.row.courseCode + item.row.section + item.row.type)}
               <li>
                 {item.row.courseCode}
-                {item.row.section} ({item.row.type}) —
+                {item.row.section} ({item.row.type}):
                 {item.unresolvedReason}
               </li>
             {/each}
@@ -212,6 +213,13 @@
       </div>
     {/if}
   {/if}
+
+  <!-- Which section types have a room at all. Real, but it is a footnote, not
+       the first thing you read in a settings panel. -->
+  <details class="schedule-import-panel__scope">
+    <summary>Why a class may be missing</summary>
+    <p>{scheduleRouteStore.scopeNote}</p>
+  </details>
 </div>
 
 <style>
@@ -224,24 +232,10 @@
     box-sizing: border-box;
   }
 
-  .schedule-import-panel__note,
-  .schedule-import-panel__scope {
-    margin: 0;
-    font-size: 0.8125rem;
-    line-height: 1.35;
-    color: hsl(0, 0%, 22%);
-  }
-
   .schedule-import-panel__error {
     margin: 0;
     font-size: 0.8125rem;
     color: hsl(0, 65%, 40%);
-  }
-
-  .schedule-import-panel__plan {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: hsl(5, 53%, 22%);
   }
 
   .schedule-import-panel__planner-link {
@@ -430,7 +424,8 @@
     color: hsl(0, 0%, 40%);
   }
 
-  .schedule-import-panel__unresolved {
+  .schedule-import-panel__unresolved,
+  .schedule-import-panel__scope {
     font-size: 0.75rem;
     color: hsl(0, 0%, 35%);
   }
@@ -438,6 +433,21 @@
   .schedule-import-panel__unresolved ul {
     margin: 0.375rem 0 0;
     padding-left: 1rem;
+  }
+
+  /* 44px tap target on the disclosure row. */
+  .schedule-import-panel__scope summary,
+  .schedule-import-panel__unresolved summary {
+    display: list-item;
+    padding: 0.375rem 0;
+    min-height: 2.75rem;
+    align-content: center;
+    cursor: pointer;
+  }
+
+  .schedule-import-panel__scope p {
+    margin: 0.25rem 0 0;
+    line-height: 1.4;
   }
 
   .schedule-import-panel__route-actions {

@@ -7,9 +7,28 @@ type Props = {
   description: string;
   canonicalPath: string;
   structuredData?: Record<string, unknown>[];
+  /** Leaf name for the breadcrumb, e.g. "Section times". Omit on the index. */
+  crumb?: string;
 };
 
-const { title, description, canonicalPath, structuredData = [] } = Astro.props;
+const {
+  title,
+  description,
+  canonicalPath,
+  structuredData = [],
+  crumb,
+} = Astro.props;
+
+// Sibling pages, for the "see also" list every article closes with. Titles
+// only, so copy edits to the index blurbs do not have to land here too.
+const siblings = [
+  { href: "/wiki/section-times", label: "What times do section names correspond to?" },
+  { href: "/wiki/upcat-at-uplb", label: "Taking the UPCAT at UP Los Baños" },
+  { href: "/wiki/fork-for-your-campus", label: "Fork this for your campus" },
+  { href: "/faq", label: "Frequently asked questions" },
+].filter((page) => page.href !== canonicalPath);
+
+const isIndex = canonicalPath === "/wiki";
 ---
 
 <Layout
@@ -19,126 +38,656 @@ const { title, description, canonicalPath, structuredData = [] } = Astro.props;
   {structuredData}
   showAppLoadingShell={false}
 >
-  <main class="wiki-page">
-    <a class="wiki-brand" href="/" aria-label="Room TBA home">
-      <img
-        src="/logo.png"
-        alt=""
-        width="48"
-        height="48"
-        decoding="async"
-        class="wiki-brand__logo"
-      />
-      <span class="wiki-brand__name">Room TBA</span>
-    </a>
+  <div class="wiki-page">
+    <header class="wiki-masthead">
+      <a class="wiki-brand" href="/">
+        <img
+          src="/logo.png"
+          alt=""
+          width="40"
+          height="40"
+          decoding="async"
+          class="wiki-brand__logo"
+        />
+        <span class="wiki-brand__name">Room TBA</span>
+      </a>
+      <a class="wiki-masthead__label" href="/wiki">Wiki</a>
+    </header>
+
     <nav class="wiki-breadcrumb" aria-label="Breadcrumb">
-      <a href="/">Home</a>
-      <span aria-hidden="true">/</span>
-      <a href="/wiki">Wiki</a>
+      <ol>
+        <li><a href="/">Home</a></li>
+        <li>
+          {
+            isIndex ? (
+              <span aria-current="page">Wiki</span>
+            ) : (
+              <a href="/wiki">Wiki</a>
+            )
+          }
+        </li>
+        {crumb && <li><span aria-current="page">{crumb}</span></li>}
+      </ol>
     </nav>
-    <slot />
+
+    <main id="wiki-content">
+      <slot />
+    </main>
+
+    {
+      siblings.length > 0 && !isIndex && (
+        <nav class="wiki-seealso" aria-labelledby="wiki-seealso-heading">
+          <h2 id="wiki-seealso-heading">See also</h2>
+          <ul>
+            {siblings.map((page) => (
+              <li><a href={page.href}>{page.label}</a></li>
+            ))}
+            <li><a href="/wiki">Wiki index</a></li>
+          </ul>
+        </nav>
+      )
+    }
+
     <SiteFooter />
-  </main>
+  </div>
 </Layout>
 
+<script>
+  // Anchor links on headings, the way every reference wiki has them. Ids that
+  // already exist are left alone so published deep links keep working.
+  const article = document.querySelector(".wiki-article");
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  for (const heading of article?.querySelectorAll("h2, h3") ?? []) {
+    const label = heading.textContent?.trim() ?? "";
+    if (!heading.id) {
+      const slug = slugify(label);
+      if (!slug || document.getElementById(slug)) continue;
+      heading.id = slug;
+    }
+    const anchor = document.createElement("a");
+    anchor.className = "heading-anchor";
+    anchor.href = `#${heading.id}`;
+    anchor.textContent = "#";
+    anchor.setAttribute("aria-label", `Permalink to ${label}`);
+    heading.append(anchor);
+  }
+</script>
+
 <style is:global>
-  /* Light canvas so missing page CSS (CF 404 cache on hashed assets) stays readable. */
+  /* Hallmark · genre: editorial · macrostructure: Long Document (articles) +
+     Index-First (hub) · nav: N6 masthead · footer: Ft4 dense colophon
+     tone: reference · anchor hue: brick red (brand, preserved)
+     pre-emit critique: P5 H5 E4 S5 R5 V4 */
+
+  :root {
+    /* Paper and ink. Off-white rather than #fff so the page reads as a printed
+       reference sheet instead of a blank canvas. */
+    --wiki-paper: hsl(30, 20%, 98%);
+    --wiki-paper-2: hsl(30, 16%, 95%);
+    --wiki-paper-3: hsl(30, 14%, 96.5%);
+    --wiki-ink: hsl(20, 10%, 14%);
+    --wiki-ink-2: hsl(20, 6%, 38%);
+    --wiki-ink-3: hsl(20, 5%, 44%);
+    --wiki-rule: hsl(20, 12%, 86%);
+    --wiki-rule-strong: hsl(20, 10%, 70%);
+    --wiki-accent: hsl(5, 53%, 32%);
+    --wiki-accent-hover: hsl(5, 62%, 24%);
+    --wiki-accent-soft: hsl(5, 30%, 94%);
+    --wiki-focus: hsl(212, 88%, 38%);
+
+    --wiki-font-display:
+      ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --wiki-font-mono:
+      ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    /* One measure token drives every prose block. 64ch of Inter's zero-width
+       lands at roughly 70 rendered characters per line. */
+    --wiki-measure: 64ch;
+
+    --wiki-text-xs: 0.75rem;
+    --wiki-text-sm: 0.8125rem;
+    --wiki-text-md: 0.9375rem;
+    --wiki-text-base: 1.0625rem;
+    --wiki-text-lede: 1.1875rem;
+    --wiki-text-h4: 1rem;
+    --wiki-text-h3: 1.1875rem;
+    --wiki-text-h2: 1.4375rem;
+    --wiki-text-h1: clamp(1.75rem, 1.25rem + 2.2vw, 2.375rem);
+
+    --wiki-space-2xs: 0.25rem;
+    --wiki-space-xs: 0.5rem;
+    --wiki-space-sm: 0.75rem;
+    --wiki-space-md: 1rem;
+    --wiki-space-lg: 1.5rem;
+    --wiki-space-xl: 2rem;
+    --wiki-space-2xl: 3rem;
+
+    /* Declaring both also opts the page out of Chrome's auto-dark inversion,
+       which is what the old `only light` was defending against. */
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --wiki-paper: hsl(20, 8%, 11%);
+      --wiki-paper-2: hsl(20, 7%, 17%);
+      --wiki-paper-3: hsl(20, 7%, 15%);
+      --wiki-ink: hsl(30, 12%, 91%);
+      --wiki-ink-2: hsl(30, 7%, 68%);
+      --wiki-ink-3: hsl(30, 6%, 60%);
+      --wiki-rule: hsl(20, 7%, 26%);
+      --wiki-rule-strong: hsl(20, 7%, 40%);
+      --wiki-accent: hsl(6, 68%, 74%);
+      --wiki-accent-hover: hsl(6, 78%, 84%);
+      --wiki-accent-soft: hsl(6, 18%, 20%);
+      --wiki-focus: hsl(206, 92%, 72%);
+    }
+  }
+
+  html,
+  body {
+    background: var(--wiki-paper);
+  }
+
   html {
-    color-scheme: only light;
-    background: #fff;
+    overflow-x: clip;
   }
 
   body {
-    background: #fff;
+    overflow-x: clip;
   }
 
   .wiki-page {
-    width: min(62rem, calc(100% - 2rem));
+    width: min(64rem, calc(100% - 2rem));
     margin: 0 auto;
-    padding: 2rem 0 4rem;
-    color: hsl(0, 0%, 15%);
-    background: #fff;
+    padding: var(--wiki-space-lg) 0 var(--wiki-space-2xl);
+    color: var(--wiki-ink);
+    overflow-wrap: break-word;
+  }
+
+  .wiki-page :focus-visible {
+    outline: 2px solid var(--wiki-focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Masthead ------------------------------------------------------------- */
+
+  .wiki-masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--wiki-space-sm);
+    padding-bottom: var(--wiki-space-sm);
+    border-bottom: 2px solid var(--wiki-ink);
   }
 
   .wiki-brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-    color: hsl(0, 0%, 12%);
-    font-weight: 750;
-    font-size: 1.125rem;
-    letter-spacing: -0.02em;
+    gap: var(--wiki-space-xs);
+    color: var(--wiki-ink);
+    font-family: var(--wiki-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
     text-decoration: none;
+    white-space: nowrap;
   }
 
   .wiki-brand:hover,
   .wiki-brand:focus-visible {
-    color: hsl(5, 53%, 32%);
+    color: var(--wiki-accent);
   }
 
   .wiki-brand__logo {
     display: block;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 0.65rem;
+    width: 1.75rem;
+    height: 1.75rem;
     object-fit: contain;
   }
 
+  .wiki-masthead__label {
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-sm);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .wiki-masthead__label:hover,
+  .wiki-masthead__label:focus-visible {
+    color: var(--wiki-accent);
+  }
+
+  /* Breadcrumb ----------------------------------------------------------- */
+
   .wiki-breadcrumb {
+    margin: var(--wiki-space-sm) 0 var(--wiki-space-lg);
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+  }
+
+  .wiki-breadcrumb ol {
     display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin-bottom: 2rem;
-    color: hsl(0, 0%, 46%);
-    font-size: 0.875rem;
+    flex-wrap: wrap;
+    gap: 0 var(--wiki-space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .wiki-breadcrumb li + li::before {
+    content: "/";
+    margin-right: var(--wiki-space-xs);
+    color: var(--wiki-rule-strong);
+  }
+
+  .wiki-breadcrumb [aria-current="page"] {
+    color: var(--wiki-ink);
+    font-weight: 600;
+  }
+
+  /* Links ---------------------------------------------------------------- */
+
+  .wiki-page a {
+    color: var(--wiki-accent);
   }
 
   .wiki-breadcrumb a,
   .wiki-page .wiki-link {
-    color: hsl(5, 53%, 32%);
-    font-weight: 650;
-    text-decoration: none;
+    color: var(--wiki-accent);
+    text-decoration: underline;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.14em;
   }
 
   .wiki-breadcrumb a:hover,
   .wiki-page .wiki-link:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    color: var(--wiki-accent-hover);
+    text-decoration-thickness: 2px;
+  }
+
+  /* Article shell -------------------------------------------------------- */
+
+  .wiki-article {
+    max-width: none;
+  }
+
+  .article-hero {
+    padding-bottom: var(--wiki-space-md);
+    border-bottom: 1px solid var(--wiki-rule);
   }
 
   .wiki-eyebrow {
-    margin: 0 0 0.5rem;
-    color: hsl(5, 53%, 36%);
-    font-size: 0.75rem;
-    font-weight: 750;
-    letter-spacing: 0.09em;
+    margin: 0 0 var(--wiki-space-2xs);
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
   .wiki-title {
-    max-width: 48rem;
+    max-width: var(--wiki-measure);
     margin: 0;
-    font-size: clamp(2.25rem, 7vw, 4.5rem);
-    line-height: 0.98;
-    letter-spacing: -0.04em;
+    font-family: var(--wiki-font-display);
+    font-size: var(--wiki-text-h1);
+    font-weight: 700;
+    font-style: normal;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
   }
 
   .wiki-lede {
-    max-width: 44rem;
-    margin: 1rem 0 0;
-    color: hsl(0, 0%, 32%);
-    font-size: clamp(1rem, 2vw, 1.2rem);
-    line-height: 1.65;
+    max-width: var(--wiki-measure);
+    margin: var(--wiki-space-sm) 0 0;
+    color: var(--wiki-ink);
+    font-size: var(--wiki-text-lede);
+    line-height: 1.6;
   }
 
-  /* Wikipedia-style article shell on wide screens: the page's own "On this
-     page" nav becomes a sticky left rail, body copy flows in the right
-     column. Pure CSS so each article keeps its inline TOC markup. */
+  .article-meta {
+    max-width: var(--wiki-measure);
+    margin: var(--wiki-space-md) 0 0;
+    padding-left: var(--wiki-space-sm);
+    border-left: 1px solid var(--wiki-rule-strong);
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+    line-height: 1.6;
+  }
+
+  /* Contents ------------------------------------------------------------- */
+
+  .toc {
+    margin: var(--wiki-space-lg) 0 0;
+    padding: var(--wiki-space-sm) var(--wiki-space-md);
+    border: 1px solid var(--wiki-rule);
+    background: var(--wiki-paper-2);
+  }
+
+  .toc__title {
+    margin: 0;
+    color: var(--wiki-ink);
+    font-family: var(--wiki-font-display);
+    font-size: var(--wiki-text-md);
+    font-weight: 700;
+  }
+
+  .toc ol {
+    margin: var(--wiki-space-xs) 0 0;
+    padding-left: 1.6rem;
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+    line-height: 1.6;
+  }
+
+  .toc li {
+    margin: 0.15rem 0;
+  }
+
+  .toc li::marker {
+    color: var(--wiki-ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .toc a {
+    color: var(--wiki-accent);
+    text-decoration: none;
+  }
+
+  .toc a:hover,
+  .toc a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.14em;
+  }
+
+  /* Headings ------------------------------------------------------------- */
+
+  .wiki-article section,
+  .wiki-article > figure,
+  .article-callout {
+    margin-top: var(--wiki-space-xl);
+  }
+
+  .wiki-article h2,
+  .wiki-article h3,
+  .wiki-article h4 {
+    max-width: var(--wiki-measure);
+    font-family: var(--wiki-font-display);
+    font-style: normal;
+    scroll-margin-top: var(--wiki-space-md);
+    overflow-wrap: anywhere;
+  }
+
+  .wiki-article h2 {
+    margin: 0 0 var(--wiki-space-sm);
+    padding-bottom: 0.2rem;
+    border-bottom: 1px solid var(--wiki-rule);
+    font-size: var(--wiki-text-h2);
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .wiki-article h3 {
+    margin: var(--wiki-space-lg) 0 var(--wiki-space-xs);
+    font-size: var(--wiki-text-h3);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .wiki-article h4 {
+    margin: var(--wiki-space-md) 0 var(--wiki-space-2xs);
+    font-size: var(--wiki-text-h4);
+    font-weight: 700;
+  }
+
+  .heading-anchor {
+    margin-left: 0.4ch;
+    color: var(--wiki-ink-3);
+    font-family: var(--wiki-font-mono);
+    font-size: 0.8em;
+    font-weight: 400;
+    text-decoration: none;
+    opacity: 0;
+  }
+
+  :is(h2, h3):hover > .heading-anchor,
+  .heading-anchor:focus-visible {
+    opacity: 1;
+  }
+
+  .heading-anchor:hover {
+    color: var(--wiki-accent);
+  }
+
+  @media (hover: none) {
+    .heading-anchor {
+      opacity: 1;
+    }
+  }
+
+  /* Prose ---------------------------------------------------------------- */
+
+  .wiki-article p,
+  .wiki-article ul,
+  .wiki-article ol,
+  .wiki-article dl {
+    max-width: var(--wiki-measure);
+    margin: var(--wiki-space-sm) 0 0;
+    color: var(--wiki-ink);
+    font-size: var(--wiki-text-base);
+    line-height: 1.7;
+  }
+
+  .wiki-article ul,
+  .wiki-article ol {
+    padding-left: 1.35rem;
+  }
+
+  .wiki-article li {
+    margin: 0.3rem 0;
+  }
+
+  .wiki-article li::marker {
+    color: var(--wiki-ink-3);
+  }
+
+  .wiki-article .break-list,
+  .wiki-article .steps {
+    padding-left: 1.35rem;
+  }
+
+  .wiki-article a:not(.heading-anchor) {
+    color: var(--wiki-accent);
+    text-decoration: underline;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.14em;
+  }
+
+  .wiki-article a:not(.heading-anchor):hover {
+    color: var(--wiki-accent-hover);
+    text-decoration-thickness: 2px;
+  }
+
+  .wiki-article code {
+    padding: 0.05em 0.3em;
+    border: 1px solid var(--wiki-rule);
+    background: var(--wiki-paper-2);
+    color: var(--wiki-ink);
+    font-family: var(--wiki-font-mono);
+    font-size: 0.875em;
+    overflow-wrap: anywhere;
+  }
+
+  .wiki-article pre {
+    max-width: var(--wiki-measure);
+    margin: var(--wiki-space-sm) 0 0;
+    padding: var(--wiki-space-sm) var(--wiki-space-md);
+    border: 1px solid var(--wiki-rule);
+    background: var(--wiki-paper-3);
+    overflow-x: auto;
+    font-family: var(--wiki-font-mono);
+    font-size: var(--wiki-text-sm);
+    line-height: 1.6;
+  }
+
+  .wiki-article pre code {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: inherit;
+    overflow-wrap: normal;
+  }
+
+  .wiki-article figcaption {
+    max-width: var(--wiki-measure);
+    margin-bottom: var(--wiki-space-xs);
+    font-family: var(--wiki-font-display);
+    font-size: var(--wiki-text-h4);
+    font-weight: 700;
+  }
+
+  .wiki-article .figure-note,
+  .wiki-article .table-hint {
+    max-width: var(--wiki-measure);
+    margin-top: var(--wiki-space-xs);
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+    line-height: 1.55;
+  }
+
+  .wiki-article .table-hint {
+    display: none;
+  }
+
+  /* Tables --------------------------------------------------------------- */
+
+  .table-wrap {
+    margin-top: var(--wiki-space-sm);
+    border: 1px solid var(--wiki-rule);
+    overflow-x: auto;
+  }
+
+  .wiki-article table {
+    width: 100%;
+    min-width: 34rem;
+    border-collapse: collapse;
+    background: var(--wiki-paper);
+    font-size: var(--wiki-text-md);
+  }
+
+  .wiki-article th,
+  .wiki-article td {
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--wiki-rule);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .wiki-article th {
+    border-bottom: 2px solid var(--wiki-rule-strong);
+    background: var(--wiki-paper-2);
+    color: var(--wiki-ink);
+    font-size: var(--wiki-text-sm);
+    font-weight: 700;
+  }
+
+  .wiki-article tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .wiki-article td.num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Admonitions ---------------------------------------------------------- */
+
+  .article-callout {
+    max-width: var(--wiki-measure);
+    padding: var(--wiki-space-md);
+    border: 1px solid var(--wiki-rule-strong);
+    background: var(--wiki-paper-2);
+  }
+
+  .article-callout h2 {
+    border-bottom: 0;
+    padding-bottom: 0;
+    font-size: var(--wiki-text-h3);
+  }
+
+  .article-callout p:first-of-type,
+  .article-callout > ul:first-of-type {
+    margin-top: 0;
+  }
+
+  /* Provenance ----------------------------------------------------------- */
+
+  .wiki-provenance {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--wiki-space-xs);
+    margin: var(--wiki-space-md) 0 0;
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+    line-height: 1.6;
+  }
+
+  .wiki-provenance__authors {
+    color: var(--wiki-ink);
+    font-weight: 600;
+  }
+
+  /* See also ------------------------------------------------------------- */
+
+  .wiki-seealso {
+    margin-top: var(--wiki-space-2xl);
+    padding-top: var(--wiki-space-md);
+    border-top: 2px solid var(--wiki-ink);
+  }
+
+  .wiki-seealso h2 {
+    margin: 0;
+    font-family: var(--wiki-font-display);
+    font-size: var(--wiki-text-h3);
+    font-weight: 700;
+  }
+
+  .wiki-seealso ul {
+    max-width: var(--wiki-measure);
+    margin: var(--wiki-space-xs) 0 0;
+    padding-left: 1.35rem;
+    font-size: var(--wiki-text-md);
+    line-height: 1.7;
+  }
+
+  .wiki-seealso a {
+    color: var(--wiki-accent);
+    text-decoration: underline;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.14em;
+  }
+
+  .wiki-seealso a:hover {
+    color: var(--wiki-accent-hover);
+    text-decoration-thickness: 2px;
+  }
+
+  .article-back {
+    display: none;
+  }
+
+  /* Wide screens: the article's own contents list becomes a sticky rail, the
+     way Wikipedia and MDN park it. Pure CSS, so each article keeps one inline
+     TOC in the markup and it still reads in order without this stylesheet. */
   @media (min-width: 68rem) {
-    /* The rail eats 15rem + 3rem out of the same box the prose sits in, which
-       squeezed wide tables into clipping while margin sat empty. Give the page
-       back what the rail takes. */
     .wiki-page:has(article.wiki-article) {
       width: min(80rem, calc(100% - 2rem));
     }
@@ -146,9 +695,8 @@ const { title, description, canonicalPath, structuredData = [] } = Astro.props;
     .wiki-page article.wiki-article {
       display: grid;
       grid-template-columns: 15rem minmax(0, 1fr);
-      column-gap: 3rem;
+      column-gap: var(--wiki-space-2xl);
       align-items: start;
-      max-width: none;
     }
 
     .wiki-page article.wiki-article > * {
@@ -166,30 +714,26 @@ const { title, description, canonicalPath, structuredData = [] } = Astro.props;
       grid-column: 1;
       grid-row: 2 / span 99;
       position: sticky;
-      top: 1.25rem;
-      margin: 2.5rem 0 0;
-      max-height: calc(100vh - 2.5rem);
+      top: var(--wiki-space-md);
+      margin: var(--wiki-space-xl) 0 0;
+      max-height: calc(100vh - var(--wiki-space-xl));
       overflow-y: auto;
     }
   }
 
   @media (max-width: 36rem) {
     .wiki-page {
-      width: min(100% - 1.25rem, 62rem);
-      padding-top: 1rem;
+      width: min(100% - 1.25rem, 64rem);
+      padding-top: var(--wiki-space-md);
     }
 
-    .wiki-brand {
-      margin-bottom: 1rem;
+    .wiki-article th,
+    .wiki-article td {
+      padding: 0.5rem;
     }
 
-    .wiki-brand__logo {
-      width: 2.5rem;
-      height: 2.5rem;
-    }
-
-    .wiki-breadcrumb {
-      margin-bottom: 1.25rem;
+    .wiki-article .table-hint {
+      display: block;
     }
   }
 </style>

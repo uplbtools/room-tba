@@ -26,8 +26,8 @@ const reload = vi.fn();
 const clearButton = () =>
   screen.getByRole("button", { name: "Clear cached data and reload" });
 
-const resyncButton = () =>
-  screen.getByRole("button", { name: "Resync campus data" });
+// The row label carries "campus data" now, so the button is just the verb.
+const resyncButton = () => screen.getByRole("button", { name: "Resync" });
 
 describe("SettingsModal", () => {
   test("renders every section at 320px without horizontal overflow", () => {
@@ -228,5 +228,17 @@ describe("SettingsModal resync campus data", () => {
       screen.getByText(/downloaded offline maps are kept/i),
     ).toBeInTheDocument();
     expect(clearButton()).toBeInTheDocument();
+  });
+
+  test("keeps the row label and ties the kept-maps promise to the button", () => {
+    render(SettingsModalHost);
+
+    expect(screen.getByText("Campus data")).toBeInTheDocument();
+    const described = document.getElementById(
+      resyncButton().getAttribute("aria-describedby") ?? "",
+    );
+    expect(described?.textContent?.replace(/\s+/g, " ")).toMatch(
+      /downloaded offline maps are kept/i,
+    );
   });
 });

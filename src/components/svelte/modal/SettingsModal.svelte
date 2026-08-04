@@ -75,25 +75,29 @@
       <h3>Storage</h3>
 
       <div class="settings-modal__task">
-        <p class="settings-modal__hint">
-          Rooms or classes look stale or wrong? Fetch campus data again from
-          the server. Your downloaded offline maps are kept.
-        </p>
-        <div class="settings-modal__actions">
-          <button
-            type="button"
-            class="settings-modal__btn"
-            disabled={resyncing}
-            onclick={resync}
-          >
-            {resyncing ? "Resyncing…" : "Resync campus data"}
-          </button>
+        <div class="map-chrome-row">
+          <span class="map-chrome-row__label">Campus data</span>
+          <div class="map-chrome-row__control">
+            <button
+              type="button"
+              class="map-chrome-action-chip"
+              aria-describedby="settings-resync-hint"
+              disabled={resyncing}
+              onclick={resync}
+            >
+              {resyncing ? "Resyncing…" : "Resync"}
+            </button>
+          </div>
         </div>
+        <p id="settings-resync-hint" class="map-chrome-row-hint">
+          Fetches rooms and classes again. Your downloaded offline maps are
+          kept.
+        </p>
         {#if resyncResult}
           <p
-            class="settings-modal__hint"
-            class:settings-modal__hint--warn={resyncResult !== "synced"}
-            class:settings-modal__hint--ok={resyncResult === "synced"}
+            class="map-chrome-row-hint"
+            class:map-chrome-row-hint--warn={resyncResult !== "synced"}
+            class:map-chrome-row-hint--ok={resyncResult === "synced"}
             role="status"
           >
             {RESYNC_MESSAGE[resyncResult]}
@@ -101,23 +105,37 @@
         {/if}
       </div>
 
-      <p class="settings-modal__hint">
-        Still broken? This is the heavier fix: it clears the cached app, saved
-        campus data, and downloaded offline maps, then reloads. Your saved
-        class plans stay.
+      <div class="map-chrome-row">
+        <span class="map-chrome-row__label">Cached app data</span>
+        {#if !confirming}
+          <div class="map-chrome-row__control">
+            <button
+              type="button"
+              class="map-chrome-action-chip settings-modal__danger"
+              aria-describedby="settings-storage-hint"
+              onclick={() => (confirming = true)}
+            >
+              Clear cached data and reload
+            </button>
+          </div>
+        {/if}
+      </div>
+      <p id="settings-storage-hint" class="map-chrome-row-hint">
+        Clears the cached app, saved campus data, and downloaded offline maps,
+        then reloads. Your saved class plans stay.
       </p>
       {#if confirming}
         <p
           id="settings-storage-warning"
-          class="settings-modal__hint settings-modal__hint--warn"
+          class="map-chrome-row-hint map-chrome-row-hint--warn"
         >
-          Downloaded offline maps go too — you will need to download them again
-          on a connection.
+          Downloaded offline maps go too. You will need a connection to
+          download them again.
         </p>
-        <div class="settings-modal__actions">
+        <div class="map-chrome-row-actions">
           <button
             type="button"
-            class="settings-modal__btn settings-modal__btn--danger"
+            class="map-chrome-action-chip settings-modal__danger settings-modal__danger--solid"
             aria-describedby="settings-storage-warning"
             disabled={clearing}
             bind:this={confirmButton}
@@ -127,21 +145,11 @@
           </button>
           <button
             type="button"
-            class="settings-modal__btn"
+            class="map-chrome-action-chip"
             disabled={clearing}
             onclick={() => (confirming = false)}
           >
             Cancel
-          </button>
-        </div>
-      {:else}
-        <div class="settings-modal__actions">
-          <button
-            type="button"
-            class="settings-modal__btn"
-            onclick={() => (confirming = true)}
-          >
-            Clear cached data and reload
           </button>
         </div>
       {/if}
@@ -194,21 +202,6 @@
     color: hsl(0, 0%, 40%);
   }
 
-  .settings-modal__hint {
-    margin: 0;
-    font-size: 0.8125rem;
-    line-height: 1.35;
-    color: hsl(0, 0%, 40%);
-  }
-
-  .settings-modal__hint--warn {
-    color: hsl(5, 53%, 32%);
-  }
-
-  .settings-modal__hint--ok {
-    color: hsl(150, 40%, 28%);
-  }
-
   /* Groups the light fix with its own result line, so the heavier
      clear-and-reload below reads as the separate, bigger hammer. */
   .settings-modal__task {
@@ -219,53 +212,29 @@
     border-bottom: 1px solid hsl(0, 0%, 90%);
   }
 
-  .settings-modal__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-    margin-top: 0.125rem;
+  /* The chrome chip is maroon like the rest of the app, so destructive gets a
+     true red: outlined to arm, filled to confirm. Never the same as Resync. */
+  .settings-modal__danger {
+    border-color: hsl(0, 55%, 70%);
+    color: hsl(0, 70%, 34%);
   }
 
-  .settings-modal__btn {
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    /* 44px touch target. */
-    min-height: 2.75rem;
-    border: 1px solid hsl(0, 0%, 82%);
-    border-radius: 0.5rem;
-    padding: 0.4375rem 0.75rem;
-    background-color: white;
-    color: hsl(0, 0%, 20%);
-    font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    line-height: 1.2;
-    cursor: pointer;
+  .settings-modal__danger:hover:not(:disabled),
+  .settings-modal__danger:focus-visible {
+    border-color: hsl(0, 60%, 52%);
+    background: hsl(0, 75%, 98%);
   }
 
-  .settings-modal__btn:hover:not(:disabled) {
-    background-color: hsl(0, 0%, 96%);
-  }
-
-  .settings-modal__btn:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
-  }
-
-  .settings-modal__btn:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-
-  .settings-modal__btn--danger {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 32%);
+  .settings-modal__danger--solid,
+  .settings-modal__danger--solid:hover:not(:disabled),
+  .settings-modal__danger--solid:focus-visible {
+    border-color: hsl(0, 70%, 32%);
+    background: hsl(0, 70%, 32%);
     color: white;
   }
 
-  .settings-modal__btn--danger:hover:not(:disabled) {
-    background-color: hsl(5, 53%, 27%);
+  .settings-modal__danger--solid:hover:not(:disabled) {
+    background: hsl(0, 70%, 27%);
+    border-color: hsl(0, 70%, 27%);
   }
 </style>

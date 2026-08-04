@@ -378,6 +378,102 @@ button.map-chrome-chip:disabled {
   color: currentColor;
 }
 
+/* Settings rows: label on the left, current value or control on the right.
+   One short hint line under a row is the ceiling — longer copy belongs in a
+   title, a <details>, or nowhere. */
+.map-chrome-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+}
+
+.map-chrome-row__label {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: hsl(0, 0%, 22%);
+}
+
+.map-chrome-row__value {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  color: hsl(0, 0%, 30%);
+}
+
+.map-chrome-row__control,
+.map-chrome-row-actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.map-chrome-row__control {
+  justify-content: flex-end;
+}
+
+/* Row controls carry a 44px touch target; the bare chips are band-sized. The
+   squarer radius is not cosmetic: a 999px pill at 44px tall with a two-glyph
+   label ("1x", "On") comes out a circle. */
+.map-chrome-row .map-chrome-chip,
+.map-chrome-row .map-chrome-action-chip,
+.map-chrome-row-actions .map-chrome-action-chip {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  height: auto;
+  gap: 0.375rem;
+  border-radius: 0.625rem;
+  padding: 0.375rem 0.75rem;
+}
+
+/* Nothing here is busy while disabled (Reset view is off until terrain is on),
+   so the action chip's progress cursor would lie. */
+.map-chrome-row .map-chrome-action-chip:disabled {
+  cursor: default;
+}
+
+.map-chrome-row-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: hsl(0, 0%, 38%);
+}
+
+.map-chrome-row-hint--warn {
+  color: hsl(25, 85%, 28%);
+  font-weight: 600;
+}
+
+.map-chrome-row-hint--ok {
+  color: hsl(150, 45%, 25%);
+  font-weight: 600;
+}
+
+/* Small print that has to be there: attribution, licence credits. */
+.map-chrome-row-note {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: hsl(0, 0%, 40%);
+}
+
+/* No invisible ::after tap target here on purpose: #905 removed exactly that
+   pattern from this file after it swallowed the map attribution's own links.
+   The attribution stays a plain inline link until that is redone properly. */
+.map-chrome-row-note a {
+  color: hsl(5, 53%, 32%);
+  font-weight: 700;
+}
+
 .map-chrome-fab-trigger {
   display: flex;
   flex-shrink: 0;
