@@ -5,6 +5,7 @@
   import { parseChangelogEntries } from "@lib/changelog-highlights";
   import { releaseTimestampLabel } from "@lib/release-timestamps";
   import changelogRaw from "../../../../CHANGELOG.md?raw";
+  import FollowUpdates from "@ui/community/FollowUpdates.svelte";
 
   const entries = $derived(parseChangelogEntries(changelogRaw));
   const hasUpdate = $derived(syncToastStore.needRefresh);
@@ -60,6 +61,12 @@
         {/each}
       </section>
     {/each}
+  </div>
+
+  <div class="changelog-modal__follow">
+    <FollowUpdates
+      note="These notes also go out on Facebook and Instagram, along with term schedule drops and data fixes that ship without a release."
+    />
   </div>
 
   <div class="changelog-modal__actions">
@@ -184,6 +191,11 @@
     color: hsl(0, 0%, 22%);
     line-height: 1.4;
     list-style: disc;
+  }
+
+  .changelog-modal__follow {
+    padding-top: 0.625rem;
+    border-top: 1px solid hsl(0, 0%, 92%);
   }
 
   .changelog-modal__actions {

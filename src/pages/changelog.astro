@@ -2,6 +2,7 @@
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import FollowUpdates from "@ui/community/FollowUpdates.svelte";
 import * as changelog from "../../CHANGELOG.md";
 import releaseTimestamps from "../generated/release-timestamps.json";
 ---
@@ -26,6 +27,11 @@ import releaseTimestamps from "../generated/release-timestamps.json";
         the major updates and changes made to Room TBA since its initial
         release.
       </p>
+      <div class="hero__follow">
+        <FollowUpdates
+          note="Prefer not to check back? The releases worth knowing about are posted to the UPLB Tools accounts as they ship."
+        />
+      </div>
     </header>
 
     <div class="entries" set:html={changelog.compiledContent()} />
@@ -145,6 +151,13 @@ import releaseTimestamps from "../generated/release-timestamps.json";
     font-size: 1rem;
     line-height: 1.6;
     margin: 0;
+  }
+
+  .hero__follow {
+    max-width: 38rem;
+    margin-top: 0.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid hsl(0, 0%, 90%);
   }
 
   .entries {

@@ -5,7 +5,7 @@ import { e2eSchema } from "../../scripts/e2e-schema";
 
 /** Cap pool size in CI so Playwright + preview stay under Supabase session pooler limits. */
 const poolMax = Number(
-  process.env.DATABASE_POOL_MAX ?? (process.env.CI ? "4" : "10"),
+  process.env.DATABASE_POOL_MAX ?? (process.env.CI ? "2" : "10"),
 );
 
 const pool = new Pool({

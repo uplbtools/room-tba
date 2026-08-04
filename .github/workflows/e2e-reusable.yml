@@ -23,7 +23,13 @@ jobs:
       PUBLIC_MAPTILER_KEY: ${{ secrets.PUBLIC_MAPTILER_KEY }}
       CI: true
       SKIP_E2E_BUILD: "1"
-      DATABASE_POOL_MAX: "4"
+      # #782: the E2E project's session pooler caps at pool_size 15 and four
+      # heavy jobs overlap routinely (blocking + advisory for two PRs). Two per
+      # process keeps the whole fleet under the ceiling. 2 is also the floor: a
+      # few edit-conflict paths read through the global `db` while a transaction
+      # holds a client, so 1 would deadlock. See docs/testing.md
+      # § Connection budget before changing it either way.
+      DATABASE_POOL_MAX: "2"
       PLAYWRIGHT_WORKERS: "1"
     steps:
       - uses: actions/checkout@v7

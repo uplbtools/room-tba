@@ -79,6 +79,27 @@ Pinning costs one extra round trip per new connection, and several proposal-serv
 
 **Contract:** `E2E_SCHEMA` unset (the local default) = today's behavior against `public`. Set = must match `^e2e_[a-z0-9_]+$`; anything else throws instead of silently falling back to `public`. Never point it at `public`, and never run `e2e:reset-db` without it while CI is live, because unset truncates the shared schema.
 
+### Connection budget (`pool_size: 15`)
+
+Schema isolation removed the data contention between overlapping runs, which moved the binding limit to **connections**: the E2E project's session pooler caps at `pool_size: 15`, and four heavy jobs (blocking + advisory for two PRs) used to want ~20 (#782). Read this before adding a connection anywhere in CI.
+
+| Holder | Connections | When |
+| ------------------------------------ | ----------- | ------------------------------ |
+| `e2e:reset-db` | 1 | job start, seconds |
+| Preview server (`DATABASE_POOL_MAX`) | up to 2 | preview up to teardown |
+| `test:integration` pool | up to 2 | blocking job, integration step |
+| `test:integration` per-suite client | 1 | blocking job, integration step |
+| `CI / migrations` | 1 | every push, seconds |
+
+That is **5 for a blocking job** and **2 for an advisory one** at the theoretical peak, so two PRs sit at 14 with the always-on `migrations` job taking the 15th for a few seconds. In practice the two pools in a blocking job never both sit at their max (idle connections are released after 10 s), so the real peak is lower.
+
+Two things keep it there:
+
+- `DATABASE_POOL_MAX` is `2` job-wide in [`e2e-reusable.yml`](../.github/workflows/e2e-reusable.yml), and `src/lib/db.ts` defaults to the same `2` under `CI`. **2 is also the floor.** A few edit-conflict paths (`updateRoom`, `updateEvent`, the merge helpers) read through the global `db` while a transaction already holds a client, so a single in-flight request can need two connections; at `1` those paths wait on themselves and the job hangs instead of failing.
+- `e2e:reset-db` takes the global advisory lock **only** when resetting `public`. A run schema is the job's own, so nothing needs serializing; before #782 every concurrent job held a pooler connection while queueing behind the others' full chain replay, which is how a run died at 2m01s with `EMAXCONNSESSION` during its own reset. The stale-schema sweep still takes the lock, with `pg_try_advisory_lock`: a run that loses the race skips the sweep and the next reset picks the schemas up.
+
+Do **not** switch to the transaction pooler (port 6543) to raise the ceiling: `SET search_path` is session state, and transaction mode hands out a different backend per transaction, so run schemas would stop being honored and tests would silently read `public`. Three PRs at once still will not fit; raise `pool_size` on the Supabase project when that becomes routine.
+
 ## CI (advisory, non-blocking)
 
 - **E2E advisory**: axe, touch drag, offline, jeepney, etc. (gated like blocking)
