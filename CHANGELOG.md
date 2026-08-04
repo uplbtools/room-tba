@@ -1,3 +1,10 @@
+## [2.11.2](https://github.com/uplbtools/room-tba/compare/v2.11.1...v2.11.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **ci:** bound the E2E connection budget under the pooler cap ([#929](https://github.com/uplbtools/room-tba/issues/929)) ([35bc7d3](https://github.com/uplbtools/room-tba/commit/35bc7d3f924a6dff0915587151fb9318f402b5f5)), closes [#773](https://github.com/uplbtools/room-tba/issues/773) [#766](https://github.com/uplbtools/room-tba/issues/766)
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
