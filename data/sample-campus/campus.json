@@ -1,0 +1,186 @@
+{
+  "notes": "Fictional sample campus for forks (docs/fork-data-guide.md). Every name is invented; the coordinates sit in Golden Gate Park, San Francisco, purely because that area has rich OSM basemap detail, so the seeded map looks sensible out of the box. Seed with `bun run seed:sample`.",
+  "campus": {
+    "name": "Evergreen Park College",
+    "center": { "lat": 37.7702, "lon": -122.4665 }
+  },
+  "terms": [
+    {
+      "id": 101,
+      "label": "First Term 2025-2026",
+      "schoolYear": "2025-2026",
+      "semester": "1",
+      "startsOn": "2025-08-11",
+      "endsOn": "2025-12-12",
+      "isDefault": true,
+      "sortOrder": 1
+    },
+    {
+      "id": 102,
+      "label": "Second Term 2025-2026",
+      "schoolYear": "2025-2026",
+      "semester": "2",
+      "startsOn": "2026-01-12",
+      "endsOn": "2026-05-15",
+      "isDefault": false,
+      "sortOrder": 2
+    }
+  ],
+  "buildings": [
+    {
+      "code": "ACA",
+      "name": "Acacia Hall",
+      "type": "admin",
+      "lat": 37.7715,
+      "lon": -122.46855,
+      "directions": "The main administration building, at the north edge of the central concourse. The registrar and student records are on the ground floor."
+    },
+    {
+      "code": "BSC",
+      "name": "Banyan Science Complex",
+      "type": "non-admin",
+      "lat": 37.76986,
+      "lon": -122.4661,
+      "directions": "South side of the central concourse, opposite Acacia Hall. Lecture hall BSC 1 is behind the main entrance; teaching labs are in the east wing."
+    },
+    {
+      "code": "CL",
+      "name": "Cedar Library",
+      "type": "non-admin",
+      "lat": 37.77048,
+      "lon": -122.4694,
+      "directions": "West end of the concourse, past the bandshell. The audio-visual room (CL AVR) is on the second floor."
+    },
+    {
+      "code": "DSC",
+      "name": "Dogwood Student Center",
+      "type": "non-admin",
+      "lat": 37.77145,
+      "lon": -122.4615,
+      "directions": "Northeast of the concourse, by the main east path. Org spaces and the multi-purpose room DSC 12 are on the ground floor."
+    },
+    {
+      "code": "EEB",
+      "name": "Elm Engineering Building",
+      "type": "non-admin",
+      "lat": 37.7692,
+      "lon": -122.467,
+      "directions": "Just south of Banyan Science Complex. Classrooms face the courtyard; the computing lab EEB LAB 1 is on the ground floor."
+    },
+    {
+      "code": "FG",
+      "name": "Fern Gymnasium",
+      "type": "non-admin",
+      "lat": 37.7689,
+      "lon": -122.4606,
+      "directions": "Southeast corner of campus, next to the open courts. PE classes meet at the main court (FG COURT)."
+    }
+  ],
+  "rooms": [
+    {
+      "code": "ACA 101",
+      "building": "ACA",
+      "category": "office",
+      "directions": "Ground floor of Acacia Hall, first door on the right — the Registrar's Office."
+    },
+    {
+      "code": "ACA 210",
+      "building": "ACA",
+      "category": "classroom",
+      "directions": "Second floor of Acacia Hall, at the end of the corridor."
+    },
+    {
+      "code": "BSC 1",
+      "building": "BSC",
+      "category": "classroom",
+      "directions": "The big lecture hall directly behind the Banyan Science Complex main entrance."
+    },
+    {
+      "code": "BSC LAB A",
+      "building": "BSC",
+      "category": "laboratory",
+      "directions": "East wing of Banyan Science Complex, first lab on the left."
+    },
+    {
+      "code": "BSC LAB B",
+      "building": "BSC",
+      "category": "laboratory",
+      "directions": "East wing of Banyan Science Complex, second lab on the left."
+    },
+    {
+      "code": "CL AVR",
+      "building": "CL",
+      "category": "event-venue",
+      "directions": "Second floor of Cedar Library — the audio-visual room."
+    },
+    {
+      "code": "CL 204",
+      "building": "CL",
+      "category": "classroom",
+      "directions": "Second floor of Cedar Library, beside the AVR."
+    },
+    {
+      "code": "DSC 12",
+      "building": "DSC",
+      "category": "classroom",
+      "directions": "Ground floor multi-purpose room of the Dogwood Student Center."
+    },
+    {
+      "code": "EEB 105",
+      "building": "EEB",
+      "category": "classroom",
+      "directions": "Ground floor of Elm Engineering Building, facing the courtyard."
+    },
+    {
+      "code": "EEB 201",
+      "building": "EEB",
+      "category": "classroom",
+      "directions": "Second floor of Elm Engineering Building, above the lobby."
+    },
+    {
+      "code": "EEB LAB 1",
+      "building": "EEB",
+      "category": "laboratory",
+      "directions": "Ground floor computing lab of Elm Engineering Building."
+    },
+    {
+      "code": "FG COURT",
+      "building": "FG",
+      "category": "facility",
+      "directions": "Main indoor court of Fern Gymnasium."
+    }
+  ],
+  "organizations": [
+    {
+      "name": "Office of Student Life",
+      "category": "office",
+      "building": "ACA",
+      "description": "Handles student services, org accreditation, and campus events. Sample office pinned to Acacia Hall."
+    },
+    {
+      "name": "Evergreen Hiking Society",
+      "category": "student-org",
+      "building": "DSC",
+      "description": "Student outdoor club that meets at the Dogwood Student Center. Sample student organization."
+    }
+  ],
+  "places": [
+    {
+      "name": "Founders' Fountain",
+      "category": "landmark",
+      "lat": 37.77045,
+      "lon": -122.4666,
+      "description": "The central fountain on the concourse — the classic meetup spot of the sample campus."
+    }
+  ],
+  "aliases": [
+    { "alias": "Admin Hall", "targetType": "building", "target": "ACA" },
+    { "alias": "Acacia", "targetType": "building", "target": "ACA" },
+    { "alias": "Science Complex", "targetType": "building", "target": "BSC" },
+    { "alias": "BSC", "targetType": "building", "target": "BSC" },
+    { "alias": "The Lib", "targetType": "building", "target": "CL" },
+    { "alias": "The Gym", "targetType": "building", "target": "FG" },
+    { "alias": "Old Gym", "targetType": "building", "target": "FG" },
+    { "alias": "AVR", "targetType": "room", "target": "CL AVR" }
+  ]
+}

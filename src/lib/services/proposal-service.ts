@@ -16,7 +16,10 @@ import {
 import { normalizeAlias } from "@lib/site";
 import type { SessionUser } from "@lib/admin/auth";
 import { db } from "@lib/db";
-import { validateSubmitterName } from "@constants/proposals";
+import {
+  validateSubmitterName,
+  validateSubmitterNote,
+} from "@constants/proposals";
 import { recordProposalContribution } from "./contribution-service";
 import { parseImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
@@ -586,6 +589,8 @@ type SubmitProposalInput = {
   submitterName: string;
   submitterUserId?: number | null;
   proposalId?: number | null;
+  /** Contributor's message to the reviewer. Never merged into the patch. */
+  submitterNote?: string | null;
 };
 
 /** Anonymous submitters cannot borrow a registered contributor's identity:
@@ -640,6 +645,11 @@ export async function submitProposal(
     throw new ProposalValidationError(validation.error);
   }
   const name = validation.name;
+  const noteValidation = validateSubmitterNote(input.submitterNote ?? "");
+  if (!noteValidation.ok) {
+    throw new ProposalValidationError(noteValidation.error);
+  }
+  const submitterNote = noteValidation.note;
   if (!input.submitterUserId && (await isReservedContributorName(name))) {
     throw new ProposalValidationError(
       "That name belongs to a registered contributor. Sign in to use it, or pick a different name.",
@@ -726,6 +736,8 @@ export async function submitProposal(
         baseVersion: input.baseVersion,
         status: "pending",
         adminNote: null,
+        // A revise with no new note keeps the one already on the proposal.
+        submitterNote: submitterNote ?? existing.submitterNote,
         reviewedBy: null,
         reviewedAt: null,
         updatedAt: sql`now()`,
@@ -745,6 +757,7 @@ export async function submitProposal(
       baseVersion: input.baseVersion,
       submitterName: name,
       submitterUserId: input.submitterUserId ?? null,
+      submitterNote,
       status: "pending",
     })
     .returning();

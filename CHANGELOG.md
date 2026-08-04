@@ -1,3 +1,102 @@
+# [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
+
+
+### Features
+
+* **proposals:** add map preview, undo, and shortcuts to the approver queue ([#895](https://github.com/uplbtools/room-tba/issues/895)) ([7f138ac](https://github.com/uplbtools/room-tba/commit/7f138ac84f9809041a336434f23b948f18ae7f54))
+* add Tailwind CSS ([95f88ff](https://github.com/uplbtools/room-tba/commit/95f88ff9711515f4018ea03a584af428f9a8352f))
+
+### Bug Fixes
+
+* **map-chrome:** reflow the bottom chrome so no control is clipped at 320px ([#893](https://github.com/uplbtools/room-tba/issues/893)) ([f45e6cc](https://github.com/uplbtools/room-tba/commit/f45e6cc15bc662dffce31cd04285122dd285bc88))
+* **proposals:** make the approver queue usable at 59 pending ([#887](https://github.com/uplbtools/room-tba/issues/887)) ([40df657](https://github.com/uplbtools/room-tba/commit/40df65773d7ec375b6369b70dc68f831bf0d3ab4))
+
+# [2.8.0](https://github.com/uplbtools/room-tba/compare/v2.7.1...v2.8.0) (2026-08-04)
+
+
+### Features
+
+* **settings:** add a Storage section with Resync campus data and Clear cached data ([#882](https://github.com/uplbtools/room-tba/issues/882)) ([91681bc](https://github.com/uplbtools/room-tba/commit/91681bc0a68262905c42696a2d8ade7824f201e8))
+* **data:** record editor history for bulk maintenance operations ([#878](https://github.com/uplbtools/room-tba/issues/878)) ([bc34ff4](https://github.com/uplbtools/room-tba/commit/bc34ff42e78240e4f4359b6afe69678d0098a62b))
+* **presence:** replace the fabricated online counter with real session presence ([#874](https://github.com/uplbtools/room-tba/issues/874)) ([ed97b4f](https://github.com/uplbtools/room-tba/commit/ed97b4fbcb9f9386eb6064386beca763923ba821))
+
+### Bug Fixes
+
+* **local:** closeLocalDB referenced an undeclared localDB ([626f780](https://github.com/uplbtools/room-tba/commit/626f78001e7acc3d18bc026646ecb445bbd49eea))
+* **map:** fall back to a keyless basemap when MapTiler rejects the key ([#883](https://github.com/uplbtools/room-tba/issues/883)) ([49cc328](https://github.com/uplbtools/room-tba/commit/49cc3287d9d77e7adf80cee7d7b7c60ff3db8e07))
+
+### Performance Improvements
+
+* **boot:** defer PGlite and batch the sync probes ([#880](https://github.com/uplbtools/room-tba/issues/880)) ([9168374](https://github.com/uplbtools/room-tba/commit/916837476441339c7257046793fa4350a7acae89))
+
+## [2.7.1](https://github.com/uplbtools/room-tba/compare/v2.7.0...v2.7.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **sync:** show a single retry affordance when campus sync fails ([#869](https://github.com/uplbtools/room-tba/issues/869)) ([d837809](https://github.com/uplbtools/room-tba/commit/d8378092db6eb5912c40b3ba154a5db8aa6e4c92))
+
+# [2.7.0](https://github.com/uplbtools/room-tba/compare/v2.6.1...v2.7.0) (2026-08-03)
+
+
+### Bug Fixes
+
+* **map-chrome:** show OSM and MapTiler credits without a click ([1e86cea](https://github.com/uplbtools/room-tba/commit/1e86cea8814a14d3027d1467b9251d20d51717e7))
+
+
+### Features
+
+* **classes:** probable location for Room TBA sections ([#846](https://github.com/uplbtools/room-tba/issues/846)) ([#849](https://github.com/uplbtools/room-tba/issues/849)) ([92f063f](https://github.com/uplbtools/room-tba/commit/92f063f49a0bba8532fa987423cc47b46bc3eaff))
+* **fork:** campus.config owns terrain, transit, e2e fixtures + fork:init ([#844](https://github.com/uplbtools/room-tba/issues/844)) ([3e1b59c](https://github.com/uplbtools/room-tba/commit/3e1b59c6223cfed85e9fea3f2968fbecd3a93c21))
+* **fork:** interactive fork wizard at /fork ([#841](https://github.com/uplbtools/room-tba/issues/841)) ([#843](https://github.com/uplbtools/room-tba/issues/843)) ([4460b43](https://github.com/uplbtools/room-tba/commit/4460b433b6243ec041154519a00251c233c3d56d))
+* **fork:** sample campus seed + generic class importer ([#842](https://github.com/uplbtools/room-tba/issues/842)) ([d010246](https://github.com/uplbtools/room-tba/commit/d010246899ec71979b46b9b469640d813a3a9729))
+* **map:** measure-route tool with walk/cycle/drive times ([#848](https://github.com/uplbtools/room-tba/issues/848)) ([#851](https://github.com/uplbtools/room-tba/issues/851)) ([cbc7755](https://github.com/uplbtools/room-tba/commit/cbc77551c8c1dfc5c21df9f9d401cf796a25d423)), closes [#847](https://github.com/uplbtools/room-tba/issues/847) [#847](https://github.com/uplbtools/room-tba/issues/847) [#847](https://github.com/uplbtools/room-tba/issues/847)
+* **map:** travel-time isochrone tool over vendored campus walk graph ([#847](https://github.com/uplbtools/room-tba/issues/847)) ([#850](https://github.com/uplbtools/room-tba/issues/850)) ([9c787d7](https://github.com/uplbtools/room-tba/commit/9c787d7d8be57f9614c82bda8fa73d9a1603e0ed))
+* **today:** one-tap day route with walking totals ([#839](https://github.com/uplbtools/room-tba/issues/839)) ([#845](https://github.com/uplbtools/room-tba/issues/845)) ([abb37e3](https://github.com/uplbtools/room-tba/commit/abb37e3b84180c70a5c07891e3ae812ff31bcfb2))
+
+## [2.6.1](https://github.com/uplbtools/room-tba/compare/v2.6.0...v2.6.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **ui:** improve mobile modal readability and add online counter ([#832](https://github.com/uplbtools/room-tba/issues/832)) ([c4d3de1](https://github.com/uplbtools/room-tba/commit/c4d3de15edf58710ed6cefb9131f114d405bf784))
+
+# [2.6.0](https://github.com/uplbtools/room-tba/compare/v2.5.2...v2.6.0) (2026-07-28)
+
+
+### Features
+
+* **route:** shareable walking routes between two campus places ([#829](https://github.com/uplbtools/room-tba/issues/829)) ([dd17473](https://github.com/uplbtools/room-tba/commit/dd1747313eadbfeeab864c0407a398cf649a40fd)), closes [#651](https://github.com/uplbtools/room-tba/issues/651)
+
+## [2.5.2](https://github.com/uplbtools/room-tba/compare/v2.5.1...v2.5.2) (2026-07-27)
+
+
+### Bug Fixes
+
+* **seo:** point the site at room-tba.uplb.tools ([e3a0533](https://github.com/uplbtools/room-tba/commit/e3a0533ab72aa8a95393e59de9d4c1561957317d))
+* **transit:** make route stops clickable ([0032762](https://github.com/uplbtools/room-tba/commit/00327629f62faac9645987194adb6a89b7c0a60c))
+
+## [2.5.1](https://github.com/uplbtools/room-tba/compare/v2.5.0...v2.5.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* **pwa:** stop a stale service worker from leaving a blank page ([b4c7c58](https://github.com/uplbtools/room-tba/commit/b4c7c5817b04fa763bd666c4d0fc01e0b5376e8e))
+* **ui:** stop settings buttons stretching to full panel width ([defd445](https://github.com/uplbtools/room-tba/commit/defd445b84afabafa4466187ea778e4b5fdda3b8))
+
+# [2.5.0](https://github.com/uplbtools/room-tba/compare/v2.4.0...v2.5.0) (2026-07-27)
+
+
+### Bug Fixes
+
+* **og:** drop the redundant wordmark headline on the default card ([53ddf10](https://github.com/uplbtools/room-tba/commit/53ddf10584d4d9641b175be3e33581471fa71a09))
+
+
+### Features
+
+* **announcements:** in-app announcements panel with unread badge ([85c6acd](https://github.com/uplbtools/room-tba/commit/85c6acd22f484d61ab388acc37313d69811f6dc5)), closes [#777](https://github.com/uplbtools/room-tba/issues/777) [#777](https://github.com/uplbtools/room-tba/issues/777)
+* **today:** add a Today screen for the day's planned classes ([f2a1174](https://github.com/uplbtools/room-tba/commit/f2a11743ba1c0eb32491cc18a178b149f204214f)), closes [#774](https://github.com/uplbtools/room-tba/issues/774)
+
 # [2.4.0](https://github.com/uplbtools/room-tba/compare/v2.3.1...v2.4.0) (2026-07-26)
 
 

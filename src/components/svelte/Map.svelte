@@ -27,6 +27,8 @@
     buildingTypeFilter,
     terrainStore,
     trailStore,
+    travelTimeStore,
+    measureRouteStore,
     scheduleRouteStore,
     classVenuesStore,
     termStore,
@@ -44,6 +46,7 @@
     trackSponsorImpression,
   } from "@lib/sponsor-tracking";
   import { fade } from "svelte/transition";
+  import { sumRouteLegs } from "@lib/campus-route";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import X from "@lucide/svelte/icons/x";
@@ -88,9 +91,9 @@
   import {
     CAMPUS_DEFAULT_CAMERA,
     CAMPUS_MAX_BOUNDS,
-    MAKILING_TERRAIN_CAMERA,
-    MAKILING_TERRAIN_MAX_BOUNDS,
-    MAKILING_TERRAIN_SOURCE_BOUNDS,
+    TERRAIN_CAMERA,
+    TERRAIN_MAX_BOUNDS,
+    TERRAIN_SOURCE_BOUNDS,
     TERRAIN_HILLSHADE_BEFORE_LAYER_ID,
     TERRAIN_HILLSHADE_LAYER_ID,
     TERRAIN_SOURCE_ID,
@@ -98,6 +101,18 @@
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
     getTerrainTileJsonUrl,
   } from "@constants/map-terrain";
+  import {
+    ISOCHRONE_CAP_MINUTES,
+    VIRIDIS_STOPS,
+  } from "@constants/travel-modes";
+  import {
+    dijkstra,
+    isochroneFeatures,
+    nearestNodeIndex,
+    shortestPath,
+    type TravelMode,
+  } from "@lib/travel-graph/engine";
+  import { loadTravelGraph } from "@lib/travel-graph/load";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
@@ -422,6 +437,88 @@
     }
     if (map.getSource(JEEPNEY_ROUTE_SOURCE_ID)) {
       map.removeSource(JEEPNEY_ROUTE_SOURCE_ID);
+    }
+  }
+
+  const TRAVEL_TIME_SOURCE_ID = "travel-time-isochrone";
+  const TRAVEL_TIME_LAYER_ID = "travel-time-isochrone";
+
+  function ensureTravelTimeLayers(map: mapGl.MapLibreMap) {
+    if (!map.getSource(TRAVEL_TIME_SOURCE_ID)) {
+      map.addSource(TRAVEL_TIME_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+
+    if (!map.getLayer(TRAVEL_TIME_LAYER_ID)) {
+      // Viridis ramp over per-edge walking minutes; values past the cap keep
+      // the last stop's color (interpolate clamps).
+      const rampStep = ISOCHRONE_CAP_MINUTES / (VIRIDIS_STOPS.length - 1);
+      map.addLayer({
+        id: TRAVEL_TIME_LAYER_ID,
+        type: "line",
+        source: TRAVEL_TIME_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "minutes"],
+            ...VIRIDIS_STOPS.flatMap((color, i) => [i * rampStep, color]),
+          ] as unknown as mapGl.ExpressionSpecification,
+          "line-width": 3,
+          "line-opacity": 0.85,
+        },
+      });
+    }
+  }
+
+  function clearTravelTimeLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(TRAVEL_TIME_LAYER_ID)) {
+      map.removeLayer(TRAVEL_TIME_LAYER_ID);
+    }
+    if (map.getSource(TRAVEL_TIME_SOURCE_ID)) {
+      map.removeSource(TRAVEL_TIME_SOURCE_ID);
+    }
+  }
+
+  const MEASURE_ROUTE_SOURCE_ID = "measure-route-line";
+  const MEASURE_ROUTE_LAYER_ID = "measure-route-line";
+
+  function ensureMeasureRouteLayers(map: mapGl.MapLibreMap) {
+    if (!map.getSource(MEASURE_ROUTE_SOURCE_ID)) {
+      map.addSource(MEASURE_ROUTE_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+
+    if (!map.getLayer(MEASURE_ROUTE_LAYER_ID)) {
+      // Dashed violet: deliberately unlike the solid casing-backed jeepney
+      // red / event maroon / trail green lines and the stock blue OSRM
+      // directions polyline — this is a measurement, not a route suggestion.
+      map.addLayer({
+        id: MEASURE_ROUTE_LAYER_ID,
+        type: "line",
+        source: MEASURE_ROUTE_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#7c3aed",
+          "line-width": 4,
+          "line-opacity": 0.9,
+          "line-dasharray": [0.2, 1.6],
+        },
+      });
+    }
+  }
+
+  function clearMeasureRouteLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(MEASURE_ROUTE_LAYER_ID)) {
+      map.removeLayer(MEASURE_ROUTE_LAYER_ID);
+    }
+    if (map.getSource(MEASURE_ROUTE_SOURCE_ID)) {
+      map.removeSource(MEASURE_ROUTE_SOURCE_ID);
     }
   }
 
@@ -813,7 +910,7 @@
       map.addSource(TERRAIN_SOURCE_ID, {
         type: "raster-dem",
         url: getTerrainTileJsonUrl(),
-        bounds: MAKILING_TERRAIN_SOURCE_BOUNDS,
+        bounds: TERRAIN_SOURCE_BOUNDS,
         maxzoom: 14,
         tileSize: 512,
       });
@@ -1772,7 +1869,7 @@
         setTerrainHillshadeVisible(map, true);
         syncBuildingLayersForDimension(map, isMap2DPitch(map.getPitch()), true);
         if (!terrainModeWasEnabled) {
-          flyToCamera(map, MAKILING_TERRAIN_CAMERA);
+          flyToCamera(map, TERRAIN_CAMERA);
         }
         terrainModeWasEnabled = true;
         terrainStore.markActive();
@@ -1832,7 +1929,7 @@
     if (!map) return;
 
     const bounds = terrainEnabled
-      ? MAKILING_TERRAIN_MAX_BOUNDS
+      ? TERRAIN_MAX_BOUNDS
       : CAMPUS_MAX_BOUNDS;
 
     const applyBounds = () => {
@@ -1851,7 +1948,7 @@
     const resetNonce = terrainStore.resetNonce;
     if (!map || !terrainStore.enabled || resetNonce === 0) return;
 
-    flyToCamera(map, MAKILING_TERRAIN_CAMERA);
+    flyToCamera(map, TERRAIN_CAMERA);
   });
 
   $effect(() => {
@@ -1861,6 +1958,12 @@
           directions = new MapLibreGlDirections(mapStore.mapInstance, {
             api: "https://routing.openstreetmap.de/routed-foot/route/v1",
             profile: "foot",
+          });
+          // Walking totals for the routed day (#839): the OSRM response the
+          // map already fetched carries per-leg distance/duration.
+          directions.on("fetchroutesend", (event) => {
+            const legs = event.data?.directions?.routes?.[0]?.legs;
+            scheduleRouteStore.setRouteTotals(legs ? sumRouteLegs(legs) : null);
           });
         }
       };
@@ -1998,6 +2101,185 @@
       if (canvas.style.cursor === "crosshair") {
         canvas.style.cursor = previousCursor;
       }
+    };
+  });
+
+  // #847: travel-time isochrone — while active, taps pick the origin point.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !travelTimeStore.active) return;
+
+    const canvas = map.getCanvas();
+    const previousCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    const handleTravelTimeClick = (event: mapGl.MapMouseEvent) => {
+      travelTimeStore.setOrigin(event.lngLat.lat, event.lngLat.lng);
+    };
+
+    map.on("click", handleTravelTimeClick);
+    return () => {
+      map.off("click", handleTravelTimeClick);
+      if (canvas.style.cursor === "crosshair") {
+        canvas.style.cursor = previousCursor;
+      }
+    };
+  });
+
+  // #847: snap the tapped origin to the walk graph, run single-source
+  // Dijkstra, and paint every edge by walking minutes. The graph JSON is a
+  // lazy chunk loaded on first use.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const origin = travelTimeStore.active ? travelTimeStore.origin : null;
+    if (!map) return;
+
+    if (!origin) {
+      // Clear immediately — never queue clears on "load"/"styledata" (see the
+      // jeepney route effect below for the prod-only bug this avoids).
+      try {
+        clearTravelTimeLayers(map);
+      } catch {
+        // Style not ready yet, so nothing was drawn.
+      }
+      return;
+    }
+
+    let cancelled = false;
+    travelTimeStore.status = "loading";
+    loadTravelGraph()
+      .then((graph) => {
+        if (cancelled) return;
+        const sourceNode = nearestNodeIndex(graph, origin.lat, origin.lng);
+        const { seconds } = dijkstra(graph, sourceNode, "walk");
+        const data = isochroneFeatures(graph, seconds);
+        const tryDraw = () => {
+          try {
+            ensureTravelTimeLayers(map);
+            const source = map.getSource(TRAVEL_TIME_SOURCE_ID) as
+              | mapGl.GeoJSONSource
+              | undefined;
+            source?.setData(data);
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        if (!tryDraw()) {
+          const onStyleData = () => {
+            if (cancelled || tryDraw()) map.off("styledata", onStyleData);
+          };
+          map.on("styledata", onStyleData);
+        }
+        travelTimeStore.status = "ready";
+      })
+      .catch((error) => {
+        console.warn("travel-time graph load failed", error);
+        if (!cancelled) travelTimeStore.status = "error";
+      });
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  // #848: measure route — while active, taps drop waypoints.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !measureRouteStore.active) return;
+
+    const canvas = map.getCanvas();
+    const previousCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    const handleMeasureClick = (event: mapGl.MapMouseEvent) => {
+      measureRouteStore.addWaypoint(event.lngLat.lat, event.lngLat.lng);
+    };
+
+    map.on("click", handleMeasureClick);
+    return () => {
+      map.off("click", handleMeasureClick);
+      if (canvas.style.cursor === "crosshair") {
+        canvas.style.cursor = previousCursor;
+      }
+    };
+  });
+
+  // #848: snap waypoints to the walk graph, compute per-leg shortest paths
+  // for every mode (pill minutes), and draw the selected mode's geometry.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const active = measureRouteStore.active;
+    const waypoints = measureRouteStore.waypoints;
+    const mode = measureRouteStore.mode;
+    if (!map) return;
+
+    if (!active || waypoints.length < 2) {
+      // Clear immediately — never queue clears (see the jeepney note below).
+      try {
+        clearMeasureRouteLayers(map);
+      } catch {
+        // Style not ready yet, so nothing was drawn.
+      }
+      return;
+    }
+
+    let cancelled = false;
+    loadTravelGraph()
+      .then((graph) => {
+        if (cancelled) return;
+        const nodes = waypoints.map((w) => nearestNodeIndex(graph, w.lat, w.lng));
+        const modes: TravelMode[] = ["walk", "cycle", "drive"];
+        const summaries = {
+          walk: [] as ({ seconds: number; meters: number } | null)[],
+          cycle: [] as ({ seconds: number; meters: number } | null)[],
+          drive: [] as ({ seconds: number; meters: number } | null)[],
+        };
+        const legFeatures: FeatureCollection = {
+          type: "FeatureCollection",
+          features: [],
+        };
+        for (let i = 0; i + 1 < nodes.length; i++) {
+          for (const legMode of modes) {
+            const route = shortestPath(graph, nodes[i], nodes[i + 1], legMode);
+            summaries[legMode].push(
+              route ? { seconds: route.seconds, meters: route.meters } : null,
+            );
+            if (legMode === mode && route && route.coordinates.length > 1) {
+              legFeatures.features.push({
+                type: "Feature",
+                geometry: { type: "LineString", coordinates: route.coordinates },
+                properties: { leg: i },
+              });
+            }
+          }
+        }
+        measureRouteStore.setResults(
+          nodes.map((n) => ({ lat: graph.lat[n], lng: graph.lng[n] })),
+          summaries,
+        );
+        const tryDraw = () => {
+          try {
+            ensureMeasureRouteLayers(map);
+            const source = map.getSource(MEASURE_ROUTE_SOURCE_ID) as
+              | mapGl.GeoJSONSource
+              | undefined;
+            source?.setData(legFeatures);
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        if (!tryDraw()) {
+          const onStyleData = () => {
+            if (cancelled || tryDraw()) map.off("styledata", onStyleData);
+          };
+          map.on("styledata", onStyleData);
+        }
+      })
+      .catch((error) => {
+        console.warn("measure-route graph load failed", error);
+        if (!cancelled) measureRouteStore.loadFailed = true;
+      });
+    return () => {
+      cancelled = true;
     };
   });
 
@@ -2178,7 +2460,7 @@
       } else if (category === null) {
         flyToCamera(
           map,
-          isTerrainEnabled ? MAKILING_TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
+          isTerrainEnabled ? TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
         );
         if (directions) directions.clear();
       } else if (category === "room") {
@@ -2714,6 +2996,25 @@
           <Marker lngLat={locationStore.coords}>
             <div class="user-location-pin"></div>
           </Marker>
+        {/if}
+        {#if measureRouteStore.active}
+          {#each measureRouteStore.waypoints as waypoint, i (i)}
+            {@const snapped =
+              measureRouteStore.snapped.length ===
+              measureRouteStore.waypoints.length
+                ? measureRouteStore.snapped[i]
+                : waypoint}
+            <Marker lngLat={{ lng: snapped.lng, lat: snapped.lat }}>
+              <button
+                type="button"
+                class="measure-waypoint"
+                aria-label={`Remove waypoint ${i + 1}`}
+                onclick={() => measureRouteStore.removeWaypoint(i)}
+              >
+                {i + 1}
+              </button>
+            </Marker>
+          {/each}
         {/if}
         {#if additionProposalStore.draftPin}
           <Marker
@@ -3718,6 +4019,29 @@
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 70;
+  }
+
+  .measure-waypoint {
+    display: flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    border-radius: 50%;
+    background-color: #7c3aed;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    cursor: pointer;
+    position: relative;
+    z-index: 71;
+  }
+
+  .measure-waypoint:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 1px;
   }
 
   .addition-draft-pin {

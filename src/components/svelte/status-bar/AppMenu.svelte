@@ -25,7 +25,6 @@
     proposalsStore,
   } from "@lib/store.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
-  import SyncStatus from "@ui/SyncStatus.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
   import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsPopup.svelte";

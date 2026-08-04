@@ -1,0 +1,16 @@
+course_code,section,type,days,start,end,room_code,building_code,term_id,course_title
+BIO 101,A,LEC,MWF,9:00AM,10:00AM,BSC 1,BSC,101,General Biology
+BIO 101,A-1,LAB,T,1:00PM,4:00PM,BSC LAB A,BSC,101,General Biology
+BIO 101,A-2,LAB,Th,1:00PM,4:00PM,BSC LAB B,BSC,101,General Biology
+CHEM 110,B,LEC,TTh,10:30AM,12:00PM,BSC 1,BSC,101,Introductory Chemistry
+MATH 21,A,LEC,MWF,8:00AM,9:00AM,EEB 105,EEB,101,Calculus I
+ENG 1,C,LEC,TTh,2:30PM,4:00PM,ACA 210,ACA,101,Academic Writing
+CS 12,A,LEC,MW,1:00PM,2:30PM,EEB 201,EEB,101,Programming Fundamentals
+CS 12,A,LAB,F,1:00PM,4:00PM,EEB LAB 1,EEB,101,Programming Fundamentals
+PE 1,D,LEC,S,8:00AM,10:00AM,FG COURT,FG,101,Physical Education
+BIO 102,A,LEC,MWF,9:00AM,10:00AM,BSC 1,BSC,102,General Biology II
+MATH 22,A,LEC,MWF,8:00AM,9:00AM,EEB 105,EEB,102,Calculus II
+CS 21,A,LEC,TTh,10:30AM,12:00PM,EEB 201,EEB,102,Data Structures
+CS 21,A,LAB,W,2:00PM,5:00PM,EEB LAB 1,EEB,102,Data Structures
+HIST 5,B,LEC,TTh,1:00PM,2:30PM,CL AVR,CL,102,World History
+COMM 10,A,LEC,M,4:00PM,6:00PM,DSC 12,DSC,102,Public Speaking

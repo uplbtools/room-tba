@@ -7,6 +7,7 @@
   } from "@lib/store.svelte";
   import { onMount, untrack } from "svelte";
   import { flip } from "svelte/animate";
+  import { formatDistance, formatDuration } from "@lib/campus-route";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
   import { WEEKDAY_LABELS, WEEKDAYS } from "@lib/schedule-import/types";
 
@@ -40,7 +41,15 @@
     const key = planKey;
     if (key === lastPlanKey) return;
     lastPlanKey = key;
-    untrack(() => void scheduleRouteStore.importFromPlanner());
+    untrack(() => {
+      // Same plan already imported (e.g. routed from /today, #839): keep the
+      // store's matches and active route instead of clearing them on mount.
+      const storeKey = scheduleRouteStore.importedRows
+        .map((r) => `${r.courseCode}::${r.section}::${r.type}::${r.schedule.join("|")}`)
+        .join(";");
+      if (scheduleRouteStore.hasImport && storeKey === key) return;
+      void scheduleRouteStore.importFromPlanner();
+    });
   });
 
   function selectWeekday(day: Weekday) {
@@ -173,6 +182,13 @@
             {/each}
           </ul>
         </details>
+      {/if}
+
+      {#if routeActive && scheduleRouteStore.routeTotals}
+        <p class="schedule-import-panel__totals">
+          Total walk: {formatDuration(scheduleRouteStore.routeTotals.seconds)} ·
+          {formatDistance(scheduleRouteStore.routeTotals.meters)}
+        </p>
       {/if}
 
       <div class="schedule-import-panel__route-actions">
@@ -398,6 +414,13 @@
   .schedule-import-panel__gap {
     font-size: 0.75rem;
     color: hsl(0, 0%, 40%);
+  }
+
+  .schedule-import-panel__totals {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(5, 53%, 22%);
   }
 
   .schedule-import-panel__empty,

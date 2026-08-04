@@ -34,6 +34,8 @@ Include:
 
 **You do not need to open a pull request.** Someone else will ship the fix and reply on the issue.
 
+Approved suggest-edits for campus map entities (buildings, rooms, pins, and similar fields) are licensed **[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)**. Class schedules imported from AMIS/CRS are not re-licensed that way. Details: [Terms — Data licenses](https://room-tba.uplb.tools/terms#data-licenses).
+
 ---
 
 ## Campus gate coordinates
@@ -86,6 +88,8 @@ bun dev
 ```
 
 Open http://localhost:4321. More setup help: [docs/developer-guide.md](docs/developer-guide.md).
+
+Empty database? `bun run seed:sample` loads a small fictional campus (buildings, rooms, two terms of classes) so the app has something to show — see [docs/fork-data-guide.md](docs/fork-data-guide.md).
 
 ### Workflow
 

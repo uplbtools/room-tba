@@ -67,4 +67,13 @@ describe("SyncToastStore", () => {
     expect(retried).toBe(true);
     expect(store.syncError).toBeNull();
   });
+
+  test("stepDetail adds no retry instruction while a sync error is shown", () => {
+    const store = new SyncToastStore();
+    store.setSyncError("Could not sync campus data.");
+    // The error surface renders a Retry button; a "Tap to retry" detail line
+    // under the message duplicated it.
+    expect(store.stepLabel).toBe("Could not sync campus data.");
+    expect(store.stepDetail).toBeNull();
+  });
 });

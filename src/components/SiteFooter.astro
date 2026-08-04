@@ -5,6 +5,10 @@ import {
   UPLB_TOOLS_URL,
   DONATE_URL,
 } from "@constants/community-links";
+import {
+  CAMPUS_DATA_LICENSE_SUMMARY,
+  DATA_LICENSE_FAQ_PATH,
+} from "@constants/data-license";
 import SponsorStrip from "./SponsorStrip.astro";
 
 const externalCommunityLinks = COMMUNITY_LINKS.filter(
@@ -41,6 +45,10 @@ const externalCommunityLinks = COMMUNITY_LINKS.filter(
       target="_blank"
       rel="noopener noreferrer">UPLB Tools</a
     >. Not an official UPLB website.
+  </p>
+  <p class="site-footer__note">
+    {CAMPUS_DATA_LICENSE_SUMMARY}
+    <a href={DATA_LICENSE_FAQ_PATH}>Data licenses</a>
   </p>
 </footer>
 

@@ -52,8 +52,9 @@
     syncEvents,
     syncAliasCache,
     syncClasses,
+    getSyncKeysFromLs,
   } from "@lib/local/data/sync";
-  import { getDB, initPGLiteDB } from "@lib/local/data/pgliteDB";
+  import { getDB } from "@lib/local/data/pgliteDB";
   import { CAMPUS_DATA_REFRESH_EVENT } from "@lib/local/data/invalidate-sync-key";
 
   type MetadataProps = {
@@ -170,6 +171,9 @@
     }
   }
 
+  /** Set once network rows are on screen, so a late cache read can't undo them. */
+  let networkDataApplied = false;
+
   async function refreshFromNetwork(hasCachedDataAtStart: boolean) {
     if (hasCachedDataAtStart) {
       appBootstrapStore.markBackgroundRefresh();
@@ -241,6 +245,7 @@
         totalRooms: roomsData.totalRooms,
       };
       applyData(nextData);
+      networkDataApplied = true;
 
       const hasData = hasUsableCampusData(nextData);
       if (hasData) {
@@ -332,7 +337,7 @@
         );
       } else if (hasUsableData) {
         syncToastStore.setSyncError(
-          "Could not sync campus data. Tap to retry.",
+          "Could not sync campus data.",
           () => {
             void refreshFromNetwork(hasCachedDataAtStart);
           },
@@ -371,26 +376,38 @@
     void (async () => {
       try {
         syncToastStore.startRemoteFetch();
-        const localDB = getDB();
-        try {
-          await initPGLiteDB(localDB);
-          void transitStore.refresh();
-        } catch (error) {
-          console.error(error);
-        }
 
-        const cached = await loadCachedAppData();
-        const hasCache = hasUsableCampusData(cached);
-        appBootstrapStore.setHasCachedData(hasCache);
-        if (hasCache) {
+        // #866: PGlite is ~5 MB of wasm + data. Awaiting it here put a full
+        // Postgres download in front of the first campus fetch, for every
+        // visitor — including first-timers whose cache is guaranteed empty.
+        // Start hydrating in the background and let the cached read race the
+        // network instead of gating it.
+        void getDB().then(
+          () => void transitStore.refresh(),
+          (error: unknown) => console.error(error),
+        );
+
+        // localStorage outlives no PGlite download, so it answers "has this
+        // browser synced before?" for free — the network refresh still gets
+        // the offline/stale-cache semantics it had when the cache read came
+        // first.
+        const hasSyncedBefore = Object.values(
+          getSyncKeysFromLs() ?? {},
+        ).some(Boolean);
+
+        void loadCachedAppData().then((cached) => {
+          if (!hasUsableCampusData(cached)) return;
+          appBootstrapStore.setHasCachedData(true);
+          // The network may have painted fresher rows while the cache was
+          // still hydrating; never regress the UI back to the cached copy.
+          if (networkDataApplied) return;
           applyData(cached);
           appBootstrapStore.complete();
           dismissStaticLoadingShell();
-          void refreshFromNetwork(true);
-        } else {
-          await refreshFromNetwork(false);
-          dismissStaticLoadingShell();
-        }
+        }, console.error);
+
+        await refreshFromNetwork(hasSyncedBefore);
+        dismissStaticLoadingShell();
       } catch (error) {
         console.error("Bootstrap failed", error);
         dismissStaticLoadingShell();

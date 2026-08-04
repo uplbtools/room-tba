@@ -35,6 +35,40 @@ describeIntegration("HTTP redirects", () => {
     expect(Array.isArray(body)).toBe(true);
   });
 
+  test("GET /api/check returns every sync key in one response (#866)", async () => {
+    const res = await fetch(`${PREVIEW_BASE}/api/check`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      success: boolean;
+      data: Record<string, string | null>;
+    };
+    expect(body.success).toBe(true);
+    // The eight tables the app probes on boot must all be in the one payload.
+    for (const table of [
+      "buildings",
+      "colleges",
+      "divisions",
+      "dorms",
+      "events",
+      "classes",
+      "organizations",
+      "places",
+    ]) {
+      expect(body.data).toHaveProperty(table);
+    }
+  });
+
+  test("GET /api/check/[name] still answers for one table (#866 compat)", async () => {
+    const res = await fetch(`${PREVIEW_BASE}/api/check/buildings`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      success: boolean;
+      data: { tableName: string | null };
+    };
+    expect(body.success).toBe(true);
+    expect(body.data.tableName).toBe("buildings");
+  });
+
   test("GET /api/classes caps inflated limits and returns the cursor shape", async () => {
     const res = await fetch(`${PREVIEW_BASE}/api/classes?limit=1000000`);
     expect(res.status).toBe(200);

@@ -1,5 +1,8 @@
 import type * as maplibre from "maplibre-gl";
-import { DEFAULT_TERRAIN_EXAGGERATION } from "@constants/map-terrain";
+import {
+  DEFAULT_TERRAIN_EXAGGERATION,
+  TERRAIN_ENABLED,
+} from "@constants/map-terrain";
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import { deactivateMapModesExcept } from "./map-modes.js";
 import type { MapToolsSection, TerrainStatus } from "./store-types.js";
@@ -101,6 +104,9 @@ export class TerrainStore {
   };
 
   enable = () => {
+    // Single gate for every enable path (toggle, controls, restored state):
+    // campuses without terrain data (campusTerrain.enabled = false) stay flat.
+    if (!TERRAIN_ENABLED) return;
     this.enabled = true;
     this.status = "loading";
     this.message = null;
@@ -158,6 +164,113 @@ export class TrailStore {
 
   disable = () => {
     this.enabled = false;
+  };
+}
+
+/**
+ * Travel-time isochrone tool (#847): tap the map, every path segment colors
+ * by walking minutes from that point. Owns map clicks, so it registers as an
+ * exclusive map mode. Engine work happens in Map.svelte; this holds UI state.
+ */
+export class TravelTimeStore {
+  active: boolean = $state(false);
+  origin: { lat: number; lng: number } | null = $state(null);
+  status: "idle" | "loading" | "ready" | "error" = $state("idle");
+
+  enable = () => {
+    this.active = true;
+    deactivateMapModesExcept("travel-time");
+    dismissEphemeralOverlays();
+  };
+
+  disable = () => {
+    this.active = false;
+    this.origin = null;
+    this.status = "idle";
+  };
+
+  toggle = () => {
+    if (this.active) this.disable();
+    else this.enable();
+  };
+
+  setOrigin = (lat: number, lng: number) => {
+    this.origin = { lat, lng };
+  };
+}
+
+export type MeasureLeg = { seconds: number; meters: number } | null;
+export type MeasureSummaries = {
+  walk: MeasureLeg[];
+  cycle: MeasureLeg[];
+  drive: MeasureLeg[];
+};
+
+const emptySummaries = (): MeasureSummaries => ({
+  walk: [],
+  cycle: [],
+  drive: [],
+});
+
+/**
+ * Measure-route tool (#848): tap to drop waypoints, legs snap to shortest
+ * paths on the walk graph, and the bottom card shows walk/cycle/drive times.
+ * Engine work happens in Map.svelte; this holds waypoints + computed legs.
+ */
+export class MeasureRouteStore {
+  active: boolean = $state(false);
+  waypoints: { lat: number; lng: number }[] = $state([]);
+  /** Waypoints snapped to graph nodes (same order), set after computing. */
+  snapped: { lat: number; lng: number }[] = $state([]);
+  mode: "walk" | "cycle" | "drive" = $state("walk");
+  summaries: MeasureSummaries = $state(emptySummaries());
+  loadFailed: boolean = $state(false);
+
+  enable = () => {
+    this.active = true;
+    deactivateMapModesExcept("measure");
+    dismissEphemeralOverlays();
+  };
+
+  disable = () => {
+    this.active = false;
+    this.clear();
+  };
+
+  toggle = () => {
+    if (this.active) this.disable();
+    else this.enable();
+  };
+
+  addWaypoint = (lat: number, lng: number) => {
+    this.waypoints = [...this.waypoints, { lat, lng }];
+  };
+
+  removeWaypoint = (index: number) => {
+    this.waypoints = this.waypoints.filter((_, i) => i !== index);
+  };
+
+  undo = () => {
+    this.waypoints = this.waypoints.slice(0, -1);
+  };
+
+  clear = () => {
+    this.waypoints = [];
+    this.snapped = [];
+    this.summaries = emptySummaries();
+  };
+
+  setMode = (mode: "walk" | "cycle" | "drive") => {
+    this.mode = mode;
+  };
+
+  setResults = (
+    snapped: { lat: number; lng: number }[],
+    summaries: MeasureSummaries,
+  ) => {
+    this.snapped = snapped;
+    this.summaries = summaries;
+    this.loadFailed = false;
   };
 }
 

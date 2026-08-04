@@ -4,6 +4,7 @@
   import { createEntityUrlSync, isScreenId } from "@lib/entity-url-sync";
   import { openCampusBrowse } from "@lib/browse-campus";
   import { getTransitStopIndex } from "@lib/transit-urls";
+  import { campusTransit } from "../../campus.config";
   import {
     getBuildingCanonicalPath,
     getOrganizationCanonicalPath,
@@ -54,6 +55,7 @@
         sidebarStore.changeOpened(screen ?? "map");
       },
       setTransit: async ({ routeId, stopSlug }) => {
+        if (!campusTransit.enabled) return;
         openCampusBrowse(queryStore, sidePanelStore, "jeepney");
         if (!routeId) return;
         await transitStore.refresh();

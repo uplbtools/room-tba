@@ -1,0 +1,30 @@
+---
+description: MapLibre marker accessibility and drag-event learnings from upstream work on maplibre-gl-js#8045, applied to Room TBA's svelte-maplibre markers
+globs: src/components/svelte/Map.svelte,src/components/svelte/map/**,src/lib/map-*.ts
+alwaysApply: false
+---
+
+# MapLibre marker learnings (from maplibre-gl-js#8045)
+
+Room TBA uses svelte-maplibre's `Marker`, which renders custom elements. Per upstream design (maplibre-gl-js#7790), custom marker elements get NO built-in accessibility: no tabindex, no ARIA, no keyboard dragging. maplibre-gl-js#8045 added keyboard dragging to default markers only (and only in v6+; this repo pins maplibre-gl ^5.24.0). Everything below is app-owned here.
+
+## Keyboard accessibility for our markers
+
+- Draggable markers (contributor draft pin, event markers) are pointer-only today. If we add keyboard support: `tabindex="0"`, an `aria-label`, and a keydown handler on the marker element.
+- Any marker keydown handler MUST call `e.stopPropagation()` for keys it handles. Marker elements live inside the map's canvas container, and maplibre's `KeyboardHandler` pans 100px per arrow key and rotates/pitches on Shift+arrow. Without stopPropagation, one press moves the pin AND the camera.
+- Leave Alt/Ctrl/Meta+arrow combos alone (browser and OS shortcuts). Upstream chose 1px per arrow press, 10px with Shift; match those steps if we implement this, so behavior converges with default markers after a v6 upgrade.
+
+## Drag event contract
+
+- Persist positions in `dragend`, never in `drag`. `dragstart` fires once per gesture with the position already updated; `drag` fires per movement; `dragend` fires on release. Our `dragend` handlers reading `marker.getLngLat()` (Map.svelte ~line 1500) follow this; keep new ones consistent.
+- A marker removed mid-drag fires no `dragend`. Never rely on `dragend` alone to clear state (e.g. `beginMarkerDrag`-style flags); also reset on component teardown.
+
+## General patterns
+
+- Attribute ownership: when our code sets an attribute or class on a DOM node it does not own (map container, svelte-maplibre internals), track that we set it and only remove the exact value we set. Never `removeAttribute` blindly.
+- Evidence in PRs and bug reports: exact recomputable numbers ("moved +23px after 3x1 + 2x10 steps") and GIFs beat prose. Spy-based negative assertions ("easeTo never called") prove non-interference.
+- Verify claims against current source before writing a review comment; one false claim discredits the rest.
+
+## Upgrade note
+
+- When upgrading maplibre-gl to v6+: default markers become focusable with a managed `tabindex="0"` and keyboard dragging. Audit for duplicate tab stops or focus-order changes if we ever mix default markers in, and re-read the marker section of the changelog.

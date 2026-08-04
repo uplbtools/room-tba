@@ -7,6 +7,13 @@ import {
   GITHUB_ROOM_TBA_URL,
   DISCORD_URL,
 } from "@constants/community-links";
+import {
+  CAMPUS_DATA_LICENSE,
+  CAMPUS_DATA_LICENSE_URL,
+  DATA_LICENSE_TERMS_PATH,
+  OSM_COPYRIGHT_URL,
+  SOFTWARE_LICENSE,
+} from "@constants/data-license";
 
 const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
 ---
@@ -138,6 +145,48 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
               >Discord</a
             >. Signed-in contributors can use <strong>Suggest an edit</strong> in
             the app for many map fields.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item" id="data-license">
+        <summary>Can I reuse Room TBA data?</summary>
+        <div class="faq-answer">
+          <p>It depends which layer you mean:</p>
+          <ul>
+            <li>
+              <strong>App code</strong> is {
+                SOFTWARE_LICENSE
+              }. Fork for another campus is fine; replace the UPLB data.
+            </li>
+            <li>
+              <strong>Community campus map data</strong> (buildings, rooms,
+              dorms, orgs, pins, aliases curated here) is
+              <a
+                href={CAMPUS_DATA_LICENSE_URL}
+                target="_blank"
+                rel="noopener noreferrer">{CAMPUS_DATA_LICENSE}</a
+              >. Credit Room TBA / UPLB Tools.
+            </li>
+            <li>
+              <strong>OpenStreetMap</strong> basemap tiles and building
+              footprints stay under the
+              <a
+                href={OSM_COPYRIGHT_URL}
+                target="_blank"
+                rel="noopener noreferrer">ODbL</a
+              >; keep OSM attribution.
+            </li>
+            <li>
+              <strong>AMIS/CRS class schedules</strong> and similar university
+              imports are not offered for bulk redistribution under an open
+              license. Use the app; do not scrape and republish the registrar
+              feed.
+            </li>
+          </ul>
+          <p>
+            Binding wording for contributors is in the
+            <a href={DATA_LICENSE_TERMS_PATH}>Terms</a>.
           </p>
         </div>
       </details>

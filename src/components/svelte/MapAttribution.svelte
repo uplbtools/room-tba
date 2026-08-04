@@ -1,5 +1,10 @@
 <script lang="ts">
-  import Layers from "@lucide/svelte/icons/layers";
+  import Info from "@lucide/svelte/icons/info";
+  import {
+    DATA_LICENSE_FAQ_PATH,
+    MAPTILER_COPYRIGHT_URL,
+    OSM_COPYRIGHT_URL,
+  } from "@constants/data-license";
   import { terrainStore } from "@lib/store.svelte";
   import "./map-chrome/map-chrome.css";
 
@@ -16,32 +21,34 @@
   role="region"
   aria-label="Map attribution"
 >
+  <!-- Required credits visible without a click (OSMF + MapTiler terms). -->
+  <p class="map-attribution__credits">
+    <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+      © OpenStreetMap
+    </a>
+    <span aria-hidden="true">·</span>
+    <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+      © MapTiler
+    </a>
+  </p>
   <button
     type="button"
     class="map-attribution__toggle"
     class:map-attribution__toggle--active={expanded}
     aria-expanded={expanded}
     aria-controls="map-attribution-details"
+    aria-label="More map data credits"
     onclick={toggleExpanded}
   >
-    <Layers size={14} aria-hidden="true" />
-    <span>Map data</span>
+    <Info size={14} aria-hidden="true" />
   </button>
   {#if expanded}
     <div id="map-attribution-details" class="attrib-body">
-      <a
-        href="https://www.maptiler.com/copyright/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        © MapTiler
-      </a>
-      <a
-        href="https://www.openstreetmap.org/copyright"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
         © OpenStreetMap contributors
+      </a>
+      <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+        © MapTiler
       </a>
       <a
         href="https://openmaptiles.org/"
@@ -50,6 +57,7 @@
       >
         © OpenMapTiles
       </a>
+      <a href={DATA_LICENSE_FAQ_PATH}>Campus data license</a>
     </div>
   {/if}
   {#if terrainStore.enabled}
@@ -78,10 +86,34 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.25rem;
     flex: 0 0 auto;
     pointer-events: auto;
     isolation: isolate;
+  }
+
+  .map-attribution__credits {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
+    color: hsl(0, 0%, 22%);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .map-attribution__credits a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .map-attribution__credits a:hover,
+  .map-attribution__credits a:focus-visible {
+    color: hsl(5, 53%, 32%);
+    text-decoration: underline;
   }
 
   .attrib-body {
@@ -109,13 +141,12 @@
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    min-height: 1.75rem;
-    padding: 0.25rem 0.5rem;
-    color: hsl(0, 0%, 22%);
-    font-size: 0.75rem;
-    font-weight: 600;
+    justify-content: center;
+    min-width: 1.5rem;
+    min-height: 1.5rem;
+    color: hsl(0, 0%, 35%);
     cursor: pointer;
+    border-radius: 0.25rem;
   }
 
   .map-attribution__toggle:hover,

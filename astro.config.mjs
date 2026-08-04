@@ -10,6 +10,8 @@ import {
 } from "./src/constants/community-links.ts";
 import { campusCommunity, campusSite } from "./src/campus.config.ts";
 
+import tailwindcss from "@tailwindcss/vite";
+
 /** Local E2E + integration preview — Vercel adapter does not support `astro preview`. */
 const e2eNodeAdapter = process.env.ASTRO_E2E_NODE === "1";
 
@@ -96,6 +98,25 @@ export default defineConfig({
             },
           },
           {
+            // #866: PGlite ships ~5 MB of wasm + data. Too big to precache
+            // (that would download Postgres during service worker install),
+            // but content-hashed, so CacheFirst is safe — a new build emits a
+            // new filename and never hits this entry. As with the navigate
+            // denylist above, the pattern must tolerate a `?` suffix: workbox
+            // matches the full URL, so a `$` anchor alone would miss.
+            urlPattern: /\/_astro\/(pglite|initdb)\.[^/?]*\.(wasm|data)(\?|$)/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "pglite-wasm",
+              expiration: {
+                maxEntries: 8,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // MapTiler vector tiles + tiles.json
             urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,
             handler: "CacheFirst",
@@ -153,12 +174,16 @@ export default defineConfig({
     preview: {
       host: "127.0.0.1",
     },
+
     server: {
       host: "localhost",
     },
+
     optimizeDeps: {
       exclude: ["@electric-sql/pglite"],
     },
+
+    plugins: [tailwindcss()],
   },
 
   redirects: {

@@ -42,6 +42,14 @@ test.describe("contributor proposals", () => {
     const queue = page.getByRole("region", {
       name: "Edit proposals review queue",
     });
+    // Rows start collapsed (#873) and keep their diff body out of the DOM, so
+    // the marker is unmatchable until every row is opened.
+    const summaries = queue.locator("li.entity-review-item summary");
+    await expect(summaries.first()).toBeVisible({ timeout: 15_000 });
+    for (let i = 0; i < (await summaries.count()); i += 1) {
+      await summaries.nth(i).click();
+    }
+
     const proposal = queue.locator("li.entity-review-item", {
       hasText: marker,
     });

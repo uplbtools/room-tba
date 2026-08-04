@@ -3,6 +3,7 @@
   import type { InitialSearchState } from "@lib/app-data";
   import { getAppData } from "@lib/context";
   import { findCampusPointBySlug } from "@lib/route-links";
+  import { campusTransit } from "../../campus.config";
   import {
     modalStore,
     queryStore,
@@ -13,10 +14,13 @@
     adminAuthStore,
     mapEditStore,
     mapToolsStore,
+    travelTimeStore,
+    measureRouteStore,
     editorChromeStore,
     jeepneyStore,
     appBootstrapStore,
     plannerStore,
+    scheduleRouteStore,
     termStore,
     sidebarStore,
     announcementsStore,
@@ -31,6 +35,9 @@
   import LocationButton from "@ui/LocationButton.svelte";
   import MapAttribution from "@ui/MapAttribution.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
+  import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
+  import MeasureRoutePanel from "@ui/MeasureRoutePanel.svelte";
+  import TravelTimeLegend from "@ui/TravelTimeLegend.svelte";
   import StatusBar from "@ui/StatusBar.svelte";
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
@@ -58,6 +65,7 @@
   import StagingBanner from "./StagingBanner.svelte";
   import AnnouncementBar from "./AnnouncementBar.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
+  import DayRouteChip from "./DayRouteChip.svelte";
   import OnlineCounter from "./OnlineCounter.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import type { RecentSearch } from "@lib/types";
@@ -184,7 +192,9 @@
     // Jeepney deep link: ?jeepney=<routeId>[&stop=<index>] opens the route on
     // the map (and focuses a stop when given). Shared from the route modal /
     // stop panel copy-link.
-    const jeepneyRouteId = urlParams.get("jeepney");
+    const jeepneyRouteId = campusTransit.enabled
+      ? urlParams.get("jeepney")
+      : null;
     if (jeepneyRouteId) {
       openCampusBrowse(queryStore, sidePanelStore, "jeepney");
       jeepneyStore.openRouteOnMap(jeepneyRouteId);
@@ -203,15 +213,16 @@
 
     // /route/<from>/<to> sends its two endpoints here as slugs. Resolving them
     // against loaded campus data (rather than passing coordinates in the URL)
-    // keeps the link stable when an editor moves a pin.
+    // keeps the link stable when an editor moves a pin. On /today the same
+    // param means "route my day" instead (handled below).
     const routeParam = urlParams.get("route");
-    if (routeParam) {
+    if (routeParam && !openToday) {
       const [fromSlug, toSlug] = routeParam.split(",");
       const waypoints = [fromSlug, toSlug]
         .map((slug) => (slug ? findCampusPointBySlug(appData(), slug) : null))
         .filter((point): point is [number, number] => point !== null);
       if (waypoints.length === 2) {
-        locationStore.setWaypoints(waypoints);
+        locationStore.setRouteWaypoints(waypoints);
       }
       window.history.replaceState({}, "", window.location.pathname);
     }
@@ -242,6 +253,10 @@
     if (openToday) {
       void termStore.init();
       sidebarStore.changeOpened("today");
+      // /today?route=1 routes today's classes once the screen mounts (#839).
+      if (routeParam === "1") {
+        scheduleRouteStore.pendingDayRoute = true;
+      }
     }
 
     const planParam = urlParams.get("plan");
@@ -383,6 +398,10 @@
         editorChromeStore.closeAdditionModal();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
+      } else if (travelTimeStore.active) {
+        travelTimeStore.disable();
+      } else if (measureRouteStore.active) {
+        measureRouteStore.disable();
       } else if (jeepneyStore.selectedStopIndex !== null) {
         jeepneyStore.closeStop();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
@@ -423,6 +442,12 @@
       <div class="inner-layer">
         <MainControls />
         <div class="bottom-band">
+          {#if travelTimeStore.active}
+            <TravelTimeLegend />
+          {/if}
+          {#if measureRouteStore.active}
+            <MeasureRoutePanel />
+          {/if}
           <div class="bottom-chrome" bind:this={bottomChromeEl}>
             <div class="bottom-chrome__bar">
               <div class="bottom-chrome__leading">
@@ -443,8 +468,9 @@
                 </div>
               {/if}
               <div class="bottom-chrome__triggers">
+                <DayRouteChip />
                 <OnlineCounter />
-                <MapLegend trigger="chip" />
+                <MapToolsFlyout />
                 <LocationButton embedded />
               </div>
             </div>
@@ -571,7 +597,11 @@
 
     width: 100%;
     height: 100dvh;
-    overflow: hidden;
+    /* clip, not hidden: `hidden` leaves a programmatically scrollable box, so
+       overflowing chrome stays "reachable" to scripts while invisible to users
+       and hides layout bugs like this one. Matches Layout.astro. */
+    overflow-x: clip;
+    overflow-y: hidden;
   }
 
   .app-layout.edit-mode {
@@ -611,10 +641,17 @@
     z-index: var(--z-status-bar, 3);
     display: flex;
     flex-direction: row;
+    /* The row carries a fixed-width credits block plus a fixed-width action
+       column; below ~430px their sum exceeds the viewport and the trailing
+       controls used to be clipped away entirely. Wrapping drops the action
+       column onto its own line instead of pushing it off-screen. */
+    flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
     gap: 0.5rem;
+    row-gap: 0.375rem;
     width: 100%;
+    max-width: 100%;
     min-width: 0;
     min-height: 2rem;
     box-sizing: border-box;
@@ -628,10 +665,16 @@
   .bottom-chrome__bar {
     display: flex;
     flex-direction: row;
+    /* Credits are a hard floor (they may not be truncated — basemap terms), so
+       the status text and any sync action wrap under them rather than widening
+       the pill past the viewport. */
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.375rem;
+    row-gap: 0.125rem;
     flex: 0 1 auto;
     min-width: 0;
+    max-width: 100%;
     min-height: 2rem;
     background-color: var(--map-chrome-surface, hsl(5 20% 97%));
     backdrop-filter: blur(10px);
@@ -687,6 +730,9 @@
     align-items: flex-end;
     gap: 0.375rem;
     padding: 0;
+    /* Stay hard right once the row wraps this column onto its own line. */
+    margin-left: auto;
+    max-width: 100%;
     pointer-events: auto;
   }
 
@@ -705,8 +751,12 @@
   }
   .bottom-chrome__triggers {
     display: flex;
+    /* A sixth chip must wrap, not clip (same failure the browse-chip row hit). */
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 0.375rem;
     align-items: flex-end;
+    max-width: 100%;
   }
 
   .bottom-band::before {

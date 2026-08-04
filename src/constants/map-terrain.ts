@@ -1,14 +1,15 @@
-import { MAPTILER_KEY_PLACEHOLDER, withMaptilerKey } from "@lib/maptiler-key";
-import { campusMap } from "../campus.config";
+import { withMaptilerKey } from "@lib/maptiler-key";
+import { campusMap, campusTerrain } from "../campus.config";
 
-export const TERRAIN_SOURCE_ID = "makiling-terrain-dem";
-export const TERRAIN_HILLSHADE_LAYER_ID = "makiling-terrain-hillshade";
+/** Campus-specific terrain values live in campusTerrain (src/campus.config.ts). */
+export const TERRAIN_ENABLED = campusTerrain.enabled;
+
+export const TERRAIN_SOURCE_ID = "campus-terrain-dem";
+export const TERRAIN_HILLSHADE_LAYER_ID = "campus-terrain-hillshade";
 export const TERRAIN_HILLSHADE_BEFORE_LAYER_ID = "road_area_pattern";
 
-const TERRAIN_TILEJSON_URL_TEMPLATE = `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${MAPTILER_KEY_PLACEHOLDER}`;
-
 export function getTerrainTileJsonUrl(): string {
-  return withMaptilerKey(TERRAIN_TILEJSON_URL_TEMPLATE);
+  return withMaptilerKey(campusTerrain.demTilesUrl);
 }
 
 export const TERRAIN_EXAGGERATION_OPTIONS = [1, 1.5, 2] as const;
@@ -27,25 +28,17 @@ export const CAMPUS_BOUNDS = {
 
 export const CAMPUS_DEFAULT_CAMERA = campusMap.defaultCamera;
 
-export const MAKILING_TERRAIN_MAX_BOUNDS: [[number, number], [number, number]] =
-  [
-    [121.168, 14.095],
-    [121.34, 14.22],
-  ];
+export const TERRAIN_MAX_BOUNDS: [[number, number], [number, number]] =
+  campusTerrain.maxBounds;
 
-export const MAKILING_TERRAIN_SOURCE_BOUNDS = [
-  MAKILING_TERRAIN_MAX_BOUNDS[0][0],
-  MAKILING_TERRAIN_MAX_BOUNDS[0][1],
-  MAKILING_TERRAIN_MAX_BOUNDS[1][0],
-  MAKILING_TERRAIN_MAX_BOUNDS[1][1],
+export const TERRAIN_SOURCE_BOUNDS = [
+  TERRAIN_MAX_BOUNDS[0][0],
+  TERRAIN_MAX_BOUNDS[0][1],
+  TERRAIN_MAX_BOUNDS[1][0],
+  TERRAIN_MAX_BOUNDS[1][1],
 ] as [number, number, number, number];
 
-export const MAKILING_TERRAIN_CAMERA = {
-  center: [121.218, 14.142] as [number, number],
-  zoom: 13.25,
-  pitch: 68,
-  bearing: 190,
-};
+export const TERRAIN_CAMERA = campusTerrain.camera;
 
 export const TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE =
   "Terrain needs an internet connection for hosted elevation tiles.";
