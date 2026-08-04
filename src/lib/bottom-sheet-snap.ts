@@ -1,11 +1,7 @@
 /** Snap points for the mobile entity bottom sheet (GMaps-style). */
 export type BottomSheetSnap = "peek" | "expanded";
 
-export type BottomSheetReleaseIntent =
-  | "expand"
-  | "peek"
-  | "dismiss"
-  | "none";
+export type BottomSheetReleaseIntent = "expand" | "peek" | "dismiss" | "none";
 
 /** Decide snap after a drag release. Pure for unit tests. */
 export function resolveBottomSheetRelease({
