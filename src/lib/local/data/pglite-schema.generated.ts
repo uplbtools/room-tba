@@ -22,7 +22,9 @@ ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "type" text DEFAULT 'non-admin'
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "lat" double precision;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "directions" text;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "buildings" ALTER COLUMN "image_url" DROP NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "cr_facilities" text[];
+ALTER TABLE "buildings" ALTER COLUMN "cr_facilities" DROP NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean DEFAULT false NOT NULL;
@@ -36,6 +38,7 @@ CREATE TABLE IF NOT EXISTS "colleges" (
 );
 ALTER TABLE "colleges" ADD COLUMN IF NOT EXISTS "college_name" varchar(100);
 ALTER TABLE "colleges" ADD COLUMN IF NOT EXISTS "website_link" text;
+ALTER TABLE "colleges" ALTER COLUMN "website_link" DROP NOT NULL;
 ALTER TABLE "colleges" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "colleges" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "colleges" ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean DEFAULT false NOT NULL;
@@ -55,17 +58,27 @@ CREATE TABLE IF NOT EXISTS "classes" (
   "directions" text
 );
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "course_code" varchar(16);
+ALTER TABLE "classes" ALTER COLUMN "course_code" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "section" varchar(16);
+ALTER TABLE "classes" ALTER COLUMN "section" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "type" varchar(12);
+ALTER TABLE "classes" ALTER COLUMN "type" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "schedule" text[];
+ALTER TABLE "classes" ALTER COLUMN "schedule" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "room_id" integer;
+ALTER TABLE "classes" ALTER COLUMN "room_id" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "course_title" text;
+ALTER TABLE "classes" ALTER COLUMN "course_title" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "term_id" integer;
+ALTER TABLE "classes" ALTER COLUMN "term_id" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "acad_group" varchar(8);
+ALTER TABLE "classes" ALTER COLUMN "acad_group" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "acad_org" varchar(16);
+ALTER TABLE "classes" ALTER COLUMN "acad_org" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "directions" text;
+ALTER TABLE "classes" ALTER COLUMN "directions" DROP NOT NULL;
 CREATE TABLE IF NOT EXISTS "final_exams" (
   "id" integer PRIMARY KEY,
   "term_id" integer NOT NULL,
@@ -83,8 +96,11 @@ CREATE TABLE IF NOT EXISTS "final_exams" (
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "term_id" integer;
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "course_code" varchar(16);
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "section" varchar(16);
+ALTER TABLE "final_exams" ALTER COLUMN "section" DROP NOT NULL;
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "course_title" text;
+ALTER TABLE "final_exams" ALTER COLUMN "course_title" DROP NOT NULL;
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "room_id" integer;
+ALTER TABLE "final_exams" ALTER COLUMN "room_id" DROP NOT NULL;
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "exam_date" text;
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "starts_at" text;
 ALTER TABLE "final_exams" ADD COLUMN IF NOT EXISTS "ends_at" text;
@@ -97,7 +113,7 @@ CREATE TABLE IF NOT EXISTS "dorms" (
   "short_name" varchar(48),
   "lat" double precision,
   "lon" double precision,
-  "gender" text NOT NULL,
+  "gender" text,
   "capacity" integer,
   "managing_office" text,
   "contact_email" text,
@@ -114,20 +130,35 @@ CREATE TABLE IF NOT EXISTS "dorms" (
 );
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "dorm_name" text;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "short_name" varchar(48);
+ALTER TABLE "dorms" ALTER COLUMN "short_name" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "dorms" ALTER COLUMN "lat" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "lon" double precision;
+ALTER TABLE "dorms" ALTER COLUMN "lon" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "gender" text;
+ALTER TABLE "dorms" ALTER COLUMN "gender" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "capacity" integer;
+ALTER TABLE "dorms" ALTER COLUMN "capacity" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "managing_office" text;
+ALTER TABLE "dorms" ALTER COLUMN "managing_office" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "contact_email" text;
+ALTER TABLE "dorms" ALTER COLUMN "contact_email" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "amenities" text[];
+ALTER TABLE "dorms" ALTER COLUMN "amenities" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "osm_link" text;
+ALTER TABLE "dorms" ALTER COLUMN "osm_link" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "dorms" ALTER COLUMN "description" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "is_up_managed" boolean DEFAULT true;
+ALTER TABLE "dorms" ALTER COLUMN "is_up_managed" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "price_range" text;
+ALTER TABLE "dorms" ALTER COLUMN "price_range" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "contact_phone" varchar(20)[];
+ALTER TABLE "dorms" ALTER COLUMN "contact_phone" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "facebook_link" text;
+ALTER TABLE "dorms" ALTER COLUMN "facebook_link" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "dorms" ALTER COLUMN "image_url" DROP NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "dorms" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 CREATE TABLE IF NOT EXISTS "organizations" (
@@ -153,18 +184,31 @@ CREATE TABLE IF NOT EXISTS "organizations" (
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "name" text;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "category" varchar(24);
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "building_id" integer;
+ALTER TABLE "organizations" ALTER COLUMN "building_id" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "room_id" integer;
+ALTER TABLE "organizations" ALTER COLUMN "room_id" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "organizations" ALTER COLUMN "lat" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "lon" double precision;
+ALTER TABLE "organizations" ALTER COLUMN "lon" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "organizations" ALTER COLUMN "description" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "website_link" text;
+ALTER TABLE "organizations" ALTER COLUMN "website_link" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "facebook_link" text;
+ALTER TABLE "organizations" ALTER COLUMN "facebook_link" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "email" text;
+ALTER TABLE "organizations" ALTER COLUMN "email" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "organizations" ALTER COLUMN "image_url" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "bio" text;
+ALTER TABLE "organizations" ALTER COLUMN "bio" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "org_type" varchar(32);
+ALTER TABLE "organizations" ALTER COLUMN "org_type" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "established_year" varchar(8);
+ALTER TABLE "organizations" ALTER COLUMN "established_year" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "member_count" varchar(16);
+ALTER TABLE "organizations" ALTER COLUMN "member_count" DROP NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "organizations" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 CREATE TABLE IF NOT EXISTS "places" (
@@ -184,12 +228,19 @@ CREATE TABLE IF NOT EXISTS "places" (
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "name" text;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "category" varchar(24);
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "places" ALTER COLUMN "lat" DROP NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "lon" double precision;
+ALTER TABLE "places" ALTER COLUMN "lon" DROP NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "places" ALTER COLUMN "description" DROP NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "hours" text;
+ALTER TABLE "places" ALTER COLUMN "hours" DROP NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "website_link" text;
+ALTER TABLE "places" ALTER COLUMN "website_link" DROP NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "facebook_link" text;
+ALTER TABLE "places" ALTER COLUMN "facebook_link" DROP NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "places" ALTER COLUMN "image_url" DROP NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "places" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 CREATE TABLE IF NOT EXISTS "room_positions" (
@@ -216,7 +267,9 @@ CREATE TABLE IF NOT EXISTS "divisions" (
 );
 ALTER TABLE "divisions" ADD COLUMN IF NOT EXISTS "division_name" varchar(100);
 ALTER TABLE "divisions" ADD COLUMN IF NOT EXISTS "college_id" integer;
+ALTER TABLE "divisions" ALTER COLUMN "college_id" DROP NOT NULL;
 ALTER TABLE "divisions" ADD COLUMN IF NOT EXISTS "website_link" text;
+ALTER TABLE "divisions" ALTER COLUMN "website_link" DROP NOT NULL;
 ALTER TABLE "divisions" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "divisions" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "divisions" ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean DEFAULT false NOT NULL;
@@ -235,11 +288,17 @@ CREATE TABLE IF NOT EXISTS "rooms" (
 );
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "room_code" text;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "directions" text;
+ALTER TABLE "rooms" ALTER COLUMN "directions" DROP NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "building_id" integer;
+ALTER TABLE "rooms" ALTER COLUMN "building_id" DROP NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "college_id" integer;
+ALTER TABLE "rooms" ALTER COLUMN "college_id" DROP NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "division_id" integer;
+ALTER TABLE "rooms" ALTER COLUMN "division_id" DROP NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "rooms" ALTER COLUMN "image_url" DROP NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "category" varchar(24);
+ALTER TABLE "rooms" ALTER COLUMN "category" DROP NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "rooms" ADD COLUMN IF NOT EXISTS "classes_fetched" boolean DEFAULT false NOT NULL;
@@ -267,6 +326,7 @@ CREATE TABLE IF NOT EXISTS "events" (
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "slug" varchar(120);
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "title" varchar(160);
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "events" ALTER COLUMN "description" DROP NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "category" text DEFAULT 'other' NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "starts_at" text;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "ends_at" text;
@@ -274,7 +334,9 @@ ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "timezone" varchar(64) DEFAULT 'As
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "recurrence" text DEFAULT 'none' NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "is_active" boolean DEFAULT true NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "source_url" text;
+ALTER TABLE "events" ALTER COLUMN "source_url" DROP NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "events" ALTER COLUMN "image_url" DROP NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "priority" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "include_in_seo" boolean DEFAULT false NOT NULL;
 ALTER TABLE "events" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
@@ -304,19 +366,28 @@ CREATE TABLE IF NOT EXISTS "event_locations" (
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "event_id" integer;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "anchor_type" text;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "building_id" integer;
+ALTER TABLE "event_locations" ALTER COLUMN "building_id" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "dorm_id" integer;
+ALTER TABLE "event_locations" ALTER COLUMN "dorm_id" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "label" text;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "event_locations" ALTER COLUMN "lat" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "lon" double precision;
+ALTER TABLE "event_locations" ALTER COLUMN "lon" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "highlight_priority" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "sort_order" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "is_primary" boolean DEFAULT false NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "resolved_lat" double precision;
+ALTER TABLE "event_locations" ALTER COLUMN "resolved_lat" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "resolved_lon" double precision;
+ALTER TABLE "event_locations" ALTER COLUMN "resolved_lon" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "resolved_label" text;
+ALTER TABLE "event_locations" ALTER COLUMN "resolved_label" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "building_name" text;
+ALTER TABLE "event_locations" ALTER COLUMN "building_name" DROP NOT NULL;
 ALTER TABLE "event_locations" ADD COLUMN IF NOT EXISTS "dorm_name" text;
+ALTER TABLE "event_locations" ALTER COLUMN "dorm_name" DROP NOT NULL;
 CREATE TABLE IF NOT EXISTS "event_routes" (
   "id" integer PRIMARY KEY,
   "event_id" integer NOT NULL,
@@ -328,6 +399,7 @@ CREATE TABLE IF NOT EXISTS "event_routes" (
 ALTER TABLE "event_routes" ADD COLUMN IF NOT EXISTS "event_id" integer;
 ALTER TABLE "event_routes" ADD COLUMN IF NOT EXISTS "name" varchar(120);
 ALTER TABLE "event_routes" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "event_routes" ALTER COLUMN "description" DROP NOT NULL;
 ALTER TABLE "event_routes" ADD COLUMN IF NOT EXISTS "sort_order" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "event_routes" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 CREATE TABLE IF NOT EXISTS "event_route_stops" (
@@ -345,14 +417,20 @@ CREATE TABLE IF NOT EXISTS "event_route_stops" (
 );
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "route_id" integer;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "event_location_id" integer;
+ALTER TABLE "event_route_stops" ALTER COLUMN "event_location_id" DROP NOT NULL;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "label" text;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "event_route_stops" ALTER COLUMN "lat" DROP NOT NULL;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "lon" double precision;
+ALTER TABLE "event_route_stops" ALTER COLUMN "lon" DROP NOT NULL;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "sort_order" integer DEFAULT 0 NOT NULL;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "resolved_lat" double precision;
+ALTER TABLE "event_route_stops" ALTER COLUMN "resolved_lat" DROP NOT NULL;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "resolved_lon" double precision;
+ALTER TABLE "event_route_stops" ALTER COLUMN "resolved_lon" DROP NOT NULL;
 ALTER TABLE "event_route_stops" ADD COLUMN IF NOT EXISTS "resolved_label" text;
+ALTER TABLE "event_route_stops" ALTER COLUMN "resolved_label" DROP NOT NULL;
 CREATE TABLE IF NOT EXISTS "jeepney_routes" (
   "id" varchar(64) PRIMARY KEY,
   "name" varchar(120) NOT NULL,
@@ -368,6 +446,7 @@ CREATE TABLE IF NOT EXISTS "jeepney_routes" (
 ALTER TABLE "jeepney_routes" ADD COLUMN IF NOT EXISTS "name" varchar(120);
 ALTER TABLE "jeepney_routes" ADD COLUMN IF NOT EXISTS "description" text;
 ALTER TABLE "jeepney_routes" ADD COLUMN IF NOT EXISTS "direction_note" text;
+ALTER TABLE "jeepney_routes" ALTER COLUMN "direction_note" DROP NOT NULL;
 ALTER TABLE "jeepney_routes" ADD COLUMN IF NOT EXISTS "color" varchar(16);
 ALTER TABLE "jeepney_routes" ADD COLUMN IF NOT EXISTS "fare_regular" double precision;
 ALTER TABLE "jeepney_routes" ADD COLUMN IF NOT EXISTS "fare_discounted" double precision;
@@ -411,9 +490,11 @@ ALTER TABLE "aliases" ADD COLUMN IF NOT EXISTS "normalized_alias" text;
 ALTER TABLE "aliases" ADD COLUMN IF NOT EXISTS "target_type" varchar(16);
 ALTER TABLE "aliases" ADD COLUMN IF NOT EXISTS "target_id" integer;
 ALTER TABLE "aliases" ADD COLUMN IF NOT EXISTS "source" varchar(32);
+ALTER TABLE "aliases" ALTER COLUMN "source" DROP NOT NULL;
 ALTER TABLE "aliases" ADD COLUMN IF NOT EXISTS "confidence" varchar(16) DEFAULT 'unverified' NOT NULL;
 ALTER TABLE "aliases" ADD COLUMN IF NOT EXISTS "created_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "aliases" ADD COLUMN IF NOT EXISTS "building_name" text;
+ALTER TABLE "aliases" ALTER COLUMN "building_name" DROP NOT NULL;
 CREATE TABLE IF NOT EXISTS "announcements" (
   "id" integer PRIMARY KEY,
   "title" text NOT NULL,
@@ -432,9 +513,71 @@ ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "body" text;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "severity" varchar(16) DEFAULT 'info' NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "starts_on" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "ends_on" text;
+ALTER TABLE "announcements" ALTER COLUMN "ends_on" DROP NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "link_url" text;
+ALTER TABLE "announcements" ALTER COLUMN "link_url" DROP NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "author" text;
+ALTER TABLE "announcements" ALTER COLUMN "author" DROP NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "created_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
+CREATE TABLE IF NOT EXISTS "flora_species" (
+  "id" integer PRIMARY KEY,
+  "scientific_name" text NOT NULL,
+  "family" text,
+  "common_names" text[],
+  "description" text,
+  "image_url" text,
+  "conservation_status" varchar(32),
+  "is_native" boolean,
+  "version" integer DEFAULT 1 NOT NULL,
+  "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "scientific_name" text;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "family" text;
+ALTER TABLE "flora_species" ALTER COLUMN "family" DROP NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "common_names" text[];
+ALTER TABLE "flora_species" ALTER COLUMN "common_names" DROP NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "flora_species" ALTER COLUMN "description" DROP NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "flora_species" ALTER COLUMN "image_url" DROP NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "conservation_status" varchar(32);
+ALTER TABLE "flora_species" ALTER COLUMN "conservation_status" DROP NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "is_native" boolean;
+ALTER TABLE "flora_species" ALTER COLUMN "is_native" DROP NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
+CREATE TABLE IF NOT EXISTS "flora_specimens" (
+  "id" integer PRIMARY KEY,
+  "species_id" integer NOT NULL,
+  "lat" double precision NOT NULL,
+  "lon" double precision NOT NULL,
+  "tag_number" varchar(32),
+  "planted_year" integer,
+  "notes" text,
+  "is_notable" boolean DEFAULT false NOT NULL,
+  "source" varchar(32) DEFAULT 'manual' NOT NULL,
+  "source_ref" text,
+  "source_licence" varchar(64),
+  "version" integer DEFAULT 1 NOT NULL,
+  "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "species_id" integer;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "lon" double precision;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "tag_number" varchar(32);
+ALTER TABLE "flora_specimens" ALTER COLUMN "tag_number" DROP NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "planted_year" integer;
+ALTER TABLE "flora_specimens" ALTER COLUMN "planted_year" DROP NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "notes" text;
+ALTER TABLE "flora_specimens" ALTER COLUMN "notes" DROP NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "is_notable" boolean DEFAULT false NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "source" varchar(32) DEFAULT 'manual' NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "source_ref" text;
+ALTER TABLE "flora_specimens" ALTER COLUMN "source_ref" DROP NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "source_licence" varchar(64);
+ALTER TABLE "flora_specimens" ALTER COLUMN "source_licence" DROP NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 `;

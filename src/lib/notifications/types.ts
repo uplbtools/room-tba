@@ -1,6 +1,7 @@
 export type NotificationEventType =
   | "proposal.submitted"
   | "proposal.reviewed"
+  | "feedback.submitted"
   | "deploy.succeeded"
   | "deploy.failed"
   | "release.published"
@@ -28,6 +29,16 @@ export type ProposalSubmittedPayload = {
   entityLabel: string;
   submitterName: string;
   isAnonymous: boolean;
+};
+
+/** In-app feedback (#881). No IP or other harvested field is ever sent. */
+export type FeedbackSubmittedPayload = {
+  feedbackId: number;
+  message: string;
+  contact: string | null;
+  screen: string | null;
+  appVersion: string | null;
+  wasOnline: boolean | null;
 };
 
 export type ProposalReviewOutcome = "approved" | "rejected" | "needs_changes";

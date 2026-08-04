@@ -77,12 +77,23 @@ jobs:
             echo "Release ${version} — opening sync PR."
           fi
 
+      # RELEASE_SYNC_TOKEN is a repo-admin PAT (contents: write, pull-requests:
+      # write). It exists because `main`'s ruleset requires one approving review
+      # and its only bypass actor is the Admin repository role — GITHUB_TOKEN is
+      # neither an admin nor a bypass actor, and GitHub does not let an actor
+      # approve its own PR, so a sync PR opened by github-actions[bot] can never
+      # satisfy the rule on its own. That is why #809, #822, #826, #831 and #834
+      # sat armed for a week and were closed unmerged (see #868). Opening the PR
+      # as an admin puts it under the existing bypass, so --auto can complete it.
+      # Without the secret the release still succeeds and the step below says
+      # plainly what a human has to do.
       - name: Open version sync PR
         if: steps.pkg.outputs.published == 'true'
         continue-on-error: true
         id: sync_pr
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ secrets.RELEASE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
           commit-message: "chore(release): ${{ steps.pkg.outputs.version }} [skip ci]"
           title: "chore(release): ${{ steps.pkg.outputs.version }}"
           body: |
@@ -95,17 +106,35 @@ jobs:
             CHANGELOG.md
             package.json
 
+      # No `|| echo` here on purpose: swallowing the exit code made this step
+      # report success on every release that silently drifted.
       - name: Auto-merge version sync PR
         if: steps.pkg.outputs.published == 'true' && steps.sync_pr.outputs.pull-request-number
+        continue-on-error: true
+        id: sync_merge
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "${{ steps.sync_pr.outputs.pull-request-number }}" \
+            --repo "${{ github.repository }}" --squash --auto
+
+      - name: Version sync needs a human
+        if: steps.pkg.outputs.published == 'true' && (steps.sync_pr.outcome == 'failure' || steps.sync_merge.outcome == 'failure')
+        run: |
+          echo "::warning::Version sync for ${{ steps.pkg.outputs.version }} did not land. CHANGELOG.md and package.json on main are now behind the tag, and the in-app What's-new modal reads that file. Fix: set the RELEASE_SYNC_TOKEN secret to a repo-admin PAT (contents + pull-requests write) so the sync PR is opened by an actor the main ruleset lets bypass review. Until then, merge PR #${{ steps.sync_pr.outputs.pull-request-number }} by hand."
+
+      # Auto-merge only *arms* on a blocked PR — it reports success and then
+      # waits. Catch the case where the previous release's PR is still sitting
+      # there, so the drift shows up in the release log instead of weeks later.
+      - name: Warn on unmerged sync PRs
+        if: steps.pkg.outputs.published == 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr merge "${{ steps.sync_pr.outputs.pull-request-number }}" \
-            --repo "${{ github.repository }}" --squash --auto \
-          || echo "::warning::Could not enable auto-merge on the sync PR — merge it manually, and enable repo Settings > General > Pull Requests > 'Allow auto-merge'."
-
-      - name: Version sync PR failed
-        if: steps.pkg.outputs.published == 'true' && steps.sync_pr.outcome == 'failure'
-        run: |
-          echo "::warning::Could not open version sync PR (org may block Actions from creating PRs). Open a manual chore(release): ${{ steps.pkg.outputs.version }} [skip ci] PR for package.json and CHANGELOG.md."
+          stale=$(gh pr list --repo "${{ github.repository }}" --base main \
+            --state open --json title \
+            --jq '[.[] | select(.title | startswith("chore(release):"))] | length')
+          if [ "${stale:-0}" -gt 1 ]; then
+            echo "::warning::${stale} version sync PRs are open and unmerged — CHANGELOG.md on main is drifting (see #868)."
+          fi

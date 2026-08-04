@@ -119,6 +119,9 @@
   }
 
   function handleGetStarted() {
+    if (dontShowAgain) {
+      localStorage.setItem("hideLandingModal", "true");
+    }
     if (installPrompt) {
       void installPrompt.prompt();
       installPrompt.userChoice.then(({ outcome }) => {
@@ -126,9 +129,6 @@
       });
       installPrompt = null;
       return;
-    }
-    if (dontShowAgain) {
-      localStorage.setItem("hideLandingModal", "true");
     }
     modalStore.closeModal();
   }
@@ -179,13 +179,6 @@
         <p class="hero-tagline">
           Find rooms, explore the map, and discover campus events at UPLB.
         </p>
-        <ul class="hero-pitches">
-          <li>No account needed. Search and browse without signing in.</li>
-          <li>
-            Works offline. Campus data is saved to your device after the first
-            visit.
-          </li>
-        </ul>
       </div>
     </div>
 
@@ -373,8 +366,7 @@
         Install Room TBA
       </button>
     {:else}
-      <button class="primary-btn" onclick={() => modalStore.closeModal()}
-        >Get Started</button
+      <button class="primary-btn" onclick={handleGetStarted}>Get Started</button
       >
     {/if}
     <label class="checkbox-label">
@@ -417,12 +409,12 @@
     text-align: center;
     gap: 0.25rem;
     color: white;
-    padding: 0.875rem 1rem;
-    min-height: clamp(4.75rem, 11vh, 6.5rem);
+    padding: 0.75rem 1rem;
+    min-height: 0;
   }
 
   .hero-overlay h2 {
-    font-size: clamp(1.5rem, 4vw, 1.875rem);
+    font-size: clamp(1.25rem, 3.5vw, 1.625rem);
     font-weight: 600;
     margin: 0;
     color: white;
@@ -437,8 +429,8 @@
   }
 
   .hero-logo {
-    width: clamp(2.25rem, 6vw, 2.75rem);
-    height: clamp(2.25rem, 6vw, 2.75rem);
+    width: clamp(1.5rem, 4vw, 1.75rem);
+    height: clamp(1.5rem, 4vw, 1.75rem);
     object-fit: contain;
   }
 
@@ -448,24 +440,6 @@
     font-weight: 500;
     max-width: 24rem;
     line-height: 1.35;
-  }
-
-  .hero-pitches {
-    list-style: none;
-    margin: 0.375rem 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    max-width: 24rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: hsl(5, 35%, 92%);
-  }
-
-  .hero-pitches li {
-    margin: 0;
   }
 
   .tab-bar {
@@ -766,13 +740,21 @@
       padding: 0.625rem 0.875rem 0.875rem;
     }
 
-    .hero-overlay.collapse-hero {
-      min-height: 0;
-      padding: 0.625rem 1rem;
+    /* Phones read the header as a title bar, not a splash screen: the tagline
+       is the only pitch here, the rest are cards in the panel below. */
+    .hero-overlay {
+      padding: 0.5rem 0.875rem;
     }
 
-    .hero-overlay.collapse-hero .hero-tagline,
-    .hero-overlay.collapse-hero .hero-pitches {
+    .tab-bar {
+      padding-top: 0.25rem;
+    }
+
+    .hero-overlay.collapse-hero {
+      padding: 0.5rem 0.875rem;
+    }
+
+    .hero-overlay.collapse-hero .hero-tagline {
       display: none;
     }
   }

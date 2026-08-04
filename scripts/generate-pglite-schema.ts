@@ -30,6 +30,8 @@ import {
   eventRouteStopsTable,
   eventsTable,
   finalExamsTable,
+  floraSpeciesTable,
+  floraSpecimensTable,
   jeepneyRoutesTable,
   jeepneyStopsTable,
   organizationsTable,
@@ -134,6 +136,8 @@ const SYNCED_TABLES: PgTable[] = [
   jeepneyStopsTable,
   aliasesTable,
   announcementsTable,
+  floraSpeciesTable,
+  floraSpecimensTable,
 ];
 
 /** Relax server types for the cache: no enums, timestamps stored as text
@@ -198,6 +202,15 @@ export function buildPgliteInitSql(): string {
       statements.push(
         `ALTER TABLE "${name}" ADD COLUMN IF NOT EXISTS ${columnDdl(col, true)};`,
       );
+      // ADD COLUMN only ever migrates new columns, so a column the server has
+      // since relaxed kept its old NOT NULL in caches that already existed, and
+      // every sync of a now-null value failed against them. Dropping it is a
+      // no-op where it was never set.
+      if (!col.notNull && !col.primaryKey) {
+        statements.push(
+          `ALTER TABLE "${name}" ALTER COLUMN "${col.name}" DROP NOT NULL;`,
+        );
+      }
     }
   }
   return statements.join("\n");

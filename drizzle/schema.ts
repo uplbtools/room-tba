@@ -93,7 +93,8 @@ export const dormsTable = pgTable("dorms", {
   shortName: varchar("short_name", { length: 48 }),
   lat: doublePrecision(),
   lon: doublePrecision(),
-  gender: text().notNull(),
+  /** Null = policy not known. Not the same claim as co-ed; see 0050. */
+  gender: text(),
   capacity: integer(),
   managingOffice: text("managing_office"),
   contactEmail: text("contact_email"),
@@ -184,6 +185,33 @@ export const announcementsTable = pgTable("announcements", {
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
+
+// In-app feedback (#881). Server-only: never synced to the PGlite client cache
+// (not in the generator's SYNCED_TABLES), and deliberately holds no IP address —
+// `contact` is optional free text the sender chose to leave.
+export const feedbackTable = pgTable(
+  "feedback",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "feedback_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    message: text().notNull(),
+    contact: text(),
+    /** Path the sender was on, e.g. `/planner` — not a full URL with query. */
+    screen: text(),
+    appVersion: text("app_version"),
+    wasOnline: boolean("was_online"),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("feedback_created_at_idx").on(table.createdAt.desc())],
+);
 
 export const collegesTable = pgTable("colleges", {
   id: integer().primaryKey().generatedByDefaultAsIdentity({
@@ -506,6 +534,8 @@ export const editProposalsTable = pgTable("edit_proposals", {
     () => adminUsersTable.id,
   ),
   adminNote: text("admin_note"),
+  /** Contributor's message to the reviewer. Never published (#873). */
+  submitterNote: text("submitter_note"),
   reviewedBy: varchar("reviewed_by", { length: 100 }),
   reviewedAt: timestamp("reviewed_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
@@ -743,3 +773,82 @@ export const sponsorImpressionsTable = pgTable("sponsor_impressions", {
   userAgent: text("user_agent"),
   pagePath: text("page_path"),
 });
+
+// Anonymous presence heartbeats behind the "N online" counter. A sid is a
+// random client-generated UUID held in sessionStorage — never an account, a
+// user id, or an IP. Server-only: deliberately absent from the PGlite
+// SYNCED_TABLES set so it never reaches the browser cache. Rows are pruned
+// opportunistically by /api/presence.
+export const presenceTable = pgTable("presence", {
+  sid: varchar({ length: 64 }).primaryKey(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+});
+
+/**
+ * Campus flora. Species and specimens are separate tables from the start:
+ * phase 1 shows one specimen per notable tree, phase 2 relaxes `isNotable` and
+ * hangs many specimens off a species to build a distribution view. Modelling
+ * both as one table now would make that a rewrite rather than an addition.
+ */
+export const floraSpeciesTable = pgTable("flora_species", {
+  id: integer().primaryKey().generatedByDefaultAsIdentity({
+    name: "flora_species_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 2147483647,
+    cache: 1,
+  }),
+  scientificName: text("scientific_name").notNull().unique(),
+  family: text(),
+  /** Filipino and English both; most of these have no single common name. */
+  commonNames: text("common_names").array(),
+  description: text(),
+  imageUrl: text("image_url"),
+  conservationStatus: varchar("conservation_status", { length: 32 }),
+  isNative: boolean("is_native"),
+  version: integer().default(1).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const floraSpecimensTable = pgTable(
+  "flora_specimens",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "flora_specimens_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    speciesId: integer("species_id")
+      .notNull()
+      .references(() => floraSpeciesTable.id, { onDelete: "cascade" }),
+    lat: doublePrecision().notNull(),
+    lon: doublePrecision().notNull(),
+    tagNumber: varchar("tag_number", { length: 32 }),
+    plantedYear: integer("planted_year"),
+    notes: text(),
+    isNotable: boolean("is_notable").default(false).notNull(),
+    /** `manual` | `crowdsourced` | `inaturalist` | `gbif` | `cfnr` */
+    source: varchar({ length: 32 }).default("manual").notNull(),
+    sourceRef: text("source_ref"),
+    /**
+     * Per-row licence, not bookkeeping. Campus data ships as CC-BY 4.0 and many
+     * iNaturalist observations are CC-BY-NC, which that claim cannot cover. This
+     * column is what lets a bulk CC-BY export drop the rows it may not carry.
+     */
+    sourceLicence: varchar("source_licence", { length: 64 }),
+    version: integer().default(1).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("flora_specimens_species_idx").on(table.speciesId),
+    index("flora_specimens_notable_idx").on(table.isNotable),
+  ],
+);

@@ -80,6 +80,11 @@ const E2E_MIGRATION_FILES = [
   "0040_pre_drizzle_schema_backfill.sql",
   "0041_add_announcements.sql",
   "0042_add_class_acad_org.sql",
+  "0043_add_presence.sql",
+  "0045_add_proposal_submitter_note.sql",
+  "0048_add_flora.sql",
+  "0049_add_feedback.sql",
+  "0050_dorm_gender_nullable.sql",
 ] as const;
 
 /**
@@ -217,6 +222,7 @@ async function main() {
 
     await client.query(`
       TRUNCATE TABLE
+        feedback,
         announcements,
         sponsor_impressions,
         planner_plans,

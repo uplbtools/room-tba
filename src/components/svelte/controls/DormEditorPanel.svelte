@@ -188,6 +188,7 @@
     >
       {#snippet control()}
         <select id="dorm-gender-editor" bind:value={genderDraft} {disabled}>
+          <option value="">Not recorded</option>
           <option value="male">Male-exclusive</option>
           <option value="female">Female-exclusive</option>
           <option value="coed">Co-ed</option>

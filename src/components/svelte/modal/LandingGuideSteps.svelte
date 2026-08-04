@@ -12,25 +12,53 @@
   import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
   import { DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
 
+  /**
+   * `secondary` cards are hidden on phones (see the 36rem media query): a
+   * first-timer needs the four things they can *do*; the rest describe
+   * behaviour they meet anyway while using the app.
+   */
   const features = [
-    { icon: Search, label: "Search rooms", hint: "Room codes and buildings" },
-    { icon: Map, label: "Explore the map", hint: "Buildings, dorms, and pins" },
-    { icon: CalendarDays, label: "Plan classes", hint: "Build a draft schedule" },
-    { icon: CalendarDays, label: "Events", hint: "Where things happen" },
+    {
+      icon: Search,
+      label: "Search rooms",
+      hint: "Room codes and buildings",
+      secondary: false,
+    },
+    {
+      icon: Map,
+      label: "Explore the map",
+      hint: "Buildings, dorms, and pins",
+      secondary: false,
+    },
+    {
+      icon: CalendarDays,
+      label: "Plan classes",
+      hint: "Build a draft schedule",
+      secondary: false,
+    },
+    {
+      icon: CalendarDays,
+      label: "Events",
+      hint: "Where things happen",
+      secondary: false,
+    },
     {
       icon: UserRound,
       label: "Browse freely",
       hint: "No sign-in required",
+      secondary: true,
     },
     {
       icon: WifiOff,
       label: "Offline-friendly",
       hint: "Cache after your first visit",
+      secondary: true,
     },
     {
       icon: PencilLine,
       label: "Suggest fixes",
       hint: "Optional login to edit",
+      secondary: true,
     },
   ] as const;
 
@@ -60,7 +88,10 @@
   <h3 id="guide-heading" class="guide-heading">What you can do here</h3>
   <ul class="feature-grid">
     {#each features as feature (feature.label)}
-      <li class="feature-card">
+      <li
+        class="feature-card"
+        class:feature-card--secondary={feature.secondary}
+      >
         <span class="feature-icon" aria-hidden="true">
           <feature.icon size={16} strokeWidth={2.25} />
         </span>
@@ -417,6 +448,10 @@
   @media screen and (max-width: 36rem) {
     .feature-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .feature-card--secondary {
+      display: none;
     }
 
     .step-flow {

@@ -702,6 +702,8 @@ class ProposalsStore {
       submitterName: string;
       proposedPatch: Record<string, unknown>;
       adminNote?: string | null;
+      /** Contributor's message to the reviewer, never published (#873). */
+      submitterNote?: string | null;
       createdAt: string;
       baseVersion: number;
       currentValues?: Record<string, unknown> | null;

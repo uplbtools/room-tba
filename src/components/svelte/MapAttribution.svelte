@@ -23,8 +23,12 @@
 >
   <!-- Required credits visible without a click (OSMF + MapTiler terms). -->
   <p class="map-attribution__credits">
+    <span>MapLibre</span>
+    <span aria-hidden="true">|</span>
+    <span>© Room TBA</span>
+    <span aria-hidden="true">|</span>
     <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
-      © OpenStreetMap
+      Map data © OpenStreetMap contributors
     </a>
     <span aria-hidden="true">·</span>
     <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
@@ -83,26 +87,39 @@
   .map-attribution {
     position: relative;
     z-index: 1;
-    display: flex;
+    display: inline-flex;
     flex-wrap: nowrap;
     align-items: center;
     gap: 0.25rem;
     flex: 0 0 auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.2rem 0.4rem;
+    border: none;
+    border-radius: 0;
+    background: rgb(255 255 255 / 0.4);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     pointer-events: auto;
     isolation: isolate;
   }
 
   .map-attribution__credits {
     display: inline-flex;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
     align-items: center;
     gap: 0.25rem;
+    min-width: 0;
     margin: 0;
-    color: hsl(0, 0%, 22%);
-    font-size: 0.6875rem;
-    font-weight: 600;
+    color: #111;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 400;
     line-height: 1.2;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .map-attribution__credits a {
@@ -119,7 +136,8 @@
   .attrib-body {
     position: absolute;
     bottom: calc(100% + 0.375rem);
-    left: 0;
+    right: 0;
+    left: auto;
     z-index: 1;
     box-sizing: border-box;
     display: flex;
@@ -127,32 +145,40 @@
     gap: 0.125rem;
     width: min(16rem, calc(100vw - 1.5rem));
     padding: 0.375rem 0.5rem;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: none;
     border-radius: 0.5rem;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: #fff;
     background-clip: padding-box;
     font-size: 0.6875rem;
     line-height: 1.35;
-    box-shadow: 0 2px 8px hsla(0, 0%, 0%, 0.12);
+    box-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
   }
 
   .map-attribution__toggle {
     all: unset;
     box-sizing: border-box;
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    min-width: 1.5rem;
-    min-height: 1.5rem;
-    color: hsl(0, 0%, 35%);
+    width: 1.125rem;
+    height: 1.125rem;
+    min-width: 1.125rem;
+    min-height: 1.125rem;
+    color: #5c5c5c;
     cursor: pointer;
-    border-radius: 0.25rem;
+    border-radius: 999px;
   }
 
   .map-attribution__toggle:hover,
   .map-attribution__toggle:focus-visible,
   .map-attribution__toggle--active {
-    color: hsl(5, 53%, 32%);
+    color: #8d1437;
+  }
+
+  .map-attribution__toggle:focus-visible {
+    outline: 2px solid #8d1437;
+    outline-offset: 1px;
   }
 
   .attrib-body a {
@@ -169,12 +195,12 @@
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: none;
     border-radius: 0.375rem;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: #fff;
     background-clip: padding-box;
     padding: 0.25rem 0.375rem;
-    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.1);
+    box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
   .maptiler-logo img {

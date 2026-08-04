@@ -79,12 +79,16 @@ export const GET: APIRoute = async ({ url }) => {
         objectFit: "cover",
       },
     }),
+    // Flat tint, not a bottom-weighted gradient scrim: Satori does not
+    // reliably honour backgroundImage gradients, so the card rendered
+    // unchanged. The title carries its own surface instead (below), leaving
+    // this tint responsible only for the wordmark and badge.
     h("div", {
       style: {
         position: "absolute",
         inset: 0,
         display: "flex",
-        backgroundColor: "rgba(28, 8, 7, 0.48)",
+        backgroundColor: "rgba(28, 8, 7, 0.42)",
       },
     }),
     h(
@@ -162,6 +166,13 @@ export const GET: APIRoute = async ({ url }) => {
             flexDirection: "column",
             marginTop: "auto",
             maxWidth: 1040,
+            // The photo has near-white lettering exactly where the title sits,
+            // so a tint over the whole image cannot guarantee contrast. Give
+            // the text its own surface instead: white on this is ~13:1 no
+            // matter what the background photo does.
+            backgroundColor: "rgba(24, 7, 6, 0.82)",
+            borderRadius: 22,
+            padding: "26px 30px",
           },
         },
         title
@@ -178,7 +189,8 @@ export const GET: APIRoute = async ({ url }) => {
                   lineHeight: 1.04,
                   letterSpacing: "-0.03em",
                   color: WHITE,
-                  textShadow: "0 3px 10px rgba(0, 0, 0, 0.55)",
+                  textShadow:
+                    "0 2px 6px rgba(0, 0, 0, 0.95), 0 0 28px rgba(0, 0, 0, 0.8)",
                 },
               },
               title,

@@ -13,7 +13,7 @@ import type {
   RoomData,
   TableSyncInfo,
 } from "@lib/types";
-import { getDB } from "./pgliteDB";
+import { getDB, isLocalCacheReady } from "./pgliteDB";
 import { ENTITY_FETCH_OPTIONS, fetchJsonWithRetry } from "./fetch-json";
 import {
   getLocalBuildingRooms,
@@ -30,7 +30,7 @@ export async function getLocalJeepneyRoutes(): Promise<
   JeepneyRoute[] | undefined
 > {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const [routes, stops] = await Promise.all([
       localDB.query(`
@@ -75,7 +75,7 @@ export async function getLocalJeepneyRoutes(): Promise<
 
 export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", cr_facilities AS "crFacilities", version, updated_at AS "updatedAt" FROM buildings
@@ -89,7 +89,7 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
 
 export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT college_name AS "collegeName", website_link AS "websiteLink", id, version, updated_at AS "updatedAt" FROM colleges;
@@ -103,7 +103,7 @@ export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
 
 export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
         SELECT division_name AS "divisionName", website_link AS "websiteLink", id, version, updated_at AS "updatedAt" FROM divisions;
@@ -117,7 +117,7 @@ export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
 
 export async function getLocalDorms(): Promise<DormData[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
       SELECT
@@ -151,7 +151,7 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
 
 export async function getLocalOrganizations(): Promise<OrgData[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
       SELECT
@@ -184,7 +184,7 @@ export async function getLocalOrganizations(): Promise<OrgData[] | undefined> {
 
 export async function getLocalPlaces(): Promise<PlaceData[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
       SELECT
@@ -213,7 +213,7 @@ export async function getLocalAnnouncements(): Promise<
   AnnouncementData[] | undefined
 > {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
       SELECT
@@ -239,7 +239,7 @@ export async function getLocalAnnouncements(): Promise<
 
 export async function getLocalEvents(): Promise<EventData[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const [events, locations, routes, stops] = await Promise.all([
       localDB.query(`
@@ -341,7 +341,7 @@ export async function getLocalEvents(): Promise<EventData[] | undefined> {
 export async function getLocalRoomByCode(code: string) {
   try {
     const normalizedCode = code.toUpperCase();
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -378,7 +378,7 @@ export async function getLocalRoomByCode(code: string) {
 
 export async function getLocalRoomById(id: number) {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -441,7 +441,7 @@ export async function getLocalRoomById(id: number) {
 
 export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
 
     await localDB.waitReady;
     const data = (await localDB.query(`
@@ -475,7 +475,7 @@ export async function getBuildingIdsWithClasses(
   termId?: number | null,
 ): Promise<Set<number>> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const scoped = termId != null;
     const data = (await localDB.query(
@@ -552,7 +552,12 @@ export function getEntity<T>(
         return [];
       }
     };
-    const initialSnapshot: T[] = await local();
+    // #866: the cache hydrates in the background (~5 MB of wasm). This
+    // snapshot is only a last-resort fallback for a failed fetch, so it must
+    // not put the whole boot behind PGlite — a first-time visitor would be
+    // waiting on a database that is guaranteed empty. Once hydrated, every
+    // later call takes the real snapshot as before.
+    const initialSnapshot: T[] = isLocalCacheReady() ? await local() : [];
     // Offline (sync endpoint unreachable): prefer stale local cache over
     // failing to remote. Only treat invalid checker as "must refetch" when
     // we actually got a newKey back (confirmed sync mismatch) (#169).
@@ -679,7 +684,7 @@ export async function getLocalClassesForRoom(
   termId: number | null,
 ): Promise<ClassMapValue[] | null> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const hasAny = (await localDB.query(
       "SELECT 1 FROM classes LIMIT 1",
@@ -718,7 +723,7 @@ export async function getLocalRoomClassCounts(
   termId?: number,
 ): Promise<Map<number, number> | null> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const hasAny = (await localDB.query(
       "SELECT 1 FROM classes LIMIT 1",
@@ -812,7 +817,7 @@ export async function getLocalRoomsCounts(): Promise<
   Pick<DBData, "directionCount" | "totalRooms">
 > {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const total = (await localDB.query(
       "SELECT COUNT(*)::int AS count FROM rooms",
@@ -841,7 +846,7 @@ export async function searchLocalRooms(
       .replace(/\\/g, "\\\\")
       .replace(/%/g, "\\%")
       .replace(/_/g, "\\_");
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `SELECT room_code AS value FROM rooms
@@ -864,7 +869,7 @@ export async function searchLocalAliases(
   const normalized = normalizeAlias(searchString);
   if (!normalized) return [];
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `

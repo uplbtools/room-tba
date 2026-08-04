@@ -1,26 +1,74 @@
+import { fetchJsonWithRetry, SYNC_CHECK_FETCH_OPTIONS } from "./fetch-json";
+
+type SyncKeyResponse = {
+  success: boolean;
+  error: string | null;
+  data: Record<string, string | null> | null;
+};
+
+/**
+ * Shared in-flight probe of `/api/check` (#866). Boot asks for eight tables in
+ * the same tick and they all await this one request instead of firing eight
+ * `/api/check/<table>` probes. Cleared once it settles, so a later refresh
+ * (coming back online, an admin write) re-probes and never reads a stale key.
+ */
+let syncKeysInFlight: Promise<Record<string, string | null>> | null = null;
+
+/** Remote sync key for one table; null when the registry is unreachable. */
+export async function getSyncKey(table: string): Promise<string | null> {
+  try {
+    if (!syncKeysInFlight) {
+      syncKeysInFlight = fetchJsonWithRetry<SyncKeyResponse>(
+        "/api/check",
+        SYNC_CHECK_FETCH_OPTIONS,
+      )
+        .then((response) => response.data ?? {})
+        .finally(() => {
+          syncKeysInFlight = null;
+        });
+    }
+    return (await syncKeysInFlight)[table] ?? null;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
 /** LocalStorage sync-key helpers (no PGlite imports). */
+
+/**
+ * Every table tracked by a sync key. Single source of truth: the stored
+ * default is built from this, and callers that invalidate "everything"
+ * (Settings → Resync campus data) read it instead of hardcoding a subset that
+ * silently rots when a table is added.
+ */
+export const SYNC_TABLE_NAMES = [
+  "buildings",
+  "colleges",
+  "divisions",
+  "rooms",
+  "dorms",
+  "classes",
+  "final_exams",
+  "events",
+  "organizations",
+  "places",
+  "announcements",
+] as const;
+
+function emptySyncKeys(): string {
+  return JSON.stringify(
+    Object.fromEntries(SYNC_TABLE_NAMES.map((table) => [table, ""])),
+  );
+}
+
 export function getSyncKeysFromLs(): {
   [key: string]: string;
 } | null {
   const lsStore = localStorage.getItem("sync-key");
 
   if (lsStore === null) {
-    localStorage.setItem(
-      "sync-key",
-      `{
-      "buildings": "",
-      "colleges": "",
-      "divisions": "",
-      "rooms": "",
-      "dorms": "",
-      "classes": "",
-      "final_exams": "",
-      "events": "",
-      "organizations": "",
-      "places": "",
-      "announcements": ""
-    }`,
-    );
+    localStorage.setItem("sync-key", emptySyncKeys());
     return null;
   }
 
@@ -35,22 +83,7 @@ export function getSyncKeysFromLs(): {
     }
   } catch {
     console.error("Error: the sync keys in the localStorage was corrupted");
-    localStorage.setItem(
-      "sync-key",
-      `{
-      "buildings": "",
-      "colleges": "",
-      "divisions": "",
-      "rooms": "",
-      "dorms": "",
-      "classes": "",
-      "final_exams": "",
-      "events": "",
-      "organizations": "",
-      "places": "",
-      "announcements": ""
-    }`,
-    );
+    localStorage.setItem("sync-key", emptySyncKeys());
     return null;
   }
 }

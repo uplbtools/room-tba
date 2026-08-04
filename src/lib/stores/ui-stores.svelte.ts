@@ -175,8 +175,12 @@ export class ToastStore {
   };
 }
 
+/** Mobile entity bottom sheet snap; desktop stays `"closed"`. */
+export type MobileSheetSnap = "closed" | "peek" | "expanded";
+
 export class MainControlsStore {
   collapsed: boolean = $state(false);
+  mobileSheetSnap: MobileSheetSnap = $state("closed");
 
   toggle = () => {
     this.collapsed = !this.collapsed;
@@ -188,6 +192,10 @@ export class MainControlsStore {
 
   collapse = () => {
     this.collapsed = true;
+  };
+
+  setMobileSheetSnap = (snap: MobileSheetSnap) => {
+    this.mobileSheetSnap = snap;
   };
 }
 

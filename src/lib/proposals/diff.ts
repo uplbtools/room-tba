@@ -12,6 +12,7 @@ export const FIELD_LABELS: Record<string, string> = {
   roomCode: "Room code",
   collegeName: "College name",
   collegeId: "Parent college",
+  divisionId: "Division",
   divisionName: "Division name",
   description: "Description",
   managingOffice: "Managing office",
@@ -37,7 +38,21 @@ export type FieldDiff = {
   /** null = empty / not set (render as em dash) */
   before: string | null;
   after: string | null;
+  /**
+   * Raw row ids, set only when `before`/`after` above were replaced by a
+   * resolved entity name. Reviewers see the name; the id stays available as
+   * secondary text (#873).
+   */
+  beforeId?: number;
+  afterId?: number;
 };
+
+/**
+ * Maps a foreign-key field and row id to that entity's display name, or null
+ * when it cannot be resolved. Without one, `*Id` fields render as raw row ids
+ * and an approver cannot judge the edit (#873).
+ */
+export type EntityNameResolver = (field: string, id: number) => string | null;
 
 // Keys with their own review summary (create_building bundled rooms).
 const SKIPPED_KEYS = new Set(["rooms"]);
@@ -79,24 +94,50 @@ function formatValue(value: unknown): string | null {
  * Before/after rows for a proposal patch against the currently published
  * entity. `current` is null for create_* proposals (before renders as new).
  * Unchanged fields are omitted so reviewers only see real differences.
+ *
+ * Pass `resolveName` to turn foreign keys into entity names. Change detection
+ * always runs on the raw ids, so two buildings that happen to share a name
+ * still register as a change.
  */
 export function buildFieldDiffs(
   current: Record<string, unknown> | null,
   patch: Record<string, unknown>,
+  resolveName?: EntityNameResolver,
 ): FieldDiff[] {
   const diffs: FieldDiff[] = [];
   for (const [field, proposed] of Object.entries(patch)) {
     if (SKIPPED_KEYS.has(field)) continue;
     const format = field === "locations" ? formatLocations : formatValue;
-    const before = current ? format(current[field]) : null;
+    const beforeRaw = current ? current[field] : null;
+    const before = current ? format(beforeRaw) : null;
     const after = format(proposed);
     if (current && before === after) continue;
-    diffs.push({
+
+    const diff: FieldDiff = {
       field,
       label: FIELD_LABELS[field] ?? field,
       before,
       after,
-    });
+    };
+
+    if (resolveName && field.endsWith("Id")) {
+      if (typeof beforeRaw === "number") {
+        const name = resolveName(field, beforeRaw);
+        if (name) {
+          diff.before = name;
+          diff.beforeId = beforeRaw;
+        }
+      }
+      if (typeof proposed === "number") {
+        const name = resolveName(field, proposed);
+        if (name) {
+          diff.after = name;
+          diff.afterId = proposed;
+        }
+      }
+    }
+
+    diffs.push(diff);
   }
   return diffs;
 }

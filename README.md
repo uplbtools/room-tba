@@ -60,6 +60,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Measure a route | Map tools → Measure route; drop waypoints, get walk / cycle / car times |
 | 3D view | Buildings + Makiling terrain (online) |
 | Common questions | [Student FAQ](https://room-tba.uplb.tools/faq) (3D models, data sources, offline) |
+| Tell us something is wrong | Settings → Feedback; free text, optional contact, or reach the team on Messenger / Discord |
 | Understand section names | Wiki guide to the A–H / S–Z class time blocks |
 
 <details>
@@ -192,6 +193,9 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bun run import:amis-classes` | Upsert AMIS classes (`docs/amis-com-refresh-runbook.md`) |
 | `bun run backfill:acad-orgs` | Rerun the AMIS import over the 9 cached term JSONs to fill `classes.acad_group`/`acad_org` (#846) |
 | `bun run import:final-exams` | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
+| `bun run audit:campus-data` | Read-only sweep for wrong pins, scattered tenants, missing building links and orphan rooms (`PROD_DATABASE_URL`; writes nothing) |
+| `bun run record:bulk-history` | Record `editor_history` rows for a maintenance/bulk data operation (`DATABASE_URL`; dry run unless `--apply`; see `docs/bulk-data-history.md`) |
+| `bun run backfill:bulk-history` | One-off: backfill history for the 2026-08-03/04 direct-database corrections (`DATABASE_URL`; dry run unless `--apply`) |
 
 Legacy **`data/info.db`** SQLite is only for old seed/export scripts (`bun:sqlite`, not runtime). Production uses Supabase Postgres via `DATABASE_URL`. Archived SQLite migrations live in `drizzle-migrations/`: do not edit; active schema is `drizzle/`.
 

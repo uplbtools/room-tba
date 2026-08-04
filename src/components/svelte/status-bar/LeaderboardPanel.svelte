@@ -7,6 +7,7 @@
   let error = $state<string | null>(null);
   let rows = $state<LeaderboardRow[]>([]);
   let window = $state<"month" | "semester" | "all">("month");
+  let board = $state<"community" | "editors">("community");
 
   onMount(() => {
     loadLeaderboard();
@@ -16,7 +17,9 @@
     loading = true;
     error = null;
     try {
-      const res = await fetch(`/api/contributors/leaderboard?window=${window}`);
+      const res = await fetch(
+        `/api/contributors/leaderboard?window=${window}&board=${board}`,
+      );
       if (!res.ok) throw new Error("Failed to load leaderboard");
       const data = await res.json();
       rows = data.rows || [];
@@ -32,6 +35,12 @@
     loadLeaderboard();
   }
 
+  function selectBoard(next: "community" | "editors") {
+    if (board === next) return;
+    board = next;
+    loadLeaderboard();
+  }
+
   const MEDALS = ["🥇", "🥈", "🥉"];
   function initials(name: string) {
     return name
@@ -44,6 +53,28 @@
 
 <div class="leaderboard-panel">
   <header class="leaderboard-header">
+    <div class="leaderboard-boards" role="tablist" aria-label="Leaderboard">
+      <button
+        type="button"
+        role="tab"
+        class="leaderboard-board"
+        class:selected={board === "community"}
+        aria-selected={board === "community"}
+        onclick={() => selectBoard("community")}
+      >
+        Community
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="leaderboard-board"
+        class:selected={board === "editors"}
+        aria-selected={board === "editors"}
+        onclick={() => selectBoard("editors")}
+      >
+        Editors
+      </button>
+    </div>
     <select class="leaderboard-select" onchange={handleWindowChange} value={window}>
       <option value="month">This month</option>
       <option value="semester">This semester</option>
@@ -90,7 +121,33 @@
   
   .leaderboard-header {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .leaderboard-boards {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .leaderboard-board {
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid hsl(0, 0%, 82%);
+    border-radius: 0.375rem;
+    background: hsl(0, 0%, 100%);
+    color: hsl(0, 0%, 38%);
+    cursor: pointer;
+  }
+
+  .leaderboard-board.selected {
+    border-color: var(--map-ui-primary, hsl(5, 70%, 50%));
+    background: hsl(5, 60%, 96%);
+    color: var(--map-ui-primary, hsl(5, 70%, 50%));
   }
 
   .leaderboard-select {
