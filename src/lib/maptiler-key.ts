@@ -1,4 +1,6 @@
 /** Placeholder in committed map assets — replaced at runtime with PUBLIC_MAPTILER_KEY. */
+import { setBasemapProvider } from "./basemap-provider";
+
 export const MAPTILER_KEY_PLACEHOLDER = "__MAPTILER_KEY__";
 
 /** MapTiler client key — set PUBLIC_MAPTILER_KEY in .env (domain-restricted on MapTiler). */
@@ -89,10 +91,14 @@ async function loadFallbackMapStyle<T>(): Promise<T> {
     const response = await fetch(FALLBACK_MAP_STYLE_URL, {
       signal: AbortSignal.timeout(TILE_PROBE_TIMEOUT_MS),
     });
-    if (response.ok) return (await response.json()) as T;
+    if (response.ok) {
+      setBasemapProvider("openfreemap");
+      return (await response.json()) as T;
+    }
   } catch {
     // No network for the fallback either — fall through to raster.
   }
+  setBasemapProvider("osm-raster");
   return OFFLINE_FALLBACK_MAP_STYLE as T;
 }
 
@@ -115,5 +121,6 @@ export async function loadCampusMapStyle<T>(): Promise<T> {
     return loadFallbackMapStyle<T>();
   }
 
+  setBasemapProvider("maptiler");
   return style;
 }

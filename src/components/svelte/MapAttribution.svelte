@@ -6,9 +6,23 @@
     OSM_COPYRIGHT_URL,
   } from "@constants/data-license";
   import { terrainStore } from "@lib/store.svelte";
+  import { onMount } from "svelte";
+  import {
+    getBasemapProvider,
+    onBasemapProviderChange,
+  } from "@lib/basemap-provider";
   import "./map-chrome/map-chrome.css";
 
   let expanded = $state(false);
+
+  // Credit whoever actually served the tiles (#885). The OpenStreetMap credit
+  // is required in every case; only the vendor line changes. The style loads
+  // asynchronously and may fall back after this mounts, so subscribe rather
+  // than read once.
+  let provider = $state(getBasemapProvider());
+  const servedByMaptiler = $derived(provider === "maptiler");
+
+  onMount(() => onBasemapProviderChange((next) => (provider = next)));
 
   function toggleExpanded() {
     expanded = !expanded;
@@ -26,10 +40,21 @@
     <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
       © OpenStreetMap
     </a>
-    <span aria-hidden="true">·</span>
-    <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
-      © MapTiler
-    </a>
+    {#if servedByMaptiler}
+      <span aria-hidden="true">·</span>
+      <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+        © MapTiler
+      </a>
+    {:else if provider === "openfreemap"}
+      <span aria-hidden="true">·</span>
+      <a
+        href="https://openfreemap.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        © OpenFreeMap
+      </a>
+    {/if}
   </p>
   <button
     type="button"
@@ -47,16 +72,30 @@
       <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
         © OpenStreetMap contributors
       </a>
-      <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
-        © MapTiler
-      </a>
-      <a
-        href="https://openmaptiles.org/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        © OpenMapTiles
-      </a>
+      {#if servedByMaptiler}
+        <a
+          href={MAPTILER_COPYRIGHT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          © MapTiler
+        </a>
+        <a
+          href="https://openmaptiles.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          © OpenMapTiles
+        </a>
+      {:else if provider === "openfreemap"}
+        <a
+          href="https://openfreemap.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          © OpenFreeMap
+        </a>
+      {/if}
       <a href={DATA_LICENSE_FAQ_PATH}>Campus data license</a>
     </div>
   {/if}
