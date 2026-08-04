@@ -202,7 +202,8 @@
     nameDraft = current.dormName;
     shortNameDraft = current.shortName ?? "";
     descriptionDraft = current.description ?? "";
-    genderDraft = current.gender;
+    // Null policy binds to the select's "Not recorded" option, which is "".
+    genderDraft = current.gender ?? "";
     isUpManagedDraft = current.isUpManaged ?? true;
     capacityDraft =
       current.capacity === null || current.capacity === undefined
@@ -333,7 +334,9 @@
       case "description":
         return descriptionDraft.trim() === (current.description ?? "");
       case "gender":
-        return genderDraft === current.gender;
+        // Both spellings of "not recorded" are the same value to the user, so
+        // an untouched null must not read as an edit.
+        return genderDraft === (current.gender ?? "");
       case "isUpManaged":
         return isUpManagedDraft === (current.isUpManaged ?? true);
       case "capacity": {
