@@ -90,6 +90,8 @@ export const campusCommunity = {
   orgUrl: "https://uplb.tools",
   githubUrl: "https://github.com/uplbtools/room-tba",
   discordUrl: "https://discord.uplbtools.me",
+  facebookUrl: "https://facebook.com/uplb.tools",
+  instagramUrl: "https://instagram.com/uplb.tools",
   osaOrganizationsUrl: "https://uplbosa.org/orgs",
   /** Messenger group chat invites (targets for redirect workers). */
   messengerContributeTarget: "https://m.me/j/Aba1V0prvQyLrafZ/",

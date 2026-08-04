@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
+  COMMUNITY_LINKS,
   DISCORD_URL,
+  FACEBOOK_URL,
+  INSTAGRAM_URL,
   MESSENGER_CONTRIBUTE_TARGET,
   MESSENGER_CONTRIBUTE_URL,
   MESSENGER_MAINTAIN_TARGET,
@@ -31,5 +34,12 @@ describe("community-links", () => {
 
   test("Discord short link unchanged", () => {
     expect(DISCORD_URL).toBe("https://discord.uplbtools.me");
+  });
+  test("UPLB Tools socials are listed for the footer", () => {
+    expect(FACEBOOK_URL).toBe("https://facebook.com/uplb.tools");
+    expect(INSTAGRAM_URL).toBe("https://instagram.com/uplb.tools");
+    const labels = COMMUNITY_LINKS.map((link) => link.label);
+    expect(labels).toContain("Facebook");
+    expect(labels).toContain("Instagram");
   });
 });
