@@ -15,6 +15,20 @@ import { gotoHome, waitForAppBoot } from "../helpers/app";
 
 const WIDTHS = [320, 375, 414, 768] as const;
 
+// #893 fixed the clipping by letting both the chrome row and the credits pill
+// wrap. The pill wrapping was the wrong half: it split the status onto a row of
+// its own, so the chrome grew 91px -> 147px at 320px and read as a status bar
+// stacked against the attribution. Only the outer row may wrap now, which caps
+// the chrome at two rows (pill, then the action column).
+//
+// Height, not just horizontal extent, is the assertion that catches it: the
+// original spec only checked that boxes sat inside the viewport, which stayed
+// true while the chrome doubled in height.
+const MAX_CHROME_HEIGHT_PX = 132;
+
+// One text line plus the pill's padding and border. A second row lands at ~52px.
+const MAX_BAR_HEIGHT_PX = 40;
+
 // Widest control the bar can gain: the sync-error "Retry" button. Nothing in
 // app code calls setSyncError (the sync path swallows errors by design, #169),
 // so the state is not reachable from the network. Injecting a probe of the same
@@ -111,12 +125,51 @@ async function measure(page: import("@playwright/test").Page) {
       }
     }
 
+    // A control is dead when the point a user taps belongs to something else.
+    // Box geometry cannot see this: #893's touch-target overlay left every
+    // control the right size and still swallowed its neighbours' taps, because
+    // `100%` on an absolutely positioned ::after resolves against the nearest
+    // positioned ancestor, not the button, and it inherited pointer-events.
+    const obscured: string[] = [];
+    for (const el of document.querySelectorAll(
+      ".bottom-chrome button, .bottom-chrome a, .map-attribution button, .map-attribution a, .map-dimension-toggle .segment",
+    )) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) {
+        continue; // offscreen is already covered by assertInsideViewport
+      }
+      const hit = document.elementFromPoint(x, y);
+      if (hit && (hit === el || el.contains(hit))) continue;
+      const label =
+        el.getAttribute("aria-label") || (el.textContent || "").trim();
+      const by = hit
+        ? `${hit.tagName.toLowerCase()}.${hit.className}`.slice(0, 60)
+        : "nothing";
+      obscured.push(`${label} (blocked by ${by})`);
+    }
+
+    // The pill is one line: credits and status sit on the same row.
+    const attribution = document.querySelector(".map-attribution");
+    const status = document.querySelector(".status-bar");
+    const rowSplit =
+      attribution && status
+        ? Math.abs(
+            attribution.getBoundingClientRect().top -
+              status.getBoundingClientRect().top,
+          ) > 12
+        : false;
+
     return {
       viewportWidth: window.innerWidth,
       scrollWidth: doc.scrollWidth,
       clientWidth: doc.clientWidth,
       boxes,
       triggers,
+      obscured,
+      rowSplit,
     };
   });
 }
@@ -180,6 +233,32 @@ test.describe("bottom chrome fits the viewport", () => {
         wrappedControls,
         `${width}px: control labels wrapped to two lines`,
       ).toEqual([]);
+
+      // 5. Every control is actually tappable, not just correctly sized.
+      expect(
+        measured.obscured,
+        `${width}px: controls covered by another element`,
+      ).toEqual([]);
+
+      // 6. The chrome stays within two rows. Fitting the viewport horizontally
+      //    is not enough: the pill can wrap internally and grow downward.
+      const chrome = measured.boxes.find((b) => b.name === ".bottom-chrome");
+      expect(
+        chrome?.height,
+        `${width}px: bottom chrome height`,
+      ).toBeLessThanOrEqual(MAX_CHROME_HEIGHT_PX);
+
+      const bar = measured.boxes.find((b) => b.name === ".bottom-chrome__bar");
+      expect(
+        bar?.height,
+        `${width}px: credits pill grew past one row`,
+      ).toBeLessThanOrEqual(MAX_BAR_HEIGHT_PX);
+
+      // 7. Credits and status stay on the same row of the pill.
+      expect(
+        measured.rowSplit,
+        `${width}px: status bar split onto its own row above/below the attribution`,
+      ).toBe(false);
     }
   });
 
@@ -223,6 +302,18 @@ test.describe("bottom chrome fits the viewport", () => {
         `${width}px + probe: horizontal page scroll`,
       ).toBeLessThanOrEqual(measured.clientWidth);
       assertInsideViewport(measured, `${width}px + sync action probe`);
+
+      // The status text ellipsises to make room for the action, so the pill
+      // absorbs it on one row rather than growing a second.
+      const chrome = measured.boxes.find((b) => b.name === ".bottom-chrome");
+      expect(
+        chrome?.height,
+        `${width}px + probe: bottom chrome height`,
+      ).toBeLessThanOrEqual(MAX_CHROME_HEIGHT_PX);
+      expect(
+        measured.rowSplit,
+        `${width}px + probe: status split onto its own row`,
+      ).toBe(false);
     }
   });
 });

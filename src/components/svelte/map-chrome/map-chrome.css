@@ -759,34 +759,3 @@ button.map-chrome-chip:disabled {
   top: 0;
   left: 0;
 }
-
-/* The bottom chrome is deliberately short, so these controls grow their hit
-   area with an overlay rather than their box: the band keeps its height and
-   only pointer input gains the 44px target (WCAG 2.5.8). Attribution links sit
-   inline next to each other, so they grow vertically only; widening them would
-   make neighbouring targets overlap and steal each other's taps. */
-.map-attribution__credits a,
-.map-attribution__toggle,
-.map-dimension-toggle .segment {
-  position: relative;
-}
-
-.map-attribution__credits a::after,
-.map-attribution__toggle::after,
-.map-dimension-toggle .segment::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  height: max(100%, 2.75rem);
-  transform: translate(-50%, -50%);
-}
-
-.map-attribution__credits a::after {
-  width: 100%;
-}
-
-.map-attribution__toggle::after,
-.map-dimension-toggle .segment::after {
-  width: max(100%, 2.75rem);
-}

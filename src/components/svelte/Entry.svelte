@@ -633,6 +633,17 @@
     justify-content: flex-end;
     flex-shrink: 0;
     width: 100%;
+    /* The band is a flex item several levels below .app-layout, and an ancestor
+       (.inner-layer) still carries flexbox's default `min-width: auto`. So the
+       band's min-content width (the nowrap credits plus the status text)
+       inflated it past the viewport, 719px at 320px, and every `max-width:100%`
+       underneath resolved against that inflated width instead of the screen.
+       Nothing could shrink, so the trailing controls laid out off-screen. That
+       is the real cause of the clipping #893 worked around by wrapping the
+       pill. Capping against the viewport fixes it at the source without
+       reaching into the shared shell. */
+    min-width: 0;
+    max-width: 100vw;
     pointer-events: none;
   }
 
@@ -651,7 +662,9 @@
     gap: 0.5rem;
     row-gap: 0.375rem;
     width: 100%;
-    max-width: 100%;
+    /* vw, not %: see .bottom-band. A percentage here resolves against an
+       ancestor that has already been inflated past the screen. */
+    max-width: 100vw;
     min-width: 0;
     min-height: 2rem;
     box-sizing: border-box;
@@ -665,13 +678,14 @@
   .bottom-chrome__bar {
     display: flex;
     flex-direction: row;
-    /* Credits are a hard floor (they may not be truncated — basemap terms), so
-       the status text and any sync action wrap under them rather than widening
-       the pill past the viewport. */
-    flex-wrap: wrap;
+    /* Never wrap: the credits and the status read as one line, and wrapping put
+       the status on a row of its own, which reads as a second status bar
+       stacked against the attribution. Credits are a hard floor (basemap terms
+       forbid truncating them), so the status column gives up the space instead
+       — see .bottom-chrome__status. */
+    flex-wrap: nowrap;
     align-items: center;
     gap: 0.375rem;
-    row-gap: 0.125rem;
     flex: 0 1 auto;
     min-width: 0;
     max-width: 100%;
@@ -705,6 +719,22 @@
     align-items: center;
     min-width: 0;
     overflow: hidden;
+  }
+
+  /* The pill is one line, so the status text is what yields when the viewport
+     cannot fit credits + status: it ellipsises instead of wrapping the pill
+     onto a second row. Any sync action button beside it keeps its full width,
+     so a Retry stays tappable at 320px. */
+  .bottom-chrome__status :global(.sync-status),
+  .bottom-chrome__status :global(.sync-status-copy) {
+    min-width: 0;
+  }
+
+  .bottom-chrome__status :global(.sync-status-label),
+  .bottom-chrome__status :global(.sync-status-detail) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .bottom-chrome__status :global(.status-bar) {
