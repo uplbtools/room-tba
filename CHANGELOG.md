@@ -1,3 +1,10 @@
+## [2.12.1](https://github.com/uplbtools/room-tba/compare/v2.12.0...v2.12.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map-chrome:** let the pill wrap again, the status ellipsises instead ([#935](https://github.com/uplbtools/room-tba/issues/935)) ([3de4824](https://github.com/uplbtools/room-tba/commit/3de4824a5a676f6058d6611cd1ed867397dcb815)), closes [#905](https://github.com/uplbtools/room-tba/issues/905) [#905](https://github.com/uplbtools/room-tba/issues/905)
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
