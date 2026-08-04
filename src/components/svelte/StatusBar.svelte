@@ -1,8 +1,5 @@
 <script lang="ts">
   import WifiOff from "@lucide/svelte/icons/wifi-off";
-  import RefreshCw from "@lucide/svelte/icons/refresh-cw";
-  import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
-  import LoaderCircle from "@lucide/svelte/icons/loader-circle";
   import { onMount } from "svelte";
   import {
     appBootstrapStore,
@@ -16,30 +13,8 @@
   import SponsorBadge from "./SponsorBadge.svelte";
   import { getGoldSponsor, loadSponsors, type Sponsor } from "@lib/sponsors";
 
-  import { getSyncLadderState } from "@lib/stores/sync-ladder.svelte";
-
   let isOnline = $state(true);
   let goldSponsor = $state<Sponsor | null>(null);
-
-  type StatusPill = {
-    kind: "error" | "update" | "syncing";
-    label: string;
-    action: (() => void) | null;
-  };
-
-  const statusPill = $derived.by<StatusPill | null>(() => {
-    const state = getSyncLadderState();
-    if (state.kind === "bootstrap_error" || state.kind === "sync_error") {
-      return { kind: "error", label: "Retry", action: state.action };
-    }
-    if (state.kind === "update_ready") {
-      return { kind: "update", label: "Update", action: state.action };
-    }
-    if (state.kind === "syncing") {
-      return { kind: "syncing", label: "Syncing", action: null };
-    }
-    return null;
-  });
 
   onMount(() => {
     isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
@@ -89,42 +64,11 @@
 
   <SyncStatus inline compact={false} expanded />
 
+  <!--
+    No sync/retry/update pill here: SyncStatus above already renders the
+    ladder state and its action button in this same row, so a pill duplicates it.
+  -->
   <div class="status-bar__badges" aria-live="polite">
-    {#if statusPill}
-      {#if statusPill.action}
-        <button
-          type="button"
-          class="status-bar__pill status-bar__pill--{statusPill.kind}"
-          onclick={statusPill.action}
-        >
-          {#if statusPill.kind === "update"}
-            <RefreshCw size={12} aria-hidden="true" />
-          {:else if statusPill.kind === "error"}
-            <TriangleAlert size={12} aria-hidden="true" />
-          {:else}
-            <LoaderCircle
-              size={12}
-              class="status-bar__spin"
-              aria-hidden="true"
-            />
-          {/if}
-          {statusPill.label}
-        </button>
-      {:else}
-        <span class="status-bar__pill status-bar__pill--{statusPill.kind}">
-          {#if statusPill.kind === "syncing"}
-            <LoaderCircle
-              size={12}
-              class="status-bar__spin"
-              aria-hidden="true"
-            />
-          {:else if statusPill.kind === "error"}
-            <TriangleAlert size={12} aria-hidden="true" />
-          {/if}
-          {statusPill.label}
-        </span>
-      {/if}
-    {/if}
     {#if !isOnline}
       <span class="status-bar__offline" title="Offline mode">
         <WifiOff size={12} aria-hidden="true" />

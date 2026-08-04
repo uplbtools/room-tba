@@ -10,6 +10,8 @@ Source of truth for which map chrome is visible in each mode.
 | Event placement               | **no**          | **no**       | **no**       | closed default    | **no**      | cancel dock           | status bar | bottom band     |
 | Terrain active                | yes             | yes          | flyout section | Settings modal   | sidebar     | hidden                | status bar | bottom band     |
 | Transit active                | yes             | yes          | yes          | legend available  | sidebar     | hidden                | status bar | bottom band     |
+| Travel time active (#847)     | yes             | yes          | yes          | closed default    | sidebar     | hidden                | status bar | bottom band     |
+| Measure route active (#848)   | yes             | yes          | yes          | closed default    | sidebar     | hidden                | status bar | bottom band     |
 
 Implementation: `getMapChromeVisibility()` in `src/lib/map-chrome.ts`.
 
@@ -21,7 +23,7 @@ Only one browse overlay from the chip row is active at a time (except **All** pi
 - **Non-All pin filter selected** (Class / Admin / UP dorms / Other dorms) → transit layer + selected route/stop turn off (`BuildingTypeFilterBar.selectFilter` calls `jeepneyStore.disableLayer`).
 - **Events shelf** ↔ Transit exclusivity is unchanged (`openEventsShelf` disables transit; transit active closes the events shelf).
 - **All** is neutral: selecting it does not touch transit.
-- Edit/terrain exclusivity via `deactivateMapModesExcept` is unchanged.
+- Edit/terrain exclusivity via `deactivateMapModesExcept` is unchanged; Travel time (#847) and Measure route (#848) register as the `travel-time` / `measure` exclusive modes since they own map clicks.
 
 Term-chip exclusivity: opening the term picker closes the map tools flyout (and vice versa) so top-band popovers do not stack on mobile.
 
@@ -49,10 +51,10 @@ Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome 
 
 - **Top band:** search column (editor icon button when signed in), term selector, and event banner. The sidebar directories are Buildings, Dorms, Colleges, Divisions, Student orgs, Units & offices, Landmarks, Services & establishments, Classes, Events, and Jeepney routes. Each directory opens its own `CampusBrowseList.svelte` view in the side drawer and an entry then opens the regular entity detail view; they are not centered modals. The search suggestions dropdown is for recent searches and typed results only. **Keyboard shortcuts** are opened from the Help & settings group or the `?` key. Editor tools open in a modal.
 - **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north)
-- **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, compact Legend chip plus location/propose actions trailing; one shared surface
+- **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, compact Map tools + Legend chips plus location/propose actions trailing; one shared surface. The Map tools chip opens `MapToolsFlyout` (`mapToolsStore`) with the travel tools; while Travel time is active its minutes legend stacks above the tray as the bottom band's first child.
 - **Ephemeral:** toast and modals
 
-MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet.
+MapLibre attribution is disabled on the map canvas (`attributionControl={false}`). Required basemap credits live in `MapAttribution` on the bottom band so they stay visible above the mobile detail sheet. `© OpenStreetMap` and `© MapTiler` stay visible without a click; OpenMapTiles and the longer OSM wording sit behind the info control.
 
 ## CSS anchors (on `.app-layout`)
 

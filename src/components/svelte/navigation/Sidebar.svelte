@@ -21,6 +21,7 @@
   import Users from "@lucide/svelte/icons/users";
   import Megaphone from "@lucide/svelte/icons/megaphone";
   import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
+  import { campusTransit } from "../../../campus.config";
   import {
     adminAuthStore,
     announcementsStore,
@@ -58,7 +59,9 @@
     { id: "services", label: "Services & establishments", icon: Store },
     { id: "classes", label: "Classes", icon: BookText },
     { id: "events", label: "Events", icon: Ticket },
-    { id: "jeepney", label: "Jeepney routes", icon: BusFront },
+    ...(campusTransit.enabled
+      ? [{ id: "jeepney", label: campusTransit.label, icon: BusFront }]
+      : []),
   ];
   function handleBrowse(id: string) {
     if (id === "classes") {

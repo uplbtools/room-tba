@@ -1,6 +1,7 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { buildFieldDiffs } from "@lib/proposals/diff";
+  import { appEntityNameResolver } from "@lib/proposals/entity-names";
   import { afterProposalPublished } from "@lib/proposals/apply-published-entity";
   import { syncOpenEntityQueryAfterPublish } from "@lib/proposals/sync-open-entity-query";
   import type { ProposalEntityType } from "@lib/services/proposal-service";
@@ -30,6 +31,7 @@
 
   const appActions = getAppActions();
   const appData = getAppData();
+  const resolveEntityName = $derived(appEntityNameResolver(appData()));
 
   let open = $state(false);
   let loading = $state(false);
@@ -115,7 +117,13 @@
   }
 
   function entryDiffs(entry: HistoryEntry) {
-    return buildFieldDiffs(entry.before ?? null, entry.after ?? {});
+    // Same foreign-key resolution as the review queue: history entries showed
+    // raw row ids for buildingId/collegeId/divisionId too (#873).
+    return buildFieldDiffs(
+      entry.before ?? null,
+      entry.after ?? {},
+      resolveEntityName,
+    );
   }
 
   function formatWhen(iso: string) {

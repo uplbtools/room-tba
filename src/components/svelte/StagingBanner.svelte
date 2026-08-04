@@ -15,6 +15,15 @@
     return observeBlockHeight(bannerEl, "--staging-banner-height", {
       shouldSkip: () => !isStagingApp(),
       skipValue: "0px",
+      // Ceil so fractional device pixels cannot leave search under the strip.
+      onSync: (heightPx, root) => {
+        const n = Number.parseFloat(heightPx);
+        if (!Number.isFinite(n)) return;
+        root.style.setProperty(
+          "--staging-banner-height",
+          `${Math.ceil(n)}px`,
+        );
+      },
     });
   });
 </script>

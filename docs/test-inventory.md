@@ -6,8 +6,8 @@ Running list of **automated** tests in this repo. Regenerate after adding or mov
 bun run generate:test-inventory
 ```
 
-**Last generated:** 2026-07-13<br>
-**Total spec files:** 181
+**Last generated:** 2026-08-02<br>
+**Total spec files:** 222
 
 See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked expectations: [issue-test-matrix.md](issue-test-matrix.md).
 
@@ -15,11 +15,11 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 
 | Command | Config / runner | Files |
 | ------- | ---------------- | ----- |
-| `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 81 |
-| `bun run test:components` | Vitest — stores + Svelte @320px | 33 |
-| `bun run test:integration` | Bun — HTTP + services (E2E DB) | 12 |
-| `bun run e2e` | Playwright blocking — local preview | 39 |
-| `bun run e2e:advisory` | Playwright advisory — non-blocking CI | 12 |
+| `bun test src` | Bun — unit (`src/lib`, `src/constants`) | 95 |
+| `bun run test:components` | Vitest — stores + Svelte @320px | 51 |
+| `bun run test:integration` | Bun — HTTP + services (E2E DB) | 14 |
+| `bun run e2e` | Playwright blocking — local preview | 42 |
+| `bun run e2e:advisory` | Playwright advisory — non-blocking CI | 14 |
 | `bun run e2e:staging` | Playwright — live staging URL | 3 |
 | `bun run check:migrations` | Schema table guard (not a spec file) | 1 script |
 
@@ -39,7 +39,7 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 
 Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`testDir: e2e`, ignores `advisory/` + `staging/`). Projects: **desktop-chrome**, **mobile-chrome** (skips `@desktop-only`).
 
-## Unit tests (Bun) — 81 files
+## Unit tests (Bun) — 95 files
 
 `bun test src/lib src/constants` (excludes `*.store.test.ts`).
 
@@ -55,6 +55,7 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/__tests__/normalize-room-code.test.ts`
 - `src/lib/__tests__/og-meta.test.ts`
 - `src/lib/__tests__/version.test.ts`
+- `src/lib/academic-calendar.test.ts`
 - `src/lib/admin/expected-version.test.ts`
 - `src/lib/admin/require-editor.test.ts`
 - `src/lib/admin/roles.test.ts`
@@ -65,25 +66,33 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/amis/normalize-class.test.ts`
 - `src/lib/amis/room-scheduled-types.test.ts`
 - `src/lib/amis/sanitize-row.test.ts`
+- `src/lib/announcements.test.ts`
+- `src/lib/api/class-cursor.test.ts`
 - `src/lib/api/pagination.test.ts`
+- `src/lib/api/proposal-rate-limit.test.ts`
 - `src/lib/api/rate-limit.test.ts`
+- `src/lib/app-env.test.ts`
 - `src/lib/auth/contributor-signup.test.ts`
 - `src/lib/avatar.test.ts`
 - `src/lib/browse-campus.test.ts`
+- `src/lib/campus-gate-coordinates-template.test.ts`
 - `src/lib/campus-office-directory.test.ts`
+- `src/lib/campus-route.test.ts`
 - `src/lib/changelog-highlights.test.ts`
 - `src/lib/ci/feature-test-retirement.test.ts`
 - `src/lib/class-offering-groups.test.ts`
 - `src/lib/contributor-progress.test.ts`
-- `src/lib/drawer-drag.test.ts`
+- `src/lib/editor/draft-pin-preview.test.ts`
 - `src/lib/editor/entity-attribution.test.ts`
 - `src/lib/editor/field-action-label.test.ts`
 - `src/lib/editor/handle-persist-result.test.ts`
 - `src/lib/email/digest-core.test.ts`
 - `src/lib/entity-urls.test.ts`
 - `src/lib/final-exams.test.ts`
+- `src/lib/generic-class-import.test.ts`
 - `src/lib/google-maps-links.test.ts`
 - `src/lib/keyboard-shortcuts.test.ts`
+- `src/lib/kubo-dorms.test.ts`
 - `src/lib/landing-modal-auto-open.test.ts`
 - `src/lib/local/data/campus-directory-sync.test.ts`
 - `src/lib/local/data/pglite-schema.test.ts`
@@ -112,52 +121,74 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/schedule-import/day-stops.test.ts`
 - `src/lib/schedule-import/match-classes.test.ts`
 - `src/lib/schedule-renderer.test.ts`
+- `src/lib/server/kubo-dorm-directory.test.ts`
 - `src/lib/services/admin-service.test.ts`
 - `src/lib/services/merge-service.test.ts`
 - `src/lib/services/proposal-access.test.ts`
 - `src/lib/share-links.test.ts`
+- `src/lib/sheet-drag-intent.test.ts`
 - `src/lib/shortcuts-panel-position.test.ts`
+- `src/lib/sponsors.test.ts`
 - `src/lib/stores/map-modes.test.ts`
 - `src/lib/string-lists.test.ts`
 - `src/lib/term-calendar.test.ts`
 - `src/lib/term-label.test.ts`
 - `src/lib/term-url.test.ts`
+- `src/lib/today-agenda.test.ts`
 - `src/lib/transit-urls.test.ts`
+- `src/lib/travel-graph/engine.test.ts`
 - `src/lib/turnstile-core.test.ts`
 
 
-## Store tests (Vitest) — 12 files
+## Store tests (Vitest) — 17 files
 
 Included in `bun run test:components`.
 
 - `src/lib/browse-campus.store.test.ts`
 - `src/lib/classes-api.store.test.ts`
+- `src/lib/entity-url-sync.store.test.ts`
+- `src/lib/local/data/cache-first-local.store.test.ts`
+- `src/lib/local/data/get-entity-rooms.store.test.ts`
 - `src/lib/local/data/get-entity.store.test.ts`
 - `src/lib/local/data/sync-keys.store.test.ts`
+- `src/lib/stores/current-room.store.test.ts`
 - `src/lib/stores/data-stores.store.test.ts`
 - `src/lib/stores/editor-stores.store.test.ts`
 - `src/lib/stores/jeepney.store.test.ts`
 - `src/lib/stores/map-stores.store.test.ts`
+- `src/lib/stores/planner-buildings.store.test.ts`
 - `src/lib/stores/planner.store.test.ts`
 - `src/lib/stores/schedule-route.store.test.ts`
 - `src/lib/stores/sync-stores.store.test.ts`
 - `src/lib/stores/ui-stores.store.test.ts`
 
 
-## Component tests (Vitest) — 21 files
+## Component tests (Vitest) — 34 files
 
 Layout guards at 320px / 768px where noted. Included in `bun run test:components`.
 
 - `src/components/svelte/AdminLoginModal.component.test.ts`
+- `src/components/svelte/AnnouncementBar.component.test.ts`
 - `src/components/svelte/BuildingTypeFilterBar.component.test.ts`
 - `src/components/svelte/EditorShelf.component.test.ts`
+- `src/components/svelte/MapToolsFlyout.component.test.ts`
+- `src/components/svelte/MapViewControls.component.test.ts`
+- `src/components/svelte/MeasureRoutePanel.component.test.ts`
 - `src/components/svelte/ProposalReviewPanel.component.test.ts`
+- `src/components/svelte/SponsorBanner.component.test.ts`
+- `src/components/svelte/StagingBanner.component.test.ts`
+- `src/components/svelte/TravelTimeLegend.component.test.ts`
+- `src/components/svelte/calendar/AcademicCalendarScreen.component.test.ts`
 - `src/components/svelte/community/CommunityBrandIcon.component.test.ts`
+- `src/components/svelte/controls/DormResult.component.test.ts`
 - `src/components/svelte/controls/EntityDirectionsChip.component.test.ts`
+- `src/components/svelte/controls/EntityEmptyState.component.test.ts`
 - `src/components/svelte/controls/EntityPanelHeader.component.test.ts`
 - `src/components/svelte/map-chrome/MapChromeActionChip.component.test.ts`
 - `src/components/svelte/map-chrome/MapChromeGhostButton.component.test.ts`
 - `src/components/svelte/map-chrome/MapChromeToggleButton.component.test.ts`
+- `src/components/svelte/map/ContributorDraftPinMarker.component.test.ts`
+- `src/components/svelte/modal/AnnouncementsModal.component.test.ts`
 - `src/components/svelte/modal/ChangelogModal.component.test.ts`
 - `src/components/svelte/modal/JeepneyRouteModal.component.test.ts`
 - `src/components/svelte/modal/ModalScrollbars.component.test.ts`
@@ -168,17 +199,20 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `src/components/svelte/room/Classes.component.test.ts`
 - `src/components/svelte/status-bar/AppMenu.component.test.ts`
 - `src/components/svelte/status-bar/StatusBarLinkGroups.component.test.ts`
+- `src/components/svelte/today/TodayScreen.component.test.ts`
 - `src/test/map-chrome-layout.component.test.ts`
 
 
-## Integration tests — 12 files
+## Integration tests — 14 files
 
 `bun run test:integration` (E2E Supabase; HTTP suites need preview — use `test:integration:live`).
 
 - `integration/http/admin-auth-rate-limit.integration.test.ts`
+- `integration/http/proposals-rate-limit.integration.test.ts`
 - `integration/http/public.integration.test.ts`
 - `integration/services/account-management.integration.test.ts`
 - `integration/services/admin.integration.test.ts`
+- `integration/services/contribution.integration.test.ts`
 - `integration/services/contributor-link.integration.test.ts`
 - `integration/services/digest.integration.test.ts`
 - `integration/services/editor-credits.integration.test.ts`
@@ -189,15 +223,17 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `integration/services/transit.integration.test.ts`
 
 
-## E2E blocking (Playwright) — 39 files
+## E2E blocking (Playwright) — 42 files
 
 `bun run e2e` — smoke, browse, admin.
 
-### Smoke (14)
+### Smoke (17)
 
+- `e2e/smoke/academic-calendar-route.spec.ts`
 - `e2e/smoke/app-menu.spec.ts`
 - `e2e/smoke/boot.spec.ts`
 - `e2e/smoke/browse-campus.spec.ts`
+- `e2e/smoke/desktop-only-css-split.spec.ts`
 - `e2e/smoke/entity-pages.spec.ts`
 - `e2e/smoke/final-exams-route.spec.ts`
 - `e2e/smoke/planner-account-sync.spec.ts`
@@ -207,6 +243,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/smoke/planner-route.spec.ts`
 - `e2e/smoke/redirects.spec.ts`
 - `e2e/smoke/sidebar-external-links.spec.ts`
+- `e2e/smoke/sponsors-page.spec.ts`
 - `e2e/smoke/term-classes.spec.ts`
 - `e2e/smoke/zoom-levels.spec.ts`
 
@@ -244,7 +281,7 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/admin/undo-redo.spec.ts`
 
 
-## E2E advisory (Playwright) — 12 files
+## E2E advisory (Playwright) — 14 files
 
 `bun run e2e:advisory` — a11y, offline, touch, cross-browser, etc.
 
@@ -255,11 +292,13 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `e2e/advisory/keyboard-nav.spec.ts`
 - `e2e/advisory/layout-chrome.spec.ts`
 - `e2e/advisory/map-attribution.spec.ts`
+- `e2e/advisory/measure-route.spec.ts`
 - `e2e/advisory/mobile-touch-drag.spec.ts`
 - `e2e/advisory/offline-boot.spec.ts`
 - `e2e/advisory/offline-pwa.spec.ts`
 - `e2e/advisory/schedule-import.spec.ts`
 - `e2e/advisory/transit-jeepney.spec.ts`
+- `e2e/advisory/travel-time.spec.ts`
 
 
 ## E2E staging (Playwright) — 3 files

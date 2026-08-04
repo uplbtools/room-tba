@@ -17,6 +17,7 @@ import { db } from "@lib/db";
 import { normalizeCourseCode } from "@lib/final-exams/normalize";
 import { normalizeAlias } from "@lib/site";
 import { normalizeDormListFields } from "@lib/string-lists";
+import { attachProbableLocations } from "./probable-location";
 import { getBuildCache } from "./ssg-cache";
 import type {
   BuildingData,
@@ -397,6 +398,8 @@ export async function queryClasses(options: {
 
     const hasMore = rows.length > limit;
     const page = hasMore ? rows.slice(0, limit) : rows;
+    // Room TBA sections get a server-computed location hint (#846).
+    await attachProbableLocations(page);
     const last = page.at(-1);
     const nextCursor =
       hasMore && last

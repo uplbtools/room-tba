@@ -79,10 +79,10 @@ const structuredData = jsonLd(
           </thead>
           <tbody>
             <tr><td><code>src/lib/site.ts</code></td><td>Site name, URL, title, and description are UPLB.</td></tr>
-            <tr><td><code>src/constants/map-terrain.ts</code></td><td>Map bounds, default camera (center lng/lat, zoom, pitch), and the Mt. Makiling terrain source.</td></tr>
+            <tr><td><code>src/campus.config.ts</code></td><td>Map bounds, default camera, the Mt. Makiling terrain block, the jeepney transit flag and label, and E2E fixture coordinates. <code>bun run fork:init</code> rewrites it for you.</td></tr>
             <tr><td><code>src/constants/community-links.ts</code> + <code>status-bar-links.ts</code></td><td>UPLB Tools, Discord, and Messenger links.</td></tr>
             <tr><td><code>public/room_info.json</code></td><td>UPLB buildings, aliases, and walking directions. Seed file for aliases.</td></tr>
-            <tr><td><code>src/constants/jeepney-routes.ts</code> + <code>jeepney-geometries.json</code></td><td>UPLB jeepney routes. Delete if your campus has no equivalent.</td></tr>
+            <tr><td><code>src/constants/jeepney-routes.ts</code> + <code>jeepney-geometries.json</code></td><td>UPLB jeepney routes. Replace with your routes, or set <code>campusTransit.enabled: false</code> if your campus has no equivalent.</td></tr>
             <tr><td><code>scripts/import-amis-classes.ts</code></td><td>AMIS is UPLB's course system. You do not have AMIS.</td></tr>
             <tr><td><code>scripts/import-final-exams.ts</code></td><td>Reads UPLB OUR finals JSON.</td></tr>
             <tr><td><code>scripts/import-osa-orgs.ts</code> + <code>import-campus-offices.ts</code></td><td>UPLB org and office directories.</td></tr>
@@ -137,33 +137,33 @@ bunx drizzle-kit push</code></pre>
         with an empty campus.
       </p>
 
-      <h3>4. Edit <code>src/campus.config.ts</code> — the single config file</h3>
+      <h3>4. Run <code>bun run fork:init</code> — it rewrites <code>src/campus.config.ts</code></h3>
+      <pre><code>bun run fork:init</code></pre>
       <p>
-        This is the one file for campus-specific config. It holds the site
-        name, URL, title, description, the map center / bounds / camera, and
-        the community links. The rest of the app
-        (<code>site.ts</code>, <code>map-terrain.ts</code>,
-        <code>community-links.ts</code>, <code>astro.config.mjs</code>) imports
-        from here. Change the values, save, and you are done with the code-side
-        rebrand.
+        The script asks for your campus name, site URL, map center, bounds,
+        default zoom, and whether you want the 3D terrain and transit overlays,
+        then regenerates the single config file. It refuses to run on a dirty
+        git tree (pass <code>--force</code> to override) so the rewrite is easy
+        to review. You can also edit the file by hand; these are its sections:
       </p>
       <ul>
         <li><code>campusSite</code> — <code>url</code>, <code>name</code>, <code>title</code>, <code>description</code>.</li>
         <li><code>campusMap</code> — <code>maxBounds</code> (the lng/lat box that keeps the camera on your campus) and <code>defaultCamera</code> (<code>center: [lng, lat]</code>, <code>zoom</code>, <code>pitch</code>, <code>bearing</code>).</li>
+        <li><code>campusTerrain</code> — the 3D terrain source, bounds, and camera. <code>enabled: false</code> gives a flat map with no terrain controls anywhere.</li>
+        <li><code>campusTransit</code> — the campus transit overlay. <code>enabled: false</code> hides the map layer, sidebar entry, deep links, and sitemap entries; <code>label</code> renames the menu entry (UPLB says jeepney, yours may say shuttle).</li>
+        <li><code>campusTestFixtures</code> — coordinates the E2E suite seeds its test building and dorm at. Keep them inside your bounds and the Playwright suite runs unchanged.</li>
         <li><code>campusCommunity</code> — your org, GitHub, Discord, and Messenger links. Delete entries you do not have.</li>
       </ul>
       <p>
-        If your campus has no hill like Mt. Makiling, also disable the terrain
-        source in <code>src/constants/map-terrain.ts</code>
-        (<code>TERRAIN_SOURCE_ID</code>, <code>getTerrainTileJsonUrl</code>).
-        The 3D toggle just turns off. The terrain IDs are not in
-        <code>campus.config.ts</code> yet — they are a follow-up.
+        The rest of the app (<code>site.ts</code>, <code>map-terrain.ts</code>,
+        <code>community-links.ts</code>, <code>astro.config.mjs</code>, the
+        transit UI, <code>scripts/e2e-reset-db.ts</code>) imports from here.
       </p>
 
       <h3>5. Delete or replace the UPLB data files</h3>
       <ul>
         <li>Replace <code>public/room_info.json</code> with your buildings (or delete it and seed the DB directly).</li>
-        <li>Delete <code>src/constants/jeepney-routes.ts</code> and <code>jeepney-geometries.json</code> if you have no campus transit overlay.</li>
+        <li>Replace the routes in <code>src/constants/jeepney-routes.ts</code> and <code>jeepney-geometries.json</code> with your campus transit, or leave them and set <code>campusTransit.enabled: false</code>.</li>
         <li>Delete the UPLB import scripts you cannot reuse: <code>import-amis-classes.ts</code>, <code>import-final-exams.ts</code>, <code>import-osa-orgs.ts</code>, <code>import-campus-offices.ts</code>. Keep them as reference while you write your own.</li>
         <li>Delete <code>src/pages/wiki/section-times.astro</code> (the UPLB section-code glossary) and its card on the wiki index.</li>
       </ul>
@@ -200,21 +200,21 @@ bunx drizzle-kit push</code></pre>
         day-to-day and how volunteers contribute without touching the DB.
       </p>
       <p>
-        <strong>A seed script.</strong> For a first bulk load (every building,
-        every room, every class), write a script that reads your registrar's
-        export and upserts into Postgres. Use
-        <code>scripts/import-amis-classes.ts</code> as a <em>template for the
-        shape</em> — Drizzle upsert by natural key, term handling, the
-        class/room join — not the AMIS fetch. Your data source is different.
-        The import scripts read from files under <code>data/</code> (gitignored)
-        and write to <code>DATABASE_URL</code>; copy that pattern.
+        <strong>A seed script.</strong> Run <code>bun run seed:sample</code>
+        first — it loads a small fictional campus
+        (<code>data/sample-campus/</code>) into an empty database so the whole
+        app works before you have any real data. For your first real bulk load,
+        replace the sample JSON with your campus and reuse
+        <code>scripts/seed-sample-campus.ts</code> — Drizzle upsert, safe to
+        rerun. Walkthrough: <code>docs/fork-data-guide.md</code>.
       </p>
       <p>
-        Class schedules are the hard part. Room TBA pulls from AMIS, which is
-        UPLB's system. You do not have AMIS. You need whatever export your
-        registrar or SAIS equivalent gives you — CSV, JSON, a scraped portal,
-        a PDF someone has to retype. Write one importer for it, point it at the
-        <code>classes</code> table, and rerun it each term.
+        Class schedules are the recurring part. Room TBA pulls from AMIS, which
+        is UPLB's system. You do not have AMIS — flatten whatever export your
+        registrar or SAIS equivalent gives you (CSV, JSON, a scraped portal, a
+        PDF someone has to retype) into the documented shape of
+        <code>bun run import:classes-generic</code> and rerun it each term.
+        <code>data/sample-campus/classes.csv</code> is the worked example.
       </p>
       <p>
         After you change the Drizzle schema at all, regenerate the offline
@@ -258,7 +258,8 @@ bunx drizzle-kit push</code></pre>
         </li>
         <li>
           <strong>The 3D terrain needs a DEM.</strong> If your campus is flat,
-          just disable the terrain source. No DEM, no 3D hills.
+          set <code>campusTerrain.enabled: false</code> in
+          <code>campus.config.ts</code>. No DEM, no 3D hills.
         </li>
         <li>
           <strong>Supabase free tier pauses after a week of no activity.</strong>
@@ -280,8 +281,21 @@ bunx drizzle-kit push</code></pre>
     <section aria-labelledby="license">
       <h2 id="license">License and credit</h2>
       <p>
-        MIT. Keep the <code>LICENSE</code> file. You can run a fork for your
-        campus, sell hosting around it, teach with it. You do not have to ask.
+        Application code is MIT. Keep the <code>LICENSE</code> file. You can run
+        a fork for your campus, sell hosting around it, teach with it. You do
+        not have to ask.
+      </p>
+      <p>
+        The UPLB database contents are not a MIT dump you can ship unchanged.
+        Replace campus rows with your own. Community-curated map entities in
+        upstream Room TBA are
+        <a
+          href="https://creativecommons.org/licenses/by/4.0/"
+          target="_blank"
+          rel="noopener noreferrer">CC-BY 4.0</a
+        >; if you reuse those entities, credit Room TBA / UPLB Tools.
+        OpenStreetMap data stays ODbL. AMIS and other university imports are
+        not open bulk data.
       </p>
       <p>
         Credit is free. The README credits the people who built this. Do not

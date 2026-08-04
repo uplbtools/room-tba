@@ -194,7 +194,9 @@ export class SyncToastStore {
   });
 
   stepDetail = $derived.by((): string | null => {
-    if (this.syncError) return "Tap to retry";
+    // The error surface renders a Retry button; a "tap to retry" line would
+    // just repeat it.
+    if (this.syncError) return null;
     if (this.allSynced && !this.needRefresh) {
       return "Campus directory cached; room lists load when you open a building";
     }

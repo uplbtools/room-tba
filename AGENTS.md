@@ -24,6 +24,7 @@ Read the right doc for the task; do not rely on this file alone for detailed che
 | Map chrome, Entry zones, flyouts, 320/768 layout  | [.cursor/rules/map-layout.mdc](.cursor/rules/map-layout.mdc) + [docs/map-ui-mode-matrix.md](docs/map-ui-mode-matrix.md)                        |
 | Side panel / entity detail views                  | [.cursor/rules/side-panel.mdc](.cursor/rules/side-panel.mdc)                                                                                   |
 | Drizzle, API routes, migrations, PGlite           | [.cursor/rules/data-and-migrations.mdc](.cursor/rules/data-and-migrations.mdc)                                                                 |
+| Bulk / direct-database edits, audit trail         | [docs/bulk-data-history.md](docs/bulk-data-history.md)                                                                                          |
 | Stores and client state                           | [.cursor/rules/svelte-stores.mdc](.cursor/rules/svelte-stores.mdc)                                                                             |
 | PR QA evidence and reporting                      | [docs/agentic-qa-process.md](docs/agentic-qa-process.md)                                                                                       |
 | **Tests for an issue / test backlog**             | [docs/issue-test-matrix.md](docs/issue-test-matrix.md) + [docs/testing.md](docs/testing.md) + [docs/test-inventory.md](docs/test-inventory.md) |
@@ -467,6 +468,7 @@ Map and side-panel layout rules are detailed in glob-scoped Cursor rules; read t
 - Use optimistic concurrency for editor writes. Send the version the client last saw, and return `409 Conflict` with the latest row if it is stale.
 - Missing client versions are a transitional compatibility fallback only; new editor surfaces should send versions.
 - Current entity tables store the latest state. `editor_history` stores the audit timeline.
+- **Direct-database edits record history too.** A merge script, one-off SQL, or import fixup that changes campus data must write `editor_history` rows in the same run — `bun run record:bulk-history` or `recordBulkHistory()` in [`src/lib/services/bulk-history.ts`](src/lib/services/bulk-history.ts). See [docs/bulk-data-history.md](docs/bulk-data-history.md).
 - Reverts should create new history entries instead of rewriting or deleting old history.
 - Every admin write should refresh the relevant sync key so clients can detect changed data.
 
@@ -598,7 +600,7 @@ gh pr checks <number> --repo uplbtools/room-tba
 
 | Trap                                                 | Reality                                                                                                                                                                                                                                                                    |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Map renders flat (no 3D building extrusions) locally | `PUBLIC_MAPTILER_KEY` unset → `loadCampusMapStyle` returns the raster fallback (`E2E_FALLBACK_MAP_STYLE`). **Not a regression**; prod has the key; local `.env` usually doesn't. Verify prod on `room-tba.uplb.tools` (loads `api.maptiler.com/tiles/v3-openmaptiles`). |
+| Map renders flat (no 3D building extrusions) locally | `PUBLIC_MAPTILER_KEY` unset **or rejected** → `loadCampusMapStyle` returns the keyless fallback (OpenFreeMap positron, `FALLBACK_MAP_STYLE_URL`; bare OSM raster if that host is unreachable too). **Not a regression**; prod has the key; local `.env` usually doesn't. The prod key is domain-restricted to `*.uplb.tools`, so it 403s on localhost and `*.vercel.app` previews and you get the fallback there by design (#863). Verify prod on `room-tba.uplb.tools` (loads `api.maptiler.com/tiles/v3-openmaptiles`). |
 | Fork PR `verify` fails: `DATABASE_URL is missing`    | Fork PRs **can't read Actions secrets**; the build's prerender has no DB. For trivial fork docs, `gh pr merge --admin` (staging is unprotected). Real fork code needs a maintainer-run build.                                                                             |
 | Dependabot PR CI fails the same way                  | Dependabot uses the **Dependabot** secret store, not Actions; mirror the secret there, or the CI workflow skips secret-dependent jobs for `github.actor == 'dependabot[bot]'`.                                                                                            |
 

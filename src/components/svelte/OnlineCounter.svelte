@@ -1,16 +1,44 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
+  /**
+   * Real presence: heartbeat an anonymous session id to /api/presence and show
+   * the count it returns. The id is a random UUID scoped to this tab's
+   * sessionStorage — never tied to an account, and nothing else is sent.
+   */
   let online = $state(0);
-  
+
+  const HEARTBEAT_MS = 30_000;
+  const SID_KEY = "rt-presence-sid";
+
+  function sessionId() {
+    let sid = sessionStorage.getItem(SID_KEY);
+    if (!sid) {
+      sid = crypto.randomUUID();
+      sessionStorage.setItem(SID_KEY, sid);
+    }
+    return sid;
+  }
+
+  async function heartbeat() {
+    try {
+      const response = await fetch("/api/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sid: sessionId() }),
+      });
+      if (!response.ok) return;
+      const data = (await response.json()) as { online?: number };
+      if (typeof data.online === "number") online = data.online;
+    } catch {
+      // Offline or API down: keep the last known count (0 renders as "--").
+    }
+  }
+
   onMount(() => {
-    online = Math.floor(Math.random() * (150 - 20) + 20);
-    
-    const interval = setInterval(() => {
-      const change = Math.floor(Math.random() * 5) - 2;
-      online = Math.max(1, online + change);
-    }, 5000);
-    
+    heartbeat();
+    const interval = setInterval(heartbeat, HEARTBEAT_MS);
+
     return () => clearInterval(interval);
   });
 </script>

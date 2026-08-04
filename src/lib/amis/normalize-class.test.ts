@@ -129,7 +129,24 @@ describe("amis normalize", () => {
       schedule: ["MW 07:00AM-08:00AM"],
       termId: 1252,
       facilityCode: "PSLH A",
+      acadGroup: null,
+      acadOrg: null,
     });
+  });
+
+  it("carries acad_group and acad_org codes (#846)", () => {
+    const normalized = normalizeAmisClass(
+      {
+        course_code: "CMSC 128",
+        section: "A",
+        type: "LEC",
+        acad_group: "CAS",
+        acad_org: "LBICS",
+      },
+      1252,
+    );
+    expect(normalized?.acadGroup).toBe("CAS");
+    expect(normalized?.acadOrg).toBe("LBICS");
   });
 
   it("builds schedule from top-level date/time when class_dates is empty (CRS 1231)", () => {

@@ -128,4 +128,25 @@ describe("ScheduleRouteStore", () => {
     expect(scheduleRouteStore.focusedStopIndex).toBeNull();
     expect(locationStore.routeWaypoints).toBeNull();
   });
+
+  test("route totals only stick while a day is routed", async () => {
+    seedPlan();
+    await scheduleRouteStore.importFromPlanner();
+
+    // The map fires fetchroutesend for 2-point destination routes too; with
+    // no routed day those totals must not attach to the schedule route.
+    scheduleRouteStore.setRouteTotals({ meters: 100, seconds: 60 });
+    expect(scheduleRouteStore.routeTotals).toBeNull();
+
+    locationStore.coords = [121.24, 14.16];
+    scheduleRouteStore.routeDay("M");
+    scheduleRouteStore.setRouteTotals({ meters: 1200, seconds: 900 });
+    expect(scheduleRouteStore.routeTotals).toEqual({
+      meters: 1200,
+      seconds: 900,
+    });
+
+    scheduleRouteStore.clearRoute();
+    expect(scheduleRouteStore.routeTotals).toBeNull();
+  });
 });

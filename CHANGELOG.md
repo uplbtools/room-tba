@@ -1,3 +1,39 @@
+# [2.4.0](https://github.com/uplbtools/room-tba/compare/v2.3.1...v2.4.0) (2026-07-26)
+
+
+### Bug Fixes
+
+* **ci:** stop failing fork PRs on secrets they cannot have ([7adca83](https://github.com/uplbtools/room-tba/commit/7adca83b96e05f302ed0a9bf50c9e4160fc912b4)), closes [#789](https://github.com/uplbtools/room-tba/issues/789)
+* **dorms:** require name agreement before rendering a Kubo CTA ([eebd1e9](https://github.com/uplbtools/room-tba/commit/eebd1e96ed029bdf89d6486b3283b0b065155505))
+* **e2e:** give every CI e2e run its own database schema ([eec5863](https://github.com/uplbtools/room-tba/commit/eec58630eaaf6a894e1e06420d3cb47413f3c4fb)), closes [#773](https://github.com/uplbtools/room-tba/issues/773)
+* **e2e:** keep the drizzle dir lookup lazy for Node-side importers ([f25cd98](https://github.com/uplbtools/room-tba/commit/f25cd982ee4324effa314f56708b359759df1c99))
+* **e2e:** make history revert integration test order-independent ([466b865](https://github.com/uplbtools/room-tba/commit/466b8655edd49fa86c98c290412bae3614b20f84)), closes [#756](https://github.com/uplbtools/room-tba/issues/756)
+* **e2e:** point the reset list at the renamed 0040 backfill ([9dca8f7](https://github.com/uplbtools/room-tba/commit/9dca8f73f76c6a05f35e2e1c8d3dea920e1a95af))
+* **e2e:** stop transit integration test deleting the seeded Playwright stop ([3c2efe5](https://github.com/uplbtools/room-tba/commit/3c2efe5d2721cbb7a94f167ccec7b0c6d8653ca7)), closes [763/#765](https://github.com/uplbtools/room-tba/issues/765)
+* exclude /og.png from ISR so OG cards vary by query string ([#651](https://github.com/uplbtools/room-tba/issues/651)) ([9dabf08](https://github.com/uplbtools/room-tba/commit/9dabf084913b453d428d9880329a73ea8dd00a39))
+* pre-release review findings ([8132e7e](https://github.com/uplbtools/room-tba/commit/8132e7eca4d23d3258ce80b131aed60cad5a9c06))
+* remove duplicate Donate link in site footer ([dcb0af8](https://github.com/uplbtools/room-tba/commit/dcb0af843b5f11e15e62ab00d556aebaf08e36d5))
+* stop nav tooltips flashing when the sidebar collapses ([cd8c313](https://github.com/uplbtools/room-tba/commit/cd8c313a740b7955270cf01b12e9d4f0085febac)), closes [#755](https://github.com/uplbtools/room-tba/issues/755)
+* **test:** restore the 20s integration timeout ([bc70344](https://github.com/uplbtools/room-tba/commit/bc70344ac2b8769e14dc37ed5b01c1fece41ed48)), closes [#786](https://github.com/uplbtools/room-tba/issues/786)
+* **test:** stop DormResult test dialing localhost:3000, fix stale CTA assertions ([6d1a16d](https://github.com/uplbtools/room-tba/commit/6d1a16d78b80ed0233340109d14aaf7fca02a1d0))
+* **test:** use the schema-aware client in the cursor pagination suite ([7e5262c](https://github.com/uplbtools/room-tba/commit/7e5262cae2e95d772f56ab120b95d3ae38bc82c6)), closes [#781](https://github.com/uplbtools/room-tba/issues/781)
+* **ui:** address skeleton review, drop remount key and guard the room race ([27f81ad](https://github.com/uplbtools/room-tba/commit/27f81ad1f4b00fb4560ba18c35e40fe298a0e626)), closes [#key](https://github.com/uplbtools/room-tba/issues/key)
+* **ui:** live-review findings from the pre-release pass ([7545de7](https://github.com/uplbtools/room-tba/commit/7545de785ca7eb614eed614e059f39d40d706eff))
+
+
+### Features
+
+* **api:** cursor pagination for /api/classes and side-panel consumers ([ef29000](https://github.com/uplbtools/room-tba/commit/ef290004074627de803a16fd90401c1d2bf04c4e)), closes [#412](https://github.com/uplbtools/room-tba/issues/412)
+* **calendar:** add academic calendar viewer at /calendar ([#408](https://github.com/uplbtools/room-tba/issues/408)) ([6ad4e0a](https://github.com/uplbtools/room-tba/commit/6ad4e0a1edd0115cf1f1bdeeea1d04460bed9d03)), closes [#335](https://github.com/uplbtools/room-tba/issues/335)
+* **dorms:** add verified Kubo listing links ([350aeb1](https://github.com/uplbtools/room-tba/commit/350aeb11043a931dca4563c885dfa2db1ac430a9))
+* **dorms:** integrate live Kubo directory for reservation CTAs ([bdb2e66](https://github.com/uplbtools/room-tba/commit/bdb2e669a7a619673ef71c59a48ce614d5c1b0f8))
+* **kubo:** update environment config, button layout and placement ([d27b378](https://github.com/uplbtools/room-tba/commit/d27b378b98ff93325de878c01eda06cc3d3bfffc))
+* **map:** filled pin glyphs instead of stroke icons ([04d8ea1](https://github.com/uplbtools/room-tba/commit/04d8ea1c2828f54a77695723401e05c3f99f2390))
+* **map:** highlight my class buildings + zoom-gated POI pins ([4ac9ca8](https://github.com/uplbtools/room-tba/commit/4ac9ca891ffbd9463c63890a818bb65b28d1cf21))
+* **nav:** donate entry in the sidebar contributors group ([ac5ceb9](https://github.com/uplbtools/room-tba/commit/ac5ceb968004ed8fc26ba7a545a804c359f60f8f))
+* **ui:** add EntitySkeleton loading states for entity panels ([08c1b44](https://github.com/uplbtools/room-tba/commit/08c1b4470fac0ad21e9df47e15a8f258a5d9767b))
+* **wiki:** git-backed authors, history, and Wikipedia-style layout ([6bf239d](https://github.com/uplbtools/room-tba/commit/6bf239d9a86f8fd93065a69259361ddcfd4a9a2a))
+
 ## [2.3.1](https://github.com/uplbtools/room-tba/compare/v2.3.0...v2.3.1) (2026-07-21)
 
 

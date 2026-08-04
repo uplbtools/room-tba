@@ -304,6 +304,8 @@ async function main() {
           schedule: classesTable.schedule,
           roomId: classesTable.roomId,
           termId: classesTable.termId,
+          acadGroup: classesTable.acadGroup,
+          acadOrg: classesTable.acadOrg,
         })
         .from(classesTable)
         .where(eq(classesTable.termId, options.termId)),
@@ -356,6 +358,8 @@ async function main() {
             schedule: row.schedule,
             roomId: row.roomId,
             termId: row.termId,
+            acadGroup: row.acadGroup,
+            acadOrg: row.acadOrg,
           })
           .where(eq(classesTable.id, id));
       }

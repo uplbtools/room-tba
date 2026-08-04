@@ -4,6 +4,7 @@ import {
   formatDistance,
   formatDuration,
   nearestPlace,
+  sumRouteLegs,
   toCampusRoute,
   type RoutePlace,
 } from "./campus-route";
@@ -240,5 +241,31 @@ describe("formatting", () => {
     expect(formatDuration(20)).toBe("1 min");
     expect(formatDuration(3600)).toBe("1 hr");
     expect(formatDuration(3900)).toBe("1 hr 5 min");
+  });
+});
+
+describe("sumRouteLegs", () => {
+  test("sums distance and duration across a day route's legs", () => {
+    expect(
+      sumRouteLegs([
+        { distance: 420.4, duration: 300.2 },
+        { distance: 812.9, duration: 610.5 },
+      ]),
+    ).toEqual({ meters: 1233, seconds: 911 });
+  });
+
+  test("skips legs the OSRM response left non-numeric", () => {
+    expect(
+      sumRouteLegs([
+        { distance: 100, duration: 80 },
+        { distance: undefined, duration: 80 },
+        { annotation: undefined },
+      ]),
+    ).toEqual({ meters: 100, seconds: 80 });
+  });
+
+  test("null when no leg carries numbers", () => {
+    expect(sumRouteLegs([])).toBeNull();
+    expect(sumRouteLegs([{ distance: "1", duration: null }])).toBeNull();
   });
 });

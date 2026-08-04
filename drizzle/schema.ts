@@ -257,6 +257,10 @@ export const classesTable = pgTable(
     roomId: integer("room_id"),
     courseTitle: text("course_title"),
     termId: integer("term_id"),
+    // AMIS college + department codes (#846), e.g. "CAS" / "LBICS". Decode
+    // table: data/acad-orgs.json.
+    acadGroup: varchar("acad_group", { length: 8 }),
+    acadOrg: varchar("acad_org", { length: 16 }),
     version: integer().default(1).notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()
@@ -502,6 +506,8 @@ export const editProposalsTable = pgTable("edit_proposals", {
     () => adminUsersTable.id,
   ),
   adminNote: text("admin_note"),
+  /** Contributor's message to the reviewer. Never published (#873). */
+  submitterNote: text("submitter_note"),
   reviewedBy: varchar("reviewed_by", { length: 100 }),
   reviewedAt: timestamp("reviewed_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
@@ -738,4 +744,16 @@ export const sponsorImpressionsTable = pgTable("sponsor_impressions", {
     .notNull(),
   userAgent: text("user_agent"),
   pagePath: text("page_path"),
+});
+
+// Anonymous presence heartbeats behind the "N online" counter. A sid is a
+// random client-generated UUID held in sessionStorage — never an account, a
+// user id, or an IP. Server-only: deliberately absent from the PGlite
+// SYNCED_TABLES set so it never reaches the browser cache. Rows are pruned
+// opportunistically by /api/presence.
+export const presenceTable = pgTable("presence", {
+  sid: varchar({ length: 64 }).primaryKey(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
 });

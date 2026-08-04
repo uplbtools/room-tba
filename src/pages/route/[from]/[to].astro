@@ -16,6 +16,7 @@ import { getRoutePath } from "@lib/route-links";
 import { findBySlug, getRoutablePlaces } from "@lib/services/route-service";
 import { getBuildingCanonicalPath } from "@lib/entity-urls";
 import { absoluteUrl, breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+import { OSM_COPYRIGHT_URL } from "@constants/data-license";
 
 const { from: fromSlug, to: toSlug } = Astro.params;
 if (!fromSlug || !toSlug) {
@@ -121,9 +122,11 @@ const contextLinks = [from, to]
           </div>
 
           <p class="route-note">
-            Distance and time come from OpenStreetMap footpaths and assume an
-            unhurried walk. Campus shortcuts and closed gates are not accounted
-            for.
+            Distance and time come from
+            <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer"
+              >OpenStreetMap</a
+            > footpaths and assume an unhurried walk. Campus shortcuts and closed
+            gates are not accounted for.
           </p>
         </section>
       ) : (

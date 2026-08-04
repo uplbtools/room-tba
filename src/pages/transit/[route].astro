@@ -5,6 +5,11 @@ import AppRoot from "@ui/AppRoot.svelte";
 import Layout from "@layouts/Layout.astro";
 import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
 import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
+import { campusTransit } from "../../campus.config";
+
+if (!campusTransit.enabled) {
+  return new Response(null, { status: 404 });
+}
 
 const routeId = Astro.params.route;
 const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);

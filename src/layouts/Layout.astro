@@ -1,6 +1,7 @@
 ---
 import { pwaInfo } from "virtual:pwa-info";
 import "../styles/font-face.css";
+import "../styles/global.css";
 import "../styles/app-loading.css";
 import desktopOnlyUrl from "../styles/desktop-only.css?url";
 import Analytics from "@vercel/analytics/astro";
@@ -226,6 +227,14 @@ const shareTitle = ogTitle ?? title;
           return !island || island.children.length > 0;
         }
 
+            // Last-resort teardown when the app never hydrates. Deliberately
+            // duplicates part of `clearCachedData()` in
+            // src/lib/local/clear-cached-data.ts (the Settings → Storage
+            // button): this script is `is:inline` so it can still run when the
+            // bundle itself is broken, which means it cannot import that
+            // module. Keep the two in step by hand. Like the shared version,
+            // it must never call localStorage.clear() — planner plans live
+            // there.
             function resetAppData() {
               var jobs = [];
               try {

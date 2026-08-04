@@ -3,7 +3,10 @@ import type {
   ProposalEntityType,
 } from "@lib/services/proposal-service";
 import { FIELD_LABELS } from "./diff";
-import { validateSubmitterName } from "@constants/proposals";
+import {
+  validateSubmitterName,
+  validateSubmitterNote,
+} from "@constants/proposals";
 import type { RoomData } from "@lib/types";
 import {
   isOpenProposalStatus,
@@ -193,6 +196,8 @@ type PersistEntityChangeInput = {
   entityLabel: string;
   canPublish: boolean;
   submitterName?: string;
+  /** Contributor's message to the reviewer. Ignored when publishing directly. */
+  submitterNote?: string;
   proposalId?: number | null;
 };
 
@@ -232,6 +237,7 @@ export async function persistEntityChange(
     baseVersion: input.baseVersion,
     patch: input.patch,
     submitterName: input.submitterName,
+    submitterNote: input.submitterNote,
     proposalId: input.proposalId,
   });
 
@@ -501,6 +507,7 @@ export async function submitCreateProposal(input: {
   entityType: ProposalCreateType;
   patch: Record<string, unknown>;
   submitterName?: string;
+  submitterNote?: string;
   proposalId?: number | null;
 }): Promise<{ ok: boolean; error?: string; proposal?: StoredProposalRef }> {
   return submitEntityProposal({
@@ -509,6 +516,7 @@ export async function submitCreateProposal(input: {
     baseVersion: 0,
     patch: input.patch,
     submitterName: input.submitterName,
+    submitterNote: input.submitterNote,
     proposalId: input.proposalId,
   });
 }
@@ -519,12 +527,19 @@ export async function submitEntityProposal(input: {
   baseVersion: number;
   patch: Record<string, unknown>;
   submitterName?: string;
+  submitterNote?: string;
   proposalId?: number | null;
 }): Promise<{ ok: boolean; error?: string; proposal?: StoredProposalRef }> {
   if (input.submitterName !== undefined) {
     const validation = validateSubmitterName(input.submitterName);
     if (!validation.ok) {
       return { ok: false, error: validation.error };
+    }
+  }
+  if (input.submitterNote !== undefined) {
+    const noteCheck = validateSubmitterNote(input.submitterNote);
+    if (!noteCheck.ok) {
+      return { ok: false, error: noteCheck.error };
     }
   }
 

@@ -23,6 +23,7 @@ type ProposalBody = {
   baseVersion?: number;
   patch?: Record<string, unknown>;
   submitterName?: string;
+  submitterNote?: string;
   proposalId?: number;
   _hp?: string;
 };
@@ -65,6 +66,8 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       baseVersion: Number(body.baseVersion),
       patch: body.patch ?? {},
       submitterName,
+      submitterNote:
+        typeof body.submitterNote === "string" ? body.submitterNote : null,
       submitterUserId: session?.id && session.id > 0 ? session.id : null,
       proposalId: Number.isInteger(body.proposalId) ? body.proposalId : null,
     });

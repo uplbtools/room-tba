@@ -13,6 +13,8 @@ export type ClassInsertRow = {
   schedule: string[];
   roomId: number | null;
   termId: number;
+  acadGroup?: string | null;
+  acadOrg?: string | null;
 };
 
 export type ImportRowStats = {
@@ -285,6 +287,8 @@ export function resolveImportRows(
         schedule: row.schedule,
         roomId,
         termId: row.termId,
+        acadGroup: row.acadGroup,
+        acadOrg: row.acadOrg,
       });
       continue;
     }
@@ -310,6 +314,8 @@ export function resolveImportRows(
       schedule: row.schedule,
       roomId,
       termId: row.termId,
+      acadGroup: row.acadGroup,
+      acadOrg: row.acadOrg,
     });
   }
 
@@ -330,6 +336,8 @@ export function summarizeImportChanges(input: {
       courseTitle: string | null;
       schedule: string[] | null;
       roomId: number | null;
+      acadGroup?: string | null;
+      acadOrg?: string | null;
     }
   >;
 }): {
@@ -358,12 +366,19 @@ export function summarizeImportChanges(input: {
       continue;
     }
 
+    // acad fields compare only when the importer carries them (undefined =
+    // source has no such column, e.g. a generic file without acad_org) so a
+    // rerun neither clobbers nor spuriously "updates" AMIS-imported codes.
     const changed =
       existing.courseCode !== row.courseCode ||
       existing.section !== row.section ||
       existing.type !== row.type ||
       existing.courseTitle !== row.courseTitle ||
       existing.roomId !== row.roomId ||
+      (row.acadGroup !== undefined &&
+        (existing.acadGroup ?? null) !== row.acadGroup) ||
+      (row.acadOrg !== undefined &&
+        (existing.acadOrg ?? null) !== row.acadOrg) ||
       JSON.stringify(existing.schedule ?? []) !== JSON.stringify(row.schedule);
 
     if (changed) {

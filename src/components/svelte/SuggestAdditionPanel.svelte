@@ -14,7 +14,10 @@
     fetchPublicProposalSummary,
     type ProposalCreateType,
   } from "@lib/proposals/client";
-  import { validateSubmitterName } from "@constants/proposals";
+  import {
+    MAX_SUBMITTER_NOTE_LENGTH,
+    validateSubmitterName,
+  } from "@constants/proposals";
   import { instantToCampusWallString } from "@lib/event-time";
   import { slugifySegment } from "@lib/site";
   import {
@@ -24,6 +27,7 @@
   } from "@lib/contributor-drafts";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
+  import ProposalLicenseNote from "@ui/editor/ProposalLicenseNote.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
   import ImageUpload from "@ui/editor/ImageUpload.svelte";
@@ -89,6 +93,7 @@
 
   let kind = $state<ProposalCreateType>("create_building");
   let submitterName = $state("");
+  let submitterNote = $state("");
   let buildingName = $state("");
   let buildingDirections = $state("");
   let buildingType = $state<"admin" | "non-admin">("non-admin");
@@ -588,6 +593,7 @@
         entityType: kind,
         patch,
         submitterName: name,
+        submitterNote,
         proposalId:
           pendingCreate?.status === "needs_changes" ? pendingCreate.id : null,
       });
@@ -1071,6 +1077,24 @@
     />
   {/if}
 
+  {#if !isPublish}
+    <EntityEditorFormField
+      label="Note to reviewer (optional)"
+      inputId="suggest-addition-note"
+      hint="Goes to the editor who reviews this, and is never shown on the map. Use it for context, sources, or anything that is not part of the entry itself."
+    >
+      {#snippet control()}
+        <textarea
+          id="suggest-addition-note"
+          rows="2"
+          maxlength={MAX_SUBMITTER_NOTE_LENGTH}
+          bind:value={submitterNote}
+          aria-describedby="suggest-addition-note-hint"
+        ></textarea>
+      {/snippet}
+    </EntityEditorFormField>
+  {/if}
+
   {#if error}
     <EntityEditorMessage variant="error" message={error} />
   {/if}
@@ -1082,6 +1106,9 @@
     variant="primary"
     onclick={submit}
   />
+  {#if !isPublish}
+    <ProposalLicenseNote />
+  {/if}
 </section>
 
 <style>

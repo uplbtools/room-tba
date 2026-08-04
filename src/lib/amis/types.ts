@@ -19,4 +19,8 @@ export type NormalizedAmisClass = {
   schedule: string[];
   termId: number;
   facilityCode: string | null;
+  /** AMIS college code, e.g. "CAS" (#846). */
+  acadGroup: string | null;
+  /** AMIS PeopleSoft department code, e.g. "LBICS" (#846). */
+  acadOrg: string | null;
 };

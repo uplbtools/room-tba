@@ -1,0 +1,81 @@
+---
+export const prerender = true;
+
+import Layout from "@layouts/Layout.astro";
+import ForkWizard from "@ui/fork/ForkWizard.svelte";
+---
+
+<Layout
+  title="Fork Room TBA for your campus | Room TBA"
+  description="Point a map at your campus, name it, and walk away with a campus.config.ts and a Vercel deploy link for your own Room TBA."
+  canonicalPath="/fork"
+  showAppLoadingShell={false}
+>
+  <main class="fork-page">
+    <a href="/" class="back-link">
+      <span aria-hidden="true">←</span> Back to Room TBA
+    </a>
+
+    <header class="hero">
+      <p class="eyebrow">Fork wizard</p>
+      <h1>Fork Room TBA for your campus</h1>
+      <p class="lede">
+        Gawa ka ng Room TBA para sa campus mo. Point the map at your school,
+        type a name, and this page hands you the config file and a Vercel
+        deploy link. The map below uses plain OpenStreetMap tiles — no API key,
+        nothing is sent anywhere.
+      </p>
+    </header>
+
+    <ForkWizard client:only="svelte" />
+  </main>
+</Layout>
+
+<style>
+  .fork-page {
+    width: min(100%, 60rem);
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+    color: #231c1b;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: #8c231c;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .back-link:hover,
+  .back-link:focus-visible {
+    text-decoration: underline;
+  }
+
+  .hero {
+    margin-bottom: 2.5rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.5rem;
+    color: #8c231c;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.9rem, 5vw, 2.8rem);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .lede {
+    max-width: 44rem;
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+</style>
