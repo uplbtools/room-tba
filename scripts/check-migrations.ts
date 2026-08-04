@@ -1,8 +1,13 @@
 /**
- * Verify Postgres has all required public tables (migrations applied).
+ * Verify Postgres has all required tables (migrations applied).
+ *
+ * Checks the schema the caller actually built: `E2E_SCHEMA` when set, `public`
+ * otherwise. Since #773 nothing applies migrations to the E2E `public` schema,
+ * so CI points this at a throwaway run schema it just migrated (#806); the
+ * release workflow leaves `E2E_SCHEMA` unset and still checks prod `public`.
  */
+import { connectE2eClient, e2eSchema } from "./e2e-schema";
 import { loadEnv } from "./load-env";
-import pg from "pg";
 
 loadEnv();
 
@@ -38,14 +43,14 @@ async function main() {
     throw new Error("DATABASE_URL is required for migration schema check");
   }
 
-  const client = new pg.Client({ connectionString: databaseUrl });
-  await client.connect();
+  const schema = e2eSchema() ?? "public";
+  const client = await connectE2eClient(databaseUrl);
   try {
     const missing: string[] = [];
     for (const table of REQUIRED_TABLES) {
       const { rows } = await client.query<{ reg: string | null }>(
         "SELECT to_regclass($1) AS reg",
-        [`public.${table}`],
+        [`${schema}.${table}`],
       );
       if (!rows[0]?.reg) missing.push(table);
     }
@@ -68,7 +73,7 @@ async function main() {
       );
     }
     console.log(
-      `OK: ${REQUIRED_TABLES.length} required tables and ${REQUIRED_SYNC_ROWS.length} sync rows present`,
+      `OK: ${REQUIRED_TABLES.length} required tables and ${REQUIRED_SYNC_ROWS.length} sync rows present in ${schema}`,
     );
   } finally {
     await client.end();

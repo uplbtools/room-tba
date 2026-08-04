@@ -14,7 +14,7 @@ Production-grade test pyramid for CI and local development.
 | `bun run e2e` | Playwright blocking suite |
 | `bun run e2e:advisory` | Playwright advisory (non-blocking in CI) |
 | `bun run e2e:staging` | Live staging smoke |
-| `bun run check:migrations` | Required tables exist on `DATABASE_URL` |
+| `bun run check:migrations` | Required tables exist in `E2E_SCHEMA`, else `public` |
 
 Full local gate (before marking PR ready):
 
@@ -31,7 +31,7 @@ E2E runs `serve:e2e`, which rebuilds with `@astrojs/node` because `@astrojs/verc
 ## CI (every PR push, including drafts)
 
 - **CI / verify**: Biome format, ESLint, unit, components, PWA legal, prod build (~5–8 min)
-- **CI / migrations**: schema table check on E2E DB (~1 min)
+- **CI / migrations**: migrate a throwaway run schema on the E2E DB, then check its tables (~2 min)
 - **CI / feature retirement**: a deleted `src/pages/` entry must retire or repurpose an automated spec and refresh `docs/test-inventory.md`.
 
 ## CI (gated: ready for review or `run/e2e`)
@@ -74,6 +74,7 @@ Blocking, advisory, and staging E2E all call [`e2e-reusable.yml`](../.github/wor
 - `e2e:reset-db` creates the schema, replays **every** `drizzle/*.sql` in filename order into it (a fresh schema has no history, so nothing needs registering by hand when you add a migration), then seeds the usual fixtures.
 - Every connection pins itself with `SET search_path TO <schema>` right after connect ([`scripts/e2e-schema.ts`](../scripts/e2e-schema.ts), used by [`src/lib/db.ts`](../src/lib/db.ts), the reset script, `integration/`, and `e2e/helpers/db.ts`). The Supabase **session pooler** silently ignores `?options=-csearch_path=…` in the URL and rejects node-postgres `options`, so the URL tricks do not work here.
 - Teardown runs `bun run scripts/e2e-reset-db.ts --drop` under `if: always()`. Cancelled jobs that skip it are covered by the sweeper: each schema is stamped with `COMMENT ON SCHEMA … IS '<iso>'` at creation, and every reset drops stamped `e2e_*` schemas older than 24 h.
+- The `CI / migrations` job builds one too (`e2e_migrations_<run_id>_<run_attempt>`) and runs `check:migrations` against it, so the cheap always-on check validates the schema CI actually produces instead of an E2E `public` nobody migrates any more (#806). `check:migrations` reads `E2E_SCHEMA` like everything else, so with it unset the release workflow still checks prod `public`.
 
 Pinning costs one extra round trip per new connection, and several proposal-service tests already sat at bun's 5 s default while doing ~20 round trips to Supabase, so `test:integration` now runs with `--timeout 20000`. CI calls that script instead of repeating the flags.
 

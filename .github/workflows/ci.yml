@@ -99,6 +99,16 @@ jobs:
   migrations:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      # #806: since #773 nothing applies migrations to the E2E `public` schema,
+      # so checking it failed every PR that added one. Build the same kind of
+      # per-run schema the E2E jobs build, then check that.
+      E2E_SCHEMA: e2e_migrations_${{ github.run_id }}_${{ github.run_attempt }}
+      # A fork PR has no database credentials, so this check cannot run. Say so
+      # plainly and pass, rather than failing on infrastructure the contributor
+      # has no way to fix (#790). A maintainer runs it on the mirrored branch.
+      HAS_DB: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -114,15 +124,19 @@ jobs:
       - name: Install dependencies
         run: mkdir -p node_modules && bun install --frozen-lockfile
 
-      # A fork PR has no database credentials, so this check cannot run. Say so
-      # plainly and pass, rather than failing on infrastructure the contributor
-      # has no way to fix (#790). A maintainer runs it on the mirrored branch.
+      - name: Migrate a throwaway run schema
+        if: env.HAS_DB == 'true'
+        run: bun run e2e:reset-db
+
       - name: Schema tables present
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+        if: env.HAS_DB == 'true'
         run: bun run check:migrations
 
+      - name: Drop run schema
+        if: always() && env.HAS_DB == 'true'
+        continue-on-error: true # stale schemas are swept on the next reset anyway
+        run: bun run scripts/e2e-reset-db.ts --drop
+
       - name: Schema check skipped (fork PR)
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        if: env.HAS_DB != 'true'
         run: echo "::notice::Skipped — fork PRs cannot access database secrets. A maintainer will run this before merge."
