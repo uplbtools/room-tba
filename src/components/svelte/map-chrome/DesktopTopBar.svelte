@@ -24,7 +24,7 @@
   }
 
   const signInLabel = $derived(
-    adminAuthStore.username ? "Account" : "Contributor sign In",
+    adminAuthStore.username ? "Account" : "Contributor sign in",
   );
 </script>
 
