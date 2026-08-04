@@ -1,3 +1,60 @@
+## [2.11.1](https://github.com/uplbtools/room-tba/compare/v2.11.0...v2.11.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map:** credit the basemap that actually served the tiles ([#922](https://github.com/uplbtools/room-tba/issues/922)) ([36aeb16](https://github.com/uplbtools/room-tba/commit/36aeb162840f00dd152e936e8ba1cddefa114809)), closes [#863](https://github.com/uplbtools/room-tba/issues/863) [#883](https://github.com/uplbtools/room-tba/issues/883)
+* **settings:** restructure the settings modal into scannable rows ([#919](https://github.com/uplbtools/room-tba/issues/919)) ([8b47a39](https://github.com/uplbtools/room-tba/commit/8b47a39fe175cc20ea811e5630602b6bf2a96aa2))
+
+# [2.11.0](https://github.com/uplbtools/room-tba/compare/v2.10.4...v2.11.0) (2026-08-04)
+
+
+### Features
+
+* **links:** add the UPLB Tools Facebook and Instagram pages ([#917](https://github.com/uplbtools/room-tba/issues/917)) ([ca09e74](https://github.com/uplbtools/room-tba/commit/ca09e7469787fb98a7af90c5eafc23be6fcb4432))
+
+## [2.10.4](https://github.com/uplbtools/room-tba/compare/v2.10.3...v2.10.4) (2026-08-04)
+
+
+### Bug Fixes
+
+* **wiki:** make the wiki read like reference material ([#915](https://github.com/uplbtools/room-tba/issues/915)) ([1ad8f0d](https://github.com/uplbtools/room-tba/commit/1ad8f0d87ec8a0cb3fc255a981657105543dd346))
+
+## [2.10.3](https://github.com/uplbtools/room-tba/compare/v2.10.2...v2.10.3) (2026-08-04)
+
+
+### Bug Fixes
+
+* **dorms:** let gender be null instead of forcing a guess ([#914](https://github.com/uplbtools/room-tba/issues/914)) ([b6b06a1](https://github.com/uplbtools/room-tba/commit/b6b06a1021ffa900b1c0724f714bc2621e9e945c))
+
+## [2.10.2](https://github.com/uplbtools/room-tba/compare/v2.10.1...v2.10.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **contributions:** rank public contributors and split the editor board ([#906](https://github.com/uplbtools/room-tba/issues/906)) ([f6c9a66](https://github.com/uplbtools/room-tba/commit/f6c9a660b59612a7bc696cb127f4724c911e1c40))
+
+## [2.10.1](https://github.com/uplbtools/room-tba/compare/v2.10.0...v2.10.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map-chrome:** stop the status bar splitting the pill and unblock the credit links ([#905](https://github.com/uplbtools/room-tba/issues/905)) ([6c1e4c6](https://github.com/uplbtools/room-tba/commit/6c1e4c68960e092496a41151322321be680b6bed)), closes [#893](https://github.com/uplbtools/room-tba/issues/893) [#893](https://github.com/uplbtools/room-tba/issues/893) [#893](https://github.com/uplbtools/room-tba/issues/893)
+
+# [2.10.0](https://github.com/uplbtools/room-tba/compare/v2.9.1...v2.10.0) (2026-08-04)
+
+
+### Features
+
+* **flora:** add the flora schema and public read endpoint ([#908](https://github.com/uplbtools/room-tba/issues/908)) ([28e23a5](https://github.com/uplbtools/room-tba/commit/28e23a5a640f2e46bd8eab9d327f42e46e3de010))
+
+## [2.9.1](https://github.com/uplbtools/room-tba/compare/v2.9.0...v2.9.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **changelog:** backfill 2.4.0-2.7.1 and unblock the version-sync PR ([#890](https://github.com/uplbtools/room-tba/issues/890)) ([dd2b7b8](https://github.com/uplbtools/room-tba/commit/dd2b7b885687251c5a15b8895a4f6725949f9a49)), closes [#809](https://github.com/uplbtools/room-tba/issues/809) [#822](https://github.com/uplbtools/room-tba/issues/822) [#826](https://github.com/uplbtools/room-tba/issues/826) [#831](https://github.com/uplbtools/room-tba/issues/831) [#834](https://github.com/uplbtools/room-tba/issues/834) [#868](https://github.com/uplbtools/room-tba/issues/868) [#868](https://github.com/uplbtools/room-tba/issues/868)
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
