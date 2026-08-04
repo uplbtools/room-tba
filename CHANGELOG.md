@@ -1,3 +1,10 @@
+## [2.12.3](https://github.com/uplbtools/room-tba/compare/v2.12.2...v2.12.3) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map-chrome:** give the status a zero flex basis so it shrinks, not wraps ([#937](https://github.com/uplbtools/room-tba/issues/937)) ([a23fcc6](https://github.com/uplbtools/room-tba/commit/a23fcc6ba4560f9e67381f8df0abbf4e8447c85d)), closes [#935](https://github.com/uplbtools/room-tba/issues/935) [#935](https://github.com/uplbtools/room-tba/issues/935)
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
