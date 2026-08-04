@@ -1,3 +1,10 @@
+## [2.10.2](https://github.com/uplbtools/room-tba/compare/v2.10.1...v2.10.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **contributions:** rank public contributors and split the editor board ([#906](https://github.com/uplbtools/room-tba/issues/906)) ([f6c9a66](https://github.com/uplbtools/room-tba/commit/f6c9a660b59612a7bc696cb127f4724c911e1c40))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
