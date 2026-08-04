@@ -113,7 +113,7 @@
     return entries
       .map(
         ({ event }) =>
-          `${event.title} — ${formatCampusRange(event.occurrenceStartsAt, event.occurrenceEndsAt)}`,
+          `${event.title}, ${formatCampusRange(event.occurrenceStartsAt, event.occurrenceEndsAt)}`,
       )
       .join("\n");
   }
