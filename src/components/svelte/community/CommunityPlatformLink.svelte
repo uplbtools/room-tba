@@ -1,16 +1,23 @@
 <script lang="ts">
   import CommunityBrandIcon from "./CommunityBrandIcon.svelte";
-
-  type Brand = "discord" | "messenger";
+  import type { CommunityBrand } from "./brands";
 
   type Props = {
-    brand: Brand;
+    brand: CommunityBrand;
     href: string;
     label: string;
     class?: string;
+    /** Fired before the new tab opens. Used to retire the follow prompt. */
+    onclick?: () => void;
   };
 
-  const { brand, href, label, class: className = "" }: Props = $props();
+  const {
+    brand,
+    href,
+    label,
+    class: className = "",
+    onclick,
+  }: Props = $props();
 </script>
 
 <a
@@ -18,6 +25,7 @@
   class={`community-platform-link ${className}`.trim()}
   target="_blank"
   rel="noopener noreferrer"
+  {onclick}
 >
   <CommunityBrandIcon {brand} size={16} />
   <span>{label}</span>

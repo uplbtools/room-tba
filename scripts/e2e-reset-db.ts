@@ -145,28 +145,42 @@ async function applyE2eMigrations(
 }
 
 const STALE_SCHEMA_MS = 24 * 60 * 60 * 1000;
+const E2E_RESET_LOCK = 447265; // serialize `public` resets + the stale sweep
 
 /**
  * Drop run schemas whose job was cancelled or killed before teardown. Postgres
  * does not record schema creation time, so each run stamps its own schema
  * comment with an ISO timestamp.
+ *
+ * Sweeping is opportunistic, so it takes the reset lock with `try` (#782): a
+ * run that loses the race skips the sweep rather than sitting on a pooler
+ * connection, and the next reset picks the same schemas up.
  */
 async function sweepStaleSchemas(client: pg.Client) {
-  const { rows } = await client.query<{
-    nspname: string;
-    stamp: string | null;
-  }>(
-    `SELECT nspname, obj_description(oid, 'pg_namespace') AS stamp
-       FROM pg_namespace WHERE nspname LIKE 'e2e\\_%'`,
+  const { rows: lock } = await client.query<{ locked: boolean }>(
+    "SELECT pg_try_advisory_lock($1) AS locked",
+    [E2E_RESET_LOCK],
   );
-  const cutoff = Date.now() - STALE_SCHEMA_MS;
-  for (const { nspname, stamp } of rows) {
-    const created = stamp ? Date.parse(stamp) : Number.NaN;
-    // ponytail: an unstamped e2e_* schema was made by hand, so leave it alone.
-    if (!E2E_SCHEMA_PATTERN.test(nspname)) continue;
-    if (!Number.isFinite(created) || created >= cutoff) continue;
-    await client.query(`DROP SCHEMA IF EXISTS ${nspname} CASCADE`);
-    console.log(`Swept stale E2E schema ${nspname} (stamped ${stamp}).`);
+  if (!lock[0]?.locked) return;
+  try {
+    const { rows } = await client.query<{
+      nspname: string;
+      stamp: string | null;
+    }>(
+      `SELECT nspname, obj_description(oid, 'pg_namespace') AS stamp
+         FROM pg_namespace WHERE nspname LIKE 'e2e\\_%'`,
+    );
+    const cutoff = Date.now() - STALE_SCHEMA_MS;
+    for (const { nspname, stamp } of rows) {
+      const created = stamp ? Date.parse(stamp) : Number.NaN;
+      // ponytail: an unstamped e2e_* schema was made by hand, so leave it alone.
+      if (!E2E_SCHEMA_PATTERN.test(nspname)) continue;
+      if (!Number.isFinite(created) || created >= cutoff) continue;
+      await client.query(`DROP SCHEMA IF EXISTS ${nspname} CASCADE`);
+      console.log(`Swept stale E2E schema ${nspname} (stamped ${stamp}).`);
+    }
+  } finally {
+    await client.query("SELECT pg_advisory_unlock($1)", [E2E_RESET_LOCK]);
   }
 }
 
@@ -202,11 +216,7 @@ async function main() {
 
   const client = await connectE2eClient(databaseUrl);
 
-  const E2E_RESET_LOCK = 447265; // serialize concurrent CI resets on shared E2E DB
-
   try {
-    await client.query("SELECT pg_advisory_lock($1)", [E2E_RESET_LOCK]);
-
     if (schema) {
       // `SET search_path` (done on connect) tolerates a missing schema, so the
       // create can happen here; every statement below then lands in `schema`.
@@ -215,6 +225,13 @@ async function main() {
         `COMMENT ON SCHEMA ${schema} IS '${new Date().toISOString()}'`,
       );
       await sweepStaleSchemas(client);
+    } else {
+      // #782: only a `public` reset needs the global lock, because that schema
+      // is shared. A run schema belongs to this job alone, and holding the lock
+      // across its whole chain replay left every concurrent CI job sitting on a
+      // pooler connection waiting its turn, which is the overlap that exhausts
+      // pool_size.
+      await client.query("SELECT pg_advisory_lock($1)", [E2E_RESET_LOCK]);
     }
 
     await applyE2eMigrations(client, e2eMigrationFiles(schema), schema);
@@ -410,7 +427,9 @@ async function main() {
     );
   } finally {
     try {
-      await client.query("SELECT pg_advisory_unlock($1)", [E2E_RESET_LOCK]);
+      if (!schema) {
+        await client.query("SELECT pg_advisory_unlock($1)", [E2E_RESET_LOCK]);
+      }
     } catch {
       // connection may already be closed after a failed reset
     }
