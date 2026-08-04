@@ -30,6 +30,8 @@ import {
   eventRouteStopsTable,
   eventsTable,
   finalExamsTable,
+  floraSpeciesTable,
+  floraSpecimensTable,
   jeepneyRoutesTable,
   jeepneyStopsTable,
   organizationsTable,
@@ -134,6 +136,8 @@ const SYNCED_TABLES: PgTable[] = [
   jeepneyStopsTable,
   aliasesTable,
   announcementsTable,
+  floraSpeciesTable,
+  floraSpecimensTable,
 ];
 
 /** Relax server types for the cache: no enums, timestamps stored as text
