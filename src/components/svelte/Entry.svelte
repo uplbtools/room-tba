@@ -718,7 +718,14 @@
 
   .bottom-chrome__status {
     display: flex;
-    flex: 0 1 auto;
+    /* basis 0, not auto. With flex-wrap on the pill, line breaks are decided
+       from flex *base* sizes before any shrinking happens, so a content-sized
+       status does not compress, it gets pushed onto its own row. That is the
+       regression #905 fixed and #935 reintroduced by restoring the wrap while
+       leaving the basis at auto. At basis 0 the status never forces a break:
+       it grows into whatever is left beside the credits and ellipsises past
+       that, so only an oversized sync action can take a second row. */
+    flex: 1 1 0;
     align-items: center;
     min-width: 0;
     overflow: hidden;
