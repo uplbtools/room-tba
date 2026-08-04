@@ -1,9 +1,11 @@
 <script lang="ts">
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import Layers from "@lucide/svelte/icons/layers";
   import Ruler from "@lucide/svelte/icons/ruler";
   import Timer from "@lucide/svelte/icons/timer";
+  // Wrench, not layers: this trigger opens a toolbox (travel time, measure
+  // route, legend), and `layers` is the legend chip sitting right beside it.
+  import Wrench from "@lucide/svelte/icons/wrench";
   import { fade } from "svelte/transition";
   import {
     mapToolsStore,
@@ -78,7 +80,7 @@
     ariaLabel="Map tools"
     onclick={() => mapToolsStore.toggle()}
   >
-    <Layers size={16} aria-hidden="true" />
+    <Wrench size={18} aria-hidden="true" />
   </MapChromeFabTrigger>
 
   {#if mapToolsStore.open}

@@ -1,7 +1,7 @@
 {
   "name": "astro-room",
   "type": "module",
-  "version": "2.3.1",
+  "version": "2.9.0",
   "packageManager": "bun@1.3.14",
   "license": "MIT",
   "engines": {
@@ -57,6 +57,8 @@
     "import:classes-generic": "bun run scripts/import-classes-generic.ts",
     "backfill:acad-orgs": "for t in 1231 1232 1241 1242 1243 1251 1252 1253 1261; do bun run scripts/import-amis-classes.ts --term-id $t || exit 1; done",
     "import:final-exams": "bun run scripts/import-final-exams.ts",
+    "record:bulk-history": "bun run scripts/record-bulk-history.ts",
+    "backfill:bulk-history": "bun run scripts/backfill-bulk-history.ts",
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run"
   },
@@ -72,6 +74,7 @@
     "@maplibre/maplibre-gl-directions": "^0.9.1",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
+    "@tailwindcss/vite": "^4.3.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/og": "^0.11.1",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
@@ -84,6 +87,7 @@
     "pg": "^8.22.0",
     "svelte": "^5.56.6",
     "svelte-maplibre": "^1.3.0",
+    "tailwindcss": "^4.3.3",
     "three": "^0.185.1",
     "typescript": "^7.0.2",
     "which-pm-runs": "^2.0.0"

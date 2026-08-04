@@ -381,7 +381,14 @@ button.map-chrome-chip:disabled {
 .map-chrome-fab-trigger {
   display: flex;
   flex-shrink: 0;
-  padding: 0.75rem;
+  /* Was padding-sized, which landed on a 42px box with a 16px icon while every
+     neighbour in the bottom chrome is a 2.75rem box with a 1.125rem icon. Pin
+     to the same tokens as .map-chrome-control-btn--compact so the row reads as
+     one set of controls and the chip keeps a 44px touch target. */
+  width: var(--map-chrome-toggle-size, 2.75rem);
+  height: var(--map-chrome-toggle-size, 2.75rem);
+  padding: 0;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
   border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
@@ -467,7 +474,11 @@ button.map-chrome-chip:disabled {
   );
 }
 
-.map-chrome-control-btn--compact svg {
+/* One icon size across the bottom chrome controls, whatever `size` prop each
+   component passes — otherwise adjacent buttons drift (Map tools shipped a
+   16px icon beside the legend's 18px one). */
+.map-chrome-control-btn--compact svg,
+.map-chrome-fab-trigger svg {
   width: 1.125rem;
   height: 1.125rem;
   flex-shrink: 0;
@@ -747,4 +758,35 @@ button.map-chrome-chip:disabled {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+/* The bottom chrome is deliberately short, so these controls grow their hit
+   area with an overlay rather than their box: the band keeps its height and
+   only pointer input gains the 44px target (WCAG 2.5.8). Attribution links sit
+   inline next to each other, so they grow vertically only; widening them would
+   make neighbouring targets overlap and steal each other's taps. */
+.map-attribution__credits a,
+.map-attribution__toggle,
+.map-dimension-toggle .segment {
+  position: relative;
+}
+
+.map-attribution__credits a::after,
+.map-attribution__toggle::after,
+.map-dimension-toggle .segment::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: max(100%, 2.75rem);
+  transform: translate(-50%, -50%);
+}
+
+.map-attribution__credits a::after {
+  width: 100%;
+}
+
+.map-attribution__toggle::after,
+.map-dimension-toggle .segment::after {
+  width: max(100%, 2.75rem);
 }

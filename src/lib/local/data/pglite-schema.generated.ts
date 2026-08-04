@@ -437,4 +437,52 @@ ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "author" text;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "created_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "announcements" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
+CREATE TABLE IF NOT EXISTS "flora_species" (
+  "id" integer PRIMARY KEY,
+  "scientific_name" text NOT NULL,
+  "family" text,
+  "common_names" text[],
+  "description" text,
+  "image_url" text,
+  "conservation_status" varchar(32),
+  "is_native" boolean,
+  "version" integer DEFAULT 1 NOT NULL,
+  "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "scientific_name" text;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "family" text;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "common_names" text[];
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "description" text;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "image_url" text;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "conservation_status" varchar(32);
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "is_native" boolean;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "flora_species" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
+CREATE TABLE IF NOT EXISTS "flora_specimens" (
+  "id" integer PRIMARY KEY,
+  "species_id" integer NOT NULL,
+  "lat" double precision NOT NULL,
+  "lon" double precision NOT NULL,
+  "tag_number" varchar(32),
+  "planted_year" integer,
+  "notes" text,
+  "is_notable" boolean DEFAULT false NOT NULL,
+  "source" varchar(32) DEFAULT 'manual' NOT NULL,
+  "source_ref" text,
+  "source_licence" varchar(64),
+  "version" integer DEFAULT 1 NOT NULL,
+  "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "species_id" integer;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "lat" double precision;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "lon" double precision;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "tag_number" varchar(32);
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "planted_year" integer;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "notes" text;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "is_notable" boolean DEFAULT false NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "source" varchar(32) DEFAULT 'manual' NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "source_ref" text;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "source_licence" varchar(64);
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "flora_specimens" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 `;

@@ -6,6 +6,8 @@ import {
   collegesTable,
   divisionsTable,
   dormsTable,
+  floraSpeciesTable,
+  floraSpecimensTable,
   organizationsTable,
   placesTable,
   finalExamsTable,
@@ -602,6 +604,73 @@ export async function getAllDorms(): Promise<DormData[]> {
   } catch (e) {
     console.error("Error: ", e);
     throw new Error("Failed to fetch data for dorms", { cause: e });
+  }
+}
+
+export type FloraSpecimenData = {
+  id: number;
+  speciesId: number;
+  lat: number;
+  lon: number;
+  tagNumber: string | null;
+  plantedYear: number | null;
+  notes: string | null;
+  isNotable: boolean;
+  source: string;
+  sourceLicence: string | null;
+  scientificName: string;
+  family: string | null;
+  commonNames: string[] | null;
+  description: string | null;
+  imageUrl: string | null;
+  conservationStatus: string | null;
+  isNative: boolean | null;
+};
+
+/**
+ * Specimens joined to their species. Phase 1 pins are a few hundred rows, so
+ * this ships them in one response rather than paging; when phase 2 relaxes the
+ * notable filter into the thousands, switch the map source to MapLibre
+ * clustering and page this instead.
+ */
+export async function getAllFloraSpecimens(
+  notableOnly = false,
+): Promise<FloraSpecimenData[]> {
+  try {
+    const data = await db
+      .select({
+        id: floraSpecimensTable.id,
+        speciesId: floraSpecimensTable.speciesId,
+        lat: floraSpecimensTable.lat,
+        lon: floraSpecimensTable.lon,
+        tagNumber: floraSpecimensTable.tagNumber,
+        plantedYear: floraSpecimensTable.plantedYear,
+        notes: floraSpecimensTable.notes,
+        isNotable: floraSpecimensTable.isNotable,
+        source: floraSpecimensTable.source,
+        sourceLicence: floraSpecimensTable.sourceLicence,
+        scientificName: floraSpeciesTable.scientificName,
+        family: floraSpeciesTable.family,
+        commonNames: floraSpeciesTable.commonNames,
+        description: floraSpeciesTable.description,
+        imageUrl: floraSpeciesTable.imageUrl,
+        conservationStatus: floraSpeciesTable.conservationStatus,
+        isNative: floraSpeciesTable.isNative,
+      })
+      .from(floraSpecimensTable)
+      .innerJoin(
+        floraSpeciesTable,
+        eq(floraSpecimensTable.speciesId, floraSpeciesTable.id),
+      )
+      .where(notableOnly ? eq(floraSpecimensTable.isNotable, true) : undefined)
+      .orderBy(
+        asc(floraSpeciesTable.scientificName),
+        asc(floraSpecimensTable.id),
+      );
+    return data;
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch data for flora", { cause: e });
   }
 }
 

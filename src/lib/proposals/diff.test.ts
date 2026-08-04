@@ -97,3 +97,92 @@ describe("buildFieldDiffs", () => {
     });
   });
 });
+
+describe("buildFieldDiffs foreign key resolution (#873)", () => {
+  const resolveName = (field: string, id: number) => {
+    if (field === "buildingId") {
+      return (
+        (
+          { 3: "Physical Sciences", 24: "CHE Building" } as Record<
+            number,
+            string
+          >
+        )[id] ?? null
+      );
+    }
+    if (field === "collegeId") {
+      return ({ 5: "CAS" } as Record<number, string>)[id] ?? null;
+    }
+    return null;
+  };
+
+  test("renders entity names and keeps the ids as secondary values", () => {
+    const diffs = buildFieldDiffs(
+      { buildingId: 3 },
+      { buildingId: 24 },
+      resolveName,
+    );
+    expect(diffs).toEqual([
+      {
+        field: "buildingId",
+        label: "Building",
+        before: "Physical Sciences",
+        after: "CHE Building",
+        beforeId: 3,
+        afterId: 24,
+      },
+    ]);
+  });
+
+  test("falls back to the raw id when the resolver has no name", () => {
+    const diffs = buildFieldDiffs(
+      { buildingId: 3 },
+      { buildingId: 99 },
+      resolveName,
+    );
+    expect(diffs[0]?.after).toBe("99");
+    expect(diffs[0]?.afterId).toBeUndefined();
+  });
+
+  test("labels divisionId instead of leaking the field name", () => {
+    const diffs = buildFieldDiffs({ divisionId: 1 }, { divisionId: 2 });
+    expect(diffs[0]?.label).toBe("Division");
+  });
+
+  test("resolves a create proposal's foreign key with a null before", () => {
+    const diffs = buildFieldDiffs(null, { buildingId: 24 }, resolveName);
+    expect(diffs[0]).toEqual({
+      field: "buildingId",
+      label: "Building",
+      before: null,
+      after: "CHE Building",
+      afterId: 24,
+    });
+  });
+
+  test("still detects a change when two ids share a display name", () => {
+    const sameName = () => "Twin Hall";
+    const diffs = buildFieldDiffs(
+      { buildingId: 3 },
+      { buildingId: 24 },
+      sameName,
+    );
+    expect(diffs).toHaveLength(1);
+    expect(diffs[0]?.beforeId).toBe(3);
+    expect(diffs[0]?.afterId).toBe(24);
+  });
+
+  test("leaves non-id fields untouched", () => {
+    const diffs = buildFieldDiffs(
+      { capacity: 10 },
+      { capacity: 12 },
+      resolveName,
+    );
+    expect(diffs[0]).toEqual({
+      field: "capacity",
+      label: "Capacity",
+      before: "10",
+      after: "12",
+    });
+  });
+});

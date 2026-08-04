@@ -11,17 +11,16 @@ import type {
   TableSyncInfo,
 } from "@lib/types";
 import { getDB } from "./pgliteDB";
-import { fetchJsonWithRetry, SYNC_CHECK_FETCH_OPTIONS } from "./fetch-json";
 import { syncToastStore } from "@lib/store.svelte";
 import type { Results } from "@electric-sql/pglite";
-import { getSyncKeysFromLs } from "./sync-keys";
+import { getSyncKey, getSyncKeysFromLs } from "./sync-keys";
 import type { JeepneyRoute } from "@constants/jeepney-routes";
 
-export { getSyncKeysFromLs };
+export { getSyncKey, getSyncKeysFromLs };
 
 async function localCacheIsEmpty(tableName: string): Promise<boolean> {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const result = (await localDB.query(
       `SELECT 1 FROM "${tableName}" LIMIT 1;`,
@@ -75,24 +74,6 @@ export function updateSyncKeyFromLs(tableName: string, newKey: string) {
   localStorage.setItem("sync-key", JSON.stringify(syncKeys));
 }
 
-export async function getSyncKey(table: string) {
-  try {
-    const tableOnline = await fetchJsonWithRetry<{
-      success: boolean;
-      error: string | null;
-      data: {
-        id: number;
-        tableName: string | null;
-        syncKey: string | null;
-      };
-    }>(`/api/check/${table}`, SYNC_CHECK_FETCH_OPTIONS);
-    return tableOnline.data.syncKey;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
-
 export async function syncBuildings(
   checker: TableSyncInfo,
   remoteBuildings: BuildingData[],
@@ -104,7 +85,7 @@ export async function syncBuildings(
   // overwriting it with empty remote data or resetting rooms_fetched (#169).
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
-  const localDB = getDB();
+  const localDB = await getDB();
 
   await localDB.waitReady;
   syncToastStore.startBuildingsSync(remoteBuildings.length);
@@ -162,7 +143,7 @@ export async function syncColleges(
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
 
   await localDB.waitReady;
   syncToastStore.startCollegesSync(remoteColleges.length);
@@ -211,7 +192,7 @@ export async function syncDivisions(
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
 
   await localDB.waitReady;
   syncToastStore.startDivisionsSync(remoteDivisions.length);
@@ -261,7 +242,7 @@ export async function syncDorms(
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
 
   await localDB.waitReady;
   syncToastStore.startDormsSync(remoteDorms.length);
@@ -333,7 +314,7 @@ export async function syncOrganizations(
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
   await localDB.waitReady;
   for (const o of remoteOrgs) {
     try {
@@ -399,7 +380,7 @@ export async function syncPlaces(
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
   await localDB.waitReady;
   for (const p of remotePlaces) {
     try {
@@ -453,7 +434,7 @@ export async function syncAnnouncements(
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
   await localDB.waitReady;
   // `/api/announcements` serves only live rows, so rows that expired or were
   // deleted server-side must leave the cache too — replace, don't upsert.
@@ -509,7 +490,7 @@ export async function syncJeepneyRoutes(
   if (await shouldSkipValidSync(checker, "jeepney_routes")) return;
   if (checker.newKey === null || !trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
   await localDB.waitReady;
   try {
     await localDB.transaction(async (tx) => {
@@ -569,7 +550,7 @@ export async function syncEvents(
   if (checker.newKey === null) return;
   if (!trustedRemote) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
   await localDB.waitReady;
   syncToastStore.startEventsSync(remoteEvents.length);
 
@@ -708,7 +689,7 @@ export async function syncEvents(
 
 export async function resetBuildingsSyncStatus() {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     await localDB.exec("UPDATE buildings SET rooms_fetched = false");
   } catch (e) {
@@ -718,7 +699,7 @@ export async function resetBuildingsSyncStatus() {
 
 export async function localBuildingSyncStatus(id: number) {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -736,7 +717,7 @@ export async function localBuildingSyncStatus(id: number) {
 
 export async function getLocalBuildingRooms(id: number) {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -812,7 +793,7 @@ export async function syncBuildingRooms(
   // Offline/failed fetch returns no rooms — keep the existing cache and the
   // rooms_fetched flag untouched instead of marking an empty fetch as done.
   if (!rooms || rooms.length === 0) return;
-  const localDB = getDB();
+  const localDB = await getDB();
   for (const room of rooms) {
     try {
       await localDB.query(
@@ -856,7 +837,7 @@ export async function syncBuildingRooms(
 
 export async function resetCollegesSyncStatus() {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     await localDB.exec("UPDATE colleges SET rooms_fetched = false");
   } catch (e) {
@@ -866,7 +847,7 @@ export async function resetCollegesSyncStatus() {
 
 export async function localCollegeSyncStatus(id: number) {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -884,7 +865,7 @@ export async function localCollegeSyncStatus(id: number) {
 
 export async function getLocalCollegeRooms(id: number) {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -942,7 +923,7 @@ export async function syncCollegeRooms(
 ) {
   if (validSync) return;
   if (!rooms || rooms.length === 0) return;
-  const localDB = getDB();
+  const localDB = await getDB();
   for (const room of rooms) {
     try {
       await localDB.query(
@@ -986,7 +967,7 @@ export async function syncCollegeRooms(
 
 export async function resetDivisionsSyncStatus() {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     await localDB.exec("UPDATE divisions SET rooms_fetched = false");
   } catch (e) {
@@ -996,7 +977,7 @@ export async function resetDivisionsSyncStatus() {
 
 export async function localDivisionSyncStatus(id: number) {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -1014,7 +995,7 @@ export async function localDivisionSyncStatus(id: number) {
 
 export async function getLocalDivisionRooms(id: number) {
   try {
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(
       `
@@ -1072,7 +1053,7 @@ export async function syncDivisionRooms(
 ) {
   if (validSync) return;
   if (!rooms || rooms.length === 0) return;
-  const localDB = getDB();
+  const localDB = await getDB();
   for (const room of rooms) {
     try {
       await localDB.query(
@@ -1133,7 +1114,7 @@ export async function syncAliasCache() {
     const rows = payload.data;
     if (!Array.isArray(rows)) return;
 
-    const localDB = getDB();
+    const localDB = await getDB();
     await localDB.waitReady;
     await localDB.exec("DELETE FROM aliases");
     if (rows.length === 0) return;
@@ -1181,7 +1162,7 @@ export async function syncClasses(
   if (!trustedRemote) return;
   if (checker.newKey === null) return;
 
-  const localDB = getDB();
+  const localDB = await getDB();
   await localDB.waitReady;
   syncToastStore.startClassesSync(remoteClasses.length);
 

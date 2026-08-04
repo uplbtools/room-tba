@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import SubmitterNameField from "@ui/SubmitterNameField.svelte";
+  import { MAX_SUBMITTER_NOTE_LENGTH } from "@constants/proposals";
+  import EntityEditorFormField from "./EntityEditorFormField.svelte";
   import EntityEditorMessage from "./EntityEditorMessage.svelte";
   import EntityEditorSubmitButton from "./EntityEditorSubmitButton.svelte";
   import EntityHistoryPanel from "./EntityHistoryPanel.svelte";
@@ -18,6 +20,12 @@
     showSubmitterName?: boolean;
     submitterNameId: string;
     submitterName?: string;
+    /**
+     * Opt in to the "Note to reviewer" box (#873). Callers must forward the
+     * bound value to persistEntityChange, so it stays off until wired.
+     */
+    showSubmitterNote?: boolean;
+    submitterNote?: string;
     proposalStatus?: string | null;
     activeProposalId?: number | null;
     onWithdrawn?: () => void;
@@ -40,6 +48,8 @@
     showSubmitterName = false,
     submitterNameId,
     submitterName = $bindable(""),
+    showSubmitterNote = false,
+    submitterNote = $bindable(""),
     proposalStatus = null,
     activeProposalId = null,
     onWithdrawn,
@@ -105,6 +115,24 @@
   {/if}
 
   {@render children?.()}
+
+  {#if !canPublish && showSubmitterNote}
+    <EntityEditorFormField
+      label="Note to reviewer (optional)"
+      inputId="{submitterNameId}-note"
+      hint="Goes to the editor who reviews this, and is never shown on the map. Use it for context, sources, or anything that is not part of the entry itself."
+    >
+      {#snippet control()}
+        <textarea
+          id="{submitterNameId}-note"
+          rows="2"
+          maxlength={MAX_SUBMITTER_NOTE_LENGTH}
+          bind:value={submitterNote}
+          aria-describedby="{submitterNameId}-note-hint"
+        ></textarea>
+      {/snippet}
+    </EntityEditorFormField>
+  {/if}
 
   {#if !canPublish && onsubmit}
     <div class="entity-editor-form-actions">
