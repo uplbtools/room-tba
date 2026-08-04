@@ -678,12 +678,15 @@
   .bottom-chrome__bar {
     display: flex;
     flex-direction: row;
-    /* Never wrap: the credits and the status read as one line, and wrapping put
-       the status on a row of its own, which reads as a second status bar
-       stacked against the attribution. Credits are a hard floor (basemap terms
-       forbid truncating them), so the status column gives up the space instead
-       — see .bottom-chrome__status. */
-    flex-wrap: nowrap;
+    /* Wraps, but the status is never what wraps. The regression this fixes was
+       the status dropping onto a row of its own and reading as a second status
+       bar stacked against the attribution. The cure for that is making the
+       status shrinkable (it ellipsises, see .bottom-chrome__status), not
+       forbidding the wrap: with nowrap, credits (a hard floor under basemap
+       terms) plus a sync-error Retry could not both fit at 320px and the row
+       overflowed the viewport by about a pixel instead. Wrapping lets an
+       oversized action drop a line while the status stays beside the credits. */
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.375rem;
     flex: 0 1 auto;
@@ -715,7 +718,14 @@
 
   .bottom-chrome__status {
     display: flex;
-    flex: 0 1 auto;
+    /* basis 0, not auto. With flex-wrap on the pill, line breaks are decided
+       from flex *base* sizes before any shrinking happens, so a content-sized
+       status does not compress, it gets pushed onto its own row. That is the
+       regression #905 fixed and #935 reintroduced by restoring the wrap while
+       leaving the basis at auto. At basis 0 the status never forces a break:
+       it grows into whatever is left beside the credits and ellipsises past
+       that, so only an oversized sync action can take a second row. */
+    flex: 1 1 0;
     align-items: center;
     min-width: 0;
     overflow: hidden;

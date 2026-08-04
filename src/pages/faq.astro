@@ -2,6 +2,7 @@
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import FollowUpdates from "@ui/community/FollowUpdates.svelte";
 import {
   UPLB_TOOLS_URL,
   GITHUB_ROOM_TBA_URL,
@@ -146,6 +147,23 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
             >. Signed-in contributors can use <strong>Suggest an edit</strong> in
             the app for many map fields.
           </p>
+        </div>
+      </details>
+
+      <details class="faq-item" id="updates">
+        <summary>How do I find out when something changes?</summary>
+        <div class="faq-answer">
+          <p>
+            Every release is listed on the <a href="/changelog">changelog</a>,
+            and the app shows a note when a new version is ready. The bigger
+            items also go out on the UPLB Tools accounts, so you see them
+            without opening the app.
+          </p>
+          <div class="faq-answer__follow">
+            <FollowUpdates
+              note="Posted there: new features, corrections to room and class data, and the day each term's schedules land."
+            />
+          </div>
         </div>
       </details>
 
@@ -339,6 +357,11 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
   .faq-answer a {
     color: hsl(5, 53%, 32%);
     font-weight: 600;
+  }
+
+  /* The Svelte child's <p> carries no astro-cid, so `p + p` above skips it. */
+  .faq-answer__follow {
+    margin-top: 0.625rem;
   }
 
   .faq-answer code {

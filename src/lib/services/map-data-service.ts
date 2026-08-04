@@ -15,6 +15,7 @@ import {
 } from "@drizzle/schema";
 import { encodeClassCursor, type ClassCursor } from "@lib/api/class-cursor";
 import { clampLimitValue } from "@lib/api/pagination";
+import { escapeLikePattern } from "@lib/like-escape";
 import { db } from "@lib/db";
 import { normalizeCourseCode } from "@lib/final-exams/normalize";
 import { normalizeAlias } from "@lib/site";
@@ -182,7 +183,7 @@ export async function getRoomByCode(code: string) {
 
 export async function searchRooms(searchString: string) {
   try {
-    const escaped = searchString.replace(/%/g, "\\%").replace(/_/g, "\\_");
+    const escaped = escapeLikePattern(searchString);
     const data = await db
       .select({
         value: roomsTable.roomCode,

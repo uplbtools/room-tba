@@ -1,17 +1,77 @@
 <script lang="ts">
-  type Brand = "discord" | "messenger";
+  import type { CommunityBrand } from "./brands";
 
   type Props = {
-    brand: Brand;
+    brand: CommunityBrand;
     size?: number;
   };
 
   const { brand, size = 16 }: Props = $props();
 
-  const gradientId = `messenger-gradient-${Math.random().toString(36).slice(2, 9)}`;
+  const uid = Math.random().toString(36).slice(2, 9);
+  const gradientId = `messenger-gradient-${uid}`;
+  const instagramGradientId = `instagram-gradient-${uid}`;
 </script>
 
-{#if brand === "discord"}
+{#if brand === "facebook"}
+  <!-- Facebook "f" mark: brand blue disc, white glyph. -->
+  <svg
+    class="community-brand-icon"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <circle cx="12" cy="12" r="12" fill="#1877F2" />
+    <path
+      fill="#FFF"
+      d="M16.671 15.47 17.203 12h-3.328V9.75c0-.949.465-1.874 1.956-1.874h1.513V4.922s-1.374-.235-2.687-.235c-2.741 0-4.532 1.662-4.532 4.669V12H7.078v3.47h3.047v8.385a12.13 12.13 0 0 0 3.75 0V15.47h2.796z"
+    />
+  </svg>
+{:else if brand === "instagram"}
+  <!-- Instagram camera mark on the official corner-anchored gradient. -->
+  <svg
+    class="community-brand-icon"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <radialGradient id={instagramGradientId} cx="0.3" cy="1.05" r="1.25">
+      <stop offset="0" stop-color="#FFDD55" />
+      <stop offset=".1" stop-color="#FFDD55" />
+      <stop offset=".5" stop-color="#FF543E" />
+      <stop offset="1" stop-color="#C837AB" />
+    </radialGradient>
+    <rect
+      width="24"
+      height="24"
+      rx="6"
+      fill={`url(#${instagramGradientId})`}
+    />
+    <rect
+      x="5.2"
+      y="5.2"
+      width="13.6"
+      height="13.6"
+      rx="4.2"
+      fill="none"
+      stroke="#FFF"
+      stroke-width="1.7"
+    />
+    <circle
+      cx="12"
+      cy="12"
+      r="3.2"
+      fill="none"
+      stroke="#FFF"
+      stroke-width="1.7"
+    />
+    <circle cx="16.35" cy="7.7" r="1.15" fill="#FFF" />
+  </svg>
+{:else if brand === "discord"}
   <svg
     class="community-brand-icon"
     width={size}

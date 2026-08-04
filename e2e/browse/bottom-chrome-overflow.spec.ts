@@ -34,6 +34,13 @@ const MAX_CHROME_HEIGHT_PX = 140;
 // One text line plus the pill's padding and border. A second row lands at ~52px.
 const MAX_BAR_HEIGHT_PX = 40;
 
+// With a sync action present the pill is *allowed* a second row: the action is
+// wider than the space left beside untruncatable credits at 320px, so wrapping
+// it is correct and overflowing the viewport is not. What must still hold is
+// that the status is not what wrapped, which rowSplit asserts separately.
+// Measured on production at 320px with the 86px probe: chrome 163px.
+const MAX_CHROME_HEIGHT_WITH_ACTION_PX = 175;
+
 // Widest control the bar can gain: the sync-error "Retry" button. Nothing in
 // app code calls setSyncError (the sync path swallows errors by design, #169),
 // so the state is not reachable from the network. Injecting a probe of the same
@@ -292,14 +299,26 @@ test.describe("bottom chrome fits the viewport", () => {
         bar.appendChild(probe);
       }, RETRY_PROBE_PX);
 
+      // Report *which* box overflowed, not just how many. A bare count says
+      // "Expected 0, Received 1" and leaves the next reader guessing at which
+      // element and which width, which is exactly the position this test put
+      // its author in once already.
       await expect
-        .poll(async () => {
-          const m = await measure(page);
-          return m.boxes.filter(
-            (b) => b.right > m.viewportWidth + 0.5 || b.left < -0.5,
-          ).length;
-        })
-        .toBe(0);
+        .poll(
+          async () => {
+            const m = await measure(page);
+            return m.boxes
+              .filter((b) => b.right > m.viewportWidth + 0.5 || b.left < -0.5)
+              .map(
+                (b) =>
+                  `${b.name} [${Math.round(b.left)}..${Math.round(b.right)}]`,
+              );
+          },
+          {
+            message: `${width}px + ${RETRY_PROBE_PX}px sync action: boxes outside the viewport`,
+          },
+        )
+        .toEqual([]);
 
       const measured = await measure(page);
       expect(
@@ -308,13 +327,13 @@ test.describe("bottom chrome fits the viewport", () => {
       ).toBeLessThanOrEqual(measured.clientWidth);
       assertInsideViewport(measured, `${width}px + sync action probe`);
 
-      // The status text ellipsises to make room for the action, so the pill
-      // absorbs it on one row rather than growing a second.
+      // The action may take a second row; the status may not. Those are
+      // different failures and only the second one is the regression.
       const chrome = measured.boxes.find((b) => b.name === ".bottom-chrome");
       expect(
         chrome?.height,
         `${width}px + probe: bottom chrome height`,
-      ).toBeLessThanOrEqual(MAX_CHROME_HEIGHT_PX);
+      ).toBeLessThanOrEqual(MAX_CHROME_HEIGHT_WITH_ACTION_PX);
       expect(
         measured.rowSplit,
         `${width}px + probe: status split onto its own row`,

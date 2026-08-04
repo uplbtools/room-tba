@@ -18,6 +18,7 @@ import { closeLocalDB } from "@lib/local/data/pgliteDB";
 import { invalidateLocalSyncKeys } from "@lib/local/data/invalidate-sync-key";
 import { getSyncKeysFromLs } from "@lib/local/data/sync-keys";
 import { PLANNER_LS_KEY } from "@lib/stores/store-types";
+import { FOLLOW_PROMPT_KEY } from "@lib/social-follow";
 
 /** IndexedDB database behind PGlite's `idb://site-data` (emscripten IDBFS mounts at `/pglite/<dataDir>`). */
 export const PGLITE_IDB_NAME = "/pglite/site-data";
@@ -25,12 +26,15 @@ export const PGLITE_IDB_NAME = "/pglite/site-data";
 /**
  * localStorage keys a clear must leave alone. The planner key is the user's
  * own work; the rest are preferences that are annoying, not dangerous, to lose.
+ * `hideLandingModal` and the follow-prompt key are both "stop showing me this",
+ * and re-asking someone who already said no is the one outcome worth avoiding.
  */
 export const PRESERVED_LOCAL_KEYS = [
   PLANNER_LS_KEY,
   "hideLandingModal",
   "recent-search",
   "sidebar-expanded",
+  FOLLOW_PROMPT_KEY,
 ] as const;
 
 /** A failed step must not abort the rest of the clear. */

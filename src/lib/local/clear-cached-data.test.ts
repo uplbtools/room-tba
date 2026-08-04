@@ -5,6 +5,7 @@ import {
   PRESERVED_LOCAL_KEYS,
 } from "./clear-cached-data";
 import { PLANNER_LS_KEY } from "@lib/stores/store-types";
+import { FOLLOW_PROMPT_KEY } from "@lib/social-follow";
 
 const SYNC_KEYS = JSON.stringify({
   buildings: "b1",
@@ -104,6 +105,7 @@ describe("clearCachedData", () => {
     store.set("hideLandingModal", "true");
     store.set("recent-search", '["PSLH 1"]');
     store.set("sidebar-expanded", "false");
+    store.set(FOLLOW_PROMPT_KEY, "dismissed");
   });
 
   afterEach(() => {
@@ -124,6 +126,8 @@ describe("clearCachedData", () => {
     expect(store.get("hideLandingModal")).toBe("true");
     expect(store.get("recent-search")).toBe('["PSLH 1"]');
     expect(store.get("sidebar-expanded")).toBe("false");
+    // Re-asking someone who already said no is the dark pattern this avoids.
+    expect(store.get(FOLLOW_PROMPT_KEY)).toBe("dismissed");
   });
 
   it("lists the planner key among the preserved keys", () => {

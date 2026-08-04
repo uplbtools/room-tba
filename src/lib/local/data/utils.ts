@@ -15,6 +15,7 @@ import type {
 } from "@lib/types";
 import { getDB, isLocalCacheReady } from "./pgliteDB";
 import { ENTITY_FETCH_OPTIONS, fetchJsonWithRetry } from "./fetch-json";
+import { escapeLikePattern } from "@lib/like-escape";
 import {
   getLocalBuildingRooms,
   getLocalCollegeRooms,
@@ -842,10 +843,7 @@ export async function searchLocalRooms(
   searchString: string,
 ): Promise<{ value: string }[] | null> {
   try {
-    const escaped = searchString
-      .replace(/\\/g, "\\\\")
-      .replace(/%/g, "\\%")
-      .replace(/_/g, "\\_");
+    const escaped = escapeLikePattern(searchString);
     const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(

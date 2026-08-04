@@ -20,4 +20,34 @@ describe("CommunityBrandIcon", () => {
     const path = container.querySelector("path");
     expect(path?.getAttribute("fill")).toBe("#5865F2");
   });
+
+  test("renders Facebook brand SVG in brand blue", () => {
+    const { container } = render(CommunityBrandIcon, {
+      props: { brand: "facebook" },
+    });
+    expect(container.querySelector("circle")?.getAttribute("fill")).toBe(
+      "#1877F2",
+    );
+  });
+
+  test("renders Instagram brand SVG on its gradient", () => {
+    const { container } = render(CommunityBrandIcon, {
+      props: { brand: "instagram", size: 20 },
+    });
+    const gradient = container.querySelector("radialGradient");
+    expect(gradient?.id).toMatch(/^instagram-gradient-/);
+    expect(container.querySelector("rect")?.getAttribute("fill")).toBe(
+      `url(#${gradient?.id})`,
+    );
+    expect(container.querySelector("svg")?.getAttribute("width")).toBe("20");
+  });
+
+  test("the icon is decorative; the accessible name comes from the link", () => {
+    const { container } = render(CommunityBrandIcon, {
+      props: { brand: "instagram" },
+    });
+    const svg = container.querySelector("svg");
+    expect(svg?.getAttribute("aria-hidden")).toBe("true");
+    expect(svg?.getAttribute("focusable")).toBe("false");
+  });
 });
