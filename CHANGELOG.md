@@ -1,3 +1,10 @@
+## [2.10.3](https://github.com/uplbtools/room-tba/compare/v2.10.2...v2.10.3) (2026-08-04)
+
+
+### Bug Fixes
+
+* **dorms:** let gender be null instead of forcing a guess ([#914](https://github.com/uplbtools/room-tba/issues/914)) ([b6b06a1](https://github.com/uplbtools/room-tba/commit/b6b06a1021ffa900b1c0724f714bc2621e9e945c))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
