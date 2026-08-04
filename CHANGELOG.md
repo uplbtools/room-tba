@@ -1,3 +1,11 @@
+## [2.12.2](https://github.com/uplbtools/room-tba/compare/v2.12.1...v2.12.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **ci:** check migrations against a run schema, not E2E public ([#926](https://github.com/uplbtools/room-tba/issues/926)) ([d208c92](https://github.com/uplbtools/room-tba/commit/d208c923850bcea4b1b162f57b730deed51ffaf3)), closes [#773](https://github.com/uplbtools/room-tba/issues/773)
+* **search:** escape backslash in LIKE patterns, and share one implementation ([#928](https://github.com/uplbtools/room-tba/issues/928)) ([e2a26e7](https://github.com/uplbtools/room-tba/commit/e2a26e7b929cc8404dc855f89b619d393dc59f45))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
