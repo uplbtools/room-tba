@@ -77,6 +77,25 @@
     // Show preview on keyboard focus too
     handleMouseEnter(event as unknown as MouseEvent);
   }
+
+  /** Match query in label; expand to word end so "Institute o" → "Institute of". */
+  const labelParts = $derived.by(() => {
+    const q = queryStore.inputValue.trim();
+    if (!q) return [{ text: value, matched: false }];
+    const idx = value.toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return [{ text: value, matched: false }];
+    let end = idx + q.length;
+    while (end < value.length && value[end] !== " ") end += 1;
+    const parts: { text: string; matched: boolean }[] = [];
+    if (idx > 0) parts.push({ text: value.slice(0, idx), matched: false });
+    parts.push({ text: value.slice(idx, end), matched: true });
+    if (end < value.length) {
+      parts.push({ text: value.slice(end), matched: false });
+    }
+    return parts;
+  });
+
+  const hasMatchHighlight = $derived(labelParts.some((p) => p.matched));
 </script>
 
 {#snippet icon(type: typeof category)}
@@ -115,9 +134,16 @@
     onfocus={handleFocus}
   >
     {@render icon(category)}
-    <div class="text">{value}</div>
+    <div class="text">
+      {#each labelParts as part, i (i)}
+        <span
+          class:match={part.matched}
+          class:rest={hasMatchHighlight && !part.matched}>{part.text}</span
+        >
+      {/each}
+    </div>
     {#if typeof id === "undefined"}
-      <ArrowUpRight size={20} class="icon trailing" />
+      <ArrowUpRight size={18} class="icon trailing" />
     {/if}
   </button>
   {#if typeof id !== "undefined"}
@@ -158,6 +184,23 @@
     border-radius: 0.5rem;
   }
 
+  @media (max-width: 48rem) {
+    .suggestion {
+      gap: 0.75rem;
+      padding: 0.875rem 0.25rem;
+      border-radius: 0;
+    }
+
+    .suggestion-row:hover .suggestion,
+    .suggestion-row:focus-within .suggestion {
+      background-color: transparent;
+    }
+
+    .suggestion-row:active .suggestion {
+      background-color: hsl(0, 0%, 97%);
+    }
+  }
+
   .suggestion-remove {
     all: unset;
     box-sizing: border-box;
@@ -190,6 +233,8 @@
   }
 
   .text {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 0.875rem;
     color: #18181b;
     overflow: hidden;
@@ -197,9 +242,25 @@
     white-space: nowrap;
   }
 
+  .text .match {
+    font-weight: 700;
+    color: #18181b;
+  }
+
+  .text .rest {
+    font-weight: 400;
+    color: #8b8b96;
+  }
+
+  @media (max-width: 48rem) {
+    .text {
+      font-size: 0.9375rem;
+    }
+  }
+
   @media (max-width: 425px) {
     .suggestion {
-      padding: 0.4375rem 0.375rem;
+      padding: 0.875rem 0.25rem;
     }
   }
 </style>

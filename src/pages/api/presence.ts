@@ -42,32 +42,39 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: "invalid sid" }, 400);
   }
 
-  await db
-    .insert(presenceTable)
-    .values({ sid })
-    .onConflictDoUpdate({
-      target: presenceTable.sid,
-      set: { lastSeenAt: sql`now()` },
-    });
-
-  // Opportunistic prune so the table stays tiny — no cron job to own.
-  // ponytail: sampled on the request path; move to a cron if presence ever
-  // grows past what a single DELETE on an indexed column can absorb.
-  if (Math.random() < PRUNE_SAMPLE_RATE) {
+  try {
     await db
-      .delete(presenceTable)
+      .insert(presenceTable)
+      .values({ sid })
+      .onConflictDoUpdate({
+        target: presenceTable.sid,
+        set: { lastSeenAt: sql`now()` },
+      });
+
+    // Opportunistic prune so the table stays tiny — no cron job to own.
+    // ponytail: sampled on the request path; move to a cron if presence ever
+    // grows past what a single DELETE on an indexed column can absorb.
+    if (Math.random() < PRUNE_SAMPLE_RATE) {
+      await db
+        .delete(presenceTable)
+        .where(
+          sql`${presenceTable.lastSeenAt} < now() - make_interval(mins => ${PRESENCE_TTL_MINUTES})`,
+        );
+    }
+
+    const [row] = await db
+      .select({ online: sql<number>`count(*)::int` })
+      .from(presenceTable)
       .where(
-        sql`${presenceTable.lastSeenAt} < now() - make_interval(mins => ${PRESENCE_TTL_MINUTES})`,
+        sql`${presenceTable.lastSeenAt} > now() - make_interval(secs => ${ONLINE_WINDOW_SECONDS})`,
       );
+
+    // The caller's own heartbeat is already committed, so the floor is 1.
+    return json({ online: row?.online ?? 1 }, 200);
+  } catch (error) {
+    // DB auth / pooler / missing table: don't throw — Astro's overlay would
+    // bury the map UI. OnlineCounter already treats non-OK as "--".
+    console.error("[presence] heartbeat failed:", error);
+    return json({ online: 0, error: "unavailable" }, 503);
   }
-
-  const [row] = await db
-    .select({ online: sql<number>`count(*)::int` })
-    .from(presenceTable)
-    .where(
-      sql`${presenceTable.lastSeenAt} > now() - make_interval(secs => ${ONLINE_WINDOW_SECONDS})`,
-    );
-
-  // The caller's own heartbeat is already committed, so the floor is 1.
-  return json({ online: row?.online ?? 1 }, 200);
 };

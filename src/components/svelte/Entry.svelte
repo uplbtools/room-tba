@@ -30,15 +30,9 @@
   import Modal from "@ui/modal/Modal.svelte";
   import MainControls from "@ui/controls/MainControls.svelte";
   import Map from "@ui/Map.svelte";
-  import MapViewControls from "@ui/MapViewControls.svelte";
-  import MapDimensionToggle from "@ui/MapDimensionToggle.svelte";
-  import LocationButton from "@ui/LocationButton.svelte";
   import MapAttribution from "@ui/MapAttribution.svelte";
-  import MapLegend from "@ui/MapLegend.svelte";
-  import MapToolsFlyout from "@ui/MapToolsFlyout.svelte";
   import MeasureRoutePanel from "@ui/MeasureRoutePanel.svelte";
   import TravelTimeLegend from "@ui/TravelTimeLegend.svelte";
-  import StatusBar from "@ui/StatusBar.svelte";
   import Toast from "@ui/Toast.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
@@ -52,7 +46,7 @@
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
-  import { observeBlockHeight, observeBlockWidth } from "@lib/layout-css-vars";
+  import { observeBlockHeight } from "@lib/layout-css-vars";
   import {
     dispatchGlobalShortcut,
     getGlobalShortcutAction,
@@ -65,8 +59,9 @@
   import StagingBanner from "./StagingBanner.svelte";
   import AnnouncementBar from "./AnnouncementBar.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
-  import DayRouteChip from "./DayRouteChip.svelte";
-  import OnlineCounter from "./OnlineCounter.svelte";
+  import DesktopTopBar from "./map-chrome/DesktopTopBar.svelte";
+  import MapControlsStack from "./map-chrome/MapControlsStack.svelte";
+  import MobileBottomNav from "./map-chrome/MobileBottomNav.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import type { RecentSearch } from "@lib/types";
 
@@ -309,7 +304,6 @@
 
   let mapToolsStackEl = $state<HTMLDivElement | null>(null);
   let bottomChromeEl = $state<HTMLDivElement | null>(null);
-  let bottomChromeActionsEl = $state<HTMLDivElement | null>(null);
 
   $effect(() => {
     const el = mapToolsStackEl;
@@ -322,9 +316,19 @@
 
   $effect(() => {
     const el = bottomChromeEl;
-    if (!el) return;
-    const root = el.closest(".app-layout") as HTMLElement | null;
+    const root = document.querySelector(".app-layout") as HTMLElement | null;
     if (!root) return;
+
+    // Desktop redesign has no bottom nav; keep side-panel insets sane.
+    if (!el) {
+      root.style.setProperty("--status-bar-block-height", "0px");
+      root.style.setProperty("--mobile-bottom-nav-height", "0px");
+      root.style.setProperty(
+        "--side-panel-bottom-inset-measured",
+        "calc(1rem + env(safe-area-inset-bottom, 0px))",
+      );
+      return;
+    }
 
     let rafId = 0;
     let lastHeight = "";
@@ -339,6 +343,7 @@
       if (height !== lastHeight) {
         lastHeight = height;
         root.style.setProperty("--status-bar-block-height", height);
+        root.style.setProperty("--mobile-bottom-nav-height", height);
       }
       if (inset !== lastInset) {
         lastInset = inset;
@@ -363,19 +368,6 @@
       window.visualViewport?.removeEventListener("resize", schedule);
       if (rafId) cancelAnimationFrame(rafId);
     };
-  });
-
-  $effect(() => {
-    const el = bottomChromeActionsEl;
-    if (!el) return;
-    return observeBlockWidth(el, "--bottom-fab-inset", {
-      onSync: (widthPx, root) => {
-        root.style.setProperty(
-          "--bottom-fab-inset",
-          `calc(${widthPx} + var(--bottom-chrome-gap, var(--bottom-fab-gap, 0.5rem)))`,
-        );
-      },
-    });
   });
 
   function handleKeydown(e: KeyboardEvent) {
@@ -419,26 +411,41 @@
 <EntityUrlSync />
 <EntityHoverPreview />
 
-<div class="app-layout" class:edit-mode={mapEditStore.enabled}>
+<div
+  class="app-layout"
+  class:edit-mode={mapEditStore.enabled}
+  class:redesign-desktop={!mobile.current}
+>
   <Map />
   <StagingBanner />
   <AnnouncementBar />
   <div class="ui-layer">
-    <Sidebar />
+    {#if mobile.current}
+      <Sidebar />
+    {:else}
+      <DesktopTopBar />
+    {/if}
     {#if ["map", "contributors", "settings"].includes(sidebarStore.panelOpen)}
-      <section
-        class="top-right-map-stack"
-        aria-label="Map camera controls"
-        bind:this={mapToolsStackEl}
-      >
-        <section class="desktop-camera-controls" aria-label="Map camera">
-          <div class="camera-controls-card">
-            <MapDimensionToggle embedded />
-            <div class="camera-controls-card__divider" aria-hidden="true"></div>
-            <MapViewControls variant="camera" embedded />
-          </div>
-        </section>
-      </section>
+      {#if mobile.current}
+        <div
+          class="mobile-map-controls"
+          class:mobile-map-controls--sheet-open={sidePanelStore.mobileSheetSnap !==
+            "closed"}
+          bind:this={mapToolsStackEl}
+          aria-hidden={sidePanelStore.mobileSheetSnap !== "closed"}
+        >
+          <MapControlsStack hideCompass />
+        </div>
+      {:else}
+        <div class="desktop-map-controls" bind:this={mapToolsStackEl}>
+          <MapControlsStack />
+        </div>
+      {/if}
+      {#if !mobile.current}
+        <div class="map-attrib-corner">
+          <MapAttribution />
+        </div>
+      {/if}
       <div class="inner-layer">
         <MainControls />
         <div class="bottom-band">
@@ -448,33 +455,6 @@
           {#if measureRouteStore.active}
             <MeasureRoutePanel />
           {/if}
-          <div class="bottom-chrome" bind:this={bottomChromeEl}>
-            <div class="bottom-chrome__bar">
-              <div class="bottom-chrome__leading">
-                <MapAttribution />
-              </div>
-              <div class="bottom-chrome__status">
-                <StatusBar />
-              </div>
-            </div>
-            <div
-              class="bottom-chrome__actions"
-              bind:this={bottomChromeActionsEl}
-              aria-label="Location controls"
-            >
-              {#if mobile.current}
-                <div>
-                  <MapDimensionToggle compact />
-                </div>
-              {/if}
-              <div class="bottom-chrome__triggers">
-                <DayRouteChip />
-                <OnlineCounter />
-                <MapToolsFlyout />
-                <LocationButton embedded />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     {:else if sidebarStore.panelOpen === "today"}
@@ -485,6 +465,11 @@
       <FinalExamsScreen />
     {:else if sidebarStore.panelOpen === "calendar"}
       <AcademicCalendarScreen />
+    {/if}
+    {#if mobile.current}
+      <div class="mobile-bottom-nav-slot" bind:this={bottomChromeEl}>
+        <MobileBottomNav />
+      </div>
     {/if}
   </div>
   {#if toastStore.message}
@@ -519,6 +504,8 @@
     --bottom-chrome-gap: var(--bottom-fab-gap, 0.5rem);
     --search-block-height: 3.25rem;
     --staging-banner-height: 0px;
+    /* Extra air between staging strip and search / top bar. */
+    --staging-banner-gap: 0.5rem;
     /* Top-left search card + drawer: use viewport minus right-side map chrome. */
     --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
     --status-bar-block-height: 2rem;
@@ -533,16 +520,17 @@
         var(--side-panel-bottom-gap, 0.375rem)
     );
     --side-panel-top-inset: calc(
-      var(--staging-banner-height, 0px) + var(--search-block-height, 3.25rem) +
-        var(--map-ui-padding, 0.5rem) + var(--side-panel-top-gap, 0.75rem)
+      var(--staging-banner-height, 0px) + var(--staging-banner-gap, 0.5rem) +
+        var(--search-block-height, 3.25rem) + var(--map-ui-padding, 0.5rem) +
+        var(--side-panel-top-gap, 0.75rem)
     );
     --side-panel-top-gap: 0.75rem;
     --drawer-peek-offset: 1.75rem;
     --map-tools-block-height: 3.25rem;
     --mobile-detail-sheet-top-inset: calc(
-      var(--staging-banner-height, 0px) + var(--search-block-height) +
-        var(--map-tools-block-height) + var(--map-ui-padding) * 2 +
-        var(--mobile-detail-sheet-gap, 0.375rem)
+      var(--staging-banner-height, 0px) + var(--staging-banner-gap, 0.5rem) +
+        var(--search-block-height) + var(--map-tools-block-height) +
+        var(--map-ui-padding) * 2 + var(--mobile-detail-sheet-gap, 0.375rem)
     );
     --mobile-detail-sheet-gap: 0.375rem;
     --edit-bar-height: 0rem;
@@ -582,14 +570,16 @@
       --motion-duration-shelf: 0ms;
     }
     /* Stacking contract — highest first; blocking overlays dismiss ephemeral chrome.
-       map(0) < side-panel(2) < status-bar(5) < search-elevated(12) < map-tools(15) < chrome-popover(17)
-       < modal(100) < login-modal(200) < toast(1000). (#302) */
+       map(0) < side-panel(2) < status-bar(5) < map-tools(15) < mobile-sheet(16)
+       < chrome-popover(17) < search-elevated(18) < modal(100) < login-modal(200)
+       < toast(1000). (#302) */
     --z-map: 0;
     --z-staging-banner: 20;
     --z-side-panel: 2;
-    --z-search-elevated: 12;
+    --z-search-elevated: 18;
     --z-status-bar: 5;
     --z-map-tools: 15;
+    --z-mobile-sheet: 16;
     --z-chrome-popover: 17;
     --z-modal: 100;
     --z-login-modal: 200;
@@ -618,8 +608,10 @@
     flex-direction: column;
     padding: var(--map-ui-padding, 0.5rem);
     padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
-    flex: 1 0 0;
+    flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
+    width: 100%;
     pointer-events: none;
     gap: 0.5rem;
   }
@@ -788,12 +780,234 @@
   }
 
   .ui-layer {
+    /* Fixed banner overlays the viewport; pin chrome below it.
+       Do not use `inset: 0` here — it resets `top` back to 0. */
     position: fixed;
-    inset: 0;
+    top: calc(
+      var(--staging-banner-height, 0px) + var(--staging-banner-gap, 0.5rem)
+    );
+    right: 0;
+    bottom: 0;
+    left: 0;
     z-index: 10;
     pointer-events: none;
     display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
   }
+
+  .app-layout.redesign-desktop {
+    /* Fluid desktop chrome — Figma 1512 is the ceiling, not a fixed layout. */
+    --desktop-top-bar-height: clamp(3rem, 5.5vh, 3.5625rem);
+    --map-search-width: clamp(18rem, 28vw, 26rem);
+    --map-search-pill-height: 2.375rem;
+    --map-chip-height: 2rem;
+    --map-search-chrome-width: clamp(18rem, 26vw, 22.5rem);
+    --map-filter-gap: 0.375rem;
+    /* Figma: locate/2D square; compass larger circle; zoom width=square, height≈2.2× */
+    --map-ctrl-size: 2.25rem;
+    --map-ctrl-compass: 3.25rem;
+    --map-ctrl-zoom-h: 4.875rem;
+    /* Side panel matches search / chip floating cards. */
+    --map-chrome-surface: #fff;
+    --map-chrome-panel-bg: #fff;
+    --map-chrome-border: #e8e4e5;
+    --map-chrome-panel-accent-border: transparent;
+    --map-chrome-panel-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
+    --map-chrome-radius: 0.75rem;
+  }
+
+  /* Compact panel chrome: Close + action chips like filter chips. */
+  .app-layout.redesign-desktop
+    :global(.drawer-card .entity-panel-close) {
+    min-height: var(--map-chip-height, 1.875rem);
+    min-width: 0;
+    height: var(--map-chip-height, 1.875rem);
+    padding: 0 0.55rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: #fff;
+    color: var(--color-brand, #8d1437);
+    font-size: 0.75rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
+  }
+
+  .app-layout.redesign-desktop
+    :global(.drawer-card .entity-panel-close:hover),
+  .app-layout.redesign-desktop
+    :global(.drawer-card .entity-panel-close:focus-visible) {
+    background: #fff;
+    border-color: transparent;
+    box-shadow:
+      var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
+      0 0 0 1px var(--color-brand, #8d1437);
+  }
+
+  .app-layout.redesign-desktop
+    :global(.drawer-card .entity-panel-filter--search) {
+    min-height: var(--map-search-pill-height, 2.25rem);
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
+  }
+
+  .app-layout.redesign-desktop
+    :global(.drawer-card .entity-panel-filter--search:focus-within) {
+    outline: none;
+    border-color: transparent;
+    box-shadow:
+      var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
+      0 0 0 1px var(--color-brand, #8d1437);
+  }
+
+  .app-layout.redesign-desktop
+    :global(.drawer-card .entity-panel-filter--search input) {
+    padding: 0.35rem 0;
+  }
+
+  .app-layout.redesign-desktop
+    :global(.drawer-card .map-chrome-action-chip),
+  .app-layout.redesign-desktop
+    :global(.drawer-card .map-chrome-action-chip--toolbar),
+  .app-layout.redesign-desktop
+    :global(.drawer-card .editor-toggle--toolbar) {
+    min-height: var(--map-chip-height, 1.875rem);
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: #fff;
+    color: var(--color-ink, #332529);
+    font-size: 0.75rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
+  }
+
+  .app-layout.redesign-desktop
+    :global(.drawer-card .map-chrome-action-chip:hover:not(:disabled)),
+  .app-layout.redesign-desktop
+    :global(.drawer-card .map-chrome-action-chip--toolbar:hover:not(:disabled)),
+  .app-layout.redesign-desktop
+    :global(.drawer-card .editor-toggle--toolbar:hover) {
+    border-color: transparent;
+    background: #fff;
+    box-shadow:
+      var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
+      0 0 0 1px var(--color-brand, #8d1437);
+  }
+
+  .app-layout.redesign-desktop .inner-layer {
+    padding-top: 0.75rem;
+  }
+
+  .desktop-map-controls {
+    /* fixed: ui-layer is flex-column; absolute was resolving to static top. */
+    position: fixed;
+    top: auto;
+    right: 0.75rem;
+    bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    left: auto;
+    z-index: var(--z-map-tools, 15);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.375rem;
+    width: auto;
+    height: auto;
+    pointer-events: none;
+  }
+
+  .desktop-map-controls > :global(*) {
+    pointer-events: auto;
+  }
+
+  /* Mobile 393 frame: controls above bottom nav (Figma spacing). */
+  .mobile-map-controls {
+    position: fixed;
+    top: auto;
+    right: 1rem;
+    bottom: calc(var(--mobile-bottom-nav-height, 4.5rem) + 1rem);
+    left: auto;
+    z-index: var(--z-map-tools, 15);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity var(--motion-duration-micro, 200ms) ease;
+  }
+
+  .mobile-map-controls > :global(*) {
+    pointer-events: auto;
+  }
+
+  /* Entity sheet open (peek or expanded): hide locate / 3D / zoom — they sit
+     in the same corner as the sheet and otherwise paint on top of it. */
+  .mobile-map-controls--sheet-open {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .mobile-map-controls--sheet-open > :global(*) {
+    pointer-events: none !important;
+  }
+
+  .mobile-bottom-nav-slot {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: var(--z-status-bar, 5);
+    pointer-events: none;
+  }
+
+  .mobile-bottom-nav-slot > :global(*) {
+    pointer-events: auto;
+  }
+
+  /* Bottom-right corner — white 40% rect (MapAttribution). */
+  .map-attrib-corner {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-map-tools, 15);
+    max-width: min(100%, calc(100vw - 0.5rem));
+    pointer-events: none;
+  }
+
+  .map-attrib-corner :global(.map-attribution) {
+    pointer-events: auto;
+  }
+
+  @media (max-width: 48rem) {
+    .app-layout {
+      --mobile-bottom-nav-height: 4.5rem;
+    }
+
+    .map-attrib-corner {
+      bottom: var(--mobile-bottom-nav-height, 4.5rem);
+      max-width: min(100%, calc(100vw - 5.5rem));
+    }
+
+    /* Keep Planner / Finals / Today clear of fixed bottom nav. */
+    .ui-layer > :global(.planner-screen),
+    .ui-layer > :global(.finals-screen),
+    .ui-layer > :global(.today-screen),
+    .ui-layer > :global(.acal-screen) {
+      padding-bottom: calc(
+        1rem + var(--mobile-bottom-nav-height, 4.5rem) +
+          env(safe-area-inset-bottom, 0px)
+      );
+      box-sizing: border-box;
+    }
+  }
+
+  /* Desktop redesign: no bottom-left chrome shell (was an empty white pill). */
+  .app-layout.redesign-desktop .bottom-band::before {
+    display: none;
+  }
+
 
   .top-right-map-stack {
     position: absolute;
@@ -867,8 +1081,11 @@
       --bottom-fab-gap: 0.375rem;
       --bottom-chrome-gap: var(--bottom-fab-gap);
       --map-tools-block-height: 0px;
+      /* search-block-height is the fixed mobile search shell (includes its
+         top padding); do not add --staging-banner-gap again. */
       --mobile-detail-sheet-top-inset: calc(
-        var(--search-block-height) + var(--mobile-detail-sheet-gap, 0.375rem)
+        var(--staging-banner-height, 0px) + var(--search-block-height) +
+          var(--mobile-detail-sheet-gap, 0.375rem)
       );
       --bottom-fab-inset: 3.25rem;
     }
@@ -920,14 +1137,18 @@
       position: fixed;
       /* Float below the search block with a gap, inset + rounded to match the
          search chrome, instead of butting edge-to-edge against the top bar. */
-      top: calc(var(--search-block-height) + var(--map-ui-padding, 0.375rem));
+      top: calc(
+        var(--staging-banner-height, 0px) + var(--staging-banner-gap, 0.5rem) +
+          var(--search-block-height) + var(--map-ui-padding, 0.375rem)
+      );
       right: var(--map-ui-padding, 0.375rem);
       left: var(--map-ui-padding, 0.375rem);
       width: auto;
       max-width: none;
       max-height: calc(
-        100dvh - var(--search-block-height) - var(--map-ui-padding, 0.375rem) -
-          var(--status-bar-block-height)
+        100dvh - var(--staging-banner-height, 0px) -
+          var(--staging-banner-gap, 0.5rem) - var(--search-block-height) -
+          var(--map-ui-padding, 0.375rem) - var(--status-bar-block-height)
       );
       margin: 0;
       pointer-events: auto;
