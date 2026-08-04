@@ -992,7 +992,7 @@ export type DormUpdateInput = Partial<{
   shortName: string | null;
   lat: number | null;
   lon: number | null;
-  gender: string;
+  gender: string | null;
   capacity: number | null;
   managingOffice: string | null;
   contactEmail: string | null;
@@ -1016,6 +1016,12 @@ export async function updateDorm(
   const updates: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(input)) {
     if (value !== undefined) updates[key] = value;
+  }
+  // Clearing the policy in the editor sends "", which would store an empty
+  // string that reads as "recorded, and it is nothing". Null is the honest
+  // value for a policy nobody has told us.
+  if (typeof updates.gender === "string" && updates.gender.trim() === "") {
+    updates.gender = null;
   }
   if (Object.keys(updates).length > 0) {
     if (input.dormName !== undefined) {
@@ -1148,7 +1154,6 @@ export async function createPlace(
 
 export type DormCreateInput = DormUpdateInput & {
   dormName: string;
-  gender: string;
 };
 
 export async function createDorm(
@@ -1159,7 +1164,7 @@ export async function createDorm(
     .insert(dormsTable)
     .values({
       dormName: input.dormName.trim(),
-      gender: input.gender.trim(),
+      gender: input.gender?.trim() || null,
       shortName: input.shortName ?? null,
       lat: input.lat ?? null,
       lon: input.lon ?? null,

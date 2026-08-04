@@ -93,7 +93,8 @@ export const dormsTable = pgTable("dorms", {
   shortName: varchar("short_name", { length: 48 }),
   lat: doublePrecision(),
   lon: doublePrecision(),
-  gender: text().notNull(),
+  /** Null = policy not known. Not the same claim as co-ed; see 0050. */
+  gender: text(),
   capacity: integer(),
   managingOffice: text("managing_office"),
   contactEmail: text("contact_email"),

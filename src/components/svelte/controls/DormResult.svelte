@@ -146,12 +146,17 @@
     ),
   );
 
+  // A missing gender is not a co-ed policy, it is an unknown one. The old
+  // fallback claimed "Co-ed" for anything that was not male or female, so a
+  // dorm nobody had recorded a policy for advertised one it might not have.
   const genderLabel = $derived(
     dorm?.gender === "male"
       ? "Male-exclusive"
       : dorm?.gender === "female"
         ? "Female-exclusive"
-        : "Co-ed",
+        : dorm?.gender === "coed"
+          ? "Co-ed"
+          : null,
   );
 
   const genderColor = $derived(
@@ -672,13 +677,15 @@
             Private
           </span>
         {/if}
-        <span
-          class="entity-meta-chip gender-badge"
-          style:--badge-color={genderColor}
-        >
-          <Users size={12} />
-          {genderLabel}
-        </span>
+        {#if genderLabel}
+          <span
+            class="entity-meta-chip gender-badge"
+            style:--badge-color={genderColor}
+          >
+            <Users size={12} />
+            {genderLabel}
+          </span>
+        {/if}
         {#if dorm.capacity}
           <span class="entity-meta-chip capacity-badge">
             <Building2 size={12} />

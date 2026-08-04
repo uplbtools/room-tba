@@ -83,6 +83,7 @@ const E2E_MIGRATION_FILES = [
   "0043_add_presence.sql",
   "0045_add_proposal_submitter_note.sql",
   "0048_add_flora.sql",
+  "0050_dorm_gender_nullable.sql",
 ] as const;
 
 /**

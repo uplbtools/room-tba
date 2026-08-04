@@ -105,7 +105,7 @@
   >("other");
   let eventImageUrl = $state<string | null>(null);
   let dormName = $state("");
-  let dormGender = $state("coed");
+  let dormGender = $state("");
   let placeName = $state("");
   let placeCategory = $state<PlaceCategory>("landmark");
   let placeDescription = $state("");
@@ -173,7 +173,7 @@
     eventCategory = "other";
     eventImageUrl = null;
     dormName = "";
-    dormGender = "coed";
+    dormGender = "";
     placeName = "";
     placeCategory = "landmark";
     placeDescription = "";
@@ -457,7 +457,8 @@
       case "create_dorm":
         return {
           dormName: dormName.trim(),
-          gender: dormGender.trim(),
+          // Blank stays null: an unknown policy is not a co-ed one.
+          gender: dormGender.trim() || null,
           lat: draftPin?.lat ?? null,
           lon: draftPin?.lon ?? null,
         };
@@ -843,7 +844,7 @@
       <EntityEditorFormField
         label="Who can live here?"
         inputId="addition-dorm-gender"
-        hint="Coed, women only, men only, or whatever applies."
+        hint="Coed, women only, men only. Leave blank if you are not sure."
       >
         {#snippet control()}
           <input
