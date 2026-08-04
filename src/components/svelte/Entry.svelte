@@ -1026,6 +1026,13 @@
   @media (max-width: 48rem) {
     .app-layout {
       --mobile-bottom-nav-height: 4.5rem;
+      /* 44px touch target. The token is only set on .redesign-desktop, so
+         mobile fell through to the 1.875rem default and every browse chip
+         rendered 34px tall, under the 44px this project enforces elsewhere
+         (the bottom chrome's e2e asserts >= 43.5px on its trigger chips).
+         Set on the layout rather than the chip so the row's own square
+         controls, which size from the same token, grow with it. */
+      --map-chip-height: 2.75rem;
     }
 
     .map-attrib-corner {
