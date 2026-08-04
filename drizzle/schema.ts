@@ -757,3 +757,70 @@ export const presenceTable = pgTable("presence", {
     .defaultNow()
     .notNull(),
 });
+
+/**
+ * Campus flora. Species and specimens are separate tables from the start:
+ * phase 1 shows one specimen per notable tree, phase 2 relaxes `isNotable` and
+ * hangs many specimens off a species to build a distribution view. Modelling
+ * both as one table now would make that a rewrite rather than an addition.
+ */
+export const floraSpeciesTable = pgTable("flora_species", {
+  id: integer().primaryKey().generatedByDefaultAsIdentity({
+    name: "flora_species_id_seq",
+    startWith: 1,
+    increment: 1,
+    minValue: 1,
+    maxValue: 2147483647,
+    cache: 1,
+  }),
+  scientificName: text("scientific_name").notNull().unique(),
+  family: text(),
+  /** Filipino and English both; most of these have no single common name. */
+  commonNames: text("common_names").array(),
+  description: text(),
+  imageUrl: text("image_url"),
+  conservationStatus: varchar("conservation_status", { length: 32 }),
+  isNative: boolean("is_native"),
+  version: integer().default(1).notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+export const floraSpecimensTable = pgTable(
+  "flora_specimens",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "flora_specimens_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    speciesId: integer("species_id")
+      .notNull()
+      .references(() => floraSpeciesTable.id, { onDelete: "cascade" }),
+    lat: doublePrecision().notNull(),
+    lon: doublePrecision().notNull(),
+    tagNumber: varchar("tag_number", { length: 32 }),
+    plantedYear: integer("planted_year"),
+    notes: text(),
+    isNotable: boolean("is_notable").default(false).notNull(),
+    /** `manual` | `crowdsourced` | `inaturalist` | `gbif` | `cfnr` */
+    source: varchar({ length: 32 }).default("manual").notNull(),
+    sourceRef: text("source_ref"),
+    /**
+     * Per-row licence, not bookkeeping. Campus data ships as CC-BY 4.0 and many
+     * iNaturalist observations are CC-BY-NC, which that claim cannot cover. This
+     * column is what lets a bulk CC-BY export drop the rows it may not carry.
+     */
+    sourceLicence: varchar("source_licence", { length: 64 }),
+    version: integer().default(1).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("flora_specimens_species_idx").on(table.speciesId),
+    index("flora_specimens_notable_idx").on(table.isNotable),
+  ],
+);
