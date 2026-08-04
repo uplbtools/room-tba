@@ -1,3 +1,10 @@
+# [2.10.0](https://github.com/uplbtools/room-tba/compare/v2.9.1...v2.10.0) (2026-08-04)
+
+
+### Features
+
+* **flora:** add the flora schema and public read endpoint ([#908](https://github.com/uplbtools/room-tba/issues/908)) ([28e23a5](https://github.com/uplbtools/room-tba/commit/28e23a5a640f2e46bd8eab9d327f42e46e3de010))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
