@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/uplbtools/room-tba/compare/v2.10.0...v2.10.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map-chrome:** stop the status bar splitting the pill and unblock the credit links ([#905](https://github.com/uplbtools/room-tba/issues/905)) ([6c1e4c6](https://github.com/uplbtools/room-tba/commit/6c1e4c68960e092496a41151322321be680b6bed)), closes [#893](https://github.com/uplbtools/room-tba/issues/893) [#893](https://github.com/uplbtools/room-tba/issues/893) [#893](https://github.com/uplbtools/room-tba/issues/893)
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
