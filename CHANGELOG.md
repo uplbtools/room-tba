@@ -1,3 +1,62 @@
+# [2.13.0](https://github.com/uplbtools/room-tba/compare/v2.12.3...v2.13.0) (2026-08-04)
+
+
+### Bug Fixes
+
+* **3d:** declutter room labels and make the 3D viewer usable on phones ([#801](https://github.com/uplbtools/room-tba/issues/801)) ([38de07c](https://github.com/uplbtools/room-tba/commit/38de07c1c6658f174231d54c9d78e7b7c15ac652)), closes [#879](https://github.com/uplbtools/room-tba/issues/879) [#887](https://github.com/uplbtools/room-tba/issues/887) [#888](https://github.com/uplbtools/room-tba/issues/888)
+* **landing:** rebalance the welcome modal on mobile ([#894](https://github.com/uplbtools/room-tba/issues/894)) ([87c9aab](https://github.com/uplbtools/room-tba/commit/87c9aab6661faa33845650e4c72a86d00bb4e35b))
+* **map:** draw transit routes along real roads, not straight lines ([#802](https://github.com/uplbtools/room-tba/issues/802)) ([8b7bedd](https://github.com/uplbtools/room-tba/commit/8b7bedd0fe37b93736203803d3ad9c09e1a3dbb6))
+* **nav:** give Colleges, Orgs and Classes a mobile home, drop the dead rail ([63ba9f4](https://github.com/uplbtools/room-tba/commit/63ba9f42e4fcb6483f5036678423152c9a6d7d6f))
+* **og:** give the share card's text its own surface ([#810](https://github.com/uplbtools/room-tba/issues/810)) ([73c0832](https://github.com/uplbtools/room-tba/commit/73c0832d465d46929ca66e19b6dbc04b525488b9)), closes [#890](https://github.com/uplbtools/room-tba/issues/890) [#809](https://github.com/uplbtools/room-tba/issues/809) [#822](https://github.com/uplbtools/room-tba/issues/822) [#826](https://github.com/uplbtools/room-tba/issues/826) [#831](https://github.com/uplbtools/room-tba/issues/831) [#834](https://github.com/uplbtools/room-tba/issues/834) [#868](https://github.com/uplbtools/room-tba/issues/868) [#868](https://github.com/uplbtools/room-tba/issues/868) [#908](https://github.com/uplbtools/room-tba/issues/908)
+
+
+### Features
+
+* **3d:** infer room placements and stop dead-ending on missing footprints ([#795](https://github.com/uplbtools/room-tba/issues/795)) ([15b25c6](https://github.com/uplbtools/room-tba/commit/15b25c63dfda0e70fb8dc3d6ffdde3cd40d73784)), closes [#879](https://github.com/uplbtools/room-tba/issues/879) [#887](https://github.com/uplbtools/room-tba/issues/887) [#888](https://github.com/uplbtools/room-tba/issues/888)
+* **calendar:** show the registrar academic calendar milestones ([#805](https://github.com/uplbtools/room-tba/issues/805)) ([634c5ae](https://github.com/uplbtools/room-tba/commit/634c5ae0b24621a26130f9c0577ca2cadc1aa61f))
+* **data:** read-only campus data audit for wrong pins and missing links ([#892](https://github.com/uplbtools/room-tba/issues/892)) ([a153008](https://github.com/uplbtools/room-tba/commit/a153008fb3344fa91c11ab7420dafac959c860e2)), closes [#886](https://github.com/uplbtools/room-tba/issues/886) [#890](https://github.com/uplbtools/room-tba/issues/890) [#809](https://github.com/uplbtools/room-tba/issues/809) [#822](https://github.com/uplbtools/room-tba/issues/822) [#826](https://github.com/uplbtools/room-tba/issues/826) [#831](https://github.com/uplbtools/room-tba/issues/831) [#834](https://github.com/uplbtools/room-tba/issues/834) [#868](https://github.com/uplbtools/room-tba/issues/868) [#868](https://github.com/uplbtools/room-tba/issues/868) [#908](https://github.com/uplbtools/room-tba/issues/908)
+* **feedback:** in-app feedback box with Discord notification ([#888](https://github.com/uplbtools/room-tba/issues/888)) ([234c49a](https://github.com/uplbtools/room-tba/commit/234c49a6f2559d570e1975b463794846aee5f4ce)), closes [#881](https://github.com/uplbtools/room-tba/issues/881) [#879](https://github.com/uplbtools/room-tba/issues/879) [#890](https://github.com/uplbtools/room-tba/issues/890) [#809](https://github.com/uplbtools/room-tba/issues/809) [#822](https://github.com/uplbtools/room-tba/issues/822) [#826](https://github.com/uplbtools/room-tba/issues/826) [#831](https://github.com/uplbtools/room-tba/issues/831) [#834](https://github.com/uplbtools/room-tba/issues/834) [#868](https://github.com/uplbtools/room-tba/issues/868) [#868](https://github.com/uplbtools/room-tba/issues/868) [#908](https://github.com/uplbtools/room-tba/issues/908)
+* **map-chrome:** desktop + mobile redesign chrome ([1c51738](https://github.com/uplbtools/room-tba/commit/1c51738d7aaee2e0915ab9d6779db016c3f68dc3))
+* **map-chrome:** GMaps-style bottom sheet for entity details ([6da3aec](https://github.com/uplbtools/room-tba/commit/6da3aecd1322811822f2eb4bc86fab92422520b8))
+* **map-chrome:** mobile search overlay and half-sheet peek ([42b6daa](https://github.com/uplbtools/room-tba/commit/42b6daad4b1e6ea677a36e1e6d13c17cbc449ed3))
+* **rooms:** store the unabbreviated room name in full_name ([#879](https://github.com/uplbtools/room-tba/issues/879)) ([bef1185](https://github.com/uplbtools/room-tba/commit/bef1185bbea4be258ca39815011ed93bb628cb58)), closes [#875](https://github.com/uplbtools/room-tba/issues/875)
+
+## [2.12.3](https://github.com/uplbtools/room-tba/compare/v2.12.2...v2.12.3) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map-chrome:** give the status a zero flex basis so it shrinks, not wraps ([#937](https://github.com/uplbtools/room-tba/issues/937)) ([a23fcc6](https://github.com/uplbtools/room-tba/commit/a23fcc6ba4560f9e67381f8df0abbf4e8447c85d)), closes [#935](https://github.com/uplbtools/room-tba/issues/935) [#935](https://github.com/uplbtools/room-tba/issues/935)
+
+## [2.12.2](https://github.com/uplbtools/room-tba/compare/v2.12.1...v2.12.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **ci:** check migrations against a run schema, not E2E public ([#926](https://github.com/uplbtools/room-tba/issues/926)) ([d208c92](https://github.com/uplbtools/room-tba/commit/d208c923850bcea4b1b162f57b730deed51ffaf3)), closes [#773](https://github.com/uplbtools/room-tba/issues/773)
+* **search:** escape backslash in LIKE patterns, and share one implementation ([#928](https://github.com/uplbtools/room-tba/issues/928)) ([e2a26e7](https://github.com/uplbtools/room-tba/commit/e2a26e7b929cc8404dc855f89b619d393dc59f45))
+
+## [2.12.1](https://github.com/uplbtools/room-tba/compare/v2.12.0...v2.12.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **map-chrome:** let the pill wrap again, the status ellipsises instead ([#935](https://github.com/uplbtools/room-tba/issues/935)) ([3de4824](https://github.com/uplbtools/room-tba/commit/3de4824a5a676f6058d6611cd1ed867397dcb815)), closes [#905](https://github.com/uplbtools/room-tba/issues/905) [#905](https://github.com/uplbtools/room-tba/issues/905)
+
+# [2.12.0](https://github.com/uplbtools/room-tba/compare/v2.11.2...v2.12.0) (2026-08-04)
+
+
+### Features
+
+* **social:** surface the UPLB Tools accounts where the app has just helped ([#932](https://github.com/uplbtools/room-tba/issues/932)) ([1019510](https://github.com/uplbtools/room-tba/commit/1019510928d13b8fe46e123764dac99162a62fb0))
+
+## [2.11.2](https://github.com/uplbtools/room-tba/compare/v2.11.1...v2.11.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **ci:** bound the E2E connection budget under the pooler cap ([#929](https://github.com/uplbtools/room-tba/issues/929)) ([35bc7d3](https://github.com/uplbtools/room-tba/commit/35bc7d3f924a6dff0915587151fb9318f402b5f5)), closes [#773](https://github.com/uplbtools/room-tba/issues/773) [#766](https://github.com/uplbtools/room-tba/issues/766)
+
 ## [2.11.1](https://github.com/uplbtools/room-tba/compare/v2.11.0...v2.11.1) (2026-08-04)
 
 
