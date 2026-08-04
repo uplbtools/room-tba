@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/uplbtools/room-tba/compare/v2.10.4...v2.11.0) (2026-08-04)
+
+
+### Features
+
+* **links:** add the UPLB Tools Facebook and Instagram pages ([#917](https://github.com/uplbtools/room-tba/issues/917)) ([ca09e74](https://github.com/uplbtools/room-tba/commit/ca09e7469787fb98a7af90c5eafc23be6fcb4432))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
