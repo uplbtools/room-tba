@@ -57,6 +57,8 @@
     "import:classes-generic": "bun run scripts/import-classes-generic.ts",
     "backfill:acad-orgs": "for t in 1231 1232 1241 1242 1243 1251 1252 1253 1261; do bun run scripts/import-amis-classes.ts --term-id $t || exit 1; done",
     "import:final-exams": "bun run scripts/import-final-exams.ts",
+    "record:bulk-history": "bun run scripts/record-bulk-history.ts",
+    "backfill:bulk-history": "bun run scripts/backfill-bulk-history.ts",
     "release": "semantic-release",
     "release:dry": "semantic-release --dry-run"
   },
