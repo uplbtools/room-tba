@@ -79,10 +79,10 @@ export const GET: APIRoute = async ({ url }) => {
         objectFit: "cover",
       },
     }),
-    // A flat tint left bright spots bright: the campus photo has white
-    // "UP LOS BAÑOS" lettering exactly where the title sits, so white-on-white
-    // happened regardless of text shadow. Weight the scrim toward the bottom,
-    // where the title and subtitle live, and keep the top light for the badge.
+    // Flat tint, not a bottom-weighted gradient scrim: Satori does not
+    // reliably honour backgroundImage gradients, so the card rendered
+    // unchanged. The title carries its own surface instead (below), leaving
+    // this tint responsible only for the wordmark and badge.
     h("div", {
       style: {
         position: "absolute",
