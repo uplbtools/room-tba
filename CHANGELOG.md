@@ -1,3 +1,10 @@
+## [2.9.1](https://github.com/uplbtools/room-tba/compare/v2.9.0...v2.9.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **changelog:** backfill 2.4.0-2.7.1 and unblock the version-sync PR ([#890](https://github.com/uplbtools/room-tba/issues/890)) ([dd2b7b8](https://github.com/uplbtools/room-tba/commit/dd2b7b885687251c5a15b8895a4f6725949f9a49)), closes [#809](https://github.com/uplbtools/room-tba/issues/809) [#822](https://github.com/uplbtools/room-tba/issues/822) [#826](https://github.com/uplbtools/room-tba/issues/826) [#831](https://github.com/uplbtools/room-tba/issues/831) [#834](https://github.com/uplbtools/room-tba/issues/834) [#868](https://github.com/uplbtools/room-tba/issues/868) [#868](https://github.com/uplbtools/room-tba/issues/868)
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
