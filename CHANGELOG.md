@@ -1,3 +1,10 @@
+## [2.10.4](https://github.com/uplbtools/room-tba/compare/v2.10.3...v2.10.4) (2026-08-04)
+
+
+### Bug Fixes
+
+* **wiki:** make the wiki read like reference material ([#915](https://github.com/uplbtools/room-tba/issues/915)) ([1ad8f0d](https://github.com/uplbtools/room-tba/commit/1ad8f0d87ec8a0cb3fc255a981657105543dd346))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
