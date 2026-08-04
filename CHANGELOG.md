@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/uplbtools/room-tba/compare/v2.11.2...v2.12.0) (2026-08-04)
+
+
+### Features
+
+* **social:** surface the UPLB Tools accounts where the app has just helped ([#932](https://github.com/uplbtools/room-tba/issues/932)) ([1019510](https://github.com/uplbtools/room-tba/commit/1019510928d13b8fe46e123764dac99162a62fb0))
+
 # [2.9.0](https://github.com/uplbtools/room-tba/compare/v2.8.0...v2.9.0) (2026-08-04)
 
 
