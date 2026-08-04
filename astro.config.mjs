@@ -96,6 +96,25 @@ export default defineConfig({
             },
           },
           {
+            // #866: PGlite ships ~5 MB of wasm + data. Too big to precache
+            // (that would download Postgres during service worker install),
+            // but content-hashed, so CacheFirst is safe — a new build emits a
+            // new filename and never hits this entry. As with the navigate
+            // denylist above, the pattern must tolerate a `?` suffix: workbox
+            // matches the full URL, so a `$` anchor alone would miss.
+            urlPattern: /\/_astro\/(pglite|initdb)\.[^/?]*\.(wasm|data)(\?|$)/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "pglite-wasm",
+              expiration: {
+                maxEntries: 8,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // MapTiler vector tiles + tiles.json
             urlPattern: /^https:\/\/api\.maptiler\.com\/.*/i,
             handler: "CacheFirst",
