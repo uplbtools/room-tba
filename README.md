@@ -1,10 +1,12 @@
 <div align="center">
 
+<img src="public/logo.png" alt="Room TBA" width="120" height="120">
+
 # Room TBA
 
 **Saan sa UPLB ang \___?**
 
-[![Live app](https://img.shields.io/badge/open-room, tba.uplb.tools-maroon?style=for-the-badge)](https://room-tba.uplb.tools)
+[![Live app](https://img.shields.io/badge/open-room--tba.uplb.tools-maroon?style=for-the-badge)](https://room-tba.uplb.tools)
 [![MIT](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 [![Bun](https://img.shields.io/badge/bun-1.3+-black?style=flat-square&logo=bun)](https://bun.sh)
 [![Astro](https://img.shields.io/badge/Astro-7-BC52EE?style=flat-square&logo=astro)](https://astro.build)
