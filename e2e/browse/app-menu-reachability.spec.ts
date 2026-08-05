@@ -44,16 +44,14 @@ for (const viewport of [
     test("reaches Today", async ({ page }) => {
       const panel = await openMenu(page);
       await panel.getByRole("button", { name: /^today$/i }).click();
-      await expect(
-        page.getByRole("heading", { name: /^today$/i }),
-      ).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByRole("heading", { name: /^today$/i })).toBeVisible(
+        { timeout: 10_000 },
+      );
     });
 
     test("reaches the academic calendar", async ({ page }) => {
       const panel = await openMenu(page);
-      await panel
-        .getByRole("button", { name: /^academic calendar$/i })
-        .click();
+      await panel.getByRole("button", { name: /^academic calendar$/i }).click();
       await expect(
         page.getByRole("heading", { name: /academic calendar/i }),
       ).toBeVisible({ timeout: 10_000 });
