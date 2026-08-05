@@ -19,7 +19,10 @@ test.describe("admin auth", () => {
     await page.goto("/?editor=login");
     await page.getByLabel("Username").fill(E2E_FIXTURES.users.admin);
     await page.getByLabel("Password").fill("not-the-password");
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await page
+      .locator("form.login-body")
+      .getByRole("button", { name: /^sign in$/i })
+      .click();
     await expect(page.locator("#admin-login-error")).toBeVisible();
   });
 
@@ -29,7 +32,10 @@ test.describe("admin auth", () => {
     await page.goto("/?editor=login");
     await page.getByLabel("Username").fill(E2E_FIXTURES.users.disabled);
     await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: /sign in/i }).click();
+    await page
+      .locator("form.login-body")
+      .getByRole("button", { name: /^sign in$/i })
+      .click();
     await expect(page.locator("#admin-login-error")).toBeVisible();
   });
 });
