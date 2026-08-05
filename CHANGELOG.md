@@ -1,3 +1,10 @@
+## [2.13.2](https://github.com/uplbtools/room-tba/compare/v2.13.1...v2.13.2) (2026-08-05)
+
+
+### Bug Fixes
+
+* **nav:** give browse chips a 44px touch target on mobile ([#942](https://github.com/uplbtools/room-tba/issues/942)) ([f743602](https://github.com/uplbtools/room-tba/commit/f743602575d8fab67e1e7a3b4a72e3fae0b5dfde)), closes [#940](https://github.com/uplbtools/room-tba/issues/940)
+
 # [2.13.0](https://github.com/uplbtools/room-tba/compare/v2.12.3...v2.13.0) (2026-08-04)
 
 
