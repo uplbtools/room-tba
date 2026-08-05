@@ -44,4 +44,8 @@ jobs:
             echo "::warning::NOTIFICATION_GATEWAY_URL or NOTIFICATION_INGRESS_SECRET not set — Discord test inventory skipped"
             exit 0
           fi
-          bun run scripts/post-test-inventory-discord.ts
+          # Delivery is best effort, same as the unconfigured case above. The
+          # gateway returning 500 says nothing about the commit, so it should
+          # not turn main red and send people hunting for a build break.
+          bun run scripts/post-test-inventory-discord.ts ||
+            echo "::warning::Discord test inventory delivery failed, see the log above"
