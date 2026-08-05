@@ -225,6 +225,14 @@ export default defineConfig({
         context: "client",
         optional: true,
       }),
+      // Street View imagery beside a building pin. Optional: with no key the
+      // feature is off rather than broken. Public by necessity, the browser
+      // requests the images, so restrict it by HTTP referrer.
+      PUBLIC_GOOGLE_MAPS_API_KEY: envField.string({
+        access: "public",
+        context: "client",
+        optional: true,
+      }),
       // staging | production — drives the staging environment banner (#289).
       PUBLIC_APP_ENV: envField.string({
         access: "public",
