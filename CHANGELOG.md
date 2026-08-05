@@ -1,3 +1,10 @@
+## [2.13.1](https://github.com/uplbtools/room-tba/compare/v2.13.0...v2.13.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* **e2e:** unbreak main after the redesign removed the bottom chrome ([#944](https://github.com/uplbtools/room-tba/issues/944)) ([6adc606](https://github.com/uplbtools/room-tba/commit/6adc606e3e4b1c8a09427d3b25c3c22a6fff09fa)), closes [#905](https://github.com/uplbtools/room-tba/issues/905) [#935](https://github.com/uplbtools/room-tba/issues/935) [#937](https://github.com/uplbtools/room-tba/issues/937)
+
 ## [2.11.1](https://github.com/uplbtools/room-tba/compare/v2.11.0...v2.11.1) (2026-08-04)
 
 
