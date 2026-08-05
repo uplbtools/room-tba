@@ -14,6 +14,7 @@
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import type { BuildingData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
+  import BuildingPhoto from "./BuildingPhoto.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
@@ -832,17 +833,14 @@
         </EntityEditorPanel>
       </section>
     {:else}
-      {#if building.imageUrl}
-        <img
-          class="entity-image"
-          src={building.imageUrl}
-          alt={building.buildingName}
-          width="800"
-          height="450"
-          loading="lazy"
-          decoding="async"
-        />
-      {/if}
+      <BuildingPhoto
+        imageUrl={building.imageUrl}
+        name={building.buildingName}
+        lat={building.lat}
+        lon={building.lon}
+        panoId={building.streetViewPanoId}
+        captured={building.streetViewCaptured}
+      />
       <section class="entity-directions" aria-label="Directions">
         <div class="entity-directions__segment">
           {#if hasMapPin}
