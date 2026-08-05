@@ -511,7 +511,12 @@
   .search-root.mobile-shell
     .map-search-chrome--mobile-redesign
     :global(.map-filter-chips__chip) {
-    height: 2.125rem;
+    /* 44px touch target. This rule outranks the chip component's own
+       `height: var(--map-chip-height)`, so setting that token alone does
+       nothing here: the mobile shell hardcoded 2.125rem (34px) and won on
+       specificity. These chips are the only route to browse on mobile since
+       the rail was retired, so they are worth the height. */
+    height: 2.75rem;
     padding: 0 0.7rem;
     border-radius: 999px;
     font-size: 0.8125rem;
@@ -520,8 +525,9 @@
   .search-root.mobile-shell
     .map-search-chrome--mobile-redesign
     :global(.map-filter-chips__more) {
-    width: 2.125rem;
-    height: 2.125rem;
+    /* Square, and the same 44px as the chips it scrolls. */
+    width: 2.75rem;
+    height: 2.75rem;
     margin-right: 0.125rem;
     border-radius: 999px;
   }
