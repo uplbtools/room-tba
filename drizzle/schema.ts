@@ -326,6 +326,14 @@ export const buildingsTable = pgTable("buildings", {
   directions: text().notNull(),
   imageUrl: text("image_url"),
   crFacilities: text("cr_facilities").array(),
+  // Street View *metadata* only. Google's terms forbid storing their imagery,
+  // so the pixels render live and only the lookup result is cached here.
+  // checkedAt distinguishes "no coverage" from "never looked": both leave
+  // panoId null.
+  streetViewPanoId: varchar("street_view_pano_id", { length: 128 }),
+  streetViewCaptured: varchar("street_view_captured", { length: 16 }),
+  streetViewDistanceM: integer("street_view_distance_m"),
+  streetViewCheckedAt: timestamp("street_view_checked_at", { mode: "string" }),
   version: integer().default(1).notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });

@@ -13,6 +13,12 @@
  *   PUBLIC_GOOGLE_MAPS_API_KEY=... bun run scripts/street-view-coverage.ts
  *   ... --radius 150     widen the search (default 100m)
  *   ... --json           machine-readable output
+ *   ... --write          cache the result on buildings.street_view_*
+ *
+ * With --write this doubles as the backfill. It caches the metadata only, not
+ * the imagery, which Google's terms forbid storing. Re-running is safe: every
+ * row is overwritten with a fresh answer and checked_at is stamped, which is
+ * what distinguishes "no coverage" from "never looked".
  *
  * Scripts cannot import @lib/db (it reads astro:env/server, which only exists
  * inside Astro), so this opens its own connection, the same way
@@ -44,6 +50,7 @@ if (!databaseUrl) {
 
 const args = process.argv.slice(2);
 const asJson = args.includes("--json");
+const write = args.includes("--write");
 const radiusArg = args.indexOf("--radius");
 const radius = radiusArg >= 0 ? Number(args[radiusArg + 1]) : 100;
 if (!Number.isFinite(radius) || radius <= 0) {
@@ -66,11 +73,17 @@ const { rows: buildings } = await client.query<Row>(
 
 // Close before the fetch loop, not after. Holding the connection open across
 // ~50 sequential HTTP round trips idles it out, and the script died on
-// "Connection terminated unexpectedly" partway through the run.
+// "Connection terminated unexpectedly" partway through the run. With --write
+// a second connection is opened afterwards for the updates.
 await client.end();
 
-const covered: { id: number; name: string; date?: string; metres: number }[] =
-  [];
+const covered: {
+  id: number;
+  name: string;
+  panoId: string;
+  date?: string;
+  metres: number;
+}[] = [];
 const uncovered: { id: number; name: string }[] = [];
 const errored: { id: number; name: string; reason: string }[] = [];
 
@@ -94,6 +107,7 @@ for (const b of buildings) {
     covered.push({
       id: b.id,
       name: b.name,
+      panoId: meta.panoId,
       date: meta.date,
       metres: metresBetween(coords, meta.location),
     });
@@ -102,6 +116,33 @@ for (const b of buildings) {
   } else {
     uncovered.push({ id: b.id, name: b.name });
   }
+}
+
+if (write) {
+  // Metadata only. Google's terms forbid storing their imagery, so nothing
+  // here touches an image; the panel renders the picture live.
+  const writer = new pg.Client({ connectionString: databaseUrl });
+  await writer.connect();
+  const byId = new Map(covered.map((c) => [c.id, c]));
+  let updated = 0;
+  for (const b of buildings) {
+    const hit = byId.get(b.id);
+    // Errored rows are skipped rather than written as "no coverage": a
+    // transport failure is not evidence that imagery is absent.
+    if (!hit && errored.some((e) => e.id === b.id)) continue;
+    await writer.query(
+      `UPDATE buildings
+          SET street_view_pano_id = $2,
+              street_view_captured = $3,
+              street_view_distance_m = $4,
+              street_view_checked_at = NOW()
+        WHERE id = $1`,
+      [b.id, hit?.panoId ?? null, hit?.date ?? null, hit?.metres ?? null],
+    );
+    updated++;
+  }
+  await writer.end();
+  console.log(`cached metadata for ${updated} buildings`);
 }
 
 if (asJson) {

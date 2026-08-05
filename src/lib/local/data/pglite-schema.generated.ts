@@ -12,6 +12,10 @@ CREATE TABLE IF NOT EXISTS "buildings" (
   "directions" text NOT NULL,
   "image_url" text,
   "cr_facilities" text[],
+  "street_view_pano_id" varchar(128),
+  "street_view_captured" varchar(16),
+  "street_view_distance_m" integer,
+  "street_view_checked_at" text,
   "version" integer DEFAULT 1 NOT NULL,
   "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL,
   "rooms_fetched" boolean DEFAULT false NOT NULL
@@ -25,6 +29,14 @@ ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "image_url" text;
 ALTER TABLE "buildings" ALTER COLUMN "image_url" DROP NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "cr_facilities" text[];
 ALTER TABLE "buildings" ALTER COLUMN "cr_facilities" DROP NOT NULL;
+ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "street_view_pano_id" varchar(128);
+ALTER TABLE "buildings" ALTER COLUMN "street_view_pano_id" DROP NOT NULL;
+ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "street_view_captured" varchar(16);
+ALTER TABLE "buildings" ALTER COLUMN "street_view_captured" DROP NOT NULL;
+ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "street_view_distance_m" integer;
+ALTER TABLE "buildings" ALTER COLUMN "street_view_distance_m" DROP NOT NULL;
+ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "street_view_checked_at" text;
+ALTER TABLE "buildings" ALTER COLUMN "street_view_checked_at" DROP NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "buildings" ADD COLUMN IF NOT EXISTS "rooms_fetched" boolean DEFAULT false NOT NULL;
