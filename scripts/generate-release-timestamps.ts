@@ -4,9 +4,13 @@
  *
  * Never fails the build: on any error the committed JSON is left as-is and the
  * UI falls back to the date parsed from CHANGELOG.md headings.
+ *
+ * Outside CI this is a no-op, so local builds stop dirtying the working tree.
+ * See scripts/lib/release-timestamps-write.ts for why (#925).
  */
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { canWriteReleaseTimestamps } from "./lib/release-timestamps-write.ts";
 
 const OUT = join(
   import.meta.dir,
@@ -19,6 +23,13 @@ const API =
   "https://api.github.com/repos/uplbtools/room-tba/releases?per_page=100";
 
 type Release = { tag_name?: string; published_at?: string };
+
+if (!canWriteReleaseTimestamps(process.env)) {
+  console.log(
+    "release-timestamps: not CI, keeping the committed file (set RELEASE_TIMESTAMPS_WRITE=1 to refresh it)",
+  );
+  process.exit(0);
+}
 
 try {
   const map: Record<string, string> = {};
