@@ -14,6 +14,11 @@ describe("pglite offline schema", () => {
     expect(committed).toBe(buildGeneratedModule());
   });
 
+  // Timeout is 30s, not bun's 5s default: booting a WASM Postgres and running
+  // the whole schema twice sits right on that default, so this failed
+  // intermittently on a loaded machine and passed on the retry. The work is not
+  // slow enough to be worth splitting, it just needs a bound that is not a coin
+  // flip.
   test("init SQL runs on a fresh PGlite and is idempotent", async () => {
     const db = new PGlite();
     await db.exec(PGLITE_INIT_SQL);
@@ -24,7 +29,7 @@ describe("pglite offline schema", () => {
     );
     expect(rows[0]?.count).toBe(0);
     await db.close();
-  });
+  }, 30_000);
 
   test("covers every column sync.ts writes", () => {
     // Spot-check the columns that drifted historically.
