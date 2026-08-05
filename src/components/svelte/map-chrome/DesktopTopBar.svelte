@@ -1,5 +1,6 @@
 <script lang="ts">
   import { adminAuthStore, sidebarStore } from "@lib/store.svelte";
+  import AppMenu from "../status-bar/AppMenu.svelte";
 
   type NavId = "map" | "planner" | "finals";
 
@@ -59,6 +60,7 @@
       </button>
     {/each}
     <a href="/wiki" class="desktop-top-bar__link">Wiki</a>
+    <AppMenu />
     <button
       type="button"
       class="desktop-top-bar__signin"

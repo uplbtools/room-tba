@@ -6,9 +6,16 @@
   const visible = $derived(isStagingApp());
 
   $effect(() => {
+    const layout = document.querySelector(".app-layout") as HTMLElement | null;
+    // The gap only exists to separate chrome from the strip, so it belongs to
+    // the strip. Left standing at 0.5rem it becomes dead space above the top
+    // bar everywhere the banner does not render, which is all of production.
+    layout?.style.setProperty(
+      "--staging-banner-gap",
+      visible ? "0.5rem" : "0px",
+    );
     if (!visible) {
-      const root = document.querySelector(".app-layout") as HTMLElement | null;
-      root?.style.setProperty("--staging-banner-height", "0px");
+      layout?.style.setProperty("--staging-banner-height", "0px");
       return;
     }
     if (!bannerEl) return;

@@ -6,6 +6,9 @@
   import LifeBuoy from "@lucide/svelte/icons/life-buoy";
   import CircleHelp from "@lucide/svelte/icons/circle-help";
   import Inbox from "@lucide/svelte/icons/inbox";
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
+  import CalendarClock from "@lucide/svelte/icons/calendar-clock";
+  import UserRound from "@lucide/svelte/icons/user-round";
   import { onMount } from "svelte";
   import { formatCatalogUpdatedDate } from "@constants/data-catalog";
   import { APP_VERSION_LABEL } from "@constants/version";
@@ -23,6 +26,8 @@
     mapToolsStore,
     modalStore,
     proposalsStore,
+    sidebarStore,
+    toastStore,
   } from "@lib/store.svelte";
   import OfflineMaps from "@ui/OfflineMaps.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
@@ -32,10 +37,31 @@
   import "../map-chrome/map-chrome.css";
 
   type Props = {
-    onSignOut: () => void | Promise<void>;
+    /** Optional so the menu can be dropped into any chrome without each host
+        re-implementing sign-out. */
+    onSignOut?: () => void | Promise<void>;
   };
 
-  const { onSignOut }: Props = $props();
+  const { onSignOut = defaultSignOut }: Props = $props();
+
+  async function defaultSignOut() {
+    await adminAuthStore.logout();
+    toastStore.show("Signed out.", "info");
+  }
+
+  function handleScreen(id: "today" | "calendar") {
+    sidebarStore.changeOpened(id);
+    closePanel();
+  }
+
+  function handleSignIn() {
+    if (adminAuthStore.username) {
+      adminAuthStore.openAccountSettings();
+    } else {
+      adminAuthStore.openLogin("signin");
+    }
+    closePanel();
+  }
 
   let open = $state(false);
   let triggerEl = $state<HTMLButtonElement | null>(null);
@@ -80,6 +106,14 @@
       Math.max(8, rect.left),
       window.innerWidth - width - 8,
     );
+    // Anchor away from whichever edge the trigger sits against. Fixed `bottom`
+    // is right for a bottom bar but throws the panel off the top of the screen
+    // when the trigger lives in the desktop top bar.
+    if (rect.top < window.innerHeight / 2) {
+      const top = Math.min(rect.bottom + 8, window.innerHeight - 8);
+      panelStyle = `left: ${left}px; top: ${top}px; bottom: auto; max-height: ${Math.max(120, window.innerHeight - top - 8)}px; width: ${width}px;`;
+      return;
+    }
     const bottom = Math.max(8, window.innerHeight - rect.top + 8);
     panelStyle = `left: ${left}px; bottom: ${bottom}px; width: ${width}px;`;
   }
@@ -214,6 +248,45 @@
           />
         </section>
       {/if}
+
+      {#if !contributorSession}
+        <section class="app-menu__section" aria-label="Account">
+          <button
+            type="button"
+            class="app-menu__action map-chrome-chip"
+            onclick={handleSignIn}
+          >
+            <UserRound size={14} aria-hidden="true" />
+            <span>
+              {adminAuthStore.username
+                ? "Account settings"
+                : "Contributor sign in"}
+            </span>
+          </button>
+        </section>
+      {/if}
+
+      <!-- Today and the academic calendar lost their only entry point when the
+           rail Sidebar stopped rendering (#930, #951). They are screens, not
+           map chrome, so they live here rather than in the primary nav. -->
+      <section class="app-menu__section" aria-label="Screens">
+        <button
+          type="button"
+          class="app-menu__action map-chrome-chip"
+          onclick={() => handleScreen("today")}
+        >
+          <CalendarClock size={14} aria-hidden="true" />
+          <span>Today</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__action map-chrome-chip"
+          onclick={() => handleScreen("calendar")}
+        >
+          <CalendarDays size={14} aria-hidden="true" />
+          <span>Academic calendar</span>
+        </button>
+      </section>
 
       {#if adminAuthStore.canReview}
         <section class="app-menu__section" aria-label="Review">

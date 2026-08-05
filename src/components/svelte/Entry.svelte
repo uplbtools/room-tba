@@ -507,8 +507,11 @@
     --bottom-chrome-gap: var(--bottom-fab-gap, 0.5rem);
     --search-block-height: 3.25rem;
     --staging-banner-height: 0px;
-    /* Extra air between staging strip and search / top bar. */
-    --staging-banner-gap: 0.5rem;
+    /* Extra air between staging strip and search / top bar. Zero unless a
+       banner is actually rendering: StagingBanner sets both vars together.
+       Defaulting this to 0.5rem pushed the desktop top bar 8px off the top
+       edge on production, where there is no banner to clear. */
+    --staging-banner-gap: 0px;
     /* Top-left search card + drawer: use viewport minus right-side map chrome. */
     --map-search-chrome-width: min(31rem, calc(100vw - 15rem));
     --status-bar-block-height: 2rem;
