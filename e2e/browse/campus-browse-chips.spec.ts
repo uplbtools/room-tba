@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { waitForAppBoot } from "../helpers/app";
+import { gotoHome, waitForAppBoot } from "../helpers/app";
 import { openAppSidebar } from "../helpers/map-tools";
 
 // Browsing moved from search-chrome chips to the sidebar rail; these specs
@@ -131,5 +131,37 @@ test.describe("sidebar campus browsing", () => {
     await expect(page.getByText(/All classes/i).first()).toBeVisible({
       timeout: 10_000,
     });
+  });
+
+  // The chip row is the only route to browse on mobile since the rail was
+  // retired, and it shipped at 34px because --map-chip-height was only set on
+  // .redesign-desktop. Nothing asserted it, so nothing caught it.
+  test("@desktop-only browse chips keep a 44px touch target on mobile", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 720 });
+    await gotoHome(page);
+    await waitForAppBoot(page);
+
+    const chips = page.locator(".map-filter-chips button");
+    await expect(chips.first()).toBeVisible({ timeout: 10_000 });
+
+    const undersized = await chips.evaluateAll((els) =>
+      els
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            label: (el.getAttribute("aria-label") || el.textContent || "")
+              .trim()
+              .slice(0, 24),
+            w: Math.round(r.width),
+            h: Math.round(r.height),
+          };
+        })
+        .filter((c) => c.w > 0 && c.h > 0 && Math.min(c.w, c.h) < 43.5)
+        .map((c) => `${c.label} ${c.w}x${c.h}`),
+    );
+
+    expect(undersized, "browse chips below the 44px touch target").toEqual([]);
   });
 });
