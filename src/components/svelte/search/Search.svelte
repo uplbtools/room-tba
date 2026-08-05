@@ -12,6 +12,7 @@
     modalStore,
     proposalsStore,
     queryStore,
+    sidePanelStore,
   } from "@lib/store.svelte";
   import Suggestions from "./Suggestions.svelte";
   import MapFilterChips from "@ui/map-chrome/MapFilterChips.svelte";
@@ -87,6 +88,9 @@
     queryStore.clearQuery();
     draftInput = "";
     searchElement?.focus();
+    // `openPanel()` metadata outranks the query in resolvePanelContent, so
+    // clearing the query alone would leave a stale panel on screen.
+    sidePanelStore.closePanel();
   }
 
   function dismissMobileSearch() {

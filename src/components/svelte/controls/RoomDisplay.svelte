@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { queryStore } from "@lib/store.svelte";
+  import { queryStore, sidePanelStore } from "@lib/store.svelte";
   import type { RoomData } from "@lib/types";
+  import RoomResult from "@ui/room/RoomResult.svelte";
 
   type Props = {
     room: RoomData;
@@ -32,6 +33,10 @@
       value: room.code,
     });
     queryStore.inputValue = room.code;
+    sidePanelStore.openPanel({
+      type: "search-result",
+      component: RoomResult,
+    });
   }
 </script>
 

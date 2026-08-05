@@ -66,7 +66,10 @@
       return;
     }
     enterFlatMapDimension(map, terrainStore.enabled);
-    map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
+    // Pitch only: dropping to 2D used to also snap the bearing to north, which
+    // threw away a rotation the user set on purpose. The compass button is the
+    // control that resets north.
+    map.easeTo({ pitch: 0, duration: 400 });
   }
 
   function goToLocation() {

@@ -82,9 +82,10 @@
         value: "Campus events",
       });
       queryStore.inputValue = "";
-      sidePanelStore.expand();
+      sidePanelStore.openPanel({ type: "browsing-events" });
       return;
     }
+    // openCampusBrowse opens the panel itself, so no openPanel pairing here.
     openCampusBrowse(queryStore, sidePanelStore, id);
   }
 
@@ -544,7 +545,7 @@
       <div class="nav-support">
         <NavLink
           onclick={() => {
-              sidebarStore.changeOpened("settings")
+            sidebarStore.changeOpened("settings");
           }}
           active={settingsOpen}
           expanded={labeled}
@@ -656,7 +657,7 @@
   }
 
   div.map-categories {
-      margin-bottom:1rem;
+    margin-bottom: 1rem;
   }
 
   /* Unread count sits on the icon so it stays visible in the collapsed rail. */

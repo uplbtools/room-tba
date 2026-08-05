@@ -1,6 +1,7 @@
 // src/lib/store.svelte.ts
 
 import { CAMPUS_BOUNDS } from "@constants/map-terrain";
+import { describeLocationFix } from "@lib/geolocation";
 import { campusTransit } from "../../campus.config";
 import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
@@ -142,9 +143,9 @@ import {
   ModalStore,
   QueryStore,
   ToastStore,
-  MainControlsStore,
   FloatingControlPanelStore,
   SidebarStore,
+  SidePanelStore,
 } from "./ui-stores.svelte";
 import {
   MapStore,
@@ -182,6 +183,8 @@ export { plannerRoomCodes } from "./data-stores.svelte";
 
 class LocationStore {
   coords: [number, number] | null = $state(null);
+  /** Horizontal accuracy from the browser GPS fix, meters. */
+  accuracyMeters: number | null = $state(null);
   bearing: number | null = $state(null);
   isTracking: boolean = $state(false);
   destination: [number, number] | null = $state(null);
@@ -189,6 +192,9 @@ class LocationStore {
   /** Multi-stop foot route (schedule import or 2-point fallback). */
   routeWaypoints: [number, number][] | null = $state(null);
   private watchId: number | null = null;
+  /** Avoid re-toasting every watch tick; still toast once when accuracy improves. */
+  private announcedGoodFix = false;
+  private announcedApproximateFix = false;
 
   private isWithinBounds(lng: number, lat: number) {
     return (
@@ -213,11 +219,13 @@ class LocationStore {
     }
 
     this.isTracking = true;
+    this.announcedGoodFix = false;
+    this.announcedApproximateFix = false;
     toastStore.show("Requesting location access...", "info");
 
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const { longitude, latitude, heading } = position.coords;
+        const { longitude, latitude, heading, accuracy } = position.coords;
 
         if (!this.isWithinBounds(longitude, latitude)) {
           toastStore.show(
@@ -228,16 +236,26 @@ class LocationStore {
           return;
         }
 
-        const firstFix = !this.coords;
         this.coords = [longitude, latitude];
+        this.accuracyMeters =
+          Number.isFinite(accuracy) && accuracy > 0 ? accuracy : null;
         this.bearing = heading;
         // Update route origin if destination exists but origin hasn't been set
         if (this.destination && !this.routeOrigin) {
           this.routeOrigin = [longitude, latitude];
         }
 
-        if (firstFix) {
-          toastStore.show("Location found!", "success");
+        const fix = describeLocationFix(this.accuracyMeters);
+        if (fix.level === "good" && !this.announcedGoodFix) {
+          this.announcedGoodFix = true;
+          toastStore.show(fix.message, "success");
+        } else if (
+          fix.level === "approximate" &&
+          !this.announcedApproximateFix &&
+          !this.announcedGoodFix
+        ) {
+          this.announcedApproximateFix = true;
+          toastStore.show(fix.message, "info");
         }
       },
       (error) => {
@@ -256,14 +274,19 @@ class LocationStore {
         toastStore.show(msg, "error");
         this.stopTracking();
       },
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 },
+      // maximumAge 0: avoid a stale cell/Wi‑Fi fix that can place you hundreds
+      // of meters away (common indoors / on LTE). Keep watching for a better GPS fix.
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
     );
   };
 
   private stopTracking() {
     this.isTracking = false;
     this.coords = null;
+    this.accuracyMeters = null;
     this.routeOrigin = null;
+    this.announcedGoodFix = false;
+    this.announcedApproximateFix = false;
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
@@ -986,7 +1009,6 @@ export const toastStore = new ToastStore();
 export const locationStore = new LocationStore();
 export const mapStore = new MapStore();
 export const mapViewStore = new MapViewStore();
-export const sidePanelStore = new MainControlsStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapToolsStore = new MapToolsStore();
 export const editorChromeStore = new EditorChromeStore();
@@ -1007,6 +1029,7 @@ export const building3DStore = new Building3DStore();
 export const adminAuthStore = new AdminAuthStore();
 export const proposalsStore = new ProposalsStore();
 export const sidebarStore = new SidebarStore();
+export const sidePanelStore = new SidePanelStore();
 
 // Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive.
 registerMapMode("edit", {

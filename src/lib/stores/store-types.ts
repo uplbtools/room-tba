@@ -1,5 +1,6 @@
 import type { modalOptions } from "@constants/modal-states";
 import type { Weekday } from "@lib/schedule-import/types.js";
+import type { Component } from "svelte";
 
 export type LandingModalTab = "welcome" | "campus";
 
@@ -131,3 +132,12 @@ export const SCHEDULE_IMPORT_SS_KEY = "room-tba-schedule-import";
 export type ScheduleImportPersisted = {
   selectedWeekday: Weekday;
 };
+
+export type SidePanelMetaData =
+  | {
+      type: "search-result" | "browsing-entities";
+      component: Component;
+    }
+  | {
+      type: "admin-suggestions" | "browsing-events";
+    };

@@ -46,6 +46,7 @@
     trackSponsorImpression,
   } from "@lib/sponsor-tracking";
   import { fade } from "svelte/transition";
+  import { metersToLngLatCircle } from "@lib/geolocation";
   import { sumRouteLegs } from "@lib/campus-route";
   import MapLibreGlDirections from "@maplibre/maplibre-gl-directions";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
@@ -166,6 +167,12 @@
     submitCreateProposal,
     submitPinPositionProposal,
   } from "@lib/proposals/client";
+  import BuildingResult from "./controls/BuildingResult.svelte";
+  import PlaceResult from "./controls/PlaceResult.svelte";
+  import OrgResult from "./controls/OrgResult.svelte";
+  import DormResult from "./controls/DormResult.svelte";
+  import EventResult from "./controls/EventResult.svelte";
+
   const data = getAppData();
   const appActions = getAppActions();
   const { buildings, dorms, events, organizations, places, loaded } =
@@ -282,7 +289,10 @@
       value: place.name,
     });
     queryStore.inputValue = place.name;
-    sidePanelStore.expand();
+    sidePanelStore.openPanel({
+      type: "search-result",
+      component: PlaceResult,
+    });
   }
 
   // Event titles are not unique, so resolve the selected event by its slug when
@@ -332,6 +342,9 @@
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_CASING_ID = "jeepney-route-line-casing";
+  const USER_LOCATION_ACCURACY_SOURCE_ID = "user-location-accuracy";
+  const USER_LOCATION_ACCURACY_FILL_ID = "user-location-accuracy-fill";
+  const USER_LOCATION_ACCURACY_LINE_ID = "user-location-accuracy-line";
   const JEEPNEY_ROUTE_WIDTH = 5;
   const JEEPNEY_ROUTE_CASING_WIDTH = 8;
   const jeepneyRouteGeometryCache = new Map<string, ResolvedRouteGeometry>();
@@ -2313,6 +2326,102 @@
   });
 
   $effect(() => {
+    const map = mapStore.mapInstance;
+    const coords = locationStore.coords;
+    const accuracyMeters = locationStore.accuracyMeters;
+    if (!map) return;
+
+    const clearAccuracy = () => {
+      try {
+        if (map.getLayer(USER_LOCATION_ACCURACY_FILL_ID)) {
+          map.removeLayer(USER_LOCATION_ACCURACY_FILL_ID);
+        }
+        if (map.getLayer(USER_LOCATION_ACCURACY_LINE_ID)) {
+          map.removeLayer(USER_LOCATION_ACCURACY_LINE_ID);
+        }
+        if (map.getSource(USER_LOCATION_ACCURACY_SOURCE_ID)) {
+          map.removeSource(USER_LOCATION_ACCURACY_SOURCE_ID);
+        }
+      } catch {
+        // Style may not be ready.
+      }
+    };
+
+    if (!coords || accuracyMeters == null || accuracyMeters <= 0) {
+      clearAccuracy();
+      return;
+    }
+
+    const featureCollection = {
+      type: "FeatureCollection" as const,
+      features: [
+        {
+          type: "Feature" as const,
+          properties: {},
+          geometry: metersToLngLatCircle(coords, accuracyMeters),
+        },
+      ],
+    };
+
+    const draw = () => {
+      if (!map.getSource(USER_LOCATION_ACCURACY_SOURCE_ID)) {
+        map.addSource(USER_LOCATION_ACCURACY_SOURCE_ID, {
+          type: "geojson",
+          data: featureCollection,
+        });
+      } else {
+        const source = map.getSource(USER_LOCATION_ACCURACY_SOURCE_ID) as
+          | mapGl.GeoJSONSource
+          | undefined;
+        source?.setData(featureCollection);
+      }
+
+      if (!map.getLayer(USER_LOCATION_ACCURACY_FILL_ID)) {
+        map.addLayer({
+          id: USER_LOCATION_ACCURACY_FILL_ID,
+          type: "fill",
+          source: USER_LOCATION_ACCURACY_SOURCE_ID,
+          paint: {
+            "fill-color": "#4285f4",
+            "fill-opacity": 0.12,
+          },
+        });
+      }
+      if (!map.getLayer(USER_LOCATION_ACCURACY_LINE_ID)) {
+        map.addLayer({
+          id: USER_LOCATION_ACCURACY_LINE_ID,
+          type: "line",
+          source: USER_LOCATION_ACCURACY_SOURCE_ID,
+          paint: {
+            "line-color": "#4285f4",
+            "line-width": 1.5,
+            "line-opacity": 0.45,
+          },
+        });
+      }
+    };
+
+    try {
+      draw();
+      return;
+    } catch {
+      const onStyleData = () => {
+        try {
+          draw();
+          map.off("styledata", onStyleData);
+        } catch {
+          // keep retrying until style accepts the layer
+        }
+      };
+      map.on("styledata", onStyleData);
+      return () => {
+        map.off("styledata", onStyleData);
+        clearAccuracy();
+      };
+    }
+  });
+
+  $effect(() => {
     const selectedId = jeepneyStore.selectedRouteId;
     const map = mapStore.mapInstance;
     if (!map) return;
@@ -2564,7 +2673,7 @@
     });
   });
 
-  function handleMarkerClick(buildingName: string) {
+  function handleBuildingMarkerClick(buildingName: string) {
     if (eventPlacementStore.active) return;
     if (isMapEditEnabled() && selectedEditKey !== null) return;
     if (buildingName === queryStore.inputValue) return;
@@ -2574,6 +2683,10 @@
       value: buildingName,
     });
     queryStore.inputValue = buildingName;
+    sidePanelStore.openPanel({
+      type: "search-result",
+      component: BuildingResult,
+    });
   }
 
   function handleDormMarkerClick(dormName: string) {
@@ -2586,6 +2699,10 @@
       value: dormName,
     });
     queryStore.inputValue = dormName;
+    sidePanelStore.openPanel({
+      type: "search-result",
+      component: DormResult,
+    });
   }
 
   function handleOrgMarkerClick(name: string) {
@@ -2604,7 +2721,10 @@
       value: name,
     });
     queryStore.inputValue = name;
-    sidePanelStore.expand();
+    sidePanelStore.openPanel({
+      type: "search-result",
+      component: OrgResult,
+    });
   }
 
   function handleEventMarkerClick(event: EventData) {
@@ -2618,6 +2738,10 @@
       eventSlug: event.slug,
     });
     queryStore.inputValue = event.title;
+    sidePanelStore.openPanel({
+      type: "search-result",
+      component: EventResult,
+    });
   }
 
   function toggleEventMarkerGroup(groupKey: string) {
@@ -3335,7 +3459,7 @@
                 <Marker
                   lngLat={[position.lon, position.lat]}
                   draggable={canDragPin(editKey)}
-                  onclick={() => handleMarkerClick(building.buildingName)}
+                  onclick={() => handleBuildingMarkerClick(building.buildingName)}
                   ondragstart={() => beginMarkerDrag(editKey)}
                   ondragend={(e) =>
                     handleBuildingDragEnd(

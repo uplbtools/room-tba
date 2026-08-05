@@ -12,6 +12,7 @@
   import { getEventShareUrl } from "@lib/share-links";
   import { queryStore, sidePanelStore } from "@lib/store.svelte";
   import type { EventData } from "@lib/types";
+  import EventResult from "./EventResult.svelte";
 
   type EventTab = "upcoming" | "past";
 
@@ -86,7 +87,10 @@
       eventSlug: event.slug,
     });
     queryStore.inputValue = event.title;
-    sidePanelStore.expand();
+    sidePanelStore.openPanel({
+      type: "search-result",
+      component: EventResult,
+    });
   }
 
   function closeEventsList() {
