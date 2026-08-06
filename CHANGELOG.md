@@ -1,3 +1,10 @@
+# [2.14.0](https://github.com/uplbtools/room-tba/compare/v2.13.4...v2.14.0) (2026-08-06)
+
+
+### Features
+
+* **street-view:** scaffold Street View lookup and a coverage audit ([#961](https://github.com/uplbtools/room-tba/issues/961)) ([2efb490](https://github.com/uplbtools/room-tba/commit/2efb490053eadb0d62a0e4d53fa75f488f275ab0))
+
 ## [2.13.4](https://github.com/uplbtools/room-tba/compare/v2.13.3...v2.13.4) (2026-08-05)
 
 
