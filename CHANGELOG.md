@@ -1,3 +1,10 @@
+# [2.15.0](https://github.com/uplbtools/room-tba/compare/v2.14.0...v2.15.0) (2026-08-06)
+
+
+### Features
+
+* **ads:** gate Google AdSense to wiki pages only ([#965](https://github.com/uplbtools/room-tba/issues/965)) ([feb0082](https://github.com/uplbtools/room-tba/commit/feb008212af6b54d3344f44c4a33672b50983fcc))
+
 # [2.14.0](https://github.com/uplbtools/room-tba/compare/v2.13.4...v2.14.0) (2026-08-06)
 
 
