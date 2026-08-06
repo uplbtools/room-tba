@@ -4,6 +4,12 @@ Room TBA shows a small number of curated, campus-relevant sponsor placements
 to fund the project (see [funding-model.md](funding-model.md)). This policy
 governs what runs and where.
 
+> **Temporary exception (August 2026):** Google AdSense runs on wiki pages
+> (`/wiki/*`) only, as a monetization experiment. The map and all other app
+> screens stay under this policy unchanged: no ad networks, no third-party ad
+> scripts. Disclosure lives in the privacy policy under "Advertising on wiki
+> pages".
+
 ## Who can sponsor
 
 Curated campus-relevant sponsors only: food, dorms/boarding houses, printing,

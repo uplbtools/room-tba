@@ -28,6 +28,7 @@ const requiredDenylistRoutes = [
   "messenger",
   "maintain",
   "discord",
+  "wiki",
 ];
 
 let failed = false;
