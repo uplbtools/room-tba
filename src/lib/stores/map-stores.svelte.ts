@@ -22,9 +22,15 @@ export class MapViewStore {
   /** Org/place pins are also zoom-gated in Map.svelte. The legend reads this
    * so its toggles cannot claim "Shown" while the gate is hiding them. */
   poiPinsZoomVisible: boolean = $state(true);
+  /** Satellite imagery under the basemap labels (MapTiler raster). */
+  satellite: boolean = $state(false);
 
   toggleEventsOnly = () => {
     this.eventsOnly = !this.eventsOnly;
+  };
+
+  toggleSatellite = () => {
+    this.satellite = !this.satellite;
   };
 
   toggleOrgs = () => {

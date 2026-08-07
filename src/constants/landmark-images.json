@@ -1,0 +1,458 @@
+{
+  "building:4Boys House": {
+    "streetViewHeadings": [13, 68, 123]
+  },
+  "building:AFBED Building": {
+    "streetViewHeadings": [147, 202, 257]
+  },
+  "building:AMPED Building": {
+    "streetViewHeadings": [115, 170, 225]
+  },
+  "building:Agricultural Machinery Testing and Evaluation Center": {
+    "streetViewHeadings": [244, 299, 354]
+  },
+  "building:Agricultural Systems Institute Building": {
+    "streetViewHeadings": [94, 149, 204]
+  },
+  "building:Animal Husbandry Building": {
+    "streetViewHeadings": [8, 63, 118]
+  },
+  "building:Baker Hall Pool": {
+    "streetViewHeadings": [10, 65, 120],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Treron_axillaris_21425110.jpg/960px-Treron_axillaris_21425110.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Treron_axillaris_21425110.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      }
+    ]
+  },
+  "building:Basic Veterinary Sciences": {
+    "streetViewHeadings": [96, 151, 206]
+  },
+  "building:Biological Sciences Building": {
+    "streetViewHeadings": [42, 97, 152],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Shing_Kit_Dy_Macatingin.jpg/960px-Shing_Kit_Dy_Macatingin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Shing_Kit_Dy_Macatingin.jpg",
+        "artist": "Liyaganina",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/College_of_Economics_and_Management_building_with_the_Monopteros.jpg/960px-College_of_Economics_and_Management_building_with_the_Monopteros.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Economics_and_Management_building_with_the_Monopteros.jpg",
+        "artist": "THELVBE",
+        "license": "CC0"
+      }
+    ]
+  },
+  "building:CAFS Admin Building": {
+    "streetViewHeadings": [105, 160, 215]
+  },
+  "building:CAS Annex 1": {
+    "streetViewHeadings": [359, 54, 109],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Human_Ecology_building,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:CAS Annex 2": {
+    "streetViewHeadings": [280, 335, 30],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Human_Ecology_building,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:CAS Main Building": {
+    "streetViewHeadings": [89, 144, 199],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Palma_Bridge,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:CDC Building": {
+    "streetViewHeadings": [263, 318, 13],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/UPLB_Campus_map.png/960px-UPLB_Campus_map.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Campus_map.png",
+        "artist": "Moray An Par",
+        "license": "CC BY-SA 3.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/University_of_the_Philippines_at_Los_Banos-Gate.jpg/960px-University_of_the_Philippines_at_Los_Banos-Gate.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:University_of_the_Philippines_at_Los_Banos-Gate.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY 2.0"
+      }
+    ]
+  },
+  "building:CEAT Building": {
+    "streetViewHeadings": [8, 63, 118]
+  },
+  "building:CEM Building": {
+    "streetViewHeadings": [163, 218, 273],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/College_of_Economics_and_Management_building_with_the_Monopteros.jpg/960px-College_of_Economics_and_Management_building_with_the_Monopteros.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Economics_and_Management_building_with_the_Monopteros.jpg",
+        "artist": "THELVBE",
+        "license": "CC0"
+      }
+    ]
+  },
+  "building:CFNR Admin Building": {
+    "streetViewHeadings": [158, 213, 268]
+  },
+  "building:CHE Building": {
+    "streetViewHeadings": [63, 118, 173],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Human_Ecology_building,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:CVM-IAS Communal Building": {
+    "streetViewHeadings": [80, 135, 190]
+  },
+  "building:Chemical Engineering Building": {
+    "streetViewHeadings": [1, 56, 111]
+  },
+  "building:Civil Engineering Building": {
+    "streetViewHeadings": [250, 305, 0]
+  },
+  "building:Copeland Gymnasium": {
+    "streetViewHeadings": [268, 323, 18]
+  },
+  "building:DAAE Building": {
+    "streetViewHeadings": [1, 56, 111],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/College_of_Economics_and_Management_building_with_the_Monopteros.jpg/960px-College_of_Economics_and_Management_building_with_the_Monopteros.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Economics_and_Management_building_with_the_Monopteros.jpg",
+        "artist": "THELVBE",
+        "license": "CC0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Church_Among_the_Palms.jpg/960px-Church_Among_the_Palms.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Church_Among_the_Palms.jpg",
+        "artist": "Rosa Paula Cuevas",
+        "license": "CC BY 2.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Shing_Kit_Dy_Macatingin.jpg/960px-Shing_Kit_Dy_Macatingin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Shing_Kit_Dy_Macatingin.jpg",
+        "artist": "Liyaganina",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:Department of Military Sciences and Tactics": {
+    "streetViewHeadings": [8, 63, 118]
+  },
+  "building:Electrical Engineering Building": {
+    "streetViewHeadings": [96, 151, 206]
+  },
+  "building:Forest Biological Sciences Building": {
+    "streetViewHeadings": [52, 107, 162]
+  },
+  "building:Forest Products and Paper Science": {
+    "streetViewHeadings": [253, 308, 3]
+  },
+  "building:Freedom Park": {
+    "streetViewHeadings": [233, 288, 343],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/UPLB_Christmas_Tree_at_Night_20231226.jpg/960px-UPLB_Christmas_Tree_at_Night_20231226.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Christmas_Tree_at_Night_20231226.jpg",
+        "artist": "Ian Lopez (Ianlopez1115)",
+        "license": "Attribution"
+      }
+    ]
+  },
+  "building:Fronda Hall": {
+    "streetViewHeadings": [192, 247, 302]
+  },
+  "building:Graduate School Building": {
+    "streetViewHeadings": [195, 250, 305]
+  },
+  "building:Hydraulics Laboratory": {
+    "streetViewHeadings": [274, 329, 24]
+  },
+  "building:IABE Building": {
+    "streetViewHeadings": [78, 133, 188]
+  },
+  "building:ICOPED Building": {
+    "streetViewHeadings": [326, 21, 76],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/UPLB_Campus_map.png/960px-UPLB_Campus_map.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Campus_map.png",
+        "artist": "Moray An Par",
+        "license": "CC BY-SA 3.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/University_of_the_Philippines_at_Los_Banos-Gate.jpg/960px-University_of_the_Philippines_at_Los_Banos-Gate.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:University_of_the_Philippines_at_Los_Banos-Gate.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY 2.0"
+      }
+    ]
+  },
+  "building:ICropS Building": {
+    "streetViewHeadings": [96, 151, 206]
+  },
+  "building:IFST Building": {
+    "streetViewHeadings": [284, 339, 34]
+  },
+  "building:IHNF Building": {
+    "streetViewHeadings": [29, 84, 139],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Palma_Bridge,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Butastur_indicus_30197174.jpg/960px-Butastur_indicus_30197174.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197174.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Butastur_indicus_30197170.jpg/960px-Butastur_indicus_30197170.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197170.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      }
+    ]
+  },
+  "building:IRNR Building": {
+    "streetViewHeadings": [73, 128, 183]
+  },
+  "building:IWEP Building": {
+    "streetViewHeadings": [46, 101, 156],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Shing_Kit_Dy_Macatingin.jpg/960px-Shing_Kit_Dy_Macatingin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Shing_Kit_Dy_Macatingin.jpg",
+        "artist": "Liyaganina",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:Industrial Engineering Building": {
+    "streetViewHeadings": [80, 135, 190]
+  },
+  "building:LHKCB Building": {
+    "streetViewHeadings": [15, 70, 125],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Palma_Bridge,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Butastur_indicus_30197174.jpg/960px-Butastur_indicus_30197174.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197174.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Butastur_indicus_30197170.jpg/960px-Butastur_indicus_30197170.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197170.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      }
+    ]
+  },
+  "building:Main Library": {
+    "streetViewHeadings": [211, 266, 321]
+  },
+  "building:Meat Science Building": {
+    "streetViewHeadings": [4, 59, 114]
+  },
+  "building:New Math Building": {
+    "streetViewHeadings": [281, 336, 31]
+  },
+  "building:Old Agronomy Headhouse": {
+    "streetViewHeadings": [7, 62, 117]
+  },
+  "building:Old Makiling School": {
+    "streetViewHeadings": [195, 250, 305]
+  },
+  "building:Old Math/Old Rural Building": {
+    "streetViewHeadings": [188, 243, 298]
+  },
+  "building:PHTRC Building": {
+    "streetViewHeadings": [307, 2, 57]
+  },
+  "building:PTCF Building": {
+    "streetViewHeadings": [3, 58, 113]
+  },
+  "building:Physical Sciences Building": {
+    "streetViewHeadings": [5, 60, 115],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Palma_Bridge,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Butastur_indicus_30197174.jpg/960px-Butastur_indicus_30197174.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197174.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Butastur_indicus_30197170.jpg/960px-Butastur_indicus_30197170.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197170.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      }
+    ]
+  },
+  "building:Raymundo Gate": {
+    "streetViewHeadings": [232, 287, 342],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/College_of_Economics_and_Management_building_with_the_Monopteros.jpg/960px-College_of_Economics_and_Management_building_with_the_Monopteros.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Economics_and_Management_building_with_the_Monopteros.jpg",
+        "artist": "THELVBE",
+        "license": "CC0"
+      }
+    ]
+  },
+  "building:Social Forestry and Forestry Governance": {
+    "streetViewHeadings": [80, 135, 190]
+  },
+  "building:Student Union Building": {
+    "streetViewHeadings": [300, 355, 50],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Pelodiscus_sinensis_18335968.jpg/960px-Pelodiscus_sinensis_18335968.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Pelodiscus_sinensis_18335968.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Treron_axillaris_21425110.jpg/960px-Treron_axillaris_21425110.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Treron_axillaris_21425110.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Butastur_indicus_30197174.jpg/960px-Butastur_indicus_30197174.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197174.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Butastur_indicus_30197170.jpg/960px-Butastur_indicus_30197170.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Butastur_indicus_30197170.jpg",
+        "artist": "Pauline Carmel Joy Eje",
+        "license": "CC BY 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-Palma_Bridge%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Palma_Bridge,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/UPLB_Christmas_Tree_at_Night_20231226.jpg/960px-UPLB_Christmas_Tree_at_Night_20231226.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Christmas_Tree_at_Night_20231226.jpg",
+        "artist": "Ian Lopez (Ianlopez1115)",
+        "license": "Attribution"
+      }
+    ]
+  },
+  "building:Temporary Common Classrooms": {
+    "streetViewHeadings": [83, 138, 193],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Human_Ecology_building,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/UPLB_Campus_map.png/960px-UPLB_Campus_map.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Campus_map.png",
+        "artist": "Moray An Par",
+        "license": "CC BY-SA 3.0"
+      }
+    ]
+  },
+  "building:UPLB Rural Economic Development and Renewable Energy Center (REDREC)": {
+    "streetViewHeadings": [143, 198, 253],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg/960px-College_of_Human_Ecology_building%2C_University_of_the_Philippines_Los_Ba%C3%B1os.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:College_of_Human_Ecology_building,_University_of_the_Philippines_Los_Ba%C3%B1os.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/UPLB_Campus_map.png/960px-UPLB_Campus_map.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Campus_map.png",
+        "artist": "Moray An Par",
+        "license": "CC BY-SA 3.0"
+      }
+    ]
+  },
+  "building:UPRHS Building": {
+    "streetViewHeadings": [54, 109, 164],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/University_of_the_Philippines_Rural_High_School.jpg/960px-University_of_the_Philippines_Rural_High_School.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:University_of_the_Philippines_Rural_High_School.jpg",
+        "artist": "Julia Sumangil",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:Veterinary Paraclinical Sciences Building": {
+    "streetViewHeadings": [188, 243, 298]
+  },
+  "building:Veterinary Teaching Hospital": {
+    "streetViewHeadings": [29, 84, 139],
+    "commons": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/UPLB_Veterinary_Teaching_Hospital%2C_Los_Ba%C3%B1os%2C_Laguna%2C_Apr_2026_%281%29.jpg/960px-UPLB_Veterinary_Teaching_Hospital%2C_Los_Ba%C3%B1os%2C_Laguna%2C_Apr_2026_%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Veterinary_Teaching_Hospital,_Los_Ba%C3%B1os,_Laguna,_Apr_2026_(1).jpg",
+        "artist": "Ralff Nestor Nacor",
+        "license": "CC BY-SA 4.0"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/UPLB_Veterinary_Teaching_Hospital%2C_Los_Ba%C3%B1os%2C_Laguna%2C_Apr_2026_%282%29.jpg/960px-UPLB_Veterinary_Teaching_Hospital%2C_Los_Ba%C3%B1os%2C_Laguna%2C_Apr_2026_%282%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Veterinary_Teaching_Hospital,_Los_Ba%C3%B1os,_Laguna,_Apr_2026_(2).jpg",
+        "artist": "Ralff Nestor Nacor",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
+  "building:Villegas Hall": {
+    "streetViewHeadings": [16, 71, 126]
+  }
+}

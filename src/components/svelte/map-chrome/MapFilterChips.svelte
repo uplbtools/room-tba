@@ -1,52 +1,44 @@
 <script lang="ts">
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
+  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
+  import MapPin from "@lucide/svelte/icons/map-pin";
+  import { openCampusBrowse } from "@lib/browse-campus";
   import type { CampusBrowseTab } from "@lib/browse-campus";
   import { campusTransit } from "../../../campus.config";
   import { jeepneyStore, queryStore, sidePanelStore } from "@lib/store.svelte";
 
   import classBuildingsIcon from "../../../assets/icons/class-buildings.svg?url";
   import dormsIcon from "../../../assets/icons/dorms.svg?url";
-  import divisionsIcon from "../../../assets/icons/divisions.svg?url";
   import unitsOfficesIcon from "../../../assets/icons/units-offices.svg?url";
   import jeepneyIcon from "../../../assets/icons/jeepney.svg?url";
-  import landmarkIcon from "../../../assets/icons/landmark.svg?url";
   import storeIcon from "../../../assets/icons/store.svg?url";
   import eventIcon from "../../../assets/icons/event.svg?url";
 
-  type ChipId =
-    | "buildings"
-    | "dorms"
-    | "colleges"
-    | "divisions"
-    | "organizations"
-    | "offices"
-    | "jeepney"
-    | "landmarks"
-    | "services"
-    | "classes"
-    | "events";
+  /** Top-row chips from the map chrome design. Classes / Colleges / Student Orgs
+   * stay in the sidebar — they duplicated icons or did not match this row. */
+  type ChipId = CampusBrowseTab | "events";
 
-  const chips: { id: ChipId; label: string; icon: string }[] = [
-    { id: "buildings", label: "Class Buildings", icon: classBuildingsIcon },
-    { id: "classes", label: "Classes", icon: classBuildingsIcon },
-    { id: "dorms", label: "Dorms", icon: dormsIcon },
-    { id: "colleges", label: "Colleges", icon: divisionsIcon },
-    { id: "divisions", label: "Divisions", icon: divisionsIcon },
-    { id: "organizations", label: "Student Orgs", icon: unitsOfficesIcon },
-    { id: "offices", label: "Units & Offices", icon: unitsOfficesIcon },
+  type Chip =
+    | { id: ChipId; label: string; iconUrl: string }
+    | { id: ChipId; label: string; LucideIcon: typeof GraduationCap };
+
+  const chips: Chip[] = [
+    { id: "buildings", label: "Class Buildings", iconUrl: classBuildingsIcon },
+    { id: "dorms", label: "Dorms", iconUrl: dormsIcon },
+    { id: "divisions", label: "Divisions", LucideIcon: GraduationCap },
+    { id: "offices", label: "Units and offices", iconUrl: unitsOfficesIcon },
     ...(campusTransit.enabled
       ? [
           {
             id: "jeepney" as const,
-            label: "Jeepney Routes",
-            icon: jeepneyIcon,
+            label: "Jeepney routes",
+            iconUrl: jeepneyIcon,
           },
         ]
       : []),
-    { id: "landmarks", label: "Landmarks", icon: landmarkIcon },
-    { id: "services", label: "Stores", icon: storeIcon },
-    { id: "events", label: "Events", icon: eventIcon },
+    { id: "landmarks", label: "Landmark", LucideIcon: MapPin },
+    { id: "services", label: "Stores", iconUrl: storeIcon },
+    { id: "events", label: "Events", iconUrl: eventIcon },
   ];
 
   let scroller = $state<HTMLDivElement | null>(null);
@@ -54,15 +46,12 @@
 
   const activeId = $derived.by((): ChipId | null => {
     if (queryStore.category === "events") return "events";
-    if (queryStore.category === "classes") return "classes";
     if (queryStore.category !== "browse") return null;
     const v = queryStore.queryValue;
     if (
       v === "buildings" ||
       v === "dorms" ||
-      v === "colleges" ||
       v === "divisions" ||
-      v === "organizations" ||
       v === "offices" ||
       v === "jeepney" ||
       v === "landmarks" ||
@@ -79,7 +68,6 @@
       canScrollMore = false;
       return;
     }
-    // Hide chevron when every chip already fits / is scrolled into view.
     const overflow = el.scrollWidth > el.clientWidth + 4;
     const remaining = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
     canScrollMore = overflow && remaining;
@@ -109,16 +97,12 @@
       sidePanelStore.expand();
       return;
     }
-    if (id === "classes") {
-      openBrowseClasses(queryStore, sidePanelStore);
-      return;
-    }
     if (id === "jeepney") {
       jeepneyStore.enableLayer();
       openCampusBrowse(queryStore, sidePanelStore, "jeepney");
       return;
     }
-    openCampusBrowse(queryStore, sidePanelStore, id as CampusBrowseTab);
+    openCampusBrowse(queryStore, sidePanelStore, id);
   }
 
   function scrollChips() {
@@ -128,10 +112,24 @@
     );
     scroller?.scrollBy({ left: step, behavior: "smooth" });
   }
+
+  /** Trackpads / mice scroll vertically by default; convert to pan-x here. */
+  function onWheel(event: WheelEvent) {
+    const el = scroller;
+    if (!el || el.scrollWidth <= el.clientWidth + 4) return;
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    event.preventDefault();
+    el.scrollLeft += event.deltaY;
+    syncScrollMore();
+  }
 </script>
 
-<div class="map-filter-chips" role="toolbar" aria-label="Browse campus">
-  <div bind:this={scroller} class="map-filter-chips__scroll">
+<div class="map-filter-chips" role="toolbar" aria-label="Map pin filters">
+  <div
+    bind:this={scroller}
+    class="map-filter-chips__scroll"
+    onwheel={onWheel}
+  >
     {#each chips as chip (chip.id)}
       <button
         type="button"
@@ -140,14 +138,20 @@
         aria-pressed={activeId === chip.id}
         onclick={() => handleChip(chip.id)}
       >
-        <img
-          src={chip.icon}
-          alt=""
-          width="16"
-          height="16"
-          class="map-filter-chips__icon"
-          decoding="async"
-        />
+        {#if "LucideIcon" in chip}
+          <span class="map-filter-chips__icon" aria-hidden="true">
+            <chip.LucideIcon size={16} />
+          </span>
+        {:else}
+          <img
+            src={chip.iconUrl}
+            alt=""
+            width="16"
+            height="16"
+            class="map-filter-chips__icon"
+            decoding="async"
+          />
+        {/if}
         <span>{chip.label}</span>
       </button>
     {/each}
@@ -174,6 +178,7 @@
     min-width: 0;
     max-width: 100%;
     height: var(--map-search-pill-height, 2.25rem);
+    overflow: hidden;
   }
 
   .map-filter-chips__scroll {
@@ -184,6 +189,7 @@
     min-width: 0;
     overflow-x: auto;
     overscroll-behavior-x: contain;
+    touch-action: pan-x;
     scrollbar-width: none;
   }
 
@@ -218,6 +224,15 @@
   }
 
   .map-filter-chips__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .map-filter-chips__icon :global(svg) {
     width: 1rem;
     height: 1rem;
   }
@@ -238,5 +253,4 @@
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
     cursor: pointer;
   }
-
 </style>

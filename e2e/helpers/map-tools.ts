@@ -38,6 +38,24 @@ export async function openHelpSettingsSection(sidebar: Locator) {
   return sidebar;
 }
 
+/**
+ * Open the Settings modal through its live entry points: the desktop top bar
+ * Settings button, or the App menu on mobile. The old path (rail Sidebar >
+ * Help & settings > Settings) targets a component that stopped rendering
+ * (#930), so specs that used it timed out without touching the feature they
+ * covered.
+ */
+export async function openSettingsModal(page: Page) {
+  const appMenu = page.getByRole("button", { name: /app menu/i });
+  if (await appMenu.isVisible().catch(() => false)) {
+    await appMenu.click();
+  }
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const settings = page.getByRole("dialog", { name: "Settings" });
+  await expect(settings).toBeVisible();
+  return settings;
+}
+
 export async function openMapTools(page: Page) {
   const mapMenu = page.getByRole("button", { name: /map menu/i });
   const mapToolsFab = page.getByRole("button", { name: /^Map tools$/i });

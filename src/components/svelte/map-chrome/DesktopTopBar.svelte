@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { adminAuthStore, sidebarStore } from "@lib/store.svelte";
-  import AppMenu from "../status-bar/AppMenu.svelte";
+  import SettingsIcon from "@lucide/svelte/icons/settings";
+  import { adminAuthStore, modalStore, sidebarStore } from "@lib/store.svelte";
 
   type NavId = "map" | "planner" | "finals";
 
@@ -60,7 +60,19 @@
       </button>
     {/each}
     <a href="/wiki" class="desktop-top-bar__link">Wiki</a>
-    <AppMenu />
+    <!-- Settings lost its only entry point when the rail Sidebar stopped
+         rendering (#930) and the desktop Menu was removed (#960); the modal
+         (map display, terrain, cache) was unreachable on desktop. -->
+    <button
+      type="button"
+      class="desktop-top-bar__link desktop-top-bar__settings"
+      aria-label="Settings"
+      title="Settings"
+      onclick={() => modalStore.openModal("settings")}
+    >
+      <SettingsIcon size={16} aria-hidden="true" />
+      <span>Settings</span>
+    </button>
     <button
       type="button"
       class="desktop-top-bar__signin"
@@ -121,6 +133,12 @@
     justify-content: flex-end;
     gap: 4px;
     min-width: 0;
+  }
+
+  .desktop-top-bar__settings {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
   }
 
   .desktop-top-bar__link {

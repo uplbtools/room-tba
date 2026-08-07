@@ -1,5 +1,6 @@
 <script lang="ts">
   import Menu from "@lucide/svelte/icons/menu";
+  import SettingsIcon from "@lucide/svelte/icons/settings";
   import Keyboard from "@lucide/svelte/icons/keyboard";
   import ChartColumn from "@lucide/svelte/icons/chart-column";
   import FileText from "@lucide/svelte/icons/file-text";
@@ -190,6 +191,11 @@
     modalStore.openModal("changelog");
   }
 
+  function handleSettings() {
+    closePanel();
+    modalStore.openModal("settings");
+  }
+
   function handleCoverage() {
     closePanel();
     modalStore.openModal("coverage");
@@ -285,6 +291,20 @@
         >
           <CalendarDays size={14} aria-hidden="true" />
           <span>Academic calendar</span>
+        </button>
+      </section>
+
+      <!-- Settings lost its only entry point when the rail Sidebar stopped
+           rendering (#930); the modal (map display, terrain, cache) was
+           unreachable. Same fix as Today/calendar above. -->
+      <section class="app-menu__section" aria-label="Settings">
+        <button
+          type="button"
+          class="app-menu__action map-chrome-chip"
+          onclick={handleSettings}
+        >
+          <SettingsIcon size={14} aria-hidden="true" />
+          <span>Settings</span>
         </button>
       </section>
 

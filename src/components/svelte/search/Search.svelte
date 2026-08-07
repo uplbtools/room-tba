@@ -1168,7 +1168,8 @@
     :global(.map-filter-chips) {
     flex: 1 1 auto;
     width: auto;
-    max-width: none;
+    /* Cap width so the inner scroller can overflow-x instead of clipping. */
+    max-width: 100%;
     min-width: 0;
     height: var(--map-search-pill-height, 2.375rem);
   }

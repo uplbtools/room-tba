@@ -164,7 +164,7 @@ const GENERIC_DOC_FREQUENCY = 8;
  * reach `GENERIC_DOC_FREQUENCY`, and then "Administration Building" matches
  * "Graduate School Building" on the word "building" alone.
  */
-const STRUCTURAL_TOKENS = new Set([
+export const STRUCTURAL_TOKENS = new Set([
   "building",
   "buildings",
   "bldg",

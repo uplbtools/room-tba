@@ -8,6 +8,7 @@
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import MapIcon from "@lucide/svelte/icons/map";
+  import Satellite from "@lucide/svelte/icons/satellite";
   import {
     mapStore,
     mapViewStore,
@@ -15,6 +16,10 @@
     terrainStore,
   } from "@lib/store.svelte";
   import { onMount } from "svelte";
+  import {
+    getBasemapProvider,
+    onBasemapProviderChange,
+  } from "@lib/basemap-provider";
   import { THREE_D_PITCH, isMap2DPitch } from "@constants/map-dimension";
   import {
     enterFlatMapDimension,
@@ -68,6 +73,17 @@
     is2D
       ? "Camera is flat 2D. Switch to tilted 3D."
       : "Camera is tilted 3D. Switch to flat 2D.",
+  );
+  // Satellite tiles need a working MapTiler key. Gate on the provider that
+  // actually served the basemap: a configured-but-rejected key (#863) falls
+  // back to a keyless basemap, and satellite would 403 the same way.
+  let basemapProvider = $state(getBasemapProvider());
+  onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
+  const satelliteAvailable = $derived(basemapProvider === "maptiler");
+  const satelliteTitle = $derived(
+    mapViewStore.satellite
+      ? "Showing satellite imagery. Switch to the standard map."
+      : "Showing the standard map. Switch to satellite imagery.",
   );
   function syncCamera() {
     const map = mapStore.mapInstance;
@@ -207,6 +223,31 @@
         <span class="control-value">{is2D ? "2D flat" : "3D tilted"}</span>
       </span>
     </button>
+
+    {#if satelliteAvailable}
+      <div class="divider"></div>
+
+      <button
+        class="control mode-toggle satellite-toggle"
+        class:active={mapViewStore.satellite}
+        onclick={mapViewStore.toggleSatellite}
+        title={satelliteTitle}
+        aria-label={satelliteTitle}
+        aria-pressed={mapViewStore.satellite}
+      >
+        {#if mapViewStore.satellite}
+          <Satellite size={18} aria-hidden="true" />
+        {:else}
+          <MapIcon size={18} aria-hidden="true" />
+        {/if}
+        <span class="control-copy">
+          <span class="control-kicker">Basemap</span>
+          <span class="control-value">
+            {mapViewStore.satellite ? "Satellite" : "Standard"}
+          </span>
+        </span>
+      </button>
+    {/if}
   {/if}
 
   {#if showCameraNav}
@@ -478,12 +519,14 @@
     line-height: 1.3;
   }
 
-  .camera-toggle {
+  .camera-toggle,
+  .satellite-toggle {
     border-color: hsl(5, 34%, 78%);
     background-color: hsl(0, 100%, 99%);
   }
 
-  .camera-toggle:hover {
+  .camera-toggle:hover,
+  .satellite-toggle:hover {
     border-color: hsl(5, 34%, 68%);
     background-color: hsl(0, 78%, 97%);
   }

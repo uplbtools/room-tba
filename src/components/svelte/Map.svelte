@@ -118,6 +118,7 @@
   } from "@lib/travel-graph/engine";
   import { loadTravelGraph } from "@lib/travel-graph/load";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
+  import { syncSatelliteLayer } from "@lib/map-satellite";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
@@ -1856,6 +1857,25 @@
       applyPalette();
     } else {
       map.once("load", applyPalette);
+    }
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const satellite = mapViewStore.satellite;
+    if (!map) return;
+
+    let cancelled = false;
+    const applySatellite = () => {
+      if (!cancelled) syncSatelliteLayer(map, satellite);
+    };
+    if (map.isStyleLoaded()) {
+      applySatellite();
+    } else {
+      map.once("load", applySatellite);
     }
     return () => {
       cancelled = true;

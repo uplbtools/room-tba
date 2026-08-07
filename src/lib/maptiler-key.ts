@@ -55,7 +55,7 @@ const OFFLINE_FALLBACK_MAP_STYLE = {
 const TILE_PROBE_TIMEOUT_MS = 6_000;
 
 /** A key is configured. Says nothing about whether MapTiler will accept it. */
-function hasConfiguredMaptilerKey(): boolean {
+export function hasConfiguredMaptilerKey(): boolean {
   const key = import.meta.env.PUBLIC_MAPTILER_KEY?.trim();
   return Boolean(key && key.length > 8);
 }
