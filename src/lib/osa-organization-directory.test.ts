@@ -16,4 +16,12 @@ describe("parseOsaOrganizations", () => {
       },
     ]);
   });
+
+  test("drops angle brackets the tag pattern cannot pair off", () => {
+    const organizations = parseOsaOrganizations(
+      '<a class="orgText" href="orgs/example">UP <Example</a>',
+    );
+
+    expect(organizations[0]?.name).toBe("UP Example");
+  });
 });

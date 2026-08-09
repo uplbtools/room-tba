@@ -56,10 +56,17 @@ export function isLikelyPhotoTitle(title: string): boolean {
   return PHOTO_EXTENSIONS.test(title);
 }
 
-/** Strip the HTML Commons wraps around artist names ("<a ...>Juan</a>"). */
+/**
+ * Strip the HTML Commons wraps around artist names ("<a ...>Juan</a>").
+ *
+ * The Artist field is whatever a Commons editor typed, so the second replace
+ * drops any angle bracket the tag pattern could not pair off ("Juan <b" keeps
+ * a live "<" otherwise). Result is plain text: it can never open a tag.
+ */
 export function stripHtml(value: string): string {
   return value
     .replace(/<[^>]*>/g, "")
+    .replace(/[<>]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }

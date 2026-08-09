@@ -41,4 +41,10 @@ describe("stripHtml", () => {
       stripHtml('<a href="//commons.wikimedia.org/wiki/User:X">Juan\nD</a>'),
     ).toBe("Juan D");
   });
+
+  test("drops angle brackets the tag pattern cannot pair off", () => {
+    expect(stripHtml("Juan <b")).toBe("Juan b");
+    expect(stripHtml('<a href="<script>">Juan</a>')).toBe('"Juan');
+    expect(stripHtml("<<a>script>alert(1)")).toBe("scriptalert(1)");
+  });
 });

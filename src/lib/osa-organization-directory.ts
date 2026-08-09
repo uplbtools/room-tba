@@ -5,9 +5,15 @@ export type OsaOrganization = {
   officialUrl: string;
 };
 
+/**
+ * Plain text of a scraped fragment. The `[<>]` pass drops any angle bracket the
+ * tag pattern could not pair off, so a name like "UP <Example" cannot carry a
+ * live "<" out of here.
+ */
 function textContent(html: string) {
   return html
     .replace(/<[^>]*>/g, " ")
+    .replace(/[<>]/g, " ")
     .replace(/&(amp|nbsp|quot|#39|#x27);/gi, (_, entity: string) => {
       switch (entity.toLowerCase()) {
         case "amp":
