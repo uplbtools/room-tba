@@ -29,12 +29,9 @@ export function openCampusBrowse(
   sidePanelStore.expand();
 }
 
-// ponytail: `sidePanelStore` stays optional so the existing two call sites keep
-// working unchanged — Sidebar opens the panel itself, CampusBrowseChips relies
-// on this helper.
 export function openBrowseClasses(
   queryStore: QueryStore,
-  sidePanelStore?: SidePanelStore,
+  sidePanelStore: SidePanelStore,
 ) {
   dismissEphemeralOverlays();
   queryStore.updateQuery({
@@ -43,9 +40,9 @@ export function openBrowseClasses(
     value: "All classes",
   });
   queryStore.inputValue = "";
-  sidePanelStore?.openPanel({
+  sidePanelStore.openPanel({
     type: "browsing-entities",
     component: ClassesList,
   });
-  sidePanelStore?.expand();
+  sidePanelStore.expand();
 }

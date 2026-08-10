@@ -98,6 +98,17 @@ bun run backfill:bulk-history -- --apply     # maintainer only, writes to DATABA
 
 Re-running after `--apply` prints `5 operations: 0 new, 5 already recorded`.
 
+## Maintainer: campus-audit building links
+
+The 17 name- and proximity-matched organization links from #891 are explicit in
+`scripts/apply-campus-audit-links.ts`. It refuses a row that has changed since
+the audit and writes one `editor_history` row per update.
+
+```sh
+bun run apply:campus-audit-links -- --prod
+bun run apply:campus-audit-links -- --prod --apply
+```
+
 ### Snapshots
 
 If the pre-operation JSON dumps are still on disk, the script enriches the

@@ -1,10 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import {
-  openAppSidebar,
-  openHelpSettingsSection,
-  clickSidebarNav,
-} from "../helpers/map-tools";
+import { openSettingsModal } from "../helpers/map-tools";
 
 const PLANNER_LS_KEY = "room-tba-planner";
 const PLAN = JSON.stringify({
@@ -33,10 +29,7 @@ test.describe("Settings → Storage: clear cached data", () => {
       [PLANNER_LS_KEY, PLAN],
     );
 
-    const sidebar = await openAppSidebar(page);
-    await openHelpSettingsSection(sidebar);
-    await clickSidebarNav(sidebar, "Settings", { exact: true });
-    const settings = page.getByRole("dialog", { name: "Settings" });
+    const settings = await openSettingsModal(page);
     await expect(settings).toBeVisible();
 
     await settings

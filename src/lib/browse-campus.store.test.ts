@@ -86,14 +86,6 @@ describe("openBrowseClasses", () => {
     expect(sidePanelStore.active).toBe(true);
     expect(sidePanelStore.state?.type).toBe("browsing-entities");
   });
-
-  test("still sets the query when the caller opens the panel itself", () => {
-    // Sidebar.svelte calls the single-arg form and then opens the panel with its
-    // own component; the helper must not throw or no-op on the query.
-    const queryStore = mockQueryStore();
-    expect(() => openBrowseClasses(queryStore as never)).not.toThrow();
-    expect(queryStore.category).toBe("classes");
-  });
 });
 
 /**
@@ -105,20 +97,12 @@ describe("openBrowseClasses", () => {
 describe("browse helper call sites keep the side panel wired", () => {
   const CALL_SITES: Array<{ file: string; helper: string }> = [
     {
-      file: "src/components/svelte/search/CampusBrowseChips.svelte",
+      file: "src/components/svelte/status-bar/AppMenu.svelte",
       helper: "openBrowseClasses",
     },
     {
-      file: "src/components/svelte/search/CampusBrowseChips.svelte",
+      file: "src/components/svelte/status-bar/AppMenu.svelte",
       helper: "openCampusBrowse",
-    },
-    {
-      file: "src/components/svelte/navigation/Sidebar.svelte",
-      helper: "openCampusBrowse",
-    },
-    {
-      file: "src/components/svelte/navigation/Sidebar.svelte",
-      helper: "openBrowseClasses",
     },
     {
       file: "src/components/svelte/modal/StudentOrgsModal.svelte",

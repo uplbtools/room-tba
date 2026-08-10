@@ -15,11 +15,15 @@
   import Megaphone from "@lucide/svelte/icons/megaphone";
   import UserRound from "@lucide/svelte/icons/user-round";
   import Phone from "@lucide/svelte/icons/phone";
+  import University from "@lucide/svelte/icons/university";
+  import Users from "@lucide/svelte/icons/users";
+  import BookText from "@lucide/svelte/icons/book-text";
   import { onMount } from "svelte";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { statusBarNavGroups } from "@constants/status-bar-links";
   import { trapFocus } from "@lib/focus-trap";
   import { openShortcutsHelp } from "@lib/keyboard-shortcuts";
+  import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
   import { portal } from "@lib/portal";
   import {
     registerEphemeralOverlayDismisser,
@@ -31,6 +35,8 @@
     mapToolsStore,
     modalStore,
     proposalsStore,
+    queryStore,
+    sidePanelStore,
     sidebarStore,
     toastStore,
   } from "@lib/store.svelte";
@@ -205,6 +211,15 @@
     modalStore.openModal("coverage");
   }
 
+  function handleBrowse(id: "colleges" | "organizations" | "classes") {
+    if (id === "classes") {
+      openBrowseClasses(queryStore, sidePanelStore);
+    } else {
+      openCampusBrowse(queryStore, sidePanelStore, id);
+    }
+    closePanel();
+  }
+
   function handleHowItWorks() {
     closePanel();
     modalStore.openModal("landing", { landingTab: "welcome" });
@@ -376,6 +391,37 @@
         >
           <ChartColumn size={18} aria-hidden="true" />
           <span>Campus data coverage</span>
+        </button>
+      </section>
+
+      <section
+        class="app-menu__section"
+        aria-labelledby="app-menu-browse-heading"
+      >
+        <h3 id="app-menu-browse-heading" class="app-menu__heading">Browse</h3>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => handleBrowse("colleges")}
+        >
+          <University size={18} aria-hidden="true" />
+          <span>Colleges</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => handleBrowse("organizations")}
+        >
+          <Users size={18} aria-hidden="true" />
+          <span>Student organizations</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => handleBrowse("classes")}
+        >
+          <BookText size={18} aria-hidden="true" />
+          <span>Classes</span>
         </button>
       </section>
 

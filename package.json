@@ -54,6 +54,7 @@
     "import:osa-orgs": "bun run scripts/import-osa-organizations.ts",
     "import:trail-org-about": "bun run scripts/import-trail-org-about.ts",
     "audit:campus-data": "bun run scripts/audit-campus-data.ts",
+    "apply:campus-audit-links": "bun run scripts/apply-campus-audit-links.ts",
     "audit:places-coordinates": "bun run scripts/places-coordinate-audit.ts",
     "import:campus-offices": "bun run scripts/import-campus-office-directory.ts",
     "import:amis-classes": "bun run scripts/import-amis-classes.ts",

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openCampusDirectory } from "../helpers/map-tools";
 
 /**
  * Room TBA probable location (#846). The seed creates E2E 101 section C (LEC)
@@ -14,8 +14,7 @@ test.describe("probable location for Room TBA sections", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const sidebar = await openAppSidebar(page);
-    await sidebar.getByRole("button", { name: /^classes$/i }).click();
+    await openCampusDirectory(page, "classes");
     await expect(page.getByText(/All classes/i).first()).toBeVisible({
       timeout: 10_000,
     });
