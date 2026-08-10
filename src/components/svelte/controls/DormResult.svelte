@@ -713,6 +713,7 @@
           <EntityGoogleMapsLink
             lat={dorm.lat}
             lon={dorm.lon}
+            name={dorm.dormName}
             ariaLabel={`Open ${dorm.dormName} in Google Maps`}
           />
         {/if}
