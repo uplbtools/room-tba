@@ -32,13 +32,11 @@ test.describe("Settings → Storage: clear cached data", () => {
     const settings = await openSettingsModal(page);
     await expect(settings).toBeVisible();
 
-    await settings
-      .getByRole("button", { name: "Clear cached data and reload" })
-      .click();
+    await settings.getByRole("button", { name: "Reset offline data" }).click();
     await expect(
-      settings.getByText(/Downloaded offline maps go too/),
+      settings.getByText(/Downloaded offline maps will be removed/),
     ).toBeVisible();
-    await settings.getByRole("button", { name: "Clear and reload" }).click();
+    await settings.getByRole("button", { name: "Reset and reload" }).click();
 
     // The reload is the success signal — wait for the marker to disappear.
     await expect

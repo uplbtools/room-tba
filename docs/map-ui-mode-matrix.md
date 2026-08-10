@@ -53,7 +53,7 @@ Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome 
 ## Layout zones (Entry.svelte)
 
 - **Top band:** search column (editor icon button when signed in), term selector, and event banner. Map-filter chips open Buildings, Dorms, Divisions, Units & offices, Landmarks, Services & establishments, Events, and Jeepney routes. The App Menu opens Colleges, Student organizations, and Classes. Each directory opens its own `CampusBrowseList.svelte` view in the side drawer and an entry then opens the regular entity detail view; they are not centered modals. The search suggestions dropdown is for recent searches and typed results only. **Keyboard shortcuts** are opened from the App Menu or the `?` key. Editor tools open in a modal.
-- **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north). Satellite remains in Map tools → View.
+- **Map face:** map canvas, desktop unified camera column (`camera-controls-card`: vertical 2D/3D + rotate/tilt/north). Satellite remains in Map tools → View and Settings → View.
 - **Bottom band:** unified bottom chrome tray (`.bottom-chrome` in `Entry.svelte`); attribution leading, status center, compact Map tools + Legend chips plus location/propose actions trailing; one shared surface. The Map tools chip opens `MapToolsFlyout` (`mapToolsStore`) with the travel tools; while Travel time is active its minutes legend stacks above the tray as the bottom band's first child.
 - **Ephemeral:** toast and modals
 

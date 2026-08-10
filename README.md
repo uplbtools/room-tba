@@ -61,6 +61,7 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Walking time from a point | Map tools → Travel time; tap the map, paths color by minutes |
 | Measure a route | Map tools → Measure route; drop waypoints, get walk / cycle / car times |
 | 3D view | Buildings + Makiling terrain (online) |
+| Satellite imagery | Satellite button in the map controls (when available) |
 | Common questions | [Student FAQ](https://room-tba.uplb.tools/faq) (3D models, data sources, offline) |
 | Tell us something is wrong | Settings → Feedback; free text, optional contact, or reach the team on Messenger / Discord |
 | Understand section names | Wiki guide to the A–H / S–Z class time blocks |
