@@ -118,9 +118,7 @@ function directedRoutes(routes: JeepneyRoute[]): DirectedRoute[] {
 function cumulativeMeters(stops: JeepneyRoute["stops"]): number[] {
   const cumulative = [0];
   for (let i = 1; i < stops.length; i++) {
-    cumulative.push(
-      cumulative[i - 1] + distanceMeters(stops[i - 1], stops[i]),
-    );
+    cumulative.push(cumulative[i - 1] + distanceMeters(stops[i - 1], stops[i]));
   }
   return cumulative;
 }
@@ -380,7 +378,11 @@ function projectOnSegment(
   }
   const t = Math.max(
     0,
-    Math.min(1, ((pp.x - pa.x) * dx + (pp.y - pa.y) * dy) / (segmentMeters * segmentMeters)),
+    Math.min(
+      1,
+      ((pp.x - pa.x) * dx + (pp.y - pa.y) * dy) /
+        (segmentMeters * segmentMeters),
+    ),
   );
   const projX = pa.x + t * dx;
   const projY = pa.y + t * dy;
@@ -443,7 +445,10 @@ export function routeProgress(
 export function describeJourney(journey: Journey): string {
   const ride = journey.legs.find((leg): leg is RideLeg => leg.kind === "ride");
   if (!ride) return "Walking the whole way";
-  const walkMinutes = Math.max(1, Math.round(journey.walkMeters / WALK_MPS / 60));
+  const walkMinutes = Math.max(
+    1,
+    Math.round(journey.walkMeters / WALK_MPS / 60),
+  );
   const stops = ride.stopCount - 1;
   return `${walkMinutes} min walk · ${stops} stop${stops === 1 ? "" : "s"} on ${ride.routeName}`;
 }

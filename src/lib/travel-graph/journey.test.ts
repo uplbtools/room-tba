@@ -343,6 +343,8 @@ describe("describeJourney", () => {
     });
     const transit = journeys.find((j) => j.kind === "transit");
 
-    expect(transit && describeJourney(transit)).toContain("2 stops on Corridor Line");
+    expect(transit && describeJourney(transit)).toContain(
+      "2 stops on Corridor Line",
+    );
   });
 });

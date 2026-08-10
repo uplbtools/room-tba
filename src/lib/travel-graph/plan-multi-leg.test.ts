@@ -2,10 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { JeepneyRoute } from "@constants/jeepney-routes";
 import { buildTravelGraph, type WalkGraphData } from "./engine";
 import { planJourneys } from "./journey";
-import {
-  journeyOptionLabel,
-  planMultiLegJourneys,
-} from "./plan-multi-leg";
+import { journeyOptionLabel, planMultiLegJourneys } from "./plan-multi-leg";
 
 const LAT = 14.16;
 const KM_IN_DEGREES = 1000 / 111_320;
