@@ -58,6 +58,7 @@
     "import:amis-classes": "bun run scripts/import-amis-classes.ts",
     "import:classes-generic": "bun run scripts/import-classes-generic.ts",
     "backfill:room-full-names": "bun run scripts/backfill-room-full-names.ts",
+    "consolidate:approved-rooms": "bun run scripts/consolidate-approved-rooms.ts",
     "backfill:acad-orgs": "for t in 1231 1232 1241 1242 1243 1251 1252 1253 1261; do bun run scripts/import-amis-classes.ts --term-id $t || exit 1; done",
     "import:final-exams": "bun run scripts/import-final-exams.ts",
     "record:bulk-history": "bun run scripts/record-bulk-history.ts",
