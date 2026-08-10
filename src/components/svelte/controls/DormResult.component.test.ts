@@ -114,4 +114,26 @@ describe("DormResult Kubo link", () => {
 
     expect(screen.queryByText("View on Kubo")).not.toBeInTheDocument();
   });
+
+  test("uses Kubo's full image and opens it in a viewer", async () => {
+    const { container } = renderDormResult(
+      dorm({
+        dormName: "Tuiza Bldg",
+        imageUrl:
+          "https://media.kubo.community/dorms/tuiza/gallery/photo.thumb.webp",
+      }),
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: "View full photo of Tuiza Bldg",
+    });
+    const image = trigger.querySelector("img");
+    expect(image).toHaveAttribute(
+      "src",
+      "https://media.kubo.community/dorms/tuiza/gallery/photo.webp",
+    );
+
+    await trigger.click();
+    expect(container.querySelector("dialog")?.open).toBe(true);
+  });
 });

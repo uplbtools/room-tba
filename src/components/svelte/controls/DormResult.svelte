@@ -17,6 +17,8 @@
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
   import KeyRound from "@lucide/svelte/icons/key-round";
   import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
+  import Maximize2 from "@lucide/svelte/icons/maximize-2";
+  import X from "@lucide/svelte/icons/x";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
   import type { DormData } from "@lib/types";
   import {
@@ -108,6 +110,22 @@
   const kuboDormCta = $derived(
     dorm ? getKuboDormCta($kuboDormDirectory, dorm.id, dorm.dormName) : null,
   );
+  const dormImageUrl = $derived(
+    dorm?.imageUrl ? getDormImageUrl(dorm.imageUrl) : null,
+  );
+  let imageViewer = $state<HTMLDialogElement>();
+
+  function getDormImageUrl(imageUrl: string) {
+    try {
+      const url = new URL(imageUrl);
+      if (url.hostname === "media.kubo.community") {
+        url.pathname = url.pathname.replace(/\.thumb(?=\.webp$)/i, "");
+      }
+      return url.toString();
+    } catch {
+      return imageUrl;
+    }
+  }
 
   $effect(() => {
     if (dorm) void loadKuboDormDirectory();
@@ -753,16 +771,38 @@
       </div>
     {/if}
 
-    {#if !editing && dorm.imageUrl}
-      <img
-        class="entity-image"
-        src={dorm.imageUrl}
-        alt={dorm.dormName}
-        width="800"
-        height="450"
-        loading="lazy"
-        decoding="async"
-      />
+    {#if !editing && dormImageUrl}
+      <button
+        type="button"
+        class="entity-image-viewer-trigger"
+        aria-label="View full photo of {dorm.dormName}"
+        onclick={() => imageViewer?.showModal()}
+      >
+        <img
+          class="entity-image"
+          src={dormImageUrl}
+          alt={dorm.dormName}
+          width="800"
+          height="450"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="entity-image-viewer-trigger__label">
+          <Maximize2 size={16} /> View full photo
+        </span>
+      </button>
+
+      <dialog bind:this={imageViewer} class="entity-image-dialog">
+        <button
+          type="button"
+          class="entity-image-dialog__close"
+          aria-label="Close full photo"
+          onclick={() => imageViewer?.close()}
+        >
+          <X size={20} />
+        </button>
+        <img src={dormImageUrl} alt={dorm.dormName} />
+      </dialog>
     {/if}
 
     {#if editing}
