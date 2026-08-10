@@ -9,9 +9,12 @@
   import Inbox from "@lucide/svelte/icons/inbox";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import CalendarClock from "@lucide/svelte/icons/calendar-clock";
+  import ClipboardPenLine from "@lucide/svelte/icons/clipboard-pen-line";
+  import CloudDownload from "@lucide/svelte/icons/cloud-download";
+  import Map from "@lucide/svelte/icons/map";
+  import Megaphone from "@lucide/svelte/icons/megaphone";
   import UserRound from "@lucide/svelte/icons/user-round";
   import { onMount } from "svelte";
-  import { formatCatalogUpdatedDate } from "@constants/data-catalog";
   import { APP_VERSION_LABEL } from "@constants/version";
   import { statusBarNavGroups } from "@constants/status-bar-links";
   import { trapFocus } from "@lib/focus-trap";
@@ -30,7 +33,6 @@
     sidebarStore,
     toastStore,
   } from "@lib/store.svelte";
-  import OfflineMaps from "@ui/OfflineMaps.svelte";
   import PWAInstallPrompt from "@ui/PWAInstallPrompt.svelte";
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
   import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsPopup.svelte";
@@ -50,7 +52,9 @@
     toastStore.show("Signed out.", "info");
   }
 
-  function handleScreen(id: "today" | "calendar") {
+  function handleScreen(
+    id: "map" | "today" | "planner" | "finals" | "calendar",
+  ) {
     sidebarStore.changeOpened(id);
     closePanel();
   }
@@ -84,7 +88,6 @@
         ? "Editor"
         : "Contributor",
   );
-  const catalogUpdatedLabel = formatCatalogUpdatedDate();
   const navGroups = $derived(
     statusBarNavGroups({
       versionLabel: APP_VERSION_LABEL,
@@ -272,39 +275,95 @@
         </section>
       {/if}
 
-      <!-- Today and the academic calendar lost their only entry point when the
-           rail Sidebar stopped rendering (#930, #951). They are screens, not
-           map chrome, so they live here rather than in the primary nav. -->
-      <section class="app-menu__section" aria-label="Screens">
+      <section
+        class="app-menu__section"
+        aria-labelledby="app-menu-go-heading"
+      >
+        <h3 id="app-menu-go-heading" class="app-menu__heading">Go to</h3>
         <button
           type="button"
-          class="app-menu__action map-chrome-chip"
+          class="app-menu__nav-action"
+          onclick={() => handleScreen("map")}
+        >
+          <Map size={18} aria-hidden="true" />
+          <span>Campus map</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
           onclick={() => handleScreen("today")}
         >
-          <CalendarClock size={14} aria-hidden="true" />
+          <CalendarClock size={18} aria-hidden="true" />
           <span>Today</span>
         </button>
         <button
           type="button"
-          class="app-menu__action map-chrome-chip"
+          class="app-menu__nav-action"
+          onclick={() => handleScreen("planner")}
+        >
+          <ClipboardPenLine size={18} aria-hidden="true" />
+          <span>Course planner</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => handleScreen("finals")}
+        >
+          <FileText size={18} aria-hidden="true" />
+          <span>Final exams</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
           onclick={() => handleScreen("calendar")}
         >
-          <CalendarDays size={14} aria-hidden="true" />
+          <CalendarDays size={18} aria-hidden="true" />
           <span>Academic calendar</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => {
+            closePanel();
+            modalStore.openModal("announcements");
+          }}
+        >
+          <Megaphone size={18} aria-hidden="true" />
+          <span>Announcements</span>
         </button>
       </section>
 
-      <!-- Settings lost its only entry point when the rail Sidebar stopped
-           rendering (#930); the modal (map display, terrain, cache) was
-           unreachable. Same fix as Today/calendar above. -->
-      <section class="app-menu__section" aria-label="Settings">
+      <section
+        class="app-menu__section"
+        aria-labelledby="app-menu-tools-heading"
+      >
+        <h3 id="app-menu-tools-heading" class="app-menu__heading">Tools</h3>
         <button
           type="button"
-          class="app-menu__action map-chrome-chip"
+          class="app-menu__nav-action"
           onclick={handleSettings}
         >
-          <SettingsIcon size={14} aria-hidden="true" />
+          <SettingsIcon size={18} aria-hidden="true" />
           <span>Settings</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => {
+            closePanel();
+            modalStore.openModal("offline-maps");
+          }}
+        >
+          <CloudDownload size={18} aria-hidden="true" />
+          <span>Offline maps</span>
+        </button>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={handleCoverage}
+        >
+          <ChartColumn size={18} aria-hidden="true" />
+          <span>Campus data coverage</span>
         </button>
       </section>
 
@@ -327,36 +386,6 @@
           </button>
         </section>
       {/if}
-
-      <section
-        class="app-menu__section"
-        aria-labelledby="app-menu-data-heading"
-      >
-        <h3 id="app-menu-data-heading" class="app-menu__heading">Data</h3>
-        <div class="app-menu__sync"></div>
-        <div class="app-menu__offline">
-          <OfflineMaps compact={false} />
-        </div>
-        <button
-          type="button"
-          class="app-menu__action map-chrome-chip"
-          onclick={handleCoverage}
-        >
-          <ChartColumn size={14} aria-hidden="true" />
-          <span>Campus data coverage</span>
-        </button>
-        <p class="app-menu__meta">Updated {catalogUpdatedLabel}</p>
-      </section>
-
-      <section
-        class="app-menu__section"
-        aria-labelledby="app-menu-links-heading"
-      >
-        <h3 id="app-menu-links-heading" class="app-menu__heading">Links</h3>
-        <nav aria-label="App links">
-          <StatusBarLinkGroups groups={navGroups} onAction={handleNavAction} />
-        </nav>
-      </section>
 
       <section
         class="app-menu__section"
@@ -397,6 +426,13 @@
           <span>Keyboard shortcuts</span>
         </button>
       </section>
+
+      <details class="app-menu__more">
+        <summary>Community &amp; project links</summary>
+        <nav aria-label="Community and project links">
+          <StatusBarLinkGroups groups={navGroups} onAction={handleNavAction} />
+        </nav>
+      </details>
 
       <section
         class="app-menu__section app-menu__section--install"
@@ -442,6 +478,34 @@
     text-decoration: none;
   }
 
+  .app-menu__nav-action {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    background: transparent;
+    color: var(--map-chrome-text, hsl(5 20% 18%));
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 650;
+    line-height: 1.15;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .app-menu__nav-action:hover {
+    background: var(--map-chrome-hover, hsl(5 25% 96%));
+  }
+
+  .app-menu__nav-action:focus-visible {
+    outline: 2px solid var(--color-brand, hsl(345 75% 31%));
+    outline-offset: 2px;
+  }
+
   .app-menu__badge {
     display: inline-flex;
     align-items: center;
@@ -462,7 +526,7 @@
     border-radius: 0.75rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
     max-height: min(70vh, 28rem);
     overflow-y: auto;
     padding: 0.75rem;
@@ -491,20 +555,6 @@
     color: hsl(0, 0%, 40%);
   }
 
-  .app-menu__meta {
-    margin: 0;
-    font-size: 0.6875rem;
-    color: hsl(0, 0%, 42%);
-  }
-
-  .app-menu__sync :global(.sync-status--inline) {
-    width: 100%;
-  }
-
-  .app-menu__offline :global(.offline-maps) {
-    width: 100%;
-  }
-
   .app-menu__section--install :global(.pwa-install-prompt) {
     max-width: none;
     width: 100%;
@@ -524,5 +574,21 @@
     margin-top: 0.25rem;
     padding-top: 0.375rem;
     border-top: 1px dashed hsl(0, 0%, 88%);
+  }
+
+  .app-menu__more {
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    color: hsl(0, 0%, 35%);
+    font-size: 0.75rem;
+  }
+
+  .app-menu__more summary {
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  .app-menu__more nav {
+    margin-top: 0.625rem;
   }
 </style>
