@@ -1,3 +1,10 @@
+# [2.19.0](https://github.com/uplbtools/room-tba/compare/v2.18.2...v2.19.0) (2026-08-11)
+
+
+### Features
+
+* **map:** add Wayback imagery ([#967](https://github.com/uplbtools/room-tba/issues/967)) ([#1012](https://github.com/uplbtools/room-tba/issues/1012)) ([d25a32b](https://github.com/uplbtools/room-tba/commit/d25a32b18fcb5351ab4642b2e5bd5eee94fdf930))
+
 ## [2.18.2](https://github.com/uplbtools/room-tba/compare/v2.18.1...v2.18.2) (2026-08-11)
 
 
