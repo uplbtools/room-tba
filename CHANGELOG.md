@@ -1,3 +1,22 @@
+# [2.18.0](https://github.com/uplbtools/room-tba/compare/v2.17.0...v2.18.0) (2026-08-11)
+
+
+### Bug Fixes
+
+* **campus:** restore live browse coverage and audited links ([#998](https://github.com/uplbtools/room-tba/issues/998)) ([a02685e](https://github.com/uplbtools/room-tba/commit/a02685ecf44a5e90c6a595fa2a8e2af312bcbc29))
+* **map:** commit external campus footprints GeoJSON ([006d5ee](https://github.com/uplbtools/room-tba/commit/006d5ee100d215df75cac2537f2129df5e770cd1)), closes [#991](https://github.com/uplbtools/room-tba/issues/991)
+* **map:** define missing external campuses layer helper ([386b827](https://github.com/uplbtools/room-tba/commit/386b8278e75f1751b79e60d3fd39fb974bb32db2)), closes [#991](https://github.com/uplbtools/room-tba/issues/991)
+
+
+### Features
+
+* **safety:** add offline hotlines and curfew guide (refs [#995](https://github.com/uplbtools/room-tba/issues/995), [#996](https://github.com/uplbtools/room-tba/issues/996)) ([#997](https://github.com/uplbtools/room-tba/issues/997)) ([ec36b34](https://github.com/uplbtools/room-tba/commit/ec36b341c7c0123c5aad886bd34da58f4c6709b2))
+
+
+### Performance Improvements
+
+* **api:** edge-cache public campus read routes ([#994](https://github.com/uplbtools/room-tba/issues/994)) ([3eb4071](https://github.com/uplbtools/room-tba/commit/3eb407194bbe3bfa09830611b1771c20a947f531))
+
 # [2.14.0](https://github.com/uplbtools/room-tba/compare/v2.13.4...v2.14.0) (2026-08-06)
 
 
