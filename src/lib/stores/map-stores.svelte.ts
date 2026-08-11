@@ -6,6 +6,7 @@ import {
 import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import { deactivateMapModesExcept } from "./map-modes.js";
 import type { MapToolsSection, TerrainStatus } from "./store-types.js";
+import type { WaybackSnapshot } from "../wayback-imagery.js";
 
 export class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
@@ -24,6 +25,8 @@ export class MapViewStore {
   poiPinsZoomVisible: boolean = $state(true);
   /** Satellite imagery under the basemap labels (MapTiler raster). */
   satellite: boolean = $state(false);
+  /** A locally changed Esri World Imagery Wayback release, when selected. */
+  waybackSnapshot: WaybackSnapshot | null = $state(null);
 
   toggleEventsOnly = () => {
     this.eventsOnly = !this.eventsOnly;
@@ -31,6 +34,12 @@ export class MapViewStore {
 
   toggleSatellite = () => {
     this.satellite = !this.satellite;
+    if (!this.satellite) this.waybackSnapshot = null;
+  };
+
+  setWaybackSnapshot = (snapshot: WaybackSnapshot | null) => {
+    this.waybackSnapshot = snapshot;
+    this.satellite = true;
   };
 
   toggleOrgs = () => {

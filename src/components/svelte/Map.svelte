@@ -2101,11 +2101,12 @@
   $effect(() => {
     const map = mapStore.mapInstance;
     const satellite = mapViewStore.satellite;
+    const historicalTileUrl = mapViewStore.waybackSnapshot?.tileUrl;
     if (!map) return;
 
     let cancelled = false;
     const applySatellite = () => {
-      if (!cancelled) syncSatelliteLayer(map, satellite);
+      if (!cancelled) syncSatelliteLayer(map, satellite, historicalTileUrl);
     };
     if (map.isStyleLoaded()) {
       applySatellite();

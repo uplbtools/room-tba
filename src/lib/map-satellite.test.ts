@@ -19,11 +19,16 @@ function fakeMap(layers: FakeLayer[]) {
     getLayer: (id: string) => layers.find((layer) => layer.id === id),
     getSource: (id: string) => sources.get(id),
     addSource: (id: string, source: unknown) => sources.set(id, source),
+    removeSource: (id: string) => sources.delete(id),
     addLayer: (layer: FakeLayer, beforeId?: string) => {
       const at = beforeId
         ? layers.findIndex((existing) => existing.id === beforeId)
         : layers.length;
       layers.splice(at === -1 ? layers.length : at, 0, layer);
+    },
+    removeLayer: (id: string) => {
+      const index = layers.findIndex((layer) => layer.id === id);
+      if (index !== -1) layers.splice(index, 1);
     },
     getStyle: () => ({ layers }),
     setLayoutProperty: (id: string, _prop: string, value: string) => {
@@ -91,5 +96,22 @@ describe("syncSatelliteLayer", () => {
     );
     expect(satelliteLayers).toHaveLength(1);
     expect(satelliteLayers[0]?.visibility).toBe("visible");
+  });
+
+  test("replaces MapTiler tiles with a selected Wayback release", () => {
+    const map = fakeMap(baseLayers());
+    const waybackTileUrl =
+      "https://wayback.maptiles.arcgis.com/tile/123/{z}/{y}/{x}";
+    syncSatelliteLayer(asMap(map), true);
+    syncSatelliteLayer(asMap(map), true, waybackTileUrl);
+
+    expect(
+      map.layers.filter((layer) => layer.id === SATELLITE_LAYER_ID),
+    ).toHaveLength(1);
+    expect(map.sources.get(SATELLITE_SOURCE_ID)).toEqual({
+      type: "raster",
+      tiles: [waybackTileUrl],
+      tileSize: 256,
+    });
   });
 });

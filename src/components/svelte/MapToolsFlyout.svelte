@@ -15,6 +15,7 @@
   } from "@lib/store.svelte";
   import { panelFadeIn, panelFadeOut } from "@lib/motion";
   import MapViewControls from "@ui/MapViewControls.svelte";
+  import WaybackImageryControl from "@ui/WaybackImageryControl.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
   import { TERRAIN_ENABLED } from "@constants/map-terrain";
@@ -154,6 +155,7 @@
               >
                 {#if section.id === "view"}
                   <MapViewControls embedded variant="modes" />
+                  <WaybackImageryControl />
                 {:else if section.id === "legend"}
                   <MapLegend embedded />
                 {:else if section.id === "terrain"}

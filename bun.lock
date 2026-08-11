@@ -12,6 +12,7 @@
         "@aws-sdk/client-s3": "^3.1105.0",
         "@datadog/browser-rum": "^7.8.0",
         "@electric-sql/pglite": "^0.5.4",
+        "@esri/wayback-core": "^1.1.0",
         "@lucide/svelte": "^1.29.0",
         "@maplibre/maplibre-gl-directions": "^0.9.1",
         "@supabase/ssr": "^0.12.3",
@@ -508,6 +509,8 @@
     "@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.25.12", "", { "os": "win32", "cpu": "ia32" }, "sha512-HkqnmmBoCbCwxUKKNPBixiWDGCpQGVsrQfJoVGYLPT41XWF8lHuE5N6WhVia2n4o5QK5M4tYr21827fNhi4byQ=="],
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.12", "", { "os": "win32", "cpu": "x64" }, "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA=="],
+
+    "@esri/wayback-core": ["@esri/wayback-core@1.1.0", "", {}, "sha512-+VtsL7n/tqa8aYpdmOdvL7r1/R45r4YVXxE5bmDeXcENIfrZIg2cK0pH9bo8MIcQng7p6jhByQotMX7NVPxIcA=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 

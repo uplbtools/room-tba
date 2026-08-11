@@ -5,7 +5,8 @@
     MAPTILER_COPYRIGHT_URL,
     OSM_COPYRIGHT_URL,
   } from "@constants/data-license";
-  import { terrainStore } from "@lib/store.svelte";
+  import { mapViewStore, terrainStore } from "@lib/store.svelte";
+  import { WAYBACK_ATTRIBUTION_URL } from "@lib/wayback-imagery";
   import { onMount } from "svelte";
   import {
     getBasemapProvider,
@@ -59,6 +60,16 @@
         © OpenFreeMap
       </a>
     {/if}
+    {#if mapViewStore.waybackSnapshot}
+      <span aria-hidden="true">·</span>
+      <a
+        href={WAYBACK_ATTRIBUTION_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        © Esri Wayback
+      </a>
+    {/if}
   </p>
   <button
     type="button"
@@ -98,6 +109,15 @@
           rel="noopener noreferrer"
         >
           © OpenFreeMap
+        </a>
+      {/if}
+      {#if mapViewStore.waybackSnapshot}
+        <a
+          href={WAYBACK_ATTRIBUTION_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          © Esri World Imagery Wayback — release {mapViewStore.waybackSnapshot.releaseDate}{#if mapViewStore.waybackSnapshot.acquisitionDate}, imagery acquired {mapViewStore.waybackSnapshot.acquisitionDate}{/if}
         </a>
       {/if}
       <a href={DATA_LICENSE_FAQ_PATH}>Campus data license</a>

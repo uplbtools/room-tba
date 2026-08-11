@@ -12,6 +12,8 @@ export const SATELLITE_LAYER_ID = "satellite-basemap";
 const SATELLITE_TILEJSON_URL =
   "https://api.maptiler.com/tiles/satellite-v2/tiles.json?key=__MAPTILER_KEY__";
 
+const currentSourceUrls = new WeakMap<maplibregl.Map, string>();
+
 /**
  * Show or hide satellite imagery under the app's own layers.
  *
@@ -24,13 +26,26 @@ const SATELLITE_TILEJSON_URL =
 export function syncSatelliteLayer(
   map: maplibregl.Map,
   visible: boolean,
+  historicalTileUrl?: string | null,
 ): void {
+  const sourceUrl =
+    historicalTileUrl ?? withMaptilerKey(SATELLITE_TILEJSON_URL);
+  if (
+    map.getLayer(SATELLITE_LAYER_ID) &&
+    currentSourceUrls.get(map) !== sourceUrl
+  ) {
+    map.removeLayer(SATELLITE_LAYER_ID);
+    if (map.getSource(SATELLITE_SOURCE_ID))
+      map.removeSource(SATELLITE_SOURCE_ID);
+  }
   if (!map.getLayer(SATELLITE_LAYER_ID)) {
     if (!visible) return;
     if (!map.getSource(SATELLITE_SOURCE_ID)) {
       map.addSource(SATELLITE_SOURCE_ID, {
         type: "raster",
-        url: withMaptilerKey(SATELLITE_TILEJSON_URL),
+        ...(historicalTileUrl
+          ? { tiles: [historicalTileUrl], tileSize: 256 }
+          : { url: sourceUrl }),
       });
     }
     const firstSymbolId = map
@@ -40,6 +55,7 @@ export function syncSatelliteLayer(
       { id: SATELLITE_LAYER_ID, type: "raster", source: SATELLITE_SOURCE_ID },
       firstSymbolId,
     );
+    currentSourceUrls.set(map, sourceUrl);
   }
   map.setLayoutProperty(
     SATELLITE_LAYER_ID,
