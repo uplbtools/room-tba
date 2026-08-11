@@ -24,7 +24,7 @@ vi.mock("@lib/local/data/invalidate-sync-key", () => ({
 const reload = vi.fn();
 
 const clearButton = () =>
-  screen.getByRole("button", { name: "Clear cached data and reload" });
+  screen.getByRole("button", { name: "Reset offline data" });
 
 // The row label carries "campus data" now, so the button is just the verb.
 const resyncButton = () => screen.getByRole("button", { name: "Resync" });
@@ -74,10 +74,10 @@ describe("SettingsModal storage section (#865)", () => {
 
     expect(clearCachedData).not.toHaveBeenCalled();
     expect(
-      screen.getByText(/Downloaded offline maps go too/),
+      screen.getByText(/Downloaded offline maps will be removed/),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Clear and reload" }),
+      screen.getByRole("button", { name: "Reset and reload" }),
     ).toBeInTheDocument();
   });
 
@@ -86,7 +86,7 @@ describe("SettingsModal storage section (#865)", () => {
 
     clearButton().click();
     const confirm = await screen.findByRole("button", {
-      name: "Clear and reload",
+      name: "Reset and reload",
     });
     await vi.waitFor(() => expect(document.activeElement).toBe(confirm));
     expect(confirm.getAttribute("aria-describedby")).toBe(
@@ -111,7 +111,7 @@ describe("SettingsModal storage section (#865)", () => {
 
     clearButton().click();
     await Promise.resolve();
-    screen.getByRole("button", { name: "Clear and reload" }).click();
+    screen.getByRole("button", { name: "Reset and reload" }).click();
 
     await vi.waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
     expect(clearCachedData).toHaveBeenCalledTimes(1);
@@ -129,9 +129,9 @@ describe("SettingsModal storage section (#865)", () => {
 
     clearButton().click();
     await Promise.resolve();
-    screen.getByRole("button", { name: "Clear and reload" }).click();
+    screen.getByRole("button", { name: "Reset and reload" }).click();
 
-    const busy = await screen.findByRole("button", { name: "Clearing…" });
+    const busy = await screen.findByRole("button", { name: "Resetting…" });
     expect((busy as HTMLButtonElement).disabled).toBe(true);
     expect(
       (screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement)

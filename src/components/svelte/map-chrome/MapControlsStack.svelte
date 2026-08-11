@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Locate from "@lucide/svelte/icons/locate";
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
+  import Satellite from "@lucide/svelte/icons/satellite";
   import {
     enterFlatMapDimension,
     enterTiltedMapDimension,
@@ -9,9 +11,14 @@
   import {
     locationStore,
     mapStore,
+    mapViewStore,
     terrainStore,
     toastStore,
   } from "@lib/store.svelte";
+  import {
+    getBasemapProvider,
+    onBasemapProviderChange,
+  } from "@lib/basemap-provider";
   import compassIcon from "../../../assets/icons/compass.svg?url";
 
   type Props = {
@@ -26,8 +33,17 @@
   let centered = $state(false);
 
   const is2D = $derived(isMap2DPitch(pitch));
+  let basemapProvider = $state(getBasemapProvider());
+  const satelliteAvailable = $derived(basemapProvider === "maptiler");
+  const satelliteTitle = $derived(
+    mapViewStore.satellite
+      ? "Switch to the standard map"
+      : "Switch to satellite imagery",
+  );
   /** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
   const northRotation = $derived(-bearing);
+
+  onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
 
   function syncCamera() {
     const map = mapStore.mapInstance;
@@ -153,6 +169,20 @@
   >
     {is2D ? "2D" : "3D"}
   </button>
+
+  {#if satelliteAvailable}
+    <button
+      type="button"
+      class="map-ctrl"
+      class:map-ctrl--active={mapViewStore.satellite}
+      aria-label={satelliteTitle}
+      title={satelliteTitle}
+      aria-pressed={mapViewStore.satellite}
+      onclick={mapViewStore.toggleSatellite}
+    >
+      <Satellite size={18} aria-hidden="true" />
+    </button>
+  {/if}
 
   <div class="map-ctrl-zoom" role="group" aria-label="Zoom">
     <button

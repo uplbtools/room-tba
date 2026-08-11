@@ -1,56 +1,68 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
-/** Ensure the app sidebar rail is open (mobile hides it behind the App menu
- * button) and return its locator for scoping browse-entry clicks.
- *
- * The `retracted` class alone is not the signal: desktop keeps it while the
- * rail stays visible (the hiding CSS is mobile-only), and the App menu button
- * only exists on mobile — waiting for it on desktop hangs. Gate on the button
- * actually being there. */
-export async function openAppSidebar(page: Page): Promise<Locator> {
-  const sidebar = page.locator("#app-sidebar");
-  const appMenu = page.getByRole("button", { name: /app menu/i });
-  const retracted = await sidebar
-    .evaluate((el) => el.classList.contains("retracted"))
-    .catch(() => true);
-  if (retracted && (await appMenu.isVisible().catch(() => false))) {
-    await appMenu.click();
-    await expect(sidebar).not.toHaveClass(/retracted/, { timeout: 10_000 });
-  }
-  return sidebar;
+export async function openAppMenu(page: Page): Promise<Locator> {
+  const trigger = page.getByRole("button", { name: /app menu/i });
+  await page.keyboard.press("Escape");
+  await trigger.click({ force: true });
+  const menu = page.getByRole("dialog", { name: "App menu" });
+  await expect(menu).toBeVisible();
+  return menu;
 }
 
-/** Click a sidebar nav button after scrolling the rail so mobile submenu items are reachable. */
-export async function clickSidebarNav(
-  sidebar: Locator,
-  name: string | RegExp,
-  options?: { exact?: boolean },
+export async function openCampusDirectory(
+  page: Page,
+  directory:
+    | "buildings"
+    | "colleges"
+    | "divisions"
+    | "organizations"
+    | "offices"
+    | "classes"
+    | "jeepney"
+    | "landmarks"
+    | "services"
+    | "events",
 ) {
-  const button = sidebar.getByRole("button", { name, exact: options?.exact });
+  const appMenuLabels = {
+    colleges: "Colleges",
+    organizations: "Student organizations",
+    classes: "Classes",
+  } as const;
+  const menuLabel = appMenuLabels[directory as keyof typeof appMenuLabels];
+  if (menuLabel) {
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: menuLabel, exact: true }).click();
+    return;
+  }
+
+  const filterLabels = {
+    buildings: "Class Buildings",
+    divisions: "Divisions",
+    offices: "Units and offices",
+    jeepney: "Jeepney routes",
+    landmarks: "Landmark",
+    services: "Stores",
+    events: "Events",
+  } as const;
+  const button = page
+    .getByRole("toolbar", { name: "Map pin filters" })
+    .getByRole("button", {
+      name: filterLabels[directory as keyof typeof filterLabels],
+      exact: true,
+    });
   await button.scrollIntoViewIfNeeded();
-  await expect(button).toBeVisible();
   await button.click();
 }
 
-/** Expand Help & settings and return the sidebar locator for follow-up clicks. */
-export async function openHelpSettingsSection(sidebar: Locator) {
-  await clickSidebarNav(sidebar, "Help & settings");
-  return sidebar;
-}
-
 /**
- * Open the Settings modal through its live entry points: the desktop top bar
- * Settings button, or the App menu on mobile. The old path (rail Sidebar >
+ * Open the Settings modal through its live App menu entry. The old path (rail Sidebar >
  * Help & settings > Settings) targets a component that stopped rendering
  * (#930), so specs that used it timed out without touching the feature they
  * covered.
  */
 export async function openSettingsModal(page: Page) {
-  const appMenu = page.getByRole("button", { name: /app menu/i });
-  if (await appMenu.isVisible().catch(() => false)) {
-    await appMenu.click();
-  }
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const menu = await openAppMenu(page);
+  await menu.getByRole("button", { name: "Settings", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "Settings" });
   await expect(settings).toBeVisible();
   return settings;

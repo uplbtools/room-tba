@@ -114,4 +114,56 @@ describe("DormResult Kubo link", () => {
 
     expect(screen.queryByText("View on Kubo")).not.toBeInTheDocument();
   });
+
+  test("uses Kubo's full image and opens it in a viewer", async () => {
+    const { container } = renderDormResult(
+      dorm({
+        dormName: "Tuiza Bldg",
+        imageUrl:
+          "https://media.kubo.community/dorms/tuiza/gallery/photo.thumb.webp",
+      }),
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: "View full photo of Tuiza Bldg",
+    });
+    const image = trigger.querySelector("img");
+    expect(image).toHaveAttribute(
+      "src",
+      "https://media.kubo.community/dorms/tuiza/gallery/photo.webp",
+    );
+
+    await trigger.click();
+    expect(container.querySelector("dialog")?.open).toBe(true);
+  });
+});
+
+describe("DormResult curfew information", () => {
+  beforeEach(() => {
+    kuboDormDirectory.set(new Map());
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 503 })),
+    );
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  test("shows curfew guidance only for UP-managed dorms", () => {
+    renderDormResult(dorm({ isUpManaged: true }));
+    expect(
+      screen.getByRole("heading", { name: "Curfew & permits" }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: /full policy/i })).toHaveAttribute(
+      "href",
+      "/wiki/campus-curfew",
+    );
+  });
+
+  test("hides curfew guidance for private dorms", () => {
+    renderDormResult(dorm({ isUpManaged: false }));
+    expect(
+      screen.queryByRole("heading", { name: "Curfew & permits" }),
+    ).toBeNull();
+  });
 });

@@ -18,7 +18,10 @@ test.describe("mobile search collapse", () => {
       page.getByText(E2E_FIXTURES.buildingName).first(),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: /app menu/i }).click();
+    await page.keyboard.press("Escape");
+    await page
+      .getByRole("button", { name: /app menu/i })
+      .click({ force: true });
     await page.getByRole("button", { name: "Close menu" }).click();
 
     const search = campusSearchBox(page);

@@ -38,7 +38,8 @@ const METERS_PER_DEG_LAT = 111_320;
 
 function lngPadForMeters(meters: number, lat: number): number {
   return (
-    meters / (METERS_PER_DEG_LAT * Math.max(0.2, Math.cos((lat * Math.PI) / 180)))
+    meters /
+    (METERS_PER_DEG_LAT * Math.max(0.2, Math.cos((lat * Math.PI) / 180)))
   );
 }
 
@@ -187,7 +188,10 @@ type CameraForBoundsMap = {
       pitch?: number;
       maxZoom?: number;
     },
-  ) => { center: { lng: number; lat: number } | [number, number]; zoom: number };
+  ) => {
+    center: { lng: number; lat: number } | [number, number];
+    zoom: number;
+  };
 };
 
 /**

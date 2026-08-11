@@ -1,0 +1,55 @@
+---
+export const prerender = true;
+
+import WikiLayout from "@layouts/WikiLayout.astro";
+import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
+import { CAMPUS_CURFEW } from "@constants/campus-curfew";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+
+const title = "Campus curfew and dorm permits | Room TBA Wiki";
+const description =
+  "UPLB campus curfew hours and return-permit information for UP-managed dorm residents.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/wiki/campus-curfew" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Wiki", path: "/wiki" },
+    { name: "Campus curfew", path: "/wiki/campus-curfew" },
+  ]),
+);
+---
+
+<WikiLayout
+  {title}
+  {description}
+  canonicalPath="/wiki/campus-curfew"
+  {structuredData}
+  crumb="Campus curfew"
+>
+  <article class="wiki-article">
+    <header class="article-hero">
+      <p class="wiki-eyebrow">Dorm guide</p>
+      <h1 class="wiki-title">Campus curfew and dorm permits</h1>
+      <p class="wiki-lede">
+        A short reference for the curfew and return permits that apply to
+        residents of UP-managed dormitories.
+      </p>
+      <WikiProvenance sourcePath="src/pages/wiki/campus-curfew.astro" />
+    </header>
+
+    <section aria-labelledby="curfew-hours">
+      <h2 id="curfew-hours">Curfew hours</h2>
+      <p>The campus curfew runs from <strong>{CAMPUS_CURFEW.hours}</strong>.</p>
+      <p>{CAMPUS_CURFEW.noLoitering}</p>
+    </section>
+
+    <section aria-labelledby="dorm-permits">
+      <h2 id="dorm-permits">UP-managed dorm residents</h2>
+      <ul>
+        <li>{CAMPUS_CURFEW.residentRule}</li>
+        <li>{CAMPUS_CURFEW.latePermit}</li>
+        <li>{CAMPUS_CURFEW.overnightPermit}</li>
+      </ul>
+    </section>
+  </article>
+</WikiLayout>

@@ -111,7 +111,7 @@
       </div>
 
       <div class="map-chrome-row">
-        <span class="map-chrome-row__label">Cached app data</span>
+        <span class="map-chrome-row__label">Offline data</span>
         {#if !confirming}
           <div class="map-chrome-row__control">
             <button
@@ -120,22 +120,22 @@
               aria-describedby="settings-storage-hint"
               onclick={() => (confirming = true)}
             >
-              Clear cached data and reload
+              Reset offline data
             </button>
           </div>
         {/if}
       </div>
       <p id="settings-storage-hint" class="map-chrome-row-hint">
-        Clears the cached app, saved campus data, and downloaded offline maps,
-        then reloads. Your saved class plans stay.
+        Removes saved campus data, offline maps, and cached app files. Your
+        saved class plans stay.
       </p>
       {#if confirming}
         <p
           id="settings-storage-warning"
           class="map-chrome-row-hint map-chrome-row-hint--warn"
         >
-          Downloaded offline maps go too. You will need a connection to
-          download them again.
+          Downloaded offline maps will be removed. You will need a connection
+          to download them again.
         </p>
         <div class="map-chrome-row-actions">
           <button
@@ -146,7 +146,7 @@
             bind:this={confirmButton}
             onclick={clearAndReload}
           >
-            {clearing ? "Clearing…" : "Clear and reload"}
+            {clearing ? "Resetting…" : "Reset and reload"}
           </button>
           <button
             type="button"

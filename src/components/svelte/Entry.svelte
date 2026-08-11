@@ -60,6 +60,7 @@
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
   import DesktopTopBar from "./map-chrome/DesktopTopBar.svelte";
   import MapControlsStack from "./map-chrome/MapControlsStack.svelte";
+  import MapToolsFlyout from "./MapToolsFlyout.svelte";
   import MobileBottomNav from "./map-chrome/MobileBottomNav.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import type { RecentSearch } from "@lib/types";
@@ -420,12 +421,6 @@
   <StagingBanner />
   <AnnouncementBar />
   <div class="ui-layer">
-    <!-- Mobile navigation is MobileBottomNav plus the browse chips in Search.
-         The rail Sidebar is desktop-era and was left rendering on mobile with
-         no way to open it: nothing calls sidebarStore.toggleRail(), because the
-         hamburger that used to (Search.svelte) was replaced by AppMenu, which
-         does not touch railOpen. It shipped as a permanently hidden element
-         that also stranded Colleges, Orgs and Classes (#930). -->
     {#if !mobile.current}
       <DesktopTopBar />
     {/if}
@@ -438,10 +433,12 @@
           bind:this={mapToolsStackEl}
           aria-hidden={sidePanelStore.mobileSheetSnap !== "closed"}
         >
+          <MapToolsFlyout />
           <MapControlsStack hideCompass />
         </div>
       {:else}
         <div class="desktop-map-controls" bind:this={mapToolsStackEl}>
+          <MapToolsFlyout />
           <MapControlsStack />
         </div>
       {/if}

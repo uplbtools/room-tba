@@ -1,42 +1,29 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import {
-  openAppSidebar,
-  openHelpSettingsSection,
-  clickSidebarNav,
-} from "../helpers/map-tools";
+import { openAppMenu } from "../helpers/map-tools";
 
-test.describe("sidebar support menus", () => {
-  async function openSection(
-    page: import("@playwright/test").Page,
-    name: "Contributors" | "Help & settings",
-  ) {
-    const sidebar = await openAppSidebar(page);
-    if (name === "Help & settings") {
-      await openHelpSettingsSection(sidebar);
-    } else {
-      await clickSidebarNav(sidebar, name);
-    }
-    return sidebar;
-  }
-
+test.describe("App Menu", () => {
   test("contributors exposes the core community entries", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const sidebar = await openSection(page, "Contributors");
+    const menu = await openAppMenu(page);
+    await menu.locator("summary").filter({ hasText: "Community" }).click();
     await expect(
-      sidebar.getByRole("button", { name: /leaderboard/i }),
+      menu.getByRole("button", { name: /leaderboard/i }),
     ).toBeVisible();
-    await expect(sidebar.getByRole("button", { name: "Login" })).toBeVisible();
+    await expect(
+      menu.getByRole("button", { name: "Contributor sign in" }),
+    ).toBeVisible();
   });
 
   test("opens the contributor leaderboard", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const sidebar = await openSection(page, "Contributors");
-    await sidebar.getByRole("button", { name: /leaderboard/i }).click();
+    const menu = await openAppMenu(page);
+    await menu.locator("summary").filter({ hasText: "Community" }).click();
+    await menu.getByRole("button", { name: /leaderboard/i }).click();
     await expect(
       page.getByRole("dialog", { name: "Contributor leaderboard" }),
     ).toBeVisible();
@@ -46,8 +33,8 @@ test.describe("sidebar support menus", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const sidebar = await openSection(page, "Help & settings");
-    await clickSidebarNav(sidebar, /what's new/i);
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: /what's new/i }).click();
     const modal = page.getByRole("dialog", { name: "What's new" });
     await expect(modal).toBeVisible();
 
@@ -62,8 +49,8 @@ test.describe("sidebar support menus", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const sidebar = await openSection(page, "Help & settings");
-    await clickSidebarNav(sidebar, "Settings", { exact: true });
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: "Settings", exact: true }).click();
     const modal = page.getByRole("dialog", { name: "Settings" });
     await expect(modal).toBeVisible();
   });
@@ -72,8 +59,8 @@ test.describe("sidebar support menus", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const sidebar = await openSection(page, "Help & settings");
-    await clickSidebarNav(sidebar, "Offline maps");
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: "Offline maps" }).click();
     await expect(
       page.getByRole("dialog", { name: "Offline maps" }),
     ).toBeVisible();

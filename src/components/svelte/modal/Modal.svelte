@@ -21,6 +21,7 @@
   import EditorToolsModal from "./EditorToolsModal.svelte";
   import PrivacyModal from "./PrivacyModal.svelte";
   import OfflineMapsModal from "./OfflineMapsModal.svelte";
+  import HotlinesModal from "./HotlinesModal.svelte";
   import IconButton from "@ui/IconButton.svelte";
   import X from "@lucide/svelte/icons/x";
 
@@ -55,6 +56,7 @@
     if (modalStore.type === "editor-tools") return "Editor tools";
     if (modalStore.type === "privacy") return "Privacy policy";
     if (modalStore.type === "offline-maps") return "Offline maps";
+    if (modalStore.type === "hotlines") return "Emergency hotlines";
     return "Dialog";
   });
 
@@ -98,7 +100,8 @@
                 modalStore.type === 'jeepney-route' ||
                 modalStore.type === 'editor-tools' ||
                 modalStore.type === 'privacy' ||
-                modalStore.type === 'offline-maps'
+                modalStore.type === 'offline-maps' ||
+                modalStore.type === 'hotlines'
               ? 'modal-content--reading'
               : ''}"
       id="modal-content"
@@ -227,6 +230,15 @@
           <X size={20} aria-hidden="true" />
         </IconButton>
         <OfflineMapsModal />
+      {:else if modalStore.type === "hotlines"}
+        <IconButton
+          class="modal-content__close-icon"
+          label="Close emergency hotlines"
+          onclick={closeDialog}
+        >
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+        <HotlinesModal />
       {/if}
     </div>
   </div>

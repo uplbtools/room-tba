@@ -61,13 +61,9 @@ describe("DirectionsPanel", () => {
 
       expect(screen.getByText("12 min")).toBeInTheDocument();
       expect(screen.getByText("Walk")).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Show on map" }),
-      ).toBeVisible();
+      expect(screen.getByRole("button", { name: "Show on map" })).toBeVisible();
       expect(screen.getByRole("button", { name: "Start" })).toBeVisible();
-      expect(
-        container.querySelector(".option--selected"),
-      ).toBeTruthy();
+      expect(container.querySelector(".option--selected")).toBeTruthy();
 
       expectNoHorizontalOverflow(container as HTMLElement);
       const panel = container.querySelector(".directions");

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openSettingsModal } from "../helpers/map-tools";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
 test.describe("schedule route from planner @advisory", () => {
@@ -35,13 +35,7 @@ test.describe("schedule route from planner @advisory", () => {
     await page.reload();
     await waitForAppBoot(page);
 
-    const sidebar = await openAppSidebar(page);
-    await sidebar.getByRole("button", { name: "Help & settings" }).click();
-    await sidebar
-      .getByRole("button", { name: "Settings", exact: true })
-      .click();
-
-    const settings = page.getByRole("dialog", { name: "Settings" });
+    const settings = await openSettingsModal(page);
     await expect(settings.locator(".schedule-import-panel")).toBeVisible();
     await expect(
       settings.locator(".schedule-import-panel__plan"),

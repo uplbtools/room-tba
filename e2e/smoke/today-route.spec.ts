@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { suppressLandingModal, waitForAppBoot } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openAppMenu } from "../helpers/map-tools";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
 // #839: one-tap day route from /today. Class matching runs against the seeded
@@ -96,8 +96,8 @@ test.describe("today day route", () => {
     });
 
     // Totals from the mocked OSRM legs surface back on the agenda screen.
-    const sidebar = await openAppSidebar(page);
-    await sidebar.getByRole("button", { name: "Today" }).click();
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: "Today" }).click();
     await expect(page.getByRole("dialog", { name: "Today" })).toBeVisible();
     await expect(page.getByText(/15 min walk\s*·\s*1\.2 km/)).toBeVisible({
       timeout: 15_000,

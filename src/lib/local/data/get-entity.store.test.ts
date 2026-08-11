@@ -36,10 +36,27 @@ describe("getEntity", () => {
   });
 
   test("fetches remote when cache is empty despite valid sync key", async () => {
-    mockFetch([{ id: 3 }]);
+    const urls: string[] = [];
+    globalThis.fetch = (async (input) => {
+      urls.push(String(input));
+      return new Response(JSON.stringify([{ id: 3 }]), { status: 200 });
+    }) as typeof fetch;
     const load = getEntity<Row>("things", async () => []);
     const result = await load({ valid: true, newKey: "k" });
     expect(result).toEqual({ rows: [{ id: 3 }], source: "remote" });
+    expect(urls).toEqual(["/api/things?v=k"]);
+  });
+
+  test("busts the CDN with the sync key when refetching after a bump", async () => {
+    const urls: string[] = [];
+    globalThis.fetch = (async (input) => {
+      urls.push(String(input));
+      return new Response(JSON.stringify([{ id: 5 }]), { status: 200 });
+    }) as typeof fetch;
+    const load = getEntity<Row>("things", async () => [{ id: 1 }]);
+    const result = await load({ valid: false, newKey: "buildings-v2" });
+    expect(result).toEqual({ rows: [{ id: 5 }], source: "remote" });
+    expect(urls).toEqual(["/api/things?v=buildings-v2"]);
   });
 
   test("falls back to cache when remote returns a non-array", async () => {

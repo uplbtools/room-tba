@@ -577,8 +577,12 @@ export function getEntity<T>(
       }
     }
     try {
+      // Include the sync key in the URL so a Vercel edge cache of a prior
+      // version cannot be written into PGlite after /api/check reports a bump
+      // (perf/api-cache-control). Same key → CDN hit; new key → miss.
+      const remoteUrl = `/api/${tableName}?v=${encodeURIComponent(checker.newKey)}`;
       const fetchedData = await fetchJsonWithRetry<T[]>(
-        `/api/${tableName}`,
+        remoteUrl,
         ENTITY_FETCH_OPTIONS,
       );
       if (Array.isArray(fetchedData)) {
