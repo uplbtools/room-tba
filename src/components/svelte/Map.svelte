@@ -124,7 +124,10 @@
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
-  import { EXTERNAL_CAMPUSES_GEOJSON } from "@constants/external-campuses";
+  import {
+    EXTERNAL_CAMPUSES_GEOJSON,
+    EXTERNAL_CAMPUSES_LABELS,
+  } from "@constants/external-campuses";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -374,6 +377,9 @@
   const EVENT_ROUTE_LAYER_CASING_ID = "event-route-line-casing";
   const EXTERNAL_CAMPUSES_SOURCE_ID = "external-campuses-source";
   const EXTERNAL_CAMPUSES_LAYER_ID = "external-campuses-fill";
+  const EXTERNAL_CAMPUSES_LABELS_SOURCE_ID = "external-campuses-labels";
+  const EXTERNAL_CAMPUSES_MARKER_LAYER_ID = "external-campuses-markers";
+  const EXTERNAL_CAMPUSES_LABELS_LAYER_ID = "external-campuses-labels";
   let activeRouteId = $state<string | null>(null);
   let activeRouteStops = $state<DisplayJeepneyRoute["stops"]>([]);
   let activeRouteColor = $state<string>("#dc2626");
@@ -796,6 +802,46 @@
           "fill-color": "#4b5563",
           "fill-opacity": 0.15,
           "fill-outline-color": "#4b5563",
+        },
+      });
+    }
+
+    if (!map.getSource(EXTERNAL_CAMPUSES_LABELS_SOURCE_ID)) {
+      map.addSource(EXTERNAL_CAMPUSES_LABELS_SOURCE_ID, {
+        type: "geojson",
+        data: EXTERNAL_CAMPUSES_LABELS,
+      });
+    }
+
+    if (!map.getLayer(EXTERNAL_CAMPUSES_MARKER_LAYER_ID)) {
+      map.addLayer({
+        id: EXTERNAL_CAMPUSES_MARKER_LAYER_ID,
+        type: "circle",
+        source: EXTERNAL_CAMPUSES_LABELS_SOURCE_ID,
+        paint: {
+          "circle-radius": 7,
+          "circle-color": "#7b1113",
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 2,
+        },
+      });
+    }
+
+    if (!map.getLayer(EXTERNAL_CAMPUSES_LABELS_LAYER_ID)) {
+      map.addLayer({
+        id: EXTERNAL_CAMPUSES_LABELS_LAYER_ID,
+        type: "symbol",
+        source: EXTERNAL_CAMPUSES_LABELS_SOURCE_ID,
+        layout: {
+          "text-field": ["get", "name"],
+          "text-size": 12,
+          "text-offset": [0, 1.2],
+          "text-anchor": "top",
+        },
+        paint: {
+          "text-color": "#374151",
+          "text-halo-color": "#ffffff",
+          "text-halo-width": 2,
         },
       });
     }
