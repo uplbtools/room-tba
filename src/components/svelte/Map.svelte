@@ -1,7 +1,7 @@
 <script lang="ts">
   import { MapLibre, Marker } from "svelte-maplibre";
   import * as maplibregl from "maplibre-gl";
-  import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-csp-worker.js?url";
+  import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
   // In production Vite inlines maplibre into the app chunk and boots its
   // worker by importScripts-ing that same chunk; vector tiles survive but the

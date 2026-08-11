@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import * as maplibregl from "maplibre-gl";
-  import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-csp-worker.js?url";
+  import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
   import "maplibre-gl/dist/maplibre-gl.css";
   import { campusMap } from "../../../campus.config";
   import {
