@@ -123,11 +123,7 @@ export class DirectionsStore {
       const graph = await loadTravelGraph();
       if (token !== this.#planToken) return; // superseded
 
-      const points: LatLng[] = [
-        origin,
-        ...this.waypoints,
-        destination,
-      ];
+      const points: LatLng[] = [origin, ...this.waypoints, destination];
       const plan = planMultiLegJourneys({
         graph,
         points,

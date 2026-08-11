@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { decodeClassCursor } from "@lib/api/class-cursor";
+import { cachedJson } from "@lib/api/json";
 import { clampLimitParam, paginationErrorResponse } from "@lib/api/pagination";
 import {
   checkRateLimit,
@@ -32,7 +33,7 @@ export const GET = (async ({ request, url }) => {
       roomCode,
       Number.isFinite(termId) ? termId : undefined,
     );
-    return new Response(JSON.stringify(data));
+    return cachedJson(data);
   }
 
   if (url.searchParams.has("offset")) {
@@ -59,5 +60,5 @@ export const GET = (async ({ request, url }) => {
     limit: limit.value,
     cursor: cursor ?? undefined,
   });
-  return new Response(JSON.stringify(data));
+  return cachedJson(data);
 }) satisfies APIRoute;

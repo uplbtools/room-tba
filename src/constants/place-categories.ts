@@ -8,6 +8,7 @@ export const PLACE_CATEGORIES = [
   "landmark",
   "service",
   "transport",
+  "government",
 ] as const;
 
 export type PlaceCategory = (typeof PLACE_CATEGORIES)[number];
@@ -20,6 +21,7 @@ export const PLACE_CATEGORY_LABELS: Record<PlaceCategory, string> = {
   landmark: "Landmark",
   service: "Service",
   transport: "Transport",
+  government: "Government",
 };
 
 export function normalizePlaceCategory(value: unknown): PlaceCategory | null {

@@ -1,10 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import {
-  openAppSidebar,
-  openHelpSettingsSection,
-  clickSidebarNav,
-} from "../helpers/map-tools";
+import { openSettingsModal } from "../helpers/map-tools";
 
 /**
  * In-app feedback box (#881). Advisory: the endpoint is stubbed via routing, so
@@ -15,12 +11,7 @@ test.describe("feedback box @advisory", () => {
   async function openFeedback(page: import("@playwright/test").Page) {
     await page.goto("/");
     await waitForAppBoot(page);
-    const sidebar = await openAppSidebar(page);
-    await openHelpSettingsSection(sidebar);
-    await clickSidebarNav(sidebar, "Settings", { exact: true });
-    const settings = page.getByRole("dialog", { name: "Settings" });
-    await expect(settings).toBeVisible();
-    return settings;
+    return openSettingsModal(page);
   }
 
   test("settings exposes the box, both community links, and the attached note", async ({

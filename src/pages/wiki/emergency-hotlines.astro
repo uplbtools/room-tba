@@ -1,0 +1,81 @@
+---
+export const prerender = true;
+
+import WikiLayout from "@layouts/WikiLayout.astro";
+import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
+import {
+  EMERGENCY_HOTLINE_CATEGORIES,
+  emergencyHotlineTel,
+} from "@constants/emergency-hotlines";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+
+const title = "Emergency hotlines | Room TBA Wiki";
+const description =
+  "Emergency hotline numbers for UPLB, Los Baños, and nearby medical services.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/wiki/emergency-hotlines" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Wiki", path: "/wiki" },
+    { name: "Emergency hotlines", path: "/wiki/emergency-hotlines" },
+  ]),
+);
+---
+
+<WikiLayout
+  {title}
+  {description}
+  canonicalPath="/wiki/emergency-hotlines"
+  {structuredData}
+  crumb="Emergency hotlines"
+>
+  <article class="wiki-article">
+    <header class="article-hero">
+      <p class="wiki-eyebrow">Emergency contacts</p>
+      <h1 class="wiki-title">Emergency hotlines around UPLB</h1>
+      <p class="wiki-lede">
+        Call the service that can help. This directory is bundled in Room TBA’s
+        app menu too, so it remains available without a network connection.
+      </p>
+      <WikiProvenance sourcePath="src/pages/wiki/emergency-hotlines.astro" />
+    </header>
+
+    {
+      EMERGENCY_HOTLINE_CATEGORIES.map((category) => (
+        <section aria-labelledby={`hotlines-${category.name}`}>
+          <h2 id={`hotlines-${category.name}`}>{category.name}</h2>
+          <dl>
+            {category.entries.map((entry) => (
+              <>
+                <dt>{entry.name}</dt>
+                <dd>
+                  {entry.numbers.map((number, index) => (
+                    <>
+                      {index > 0 && " · "}
+                      <a href={emergencyHotlineTel(number)}>{number}</a>
+                    </>
+                  ))}
+                </dd>
+              </>
+            ))}
+          </dl>
+        </section>
+      ))
+    }
+  </article>
+</WikiLayout>
+
+<style>
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    margin-top: 0.875rem;
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0.25rem 0 0;
+  }
+</style>

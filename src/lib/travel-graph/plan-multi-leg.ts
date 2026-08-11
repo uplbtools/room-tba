@@ -58,10 +58,7 @@ function stitchLegs(segments: Journey[]): {
   return { legs, seconds, meters, walkMeters, fare, rideCount, routeNames };
 }
 
-function buildJourney(
-  id: string,
-  segments: Journey[],
-): Journey | null {
+function buildJourney(id: string, segments: Journey[]): Journey | null {
   if (segments.length === 0 || segments.some((s) => !s)) return null;
   const stitched = stitchLegs(segments);
   if (stitched.legs.length === 0) return null;
@@ -69,7 +66,9 @@ function buildJourney(
   const kind = stitched.rideCount > 0 ? "transit" : "walk";
   const geometrySource =
     stitched.rideCount > 0 &&
-    segments.every((s) => s.kind === "transit" || s.geometrySource === "stops-only")
+    segments.every(
+      (s) => s.kind === "transit" || s.geometrySource === "stops-only",
+    )
       ? "stops-only"
       : "walk-graph";
 
@@ -146,10 +145,7 @@ export function planMultiLegJourneys({
     if (plan.status === "origin-off-network" && i === 0) {
       return { status: "origin-off-network", journeys: [] };
     }
-    if (
-      plan.status === "destination-off-network" &&
-      i === points.length - 2
-    ) {
+    if (plan.status === "destination-off-network" && i === points.length - 2) {
       return { status: "destination-off-network", journeys: [] };
     }
     if (plan.journeys.length === 0) {
@@ -226,7 +222,10 @@ export function planMultiLegJourneys({
           .map((leg) => leg.routeId),
       ),
     );
-    if (hasRide && (mixedRoutes.size > 1 || fastestSegments.some((j) => j.kind === "walk"))) {
+    if (
+      hasRide &&
+      (mixedRoutes.size > 1 || fastestSegments.some((j) => j.kind === "walk"))
+    ) {
       const mixed = buildJourney("commute-mixed-partial", fastestSegments);
       if (
         mixed &&

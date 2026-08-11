@@ -48,6 +48,8 @@ export default defineConfig({
           "changelog/index.html",
           "sponsors/index.html",
           "donate/index.html",
+          "wiki/emergency-hotlines/index.html",
+          "wiki/campus-curfew/index.html",
         ],
         // #716: desktop-only.css is never fetched by mobile viewports at
         // runtime — don't undo that by precaching it into every install

@@ -107,6 +107,7 @@
         <EntityGoogleMapsLink
           lat={mapsUrl.lat}
           lon={mapsUrl.lon}
+          name={stop.name}
           ariaLabel={`Open ${stop.name} in Google Maps`}
         />
       {/if}

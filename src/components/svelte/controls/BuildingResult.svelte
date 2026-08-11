@@ -621,6 +621,7 @@
           <EntityGoogleMapsLink
             lat={building.lat ?? 0}
             lon={building.lon ?? 0}
+            name={building.buildingName}
             ariaLabel={`Open ${building.buildingName} in Google Maps`}
           />
         {/if}
