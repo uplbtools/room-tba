@@ -1,7 +1,9 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 export async function openAppMenu(page: Page): Promise<Locator> {
-  await page.getByRole("button", { name: /app menu/i }).click();
+  const trigger = page.getByRole("button", { name: /app menu/i });
+  await page.keyboard.press("Escape");
+  await trigger.click({ force: true });
   const menu = page.getByRole("dialog", { name: "App menu" });
   await expect(menu).toBeVisible();
   return menu;
@@ -53,8 +55,7 @@ export async function openCampusDirectory(
 }
 
 /**
- * Open the Settings modal through its live entry points: the desktop top bar
- * Settings button, or the App menu on mobile. The old path (rail Sidebar >
+ * Open the Settings modal through its live App menu entry. The old path (rail Sidebar >
  * Help & settings > Settings) targets a component that stopped rendering
  * (#930), so specs that used it timed out without touching the feature they
  * covered.
