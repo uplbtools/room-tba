@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { cachedJson, json } from "@lib/api/json";
 import { getRoomClassCounts } from "@lib/services/map-data-service";
 
 export const prerender = false;
@@ -23,17 +24,11 @@ export const GET = (async ({ url }) => {
     entityName = "division";
     id = Number(divisionId);
   } else {
-    return new Response(
-      JSON.stringify({ error: "Missing entity filter", success: false }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    return json({ error: "Missing entity filter", success: false }, 400);
   }
 
   if (!Number.isFinite(id)) {
-    return new Response(
-      JSON.stringify({ error: "Invalid entity id", success: false }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    return json({ error: "Invalid entity id", success: false }, 400);
   }
 
   try {
@@ -46,16 +41,10 @@ export const GET = (async ({ url }) => {
       roomId,
       count,
     }));
-    return new Response(JSON.stringify({ data, success: true }, null, 2), {
-      headers: [
-        ["Access-Control-Allow-Origin", "*"],
-        ["Content-Type", "application/json"],
-      ],
+    return cachedJson({ data, success: true }, 200, {
+      "Access-Control-Allow-Origin": "*",
     });
   } catch {
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch class counts", success: false }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    );
+    return json({ error: "Failed to fetch class counts", success: false }, 500);
   }
 }) satisfies APIRoute;

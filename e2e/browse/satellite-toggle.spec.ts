@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openSettingsModal } from "../helpers/map-tools";
 
 /**
  * The Basemap toggle only renders while MapTiler is the live provider, so the
@@ -12,7 +11,9 @@ import { openSettingsModal } from "../helpers/map-tools";
  * before the first goto, which that file's beforeEach already performs.
  */
 test.describe("satellite basemap toggle", () => {
-  test("switches to satellite imagery from Settings", async ({ page }) => {
+  test("switches to satellite imagery from the map controls", async ({
+    page,
+  }) => {
     test.skip(
       !process.env.PUBLIC_MAPTILER_KEY,
       "no PUBLIC_MAPTILER_KEY configured",
@@ -53,9 +54,7 @@ test.describe("satellite basemap toggle", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const settings = await openSettingsModal(page);
-
-    const toggle = settings.getByRole("button", {
+    const toggle = page.getByRole("button", {
       name: /switch to satellite imagery/i,
     });
     await expect(toggle).toBeVisible();
@@ -64,7 +63,7 @@ test.describe("satellite basemap toggle", () => {
 
     // The accessible name flips with the state (WCAG 2.5.3), so re-query.
     await expect(
-      settings.getByRole("button", { name: /switch to the standard map/i }),
+      page.getByRole("button", { name: /switch to the standard map/i }),
     ).toHaveAttribute("aria-pressed", "true");
 
     // The imagery source is added lazily on first toggle; its TileJSON fetch

@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { cachedJson } from "@lib/api/json";
 import { queryFinalExams } from "@lib/services/map-data-service";
 
 export const prerender = false;
@@ -17,5 +18,5 @@ export const GET = (async ({ url }) => {
     date,
     termId: Number.isFinite(termId) ? termId : undefined,
   });
-  return new Response(JSON.stringify(data));
+  return cachedJson(data);
 }) satisfies APIRoute;

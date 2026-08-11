@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { suppressLandingModal, waitForAppBoot } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openAppMenu } from "../helpers/map-tools";
 
 // /final-exams is a deep link that must open the Final Exams screen directly.
 // Same trap set as /planner: bare island props, trailing slash, SW denylist
@@ -27,19 +27,15 @@ test.describe("final exams route", () => {
     await expect(page).toHaveURL(/\/final-exams(\/|\?|$)/);
   });
 
-  test("opening finals from the sidebar updates the URL to /final-exams", async ({
+  test("opening finals from the App Menu updates the URL to /final-exams", async ({
     page,
   }) => {
     await suppressLandingModal(page);
     await page.goto("/");
-    // Full boot (map + chrome): openAppSidebar needs the App menu button.
     await waitForAppBoot(page);
 
-    // Mobile keeps the sidebar rail retracted behind the app menu.
-    const sidebar = await openAppSidebar(page);
-    await sidebar
-      .getByRole("button", { name: "Final exams" })
-      .click({ timeout: 60_000 });
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: "Final exams" }).click();
     await expect(
       page.getByRole("dialog", { name: "Final Exams" }),
     ).toBeVisible();

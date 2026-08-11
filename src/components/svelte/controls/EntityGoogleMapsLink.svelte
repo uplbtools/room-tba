@@ -6,6 +6,7 @@
   type Props = {
     lat: number;
     lon: number;
+    name?: string;
     ariaLabel?: string;
     label?: string;
     toolbar?: boolean;
@@ -14,12 +15,13 @@
   let {
     lat,
     lon,
+    name,
     ariaLabel = "Open in Google Maps",
     label = "Google Maps",
     toolbar = true,
   }: Props = $props();
 
-  const href = $derived(getGoogleMapsPinUrl(lat, lon));
+  const href = $derived(getGoogleMapsPinUrl(lat, lon, name));
 </script>
 
 <MapChromeActionLink {href} {ariaLabel} {toolbar}>

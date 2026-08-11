@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { PUBLIC_READ_CACHE_CONTROL } from "@lib/api/json";
 import {
   getBuildingRooms,
   getCollegeRooms,
@@ -7,7 +8,16 @@ import {
   searchRooms,
 } from "@lib/services/map-data-service";
 import type { RoomData } from "@lib/types";
-// import { getAllRooms } from "@lib/services/map-data-service";
+
+function cachedPretty(body: unknown, extraHeaders?: Record<string, string>) {
+  return new Response(JSON.stringify(body, null, 2), {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": PUBLIC_READ_CACHE_CONTROL,
+      ...extraHeaders,
+    },
+  });
+}
 
 export const GET = (async ({ url }) => {
   const searchKeys = Array.from(url.searchParams.keys());
@@ -34,33 +44,20 @@ export const GET = (async ({ url }) => {
   if (searchField === "code") {
     const code = url.searchParams.get(searchField) as string;
     const room = await getRoomByCode(code);
-    return new Response(
-      JSON.stringify(
-        {
-          data: room,
-          success: true,
-        },
-        null,
-        2,
-      ),
-    );
+    return cachedPretty({
+      data: room,
+      success: true,
+    });
   }
 
   if (searchField === "search_code") {
     const searchString = url.searchParams.get(searchField) as string;
-    if (searchString === "")
-      return new Response(JSON.stringify({ data: [], success: true }, null, 2));
+    if (searchString === "") return cachedPretty({ data: [], success: true });
     const rooms = await searchRooms(searchString);
-    return new Response(
-      JSON.stringify(
-        {
-          data: rooms,
-          success: true,
-        },
-        null,
-        2,
-      ),
-    );
+    return cachedPretty({
+      data: rooms,
+      success: true,
+    });
   }
 
   const id = parseInt(url.searchParams.get(searchField) as string, 10);
@@ -88,18 +85,12 @@ export const GET = (async ({ url }) => {
       status: 404,
       statusText: "query not found",
     });
-  return new Response(
-    JSON.stringify(
-      {
-        data,
-        success: true,
-      },
-      null,
-      2,
-    ),
+  return cachedPretty(
     {
-      headers: [["Access-Control-Allow-Origin", "*"]],
+      data,
+      success: true,
     },
+    { "Access-Control-Allow-Origin": "*" },
   );
 }) satisfies APIRoute;
 

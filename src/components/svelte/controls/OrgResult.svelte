@@ -274,6 +274,7 @@
           <EntityGoogleMapsLink
             lat={resolvedLat}
             lon={resolvedLon}
+            name={org.name}
             ariaLabel={`Open ${org.name} in Google Maps`}
           />
         {/if}

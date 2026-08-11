@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { suppressLandingModal, waitForAppBoot } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openAppMenu } from "../helpers/map-tools";
 
-test("external community links stay inside the 320px sidebar", async ({
+test("external community links stay inside the 320px App Menu", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 844 });
@@ -10,15 +10,15 @@ test("external community links stay inside the 320px sidebar", async ({
   await page.goto("/");
   await waitForAppBoot(page);
 
-  const sidebar = await openAppSidebar(page);
-  await sidebar.getByRole("button", { name: "Contributors" }).click();
+  const menu = await openAppMenu(page);
+  await menu.locator("summary").filter({ hasText: "Community" }).click();
 
-  const sidebarBox = await sidebar.boundingBox();
-  if (!sidebarBox) throw new Error("sidebar is not visible");
-  for (const link of await sidebar.locator("a.nav-link").all()) {
+  const menuBox = await menu.boundingBox();
+  if (!menuBox) throw new Error("App Menu is not visible");
+  for (const link of await menu.locator("a.status-bar__nav-link").all()) {
     const box = await link.boundingBox();
     expect(box?.x + (box?.width ?? 0)).toBeLessThanOrEqual(
-      sidebarBox.x + sidebarBox.width,
+      menuBox.x + menuBox.width,
     );
   }
 });

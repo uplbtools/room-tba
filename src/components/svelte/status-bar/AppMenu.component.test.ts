@@ -1,7 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test } from "vitest";
 import AppMenu from "./AppMenu.svelte";
-import { adminAuthStore, modalStore, proposalsStore } from "@lib/store.svelte";
+import {
+  adminAuthStore,
+  modalStore,
+  proposalsStore,
+  sidebarStore,
+  sidePanelStore,
+} from "@lib/store.svelte";
 
 describe("AppMenu review entry", () => {
   beforeEach(() => {
@@ -63,5 +69,46 @@ describe("AppMenu help entry", () => {
     expect(modalStore.open).toBe(true);
     expect(modalStore.type).toBe("landing");
     expect(modalStore.landingTab).toBe("welcome");
+  });
+
+  test("opens emergency hotlines", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: /emergency hotlines/i }),
+    );
+    expect(modalStore.type).toBe("hotlines");
+  });
+});
+
+describe("AppMenu navigation", () => {
+  beforeEach(() => {
+    modalStore.closeModal();
+    sidebarStore.changeOpened("map");
+    sidePanelStore.closePanel();
+  });
+
+  test("prioritizes app destinations and keeps community links secondary", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+
+    expect(screen.getByRole("heading", { name: "Go to" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Course planner" }),
+    ).toBeVisible();
+    expect(screen.getByText("Community & project links")).toBeVisible();
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Course planner" }),
+    );
+    expect(sidebarStore.panelOpen).toBe("planner");
+  });
+
+  test("keeps the sidebar-only browse categories reachable", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+
+    await fireEvent.click(screen.getByRole("button", { name: "Colleges" }));
+    expect(sidePanelStore.state?.type).toBe("browsing-entities");
   });
 });

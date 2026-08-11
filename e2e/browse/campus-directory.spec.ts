@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { waitForAppBoot, campusSearchBox } from "../helpers/app";
-import { openAppSidebar } from "../helpers/map-tools";
+import { openCampusDirectory } from "../helpers/map-tools";
 import { searchSuggestions } from "../helpers/search";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
@@ -23,8 +23,7 @@ test.describe("campus directory (offices and places)", () => {
   });
 
   async function browseOffices(page: Page) {
-    const sidebar = await openAppSidebar(page);
-    await sidebar.getByRole("button", { name: "Units & offices" }).click();
+    await openCampusDirectory(page, "offices");
   }
 
   test("Units & offices opens the directory listing the seeded office", async ({

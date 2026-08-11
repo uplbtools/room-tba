@@ -54,16 +54,19 @@ No account needed to browse. Editors and contributors fix data in the same app (
 | Academic calendar | [/calendar](https://room-tba.uplb.tools/calendar) — term windows on a year timeline; also via the term picker |
 | Building location | Map, pins, directions, Google Maps |
 | Compare dorm listings | Verified dorms link to their Kubo listing when available |
-| Landmarks, services, orgs & offices | Sidebar directories, distinct map pins, and shareable detail links |
+| Landmarks, services, orgs & offices | Map filters and the App menu, distinct map pins, and shareable detail links |
 | Offline / bad signal | PWA + local cache; tiles if already loaded |
 | Campus events | Events on map with routes |
 | Jeepney routes | Route overlays |
 | Walking time from a point | Map tools → Travel time; tap the map, paths color by minutes |
 | Measure a route | Map tools → Measure route; drop waypoints, get walk / cycle / car times |
 | 3D view | Buildings + Makiling terrain (online) |
+| Satellite imagery | Satellite button in the map controls (when available) |
 | Common questions | [Student FAQ](https://room-tba.uplb.tools/faq) (3D models, data sources, offline) |
 | Tell us something is wrong | Settings → Feedback; free text, optional contact, or reach the team on Messenger / Discord |
 | Understand section names | Wiki guide to the A–H / S–Z class time blocks |
+| Find emergency contacts | Menu → Emergency hotlines; bundled for offline use |
+| Check dorm curfew rules | UP-managed dorm details → Curfew & permits |
 
 <details>
 <summary><strong>Editor / contributor mode</strong> (password from the team)</summary>
@@ -196,6 +199,7 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | `bun run backfill:acad-orgs` | Rerun the AMIS import over the 9 cached term JSONs to fill `classes.acad_group`/`acad_org` (#846) |
 | `bun run import:final-exams` | Import OUR finals JSON into Postgres (`DATABASE_URL`; see `docs/final-exams-data-source.md`) |
 | `bun run audit:campus-data` | Read-only sweep for wrong pins, scattered tenants, missing building links and orphan rooms (`PROD_DATABASE_URL`; writes nothing) |
+| `bun run apply:campus-audit-links -- --prod --apply` | Apply the verified organization-to-building links from the campus audit, with `editor_history` records |
 | `bun run record:bulk-history` | Record `editor_history` rows for a maintenance/bulk data operation (`DATABASE_URL`; dry run unless `--apply`; see `docs/bulk-data-history.md`) |
 | `bun run backfill:bulk-history` | One-off: backfill history for the 2026-08-03/04 direct-database corrections (`DATABASE_URL`; dry run unless `--apply`) |
 

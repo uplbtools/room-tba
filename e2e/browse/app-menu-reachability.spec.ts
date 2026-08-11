@@ -8,7 +8,9 @@ import { waitForAppBoot } from "../helpers/app";
 // geometry: #893 shipped a regression past a suite that only measured widths.
 
 async function openMenu(page: Page) {
-  await page.getByRole("button", { name: /^app menu$/i }).click();
+  const trigger = page.getByRole("button", { name: /^app menu$/i });
+  await page.keyboard.press("Escape");
+  await trigger.click({ force: true });
   const panel = page.getByRole("dialog", { name: /^app menu$/i });
   await expect(panel).toBeVisible();
   return panel;

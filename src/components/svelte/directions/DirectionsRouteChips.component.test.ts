@@ -33,9 +33,7 @@ describe("DirectionsRouteChips", () => {
 
   test("hidden when directions are idle", () => {
     const { container } = render(DirectionsRouteChips);
-    expect(
-      container.querySelector(".directions-route-chips"),
-    ).toBeNull();
+    expect(container.querySelector(".directions-route-chips")).toBeNull();
   });
 
   test.each([320, 768])(

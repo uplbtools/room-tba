@@ -124,6 +124,7 @@
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
+  import { EXTERNAL_CAMPUSES_GEOJSON } from "@constants/external-campuses";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -371,6 +372,8 @@
   const EVENT_ROUTE_SOURCE_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_ID = "event-route-line";
   const EVENT_ROUTE_LAYER_CASING_ID = "event-route-line-casing";
+  const EXTERNAL_CAMPUSES_SOURCE_ID = "external-campuses-source";
+  const EXTERNAL_CAMPUSES_LAYER_ID = "external-campuses-fill";
   let activeRouteId = $state<string | null>(null);
   let activeRouteStops = $state<DisplayJeepneyRoute["stops"]>([]);
   let activeRouteColor = $state<string>("#dc2626");
@@ -774,6 +777,28 @@
     }
     if (map.getSource(EVENT_ROUTE_SOURCE_ID))
       map.removeSource(EVENT_ROUTE_SOURCE_ID);
+  }
+
+  function ensureExternalCampusesLayers(map: mapGl.MapLibreMap) {
+    if (!map.getSource(EXTERNAL_CAMPUSES_SOURCE_ID)) {
+      map.addSource(EXTERNAL_CAMPUSES_SOURCE_ID, {
+        type: "geojson",
+        data: EXTERNAL_CAMPUSES_GEOJSON,
+      });
+    }
+
+    if (!map.getLayer(EXTERNAL_CAMPUSES_LAYER_ID)) {
+      map.addLayer({
+        id: EXTERNAL_CAMPUSES_LAYER_ID,
+        type: "fill",
+        source: EXTERNAL_CAMPUSES_SOURCE_ID,
+        paint: {
+          "fill-color": "#4b5563",
+          "fill-opacity": 0.15,
+          "fill-outline-color": "#4b5563",
+        },
+      });
+    }
   }
 
   function ensureTrailLayers(map: mapGl.MapLibreMap) {
@@ -2859,6 +2884,18 @@
       ensureTrailLayers(map);
     } else {
       clearTrailLayers(map);
+    }
+  });
+
+  // Load external campuses footprint layers
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+    
+    if (map.isStyleLoaded()) {
+      ensureExternalCampusesLayers(map);
+    } else {
+      map.once("styledata", () => ensureExternalCampusesLayers(map));
     }
   });
 
