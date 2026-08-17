@@ -70,7 +70,7 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",
-    "@astrojs/node": "^11.1.0",
+    "@astrojs/node": "^11.1.2",
     "@astrojs/svelte": "^9.0.1",
     "@astrojs/vercel": "^11.0.5",
     "@aws-sdk/client-s3": "^3.1105.0",
@@ -85,7 +85,7 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/og": "^1.0.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
-    "astro": "^7.2.0",
+    "astro": "^7.2.2",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
