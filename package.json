@@ -80,7 +80,7 @@
     "@lucide/svelte": "^1.29.0",
     "@maplibre/maplibre-gl-directions": "^0.9.1",
     "@supabase/ssr": "^0.12.3",
-    "@supabase/supabase-js": "^2.112.2",
+    "@supabase/supabase-js": "^2.112.3",
     "@tailwindcss/vite": "^4.3.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/og": "^1.0.0",
