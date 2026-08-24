@@ -1,3 +1,10 @@
+## [2.21.1](https://github.com/uplbtools/room-tba/compare/v2.21.0...v2.21.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **transit:** survive live route data — WinAnsi sanitizing and campus framing ([d39d779](https://github.com/uplbtools/room-tba/commit/d39d779439bee59df9fee3ff1cb3c51282931073))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
