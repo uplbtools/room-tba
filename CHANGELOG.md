@@ -1,3 +1,17 @@
+# [2.21.0](https://github.com/uplbtools/room-tba/compare/v2.20.1...v2.21.0) (2026-08-24)
+
+
+### Bug Fixes
+
+* two crashing identifiers, and a CI gate that would have caught them ([2161948](https://github.com/uplbtools/room-tba/commit/2161948b16305dda5b048f8859919ef147fb39dc))
+
+
+### Features
+
+* **data:** make seed-uplb-directory atomic, audited, and reversible ([67c1d2f](https://github.com/uplbtools/room-tba/commit/67c1d2fa42c772a69b817ef64ede654c0f8e17c5))
+* **map-chrome:** swap Final Exams for Today in the mobile bottom bar ([9196e21](https://github.com/uplbtools/room-tba/commit/9196e21c3f01c172708bde09a991e080c2ad2345))
+* **transit:** printable PDF map with a You-are-here marker ([884db56](https://github.com/uplbtools/room-tba/commit/884db56833ac172d48bab66cb7f7de8472cea467))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
