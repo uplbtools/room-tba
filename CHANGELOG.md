@@ -1,3 +1,11 @@
+## [2.21.2](https://github.com/uplbtools/room-tba/compare/v2.21.1...v2.21.2) (2026-08-25)
+
+
+### Bug Fixes
+
+* **map-chrome:** drop the duplicate Close button on mobile panels ([e687f93](https://github.com/uplbtools/room-tba/commit/e687f933652d2edd6461a71f9f6784d4a7495770))
+* **map:** dedupe maplibre-gl so setWorkerUrl reaches the map's copy ([f38aa01](https://github.com/uplbtools/room-tba/commit/f38aa01a52e814fababd0fae47c53087f28c7430)), closes [#1039](https://github.com/uplbtools/room-tba/issues/1039)
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
