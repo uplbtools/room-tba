@@ -1,3 +1,10 @@
+## [2.21.3](https://github.com/uplbtools/room-tba/compare/v2.21.2...v2.21.3) (2026-08-25)
+
+
+### Bug Fixes
+
+* **map:** set the maplibre worker URL at app boot, not component scope ([03fed5c](https://github.com/uplbtools/room-tba/commit/03fed5cbf23e90d6b8a84d58904da312d7c4447c))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
