@@ -1,3 +1,10 @@
+## [2.21.7](https://github.com/uplbtools/room-tba/compare/v2.21.6...v2.21.7) (2026-08-26)
+
+
+### Bug Fixes
+
+* **transit+chrome:** real fares in the PDF, collision-safe here-label, unified nav icons ([4e80c50](https://github.com/uplbtools/room-tba/commit/4e80c50c0d35c85d02a9b558c1ff192f91fad114))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
