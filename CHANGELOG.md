@@ -1,3 +1,10 @@
+## [2.21.5](https://github.com/uplbtools/room-tba/compare/v2.21.4...v2.21.5) (2026-08-26)
+
+
+### Bug Fixes
+
+* **transit:** match here= place names ignoring parenthetical suffixes ([af6617e](https://github.com/uplbtools/room-tba/commit/af6617ef92d3c9f82c8a3d7d8d8e783e36975760))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
