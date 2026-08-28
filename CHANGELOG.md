@@ -1,3 +1,10 @@
+## [2.21.4](https://github.com/uplbtools/room-tba/compare/v2.21.3...v2.21.4) (2026-08-26)
+
+
+### Bug Fixes
+
+* **map:** serve maplibre's worker at its own fallback path ([c917aed](https://github.com/uplbtools/room-tba/commit/c917aedc025d7c2f09f4ae2a05f8bd31e0c0c38d))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
