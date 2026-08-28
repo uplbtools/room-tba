@@ -1,3 +1,10 @@
+## [2.21.6](https://github.com/uplbtools/room-tba/compare/v2.21.5...v2.21.6) (2026-08-26)
+
+
+### Bug Fixes
+
+* **map-chrome:** gap between the tools FAB and the controls stack on mobile ([50118b7](https://github.com/uplbtools/room-tba/commit/50118b7a6f09566cac6431cb43ac4df58fd29e80))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
