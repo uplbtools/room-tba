@@ -1,3 +1,25 @@
+# [2.22.0](https://github.com/uplbtools/room-tba/compare/v2.21.7...v2.22.0) (2026-08-30)
+
+
+### Bug Fixes
+
+* **ci:** format copy-maplibre-worker.ts (biome ci was red) ([e2eebb7](https://github.com/uplbtools/room-tba/commit/e2eebb7847727193464cde921dfe30b33283f2a5))
+* **ci:** format package.json (biome ci was red) ([1ef75b8](https://github.com/uplbtools/room-tba/commit/1ef75b8719d9bd1b4ebb6f0ddba0a15e32f322f4))
+* **ci:** format package.json and copy-maplibre-worker.ts (biome ci was red) ([cf8cffc](https://github.com/uplbtools/room-tba/commit/cf8cffc131161ce95b36ff1180d56458748e9a35))
+* **pwa:** add /transparency to the SW navigation denylist ([5e1ddb8](https://github.com/uplbtools/room-tba/commit/5e1ddb815eb3301df08758ca3164611b066c43c7)), closes [#planner](https://github.com/uplbtools/room-tba/issues/planner)
+* **transparency:** correct USD to PHP conversions to ~62/USD ([1a54adb](https://github.com/uplbtools/room-tba/commit/1a54adb96471f3fd3afe8e8ce5adf9268dea1dc0))
+* **transparency:** drop colons and semicolons from page prose ([37740ba](https://github.com/uplbtools/room-tba/commit/37740bae9edb83056714bf2039895a1220cb382e))
+* **transparency:** peso-first amounts without interpuncts, drop receipt promise line ([9718e85](https://github.com/uplbtools/room-tba/commit/9718e85485ba5168f1bb578c876ccb4886a8377e))
+* **transparency:** plain ledger rewrite with redacted receipts ([44c9f0b](https://github.com/uplbtools/room-tba/commit/44c9f0ba01721d00acee53c3a013822971f4b4fc))
+* **transparency:** plain Notes heading ([bbe3491](https://github.com/uplbtools/room-tba/commit/bbe3491fa78f3081bec30bfd41589e7bd504cca6))
+
+
+### Features
+
+* **pages:** monthly transparency report at /transparency ([d4f086a](https://github.com/uplbtools/room-tba/commit/d4f086a9d54867f0fea87995c7c4d9226957a64a))
+* **wiki:** add transparency reports page with August 2026 ledger ([a637345](https://github.com/uplbtools/room-tba/commit/a637345d13579323e5524aa9afea76b889da6006))
+* **wiki:** list transparency reports page ([e199eba](https://github.com/uplbtools/room-tba/commit/e199ebaec83febd255758f9f5da71e8096ec4e86))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
