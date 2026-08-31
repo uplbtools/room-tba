@@ -1,3 +1,10 @@
+# [2.25.0](https://github.com/uplbtools/room-tba/compare/v2.24.0...v2.25.0) (2026-08-31)
+
+
+### Features
+
+* **transparency:** state that future donations reimburse the shortfall first ([9ebae5c](https://github.com/uplbtools/room-tba/commit/9ebae5cb32992a3b38ff0218cd8793d3668afbc9))
+
 # [2.24.0](https://github.com/uplbtools/room-tba/compare/v2.23.1...v2.24.0) (2026-08-31)
 
 
