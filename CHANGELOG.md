@@ -1,3 +1,10 @@
+# [2.26.0](https://github.com/uplbtools/room-tba/compare/v2.25.0...v2.26.0) (2026-08-31)
+
+
+### Features
+
+* **transparency:** recurrence tags, recurring-first order, Vercel breakdown as sub-lines ([65bc687](https://github.com/uplbtools/room-tba/commit/65bc68721964db80dc1e936af1f4dcb9ef94088d))
+
 # [2.24.0](https://github.com/uplbtools/room-tba/compare/v2.23.1...v2.24.0) (2026-08-31)
 
 
