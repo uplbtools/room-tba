@@ -80,7 +80,7 @@
     "@esri/wayback-core": "^1.1.0",
     "@lucide/svelte": "^1.34.0",
     "@maplibre/maplibre-gl-directions": "^0.9.1",
-    "@supabase/ssr": "^0.12.3",
+    "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.4",
     "@tailwindcss/vite": "^4.3.3",
     "@vercel/analytics": "^2.0.1",
