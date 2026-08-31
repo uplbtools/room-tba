@@ -1,3 +1,10 @@
+# [2.23.0](https://github.com/uplbtools/room-tba/compare/v2.22.0...v2.23.0) (2026-08-31)
+
+
+### Features
+
+* **transparency:** add August Vercel platform invoice with line-item breakdown ([9c33fdf](https://github.com/uplbtools/room-tba/commit/9c33fdfa1f67a2592a3861dee2ecc460a3938962))
+
 ## [2.20.1](https://github.com/uplbtools/room-tba/compare/v2.20.0...v2.20.1) (2026-08-15)
 
 
