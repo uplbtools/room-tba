@@ -33,6 +33,9 @@ const REQUIRED_TABLES = [
   "admin_users",
   "editor_history",
   "edit_proposals",
+  "contributor_profiles",
+  "contributor_social_links",
+  "contributor_profile_audits",
 ];
 
 const REQUIRED_SYNC_ROWS = ["organizations", "places", "announcements"];

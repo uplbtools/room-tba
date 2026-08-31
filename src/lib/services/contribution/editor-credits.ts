@@ -1,13 +1,14 @@
 import { db } from '$lib/utils/db';
 import { sql } from 'drizzle-orm';
+import { resolveContributorAttribution } from './contributor-profile';
 
 export type EditorCredit = {
 	name: string;
 	avatarUrl: string | null;
-	profileUrl: string | null;
+	href: string | null;
 };
 
-/** Public, intentionally minimal credit roster. Requires migration 0033. */
+/** Public, intentionally minimal credit roster. Requires contributor profile migration. */
 export async function getEditorCredits(): Promise<EditorCredit[]> {
 	try {
 		const result = await db.execute(sql`
@@ -24,9 +25,8 @@ export async function getEditorCredits(): Promise<EditorCredit[]> {
         GROUP BY user_id
       )
       SELECT
+        u.id AS "userId",
         COALESCE(u.display_name, u.username) AS name,
-        u.avatar_url AS "avatarUrl",
-        u.profile_url AS "profileUrl",
         GREATEST(e.last_activity, c.last_activity) AS last_activity
       FROM admin_users u
       LEFT JOIN editor_activity e ON e.user_id = u.id
@@ -36,13 +36,24 @@ export async function getEditorCredits(): Promise<EditorCredit[]> {
           u.legacy_credit = true
           OR (u.is_active = true AND (e.user_id IS NOT NULL OR c.user_id IS NOT NULL))
         )
-      ORDER BY last_activity DESC NULLS LAST, name ASC
+      ORDER BY last_activity DESC NULLS LAST, COALESCE(u.display_name, u.username) ASC
     `);
-		return result.rows.map((row) => ({
-			name: String(row.name),
-			avatarUrl: typeof row.avatarUrl === 'string' ? row.avatarUrl : null,
-			profileUrl: typeof row.profileUrl === 'string' ? row.profileUrl : null
-		}));
+		const rows = result.rows as Array<{ userId?: unknown; name?: unknown }>;
+		return await Promise.all(
+			rows.map(async (row) => {
+				const userId = typeof row.userId === 'number' ? row.userId : Number(row.userId);
+				const attribution = Number.isSafeInteger(userId)
+					? await resolveContributorAttribution(userId)
+					: null;
+				return (
+					attribution ?? {
+						name: typeof row.name === 'string' ? row.name : 'Contributor',
+						avatarUrl: null,
+						href: null
+					}
+				);
+			})
+		);
 	} catch (error) {
 		// Rolling deploys can serve this before the additive migration lands.
 		console.error('Could not load editor credits:', error);

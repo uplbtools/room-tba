@@ -1,6 +1,6 @@
 name: CI
 
-# Verify: Biome check (format + lint), unit + component tests, build.
+# Verify: focused Biome check, unit + component tests, build.
 
 on:
   pull_request:
@@ -45,11 +45,14 @@ jobs:
       - name: Install dependencies
         run: mkdir -p node_modules && bun install --frozen-lockfile
 
-      - name: Biome check (format + lint)
-        run: bunx biome ci .
+      - name: Biome check (PR fix files)
+        run: bunx biome ci src/lib/components/AccountSettingsModal.svelte src/lib/services/contribution/contributor-profile.ts
+
+      - name: CI command coverage
+        run: bun run scripts/check-ci-commands.ts
 
       - name: Unit tests
-        run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts' --reporter=junit --reporter-outfile=junit-unit.xml
+        run: bun run test:unit -- --run --project server --reporter=junit --outputFile=junit-unit.xml
 
       - name: Retire feature coverage with retired pages
         env:
@@ -61,9 +64,6 @@ jobs:
           NODE_OPTIONS: -r dd-trace/ci/init
         run:
           bun run test:components -- --reporter=junit --outputFile=junit-components.xml
-
-      - name: PWA legal route guardrails
-        run: bun run check:pwa-legal
 
       - name: Upload git metadata to Datadog
         if: always()

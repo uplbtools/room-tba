@@ -15,8 +15,9 @@ import {
 	time,
 	timestamp,
 	uniqueIndex,
+	varchar,
 	uuid,
-	varchar
+	check
 } from 'drizzle-orm/pg-core';
 import type { EntityPhoto } from '$lib/utils/entity/entity-photos';
 
@@ -46,6 +47,22 @@ export const editProposalStatusEnum = pgEnum('edit_proposal_status', [
 	'rejected',
 	'needs_changes',
 	'withdrawn'
+]);
+export const contributorSocialKindEnum = pgEnum('contributor_social_kind', [
+	'github',
+	'website',
+	'discord',
+	'messenger',
+	'linkedin',
+	'custom'
+]);
+export const contributorProfileAuditActionEnum = pgEnum('contributor_profile_audit_action', [
+	'create',
+	'update',
+	'publish',
+	'hide',
+	'restore',
+	'remove_link'
 ]);
 
 // Academic terms. `id` mirrors the CRS/SAIS term_id (e.g. 1252) rather than
@@ -507,6 +524,101 @@ export const adminUsersTable = pgTable(
 	},
 	(table) => [uniqueIndex('admin_users_username_unique').on(table.username)]
 );
+export const contributorProfilesTable = pgTable(
+	'contributor_profiles',
+	{
+		id: integer().primaryKey().generatedByDefaultAsIdentity({
+			name: 'contributor_profiles_id_seq',
+			startWith: 1,
+			increment: 1,
+			minValue: 1,
+			maxValue: 2147483647,
+			cache: 1
+		}),
+		userId: integer('user_id').notNull().references(() => adminUsersTable.id),
+		slug: varchar({ length: 120 }).notNull(),
+		bio: varchar({ length: 280 }).default('').notNull(),
+		isPublic: boolean('is_public').default(true).notNull(),
+		isModeratorHidden: boolean('is_moderator_hidden').default(false).notNull(),
+		version: integer().default(1).notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+	},
+	(table) => [
+		uniqueIndex('contributor_profiles_user_id_unique').on(table.userId),
+		uniqueIndex('contributor_profiles_slug_unique').on(table.slug),
+		check('contributor_profiles_bio_length', sql`char_length(${table.bio}) <= 280`)
+	]
+);
+
+export const contributorSocialLinksTable = pgTable(
+	'contributor_social_links',
+	{
+		id: integer().primaryKey().generatedByDefaultAsIdentity({
+			name: 'contributor_social_links_id_seq',
+			startWith: 1,
+			increment: 1,
+			minValue: 1,
+			maxValue: 2147483647,
+			cache: 1
+		}),
+		profileId: integer('profile_id')
+			.notNull()
+			.references(() => contributorProfilesTable.id, { onDelete: 'cascade' }),
+		kind: contributorSocialKindEnum().notNull(),
+		label: varchar({ length: 40 }),
+		url: varchar({ length: 2048 }).notNull(),
+		isPublic: boolean('is_public').default(true).notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+	},
+	(table) => [
+		index('contributor_social_links_profile_idx').on(table.profileId),
+		uniqueIndex('contributor_social_links_known_kind_unique')
+			.on(table.profileId, table.kind)
+			.where(sql`${table.kind} in ('github', 'discord', 'messenger', 'linkedin')`),
+		check('contributor_social_links_https_url', sql`${table.url} ~ '^https://'`),
+		check(
+			'contributor_social_links_custom_label',
+			sql`${table.kind} <> 'custom' OR (${table.label} IS NOT NULL AND char_length(trim(${table.label})) > 0)`
+		)
+	]
+);
+
+export const contributorProfileAuditsTable = pgTable(
+	'contributor_profile_audits',
+	{
+		id: integer().primaryKey().generatedByDefaultAsIdentity({
+			name: 'contributor_profile_audits_id_seq',
+			startWith: 1,
+			increment: 1,
+			minValue: 1,
+			maxValue: 2147483647,
+			cache: 1
+		}),
+		profileId: integer('profile_id')
+			.notNull()
+			.references(() => contributorProfilesTable.id),
+		actorUserId: integer('actor_user_id').references(() => adminUsersTable.id),
+		action: contributorProfileAuditActionEnum().notNull(),
+		fromVersion: integer('from_version'),
+		toVersion: integer('to_version').notNull(),
+		before: jsonb(),
+		after: jsonb().notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull()
+	},
+	(table) => [
+		index('contributor_profile_audits_profile_created_idx').on(table.profileId, table.createdAt),
+		index('contributor_profile_audits_actor_idx').on(table.actorUserId)
+	]
+);
+
+export type ContributorProfile = typeof contributorProfilesTable.$inferSelect;
+export type NewContributorProfile = typeof contributorProfilesTable.$inferInsert;
+export type ContributorSocialLink = typeof contributorSocialLinksTable.$inferSelect;
+export type NewContributorSocialLink = typeof contributorSocialLinksTable.$inferInsert;
+export type ContributorProfileAudit = typeof contributorProfileAuditsTable.$inferSelect;
+export type NewContributorProfileAudit = typeof contributorProfileAuditsTable.$inferInsert;
 
 export const editProposalsTable = pgTable('edit_proposals', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({

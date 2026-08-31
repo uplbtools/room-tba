@@ -14,6 +14,35 @@
 
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
+	type ContributorProfile = {
+		id: number;
+		isModeratorHidden: boolean;
+		avatarUrl: string | null;
+		socialLinks: Array<{
+			id: number;
+			kind: string;
+			label: string | null;
+			url: string;
+			isPublic: boolean;
+		}>;
+	};
+
+	type ContributorAudit = {
+		id: number;
+		action: string;
+		actorDisplayName: string | null;
+		fromVersion: number | null;
+		toVersion: number;
+		createdAt: string;
+		after?: { moderationReason?: string };
+	};
+
+	type ContributorAudits = {
+		rows: ContributorAudit[];
+		limit: number;
+		offset: number;
+	};
+
 	type ManagedUser = {
 		id: number;
 		username: string;
@@ -21,6 +50,7 @@
 		email: string | null;
 		role: 'admin' | 'editor' | 'contributor';
 		isActive: boolean;
+		contributorProfile?: ContributorProfile | null;
 	};
 
 	let frameEl = $state<HTMLDivElement | null>(null);
@@ -28,6 +58,91 @@
 	let loadError = $state<string | null>(null);
 	let rowError = $state<string | null>(null);
 	let savingUserId = $state<number | null>(null);
+
+	let moderationUserId = $state<number | null>(null);
+	let moderationReason = $state('');
+	let moderationSaving = $state(false);
+	let auditsByProfileId = $state<Record<number, ContributorAudits | null>>({});
+	let auditLoadingProfileId = $state<number | null>(null);
+
+	function openModeration(user: ManagedUser) {
+		moderationUserId = moderationUserId === user.id ? null : user.id;
+		moderationReason = '';
+		rowError = null;
+	}
+
+	async function moderate(
+		user: ManagedUser,
+		action: 'hide' | 'restore' | 'avatar' | 'link',
+		linkId?: number
+	) {
+		const profile = user.contributorProfile;
+		if (!profile) return;
+		const reason = moderationReason.trim();
+		if (action !== 'restore' && !reason) {
+			rowError = 'Enter a reason before applying moderation.';
+			return;
+		}
+		moderationSaving = true;
+		rowError = null;
+		const path =
+			action === 'hide'
+				? `/api/admin/contributors/${profile.id}/hide`
+				: action === 'restore'
+					? `/api/admin/contributors/${profile.id}/restore`
+					: action === 'link' && linkId !== undefined
+						? `/api/admin/contributors/${profile.id}/links/${linkId}`
+						: `/api/admin/contributors/${profile.id}/avatar`;
+		try {
+			const res = await fetch(path, {
+				method: action === 'avatar' || action === 'link' ? 'DELETE' : 'POST',
+				credentials: 'same-origin',
+				headers: action === 'restore' ? undefined : { 'Content-Type': 'application/json' },
+				body: action === 'restore' ? undefined : JSON.stringify({ reason })
+			});
+			const data = await res.json().catch(() => ({}) as { error?: string });
+			if (!res.ok) {
+				rowError = data.error ?? 'Could not apply moderation action.';
+				return;
+			}
+			moderationReason = '';
+			const auditWasOpen = Boolean(auditsByProfileId[profile.id]);
+			await loadUsers();
+			if (auditWasOpen) await loadAudits(profile.id);
+		} catch {
+			rowError = 'Network error. Try again.';
+		} finally {
+			moderationSaving = false;
+	}
+	}
+
+	async function loadAudits(profileId: number) {
+		auditLoadingProfileId = profileId;
+		rowError = null;
+		try {
+			const res = await fetch(`/api/admin/contributors/${profileId}/audits`, {
+				credentials: 'same-origin'
+			});
+			const data = (await res.json().catch(() => ({}))) as ContributorAudits & { error?: string };
+			if (!res.ok) {
+				rowError = data.error ?? 'Could not load audit history.';
+				return;
+			}
+			auditsByProfileId = { ...auditsByProfileId, [profileId]: data };
+		} catch {
+			rowError = 'Network error. Try again.';
+		} finally {
+			auditLoadingProfileId = null;
+		}
+	}
+
+	function toggleAudits(profileId: number) {
+		if (auditsByProfileId[profileId]) {
+			auditsByProfileId = { ...auditsByProfileId, [profileId]: null };
+			return;
+		}
+		void loadAudits(profileId);
+	}
 
 	let showCreateForm = $state(false);
 	let newUsername = $state('');
@@ -191,28 +306,145 @@
 							<div class="user-row-info">
 								<strong>{user.displayName}</strong>
 								<small>{user.username}{user.email ? ` · ${user.email}` : ''}</small>
+								{#if user.contributorProfile}
+									<small class="profile-state">
+										{user.contributorProfile.isModeratorHidden ? 'Moderator hidden' : 'Profile visible'}
+									</small>
+								{/if}
 							</div>
-							<select
-								value={user.role}
-								disabled={savingUserId === user.id}
-								onchange={(e) =>
-									changeRole(
-										user,
-										(e.currentTarget as HTMLSelectElement).value as ManagedUser['role']
-									)}
-							>
-								<option value="admin">Admin</option>
-								<option value="editor">Editor</option>
-								<option value="contributor">Contributor</option>
-							</select>
-							<button
-								type="button"
-								class="settings-link-btn"
-								disabled={savingUserId === user.id}
-								onclick={() => toggleActive(user)}
-							>
-								{user.isActive ? 'Deactivate' : 'Reactivate'}
-							</button>
+							<div class="user-row-actions">
+								<select
+									value={user.role}
+									disabled={savingUserId === user.id || moderationSaving}
+									aria-label={`Role for ${user.displayName}`}
+									onchange={(e) =>
+										changeRole(
+											user,
+											(e.currentTarget as HTMLSelectElement).value as ManagedUser['role']
+										)}
+								>
+									<option value="admin">Admin</option>
+									<option value="editor">Editor</option>
+									<option value="contributor">Contributor</option>
+								</select>
+								<button
+									type="button"
+									class="settings-link-btn"
+									disabled={savingUserId === user.id || moderationSaving}
+									onclick={() => toggleActive(user)}
+								>
+									{user.isActive ? 'Deactivate' : 'Reactivate'}
+								</button>
+								{#if user.contributorProfile}
+									<button
+										type="button"
+										class="settings-link-btn"
+										aria-expanded={moderationUserId === user.id}
+										onclick={() => openModeration(user)}
+									>
+										Moderate profile
+									</button>
+								{/if}
+							</div>
+							{#if user.contributorProfile && moderationUserId === user.id}
+								<section class="moderation-panel" aria-label={`Moderate ${user.displayName}`}>
+									<label for={`moderation-reason-${user.id}`}>Reason for moderation</label>
+									<textarea
+										id={`moderation-reason-${user.id}`}
+										bind:value={moderationReason}
+										maxlength="1000"
+										rows="2"
+										placeholder="Required for hide or unsafe-content removal"
+										disabled={moderationSaving}
+									></textarea>
+									<p class="moderation-hint">
+										Reason is submitted with each action and retained with its audit context.
+									</p>
+									<div class="moderation-actions">
+										{#if user.contributorProfile.isModeratorHidden}
+											<button
+												type="button"
+												class="settings-link-btn"
+												disabled={moderationSaving}
+												onclick={() => moderate(user, 'restore')}
+											>
+												Restore profile
+											</button>
+										{:else}
+											<button
+												type="button"
+												class="settings-link-btn"
+												disabled={moderationSaving || !moderationReason.trim()}
+												onclick={() => moderate(user, 'hide')}
+											>
+												Hide profile
+											</button>
+										{/if}
+										{#if user.contributorProfile.avatarUrl}
+											<button
+												type="button"
+												class="settings-link-btn settings-link-btn--danger"
+												disabled={moderationSaving || !moderationReason.trim()}
+												onclick={() => moderate(user, 'avatar')}
+											>
+												Remove avatar reference
+											</button>
+										{/if}
+									</div>
+									{#if user.contributorProfile.socialLinks.length}
+										<div class="moderation-links">
+											<strong>Social links</strong>
+											{#each user.contributorProfile.socialLinks as link (link.id)}
+												<div class="moderation-link">
+													<a href={link.url} target="_blank" rel="noopener noreferrer">{link.label || link.kind}</a>
+													<button
+														type="button"
+														class="settings-link-btn settings-link-btn--danger"
+														disabled={moderationSaving || !moderationReason.trim()}
+														onclick={() => moderate(user, 'link', link.id)}
+													>
+														Remove
+													</button>
+												</div>
+											{/each}
+										</div>
+									{/if}
+									<button
+										type="button"
+										class="settings-link-btn"
+										disabled={moderationSaving || auditLoadingProfileId === user.contributorProfile?.id}
+										onclick={() => {
+											if (user.contributorProfile) toggleAudits(user.contributorProfile.id);
+										}}
+									>
+										{#if auditLoadingProfileId === user.contributorProfile.id}
+											Loading audit history…
+										{:else if auditsByProfileId[user.contributorProfile.id]}
+											Hide audit history
+										{:else}
+											Show audit history
+										{/if}
+									</button>
+									{#if auditsByProfileId[user.contributorProfile.id]}
+										<div class="audit-history" aria-label="Read-only audit history">
+											{#if auditsByProfileId[user.contributorProfile.id]?.rows.length}
+												{#each auditsByProfileId[user.contributorProfile.id]?.rows ?? [] as audit (audit.id)}
+													<div class="audit-entry">
+														<strong>{audit.action}</strong>
+														<span>v{audit.fromVersion ?? '—'} → v{audit.toVersion}</span>
+														<small>
+															{audit.actorDisplayName || 'Unknown actor'} · {new Date(audit.createdAt).toLocaleString()}
+														</small>
+														{#if audit.after?.moderationReason}<small>Reason: {audit.after.moderationReason}</small>{/if}
+													</div>
+												{/each}
+											{:else}
+												<small>No audit entries.</small>
+											{/if}
+										</div>
+									{/if}
+								</section>
+							{/if}
 						</li>
 					{/each}
 				</ul>
@@ -357,11 +589,6 @@
 		text-decoration: underline;
 		text-underline-offset: 2px;
 	}
-	.settings-danger-actions {
-		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
 	.user-list {
 		list-style: none;
 		margin: 0;
@@ -372,7 +599,8 @@
 	}
 	.user-row {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
+		flex-wrap: wrap;
 		gap: 0.5rem;
 		padding: 0.5rem;
 		border: 1px solid hsl(0, 0%, 92%);
@@ -390,6 +618,90 @@
 	.user-row-info strong {
 		font-size: 0.8125rem;
 	}
+.user-row-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+.user-row-actions select {
+	max-width: 7rem;
+}
+.profile-state {
+	color: hsl(5, 53%, 32%);
+}
+.moderation-panel {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	padding-top: 0.5rem;
+	border-top: 1px solid hsl(0, 0%, 92%);
+}
+.moderation-panel label,
+.moderation-links strong {
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+.moderation-panel textarea {
+	width: 100%;
+	resize: vertical;
+	box-sizing: border-box;
+	font: inherit;
+	font-size: 0.75rem;
+	padding: 0.4rem;
+	border: 1px solid hsl(0, 0%, 82%);
+	border-radius: 0.35rem;
+}
+.moderation-hint {
+	margin: 0;
+	color: hsl(0, 0%, 45%);
+	font-size: 0.6875rem;
+}
+.moderation-actions,
+.moderation-link {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+.moderation-links {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+.moderation-link {
+	justify-content: space-between;
+	font-size: 0.75rem;
+}
+.moderation-link a {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.settings-link-btn--danger {
+	color: hsl(0, 60%, 38%);
+}
+.audit-history {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	padding: 0.5rem;
+	background: hsl(0, 0%, 97%);
+	border-radius: 0.35rem;
+}
+.audit-entry {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	font-size: 0.6875rem;
+	overflow-wrap: anywhere;
+}
+.audit-entry span,
+.audit-entry small,
+.audit-history > small {
+	color: hsl(0, 0%, 45%);
+}
 	.user-row-info small {
 		font-size: 0.6875rem;
 		color: hsl(0, 0%, 45%);
