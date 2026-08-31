@@ -1,3 +1,10 @@
+# [2.27.0](https://github.com/uplbtools/room-tba/compare/v2.26.0...v2.27.0) (2026-08-31)
+
+
+### Features
+
+* **transparency:** liabilities section with maintainer balance and waiver ([346eda2](https://github.com/uplbtools/room-tba/commit/346eda2483bc40f82a322b115a7e44e5f7f2786f))
+
 # [2.24.0](https://github.com/uplbtools/room-tba/compare/v2.23.1...v2.24.0) (2026-08-31)
 
 
