@@ -3,7 +3,8 @@ export type ExclusiveMapMode =
   | "routes"
   | "terrain"
   | "travel-time"
-  | "measure";
+  | "measure"
+  | "building-route";
 
 type MapModeHandle = { disable: () => void };
 
