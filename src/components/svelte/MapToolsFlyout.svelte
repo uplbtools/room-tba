@@ -2,12 +2,12 @@
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import Footprints from "@lucide/svelte/icons/footprints";
+  import Route from "@lucide/svelte/icons/route";
   import Ruler from "@lucide/svelte/icons/ruler";
   import Timer from "@lucide/svelte/icons/timer";
   // This panel owns the map travel tools; keep new travel UI here instead of
   // creating another fixed-position control on the map canvas.
   import Wrench from "@lucide/svelte/icons/wrench";
-  import { fade } from "svelte/transition";
   import {
     directionsStore,
     mapToolsStore,
@@ -16,7 +16,8 @@
     travelTimeStore,
     type MapToolsSection,
   } from "@lib/store.svelte";
-  import { panelFadeIn, panelFadeOut } from "@lib/motion";
+  import { sidebarStore } from "@lib/store.svelte";
+  import { routableTodayWeekday, routeToday } from "@lib/today-route";
   import MapViewControls from "@ui/MapViewControls.svelte";
   import WaybackImageryControl from "@ui/WaybackImageryControl.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
@@ -26,16 +27,13 @@
   import JeepneyMenu from "@ui/JeepneyMenu.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import BuildingRoutePanel from "@ui/building-route/BuildingRoutePanel.svelte";
+
   import BuildingRouteMapOverlay from "@ui/building-route/BuildingRouteMapOverlay.svelte";
-  import { trapFocus } from "@lib/focus-trap";
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
-  import MapChromePanel from "@ui/map-chrome/MapChromePanel.svelte";
+  import Dialog from "@ui/modal/Dialog.svelte";
   import "./map-chrome/map-chrome.css";
   import { MediaQuery } from "svelte/reactivity";
 
-  let panelEl = $state<HTMLDivElement | null>(null);
-  let shellEl = $state<HTMLDivElement | null>(null);
-  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const mobile = new MediaQuery("max-width:48rem");
   const sections: { id: MapToolsSection; label: string }[] = [
     { id: "view", label: "View" },
@@ -61,6 +59,18 @@
     return mapToolsStore.expandedSections.has(id);
   }
 
+  // An open building combobox owns Escape (closes its listbox); the dialog
+  // only closes on the next press.
+  function shouldHandleEscape(event: KeyboardEvent) {
+    const target = event.target;
+    return !(
+      target instanceof HTMLInputElement &&
+      target.closest(".building-router") &&
+      target.getAttribute("role") === "combobox" &&
+      target.getAttribute("aria-expanded") === "true"
+    );
+  }
+
   function toggleBuildingRoute() {
     if (buildingRouteStore.active) {
       buildingRouteStore.close();
@@ -75,43 +85,30 @@
     if (travelTimeStore.active) mapToolsStore.close();
   }
 
+  // Day route lived on its own status-bar chip before the chrome redesign;
+  // the redesign dropped that mount, so the toolbox is its home now. Hidden
+  // when there is nothing to route today, same as the old chip.
+  const dayRoutable = $derived(routableTodayWeekday() !== null);
+  let dayRouting = $state(false);
+
+  async function handleRouteMyDay() {
+    if (dayRouting) return;
+    dayRouting = true;
+    try {
+      if (await routeToday()) {
+        mapToolsStore.close();
+        sidebarStore.changeOpened("map");
+      }
+    } finally {
+      dayRouting = false;
+    }
+  }
+
   function toggleMeasureRoute() {
     measureRouteStore.toggle();
     if (measureRouteStore.active) mapToolsStore.close();
   }
 
-  $effect(() => {
-    if (!mapToolsStore.open || !panelEl) return;
-    return trapFocus(panelEl, {
-      onEscape: () => mapToolsStore.close(),
-      shouldHandleEscape: (event) => {
-        const target = event.target;
-        return !(
-          target instanceof HTMLInputElement &&
-          target.closest(".building-router") &&
-          target.getAttribute("role") === "combobox" &&
-          target.getAttribute("aria-expanded") === "true"
-        );
-      },
-    });
-  });
-
-  $effect(() => {
-    const el = shellEl;
-    if (!mapToolsStore.open || !el || mobile.current) return;
-    const apply = () => {
-      const top = el.getBoundingClientRect().top;
-      const attribution = document.querySelector(".map-attrib-corner");
-      const reserved = 12 + (attribution?.getBoundingClientRect().height ?? 0);
-      el.style.setProperty(
-        "--tools-panel-max-h",
-        `${Math.max(160, window.innerHeight - top - reserved)}px`,
-      );
-    };
-    apply();
-    window.addEventListener("resize", apply);
-    return () => window.removeEventListener("resize", apply);
-  });
 </script>
 
 <BuildingRouteMapOverlay />
@@ -126,20 +123,35 @@
     <Wrench size={18} aria-hidden="true" />
   </MapChromeFabTrigger>
 
-  {#if mapToolsStore.open}
-    <div
-      class="map-tools-panel-shell"
-      bind:this={shellEl}
-      in:fade={panelFadeIn(reducedMotion.current)}
-      out:fade={panelFadeOut(reducedMotion.current)}
-    >
-      <MapChromePanel
-        bind:element={panelEl}
-        id="map-tools-panel"
-        panelClass="map-chrome-panel map-tools-panel"
-        title="Map tools"
-        onclose={() => mapToolsStore.close()}
-      >
+  <Dialog
+    {shouldHandleEscape}
+    open={mapToolsStore.open}
+    onclose={() => mapToolsStore.close()}
+    size="large"
+    ariaLabel="Map tools"
+    closeLabel="Close map tools"
+  >
+    <div class="map-tools-dialog" id="map-tools-panel">
+      <h2 class="map-tools-dialog__title">Map tools</h2>
+      <div class="map-tools-dialog__body">
+        {#if dayRoutable}
+          <button
+            type="button"
+            class="map-tools-flyout__tool"
+            aria-busy={dayRouting}
+            onclick={handleRouteMyDay}
+          >
+            <Route size={18} aria-hidden="true" />
+            <span class="map-tools-flyout__tool-copy">
+              <span class="map-tools-flyout__tool-label">Route my day</span>
+              <span class="map-tools-flyout__tool-description">
+                {dayRouting
+                  ? "Routing your classes now"
+                  : "Walk route through today's classes"}
+              </span>
+            </span>
+          </button>
+        {/if}
         <button
           type="button"
           class="map-tools-flyout__tool"
@@ -240,12 +252,55 @@
             {/if}
           </div>
         {/each}
-      </MapChromePanel>
+      </div>
     </div>
-  {/if}
+  </Dialog>
 </div>
 
 <style>
+  /* Map tools is a full dialog now, not a popover wedged under its trigger.
+     The old shell had to measure remaining viewport space and cap its own
+     height; the dialog just scrolls its body. */
+  .map-tools-dialog {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+    padding: 0.25rem 0.25rem 0.5rem;
+  }
+
+  .map-tools-dialog__title {
+    margin: 0 2.5rem 0.75rem 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: hsl(0, 0%, 15%);
+  }
+
+  .map-tools-dialog__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 0 0.5rem 0.25rem;
+  }
+
+  /* Two columns of tools on a wide dialog: the list was a single cramped
+     column even when there was room for more. */
+  @media (min-width: 48rem) {
+    .map-tools-dialog__body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-content: start;
+      gap: 0.75rem 1rem;
+    }
+
+    .map-tools-dialog__body :global(.accordion-section) {
+      grid-column: 1 / -1;
+    }
+  }
+
   .map-tools-flyout {
     position: relative;
     pointer-events: auto;
