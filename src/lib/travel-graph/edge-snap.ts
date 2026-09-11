@@ -109,10 +109,7 @@ function assertEdgeSnapGraph(graph: TravelGraph): void {
   validatedEdgeSnapGraphCache.add(graph);
 }
 
-function sameCoordinate(
-  a: EdgeSnapCoordinate,
-  b: EdgeSnapCoordinate,
-): boolean {
+function sameCoordinate(a: EdgeSnapCoordinate, b: EdgeSnapCoordinate): boolean {
   return Math.abs(a[0] - b[0]) <= 1e-12 && Math.abs(a[1] - b[1]) <= 1e-12;
 }
 

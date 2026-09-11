@@ -38,7 +38,12 @@ function oldNodeSnap(endpoint: BuildingRouteEndpoint): {
   if (endpoint.lat === null || endpoint.lon === null) {
     return { nodeIndex: -1, snapMeters: Number.POSITIVE_INFINITY };
   }
-  const nodeIndex = nearestNodeIndex(campus, endpoint.lat, endpoint.lon, "walk");
+  const nodeIndex = nearestNodeIndex(
+    campus,
+    endpoint.lat,
+    endpoint.lon,
+    "walk",
+  );
   return {
     nodeIndex,
     snapMeters: distanceMeters(

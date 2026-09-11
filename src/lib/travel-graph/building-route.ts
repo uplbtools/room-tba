@@ -29,10 +29,7 @@ export type BuildingRouteCoordinate = [lng: number, lat: number];
 
 export type BuildingEndpointSnap = GraphEdgeSnap & {
   /** Always endpoint pin -> snapped point on the mapped edge. */
-  endpointToEdgeCoordinates: [
-    BuildingRouteCoordinate,
-    BuildingRouteCoordinate,
-  ];
+  endpointToEdgeCoordinates: [BuildingRouteCoordinate, BuildingRouteCoordinate];
 };
 
 export type BuildingWalkRoute = {

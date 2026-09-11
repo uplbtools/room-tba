@@ -26,11 +26,7 @@ function loopGraph(oneway = false) {
   });
 }
 
-function building(
-  id: number,
-  lat: number,
-  lon: number,
-): BuildingRouteEndpoint {
+function building(id: number, lat: number, lon: number): BuildingRouteEndpoint {
   return { id, buildingName: `Building ${id}`, lat, lon };
 }
 
@@ -54,8 +50,7 @@ describe("building routing on self-loop edges", () => {
         result.originSnap.edgeMetersFromU,
     );
     const seam =
-      result.originSnap.edgeMetersFromU +
-      result.destinationSnap.edgeMetersToV;
+      result.originSnap.edgeMetersFromU + result.destinationSnap.edgeMetersToV;
 
     expect(result.route.graphMeters).toBeCloseTo(seam, 6);
     expect(result.route.graphMeters).toBeLessThan(direct);
@@ -84,8 +79,7 @@ describe("building routing on self-loop edges", () => {
       result.destinationSnap.edgeMetersFromU,
     );
     const forwardWrap =
-      result.originSnap.edgeMetersToV +
-      result.destinationSnap.edgeMetersFromU;
+      result.originSnap.edgeMetersToV + result.destinationSnap.edgeMetersFromU;
     expect(result.route.graphMeters).toBeCloseTo(forwardWrap, 6);
     expect(result.route.graphMeters).toBeLessThan(LOOP_METERS / 2);
   });

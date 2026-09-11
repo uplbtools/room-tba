@@ -80,12 +80,7 @@ describe("building route endpoint validation", () => {
   });
 
   test("snap exposes the closest point on an edge and exact pin connector", () => {
-    const endpoint = building(
-      1,
-      "A",
-      14 + 30 / METERS_PER_DEGREE,
-      121.0005,
-    );
+    const endpoint = building(1, "A", 14 + 30 / METERS_PER_DEGREE, 121.0005);
     if (!isValidBuildingRouteCoordinate(endpoint)) throw new Error("fixture");
     const snap = snapBuildingEndpoint(lineGraph, endpoint);
 
@@ -257,7 +252,10 @@ describe("routeBuildingToBuilding", () => {
     });
     expect(overBoundary.status).toBe("origin-off-network");
     if (overBoundary.status === "origin-off-network") {
-      expect(overBoundary.originSnap.snapMeters).toBeCloseTo(exactSnapMeters, 9);
+      expect(overBoundary.originSnap.snapMeters).toBeCloseTo(
+        exactSnapMeters,
+        9,
+      );
       expect(overBoundary.route).toBeNull();
     }
   });

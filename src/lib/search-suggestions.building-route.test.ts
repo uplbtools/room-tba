@@ -14,11 +14,9 @@ const buildings = [
 
 describe("buildBuildingSuggestions", () => {
   test("uses global search relevance so acronym matches beat mid-word hits", () => {
-    expect(buildBuildingSuggestions("ics", buildings).map((b) => b.id)).toEqual([
-      1,
-      2,
-      3,
-    ]);
+    expect(buildBuildingSuggestions("ics", buildings).map((b) => b.id)).toEqual(
+      [1, 2, 3],
+    );
   });
 
   test("returns buildings only and honors a caller limit", () => {
