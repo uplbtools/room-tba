@@ -38,14 +38,21 @@ test.describe("building-to-building walking router @advisory", () => {
     // Ignore unrelated bootstrap traffic/noise: from here on, errors and
     // routing requests belong to the feature interaction under test.
     page.on("pageerror", (error) => pageErrors.push(error));
+    const externalRouteHosts = new Set([
+      "routing.openstreetmap.de",
+      "router.project-osrm.org",
+    ]);
     page.on("request", (request) => {
       const url = request.url();
-      if (
-        url.includes("routing.openstreetmap.de") ||
-        url.includes("router.project-osrm.org")
-      ) {
-        externalRouteRequests.push(url);
+      // Compare the parsed host, not a substring: CodeQL flags the latter,
+      // and a query string could carry these names without calling them.
+      let host = "";
+      try {
+        host = new URL(url).hostname;
+      } catch {
+        return;
       }
+      if (externalRouteHosts.has(host)) externalRouteRequests.push(url);
     });
     await openBuildingRouter(page);
 
