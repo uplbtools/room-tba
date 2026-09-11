@@ -44,17 +44,25 @@ export function buildingApiUrl(base: string): string {
     : `${trimmed}/api/buildings`;
 }
 
-export function parseBuildingRouteApiRows(payload: unknown): BuildingRouteApiRow[] {
+export function parseBuildingRouteApiRows(
+  payload: unknown,
+): BuildingRouteApiRow[] {
   if (!Array.isArray(payload)) {
-    throw new Error("building route API source: buildings API did not return an array");
+    throw new Error(
+      "building route API source: buildings API did not return an array",
+    );
   }
   if (payload.length === 0) {
-    throw new Error("building route API source: buildings API returned no rows");
+    throw new Error(
+      "building route API source: buildings API returned no rows",
+    );
   }
 
   const rows = payload.map((raw, index) => {
     if (typeof raw !== "object" || raw === null) {
-      throw new Error(`building route API source: row ${index} is not an object`);
+      throw new Error(
+        `building route API source: row ${index} is not an object`,
+      );
     }
     const row = raw as Record<string, unknown>;
     if (typeof row.buildingName !== "string" || !row.buildingName.trim()) {
@@ -65,7 +73,9 @@ export function parseBuildingRouteApiRows(payload: unknown): BuildingRouteApiRow
 
     const id = finiteNumber(row.id, `row ${index} id`);
     if (!Number.isInteger(id)) {
-      throw new Error(`building route API source: row ${index} id is not an integer`);
+      throw new Error(
+        `building route API source: row ${index} id is not an integer`,
+      );
     }
 
     return {
@@ -79,7 +89,9 @@ export function parseBuildingRouteApiRows(payload: unknown): BuildingRouteApiRow
   const seenIds = new Set<number>();
   for (const row of rows) {
     if (seenIds.has(row.id)) {
-      throw new Error(`building route API source: duplicate building id ${row.id}`);
+      throw new Error(
+        `building route API source: duplicate building id ${row.id}`,
+      );
     }
     seenIds.add(row.id);
   }
@@ -98,7 +110,9 @@ export async function fetchBuildingRouteApiRows(
     },
   });
   if (!response.ok) {
-    throw new Error(`building route API source: ${response.status} from ${url}`);
+    throw new Error(
+      `building route API source: ${response.status} from ${url}`,
+    );
   }
   return parseBuildingRouteApiRows(await response.json());
 }

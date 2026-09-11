@@ -95,7 +95,9 @@ if (hasFlag("--json")) {
       console.log(`  - ${name}`);
   }
   if (coverage.complete) {
-    console.log("\nChecked-in fixture identity coverage matches this reference source.");
+    console.log(
+      "\nChecked-in fixture identity coverage matches this reference source.",
+    );
   } else {
     console.log(
       "\nCoverage mismatch: do not claim the checked-in routing fixture covers every reference building.",

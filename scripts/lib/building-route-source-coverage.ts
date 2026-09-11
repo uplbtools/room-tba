@@ -70,11 +70,15 @@ export function compareBuildingRouteSourceCoverage(
   const auditSet = new Set(auditUnique);
   const referenceSet = new Set(referenceUnique);
 
-  const missingFromAudit = referenceUnique.filter((name) => !auditSet.has(name));
+  const missingFromAudit = referenceUnique.filter(
+    (name) => !auditSet.has(name),
+  );
   const extraInAudit = auditUnique.filter((name) => !referenceSet.has(name));
   const duplicateAuditNames = duplicateNames(auditNames);
   const duplicateReferenceNames = duplicateNames(referenceNames);
-  const matchedCount = referenceUnique.filter((name) => auditSet.has(name)).length;
+  const matchedCount = referenceUnique.filter((name) =>
+    auditSet.has(name),
+  ).length;
 
   return {
     auditRowCount: auditBuildings.length,

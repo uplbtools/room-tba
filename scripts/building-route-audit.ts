@@ -73,7 +73,9 @@ function printReport(
     graphSha256: string;
   },
 ): void {
-  console.log("Room TBA building routing endpoint audit (legacy node baseline)");
+  console.log(
+    "Room TBA building routing endpoint audit (legacy node baseline)",
+  );
   console.log(`building source: ${input.buildingSource}`);
   console.log(`building source sha256: ${input.buildingSourceSha256}`);
   console.log(`graph: ${input.graphPath}`);
@@ -83,7 +85,8 @@ function printReport(
       `${report.graph.componentCount} components; main component ${report.graph.mainComponentSize} nodes`,
   );
   if (report.graph.source) console.log(`graph source: ${report.graph.source}`);
-  if (report.graph.generated) console.log(`graph generated: ${report.graph.generated}`);
+  if (report.graph.generated)
+    console.log(`graph generated: ${report.graph.generated}`);
   console.log(
     `buildings: ${report.summary.buildingCount} total; ${report.summary.supportedCount} supported, ` +
       `${report.summary.reviewCount} review, ${report.summary.unsupportedCount} unsupported, ` +
@@ -95,7 +98,10 @@ function printReport(
       `(${report.policy.reviewThresholdBasis}); nearest node must be in the largest graph component`,
   );
   printStats("all valid snap distances", report.snapDistribution);
-  printStats("eligible baseline snap distances", report.eligibleSnapDistribution);
+  printStats(
+    "eligible baseline snap distances",
+    report.eligibleSnapDistribution,
+  );
 
   console.log("\nWorst / actionable endpoints:");
   const actionable = report.buildings.filter(

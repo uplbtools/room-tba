@@ -48,9 +48,9 @@ describe("building route API source", () => {
 
   test("rejects malformed identity and coordinate rows", () => {
     expect(() => parseBuildingRouteApiRows({})).toThrow(/array/i);
-    expect(() => parseBuildingRouteApiRows([{ id: 1, lat: 14, lon: 121 }])).toThrow(
-      /buildingName/i,
-    );
+    expect(() =>
+      parseBuildingRouteApiRows([{ id: 1, lat: 14, lon: 121 }]),
+    ).toThrow(/buildingName/i);
     expect(() =>
       parseBuildingRouteApiRows([
         { id: 1, buildingName: "Bad", lat: "north", lon: 121 },

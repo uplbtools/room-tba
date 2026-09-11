@@ -30,8 +30,7 @@ export function buildingRouteSourceSha256(
       lon: row.lon,
     }))
     .sort(
-      (a, b) =>
-        a.id - b.id || a.buildingName.localeCompare(b.buildingName),
+      (a, b) => a.id - b.id || a.buildingName.localeCompare(b.buildingName),
     );
   return sha256Text(JSON.stringify(canonical));
 }
