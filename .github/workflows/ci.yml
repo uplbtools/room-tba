@@ -54,6 +54,9 @@ jobs:
       - name: Unit tests
         run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts' --path-ignore-patterns='**/*.component.test.ts' --reporter=junit --reporter-outfile=junit-unit.xml
 
+      - name: Building routing unit/audit gate
+        run: bun run test:routing
+
       - name: Retire feature coverage with retired pages
         env:
           TEST_RETIREMENT_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}

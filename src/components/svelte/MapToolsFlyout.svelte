@@ -1,14 +1,17 @@
 <script lang="ts">
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import Footprints from "@lucide/svelte/icons/footprints";
   import Route from "@lucide/svelte/icons/route";
   import Ruler from "@lucide/svelte/icons/ruler";
   import Timer from "@lucide/svelte/icons/timer";
-  // Wrench, not layers: this trigger opens a toolbox (travel time, measure
-  // route, legend), and `layers` is the legend chip sitting right beside it.
+  // This panel owns the map travel tools; keep new travel UI here instead of
+  // creating another fixed-position control on the map canvas.
   import Wrench from "@lucide/svelte/icons/wrench";
   import {
+    directionsStore,
     mapToolsStore,
+    buildingRouteStore,
     measureRouteStore,
     travelTimeStore,
     type MapToolsSection,
@@ -23,14 +26,15 @@
   import TrailControl from "@ui/TrailControl.svelte";
   import JeepneyMenu from "@ui/JeepneyMenu.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
+  import BuildingRoutePanel from "@ui/building-route/BuildingRoutePanel.svelte";
+
+  import BuildingRouteMapOverlay from "@ui/building-route/BuildingRouteMapOverlay.svelte";
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
   import Dialog from "@ui/modal/Dialog.svelte";
   import "./map-chrome/map-chrome.css";
   import { MediaQuery } from "svelte/reactivity";
 
   const mobile = new MediaQuery("max-width:48rem");
-  // Transit moved to the sidebar's Jeepney routes browse panel; Map tools now
-  // mirrors the Settings modal sections.
   const sections: { id: MapToolsSection; label: string }[] = [
     { id: "view", label: "View" },
     { id: "legend", label: "Legend" },
@@ -55,9 +59,29 @@
     return mapToolsStore.expandedSections.has(id);
   }
 
+  // An open building combobox owns Escape (closes its listbox); the dialog
+  // only closes on the next press.
+  function shouldHandleEscape(event: KeyboardEvent) {
+    const target = event.target;
+    return !(
+      target instanceof HTMLInputElement &&
+      target.closest(".building-router") &&
+      target.getAttribute("role") === "combobox" &&
+      target.getAttribute("aria-expanded") === "true"
+    );
+  }
+
+  function toggleBuildingRoute() {
+    if (buildingRouteStore.active) {
+      buildingRouteStore.close();
+      return;
+    }
+    directionsStore.close();
+    buildingRouteStore.open();
+  }
+
   function toggleTravelTime() {
     travelTimeStore.toggle();
-    // Hand the map back so the user can tap an origin right away.
     if (travelTimeStore.active) mapToolsStore.close();
   }
 
@@ -87,6 +111,8 @@
 
 </script>
 
+<BuildingRouteMapOverlay />
+
 <div class="map-tools-flyout">
   <MapChromeFabTrigger
     ariaExpanded={mapToolsStore.open}
@@ -98,6 +124,7 @@
   </MapChromeFabTrigger>
 
   <Dialog
+    {shouldHandleEscape}
     open={mapToolsStore.open}
     onclose={() => mapToolsStore.close()}
     size="large"
@@ -125,6 +152,32 @@
             </span>
           </button>
         {/if}
+        <button
+          type="button"
+          class="map-tools-flyout__tool"
+          class:map-tools-flyout__tool--active={buildingRouteStore.active}
+          aria-pressed={buildingRouteStore.active}
+          onclick={toggleBuildingRoute}
+        >
+          <Footprints size={18} aria-hidden="true" />
+          <span class="map-tools-flyout__tool-copy">
+            <span class="map-tools-flyout__tool-label">
+              Walk between buildings
+            </span>
+            <span class="map-tools-flyout__tool-description">
+              {buildingRouteStore.active
+                ? "On — choose a start and destination below"
+                : "Search two buildings for a walking path and ETA"}
+            </span>
+          </span>
+        </button>
+
+        {#if buildingRouteStore.active}
+          <div class="building-route-embedded">
+            <BuildingRoutePanel />
+          </div>
+        {/if}
+
         <button
           type="button"
           class="map-tools-flyout__tool"
@@ -266,9 +319,8 @@
     min-width: 0;
   }
 
-  /* Desktop: panel overlays below the Layers FAB without growing the stack
-     (camera controls stay fixed under the trigger).
-     #716: was @media (min-width: 48.0625rem), now gated by .desktop class */
+  /* Desktop: panel overlays below the trigger without growing the camera
+     stack. */
   :global(.desktop) .map-tools-flyout {
     z-index: 1;
   }
@@ -304,32 +356,34 @@
   .map-tools-flyout__tool:hover {
     background-color: hsl(5, 20%, 95%);
   }
-
   .map-tools-flyout__tool:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
     outline-offset: 2px;
   }
-
   .map-tools-flyout__tool--active {
     border-color: hsl(5, 53%, 32%);
     background-color: hsl(5, 30%, 95%);
   }
-
   .map-tools-flyout__tool-copy {
     display: flex;
     min-width: 0;
     flex-direction: column;
     gap: 0.125rem;
   }
-
   .map-tools-flyout__tool-label {
     font-size: 0.9375rem;
     font-weight: 600;
   }
-
   .map-tools-flyout__tool-description {
     font-size: 0.8125rem;
     line-height: 1.3;
     color: hsl(0, 0%, 32%);
+  }
+  .building-route-embedded {
+    margin: 0.125rem 0 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid hsl(5 18% 86%);
+    border-radius: 0.625rem;
+    background: hsl(5 20% 98%);
   }
 </style>

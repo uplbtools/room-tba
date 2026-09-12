@@ -60,4 +60,13 @@ describe("convertGraphml", () => {
     const oneWay = graph.edges.find((e) => e.length === 7);
     expect(oneWay).toEqual([1, 2, 110.25, "steps;footway", null, [], 1]);
   });
+
+  test("rejects zero, negative, and non-finite source lengths", () => {
+    for (const length of ["0", "-1", "not-a-number"]) {
+      const malformed = SAMPLE.replaceAll(">120.5<", `>${length}<`);
+      expect(() => convertGraphml(malformed, "malformed.gml")).toThrow(
+        /invalid length/i,
+      );
+    }
+  });
 });

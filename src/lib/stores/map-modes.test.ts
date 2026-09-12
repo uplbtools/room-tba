@@ -2,18 +2,27 @@ import { describe, expect, test } from "bun:test";
 import {
   deactivateMapModesExcept,
   registerMapMode,
+  type ExclusiveMapMode,
 } from "@lib/stores/map-modes";
 
-describe("map-modes", () => {
-  test("deactivateMapModesExcept calls other mode handles", () => {
-    const calls: string[] = [];
-    registerMapMode("edit", { disable: () => calls.push("edit") });
-    registerMapMode("routes", { disable: () => calls.push("routes") });
-    registerMapMode("terrain", { disable: () => calls.push("terrain") });
+describe("map mode exclusivity", () => {
+  test("deactivates every registered mode except the requested one", () => {
+    const disabled: ExclusiveMapMode[] = [];
+    for (const mode of [
+      "edit",
+      "routes",
+      "terrain",
+      "travel-time",
+      "measure",
+      "building-route",
+    ] as const) {
+      registerMapMode(mode, { disable: () => disabled.push(mode) });
+    }
 
-    deactivateMapModesExcept("routes");
-    expect(calls).toContain("edit");
-    expect(calls).toContain("terrain");
-    expect(calls).not.toContain("routes");
+    deactivateMapModesExcept("building-route");
+    expect(disabled).not.toContain("building-route");
+    expect(disabled).toContain("measure");
+    expect(disabled).toContain("travel-time");
+    expect(disabled).toContain("routes");
   });
 });
