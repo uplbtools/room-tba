@@ -15,7 +15,7 @@
         "@esri/wayback-core": "^1.1.0",
         "@lucide/svelte": "^1.40.0",
         "@maplibre/maplibre-gl-directions": "^0.9.1",
-        "@supabase/ssr": "^0.12.5",
+        "@supabase/ssr": "^0.12.7",
         "@supabase/supabase-js": "^2.115.0",
         "@tailwindcss/vite": "^4.3.3",
         "@vercel/analytics": "^2.0.1",
@@ -880,7 +880,7 @@
 
     "@supabase/realtime-js": ["@supabase/realtime-js@2.115.0", "", { "dependencies": { "@supabase/phoenix": "0.4.5", "tslib": "2.8.1" } }, "sha512-5HyBkvlA/IUV2v8jX3uLTdy15jmTPRVXwXKoxvH2SKw5jZMNURxCxt+VpCEukscXQlY7pUpH8Cy4NH6io4iaRw=="],
 
-    "@supabase/ssr": ["@supabase/ssr@0.12.5", "", { "dependencies": { "cookie": "^1.0.2" }, "peerDependencies": { "@supabase/supabase-js": "^2.112.4" } }, "sha512-0GllaAtHe7FHs6tlSg1CwkFw0a7aai1Shs9rEqSs/HaVkJzPk35C9r0Z8WUtKJ3eY6G/Y5y47YvCro3LynrAJg=="],
+    "@supabase/ssr": ["@supabase/ssr@0.12.7", "", { "dependencies": { "cookie": "^1.0.2" }, "peerDependencies": { "@supabase/supabase-js": "^2.114.0" } }, "sha512-wiBtEie1KkRJi9RrZWY3R2imRhX1JY7qMyUCH2z9AUk15gQebNEplM+urbCKamdxaTJLXUU6LlpkJsaxhojCEg=="],
 
     "@supabase/storage-js": ["@supabase/storage-js@2.115.0", "", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-dLyIxzbO+MCcKHhcce8rVUCQX1iyqXqQ8ytgkOVYJ7D+Zp0qKylPtQH3hamgxrGSxtDjaw47Urpzw2iK9PsKdA=="],
 
