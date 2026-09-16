@@ -1,0 +1,3 @@
+[test]
+# Svelte 5 stores and component tests run in Vitest
+skip = ["**/*.store.test.ts", "**/*.component.test.ts"]

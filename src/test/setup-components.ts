@@ -16,6 +16,24 @@ if (!Element.prototype.animate) {
     }) as Animation;
 }
 
+if (typeof window !== "undefined") {
+  (window as any).turnstile = {
+    render: () => "mock-widget-id",
+    remove: () => {},
+  };
+  window.matchMedia = (query: string) =>
+    ({
+      matches: query.includes("prefers-reduced-motion"),
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }) as any;
+}
+
 afterEach(() => {
   cleanup();
 });
