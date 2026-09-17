@@ -3,12 +3,17 @@ import { DEFAULT_TERRAIN_EXAGGERATION, TERRAIN_ENABLED } from '$lib/constants/ma
 import { dismissEphemeralOverlays } from '../../utils/overlay-stack.js';
 import { deactivateMapModesExcept } from './map-modes.js';
 import type { MapToolsSection, TerrainStatus } from '../store-types.js';
+import { calculatePadding } from '$lib/utils/map/navigate.js';
 
 type MarkerFilter = "events" | "buildings" | "orgs" | "places" | "all";
 
+
+type FlyToParams = Parameters<Exclude<maplibre.MapLibreMap["flyTo"], "undefined">>
+type FlyToOptions = FlyToParams[0];
+
+
 export class MapStore {
 	private mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
-
 	// Emphasize buildings hosting the user's planner classes; dim other pins.
 	// highlightMyBuildings: boolean = $state(false);
 	/** Org/place pins are also zoom-gated in Map.svelte. The legend reads this
@@ -16,13 +21,22 @@ export class MapStore {
 	poiPinsZoomVisible: boolean = $state(true);
 	// private viewFilter = $state<MarkerFilter>("all");
 
-	public getRawInstance() {
-		return this.mapInstance;
-	}
+	public getRawInstance = () => this.mapInstance;
+	public setRawInstance = (v : maplibre.MapLibreMap | undefined) => this.mapInstance = v;
 
-	public flyTo (...flyToParams: Parameters<Exclude<maplibre.MapLibreMap["flyTo"], "undefined">>) {
+	public flyTo(...flyToParams: FlyToParams) {
 		if (!this.mapInstance) return;
 		this.mapInstance.flyTo(...flyToParams)
+	}
+
+	public centerMarker(center: FlyToOptions["center"]) {
+		if (!this.mapInstance) return;
+		console.log("runs");
+		this.mapInstance.flyTo({
+			center,
+			padding: calculatePadding(false),
+			duration:1000
+		})
 	}
 
 	public isMapReady(): boolean {
