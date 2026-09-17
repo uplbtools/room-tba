@@ -1,144 +1,127 @@
 <script lang="ts">
-  import Navigation2 from "@lucide/svelte/icons/navigation-2";
-  import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
-  import RotateCw from "@lucide/svelte/icons/rotate-cw";
-  import ChevronUp from "@lucide/svelte/icons/chevron-up";
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import Box from "@lucide/svelte/icons/box";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
-  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
-  import MapIcon from "@lucide/svelte/icons/map";
-  import {
-    mapStore,
-    mapViewStore,
-    plannerStore,
-    terrainStore,
-  } from "$lib/stores.svelte";
-  import { onMount } from "svelte";
-  import { THREE_D_PITCH, isMap2DPitch } from "$lib/constants/map/dimension";
-  import {
-    enterFlatMapDimension,
-	enterTiltedMapDimension
+	import Navigation2 from '@lucide/svelte/icons/navigation-2';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import RotateCw from '@lucide/svelte/icons/rotate-cw';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import Box from '@lucide/svelte/icons/box';
+	import CalendarDays from '@lucide/svelte/icons/calendar-days';
+	import GraduationCap from '@lucide/svelte/icons/graduation-cap';
+	import MapIcon from '@lucide/svelte/icons/map';
+	import { map, plannerStore, terrainStore } from '$lib/stores.svelte';
+	import { onMount } from 'svelte';
+	import { THREE_D_PITCH, isMap2DPitch } from '$lib/constants/map/dimension';
+	import {
+		enterFlatMapDimension,
+		enterTiltedMapDimension
+	} from '$lib/utils/map/map-dimension-layers';
+	import type { MapLibreMap } from 'maplibre-gl';
 
-  } from "$lib/utils/map/map-dimension-layers";
-  import type { MapLibreMap } from "maplibre-gl";
+	type Props = {
+		/** When true, omit outer card chrome (used inside MapToolsFlyout). */
+		embedded?: boolean;
+		/** modes = pins + 2D/3D in flyout; camera = desktop rotate/tilt/north on map face. */
+		variant?: 'modes' | 'camera';
+	};
 
-  type Props = {
-    /** When true, omit outer card chrome (used inside MapToolsFlyout). */
-    embedded?: boolean;
-    /** modes = pins + 2D/3D in flyout; camera = desktop rotate/tilt/north on map face. */
-    variant?: "modes" | "camera";
-  };
+	let { embedded = false, variant = 'modes' }: Props = $props();
 
-  let { embedded = false, variant = "modes" }: Props = $props();
+	const showModes = $derived(variant === 'modes');
+	const showCameraNav = $derived(variant === 'camera');
 
-  const showModes = $derived(variant === "modes");
-  const showCameraNav = $derived(variant === "camera");
+	const ROTATE_STEP = 30;
+	const PITCH_STEP = 15;
+	const MAX_PITCH = 60;
+	/** Lucide navigation arrow tip sits at 45°; offset so north points up at bearing 0. */
+	const NORTH_ICON_OFFSET = 45;
 
-  const ROTATE_STEP = 30;
-  const PITCH_STEP = 15;
-  const MAX_PITCH = 60;
-  /** Lucide navigation arrow tip sits at 45°; offset so north points up at bearing 0. */
-  const NORTH_ICON_OFFSET = 45;
+	let bearing = $state(0);
+	let pitch = $state(0);
 
-  let bearing = $state(0);
-  let pitch = $state(0);
+	// Hydrate saved plans so the "My classes" toggle knows whether the user has
+	// any planned classes (init is idempotent, localStorage only).
+	onMount(() => plannerStore.init());
 
-  // Hydrate saved plans so the "My classes" toggle knows whether the user has
-  // any planned classes (init is idempotent, localStorage only).
-  onMount(() => plannerStore.init());
+	const northRotation = $derived(-NORTH_ICON_OFFSET - bearing);
+	const is2D = $derived(isMap2DPitch(pitch));
+	const pinModeTitle = $derived(
+		map.eventsOnly
+			? 'Showing event pins only. Switch to all pins.'
+			: 'Showing all pins. Switch to event pins only.'
+	);
+	const hasPlannerClasses = $derived((plannerStore.activePlan?.sections.length ?? 0) > 0);
+	const classHighlightTitle = $derived(
+		!hasPlannerClasses
+			? 'Add classes in the Planner to highlight their buildings.'
+			: map.highlightMyBuildings
+				? 'Highlighting your class buildings. Switch back to normal pins.'
+				: 'Highlight the buildings your planned classes are in.'
+	);
+	const cameraModeTitle = $derived(
+		is2D ? 'Camera is flat 2D. Switch to tilted 3D.' : 'Camera is tilted 3D. Switch to flat 2D.'
+	);
+	function syncCamera() {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		bearing = map.getBearing();
+		pitch = map.getPitch();
+	}
 
-  const northRotation = $derived(-NORTH_ICON_OFFSET - bearing);
-  const is2D = $derived(isMap2DPitch(pitch));
-  const pinModeTitle = $derived(
-    mapViewStore.eventsOnly
-      ? "Showing event pins only. Switch to all pins."
-      : "Showing all pins. Switch to event pins only.",
-  );
-  const hasPlannerClasses = $derived(
-    (plannerStore.activePlan?.sections.length ?? 0) > 0,
-  );
-  const classHighlightTitle = $derived(
-    !hasPlannerClasses
-      ? "Add classes in the Planner to highlight their buildings."
-      : mapViewStore.highlightMyBuildings
-        ? "Highlighting your class buildings. Switch back to normal pins."
-        : "Highlight the buildings your planned classes are in.",
-  );
-  const cameraModeTitle = $derived(
-    is2D
-      ? "Camera is flat 2D. Switch to tilted 3D."
-      : "Camera is tilted 3D. Switch to flat 2D.",
-  );
-  function syncCamera() {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    bearing = map.getBearing();
-    pitch = map.getPitch();
-  }
+	$effect(() => {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		syncCamera();
+		const onChange = () => syncCamera();
+		mapInstance.on('rotate', onChange);
+		mapInstance.on('pitch', onChange);
+		mapInstance.on('move', onChange);
+		return () => {
+			map.off('rotate', onChange);
+			map.off('pitch', onChange);
+			map.off('move', onChange);
+		};
+	});
 
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    syncCamera();
-    const onChange = () => syncCamera();
-    map.on("rotate", onChange);
-    map.on("pitch", onChange);
-    map.on("move", onChange);
-    return () => {
-      map.off("rotate", onChange);
-      map.off("pitch", onChange);
-      map.off("move", onChange);
-    };
-  });
+	function withMap(fn: (map: MapLibreMap) => void) {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		fn(map);
+	}
 
-  function withMap(fn: (map: MapLibreMap) => void) {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    fn(map);
-  }
+	const rotateLeft = () =>
+		withMap((map) => map.easeTo({ bearing: map.getBearing() - ROTATE_STEP, duration: 300 }));
 
-  const rotateLeft = () =>
-    withMap((map) =>
-      map.easeTo({ bearing: map.getBearing() - ROTATE_STEP, duration: 300 }),
-    );
+	const rotateRight = () =>
+		withMap((map) => map.easeTo({ bearing: map.getBearing() + ROTATE_STEP, duration: 300 }));
 
-  const rotateRight = () =>
-    withMap((map) =>
-      map.easeTo({ bearing: map.getBearing() + ROTATE_STEP, duration: 300 }),
-    );
+	const tiltUp = () =>
+		withMap((map) =>
+			map.easeTo({
+				pitch: Math.min(map.getPitch() + PITCH_STEP, MAX_PITCH),
+				duration: 300
+			})
+		);
 
-  const tiltUp = () =>
-    withMap((map) =>
-      map.easeTo({
-        pitch: Math.min(map.getPitch() + PITCH_STEP, MAX_PITCH),
-        duration: 300,
-      }),
-    );
+	const tiltDown = () =>
+		withMap((map) =>
+			map.easeTo({
+				pitch: Math.max(map.getPitch() - PITCH_STEP, 0),
+				duration: 300
+			})
+		);
 
-  const tiltDown = () =>
-    withMap((map) =>
-      map.easeTo({
-        pitch: Math.max(map.getPitch() - PITCH_STEP, 0),
-        duration: 300,
-      }),
-    );
+	const resetNorth = () => withMap((map) => map.easeTo({ bearing: 0, duration: 400 }));
 
-  const resetNorth = () =>
-    withMap((map) => map.easeTo({ bearing: 0, duration: 400 }));
-
-  const toggleView = () =>
-    withMap((map) => {
-      if (!isMap2DPitch(map.getPitch())) {
-        enterFlatMapDimension(map, terrainStore.enabled);
-        map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
-        return;
-      }
-      map.easeTo({ pitch: THREE_D_PITCH, duration: 600 });
-      map.once("moveend", () =>
-        enterTiltedMapDimension(map, terrainStore.enabled),
-      );
-    });
+	const toggleView = () =>
+		withMap((map) => {
+			if (!isMap2DPitch(map.getPitch())) {
+				enterFlatMapDimension(map, terrainStore.enabled);
+				map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
+				return;
+			}
+			map.easeTo({ pitch: THREE_D_PITCH, duration: 600 });
+			mapInstance.once('moveend', () => enterTiltedMapDimension(map, terrainStore.enabled));
+		});
 </script>
 
 <div
@@ -148,42 +131,42 @@
 	aria-label={showCameraNav ? 'Map camera controls' : 'Map display controls'}
 >
 	{#if showModes}
-		<button
+		<!-- <button
 			class="control mode-toggle pin-toggle"
-			class:active={mapViewStore.eventsOnly}
-			onclick={mapViewStore.toggleEventsOnly}
+			class:active={map.eventsOnly}
+			onclick={map.toggleEventsOnly}
 			title={pinModeTitle}
 			aria-label={pinModeTitle}
-			aria-pressed={mapViewStore.eventsOnly}
+			aria-pressed={map.eventsOnly}
 		>
 			<CalendarDays size={18} aria-hidden="true" />
 			<span class="control-copy">
 				<span class="control-kicker">Pins</span>
 				<span class="control-value">
-					{mapViewStore.eventsOnly ? 'Events' : 'All'}
+					{map.eventsOnly ? 'Events' : 'All'}
 				</span>
 			</span>
-		</button>
+		</button> -->
 
 		<div class="divider"></div>
 
-		<button
+		<!-- <button
 			class="control mode-toggle class-highlight-toggle"
-			class:active={mapViewStore.highlightMyBuildings}
-			onclick={mapViewStore.toggleHighlightMyBuildings}
+			class:active={map.highlightMyBuildings}
+			onclick={map.toggleHighlightMyBuildings}
 			disabled={!hasPlannerClasses}
 			title={classHighlightTitle}
 			aria-label={classHighlightTitle}
-			aria-pressed={mapViewStore.highlightMyBuildings}
+			aria-pressed={map.highlightMyBuildings}
 		>
 			<GraduationCap size={18} aria-hidden="true" />
 			<span class="control-copy">
 				<span class="control-kicker">My classes</span>
 				<span class="control-value">
-					{mapViewStore.highlightMyBuildings ? 'Highlighted' : 'Off'}
+					{map.highlightMyBuildings ? 'Highlighted' : 'Off'}
 				</span>
 			</span>
-		</button>
+		</button> -->
 		{#if !hasPlannerClasses}
 			<p class="control-hint">Add classes in the Planner first.</p>
 		{/if}

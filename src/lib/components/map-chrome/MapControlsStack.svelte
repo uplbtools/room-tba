@@ -1,101 +1,94 @@
 <script lang="ts">
-  import Locate from "@lucide/svelte/icons/locate";
-  import LocateFixed from "@lucide/svelte/icons/locate-fixed";
-  import {
-    enterFlatMapDimension,
-    enterTiltedMapDimension,
-  } from "$lib/utils/map/map-dimension-layers"
-import { isMap2DPitch, THREE_D_PITCH } from "$lib/constants/map/dimension";
-  import {
-    locationStore,
-    mapStore,
-    terrainStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import compassIcon from "../../../assets/icons/compass.svg?url";
+	import Locate from '@lucide/svelte/icons/locate';
+	import LocateFixed from '@lucide/svelte/icons/locate-fixed';
+	import {
+		enterFlatMapDimension,
+		enterTiltedMapDimension
+	} from '$lib/utils/map/map-dimension-layers';
+	import { isMap2DPitch, THREE_D_PITCH } from '$lib/constants/map/dimension';
+	import { userLocation, map, terrainStore, toastStore } from '$lib/stores.svelte';
+	import compassIcon from '../../../assets/icons/compass.svg?url';
 
-  type Props = {
-    /** Mobile Figma: locate / 2D / zoom only (no compass). */
-    hideCompass?: boolean;
-  };
+	type Props = {
+		/** Mobile Figma: locate / 2D / zoom only (no compass). */
+		hideCompass?: boolean;
+	};
 
-  let { hideCompass = false }: Props = $props();
+	let { hideCompass = false }: Props = $props();
 
-  let bearing = $state(0);
-  let pitch = $state(0);
-  let centered = $state(false);
+	let bearing = $state(0);
+	let pitch = $state(0);
+	let centered = $state(false);
 
-  const is2D = $derived(isMap2DPitch(pitch));
-  /** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
-  const northRotation = $derived(-bearing);
+	const is2D = $derived(isMap2DPitch(pitch));
+	/** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
+	const northRotation = $derived(-bearing);
 
-  function syncCamera() {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    bearing = map.getBearing();
-    pitch = map.getPitch();
-  }
+	function syncCamera() {
+		const mapInstance = map.getRawInstance();
+		if (!mapInstance) return;
+		bearing = mapInstance.getBearing();
+		pitch = mapInstance.getPitch();
+	}
 
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    syncCamera();
-    const onChange = () => syncCamera();
-    map.on("rotate", onChange);
-    map.on("pitch", onChange);
-    map.on("move", onChange);
-    return () => {
-      map.off("rotate", onChange);
-      map.off("pitch", onChange);
-      map.off("move", onChange);
-    };
-  });
+	$effect(() => {
+		const mapInstance = map.getRawInstance();
+		if (!mapInstance) return;
+		syncCamera();
+		const onChange = () => syncCamera();
+		mapInstance.on('rotate', onChange);
+		mapInstance.on('pitch', onChange);
+		mapInstance.on('move', onChange);
+		return () => {
+			mapInstance.off('rotate', onChange);
+			mapInstance.off('pitch', onChange);
+			mapInstance.off('move', onChange);
+		};
+	});
 
-  function resetNorth() {
-    mapStore.mapInstance?.easeTo({ bearing: 0, duration: 400 });
-  }
+	function resetNorth() {
+		map.getRawInstance()?.easeTo({ bearing: 0, duration: 400 });
+	}
 
-  function toggleDimension() {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    if (isMap2DPitch(map.getPitch())) {
-      map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
-      map.once("moveend", () =>
-        enterTiltedMapDimension(map, terrainStore.enabled),
-      );
-      return;
-    }
-    enterFlatMapDimension(map, terrainStore.enabled);
-    // Pitch only: dropping to 2D used to also snap the bearing to north, which
-    // threw away a rotation the user set on purpose. The compass button is the
-    // control that resets north.
-    map.easeTo({ pitch: 0, duration: 400 });
-  }
+	function toggleDimension() {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		if (isMap2DPitch(map.getPitch())) {
+			map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
+			mapInstance.once('moveend', () => enterTiltedMapDimension(map, terrainStore.enabled));
+			return;
+		}
+		enterFlatMapDimension(map, terrainStore.enabled);
+		// Pitch only: dropping to 2D used to also snap the bearing to north, which
+		// threw away a rotation the user set on purpose. The compass button is the
+		// control that resets north.
+		map.easeTo({ pitch: 0, duration: 400 });
+	}
 
-  function goToLocation() {
-    if (!locationStore.coords) {
-      locationStore.requestLocation();
-      return;
-    }
-    if (!mapStore.mapInstance) {
-      toastStore.show("Map component is still initializing", "info");
-      return;
-    }
-    centered = true;
-    mapStore.mapInstance.flyTo({
-      center: locationStore.coords,
-      zoom: 17,
-      offset: [0, -24],
-      bearing: locationStore.bearing ?? 0,
-      duration: 1500,
-    });
-  }
+	function goToLocation() {
+		if (!userLocation.coords) {
+			userLocation.requestLocation();
+			return;
+		}
+		if (map.isMapReady()) {
+			toastStore.show('Map component is still initializing', 'info');
+			return;
+		}
+		centered = true;
+		map.getRawInstance().flyTo({
+			center: userLocation.coords,
+			zoom: 17,
+			offset: [0, -24],
+			bearing: userLocation.bearing ?? 0,
+			duration: 1500
+		});
+	}
 
-  function zoomBy(delta: number) {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    map.easeTo({ zoom: map.getZoom() + delta, duration: 200 });
-  }
+	function zoomBy(delta: number) {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		map.easeTo({ zoom: map.getZoom() + delta, duration: 200 });
+	}
 </script>
 
 <div

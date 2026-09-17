@@ -6,9 +6,12 @@
 	import IconButton from '$lib/components/IconButton.svelte';
 	import './map-chrome/map-chrome.css';
 	import { getAppData } from '$lib/utils/context';
-	import { floatingControlPanelStore, mapViewStore, queryStore } from '$lib/stores.svelte';
-	import { openEphemeralOverlay, registerEphemeralOverlayDismisser } from '$lib/utils/overlay-stack';
-	import { campusTransit } from '$lib/campus.config'
+	import { floatingControlPanelStore, map, queryStore } from '$lib/stores.svelte';
+	import {
+		openEphemeralOverlay,
+		registerEphemeralOverlayDismisser
+	} from '$lib/utils/overlay-stack';
+	import { campusTransit } from '$lib/campus.config';
 	type Props = {
 		embedded?: boolean;
 		trigger?: 'icon' | 'chip';
@@ -20,7 +23,7 @@
 	 * would lie when the user is zoomed out past it. */
 	function legendState(on: boolean): string {
 		if (!on) return 'Hidden — tap to toggle.';
-		return mapViewStore.poiPinsZoomVisible
+		return map.poiPinsZoomVisible
 			? 'Shown — tap to toggle.'
 			: 'Shown when you zoom in — tap to toggle.';
 	}
@@ -35,7 +38,7 @@
 	const showEventSection = $derived(
 		loaded &&
 			(events.length > 0 ||
-				mapViewStore.eventsOnly ||
+				map.eventsOnly ||
 				queryStore.category === 'event' ||
 				queryStore.category === 'events')
 	);
@@ -199,41 +202,41 @@
 					</div>
 				</section>
 
-				<section class="legend-section" aria-labelledby="legend-layers">
+				<!-- <section class="legend-section" aria-labelledby="legend-layers">
 					<h3 id="legend-layers" class="legend-section-title">Layers</h3>
 					<div class="legend-list">
 						<button
 							type="button"
 							class="legend-item legend-toggle"
-							class:legend-toggle--off={!mapViewStore.showOrgs}
-							aria-pressed={mapViewStore.showOrgs}
-							onclick={() => mapViewStore.toggleOrgs()}
+							class:legend-toggle--off={!map.showOrgs}
+							aria-pressed={map.showOrgs}
+							onclick={() => map.toggleOrgs()}
 						>
 							<span class="legend-swatch organization" aria-hidden="true"></span>
 							<span class="legend-copy">
 								<span class="legend-label">Orgs, units &amp; offices</span>
 								<span class="legend-description">
-									{legendState(mapViewStore.showOrgs)}
+									{legendState(map.showOrgs)}
 								</span>
 							</span>
 						</button>
 						<button
 							type="button"
 							class="legend-item legend-toggle"
-							class:legend-toggle--off={!mapViewStore.showPlaces}
-							aria-pressed={mapViewStore.showPlaces}
-							onclick={() => mapViewStore.togglePlaces()}
+							class:legend-toggle--off={!map.showPlaces}
+							aria-pressed={map.showPlaces}
+							onclick={() => map.togglePlaces()}
 						>
 							<span class="legend-swatch establishment" aria-hidden="true"></span>
 							<span class="legend-copy">
 								<span class="legend-label">Landmarks &amp; establishments</span>
 								<span class="legend-description">
-									{legendState(mapViewStore.showPlaces)}
+									{legendState(map.showPlaces)}
 								</span>
 							</span>
 						</button>
 					</div>
-				</section>
+				</section> -->
 			</div>
 		</div>
 	{/if}

@@ -1,27 +1,27 @@
 <script lang="ts">
-  import Route from "@lucide/svelte/icons/route";
-  import MapPin from "@lucide/svelte/icons/map-pin";
-  import { trailStore, mapStore } from "$lib/stores.svelte";
-  import {
-    MAKILING_TRAIL_STATIONS,
-    MAKILING_TRAIL_CAMERA,
-  } from "$lib/constants/map/makiling-trail";
+	import Route from '@lucide/svelte/icons/route';
+	import MapPin from '@lucide/svelte/icons/map-pin';
+	import { trailStore, map } from '$lib/stores.svelte';
+	import {
+		MAKILING_TRAIL_STATIONS,
+		MAKILING_TRAIL_CAMERA
+	} from '$lib/constants/map/makiling-trail';
 
-  type Props = {
-    embedded?: boolean;
-  };
+	type Props = {
+		embedded?: boolean;
+	};
 
-  let { embedded = false }: Props = $props();
+	let { embedded = false }: Props = $props();
 
-  function flyToTrail() {
-    mapStore.mapInstance?.flyTo({
-      center: MAKILING_TRAIL_CAMERA.center,
-      zoom: MAKILING_TRAIL_CAMERA.zoom,
-      pitch: MAKILING_TRAIL_CAMERA.pitch,
-      bearing: MAKILING_TRAIL_CAMERA.bearing,
-      duration: 2000,
-    });
-  }
+	function flyToTrail() {
+		map.flyTo({
+			center: MAKILING_TRAIL_CAMERA.center,
+			zoom: MAKILING_TRAIL_CAMERA.zoom,
+			pitch: MAKILING_TRAIL_CAMERA.pitch,
+			bearing: MAKILING_TRAIL_CAMERA.bearing,
+			duration: 2000
+		});
+	}
 </script>
 
 <div class="trail-control">

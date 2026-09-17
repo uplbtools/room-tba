@@ -19,7 +19,6 @@ import {
 	Building3DStore,
 	MapStore,
 	MapToolsStore,
-	MapViewStore,
 	MeasureRouteStore,
 	TerrainStore,
 	TrailStore,
@@ -48,13 +47,13 @@ export {
 import { OfflineStore } from './sync/OfflineStore.svelte';
 import SyncToastStore from './sync/SyncToastStore.svelte';
 import AppBootstrapStore from './sync/AppBootstrapStore.svelte';
-import LocationStore from './map/LocationStore.svelte';
 import ProposalsStore from './ProposalsStore.svelte';
 import AdminAuthStore from './AdminAuthStore.svelte';
 import JeepneyStore from './map/JeepneyStores.svelte';
 import ScheduleRouteStore from './map/ScheduleRouteStore.svelte';
 import PlannerBuildingsStore from './data/PlannerBuildingsStore.svelte.js';
 import { currentRoom } from './current-room-store.svelte';
+import UserLocation from './map/LocationStore.svelte.js';
 
 
 export { currentRoom }
@@ -68,9 +67,8 @@ export const scheduleRouteStore = new ScheduleRouteStore();
 export const offlineStore = new OfflineStore();
 export const modalStore = new ModalStore();
 export const toastStore = new ToastStore();
-export const locationStore = new LocationStore();
-export const mapStore = new MapStore();
-export const mapViewStore = new MapViewStore();
+export const userLocation = new UserLocation();
+export const map = new MapStore();
 export const floatingControlPanelStore = new FloatingControlPanelStore();
 export const mapToolsStore = new MapToolsStore();
 export const editorChromeStore = new EditorChromeStore();

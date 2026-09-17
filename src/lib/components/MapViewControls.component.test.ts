@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test } from 'vitest';
 import MapViewControls from './MapViewControls.svelte';
-import { mapViewStore, plannerStore, termStore } from '$lib/stores.svelte';
+import { map, plannerStore, termStore } from '$lib/stores.svelte';
 import { mountAtWidth } from '@test/layout-assertions';
 
 describe('MapViewControls My classes toggle', () => {
@@ -9,7 +9,7 @@ describe('MapViewControls My classes toggle', () => {
 		localStorage.clear();
 		plannerStore.plans = [];
 		plannerStore.activePlanIdByTerm = {};
-		mapViewStore.showAll();
+		map.showAll();
 	});
 
 	test('disabled with a hint when the planner has no classes at 320px', () => {
@@ -49,6 +49,6 @@ describe('MapViewControls My classes toggle', () => {
 		expect(toggle.disabled).toBe(false);
 
 		toggle.click();
-		expect(mapViewStore.highlightMyBuildings).toBe(true);
+		expect(map.highlightMyBuildings).toBe(true);
 	});
 });

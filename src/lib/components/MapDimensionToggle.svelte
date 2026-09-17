@@ -1,65 +1,63 @@
 <script lang="ts">
-  import { mapStore, terrainStore } from "$lib/stores.svelte";
-  import { THREE_D_PITCH, isMap2DPitch } from "$lib/constants/map/dimension";
-  import {
-    enterFlatMapDimension,
-    enterTiltedMapDimension,
-  } from "$lib/utils/map/map-dimension-layers"
-import type { MapLibreMap } from "maplibre-gl";
+	import { map, terrainStore } from '$lib/stores.svelte';
+	import { THREE_D_PITCH, isMap2DPitch } from '$lib/constants/map/dimension';
+	import {
+		enterFlatMapDimension,
+		enterTiltedMapDimension
+	} from '$lib/utils/map/map-dimension-layers';
+	import type { MapLibreMap } from 'maplibre-gl';
 
-  type Props = {
-    /** Inline chip-row size (~1.75rem); used on mobile search chrome. */
-    compact?: boolean;
-    /** Inside desktop camera card — no outer chrome, vertical stack. */
-    embedded?: boolean;
-  };
+	type Props = {
+		/** Inline chip-row size (~1.75rem); used on mobile search chrome. */
+		compact?: boolean;
+		/** Inside desktop camera card — no outer chrome, vertical stack. */
+		embedded?: boolean;
+	};
 
-  let { compact = false, embedded = false }: Props = $props();
+	let { compact = false, embedded = false }: Props = $props();
 
-  let pitch = $state(0);
+	let pitch = $state(0);
 
-  const is2D = $derived(isMap2DPitch(pitch));
+	const is2D = $derived(isMap2DPitch(pitch));
 
-  function syncPitch() {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    pitch = map.getPitch();
-  }
+	function syncPitch() {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		pitch = map.getPitch();
+	}
 
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    syncPitch();
-    const onChange = () => syncPitch();
-    map.on("pitch", onChange);
-    map.on("move", onChange);
-    return () => {
-      map.off("pitch", onChange);
-      map.off("move", onChange);
-    };
-  });
+	$effect(() => {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		syncPitch();
+		const onChange = () => syncPitch();
+		mapInstance.on('pitch', onChange);
+		mapInstance.on('move', onChange);
+		return () => {
+			map.off('pitch', onChange);
+			map.off('move', onChange);
+		};
+	});
 
-  function withMap(fn: (map: MapLibreMap) => void) {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    fn(map);
-  }
+	function withMap(fn: (map: MapLibreMap) => void) {
+		const mapInstance = map.getRawInstance();
+		if (!map) return;
+		fn(map);
+	}
 
-  const go2D = () =>
-    withMap((map) => {
-      if (isMap2DPitch(map.getPitch())) return;
-      enterFlatMapDimension(map, terrainStore.enabled);
-      map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
-    });
+	const go2D = () =>
+		withMap((map) => {
+			if (isMap2DPitch(map.getPitch())) return;
+			enterFlatMapDimension(map, terrainStore.enabled);
+			map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
+		});
 
-  const go3D = () =>
-    withMap((map) => {
-      if (!isMap2DPitch(map.getPitch())) return;
-      map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
-      map.once("moveend", () =>
-        enterTiltedMapDimension(map, terrainStore.enabled),
-      );
-    });
+	const go3D = () =>
+		withMap((map) => {
+			if (!isMap2DPitch(map.getPitch())) return;
+			map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
+			mapInstance.once('moveend', () => enterTiltedMapDimension(map, terrainStore.enabled));
+		});
 </script>
 
 <div

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { Building3DStore, MapToolsStore, MapViewStore, TerrainStore } from './map-stores.svelte';
+import { Building3DStore, MapToolsStore,  TerrainStore } from './map-stores.svelte';
 import { mapEditStore, mapToolsStore, terrainStore } from '$lib/stores.svelte';
 
 describe('MapToolsStore', () => {
@@ -51,9 +51,9 @@ describe('TerrainStore', () => {
 	});
 });
 
-describe('MapViewStore', () => {
+describe('map', () => {
 	test('toggleEventsOnly flips eventsOnly', () => {
-		const store = new MapViewStore();
+		const store = new map();
 		store.toggleEventsOnly();
 		expect(store.eventsOnly).toBe(true);
 		store.showAll();
@@ -61,7 +61,7 @@ describe('MapViewStore', () => {
 	});
 
 	test('org and place layers default on and toggle independently', () => {
-		const store = new MapViewStore();
+		const store = new map();
 		expect(store.showOrgs).toBe(true);
 		expect(store.showPlaces).toBe(true);
 		store.toggleOrgs();
@@ -72,7 +72,7 @@ describe('MapViewStore', () => {
 	});
 
 	test('showAll restores hidden pin layers', () => {
-		const store = new MapViewStore();
+		const store = new map();
 		store.toggleOrgs();
 		store.togglePlaces();
 		store.showAll();
@@ -81,7 +81,7 @@ describe('MapViewStore', () => {
 	});
 
 	test('highlightMyBuildings toggles and leaves events-only mode', () => {
-		const store = new MapViewStore();
+		const store = new map();
 		store.toggleEventsOnly();
 		store.toggleHighlightMyBuildings();
 		expect(store.highlightMyBuildings).toBe(true);
@@ -91,7 +91,7 @@ describe('MapViewStore', () => {
 	});
 
 	test('showAll clears the class-building highlight', () => {
-		const store = new MapViewStore();
+		const store = new map();
 		store.toggleHighlightMyBuildings();
 		store.showAll();
 		expect(store.highlightMyBuildings).toBe(false);

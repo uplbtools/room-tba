@@ -1,620 +1,564 @@
 <script lang="ts">
-  import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
-  import ExternalLink from "@lucide/svelte/icons/external-link";
-  import MapPin from "@lucide/svelte/icons/map-pin";
-  import Route from "@lucide/svelte/icons/route";
-  import EntityPanelClose from "./EntityPanelClose.svelte";
-  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
-  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
-  import EntityLastUpdated from "../EntityLastUpdated.svelte";
-  import EntityEditorToggle from "$lib/components/editor/EntityEditorToggle.svelte";
-  import EntityEditorPanel from "$lib/components/editor/EntityEditorPanel.svelte";
-  import EntityEditorFormField from "$lib/components/editor/EntityEditorFormField.svelte";
-  import EntityEditorCard from "$lib/components/editor/EntityEditorCard.svelte";
-  import EntityEditorPinRow from "$lib/components/editor/EntityEditorPinRow.svelte";
-  import EntityEditorSubmitButton from "$lib/components/editor/EntityEditorSubmitButton.svelte";
-  import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
-  import { fieldSaveActionLabel } from "$lib/utils/editor/field-action-label";
-  import { getAppActions, getAppData } from "$lib/utils/context";
-  import {
-    adminAuthStore,
-    eventPlacementStore,
-    mapEditStore,
-    mapProposalStore,
-    mapStore,
-    queryStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import {
-    getStoredProposalForEntity,
-    persistEntityChange,
-  } from "$lib/utils/proposals/client";
-  import { CAMPUS_DEFAULT_CAMERA } from "$lib/constants/map/terrain"
-  import { getEventImage } from "$lib/utils/event/event-images";
-  import {
-    campusInputToWallString,
-    formatCampusDateTime,
-    instantToCampusInput,
-  } from "$lib/utils/event/event-time";
-  import { getEventShareUrl } from "$lib/utils/share-links";
-  import type { EventData } from "$lib/utils/types";
-  import {
-    clearEntityContributorDraft,
-    readEntityContributorDraft,
-    scheduleEntityContributorDraftSave,
-  } from "$lib/utils/contributor-drafts";
+	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import MapPin from '@lucide/svelte/icons/map-pin';
+	import Route from '@lucide/svelte/icons/route';
+	import EntityPanelClose from './EntityPanelClose.svelte';
+	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
+	import EntityDirectionsChip from './EntityDirectionsChip.svelte';
+	import EntityLastUpdated from '../EntityLastUpdated.svelte';
+	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
+	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorFormField from '$lib/components/editor/EntityEditorFormField.svelte';
+	import EntityEditorCard from '$lib/components/editor/EntityEditorCard.svelte';
+	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityEditorSubmitButton from '$lib/components/editor/EntityEditorSubmitButton.svelte';
+	import ImageUpload from '$lib/components/editor/ImageUpload.svelte';
+	import { fieldSaveActionLabel } from '$lib/utils/editor/field-action-label';
+	import { getAppActions, getAppData } from '$lib/utils/context';
+	import {
+		adminAuthStore,
+		eventPlacementStore,
+		mapEditStore,
+		mapProposalStore,
+		map,
+		queryStore,
+		toastStore
+	} from '$lib/stores.svelte';
+	import { getStoredProposalForEntity, persistEntityChange } from '$lib/utils/proposals/client';
+	import { CAMPUS_DEFAULT_CAMERA } from '$lib/constants/map/terrain';
+	import { getEventImage } from '$lib/utils/event/event-images';
+	import {
+		campusInputToWallString,
+		formatCampusDateTime,
+		instantToCampusInput
+	} from '$lib/utils/event/event-time';
+	import { getEventShareUrl } from '$lib/utils/share-links';
+	import type { EventData } from '$lib/utils/types';
+	import {
+		clearEntityContributorDraft,
+		readEntityContributorDraft,
+		scheduleEntityContributorDraftSave
+	} from '$lib/utils/contributor-drafts';
 
-  const STATUS_LABELS: Record<EventData["status"], string> = {
-    active: "Happening now",
-    upcoming: "Upcoming",
-    past: "Past",
-  };
+	const STATUS_LABELS: Record<EventData['status'], string> = {
+		active: 'Happening now',
+		upcoming: 'Upcoming',
+		past: 'Past'
+	};
 
-  const appData = getAppData();
-  const appActions = getAppActions();
-  const { events, loaded, buildings, dorms } = $derived(appData());
-  const event = $derived(
-    loaded
-      ? queryStore.selectedEventSlug
-        ? (events.find((item) => item.slug === queryStore.selectedEventSlug) ??
-          null)
-        : (events.find((item) => item.title === queryStore.queryValue) ?? null)
-      : null,
-  );
-  const shareUrl = $derived(event ? getEventShareUrl(event.slug) : "");
-  const eventImage = $derived(
-    event ? getEventImage(event.slug, event.imageUrl, event.title) : null,
-  );
-  const primaryLocation = $derived(
-    event
-      ? (event.locations.find((location) => location.isPrimary) ??
-          event.locations[0] ??
-          null)
-      : null,
-  );
+	const appData = getAppData();
+	const appActions = getAppActions();
+	const { events, loaded, buildings, dorms } = $derived(appData());
+	const event = $derived(
+		loaded
+			? queryStore.selectedEventSlug
+				? (events.find((item) => item.slug === queryStore.selectedEventSlug) ?? null)
+				: (events.find((item) => item.title === queryStore.queryValue) ?? null)
+			: null
+	);
+	const shareUrl = $derived(event ? getEventShareUrl(event.slug) : '');
+	const eventImage = $derived(
+		event ? getEventImage(event.slug, event.imageUrl, event.title) : null
+	);
+	const primaryLocation = $derived(
+		event
+			? (event.locations.find((location) => location.isPrimary) ?? event.locations[0] ?? null)
+			: null
+	);
 
-  let editing = $state(false);
-  let saving = $state(false);
-  let savingLocation = $state(false);
-  let deactivating = $state(false);
-  let form = $state({
-    title: "",
-    description: "",
-    category: "other",
-    startsAt: "",
-    endsAt: "",
-    sourceUrl: "",
-    imageUrl: null as string | null,
-    recurrence: "none" as EventData["recurrence"],
-  });
-  let locationForm = $state({
-    anchorType: "custom" as EventData["locations"][number]["anchorType"],
-    buildingId: "" as number | "",
-    dormId: "" as number | "",
-    label: "",
-  });
-  let routeForms = $state<{ id: number; name: string; description: string }[]>(
-    [],
-  );
-  let submitterNameDraft = $state("");
-  let activeProposalId = $state<number | null>(null);
-  let draftEventId = $state<number | null>(null);
-  const canPublish = $derived(adminAuthStore.canPublish);
+	let editing = $state(false);
+	let saving = $state(false);
+	let savingLocation = $state(false);
+	let deactivating = $state(false);
+	let form = $state({
+		title: '',
+		description: '',
+		category: 'other',
+		startsAt: '',
+		endsAt: '',
+		sourceUrl: '',
+		imageUrl: null as string | null,
+		recurrence: 'none' as EventData['recurrence']
+	});
+	let locationForm = $state({
+		anchorType: 'custom' as EventData['locations'][number]['anchorType'],
+		buildingId: '' as number | '',
+		dormId: '' as number | '',
+		label: ''
+	});
+	let routeForms = $state<{ id: number; name: string; description: string }[]>([]);
+	let submitterNameDraft = $state('');
+	let activeProposalId = $state<number | null>(null);
+	let draftEventId = $state<number | null>(null);
+	const canPublish = $derived(adminAuthStore.canPublish);
 
-  $effect(() => {
-    const current = event;
-    if (!current) return;
-    if (draftEventId === current.id) return;
-    draftEventId = current.id;
+	$effect(() => {
+		const current = event;
+		if (!current) return;
+		if (draftEventId === current.id) return;
+		draftEventId = current.id;
 
-    if (canPublish) return;
-    const saved = readEntityContributorDraft("event", current.id);
-    if (!saved) return;
-    // if (saved.editing) editing = true;
-    const savedForm = saved.fields.form;
-    if (savedForm && typeof savedForm === "object") {
-      form = { ...form, ...(savedForm as typeof form) };
-    }
-    const savedLocationForm = saved.fields.locationForm;
-    if (savedLocationForm && typeof savedLocationForm === "object") {
-      locationForm = {
-        ...locationForm,
-        ...(savedLocationForm as typeof locationForm),
-      };
-    }
-    const savedRouteForms = saved.fields.routeForms;
-    if (Array.isArray(savedRouteForms)) {
-      routeForms = savedRouteForms as typeof routeForms;
-    }
-  });
+		if (canPublish) return;
+		const saved = readEntityContributorDraft('event', current.id);
+		if (!saved) return;
+		// if (saved.editing) editing = true;
+		const savedForm = saved.fields.form;
+		if (savedForm && typeof savedForm === 'object') {
+			form = { ...form, ...(savedForm as typeof form) };
+		}
+		const savedLocationForm = saved.fields.locationForm;
+		if (savedLocationForm && typeof savedLocationForm === 'object') {
+			locationForm = {
+				...locationForm,
+				...(savedLocationForm as typeof locationForm)
+			};
+		}
+		const savedRouteForms = saved.fields.routeForms;
+		if (Array.isArray(savedRouteForms)) {
+			routeForms = savedRouteForms as typeof routeForms;
+		}
+	});
 
-  $effect(() => {
-    if (canPublish || !editing || !event) return;
-    form;
-    locationForm;
-    routeForms;
-    scheduleEntityContributorDraftSave("event", event.id, () => ({
-      editing: true,
-      fields: { form, locationForm, routeForms },
-    }));
-  });
+	$effect(() => {
+		if (canPublish || !editing || !event) return;
+		form;
+		locationForm;
+		routeForms;
+		scheduleEntityContributorDraftSave('event', event.id, () => ({
+			editing: true,
+			fields: { form, locationForm, routeForms }
+		}));
+	});
 
-  $effect(() => {
-    if (!event || editing) return;
-    form = eventToForm(event);
-    syncLocationForm(event);
-    routeForms = event.routes.map((route) => ({
-      id: route.id,
-      name: route.name,
-      description: route.description ?? "",
-    }));
-  });
+	$effect(() => {
+		if (!event || editing) return;
+		form = eventToForm(event);
+		syncLocationForm(event);
+		routeForms = event.routes.map((route) => ({
+			id: route.id,
+			name: route.name,
+			description: route.description ?? ''
+		}));
+	});
 
-  $effect(() => {
-    if (!event || !eventPlacementStore.consumeCreatedEvent(event.id)) return;
-    form = eventToForm(event);
-    editing = true;
-  });
+	$effect(() => {
+		if (!event || !eventPlacementStore.consumeCreatedEvent(event.id)) return;
+		form = eventToForm(event);
+		editing = true;
+	});
 
-  function closeEventDetails() {
-    editing = false;
-    queryStore.clearQuery();
-  }
+	function closeEventDetails() {
+		editing = false;
+		queryStore.clearQuery();
+	}
 
-  function eventToForm(event: EventData) {
-    return {
-      title: event.title,
-      description: event.description ?? "",
-      category: event.category,
-      startsAt: instantToCampusInput(event.startsAt),
-      endsAt: instantToCampusInput(event.endsAt),
-      sourceUrl: event.sourceUrl ?? "",
-      imageUrl: event.imageUrl ?? null,
-      recurrence: event.recurrence,
-    };
-  }
+	function eventToForm(event: EventData) {
+		return {
+			title: event.title,
+			description: event.description ?? '',
+			category: event.category,
+			startsAt: instantToCampusInput(event.startsAt),
+			endsAt: instantToCampusInput(event.endsAt),
+			sourceUrl: event.sourceUrl ?? '',
+			imageUrl: event.imageUrl ?? null,
+			recurrence: event.recurrence
+		};
+	}
 
-  function syncLocationForm(event: EventData) {
-    const primary =
-      event.locations.find((location) => location.isPrimary) ??
-      event.locations[0] ??
-      null;
-    if (!primary) {
-      locationForm = {
-        anchorType: "custom",
-        buildingId: "",
-        dormId: "",
-        label: "",
-      };
-      return;
-    }
-    locationForm = {
-      anchorType: primary.anchorType,
-      buildingId: primary.buildingId ?? "",
-      dormId: primary.dormId ?? "",
-      label: primary.label,
-    };
-  }
+	function syncLocationForm(event: EventData) {
+		const primary =
+			event.locations.find((location) => location.isPrimary) ?? event.locations[0] ?? null;
+		if (!primary) {
+			locationForm = {
+				anchorType: 'custom',
+				buildingId: '',
+				dormId: '',
+				label: ''
+			};
+			return;
+		}
+		locationForm = {
+			anchorType: primary.anchorType,
+			buildingId: primary.buildingId ?? '',
+			dormId: primary.dormId ?? '',
+			label: primary.label
+		};
+	}
 
-  function flyMapToAnchorPreview(coords: { lat: number; lon: number }) {
-    mapStore.mapInstance?.flyTo({
-      center: [coords.lon, coords.lat],
-      zoom: Math.max(mapStore.mapInstance.getZoom(), 17),
-      duration: 700,
-    });
-  }
+	function flyMapToAnchorPreview(coords: { lat: number; lon: number }) {
+		map.flyTo({
+			center: [coords.lon, coords.lat],
+			zoom: Math.max(map.getRawInstance().getZoom(), 17),
+			duration: 700
+		});
+	}
 
-  function handleAnchorTypeChange() {
-    locationForm.buildingId = "";
-    locationForm.dormId = "";
-  }
+	function handleAnchorTypeChange() {
+		locationForm.buildingId = '';
+		locationForm.dormId = '';
+	}
 
-  function handleBuildingAnchorChange() {
-    if (locationForm.buildingId === "") return;
-    const building = (buildings ?? []).find(
-      (item) => item.id === Number(locationForm.buildingId),
-    );
-    if (!building) return;
-    if (!locationForm.label.trim() || locationForm.label === "Event marker") {
-      locationForm.label = building.buildingName;
-    }
-    if (building.lat != null && building.lon != null) {
-      flyMapToAnchorPreview({ lat: building.lat, lon: building.lon });
-    }
-  }
+	function handleBuildingAnchorChange() {
+		if (locationForm.buildingId === '') return;
+		const building = (buildings ?? []).find((item) => item.id === Number(locationForm.buildingId));
+		if (!building) return;
+		if (!locationForm.label.trim() || locationForm.label === 'Event marker') {
+			locationForm.label = building.buildingName;
+		}
+		if (building.lat != null && building.lon != null) {
+			flyMapToAnchorPreview({ lat: building.lat, lon: building.lon });
+		}
+	}
 
-  function handleDormAnchorChange() {
-    if (locationForm.dormId === "") return;
-    const dorm = (dorms ?? []).find((item) => item.id === Number(locationForm.dormId));
-    if (!dorm) return;
-    if (!locationForm.label.trim() || locationForm.label === "Event marker") {
-      locationForm.label = dorm.dormName;
-    }
-    if (dorm.lat != null && dorm.lon != null) {
-      flyMapToAnchorPreview({ lat: dorm.lat, lon: dorm.lon });
-    }
-  }
+	function handleDormAnchorChange() {
+		if (locationForm.dormId === '') return;
+		const dorm = (dorms ?? []).find((item) => item.id === Number(locationForm.dormId));
+		if (!dorm) return;
+		if (!locationForm.label.trim() || locationForm.label === 'Event marker') {
+			locationForm.label = dorm.dormName;
+		}
+		if (dorm.lat != null && dorm.lon != null) {
+			flyMapToAnchorPreview({ lat: dorm.lat, lon: dorm.lon });
+		}
+	}
 
-  function focusMapOnSavedEvent(event: EventData) {
-    const primary =
-      event.locations.find((location) => location.isPrimary) ??
-      event.locations[0] ??
-      null;
-    if (
-      !primary ||
-      primary.resolvedLat === null ||
-      primary.resolvedLon === null
-    ) {
-      return;
-    }
-    flyMapToAnchorPreview({
-      lat: primary.resolvedLat,
-      lon: primary.resolvedLon,
-    });
-  }
+	function focusMapOnSavedEvent(event: EventData) {
+		const primary =
+			event.locations.find((location) => location.isPrimary) ?? event.locations[0] ?? null;
+		if (!primary || primary.resolvedLat === null || primary.resolvedLon === null) {
+			return;
+		}
+		flyMapToAnchorPreview({
+			lat: primary.resolvedLat,
+			lon: primary.resolvedLon
+		});
+	}
 
-  function applyConflictLatest(data: { latest?: EventData | null }) {
-    if (!data.latest) return;
-    appActions.replaceEvent(data.latest);
-    form = eventToForm(data.latest);
-    syncLocationForm(data.latest);
-    routeForms = data.latest.routes.map((route) => ({
-      id: route.id,
-      name: route.name,
-      description: route.description ?? "",
-    }));
-  }
+	function applyConflictLatest(data: { latest?: EventData | null }) {
+		if (!data.latest) return;
+		appActions.replaceEvent(data.latest);
+		form = eventToForm(data.latest);
+		syncLocationForm(data.latest);
+		routeForms = data.latest.routes.map((route) => ({
+			id: route.id,
+			name: route.name,
+			description: route.description ?? ''
+		}));
+	}
 
-  function serializeRoutesForSave(event: EventData) {
-    return event.routes.map((route) => {
-      const edited = routeForms.find((item) => item.id === route.id);
-      return {
-        id: route.id,
-        name: edited?.name.trim() || route.name,
-        description: edited?.description.trim() || route.description,
-        sortOrder: route.sortOrder,
-        stops: route.stops.map((stop) => ({
-          id: stop.id,
-          eventLocationId: stop.eventLocationId,
-          label: stop.label,
-          lat: stop.lat,
-          lon: stop.lon,
-          sortOrder: stop.sortOrder,
-        })),
-      };
-    });
-  }
+	function serializeRoutesForSave(event: EventData) {
+		return event.routes.map((route) => {
+			const edited = routeForms.find((item) => item.id === route.id);
+			return {
+				id: route.id,
+				name: edited?.name.trim() || route.name,
+				description: edited?.description.trim() || route.description,
+				sortOrder: route.sortOrder,
+				stops: route.stops.map((stop) => ({
+					id: stop.id,
+					eventLocationId: stop.eventLocationId,
+					label: stop.label,
+					lat: stop.lat,
+					lon: stop.lon,
+					sortOrder: stop.sortOrder
+				}))
+			};
+		});
+	}
 
-  function buildPrimaryLocationPayload(event: EventData) {
-    const primary =
-      event.locations.find((location) => location.isPrimary) ??
-      event.locations[0] ??
-      null;
-    const buildingId =
-      locationForm.anchorType === "building" && locationForm.buildingId !== ""
-        ? Number(locationForm.buildingId)
-        : null;
-    const dormId =
-      locationForm.anchorType === "dorm" && locationForm.dormId !== ""
-        ? Number(locationForm.dormId)
-        : null;
+	function buildPrimaryLocationPayload(event: EventData) {
+		const primary =
+			event.locations.find((location) => location.isPrimary) ?? event.locations[0] ?? null;
+		const buildingId =
+			locationForm.anchorType === 'building' && locationForm.buildingId !== ''
+				? Number(locationForm.buildingId)
+				: null;
+		const dormId =
+			locationForm.anchorType === 'dorm' && locationForm.dormId !== ''
+				? Number(locationForm.dormId)
+				: null;
 
-    const nextPrimary = {
-      anchorType: locationForm.anchorType,
-      buildingId,
-      dormId,
-      label: locationForm.label.trim() || "Event marker",
-      lat:
-        locationForm.anchorType === "custom"
-          ? (primary?.lat ?? primary?.resolvedLat ?? null)
-          : null,
-      lon:
-        locationForm.anchorType === "custom"
-          ? (primary?.lon ?? primary?.resolvedLon ?? null)
-          : null,
-      highlightPriority: primary?.highlightPriority ?? 0,
-      sortOrder: primary?.sortOrder ?? 0,
-      isPrimary: true,
-      ...(primary?.id ? { id: primary.id } : {}),
-    };
+		const nextPrimary = {
+			anchorType: locationForm.anchorType,
+			buildingId,
+			dormId,
+			label: locationForm.label.trim() || 'Event marker',
+			lat:
+				locationForm.anchorType === 'custom'
+					? (primary?.lat ?? primary?.resolvedLat ?? null)
+					: null,
+			lon:
+				locationForm.anchorType === 'custom'
+					? (primary?.lon ?? primary?.resolvedLon ?? null)
+					: null,
+			highlightPriority: primary?.highlightPriority ?? 0,
+			sortOrder: primary?.sortOrder ?? 0,
+			isPrimary: true,
+			...(primary?.id ? { id: primary.id } : {})
+		};
 
-    if (!primary) return [nextPrimary];
-    return event.locations.map((location) =>
-      location.id === primary.id
-        ? { ...serializeLocation(location), ...nextPrimary }
-        : serializeLocation(location, { isPrimary: false }),
-    );
-  }
+		if (!primary) return [nextPrimary];
+		return event.locations.map((location) =>
+			location.id === primary.id
+				? { ...serializeLocation(location), ...nextPrimary }
+				: serializeLocation(location, { isPrimary: false })
+		);
+	}
 
-  async function saveEvent() {
-    if (!event || saving) return;
-    saving = true;
-    try {
-      const result = await persistEntityChange({
-        entityType: "event",
-        entityId: event.id,
-        baseVersion: event.version,
-        patch: {
-          title: form.title,
-          description: form.description || null,
-          category: form.category,
-          startsAt: campusInputToWallString(form.startsAt),
-          endsAt: campusInputToWallString(form.endsAt),
-          sourceUrl: form.sourceUrl || null,
-          imageUrl: form.imageUrl,
-          recurrence: form.recurrence,
-          routes: serializeRoutesForSave(event),
-        },
-        entityLabel: form.title,
-        canPublish,
-        submitterName:
-          adminAuthStore.displayName ??
-          adminAuthStore.username ??
-          submitterNameDraft,
-        proposalId: activeProposalId,
-      });
+	async function saveEvent() {
+		if (!event || saving) return;
+		saving = true;
+		try {
+			const result = await persistEntityChange({
+				entityType: 'event',
+				entityId: event.id,
+				baseVersion: event.version,
+				patch: {
+					title: form.title,
+					description: form.description || null,
+					category: form.category,
+					startsAt: campusInputToWallString(form.startsAt),
+					endsAt: campusInputToWallString(form.endsAt),
+					sourceUrl: form.sourceUrl || null,
+					imageUrl: form.imageUrl,
+					recurrence: form.recurrence,
+					routes: serializeRoutesForSave(event)
+				},
+				entityLabel: form.title,
+				canPublish,
+				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterNameDraft,
+				proposalId: activeProposalId
+			});
 
-      if (!result.ok) {
-        if (result.latest)
-          applyConflictLatest({ latest: result.latest as EventData });
-        throw new Error(result.error ?? "Save failed");
-      }
+			if (!result.ok) {
+				if (result.latest) applyConflictLatest({ latest: result.latest as EventData });
+				throw new Error(result.error ?? 'Save failed');
+			}
 
-      if (result.published) {
-        const updated = result.published as EventData;
-        appActions.replaceEvent(updated);
-        queryStore.updateQuery({
-          category: "event",
-          type: "result",
-          value: updated.title,
-          eventSlug: updated.slug,
-        });
-        editing = false;
-        toastStore.show(`${form.title} saved.`, "success");
-      } else {
-        clearEntityContributorDraft("event", event.id);
-        toastStore.show(
-          `Suggestion for ${form.title} submitted for review.`,
-          "success",
-        );
-      }
-    } catch (error) {
-      toastStore.show(
-        error instanceof Error ? error.message : "Failed to save event.",
-        "error",
-      );
-    } finally {
-      saving = false;
-    }
-  }
+			if (result.published) {
+				const updated = result.published as EventData;
+				appActions.replaceEvent(updated);
+				queryStore.updateQuery({
+					category: 'event',
+					type: 'result',
+					value: updated.title,
+					eventSlug: updated.slug
+				});
+				editing = false;
+				toastStore.show(`${form.title} saved.`, 'success');
+			} else {
+				clearEntityContributorDraft('event', event.id);
+				toastStore.show(`Suggestion for ${form.title} submitted for review.`, 'success');
+			}
+		} catch (error) {
+			toastStore.show(error instanceof Error ? error.message : 'Failed to save event.', 'error');
+		} finally {
+			saving = false;
+		}
+	}
 
-  async function savePrimaryLocationAnchor() {
-    if (!event || savingLocation) return;
-    savingLocation = true;
-    try {
-      const locations = buildPrimaryLocationPayload(event);
-      const result = await persistEntityChange({
-        entityType: "event_locations",
-        entityId: event.id,
-        baseVersion: event.version,
-        patch: { locations },
-        entityLabel: event.title,
-        canPublish,
-        submitterName:
-          adminAuthStore.displayName ??
-          adminAuthStore.username ??
-          submitterNameDraft,
-        proposalId: activeProposalId,
-      });
+	async function savePrimaryLocationAnchor() {
+		if (!event || savingLocation) return;
+		savingLocation = true;
+		try {
+			const locations = buildPrimaryLocationPayload(event);
+			const result = await persistEntityChange({
+				entityType: 'event_locations',
+				entityId: event.id,
+				baseVersion: event.version,
+				patch: { locations },
+				entityLabel: event.title,
+				canPublish,
+				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterNameDraft,
+				proposalId: activeProposalId
+			});
 
-      if (!result.ok) {
-        if (result.latest)
-          applyConflictLatest({ latest: result.latest as EventData });
-        throw new Error(result.error ?? "Location save failed");
-      }
+			if (!result.ok) {
+				if (result.latest) applyConflictLatest({ latest: result.latest as EventData });
+				throw new Error(result.error ?? 'Location save failed');
+			}
 
-      if (result.published) {
-        const updated = result.published as EventData;
-        appActions.replaceEvent(updated);
-        syncLocationForm(updated);
-        focusMapOnSavedEvent(updated);
-        toastStore.show(`${updated.title} location updated.`, "success");
-      } else {
-        clearEntityContributorDraft("event", event.id);
-        toastStore.show(
-          `Location suggestion for ${event.title} submitted for review.`,
-          "success",
-        );
-      }
-    } catch (error) {
-      toastStore.show(
-        error instanceof Error
-          ? error.message
-          : `Failed to save location for ${event.title}.`,
-        "error",
-      );
-    } finally {
-      savingLocation = false;
-    }
-  }
+			if (result.published) {
+				const updated = result.published as EventData;
+				appActions.replaceEvent(updated);
+				syncLocationForm(updated);
+				focusMapOnSavedEvent(updated);
+				toastStore.show(`${updated.title} location updated.`, 'success');
+			} else {
+				clearEntityContributorDraft('event', event.id);
+				toastStore.show(`Location suggestion for ${event.title} submitted for review.`, 'success');
+			}
+		} catch (error) {
+			toastStore.show(
+				error instanceof Error ? error.message : `Failed to save location for ${event.title}.`,
+				'error'
+			);
+		} finally {
+			savingLocation = false;
+		}
+	}
 
-  function enableEventPinProposal() {
-    if (!event) return;
-    mapProposalStore.enable(
-      {
-        type: "event",
-        id: event.id,
-        label: event.title,
-        version: event.version,
-      },
-      submitterNameDraft,
-      activeProposalId,
-    );
-    toastStore.show(
-      `Drag the ${event.title} pin on the map, then release to submit.`,
-      "info",
-    );
-  }
+	function enableEventPinProposal() {
+		if (!event) return;
+		mapProposalStore.enable(
+			{
+				type: 'event',
+				id: event.id,
+				label: event.title,
+				version: event.version
+			},
+			submitterNameDraft,
+			activeProposalId
+		);
+		toastStore.show(`Drag the ${event.title} pin on the map, then release to submit.`, 'info');
+	}
 
-  async function deactivateEvent() {
-    if (!event || deactivating) return;
-    if (
-      !window.confirm(
-        `Deactivate "${event.title}"? It will be hidden from the public map and lists.`,
-      )
-    ) {
-      return;
-    }
+	async function deactivateEvent() {
+		if (!event || deactivating) return;
+		if (
+			!window.confirm(
+				`Deactivate "${event.title}"? It will be hidden from the public map and lists.`
+			)
+		) {
+			return;
+		}
 
-    deactivating = true;
-    try {
-      const res = await fetch(`/api/admin/events/${event.id}`, {
-        method: "DELETE",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ version: event.version }),
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        latest?: EventData | null;
-      };
+		deactivating = true;
+		try {
+			const res = await fetch(`/api/admin/events/${event.id}`, {
+				method: 'DELETE',
+				credentials: 'same-origin',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ version: event.version })
+			});
+			const data = (await res.json().catch(() => ({}))) as {
+				error?: string;
+				latest?: EventData | null;
+			};
 
-      if (!res.ok) {
-        if (res.status === 409 && data.latest) {
-          applyConflictLatest(data);
-        }
-        throw new Error(data.error ?? `Deactivate failed (${res.status})`);
-      }
+			if (!res.ok) {
+				if (res.status === 409 && data.latest) {
+					applyConflictLatest(data);
+				}
+				throw new Error(data.error ?? `Deactivate failed (${res.status})`);
+			}
 
-      appActions.removeEvent(event.id);
-      queryStore.clearQuery();
-      toastStore.show(`${event.title} deactivated.`, "success");
-    } catch (error) {
-      toastStore.show(
-        error instanceof Error
-          ? error.message
-          : `Failed to deactivate ${event.title}.`,
-        "error",
-      );
-    } finally {
-      deactivating = false;
-    }
-  }
+			appActions.removeEvent(event.id);
+			queryStore.clearQuery();
+			toastStore.show(`${event.title} deactivated.`, 'success');
+		} catch (error) {
+			toastStore.show(
+				error instanceof Error ? error.message : `Failed to deactivate ${event.title}.`,
+				'error'
+			);
+		} finally {
+			deactivating = false;
+		}
+	}
 
-  function getMapCenterCoords() {
-    const center = mapStore.mapInstance?.getCenter();
-    return {
-      lat: center?.lat ?? CAMPUS_DEFAULT_CAMERA.center[1],
-      lon: center?.lng ?? CAMPUS_DEFAULT_CAMERA.center[0],
-    };
-  }
+	function getMapCenterCoords() {
+		const center = map.getRawInstance()?.getCenter();
+		return {
+			lat: center?.lat ?? CAMPUS_DEFAULT_CAMERA.center[1],
+			lon: center?.lng ?? CAMPUS_DEFAULT_CAMERA.center[0]
+		};
+	}
 
-  function serializeLocation(
-    location: EventData["locations"][number],
-    overrides: Partial<EventData["locations"][number]> = {},
-  ) {
-    return {
-      id: location.id,
-      anchorType: overrides.anchorType ?? location.anchorType,
-      buildingId:
-        overrides.buildingId !== undefined
-          ? overrides.buildingId
-          : location.buildingId,
-      dormId:
-        overrides.dormId !== undefined ? overrides.dormId : location.dormId,
-      label: overrides.label ?? location.label,
-      lat: overrides.lat !== undefined ? overrides.lat : location.lat,
-      lon: overrides.lon !== undefined ? overrides.lon : location.lon,
-      highlightPriority:
-        overrides.highlightPriority ?? location.highlightPriority,
-      sortOrder: overrides.sortOrder ?? location.sortOrder,
-      isPrimary: overrides.isPrimary ?? location.isPrimary,
-    };
-  }
+	function serializeLocation(
+		location: EventData['locations'][number],
+		overrides: Partial<EventData['locations'][number]> = {}
+	) {
+		return {
+			id: location.id,
+			anchorType: overrides.anchorType ?? location.anchorType,
+			buildingId: overrides.buildingId !== undefined ? overrides.buildingId : location.buildingId,
+			dormId: overrides.dormId !== undefined ? overrides.dormId : location.dormId,
+			label: overrides.label ?? location.label,
+			lat: overrides.lat !== undefined ? overrides.lat : location.lat,
+			lon: overrides.lon !== undefined ? overrides.lon : location.lon,
+			highlightPriority: overrides.highlightPriority ?? location.highlightPriority,
+			sortOrder: overrides.sortOrder ?? location.sortOrder,
+			isPrimary: overrides.isPrimary ?? location.isPrimary
+		};
+	}
 
-  function buildPrimaryLocationUpdate(
-    event: EventData,
-    coords: { lat: number; lon: number },
-  ) {
-    const primary =
-      event.locations.find((location) => location.isPrimary) ??
-      event.locations[0] ??
-      null;
+	function buildPrimaryLocationUpdate(event: EventData, coords: { lat: number; lon: number }) {
+		const primary =
+			event.locations.find((location) => location.isPrimary) ?? event.locations[0] ?? null;
 
-    if (!primary) {
-      return [
-        {
-          anchorType: "custom" as const,
-          buildingId: null,
-          dormId: null,
-          label: "Event marker",
-          lat: coords.lat,
-          lon: coords.lon,
-          highlightPriority: 0,
-          sortOrder: 0,
-          isPrimary: true,
-        },
-      ];
-    }
+		if (!primary) {
+			return [
+				{
+					anchorType: 'custom' as const,
+					buildingId: null,
+					dormId: null,
+					label: 'Event marker',
+					lat: coords.lat,
+					lon: coords.lon,
+					highlightPriority: 0,
+					sortOrder: 0,
+					isPrimary: true
+				}
+			];
+		}
 
-    return event.locations.map((location) =>
-      location.id === primary.id
-        ? serializeLocation(location, {
-            anchorType: "custom",
-            buildingId: null,
-            dormId: null,
-            label: location.label || "Event marker",
-            lat: coords.lat,
-            lon: coords.lon,
-            isPrimary: true,
-          })
-        : serializeLocation(location, { isPrimary: false }),
-    );
-  }
+		return event.locations.map((location) =>
+			location.id === primary.id
+				? serializeLocation(location, {
+						anchorType: 'custom',
+						buildingId: null,
+						dormId: null,
+						label: location.label || 'Event marker',
+						lat: coords.lat,
+						lon: coords.lon,
+						isPrimary: true
+					})
+				: serializeLocation(location, { isPrimary: false })
+		);
+	}
 
-  async function placePrimaryLocationAtMapCenter() {
-    if (!event || savingLocation) return;
-    savingLocation = true;
-    try {
-      const res = await fetch(`/api/admin/events/${event.id}/locations`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          version: event.version,
-          locations: buildPrimaryLocationUpdate(event, getMapCenterCoords()),
-        }),
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        event?: EventData;
-        latest?: EventData | null;
-      };
+	async function placePrimaryLocationAtMapCenter() {
+		if (!event || savingLocation) return;
+		savingLocation = true;
+		try {
+			const res = await fetch(`/api/admin/events/${event.id}/locations`, {
+				method: 'PATCH',
+				credentials: 'same-origin',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({
+					version: event.version,
+					locations: buildPrimaryLocationUpdate(event, getMapCenterCoords())
+				})
+			});
+			const data = (await res.json().catch(() => ({}))) as {
+				error?: string;
+				event?: EventData;
+				latest?: EventData | null;
+			};
 
-      if (!res.ok || !data.event) {
-        if (res.status === 409 && data.latest) {
-          applyConflictLatest(data);
-        }
-        throw new Error(data.error ?? `Location save failed (${res.status})`);
-      }
+			if (!res.ok || !data.event) {
+				if (res.status === 409 && data.latest) {
+					applyConflictLatest(data);
+				}
+				throw new Error(data.error ?? `Location save failed (${res.status})`);
+			}
 
-      appActions.replaceEvent(data.event);
-      if (!mapEditStore.enabled) mapEditStore.toggle();
-      toastStore.show(
-        `${data.event.title} marker placed. Drag it on the map to adjust.`,
-        "success",
-      );
-    } catch (error) {
-      toastStore.show(
-        error instanceof Error
-          ? error.message
-          : "Failed to place event marker.",
-        "error",
-      );
-    } finally {
-      savingLocation = false;
-    }
-  }
+			appActions.replaceEvent(data.event);
+			if (!mapEditStore.enabled) mapEditStore.toggle();
+			toastStore.show(
+				`${data.event.title} marker placed. Drag it on the map to adjust.`,
+				'success'
+			);
+		} catch (error) {
+			toastStore.show(
+				error instanceof Error ? error.message : 'Failed to place event marker.',
+				'error'
+			);
+		} finally {
+			savingLocation = false;
+		}
+	}
 </script>
 
 <div class="event-result">
@@ -796,7 +740,7 @@
 						</EntityEditorFormField>
 						<ImageUpload
 							inputId="event-image-editor"
-							endpoint={canPublish ? "/api/uploads/editor-photo" : "/api/uploads/suggestion-photo"}
+							endpoint={canPublish ? '/api/uploads/editor-photo' : '/api/uploads/suggestion-photo'}
 							prefix={`events/${event.slug}`}
 							bind:value={form.imageUrl}
 							disabled={saving}

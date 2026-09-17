@@ -4,47 +4,36 @@ import { dismissEphemeralOverlays } from '../../utils/overlay-stack.js';
 import { deactivateMapModesExcept } from './map-modes.js';
 import type { MapToolsSection, TerrainStatus } from '../store-types.js';
 
-export class MapStore {
-	mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
-}
+type MarkerFilter = "events" | "buildings" | "orgs" | "places" | "all";
 
-export class MapViewStore {
-	eventsOnly: boolean = $state(false);
-	// Org/office and place (POI) pin layers — on by default, toggled from the
-	// map legend so users can declutter the map (#18b).
-	showOrgs: boolean = $state(true);
-	showPlaces: boolean = $state(true);
+export class MapStore {
+	private mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
+
 	// Emphasize buildings hosting the user's planner classes; dim other pins.
-	highlightMyBuildings: boolean = $state(false);
+	// highlightMyBuildings: boolean = $state(false);
 	/** Org/place pins are also zoom-gated in Map.svelte. The legend reads this
 	 * so its toggles cannot claim "Shown" while the gate is hiding them. */
 	poiPinsZoomVisible: boolean = $state(true);
+	// private viewFilter = $state<MarkerFilter>("all");
 
-	toggleEventsOnly = () => {
-		this.eventsOnly = !this.eventsOnly;
-	};
+	public getRawInstance() {
+		return this.mapInstance;
+	}
 
-	toggleOrgs = () => {
-		this.showOrgs = !this.showOrgs;
-	};
+	public flyTo (...flyToParams: Parameters<Exclude<maplibre.MapLibreMap["flyTo"], "undefined">>) {
+		if (!this.mapInstance) return;
+		this.mapInstance.flyTo(...flyToParams)
+	}
 
-	togglePlaces = () => {
-		this.showPlaces = !this.showPlaces;
-	};
+	public isMapReady(): boolean {
+		return typeof this.mapInstance !== "undefined";
+	}
+	
+	public isPoiPinsZoomVisible() {
+		return this.poiPinsZoomVisible;
+	}
 
-	toggleHighlightMyBuildings = () => {
-		this.highlightMyBuildings = !this.highlightMyBuildings;
-		// Events-only hides building pins entirely — pointless combined with a
-		// building highlight, so leave that mode when highlighting.
-		if (this.highlightMyBuildings) this.eventsOnly = false;
-	};
-
-	showAll = () => {
-		this.eventsOnly = false;
-		this.showOrgs = true;
-		this.showPlaces = true;
-		this.highlightMyBuildings = false;
-	};
+	// public toggle
 }
 
 export class MapToolsStore {

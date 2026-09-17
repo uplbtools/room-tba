@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { locationStore, plannerStore, scheduleRouteStore, termStore } from '$lib/stores.svelte';
+import { userLocation, plannerStore, scheduleRouteStore, termStore } from '$lib/stores.svelte';
 
 function seedPlan() {
 	termStore.activeTermId = 1252;
@@ -29,7 +29,7 @@ describe('ScheduleRouteStore', () => {
 		scheduleRouteStore.clearImport();
 		plannerStore.plans = [];
 		plannerStore.activePlanIdByTerm = {};
-		locationStore.coords = null;
+		userLocation.coords = null;
 		sessionStorage.clear();
 		localStorage.clear();
 		vi.stubGlobal(
@@ -105,12 +105,12 @@ describe('ScheduleRouteStore', () => {
 	test('routeDay generates map waypoints and clears stale route state', async () => {
 		seedPlan();
 		await scheduleRouteStore.importFromPlanner();
-		locationStore.coords = [121.24, 14.16];
+		userLocation.coords = [121.24, 14.16];
 
 		scheduleRouteStore.routeDay('M');
 
 		expect(scheduleRouteStore.routedWeekday).toBe('M');
-		expect(locationStore.routeWaypoints).toEqual([
+		expect(userLocation.routeWaypoints).toEqual([
 			[121.24, 14.16],
 			[121.241, 14.165]
 		]);
@@ -121,7 +121,7 @@ describe('ScheduleRouteStore', () => {
 		scheduleRouteStore.selectWeekday('T');
 		expect(scheduleRouteStore.routedWeekday).toBeNull();
 		expect(scheduleRouteStore.focusedStopIndex).toBeNull();
-		expect(locationStore.routeWaypoints).toBeNull();
+		expect(userLocation.routeWaypoints).toBeNull();
 	});
 
 	test('route totals only stick while a day is routed', async () => {
@@ -133,7 +133,7 @@ describe('ScheduleRouteStore', () => {
 		scheduleRouteStore.setRouteTotals({ meters: 100, seconds: 60 });
 		expect(scheduleRouteStore.routeTotals).toBeNull();
 
-		locationStore.coords = [121.24, 14.16];
+		userLocation.coords = [121.24, 14.16];
 		scheduleRouteStore.routeDay('M');
 		scheduleRouteStore.setRouteTotals({ meters: 1200, seconds: 900 });
 		expect(scheduleRouteStore.routeTotals).toEqual({

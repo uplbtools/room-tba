@@ -2,7 +2,7 @@ import { CAMPUS_BOUNDS } from "$lib/constants/map/terrain";
 import { describeLocationFix } from "$lib/utils/geolocation";
 import { toastStore } from "../index.svelte.js";
 
-export default class LocationStore {
+export default class UserLocation {
     coords: [number, number] | null = $state(null);
     /** Horizontal accuracy from the browser GPS fix, meters. */
     accuracyMeters: number | null = $state(null);

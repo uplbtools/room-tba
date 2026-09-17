@@ -6,7 +6,7 @@ import { orderDayStops } from "$lib/utils/schedule-import/day-stops";
 import { matchImportedScheduleRows } from "$lib/utils/schedule-import/match-classes";
 import type { ImportedScheduleRow, ScheduleMatchResult, Weekday } from "$lib/utils/schedule-import/types";
 import type { ClassMapValue, RoomData } from "$lib/utils/types";
-import { locationStore, plannerStore, termStore, toastStore } from "../index.svelte.js";
+import { userLocation, plannerStore, termStore, toastStore } from "../index.svelte.js";
 import { SCHEDULE_IMPORT_SS_KEY, type ScheduleImportPersisted } from "../store-types";
 
 export default class ScheduleRouteStore {
@@ -166,7 +166,7 @@ export default class ScheduleRouteStore {
 		this.routedWeekday = null;
 		this.routeTotals = null;
 		this.focusedStopIndex = null;
-		locationStore.clearRouteWaypoints();
+		userLocation.clearRouteWaypoints();
 	};
 
 	/**
@@ -193,8 +193,8 @@ export default class ScheduleRouteStore {
 		}
 
 		const waypoints: [number, number][] = [];
-		if (locationStore.coords) {
-			waypoints.push(locationStore.coords);
+		if (userLocation.coords) {
+			waypoints.push(userLocation.coords);
 		}
 		waypoints.push(...stopCoords);
 
@@ -204,7 +204,7 @@ export default class ScheduleRouteStore {
 			return;
 		}
 
-		locationStore.setRouteWaypoints(waypoints);
+		userLocation.setRouteWaypoints(waypoints);
 		this.routedWeekday = weekday;
 		toastStore.show(
 			`Routing ${stops.length} class stop${stops.length === 1 ? '' : 's'}.`,

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CornerRightUp from '@lucide/svelte/icons/corner-right-up';
 	import MapChromeActionChip from '$lib/components/map-chrome/MapChromeActionChip.svelte';
-	import { locationStore } from '$lib/stores.svelte';
+	import { userLocation } from '$lib/stores.svelte';
 
 	type Props = {
 		lat: number;
@@ -18,8 +18,8 @@
 	);
 
 	function openDirections() {
-		locationStore.requestLocation();
-		locationStore.setDestination([lon, lat]);
+		userLocation.requestLocation();
+		userLocation.setDestination([lon, lat]);
 	}
 </script>
 
