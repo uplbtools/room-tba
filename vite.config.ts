@@ -12,7 +12,10 @@ export default defineConfig({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) =>
-					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
+				experimental: {
+					async: true
+				}
 			},
 
 			// Production runs on Vercel (room-tba.uplb.tools). adapter-vercel is
@@ -22,7 +25,8 @@ export default defineConfig({
 			experimental: {
 				instrumentation: {
 					server: true
-				}
+				},
+				remoteFunctions: true
 			},
 
 			alias: {
@@ -48,10 +52,11 @@ export default defineConfig({
 	// pre-bundle or SSR-transform it breaks that and the /og.png request dies
 	// without reaching an error handler, so it stays external on both sides.
 	optimizeDeps: {
-		exclude: ['@vercel/og']
+		exclude: ['@vercel/og', 'maplibre-gl']
 	},
 	ssr: {
-		external: ['@vercel/og']
+		external: ['@vercel/og'],
+		noExternal: ['maplibre-gl']
 	},
 	test: {
 		expect: { requireAssertions: true },
