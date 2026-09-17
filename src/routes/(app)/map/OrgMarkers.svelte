@@ -7,15 +7,17 @@
 	import { isStudentOrganization } from '$lib/constants/content/categories/org';
 	import { map, queryStore, sidePanelStore } from '$lib/stores.svelte';
 	import { getAppData } from '$lib/utils/context';
+	import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
 	import type { OrgData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
 		orgPinFilter: 'all' | 'student' | 'office' | 'none';
+		zoomLevel: number;
 	}
 
-	const { orgPinFilter }: Props = $props();
+	const { orgPinFilter, zoomLevel }: Props = $props();
 
 	const data = getAppData();
 	const { organizations, loaded, buildings } = $derived(data());
@@ -72,25 +74,27 @@
 	}
 </script>
 
-{#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
-	{#if map.isPoiPinsZoomVisible()}
-		<!-- {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+{#if withinMapZoom(zoomLevel)}
+	{#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
+		{#if map.isPoiPinsZoomVisible()}
+			<!-- {@const centralHoverPreview = shouldShowEntityHoverPreview()}
 		{@const previewSuppressed =
 			centralHoverPreview && isOrganizationHoverPreview(entityHoverPreviewStore.entity, org.id)} -->
-		<Marker lngLat={[lon, lat]} onclick={handleMarkerClick(org)}>
-			<MapEntityPin
-				label={org.name}
-				tone={isStudentOrganization(org.category) ? 'organization' : 'office'}
-				// active={!isInactiveMarker(org.name)}
-				// dimmed={hasActiveMarker()}
-				// labelVisible={(isStudentOrganization(org.category)
-			>
-				{#if isStudentOrganization(org.category)}
-					<PinGlyph name="organization" size={16} />
-				{:else}
-					<PinGlyph name="office" size={16} />
-				{/if}
-			</MapEntityPin>
-		</Marker>
-	{/if}
-{/each}
+			<Marker lngLat={[lon, lat]} onclick={handleMarkerClick(org)}>
+				<MapEntityPin
+					label={org.name}
+					tone={isStudentOrganization(org.category) ? 'organization' : 'office'}
+					active={queryStore.isActiveMarker(org.name, 'organization')}
+					dimmed={queryStore.hasActiveMarker()}
+					// labelVisible={(isStudentOrganization(org.category)
+				>
+					{#if isStudentOrganization(org.category)}
+						<PinGlyph name="organization" size={16} />
+					{:else}
+						<PinGlyph name="office" size={16} />
+					{/if}
+				</MapEntityPin>
+			</Marker>
+		{/if}
+	{/each}
+{/if}

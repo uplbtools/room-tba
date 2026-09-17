@@ -53,7 +53,7 @@ import JeepneyStore from './map/JeepneyStores.svelte';
 import ScheduleRouteStore from './map/ScheduleRouteStore.svelte';
 import PlannerBuildingsStore from './data/PlannerBuildingsStore.svelte.js';
 import { currentRoom } from './current-room-store.svelte';
-import UserLocation from './map/LocationStore.svelte.js';
+import UserLocation from './map/UserLocation.svelte.js';
 
 
 export { currentRoom }

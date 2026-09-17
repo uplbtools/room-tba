@@ -4,6 +4,9 @@ import { dismissEphemeralOverlays } from '../../utils/overlay-stack.js';
 import { deactivateMapModesExcept } from './map-modes.js';
 import type { MapToolsSection, TerrainStatus } from '../store-types.js';
 import { calculatePadding } from '$lib/utils/map/navigate.js';
+import { isMap2DPitch, THREE_D_PITCH } from '$lib/constants/map/dimension.js';
+import { enterFlatMapDimension, enterTiltedMapDimension } from '$lib/utils/map/map-dimension-layers.js';
+import { terrainStore } from '$lib/stores.svelte.js';
 
 type MarkerFilter = "events" | "buildings" | "orgs" | "places" | "all";
 
@@ -19,10 +22,16 @@ export class MapStore {
 	/** Org/place pins are also zoom-gated in Map.svelte. The legend reads this
 	 * so its toggles cannot claim "Shown" while the gate is hiding them. */
 	poiPinsZoomVisible: boolean = $state(true);
+	zoomLevel: number = $state(0);
 	// private viewFilter = $state<MarkerFilter>("all");
 
 	public getRawInstance = () => this.mapInstance;
 	public setRawInstance = (v : maplibre.MapLibreMap | undefined) => this.mapInstance = v;
+
+	public setZoomLevel(zoomLevel: number) {
+		this.zoomLevel = zoomLevel;
+	}
+
 
 	public flyTo(...flyToParams: FlyToParams) {
 		if (!this.mapInstance) return;
@@ -47,7 +56,24 @@ export class MapStore {
 		return this.poiPinsZoomVisible;
 	}
 
-	// public toggle
+	public toggleDimension() {
+		if (!this.mapInstance) return;
+		if (isMap2DPitch(this.mapInstance.getPitch())) {
+			this.mapInstance.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
+			this.mapInstance.once('moveend', () => enterTiltedMapDimension(this.mapInstance as maplibre.Map, terrainStore.enabled));
+			return;
+		}
+		enterFlatMapDimension(this.mapInstance, terrainStore.enabled);
+		// Pitch only: dropping to 2D used to also snap the bearing to north, which
+		// threw away a rotation the user set on purpose. The compass button is the
+		// control that resets north.
+		this.mapInstance.easeTo({ pitch: 0, duration: 400 });
+	}
+
+	public resetNorth() {
+		if (!this.mapInstance) return;
+		this.mapInstance.easeTo({ bearing: 0, duration: 400 });
+	}
 }
 
 export class MapToolsStore {

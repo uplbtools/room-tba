@@ -13,15 +13,17 @@
 		sidePanelStore
 	} from '$lib/stores.svelte';
 	import { getAppData } from '$lib/utils/context';
+	import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
 	import type { BuildingData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
 		showBuildingPins: boolean;
+		zoomLevel: number;
 	}
 
-	const { showBuildingPins }: Props = $props();
+	const { showBuildingPins, zoomLevel }: Props = $props();
 
 	const data = getAppData();
 	const { buildings, loaded } = $derived(data());
@@ -57,42 +59,45 @@
 	}
 </script>
 
-{#each filteredBuildings as building}
-	{#if building.lat && building.lon}
-		<!-- {@const editKey = buildingEditKey(building.id)}
-		{@const position = getEditablePosition(editKey, {
-			lat: building.lat,
-			lon: building.lon,
-			version: getLoadedVersion(building.version)
-		})}
-		{@const centralHoverPreview = shouldShowEntityHoverPreview()}
-		{@const previewSuppressed =
-			centralHoverPreview && isBuildingHoverPreview(entityHoverPreviewStore.entity, building.id)} -->
-		<!-- {#key `${editKey}:${canDragPin(editKey)}`} -->
-		<Marker
-			lngLat={[building.lon, building.lat]}
-			// draggable={canDragPin(editKey)}
-			onclick={handleMarkerClick(building)}
-		>
-			<MapEntityPin
-				label={building.buildingName}
-				// active={!isInactiveMarker(building.buildingName)}
-				// // editable={canDragPin(editKey)}
-				// editing={selectedEditKey === editKey}
-				// dimmed={hasActiveMarker()}
-				// eventLinked={isBuildingEventLinked(building.id)}
-				// hovered={hoveredEditKey === editKey}
-				// saveState={savingEditKey === editKey
-				// 	? 'saving'
-				// 	: savedEditKey === editKey
-				// 		? 'saved'
-				// 		: failedEditKey === editKey
-				// 			? 'failed'
-				// 			: 'idle'}
+{#if withinMapZoom(zoomLevel)}
+	{#each filteredBuildings as building}
+		{#if building.lat && building.lon}
+			<!-- {@const editKey = buildingEditKey(building.id)}
+			{@const position = getEditablePosition(editKey, {
+				lat: building.lat,
+				lon: building.lon,
+				version: getLoadedVersion(building.version)
+			})}
+			{@const centralHoverPreview = shouldShowEntityHoverPreview()}
+			{@const previewSuppressed =
+				centralHoverPreview && isBuildingHoverPreview(entityHoverPreviewStore.entity, building.id)} -->
+			<!-- {#key `${editKey}:${canDragPin(editKey)}`} -->
+			<Marker
+				lngLat={[building.lon, building.lat]}
+				// draggable={canDragPin(editKey)}
+				onclick={handleMarkerClick(building)}
 			>
-				<PinGlyph name="building" size={20} />
-			</MapEntityPin>
-		</Marker>
-		<!-- {/key} -->
-	{/if}
-{/each}
+				<MapEntityPin
+					label={building.buildingName}
+					active={queryStore.isActiveMarker(building.buildingName, 'building')}
+					dimmed={queryStore.hasActiveMarker()}
+					// // editable={canDragPin(editKey)}
+					// editing={selectedEditKey === editKey}
+					// dimmed={hasActiveMarker()}
+					// eventLinked={isBuildingEventLinked(building.id)}
+					// hovered={hoveredEditKey === editKey}
+					// saveState={savingEditKey === editKey
+					// 	? 'saving'
+					// 	: savedEditKey === editKey
+					// 		? 'saved'
+					// 		: failedEditKey === editKey
+					// 			? 'failed'
+					// 			: 'idle'}
+				>
+					<PinGlyph name="building" size={20} />
+				</MapEntityPin>
+			</Marker>
+			<!-- {/key} -->
+		{/if}
+	{/each}
+{/if}

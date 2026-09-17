@@ -7,15 +7,17 @@
 	import { isPlaceLandmark } from '$lib/constants/content/categories/place';
 	import { map, queryStore, sidePanelStore } from '$lib/stores.svelte';
 	import { getAppData } from '$lib/utils/context';
+	import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
 	import type { PlaceData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
 		placePinFilter: 'all' | 'landmark' | 'establishment' | 'none';
+		zoomLevel: number;
 	}
 
-	const { placePinFilter }: Props = $props();
+	const { placePinFilter, zoomLevel }: Props = $props();
 
 	const data = getAppData();
 	const { places, loaded } = $derived(data());
@@ -63,26 +65,30 @@
 	}
 </script>
 
-{#each filteredPlaces as place (`place:${place.id}`)}
-	<!-- /* poiPinsVisible || sponsoredPlacePins.has(place.name) || */ /* queryStore.category === 'place' && queryStore.inputValue === place.name */ -->
-	{#if place.lon && place.lat}
-		<!-- {@const centralHoverPreview = shouldShowEntityHoverPreview()}
-		{@const previewSuppressed =
-			centralHoverPreview && isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
-		{@const pinSponsorId = sponsoredPlacePins.get(place.name)} -->
-		<Marker lngLat={[place.lon, place.lat]} onclick={handleMarkerClick(place)}>
-			<MapEntityPin
-				label={place.name}
-				tone={isPlaceLandmark(place.category) ? 'landmark' : 'establishment'}
-				// active={queryStore.category === 'place' && queryStore.inputValue === place.name}
-				// dimmed={hasActiveMarker()}
-			>
-				{#if isPlaceLandmark(place.category)}
-					<PinGlyph name="landmark" size={16} />
-				{:else}
-					<PinGlyph name="establishment" size={16} />
-				{/if}
-			</MapEntityPin>
-		</Marker>
-	{/if}
-{/each}
+{#if withinMapZoom(zoomLevel)}
+	{#each filteredPlaces as place (`place:${place.id}`)}
+		<!-- /* poiPinsVisible || sponsoredPlacePins.has(place.name) || */ /* queryStore.category === 'place' && queryStore.inputValue === place.name */ -->
+		{#if place.lon && place.lat}
+			<!-- {@const centralHoverPreview = shouldShowEntityHoverPreview()}
+			{@const previewSuppressed =
+				centralHoverPreview && isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
+			{@const pinSponsorId = sponsoredPlacePins.get(place.name)} -->
+			<Marker lngLat={[place.lon, place.lat]} onclick={handleMarkerClick(place)}>
+				<MapEntityPin
+					label={place.name}
+					tone={isPlaceLandmark(place.category) ? 'landmark' : 'establishment'}
+					active={queryStore.isActiveMarker(place.name, 'place')}
+					dimmed={queryStore.hasActiveMarker()}
+					// active={queryStore.category === 'place' && queryStore.inputValue === place.name}
+					// dimmed={hasActiveMarker()}
+				>
+					{#if isPlaceLandmark(place.category)}
+						<PinGlyph name="landmark" size={16} />
+					{:else}
+						<PinGlyph name="establishment" size={16} />
+					{/if}
+				</MapEntityPin>
+			</Marker>
+		{/if}
+	{/each}
+{/if}

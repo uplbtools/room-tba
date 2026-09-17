@@ -4,10 +4,57 @@
 	import UserLocationMarker from './UserLocationMarker.svelte';
 	import BuildingMarkers from './BuildingMarkers.svelte';
 	import { map } from '$lib/stores.svelte';
-	import * as maplibre from 'maplibre-gl';
 	import OrgMarkers from './OrgMarkers.svelte';
 	import PlaceMarkers from './PlaceMarkers.svelte';
+	import DormMarkers from './DormMarkers.svelte';
+
+	$effect(() => {
+		const mapInstance = map.getRawInstance();
+		if (mapInstance) {
+			mapInstance.on('zoom', () => {
+				map.setZoomLevel(mapInstance.getZoom());
+			});
+		}
+		return () => {};
+	});
 </script>
+
+<div class="map-container">
+	<MapLibre
+		bind:map={() => map.getRawInstance(), (instance) => map.setRawInstance(instance)}
+		maxBounds={CAMPUS_MAX_BOUNDS}
+		center={CAMPUS_DEFAULT_CAMERA.center}
+		style={'https://tiles.openfreemap.org/styles/positron'}
+		zoom={17}
+		pitch={CAMPUS_DEFAULT_CAMERA.pitch}
+		bearing={CAMPUS_DEFAULT_CAMERA.bearing}
+		minZoom={13}
+		class="map"
+	>
+		<!-- Location indicator for the user -->
+		<UserLocationMarker />
+
+		<!-- route measuring -->
+
+		<!-- Addition proposal LMAO -->
+
+		<!-- Event location details...? with editing -->
+
+		<!-- Entities -->
+
+		<!-- Buildings -->
+		<BuildingMarkers showBuildingPins={true} zoomLevel={13} />
+
+		<!-- Dorm -->
+		<DormMarkers showDormPins={true} zoomLevel={16} />
+
+		<!-- Orgs -->
+		<OrgMarkers orgPinFilter={'all'} zoomLevel={18} />
+
+		<!-- Places -->
+		<PlaceMarkers placePinFilter={'all'} zoomLevel={18} />
+	</MapLibre>
+</div>
 
 <!-- <script lang="ts">
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -3123,42 +3170,6 @@ let selectedEventRouteStops = $derived.by(() => {
 
 <!-- <svelte:window onkeydown={handleMapEditKeydown} /> -->
 
-<div class="map-container">
-	<MapLibre
-		bind:map={() => map.getRawInstance(), (instance) => map.setRawInstance(instance)}
-		maxBounds={CAMPUS_MAX_BOUNDS}
-		center={CAMPUS_DEFAULT_CAMERA.center}
-		style={'https://tiles.openfreemap.org/styles/positron'}
-		zoom={17}
-		pitch={CAMPUS_DEFAULT_CAMERA.pitch}
-		bearing={CAMPUS_DEFAULT_CAMERA.bearing}
-		minZoom={13}
-		class="map"
-	>
-		<!-- Location indicator for the user -->
-		<UserLocationMarker />
-
-		<!-- route measuring -->
-
-		<!-- Addition proposal LMAO -->
-
-		<!-- Event location details...? with editing -->
-
-		<!-- Entities -->
-
-		<!-- Buildings -->
-		<BuildingMarkers showBuildingPins={true} />
-
-		<!-- Dorm -->
-
-		<!-- Orgs -->
-		<OrgMarkers orgPinFilter={'all'} />
-
-		<!-- Places -->
-		<PlaceMarkers placePinFilter={'all'} />
-	</MapLibre>
-</div>
-
 <!-- <div class="map-shell">
 	<div class="map-container">
 		{#if eventPlacementStore.active}
@@ -4415,13 +4426,6 @@ let selectedEventRouteStops = $derived.by(() => {
 {/if} -->
 
 <style>
-	.map-shell {
-		position: fixed;
-		inset: 0;
-		pointer-events: none;
-		z-index: 0;
-	}
-
 	.map-container {
 		position: fixed;
 		top: 0;
@@ -4437,14 +4441,6 @@ let selectedEventRouteStops = $derived.by(() => {
 	.map-container :global(.maplibregl-marker:has(.map-entity-pin.sponsored)) {
 		z-index: 2;
 	}
-
-	.map-shell :global(.edit-dock),
-	.map-shell :global(.map-edit-toolbar),
-	.map-shell :global(.event-placement-toolbar) {
-		pointer-events: auto;
-		z-index: 18;
-	}
-
 	.map-edit-toolbar {
 		position: fixed;
 		right: calc(var(--map-ui-padding, 0.5rem) + var(--bottom-fab-inset, 3.75rem));

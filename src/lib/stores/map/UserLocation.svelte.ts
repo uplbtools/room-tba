@@ -1,6 +1,7 @@
 import { CAMPUS_BOUNDS } from "$lib/constants/map/terrain";
 import { describeLocationFix } from "$lib/utils/geolocation";
 import { toastStore } from "../index.svelte.js";
+import type { MapStore } from "./map-stores.svelte.js";
 
 export default class UserLocation {
     coords: [number, number] | null = $state(null);
@@ -26,7 +27,7 @@ export default class UserLocation {
         );
     }
 
-    requestLocation = () => {
+    requestLocation() {
         if (!navigator.geolocation) {
             toastStore.show('Geolocation is not supported by your browser.', 'error');
             return;
@@ -100,6 +101,32 @@ export default class UserLocation {
         );
     };
 
+    recenter(map: MapStore) {
+        if (!this.coords) {
+            this.requestLocation();
+            return;
+        }
+        if (map.isMapReady()) {
+            toastStore.show('Map component is still initializing', 'info');
+            return;
+        }
+        map.flyTo({
+            center: this.coords,
+            zoom: 17,
+            offset: [0, -24],
+            bearing: this.bearing ?? 0,
+            duration: 1500
+        });
+    }
+
+    isCentered(map: MapStore) {
+        const mapInstance = map.getRawInstance()
+        if (!mapInstance || this.coords === null) return false;
+        const mapCenter = mapInstance.getCenter()
+        return mapCenter.lng === this.coords[0] && mapCenter.lat === this.coords[1]
+
+    }
+
     private stopTracking() {
         this.isTracking = false;
         this.coords = null;
@@ -113,19 +140,19 @@ export default class UserLocation {
         }
     }
 
-    setDestination = (coords: [number, number]) => {
+    setDestination(coords: [number, number]) {
         this.destination = coords;
         this.routeOrigin = this.coords;
         this.routeWaypoints = null;
     };
 
-    clearDestination = () => {
+    clearDestination() {
         this.destination = null;
         this.routeOrigin = null;
         this.routeWaypoints = null;
     };
 
-    setRouteWaypoints = (waypoints: [number, number][] | null) => {
+    setRouteWaypoints(waypoints: [number, number][] | null) {
         this.routeWaypoints = waypoints;
         if (waypoints && waypoints.length >= 2) {
             this.destination = null;
@@ -133,7 +160,7 @@ export default class UserLocation {
         }
     };
 
-    clearRouteWaypoints = () => {
+    clearRouteWaypoints() {
         this.routeWaypoints = null;
     };
 }

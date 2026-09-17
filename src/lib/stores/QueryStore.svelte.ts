@@ -3,7 +3,7 @@ import type { QueryStoreState, RecentSearch } from "./store-types";
 import { buildingTypeFilter } from "./filter-stores.svelte.js";
 
 export default class QueryStore {
-    private _queryStore: QueryStoreState = $state({
+    private _queryStore = $state<QueryStoreState>({
         category: null,
         type: 'query',
         value: ''
@@ -23,6 +23,15 @@ export default class QueryStore {
             }))
         )
     );
+
+    hasActiveMarker() {
+        if (this._queryStore.category === null) return false;
+        return ["building", "organization", "place", "dorm"].includes(this._queryStore.category);
+    }
+
+    isActiveMarker(value: string, category: QueryStoreState["category"]): boolean {
+        return value === this._queryStore.value && category === this._queryStore.category;
+    }
 
     updateQuery = (obj: QueryStoreState & { id?: number }) => {
         this._queryStore = obj;

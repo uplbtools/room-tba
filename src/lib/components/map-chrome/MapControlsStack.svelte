@@ -1,12 +1,8 @@
 <script lang="ts">
 	import Locate from '@lucide/svelte/icons/locate';
 	import LocateFixed from '@lucide/svelte/icons/locate-fixed';
-	import {
-		enterFlatMapDimension,
-		enterTiltedMapDimension
-	} from '$lib/utils/map/map-dimension-layers';
-	import { isMap2DPitch, THREE_D_PITCH } from '$lib/constants/map/dimension';
-	import { userLocation, map, terrainStore, toastStore } from '$lib/stores.svelte';
+	import { isMap2DPitch } from '$lib/constants/map/dimension';
+	import { userLocation, map } from '$lib/stores.svelte';
 	import compassIcon from '../../../assets/icons/compass.svg?url';
 
 	type Props = {
@@ -18,7 +14,6 @@
 
 	let bearing = $state(0);
 	let pitch = $state(0);
-	let centered = $state(false);
 
 	const is2D = $derived(isMap2DPitch(pitch));
 	/** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
@@ -46,48 +41,10 @@
 		};
 	});
 
-	function resetNorth() {
-		map.getRawInstance()?.easeTo({ bearing: 0, duration: 400 });
-	}
-
-	function toggleDimension() {
-		const mapInstance = map.getRawInstance();
-		if (!map) return;
-		if (isMap2DPitch(map.getPitch())) {
-			map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
-			mapInstance.once('moveend', () => enterTiltedMapDimension(map, terrainStore.enabled));
-			return;
-		}
-		enterFlatMapDimension(map, terrainStore.enabled);
-		// Pitch only: dropping to 2D used to also snap the bearing to north, which
-		// threw away a rotation the user set on purpose. The compass button is the
-		// control that resets north.
-		map.easeTo({ pitch: 0, duration: 400 });
-	}
-
-	function goToLocation() {
-		if (!userLocation.coords) {
-			userLocation.requestLocation();
-			return;
-		}
-		if (map.isMapReady()) {
-			toastStore.show('Map component is still initializing', 'info');
-			return;
-		}
-		centered = true;
-		map.getRawInstance().flyTo({
-			center: userLocation.coords,
-			zoom: 17,
-			offset: [0, -24],
-			bearing: userLocation.bearing ?? 0,
-			duration: 1500
-		});
-	}
-
 	function zoomBy(delta: number) {
 		const mapInstance = map.getRawInstance();
-		if (!map) return;
-		map.easeTo({ zoom: map.getZoom() + delta, duration: 200 });
+		if (!mapInstance) return;
+		mapInstance.easeTo({ zoom: mapInstance.getZoom() + delta, duration: 200 });
 	}
 </script>
 
@@ -102,7 +59,7 @@
 			class="map-ctrl map-ctrl--compass"
 			aria-label="Reset map north"
 			title="Reset north"
-			onclick={resetNorth}
+			onclick={map.resetNorth}
 		>
 			<img
 				src={compassIcon}
@@ -121,13 +78,13 @@
 		type="button"
 		class="map-ctrl"
 		class:map-ctrl--round={hideCompass}
-		class:map-ctrl--active={centered}
+		class:map-ctrl--active={userLocation.isCentered(map)}
 		aria-label="My location"
 		title="My location"
-		aria-pressed={centered}
-		onclick={goToLocation}
+		aria-pressed={userLocation.isCentered(map)}
+		onclick={() => userLocation.recenter(map)}
 	>
-		{#if centered}
+		{#if userLocation.isCentered(map)}
 			<LocateFixed size={18} aria-hidden="true" />
 		{:else}
 			<Locate size={18} aria-hidden="true" />
@@ -142,7 +99,7 @@
 		aria-label={is2D ? 'Switch to 3D map' : 'Switch to 2D map'}
 		title={is2D ? '3D' : '2D'}
 		aria-pressed={!is2D}
-		onclick={toggleDimension}
+		onclick={() => map.toggleDimension()}
 	>
 		{is2D ? '2D' : '3D'}
 	</button>
