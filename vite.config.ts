@@ -13,33 +13,18 @@ export default defineConfig({
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
-				experimental: {
-					async: true
-				}
+				experimental: { async: true }
 			},
 
 			// Production runs on Vercel (room-tba.uplb.tools). adapter-vercel is
 			// required for instrumentation.server.js, which adapter-auto rejects.
 			adapter: adapter(),
-
-			experimental: {
-				instrumentation: {
-					server: true
-				},
-				remoteFunctions: true
-			},
-
-			alias: {
-				'@test': 'src/test'
-			},
-
+			experimental: { instrumentation: { server: true }, remoteFunctions: true },
+			alias: { '@test': 'src/test' },
 			// The worker is still built and deployed when the kill switch is on —
 			// existing registrations update to it and self-destruct. Only the client
 			// registration is suppressed, so new visitors never pick one up.
-			serviceWorker: {
-				register: !SW_KILL_SWITCH
-			},
-
+			serviceWorker: { register: !SW_KILL_SWITCH },
 			typescript: {
 				config: (config) => {
 					config.include.push('../drizzle.config.ts');
@@ -51,13 +36,8 @@ export default defineConfig({
 	// @vercel/og loads resvg/yoga WASM through its own resolver. Letting Vite
 	// pre-bundle or SSR-transform it breaks that and the /og.png request dies
 	// without reaching an error handler, so it stays external on both sides.
-	optimizeDeps: {
-		exclude: ['@vercel/og', 'maplibre-gl']
-	},
-	ssr: {
-		external: ['@vercel/og'],
-		noExternal: ['maplibre-gl']
-	},
+	optimizeDeps: { exclude: ['@vercel/og', 'maplibre-gl'] },
+	ssr: { external: ['@vercel/og'], noExternal: ['maplibre-gl'] },
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
