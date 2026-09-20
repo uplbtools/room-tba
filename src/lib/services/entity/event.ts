@@ -11,7 +11,7 @@ import {
 import { db } from '$lib/utils/db';
 import { getBuildCache } from '../page-data/ssg-cache';
 import type {
-	BuildingData,
+	Building,
 	DormData,
 	EventData,
 	EventLocationData,
@@ -184,7 +184,7 @@ async function hydrateEvents(events: EventRow[], now = new Date()): Promise<Even
 
 function resolveLocation(
 	location: EventLocationRow,
-	buildingMap: Map<number, BuildingData>,
+	buildingMap: Map<number, Building>,
 	dormMap: Map<number, DormData>
 ): EventLocationData {
 	const building =

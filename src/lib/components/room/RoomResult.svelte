@@ -1,526 +1,505 @@
 <script lang="ts">
-  
-  import Box from "@lucide/svelte/icons/box";
-  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-  import { onMount } from "svelte";
-  import { ROOM_SCHEDULE_SCOPE_NOTE } from "$lib/amis/room-scheduled-types";
-  import FollowPrompt from "$lib/components/community/FollowPrompt.svelte";
-  import BuildingResult from "$lib/components/controls/BuildingResult.svelte";
-import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
-  import EntityEditorField from "$lib/components/editor/EntityEditorField.svelte";
-  import EntityEditorPanel from "$lib/components/editor/EntityEditorPanel.svelte";
-  import EntityEditorToggle from "$lib/components/editor/EntityEditorToggle.svelte";
-  import EntityPhotoUpload from "$lib/components/editor/EntityPhotoUpload.svelte";
-  import EntityPhotoGallery from "$lib/components/controls/EntityPhotoGallery.svelte";
-  import TermSelector from "$lib/components/TermSelector.svelte";
-  import {
-    ROOM_CATEGORIES,
-    ROOM_CATEGORY_LABELS,
-    roomCategoryLabel,
-  } from "$lib/constants/content/categories/room"
-  import { getAppData } from "$lib/utils/context";
-  import {
-    clearEntityContributorDraft,
-    readEntityContributorDraft,
-    scheduleEntityContributorDraftSave,
-  } from "$lib/utils/contributor-drafts";
-  import { entityEditorSavedMessage, fieldSaveActionLabel } from "$lib/utils/editor/field-action-label";
-  import { handlePersistEntityResult } from "$lib/utils/editor/handle-persist-result";
-  import { FINALS_SCOPE_NOTE, fetchFinalExams } from "$lib/utils/final-exams/final-exams";
-  import {
-    getStoredProposalForEntity,
-    mergeEntityRooms,
-    persistEntityChange,
-  } from "$lib/utils/proposals/client";
-  import { getRoomShareUrl } from "$lib/utils/share-links";
-  import {
-    adminAuthStore,
-    building3DStore,
-    currentRoom,
-    modalStore,
-    queryStore,
-    roomClassesStore,
-    sidePanelStore,
-    termStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import type { FinalExamRow, RoomData } from "$lib/utils/types";
-  import EntityDirectionsChip from "../controls/EntityDirectionsChip.svelte";
-  import EntityGoogleMapsLink from "../controls/EntityGoogleMapsLink.svelte";
-  import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
-  import EntityLastUpdated from "../EntityLastUpdated.svelte";
-  import MapChromeActionChip from "../map-chrome/MapChromeActionChip.svelte";
-  import Classes from "./Classes.svelte";
-  import FinalExamsList from "./FinalExamsList.svelte";
-	import { normalizeEntityPhotos, type EntityPhoto } from "$lib/utils/entity/entity-photos";
+	import Box from '@lucide/svelte/icons/box';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import { onMount } from 'svelte';
+	import { ROOM_SCHEDULE_SCOPE_NOTE } from '$lib/amis/room-scheduled-types';
+	import FollowPrompt from '$lib/components/community/FollowPrompt.svelte';
+	import BuildingResult from '$lib/components/controls/BuildingResult.svelte';
+	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import EntityEditorField from '$lib/components/editor/EntityEditorField.svelte';
+	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
+	import EntityPhotoUpload from '$lib/components/editor/EntityPhotoUpload.svelte';
+	import EntityPhotoGallery from '$lib/components/controls/EntityPhotoGallery.svelte';
+	import TermSelector from '$lib/components/TermSelector.svelte';
+	import {
+		ROOM_CATEGORIES,
+		ROOM_CATEGORY_LABELS,
+		roomCategoryLabel
+	} from '$lib/constants/content/categories/room';
+	import { getAppData } from '$lib/utils/context';
+	import {
+		clearEntityContributorDraft,
+		readEntityContributorDraft,
+		scheduleEntityContributorDraftSave
+	} from '$lib/utils/contributor-drafts';
+	import {
+		entityEditorSavedMessage,
+		fieldSaveActionLabel
+	} from '$lib/utils/editor/field-action-label';
+	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
+	import { FINALS_SCOPE_NOTE, fetchFinalExams } from '$lib/utils/final-exams/final-exams';
+	import {
+		getStoredProposalForEntity,
+		mergeEntityRooms,
+		persistEntityChange
+	} from '$lib/utils/proposals/client';
+	import { getRoomShareUrl } from '$lib/utils/share-links';
+	import {
+		adminAuthStore,
+		building3DStore,
+		currentRoom,
+		modalStore,
+		queryStore,
+		roomClassesStore,
+		sidePanelStore,
+		termStore,
+		toastStore
+	} from '$lib/stores.svelte';
+	import type { FinalExamRow, Room } from '$lib/utils/types';
+	import EntityDirectionsChip from '../controls/EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from '../controls/EntityGoogleMapsLink.svelte';
+	import EntityShareCopyLink from '../controls/EntityShareCopyLink.svelte';
+	import EntityLastUpdated from '../EntityLastUpdated.svelte';
+	import MapChromeActionChip from '../map-chrome/MapChromeActionChip.svelte';
+	import Classes from './Classes.svelte';
+	import FinalExamsList from './FinalExamsList.svelte';
+	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
 
-  type RoomEditableField =
-    | "roomCode"
-    | "directions"
-    | "buildingId"
-    | "collegeId"
-    | "divisionId"
-    | "photos"
-    | "category";
+	type RoomEditableField =
+		'roomCode' | 'directions' | 'buildingId' | 'collegeId' | 'divisionId' | 'photos' | 'category';
 
-  const appData = getAppData();
-  const app = $derived(appData());
-  const buildings = $derived(app.loaded ? app.buildings : []);
-  const colleges = $derived(app.loaded ? app.colleges : []);
-  const divisions = $derived(app.loaded ? app.divisions : []);
+	const appData = getAppData();
+	const app = $derived(appData());
+	const buildings = $derived(app.loaded ? app.buildings : []);
+	const colleges = $derived(app.loaded ? app.colleges : []);
+	const divisions = $derived(app.loaded ? app.divisions : []);
 
-  const fieldLabels: Record<RoomEditableField, string> = {
-    roomCode: "Room code",
-    directions: "Room directions",
-    buildingId: "Building",
-    collegeId: "College",
-    divisionId: "Division",
-    photos: "Room photos",
-    category: "Room category",
-  };
+	const fieldLabels: Record<RoomEditableField, string> = {
+		roomCode: 'Room code',
+		directions: 'Room directions',
+		buildingId: 'Building',
+		collegeId: 'College',
+		divisionId: 'Division',
+		photos: 'Room photos',
+		category: 'Room category'
+	};
 
-  let draftRoomId = $state<number | null>(null);
-  let draftVersion = $state<number | null>(null);
-  let codeDraft = $state("");
-  let directionsDraft = $state("");
-  let buildingDraft = $state("");
-  let collegeDraft = $state("");
-  let divisionDraft = $state("");
-  let photosDraft = $state<EntityPhoto[]>([]);
-  let categoryDraft = $state("");
-  let savingField = $state<RoomEditableField | null>(null);
-  let savedField = $state<RoomEditableField | null>(null);
-  let fieldError = $state<string | null>(null);
-  let editing = $state(false);
-  let submitterNameDraft = $state("");
-  let submitterNoteDraft = $state("");
-  let proposalStatus = $state<string | null>(null);
-  let activeProposalId = $state<number | null>(null);
-  let mergePrompt = $state<{
-    candidate: RoomData;
-    attemptedName: string;
-    sourceVersion: number;
-  } | null>(null);
-  let mergingRooms = $state(false);
-  const canPublish = $derived(adminAuthStore.canPublish);
-  const roomShareUrl = $derived(
-    currentRoom.value ? getRoomShareUrl(currentRoom.value) : "",
-  );
-  const activeTermLabel = $derived(termStore.activeTerm?.label ?? null);
+	let draftRoomId = $state<number | null>(null);
+	let draftVersion = $state<number | null>(null);
+	let codeDraft = $state('');
+	let directionsDraft = $state('');
+	let buildingDraft = $state('');
+	let collegeDraft = $state('');
+	let divisionDraft = $state('');
+	let photosDraft = $state<EntityPhoto[]>([]);
+	let categoryDraft = $state('');
+	let savingField = $state<RoomEditableField | null>(null);
+	let savedField = $state<RoomEditableField | null>(null);
+	let fieldError = $state<string | null>(null);
+	let editing = $state(false);
+	let submitterNameDraft = $state('');
+	let submitterNoteDraft = $state('');
+	let proposalStatus = $state<string | null>(null);
+	let activeProposalId = $state<number | null>(null);
+	let mergePrompt = $state<{
+		candidate: Room;
+		attemptedName: string;
+		sourceVersion: number;
+	} | null>(null);
+	let mergingRooms = $state(false);
+	const canPublish = $derived(adminAuthStore.canPublish);
+	const roomShareUrl = $derived(currentRoom.value ? getRoomShareUrl(currentRoom.value) : '');
+	const activeTermLabel = $derived(termStore.activeTerm?.label ?? null);
 
-  let finalExams = $state<FinalExamRow[]>([]);
-  let finalExamsLoading = $state(false);
-  let finalExamsRequestKey = $state<string | null>(null);
+	let finalExams = $state<FinalExamRow[]>([]);
+	let finalExamsLoading = $state(false);
+	let finalExamsRequestKey = $state<string | null>(null);
 
-  onMount(() => {
-    termStore.init();
-  });
+	onMount(() => {
+		termStore.init();
+	});
 
-  $effect(() => {
-    const code = currentRoom.value?.code;
-    const termId = termStore.activeTermId;
-    if (!code) {
-      roomClassesStore.clear();
-      return;
-    }
-    void roomClassesStore.load(code, termId);
-  });
+	$effect(() => {
+		const code = currentRoom.value?.code;
+		const termId = termStore.activeTermId;
+		if (!code) {
+			roomClassesStore.clear();
+			return;
+		}
+		void roomClassesStore.load(code, termId);
+	});
 
-  $effect(() => {
-    const code = currentRoom.value?.code;
-    const termId = termStore.activeTermId;
-    if (!code || termId == null) {
-      finalExams = [];
-      finalExamsLoading = false;
-      return;
-    }
+	$effect(() => {
+		const code = currentRoom.value?.code;
+		const termId = termStore.activeTermId;
+		if (!code || termId == null) {
+			finalExams = [];
+			finalExamsLoading = false;
+			return;
+		}
 
-    const key = `${code}::${termId}`;
-    finalExamsRequestKey = key;
-    finalExamsLoading = true;
+		const key = `${code}::${termId}`;
+		finalExamsRequestKey = key;
+		finalExamsLoading = true;
 
-    void fetchFinalExams({ roomCode: code, termId }).then((rows) => {
-      if (finalExamsRequestKey !== key) return;
-      finalExams = rows;
-      finalExamsLoading = false;
-    });
-  });
+		void fetchFinalExams({ roomCode: code, termId }).then((rows) => {
+			if (finalExamsRequestKey !== key) return;
+			finalExams = rows;
+			finalExamsLoading = false;
+		});
+	});
 
-  $effect(() => {
-    const room = currentRoom.value;
-    if (!room) return;
-    if (draftRoomId === room.id && draftVersion === room.version) return;
+	$effect(() => {
+		const room = currentRoom.value;
+		if (!room) return;
+		if (draftRoomId === room.id && draftVersion === room.version) return;
 
-    draftRoomId = room.id;
-    draftVersion = room.version;
-    codeDraft = room.code;
-    directionsDraft = room.directions ?? "";
-    buildingDraft = room.buildingId === null ? "" : String(room.buildingId);
-    collegeDraft = room.collegeId === null ? "" : String(room.collegeId);
-    divisionDraft = room.divisionId === null ? "" : String(room.divisionId);
-    photosDraft = normalizeEntityPhotos(
-      room.photos?.length ? room.photos : room.imageUrl ? [room.imageUrl] : []
-    );
-    categoryDraft = room.category ?? "";
-    savedField = null;
-    fieldError = null;
-    mergePrompt = null;
-    proposalStatus = null;
-    const stored = getStoredProposalForEntity("room", room.id);
-    activeProposalId = stored?.id ?? null;
-    if (stored) proposalStatus = stored.status;
+		draftRoomId = room.id;
+		draftVersion = room.version;
+		codeDraft = room.code;
+		directionsDraft = room.directions ?? '';
+		buildingDraft = room.buildingId === null ? '' : String(room.buildingId);
+		collegeDraft = room.collegeId === null ? '' : String(room.collegeId);
+		divisionDraft = room.divisionId === null ? '' : String(room.divisionId);
+		photosDraft = normalizeEntityPhotos(
+			room.photos?.length ? room.photos : room.imageUrl ? [room.imageUrl] : []
+		);
+		categoryDraft = room.category ?? '';
+		savedField = null;
+		fieldError = null;
+		mergePrompt = null;
+		proposalStatus = null;
+		const stored = getStoredProposalForEntity('room', room.id);
+		activeProposalId = stored?.id ?? null;
+		if (stored) proposalStatus = stored.status;
 
-    if (!canPublish) {
-      const saved = readEntityContributorDraft("room", room.id);
-      if (saved) {
-        // if (saved.editing) editing = true;
-        if (typeof saved.fields.codeDraft === "string") {
-          codeDraft = saved.fields.codeDraft;
-        }
-        if (typeof saved.fields.directionsDraft === "string") {
-          directionsDraft = saved.fields.directionsDraft;
-        }
-        if (typeof saved.fields.buildingDraft === "string") {
-          buildingDraft = saved.fields.buildingDraft;
-        }
-        if (typeof saved.fields.collegeDraft === "string") {
-          collegeDraft = saved.fields.collegeDraft;
-        }
-        if (typeof saved.fields.divisionDraft === "string") {
-          divisionDraft = saved.fields.divisionDraft;
-        }
-        photosDraft = normalizeEntityPhotos(saved.fields.photosDraft);
-      }
-    }
-  });
+		if (!canPublish) {
+			const saved = readEntityContributorDraft('room', room.id);
+			if (saved) {
+				// if (saved.editing) editing = true;
+				if (typeof saved.fields.codeDraft === 'string') {
+					codeDraft = saved.fields.codeDraft;
+				}
+				if (typeof saved.fields.directionsDraft === 'string') {
+					directionsDraft = saved.fields.directionsDraft;
+				}
+				if (typeof saved.fields.buildingDraft === 'string') {
+					buildingDraft = saved.fields.buildingDraft;
+				}
+				if (typeof saved.fields.collegeDraft === 'string') {
+					collegeDraft = saved.fields.collegeDraft;
+				}
+				if (typeof saved.fields.divisionDraft === 'string') {
+					divisionDraft = saved.fields.divisionDraft;
+				}
+				photosDraft = normalizeEntityPhotos(saved.fields.photosDraft);
+			}
+		}
+	});
 
-  $effect(() => {
-    const room = currentRoom.value;
-    if (canPublish || !editing || !room) return;
-    scheduleEntityContributorDraftSave("room", room.id, () => ({
-      editing: true,
-      fields: {
-        codeDraft,
-        directionsDraft,
-        divisionDraft,
-        photosDraft,
-      },
-    }));
-  });
+	$effect(() => {
+		const room = currentRoom.value;
+		if (canPublish || !editing || !room) return;
+		scheduleEntityContributorDraftSave('room', room.id, () => ({
+			editing: true,
+			fields: {
+				codeDraft,
+				directionsDraft,
+				divisionDraft,
+				photosDraft
+			}
+		}));
+	});
 
-  function fieldLabel(field: RoomEditableField) {
-    return fieldLabels[field];
-  }
+	function fieldLabel(field: RoomEditableField) {
+		return fieldLabels[field];
+	}
 
-  function selectValueToId(value: string) {
-    return value === "" ? null : Number(value);
-  }
-  function roomPhotoUrls(room: RoomData) {
-    return normalizeEntityPhotos(
-      room.photos?.length ? room.photos : room.imageUrl ? [room.imageUrl] : []
-    ).map((photo) => photo.url);
-  }
+	function selectValueToId(value: string) {
+		return value === '' ? null : Number(value);
+	}
+	function roomPhotoUrls(room: Room) {
+		return normalizeEntityPhotos(
+			room.photos?.length ? room.photos : room.imageUrl ? [room.imageUrl] : []
+		).map((photo) => photo.url);
+	}
 
-  function photosUnchanged(room: RoomData) {
-    return photosDraft.map((photo) => photo.url).join('\n') === roomPhotoUrls(room).join('\n');
-  }
+	function photosUnchanged(room: Room) {
+		return photosDraft.map((photo) => photo.url).join('\n') === roomPhotoUrls(room).join('\n');
+	}
 
-  function syncRoomFromServer(room: RoomData) {
-    currentRoom.setRoom(room);
-    queryStore.hydrateQuery({
-      type: "result",
-      category: "room",
-      value: room.code,
-    });
-  }
+	function syncRoomFromServer(room: Room) {
+		currentRoom.setRoom(room);
+		queryStore.hydrateQuery({
+			type: 'result',
+			category: 'room',
+			value: room.code
+		});
+	}
 
-  async function saveField(field: RoomEditableField) {
-    const room = currentRoom.value;
-    if (!room) return;
+	async function saveField(field: RoomEditableField) {
+		const room = currentRoom.value;
+		if (!room) return;
 
-    const body: {
-      version: number;
-      roomCode?: string;
-      directions?: string | null;
-      buildingId?: number | null;
-      collegeId?: number | null;
-      divisionId?: number | null;
-      photoUrls?: string[];
-      category?: string | null;
-    } = { version: room.version };
+		const body: {
+			version: number;
+			roomCode?: string;
+			directions?: string | null;
+			buildingId?: number | null;
+			collegeId?: number | null;
+			divisionId?: number | null;
+			photoUrls?: string[];
+			category?: string | null;
+		} = { version: room.version };
 
-    if (field === "roomCode") {
-      const trimmedCode = codeDraft.trim();
-      if (trimmedCode.length === 0) {
-        fieldError = `${room.code} room code cannot be empty.`;
-        return;
-      }
-      body.roomCode = trimmedCode;
-    } else if (field === "directions") {
-      body.directions = directionsDraft.trim() || null;
-    } else if (field === "buildingId") {
-      body.buildingId = selectValueToId(buildingDraft);
-    } else if (field === "collegeId") {
-      body.collegeId = selectValueToId(collegeDraft);
-    } else if (field === "divisionId") {
-      body.divisionId = selectValueToId(divisionDraft);
-    } else if (field === "photos") {
-      body.photoUrls = photosDraft.map((photo) => photo.url);
-    } else if (field === "category") {
-      body.category = categoryDraft || null;
-    }
+		if (field === 'roomCode') {
+			const trimmedCode = codeDraft.trim();
+			if (trimmedCode.length === 0) {
+				fieldError = `${room.code} room code cannot be empty.`;
+				return;
+			}
+			body.roomCode = trimmedCode;
+		} else if (field === 'directions') {
+			body.directions = directionsDraft.trim() || null;
+		} else if (field === 'buildingId') {
+			body.buildingId = selectValueToId(buildingDraft);
+		} else if (field === 'collegeId') {
+			body.collegeId = selectValueToId(collegeDraft);
+		} else if (field === 'divisionId') {
+			body.divisionId = selectValueToId(divisionDraft);
+		} else if (field === 'photos') {
+			body.photoUrls = photosDraft.map((photo) => photo.url);
+		} else if (field === 'category') {
+			body.category = categoryDraft || null;
+		}
 
-    savingField = field;
-    savedField = null;
-    fieldError = null;
-    mergePrompt = null;
+		savingField = field;
+		savedField = null;
+		fieldError = null;
+		mergePrompt = null;
 
-    try {
-      const { version: _version, ...patch } = body;
-      const result = await persistEntityChange({
-        entityType: "room",
-        entityId: room.id,
-        baseVersion: room.version,
-        patch,
-        entityLabel: room.code,
-        canPublish,
-        submitterName:
-          adminAuthStore.displayName ??
-          adminAuthStore.username ??
-          submitterNameDraft,
-        submitterNote: submitterNoteDraft,
-        proposalId: activeProposalId,
-      });
+		try {
+			const { version: _version, ...patch } = body;
+			const result = await persistEntityChange({
+				entityType: 'room',
+				entityId: room.id,
+				baseVersion: room.version,
+				patch,
+				entityLabel: room.code,
+				canPublish,
+				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterNameDraft,
+				submitterNote: submitterNoteDraft,
+				proposalId: activeProposalId
+			});
 
-      const outcome = handlePersistEntityResult<RoomData>(result, {
-        syncFromServer: syncRoomFromServer,
-        fallbackError: `${room.code} ${fieldLabel(field)} could not be saved.`,
-      });
+			const outcome = handlePersistEntityResult<Room>(result, {
+				syncFromServer: syncRoomFromServer,
+				fallbackError: `${room.code} ${fieldLabel(field)} could not be saved.`
+			});
 
-      if (outcome.error) {
-        if (outcome.mergeCandidate && field === "roomCode") {
-          mergePrompt = {
-            candidate: outcome.mergeCandidate as RoomData,
-            attemptedName: outcome.attemptedName ?? codeDraft.trim(),
-            sourceVersion: room.version,
-          };
-          fieldError = null;
-          return;
-        }
-        fieldError = outcome.error;
-        return;
-      }
+			if (outcome.error) {
+				if (outcome.mergeCandidate && field === 'roomCode') {
+					mergePrompt = {
+						candidate: outcome.mergeCandidate as Room,
+						attemptedName: outcome.attemptedName ?? codeDraft.trim(),
+						sourceVersion: room.version
+					};
+					fieldError = null;
+					return;
+				}
+				fieldError = outcome.error;
+				return;
+			}
 
-      if (outcome.proposal) {
-        activeProposalId = outcome.proposal.id;
-        proposalStatus = outcome.proposal.status;
-        clearEntityContributorDraft("room", room.id);
-        toastStore.show(
-          `Suggestion for ${room.code} submitted for review.`,
-          "success",
-        );
-      }
-      savedField = field;
-      setTimeout(() => {
-        if (savedField === field) savedField = null;
-      }, 1800);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${room.code} ${fieldLabel(field)} failed to save: ${reason}`;
-    } finally {
-      savingField = null;
-    }
-  }
+			if (outcome.proposal) {
+				activeProposalId = outcome.proposal.id;
+				proposalStatus = outcome.proposal.status;
+				clearEntityContributorDraft('room', room.id);
+				toastStore.show(`Suggestion for ${room.code} submitted for review.`, 'success');
+			}
+			savedField = field;
+			setTimeout(() => {
+				if (savedField === field) savedField = null;
+			}, 1800);
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : 'Network error';
+			fieldError = `${room.code} ${fieldLabel(field)} failed to save: ${reason}`;
+		} finally {
+			savingField = null;
+		}
+	}
 
-  function dismissMergePrompt() {
-    mergePrompt = null;
-    const room = currentRoom.value;
-    if (room) codeDraft = room.code;
-  }
+	function dismissMergePrompt() {
+		mergePrompt = null;
+		const room = currentRoom.value;
+		if (room) codeDraft = room.code;
+	}
 
-  async function confirmRoomMerge() {
-    const room = currentRoom.value;
-    if (!room || !mergePrompt) return;
+	async function confirmRoomMerge() {
+		const room = currentRoom.value;
+		if (!room || !mergePrompt) return;
 
-    mergingRooms = true;
-    fieldError = null;
+		mergingRooms = true;
+		fieldError = null;
 
-    try {
-      const result = await mergeEntityRooms({
-        sourceRoomId: room.id,
-        targetRoomId: mergePrompt.candidate.id,
-        sourceVersion: mergePrompt.sourceVersion,
-        preferredRoomCode: mergePrompt.attemptedName,
-      });
+		try {
+			const result = await mergeEntityRooms({
+				sourceRoomId: room.id,
+				targetRoomId: mergePrompt.candidate.id,
+				sourceVersion: mergePrompt.sourceVersion,
+				preferredRoomCode: mergePrompt.attemptedName
+			});
 
-      if (!result.ok) {
-        if (result.latest) syncRoomFromServer(result.latest);
-        fieldError =
-          result.error ??
-          `${room.code} could not be merged into ${mergePrompt.candidate.code}.`;
-        return;
-      }
+			if (!result.ok) {
+				if (result.latest) syncRoomFromServer(result.latest);
+				fieldError =
+					result.error ?? `${room.code} could not be merged into ${mergePrompt.candidate.code}.`;
+				return;
+			}
 
-      if (result.room) {
-        syncRoomFromServer(result.room);
-        toastStore.show(
-          `Merged ${room.code} into ${result.room.code}.`,
-          "success",
-        );
-      }
-      mergePrompt = null;
-      editing = false;
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${room.code} merge failed: ${reason}`;
-    } finally {
-      mergingRooms = false;
-    }
-  }
+			if (result.room) {
+				syncRoomFromServer(result.room);
+				toastStore.show(`Merged ${room.code} into ${result.room.code}.`, 'success');
+			}
+			mergePrompt = null;
+			editing = false;
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : 'Network error';
+			fieldError = `${room.code} merge failed: ${reason}`;
+		} finally {
+			mergingRooms = false;
+		}
+	}
 
-  function mergeCandidateLabel(candidate: RoomData) {
-    const building = candidate.building?.name;
-    return building ? `${candidate.code} (${building})` : candidate.code;
-  }
+	function mergeCandidateLabel(candidate: Room) {
+		const building = candidate.building?.name;
+		return building ? `${candidate.code} (${building})` : candidate.code;
+	}
 
-  const parentBuilding = $derived.by(() => {
-    const room = currentRoom.value;
-    if (!room) return null;
+	const parentBuilding = $derived.by(() => {
+		const room = currentRoom.value;
+		if (!room) return null;
 
-    if (room.building?.name) {
-      return room.building;
-    }
+		if (room.building?.name) {
+			return room.building;
+		}
 
-    if (room.buildingId === null) return null;
+		if (room.buildingId === null) return null;
 
-    const building = buildings.find((item) => item.id === room.buildingId);
-    if (!building) return null;
+		const building = buildings.find((item) => item.id === room.buildingId);
+		if (!building) return null;
 
-    return {
-      name: building.buildingName,
-      lat: building.lat,
-      lon: building.lon,
-      directions: building.directions,
-    };
-  });
+		return {
+			name: building.buildingName,
+			lat: building.lat,
+			lon: building.lon,
+			directions: building.directions
+		};
+	});
 
-  function openBuildingResult() {
-    const buildingName = parentBuilding?.name;
-    if (!buildingName) return;
-    queryStore.updateQuery({
-      type: "result",
-      category: "building",
-      value: buildingName,
-    });
-    sidePanelStore.openPanel({
-      type: "search-result",
-      component: BuildingResult,
-    });
-  }
+	function openBuildingResult() {
+		const buildingName = parentBuilding?.name;
+		if (!buildingName) return;
+		queryStore.updateQuery({
+			type: 'result',
+			category: 'building',
+			value: buildingName
+		});
+		sidePanelStore.openPanel({
+			type: 'search-result',
+			component: BuildingResult
+		});
+	}
 
-  const allFieldsUnchanged = $derived.by(() => {
-    const room = currentRoom.value;
-    if (!room) return true;
-    return (
-      codeDraft.trim() === room.code &&
-      directionsDraft.trim() === (room.directions ?? "") &&
-      buildingDraft === String(room.buildingId ?? "") &&
-      collegeDraft === String(room.collegeId ?? "") &&
-      divisionDraft === String(room.divisionId ?? "") &&
-      photosUnchanged(room) &&
-      categoryDraft === (room.category ?? "")
-    );
-  });
+	const allFieldsUnchanged = $derived.by(() => {
+		const room = currentRoom.value;
+		if (!room) return true;
+		return (
+			codeDraft.trim() === room.code &&
+			directionsDraft.trim() === (room.directions ?? '') &&
+			buildingDraft === String(room.buildingId ?? '') &&
+			collegeDraft === String(room.collegeId ?? '') &&
+			divisionDraft === String(room.divisionId ?? '') &&
+			photosUnchanged(room) &&
+			categoryDraft === (room.category ?? '')
+		);
+	});
 
-  async function submitAllChanges() {
-    const room = currentRoom.value;
-    if (!room || allFieldsUnchanged) return;
+	async function submitAllChanges() {
+		const room = currentRoom.value;
+		if (!room || allFieldsUnchanged) return;
 
-    const patch: Record<string, unknown> = {};
-    if (codeDraft.trim() !== room.code) {
-      const trimmedCode = codeDraft.trim();
-      if (trimmedCode.length === 0) {
-        fieldError = `${room.code} room code cannot be empty.`;
-        return;
-      }
-      patch.roomCode = trimmedCode;
-    }
-    if (directionsDraft.trim() !== (room.directions ?? "")) {
-      patch.directions = directionsDraft.trim() || null;
-    }
-    if (buildingDraft !== String(room.buildingId ?? "")) {
-      patch.buildingId = selectValueToId(buildingDraft);
-    }
-    if (collegeDraft !== String(room.collegeId ?? "")) {
-      patch.collegeId = selectValueToId(collegeDraft);
-    }
-    if (divisionDraft !== String(room.divisionId ?? "")) {
-      patch.divisionId = selectValueToId(divisionDraft);
-    }
-    if (
-      photosDraft.map((photo) => photo.url).join('\n') !==
-      normalizeEntityPhotos(room.photos?.length ? room.photos : room.imageUrl ? [room.imageUrl] : [])
-        .map((photo) => photo.url)
-        .join('\n')
-    ) {
-      patch.photoUrls = photosDraft.map((photo) => photo.url);
-    }
-    if (categoryDraft !== (room.category ?? "")) {
-      patch.category = categoryDraft || null;
-    }
+		const patch: Record<string, unknown> = {};
+		if (codeDraft.trim() !== room.code) {
+			const trimmedCode = codeDraft.trim();
+			if (trimmedCode.length === 0) {
+				fieldError = `${room.code} room code cannot be empty.`;
+				return;
+			}
+			patch.roomCode = trimmedCode;
+		}
+		if (directionsDraft.trim() !== (room.directions ?? '')) {
+			patch.directions = directionsDraft.trim() || null;
+		}
+		if (buildingDraft !== String(room.buildingId ?? '')) {
+			patch.buildingId = selectValueToId(buildingDraft);
+		}
+		if (collegeDraft !== String(room.collegeId ?? '')) {
+			patch.collegeId = selectValueToId(collegeDraft);
+		}
+		if (divisionDraft !== String(room.divisionId ?? '')) {
+			patch.divisionId = selectValueToId(divisionDraft);
+		}
+		if (
+			photosDraft.map((photo) => photo.url).join('\n') !==
+			normalizeEntityPhotos(
+				room.photos?.length ? room.photos : room.imageUrl ? [room.imageUrl] : []
+			)
+				.map((photo) => photo.url)
+				.join('\n')
+		) {
+			patch.photoUrls = photosDraft.map((photo) => photo.url);
+		}
+		if (categoryDraft !== (room.category ?? '')) {
+			patch.category = categoryDraft || null;
+		}
 
-    savingField = "roomCode" as RoomEditableField;
-    savedField = null;
-    fieldError = null;
-    mergePrompt = null;
+		savingField = 'roomCode' as RoomEditableField;
+		savedField = null;
+		fieldError = null;
+		mergePrompt = null;
 
-    try {
-      const result = await persistEntityChange({
-        entityType: "room",
-        entityId: room.id,
-        baseVersion: room.version,
-        patch,
-        entityLabel: room.code,
-        canPublish,
-        submitterName:
-          adminAuthStore.displayName ??
-          adminAuthStore.username ??
-          submitterNameDraft,
-        submitterNote: submitterNoteDraft,
-        proposalId: activeProposalId,
-      });
+		try {
+			const result = await persistEntityChange({
+				entityType: 'room',
+				entityId: room.id,
+				baseVersion: room.version,
+				patch,
+				entityLabel: room.code,
+				canPublish,
+				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterNameDraft,
+				submitterNote: submitterNoteDraft,
+				proposalId: activeProposalId
+			});
 
-      const outcome = handlePersistEntityResult<RoomData>(result, {
-        syncFromServer: syncRoomFromServer,
-        fallbackError: `${room.code} could not be saved.`,
-      });
+			const outcome = handlePersistEntityResult<Room>(result, {
+				syncFromServer: syncRoomFromServer,
+				fallbackError: `${room.code} could not be saved.`
+			});
 
-      if (outcome.error) {
-        fieldError = outcome.error;
-        return;
-      }
+			if (outcome.error) {
+				fieldError = outcome.error;
+				return;
+			}
 
-      if (outcome.proposal) {
-        activeProposalId = outcome.proposal.id;
-        proposalStatus = outcome.proposal.status;
-        clearEntityContributorDraft("room", room.id);
-        toastStore.show(
-          `Suggestion for ${room.code} submitted for review.`,
-          "success",
-        );
-      }
-      savedField = "roomCode" as RoomEditableField;
-      setTimeout(() => {
-        if (savedField === "roomCode") savedField = null;
-      }, 1800);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${room.code} failed to save: ${reason}`;
-    } finally {
-      savingField = null;
-    }
-  }
-
+			if (outcome.proposal) {
+				activeProposalId = outcome.proposal.id;
+				proposalStatus = outcome.proposal.status;
+				clearEntityContributorDraft('room', room.id);
+				toastStore.show(`Suggestion for ${room.code} submitted for review.`, 'success');
+			}
+			savedField = 'roomCode' as RoomEditableField;
+			setTimeout(() => {
+				if (savedField === 'roomCode') savedField = null;
+			}, 1800);
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : 'Network error';
+			fieldError = `${room.code} failed to save: ${reason}`;
+		} finally {
+			savingField = null;
+		}
+	}
 </script>
 
 <div class="entity-detail">
@@ -762,7 +741,9 @@ import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
 							<EntityPhotoUpload
 								label="Room photos (optional)"
 								inputId="room-photo-editor"
-								endpoint={canPublish ? "/api/uploads/editor-photo" : "/api/uploads/suggestion-photo"}
+								endpoint={canPublish
+									? '/api/uploads/editor-photo'
+									: '/api/uploads/suggestion-photo'}
 								prefix={`rooms/${currentRoom.value.id}`}
 								bind:photos={photosDraft}
 								disabled={savingField !== null}

@@ -1,6 +1,8 @@
 import {
 	announcementsTable,
 	buildingsTable,
+	collegesTable,
+	divisionsTable,
 	dormsTable,
 	eventLocationsTable,
 	eventRouteStopsTable,
@@ -9,6 +11,7 @@ import {
 	organizationsTable,
 	placesTable,
 	roomPositionsTable,
+	roomsTable,
 	termsTable
 } from '$lib/server/db/schema';
 import type { QueryStoreState } from '../stores/store-types';
@@ -46,45 +49,11 @@ export type AppData = {
 	};
 };
 
-type RoomData = {
-	id: number;
-	code: string;
-	/** Unabbreviated readable name when the code is an abbreviation (#875). */
-	fullName?: string | null;
-	directions: string | null;
-	building: {
-		name: string;
-		lat: number | null;
-		lon: number | null;
-		directions: string | null;
-	} | null;
-	buildingId: number | null;
-	collegeId: number | null;
-	divisionId: number | null;
-	collegeName: string | null;
-	divisionName: string | null;
-	imageUrl?: string | null;
-	photos?: EntityPhoto[];
-	/** Room purpose category (#537): classroom | office | org-tambayan | … | null. */
-	category?: string | null;
-	version: number;
-	updatedAt: string;
-	floor?: number | null;
-};
+type Room = typeof roomsTable.$inferSelect
 
-type BuildingData = Omit<
-	typeof buildingsTable.$inferSelect,
-	'photos' | 'directions' | 'streetViewPanoId' | 'streetViewCaptured' | 'streetViewDistanceM' | 'streetViewCheckedAt'
-> & {
-	directions: string | null;
-	photos?: EntityPhoto[];
-	streetViewPanoId?: string | null;
-	streetViewCaptured?: string | null;
-	streetViewDistanceM?: number | null;
-	streetViewCheckedAt?: string | null;
-};
+type Building = typeof buildingsTable.$inferSelect;
 
-type BuildingType = BuildingData['buildingType'];
+type BuildingType = typeof buildingsTable.$inferSelect.buildingType;
 
 type ClassMapValue = {
 	courseCode: string | null;
@@ -115,31 +84,18 @@ type FinalExamRow = {
 	source: string;
 };
 
-type CollegeData = {
-	id: number;
-	collegeName: string;
-	websiteLink?: string | null;
-	version: number;
-	updatedAt: string;
-	floor?: number | null;
-};
+type College = typeof collegesTable.$inferSelect;
 
-type DivisionData = {
-	id: number;
-	divisionName: string;
-	collegeId: number | null;
-	websiteLink?: string | null;
-	version: number;
-	updatedAt: string;
-	floor?: number | null;
-};
+type Division = typeof divisionsTable.$inferSelect;
 
 type DormData = Omit<typeof dormsTable.$inferSelect, "photos"> & {
   photos?: EntityPhoto[];
 };
 
 type OrgData = typeof organizationsTable.$inferSelect;
+
 type PlaceData = typeof placesTable.$inferSelect;
+
 type AnnouncementData = typeof announcementsTable.$inferSelect;
 
 type Term = typeof termsTable.$inferSelect;

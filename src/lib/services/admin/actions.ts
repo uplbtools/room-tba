@@ -35,7 +35,7 @@ import {
 	roomsTable,
 	updateTable
 } from '$lib/server/db/schema';
-import type { EventData, PlaceData, RoomData } from '$lib/utils/types';
+import type { EventData, PlaceData, Room } from '$lib/utils/types';
 import { recordEditorContribution } from '../contribution/contributor-action';
 import { EditConflictError } from '../contribution/edit-conflict-error';
 import { getEventById } from '../entity/event';
@@ -206,9 +206,9 @@ async function performEntityUpdate<TEntity extends { id: number; version: number
 
 // ── Rooms ──
 
-export type RoomWithRelations = RoomData;
+export type RoomWithRelations = Room;
 
-export async function getRoomById(id: number): Promise<RoomData | null> {
+export async function getRoomById(id: number): Promise<Room | null> {
 	const rows = await db
 		.select({
 			id: roomsTable.id,
@@ -281,7 +281,7 @@ export type RoomUpdateInput = {
 export async function findRoomMergeCandidate(
 	roomCode: string,
 	excludeId: number
-): Promise<RoomData | null> {
+): Promise<Room | null> {
 	const normalized = normalizeEntityName(roomCode);
 	if (!normalized) return null;
 
@@ -395,7 +395,7 @@ export async function updateRoom(
 	expectedVersion?: number,
 	editedBy = 'admin',
 	history?: EditorHistoryOverride
-): Promise<RoomData | null> {
+): Promise<Room | null> {
 	const updates: Record<string, unknown> = {};
 	if (input.roomCode !== undefined) updates.roomCode = input.roomCode;
 	if (input.directions !== undefined) updates.directions = input.directions || null;
@@ -475,7 +475,7 @@ export type RoomCreateInput = {
 export async function createRoom(
 	input: RoomCreateInput,
 	editedBy = 'admin'
-): Promise<RoomData | null> {
+): Promise<Room | null> {
 	const photos = normalizePhotoInput(input.photos);
 	const [inserted] = await db
 		.insert(roomsTable)
@@ -558,7 +558,7 @@ export async function updateRoomPosition(
 	input: RoomPositionUpdateInput,
 	expectedVersion?: number,
 	editedBy = 'admin'
-): Promise<RoomData | null> {
+): Promise<Room | null> {
 	const before = await getRoomById(roomId);
 	if (!before) return null;
 

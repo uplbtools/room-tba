@@ -1,12 +1,12 @@
 import type { QueryStoreState } from '$lib/stores/store-types';
-import type { BuildingData, DormData, EventData, OrgData, PlaceData } from './types';
+import type { Building, DormData, EventData, OrgData, PlaceData } from './types';
 
 type Suggestion = {
 	value: string;
 	entityId?: number;
 	category: Exclude<QueryStoreState['category'], null>;
 	eventSlug?: string;
-	building?: BuildingData;
+	building?: Building;
 	event?: EventData;
 };
 
@@ -31,7 +31,7 @@ export function buildEntitySuggestions(
 	searchString: string,
 	data: {
 		loaded: boolean;
-		filteredBuildings: BuildingData[];
+		filteredBuildings: Building[];
 		filteredDorms: DormData[];
 		colleges: { collegeName: string }[];
 		divisions: { divisionName: string }[];

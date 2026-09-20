@@ -14,7 +14,7 @@
 		scheduleEntityContributorDraftSave
 	} from '$lib/utils/contributor-drafts';
 	import { getAppActions, getAppData } from '$lib/utils/context';
-	import type { DivisionData, RoomData } from '$lib/utils/types';
+	import type { Division, Room } from '$lib/utils/types';
 	import {
 		getDivisionRooms,
 		fetchRoomClassCounts,
@@ -38,8 +38,8 @@
 
 	type DivisionPatchResponse = {
 		success?: boolean;
-		division?: DivisionData;
-		latest?: DivisionData | null;
+		division?: Division;
+		latest?: Division | null;
 		error?: string;
 	};
 
@@ -57,7 +57,7 @@
 		return (colleges ?? []).find((college) => college.id === current.collegeId) ?? null;
 	});
 
-	let divisionRooms = $state<RoomData[] | null>(null);
+	let divisionRooms = $state<Room[] | null>(null);
 	let classCounts = $state<Map<number, number> | null>(null);
 	let editing = $state(false);
 	let draftDivisionId = $state<number | null>(null);
@@ -71,7 +71,7 @@
 	let activeProposalId = $state<number | null>(null);
 	let proposalStatus = $state<string | null>(null);
 	let mergePrompt = $state<{
-		candidate: DivisionData;
+		candidate: Division;
 		attemptedName: string;
 		sourceVersion: number;
 	} | null>(null);
@@ -177,7 +177,7 @@
 		}));
 	});
 
-	function syncDivisionFromServer(updated: DivisionData) {
+	function syncDivisionFromServer(updated: Division) {
 		appActions.upsertDivision(updated);
 		queryStore.hydrateQuery({
 			type: 'result',
@@ -230,7 +230,7 @@
 				proposalId: activeProposalId
 			});
 
-			const outcome = handlePersistEntityResult<DivisionData>(result, {
+			const outcome = handlePersistEntityResult<Division>(result, {
 				syncFromServer: syncDivisionFromServer,
 				fallbackError: `${current.divisionName} could not be saved.`
 			});
@@ -238,7 +238,7 @@
 			if (outcome.error) {
 				if (outcome.mergeCandidate && patch.divisionName) {
 					mergePrompt = {
-						candidate: outcome.mergeCandidate as DivisionData,
+						candidate: outcome.mergeCandidate as Division,
 						attemptedName: patch.divisionName as string,
 						sourceVersion: current.version
 					};
@@ -292,7 +292,7 @@
 			});
 
 			if (!result.ok) {
-				if (result.latest) syncDivisionFromServer(result.latest as DivisionData);
+				if (result.latest) syncDivisionFromServer(result.latest as Division);
 				fieldError =
 					result.error ??
 					`${current.divisionName} could not be merged into ${mergePrompt.candidate.divisionName}.`;
@@ -300,7 +300,7 @@
 			}
 
 			if (result.entity) {
-				syncDivisionFromServer(result.entity as DivisionData);
+				syncDivisionFromServer(result.entity as Division);
 				toastStore.show(
 					`Merged ${current.divisionName} into ${mergePrompt.candidate.divisionName}.`,
 					'success'

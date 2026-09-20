@@ -2,12 +2,12 @@
 
 import { slugifySegment } from './site';
 import type {
-	BuildingData,
-	CollegeData,
-	DivisionData,
+	Building,
+	College,
+	Division,
 	DormData,
 	EventData,
-	RoomData
+	Room
 } from '$lib/utils/types';
 
 export type SearchCategory =
@@ -26,21 +26,21 @@ export type InitialSearchState = {
 	eventSlug?: string;
 };
 
-export function getRoomSlug(room: Pick<RoomData, 'code'>) {
+export function getRoomSlug(room: Pick<Room, 'code'>) {
 	return slugifySegment(room.code);
 }
 
 export { getRoomRouteSlug } from './route/route-slugs';
 
-export function getBuildingSlug(building: Pick<BuildingData, 'buildingName'>) {
+export function getBuildingSlug(building: Pick<Building, 'buildingName'>) {
 	return slugifySegment(building.buildingName);
 }
 
-export function getDivisionSlug(division: Pick<DivisionData, 'divisionName'>) {
+export function getDivisionSlug(division: Pick<Division, 'divisionName'>) {
 	return slugifySegment(division.divisionName);
 }
 
-export function getCollegeSlug(college: Pick<CollegeData, 'collegeName'>) {
+export function getCollegeSlug(college: Pick<College, 'collegeName'>) {
 	return slugifySegment(college.collegeName);
 }
 

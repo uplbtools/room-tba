@@ -3,11 +3,11 @@ import {
 	buildingMatchesTypeFilter,
 	getBuildingTypeFilterOptions
 } from '$lib/constants/content/categories/building';
-import type { BuildingData } from '$lib/utils/types';
+import type { Building } from '$lib/utils/types';
 
-function building(id: number, type: 'admin' | 'non-admin'): BuildingData {
+function building(id: number, type: 'admin' | 'non-admin'): Building {
 	// Only the fields the filter reads matter here.
-	return { id, buildingType: type } as BuildingData;
+	return { id, buildingType: type } as Building;
 }
 
 describe('buildingMatchesTypeFilter', () => {

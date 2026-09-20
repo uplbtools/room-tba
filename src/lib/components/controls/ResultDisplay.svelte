@@ -2,7 +2,7 @@
 	import EntityEmptyState from './EntityEmptyState.svelte';
 	import EntityPagination from './EntityPagination.svelte';
 	import { queryStore } from '$lib/stores.svelte';
-	import type { RoomData } from '$lib/utils/types';
+	import type { Room } from '$lib/utils/types';
 	import RoomDisplay from './RoomDisplay.svelte';
 	import TermSelector from '$lib/components/TermSelector.svelte';
 
@@ -10,7 +10,7 @@
 	let paginateOffset = $state(0);
 
 	interface Props {
-		filteredRooms: RoomData[];
+		filteredRooms: Room[];
 		classCounts?: Map<number, number> | null;
 		sectionTitle?: string;
 		emptyMessage?: string;
@@ -27,13 +27,13 @@
 	type BuildingRoomGroup = {
 		key: string;
 		buildingName: string | null;
-		rooms: RoomData[];
+		rooms: Room[];
 	};
 
 	const buildingGroups = $derived.by((): BuildingRoomGroup[] | null => {
 		if (!groupByBuilding) return null;
 
-		const byBuilding = new Map<string, RoomData[]>();
+		const byBuilding = new Map<string, Room[]>();
 		for (const room of filteredRooms) {
 			const buildingName = room.building?.name ?? null;
 			const key = buildingName ?? '__none__';

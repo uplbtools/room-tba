@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'vitest';
-import type { RoomData } from '$lib/utils/types';
+import type { Room } from '$lib/utils/types';
 import { getEntityRooms } from './utils';
 
 const realFetch = globalThis.fetch;
@@ -12,7 +12,7 @@ afterEach(() => {
 	globalThis.fetch = realFetch;
 });
 
-const sampleRoom = (id: number): RoomData =>
+const sampleRoom = (id: number): Room =>
 	({
 		id,
 		code: `R-${id}`,
@@ -23,7 +23,7 @@ const sampleRoom = (id: number): RoomData =>
 		category: null,
 		version: 1,
 		updatedAt: null
-	}) as unknown as RoomData;
+	}) as unknown as Room;
 
 describe('getEntityRooms', () => {
 	test('returns cached rows without hitting the API when PGlite has data (#415)', async () => {

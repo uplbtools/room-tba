@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import type { RoomData } from '$lib/utils/types.js';
+import type { Room } from '$lib/utils/types.js';
 
 const { getJSONFetch, getLocalRoomByCode } = vi.hoisted(() => ({
 	getJSONFetch: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('../utils/local/data/utils.js', () => ({
 
 import { currentRoom } from './index.svelte.js';
 
-const room = (code: string): RoomData => ({ id: 1, code, buildingId: 1 }) as unknown as RoomData;
+const room = (code: string): Room => ({ id: 1, code, buildingId: 1 }) as unknown as Room;
 
 /** Resolves only when the returned trigger is called. */
 function deferred<T>() {
@@ -34,7 +34,7 @@ describe('currentRoom.notFound', () => {
 	});
 
 	test('stays false while a lookup is in flight, so panels show loading', async () => {
-		const local = deferred<RoomData | null>();
+		const local = deferred<Room | null>();
 		getLocalRoomByCode.mockReturnValue(local.promise);
 
 		const lookup = currentRoom.getRoomByCode('E2E-101');
@@ -71,7 +71,7 @@ describe('currentRoom.notFound', () => {
 	});
 
 	test('a slow earlier lookup cannot overwrite a newer result', async () => {
-		const slow = deferred<RoomData | null>();
+		const slow = deferred<Room | null>();
 		getLocalRoomByCode.mockReturnValueOnce(slow.promise);
 		const stale = currentRoom.getRoomByCode('SLOW');
 

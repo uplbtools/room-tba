@@ -1,8 +1,8 @@
 import type { AppActions, AppContextData } from '$lib/utils/context';
 import type {
-	BuildingData,
-	CollegeData,
-	DivisionData,
+	Building,
+	College,
+	Division,
 	DormData,
 	EventData,
 	OrgData,
@@ -68,7 +68,7 @@ export function applyPublishedEntity(
 			const row = mergePublishedRow(
 				getData,
 				data?.loaded ? data.buildings : undefined,
-				published as BuildingData
+				published as Building
 			);
 			actions.upsertBuilding(row);
 			return true;
@@ -88,7 +88,7 @@ export function applyPublishedEntity(
 			const row = mergePublishedRow(
 				getData,
 				data?.loaded ? data.colleges : undefined,
-				published as CollegeData
+				published as College
 			);
 			actions.upsertCollege(row);
 			return true;
@@ -98,7 +98,7 @@ export function applyPublishedEntity(
 			const row = mergePublishedRow(
 				getData,
 				data?.loaded ? data.divisions : undefined,
-				published as DivisionData
+				published as Division
 			);
 			actions.upsertDivision(row);
 			return true;

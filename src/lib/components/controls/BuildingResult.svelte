@@ -1,633 +1,603 @@
-<script lang="ts">
-  
-  import Box from "@lucide/svelte/icons/box";
+<!-- <script lang="ts">
+	import Box from '@lucide/svelte/icons/box';
 
-  import { tick } from "svelte";
-import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
-  import EntityEditorField from "$lib/components/editor/EntityEditorField.svelte";
-  import EntityEditorPanel from "$lib/components/editor/EntityEditorPanel.svelte";
-  import EntityEditorPinRow from "$lib/components/editor/EntityEditorPinRow.svelte";
-  import EntityEditorToggle from "$lib/components/editor/EntityEditorToggle.svelte";
-  import MergeEntityPrompt from "$lib/components/editor/MergeEntityPrompt.svelte";
-  import EntityPhotoUpload from "$lib/components/editor/EntityPhotoUpload.svelte";
-  import BuildingPhoto from "./BuildingPhoto.svelte";
-  import MapChromeActionChip from "$lib/components/map-chrome/MapChromeActionChip.svelte";
-  import {
-    CR_FACILITIES,
-    crFacilityLabel,
-    sanitizeCrFacilities,
-  } from "$lib/constants/map/cr-facilities";
-  import { getAppActions, getAppData } from "$lib/utils/context";
-  import {
-    clearEntityContributorDraft,
-    readEntityContributorDraft,
-    scheduleEntityContributorDraftSave,
-  } from "$lib/utils/contributor-drafts";
-  import { entityEditorSavedMessage, fieldSaveActionLabel } from "$lib/utils/editor/field-action-label";
-  import { handlePersistEntityResult } from "$lib/utils/editor/handle-persist-result";
-  import {
-    checkLocalBuildingRoom,
-    getLocalBuildingRooms,
-    syncBuildingRooms,
-  } from "$lib/utils/local/data/sync";
-  import {
-    fetchEntityRoomsRemote,
-    fetchRoomClassCounts,
-    getBuildingRooms,
-  } from "$lib/utils/local/data/utils";
-  import {
-    getStoredProposalForEntity,
-    mergeEntityRecord,
-    persistEntityChange,
-  } from "$lib/utils/proposals/client";
-  import { getBuildingShareUrl } from "$lib/utils/share-links";
-  import { normalizeEntityPhotos, type EntityPhoto } from "$lib/utils/entity/entity-photos";
-  import {
-    adminAuthStore,
-    building3DStore,
-    mapEditStore,
-    mapProposalStore,
-    queryStore,
-    termStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import type { BuildingData, RoomData } from "$lib/utils/types";
-  import EntityLastUpdated from "../EntityLastUpdated.svelte";
-  import EntityBackToList from "./EntityBackToList.svelte";
-  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
-  import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
-  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
-  import EntityStreetAddress from "./EntityStreetAddress.svelte";
-  import ResultDisplay from "./ResultDisplay.svelte";
+	import { tick } from 'svelte';
+	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import EntityEditorField from '$lib/components/editor/EntityEditorField.svelte';
+	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
+	import MergeEntityPrompt from '$lib/components/editor/MergeEntityPrompt.svelte';
+	import EntityPhotoUpload from '$lib/components/editor/EntityPhotoUpload.svelte';
+	import BuildingPhoto from './BuildingPhoto.svelte';
+	import MapChromeActionChip from '$lib/components/map-chrome/MapChromeActionChip.svelte';
+	import {
+		CR_FACILITIES,
+		crFacilityLabel,
+		sanitizeCrFacilities
+	} from '$lib/constants/map/cr-facilities';
+	import { getAppActions, getAppData } from '$lib/utils/context';
+	import {
+		clearEntityContributorDraft,
+		readEntityContributorDraft,
+		scheduleEntityContributorDraftSave
+	} from '$lib/utils/contributor-drafts';
+	import {
+		entityEditorSavedMessage,
+		fieldSaveActionLabel
+	} from '$lib/utils/editor/field-action-label';
+	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
+	import {
+		checkLocalBuildingRoom,
+		getLocalBuildingRooms,
+		syncBuildingRooms
+	} from '$lib/utils/local/data/sync';
+	import {
+		fetchEntityRoomsRemote,
+		fetchRoomClassCounts,
+		getBuildingRooms
+	} from '$lib/utils/local/data/utils';
+	import {
+		getStoredProposalForEntity,
+		mergeEntityRecord,
+		persistEntityChange
+	} from '$lib/utils/proposals/client';
+	import { getBuildingShareUrl } from '$lib/utils/share-links';
+	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
+	import {
+		adminAuthStore,
+		building3DStore,
+		mapEditStore,
+		mapProposalStore,
+		queryStore,
+		termStore,
+		toastStore
+	} from '$lib/stores.svelte';
+	import type { Building, Room } from '$lib/utils/types';
+	import EntityLastUpdated from '../EntityLastUpdated.svelte';
+	import EntityBackToList from './EntityBackToList.svelte';
+	// import EntityDirectionsChip from './EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
+	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
+	import EntityStreetAddress from './EntityStreetAddress.svelte';
+	import ResultDisplay from './ResultDisplay.svelte';
 
-  type BuildingEditableField =
-    | "buildingName"
-    | "directions"
-    | "buildingType"
-    | "photos"
-    | "crFacilities";
+	type BuildingEditableField =
+		'buildingName' | 'directions' | 'buildingType' | 'photos' | 'crFacilities';
 
-  const appData = getAppData();
-  const appActions = getAppActions();
-  const { buildings, organizations, loaded } = $derived(appData());
+	const appData = getAppData();
+	const appActions = getAppActions();
+	const { buildings, organizations, loaded } = $derived(appData());
 
-  let pinnedBuildingId = $state<number | null>(null);
+	let pinnedBuildingId = $state<number | null>(null);
 
-  const building = $derived.by(() => {
-    if (!loaded) return null;
-    const byName = buildings.find(
-      (b) => b.buildingName === queryStore.queryValue,
-    );
-    if (byName) return byName;
-    if (queryStore.category === "building" && pinnedBuildingId !== null) {
-      return buildings.find((b) => b.id === pinnedBuildingId) ?? null;
-    }
-    return null;
-  });
+	const building = $derived.by(() => {
+		if (!loaded) return null;
+		const byName = buildings.find((b) => b.buildingName === queryStore.queryValue);
+		if (byName) return byName;
+		if (queryStore.category === 'building' && pinnedBuildingId !== null) {
+			return buildings.find((b) => b.id === pinnedBuildingId) ?? null;
+		}
+		return null;
+	});
 
-  $effect(() => {
-    if (building?.id) pinnedBuildingId = building.id;
-  });
+	$effect(() => {
+		if (building?.id) pinnedBuildingId = building.id;
+	});
 
-  // Reverse-lookup: orgs and offices housed in this building.
-  const buildingOrgs = $derived(
-    building && organizations
-      ? organizations.filter((o) => o.buildingId === building.id)
-      : [],
-  );
+	// Reverse-lookup: orgs and offices housed in this building.
+	const buildingOrgs = $derived(
+		building && organizations ? organizations.filter((o) => o.buildingId === building.id) : []
+	);
 
-  function openOrg(name: string) {
-    queryStore.updateQuery({
-      category: "organization",
-      type: "result",
-      value: name,
-    });
-    queryStore.inputValue = name;
-  }
-  const buildingShareUrl = $derived(
-    building ? getBuildingShareUrl(building.buildingName) : "",
-  );
-  const hasMapPin = $derived(Boolean(building?.lat && building?.lon));
-  const pinProposalActive = $derived(
-    building ? mapProposalStore.allowsKey(`building:${building.id}`) : false,
-  );
+	function openOrg(name: string) {
+		queryStore.updateQuery({
+			category: 'organization',
+			type: 'result',
+			value: name
+		});
+		queryStore.inputValue = name;
+	}
+	const buildingShareUrl = $derived(building ? getBuildingShareUrl(building.buildingName) : '');
+	const hasMapPin = $derived(Boolean(building?.lat && building?.lon));
+	const pinProposalActive = $derived(
+		building ? mapProposalStore.allowsKey(`building:${building.id}`) : false
+	);
 
-  let buildingRooms = $state<RoomData[] | null>(null);
-  let classCounts = $state<Map<number, number> | null>(null);
+	let buildingRooms = $state<Room[] | null>(null);
+	let classCounts = $state<Map<number, number> | null>(null);
 
-  // A building can be both: the stored admin flag AND a class venue (it has
-  // rooms hosting classes this term). Surface both roles in the badge.
-  const hostsClasses = $derived.by(() => {
-    if (!classCounts) return false;
-    for (const count of classCounts.values()) if (count > 0) return true;
-    return false;
-  });
-  const buildingTypeLabel = $derived.by(() => {
-    const isAdmin = building?.buildingType === "admin";
-    if (isAdmin && hostsClasses) return "Administrative · Class venue";
-    return isAdmin ? "Administrative" : "Class building";
-  });
+	// A building can be both: the stored admin flag AND a class venue (it has
+	// rooms hosting classes this term). Surface both roles in the badge.
+	const hostsClasses = $derived.by(() => {
+		if (!classCounts) return false;
+		for (const count of classCounts.values()) if (count > 0) return true;
+		return false;
+	});
+	const buildingTypeLabel = $derived.by(() => {
+		const isAdmin = building?.buildingType === 'admin';
+		if (isAdmin && hostsClasses) return 'Administrative · Class venue';
+		return isAdmin ? 'Administrative' : 'Class building';
+	});
 
-  let editing = $state(false);
-  let draftBuildingId = $state<number | null>(null);
-  let draftVersion = $state<number | null>(null);
-  let nameDraft = $state("");
-  let directionsDraft = $state("");
-  let typeDraft = $state<BuildingData["buildingType"]>("non-admin");
-  let photosDraft = $state<EntityPhoto[]>([]);
-  let crFacilitiesDraft = $state<string[]>([]);
-  let savingField = $state<BuildingEditableField | null>(null);
-  let savedField = $state<BuildingEditableField | null>(null);
-  let fieldError = $state<string | null>(null);
-  let submitterNameDraft = $state("");
-  let proposalStatus = $state<string | null>(null);
-  let activeProposalId = $state<number | null>(null);
-  let mergePrompt = $state<{
-    candidate: BuildingData;
-    attemptedName: string;
-    sourceVersion: number;
-  } | null>(null);
-  let mergingEntity = $state(false);
+	let editing = $state(false);
+	let draftBuildingId = $state<number | null>(null);
+	let draftVersion = $state<number | null>(null);
+	let nameDraft = $state('');
+	let directionsDraft = $state('');
+	let typeDraft = $state<Building['buildingType']>('non-admin');
+	let photosDraft = $state<EntityPhoto[]>([]);
+	let crFacilitiesDraft = $state<string[]>([]);
+	let savingField = $state<BuildingEditableField | null>(null);
+	let savedField = $state<BuildingEditableField | null>(null);
+	let fieldError = $state<string | null>(null);
+	let submitterNameDraft = $state('');
+	let proposalStatus = $state<string | null>(null);
+	let activeProposalId = $state<number | null>(null);
+	let mergePrompt = $state<{
+		candidate: Building;
+		attemptedName: string;
+		sourceVersion: number;
+	} | null>(null);
+	let mergingEntity = $state(false);
 
-  const canPublish = $derived(adminAuthStore.canPublish);
+	const canPublish = $derived(adminAuthStore.canPublish);
 
-  const fieldLabels: Record<BuildingEditableField, string> = {
-    buildingName: "Building name",
-    directions: "Building directions",
-    buildingType: "Building type",
-    photos: "Building photos",
-    crFacilities: "CR facilities",
-  };
+	const fieldLabels: Record<BuildingEditableField, string> = {
+		buildingName: 'Building name',
+		directions: 'Building directions',
+		buildingType: 'Building type',
+		photos: 'Building photos',
+		crFacilities: 'CR facilities'
+	};
 
-  // Room list must reload when the selected building changes (search result,
-  // pin, breadcrumb). BuildingResult is not remounted on switch, so onMount
-  // would only fire once and leave a stale list. Key the load on building id
-  // and discard in-flight fetches from a previous selection (#340).
-  let roomLoadGeneration = 0;
-  let lastRoomLoadId: number | null = null;
+	// Room list must reload when the selected building changes (search result,
+	// pin, breadcrumb). BuildingResult is not remounted on switch, so onMount
+	// would only fire once and leave a stale list. Key the load on building id
+	// and discard in-flight fetches from a previous selection (#340).
+	let roomLoadGeneration = 0;
+	let lastRoomLoadId: number | null = null;
 
-  $effect(() => {
-    const id = building?.id;
-    if (id == null) {
-      buildingRooms = null;
-      lastRoomLoadId = null;
-      return;
-    }
-    if (id !== lastRoomLoadId) {
-      buildingRooms = null;
-      lastRoomLoadId = id;
-    }
-    const gen = ++roomLoadGeneration;
-    void (async () => {
-      const local = (await getLocalBuildingRooms(id)) ?? [];
-      if (gen === roomLoadGeneration && local.length > 0) {
-        buildingRooms = local;
-      }
+	$effect(() => {
+		const id = building?.id;
+		if (id == null) {
+			buildingRooms = null;
+			lastRoomLoadId = null;
+			return;
+		}
+		if (id !== lastRoomLoadId) {
+			buildingRooms = null;
+			lastRoomLoadId = id;
+		}
+		const gen = ++roomLoadGeneration;
+		void (async () => {
+			const local = (await getLocalBuildingRooms(id)) ?? [];
+			if (gen === roomLoadGeneration && local.length > 0) {
+				buildingRooms = local;
+			}
 
-      const buildingChecker = await checkLocalBuildingRoom(id);
-      const rooms = await getBuildingRooms(buildingChecker, id);
-      if (gen !== roomLoadGeneration) return;
-      buildingRooms = rooms;
-      await syncBuildingRooms(buildingChecker, id, rooms);
+			const buildingChecker = await checkLocalBuildingRoom(id);
+			const rooms = await getBuildingRooms(buildingChecker, id);
+			if (gen !== roomLoadGeneration) return;
+			buildingRooms = rooms;
+			await syncBuildingRooms(buildingChecker, id, rooms);
 
-      if (!buildingChecker && local.length > 0) {
-        try {
-          const remote = await fetchEntityRoomsRemote("building", id);
-          if (gen !== roomLoadGeneration || remote.length === 0) return;
-          buildingRooms = remote;
-          await syncBuildingRooms(false, id, remote);
-        } catch {
-          // Keep cached rows when background refresh fails.
-        }
-      }
-    })();
-  });
+			if (!buildingChecker && local.length > 0) {
+				try {
+					const remote = await fetchEntityRoomsRemote('building', id);
+					if (gen !== roomLoadGeneration || remote.length === 0) return;
+					buildingRooms = remote;
+					await syncBuildingRooms(false, id, remote);
+				} catch {
+					// Keep cached rows when background refresh fails.
+				}
+			}
+		})();
+	});
 
-  // Class counts per room for the active term, batched in one request so the
-  // room list preview doesn't fire N+1 /api/classes calls (#342). Re-fetches
-  // when the building or the active term changes; null while loading/offline.
-  let classCountGeneration = 0;
-  let lastClassCountKey: string | null = null;
+	// Class counts per room for the active term, batched in one request so the
+	// room list preview doesn't fire N+1 /api/classes calls (#342). Re-fetches
+	// when the building or the active term changes; null while loading/offline.
+	let classCountGeneration = 0;
+	let lastClassCountKey: string | null = null;
 
-  $effect(() => {
-    const id = building?.id;
-    const termId = termStore.activeTermId;
-    if (id == null) {
-      classCounts = null;
-      lastClassCountKey = null;
-      return;
-    }
-    // Stale counts from the previous building (or term) would drive the
-    // hostsClasses badge and per-room chips until the new fetch lands —
-    // reset so they fall back to their no-data states in the meantime.
-    const key = `${id}:${termId ?? ""}`;
-    if (key !== lastClassCountKey) {
-      classCounts = null;
-      lastClassCountKey = key;
-    }
-    const gen = ++classCountGeneration;
-    void (async () => {
-      const counts = await fetchRoomClassCounts(
-        "building",
-        id,
-        termId ?? undefined,
-      );
-      if (gen !== classCountGeneration) return;
-      classCounts = counts;
-    })();
-  });
+	$effect(() => {
+		const id = building?.id;
+		const termId = termStore.activeTermId;
+		if (id == null) {
+			classCounts = null;
+			lastClassCountKey = null;
+			return;
+		}
+		// Stale counts from the previous building (or term) would drive the
+		// hostsClasses badge and per-room chips until the new fetch lands —
+		// reset so they fall back to their no-data states in the meantime.
+		const key = `${id}:${termId ?? ''}`;
+		if (key !== lastClassCountKey) {
+			classCounts = null;
+			lastClassCountKey = key;
+		}
+		const gen = ++classCountGeneration;
+		void (async () => {
+			const counts = await fetchRoomClassCounts('building', id, termId ?? undefined);
+			if (gen !== classCountGeneration) return;
+			classCounts = counts;
+		})();
+	});
 
-  function applyAutoEditIntent() {
-    const raw = sessionStorage.getItem("room-tba:auto-edit");
-    if (!raw || !building) return;
-    try {
-      const intent = JSON.parse(raw) as {
-        entity?: string;
-        field?: string;
-        buildingName?: string;
-      };
-      if (
-        intent.entity !== "building" ||
-        intent.field !== "directions" ||
-        intent.buildingName !== building.buildingName
-      ) {
-        return;
-      }
-      sessionStorage.removeItem("room-tba:auto-edit");
-      editing = true;
-      void tick().then(() =>
-        document.getElementById("building-directions-editor")?.focus(),
-      );
-    } catch {
-      sessionStorage.removeItem("room-tba:auto-edit");
-    }
-  }
+	function applyAutoEditIntent() {
+		const raw = sessionStorage.getItem('room-tba:auto-edit');
+		if (!raw || !building) return;
+		try {
+			const intent = JSON.parse(raw) as {
+				entity?: string;
+				field?: string;
+				buildingName?: string;
+			};
+			if (
+				intent.entity !== 'building' ||
+				intent.field !== 'directions' ||
+				intent.buildingName !== building.buildingName
+			) {
+				return;
+			}
+			sessionStorage.removeItem('room-tba:auto-edit');
+			editing = true;
+			void tick().then(() => document.getElementById('building-directions-editor')?.focus());
+		} catch {
+			sessionStorage.removeItem('room-tba:auto-edit');
+		}
+	}
 
-  $effect(() => {
-    if (building) applyAutoEditIntent();
-  });
+	$effect(() => {
+		if (building) applyAutoEditIntent();
+	});
 
-  $effect(() => {
-    const current = building;
-    if (!current) return;
-    if (draftBuildingId === current.id && draftVersion === current.version) {
-      return;
-    }
+	$effect(() => {
+		const current = building;
+		if (!current) return;
+		if (draftBuildingId === current.id && draftVersion === current.version) {
+			return;
+		}
 
-    nameDraft = current.buildingName;
-    directionsDraft = current.directions ?? "";
-    photosDraft =
-      current.photos && current.photos.length > 0
-        ? [...current.photos]
-        : current.imageUrl
-          ? [
-              {
-                url: current.imageUrl,
-                attributionName: null,
-                attributionProfileUrl: null,
-              },
-            ]
-          : [];
-    crFacilitiesDraft = sanitizeCrFacilities(current.crFacilities);
-    savedField = null;
-    fieldError = null;
-    mergePrompt = null;
-    proposalStatus = null;
-    const stored = getStoredProposalForEntity("building", current.id);
-    activeProposalId = stored?.id ?? null;
-    if (stored) proposalStatus = stored.status;
+		nameDraft = current.buildingName;
+		directionsDraft = current.directions ?? '';
+		photosDraft =
+			current.photos && current.photos.length > 0
+				? [...current.photos]
+				: current.imageUrl
+					? [
+							{
+								url: current.imageUrl,
+								attributionName: null,
+								attributionProfileUrl: null
+							}
+						]
+					: [];
+		crFacilitiesDraft = sanitizeCrFacilities(current.crFacilities);
+		savedField = null;
+		fieldError = null;
+		mergePrompt = null;
+		proposalStatus = null;
+		const stored = getStoredProposalForEntity('building', current.id);
+		activeProposalId = stored?.id ?? null;
+		if (stored) proposalStatus = stored.status;
 
-    if (!canPublish) {
-      const saved = readEntityContributorDraft("building", current.id);
-      if (saved) {
-        if (typeof saved.fields.nameDraft === "string") {
-          nameDraft = saved.fields.nameDraft;
-        }
-        if (typeof saved.fields.directionsDraft === "string") {
-          directionsDraft = saved.fields.directionsDraft;
-        }
-        if (
-          saved.fields.typeDraft === "admin" ||
-          saved.fields.typeDraft === "non-admin"
-        ) {
-          typeDraft = saved.fields.typeDraft;
-          photosDraft = normalizeEntityPhotos(saved.fields.photosDraft);
-        }
-      }
-    }
-  });
+		if (!canPublish) {
+			const saved = readEntityContributorDraft('building', current.id);
+			if (saved) {
+				if (typeof saved.fields.nameDraft === 'string') {
+					nameDraft = saved.fields.nameDraft;
+				}
+				if (typeof saved.fields.directionsDraft === 'string') {
+					directionsDraft = saved.fields.directionsDraft;
+				}
+				if (saved.fields.typeDraft === 'admin' || saved.fields.typeDraft === 'non-admin') {
+					typeDraft = saved.fields.typeDraft;
+					photosDraft = normalizeEntityPhotos(saved.fields.photosDraft);
+				}
+			}
+		}
+	});
 
-  $effect(() => {
-    if (canPublish || !editing || !building) return;
-    scheduleEntityContributorDraftSave("building", building.id, () => ({
-      editing: true,
-      fields: { nameDraft, directionsDraft, typeDraft, photosDraft },
-    }));
-  });
+	$effect(() => {
+		if (canPublish || !editing || !building) return;
+		scheduleEntityContributorDraftSave('building', building.id, () => ({
+			editing: true,
+			fields: { nameDraft, directionsDraft, typeDraft, photosDraft }
+		}));
+	});
 
-  function fieldLabel(field: BuildingEditableField) {
-    return fieldLabels[field];
-  }
+	function fieldLabel(field: BuildingEditableField) {
+		return fieldLabels[field];
+	}
 
-  function enablePinProposal() {
-    const current = building;
-    if (!current?.lat || !current.lon) return;
-    mapProposalStore.enable(
-      {
-        type: "building",
-        id: current.id,
-        label: current.buildingName,
-        version: current.version,
-      },
-      submitterNameDraft,
-      activeProposalId,
-    );
-    toastStore.show(
-      `Drag the ${current.buildingName} pin on the map, then release to submit.`,
-      "info",
-    );
-  }
+	function enablePinProposal() {
+		const current = building;
+		if (!current?.lat || !current.lon) return;
+		mapProposalStore.enable(
+			{
+				type: 'building',
+				id: current.id,
+				label: current.buildingName,
+				version: current.version
+			},
+			submitterNameDraft,
+			activeProposalId
+		);
+		toastStore.show(
+			`Drag the ${current.buildingName} pin on the map, then release to submit.`,
+			'info'
+		);
+	}
 
-  function syncBuildingFromServer(updated: BuildingData) {
-    appActions.upsertBuilding(updated);
-    queryStore.hydrateQuery({
-      type: "result",
-      category: "building",
-      value: updated.buildingName,
-    });
-  }
+	function syncBuildingFromServer(updated: Building) {
+		appActions.upsertBuilding(updated);
+		queryStore.hydrateQuery({
+			type: 'result',
+			category: 'building',
+			value: updated.buildingName
+		});
+	}
 
-  async function saveField(field: BuildingEditableField) {
-    const current = building;
-    if (!current) return;
+	async function saveField(field: BuildingEditableField) {
+		const current = building;
+		if (!current) return;
 
-    const body: {
-      version: number;
-      buildingName?: string;
-      directions?: string;
-      buildingType?: BuildingData["buildingType"];
-      photoUrls?: string[];
-      crFacilities?: string[];
-    } = { version: current.version };
+		const body: {
+			version: number;
+			buildingName?: string;
+			directions?: string;
+			buildingType?: Building['buildingType'];
+			photoUrls?: string[];
+			crFacilities?: string[];
+		} = { version: current.version };
 
-    if (field === "buildingName") {
-      const trimmedName = nameDraft.trim();
-      if (trimmedName.length === 0) {
-        fieldError = `${current.buildingName} name cannot be empty.`;
-        return;
-      }
-      body.buildingName = trimmedName;
-    } else if (field === "directions") {
-      body.directions = directionsDraft.trim();
-    } else if (field === "buildingType") {
-      body.buildingType = typeDraft;
-    } else if (field === "photos") {
-      body.photoUrls = photosDraft.map((photo) => photo.url);
-    } else if (field === "crFacilities") {
-      body.crFacilities = sanitizeCrFacilities(crFacilitiesDraft);
-    }
+		if (field === 'buildingName') {
+			const trimmedName = nameDraft.trim();
+			if (trimmedName.length === 0) {
+				fieldError = `${current.buildingName} name cannot be empty.`;
+				return;
+			}
+			body.buildingName = trimmedName;
+		} else if (field === 'directions') {
+			body.directions = directionsDraft.trim();
+		} else if (field === 'buildingType') {
+			body.buildingType = typeDraft;
+		} else if (field === 'photos') {
+			body.photoUrls = photosDraft.map((photo) => photo.url);
+		} else if (field === 'crFacilities') {
+			body.crFacilities = sanitizeCrFacilities(crFacilitiesDraft);
+		}
 
-    savingField = field;
-    savedField = null;
-    fieldError = null;
+		savingField = field;
+		savedField = null;
+		fieldError = null;
 
-    try {
-      const { version: _version, ...patch } = body;
-      const result = await persistEntityChange({
-        entityType: "building",
-        entityId: current.id,
-        baseVersion: current.version,
-        patch,
-        entityLabel: current.buildingName,
-        canPublish,
-        submitterName:
-          adminAuthStore.displayName ??
-          adminAuthStore.username ??
-          submitterNameDraft,
-        proposalId: activeProposalId,
-      });
+		try {
+			const { version: _version, ...patch } = body;
+			const result = await persistEntityChange({
+				entityType: 'building',
+				entityId: current.id,
+				baseVersion: current.version,
+				patch,
+				entityLabel: current.buildingName,
+				canPublish,
+				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterNameDraft,
+				proposalId: activeProposalId
+			});
 
-      const outcome = handlePersistEntityResult<BuildingData>(result, {
-        syncFromServer: syncBuildingFromServer,
-        fallbackError: `${current.buildingName} ${fieldLabel(field)} could not be saved.`,
-      });
+			const outcome = handlePersistEntityResult<Building>(result, {
+				syncFromServer: syncBuildingFromServer,
+				fallbackError: `${current.buildingName} ${fieldLabel(field)} could not be saved.`
+			});
 
-      if (outcome.error) {
-        if (outcome.mergeCandidate && field === "buildingName") {
-          mergePrompt = {
-            candidate: outcome.mergeCandidate as BuildingData,
-            attemptedName: outcome.attemptedName ?? nameDraft.trim(),
-            sourceVersion: current.version,
-          };
-          fieldError = null;
-          return;
-        }
-        fieldError = outcome.error;
-        return;
-      }
+			if (outcome.error) {
+				if (outcome.mergeCandidate && field === 'buildingName') {
+					mergePrompt = {
+						candidate: outcome.mergeCandidate as Building,
+						attemptedName: outcome.attemptedName ?? nameDraft.trim(),
+						sourceVersion: current.version
+					};
+					fieldError = null;
+					return;
+				}
+				fieldError = outcome.error;
+				return;
+			}
 
-      if (outcome.published) {
-        savedField = field;
-        setTimeout(() => {
-          if (savedField === field) savedField = null;
-        }, 1800);
-        return;
-      }
+			if (outcome.published) {
+				savedField = field;
+				setTimeout(() => {
+					if (savedField === field) savedField = null;
+				}, 1800);
+				return;
+			}
 
-      if (outcome.proposal) {
-        activeProposalId = outcome.proposal.id;
-        proposalStatus = outcome.proposal.status;
-        clearEntityContributorDraft("building", current.id);
-        savedField = field;
-        toastStore.show(
-          `Suggestion for ${current.buildingName} submitted for review.`,
-          "success",
-        );
-      }
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.buildingName} ${fieldLabel(field)} failed to save: ${reason}`;
-    } finally {
-      savingField = null;
-    }
-  }
+			if (outcome.proposal) {
+				activeProposalId = outcome.proposal.id;
+				proposalStatus = outcome.proposal.status;
+				clearEntityContributorDraft('building', current.id);
+				savedField = field;
+				toastStore.show(`Suggestion for ${current.buildingName} submitted for review.`, 'success');
+			}
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : 'Network error';
+			fieldError = `${current.buildingName} ${fieldLabel(field)} failed to save: ${reason}`;
+		} finally {
+			savingField = null;
+		}
+	}
 
-  function dismissMergePrompt() {
-    mergePrompt = null;
-    const current = building;
-    if (current) nameDraft = current.buildingName;
-  }
+	function dismissMergePrompt() {
+		mergePrompt = null;
+		const current = building;
+		if (current) nameDraft = current.buildingName;
+	}
 
-  async function confirmBuildingMerge() {
-    const current = building;
-    if (!current || !mergePrompt) return;
+	async function confirmBuildingMerge() {
+		const current = building;
+		if (!current || !mergePrompt) return;
 
-    mergingEntity = true;
-    fieldError = null;
+		mergingEntity = true;
+		fieldError = null;
 
-    try {
-      const result = await mergeEntityRecord({
-        entityType: "building",
-        sourceId: current.id,
-        targetId: mergePrompt.candidate.id,
-        sourceVersion: mergePrompt.sourceVersion,
-        preferredName: mergePrompt.attemptedName,
-      });
+		try {
+			const result = await mergeEntityRecord({
+				entityType: 'building',
+				sourceId: current.id,
+				targetId: mergePrompt.candidate.id,
+				sourceVersion: mergePrompt.sourceVersion,
+				preferredName: mergePrompt.attemptedName
+			});
 
-      if (!result.ok) {
-        if (result.latest)
-          syncBuildingFromServer(result.latest as BuildingData);
-        fieldError =
-          result.error ??
-          `${current.buildingName} could not be merged into ${mergePrompt.candidate.buildingName}.`;
-        return;
-      }
+			if (!result.ok) {
+				if (result.latest) syncBuildingFromServer(result.latest as Building);
+				fieldError =
+					result.error ??
+					`${current.buildingName} could not be merged into ${mergePrompt.candidate.buildingName}.`;
+				return;
+			}
 
-      if (result.entity) {
-        syncBuildingFromServer(result.entity as BuildingData);
-        toastStore.show(
-          `Merged ${current.buildingName} into ${mergePrompt.candidate.buildingName}.`,
-          "success",
-        );
-      }
-      mergePrompt = null;
-      editing = false;
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.buildingName} merge failed: ${reason}`;
-    } finally {
-      mergingEntity = false;
-    }
-  }
+			if (result.entity) {
+				syncBuildingFromServer(result.entity as Building);
+				toastStore.show(
+					`Merged ${current.buildingName} into ${mergePrompt.candidate.buildingName}.`,
+					'success'
+				);
+			}
+			mergePrompt = null;
+			editing = false;
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : 'Network error';
+			fieldError = `${current.buildingName} merge failed: ${reason}`;
+		} finally {
+			mergingEntity = false;
+		}
+	}
 
-  const crFacilitiesChanged = $derived.by(() => {
-    const current = building;
-    if (!current) return false;
-    return (
-      sanitizeCrFacilities(crFacilitiesDraft).join("|") !==
-      sanitizeCrFacilities(current.crFacilities).join("|")
-    );
-  });
+	const crFacilitiesChanged = $derived.by(() => {
+		const current = building;
+		if (!current) return false;
+		return (
+			sanitizeCrFacilities(crFacilitiesDraft).join('|') !==
+			sanitizeCrFacilities(current.crFacilities).join('|')
+		);
+	});
 
-  function toggleCrFacility(slug: string) {
-    crFacilitiesDraft = crFacilitiesDraft.includes(slug)
-      ? crFacilitiesDraft.filter((item) => item !== slug)
-      : [...crFacilitiesDraft, slug];
-  }
+	function toggleCrFacility(slug: string) {
+		crFacilitiesDraft = crFacilitiesDraft.includes(slug)
+			? crFacilitiesDraft.filter((item) => item !== slug)
+			: [...crFacilitiesDraft, slug];
+	}
 
-  function existingPhotoUrls(current: BuildingData) {
-    return current.photos && current.photos.length > 0
-      ? current.photos.map((photo) => photo.url)
-      : current.imageUrl
-        ? [current.imageUrl]
-        : [];
-  }
+	function existingPhotoUrls(current: Building) {
+		return current.photos && current.photos.length > 0
+			? current.photos.map((photo) => photo.url)
+			: current.imageUrl
+				? [current.imageUrl]
+				: [];
+	}
 
-  const photosUnchanged = $derived.by(() => {
-    const current = building;
-    if (!current) return true;
-    const existing = existingPhotoUrls(current);
-    const draftUrls = photosDraft.map((photo) => photo.url);
-    return (
-      draftUrls.length === existing.length &&
-      draftUrls.every((url, index) => url === existing[index])
-    );
-  });
-  const allFieldsUnchanged = $derived.by(() => {
-    const current = building;
-    if (!current) return true;
-    return (
-      nameDraft.trim() === current.buildingName &&
-      directionsDraft.trim() === (current.directions ?? "") &&
-      typeDraft === current.buildingType &&
-      photosUnchanged &&
-      !crFacilitiesChanged
-    );
-  });
+	const photosUnchanged = $derived.by(() => {
+		const current = building;
+		if (!current) return true;
+		const existing = existingPhotoUrls(current);
+		const draftUrls = photosDraft.map((photo) => photo.url);
+		return (
+			draftUrls.length === existing.length &&
+			draftUrls.every((url, index) => url === existing[index])
+		);
+	});
+	const allFieldsUnchanged = $derived.by(() => {
+		const current = building;
+		if (!current) return true;
+		return (
+			nameDraft.trim() === current.buildingName &&
+			directionsDraft.trim() === (current.directions ?? '') &&
+			typeDraft === current.buildingType &&
+			photosUnchanged &&
+			!crFacilitiesChanged
+		);
+	});
 
-  async function submitAllChanges() {
-    const current = building;
-    if (!current || allFieldsUnchanged) return;
+	async function submitAllChanges() {
+		const current = building;
+		if (!current || allFieldsUnchanged) return;
 
-    const patch: Record<string, unknown> = {};
-    if (nameDraft.trim() !== current.buildingName) {
-      const trimmedName = nameDraft.trim();
-      if (trimmedName.length === 0) {
-        fieldError = `${current.buildingName} name cannot be empty.`;
-        return;
-      }
-      patch.buildingName = trimmedName;
-    }
-    if (directionsDraft.trim() !== (current.directions ?? "")) {
-      patch.directions = directionsDraft.trim();
-    }
-    if (typeDraft !== current.buildingType) {
-      patch.buildingType = typeDraft;
-    }
-    if (!photosUnchanged) {
-      patch.photoUrls = photosDraft.map((photo) => photo.url);
-    }
-    if (crFacilitiesChanged) {
-      patch.crFacilities = sanitizeCrFacilities(crFacilitiesDraft);
-    }
+		const patch: Record<string, unknown> = {};
+		if (nameDraft.trim() !== current.buildingName) {
+			const trimmedName = nameDraft.trim();
+			if (trimmedName.length === 0) {
+				fieldError = `${current.buildingName} name cannot be empty.`;
+				return;
+			}
+			patch.buildingName = trimmedName;
+		}
+		if (directionsDraft.trim() !== (current.directions ?? '')) {
+			patch.directions = directionsDraft.trim();
+		}
+		if (typeDraft !== current.buildingType) {
+			patch.buildingType = typeDraft;
+		}
+		if (!photosUnchanged) {
+			patch.photoUrls = photosDraft.map((photo) => photo.url);
+		}
+		if (crFacilitiesChanged) {
+			patch.crFacilities = sanitizeCrFacilities(crFacilitiesDraft);
+		}
 
-    savingField = "buildingName" as BuildingEditableField;
-    savedField = null;
-    fieldError = null;
+		savingField = 'buildingName' as BuildingEditableField;
+		savedField = null;
+		fieldError = null;
 
-    try {
-      const result = await persistEntityChange({
-        entityType: "building",
-        entityId: current.id,
-        baseVersion: current.version,
-        patch,
-        entityLabel: current.buildingName,
-        canPublish,
-        submitterName:
-          adminAuthStore.displayName ??
-          adminAuthStore.username ??
-          submitterNameDraft,
-        proposalId: activeProposalId,
-      });
+		try {
+			const result = await persistEntityChange({
+				entityType: 'building',
+				entityId: current.id,
+				baseVersion: current.version,
+				patch,
+				entityLabel: current.buildingName,
+				canPublish,
+				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterNameDraft,
+				proposalId: activeProposalId
+			});
 
-      const outcome = handlePersistEntityResult<BuildingData>(result, {
-        syncFromServer: syncBuildingFromServer,
-        fallbackError: `${current.buildingName} could not be saved.`,
-      });
+			const outcome = handlePersistEntityResult<Building>(result, {
+				syncFromServer: syncBuildingFromServer,
+				fallbackError: `${current.buildingName} could not be saved.`
+			});
 
-      if (outcome.error) {
-        fieldError = outcome.error;
-        return;
-      }
+			if (outcome.error) {
+				fieldError = outcome.error;
+				return;
+			}
 
-      if (outcome.published) {
-        savedField = "buildingName" as BuildingEditableField;
-        setTimeout(() => {
-          if (savedField === "buildingName") savedField = null;
-        }, 1800);
-        return;
-      }
+			if (outcome.published) {
+				savedField = 'buildingName' as BuildingEditableField;
+				setTimeout(() => {
+					if (savedField === 'buildingName') savedField = null;
+				}, 1800);
+				return;
+			}
 
-      if (outcome.proposal) {
-        activeProposalId = outcome.proposal.id;
-        proposalStatus = outcome.proposal.status;
-        clearEntityContributorDraft("building", current.id);
-        savedField = "buildingName" as BuildingEditableField;
-        toastStore.show(
-          `Suggestion for ${current.buildingName} submitted for review.`,
-          "success",
-        );
-      }
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.buildingName} failed to save: ${reason}`;
-    } finally {
-      savingField = null;
-    }
-  }
-</script>
+			if (outcome.proposal) {
+				activeProposalId = outcome.proposal.id;
+				proposalStatus = outcome.proposal.status;
+				clearEntityContributorDraft('building', current.id);
+				savedField = 'buildingName' as BuildingEditableField;
+				toastStore.show(`Suggestion for ${current.buildingName} submitted for review.`, 'success');
+			}
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : 'Network error';
+			fieldError = `${current.buildingName} failed to save: ${reason}`;
+		} finally {
+			savingField = null;
+		}
+	}
+</script> -->
 
-<div class="entity-detail building-query-wrapper">
+<!-- <div class="entity-detail building-query-wrapper">
 	{#if building}
 		<header class="entity-header">
 			<EntityBackToList tab="buildings" label="Back to buildings" />
@@ -831,7 +801,9 @@ import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
 								<EntityPhotoUpload
 									label="Building photos (optional)"
 									inputId="building-photo-editor"
-									endpoint={canPublish ? "/api/uploads/editor-photo" : "/api/uploads/suggestion-photo"}
+									endpoint={canPublish
+										? '/api/uploads/editor-photo'
+										: '/api/uploads/suggestion-photo'}
 									prefix={`buildings/${building.id}`}
 									bind:photos={photosDraft}
 									disabled={savingField !== null}
@@ -920,9 +892,9 @@ import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
 			label="Loading rooms for {building.buildingName}…"
 		/>
 	{/if}
-</div>
+</div> -->
 
-<style>
+<!-- <style>
 	@import './entity-detail.css';
 	@import '../editor/entity-editor.css';
 	@import '../map-chrome/map-chrome.css';
@@ -1003,4 +975,4 @@ import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
 			transition: none;
 		}
 	}
-</style>
+</style> -->

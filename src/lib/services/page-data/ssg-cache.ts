@@ -8,21 +8,21 @@
  */
 
 import type {
-	BuildingData,
-	CollegeData,
-	DivisionData,
+	Building,
+	College,
+	Division,
 	DormData,
 	OrgData,
 	EventData,
 	PlaceData,
-	RoomData
+	Room
 } from '$lib/utils/types';
 
 interface SSGCache {
-	buildings: BuildingData[] | null;
-	rooms: RoomData[] | null;
-	colleges: CollegeData[] | null;
-	divisions: DivisionData[] | null;
+	buildings: Building[] | null;
+	rooms: Room[] | null;
+	colleges: College[] | null;
+	divisions: Division[] | null;
 	dorms: DormData[] | null;
 	organizations: OrgData[] | null;
 	events: EventData[] | null;

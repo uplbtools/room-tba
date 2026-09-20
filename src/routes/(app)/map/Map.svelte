@@ -1,23 +1,59 @@
-<script>
+<script lang="ts">
 	import { CAMPUS_DEFAULT_CAMERA, CAMPUS_MAX_BOUNDS } from '$lib/constants/map/terrain';
 	import { MapLibre } from 'svelte-maplibre';
-	import UserLocationMarker from './UserLocationMarker.svelte';
+	// import UserLocationMarker from './UserLocationMarker.svelte';
 	import BuildingMarkers from './BuildingMarkers.svelte';
-	import { map } from '$lib/stores.svelte';
 	import OrgMarkers from './OrgMarkers.svelte';
 	import PlaceMarkers from './PlaceMarkers.svelte';
 	import DormMarkers from './DormMarkers.svelte';
+	// import { getAllBuildings } from '$lib/functions/buildings.remote';
+	import * as maplibre from 'maplibre-gl';
+	import { getMapStore } from '$lib/utils/context';
+	import { onMount } from 'svelte';
+	import UserLocationMarker from './UserLocationMarker.svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 
-	$effect(() => {
+	const map = getMapStore();
+
+	onMount(initZoom);
+	$effect(syncZoom);
+
+	function initZoom() {
 		const mapInstance = map.getRawInstance();
 		if (mapInstance) {
-			mapInstance.on('zoom', () => {
-				map.setZoomLevel(mapInstance.getZoom());
-			});
+			mapInstance.on('load', handleZoom(mapInstance));
+			return () => {
+				mapInstance.off('load', handleZoom(mapInstance));
+			};
 		}
-		return () => {};
-	});
+	}
+
+	function syncZoom() {
+		const mapInstance = map.getRawInstance();
+		if (mapInstance) {
+			mapInstance.on('zoom', handleZoom(mapInstance));
+			return () => {
+				mapInstance.off('zoom', handleZoom(mapInstance));
+			};
+		}
+	}
+
+	function handleZoom(mapInstance: maplibre.Map) {
+		return () => {
+			map.setZoomLevel(mapInstance.getZoom());
+		};
+	}
+
+	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
+		if (event.key === 'Escape' && page.route.id !== '/(app)/map') {
+			void goto(resolve('/map'));
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleMapKeydown} />
 
 <div class="map-container">
 	<MapLibre
@@ -49,10 +85,10 @@
 		<DormMarkers showDormPins={true} zoomLevel={16} />
 
 		<!-- Orgs -->
-		<OrgMarkers orgPinFilter={'all'} zoomLevel={18} />
+		<OrgMarkers orgPinFilter={'all'} zoomLevel={17} />
 
 		<!-- Places -->
-		<PlaceMarkers placePinFilter={'all'} zoomLevel={18} />
+		<PlaceMarkers placePinFilter={'all'} zoomLevel={13} />
 	</MapLibre>
 </div>
 
@@ -190,7 +226,7 @@ import {
 } from "$lib/utils/travel-graph/engine";
 import { loadTravelGraph } from "$lib/utils/travel-graph/load";
 import type {
-	BuildingData,
+	Building,
 	DormData,
 	EventData,
 	OrgData,
@@ -1269,7 +1305,7 @@ function handlePinPointerLeave(editKey?: string) {
 }
 
 function handleBuildingPinPointerEnter(
-	building: BuildingData,
+	building: Building,
 	editKey: string,
 	event: PointerEvent,
 ) {
@@ -4435,9 +4471,12 @@ let selectedEventRouteStops = $derived.by(() => {
 		z-index: 0;
 		pointer-events: auto;
 	}
-
+	:global(.map) {
+		height: 100%;
+	}
 	/* Marker wrappers are stacking contexts (transform), so pin-level z-index
      can't lift a pin above sibling markers — raise the wrapper instead. */
+
 	.map-container :global(.maplibregl-marker:has(.map-entity-pin.sponsored)) {
 		z-index: 2;
 	}

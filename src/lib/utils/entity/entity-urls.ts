@@ -9,24 +9,24 @@ import {
 } from '../route/route-slugs';
 import { slugifySegment } from '../site';
 import type {
-	BuildingData,
-	CollegeData,
-	DivisionData,
+	Building,
+	College,
+	Division,
 	DormData,
 	OrgData,
 	PlaceData,
-	RoomData
+	Room
 } from '../types';
 
-function getBuildingSlug(building: Pick<BuildingData, 'buildingName'>) {
+function getBuildingSlug(building: Pick<Building, 'buildingName'>) {
 	return slugifySegment(building.buildingName);
 }
 
-function getCollegeSlug(college: Pick<CollegeData, 'collegeName'>) {
+function getCollegeSlug(college: Pick<College, 'collegeName'>) {
 	return slugifySegment(college.collegeName);
 }
 
-function getDivisionSlug(division: Pick<DivisionData, 'divisionName'>) {
+function getDivisionSlug(division: Pick<Division, 'divisionName'>) {
 	return slugifySegment(division.divisionName);
 }
 
@@ -136,7 +136,7 @@ export function getDivisionCanonicalPath(divisionName: string) {
 	return entityPath('divisions', getDivisionSlug({ divisionName }));
 }
 
-export function getRoomCanonicalPath(room: Pick<RoomData, 'id' | 'code'>) {
+export function getRoomCanonicalPath(room: Pick<Room, 'id' | 'code'>) {
 	return entityPath('rooms', getRoomRouteSlug(room));
 }
 
@@ -185,7 +185,7 @@ export function getEventCanonicalPath(slug: string) {
 export function getEntityCanonicalPath(
 	query: Pick<RoutableQueryState, 'type' | 'category' | 'value' | 'eventSlug'>,
 	context: {
-		room?: Pick<RoomData, 'id' | 'code'> | null;
+		room?: Pick<Room, 'id' | 'code'> | null;
 		dorm?: Pick<DormData, 'id' | 'dormName'> | null;
 		organization?: Pick<OrgData, 'id' | 'name'> | null;
 		place?: Pick<PlaceData, 'id' | 'name' | 'category'> | null;
@@ -222,9 +222,9 @@ export function getEntityCanonicalPath(
 export function resolveQueryFromEntityPath(
 	parsed: ParsedEntityPath,
 	context: {
-		buildings?: BuildingData[] | null;
-		colleges?: CollegeData[] | null;
-		divisions?: DivisionData[] | null;
+		buildings?: Building[] | null;
+		colleges?: College[] | null;
+		divisions?: Division[] | null;
 		dorms?: DormData[] | null;
 		organizations?: OrgData[] | null;
 		places?: PlaceData[] | null;

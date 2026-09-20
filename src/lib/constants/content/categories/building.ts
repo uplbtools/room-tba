@@ -1,4 +1,4 @@
-import type { BuildingData, DormData } from '$lib/utils/types';
+import type { Building, DormData } from '$lib/utils/types';
 
 export type BuildingTypeFilter =
 	| 'all'
@@ -40,7 +40,7 @@ export function getBuildingTypeFilterLabel(filter: BuildingTypeFilter) {
  * "administrative-building" AND "class-building" filters.
  */
 export function buildingMatchesTypeFilter(
-	building: BuildingData,
+	building: Building,
 	filter: BuildingTypeFilter,
 	buildingIdsWithClasses?: Set<number>
 ) {
@@ -64,7 +64,7 @@ export function dormMatchesTypeFilter(dorm: DormData, filter: BuildingTypeFilter
 }
 
 export function getBuildingTypeFilterOptions(
-	buildings: BuildingData[] | null,
+	buildings: Building[] | null,
 	dorms: DormData[] | null,
 	buildingIdsWithClasses?: Set<number>
 ): BuildingTypeFilterOption[] {

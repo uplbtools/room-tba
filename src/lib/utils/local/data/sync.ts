@@ -3,14 +3,14 @@ import type { JeepneyRoute } from '$lib/constants/map/jeepney-routes';
 import { syncToastStore } from '$lib/stores.svelte';
 import type {
 	AnnouncementData,
-	BuildingData,
-	CollegeData,
-	DivisionData,
+	Building,
+	College,
+	Division,
 	DormData,
 	EventData,
 	OrgData,
 	PlaceData,
-	RoomData,
+	Room,
 	TableSyncInfo
 } from '$lib/utils/types';
 import { normalizeEntityPhotos } from '$lib/utils/entity/entity-photos';
@@ -72,7 +72,7 @@ export function updateSyncKeyFromLs(tableName: string, newKey: string) {
 
 export async function syncBuildings(
 	checker: TableSyncInfo,
-	remoteBuildings: BuildingData[],
+	remoteBuildings: Building[],
 	trustedRemote = false
 ) {
 	syncToastStore.markWritingPhase('buildings');
@@ -131,7 +131,7 @@ export async function syncBuildings(
 
 export async function syncColleges(
 	checker: TableSyncInfo,
-	remoteColleges: CollegeData[],
+	remoteColleges: College[],
 	trustedRemote = false
 ) {
 	syncToastStore.markWritingPhase('colleges');
@@ -180,7 +180,7 @@ export async function syncColleges(
 
 export async function syncDivisions(
 	checker: TableSyncInfo,
-	remoteDivisions: DivisionData[],
+	remoteDivisions: Division[],
 	trustedRemote = false
 ) {
 	syncToastStore.markWritingPhase('divisions');
@@ -742,7 +742,7 @@ export async function getLocalBuildingRooms(id: number) {
     WHERE r.building_id = $1;
     `,
 			[id]
-		)) as Results<RoomData>;
+		)) as Results<Room>;
 		return data.rows.map((row) => ({
 			...row,
 			photos: normalizeEntityPhotos(row.photos)
@@ -782,7 +782,7 @@ export async function checkLocalBuildingRoom(id: number) {
 	}
 }
 
-export async function syncBuildingRooms(validSync: boolean, id: number, rooms: RoomData[]) {
+export async function syncBuildingRooms(validSync: boolean, id: number, rooms: Room[]) {
 	if (validSync) return;
 	// Offline/failed fetch returns no rooms — keep the existing cache and the
 	// rooms_fetched flag untouched instead of marking an empty fetch as done.
@@ -884,7 +884,7 @@ export async function getLocalCollegeRooms(id: number) {
     WHERE r.college_id = $1;
     `,
 			[id]
-		)) as Results<RoomData>;
+		)) as Results<Room>;
 		return data.rows.map((row) => ({
 			...row,
 			photos: normalizeEntityPhotos(row.photos)
@@ -915,7 +915,7 @@ export async function checkLocalCollegeRoom(id: number) {
 	}
 }
 
-export async function syncCollegeRooms(validSync: boolean, id: number, rooms: RoomData[]) {
+export async function syncCollegeRooms(validSync: boolean, id: number, rooms: Room[]) {
 	if (validSync) return;
 	if (!rooms || rooms.length === 0) return;
 	const localDB = await getDB();
@@ -1015,7 +1015,7 @@ export async function getLocalDivisionRooms(id: number) {
     WHERE r.division_id = $1;
     `,
 			[id]
-		)) as Results<RoomData>;
+		)) as Results<Room>;
 		return data.rows.map((row) => ({
 			...row,
 			photos: normalizeEntityPhotos(row.photos)
@@ -1046,7 +1046,7 @@ export async function checkLocalDivisionRoom(id: number) {
 	}
 }
 
-export async function syncDivisionRooms(validSync: boolean, id: number, rooms: RoomData[]) {
+export async function syncDivisionRooms(validSync: boolean, id: number, rooms: Room[]) {
 	if (validSync) return;
 	if (!rooms || rooms.length === 0) return;
 	const localDB = await getDB();

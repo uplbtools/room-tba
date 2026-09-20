@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { buildingsTable, collegesTable, divisionsTable, roomsTable } from '$lib/server/db/schema';
-import type { RoomData } from '$lib/utils/types';
+import type { Room } from '$lib/utils/types';
 
 /** Escape LIKE wildcards so user input matches literally. */
 function escapeLikePattern(value: string): string {
@@ -74,7 +74,7 @@ export async function searchRooms(searchString: string) {
 	}
 }
 
-export async function getBuildingRooms(buildingId: number): Promise<RoomData[]> {
+export async function getBuildingRooms(buildingId: number): Promise<Room[]> {
 	try {
 		const data = await db
 			.select({
@@ -109,7 +109,7 @@ export async function getBuildingRooms(buildingId: number): Promise<RoomData[]> 
 		throw new Error('Failed to fetch rooms', { cause: e });
 	}
 }
-export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
+export async function getCollegeRooms(collegeId: number): Promise<Room[]> {
 	try {
 		const data = await db
 			.select({
@@ -144,7 +144,7 @@ export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
 		throw new Error('Failed to fetch rooms', { cause: e });
 	}
 }
-export async function getDivisionRooms(divisionId: number): Promise<RoomData[]> {
+export async function getDivisionRooms(divisionId: number): Promise<Room[]> {
 	try {
 		const data = await db
 			.select({

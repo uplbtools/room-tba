@@ -11,7 +11,7 @@ import {
 import { withTermQuery } from './term/term-url';
 import { absoluteUrl } from './site';
 import { getTransitRoutePath, getTransitStopPath } from './transit-urls';
-import type { DormData, OrgData, PlaceData, RoomData } from './types';
+import type { DormData, OrgData, PlaceData, Room } from './types';
 import type { JeepneyRoute } from '$lib/constants/map/jeepney-routes';
 
 export function getBuildingShareUrl(
@@ -31,7 +31,7 @@ export function getDivisionShareUrl(divisionName: string) {
 }
 
 export function getRoomShareUrl(
-	room: Pick<RoomData, 'id' | 'code'>,
+	room: Pick<Room, 'id' | 'code'>,
 	termId?: number | null,
 	defaultTermId?: number | null
 ) {

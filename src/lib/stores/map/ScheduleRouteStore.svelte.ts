@@ -5,7 +5,7 @@ import { getJSONFetch, getLocalRoomByCode } from "$lib/utils/local/data/utils";
 import { orderDayStops } from "$lib/utils/schedule-import/day-stops";
 import { matchImportedScheduleRows } from "$lib/utils/schedule-import/match-classes";
 import type { ImportedScheduleRow, ScheduleMatchResult, Weekday } from "$lib/utils/schedule-import/types";
-import type { ClassMapValue, RoomData } from "$lib/utils/types";
+import type { ClassMapValue, Room } from "$lib/utils/types";
 import { userLocation, plannerStore, termStore, toastStore } from "../index.svelte.js";
 import { SCHEDULE_IMPORT_SS_KEY, type ScheduleImportPersisted } from "../store-types";
 
@@ -67,7 +67,7 @@ export default class ScheduleRouteStore {
 			const room = localRoom
 				? localRoom
 				: (
-						await getJSONFetch<{ data: RoomData }>(
+						await getJSONFetch<{ data: Room }>(
 							`/api/rooms?code=${encodeURIComponent(normalized)}`
 						)
 					).data;

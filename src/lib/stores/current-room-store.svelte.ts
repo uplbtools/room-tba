@@ -1,7 +1,7 @@
 import { getJSONFetch, getLocalRoomByCode } from "$lib/utils/local/data/utils";
-import type { RoomData } from "$lib/utils/types";
+import type { Room } from "$lib/utils/types";
 
-let _currentRoom = $state<RoomData | null>(null);
+let _currentRoom = $state<Room | null>(null);
 let _currentRoomNotFound = $state(false);
 let roomLoadGeneration = 0;
 export const currentRoom = {
@@ -24,7 +24,7 @@ export const currentRoom = {
             const localRoom = await getLocalRoomByCode(code);
             if (localRoom === null) {
                 const codeParam = encodeURI(code.toUpperCase());
-                const remoteRoomReq = await getJSONFetch<{ data: RoomData }>(
+                const remoteRoomReq = await getJSONFetch<{ data: Room }>(
                     `/api/rooms?code=${codeParam}`
                 );
                 if (generation !== roomLoadGeneration) return;
@@ -43,12 +43,12 @@ export const currentRoom = {
             }
         }
     },
-    async getRoomFromSearch(room: RoomData) {
+    async getRoomFromSearch(room: Room) {
         roomLoadGeneration++;
         _currentRoom = room;
         _currentRoomNotFound = false;
     },
-    setRoom(room: RoomData) {
+    setRoom(room: Room) {
         roomLoadGeneration++;
         _currentRoom = room;
         _currentRoomNotFound = false;

@@ -26,3 +26,5 @@ test-results
 
 # Hermes local agent state (not shared)
 .hermes/
+
+notes.md

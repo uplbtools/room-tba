@@ -11,7 +11,7 @@ import {
 } from '$lib/server/db/schema';
 import { normalizeEntityName } from '$lib/utils/entity/entity-names';
 import { db } from '$lib/utils/db';
-import type { RoomData } from '$lib/utils/types';
+import type { Room } from '$lib/utils/types';
 import {
 	EditConflictError,
 	DuplicateNameError,
@@ -89,7 +89,7 @@ export async function mergeRooms({
 	sourceVersion,
 	preferredRoomCode,
 	editedBy = 'admin'
-}: RoomMergeInput): Promise<RoomData> {
+}: RoomMergeInput): Promise<Room> {
 	if (sourceId === targetId) {
 		throw new Error('Cannot merge a room into itself.');
 	}

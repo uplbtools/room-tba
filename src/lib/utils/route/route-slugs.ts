@@ -1,7 +1,7 @@
 import { slugifySegment } from '../site';
-import type { DormData, OrgData, PlaceData, RoomData } from '../types';
+import type { DormData, OrgData, PlaceData, Room } from '../types';
 
-export function getRoomRouteSlug(room: Pick<RoomData, 'id' | 'code'>) {
+export function getRoomRouteSlug(room: Pick<Room, 'id' | 'code'>) {
 	return `${slugifySegment(room.code)}-${room.id}`;
 }
 

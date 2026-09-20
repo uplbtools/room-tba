@@ -1,10 +1,5 @@
-<script lang="ts">
-	import {
-		adminAuthStore,
-		mapProposalStore,
-		queryStore,
-		toastStore
-	} from '$lib/stores.svelte';
+<!-- <script lang="ts">
+	import { adminAuthStore, mapProposalStore, queryStore, toastStore } from '$lib/stores.svelte';
 	import { getAppActions, getAppData } from '$lib/utils/context';
 	import Users from '@lucide/svelte/icons/users';
 	import Mail from '@lucide/svelte/icons/mail';
@@ -12,13 +7,13 @@
 	import Building2 from '@lucide/svelte/icons/building-2';
 	import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
 	import EntityStreetAddress from './EntityStreetAddress.svelte';
-	import EntityDirectionsChip from './EntityDirectionsChip.svelte';
+	// import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import CircleDollarSign from '@lucide/svelte/icons/circle-dollar-sign';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import type { DormData } from '$lib/utils/types';
-	import { normalizeEntityPhotos, type EntityPhoto} from '$lib/utils/entity/entity-photos';
+	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
 	import {
 		getStoredProposalForEntity,
 		mergeEntityRecord,
@@ -39,7 +34,11 @@
 	import EntityBackToList from './EntityBackToList.svelte';
 	import EntityExternalLink from './EntityExternalLink.svelte';
 	import { getDormShareUrl } from '$lib/utils/share-links';
-	import { getKuboDormCta, kuboDormDirectory, loadKuboDormDirectory } from '$lib/utils/integrations/kubo/kubo-dorms';
+	import {
+		getKuboDormCta,
+		kuboDormDirectory,
+		loadKuboDormDirectory
+	} from '$lib/utils/integrations/kubo/kubo-dorms';
 	type DormEditableField =
 		| 'dormName'
 		| 'shortName'
@@ -581,7 +580,8 @@
 		if (!fieldIsUnchanged('facebookLink', current))
 			patch.facebookLink = facebookLinkDraft.trim() || null;
 		if (!fieldIsUnchanged('osmLink', current)) patch.osmLink = osmLinkDraft.trim() || null;
-		if (!fieldIsUnchanged('photos', current)) patch.photoUrls = photosDraft.map((photo) => photo.url);
+		if (!fieldIsUnchanged('photos', current))
+			patch.photoUrls = photosDraft.map((photo) => photo.url);
 
 		savingField = 'dormName' as DormEditableField;
 		savedField = null;
@@ -626,9 +626,9 @@
 			savingField = null;
 		}
 	}
-</script>
+</script> -->
 
-<div class="entity-detail">
+<!-- <div class="entity-detail">
 	{#if dorm}
 		<header class="entity-header">
 			<EntityBackToList tab="dorms" label="Back to dormitories" />
@@ -716,11 +716,7 @@
 		{/if}
 
 		{#if !editing}
-			<EntityPhotoGallery
-				name={dorm.dormName}
-				photos={dorm.photos}
-				imageUrl={dorm.imageUrl}
-			/>
+			<EntityPhotoGallery name={dorm.dormName} photos={dorm.photos} imageUrl={dorm.imageUrl} />
 		{/if}
 
 		{#if editing}
@@ -857,9 +853,9 @@
 	{:else}
 		<div class="no-results">Dorm not found.</div>
 	{/if}
-</div>
+</div> -->
 
-<style>
+<!-- <style>
 	@import './entity-detail.css';
 	@import '../editor/entity-editor.css';
 	@import '../map-chrome/map-chrome.css';
@@ -900,4 +896,4 @@
 		text-align: center;
 		padding: 1rem 0;
 	}
-</style>
+</style> -->

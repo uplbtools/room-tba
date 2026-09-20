@@ -1,63 +1,67 @@
 <script lang="ts">
-	import { onMount, type Snippet } from 'svelte';
-	import { page } from '$app/state';
-	import { campusCommunity } from '$lib/campus.config';
-	import Entry from './Entry.svelte';
-	import { type AppContextData, type DBData, setAppActions, setAppData } from '$lib/utils/context';
-	import { jitteredBackoffDelay, sleep } from '$lib/utils/local/data/fetch-json';
-	import { CAMPUS_DATA_REFRESH_EVENT } from '$lib/utils/local/data/invalidate-sync-key';
-	import { getDB } from '$lib/utils/local/data/pgliteDB';
-	import {
-		getSyncKeysFromLs,
-		localTableSyncCheck,
-		syncAliasCache,
-		syncBuildings,
-		syncClasses,
-		syncColleges,
-		syncDivisions,
-		syncDorms,
-		syncEvents,
-		syncOrganizations,
-		syncPlaces
-	} from '$lib/utils/local/data/sync';
-	import {
-		fetchRemoteEvents,
-		getBuildings,
-		getClasses,
-		getColleges,
-		getDivisions,
-		getDorms,
-		getEvents,
-		getOrganizations,
-		getPlaces,
-		getRoomsData,
-		loadCachedAppData
-	} from '$lib/utils/local/data/utils';
-	import {
-		appBootstrapStore,
-		queryStore,
-		syncToastStore,
-		toastStore,
-		transitStore
-	} from '$lib/stores.svelte';
-	import { normalizeDormListFields } from '$lib/utils/string-lists';
-	import type {
-		BuildingData,
-		CollegeData,
-		DivisionData,
-		DormData,
-		EventData,
-		OrgData,
-		PlaceData,
-		TableSyncInfo
-	} from '$lib/utils/types';
+	// import { onMount, type Snippet } from 'svelte';
+	// import { page } from '$app/state';
+	// import { campusCommunity } from '$lib/campus.config';
+	// import Entry from './Entry.svelte';
+	// import { type AppContextData, type DBData, setAppActions, setAppData } from '$lib/utils/context';
+	// import { jitteredBackoffDelay, sleep } from '$lib/utils/local/data/fetch-json';
+	// import { CAMPUS_DATA_REFRESH_EVENT } from '$lib/utils/local/data/invalidate-sync-key';
+	// import { getDB } from '$lib/utils/local/data/pgliteDB';
+	// import {
+	// 	getSyncKeysFromLs,
+	// 	localTableSyncCheck,
+	// 	syncAliasCache,
+	// 	syncBuildings,
+	// 	syncClasses,
+	// 	syncColleges,
+	// 	syncDivisions,
+	// 	syncDorms,
+	// 	syncEvents,
+	// 	syncOrganizations,
+	// 	syncPlaces
+	// } from '$lib/utils/local/data/sync';
+	// import {
+	// 	fetchRemoteEvents,
+	// 	getBuildings,
+	// 	getClasses,
+	// 	getColleges,
+	// 	getDivisions,
+	// 	getDorms,
+	// 	getEvents,
+	// 	getOrganizations,
+	// 	getPlaces,
+	// 	getRoomsData,
+	// 	loadCachedAppData
+	// } from '$lib/utils/local/data/utils';
+	// import {
+	// 	appBootstrapStore,
+	// 	queryStore,
+	// 	syncToastStore,
+	// 	toastStore,
+	// 	transitStore
+	// } from '$lib/stores.svelte';
+	// import { normalizeDormListFields } from '$lib/utils/string-lists';
+	// import type {
+	// 	Building,
+	// 	College,
+	// 	Division,
+	// 	DormData,
+	// 	EventData,
+	// 	OrgData,
+	// 	PlaceData,
+	// 	TableSyncInfo
+	// } from '$lib/utils/types';
+	// import UIMap from './Map.svelte'; */
 
-	const { children }: { children: Snippet } = $props();
+	// import { MapStore } from '$lib/stores/map/map-stores.svelte';
+	// import { initMapStore } from '$lib/utils/context';
+
+	// const { children }: { children: Snippet } = $props();
 
 	// Entity routes return the search that opens their result view. Re-running on
 	// every navigation is what lets a link from a browse list land on the entity:
 	// the store, not the router, is what the panel and the map read.
-	$effect(() => {
+	/* $effect(() => {
 		const initial = page.data.initialSearch;
 		queryStore.hydrateQuery(
 			initial
@@ -69,12 +73,12 @@
 					}
 				: { category: null, type: 'query', value: '' }
 		);
-	});
+	}); */
 
-	let buildings: BuildingData[] | null = $state.raw(null);
-	let colleges: CollegeData[] | null = $state.raw(null);
+	/* let buildings: Building[] | null = $state.raw(null);
+	let colleges: College[] | null = $state.raw(null);
 	let directionCount: number | null = $state.raw(null);
-	let divisions: DivisionData[] | null = $state.raw(null);
+	let divisions: Division[] | null = $state.raw(null);
 	let dorms: DormData[] | null = $state.raw(null);
 	let organizations: OrgData[] | null = $state.raw(null);
 	let events: EventData[] | null = $state.raw(null);
@@ -92,9 +96,9 @@
 		places,
 		totalRooms,
 		loaded
-	});
+	}); */
 
-	function applyData(data: DBData) {
+	/* function applyData(data: DBData) {
 		buildings = data.buildings;
 		colleges = data.colleges;
 		directionCount = data.directionCount;
@@ -128,9 +132,9 @@
 		// The shell may still be up if the crash happened before bootstrap
 		// finished, and it would cover the fallback with a stuck spinner.
 		dismissStaticLoadingShell();
-	}
+	} */
 
-	const EMPTY_DB_DATA: DBData = {
+	/* const EMPTY_DB_DATA: DBData = {
 		buildings: [],
 		colleges: [],
 		divisions: [],
@@ -158,12 +162,12 @@
 				await sleep(jitteredBackoffDelay(wave + 1, 2_000, 60_000));
 			}
 		}
-	}
+	} */
 
 	/** Set once network rows are on screen, so a late cache read can't undo them. */
-	let networkDataApplied = false;
+	// let networkDataApplied = false;
 
-	async function refreshFromNetwork(hasCachedDataAtStart: boolean) {
+	/* async function refreshFromNetwork(hasCachedDataAtStart: boolean) {
 		if (hasCachedDataAtStart) {
 			appBootstrapStore.markBackgroundRefresh();
 		} else if (appBootstrapStore.phase !== 'remote') {
@@ -309,9 +313,9 @@
 		} finally {
 			syncToastStore.endSync(didSync);
 		}
-	}
+	} */
 
-	onMount(() => {
+	/* onMount(() => {
 		applyData(EMPTY_DB_DATA);
 		loaded = true;
 		appBootstrapStore.setRetryHandler(() => {
@@ -387,9 +391,9 @@
 			window.removeEventListener('online', onOnline);
 			window.removeEventListener(CAMPUS_DATA_REFRESH_EVENT, onCampusRefresh);
 		};
-	});
+	}); */
 
-	setAppData(() => appData);
+	/* setAppData(() => appData);
 	setAppActions({
 		replaceEvent: (updated) => {
 			if (!events) return;
@@ -480,17 +484,40 @@
 			next[index] = updated;
 			divisions = next;
 		}
-	});
+	}); */
+	import { MapStore } from '$lib/stores/map/map-stores.svelte';
+	import UserLocation from '$lib/stores/map/UserLocation.svelte';
+	import { initMapStore, initUserLocation } from '$lib/utils/context';
+	import UIMap from './Map.svelte';
+
+	initMapStore(new MapStore());
+	initUserLocation(new UserLocation());
 </script>
 
 <!-- The bootstrap try/catch above only covers data loading. An error thrown
      while rendering happens after the loading shell is dismissed, which unmounts
      the tree and leaves blank white with no explanation. -->
-<svelte:boundary onerror={handleRenderError}>
-	<Entry suppressLandingModal={Boolean(page.data.initialSearch)}>
+<!-- <svelte:boundary onerror={handleRenderError}> -->
+<!-- <Entry suppressLandingModal={Boolean(page.data.initialSearch)}>
 		{@render children()}
-	</Entry>
+	</Entry> -->
+<svelte:boundary
+	onerror={(e) => {
+		console.error(e);
+	}}
+>
+	<UIMap />
+	{#snippet pending()}
+		Loading...
+	{/snippet}
+	{#snippet failed(error, reset)}
+		{String(error)}
+	{/snippet}
+</svelte:boundary>
 
+<!-- {#snippet pending()}
+		Loading app...
+	{/snippet}
 	{#snippet failed(error, reset)}
 		<div class="app-crash" role="alert">
 			<div class="app-crash__card">
@@ -523,7 +550,7 @@
 			</div>
 		</div>
 	{/snippet}
-</svelte:boundary>
+</svelte:boundary> -->
 
 <style>
 	.app-crash {

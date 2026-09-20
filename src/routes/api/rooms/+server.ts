@@ -1,5 +1,5 @@
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-import type { RoomData } from '$lib/utils/types';
+import type { Room } from '$lib/utils/types';
 import {
 	getBuildingRooms,
 	getCollegeRooms,
@@ -51,7 +51,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	const id = parseInt(url.searchParams.get(searchField) as string, 10);
-	let data: null | RoomData[] = null;
+	let data: null | Room[] = null;
 	if (Number.isNaN(id))
 		throw error(400, {
 			message: 'Id parsing error'

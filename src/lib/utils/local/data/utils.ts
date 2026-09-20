@@ -7,16 +7,16 @@ import { normalizeAlias } from '$lib/utils/site';
 import { normalizeDormListFields } from '$lib/utils/string-lists';
 import type {
 	AnnouncementData,
-	BuildingData,
+	Building,
 	ClassMapValue,
-	CollegeData,
-	DivisionData,
+	College,
+	Division,
 	DormData,
 	EntityLoadResult,
 	EventData,
 	OrgData,
 	PlaceData,
-	RoomData,
+	Room,
 	TableSyncInfo
 } from '$lib/utils/types';
 import { normalizeEntityPhotos } from '$lib/utils/entity/entity-photos';
@@ -69,13 +69,13 @@ export async function getLocalJeepneyRoutes(): Promise<JeepneyRoute[] | undefine
 	}
 }
 
-export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
+export async function getLocalBuildings(): Promise<Building[] | undefined> {
   try {
     const localDB = await getDB();
     await localDB.waitReady;
     const data = (await localDB.query(`
          SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", photos, cr_facilities AS "crFacilities", version, updated_at AS "updatedAt" FROM buildings
-      `)) as Results<BuildingData>;
+      `)) as Results<Building>;
     return data.rows.map((row) => ({
       ...row,
       photos: normalizeEntityPhotos(row.photos),
@@ -86,13 +86,13 @@ export async function getLocalBuildings(): Promise<BuildingData[] | undefined> {
   }
 }
 
-export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
+export async function getLocalColleges(): Promise<College[] | undefined> {
 	try {
 		const localDB = await getDB();
 		await localDB.waitReady;
 		const data = (await localDB.query(`
         SELECT college_name AS "collegeName", website_link AS "websiteLink", id, version, updated_at AS "updatedAt" FROM colleges;
-      `)) as Results<CollegeData>;
+      `)) as Results<College>;
 		return data.rows;
 	} catch (e) {
 		console.error('Error: ', e);
@@ -100,13 +100,13 @@ export async function getLocalColleges(): Promise<CollegeData[] | undefined> {
 	}
 }
 
-export async function getLocalDivisions(): Promise<DivisionData[] | undefined> {
+export async function getLocalDivisions(): Promise<Division[] | undefined> {
 	try {
 		const localDB = await getDB();
 		await localDB.waitReady;
 		const data = (await localDB.query(`
         SELECT division_name AS "divisionName", website_link AS "websiteLink", id, version, updated_at AS "updatedAt" FROM divisions;
-      `)) as Results<DivisionData>;
+      `)) as Results<Division>;
 		return data.rows;
 	} catch (e) {
 		console.error('Error: ', e);
@@ -367,7 +367,7 @@ export async function getLocalRoomByCode(code: string) {
              WHERE upper(r.room_code) = $1
          `,
       [normalizedCode],
-    )) as Results<RoomData>;
+    )) as Results<Room>;
     if (data.rows.length === 0) return null;
     return {
       ...data.rows[0],
@@ -408,7 +408,7 @@ export async function getLocalRoomById(id: number) {
              WHERE r.id = $1
          `,
       [id],
-    )) as Results<RoomData>;
+    )) as Results<Room>;
     if (data.rows.length === 0) return null;
     return {
       ...data.rows[0],
@@ -420,7 +420,7 @@ export async function getLocalRoomById(id: number) {
   }
 }
 
-// export async function getLocalRooms(): Promise<RoomData[] | undefined> {
+// export async function getLocalRooms(): Promise<Room[] | undefined> {
 //   try {
 //     const localDB = getDB();
 
@@ -439,7 +439,7 @@ export async function getLocalRoomById(id: number) {
 //       LEFT JOIN buildings AS b ON b.id = r.building_id
 //       LEFT JOIN colleges as c ON c.id = r.college_id
 //       LEFT JOIN divisions AS d ON d.id = r.division_id;
-//       `)) as Results<RoomData>;
+//       `)) as Results<Room>;
 //     return data.rows;
 //   } catch (e) {
 //     console.error("Error: ", e);
@@ -591,11 +591,11 @@ export async function fetchRemoteEvents(): Promise<EventData[]> {
 	return fetchJsonWithRetry<EventData[]>('/api/events', ENTITY_FETCH_OPTIONS);
 }
 
-export const getBuildings = getEntity<BuildingData>('buildings', getLocalBuildings);
+export const getBuildings = getEntity<Building>('buildings', getLocalBuildings);
 
-export const getColleges = getEntity<CollegeData>('colleges', getLocalColleges);
+export const getColleges = getEntity<College>('colleges', getLocalColleges);
 
-export const getDivisions = getEntity<DivisionData>('divisions', getLocalDivisions);
+export const getDivisions = getEntity<Division>('divisions', getLocalDivisions);
 
 export const getDorms = getEntity<DormData>('dorms', getLocalDorms);
 
@@ -612,11 +612,11 @@ export const getClasses = getEntity<ClassMapValue>('classes', getLocalClasses);
 export async function fetchEntityRoomsRemote(
 	entityName: 'building' | 'college' | 'division',
 	id: number
-): Promise<RoomData[]> {
+): Promise<Room[]> {
 	const url = `/api/rooms?${entityName}_id=${id}`;
 	try {
 		const response = await fetch(url);
-		const payload = (await response.json()) as RoomData[] | { data?: RoomData[] };
+		const payload = (await response.json()) as Room[] | { data?: Room[] };
 		const fetchedData = Array.isArray(payload) ? payload : payload.data;
 		if (response.ok && Array.isArray(fetchedData)) {
 			return fetchedData;
@@ -632,7 +632,7 @@ export async function fetchEntityRoomsRemote(
 
 export function getEntityRooms(
 	entityName: string,
-	getLocalTableRoom: (id: number) => Promise<RoomData[] | undefined>
+	getLocalTableRoom: (id: number) => Promise<Room[] | undefined>
 ) {
 	return async (validSync: boolean, id: number) => {
 		const loadLocal = async () => (await getLocalTableRoom(id)) ?? [];

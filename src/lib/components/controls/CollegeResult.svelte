@@ -19,7 +19,7 @@
 		fetchRoomClassCounts,
 		fetchEntityRoomsRemote
 	} from '$lib/utils/local/data/utils';
-	import type { CollegeData, RoomData } from '$lib/utils/types';
+	import type { College, Room } from '$lib/utils/types';
 	import ResultDisplay from './ResultDisplay.svelte';
 	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
 	import EntityBackToList from './EntityBackToList.svelte';
@@ -38,8 +38,8 @@
 
 	type CollegePatchResponse = {
 		success?: boolean;
-		college?: CollegeData;
-		latest?: CollegeData | null;
+		college?: College;
+		latest?: College | null;
 		error?: string;
 	};
 
@@ -59,7 +59,7 @@
 			.sort((a, b) => a.divisionName.localeCompare(b.divisionName));
 	});
 
-	let collegeRooms = $state<RoomData[] | null>(null);
+	let collegeRooms = $state<Room[] | null>(null);
 	let classCounts = $state<Map<number, number> | null>(null);
 	let editing = $state(false);
 	let draftCollegeId = $state<number | null>(null);
@@ -72,7 +72,7 @@
 	let activeProposalId = $state<number | null>(null);
 	let proposalStatus = $state<string | null>(null);
 	let mergePrompt = $state<{
-		candidate: CollegeData;
+		candidate: College;
 		attemptedName: string;
 		sourceVersion: number;
 	} | null>(null);
@@ -174,7 +174,7 @@
 		}));
 	});
 
-	function syncCollegeFromServer(updated: CollegeData) {
+	function syncCollegeFromServer(updated: College) {
 		appActions.upsertCollege(updated);
 		queryStore.hydrateQuery({
 			type: 'result',
@@ -209,7 +209,7 @@
 				proposalId: activeProposalId
 			});
 
-			const outcome = handlePersistEntityResult<CollegeData>(result, {
+			const outcome = handlePersistEntityResult<College>(result, {
 				syncFromServer: syncCollegeFromServer,
 				fallbackError: `${current.collegeName} could not be saved.`
 			});
@@ -217,7 +217,7 @@
 			if (outcome.error) {
 				if (outcome.mergeCandidate) {
 					mergePrompt = {
-						candidate: outcome.mergeCandidate as CollegeData,
+						candidate: outcome.mergeCandidate as College,
 						attemptedName: trimmedName,
 						sourceVersion: current.version
 					};
@@ -271,7 +271,7 @@
 			});
 
 			if (!result.ok) {
-				if (result.latest) syncCollegeFromServer(result.latest as CollegeData);
+				if (result.latest) syncCollegeFromServer(result.latest as College);
 				fieldError =
 					result.error ??
 					`${current.collegeName} could not be merged into ${mergePrompt.candidate.collegeName}.`;
@@ -279,7 +279,7 @@
 			}
 
 			if (result.entity) {
-				syncCollegeFromServer(result.entity as CollegeData);
+				syncCollegeFromServer(result.entity as College);
 				toastStore.show(
 					`Merged ${current.collegeName} into ${mergePrompt.candidate.collegeName}.`,
 					'success'

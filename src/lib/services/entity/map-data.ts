@@ -23,19 +23,19 @@ import { normalizeDormListFields } from '$lib/utils/string-lists';
 import { attachProbableLocations } from '../probable-location';
 import { getBuildCache } from '../page-data/ssg-cache';
 import type {
-	BuildingData,
+	Building,
 	ClassMapValue,
-	CollegeData,
-	DivisionData,
+	College,
+	Division,
 	DormData,
 	OrgData,
 	PlaceData,
 	FinalExamRow,
-	RoomData
+	Room
 } from '$lib/utils/types';
 
 // Cached getters for SSG (#331)
-export async function getAllBuildingsCached(): Promise<BuildingData[]> {
+export async function getAllBuildingsCached(): Promise<Building[]> {
 	const cache = getBuildCache();
 	if (cache.buildings) return cache.buildings;
 	const data = await db.select().from(buildingsTable);
@@ -43,7 +43,7 @@ export async function getAllBuildingsCached(): Promise<BuildingData[]> {
 	return data;
 }
 
-export async function getAllRoomsCached(): Promise<RoomData[]> {
+export async function getAllRoomsCached(): Promise<Room[]> {
   const cache = getBuildCache();
   if (cache.rooms) return cache.rooms;
   const data = await db
@@ -77,7 +77,7 @@ export async function getAllRoomsCached(): Promise<RoomData[]> {
   return data;
 }
 
-export async function getAllCollegesCached(): Promise<CollegeData[]> {
+export async function getAllCollegesCached(): Promise<College[]> {
 	const cache = getBuildCache();
 	if (cache.colleges) return cache.colleges;
 	const data = await db.select().from(collegesTable);
@@ -85,7 +85,7 @@ export async function getAllCollegesCached(): Promise<CollegeData[]> {
 	return data;
 }
 
-export async function getAllDivisionsCached(): Promise<DivisionData[]> {
+export async function getAllDivisionsCached(): Promise<Division[]> {
 	const cache = getBuildCache();
 	if (cache.divisions) return cache.divisions;
 	const data = await db.select().from(divisionsTable);
@@ -102,7 +102,7 @@ export async function getAllDormsCached(): Promise<DormData[]> {
 }
 
 // Legacy non-cached versions for runtime use
-export async function getAllBuildings(): Promise<BuildingData[]> {
+export async function getAllBuildings(): Promise<Building[]> {
 	try {
 		const data = await db.select().from(buildingsTable);
 		return data;
@@ -112,7 +112,7 @@ export async function getAllBuildings(): Promise<BuildingData[]> {
 	}
 }
 
-export async function getAllRooms(): Promise<RoomData[]> {
+export async function getAllRooms(): Promise<Room[]> {
   try {
     const data = await db
       .select({
@@ -216,7 +216,7 @@ export async function searchRooms(searchString: string) {
 
 export async function getBuildingRooms(
   buildingId: number,
-): Promise<RoomData[]> {
+): Promise<Room[]> {
   try {
     const data = await db
       .select({
@@ -252,7 +252,7 @@ export async function getBuildingRooms(
     throw new Error("Failed to fetch rooms", { cause: e });
   }
 }
-export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
+export async function getCollegeRooms(collegeId: number): Promise<Room[]> {
   try {
     const data = await db
       .select({
@@ -290,7 +290,7 @@ export async function getCollegeRooms(collegeId: number): Promise<RoomData[]> {
 }
 export async function getDivisionRooms(
   divisionId: number,
-): Promise<RoomData[]> {
+): Promise<Room[]> {
   try {
     const data = await db
       .select({
@@ -328,7 +328,7 @@ export async function getDivisionRooms(
 	}
 }
 
-export async function getAllColleges(): Promise<CollegeData[]> {
+export async function getAllColleges(): Promise<College[]> {
 	try {
 		const data = await db.select().from(collegesTable);
 		return data;
@@ -338,7 +338,7 @@ export async function getAllColleges(): Promise<CollegeData[]> {
 	}
 }
 
-export async function getAllDivisions(): Promise<DivisionData[]> {
+export async function getAllDivisions(): Promise<Division[]> {
 	try {
 		const data = await db.select().from(divisionsTable);
 		return data;

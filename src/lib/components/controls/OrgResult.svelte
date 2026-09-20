@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import {
     adminAuthStore,
     additionProposalStore,
@@ -207,9 +207,9 @@
       saving = false;
     }
   }
-</script>
+</script> -->
 
-<div class="entity-detail">
+<!-- <div class="entity-detail">
 	{#if org}
 		<header class="entity-header">
 			{#if isStudentOrg}
@@ -417,9 +417,9 @@
 	{:else}
 		<div class="no-results">Organization not found.</div>
 	{/if}
-</div>
+</div> -->
 
-<style>
+<!-- <style>
 	@import './entity-detail.css';
 	@import '../editor/entity-editor.css';
 	@import '../map-chrome/map-chrome.css';
@@ -527,4 +527,4 @@
 		text-align: center;
 		padding: 1rem 0;
 	}
-</style>
+</style> -->

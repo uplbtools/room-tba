@@ -4,9 +4,9 @@ import { dismissEphemeralOverlays } from '../../utils/overlay-stack.js';
 import { deactivateMapModesExcept } from './map-modes.js';
 import type { MapToolsSection, TerrainStatus } from '../store-types.js';
 import { calculatePadding } from '$lib/utils/map/navigate.js';
-import { isMap2DPitch, THREE_D_PITCH } from '$lib/constants/map/dimension.js';
-import { enterFlatMapDimension, enterTiltedMapDimension } from '$lib/utils/map/map-dimension-layers.js';
-import { terrainStore } from '$lib/stores.svelte.js';
+// import { isMap2DPitch, THREE_D_PITCH } from '$lib/constants/map/dimension.js';
+// import { enterFlatMapDimension, enterTiltedMapDimension } from '$lib/utils/map/map-dimension-layers.js';
+// import { terrainStore } from '$lib/stores.svelte.js';
 
 type MarkerFilter = "events" | "buildings" | "orgs" | "places" | "all";
 
@@ -40,11 +40,10 @@ export class MapStore {
 
 	public centerMarker(center: FlyToOptions["center"]) {
 		if (!this.mapInstance) return;
-		console.log("runs");
 		this.mapInstance.flyTo({
 			center,
-			padding: calculatePadding(false),
 			duration:1000
+			// padding: calculatePadding(true),
 		})
 	}
 
@@ -58,12 +57,12 @@ export class MapStore {
 
 	public toggleDimension() {
 		if (!this.mapInstance) return;
-		if (isMap2DPitch(this.mapInstance.getPitch())) {
-			this.mapInstance.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
-			this.mapInstance.once('moveend', () => enterTiltedMapDimension(this.mapInstance as maplibre.Map, terrainStore.enabled));
-			return;
-		}
-		enterFlatMapDimension(this.mapInstance, terrainStore.enabled);
+		// if (isMap2DPitch(this.mapInstance.getPitch())) {
+		// 	this.mapInstance.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
+		// 	this.mapInstance.once('moveend', () => enterTiltedMapDimension(this.mapInstance as maplibre.Map, terrainStore.enabled));
+		// 	return;
+		// }
+		// enterFlatMapDimension(this.mapInstance, terrainStore.enabled);
 		// Pitch only: dropping to 2D used to also snap the bearing to north, which
 		// threw away a rotation the user set on purpose. The compass button is the
 		// control that resets north.
@@ -73,6 +72,10 @@ export class MapStore {
 	public resetNorth() {
 		if (!this.mapInstance) return;
 		this.mapInstance.easeTo({ bearing: 0, duration: 400 });
+	}
+
+	withinZoom(zoomLevel: number):boolean {
+		return zoomLevel <= this.zoomLevel;
 	}
 }
 

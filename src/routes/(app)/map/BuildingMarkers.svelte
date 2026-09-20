@@ -1,21 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import BuildingResult from '$lib/components/controls/BuildingResult.svelte';
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
-	import { buildingMatchesTypeFilter } from '$lib/constants/content/categories/building';
-	import {
-		buildingTypeFilter,
-		classVenuesStore,
-		map,
-		queryStore,
-		sidePanelStore
-	} from '$lib/stores.svelte';
-	import { getAppData } from '$lib/utils/context';
-	import { withinMapZoom } from '$lib/utils/map/navigate';
+	// import { buildingMatchesTypeFilter } from '$lib/constants/content/categories/building';
+	import { getAllBuildings } from '$lib/functions/buildings.remote';
+	import { getMapStore } from '$lib/utils/context';
+	// import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
-	import type { BuildingData } from '$lib/utils/types';
+	import type { Building } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -24,42 +17,49 @@
 	}
 
 	const { showBuildingPins, zoomLevel }: Props = $props();
+	const map = getMapStore();
+	const buildings = await getAllBuildings();
 
-	const data = getAppData();
-	const { buildings, loaded } = $derived(data());
 	const filteredBuildings = $derived.by(() => {
-		if (!loaded || !showBuildingPins) return [];
-		return buildings.filter((building) =>
-			buildingMatchesTypeFilter(
-				building,
-				buildingTypeFilter.value,
-				classVenuesStore.buildingIdsWithClasses
-			)
-		);
+		return buildings;
+		// if (!loaded || !showBuildingPins) return [];
+		// return buildings.filter((building) => true);
+		// buildingMatchesTypeFilter(
+		// 	building,
+		// 	buildingTypeFilter.value,
+		// 	classVenuesStore.buildingIdsWithClasses
+		// )
 	});
 
-	function handleMarkerClick(building: BuildingData) {
+	function handleMarkerClick(building: Building) {
 		return () => {
-			// if (eventPlacementStore.active) return;
-			// if (isMapEditEnabled() && selectedEditKey !== null) return;
-			if (building.buildingName === queryStore.inputValue) return;
-			queryStore.updateQuery({
-				category: 'building',
-				type: 'result',
-				value: building.buildingName
-			});
-			queryStore.inputValue = building.buildingName;
 			goto(resolve(`/map/buildings/${slugifySegment(building.buildingName)}`));
-			sidePanelStore.openPanel({
-				type: 'search-result',
-				component: BuildingResult
-			});
 			map.centerMarker([building.lon, building.lat]);
 		};
 	}
+
+	// function handleMarkerClick(building: Building) {
+	// 	return () => {
+	// 		// if (eventPlacementStore.active) return;
+	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
+	// 		if (building.buildingName === queryStore.inputValue) return;
+	// 		queryStore.updateQuery({
+	// 			category: 'building',
+	// 			type: 'result',
+	// 			value: building.buildingName
+	// 		});
+	// 		queryStore.inputValue = building.buildingName;
+	// 		goto(resolve(`/map/buildings/${slugifySegment(building.buildingName)}`));
+	// 		// sidePanelStore.openPanel({
+	// 		// 	type: 'search-result',
+	// 		// 	component: BuildingResult
+	// 		// });
+	// 		map.centerMarker([building.lon, building.lat]);
+	// 	};
+	// }
 </script>
 
-{#if withinMapZoom(zoomLevel)}
+{#if map.withinZoom(zoomLevel) && showBuildingPins}
 	{#each filteredBuildings as building}
 		{#if building.lat && building.lon}
 			<!-- {@const editKey = buildingEditKey(building.id)}
@@ -79,8 +79,8 @@
 			>
 				<MapEntityPin
 					label={building.buildingName}
-					active={queryStore.isActiveMarker(building.buildingName, 'building')}
-					dimmed={queryStore.hasActiveMarker()}
+					// active={queryStore.isActiveMarker(building.buildingName, 'building')}
+					// dimmed={queryStore.hasActiveMarker()}
 					// // editable={canDragPin(editKey)}
 					// editing={selectedEditKey === editKey}
 					// dimmed={hasActiveMarker()}

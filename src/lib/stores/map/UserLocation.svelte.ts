@@ -1,6 +1,5 @@
 import { CAMPUS_BOUNDS } from "$lib/constants/map/terrain";
 import { describeLocationFix } from "$lib/utils/geolocation";
-import { toastStore } from "../index.svelte.js";
 import type { MapStore } from "./map-stores.svelte.js";
 
 export default class UserLocation {
@@ -29,13 +28,13 @@ export default class UserLocation {
 
     requestLocation() {
         if (!navigator.geolocation) {
-            toastStore.show('Geolocation is not supported by your browser.', 'error');
+            // toastStore.show('Geolocation is not supported by your browser.', 'error');
             return;
         }
 
         if (this.isTracking) {
             if (!this.coords) {
-                toastStore.show('Still getting your location...', 'info');
+                // toastStore.show('Still getting your location...', 'info');
             }
             return;
         }
@@ -50,10 +49,10 @@ export default class UserLocation {
                 const { longitude, latitude, heading, accuracy } = position.coords;
 
                 if (!this.isWithinBounds(longitude, latitude)) {
-                    toastStore.show(
+                    /* toastStore.show(
                         'You appear to be outside the UPLB Campus. Location features are limited to the campus area.',
                         'error'
-                    );
+                    ); */
                     this.stopTracking();
                     return;
                 }
@@ -69,14 +68,14 @@ export default class UserLocation {
                 const fix = describeLocationFix(this.accuracyMeters);
                 if (fix.level === 'good' && !this.announcedGoodFix) {
                     this.announcedGoodFix = true;
-                    toastStore.show(fix.message, 'success');
+                    // toastStore.show(fix.message, 'success');
                 } else if (
                     fix.level === 'approximate' &&
                     !this.announcedApproximateFix &&
                     !this.announcedGoodFix
                 ) {
                     this.announcedApproximateFix = true;
-                    toastStore.show(fix.message, 'info');
+                    // toastStore.show(fix.message, 'info');
                 }
             },
             (error) => {
@@ -92,7 +91,7 @@ export default class UserLocation {
                         msg = 'Location request timed out.';
                         break;
                 }
-                toastStore.show(msg, 'error');
+                // toastStore.show(msg, 'error');
                 this.stopTracking();
             },
             // maximumAge 0: avoid a stale cell/Wi‑Fi fix that can place you hundreds
@@ -107,7 +106,7 @@ export default class UserLocation {
             return;
         }
         if (map.isMapReady()) {
-            toastStore.show('Map component is still initializing', 'info');
+            // toastStore.show('Map component is still initializing', 'info');
             return;
         }
         map.flyTo({

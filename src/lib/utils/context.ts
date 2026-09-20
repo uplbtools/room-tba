@@ -1,18 +1,20 @@
 import { createContext } from 'svelte';
 import type {
-	BuildingData,
-	CollegeData,
-	DivisionData,
+	Building,
+	College,
+	Division,
 	DormData,
 	EventData,
 	OrgData,
 	PlaceData
 } from '$lib/utils/types';
+import type { MapStore } from '$lib/stores/map/map-stores.svelte';
+import type UserLocation from '$lib/stores/map/UserLocation.svelte';
 export type AppContextData =
 	| {
-			buildings: BuildingData[];
-			colleges: CollegeData[];
-			divisions: DivisionData[];
+			buildings: Building[];
+			colleges: College[];
+			divisions: Division[];
 			dorms: DormData[];
 			events: EventData[];
 			organizations: OrgData[];
@@ -38,13 +40,15 @@ export type DBData = Omit<AppContextData, 'loaded'>;
 export type AppActions = {
 	replaceEvent: (event: EventData) => void;
 	removeEvent: (eventId: number) => void;
-	upsertBuilding: (building: BuildingData) => void;
+	upsertBuilding: (building: Building) => void;
 	upsertDorm: (dorm: DormData) => void;
-	upsertCollege: (college: CollegeData) => void;
-	upsertDivision: (division: DivisionData) => void;
+	upsertCollege: (college: College) => void;
+	upsertDivision: (division: Division) => void;
 	upsertOrganization: (org: OrgData) => void;
 	upsertPlace: (place: PlaceData) => void;
 };
 
 export const [getAppData, setAppData] = createContext<() => AppContextData>();
 export const [getAppActions, setAppActions] = createContext<AppActions>();
+export const [getMapStore, initMapStore] = createContext<MapStore>();
+export const [getUserLocation, initUserLocation] = createContext<UserLocation>();

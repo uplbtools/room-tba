@@ -1,417 +1,417 @@
 <script lang="ts">
-	import { onMount, type Snippet } from 'svelte';
-	import type { InitialSearchState } from '$lib/utils/app-data';
-	import { campusTransit } from '$lib/campus.config';
-	import AccountSettingsModal from '$lib/components/AccountSettingsModal.svelte';
-	import AdminLoginModal from '$lib/components/AdminLoginModal.svelte';
-	import Building3DViewer from '$lib/components/Building3DViewer.svelte';
-	import AcademicCalendarScreen from '$lib/components/calendar/AcademicCalendarScreen.svelte';
-	import MainControls from '$lib/components/controls/MainControls.svelte';
-	import EditorAdditionModal from '$lib/components/EditorAdditionModal.svelte';
-	import EntityUrlSync from '$lib/components/EntityUrlSync.svelte';
-	import FinalExamsScreen from '$lib/components/final-exams/FinalExamsScreen.svelte';
-	import Map from './Map.svelte';
-	import MapAttribution from '$lib/components/MapAttribution.svelte';
-	import MeasureRoutePanel from '$lib/components/MeasureRoutePanel.svelte';
-	import EntityHoverPreview from '$lib/components/map/EntityHoverPreview.svelte';
-	import ManageUsersModal from '$lib/components/modal/ManageUsersModal.svelte';
-	import Modal from '$lib/components/modal/Modal.svelte';
-	import PlannerScreen from '$lib/components/planner/PlannerScreen.svelte';
+	// import { onMount, type Snippet } from 'svelte';
+	// import type { InitialSearchState } from '$lib/utils/app-data';
+	// import { campusTransit } from '$lib/campus.config';
+	// import AccountSettingsModal from '$lib/components/AccountSettingsModal.svelte';
+	// import AdminLoginModal from '$lib/components/AdminLoginModal.svelte';
+	// import Building3DViewer from '$lib/components/Building3DViewer.svelte';
+	// import AcademicCalendarScreen from '$lib/components/calendar/AcademicCalendarScreen.svelte';
+	// import MainControls from '$lib/components/controls/MainControls.svelte';
+	// import EditorAdditionModal from '$lib/components/EditorAdditionModal.svelte';
+	// import EntityUrlSync from '$lib/components/EntityUrlSync.svelte';
+	// import FinalExamsScreen from '$lib/components/final-exams/FinalExamsScreen.svelte';
+	// import Map from './Map.svelte';
+	// import MapAttribution from '$lib/components/MapAttribution.svelte';
+	// import MeasureRoutePanel from '$lib/components/MeasureRoutePanel.svelte';
+	// import EntityHoverPreview from '$lib/components/map/EntityHoverPreview.svelte';
+	// import ManageUsersModal from '$lib/components/modal/ManageUsersModal.svelte';
+	// import Modal from '$lib/components/modal/Modal.svelte';
+	// import PlannerScreen from '$lib/components/planner/PlannerScreen.svelte';
 	import Toast from '$lib/components/Toast.svelte';
-	import TravelTimeLegend from '$lib/components/TravelTimeLegend.svelte';
-	import TodayScreen from '$lib/components/today/TodayScreen.svelte';
-	import { getAppData } from '$lib/utils/context';
-	import { resolveSharedPlan } from '$lib/utils/planner/import-shared';
-	import { decodeSharePlan } from '$lib/utils/planner/share-codec';
-	import { findCampusPointBySlug } from '$lib/utils/route/route-links';
-	import {
-		adminAuthStore,
-		announcementsStore,
-		appBootstrapStore,
-		building3DStore,
-		editorChromeStore,
-		jeepneyStore,
-		userLocation,
-		mapEditStore,
-		mapToolsStore,
-		measureRouteStore,
-		modalStore,
-		plannerStore,
-		queryStore,
-		scheduleRouteStore,
-		sidebarStore,
-		sidePanelStore,
-		termStore,
-		toastStore,
-		travelTimeStore
-	} from '$lib/stores.svelte';
-	import '$lib/components/map-chrome/map-chrome.css';
-	import { MediaQuery } from 'svelte/reactivity';
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { openCampusBrowse } from '$lib/utils/campus/browse-campus';
-	import { dispatchGlobalShortcut, getGlobalShortcutAction } from '$lib/utils/keyboard-shortcuts';
-	import { shouldAutoOpenLandingModal } from '$lib/utils/landing-modal-auto-open';
-	import { observeBlockHeight } from '$lib/utils/layout-css-vars';
-	import { isRecentSearch } from '$lib/utils/locStorage';
-	import { dismissEphemeralOverlays } from '$lib/utils/overlay-stack';
-	import { getTransitRoutePath, getTransitStopPath } from '$lib/utils/transit-urls';
-	import type { RecentSearch } from '$lib/utils/types';
-	import AnnouncementBar from '../../../lib/components/AnnouncementBar.svelte';
-	import DesktopTopBar from '../../../lib/components/map-chrome/DesktopTopBar.svelte';
-	import KeyboardShortcutsPopup from '../../../lib/components/map-chrome/KeyboardShortcutsPopup.svelte';
-	import MapControlsStack from '../../../lib/components/map-chrome/MapControlsStack.svelte';
-	import MobileBottomNav from '../../../lib/components/map-chrome/MobileBottomNav.svelte';
-	import StagingBanner from '../../../lib/components/StagingBanner.svelte';
+	// import TravelTimeLegend from '$lib/components/TravelTimeLegend.svelte';
+	// import TodayScreen from '$lib/components/today/TodayScreen.svelte';
+	// import { getAppData } from '$lib/utils/context';
+	// import { resolveSharedPlan } from '$lib/utils/planner/import-shared';
+	// import { decodeSharePlan } from '$lib/utils/planner/share-codec';
+	// import { findCampusPointBySlug } from '$lib/utils/route/route-links';
+	// import {
+	// 	adminAuthStore,
+	// 	announcementsStore,
+	// 	appBootstrapStore,
+	// 	building3DStore,
+	// 	editorChromeStore,
+	// 	jeepneyStore,
+	// 	userLocation,
+	// 	mapEditStore,
+	// 	mapToolsStore,
+	// 	measureRouteStore,
+	// 	modalStore,
+	// 	plannerStore,
+	// 	queryStore,
+	// 	scheduleRouteStore,
+	// 	sidebarStore,
+	// 	sidePanelStore,
+	// 	termStore,
+	// 	toastStore,
+	// 	travelTimeStore
+	// } from '$lib/stores.svelte';
+	// import '$lib/components/map-chrome/map-chrome.css';
+	// import { MediaQuery } from 'svelte/reactivity';
+	// import { goto } from '$app/navigation';
+	// import { resolve } from '$app/paths';
+	// import { openCampusBrowse } from '$lib/utils/campus/browse-campus';
+	// import { dispatchGlobalShortcut, getGlobalShortcutAction } from '$lib/utils/keyboard-shortcuts';
+	// import { shouldAutoOpenLandingModal } from '$lib/utils/landing-modal-auto-open';
+	// import { observeBlockHeight } from '$lib/utils/layout-css-vars';
+	// import { isRecentSearch } from '$lib/utils/locStorage';
+	// import { dismissEphemeralOverlays } from '$lib/utils/overlay-stack';
+	// import { getTransitRoutePath, getTransitStopPath } from '$lib/utils/transit-urls';
+	// import type { RecentSearch } from '$lib/utils/types';
+	// import AnnouncementBar from '../../../lib/components/AnnouncementBar.svelte';
+	// import DesktopTopBar from '../../../lib/components/map-chrome/DesktopTopBar.svelte';
+	// import KeyboardShortcutsPopup from '../../../lib/components/map-chrome/KeyboardShortcutsPopup.svelte';
+	// import MapControlsStack from '../../../lib/components/map-chrome/MapControlsStack.svelte';
+	// import MobileBottomNav from '../../../lib/components/map-chrome/MobileBottomNav.svelte';
+	// import StagingBanner from '../../../lib/components/StagingBanner.svelte';
 
-	type Props = {
-		/** The active route's panel body, rendered inside the side panel. */
-		children?: Snippet;
-		initialSearch?: InitialSearchState;
-		suppressLandingModal?: boolean;
-		openToday?: boolean;
-		openPlanner?: boolean;
-		openFinals?: boolean;
-		openCalendar?: boolean;
-	};
+	// type Props = {
+	// 	/** The active route's panel body, rendered inside the side panel. */
+	// 	children?: Snippet;
+	// 	initialSearch?: InitialSearchState;
+	// 	suppressLandingModal?: boolean;
+	// 	openToday?: boolean;
+	// 	openPlanner?: boolean;
+	// 	openFinals?: boolean;
+	// 	openCalendar?: boolean;
+	// };
 
-	const mobile = new MediaQuery('max-width:48rem');
-	const {
-		children,
-		initialSearch,
-		suppressLandingModal = false,
-		openToday = false,
-		openPlanner = false,
-		openFinals = false,
-		openCalendar = false
-	}: Props = $props();
+	// const mobile = new MediaQuery('max-width:48rem');
+	// const {
+	// 	children,
+	// 	initialSearch,
+	// 	suppressLandingModal = false,
+	// 	openToday = false,
+	// 	openPlanner = false,
+	// 	openFinals = false,
+	// 	openCalendar = false
+	// }: Props = $props();
 
-	const updateData = (queryHistory: RecentSearch[]) => {
-		localStorage.setItem('recent-search', JSON.stringify(queryHistory));
-	};
+	// const updateData = (queryHistory: RecentSearch[]) => {
+	// 	localStorage.setItem('recent-search', JSON.stringify(queryHistory));
+	// };
 
-	// Capture one-shot URL params (editor=login, auth_error, account, share
-	// codes) at script init. Child components like EntityUrlSync normalize the
-	// URL in their onMount, which fires before this parent component's onMount,
-	// so reading window.location.search there would see an already-stripped URL.
-	const initialUrlSearch = typeof window !== 'undefined' ? window.location.search : '';
+	// // Capture one-shot URL params (editor=login, auth_error, account, share
+	// // codes) at script init. Child components like EntityUrlSync normalize the
+	// // URL in their onMount, which fires before this parent component's onMount,
+	// // so reading window.location.search there would see an already-stripped URL.
+	// const initialUrlSearch = typeof window !== 'undefined' ? window.location.search : '';
 
-	const appData = getAppData();
+	// const appData = getAppData();
 
-	onMount(() => {
-		// Session state drives account-backed planner sync too. This belongs at the
-		// app root: /planner renders without the map-only location control that
-		// used to hydrate auth, so direct planner visits were treated as guests.
-		void adminAuthStore.hydrate();
+	// onMount(() => {
+	// 	// Session state drives account-backed planner sync too. This belongs at the
+	// 	// app root: /planner renders without the map-only location control that
+	// 	// used to hydrate auth, so direct planner visits were treated as guests.
+	// 	void adminAuthStore.hydrate();
 
-		// Cache-first: the sidebar badge and the critical bar need announcements
-		// before the user opens anything.
-		announcementsStore.init();
+	// 	// Cache-first: the sidebar badge and the critical bar need announcements
+	// 	// before the user opens anything.
+	// 	announcementsStore.init();
 
-		const recentSearchesLS = localStorage.getItem('recent-search');
-		try {
-			const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? '[]');
-			parsedSearches.forEach((parsedSearch) => {
-				if (isRecentSearch(parsedSearch)) {
-					queryStore.addRecentSearch(parsedSearch);
-				}
-			});
-		} catch {
-			queryStore.recentSearches = [];
-		}
-		const urlParams = new URLSearchParams(initialUrlSearch);
+	// 	const recentSearchesLS = localStorage.getItem('recent-search');
+	// 	try {
+	// 		const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? '[]');
+	// 		parsedSearches.forEach((parsedSearch) => {
+	// 			if (isRecentSearch(parsedSearch)) {
+	// 				queryStore.addRecentSearch(parsedSearch);
+	// 			}
+	// 		});
+	// 	} catch {
+	// 		queryStore.recentSearches = [];
+	// 	}
+	// 	const urlParams = new URLSearchParams(initialUrlSearch);
 
-		if (urlParams.get('editor') === 'login') {
-			adminAuthStore.openLogin();
-		}
+	// 	if (urlParams.get('editor') === 'login') {
+	// 		adminAuthStore.openLogin();
+	// 	}
 
-		const authError = urlParams.get('auth_error');
-		if (authError) {
-			adminAuthStore.oauthError = authError;
-			adminAuthStore.openLogin();
-		}
+	// 	const authError = urlParams.get('auth_error');
+	// 	if (authError) {
+	// 		adminAuthStore.oauthError = authError;
+	// 		adminAuthStore.openLogin();
+	// 	}
 
-		const accountEvent = urlParams.get('account');
-		if (accountEvent === 'email-changed') {
-			toastStore.show('Email address updated.', 'success');
-			adminAuthStore.openAccountSettings();
-		} else if (accountEvent === 'google-linked') {
-			toastStore.show('Google account connected.', 'success');
-			adminAuthStore.openAccountSettings();
-		}
+	// 	const accountEvent = urlParams.get('account');
+	// 	if (accountEvent === 'email-changed') {
+	// 		toastStore.show('Email address updated.', 'success');
+	// 		adminAuthStore.openAccountSettings();
+	// 	} else if (accountEvent === 'google-linked') {
+	// 		toastStore.show('Google account connected.', 'success');
+	// 		adminAuthStore.openAccountSettings();
+	// 	}
 
-		const accountError = urlParams.get('account_error');
-		if (accountError) {
-			const messages: Record<string, string> = {
-				missing_token: 'That confirmation link is missing its token.',
-				invalid_or_expired_token:
-					'That confirmation link is invalid or has expired. Request a new one.',
-				not_logged_in: 'Sign in first, then connect Google from account settings.',
-				missing_code: 'Google sign-in was cancelled or incomplete. Try again.',
-				oauth_failed: 'Connecting Google failed. Try again.',
-				already_linked: 'That Google account is already connected to a different Room TBA account.'
-			};
-			toastStore.show(messages[accountError] ?? 'Something went wrong. Try again.', 'error');
-			adminAuthStore.openAccountSettings();
-			// window.history.replaceState({}, '', window.location.pathname);
-		}
+	// 	const accountError = urlParams.get('account_error');
+	// 	if (accountError) {
+	// 		const messages: Record<string, string> = {
+	// 			missing_token: 'That confirmation link is missing its token.',
+	// 			invalid_or_expired_token:
+	// 				'That confirmation link is invalid or has expired. Request a new one.',
+	// 			not_logged_in: 'Sign in first, then connect Google from account settings.',
+	// 			missing_code: 'Google sign-in was cancelled or incomplete. Try again.',
+	// 			oauth_failed: 'Connecting Google failed. Try again.',
+	// 			already_linked: 'That Google account is already connected to a different Room TBA account.'
+	// 		};
+	// 		toastStore.show(messages[accountError] ?? 'Something went wrong. Try again.', 'error');
+	// 		adminAuthStore.openAccountSettings();
+	// 		// window.history.replaceState({}, '', window.location.pathname);
+	// 	}
 
-		if (urlParams.get('contribute') === '1') {
-			editorChromeStore.openAdditionModal();
-			// window.history.replaceState({}, '', window.location.pathname);
-		}
+	// 	if (urlParams.get('contribute') === '1') {
+	// 		editorChromeStore.openAdditionModal();
+	// 		// window.history.replaceState({}, '', window.location.pathname);
+	// 	}
 
-		// 3D deep link: /building/<slug>/?3d=1 opens the building's 3D viewer.
-		if (urlParams.get('3d') === '1' && initialSearch?.category === 'building') {
-			building3DStore.open(initialSearch.value);
-			// window.history.replaceState({}, '', window.location.pathname);
-		}
+	// 	// 3D deep link: /building/<slug>/?3d=1 opens the building's 3D viewer.
+	// 	if (urlParams.get('3d') === '1' && initialSearch?.category === 'building') {
+	// 		building3DStore.open(initialSearch.value);
+	// 		// window.history.replaceState({}, '', window.location.pathname);
+	// 	}
 
-		// Jeepney deep link: ?jeepney=<routeId>[&stop=<index>] opens the route on
-		// the map (and focuses a stop when given). Shared from the route modal /
-		// stop panel copy-link.
-		const jeepneyRouteId = campusTransit.enabled ? urlParams.get('jeepney') : null;
-		if (jeepneyRouteId) {
-			openCampusBrowse(queryStore, sidePanelStore, 'jeepney');
-			jeepneyStore.openRouteOnMap(jeepneyRouteId);
-			const stopParam = Number.parseInt(urlParams.get('stop') ?? '', 10);
-			if (Number.isInteger(stopParam)) {
-				jeepneyStore.openStop(stopParam);
-			}
-			// window.history.replaceState(
-			// 	{},
-			// 	'',
-			// 	Number.isInteger(stopParam)
-			// 		? getTransitStopPath(jeepneyRouteId, stopParam)
-			// 		: getTransitRoutePath(jeepneyRouteId)
-			// );
-		}
+	// 	// Jeepney deep link: ?jeepney=<routeId>[&stop=<index>] opens the route on
+	// 	// the map (and focuses a stop when given). Shared from the route modal /
+	// 	// stop panel copy-link.
+	// 	const jeepneyRouteId = campusTransit.enabled ? urlParams.get('jeepney') : null;
+	// 	if (jeepneyRouteId) {
+	// 		openCampusBrowse(queryStore, sidePanelStore, 'jeepney');
+	// 		jeepneyStore.openRouteOnMap(jeepneyRouteId);
+	// 		const stopParam = Number.parseInt(urlParams.get('stop') ?? '', 10);
+	// 		if (Number.isInteger(stopParam)) {
+	// 			jeepneyStore.openStop(stopParam);
+	// 		}
+	// 		// window.history.replaceState(
+	// 		// 	{},
+	// 		// 	'',
+	// 		// 	Number.isInteger(stopParam)
+	// 		// 		? getTransitStopPath(jeepneyRouteId, stopParam)
+	// 		// 		: getTransitRoutePath(jeepneyRouteId)
+	// 		// );
+	// 	}
 
-		// /route/<from>/<to> sends its two endpoints here as slugs. Resolving them
-		// against loaded campus data (rather than passing coordinates in the URL)
-		// keeps the link stable when an editor moves a pin. On /today the same
-		// param means "route my day" instead (handled below).
-		const routeParam = urlParams.get('route');
-		if (routeParam && !openToday) {
-			const [fromSlug, toSlug] = routeParam.split(',');
-			const waypoints = [fromSlug, toSlug]
-				.map((slug) => (slug ? findCampusPointBySlug(appData(), slug) : null))
-				.filter((point): point is [number, number] => point !== null);
-			if (waypoints.length === 2) {
-				userLocation.setRouteWaypoints(waypoints);
-			}
-			// window.history.replaceState({}, '', window.location.pathname);
-		}
+	// 	// /route/<from>/<to> sends its two endpoints here as slugs. Resolving them
+	// 	// against loaded campus data (rather than passing coordinates in the URL)
+	// 	// keeps the link stable when an editor moves a pin. On /today the same
+	// 	// param means "route my day" instead (handled below).
+	// 	const routeParam = urlParams.get('route');
+	// 	if (routeParam && !openToday) {
+	// 		const [fromSlug, toSlug] = routeParam.split(',');
+	// 		const waypoints = [fromSlug, toSlug]
+	// 			.map((slug) => (slug ? findCampusPointBySlug(appData(), slug) : null))
+	// 			.filter((point): point is [number, number] => point !== null);
+	// 		if (waypoints.length === 2) {
+	// 			userLocation.setRouteWaypoints(waypoints);
+	// 		}
+	// 		// window.history.replaceState({}, '', window.location.pathname);
+	// 	}
 
-		plannerStore.init();
+	// 	plannerStore.init();
 
-		// /planner deep link (prop set by the planner.astro page). Driven by a prop,
-		// not window.location, because the SPA URL router normalizes the path to "/"
-		// on boot before this runs. ?term still flows through termStore.
-		if (openPlanner) {
-			void termStore.init();
-			sidebarStore.changeOpened('planner');
-		}
+	// 	// /planner deep link (prop set by the planner.astro page). Driven by a prop,
+	// 	// not window.location, because the SPA URL router normalizes the path to "/"
+	// 	// on boot before this runs. ?term still flows through termStore.
+	// 	if (openPlanner) {
+	// 		void termStore.init();
+	// 		sidebarStore.changeOpened('planner');
+	// 	}
 
-		// /final-exams deep link (prop set by final-exams.astro), same shape.
-		if (openFinals) {
-			void termStore.init();
-			sidebarStore.changeOpened('finals');
-		}
+	// 	// /final-exams deep link (prop set by final-exams.astro), same shape.
+	// 	if (openFinals) {
+	// 		void termStore.init();
+	// 		sidebarStore.changeOpened('finals');
+	// 	}
 
-		// /calendar deep link (prop set by calendar.astro), same shape.
-		if (openCalendar) {
-			void termStore.init();
-			sidebarStore.changeOpened('calendar');
-		}
+	// 	// /calendar deep link (prop set by calendar.astro), same shape.
+	// 	if (openCalendar) {
+	// 		void termStore.init();
+	// 		sidebarStore.changeOpened('calendar');
+	// 	}
 
-		// /today deep link (prop set by today.astro), same shape.
-		if (openToday) {
-			void termStore.init();
-			sidebarStore.changeOpened('today');
-			// /today?route=1 routes today's classes once the screen mounts (#839).
-			if (routeParam === '1') {
-				scheduleRouteStore.pendingDayRoute = true;
-			}
-		}
+	// 	// /today deep link (prop set by today.astro), same shape.
+	// 	if (openToday) {
+	// 		void termStore.init();
+	// 		sidebarStore.changeOpened('today');
+	// 		// /today?route=1 routes today's classes once the screen mounts (#839).
+	// 		if (routeParam === '1') {
+	// 			scheduleRouteStore.pendingDayRoute = true;
+	// 		}
+	// 	}
 
-		const planParam = urlParams.get('plan');
-		if (planParam) {
-			// window.history.replaceState({}, '', window.location.pathname);
-			const decoded = decodeSharePlan(planParam);
-			if (!decoded) {
-				toastStore.show('That plan link is invalid.', 'error');
-			} else {
-				void termStore
-					.init()
-					.then(() => resolveSharedPlan(decoded))
-					.then(({ sections, missing }) => {
-						plannerStore.importShared(decoded.termId, sections);
-						if (termStore.terms.some((term) => term.id === decoded.termId)) {
-							termStore.setTerm(decoded.termId);
-						}
-						sidebarStore.changeOpened('planner');
-						if (missing > 0) {
-							toastStore.show(
-								`${missing} shared ${missing === 1 ? 'section is' : 'sections are'} no longer offered.`,
-								'info'
-							);
-						}
-					});
-			}
-		}
-	});
+	// 	const planParam = urlParams.get('plan');
+	// 	if (planParam) {
+	// 		// window.history.replaceState({}, '', window.location.pathname);
+	// 		const decoded = decodeSharePlan(planParam);
+	// 		if (!decoded) {
+	// 			toastStore.show('That plan link is invalid.', 'error');
+	// 		} else {
+	// 			void termStore
+	// 				.init()
+	// 				.then(() => resolveSharedPlan(decoded))
+	// 				.then(({ sections, missing }) => {
+	// 					plannerStore.importShared(decoded.termId, sections);
+	// 					if (termStore.terms.some((term) => term.id === decoded.termId)) {
+	// 						termStore.setTerm(decoded.termId);
+	// 					}
+	// 					sidebarStore.changeOpened('planner');
+	// 					if (missing > 0) {
+	// 						toastStore.show(
+	// 							`${missing} shared ${missing === 1 ? 'section is' : 'sections are'} no longer offered.`,
+	// 							'info'
+	// 						);
+	// 					}
+	// 				});
+	// 		}
+	// 	}
+	// });
 
-	let landingModalAutoOpenConsumed = $state(false);
+	// let landingModalAutoOpenConsumed = $state(false);
 
-	$effect(() => {
-		if (
-			!shouldAutoOpenLandingModal({
-				consumed: landingModalAutoOpenConsumed,
-				phase: appBootstrapStore.phase,
-				suppressLandingModal,
-				hideLandingModal: localStorage.getItem('hideLandingModal') === 'true',
-				modalOpen: modalStore.open
-			})
-		) {
-			return;
-		}
-		landingModalAutoOpenConsumed = true;
-		modalStore.openModal('landing');
-	});
-	$effect(() => {
-		updateData(queryStore.recentSearches);
-	});
+	// $effect(() => {
+	// 	if (
+	// 		!shouldAutoOpenLandingModal({
+	// 			consumed: landingModalAutoOpenConsumed,
+	// 			phase: appBootstrapStore.phase,
+	// 			suppressLandingModal,
+	// 			hideLandingModal: localStorage.getItem('hideLandingModal') === 'true',
+	// 			modalOpen: modalStore.open
+	// 		})
+	// 	) {
+	// 		return;
+	// 	}
+	// 	landingModalAutoOpenConsumed = true;
+	// 	modalStore.openModal('landing');
+	// });
+	// $effect(() => {
+	// 	updateData(queryStore.recentSearches);
+	// });
 
-	let mapToolsStackEl = $state<HTMLDivElement | null>(null);
-	let bottomChromeEl = $state<HTMLDivElement | null>(null);
+	// let mapToolsStackEl = $state<HTMLDivElement | null>(null);
+	// let bottomChromeEl = $state<HTMLDivElement | null>(null);
 
-	$effect(() => {
-		const el = mapToolsStackEl;
-		if (!el) return;
-		return observeBlockHeight(el, '--map-tools-block-height', {
-			shouldSkip: () => window.matchMedia('(max-width: 48rem)').matches,
-			skipValue: '0px'
-		});
-	});
+	// $effect(() => {
+	// 	const el = mapToolsStackEl;
+	// 	if (!el) return;
+	// 	return observeBlockHeight(el, '--map-tools-block-height', {
+	// 		shouldSkip: () => window.matchMedia('(max-width: 48rem)').matches,
+	// 		skipValue: '0px'
+	// 	});
+	// });
 
-	$effect(() => {
-		const el = bottomChromeEl;
-		const root = document.querySelector('.app-layout') as HTMLElement | null;
-		if (!root) return;
+	// $effect(() => {
+	// 	const el = bottomChromeEl;
+	// 	const root = document.querySelector('.app-layout') as HTMLElement | null;
+	// 	if (!root) return;
 
-		// Desktop redesign has no bottom nav; keep side-panel insets sane.
-		if (!el) {
-			root.style.setProperty('--status-bar-block-height', '0px');
-			root.style.setProperty('--mobile-bottom-nav-height', '0px');
-			root.style.setProperty(
-				'--side-panel-bottom-inset-measured',
-				'calc(1rem + env(safe-area-inset-bottom, 0px))'
-			);
-			return;
-		}
+	// 	// Desktop redesign has no bottom nav; keep side-panel insets sane.
+	// 	if (!el) {
+	// 		root.style.setProperty('--status-bar-block-height', '0px');
+	// 		root.style.setProperty('--mobile-bottom-nav-height', '0px');
+	// 		root.style.setProperty(
+	// 			'--side-panel-bottom-inset-measured',
+	// 			'calc(1rem + env(safe-area-inset-bottom, 0px))'
+	// 		);
+	// 		return;
+	// 	}
 
-		let rafId = 0;
-		let lastHeight = '';
-		let lastInset = '';
+	// 	let rafId = 0;
+	// 	let lastHeight = '';
+	// 	let lastInset = '';
 
-		const sync = () => {
-			rafId = 0;
-			const rect = el.getBoundingClientRect();
-			const height = `${Math.max(0, Math.round(rect.height))}px`;
-			const inset = `${Math.max(0, Math.round(window.innerHeight - rect.top))}px`;
+	// 	const sync = () => {
+	// 		rafId = 0;
+	// 		const rect = el.getBoundingClientRect();
+	// 		const height = `${Math.max(0, Math.round(rect.height))}px`;
+	// 		const inset = `${Math.max(0, Math.round(window.innerHeight - rect.top))}px`;
 
-			if (height !== lastHeight) {
-				lastHeight = height;
-				root.style.setProperty('--status-bar-block-height', height);
-				root.style.setProperty('--mobile-bottom-nav-height', height);
-			}
-			if (inset !== lastInset) {
-				lastInset = inset;
-				root.style.setProperty('--side-panel-bottom-inset-measured', inset);
-			}
-		};
+	// 		if (height !== lastHeight) {
+	// 			lastHeight = height;
+	// 			root.style.setProperty('--status-bar-block-height', height);
+	// 			root.style.setProperty('--mobile-bottom-nav-height', height);
+	// 		}
+	// 		if (inset !== lastInset) {
+	// 			lastInset = inset;
+	// 			root.style.setProperty('--side-panel-bottom-inset-measured', inset);
+	// 		}
+	// 	};
 
-		const schedule = () => {
-			if (rafId) return;
-			rafId = requestAnimationFrame(sync);
-		};
+	// 	const schedule = () => {
+	// 		if (rafId) return;
+	// 		rafId = requestAnimationFrame(sync);
+	// 	};
 
-		sync();
-		const observer = new ResizeObserver(schedule);
-		observer.observe(el);
-		window.addEventListener('resize', schedule);
-		window.visualViewport?.addEventListener('resize', schedule);
+	// 	sync();
+	// 	const observer = new ResizeObserver(schedule);
+	// 	observer.observe(el);
+	// 	window.addEventListener('resize', schedule);
+	// 	window.visualViewport?.addEventListener('resize', schedule);
 
-		return () => {
-			observer.disconnect();
-			window.removeEventListener('resize', schedule);
-			window.visualViewport?.removeEventListener('resize', schedule);
-			if (rafId) cancelAnimationFrame(rafId);
-		};
-	});
+	// 	return () => {
+	// 		observer.disconnect();
+	// 		window.removeEventListener('resize', schedule);
+	// 		window.visualViewport?.removeEventListener('resize', schedule);
+	// 		if (rafId) cancelAnimationFrame(rafId);
+	// 	};
+	// });
 
-	function handleKeydown(e: KeyboardEvent) {
-		const action = getGlobalShortcutAction(e);
-		if (action) {
-			e.preventDefault();
-			dispatchGlobalShortcut(action);
-			return;
-		}
+	// function handleKeydown(e: KeyboardEvent) {
+	// 	const action = getGlobalShortcutAction(e);
+	// 	if (action) {
+	// 		e.preventDefault();
+	// 		dispatchGlobalShortcut(action);
+	// 		return;
+	// 	}
 
-		if (e.key === 'Escape') {
-			dismissEphemeralOverlays();
-			if (modalStore.open) {
-				modalStore.closeModal();
-			} else if (building3DStore.buildingName) {
-				building3DStore.close();
-			} else if (adminAuthStore.loginOpen) {
-				adminAuthStore.closeLogin();
-			} else if (editorChromeStore.additionModalOpen) {
-				editorChromeStore.closeAdditionModal();
-			} else if (mapToolsStore.open) {
-				mapToolsStore.close();
-			} else if (travelTimeStore.active) {
-				travelTimeStore.disable();
-			} else if (measureRouteStore.active) {
-				measureRouteStore.disable();
-			} else if (jeepneyStore.selectedStopIndex !== null) {
-				jeepneyStore.closeStop();
-			} else if (queryStore.inputValue !== '' || queryStore.type === 'result') {
-				queryStore.clearQuery();
-				if (userLocation.destination) {
-					userLocation.clearDestination();
-				}
-			}
-			sidePanelStore.closePanel();
-			goto(resolve('/map'));
-		}
-	}
+	// 	if (e.key === 'Escape') {
+	// 		dismissEphemeralOverlays();
+	// 		if (modalStore.open) {
+	// 			modalStore.closeModal();
+	// 		} else if (building3DStore.buildingName) {
+	// 			building3DStore.close();
+	// 		} else if (adminAuthStore.loginOpen) {
+	// 			adminAuthStore.closeLogin();
+	// 		} else if (editorChromeStore.additionModalOpen) {
+	// 			editorChromeStore.closeAdditionModal();
+	// 		} else if (mapToolsStore.open) {
+	// 			mapToolsStore.close();
+	// 		} else if (travelTimeStore.active) {
+	// 			travelTimeStore.disable();
+	// 		} else if (measureRouteStore.active) {
+	// 			measureRouteStore.disable();
+	// 		} else if (jeepneyStore.selectedStopIndex !== null) {
+	// 			jeepneyStore.closeStop();
+	// 		} else if (queryStore.inputValue !== '' || queryStore.type === 'result') {
+	// 			queryStore.clearQuery();
+	// 			if (userLocation.destination) {
+	// 				userLocation.clearDestination();
+	// 			}
+	// 		}
+	// 		sidePanelStore.closePanel();
+	// 		goto(resolve('/map'));
+	// 	}
+	// }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<EntityUrlSync />
-<EntityHoverPreview />
+<!-- <EntityUrlSync /> -->
+<!-- <EntityHoverPreview /> -->
 
 <div
 	class="app-layout"
 	class:edit-mode={mapEditStore.enabled}
 	class:redesign-desktop={!mobile.current}
 >
-	<Map />
-	<StagingBanner />
-	<AnnouncementBar />
+	<!-- <Map /> -->
+	<!-- <StagingBanner /> -->
+	<!-- <AnnouncementBar /> -->
 	<div class="ui-layer">
 		<!-- Mobile navigation is MobileBottomNav plus the browse chips in Search.
-         The rail Sidebar is desktop-era and was left rendering on mobile with
-         no way to open it: nothing calls sidebarStore.toggleRail(), because the
-         hamburger that used to (Search.svelte) was replaced by AppMenu, which
-         does not touch railOpen. It shipped as a permanently hidden element
-         that also stranded Colleges, Orgs and Classes (#930). -->
-		{#if !mobile.current}
+		The rail Sidebar is desktop-era and was left rendering on mobile with
+		no way to open it: nothing calls sidebarStore.toggleRail(), because the
+		hamburger that used to (Search.svelte) was replaced by AppMenu, which
+		does not touch railOpen. It shipped as a permanently hidden element
+		that also stranded Colleges, Orgs and Classes (#930). -->
+		<!-- {#if !mobile.current}
 			<DesktopTopBar />
-		{/if}
+		{/if} -->
 		{#if ['map', 'contributors', 'settings'].includes(sidebarStore.panelOpen)}
 			{#if mobile.current}
 				<div
@@ -434,36 +434,36 @@
 			{/if}
 			<div class="inner-layer">
 				<MainControls>
-					{@render children?.()}
+					{@render children()}
 				</MainControls>
-				<div class="bottom-band">
+				<!-- <div class="bottom-band">
 					{#if travelTimeStore.active}
 						<TravelTimeLegend />
 					{/if}
 					{#if measureRouteStore.active}
 						<MeasureRoutePanel />
 					{/if}
-				</div>
+				</div> -->
 			</div>
-		{:else if sidebarStore.panelOpen === 'today'}
+			<!-- {:else if sidebarStore.panelOpen === 'today'}
 			<TodayScreen />
 		{:else if sidebarStore.panelOpen === 'planner'}
 			<PlannerScreen />
 		{:else if sidebarStore.panelOpen === 'finals'}
 			<FinalExamsScreen />
 		{:else if sidebarStore.panelOpen === 'calendar'}
-			<AcademicCalendarScreen />
+			<AcademicCalendarScreen /> -->
 		{/if}
-		{#if mobile.current}
+		<!-- {#if mobile.current}
 			<div class="mobile-bottom-nav-slot" bind:this={bottomChromeEl}>
 				<MobileBottomNav />
 			</div>
-		{/if}
+		{/if} -->
 	</div>
-	{#if toastStore.message}
+	<!-- {#if toastStore.message}
 		<Toast message={toastStore.message} type={toastStore.type} onclose={() => toastStore.clear()} />
-	{/if}
-	<Modal />
+	{/if} -->
+	<!-- <Modal />
 	<KeyboardShortcutsPopup />
 	{#if building3DStore.buildingName}
 		<Building3DViewer name={building3DStore.buildingName} />
@@ -477,7 +477,7 @@
 	{#if adminAuthStore.manageUsersOpen}
 		<ManageUsersModal />
 	{/if}
-	<EditorAdditionModal />
+	<EditorAdditionModal /> -->
 </div>
 
 <!-- 
@@ -787,7 +787,7 @@
 	}
 -->
 
-<style>
+<!-- <style>
 	.app-layout {
 		--map-ui-padding: 0.5rem;
 		/* Gap between bottom chrome and edit dock / map padding edge */
@@ -1207,4 +1207,4 @@
 			gap: 0;
 		}
 	}
-</style>
+</style> -->

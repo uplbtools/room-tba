@@ -1,7 +1,7 @@
 import { queryStore } from '$lib/stores.svelte';
 import type { AppContextData } from '$lib/utils/context';
 import type { ProposalEntityType } from '$lib/services/contribution/proposal-action';
-import type { BuildingData, CollegeData, DivisionData, DormData, EventData } from '$lib/utils/types';
+import type { Building, College, Division, DormData, EventData } from '$lib/utils/types';
 
 type PublishedRow = { id: number };
 
@@ -59,7 +59,7 @@ export function syncOpenEntityQueryAfterPublish(
 	switch (entityType) {
 		case 'building':
 		case 'create_building': {
-			const row = published as BuildingData;
+			const row = published as Building;
 			queryStore.hydrateQuery({
 				type: 'result',
 				category: 'building',
@@ -79,7 +79,7 @@ export function syncOpenEntityQueryAfterPublish(
 		}
 		case 'college':
 		case 'create_college': {
-			const row = published as CollegeData;
+			const row = published as College;
 			queryStore.hydrateQuery({
 				type: 'result',
 				category: 'college',
@@ -89,7 +89,7 @@ export function syncOpenEntityQueryAfterPublish(
 		}
 		case 'division':
 		case 'create_division': {
-			const row = published as DivisionData;
+			const row = published as Division;
 			queryStore.hydrateQuery({
 				type: 'result',
 				category: 'division',

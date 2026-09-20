@@ -1,4 +1,4 @@
-import type { BuildingData, CollegeData, DivisionData } from '$lib/utils/types';
+import type { Building, College, Division } from '$lib/utils/types';
 import {
 	getBuildings,
 	getColleges,
@@ -87,17 +87,17 @@ export async function syncCampusDirectoryForOffline(options?: {
 			id: number;
 			label: string;
 		}> = [
-			...buildingLoad.rows.map((b: BuildingData) => ({
+			...buildingLoad.rows.map((b: Building) => ({
 				kind: 'building' as const,
 				id: b.id,
 				label: b.buildingName
 			})),
-			...collegeLoad.rows.map((c: CollegeData) => ({
+			...collegeLoad.rows.map((c: College) => ({
 				kind: 'college' as const,
 				id: c.id,
 				label: c.collegeName
 			})),
-			...divisionLoad.rows.map((d: DivisionData) => ({
+			...divisionLoad.rows.map((d: Division) => ({
 				kind: 'division' as const,
 				id: d.id,
 				label: d.divisionName

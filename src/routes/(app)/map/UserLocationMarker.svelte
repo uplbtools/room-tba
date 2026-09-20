@@ -1,6 +1,7 @@
 <script>
-	import { userLocation } from '$lib/stores.svelte';
+	import { getUserLocation } from '$lib/utils/context';
 	import { Marker } from 'svelte-maplibre';
+	const userLocation = getUserLocation();
 </script>
 
 {#if userLocation.coords}

@@ -5,10 +5,12 @@
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { dormMatchesTypeFilter } from '$lib/constants/content/categories/building';
-	import { buildingTypeFilter, queryStore, sidePanelStore } from '$lib/stores.svelte';
-	import { getAppData } from '$lib/utils/context';
-	import { withinMapZoom } from '$lib/utils/map/navigate';
+	import { getAllDorms } from '$lib/functions/dorms.remote';
+	// import { buildingTypeFilter, map, queryStore, sidePanelStore } from '$lib/stores.svelte';
+	import { getAppData, getMapStore } from '$lib/utils/context';
+	// import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
+	import type { DormData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -18,35 +20,48 @@
 
 	const { showDormPins, zoomLevel }: Props = $props();
 
-	const data = getAppData();
-	const { dorms, loaded } = $derived(data());
+	const map = await getMapStore();
+	const dorms = await getAllDorms();
+
 	const filteredDorms = $derived.by(() => {
-		if (!loaded || !showDormPins) return [];
-		return dorms.filter((dorm) => dormMatchesTypeFilter(dorm, buildingTypeFilter.value));
+		return dorms;
+		// if (!loaded || !showDormPins) return [];
+		// return dorms.filter((dorm) => dormMatchesTypeFilter(dorm, buildingTypeFilter.value));
 	});
 
-	function handleDormMarkerClick(dormName: string, id: number) {
+	function handleMarkerClick(dorm: DormData) {
 		return () => {
-			// if (eventPlacementStore.active) return;
-			// if (isMapEditEnabled() && selectedEditKey !== null) return;
-			if (dormName === queryStore.inputValue) return;
-			queryStore.updateQuery({
-				category: 'dorm',
-				type: 'result',
-				value: dormName,
-				id
-			});
-			queryStore.inputValue = dormName;
-			goto(resolve(`/map/dorms/${slugifySegment(dormName)}-${id}`));
-			sidePanelStore.openPanel({
-				type: 'search-result',
-				component: DormResult
-			});
+			goto(resolve(`/map/dorms/${slugifySegment(dorm.dormName)}-${dorm.id}`));
+			if (dorm.lon && dorm.lat) {
+				map.centerMarker([dorm.lon, dorm.lat]);
+			}
 		};
 	}
+	// function handleMarkerClick(dorm: DormData) {
+	// 	return () => {
+	// 		// if (eventPlacementStore.active) return;
+	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
+	// 		// if (dorm.dormName === queryStore.inputValue) return;
+	// 		// queryStore.updateQuery({
+	// 		// 	category: 'dorm',
+	// 		// 	type: 'result',
+	// 		// 	value: dorm.dormName,
+	// 		// 	id: dorm.id
+	// 		// });
+	// 		// queryStore.inputValue = dorm.dormName;
+	// 		// sidePanelStore.openPanel({
+	// 		// 	type: 'search-result',
+	// 		// 	component: DormResult
+	// 		// });
+	// 		goto(resolve(`/map/dorms/${slugifySegment(dorm.dormName)}-${dorm.id}`));
+	// 		if (dorm.lon && dorm.lat) {
+	// 			map.centerMarker([dorm.lon, dorm.lat]);
+	// 		}
+	// 	};
+	// }
 </script>
 
-{#if withinMapZoom(zoomLevel)}
+{#if map.withinZoom(zoomLevel)}
 	{#each filteredDorms as dorm (`dorm:${dorm.id}`)}
 		{#if dorm.lat && dorm.lon}
 			<!-- {@const editKey = dormEditKey(dorm.id)}
@@ -61,16 +76,14 @@
 			{#key `${editKey}:${canDragPin(editKey)}`} -->
 			<Marker
 				lngLat={[dorm.lon, dorm.lat]}
-				onclick={handleDormMarkerClick(dorm.dormName, dorm.id)}
+				onclick={handleMarkerClick(dorm)}
 				// draggable={canDragPin(editKey)}
 			>
 				<MapEntityPin
 					label={dorm.dormName}
 					tone={dorm.isUpManaged ? 'dorm' : 'privateDorm'}
-					active={queryStore.isActiveMarker(dorm.dormName, 'dorm')}
-					dimmed={queryStore.hasActiveMarker()}
-					// active={!isInactiveMarker(dorm.dormName)}
-					// dimmed={hasActiveMarker()}
+					// active={queryStore.isActiveMarker(dorm.dormName, 'dorm')}
+					// dimmed={queryStore.hasActiveMarker()}
 					// eventLinked={isDormEventLinked(dorm.id)}
 					// editable={canDragPin(editKey)}
 					// editing={selectedEditKey === editKey}

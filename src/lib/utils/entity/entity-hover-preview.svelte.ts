@@ -1,6 +1,6 @@
 import { orgCategoryLabel } from '$lib/constants/content/categories/org';
 import { placeDirectoryLabel } from '$lib/constants/content/categories/place';
-import type { BuildingData, DormData, EventData, OrgData, PlaceData } from '$lib/utils/types';
+import type { Building, DormData, EventData, OrgData, PlaceData } from '$lib/utils/types';
 
 export type EntityHoverPreview =
 	| {
@@ -77,7 +77,7 @@ class EntityHoverPreviewStore {
 
 export const entityHoverPreviewStore = new EntityHoverPreviewStore();
 
-export function buildingPreviewFromRow(building: BuildingData): EntityHoverPreview {
+export function buildingPreviewFromRow(building: Building): EntityHoverPreview {
 	return {
 		kind: 'building',
 		id: building.id,

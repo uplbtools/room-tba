@@ -6,7 +6,7 @@ export type {
 } from '$lib/services/contribution/proposal-action';
 
 import { validateSubmitterName, validateSubmitterNote } from '$lib/constants/contribute/proposals';
-import type { RoomData } from '$lib/utils/types';
+import type { Room } from '$lib/utils/types';
 import { FIELD_LABELS } from './diff';
 import { isOpenProposalStatus, type PendingProposalRow } from './pending-proposals';
 
@@ -327,8 +327,8 @@ export async function mergeEntityRooms(input: {
 }): Promise<{
 	ok: boolean;
 	error?: string;
-	room?: RoomData;
-	latest?: RoomData | null;
+	room?: Room;
+	latest?: Room | null;
 }> {
 	const res = await fetch(`/api/admin/rooms/${input.sourceRoomId}/merge`, {
 		method: 'POST',
@@ -345,10 +345,10 @@ export async function mergeEntityRooms(input: {
 		return {
 			ok: false,
 			error: (data as { error?: string }).error,
-			latest: (data as { latest?: RoomData | null }).latest
+			latest: (data as { latest?: Room | null }).latest
 		};
 	}
-	return { ok: true, room: (data as { room?: RoomData }).room };
+	return { ok: true, room: (data as { room?: Room }).room };
 }
 
 type MergeEntityConfig = {

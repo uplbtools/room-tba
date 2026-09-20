@@ -19,32 +19,32 @@ import {
 } from '$lib/utils/entity/entity-urls';
 import { SITE_URL } from '$lib/utils/site';
 import type {
-	BuildingData,
-	CollegeData,
-	DivisionData,
+	Building,
+	College,
+	Division,
 	DormData,
 	OrgData,
 	PlaceData,
-	RoomData
+	Room
 } from '$lib/utils/types';
 
 const SITEMAP_PATH = '/sitemap.xml';
 
 // The revalidated path is the canonical entity URL, so these delegate rather
 // than rebuilding it — a URL change stays in one place.
-export function roomIsrPath(room: Pick<RoomData, 'id' | 'code'>): string {
+export function roomIsrPath(room: Pick<Room, 'id' | 'code'>): string {
 	return getRoomCanonicalPath(room);
 }
 
-export function buildingIsrPath(building: Pick<BuildingData, 'buildingName'>): string {
+export function buildingIsrPath(building: Pick<Building, 'buildingName'>): string {
 	return getBuildingCanonicalPath(building.buildingName);
 }
 
-export function collegeIsrPath(college: Pick<CollegeData, 'collegeName'>): string {
+export function collegeIsrPath(college: Pick<College, 'collegeName'>): string {
 	return getCollegeCanonicalPath(college.collegeName);
 }
 
-export function divisionIsrPath(division: Pick<DivisionData, 'divisionName'>): string {
+export function divisionIsrPath(division: Pick<Division, 'divisionName'>): string {
 	return getDivisionCanonicalPath(division.divisionName);
 }
 

@@ -7,7 +7,7 @@
 	import { modalContentDismiss, modalContentReveal, overlayFade } from '$lib/utils/motion';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { getAppData } from '$lib/utils/context';
-	import type { RoomData } from '$lib/utils/types';
+	import type { Room } from '$lib/utils/types';
 	import { getBuildingRooms } from '$lib/utils/local/data/utils';
 	import { checkLocalBuildingRoom, syncBuildingRooms } from '$lib/utils/local/data/sync';
 	import { fetchBuildingFootprint } from '$lib/utils/overpass';
@@ -48,8 +48,8 @@
 
 	type RoomPositionPatchResponse = {
 		success?: boolean;
-		room?: RoomData | null;
-		latest?: RoomData | null;
+		room?: Room | null;
+		latest?: Room | null;
 		error?: string;
 		code?: string;
 	};
@@ -128,7 +128,7 @@
 	}> = [];
 	let labelProjection: any = null;
 
-	let buildingRooms = $state<RoomData[]>([]);
+	let buildingRooms = $state<Room[]>([]);
 
 	const buildingMeta = $derived((buildings ?? []).find((b) => b.buildingName === name) ?? null);
 
@@ -884,7 +884,7 @@
 		if (selectedFloor !== 'all') selectedFloor = f;
 	}
 
-	function replaceBuildingRoom(room: RoomData) {
+	function replaceBuildingRoom(room: Room) {
 		buildingRooms = buildingRooms.map((candidate) => (candidate.id === room.id ? room : candidate));
 	}
 
