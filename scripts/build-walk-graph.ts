@@ -95,8 +95,8 @@ export function convertGraphml(xml: string, sourceName: string) {
   for (let m = edgeRe.exec(xml); m; m = edgeRe.exec(xml)) {
     const data = parseData(m[3], keys);
     const meters = Number(data.get("length"));
-    if (!Number.isFinite(meters))
-      throw new Error(`edge ${m[1]}->${m[2]} missing length`);
+    if (!Number.isFinite(meters) || meters <= 0)
+      throw new Error(`edge ${m[1]}->${m[2]} has invalid length`);
     const maxspeedRaw = data.get("maxspeed");
     const maxspeed = maxspeedRaw
       ? Number.parseInt(pythonListParts(maxspeedRaw)[0], 10)

@@ -40,11 +40,10 @@ export function nameMatchScore(
   const index = haystack.indexOf(needle);
   if (index === -1) return null;
   if (haystack === needle || haystack.includes(`(${needle})`)) return 0;
-  const before = index === 0 ? "" : haystack[index - 1];
+  const before = index === 0 ? "" : (haystack[index - 1] ?? "");
   return before === "" || !/[a-z0-9]/.test(before) ? 1 : 2;
 }
 
-/** Description hits rank behind any name hit. */
 function descriptionMatchScore(
   description: string | null | undefined,
   needle: string,
@@ -63,6 +62,7 @@ function takeMatches<T>(
   items: T[],
   score: (item: T) => number | null,
   map: (item: T) => Suggestion,
+  limit = MAX_PER_CATEGORY,
 ): Scored[] {
   const out: Scored[] = [];
   for (const item of items) {
@@ -78,7 +78,31 @@ function takeMatches<T>(
           .toLowerCase()
           .localeCompare(b.suggestion.value.toLowerCase()),
     )
-    .slice(0, MAX_PER_CATEGORY);
+    .slice(0, limit);
+}
+
+/** Building-only picker using exactly the same name relevance as global search. */
+export function buildBuildingSuggestions(
+  searchString: string,
+  buildings: BuildingData[],
+  limit = MAX_SUGGESTIONS,
+): BuildingData[] {
+  const needle = searchString.trim().toLowerCase();
+  if (!needle || limit <= 0) return [];
+  return takeMatches(
+    buildings,
+    ({ buildingName }) => nameMatchScore(buildingName, needle),
+    (building) => ({
+      value: building.buildingName,
+      category: "building",
+      building,
+      lat: building.lat,
+      lon: building.lon,
+    }),
+    limit,
+  )
+    .map(({ suggestion }) => suggestion.building)
+    .filter((building): building is BuildingData => building !== undefined);
 }
 
 export function buildEntitySuggestions(

@@ -10,6 +10,17 @@ function focusableElements(container: HTMLElement): HTMLElement[] {
 /** Innermost trap wins when several are open (menu under a modal, etc.). */
 const activeTraps: symbol[] = [];
 
+type TrapFocusOptions = {
+  onEscape?: () => void;
+  initialFocus?: HTMLElement | null;
+  /**
+   * Return false to let an Escape key continue to the focused descendant.
+   * Useful for nested controls such as combobox popups that need first refusal
+   * before the containing dialog closes.
+   */
+  shouldHandleEscape?: (event: KeyboardEvent) => boolean;
+};
+
 /**
  * Trap Tab within a dialog and restore focus on teardown.
  *
@@ -20,7 +31,7 @@ const activeTraps: symbol[] = [];
  */
 export function trapFocus(
   container: HTMLElement,
-  options?: { onEscape?: () => void; initialFocus?: HTMLElement | null },
+  options?: TrapFocusOptions,
 ): () => void {
   const previous = document.activeElement;
   const trapId = Symbol("focus-trap");
@@ -30,6 +41,7 @@ export function trapFocus(
   const handleKeydown = (event: KeyboardEvent) => {
     if (!isInnermost()) return;
     if (event.key === "Escape") {
+      if (options?.shouldHandleEscape?.(event) === false) return;
       options?.onEscape?.();
       event.stopPropagation();
       return;
@@ -38,7 +50,6 @@ export function trapFocus(
 
     const items = focusableElements(container);
     if (items.length === 0) return;
-
     const first = items[0]!;
     const last = items[items.length - 1]!;
     const active = document.activeElement;
