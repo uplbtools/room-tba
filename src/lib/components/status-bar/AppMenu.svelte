@@ -67,6 +67,7 @@
   let triggerEl = $state<HTMLButtonElement | null>(null);
   let panelEl = $state<HTMLDivElement | null>(null);
   let panelStyle = $state("");
+  let isOnline = $state(true);
 
   const contributorSession = $derived(
     adminAuthStore.isLoggedIn &&
@@ -95,7 +96,15 @@
     const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
       open = false;
     });
-    return unregisterDismiss;
+    const updateOnlineState = () => (isOnline = navigator.onLine);
+    updateOnlineState();
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+    return () => {
+      unregisterDismiss();
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
   });
 
   function updatePanelPosition() {
@@ -249,7 +258,7 @@
 				</section>
 			{/if}
 
-			{#if !contributorSession}
+			{#if !contributorSession && (!adminAuthStore.username || isOnline)}
 				<section class="app-menu__section" aria-label="Account">
 					<button type="button" class="app-menu__action map-chrome-chip" onclick={handleSignIn}>
 						<UserRound size={14} aria-hidden="true" />

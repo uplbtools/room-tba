@@ -10,12 +10,12 @@ import {
 	validateCampusGateRow
 } from './campus-gate-coordinates-template';
 
-const TEMPLATE_PATH = join(import.meta.dirname, '../data/campus-gate-coordinates-template.csv');
-const CONTRIBUTING_PATH = join(import.meta.dirname, '../../../CONTRIBUTING.md');
-const VOLUNTEER_TRIAGE_PATH = join(import.meta.dirname, '../../../docs/volunteer-triage.md');
+const TEMPLATE_PATH = join(import.meta.dirname, '../../data/campus-gate-coordinates-template.csv');
+const CONTRIBUTING_PATH = join(import.meta.dirname, '../../../../CONTRIBUTING.md');
+const VOLUNTEER_TRIAGE_PATH = join(import.meta.dirname, '../../../../docs/volunteer-triage.md');
 const ISSUE_TEMPLATE_PATH = join(
 	import.meta.dirname,
-	'../../../.github/ISSUE_TEMPLATE/gate_coordinates_batch.yml'
+	'../../../../.github/ISSUE_TEMPLATE/gate_coordinates_batch.yml'
 );
 
 describe('campus-gate-coordinates-template', () => {

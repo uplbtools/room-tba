@@ -8,6 +8,12 @@ const { ADMIN_PASSWORD } = env;
 import type { SessionUser } from '$lib/admin/auth';
 import { createSignedToken, verifySignedToken } from '$lib/admin/signed-token';
 import { db } from '$lib/utils/db';
+import {
+	ensureContributorProfileForAccount,
+	getContributorProfileForAdminByUserId
+} from '$lib/services/contribution/contributor-profile';
+import type { ContributorEditableProfile } from '$lib/services/contribution/contributor-profile';
+
 import { sendEmail } from '$lib/utils/email/resend';
 import {
 	adminUsersTable,
@@ -127,10 +133,13 @@ export async function linkOrCreateContributorFromSupabase(
 			.limit(1);
 		if (byEmail) {
 			if (!byEmail.isActive) return null;
-			await db
-				.update(adminUsersTable)
-				.set({ supabaseUserId: identity.id, updatedAt: sql`now()` })
-				.where(eq(adminUsersTable.id, byEmail.id));
+			await db.transaction(async (tx) => {
+				await tx
+					.update(adminUsersTable)
+					.set({ supabaseUserId: identity.id, updatedAt: sql`now()` })
+					.where(eq(adminUsersTable.id, byEmail.id));
+				await ensureContributorProfileForAccount(tx, byEmail.id, byEmail.username, byEmail.id);
+			});
 			return toSessionUser(byEmail);
 		}
 	}
@@ -144,24 +153,29 @@ export async function linkOrCreateContributorFromSupabase(
 	for (let attempt = 0; attempt < 5; attempt++) {
 		const username = attempt === 0 ? base : `${base.slice(0, 44)}-${attempt + 1}`;
 		try {
-			const [created] = await db
-				.insert(adminUsersTable)
-				.values({
-					username,
-					displayName,
-					// OAuth-only account: no usable password login.
-					passwordHash: '',
-					role: 'contributor',
-					email,
-					isActive: true,
-					supabaseUserId: identity.id
-				})
-				.returning({
-					id: adminUsersTable.id,
-					username: adminUsersTable.username,
-					displayName: adminUsersTable.displayName,
-					role: adminUsersTable.role
-				});
+			const created = await db.transaction(async (tx) => {
+				const [row] = await tx
+					.insert(adminUsersTable)
+					.values({
+						username,
+						displayName,
+						// OAuth-only account: no usable password login.
+						passwordHash: '',
+						role: 'contributor',
+						email,
+						isActive: true,
+						supabaseUserId: identity.id
+					})
+					.returning({
+						id: adminUsersTable.id,
+						username: adminUsersTable.username,
+						displayName: adminUsersTable.displayName,
+						role: adminUsersTable.role
+					});
+				if (!row) return null;
+				await ensureContributorProfileForAccount(tx, row.id, row.username, row.id);
+				return row;
+			});
 			if (created) return toSessionUser(created);
 		} catch (error) {
 			// Unique violation on username → retry with a suffix.
@@ -687,6 +701,7 @@ export type AdminManagedUser = {
 	role: SessionUser['role'];
 	isActive: boolean;
 	createdAt: string;
+	contributorProfile?: ContributorEditableProfile | null;
 };
 
 export async function listAllAdminUsers(): Promise<AdminManagedUser[]> {
@@ -702,11 +717,14 @@ export async function listAllAdminUsers(): Promise<AdminManagedUser[]> {
 		})
 		.from(adminUsersTable)
 		.orderBy(adminUsersTable.username);
-	return rows.map((row) => ({
-		...row,
-		displayName: row.displayName ?? row.username,
-		role: row.role ?? 'editor'
-	}));
+	return Promise.all(
+		rows.map(async (row) => ({
+			...row,
+			displayName: row.displayName ?? row.username,
+			role: row.role ?? 'editor',
+			contributorProfile: await getContributorProfileForAdminByUserId(row.id)
+		}))
+	);
 }
 
 export type CreateAdminUserInput = {
@@ -727,26 +745,30 @@ export async function createAdminUser(input: CreateAdminUserInput): Promise<Admi
 	const passwordHash = await bcrypt.hash(input.password, 12);
 
 	try {
-		const [created] = await db
-			.insert(adminUsersTable)
-			.values({
-				username,
-				displayName: input.displayName?.trim() || username,
-				email,
-				passwordHash,
-				role: input.role,
-				isActive: true
-			})
-			.returning({
-				id: adminUsersTable.id,
-				username: adminUsersTable.username,
-				displayName: adminUsersTable.displayName,
-				email: adminUsersTable.email,
-				role: adminUsersTable.role,
-				isActive: adminUsersTable.isActive,
-				createdAt: adminUsersTable.createdAt
-			});
-		if (!created) throw new AccountActionError('Failed to create account.', 500);
+		const created = await db.transaction(async (tx) => {
+			const [row] = await tx
+				.insert(adminUsersTable)
+				.values({
+					username,
+					displayName: input.displayName?.trim() || username,
+					email,
+					passwordHash,
+					role: input.role,
+					isActive: true
+				})
+				.returning({
+					id: adminUsersTable.id,
+					username: adminUsersTable.username,
+					displayName: adminUsersTable.displayName,
+					email: adminUsersTable.email,
+					role: adminUsersTable.role,
+					isActive: adminUsersTable.isActive,
+					createdAt: adminUsersTable.createdAt
+				});
+			if (!row) throw new AccountActionError('Failed to create account.', 500);
+			await ensureContributorProfileForAccount(tx, row.id, row.username, row.id);
+			return row;
+		});
 		return {
 			...created,
 			displayName: created.displayName ?? created.username,

@@ -16,6 +16,8 @@
  * Usage: bun run scripts/generate-pglite-schema.ts
  */
 
+import { writeFile } from "node:fs/promises";
+
 import { getTableConfig, type PgTable } from "drizzle-orm/pg-core";
 import {
   aliasesTable,
@@ -229,9 +231,9 @@ ${buildPgliteInitSql().replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$/g
 
 if (import.meta.main) {
   const outPath = new URL(
-    "../src/lib/local/data/pglite-schema.generated.ts",
+    "../src/lib/utils/local/data/pglite-schema.generated.ts",
     import.meta.url,
   );
-  await Bun.write(outPath, buildGeneratedModule());
+  await writeFile(outPath, buildGeneratedModule());
   console.log(`Wrote ${outPath.pathname}`);
 }

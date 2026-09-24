@@ -30,7 +30,7 @@ describe('modal scroll chrome', () => {
 								{
 									name: 'Live Editor',
 									avatarUrl: 'https://example.com/avatar.png',
-									profileUrl: 'https://example.com/profile'
+									href: 'https://example.com/profile'
 								}
 							])
 						)

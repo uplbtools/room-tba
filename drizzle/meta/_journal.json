@@ -15,6 +15,13 @@
       "when": 1786488497917,
       "tag": "0001_eminent_surge",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787996276338,
+      "tag": "0002_contributor_profiles",
+      "breakpoints": true
     }
   ]
 }

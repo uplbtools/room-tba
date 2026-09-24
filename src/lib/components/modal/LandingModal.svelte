@@ -43,7 +43,7 @@ import { modalStore } from "$lib/stores.svelte";
   type EditorCredit = {
     name: string;
     avatarUrl: string | null;
-    profileUrl: string | null;
+    href: string | null;
   };
   let campusCredits = $state<EditorCredit[]>([]);
   let creditsLoading = $state(false);
@@ -66,7 +66,7 @@ import { modalStore } from "$lib/stores.svelte";
   const campusCreditPeople = $derived(
     campusCredits.map((person) => ({
       name: person.name,
-      href: person.profileUrl ?? undefined,
+      href: person.href ?? undefined,
       imageSrc: person.avatarUrl ?? "/profile.svg",
     })),
   );
