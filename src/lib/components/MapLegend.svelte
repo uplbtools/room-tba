@@ -6,7 +6,7 @@
 	import IconButton from '$lib/components/IconButton.svelte';
 	import './map-chrome/map-chrome.css';
 	import { getAppData } from '$lib/utils/context';
-	import { floatingControlPanelStore, map, queryStore } from '$lib/stores.svelte';
+	import { floatingControlPanelStore, map, searchInfo } from '$lib/stores.svelte';
 	import {
 		openEphemeralOverlay,
 		registerEphemeralOverlayDismisser
@@ -39,8 +39,8 @@
 		loaded &&
 			(events.length > 0 ||
 				map.eventsOnly ||
-				queryStore.category === 'event' ||
-				queryStore.category === 'events')
+				searchInfo.category === 'event' ||
+				searchInfo.category === 'events')
 	);
 
 	const eventsEmpty = $derived(loaded && events.length === 0);

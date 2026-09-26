@@ -1,142 +1,129 @@
 <script lang="ts">
-  import {
-    additionProposalStore,
-    queryStore,
-    adminAuthStore,
-    sidePanelStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import { getAppActions, getAppData } from "$lib/utils/context";
-  import { persistEntityChange } from "$lib/utils/proposals/client";
-  import {
-    PLACE_CATEGORIES,
-    PLACE_CATEGORY_LABELS,
-    isPlaceLandmark,
-    placeDirectoryLabel,
-  } from "$lib/constants/content/categories/place"
-  import type { PlaceData } from "$lib/utils/types";
-  import EntityEditorPinRow from "$lib/components/editor/EntityEditorPinRow.svelte";
-  import EntityEditorToggle from "$lib/components/editor/EntityEditorToggle.svelte";
-  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
-  import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
-  import EntityStreetAddress from "./EntityStreetAddress.svelte";
-  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
-  import EntityExternalLink from "./EntityExternalLink.svelte";
-  import EntityBackToList from "./EntityBackToList.svelte";
-  import { getPlaceShareUrl } from "$lib/utils/share-links";
+	import {
+		additionProposalStore,
+		searchInfo,
+		adminAuthStore,
+		sidePanelStore,
+		toastStore
+	} from '$lib/stores.svelte';
+	import { getAppActions, getAppData } from '$lib/utils/context';
+	import { persistEntityChange } from '$lib/utils/proposals/client';
+	import {
+		PLACE_CATEGORIES,
+		PLACE_CATEGORY_LABELS,
+		isPlaceLandmark,
+		placeDirectoryLabel
+	} from '$lib/constants/content/categories/place';
+	import type { PlaceData } from '$lib/utils/types';
+	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
+	import EntityDirectionsChip from './EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from './EntityStreetAddress.svelte';
+	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
+	import EntityExternalLink from './EntityExternalLink.svelte';
+	import EntityBackToList from './EntityBackToList.svelte';
+	import { getPlaceShareUrl } from '$lib/utils/share-links';
 
-  const appData = getAppData();
-  const appActions = getAppActions();
-  const app = $derived(appData());
-  const place = $derived(
-    app.loaded
-      ? (app.places.find((p) => p.name === queryStore.queryValue) ?? null)
-      : null,
-  );
-  const canPublish = $derived(adminAuthStore.canPublish);
-  const draftPin = $derived(additionProposalStore.draftPin);
-  const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : "");
+	const appData = getAppData();
+	const appActions = getAppActions();
+	const app = $derived(appData());
+	const place = $derived(
+		app.loaded ? (app.places.find((p) => p.name === searchInfo.queryValue) ?? null) : null
+	);
+	const canPublish = $derived(adminAuthStore.canPublish);
+	const draftPin = $derived(additionProposalStore.draftPin);
+	const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : '');
 
-  let editing = $state(false);
-  let submitting = $state(false);
-  let nameDraft = $state("");
-  let categoryDraft = $state("");
-  let descriptionDraft = $state("");
-  let hoursDraft = $state("");
-  let websiteDraft = $state("");
-  let facebookDraft = $state("");
-  let submitterName = $state("");
+	let editing = $state(false);
+	let submitting = $state(false);
+	let nameDraft = $state('');
+	let categoryDraft = $state('');
+	let descriptionDraft = $state('');
+	let hoursDraft = $state('');
+	let websiteDraft = $state('');
+	let facebookDraft = $state('');
+	let submitterName = $state('');
 
-  function startEdit() {
-    if (!place) return;
-    nameDraft = place.name;
-    categoryDraft = place.category;
-    descriptionDraft = place.description ?? "";
-    hoursDraft = place.hours ?? "";
-    websiteDraft = place.websiteLink ?? "";
-    facebookDraft = place.facebookLink ?? "";
-    additionProposalStore.setDraftPin(
-      place.lat !== null && place.lon !== null
-        ? { lat: place.lat, lon: place.lon }
-        : null,
-    );
-    editing = true;
-  }
+	function startEdit() {
+		if (!place) return;
+		nameDraft = place.name;
+		categoryDraft = place.category;
+		descriptionDraft = place.description ?? '';
+		hoursDraft = place.hours ?? '';
+		websiteDraft = place.websiteLink ?? '';
+		facebookDraft = place.facebookLink ?? '';
+		additionProposalStore.setDraftPin(
+			place.lat !== null && place.lon !== null ? { lat: place.lat, lon: place.lon } : null
+		);
+		editing = true;
+	}
 
-  async function pickOnMap() {
-    sidePanelStore.collapse();
-    try {
-      await additionProposalStore.requestMapPin();
-    } catch {
-      // The map picker was cancelled.
-    } finally {
-      sidePanelStore.expand();
-    }
-  }
+	async function pickOnMap() {
+		sidePanelStore.collapse();
+		try {
+			await additionProposalStore.requestMapPin();
+		} catch {
+			// The map picker was cancelled.
+		} finally {
+			sidePanelStore.expand();
+		}
+	}
 
-  async function submit() {
-    const current = place;
-    if (!current || submitting) return;
+	async function submit() {
+		const current = place;
+		if (!current || submitting) return;
 
-    const patch: Record<string, unknown> = {};
-    if (nameDraft.trim() && nameDraft.trim() !== current.name)
-      patch.name = nameDraft.trim();
-    if (categoryDraft && categoryDraft !== current.category)
-      patch.category = categoryDraft;
-    if (descriptionDraft.trim() !== (current.description ?? ""))
-      patch.description = descriptionDraft.trim() || null;
-    if (hoursDraft.trim() !== (current.hours ?? ""))
-      patch.hours = hoursDraft.trim() || null;
-    if (websiteDraft.trim() !== (current.websiteLink ?? ""))
-      patch.websiteLink = websiteDraft.trim() || null;
-    if (facebookDraft.trim() !== (current.facebookLink ?? ""))
-      patch.facebookLink = facebookDraft.trim() || null;
-    if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
-      patch.lat = draftPin?.lat ?? null;
-      patch.lon = draftPin?.lon ?? null;
-    }
+		const patch: Record<string, unknown> = {};
+		if (nameDraft.trim() && nameDraft.trim() !== current.name) patch.name = nameDraft.trim();
+		if (categoryDraft && categoryDraft !== current.category) patch.category = categoryDraft;
+		if (descriptionDraft.trim() !== (current.description ?? ''))
+			patch.description = descriptionDraft.trim() || null;
+		if (hoursDraft.trim() !== (current.hours ?? '')) patch.hours = hoursDraft.trim() || null;
+		if (websiteDraft.trim() !== (current.websiteLink ?? ''))
+			patch.websiteLink = websiteDraft.trim() || null;
+		if (facebookDraft.trim() !== (current.facebookLink ?? ''))
+			patch.facebookLink = facebookDraft.trim() || null;
+		if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
+			patch.lat = draftPin?.lat ?? null;
+			patch.lon = draftPin?.lon ?? null;
+		}
 
-    if (Object.keys(patch).length === 0) {
-      editing = false;
-      additionProposalStore.clearDraftPin();
-      return;
-    }
+		if (Object.keys(patch).length === 0) {
+			editing = false;
+			additionProposalStore.clearDraftPin();
+			return;
+		}
 
-    submitting = true;
-    try {
-      const result = await persistEntityChange({
-        entityType: "place",
-        entityId: current.id,
-        baseVersion: current.version,
-        patch,
-        entityLabel: current.name,
-        canPublish,
-        submitterName:
-          adminAuthStore.displayName ??
-          adminAuthStore.username ??
-          submitterName,
-      });
-      if (result.ok) {
-        if (result.published) {
-          appActions.upsertPlace(result.published as PlaceData);
-          toastStore.show(`${current.name} updated.`, "success");
-        } else {
-          toastStore.show(
-            `Suggestion for ${current.name} submitted for review.`,
-            "success",
-          );
-        }
-        editing = false;
-        additionProposalStore.clearDraftPin();
-      } else {
-        toastStore.show(result.error ?? "Could not save changes.", "error");
-      }
-    } catch {
-      toastStore.show("Could not save changes.", "error");
-    } finally {
-      submitting = false;
-    }
-  }
+		submitting = true;
+		try {
+			const result = await persistEntityChange({
+				entityType: 'place',
+				entityId: current.id,
+				baseVersion: current.version,
+				patch,
+				entityLabel: current.name,
+				canPublish,
+				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterName
+			});
+			if (result.ok) {
+				if (result.published) {
+					appActions.upsertPlace(result.published as PlaceData);
+					toastStore.show(`${current.name} updated.`, 'success');
+				} else {
+					toastStore.show(`Suggestion for ${current.name} submitted for review.`, 'success');
+				}
+				editing = false;
+				additionProposalStore.clearDraftPin();
+			} else {
+				toastStore.show(result.error ?? 'Could not save changes.', 'error');
+			}
+		} catch {
+			toastStore.show('Could not save changes.', 'error');
+		} finally {
+			submitting = false;
+		}
+	}
 </script>
 
 {#if place}

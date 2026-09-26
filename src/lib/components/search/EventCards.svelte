@@ -1,170 +1,161 @@
 <script lang="ts">
-  import EntityShareCopyLink from "$lib/components/controls/EntityShareCopyLink.svelte";
-  import EventShelfToolbar from "$lib/components/map-chrome/EventShelfToolbar.svelte";
-  import { getAppData } from "$lib/utils/context";
-  import { getEventImage } from "$lib/utils/event/event-images";
-  import { formatCampusDateShort, formatCampusTime } from "$lib/utils/event/event-time";
-  import { getEventShareUrl } from "$lib/utils/share-links";
-  import { beginEventPlacement } from "$lib/utils/event/event-placement";
-  import { validateSubmitterName } from "$lib/constants/contribute/proposals";
-  import {
-    readProposeEventDraft,
-    scheduleProposeEventDraftSave,
-  } from "$lib/utils/contributor-drafts";
-  import {
-    adminAuthStore,
-    eventPlacementStore,
-    queryStore,
-    sidePanelStore,
-    syncToastStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import type { EventData } from "$lib/utils/types";
-  import { onMount } from "svelte";
+	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
+	import EventShelfToolbar from '$lib/components/map-chrome/EventShelfToolbar.svelte';
+	import { getAppData } from '$lib/utils/context';
+	import { getEventImage } from '$lib/utils/event/event-images';
+	import { formatCampusDateShort, formatCampusTime } from '$lib/utils/event/event-time';
+	import { getEventShareUrl } from '$lib/utils/share-links';
+	import { beginEventPlacement } from '$lib/utils/event/event-placement';
+	import { validateSubmitterName } from '$lib/constants/contribute/proposals';
+	import {
+		readProposeEventDraft,
+		scheduleProposeEventDraftSave
+	} from '$lib/utils/contributor-drafts';
+	import {
+		adminAuthStore,
+		eventPlacementStore,
+		searchInfo,
+		sidePanelStore,
+		syncToastStore,
+		toastStore
+	} from '$lib/stores.svelte';
+	import type { EventData } from '$lib/utils/types';
+	import { onMount } from 'svelte';
 
-  let {
-    headingId = "events-heading",
-    showHeading = true,
-    showRetract = false,
-    oncollapse,
-  }: {
-    headingId?: string;
-    showHeading?: boolean;
-    showRetract?: boolean;
-    oncollapse?: () => void;
-  } = $props();
+	let {
+		headingId = 'events-heading',
+		showHeading = true,
+		showRetract = false,
+		oncollapse
+	}: {
+		headingId?: string;
+		showHeading?: boolean;
+		showRetract?: boolean;
+		oncollapse?: () => void;
+	} = $props();
 
-  const appData = getAppData();
-  const { events, loaded } = $derived(appData());
-  const campusEvents = $derived.by(() => {
-    if (!loaded) return [];
-    return events
-      .filter(
-        (event) => event.status === "active" || event.status === "upcoming",
-      )
-      .sort((a, b) => a.occurrenceStartsAt.localeCompare(b.occurrenceStartsAt));
-  });
-  const visibleEvents = $derived.by(() => {
-    const base = campusEvents;
-    if (!import.meta.env.DEV || typeof window === "undefined") return base;
+	const appData = getAppData();
+	const { events, loaded } = $derived(appData());
+	const campusEvents = $derived.by(() => {
+		if (!loaded) return [];
+		return events
+			.filter((event) => event.status === 'active' || event.status === 'upcoming')
+			.sort((a, b) => a.occurrenceStartsAt.localeCompare(b.occurrenceStartsAt));
+	});
+	const visibleEvents = $derived.by(() => {
+		const base = campusEvents;
+		if (!import.meta.env.DEV || typeof window === 'undefined') return base;
 
-    const count = Number(
-      new URLSearchParams(window.location.search).get("stressEvents") ?? 0,
-    );
-    if (!Number.isFinite(count) || count <= base.length || base.length === 0) {
-      return base;
-    }
+		const count = Number(new URLSearchParams(window.location.search).get('stressEvents') ?? 0);
+		if (!Number.isFinite(count) || count <= base.length || base.length === 0) {
+			return base;
+		}
 
-    const copies = [];
-    for (let index = 0; index < count; index += 1) {
-      const source = base[index % base.length];
-      copies.push({
-        ...source,
-        id: source.id * 10_000 + index,
-        slug: `${source.slug}-stress-${index}`,
-        title: `${source.title} (${index + 1})`,
-      });
-    }
-    return copies;
-  });
-  const hasPastEvents = $derived(
-    loaded && events.some((event) => event.status === "past"),
-  );
-  // Full side-panel list still adds past events and pagination.
-  const hasHiddenEvents = $derived(hasPastEvents);
-  const hasAnyEvents = $derived(loaded && events.length > 0);
-  const eventsSyncing = $derived(
-    loaded &&
-      campusEvents.length === 0 &&
-      !syncToastStore.allSynced &&
-      (syncToastStore.currentSync === "events" ||
-        syncToastStore.currentSync === null),
-  );
-  const placingEvent = $derived(
-    eventPlacementStore.active || eventPlacementStore.creating,
-  );
-  let proposeSubmitterName = $state("");
-  let proposeDraftReady = $state(false);
+		const copies = [];
+		for (let index = 0; index < count; index += 1) {
+			const source = base[index % base.length];
+			copies.push({
+				...source,
+				id: source.id * 10_000 + index,
+				slug: `${source.slug}-stress-${index}`,
+				title: `${source.title} (${index + 1})`
+			});
+		}
+		return copies;
+	});
+	const hasPastEvents = $derived(loaded && events.some((event) => event.status === 'past'));
+	// Full side-panel list still adds past events and pagination.
+	const hasHiddenEvents = $derived(hasPastEvents);
+	const hasAnyEvents = $derived(loaded && events.length > 0);
+	const eventsSyncing = $derived(
+		loaded &&
+			campusEvents.length === 0 &&
+			!syncToastStore.allSynced &&
+			(syncToastStore.currentSync === 'events' || syncToastStore.currentSync === null)
+	);
+	const placingEvent = $derived(eventPlacementStore.active || eventPlacementStore.creating);
+	let proposeSubmitterName = $state('');
+	let proposeDraftReady = $state(false);
 
-  onMount(() => {
-    if (adminAuthStore.canPublish) {
-      proposeDraftReady = true;
-      return;
-    }
-    const saved = readProposeEventDraft();
-    if (saved?.proposing && !eventPlacementStore.active) {
-      eventPlacementStore.start(saved.draft, {
-        propose: true,
-        submitterName: saved.submitterName,
-      });
-      proposeSubmitterName = saved.submitterName;
-    }
-    proposeDraftReady = true;
-  });
+	onMount(() => {
+		if (adminAuthStore.canPublish) {
+			proposeDraftReady = true;
+			return;
+		}
+		const saved = readProposeEventDraft();
+		if (saved?.proposing && !eventPlacementStore.active) {
+			eventPlacementStore.start(saved.draft, {
+				propose: true,
+				submitterName: saved.submitterName
+			});
+			proposeSubmitterName = saved.submitterName;
+		}
+		proposeDraftReady = true;
+	});
 
-  $effect(() => {
-    if (
-      !proposeDraftReady ||
-      adminAuthStore.canPublish ||
-      !eventPlacementStore.active ||
-      !eventPlacementStore.proposing
-    ) {
-      return;
-    }
-    const draft = eventPlacementStore.draft;
-    if (!draft) return;
-    scheduleProposeEventDraftSave(() => ({
-      draft: { ...draft },
-      proposing: true,
-      submitterName: eventPlacementStore.submitterName,
-    }));
-  });
+	$effect(() => {
+		if (
+			!proposeDraftReady ||
+			adminAuthStore.canPublish ||
+			!eventPlacementStore.active ||
+			!eventPlacementStore.proposing
+		) {
+			return;
+		}
+		const draft = eventPlacementStore.draft;
+		if (!draft) return;
+		scheduleProposeEventDraftSave(() => ({
+			draft: { ...draft },
+			proposing: true,
+			submitterName: eventPlacementStore.submitterName
+		}));
+	});
 
-  function formatEventDate(value: string) {
-    return `${formatCampusDateShort(value)}, ${formatCampusTime(value)}`;
-  }
+	function formatEventDate(value: string) {
+		return `${formatCampusDateShort(value)}, ${formatCampusTime(value)}`;
+	}
 
-  function openEvent(event: EventData) {
-    queryStore.updateQuery({
-      category: "event",
-      type: "result",
-      value: event.title,
-      eventSlug: event.slug,
-    });
-    queryStore.inputValue = "";
-  }
+	function openEvent(event: EventData) {
+		searchInfo.updateQuery({
+			category: 'event',
+			type: 'result',
+			value: event.title,
+			eventSlug: event.slug
+		});
+		searchInfo.inputValue = '';
+	}
 
-  function openEventsList() {
-    queryStore.updateQuery({
-      category: "events",
-      type: "result",
-      value: "Campus events",
-    });
-    queryStore.inputValue = "";
-    sidePanelStore.expand();
-  }
+	function openEventsList() {
+		searchInfo.updateQuery({
+			category: 'events',
+			type: 'result',
+			value: 'Campus events'
+		});
+		searchInfo.inputValue = '';
+		sidePanelStore.expand();
+	}
 
-  function startEventPlacement(propose = false) {
-    if (placingEvent) return;
-    let submitterName = "";
-    if (propose && !adminAuthStore.isLoggedIn) {
-      const validation = validateSubmitterName(proposeSubmitterName);
-      if (!validation.ok) {
-        toastStore.show(validation.error, "error");
-        return;
-      }
-      submitterName = validation.name;
-    }
-    if (
-      !beginEventPlacement({
-        propose,
-        submitterName,
-      })
-    ) {
-      return;
-    }
-    oncollapse?.();
-  }
+	function startEventPlacement(propose = false) {
+		if (placingEvent) return;
+		let submitterName = '';
+		if (propose && !adminAuthStore.isLoggedIn) {
+			const validation = validateSubmitterName(proposeSubmitterName);
+			if (!validation.ok) {
+				toastStore.show(validation.error, 'error');
+				return;
+			}
+			submitterName = validation.name;
+		}
+		if (
+			!beginEventPlacement({
+				propose,
+				submitterName
+			})
+		) {
+			return;
+		}
+		oncollapse?.();
+	}
 </script>
 
 {#if !loaded}

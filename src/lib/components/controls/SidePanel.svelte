@@ -1,17 +1,16 @@
 <script lang="ts">
-	
-	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	// import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	// import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { Snippet } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { page } from '$app/state';
-	import type { BottomSheetSnap } from '$lib/utils/bottom-sheet-snap';
-	import BottomSheet from '$lib/components/BottomSheet.svelte';
-	import JeepneyRouteModal from '$lib/components/modal/JeepneyRouteModal.svelte';
-	import SponsorBanner from '$lib/components/SponsorBanner.svelte';
-	import { resolvePanelContent } from '$lib/utils/side-panel-content';
-	import { jeepneyStore, queryStore, sidePanelStore } from '$lib/stores.svelte';
-	import JeepneyStopPanel from './JeepneyStopPanel.svelte';
+	// import type { BottomSheetSnap } from '$lib/utils/bottom-sheet-snap';
+	// import BottomSheet from '$lib/components/BottomSheet.svelte';
+	// import JeepneyRouteModal from '$lib/components/modal/JeepneyRouteModal.svelte';
+	// import SponsorBanner from '$lib/components/SponsorBanner.svelte';
+	// import { resolvePanelContent } from '$lib/utils/side-panel-content';
+	// import { jeepneyStore, searchInfo, sidePanelStore } from '$lib/stores.svelte';
+	// import JeepneyStopPanel from './JeepneyStopPanel.svelte';
 
 	// The route always renders into the panel, but only a browse route replaces
 	// the body with its own list. An entity route hydrates the query instead and
@@ -33,83 +32,83 @@
 		'place',
 		'event'
 	]);
-	const showSponsorBanner = $derived(
-		queryStore.category !== null &&
-			SPONSOR_CATEGORIES.has(queryStore.category) &&
-			jeepneyStore.selectedStopIndex === null
-	);
-	let lastPanelIdentity = $state<string | null>(null);
-	/** Mobile sheet snap, independent of sidePanelStore.collapsed (Map.expand race). */
-	let mobileSnap = $state<BottomSheetSnap>('peek');
+	// const showSponsorBanner = $derived(
+	// 	searchInfo.category !== null &&
+	// 		SPONSOR_CATEGORIES.has(searchInfo.category) &&
+	// 		jeepneyStore.selectedStopIndex === null
+	// );
+	// let lastPanelIdentity = $state<string | null>(null);
+	// /** Mobile sheet snap, independent of sidePanelStore.collapsed (Map.expand race). */
+	// let mobileSnap = $state<BottomSheetSnap>('peek');
 
-	const panelIdentity = $derived(
-		queryStore.category === null && jeepneyStore.selectedStopIndex === null
-			? null
-			: jeepneyStore.selectedStopIndex !== null
-				? `jeepney-stop:${jeepneyStore.selectedStopIndex}`
-				: queryStore.category === 'event' && queryStore.selectedEventSlug
-					? `event:${queryStore.selectedEventSlug}`
-					: `${queryStore.category}:${queryStore.queryValue}`
-	);
+	// const panelIdentity = $derived(
+	// 	searchInfo.category === null && jeepneyStore.selectedStopIndex === null
+	// 		? null
+	// 		: jeepneyStore.selectedStopIndex !== null
+	// 			? `jeepney-stop:${jeepneyStore.selectedStopIndex}`
+	// 			: searchInfo.category === 'event' && searchInfo.selectedEventSlug
+	// 				? `event:${searchInfo.selectedEventSlug}`
+	// 				: `${searchInfo.category}:${searchInfo.queryValue}`
+	// );
 
-	/**
-	 * What the panel renders. `openPanel()` metadata wins, but it cannot be the
-	 * only gate: deep links and back/forward only set a query, so the panel has to
-	 * resolve from the category too or those paths render an empty map.
-	 */
-	const PanelContent = $derived(resolvePanelContent(sidePanelStore.state, queryStore.category));
+	// /**
+	//  * What the panel renders. `openPanel()` metadata wins, but it cannot be the
+	//  * only gate: deep links and back/forward only set a query, so the panel has to
+	//  * resolve from the category too or those paths render an empty map.
+	//  */
+	// const PanelContent = $derived(resolvePanelContent(sidePanelStore.state, searchInfo.category));
 
-	const panelOpen = $derived(
-		routeOwnsBody || PanelContent !== null || jeepneyStore.selectedStopIndex !== null
-	);
+	// const panelOpen = $derived(
+	// 	routeOwnsBody || PanelContent !== null || jeepneyStore.selectedStopIndex !== null
+	// );
 
-	const toggleLabel = $derived(
-		sidePanelStore.collapsed ? 'Expand details panel' : 'Collapse details panel'
-	);
+	// const toggleLabel = $derived(
+	// 	sidePanelStore.collapsed ? 'Expand details panel' : 'Collapse details panel'
+	// );
 
-	$effect(() => {
-		const identity = panelIdentity;
-		if (identity === lastPanelIdentity) return;
+	// $effect(() => {
+	// 	const identity = panelIdentity;
+	// 	if (identity === lastPanelIdentity) return;
 
-		if (identity !== null) {
-			// Navigating to another entity drops the metadata the previous view was
-			// opened with, so a still-open review queue cannot outlive the query that
-			// replaced it.
-			sidePanelStore.state = null;
-			// Always open at peek on mobile, ignoring Map.expand() full-screen.
-			mobileSnap = 'peek';
-			if (mobile.current) sidePanelStore.collapse();
-			else sidePanelStore.expand();
-		}
-		lastPanelIdentity = identity;
-	});
+	// 	if (identity !== null) {
+	// 		// Navigating to another entity drops the metadata the previous view was
+	// 		// opened with, so a still-open review queue cannot outlive the query that
+	// 		// replaced it.
+	// 		sidePanelStore.state = null;
+	// 		// Always open at peek on mobile, ignoring Map.expand() full-screen.
+	// 		mobileSnap = 'peek';
+	// 		if (mobile.current) sidePanelStore.collapse();
+	// 		else sidePanelStore.expand();
+	// 	}
+	// 	lastPanelIdentity = identity;
+	// });
 
-	// Drive map-control visibility in Entry (hide locate/3D/zoom while sheet open).
-	$effect(() => {
-		if (!mobile.current || !panelOpen) {
-			sidePanelStore.setMobileSheetSnap('closed');
-			return;
-		}
-		sidePanelStore.setMobileSheetSnap(mobileSnap);
-	});
+	// // Drive map-control visibility in Entry (hide locate/3D/zoom while sheet open).
+	// $effect(() => {
+	// 	if (!mobile.current || !panelOpen) {
+	// 		sidePanelStore.setMobileSheetSnap('closed');
+	// 		return;
+	// 	}
+	// 	sidePanelStore.setMobileSheetSnap(mobileSnap);
+	// });
 
-	function togglePanel() {
-		sidePanelStore.collapsed = !sidePanelStore.collapsed;
-	}
+	// function togglePanel() {
+	// 	sidePanelStore.collapsed = !sidePanelStore.collapsed;
+	// }
 
-	function dismissMobileSheet() {
-		jeepneyStore.closeStop();
-		queryStore.clearQuery();
-		sidePanelStore.closePanel();
-		mobileSnap = 'peek';
-		sidePanelStore.setMobileSheetSnap('closed');
-	}
+	// function dismissMobileSheet() {
+	// 	jeepneyStore.closeStop();
+	// 	searchInfo.clearQuery();
+	// 	sidePanelStore.closePanel();
+	// 	mobileSnap = 'peek';
+	// 	sidePanelStore.setMobileSheetSnap('closed');
+	// }
 </script>
 
-{#snippet panelBody()}
+<!-- {#snippet panelBody()}
 	{#if jeepneyStore.selectedStopIndex !== null}
 		<JeepneyStopPanel />
-	{:else if jeepneyStore.selectedRouteId !== null && queryStore.category === 'browse' && queryStore.queryValue === 'jeepney'}
+	{:else if jeepneyStore.selectedRouteId !== null && searchInfo.category === 'browse' && searchInfo.queryValue === 'jeepney'}
 		<JeepneyRouteModal
 			routeId={jeepneyStore.selectedRouteId}
 			onback={() => jeepneyStore.clearRoute()}
@@ -123,9 +122,9 @@
 	{#if showSponsorBanner}
 		<SponsorBanner />
 	{/if}
-{/snippet}
+{/snippet} -->
 
-{#if mobile.current}
+<!-- {#if mobile.current}
 	<BottomSheet
 		open={panelOpen}
 		bind:snap={mobileSnap}
@@ -165,7 +164,7 @@
 			</div>
 		</div>
 	</div>
-{/if}
+{/if} -->
 
 <style>
 	.drawer {

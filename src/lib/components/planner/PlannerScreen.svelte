@@ -12,14 +12,14 @@
 	import {
 		adminAuthStore,
 		plannerStore,
-		queryStore,
+		searchInfo,
 		sidebarStore,
 		termStore,
 		toastStore
 	} from '$lib/stores.svelte';
 	import { fetchAllClasses } from '$lib/utils/classes-api';
 	import { COURSE_CHANGE_DISCLAIMER } from '$lib/amis/room-scheduled-types';
-	import { changeOfMatriculationLabel} from '$lib/utils/term/term-calendar';
+	import { changeOfMatriculationLabel } from '$lib/utils/term/term-calendar';
 	import { fetchFinalExams, FINALS_SCOPE_NOTE } from '$lib/utils/final-exams/final-exams';
 	import { isUnscheduled } from '$lib/utils/planner/conflicts';
 	import { buildPlanIcs } from '$lib/utils/planner/ics';
@@ -121,12 +121,12 @@
 
 	function openRoom(roomCode: string) {
 		if (!roomCode) return;
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			type: 'result',
 			category: 'room',
 			value: roomCode
 		});
-		queryStore.inputValue = roomCode;
+		searchInfo.inputValue = roomCode;
 		close();
 	}
 

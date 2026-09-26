@@ -1,423 +1,394 @@
 <script lang="ts">
-  import EntitySkeleton from "$lib/components/EntitySkeleton.svelte";
-  import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import EntityEmptyState from "./EntityEmptyState.svelte";
-  import EntityPanelFilter from "./EntityPanelFilter.svelte";
-  import EntityPanelHeader from "./EntityPanelHeader.svelte";
-  import { getAppData } from "$lib/utils/context";
-  import type { CampusBrowseTab } from "$lib/utils/campus/browse-campus";
-  import {
-    isStudentOrganization,
-    orgCategoryLabel,
-  } from "$lib/constants/content/categories/org"
-  import {
-    isPlaceLandmark,
-    placeDirectoryLabel,
-  } from "$lib/constants/content/categories/place"
-  import {
-    jeepneyStore,
-    queryStore,
-    sidePanelStore,
-    transitStore,
-  } from "$lib/stores.svelte";
-  import CollegeResult from "./CollegeResult.svelte";
-  import BuildingResult from "./BuildingResult.svelte";
-  import DivisionResult from "./DivisionResult.svelte";
-  import OrgResult from "./OrgResult.svelte";
-  import DormResult from "./DormResult.svelte";
-  import PlaceResult from "./PlaceResult.svelte";
-	import { resolve } from "$app/paths";
-	import { goto } from "$app/navigation";
-	import { slugifySegment } from "$lib/utils/site";
-	import { campusTransit } from "$lib/campus.config";
+	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import EntityEmptyState from './EntityEmptyState.svelte';
+	import EntityPanelFilter from './EntityPanelFilter.svelte';
+	import EntityPanelHeader from './EntityPanelHeader.svelte';
+	import { getAppData } from '$lib/utils/context';
+	import type { CampusBrowseTab } from '$lib/utils/campus/browse-campus';
+	import { isStudentOrganization, orgCategoryLabel } from '$lib/constants/content/categories/org';
+	import { isPlaceLandmark, placeDirectoryLabel } from '$lib/constants/content/categories/place';
+	import { jeepneyStore, searchInfo, sidePanelStore, transitStore } from '$lib/stores.svelte';
+	import CollegeResult from './CollegeResult.svelte';
+	import BuildingResult from './BuildingResult.svelte';
+	import DivisionResult from './DivisionResult.svelte';
+	import OrgResult from './OrgResult.svelte';
+	import DormResult from './DormResult.svelte';
+	import PlaceResult from './PlaceResult.svelte';
+	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
+	import { slugifySegment } from '$lib/utils/site';
+	import { campusTransit } from '$lib/campus.config';
 
-  // Derived from campusTransit.label so a fork edits one place:
-  // label Jeepney routes → title Jeepney Routes, plural jeepney routes,
-  // noun jeepney route, placeholder Search jeepney routes…
-  const transitPlural = campusTransit.label.toLowerCase();
-  const transitTitle = campusTransit.label.replace(/(^|\s)\p{L}/gu, (c) =>
-    c.toUpperCase(),
-  );
-  // ponytail: trailing-s trim; give the label a regular plural or adjust here.
-  const transitNoun = transitPlural.replace(/s$/, "");
+	// Derived from campusTransit.label so a fork edits one place:
+	// label Jeepney routes → title Jeepney Routes, plural jeepney routes,
+	// noun jeepney route, placeholder Search jeepney routes…
+	const transitPlural = campusTransit.label.toLowerCase();
+	const transitTitle = campusTransit.label.replace(/(^|\s)\p{L}/gu, (c) => c.toUpperCase());
+	// ponytail: trailing-s trim; give the label a regular plural or adjust here.
+	const transitNoun = transitPlural.replace(/s$/, '');
 
-  const appData = getAppData();
-  const { buildings, colleges, divisions, dorms, organizations, places, loaded } =
-    $derived(appData());
+	const appData = getAppData();
+	const { buildings, colleges, divisions, dorms, organizations, places, loaded } =
+		$derived(appData());
 
-  let filterText = $state("");
+	let filterText = $state('');
 
-  const activeTab = $derived.by((): CampusBrowseTab => {
-    const value = queryStore.queryValue;
-    if (
-      value === "colleges" ||
-      value === "divisions" ||
-      value === "dorms" ||
-      value === "organizations" ||
-      value === "offices" ||
-      value === "landmarks" ||
-      value === "services" ||
-      value === "jeepney"
-    ) {
-      return value;
-    }
-    return "buildings";
-  });
+	const activeTab = $derived.by((): CampusBrowseTab => {
+		const value = searchInfo.queryValue;
+		if (
+			value === 'colleges' ||
+			value === 'divisions' ||
+			value === 'dorms' ||
+			value === 'organizations' ||
+			value === 'offices' ||
+			value === 'landmarks' ||
+			value === 'services' ||
+			value === 'jeepney'
+		) {
+			return value;
+		}
+		return 'buildings';
+	});
 
-  const tabTitle = $derived.by(() => {
-    switch (activeTab) {
-      case "colleges":
-        return "Colleges";
-      case "dorms":
-        return "Dorms";
-      case "divisions":
-        return "Divisions";
-      case "organizations":
-        return "Student Organizations";
-      case "offices":
-        return "Offices & Academic Units";
-      case "landmarks":
-        return "Landmarks";
-      case "services":
-        return "Services & Establishments";
-      case "jeepney":
-        return transitTitle;
-      default:
-        return "Buildings";
-    }
-  });
+	const tabTitle = $derived.by(() => {
+		switch (activeTab) {
+			case 'colleges':
+				return 'Colleges';
+			case 'dorms':
+				return 'Dorms';
+			case 'divisions':
+				return 'Divisions';
+			case 'organizations':
+				return 'Student Organizations';
+			case 'offices':
+				return 'Offices & Academic Units';
+			case 'landmarks':
+				return 'Landmarks';
+			case 'services':
+				return 'Services & Establishments';
+			case 'jeepney':
+				return transitTitle;
+			default:
+				return 'Buildings';
+		}
+	});
 
-  const tabMeta = $derived.by(() => {
-    switch (activeTab) {
-      case "colleges":
-        return {
-          noun: "college",
-          plural: "colleges",
-          placeholder: "Search colleges…",
-        };
-      case "dorms":
-        return {
-          noun: "dorm",
-          plural: "dorms",
-          placeholder: "Search dorms…",
-        };
-      case "divisions":
-        return {
-          noun: "division",
-          plural: "divisions",
-          placeholder: "Search divisions…",
-        };
-      case "organizations":
-        return {
-          noun: "student organization",
-          plural: "student organizations",
-          placeholder: "Search student organizations…",
-        };
-      case "offices":
-        return {
-          noun: "office or academic unit",
-          plural: "offices & academic units",
-          placeholder: "Search offices & academic units…",
-        };
-      case "landmarks":
-        return {
-          noun: "landmark",
-          plural: "landmarks",
-          placeholder: "Search landmarks…",
-        };
-      case "services":
-        return {
-          noun: "service or establishment",
-          plural: "services & establishments",
-          placeholder: "Search services & establishments…",
-        };
-      case "jeepney":
-        return {
-          noun: transitNoun,
-          plural: transitPlural,
-          placeholder: `Search ${transitPlural}…`,
-        };
-      default:
-        return {
-          noun: "building",
-          plural: "buildings",
-          placeholder: "Search buildings…",
-        };
-    }
-  });
+	const tabMeta = $derived.by(() => {
+		switch (activeTab) {
+			case 'colleges':
+				return {
+					noun: 'college',
+					plural: 'colleges',
+					placeholder: 'Search colleges…'
+				};
+			case 'dorms':
+				return {
+					noun: 'dorm',
+					plural: 'dorms',
+					placeholder: 'Search dorms…'
+				};
+			case 'divisions':
+				return {
+					noun: 'division',
+					plural: 'divisions',
+					placeholder: 'Search divisions…'
+				};
+			case 'organizations':
+				return {
+					noun: 'student organization',
+					plural: 'student organizations',
+					placeholder: 'Search student organizations…'
+				};
+			case 'offices':
+				return {
+					noun: 'office or academic unit',
+					plural: 'offices & academic units',
+					placeholder: 'Search offices & academic units…'
+				};
+			case 'landmarks':
+				return {
+					noun: 'landmark',
+					plural: 'landmarks',
+					placeholder: 'Search landmarks…'
+				};
+			case 'services':
+				return {
+					noun: 'service or establishment',
+					plural: 'services & establishments',
+					placeholder: 'Search services & establishments…'
+				};
+			case 'jeepney':
+				return {
+					noun: transitNoun,
+					plural: transitPlural,
+					placeholder: `Search ${transitPlural}…`
+				};
+			default:
+				return {
+					noun: 'building',
+					plural: 'buildings',
+					placeholder: 'Search buildings…'
+				};
+		}
+	});
 
-  const filteredBuildings = $derived.by(() => {
-    if (!loaded || !buildings) return [];
-    const needle = filterText.trim().toLowerCase();
-    const rows = [...buildings].sort((a, b) =>
-      a.buildingName.localeCompare(b.buildingName),
-    );
-    if (!needle) return rows;
-    return rows.filter((row) =>
-      row.buildingName.toLowerCase().includes(needle),
-    );
-  });
+	const filteredBuildings = $derived.by(() => {
+		if (!loaded || !buildings) return [];
+		const needle = filterText.trim().toLowerCase();
+		const rows = [...buildings].sort((a, b) => a.buildingName.localeCompare(b.buildingName));
+		if (!needle) return rows;
+		return rows.filter((row) => row.buildingName.toLowerCase().includes(needle));
+	});
 
-  const filteredColleges = $derived.by(() => {
-    if (!loaded || !colleges) return [];
-    const needle = filterText.trim().toLowerCase();
-    const rows = [...colleges].sort((a, b) =>
-      a.collegeName.localeCompare(b.collegeName),
-    );
-    if (!needle) return rows;
-    return rows.filter((row) => row.collegeName.toLowerCase().includes(needle));
-  });
+	const filteredColleges = $derived.by(() => {
+		if (!loaded || !colleges) return [];
+		const needle = filterText.trim().toLowerCase();
+		const rows = [...colleges].sort((a, b) => a.collegeName.localeCompare(b.collegeName));
+		if (!needle) return rows;
+		return rows.filter((row) => row.collegeName.toLowerCase().includes(needle));
+	});
 
-  const filteredDivisions = $derived.by(() => {
-    if (!loaded || !divisions) return [];
-    const needle = filterText.trim().toLowerCase();
-    const rows = [...divisions].sort((a, b) =>
-      a.divisionName.localeCompare(b.divisionName),
-    );
-    if (!needle) return rows;
-    return rows.filter((row) =>
-      row.divisionName.toLowerCase().includes(needle),
-    );
-  });
+	const filteredDivisions = $derived.by(() => {
+		if (!loaded || !divisions) return [];
+		const needle = filterText.trim().toLowerCase();
+		const rows = [...divisions].sort((a, b) => a.divisionName.localeCompare(b.divisionName));
+		if (!needle) return rows;
+		return rows.filter((row) => row.divisionName.toLowerCase().includes(needle));
+	});
 
-  const filteredOrganizations = $derived.by(() => {
-    if (!loaded || !organizations) return [];
-    if (activeTab !== "organizations" && activeTab !== "offices") return [];
-    const needle = filterText.trim().toLowerCase();
-    const rows = organizations.filter((row) => {
-      return activeTab === "organizations"
-        ? isStudentOrganization(row.category)
-        : !isStudentOrganization(row.category);
-    }).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-    if (!needle) return rows;
-    return rows.filter((row) => row.name.toLowerCase().includes(needle));
-  });
+	const filteredOrganizations = $derived.by(() => {
+		if (!loaded || !organizations) return [];
+		if (activeTab !== 'organizations' && activeTab !== 'offices') return [];
+		const needle = filterText.trim().toLowerCase();
+		const rows = organizations
+			.filter((row) => {
+				return activeTab === 'organizations'
+					? isStudentOrganization(row.category)
+					: !isStudentOrganization(row.category);
+			})
+			.sort((a, b) => a.name.localeCompare(b.name));
+		if (!needle) return rows;
+		return rows.filter((row) => row.name.toLowerCase().includes(needle));
+	});
 
-  const filteredDorms = $derived.by(() => {
-    if (!loaded || !dorms || activeTab !== "dorms") return [];
-    const needle = filterText.trim().toLowerCase();
-    const rows = [...dorms].sort((a, b) => a.dormName.localeCompare(b.dormName));
-    return needle
-      ? rows.filter((row) => row.dormName.toLowerCase().includes(needle))
-      : rows;
-  });
+	const filteredDorms = $derived.by(() => {
+		if (!loaded || !dorms || activeTab !== 'dorms') return [];
+		const needle = filterText.trim().toLowerCase();
+		const rows = [...dorms].sort((a, b) => a.dormName.localeCompare(b.dormName));
+		return needle ? rows.filter((row) => row.dormName.toLowerCase().includes(needle)) : rows;
+	});
 
-  const filteredPlaces = $derived.by(() => {
-    if (!loaded || !places || (activeTab !== "landmarks" && activeTab !== "services")) {
-      return [];
-    }
-    const needle = filterText.trim().toLowerCase();
-    const rows = places
-      .filter((row) => {
-        const landmark = isPlaceLandmark(row.category);
-        return activeTab === "landmarks" ? landmark : !landmark;
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-    return needle
-      ? rows.filter((row) => row.name.toLowerCase().includes(needle))
-      : rows;
-  });
+	const filteredPlaces = $derived.by(() => {
+		if (!loaded || !places || (activeTab !== 'landmarks' && activeTab !== 'services')) {
+			return [];
+		}
+		const needle = filterText.trim().toLowerCase();
+		const rows = places
+			.filter((row) => {
+				const landmark = isPlaceLandmark(row.category);
+				return activeTab === 'landmarks' ? landmark : !landmark;
+			})
+			.sort((a, b) => a.name.localeCompare(b.name));
+		return needle ? rows.filter((row) => row.name.toLowerCase().includes(needle)) : rows;
+	});
 
-  const visibleItems = $derived.by(() => {
-    if (activeTab === "colleges") {
-      return filteredColleges.map((row) => ({
-        id: row.id,
-        label: row.collegeName,
-        meta: null as string | null,
-        open: () => openCollege(row.collegeName),
-      }));
-    }
-    if (activeTab === "dorms") {
-      return filteredDorms.map((row) => ({
-        id: row.id,
-        label: row.dormName,
-        meta: row.isUpManaged ? "UP-managed dorm" : "Private dorm",
-        open: () => openDorm(row.dormName, row.id),
-      }));
-    }
-    if (activeTab === "divisions") {
-      return filteredDivisions.map((row) => ({
-        id: row.id,
-        label: row.divisionName,
-        meta: null as string | null,
-        open: () => openDivision(row.divisionName),
-      }));
-    }
-    if (activeTab === "organizations" || activeTab === "offices") {
-      return filteredOrganizations.map((row) => ({
-        id: row.id,
-        label: row.name,
-        meta: orgCategoryLabel(row.category),
-        open: () => openOrg(row.name, row.id),
-      }));
-    }
-    if (activeTab === "landmarks" || activeTab === "services") {
-      return filteredPlaces.map((row) => ({
-        id: row.id,
-        label: row.name,
-        meta: placeDirectoryLabel(row.category),
-        open: () => openPlace(row.name, row.id, isPlaceLandmark(row)),
-      }));
-    }
-    if (activeTab === "jeepney") {
-      return filteredJeepneyRoutes.map((route) => ({
-        id: route.id,
-        label: route.name,
-        meta: `${route.stops.length} stops`,
-        open: () => openJeepneyRoute(route.id),
-      }));
-    }
-    return filteredBuildings.map((row) => ({
-      id: row.id,
-      label: row.buildingName,
-      meta: null as string | null,
-      open: () => openBuilding(row.buildingName),
-    }));
-  });
+	const visibleItems = $derived.by(() => {
+		if (activeTab === 'colleges') {
+			return filteredColleges.map((row) => ({
+				id: row.id,
+				label: row.collegeName,
+				meta: null as string | null,
+				open: () => openCollege(row.collegeName)
+			}));
+		}
+		if (activeTab === 'dorms') {
+			return filteredDorms.map((row) => ({
+				id: row.id,
+				label: row.dormName,
+				meta: row.isUpManaged ? 'UP-managed dorm' : 'Private dorm',
+				open: () => openDorm(row.dormName, row.id)
+			}));
+		}
+		if (activeTab === 'divisions') {
+			return filteredDivisions.map((row) => ({
+				id: row.id,
+				label: row.divisionName,
+				meta: null as string | null,
+				open: () => openDivision(row.divisionName)
+			}));
+		}
+		if (activeTab === 'organizations' || activeTab === 'offices') {
+			return filteredOrganizations.map((row) => ({
+				id: row.id,
+				label: row.name,
+				meta: orgCategoryLabel(row.category),
+				open: () => openOrg(row.name, row.id)
+			}));
+		}
+		if (activeTab === 'landmarks' || activeTab === 'services') {
+			return filteredPlaces.map((row) => ({
+				id: row.id,
+				label: row.name,
+				meta: placeDirectoryLabel(row.category),
+				open: () => openPlace(row.name, row.id, isPlaceLandmark(row))
+			}));
+		}
+		if (activeTab === 'jeepney') {
+			return filteredJeepneyRoutes.map((route) => ({
+				id: route.id,
+				label: route.name,
+				meta: `${route.stops.length} stops`,
+				open: () => openJeepneyRoute(route.id)
+			}));
+		}
+		return filteredBuildings.map((row) => ({
+			id: row.id,
+			label: row.buildingName,
+			meta: null as string | null,
+			open: () => openBuilding(row.buildingName)
+		}));
+	});
 
-  const visibleCount = $derived(visibleItems.length);
+	const visibleCount = $derived(visibleItems.length);
 
-  const emptyState = $derived.by(() => {
-    const query = filterText.trim();
-    if (query) {
-      return {
-        title: "Nothing in this corner of campus",
-        description: `No ${tabMeta.plural} match “${query}”. Try a shorter name or another keyword.`,
-      };
-    }
-    return {
-      title: "This corner is still being mapped",
-      description: `No ${tabMeta.plural} are listed yet. Check another directory while we fill this one in.`,
-    };
-  });
+	const emptyState = $derived.by(() => {
+		const query = filterText.trim();
+		if (query) {
+			return {
+				title: 'Nothing in this corner of campus',
+				description: `No ${tabMeta.plural} match “${query}”. Try a shorter name or another keyword.`
+			};
+		}
+		return {
+			title: 'This corner is still being mapped',
+			description: `No ${tabMeta.plural} are listed yet. Check another directory while we fill this one in.`
+		};
+	});
 
-  const statusLine = $derived.by(() => {
-    if (!loaded) return "Loading campus directory…";
-    if (visibleCount === 0) {
-      const query = filterText.trim();
-      return query
-        ? `No ${tabMeta.plural} match “${query}”.`
-        : `No ${tabMeta.plural} listed.`;
-    }
-    const unit = visibleCount === 1 ? tabMeta.noun : tabMeta.plural;
-    return `${visibleCount} ${unit}`;
-  });
+	const statusLine = $derived.by(() => {
+		if (!loaded) return 'Loading campus directory…';
+		if (visibleCount === 0) {
+			const query = filterText.trim();
+			return query ? `No ${tabMeta.plural} match “${query}”.` : `No ${tabMeta.plural} listed.`;
+		}
+		const unit = visibleCount === 1 ? tabMeta.noun : tabMeta.plural;
+		return `${visibleCount} ${unit}`;
+	});
 
-  function openBuilding(name: string) {
-    queryStore.updateQuery({
-      category: "building",
-      type: "result",
-      value: name,
-    });
-    goto(resolve(`/map/buildings/${slugifySegment(name)}`))
-    queryStore.inputValue = name;
-    sidePanelStore.openPanel({
-      type: "search-result",
-      component: BuildingResult,
-    });
-  }
+	function openBuilding(name: string) {
+		searchInfo.updateQuery({
+			category: 'building',
+			type: 'result',
+			value: name
+		});
+		goto(resolve(`/map/buildings/${slugifySegment(name)}`));
+		searchInfo.inputValue = name;
+		sidePanelStore.openPanel({
+			type: 'search-result',
+			component: BuildingResult
+		});
+	}
 
-  function openCollege(name: string) {
-    queryStore.updateQuery({
-      category: "college",
-      type: "result",
-      value: name,
-    });
-    goto(resolve(`/map/colleges/${slugifySegment(name)}`))  
-    queryStore.inputValue = name;
-    sidePanelStore.openPanel({
-      type: "search-result",
-      component: CollegeResult,
-    });
-  }
+	function openCollege(name: string) {
+		searchInfo.updateQuery({
+			category: 'college',
+			type: 'result',
+			value: name
+		});
+		goto(resolve(`/map/colleges/${slugifySegment(name)}`));
+		searchInfo.inputValue = name;
+		sidePanelStore.openPanel({
+			type: 'search-result',
+			component: CollegeResult
+		});
+	}
 
-  function openDivision(name: string) {
-    queryStore.updateQuery({
-      category: "division",
-      type: "result",
-      value: name,
-    });
-    goto(resolve(`/map/divisions/${slugifySegment(name)}`))  
-    queryStore.inputValue = name;
-    sidePanelStore.openPanel({
-      type: "search-result",
-      component: DivisionResult,
-    });
-  }
+	function openDivision(name: string) {
+		searchInfo.updateQuery({
+			category: 'division',
+			type: 'result',
+			value: name
+		});
+		goto(resolve(`/map/divisions/${slugifySegment(name)}`));
+		searchInfo.inputValue = name;
+		sidePanelStore.openPanel({
+			type: 'search-result',
+			component: DivisionResult
+		});
+	}
 
-  function openOrg(name: string, id: number) {
-    queryStore.updateQuery({
-      category: "organization",
-      type: "result",
-      value: name,
-    });
-    goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
-    queryStore.inputValue = name;
-    sidePanelStore.openPanel({
-      type: "search-result",
-      component: OrgResult,
-    });
-  }
+	function openOrg(name: string, id: number) {
+		searchInfo.updateQuery({
+			category: 'organization',
+			type: 'result',
+			value: name
+		});
+		goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
+		searchInfo.inputValue = name;
+		sidePanelStore.openPanel({
+			type: 'search-result',
+			component: OrgResult
+		});
+	}
 
-  function openDorm(name: string, id: number) {
-    queryStore.updateQuery({
-      category: "dorm",
-      type: "result",
-      value: name,
-    });
-    goto(resolve(`/map/dorms/${slugifySegment(name)}-${id}`));
-    queryStore.inputValue = name;
-    sidePanelStore.openPanel({
-      type: "search-result",
-      component: DormResult,
-    });
-  }
+	function openDorm(name: string, id: number) {
+		searchInfo.updateQuery({
+			category: 'dorm',
+			type: 'result',
+			value: name
+		});
+		goto(resolve(`/map/dorms/${slugifySegment(name)}-${id}`));
+		searchInfo.inputValue = name;
+		sidePanelStore.openPanel({
+			type: 'search-result',
+			component: DormResult
+		});
+	}
 
-  function openPlace(name: string, id: number, landmark: boolean) {
-    queryStore.updateQuery({
-      category: "place",
-      type: "result",
-      value: name,
-    });
-    if (landmark) {
-      goto(resolve(`/map/landmarks/${slugifySegment(name)}-${id}`));
-    } else {
-      goto(resolve(`/map/establishments/${slugifySegment(name)}-${id}`));
-    }
-    queryStore.inputValue = name;
-    sidePanelStore.openPanel({
-      type: "search-result",
-      component: PlaceResult,
-    });
-  }
+	function openPlace(name: string, id: number, landmark: boolean) {
+		searchInfo.updateQuery({
+			category: 'place',
+			type: 'result',
+			value: name
+		});
+		if (landmark) {
+			goto(resolve(`/map/landmarks/${slugifySegment(name)}-${id}`));
+		} else {
+			goto(resolve(`/map/establishments/${slugifySegment(name)}-${id}`));
+		}
+		searchInfo.inputValue = name;
+		sidePanelStore.openPanel({
+			type: 'search-result',
+			component: PlaceResult
+		});
+	}
 
-  const filteredJeepneyRoutes = $derived.by(() => {
-    if (activeTab !== "jeepney") return [];
-    const needle = filterText.trim().toLowerCase();
-    if (!needle) return transitStore.routes;
-    return transitStore.routes.filter(
-      (route) =>
-        route.name.toLowerCase().includes(needle) ||
-        route.description.toLowerCase().includes(needle) ||
-        route.stops.some((stop) => stop.name.toLowerCase().includes(needle)),
-    );
-  });
+	const filteredJeepneyRoutes = $derived.by(() => {
+		if (activeTab !== 'jeepney') return [];
+		const needle = filterText.trim().toLowerCase();
+		if (!needle) return transitStore.routes;
+		return transitStore.routes.filter(
+			(route) =>
+				route.name.toLowerCase().includes(needle) ||
+				route.description.toLowerCase().includes(needle) ||
+				route.stops.some((stop) => stop.name.toLowerCase().includes(needle))
+		);
+	});
 
-  function openJeepneyRoute(id: string) {
-    jeepneyStore.openRouteOnMap(id);
-  }
+	function openJeepneyRoute(id: string) {
+		jeepneyStore.openRouteOnMap(id);
+	}
 
-  function closeList() {
-    queryStore.clearQuery();
-    sidePanelStore.closePanel();
-  }
+	function closeList() {
+		searchInfo.clearQuery();
+		sidePanelStore.closePanel();
+	}
 
-  function onFilterInput(event: Event) {
-    filterText = (event.currentTarget as HTMLInputElement).value;
-  }
+	function onFilterInput(event: Event) {
+		filterText = (event.currentTarget as HTMLInputElement).value;
+	}
 </script>
 
 <div class="campus-browse-panel">

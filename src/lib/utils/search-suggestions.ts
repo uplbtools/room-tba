@@ -1,10 +1,10 @@
-import type { QueryStoreState } from '$lib/stores/store-types';
+import type { SearchInfoState } from '$lib/stores/store-types';
 import type { Building, DormData, EventData, OrgData, PlaceData } from './types';
 
 type Suggestion = {
 	value: string;
 	entityId?: number;
-	category: Exclude<QueryStoreState['category'], null>;
+	category: Exclude<SearchInfoState['category'], null>;
 	eventSlug?: string;
 	building?: Building;
 	event?: EventData;

@@ -10,7 +10,7 @@ export interface ModalStoreState {
 	landingTab?: LandingModalTab;
 }
 
-export interface QueryStoreState {
+export interface SearchInfoState {
 	type: 'query' | 'result';
 	category:
 		| 'building'
@@ -40,10 +40,9 @@ export type SidebarOpenType =
 	| 'settings';
 
 export type RecentSearch = {
-	category: Exclude<QueryStoreState['category'], null>;
+	category: Exclude<SearchInfoState['category'], null>;
 	value: string;
-	eventSlug?: string;
-	id?: number;
+	href:string;
 };
 
 export type FloatingControlPanel = 'legend' | 'building-type' | 'terrain' | 'admin';

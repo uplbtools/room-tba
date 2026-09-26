@@ -1,337 +1,331 @@
 <script lang="ts">
-  import {
-    classTypeDisplayLabel,
-    NO_ASSIGNED_ROOM_LABEL,
-  } from "$lib/amis/room-scheduled-types";
-  import {
-    groupClassesByOffering,
-    offeringGroupKey,
-  } from "$lib/utils/class-offering-groups";
-  import type { ClassOfferingGroup } from "$lib/utils/class-offering-groups";
-  import type { ProbableLocation } from "$lib/utils/probable-location";
-  import type { ClassMapValue } from "$lib/utils/types";
-  import { plannerStore, queryStore, toastStore } from "$lib/stores.svelte";
+	import { classTypeDisplayLabel, NO_ASSIGNED_ROOM_LABEL } from '$lib/amis/room-scheduled-types';
+	import { groupClassesByOffering, offeringGroupKey } from '$lib/utils/class-offering-groups';
+	import type { ClassOfferingGroup } from '$lib/utils/class-offering-groups';
+	import type { ProbableLocation } from '$lib/utils/probable-location';
+	import type { ClassMapValue } from '$lib/utils/types';
+	import { plannerStore, searchInfo, toastStore } from '$lib/stores.svelte';
 
-  interface Props {
-    classes: ClassMapValue[];
-    currentRoomCode?: string | null;
-  }
+	interface Props {
+		classes: ClassMapValue[];
+		currentRoomCode?: string | null;
+	}
 
-  const { classes, currentRoomCode = null }: Props = $props();
+	const { classes, currentRoomCode = null }: Props = $props();
 
-  const groups = $derived(groupClassesByOffering(classes));
+	const groups = $derived(groupClassesByOffering(classes));
 
-  function openRoom(roomCode: string | null | undefined) {
-    if (!roomCode) return;
-    queryStore.updateQuery({
-      type: "result",
-      category: "room",
-      value: roomCode,
-    });
-    queryStore.inputValue = roomCode;
-  }
+	function openRoom(roomCode: string | null | undefined) {
+		if (!roomCode) return;
+		searchInfo.updateQuery({
+			type: 'result',
+			category: 'room',
+			value: roomCode
+		});
+		searchInfo.inputValue = roomCode;
+	}
 
-  function formatSchedule(schedule: string[] | null): string {
-    if (!schedule?.length) return "Schedule TBA";
-    return schedule.join(" · ");
-  }
+	function formatSchedule(schedule: string[] | null): string {
+		if (!schedule?.length) return 'Schedule TBA';
+		return schedule.join(' · ');
+	}
 
-  /** "Offered by Institute of Computer Science (CAS)" — hedged, never "is at". */
-  function probableDeptLine(probable: ProbableLocation): string | null {
-    if (probable.deptName && probable.collegeCode) {
-      return `Offered by ${probable.deptName} (${probable.collegeCode})`;
-    }
-    if (probable.deptName) return `Offered by ${probable.deptName}`;
-    return null;
-  }
+	/** "Offered by Institute of Computer Science (CAS)" — hedged, never "is at". */
+	function probableDeptLine(probable: ProbableLocation): string | null {
+		if (probable.deptName && probable.collegeCode) {
+			return `Offered by ${probable.deptName} (${probable.collegeCode})`;
+		}
+		if (probable.deptName) return `Offered by ${probable.deptName}`;
+		return null;
+	}
 
-  /** Select the department org / probable building; Map.svelte handles the camera. */
-  function showProbableLocation(probable: ProbableLocation) {
-    const target = probable.orgName
-      ? { category: "organization" as const, value: probable.orgName }
-      : probable.buildingName
-        ? { category: "building" as const, value: probable.buildingName }
-        : null;
-    if (!target) return;
-    queryStore.updateQuery({ type: "result", ...target });
-    queryStore.inputValue = target.value;
-  }
+	/** Select the department org / probable building; Map.svelte handles the camera. */
+	function showProbableLocation(probable: ProbableLocation) {
+		const target = probable.orgName
+			? { category: 'organization' as const, value: probable.orgName }
+			: probable.buildingName
+				? { category: 'building' as const, value: probable.buildingName }
+				: null;
+		if (!target) return;
+		searchInfo.updateQuery({ type: 'result', ...target });
+		searchInfo.inputValue = target.value;
+	}
 
-  function planKey(group: ClassOfferingGroup): string | null {
-    if (group.key.startsWith("__solo__")) return null;
-    return offeringGroupKey(group.courseCode, group.section);
-  }
+	function planKey(group: ClassOfferingGroup): string | null {
+		if (group.key.startsWith('__solo__')) return null;
+		return offeringGroupKey(group.courseCode, group.section);
+	}
 
-  function togglePlan(group: ClassOfferingGroup) {
-    const key = planKey(group);
-    if (!key) return;
-    if (plannerStore.addedKeys.has(key)) {
-      plannerStore.removeOffering(group.courseCode, group.section);
-    } else {
-      plannerStore.addOffering(group.sections);
-      toastStore.show(
-        `${group.courseCode} ${group.section} added to ${plannerStore.activePlan?.label ?? "plan"}`,
-        "success",
-      );
-    }
-  }
+	function togglePlan(group: ClassOfferingGroup) {
+		const key = planKey(group);
+		if (!key) return;
+		if (plannerStore.addedKeys.has(key)) {
+			plannerStore.removeOffering(group.courseCode, group.section);
+		} else {
+			plannerStore.addOffering(group.sections);
+			toastStore.show(
+				`${group.courseCode} ${group.section} added to ${plannerStore.activePlan?.label ?? 'plan'}`,
+				'success'
+			);
+		}
+	}
 </script>
 
 <div class="class-list">
-  {#each groups as group (group.key)}
-    <section
-      class="class-offering"
-      class:class-offering--multi={group.sections.length > 1}
-      aria-label="{group.courseCode} section {group.section}"
-    >
-      <header class="class-offering__header">
-        <div class="class-offering__heading">
-          <div class="class-offering__title">{group.courseCode}</div>
-          {#if planKey(group)}
-            {@const added = plannerStore.addedKeys.has(planKey(group) ?? "")}
-            <button
-              type="button"
-              class="class-offering__plan"
-              class:class-offering__plan--added={added}
-              onclick={() => togglePlan(group)}
-            >
-              {added ? "In plan ✓" : "Add to plan"}
-            </button>
-          {/if}
-        </div>
-        {#if group.courseTitle}
-          <div class="class-offering__subtitle">{group.courseTitle}</div>
-        {/if}
-        <div class="class-offering__section">Section {group.section}</div>
-      </header>
+	{#each groups as group (group.key)}
+		<section
+			class="class-offering"
+			class:class-offering--multi={group.sections.length > 1}
+			aria-label="{group.courseCode} section {group.section}"
+		>
+			<header class="class-offering__header">
+				<div class="class-offering__heading">
+					<div class="class-offering__title">{group.courseCode}</div>
+					{#if planKey(group)}
+						{@const added = plannerStore.addedKeys.has(planKey(group) ?? '')}
+						<button
+							type="button"
+							class="class-offering__plan"
+							class:class-offering__plan--added={added}
+							onclick={() => togglePlan(group)}
+						>
+							{added ? 'In plan ✓' : 'Add to plan'}
+						</button>
+					{/if}
+				</div>
+				{#if group.courseTitle}
+					<div class="class-offering__subtitle">{group.courseTitle}</div>
+				{/if}
+				<div class="class-offering__section">Section {group.section}</div>
+			</header>
 
-      <div class="class-offering__sections">
-        {#each group.sections as sectionClass (sectionClass.id)}
-          {@const showRoomLink =
-            sectionClass.roomCode &&
-            (!currentRoomCode || sectionClass.roomCode !== currentRoomCode)}
-          <article class="class-section-row">
-            <div class="class-section-row__main">
-              <div class="class-section-row__type">
-                {classTypeDisplayLabel(sectionClass.type)}
-                {#if showRoomLink && sectionClass.roomCode}
-                  <span class="class-section-row__room">
-                    in {sectionClass.roomCode}
-                  </span>
-                {:else if !sectionClass.roomCode}
-                  <span class="class-section-row__room class-section-row__room--unassigned">
-                    · {NO_ASSIGNED_ROOM_LABEL}
-                  </span>
-                {/if}
-              </div>
-              <div class="class-section-row__schedule">
-                {formatSchedule(sectionClass.schedule)}
-              </div>
-              {#if !sectionClass.roomCode && sectionClass.probableLocation}
-                {@const probable = sectionClass.probableLocation}
-                <div class="class-section-row__probable">
-                  {#if probableDeptLine(probable)}
-                    <span>{probableDeptLine(probable)}</span>
-                  {/if}
-                  {#if probable.buildingName}
-                    <span>Usually meets around {probable.buildingName}</span>
-                  {/if}
-                  {#if probable.orgName || probable.buildingName}
-                    <button
-                      type="button"
-                      class="class-section-row__probable-pin"
-                      aria-label={`Show probable location of ${group.courseCode} ${group.section} on the map`}
-                      onclick={() => showProbableLocation(probable)}
-                    >
-                      Show on map
-                    </button>
-                  {/if}
-                </div>
-              {/if}
-            </div>
-            {#if showRoomLink && sectionClass.roomCode}
-              <button
-                type="button"
-                class="class-section-row__open"
-                onclick={() => openRoom(sectionClass.roomCode)}
-              >
-                Open room
-              </button>
-            {/if}
-          </article>
-        {/each}
-      </div>
-    </section>
-  {/each}
+			<div class="class-offering__sections">
+				{#each group.sections as sectionClass (sectionClass.id)}
+					{@const showRoomLink =
+						sectionClass.roomCode &&
+						(!currentRoomCode || sectionClass.roomCode !== currentRoomCode)}
+					<article class="class-section-row">
+						<div class="class-section-row__main">
+							<div class="class-section-row__type">
+								{classTypeDisplayLabel(sectionClass.type)}
+								{#if showRoomLink && sectionClass.roomCode}
+									<span class="class-section-row__room">
+										in {sectionClass.roomCode}
+									</span>
+								{:else if !sectionClass.roomCode}
+									<span class="class-section-row__room class-section-row__room--unassigned">
+										· {NO_ASSIGNED_ROOM_LABEL}
+									</span>
+								{/if}
+							</div>
+							<div class="class-section-row__schedule">
+								{formatSchedule(sectionClass.schedule)}
+							</div>
+							{#if !sectionClass.roomCode && sectionClass.probableLocation}
+								{@const probable = sectionClass.probableLocation}
+								<div class="class-section-row__probable">
+									{#if probableDeptLine(probable)}
+										<span>{probableDeptLine(probable)}</span>
+									{/if}
+									{#if probable.buildingName}
+										<span>Usually meets around {probable.buildingName}</span>
+									{/if}
+									{#if probable.orgName || probable.buildingName}
+										<button
+											type="button"
+											class="class-section-row__probable-pin"
+											aria-label={`Show probable location of ${group.courseCode} ${group.section} on the map`}
+											onclick={() => showProbableLocation(probable)}
+										>
+											Show on map
+										</button>
+									{/if}
+								</div>
+							{/if}
+						</div>
+						{#if showRoomLink && sectionClass.roomCode}
+							<button
+								type="button"
+								class="class-section-row__open"
+								onclick={() => openRoom(sectionClass.roomCode)}
+							>
+								Open room
+							</button>
+						{/if}
+					</article>
+				{/each}
+			</div>
+		</section>
+	{/each}
 </div>
 
 <style>
-  .class-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    margin: 0.5rem 0;
-  }
+	.class-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin: 0.5rem 0;
+	}
 
-  .class-offering {
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.5rem;
-    background: hsl(0, 0%, 98%);
-    overflow: hidden;
-  }
+	.class-offering {
+		border: 1px solid hsl(0, 0%, 88%);
+		border-radius: 0.5rem;
+		background: hsl(0, 0%, 98%);
+		overflow: hidden;
+	}
 
-  .class-offering--multi {
-    border-color: hsl(5, 35%, 82%);
-    box-shadow: inset 3px 0 0 hsl(5, 53%, 42%);
-  }
+	.class-offering--multi {
+		border-color: hsl(5, 35%, 82%);
+		box-shadow: inset 3px 0 0 hsl(5, 53%, 42%);
+	}
 
-  .class-offering__header {
-    padding: 0.625rem 0.75rem 0.375rem;
-    border-bottom: 1px solid hsl(0, 0%, 92%);
-  }
+	.class-offering__header {
+		padding: 0.625rem 0.75rem 0.375rem;
+		border-bottom: 1px solid hsl(0, 0%, 92%);
+	}
 
-  .class-offering__heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
+	.class-offering__heading {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
 
-  .class-offering__title {
-    font-weight: 600;
-    font-size: 0.9375rem;
-    color: #111;
-  }
+	.class-offering__title {
+		font-weight: 600;
+		font-size: 0.9375rem;
+		color: #111;
+	}
 
-  .class-offering__plan {
-    flex-shrink: 0;
-    border: 1px solid hsl(5, 53%, 82%);
-    border-radius: 999px;
-    background: white;
-    color: hsl(5, 53%, 32%);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    padding: 0.25rem 0.625rem;
-    cursor: pointer;
-  }
+	.class-offering__plan {
+		flex-shrink: 0;
+		border: 1px solid hsl(5, 53%, 82%);
+		border-radius: 999px;
+		background: white;
+		color: hsl(5, 53%, 32%);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.25rem 0.625rem;
+		cursor: pointer;
+	}
 
-  .class-offering__plan:hover {
-    background: hsl(5, 53%, 96%);
-  }
+	.class-offering__plan:hover {
+		background: hsl(5, 53%, 96%);
+	}
 
-  .class-offering__plan--added {
-    background: hsl(5, 53%, 32%);
-    border-color: hsl(5, 53%, 32%);
-    color: white;
-  }
+	.class-offering__plan--added {
+		background: hsl(5, 53%, 32%);
+		border-color: hsl(5, 53%, 32%);
+		color: white;
+	}
 
-  .class-offering__plan--added:hover {
-    background: hsl(5, 53%, 26%);
-  }
+	.class-offering__plan--added:hover {
+		background: hsl(5, 53%, 26%);
+	}
 
-  .class-offering__subtitle {
-    margin-top: 0.125rem;
-    color: #555;
-    font-size: 0.8125rem;
-    line-height: 1.35;
-  }
+	.class-offering__subtitle {
+		margin-top: 0.125rem;
+		color: #555;
+		font-size: 0.8125rem;
+		line-height: 1.35;
+	}
 
-  .class-offering__section {
-    margin-top: 0.25rem;
-    color: #777;
-    font-size: 0.75rem;
-  }
+	.class-offering__section {
+		margin-top: 0.25rem;
+		color: #777;
+		font-size: 0.75rem;
+	}
 
-  .class-offering__sections {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    padding: 0.5rem 0.75rem 0.625rem;
-  }
+	.class-offering__sections {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		padding: 0.5rem 0.75rem 0.625rem;
+	}
 
-  .class-section-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.5rem 0.625rem;
-    border-radius: 0.375rem;
-    background: white;
-    border: 1px solid hsl(0, 0%, 92%);
-  }
+	.class-section-row {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.5rem 0.625rem;
+		border-radius: 0.375rem;
+		background: white;
+		border: 1px solid hsl(0, 0%, 92%);
+	}
 
-  .class-section-row__main {
-    min-width: 0;
-    flex: 1;
-  }
+	.class-section-row__main {
+		min-width: 0;
+		flex: 1;
+	}
 
-  .class-section-row__type {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #222;
-  }
+	.class-section-row__type {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: #222;
+	}
 
-  .class-section-row__room {
-    margin-left: 0.25rem;
-    font-weight: 500;
-    color: #666;
-  }
+	.class-section-row__room {
+		margin-left: 0.25rem;
+		font-weight: 500;
+		color: #666;
+	}
 
-  .class-section-row__room--unassigned {
-    font-weight: 400;
-    font-style: italic;
-  }
+	.class-section-row__room--unassigned {
+		font-weight: 400;
+		font-style: italic;
+	}
 
-  .class-section-row__schedule {
-    margin-top: 0.125rem;
-    font-size: 0.75rem;
-    color: #555;
-    line-height: 1.35;
-  }
+	.class-section-row__schedule {
+		margin-top: 0.125rem;
+		font-size: 0.75rem;
+		color: #555;
+		line-height: 1.35;
+	}
 
-  /* Hedged Room TBA hint (#846) — subdued on purpose; the room link stays the
+	/* Hedged Room TBA hint (#846) — subdued on purpose; the room link stays the
      primary affordance. */
-  .class-section-row__probable {
-    margin-top: 0.25rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: 0.5rem;
-    row-gap: 0.125rem;
-    font-size: 0.6875rem;
-    color: #777;
-    line-height: 1.4;
-  }
+	.class-section-row__probable {
+		margin-top: 0.25rem;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		column-gap: 0.5rem;
+		row-gap: 0.125rem;
+		font-size: 0.6875rem;
+		color: #777;
+		line-height: 1.4;
+	}
 
-  .class-section-row__probable-pin {
-    border: none;
-    background: none;
-    padding: 0.125rem 0;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    color: #777;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-  }
+	.class-section-row__probable-pin {
+		border: none;
+		background: none;
+		padding: 0.125rem 0;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		color: #777;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		cursor: pointer;
+	}
 
-  .class-section-row__probable-pin:hover {
-    color: hsl(5, 53%, 32%);
-  }
+	.class-section-row__probable-pin:hover {
+		color: hsl(5, 53%, 32%);
+	}
 
-  .class-section-row__open {
-    flex-shrink: 0;
-    border: 1px solid hsl(5, 53%, 82%);
-    border-radius: 999px;
-    background: white;
-    color: hsl(5, 53%, 32%);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    padding: 0.25rem 0.625rem;
-    cursor: pointer;
-  }
+	.class-section-row__open {
+		flex-shrink: 0;
+		border: 1px solid hsl(5, 53%, 82%);
+		border-radius: 999px;
+		background: white;
+		color: hsl(5, 53%, 32%);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.25rem 0.625rem;
+		cursor: pointer;
+	}
 
-  .class-section-row__open:hover {
-    background: hsl(5, 53%, 96%);
-  }
+	.class-section-row__open:hover {
+		background: hsl(5, 53%, 96%);
+	}
 </style>

@@ -6,7 +6,7 @@
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { isPlaceLandmark } from '$lib/constants/content/categories/place';
 	import { getAllPlaces } from '$lib/functions/places.remote';
-	// import { map, queryStore, sidePanelStore } from '$lib/stores.svelte';
+	// import { map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
 	import { getAppData, getMapStore } from '$lib/utils/context';
 	// import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
@@ -51,17 +51,17 @@
 	// 	// if (pinSponsorId) trackSponsorClick(pinSponsorId, 'map_pin');
 	// 	// handlePlaceMarkerClick(place);
 	// 	return () => {
-	// 		// if (queryStore.category === 'place' && queryStore.inputValue === place.name) {
+	// 		// if (searchInfo.category === 'place' && searchInfo.inputValue === place.name) {
 	// 		// 	sidePanelStore.expand();
 	// 		// 	return;
 	// 		// }
-	// 		// queryStore.updateQuery({
+	// 		// searchInfo.updateQuery({
 	// 		// 	category: 'place',
 	// 		// 	type: 'result',
 	// 		// 	value: place.name,
 	// 		// 	id: place.id
 	// 		// });
-	// 		// queryStore.inputValue = place.name;
+	// 		// searchInfo.inputValue = place.name;
 	// 		let subroute: 'landmarks' | 'establishments';
 	// 		if (isPlaceLandmark(place.category)) {
 	// 			subroute = 'landmarks';
@@ -82,7 +82,7 @@
 
 {#if map.withinZoom(zoomLevel)}
 	{#each filteredPlaces as place (`place:${place.id}`)}
-		<!-- /* poiPinsVisible || sponsoredPlacePins.has(place.name) || */ /* queryStore.category === 'place' && queryStore.inputValue === place.name */ -->
+		<!-- /* poiPinsVisible || sponsoredPlacePins.has(place.name) || */ /* searchInfo.category === 'place' && searchInfo.inputValue === place.name */ -->
 		{#if place.lon && place.lat}
 			<!-- {@const centralHoverPreview = shouldShowEntityHoverPreview()}
 			{@const previewSuppressed =
@@ -92,9 +92,9 @@
 				<MapEntityPin
 					label={place.name}
 					tone={isPlaceLandmark(place.category) ? 'landmark' : 'establishment'}
-					// active={queryStore.isActiveMarker(place.name, 'place')}
-					// dimmed={queryStore.hasActiveMarker()}
-					// active={queryStore.category === 'place' && queryStore.inputValue === place.name}
+					// active={searchInfo.isActiveMarker(place.name, 'place')}
+					// dimmed={searchInfo.hasActiveMarker()}
+					// active={searchInfo.category === 'place' && searchInfo.inputValue === place.name}
 					// dimmed={hasActiveMarker()}
 				>
 					{#if isPlaceLandmark(place.category)}

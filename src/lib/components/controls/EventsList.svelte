@@ -10,7 +10,7 @@
 	import { getEventImage } from '$lib/utils/event/event-images';
 	import { formatCampusRange } from '$lib/utils/event/event-time';
 	import { getEventShareUrl } from '$lib/utils/share-links';
-	import { queryStore, sidePanelStore } from '$lib/stores.svelte';
+	import { searchInfo, sidePanelStore } from '$lib/stores.svelte';
 	import type { EventData } from '$lib/utils/types';
 	import EventResult from './EventResult.svelte';
 
@@ -72,13 +72,13 @@
 	}
 
 	function openEvent(event: EventData) {
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			category: 'event',
 			type: 'result',
 			value: event.title,
 			eventSlug: event.slug
 		});
-		queryStore.inputValue = event.title;
+		searchInfo.inputValue = event.title;
 		sidePanelStore.openPanel({
 			type: 'search-result',
 			component: EventResult
@@ -86,7 +86,7 @@
 	}
 
 	function closeEventsList() {
-		queryStore.clearQuery();
+		searchInfo.clearQuery();
 	}
 </script>
 

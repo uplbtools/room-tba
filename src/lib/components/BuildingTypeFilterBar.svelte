@@ -1,59 +1,55 @@
 <script lang="ts">
-  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
-  import House from "@lucide/svelte/icons/house";
-  import Landmark from "@lucide/svelte/icons/landmark";
-  import Layers from "@lucide/svelte/icons/layers";
-  import Shield from "@lucide/svelte/icons/shield";
-  import {
-    getBuildingTypeFilterOptions,
-    type BuildingTypeFilter,
-  } from "$lib/constants/content/categories/building"
-  import { getAppData } from "$lib/utils/context";
-  import {
-    buildingTypeFilter,
-    jeepneyStore,
-    queryStore,
-    classVenuesStore,
-  } from "$lib/stores.svelte";
-  import "./map-chrome/map-chrome.css";
+	import GraduationCap from '@lucide/svelte/icons/graduation-cap';
+	import House from '@lucide/svelte/icons/house';
+	import Landmark from '@lucide/svelte/icons/landmark';
+	import Layers from '@lucide/svelte/icons/layers';
+	import Shield from '@lucide/svelte/icons/shield';
+	import {
+		getBuildingTypeFilterOptions,
+		type BuildingTypeFilter
+	} from '$lib/constants/content/categories/building';
+	import { getAppData } from '$lib/utils/context';
+	import {
+		buildingTypeFilter,
+		jeepneyStore,
+		searchInfo,
+		classVenuesStore
+	} from '$lib/stores.svelte';
+	import './map-chrome/map-chrome.css';
 
-  const appData = getAppData();
-  const { buildings, dorms } = $derived(appData());
+	const appData = getAppData();
+	const { buildings, dorms } = $derived(appData());
 
-  const options = $derived(
-    getBuildingTypeFilterOptions(
-      buildings,
-      dorms,
-      classVenuesStore.buildingIdsWithClasses,
-    ),
-  );
+	const options = $derived(
+		getBuildingTypeFilterOptions(buildings, dorms, classVenuesStore.buildingIdsWithClasses)
+	);
 
-  const CHIP_LABELS: Record<BuildingTypeFilter, string> = {
-    all: "All",
-    "class-building": "Class",
-    "administrative-building": "Admin",
-    "up-managed-dorm": "UP dorms",
-    "non-up-managed-dorm": "Other dorms",
-  };
+	const CHIP_LABELS: Record<BuildingTypeFilter, string> = {
+		all: 'All',
+		'class-building': 'Class',
+		'administrative-building': 'Admin',
+		'up-managed-dorm': 'UP dorms',
+		'non-up-managed-dorm': 'Other dorms'
+	};
 
-  const FILTER_ICONS = {
-    all: Layers,
-    "class-building": GraduationCap,
-    "administrative-building": Landmark,
-    "up-managed-dorm": Shield,
-    "non-up-managed-dorm": House,
-  } as const;
+	const FILTER_ICONS = {
+		all: Layers,
+		'class-building': GraduationCap,
+		'administrative-building': Landmark,
+		'up-managed-dorm': Shield,
+		'non-up-managed-dorm': House
+	} as const;
 
-  const pinFilterContext = $derived(
-    queryStore.category !== "classes" && queryStore.category !== "browse",
-  );
+	const pinFilterContext = $derived(
+		searchInfo.category !== 'classes' && searchInfo.category !== 'browse'
+	);
 
-  function selectFilter(value: BuildingTypeFilter) {
-    // Non-All pin filters are mutually exclusive with the transit layer:
-    // turn off jeepney routes/stops so filtered pins aren't obscured (#325).
-    if (value !== "all") jeepneyStore.disableLayer();
-    buildingTypeFilter.set(value);
-  }
+	function selectFilter(value: BuildingTypeFilter) {
+		// Non-All pin filters are mutually exclusive with the transit layer:
+		// turn off jeepney routes/stops so filtered pins aren't obscured (#325).
+		if (value !== 'all') jeepneyStore.disableLayer();
+		buildingTypeFilter.set(value);
+	}
 </script>
 
 <div class="building-filter-bar" role="toolbar" aria-label="Building pin filters">

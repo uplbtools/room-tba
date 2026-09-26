@@ -49,7 +49,7 @@
 		building3DStore,
 		mapEditStore,
 		mapProposalStore,
-		queryStore,
+		searchInfo,
 		termStore,
 		toastStore
 	} from '$lib/stores.svelte';
@@ -73,9 +73,9 @@
 
 	const building = $derived.by(() => {
 		if (!loaded) return null;
-		const byName = buildings.find((b) => b.buildingName === queryStore.queryValue);
+		const byName = buildings.find((b) => b.buildingName === searchInfo.queryValue);
 		if (byName) return byName;
-		if (queryStore.category === 'building' && pinnedBuildingId !== null) {
+		if (searchInfo.category === 'building' && pinnedBuildingId !== null) {
 			return buildings.find((b) => b.id === pinnedBuildingId) ?? null;
 		}
 		return null;
@@ -91,12 +91,12 @@
 	);
 
 	function openOrg(name: string) {
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			category: 'organization',
 			type: 'result',
 			value: name
 		});
-		queryStore.inputValue = name;
+		searchInfo.inputValue = name;
 	}
 	const buildingShareUrl = $derived(building ? getBuildingShareUrl(building.buildingName) : '');
 	const hasMapPin = $derived(Boolean(building?.lat && building?.lon));
@@ -333,7 +333,7 @@
 
 	function syncBuildingFromServer(updated: Building) {
 		appActions.upsertBuilding(updated);
-		queryStore.hydrateQuery({
+		searchInfo.hydrateQuery({
 			type: 'result',
 			category: 'building',
 			value: updated.buildingName

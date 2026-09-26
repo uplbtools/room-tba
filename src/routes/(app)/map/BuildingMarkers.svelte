@@ -4,11 +4,12 @@
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	// import { buildingMatchesTypeFilter } from '$lib/constants/content/categories/building';
-	import { getAllBuildings } from '$lib/functions/buildings.remote';
-	import { getMapStore } from '$lib/utils/context';
+	import { getMapBuildingsData } from '$lib/functions/buildings.remote';
+	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	// import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
 	import type { Building } from '$lib/utils/types';
+	import { tick } from 'svelte';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -18,7 +19,8 @@
 
 	const { showBuildingPins, zoomLevel }: Props = $props();
 	const map = getMapStore();
-	const buildings = await getAllBuildings();
+	const searchInfo = getSearchInfo();
+	const buildings = await getMapBuildingsData();
 
 	const filteredBuildings = $derived.by(() => {
 		return buildings;
@@ -31,9 +33,15 @@
 		// )
 	});
 
-	function handleMarkerClick(building: Building) {
+	function handleMarkerClick(building: (typeof filteredBuildings)[number]) {
 		return () => {
-			goto(resolve(`/map/buildings/${slugifySegment(building.buildingName)}`));
+			goto(resolve(`/map/buildings/${building.id}`));
+			searchInfo.updateQuery({
+				category: 'building',
+				type: 'result',
+				value: building.buildingName
+			});
+			searchInfo.inputValue = building.buildingName;
 			map.centerMarker([building.lon, building.lat]);
 		};
 	}
@@ -42,13 +50,7 @@
 	// 	return () => {
 	// 		// if (eventPlacementStore.active) return;
 	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
-	// 		if (building.buildingName === queryStore.inputValue) return;
-	// 		queryStore.updateQuery({
-	// 			category: 'building',
-	// 			type: 'result',
-	// 			value: building.buildingName
-	// 		});
-	// 		queryStore.inputValue = building.buildingName;
+	// 		if (building.buildingName === searchInfo.inputValue) return;
 	// 		goto(resolve(`/map/buildings/${slugifySegment(building.buildingName)}`));
 	// 		// sidePanelStore.openPanel({
 	// 		// 	type: 'search-result',
@@ -79,8 +81,8 @@
 			>
 				<MapEntityPin
 					label={building.buildingName}
-					// active={queryStore.isActiveMarker(building.buildingName, 'building')}
-					// dimmed={queryStore.hasActiveMarker()}
+					active={searchInfo.isActiveMarker(building.buildingName, 'building')}
+					dimmed={searchInfo.hasActiveResult()}
 					// // editable={canDragPin(editKey)}
 					// editing={selectedEditKey === editKey}
 					// dimmed={hasActiveMarker()}

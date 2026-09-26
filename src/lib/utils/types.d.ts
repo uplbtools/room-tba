@@ -14,7 +14,7 @@ import {
 	roomsTable,
 	termsTable
 } from '$lib/server/db/schema';
-import type { QueryStoreState } from '../stores/store-types';
+import type { SearchInfoState } from '../stores/store-types';
 import type { EntityPhoto } from './entity/entity-photos';
 
 export type AppData = {
@@ -152,7 +152,7 @@ interface DeveloperInfo {
 }
 
 interface RecentSearch {
-	category: Exclude<QueryStoreState['category'], null>;
+	category: Exclude<SearchInfoState['category'], null>;
 	value: string;
 	eventSlug?: string;
 }

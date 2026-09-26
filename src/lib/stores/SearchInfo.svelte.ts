@@ -1,20 +1,20 @@
 import { SvelteMap } from "svelte/reactivity";
-import type { QueryStoreState, RecentSearch } from "./store-types";
+import type { SearchInfoState, RecentSearch } from "./store-types.js";
 import { buildingTypeFilter } from "./filter-stores.svelte.js";
 
-export default class QueryStore {
-    private _queryStore = $state<QueryStoreState>({
+export default class SearchInfo {
+    private _searchInfo = $state<SearchInfoState>({
         category: null,
         type: 'query',
         value: ''
     });
     recentSearches: RecentSearch[] = $state([]);
-    private _filters = new SvelteMap<string, Exclude<QueryStoreState['category'], null>>();
+    private _filters = new SvelteMap<string, Exclude<SearchInfoState['category'], null>>();
     inputValue = $state('');
-    category = $derived(this._queryStore.category);
-    type = $derived(this._queryStore.type);
-    queryValue = $derived(this._queryStore.value);
-    selectedEventSlug = $derived(this._queryStore.eventSlug ?? null);
+    category = $derived(this._searchInfo.category);
+    type = $derived(this._searchInfo.type);
+    queryValue = $derived(this._searchInfo.value);
+    selectedEventSlug = $derived(this._searchInfo.eventSlug ?? null);
     filterValues = $derived(
         Array.from(
             this._filters.entries().map(([value, category]) => ({
@@ -24,17 +24,17 @@ export default class QueryStore {
         )
     );
 
-    hasActiveMarker() {
-        if (this._queryStore.category === null) return false;
-        return ["building", "organization", "place", "dorm"].includes(this._queryStore.category);
+    hasActiveResult() {
+        if (this._searchInfo.category === null) return false;
+        return ["building", "organization", "place", "dorm"].includes(this._searchInfo.category);
     }
 
-    isActiveMarker(value: string, category: QueryStoreState["category"]): boolean {
-        return value === this._queryStore.value && category === this._queryStore.category;
+    isActiveMarker(value: string, category: SearchInfoState["category"]): boolean {
+        return value === this._searchInfo.value && category === this._searchInfo.category;
     }
 
-    updateQuery = (obj: QueryStoreState & { id?: number }) => {
-        this._queryStore = obj;
+    updateQuery = (obj: SearchInfoState & { id?: number }) => {
+        this._searchInfo = obj;
         this.inputValue = obj.value;
 
         if (obj.type === 'result' && obj.category !== null && obj.category !== 'browse') {
@@ -59,8 +59,8 @@ export default class QueryStore {
         }
     };
 
-    hydrateQuery = (obj: QueryStoreState) => {
-        this._queryStore = obj;
+    hydrateQuery = (obj: SearchInfoState) => {
+        this._searchInfo = obj;
         this.inputValue = obj.value;
     };
 
@@ -82,7 +82,7 @@ export default class QueryStore {
     }
 
     clearQuery = () => {
-        this._queryStore = {
+        this._searchInfo = {
             category: null,
             type: 'query',
             value: ''
@@ -91,22 +91,22 @@ export default class QueryStore {
     };
 
     exitResultMode = () => {
-        this._queryStore = {
+        this._searchInfo = {
             category: null,
             type: 'query',
             value: ''
         };
     };
 
-    setType = (type: QueryStoreState['type']) => {
-        this._queryStore.type = type;
+    setType = (type: SearchInfoState['type']) => {
+        this._searchInfo.type = type;
     };
 
-    setCategory = (category: QueryStoreState['category']) => {
-        this._queryStore.category = category;
+    setCategory = (category: SearchInfoState['category']) => {
+        this._searchInfo.category = category;
     };
 
-    addFilter = (key: string, category: Exclude<QueryStoreState['category'], null>) => {
+    addFilter = (key: string, category: Exclude<SearchInfoState['category'], null>) => {
         this._filters.set(key, category);
     };
 

@@ -12,9 +12,9 @@ import OrgResult from '$lib/components/controls/OrgResult.svelte';
 import PlaceResult from '$lib/components/controls/PlaceResult.svelte';
 import ProposalReviewPanel from '$lib/components/ProposalReviewPanel.svelte';
 import RoomResult from '$lib/components/room/RoomResult.svelte';
-import type { QueryStoreState, SidePanelMetaData } from '../stores/store-types';
+import type { SearchInfoState, SidePanelMetaData } from '../stores/store-types';
 
-type Category = NonNullable<QueryStoreState['category']>;
+type Category = NonNullable<SearchInfoState['category']>;
 
 const CATEGORY_PANELS: Record<Category, Component> = {
 	building: BuildingResult,
@@ -42,7 +42,7 @@ const CATEGORY_PANELS: Record<Category, Component> = {
  */
 export function resolvePanelContent(
 	state: SidePanelMetaData | null,
-	category: QueryStoreState['category']
+	category: SearchInfoState['category']
 ): Component | null {
 	if (state) {
 		if (state.type === 'admin-suggestions') return ProposalReviewPanel;

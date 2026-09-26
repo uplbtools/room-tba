@@ -1,7 +1,7 @@
 <script lang="ts">
 	import EntityEmptyState from './EntityEmptyState.svelte';
 	import EntityPagination from './EntityPagination.svelte';
-	import { queryStore } from '$lib/stores.svelte';
+	import { searchInfo } from '$lib/stores.svelte';
 	import type { Room } from '$lib/utils/types';
 	import RoomDisplay from './RoomDisplay.svelte';
 	import TermSelector from '$lib/components/TermSelector.svelte';
@@ -70,7 +70,7 @@
 	);
 
 	function openBuilding(buildingName: string) {
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			type: 'result',
 			category: 'building',
 			value: buildingName

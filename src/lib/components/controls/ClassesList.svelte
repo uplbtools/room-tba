@@ -7,7 +7,7 @@
 	import EntityPagination from './EntityPagination.svelte';
 	import { fetchClassPage } from '$lib/utils/classes-api';
 	import { CLASS_BROWSE_SCOPE_NOTE } from '$lib/amis/room-scheduled-types';
-	import { queryStore, termStore } from '$lib/stores.svelte';
+	import { searchInfo, termStore } from '$lib/stores.svelte';
 	import ScheduleFreshnessNote from '$lib/components/ScheduleFreshnessNote.svelte';
 	import type { ClassMapValue } from '$lib/utils/types';
 	import { onMount } from 'svelte';
@@ -90,7 +90,7 @@
 	}
 
 	function closeList() {
-		queryStore.clearQuery();
+		searchInfo.clearQuery();
 	}
 </script>
 

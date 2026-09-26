@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import RoomResult from '$lib/components/room/RoomResult.svelte';
 	import { slugifySegment } from '$lib/utils/site';
-	import { queryStore, sidePanelStore } from '$lib/stores.svelte';
+	import { searchInfo, sidePanelStore } from '$lib/stores.svelte';
 	import type { Room } from '$lib/utils/types';
 
 	type Props = {
@@ -28,12 +28,12 @@
 	);
 
 	function openRoom() {
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			type: 'result',
 			category: 'room',
 			value: room.code
 		});
-		queryStore.inputValue = room.code;
+		searchInfo.inputValue = room.code;
 		goto(resolve(`/map/rooms/${slugifySegment(room.code)}-${room.id}`));
 		sidePanelStore.openPanel({
 			type: 'search-result',

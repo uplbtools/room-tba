@@ -42,7 +42,7 @@ export default class UserLocation {
         this.isTracking = true;
         this.announcedGoodFix = false;
         this.announcedApproximateFix = false;
-        toastStore.show('Requesting location access...', 'info');
+        // toastStore.show('Requesting location access...', 'info');
 
         this.watchId = navigator.geolocation.watchPosition(
             (position) => {

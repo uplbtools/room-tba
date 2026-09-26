@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CopyLinkButton from '$lib/components/CopyLinkButton.svelte';
-	import { toastStore } from '$lib/stores.svelte';
+	// import { toastStore } from '$lib/stores.svelte';
 
 	type Props = {
 		url: string;
@@ -20,6 +20,4 @@
 	successMessage={`Copied link for ${entityLabel}.`}
 	errorMessage={`Could not copy link for ${entityLabel}.`}
 	feedback="none"
-	onsuccess={() => toastStore.show(`Copied link for ${entityLabel}.`, 'success')}
-	onerror={() => toastStore.show(`Could not copy link for ${entityLabel}.`, 'error')}
 />

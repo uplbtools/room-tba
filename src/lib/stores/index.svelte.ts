@@ -26,7 +26,7 @@ import {
 // } from './map/map-stores.svelte';
 import PlannerStore from './PlannerStore.svelte';
 import TransitStore from './map/TransitStore.svelte.js';
-import QueryStore from './QueryStore.svelte';
+import searchInfo from './searchInfo.svelte';
 import SidebarStore from './ui/SidebarStore.svelte';
 import SidePanelStore from './ui/SidePanelStore.svelte';
 import ModalStore from './ui/ModalStore.svelte';
@@ -57,7 +57,7 @@ export {
 
 
 // export { currentRoom }
-// export const queryStore = new QueryStore();
+// export const searchInfo = new searchInfo();
 // export const termStore = new TermStore();
 // export const roomClassesStore = new RoomClassesStore();
 // export const classVenuesStore = new ClassVenuesStore();

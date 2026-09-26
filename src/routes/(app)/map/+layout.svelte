@@ -1,57 +1,57 @@
 <script lang="ts">
-	// import { onMount, type Snippet } from 'svelte';
-	// import { page } from '$app/state';
-	// import { campusCommunity } from '$lib/campus.config';
-	// import Entry from './Entry.svelte';
-	// import { type AppContextData, type DBData, setAppActions, setAppData } from '$lib/utils/context';
-	// import { jitteredBackoffDelay, sleep } from '$lib/utils/local/data/fetch-json';
-	// import { CAMPUS_DATA_REFRESH_EVENT } from '$lib/utils/local/data/invalidate-sync-key';
-	// import { getDB } from '$lib/utils/local/data/pgliteDB';
-	// import {
-	// 	getSyncKeysFromLs,
-	// 	localTableSyncCheck,
-	// 	syncAliasCache,
-	// 	syncBuildings,
-	// 	syncClasses,
-	// 	syncColleges,
-	// 	syncDivisions,
-	// 	syncDorms,
-	// 	syncEvents,
-	// 	syncOrganizations,
-	// 	syncPlaces
-	// } from '$lib/utils/local/data/sync';
-	// import {
-	// 	fetchRemoteEvents,
-	// 	getBuildings,
-	// 	getClasses,
-	// 	getColleges,
-	// 	getDivisions,
-	// 	getDorms,
-	// 	getEvents,
-	// 	getOrganizations,
-	// 	getPlaces,
-	// 	getRoomsData,
-	// 	loadCachedAppData
-	// } from '$lib/utils/local/data/utils';
-	// import {
-	// 	appBootstrapStore,
-	// 	queryStore,
-	// 	syncToastStore,
-	// 	toastStore,
-	// 	transitStore
-	// } from '$lib/stores.svelte';
-	// import { normalizeDormListFields } from '$lib/utils/string-lists';
-	// import type {
-	// 	Building,
-	// 	College,
-	// 	Division,
-	// 	DormData,
-	// 	EventData,
-	// 	OrgData,
-	// 	PlaceData,
-	// 	TableSyncInfo
-	// } from '$lib/utils/types';
-	// import UIMap from './Map.svelte'; */
+	/* import { onMount, type Snippet } from 'svelte';
+	import { page } from '$app/state';
+	import { campusCommunity } from '$lib/campus.config';
+	import Entry from './Entry.svelte';
+	import { type AppContextData, type DBData, setAppActions, setAppData } from '$lib/utils/context';
+	import { jitteredBackoffDelay, sleep } from '$lib/utils/local/data/fetch-json';
+	import { CAMPUS_DATA_REFRESH_EVENT } from '$lib/utils/local/data/invalidate-sync-key';
+	import { getDB } from '$lib/utils/local/data/pgliteDB';
+	import {
+		getSyncKeysFromLs,
+		localTableSyncCheck,
+		syncAliasCache,
+		syncBuildings,
+		syncClasses,
+		syncColleges,
+		syncDivisions,
+		syncDorms,
+		syncEvents,
+		syncOrganizations,
+		syncPlaces
+	} from '$lib/utils/local/data/sync';
+	import {
+		fetchRemoteEvents,
+		getBuildings,
+		getClasses,
+		getColleges,
+		getDivisions,
+		getDorms,
+		getEvents,
+		getOrganizations,
+		getPlaces,
+		getRoomsData,
+		loadCachedAppData
+	} from '$lib/utils/local/data/utils';
+	import {
+		appBootstrapStore,
+		searchInfo,
+		syncToastStore,
+		toastStore,
+		transitStore
+	} from '$lib/stores.svelte';
+	import { normalizeDormListFields } from '$lib/utils/string-lists';
+	import type {
+		Building,
+		College,
+		Division,
+		DormData,
+		EventData,
+		OrgData,
+		PlaceData,
+		TableSyncInfo
+	} from '$lib/utils/types';
+	import UIMap from './Map.svelte'; */
 
 	// import { MapStore } from '$lib/stores/map/map-stores.svelte';
 	// import { initMapStore } from '$lib/utils/context';
@@ -63,7 +63,7 @@
 	// the store, not the router, is what the panel and the map read.
 	/* $effect(() => {
 		const initial = page.data.initialSearch;
-		queryStore.hydrateQuery(
+		searchInfo.hydrateQuery(
 			initial
 				? {
 						category: initial.category,
@@ -485,13 +485,21 @@
 			divisions = next;
 		}
 	}); */
+	// import SidePanel from '$lib/components/controls/SidePanel.svelte';
+	import MapControlsStack from '$lib/components/map-chrome/MapControlsStack.svelte';
+	import Search from '$lib/components/search/Search.svelte';
 	import { MapStore } from '$lib/stores/map/map-stores.svelte';
 	import UserLocation from '$lib/stores/map/UserLocation.svelte';
-	import { initMapStore, initUserLocation } from '$lib/utils/context';
+	import { initMapStore, initSearchInfo, initUserLocation } from '$lib/utils/context';
+	import type { Snippet } from 'svelte';
 	import UIMap from './Map.svelte';
+	import SearchInfo from '$lib/stores/SearchInfo.svelte';
+
+	const { children }: { children: Snippet } = $props();
 
 	initMapStore(new MapStore());
 	initUserLocation(new UserLocation());
+	initSearchInfo(new SearchInfo());
 </script>
 
 <!-- The bootstrap try/catch above only covers data loading. An error thrown
@@ -506,9 +514,22 @@
 		console.error(e);
 	}}
 >
-	<UIMap />
+	<div class="layout-root">
+		<div
+			class="pointer-events-none fixed top-0 left-0 z-20 flex h-full w-full items-end justify-between p-3"
+		>
+			<div class="h-full">
+				<!-- <Search /> -->
+				<!--<SidePanel>
+					</SidePanel> -->
+				{@render children()}
+			</div>
+			<!-- <MapControlsStack /> -->
+		</div>
+		<UIMap />
+	</div>
 	{#snippet pending()}
-		Loading...
+		LOading
 	{/snippet}
 	{#snippet failed(error, reset)}
 		{String(error)}

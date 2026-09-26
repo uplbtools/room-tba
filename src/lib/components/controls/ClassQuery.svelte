@@ -6,9 +6,13 @@
 	import FinalExamsList from '$lib/components/room/FinalExamsList.svelte';
 	import { fetchClassPage } from '$lib/utils/classes-api';
 	import { CLASS_BROWSE_SCOPE_NOTE } from '$lib/amis/room-scheduled-types';
-	import { fetchFinalExams, FINALS_SCOPE_NOTE, looksLikeCourseCode } from '$lib/utils/final-exams/final-exams';
+	import {
+		fetchFinalExams,
+		FINALS_SCOPE_NOTE,
+		looksLikeCourseCode
+	} from '$lib/utils/final-exams/final-exams';
 	import { normalizeCourseCode } from '$lib/utils/final-exams/normalize';
-	import { queryStore, sidePanelStore, termStore } from '$lib/stores.svelte';
+	import { searchInfo, sidePanelStore, termStore } from '$lib/stores.svelte';
 	import type { ClassMapValue, FinalExamRow } from '$lib/utils/types';
 
 	const PAGE_SIZE = 25;
@@ -30,7 +34,7 @@
 		termStore.init();
 	});
 
-	const courseQuery = $derived(normalizeCourseCode(queryStore.queryValue));
+	const courseQuery = $derived(normalizeCourseCode(searchInfo.queryValue));
 	// Every page behind the current one was full (Next only shows on hasMore).
 	const classRangeStart = $derived(classes.length === 0 ? 0 : prevCursors.length * PAGE_SIZE + 1);
 	const classRangeEnd = $derived(prevCursors.length * PAGE_SIZE + classes.length);
@@ -111,7 +115,7 @@
 	}
 
 	function openBrowseAll() {
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			category: 'classes',
 			type: 'result',
 			value: 'All classes'
@@ -124,7 +128,7 @@
 	<header class="entity-header">
 		<div class="entity-header__title-row">
 			<h2 class="entity-header__title">
-				{courseQuery || queryStore.queryValue}
+				{courseQuery || searchInfo.queryValue}
 			</h2>
 			{#if termStore.activeTerm?.label}
 				<span class="entity-header__badge">{termStore.activeTerm.label}</span>

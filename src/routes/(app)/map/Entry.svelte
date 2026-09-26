@@ -37,7 +37,7 @@
 	// 	measureRouteStore,
 	// 	modalStore,
 	// 	plannerStore,
-	// 	queryStore,
+	// 	searchInfo,
 	// 	scheduleRouteStore,
 	// 	sidebarStore,
 	// 	sidePanelStore,
@@ -113,11 +113,11 @@
 	// 		const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? '[]');
 	// 		parsedSearches.forEach((parsedSearch) => {
 	// 			if (isRecentSearch(parsedSearch)) {
-	// 				queryStore.addRecentSearch(parsedSearch);
+	// 				searchInfo.addRecentSearch(parsedSearch);
 	// 			}
 	// 		});
 	// 	} catch {
-	// 		queryStore.recentSearches = [];
+	// 		searchInfo.recentSearches = [];
 	// 	}
 	// 	const urlParams = new URLSearchParams(initialUrlSearch);
 
@@ -172,7 +172,7 @@
 	// 	// stop panel copy-link.
 	// 	const jeepneyRouteId = campusTransit.enabled ? urlParams.get('jeepney') : null;
 	// 	if (jeepneyRouteId) {
-	// 		openCampusBrowse(queryStore, sidePanelStore, 'jeepney');
+	// 		openCampusBrowse(searchInfo, sidePanelStore, 'jeepney');
 	// 		jeepneyStore.openRouteOnMap(jeepneyRouteId);
 	// 		const stopParam = Number.parseInt(urlParams.get('stop') ?? '', 10);
 	// 		if (Number.isInteger(stopParam)) {
@@ -280,7 +280,7 @@
 	// 	modalStore.openModal('landing');
 	// });
 	// $effect(() => {
-	// 	updateData(queryStore.recentSearches);
+	// 	updateData(searchInfo.recentSearches);
 	// });
 
 	// let mapToolsStackEl = $state<HTMLDivElement | null>(null);
@@ -377,8 +377,8 @@
 	// 			measureRouteStore.disable();
 	// 		} else if (jeepneyStore.selectedStopIndex !== null) {
 	// 			jeepneyStore.closeStop();
-	// 		} else if (queryStore.inputValue !== '' || queryStore.type === 'result') {
-	// 			queryStore.clearQuery();
+	// 		} else if (searchInfo.inputValue !== '' || searchInfo.type === 'result') {
+	// 			searchInfo.clearQuery();
 	// 			if (userLocation.destination) {
 	// 				userLocation.clearDestination();
 	// 			}

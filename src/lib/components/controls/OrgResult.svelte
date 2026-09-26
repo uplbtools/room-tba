@@ -3,7 +3,7 @@
     adminAuthStore,
     additionProposalStore,
     modalStore,
-    queryStore,
+    searchInfo,
     sidePanelStore,
     toastStore,
   } from "$lib/stores.svelte";
@@ -36,7 +36,7 @@
   const { organizations, buildings } = $derived(appData());
 
   const org = $derived(
-    organizations?.find((o) => o.name === queryStore.queryValue),
+    organizations?.find((o) => o.name === searchInfo.queryValue),
   );
 
   const categoryLabel = $derived(org ? orgCategoryLabel(org.category) : null);
@@ -96,7 +96,7 @@
 
   function syncFromServer(updated: OrgData) {
     appActions.upsertOrganization(updated);
-    queryStore.hydrateQuery({
+    searchInfo.hydrateQuery({
       type: "result",
       category: "organization",
       value: updated.name,
@@ -105,12 +105,12 @@
 
   function openHostBuilding() {
     if (!hostBuilding) return;
-    queryStore.updateQuery({
+    searchInfo.updateQuery({
       category: "building",
       type: "result",
       value: hostBuilding.buildingName,
     });
-    queryStore.inputValue = hostBuilding.buildingName;
+    searchInfo.inputValue = hostBuilding.buildingName;
   }
 
   function buildPatch(current: OrgData): Record<string, unknown> | null {

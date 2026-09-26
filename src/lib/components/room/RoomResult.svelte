@@ -40,7 +40,7 @@
 		building3DStore,
 		currentRoom,
 		modalStore,
-		queryStore,
+		searchInfo,
 		roomClassesStore,
 		sidePanelStore,
 		termStore,
@@ -221,7 +221,7 @@
 
 	function syncRoomFromServer(room: Room) {
 		currentRoom.setRoom(room);
-		queryStore.hydrateQuery({
+		searchInfo.hydrateQuery({
 			type: 'result',
 			category: 'room',
 			value: room.code
@@ -391,7 +391,7 @@
 	function openBuildingResult() {
 		const buildingName = parentBuilding?.name;
 		if (!buildingName) return;
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			type: 'result',
 			category: 'building',
 			value: buildingName

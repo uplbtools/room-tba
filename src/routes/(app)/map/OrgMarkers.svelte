@@ -6,7 +6,7 @@
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { isStudentOrganization } from '$lib/constants/content/categories/org';
 	import { getAllOrganizations } from '$lib/functions/organizations.remote';
-	// import { map, queryStore, sidePanelStore } from '$lib/stores.svelte';
+	// import { map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
 	import { getAppData, getMapStore } from '$lib/utils/context';
 	// import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
@@ -62,17 +62,17 @@
 	// 	return () => {
 	// 		// if (eventPlacementStore.active) return;
 	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
-	// 		// if (queryStore.category === 'organization' && name === queryStore.inputValue) {
+	// 		// if (searchInfo.category === 'organization' && name === searchInfo.inputValue) {
 	// 		// 	sidePanelStore.expand();
 	// 		// 	return;
 	// 		// }
-	// 		// queryStore.updateQuery({
+	// 		// searchInfo.updateQuery({
 	// 		// 	category: 'organization',
 	// 		// 	type: 'result',
 	// 		// 	value: name,
 	// 		// 	id
 	// 		// });
-	// 		// queryStore.inputValue = name;
+	// 		// searchInfo.inputValue = name;
 	// 		goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
 	// 		// sidePanelStore.openPanel({
 	// 		// 	type: 'search-result',
@@ -95,8 +95,8 @@
 				<MapEntityPin
 					label={org.name}
 					tone={isStudentOrganization(org.category) ? 'organization' : 'office'}
-					// active={queryStore.isActiveMarker(org.name, 'organization')}
-					// dimmed={queryStore.hasActiveMarker()}
+					// active={searchInfo.isActiveMarker(org.name, 'organization')}
+					// dimmed={searchInfo.hasActiveMarker()}
 					// labelVisible={(isStudentOrganization(org.category)
 				>
 					{#if isStudentOrganization(org.category)}

@@ -8,7 +8,7 @@
 	import DormMarkers from './DormMarkers.svelte';
 	// import { getAllBuildings } from '$lib/functions/buildings.remote';
 	import * as maplibre from 'maplibre-gl';
-	import { getMapStore } from '$lib/utils/context';
+	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import { onMount } from 'svelte';
 	import UserLocationMarker from './UserLocationMarker.svelte';
 	import { goto } from '$app/navigation';
@@ -16,12 +16,14 @@
 	import { page } from '$app/state';
 
 	const map = getMapStore();
+	const searchInfo = getSearchInfo();
 
 	onMount(initZoom);
 	$effect(syncZoom);
 
 	function initZoom() {
 		const mapInstance = map.getRawInstance();
+		map.setZoomLevel(17);
 		if (mapInstance) {
 			mapInstance.on('load', handleZoom(mapInstance));
 			return () => {
@@ -49,6 +51,7 @@
 	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
 		if (event.key === 'Escape' && page.route.id !== '/(app)/map') {
 			void goto(resolve('/map'));
+			void searchInfo.clearQuery();
 		}
 	}
 </script>
@@ -79,7 +82,7 @@
 		<!-- Entities -->
 
 		<!-- Buildings -->
-		<BuildingMarkers showBuildingPins={true} zoomLevel={13} />
+		<BuildingMarkers showBuildingPins={true} zoomLevel={15} />
 
 		<!-- Dorm -->
 		<DormMarkers showDormPins={true} zoomLevel={16} />
@@ -206,7 +209,7 @@ import {
 	measureRouteStore,
 	plannerBuildingsStore,
 	plannerStore,
-	queryStore,
+	searchInfo,
 	scheduleRouteStore,
 	sidePanelStore,
 	syncToastStore,
@@ -268,7 +271,7 @@ $effect(() => {
 // Browsing a sidebar directory declutters the map to just that category's
 // pins; null means no browse filter (all pin kinds show).
 const browseTab = $derived(
-	queryStore.category === "browse" ? queryStore.queryValue : null,
+	searchInfo.category === "browse" ? searchInfo.queryValue : null,
 );
 const showBuildingPins = $derived(
 	browseTab === null ||
@@ -346,17 +349,17 @@ function isLandmarkPlace(place: PlaceData) {
 }
 
 function handlePlaceMarkerClick(place: PlaceData) {
-	if (queryStore.category === "place" && queryStore.inputValue === place.name) {
+	if (searchInfo.category === "place" && searchInfo.inputValue === place.name) {
 		sidePanelStore.expand();
 		return;
 	}
-	queryStore.updateQuery({
+	searchInfo.updateQuery({
 		category: "place",
 		type: "result",
 		value: place.name,
 		id: place.id
 	});
-	queryStore.inputValue = place.name;
+	searchInfo.inputValue = place.name;
 	let subroute:"landmarks" | "establishments";
 	if (isLandmarkPlace(place)) {
 		subroute = "landmarks";
@@ -373,10 +376,10 @@ function handlePlaceMarkerClick(place: PlaceData) {
 // Event titles are not unique, so resolve the selected event by its slug when
 // one is available, falling back to the title only for legacy/partial state.
 function findSelectedEvent(eventList: EventData[]): EventData | null {
-	const slug = queryStore.selectedEventSlug;
+	const slug = searchInfo.selectedEventSlug;
 	if (slug) return eventList.find((event) => event.slug === slug) ?? null;
 	return (
-		eventList.find((event) => event.title === queryStore.inputValue) ?? null
+		eventList.find((event) => event.title === searchInfo.inputValue) ?? null
 	);
 }
 let directions: MapLibreGlDirections | undefined = $state.raw();
@@ -930,13 +933,13 @@ async function createEventAtMapPoint(coords: EditableCoords) {
 		}
 
 		appActions.replaceEvent(data.event);
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			category: "event",
 			type: "result",
 			value: data.event.title,
 			eventSlug: data.event.slug,
 		});
-		queryStore.inputValue = data.event.title;
+		searchInfo.inputValue = data.event.title;
 		sidePanelStore.expand();
 		if (!mapEditStore.enabled) mapEditStore.toggle();
 		eventPlacementStore.finishCreate(data.event.id);
@@ -1090,9 +1093,9 @@ function disableTerrain(map: mapGl.MapLibreMap) {
 
 function restoreFlatMapCamera(map: mapGl.MapLibreMap) {
 	untrack(() => {
-		const category = queryStore.category;
-		const type = queryStore.type;
-		const value = queryStore.inputValue;
+		const category = searchInfo.category;
+		const type = searchInfo.type;
+		const value = searchInfo.inputValue;
 
 		if (category === "building" && type === "result") {
 			if (!loaded) return;
@@ -2613,7 +2616,7 @@ $effect(() => {
 $effect(() => {
 	const mapInstance = map.getRawInstance();
 	const selectedEvent =
-		loaded && queryStore.category === "event" && queryStore.type === "result"
+		loaded && searchInfo.category === "event" && searchInfo.type === "result"
 			? findSelectedEvent(events)
 			: null;
 	if (!map) return;
@@ -2653,9 +2656,9 @@ $effect(() => {
 });
 
 $effect(() => {
-	const category = queryStore.category;
-	const type = queryStore.type;
-	const value = queryStore.inputValue;
+	const category = searchInfo.category;
+	const type = searchInfo.type;
+	const value = searchInfo.inputValue;
 	const mapInstance = map.getRawInstance();
 
 	if (!map) return;
@@ -2752,14 +2755,14 @@ $effect(() => {
 function handleDormMarkerClick(dormName: string, id:number) {
 	if (eventPlacementStore.active) return;
 	if (isMapEditEnabled() && selectedEditKey !== null) return;
-	if (dormName === queryStore.inputValue) return;
-	queryStore.updateQuery({
+	if (dormName === searchInfo.inputValue) return;
+	searchInfo.updateQuery({
 		category: "dorm",
 		type: "result",
 		value: dormName,
 		id
 	});
-	queryStore.inputValue = dormName;
+	searchInfo.inputValue = dormName;
 	goto(resolve(`/map/dorms/${slugifySegment(dormName)}-${id}`));
 	sidePanelStore.openPanel({
 		type: "search-result",
@@ -2771,19 +2774,19 @@ function handleOrgMarkerClick(name: string, id: number) {
 	if (eventPlacementStore.active) return;
 	if (isMapEditEnabled() && selectedEditKey !== null) return;
 	if (
-		queryStore.category === "organization" &&
-		name === queryStore.inputValue
+		searchInfo.category === "organization" &&
+		name === searchInfo.inputValue
 	) {
 		sidePanelStore.expand();
 		return;
 	}
-	queryStore.updateQuery({
+	searchInfo.updateQuery({
 		category: "organization",
 		type: "result",
 		value: name,
 		id
 	});
-	queryStore.inputValue = name;
+	searchInfo.inputValue = name;
 	goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
 	sidePanelStore.openPanel({
 		type: "search-result",
@@ -2794,14 +2797,14 @@ function handleOrgMarkerClick(name: string, id: number) {
 function handleEventMarkerClick(event: EventData) {
 	if (eventPlacementStore.active) return;
 	if (isMapEditEnabled() && selectedEditKey !== null) return;
-	if (queryStore.selectedEventSlug === event.slug) return;
-	queryStore.updateQuery({
+	if (searchInfo.selectedEventSlug === event.slug) return;
+	searchInfo.updateQuery({
 		category: "event",
 		type: "result",
 		value: event.title,
 		eventSlug: event.slug,
 	});
-	queryStore.inputValue = event.title;
+	searchInfo.inputValue = event.title;
 	goto(resolve(`/map/events/${event.id}`));
 	sidePanelStore.openPanel({
 		type: "search-result",
@@ -2820,11 +2823,11 @@ function collapseEventMarkerGroup() {
 }
 
 function isSelectedEvent(event: EventData) {
-	if (queryStore.category !== "event") return false;
-	if (queryStore.selectedEventSlug) {
-		return queryStore.selectedEventSlug === event.slug;
+	if (searchInfo.category !== "event") return false;
+	if (searchInfo.selectedEventSlug) {
+		return searchInfo.selectedEventSlug === event.slug;
 	}
-	return queryStore.inputValue === event.title;
+	return searchInfo.inputValue === event.title;
 }
 
 function formatEventMarkerDate(value: string) {
@@ -2902,16 +2905,16 @@ function isSelectedEditableEventLocation(
 ) {
 	if (
 		!isMapEditEnabled() ||
-		queryStore.category !== "event" ||
-		queryStore.type !== "result"
+		searchInfo.category !== "event" ||
+		searchInfo.type !== "result"
 	) {
 		return false;
 	}
 
-	const slug = queryStore.selectedEventSlug;
+	const slug = searchInfo.selectedEventSlug;
 	if (slug) {
 		if (slug !== event.slug) return false;
-	} else if (queryStore.inputValue !== event.title) {
+	} else if (searchInfo.inputValue !== event.title) {
 		return false;
 	}
 
@@ -2994,8 +2997,8 @@ let editableEventLocation = $derived.by(() => {
 	if (
 		!loaded ||
 		!isMapEditEnabled() ||
-		queryStore.category !== "event" ||
-		queryStore.type !== "result"
+		searchInfo.category !== "event" ||
+		searchInfo.type !== "result"
 	) {
 		return null;
 	}
@@ -3018,8 +3021,8 @@ let editableEventLocation = $derived.by(() => {
 $effect(() => {
 	if (
 		!loaded ||
-		queryStore.category !== "event" ||
-		queryStore.type !== "result"
+		searchInfo.category !== "event" ||
+		searchInfo.type !== "result"
 	)
 		return;
 	const group = eventMarkerGroups.find((group) =>
@@ -3032,14 +3035,14 @@ $effect(() => {
 });
 
 let activeBuildingName = $derived.by(() => {
-	if (!queryStore.category || queryStore.type !== "result") return null;
-	switch (queryStore.category) {
+	if (!searchInfo.category || searchInfo.type !== "result") return null;
+	switch (searchInfo.category) {
 		case "building":
-			return queryStore.inputValue;
+			return searchInfo.inputValue;
 		case "room": {
 			return null;
 			// const currentRoom = rooms.find(
-			//   (room) => room.code === queryStore.inputValue,
+			//   (room) => room.code === searchInfo.inputValue,
 			// );
 			// return currentRoom && currentRoom.building
 			//   ? currentRoom.building.name
@@ -3054,8 +3057,8 @@ let selectedEventFocus = $derived.by(() => {
 	if (
 		!loaded ||
 		isMapEditEnabled() ||
-		queryStore.category !== "event" ||
-		queryStore.type !== "result"
+		searchInfo.category !== "event" ||
+		searchInfo.type !== "result"
 	) {
 		return null;
 	}
@@ -3158,15 +3161,15 @@ let linkedActiveEventBuildingIds = $derived.by(() => {
 });
 
 let activeDormName = $derived.by(() => {
-	if (queryStore.category === "dorm" && queryStore.type === "result") {
-		return queryStore.inputValue;
+	if (searchInfo.category === "dorm" && searchInfo.type === "result") {
+		return searchInfo.inputValue;
 	}
 	return null;
 });
 
 let activeOrgName = $derived.by(() => {
-	if (queryStore.category === "organization" && queryStore.type === "result") {
-		return queryStore.inputValue;
+	if (searchInfo.category === "organization" && searchInfo.type === "result") {
+		return searchInfo.inputValue;
 	}
 	return null;
 });
@@ -3193,7 +3196,7 @@ let linkedActiveEventDormIds = $derived.by(() => {
 });
 
 let selectedEventRouteStops = $derived.by(() => {
-	if (!loaded || queryStore.category !== "event") return [];
+	if (!loaded || searchInfo.category !== "event") return [];
 	const selectedEvent = findSelectedEvent(events);
 	if (!selectedEvent) return [];
 	return selectedEvent.routes.flatMap((route) =>
@@ -4239,7 +4242,7 @@ let selectedEventRouteStops = $derived.by(() => {
 			{/each}
 
 			{#each filteredPlaces as place (`place:${place.id}`)}
-				{#if place.lat != null && place.lon != null && (poiPinsVisible || sponsoredPlacePins.has(place.name) || (queryStore.category === 'place' && queryStore.inputValue === place.name))}
+				{#if place.lat != null && place.lon != null && (poiPinsVisible || sponsoredPlacePins.has(place.name) || (searchInfo.category === 'place' && searchInfo.inputValue === place.name))}
 					{@const centralHoverPreview = shouldShowEntityHoverPreview()}
 					{@const previewSuppressed =
 						centralHoverPreview && isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
@@ -4248,10 +4251,10 @@ let selectedEventRouteStops = $derived.by(() => {
 						<MapEntityPin
 							label={place.name}
 							tone={isLandmarkPlace(place) ? 'landmark' : 'establishment'}
-							active={queryStore.category === 'place' && queryStore.inputValue === place.name}
+							active={searchInfo.category === 'place' && searchInfo.inputValue === place.name}
 							dimmed={hasActiveMarker()}
 							labelVisible={zoomLevel >= 19 ||
-								(queryStore.category === 'place' && queryStore.inputValue === place.name)}
+								(searchInfo.category === 'place' && searchInfo.inputValue === place.name)}
 							sponsored={pinSponsorId !== undefined}
 							useCentralHoverPreview={centralHoverPreview}
 							{previewSuppressed}

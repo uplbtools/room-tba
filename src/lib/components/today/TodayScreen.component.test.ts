@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import TodayScreen from '$lib/components/today/TodayScreen.svelte';
 import {
 	plannerStore,
-	queryStore,
+	searchInfo,
 	scheduleRouteStore,
 	sidebarStore,
 	termStore
@@ -72,8 +72,8 @@ describe('TodayScreen', () => {
 
 		// MW puts the same room on Monday and Wednesday; click today's.
 		await fireEvent.click(today.querySelector<HTMLButtonElement>('.today-entry__room')!);
-		expect(queryStore.category).toBe('room');
-		expect(queryStore.queryValue).toBe('MB 101');
+		expect(searchInfo.category).toBe('room');
+		expect(searchInfo.queryValue).toBe('MB 101');
 		// Opening a room leaves the screen for the map behind it.
 		expect(sidebarStore.panelOpen).toBe('map');
 	});

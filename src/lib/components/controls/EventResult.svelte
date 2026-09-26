@@ -22,7 +22,7 @@
 		mapEditStore,
 		mapProposalStore,
 		map,
-		queryStore,
+		searchInfo,
 		toastStore
 	} from '$lib/stores.svelte';
 	import { getStoredProposalForEntity, persistEntityChange } from '$lib/utils/proposals/client';
@@ -52,9 +52,9 @@
 	const { events, loaded, buildings, dorms } = $derived(appData());
 	const event = $derived(
 		loaded
-			? queryStore.selectedEventSlug
-				? (events.find((item) => item.slug === queryStore.selectedEventSlug) ?? null)
-				: (events.find((item) => item.title === queryStore.queryValue) ?? null)
+			? searchInfo.selectedEventSlug
+				? (events.find((item) => item.slug === searchInfo.selectedEventSlug) ?? null)
+				: (events.find((item) => item.title === searchInfo.queryValue) ?? null)
 			: null
 	);
 	const shareUrl = $derived(event ? getEventShareUrl(event.slug) : '');
@@ -150,7 +150,7 @@
 
 	function closeEventDetails() {
 		editing = false;
-		queryStore.clearQuery();
+		searchInfo.clearQuery();
 	}
 
 	function eventToForm(event: EventData) {
@@ -339,7 +339,7 @@
 			if (result.published) {
 				const updated = result.published as EventData;
 				appActions.replaceEvent(updated);
-				queryStore.updateQuery({
+				searchInfo.updateQuery({
 					category: 'event',
 					type: 'result',
 					value: updated.title,
@@ -445,7 +445,7 @@
 			}
 
 			appActions.removeEvent(event.id);
-			queryStore.clearQuery();
+			searchInfo.clearQuery();
 			toastStore.show(`${event.title} deactivated.`, 'success');
 		} catch (error) {
 			toastStore.show(

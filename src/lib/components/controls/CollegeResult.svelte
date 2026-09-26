@@ -1,6 +1,6 @@
 <script lang="ts">
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
-	import { adminAuthStore, queryStore, toastStore, termStore } from '$lib/stores.svelte';
+	import { adminAuthStore, searchInfo, toastStore, termStore } from '$lib/stores.svelte';
 	import {
 		getStoredProposalForEntity,
 		persistEntityChange,
@@ -48,7 +48,7 @@
 	const { divisions, colleges, loaded } = $derived(appData());
 
 	const college = $derived(
-		loaded ? colleges.find((c) => c.collegeName === queryStore.queryValue) : null
+		loaded ? colleges.find((c) => c.collegeName === searchInfo.queryValue) : null
 	);
 
 	const collegeDivisions = $derived.by(() => {
@@ -176,7 +176,7 @@
 
 	function syncCollegeFromServer(updated: College) {
 		appActions.upsertCollege(updated);
-		queryStore.hydrateQuery({
+		searchInfo.hydrateQuery({
 			type: 'result',
 			category: 'college',
 			value: updated.collegeName
@@ -296,7 +296,7 @@
 	}
 
 	function openDivision(divisionName: string) {
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			type: 'result',
 			category: 'division',
 			value: divisionName

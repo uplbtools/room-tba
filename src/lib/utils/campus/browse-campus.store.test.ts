@@ -8,7 +8,7 @@ vi.mock('$lib/utils/overlay-stack.js', () => ({
 import { openBrowseClasses, openCampusBrowse } from '$lib/utils/campus/browse-campus';
 import SidePanelStore from '$lib/stores/ui/SidePanelStore.svelte';
 
-type MockQueryStore = {
+type MocksearchInfo = {
 	category: string | null;
 	type: string;
 	queryValue: string;
@@ -16,8 +16,8 @@ type MockQueryStore = {
 	updateQuery: (obj: { category: string | null; type: string; value: string }) => void;
 };
 
-function mockQueryStore(): MockQueryStore {
-	const store: MockQueryStore = {
+function mocksearchInfo(): MocksearchInfo {
+	const store: MocksearchInfo = {
 		category: null,
 		type: 'query',
 		queryValue: '',
@@ -45,18 +45,18 @@ function panelStore() {
 
 describe('openCampusBrowse', () => {
 	test('sets browse query, clears search input, and expands the drawer', () => {
-		const queryStore = mockQueryStore();
+		const searchInfo = mocksearchInfo();
 		const sidePanelStore = panelStore();
-		openCampusBrowse(queryStore as never, sidePanelStore, 'divisions');
-		expect(queryStore.category).toBe('browse');
-		expect(queryStore.queryValue).toBe('divisions');
-		expect(queryStore.inputValue).toBe('');
+		openCampusBrowse(searchInfo as never, sidePanelStore, 'divisions');
+		expect(searchInfo.category).toBe('browse');
+		expect(searchInfo.queryValue).toBe('divisions');
+		expect(searchInfo.inputValue).toBe('');
 		expect(sidePanelStore.collapsed).toBe(false);
 	});
 
 	test('activates the side panel so the browse list actually renders', () => {
 		const sidePanelStore = panelStore();
-		openCampusBrowse(mockQueryStore() as never, sidePanelStore, 'organizations');
+		openCampusBrowse(mocksearchInfo() as never, sidePanelStore, 'organizations');
 		expect(sidePanelStore.active).toBe(true);
 		expect(sidePanelStore.state?.type).toBe('browsing-entities');
 	});
@@ -64,17 +64,17 @@ describe('openCampusBrowse', () => {
 
 describe('openBrowseClasses', () => {
 	test('opens classes list and expands the drawer', () => {
-		const queryStore = mockQueryStore();
+		const searchInfo = mocksearchInfo();
 		const sidePanelStore = panelStore();
-		openBrowseClasses(queryStore as never, sidePanelStore);
-		expect(queryStore.category).toBe('classes');
-		expect(queryStore.queryValue).toBe('All classes');
+		openBrowseClasses(searchInfo as never, sidePanelStore);
+		expect(searchInfo.category).toBe('classes');
+		expect(searchInfo.queryValue).toBe('All classes');
 		expect(sidePanelStore.collapsed).toBe(false);
 	});
 
 	test('activates the side panel so the classes list actually renders', () => {
 		const sidePanelStore = panelStore();
-		openBrowseClasses(mockQueryStore() as never, sidePanelStore);
+		openBrowseClasses(mocksearchInfo() as never, sidePanelStore);
 		expect(sidePanelStore.active).toBe(true);
 		expect(sidePanelStore.state?.type).toBe('browsing-entities');
 	});
@@ -82,9 +82,9 @@ describe('openBrowseClasses', () => {
 	test('still sets the query when the caller opens the panel itself', () => {
 		// Sidebar.svelte calls the single-arg form and then opens the panel with its
 		// own component; the helper must not throw or no-op on the query.
-		const queryStore = mockQueryStore();
-		expect(() => openBrowseClasses(queryStore as never)).not.toThrow();
-		expect(queryStore.category).toBe('classes');
+		const searchInfo = mocksearchInfo();
+		expect(() => openBrowseClasses(searchInfo as never)).not.toThrow();
+		expect(searchInfo.category).toBe('classes');
 	});
 });
 

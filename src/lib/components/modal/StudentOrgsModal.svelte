@@ -1,25 +1,20 @@
 <script lang="ts">
-  import Users from "@lucide/svelte/icons/users";
-  import Building2 from "@lucide/svelte/icons/building-2";
-  import Pencil from "@lucide/svelte/icons/pencil";
-  import {
-    adminAuthStore,
-    modalStore,
-    queryStore,
-    sidePanelStore,
-  } from "$lib/stores.svelte";
-  import { openCampusBrowse } from "$lib/utils/campus/browse-campus";
-  import { UPLB_OSA_ORGANIZATIONS_URL } from "$lib/constants/content/links/community"
+	import Users from '@lucide/svelte/icons/users';
+	import Building2 from '@lucide/svelte/icons/building-2';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import { adminAuthStore, modalStore, searchInfo, sidePanelStore } from '$lib/stores.svelte';
+	import { openCampusBrowse } from '$lib/utils/campus/browse-campus';
+	import { UPLB_OSA_ORGANIZATIONS_URL } from '$lib/constants/content/links/community';
 
-  function browseOrganizations() {
-    openCampusBrowse(queryStore, sidePanelStore, "organizations");
-    modalStore.closeModal();
-  }
+	function browseOrganizations() {
+		openCampusBrowse(searchInfo, sidePanelStore, 'organizations');
+		modalStore.closeModal();
+	}
 
-  function signUp() {
-    modalStore.closeModal();
-    adminAuthStore.openLogin("signup");
-  }
+	function signUp() {
+		modalStore.closeModal();
+		adminAuthStore.openLogin('signup');
+	}
 </script>
 
 <div class="orgs-modal map-chrome-scroll">

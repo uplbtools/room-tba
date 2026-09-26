@@ -1,4 +1,4 @@
-import { queryStore } from '$lib/stores.svelte';
+import { searchInfo } from '$lib/stores.svelte';
 import type { AppContextData } from '$lib/utils/context';
 import type { ProposalEntityType } from '$lib/services/contribution/proposal-action';
 import type { Building, College, Division, DormData, EventData } from '$lib/utils/types';
@@ -7,7 +7,7 @@ type PublishedRow = { id: number };
 
 function openEntityId(
 	data: AppContextData,
-	category: typeof queryStore.category,
+	category: typeof searchInfo.category,
 	queryValue: string
 ): number | null {
 	if (!data.loaded || !category || !queryValue) return null;
@@ -31,7 +31,7 @@ function openEntityId(
 		}
 		case 'event': {
 			const row = data.events.find(
-				(e) => e.title === queryValue || e.slug === queryStore.selectedEventSlug
+				(e) => e.title === queryValue || e.slug === searchInfo.selectedEventSlug
 			);
 			return row?.id ?? null;
 		}
@@ -53,14 +53,14 @@ export function syncOpenEntityQueryAfterPublish(
 	if (!Number.isInteger(publishedId)) return;
 
 	const data = getData();
-	const openId = openEntityId(data, queryStore.category, queryStore.queryValue);
+	const openId = openEntityId(data, searchInfo.category, searchInfo.queryValue);
 	if (openId !== publishedId) return;
 
 	switch (entityType) {
 		case 'building':
 		case 'create_building': {
 			const row = published as Building;
-			queryStore.hydrateQuery({
+			searchInfo.hydrateQuery({
 				type: 'result',
 				category: 'building',
 				value: row.buildingName
@@ -70,7 +70,7 @@ export function syncOpenEntityQueryAfterPublish(
 		case 'dorm':
 		case 'create_dorm': {
 			const row = published as DormData;
-			queryStore.hydrateQuery({
+			searchInfo.hydrateQuery({
 				type: 'result',
 				category: 'dorm',
 				value: row.dormName
@@ -80,7 +80,7 @@ export function syncOpenEntityQueryAfterPublish(
 		case 'college':
 		case 'create_college': {
 			const row = published as College;
-			queryStore.hydrateQuery({
+			searchInfo.hydrateQuery({
 				type: 'result',
 				category: 'college',
 				value: row.collegeName
@@ -90,7 +90,7 @@ export function syncOpenEntityQueryAfterPublish(
 		case 'division':
 		case 'create_division': {
 			const row = published as Division;
-			queryStore.hydrateQuery({
+			searchInfo.hydrateQuery({
 				type: 'result',
 				category: 'division',
 				value: row.divisionName
@@ -100,7 +100,7 @@ export function syncOpenEntityQueryAfterPublish(
 		case 'event':
 		case 'create_event': {
 			const row = published as EventData;
-			queryStore.hydrateQuery({
+			searchInfo.hydrateQuery({
 				type: 'result',
 				category: 'event',
 				value: row.title,

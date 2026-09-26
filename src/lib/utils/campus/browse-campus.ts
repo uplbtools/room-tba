@@ -4,7 +4,7 @@ import { campusBrowseQuery, type CampusBrowseTab } from './browse-campus-shared.
 export type { CampusBrowseTab } from './browse-campus-shared.js';
 import CampusBrowseList from '$lib/components/controls/CampusBrowseList.svelte';
 import ClassesList from '$lib/components/controls/ClassesList.svelte';
-import type QueryStore from '$lib/stores/QueryStore.svelte.js';
+import type searchInfo from '$lib/stores/searchInfo.svelte.js';
 import type SidePanelStore from '$lib/stores/ui/SidePanelStore.svelte.js';
 
 // Both helpers name the panel themselves rather than leaving it to each caller.
@@ -13,13 +13,13 @@ import type SidePanelStore from '$lib/stores/ui/SidePanelStore.svelte.js';
 // place is what keeps a caller from setting a query and rendering nothing.
 // See browse-campus.store.test.ts.
 export function openCampusBrowse(
-	queryStore: QueryStore,
+	searchInfo: searchInfo,
 	sidePanelStore: SidePanelStore,
 	tab: CampusBrowseTab = 'buildings'
 ) {
 	dismissEphemeralOverlays();
-	queryStore.updateQuery(campusBrowseQuery(tab));
-	queryStore.inputValue = '';
+	searchInfo.updateQuery(campusBrowseQuery(tab));
+	searchInfo.inputValue = '';
 	sidePanelStore.openPanel({
 		type: 'browsing-entities',
 		component: CampusBrowseList
@@ -30,14 +30,14 @@ export function openCampusBrowse(
 // ponytail: `sidePanelStore` stays optional so the existing two call sites keep
 // working unchanged — Sidebar opens the panel itself, CampusBrowseChips relies
 // on this helper.
-export function openBrowseClasses(queryStore: QueryStore, sidePanelStore?: SidePanelStore) {
+export function openBrowseClasses(searchInfo: searchInfo, sidePanelStore?: SidePanelStore) {
 	dismissEphemeralOverlays();
-	queryStore.updateQuery({
+	searchInfo.updateQuery({
 		category: 'classes',
 		type: 'result',
 		value: 'All classes'
 	});
-	queryStore.inputValue = '';
+	searchInfo.inputValue = '';
 	sidePanelStore?.openPanel({
 		type: 'browsing-entities',
 		component: ClassesList

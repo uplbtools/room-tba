@@ -6,7 +6,7 @@
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { dormMatchesTypeFilter } from '$lib/constants/content/categories/building';
 	import { getAllDorms } from '$lib/functions/dorms.remote';
-	// import { buildingTypeFilter, map, queryStore, sidePanelStore } from '$lib/stores.svelte';
+	// import { buildingTypeFilter, map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
 	import { getAppData, getMapStore } from '$lib/utils/context';
 	// import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
@@ -31,7 +31,7 @@
 
 	function handleMarkerClick(dorm: DormData) {
 		return () => {
-			goto(resolve(`/map/dorms/${slugifySegment(dorm.dormName)}-${dorm.id}`));
+			goto(resolve(`/map/dorms/${dorm.id}`));
 			if (dorm.lon && dorm.lat) {
 				map.centerMarker([dorm.lon, dorm.lat]);
 			}
@@ -41,14 +41,14 @@
 	// 	return () => {
 	// 		// if (eventPlacementStore.active) return;
 	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
-	// 		// if (dorm.dormName === queryStore.inputValue) return;
-	// 		// queryStore.updateQuery({
+	// 		// if (dorm.dormName === searchInfo.inputValue) return;
+	// 		// searchInfo.updateQuery({
 	// 		// 	category: 'dorm',
 	// 		// 	type: 'result',
 	// 		// 	value: dorm.dormName,
 	// 		// 	id: dorm.id
 	// 		// });
-	// 		// queryStore.inputValue = dorm.dormName;
+	// 		// searchInfo.inputValue = dorm.dormName;
 	// 		// sidePanelStore.openPanel({
 	// 		// 	type: 'search-result',
 	// 		// 	component: DormResult
@@ -82,8 +82,8 @@
 				<MapEntityPin
 					label={dorm.dormName}
 					tone={dorm.isUpManaged ? 'dorm' : 'privateDorm'}
-					// active={queryStore.isActiveMarker(dorm.dormName, 'dorm')}
-					// dimmed={queryStore.hasActiveMarker()}
+					// active={searchInfo.isActiveMarker(dorm.dormName, 'dorm')}
+					// dimmed={searchInfo.hasActiveMarker()}
 					// eventLinked={isDormEventLinked(dorm.id)}
 					// editable={canDragPin(editKey)}
 					// editing={selectedEditKey === editKey}

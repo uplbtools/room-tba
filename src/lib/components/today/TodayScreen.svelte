@@ -11,7 +11,7 @@
 	import {
 		userLocation,
 		plannerStore,
-		queryStore,
+		searchInfo,
 		scheduleRouteStore,
 		sidebarStore,
 		termStore
@@ -86,12 +86,12 @@
 
 	function openRoom(roomCode: string) {
 		if (!roomCode) return;
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			type: 'result',
 			category: 'room',
 			value: roomCode
 		});
-		queryStore.inputValue = roomCode;
+		searchInfo.inputValue = roomCode;
 		close();
 	}
 

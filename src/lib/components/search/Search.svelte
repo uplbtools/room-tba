@@ -1,139 +1,135 @@
 <script lang="ts">
-import ArrowLeft from "@lucide/svelte/icons/arrow-left";
-import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
-import SearchIcon from "@lucide/svelte/icons/search";
-import ShieldCheck from "@lucide/svelte/icons/shield-check";
-import { debounce } from "es-toolkit";
-import { onMount } from "svelte";
-import { MediaQuery } from "svelte/reactivity";
-import { fade } from "svelte/transition";
-import { goto } from "$app/navigation";
-import { resolve } from "$app/paths";
-import MapFilterChips from "$lib/components/map-chrome/MapFilterChips.svelte";
-import { getAppData } from "$lib/utils/context";
-import { observeBlockHeight } from "$lib/utils/layout-css-vars";
-import { getMapChromeVisibility } from "$lib/utils/map/map-chrome";
-import { dropdownFadeIn, dropdownFadeOut } from "$lib/utils/motion";
-import { registerEphemeralOverlayDismisser } from "$lib/utils/overlay-stack";
-import { registerSearchFocus } from "$lib/utils/search-focus";
-import {
-	adminAuthStore,
-	editorChromeStore,
-	mapEditStore,
-	modalStore,
-	proposalsStore,
-	queryStore,
-	sidePanelStore,
-} from "$lib/stores.svelte";
-import Suggestions from "./Suggestions.svelte";
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import MapPinPlus from '@lucide/svelte/icons/map-pin-plus';
+	import SearchIcon from '@lucide/svelte/icons/search';
+	import ShieldCheck from '@lucide/svelte/icons/shield-check';
+	import { debounce } from 'es-toolkit';
+	import { onMount } from 'svelte';
+	import { MediaQuery } from 'svelte/reactivity';
+	import { fade } from 'svelte/transition';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	// import MapFilterChips from '$lib/components/map-chrome/MapFilterChips.svelte';
+	// import { getAppData } from "$lib/utils/context";
+	import { observeBlockHeight } from '$lib/utils/layout-css-vars';
+	// import { getMapChromeVisibility } from '$lib/utils/map/map-chrome';
+	import { dropdownFadeIn, dropdownFadeOut } from '$lib/utils/motion';
+	import { registerEphemeralOverlayDismisser } from '$lib/utils/overlay-stack';
+	import { registerSearchFocus } from '$lib/utils/search-focus';
+	// import {
+	// 	adminAuthStore,
+	// 	editorChromeStore,
+	// 	mapEditStore,
+	// 	modalStore,
+	// 	proposalsStore,
+	// 	searchInfo,
+	// 	sidePanelStore,
+	// } from "$lib/stores.svelte";
+	// import Suggestions from './Suggestions.svelte';
 
-let searchElement = $state<HTMLInputElement | null>(null);
-let shellMainEl = $state<HTMLDivElement | null>(null);
-let chromeEl = $state<HTMLDivElement | null>(null);
-let draftInput = $state("");
-let searchFocused = $state(false);
-const mobile = new MediaQuery("max-width:48rem");
-const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+	let searchElement = $state<HTMLInputElement | null>(null);
+	let shellMainEl = $state<HTMLDivElement | null>(null);
+	let chromeEl = $state<HTMLDivElement | null>(null);
+	let draftInput = $state('');
+	let searchFocused = $state(false);
+	const mobile = new MediaQuery('max-width:48rem');
+	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
-const chrome = $derived(getMapChromeVisibility());
+	// const chrome = $derived(getMapChromeVisibility());
 
-$effect(() => {
-	const el = mobile.current ? shellMainEl : chromeEl;
-	if (!el) return;
-	return observeBlockHeight(el, "--search-block-height");
-});
-
-onMount(() => {
-	const unregisterFocus = registerSearchFocus(() => {
-		searchElement?.focus();
-		searchElement?.select();
+	$effect(() => {
+		const el = mobile.current ? shellMainEl : chromeEl;
+		if (!el) return;
+		return observeBlockHeight(el, '--search-block-height');
 	});
-	const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
+
+	onMount(() => {
+		const unregisterFocus = registerSearchFocus(() => {
+			searchElement?.focus();
+			searchElement?.select();
+		});
+		const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
+			searchFocused = false;
+			searchElement?.blur();
+		});
+		return () => {
+			unregisterFocus();
+			unregisterDismiss();
+		};
+	});
+
+	// const commitSearchInput = debounce((searchInput: string) => {
+	// 	searchInfo.inputValue = searchInput;
+	// 	searchInfo.setType("query");
+	// }, 200);
+
+	// $effect(() => {
+	// 	if (searchInfo.type === "result" || searchInfo.category !== null) {
+	// 		draftInput = searchInfo.inputValue;
+	// 		return;
+	// 	}
+	// 	if (searchInfo.inputValue === "") {
+	// 		draftInput = "";
+	// 	}
+	// });
+
+	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
+		// if (searchInfo.type === "result" || searchInfo.category !== null) {
+		// 	searchInfo.exitResultMode();
+		// }
+		// draftInput = event.currentTarget.value;
+		// commitSearchInput(draftInput);
+	}
+
+	// function closeSearchContext() {
+	// 	commitSearchInput.cancel();
+	// 	searchInfo.clearQuery();
+	// 	draftInput = "";
+	// 	searchElement?.focus();
+	// 	// `openPanel()` metadata outranks the query in resolvePanelContent, so
+	// 	// clearing the query alone would leave a stale panel on screen.
+	// 	goto(resolve("/map"));
+	// 	sidePanelStore.closePanel();
+	// }
+
+	function dismissMobileSearch() {
 		searchFocused = false;
 		searchElement?.blur();
-	});
-	return () => {
-		unregisterFocus();
-		unregisterDismiss();
-	};
-});
-
-const commitSearchInput = debounce((searchInput: string) => {
-	queryStore.inputValue = searchInput;
-	queryStore.setType("query");
-}, 200);
-
-$effect(() => {
-	if (queryStore.type === "result" || queryStore.category !== null) {
-		draftInput = queryStore.inputValue;
-		return;
 	}
-	if (queryStore.inputValue === "") {
-		draftInput = "";
-	}
-});
 
-function handleInput(
-	event: Event & { currentTarget: EventTarget & HTMLInputElement },
-) {
-	if (queryStore.type === "result" || queryStore.category !== null) {
-		queryStore.exitResultMode();
-	}
-	draftInput = event.currentTarget.value;
-	commitSearchInput(draftInput);
-}
+	const mobileSearchActive = $derived(mobile.current && searchFocused);
 
-function closeSearchContext() {
-	commitSearchInput.cancel();
-	queryStore.clearQuery();
-	draftInput = "";
-	searchElement?.focus();
-	// `openPanel()` metadata outranks the query in resolvePanelContent, so
-	// clearing the query alone would leave a stale panel on screen.
-	goto(resolve("/map"));
-	sidePanelStore.closePanel();
-}
+	// const clearSelectionLabel = $derived(
+	// 	searchInfo.type === "result" && searchInfo.category !== null
+	// 		? "Close details"
+	// 		: "Clear search",
+	// );
 
-function dismissMobileSearch() {
-	searchFocused = false;
-	searchElement?.blur();
-}
+	// function openEditorTools() {
+	// 	searchFocused = false;
+	// 	searchElement?.blur();
+	// 	modalStore.openModal("editor-tools");
+	// }
 
-const mobileSearchActive = $derived(mobile.current && searchFocused);
+	// const showEditorChrome = $derived(
+	// 	chrome.showEditorShelf &&
+	// 		(adminAuthStore.canPublish || adminAuthStore.canReview),
+	// );
 
-const clearSelectionLabel = $derived(
-	queryStore.type === "result" && queryStore.category !== null
-		? "Close details"
-		: "Clear search",
-);
+	// const editorChipLabel = $derived(mapEditStore.enabled ? "Editing" : "Editor");
+	// const editorOpenLabel = $derived(
+	// 	proposalsStore.pendingCount > 0
+	// 		? `Open editor tools, ${proposalsStore.pendingCount} pending`
+	// 		: "Open editor tools",
+	// );
 
-function openEditorTools() {
-	searchFocused = false;
-	searchElement?.blur();
-	modalStore.openModal("editor-tools");
-}
+	// const showSearchDropdown = $derived(chrome.showSearchSuggestions && searchFocused);
 
-const showEditorChrome = $derived(
-	chrome.showEditorShelf &&
-		(adminAuthStore.canPublish || adminAuthStore.canReview),
-);
-
-const editorChipLabel = $derived(mapEditStore.enabled ? "Editing" : "Editor");
-const editorOpenLabel = $derived(
-	proposalsStore.pendingCount > 0
-		? `Open editor tools, ${proposalsStore.pendingCount} pending`
-		: "Open editor tools",
-);
-
-const showSearchDropdown = $derived(
-	chrome.showSearchSuggestions && searchFocused,
-);
-
-$effect(() => {
-	if (queryStore.category !== null && queryStore.type === "result") {
-		searchElement?.blur();
-	}
-});
+	// $effect(() => {
+	// 	if (searchInfo.category !== null && searchInfo.type === "result") {
+	// 		searchElement?.blur();
+	// 	}
+	// });
 </script>
 
 <div
@@ -141,7 +137,7 @@ $effect(() => {
 	class:mobile-shell={mobile.current}
 	class:search-input-focused={searchFocused}
 	class:search-mobile-active={mobileSearchActive}
-	class:search-suggestions-open={showSearchDropdown}
+	// class:search-suggestions-open={showSearchDropdown}
 	class:search-query-active={draftInput.trim() !== ''}
 >
 	<div class="search-shell-main" bind:this={shellMainEl}>
@@ -198,7 +194,7 @@ $effect(() => {
 								aria-haspopup="listbox"
 								placeholder="ex. Institute of Computer Science"
 							/>
-							{#if draftInput !== '' || queryStore.category !== null}
+							<!-- {#if draftInput !== '' || searchInfo.category !== null}
 								<button
 									onclick={closeSearchContext}
 									type="button"
@@ -234,15 +230,15 @@ $effect(() => {
 									<MapPinPlus size={14} aria-hidden="true" />
 									<span>Add</span>
 								</button>
-							{/if}
+							{/if} -->
 						</div>
 					</div>
 
 					{#if !mobile.current && !searchFocused}
-						<MapFilterChips />
+						<!-- <MapFilterChips /> -->
 					{/if}
 
-					{#if showEditorChrome}
+					<!-- {#if showEditorChrome}
 						<button
 							type="button"
 							class="map-search-chrome__editor-btn"
@@ -263,18 +259,18 @@ $effect(() => {
 								>
 							{/if}
 						</button>
-					{/if}
+					{/if} -->
 				</div>
 			</div>
 
 			{#if mobile.current && !searchFocused}
 				<div class="map-search-chrome__mobile-chips">
-					<MapFilterChips />
+					<!-- <MapFilterChips /> -->
 				</div>
 			{/if}
 
-			{#if showSearchDropdown}
-				<!-- svelte-ignore a11y_interactive_supports_focus -->
+			<!-- {#if showSearchDropdown}
+				svelte-ignore a11y_interactive_supports_focus
 				<div
 					id="search-suggestions"
 					class="map-search-chrome__suggestions"
@@ -286,10 +282,146 @@ $effect(() => {
 				>
 					<Suggestions />
 				</div>
-			{/if}
+			{/if} -->
 		</div>
 	</div>
 </div>
+
+<!-- 
+
+	.map-search-chrome__chips {
+		display: flex;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 0.375rem;
+		box-sizing: border-box;
+		min-width: 0;
+		width: 100%;
+		max-width: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+		overscroll-behavior-x: contain;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+		padding: 0.3125rem 0.625rem 0.3125rem;
+		border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+		transition: border-radius var(--motion-duration-micro) var(--motion-ease-out);
+	}
+
+	.map-search-chrome__chips > :global(*) {
+		flex-shrink: 0;
+		min-width: 0;
+	}
+
+	.search-root:not(.mobile-shell) .map-search-chrome__chips {
+		border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+		border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+	}
+
+	.search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	.map-search-chrome__chips::-webkit-scrollbar {
+		display: none;
+	}
+
+	.map-search-chrome__chips :global(.building-filter-bar) {
+		flex: 0 0 auto;
+		min-width: 0;
+		padding: 0;
+	}
+
+	.map-search-chrome__chips :global(.term-selector) {
+		flex: 0 0 auto;
+		min-width: 0;
+		max-width: min(100%, 18rem);
+	}
+
+	.map-search-chrome__chips :global(.transit-filter-chip) {
+		flex: 0 0 auto;
+		min-width: 0;
+	}
+
+	.map-search-chrome__chips :global(.term-filter-chip) {
+		flex: 0 0 auto;
+		min-width: 0;
+	}
+
+	.map-search-chrome__transit-routes {
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		min-width: 0;
+		width: 100%;
+		max-width: 100%;
+		padding: 0.3125rem 0.625rem 0.375rem;
+		border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+	}
+
+	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips,
+	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__transit-routes {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__transit-routes {
+		border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+		border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+	}
+
+	.map-search-chrome__events {
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		min-width: 0;
+		width: 100%;
+		max-width: 100%;
+		min-height: 0;
+		max-height: min(50dvh, 22rem);
+		overflow-x: clip;
+		overflow-y: hidden;
+		overscroll-behavior: contain;
+		border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+		padding: 0.1875rem 0.625rem 0.4375rem;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__events {
+		border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+		border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
+	}
+
+	.map-search-chrome__events :global(.events-section) {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		flex: 1 1 auto;
+		gap: 0;
+	}
+
+	.map-search-chrome__events :global(.section-actions--inline) {
+		flex: 0 0 auto;
+		gap: 0.375rem;
+	}
+
+	.map-search-chrome__events :global(.event-list) {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+		min-height: 0;
+		gap: 0.375rem;
+		margin-top: 0.25rem;
+		padding-top: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+	}
+
+-->
 
 <style>
 	.sr-only {
@@ -1020,139 +1152,3 @@ $effect(() => {
 		}
 	}
 </style>
-
-<!-- 
-
-	.map-search-chrome__chips {
-		display: flex;
-		flex-wrap: nowrap;
-		align-items: center;
-		gap: 0.375rem;
-		box-sizing: border-box;
-		min-width: 0;
-		width: 100%;
-		max-width: 100%;
-		overflow-x: auto;
-		overflow-y: hidden;
-		overscroll-behavior-x: contain;
-		-webkit-overflow-scrolling: touch;
-		scrollbar-width: none;
-		-ms-overflow-style: none;
-		padding: 0.3125rem 0.625rem 0.3125rem;
-		border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-		transition: border-radius var(--motion-duration-micro) var(--motion-ease-out);
-	}
-
-	.map-search-chrome__chips > :global(*) {
-		flex-shrink: 0;
-		min-width: 0;
-	}
-
-	.search-root:not(.mobile-shell) .map-search-chrome__chips {
-		border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-		border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-	}
-
-	.search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__chips,
-	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips {
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
-	}
-
-	.map-search-chrome__chips::-webkit-scrollbar {
-		display: none;
-	}
-
-	.map-search-chrome__chips :global(.building-filter-bar) {
-		flex: 0 0 auto;
-		min-width: 0;
-		padding: 0;
-	}
-
-	.map-search-chrome__chips :global(.term-selector) {
-		flex: 0 0 auto;
-		min-width: 0;
-		max-width: min(100%, 18rem);
-	}
-
-	.map-search-chrome__chips :global(.transit-filter-chip) {
-		flex: 0 0 auto;
-		min-width: 0;
-	}
-
-	.map-search-chrome__chips :global(.term-filter-chip) {
-		flex: 0 0 auto;
-		min-width: 0;
-	}
-
-	.map-search-chrome__transit-routes {
-		display: flex;
-		flex-direction: column;
-		box-sizing: border-box;
-		min-width: 0;
-		width: 100%;
-		max-width: 100%;
-		padding: 0.3125rem 0.625rem 0.375rem;
-		border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-	}
-
-	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__chips,
-	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__transit-routes {
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
-	}
-
-	.search-root.transit-panel-open:not(.mobile-shell) .map-search-chrome__transit-routes {
-		border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-		border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-	}
-
-	.map-search-chrome__events {
-		display: flex;
-		flex-direction: column;
-		box-sizing: border-box;
-		min-width: 0;
-		width: 100%;
-		max-width: 100%;
-		min-height: 0;
-		max-height: min(50dvh, 22rem);
-		overflow-x: clip;
-		overflow-y: hidden;
-		overscroll-behavior: contain;
-		border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-		padding: 0.1875rem 0.625rem 0.4375rem;
-		-webkit-overflow-scrolling: touch;
-	}
-
-	.search-root.events-panel-open:not(.mobile-shell) .map-search-chrome__events {
-		border-bottom-left-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-		border-bottom-right-radius: calc(var(--map-chrome-radius, 1rem) - 1px);
-	}
-
-	.map-search-chrome__events :global(.events-section) {
-		display: flex;
-		flex-direction: column;
-		min-height: 0;
-		flex: 1 1 auto;
-		gap: 0;
-	}
-
-	.map-search-chrome__events :global(.section-actions--inline) {
-		flex: 0 0 auto;
-		gap: 0.375rem;
-	}
-
-	.map-search-chrome__events :global(.event-list) {
-		display: flex;
-		flex-direction: column;
-		flex: 1 1 auto;
-		min-height: 0;
-		gap: 0.375rem;
-		margin-top: 0.25rem;
-		padding-top: 0;
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		-webkit-overflow-scrolling: touch;
-	}
-
--->

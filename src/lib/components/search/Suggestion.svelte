@@ -18,9 +18,9 @@
 		entityHoverPreviewStore,
 		eventPreviewFromRow
 	} from '$lib/utils/entity/entity-hover-preview.svelte';
-	import { map, queryStore } from '$lib/stores.svelte';
+	import { map, searchInfo } from '$lib/stores.svelte';
 	import type { Building, EventData } from '$lib/utils/types';
-	import type { QueryStoreState } from '$lib/stores/store-types';
+	import type { SearchInfoState } from '$lib/stores/store-types';
 	import { getEntityCanonicalPath } from '$lib/utils/entity/entity-urls';
 
 	let {
@@ -35,7 +35,7 @@
 		recent
 	}: {
 		value: string;
-		category: Exclude<QueryStoreState['category'], null>;
+		category: Exclude<SearchInfoState['category'], null>;
 		entityId?: number;
 		eventSlug?: string;
 		building?: Building;
@@ -51,14 +51,14 @@
 
 	function handleSuggestionClick() {
 		entityHoverPreviewStore.hideNow();
-		queryStore.updateQuery({
+		searchInfo.updateQuery({
 			type: 'result',
 			category,
 			value,
 			eventSlug,
 			id
 		});
-		queryStore.inputValue = value;
+		searchInfo.inputValue = value;
 		// One source of truth for category → URL: class/classes/browse/events
 		// deliberately return null (they render side-panel content, no page),
 		// and room/dorm/organization/place slugs come from their canonical builders.
@@ -84,7 +84,7 @@
 
 	function handleRemoveRecent() {
 		if (typeof index === 'undefined') return;
-		queryStore.removeRecentSearch(index);
+		searchInfo.removeRecentSearch(index);
 	}
 
 	// Hover preview for buildings and events (#288)
@@ -115,7 +115,7 @@
 
 	/** Match query in label; expand to word end so "Institute o" → "Institute of". */
 	const labelParts = $derived.by(() => {
-		const q = queryStore.inputValue.trim();
+		const q = searchInfo.inputValue.trim();
 		if (!q) return [{ text: value, matched: false }];
 		const idx = value.toLowerCase().indexOf(q.toLowerCase());
 		if (idx < 0) return [{ text: value, matched: false }];

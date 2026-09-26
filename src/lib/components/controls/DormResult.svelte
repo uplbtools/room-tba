@@ -1,5 +1,5 @@
 <!-- <script lang="ts">
-	import { adminAuthStore, mapProposalStore, queryStore, toastStore } from '$lib/stores.svelte';
+	import { adminAuthStore, mapProposalStore, searchInfo, toastStore } from '$lib/stores.svelte';
 	import { getAppActions, getAppData } from '$lib/utils/context';
 	import Users from '@lucide/svelte/icons/users';
 	import Mail from '@lucide/svelte/icons/mail';
@@ -66,7 +66,7 @@
 	const appActions = getAppActions();
 	const { dorms } = $derived(appData());
 
-	const dorm = $derived(dorms?.find((d) => d.dormName === queryStore.queryValue));
+	const dorm = $derived(dorms?.find((d) => d.dormName === searchInfo.queryValue));
 
 	let editing = $state(false);
 	let draftDormId = $state<number | null>(null);
@@ -309,7 +309,7 @@
 
 	function syncDormFromServer(updated: DormData) {
 		appActions.upsertDorm(updated);
-		queryStore.hydrateQuery({
+		searchInfo.hydrateQuery({
 			type: 'result',
 			category: 'dorm',
 			value: updated.dormName

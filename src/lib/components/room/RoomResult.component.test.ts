@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import RoomResultHost from '@test/components/RoomResultHost.svelte';
 import type { Room } from '$lib/utils/types';
-import { currentRoom, queryStore } from '$lib/stores.svelte';
+import { currentRoom, searchInfo } from '$lib/stores.svelte';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 
 function room(overrides: Partial<Room> = {}): Room {
@@ -25,7 +25,7 @@ function room(overrides: Partial<Room> = {}): Room {
 }
 
 function renderRoom(testRoom: Room) {
-	queryStore.hydrateQuery({
+	searchInfo.hydrateQuery({
 		category: 'room',
 		type: 'result',
 		value: testRoom.code
