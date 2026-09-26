@@ -4,7 +4,7 @@
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { isStudentOrganization } from '$lib/constants/content/categories/org';
-	import { getAllOrganizations } from '$lib/functions/organizations.remote';
+	import { getMapOrgsData } from '$lib/functions/organizations.remote';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import { slugifySegment } from '$lib/utils/site';
 	import type { OrgData } from '$lib/utils/types';
@@ -18,7 +18,7 @@
 	const { orgPinFilter, zoomLevel }: Props = $props();
 	const map = getMapStore();
 	const searchInfo = getSearchInfo();
-	const organizations = await getAllOrganizations();
+	const organizations = await getMapOrgsData();
 
 	const filteredOrganizations = $derived.by(() => {
 		// return organizations;
@@ -48,7 +48,7 @@
 	// 	return lat !== null && lon !== null ? { lat, lon } : null;
 	// }
 
-	function handleMarkerClick({ name, id, lon, lat }: OrgData) {
+	function handleMarkerClick({ name, id, lon, lat }: (typeof filteredOrganizations)[number]) {
 		return () => {
 			goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
 			searchInfo.updateQuery({

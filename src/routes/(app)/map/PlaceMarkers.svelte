@@ -5,7 +5,7 @@
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { isPlaceLandmark } from '$lib/constants/content/categories/place';
-	import { getAllPlaces } from '$lib/functions/places.remote';
+	import { getMapPlacesData } from '$lib/functions/places.remote';
 	// import { map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	// import { withinMapZoom } from '$lib/utils/map/navigate';
@@ -21,7 +21,7 @@
 	const { placePinFilter, zoomLevel }: Props = $props();
 	const map = getMapStore();
 	const searchInfo = getSearchInfo();
-	const places = await getAllPlaces();
+	const places = await getMapPlacesData();
 
 	const filteredPlaces = $derived.by(() => {
 		// if (!loaded || placePinFilter === 'none') return [];
@@ -34,7 +34,7 @@
 		);
 	});
 
-	function handleMarkerClick(place: PlaceData) {
+	function handleMarkerClick(place: (typeof filteredPlaces)[number]) {
 		return () => {
 			let subroute: 'landmarks' | 'establishments';
 			if (isPlaceLandmark(place.category)) {
@@ -53,6 +53,7 @@
 			}
 		};
 	}
+	$inspect(places);
 
 	// function handleMarkerClick(place: PlaceData) {
 	// 	// if (pinSponsorId) trackSponsorClick(pinSponsorId, 'map_pin');

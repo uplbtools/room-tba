@@ -1,7 +1,6 @@
 import { query } from "$app/server";
 import { db } from "$lib/utils/db";
 import { buildingsTable } from "$lib/server/db/schema";
-import * as v from "valibot"
 // import { resolveBuildingNameFromSlug } from "$lib/services/page-data/entity";
 import { eq } from "drizzle-orm";
 import { error } from "@sveltejs/kit";
