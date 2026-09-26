@@ -38,11 +38,12 @@ export class MapStore {
 		this.mapInstance.flyTo(...flyToParams)
 	}
 
-	public centerMarker(center: FlyToOptions["center"]) {
+	public centerMarker(center: FlyToOptions["center"], zoom?: FlyToOptions["zoom"]) {
 		if (!this.mapInstance) return;
 		this.mapInstance.flyTo({
 			center,
-			duration:1000
+			duration:1000,
+			zoom
 			// padding: calculatePadding(true),
 		})
 	}

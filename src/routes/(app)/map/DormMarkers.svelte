@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import DormResult from '$lib/components/controls/DormResult.svelte';
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { dormMatchesTypeFilter } from '$lib/constants/content/categories/building';
 	import { getAllDorms } from '$lib/functions/dorms.remote';
-	// import { buildingTypeFilter, map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
-	import { getAppData, getMapStore } from '$lib/utils/context';
-	// import { withinMapZoom } from '$lib/utils/map/navigate';
-	import { slugifySegment } from '$lib/utils/site';
+	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import type { DormData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
@@ -21,6 +17,7 @@
 	const { showDormPins, zoomLevel }: Props = $props();
 
 	const map = await getMapStore();
+	const searchInfo = getSearchInfo();
 	const dorms = await getAllDorms();
 
 	const filteredDorms = $derived.by(() => {
@@ -32,6 +29,11 @@
 	function handleMarkerClick(dorm: DormData) {
 		return () => {
 			goto(resolve(`/map/dorms/${dorm.id}`));
+			searchInfo.updateQuery({
+				category: 'dorm',
+				type: 'result',
+				value: dorm.dormName
+			});
 			if (dorm.lon && dorm.lat) {
 				map.centerMarker([dorm.lon, dorm.lat]);
 			}
@@ -82,8 +84,8 @@
 				<MapEntityPin
 					label={dorm.dormName}
 					tone={dorm.isUpManaged ? 'dorm' : 'privateDorm'}
-					// active={searchInfo.isActiveMarker(dorm.dormName, 'dorm')}
-					// dimmed={searchInfo.hasActiveMarker()}
+					active={searchInfo.isActiveMarker(dorm.dormName, 'dorm')}
+					dimmed={searchInfo.hasActiveResult()}
 					// eventLinked={isDormEventLinked(dorm.id)}
 					// editable={canDragPin(editKey)}
 					// editing={selectedEditKey === editKey}

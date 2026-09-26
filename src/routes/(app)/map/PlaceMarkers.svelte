@@ -7,7 +7,7 @@
 	import { isPlaceLandmark } from '$lib/constants/content/categories/place';
 	import { getAllPlaces } from '$lib/functions/places.remote';
 	// import { map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
-	import { getAppData, getMapStore } from '$lib/utils/context';
+	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	// import { withinMapZoom } from '$lib/utils/map/navigate';
 	import { slugifySegment } from '$lib/utils/site';
 	import type { PlaceData } from '$lib/utils/types';
@@ -20,6 +20,7 @@
 
 	const { placePinFilter, zoomLevel }: Props = $props();
 	const map = getMapStore();
+	const searchInfo = getSearchInfo();
 	const places = await getAllPlaces();
 
 	const filteredPlaces = $derived.by(() => {
@@ -42,11 +43,17 @@
 				subroute = 'establishments';
 			}
 			goto(resolve(`/map/${subroute}/${slugifySegment(place.name)}-${place.id}`));
+			searchInfo.updateQuery({
+				category: 'place',
+				type: 'result',
+				value: place.name
+			});
 			if (place.lon && place.lat) {
 				map.centerMarker([place.lon, place.lat]);
 			}
 		};
 	}
+
 	// function handleMarkerClick(place: PlaceData) {
 	// 	// if (pinSponsorId) trackSponsorClick(pinSponsorId, 'map_pin');
 	// 	// handlePlaceMarkerClick(place);
@@ -92,10 +99,8 @@
 				<MapEntityPin
 					label={place.name}
 					tone={isPlaceLandmark(place.category) ? 'landmark' : 'establishment'}
-					// active={searchInfo.isActiveMarker(place.name, 'place')}
-					// dimmed={searchInfo.hasActiveMarker()}
-					// active={searchInfo.category === 'place' && searchInfo.inputValue === place.name}
-					// dimmed={hasActiveMarker()}
+					active={searchInfo.isActiveMarker(place.name, 'place')}
+					dimmed={searchInfo.hasActiveResult()}
 				>
 					{#if isPlaceLandmark(place.category)}
 						<PinGlyph name="landmark" size={16} />

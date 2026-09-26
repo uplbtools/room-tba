@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import OrgResult from '$lib/components/controls/OrgResult.svelte';
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { isStudentOrganization } from '$lib/constants/content/categories/org';
 	import { getAllOrganizations } from '$lib/functions/organizations.remote';
-	// import { map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
-	import { getAppData, getMapStore } from '$lib/utils/context';
-	// import { withinMapZoom } from '$lib/utils/map/navigate';
+	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import { slugifySegment } from '$lib/utils/site';
 	import type { OrgData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
@@ -20,6 +17,7 @@
 
 	const { orgPinFilter, zoomLevel }: Props = $props();
 	const map = getMapStore();
+	const searchInfo = getSearchInfo();
 	const organizations = await getAllOrganizations();
 
 	const filteredOrganizations = $derived.by(() => {
@@ -53,6 +51,11 @@
 	function handleMarkerClick({ name, id, lon, lat }: OrgData) {
 		return () => {
 			goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
+			searchInfo.updateQuery({
+				category: 'organization',
+				type: 'result',
+				value: name
+			});
 			if (lon && lat) {
 				map.centerMarker([lon, lat]);
 			}
@@ -95,6 +98,8 @@
 				<MapEntityPin
 					label={org.name}
 					tone={isStudentOrganization(org.category) ? 'organization' : 'office'}
+					active={searchInfo.isActiveMarker(org.name, 'organization')}
+					dimmed={searchInfo.hasActiveResult()}
 					// active={searchInfo.isActiveMarker(org.name, 'organization')}
 					// dimmed={searchInfo.hasActiveMarker()}
 					// labelVisible={(isStudentOrganization(org.category)
