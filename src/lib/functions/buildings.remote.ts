@@ -1,13 +1,10 @@
 import { query } from "$app/server";
 import { db } from "$lib/utils/db";
 import { buildingsTable } from "$lib/server/db/schema";
-// import { resolveBuildingNameFromSlug } from "$lib/services/page-data/entity";
 import { eq } from "drizzle-orm";
 import { error } from "@sveltejs/kit";
 import { TableId } from "$lib/schema/functions";
 
-// EntityFetchOptions,
-// opt
 export const getMapBuildingsData = query(
     async () => {
         const rows = await db.select({
@@ -29,7 +26,6 @@ export const getBuildingById = query(
             .where(eq(buildingsTable.id, id));
 
         if (!entry) error(404, "Not found");
-        
         return entry;
     }
 )

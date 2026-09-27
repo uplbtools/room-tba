@@ -42,7 +42,6 @@ export type SidebarOpenType =
 export type RecentSearch = {
 	category: Exclude<SearchInfoState['category'], null>;
 	value: string;
-	href:string;
 };
 
 export type FloatingControlPanel = 'legend' | 'building-type' | 'terrain' | 'admin';

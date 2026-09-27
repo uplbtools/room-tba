@@ -1,7 +1,9 @@
 import { query } from "$app/server";
+import { TableId } from "$lib/schema/functions";
 import { dormsTable } from "$lib/server/db/schema";
 import { db } from "$lib/utils/db";
-import { isNotNull, or } from "drizzle-orm";
+import { error } from "@sveltejs/kit";
+import { eq, isNotNull, or } from "drizzle-orm";
 
 
 export const getMapDormsData = query(async() => {
@@ -14,3 +16,17 @@ export const getMapDormsData = query(async() => {
     }).from(dormsTable).where(or(isNotNull(dormsTable.lon), isNotNull(dormsTable.lat)));
     return rows;
 })
+
+export const getDormById = query(
+    TableId, 
+    async (id) => {
+        const [entry] = await db
+            .select()
+            .from(dormsTable)
+            .where(eq(dormsTable.id, id));
+
+        if (!entry) error(404, "Not found");
+
+        return entry;
+    }
+)

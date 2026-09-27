@@ -1,13 +1,33 @@
-<!-- The map layout hydrates the query from `data.initialSearch` and the side
-     panel resolves the result view from its category, so this route renders no
-     body of its own — the URL is what selects the entity. -->
 <script lang="ts">
-	import { getSearchInfo } from '$lib/utils/context';
-	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
+	import { navigating } from '$app/state';
+	import { getPlaceById } from '$lib/functions/places.remote.js';
+	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import { onMount, untrack } from 'svelte';
+	// import { onMount, untrack } from 'svelte';
 
+	const { params } = $props();
 	const searchInfo = getSearchInfo();
+	const map = getMapStore();
 
-	// searchInfo.updateQuery({
+	const data = $derived(await getPlaceById(params.id));
 
-	// })
+	afterNavigate(resyncSearchInfo);
+
+	onMount(() => {
+		if (navigating.type == null && data.lon && data.lat) {
+			map.init({
+				center: [data.lon, data.lat]
+			});
+			resyncSearchInfo();
+		}
+	});
+
+	function resyncSearchInfo() {
+		searchInfo.updateQuery({
+			category: 'place',
+			type: 'result',
+			value: data.name
+		});
+	}
 </script>

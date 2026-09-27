@@ -18,9 +18,9 @@
 	// map would, so whatever it renders (crawlable copy, for instance) sits
 	// alongside that view rather than in place of it.
 	const { children }: { children?: Snippet } = $props();
-	const routeOwnsBody = $derived(page.data.panel === 'browse');
+	// const routeOwnsBody = $derived(page.data.panel === 'browse');
 
-	const mobile = new MediaQuery('max-width:48rem');
+	// const mobile = new MediaQuery('max-width:48rem');
 	// Entity detail views only, never list/browse panels (docs/ad-policy.md).
 	const SPONSOR_CATEGORIES = new Set([
 		'building',
@@ -104,6 +104,8 @@
 	// 	sidePanelStore.setMobileSheetSnap('closed');
 	// }
 </script>
+
+{@render children?.()}
 
 <!-- {#snippet panelBody()}
 	{#if jeepneyStore.selectedStopIndex !== null}

@@ -8,6 +8,7 @@
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import type { DormData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
+	import type { inspect } from 'util';
 
 	interface Props {
 		showDormPins: boolean;
@@ -26,21 +27,16 @@
 		// return dorms.filter((dorm) => dormMatchesTypeFilter(dorm, buildingTypeFilter.value));
 	});
 
-	$inspect(dorms);
-
 	function handleMarkerClick(dorm: (typeof filteredDorms)[number]) {
 		return () => {
 			goto(resolve(`/map/dorms/${dorm.id}`));
-			searchInfo.updateQuery({
-				category: 'dorm',
-				type: 'result',
-				value: dorm.name
-			});
-			if (dorm.lon && dorm.lat) {
-				map.centerMarker([dorm.lon, dorm.lat]);
-			}
+			if (dorm.lon && dorm.lat) map.centerMarker([dorm.lon, dorm.lat]);
 		};
 	}
+
+	// $inspect(searchInfo.isActiveMarker());
+
+	// $inspect(searchInfo.isActiveMarker())
 	// function handleMarkerClick(dorm: DormData) {
 	// 	return () => {
 	// 		// if (eventPlacementStore.active) return;

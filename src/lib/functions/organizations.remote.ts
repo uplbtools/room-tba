@@ -1,7 +1,9 @@
 import { query } from "$app/server";
-import { buildingsTable, organizationsTable } from "$lib/server/db/schema";
+import { TableId } from "$lib/schema/functions";
+import { organizationsTable } from "$lib/server/db/schema";
 import { db } from "$lib/utils/db";
-import { and, eq, getTableColumns, isNotNull, isNull, or } from "drizzle-orm";
+import { error } from "@sveltejs/kit";
+import { eq, isNotNull, or } from "drizzle-orm";
 
 export const getMapOrgsData = query(async () => {
 
@@ -17,3 +19,17 @@ export const getMapOrgsData = query(async () => {
         .where(or(isNotNull(organizationsTable.lon), isNotNull(organizationsTable.lat)));
     return hasLocationRows;
 })
+
+export const getOrgById = query(
+    TableId,
+    async (id) => {
+        const [entry] = await db
+            .select()
+            .from(organizationsTable)
+            .where(eq(organizationsTable.id, id));
+
+        if (!entry) error(404, "Not found");
+
+        return entry;
+    }
+)

@@ -48,17 +48,10 @@
 	// 	return lat !== null && lon !== null ? { lat, lon } : null;
 	// }
 
-	function handleMarkerClick({ name, id, lon, lat }: (typeof filteredOrganizations)[number]) {
+	function handleMarkerClick(org: (typeof filteredOrganizations)[number]) {
 		return () => {
-			goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
-			searchInfo.updateQuery({
-				category: 'organization',
-				type: 'result',
-				value: name
-			});
-			if (lon && lat) {
-				map.centerMarker([lon, lat]);
-			}
+			goto(resolve(`/map/organizations/${org.id}`));
+			if (org.lon && org.lat) map.centerMarker([org.lon, org.lat]);
 		};
 	}
 	// function handleMarkerClick({ name, id, lon, lat }: OrgData) {

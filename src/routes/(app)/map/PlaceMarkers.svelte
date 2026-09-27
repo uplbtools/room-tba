@@ -42,18 +42,12 @@
 			} else {
 				subroute = 'establishments';
 			}
-			goto(resolve(`/map/${subroute}/${slugifySegment(place.name)}-${place.id}`));
-			searchInfo.updateQuery({
-				category: 'place',
-				type: 'result',
-				value: place.name
-			});
+			goto(resolve(`/map/${subroute}/${place.id}`));
 			if (place.lon && place.lat) {
 				map.centerMarker([place.lon, place.lat]);
 			}
 		};
 	}
-	$inspect(places);
 
 	// function handleMarkerClick(place: PlaceData) {
 	// 	// if (pinSponsorId) trackSponsorClick(pinSponsorId, 'map_pin');

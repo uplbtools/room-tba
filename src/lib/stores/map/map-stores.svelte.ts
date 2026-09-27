@@ -1,5 +1,5 @@
 import type * as maplibre from 'maplibre-gl';
-import { DEFAULT_TERRAIN_EXAGGERATION, TERRAIN_ENABLED } from '$lib/constants/map/terrain.js';
+import { CAMPUS_DEFAULT_CAMERA, CAMPUS_MAX_BOUNDS, DEFAULT_TERRAIN_EXAGGERATION, TERRAIN_ENABLED } from '$lib/constants/map/terrain.js';
 import { dismissEphemeralOverlays } from '../../utils/overlay-stack.js';
 import { deactivateMapModesExcept } from './map-modes.js';
 import type { MapToolsSection, TerrainStatus } from '../store-types.js';
@@ -13,6 +13,7 @@ type MarkerFilter = "events" | "buildings" | "orgs" | "places" | "all";
 
 type FlyToParams = Parameters<Exclude<maplibre.MapLibreMap["flyTo"], "undefined">>
 type FlyToOptions = FlyToParams[0];
+type InitialMapOptions = Pick<maplibre.MapOptions, "center" | "zoom" | "pitch" | "bounds" |  "bearing">
 
 
 export class MapStore {
@@ -21,6 +22,14 @@ export class MapStore {
 	// highlightMyBuildings: boolean = $state(false);
 	/** Org/place pins are also zoom-gated in Map.svelte. The legend reads this
 	 * so its toggles cannot claim "Shown" while the gate is hiding them. */
+	options: InitialMapOptions = $state({
+		maxBounds: CAMPUS_MAX_BOUNDS,
+		center: CAMPUS_DEFAULT_CAMERA.center,
+		zoom: 17,
+		pitch: CAMPUS_DEFAULT_CAMERA.pitch,
+		bearing: CAMPUS_DEFAULT_CAMERA.bearing,
+		minZoom: 13
+	});
 	poiPinsZoomVisible: boolean = $state(true);
 	zoomLevel: number = $state(0);
 	// private viewFilter = $state<MarkerFilter>("all");
@@ -30,6 +39,10 @@ export class MapStore {
 
 	public setZoomLevel(zoomLevel: number) {
 		this.zoomLevel = zoomLevel;
+	}
+
+	public init(newOptions: InitialMapOptions) {
+		this.options = {...this.options, ...newOptions}
 	}
 
 

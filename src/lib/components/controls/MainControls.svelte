@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Search from '$lib/components/search/Search.svelte';
-	import SidePanel from './SidePanel.svelte';
+	import InfoPanel from './InfoPanel.svelte';
 
 	// Forwarded to the panel so a browse route can supply its own body.
 	const { children }: { children?: Snippet } = $props();
@@ -10,7 +10,7 @@
 <div class="side-panel-wrapper">
 	<Search />
 	<div class="side-panel-controls">
-		<SidePanel {children} />
+		<InfoPanel {children} />
 	</div>
 </div>
 

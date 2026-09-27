@@ -6,10 +6,6 @@
 	// import { buildingMatchesTypeFilter } from '$lib/constants/content/categories/building';
 	import { getMapBuildingsData } from '$lib/functions/buildings.remote';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
-	// import { withinMapZoom } from '$lib/utils/map/navigate';
-	import { slugifySegment } from '$lib/utils/site';
-	import type { Building } from '$lib/utils/types';
-	import { tick } from 'svelte';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -24,6 +20,9 @@
 
 	const filteredBuildings = $derived.by(() => {
 		return buildings;
+		/**
+		 * last implemented feature for filtered buildings: building matches filter
+		 */
 		// if (!loaded || !showBuildingPins) return [];
 		// return buildings.filter((building) => true);
 		// buildingMatchesTypeFilter(
@@ -35,30 +34,24 @@
 
 	function handleMarkerClick(building: (typeof filteredBuildings)[number]) {
 		return () => {
-			goto(resolve(`/map/buildings/${building.id}`));
-			searchInfo.updateQuery({
-				category: 'building',
-				type: 'result',
-				value: building.buildingName
-			});
-			searchInfo.inputValue = building.buildingName;
 			map.centerMarker([building.lon, building.lat]);
+			goto(resolve(`/map/buildings/${building.id}`));
 		};
 	}
 
-	// function handleMarkerClick(building: Building) {
-	// 	return () => {
-	// 		// if (eventPlacementStore.active) return;
-	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
-	// 		if (building.buildingName === searchInfo.inputValue) return;
-	// 		goto(resolve(`/map/buildings/${slugifySegment(building.buildingName)}`));
-	// 		// sidePanelStore.openPanel({
-	// 		// 	type: 'search-result',
-	// 		// 	component: BuildingResult
-	// 		// });
-	// 		map.centerMarker([building.lon, building.lat]);
-	// 	};
-	// }
+	/* function handleMarkerClick(building: Building) {
+		return () => {
+			// if (eventPlacementStore.active) return;
+			// if (isMapEditEnabled() && selectedEditKey !== null) return;
+			if (building.buildingName === searchInfo.inputValue) return;
+			goto(resolve(`/map/buildings/${slugifySegment(building.buildingName)}`));
+			// sidePanelStore.openPanel({
+			// 	type: 'search-result',
+			// 	component: BuildingResult
+			// });
+			map.centerMarker([building.lon, building.lat]);
+		};
+	} */
 </script>
 
 {#if map.withinZoom(zoomLevel) && showBuildingPins}

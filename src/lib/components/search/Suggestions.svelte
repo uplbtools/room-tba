@@ -4,13 +4,13 @@
 		buildingMatchesTypeFilter,
 		dormMatchesTypeFilter
 	} from '$lib/constants/content/categories/building';
-	import { getAppData } from '$lib/utils/context';
 	import { getJSONFetch, searchLocalAliases, searchLocalRooms } from '$lib/utils/local/data/utils';
 	import { buildEntitySuggestions } from '$lib/utils/search-suggestions';
-	import { buildingTypeFilter, classVenuesStore, searchInfo } from '$lib/stores.svelte';
+	import { buildingTypeFilter } from '$lib/stores.svelte';
 	import FinalExamSuggestion from './FinalExamSuggestion.svelte';
 	import SearchQuerySuggestion from './SearchQuerySuggestion.svelte';
 	import Suggestion from './Suggestion.svelte';
+	import { getAppData, getSearchInfo } from '$lib/utils/context';
 
 	const appData = getAppData();
 	const { buildings, colleges, divisions, dorms, events, organizations, places, loaded } =
@@ -25,8 +25,8 @@
 		return buildings.filter((building) =>
 			buildingMatchesTypeFilter(
 				building,
-				buildingTypeFilter.value,
-				classVenuesStore.buildingIdsWithClasses
+				buildingTypeFilter.value
+				// classVenuesStore.buildingIdsWithClasses
 			)
 		);
 	});
@@ -43,6 +43,8 @@
 			places: places ?? []
 		})
 	);
+
+	const searchInfo = getSearchInfo();
 
 	type AliasHit = { alias: string; value: string };
 	type RoomHit = {

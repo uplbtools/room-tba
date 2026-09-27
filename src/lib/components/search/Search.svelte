@@ -16,6 +16,7 @@
 	import { dropdownFadeIn, dropdownFadeOut } from '$lib/utils/motion';
 	import { registerEphemeralOverlayDismisser } from '$lib/utils/overlay-stack';
 	import { registerSearchFocus } from '$lib/utils/search-focus';
+	import { getSearchInfo } from '$lib/utils/context';
 	// import {
 	// 	adminAuthStore,
 	// 	editorChromeStore,
@@ -30,10 +31,10 @@
 	let searchElement = $state<HTMLInputElement | null>(null);
 	let shellMainEl = $state<HTMLDivElement | null>(null);
 	let chromeEl = $state<HTMLDivElement | null>(null);
-	let draftInput = $state('');
 	let searchFocused = $state(false);
 	const mobile = new MediaQuery('max-width:48rem');
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
+	const searchInfo = getSearchInfo();
 
 	// const chrome = $derived(getMapChromeVisibility());
 
@@ -58,10 +59,10 @@
 		};
 	});
 
-	// const commitSearchInput = debounce((searchInput: string) => {
-	// 	searchInfo.inputValue = searchInput;
-	// 	searchInfo.setType("query");
-	// }, 200);
+	const commitSearchInput = debounce((searchInput: string) => {
+		searchInfo.inputValue = searchInput;
+		searchInfo.setType('query');
+	}, 200);
 
 	// $effect(() => {
 	// 	if (searchInfo.type === "result" || searchInfo.category !== null) {
@@ -74,11 +75,10 @@
 	// });
 
 	function handleInput(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
-		// if (searchInfo.type === "result" || searchInfo.category !== null) {
-		// 	searchInfo.exitResultMode();
-		// }
-		// draftInput = event.currentTarget.value;
-		// commitSearchInput(draftInput);
+		if (searchInfo.type === 'result' || searchInfo.category !== null) {
+			searchInfo.exitResultMode();
+		}
+		commitSearchInput(event.currentTarget.value);
 	}
 
 	// function closeSearchContext() {
@@ -99,11 +99,9 @@
 
 	const mobileSearchActive = $derived(mobile.current && searchFocused);
 
-	// const clearSelectionLabel = $derived(
-	// 	searchInfo.type === "result" && searchInfo.category !== null
-	// 		? "Close details"
-	// 		: "Clear search",
-	// );
+	const clearSelectionLabel = $derived(
+		searchInfo.type === 'result' && searchInfo.category !== null ? 'Close details' : 'Clear search'
+	);
 
 	// function openEditorTools() {
 	// 	searchFocused = false;
@@ -130,6 +128,11 @@
 	// 		searchElement?.blur();
 	// 	}
 	// });
+
+	function clearSearch() {
+		goto(resolve('/map'));
+		searchInfo.clearSearch();
+	}
 </script>
 
 <div
@@ -137,8 +140,7 @@
 	class:mobile-shell={mobile.current}
 	class:search-input-focused={searchFocused}
 	class:search-mobile-active={mobileSearchActive}
-	// class:search-suggestions-open={showSearchDropdown}
-	class:search-query-active={draftInput.trim() !== ''}
+	class:search-query-active={searchInfo.inputValue.trim() !== ''}
 >
 	<div class="search-shell-main" bind:this={shellMainEl}>
 		<div
@@ -180,7 +182,7 @@
 								enterkeyhint="search"
 								id="search"
 								autocomplete="off"
-								value={draftInput}
+								value={searchInfo.inputValue}
 								bind:this={searchElement}
 								oninput={handleInput}
 								onfocus={() => {
@@ -192,11 +194,11 @@
 								aria-controls="search-suggestions"
 								aria-autocomplete="list"
 								aria-haspopup="listbox"
-								placeholder="ex. Institute of Computer Science"
+								placeholder="Keywords"
 							/>
-							<!-- {#if draftInput !== '' || searchInfo.category !== null}
+							{#if searchInfo.inputValue !== '' || searchInfo.category !== null}
 								<button
-									onclick={closeSearchContext}
+									onclick={clearSearch}
 									type="button"
 									class="clear-btn"
 									class:clear-btn--hidden={mobileSearchActive}
@@ -220,7 +222,7 @@
 									>
 								</button>
 							{/if}
-							{#if !mobile.current}
+							<!-- {#if !mobile.current}
 								<button
 									type="button"
 									class="map-search-chrome__add"

@@ -36,13 +36,12 @@ export default class SearchInfo {
     updateQuery = (obj: SearchInfoState & { id?: number }) => {
         this._searchInfo = obj;
         this.inputValue = obj.value;
+        this.inputValue = obj.value;
 
         if (obj.type === 'result' && obj.category !== null && obj.category !== 'browse') {
             this.addRecentSearch({
                 category: obj.category,
                 value: obj.value,
-                eventSlug: obj.eventSlug,
-                id: obj.id
             });
 
             // Committing a result outside the pin filter's domain (e.g. an office
@@ -67,9 +66,9 @@ export default class SearchInfo {
     addRecentSearch(recentSearch: RecentSearch) {
         const qIndex = this.recentSearches.findIndex((query) => {
             if (query.category !== recentSearch.category) return false;
-            if (recentSearch.category === 'event' && recentSearch.eventSlug && query.eventSlug) {
-                return query.eventSlug === recentSearch.eventSlug;
-            }
+            // if (recentSearch.category === 'event' && recentSearch.eventSlug && query.eventSlug) {
+            //     return query.eventSlug === recentSearch.eventSlug;
+            // }
             return query.value === recentSearch.value;
         });
         if (qIndex !== -1) this.recentSearches.splice(qIndex, 1);
@@ -81,7 +80,7 @@ export default class SearchInfo {
         this.recentSearches.splice(id, 1);
     }
 
-    clearQuery = () => {
+    clearSearch = () => {
         this._searchInfo = {
             category: null,
             type: 'query',

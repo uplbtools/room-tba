@@ -50,8 +50,8 @@
 
 	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
 		if (event.key === 'Escape' && page.route.id !== '/(app)/map') {
-			void goto(resolve('/map'));
-			void searchInfo.clearQuery();
+			goto(resolve('/map'));
+			searchInfo.clearSearch();
 		}
 	}
 </script>
@@ -61,13 +61,8 @@
 <div class="map-container">
 	<MapLibre
 		bind:map={() => map.getRawInstance(), (instance) => map.setRawInstance(instance)}
-		maxBounds={CAMPUS_MAX_BOUNDS}
-		center={CAMPUS_DEFAULT_CAMERA.center}
+		{...map.options}
 		style={'https://tiles.openfreemap.org/styles/positron'}
-		zoom={17}
-		pitch={CAMPUS_DEFAULT_CAMERA.pitch}
-		bearing={CAMPUS_DEFAULT_CAMERA.bearing}
-		minZoom={13}
 		class="map"
 	>
 		<!-- Location indicator for the user -->

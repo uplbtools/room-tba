@@ -494,6 +494,7 @@
 	import type { Snippet } from 'svelte';
 	import UIMap from './Map.svelte';
 	import SearchInfo from '$lib/stores/SearchInfo.svelte';
+	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
 
 	const { children }: { children: Snippet } = $props();
 
@@ -519,10 +520,10 @@
 			class="pointer-events-none fixed top-0 left-0 z-20 flex h-full w-full items-end justify-between p-3"
 		>
 			<div class="h-full">
-				<!-- <Search /> -->
-				<!--<SidePanel>
-					</SidePanel> -->
-				{@render children()}
+				<Search />
+				<InfoPanel>
+					{@render children()}
+				</InfoPanel>
 			</div>
 			<!-- <MapControlsStack /> -->
 		</div>
