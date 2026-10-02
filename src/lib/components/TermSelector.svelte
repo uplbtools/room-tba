@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { onMount } from "svelte";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
@@ -7,7 +7,7 @@
   import { formatTermDateRange } from "$lib/utils/term/term-calendar";
   import { trapFocus } from "$lib/utils/focus-trap";
   import { portal } from "$lib/utils/portal";
-  import { mapToolsStore, sidebarStore, termStore } from "$lib/stores.svelte";
+  // import { mapToolsStore, sidebarStore, termStore } from "$lib/stores.svelte";
   import {
     registerEphemeralOverlayDismisser,
     openEphemeralOverlay,
@@ -41,11 +41,11 @@
     };
   });
 
-  const active = $derived(termStore.activeTerm);
+  // const active = $derived(termStore.activeTerm);
 
-  const activeChipLabel = $derived(active ? termFullLabel(active) : "Term");
+  // const activeChipLabel = $derived(active ? termFullLabel(active) : "Term");
 
-  const activeDateRange = $derived(active ? formatTermDateRange(active) : null);
+  // const activeDateRange = $derived(active ? formatTermDateRange(active) : null);
 
   function updatePanelPosition() {
     if (!open || !triggerEl) return;
@@ -92,7 +92,7 @@
   function toggleOpen() {
     if (!open) {
       openEphemeralOverlay(() => {
-        mapToolsStore.close();
+        // mapToolsStore.close();
         open = true;
         queueMicrotask(updatePanelPosition);
       });
@@ -106,13 +106,13 @@
   }
 
   function selectTerm(term: TermWithCount) {
-    termStore.setTerm(term.id);
+    // termStore.setTerm(term.id);
     closePanel();
   }
 
   function openCalendar() {
     closePanel();
-    sidebarStore.changeOpened("calendar");
+    // sidebarStore.changeOpened("calendar");
   }
 
   $effect(() => {
@@ -121,7 +121,7 @@
   });
 
   $effect(() => {
-    if (mapToolsStore.open) closePanel();
+    // if (mapToolsStore.open) closePanel();
   });
 
   function handleDocumentPointerDown(event: PointerEvent) {
@@ -479,3 +479,4 @@
     outline-offset: -2px;
   }
 </style>
+ -->

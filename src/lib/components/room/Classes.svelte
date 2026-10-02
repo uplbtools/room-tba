@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { classTypeDisplayLabel, NO_ASSIGNED_ROOM_LABEL } from '$lib/amis/room-scheduled-types';
 	import { groupClassesByOffering, offeringGroupKey } from '$lib/utils/class-offering-groups';
 	import type { ClassOfferingGroup } from '$lib/utils/class-offering-groups';
@@ -328,4 +328,4 @@
 	.class-section-row__open:hover {
 		background: hsl(5, 53%, 96%);
 	}
-</style>
+</style> -->

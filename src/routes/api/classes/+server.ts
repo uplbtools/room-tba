@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const conditions = [];
 	if (termId !== undefined) conditions.push(eq(classesTable.termId, termId));
-	if (roomCode) conditions.push(eq(roomsTable.roomCode, roomCode));
+	if (roomCode) conditions.push(eq(roomsTable.code, roomCode));
 	const coursePrefix = courseCode?.trim();
 	if (coursePrefix)
 		conditions.push(ilike(classesTable.courseCode, `${coursePrefix.toUpperCase()}%`));
@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				termId: classesTable.termId,
 				roomId: classesTable.roomId,
 				courseCode: classesTable.courseCode,
-				roomCode: roomsTable.roomCode,
+				roomCode: roomsTable.code,
 				section: classesTable.section,
 				type: classesTable.type,
 				schedule: classesTable.schedule,

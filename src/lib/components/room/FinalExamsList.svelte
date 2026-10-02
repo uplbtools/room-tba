@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { searchInfo, sidebarStore } from '$lib/stores.svelte';
 	import { formatExamDate, formatExamTimeRange } from '$lib/utils/final-exams/final-exams';
 	import type { FinalExamRow } from '$lib/utils/types';
@@ -128,4 +128,4 @@
 		color: hsl(0, 0%, 45%);
 		font-weight: 500;
 	}
-</style>
+</style> -->

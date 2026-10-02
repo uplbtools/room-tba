@@ -124,7 +124,7 @@ export async function getRoomPageData(roomId: number) {
 	const [room] = await db
 		.select({
 			id: roomsTable.id,
-			code: roomsTable.roomCode,
+			code: roomsTable.code,
 			directions: roomsTable.directions,
 			building: {
 				name: buildingsTable.buildingName,

@@ -1,10 +1,10 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import { fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
   import { trapFocus } from "$lib/utils/focus-trap";
   import { fullScreenReveal } from "$lib/utils/motion";
-  import { sidebarStore, termStore } from "$lib/stores.svelte";
+  // import { sidebarStore, termStore } from "$lib/stores.svelte";
   import {
     buildEventTimeline,
     buildYearTimeline,
@@ -33,7 +33,7 @@
   let screenEl = $state<HTMLDivElement | null>(null);
 
   function close() {
-    sidebarStore.changeOpened("map");
+    // sidebarStore.changeOpened("map");
   }
 
   $effect(() => {
@@ -135,9 +135,9 @@
       .map((entry) => `${entry.label}, ${dateLabel(entry)}`)
       .join("\n");
   }
-</script>
+</script> -->
 
-<div
+<!-- <div
   bind:this={screenEl}
   class="acal-screen"
   role="dialog"
@@ -265,8 +265,8 @@
       <section class="acal-terms" aria-label="Terms">
         {#each cards as card (card.term.id)}
           {@const termMilestones = milestonesByTerm.get(card.term.id) ?? []}
-          <!-- Native disclosure: keyboard support and open/close state for
-               free, no store needed. The term in session starts open. -->
+          Native disclosure: keyboard support and open/close state for
+               free, no store needed. The term in session starts open.
           <details
             class="acal-card"
             class:acal-card--current={card.status === "in-session"}
@@ -319,423 +319,423 @@
       </section>
     {/if}
   </div>
-</div>
+</div> -->
 
 <style>
-  .acal-screen {
-    z-index: 150;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
-    background: hsl(0, 0%, 98%);
-    flex: 1 1 auto;
-    pointer-events: auto;
-    overflow: hidden;
-  }
+	.acal-screen {
+		z-index: 150;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
+		background: hsl(0, 0%, 98%);
+		flex: 1 1 auto;
+		pointer-events: auto;
+		overflow: hidden;
+	}
 
-  .acal-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
+	.acal-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+	}
 
-  .acal-back {
-    all: unset;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: hsl(5, 53%, 32%);
-    cursor: pointer;
-    border-radius: 0.5rem;
-    padding: 0.25rem 0.5rem;
-  }
+	.acal-back {
+		all: unset;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: hsl(5, 53%, 32%);
+		cursor: pointer;
+		border-radius: 0.5rem;
+		padding: 0.25rem 0.5rem;
+	}
 
-  .acal-back:hover {
-    background: hsl(5, 30%, 94%);
-  }
+	.acal-back:hover {
+		background: hsl(5, 30%, 94%);
+	}
 
-  .acal-back:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-  }
+	.acal-back:focus-visible {
+		outline: 2px solid hsl(5, 53%, 32%);
+	}
 
-  .acal-title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: hsl(0, 0%, 12%);
-  }
+	.acal-title {
+		margin: 0;
+		font-size: 1.25rem;
+		font-weight: 800;
+		color: hsl(0, 0%, 12%);
+	}
 
-  .acal-note {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: hsl(0, 0%, 40%);
-    max-width: 52rem;
-  }
+	.acal-note {
+		margin: 0;
+		font-size: 0.8125rem;
+		color: hsl(0, 0%, 40%);
+		max-width: 52rem;
+	}
 
-  .acal-body {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    padding-bottom: 1rem;
-  }
+	.acal-body {
+		flex: 1;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		padding-bottom: 1rem;
+	}
 
-  .acal-status {
-    margin: 0;
-    font-size: 0.875rem;
-    color: hsl(0, 0%, 40%);
-  }
+	.acal-status {
+		margin: 0;
+		font-size: 0.875rem;
+		color: hsl(0, 0%, 40%);
+	}
 
-  .acal-year {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-width: 52rem;
-  }
+	.acal-year {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		max-width: 52rem;
+	}
 
-  .acal-year__heading {
-    margin: 0;
-    font-size: 0.9375rem;
-    font-weight: 700;
-    color: hsl(0, 0%, 20%);
-  }
+	.acal-year__heading {
+		margin: 0;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: hsl(0, 0%, 20%);
+	}
 
-  .acal-strip {
-    position: relative;
-    height: 4rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.625rem;
-    background: white;
-  }
+	.acal-strip {
+		position: relative;
+		height: 4rem;
+		border: 1px solid hsl(0, 0%, 88%);
+		border-radius: 0.625rem;
+		background: white;
+	}
 
-  .acal-month {
-    position: absolute;
-    top: 0.25rem;
-    padding-left: 0.1875rem;
-    border-left: 1px solid hsl(0, 0%, 90%);
-    height: calc(100% - 0.5rem);
-    font-size: 0.5625rem;
-    font-weight: 600;
-    color: hsl(0, 0%, 55%);
-    line-height: 1;
-    pointer-events: none;
-  }
+	.acal-month {
+		position: absolute;
+		top: 0.25rem;
+		padding-left: 0.1875rem;
+		border-left: 1px solid hsl(0, 0%, 90%);
+		height: calc(100% - 0.5rem);
+		font-size: 0.5625rem;
+		font-weight: 600;
+		color: hsl(0, 0%, 55%);
+		line-height: 1;
+		pointer-events: none;
+	}
 
-  .acal-seg {
-    position: absolute;
-    bottom: 0.375rem;
-    height: 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0.375rem;
-    overflow: hidden;
-  }
+	.acal-seg {
+		position: absolute;
+		bottom: 0.375rem;
+		height: 1.75rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.375rem;
+		overflow: hidden;
+	}
 
-  .acal-seg--past {
-    background: hsl(0, 0%, 90%);
-    color: hsl(0, 0%, 35%);
-  }
+	.acal-seg--past {
+		background: hsl(0, 0%, 90%);
+		color: hsl(0, 0%, 35%);
+	}
 
-  .acal-seg--upcoming {
-    background: hsl(5, 30%, 92%);
-    color: hsl(5, 40%, 30%);
-  }
+	.acal-seg--upcoming {
+		background: hsl(5, 30%, 92%);
+		color: hsl(5, 40%, 30%);
+	}
 
-  .acal-seg--in-session {
-    background: hsl(5, 53%, 32%);
-    color: white;
-  }
+	.acal-seg--in-session {
+		background: hsl(5, 53%, 32%);
+		color: white;
+	}
 
-  .acal-seg__label {
-    font-size: 0.625rem;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0 0.25rem;
-  }
+	.acal-seg__label {
+		font-size: 0.625rem;
+		font-weight: 700;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		padding: 0 0.25rem;
+	}
 
-  /* Markers snap to a 5% grid (EVENT_MARKER_STEP_PCT), so this dot must stay
+	/* Markers snap to a 5% grid (EVENT_MARKER_STEP_PCT), so this dot must stay
      narrower than 5% of the strip at 320px (~15px) or clusters can touch. */
-  .acal-dot {
-    position: absolute;
-    top: 0.9rem;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 999px;
-    font-size: 0.5rem;
-    font-weight: 800;
-    line-height: 1;
-    color: white;
-    background: hsl(5, 53%, 32%);
-  }
+	.acal-dot {
+		position: absolute;
+		top: 0.9rem;
+		transform: translateX(-50%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 999px;
+		font-size: 0.5rem;
+		font-weight: 800;
+		line-height: 1;
+		color: white;
+		background: hsl(5, 53%, 32%);
+	}
 
-  /* A missed deadline costs money, so deadlines read loudest. */
-  .acal-dot--deadline {
-    background: hsl(5, 72%, 42%);
-  }
+	/* A missed deadline costs money, so deadlines read loudest. */
+	.acal-dot--deadline {
+		background: hsl(5, 72%, 42%);
+	}
 
-  .acal-dot--period {
-    background: white;
-    color: hsl(5, 53%, 32%);
-    box-shadow: inset 0 0 0 2px hsl(5, 53%, 32%);
-  }
+	.acal-dot--period {
+		background: white;
+		color: hsl(5, 53%, 32%);
+		box-shadow: inset 0 0 0 2px hsl(5, 53%, 32%);
+	}
 
-  .acal-dot--holiday {
-    background: hsl(210, 45%, 55%);
-  }
+	.acal-dot--holiday {
+		background: hsl(210, 45%, 55%);
+	}
 
-  .acal-dot--past {
-    background: hsl(0, 0%, 62%);
-    color: white;
-    box-shadow: none;
-  }
+	.acal-dot--past {
+		background: hsl(0, 0%, 62%);
+		color: white;
+		box-shadow: none;
+	}
 
-  .acal-today {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: hsl(210, 80%, 45%);
-  }
+	.acal-today {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 2px;
+		background: hsl(210, 80%, 45%);
+	}
 
-  .acal-caption {
-    margin: 0;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: hsl(210, 60%, 35%);
-  }
+	.acal-caption {
+		margin: 0;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: hsl(210, 60%, 35%);
+	}
 
-  .acal-milestones {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    max-width: 52rem;
-  }
+	.acal-milestones {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		max-width: 52rem;
+	}
 
-  .acal-milestones__month {
-    margin: 0.25rem 0 0;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: hsl(0, 0%, 45%);
-  }
+	.acal-milestones__month {
+		margin: 0.25rem 0 0;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: hsl(0, 0%, 45%);
+	}
 
-  .acal-milestones__list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
+	.acal-milestones__list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
 
-  .acal-milestone {
-    display: grid;
-    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
-    align-items: baseline;
-    gap: 0.25rem 0.75rem;
-    padding: 0.4375rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.625rem;
-    background: white;
-  }
+	.acal-milestone {
+		display: grid;
+		grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+		align-items: baseline;
+		gap: 0.25rem 0.75rem;
+		padding: 0.4375rem 0.75rem;
+		border: 1px solid hsl(0, 0%, 88%);
+		border-radius: 0.625rem;
+		background: white;
+	}
 
-  .acal-milestone--deadline {
-    border-color: hsl(5, 45%, 78%);
-    background: hsl(5, 60%, 98%);
-  }
+	.acal-milestone--deadline {
+		border-color: hsl(5, 45%, 78%);
+		background: hsl(5, 60%, 98%);
+	}
 
-  /* Past dates stay on the calendar, just quieter than what is still ahead. */
-  .acal-milestone--past {
-    border-color: hsl(0, 0%, 90%);
-    background: hsl(0, 0%, 97%);
-  }
+	/* Past dates stay on the calendar, just quieter than what is still ahead. */
+	.acal-milestone--past {
+		border-color: hsl(0, 0%, 90%);
+		background: hsl(0, 0%, 97%);
+	}
 
-  .acal-milestone__date {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: hsl(0, 0%, 30%);
-    font-variant-numeric: tabular-nums;
-  }
+	.acal-milestone__date {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: hsl(0, 0%, 30%);
+		font-variant-numeric: tabular-nums;
+	}
 
-  .acal-milestone--past .acal-milestone__date,
-  .acal-milestone--past .acal-milestone__label {
-    color: hsl(0, 0%, 48%);
-  }
+	.acal-milestone--past .acal-milestone__date,
+	.acal-milestone--past .acal-milestone__label {
+		color: hsl(0, 0%, 48%);
+	}
 
-  .acal-milestone__label {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: hsl(0, 0%, 16%);
-    overflow-wrap: anywhere;
-  }
+	.acal-milestone__label {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: hsl(0, 0%, 16%);
+		overflow-wrap: anywhere;
+	}
 
-  .acal-milestone__kind {
-    font-size: 0.625rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: hsl(0, 0%, 52%);
-  }
+	.acal-milestone__kind {
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: hsl(0, 0%, 52%);
+	}
 
-  .acal-milestones__note {
-    margin: 0.25rem 0 0;
-    font-size: 0.6875rem;
-    color: hsl(0, 0%, 45%);
-  }
+	.acal-milestones__note {
+		margin: 0.25rem 0 0;
+		font-size: 0.6875rem;
+		color: hsl(0, 0%, 45%);
+	}
 
-  .acal-terms {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-width: 52rem;
-  }
+	.acal-terms {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		max-width: 52rem;
+	}
 
-  /* block, not flex: a flex <details> puts the disclosure box out of flow. */
-  .acal-card {
-    display: block;
-    padding: 0.625rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.625rem;
-    background: white;
-  }
+	/* block, not flex: a flex <details> puts the disclosure box out of flow. */
+	.acal-card {
+		display: block;
+		padding: 0.625rem 0.75rem;
+		border: 1px solid hsl(0, 0%, 88%);
+		border-radius: 0.625rem;
+		background: white;
+	}
 
-  .acal-card__head {
-    cursor: pointer;
-    /* Both properties needed: Safari still uses the webkit marker. */
-    list-style: none;
-  }
+	.acal-card__head {
+		cursor: pointer;
+		/* Both properties needed: Safari still uses the webkit marker. */
+		list-style: none;
+	}
 
-  .acal-card__head::-webkit-details-marker {
-    display: none;
-  }
+	.acal-card__head::-webkit-details-marker {
+		display: none;
+	}
 
-  /* Chevron stands in for the marker we just removed. */
-  .acal-card__head::after {
-    content: "";
-    flex: 0 0 auto;
-    width: 0.4375rem;
-    height: 0.4375rem;
-    margin-left: auto;
-    border-right: 2px solid hsl(0, 0%, 45%);
-    border-bottom: 2px solid hsl(0, 0%, 45%);
-    transform: rotate(45deg) translate(-0.125rem, -0.125rem);
-    transition: transform 120ms ease;
-  }
+	/* Chevron stands in for the marker we just removed. */
+	.acal-card__head::after {
+		content: '';
+		flex: 0 0 auto;
+		width: 0.4375rem;
+		height: 0.4375rem;
+		margin-left: auto;
+		border-right: 2px solid hsl(0, 0%, 45%);
+		border-bottom: 2px solid hsl(0, 0%, 45%);
+		transform: rotate(45deg) translate(-0.125rem, -0.125rem);
+		transition: transform 120ms ease;
+	}
 
-  .acal-card[open] > .acal-card__head::after {
-    transform: rotate(-135deg) translate(-0.125rem, -0.125rem);
-  }
+	.acal-card[open] > .acal-card__head::after {
+		transform: rotate(-135deg) translate(-0.125rem, -0.125rem);
+	}
 
-  .acal-card__dates {
-    margin: 0.5rem 0 0;
-    padding: 0.5rem 0 0;
-    border-top: 1px solid hsl(0, 0%, 92%);
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
+	.acal-card__dates {
+		margin: 0.5rem 0 0;
+		padding: 0.5rem 0 0;
+		border-top: 1px solid hsl(0, 0%, 92%);
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
 
-  .acal-card__hint {
-    font-weight: 650;
-    color: hsl(5, 53%, 32%);
-  }
+	.acal-card__hint {
+		font-weight: 650;
+		color: hsl(5, 53%, 32%);
+	}
 
-  .acal-card__empty {
-    margin: 0.5rem 0 0;
-    padding-top: 0.5rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 45%);
-  }
+	.acal-card__empty {
+		margin: 0.5rem 0 0;
+		padding-top: 0.5rem;
+		border-top: 1px solid hsl(0, 0%, 92%);
+		font-size: 0.75rem;
+		color: hsl(0, 0%, 45%);
+	}
 
-  .acal-card--current {
-    border-color: hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 98%);
-  }
+	.acal-card--current {
+		border-color: hsl(5, 53%, 32%);
+		background: hsl(5, 53%, 98%);
+	}
 
-  .acal-card__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
+	.acal-card__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
 
-  .acal-card__label {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: hsl(0, 0%, 16%);
-  }
+	.acal-card__label {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: hsl(0, 0%, 16%);
+	}
 
-  .acal-badge {
-    flex: 0 0 auto;
-    font-size: 0.625rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.125rem 0.4375rem;
-    border-radius: 999px;
-  }
+	.acal-badge {
+		flex: 0 0 auto;
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		padding: 0.125rem 0.4375rem;
+		border-radius: 999px;
+	}
 
-  .acal-badge--in-session {
-    background: hsl(5, 53%, 32%);
-    color: white;
-  }
+	.acal-badge--in-session {
+		background: hsl(5, 53%, 32%);
+		color: white;
+	}
 
-  .acal-badge--upcoming {
-    background: hsl(5, 30%, 92%);
-    color: hsl(5, 40%, 30%);
-  }
+	.acal-badge--upcoming {
+		background: hsl(5, 30%, 92%);
+		color: hsl(5, 40%, 30%);
+	}
 
-  .acal-badge--past,
-  .acal-badge--undated {
-    background: hsl(0, 0%, 92%);
-    color: hsl(0, 0%, 40%);
-  }
+	.acal-badge--past,
+	.acal-badge--undated {
+		background: hsl(0, 0%, 92%);
+		color: hsl(0, 0%, 40%);
+	}
 
-  .acal-card__meta {
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 42%);
-  }
+	.acal-card__meta {
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.75rem;
+		font-size: 0.75rem;
+		color: hsl(0, 0%, 42%);
+	}
 
-  @media (max-width: 48rem) {
-    .acal-screen {
-      padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
-    }
-  }
+	@media (max-width: 48rem) {
+		.acal-screen {
+			padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+		}
+	}
 
-  /* 320px: keep every other month label so ticks don't collide. */
-  @media (max-width: 30rem) {
-    .acal-month:nth-child(even) {
-      font-size: 0;
-    }
+	/* 320px: keep every other month label so ticks don't collide. */
+	@media (max-width: 30rem) {
+		.acal-month:nth-child(even) {
+			font-size: 0;
+		}
 
-    /* Three columns do not fit; date over label, kind badge on the date row. */
-    .acal-milestone {
-      grid-template-columns: minmax(0, 1fr) auto;
-    }
+		/* Three columns do not fit; date over label, kind badge on the date row. */
+		.acal-milestone {
+			grid-template-columns: minmax(0, 1fr) auto;
+		}
 
-    .acal-milestone__label {
-      grid-column: 1 / -1;
-    }
-  }
+		.acal-milestone__label {
+			grid-column: 1 / -1;
+		}
+	}
 </style>

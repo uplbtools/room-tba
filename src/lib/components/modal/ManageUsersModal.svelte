@@ -3,7 +3,7 @@
 	import IconButton from '$lib/components/IconButton.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { X, Users } from '@lucide/svelte';
-	import { adminAuthStore, toastStore } from '$lib/stores.svelte';
+	// import { adminAuthStore, toastStore } from '$lib/stores.svelte';
 	import { modalContentDismiss, modalContentReveal, overlayFade } from '$lib/utils/motion';
 	import { trapFocus } from '$lib/utils/focus-trap';
 	import EntityEditorFormField from '$lib/components/editor/EntityEditorFormField.svelte';

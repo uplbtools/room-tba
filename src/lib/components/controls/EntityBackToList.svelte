@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import { openCampusBrowse, type CampusBrowseTab } from '$lib/utils/campus/browse-campus';
 	import { searchInfo, sidePanelStore } from '$lib/stores.svelte';
@@ -44,4 +44,4 @@
 	.entity-back-to-list:focus-visible {
 		background-color: hsl(5, 53%, 96%);
 	}
-</style>
+</style> -->

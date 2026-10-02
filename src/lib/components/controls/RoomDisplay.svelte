@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import RoomResult from '$lib/components/room/RoomResult.svelte';
@@ -147,4 +147,4 @@
 	:global(mark) {
 		background-color: hsl(5, 53%, 90%);
 	}
-</style>
+</style> -->

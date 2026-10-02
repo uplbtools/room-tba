@@ -222,7 +222,7 @@ export async function getEntityLabel(
 		}
 		case 'room': {
 			const [row] = await db
-				.select({ label: roomsTable.roomCode })
+				.select({ label: roomsTable.code })
 				.from(roomsTable)
 				.where(eq(roomsTable.id, entityId))
 				.limit(1);

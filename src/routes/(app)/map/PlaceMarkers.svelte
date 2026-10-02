@@ -36,13 +36,7 @@
 
 	function handleMarkerClick(place: (typeof filteredPlaces)[number]) {
 		return () => {
-			let subroute: 'landmarks' | 'establishments';
-			if (isPlaceLandmark(place.category)) {
-				subroute = 'landmarks';
-			} else {
-				subroute = 'establishments';
-			}
-			goto(resolve(`/map/${subroute}/${place.id}`));
+			goto(resolve(`/map/places/${place.id}`));
 			if (place.lon && place.lat) {
 				map.centerMarker([place.lon, place.lat]);
 			}

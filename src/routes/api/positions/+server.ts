@@ -41,7 +41,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const rows = await db
 		.select({
-			roomCode: roomsTable.roomCode,
+			roomCode: roomsTable.code,
 			floor: roomPositionsTable.floor,
 			x: roomPositionsTable.posX,
 			y: roomPositionsTable.posY
@@ -98,7 +98,7 @@ export const DELETE: RequestHandler = async ({ cookies, url }) => {
 	const targets = await db
 		.select({ id: roomsTable.id })
 		.from(roomsTable)
-		.where(eq(roomsTable.roomCode, roomCode));
+		.where(eq(roomsTable.code, roomCode));
 	const targetIds = targets.map((t) => t.id).filter((id) => roomIds.includes(id));
 
 	if (targetIds.length === 0) return jsonOk({ deleted: 0 });

@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -11,7 +11,7 @@
 	import { isPlaceLandmark, placeDirectoryLabel } from '$lib/constants/content/categories/place';
 	import { jeepneyStore, searchInfo, sidePanelStore, transitStore } from '$lib/stores.svelte';
 	import CollegeResult from './CollegeResult.svelte';
-	import BuildingResult from './BuildingResult.svelte';
+	import BuildingResult from '../../../routes/(app)/map/buildings/[id]/BuildingResult.svelte';
 	import DivisionResult from './DivisionResult.svelte';
 	import OrgResult from './OrgResult.svelte';
 	import DormResult from './DormResult.svelte';
@@ -389,8 +389,8 @@
 	function onFilterInput(event: Event) {
 		filterText = (event.currentTarget as HTMLInputElement).value;
 	}
-</script>
-
+</script> -->
+<!-- 
 <div class="campus-browse-panel">
 	<EntityPanelHeader closeAriaLabel="Close browse list" closeTitle="Close" onclose={closeList}>
 		{#snippet trailing()}
@@ -454,14 +454,11 @@
 				{/each}
 			</ul>
 		{:else if !loaded && activeTab !== 'jeepney'}
-			<!-- Header LoadingIndicator already announces the load; empty label keeps
-           the skeleton out of the accessibility tree. -->
 			<EntitySkeleton variant="directory" label="" />
 		{:else if loaded}
 			<EntityEmptyState title={emptyState.title} description={emptyState.description}>
 				{#snippet icon()}
 					<svg viewBox="0 0 180 128" fill="none" aria-hidden="true">
-						<!-- Folded campus map with a dotted route and a location pin. -->
 						<rect x="28" y="34" width="124" height="70" rx="10" fill="currentColor" opacity=".1" />
 						<rect
 							x="28"
@@ -492,7 +489,7 @@
 			</EntityEmptyState>
 		{/if}
 	</div>
-</div>
+</div> -->
 
 <style>
 	@import './entity-detail.css';

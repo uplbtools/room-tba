@@ -6,6 +6,7 @@
 	// import { buildingMatchesTypeFilter } from '$lib/constants/content/categories/building';
 	import { getMapBuildingsData } from '$lib/functions/buildings.remote';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import { onMount } from 'svelte';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {

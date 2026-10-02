@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import { adminAuthStore, searchInfo, toastStore, termStore } from '$lib/stores.svelte';
 	import {
@@ -451,4 +451,4 @@
 		flex: 1 1 0;
 		overflow-y: auto;
 	}
-</style>
+</style> -->

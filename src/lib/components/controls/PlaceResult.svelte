@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import {
 		additionProposalStore,
 		searchInfo,
@@ -312,4 +312,4 @@
 		padding: 1rem;
 		color: hsl(0, 0%, 45%);
 	}
-</style>
+</style> -->

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { afterNavigate, beforeNavigate } from '$app/navigation';
+	import { afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/state';
 	import { getPlaceById } from '$lib/functions/places.remote.js';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
-	import { onMount, untrack } from 'svelte';
+	import { onMount } from 'svelte';
 	// import { onMount, untrack } from 'svelte';
 
 	const { params } = $props();

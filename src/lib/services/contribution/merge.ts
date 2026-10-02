@@ -67,7 +67,7 @@ async function assertNoDuplicateRoomCodesInBuilding(
 	tx: Parameters<Parameters<typeof db.transaction>[0]>[0]
 ) {
 	const rows = await tx
-		.select({ roomCode: roomsTable.roomCode })
+		.select({ roomCode: roomsTable.code })
 		.from(roomsTable)
 		.where(eq(roomsTable.buildingId, buildingId));
 

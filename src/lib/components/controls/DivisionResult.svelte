@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import { adminAuthStore, searchInfo, toastStore, termStore } from '$lib/stores.svelte';
 	import {
@@ -488,4 +488,4 @@
 		font-style: italic;
 		color: #a1a1aa;
 	}
-</style>
+</style> -->

@@ -1,89 +1,89 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
-  import SubmitterNameField from "$lib/components/SubmitterNameField.svelte";
-  import { MAX_SUBMITTER_NOTE_LENGTH } from "$lib/constants/contribute/proposals";
-  import EntityEditorFormField from "./EntityEditorFormField.svelte";
-  import EntityEditorMessage from "./EntityEditorMessage.svelte";
-  import EntityEditorSubmitButton from "./EntityEditorSubmitButton.svelte";
-  import EntityHistoryPanel from "./EntityHistoryPanel.svelte";
-  import ProposalLicenseNote from "./ProposalLicenseNote.svelte";
-  import {
-    canShowWithdrawProposal,
-    proposalStatusMessage,
-  } from "$lib/utils/editor/field-action-label";
-  import { withdrawEntityProposal } from "$lib/utils/proposals/client";
-  import { toastStore } from "$lib/stores.svelte";
-  import "./entity-editor.css";
+	import type { Snippet } from 'svelte';
+	import SubmitterNameField from '$lib/components/SubmitterNameField.svelte';
+	import { MAX_SUBMITTER_NOTE_LENGTH } from '$lib/constants/contribute/proposals';
+	import EntityEditorFormField from './EntityEditorFormField.svelte';
+	import EntityEditorMessage from './EntityEditorMessage.svelte';
+	import EntityEditorSubmitButton from './EntityEditorSubmitButton.svelte';
+	import EntityHistoryPanel from './EntityHistoryPanel.svelte';
+	import ProposalLicenseNote from './ProposalLicenseNote.svelte';
+	import {
+		canShowWithdrawProposal,
+		proposalStatusMessage
+	} from '$lib/utils/editor/field-action-label';
+	import { withdrawEntityProposal } from '$lib/utils/proposals/client';
+	// import { toastStore } from "$lib/stores.svelte";
+	import './entity-editor.css';
 
-  type Props = {
-    canPublish: boolean;
-    showSubmitterName?: boolean;
-    submitterNameId: string;
-    submitterName?: string;
-    /**
-     * Opt in to the "Note to reviewer" box (#873). Callers must forward the
-     * bound value to persistEntityChange, so it stays off until wired.
-     */
-    showSubmitterNote?: boolean;
-    submitterNote?: string;
-    proposalStatus?: string | null;
-    activeProposalId?: number | null;
-    onWithdrawn?: () => void;
-    onsubmit?: () => void;
-    submitting?: boolean;
-    submitDisabled?: boolean;
-    successMessage?: string | null;
-    errorMessage?: string | null;
-    /** Enables the version-history section for publishers. */
-    historyEntity?: {
-      entityType: string;
-      entityId: number;
-      version: number;
-    } | null;
-    children?: Snippet;
-  };
+	type Props = {
+		canPublish: boolean;
+		showSubmitterName?: boolean;
+		submitterNameId: string;
+		submitterName?: string;
+		/**
+		 * Opt in to the "Note to reviewer" box (#873). Callers must forward the
+		 * bound value to persistEntityChange, so it stays off until wired.
+		 */
+		showSubmitterNote?: boolean;
+		submitterNote?: string;
+		proposalStatus?: string | null;
+		activeProposalId?: number | null;
+		onWithdrawn?: () => void;
+		onsubmit?: () => void;
+		submitting?: boolean;
+		submitDisabled?: boolean;
+		successMessage?: string | null;
+		errorMessage?: string | null;
+		/** Enables the version-history section for publishers. */
+		historyEntity?: {
+			entityType: string;
+			entityId: number;
+			version: number;
+		} | null;
+		children?: Snippet;
+	};
 
-  let {
-    canPublish,
-    showSubmitterName = false,
-    submitterNameId,
-    submitterName = $bindable(""),
-    showSubmitterNote = false,
-    submitterNote = $bindable(""),
-    proposalStatus = null,
-    activeProposalId = null,
-    onWithdrawn,
-    onsubmit,
-    submitting = false,
-    submitDisabled = false,
-    successMessage = null,
-    errorMessage = null,
-    historyEntity = null,
-    children,
-  }: Props = $props();
+	let {
+		canPublish,
+		showSubmitterName = false,
+		submitterNameId,
+		submitterName = $bindable(''),
+		showSubmitterNote = false,
+		submitterNote = $bindable(''),
+		proposalStatus = null,
+		activeProposalId = null,
+		onWithdrawn,
+		onsubmit,
+		submitting = false,
+		submitDisabled = false,
+		successMessage = null,
+		errorMessage = null,
+		historyEntity = null,
+		children
+	}: Props = $props();
 
-  let withdrawing = $state(false);
-  let withdrawError = $state<string | null>(null);
+	let withdrawing = $state(false);
+	let withdrawError = $state<string | null>(null);
 
-  async function withdrawSuggestion() {
-    if (!activeProposalId || canPublish) return;
-    withdrawError = null;
-    withdrawing = true;
-    try {
-      const result = await withdrawEntityProposal({
-        proposalId: activeProposalId,
-        submitterName: submitterName.trim() || undefined,
-      });
-      if (!result.ok) {
-        withdrawError = result.error ?? "Could not withdraw suggestion.";
-        return;
-      }
-      toastStore.show("Suggestion withdrawn.", "success");
-      onWithdrawn?.();
-    } finally {
-      withdrawing = false;
-    }
-  }
+	async function withdrawSuggestion() {
+		if (!activeProposalId || canPublish) return;
+		withdrawError = null;
+		withdrawing = true;
+		try {
+			const result = await withdrawEntityProposal({
+				proposalId: activeProposalId,
+				submitterName: submitterName.trim() || undefined
+			});
+			if (!result.ok) {
+				withdrawError = result.error ?? 'Could not withdraw suggestion.';
+				return;
+			}
+			// toastStore.show('Suggestion withdrawn.', 'success');
+			onWithdrawn?.();
+		} finally {
+			withdrawing = false;
+		}
+	}
 </script>
 
 <div class="entity-editor-panel" class:contributor-form={!canPublish}>

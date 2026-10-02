@@ -49,7 +49,7 @@ export async function getAllRoomsCached(): Promise<Room[]> {
   const data = await db
     .select({
       id: roomsTable.id,
-      code: roomsTable.roomCode,
+      code: roomsTable.code,
       fullName: roomsTable.fullName,
       directions: roomsTable.directions,
       building: {
@@ -117,7 +117,7 @@ export async function getAllRooms(): Promise<Room[]> {
     const data = await db
       .select({
         id: roomsTable.id,
-        code: roomsTable.roomCode,
+        code: roomsTable.code,
         fullName: roomsTable.fullName,
         directions: roomsTable.directions,
         building: {
@@ -154,7 +154,7 @@ export async function getRoomByCode(code: string) {
     const data = await db
       .select({
         id: roomsTable.id,
-        code: roomsTable.roomCode,
+        code: roomsTable.code,
         fullName: roomsTable.fullName,
         directions: roomsTable.directions,
         building: {
@@ -178,7 +178,7 @@ export async function getRoomByCode(code: string) {
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
       .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
       .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(sql`upper(${roomsTable.roomCode}) = ${normalizedCode}`);
+      .where(sql`upper(${roomsTable.code}) = ${normalizedCode}`);
     if (data.length === 0 || typeof data[0] === "undefined") return null;
     return data[0];
   } catch (e) {
@@ -192,7 +192,7 @@ export async function searchRooms(searchString: string) {
 		const escaped = escapeLikePattern(searchString);
 		const data = await db
 			.select({
-				value: roomsTable.roomCode,
+				value: roomsTable.code,
 				fullName: roomsTable.fullName
 			})
 			.from(roomsTable)
@@ -202,7 +202,7 @@ export async function searchRooms(searchString: string) {
 			// Callers upper-case the query, so match both columns case-insensitively:
 			// full names are mixed case ("DSDS Main Lecture Hall") (#875).
 			.where(
-				sql`upper(${roomsTable.roomCode}) LIKE ${`%${escaped.toUpperCase()}%`}
+				sql`upper(${roomsTable.code}) LIKE ${`%${escaped.toUpperCase()}%`}
           OR upper(${roomsTable.fullName}) LIKE ${`%${escaped.toUpperCase()}%`}`
 			)
 			.limit(6);
@@ -221,7 +221,7 @@ export async function getBuildingRooms(
     const data = await db
       .select({
         id: roomsTable.id,
-        code: roomsTable.roomCode,
+        code: roomsTable.code,
         fullName: roomsTable.fullName,
         directions: roomsTable.directions,
         building: {
@@ -257,7 +257,7 @@ export async function getCollegeRooms(collegeId: number): Promise<Room[]> {
     const data = await db
       .select({
         id: roomsTable.id,
-        code: roomsTable.roomCode,
+        code: roomsTable.code,
         fullName: roomsTable.fullName,
         directions: roomsTable.directions,
         building: {
@@ -295,7 +295,7 @@ export async function getDivisionRooms(
     const data = await db
       .select({
         id: roomsTable.id,
-        code: roomsTable.roomCode,
+        code: roomsTable.code,
         fullName: roomsTable.fullName,
         directions: roomsTable.directions,
         building: {
@@ -353,7 +353,7 @@ const classListSelect = {
 	termId: classesTable.termId,
 	roomId: classesTable.roomId,
 	courseCode: classesTable.courseCode,
-	roomCode: roomsTable.roomCode,
+	roomCode: roomsTable.code,
 	section: classesTable.section,
 	type: classesTable.type,
 	schedule: classesTable.schedule,
@@ -458,7 +458,7 @@ export async function getClassesForRoom(
 			.leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
 			.where(
 				and(
-					eq(roomsTable.roomCode, roomCode),
+					eq(roomsTable.code, roomCode),
 					termId != null ? eq(classesTable.termId, termId) : undefined
 				)
 			);
@@ -512,13 +512,13 @@ export async function getClassCountsByRoomCode(termId?: number): Promise<Map<str
 	try {
 		const data = await db
 			.select({
-				roomCode: roomsTable.roomCode,
+				roomCode: roomsTable.code,
 				count: sql<number>`count(${classesTable.id})::int`
 			})
 			.from(classesTable)
 			.innerJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
 			.where(termId != null ? eq(classesTable.termId, termId) : undefined)
-			.groupBy(roomsTable.roomCode);
+			.groupBy(roomsTable.code);
 		return new Map(data.map((row) => [row.roomCode, row.count]));
 	} catch (e) {
 		console.error('Error: ', e);
@@ -776,7 +776,7 @@ export async function queryFinalExams(filters: {
 			if (code) conditions.push(eq(finalExamsTable.courseCode, code));
 		}
 		if (filters.roomCode) {
-			conditions.push(eq(roomsTable.roomCode, filters.roomCode));
+			conditions.push(eq(roomsTable.code, filters.roomCode));
 		}
 		if (filters.date) {
 			conditions.push(eq(finalExamsTable.examDate, filters.date));
@@ -790,7 +790,7 @@ export async function queryFinalExams(filters: {
 				section: finalExamsTable.section,
 				courseTitle: finalExamsTable.courseTitle,
 				roomId: finalExamsTable.roomId,
-				roomCode: roomsTable.roomCode,
+				roomCode: roomsTable.code,
 				examDate: finalExamsTable.examDate,
 				startsAt: finalExamsTable.startsAt,
 				endsAt: finalExamsTable.endsAt,

@@ -1,10 +1,10 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import Box from '@lucide/svelte/icons/box';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import { onMount } from 'svelte';
 	import { ROOM_SCHEDULE_SCOPE_NOTE } from '$lib/amis/room-scheduled-types';
 	import FollowPrompt from '$lib/components/community/FollowPrompt.svelte';
-	import BuildingResult from '$lib/components/controls/BuildingResult.svelte';
+	import BuildingResult from '../../../routes/(app)/map/buildings/[id]/BuildingResult.svelte';
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import EntityEditorField from '$lib/components/editor/EntityEditorField.svelte';
 	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
@@ -500,9 +500,9 @@
 			savingField = null;
 		}
 	}
-</script>
+</script> -->
 
-<div class="entity-detail">
+<!-- <div class="entity-detail">
 	{#if currentRoom.value}
 		<header class="entity-header">
 			{#if parentBuilding}
@@ -889,9 +889,6 @@
 			</section>
 		{/if}
 
-		<!-- Last child of the panel, and only once the schedule has actually
-         landed: the reader has their answer, and nothing above this can be
-         pushed around by it appearing. Asks at most once, ever. -->
 		{#if !roomClassesStore.loading}
 			<FollowPrompt
 				note="Room and class data changes through the term. Fixes, new features, and each term's schedule drop get posted on Facebook and Instagram."
@@ -902,7 +899,7 @@
 	{:else}
 		<EntitySkeleton variant="room-detail" label="Loading room…" />
 	{/if}
-</div>
+</div> -->
 
 <style>
 	@import '../controls/entity-detail.css';

@@ -1,139 +1,29 @@
 <script lang="ts">
 	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
-	import {
-		buildingMatchesTypeFilter,
-		dormMatchesTypeFilter
-	} from '$lib/constants/content/categories/building';
-	import { getJSONFetch, searchLocalAliases, searchLocalRooms } from '$lib/utils/local/data/utils';
-	import { buildEntitySuggestions } from '$lib/utils/search-suggestions';
-	import { buildingTypeFilter } from '$lib/stores.svelte';
-	import FinalExamSuggestion from './FinalExamSuggestion.svelte';
-	import SearchQuerySuggestion from './SearchQuerySuggestion.svelte';
+	// import {
+	// 	buildingMatchesTypeFilter,
+	// 	dormMatchesTypeFilter
+	// } from '$lib/constants/content/categories/building';
+	// import { getJSONFetch, searchLocalAliases, searchLocalRooms } from '$lib/utils/local/data/utils';
+	// import { buildEntitySuggestions } from '$lib/utils/search-suggestions';
+	// import { buildingTypeFilter } from '$lib/stores.svelte';
+	// import FinalExamSuggestion from './FinalExamSuggestion.svelte';
+	// import SearchQuerySuggestion from './SearchQuerySuggestion.svelte';
 	import Suggestion from './Suggestion.svelte';
-	import { getAppData, getSearchInfo } from '$lib/utils/context';
+	import { getSearchInfo } from '$lib/utils/context';
+	import { getUnionSuggestions } from '$lib/functions/search.remote';
 
-	const appData = getAppData();
-	const { buildings, colleges, divisions, dorms, events, organizations, places, loaded } =
-		$derived(appData());
-
-	const filteredDorms = $derived.by(() => {
-		if (!loaded) return [];
-		return dorms.filter((dorm) => dormMatchesTypeFilter(dorm, buildingTypeFilter.value));
-	});
-	const filteredBuildings = $derived.by(() => {
-		if (!loaded) return [];
-		return buildings.filter((building) =>
-			buildingMatchesTypeFilter(
-				building,
-				buildingTypeFilter.value
-				// classVenuesStore.buildingIdsWithClasses
-			)
-		);
-	});
-
-	const suggestedResult = $derived.by(() =>
-		buildEntitySuggestions(searchInfo.inputValue, {
-			loaded,
-			filteredBuildings,
-			filteredDorms,
-			colleges: colleges ?? [],
-			divisions: divisions ?? [],
-			events: events ?? [],
-			organizations: organizations ?? [],
-			places: places ?? []
-		})
-	);
+	// TODO: implement alias searching
+	// let aliasResults = $state<AliasHit[]>([]);
+	// let roomResults = $state<RoomHit[]>([]);
+	// let roomLoading = $state(false);
 
 	const searchInfo = getSearchInfo();
+	$inspect(searchInfo.inputValue);
 
-	type AliasHit = { alias: string; value: string };
-	type RoomHit = {
-		value: string;
-		category: 'room';
-		fullName?: string | null;
-		id: number;
-	};
-
-	let aliasResults = $state<AliasHit[]>([]);
-	let roomResults = $state<RoomHit[]>([]);
-	let roomLoading = $state(false);
-
-	$effect(() => {
-		const trimmed = searchInfo.inputValue.trim();
-		if (trimmed === '') {
-			aliasResults = [];
-			return;
-		}
-
-		let cancelled = false;
-		void (async () => {
-			try {
-				const res = await getJSONFetch<{
-					data: { alias: string; value: string | null }[];
-				}>(`/api/aliases?q=${encodeURIComponent(trimmed)}`);
-				if (cancelled) return;
-				aliasResults = (res.data ?? [])
-					.filter((entry): entry is { alias: string; value: string } => Boolean(entry.value))
-					.map((entry) => ({ alias: entry.alias, value: entry.value }));
-			} catch {
-				if (cancelled) return;
-				aliasResults = await searchLocalAliases(trimmed);
-			}
-		})();
-
-		return () => {
-			cancelled = true;
-		};
-	});
-
-	$effect(() => {
-		const trimmed = searchInfo.inputValue.trim();
-		if (trimmed === '') {
-			roomResults = [];
-			roomLoading = false;
-			return;
-		}
-
-		let cancelled = false;
-		roomLoading = true;
-		void (async () => {
-			const upper = trimmed.toUpperCase();
-			const url = `/api/rooms?search_code=${encodeURI(upper)}`;
-			try {
-				const response = await fetch(url);
-				const roomsFetch = (await response.json()) as {
-					data?: { value: string; fullName?: string | null; id: number }[] | null;
-				};
-				if (cancelled) return;
-				if (response.ok && Array.isArray(roomsFetch?.data)) {
-					roomResults = roomsFetch.data.map((val) => ({
-						...val,
-						category: 'room' as const,
-						id: val.id
-					}));
-					roomLoading = false;
-					return;
-				}
-				if (response.status === 404) {
-					roomResults = [];
-					roomLoading = false;
-					return;
-				}
-			} catch {
-				// Network unavailable — fall back to the local PGlite room cache (#169).
-			}
-
-			if (cancelled) return;
-			const local = await searchLocalRooms(upper);
-			roomResults = local
-				? local.map((val) => ({ ...val, category: 'room' as const, id: val.id }))
-				: [];
-			roomLoading = false;
-		})();
-
-		return () => {
-			cancelled = true;
-		};
+	const suggestionsPromise = $derived.by(() => {
+		if (searchInfo.type !== 'query') return [];
+		return getUnionSuggestions(searchInfo.inputValue);
 	});
 </script>
 
@@ -142,52 +32,22 @@
 	class="suggestions-container search-suggestions"
 	onmousedown={(event) => event.preventDefault()}
 >
-	{#if searchInfo.inputValue === ''}
-		{#if searchInfo.recentSearches.length !== 0}
-			<h2 class="suggestions-header">Recent searches</h2>
-			{#each searchInfo.recentSearches as { category, value, eventSlug, id }, index (index)}
-				<Suggestion {value} {category} {eventSlug} entityId={id} recent={true} {index} />
-			{/each}
-		{/if}
-	{:else if suggestedResult.length !== 0}
-		{#each suggestedResult as suggestion, id (id)}
-			<Suggestion {...suggestion} />
-		{/each}
-	{/if}
-
 	{#if searchInfo.inputValue !== ''}
-		{#each aliasResults as alias (alias.value)}
-			{#if !suggestedResult.some((s) => s.category === 'building' && s.value === alias.value)}
-				<div class="alias-hint">
-					Showing results for <strong>{alias.alias}</strong> &rarr;
-					{alias.value}
-				</div>
-				<Suggestion value={alias.value} category="building" />
-			{/if}
+		<!-- {:else if suggestedResult.length !== 0} -->
+		{#each await suggestionsPromise as { id, name, type }, index (index)}
+			<Suggestion category={type} value={name} entityId={id} />
 		{/each}
+	{:else}
+		<!-- {#if searchInfo.recentSearches.length !== 0}
+		<h2 class="suggestions-header">Recent searches</h2> -->
+		<!-- Normalize search schema data -->
+		<!-- {#each searchInfo.recentSearches as { category, value, eventSlug, id }, index (index)}
+			<Suggestion {value} {category} {eventSlug} entityId={id} recent={true} {index} />
+		{/each} -->
+		<!-- {/if} -->
 	{/if}
 
-	{#if searchInfo.inputValue !== ''}
-		{#if roomLoading}
-			<p class="suggestions-status">
-				<LoadingIndicator label="Loading rooms…" />
-			</p>
-		{:else}
-			{#each roomResults as roomResult (roomResult.value)}
-				<Suggestion
-					value={roomResult.value}
-					category={roomResult.category}
-					secondary={roomResult.fullName}
-					entityId={roomResult.id}
-				/>
-			{/each}
-		{/if}
-	{/if}
-
-	{#if suggestedResult.length === 0 && searchInfo.inputValue !== '' && !roomLoading}
-		<FinalExamSuggestion onSelect={() => {}} />
-		<SearchQuerySuggestion />
-	{/if}
+	<!-- Implement search query suggestion search -->
 </div>
 
 <style>

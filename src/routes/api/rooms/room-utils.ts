@@ -14,7 +14,7 @@ export async function getRoomByCode(code: string) {
 		const data = await db
 			.select({
 				id: roomsTable.id,
-				code: roomsTable.roomCode,
+				code: roomsTable.code,
 				fullName: roomsTable.fullName,
 				directions: roomsTable.directions,
 				building: {
@@ -37,7 +37,7 @@ export async function getRoomByCode(code: string) {
 			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
 			.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
 			.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-			.where(sql`upper(${roomsTable.roomCode}) = ${normalizedCode}`);
+			.where(sql`upper(${roomsTable.code}) = ${normalizedCode}`);
 		if (data.length === 0 || typeof data[0] === 'undefined') return null;
 		return data[0];
 	} catch (e) {
@@ -51,7 +51,7 @@ export async function searchRooms(searchString: string) {
 		const escaped = escapeLikePattern(searchString);
 		const data = await db
 			.select({
-				value: roomsTable.roomCode,
+				value: roomsTable.code,
 				fullName: roomsTable.fullName,
 				id: roomsTable.id
 			})
@@ -62,7 +62,7 @@ export async function searchRooms(searchString: string) {
 			// Callers upper-case the query, so match both columns case-insensitively:
 			// full names are mixed case ("DSDS Main Lecture Hall") (#875).
 			.where(
-				sql`upper(${roomsTable.roomCode}) LIKE ${`%${escaped.toUpperCase()}%`}
+				sql`upper(${roomsTable.code}) LIKE ${`%${escaped.toUpperCase()}%`}
           OR upper(${roomsTable.fullName}) LIKE ${`%${escaped.toUpperCase()}%`}`
 			)
 			.limit(6);
@@ -79,7 +79,7 @@ export async function getBuildingRooms(buildingId: number): Promise<Room[]> {
 		const data = await db
 			.select({
 				id: roomsTable.id,
-				code: roomsTable.roomCode,
+				code: roomsTable.code,
 				fullName: roomsTable.fullName,
 				directions: roomsTable.directions,
 				building: {
@@ -96,7 +96,8 @@ export async function getBuildingRooms(buildingId: number): Promise<Room[]> {
 				imageUrl: roomsTable.imageUrl,
 				category: roomsTable.category,
 				version: roomsTable.version,
-				updatedAt: roomsTable.updatedAt
+				updatedAt: roomsTable.updatedAt,
+				photos: roomsTable.photos
 			})
 			.from(roomsTable)
 			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
@@ -114,7 +115,7 @@ export async function getCollegeRooms(collegeId: number): Promise<Room[]> {
 		const data = await db
 			.select({
 				id: roomsTable.id,
-				code: roomsTable.roomCode,
+				code: roomsTable.code,
 				fullName: roomsTable.fullName,
 				directions: roomsTable.directions,
 				building: {
@@ -149,7 +150,7 @@ export async function getDivisionRooms(divisionId: number): Promise<Room[]> {
 		const data = await db
 			.select({
 				id: roomsTable.id,
-				code: roomsTable.roomCode,
+				code: roomsTable.code,
 				fullName: roomsTable.fullName,
 				directions: roomsTable.directions,
 				building: {

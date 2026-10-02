@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import CornerRightUp from '@lucide/svelte/icons/corner-right-up';
 	import MapChromeActionChip from '$lib/components/map-chrome/MapChromeActionChip.svelte';
 	import { userLocation } from '$lib/stores.svelte';
@@ -26,4 +26,4 @@
 <MapChromeActionChip {toolbar} {ariaLabel} onclick={openDirections}>
 	<CornerRightUp size={14} aria-hidden="true" />
 	{label}
-</MapChromeActionChip>
+</MapChromeActionChip> -->

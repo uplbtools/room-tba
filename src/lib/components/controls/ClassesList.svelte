@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import Classes from '$lib/components/room/Classes.svelte';
 	import EntityEmptyState from './EntityEmptyState.svelte';
@@ -92,9 +92,9 @@
 	function closeList() {
 		searchInfo.clearQuery();
 	}
-</script>
+</script> -->
 
-<div class="classes-list-panel">
+<!-- <div class="classes-list-panel">
 	<EntityPanelHeader
 		closeAriaLabel="Close class list"
 		closeTitle="Close class list"
@@ -134,7 +134,6 @@
 			>
 				{#snippet icon()}
 					<svg viewBox="0 0 180 128" fill="none" aria-hidden="true">
-						<!-- Open schedule booklet. -->
 						<rect x="34" y="28" width="112" height="76" rx="10" fill="currentColor" opacity=".1" />
 						<path d="M90 30v72" stroke="currentColor" stroke-width="3" opacity=".35" />
 						<rect
@@ -171,7 +170,7 @@
 			onNext={goNext}
 		/>
 	{/if}
-</div>
+</div> -->
 
 <style>
 	@import './entity-detail.css';

@@ -1,10 +1,9 @@
 <script lang="ts">
 	import EntityEmptyState from './EntityEmptyState.svelte';
 	import EntityPagination from './EntityPagination.svelte';
-	import { searchInfo } from '$lib/stores.svelte';
 	import type { Room } from '$lib/utils/types';
 	import RoomDisplay from './RoomDisplay.svelte';
-	import TermSelector from '$lib/components/TermSelector.svelte';
+	// import TermSelector from '$lib/components/TermSelector.svelte';
 
 	const MAX_DISPLAY_RESULT = 12;
 	let paginateOffset = $state(0);
@@ -70,11 +69,11 @@
 	);
 
 	function openBuilding(buildingName: string) {
-		searchInfo.updateQuery({
-			type: 'result',
-			category: 'building',
-			value: buildingName
-		});
+		// searchInfo.updateQuery({
+		// 	type: 'result',
+		// 	category: 'building',
+		// 	value: buildingName
+		// });
 	}
 </script>
 
@@ -104,7 +103,7 @@
 
 <section class="entity-list-section rooms-section">
 	<h3 class="entity-section-heading">{sectionTitle}</h3>
-	<TermSelector />
+	<!-- <TermSelector /> -->
 	{#if groupByBuilding && buildingGroups}
 		{#if buildingGroups.length === 0}
 			<EntityEmptyState

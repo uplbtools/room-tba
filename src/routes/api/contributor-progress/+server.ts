@@ -165,7 +165,7 @@ async function loadRoomInputs(
 	const roomsQuery = db
 		.select({
 			id: roomsTable.id,
-			code: roomsTable.roomCode,
+			code: roomsTable.code,
 			buildingId: roomsTable.buildingId,
 			directions: roomsTable.directions
 		})

@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	if (termId !== undefined) conditions.push(eq(finalExamsTable.termId, termId));
 	const normalizedCourse = courseCode?.trim().toUpperCase();
 	if (normalizedCourse) conditions.push(eq(finalExamsTable.courseCode, normalizedCourse));
-	if (roomCode) conditions.push(eq(roomsTable.roomCode, roomCode));
+	if (roomCode) conditions.push(eq(roomsTable.code, roomCode));
 	if (date) conditions.push(eq(finalExamsTable.examDate, date));
 
 	try {
@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				section: finalExamsTable.section,
 				courseTitle: finalExamsTable.courseTitle,
 				roomId: finalExamsTable.roomId,
-				roomCode: roomsTable.roomCode,
+				roomCode: roomsTable.code,
 				examDate: finalExamsTable.examDate,
 				startsAt: finalExamsTable.startsAt,
 				endsAt: finalExamsTable.endsAt,

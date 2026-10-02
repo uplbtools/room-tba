@@ -1,4 +1,14 @@
 <script lang="ts">
+	import Search from '$lib/components/search/Search.svelte';
+	import { MapStore } from '$lib/stores/map/map-stores.svelte';
+	import UserLocation from '$lib/stores/map/UserLocation.svelte';
+	import { initMapStore, initSearchInfo, initUserLocation } from '$lib/utils/context';
+	import type { Snippet } from 'svelte';
+	import UIMap from './Map.svelte';
+	import SearchInfo from '$lib/stores/SearchInfo.svelte';
+	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
+	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import UILayer from './UILayer.svelte';
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { campusCommunity } from '$lib/campus.config';
@@ -485,16 +495,6 @@
 			divisions = next;
 		}
 	}); */
-	// import SidePanel from '$lib/components/controls/SidePanel.svelte';
-	import MapControlsStack from '$lib/components/map-chrome/MapControlsStack.svelte';
-	import Search from '$lib/components/search/Search.svelte';
-	import { MapStore } from '$lib/stores/map/map-stores.svelte';
-	import UserLocation from '$lib/stores/map/UserLocation.svelte';
-	import { initMapStore, initSearchInfo, initUserLocation } from '$lib/utils/context';
-	import type { Snippet } from 'svelte';
-	import UIMap from './Map.svelte';
-	import SearchInfo from '$lib/stores/SearchInfo.svelte';
-	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
 
 	const { children }: { children: Snippet } = $props();
 
@@ -510,71 +510,26 @@
 <!-- <Entry suppressLandingModal={Boolean(page.data.initialSearch)}>
 		{@render children()}
 	</Entry> -->
-<svelte:boundary
-	onerror={(e) => {
-		console.error(e);
-	}}
->
-	<div class="layout-root">
-		<div
-			class="pointer-events-none fixed top-0 left-0 z-20 flex h-full w-full items-end justify-between p-3"
-		>
-			<div class="h-full">
-				<Search />
-				<InfoPanel>
+
+<main class="layout-root">
+	<UILayer>
+		<div class="flex h-full basis-96 flex-col gap-7">
+			<Search />
+			<InfoPanel>
+				<svelte:boundary>
+					{#snippet pending()}
+						<EntitySkeleton variant="detail" />
+						Loading
+					{/snippet}
 					{@render children()}
-				</InfoPanel>
-			</div>
-			<!-- <MapControlsStack /> -->
+				</svelte:boundary>
+			</InfoPanel>
 		</div>
-		<UIMap />
-	</div>
-	{#snippet pending()}
-		LOading
-	{/snippet}
-	{#snippet failed(error, reset)}
-		{String(error)}
-	{/snippet}
-</svelte:boundary>
+	</UILayer>
+	<UIMap />
+</main>
 
-<!-- {#snippet pending()}
-		Loading app...
-	{/snippet}
-	{#snippet failed(error, reset)}
-		<div class="app-crash" role="alert">
-			<div class="app-crash__card">
-				<p class="app-crash__title">Something broke while drawing the map</p>
-				<p class="app-crash__body">
-					Your saved campus data is still on this device. Try again, and if it keeps happening
-					please report it so we can fix the cause.
-				</p>
-				<div class="app-crash__actions">
-					<button
-						type="button"
-						class="app-crash__button app-crash__button--primary"
-						onclick={reset}
-					>
-						Try again
-					</button>
-					<button type="button" class="app-crash__button" onclick={() => location.reload()}>
-						Reload page
-					</button>
-					<a
-						class="app-crash__button"
-						href={`${campusCommunity.githubUrl}/issues/new`}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Report
-					</a>
-				</div>
-				<p class="app-crash__detail">{String(error)}</p>
-			</div>
-		</div>
-	{/snippet}
-</svelte:boundary> -->
-
-<style>
+<!-- <style>
 	.app-crash {
 		position: fixed;
 		inset: 0;
@@ -638,4 +593,4 @@
 		font-size: 0.75rem;
 		word-break: break-word;
 	}
-</style>
+</style> -->

@@ -212,7 +212,7 @@ export async function getRoomById(id: number): Promise<Room | null> {
 	const rows = await db
 		.select({
 			id: roomsTable.id,
-			code: roomsTable.roomCode,
+			code: roomsTable.code,
 			directions: roomsTable.directions,
 			building: {
 				name: buildingsTable.buildingName,
@@ -243,7 +243,7 @@ export async function getAllRoomsAdmin(): Promise<RoomWithRelations[]> {
 	return db
 		.select({
 			id: roomsTable.id,
-			code: roomsTable.roomCode,
+			code: roomsTable.code,
 			directions: roomsTable.directions,
 			building: {
 				name: buildingsTable.buildingName,
@@ -265,7 +265,7 @@ export async function getAllRoomsAdmin(): Promise<RoomWithRelations[]> {
 		.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
 		.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
 		.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-		.orderBy(roomsTable.roomCode);
+		.orderBy(roomsTable.code);
 }
 
 export type RoomUpdateInput = {
@@ -286,7 +286,7 @@ export async function findRoomMergeCandidate(
 	if (!normalized) return null;
 
 	const rows = await db
-		.select({ id: roomsTable.id, roomCode: roomsTable.roomCode })
+		.select({ id: roomsTable.id, roomCode: roomsTable.code })
 		.from(roomsTable)
 		.where(ne(roomsTable.id, excludeId));
 

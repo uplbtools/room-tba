@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import MapPin from '@lucide/svelte/icons/map-pin';
@@ -1027,4 +1027,4 @@
 		outline: 2px solid #7b1113;
 		outline-offset: -2px; /* panel scroll body clips outward rings */
 	}
-</style>
+</style> -->

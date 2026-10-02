@@ -33,3 +33,15 @@ export const getOrgById = query(
         return entry;
     }
 )
+
+export const getOrgsByBuildingId = query(
+    TableId,
+    async (id) => {
+        const rows = await db
+            .select()
+            .from(organizationsTable)
+            .where(eq(organizationsTable.buildingId, id));
+            
+        return rows;
+    }
+)

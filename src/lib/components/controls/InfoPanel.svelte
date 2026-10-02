@@ -2,8 +2,7 @@
 	// import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	// import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { Snippet } from 'svelte';
-	import { MediaQuery } from 'svelte/reactivity';
-	import { page } from '$app/state';
+
 	// import type { BottomSheetSnap } from '$lib/utils/bottom-sheet-snap';
 	// import BottomSheet from '$lib/components/BottomSheet.svelte';
 	// import JeepneyRouteModal from '$lib/components/modal/JeepneyRouteModal.svelte';
@@ -17,21 +16,20 @@
 	// lets the category resolution below pick the same result view a click on the
 	// map would, so whatever it renders (crawlable copy, for instance) sits
 	// alongside that view rather than in place of it.
-	const { children }: { children?: Snippet } = $props();
 	// const routeOwnsBody = $derived(page.data.panel === 'browse');
 
 	// const mobile = new MediaQuery('max-width:48rem');
 	// Entity detail views only, never list/browse panels (docs/ad-policy.md).
-	const SPONSOR_CATEGORIES = new Set([
-		'building',
-		'college',
-		'division',
-		'room',
-		'dorm',
-		'organization',
-		'place',
-		'event'
-	]);
+	// const SPONSOR_CATEGORIES = new Set([
+	// 	'building',
+	// 	'college',
+	// 	'division',
+	// 	'room',
+	// 	'dorm',
+	// 	'organization',
+	// 	'place',
+	// 	'event'
+	// ]);
 	// const showSponsorBanner = $derived(
 	// 	searchInfo.category !== null &&
 	// 		SPONSOR_CATEGORIES.has(searchInfo.category) &&
@@ -103,9 +101,13 @@
 	// 	mobileSnap = 'peek';
 	// 	sidePanelStore.setMobileSheetSnap('closed');
 	// }
+
+	const { children }: { children?: Snippet } = $props();
 </script>
 
-{@render children?.()}
+<div class="grow bg-white">
+	{@render children?.()}
+</div>
 
 <!-- {#snippet panelBody()}
 	{#if jeepneyStore.selectedStopIndex !== null}

@@ -1,4 +1,4 @@
-<!-- <script lang="ts">
+<script lang="ts">
 	import Box from '@lucide/svelte/icons/box';
 
 	import { tick } from 'svelte';
@@ -9,14 +9,14 @@
 	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
 	import MergeEntityPrompt from '$lib/components/editor/MergeEntityPrompt.svelte';
 	import EntityPhotoUpload from '$lib/components/editor/EntityPhotoUpload.svelte';
-	import BuildingPhoto from './BuildingPhoto.svelte';
+	// import BuildingPhoto from './BuildingPhoto.svelte';
 	import MapChromeActionChip from '$lib/components/map-chrome/MapChromeActionChip.svelte';
 	import {
 		CR_FACILITIES,
 		crFacilityLabel,
 		sanitizeCrFacilities
 	} from '$lib/constants/map/cr-facilities';
-	import { getAppActions, getAppData } from '$lib/utils/context';
+	import { getAppActions, getAppData, getSearchInfo } from '$lib/utils/context';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
@@ -44,121 +44,102 @@
 	} from '$lib/utils/proposals/client';
 	import { getBuildingShareUrl } from '$lib/utils/share-links';
 	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
-	import {
-		adminAuthStore,
-		building3DStore,
-		mapEditStore,
-		mapProposalStore,
-		searchInfo,
-		termStore,
-		toastStore
-	} from '$lib/stores.svelte';
 	import type { Building, Room } from '$lib/utils/types';
-	import EntityLastUpdated from '../EntityLastUpdated.svelte';
-	import EntityBackToList from './EntityBackToList.svelte';
-	// import EntityDirectionsChip from './EntityDirectionsChip.svelte';
-	import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
-	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
-	import EntityStreetAddress from './EntityStreetAddress.svelte';
-	import ResultDisplay from './ResultDisplay.svelte';
+	import ResultDisplay from '$lib/components/controls/ResultDisplay.svelte';
+	// import EntityLastUpdated from '$lib/components/EntityLastUpdated.svelte';
+	// import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
+	// import BuildingPhoto from '$lib/components/controls/BuildingPhoto.svelte';
+	// import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
+	// import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
+	// import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
+	// import EntityBackToList from '$lib/components/controls/EntityBackToList.svelte';
+	import { getOrgsByBuildingId } from '$lib/functions/organizations.remote';
+	import { getRoomsByBuildingId } from '$lib/functions/rooms.remote';
+	// import EntityBackToList from './EntityBackToList.svelte';
+	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
+	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
+	// import EntityShareCopyLink from './EntityShareCopyLink.svelte';
+	// import EntityStreetAddress from './EntityStreetAddress.svelte';
+	// import ResultDisplay from './ResultDisplay.svelte';
 
 	type BuildingEditableField =
 		'buildingName' | 'directions' | 'buildingType' | 'photos' | 'crFacilities';
 
-	const appData = getAppData();
-	const appActions = getAppActions();
-	const { buildings, organizations, loaded } = $derived(appData());
-
 	let pinnedBuildingId = $state<number | null>(null);
 
-	const building = $derived.by(() => {
-		if (!loaded) return null;
-		const byName = buildings.find((b) => b.buildingName === searchInfo.queryValue);
-		if (byName) return byName;
-		if (searchInfo.category === 'building' && pinnedBuildingId !== null) {
-			return buildings.find((b) => b.id === pinnedBuildingId) ?? null;
-		}
-		return null;
-	});
-
-	$effect(() => {
-		if (building?.id) pinnedBuildingId = building.id;
-	});
+	interface Props {
+		building: Building;
+	}
 
 	// Reverse-lookup: orgs and offices housed in this building.
-	const buildingOrgs = $derived(
-		building && organizations ? organizations.filter((o) => o.buildingId === building.id) : []
-	);
 
-	function openOrg(name: string) {
-		searchInfo.updateQuery({
-			category: 'organization',
-			type: 'result',
-			value: name
-		});
-		searchInfo.inputValue = name;
-	}
-	const buildingShareUrl = $derived(building ? getBuildingShareUrl(building.buildingName) : '');
-	const hasMapPin = $derived(Boolean(building?.lat && building?.lon));
-	const pinProposalActive = $derived(
-		building ? mapProposalStore.allowsKey(`building:${building.id}`) : false
-	);
+	// function openOrg(name: string) {
+	// 	searchInfo.updateQuery({
+	// 		category: 'organization',
+	// 		type: 'result',
+	// 		value: name
+	// 	});
+	// 	searchInfo.inputValue = name;
+	// }
+	// const buildingShareUrl = $derived(building ? getBuildingShareUrl(building.buildingName) : '');
+	// const hasMapPin = $derived(Boolean(building?.lat && building?.lon));
+	// const pinProposalActive = $derived(
+	// 	building ? mapProposalStore.allowsKey(`building:${building.id}`) : false
+	// );
 
-	let buildingRooms = $state<Room[] | null>(null);
-	let classCounts = $state<Map<number, number> | null>(null);
+	// let classCounts = $state<Map<number, number> | null>(null);
 
 	// A building can be both: the stored admin flag AND a class venue (it has
 	// rooms hosting classes this term). Surface both roles in the badge.
-	const hostsClasses = $derived.by(() => {
-		if (!classCounts) return false;
-		for (const count of classCounts.values()) if (count > 0) return true;
-		return false;
-	});
-	const buildingTypeLabel = $derived.by(() => {
-		const isAdmin = building?.buildingType === 'admin';
-		if (isAdmin && hostsClasses) return 'Administrative · Class venue';
-		return isAdmin ? 'Administrative' : 'Class building';
-	});
+	// const hostsClasses = $derived.by(() => {
+	// 	if (!classCounts) return false;
+	// 	for (const count of classCounts.values()) if (count > 0) return true;
+	// 	return false;
+	// });
+	// const buildingTypeLabel = $derived.by(() => {
+	// 	const isAdmin = building?.buildingType === 'admin';
+	// 	if (isAdmin && hostsClasses) return 'Administrative · Class venue';
+	// 	return isAdmin ? 'Administrative' : 'Class building';
+	// });
 
-	let editing = $state(false);
-	let draftBuildingId = $state<number | null>(null);
-	let draftVersion = $state<number | null>(null);
-	let nameDraft = $state('');
-	let directionsDraft = $state('');
-	let typeDraft = $state<Building['buildingType']>('non-admin');
-	let photosDraft = $state<EntityPhoto[]>([]);
-	let crFacilitiesDraft = $state<string[]>([]);
-	let savingField = $state<BuildingEditableField | null>(null);
-	let savedField = $state<BuildingEditableField | null>(null);
-	let fieldError = $state<string | null>(null);
-	let submitterNameDraft = $state('');
-	let proposalStatus = $state<string | null>(null);
-	let activeProposalId = $state<number | null>(null);
-	let mergePrompt = $state<{
-		candidate: Building;
-		attemptedName: string;
-		sourceVersion: number;
-	} | null>(null);
-	let mergingEntity = $state(false);
+	// let draftBuildingId = $state<number | null>(null);
+	// let draftVersion = $state<number | null>(null);
+	// let nameDraft = $state('');
+	// let directionsDraft = $state('');
+	// let typeDraft = $state<Building['buildingType']>('non-admin');
+	// let photosDraft = $state<EntityPhoto[]>([]);
+	// let crFacilitiesDraft = $state<string[]>([]);
+	// let savingField = $state<BuildingEditableField | null>(null);
+	// let savedField = $state<BuildingEditableField | null>(null);
+	// let fieldError = $state<string | null>(null);
+	// let submitterNameDraft = $state('');
+	// let proposalStatus = $state<string | null>(null);
+	// let activeProposalId = $state<number | null>(null);
+	// let mergePrompt = $state<{
+	// 	candidate: Building;
+	// 	attemptedName: string;
+	// 	sourceVersion: number;
+	// } | null>(null);
+	// let mergingEntity = $state(false);
 
-	const canPublish = $derived(adminAuthStore.canPublish);
+	// const canPublish = $derived(adminAuthStore.canPublish);
 
-	const fieldLabels: Record<BuildingEditableField, string> = {
-		buildingName: 'Building name',
-		directions: 'Building directions',
-		buildingType: 'Building type',
-		photos: 'Building photos',
-		crFacilities: 'CR facilities'
-	};
+	// const fieldLabels: Record<BuildingEditableField, string> = {
+	// 	buildingName: 'Building name',
+	// 	directions: 'Building directions',
+	// 	buildingType: 'Building type',
+	// 	photos: 'Building photos',
+	// 	crFacilities: 'CR facilities'
+	// };
 
 	// Room list must reload when the selected building changes (search result,
 	// pin, breadcrumb). BuildingResult is not remounted on switch, so onMount
 	// would only fire once and leave a stale list. Key the load on building id
 	// and discard in-flight fetches from a previous selection (#340).
-	let roomLoadGeneration = 0;
-	let lastRoomLoadId: number | null = null;
 
-	$effect(() => {
+	/* $effect(() => {
+		let roomLoadGeneration = 0;
+		let lastRoomLoadId: number | null = null;
 		const id = building?.id;
 		if (id == null) {
 			buildingRooms = null;
@@ -193,15 +174,11 @@
 				}
 			}
 		})();
-	});
+	}); 
 
-	// Class counts per room for the active term, batched in one request so the
-	// room list preview doesn't fire N+1 /api/classes calls (#342). Re-fetches
-	// when the building or the active term changes; null while loading/offline.
 	let classCountGeneration = 0;
 	let lastClassCountKey: string | null = null;
-
-	$effect(() => {
+		$effect(() => {
 		const id = building?.id;
 		const termId = termStore.activeTermId;
 		if (id == null) {
@@ -332,12 +309,12 @@
 	}
 
 	function syncBuildingFromServer(updated: Building) {
-		appActions.upsertBuilding(updated);
-		searchInfo.hydrateQuery({
-			type: 'result',
-			category: 'building',
-			value: updated.buildingName
-		});
+		// appActions.upsertBuilding(updated);
+		// searchInfo.hydrateQuery({
+		// 	type: 'result',
+		// 	category: 'building',
+		// 	value: updated.buildingName
+		// });
 	}
 
 	async function saveField(field: BuildingEditableField) {
@@ -595,12 +572,36 @@
 			savingField = null;
 		}
 	}
-</script> -->
+	*/
 
-<!-- <div class="entity-detail building-query-wrapper">
+	// Class counts per room for the active term, batched in one request so the
+	// room list preview doesn't fire N+1 /api/classes calls (#342). Re-fetches
+	// when the building or the active term changes; null while loading/offline.
+
+	const { building }: Props = $props();
+	const searchInfo = getSearchInfo();
+
+	// $effect(() => {
+	// 	if (building?.id) pinnedBuildingId = building.id;
+	// });
+
+	let editing = $state(false);
+
+	const buildingOrgs = $derived(await getOrgsByBuildingId(building.id));
+	const buildingRooms = $derived(await getRoomsByBuildingId({ id: building.id }));
+	const buildingTypeLabel = $derived.by(() => {
+		const isAdmin = building.buildingType === 'admin';
+		if (isAdmin /* && hostsClasses */) return 'Administrative · Class venue';
+		return isAdmin ? 'Administrative' : 'Class building';
+	});
+	const hasMapPin = $derived(Boolean(building.lat && building.lon));
+	$inspect(buildingRooms);
+</script>
+
+<div class="entity-detail building-query-wrapper">
 	{#if building}
 		<header class="entity-header">
-			<EntityBackToList tab="buildings" label="Back to buildings" />
+			<!-- <EntityBackToList tab="buildings" label="Back to buildings" /> -->
 			<div class="entity-header__title-row">
 				<h2 class="entity-header__title">{building.buildingName}</h2>
 				<span class="entity-header__badge">{buildingTypeLabel}</span>
@@ -608,15 +609,15 @@
 
 			<div class="entity-actions">
 				{#if hasMapPin}
-					<MapChromeActionChip
+					<!-- <MapChromeActionChip
 						toolbar
 						ariaLabel="3D view"
 						onclick={() => building3DStore.open(building.buildingName)}
 					>
 						<Box size={14} aria-hidden="true" />
 						3D view
-					</MapChromeActionChip>
-					<EntityDirectionsChip
+					</MapChromeActionChip> -->z
+					<!-- <EntityDirectionsChip
 						lat={building.lat ?? 0}
 						lon={building.lon ?? 0}
 						destinationLabel={building.buildingName}
@@ -625,21 +626,21 @@
 						lat={building.lat ?? 0}
 						lon={building.lon ?? 0}
 						ariaLabel={`Open ${building.buildingName} in Google Maps`}
-					/>
+					/> -->
 				{/if}
-				<EntityShareCopyLink url={buildingShareUrl} entityLabel={building.buildingName} />
-				<EntityEditorToggle
+				<!-- <EntityShareCopyLink url={buildingShareUrl} entityLabel={building.buildingName} /> -->
+				<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
 					publishOpenLabel="Edit building"
 					variant="toolbar"
 					onclick={() => (editing = !editing)}
-				/>
+				/> -->
 			</div>
 		</header>
 
 		{#if editing}
-			<section
+			<!-- <section
 				class="entity-editor"
 				aria-label={canPublish ? 'Edit building details' : 'Suggest building edits'}
 			>
@@ -823,9 +824,9 @@
 						</div>
 					</details>
 				</EntityEditorPanel>
-			</section>
+			</section> -->
 		{:else}
-			<BuildingPhoto
+			<!-- <BuildingPhoto
 				photos={building.photos}
 				imageUrl={building.imageUrl}
 				name={building.buildingName}
@@ -833,11 +834,11 @@
 				lon={building.lon}
 				panoId={building.streetViewPanoId}
 				captured={building.streetViewCaptured}
-			/>
+			/> -->
 			<section class="entity-directions" aria-label="Directions">
 				<div class="entity-directions__segment">
 					{#if hasMapPin}
-						<EntityStreetAddress lat={building.lat ?? 0} lon={building.lon ?? 0} />
+						<!-- <EntityStreetAddress lat={building.lat ?? 0} lon={building.lon ?? 0} /> -->
 					{/if}
 					{#if building.directions}
 						<p class="entity-directions__label">Directions</p>
@@ -846,11 +847,11 @@
 						<p class="entity-directions__empty">No directions listed.</p>
 					{/if}
 				</div>
-				<EntityLastUpdated
+				<!-- <EntityLastUpdated
 					updatedAt={building.updatedAt}
 					entityType="building"
 					entityId={building.id}
-				/>
+				/> -->
 			</section>
 			{#if sanitizeCrFacilities(building.crFacilities).length > 0}
 				<section class="building-cr" aria-label="CR facilities">
@@ -875,7 +876,7 @@
 					<button
 						type="button"
 						class="entity-tag-chip building-orgs__chip"
-						onclick={() => openOrg(org.name)}
+						onclick={() => /* openOrg(org.name) */ {}}
 					>
 						{org.name}
 					</button>
@@ -883,22 +884,21 @@
 			</div>
 		</section>
 	{/if}
-	{#if buildingRooms}
-		<ResultDisplay filteredRooms={buildingRooms} {classCounts} />
+	<!-- {#if buildingRooms}
+		<ResultDisplay filteredRooms={buildingRooms} /* {classCounts} */ />
 	{:else if building}
 		<EntitySkeleton
 			variant="rooms"
 			heading="Rooms in the building"
 			label="Loading rooms for {building.buildingName}…"
 		/>
-	{/if}
-</div> -->
+	{/if} -->
+</div>
 
-<!-- <style>
-	@import './entity-detail.css';
+<style>
+	/* @import './entity-detail.css';
 	@import '../editor/entity-editor.css';
-	@import '../map-chrome/map-chrome.css';
-
+	@import '../map-chrome/map-chrome.css'; */
 	.building-orgs {
 		padding: 0.5rem 0.25rem 0;
 	}
@@ -975,4 +975,4 @@
 			transition: none;
 		}
 	}
-</style> -->
+</style>

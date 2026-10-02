@@ -166,3 +166,6 @@ type EntityLoadResult<T> = {
 	rows: T[];
 	source: 'remote' | 'cache';
 };
+
+
+export type EntityType = 'building' | 'college' | 'division' | 'dorm' | 'organization' | 'event' | 'place' | 'room'

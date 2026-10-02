@@ -6,7 +6,7 @@
 	import { syncOpenEntityQueryAfterPublish } from '$lib/utils/proposals/sync-open-entity-query';
 	import type { ProposalEntityType } from '$lib/services/contribution/proposal-action';
 	import { getAppActions, getAppData } from '$lib/utils/context';
-	import { toastStore } from '$lib/stores.svelte';
+	// import { toastStore } from '$lib/stores.svelte';
 	import EntityEditorSubmitButton from './EntityEditorSubmitButton.svelte';
 
 	type HistoryEntry = {
@@ -91,12 +91,12 @@
 				error?: string;
 			};
 			if (!res.ok) {
-				toastStore.show(data.error ?? 'Could not restore this version.', 'error');
+				// toastStore.show(data.error ?? 'Could not restore this version.', 'error');
 				return;
 			}
 			afterProposalPublished(appActions, appData, entityType as ProposalEntityType, data.entity);
 			syncOpenEntityQueryAfterPublish(appData, entityType as ProposalEntityType, data.entity);
-			toastStore.show('Version restored.', 'success');
+			// toastStore.show('Version restored.', 'success');
 			confirmId = null;
 			await load();
 		} finally {

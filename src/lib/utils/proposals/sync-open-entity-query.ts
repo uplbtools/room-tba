@@ -1,13 +1,13 @@
-import { searchInfo } from '$lib/stores.svelte';
 import type { AppContextData } from '$lib/utils/context';
 import type { ProposalEntityType } from '$lib/services/contribution/proposal-action';
 import type { Building, College, Division, DormData, EventData } from '$lib/utils/types';
+import type SearchInfo from '$lib/stores/SearchInfo.svelte';
 
 type PublishedRow = { id: number };
 
 function openEntityId(
 	data: AppContextData,
-	category: typeof searchInfo.category,
+	category: SearchInfo["category"],
 	queryValue: string
 ): number | null {
 	if (!data.loaded || !category || !queryValue) return null;
@@ -53,59 +53,59 @@ export function syncOpenEntityQueryAfterPublish(
 	if (!Number.isInteger(publishedId)) return;
 
 	const data = getData();
-	const openId = openEntityId(data, searchInfo.category, searchInfo.queryValue);
-	if (openId !== publishedId) return;
+	// const openId = openEntityId(data, searchInfo.category, searchInfo.queryValue);
+	// if (openId !== publishedId) return;
 
 	switch (entityType) {
 		case 'building':
 		case 'create_building': {
 			const row = published as Building;
-			searchInfo.hydrateQuery({
-				type: 'result',
-				category: 'building',
-				value: row.buildingName
-			});
+			// searchInfo.hydrateQuery({
+			// 	type: 'result',
+			// 	category: 'building',
+			// 	value: row.buildingName
+			// });
 			return;
 		}
 		case 'dorm':
 		case 'create_dorm': {
 			const row = published as DormData;
-			searchInfo.hydrateQuery({
-				type: 'result',
-				category: 'dorm',
-				value: row.dormName
-			});
+			// searchInfo.hydrateQuery({
+			// 	type: 'result',
+			// 	category: 'dorm',
+			// 	value: row.dormName
+			// });
 			return;
 		}
 		case 'college':
 		case 'create_college': {
 			const row = published as College;
-			searchInfo.hydrateQuery({
-				type: 'result',
-				category: 'college',
-				value: row.collegeName
-			});
+			// searchInfo.hydrateQuery({
+			// 	type: 'result',
+			// 	category: 'college',
+			// 	value: row.collegeName
+			// });
 			return;
 		}
 		case 'division':
 		case 'create_division': {
 			const row = published as Division;
-			searchInfo.hydrateQuery({
-				type: 'result',
-				category: 'division',
-				value: row.divisionName
-			});
+			// searchInfo.hydrateQuery({
+			// 	type: 'result',
+			// 	category: 'division',
+			// 	value: row.divisionName
+			// });
 			return;
 		}
 		case 'event':
 		case 'create_event': {
 			const row = published as EventData;
-			searchInfo.hydrateQuery({
-				type: 'result',
-				category: 'event',
-				value: row.title,
-				eventSlug: row.slug
-			});
+			// searchInfo.hydrateQuery({
+			// 	type: 'result',
+			// 	category: 'event',
+			// 	value: row.title,
+			// 	eventSlug: row.slug
+			// });
 			return;
 		}
 		default:

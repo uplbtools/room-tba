@@ -11,17 +11,17 @@
 	import Users from '@lucide/svelte/icons/users';
 	import X from '@lucide/svelte/icons/x';
 	import { goto } from '$app/navigation';
-	import type { RouteId } from '$app/types';
-	import { getAppData } from '$lib/utils/context';
+	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import {
 		buildingPreviewFromRow,
 		entityHoverPreviewStore,
 		eventPreviewFromRow
 	} from '$lib/utils/entity/entity-hover-preview.svelte';
-	import { map, searchInfo } from '$lib/stores.svelte';
-	import type { Building, EventData } from '$lib/utils/types';
+	// import { map, searchInfo } from '$lib/stores.svelte';
+	import type { Building, EntityType, EventData } from '$lib/utils/types';
 	import type { SearchInfoState } from '$lib/stores/store-types';
 	import { getEntityCanonicalPath } from '$lib/utils/entity/entity-urls';
+	import { resolve } from '$app/paths';
 
 	let {
 		value,
@@ -35,7 +35,7 @@
 		recent
 	}: {
 		value: string;
-		category: Exclude<SearchInfoState['category'], null>;
+		category: EntityType;
 		entityId?: number;
 		eventSlug?: string;
 		building?: Building;
@@ -46,40 +46,15 @@
 		secondary?: string | null;
 	} = $props();
 
-	const appData = getAppData();
-	const { places } = $derived(appData());
+	const searchInfo = getSearchInfo();
+	const map = getMapStore();
+
+	// const appData = getAppData();
+	// const { places } = $derived(appData());
 
 	function handleSuggestionClick() {
-		entityHoverPreviewStore.hideNow();
-		searchInfo.updateQuery({
-			type: 'result',
-			category,
-			value,
-			eventSlug,
-			id
-		});
-		searchInfo.inputValue = value;
-		// One source of truth for category → URL: class/classes/browse/events
-		// deliberately return null (they render side-panel content, no page),
-		// and room/dorm/organization/place slugs come from their canonical builders.
-		const path = getEntityCanonicalPath(
-			{ type: 'result', category, value, eventSlug },
-			{
-				room: category === 'room' && typeof id !== 'undefined' ? { id, code: value } : undefined,
-				dorm:
-					category === 'dorm' && typeof id !== 'undefined' ? { id, dormName: value } : undefined,
-				organization:
-					category === 'organization' && typeof id !== 'undefined'
-						? { id, name: value }
-						: undefined,
-				place: places?.find((candidate) => candidate.id === id)
-			}
-		);
-		if (!path) return;
-		// entity paths are concrete /map/<segment>/<slug> pathnames; goto() types its
-		// argument as the route-id union, so retype at this single navigation site.
-		goto(path as RouteId);
-		// if ()
+		// entityHoverPreviewStore.hideNow();
+		goto(resolve(`/map/${category}s/${id}`));
 	}
 
 	function handleRemoveRecent() {
@@ -143,11 +118,11 @@
 			<GraduationCap size={20} />
 		{:else if type === 'room'}
 			<DoorClosed size={20} />
-		{:else if type === 'class'}
-			<BookText size={20} />
+			<!-- {:else if type === 'class'}
+			<BookText size={20} /> -->
 		{:else if type === 'dorm'}
 			<Home size={20} />
-		{:else if type === 'event' || type === 'events'}
+		{:else if type === 'event'}
 			<CalendarDays size={20} />
 		{:else if type === 'organization'}
 			<Users size={20} />

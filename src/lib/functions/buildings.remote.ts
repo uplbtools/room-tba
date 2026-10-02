@@ -29,3 +29,4 @@ export const getBuildingById = query(
         return entry;
     }
 )
+
