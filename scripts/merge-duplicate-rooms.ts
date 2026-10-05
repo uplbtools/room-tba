@@ -1,6 +1,7 @@
 /**
  * Merge duplicate room rows — same code modulo case/spacing/punctuation
- * ("BALH 1" / "BALH1" / "Balh1") — into one canonical row.
+ * or zero padding ("BALH 1" / "BALH1" / "TCC-01" / "TCC 1") into one
+ * canonical row.
  *
  * Canonical = the row with the most metadata (building, directions, image,
  * category, map position); ties break to the lowest id. Every reference
@@ -18,13 +19,15 @@ import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { sql } from "drizzle-orm";
 import pg from "pg";
+import { squashFacilityKey } from "../src/lib/amis/import-classes";
+import { recordBulkHistory } from "../src/lib/services/bulk-history";
 
 config({ path: ".env" });
 
 const apply = process.argv.includes("--apply");
 
 function squash(code: string) {
-  return code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return squashFacilityKey(code.toUpperCase());
 }
 
 async function main() {
@@ -69,7 +72,12 @@ async function main() {
         Number(room.image_url != null) +
         Number(room.category != null) +
         Number(room.has_position);
-      group.sort((a, b) => score(b) - score(a) || a.id - b.id);
+      // Prefer the unpadded spelling ("TCC 1" over "TCC-01") on a tie.
+      const padded = (room: (typeof rooms)[number]) =>
+        Number(/(?<!\d)0\d/.test(room.room_code));
+      group.sort(
+        (a, b) => score(b) - score(a) || padded(a) - padded(b) || a.id - b.id,
+      );
       merges.push({ keep: group[0], drop: group.slice(1) });
     }
 
@@ -149,6 +157,27 @@ async function main() {
         UPDATE "update" SET sync_key = gen_random_uuid()
         WHERE table_name IN ('rooms', 'classes', 'final_exams')`);
     });
+    const opKey = process.env.MERGE_OP_KEY ?? "room-merge";
+    await recordBulkHistory(
+      db,
+      merges.map((merge) => ({
+        opKey,
+        entityType: "room",
+        entityId: merge.keep.id,
+        action: "merge",
+        before: {
+          mergedRooms: merge.drop.map((room) => ({
+            id: room.id,
+            roomCode: room.room_code,
+          })),
+        },
+        after: { roomId: merge.keep.id, roomCode: merge.keep.room_code },
+        reason: `merged duplicate rooms ${merge.drop
+          .map((room) => `#${room.id} "${room.room_code}"`)
+          .join(", ")} into #${merge.keep.id}`,
+      })),
+      { dryRun: false },
+    );
     console.log(`\nMerged ${merges.length} duplicate groups.`);
   } finally {
     await pool.end();
