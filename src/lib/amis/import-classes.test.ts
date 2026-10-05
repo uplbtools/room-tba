@@ -5,6 +5,7 @@ import {
   formatImportReport,
   matchRoomId,
   resolveImportRows,
+  squashFacilityKey,
   summarizeImportChanges,
 } from "./import-classes";
 
@@ -42,6 +43,13 @@ describe("buildRoomLookup", () => {
     );
     expect(lookup.squashedRoomIdByKey.get("BALH1")).toBeNull();
     expect(lookup.duplicateRoomCodes.get("BALH1")).toEqual(["BALH 1", "BALH1"]);
+  });
+
+  test("zero padding does not create a separate room", () => {
+    const lookup = buildRoomLookup([{ id: 7, code: "TCC 1" }], []);
+    expect(matchRoomId(lookup, "TCC-01")?.roomId).toBe(7);
+    expect(squashFacilityKey("CDC ANNEX 04")).toBe("CDCANNEX4");
+    expect(squashFacilityKey("PS B-100")).toBe("PSB100");
   });
 });
 

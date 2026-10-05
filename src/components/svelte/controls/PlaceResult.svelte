@@ -25,6 +25,7 @@
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import BuildingPhoto from "./BuildingPhoto.svelte";
+  import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
 
   const appData = getAppData();
@@ -218,6 +219,11 @@
           </li>
         {/if}
       </ul>
+      <EntityLastUpdated
+        updatedAt={place.updatedAt}
+        entityType="place"
+        entityId={place.id}
+      />
     {:else}
       <div class="place-form">
         <label>Name<input bind:value={nameDraft} /></label>

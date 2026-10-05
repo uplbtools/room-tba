@@ -4,6 +4,7 @@ import AnnouncementsModal from "@ui/modal/AnnouncementsModal.svelte";
 import ChangelogModal from "@ui/modal/ChangelogModal.svelte";
 import CoverageModal from "@ui/modal/CoverageModal.svelte";
 import EditorToolsModal from "@ui/modal/EditorToolsModal.svelte";
+import EntityHistoryModal from "@ui/modal/EntityHistoryModal.svelte";
 import FeedbackPanel from "@ui/modal/FeedbackPanel.svelte";
 import HotlinesModal from "@ui/modal/HotlinesModal.svelte";
 import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
@@ -126,6 +127,13 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     size: "reading",
     label: "Emergency hotlines",
     closeLabel: "Close emergency hotlines",
+  },
+  "entity-history": {
+    component: EntityHistoryModal,
+    size: "reading",
+    label: "Edit history",
+    closeLabel: "Close edit history",
+    scroll: true,
   },
   // The same panel Settings hosts. Students could not find it there, so the
   // App menu opens it directly.

@@ -3,6 +3,7 @@ import { dismissEphemeralOverlays } from "../overlay-stack.js";
 import { buildingTypeFilter } from "./filter-stores.svelte";
 import type {
   FloatingControlPanel,
+  HistoryEntityRef,
   LandingModalTab,
   ModalStoreState,
   QueryStoreState,
@@ -20,15 +21,20 @@ export class ModalStore {
   open = $derived(this._modalStore.open);
   type = $derived(this._modalStore.type);
   landingTab = $derived(this._modalStore.landingTab);
+  historyEntity = $derived(this._modalStore.historyEntity);
 
   openModal = (
     type: ModalStoreState["type"],
-    options?: { landingTab?: LandingModalTab },
+    options?: {
+      landingTab?: LandingModalTab;
+      historyEntity?: HistoryEntityRef;
+    },
   ) => {
     dismissEphemeralOverlays();
     this._modalStore.open = true;
     this._modalStore.type = type;
     this._modalStore.landingTab = options?.landingTab;
+    this._modalStore.historyEntity = options?.historyEntity;
   };
 
   closeModal = () => {

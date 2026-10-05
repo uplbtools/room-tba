@@ -44,7 +44,7 @@
 </script>
 
 <div class="online-counter" title="{online} online now">
-  <div class="pulse-dot"></div>
+  <div class="presence-dot"></div>
   <span class="online-text">
     {#if online > 0}
       {online} online
@@ -74,27 +74,12 @@
     box-sizing: border-box;
   }
 
-  .pulse-dot {
+  /* Static on purpose: a pulsing dot read as noise in the App menu. */
+  .presence-dot {
     width: 0.5rem;
     height: 0.5rem;
     background-color: hsl(142, 70%, 40%);
     border-radius: 50%;
-    position: relative;
     flex-shrink: 0;
-  }
-
-  .pulse-dot::after {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    border-radius: 50%;
-    background-color: hsl(142, 70%, 40%);
-    opacity: 0.5;
-    animation: pulse 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @keyframes pulse {
-    0% { transform: scale(0.8); opacity: 0.8; }
-    100% { transform: scale(2.5); opacity: 0; }
   }
 </style>
