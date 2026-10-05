@@ -1,17 +1,30 @@
 /**
  * Printable transit map PDF for the UPLB jeepney routes.
  *
- * Schematic style (like a bus diagram): routes are smooth curves through their
- * ordered stops, not road-snapped geometry — the database stores stop order,
- * not polylines, and a diagram stays readable at A4 print size.
+ * The frame is fitted to the campus stops and the place the map was opened
+ * from, not to the full route extent: stops that fall outside it (Olivarez,
+ * Robinsons) become edge arrows with their distance. A thinned OpenStreetMap
+ * layer (streets, buildings, gates) is drawn as light vector paths under the
+ * routes; it is bundled at build time, so a request makes no network calls.
  *
- * Accessibility: all text is real PDF text (selectable, screen-reader
- * reachable), body copy is >= 7.5pt with a white halo over line work, route
- * identity never relies on color alone (names + fares sit in the legend), and
- * the document carries Title/Author/Language metadata.
+ * Accessibility: all text is real PDF text, labels carry a white halo over
+ * line work, and every route differs by dash pattern as well as color so a
+ * grayscale print or a colorblind reader can still tell them apart.
  */
 
-import { PDFDocument, StandardFonts, rgb, type PDFPage } from "pdf-lib";
+import {
+  PDFDocument,
+  StandardFonts,
+  clip,
+  endPath,
+  popGraphicsState,
+  pushGraphicsState,
+  rectangle,
+  rgb,
+  type PDFFont,
+  type PDFPage,
+  type RGB,
+} from "pdf-lib";
 
 export type TransitMapStop = { name: string; lat: number; lon: number };
 
@@ -23,9 +36,20 @@ export type TransitMapRoute = {
   fareDiscounted: number;
   directionNote: string | null;
   stops: TransitMapStop[];
+  /** Road path in travel order, when one is sourced; else stops are joined. */
+  line?: { lat: number; lon: number }[];
 };
 
 export type TransitMapHere = { name: string; lat: number; lon: number };
+
+/** `src/constants/transit-basemap.json`: [lon, lat] ways from OpenStreetMap. */
+export type TransitBasemap = {
+  roadsMajor: [number, number][][];
+  roadsMinor: [number, number][][];
+  water: [number, number][][];
+  buildings: [number, number][][];
+  gates: { name: string; lat: number; lon: number }[];
+};
 
 export type TransitMapFormat = "a4" | "letter";
 
@@ -35,20 +59,63 @@ const PAGE_SIZES: Record<TransitMapFormat, { w: number; h: number }> = {
 };
 
 const BRAND = rgb(0.553, 0.078, 0.216); // #8d1437
-const INK = rgb(0.102, 0.102, 0.102); // #1a1a1a
-const MUTED = rgb(0.42, 0.42, 0.42);
-const HAIRLINE = rgb(0.85, 0.85, 0.85);
+const INK = rgb(0.102, 0.102, 0.102);
+const MUTED = rgb(0.4, 0.4, 0.4);
+const HAIRLINE = rgb(0.8, 0.8, 0.8);
 const WHITE = rgb(1, 1, 1);
+const BUILDING = rgb(0.9, 0.89, 0.87);
+const ROAD_MAJOR = rgb(0.78, 0.78, 0.78);
+const ROAD_MINOR = rgb(0.85, 0.85, 0.85);
+const WATER = rgb(0.72, 0.84, 0.92);
 
-const MARGIN = 40;
-const HEADER_H = 58;
-const FOOTER_H = 26;
-const LEGEND_H = 88;
-const FRAME_PAD = 14;
+const MARGIN = 32;
+const HEADER_H = 72;
+const FOOTER_H = 24;
+const PANEL_W = 222;
+const PANEL_GAP = 14;
+
+/** Straight-line distance times this is the printed walking estimate. */
+export const WALK_DETOUR_FACTOR = 1.3;
+/** Stops farther than this from the campus center sit outside the frame. */
+const CORE_RADIUS_M = 1300;
+/** A place farther than this from campus is not pulled into the frame. */
+const HERE_MAX_M = 3000;
 
 /** Meters per degree of longitude at the campus latitude (~14.17 N). */
 export function metersPerDegreeLon(latDeg: number): number {
   return 111320 * Math.cos((latDeg * Math.PI) / 180);
+}
+
+type LatLon = { lat: number; lon: number };
+
+export function haversineMeters(a: LatLon, b: LatLon): number {
+  const R = 6371008.8;
+  const rad = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * rad;
+  const dLon = (b.lon - a.lon) * rad;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** Closest stop to `here` and the approximate walk to it (straight line x 1.3). */
+export function findNearestStop<T extends LatLon>(
+  here: LatLon,
+  stops: T[],
+): { stop: T; straightM: number; walkM: number } | null {
+  let best: { stop: T; straightM: number } | null = null;
+  for (const stop of stops) {
+    const d = haversineMeters(here, stop);
+    if (!best || d < best.straightM) best = { stop, straightM: d };
+  }
+  return best ? { ...best, walkM: best.straightM * WALK_DETOUR_FACTOR } : null;
+}
+
+/** "140 m", "1.3 km": rounded so the print does not imply false precision. */
+export function formatDistance(m: number): string {
+  if (m < 1000) return `${Math.max(10, Math.round(m / 10) * 10)} m`;
+  return `${(m / 1000).toFixed(1)} km`;
 }
 
 export type ProjectedPoint = { x: number; y: number };
@@ -58,7 +125,7 @@ export type ProjectedPoint = { x: number; y: number };
  * aspect. Returns a projector plus the scale (pt per meter) for the scale bar.
  */
 export function makeProjector(
-  points: { lat: number; lon: number }[],
+  points: LatLon[],
   frame: { x: number; y: number; w: number; h: number },
 ): {
   project: (lat: number, lon: number) => ProjectedPoint;
@@ -67,7 +134,7 @@ export function makeProjector(
   if (points.length === 0) return null;
   const lat0 = points.reduce((s, p) => s + p.lat, 0) / points.length;
   const mPerDegLon = metersPerDegreeLon(lat0);
-  const xs = points.map((p) => (p.lon - 0) * mPerDegLon);
+  const xs = points.map((p) => p.lon * mPerDegLon);
   const ys = points.map((p) => p.lat * 111320);
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
@@ -78,11 +145,12 @@ export function makeProjector(
   // 8% breathing room so edge stops/labels are not clipped by the frame.
   const padX = spanX * 0.08;
   const padY = spanY * 0.08;
-  const scaleX = frame.w / (spanX + padX * 2);
-  const scaleY = frame.h / (spanY + padY * 2);
-  const scale = Math.min(scaleX, scaleY);
-  const offX = frame.x + (frame.w - spanX * scale) / 2;
-  const offY = frame.y + (frame.h - spanY * scale) / 2;
+  const scale = Math.min(
+    frame.w / (spanX + padX * 2),
+    frame.h / (spanY + padY * 2),
+  );
+  const offX = frame.x + (frame.w - (spanX + padX * 2) * scale) / 2;
+  const offY = frame.y + (frame.h - (spanY + padY * 2) * scale) / 2;
   return {
     ptPerMeter: scale,
     project: (lat, lon) => ({
@@ -92,30 +160,103 @@ export function makeProjector(
   };
 }
 
+const f2 = (n: number) => Number(n.toFixed(2));
+
+/** Straight-segment SVG path. Stops sit on the line, unlike a fitted curve. */
+export function polylinePath(points: ProjectedPoint[]): string {
+  if (points.length === 0) return "";
+  return `M ${points.map((p) => `${f2(p.x)} ${f2(p.y)}`).join(" L ")}`;
+}
+
 /** Smooth SVG path through points: quadratic curves via segment midpoints. */
 export function smoothPath(points: ProjectedPoint[]): string {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-  const f = (n: number) => Number(n.toFixed(2));
-  let d = `M ${f(points[0].x)} ${f(points[0].y)}`;
+  let d = `M ${f2(points[0].x)} ${f2(points[0].y)}`;
   for (let i = 1; i < points.length - 1; i++) {
     const mx = (points[i].x + points[i + 1].x) / 2;
     const my = (points[i].y + points[i + 1].y) / 2;
-    d += ` Q ${f(points[i].x)} ${f(points[i].y)} ${f(mx)} ${f(my)}`;
+    d += ` Q ${f2(points[i].x)} ${f2(points[i].y)} ${f2(mx)} ${f2(my)}`;
   }
   const last = points[points.length - 1];
-  d += ` L ${f(last.x)} ${f(last.y)}`;
+  d += ` L ${f2(last.x)} ${f2(last.y)}`;
   return d;
+}
+
+/** Offset a polyline sideways by `d` pt; positive is left of travel (y up). */
+export function offsetPolyline(
+  points: ProjectedPoint[],
+  d: number,
+): ProjectedPoint[] {
+  if (Math.abs(d) < 0.01 || points.length < 2) return points;
+  return points.map((p, i) => {
+    const a = points[Math.max(0, i - 1)];
+    const b = points[Math.min(points.length - 1, i + 1)];
+    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    return {
+      x: p.x - ((b.y - a.y) / len) * d,
+      y: p.y + ((b.x - a.x) / len) * d,
+    };
+  });
+}
+
+/** Points and unit travel directions every `spacing` pt along a polyline. */
+export function pointsAlong(
+  pts: ProjectedPoint[],
+  spacing: number,
+  start = spacing / 2,
+): { p: ProjectedPoint; dir: ProjectedPoint }[] {
+  const out: { p: ProjectedPoint; dir: ProjectedPoint }[] = [];
+  let next = start;
+  let walked = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1];
+    const b = pts[i];
+    const seg = Math.hypot(b.x - a.x, b.y - a.y);
+    if (seg === 0) continue;
+    while (next <= walked + seg) {
+      const t = (next - walked) / seg;
+      out.push({
+        p: { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t },
+        dir: { x: (b.x - a.x) / seg, y: (b.y - a.y) / seg },
+      });
+      next += spacing;
+    }
+    walked += seg;
+  }
+  return out;
+}
+
+/** Closest point on a polyline to `p`. */
+function nearestOnPolyline(
+  pts: ProjectedPoint[],
+  p: ProjectedPoint,
+): { q: ProjectedPoint; d: number } {
+  let best = { q: pts[0] ?? p, d: Number.POSITIVE_INFINITY };
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1];
+    const b = pts[i];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy || 1;
+    const t = Math.max(
+      0,
+      Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2),
+    );
+    const q = { x: a.x + dx * t, y: a.y + dy * t };
+    const d = Math.hypot(q.x - p.x, q.y - p.y);
+    if (d < best.d) best = { q, d };
+  }
+  return best;
 }
 
 /** Five-point star path (pointing up) as SVG, centered on (cx, cy). */
 export function starPath(cx: number, cy: number, r: number): string {
-  const f = (n: number) => Number(n.toFixed(2));
   const pts: string[] = [];
   for (let i = 0; i < 10; i++) {
     const rad = (Math.PI / 5) * i - Math.PI / 2;
     const rr = i % 2 === 0 ? r : r * 0.42;
-    pts.push(`${f(cx + rr * Math.cos(rad))} ${f(cy + rr * Math.sin(rad))}`);
+    pts.push(`${f2(cx + rr * Math.cos(rad))} ${f2(cy + rr * Math.sin(rad))}`);
   }
   return `M ${pts.join(" L ")} Z`;
 }
@@ -128,42 +269,157 @@ export function niceScaleBarMeters(maxMeters: number): number {
   return best;
 }
 
-type LabelCell = { x: number; y: number };
+// ── Label placement ─────────────────────────────────────────────────────
 
-/** Grid occupancy so stop labels do not overlap each other or the star. */
-class LabelGrid {
-  private cells = new Set<string>();
-  constructor(
-    private cellW = 100,
-    private cellH = 14,
-  ) {}
-  private key(x: number, y: number) {
-    return `${Math.floor(x / this.cellW)}:${Math.floor(y / this.cellH)}`;
-  }
-  free(x: number, y: number) {
-    return !this.cells.has(this.key(x, y));
-  }
-  claim(x: number, y: number) {
-    this.cells.add(this.key(x, y));
-  }
+export type Box = { x: number; y: number; w: number; h: number };
+
+export type LabelRequest = {
+  id: string;
+  /** Anchor (the marker center) and the clearance around it. */
+  ax: number;
+  ay: number;
+  gap: number;
+  w: number;
+  h: number;
+  /** Higher places first and wins the space. */
+  priority: number;
+  /** Never dropped: walks outward (with a leader line) and, failing that, overlaps. */
+  keep?: boolean;
+};
+
+export type PlacedLabel = Box & { leader: boolean };
+
+const overlaps = (a: Box, b: Box) =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+/** The 8 classic cartographic positions: right, left, above, below, then diagonals. */
+export function labelCandidates(r: LabelRequest, gap = r.gap): Box[] {
+  const { ax, ay, w, h } = r;
+  const d = gap * 0.75;
+  return [
+    { x: ax + gap, y: ay - h / 2 },
+    { x: ax - gap - w, y: ay - h / 2 },
+    { x: ax - w / 2, y: ay + gap },
+    { x: ax - w / 2, y: ay - gap - h },
+    { x: ax + d, y: ay + d },
+    { x: ax - d - w, y: ay + d },
+    { x: ax + d, y: ay - d - h },
+    { x: ax - d - w, y: ay - d - h },
+  ].map((c) => ({ ...c, w, h }));
 }
+
+/**
+ * Greedy collision pass: highest priority first, each label tries 8 positions
+ * around its anchor and takes the first that is inside `bounds` and clear of
+ * `obstacles` and earlier labels. Labels that find no spot are dropped unless
+ * `keep` is set. Returns placements by id; missing ids were dropped.
+ */
+export function placeLabels(
+  requests: LabelRequest[],
+  obstacles: Box[],
+  bounds: Box,
+): Map<string, PlacedLabel> {
+  const placed = new Map<string, PlacedLabel>();
+  const taken: Box[] = [...obstacles];
+  const inside = (b: Box) =>
+    b.x >= bounds.x &&
+    b.y >= bounds.y &&
+    b.x + b.w <= bounds.x + bounds.w &&
+    b.y + b.h <= bounds.y + bounds.h;
+  const free = (b: Box) => inside(b) && !taken.some((t) => overlaps(b, t));
+  const sorted = [...requests].sort((a, b) => b.priority - a.priority);
+  for (const r of sorted) {
+    let spot: Box | undefined = labelCandidates(r).find(free);
+    let leader = false;
+    if (!spot && r.keep) {
+      // Dense core: walk outward ring by ring and tie back with a leader.
+      for (const ring of [2.2, 3.4, 4.6]) {
+        spot = labelCandidates(r, r.gap * ring + 6).find(free);
+        if (spot) {
+          leader = true;
+          break;
+        }
+      }
+      spot ??= labelCandidates(r).find(inside) ?? labelCandidates(r)[0];
+    }
+    if (!spot) continue;
+    placed.set(r.id, { ...spot, leader });
+    taken.push(spot);
+  }
+  return placed;
+}
+
+// ── Intercity list ──────────────────────────────────────────────────────
+
+export type IntercityGroup = {
+  origin: string;
+  routes: {
+    id: string;
+    destination: string;
+    fareRegular: number;
+    fareDiscounted: number;
+  }[];
+};
+
+/**
+ * Group intercity routes by where they leave from. The origin and
+ * destination come from the route name ("Los Baños → Calamba"); a name
+ * without an arrow falls back to its first and last stop. Groups with more
+ * routes come first, so the local departures lead the list.
+ */
+export function groupIntercityByOrigin(
+  routes: TransitMapRoute[],
+): IntercityGroup[] {
+  const groups = new Map<string, IntercityGroup>();
+  for (const route of routes) {
+    const parts = route.name.split(/\s*(?:→|->)\s*/);
+    const origin =
+      parts.length >= 2 ? parts[0] : (route.stops[0]?.name ?? route.name);
+    const destination =
+      parts.length >= 2
+        ? parts.slice(1).join(" to ")
+        : (route.stops[route.stops.length - 1]?.name ?? route.name);
+    const key = origin.trim();
+    const group = groups.get(key) ?? { origin: key, routes: [] };
+    group.routes.push({
+      id: route.id,
+      destination: destination.trim(),
+      fareRegular: route.fareRegular,
+      fareDiscounted: route.fareDiscounted,
+    });
+    groups.set(key, group);
+  }
+  return [...groups.values()].sort(
+    (a, b) =>
+      b.routes.length - a.routes.length || a.origin.localeCompare(b.origin),
+  );
+}
+
+// ── Text helpers ────────────────────────────────────────────────────────
 
 function hexToRgb(hex: string) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
   if (!m) return rgb(0.2, 0.2, 0.2);
-  const n = parseInt(m[1], 16);
+  const n = Number.parseInt(m[1], 16);
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
 }
 
+function darken(c: RGB, f: number): RGB {
+  return rgb(c.red * f, c.green * f, c.blue * f);
+}
+
 const WINANSI_REPLACEMENTS: [RegExp, string][] = [
-  [/\s*\u2192\s*/g, " to "], // → rightwards arrow
-  [/\u2190/g, "<-"], // ← leftwards arrow
-  [/\u2194/g, "<->"], // ↔ left-right arrow
-  [/\u21d2/g, "=>"], // ⇒ double arrow
-  [/\u2264/g, "<="],
-  [/\u2265/g, ">="],
-  [/\u2022/g, "-"],
-  [/\u00a0/g, " "],
+  [/\s*→\s*/g, " to "], // → rightwards arrow
+  [/←/g, "<-"], // ← leftwards arrow
+  [/↔/g, "<->"], // ↔ left-right arrow
+  [/⇒/g, "=>"], // ⇒ double arrow
+  [/≤/g, "<="],
+  [/≥/g, ">="],
+  [/•/g, "-"],
+  [/·/g, ","], // interpunct
+  [/\s*—\s*/g, ", "], // em dash reads as a comma on paper
+  [/…/g, ""], // no ellipsis truncation in print
+  [/ /g, " "],
 ];
 
 /** Standard PDF fonts are WinAnsi; live data (route names like
@@ -174,16 +430,15 @@ export function toWinAnsi(text: string): string {
   for (const [pattern, replacement] of WINANSI_REPLACEMENTS) {
     out = out.replace(pattern, replacement);
   }
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: stripping unencodable codepoints is the point
   return out.replace(
-    /[^\t\n\r\x20-\x7E\u00A0-\u00FF\u2018\u2019\u201C\u201D\u2013\u2014\u2026]/g,
+    /[^\t\n\r\x20-\x7E\u00A0-\u00FF\u2018\u2019\u201C\u201D\u2013]/g,
     "",
   );
 }
 
-/** Routes drawn on the diagram must live inside the campus frame; intercity
- *  services (Manila, Calamba, Sta. Cruz…) stay in the legend as text. */
-const CAMPUS_FRAME = {
+/** Routes drawn on the diagram must live inside the campus area; intercity
+ *  services (Manila, Calamba, Sta. Cruz) stay in the side list as text. */
+const CAMPUS_AREA = {
   minLat: 14.1,
   maxLat: 14.2,
   minLon: 121.2,
@@ -195,12 +450,78 @@ export function isCampusScopeRoute(route: TransitMapRoute): boolean {
     route.stops.length >= 2 &&
     route.stops.every(
       (s) =>
-        s.lat >= CAMPUS_FRAME.minLat &&
-        s.lat <= CAMPUS_FRAME.maxLat &&
-        s.lon >= CAMPUS_FRAME.minLon &&
-        s.lon <= CAMPUS_FRAME.maxLon,
+        s.lat >= CAMPUS_AREA.minLat &&
+        s.lat <= CAMPUS_AREA.maxLat &&
+        s.lon >= CAMPUS_AREA.minLon &&
+        s.lon <= CAMPUS_AREA.maxLon,
     )
   );
+}
+
+/** A loop starts and ends at the same stop and runs both ways (Kaliwa / Kanan). */
+export function isLoopRoute(route: TransitMapRoute): boolean {
+  const first = route.stops[0];
+  const last = route.stops[route.stops.length - 1];
+  return (
+    route.stops.length >= 3 &&
+    !!first &&
+    !!last &&
+    first.name === last.name &&
+    haversineMeters(first, last) < 60
+  );
+}
+
+/** Dash patterns for non-loop routes, so lines differ beyond color. */
+const ROUTE_DASHES: number[][] = [
+  [7, 2.5, 1.5, 2.5],
+  [1.6, 2.4],
+  [10, 3.5],
+];
+/** The reverse direction of a loop is dashed; the forward one is solid. */
+export const LOOP_REVERSE_DASH = [5, 2.5];
+
+/** Line style per drawn route: each pattern unique so grayscale still reads. */
+export function routeLineStyles(
+  routes: TransitMapRoute[],
+): Map<string, { dash: number[] | null; reverseDash: number[] | null }> {
+  const styles = new Map<
+    string,
+    { dash: number[] | null; reverseDash: number[] | null }
+  >();
+  let i = 0;
+  for (const route of routes) {
+    if (isLoopRoute(route)) {
+      styles.set(route.id, { dash: null, reverseDash: LOOP_REVERSE_DASH });
+    } else {
+      styles.set(route.id, {
+        dash: ROUTE_DASHES[i % ROUTE_DASHES.length],
+        reverseDash: null,
+      });
+      i++;
+    }
+  }
+  return styles;
+}
+
+function wrapText(
+  text: string,
+  font: PDFFont,
+  size: number,
+  maxW: number,
+): string[] {
+  const lines: string[] = [];
+  let line = "";
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) > maxW && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 
 /** White "halo" under dark text keeps labels readable over line work. */
@@ -210,25 +531,76 @@ function haloText(
   x: number,
   y: number,
   size: number,
-  font: { widthOfTextAtSize: (t: string, s: number) => number },
+  font: PDFFont,
   color = INK,
-  halo = WHITE,
 ) {
-  page.drawText(text, { x, y, size, font, color: halo });
   for (const [dx, dy] of [
-    [0.5, 0],
-    [-0.5, 0],
-    [0, 0.5],
-    [0, -0.5],
+    [0.6, 0],
+    [-0.6, 0],
+    [0, 0.6],
+    [0, -0.6],
+    [0.45, 0.45],
+    [-0.45, -0.45],
+    [0.45, -0.45],
+    [-0.45, 0.45],
   ]) {
-    page.drawText(text, { x: x + dx, y: y + dy, size, font, color: halo });
+    page.drawText(text, { x: x + dx, y: y + dy, size, font, color: WHITE });
   }
   page.drawText(text, { x, y, size, font, color });
+}
+
+/** Ordinal list "A", "A and B", "A, B and C". */
+function joinNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+type MapStop = {
+  key: string;
+  name: string;
+  lat: number;
+  lon: number;
+  routeIds: string[];
+  terminal: boolean;
+  /** Sort key for the numbered index: route order, then stop order. */
+  order: number;
+};
+
+/** Merge stops of different routes that sit within 30 m of each other. */
+function mergeStops(routes: TransitMapRoute[]): MapStop[] {
+  const out: MapStop[] = [];
+  routes.forEach((route, ri) => {
+    const loop = isLoopRoute(route);
+    route.stops.forEach((stop, si) => {
+      const terminal = si === 0 || (!loop && si === route.stops.length - 1);
+      const hit = out.find((m) => haversineMeters(m, stop) < 30);
+      if (hit) {
+        if (!hit.routeIds.includes(route.id)) hit.routeIds.push(route.id);
+        hit.terminal ||= terminal;
+        const a = hit.name.toLowerCase();
+        const b = stop.name.toLowerCase();
+        if (b.includes(a)) hit.name = stop.name;
+        else if (!a.includes(b)) hit.name = `${hit.name} / ${stop.name}`;
+        return;
+      }
+      out.push({
+        key: `s${out.length}`,
+        name: stop.name,
+        lat: stop.lat,
+        lon: stop.lon,
+        routeIds: [route.id],
+        terminal,
+        order: ri * 1000 + si,
+      });
+    });
+  });
+  return out;
 }
 
 export async function renderTransitMapPdf(input: {
   routes: TransitMapRoute[];
   here?: TransitMapHere | null;
+  basemap?: TransitBasemap | null;
   format?: TransitMapFormat;
   generatedAt?: Date;
 }): Promise<Uint8Array> {
@@ -241,14 +613,25 @@ export async function renderTransitMapPdf(input: {
   pdf.setAuthor("Room TBA");
   pdf.setSubject("Printable map of UPLB jeepney routes and stops");
   pdf.setCreator("Room TBA (room-tba.uplb.tools)");
+  pdf.setLanguage("en-PH");
   pdf.setCreationDate(generatedAt);
 
   const page = pdf.addPage([pageW, pageH]);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const italic = await pdf.embedFont(StandardFonts.HelveticaOblique);
 
-  // Sanitize once at the boundary: live data carries characters the standard
-  // PDF fonts cannot encode (route names like "Buendia → Los Baños").
+  // Intercity grouping reads the arrow in the raw name, so it runs before
+  // sanitizing; every string it returns is sanitized on the way out.
+  const intercityGroups = groupIntercityByOrigin(
+    input.routes.filter((r) => !isCampusScopeRoute(r)),
+  ).map((g) => ({
+    origin: toWinAnsi(g.origin),
+    routes: g.routes.map((r) => ({
+      ...r,
+      destination: toWinAnsi(r.destination),
+    })),
+  }));
   const routes = input.routes.map((route) => ({
     ...route,
     name: toWinAnsi(route.name),
@@ -256,39 +639,35 @@ export async function renderTransitMapPdf(input: {
     stops: route.stops.map((stop) => ({ ...stop, name: toWinAnsi(stop.name) })),
   }));
   const drawnRoutes = routes.filter(isCampusScopeRoute);
-  const intercityRoutes = routes.filter((r) => !isCampusScopeRoute(r));
+  const styles = routeLineStyles(drawnRoutes);
+  const stops = mergeStops(drawnRoutes);
+
+  // Campus center: the median stop, robust to the far-off mall terminals.
+  const median = (xs: number[]) => {
+    const s = [...xs].sort((a, b) => a - b);
+    return s[Math.floor(s.length / 2)] ?? 0;
+  };
+  const center = {
+    lat: median(stops.map((s) => s.lat)),
+    lon: median(stops.map((s) => s.lon)),
+  };
+  const coreStops = stops.filter(
+    (s) => haversineMeters(s, center) <= CORE_RADIUS_M,
+  );
+
   const here = input.here
-    ? {
-        name: toWinAnsi(input.here.name),
-        lat: input.here.lat,
-        lon: input.here.lon,
-      }
+    ? { ...input.here, name: toWinAnsi(input.here.name) }
     : null;
-  const hereOnFrame =
+  const hereOnMap =
     here !== null &&
-    here.lat >= CAMPUS_FRAME.minLat &&
-    here.lat <= CAMPUS_FRAME.maxLat &&
-    here.lon >= CAMPUS_FRAME.minLon &&
-    here.lon <= CAMPUS_FRAME.maxLon;
+    stops.length > 0 &&
+    haversineMeters(here, center) <= HERE_MAX_M;
+  const nearest = here && hereOnMap ? findNearestStop(here, stops) : null;
 
   // ── Header ────────────────────────────────────────────────────────────
-  page.drawRectangle({
-    x: 0,
-    y: pageH - HEADER_H,
-    width: pageW,
-    height: HEADER_H,
-    color: WHITE,
-  });
-  page.drawRectangle({
-    x: 0,
-    y: pageH - HEADER_H,
-    width: pageW,
-    height: 3,
-    color: BRAND,
-  });
   page.drawText("UPLB Jeepney Routes", {
     x: MARGIN,
-    y: pageH - 30,
+    y: pageH - 32,
     size: 18,
     font: bold,
     color: INK,
@@ -301,20 +680,53 @@ export async function renderTransitMapPdf(input: {
     day: "numeric",
     timeZone: "Asia/Manila",
   });
-  page.drawText(`Printed ${dateLabel}`, {
-    x: MARGIN,
-    y: pageH - 46,
+  const printed = `Printed ${dateLabel}`;
+  page.drawText(printed, {
+    x: pageW - MARGIN - font.widthOfTextAtSize(printed, 9),
+    y: pageH - 30,
     size: 9,
     font,
     color: MUTED,
   });
+  let intro: string;
+  if (here && nearest) {
+    const servedBy = joinNames(
+      drawnRoutes
+        .filter((r) => nearest.stop.routeIds.includes(r.id))
+        .map((r) => r.name),
+    );
+    intro = `You are at ${here.name}. The nearest jeepney stop is ${nearest.stop.name}, about ${formatDistance(nearest.walkM)} on foot (approximate). ${servedBy} ${nearest.stop.routeIds.length > 1 ? "stop" : "stops"} there.`;
+  } else if (here) {
+    intro = `${here.name} is about ${formatDistance(haversineMeters(here, center))} from campus, outside this map. The routes below still show how to reach UPLB.`;
+  } else {
+    intro =
+      "Campus jeepney routes with their stops, plus the buses and jeepneys that link UPLB to nearby towns.";
+  }
+  wrapText(intro, font, 10, pageW - MARGIN * 2)
+    .slice(0, 2)
+    .forEach((line, i) => {
+      page.drawText(line, {
+        x: MARGIN,
+        y: pageH - 50 - i * 13,
+        size: 10,
+        font,
+        color: INK,
+      });
+    });
+  page.drawRectangle({
+    x: 0,
+    y: pageH - HEADER_H,
+    width: pageW,
+    height: 3,
+    color: BRAND,
+  });
 
   // ── Map frame ─────────────────────────────────────────────────────────
-  const frame = {
+  const frame: Box = {
     x: MARGIN,
-    y: FOOTER_H + LEGEND_H + 10,
-    w: pageW - MARGIN * 2,
-    h: pageH - HEADER_H - 12 - LEGEND_H - 10 - FOOTER_H - 10,
+    y: FOOTER_H + 8,
+    w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
+    h: pageH - HEADER_H - 10 - FOOTER_H - 8,
   };
   page.drawRectangle({
     x: frame.x,
@@ -322,20 +734,16 @@ export async function renderTransitMapPdf(input: {
     width: frame.w,
     height: frame.h,
     color: WHITE,
-    borderColor: HAIRLINE,
-    borderWidth: 1,
   });
 
-  const allStops = drawnRoutes.flatMap((r) => r.stops);
-  const projInput = here && hereOnFrame ? [...allStops, here] : allStops;
-  const projector = makeProjector(projInput, {
-    x: frame.x + FRAME_PAD,
-    y: frame.y + FRAME_PAD,
-    w: frame.w - FRAME_PAD * 2,
-    h: frame.h - FRAME_PAD * 2,
+  const fitPoints: LatLon[] = [...coreStops];
+  if (here && hereOnMap) fitPoints.push(here);
+  const projector = makeProjector(fitPoints, {
+    x: frame.x + 10,
+    y: frame.y + 10,
+    w: frame.w - 20,
+    h: frame.h - 20,
   });
-
-  const grid = new LabelGrid();
 
   // pdf-lib's drawSvgPath follows SVG's y-down convention from its anchor;
   // anchoring at the page top and flipping every point keeps the projector
@@ -344,96 +752,355 @@ export async function renderTransitMapPdf(input: {
     x: p.x,
     y: pageH - p.y,
   });
-  const svgPathFrom = (pts: ProjectedPoint[]) => smoothPath(pts.map(toSvg));
-  const starAt = (cx: number, cy: number, r: number) =>
-    starPath(cx, pageH - cy, r);
+  const pathOf = (pts: ProjectedPoint[]) => polylinePath(pts.map(toSvg));
   const svgAnchor = { x: 0, y: pageH };
+  const inFrame = (p: ProjectedPoint, pad = 0) =>
+    p.x >= frame.x + pad &&
+    p.x <= frame.x + frame.w - pad &&
+    p.y >= frame.y + pad &&
+    p.y <= frame.y + frame.h - pad;
 
-  if (projector && allStops.length > 0) {
+  const indexEntries: { n: number; name: string }[] = [];
+
+  if (projector && stops.length > 0) {
     const { project, ptPerMeter } = projector;
+    const proj = (p: LatLon) => project(p.lat, p.lon);
 
-    // Routes: white casing under colored line, both round-capped.
+    page.pushOperators(
+      pushGraphicsState(),
+      rectangle(frame.x, frame.y, frame.w, frame.h),
+      clip(),
+      endPath(),
+    );
+
+    // Basemap: one compound path per layer keeps the PDF small and fast.
+    const layerPath = (ways: [number, number][][], closed: boolean) => {
+      let d = "";
+      for (const way of ways) {
+        const pts = way.map(([lon, lat]) => project(lat, lon));
+        if (!pts.some((p) => inFrame(p, -20))) continue;
+        d += `${pathOf(pts)}${closed ? " Z" : ""} `;
+      }
+      return d;
+    };
+    const gateMarks: { name: string; p: ProjectedPoint }[] = [];
+    if (input.basemap) {
+      const b = input.basemap;
+      const buildings = layerPath(b.buildings, true);
+      if (buildings)
+        page.drawSvgPath(buildings, { ...svgAnchor, color: BUILDING });
+      const water = layerPath(b.water, false);
+      if (water)
+        page.drawSvgPath(water, {
+          ...svgAnchor,
+          borderColor: WATER,
+          borderWidth: 1.4,
+        });
+      const minor = layerPath(b.roadsMinor, false);
+      if (minor)
+        page.drawSvgPath(minor, {
+          ...svgAnchor,
+          borderColor: ROAD_MINOR,
+          borderWidth: 1.1,
+          borderLineCap: 1,
+        });
+      const major = layerPath(b.roadsMajor, false);
+      if (major)
+        page.drawSvgPath(major, {
+          ...svgAnchor,
+          borderColor: ROAD_MAJOR,
+          borderWidth: 2.4,
+          borderLineCap: 1,
+        });
+      for (const gate of b.gates) {
+        const p = proj(gate);
+        const name = toWinAnsi(gate.name);
+        // A stop already named after the gate labels it; skip the duplicate.
+        const named = stops.some((st) =>
+          st.name.toLowerCase().includes(name.toLowerCase()),
+        );
+        if (inFrame(p, 6)) gateMarks.push({ name: named ? "" : name, p });
+      }
+    }
+
+    // Routes: a white casing, then the line itself. Loops draw both travel
+    // directions side by side (right-hand traffic: each on its own right).
+    const routeLines = new Map<string, ProjectedPoint[]>();
+    const arrows: { pts: ProjectedPoint[]; color: RGB }[] = [];
     for (const route of drawnRoutes) {
-      if (route.stops.length < 2) continue;
-      const pts = route.stops.map((s) => project(s.lat, s.lon));
-      const d = svgPathFrom(pts);
+      const source =
+        route.line && route.line.length >= 2 ? route.line : route.stops;
+      const pts = source.map(proj);
+      routeLines.set(route.id, pts);
       const color = hexToRgb(route.color);
-      page.drawSvgPath(d, {
+      const style = styles.get(route.id);
+      const loop = isLoopRoute(route);
+      page.drawSvgPath(pathOf(pts), {
         ...svgAnchor,
         borderColor: WHITE,
-        borderWidth: 7,
+        borderWidth: loop ? 9 : 6.5,
         borderLineCap: 1,
-        borderLineJoin: 1,
       });
-      page.drawSvgPath(d, {
-        ...svgAnchor,
-        borderColor: color,
-        borderWidth: 4.5,
-        borderLineCap: 1,
-        borderLineJoin: 1,
-      });
-    }
-
-    // Stops: white dot with route-color ring; labels alternate sides.
-    for (const route of drawnRoutes) {
-      const color = hexToRgb(route.color);
-      route.stops.forEach((stop, i) => {
-        const p = project(stop.lat, stop.lon);
-        const terminal = i === 0 || i === route.stops.length - 1;
-        page.drawCircle({
-          x: p.x,
-          y: p.y,
-          size: terminal ? 4.4 : 3.2,
-          color: WHITE,
+      if (loop) {
+        const fwd = offsetPolyline(pts, -2);
+        const rev = offsetPolyline([...pts].reverse(), -2);
+        page.drawSvgPath(pathOf(fwd), {
+          ...svgAnchor,
           borderColor: color,
-          borderWidth: terminal ? 2 : 1.5,
+          borderWidth: 2.4,
+          borderLineCap: 1,
         });
+        page.drawSvgPath(pathOf(rev), {
+          ...svgAnchor,
+          borderColor: darken(color, 0.62),
+          borderWidth: 2.4,
+          borderDashArray: style?.reverseDash ?? LOOP_REVERSE_DASH,
+        });
+        arrows.push(
+          { pts: fwd, color },
+          { pts: rev, color: darken(color, 0.62) },
+        );
+      } else {
+        page.drawSvgPath(pathOf(pts), {
+          ...svgAnchor,
+          borderColor: color,
+          borderWidth: 3.2,
+          borderDashArray: style?.dash ?? undefined,
+        });
+      }
+    }
+    // Direction chevrons in travel order, offset so the two directions do
+    // not stack their arrows at the same spot.
+    arrows.forEach(({ pts, color }, i) => {
+      for (const { p, dir } of pointsAlong(pts, 64, 20 + i * 32)) {
+        if (!inFrame(p, 4)) continue;
+        const s = 3.6;
+        const nx = -dir.y;
+        const ny = dir.x;
+        const tip = { x: p.x + dir.x * s, y: p.y + dir.y * s };
+        const l = { x: p.x - dir.x * s + nx * s, y: p.y - dir.y * s + ny * s };
+        const r = { x: p.x - dir.x * s - nx * s, y: p.y - dir.y * s - ny * s };
+        page.drawSvgPath(`${pathOf([l, tip, r])} Z`, {
+          ...svgAnchor,
+          color,
+          borderColor: WHITE,
+          borderWidth: 0.7,
+        });
+      }
+    });
+
+    // Stop positions: snapped onto their route line when it passes close,
+    // so a road-routed line and its stops never visibly disagree.
+    const stopPos = new Map<string, ProjectedPoint>();
+    for (const stop of stops) {
+      const raw = proj(stop);
+      const line = routeLines.get(stop.routeIds[0]);
+      const near = line ? nearestOnPolyline(line, raw) : null;
+      stopPos.set(stop.key, near && near.d < 14 ? near.q : raw);
+    }
+    const onMap = stops.filter((s) => inFrame(stopPos.get(s.key)!, 4));
+    const offMap = stops.filter((s) => !inFrame(stopPos.get(s.key)!, 4));
+
+    // Walk from here to the nearest stop.
+    const hereP = here && hereOnMap ? proj(here) : null;
+    const nearestP = nearest ? stopPos.get(nearest.stop.key) : undefined;
+    if (hereP && nearestP) {
+      page.drawLine({
+        start: hereP,
+        end: nearestP,
+        thickness: 1.6,
+        color: BRAND,
+        dashArray: [2.5, 2.5],
+        lineCap: 1,
       });
     }
 
-    // Labels after all line work so they sit on top. A loop whose two
-    // termini share a name (e.g. Kaliwa/Kanan starts and ends at the same
-    // mall) gets one label, not two stacked copies.
-    const labeledByText = new Map<string, ProjectedPoint>();
-    for (const route of drawnRoutes) {
-      route.stops.forEach((stop, i) => {
-        const p = project(stop.lat, stop.lon);
-        const terminal = i === 0 || i === route.stops.length - 1;
-        const label = stop.name;
-        const size = terminal ? 8 : 7.5;
-        const textW = font.widthOfTextAtSize(label, size);
-        const seen = labeledByText.get(label);
-        if (seen && Math.hypot(seen.x - p.x, seen.y - p.y) < 24) return;
-        const candidates: LabelCell[] = [
-          { x: p.x - textW / 2, y: p.y + 7 },
-          { x: p.x - textW / 2, y: p.y - 15 },
-          { x: p.x + 7, y: p.y - 2.5 },
-          { x: p.x - textW - 7, y: p.y - 2.5 },
-        ];
-        const spot =
-          candidates.find((c) => grid.free(c.x, c.y)) ??
-          (terminal ? candidates[0] : null);
-        if (!spot) return;
-        grid.claim(spot.x, spot.y);
-        labeledByText.set(label, p);
+    const obstacles: Box[] = [];
+    const markerR = (s: MapStop) => (s.terminal ? 4.6 : 3.4);
+    for (const stop of onMap) {
+      const p = stopPos.get(stop.key)!;
+      const shared = stop.routeIds.length > 1;
+      const route = drawnRoutes.find((r) => r.id === stop.routeIds[0]);
+      const r = markerR(stop);
+      page.drawCircle({
+        x: p.x,
+        y: p.y,
+        size: r,
+        color: WHITE,
+        borderColor: shared ? INK : hexToRgb(route?.color ?? "#333333"),
+        borderWidth: stop.terminal || shared ? 1.9 : 1.4,
+      });
+      obstacles.push({ x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 });
+    }
+    for (const g of gateMarks) {
+      page.drawRectangle({
+        x: g.p.x - 2.2,
+        y: g.p.y - 2.2,
+        width: 4.4,
+        height: 4.4,
+        color: MUTED,
+        borderColor: WHITE,
+        borderWidth: 0.6,
+      });
+    }
+    if (nearestP) {
+      page.drawCircle({
+        x: nearestP.x,
+        y: nearestP.y,
+        size: 7.5,
+        borderColor: BRAND,
+        borderWidth: 1.6,
+      });
+      obstacles.push({ x: nearestP.x - 8, y: nearestP.y - 8, w: 16, h: 16 });
+    }
+    if (hereP) {
+      page.drawSvgPath(starPath(hereP.x, pageH - hereP.y, 9), {
+        ...svgAnchor,
+        color: BRAND,
+        borderColor: WHITE,
+        borderWidth: 1.2,
+      });
+      obstacles.push({ x: hereP.x - 10, y: hereP.y - 10, w: 20, h: 20 });
+    }
+
+    page.pushOperators(popGraphicsState());
+
+    // Off-frame stops (the mall terminals): an arrow where the route leaves
+    // the frame, with the stop name and its distance, instead of shrinking
+    // the campus to fit them.
+    const from = here && hereOnMap ? here : center;
+    const fromWord = here && hereOnMap ? "from here" : "from campus";
+    const exits: {
+      p: ProjectedPoint;
+      side: "n" | "s" | "e" | "w";
+      names: string[];
+    }[] = [];
+    const inset = 7;
+    const edgeHit = (a: ProjectedPoint, b: ProjectedPoint) => {
+      // Binary search the crossing between an inside and an outside point.
+      let lo = a;
+      let hi = b;
+      for (let k = 0; k < 24; k++) {
+        const mid = { x: (lo.x + hi.x) / 2, y: (lo.y + hi.y) / 2 };
+        if (inFrame(mid, inset)) lo = mid;
+        else hi = mid;
+      }
+      return lo;
+    };
+    for (const stop of offMap) {
+      const target = stopPos.get(stop.key)!;
+      const line = routeLines.get(stop.routeIds[0]) ?? [];
+      let best: ProjectedPoint | null = null;
+      for (let i = 1; i < line.length; i++) {
+        const aIn = inFrame(line[i - 1], inset);
+        const bIn = inFrame(line[i], inset);
+        if (aIn === bIn) continue;
+        const hit = aIn
+          ? edgeHit(line[i - 1], line[i])
+          : edgeHit(line[i], line[i - 1]);
+        if (
+          !best ||
+          Math.hypot(hit.x - target.x, hit.y - target.y) <
+            Math.hypot(best.x - target.x, best.y - target.y)
+        )
+          best = hit;
+      }
+      if (!best) {
+        const c = { x: frame.x + frame.w / 2, y: frame.y + frame.h / 2 };
+        best = edgeHit(c, {
+          x: c.x + (target.x - c.x) * 50,
+          y: c.y + (target.y - c.y) * 50,
+        });
+      }
+      const dists = {
+        n: frame.y + frame.h - best.y,
+        s: best.y - frame.y,
+        e: frame.x + frame.w - best.x,
+        w: best.x - frame.x,
+      };
+      const side = Object.entries(dists).sort((a, b) => a[1] - b[1])[0][0] as
+        | "n"
+        | "s"
+        | "e"
+        | "w";
+      const label = `${stop.name}, ${formatDistance(haversineMeters(from, stop))} ${fromWord}`;
+      const near = exits.find(
+        (e) =>
+          e.side === side && Math.hypot(e.p.x - best!.x, e.p.y - best!.y) < 60,
+      );
+      if (near) near.names.push(label);
+      else exits.push({ p: best, side, names: [label] });
+    }
+    for (const exit of exits) {
+      const { p, side } = exit;
+      const dir = { n: [0, 1], s: [0, -1], e: [1, 0], w: [-1, 0] }[side];
+      const s = 6;
+      const tip = { x: p.x + dir[0] * s, y: p.y + dir[1] * s };
+      const nx = -dir[1];
+      const ny = dir[0];
+      const base = { x: p.x - dir[0] * s, y: p.y - dir[1] * s };
+      page.drawSvgPath(
+        `${pathOf([
+          { x: base.x + nx * s, y: base.y + ny * s },
+          tip,
+          { x: base.x - nx * s, y: base.y - ny * s },
+        ])} Z`,
+        { ...svgAnchor, color: INK, borderColor: WHITE, borderWidth: 1 },
+      );
+      const size = 7.5;
+      const widths = exit.names.map((n) => bold.widthOfTextAtSize(n, size));
+      const blockW = Math.max(...widths);
+      const blockH = exit.names.length * (size + 2);
+      // Text sits inside the frame, beside or under the arrow.
+      let tx = Math.min(
+        Math.max(p.x + 10, frame.x + 6),
+        frame.x + frame.w - blockW - 6,
+      );
+      let ty = p.y - blockH - 8;
+      if (side === "s") ty = p.y + 10;
+      if (side === "e") {
+        tx = p.x - blockW - 12;
+        ty = p.y - blockH / 2;
+      }
+      if (side === "w") {
+        tx = p.x + 12;
+        ty = p.y - blockH / 2;
+      }
+      exit.names.forEach((n, i) => {
         haloText(
           page,
-          label,
-          spot.x,
-          spot.y,
+          n,
+          tx,
+          ty + blockH - (i + 1) * (size + 2) + 2,
           size,
-          font,
-          terminal ? INK : rgb(0.25, 0.25, 0.25),
+          bold,
+          INK,
         );
+      });
+      obstacles.push({ x: tx - 2, y: ty - 2, w: blockW + 4, h: blockH + 4 });
+      obstacles.push({
+        x: p.x - s - 2,
+        y: p.y - s - 2,
+        w: s * 2 + 4,
+        h: s * 2 + 4,
       });
     }
 
-    // Scale bar (bottom-left of the frame).
+    // Scale bar (bottom-left) and north arrow (top-right) reserve space
+    // before labels are placed.
     const barMaxPt = 90;
     const meters = niceScaleBarMeters(barMaxPt / ptPerMeter);
     const barPt = meters * ptPerMeter;
-    const barY = frame.y + 10;
+    const barY = frame.y + 12;
     const barX = frame.x + 12;
+    page.drawRectangle({
+      x: barX - 4,
+      y: barY - 6,
+      width: barPt + 40,
+      height: 14,
+      color: WHITE,
+      opacity: 0.85,
+    });
     page.drawLine({
       start: { x: barX, y: barY },
       end: { x: barX + barPt, y: barY },
@@ -455,10 +1122,10 @@ export async function renderTransitMapPdf(input: {
       font,
       color: INK,
     });
-
-    // North arrow (top-right of the frame).
-    const nx = frame.x + frame.w - 22;
-    const ny = frame.y + frame.h - 16;
+    obstacles.push({ x: barX - 4, y: barY - 6, w: barPt + 40, h: 14 });
+    // Bottom-right: the top edge is where the mall terminals' arrows land.
+    const nx = frame.x + frame.w - 18;
+    const ny = frame.y + 14;
     page.drawSvgPath(
       `M ${nx} ${pageH - (ny + 10)} L ${nx - 4.5} ${pageH - (ny - 6)} L ${nx} ${pageH - (ny - 2)} L ${nx + 4.5} ${pageH - (ny - 6)} Z`,
       { ...svgAnchor, color: INK },
@@ -470,6 +1137,164 @@ export async function renderTransitMapPdf(input: {
       font: bold,
       color: INK,
     });
+    obstacles.push({ x: nx - 8, y: ny - 8, w: 16, h: 30 });
+
+    // ── Labels ──────────────────────────────────────────────────────────
+    type Spec = LabelRequest & {
+      text: string;
+      size: number;
+      font: PDFFont;
+      color: RGB;
+    };
+    const specs: Spec[] = [];
+    const add = (
+      id: string,
+      text: string,
+      p: ProjectedPoint,
+      gap: number,
+      size: number,
+      fnt: PDFFont,
+      color: RGB,
+      priority: number,
+      keep = false,
+    ) =>
+      specs.push({
+        id,
+        text,
+        ax: p.x,
+        ay: p.y,
+        gap,
+        w: fnt.widthOfTextAtSize(text, size),
+        h: size,
+        size,
+        font: fnt,
+        color,
+        priority,
+        keep,
+      });
+    if (hereP && here)
+      add(
+        "here",
+        `${here.name} (you are here)`,
+        hereP,
+        12,
+        10,
+        bold,
+        BRAND,
+        100,
+        true,
+      );
+    const fromP = hereP ?? project(center.lat, center.lon);
+    const byDistance = [...onMap].sort((a, b) => {
+      const pa = stopPos.get(a.key)!;
+      const pb = stopPos.get(b.key)!;
+      return (
+        Math.hypot(pa.x - fromP.x, pa.y - fromP.y) -
+        Math.hypot(pb.x - fromP.x, pb.y - fromP.y)
+      );
+    });
+    byDistance.forEach((stop, rank) => {
+      const p = stopPos.get(stop.key)!;
+      const isNearest = nearest?.stop.key === stop.key;
+      if (isNearest) add(stop.key, stop.name, p, 10, 9, bold, BRAND, 90, true);
+      else if (stop.terminal)
+        add(
+          stop.key,
+          stop.name,
+          p,
+          markerR(stop) + 2.5,
+          8,
+          bold,
+          INK,
+          80,
+          true,
+        );
+      else
+        add(
+          stop.key,
+          stop.name,
+          p,
+          markerR(stop) + 2.5,
+          7.5,
+          font,
+          INK,
+          50 - rank * 0.01,
+        );
+    });
+    gateMarks.forEach((g, i) => {
+      if (g.name)
+        add(`gate${i}`, g.name, g.p, 5, 7, italic, MUTED, 10 - i * 0.01);
+    });
+
+    const bounds = {
+      x: frame.x + 3,
+      y: frame.y + 3,
+      w: frame.w - 6,
+      h: frame.h - 6,
+    };
+    const placed = placeLabels(specs, obstacles, bounds);
+
+    // Stops that lost their label get a number, placed in a second pass
+    // around the labels that did fit, and listed in the side panel.
+    const dropped = onMap
+      .filter((s) => !placed.has(s.key))
+      .sort((a, b) => a.order - b.order);
+    const numSpecs: Spec[] = [];
+    dropped.forEach((stop, i) => {
+      const n = i + 1;
+      indexEntries.push({ n, name: stop.name });
+      const p = stopPos.get(stop.key)!;
+      const text = String(n);
+      numSpecs.push({
+        id: `n${stop.key}`,
+        text,
+        ax: p.x,
+        ay: p.y,
+        gap: markerR(stop) + 1.5,
+        w: bold.widthOfTextAtSize(text, 7),
+        h: 7,
+        size: 7,
+        font: bold,
+        color: INK,
+        priority: 1,
+        keep: true,
+      });
+    });
+    const placedNums = placeLabels(
+      numSpecs,
+      [...obstacles, ...placed.values()],
+      bounds,
+    );
+
+    for (const spec of [...specs, ...numSpecs]) {
+      const box = placed.get(spec.id) ?? placedNums.get(spec.id);
+      if (!box) continue;
+      if (box.leader) {
+        const cx = Math.min(Math.max(spec.ax, box.x), box.x + box.w);
+        const cy = Math.min(Math.max(spec.ay, box.y), box.y + box.h);
+        const dx = cx - spec.ax;
+        const dy = cy - spec.ay;
+        const len = Math.hypot(dx, dy) || 1;
+        page.drawLine({
+          start: {
+            x: spec.ax + (dx / len) * spec.gap,
+            y: spec.ay + (dy / len) * spec.gap,
+          },
+          end: { x: cx, y: cy },
+          thickness: 0.7,
+          color: spec.color,
+        });
+      }
+      haloText(
+        page,
+        spec.text,
+        box.x,
+        box.y + spec.size * 0.2,
+        spec.size,
+        spec.font,
+        spec.color,
+      );
+    }
   } else {
     page.drawText("No active routes to map yet.", {
       x: frame.x + frame.w / 2 - 70,
@@ -479,195 +1304,274 @@ export async function renderTransitMapPdf(input: {
       color: MUTED,
     });
   }
+  page.drawRectangle({
+    x: frame.x,
+    y: frame.y,
+    width: frame.w,
+    height: frame.h,
+    borderColor: HAIRLINE,
+    borderWidth: 1,
+  });
 
-  // ── "You are here" (drawn last, on top of everything) ─────────────────
-  if (here && hereOnFrame && projector) {
-    const p = projector.project(here.lat, here.lon);
-    page.drawSvgPath(
-      `M ${p.x - 13} ${pageH - p.y} a 13 13 0 1 0 26 0 a 13 13 0 1 0 -26 0`,
-      {
-        ...svgAnchor,
-        borderColor: BRAND,
-        borderWidth: 1.2,
-        borderDashArray: [3, 3],
-        borderOpacity: 0.9,
-      },
-    );
-    page.drawSvgPath(starAt(p.x, p.y, 9), {
-      ...svgAnchor,
-      color: BRAND,
-      borderColor: WHITE,
-      borderWidth: 1.2,
-    });
-    const label = `${here.name} (you are here)`;
-    const size = 10.5;
-    const textW = bold.widthOfTextAtSize(label, size);
-    const clampX = (x: number) =>
-      Math.min(Math.max(x, frame.x + 4), frame.x + frame.w - textW - 4);
-    const candidates = [
-      { x: clampX(p.x - textW / 2), y: p.y + 17 },
-      { x: clampX(p.x - textW / 2), y: p.y - 21 },
-      { x: clampX(p.x + 15), y: p.y - 3.5 },
-      { x: clampX(p.x - textW - 15), y: p.y - 3.5 },
-    ];
-    // Dense core: every near spot may be taken. Walk outward ring by ring
-    // (8 angles per ring) so the label lands somewhere free, then tie it to
-    // the star with a short leader line.
-    for (let r = 30; r <= 78; r += 16) {
-      for (let a = 0; a < 8; a++) {
-        const rad = (Math.PI / 4) * a;
-        const lx = clampX(p.x + Math.cos(rad) * r - textW / 2);
-        const ly = p.y + Math.sin(rad) * r;
-        if (ly < frame.y + 8 || ly > frame.y + frame.h - 8) continue;
-        candidates.push({ x: lx, y: ly });
-      }
-    }
-    const spot =
-      candidates.find((c) => grid.free(c.x, c.y, textW)) ?? candidates[0];
-    const midX = spot.x + textW / 2;
-    const midY = spot.y - 3.5;
-    const dx = midX - p.x;
-    const dy = midY - p.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const leaderStart = 15;
-    if (len > leaderStart + 4) {
-      page.drawLine({
-        start: {
-          x: p.x + (dx / len) * leaderStart,
-          y: p.y + (dy / len) * leaderStart,
-        },
-        end: { x: midX - (dx / len) * 4, y: midY - (dy / len) * 4 },
-        thickness: 0.8,
-        color: BRAND,
-      });
-    }
-    haloText(page, label, spot.x, spot.y, size, bold, BRAND);
-    grid.claim(spot.x, spot.y, textW);
-  }
-
-  // ── Legend ────────────────────────────────────────────────────────────
-  const legendTop = FOOTER_H + LEGEND_H;
-  const legendY = legendTop - 58; // drawn-route rows sit in the top band
-  const legendRowW = (pageW - MARGIN * 2) / Math.max(drawnRoutes.length, 1);
-  drawnRoutes.forEach((route, i) => {
-    const color = hexToRgb(route.color);
-    const x0 = MARGIN + i * legendRowW;
+  // ── Side panel ────────────────────────────────────────────────────────
+  const px = pageW - MARGIN - PANEL_W;
+  let py = pageH - HEADER_H - 22;
+  const heading = (text: string) => {
+    page.drawText(text, { x: px, y: py, size: 9.5, font: bold, color: INK });
+    py -= 14;
+  };
+  const sample = (
+    color: RGB,
+    dash: number[] | null,
+    chevron: boolean,
+    y: number,
+  ) => {
     page.drawLine({
-      start: { x: x0, y: legendY + 34 },
-      end: { x: x0 + 22, y: legendY + 34 },
-      thickness: 4,
+      start: { x: px, y: y + 3 },
+      end: { x: px + 26, y: y + 3 },
+      thickness: 2.8,
       color,
-      lineCap: 1,
+      dashArray: dash ?? undefined,
     });
-    page.drawText(route.name, {
-      x: x0 + 28,
-      y: legendY + 31,
-      size: 9.5,
-      font: bold,
-      color: INK,
-    });
-    const fares = `PHP ${route.fareRegular} regular, PHP ${route.fareDiscounted} discounted`;
-    page.drawText(fares, {
-      x: x0 + 28,
-      y: legendY + 18,
-      size: 8,
-      font,
-      color: MUTED,
-    });
-    if (route.directionNote) {
-      // Wrap instead of cutting the note off mid-sentence on paper. Two lines
-      // fit above the intercity row; a longer note keeps its first sentence.
-      const wrap = (text: string) => {
-        const out: string[] = [];
-        let current = "";
-        for (const word of text.split(/\s+/)) {
-          const next = current ? `${current} ${word}` : word;
-          if (font.widthOfTextAtSize(next, 8) > legendRowW - 40 && current) {
-            out.push(current);
-            current = word;
-          } else {
-            current = next;
-          }
+    if (chevron) {
+      const cx = px + 13;
+      page.drawSvgPath(
+        `M ${cx - 3.5} ${pageH - (y + 6.5)} L ${cx + 3.5} ${pageH - (y + 3)} L ${cx - 3.5} ${pageH - (y - 0.5)} Z`,
+        { x: 0, y: pageH, color, borderColor: WHITE, borderWidth: 0.7 },
+      );
+    }
+  };
+  const fareText = (r: { fareRegular: number; fareDiscounted: number }) =>
+    `PHP ${r.fareRegular}, or PHP ${r.fareDiscounted} discounted`;
+
+  if (drawnRoutes.length > 0) {
+    heading("Campus routes");
+    for (const route of drawnRoutes) {
+      const color = hexToRgb(route.color);
+      const style = styles.get(route.id);
+      if (isLoopRoute(route)) {
+        const [fwdName, revName] = route.name.split(/\s*\/\s*/);
+        sample(color, null, true, py);
+        page.drawText(fwdName ?? route.name, {
+          x: px + 34,
+          y: py,
+          size: 9,
+          font: bold,
+          color: INK,
+        });
+        py -= 13;
+        sample(
+          darken(color, 0.62),
+          style?.reverseDash ?? LOOP_REVERSE_DASH,
+          true,
+          py,
+        );
+        page.drawText(revName ?? `${route.name}, reverse`, {
+          x: px + 34,
+          y: py,
+          size: 9,
+          font: bold,
+          color: INK,
+        });
+        py -= 11;
+        for (const line of wrapText(
+          `Same loop, opposite directions. Arrows show the way each jeep travels. ${fareText(route)}.`,
+          font,
+          7.5,
+          PANEL_W - 34,
+        )) {
+          page.drawText(line, {
+            x: px + 34,
+            y: py,
+            size: 7.5,
+            font,
+            color: MUTED,
+          });
+          py -= 9.5;
         }
-        if (current) out.push(current);
-        return out;
-      };
-      let noteLines = wrap(route.directionNote);
-      if (noteLines.length > 2) {
-        const firstSentence = route.directionNote.match(/^.+?[.!?](\s|$)/)?.[0];
-        if (firstSentence) noteLines = wrap(firstSentence.trim());
-      }
-      noteLines.slice(0, 2).forEach((text, i) => {
-        page.drawText(text, {
-          x: x0 + 28,
-          y: legendY + 6 - i * 10,
-          size: 8,
+      } else {
+        sample(color, style?.dash ?? null, false, py);
+        page.drawText(route.name, {
+          x: px + 34,
+          y: py,
+          size: 9,
+          font: bold,
+          color: INK,
+        });
+        py -= 11;
+        page.drawText(`${fareText(route)}.`, {
+          x: px + 34,
+          y: py,
+          size: 7.5,
           font,
           color: MUTED,
         });
-      });
-    }
-  });
-  if (here && !hereOnFrame) {
-    page.drawText(`${here.name} is outside this map`, {
-      x: MARGIN,
-      y: legendY - 8,
-      size: 8,
-      font: bold,
-      color: BRAND,
-    });
-  }
-  // Intercity services stay legend-only: their stops span provinces and would
-  // collapse the campus diagram to a dot.
-  if (intercityRoutes.length > 0) {
-    const intercityTitle = "Other routes serving UPLB, not drawn";
-    page.drawText(intercityTitle, {
-      x: MARGIN,
-      y: legendY - 22,
-      size: 8,
-      font: bold,
-      color: INK,
-    });
-    const titleW = bold.widthOfTextAtSize(intercityTitle, 8) + 8;
-    const maxW = pageW - MARGIN * 2 - titleW;
-    const items = intercityRoutes.map(
-      (r) => `${r.name} (PHP ${r.fareRegular}/${r.fareDiscounted})`,
-    );
-    let line = "";
-    const lines: string[] = [];
-    for (const item of items) {
-      const candidate = line ? `${line}, ${item}` : item;
-      if (font.widthOfTextAtSize(candidate, 7.5) > maxW && line) {
-        lines.push(line);
-        line = item;
-      } else {
-        line = candidate;
+        py -= 9.5;
       }
+      py -= 5;
     }
-    if (line) lines.push(line);
-    lines.slice(0, 2).forEach((text, i) => {
-      page.drawText(text, {
-        x: MARGIN + titleW,
-        y: legendY - 22 - i * 10,
-        size: 7.5,
+    // Symbols.
+    if (here && hereOnMap) {
+      page.drawSvgPath(starPath(px + 13, pageH - (py + 3), 6), {
+        x: 0,
+        y: pageH,
+        color: BRAND,
+      });
+      page.drawText("You are here", {
+        x: px + 34,
+        y: py,
+        size: 8,
         font,
+        color: INK,
+      });
+      py -= 12;
+      page.drawLine({
+        start: { x: px, y: py + 3 },
+        end: { x: px + 26, y: py + 3 },
+        thickness: 1.6,
+        color: BRAND,
+        dashArray: [2.5, 2.5],
+      });
+      page.drawText("Walk to the nearest stop", {
+        x: px + 34,
+        y: py,
+        size: 8,
+        font,
+        color: INK,
+      });
+      py -= 12;
+    }
+    if (stops.some((st) => st.routeIds.length > 1)) {
+      page.drawCircle({
+        x: px + 13,
+        y: py + 3,
+        size: 3.4,
+        color: WHITE,
+        borderColor: INK,
+        borderWidth: 1.9,
+      });
+      page.drawText("Stop shared by two routes", {
+        x: px + 34,
+        y: py,
+        size: 8,
+        font,
+        color: INK,
+      });
+      py -= 12;
+    }
+    if (input.basemap) {
+      page.drawRectangle({
+        x: px + 10.8,
+        y: py + 0.8,
+        width: 4.4,
+        height: 4.4,
         color: MUTED,
       });
-    });
+      page.drawText("Campus gate", {
+        x: px + 34,
+        y: py,
+        size: 8,
+        font,
+        color: INK,
+      });
+      py -= 12;
+    }
+    py -= 6;
   }
-  if (here && hereOnFrame) {
-    const starX = pageW - MARGIN - 150;
-    page.drawSvgPath(starAt(starX, legendY + 34, 6), {
-      ...svgAnchor,
-      color: BRAND,
+
+  if (indexEntries.length > 0) {
+    heading("Numbered stops");
+    // Two columns keep a long list from pushing the intercity table off.
+    const colW = (PANEL_W - 8) / 2;
+    const rows = Math.ceil(indexEntries.length / 2);
+    const lineFor = (e: { n: number; name: string }) => `${e.n}  ${e.name}`;
+    const twoCols = indexEntries.every(
+      (e) => font.widthOfTextAtSize(lineFor(e), 7) <= colW,
+    );
+    indexEntries.forEach((e, i) => {
+      const col = twoCols ? Math.floor(i / rows) : 0;
+      const row = twoCols ? i % rows : i;
+      const lines = wrapText(lineFor(e), font, 7, twoCols ? colW : PANEL_W);
+      page.drawText(lines.join(" "), {
+        x: px + col * (colW + 8),
+        y: py - row * 9,
+        size: 7,
+        font,
+        color: INK,
+      });
     });
-    page.drawText("You are here", {
-      x: starX + 10,
-      y: legendY + 30,
-      size: 8.5,
-      font: bold,
-      color: INK,
+    py -= (twoCols ? rows : indexEntries.length) * 9 + 8;
+  }
+
+  if (intercityGroups.length > 0) {
+    heading("Other routes serving UPLB");
+    page.drawText("Not drawn on the map. Fares in PHP.", {
+      x: px,
+      y: py,
+      size: 7.5,
+      font,
+      color: MUTED,
     });
+    py -= 12;
+    const colReg = px + PANEL_W - 62;
+    const colDisc = px + PANEL_W;
+    const right = (
+      text: string,
+      x: number,
+      y: number,
+      fnt: PDFFont,
+      size: number,
+      color: RGB,
+    ) =>
+      page.drawText(text, {
+        x: x - fnt.widthOfTextAtSize(text, size),
+        y,
+        size,
+        font: fnt,
+        color,
+      });
+    right("Regular", colReg, py, bold, 7, MUTED);
+    right("Discounted", colDisc, py, bold, 7, MUTED);
+    py -= 3;
+    page.drawLine({
+      start: { x: px, y: py },
+      end: { x: colDisc, y: py },
+      thickness: 0.5,
+      color: HAIRLINE,
+    });
+    py -= 10;
+    for (const group of intercityGroups) {
+      page.drawText(`From ${group.origin}`, {
+        x: px,
+        y: py,
+        size: 8,
+        font: bold,
+        color: INK,
+      });
+      py -= 10;
+      for (const r of group.routes) {
+        const lines = wrapText(
+          `to ${r.destination}`,
+          font,
+          7.5,
+          colReg - px - 44,
+        );
+        lines.forEach((line, i) =>
+          page.drawText(line, {
+            x: px + 6,
+            y: py - i * 9,
+            size: 7.5,
+            font,
+            color: INK,
+          }),
+        );
+        const fare = (n: number) => (Number.isFinite(n) ? String(n) : "ask");
+        right(fare(r.fareRegular), colReg, py, font, 7.5, INK);
+        right(fare(r.fareDiscounted), colDisc, py, font, 7.5, INK);
+        py -= lines.length * 9 + 1;
+      }
+      py -= 4;
+    }
   }
 
   // ── Footer ────────────────────────────────────────────────────────────
@@ -678,11 +1582,11 @@ export async function renderTransitMapPdf(input: {
     font,
     color: MUTED,
   });
-  const footRight =
-    "Fares in PHP. Stop order is exact, lines between stops are approximate.";
-  const footRightW = font.widthOfTextAtSize(footRight, 7.5);
+  const footRight = input.basemap
+    ? "Map data from OpenStreetMap contributors, ODbL. Route lines and walking distances are approximate."
+    : "Route lines and walking distances are approximate.";
   page.drawText(footRight, {
-    x: pageW - MARGIN - footRightW,
+    x: pageW - MARGIN - font.widthOfTextAtSize(footRight, 7.5),
     y: FOOTER_H - 12,
     size: 7.5,
     font,
