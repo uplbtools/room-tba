@@ -71,6 +71,16 @@ describe("AppMenu help entry", () => {
     expect(modalStore.landingTab).toBe("welcome");
   });
 
+  test("Send feedback opens the feedback panel directly", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: /send feedback/i }),
+    );
+    expect(modalStore.open).toBe(true);
+    expect(modalStore.type).toBe("feedback");
+  });
+
   test("opens emergency hotlines", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
     await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));

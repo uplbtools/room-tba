@@ -13,6 +13,7 @@
   import CloudDownload from "@lucide/svelte/icons/cloud-download";
   import Map from "@lucide/svelte/icons/map";
   import Megaphone from "@lucide/svelte/icons/megaphone";
+  import MessageSquare from "@lucide/svelte/icons/message-square";
   import UserRound from "@lucide/svelte/icons/user-round";
   import Phone from "@lucide/svelte/icons/phone";
   import University from "@lucide/svelte/icons/university";
@@ -360,6 +361,17 @@
         aria-labelledby="app-menu-tools-heading"
       >
         <h3 id="app-menu-tools-heading" class="app-menu__heading">Tools</h3>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => {
+            closePanel();
+            modalStore.openModal("feedback");
+          }}
+        >
+          <MessageSquare size={18} aria-hidden="true" />
+          <span>Send feedback</span>
+        </button>
         <button
           type="button"
           class="app-menu__nav-action"
