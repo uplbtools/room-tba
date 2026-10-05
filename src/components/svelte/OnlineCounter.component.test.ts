@@ -95,6 +95,19 @@ describe("OnlineCounter", () => {
     expect(JSON.parse(secondInit.body as string).sid).toBe(body.sid);
   });
 
+  test("renders a static presence dot, not the old pulsing one", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jsonResponse({ online: 1 })),
+    );
+
+    const { container } = render(OnlineCounter);
+
+    expect(await screen.findByText(/1 online/)).toBeInTheDocument();
+    expect(container.querySelector(".presence-dot")).not.toBeNull();
+    expect(container.querySelector(".pulse-dot")).toBeNull();
+  });
+
   test("stops heartbeating after unmount", async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ online: 3 }));
     vi.stubGlobal("fetch", fetchMock);
