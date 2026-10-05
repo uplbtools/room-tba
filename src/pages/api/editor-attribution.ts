@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
-import { and, desc, eq } from "drizzle-orm";
-import { editorHistoryTable } from "@drizzle/schema";
-import { db } from "@lib/db";
 import { parseEntityAttributionRequest } from "@lib/editor/entity-attribution";
+import { getEntityAttribution } from "@lib/services/history-service";
 
 export const prerender = false;
 
@@ -12,22 +10,15 @@ export const GET = (async ({ url }) => {
     return Response.json({ error: parsed.error }, { status: parsed.status });
   }
 
-  const [row] = await db
-    .select({
-      editedBy: editorHistoryTable.editedBy,
-      createdAt: editorHistoryTable.createdAt,
-    })
-    .from(editorHistoryTable)
-    .where(
-      and(
-        eq(editorHistoryTable.entityType, parsed.entityType),
-        eq(editorHistoryTable.entityId, parsed.entityId),
+  try {
+    return Response.json({
+      attribution: await getEntityAttribution(
+        parsed.entityType,
+        parsed.entityId,
       ),
-    )
-    .orderBy(desc(editorHistoryTable.createdAt), desc(editorHistoryTable.id))
-    .limit(1);
-
-  return Response.json({
-    attribution: row ?? null,
-  });
+    });
+  } catch (error) {
+    console.error("Could not load entity attribution:", error);
+    return Response.json({ attribution: null });
+  }
 }) satisfies APIRoute;

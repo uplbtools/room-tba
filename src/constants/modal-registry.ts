@@ -4,6 +4,7 @@ import AnnouncementsModal from "@ui/modal/AnnouncementsModal.svelte";
 import ChangelogModal from "@ui/modal/ChangelogModal.svelte";
 import CoverageModal from "@ui/modal/CoverageModal.svelte";
 import EditorToolsModal from "@ui/modal/EditorToolsModal.svelte";
+import EntityHistoryModal from "@ui/modal/EntityHistoryModal.svelte";
 import HotlinesModal from "@ui/modal/HotlinesModal.svelte";
 import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
 import LandingModal from "@ui/modal/LandingModal.svelte";
@@ -125,5 +126,12 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     size: "reading",
     label: "Emergency hotlines",
     closeLabel: "Close emergency hotlines",
+  },
+  "entity-history": {
+    component: EntityHistoryModal,
+    size: "reading",
+    label: "Edit history",
+    closeLabel: "Close edit history",
+    scroll: true,
   },
 };

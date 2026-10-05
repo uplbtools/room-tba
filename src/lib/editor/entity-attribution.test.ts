@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { parseEntityAttributionRequest } from "./entity-attribution";
+import {
+  ANONYMOUS_EDITOR,
+  creditForRow,
+  parseEntityAttributionRequest,
+  publicActorName,
+  ROOM_TBA_TEAM,
+  toPublicHistoryEntry,
+  type HistoryRow,
+} from "./entity-attribution";
 
 describe("parseEntityAttributionRequest", () => {
   test("accepts supported entity attribution requests", () => {
@@ -8,18 +16,174 @@ describe("parseEntityAttributionRequest", () => {
         new URLSearchParams({ entityType: "building", entityId: "12" }),
       ),
     ).toEqual({ ok: true, entityType: "building", entityId: 12 });
+    expect(
+      parseEntityAttributionRequest(
+        new URLSearchParams({ entityType: "place", entityId: "3" }),
+      ),
+    ).toMatchObject({ ok: true });
+    expect(
+      parseEntityAttributionRequest(
+        new URLSearchParams({ entityType: "organization", entityId: "3" }),
+      ),
+    ).toMatchObject({ ok: true });
   });
 
   test("rejects unsupported entity types and invalid ids", () => {
-    expect(
-      parseEntityAttributionRequest(
-        new URLSearchParams({ entityType: "alias", entityId: "12" }),
-      ),
-    ).toMatchObject({ ok: false, status: 400 });
+    for (const entityType of [
+      "alias",
+      "proposal",
+      "constructor",
+      "__proto__",
+    ]) {
+      expect(
+        parseEntityAttributionRequest(
+          new URLSearchParams({ entityType, entityId: "12" }),
+        ),
+      ).toMatchObject({ ok: false, status: 400 });
+    }
     expect(
       parseEntityAttributionRequest(
         new URLSearchParams({ entityType: "room", entityId: "0" }),
       ),
     ).toMatchObject({ ok: false, status: 400 });
+  });
+});
+
+describe("publicActorName", () => {
+  test("maps scripts, imports, bulk rows, and the shared admin login to the team", () => {
+    expect(publicActorName("maintenance-script", null)).toBe(ROOM_TBA_TEAM);
+    expect(publicActorName("deep-research-seed-2026-07", null)).toBe(
+      ROOM_TBA_TEAM,
+    );
+    expect(publicActorName("Admin", null)).toBe(ROOM_TBA_TEAM);
+    expect(publicActorName("Stimmie", "[bulk:fix-rooms] cleanup")).toBe(
+      ROOM_TBA_TEAM,
+    );
+  });
+
+  test("never shows email-shaped names or opted-out editors", () => {
+    expect(publicActorName("someone@up.edu.ph", null)).toBe(ANONYMOUS_EDITOR);
+    expect(
+      publicActorName("quiet", null, [
+        {
+          username: "quiet",
+          displayName: "Quiet Editor",
+          showInCredits: false,
+        },
+      ]),
+    ).toBe(ANONYMOUS_EDITOR);
+    expect(
+      publicActorName("x@y.z", null, [
+        { username: "x@y.z", displayName: null, showInCredits: true },
+      ]),
+    ).toBe(ANONYMOUS_EDITOR);
+  });
+
+  test("prefers the account display name over the login username", () => {
+    expect(
+      publicActorName("dnrmscl", null, [
+        { username: "dnrmscl", displayName: "Dan", showInCredits: true },
+      ]),
+    ).toBe("Dan");
+    expect(publicActorName("Juan", null)).toBe("Juan");
+    expect(publicActorName("  ", null)).toBeNull();
+  });
+});
+
+const row = (over: Partial<HistoryRow> = {}): HistoryRow => ({
+  id: 1,
+  entityType: "dorm",
+  action: "update",
+  editedBy: "reviewer@up.edu.ph",
+  summary: null,
+  before: {
+    dormName: "Old",
+    contactEmail: "a@b.c",
+    contactPhone: "0917",
+    imageUrl: "x",
+  },
+  after: {
+    dormName: "New",
+    contactEmail: "d@e.f",
+    contactPhone: "0918",
+    imageUrl: "y",
+  },
+  createdAt: "2026-09-08 08:57:22.000",
+  ...over,
+});
+
+describe("toPublicHistoryEntry", () => {
+  test("keeps only whitelisted card fields", () => {
+    const entry = toPublicHistoryEntry(row(), [], []);
+    expect(entry?.changes.map((c) => c.field)).toEqual(["dormName"]);
+    expect(JSON.stringify(entry)).not.toMatch(/a@b\.c|d@e\.f|0917|0918/);
+    expect(entry?.by).toBe(ANONYMOUS_EDITOR);
+    expect(entry?.createdAt).toBe("2026-09-08T08:57:22.000Z");
+  });
+
+  test("drops rows where only private fields changed", () => {
+    expect(
+      toPublicHistoryEntry(
+        row({
+          before: { dormName: "Same", contactPhone: "1" },
+          after: { dormName: "Same", contactPhone: "2" },
+        }),
+        [],
+        [],
+      ),
+    ).toBeNull();
+  });
+
+  test("credits the proposal submitter over the approving admin", () => {
+    const credits = [
+      {
+        entityType: "dorm",
+        submitterName: "Maria",
+        createdAt: "2026-09-08 08:57:22.220",
+      },
+    ];
+    expect(toPublicHistoryEntry(row(), credits, [])?.by).toBe("Maria");
+  });
+});
+
+describe("creditForRow", () => {
+  test("matches create proposals by type and the closest later timestamp", () => {
+    const created = row({ action: "create", createdAt: "2026-07-01 10:00:00" });
+    expect(
+      creditForRow(created, [
+        {
+          entityType: "create_dorm",
+          submitterName: "Late",
+          createdAt: "2026-07-01 10:00:05",
+        },
+        {
+          entityType: "create_dorm",
+          submitterName: "First",
+          createdAt: "2026-07-01 10:00:00.2",
+        },
+        {
+          entityType: "create_dorm",
+          submitterName: "Before",
+          createdAt: "2026-07-01 09:59:59",
+        },
+        {
+          entityType: "create_room",
+          submitterName: "Other",
+          createdAt: "2026-07-01 10:00:00.1",
+        },
+      ]),
+    ).toBe("First");
+  });
+
+  test("ignores credits outside the approval window", () => {
+    expect(
+      creditForRow(row(), [
+        {
+          entityType: "dorm",
+          submitterName: "Old",
+          createdAt: "2026-09-08 09:10:00",
+        },
+      ]),
+    ).toBeNull();
   });
 });

@@ -40,7 +40,7 @@ describe("buildFieldDiffs", () => {
       },
       {
         field: "amenities",
-        label: "amenities",
+        label: "Amenities",
         before: "wifi",
         after: "wifi, gym",
       },
