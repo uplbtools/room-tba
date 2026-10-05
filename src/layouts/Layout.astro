@@ -301,10 +301,35 @@ const shareTitle = ogTitle ?? title;
                 });
             }
 
+            // One automatic recovery per tab. A service-worker shell whose
+            // chunks have aged out of skew protection is the usual cause
+            // (#1168), and "Clear saved copy and reload" fixes it every time,
+            // so do that once without waiting for a click. The flag stops a
+            // genuinely broken deploy from reloading forever: the second
+            // failure falls through to the card.
+            var AUTO_RESET_KEY = "room-tba:boot-auto-reset";
+            function autoResetOnce() {
+              var controlled =
+                navigator.serviceWorker && navigator.serviceWorker.controller;
+              if (!controlled) return false;
+              try {
+                if (sessionStorage.getItem(AUTO_RESET_KEY) === "1") return false;
+                sessionStorage.setItem(AUTO_RESET_KEY, "1");
+              } catch (err) {
+                return false;
+              }
+              console.warn(
+                "Room TBA boot failed under a service worker; clearing the saved copy and reloading once.",
+              );
+              resetAppData();
+              return true;
+            }
+
             function fail(reason) {
               if (hydrated()) return;
               if (document.getElementById("app-boot-error")) return;
               console.error("Room TBA failed to start:", reason);
+              if (autoResetOnce()) return;
 
               var shell = document.getElementById("app-loading-shell");
               if (shell) shell.remove();
@@ -426,6 +451,13 @@ const shareTitle = ogTitle ?? title;
                   ")",
               );
             }
+
+            // A missing chunk surfaces within a second or two as a failed
+            // dynamic import; no reason to sit out the timer for it (#1168).
+            window.addEventListener("vite:preloadError", (event) => {
+              event.preventDefault();
+              fail("chunk failed to load");
+            });
 
             lastResourceCount = resourceCount();
             setTimeout(checkBoot, FIRST_CHECK_MS);
