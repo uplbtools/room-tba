@@ -93,7 +93,7 @@
     "es-toolkit": "^1.52.0",
     "maplibre-gl": "^6.11.2",
     "pdf-lib": "^1.17.1",
-    "pg": "^8.23.0",
+    "pg": "^8.23.1",
     "svelte": "^5.57.1",
     "svelte-maplibre": "^2.0.1",
     "tailwindcss": "^4.3.3",
