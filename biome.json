@@ -24,6 +24,7 @@
       "!**/data/app_data.json",
       "!**/public/app_data.json",
       "!**/src/constants/jeepney-geometries.json",
+      "!**/src/constants/building-footprints.json",
       "!**/skills/impeccable",
       "!**/skills/hallmark"
     ]

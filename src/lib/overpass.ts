@@ -22,10 +22,15 @@ export type OsmBuildingFootprint = {
   containsPoint: boolean;
 };
 
-const OVERPASS_ENDPOINTS = [
+// Measured 2026-10-06: overpass-api.de answers form-encoded queries in ~5s
+// (raw text/plain bodies get 406/504) and the mail.ru mirror in ~15s.
+// overpass.kumi.systems hung with no response, so it is gone.
+export const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ];
+/** Per endpoint, so one hung mirror cannot stall the viewer indefinitely. */
+export const OVERPASS_TIMEOUT_MS = 8000;
 
 const FOOTPRINT_CACHE_PREFIX = "room-tba:osm-building-footprint:";
 const FOOTPRINT_CACHE_VERSION = 2;
@@ -47,7 +52,7 @@ function storageKey(key: string): string {
   return `${FOOTPRINT_CACHE_PREFIX}${key}`;
 }
 
-function isFootprint(value: unknown): value is OsmBuildingFootprint {
+export function isFootprint(value: unknown): value is OsmBuildingFootprint {
   const footprint = value as OsmBuildingFootprint;
   return (
     Array.isArray(footprint?.outline) &&
@@ -109,7 +114,7 @@ type OverpassWay = {
   nodes: number[];
   tags?: Record<string, string>;
 };
-type OverpassElement = OverpassNode | OverpassWay;
+export type OverpassElement = OverpassNode | OverpassWay;
 
 function pointInRing(point: LngLat, ring: LngLat[]): boolean {
   let inside = false;
@@ -166,21 +171,100 @@ function parseHeight(tags: Record<string, string> | undefined): number | null {
   return null;
 }
 
-async function fetchOverpass(query: string): Promise<unknown | null> {
+/**
+ * POSTs `query` as form data (`data=<urlencoded query>`), the form Overpass
+ * serves reliably, trying each endpoint under its own timeout.
+ */
+export async function fetchOverpass(
+  query: string,
+  options: { headers?: Record<string, string>; timeoutMs?: number } = {},
+): Promise<unknown | null> {
   for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "text/plain;charset=UTF-8" },
-        body: query,
+        headers: options.headers,
+        body: new URLSearchParams({ data: query }),
+        signal: AbortSignal.timeout(options.timeoutMs ?? OVERPASS_TIMEOUT_MS),
       });
       if (!res.ok) continue;
-      return await res.json();
+      const json = (await res.json()) as { remark?: string } | null;
+      // A 200 with a `remark` is an Overpass runtime error (timeout, load)
+      // and comes with empty `elements`; it does not mean "no building".
+      if (json?.remark) continue;
+      return json;
     } catch {
-      // try next endpoint
+      // timeout, network error, or bad JSON: try the next endpoint
     }
   }
   return null;
+}
+
+export function footprintQuery(lat: number, lon: number, radius = 35): string {
+  return `
+      [out:json][timeout:25];
+      (
+        way["building"](around:${radius},${lat},${lon});
+      );
+      out;
+      >;
+      out skel qt;
+    `;
+}
+
+/**
+ * From a `footprintQuery` response, picks the building way containing
+ * (lat, lon), else the one whose centroid is nearest.
+ */
+export function selectFootprint(
+  data: { elements?: OverpassElement[] } | null,
+  lat: number,
+  lon: number,
+): OsmBuildingFootprint | null {
+  if (!data?.elements?.length) return null;
+
+  const nodes = new Map<number, OverpassNode>();
+  const ways: OverpassWay[] = [];
+  for (const el of data.elements) {
+    if (el.type === "node") nodes.set(el.id, el);
+    else if (el.type === "way") ways.push(el);
+  }
+
+  if (ways.length === 0) return null;
+
+  const candidates = ways
+    .map<{ way: OverpassWay; ring: LngLat[] } | null>((way) => {
+      const ring: LngLat[] = [];
+      for (const id of way.nodes) {
+        const node = nodes.get(id);
+        if (!node) return null;
+        ring.push([node.lon, node.lat]);
+      }
+      if (ring.length < 4) return null;
+      return { way, ring };
+    })
+    .filter((c): c is { way: OverpassWay; ring: LngLat[] } => c !== null);
+
+  if (candidates.length === 0) return null;
+
+  const target: LngLat = [lon, lat];
+
+  const containing = candidates.find((c) => pointInRing(target, c.ring));
+  const chosen =
+    containing ??
+    candidates.reduce((best, current) => {
+      const bestD = distanceSquared(ringCentroid(best.ring), target);
+      const curD = distanceSquared(ringCentroid(current.ring), target);
+      return curD < bestD ? current : best;
+    });
+
+  return {
+    outline: chosen.ring,
+    levels: parseLevels(chosen.way.tags),
+    heightMeters: parseHeight(chosen.way.tags),
+    osmName: chosen.way.tags?.name ?? null,
+    containsPoint: containing !== undefined,
+  };
 }
 
 /**
@@ -204,65 +288,11 @@ export async function fetchBuildingFootprint(
   }
 
   const promise = (async () => {
-    const query = `
-      [out:json][timeout:25];
-      (
-        way["building"](around:${radius},${lat},${lon});
-      );
-      out;
-      >;
-      out skel qt;
-    `;
-
-    const data = (await fetchOverpass(query)) as {
+    const data = (await fetchOverpass(footprintQuery(lat, lon, radius))) as {
       elements?: OverpassElement[];
     } | null;
-    if (!data?.elements?.length) return null;
-
-    const nodes = new Map<number, OverpassNode>();
-    const ways: OverpassWay[] = [];
-    for (const el of data.elements) {
-      if (el.type === "node") nodes.set(el.id, el);
-      else if (el.type === "way") ways.push(el);
-    }
-
-    if (ways.length === 0) return null;
-
-    const candidates = ways
-      .map<{ way: OverpassWay; ring: LngLat[] } | null>((way) => {
-        const ring: LngLat[] = [];
-        for (const id of way.nodes) {
-          const node = nodes.get(id);
-          if (!node) return null;
-          ring.push([node.lon, node.lat]);
-        }
-        if (ring.length < 4) return null;
-        return { way, ring };
-      })
-      .filter((c): c is { way: OverpassWay; ring: LngLat[] } => c !== null);
-
-    if (candidates.length === 0) return null;
-
-    const target: LngLat = [lon, lat];
-
-    const containing = candidates.find((c) => pointInRing(target, c.ring));
-    const chosen =
-      containing ??
-      candidates.reduce((best, current) => {
-        const bestD = distanceSquared(ringCentroid(best.ring), target);
-        const curD = distanceSquared(ringCentroid(current.ring), target);
-        return curD < bestD ? current : best;
-      });
-
-    const footprint = {
-      outline: chosen.ring,
-      levels: parseLevels(chosen.way.tags),
-      heightMeters: parseHeight(chosen.way.tags),
-      osmName: chosen.way.tags?.name ?? null,
-      containsPoint: containing !== undefined,
-    };
-
-    storeFootprint(key, footprint);
+    const footprint = selectFootprint(data, lat, lon);
+    if (footprint) storeFootprint(key, footprint);
     return footprint;
   })();
 
