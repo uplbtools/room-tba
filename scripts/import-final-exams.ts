@@ -16,7 +16,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   aliasesTable,
   finalExamsTable,
@@ -174,6 +174,25 @@ async function main() {
       });
     }
 
+    // Rooms the lookup can't match all become room_id null, so one course in
+    // several unknown rooms would otherwise insert identical rows.
+    const seen = new Set<string>();
+    const uniqueInserts = inserts.filter((row) => {
+      const key = [
+        row.courseCode,
+        row.section,
+        row.roomId,
+        row.examDate,
+        row.startsAt,
+        row.endsAt,
+      ].join("|");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    inserts.length = 0;
+    inserts.push(...uniqueInserts);
+
     if (options.replace) {
       await db.transaction(async (tx) => {
         await tx
@@ -187,6 +206,7 @@ async function main() {
             .values(inserts.slice(i, i + batchSize));
         }
 
+        await fillCourseTitles(tx, options.termId);
         await refreshSyncKey(tx, "final_exams");
       });
       console.log(
@@ -199,6 +219,7 @@ async function main() {
           .insert(finalExamsTable)
           .values(inserts.slice(i, i + batchSize));
       }
+      await fillCourseTitles(db, options.termId);
       await refreshSyncKey(db, "final_exams");
       console.log(
         `Imported ${inserts.length} final exams for term_id=${options.termId}.`,
@@ -218,6 +239,25 @@ async function main() {
   } finally {
     await pool.end();
   }
+}
+
+/** The registrar PDF has no titles; borrow the term's class title when the
+ *  course has exactly one (HK 12 and similar multi-title codes stay null). */
+async function fillCourseTitles(
+  executor: Pick<ReturnType<typeof drizzle>, "execute">,
+  termId: number,
+) {
+  await executor.execute(sql`
+    UPDATE final_exams f SET course_title = c.title
+    FROM (
+      SELECT upper(course_code) AS code, min(btrim(course_title)) AS title
+      FROM classes
+      WHERE term_id = ${termId} AND course_title IS NOT NULL
+      GROUP BY 1
+      HAVING count(DISTINCT lower(btrim(course_title))) = 1
+    ) c
+    WHERE f.term_id = ${termId} AND f.course_title IS NULL
+      AND upper(f.course_code) = c.code`);
 }
 
 main().catch((error) => {
