@@ -18,6 +18,7 @@
     syncBuildingRooms,
   } from "@lib/local/data/sync";
   import { fetchBuildingFootprint } from "@lib/overpass";
+  import { bundledFootprint } from "@lib/building-footprints";
   import { fetchBasemap } from "@lib/osm-basemap";
   import { trapFocus } from "@lib/focus-trap";
   import {
@@ -212,27 +213,37 @@
     }
 
     try {
-      const buildingChecker = await checkLocalBuildingRoom(buildingMeta.id);
-      const roomsForBuilding = await getBuildingRooms(
-        buildingChecker.valid,
-        buildingMeta.id,
-      );
-      buildingRooms = roomsForBuilding;
-      await syncBuildingRooms(
-        buildingChecker,
-        buildingMeta.id,
-        roomsForBuilding,
-      );
+      const { id: buildingId, lat, lon } = buildingMeta;
+      // The committed manifest answers synchronously for every building the
+      // generator has seen; only unknown buildings wait on Overpass.
+      const bundled = bundledFootprint(name);
 
-      const [THREE, OrbitMod, CSS2DMod, DragMod, savedRes] = await Promise.all([
-        import("three"),
-        import("three/examples/jsm/controls/OrbitControls.js"),
-        import("three/examples/jsm/renderers/CSS2DRenderer.js"),
-        import("three/examples/jsm/controls/DragControls.js"),
-        fetch(`/api/positions?building=${encodeURIComponent(name)}`, {
-          credentials: "same-origin",
-        }).catch(() => null),
-      ]);
+      // Room sync, the three.js chunks, saved positions, and the footprint
+      // are independent, so none of them waits on another.
+      const [, THREE, OrbitMod, CSS2DMod, DragMod, savedRes, osmFootprint] =
+        await Promise.all([
+          (async () => {
+            const buildingChecker = await checkLocalBuildingRoom(buildingId);
+            const roomsForBuilding = await getBuildingRooms(
+              buildingChecker.valid,
+              buildingId,
+            );
+            buildingRooms = roomsForBuilding;
+            await syncBuildingRooms(
+              buildingChecker,
+              buildingId,
+              roomsForBuilding,
+            );
+          })(),
+          import("three"),
+          import("three/examples/jsm/controls/OrbitControls.js"),
+          import("three/examples/jsm/renderers/CSS2DRenderer.js"),
+          import("three/examples/jsm/controls/DragControls.js"),
+          fetch(`/api/positions?building=${encodeURIComponent(name)}`, {
+            credentials: "same-origin",
+          }).catch(() => null),
+          bundled !== undefined ? bundled : fetchBuildingFootprint(lat, lon),
+        ]);
 
       // Layer in any saved positions before we compute placements / build meshes.
       if (savedRes?.ok) {
@@ -259,10 +270,6 @@
       // building's own coordinates so rooms can still be placed and browsed.
       // It is labelled as approximate everywhere it shows up — see
       // `footprintApproximate`.
-      const osmFootprint = await fetchBuildingFootprint(
-        buildingMeta.lat,
-        buildingMeta.lon,
-      );
       footprintApproximate = osmFootprint === null;
       // OSM had *a* building nearby, but not one containing our coordinates —
       // the outline probably belongs to a neighbour.

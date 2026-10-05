@@ -1,9 +1,11 @@
 <script lang="ts">
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import { buildingLandmarkImages } from "@lib/landmark-images";
+  import { landmarkImages, type LandmarkKind } from "@lib/landmark-images";
 
   type Props = {
+    /** Manifest key prefix; the gallery serves dorms, places and orgs too. */
+    kind?: LandmarkKind;
     /** Contributor-uploaded photo, stored in R2. Always shown first. */
     imageUrl?: string | null;
     name: string;
@@ -15,10 +17,12 @@
     captured?: string | null;
   };
 
-  const { imageUrl, name, lat, lon, panoId, captured }: Props = $props();
+  const { kind, imageUrl, name, lat, lon, panoId, captured }: Props =
+    $props();
 
   const images = $derived(
-    buildingLandmarkImages({
+    landmarkImages({
+      kind,
       name,
       imageUrl,
       lat,

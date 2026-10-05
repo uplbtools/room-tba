@@ -14,7 +14,7 @@ import {
 } from "./street-view";
 
 export type CommonsImage = {
-  /** Direct thumbnail URL on upload.wikimedia.org (hotlinking is supported). */
+  /** Direct thumbnail URL on thumb/upload.wikimedia.org (hotlinking is supported). */
   url: string;
   /** File page, where the full attribution lives. */
   pageUrl: string;
@@ -25,11 +25,22 @@ export type CommonsImage = {
 export type LandmarkImagesEntry = {
   /** Street View facade headings: center on the building, one to each side. */
   streetViewHeadings?: number[];
+  /**
+   * The panorama the headings were computed from. Pinned so the client shows
+   * that pano, not whichever one Google finds nearest at render time.
+   */
+  streetViewPanoId?: string;
+  /**
+   * The pano's copyright line when it is not Google's own capture
+   * ("© Ry Clark Media Arts"). Google requires crediting the uploader.
+   */
+  streetViewCopyright?: string;
   commons?: CommonsImage[];
 };
 
 /**
- * Keyed `building:<buildingName>`, NOT by database id: ids differ between the
+ * Keyed `<kind>:<name>` (`building:<buildingName>`, `dorm:<dormName>`,
+ * `place:<name>`, `organization:<name>`), NOT by database id: ids differ between the
  * prod, staging, and e2e databases, and an id-keyed manifest would silently
  * hang the wrong photos on the wrong buildings everywhere but prod (the same
  * failure mode as the dorm id-matching incident, PR #764). A name that
@@ -53,7 +64,11 @@ export type LandmarkImage = {
 
 const LANDMARK_IMAGES = manifest as LandmarkImagesManifest;
 
-export type BuildingImagesInput = {
+export type LandmarkKind = "building" | "dorm" | "place" | "organization";
+
+export type LandmarkImagesInput = {
+  /** Manifest key prefix. Defaults to "building". */
+  kind?: LandmarkKind;
   name: string;
   imageUrl?: string | null;
   lat?: number | null;
@@ -64,16 +79,17 @@ export type BuildingImagesInput = {
 };
 
 /**
- * Every image the panel can show for a building, in display order:
+ * Every image the panel can show for a landmark, in display order:
  * contributor photo first (ours, current, chosen to show the entrance), then
  * Street View facade angles, then Commons photos. Capped at
  * MAX_IMAGES_PER_LANDMARK; empty when no source has anything.
  */
-export function buildingLandmarkImages(
-  input: BuildingImagesInput,
-): LandmarkImage[] {
-  const { name, imageUrl, lat, lon, panoId, googleKey } = input;
-  const entry = LANDMARK_IMAGES[`building:${name}`];
+export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
+  const { kind = "building", name, imageUrl, lat, lon, googleKey } = input;
+  const entry = LANDMARK_IMAGES[`${kind}:${name}`];
+  // A pinned manifest pano is itself proof of coverage: the fetch script only
+  // records one after the free metadata check found it.
+  const panoId = entry?.streetViewPanoId ?? input.panoId;
   const images: LandmarkImage[] = [];
 
   if (imageUrl) {
@@ -97,10 +113,13 @@ export function buildingLandmarkImages(
             fov: 90,
             radius: 100,
             heading,
+            pano: entry?.streetViewPanoId,
           },
         ),
         alt: `Street View of ${name}`,
-        credit: STREET_VIEW_ATTRIBUTION,
+        credit: entry?.streetViewCopyright
+          ? `Street View image ${entry.streetViewCopyright}`
+          : STREET_VIEW_ATTRIBUTION,
         source: "street-view",
       });
     }

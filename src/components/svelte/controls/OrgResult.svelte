@@ -19,6 +19,7 @@
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
+  import BuildingPhoto from "./BuildingPhoto.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPinRow from "@ui/editor/EntityEditorPinRow.svelte";
   import type { OrgData } from "@lib/types";
@@ -352,15 +353,13 @@
       </div>
     {/if}
 
-    {#if !editing && org.imageUrl}
-      <img
-        class="entity-image"
-        src={org.imageUrl}
-        alt={org.name}
-        width="800"
-        height="450"
-        loading="lazy"
-        decoding="async"
+    {#if !editing}
+      <BuildingPhoto
+        kind="organization"
+        name={org.name}
+        imageUrl={org.imageUrl}
+        lat={org.lat}
+        lon={org.lon}
       />
     {/if}
 

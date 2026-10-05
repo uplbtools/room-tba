@@ -25,6 +25,7 @@
       "!**/public/app_data.json",
       "!**/src/constants/jeepney-geometries.json",
       "!**/src/constants/transit-basemap.json",
+      "!**/src/constants/building-footprints.json",
       "!**/skills/impeccable",
       "!**/skills/hallmark"
     ]

@@ -149,6 +149,14 @@ describe("DormResult curfew information", () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
+  test("dorm without a photo or gallery entry renders no image", () => {
+    // Fixture name is not in the landmark manifest, and Street View is off
+    // without a key: nothing to show, so no empty frame either.
+    renderDormResult(dorm({ dormName: "Nowhere Dorm" }));
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.queryByRole("button", { name: /next photo/i })).toBeNull();
+  });
+
   test("shows curfew guidance only for UP-managed dorms", () => {
     renderDormResult(dorm({ isUpManaged: true }));
     expect(
