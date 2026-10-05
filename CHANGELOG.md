@@ -1,3 +1,11 @@
+## [2.30.2](https://github.com/uplbtools/room-tba/compare/v2.30.1...v2.30.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* **boot:** clear a stale service-worker shell automatically, once ([ef30be9](https://github.com/uplbtools/room-tba/commit/ef30be96a839903eb01ab199570bcf7eea98e21f)), closes [#1168](https://github.com/uplbtools/room-tba/issues/1168)
+* **map:** serve label glyphs from MapTiler, the old host is dead ([fe43eb2](https://github.com/uplbtools/room-tba/commit/fe43eb29bb0a0c61d468a22cfd7bcd753a10bff5)), closes [#1169](https://github.com/uplbtools/room-tba/issues/1169)
+
 ## [2.30.1](https://github.com/uplbtools/room-tba/compare/v2.30.0...v2.30.1) (2026-09-11)
 
 
