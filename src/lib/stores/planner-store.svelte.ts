@@ -26,6 +26,12 @@ function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
   };
 }
 
+/** Case and spacing differ across AMIS rows ("TAEKWONDO" vs "Taekwondo"). */
+function normalizeTitle(title: string | null | undefined): string | null {
+  const t = title?.trim().replace(/\s+/g, " ").toLowerCase();
+  return t ? t : null;
+}
+
 export class PlannerStore {
   plans = $state<PlannerPlan[]>([]);
   activePlanIdByTerm = $state<Record<string, string>>({});
@@ -103,13 +109,26 @@ export class PlannerStore {
     this.persist();
   };
 
-  /** Swap a course to another section: drop every planned row of the course, add the new offering. */
+  /**
+   * Swap a course to another section: drop the planned rows of the same
+   * course, add the new offering. "Same course" means same code and same
+   * title. HK 12 is one code covering many activities (Taekwondo, Swimming,
+   * Aerobic Dance), and students take more than one in a term, so picking a
+   * second activity must add it, not replace the first.
+   */
   replaceCourse = (courseCode: string, rows: ClassMapValue[]) => {
     // Only prune when a plan already exists; addOffering lazily creates the
     // plan for the term, so the first add (no active plan yet) must not bail.
     const plan = this.activePlan;
     if (plan) {
-      plan.sections = plan.sections.filter((s) => s.courseCode !== courseCode);
+      const title = normalizeTitle(rows[0]?.courseTitle);
+      plan.sections = plan.sections.filter(
+        (s) =>
+          s.courseCode !== courseCode ||
+          (title !== null &&
+            normalizeTitle(s.courseTitle) !== null &&
+            normalizeTitle(s.courseTitle) !== title),
+      );
     }
     this.addOffering(rows);
     this.persist();

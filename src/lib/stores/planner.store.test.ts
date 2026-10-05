@@ -90,6 +90,55 @@ describe("PlannerStore", () => {
     expect(store.activePlan?.sections).toEqual([]);
   });
 
+  test("a second HK 12 activity is added alongside the first, not swapped in", () => {
+    const store = makeStore();
+    store.replaceCourse("HK 12", [
+      row({
+        id: 1,
+        courseCode: "HK 12",
+        section: "AB1",
+        type: "LAB",
+        courseTitle: "Human Kinetics Activities (Taekwondo)",
+      }),
+    ]);
+    store.replaceCourse("HK 12", [
+      row({
+        id: 2,
+        courseCode: "HK 12",
+        section: "BC3",
+        type: "LAB",
+        courseTitle: "Human Kinetics Activities (Swimming (Male))",
+      }),
+    ]);
+    expect(store.activePlan?.sections.map((s) => s.section).sort()).toEqual([
+      "AB1",
+      "BC3",
+    ]);
+  });
+
+  test("picking another section of the same HK 12 activity still swaps it", () => {
+    const store = makeStore();
+    store.replaceCourse("HK 12", [
+      row({
+        id: 1,
+        courseCode: "HK 12",
+        section: "AB1",
+        type: "LAB",
+        courseTitle: "Human Kinetics Activities (Taekwondo)",
+      }),
+    ]);
+    store.replaceCourse("HK 12", [
+      row({
+        id: 2,
+        courseCode: "HK 12",
+        section: "CD2",
+        type: "LAB",
+        courseTitle: "Human Kinetics Activities (TAEKWONDO)",
+      }),
+    ]);
+    expect(store.activePlan?.sections.map((s) => s.section)).toEqual(["CD2"]);
+  });
+
   test("refreshActivePlan does NOT stale a section whose course was not fetched", () => {
     const store = makeStore();
     store.addOffering([row({ id: 1, section: "AB", type: "LEC" })]);
