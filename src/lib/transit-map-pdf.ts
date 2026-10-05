@@ -156,7 +156,7 @@ function hexToRgb(hex: string) {
 }
 
 const WINANSI_REPLACEMENTS: [RegExp, string][] = [
-  [/\u2192/g, "->"], // → rightwards arrow
+  [/\s*\u2192\s*/g, " to "], // → rightwards arrow
   [/\u2190/g, "<-"], // ← leftwards arrow
   [/\u2194/g, "<->"], // ↔ left-right arrow
   [/\u21d2/g, "=>"], // ⇒ double arrow
@@ -237,7 +237,7 @@ export async function renderTransitMapPdf(input: {
   const generatedAt = input.generatedAt ?? new Date();
 
   const pdf = await PDFDocument.create();
-  pdf.setTitle("UPLB Transit Map — Jeepney Routes");
+  pdf.setTitle("UPLB Jeepney Routes");
   pdf.setAuthor("Room TBA");
   pdf.setSubject("Printable map of UPLB jeepney routes and stops");
   pdf.setCreator("Room TBA (room-tba.uplb.tools)");
@@ -293,12 +293,15 @@ export async function renderTransitMapPdf(input: {
     font: bold,
     color: INK,
   });
+  // Vercel runs in UTC; without the zone, sheets printed before 8 AM in
+  // Los Baños carry yesterday's date.
   const dateLabel = generatedAt.toLocaleDateString("en-PH", {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "Asia/Manila",
   });
-  page.drawText(`Printable transit map · generated ${dateLabel}`, {
+  page.drawText(`Printed ${dateLabel}`, {
     x: MARGIN,
     y: pageH - 46,
     size: 9,
@@ -496,7 +499,7 @@ export async function renderTransitMapPdf(input: {
       borderColor: WHITE,
       borderWidth: 1.2,
     });
-    const label = `You are here: ${here.name}`;
+    const label = `${here.name} (you are here)`;
     const size = 10.5;
     const textW = bold.widthOfTextAtSize(label, size);
     const clampX = (x: number) =>
@@ -563,7 +566,7 @@ export async function renderTransitMapPdf(input: {
       font: bold,
       color: INK,
     });
-    const fares = `PHP ${route.fareRegular} regular · PHP ${route.fareDiscounted} discounted`;
+    const fares = `PHP ${route.fareRegular} regular, PHP ${route.fareDiscounted} discounted`;
     page.drawText(fares, {
       x: x0 + 28,
       y: legendY + 18,
@@ -572,21 +575,41 @@ export async function renderTransitMapPdf(input: {
       color: MUTED,
     });
     if (route.directionNote) {
-      const note =
-        route.directionNote.length > 46
-          ? `${route.directionNote.slice(0, 45)}…`
-          : route.directionNote;
-      page.drawText(note, {
-        x: x0 + 28,
-        y: legendY + 6,
-        size: 8,
-        font,
-        color: MUTED,
+      // Wrap instead of cutting the note off mid-sentence on paper. Two lines
+      // fit above the intercity row; a longer note keeps its first sentence.
+      const wrap = (text: string) => {
+        const out: string[] = [];
+        let current = "";
+        for (const word of text.split(/\s+/)) {
+          const next = current ? `${current} ${word}` : word;
+          if (font.widthOfTextAtSize(next, 8) > legendRowW - 40 && current) {
+            out.push(current);
+            current = word;
+          } else {
+            current = next;
+          }
+        }
+        if (current) out.push(current);
+        return out;
+      };
+      let noteLines = wrap(route.directionNote);
+      if (noteLines.length > 2) {
+        const firstSentence = route.directionNote.match(/^.+?[.!?](\s|$)/)?.[0];
+        if (firstSentence) noteLines = wrap(firstSentence.trim());
+      }
+      noteLines.slice(0, 2).forEach((text, i) => {
+        page.drawText(text, {
+          x: x0 + 28,
+          y: legendY + 6 - i * 10,
+          size: 8,
+          font,
+          color: MUTED,
+        });
       });
     }
   });
   if (here && !hereOnFrame) {
-    page.drawText(`You are here: ${here.name} (outside the campus frame)`, {
+    page.drawText(`${here.name} is outside this map`, {
       x: MARGIN,
       y: legendY - 8,
       size: 8,
@@ -597,7 +620,7 @@ export async function renderTransitMapPdf(input: {
   // Intercity services stay legend-only: their stops span provinces and would
   // collapse the campus diagram to a dot.
   if (intercityRoutes.length > 0) {
-    const intercityTitle = "Also serving UPLB (intercity, not drawn):";
+    const intercityTitle = "Other routes serving UPLB, not drawn";
     page.drawText(intercityTitle, {
       x: MARGIN,
       y: legendY - 22,
@@ -613,7 +636,7 @@ export async function renderTransitMapPdf(input: {
     let line = "";
     const lines: string[] = [];
     for (const item of items) {
-      const candidate = line ? `${line} · ${item}` : item;
+      const candidate = line ? `${line}, ${item}` : item;
       if (font.widthOfTextAtSize(candidate, 7.5) > maxW && line) {
         lines.push(line);
         line = item;
@@ -648,7 +671,7 @@ export async function renderTransitMapPdf(input: {
   }
 
   // ── Footer ────────────────────────────────────────────────────────────
-  page.drawText("Room TBA · room-tba.uplb.tools", {
+  page.drawText("Room TBA, room-tba.uplb.tools", {
     x: MARGIN,
     y: FOOTER_H - 12,
     size: 7.5,
@@ -656,7 +679,7 @@ export async function renderTransitMapPdf(input: {
     color: MUTED,
   });
   const footRight =
-    "Fares in PHP · Schematic diagram — stop order is exact, paths are indicative";
+    "Fares in PHP. Stop order is exact, lines between stops are approximate.";
   const footRightW = font.widthOfTextAtSize(footRight, 7.5);
   page.drawText(footRight, {
     x: pageW - MARGIN - footRightW,
