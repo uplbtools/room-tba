@@ -84,7 +84,7 @@
     "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/og": "^1.0.2",
+    "@vercel/og": "^1.0.3",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "astro": "^7.3.5",
     "bcrypt": "^6.0.0",
