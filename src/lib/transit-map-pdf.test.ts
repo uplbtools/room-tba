@@ -116,12 +116,12 @@ describe("niceScaleBarMeters", () => {
 
 describe("toWinAnsi", () => {
   test("maps arrows and typography the standard fonts cannot encode", () => {
-    expect(toWinAnsi("Buendia → Los Baños")).toBe("Buendia -> Los Baños");
+    expect(toWinAnsi("Buendia → Los Baños")).toBe("Buendia to Los Baños");
     expect(toWinAnsi("A ↔ B • C")).toBe("A <-> B - C");
   });
 
   test("drops unencodable codepoints instead of failing the render", () => {
-    expect(toWinAnsi("Route \u2192 \u2603")).toBe("Route -> ");
+    expect(toWinAnsi("Route \u2192 \u2603")).toBe("Route to ");
     expect(toWinAnsi("Kaliwa / Kanan")).toBe("Kaliwa / Kanan");
   });
 });
@@ -175,7 +175,7 @@ describe("renderTransitMapPdf", () => {
     expect(bytes.length).toBeGreaterThan(2000);
 
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("UPLB Transit Map — Jeepney Routes");
+    expect(pdf.getTitle()).toBe("UPLB Jeepney Routes");
     expect(pdf.getAuthor()).toBe("Room TBA");
   });
 
