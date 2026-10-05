@@ -265,38 +265,37 @@
       aria-label="App menu"
       use:portal
     >
-      <!-- Live presence lost its bottom-band chip in the Aug 2026 chrome
-           redesign; the menu is its passive-status home now. -->
-      <div class="app-menu__presence">
+      <!-- Account on the left, live presence on the right, one row. Presence
+           lost its bottom-band chip in the Aug 2026 chrome redesign; the menu
+           is its passive-status home now. -->
+      <div class="app-menu__header">
+        {#if contributorSession}
+          <section class="app-menu__account" aria-label="Signed in">
+            <MapChromeSession
+              roleLabel={sessionRoleLabel}
+              displayName={sessionDisplayName}
+              utilities
+              {onSignOut}
+            />
+          </section>
+        {:else}
+          <section class="app-menu__account" aria-label="Account">
+            <button
+              type="button"
+              class="app-menu__action map-chrome-chip"
+              onclick={handleSignIn}
+            >
+              <UserRound size={14} aria-hidden="true" />
+              <span>
+                {adminAuthStore.username
+                  ? "Account settings"
+                  : "Contributor sign in"}
+              </span>
+            </button>
+          </section>
+        {/if}
         <OnlineCounter />
       </div>
-      {#if contributorSession}
-        <section class="app-menu__section" aria-label="Signed in">
-          <MapChromeSession
-            roleLabel={sessionRoleLabel}
-            displayName={sessionDisplayName}
-            utilities
-            {onSignOut}
-          />
-        </section>
-      {/if}
-
-      {#if !contributorSession}
-        <section class="app-menu__section" aria-label="Account">
-          <button
-            type="button"
-            class="app-menu__action map-chrome-chip"
-            onclick={handleSignIn}
-          >
-            <UserRound size={14} aria-hidden="true" />
-            <span>
-              {adminAuthStore.username
-                ? "Account settings"
-                : "Contributor sign in"}
-            </span>
-          </button>
-        </section>
-      {/if}
 
       <section
         class="app-menu__section"
@@ -521,15 +520,61 @@
 </div>
 
 <style>
-  .app-menu__presence {
+  .app-menu__header {
     display: flex;
-    justify-content: flex-end;
-    padding: 0.25rem 0.25rem 0;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  .app-menu__presence :global(.online-counter) {
+  /* Basis 0, not auto: with auto the row wraps before anything shrinks. */
+  .app-menu__account {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .app-menu__account .app-menu__action {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .app-menu__account .app-menu__action span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Signed-in row is the widest variant: drop the action icons and let the
+     role chip truncate so it shares a 360px row with presence. */
+  .app-menu__account :global(.map-chrome-session--utilities) {
+    flex-wrap: nowrap;
+  }
+
+  .app-menu__account :global(.map-chrome-ghost-btn svg) {
+    display: none;
+  }
+
+  .app-menu__account :global(.map-chrome-session-chip) {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .app-menu__account :global(.map-chrome-session-chip svg) {
+    flex-shrink: 0;
+  }
+
+  .app-menu__account :global(.map-chrome-session-chip > span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-menu__header :global(.online-counter) {
+    flex-shrink: 0;
     height: auto;
-    padding: 0.25rem 0.625rem;
+    padding: 0;
+    border: 0;
+    background: none;
     box-shadow: none;
     font-size: 0.75rem;
   }

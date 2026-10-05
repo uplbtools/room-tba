@@ -15,5 +15,6 @@ export const modalOptions = [
   "privacy",
   "offline-maps",
   "hotlines",
+  "entity-history",
   "feedback",
 ] as const;
