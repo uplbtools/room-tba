@@ -52,7 +52,7 @@ describe("BuildingPhoto", () => {
     // Commons photo second (no Street View without a key), with attribution
     // linking to the file page.
     const commons = screen.getByRole("img", { name: /Wikimedia Commons/i });
-    expect(commons.getAttribute("src")).toContain("upload.wikimedia.org");
+    expect(commons.getAttribute("src")).toMatch(/\.wikimedia\.org\//);
     const credit = screen.getByRole("link");
     expect(credit.getAttribute("href")).toContain("commons.wikimedia.org");
 
@@ -63,5 +63,31 @@ describe("BuildingPhoto", () => {
     expect(
       screen.getByRole("img", { name: "Freedom Park" }).getAttribute("src"),
     ).toContain("r2.example");
+  });
+
+  test("dorm, place and org cards read their own manifest kind", () => {
+    // Committed manifest entries with Commons photos (Street View is off
+    // without a key in vitest).
+    const { unmount } = render(BuildingPhoto, {
+      props: { kind: "place", name: "Church Among the Palms" },
+    });
+    expect(
+      screen
+        .getByRole("img", { name: /Church Among the Palms.*Commons/i })
+        .getAttribute("src"),
+    ).toMatch(/\.wikimedia\.org\//);
+    unmount();
+
+    render(BuildingPhoto, {
+      props: { kind: "organization", name: "UP Open University (UPOU)" },
+    });
+    expect(screen.getByRole("img", { name: /UPOU.*Commons/i })).toBeTruthy();
+  });
+
+  test("a name under the wrong kind finds nothing", () => {
+    const { container } = render(BuildingPhoto, {
+      props: { kind: "dorm", name: "Church Among the Palms" },
+    });
+    expect(container.querySelector("img")).toBeNull();
   });
 });

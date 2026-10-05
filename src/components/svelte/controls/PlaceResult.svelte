@@ -24,6 +24,7 @@
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
+  import BuildingPhoto from "./BuildingPhoto.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
 
   const appData = getAppData();
@@ -189,6 +190,13 @@
     </header>
 
     {#if !editing}
+      <BuildingPhoto
+        kind="place"
+        name={place.name}
+        imageUrl={place.imageUrl}
+        lat={place.lat}
+        lon={place.lon}
+      />
       {#if place.lat != null && place.lon != null}
         <EntityStreetAddress lat={place.lat} lon={place.lon} />
       {/if}
