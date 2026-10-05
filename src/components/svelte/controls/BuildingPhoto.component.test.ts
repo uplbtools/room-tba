@@ -52,7 +52,11 @@ describe("BuildingPhoto", () => {
     // Commons photo second (no Street View without a key), with attribution
     // linking to the file page.
     const commons = screen.getByRole("img", { name: /Wikimedia Commons/i });
-    expect(commons.getAttribute("src")).toMatch(/\.wikimedia\.org\//);
+    expect(
+      new URL(commons.getAttribute("src") ?? "").hostname.endsWith(
+        ".wikimedia.org",
+      ),
+    ).toBe(true);
     const credit = screen.getByRole("link");
     expect(credit.getAttribute("href")).toContain("commons.wikimedia.org");
 
@@ -71,11 +75,11 @@ describe("BuildingPhoto", () => {
     const { unmount } = render(BuildingPhoto, {
       props: { kind: "place", name: "Church Among the Palms" },
     });
-    expect(
+    const churchSrc =
       screen
         .getByRole("img", { name: /Church Among the Palms.*Commons/i })
-        .getAttribute("src"),
-    ).toMatch(/\.wikimedia\.org\//);
+        .getAttribute("src") ?? "";
+    expect(new URL(churchSrc).hostname.endsWith(".wikimedia.org")).toBe(true);
     unmount();
 
     render(BuildingPhoto, {
