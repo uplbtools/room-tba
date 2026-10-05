@@ -15,7 +15,7 @@
  * Data © OpenStreetMap contributors, ODbL
  * (https://www.openstreetmap.org/copyright), credited in the viewer.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import type { BuildingFootprintsManifest } from "../src/lib/building-footprints";
 import {
   fetchOverpass,
@@ -49,9 +49,17 @@ const res = await fetch(`${apiBase}/api/buildings`, {
 if (!res.ok) throw new Error(`buildings API ${res.status} from ${apiBase}`);
 const buildings = (await res.json()) as Building[];
 
-const previous: BuildingFootprintsManifest = existsSync(OUT_PATH)
-  ? JSON.parse(readFileSync(OUT_PATH, "utf8"))
-  : {};
+// Read directly instead of checking existsSync first, so there is no window
+// between the check and the read (CodeQL js/file-system-race).
+function readPrevious(): BuildingFootprintsManifest {
+  try {
+    return JSON.parse(readFileSync(OUT_PATH, "utf8"));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return {};
+    throw error;
+  }
+}
+const previous = readPrevious();
 const manifest: BuildingFootprintsManifest = {};
 const round = ([lng, lat]: LngLat): LngLat => [
   Number(lng.toFixed(7)),
