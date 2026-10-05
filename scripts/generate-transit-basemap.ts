@@ -13,10 +13,9 @@
  * Usage: bun run scripts/generate-transit-basemap.ts
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 
 const OUT_FILE = "src/constants/transit-basemap.json";
-const CACHE_DIR = "data/transit-basemap-cache";
 const OVERPASS =
   process.env.OVERPASS_URL ?? "https://overpass-api.de/api/interpreter";
 const USER_AGENT =
@@ -41,21 +40,15 @@ const QUERY = `[out:json][timeout:90];(
 );out geom;`;
 
 async function fetchOverpass(): Promise<unknown> {
-  mkdirSync(CACHE_DIR, { recursive: true });
-  const cachePath = `${CACHE_DIR}/basemap.json`;
-  if (existsSync(cachePath)) {
-    console.log("using cached Overpass response");
-    return JSON.parse(readFileSync(cachePath, "utf8"));
-  }
+  // No on-disk cache of the raw response: it saved one request per manual
+  // rerun and tripped CodeQL (file-system race, network data written to disk).
   const res = await fetch(OVERPASS, {
     method: "POST",
     headers: { "User-Agent": USER_AGENT },
     body: `data=${encodeURIComponent(QUERY)}`,
   });
   if (!res.ok) throw new Error(`Overpass ${res.status}`);
-  const data = await res.json();
-  writeFileSync(cachePath, JSON.stringify(data));
-  return data;
+  return res.json();
 }
 
 const M_PER_DEG_LAT = 111320;
