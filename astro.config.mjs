@@ -66,6 +66,11 @@ export default defineConfig({
         // (including mobile) regardless of device. Cache it on-demand
         // instead, via the runtimeCaching rule below.
         globIgnores: ["**/desktop-only*"],
+        // Vercel skew protection appends ?dpl=<deployment> to every chunk
+        // request. Without ignoring it, no precached chunk ever matches, and
+        // offline boot silently depends on the browser HTTP cache (gone after
+        // eviction, so the app could not start offline at all).
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^dpl$/],
         navigateFallback: "/",
         navigateFallbackDenylist: [
           /^\/api\//,
