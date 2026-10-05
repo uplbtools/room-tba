@@ -40,6 +40,7 @@
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
+  import BuildingPhoto from "./BuildingPhoto.svelte";
   import { getDormShareUrl } from "@lib/share-links";
   import {
     getKuboDormCta,
@@ -805,6 +806,15 @@
         </button>
         <img src={dormImageUrl} alt={dorm.dormName} />
       </dialog>
+    {:else if !editing}
+      <!-- ponytail: the dorm's own photo keeps its full-size viewer; the
+           Street View / Commons gallery covers dorms without one. -->
+      <BuildingPhoto
+        kind="dorm"
+        name={dorm.dormName}
+        lat={dorm.lat}
+        lon={dorm.lon}
+      />
     {/if}
 
     {#if editing}
