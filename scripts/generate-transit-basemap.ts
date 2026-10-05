@@ -7,9 +7,6 @@
  *
  * Data (c) OpenStreetMap contributors, ODbL. The PDF footer carries the credit.
  *
- * The raw Overpass response is cached under data/transit-basemap-cache/
- * (gitignored); delete it to refetch.
- *
  * Usage: bun run scripts/generate-transit-basemap.ts
  */
 
