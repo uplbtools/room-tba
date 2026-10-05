@@ -1,6 +1,19 @@
-import { and, desc, eq } from "drizzle-orm";
-import { editorHistoryTable } from "@drizzle/schema";
+import { and, asc, desc, eq, gte, inArray, or } from "drizzle-orm";
+import {
+  adminUsersTable,
+  contributionsTable,
+  editorHistoryTable,
+} from "@drizzle/schema";
 import { db } from "@lib/db";
+import {
+  rowAuthor,
+  toIsoTimestamp,
+  toPublicHistoryEntry,
+  type EditorAccount,
+  type EntityAttribution,
+  type ProposalCredit,
+  type PublicHistoryEntry,
+} from "@lib/editor/entity-attribution";
 import {
   updateBuilding,
   updateCollege,
@@ -43,6 +56,127 @@ export async function getEntityHistory(
     .orderBy(desc(editorHistoryTable.createdAt), desc(editorHistoryTable.id))
     .limit(Math.min(limit, 50))
     .offset(offset);
+}
+
+/** Approved-proposal credits that could belong to these history rows. */
+async function loadProposalCredits(
+  entityType: string,
+  entityId: number,
+  rows: HistoryEntry[],
+): Promise<ProposalCredit[]> {
+  const oldest = rows.reduce(
+    (min, row) => (row.createdAt < min ? row.createdAt : min),
+    rows[0]?.createdAt ?? "",
+  );
+  if (!oldest) return [];
+  return db
+    .select({
+      entityType: contributionsTable.entityType,
+      submitterName: contributionsTable.submitterName,
+      createdAt: contributionsTable.createdAt,
+    })
+    .from(contributionsTable)
+    .where(
+      and(
+        eq(contributionsTable.source, "proposal_approved"),
+        gte(contributionsTable.createdAt, oldest),
+        or(
+          and(
+            eq(contributionsTable.entityType, entityType),
+            eq(contributionsTable.entityId, entityId),
+          ),
+          and(
+            eq(contributionsTable.entityType, `create_${entityType}`),
+            eq(contributionsTable.entityId, 0),
+          ),
+        ),
+      ),
+    );
+}
+
+async function loadEditorAccounts(
+  rows: HistoryEntry[],
+): Promise<EditorAccount[]> {
+  const actors = [...new Set(rows.map((row) => row.editedBy))];
+  if (actors.length === 0) return [];
+  return db
+    .select({
+      username: adminUsersTable.username,
+      displayName: adminUsersTable.displayName,
+      showInCredits: adminUsersTable.showInCredits,
+    })
+    .from(adminUsersTable)
+    .where(
+      or(
+        inArray(adminUsersTable.username, actors),
+        inArray(adminUsersTable.displayName, actors),
+      ),
+    );
+}
+
+export const PUBLIC_HISTORY_PAGE_SIZE = 50;
+
+/**
+ * Read-only history for visitors. Only whitelisted card fields and public
+ * names leave the server; see toPublicHistoryEntry.
+ */
+export async function getPublicEntityHistory(
+  entityType: string,
+  entityId: number,
+  offset = 0,
+): Promise<{ entries: PublicHistoryEntry[]; nextOffset: number | null }> {
+  const rows = await getEntityHistory(entityType, entityId, {
+    limit: PUBLIC_HISTORY_PAGE_SIZE,
+    offset,
+  });
+  const [credits, accounts] = await Promise.all([
+    loadProposalCredits(entityType, entityId, rows),
+    loadEditorAccounts(rows),
+  ]);
+  return {
+    entries: rows
+      .map((row) => toPublicHistoryEntry(row, credits, accounts))
+      .filter((entry): entry is PublicHistoryEntry => entry !== null),
+    nextOffset:
+      rows.length === PUBLIC_HISTORY_PAGE_SIZE
+        ? offset + PUBLIC_HISTORY_PAGE_SIZE
+        : null,
+  };
+}
+
+/** Who added an entity and who last edited it, as public names. */
+export async function getEntityAttribution(
+  entityType: string,
+  entityId: number,
+): Promise<EntityAttribution | null> {
+  const [[latest], [created]] = await Promise.all([
+    getEntityHistory(entityType, entityId, { limit: 1 }),
+    db
+      .select()
+      .from(editorHistoryTable)
+      .where(
+        and(
+          eq(editorHistoryTable.entityType, entityType),
+          eq(editorHistoryTable.entityId, entityId),
+          eq(editorHistoryTable.action, "create"),
+        ),
+      )
+      .orderBy(asc(editorHistoryTable.createdAt))
+      .limit(1),
+  ]);
+  if (!latest) return null;
+  const rows = created ? [created, latest] : [latest];
+  const [credits, accounts] = await Promise.all([
+    loadProposalCredits(entityType, entityId, rows),
+    loadEditorAccounts(rows),
+  ]);
+  const edited = latest.id === created?.id ? null : latest;
+  return {
+    addedBy: created ? rowAuthor(created, credits, accounts) : null,
+    addedAt: created ? toIsoTimestamp(created.createdAt) : null,
+    lastEditedBy: edited ? rowAuthor(edited, credits, accounts) : null,
+    lastEditedAt: edited ? toIsoTimestamp(edited.createdAt) : null,
+  };
 }
 
 // Fields that can be restored from a snapshot. Anything else in the snapshot
