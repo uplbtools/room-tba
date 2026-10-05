@@ -2,9 +2,21 @@ import type { APIRoute } from "astro";
 import { getAllJeepneyRoutes } from "@lib/services/transit-service";
 import { getAllPlaces } from "@lib/services/map-data-service";
 import {
+  resolveRouteGeometry,
+  type StoredRouteGeometry,
+} from "@constants/jeepney-routes";
+import jeepneyGeometries from "@constants/jeepney-geometries.json";
+import transitBasemap from "@constants/transit-basemap.json";
+import {
   renderTransitMapPdf,
+  type TransitBasemap,
   type TransitMapFormat,
 } from "@lib/transit-map-pdf";
+
+const storedGeometries = jeepneyGeometries as Record<
+  string,
+  StoredRouteGeometry | undefined
+>;
 
 export const prerender = false;
 
@@ -59,20 +71,36 @@ export const GET: APIRoute = async ({ url }) => {
   try {
     // The service returns fares nested (fare.regular/discounted); the PDF
     // generator expects flat fields.
-    const routes = (await getAllJeepneyRoutes()).map((route) => ({
-      id: route.id,
-      name: route.name,
-      color: route.color,
-      fareRegular: route.fare?.regular ?? Number.NaN,
-      fareDiscounted: route.fare?.discounted ?? Number.NaN,
-      directionNote: route.directionNote ?? null,
-      stops: route.stops.map((stop) => ({
-        name: stop.name,
-        lat: stop.lat,
-        lon: stop.lon,
-      })),
-    }));
-    const bytes = await renderTransitMapPdf({ routes, here, format });
+    const routes = (await getAllJeepneyRoutes()).map((route) => {
+      // Road-routed line when one is bundled; otherwise the PDF joins stops.
+      const geometry = resolveRouteGeometry(route, storedGeometries);
+      return {
+        id: route.id,
+        name: route.name,
+        color: route.color,
+        fareRegular: route.fare?.regular ?? Number.NaN,
+        fareDiscounted: route.fare?.discounted ?? Number.NaN,
+        directionNote: route.directionNote ?? null,
+        line:
+          geometry.source !== "stops-only" && geometry.line
+            ? geometry.line.coordinates.map(([lon, lat]) => ({
+                lat: lat as number,
+                lon: lon as number,
+              }))
+            : undefined,
+        stops: route.stops.map((stop) => ({
+          name: stop.name,
+          lat: stop.lat,
+          lon: stop.lon,
+        })),
+      };
+    });
+    const bytes = await renderTransitMapPdf({
+      routes,
+      here,
+      basemap: transitBasemap as TransitBasemap,
+      format,
+    });
     const slug = here
       ? `-from-${here.name
           .toLowerCase()
