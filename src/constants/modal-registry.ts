@@ -4,6 +4,7 @@ import AnnouncementsModal from "@ui/modal/AnnouncementsModal.svelte";
 import ChangelogModal from "@ui/modal/ChangelogModal.svelte";
 import CoverageModal from "@ui/modal/CoverageModal.svelte";
 import EditorToolsModal from "@ui/modal/EditorToolsModal.svelte";
+import FeedbackPanel from "@ui/modal/FeedbackPanel.svelte";
 import HotlinesModal from "@ui/modal/HotlinesModal.svelte";
 import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
 import LandingModal from "@ui/modal/LandingModal.svelte";
@@ -125,5 +126,13 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     size: "reading",
     label: "Emergency hotlines",
     closeLabel: "Close emergency hotlines",
+  },
+  // The same panel Settings hosts. Students could not find it there, so the
+  // App menu opens it directly.
+  feedback: {
+    component: FeedbackPanel,
+    size: "compact",
+    label: "Send feedback",
+    closeLabel: "Close feedback",
   },
 };
