@@ -1339,5 +1339,14 @@
     "lat": null,
     "lng": null,
     "source": "https://www.upou.edu.ph/about/office-of-the-chancellor/"
+  },
+  {
+    "name": "UPOU Oblation",
+    "type": "landmark",
+    "building_or_area": "UPOU headquarters campus, Brgy. Maahas, Los Baños",
+    "description": "Replica of the UP Oblation statue standing at the UPOU headquarters campus, near the Main Building.",
+    "lat": 14.1748766,
+    "lng": 121.2626496,
+    "source": "https://www.openstreetmap.org/node/2352985484"
   }
 ]
