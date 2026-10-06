@@ -7,12 +7,26 @@
     registerEphemeralOverlayDismisser,
     openEphemeralOverlay,
   } from "@lib/overlay-stack";
-  import { mapStore, mapViewStore } from "@lib/store.svelte";
+  import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
+  import Crosshair from "@lucide/svelte/icons/crosshair";
+  import Printer from "@lucide/svelte/icons/printer";
+  import {
+    directionsStore,
+    locationStore,
+    mapStore,
+    mapViewStore,
+  } from "@lib/store.svelte";
+  import { getTransitMapPath } from "@lib/route-links";
   import "./map-chrome.css";
 
   type MenuState = { x: number; y: number; lat: number; lng: number };
 
+  /** Hold this long without moving to open the menu on a touch screen. */
+  const LONG_PRESS_MS = 550;
+  const LONG_PRESS_SLOP_PX = 10;
+
   let menu = $state<MenuState | null>(null);
+  let ignoreClicksUntil = 0;
   let panelEl = $state<HTMLDivElement | null>(null);
 
   onMount(() => registerEphemeralOverlayDismisser(() => (menu = null)));
@@ -36,11 +50,94 @@
         };
       });
     };
+    // iOS Safari never fires contextmenu, so a held finger opens the same
+    // menu. Android fires both; the second open just replaces the first.
+    let pressTimer: ReturnType<typeof setTimeout> | null = null;
+    let pressStart: { x: number; y: number } | null = null;
+    const cancelPress = () => {
+      if (pressTimer) clearTimeout(pressTimer);
+      pressTimer = null;
+      pressStart = null;
+    };
+    const handleTouchStart = (event: mapGl.MapTouchEvent) => {
+      cancelPress();
+      const touch = event.originalEvent.touches[0];
+      if (event.originalEvent.touches.length !== 1 || !touch) return;
+      const { lngLat } = event;
+      pressStart = { x: touch.clientX, y: touch.clientY };
+      pressTimer = setTimeout(() => {
+        const at = pressStart;
+        cancelPress();
+        if (!at) return;
+        // The finger lifts over the menu it just opened; some browsers turn
+        // that lift into a click on whichever item sits under it.
+        ignoreClicksUntil = Date.now() + 450;
+        openEphemeralOverlay(() => {
+          menu = { ...at, lat: lngLat.lat, lng: lngLat.lng };
+        });
+      }, LONG_PRESS_MS);
+    };
+    const handleTouchMove = (event: mapGl.MapTouchEvent) => {
+      const touch = event.originalEvent.touches[0];
+      if (!pressStart || !touch) return;
+      if (
+        Math.hypot(touch.clientX - pressStart.x, touch.clientY - pressStart.y) >
+        LONG_PRESS_SLOP_PX
+      ) {
+        cancelPress();
+      }
+    };
+
     map.on("contextmenu", handleContextMenu);
+    map.on("touchstart", handleTouchStart);
+    map.on("touchmove", handleTouchMove);
+    map.on("touchend", cancelPress);
+    map.on("touchcancel", cancelPress);
+    map.on("movestart", cancelPress);
     return () => {
+      cancelPress();
       map.off("contextmenu", handleContextMenu);
+      map.off("touchstart", handleTouchStart);
+      map.off("touchmove", handleTouchMove);
+      map.off("touchend", cancelPress);
+      map.off("touchcancel", cancelPress);
+      map.off("movestart", cancelPress);
     };
   });
+
+  function pinAt(state: MenuState) {
+    return {
+      lat: state.lat,
+      lng: state.lng,
+      label: "Dropped pin",
+      dropped: true,
+    };
+  }
+
+  function directionsFromHere() {
+    if (!menu) return;
+    const pin = pinAt(menu);
+    close();
+    if (directionsStore.active) void directionsStore.setOrigin(pin);
+    else directionsStore.openFrom(pin);
+  }
+
+  function directionsToHere() {
+    if (!menu) return;
+    const pin = pinAt(menu);
+    close();
+    if (directionsStore.active) {
+      void directionsStore.setDestination(pin);
+      return;
+    }
+    // Same start as the Directions chip on a place: the rider's GPS fix.
+    locationStore.requestLocation();
+    const coords = locationStore.coords;
+    void directionsStore.open(
+      pin,
+      coords ? { lat: coords[1], lng: coords[0], label: "Your location" } : null,
+    );
+  }
 
   // Clamp to the viewport once the panel has a size; right-clicks near the
   // bottom/right edge would otherwise push the menu off-screen.
@@ -84,7 +181,39 @@
     role="dialog"
     aria-label="Map options"
     use:portal
+    onclickcapture={(event) => {
+      if (Date.now() < ignoreClicksUntil) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }}
   >
+    <button
+      type="button"
+      class="map-context-menu__item"
+      onclick={directionsFromHere}
+    >
+      <Crosshair size={15} aria-hidden="true" />
+      Directions from here
+    </button>
+    <button
+      type="button"
+      class="map-context-menu__item"
+      onclick={directionsToHere}
+    >
+      <CornerRightUp size={15} aria-hidden="true" />
+      Directions to here
+    </button>
+    <a
+      class="map-context-menu__item"
+      href={getTransitMapPath({ lat: menu.lat, lon: menu.lng })}
+      target="_blank"
+      rel="noreferrer"
+      onclick={close}
+    >
+      <Printer size={15} aria-hidden="true" />
+      Printable jeep map from here
+    </a>
     <label class="map-context-menu__toggle">
       <input
         type="checkbox"
@@ -103,10 +232,11 @@
   .map-context-menu {
     position: fixed;
     z-index: var(--z-chrome-popover, 17);
-    width: min(13rem, calc(100vw - 1rem));
+    width: min(15rem, calc(100vw - 1rem));
     padding: 0.375rem;
   }
 
+  .map-context-menu__item,
   .map-context-menu__toggle {
     display: flex;
     align-items: center;
@@ -119,6 +249,19 @@
     cursor: pointer;
   }
 
+  .map-context-menu__item {
+    width: 100%;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .map-context-menu__item:focus-visible,
+  .map-context-menu__item:hover,
   .map-context-menu__toggle:hover {
     background-color: hsl(5, 20%, 95%);
   }

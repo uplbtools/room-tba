@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/svelte";
+import { fireEvent, render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test } from "vitest";
 import { directionsStore } from "@lib/store.svelte";
 import {
@@ -58,4 +58,38 @@ describe("DirectionsRouteChips", () => {
       );
     },
   );
+
+  test("tapping the start row arms picking, and Use my location shows for a pinned start", async () => {
+    mountAtWidth(320);
+    seedDirections();
+    const { container } = render(DirectionsRouteChips);
+
+    await fireEvent.click(
+      screen.getByRole("button", {
+        name: "Change starting point, now Your location",
+      }),
+    );
+    expect(directionsStore.picking).toBe("origin");
+    expect(screen.getByText("Choose a starting point")).toBeVisible();
+    expect(screen.getByText(/Search above or tap the map/)).toBeVisible();
+    // GPS is already the start, so there is nothing to go back to.
+    expect(
+      screen.queryByRole("button", { name: "Use my location" }),
+    ).toBeNull();
+
+    directionsStore.originFixed = true;
+    expect(
+      await screen.findByRole("button", { name: "Use my location" }),
+    ).toBeVisible();
+    expectNoHorizontalOverflow(
+      container.querySelector(".directions-route-chips") as HTMLElement,
+    );
+  });
+
+  test("a session opened from a pin asks for the destination", () => {
+    directionsStore.openFrom({ lat: 14.16, lng: 121.24, label: "Dropped pin" });
+    render(DirectionsRouteChips);
+    expect(screen.getByText("Dropped pin")).toBeVisible();
+    expect(screen.getByText("Choose a destination")).toBeVisible();
+  });
 });

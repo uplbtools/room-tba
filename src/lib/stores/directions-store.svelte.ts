@@ -19,7 +19,14 @@ import { loadTravelGraph } from "../travel-graph/load";
 
 export type DirectionsPhase = "idle" | "planning" | "ready" | "error";
 
-export type DirectionsEndpoint = LatLng & { label: string };
+export type DirectionsEndpoint = LatLng & {
+  label: string;
+  /** Picked by tapping empty map, so no entity pin marks it. */
+  dropped?: boolean;
+};
+
+/** Which end of the trip the next search pick or map tap fills. */
+export type DirectionsPick = "origin" | "destination";
 
 /** Max intermediate stops between origin and destination. */
 export const MAX_DIRECTIONS_WAYPOINTS = 3;
@@ -35,6 +42,13 @@ export class DirectionsStore {
    * waypoint instead of replacing the destination.
    */
   addingStop: boolean = $state(false);
+  /** Set while the rider is choosing a start or end point. */
+  picking: DirectionsPick | null = $state(null);
+  /**
+   * True when the rider chose the start point. GPS fixes then leave the
+   * origin alone instead of replanning from the blue dot.
+   */
+  originFixed: boolean = $state(false);
   journeys: Journey[] = $state([]);
   selectedId: string | null = $state(null);
   /** Why an empty result is empty; drives the rider-facing note. */
@@ -97,6 +111,8 @@ export class DirectionsStore {
     this.origin = origin;
     this.waypoints = [];
     this.addingStop = false;
+    this.picking = null;
+    this.originFixed = false;
     this.selectedId = null;
     this.journeys = [];
     this.status = null;
@@ -142,6 +158,67 @@ export class DirectionsStore {
     }
   };
 
+  /**
+   * Start a session from a chosen point, such as "Directions from here" on a
+   * dropped pin. The next search pick or map tap becomes the destination.
+   */
+  openFrom = (origin: DirectionsEndpoint) => {
+    this.close();
+    this.origin = origin;
+    this.originFixed = true;
+    this.picking = "destination";
+    this.phase = "planning";
+  };
+
+  /**
+   * Change where the trip starts. `fixed` false hands the origin back to GPS,
+   * which is what "Use my location" does.
+   */
+  setOrigin = async (origin: DirectionsEndpoint | null, fixed = true) => {
+    this.picking = null;
+    this.originFixed = fixed && origin !== null;
+    this.origin = origin;
+    if (!origin || !this.destination) return;
+    await this.replan(origin, this.destination);
+  };
+
+  setDestination = async (destination: DirectionsEndpoint) => {
+    this.picking = null;
+    this.destination = destination;
+    if (!this.origin) return; // still waiting on GPS
+    await this.replan(this.origin, destination);
+  };
+
+  beginPick = (which: DirectionsPick) => {
+    this.addingStop = false;
+    this.picking = which;
+  };
+
+  cancelPick = () => {
+    this.picking = null;
+  };
+
+  /**
+   * Route a search pick or map tap into the session: a start point, an end
+   * point or an extra stop. Returns false when nothing was waiting for one.
+   */
+  takePick = (endpoint: DirectionsEndpoint): boolean => {
+    if (!this.active) return false;
+    if (this.picking === "origin") {
+      void this.setOrigin(endpoint);
+      return true;
+    }
+    if (this.picking === "destination") {
+      void this.setDestination(endpoint);
+      return true;
+    }
+    if (this.addingStop) {
+      void this.addWaypoint(endpoint);
+      return true;
+    }
+    return false;
+  };
+
   /** Replan using current origin/destination/waypoints. */
   refresh = async () => {
     if (!this.origin || !this.destination) return;
@@ -150,6 +227,7 @@ export class DirectionsStore {
 
   beginAddStop = () => {
     if (this.waypoints.length >= MAX_DIRECTIONS_WAYPOINTS) return;
+    this.picking = null;
     this.addingStop = true;
   };
 
@@ -242,6 +320,8 @@ export class DirectionsStore {
     this.destination = null;
     this.waypoints = [];
     this.addingStop = false;
+    this.picking = null;
+    this.originFixed = false;
     this.journeys = [];
     this.selectedId = null;
     this.status = null;
