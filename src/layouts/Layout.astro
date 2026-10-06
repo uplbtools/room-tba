@@ -423,7 +423,8 @@ const shareTitle = ogTitle ?? title;
             // here, then leaves the island empty; no point waiting out the
             // timer on a boot that has already given up.
             window.addEventListener("astro:hydration-error", (event) => {
-              var url = String((event.detail && event.detail.componentUrl) || "");
+              var detail = event.detail || {};
+              var url = String(detail.componentUrl || "");
               if (url.indexOf("AppRoot") === -1) return;
               onFatalSignal(`hydration error: ${url}`);
             });
