@@ -2,7 +2,11 @@
   import CornerRightUp from "@lucide/svelte/icons/corner-right-up";
   import Plus from "@lucide/svelte/icons/plus";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
-  import { directionsStore, locationStore } from "@lib/store.svelte";
+  import {
+    buildingRouteStore,
+    directionsStore,
+    locationStore,
+  } from "@lib/store.svelte";
 
   type Props = {
     lat: number;
@@ -46,10 +50,10 @@
       return;
     }
 
+    // Generic GPS/transit directions and the two-building walking tool are
+    // separate task modes. Never leave both route layers active at once.
+    buildingRouteStore.close();
     locationStore.requestLocation();
-    // Multi-modal directionsStore owns the session. Do not also set
-    // locationStore.destination — that feeds the legacy OSRM polyline, which
-    // would redraw after close once directionsStore.active flips false.
     void directionsStore.open(
       endpoint,
       locationStore.coords

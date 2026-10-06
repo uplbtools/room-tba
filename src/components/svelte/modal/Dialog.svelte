@@ -43,6 +43,11 @@
     /** Close button label, e.g. "Close settings". */
     closeLabel?: string;
     showClose?: boolean;
+    /**
+     * Let content claim an Escape press (return false) instead of closing the
+     * dialog, e.g. a combobox closing its own listbox first.
+     */
+    shouldHandleEscape?: (event: KeyboardEvent) => boolean;
     children: Snippet;
   };
 
@@ -54,6 +59,7 @@
     labelledBy,
     closeLabel = "Close dialog",
     showClose = true,
+    shouldHandleEscape,
     children,
   }: Props = $props();
 
@@ -78,7 +84,7 @@
 
   $effect(() => {
     if (!open || !contentEl) return;
-    return trapFocus(contentEl, { onEscape: onclose });
+    return trapFocus(contentEl, { onEscape: onclose, shouldHandleEscape });
   });
 
   function handleOverlayClick() {

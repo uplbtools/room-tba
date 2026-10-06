@@ -59,6 +59,36 @@ describe("trapFocus", () => {
     releaseOuter();
   });
 
+  it("lets guarded Escape reach the focused descendant", async () => {
+    const container = dialogWithButtons();
+    const combobox = document.createElement("input");
+    combobox.setAttribute("role", "combobox");
+    combobox.setAttribute("aria-expanded", "true");
+    container.append(combobox);
+
+    let trapEscapes = 0;
+    let inputEscapes = 0;
+    combobox.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") inputEscapes++;
+    });
+    const release = trapFocus(container, {
+      onEscape: () => trapEscapes++,
+      shouldHandleEscape: (event) =>
+        !(
+          event.target instanceof HTMLInputElement &&
+          event.target.matches('[role="combobox"][aria-expanded="true"]')
+        ),
+    });
+    await Promise.resolve();
+    combobox.focus();
+
+    pressEscape(combobox);
+
+    expect(inputEscapes).toBe(1);
+    expect(trapEscapes).toBe(0);
+    release();
+  });
+
   it("stops handling after release and restores previous focus", async () => {
     const outside = document.createElement("button");
     document.body.append(outside);
