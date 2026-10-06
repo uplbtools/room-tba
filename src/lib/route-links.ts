@@ -71,3 +71,20 @@ export function parseRoutePathname(pathname: string): ParsedRoutePath | null {
   if (!fromSlug || !toSlug) return null;
   return { fromSlug, toSlug };
 }
+
+/**
+ * Printable jeepney map with any point marked "You are here". Without a name
+ * the sheet calls the spot "the star", which suits dropped pins and GPS.
+ */
+export function getTransitMapPath(point: {
+  lat: number;
+  lon: number;
+  name?: string | null;
+}): string {
+  const params = new URLSearchParams({
+    lat: point.lat.toFixed(5),
+    lon: point.lon.toFixed(5),
+  });
+  if (point.name) params.set("name", point.name);
+  return `/api/transit-map?${params}`;
+}

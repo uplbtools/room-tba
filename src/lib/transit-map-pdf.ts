@@ -25,6 +25,11 @@ import {
   type PDFPage,
   type RGB,
 } from "pdf-lib";
+import {
+  LOGO_PNG_BASE64,
+  PRINT_MAP_QR,
+  RALEWAY_BOLD_HEADINGS,
+} from "@constants/print-brand";
 
 export type TransitMapStop = { name: string; lat: number; lon: number };
 
@@ -40,7 +45,8 @@ export type TransitMapRoute = {
   line?: { lat: number; lon: number }[];
 };
 
-export type TransitMapHere = { name: string; lat: number; lon: number };
+/** A dropped pin or GPS fix has no name; the sheet then says "the star". */
+export type TransitMapHere = { name?: string | null; lat: number; lon: number };
 
 /** `src/constants/transit-basemap.json`: [lon, lat] ways from OpenStreetMap. */
 export type TransitBasemap = {
@@ -58,7 +64,7 @@ const PAGE_SIZES: Record<TransitMapFormat, { w: number; h: number }> = {
   letter: { w: 792, h: 612 },
 };
 
-const BRAND = rgb(0.553, 0.078, 0.216); // #8d1437
+const BRAND = rgb(0.49, 0.179, 0.15); // hsl(5, 53%, 32%), the Room TBA maroon
 const INK = rgb(0.102, 0.102, 0.102);
 const MUTED = rgb(0.4, 0.4, 0.4);
 const HAIRLINE = rgb(0.8, 0.8, 0.8);
@@ -97,6 +103,39 @@ export function haversineMeters(a: LatLon, b: LatLon): number {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/**
+ * Reads `lat`, `lon` and an optional `name` from the query string, so any
+ * point (a dropped pin, a GPS fix, any search result) can be "You are here".
+ * Returns null when no point was passed and "invalid" for bad numbers.
+ */
+export function parseHerePoint(
+  params: URLSearchParams,
+): TransitMapHere | null | "invalid" {
+  const latRaw = params.get("lat")?.trim();
+  const lonRaw = params.get("lon")?.trim();
+  if (!latRaw && !lonRaw) return null;
+  const lat = Number(latRaw);
+  const lon = Number(lonRaw);
+  if (
+    !latRaw ||
+    !lonRaw ||
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lon) ||
+    Math.abs(lat) > 90 ||
+    Math.abs(lon) > 180
+  ) {
+    return "invalid";
+  }
+  const name =
+    params
+      .get("name")
+      // biome-ignore lint/suspicious/noControlCharactersInRegex: strip control characters from user input
+      ?.replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim()
+      .slice(0, 80) || null;
+  return { name, lat, lon };
 }
 
 /** Closest stop to `here` and the approximate walk to it (straight line x 1.3). */
@@ -656,7 +695,10 @@ export async function renderTransitMapPdf(input: {
   );
 
   const here = input.here
-    ? { ...input.here, name: toWinAnsi(input.here.name) }
+    ? {
+        ...input.here,
+        name: input.here.name ? toWinAnsi(input.here.name) : null,
+      }
     : null;
   const hereOnMap =
     here !== null &&
@@ -665,13 +707,71 @@ export async function renderTransitMapPdf(input: {
   const nearest = here && hereOnMap ? findNearestStop(here, stops) : null;
 
   // ── Header ────────────────────────────────────────────────────────────
-  page.drawText("UPLB Jeepney Routes", {
-    x: MARGIN,
-    y: pageH - 32,
-    size: 18,
-    font: bold,
-    color: INK,
+  // Headings are Raleway outlines baked by scripts/generate-print-brand.py,
+  // since pdf-lib can only set text in the standard fonts.
+  const raleway = (
+    text: keyof typeof RALEWAY_BOLD_HEADINGS,
+    x: number,
+    y: number,
+    size: number,
+    color: RGB,
+  ) =>
+    page.drawSvgPath(RALEWAY_BOLD_HEADINGS[text].d, {
+      x,
+      y,
+      scale: size / 1000,
+      color,
+    });
+  raleway("UPLB Jeepney Routes", MARGIN, pageH - 32, 18, INK);
+
+  // Brand block, top right. The sheet gets posted around campus, so the QR
+  // leads back to the app; the ref param lets prints be counted.
+  const qrSize = 60;
+  const qrX = pageW - MARGIN - qrSize;
+  const qrTop = pageH - 7;
+  const cell = qrSize / PRINT_MAP_QR.length;
+  PRINT_MAP_QR.forEach((row, r) => {
+    for (const run of row.matchAll(/1+/g)) {
+      page.drawRectangle({
+        x: qrX + (run.index ?? 0) * cell,
+        y: qrTop - (r + 1) * cell,
+        width: run[0].length * cell,
+        height: cell,
+        color: INK,
+      });
+    }
   });
+  const brandRight = qrX - 10;
+  const logo = await pdf.embedPng(LOGO_PNG_BASE64);
+  const wordSize = 15;
+  const wordW = (RALEWAY_BOLD_HEADINGS["Room TBA"].width * wordSize) / 1000;
+  raleway("Room TBA", brandRight - wordW, pageH - 25, wordSize, BRAND);
+  page.drawImage(logo, {
+    x: brandRight - wordW - 25,
+    y: pageH - 30,
+    width: 23,
+    height: 23,
+  });
+  const brandLines: [string, PDFFont, number, RGB][] = [
+    ["by UPLB Tools", bold, 8.5, INK],
+    ["Scan to find any room or jeep route.", font, 7.5, INK],
+    ["room-tba.uplb.tools", font, 7.5, MUTED],
+  ];
+  brandLines.forEach(([text, fnt, size, color], i) => {
+    page.drawText(text, {
+      x: brandRight - fnt.widthOfTextAtSize(text, size),
+      y: pageH - 38 - i * 10,
+      size,
+      font: fnt,
+      color,
+    });
+  });
+  const brandW = Math.max(
+    wordW + 25,
+    ...brandLines.map(([text, fnt, size]) => fnt.widthOfTextAtSize(text, size)),
+  );
+  const introW = brandRight - brandW - 16 - MARGIN;
+
   // Vercel runs in UTC; without the zone, sheets printed before 8 AM in
   // Los Baños carry yesterday's date.
   const dateLabel = generatedAt.toLocaleDateString("en-PH", {
@@ -680,14 +780,6 @@ export async function renderTransitMapPdf(input: {
     day: "numeric",
     timeZone: "Asia/Manila",
   });
-  const printed = `Printed ${dateLabel}`;
-  page.drawText(printed, {
-    x: pageW - MARGIN - font.widthOfTextAtSize(printed, 9),
-    y: pageH - 30,
-    size: 9,
-    font,
-    color: MUTED,
-  });
   let intro: string;
   if (here && nearest) {
     const servedBy = joinNames(
@@ -695,14 +787,15 @@ export async function renderTransitMapPdf(input: {
         .filter((r) => nearest.stop.routeIds.includes(r.id))
         .map((r) => r.name),
     );
-    intro = `You are at ${here.name}. The nearest jeepney stop is ${nearest.stop.name}, about ${formatDistance(nearest.walkM)} on foot (approximate). ${servedBy} ${nearest.stop.routeIds.length > 1 ? "stop" : "stops"} there.`;
+    const at = here.name ?? "the star on this map";
+    intro = `You are at ${at}. The nearest jeepney stop is ${nearest.stop.name}, about ${formatDistance(nearest.walkM)} on foot (approximate). ${servedBy} ${nearest.stop.routeIds.length > 1 ? "stop" : "stops"} there.`;
   } else if (here) {
-    intro = `${here.name} is about ${formatDistance(haversineMeters(here, center))} from campus, outside this map. The routes below still show how to reach UPLB.`;
+    intro = `${here.name ?? "This spot"} is about ${formatDistance(haversineMeters(here, center))} from campus, outside this map. The routes below still show how to reach UPLB.`;
   } else {
     intro =
       "Campus jeepney routes with their stops, plus the buses and jeepneys that link UPLB to nearby towns.";
   }
-  wrapText(intro, font, 10, pageW - MARGIN * 2)
+  wrapText(intro, font, 10, introW)
     .slice(0, 2)
     .forEach((line, i) => {
       page.drawText(line, {
@@ -1175,7 +1268,7 @@ export async function renderTransitMapPdf(input: {
     if (hereP && here)
       add(
         "here",
-        `${here.name} (you are here)`,
+        here.name ? `${here.name} (you are here)` : "You are here",
         hereP,
         12,
         10,
@@ -1575,13 +1668,10 @@ export async function renderTransitMapPdf(input: {
   }
 
   // ── Footer ────────────────────────────────────────────────────────────
-  page.drawText("Room TBA, room-tba.uplb.tools", {
-    x: MARGIN,
-    y: FOOTER_H - 12,
-    size: 7.5,
-    font,
-    color: MUTED,
-  });
+  page.drawText(
+    `Room TBA by UPLB Tools, room-tba.uplb.tools. Printed ${dateLabel}.`,
+    { x: MARGIN, y: FOOTER_H - 12, size: 7.5, font, color: MUTED },
+  );
   const footRight = input.basemap
     ? "Map data from OpenStreetMap contributors, ODbL. Route lines and walking distances are approximate."
     : "Route lines and walking distances are approximate.";

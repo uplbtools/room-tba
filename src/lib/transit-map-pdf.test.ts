@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { PDFDocument } from "pdf-lib";
 import basemap from "@constants/transit-basemap.json";
+import { PRINT_MAP_QR, RALEWAY_BOLD_HEADINGS } from "@constants/print-brand";
+import { getTransitMapPath } from "./route-links";
 import {
   findNearestStop,
   formatDistance,
@@ -17,6 +19,7 @@ import {
   makeProjector,
   metersPerDegreeLon,
   niceScaleBarMeters,
+  parseHerePoint,
   renderTransitMapPdf,
   starPath,
   smoothPath,
@@ -456,5 +459,76 @@ describe("renderTransitMapPdf with the OSM basemap", () => {
     });
     expect(performance.now() - t0).toBeLessThan(3000);
     expect(bytes.length).toBeLessThan(500 * 1024);
+  });
+});
+
+describe("any point as You are here", () => {
+  const params = (query: string) => new URLSearchParams(query);
+
+  test("the app link round-trips through the API parser", () => {
+    const path = getTransitMapPath({
+      lat: 14.164812,
+      lon: 121.241703,
+      name: "Main Library",
+    });
+    const parsed = parseHerePoint(new URL(path, "https://x").searchParams);
+    expect(parsed).toEqual({
+      name: "Main Library",
+      lat: 14.16481,
+      lon: 121.2417,
+    });
+  });
+
+  test("a dropped pin has no name", () => {
+    const path = getTransitMapPath({ lat: 14.16, lon: 121.24 });
+    expect(path).not.toContain("name=");
+    expect(parseHerePoint(new URL(path, "https://x").searchParams)).toEqual({
+      name: null,
+      lat: 14.16,
+      lon: 121.24,
+    });
+  });
+
+  test("no point, or a half or bogus one", () => {
+    expect(parseHerePoint(params("here=Riceworld"))).toBeNull();
+    expect(parseHerePoint(params("lat=14.16"))).toBe("invalid");
+    expect(parseHerePoint(params("lat=abc&lon=121"))).toBe("invalid");
+    expect(parseHerePoint(params("lat=95&lon=121"))).toBe("invalid");
+  });
+
+  test("names are trimmed, capped and stripped of control characters", () => {
+    const parsed = parseHerePoint(
+      params(
+        `lat=14&lon=121&name=${encodeURIComponent(`  A\u0007B${"x".repeat(100)}`)}`,
+      ),
+    );
+    expect(parsed).not.toBe("invalid");
+    const name = (parsed as { name: string }).name;
+    expect(name.startsWith("AB")).toBe(true);
+    expect(name.length).toBe(80);
+  });
+
+  test("renders a nameless point near campus", async () => {
+    const bytes = await renderTransitMapPdf({
+      routes: [route()],
+      here: { lat: 14.1644, lon: 121.2412 },
+      basemap: basemap as TransitBasemap,
+    });
+    const pdf = await PDFDocument.load(bytes);
+    expect(pdf.getPageCount()).toBe(1);
+  });
+});
+
+describe("print branding", () => {
+  test("the QR grid is square and the headings were baked", () => {
+    expect(PRINT_MAP_QR.length).toBeGreaterThanOrEqual(21);
+    for (const row of PRINT_MAP_QR) {
+      expect(row).toMatch(/^[01]+$/);
+      expect(row.length).toBe(PRINT_MAP_QR.length);
+    }
+    expect(
+      RALEWAY_BOLD_HEADINGS["UPLB Jeepney Routes"].d.length,
+    ).toBeGreaterThan(100);
+    expect(RALEWAY_BOLD_HEADINGS["Room TBA"].width).toBeGreaterThan(0);
   });
 });
