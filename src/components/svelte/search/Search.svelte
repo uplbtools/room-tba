@@ -234,8 +234,14 @@
                 value={draftInput}
                 bind:this={searchElement}
                 oninput={handleInput}
-                onfocus={() => {
+                onfocus={(event) => {
                   searchFocused = true;
+                  // Picking a start, end or extra stop: the box still holds
+                  // the destination's name, so select it and the first key
+                  // replaces it instead of appending ("IHNF BuildingPhy…").
+                  if (directionsStore.picking !== null) {
+                    event.currentTarget.select();
+                  }
                 }}
                 onblur={() => {
                   searchFocused = false;

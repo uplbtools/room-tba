@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/svelte";
+import { fireEvent, render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test } from "vitest";
-import { directionsStore } from "@lib/store.svelte";
+import { directionsStore, locationStore } from "@lib/store.svelte";
 import {
   expectNoHorizontalOverflow,
   mountAtWidth,
@@ -50,6 +50,41 @@ function seedReadyDirections() {
 describe("DirectionsPanel", () => {
   beforeEach(() => {
     directionsStore.close();
+    locationStore.failure = null;
+  });
+
+  function seedWaitingForLocation() {
+    directionsStore.phase = "planning";
+    directionsStore.origin = null;
+    directionsStore.destination = {
+      lat: 14.161,
+      lng: 121.241,
+      label: "CDC Building",
+    };
+  }
+
+  test("offers a start point while waiting on location", async () => {
+    seedWaitingForLocation();
+    render(DirectionsPanel);
+
+    expect(screen.getByText(/Waiting for your location/)).toBeInTheDocument();
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Choose a starting point" }),
+    );
+    expect(directionsStore.picking).toBe("origin");
+  });
+
+  test("stops waiting and says why when location fails", () => {
+    seedWaitingForLocation();
+    locationStore.failure =
+      "Location access denied. Please enable it in your settings.";
+    render(DirectionsPanel);
+
+    expect(screen.queryByText(/Waiting for your location/)).toBeNull();
+    expect(screen.getByText(/Location access denied/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Choose a starting point" }),
+    ).toBeVisible();
   });
 
   test.each([320, 768])(

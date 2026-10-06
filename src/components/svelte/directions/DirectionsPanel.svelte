@@ -213,12 +213,28 @@
     <p class="directions__note" role="status">
       Search for a place or tap the map to choose where you are going.
     </p>
+  {:else if directionsStore.phase === "planning" && (locationStore.coords || directionsStore.originFixed)}
+    <p class="directions__note" role="status">Finding the best ways there…</p>
   {:else if directionsStore.phase === "planning"}
-    <p class="directions__note" role="status">
-      {locationStore.coords || directionsStore.originFixed
-        ? "Finding the best ways there…"
-        : "Waiting for your location…"}
-    </p>
+    <!-- No start point yet. Location can be denied, unavailable, or a prompt
+         the rider never answers, so never only wait: always offer to pick a
+         start point instead (search or tap the map, as for any stop). -->
+    {#if locationStore.failure}
+      <p class="directions__note directions__note--warn" role="status">
+        {locationStore.failure} Choose where you are starting from instead.
+      </p>
+    {:else}
+      <p class="directions__note" role="status">
+        Waiting for your location… or choose where you are starting from.
+      </p>
+    {/if}
+    <button
+      type="button"
+      class="directions__ghost"
+      onclick={() => directionsStore.beginPick("origin")}
+    >
+      Choose a starting point
+    </button>
   {:else if directionsStore.phase === "error"}
     <p class="directions__note directions__note--warn" role="status">
       Could not load the campus path map. Check your connection and try again.
