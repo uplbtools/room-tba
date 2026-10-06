@@ -130,9 +130,17 @@
     sidePanelStore.collapsed = !sidePanelStore.collapsed;
   }
 
+  /** Exit a focused jeepney route: no route line, no stops, plain map. */
+  function closeJeepneyRoute() {
+    jeepneyStore.disableLayer();
+    queryStore.clearQuery();
+    sidePanelStore.closePanel();
+  }
+
   function dismissMobileSheet() {
     directionsStore.close();
-    jeepneyStore.closeStop();
+    // Swiping the sheet away must not strand a drawn route with no panel.
+    jeepneyStore.clearRoute();
     queryStore.clearQuery();
     sidePanelStore.closePanel();
     mobileSnap = "peek";
@@ -149,6 +157,7 @@
     <JeepneyRouteModal
       routeId={jeepneyStore.selectedRouteId}
       onback={() => jeepneyStore.clearRoute()}
+      onclose={closeJeepneyRoute}
     />
   {:else if PanelContent}
     <PanelContent />
