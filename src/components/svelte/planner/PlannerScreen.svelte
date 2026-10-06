@@ -206,6 +206,21 @@
   let renaming = $state(false);
   let renameDraft = $state("");
 
+  // Delete sits beside Duplicate and cannot be undone; ask first when the
+  // plan holds classes. An empty plan just goes.
+  function deletePlan(tabPlan: { id: string; label: string; sections: unknown[] }) {
+    const count = tabPlan.sections.length;
+    if (
+      count > 0 &&
+      !window.confirm(
+        `Delete ${tabPlan.label}? Its ${count} ${count === 1 ? "class" : "classes"} will be removed from this device.`,
+      )
+    ) {
+      return;
+    }
+    plannerStore.deletePlan(tabPlan.id);
+  }
+
   async function startRename(tabPlan?: { id: string; label: string }) {
     const target = tabPlan ?? plan;
     if (!target) return;
@@ -432,7 +447,7 @@
             <button
               type="button"
               class="planner-tab__action planner-tab__action--danger"
-              onclick={() => plannerStore.deletePlan(tabPlan.id)}
+              onclick={() => deletePlan(tabPlan)}
               aria-label="Delete {tabPlan.label}"
               title="Delete"
             >
@@ -1169,6 +1184,35 @@
 
     .planner-tabs {
       min-height: 2.75rem;
+    }
+
+    /* 44px targets: these were 20px, with Delete one slip from Duplicate.
+       Only the open plan shows them so the strip still fits several tabs;
+       tap a tab first to rename, copy or delete it. */
+    .planner-tab__action,
+    .planner-tab__tool--new {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .planner-tab-item:not(.planner-tab-item--active) .planner-tab__actions {
+      display: none;
+    }
+
+    /* The open tab keeps its name readable next to its actions; the strip
+       scrolls sideways when plans run out of room. */
+    .planner-tab-item--active {
+      flex: 0 0 auto;
+    }
+
+    .planner-tab-item--active .planner-tab__name {
+      min-width: 5.5rem;
+    }
+
+    .planner-back {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+      justify-content: center;
     }
 
     .planner-conflict-badge {
