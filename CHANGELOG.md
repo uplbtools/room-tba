@@ -1,3 +1,15 @@
+# [2.32.0](https://github.com/uplbtools/room-tba/compare/v2.31.1...v2.32.0) (2026-10-06)
+
+
+### Bug Fixes
+
+* **scripts:** route sync renumbers matched stops ([#1231](https://github.com/uplbtools/room-tba/issues/1231)) ([f8cc241](https://github.com/uplbtools/room-tba/commit/f8cc2416ae8399357aa6462dcd2a15888fddc19e))
+
+
+### Features
+
+* **transit:** 14-stop Forestry route, UP Rural route and route sync script ([#1229](https://github.com/uplbtools/room-tba/issues/1229)) ([9d29859](https://github.com/uplbtools/room-tba/commit/9d2985925e1b3e3b0d671164beeb926bb7acac45))
+
 ## [2.31.1](https://github.com/uplbtools/room-tba/compare/v2.31.0...v2.31.1) (2026-10-06)
 
 
