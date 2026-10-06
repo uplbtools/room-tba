@@ -172,6 +172,9 @@
     open={panelOpen}
     bind:snap={mobileSnap}
     peekRatio={sheetPeekRatio}
+    peekFitTo={navPeek || directionsPeek
+      ? undefined
+      : ".entity-actions, .sk-detail__actions"}
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
     bottomInset="0px"
     onDismiss={dismissMobileSheet}
