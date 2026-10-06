@@ -697,7 +697,8 @@ export async function renderTransitMapPdf(input: {
   const here = input.here
     ? {
         ...input.here,
-        name: input.here.name ? toWinAnsi(input.here.name) : null,
+        // A name of only unprintable characters sanitizes to "".
+        name: (input.here.name && toWinAnsi(input.here.name).trim()) || null,
       }
     : null;
   const hereOnMap =

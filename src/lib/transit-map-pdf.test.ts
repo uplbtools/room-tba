@@ -508,6 +508,14 @@ describe("any point as You are here", () => {
     expect(name.length).toBe(80);
   });
 
+  test("a name with no printable characters falls back to the star", async () => {
+    const bytes = await renderTransitMapPdf({
+      routes: [route()],
+      here: { name: "\u6559\u5ba4", lat: 14.1644, lon: 121.2412 },
+    });
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
+  });
+
   test("renders a nameless point near campus", async () => {
     const bytes = await renderTransitMapPdf({
       routes: [route()],

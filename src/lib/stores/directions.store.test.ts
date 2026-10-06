@@ -40,7 +40,13 @@ describe("DirectionsStore start point", () => {
     expect(store.originFixed).toBe(true);
     expect(store.destination).toEqual(library);
 
-    // "Use my location" hands the origin back to GPS.
+    // "Use my location" before a GPS fix clears the old plan.
+    store.journeys = [{ id: "stale" } as never];
+    await store.setOrigin(null, false);
+    expect(store.journeys).toEqual([]);
+    expect(store.phase).toBe("planning");
+
+    // Once a fix exists the origin goes back to GPS.
     await store.setOrigin(gps, false);
     expect(store.originFixed).toBe(false);
   });

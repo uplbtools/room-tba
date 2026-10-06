@@ -178,7 +178,16 @@ export class DirectionsStore {
     this.picking = null;
     this.originFixed = fixed && origin !== null;
     this.origin = origin;
-    if (!origin || !this.destination) return;
+    if (!origin) {
+      // Waiting on GPS: drop the old plan so no stale route stays drawn.
+      this.#planToken++;
+      this.journeys = [];
+      this.selectedId = null;
+      this.status = null;
+      if (this.destination) this.phase = "planning";
+      return;
+    }
+    if (!this.destination) return;
     await this.replan(origin, this.destination);
   };
 

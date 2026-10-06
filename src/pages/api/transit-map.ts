@@ -108,12 +108,11 @@ export const GET: APIRoute = async ({ url }) => {
       basemap: transitBasemap as TransitBasemap,
       format,
     });
-    const slug = here
-      ? `-from-${(here.name ?? "here")
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")}`
-      : "";
+    const nameSlug = (here?.name ?? "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const slug = here ? `-from-${nameSlug || "here"}` : "";
     return new Response(Buffer.from(bytes), {
       headers: {
         "Content-Type": "application/pdf",
