@@ -139,13 +139,44 @@ export function nameTokens(name: string): string[] {
     .filter((word) => word.length >= 4 && !GENERIC_WORDS.has(word));
 }
 
+const ACRONYM_SKIP = new Set([
+  "of",
+  "and",
+  "the",
+  "at",
+  "with",
+  "in",
+  "for",
+  "a",
+]);
+
+/** First letters of a title's words, e.g. "College of Human Ecology" is "che". */
+function titleInitials(title: string): string {
+  return title
+    .replace(/^File:/i, "")
+    .replace(/\.[a-z0-9]+$/i, "")
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((word) => word && !ACRONYM_SKIP.has(word.toLowerCase()))
+    .map((word) => word[0].toLowerCase())
+    .join("");
+}
+
 /**
- * Commons filter for small places (a food truck, a dorm, an office), where
- * nearest-within-radius drags in whatever is next door: a bird photographed
- * 15m from the post office is still a bird. Only files whose title names the
- * place, by a whole distinctive word, are kept.
+ * Commons filter for every place. Nearest-within-radius drags in whatever is
+ * next door: a bird photographed 15m from the post office is still a bird,
+ * and a portrait taken outside a building is not the building. Only files
+ * whose title names the place are kept, either by a whole distinctive word or
+ * by an all-caps acronym in the place name that the title spells out
+ * ("CEM Building" and "College of Economics and Management").
  */
 export function titleNamesPlace(title: string, name: string): boolean {
   const titleWords = new Set(nameTokens(title));
-  return nameTokens(name).some((token) => titleWords.has(token));
+  if (nameTokens(name).some((token) => titleWords.has(token))) return true;
+  const initials = titleInitials(title);
+  return name
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(
+      (word) => /^[A-Z]{2,6}$/.test(word) && word !== "UPLB" && word !== "UP",
+    )
+    .some((acronym) => initials.includes(acronym.toLowerCase()));
 }

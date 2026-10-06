@@ -2,12 +2,12 @@ import { fireEvent, render, screen } from "@testing-library/svelte";
 import { describe, expect, test } from "vitest";
 import BuildingPhoto from "@ui/controls/BuildingPhoto.svelte";
 
-// "building:Freedom Park" ships in the committed manifest (three Street View
+// "building:Veterinary Teaching Hospital" ships in the committed manifest (three Street View
 // headings plus Commons photos), so the real manifest is the fixture. Street
 // View stays off: PUBLIC_GOOGLE_MAPS_API_KEY is not set in vitest, which is
 // also the keyless production behavior the gallery must survive.
-const FREEDOM_PARK = {
-  name: "Freedom Park",
+const VET_HOSPITAL = {
+  name: "Veterinary Teaching Hospital",
   lat: 14.1617660159005,
   lon: 121.241457649492,
   panoId: "pano",
@@ -36,17 +36,21 @@ describe("BuildingPhoto", () => {
   test("multi-image gallery cycles and credits each photo", async () => {
     render(BuildingPhoto, {
       props: {
-        ...FREEDOM_PARK,
+        ...VET_HOSPITAL,
         imageUrl: "https://r2.example/freedom-park.jpg",
       },
     });
 
     // Contributor photo first, uncredited.
-    const first = screen.getByRole("img", { name: "Freedom Park" });
+    const first = screen.getByRole("img", {
+      name: "Veterinary Teaching Hospital",
+    });
     expect(first.getAttribute("src")).toContain("r2.example");
 
     await fireEvent.click(
-      screen.getByRole("button", { name: /next photo of Freedom Park/i }),
+      screen.getByRole("button", {
+        name: /next photo of Veterinary Teaching Hospital/i,
+      }),
     );
 
     // Commons photo second (no Street View without a key), with attribution
@@ -62,10 +66,14 @@ describe("BuildingPhoto", () => {
 
     // Wraps back around to the contributor photo.
     await fireEvent.click(
-      screen.getByRole("button", { name: /previous photo of Freedom Park/i }),
+      screen.getByRole("button", {
+        name: /previous photo of Veterinary Teaching Hospital/i,
+      }),
     );
     expect(
-      screen.getByRole("img", { name: "Freedom Park" }).getAttribute("src"),
+      screen
+        .getByRole("img", { name: "Veterinary Teaching Hospital" })
+        .getAttribute("src"),
     ).toContain("r2.example");
   });
 
