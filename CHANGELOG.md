@@ -1,3 +1,28 @@
+# [2.31.0](https://github.com/uplbtools/room-tba/compare/v2.30.2...v2.31.0) (2026-10-06)
+
+
+### Bug Fixes
+
+* **app-menu:** static presence dot, sign-in and presence on one row ([#1216](https://github.com/uplbtools/room-tba/issues/1216)) ([ae57a03](https://github.com/uplbtools/room-tba/commit/ae57a03fe7219119068372f6096705fc4c145ca4))
+* **data:** parse single-spaced finals rows, merge zero-padded room codes ([#1215](https://github.com/uplbtools/room-tba/issues/1215)) ([c3c3289](https://github.com/uplbtools/room-tba/commit/c3c3289b49a9cc35b11221aca9fddff13c3180db))
+* **planner:** allow two HK 12 activities; add Send feedback to the App menu ([#1213](https://github.com/uplbtools/room-tba/issues/1213)) ([733f1d6](https://github.com/uplbtools/room-tba/commit/733f1d6ed97643062941f49f58440be5445fa273))
+* **pwa:** let precached chunks match requests carrying ?dpl= ([#1219](https://github.com/uplbtools/room-tba/issues/1219)) ([4f29c67](https://github.com/uplbtools/room-tba/commit/4f29c67e2c399b4dcc3e1f8bc4250fb8df264e10))
+* **test:** harden component test mocks and decouple maintainer link for forks ([#1181](https://github.com/uplbtools/room-tba/issues/1181)) ([209979e](https://github.com/uplbtools/room-tba/commit/209979e43b04cbca3d2a566ecae32ae5381b4cae))
+* **test:** use bun's pathIgnorePatterns key in bunfig ([10b4f8c](https://github.com/uplbtools/room-tba/commit/10b4f8c3c02b39e20a9573447ef799d2e34015fc))
+* **transit-map:** clean printable map text and print the local date ([#1218](https://github.com/uplbtools/room-tba/issues/1218)) ([d09a99f](https://github.com/uplbtools/room-tba/commit/d09a99f3047bdd049720cd202f8a1a232484d2b6))
+
+
+### Features
+
+* **cards:** credit editors on entity cards and add public edit history ([#1217](https://github.com/uplbtools/room-tba/issues/1217)) ([41385cf](https://github.com/uplbtools/room-tba/commit/41385cf9a4433c0178ac8e4f85b30fa45caf500d))
+* **photos:** Street View and Commons galleries for dorms, places and offices ([#1221](https://github.com/uplbtools/room-tba/issues/1221)) ([ac22c6f](https://github.com/uplbtools/room-tba/commit/ac22c6f1436998442ab8f7d472bc187624629771))
+* **transit-map:** focus the printable map on the place it was opened from ([#1220](https://github.com/uplbtools/room-tba/issues/1220)) ([89b57b6](https://github.com/uplbtools/room-tba/commit/89b57b63d9f97f38ae91146e6527a41f045b704c))
+
+
+### Performance Improvements
+
+* **3d:** bundle OSM building footprints, fix Overpass fallback ([#1222](https://github.com/uplbtools/room-tba/issues/1222)) ([20a3f5b](https://github.com/uplbtools/room-tba/commit/20a3f5b6f3efa2a3b8e2cdb0605ba593ea210614))
+
 ## [2.30.2](https://github.com/uplbtools/room-tba/compare/v2.30.1...v2.30.2) (2026-10-05)
 
 
