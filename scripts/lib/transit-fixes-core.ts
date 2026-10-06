@@ -17,10 +17,10 @@
  * - Paired bus names read "Los Baños → Buendia (LRT Gil Puyat)" one way and
  *   "Buendia → Los Baños" the other.
  *
- * Deliberately left: the UP Diliman buses' Quezon Ave. / Skyway stop. The
- * drawn line follows OSM's C-5 mapping, which the route already flags as
- * disputed (DLTB_CAVEAT); moving the stop onto it would put it on the wrong
- * road.
+ *
+ * The UP Diliman buses' Quezon Ave. / Skyway stops needed no move: their line
+ * is road-routed via SLEX and the Skyway (scripts/generate-transit-geometry.ts)
+ * and passes within 10 m of them.
  */
 
 export const TRANSIT_FIX_OP_KEY = "2026-10-06-transit-stop-fixes";
