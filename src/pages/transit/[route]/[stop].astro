@@ -3,7 +3,8 @@ export const prerender = false;
 
 import AppRoot from "@ui/AppRoot.svelte";
 import Layout from "@layouts/Layout.astro";
-import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+import { getTransitRouteForPage } from "@lib/services/transit-service";
+import { transitRouteNoun, transitStopNoun } from "@lib/transit-route-kind";
 import { getTransitStopIndex } from "@lib/transit-urls";
 import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
 import { campusTransit } from "../../../campus.config";
@@ -14,16 +15,17 @@ if (!campusTransit.enabled) {
 
 const routeId = Astro.params.route;
 const stopSlug = Astro.params.stop;
-const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);
+const route = await getTransitRouteForPage(routeId);
 const stopIndex = route && stopSlug ? getTransitStopIndex(route, stopSlug) : -1;
 const stop = route?.stops[stopIndex] ?? null;
-const routeName = route?.name ?? "UPLB jeepney route";
-const stopName = stop?.name ?? "Jeepney stop";
+const routeName = route?.name ?? "UPLB transit route";
+const stopNoun = route ? transitStopNoun(route) : "Transit stop";
+const stopName = stop?.name ?? stopNoun;
 const canonicalPath = `/transit/${encodeURIComponent(routeId ?? "")}/${encodeURIComponent(stopSlug ?? "")}/`;
 const title = `${stopName} | ${routeName} | Room TBA`;
 const description = stop
   ? `${stop.description} Stop ${stopIndex + 1} of ${route!.stops.length} on the ${routeName}.`
-  : "View this UPLB jeepney stop and its route on the Room TBA campus map.";
+  : `View this UPLB ${stopNoun.toLowerCase()} and its ${route ? transitRouteNoun(route) : "route"} on the Room TBA map.`;
 const structuredData = jsonLd(
   webpageSchema({ title, description, path: canonicalPath }),
   breadcrumbSchema([
@@ -45,7 +47,7 @@ const structuredData = jsonLd(
     subtitle: route && stop
       ? `${routeName} · Stop ${stopIndex + 1} of ${route.stops.length}`
       : routeName,
-    kicker: "UPLB jeepney stop",
+    kicker: `UPLB ${stopNoun.toLowerCase()}`,
   })}
   {structuredData}
 >

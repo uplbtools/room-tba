@@ -26,8 +26,8 @@
   const chips: Chip[] = [
     { id: "buildings", label: "Class Buildings", iconUrl: classBuildingsIcon },
     { id: "dorms", label: "Dorms", iconUrl: dormsIcon },
-    { id: "divisions", label: "Divisions", LucideIcon: GraduationCap },
-    { id: "offices", label: "Units and offices", iconUrl: unitsOfficesIcon },
+    // Third, so it is on screen without scrolling the row on a phone; it
+    // started past the right edge in fifth place.
     ...(campusTransit.enabled
       ? [
           {
@@ -37,6 +37,8 @@
           },
         ]
       : []),
+    { id: "divisions", label: "Divisions", LucideIcon: GraduationCap },
+    { id: "offices", label: "Units and offices", iconUrl: unitsOfficesIcon },
     { id: "landmarks", label: "Landmark", LucideIcon: MapPin },
     { id: "services", label: "Stores", iconUrl: storeIcon },
     { id: "events", label: "Events", iconUrl: eventIcon },

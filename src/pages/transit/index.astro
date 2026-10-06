@@ -4,14 +4,14 @@ import Layout from "@layouts/Layout.astro";
 import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
 import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
 
-const title = "UPLB Jeepney Routes | Room TBA";
+const title = "UPLB Jeepney and Bus Routes | Room TBA";
 const description =
-  "Browse UPLB jeepney routes, stops, fares, and map paths for Kaliwa / Kanan and Forestry.";
+  "Browse UPLB campus jeepneys, town jeepneys to Calamba, Sta. Cruz and San Pablo, and buses to UP Diliman and Buendia: stops, fares, and map paths.";
 const structuredData = jsonLd(
   webpageSchema({ title, description, path: "/transit/" }),
   breadcrumbSchema([
     { name: "Home", path: "/" },
-    { name: "Jeepney routes", path: "/transit/" },
+    { name: "Jeepney and bus routes", path: "/transit/" },
   ]),
 );
 ---
@@ -21,7 +21,7 @@ const structuredData = jsonLd(
   description={description}
   canonicalPath="/transit/"
   imagePath={ogCardPath({
-    title: "UPLB Jeepney Routes",
+    title: "UPLB Jeepney and Bus Routes",
     subtitle: JEEPNEY_ROUTES.map((route) => route.name).join(" · "),
     kicker: "Transit at UPLB",
   })}
@@ -29,7 +29,7 @@ const structuredData = jsonLd(
 >
   <main class="transit-page">
     <article class="sr-only">
-      <h1>UPLB jeepney routes</h1>
+      <h1>UPLB jeepney and bus routes</h1>
       <p>{description}</p>
       <ul>
         {JEEPNEY_ROUTES.map((route) => <li>{route.name}: {route.description}</li>)}

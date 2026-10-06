@@ -37,6 +37,14 @@ export type JeepneyRoute = {
 export const JEEPNEY_FARE_NOTE =
   "Indicative fare for the 2025-2026 school year; confirm with the driver.";
 
+/** Town jeeps charge by distance; the listed fare is end to end. */
+export const TOWN_JEEPNEY_FARE_NOTE =
+  "Indicative fare to the end of the line; shorter trips cost less. Confirm with the driver.";
+
+/** Provincial and commuter bus fares, end to end. */
+export const BUS_FARE_NOTE =
+  "Indicative fare to the end of the line; confirm with the conductor or at the terminal.";
+
 const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 13, discounted: 11 };
 
 /** Fallback route line when no road-snapped geometry exists: a straight
@@ -449,6 +457,12 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
  * Bernardo "Berniemack" Muerong Arellano III, shown in the route modal with
  * credit. Facts only; the map artwork itself is CC BY-NC-SA and is not reused.
  */
+/** Tips for jeeps leaving Los Baños town (not campus-specific). */
+export const TOWN_JEEPNEY_RIDING_NOTES: string[] = [
+  "Board at Olivarez Plaza (College Junction). Outbound signboards: BAYAN (town proper), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
+  "Tell the driver where you are getting off; stops along the highway are not marked.",
+];
+
 export const JEEPNEY_RIDING_NOTES: string[] = [
   "Jeepneys from Calamba Crossing carry a UP COLLEGE or COLLEGE signboard; they may become Kaliwa, Kanan, Forestry, or UP Gate routes near campus. Check the windshield signboard or ask the driver.",
   "A UP GATE signboard means the jeep stops at Grove and does not enter campus.",

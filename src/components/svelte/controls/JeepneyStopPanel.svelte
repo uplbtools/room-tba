@@ -6,12 +6,15 @@
   import MapPin from "@lucide/svelte/icons/map-pin";
   import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import TransitStopEditor from "./TransitStopEditor.svelte";
   import { getGoogleStreetViewUrl } from "@lib/google-maps-links";
   import { getJeepneyRouteShareUrl } from "@lib/share-links";
   import MapChromeActionLink from "@ui/map-chrome/MapChromeActionLink.svelte";
   import { jeepneyStore, transitStore } from "@lib/store.svelte";
+  import { darkenForWhiteText } from "@lib/color-contrast";
+  import { distinctStopCount, isLoopRoute } from "@lib/transit-route-kind";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import "@ui/map-chrome/map-chrome.css";
 
@@ -25,6 +28,17 @@
   );
 
   const mapsUrl = $derived(stop ? { lat: stop.lat, lon: stop.lon } : null);
+  const loop = $derived(route ? isLoopRoute(route) : false);
+  const atLoopEnd = $derived(
+    loop && route !== null && stopIndex === route.stops.length - 1,
+  );
+  const stopPosition = $derived(
+    route === null || stopIndex === null
+      ? ""
+      : atLoopEnd
+        ? "End of the loop (back at stop 1)"
+        : `Stop ${stopIndex + 1} of ${distinctStopCount(route)}${loop ? " on the loop" : ""}`,
+  );
 
   function openPreviousStop() {
     if (route === null || stopIndex === null || stopIndex <= 0) return;
@@ -53,7 +67,7 @@
       <div class="entity-panel-header-top">
         <span
           class="jeepney-stop-panel__route-badge"
-          style:background-color={route.color}
+          style:background-color={darkenForWhiteText(route.color)}
         >
           <Bus size={14} aria-hidden="true" />
           {route.name}
@@ -61,32 +75,15 @@
         <EntityPanelClose ariaLabel="Close stop details" onclick={closeStop} />
       </div>
       <h2 class="entity-header__title">{stop.name}</h2>
-      <p class="entity-header__context">
-        Stop {stopIndex + 1} of {route.stops.length}
-      </p>
+      <p class="entity-header__context">{stopPosition}</p>
       <MapChromeActionChip toolbar onclick={openRouteDetails}>
         <ChevronLeft size={14} aria-hidden="true" />
         Back to {route.name} route
       </MapChromeActionChip>
     </header>
 
-    <p class="entity-directions__text">{stop.description}</p>
-    <p class="entity-panel-note">{route.description}</p>
-
-    <p class="jeepney-stop-panel__coords">
-      <MapPin size={14} aria-hidden="true" />
-      <span>{stop.lat.toFixed(5)}, {stop.lon.toFixed(5)}</span>
-    </p>
-
-    {#key stop.id ?? stopIndex}
-      <TransitStopEditor
-        routeId={route.id}
-        routeName={route.name}
-        {stop}
-        onRemoved={closeStop}
-      />
-    {/key}
-
+    <!-- Right under the header: in the half-open phone sheet these sat below
+         the descriptions, out of reach without dragging the sheet up. -->
     <div class="entity-actions">
       <div class="jeepney-stop-panel__pager" aria-label="Route stops">
         <MapChromeActionChip
@@ -107,6 +104,11 @@
         </MapChromeActionChip>
       </div>
       {#if mapsUrl}
+        <EntityDirectionsChip
+          lat={mapsUrl.lat}
+          lon={mapsUrl.lon}
+          destinationLabel={stop.name}
+        />
         <EntityGoogleMapsLink
           lat={mapsUrl.lat}
           lon={mapsUrl.lon}
@@ -127,6 +129,24 @@
         entityLabel={stop.name}
       />
     </div>
+
+    <p class="entity-directions__text">{stop.description}</p>
+    <p class="entity-panel-note">{route.description}</p>
+
+    <p class="jeepney-stop-panel__coords">
+      <MapPin size={14} aria-hidden="true" />
+      <span>{stop.lat.toFixed(5)}, {stop.lon.toFixed(5)}</span>
+    </p>
+
+    {#key stop.id ?? stopIndex}
+      <TransitStopEditor
+        routeId={route.id}
+        routeName={route.name}
+        {stop}
+        onRemoved={closeStop}
+      />
+    {/key}
+
   </div>
 {/if}
 

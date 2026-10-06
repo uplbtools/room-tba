@@ -171,6 +171,8 @@
     labelsToHide,
     type LabelCandidate,
   } from "@lib/map-label-declutter";
+  import { darkenForWhiteText } from "@lib/color-contrast";
+  import { isLoopRoute, transitStopNoun } from "@lib/transit-route-kind";
   import type {
     EditableCoords,
     EditableEntityType,
@@ -392,6 +394,9 @@
   const EXTERNAL_CAMPUSES_LABELS_LAYER_ID = "external-campuses-labels";
   let activeRouteId = $state<string | null>(null);
   let activeRouteStops = $state<JeepneyRoute["stops"]>([]);
+  /** Loop routes list the terminal again as the last stop; draw it once. */
+  let activeRouteIsLoop = $state(false);
+  let activeRouteStopNoun = $state("Jeepney stop");
   let activeRouteColor = $state<string>("#dc2626");
   let terrainModeWasEnabled = false;
   let selectedEditKey = $state<string | null>(null);
@@ -3123,6 +3128,8 @@
     activeRouteId = route.id;
     activeRouteStops = route.stops;
     activeRouteColor = route.color;
+    activeRouteIsLoop = isLoopRoute(route);
+    activeRouteStopNoun = transitStopNoun(route);
 
     // Geometry is resolved synchronously (static import + stop fallback).
     // Readiness gating is deliberately attempt-based: isStyleLoaded() is false
@@ -4334,16 +4341,22 @@
         {/if}
         {#if activeRouteId}
           {#each activeRouteStops as stop, i (`${activeRouteId}-${i}-${stop.name}`)}
-            {@const isHovered = jeepneyStore.hoveredStopIndex === i}
-            {@const isSelected = jeepneyStore.selectedStopIndex === i}
+            {@const loopEnd = activeRouteIsLoop ? activeRouteStops.length - 1 : -1}
+            {@const isHovered =
+              jeepneyStore.hoveredStopIndex === i ||
+              (i === 0 && jeepneyStore.hoveredStopIndex === loopEnd)}
+            {@const isSelected =
+              jeepneyStore.selectedStopIndex === i ||
+              (i === 0 && jeepneyStore.selectedStopIndex === loopEnd)}
+            {#if i !== loopEnd}
             <Marker lngLat={[stop.lon, stop.lat]}>
               <button
                 type="button"
                 class="jeepney-stop-pin"
                 class:jeepney-stop-pin--hovered={isHovered}
                 class:jeepney-stop-pin--selected={isSelected}
-                style:--stop-color={activeRouteColor}
-                aria-label={`Jeepney stop ${i + 1}: ${stop.name}`}
+                style:--stop-color={darkenForWhiteText(activeRouteColor)}
+                aria-label={`${activeRouteStopNoun} ${i + 1}: ${stop.name}`}
                 aria-pressed={isSelected}
                 onclick={(event) => {
                   event.stopPropagation();
@@ -4358,6 +4371,7 @@
                 <span class="stop-label" transition:fade>{stop.name}</span>
               </button>
             </Marker>
+            {/if}
           {/each}
         {/if}
 
@@ -5640,6 +5654,15 @@
   .jeepney-stop-pin:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
     outline-offset: 2px;
+  }
+
+  /* 44px touch target around the 22px pin; the pin itself stays small so
+     close stops still read as separate dots. */
+  .jeepney-stop-pin::before {
+    content: "";
+    position: absolute;
+    inset: -0.6875rem;
+    border-radius: 50%;
   }
 
   .jeepney-stop-pin .stop-index {
