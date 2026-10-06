@@ -169,7 +169,11 @@
             name={place.name}
             ariaLabel={`Open ${place.name} in Google Maps`}
           />
-          <EntityPrintableMapLink placeName={place.name} />
+          <EntityPrintableMapLink
+            lat={place.lat}
+            lon={place.lon}
+            name={place.name}
+          />
         {/if}
         <EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
         <EntityEditorToggle

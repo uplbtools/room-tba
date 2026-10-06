@@ -102,9 +102,10 @@
     // Frame GPS puck ↔ destination pin only. Full polyline bbox is taller than
     // wide on diagonal walks, so fitBounds zoomed out for height and left gaps.
     const gps = locationStore.coords;
-    const origin = gps
-      ? { lng: gps[0], lat: gps[1] }
-      : directionsStore.origin;
+    const origin =
+      gps && !directionsStore.originFixed
+        ? { lng: gps[0], lat: gps[1] }
+        : directionsStore.origin;
     if (!origin) return;
 
     const extents = computeDirectionsFitExtents({
@@ -183,7 +184,8 @@
 
     untrack(() => {
       const destination = directionsStore.destination;
-      if (!destination) return;
+      // A start point the rider chose wins over the blue dot.
+      if (!destination || directionsStore.originFixed) return;
 
       if (plannedFrom) {
         const movedMeters = Math.hypot(
@@ -207,9 +209,13 @@
 <section class="directions" aria-label="Directions">
   {#if directionsStore.navigating}
     <NavigationBar />
+  {:else if !directionsStore.destination}
+    <p class="directions__note" role="status">
+      Search for a place or tap the map to choose where you are going.
+    </p>
   {:else if directionsStore.phase === "planning"}
     <p class="directions__note" role="status">
-      {locationStore.coords
+      {locationStore.coords || directionsStore.originFixed
         ? "Finding the best ways there…"
         : "Waiting for your location…"}
     </p>

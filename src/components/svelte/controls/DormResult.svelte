@@ -12,6 +12,7 @@
   import Phone from "@lucide/svelte/icons/phone";
   import Building2 from "@lucide/svelte/icons/building-2";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
   import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import BadgeCheck from "@lucide/svelte/icons/badge-check";
@@ -735,6 +736,11 @@
             lon={dorm.lon}
             name={dorm.dormName}
             ariaLabel={`Open ${dorm.dormName} in Google Maps`}
+          />
+          <EntityPrintableMapLink
+            lat={dorm.lat}
+            lon={dorm.lon}
+            name={dorm.dormName}
           />
         {/if}
         <EntityShareCopyLink url={dormShareUrl} entityLabel={dorm.dormName} />

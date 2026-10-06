@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { mapStore, mapViewStore } from "@lib/store.svelte";
+import { directionsStore, mapStore, mapViewStore } from "@lib/store.svelte";
 import MapContextMenu from "./MapContextMenu.svelte";
 
 type ContextHandler = (event: {
@@ -93,5 +93,33 @@ describe("MapContextMenu", () => {
 
     await fireEvent.pointerDown(document.body);
     expect(screen.queryByRole("dialog", { name: "Map options" })).toBeNull();
+  });
+
+  test("offers directions and a printable jeep map from the clicked point", async () => {
+    const map = fakeMap();
+    mapStore.mapInstance = map.instance;
+    render(MapContextMenu);
+    map.fire(14.16512, 121.24138);
+
+    const link = await screen.findByRole("link", {
+      name: /printable jeep map from here/i,
+    });
+    expect(link.getAttribute("href")).toBe(
+      "/api/transit-map?lat=14.16512&lon=121.24138",
+    );
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: /directions from here/i }),
+    );
+    expect(screen.queryByRole("dialog", { name: "Map options" })).toBeNull();
+    expect(directionsStore.active).toBe(true);
+    expect(directionsStore.originFixed).toBe(true);
+    expect(directionsStore.origin).toMatchObject({
+      lat: 14.16512,
+      lng: 121.24138,
+      label: "Dropped pin",
+    });
+    expect(directionsStore.picking).toBe("destination");
+    directionsStore.close();
   });
 });

@@ -8,8 +8,10 @@ import {
 import jeepneyGeometries from "@constants/jeepney-geometries.json";
 import transitBasemap from "@constants/transit-basemap.json";
 import {
+  parseHerePoint,
   renderTransitMapPdf,
   type TransitBasemap,
+  type TransitMapHere,
   type TransitMapFormat,
 } from "@lib/transit-map-pdf";
 
@@ -28,16 +30,21 @@ function json(data: unknown, status = 200) {
 }
 
 /**
- * Printable transit map: GET /api/transit-map?here=<place id or name>&format=a4|letter
- * `here` is optional; when it matches a place, the PDF marks it "You are here".
+ * Printable transit map. GET /api/transit-map with optional `lat`, `lon` and
+ * `name` (any point), or `here` (a place id or name), plus `format=a4|letter`.
+ * The point is marked "You are here" with the nearest stop and the walk to it.
  */
 export const GET: APIRoute = async ({ url }) => {
   const hereParam = url.searchParams.get("here")?.trim();
   const formatParam = url.searchParams.get("format")?.trim();
   const format: TransitMapFormat = formatParam === "letter" ? "letter" : "a4";
 
-  let here: { name: string; lat: number; lon: number } | null = null;
-  if (hereParam) {
+  const point = parseHerePoint(url.searchParams);
+  if (point === "invalid") {
+    return json({ error: "lat and lon must be valid coordinates." }, 400);
+  }
+  let here: TransitMapHere | null = point;
+  if (!here && hereParam) {
     const asId = Number(hereParam);
     const places = await getAllPlaces().catch(() => []);
     // "Riceworld Museum" should match "Riceworld Museum (IRRI)": compare the
@@ -101,12 +108,11 @@ export const GET: APIRoute = async ({ url }) => {
       basemap: transitBasemap as TransitBasemap,
       format,
     });
-    const slug = here
-      ? `-from-${here.name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")}`
-      : "";
+    const nameSlug = (here?.name ?? "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const slug = here ? `-from-${nameSlug || "here"}` : "";
     return new Response(Buffer.from(bytes), {
       headers: {
         "Content-Type": "application/pdf",
