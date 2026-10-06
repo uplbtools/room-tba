@@ -148,7 +148,15 @@ export class DirectionsStore {
 
       this.journeys = plan.journeys;
       this.status = plan.status;
-      this.selectedId = plan.journeys[0]?.id ?? null;
+      // Walk is pinned as the first card (the baseline), but the option drawn
+      // and started by default is the fastest: a 15-minute jeep used to sit
+      // unselected under a 27-minute walk.
+      this.selectedId =
+        plan.journeys.reduce<(typeof plan.journeys)[number] | null>(
+          (best, journey) =>
+            best === null || journey.seconds < best.seconds ? journey : best,
+          null,
+        )?.id ?? null;
       this.phase = "ready";
     } catch {
       if (token !== this.#planToken) return;

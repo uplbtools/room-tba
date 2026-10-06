@@ -53,6 +53,10 @@
     return journey.legs.find((leg): leg is RideLeg => leg.kind === "ride");
   }
 
+  function rideLegs(journey: Journey): RideLeg[] {
+    return journey.legs.filter((leg): leg is RideLeg => leg.kind === "ride");
+  }
+
   function measureDirectionsFitPadding(
     map: { getContainer: () => HTMLElement },
     destinationLabel: string,
@@ -204,6 +208,11 @@
       );
     });
   });
+
+  function flyToStop(coordinate: [number, number] | undefined) {
+    if (!coordinate) return;
+    mapStore.mapInstance?.flyTo({ center: coordinate, zoom: 18, duration: 800 });
+  }
 </script>
 
 <section class="directions" aria-label="Directions">
@@ -280,16 +289,47 @@
                 )}
               </span>
               <span class="option__desc">{describeJourney(journey)}</span>
-              {#if ride}
-                <span class="option__desc">
-                  Board at {ride.boardStopName} · alight at {ride.alightStopName}
-                </span>
+              {#if ride && !isSelected}
+                {#each rideLegs(journey) as leg, n (n)}
+                  <span class="option__desc">
+                    {n > 0 ? "Then board" : "Board"} at {leg.boardStopName} · alight
+                    at {leg.alightStopName}
+                  </span>
+                {/each}
+              {/if}
+              {#if journey.fare}
                 <span class="option__fare">
-                  ₱{ride.fare.regular} · ₱{ride.fare.discounted} student/senior/PWD
+                  ₱{journey.fare.regular} · ₱{journey.fare.discounted} student/senior/PWD{rideLegs(
+                    journey,
+                  ).length > 1
+                    ? " (both rides)"
+                    : ""}
                 </span>
               {/if}
             </span>
           </button>
+          {#if ride && isSelected}
+            <!-- Outside the option button (no nested buttons): tap a stop
+                 name to see where to board or get off. -->
+            {#each rideLegs(journey) as leg, n (n)}
+              <p class="option__stops">
+                {n > 0 ? "Then board" : "Board"} at
+                <button
+                  type="button"
+                  class="option__stop-link"
+                  onclick={() => flyToStop(leg.coordinates[0])}
+                  >{leg.boardStopName}</button
+                >
+                · alight at
+                <button
+                  type="button"
+                  class="option__stop-link"
+                  onclick={() => flyToStop(leg.coordinates.at(-1))}
+                  >{leg.alightStopName}</button
+                >
+              </p>
+            {/each}
+          {/if}
         </li>
       {/each}
     </ul>
@@ -328,6 +368,24 @@
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
+  }
+
+  .option__stops {
+    margin: 0.375rem 0 0;
+    padding: 0 0.25rem;
+    font-size: 0.8125rem;
+    color: #52525b;
+  }
+
+  .option__stop-link {
+    all: unset;
+    box-sizing: border-box;
+    min-height: 2.75rem;
+    padding: 0 0.125rem;
+    color: var(--color-brand, #8d1437);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   .directions__note {

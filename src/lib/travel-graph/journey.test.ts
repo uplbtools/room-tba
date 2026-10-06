@@ -206,6 +206,73 @@ describe("planJourneys", () => {
     expect(PLAN_STATUS_NOTES[plan.status]).toContain("outside the mapped");
   });
 
+  test("plans from a terminal off the network by walking straight to its stop", () => {
+    // Like Olivarez Plaza: the jeep's first stop is in town, ~1 km off the
+    // campus walk network, and the rider stands next to it.
+    const terminal = { lat: LAT, lng: 121.23 };
+    const townRoute: JeepneyRoute = {
+      ...corridorRoute,
+      id: "town",
+      stops: [
+        {
+          name: "Terminal",
+          description: "",
+          lat: terminal.lat,
+          lon: terminal.lng,
+        },
+        ...corridorRoute.stops.slice(1),
+      ],
+    };
+    const plan = planJourneys({
+      graph,
+      origin: { lat: terminal.lat + 0.0005, lng: terminal.lng },
+      destination: nodeAt(4),
+      routes: [townRoute],
+    });
+
+    expect(plan.status).toBe("ok");
+    const ride = plan.journeys[0]?.legs.find(
+      (leg): leg is RideLeg => leg.kind === "ride",
+    );
+    expect(ride?.boardStopName).toBe("Terminal");
+    // ~55 m straight, with the street detour, is a short walk.
+    expect(plan.journeys[0]?.legs[0]?.meters).toBeLessThan(100);
+  });
+
+  test("transfers from a town jeep to a campus jeep when starting off campus", () => {
+    // Olivarez Plaza → FOREHA: Kaliwa/Kanan into campus, then Forestry.
+    const terminal = { lat: LAT - 0.01, lng: 121.24 };
+    const townRoute: JeepneyRoute = {
+      ...corridorRoute,
+      id: "town-loop",
+      name: "Town Loop",
+      fare: { regular: 13, discounted: 11 },
+      stops: [
+        {
+          name: "Town Terminal",
+          description: "",
+          lat: terminal.lat,
+          lon: terminal.lng,
+        },
+        { name: "Stop 0", description: "", lat: nodeAt(0).lat, lon: 121.24 },
+      ],
+    };
+    const plan = planJourneys({
+      graph,
+      origin: terminal,
+      destination: nodeAt(4),
+      routes: [townRoute, corridorRoute],
+    });
+
+    expect(plan.status).toBe("ok");
+    const rides = plan.journeys[0]?.legs.filter(
+      (leg): leg is RideLeg => leg.kind === "ride",
+    );
+    expect(rides?.map((r) => r.routeId)).toEqual(["town-loop", "corridor"]);
+    // Both fares, one per boarding.
+    expect(plan.journeys[0]?.fare).toEqual({ regular: 26, discounted: 22 });
+  });
+
   test("refuses to plan to a point off the mapped network", () => {
     const plan = planJourneys({
       graph,
