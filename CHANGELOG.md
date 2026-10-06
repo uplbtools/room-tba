@@ -1,3 +1,15 @@
+# [2.33.0](https://github.com/uplbtools/room-tba/compare/v2.32.0...v2.33.0) (2026-10-06)
+
+
+### Bug Fixes
+
+* **transit:** upper Forestry stops on the road, line through all 14 stops ([#1236](https://github.com/uplbtools/room-tba/issues/1236)) ([8207bef](https://github.com/uplbtools/room-tba/commit/8207befb62110155d22d59b7c2e2a454c6a10ddf))
+
+
+### Features
+
+* directions and a printable jeep map from any point ([#1234](https://github.com/uplbtools/room-tba/issues/1234)) ([252b693](https://github.com/uplbtools/room-tba/commit/252b6932ce45f62e3a947638837c6544724fe595)), closes [#1232](https://github.com/uplbtools/room-tba/issues/1232) [#1233](https://github.com/uplbtools/room-tba/issues/1233)
+
 # [2.32.0](https://github.com/uplbtools/room-tba/compare/v2.31.1...v2.32.0) (2026-10-06)
 
 
