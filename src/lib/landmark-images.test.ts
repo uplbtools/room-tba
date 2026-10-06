@@ -12,6 +12,16 @@ const FREEDOM_PARK = {
   googleKey: "test-google-key",
 };
 
+// Commons photos must name their place in the file title, so Freedom Park has
+// none; the Veterinary Teaching Hospital carries two titled photos.
+const VET_HOSPITAL = {
+  name: "Veterinary Teaching Hospital",
+  lat: 14.16,
+  lon: 121.24,
+  panoId: null,
+  googleKey: "test-google-key",
+};
+
 describe("landmarkImages", () => {
   test("orders contributor, street view angles, commons; caps at 10", () => {
     const images = landmarkImages({
@@ -25,14 +35,11 @@ describe("landmarkImages", () => {
     expect(
       streetView.map((i) => new URL(i.src).searchParams.get("heading")),
     ).toEqual(["233", "288", "343"]);
-    expect(
-      images.filter((i) => i.source === "commons").length,
-    ).toBeGreaterThanOrEqual(1);
     expect(images.length).toBeLessThanOrEqual(MAX_IMAGES_PER_LANDMARK);
   });
 
   test("commons credit carries artist, license, and the file page link", () => {
-    const commons = landmarkImages(FREEDOM_PARK).find(
+    const commons = landmarkImages(VET_HOSPITAL).find(
       (i) => i.source === "commons",
     );
     expect(commons?.credit).toMatch(/\(.+\)/);
@@ -41,7 +48,7 @@ describe("landmarkImages", () => {
 
   test("no key means no street view, but commons still shows", () => {
     const images = landmarkImages({
-      ...FREEDOM_PARK,
+      ...VET_HOSPITAL,
       googleKey: undefined,
     });
     expect(images.some((i) => i.source === "street-view")).toBe(false);
