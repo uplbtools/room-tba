@@ -73,9 +73,10 @@ function expandFacilityAbbreviations(key: string) {
   return expanded;
 }
 
-/** Alphanumerics only — collapses every spacing/punctuation variant. */
-function squashFacilityKey(key: string) {
-  return key.replace(/[^A-Z0-9]/g, "");
+/** Alphanumerics only — collapses every spacing/punctuation variant, and
+ *  zero padding ("TCC-01" and "TCC 1" share a key). */
+export function squashFacilityKey(key: string) {
+  return key.replace(/[^A-Z0-9]/g, "").replace(/(?<!\d)0+(?=\d)/g, "");
 }
 
 function stripParenthetical(code: string) {

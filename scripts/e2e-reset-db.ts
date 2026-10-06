@@ -333,6 +333,31 @@ async function main() {
     const placeId = place.rows[0]?.id;
     if (!placeId) throw new Error("Failed to seed place");
 
+    // Public edit history (e2e/browse/entity-history.spec.ts): an import row,
+    // then an approved suggestion whose approver has an email-shaped login and
+    // whose snapshot carries a private field. Neither may reach the page.
+    await client.query(
+      `INSERT INTO editor_history (entity_type, entity_id, action, before_snapshot, after_snapshot, edited_by, created_at)
+       VALUES
+         ('place', $1, 'create', NULL, $2, 'maintenance-script', now() - interval '2 days'),
+         ('place', $1, 'update', $3, $4, 'e2e-approver@example.com', now() - interval '1 day')`,
+      [
+        placeId,
+        { name: E2E_FIXTURES.placeName, description: "E2E seeded place" },
+        { description: "E2E seeded place", hours: null },
+        {
+          description: "E2E seeded place",
+          hours: "8 AM to 5 PM",
+          contactEmail: "e2e-private@example.com",
+        },
+      ],
+    );
+    await client.query(
+      `INSERT INTO contributions (submitter_name, entity_type, entity_id, entity_label, source, created_at)
+       VALUES ('E2E Contributor', 'place', $1, $2, 'proposal_approved', now() - interval '1 day' + interval '200 milliseconds')`,
+      [placeId, E2E_FIXTURES.placeName],
+    );
+
     await client.query(
       `INSERT INTO events (slug, title, description, category, starts_at, ends_at, timezone, recurrence, is_active, include_in_seo, version)
        VALUES ($1, $2, 'E2E event', 'other', NOW() + interval '1 day', NOW() + interval '2 days', 'Asia/Manila', 'none', true, true, 1)`,

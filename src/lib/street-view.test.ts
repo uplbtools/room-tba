@@ -69,6 +69,20 @@ describe("streetViewMetadataUrl", () => {
     expect(url.pathname).toBe("/maps/api/streetview/metadata");
     expect(url.searchParams.has("size")).toBe(false);
   });
+
+  test("outdoor source filter excludes indoor panoramas", () => {
+    const url = new URL(streetViewMetadataUrl(ICS, KEY, 60, "outdoor"));
+    expect(url.searchParams.get("source")).toBe("outdoor");
+    expect(url.searchParams.get("radius")).toBe("60");
+  });
+});
+
+describe("streetViewImageUrl pano pinning", () => {
+  test("a pinned pano replaces the location lookup", () => {
+    const url = new URL(streetViewImageUrl(ICS, KEY, { pano: "abc" }));
+    expect(url.searchParams.get("pano")).toBe("abc");
+    expect(url.searchParams.has("location")).toBe(false);
+  });
 });
 
 function jsonResponse(body: unknown, ok = true, status = 200) {

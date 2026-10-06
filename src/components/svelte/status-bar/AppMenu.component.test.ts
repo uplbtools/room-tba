@@ -71,6 +71,16 @@ describe("AppMenu help entry", () => {
     expect(modalStore.landingTab).toBe("welcome");
   });
 
+  test("Send feedback opens the feedback panel directly", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: /send feedback/i }),
+    );
+    expect(modalStore.open).toBe(true);
+    expect(modalStore.type).toBe("feedback");
+  });
+
   test("opens emergency hotlines", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
     await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
@@ -110,5 +120,49 @@ describe("AppMenu navigation", () => {
 
     await fireEvent.click(screen.getByRole("button", { name: "Colleges" }));
     expect(sidePanelStore.state?.type).toBe("browsing-entities");
+  });
+});
+
+describe("AppMenu header row", () => {
+  beforeEach(() => {
+    adminAuthStore.isLoggedIn = false;
+    adminAuthStore.username = null;
+    adminAuthStore.canPublish = false;
+    adminAuthStore.canReview = false;
+    adminAuthStore.role = null;
+  });
+
+  function headerOf(el: HTMLElement) {
+    const header = el.closest(".app-menu__header");
+    expect(header).not.toBeNull();
+    return header as HTMLElement;
+  }
+
+  test("sign-in and live presence share one row", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+
+    const header = headerOf(
+      screen.getByRole("button", { name: "Contributor sign in" }),
+    );
+    expect(header.querySelector(".online-counter")).not.toBeNull();
+    // Account first, presence second: sign-in left, presence right.
+    expect(header.lastElementChild).toHaveClass("online-counter");
+  });
+
+  test("a signed-in contributor's session controls share the presence row", async () => {
+    adminAuthStore.isLoggedIn = true;
+    adminAuthStore.username = "juan";
+    adminAuthStore.role = "contributor";
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+
+    expect(
+      screen.queryByRole("button", { name: "Contributor sign in" }),
+    ).toBeNull();
+    const header = headerOf(screen.getByRole("button", { name: /sign out/i }));
+    expect(header.querySelector(".online-counter")).not.toBeNull();
+    adminAuthStore.isLoggedIn = false;
+    adminAuthStore.username = null;
   });
 });

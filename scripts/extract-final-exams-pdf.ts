@@ -48,9 +48,12 @@ const DAY_HEADER =
 // "10:00 - 12:00 NOON", "2:00 - 4:00 pm", "7:00-9:00 a.m".
 const SLOT =
   /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*(A\.?M\.?|P\.?M\.?|NOON|NN)?\s*$/i;
-// "AAE 151", "APHY 10.1", "ChE 32", "SCIENCE 10". A trailing letter after the
-// number ("RINR 271A") marks a wrapped room line, not a course.
-const COURSE_ROW = /^([A-Z][A-Za-z]{1,7}\s+\d+(?:\.\d+)?)(?:\s{2,}(.*))?$/;
+// "AAE 151", "APHY 10.1", "ChE 32", "SCIENCE 10", "ENSC 14a", "CHEM 161A".
+// Some PDFs put only one space between the course and its room
+// ("CHEM 111.1 PSLH A"), so any whitespace separates the two cells.
+const COURSE_ROW =
+  /^([A-Z][A-Za-z]{1,7}\s+\d+(?:\.\d+)?[A-Za-z]?)(?:\s+(.*))?$/;
+const COLUMN_GAP = /^\S+\s+\S+\s{2,}\S/;
 const NOISE =
   /^(Subject\b|All section\b|NO FINAL EXAMINATION|EXAMINATION BY ARRANGEMENT|Department of Human Kinetics|UNIVERSITY OF|OFFICE OF)/i;
 
@@ -195,7 +198,13 @@ for (const rawLine of lines) {
 
   if (!body) continue;
 
-  const row = body.match(COURSE_ROW);
+  // A room list that ends in a comma can wrap onto a line that looks like a
+  // course ("RINR 271A"). Wide column spacing still marks a real course row.
+  const prevRooms = block[block.length - 1]?.rooms.trimEnd() ?? "";
+  const row =
+    prevRooms.endsWith(",") && !COLUMN_GAP.test(body)
+      ? null
+      : body.match(COURSE_ROW);
   if (row) {
     block.push({
       courseCode: row[1].replace(/\s+/g, " "),

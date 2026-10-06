@@ -1,7 +1,19 @@
 import { describe, expect, test } from "bun:test";
 import { PDFDocument } from "pdf-lib";
+import basemap from "@constants/transit-basemap.json";
 import {
+  findNearestStop,
+  formatDistance,
+  groupIntercityByOrigin,
+  haversineMeters,
   isCampusScopeRoute,
+  isLoopRoute,
+  labelCandidates,
+  placeLabels,
+  pointsAlong,
+  routeLineStyles,
+  WALK_DETOUR_FACTOR,
+  type TransitBasemap,
   makeProjector,
   metersPerDegreeLon,
   niceScaleBarMeters,
@@ -116,12 +128,20 @@ describe("niceScaleBarMeters", () => {
 
 describe("toWinAnsi", () => {
   test("maps arrows and typography the standard fonts cannot encode", () => {
-    expect(toWinAnsi("Buendia → Los Baños")).toBe("Buendia -> Los Baños");
+    expect(toWinAnsi("Buendia → Los Baños")).toBe("Buendia to Los Baños");
     expect(toWinAnsi("A ↔ B • C")).toBe("A <-> B - C");
   });
 
+  test("prints em dashes, interpuncts and ellipses as plain punctuation", () => {
+    expect(toWinAnsi("Buendia \u2014 Sen. Gil Puyat Ave.")).toBe(
+      "Buendia, Sen. Gil Puyat Ave.",
+    );
+    expect(toWinAnsi("A \u00b7 B")).toBe("A , B");
+    expect(toWinAnsi("Long name\u2026")).toBe("Long name");
+  });
+
   test("drops unencodable codepoints instead of failing the render", () => {
-    expect(toWinAnsi("Route \u2192 \u2603")).toBe("Route -> ");
+    expect(toWinAnsi("Route \u2192 \u2603")).toBe("Route to ");
     expect(toWinAnsi("Kaliwa / Kanan")).toBe("Kaliwa / Kanan");
   });
 });
@@ -175,7 +195,7 @@ describe("renderTransitMapPdf", () => {
     expect(bytes.length).toBeGreaterThan(2000);
 
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("UPLB Transit Map — Jeepney Routes");
+    expect(pdf.getTitle()).toBe("UPLB Jeepney Routes");
     expect(pdf.getAuthor()).toBe("Room TBA");
   });
 
@@ -218,5 +238,223 @@ describe("renderTransitMapPdf", () => {
     expect(lsize.height).toBeCloseTo(612, 0);
     expect(a4size.width).toBeGreaterThan(lsize.width);
     expect(a4size.height).toBeLessThan(lsize.height);
+  });
+});
+
+describe("nearest stop", () => {
+  test("haversine matches a known distance", () => {
+    // One degree of latitude is about 111.2 km.
+    expect(
+      haversineMeters({ lat: 14, lon: 121 }, { lat: 15, lon: 121 }),
+    ).toBeCloseTo(111195, -2);
+    expect(
+      haversineMeters({ lat: 14.1, lon: 121.2 }, { lat: 14.1, lon: 121.2 }),
+    ).toBe(0);
+  });
+
+  test("picks the closest stop and pads the walk by the detour factor", () => {
+    const here = { lat: 14.1644, lon: 121.2412 }; // E-Kitchen Food Truck
+    const stops = [
+      { name: "Main Library", lat: 14.16544, lon: 121.2386 },
+      { name: "Graduate School / Umali", lat: 14.16374, lon: 121.23999 },
+      { name: "Makiling School", lat: 14.16574, lon: 121.24426 },
+    ];
+    const nearest = findNearestStop(here, stops);
+    expect(nearest?.stop.name).toBe("Graduate School / Umali");
+    expect(nearest?.straightM).toBeGreaterThan(130);
+    expect(nearest?.straightM).toBeLessThan(160);
+    expect(nearest?.walkM).toBeCloseTo(
+      (nearest?.straightM ?? 0) * WALK_DETOUR_FACTOR,
+      6,
+    );
+  });
+
+  test("returns null without stops", () => {
+    expect(findNearestStop({ lat: 14, lon: 121 }, [])).toBeNull();
+  });
+
+  test("formats distances without false precision", () => {
+    expect(formatDistance(3)).toBe("10 m");
+    expect(formatDistance(187)).toBe("190 m");
+    expect(formatDistance(1349)).toBe("1.3 km");
+  });
+});
+
+describe("placeLabels", () => {
+  const bounds = { x: 0, y: 0, w: 500, h: 500 };
+  const req = (
+    id: string,
+    ax: number,
+    ay: number,
+    priority: number,
+    keep = false,
+  ) => ({
+    id,
+    ax,
+    ay,
+    gap: 4,
+    w: 60,
+    h: 8,
+    priority,
+    keep,
+  });
+  const overlap = (
+    a: { x: number; y: number; w: number; h: number },
+    b: { x: number; y: number; w: number; h: number },
+  ) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+  test("offers 8 distinct positions around the anchor", () => {
+    const c = labelCandidates(req("a", 100, 100, 1));
+    expect(c).toHaveLength(8);
+    expect(new Set(c.map((b) => `${b.x}:${b.y}`)).size).toBe(8);
+  });
+
+  test("moves a colliding label to another position instead of overlapping", () => {
+    const placed = placeLabels(
+      [req("a", 100, 100, 2), req("b", 104, 100, 1)],
+      [],
+      bounds,
+    );
+    const a = placed.get("a")!;
+    const b = placed.get("b")!;
+    expect(a).toBeDefined();
+    expect(b).toBeDefined();
+    expect(overlap(a, b)).toBe(false);
+  });
+
+  test("drops the lower-priority label when no position is free, keeps kept ones", () => {
+    // A wall of obstacles around (100, 100) leaves no free spot nearby.
+    const wall = [{ x: 0, y: 0, w: 500, h: 500 }];
+    const placed = placeLabels(
+      [req("terminal", 100, 100, 80, true), req("minor", 100, 100, 10)],
+      wall,
+      bounds,
+    );
+    expect(placed.has("terminal")).toBe(true);
+    expect(placed.has("minor")).toBe(false);
+  });
+
+  test("higher priority wins the contested spot", () => {
+    const placed = placeLabels(
+      [req("low", 100, 100, 1), req("high", 100, 100, 9)],
+      [],
+      { x: 100 + 4, y: 100 - 4, w: 60, h: 8 }, // only the right-hand slot fits
+    );
+    expect(placed.has("high")).toBe(true);
+    expect(placed.has("low")).toBe(false);
+  });
+
+  test("keeps labels inside the frame bounds", () => {
+    const placed = placeLabels([req("edge", 495, 250, 5)], [], bounds);
+    const box = placed.get("edge")!;
+    expect(box.x + box.w).toBeLessThanOrEqual(500);
+  });
+});
+
+describe("groupIntercityByOrigin", () => {
+  const r = (id: string, name: string, fare: number): TransitMapRoute =>
+    route({
+      id,
+      name,
+      fareRegular: fare,
+      fareDiscounted: Math.round(fare * 0.8),
+      stops: [
+        { name: "Start", lat: 14.17, lon: 121.24 },
+        { name: "End", lat: 14.5, lon: 121.0 },
+      ],
+    });
+
+  test("groups by origin with the larger group first, one route per row", () => {
+    const groups = groupIntercityByOrigin([
+      r("buendia-to-lb", "Buendia → Los Baños", 165),
+      r("lb-to-calamba", "Los Baños → Calamba", 20),
+      r("lb-to-sta-cruz", "Los Baños → Sta. Cruz", 50),
+      r("uplb-to-upd", "UPLB → UP Diliman (DLTB Commuter Bus)", 165),
+    ]);
+    expect(groups.map((g) => g.origin)).toEqual([
+      "Los Baños",
+      "Buendia",
+      "UPLB",
+    ]);
+    expect(groups[0].routes.map((x) => x.destination)).toEqual([
+      "Calamba",
+      "Sta. Cruz",
+    ]);
+    expect(groups[0].routes[0].fareRegular).toBe(20);
+    expect(groups[2].routes[0].destination).toBe(
+      "UP Diliman (DLTB Commuter Bus)",
+    );
+  });
+
+  test("falls back to first and last stop when the name has no arrow", () => {
+    const [g] = groupIntercityByOrigin([r("x", "Bay shuttle", 30)]);
+    expect(g.origin).toBe("Start");
+    expect(g.routes[0].destination).toBe("End");
+  });
+});
+
+describe("route styles", () => {
+  test("Kaliwa / Kanan is a loop, Forestry is not", () => {
+    const loop = route({
+      stops: [
+        { name: "Olivarez", lat: 14.179, lon: 121.239 },
+        { name: "Gate", lat: 14.1677, lon: 121.2416 },
+        { name: "Library", lat: 14.1654, lon: 121.2386 },
+        { name: "Olivarez", lat: 14.179, lon: 121.239 },
+      ],
+    });
+    expect(isLoopRoute(loop)).toBe(true);
+    expect(isLoopRoute(route())).toBe(false);
+  });
+
+  test("every drawn line has a distinct dash pattern for grayscale prints", () => {
+    const loop = route({
+      id: "kaliwa-kanan",
+      stops: [
+        { name: "Olivarez", lat: 14.179, lon: 121.239 },
+        { name: "Gate", lat: 14.1677, lon: 121.2416 },
+        { name: "Olivarez", lat: 14.179, lon: 121.239 },
+      ],
+    });
+    const styles = routeLineStyles([
+      loop,
+      route({ id: "forestry" }),
+      route({ id: "third" }),
+    ]);
+    // Solid (null) counts as a pattern too; a loop also has its reverse line.
+    const patterns = [...styles.values()].flatMap((s) => [
+      JSON.stringify(s.dash),
+      ...(s.reverseDash ? [JSON.stringify(s.reverseDash)] : []),
+    ]);
+    expect(patterns).toHaveLength(4);
+    expect(new Set(patterns).size).toBe(patterns.length);
+  });
+});
+
+describe("pointsAlong", () => {
+  test("spaces arrow points along the line in travel order", () => {
+    const pts = pointsAlong(
+      [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      40,
+      10,
+    );
+    expect(pts.map((p) => p.p.x)).toEqual([10, 50, 90]);
+    expect(pts[0].dir).toEqual({ x: 1, y: 0 });
+  });
+});
+
+describe("renderTransitMapPdf with the OSM basemap", () => {
+  test("stays small enough to print and send", async () => {
+    const t0 = performance.now();
+    const bytes = await renderTransitMapPdf({
+      routes: [route()],
+      here: { name: "E-Kitchen Food Truck", lat: 14.1644, lon: 121.2412 },
+      basemap: basemap as TransitBasemap,
+    });
+    expect(performance.now() - t0).toBeLessThan(3000);
+    expect(bytes.length).toBeLessThan(500 * 1024);
   });
 });

@@ -51,7 +51,20 @@ test.describe("App Menu", () => {
     const menu = await openAppMenu(page);
     // Renders "--" until the first heartbeat lands; either way the counter
     // must be mounted, it vanished silently in the Aug 2026 redesign.
-    await expect(menu.locator(".online-counter")).toBeVisible();
+    const counter = menu.locator(".online-counter");
+    await expect(counter).toBeVisible();
+
+    // Presence and sign-in share one row instead of stacking (user feedback:
+    // the stacked header wasted vertical space).
+    const signIn = menu.getByRole("button", { name: "Contributor sign in" });
+    const [counterBox, signInBox] = await Promise.all([
+      counter.boundingBox(),
+      signIn.boundingBox(),
+    ]);
+    expect(counterBox && signInBox).toBeTruthy();
+    const mid = (b: { y: number; height: number }) => b.y + b.height / 2;
+    expect(Math.abs(mid(counterBox!) - mid(signInBox!))).toBeLessThan(8);
+    expect(counterBox!.x).toBeGreaterThan(signInBox!.x + signInBox!.width);
   });
 
   test("Settings opens from the support section", async ({ page }) => {

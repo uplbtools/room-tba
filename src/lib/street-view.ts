@@ -51,10 +51,23 @@ export type StreetViewImageOptions = {
    * finds nothing where 100 finds the frontage.
    */
   radius?: number;
+  /**
+   * Pin an exact panorama instead of letting Google pick the nearest one to
+   * `coords`. Headings computed against one pano point at the wrong thing
+   * from another. Pano ids are already stored (migration 0052).
+   */
+  pano?: string;
 };
 
 export type StreetViewMetadata =
-  | { status: "OK"; panoId: string; location: StreetViewCoords; date?: string }
+  | {
+      status: "OK";
+      panoId: string;
+      location: StreetViewCoords;
+      date?: string;
+      /** "© Google" for Google captures; a person's name for user uploads. */
+      copyright?: string;
+    }
   | { status: "ZERO_RESULTS" | "NOT_FOUND" }
   | { status: "ERROR"; reason: string };
 
@@ -83,7 +96,9 @@ export function streetViewImageUrl(
   const height = clamp(Math.round(options.height ?? 400), 16, MAX_SIZE);
   const params = new URLSearchParams({
     size: `${width}x${height}`,
-    location: `${coords.lat},${coords.lng}`,
+    ...(options.pano
+      ? { pano: options.pano }
+      : { location: `${coords.lat},${coords.lng}` }),
     key,
   });
   if (options.heading !== undefined)
@@ -101,6 +116,7 @@ export function streetViewMetadataUrl(
   coords: StreetViewCoords,
   key: string,
   radius?: number,
+  source?: "outdoor",
 ): string {
   const params = new URLSearchParams({
     location: `${coords.lat},${coords.lng}`,
@@ -108,6 +124,8 @@ export function streetViewMetadataUrl(
   });
   if (radius !== undefined)
     params.set("radius", String(Math.max(1, Math.round(radius))));
+  // Excludes indoor panoramas (shop interiors, lobbies).
+  if (source) params.set("source", source);
   return `${METADATA_ENDPOINT}?${params.toString()}`;
 }
 
@@ -121,12 +139,16 @@ export function streetViewMetadataUrl(
 export async function fetchStreetViewMetadata(
   coords: StreetViewCoords,
   key: string,
-  options: { radius?: number; fetchImpl?: typeof fetch } = {},
+  options: {
+    radius?: number;
+    source?: "outdoor";
+    fetchImpl?: typeof fetch;
+  } = {},
 ): Promise<StreetViewMetadata> {
   const doFetch = options.fetchImpl ?? fetch;
   try {
     const res = await doFetch(
-      streetViewMetadataUrl(coords, key, options.radius),
+      streetViewMetadataUrl(coords, key, options.radius, options.source),
     );
     if (!res.ok) return { status: "ERROR", reason: `HTTP ${res.status}` };
     const body = (await res.json()) as {
@@ -134,6 +156,7 @@ export async function fetchStreetViewMetadata(
       pano_id?: string;
       location?: { lat?: number; lng?: number };
       date?: string;
+      copyright?: string;
       error_message?: string;
     };
     if (body.status === "OK" && body.pano_id) {
@@ -145,6 +168,7 @@ export async function fetchStreetViewMetadata(
           lng: body.location?.lng ?? coords.lng,
         },
         date: body.date,
+        copyright: body.copyright,
       };
     }
     if (body.status === "ZERO_RESULTS" || body.status === "NOT_FOUND") {

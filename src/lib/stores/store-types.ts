@@ -8,7 +8,14 @@ export interface ModalStoreState {
   open: boolean;
   type: (typeof modalOptions)[number] | null;
   landingTab?: LandingModalTab;
+  /** Entity whose public edit history the "entity-history" modal shows. */
+  historyEntity?: HistoryEntityRef;
 }
+
+export type HistoryEntityRef = {
+  entityType: string;
+  entityId: number;
+};
 
 export interface QueryStoreState {
   type: "query" | "result";
