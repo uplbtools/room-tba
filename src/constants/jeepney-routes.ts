@@ -330,18 +330,18 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
       {
         name: "Forestry Admin Building",
         description:
-          "Stop at the College of Forestry and Natural Resources administration building.",
-        // ponytail: snapped to the service road in front of the building (OSM way 144375326).
-        lat: 14.154603,
-        lon: 121.234671,
+          "Stop on Martin R. Reyes in front of the College of Forestry and Natural Resources administration building.",
+        // ponytail: placed from aerial imagery at the middle of the front facade, on Martin R. Reyes.
+        lat: 14.155059,
+        lon: 121.235241,
       },
       {
         name: "Upper Forestry Jeep Terminal",
         description:
-          "Upper-campus terminal just southeast of (behind) the Forestry Admin Building.",
-        // ponytail: snapped to the same service road; no sourced pin yet.
-        lat: 14.154416,
-        lon: 121.234927,
+          "Upper-campus terminal on Martin R. Reyes, at the southeast end of the front of the Forestry Admin Building.",
+        // ponytail: placed from aerial imagery on the front road, southeast of the admin entrance stop.
+        lat: 14.154884,
+        lon: 121.235512,
       },
       {
         name: "Forest Biological Sciences Building",
