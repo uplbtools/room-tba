@@ -124,9 +124,15 @@ const shareTitle = ogTitle ?? title;
       href="https://fonts.gstatic.com"
       crossorigin="anonymous"
     />
+    <!-- Raleway only styles the landing modal, so it must not block first
+         paint: a slow or blocked fonts.googleapis.com held the whole page on
+         white until the request timed out. media="print" downloads it without
+         blocking render; onload switches it on. -->
     <link
       href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
 
     <!-- #716: desktop/mobile split is viewport-based (not User-Agent), so the
@@ -413,6 +419,15 @@ const shareTitle = ogTitle ?? title;
               true,
             );
 
+            // Astro's island reports a failed import or a throw during mount
+            // here, then leaves the island empty; no point waiting out the
+            // timer on a boot that has already given up.
+            window.addEventListener("astro:hydration-error", (event) => {
+              var url = String((event.detail && event.detail.componentUrl) || "");
+              if (url.indexOf("AppRoot") === -1) return;
+              onFatalSignal(`hydration error: ${url}`);
+            });
+
             window.addEventListener("unhandledrejection", (event) => {
               var msg = String((event.reason && event.reason.message) || event.reason || "");
               if (!/dynamically imported module|Importing a module script failed|ChunkLoadError/i.test(msg)) return;
@@ -499,13 +514,34 @@ const shareTitle = ogTitle ?? title;
           stopSplashRotation();
           document.getElementById("app-loading-shell")?.remove();
         }
-        document.addEventListener(
-          "astro:before-prehydration",
-          dismissLoadingShell,
-          { once: true },
-        );
+
+        // AppRoot removes the shell once campus data is on screen. This is
+        // only the backstop for a data fetch that hangs, and it must not fire
+        // before the app has mounted: pulling the shell off an empty island
+        // left a white page until the boot watchdog caught up (up to 45s on a
+        // slow connection). If the app never mounts, the watchdog swaps the
+        // shell for its error card instead.
+        function appMounted() {
+          var island = document.querySelector(
+            'astro-island[component-url*="AppRoot"]',
+          );
+          return !island || island.children.length > 0;
+        }
+
+        function dismissOnceMounted() {
+          if (!document.getElementById("app-loading-shell")) {
+            stopSplashRotation();
+            return;
+          }
+          if (appMounted()) {
+            dismissLoadingShell();
+            return;
+          }
+          setTimeout(dismissOnceMounted, 1_000);
+        }
+
         window.addEventListener("DOMContentLoaded", () => {
-          setTimeout(dismissLoadingShell, 12_000);
+          setTimeout(dismissOnceMounted, 12_000);
         });
       })();
     </script>
