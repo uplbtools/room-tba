@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import MapPin from "@lucide/svelte/icons/map-pin";
@@ -43,6 +44,7 @@
 
   let scroller = $state<HTMLDivElement | null>(null);
   let canScrollMore = $state(false);
+  let canScrollBack = $state(false);
 
   const activeId = $derived.by((): ChipId | null => {
     if (queryStore.category === "events") return "events";
@@ -66,11 +68,13 @@
     const el = scroller;
     if (!el) {
       canScrollMore = false;
+      canScrollBack = false;
       return;
     }
     const overflow = el.scrollWidth > el.clientWidth + 4;
     const remaining = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
     canScrollMore = overflow && remaining;
+    canScrollBack = overflow && el.scrollLeft > 4;
   }
 
   $effect(() => {
@@ -106,12 +110,12 @@
     openCampusBrowse(queryStore, sidePanelStore, id);
   }
 
-  function scrollChips() {
+  function scrollChips(direction: 1 | -1 = 1) {
     const step = Math.max(
       160,
       Math.round((scroller?.clientWidth ?? 240) * 0.55),
     );
-    scroller?.scrollBy({ left: step, behavior: "smooth" });
+    scroller?.scrollBy({ left: step * direction, behavior: "smooth" });
   }
 
   /** Trackpads / mice scroll vertically by default; convert to pan-x here. */
@@ -126,9 +130,23 @@
 </script>
 
 <div class="map-filter-chips" role="toolbar" aria-label="Map pin filters">
+  {#if canScrollBack}
+    <button
+      type="button"
+      class="map-filter-chips__more"
+      aria-label="Show previous filters"
+      onclick={() => scrollChips(-1)}
+    >
+      <ChevronLeft size={14} aria-hidden="true" />
+    </button>
+  {/if}
+  <!-- Edges fade where more chips are hidden, instead of cutting a chip off
+       square (it read as a stray white box on phones). -->
   <div
     bind:this={scroller}
     class="map-filter-chips__scroll"
+    class:map-filter-chips__scroll--fade-start={canScrollBack}
+    class:map-filter-chips__scroll--fade-end={canScrollMore}
     onwheel={onWheel}
   >
     {#each chips as chip (chip.id)}
@@ -163,7 +181,7 @@
       type="button"
       class="map-filter-chips__more"
       aria-label="Show more filters"
-      onclick={scrollChips}
+      onclick={() => scrollChips(1)}
     >
       <ChevronRight size={14} aria-hidden="true" />
     </button>
@@ -196,6 +214,27 @@
 
   .map-filter-chips__scroll::-webkit-scrollbar {
     display: none;
+  }
+
+  .map-filter-chips__scroll--fade-start,
+  .map-filter-chips__scroll--fade-end {
+    --fade-start: 0px;
+    --fade-end: 0px;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--fade-start),
+      #000 calc(100% - var(--fade-end)),
+      transparent 100%
+    );
+  }
+
+  .map-filter-chips__scroll--fade-start {
+    --fade-start: 1.5rem;
+  }
+
+  .map-filter-chips__scroll--fade-end {
+    --fade-end: 1.5rem;
   }
 
   .map-filter-chips__chip {
