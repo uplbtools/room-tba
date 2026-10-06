@@ -12,7 +12,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import { getAppData } from "@lib/context";
   import type { RoomData } from "@lib/types";
-  import { getBuildingRooms } from "@lib/local/data/utils";
+  import { firstBuildingRooms } from "@lib/local/data/utils";
   import {
     checkLocalBuildingRoom,
     syncBuildingRooms,
@@ -223,17 +223,12 @@
       const [, THREE, OrbitMod, CSS2DMod, DragMod, savedRes, osmFootprint] =
         await Promise.all([
           (async () => {
-            const buildingChecker = await checkLocalBuildingRoom(buildingId);
-            const roomsForBuilding = await getBuildingRooms(
-              buildingChecker.valid,
-              buildingId,
-            );
-            buildingRooms = roomsForBuilding;
-            await syncBuildingRooms(
-              buildingChecker,
-              buildingId,
-              roomsForBuilding,
-            );
+            // Server and local cache race, so a cold PGlite boot no longer
+            // holds up the first frame; the cache write happens afterwards.
+            buildingRooms = await firstBuildingRooms(buildingId, async (rooms) => {
+              const buildingChecker = await checkLocalBuildingRoom(buildingId);
+              await syncBuildingRooms(buildingChecker, buildingId, rooms);
+            });
           })(),
           import("three"),
           import("three/examples/jsm/controls/OrbitControls.js"),
