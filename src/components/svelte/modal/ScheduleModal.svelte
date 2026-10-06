@@ -15,7 +15,10 @@
     {#if termLabel}
       <span class="schedule-modal__term">{termLabel}</span>
     {/if}
-    <ScheduleFreshnessNote importedAt={termStore.activeTerm?.classesImportedAt} />
+    <ScheduleFreshnessNote
+      importedAt={termStore.activeTerm?.classesImportedAt}
+      termId={termStore.activeTermId}
+    />
   </div>
   <div class="schedule-modal__body map-chrome-scroll">
     {#if roomClassesStore.loading}

@@ -1,6 +1,8 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, test } from "bun:test";
 import {
   changeOfMatriculationLabel,
+  changeOfMatriculationPeriod,
+  formatDateRange,
   finalsWindowLabel,
   isDateWithinTerm,
   isFinalsWeek,
@@ -147,5 +149,32 @@ describe("changeOfMatriculationLabel", () => {
   it("returns null for unknown terms / null", () => {
     expect(changeOfMatriculationLabel(1252)).toBeNull();
     expect(changeOfMatriculationLabel(null)).toBeNull();
+  });
+});
+
+describe("changeOfMatriculationPeriod", () => {
+  test("reads the registrar's COM period for a term", () => {
+    expect(changeOfMatriculationPeriod(1261)).toEqual({
+      startsOn: "2026-08-03",
+      endsOn: "2026-08-07",
+    });
+  });
+
+  test("is null for an unknown term", () => {
+    expect(changeOfMatriculationPeriod(9999)).toBeNull();
+    expect(changeOfMatriculationPeriod(null)).toBeNull();
+  });
+});
+
+describe("formatDateRange", () => {
+  test("shortens ranges inside one month or year", () => {
+    expect(formatDateRange("2026-08-03", "2026-08-07")).toBe("Aug 3–7, 2026");
+    expect(formatDateRange("2027-01-30", "2027-02-03")).toBe(
+      "Jan 30 – Feb 3, 2027",
+    );
+    expect(formatDateRange("2026-12-28", "2027-01-02")).toBe(
+      "Dec 28, 2026 – Jan 2, 2027",
+    );
+    expect(formatDateRange("2027-06-08", "2027-06-08")).toBe("Jun 8, 2027");
   });
 });
