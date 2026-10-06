@@ -134,8 +134,7 @@ async function commonsImagesFor(target: Target): Promise<CommonsImage[]> {
   let pages = (geo.query?.geosearch ?? []).filter((page) =>
     isLikelyPhotoTitle(page.title),
   );
-  if (small)
-    pages = pages.filter((page) => titleNamesPlace(page.title, target.name));
+  pages = pages.filter((page) => titleNamesPlace(page.title, target.name));
   pages = pages.slice(0, MAX_COMMONS_IMAGES);
   if (pages.length === 0) return [];
 

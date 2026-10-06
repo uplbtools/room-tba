@@ -102,4 +102,40 @@ describe("small-place filters", () => {
       titleNamesPlace("File:Butastur_indicus_30197174.jpg", "UPLB Post Office"),
     ).toBe(false);
   });
+
+  test("buildings keep only photos of themselves, acronyms included", () => {
+    // A portrait and the CEM rotunda both sat within 120m of BSB.
+    expect(
+      titleNamesPlace(
+        "File:Shing_Kit_Dy_Macatingin.jpg",
+        "Biological Sciences Building",
+      ),
+    ).toBe(false);
+    expect(
+      titleNamesPlace(
+        "File:College_of_Economics_and_Management_building_with_the_Monopteros.jpg",
+        "Biological Sciences Building",
+      ),
+    ).toBe(false);
+    // The same photo is right for the CEM Building, by its acronym.
+    expect(
+      titleNamesPlace(
+        "File:College_of_Economics_and_Management_building_with_the_Monopteros.jpg",
+        "CEM Building",
+      ),
+    ).toBe(true);
+    expect(
+      titleNamesPlace(
+        "File:University_of_the_Philippines_Rural_High_School.jpg",
+        "UPRHS Building",
+      ),
+    ).toBe(true);
+    // CHE's photo is not CAS Annex 1's.
+    expect(
+      titleNamesPlace(
+        "File:College_of_Human_Ecology_building,_University_of_the_Philippines_Los_Baños.jpg",
+        "CAS Annex 1",
+      ),
+    ).toBe(false);
+  });
 });
