@@ -28,6 +28,22 @@ export const CAMPUS_BOUNDS = {
 
 export const CAMPUS_DEFAULT_CAMERA = campusMap.defaultCamera;
 
+/**
+ * How far the map itself may pan and zoom out. Campus stays the default view
+ * (and CAMPUS_BOUNDS still scopes geolocation, offline tiles and editing),
+ * but the jeepney and bus routes run to Metro Manila, Calamba, San Pablo and
+ * Sta. Cruz: locked to campus, those routes opened on an empty map.
+ */
+// Generous margins: maxBounds limits the whole viewport, and on a phone the
+// sheet covers its lower half, so a route's south end only clears the sheet
+// when the map may show well past it.
+export const MAP_REGION_MAX_BOUNDS: [[number, number], [number, number]] = [
+  [120.3, 13.3],
+  [122.2, 15.3],
+];
+/** Low enough to frame Los Baños to UP Diliman on a phone. */
+export const MAP_REGION_MIN_ZOOM = 8;
+
 export const TERRAIN_MAX_BOUNDS: [[number, number], [number, number]] =
   campusTerrain.maxBounds;
 

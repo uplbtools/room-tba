@@ -99,7 +99,8 @@
   } from "@constants/makiling-trail";
   import {
     CAMPUS_DEFAULT_CAMERA,
-    CAMPUS_MAX_BOUNDS,
+    MAP_REGION_MAX_BOUNDS,
+    MAP_REGION_MIN_ZOOM,
     TERRAIN_CAMERA,
     TERRAIN_MAX_BOUNDS,
     TERRAIN_SOURCE_BOUNDS,
@@ -1070,19 +1071,76 @@
     // rAF: camera moves fire map event handlers synchronously; keep their
     // state writes out of the reactive flush that called us (see stop flyTo
     // effect) or the scheduler can die with effect_update_depth_exceeded.
-    requestAnimationFrame(() => {
-      map.fitBounds(
-        [
-          [minLng, minLat],
-          [maxLng, maxLat],
-        ],
-        {
-          padding: { top: 80, bottom: 80, left: 80, right: 80 },
-          duration: 1200,
-          pitch: 30,
-        },
-      );
-    });
+    // Two frames: the sheet's target position is set on the first.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        map.fitBounds(
+          [
+            [minLng, minLat],
+            [maxLng, maxLat],
+          ],
+          {
+            padding: visibleMapPadding(map),
+            duration: 1200,
+            pitch: 30,
+          },
+        );
+      }),
+    );
+  }
+
+  /**
+   * Padding that keeps a fitted area inside the part of the map nobody is
+   * covering: below the search bar and chips, above the mobile sheet (or
+   * beside the desktop panel). A flat 80px left most of a route under the
+   * phone sheet.
+   */
+  function visibleMapPadding(map: mapGl.MapLibreMap): mapGl.PaddingOptions {
+    const gap = 24;
+    const frame = map.getContainer().getBoundingClientRect();
+    const chromeBottom = Math.max(
+      frame.top,
+      ...[
+        ...document.querySelectorAll(
+          ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .directions-route-chips",
+        ),
+      ]
+        .map((el) => el.getBoundingClientRect())
+        .filter((r) => r.height > 0 && r.bottom < frame.top + frame.height / 2)
+        .map((r) => r.bottom),
+    );
+    const padding = {
+      top: chromeBottom - frame.top + gap,
+      bottom: gap,
+      left: gap,
+      right: gap,
+    };
+    if (md.current) {
+      const root = document.querySelector(".bottom-sheet-root");
+      const sheet = root?.querySelector<HTMLElement>(".bottom-sheet");
+      if (root && sheet) {
+        // The inline transform is where the sheet is going, not where its
+        // open animation happens to be this frame.
+        const target = /translate3d\(0(?:px)?,\s*([\d.]+)px/.exec(
+          sheet.style.transform,
+        );
+        const sheetTop =
+          root.getBoundingClientRect().top + (target ? Number(target[1]) : 0);
+        padding.bottom = Math.max(gap, frame.bottom - sheetTop + gap);
+      }
+    } else if (!sidePanelStore.collapsed) {
+      padding.left = SIDEPANEL_WIDTH + gap;
+    }
+    // Never ask for more padding than the map has room for.
+    const spareH = frame.height - padding.top - padding.bottom;
+    if (spareH < 80) {
+      const scale = Math.max(0, frame.height - 80) / (padding.top + padding.bottom);
+      padding.top *= scale;
+      padding.bottom *= scale;
+    }
+    const spareW = frame.width - padding.left - padding.right;
+    if (spareW < 80) padding.left = Math.max(gap, frame.width - 80 - padding.right);
+    return padding;
   }
 
   function getEventMapLocations(event: EventData) {
@@ -2403,7 +2461,7 @@
 
     const bounds = terrainEnabled
       ? TERRAIN_MAX_BOUNDS
-      : CAMPUS_MAX_BOUNDS;
+      : MAP_REGION_MAX_BOUNDS;
 
     const applyBounds = () => {
       map.setMaxBounds(bounds);
@@ -3854,12 +3912,12 @@
       <MapLibre
         bind:map={mapStore.mapInstance}
         style={mapStyle}
-        maxBounds={CAMPUS_MAX_BOUNDS}
+        maxBounds={MAP_REGION_MAX_BOUNDS}
         center={CAMPUS_DEFAULT_CAMERA.center}
         zoom={17}
         pitch={CAMPUS_DEFAULT_CAMERA.pitch}
         bearing={CAMPUS_DEFAULT_CAMERA.bearing}
-        minZoom={13}
+        minZoom={MAP_REGION_MIN_ZOOM}
         class="map"
         attributionControl={false}
       >
