@@ -1,3 +1,10 @@
+## [2.31.1](https://github.com/uplbtools/room-tba/compare/v2.31.0...v2.31.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **photos:** keep only Commons photos whose title names the place ([#1225](https://github.com/uplbtools/room-tba/issues/1225)) ([afb97b1](https://github.com/uplbtools/room-tba/commit/afb97b107c599551f406711fee3c45867a8abee1))
+
 ## [2.30.2](https://github.com/uplbtools/room-tba/compare/v2.30.1...v2.30.2) (2026-10-05)
 
 
