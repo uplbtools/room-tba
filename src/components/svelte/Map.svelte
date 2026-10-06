@@ -86,6 +86,7 @@
     type StoredRouteGeometry,
   } from "@constants/jeepney-routes";
   import jeepneyGeometries from "@constants/jeepney-geometries.json";
+  import { type Position, stopArrows } from "@lib/route-arrows";
   import {
     MAKILING_TRAIL_COLOR,
     MAKILING_TRAIL_LAYER_CASING_ID,
@@ -368,6 +369,9 @@
   const JEEPNEY_ROUTE_SOURCE_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_ID = "jeepney-route-line";
   const JEEPNEY_ROUTE_LAYER_CASING_ID = "jeepney-route-line-casing";
+  const JEEPNEY_ARROW_SOURCE_ID = "jeepney-route-arrows";
+  const JEEPNEY_ARROW_LAYER_ID = "jeepney-route-arrows";
+  const JEEPNEY_ARROW_IMAGE_ID = "jeepney-route-arrow";
   const USER_LOCATION_ACCURACY_SOURCE_ID = "user-location-accuracy";
   const USER_LOCATION_ACCURACY_FILL_ID = "user-location-accuracy-fill";
   const USER_LOCATION_ACCURACY_LINE_ID = "user-location-accuracy-line";
@@ -488,6 +492,40 @@
       });
     }
 
+    // Direction chevrons just past each stop. The icon is a signed distance
+    // field so one image can take the route colour.
+    if (!map.hasImage(JEEPNEY_ARROW_IMAGE_ID)) {
+      map.addImage(JEEPNEY_ARROW_IMAGE_ID, arrowImage(), { sdf: true });
+    }
+    if (!map.getSource(JEEPNEY_ARROW_SOURCE_ID)) {
+      map.addSource(JEEPNEY_ARROW_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+    if (!map.getLayer(JEEPNEY_ARROW_LAYER_ID)) {
+      map.addLayer({
+        id: JEEPNEY_ARROW_LAYER_ID,
+        type: "symbol",
+        source: JEEPNEY_ARROW_SOURCE_ID,
+        layout: {
+          "icon-image": JEEPNEY_ARROW_IMAGE_ID,
+          "icon-size": 0.55,
+          "icon-rotate": ["get", "bearing"],
+          "icon-rotation-alignment": "map",
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+        },
+        paint: {
+          "icon-color": color,
+          "icon-halo-color": "#ffffff",
+          "icon-halo-width": 2,
+        },
+      });
+    }
+    map.setPaintProperty(JEEPNEY_ARROW_LAYER_ID, "icon-color", color);
+    map.setPaintProperty(JEEPNEY_ARROW_LAYER_ID, "icon-opacity", opacity);
+
     // Layers outlive a single route, so provenance styling is applied on every
     // draw, not only when the layer is first created.
     map.setPaintProperty(JEEPNEY_ROUTE_LAYER_ID, "line-color", color);
@@ -501,7 +539,33 @@
     );
   }
 
+  /** A filled chevron pointing up (north), drawn once as an SDF icon. */
+  function arrowImage() {
+    const size = 48;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.moveTo(size / 2, 6);
+      ctx.lineTo(size - 8, size - 8);
+      ctx.lineTo(size / 2, size - 18);
+      ctx.lineTo(8, size - 8);
+      ctx.closePath();
+      ctx.fill();
+    }
+    return ctx?.getImageData(0, 0, size, size) ?? new ImageData(size, size);
+  }
+
   function clearJeepneyRouteLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(JEEPNEY_ARROW_LAYER_ID)) {
+      map.removeLayer(JEEPNEY_ARROW_LAYER_ID);
+    }
+    if (map.getSource(JEEPNEY_ARROW_SOURCE_ID)) {
+      map.removeSource(JEEPNEY_ARROW_SOURCE_ID);
+    }
     if (map.getLayer(JEEPNEY_ROUTE_LAYER_ID)) {
       map.removeLayer(JEEPNEY_ROUTE_LAYER_ID);
     }
@@ -2904,6 +2968,21 @@
                 properties: { routeId: route.id, geometrySource },
               },
             ]
+          : [],
+      });
+      const arrowSource = map.getSource(JEEPNEY_ARROW_SOURCE_ID) as
+        | mapGl.GeoJSONSource
+        | undefined;
+      arrowSource?.setData({
+        type: "FeatureCollection",
+        features: line
+          ? stopArrows(line.coordinates as Position[], route.stops).map(
+              (arrow) => ({
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [arrow.lon, arrow.lat] },
+                properties: { bearing: arrow.bearing },
+              }),
+            )
           : [],
       });
       fitMapToRoute(map, route);
