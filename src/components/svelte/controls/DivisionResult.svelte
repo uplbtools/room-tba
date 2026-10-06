@@ -411,6 +411,7 @@
       updatedAt={division.updatedAt}
       entityType="division"
       entityId={division.id}
+      entityName={division.divisionName}
     />
 
     {#if editing}

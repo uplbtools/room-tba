@@ -360,6 +360,7 @@
       updatedAt={college.updatedAt}
       entityType="college"
       entityId={college.id}
+      entityName={college.collegeName}
     />
 
     {#if editing}

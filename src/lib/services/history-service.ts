@@ -7,6 +7,7 @@ import {
 import { db } from "@lib/db";
 import {
   rowAuthor,
+  scanPublicRows,
   toIsoTimestamp,
   toPublicHistoryEntry,
   type EditorAccount,
@@ -116,6 +117,32 @@ async function loadEditorAccounts(
 
 export const PUBLIC_HISTORY_PAGE_SIZE = 50;
 
+// Raw rows read per public request at most. Private-only edits (contact
+// details, photos, a room's building link) are filtered out after the read,
+// so a page can need several batches before it has anything to show.
+const PUBLIC_HISTORY_SCAN_LIMIT = 500;
+
+function scanEntityHistory(
+  entityType: string,
+  entityId: number,
+  offset: number,
+  want: number,
+) {
+  return scanPublicRows(
+    (cursor) =>
+      getEntityHistory(entityType, entityId, {
+        limit: PUBLIC_HISTORY_PAGE_SIZE,
+        offset: cursor,
+      }),
+    {
+      offset,
+      want,
+      batchSize: PUBLIC_HISTORY_PAGE_SIZE,
+      scanLimit: PUBLIC_HISTORY_SCAN_LIMIT,
+    },
+  );
+}
+
 /**
  * Read-only history for visitors. Only whitelisted card fields and public
  * names leave the server; see toPublicHistoryEntry.
@@ -125,10 +152,12 @@ export async function getPublicEntityHistory(
   entityId: number,
   offset = 0,
 ): Promise<{ entries: PublicHistoryEntry[]; nextOffset: number | null }> {
-  const rows = await getEntityHistory(entityType, entityId, {
-    limit: PUBLIC_HISTORY_PAGE_SIZE,
+  const { rows, nextOffset } = await scanEntityHistory(
+    entityType,
+    entityId,
     offset,
-  });
+    PUBLIC_HISTORY_PAGE_SIZE,
+  );
   const [credits, accounts] = await Promise.all([
     loadProposalCredits(entityType, entityId, rows),
     loadEditorAccounts(rows),
@@ -137,20 +166,26 @@ export async function getPublicEntityHistory(
     entries: rows
       .map((row) => toPublicHistoryEntry(row, credits, accounts))
       .filter((entry): entry is PublicHistoryEntry => entry !== null),
-    nextOffset:
-      rows.length === PUBLIC_HISTORY_PAGE_SIZE
-        ? offset + PUBLIC_HISTORY_PAGE_SIZE
-        : null,
+    nextOffset,
   };
 }
 
-/** Who added an entity and who last edited it, as public names. */
+/**
+ * Who added an entity and who last edited it, as public names. Only edits the
+ * public history shows count, so "last edited by" always names an entry the
+ * visitor can open.
+ */
 export async function getEntityAttribution(
   entityType: string,
   entityId: number,
 ): Promise<EntityAttribution | null> {
-  const [[latest], [created]] = await Promise.all([
-    getEntityHistory(entityType, entityId, { limit: 1 }),
+  const [
+    {
+      rows: [latest],
+    },
+    [created],
+  ] = await Promise.all([
+    scanEntityHistory(entityType, entityId, 0, 1),
     db
       .select()
       .from(editorHistoryTable)
@@ -164,13 +199,15 @@ export async function getEntityAttribution(
       .orderBy(asc(editorHistoryTable.createdAt))
       .limit(1),
   ]);
-  if (!latest) return null;
-  const rows = created ? [created, latest] : [latest];
+  if (!latest && !created) return null;
+  const rows = [created, latest].filter(
+    (row): row is HistoryEntry => row !== undefined,
+  );
   const [credits, accounts] = await Promise.all([
     loadProposalCredits(entityType, entityId, rows),
     loadEditorAccounts(rows),
   ]);
-  const edited = latest.id === created?.id ? null : latest;
+  const edited = !latest || latest.id === created?.id ? null : latest;
   return {
     addedBy: created ? rowAuthor(created, credits, accounts) : null,
     addedAt: created ? toIsoTimestamp(created.createdAt) : null,

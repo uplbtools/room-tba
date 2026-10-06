@@ -776,6 +776,7 @@
           updatedAt={dorm.updatedAt}
           entityType="dorm"
           entityId={dorm.id}
+          entityName={dorm.dormName}
         />
       </div>
     {/if}

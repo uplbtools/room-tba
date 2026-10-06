@@ -355,6 +355,7 @@
           updatedAt={org.updatedAt}
           entityType="organization"
           entityId={org.id}
+          entityName={org.name}
         />
       </div>
     {/if}

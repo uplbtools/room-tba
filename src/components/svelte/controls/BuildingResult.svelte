@@ -867,6 +867,7 @@
           updatedAt={building.updatedAt}
           entityType="building"
           entityId={building.id}
+          entityName={building.buildingName}
         />
       </section>
       {#if sanitizeCrFacilities(building.crFacilities).length > 0}

@@ -855,6 +855,7 @@
         updatedAt={currentRoom.value.updatedAt}
         entityType="room"
         entityId={currentRoom.value.id}
+        entityName={currentRoom.value.code}
       />
     {/if}
 
