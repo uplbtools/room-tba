@@ -13,6 +13,7 @@
   import Info from "@lucide/svelte/icons/info";
   import Building2 from "@lucide/svelte/icons/building-2";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
   import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
@@ -277,6 +278,11 @@
             lon={resolvedLon}
             name={org.name}
             ariaLabel={`Open ${org.name} in Google Maps`}
+          />
+          <EntityPrintableMapLink
+            lat={resolvedLat}
+            lon={resolvedLon}
+            name={org.name}
           />
         {/if}
         <EntityShareCopyLink url={organizationShareUrl} entityLabel={org.name} />

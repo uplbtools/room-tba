@@ -25,6 +25,7 @@
   } from "@lib/contributor-drafts";
   import { getAppData } from "@lib/context";
   import EntityGoogleMapsLink from "../controls/EntityGoogleMapsLink.svelte";
+  import EntityPrintableMapLink from "../controls/EntityPrintableMapLink.svelte";
   import EntityDirectionsChip from "../controls/EntityDirectionsChip.svelte";
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import EntityEditorPanel from "@ui/editor/EntityEditorPanel.svelte";
@@ -548,6 +549,11 @@
             lon={parentBuilding.lon}
             name={parentBuilding.name}
             ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
+          />
+          <EntityPrintableMapLink
+            lat={parentBuilding.lat}
+            lon={parentBuilding.lon}
+            name={parentBuilding.name}
           />
         {/if}
         {#if parentBuilding?.lat && parentBuilding.lon}

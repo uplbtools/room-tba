@@ -8,9 +8,34 @@
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import X from "@lucide/svelte/icons/x";
-  import { directionsStore } from "@lib/store.svelte";
+  import LocateFixed from "@lucide/svelte/icons/locate-fixed";
+  import {
+    directionsStore,
+    locationStore,
+    type DirectionsPick,
+  } from "@lib/store.svelte";
 
   const waypoints = $derived(directionsStore.waypoints);
+  const picking = $derived(directionsStore.picking);
+
+  function togglePick(which: DirectionsPick) {
+    if (directionsStore.picking === which) directionsStore.cancelPick();
+    else directionsStore.beginPick(which);
+  }
+
+  function useMyLocation() {
+    const coords = locationStore.coords;
+    if (coords) {
+      void directionsStore.setOrigin(
+        { lat: coords[1], lng: coords[0], label: "Your location" },
+        false,
+      );
+      return;
+    }
+    // No fix yet: DirectionsPanel replans once GPS lands.
+    locationStore.requestLocation();
+    void directionsStore.setOrigin(null, false);
+  }
 </script>
 
 {#if directionsStore.active && !directionsStore.navigating}
@@ -20,10 +45,24 @@
       role="list"
       aria-label="Directions stop sequence"
     >
-      <p class="directions-route-chips__end" role="listitem">
-        <Crosshair size={14} aria-hidden="true" />
-        <span>{directionsStore.origin?.label ?? "Your location"}</span>
-      </p>
+      <div role="listitem">
+        <button
+          type="button"
+          class="directions-route-chips__end"
+          class:directions-route-chips__end--picking={picking === "origin"}
+          aria-pressed={picking === "origin"}
+          aria-label={`Change starting point, now ${directionsStore.origin?.label ?? "Your location"}`}
+          onmousedown={(event) => event.preventDefault()}
+          onclick={() => togglePick("origin")}
+        >
+          <Crosshair size={14} aria-hidden="true" />
+          <span
+            >{picking === "origin"
+              ? "Choose a starting point"
+              : (directionsStore.origin?.label ?? "Your location")}</span
+          >
+        </button>
+      </div>
 
       {#each waypoints as stop, index (stop.label + index)}
         <div class="directions-route-chips__stop" role="listitem">
@@ -65,13 +104,42 @@
         </div>
       {/each}
 
-      <p
-        class="directions-route-chips__end directions-route-chips__end--to"
-        role="listitem"
-      >
-        <MapPin size={14} aria-hidden="true" />
-        <span>{directionsStore.destination?.label ?? "Destination"}</span>
-      </p>
+      <div role="listitem">
+        <button
+          type="button"
+          class="directions-route-chips__end directions-route-chips__end--to"
+          class:directions-route-chips__end--picking={picking ===
+            "destination"}
+          aria-pressed={picking === "destination"}
+          aria-label={`Change destination, now ${directionsStore.destination?.label ?? "not set"}`}
+          onmousedown={(event) => event.preventDefault()}
+          onclick={() => togglePick("destination")}
+        >
+          <MapPin size={14} aria-hidden="true" />
+          <span
+            >{picking === "destination" || !directionsStore.destination
+              ? "Choose a destination"
+              : directionsStore.destination.label}</span
+          >
+        </button>
+      </div>
+
+      {#if picking}
+        <p class="directions-route-chips__hint">
+          Search above or tap the map.
+          {#if picking === "origin" && directionsStore.originFixed}
+            <button
+              type="button"
+              class="directions-route-chips__mine"
+              onmousedown={(event) => event.preventDefault()}
+              onclick={useMyLocation}
+            >
+              <LocateFixed size={13} aria-hidden="true" />
+              Use my location
+            </button>
+          {/if}
+        </p>
+      {/if}
     </div>
 
     <button
@@ -114,11 +182,59 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    width: 100%;
     margin: 0;
+    padding: 0.1rem 0.25rem;
     min-width: 0;
+    border: 1px solid transparent;
+    border-radius: 0.4rem;
+    background: none;
     color: #52525b;
+    font: inherit;
     font-size: 0.8125rem;
     line-height: 1.3;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .directions-route-chips__end:hover,
+  .directions-route-chips__end:focus-visible {
+    background: #f4f4f5;
+  }
+
+  .directions-route-chips__end--picking {
+    border-color: var(--color-brand, #8d1437);
+    color: var(--color-brand, #8d1437);
+    font-weight: 600;
+  }
+
+  .directions-route-chips__hint {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    color: #52525b;
+    font-size: 0.75rem;
+  }
+
+  .directions-route-chips__mine {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.45rem;
+    border: none;
+    border-radius: 999px;
+    background: #f4f4f5;
+    color: #18181b;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .directions-route-chips__mine:hover,
+  .directions-route-chips__mine:focus-visible {
+    background: #e4e4e7;
   }
 
   .directions-route-chips__end span {

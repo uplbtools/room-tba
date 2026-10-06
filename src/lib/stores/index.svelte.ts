@@ -184,6 +184,7 @@ import {
   MAX_DIRECTIONS_WAYPOINTS,
 } from "./directions-store.svelte";
 export { MAX_DIRECTIONS_WAYPOINTS };
+export type { DirectionsPick } from "./directions-store.svelte";
 
 export { plannerRoomCodes } from "./data-stores.svelte";
 

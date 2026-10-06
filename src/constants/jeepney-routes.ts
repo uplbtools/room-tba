@@ -316,55 +316,61 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
         name: "CPAf",
         description:
           "Stop serving the College of Public Affairs and Development on the climb to the upper campus.",
-        lat: 14.16031,
-        lon: 121.237609,
+        // ponytail: snapped to Domingo M. Lantican Avenue (OSM) beside CPAf.
+        lat: 14.16021,
+        lon: 121.2379,
       },
       {
         name: "Makiling Botanic Gardens",
-        description: "Stop at the Makiling Botanic Gardens entrance.",
-        lat: 14.156688,
-        lon: 121.233989,
+        description: "Stop on the road by the Makiling Botanic Gardens.",
+        // ponytail: snapped to the jeep's road nearest the gardens; the gate itself is inside.
+        lat: 14.155884,
+        lon: 121.235265,
       },
       {
         name: "Forestry Admin Building",
         description:
-          "Stop at the College of Forestry and Natural Resources administration building.",
-        lat: 14.154433,
-        lon: 121.234541,
+          "Stop on Martin R. Reyes in front of the College of Forestry and Natural Resources administration building.",
+        // ponytail: placed from aerial imagery at the middle of the front facade, on Martin R. Reyes.
+        lat: 14.155059,
+        lon: 121.235241,
+      },
+      {
+        name: "Upper Forestry Jeep Terminal",
+        description:
+          "Upper-campus terminal on Martin R. Reyes, at the southeast end of the front of the Forestry Admin Building.",
+        // ponytail: placed from aerial imagery on the front road, southeast of the admin entrance stop.
+        lat: 14.154884,
+        lon: 121.235512,
       },
       {
         name: "Forest Biological Sciences Building",
         description:
           "Upper-campus stop near the Forest Biological Sciences Building.",
-        lat: 14.154716857167369,
-        lon: 121.2360341113496,
-      },
-      {
-        name: "Upper Forestry Jeep Terminal",
-        description:
-          "Upper-campus terminal just southeast (behind) the Forestry Admin Building.",
-        // ponytail: eyeballed ~30 m SE of the admin building, no sourced pin yet.
-        lat: 14.15425,
-        lon: 121.2348,
-      },
-      {
-        name: "Forestry Residence Hall (FOREHA)",
-        description: "Stop at the Forestry Residence Hall.",
-        lat: 14.152468,
-        lon: 121.234908,
+        lat: 14.154758,
+        lon: 121.235983,
       },
       {
         name: "New Forestry Residence Hall (New FOREHA)",
         description: "Stop at the New Forestry Residence Hall.",
-        lat: 14.152119,
-        lon: 121.234358,
+        // ponytail: snapped to Makiling Road.
+        lat: 14.152242,
+        lon: 121.234185,
+      },
+      {
+        name: "Forestry Residence Hall (FOREHA)",
+        description: "Stop at the Forestry Residence Hall.",
+        // ponytail: snapped to Felix O. Chinte Sr.
+        lat: 14.152521,
+        lon: 121.235097,
       },
       {
         name: "Makiling Residence Hall (MAREHA)",
         description:
           "Last uphill stop, at the Makiling Residence Hall; the jeep heads back down campus from here.",
-        lat: 14.151829,
-        lon: 121.235084,
+        // ponytail: snapped to Felix O. Chinte Sr.
+        lat: 14.151894,
+        lon: 121.235293,
       },
     ],
   },

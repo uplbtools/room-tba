@@ -18,6 +18,7 @@
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
+  import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
   import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
@@ -623,6 +624,11 @@
             lon={building.lon ?? 0}
             name={building.buildingName}
             ariaLabel={`Open ${building.buildingName} in Google Maps`}
+          />
+          <EntityPrintableMapLink
+            lat={building.lat ?? 0}
+            lon={building.lon ?? 0}
+            name={building.buildingName}
           />
         {/if}
         <EntityShareCopyLink
