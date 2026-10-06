@@ -22,7 +22,11 @@
   import compassIcon from "../../../assets/icons/compass.svg?url";
 
   type Props = {
-    /** Mobile Figma: locate / 2D / zoom only (no compass). */
+    /**
+     * Mobile: no permanent compass (Figma: locate / 2D / zoom). It appears
+     * only while the map is rotated, as in native map apps, so a two-finger
+     * twist can always be undone with one tap.
+     */
     hideCompass?: boolean;
   };
 
@@ -42,6 +46,9 @@
   );
   /** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
   const northRotation = $derived(-bearing);
+  /** Bearing folded into -180..180; a degree of drift still reads as north. */
+  const rotated = $derived(Math.abs(((((bearing + 180) % 360) + 360) % 360) - 180) > 1);
+  const showCompass = $derived(!hideCompass || rotated);
 
   onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
 
@@ -119,10 +126,11 @@
   class:map-controls-stack--mobile={hideCompass}
   aria-label="Map controls"
 >
-  {#if !hideCompass}
+  {#if showCompass}
     <button
       type="button"
       class="map-ctrl map-ctrl--compass"
+      class:map-ctrl--compass-mobile={hideCompass}
       aria-label="Reset map north"
       title="Reset north"
       onclick={resetNorth}
@@ -241,6 +249,23 @@
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
+  .map-ctrl--compass-mobile {
+    animation: map-ctrl-compass-in var(--motion-duration-micro, 200ms) ease-out;
+  }
+
+  @keyframes map-ctrl-compass-in {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .map-ctrl--compass-mobile {
+      animation: none;
+    }
+  }
+
   .map-ctrl--compass:hover {
     background: #fff;
   }
@@ -272,6 +297,7 @@
   }
 
   .map-controls-stack--mobile {
+    --map-ctrl-compass: 2.75rem;
     --map-ctrl-size: 2.75rem;
     --map-ctrl-zoom-h: 5.5rem;
     gap: 0.5rem;
