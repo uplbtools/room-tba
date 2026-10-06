@@ -106,7 +106,7 @@
   const canPublish = $derived(adminAuthStore.canPublish);
   const dormShareUrl = $derived(dorm ? getDormShareUrl(dorm) : "");
   const kuboDormCta = $derived(
-    dorm ? getKuboDormCta($kuboDormDirectory, dorm.id, dorm.dormName) : null,
+    dorm ? getKuboDormCta($kuboDormDirectory, dorm.dormName) : null,
   );
 
   $effect(() => {

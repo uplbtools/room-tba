@@ -11,12 +11,9 @@ export const KUBO_RESERVATION_STATUSES = [
 export type KuboReservationStatus = (typeof KUBO_RESERVATION_STATUSES)[number];
 
 export type KuboDormRecord = {
-  roomTbaDormId: number;
   name: string;
   kuboSlug: string;
   listingUrl: string;
-  reservationStatus: KuboReservationStatus;
-  reservationUrl: string | null;
   updatedAt: string;
 };
 
@@ -32,7 +29,7 @@ export type KuboDormCta = {
   ariaLabel: string;
 };
 
-export type KuboDormDirectory = ReadonlyMap<number, KuboDormRecord>;
+export type KuboDormDirectory = ReadonlyMap<string, KuboDormRecord>;
 
 const RETRY_AFTER_MS = 60_000;
 
@@ -44,26 +41,56 @@ let lastAttemptAt = 0;
 export function parseKuboDormDirectory(
   value: unknown,
 ): KuboDormDirectoryResponse | null {
+  if (Array.isArray(value)) return parsePublicDorms(value);
   if (!isRecord(value) || value.version !== 1) return null;
   if (!isIsoDate(value.generatedAt) || !Array.isArray(value.dorms)) return null;
 
   const dorms: KuboDormRecord[] = [];
-  const seenIds = new Set<number>();
+  const seenNames = new Set<string>();
   for (const item of value.dorms) {
-    if (!isKuboDormRecord(item) || seenIds.has(item.roomTbaDormId)) return null;
-    seenIds.add(item.roomTbaDormId);
+    if (!isKuboDormRecord(item) || seenNames.has(normalizeDormName(item.name)))
+      return null;
+    seenNames.add(normalizeDormName(item.name));
     dorms.push(item);
   }
 
   return { version: 1, generatedAt: value.generatedAt, dorms };
 }
 
+/** Kubo's public directory deliberately exposes only safe, browseable fields. */
+function parsePublicDorms(value: unknown[]): KuboDormDirectoryResponse | null {
+  const dorms: KuboDormRecord[] = [];
+  const seenNames = new Set<string>();
+  let generatedAt = "1970-01-01T00:00:00.000Z";
+
+  for (const item of value) {
+    if (!isRecord(item)) return null;
+    const name = typeof item.name === "string" ? item.name : null;
+    const kuboSlug = typeof item.slug === "string" ? item.slug : null;
+    const updatedAt =
+      typeof item.updatedAt === "string" ? item.updatedAt : null;
+    if (!name || !kuboSlug || !updatedAt || !isIsoDate(updatedAt)) return null;
+    const normalized = normalizeDormName(name);
+    if (!normalized || seenNames.has(normalized)) return null;
+    seenNames.add(normalized);
+    if (Date.parse(updatedAt) > Date.parse(generatedAt))
+      generatedAt = updatedAt;
+    dorms.push({
+      name,
+      kuboSlug,
+      listingUrl: `https://kubo.community/dorms/${encodeURIComponent(kuboSlug)}`,
+      updatedAt,
+    });
+  }
+
+  return { version: 1, generatedAt, dorms };
+}
+
 export function getKuboDormCta(
   directory: KuboDormDirectory,
-  dormId: number,
   dormName: string,
 ): KuboDormCta | null {
-  const match = directory.get(dormId);
+  const match = directory.get(normalizeDormName(dormName));
   if (!match) return null;
 
   // Trust boundary: Kubo's feed has served placeholder roomTbaDormIds that
@@ -77,26 +104,10 @@ export function getKuboDormCta(
     return null;
   }
 
-  if (match.reservationStatus === "accepting" && match.reservationUrl) {
-    return {
-      href: match.reservationUrl,
-      label: "Reserve on Kubo",
-      ariaLabel: `Reserve a place at ${dormName} on Kubo (opens in new tab)`,
-    };
-  }
-
-  if (match.reservationStatus === "waitlist") {
-    return {
-      href: match.reservationUrl ?? match.listingUrl,
-      label: "Join waitlist on Kubo",
-      ariaLabel: `Join the waitlist for ${dormName} on Kubo (opens in new tab)`,
-    };
-  }
-
   return {
     href: match.listingUrl,
-    label: "View on Kubo",
-    ariaLabel: `Open ${dormName} on Kubo (opens in new tab)`,
+    label: "Reserve on Kubo",
+    ariaLabel: `Check availability for ${dormName} on Kubo (opens in new tab)`,
   };
 }
 
@@ -147,23 +158,19 @@ export function dormNamesMatch(kuboName: string, dormName: string): boolean {
 }
 
 function toDirectory(records: KuboDormRecord[]): KuboDormDirectory {
-  return new Map(records.map((record) => [record.roomTbaDormId, record]));
+  return new Map(
+    records.map((record) => [normalizeDormName(record.name), record]),
+  );
 }
 
 function isKuboDormRecord(value: unknown): value is KuboDormRecord {
   if (!isRecord(value)) return false;
   return (
-    Number.isInteger(value.roomTbaDormId) &&
-    Number(value.roomTbaDormId) > 0 &&
     typeof value.name === "string" &&
     value.name.length > 0 &&
     typeof value.kuboSlug === "string" &&
     value.kuboSlug.length > 0 &&
     isSafeKuboUrl(value.listingUrl) &&
-    KUBO_RESERVATION_STATUSES.includes(
-      value.reservationStatus as KuboReservationStatus,
-    ) &&
-    (value.reservationUrl === null || isSafeKuboUrl(value.reservationUrl)) &&
     isIsoDate(value.updatedAt)
   );
 }

@@ -55,6 +55,7 @@
   import Sidebar from "./navigation/Sidebar.svelte";
   import StagingBanner from "./StagingBanner.svelte";
   import AnnouncementBar from "./AnnouncementBar.svelte";
+  import KuboDormPrompt from "./KuboDormPrompt.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import type { RecentSearch } from "@lib/types";
@@ -384,6 +385,7 @@
   <Map />
   <StagingBanner />
   <AnnouncementBar />
+  <KuboDormPrompt />
   <div class="ui-layer">
     <Sidebar />
     {#if ["map", "contributors", "settings"].includes(sidebarStore.panelOpen)}

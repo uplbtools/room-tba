@@ -4,7 +4,7 @@ import {
 } from "../kubo-dorms";
 
 export const DEFAULT_KUBO_DIRECTORY_URL =
-  "https://kubo.community/api/public/integrations/room-tba/dorms";
+  "https://api.kubo.community/api/dorms";
 
 export type KuboDirectoryFetchResult = {
   directory: KuboDormDirectoryResponse;

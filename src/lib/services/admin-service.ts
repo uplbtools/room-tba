@@ -1173,6 +1173,7 @@ export async function createDorm(
       priceRange: input.priceRange ?? null,
       contactPhone: input.contactPhone ?? null,
       facebookLink: input.facebookLink ?? null,
+      imageUrl: input.imageUrl ?? null,
     })
     .returning();
 

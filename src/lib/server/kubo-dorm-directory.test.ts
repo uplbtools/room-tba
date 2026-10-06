@@ -1,21 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { fetchKuboDormDirectory } from "./kubo-dorm-directory";
 
-const validPayload = {
-  version: 1,
-  generatedAt: "2026-07-22T08:00:00.000Z",
-  dorms: [
-    {
-      roomTbaDormId: 12,
-      name: "Arable Premier Residences",
-      kuboSlug: "arable-premier-residences",
-      listingUrl: "https://kubo.community/dorms/arable-premier-residences",
-      reservationStatus: "paused",
-      reservationUrl: null,
-      updatedAt: "2026-07-22T08:00:00.000Z",
-    },
-  ],
-};
+const validPayload = [
+  {
+    name: "Arable Premier Residences",
+    slug: "arable-premier-residences",
+    updatedAt: "2026-07-22T08:00:00.000Z",
+  },
+];
 
 describe("fetchKuboDormDirectory", () => {
   test("returns a validated directory and upstream ETag", async () => {
@@ -27,7 +19,18 @@ describe("fetchKuboDormDirectory", () => {
 
     await expect(
       fetchKuboDormDirectory("https://kubo.community/api/directory", fetcher),
-    ).resolves.toEqual({ directory: validPayload, etag: '"directory-v1"' });
+    ).resolves.toMatchObject({
+      etag: '"directory-v1"',
+      directory: {
+        dorms: [
+          {
+            name: "Arable Premier Residences",
+            listingUrl:
+              "https://kubo.community/dorms/arable-premier-residences",
+          },
+        ],
+      },
+    });
   });
 
   test("rejects non-success and malformed upstream responses", async () => {
@@ -41,7 +44,7 @@ describe("fetchKuboDormDirectory", () => {
     await expect(
       fetchKuboDormDirectory(
         "https://kubo.community/api/directory",
-        async () => new Response(JSON.stringify({ version: 1, dorms: [] })),
+        async () => new Response(JSON.stringify([{ name: "Missing slug" }])),
       ),
     ).rejects.toThrow("invalid payload");
   });

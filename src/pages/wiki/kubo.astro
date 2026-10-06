@@ -1,0 +1,76 @@
+---
+export const prerender = true;
+
+import WikiLayout from "@layouts/WikiLayout.astro";
+import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
+import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+
+const title = "Kubo dorm listings in Los Baños | Room TBA Wiki";
+const description =
+  "How Room TBA uses Kubo's public Los Baños dorm directory and where a Kubo reservation link takes you.";
+const structuredData = jsonLd(
+  webpageSchema({ title, description, path: "/wiki/kubo" }),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Wiki", path: "/wiki" },
+    { name: "Kubo dorm listings", path: "/wiki/kubo" },
+  ]),
+);
+---
+
+<WikiLayout
+  {title}
+  {description}
+  canonicalPath="/wiki/kubo"
+  {structuredData}
+>
+  <article class="wiki-article">
+    <header class="article-hero">
+      <p class="wiki-eyebrow">Housing</p>
+      <h1 class="wiki-title">Kubo dorm listings in Los Baños</h1>
+      <p class="wiki-lede">
+        <a class="wiki-link" href="https://kubo.community">Kubo</a> is a
+        housing directory for the Los Baños university community. Its public
+        listings include map pins, photos, amenities, house rules, prices, and
+        contact details when the dorm provides them.
+      </p>
+      <WikiProvenance sourcePath="src/pages/wiki/kubo.astro" />
+    </header>
+
+    <section aria-labelledby="room-tba">
+      <h2 id="room-tba">How it appears in Room TBA</h2>
+      <p>
+        Room TBA imports Kubo's public dorm listings into the Dorms directory.
+        The listing's map location, photo, capacity, amenity list, price, phone
+        number, and Facebook page appear here when Kubo provides them.
+      </p>
+      <p>
+        A dorm with the Kubo mark has a <em>Reserve on Kubo</em> button. It
+        opens that dorm's Kubo page in a new tab. Kubo handles availability,
+        applications, reservations, and any conversation with the property.
+      </p>
+    </section>
+
+    <section aria-labelledby="before-reserving">
+      <h2 id="before-reserving">Before you reserve</h2>
+      <p>
+        Dorm details change. Check the Kubo listing before sending money or
+        agreeing to a stay. Confirm the price, contract length, room setup,
+        visitor rules, and move-in date with the dorm.
+      </p>
+      <p>
+        Room TBA shows the directory data and points back to Kubo. It does not
+        process payments or decide whether a room is available.
+      </p>
+    </section>
+
+    <section aria-labelledby="source">
+      <h2 id="source">Source</h2>
+      <p>
+        <a class="wiki-link" href="https://kubo.community">kubo.community</a>
+        publishes the directory used for these entries. Tell us through Room
+        TBA's edit tools if a map pin or dorm name needs correction.
+      </p>
+    </section>
+  </article>
+</WikiLayout>

@@ -7,18 +7,14 @@ import {
   type KuboDormDirectoryResponse,
 } from "./kubo-dorms";
 
-const acceptingDirectory: KuboDormDirectoryResponse = {
+const directory: KuboDormDirectoryResponse = {
   version: 1,
   generatedAt: "2026-07-22T08:00:00.000Z",
   dorms: [
     {
-      roomTbaDormId: 15,
       name: "Scholar's Dormitory",
       kuboSlug: "scholar-s-dormitory",
       listingUrl: "https://kubo.community/dorms/scholar-s-dormitory",
-      reservationStatus: "accepting",
-      reservationUrl:
-        "https://kubo.community/dorms/scholar-s-dormitory/apply/type",
       updatedAt: "2026-07-22T08:00:00.000Z",
     },
   ],
@@ -26,135 +22,82 @@ const acceptingDirectory: KuboDormDirectoryResponse = {
 
 describe("parseKuboDormDirectory", () => {
   test("accepts the versioned Kubo directory", () => {
-    expect(parseKuboDormDirectory(acceptingDirectory)).toEqual(
-      acceptingDirectory,
-    );
+    expect(parseKuboDormDirectory(directory)).toEqual(directory);
   });
 
-  test.each([
-    { ...acceptingDirectory, version: 2 },
-    {
-      ...acceptingDirectory,
-      dorms: [acceptingDirectory.dorms[0], acceptingDirectory.dorms[0]],
-    },
-    {
-      ...acceptingDirectory,
-      dorms: [
+  test("maps Kubo's public listing directory into safe listing links", () => {
+    expect(
+      parseKuboDormDirectory([
         {
-          ...acceptingDirectory.dorms[0],
-          listingUrl: "https://example.com/phishing",
+          name: "Scholar's Dormitory",
+          slug: "scholar-s-dormitory",
+          updatedAt: "2026-07-22T08:00:00.000Z",
         },
-      ],
-    },
-    {
-      ...acceptingDirectory,
-      dorms: [
-        {
-          ...acceptingDirectory.dorms[0],
-          reservationStatus: "maybe",
-        },
-      ],
-    },
-  ])("rejects an unsafe or ambiguous payload", (payload) => {
-    expect(parseKuboDormDirectory(payload)).toBeNull();
+      ]),
+    ).toEqual(directory);
+  });
+
+  test("rejects an unsafe or ambiguous payload", () => {
+    expect(
+      parseKuboDormDirectory([
+        { name: "One", slug: "one", updatedAt: "not-a-date" },
+      ]),
+    ).toBeNull();
+    expect(
+      parseKuboDormDirectory([
+        { name: "One", slug: "one", updatedAt: directory.generatedAt },
+        { name: "One", slug: "other", updatedAt: directory.generatedAt },
+      ]),
+    ).toBeNull();
   });
 });
 
 describe("getKuboDormCta", () => {
-  test("uses the direct reservation link only while accepting", () => {
-    const parsed = parseKuboDormDirectory(acceptingDirectory)!;
-    const directory = new Map(
-      parsed.dorms.map((record) => [record.roomTbaDormId, record]),
-    );
-
-    expect(getKuboDormCta(directory, 15, "Scholar's Dormitory")).toEqual({
-      href: "https://kubo.community/dorms/scholar-s-dormitory/apply/type",
-      label: "Reserve on Kubo",
-      ariaLabel:
-        "Reserve a place at Scholar's Dormitory on Kubo (opens in new tab)",
-    });
-  });
-
-  test("uses the waitlist CTA and falls back to its listing URL", () => {
-    const record = {
-      ...acceptingDirectory.dorms[0],
-      reservationStatus: "waitlist" as const,
-      reservationUrl: null,
-    };
-
+  test("links an exact dorm-name match to Kubo", () => {
     expect(
       getKuboDormCta(
-        new Map([[record.roomTbaDormId, record]]),
-        15,
+        new Map([["scholarsdormitory", directory.dorms[0]]]),
         "Scholar's Dormitory",
       ),
     ).toEqual({
-      href: record.listingUrl,
-      label: "Join waitlist on Kubo",
+      href: "https://kubo.community/dorms/scholar-s-dormitory",
+      label: "Reserve on Kubo",
       ariaLabel:
-        "Join the waitlist for Scholar's Dormitory on Kubo (opens in new tab)",
+        "Check availability for Scholar's Dormitory on Kubo (opens in new tab)",
     });
-  });
-
-  test.each([
-    "paused",
-    "unavailable",
-    "unknown",
-  ] as const)("uses the listing link for %s status", (reservationStatus) => {
-    const record = { ...acceptingDirectory.dorms[0], reservationStatus };
-    const cta = getKuboDormCta(
-      new Map([[record.roomTbaDormId, record]]),
-      15,
-      "Scholar's Dormitory",
-    );
-    expect(cta?.label).toBe("View on Kubo");
-    expect(cta?.href).toBe(record.listingUrl);
-  });
-
-  test("hides the CTA for an unlinked dorm", () => {
-    expect(getKuboDormCta(new Map(), 13, "Westbrook Residences")).toBeNull();
-  });
-
-  test("suppresses the CTA when the id-matched record names a different dorm", () => {
-    // Live incident 2026-07-25: Kubo served demo rows whose roomTbaDormIds
-    // pointed at real dorms ("Maple Court Residence" on Men's RH id).
-    const record = {
-      ...acceptingDirectory.dorms[0],
-      roomTbaDormId: 1,
-      name: "Maple Court Residence",
-    };
-    expect(
-      getKuboDormCta(new Map([[1, record]]), 1, "Men's Residence Hall"),
-    ).toBeNull();
   });
 
   test.each([
     ["Scholar's Dormitory", "Scholars Dormitory"],
     ["New Dormitory Residence Hall", "New Dormitory RH"],
   ])("accepts spelling variant %s vs %s", (kuboName, dormName) => {
-    const record = { ...acceptingDirectory.dorms[0], name: kuboName };
     expect(
-      getKuboDormCta(new Map([[15, record]]), 15, dormName),
+      getKuboDormCta(
+        new Map([
+          [
+            kuboName
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "")
+              .replace(/residencehall/g, "rh"),
+            { ...directory.dorms[0], name: kuboName },
+          ],
+        ]),
+        dormName,
+      ),
     ).not.toBeNull();
   });
 
-  test.each([
-    // Prod really has both of these; one name contains the other, so a
-    // placeholder id would otherwise render a CTA for the wrong building.
-    ["Forestry Residence Hall", "New Forestry Residence Hall"],
-    ["Arable Premier", "Arable Premier Residences"],
-  ])("rejects the near-miss %s vs %s", (kuboName, dormName) => {
-    const record = { ...acceptingDirectory.dorms[0], name: kuboName };
-    expect(getKuboDormCta(new Map([[15, record]]), 15, dormName)).toBeNull();
+  test("hides the CTA for an unlinked dorm", () => {
+    expect(getKuboDormCta(new Map(), "Westbrook Residences")).toBeNull();
   });
 
   test("starts empty so an unconfirmed link is never shown", () => {
-    let directory: KuboDormDirectory | undefined;
+    let current: KuboDormDirectory | undefined;
     const unsubscribe = kuboDormDirectory.subscribe((value) => {
-      directory = value;
+      current = value;
     });
     unsubscribe();
 
-    expect(directory?.size).toBe(0);
+    expect(current?.size).toBe(0);
   });
 });
