@@ -11,6 +11,7 @@ vi.mock("@lib/github-stars", () => ({
 }));
 
 import LandingModal from "./LandingModal.svelte";
+import Modal from "./Modal.svelte";
 
 /** Cards kept on phones; the rest are hidden below 36rem (see the guide CSS). */
 const PRIMARY_FEATURES = [
@@ -112,5 +113,14 @@ describe("landing modal controls", () => {
     render(LandingModal);
 
     expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  test("opens with focus on the dialog, not a tab outline", async () => {
+    modalStore.openModal("landing");
+    render(Modal);
+
+    const dialog = await screen.findByRole("dialog");
+    await vi.waitFor(() => expect(document.activeElement).toBe(dialog));
+    expect(dialog.getAttribute("tabindex")).toBe("-1");
   });
 });
