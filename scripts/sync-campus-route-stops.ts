@@ -152,16 +152,20 @@ try {
         row.name !== stop.name ||
         row.description !== stop.description ||
         Math.abs(Number(row.lat) - stop.lat) > EPS ||
-        Math.abs(Number(row.lon) - stop.lon) > EPS;
+        Math.abs(Number(row.lon) - stop.lon) > EPS ||
+        row.sort_order !== i + 1;
       if (!changed) continue;
       console.log(`edit  ${route.id} #${i + 1} ${row.name} -> ${stop.name}`);
       if (!DRY_RUN) {
         await client.query(
           `UPDATE jeepney_stops
-           SET name = $2, description = $3, lat = $4, lon = $5,
+           SET name = $2, description = $3, lat = $4, lon = $5, sort_order = $6,
                version = version + 1, updated_at = now()
            WHERE id = $1`,
-          [row.id, stop.name, stop.description, stop.lat, stop.lon],
+          // ponytail: renumbering in place can collide on the unique
+          // (route_id, sort_order) index if a later row needs an earlier
+          // free slot; prod only has a gap, so moving down is always free.
+          [row.id, stop.name, stop.description, stop.lat, stop.lon, i + 1],
         );
       }
     }
