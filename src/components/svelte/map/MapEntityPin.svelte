@@ -401,6 +401,11 @@
     color: white;
   }
 
+  /* Set by Map.svelte's label declutter pass; hover still reveals it. */
+  .map-entity-pin:not(:hover) .pin-label:global(.pin-label--collided) {
+    visibility: hidden;
+  }
+
   .map-entity-pin:not(.preview-suppressed):hover .pin-label,
   .map-entity-pin .pin-label.active,
   .map-entity-pin .pin-label.persistent {

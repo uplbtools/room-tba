@@ -41,7 +41,7 @@
     plannerRoomCodes,
     directionsStore,
   } from "@lib/store.svelte";
-  import { untrack } from "svelte";
+  import { tick, untrack } from "svelte";
   import { onMount } from "svelte";
   import { getSponsoredPlacePins, loadSponsors } from "@lib/sponsors";
   import {
@@ -166,6 +166,10 @@
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
+  import {
+    labelsToHide,
+    type LabelCandidate,
+  } from "@lib/map-label-declutter";
   import type {
     EditableCoords,
     EditableEntityType,
@@ -1444,11 +1448,22 @@
   // bypass the gate so deep links and paid placements never vanish.
   const POI_MIN_ZOOM = 15.5;
   const poiPinsVisible = $derived(zoomLevel >= POI_MIN_ZOOM);
+  // Offices and student orgs are ~110 pins stacked on a few dozen buildings.
+  // On a phone at the default campus zoom they buried every building pin, so
+  // the unfiltered map adds them a little closer in. The Units and offices /
+  // Student orgs filters, and the selected org, still show them from
+  // POI_MIN_ZOOM.
+  const ORG_PINS_MOBILE_MIN_ZOOM = 16.75;
   $effect(() => {
     mapViewStore.poiPinsZoomVisible = poiPinsVisible;
   });
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
+  const orgPinsVisible = $derived(
+    orgPinFilter === "all" && md.current
+      ? zoomLevel >= ORG_PINS_MOBILE_MIN_ZOOM
+      : poiPinsVisible,
+  );
   let editChromeEl = $state<HTMLElement | null>(null);
   const editChromeActive = $derived(
     eventPlacementStore.active ||
@@ -1488,6 +1503,83 @@
     if (!mapStore.mapInstance) return;
     zoomLevel = mapStore.mapInstance.getZoom();
   }
+
+  // Pin labels are HTML, so MapLibre's own label collision never sees them.
+  // After the camera settles (or the pin set changes), hide the labels that
+  // would overlap a more important one, sit on a more important pin, or hide
+  // under the search bar. Hovering a pin still shows its label.
+  const LABEL_PRIORITY: [string, number][] = [
+    ["building", 1],
+    ["dorm", 1],
+    ["private", 1],
+    ["landmark", 2],
+    ["establishment", 3],
+    ["office", 4],
+    ["organization", 5],
+  ];
+  let mapContainerEl = $state<HTMLDivElement | null>(null);
+  let declutterFrame = 0;
+
+  function declutterPinLabels() {
+    const root = mapContainerEl;
+    if (!root) return;
+    const labels: HTMLElement[] = [];
+    const candidates: LabelCandidate[] = [];
+    for (const pin of root.querySelectorAll<HTMLElement>(".map-entity-pin")) {
+      const label = pin.querySelector<HTMLElement>(".pin-label");
+      const icon = pin.querySelector<HTMLElement>(".pin-icon");
+      if (!label || !icon) continue;
+      label.classList.remove("pin-label--collided");
+      if (!label.classList.contains("persistent")) continue;
+      const tone = LABEL_PRIORITY.find(([name]) => pin.classList.contains(name));
+      candidates.push({
+        id: labels.push(label) - 1,
+        priority: pin.classList.contains("active") ? 0 : (tone?.[1] ?? 6),
+        label: label.getBoundingClientRect(),
+        pin: icon.getBoundingClientRect(),
+      });
+    }
+    const chrome = [
+      ...document.querySelectorAll(
+        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips",
+      ),
+    ].map((el) => el.getBoundingClientRect());
+    for (const id of labelsToHide(candidates, chrome)) {
+      labels[id]?.classList.add("pin-label--collided");
+    }
+  }
+
+  function scheduleLabelDeclutter() {
+    cancelAnimationFrame(declutterFrame);
+    declutterFrame = requestAnimationFrame(() => {
+      void tick().then(declutterPinLabels);
+    });
+  }
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+    map.on("moveend", scheduleLabelDeclutter);
+    return () => {
+      map.off("moveend", scheduleLabelDeclutter);
+      cancelAnimationFrame(declutterFrame);
+    };
+  });
+
+  $effect(() => {
+    // Re-run when the pin set or which labels show changes without a move.
+    void [
+      zoomLevel >= 17,
+      filteredBuildings,
+      filteredDorms,
+      filteredPlaces,
+      filteredOrganizations,
+      orgPinsVisible,
+      queryStore.inputValue,
+      queryStore.category,
+    ];
+    scheduleLabelDeclutter();
+  });
 
   function buildingEditKey(id: number) {
     return `building:${id}`;
@@ -3754,7 +3846,7 @@
 <svelte:window onkeydown={handleMapEditKeydown} />
 
 <div class="map-shell">
-  <div class="map-container">
+  <div class="map-container" bind:this={mapContainerEl}>
     {#if eventPlacementStore.active}
       <EventPlacementImageField />
     {/if}
@@ -4318,7 +4410,7 @@
 
         {#if !mapViewStore.eventsOnly}
           {#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
-            {#if poiPinsVisible || activeOrgName === org.name}
+            {#if orgPinsVisible || activeOrgName === org.name}
             {@const centralHoverPreview = shouldShowEntityHoverPreview()}
             {@const previewSuppressed =
               centralHoverPreview &&
