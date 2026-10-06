@@ -129,6 +129,15 @@ test.describe("campus browsing", () => {
     expect(
       drawFailures.filter((m) => !/style is not done loading/i.test(m)),
     ).toEqual([]);
+
+    // A focused route has a clear way out back to the plain map.
+    await page
+      .getByRole("button", { name: /close route and return to the map/i })
+      .click();
+    await expect(page.locator(".jeepney-stop-pin")).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /copy link to .+ route/i }),
+    ).toHaveCount(0);
   });
 
   test("classes panel includes term selector", async ({ page }) => {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import X from "@lucide/svelte/icons/x";
   import MapPinned from "@lucide/svelte/icons/map-pinned";
   import { jeepneyStore, modalStore, transitStore } from "@lib/store.svelte";
   import {
@@ -17,9 +18,24 @@
   type Props = {
     routeId?: string | null;
     onback?: () => void;
+    /** Leave the route view entirely and return to the plain map. */
+    onclose?: () => void;
   };
 
-  let { routeId = null, onback }: Props = $props();
+  let { routeId = null, onback, onclose }: Props = $props();
+
+  function onKeydown(event: KeyboardEvent) {
+    if (event.key !== "Escape" || !onclose || event.defaultPrevented) return;
+    // Let a focused field (stop editor) handle its own Escape.
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest("input, textarea, select, [contenteditable]")
+    ) {
+      return;
+    }
+    onclose();
+  }
 
   const route = $derived(
     transitStore.getRoute(routeId ?? jeepneyStore.modalRouteId),
@@ -57,13 +73,29 @@
   }
 </script>
 
+<svelte:window onkeydown={onKeydown} />
+
 {#if route}
   <div class="jeepney-modal" style:--route-color={route.color}>
-    {#if onback}
-      <button type="button" class="jeepney-modal__back" onclick={onback}>
-        <ChevronLeft size={16} aria-hidden="true" />
-        Jeepney routes
-      </button>
+    {#if onback || onclose}
+      <div class="jeepney-modal__nav">
+        {#if onback}
+          <button type="button" class="jeepney-modal__back" onclick={onback}>
+            <ChevronLeft size={16} aria-hidden="true" />
+            Jeepney routes
+          </button>
+        {/if}
+        {#if onclose}
+          <button
+            type="button"
+            class="jeepney-modal__close"
+            onclick={onclose}
+            aria-label="Close route and return to the map"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        {/if}
+      </div>
     {/if}
     <header class="jeepney-modal__header">
       <span
@@ -169,6 +201,34 @@
     cursor: pointer;
     font-size: 0.8125rem;
     font-weight: 700;
+  }
+
+  .jeepney-modal__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .jeepney-modal__close {
+    all: unset;
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+    border-radius: 999px;
+    color: hsl(5, 12%, 30%);
+    cursor: pointer;
+  }
+
+  .jeepney-modal__close:hover {
+    background: hsl(5, 53%, 96%);
+  }
+
+  .jeepney-modal__close:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: -2px;
   }
 
   .jeepney-modal__back:focus-visible {

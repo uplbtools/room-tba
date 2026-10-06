@@ -58,6 +58,31 @@ describe("JeepneyRouteModal", () => {
     expect(jeepneyStore.selectedStopIndex).toBe(1);
   });
 
+  test("the side panel copy closes with the X button or Escape", () => {
+    const route = JEEPNEY_ROUTES[0];
+    let closed = 0;
+    render(JeepneyRouteModal, {
+      props: { routeId: route.id, onback: () => {}, onclose: () => closed++ },
+    });
+
+    screen
+      .getByRole("button", { name: /close route and return to the map/i })
+      .click();
+    expect(closed).toBe(1);
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(closed).toBe(2);
+  });
+
+  test("the modal copy has no close button and ignores Escape", () => {
+    const route = JEEPNEY_ROUTES[0];
+    jeepneyStore.modalRouteId = route.id;
+    render(JeepneyRouteModal);
+    expect(
+      screen.queryByRole("button", { name: /close route and return/i }),
+    ).toBeNull();
+  });
+
   test("shows an empty state when the route id is unknown", () => {
     jeepneyStore.modalRouteId = "does-not-exist";
     render(JeepneyRouteModal);
