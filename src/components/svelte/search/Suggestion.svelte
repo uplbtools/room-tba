@@ -67,6 +67,17 @@
 
   function handleSuggestionClick() {
     entityHoverPreviewStore.hideNow();
+    // Choosing a start or end point for directions: any place with a pin works.
+    if (
+      directionsStore.picking &&
+      stopLat != null &&
+      stopLon != null &&
+      directionsStore.takePick({ lat: stopLat, lng: stopLon, label: value })
+    ) {
+      queryStore.exitResultMode();
+      queryStore.inputValue = "";
+      return;
+    }
     queryStore.updateQuery({
       type: "result",
       category,

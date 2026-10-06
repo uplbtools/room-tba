@@ -290,9 +290,8 @@
     lon: number,
     label: string,
   ): boolean {
-    if (!directionsStore.addingStop) return false;
-    void directionsStore.addWaypoint({ lat, lng: lon, label });
-    return true;
+    // A start point, an end point or an extra stop, whichever is waiting.
+    return directionsStore.takePick({ lat, lng: lon, label });
   }
 
   function handlePlaceMarkerClick(place: PlaceData) {
@@ -2629,6 +2628,35 @@
     };
   });
 
+  // While the rider is choosing a start or end point, a tap on bare map
+  // drops a pin there. Pin taps land on their DOM marker, not the canvas, and
+  // already route through tryAddDirectionsStop with the place name.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !directionsStore.picking) return;
+
+    const canvas = map.getCanvas();
+    const previousCursor = canvas.style.cursor;
+    canvas.style.cursor = "crosshair";
+    const handlePickClick = (event: mapGl.MapMouseEvent) => {
+      if (event.originalEvent.target !== canvas) return;
+      directionsStore.takePick({
+        lat: event.lngLat.lat,
+        lng: event.lngLat.lng,
+        label: "Dropped pin",
+        dropped: true,
+      });
+    };
+
+    map.on("click", handlePickClick);
+    return () => {
+      map.off("click", handlePickClick);
+      if (canvas.style.cursor === "crosshair") {
+        canvas.style.cursor = previousCursor;
+      }
+    };
+  });
+
   // #847: travel-time isochrone — while active, taps pick the origin point.
   $effect(() => {
     const map = mapStore.mapInstance;
@@ -3635,13 +3663,14 @@
    * a waypoint, or within ~25 m of the drawn route (#966 route UI).
    */
   function isExemptFromDirectionsDim(lat: number, lon: number): boolean {
-    const dest = directionsStore.destination;
-    if (
-      dest &&
-      Math.abs(dest.lat - lat) < 1e-5 &&
-      Math.abs(dest.lng - lon) < 1e-5
-    ) {
-      return true;
+    for (const end of [directionsStore.destination, directionsStore.origin]) {
+      if (
+        end &&
+        Math.abs(end.lat - lat) < 1e-5 &&
+        Math.abs(end.lng - lon) < 1e-5
+      ) {
+        return true;
+      }
     }
     for (const stop of directionsStore.waypoints) {
       if (
@@ -3759,6 +3788,31 @@
           </Marker>
         {/if}
         {#if directionsStore.active}
+          {#if directionsStore.originFixed && directionsStore.origin}
+            <Marker
+              lngLat={[directionsStore.origin.lng, directionsStore.origin.lat]}
+            >
+              <div
+                class="directions-origin-pin"
+                role="img"
+                aria-label={`Start: ${directionsStore.origin.label}`}
+              ></div>
+            </Marker>
+          {/if}
+          {#if directionsStore.destination?.dropped}
+            <Marker
+              lngLat={[
+                directionsStore.destination.lng,
+                directionsStore.destination.lat,
+              ]}
+            >
+              <div
+                class="addition-draft-pin"
+                role="img"
+                aria-label="Destination: dropped pin"
+              ></div>
+            </Marker>
+          {/if}
           {#each directionsStore.waypoints as stop, i (`dir-wp-${i}-${stop.lat}-${stop.lng}`)}
             <Marker lngLat={[stop.lng, stop.lat]}>
               <button
@@ -4908,6 +4962,17 @@
   .directions-waypoint:focus-visible {
     outline: 2px solid white;
     outline-offset: 1px;
+  }
+
+  .directions-origin-pin {
+    width: 1rem;
+    height: 1rem;
+    border: 3px solid var(--color-brand, #8d1437);
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    position: relative;
+    z-index: 71;
   }
 
   .addition-draft-pin {

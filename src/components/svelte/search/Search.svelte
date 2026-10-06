@@ -102,6 +102,15 @@
     searchElement?.blur();
   }
 
+  // Once a start or end point is chosen, hand the screen back to the map so
+  // the new route is visible. Plain `let` so the effect does not track it.
+  let wasPicking = false;
+  $effect(() => {
+    const picking = directionsStore.picking !== null;
+    if (wasPicking && !picking) dismissMobileSearch();
+    wasPicking = picking;
+  });
+
   const mobileSearchActive = $derived(mobile.current && searchFocused);
 
   const clearSelectionLabel = $derived(
@@ -138,11 +147,16 @@
 
   const canAddDirectionsStop = $derived(
     directionsSearchActive &&
+      directionsStore.destination !== null &&
       directionsStore.waypoints.length < MAX_DIRECTIONS_WAYPOINTS,
   );
 
   const searchPlaceholder = $derived(
-    directionsStore.addingStop
+    directionsStore.picking === "origin"
+      ? "Search a starting point"
+      : directionsStore.picking === "destination"
+        ? "Search where you are going"
+        : directionsStore.addingStop
       ? "Search a place to add as a stop"
       : directionsSearchActive
         ? "Search to add a stop"
