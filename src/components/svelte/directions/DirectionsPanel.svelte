@@ -30,6 +30,7 @@
     estimateDestinationLabelHalfWidthPx,
   } from "@lib/travel-graph/directions-fit";
   import NavigationBar from "./NavigationBar.svelte";
+  import CommuteItinerary from "./CommuteItinerary.svelte";
   import { JEEPNEY_FARE_NOTE } from "@constants/jeepney-routes";
   import {
     JEEPNEY_KPH,
@@ -311,24 +312,7 @@
           {#if ride && isSelected}
             <!-- Outside the option button (no nested buttons): tap a stop
                  name to see where to board or get off. -->
-            {#each rideLegs(journey) as leg, n (n)}
-              <p class="option__stops">
-                {n > 0 ? "Then board" : "Board"} at
-                <button
-                  type="button"
-                  class="option__stop-link"
-                  onclick={() => flyToStop(leg.coordinates[0])}
-                  >{leg.boardStopName}</button
-                >
-                · alight at
-                <button
-                  type="button"
-                  class="option__stop-link"
-                  onclick={() => flyToStop(leg.coordinates.at(-1))}
-                  >{leg.alightStopName}</button
-                >
-              </p>
-            {/each}
+            <CommuteItinerary {journey} onstop={flyToStop} />
           {/if}
         </li>
       {/each}
@@ -370,24 +354,6 @@
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
-  }
-
-  .option__stops {
-    margin: 0.375rem 0 0;
-    padding: 0 0.25rem;
-    font-size: 0.8125rem;
-    color: var(--theme-text-2, #52525b);
-  }
-
-  .option__stop-link {
-    all: unset;
-    box-sizing: border-box;
-    min-height: 2.75rem;
-    padding: 0 0.125rem;
-    color: var(--color-brand, var(--theme-accent-text, #8d1437));
-    font-weight: 600;
-    text-decoration: underline;
-    cursor: pointer;
   }
 
   .directions__note {

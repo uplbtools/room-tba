@@ -90,6 +90,7 @@
   } from "@constants/jeepney-routes";
   import jeepneyGeometries from "@constants/jeepney-geometries.json";
   import { type Position, stopArrows } from "@lib/route-arrows";
+  import { reverseLine } from "@lib/transit-direction";
   import {
     MAKILING_TRAIL_COLOR,
     MAKILING_TRAIL_LAYER_CASING_ID,
@@ -3197,9 +3198,8 @@
     const map = mapStore.mapInstance;
     if (!map) return;
 
-    const route = selectedId
-      ? transitStore.getRoute(selectedId)
-      : null;
+    // Oriented: the Kaliwa/Kanan toggle reverses the stop order and the line.
+    const route = selectedId ? transitStore.displayRoute(selectedId) : null;
 
     if (!route) {
       activeRouteId = null;
@@ -3228,7 +3228,13 @@
     // gating on either deadlocks and the polyline never draws. addSource /
     // addLayer only throw before the initial style load; try now and retry on
     // "styledata" until one attempt succeeds.
-    const { line, source: geometrySource } = routeGeometry(route);
+    // Stored lines are traced in listed order, so resolve on the listed route
+    // and flip the line for the reverse direction.
+    const listed = transitStore.getRoute(route.id) ?? route;
+    const { line: listedLine, source: geometrySource } = routeGeometry(listed);
+    const line = transitStore.isReversed(route.id)
+      ? reverseLine(listedLine)
+      : listedLine;
     const draw = () => {
       ensureJeepneyRouteLayers(map, route.color, geometrySource);
       const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
@@ -3290,7 +3296,7 @@
     const stopIndex = jeepneyStore.selectedStopIndex;
     if (!map || routeId === null || stopIndex === null) return;
 
-    const route = transitStore.getRoute(routeId);
+    const route = transitStore.displayRoute(routeId);
     const stop = route?.stops[stopIndex];
     if (!stop) return;
 

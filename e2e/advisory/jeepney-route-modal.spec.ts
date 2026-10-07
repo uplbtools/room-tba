@@ -31,8 +31,10 @@ test.describe("jeepney route details @advisory", () => {
       modal.getByRole("button", { name: /view on map/i }),
     ).toBeVisible();
 
-    // Fare + direction note render.
-    await expect(modal.getByText("₱13")).toBeVisible();
-    await expect(modal.getByText(/same loop/i)).toBeVisible();
+    // Fare + the Kaliwa / Kanan direction toggle render.
+    await expect(modal.getByText("₱14")).toBeVisible();
+    await expect(
+      modal.getByRole("button", { name: "Kaliwa", exact: true }),
+    ).toBeVisible();
   });
 });
