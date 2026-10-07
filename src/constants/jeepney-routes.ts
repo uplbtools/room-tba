@@ -35,7 +35,7 @@ export type JeepneyRoute = {
 
 /** Campus jeepney fares are set campus-wide, not per route. */
 export const JEEPNEY_FARE_NOTE =
-  "Indicative fare for the 2025-2026 school year; confirm with the driver.";
+  "Fare as of October 2026; confirm with the driver.";
 
 /** Town jeeps charge by distance; the listed fare is end to end. */
 export const TOWN_JEEPNEY_FARE_NOTE =
@@ -45,7 +45,28 @@ export const TOWN_JEEPNEY_FARE_NOTE =
 export const BUS_FARE_NOTE =
   "Indicative fare to the end of the line; confirm with the conductor or at the terminal.";
 
-const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 13, discounted: 11 };
+const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 14, discounted: 12 };
+
+/** Routes sold as advance tickets instead of cash on board. */
+export type RouteTicketing = { operator: string; url: string };
+
+const DLTB_TICKETING: RouteTicketing = {
+  operator: "DLTB",
+  url: "https://dltbbus.com.ph/",
+};
+
+/**
+ * The UPLB <-> UP Diliman bus is booked on DLTB's website, which also has the
+ * current fare, so the app links there instead of quoting a price.
+ */
+const ROUTE_TICKETING: Readonly<Record<string, RouteTicketing>> = {
+  "uplb-to-upd": DLTB_TICKETING,
+  "upd-to-uplb": DLTB_TICKETING,
+};
+
+export function routeTicketing(routeId: string): RouteTicketing | null {
+  return ROUTE_TICKETING[routeId] ?? null;
+}
 
 /** Fallback route line when no road-snapped geometry exists: a straight
  * polyline through the route's stops, in GeoJSON [lon, lat] order. */

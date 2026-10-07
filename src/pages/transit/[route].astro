@@ -4,6 +4,7 @@ export const prerender = false;
 import AppRoot from "@ui/AppRoot.svelte";
 import Layout from "@layouts/Layout.astro";
 import { getTransitRouteForPage } from "@lib/services/transit-service";
+import { routeTicketing } from "@constants/jeepney-routes";
 import { transitRouteNoun } from "@lib/transit-route-kind";
 import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
 import { campusTransit } from "../../campus.config";
@@ -14,6 +15,7 @@ if (!campusTransit.enabled) {
 
 const routeId = Astro.params.route;
 const route = await getTransitRouteForPage(routeId);
+const ticketing = route ? routeTicketing(route.id) : null;
 const routeName = route?.name ?? "UPLB transit route";
 const routeNoun = route ? transitRouteNoun(route) : "transit route";
 const canonicalPath = `/transit/${encodeURIComponent(routeId ?? "")}/`;
@@ -49,7 +51,14 @@ const structuredData = jsonLd(
     <article class="sr-only">
       <h1>{routeName}</h1>
       <p>{description}</p>
-      {route && <p>{route.stops.length} stops. Regular fare: ₱{route.fare.regular}.</p>}
+      {route && (
+        <p>
+          {route.stops.length} stops.{" "}
+          {ticketing
+            ? `Buy tickets on the ${ticketing.operator} website (${ticketing.url}), which lists the current fare.`
+            : `Regular fare: ₱${route.fare.regular}.`}
+        </p>
+      )}
     </article>
     <AppRoot client:only="svelte" suppressLandingModal={true} />
   </main>

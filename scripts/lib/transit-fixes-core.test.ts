@@ -22,6 +22,8 @@ const route = (over: Partial<RouteRow>): RouteRow => ({
   name: "Los Baños → San Pablo",
   description:
     "Jeepney toward San Pablo City, via Bay and Alaminos to San Pablo.",
+  fareRegular: 50,
+  fareDiscounted: 40,
   version: 3,
   ...over,
 });
@@ -75,6 +77,32 @@ describe("planTransitFixes", () => {
     );
     expect(fixes[0]?.after).toEqual({
       name: "Buendia (LRT Gil Puyat) → Los Baños",
+    });
+  });
+
+  test("sets the October 2026 campus and Calamba fares", () => {
+    const fixes = planTransitFixes(
+      [
+        route({ id: "kaliwa-kanan", fareRegular: 13, fareDiscounted: 11 }),
+        route({
+          id: "lb-to-calamba",
+          description:
+            "Serves SM Calamba via Pansol. ~₱20 jeepney fare per commuter sources; verify against the current LTFRB matrix.",
+          fareRegular: 20,
+          fareDiscounted: 16,
+        }),
+        // DLTB is ticketed online; its stored fare is left alone.
+        route({ id: "uplb-to-upd", fareRegular: 165, fareDiscounted: 132 }),
+      ],
+      [],
+      campus,
+    );
+    expect(fixes.map((f) => f.id)).toEqual(["kaliwa-kanan", "lb-to-calamba"]);
+    expect(fixes[0]?.after).toEqual({ fareRegular: 14, fareDiscounted: 12 });
+    expect(fixes[1]?.after).toEqual({
+      fareRegular: 30,
+      fareDiscounted: 25,
+      description: "Serves SM Calamba via Pansol.",
     });
   });
 

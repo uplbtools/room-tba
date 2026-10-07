@@ -30,6 +30,7 @@ import {
   PRINT_MAP_QR,
   RALEWAY_BOLD_HEADINGS,
 } from "@constants/print-brand";
+import { routeTicketing } from "@constants/jeepney-routes";
 
 export type TransitMapStop = { name: string; lat: number; lon: number };
 
@@ -1659,7 +1660,13 @@ export async function renderTransitMapPdf(input: {
             color: INK,
           }),
         );
-        const fare = (n: number) => (Number.isFinite(n) ? String(n) : "ask");
+        // Advance-ticket routes (DLTB) are priced on the operator's site.
+        const fare = (n: number) =>
+          routeTicketing(r.id)
+            ? "online"
+            : Number.isFinite(n)
+              ? String(n)
+              : "ask";
         right(fare(r.fareRegular), colReg, py, font, 7.5, INK);
         right(fare(r.fareDiscounted), colDisc, py, font, 7.5, INK);
         py -= lines.length * 9 + 1;

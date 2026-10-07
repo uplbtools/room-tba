@@ -16,6 +16,10 @@
  *   name now, with the signboard names kept in the description.
  * - Paired bus names read "Los Baños → Buendia (LRT Gil Puyat)" one way and
  *   "Buendia → Los Baños" the other.
+ * - Fares as of October 2026 (maintainer): campus jeeps ₱14, ₱12 for
+ *   students; Los Baños → Calamba ₱30, ₱25 discounted. The DLTB UP Diliman
+ *   bus is ticketed on DLTB's site, so the app links there instead
+ *   (routeTicketing in src/constants/jeepney-routes.ts).
  *
  *
  * The UP Diliman buses' Quezon Ave. / Skyway stops needed no move: their line
@@ -43,6 +47,8 @@ export type RouteRow = {
   id: string;
   name: string;
   description: string;
+  fareRegular: number;
+  fareDiscounted: number;
   version: number;
 };
 
@@ -88,10 +94,30 @@ const STOP_FIXES: { routeId: string; name: string; patch: StopPatch }[] = [
   { routeId: "buendia-to-lb", name: "Pansol, Calamba", patch: PANSOL },
 ];
 
+type RoutePatch = Partial<
+  Pick<RouteRow, "name" | "description" | "fareRegular" | "fareDiscounted">
+>;
+
+const CAMPUS_FARE: RoutePatch = { fareRegular: 14, fareDiscounted: 12 };
+
 const ROUTE_FIXES: {
   id: string;
-  patch: (route: RouteRow) => Partial<Pick<RouteRow, "name" | "description">>;
+  patch: (route: RouteRow) => RoutePatch;
 }[] = [
+  { id: "kaliwa-kanan", patch: () => CAMPUS_FARE },
+  { id: "forestry", patch: () => CAMPUS_FARE },
+  { id: "up-rural", patch: () => CAMPUS_FARE },
+  {
+    id: "lb-to-calamba",
+    patch: (route) => ({
+      fareRegular: 30,
+      fareDiscounted: 25,
+      description: route.description.replace(
+        /\s*~₱20 jeepney fare per commuter sources; verify against the current LTFRB matrix\./,
+        "",
+      ),
+    }),
+  },
   {
     id: "lb-to-san-pablo",
     patch: (route) => ({
