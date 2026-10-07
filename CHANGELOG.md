@@ -1,3 +1,21 @@
+# [2.36.0](https://github.com/uplbtools/room-tba/compare/v2.35.0...v2.36.0) (2026-10-07)
+
+
+### Bug Fixes
+
+* **3d:** mobile building viewer framing, contrast, labels, sheet and controls ([#1266](https://github.com/uplbtools/room-tba/issues/1266)) ([a569cf2](https://github.com/uplbtools/room-tba/commit/a569cf2b3776cc863697a13e2064ec0260be36e6))
+* **menu:** feedback, hotlines, settings, offline maps, coverage, browse sheets, shortcuts ([#1270](https://github.com/uplbtools/room-tba/issues/1270)) ([fd5ea60](https://github.com/uplbtools/room-tba/commit/fd5ea60eb076512890cbd88239dc76ccb65662de))
+* **menu:** mobile menu sheet, scrim, focus, one row style, Sign in, presence ([#1269](https://github.com/uplbtools/room-tba/issues/1269)) ([ef96bf4](https://github.com/uplbtools/room-tba/commit/ef96bf4907bbd80245ae22724578df2d34189f8e))
+* **menu:** Today, Final exams, Academic calendar, Announcements, What's new, onboarding ([#1268](https://github.com/uplbtools/room-tba/issues/1268)) ([c4173ec](https://github.com/uplbtools/room-tba/commit/c4173ecab43b169e121a5b228455d0b09880ca88))
+* **photos:** Google Street View leads the gallery; uploaded photo spheres go last ([#1262](https://github.com/uplbtools/room-tba/issues/1262)) ([fccc742](https://github.com/uplbtools/room-tba/commit/fccc742a93b163e24f7327f5acea88e28c2847b7))
+* **planner:** mobile planner pass (header, tabs, sections, grid, conflicts) ([#1265](https://github.com/uplbtools/room-tba/issues/1265)) ([cddf6b2](https://github.com/uplbtools/room-tba/commit/cddf6b211e1070dbc81e41ad4cc519925116893a))
+* **print:** wall-readable printable map ([#1264](https://github.com/uplbtools/room-tba/issues/1264)) ([fd8e294](https://github.com/uplbtools/room-tba/commit/fd8e29491ea09da4a3246bb19b4416857d795e29))
+
+
+### Features
+
+* **transit:** daily DLTB bus between UPLB and LRT Buendia ([#1267](https://github.com/uplbtools/room-tba/issues/1267)) ([f1d08ed](https://github.com/uplbtools/room-tba/commit/f1d08ed4da5defc168218a77e9c203e57b6a3457))
+
 # [2.35.0](https://github.com/uplbtools/room-tba/compare/v2.34.1...v2.35.0) (2026-10-07)
 
 
