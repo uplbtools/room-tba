@@ -9,6 +9,7 @@ import {
   haversineMeters,
   isCampusScopeRoute,
   isLoopRoute,
+  shortStopLabel,
   labelCandidates,
   placeLabels,
   pointsAlong,
@@ -354,6 +355,24 @@ describe("placeLabels", () => {
     expect(placed.has("low")).toBe(false);
   });
 
+  test("a line-clear label (you are here) never sits on a route line", () => {
+    // A vertical line right of the anchor rules out the natural right spot.
+    const line = Array.from({ length: 40 }, (_, i) => ({
+      x: 108,
+      y: 80 + i,
+      w: 4,
+      h: 1,
+    }));
+    const placed = placeLabels(
+      [{ ...req("here", 100, 100, 9, true), clearOfLines: true }],
+      [],
+      bounds,
+      line,
+    );
+    const box = placed.get("here")!;
+    expect(line.some((l) => overlap(box, l))).toBe(false);
+  });
+
   test("keeps labels inside the frame bounds", () => {
     const placed = placeLabels([req("edge", 495, 250, 5)], [], bounds);
     const box = placed.get("edge")!;
@@ -511,5 +530,27 @@ describe("print branding", () => {
       RALEWAY_BOLD_HEADINGS["UPLB Jeepney Routes"].d.length,
     ).toBeGreaterThan(100);
     expect(RALEWAY_BOLD_HEADINGS["Room TBA"].width).toBeGreaterThan(0);
+  });
+});
+
+describe("shortStopLabel", () => {
+  test("keeps the first of merged names and prefers a short alias", () => {
+    expect(
+      shortStopLabel("CEAT Lecture Hall / CEAT-DCE / CEAT-DES / CEAT-CE"),
+    ).toBe("CEAT Lecture Hall");
+    expect(shortStopLabel("New Forestry Residence Hall (New FOREHA)")).toBe(
+      "New FOREHA",
+    );
+    expect(shortStopLabel("Carabao Park / DevCom", 2)).toBe(
+      "Carabao Park / DevCom",
+    );
+  });
+
+  test("cuts long names at a word", () => {
+    const label = shortStopLabel(
+      "UPLB Landscape Horticulture Research and Development Facility",
+    );
+    expect(label.length).toBeLessThanOrEqual(30);
+    expect(label).toMatch(/^UPLB Landscape Horticulture.*\.\.\.$/);
   });
 });
