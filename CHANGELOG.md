@@ -1,3 +1,23 @@
+# [2.34.0](https://github.com/uplbtools/room-tba/compare/v2.33.0...v2.34.0) (2026-10-07)
+
+
+### Bug Fixes
+
+* **photos:** give the Oblation a photo ([#1249](https://github.com/uplbtools/room-tba/issues/1249)) ([e2dfa9c](https://github.com/uplbtools/room-tba/commit/e2dfa9cf5f51c15350fe6f430d9c7e47eb8d7eed))
+* **transit:** a clear way to close a focused jeepney route ([#1244](https://github.com/uplbtools/room-tba/issues/1244)) ([4e4bad9](https://github.com/uplbtools/room-tba/commit/4e4bad921ca7298ccf3634ba7683d4a2ad116a0d))
+* **transit:** Forestry dorm loop and terminal, UP Rural straight down the IPB road ([#1242](https://github.com/uplbtools/room-tba/issues/1242)) ([b0dcdf9](https://github.com/uplbtools/room-tba/commit/b0dcdf9537121dde52bee26f5e7f04288f431520))
+
+
+### Features
+
+* **map:** direction arrows after each jeepney stop ([#1238](https://github.com/uplbtools/room-tba/issues/1238)) ([f4d9a60](https://github.com/uplbtools/room-tba/commit/f4d9a6004c22ed40a6188d4ecf32de911389027a))
+* mobile UI pass: transit off campus, directions with transfers, schedule, edit history, no white screen ([#1251](https://github.com/uplbtools/room-tba/issues/1251)) ([034e76b](https://github.com/uplbtools/room-tba/commit/034e76bc74a5c22b8319749adff44b2cbce2c0b7))
+
+
+### Performance Improvements
+
+* **3d:** do not wait on the local database before the first frame ([#1246](https://github.com/uplbtools/room-tba/issues/1246)) ([3b44a1a](https://github.com/uplbtools/room-tba/commit/3b44a1ac992c62394ab16ca439d93d20dd413fb8))
+
 # [2.33.0](https://github.com/uplbtools/room-tba/compare/v2.32.0...v2.33.0) (2026-10-06)
 
 
