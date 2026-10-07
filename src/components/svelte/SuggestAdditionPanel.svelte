@@ -15,6 +15,7 @@
     type ProposalCreateType,
   } from "@lib/proposals/client";
   import {
+    ANONYMOUS_SUBMITTER_NAME,
     MAX_SUBMITTER_NOTE_LENGTH,
     validateSubmitterName,
   } from "@constants/proposals";
@@ -359,7 +360,7 @@
   }
 
   const pickPinBlockedMessage =
-    "You must add all information before picking location on map";
+    "Add a name first, then pick its spot on the map.";
 
   function blockPickOnMap(message = pickPinBlockedMessage) {
     error = message;
@@ -500,15 +501,22 @@
     }
   }
 
-  async function submit() {
-    error = null;
-    if (!isPublish) {
-      const name = resolveSubmitterName({
+  // The contributor name is optional and asked last (Jakob audit, micro 15):
+  // blank submits as Anonymous; a typed name still has to be a usable credit.
+  function contributorName() {
+    return (
+      resolveSubmitterName({
         displayName: adminAuthStore.displayName,
         username: adminAuthStore.username,
         draftName: submitterName,
-      });
-      const validation = validateSubmitterName(name);
+      }) || ANONYMOUS_SUBMITTER_NAME
+    );
+  }
+
+  async function submit() {
+    error = null;
+    if (!isPublish) {
+      const validation = validateSubmitterName(contributorName());
       if (!validation.ok) {
         error = validation.error;
         return;
@@ -584,11 +592,7 @@
         return;
       }
 
-      const name = resolveSubmitterName({
-        displayName: adminAuthStore.displayName,
-        username: adminAuthStore.username,
-        draftName: submitterName,
-      })!;
+      const name = contributorName();
       const pendingCreate = getStoredPendingCreateProposal(kind);
       const result = await submitCreateProposal({
         entityType: kind,
@@ -623,6 +627,15 @@
     }
   }
 </script>
+
+{#snippet pinRow()}
+  <EntityEditorPinRow
+    label={draftPinRowText}
+    pickLabel={draftPin ? "Move pin" : "Pick on map"}
+    disabled={submitting}
+    onclick={pickOnMap}
+  />
+{/snippet}
 
 <section
   class="entity-editor addition-panel"
@@ -667,13 +680,6 @@
     {/snippet}
   </EntityEditorFormField>
 
-  {#if !isPublish && !adminAuthStore.isLoggedIn}
-    <SubmitterNameField
-      id="suggest-addition-submitter-name"
-      bind:value={submitterName}
-    />
-  {/if}
-
   <div class="field-group">
     {#if kind === "create_building"}
       <EntityEditorFormField
@@ -690,6 +696,7 @@
           />
         {/snippet}
       </EntityEditorFormField>
+      {@render pinRow()}
       <EntityEditorFormField
         label="How do you find it?"
         inputId="addition-building-directions"
@@ -780,6 +787,7 @@
           />
         {/snippet}
       </EntityEditorFormField>
+      {@render pinRow()}
       <EntityEditorFormField
         label="When does it start?"
         inputId="addition-event-starts"
@@ -841,6 +849,7 @@
           />
         {/snippet}
       </EntityEditorFormField>
+      {@render pinRow()}
       <EntityEditorFormField
         label="Who can live here?"
         inputId="addition-dorm-gender"
@@ -870,6 +879,7 @@
           />
         {/snippet}
       </EntityEditorFormField>
+      {@render pinRow()}
       <EntityEditorFormField
         label="What kind of place?"
         inputId="addition-place-category"
@@ -927,6 +937,7 @@
           />
         {/snippet}
       </EntityEditorFormField>
+      {@render pinRow()}
       <EntityEditorFormField label="What kind of entry?" inputId="addition-organization-category">
         {#snippet control()}
           <select
@@ -1069,15 +1080,6 @@
     {/if}
   </div>
 
-  {#if needsPin}
-    <EntityEditorPinRow
-      label={draftPinRowText}
-      pickLabel={draftPin ? "Move pin" : "Pick on map"}
-      disabled={submitting}
-      onclick={pickOnMap}
-    />
-  {/if}
-
   {#if !isPublish}
     <EntityEditorFormField
       label="Note to reviewer (optional)"
@@ -1094,6 +1096,14 @@
         ></textarea>
       {/snippet}
     </EntityEditorFormField>
+  {/if}
+
+  {#if !isPublish && !adminAuthStore.isLoggedIn}
+    <SubmitterNameField
+      id="suggest-addition-submitter-name"
+      bind:value={submitterName}
+      optional
+    />
   {/if}
 
   {#if error}

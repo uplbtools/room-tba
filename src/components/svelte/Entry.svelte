@@ -60,6 +60,10 @@
   import { openCampusBrowse } from "@lib/browse-campus";
   import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
+  import { appScreenFromPath } from "@lib/app-screen-path";
+  import CampusLoadProgress from "./CampusLoadProgress.svelte";
+  import OfflineBanner from "./OfflineBanner.svelte";
+  import FirstRunTips from "./FirstRunTips.svelte";
   import StagingBanner from "./StagingBanner.svelte";
   import AnnouncementBar from "./AnnouncementBar.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
@@ -82,12 +86,26 @@
   const mobile = new MediaQuery("max-width:48rem");
   const {
     initialSearch,
-    suppressLandingModal = false,
-    openToday = false,
-    openPlanner = false,
-    openFinals = false,
-    openCalendar = false,
+    suppressLandingModal: suppressLandingModalProp = false,
+    openToday: openTodayProp = false,
+    openPlanner: openPlannerProp = false,
+    openFinals: openFinalsProp = false,
+    openCalendar: openCalendarProp = false,
   }: Props = $props();
+
+  // Offline, the service worker answers /planner and friends with the map
+  // shell, which has no open* prop; the path still says which screen to open.
+  // Read at init: EntityUrlSync normalizes the URL in its onMount.
+  const initialScreen =
+    typeof window !== "undefined"
+      ? appScreenFromPath(window.location.pathname)
+      : null;
+  const openPlanner = openPlannerProp || initialScreen === "planner";
+  const openToday = openTodayProp || initialScreen === "today";
+  const openFinals = openFinalsProp || initialScreen === "finals";
+  const openCalendar = openCalendarProp || initialScreen === "calendar";
+  const suppressLandingModal =
+    suppressLandingModalProp || initialScreen !== null;
 
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
@@ -287,7 +305,10 @@
   });
 
   let landingModalAutoOpenConsumed = $state(false);
+  let firstRunTipsOpen = $state(false);
 
+  // First run gets a light tip card over a usable map, not the full welcome
+  // modal; "How Room TBA works" in the menu still opens the whole tour.
   $effect(() => {
     if (
       !shouldAutoOpenLandingModal({
@@ -301,11 +322,18 @@
       return;
     }
     landingModalAutoOpenConsumed = true;
-    // Auto-open counts as seen: the welcome tour shows once per browser, not
-    // on every visit. Reopen stays available from the app menu.
-    localStorage.setItem("hideLandingModal", "true");
-    modalStore.openModal("landing");
+    firstRunTipsOpen = true;
   });
+
+  function dismissFirstRunTips() {
+    firstRunTipsOpen = false;
+    // Seen once per browser, same key the welcome modal used.
+    try {
+      localStorage.setItem("hideLandingModal", "true");
+    } catch {
+      // Private mode: the card just comes back next visit.
+    }
+  }
   $effect(() => {
     updateData(queryStore.recentSearches);
   });
@@ -426,6 +454,7 @@
   class:redesign-desktop={!mobile.current}
 >
   <Map />
+  <CampusLoadProgress />
   <StagingBanner />
   <AnnouncementBar />
   <div class="ui-layer">
@@ -494,6 +523,24 @@
       action={toastStore.action}
       onclose={() => toastStore.clear()}
     />
+  {/if}
+  <OfflineBanner
+    placement={["map", "contributors", "settings"].includes(sidebarStore.panelOpen)
+      ? "map"
+      : "screen"}
+  />
+  {#if sidebarStore.panelOpen === "map"}
+    <!-- Steps aside while a sheet or form is up instead of covering it; it
+         returns when the map is idle again until "Got it". -->
+    {#if firstRunTipsOpen && !modalStore.open && !sidePanelStore.active && !editorChromeStore.additionModalOpen}
+      <FirstRunTips
+        ondismiss={dismissFirstRunTips}
+        onguide={() => {
+          dismissFirstRunTips();
+          modalStore.openModal("landing");
+        }}
+      />
+    {/if}
   {/if}
   <Modal />
   <KeyboardShortcutsPopup />

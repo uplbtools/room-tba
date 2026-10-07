@@ -9,7 +9,13 @@
   import { getEventImage } from "@lib/event-images";
   import { formatCampusRange } from "@lib/event-time";
   import { getEventShareUrl } from "@lib/share-links";
-  import { queryStore, sidePanelStore } from "@lib/store.svelte";
+  import {
+    appBootstrapStore,
+    queryStore,
+    sidePanelStore,
+  } from "@lib/store.svelte";
+  import { campusListState } from "@lib/campus-list-state";
+  import { onlineStatus } from "@lib/stores/online-status.svelte";
   import type { EventData } from "@lib/types";
   import EventResult from "./EventResult.svelte";
 
@@ -29,6 +35,16 @@
 
   const appData = getAppData();
   const { events, loaded } = $derived(appData());
+  // Skeleton while campus data is still loading behind the map; offline with
+  // nothing saved says so instead of "no events yet".
+  const eventsState = $derived(
+    campusListState({
+      count: events?.length ?? 0,
+      loaded,
+      phase: appBootstrapStore.phase,
+      online: onlineStatus.online,
+    }),
+  );
 
   const upcomingEvents = $derived.by(() => {
     if (!loaded) return [];
@@ -124,7 +140,7 @@
 
 <!-- No close button: the search bar names this list and its X closes it. -->
 <div class="events-list-panel">
-  {#if !loaded}
+  {#if eventsState === "loading" || !loaded}
     <EntityPanelHeader>
       {#snippet trailing()}
         <h2 class="entity-header__title">Campus events</h2>
@@ -156,7 +172,9 @@
         </div>
       {:else}
         <p class="empty-events">
-          No upcoming campus events right now. Check back soon.
+          {eventsState === "offline"
+            ? "Events aren’t available offline yet. Connect to the internet once and they’ll be saved on this device."
+            : "No upcoming campus events right now. Check back soon."}
         </p>
       {/if}
     </section>

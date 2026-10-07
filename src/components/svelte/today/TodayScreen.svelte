@@ -60,8 +60,9 @@
     today?.dayIndex == null ? null : (WEEKDAYS[today.dayIndex] ?? null),
   );
   const canRouteToday = $derived(routableTodayWeekday() !== null);
-  // No plan: the empty state below says what to do; the route button stays
-  // hidden until there is something to route.
+  // No plan: the empty state below says what to do. No classes today: the
+  // button is hidden and the reason shows in its place, never a faded button
+  // with nothing to explain it (Jakob audit, micro 14).
   const routeHint = $derived.by(() => {
     if (canRouteToday || !hasPlan) return null;
     if (todayWeekday === null) return "No classes on Sundays.";
@@ -142,15 +143,17 @@
 
   {#if hasPlan}
     <div class="today-route">
-      <button
-        type="button"
-        class="today-route__button"
-        disabled={!canRouteToday || routing}
-        onclick={routeMyDay}
-      >
-        <Route size={16} aria-hidden="true" />
-        {routing ? "Routing…" : "Route my day"}
-      </button>
+      {#if canRouteToday}
+        <button
+          type="button"
+          class="today-route__button"
+          disabled={routing}
+          onclick={routeMyDay}
+        >
+          <Route size={16} aria-hidden="true" />
+          {routing ? "Routing…" : "Route my day"}
+        </button>
+      {/if}
       {#if routeHint}
         <span class="today-route__hint">{routeHint}</span>
       {:else if routedToday && scheduleRouteStore.routeTotals}

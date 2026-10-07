@@ -6,10 +6,6 @@ import "../styles/app-loading.css";
 import desktopOnlyUrl from "../styles/desktop-only.css?url";
 import Analytics from "@vercel/analytics/astro";
 import {
-  LOADING_SPLASH_FIRST,
-  LOADING_SPLASH_MESSAGES,
-} from "@lib/loading-splash-messages";
-import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
   OG_IMAGE_HEIGHT,
@@ -246,30 +242,18 @@ const shareTitle = ogTitle ?? title;
       showAppLoadingShell ? (
         <div
           id="app-loading-shell"
-          class="app-loading-shell"
+          class="app-loading-shell app-loading-shell--frame"
           role="status"
           aria-live="polite"
         >
-          <div class="app-loading-hero">
-            <div class="app-loading-badge" aria-hidden="true">
-              <img
-                src="/logo.png"
-                alt=""
-                width="44"
-                height="44"
-                decoding="async"
-                class="app-loading-badge__logo"
-              />
-            </div>
-            <p class="app-loading-name">Room TBA</p>
-            <div class="app-loading-track" aria-hidden="true">
-              <div class="app-loading-track__fill"></div>
-            </div>
-            <p class="app-loading-shell__message">Loading campus data</p>
-            <p class="app-loading-shell__splash" aria-hidden="true">
-              {LOADING_SPLASH_FIRST}
-            </p>
+          <div class="app-loading-bar" aria-hidden="true">
+            <div class="app-loading-bar__fill"></div>
           </div>
+          <div class="app-loading-search" aria-hidden="true">
+            <span class="app-loading-search__icon"></span>
+            <span class="app-loading-search__text"></span>
+          </div>
+          <p class="app-loading-sr">Loading Room TBA</p>
         </div>
       ) : null
     }
@@ -524,41 +508,18 @@ const shareTitle = ogTitle ?? title;
       import { initDatadogRum } from "@lib/datadog-rum";
       initDatadogRum();
     </script>
-    <script is:inline define:vars={{ splashLines: LOADING_SPLASH_MESSAGES }}>
+    <script is:inline>
       (() => {
-        const splashEl = document.querySelector(".app-loading-shell__splash");
-        let splashIndex = 0;
-        let splashTimer = null;
-
-        function showSplashLine() {
-          if (!splashEl) return;
-          splashEl.textContent = splashLines[splashIndex % splashLines.length];
-          splashIndex += 1;
-        }
-
-        function stopSplashRotation() {
-          if (splashTimer !== null) {
-            clearInterval(splashTimer);
-            splashTimer = null;
-          }
-        }
-
-        if (splashEl) {
-          showSplashLine();
-          splashTimer = setInterval(showSplashLine, 3_500);
-        }
-
         function dismissLoadingShell() {
-          stopSplashRotation();
           document.getElementById("app-loading-shell")?.remove();
         }
 
-        // AppRoot removes the shell once campus data is on screen. This is
-        // only the backstop for a data fetch that hangs, and it must not fire
-        // before the app has mounted: pulling the shell off an empty island
-        // left a white page until the boot watchdog caught up (up to 45s on a
-        // slow connection). If the app never mounts, the watchdog swaps the
-        // shell for its error card instead.
+        // AppRoot removes the shell as soon as it mounts (campus data loads
+        // behind the live map). This is only the backstop, and it must not
+        // fire before the app has mounted: pulling the shell off an empty
+        // island left a white page until the boot watchdog caught up (up to
+        // 45s on a slow connection). If the app never mounts, the watchdog
+        // swaps the shell for its error card instead.
         function appMounted() {
           var island = document.querySelector(
             'astro-island[component-url*="AppRoot"]',
@@ -567,10 +528,7 @@ const shareTitle = ogTitle ?? title;
         }
 
         function dismissOnceMounted() {
-          if (!document.getElementById("app-loading-shell")) {
-            stopSplashRotation();
-            return;
-          }
+          if (!document.getElementById("app-loading-shell")) return;
           if (appMounted()) {
             dismissLoadingShell();
             return;

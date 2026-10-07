@@ -7,6 +7,11 @@ test.describe("modal scrollbars", () => {
     });
     await page.goto("/");
 
+    // First run shows a light tip card; its "How it works" opens the full
+    // welcome modal (also in the menu as "How Room TBA works").
+    await page.getByRole("button", { name: "How it works" }).click({
+      timeout: 30_000,
+    });
     const dialog = page.getByRole("dialog", { name: /room tba/i });
     await expect(dialog).toBeVisible({ timeout: 30_000 });
 

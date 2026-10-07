@@ -59,26 +59,27 @@ test.describe("landing", () => {
     await expect(campusSearchBox(page)).toBeVisible();
   });
 
-  test("auto-open marks the tour seen, so it stays closed after reload", async ({
+  test("first-run tips show over a usable map and stay gone after Got it", async ({
     page,
   }) => {
-    // The checkbox is gone: auto-opening the welcome tour now writes
-    // hideLandingModal itself, once per browser.
+    // The blocking welcome modal became a dismissible tip card; dismissing it
+    // writes hideLandingModal, once per browser.
     await page.goto("/");
     await page.evaluate(() => localStorage.removeItem("hideLandingModal"));
     await page.reload();
-    const getStarted = page.getByRole("button", { name: "Get Started" });
-    if (await getStarted.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await expect
-        .poll(() =>
-          page.evaluate(() => localStorage.getItem("hideLandingModal")),
-        )
-        .toBe("true");
-      await getStarted.click();
-      await page.reload();
-      await waitForAppBoot(page);
-      await expect(getStarted).not.toBeVisible({ timeout: 3000 });
-    }
+    const gotIt = page.getByRole("button", { name: "Got it" });
+    await expect(gotIt).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("dialog", { name: /room tba/i })).toHaveCount(
+      0,
+    );
+    await expect(campusSearchBox(page)).toBeVisible();
+    await gotIt.click();
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem("hideLandingModal")))
+      .toBe("true");
+    await page.reload();
+    await waitForAppBoot(page);
+    await expect(gotIt).not.toBeVisible({ timeout: 3000 });
   });
 });
 

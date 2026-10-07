@@ -40,6 +40,8 @@ describe("MapViewControls My classes toggle", () => {
       },
     ]);
 
+    // On by default now; start from off to exercise turning it on.
+    mapViewStore.highlightMyBuildings = false;
     mountAtWidth(320);
     render(MapViewControls, { props: { embedded: true, variant: "modes" } });
 

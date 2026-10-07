@@ -4017,9 +4017,10 @@
     return linkedActiveEventDormIds.has(dormId);
   }
 
-  // "My classes" highlight (#see MapViewStore.highlightMyBuildings): emphasize
-  // buildings hosting the active planner plan's classes, dim every other pin.
-  // Same shape as the event-focus dimming above.
+  // "My classes" highlight (#see MapViewStore.highlightMyBuildings): mark the
+  // buildings hosting the active planner plan's classes with a ring and an
+  // always-on label. It is on by default now, so it marks rather than dims:
+  // fading the rest of campus for everyone with a plan would hide the map.
   const activePlannerRoomCodes = $derived(
     plannerRoomCodes(plannerStore.activePlan?.sections ?? []),
   );
@@ -4034,10 +4035,6 @@
 
   function isMyClassBuilding(buildingId: number): boolean {
     return classHighlightActive && plannerBuildingsStore.buildingIds.has(buildingId);
-  }
-
-  function isBuildingDimmedForClassHighlight(buildingId: number): boolean {
-    return classHighlightActive && !plannerBuildingsStore.buildingIds.has(buildingId);
   }
 
   /**
@@ -4521,8 +4518,8 @@
                     editable={canDragPin(editKey)}
                     editing={selectedEditKey === editKey}
                     dimmed={isBuildingDimmedForEventFocus(building.id) ||
-                      isBuildingDimmedForClassHighlight(building.id) ||
                       isDimmedForDirections(position.lat, position.lon)}
+                    myClass={isMyClassBuilding(building.id)}
                     eventLinked={isBuildingEventLinked(building.id)}
                     hovered={hoveredEditKey === editKey}
                     saveState={savingEditKey === editKey
@@ -4622,7 +4619,6 @@
                     tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
                     active={activeDormName === dorm.dormName}
                     dimmed={isDormDimmedForEventFocus(dorm.id) ||
-                      classHighlightActive ||
                       isDimmedForDirections(position.lat, position.lon)}
                     eventLinked={isDormEventLinked(dorm.id)}
                     editable={canDragPin(editKey)}
@@ -4668,9 +4664,7 @@
                   tone={isLandmarkPlace(place) ? "landmark" : "establishment"}
                   active={queryStore.category === "place" &&
                     queryStore.inputValue === place.name}
-                  dimmed={(classHighlightActive &&
-                    pinSponsorId === undefined) ||
-                    isDimmedForDirections(place.lat, place.lon)}
+                  dimmed={isDimmedForDirections(place.lat, place.lon)}
                   labelVisible={!isDimmedForDirections(place.lat, place.lon) &&
                     (zoomLevel >= POI_LABEL_MIN_ZOOM ||
                       (queryStore.category === "place" &&
@@ -4711,8 +4705,7 @@
                   ? "organization"
                   : "office"}
                 active={activeOrgName === org.name}
-                dimmed={classHighlightActive ||
-                  isDimmedForDirections(lat, lon)}
+                dimmed={isDimmedForDirections(lat, lon)}
                 labelVisible={!isDimmedForDirections(lat, lon) &&
                   (zoomLevel >= POI_LABEL_MIN_ZOOM ||
                     activeOrgName === org.name)}
