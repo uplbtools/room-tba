@@ -21,6 +21,7 @@
   import { DEFAULT_TITLE } from "@lib/site";
   import { transitRouteNoun } from "@lib/transit-route-kind";
   import {
+    appBootstrapStore,
     currentRoom,
     jeepneyStore,
     mapEditStore,
@@ -28,6 +29,7 @@
     sidePanelStore,
     sidebarStore,
     termStore,
+    toastStore,
     transitStore,
   } from "@lib/store.svelte";
 
@@ -44,9 +46,20 @@
       getAppData: appData,
       hydrateQuery: (query) => {
         queryStore.hydrateQuery(query);
+        // Back/forward onto a place picked from a list keeps its breadcrumb.
+        if (query.browseOrigin) queryStore.browseOrigin = query.browseOrigin;
       },
       clearQuery: () => {
         queryStore.clearQuery();
+        // Panel metadata (a chip's browse list) outranks the query, so Back
+        // to home left the list painted over the map.
+        sidePanelStore.closePanel();
+      },
+      onNotFound: () => {
+        toastStore.show(
+          "Place not found. The link may be old or mistyped.",
+          "error",
+        );
       },
       getQuerySnapshot: () => ({
         type: queryStore.type,
@@ -91,12 +104,20 @@
     };
   });
 
+  // Entity paths the offline shell could not resolve wait for campus data.
+  $effect(() => {
+    if (sync && appBootstrapStore.phase === "ready") {
+      void sync.resolvePendingPath();
+    }
+  });
+
   $effect(() => {
     sync?.syncFromQuery({
       type: queryStore.type,
       category: queryStore.category,
       value: queryStore.queryValue,
       eventSlug: queryStore.selectedEventSlug ?? undefined,
+      browseOrigin: queryStore.browseOrigin,
       room: currentRoom.value,
       editMode: mapEditStore.enabled,
       termId: termStore.activeTermId,
