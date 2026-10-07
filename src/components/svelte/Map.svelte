@@ -127,6 +127,7 @@
   import { loadTravelGraph } from "@lib/travel-graph/load";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
   import { syncSatelliteLayer } from "@lib/map-satellite";
+  import { pointsBounds } from "@lib/map-fit";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
@@ -294,6 +295,55 @@
         place.lon != null &&
         (placePinFilter === "all" ||
           (placePinFilter === "landmark") === isLandmarkPlaceCategory(place.category)),
+    );
+  });
+
+  // The Events chip filters the map like the pin-mode "Events only" toggle.
+  const showOnlyEvents = $derived(
+    mapViewStore.eventsOnly || queryStore.category === "events",
+  );
+
+  /** [lng, lat] of every pin the active category chip leaves on the map. */
+  function categoryPinPoints(category: string): [number, number][] {
+    if (category === "events") {
+      return eventMarkerGroups.map((group) => group.lngLat);
+    }
+    return [
+      ...filteredBuildings.map((b) => [b.lon, b.lat]),
+      ...filteredDorms.map((d) => [d.lon, d.lat]),
+      ...filteredPlaces.map((p) => [p.lon, p.lat]),
+      ...filteredOrganizations.map((o) => [o.lon, o.lat]),
+    ].filter((point): point is [number, number] =>
+      point.every((value) => typeof value === "number"),
+    );
+  }
+
+  // A category chip filters the map in place; frame what it left on screen,
+  // once per chip and after the data is in, the way a Google Maps category
+  // search fits its results. Transit has its own route framing.
+  let fittedCategory: string | null = null;
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const category = queryStore.category === "events" ? "events" : browseTab;
+    if (category === null) {
+      fittedCategory = null;
+      return;
+    }
+    if (!map || !loaded || category === fittedCategory) return;
+    if (category === "jeepney") return;
+    const bounds = pointsBounds(untrack(() => categoryPinPoints(category)));
+    fittedCategory = category;
+    if (!bounds) return;
+    // Two frames, like fitMapToRoute: the sheet's resting place is set on
+    // the first, and visibleMapPadding reads it.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        map.fitBounds(bounds, {
+          padding: visibleMapPadding(map),
+          maxZoom: 17.5,
+          duration: 900,
+        });
+      }),
     );
   });
 
@@ -4263,7 +4313,7 @@
             </Marker>
           {/if}
         {/each}
-        {#if !mapViewStore.eventsOnly}
+        {#if !showOnlyEvents}
           {#each filteredBuildings as building (`building:${building.id}`)}
             {#if building.lat && building.lon}
               {@const editKey = buildingEditKey(building.id)}
@@ -4372,7 +4422,7 @@
           {/each}
         {/if}
 
-        {#if !mapViewStore.eventsOnly}
+        {#if !showOnlyEvents}
           {#each filteredDorms as dorm (`dorm:${dorm.id}`)}
             {#if dorm.lat && dorm.lon}
               {@const editKey = dormEditKey(dorm.id)}
@@ -4477,7 +4527,7 @@
           {/each}
         {/if}
 
-        {#if !mapViewStore.eventsOnly}
+        {#if !showOnlyEvents}
           {#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
             {#if orgPinsVisible || activeOrgName === org.name}
             {@const centralHoverPreview = shouldShowEntityHoverPreview()}

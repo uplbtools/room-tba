@@ -4,7 +4,6 @@
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
-  import EntityPagination from "./EntityPagination.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import { getAppData } from "@lib/context";
   import { getEventImage } from "@lib/event-images";
@@ -14,9 +13,14 @@
   import type { EventData } from "@lib/types";
   import EventResult from "./EventResult.svelte";
 
-  type EventTab = "upcoming" | "past";
+  /**
+   * One list, Google Maps style: what is on now and next first, then past
+   * events, each labelled. It used to open on a "Past" tab whenever nothing
+   * was upcoming, so the list read as if the past events were current.
+   */
 
-  const PAGE_SIZE = 5;
+  /** Past events start folded to this many; the rest are a tap away. */
+  const PAST_PREVIEW = 5;
   const STATUS_BADGES: Record<EventData["status"], string> = {
     active: "Happening now",
     upcoming: "Upcoming",
@@ -42,42 +46,10 @@
       .sort((a, b) => b.occurrenceStartsAt.localeCompare(a.occurrenceStartsAt));
   });
 
-  let activeTab = $state<EventTab>("upcoming");
-  let page = $state(1);
-
-  // Default to whichever tab has events when data first loads.
-  let appliedDefault = $state(false);
-  $effect(() => {
-    if (!loaded || appliedDefault) return;
-    if (upcomingEvents.length === 0 && pastEvents.length > 0) {
-      activeTab = "past";
-    }
-    appliedDefault = true;
-  });
-
-  const tabEvents = $derived(
-    activeTab === "upcoming" ? upcomingEvents : pastEvents,
+  let showAllPast = $state(false);
+  const visiblePast = $derived(
+    showAllPast ? pastEvents : pastEvents.slice(0, PAST_PREVIEW),
   );
-  const pageCount = $derived(
-    Math.max(1, Math.ceil(tabEvents.length / PAGE_SIZE)),
-  );
-  const currentPage = $derived(Math.min(page, pageCount));
-  const pageStart = $derived((currentPage - 1) * PAGE_SIZE);
-  const pageEvents = $derived(
-    tabEvents.slice(pageStart, pageStart + PAGE_SIZE),
-  );
-  const rangeStart = $derived(tabEvents.length === 0 ? 0 : pageStart + 1);
-  const rangeEnd = $derived(Math.min(pageStart + PAGE_SIZE, tabEvents.length));
-
-  function selectTab(tab: EventTab) {
-    if (activeTab === tab) return;
-    activeTab = tab;
-    page = 1;
-  }
-
-  function goToPage(next: number) {
-    page = Math.min(Math.max(1, next), pageCount);
-  }
 
   function openEvent(event: EventData) {
     queryStore.updateQuery({
@@ -92,19 +64,68 @@
       component: EventResult,
     });
   }
-
-  function closeEventsList() {
-    queryStore.clearQuery();
-  }
 </script>
 
+{#snippet eventCard(event: EventData)}
+  {@const image = getEventImage(event.slug, event.imageUrl, event.title)}
+  {@const primaryLocation =
+    event.locations.find((location) => location.isPrimary) ??
+    event.locations[0] ??
+    null}
+  {@const shareUrl = getEventShareUrl(event.slug)}
+  <article class="events-list-card">
+    <button
+      class="events-list-card-main"
+      type="button"
+      aria-label={`Open ${event.title} details`}
+      onclick={() => openEvent(event)}
+    >
+      {#if image}
+        <img
+          class="events-list-card-image"
+          src={image.src}
+          alt=""
+          width="64"
+          height="64"
+          loading="lazy"
+          decoding="async"
+        />
+      {:else}
+        <span class="events-list-card-icon" aria-hidden="true">
+          <CalendarDays size={20} />
+        </span>
+      {/if}
+      <span class="events-list-card-copy">
+        <span class="events-list-card-top">
+          <span class="events-list-card-title">{event.title}</span>
+          <span
+            class="events-status-badge"
+            class:is-active={event.status === "active"}
+            class:is-past={event.status === "past"}
+          >
+            {STATUS_BADGES[event.status]}
+          </span>
+        </span>
+        <span class="events-list-card-meta">
+          {formatCampusRange(event.occurrenceStartsAt, event.occurrenceEndsAt)}
+        </span>
+        <span class="events-list-card-location">
+          <MapPin size={14} aria-hidden="true" />
+          {primaryLocation?.resolvedLabel ?? "No mapped location yet"}
+        </span>
+        <span class="events-list-card-action">Open details</span>
+      </span>
+    </button>
+    <span class="events-list-copy-link">
+      <EntityShareCopyLink url={shareUrl} entityLabel={event.title} />
+    </span>
+  </article>
+{/snippet}
+
+<!-- No close button: the search bar names this list and its X closes it. -->
 <div class="events-list-panel">
   {#if !loaded}
-    <EntityPanelHeader
-      closeAriaLabel="Close campus events list"
-      closeTitle="Close campus events list"
-      onclose={closeEventsList}
-    >
+    <EntityPanelHeader>
       {#snippet trailing()}
         <h2 class="entity-header__title">Campus events</h2>
         <p class="entity-panel-note">
@@ -112,143 +133,57 @@
         </p>
       {/snippet}
     </EntityPanelHeader>
-    <div class="events-tabs skeleton-tabs" aria-hidden="true">
-      <span class="events-tab skeleton-tab"></span>
-      <span class="events-tab skeleton-tab"></span>
-    </div>
     <!-- Header LoadingIndicator already announces the load; empty label keeps
          the skeleton out of the accessibility tree. -->
     <EntitySkeleton variant="events" label="" />
   {:else}
-    <EntityPanelHeader
-      closeAriaLabel="Close campus events list"
-      closeTitle="Close campus events list"
-      onclose={closeEventsList}
-    >
+    <EntityPanelHeader>
       {#snippet trailing()}
-        <div class="entity-header__title-row">
-          <h2 class="entity-header__title">Campus events</h2>
-          <span class="entity-header__badge">{events.length} total</span>
-        </div>
-        <p class="entity-panel-note">
-          Browse events around campus. Times shown in campus time (Manila).
-        </p>
+        <h2 class="entity-header__title">Campus events</h2>
+        <p class="entity-panel-note">Times shown in campus time (Manila).</p>
       {/snippet}
     </EntityPanelHeader>
 
-    <div
-      class="events-tabs"
-      role="tablist"
-      aria-label="Filter events by status"
-    >
-      <button
-        class="events-tab"
-        class:is-active={activeTab === "upcoming"}
-        type="button"
-        role="tab"
-        aria-selected={activeTab === "upcoming"}
-        onclick={() => selectTab("upcoming")}
-      >
+    <section class="events-section" aria-labelledby="events-upcoming-heading">
+      <h3 id="events-upcoming-heading" class="events-section-heading">
         Upcoming
-        <span class="events-tab-count">{upcomingEvents.length}</span>
-      </button>
-      <button
-        class="events-tab"
-        class:is-active={activeTab === "past"}
-        type="button"
-        role="tab"
-        aria-selected={activeTab === "past"}
-        onclick={() => selectTab("past")}
-      >
-        Past
-        <span class="events-tab-count">{pastEvents.length}</span>
-      </button>
-    </div>
-
-    {#if tabEvents.length > 0}
-      <div class="events-list">
-        {#each pageEvents as event (event.id)}
-          {@const image = getEventImage(
-            event.slug,
-            event.imageUrl,
-            event.title,
-          )}
-          {@const primaryLocation =
-            event.locations.find((location) => location.isPrimary) ??
-            event.locations[0] ??
-            null}
-          {@const shareUrl = getEventShareUrl(event.slug)}
-          <article class="events-list-card">
-            <button
-              class="events-list-card-main"
-              type="button"
-              aria-label={`Open ${event.title} details`}
-              onclick={() => openEvent(event)}
-            >
-              {#if image}
-                <img
-                  class="events-list-card-image"
-                  src={image.src}
-                  alt=""
-                  width="64"
-                  height="64"
-                  loading="lazy"
-                  decoding="async"
-                />
-              {:else}
-                <span class="events-list-card-icon" aria-hidden="true">
-                  <CalendarDays size={20} />
-                </span>
-              {/if}
-              <span class="events-list-card-copy">
-                <span class="events-list-card-top">
-                  <span class="events-list-card-title">{event.title}</span>
-                  <span
-                    class="events-status-badge"
-                    class:is-active={event.status === "active"}
-                    class:is-past={event.status === "past"}
-                  >
-                    {STATUS_BADGES[event.status]}
-                  </span>
-                </span>
-                <span class="events-list-card-meta">
-                  {formatCampusRange(
-                    event.occurrenceStartsAt,
-                    event.occurrenceEndsAt,
-                  )}
-                </span>
-                <span class="events-list-card-location">
-                  <MapPin size={14} aria-hidden="true" />
-                  {primaryLocation?.resolvedLabel ?? "No mapped location yet"}
-                </span>
-                <span class="events-list-card-action">Open details</span>
-              </span>
-            </button>
-            <span class="events-list-copy-link">
-              <EntityShareCopyLink url={shareUrl} entityLabel={event.title} />
-            </span>
-          </article>
-        {/each}
-      </div>
-
-      {#if pageCount > 1}
-        <EntityPagination
-          {rangeStart}
-          {rangeEnd}
-          total={tabEvents.length}
-          prevDisabled={currentPage <= 1}
-          nextDisabled={currentPage >= pageCount}
-          onPrevious={() => goToPage(currentPage - 1)}
-          onNext={() => goToPage(currentPage + 1)}
-          ariaLabel="Events pages"
-        />
+      </h3>
+      {#if upcomingEvents.length > 0}
+        <div class="events-list">
+          {#each upcomingEvents as event (event.id)}
+            {@render eventCard(event)}
+          {/each}
+        </div>
+      {:else}
+        <p class="empty-events">
+          No upcoming campus events right now. Check back soon.
+        </p>
       {/if}
-    {:else}
-      <p class="empty-events">
-        {activeTab === "upcoming"
-          ? "No active or upcoming campus events yet. Check back soon."
-          : "No past campus events to show yet."}
-      </p>
+    </section>
+
+    {#if pastEvents.length > 0}
+      <section class="events-section" aria-labelledby="events-past-heading">
+        <h3 id="events-past-heading" class="events-section-heading">
+          Past events
+        </h3>
+        <div class="events-list">
+          {#each visiblePast as event (event.id)}
+            {@render eventCard(event)}
+          {/each}
+        </div>
+        {#if pastEvents.length > PAST_PREVIEW}
+          <button
+            type="button"
+            class="events-more"
+            aria-expanded={showAllPast}
+            onclick={() => (showAllPast = !showAllPast)}
+          >
+            {showAllPast
+              ? "Show fewer past events"
+              : `Show all ${pastEvents.length} past events`}
+          </button>
+        {/if}
+      </section>
     {/if}
   {/if}
 </div>
@@ -263,19 +198,6 @@
     gap: 0.85rem;
     overflow-y: auto;
     width: 100%;
-  }
-
-  .skeleton-tabs {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .skeleton-tab {
-    display: block;
-    width: 6rem;
-    height: 2rem;
-    border-radius: 0.75rem;
-    background: #f4f4f5;
   }
 
   .events-list-card-location {
@@ -301,69 +223,31 @@
     line-height: 1.45;
   }
 
-  .events-tabs {
-    display: inline-flex;
-    gap: 0.25rem;
-    padding: 0.25rem;
-    border: 1px solid #eee1e1;
-    border-radius: 999px;
-    background: #fdf3f3;
+  .events-section {
+    display: grid;
+    gap: 0.5rem;
   }
 
-  .events-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    flex: 1 1 0;
-    min-height: 2.25rem;
-    padding: 0.4rem 0.75rem;
-    border: none;
-    border-radius: 999px;
-    background: transparent;
-    color: #7b1113;
-    cursor: pointer;
-    font: inherit;
+  .events-section-heading {
+    margin: 0;
+    color: #3f3f46;
     font-size: 0.8125rem;
     font-weight: 800;
-    line-height: 1;
-    transition:
-      background-color 0.16s,
-      color 0.16s,
-      box-shadow 0.16s;
+    letter-spacing: 0.02em;
   }
 
-  .events-tab:hover {
-    background: #fbe7e7;
-  }
-
-  .events-tab.is-active {
-    background: #7b1113;
-    color: white;
-    box-shadow: 0 1px 3px rgba(123, 17, 19, 0.35);
-  }
-
-  .events-tab:focus-visible {
-    outline: 2px solid #7b1113;
-    outline-offset: -2px; /* panel scroll body clips outward rings */
-  }
-
-  .events-tab-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.4rem;
-    height: 1.4rem;
-    padding: 0 0.4rem;
+  .events-more {
+    justify-self: start;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border: 1px solid #eee1e1;
     border-radius: 999px;
-    background: rgba(123, 17, 19, 0.12);
-    color: inherit;
-    font-size: 0.72rem;
-    font-weight: 800;
-  }
-
-  .events-tab.is-active .events-tab-count {
-    background: rgba(255, 255, 255, 0.24);
+    background: #fff;
+    color: #7b1113;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
   }
 
   .events-list {
@@ -501,8 +385,12 @@
   }
 
   .empty-events {
-    color: #71717a;
-    font-size: 0.85rem;
+    padding: 0.75rem;
+    border: 1px dashed #e4d4d4;
+    border-radius: 0.75rem;
+    color: #3f3f46;
+    font-size: 0.875rem;
+    font-weight: 600;
   }
 
   @media (max-width: 425px) {

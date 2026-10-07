@@ -64,21 +64,35 @@ export async function openCampusDirectory(
     return;
   }
 
-  const filterLabels = {
-    buildings: "Class Buildings",
+  const toolbar = page.getByRole("toolbar", { name: "Map pin filters" });
+  // The org chart sits behind the row's More chip.
+  const moreLabels = {
     divisions: "Divisions",
     offices: "Units and offices",
+  } as const;
+  const moreLabel = moreLabels[directory as keyof typeof moreLabels];
+  if (moreLabel) {
+    const more = toolbar.getByRole("button", { name: "More", exact: true });
+    await more.scrollIntoViewIfNeeded();
+    await more.click();
+    await page
+      .getByRole("menu", { name: "More categories" })
+      .getByRole("menuitem", { name: moreLabel, exact: true })
+      .click();
+    return;
+  }
+
+  const filterLabels = {
+    buildings: "Class Buildings",
     jeepney: "Jeepney routes",
-    landmarks: "Landmark",
-    services: "Stores",
+    landmarks: "Landmarks",
+    services: "Food & stores",
     events: "Events",
   } as const;
-  const button = page
-    .getByRole("toolbar", { name: "Map pin filters" })
-    .getByRole("button", {
-      name: filterLabels[directory as keyof typeof filterLabels],
-      exact: true,
-    });
+  const button = toolbar.getByRole("button", {
+    name: filterLabels[directory as keyof typeof filterLabels],
+    exact: true,
+  });
   await button.scrollIntoViewIfNeeded();
   await button.click();
 }

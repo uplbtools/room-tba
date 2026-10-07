@@ -1,10 +1,14 @@
 <script lang="ts">
+  import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import MapPin from "@lucide/svelte/icons/map-pin";
+  import { onMount } from "svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
   import type { CampusBrowseTab } from "@lib/browse-campus";
+  import { portal } from "@lib/portal";
+  import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import { campusTransit } from "../../../campus.config";
   import { jeepneyStore, queryStore, sidePanelStore } from "@lib/store.svelte";
 
@@ -23,26 +27,84 @@
     | { id: ChipId; label: string; iconUrl: string }
     | { id: ChipId; label: string; LucideIcon: typeof GraduationCap };
 
+  // Ordered by how often a student needs them, like Google Maps' category
+  // row: where class is, where people live, where to eat or shop, how to get
+  // there. A phone shows the first three or four without scrolling.
   const chips: Chip[] = [
     { id: "buildings", label: "Class Buildings", iconUrl: classBuildingsIcon },
     { id: "dorms", label: "Dorms", iconUrl: dormsIcon },
-    // Third, so it is on screen without scrolling the row on a phone; it
-    // started past the right edge in fifth place.
+    { id: "services", label: "Food & stores", iconUrl: storeIcon },
     ...(campusTransit.enabled
       ? [
           {
             id: "jeepney" as const,
-            label: "Jeepney routes",
+            label: campusTransit.label,
             iconUrl: jeepneyIcon,
           },
         ]
       : []),
+    { id: "events", label: "Events", iconUrl: eventIcon },
+    { id: "landmarks", label: "Landmarks", LucideIcon: MapPin },
+  ];
+
+  /** The org chart: useful, but rarely the first thing anyone looks for. */
+  const moreChips: Chip[] = [
     { id: "divisions", label: "Divisions", LucideIcon: GraduationCap },
     { id: "offices", label: "Units and offices", iconUrl: unitsOfficesIcon },
-    { id: "landmarks", label: "Landmark", LucideIcon: MapPin },
-    { id: "services", label: "Stores", iconUrl: storeIcon },
-    { id: "events", label: "Events", iconUrl: eventIcon },
   ];
+
+  let moreOpen = $state(false);
+  let moreButton = $state<HTMLButtonElement | null>(null);
+  let moreMenu = $state<HTMLDivElement | null>(null);
+  let morePosition = $state({ top: 0, left: 0 });
+
+  onMount(() => registerEphemeralOverlayDismisser(() => (moreOpen = false)));
+
+  function toggleMore() {
+    if (moreOpen) {
+      moreOpen = false;
+      return;
+    }
+    const rect = moreButton?.getBoundingClientRect();
+    if (rect) {
+      morePosition = {
+        top: rect.bottom + 6,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - 208)),
+      };
+    }
+    moreOpen = true;
+  }
+
+  $effect(() => {
+    if (moreOpen) moreMenu?.querySelector<HTMLElement>("[role=menuitem]")?.focus();
+  });
+
+  function onWindowPointerDown(event: PointerEvent) {
+    if (!moreOpen) return;
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (moreMenu?.contains(target) || moreButton?.contains(target)) return;
+    moreOpen = false;
+  }
+
+  function onMenuKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      moreOpen = false;
+      moreButton?.focus();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const items = [
+      ...(moreMenu?.querySelectorAll<HTMLElement>("[role=menuitem]") ?? []),
+    ];
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    const next = (at + (event.key === "ArrowDown" ? 1 : -1) + items.length) %
+      items.length;
+    items[next]?.focus();
+  }
+
+  const activeMore = $derived(moreChips.find((chip) => chip.id === activeId));
 
   let scroller = $state<HTMLDivElement | null>(null);
   let canScrollMore = $state(false);
@@ -103,7 +165,9 @@
     };
   });
 
-  function handleChip(id: ChipId) {
+  function handleChip(chip: Chip) {
+    const { id, label } = chip;
+    moreOpen = false;
     jeepneyStore.closeStop();
     if (id === "events") {
       queryStore.updateQuery({
@@ -111,16 +175,16 @@
         type: "result",
         value: "Campus events",
       });
-      queryStore.inputValue = "";
+      queryStore.inputValue = label;
       sidePanelStore.expand();
       return;
     }
     if (id === "jeepney") {
       jeepneyStore.enableLayer();
-      openCampusBrowse(queryStore, sidePanelStore, "jeepney");
+      openCampusBrowse(queryStore, sidePanelStore, "jeepney", label);
       return;
     }
-    openCampusBrowse(queryStore, sidePanelStore, id);
+    openCampusBrowse(queryStore, sidePanelStore, id, label);
   }
 
   /** Width of the faded edge (matches --fade-start / --fade-end). */
@@ -166,6 +230,25 @@
   }
 </script>
 
+{#snippet chipIcon(chip: Chip)}
+  {#if "LucideIcon" in chip}
+    <span class="map-filter-chips__icon" aria-hidden="true">
+      <chip.LucideIcon size={16} />
+    </span>
+  {:else}
+    <img
+      src={chip.iconUrl}
+      alt=""
+      width="16"
+      height="16"
+      class="map-filter-chips__icon"
+      decoding="async"
+    />
+  {/if}
+{/snippet}
+
+<svelte:window onpointerdown={onWindowPointerDown} />
+
 <div class="map-filter-chips" role="toolbar" aria-label="Map pin filters">
   {#if canScrollBack}
     <button
@@ -193,25 +276,28 @@
         class="map-filter-chips__chip"
         class:map-filter-chips__chip--active={activeId === chip.id}
         aria-pressed={activeId === chip.id}
-        onclick={() => handleChip(chip.id)}
+        onclick={() => handleChip(chip)}
       >
-        {#if "LucideIcon" in chip}
-          <span class="map-filter-chips__icon" aria-hidden="true">
-            <chip.LucideIcon size={16} />
-          </span>
-        {:else}
-          <img
-            src={chip.iconUrl}
-            alt=""
-            width="16"
-            height="16"
-            class="map-filter-chips__icon"
-            decoding="async"
-          />
-        {/if}
+        {@render chipIcon(chip)}
         <span>{chip.label}</span>
       </button>
     {/each}
+    <button
+      type="button"
+      bind:this={moreButton}
+      class="map-filter-chips__chip"
+      class:map-filter-chips__chip--active={activeMore !== undefined}
+      aria-haspopup="menu"
+      aria-expanded={moreOpen}
+      aria-controls="map-filter-more-menu"
+      onclick={toggleMore}
+    >
+      {#if activeMore}
+        {@render chipIcon(activeMore)}
+      {/if}
+      <span>{activeMore?.label ?? "More"}</span>
+      <ChevronDown size={14} aria-hidden="true" />
+    </button>
   </div>
 
   {#if canScrollMore}
@@ -226,7 +312,72 @@
   {/if}
 </div>
 
+{#if moreOpen}
+  <!-- Portaled: the chip row scrolls sideways, and overflow clipping would cut
+       a menu drawn inside it. -->
+  <div
+    bind:this={moreMenu}
+    id="map-filter-more-menu"
+    class="map-filter-more map-chrome-popover"
+    role="menu"
+    aria-label="More categories"
+    tabindex="-1"
+    style:top="{morePosition.top}px"
+    style:left="{morePosition.left}px"
+    use:portal
+    onkeydown={onMenuKeydown}
+  >
+    {#each moreChips as chip (chip.id)}
+      <button
+        type="button"
+        role="menuitem"
+        class="map-filter-more__item"
+        class:map-filter-more__item--active={activeId === chip.id}
+        onclick={() => handleChip(chip)}
+      >
+        {@render chipIcon(chip)}
+        {chip.label}
+      </button>
+    {/each}
+  </div>
+{/if}
+
 <style>
+  .map-filter-more {
+    position: fixed;
+    z-index: var(--z-chrome-popover, 17);
+    display: grid;
+    width: 12.5rem;
+    padding: 0.375rem;
+  }
+
+  .map-filter-more__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: none;
+    color: hsl(0, 0%, 13%);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .map-filter-more__item:hover,
+  .map-filter-more__item:focus-visible {
+    background-color: hsl(5, 20%, 95%);
+    outline: none;
+  }
+
+  .map-filter-more__item--active {
+    color: #8d1437;
+  }
+
   .map-filter-chips {
     pointer-events: auto;
     display: flex;
