@@ -2,6 +2,7 @@
   import { getPlannerBlockColor } from "@lib/schedule-renderer";
   import { sectionBlocks } from "@lib/planner/conflicts";
   import { alternativeOfferings } from "@lib/planner/alternatives";
+  import { formatMinutesRange, formatSectionType } from "@lib/planner/format";
   import type { Conflict, ScheduleBlock } from "@lib/planner/conflicts";
   import type { PlannedSection } from "@lib/planner/types";
   import type { ClassMapValue } from "@lib/types";
@@ -28,21 +29,92 @@
     onswap,
   }: Props = $props();
 
-  // Same window as the room-schedule canvas (ScheduleRenderer.config).
-  const START_HOUR = 7;
-  const END_HOUR = 20;
-  const TOTAL_MIN = (END_HOUR - START_HOUR) * 60;
   const DAYS = ["M", "T", "W", "Th", "F", "S"];
-  const HOURS = Array.from(
-    { length: END_HOUR - START_HOUR },
-    (_, i) => START_HOUR + i,
+  const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  // Every block the grid may draw: the plan plus its drag alternatives, so
+  // the hour window and the Saturday column stay put while dragging.
+  const allBlocks = $derived([
+    ...sections.flatMap((s) => sectionBlocks(s)),
+    ...alternatives.flatMap((row) =>
+      sectionBlocks({
+        courseCode: row.courseCode ?? "",
+        section: row.section ?? "",
+        type: row.type ?? "",
+        schedule: row.schedule ?? [],
+        roomCode: null,
+        courseTitle: null,
+      }),
+    ),
+  ]);
+
+  // Fit the window to the classes (8 AM-5 PM at least) instead of a fixed
+  // 7 AM-8 PM: empty early rows pushed the first class below the fold.
+  const START_HOUR = $derived(
+    Math.max(
+      6,
+      Math.min(8, ...allBlocks.map((b) => Math.floor(b.startMin / 60))),
+    ),
   );
+  const END_HOUR = $derived(
+    Math.min(22, Math.max(17, ...allBlocks.map((b) => Math.ceil(b.endMin / 60)))),
+  );
+  const TOTAL_MIN = $derived((END_HOUR - START_HOUR) * 60);
+  const HOURS = $derived(
+    Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i),
+  );
+  // Saturday only when a planned class (or, mid-drag, a drop target) lands on
+  // it, so Mon-Fri fit a phone without sideways scrolling.
+  const dayCount = $derived.by(() =>
+    sections.some((s) => sectionBlocks(s).some((b) => b.dayIndex === 5)) ||
+    (ghostBlocksByDay[5]?.length ?? 0) > 0
+      ? 6
+      : 5,
+  );
+
+  // The week scrolls sideways only when it does not fit; while it fits the
+  // scroller stays overflow-visible so the day header can stick on scroll.
+  let scrollWidth = $state(0);
+  let gridWidth = $state(0);
+  const overflows = $derived(gridWidth > scrollWidth + 1);
 
   type GridBlock = ScheduleBlock & {
     key: string;
     roomCode: string | null;
     conflicted: boolean;
+    /** Side-by-side lane when blocks overlap (a conflict), else 0 of 1. */
+    col: number;
+    colCount: number;
   };
+
+  /** Give overlapping blocks their own lanes so neither hides the other. */
+  function layoutLanes(items: GridBlock[]) {
+    const sorted = [...items].sort(
+      (a, b) => a.startMin - b.startMin || a.endMin - b.endMin,
+    );
+    let cluster: GridBlock[] = [];
+    let laneEnds: number[] = [];
+    let clusterEnd = -1;
+    const flush = () => {
+      for (const item of cluster) item.colCount = laneEnds.length;
+      cluster = [];
+      laneEnds = [];
+    };
+    for (const item of sorted) {
+      if (item.startMin >= clusterEnd) flush();
+      let lane = laneEnds.findIndex((end) => end <= item.startMin);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(item.endMin);
+      } else {
+        laneEnds[lane] = item.endMin;
+      }
+      item.col = lane;
+      cluster.push(item);
+      clusterEnd = Math.max(clusterEnd, item.endMin);
+    }
+    flush();
+  }
 
   const blockKey = (b: ScheduleBlock) =>
     `${b.courseCode}::${b.section}::${b.type}::${b.dayIndex}::${b.startMin}`;
@@ -61,9 +133,12 @@
           key: blockKey(block),
           roomCode: section.roomCode,
           conflicted: conflictedKeys.has(blockKey(block)),
+          col: 0,
+          colCount: 1,
         });
       }
     }
+    for (const day of byDay) layoutLanes(day);
     return byDay;
   });
 
@@ -330,20 +405,32 @@
     </span>
   </div>
 
-  <p class="planner-grid__scroll-hint" aria-hidden="true">
-    Swipe to see all days →
-  </p>
+  {#if overflows}
+    <p class="planner-grid__scroll-hint" aria-hidden="true">
+      Swipe for more days →
+    </p>
+  {/if}
   <p class="planner-grid__drag-hint" role="note">
-    Drag a class onto a dashed section to switch it. On touch, hold first.
+    Tap a class for details. Hold and drag it onto a dashed section to switch.
   </p>
-  <div class="planner-grid-scroll">
-    <div class="planner-grid" class:planner-grid--dragging={drag}>
+  <div
+    class="planner-grid-scroll"
+    class:planner-grid-scroll--overflow={overflows}
+    bind:clientWidth={scrollWidth}
+  >
+    <div
+      class="planner-grid"
+      class:planner-grid--dragging={drag}
+      style:--days={dayCount}
+      style:--hours={END_HOUR - START_HOUR}
+      bind:offsetWidth={gridWidth}
+    >
       <div class="planner-grid__time" aria-hidden="true">
         {#each HOURS as hour (hour)}
           <div class="planner-grid__hour">{hourLabel(hour)}</div>
         {/each}
       </div>
-      {#each DAYS as day, dayIndex (day)}
+      {#each DAYS.slice(0, dayCount) as day, dayIndex (day)}
         <div class="planner-grid__day">
           <div class="planner-grid__day-label">{day}</div>
           <div class="planner-grid__day-body">
@@ -351,10 +438,13 @@
               <div
                 class="planner-block"
                 class:planner-block--conflict={block.conflicted}
+                class:planner-block--lane={block.colCount > 1}
                 class:planner-block--selected={selectedKey === block.key}
                 class:planner-block--dragging={drag?.fromKey === block.key}
                 style:top="{topPct(block.startMin)}%"
                 style:height="{heightPct(block.startMin, block.endMin)}%"
+                style:left="calc({(block.col / block.colCount) * 100}% + 1px)"
+                style:width="calc({100 / block.colCount}% - 2px)"
                 style:background-color={getPlannerBlockColor(block.type)}
               >
                 <button
@@ -371,25 +461,44 @@
                 >
                   <span class="planner-block__course">{block.courseCode}</span>
                   <span class="planner-block__section">
-                    {block.type} · {block.section}
+                    {formatSectionType(block.type)} · {block.section}
                   </span>
                 </button>
                 {#if selectedKey === block.key}
-                  <div class="planner-block__actions">
-                    <button
-                      type="button"
-                      onclick={() => onremove(block.courseCode, block.section)}
-                    >
-                      Remove
-                    </button>
-                    {#if block.roomCode}
+                  <div
+                    class="planner-block__actions"
+                    class:planner-block__actions--end={dayIndex >= 3}
+                  >
+                    <p class="planner-block__detail">
+                      <strong>{block.courseCode}</strong>
+                      {formatSectionType(block.type)}
+                      {block.section}
+                      {#if block.conflicted}
+                        <span class="planner-block__conflict">Conflict</span>
+                      {/if}
+                      <br />
+                      {DAY_NAMES[block.dayIndex]}
+                      {formatMinutesRange(block.startMin, block.endMin)}{block.roomCode
+                        ? ` · ${block.roomCode}`
+                        : ""}
+                    </p>
+                    <div class="planner-block__buttons">
                       <button
                         type="button"
-                        onclick={() => onopenroom(block.roomCode ?? "")}
+                        onclick={() =>
+                          onremove(block.courseCode, block.section)}
                       >
-                        Room
+                        Remove
                       </button>
-                    {/if}
+                      {#if block.roomCode}
+                        <button
+                          type="button"
+                          onclick={() => onopenroom(block.roomCode ?? "")}
+                        >
+                          Open room
+                        </button>
+                      {/if}
+                    </div>
                   </div>
                 {/if}
               </div>
@@ -481,22 +590,26 @@
     flex: 0 0 auto;
   }
 
-  .planner-grid-scroll {
+  .planner-grid-scroll--overflow {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
+  /* clip, not hidden: hidden makes a scroll container and breaks the sticky
+     day header and hour column. */
   .planner-grid {
     display: grid;
-    grid-template-columns: 3rem repeat(6, minmax(4.5rem, 1fr));
-    min-width: 30rem;
+    grid-template-columns: 3rem repeat(var(--days, 6), minmax(4.5rem, 1fr));
     border: 1px solid hsl(0, 0%, 88%);
     border-radius: 0.5rem;
     background: white;
-    overflow: hidden;
+    overflow: clip;
   }
 
   .planner-grid__time {
+    position: sticky;
+    left: 0;
+    z-index: 7;
     display: flex;
     flex-direction: column;
     padding-top: 1.5rem;
@@ -520,7 +633,12 @@
     min-width: 0;
   }
 
+  /* -0.625rem cancels the planner body's top padding so the header sits
+     flush against the tabs instead of floating with a gap above it. */
   .planner-grid__day-label {
+    position: sticky;
+    top: -0.625rem;
+    z-index: 6;
     height: 1.5rem;
     display: flex;
     align-items: center;
@@ -533,7 +651,7 @@
 
   .planner-grid__day-body {
     position: relative;
-    height: 32.5rem; /* 13 hours × 2.5rem */
+    height: calc(var(--hours, 13) * 2.5rem);
     background-image: repeating-linear-gradient(
       to bottom,
       transparent,
@@ -545,8 +663,8 @@
 
   .planner-block {
     position: absolute;
-    left: 1px;
-    right: 1px;
+    /* left/width are inline so overlapping blocks share the column. */
+    box-sizing: border-box;
     border-radius: 0.25rem;
     overflow: hidden;
     display: flex;
@@ -575,6 +693,21 @@
   .planner-block--selected {
     z-index: 2;
     overflow: visible;
+  }
+
+  /* Side-by-side (conflicting) blocks are narrow: give the course code all
+     the room; the tap card and the Sections panel carry the rest. */
+  .planner-block--lane .planner-block__label {
+    padding-inline: 0.125rem;
+  }
+
+  .planner-block--lane .planner-block__section {
+    display: none;
+  }
+
+  .planner-block--lane .planner-block__course {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .planner-block__label {
@@ -625,16 +758,48 @@
     left: 0;
     z-index: 3;
     display: flex;
+    flex-direction: column;
     gap: 0.25rem;
-    padding: 0.25rem;
+    width: max-content;
+    max-width: 14rem;
+    padding: 0.375rem;
     background: white;
     border: 1px solid hsl(0, 0%, 85%);
     border-radius: 0.375rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
+  /* Thu-Sat: open toward the left so the card stays on screen. */
+  .planner-block__actions--end {
+    left: auto;
+    right: 0;
+  }
+
+  .planner-block__detail {
+    margin: 0;
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: hsl(0, 0%, 25%);
+  }
+
+  .planner-block__conflict {
+    margin-left: 0.25rem;
+    padding: 0 0.375rem;
+    border-radius: 999px;
+    background: hsl(0, 85%, 95%);
+    color: hsl(0, 85%, 35%);
+    font-weight: 700;
+  }
+
+  .planner-block__buttons {
+    display: flex;
+    gap: 0.25rem;
+  }
+
   .planner-block__actions button {
     all: unset;
+    box-sizing: border-box;
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.6875rem;
@@ -689,6 +854,13 @@
     pointer-events: none;
   }
 
+  /* Short viewports scroll the whole planner screen (no padding there). */
+  @media (max-height: 30rem) {
+    .planner-grid__day-label {
+      top: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .planner-ghost {
       transition: none;
@@ -712,17 +884,15 @@
       display: flex;
     }
 
-    /* Wider day columns so blocks are readable and tappable; the grid overflows
-       its scroll container and scrolls sideways on a narrow phone. */
+    /* Mon-Fri fit a 375-390px phone; Saturday or a 320px screen scrolls. */
     .planner-grid {
-      grid-template-columns: 3.25rem repeat(6, minmax(5.25rem, 1fr));
-      min-width: 34.75rem;
+      grid-template-columns: 2.75rem repeat(var(--days, 6), minmax(3.75rem, 1fr));
     }
 
     /* Taller rows use the phone's vertical space and give a 1-hour block a
        3rem (48px) height — above the 44px tap-target minimum. */
     .planner-grid__day-body {
-      height: 39rem; /* 13 hours × 3rem */
+      height: calc(var(--hours, 13) * 3rem);
       background-image: repeating-linear-gradient(
         to bottom,
         transparent,
@@ -757,11 +927,15 @@
       padding: 0.375rem;
     }
 
+    .planner-block__detail {
+      font-size: 0.8125rem;
+    }
+
     .planner-block__actions button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 2.75rem;
+      min-height: 2.5rem;
       padding: 0.5rem 0.875rem;
       font-size: 0.875rem;
     }
