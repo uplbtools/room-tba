@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Avatar from "@ui/Avatar.svelte";
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import { onMount } from "svelte";
   import type { LeaderboardRow } from "@lib/services/contribution-service";
@@ -42,13 +43,20 @@
   }
 
   const MEDALS = ["🥇", "🥈", "🥉"];
-  function initials(name: string) {
-    return name
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? "")
-      .join("");
-  }
+
+  // Competition ranking (1, 1, 3): equal counts share a place, and a medal,
+  // instead of the API's row order deciding who gets gold.
+  const ranked = $derived(
+    rows.reduce<{ row: LeaderboardRow; place: number }[]>((acc, row, i) => {
+      const prev = acc[i - 1];
+      const place =
+        prev && prev.row.contributionCount === row.contributionCount
+          ? prev.place
+          : i + 1;
+      acc.push({ row, place });
+      return acc;
+    }, []),
+  );
 </script>
 
 <div class="leaderboard-panel">
@@ -92,18 +100,22 @@
     <p class="leaderboard-status">No contributions yet for this period.</p>
   {:else}
     <ul class="leaderboard-list">
-      {#each rows as row (row.rank)}
-        <li class="leaderboard-item" class:top={row.rank <= 3}>
+      {#each ranked as { row, place }, i (i)}
+        <li class="leaderboard-item" class:top={place <= 3}>
           <span class="leaderboard-rank">
-            {#if row.rank <= 3}{MEDALS[row.rank - 1]}{:else}{row.rank}{/if}
+            {#if place <= 3}<span role="img" aria-label="Rank {place}"
+                >{MEDALS[place - 1]}</span
+              >{:else}{place}{/if}
           </span>
-          <span class="leaderboard-avatar" aria-hidden="true"
-            >{initials(row.displayName || "Anonymous")}</span
-          >
+          <span class="leaderboard-avatar" aria-hidden="true">
+            <Avatar name={row.displayName || "Anonymous"} size={32} />
+          </span>
           <span class="leaderboard-name">{row.displayName || "Anonymous"}</span>
           <span class="leaderboard-score">
             {row.contributionCount}
-            <span class="leaderboard-score-unit">edits</span>
+            <span class="leaderboard-score-unit"
+              >{row.contributionCount === 1 ? "edit" : "edits"}</span
+            >
           </span>
         </li>
       {/each}
@@ -201,15 +213,7 @@
 
   .leaderboard-avatar {
     flex-shrink: 0;
-    width: 2rem;
-    height: 2rem;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--map-ui-primary, hsl(5, 70%, 50%));
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
+    display: inline-flex;
   }
 
   .leaderboard-name {

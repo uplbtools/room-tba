@@ -7,6 +7,7 @@ import {
   hasBuildingPin,
   isNonEmptyText,
   missingFieldLabel,
+  progressLevel,
   progressPercent,
   summarizeFieldCounts,
   topBuildingsByGap,
@@ -65,6 +66,12 @@ describe("contributor-progress", () => {
       position: { filled: 1, total: 2 },
     });
     expect(progressPercent(1, 2)).toBe(50);
+  });
+
+  it("bands coverage so a 6% bar does not look like a full one", () => {
+    expect(progressLevel(6)).toBe("low");
+    expect(progressLevel(50)).toBe("mid");
+    expect(progressLevel(100)).toBe("high");
   });
 
   it("ranks buildings with the largest gaps first", () => {
