@@ -1,3 +1,10 @@
+## [2.36.1](https://github.com/uplbtools/room-tba/compare/v2.36.0...v2.36.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **print:** lay out town jeeps and buses as designed tiles ([#1272](https://github.com/uplbtools/room-tba/issues/1272)) ([17d960d](https://github.com/uplbtools/room-tba/commit/17d960d930400cbe6d7ee97852f7d9468ac46b7c))
+
 # [2.35.0](https://github.com/uplbtools/room-tba/compare/v2.34.1...v2.35.0) (2026-10-07)
 
 
