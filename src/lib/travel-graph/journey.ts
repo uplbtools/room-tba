@@ -31,6 +31,7 @@ import {
 import type { JeepneyFare, JeepneyRoute } from "@constants/jeepney-routes";
 import { distanceMeters } from "../campus-route";
 import { perBoardingFare } from "../transit-route-kind";
+import { activeDirection } from "../transit-direction";
 import {
   dijkstra,
   nearestNodeIndex,
@@ -59,6 +60,10 @@ export type RideLeg = {
   alightStopName: string;
   /** Stops passed through, board and alight inclusive. */
   stopCount: number;
+  /** Their names in riding order, board and alight inclusive. */
+  stopNames: string[];
+  /** "Kaliwa" / "Kanan" for a two-way route; null when it runs one way. */
+  directionLabel: string | null;
   /** Expected wait at the boarding stop, already counted in `seconds`. */
   waitSeconds: number;
   seconds: number;
@@ -96,6 +101,7 @@ type DirectedRoute = {
   route: JeepneyRoute;
   /** "" for the listed order, " (reverse)" for the mirrored run. */
   suffix: string;
+  reversed: boolean;
   stops: JeepneyRoute["stops"];
 };
 
@@ -108,10 +114,11 @@ function directedRoutes(routes: JeepneyRoute[]): DirectedRoute[] {
   const out: DirectedRoute[] = [];
   for (const route of routes) {
     if (route.stops.length < 2) continue;
-    out.push({ route, suffix: "", stops: route.stops });
+    out.push({ route, suffix: "", reversed: false, stops: route.stops });
     out.push({
       route,
       suffix: " (reverse)",
+      reversed: true,
       stops: [...route.stops].reverse(),
     });
   }
@@ -247,7 +254,7 @@ function planDirect({
 
   const walkOnlySeconds = walkPath?.seconds ?? Number.POSITIVE_INFINITY;
 
-  for (const { route, suffix, stops } of directedRoutes(routes)) {
+  for (const { route, suffix, reversed, stops } of directedRoutes(routes)) {
     // Snapping is unconditional, so a stop far off the mapped network would
     // otherwise inherit a neighbouring node's walk time. Drop those instead.
     const stopNodes = stops.map((stop) => {
@@ -341,7 +348,7 @@ function planDirect({
       coordinates: [...egressReversed.coordinates].reverse(),
     };
 
-    const ride = buildRideLeg(route, stops, best.board, best.alight);
+    const ride = buildRideLeg(route, stops, best.board, best.alight, reversed);
 
     journeys.push({
       id: `${route.id}${suffix}`,
@@ -388,6 +395,7 @@ function buildRideLeg(
   stops: JeepneyRoute["stops"],
   board: number,
   alight: number,
+  reversed: boolean,
 ): RideLeg {
   const ridden = stops.slice(board, alight + 1);
   const cumulative = cumulativeMeters(stops);
@@ -402,6 +410,8 @@ function buildRideLeg(
     boardStopName: stops[board]!.name,
     alightStopName: stops[alight]!.name,
     stopCount: ridden.length,
+    stopNames: ridden.map((stop) => stop.name),
+    directionLabel: activeDirection(route.id, reversed)?.label ?? null,
     waitSeconds: JEEPNEY_WAIT_SECONDS,
     seconds: JEEPNEY_WAIT_SECONDS + rideMeters / JEEPNEY_MPS,
     meters: rideMeters,
@@ -458,7 +468,7 @@ function transferJourneys(input: PlanJourneysInput): Journey[] {
   const end = originOff ? origin : destination;
   const best = new Map<string, Journey>();
 
-  for (const { route, suffix, stops } of directedRoutes(routes)) {
+  for (const { route, suffix, reversed, stops } of directedRoutes(routes)) {
     const others = routes.filter((r) => r.id !== route.id);
     for (let i = 0; i < stops.length; i++) {
       const here = stops[i]!;
@@ -483,14 +493,14 @@ function transferJourneys(input: PlanJourneysInput): Journey[] {
             ? joinJourneys(`${route.id}${suffix}>${leg.id}`, [
                 [
                   straightWalk(origin, townStop),
-                  buildRideLeg(route, stops, i, j),
+                  buildRideLeg(route, stops, i, j, reversed),
                 ],
                 leg,
               ])
             : joinJourneys(`${leg.id}>${route.id}${suffix}`, [
                 leg,
                 [
-                  buildRideLeg(route, stops, j, i),
+                  buildRideLeg(route, stops, j, i, reversed),
                   reverseWalk(straightWalk(destination, townStop)),
                 ],
               ]);
