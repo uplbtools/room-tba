@@ -41,7 +41,15 @@
     text-decoration: none;
   }
 
-  .community-platform-link:hover,
+  /* Hover only where hover exists: a tap on a phone left the link under the
+     finger underlined, so one of two sibling links looked different. */
+  @media (hover: hover) {
+    .community-platform-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+
   .community-platform-link:focus-visible {
     text-decoration: underline;
     text-underline-offset: 2px;

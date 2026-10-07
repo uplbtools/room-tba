@@ -14,7 +14,8 @@ test.describe("modal scrollbars", () => {
     await expect(scrollRegion).toHaveCount(1);
     await expect(scrollRegion).toHaveCSS("overflow-y", "auto");
 
-    await page.getByRole("tab", { name: "Campus team" }).click();
-    await expect(scrollRegion).toHaveCount(1);
+    // The Campus team tab moved out to the menu's Contributors entry, which
+    // opens the same modal and scroll region on its own view.
+    await expect(dialog.getByRole("tablist")).toHaveCount(0);
   });
 });

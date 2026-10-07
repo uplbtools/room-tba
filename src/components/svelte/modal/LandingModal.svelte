@@ -26,6 +26,9 @@
   type LandingTab = "welcome" | "campus";
 
   let activeTab = $state<LandingTab>("welcome");
+  // Only Entry's first-visit auto-open passes no tab; every menu entry names
+  // one. A revisit is not "getting started".
+  let firstRun = $state(true);
   let installPrompt = $state<
     | (Event & {
         prompt: () => Promise<void>;
@@ -49,10 +52,9 @@
   let creditsLoading = $state(false);
   let creditsLoaded = $state(false);
 
-  const tabs: { id: LandingTab; label: string }[] = [
-    { id: "welcome", label: "Welcome" },
-    { id: "campus", label: "Campus team" },
-  ];
+  const ctaLabel = $derived(
+    firstRun ? "Get Started" : activeTab === "campus" ? "Close" : "Got it",
+  );
 
   function toAvatarPeople(list: typeof designers) {
     return list.map((person) => ({
@@ -110,14 +112,6 @@
     void loadGithubData();
   }
 
-  function selectTab(tab: LandingTab) {
-    activeTab = tab;
-    if (tab === "campus") {
-      void loadGithubData();
-      void loadCampusCredits();
-    }
-  }
-
   function handleGetStarted() {
     if (installPrompt) {
       void installPrompt.prompt();
@@ -147,7 +141,9 @@
 
   $effect(() => {
     if (!modalStore.open) return;
-    activeTab = untrack(() => modalStore.landingTab) ?? "welcome";
+    const requested = untrack(() => modalStore.landingTab);
+    firstRun = requested === undefined;
+    activeTab = requested ?? "welcome";
     if (untrack(() => activeTab) === "campus") {
       void loadGithubData();
       void loadCampusCredits();
@@ -158,7 +154,7 @@
 <div class="landing-content">
   <header class="landing-header">
     <div class="hero-image">
-      <div class="hero-overlay" class:collapse-hero={activeTab === "campus"}>
+      <div class="hero-overlay">
         <h2>
           <span class="hero-title" id="landing-modal-title">
             <img
@@ -174,46 +170,23 @@
           </span>
         </h2>
         <p class="hero-tagline">
-          Find rooms, explore the map, and discover campus events at UPLB.
+          {#if activeTab === "campus"}
+            The people who map, build, and design Room TBA.
+          {:else}
+            Find rooms, explore the map, and discover campus events at UPLB.
+          {/if}
         </p>
       </div>
-    </div>
-
-    <div class="tab-bar" role="tablist" aria-label="About Room TBA">
-      {#each tabs as tab (tab.id)}
-        <button
-          type="button"
-          role="tab"
-          id="landing-tab-{tab.id}"
-          class="tab-btn"
-          class:active={activeTab === tab.id}
-          aria-selected={activeTab === tab.id}
-          aria-controls="landing-panel-{tab.id}"
-          onclick={() => selectTab(tab.id)}
-        >
-          {tab.label}
-        </button>
-      {/each}
     </div>
   </header>
 
   <div class="scroll-region map-chrome-scroll">
     {#if activeTab === "welcome"}
-      <div
-        class="tab-panel"
-        role="tabpanel"
-        id="landing-panel-welcome"
-        aria-labelledby="landing-tab-welcome"
-      >
+      <div class="tab-panel" id="landing-panel-welcome">
         <LandingGuideSteps />
       </div>
     {:else}
-      <div
-        class="tab-panel"
-        role="tabpanel"
-        id="landing-panel-campus"
-        aria-labelledby="landing-tab-campus"
-      >
+      <div class="tab-panel" id="landing-panel-campus">
         <section class="people-block">
           <h3>Campus editors &amp; contributors</h3>
           <p class="section-note">
@@ -363,8 +336,7 @@
         Install Room TBA
       </button>
     {:else}
-      <button class="primary-btn" onclick={handleGetStarted}>Get Started</button
-      >
+      <button class="primary-btn" onclick={handleGetStarted}>{ctaLabel}</button>
     {/if}
   </footer>
 </div>
@@ -385,15 +357,14 @@
     flex-shrink: 0;
   }
 
+  /* Solid brand fill: white text over the busy campus photo failed contrast
+     wherever the 85% wash let highlights through. */
   .hero-image {
-    background-image: url("/uplb-bg.webp");
-    background-size: cover;
-    background-position: center;
     display: flex;
   }
 
   .hero-overlay {
-    background-color: rgba(123, 17, 19, 0.85);
+    background-color: rgb(123, 17, 19);
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -402,7 +373,7 @@
     text-align: center;
     gap: 0.25rem;
     color: white;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 3rem; /* clear of the dialog close button */
     min-height: 0;
   }
 
@@ -433,44 +404,6 @@
     font-weight: 500;
     max-width: 24rem;
     line-height: 1.35;
-  }
-
-  .tab-bar {
-    display: flex;
-    gap: 0.25rem;
-    padding: 0.5rem 0.875rem 0;
-    border-bottom: 1px solid hsl(0, 0%, 90%);
-    background: hsl(0, 0%, 99%);
-  }
-
-  .tab-btn {
-    flex: 1;
-    min-width: 0;
-    min-height: 2.75rem;
-    border: none;
-    background: transparent;
-    color: hsl(0, 0%, 32%);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    padding: 0.45rem 0.5rem;
-    border-radius: 0.5rem 0.5rem 0 0;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .tab-btn.active {
-    color: hsl(5, 53%, 28%);
-    background: white;
-    border-bottom-color: hsl(5, 53%, 35%);
-  }
-
-  .tab-btn:focus-visible {
-    outline: 2px solid hsl(5, 53%, 35%);
-    outline-offset: 1px;
   }
 
   .scroll-region {
@@ -719,19 +652,7 @@
     /* Phones read the header as a title bar, not a splash screen: the tagline
        is the only pitch here, the rest are cards in the panel below. */
     .hero-overlay {
-      padding: 0.5rem 0.875rem;
-    }
-
-    .tab-bar {
-      padding-top: 0.25rem;
-    }
-
-    .hero-overlay.collapse-hero {
-      padding: 0.5rem 0.875rem;
-    }
-
-    .hero-overlay.collapse-hero .hero-tagline {
-      display: none;
+      padding: 0.5rem 3rem;
     }
   }
 </style>

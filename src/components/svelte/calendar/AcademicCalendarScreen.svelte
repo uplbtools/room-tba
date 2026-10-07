@@ -32,6 +32,7 @@
   const today = new Date();
 
   let screenEl = $state<HTMLDivElement | null>(null);
+  let bodyEl = $state<HTMLDivElement | null>(null);
 
   function close() {
     sidebarStore.changeOpened("map");
@@ -86,6 +87,13 @@
     holiday: "Holiday",
   };
 
+  const LEGEND: { kind: MilestoneKind; label: string }[] = [
+    { kind: "deadline", label: "Deadline" },
+    { kind: "period", label: "Period" },
+    { kind: "milestone", label: "Milestone" },
+    { kind: "holiday", label: "Holiday" },
+  ];
+
   const todayKey = toManilaDateKey(today);
 
   // Registrar milestones for the terms on the strip, plus the official
@@ -131,6 +139,23 @@
         });
   }
 
+  // Open at today, not at August: bring the first registrar date still ahead
+  // to the top of the list, once per open. Past rows stay above it.
+  let scrolledToToday = false;
+  $effect(() => {
+    if (scrolledToToday || !bodyEl || !milestoneTimeline) return;
+    const next = bodyEl.querySelector<HTMLElement>(
+      ".acal-milestones .acal-milestone:not(.acal-milestone--past)",
+    );
+    if (!next) return;
+    scrolledToToday = true;
+    // The month heading above the row gives it context.
+    const anchor =
+      next.closest(".acal-milestones__list")?.previousElementSibling ?? next;
+    bodyEl.scrollTop +=
+      anchor.getBoundingClientRect().top - bodyEl.getBoundingClientRect().top;
+  });
+
   function markerTitle(entries: CalendarMilestone[]) {
     return entries
       .map((entry) => `${entry.label}, ${dateLabel(entry)}`)
@@ -154,20 +179,23 @@
       aria-label="Back to map"
       title="Back to map"
     >
-      <ChevronLeft size={18} aria-hidden="true" />
-      <span>Back to map</span>
+      <ChevronLeft size={22} aria-hidden="true" />
     </button>
-    <h1 class="acal-title" id="acal-screen-title">Academic Calendar</h1>
+    <h1 class="acal-title" id="acal-screen-title">Academic calendar</h1>
   </header>
 
-  <p class="acal-note" role="note">
-    Term windows are community-maintained per CRS term and may differ from the
-    official UPLB academic calendar; the dated rows below are read from the
-    Office of the University Registrar's published calendar. Verify anything
-    you are relying on with the Registrar.
-  </p>
+  <!-- Collapsed: the caveat stays one tap away instead of a quarter screen. -->
+  <details class="acal-about">
+    <summary>About these dates</summary>
+    <p class="acal-note" role="note">
+      Term windows are community-maintained per CRS term and may differ from
+      the official UPLB academic calendar; the dated rows below are read from
+      the Office of the University Registrar's published calendar. Verify
+      anything you are relying on with the Registrar.
+    </p>
+  </details>
 
-  <div class="acal-body">
+  <div class="acal-body" bind:this={bodyEl}>
     {#if !termStore.loaded}
       <p class="acal-status" role="status">Loading terms…</p>
     {:else if activeTerms.length === 0}
@@ -214,6 +242,19 @@
             {/if}
           </div>
           <p class="acal-caption">Today: {todayLabel} (Asia/Manila)</p>
+          <ul class="acal-legend" aria-label="Timeline legend">
+            {#each LEGEND as item (item.kind)}
+              <li>
+                <span class="acal-key acal-dot--{item.kind}" aria-hidden="true"
+                ></span>
+                {item.label}
+              </li>
+            {/each}
+            <li>
+              <span class="acal-key" aria-hidden="true">2</span>
+              Dates on the same spot
+            </li>
+          </ul>
         </section>
 
         <section
@@ -335,24 +376,26 @@
     overflow: hidden;
   }
 
+  /* App bar: icon back button, then the title (same as Today). */
   .acal-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-left: -0.5rem;
   }
 
   .acal-back {
     all: unset;
+    box-sizing: border-box;
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
     color: hsl(5, 53%, 32%);
     cursor: pointer;
-    border-radius: 0.5rem;
-    padding: 0.25rem 0.5rem;
   }
 
   .acal-back:hover {
@@ -370,11 +413,29 @@
     color: hsl(0, 0%, 12%);
   }
 
+  .acal-about {
+    max-width: 52rem;
+  }
+
+  .acal-about summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(5, 53%, 32%);
+    cursor: pointer;
+  }
+
+  .acal-about summary:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
+  }
+
   .acal-note {
     margin: 0;
     font-size: 0.8125rem;
     color: hsl(0, 0%, 40%);
-    max-width: 52rem;
   }
 
   .acal-body {
@@ -453,7 +514,13 @@
     color: white;
   }
 
+  /* Above the today line, on the segment's own fill, so the line passes
+     behind the label instead of cutting through it. */
   .acal-seg__label {
+    position: relative;
+    z-index: 2;
+    background: inherit;
+    border-radius: 0.25rem;
     font-size: 0.625rem;
     font-weight: 700;
     white-space: nowrap;
@@ -464,7 +531,8 @@
 
   /* Markers snap to a 5% grid (EVENT_MARKER_STEP_PCT), so this dot must stay
      narrower than 5% of the strip at 320px (~15px) or clusters can touch. */
-  .acal-dot {
+  .acal-dot,
+  .acal-key {
     position: absolute;
     top: 0.9rem;
     transform: translateX(-50%);
@@ -504,10 +572,35 @@
 
   .acal-today {
     position: absolute;
+    z-index: 1;
     top: 0;
     bottom: 0;
     width: 2px;
     background: hsl(210, 80%, 45%);
+  }
+
+  .acal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.6875rem;
+    color: hsl(0, 0%, 40%);
+  }
+
+  .acal-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+  }
+
+  /* Legend swatches reuse the dot styles, in flow instead of on the strip. */
+  .acal-legend .acal-key {
+    position: static;
+    flex: 0 0 auto;
+    transform: none;
   }
 
   .acal-caption {
@@ -721,6 +814,20 @@
   @media (max-width: 48rem) {
     .acal-screen {
       padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Let the scroller run to the bottom edge instead of stopping above an
+       empty strip: the bottom-nav inset Entry gives the screen moves inside
+       the scroller, so the last card still scrolls clear of the nav. */
+    :global(.app-layout .ui-layer) > .acal-screen {
+      padding-bottom: 0;
+    }
+
+    .acal-body {
+      padding-bottom: calc(
+        1rem + var(--mobile-bottom-nav-height, 4.5rem) +
+          env(safe-area-inset-bottom, 0px)
+      );
     }
   }
 
