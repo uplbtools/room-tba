@@ -2,6 +2,7 @@ import { and, asc, eq, max, sql } from "drizzle-orm";
 import { jeepneyRoutesTable, jeepneyStopsTable } from "@drizzle/schema";
 import { db } from "@lib/db";
 import {
+  BUNDLED_BUS_ROUTES,
   JEEPNEY_ROUTES,
   withBundledRoutes,
   type JeepneyRoute,
@@ -192,5 +193,8 @@ export async function getTransitRouteForPage(
   } catch (error) {
     console.error("Transit page route lookup failed:", error);
   }
-  return JEEPNEY_ROUTES.find((r) => r.id === routeId) ?? null;
+  return (
+    [...JEEPNEY_ROUTES, ...BUNDLED_BUS_ROUTES].find((r) => r.id === routeId) ??
+    null
+  );
 }

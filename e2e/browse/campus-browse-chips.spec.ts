@@ -115,7 +115,7 @@ test.describe("campus browsing", () => {
     });
     await browse(page, "jeepney");
     await expect(
-      page.getByRole("heading", { name: /Jeepney Routes/i }),
+      page.getByRole("heading", { name: /Jeepney (& Bus )?Routes/i }),
     ).toBeVisible({ timeout: 10_000 });
     const route = page.locator("button.entity-list-row").first();
     await expect(route).toBeVisible();
