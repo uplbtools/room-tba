@@ -8,7 +8,7 @@ describe("DesktopTopBar", () => {
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Map" })).toBeVisible();
     expect(
-      screen.getByRole("button", { name: /contributor sign in|account/i }),
+      screen.getByRole("button", { name: /^(sign in|account)$/i }),
     ).toBeVisible();
     expect(screen.getByRole("button", { name: /app menu/i })).toBeVisible();
   });

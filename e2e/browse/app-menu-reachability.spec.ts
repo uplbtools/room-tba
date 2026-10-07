@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
+import { settleAnimations } from "../helpers/map-tools";
 
 // Today, the academic calendar and every App-menu destination lost their only
 // entry point when the rail Sidebar stopped rendering and AppMenu was commented
@@ -13,6 +14,7 @@ async function openMenu(page: Page) {
   await trigger.click({ force: true });
   const panel = page.getByRole("dialog", { name: /^app menu$/i });
   await expect(panel).toBeVisible();
+  await settleAnimations(panel);
   return panel;
 }
 
@@ -44,11 +46,23 @@ for (const viewport of [
     });
 
     test("reaches Today", async ({ page }) => {
-      const panel = await openMenu(page);
-      await panel.getByRole("button", { name: /^today$/i }).click();
+      // A primary tab on phones (so the menu leaves it out); a menu row on
+      // desktop, whose top bar has no Today tab.
+      const tab = page
+        .getByRole("navigation", { name: "Primary" })
+        .getByRole("button", { name: /^today$/i });
+      if (await tab.count()) {
+        await tab.click();
+      } else {
+        const panel = await openMenu(page);
+        await panel.getByRole("button", { name: /^today$/i }).click();
+      }
       await expect(page.getByRole("heading", { name: /^today$/i })).toBeVisible(
         { timeout: 10_000 },
       );
+      // The full-screen view must not cover the bottom nav: the menu stays
+      // one tap away on every screen.
+      await openMenu(page);
     });
 
     test("reaches the academic calendar", async ({ page }) => {
@@ -63,8 +77,6 @@ for (const viewport of [
       page,
     }) => {
       const panel = await openMenu(page);
-      // Leaderboard lives under the collapsed community disclosure now.
-      await panel.getByText("Community & project links").click();
       await expect(
         panel.getByRole("button", { name: /^leaderboard$/i }),
       ).toBeVisible();
@@ -77,10 +89,11 @@ for (const viewport of [
     });
 
     test("reaches sign in", async ({ page }) => {
-      const panel = await openMenu(page);
-      await expect(
-        panel.getByRole("button", { name: /contributor sign in/i }),
-      ).toBeVisible();
+      await openMenu(page);
+      // Menu row on phones, top-bar button on desktop: exactly one either way.
+      const signIn = page.getByRole("button", { name: /^sign in$/i });
+      await expect(signIn).toHaveCount(1);
+      await expect(signIn).toBeVisible();
     });
   });
 }

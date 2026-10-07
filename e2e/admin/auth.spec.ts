@@ -18,7 +18,7 @@ test.describe("admin auth", () => {
   test("bad password shows error", async ({ page }) => {
     await page.goto("/?editor=login");
     await page.getByLabel("Username").fill(E2E_FIXTURES.users.admin);
-    await page.getByLabel("Password").fill("not-the-password");
+    await page.getByLabel("Password", { exact: true }).fill("not-the-password");
     await page
       .locator("form.login-body")
       .getByRole("button", { name: /^sign in$/i })
@@ -31,7 +31,7 @@ test.describe("admin auth", () => {
       process.env.E2E_ADMIN_PASSWORD ?? "e2e-test-password-change-me";
     await page.goto("/?editor=login");
     await page.getByLabel("Username").fill(E2E_FIXTURES.users.disabled);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page
       .locator("form.login-body")
       .getByRole("button", { name: /^sign in$/i })

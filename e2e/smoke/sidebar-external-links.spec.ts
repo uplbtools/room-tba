@@ -11,7 +11,6 @@ test("external community links stay inside the 320px App Menu", async ({
   await waitForAppBoot(page);
 
   const menu = await openAppMenu(page);
-  await menu.locator("summary").filter({ hasText: "Community" }).click();
 
   const menuBox = await menu.boundingBox();
   if (!menuBox) throw new Error("App Menu is not visible");
