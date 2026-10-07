@@ -355,6 +355,24 @@ describe("placeLabels", () => {
     expect(placed.has("low")).toBe(false);
   });
 
+  test("a line-clear label (you are here) never sits on a route line", () => {
+    // A vertical line right of the anchor rules out the natural right spot.
+    const line = Array.from({ length: 40 }, (_, i) => ({
+      x: 108,
+      y: 80 + i,
+      w: 4,
+      h: 1,
+    }));
+    const placed = placeLabels(
+      [{ ...req("here", 100, 100, 9, true), clearOfLines: true }],
+      [],
+      bounds,
+      line,
+    );
+    const box = placed.get("here")!;
+    expect(line.some((l) => overlap(box, l))).toBe(false);
+  });
+
   test("keeps labels inside the frame bounds", () => {
     const placed = placeLabels([req("edge", 495, 250, 5)], [], bounds);
     const box = placed.get("edge")!;

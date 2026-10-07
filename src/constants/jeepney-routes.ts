@@ -93,7 +93,8 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
 
 /** The same advice, short enough for a route card on the printable map. */
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
-  forestry: "Board at a terminal (bold), up or down; jeeps fill up there.",
+  forestry:
+    "Board at a terminal: Forestry Jeep Terminal (up), Upper Forestry Jeep Terminal (down).",
 };
 
 /** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */
