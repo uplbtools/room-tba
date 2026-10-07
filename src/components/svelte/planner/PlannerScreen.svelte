@@ -5,7 +5,7 @@
   import Pencil from "@lucide/svelte/icons/pencil";
   import Copy from "@lucide/svelte/icons/copy";
   import Plus from "@lucide/svelte/icons/plus";
-  import X from "@lucide/svelte/icons/x";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import { fly } from "svelte/transition";
   import { trapFocus } from "@lib/focus-trap";
   import { fullScreenDismiss, fullScreenReveal } from "@lib/motion";
@@ -22,6 +22,11 @@
   import { changeOfMatriculationLabel } from "@lib/term-calendar";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import { isUnscheduled } from "@lib/planner/conflicts";
+  import {
+    formatMinutesRange,
+    formatScheduleShort,
+    formatSectionType,
+  } from "@lib/planner/format";
   import { buildPlanIcs } from "@lib/planner/ics";
   import { renderPlanToPng } from "@lib/planner/plan-image";
   import { encodeSharePlan } from "@lib/planner/share-codec";
@@ -95,6 +100,34 @@
       );
     }
     return [...byCourse.values()];
+  });
+
+  // One line per clashing pair of sections (WF overlap = one entry, not two),
+  // so the side panel says what clashes and when, not just a count.
+  const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const conflictPairs = $derived.by(() => {
+    const byPair = new Map<
+      string,
+      { label: string; days: string[]; range: string }
+    >();
+    for (const { a, b } of plannerStore.conflicts) {
+      const key = `${a.courseCode} ${a.section}|${b.courseCode} ${b.section}`;
+      let pair = byPair.get(key);
+      if (!pair) {
+        pair = {
+          label: `${a.courseCode} ${a.section} overlaps ${b.courseCode} ${b.section}`,
+          days: [],
+          range: formatMinutesRange(
+            Math.max(a.startMin, b.startMin),
+            Math.min(a.endMin, b.endMin),
+          ),
+        };
+        byPair.set(key, pair);
+      }
+      const day = DAY_NAMES[a.dayIndex] ?? "";
+      if (!pair.days.includes(day)) pair.days.push(day);
+    }
+    return [...byPair.values()];
   });
 
   const unscheduled = $derived(
@@ -221,6 +254,25 @@
     plannerStore.deletePlan(tabPlan.id);
   }
 
+  // Escape used to close the whole planner from any field (the focus trap
+  // listens in the capture phase, before inputs see the key). In a field it
+  // now cancels the rename, clears the search, or just leaves the field.
+  function onEscape() {
+    const el = document.activeElement;
+    if (el instanceof HTMLInputElement && screenEl?.contains(el)) {
+      if (renaming) {
+        renaming = false;
+      } else if (el.type === "search" && el.value) {
+        el.value = "";
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      } else {
+        el.blur();
+      }
+      return;
+    }
+    close();
+  }
+
   async function startRename(tabPlan?: { id: string; label: string }) {
     const target = tabPlan ?? plan;
     if (!target) return;
@@ -249,10 +301,16 @@
     node.focus();
   }
 
-  // Switching plans cancels an in-progress rename.
+  // Switching plans cancels an in-progress rename, and a new or duplicated
+  // plan's tab scrolls into view instead of landing past the strip's edge.
   $effect(() => {
     void plan?.id;
     renaming = false;
+    tick().then(() =>
+      screenEl
+        ?.querySelector(".planner-tab-item--active")
+        ?.scrollIntoView?.({ block: "nearest", inline: "nearest" }),
+    );
   });
 
   // Never leave the active term with zero plans — empty chrome is unusable.
@@ -264,7 +322,7 @@
 
   $effect(() => {
     if (!screenEl) return;
-    return trapFocus(screenEl, { onEscape: close });
+    return trapFocus(screenEl, { onEscape });
   });
 
   // Re-resolve natural keys and load finals once per plan per open (#planner).
@@ -346,57 +404,79 @@
       <TermSelector variant="chip" />
     {/if}
     {#if plan}
-      <button
-        type="button"
-        class="planner-action"
-        onclick={copyShareLink}
-        disabled={!hasSchedule}
-        aria-label="Share plan"
-        title={hasSchedule
-          ? "Copy a link that reopens this plan"
-          : "Add a scheduled class first"}
-      >
-        <Share2 size={15} aria-hidden="true" />
-        <span class="planner-action__label">Share</span>
-      </button>
-      <button
-        type="button"
-        class="planner-action"
-        onclick={downloadIcs}
-        disabled={!hasSchedule}
-        aria-label="Add to Google Calendar"
-        title={hasSchedule
-          ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
-          : "Add a scheduled class first"}
-      >
-        <GoogleCalendarIcon size={15} />
-        <span class="planner-action__label">Add to Google Calendar</span>
-      </button>
-      <button
-        type="button"
-        class="planner-action"
-        onclick={saveAsImage}
-        disabled={!hasSchedule || exportingImage}
-        aria-label="Save image"
-        title={hasSchedule
-          ? "Download the timetable as an image"
-          : "Add a scheduled class first"}
-      >
-        <ImageDown size={15} aria-hidden="true" />
-        <span class="planner-action__label">
-          {exportingImage ? "Saving…" : "Save image"}
-        </span>
-      </button>
+      <div class="planner-actions">
+        <button
+          type="button"
+          class="planner-action"
+          onclick={copyShareLink}
+          disabled={!hasSchedule}
+          aria-label="Share plan"
+          title={hasSchedule
+            ? "Copy a link that reopens this plan"
+            : "Add a scheduled class first"}
+        >
+          <Share2 size={15} aria-hidden="true" />
+          <span>Share</span>
+        </button>
+        <button
+          type="button"
+          class="planner-action"
+          onclick={downloadIcs}
+          disabled={!hasSchedule}
+          aria-label="Add to Google Calendar"
+          title={hasSchedule
+            ? "Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook"
+            : "Add a scheduled class first"}
+        >
+          <GoogleCalendarIcon size={15} />
+          <span class="planner-action__label">Add to Google Calendar</span>
+          <span class="planner-action__short">Calendar</span>
+        </button>
+        <button
+          type="button"
+          class="planner-action"
+          onclick={saveAsImage}
+          disabled={!hasSchedule || exportingImage}
+          aria-label="Save image"
+          title={hasSchedule
+            ? "Download the timetable as an image"
+            : "Add a scheduled class first"}
+        >
+          <ImageDown size={15} aria-hidden="true" />
+          <span class="planner-action__label">
+            {exportingImage ? "Saving…" : "Save image"}
+          </span>
+          <span class="planner-action__short">
+            {exportingImage ? "Saving…" : "Image"}
+          </span>
+        </button>
+      </div>
     {/if}
   </header>
 
-  <p class="planner-disclaimer" role="note">
-    {COURSE_CHANGE_DISCLAIMER}{changeOfMatriculationLabel(
-      termStore.activeTermId,
-    )
-      ? ` (${changeOfMatriculationLabel(termStore.activeTermId)})`
-      : ""}
-  </p>
+  <!-- One compact line (the disclaimer) instead of a banner plus a
+       three-line save note; tap to read how plans are saved. -->
+  <details class="planner-notice">
+    <summary class="planner-disclaimer">
+      <span class="planner-disclaimer__text">
+        {COURSE_CHANGE_DISCLAIMER}{changeOfMatriculationLabel(
+          termStore.activeTermId,
+        )
+          ? ` (${changeOfMatriculationLabel(termStore.activeTermId)})`
+          : ""}
+      </span>
+    </summary>
+    <p class="planner-save-note" role="note">
+      {#if adminAuthStore.isLoggedIn}
+        Plans and professor notes save automatically on this device and sync to
+        your account.
+      {:else}
+        Plans save automatically on this device. Sign in to keep your plans
+        across devices. Use <strong>Share</strong> to copy a link you can reopen
+        anywhere or send to someone.
+      {/if}
+    </p>
+  </details>
 
   <div class="planner-tabs" role="tablist" aria-label="Plans">
     {#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
@@ -449,9 +529,9 @@
               class="planner-tab__action planner-tab__action--danger"
               onclick={() => deletePlan(tabPlan)}
               aria-label="Delete {tabPlan.label}"
-              title="Delete"
+              title="Delete plan"
             >
-              <X size={12} aria-hidden="true" />
+              <Trash2 size={12} aria-hidden="true" />
             </button>
           </div>
         {/if}
@@ -468,17 +548,6 @@
       </button>
     </div>
   </div>
-
-  <p class="planner-save-note" role="note">
-    {#if adminAuthStore.isLoggedIn}
-      Plans and professor notes save automatically on this device and sync to
-      your account.
-    {:else}
-      Plans save automatically on this device. Sign in to keep your plans across
-      devices. Use <strong>Share</strong> to copy a link you can reopen anywhere or
-      send to someone.
-    {/if}
-  </p>
 
   <div
     class="planner-body"
@@ -502,8 +571,7 @@
           Sections ({offerings.length})
           {#if plannerStore.conflicts.length > 0}
             <span class="planner-conflict-badge" role="status">
-              {plannerStore.conflicts.length} conflict{plannerStore.conflicts
-                .length === 1
+              {conflictPairs.length} conflict{conflictPairs.length === 1
                 ? ""
                 : "s"}
             </span>
@@ -516,10 +584,20 @@
             </span>
           {/if}
         </h2>
+        {#if conflictPairs.length > 0}
+          <ul class="planner-conflicts">
+            {#each conflictPairs as pair (pair.label)}
+              <li>
+                <strong>{pair.label}</strong>
+                · {pair.days.join("/")}
+                {pair.range}
+              </li>
+            {/each}
+          </ul>
+        {/if}
         <p class="planner-side__hint" role="note">
-          Room TBA cannot show instructor names from AMIS. Write the professor
-          for each section here — saved to your account when signed in, never
-          shared.
+          AMIS doesn't list instructors here. Jot each section's professor
+          below; notes stay private (synced to your account when signed in).
         </p>
         <ul class="planner-offerings">
           {#each courseGroups as group (group.courseCode)}
@@ -552,10 +630,15 @@
                   >
                     <div class="planner-offering__part-head">
                       <span class="planner-offering__part-type">
-                        {s.type ?? "Class"}
+                        {formatSectionType(s.type)}
                       </span>
                       <span class="planner-offering__part-section">
                         {s.section}
+                      </span>
+                      <span class="planner-offering__part-time">
+                        {(s.schedule ?? []).map(formatScheduleShort).join(", ")}{s.roomCode
+                          ? ` · ${s.roomCode}`
+                          : ""}
                       </span>
                     </div>
                     <input
@@ -686,18 +769,27 @@
     white-space: nowrap;
   }
 
+  .planner-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.5rem;
+  }
+
+  /* Enabled actions read as live (tinted, solid border); disabled ones go
+     flat grey. Both used to share the same faint pink outline. */
   .planner-action {
     all: unset;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.375rem;
     flex: 0 0 auto;
     padding: 0.375rem 0.625rem;
-    border: 1px solid hsl(5, 53%, 82%);
+    border: 1px solid hsl(5, 53%, 62%);
     border-radius: 999px;
-    background: white;
-    color: hsl(5, 53%, 32%);
+    background: hsl(5, 53%, 97%);
+    color: hsl(5, 53%, 30%);
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -705,33 +797,72 @@
 
   .planner-action:hover:not(:disabled),
   .planner-action:focus-visible:not(:disabled) {
-    background: hsl(5, 53%, 96%);
+    background: hsl(5, 53%, 92%);
   }
 
   .planner-action:disabled {
-    opacity: 0.4;
+    opacity: 0.55;
     cursor: not-allowed;
-    border-color: hsl(0, 0%, 82%);
-    color: hsl(0, 0%, 55%);
+    border-color: hsl(0, 0%, 85%);
+    background: white;
+    color: hsl(0, 0%, 50%);
+  }
+
+  .planner-action:disabled :global(svg) {
+    filter: grayscale(1);
+  }
+
+  .planner-action__short {
+    display: none;
+  }
+
+  .planner-notice {
+    flex-shrink: 0;
+    background: hsl(38, 92%, 95%);
+    border-bottom: 1px solid hsl(38, 70%, 85%);
   }
 
   .planner-disclaimer {
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
     margin: 0;
-    padding: 0.4375rem 0.75rem;
-    background: hsl(38, 92%, 95%);
-    border-bottom: 1px solid hsl(38, 70%, 85%);
+    padding: 0.375rem 0.75rem;
     color: hsl(32, 60%, 30%);
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.35;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .planner-disclaimer::-webkit-details-marker {
+    display: none;
+  }
+
+  .planner-disclaimer::after {
+    content: "";
+    flex: 0 0 auto;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-left: auto;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-0.1rem);
+  }
+
+  .planner-notice[open] .planner-disclaimer::after {
+    transform: rotate(-135deg);
+  }
+
+  .planner-disclaimer__text {
+    min-width: 0;
   }
 
   .planner-save-note {
-    flex-shrink: 0;
     margin: 0;
-    padding: 0.375rem 0.75rem;
-    color: hsl(0, 0%, 42%);
+    padding: 0 0.75rem 0.5rem;
+    color: hsl(32, 30%, 30%);
     font-size: 0.75rem;
     line-height: 1.35;
   }
@@ -967,6 +1098,17 @@
     margin-top: 0;
   }
 
+  .planner-conflicts {
+    list-style: none;
+    margin: 0 0 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.5rem;
+    background: hsl(0, 85%, 97%);
+    color: hsl(0, 70%, 32%);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
   .planner-side__hint {
     margin: 0 0 0.5rem;
     font-size: 0.75rem;
@@ -1028,17 +1170,25 @@
 
   .planner-offering__part-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.5rem;
+    gap: 0 0.5rem;
   }
 
+  .planner-offering__part-time {
+    color: hsl(0, 0%, 40%);
+  }
+
+  /* A visible (dashed) field, so it reads as something you can type in. */
   .planner-offering__part-note {
+    box-sizing: border-box;
     width: 100%;
     background: transparent;
     border: none;
+    border-bottom: 1px dashed hsl(0, 0%, 75%);
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
-    padding: 0;
+    color: hsl(0, 0%, 25%);
+    padding: 0.25rem 0;
     margin: 0;
     font-family: inherit;
   }
@@ -1050,6 +1200,7 @@
 
   .planner-offering__part-note:focus {
     outline: none;
+    border-bottom: 1px solid hsl(5, 53%, 42%);
     color: hsl(0, 0%, 15%);
   }
 
@@ -1085,6 +1236,7 @@
 
   .planner-offering__remove {
     all: unset;
+    box-sizing: border-box;
     flex-shrink: 0;
     padding: 0.25rem 0.5rem;
     border-radius: 999px;
@@ -1120,11 +1272,30 @@
     color: hsl(0, 0%, 50%);
   }
 
-  /* 320px: the back chevron + term + actions are the essentials; the plan
-     tabs below already identify the screen. Title stays for aria-labelledby. */
-  @media (max-width: 400px) {
-    .planner-title {
-      display: none;
+  /* Landscape phones / small tablets: search beside the week, the Sections
+     panel below both, instead of three squeezed columns. */
+  @media (min-width: 48.0625rem) and (max-width: 64rem) {
+    .planner-body,
+    .planner-body--no-side {
+      grid-template-columns: 15rem minmax(0, 1fr);
+    }
+
+    .planner-side {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Short viewports (phone landscape): header, notice and tabs took over half
+     the height and left a sliver to scroll. Let the whole screen scroll. */
+  @media (max-height: 30rem) {
+    .planner-screen {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .planner-body {
+      flex: 0 0 auto;
+      overflow-y: visible;
     }
   }
 
@@ -1132,10 +1303,19 @@
      One compact header row (icon-only actions), slim tabs, no hint prose -
      the schedule gets the viewport. --- */
   @media (max-width: 640px) {
+    /* Two rows: back, title and term; then the labeled actions. The title no
+       longer truncates to "Class ..." and the actions are not mystery icons. */
     .planner-header {
-      gap: 0.375rem;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.375rem;
       padding-left: 0.375rem;
       padding-right: 0.5rem;
+    }
+
+    .planner-actions {
+      flex: 1 0 100%;
+      gap: 0.375rem;
+      padding: 0 0.125rem 0.125rem;
     }
 
     /* Icon-only chevron; "Class Planner" beside it already says where you are. */
@@ -1149,37 +1329,53 @@
     }
 
     .planner-title {
-      flex: 0 1 auto;
-      font-size: 0.9375rem;
+      flex: 0 0 auto;
+      font-size: 1rem;
     }
 
-    /* Term selector takes the leftover slack between title and actions. */
+    /* The term chip yields first (its label ellipsizes), not the title. */
+    /* Basis 0 keeps it on the title's row (wrap would push it to its own
+       line at 320px); max-content stops it growing past its label. */
     .planner-header :global(.term-filter-chip) {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: max-content;
       margin-left: auto;
     }
 
-    /* Actions collapse to round icon buttons; the label lives in aria/title. */
+    /* Labeled, equal-width actions on their own row. */
     .planner-action {
-      justify-content: center;
-      width: 2.5rem;
-      height: 2.5rem;
-      padding: 0;
-      border-radius: 999px;
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 2.25rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8125rem;
     }
 
     .planner-action__label {
       display: none;
     }
 
-    .planner-disclaimer {
-      padding: 0.3125rem 0.625rem;
-      font-size: 0.6875rem;
+    .planner-action__short {
+      display: inline;
     }
 
-    /* Keep the account-sync and privacy status visible on small screens too. */
-    .planner-save-note {
+    /* One line; the full text and the save note are a tap away. */
+    .planner-disclaimer {
+      min-height: 2rem;
       padding: 0.25rem 0.625rem;
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
+    }
+
+    .planner-notice:not([open]) .planner-disclaimer__text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .planner-save-note {
+      padding: 0 0.625rem 0.5rem;
+      font-size: 0.75rem;
     }
 
     .planner-tabs {
@@ -1191,7 +1387,7 @@
        tap a tab first to rename, copy or delete it. */
     .planner-tab__action,
     .planner-tab__tool--new {
-      width: 2.75rem;
+      width: 2.5rem;
       height: 2.75rem;
     }
 
@@ -1200,13 +1396,17 @@
     }
 
     /* The open tab keeps its name readable next to its actions; the strip
-       scrolls sideways when plans run out of room. */
+       scrolls sideways when plans run out of room. Its 13rem cap made the
+       three 40px actions overlap the name ("Untitled Plan✐"). */
     .planner-tab-item--active {
       flex: 0 0 auto;
+      width: auto;
+      max-width: none;
     }
 
     .planner-tab-item--active .planner-tab__name {
-      min-width: 5.5rem;
+      min-width: 4rem;
+      max-width: 9.5rem;
     }
 
     .planner-back {
@@ -1242,12 +1442,12 @@
       font-size: 0.8125rem;
     }
 
-    /* Obvious, tappable Remove. */
+    /* Obvious, tappable Remove (border-box: it was 54px tall). */
     .planner-offering__remove {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 2.5rem;
+      min-height: 2.25rem;
       padding: 0.375rem 0.75rem;
       border: 1px solid hsl(0, 60%, 80%);
       font-size: 0.8125rem;
@@ -1255,6 +1455,15 @@
 
     .planner-plain-list {
       gap: 0.375rem;
+      font-size: 0.875rem;
+    }
+
+    .planner-conflicts {
+      font-size: 0.8125rem;
+    }
+
+    .planner-offering__part-note {
+      min-height: 2.25rem;
       font-size: 0.875rem;
     }
 
