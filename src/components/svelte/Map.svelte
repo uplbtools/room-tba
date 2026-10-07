@@ -171,8 +171,10 @@
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
   import {
-    labelsToHide,
+    LABEL_ANCHORS,
+    placeLabels,
     type LabelCandidate,
+    type LabelRect,
   } from "@lib/map-label-declutter";
   import { darkenForWhiteText } from "@lib/color-contrast";
   import { isLoopRoute, transitStopNoun } from "@lib/transit-route-kind";
@@ -1569,6 +1571,11 @@
   // Buildings and dorms always show. Active (searched) and sponsored pins
   // bypass the gate so deep links and paid placements never vanish.
   const POI_MIN_ZOOM = 15.5;
+  // Names show at the default campus zoom (15.8) like Google Maps' place
+  // labels; the collision pass keeps them from piling up. Buildings and
+  // dorms first; the smaller POI names wait until a little closer in.
+  const LABEL_MIN_ZOOM = 15.5;
+  const POI_LABEL_MIN_ZOOM = 16.5;
   const poiPinsVisible = $derived(zoomLevel >= POI_MIN_ZOOM);
   // Offices and student orgs are ~110 pins stacked on a few dozen buildings.
   // On a phone at the default campus zoom they buried every building pin, so
@@ -1627,9 +1634,9 @@
   }
 
   // Pin labels are HTML, so MapLibre's own label collision never sees them.
-  // After the camera settles (or the pin set changes), hide the labels that
-  // would overlap a more important one, sit on a more important pin, or hide
-  // under the search bar. Hovering a pin still shows its label.
+  // After the camera settles (or the pin set changes), give each label the
+  // first free side of its pin (placeLabels), hiding the ones with none.
+  // Hovering a pin still shows its label.
   const LABEL_PRIORITY: [string, number][] = [
     ["building", 1],
     ["dorm", 1],
@@ -1647,27 +1654,42 @@
     if (!root) return;
     const labels: HTMLElement[] = [];
     const candidates: LabelCandidate[] = [];
+    const pins: LabelRect[] = [];
+    const anchorClasses = LABEL_ANCHORS.map((a) => `pin-label--${a}`);
     for (const pin of root.querySelectorAll<HTMLElement>(".map-entity-pin")) {
       const label = pin.querySelector<HTMLElement>(".pin-label");
-      const icon = pin.querySelector<HTMLElement>(".pin-icon");
-      if (!label || !icon) continue;
-      label.classList.remove("pin-label--collided");
+      if (!label) continue;
+      label.classList.remove("pin-label--collided", ...anchorClasses);
+      const pinRect = pin.getBoundingClientRect();
+      if (pinRect.width === 0) continue;
+      // Every pin is an obstacle, labelled or not: a name painted under a
+      // neighbouring pin was the desktop overlap.
+      pins.push(pinRect);
       if (!label.classList.contains("persistent")) continue;
       const tone = LABEL_PRIORITY.find(([name]) => pin.classList.contains(name));
+      const size = label.getBoundingClientRect();
       candidates.push({
         id: labels.push(label) - 1,
         priority: pin.classList.contains("active") ? 0 : (tone?.[1] ?? 6),
-        label: label.getBoundingClientRect(),
-        pin: icon.getBoundingClientRect(),
+        width: size.width,
+        height: size.height,
+        pin: pinRect,
       });
     }
     const chrome = [
       ...document.querySelectorAll(
-        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips",
+        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .mobile-map-controls, .desktop-map-controls",
       ),
     ].map((el) => el.getBoundingClientRect());
-    for (const id of labelsToHide(candidates, chrome)) {
-      labels[id]?.classList.add("pin-label--collided");
+    for (const [id, anchor] of placeLabels(
+      candidates,
+      pins,
+      chrome,
+      root.getBoundingClientRect(),
+    )) {
+      labels[id]?.classList.add(
+        anchor === null ? "pin-label--collided" : `pin-label--${anchor}`,
+      );
     }
   }
 
@@ -1691,7 +1713,8 @@
   $effect(() => {
     // Re-run when the pin set or which labels show changes without a move.
     void [
-      zoomLevel >= 17,
+      zoomLevel >= LABEL_MIN_ZOOM,
+      zoomLevel >= POI_LABEL_MIN_ZOOM,
       filteredBuildings,
       filteredDorms,
       filteredPlaces,
@@ -4369,7 +4392,7 @@
                       position.lat,
                       position.lon,
                     ) &&
-                      (zoomLevel >= 17 ||
+                      (zoomLevel >= LABEL_MIN_ZOOM ||
                         activeBuildingName === building.buildingName ||
                         isMyClassBuilding(building.id))}
                     useCentralHoverPreview={centralHoverPreview}
@@ -4471,7 +4494,8 @@
                       position.lat,
                       position.lon,
                     ) &&
-                      (zoomLevel >= 17 || activeDormName === dorm.dormName)}
+                      (zoomLevel >= LABEL_MIN_ZOOM ||
+                        activeDormName === dorm.dormName)}
                     useCentralHoverPreview={centralHoverPreview}
                     {previewSuppressed}
                     onpointerenter={(event) =>
@@ -4502,7 +4526,7 @@
                     pinSponsorId === undefined) ||
                     isDimmedForDirections(place.lat, place.lon)}
                   labelVisible={!isDimmedForDirections(place.lat, place.lon) &&
-                    (zoomLevel >= 17 ||
+                    (zoomLevel >= POI_LABEL_MIN_ZOOM ||
                       (queryStore.category === "place" &&
                         queryStore.inputValue === place.name))}
                   sponsored={pinSponsorId !== undefined}
@@ -4544,7 +4568,8 @@
                 dimmed={classHighlightActive ||
                   isDimmedForDirections(lat, lon)}
                 labelVisible={!isDimmedForDirections(lat, lon) &&
-                  (zoomLevel >= 17 || activeOrgName === org.name)}
+                  (zoomLevel >= POI_LABEL_MIN_ZOOM ||
+                    activeOrgName === org.name)}
                 useCentralHoverPreview={centralHoverPreview}
                 {previewSuppressed}
                 onclick={() => handleOrgMarkerClick(org.name, lat, lon)}

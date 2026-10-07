@@ -136,6 +136,15 @@
 </div>
 
 <style>
+  /* With 3D terrain on, MapLibre fades a marker to 0.2 (inline style) when
+     its DEM depth test says a hill covers it. Close in and tilted that test
+     misfires on campus, so pins seemed to vanish at high zoom. Place pins
+     stay solid, like Google Maps. */
+  :global(.maplibregl-marker.maplibregl-marker-covered:has(.map-entity-pin)) {
+    /* biome-ignore lint/complexity/noImportantStyles: beats MapLibre's inline opacity */
+    opacity: 1 !important;
+  }
+
   .map-entity-pin {
     position: relative;
     border: 2px solid white;
@@ -369,21 +378,89 @@
     line-height: 0;
   }
 
+  /* Place name beside the pin, Google Maps style: tinted text on a white
+     halo rather than a card, so a map full of names stays readable. Right
+     of the pin by default; Map.svelte's collision pass moves it to the left,
+     below or above (pin-label--*) when the right side is taken. */
   .pin-label {
     position: absolute;
-    bottom: calc(100% + 0.5rem);
-    left: 50%;
+    top: 50%;
+    left: calc(100% + 0.25rem);
     z-index: 1;
     width: max-content;
+    max-width: 10rem;
+    color: var(--pin-label-color, hsl(5, 53%, 28%));
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: 0;
+    padding: 0;
+    pointer-events: none;
+    text-shadow:
+      0 0 2px #fff,
+      0 0 2px #fff,
+      0 0 3px #fff,
+      0 0 4px #fff;
+    transition: opacity 0.2s;
+    translate: 0 -50%;
+  }
+
+  .pin-label:global(.pin-label--left) {
+    left: auto;
+    right: calc(100% + 0.25rem);
+    text-align: right;
+  }
+
+  .pin-label:global(.pin-label--bottom),
+  .pin-label:global(.pin-label--top) {
+    left: 50%;
+    text-align: center;
+    translate: -50% 0;
+  }
+
+  .pin-label:global(.pin-label--bottom) {
+    top: calc(100% + 0.25rem);
+  }
+
+  .pin-label:global(.pin-label--top) {
+    top: auto;
+    bottom: calc(100% + 0.25rem);
+  }
+
+  .map-entity-pin.dorm {
+    --pin-label-color: hsl(170, 55%, 24%);
+  }
+
+  .map-entity-pin.private {
+    --pin-label-color: hsl(25, 75%, 32%);
+  }
+
+  .map-entity-pin.organization {
+    --pin-label-color: hsl(265, 45%, 38%);
+  }
+
+  .map-entity-pin.office {
+    --pin-label-color: hsl(208, 55%, 32%);
+  }
+
+  .map-entity-pin.landmark {
+    --pin-label-color: hsl(34, 70%, 28%);
+  }
+
+  .map-entity-pin.establishment {
+    --pin-label-color: hsl(334, 54%, 35%);
+  }
+
+  /* The selected place keeps a filled name card so it stands out. */
+  .map-entity-pin.active .pin-label {
+    max-width: none;
+    padding: 0.25rem 0.75rem;
     border-radius: 0.5rem;
     background-color: white;
     color: black;
-    line-height: initial;
-    opacity: 0;
-    padding: 0.25rem 0.75rem;
-    pointer-events: none;
-    transition: opacity 0.2s;
-    translate: -50% 0;
+    font-size: 0.875rem;
+    text-shadow: none;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
   }
 
   .map-entity-pin.active.building .pin-label {
@@ -421,7 +498,7 @@
   }
 
   @media (max-width: 48rem) {
-    .pin-label {
+    .map-entity-pin.active .pin-label {
       max-width: min(11rem, calc(100vw - 1.5rem));
       overflow: hidden;
       text-overflow: ellipsis;
