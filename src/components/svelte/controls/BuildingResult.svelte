@@ -15,7 +15,9 @@
   import type { BuildingData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import BuildingPhoto from "./BuildingPhoto.svelte";
-  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityShareButton from "./EntityShareButton.svelte";
+  import EntitySaveButton from "./EntitySaveButton.svelte";
+  import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
@@ -597,51 +599,69 @@
 
 <div class="entity-detail building-query-wrapper">
   {#if building}
-    <header class="entity-header">
-      <EntityBackToList tab="buildings" label="Back to buildings" />
-      <div class="entity-header__title-row">
+    <EntityBackToList tab="buildings" label="Back to buildings" />
+    <header class="entity-header entity-header--sticky">
+      <div
+        class="entity-header__title-row entity-header__title-row--with-close"
+      >
         <h2 class="entity-header__title">{building.buildingName}</h2>
         <span class="entity-header__badge">{buildingTypeLabel}</span>
+        <EntityPanelClose ariaLabel="Close building details" showOnMobile />
       </div>
 
-      <div class="entity-actions">
+      <div class="entity-actions entity-actions--place">
         {#if hasMapPin}
-          <MapChromeActionChip
-            toolbar
-            ariaLabel="3D view"
-            onclick={() => building3DStore.open(building.buildingName)}
-          >
-            <Box size={14} aria-hidden="true" />
-            3D view
-          </MapChromeActionChip>
           <EntityDirectionsChip
+            primary
             lat={building.lat ?? 0}
             lon={building.lon ?? 0}
             destinationLabel={building.buildingName}
           />
-          <EntityGoogleMapsLink
-            lat={building.lat ?? 0}
-            lon={building.lon ?? 0}
-            name={building.buildingName}
-            ariaLabel={`Open ${building.buildingName} in Google Maps`}
-          />
-          <EntityPrintableMapLink
-            lat={building.lat ?? 0}
-            lon={building.lon ?? 0}
-            name={building.buildingName}
-          />
         {/if}
-        <EntityShareCopyLink
-          url={buildingShareUrl}
-          entityLabel={building.buildingName}
-        />
-        <EntityEditorToggle
-          expanded={editing}
-          {canPublish}
-          publishOpenLabel="Edit building"
-          variant="toolbar"
-          onclick={() => (editing = !editing)}
-        />
+        <div class="entity-actions__scroll">
+          <EntitySaveButton
+            place={{
+              category: "building",
+              value: building.buildingName,
+              label: building.buildingName,
+              subtitle: buildingTypeLabel,
+              lat: building.lat,
+              lon: building.lon,
+            }}
+          />
+          <EntityShareButton
+            url={buildingShareUrl}
+            entityLabel={building.buildingName}
+          />
+          {#if hasMapPin}
+            <MapChromeActionChip
+              toolbar
+              ariaLabel="3D view"
+              onclick={() => building3DStore.open(building.buildingName)}
+            >
+              <Box size={14} aria-hidden="true" />
+              3D view
+            </MapChromeActionChip>
+            <EntityGoogleMapsLink
+              lat={building.lat ?? 0}
+              lon={building.lon ?? 0}
+              name={building.buildingName}
+              ariaLabel={`Open ${building.buildingName} in Google Maps`}
+            />
+            <EntityPrintableMapLink
+              lat={building.lat ?? 0}
+              lon={building.lon ?? 0}
+              name={building.buildingName}
+            />
+          {/if}
+          <EntityEditorToggle
+            expanded={editing}
+            {canPublish}
+            publishOpenLabel="Edit building"
+            variant="toolbar"
+            onclick={() => (editing = !editing)}
+          />
+        </div>
       </div>
     </header>
 

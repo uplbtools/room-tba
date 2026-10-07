@@ -154,6 +154,88 @@
   padding-top: 0.125rem;
 }
 
+/* Place sheets (building, room, dorm, place), GMaps action hierarchy:
+   name + one filled Directions button stay pinned while the sheet scrolls;
+   the secondary actions are one horizontally scrolling row of pills, never
+   wrapped into a second row of equal buttons. */
+.entity-header--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding-top: 0.25rem;
+  background: var(--entity-sheet-bg, #fff);
+  /* Paint the sheet's side gutters too, so rows scrolling under the header
+     do not peek out at its edges (the scroll container clips the rest). */
+  box-shadow:
+    -1rem 0 0 var(--entity-sheet-bg, #fff),
+    1rem 0 0 var(--entity-sheet-bg, #fff);
+}
+
+.entity-header__title-row--with-close {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+/* Icon-only X beside the name (GMaps); the long title keeps the width. */
+.entity-header__title-row--with-close :global(.entity-panel-close) {
+  flex-shrink: 0;
+  margin: -0.25rem 0 0 auto;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: hsl(0, 0%, 30%);
+}
+
+.entity-header__title-row--with-close :global(.entity-panel-close span) {
+  display: none;
+}
+
+.entity-header .entity-actions--place {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.entity-actions--place > :global(.map-chrome-action-chip--primary) {
+  flex-shrink: 0;
+}
+
+.entity-actions__scroll {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  /* Room for focus rings inside the scroller's clip box. */
+  padding: 0.125rem;
+  margin: -0.125rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* Fade the trailing edge so a cut-off pill reads as "more this way". */
+  mask-image: linear-gradient(to right, #000 calc(100% - 1.25rem), transparent);
+}
+
+.entity-actions__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.entity-actions__scroll > :global(*) {
+  flex-shrink: 0;
+}
+
+.entity-actions__scroll :global(.map-chrome-action-chip),
+.entity-actions__scroll :global(.editor-toggle--toolbar) {
+  border-radius: 999px;
+}
+
+.entity-actions__scroll > :global(:last-child) {
+  margin-right: 1rem;
+}
+
 .entity-actions :global(.editor-toggle--toolbar),
 .entity-directions__nav :global(.map-chrome-action-chip) {
   box-sizing: border-box;

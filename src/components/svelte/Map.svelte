@@ -65,6 +65,7 @@
   import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
+  import { savedPlaces } from "@lib/saved-places.svelte";
   import { MediaQuery } from "svelte/reactivity";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import type { StyleSpecification } from "maplibre-gl";
@@ -4381,6 +4382,7 @@
                 >
                   <MapEntityPin
                     label={building.buildingName}
+                    starred={savedPlaces.has("building", building.buildingName)}
                     active={activeBuildingName === building.buildingName}
                     editable={canDragPin(editKey)}
                     editing={selectedEditKey === editKey}
@@ -4482,6 +4484,7 @@
                 >
                   <MapEntityPin
                     label={dorm.dormName}
+                    starred={savedPlaces.has("dorm", dorm.dormName)}
                     tone={dorm.isUpManaged ? "dorm" : "privateDorm"}
                     active={activeDormName === dorm.dormName}
                     dimmed={isDormDimmedForEventFocus(dorm.id) ||
@@ -4527,6 +4530,7 @@
               <Marker lngLat={[place.lon, place.lat]}>
                 <MapEntityPin
                   label={place.name}
+                  starred={savedPlaces.has("place", place.name)}
                   tone={isLandmarkPlace(place) ? "landmark" : "establishment"}
                   active={queryStore.category === "place" &&
                     queryStore.inputValue === place.name}

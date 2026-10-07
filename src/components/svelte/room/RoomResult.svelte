@@ -35,7 +35,9 @@
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import Box from "@lucide/svelte/icons/box";
-  import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
+  import EntityShareButton from "../controls/EntityShareButton.svelte";
+  import EntitySaveButton from "../controls/EntitySaveButton.svelte";
+  import EntityPanelClose from "../controls/EntityPanelClose.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import MapChromeActionChip from "../map-chrome/MapChromeActionChip.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
@@ -504,20 +506,29 @@
 
 <div class="entity-detail">
   {#if currentRoom.value}
-    <header class="entity-header">
-      {#if parentBuilding}
-        <button
-          class="entity-header__breadcrumb"
-          type="button"
-          onclick={openBuildingResult}
-          aria-label={`Back to ${parentBuilding.name}`}
-        >
-          <ChevronLeft size={14} aria-hidden="true" />
-          <span>{parentBuilding.name}</span>
-        </button>
-      {/if}
-
-      <h2 class="entity-header__title">{currentRoom.value.code}</h2>
+    {#if parentBuilding}
+      <button
+        class="entity-header__breadcrumb"
+        type="button"
+        onclick={openBuildingResult}
+        aria-label={`Back to ${parentBuilding.name}`}
+      >
+        <ChevronLeft size={14} aria-hidden="true" />
+        <span>{parentBuilding.name}</span>
+      </button>
+    {/if}
+    <header class="entity-header entity-header--sticky">
+      <div
+        class="entity-header__title-row entity-header__title-row--with-close"
+      >
+        <h2 class="entity-header__title">{currentRoom.value.code}</h2>
+        {#if roomCategoryLabel(currentRoom.value.category)}
+          <span class="room-category-badge"
+            >{roomCategoryLabel(currentRoom.value.category)}</span
+          >
+        {/if}
+        <EntityPanelClose ariaLabel="Close room details" showOnMobile />
+      </div>
 
       {#if currentRoom.value.fullName}
         <p class="entity-header__context room-full-name">
@@ -525,64 +536,72 @@
         </p>
       {/if}
 
-      {#if roomCategoryLabel(currentRoom.value.category)}
-        <span class="room-category-badge"
-          >{roomCategoryLabel(currentRoom.value.category)}</span
-        >
-      {/if}
-
-      {#if currentRoom.value.collegeName}
-        <p class="entity-header__context">
-          {currentRoom.value.collegeName}
-        </p>
-      {/if}
-
-      <div class="entity-actions">
+      <div class="entity-actions entity-actions--place">
         {#if parentBuilding?.lat && parentBuilding.lon}
           <EntityDirectionsChip
+            primary
             lat={parentBuilding.lat}
             lon={parentBuilding.lon}
             destinationLabel={parentBuilding.name}
           />
-          <EntityGoogleMapsLink
-            lat={parentBuilding.lat}
-            lon={parentBuilding.lon}
-            name={parentBuilding.name}
-            ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
-          />
-          <EntityPrintableMapLink
-            lat={parentBuilding.lat}
-            lon={parentBuilding.lon}
-            name={parentBuilding.name}
-          />
         {/if}
-        {#if parentBuilding?.lat && parentBuilding.lon}
-          <MapChromeActionChip
-            toolbar
-            ariaLabel="Move in 3D"
-            onclick={() =>
-              building3DStore.open(parentBuilding.name, {
-                roomCode: currentRoom.value?.code,
-                editMode: canPublish,
-              })}
-          >
-            <Box size={14} aria-hidden="true" />
-            Move in 3D
-          </MapChromeActionChip>
-        {/if}
-        <EntityShareCopyLink
-          url={roomShareUrl}
-          entityLabel={currentRoom.value.code}
-        />
-        <EntityEditorToggle
-          expanded={editing}
-          {canPublish}
-          publishOpenLabel="Edit room"
-          variant="toolbar"
-          onclick={() => (editing = !editing)}
-        />
+        <div class="entity-actions__scroll">
+          <EntitySaveButton
+            place={{
+              category: "room",
+              value: currentRoom.value.code,
+              label: currentRoom.value.code,
+              subtitle:
+                currentRoom.value.fullName ?? parentBuilding?.name ?? null,
+              lat: parentBuilding?.lat ?? null,
+              lon: parentBuilding?.lon ?? null,
+            }}
+          />
+          <EntityShareButton
+            url={roomShareUrl}
+            entityLabel={currentRoom.value.code}
+          />
+          {#if parentBuilding?.lat && parentBuilding.lon}
+            <MapChromeActionChip
+              toolbar
+              ariaLabel="Move in 3D"
+              onclick={() =>
+                building3DStore.open(parentBuilding.name, {
+                  roomCode: currentRoom.value?.code,
+                  editMode: canPublish,
+                })}
+            >
+              <Box size={14} aria-hidden="true" />
+              Move in 3D
+            </MapChromeActionChip>
+            <EntityGoogleMapsLink
+              lat={parentBuilding.lat}
+              lon={parentBuilding.lon}
+              name={parentBuilding.name}
+              ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
+            />
+            <EntityPrintableMapLink
+              lat={parentBuilding.lat}
+              lon={parentBuilding.lon}
+              name={parentBuilding.name}
+            />
+          {/if}
+          <EntityEditorToggle
+            expanded={editing}
+            {canPublish}
+            publishOpenLabel="Edit room"
+            variant="toolbar"
+            onclick={() => (editing = !editing)}
+          />
+        </div>
       </div>
     </header>
+
+    {#if currentRoom.value.collegeName}
+      <p class="entity-header__context">
+        {currentRoom.value.collegeName}
+      </p>
+    {/if}
 
     {#if editing}
       <section class="entity-editor" aria-label="Edit room details">
@@ -951,7 +970,9 @@
 
   .room-category-badge {
     display: inline-block;
-    align-self: flex-start;
+    flex-shrink: 0;
+    align-self: center;
+    white-space: nowrap;
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
     background: var(--theme-accent-soft, hsl(5, 40%, 94%));

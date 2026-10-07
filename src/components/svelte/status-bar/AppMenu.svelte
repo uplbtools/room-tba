@@ -18,6 +18,7 @@
   import University from "@lucide/svelte/icons/university";
   import Users from "@lucide/svelte/icons/users";
   import BookText from "@lucide/svelte/icons/book-text";
+  import Star from "@lucide/svelte/icons/star";
   import { onMount, type Component } from "svelte";
   import { fade, fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
@@ -335,6 +336,17 @@
         aria-labelledby="app-menu-go-heading"
       >
         <h3 id="app-menu-go-heading" class="app-menu__heading">Go to</h3>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => {
+            closePanel();
+            modalStore.openModal("saved-places");
+          }}
+        >
+          <Star size={18} aria-hidden="true" />
+          <span>Saved</span>
+        </button>
         {#each screens as screen (screen.id)}
           {@const Icon = screen.icon}
           <button

@@ -31,6 +31,8 @@
     /** Paid placement at the sponsor's real location (docs/ad-policy.md);
      * gold ring + always-visible "Sponsored" label. */
     sponsored?: boolean;
+    /** In the user's Saved places: small gold star on the pin's shoulder. */
+    starred?: boolean;
     tone?: EntityPinTone;
     /** Read mode: hover detail comes from EntityHoverPreview, not the pin label. */
     useCentralHoverPreview?: boolean;
@@ -52,6 +54,7 @@
     onpointerleave,
     saveState = "idle",
     sponsored = false,
+    starred = false,
     tone = "building",
     useCentralHoverPreview = false,
   }: Props = $props();
@@ -103,7 +106,9 @@
   class:saved={saveState === "saved"}
   class:failed={saveState === "failed"}
   class:sponsored
-  aria-label={sponsored ? `${label}, sponsored` : label}
+  aria-label={[label, starred && "saved", sponsored && "sponsored"]
+    .filter(Boolean)
+    .join(", ")}
   role={onclick ? "button" : undefined}
   tabindex={onclick ? 0 : undefined}
   {onclick}
@@ -114,6 +119,16 @@
   <span class="pin-icon" aria-hidden="true">
     {@render children()}
   </span>
+  {#if starred}
+    <span class="pin-star" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="9" height="9">
+        <path
+          fill="currentColor"
+          d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"
+        />
+      </svg>
+    </span>
+  {/if}
   {#if showDragAffordance}
     <span class="drag-handle" aria-hidden="true">
       <Move size={13} />
@@ -376,6 +391,23 @@
   .pin-icon {
     display: inline-flex;
     line-height: 0;
+  }
+
+  .pin-star {
+    position: absolute;
+    top: -0.375rem;
+    right: -0.375rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 1.5px solid white;
+    border-radius: 50%;
+    background: hsl(42, 90%, 48%);
+    color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
   }
 
   /* Place name beside the pin, Google Maps style: tinted text on a white
