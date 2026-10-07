@@ -14,6 +14,7 @@ import OfflineMapsModal from "@ui/modal/OfflineMapsModal.svelte";
 import PrivacyModal from "@ui/modal/PrivacyModal.svelte";
 import ProposalReviewPanel from "@ui/ProposalReviewPanel.svelte";
 import ScheduleModal from "@ui/modal/ScheduleModal.svelte";
+import SavedPlacesModal from "@ui/modal/SavedPlacesModal.svelte";
 import SettingsModal from "@ui/modal/SettingsModal.svelte";
 import StudentOrgsModal from "@ui/modal/StudentOrgsModal.svelte";
 import type { modalOptions } from "@constants/modal-states";
@@ -154,5 +155,12 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     label: "Send feedback",
     labelledBy: "feedback-modal-title",
     closeLabel: "Close feedback",
+  },
+  "saved-places": {
+    component: SavedPlacesModal,
+    size: "reading",
+    label: "Saved",
+    labelledBy: "saved-places-modal-title",
+    closeLabel: "Close saved places",
   },
 };
