@@ -671,6 +671,46 @@ function drawJeep(
 }
 
 /**
+ * A little side-on bus, about 40 x 20 pt at scale 1, with its bottom-left
+ * at (x, y): long body, a band of windows, door, wheels.
+ */
+function drawBus(
+  page: PDFPage,
+  pageH: number,
+  x: number,
+  y: number,
+  scale: number,
+  body: RGB,
+) {
+  const s = scale;
+  const anchor = { x: 0, y: pageH };
+  page.drawSvgPath(roundRectPath(x, y + 4 * s, 40 * s, 16 * s, 3 * s, pageH), {
+    ...anchor,
+    color: body,
+    borderColor: INK,
+    borderWidth: 1.2 * s,
+  });
+  page.drawSvgPath(
+    roundRectPath(x + 3 * s, y + 12 * s, 28 * s, 5.5 * s, 1.2 * s, pageH),
+    { ...anchor, color: WHITE, borderColor: INK, borderWidth: 0.8 * s },
+  );
+  page.drawSvgPath(
+    roundRectPath(x + 33 * s, y + 6 * s, 4.5 * s, 11.5 * s, 1 * s, pageH),
+    { ...anchor, color: WHITE, borderColor: INK, borderWidth: 0.8 * s },
+  );
+  for (const wx of [9, 29]) {
+    page.drawCircle({
+      x: x + wx * s,
+      y: y + 4 * s,
+      size: 4 * s,
+      color: INK,
+      borderColor: WHITE,
+      borderWidth: 1 * s,
+    });
+  }
+}
+
+/**
  * Draw mixed regular/bold text, wrapping on spaces across runs. Lines past
  * `maxLines` are dropped.
  */
@@ -1981,59 +2021,154 @@ export async function renderTransitMapPdf(input: {
     }
   }
 
-  // Town jeeps and buses are not drawn: say where they are boarded and what
-  // is known about each fare, grouped jeeps then buses.
-  const townGroups: { title: string; rows: [string, string][] }[] = [
+  // Town jeeps and buses are not drawn on the map, so they get designed
+  // tiles: jeeps as a row of destination tiles with a fare chip, buses as
+  // rows with an operator badge, the destination and when or where to board.
+  const BUS_TEAL = rgb(0.059, 0.463, 0.431); // #0f766e, white on it 5.5:1
+  const townJeeps = [
+    { to: "Calamba", fare: "PHP 30", note: "25 discounted" },
+    { to: "San Pablo", fare: "PHP 14+", note: "by distance" },
+    { to: "Sta. Cruz", fare: "PHP 14+", note: "by distance" },
+  ];
+  const townBuses = [
     {
-      title: "Jeeps at the Junction (Olivarez)",
-      rows: [
-        ["Calamba", "PHP 30, 25 disc."],
-        ["San Pablo", "PHP 14 and up"],
-        ["Sta. Cruz", "PHP 14 and up"],
-      ],
+      tag: "DLTB",
+      to: "Buendia",
+      via: "LRT-1 Gil Puyat",
+      detail: "Main gate 5 AM, back 6 PM daily",
     },
     {
-      title: "Buses",
-      rows: [
-        ["Buendia (DLTB)", "UPLB 5 AM, back 6 PM"],
-        ["Buendia (others)", "Junction, pay on board"],
-        ["UP Diliman (DLTB)", "dltbbus.com.ph"],
-      ],
+      tag: "OTHERS",
+      to: "Buendia",
+      via: "",
+      detail: "Flag down at the Junction, pay on board",
+    },
+    {
+      tag: "DLTB",
+      to: "UP Diliman",
+      via: "",
+      detail: "Book at dltbbus.com.ph",
     },
   ];
-  const townRowsH = townGroups.reduce(
-    (n, g) => n + 12 + g.rows.length * LEAD,
-    0,
-  );
-  const townH = 8 + townRowsH;
-  if (py - 22 - townH >= panelFloor) {
-    pill("Town jeeps and buses");
-    py -= 21;
+  const SUB_H = 14;
+  const TILE_H = 39;
+  const ROW_H = 24;
+  const GAP = 3;
+  const townH =
+    4 + SUB_H + TILE_H + 4 + SUB_H + townBuses.length * (ROW_H + GAP);
+  // No pill: the jeep and bus sub-heads label the card, and A4 has no
+  // height to spare for one.
+  if (py - townH >= panelFloor) {
     card(townH, PAPER_TINT);
-    let ty = py - 14;
-    const colX = px + 112;
-    for (const group of townGroups) {
-      page.drawText(group.title.toUpperCase(), {
-        x: px + 10,
-        y: ty,
+    let ty = py - 4;
+    const inX = px + 8;
+    const inW = PANEL_W - 16;
+    const subhead = (icon: () => void, text: string) => {
+      icon();
+      page.drawText(text, {
+        x: inX + 24,
+        y: ty - 10,
+        size: 9,
+        font: bold,
+        color: INK,
+      });
+      ty -= SUB_H;
+    };
+    subhead(
+      () => drawJeep(page, pageH, inX, ty - 12, 0.5, SUNNY),
+      "Jeeps: board at the Junction (Olivarez)",
+    );
+    const tileW = (inW - GAP * (townJeeps.length - 1)) / townJeeps.length;
+    townJeeps.forEach((j, i) => {
+      const tx = inX + i * (tileW + GAP);
+      page.drawSvgPath(
+        roundRectPath(tx, ty - TILE_H, tileW, TILE_H, 6, pageH),
+        {
+          ...anchor,
+          color: WHITE,
+          borderColor: HAIRLINE,
+          borderWidth: 0.8,
+        },
+      );
+      page.drawText(j.to, {
+        x: tx + 6,
+        y: ty - 12,
+        size: BODY,
+        font: bold,
+        color: INK,
+      });
+      const chipW = bold.widthOfTextAtSize(j.fare, 8.5) + 10;
+      page.drawSvgPath(roundRectPath(tx + 5, ty - 28, chipW, 12, 6, pageH), {
+        ...anchor,
+        color: SUNNY,
+      });
+      page.drawText(j.fare, {
+        x: tx + 10,
+        y: ty - 24.5,
         size: 8.5,
         font: bold,
+        color: INK,
+      });
+      if (font.widthOfTextAtSize(j.note, 7.5) <= tileW - 10)
+        page.drawText(j.note, {
+          x: tx + 6,
+          y: ty - 35.5,
+          size: 7.5,
+          font,
+          color: BODY_TEXT,
+        });
+    });
+    ty -= TILE_H + 4;
+    subhead(
+      () => drawBus(page, pageH, inX, ty - 12, 0.5, BUS_TEAL),
+      "Buses to Manila",
+    );
+    for (const b of townBuses) {
+      page.drawSvgPath(roundRectPath(inX, ty - ROW_H, inW, ROW_H, 6, pageH), {
+        ...anchor,
+        color: WHITE,
+        borderColor: HAIRLINE,
+        borderWidth: 0.8,
+      });
+      const badgeW = 40;
+      page.drawSvgPath(
+        roundRectPath(inX + 5, ty - ROW_H + 5, badgeW, ROW_H - 10, 4, pageH),
+        { ...anchor, color: BUS_TEAL },
+      );
+      const tagSize = b.tag.length > 4 ? 6.5 : 8;
+      page.drawText(b.tag, {
+        x: inX + 5 + (badgeW - bold.widthOfTextAtSize(b.tag, tagSize)) / 2,
+        y: ty - ROW_H / 2 - tagSize * 0.35,
+        size: tagSize,
+        font: bold,
+        color: WHITE,
+      });
+      const rx = inX + badgeW + 11;
+      page.drawText(b.to, {
+        x: rx,
+        y: ty - 10,
+        size: BODY,
+        font: bold,
+        color: INK,
+      });
+      if (b.via)
+        page.drawText(b.via, {
+          x: rx + bold.widthOfTextAtSize(b.to, BODY) + 5,
+          y: ty - 10,
+          size: 8,
+          font,
+          color: BODY_TEXT,
+        });
+      page.drawText(b.detail, {
+        x: rx,
+        y: ty - 19.5,
+        size: 8,
+        font,
         color: BODY_TEXT,
       });
-      ty -= 12;
-      for (const [where, fare] of group.rows) {
-        page.drawText(where, {
-          x: px + 10,
-          y: ty,
-          size: BODY,
-          font: bold,
-          color: INK,
-        });
-        page.drawText(fare, { x: colX, y: ty, size: BODY, font, color: INK });
-        ty -= LEAD;
-      }
+      ty -= ROW_H + GAP;
     }
-    py -= townH + 8;
+    py -= townH + 6;
   }
 
   // Riding tips, for first-years and visitors reading the sheet on a wall.
@@ -2043,9 +2178,8 @@ export async function renderTransitMapPdf(input: {
   ];
   const tipLines = tips.map((t) => wrapText(t, font, BODY, PANEL_W - 36));
   const tipsH = 6 + tipLines.reduce((n, l) => n + l.length * LEAD + 3, 0);
-  if (py - 21 - tipsH >= panelFloor) {
-    pill("Riding tips");
-    py -= 21;
+  // Numbered sunny dots read as tips on their own, without a pill.
+  if (py - tipsH >= panelFloor) {
     card(tipsH, WHITE);
     let ty = py - 14;
     tipLines.forEach((lines, i) => {
