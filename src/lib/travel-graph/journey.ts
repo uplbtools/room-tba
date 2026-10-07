@@ -37,6 +37,7 @@ import {
   reconstructPath,
   type TravelGraph,
 } from "./engine";
+import { polylineMeters, sliceRouteLine } from "./ride-geometry";
 
 export type LatLng = { lat: number; lng: number };
 
@@ -91,12 +92,17 @@ export type Journey = {
 const WALK_MPS = WALK_KPH / 3.6;
 const JEEPNEY_MPS = JEEPNEY_KPH / 3.6;
 
+/** Road geometry per route id, [lng, lat], drawn in the listed stop order. */
+export type RouteLines = Readonly<Record<string, [number, number][]>>;
+
 /** A route walked in a given direction, as an ordered stop list. */
 type DirectedRoute = {
   route: JeepneyRoute;
   /** "" for the listed order, " (reverse)" for the mirrored run. */
   suffix: string;
   stops: JeepneyRoute["stops"];
+  /** Road line in this direction, when the route has one. */
+  line: [number, number][] | null;
 };
 
 /**
@@ -104,15 +110,20 @@ type DirectedRoute = {
  * directions, and the Forestry line is served up and down, so a rider can
  * always board in whichever direction gets them there sooner.
  */
-function directedRoutes(routes: JeepneyRoute[]): DirectedRoute[] {
+function directedRoutes(
+  routes: JeepneyRoute[],
+  lines: RouteLines = {},
+): DirectedRoute[] {
   const out: DirectedRoute[] = [];
   for (const route of routes) {
     if (route.stops.length < 2) continue;
-    out.push({ route, suffix: "", stops: route.stops });
+    const line = lines[route.id] ?? null;
+    out.push({ route, suffix: "", stops: route.stops, line });
     out.push({
       route,
       suffix: " (reverse)",
       stops: [...route.stops].reverse(),
+      line: line ? [...line].reverse() : null,
     });
   }
   return out;
@@ -132,6 +143,11 @@ export type PlanJourneysInput = {
   origin: LatLng;
   destination: LatLng;
   routes: JeepneyRoute[];
+  /**
+   * Road geometry per route; ride legs follow it between their stops instead
+   * of joining the stops with straight lines.
+   */
+  routeLines?: RouteLines;
   /** Test seam; defaults to the campus-wide constant. */
   maxOptions?: number;
 };
@@ -210,6 +226,7 @@ function planDirect({
   origin,
   destination,
   routes,
+  routeLines,
   maxOptions = MAX_JOURNEY_OPTIONS,
 }: PlanJourneysInput): JourneyPlan {
   const originNode = snapEndpoint(graph, origin);
@@ -247,7 +264,10 @@ function planDirect({
 
   const walkOnlySeconds = walkPath?.seconds ?? Number.POSITIVE_INFINITY;
 
-  for (const { route, suffix, stops } of directedRoutes(routes)) {
+  for (const { route, suffix, stops, line } of directedRoutes(
+    routes,
+    routeLines,
+  )) {
     // Snapping is unconditional, so a stop far off the mapped network would
     // otherwise inherit a neighbouring node's walk time. Drop those instead.
     const stopNodes = stops.map((stop) => {
@@ -341,7 +361,7 @@ function planDirect({
       coordinates: [...egressReversed.coordinates].reverse(),
     };
 
-    const ride = buildRideLeg(route, stops, best.board, best.alight);
+    const ride = buildRideLeg(route, stops, best.board, best.alight, line);
 
     journeys.push({
       id: `${route.id}${suffix}`,
@@ -383,15 +403,31 @@ function planDirect({
   };
 }
 
+/**
+ * A road slice this much longer than the stop chain went the wrong way round
+ * (or matched a far pass of the line); the straight chord is the safer draw.
+ */
+const MAX_ROAD_DETOUR = 2.5;
+
 function buildRideLeg(
   route: JeepneyRoute,
   stops: JeepneyRoute["stops"],
   board: number,
   alight: number,
+  line: [number, number][] | null = null,
 ): RideLeg {
   const ridden = stops.slice(board, alight + 1);
   const cumulative = cumulativeMeters(stops);
-  const rideMeters = cumulative[alight]! - cumulative[board]!;
+  const chordMeters = cumulative[alight]! - cumulative[board]!;
+  const road = line
+    ? sliceRouteLine(line, stops[board]!, stops[alight]!)
+    : null;
+  const roadMeters = road ? polylineMeters(road) : 0;
+  const onRoad =
+    road !== null &&
+    roadMeters >= chordMeters * 0.9 &&
+    roadMeters <= chordMeters * MAX_ROAD_DETOUR + 200;
+  const rideMeters = onRoad ? roadMeters : chordMeters;
   return {
     kind: "ride",
     routeId: route.id,
@@ -405,7 +441,9 @@ function buildRideLeg(
     waitSeconds: JEEPNEY_WAIT_SECONDS,
     seconds: JEEPNEY_WAIT_SECONDS + rideMeters / JEEPNEY_MPS,
     meters: rideMeters,
-    coordinates: ridden.map((stop) => [stop.lon, stop.lat]),
+    coordinates: onRoad
+      ? road
+      : ridden.map((stop): [number, number] => [stop.lon, stop.lat]),
   };
 }
 
@@ -451,14 +489,17 @@ function joinJourneys(id: string, parts: (JourneyLeg[] | Journey)[]): Journey {
  * destination). One best option per town route.
  */
 function transferJourneys(input: PlanJourneysInput): Journey[] {
-  const { graph, origin, destination, routes } = input;
+  const { graph, origin, destination, routes, routeLines } = input;
   const originOff = snapEndpoint(graph, origin) === null;
   const destOff = snapEndpoint(graph, destination) === null;
   if (originOff === destOff) return [];
   const end = originOff ? origin : destination;
   const best = new Map<string, Journey>();
 
-  for (const { route, suffix, stops } of directedRoutes(routes)) {
+  for (const { route, suffix, stops, line } of directedRoutes(
+    routes,
+    routeLines,
+  )) {
     const others = routes.filter((r) => r.id !== route.id);
     for (let i = 0; i < stops.length; i++) {
       const here = stops[i]!;
@@ -477,20 +518,21 @@ function transferJourneys(input: PlanJourneysInput): Journey[] {
           origin: originOff ? campusStop : origin,
           destination: originOff ? destination : campusStop,
           routes: others,
+          routeLines,
         });
         for (const leg of rest.journeys) {
           const journey = originOff
             ? joinJourneys(`${route.id}${suffix}>${leg.id}`, [
                 [
                   straightWalk(origin, townStop),
-                  buildRideLeg(route, stops, i, j),
+                  buildRideLeg(route, stops, i, j, line),
                 ],
                 leg,
               ])
             : joinJourneys(`${leg.id}>${route.id}${suffix}`, [
                 leg,
                 [
-                  buildRideLeg(route, stops, j, i),
+                  buildRideLeg(route, stops, j, i, line),
                   reverseWalk(straightWalk(destination, townStop)),
                 ],
               ]);
@@ -543,7 +585,10 @@ export const PLAN_STATUS_NOTES: Record<PlanStatus, string | null> = {
  * stepping off the path sideways does not read as progress.
  */
 export type RouteProgress = {
-  /** Metres still to travel along the line. */
+  /**
+   * Metres still to travel, as a share of the journey's own total, so the
+   * navigation bar starts on exactly the distance the route card quoted.
+   */
   remainingMeters: number;
   /** Seconds left, scaled from the journey's own average pace. */
   remainingSeconds: number;
@@ -551,6 +596,11 @@ export type RouteProgress = {
   offRouteMeters: number;
   /** 0-1 along the journey. */
   fraction: number;
+  /** Index into journey.legs of the leg the rider is on. */
+  legIndex: number;
+  /** Line metres covered on that leg, and left on it, for step cues. */
+  legTravelledMeters: number;
+  legRemainingMeters: number;
 };
 
 /** Perpendicular distance from p to segment ab, plus how far along ab it lands. */
@@ -602,6 +652,11 @@ export function routeProgress(
 ): RouteProgress | null {
   const line = journey.legs.flatMap((leg) => leg.coordinates);
   if (line.length < 2) return null;
+  // Index of each leg's last vertex in the flattened line.
+  const legEnds: number[] = [];
+  for (const leg of journey.legs) {
+    legEnds.push((legEnds.at(-1) ?? -1) + leg.coordinates.length);
+  }
 
   // Cumulative length so the remainder is one subtraction once we know where
   // on the line the rider is.
@@ -632,15 +687,27 @@ export function routeProgress(
     }
   }
 
-  const remainingMeters = Math.max(0, total - bestTravelled);
-  // Scale by the journey's own pace rather than a walking constant: a transit
-  // journey's average includes the ride and the boarding wait.
-  const pace = journey.seconds / total;
+  const fraction = Math.max(0, Math.min(1, bestTravelled / total));
+  let legIndex = legEnds.findIndex((end) => cumulative[end]! > bestTravelled);
+  if (legIndex < 0) legIndex = journey.legs.length - 1;
+  // Scale by the journey's own totals rather than the drawn line or a walking
+  // constant: the card quoted journey.meters, and a transit journey's pace
+  // includes the ride and the boarding wait.
   return {
-    remainingMeters,
-    remainingSeconds: remainingMeters * pace,
+    remainingMeters: journey.meters * (1 - fraction),
+    remainingSeconds: journey.seconds * (1 - fraction),
     offRouteMeters: bestOff,
-    fraction: Math.max(0, Math.min(1, bestTravelled / total)),
+    fraction,
+    legIndex,
+    legTravelledMeters: Math.max(
+      0,
+      bestTravelled -
+        (legIndex === 0 ? 0 : cumulative[legEnds[legIndex - 1]! + 1]!),
+    ),
+    legRemainingMeters: Math.max(
+      0,
+      cumulative[legEnds[legIndex]!]! - bestTravelled,
+    ),
   };
 }
 
