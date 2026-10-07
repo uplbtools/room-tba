@@ -114,7 +114,9 @@ export function withBundledRoutes(routes: JeepneyRoute[]): JeepneyRoute[] {
   const usable = new Set(
     routes.filter((r) => r.stops.length > 0).map((r) => r.id),
   );
-  const missing = JEEPNEY_ROUTES.filter((r) => !usable.has(r.id));
+  const missing = [...JEEPNEY_ROUTES, ...BUNDLED_BUS_ROUTES].filter(
+    (r) => !usable.has(r.id),
+  );
   if (missing.length === 0) return routes;
   const missingIds = new Set(missing.map((r) => r.id));
   return [...routes.filter((r) => !missingIds.has(r.id)), ...missing];
@@ -672,6 +674,67 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
 ];
 
 /**
+ * DLTB's daily UPLB <-> LRT Buendia trips (UPLB OVCCA, "DLTB returns to
+ * UPLB", Oct 2022; schedule confirmed by the maintainer 2026-10-07). Bundled
+ * so they show before anyone adds them to the database; database rows win.
+ */
+const DLTB_BUENDIA_NOTE =
+  "Daily: leaves UPLB at 5:00 AM; the return trip leaves Buendia at 6:00 PM. About 1.5 to 2 hours each way. More trips may be added when demand is high.";
+
+export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
+  {
+    id: "uplb-to-buendia",
+    name: "UPLB → LRT Buendia (DLTB bus)",
+    description:
+      "Daily DLTB bus from the UPLB main gate to the Buendia bus terminal under LRT-1 Gil Puyat station, via SLEX.",
+    directionNote: DLTB_BUENDIA_NOTE,
+    color: "#0f766e",
+    fare: { regular: 0, discounted: 0 },
+    stops: [
+      {
+        name: "UPLB main gate (opposite CDC)",
+        description:
+          "Loading and unloading point near the UPLB main gate, across from the College of Development Communication.",
+        lat: 14.16716,
+        lon: 121.24288,
+      },
+      {
+        name: "Buendia bus terminal (LRT-1 Gil Puyat)",
+        description:
+          "Bus terminal on Gil Puyat Ave., just below LRT-1 Gil Puyat station.",
+        lat: 14.5541,
+        lon: 120.9972,
+      },
+    ],
+  },
+  {
+    id: "buendia-to-uplb",
+    name: "LRT Buendia → UPLB (DLTB bus)",
+    description:
+      "Daily DLTB bus from the Buendia bus terminal under LRT-1 Gil Puyat station to the UPLB main gate, via SLEX.",
+    directionNote: DLTB_BUENDIA_NOTE,
+    color: "#0f766e",
+    fare: { regular: 0, discounted: 0 },
+    stops: [
+      {
+        name: "Buendia bus terminal (LRT-1 Gil Puyat)",
+        description:
+          "Bus terminal on Gil Puyat Ave., just below LRT-1 Gil Puyat station.",
+        lat: 14.5541,
+        lon: 120.9972,
+      },
+      {
+        name: "UPLB main gate (opposite CDC)",
+        description:
+          "Loading and unloading point near the UPLB main gate, across from the College of Development Communication.",
+        lat: 14.16716,
+        lon: 121.24288,
+      },
+    ],
+  },
+];
+
+/**
  * Rider tips transcribed from the UPLB Public Transit System Map (2024) by
  * Bernardo "Berniemack" Muerong Arellano III, shown in the route modal with
  * credit. Facts only; the map artwork itself is CC BY-NC-SA and is not reused.
@@ -687,7 +750,7 @@ export const JEEPNEY_RIDING_NOTES: string[] = [
   "A UP GATE signboard means the jeep stops at Grove and does not enter campus.",
   "Hailing a jeep bound for Forestry or Upper Campus? Point your index finger upwards.",
   "Outbound signboards: BAYAN (town proper), OLIVAREZ (College Junction), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
-  "Campus stops have no official names or markers; hail or alight anywhere safe along the route.",
+  "Board and get off only at the designated stops, marked in yellow.",
 ];
 
 export const TRANSIT_DATA_CREDIT =
