@@ -115,7 +115,8 @@
     const recentSearchesLS = localStorage.getItem("recent-search");
     try {
       const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? "[]");
-      parsedSearches.forEach((parsedSearch) => {
+      // addRecentSearch prepends, so replay oldest first to keep the order.
+      parsedSearches.reverse().forEach((parsedSearch) => {
         if (isRecentSearch(parsedSearch)) {
           queryStore.addRecentSearch(parsedSearch);
         }

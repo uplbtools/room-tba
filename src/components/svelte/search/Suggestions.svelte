@@ -1,17 +1,38 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
+  import MapFilterChips from "@ui/map-chrome/MapFilterChips.svelte";
+  import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import { getAppData } from "@lib/context";
   import {
     getJSONFetch,
     searchLocalAliases,
     searchLocalRooms,
   } from "@lib/local/data/utils";
-  import { buildEntitySuggestions } from "@lib/search-suggestions";
+  import { isLocalCacheReady } from "@lib/local/data/pgliteDB";
+  import { fetchClassPage } from "@lib/classes-api";
   import {
-    queryStore,
+    EXPANDED_LIMITS,
+    enterAction,
+    groupSuggestions,
+    normalizeCourseQuery,
+    rankSuggestions,
+    scoreAliases,
+    scoreClasses,
+    scoreEntities,
+    scoreRooms,
+  } from "@lib/search-suggestions";
+  import { openCourseClasses, selectSuggestion } from "@lib/search-select";
+  import {
+    appBootstrapStore,
     buildingTypeFilter,
     classVenuesStore,
+    directionsStore,
+    locationStore,
+    mapStore,
+    queryStore,
+    termStore,
   } from "@lib/store.svelte";
+  import type { ClassMapValue } from "@lib/types";
   import {
     buildingMatchesTypeFilter,
     dormMatchesTypeFilter,
@@ -19,6 +40,11 @@
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import FinalExamSuggestion from "./FinalExamSuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
+
+  let { onDismiss = () => {} }: { onDismiss?: () => void } = $props();
+
+  /** A search fetch that hangs must not leave "Loading…" up forever. */
+  const SEARCH_FETCH_TIMEOUT_MS = 8_000;
 
   const appData = getAppData();
   const {
@@ -49,53 +75,49 @@
     );
   });
 
-  const suggestedResult = $derived.by(() =>
-    buildEntitySuggestions(queryStore.inputValue, {
-      loaded,
-      filteredBuildings,
-      filteredDorms,
-      colleges,
-      divisions,
-      events,
-      organizations,
-      places,
-    }),
-  );
+  const query = $derived(queryStore.inputValue.trim());
 
   type AliasHit = { alias: string; value: string };
-  type RoomHit = {
-    value: string;
-    category: "room";
-    fullName?: string | null;
-  };
+  type RoomHit = { value: string; fullName?: string | null };
 
+  // Each async source remembers which query its results belong to, so "still
+  // searching" is exact: a source is settled once it answered this query.
   let aliasResults = $state<AliasHit[]>([]);
+  let aliasFor = $state("");
   let roomResults = $state<RoomHit[]>([]);
-  let roomLoading = $state(false);
+  let roomFor = $state("");
+  let classResults = $state<ClassMapValue[]>([]);
+  let classFor = $state("");
 
   $effect(() => {
-    const trimmed = queryStore.inputValue.trim();
+    const trimmed = query;
     if (trimmed === "") {
       aliasResults = [];
+      aliasFor = "";
       return;
     }
 
     let cancelled = false;
     void (async () => {
+      let hits: AliasHit[];
       try {
         const res = await getJSONFetch<{
           data: { alias: string; value: string | null }[];
-        }>(`/api/aliases?q=${encodeURIComponent(trimmed)}`);
-        if (cancelled) return;
-        aliasResults = (res.data ?? [])
-          .filter((entry): entry is { alias: string; value: string } =>
-            Boolean(entry.value),
-          )
+        }>(
+          `/api/aliases?q=${encodeURIComponent(trimmed)}`,
+          SEARCH_FETCH_TIMEOUT_MS,
+        );
+        hits = (res.data ?? [])
+          .filter((entry): entry is AliasHit => Boolean(entry.value))
           .map((entry) => ({ alias: entry.alias, value: entry.value }));
       } catch {
-        if (cancelled) return;
-        aliasResults = await searchLocalAliases(trimmed);
+        // Offline: only ask the local cache if it is already up; booting it
+        // here is what kept search spinning on a cold second tab.
+        hits = isLocalCacheReady() ? await searchLocalAliases(trimmed) : [];
       }
+      if (cancelled) return;
+      aliasResults = hits;
+      aliasFor = trimmed;
     })();
 
     return () => {
@@ -104,62 +126,223 @@
   });
 
   $effect(() => {
-    const trimmed = queryStore.inputValue.trim();
+    const trimmed = query;
     if (trimmed === "") {
       roomResults = [];
-      roomLoading = false;
+      roomFor = "";
       return;
     }
 
     let cancelled = false;
-    roomLoading = true;
     void (async () => {
       const upper = trimmed.toUpperCase();
-      const url = `/api/rooms?search_code=${encodeURI(upper)}`;
+      let hits: RoomHit[] | null = null;
       try {
-        const response = await fetch(url);
-        const roomsFetch = (await response.json()) as {
-          data?: { value: string; fullName?: string | null }[] | null;
-        };
-        if (cancelled) return;
-        if (response.ok && Array.isArray(roomsFetch?.data)) {
-          roomResults = roomsFetch.data.map((val) => ({
-            ...val,
-            category: "room" as const,
-          }));
-          roomLoading = false;
-          return;
-        }
-        if (response.status === 404) {
-          roomResults = [];
-          roomLoading = false;
-          return;
+        const response = await fetch(
+          `/api/rooms?search_code=${encodeURIComponent(upper)}`,
+          { signal: AbortSignal.timeout(SEARCH_FETCH_TIMEOUT_MS) },
+        );
+        if (response.ok) {
+          const body = (await response.json()) as { data?: RoomHit[] | null };
+          // `data: null` is the server's "no rooms match", not a failure.
+          hits = Array.isArray(body?.data) ? body.data : [];
+        } else if (response.status === 404) {
+          hits = [];
         }
       } catch {
-        // Network unavailable — fall back to the local PGlite room cache (#169).
+        // Network unavailable — fall back to the local room cache (#169).
       }
-
+      if (hits === null) {
+        hits = isLocalCacheReady() ? ((await searchLocalRooms(upper)) ?? []) : [];
+      }
       if (cancelled) return;
-      const local = await searchLocalRooms(upper);
-      roomResults = local
-        ? local.map((val) => ({ ...val, category: "room" as const }))
-        : [];
-      roomLoading = false;
+      roomResults = hits;
+      roomFor = trimmed;
     })();
 
     return () => {
       cancelled = true;
     };
   });
+
+  $effect(() => {
+    const trimmed = query;
+    const course = normalizeCourseQuery(trimmed);
+    const termId = termStore.activeTermId;
+    if (!course) {
+      classResults = [];
+      classFor = trimmed;
+      return;
+    }
+
+    let cancelled = false;
+    void fetchClassPage({ termId, courseCodePrefix: course, limit: 12 })
+      .then((page) => page.rows)
+      .catch(() => [] as ClassMapValue[])
+      .then((rows) => {
+        if (cancelled) return;
+        classResults = rows;
+        classFor = trimmed;
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  // Enter on an ambiguous query lists every match; typing again resets it.
+  let expanded = $state(false);
+  let expandedFor = "";
+  $effect(() => {
+    if (query !== expandedFor) expanded = false;
+  });
+
+  const ranked = $derived.by(() => {
+    if (query === "") return [];
+    return rankSuggestions(
+      [
+        ...scoreEntities(query, {
+          loaded,
+          filteredBuildings,
+          filteredDorms,
+          colleges,
+          divisions,
+          events,
+          organizations,
+          places,
+        }),
+        ...(aliasFor === query
+          ? scoreAliases(query, aliasResults, filteredBuildings)
+          : []),
+        ...(roomFor === query ? scoreRooms(query, roomResults) : []),
+        ...(classFor === query ? scoreClasses(query, classResults) : []),
+      ],
+      expanded ? EXPANDED_LIMITS : {},
+    );
+  });
+  const groups = $derived(groupSuggestions(ranked));
+
+  // `loaded` flips on at mount with empty arrays; campus rows are only in once
+  // a snapshot or the network load is applied (or the load gave up).
+  const campusDataReady = $derived(
+    loaded &&
+      (appBootstrapStore.hasCachedData ||
+        appBootstrapStore.phase === "sync" ||
+        appBootstrapStore.phase === "ready" ||
+        appBootstrapStore.phase === "error"),
+  );
+
+  const searching = $derived(
+    query !== "" &&
+      (!campusDataReady ||
+        aliasFor !== query ||
+        roomFor !== query ||
+        classFor !== query),
+  );
+
+  const courseCode = $derived(
+    ranked.find((s) => s.category === "class")?.courseCode ?? null,
+  );
+
+  let enterPending = $state(false);
+  let enterQuery = "";
+
+  function runEnter() {
+    const action = enterAction(ranked);
+    if (action.kind === "select") selectSuggestion(action.suggestion);
+    else if (action.kind === "course") openCourseClasses(action.courseCode);
+    else if (action.kind === "expand") {
+      expanded = true;
+      expandedFor = query;
+    }
+  }
+
+  /** Enter in the search box: waits for in-flight sources, then acts. */
+  export function handleEnter() {
+    if (query === "") return;
+    enterQuery = query;
+    enterPending = true;
+  }
+
+  $effect(() => {
+    if (!enterPending || searching) return;
+    enterPending = false;
+    runEnter();
+  });
+
+  // Typing again cancels an Enter that was waiting on results.
+  $effect(() => {
+    if (query !== enterQuery) {
+      enterQuery = query;
+      enterPending = false;
+    }
+  });
+
+  const showShortcuts = $derived(!directionsStore.active);
+
+  // "Your location" only once the browser already granted it; asking for
+  // permission from an empty search box would be a surprise prompt.
+  let locationGranted = $state(false);
+  $effect(() => {
+    if (!navigator.permissions?.query) return;
+    let status: PermissionStatus | null = null;
+    const sync = () => {
+      locationGranted = status?.state === "granted";
+    };
+    void navigator.permissions
+      .query({ name: "geolocation" })
+      .then((result) => {
+        status = result;
+        sync();
+        result.addEventListener("change", sync);
+      })
+      .catch(() => {});
+    return () => status?.removeEventListener("change", sync);
+  });
+  const showYourLocation = $derived(
+    showShortcuts && (locationStore.coords !== null || locationGranted),
+  );
+
+  function goToMyLocation() {
+    onDismiss();
+    const coords = locationStore.coords;
+    if (!coords) {
+      locationStore.requestLocation();
+      return;
+    }
+    mapStore.mapInstance?.flyTo({ center: coords, zoom: 17, duration: 1200 });
+  }
 </script>
 
 <div
   class="suggestions-container search-suggestions"
   onmousedown={(event) => event.preventDefault()}
 >
-  {#if queryStore.inputValue === ""}
+  {#if query === ""}
+    {#if showShortcuts}
+      <div class="suggestions-shortcuts">
+        <MapFilterChips />
+      </div>
+      {#if showYourLocation}
+        <button type="button" class="suggestions-action" onclick={goToMyLocation}>
+          <span class="suggestions-action__icon" aria-hidden="true">
+            <LocateFixed size={20} />
+          </span>
+          Your location
+        </button>
+      {/if}
+    {/if}
     {#if queryStore.recentSearches.length !== 0}
-      <h2 class="suggestions-header">Recent searches</h2>
+      <div class="suggestions-header-row">
+        <h2 class="suggestions-header">Recent</h2>
+        <button
+          type="button"
+          class="suggestions-clear"
+          onclick={queryStore.clearRecentSearches}
+        >
+          Clear
+        </button>
+      </div>
       {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
         <Suggestion {value} {category} {id} {eventSlug} />
       {/each}
@@ -170,50 +353,44 @@
         org, or event.
       </p>
     {/if}
-  {:else if suggestedResult.length !== 0}
-    {#each suggestedResult as suggestion, id (id)}
-      <Suggestion {...suggestion} />
-    {/each}
-  {/if}
-
-  {#if queryStore.inputValue !== ""}
-    {#each aliasResults as alias (alias.value)}
-      {#if !suggestedResult.some((s) => s.category === "building" && s.value === alias.value)}
-        {@const aliasBuilding = filteredBuildings.find(
-          (b) => b.buildingName === alias.value,
-        )}
-        <div class="alias-hint">
-          Showing results for <strong>{alias.alias}</strong> &rarr;
-          {alias.value}
-        </div>
-        <Suggestion
-          value={alias.value}
-          category="building"
-          building={aliasBuilding}
-          lat={aliasBuilding?.lat}
-          lon={aliasBuilding?.lon}
-        />
+  {:else if ranked.length !== 0}
+    {#each groups as group (group.label)}
+      {#if group.label}
+        <h2 class="suggestions-header suggestions-group">{group.label}</h2>
+      {/if}
+      {#each group.items as suggestion (`${suggestion.category}:${suggestion.eventSlug ?? suggestion.value}`)}
+        <Suggestion {...suggestion} />
+      {/each}
+      {#if courseCode && group.items.some((s) => s.category === "class")}
+        <button
+          type="button"
+          class="suggestions-action suggestions-action--link"
+          onclick={() => courseCode && openCourseClasses(courseCode)}
+        >
+          See all {courseCode} classes
+        </button>
+        <FinalExamSuggestion onSelect={() => {}} />
       {/if}
     {/each}
-  {/if}
-
-  {#if queryStore.inputValue !== ""}
-    {#if roomLoading}
-      <p class="suggestions-status">
-        <LoadingIndicator label="Loading rooms…" />
+    {#if searching}
+      <p class="suggestions-status suggestions-status--inline">
+        <LoadingIndicator label="Searching…" />
       </p>
-    {:else}
-      {#each roomResults as roomResult (roomResult.value)}
-        <Suggestion
-          value={roomResult.value}
-          category={roomResult.category}
-          secondary={roomResult.fullName}
-        />
-      {/each}
     {/if}
-  {/if}
-
-  {#if suggestedResult.length === 0 && queryStore.inputValue !== "" && !roomLoading}
+  {:else if searching}
+    <p class="suggestions-status">
+      <LoadingIndicator
+        label={campusDataReady ? "Searching…" : "Loading campus data…"}
+      />
+    </p>
+  {:else}
+    <div class="suggestions-empty" role="status">
+      <p class="suggestions-empty__title">No results for “{query}”</p>
+      <p class="suggestions-empty__hint">
+        Check the spelling, try a room code like PS 105, or search classes
+        instead.
+      </p>
+    </div>
     <FinalExamSuggestion onSelect={() => {}} />
     <SearchQuerySuggestion />
   {/if}
@@ -256,6 +433,71 @@
     color: #7b7c8d;
   }
 
+  .suggestions-group {
+    padding-block: 0.5rem 0.125rem;
+    font-size: 0.6875rem;
+  }
+
+  .suggestions-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .suggestions-clear {
+    all: unset;
+    box-sizing: border-box;
+    min-height: 2.75rem;
+    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-brand, #8d1437);
+    cursor: pointer;
+    border-radius: 0.5rem;
+  }
+
+  .suggestions-clear:hover,
+  .suggestions-clear:focus-visible {
+    background-color: hsl(0, 0%, 95%);
+  }
+
+  .suggestions-shortcuts {
+    min-width: 0;
+    padding-block: 0.25rem 0.375rem;
+  }
+
+  .suggestions-action {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.9375rem;
+    color: #18181b;
+    cursor: pointer;
+    border-radius: 0.5rem;
+  }
+
+  .suggestions-action:hover,
+  .suggestions-action:focus-visible {
+    background-color: hsl(0, 0%, 95%);
+  }
+
+  .suggestions-action__icon {
+    display: flex;
+    color: #1a73e8;
+  }
+
+  .suggestions-action--link {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-brand, #8d1437);
+  }
+
   @media (min-width: 48.0625rem) {
     .suggestions-container {
       gap: 0;
@@ -263,16 +505,11 @@
       border-top: none;
       max-height: min(60vh, 28rem);
     }
-  }
 
-  .alias-hint {
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 45%);
-  }
-
-  .alias-hint strong {
-    color: hsl(5, 53%, 32%);
+    .suggestions-action {
+      padding-inline: 0.5rem;
+      font-size: 0.875rem;
+    }
   }
 
   .suggestions-status {
@@ -280,5 +517,27 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
     color: hsl(0, 0%, 45%);
+  }
+
+  .suggestions-status--inline {
+    padding-block: 0.25rem;
+  }
+
+  .suggestions-empty {
+    padding: 0.75rem 0.25rem 0.5rem;
+  }
+
+  .suggestions-empty__title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #18181b;
+    overflow-wrap: anywhere;
+  }
+
+  .suggestions-empty__hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: #52525b;
   }
 </style>

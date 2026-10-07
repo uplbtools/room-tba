@@ -7,6 +7,8 @@
     toastStore,
     type QueryStoreState,
   } from "@lib/store.svelte";
+  import { matchHighlightRange } from "@lib/search-suggestions";
+  import { selectSuggestion } from "@lib/search-select";
   import {
     entityHoverPreviewStore,
     buildingPreviewFromRow,
@@ -34,6 +36,8 @@
     building,
     event: eventData,
     secondary,
+    courseCode,
+    roomCode,
     lat = null,
     lon = null,
   }: {
@@ -45,6 +49,9 @@
     event?: EventData;
     /** Supporting line under the value, e.g. a room's unabbreviated name (#875). */
     secondary?: string | null;
+    /** Class sections: the course, and the room selecting it opens. */
+    courseCode?: string;
+    roomCode?: string | null;
     lat?: number | null;
     lon?: number | null;
   } = $props();
@@ -66,25 +73,16 @@
   let addedTimer: ReturnType<typeof setTimeout> | null = null;
 
   function handleSuggestionClick() {
-    entityHoverPreviewStore.hideNow();
-    // Choosing a start or end point for directions: any place with a pin works.
-    if (
-      directionsStore.picking &&
-      stopLat != null &&
-      stopLon != null &&
-      directionsStore.takePick({ lat: stopLat, lng: stopLon, label: value })
-    ) {
-      queryStore.exitResultMode();
-      queryStore.inputValue = "";
-      return;
-    }
-    queryStore.updateQuery({
-      type: "result",
-      category,
+    selectSuggestion({
       value,
+      category,
       eventSlug,
+      building,
+      lat: stopLat,
+      lon: stopLon,
+      courseCode,
+      roomCode,
     });
-    queryStore.inputValue = value;
   }
 
   function handleAddStop(event: MouseEvent) {
@@ -147,14 +145,11 @@
     handleMouseEnter(event as unknown as MouseEvent);
   }
 
-  /** Match query in label; expand to word end so "Institute o" → "Institute of". */
+  /** Bold only the typed characters where they start a word (GMaps style). */
   const labelParts = $derived.by(() => {
-    const q = queryStore.inputValue.trim();
-    if (!q) return [{ text: value, matched: false }];
-    const idx = value.toLowerCase().indexOf(q.toLowerCase());
-    if (idx < 0) return [{ text: value, matched: false }];
-    let end = idx + q.length;
-    while (end < value.length && value[end] !== " ") end += 1;
+    const range = matchHighlightRange(value, queryStore.inputValue);
+    if (!range) return [{ text: value, matched: false }];
+    const [idx, end] = range;
     const parts: { text: string; matched: boolean }[] = [];
     if (idx > 0) parts.push({ text: value.slice(0, idx), matched: false });
     parts.push({ text: value.slice(idx, end), matched: true });
@@ -299,7 +294,8 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 2rem;
+    width: 2.75rem;
+    min-height: 2.75rem;
     cursor: pointer;
     border-radius: 0.5rem;
     color: #52525b;

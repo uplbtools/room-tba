@@ -45,6 +45,9 @@ export class ModalStore {
   };
 }
 
+/** Recent searches kept for the focused empty search box. */
+export const MAX_RECENT_SEARCHES = 6;
+
 export class QueryStore {
   private _queryStore: QueryStoreState = $state({
     category: null,
@@ -118,7 +121,9 @@ export class QueryStore {
       return query.value === recentSearch.value;
     });
     if (qIndex !== -1) this.recentSearches.splice(qIndex, 1);
-    else if (this.recentSearches.length > 4) this.recentSearches.pop();
+    else if (this.recentSearches.length >= MAX_RECENT_SEARCHES) {
+      this.recentSearches.pop();
+    }
 
     this.recentSearches.unshift(recentSearch);
   }
@@ -126,6 +131,10 @@ export class QueryStore {
   removeRecentSearch(id: number) {
     this.recentSearches.splice(id, 1);
   }
+
+  clearRecentSearches = () => {
+    this.recentSearches = [];
+  };
 
   clearQuery = () => {
     this._queryStore = {
