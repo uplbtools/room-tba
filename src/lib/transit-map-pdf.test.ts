@@ -9,6 +9,7 @@ import {
   haversineMeters,
   isCampusScopeRoute,
   isLoopRoute,
+  shortStopLabel,
   labelCandidates,
   placeLabels,
   pointsAlong,
@@ -511,5 +512,27 @@ describe("print branding", () => {
       RALEWAY_BOLD_HEADINGS["UPLB Jeepney Routes"].d.length,
     ).toBeGreaterThan(100);
     expect(RALEWAY_BOLD_HEADINGS["Room TBA"].width).toBeGreaterThan(0);
+  });
+});
+
+describe("shortStopLabel", () => {
+  test("keeps the first of merged names and prefers a short alias", () => {
+    expect(
+      shortStopLabel("CEAT Lecture Hall / CEAT-DCE / CEAT-DES / CEAT-CE"),
+    ).toBe("CEAT Lecture Hall");
+    expect(shortStopLabel("New Forestry Residence Hall (New FOREHA)")).toBe(
+      "New FOREHA",
+    );
+    expect(shortStopLabel("Carabao Park / DevCom", 2)).toBe(
+      "Carabao Park / DevCom",
+    );
+  });
+
+  test("cuts long names at a word", () => {
+    const label = shortStopLabel(
+      "UPLB Landscape Horticulture Research and Development Facility",
+    );
+    expect(label.length).toBeLessThanOrEqual(30);
+    expect(label).toMatch(/^UPLB Landscape Horticulture.*\.\.\.$/);
   });
 });

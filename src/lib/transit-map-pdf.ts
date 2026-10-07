@@ -699,6 +699,25 @@ function wrapText(
   return lines;
 }
 
+const MAX_LABEL_CHARS = 30;
+
+/**
+ * A stop name short enough for a map label: merged names ("CEAT Lecture
+ * Hall / CEAT-DCE / ...") keep their first part, a short parenthetical
+ * alias ("... (New FOREHA)") stands in for the long form, and anything still
+ * too long is cut at a word.
+ */
+export function shortStopLabel(name: string, parts = 1): string {
+  let text = name.split(" / ").slice(0, parts).join(" / ").trim();
+  const alias = /\(([^()]{2,14})\)\s*$/.exec(text)?.[1];
+  if (alias && /[A-Z]{3}/.test(alias)) text = alias;
+  else text = text.replace(/\s*\([^()]*\)\s*$/, "") || text;
+  if (text.length <= MAX_LABEL_CHARS) return text;
+  const cut = text.slice(0, MAX_LABEL_CHARS - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > 10 ? cut.slice(0, space) : cut).replace(/[\s,/-]+$/, "")}...`;
+}
+
 /** White "halo" under dark text keeps labels readable over line work. */
 function haloText(
   page: PDFPage,
@@ -1485,35 +1504,40 @@ export async function renderTransitMapPdf(input: {
         Math.hypot(pb.x - fromP.x, pb.y - fromP.y)
       );
     });
+    // Two stops that would share a short label ("Carabao Park / DevCom",
+    // "Carabao Park / Landbank") keep their second part to tell them apart.
+    const shortCounts = new Map<string, number>();
+    for (const stop of onMap) {
+      const short = shortStopLabel(stop.name);
+      shortCounts.set(short, (shortCounts.get(short) ?? 0) + 1);
+    }
+    const labelFor = (name: string) => {
+      const short = shortStopLabel(name);
+      return (shortCounts.get(short) ?? 0) > 1
+        ? shortStopLabel(name, 2)
+        : short;
+    };
     byDistance.forEach((stop, rank) => {
       const p = stopPos.get(stop.key)!;
       const isNearest = nearest?.stop.key === stop.key;
-      if (isNearest) add(stop.key, stop.name, p, 10, 10, bold, BRAND, 90, true);
+      const label = labelFor(stop.name);
+      if (isNearest) add(stop.key, label, p, 10, 10, bold, BRAND, 90, true);
       else if (stop.terminal)
-        add(
-          stop.key,
-          stop.name,
-          p,
-          markerR(stop) + 2.5,
-          9,
-          bold,
-          INK,
-          80,
-          true,
-        );
+        add(stop.key, label, p, markerR(stop) + 2.5, 9, bold, INK, 80, true);
       else
         add(
           stop.key,
-          stop.name,
+          label,
           p,
           markerR(stop) + 2.5,
           8.5,
           font,
           INK,
-          50 - rank * 0.01,
-          // Every stop keeps its name (with a leader line when crowded):
-          // a numbered key is hard to use on a sheet taped to a wall.
-          true,
+          // Shared stops (transfers) before single-route ones, nearest first.
+          (stop.routeIds.length > 1 ? 60 : 50) - rank * 0.01,
+          // Ordinary stops drop their name where the map is crowded rather
+          // than stacking leader lines; terminals and transfers keep theirs.
+          stop.routeIds.length > 1,
         );
     });
     gateMarks.forEach((g, i) => {
@@ -1741,7 +1765,7 @@ export async function renderTransitMapPdf(input: {
           }),
       ]);
       keys.push([
-        "Walk to the nearest stop",
+        "Walk to the stop",
         (x, y) =>
           page.drawLine({
             start: { x, y: y + 3 },
@@ -1754,7 +1778,7 @@ export async function renderTransitMapPdf(input: {
     }
     if (stops.some((st) => st.routeIds.length > 1))
       keys.push([
-        "Stop shared by two routes",
+        "Shared stop (transfer)",
         (x, y) =>
           page.drawCircle({
             x: x + 12,
@@ -1777,36 +1801,75 @@ export async function renderTransitMapPdf(input: {
             color: MUTED,
           }),
       ]);
-    const keyH = 12 + keys.length * 13;
+    // Two columns: the panel is short on height, not width.
+    const keyRows = Math.ceil(keys.length / 2);
+    const keyH = 12 + keyRows * 13;
     if (keys.length > 0 && py - keyH >= panelFloor) {
       card(keyH, WHITE);
-      let ky = py - 17;
-      for (const [label, icon] of keys) {
-        icon(px + 14, ky);
-        page.drawText(label, { x: textX, y: ky, size: 9.5, font, color: INK });
-        ky -= 13;
-      }
+      keys.forEach(([label, icon], i) => {
+        const kx = px + 10 + (i % 2) * (PANEL_W / 2);
+        const ky = py - 17 - Math.floor(i / 2) * 13;
+        icon(kx, ky);
+        page.drawText(label, {
+          x: kx + 30,
+          y: ky,
+          size: 8.5,
+          font,
+          color: INK,
+        });
+      });
       py -= keyH + 10;
     }
   }
 
-  // Town jeeps and buses are not drawn; say where they are boarded and
-  // that they are not campus jeeps, without listing unverified fares.
-  const townLines = wrapText(
-    "Calamba, San Pablo and Sta. Cruz jeeps and the Manila and UP Diliman buses stop on the national highway at Olivarez Plaza (the Junction). UP Diliman bus tickets: dltbbus.com.ph",
-    font,
-    8.5,
-    PANEL_W - 20,
-  );
-  const townH = 10 + townLines.length * 10.5;
+  // Town jeeps and buses are not drawn: say where they are boarded and what
+  // is known about each fare, grouped jeeps then buses.
+  const townGroups: { title: string; rows: [string, string][] }[] = [
+    {
+      title: "Jeeps, at the Junction (Olivarez Plaza)",
+      rows: [
+        ["Calamba", "PHP 30 (25 disc.), full trip"],
+        ["San Pablo", "by distance, from PHP 14"],
+        ["Sta. Cruz", "by distance, from PHP 14"],
+      ],
+    },
+    {
+      title: "Buses, same stop",
+      rows: [
+        ["Manila (Buendia)", "fare on board"],
+        ["UP Diliman (DLTB)", "tickets: dltbbus.com.ph"],
+      ],
+    },
+  ];
+  const townRowsH = townGroups.reduce((n, g) => n + 13 + g.rows.length * 11, 0);
+  const townH = 8 + townRowsH;
   if (py - 24 - townH >= panelFloor) {
     pill("Town jeeps and buses");
     py -= 22;
     card(townH, PAPER_TINT);
     let ty = py - 13;
-    for (const line of townLines) {
-      page.drawText(line, { x: px + 10, y: ty, size: 8.5, font, color: INK });
-      ty -= 10.5;
+    const colX = px + 104;
+    for (const group of townGroups) {
+      page.drawText(group.title.toUpperCase(), {
+        x: px + 10,
+        y: ty,
+        size: 7.5,
+        font: bold,
+        color: BODY_TEXT,
+      });
+      ty -= 11;
+      for (const [where, fare] of group.rows) {
+        page.drawText(where, {
+          x: px + 10,
+          y: ty,
+          size: 8.5,
+          font: bold,
+          color: INK,
+        });
+        page.drawText(fare, { x: colX, y: ty, size: 8.5, font, color: INK });
+        ty -= 11;
+      }
+      ty -= 2;
     }
     py -= townH + 10;
   }
@@ -1814,8 +1877,7 @@ export async function renderTransitMapPdf(input: {
   // Riding tips, for first-years and visitors reading the sheet on a wall.
   const tips = [
     "Kaliwa turns left at the gate; Kanan, right.",
-    'Say "Para po!" to get off.',
-    "Pass your fare to the driver.",
+    "Board and alight at yellow stops only.",
   ];
   const tipLines = tips.map((t) => wrapText(t, font, 8.5, PANEL_W - 36));
   const tipsH = 8 + tipLines.reduce((n, l) => n + l.length * 10.5 + 3, 0);
