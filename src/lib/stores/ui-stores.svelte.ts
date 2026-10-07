@@ -70,7 +70,20 @@ export class QueryStore {
     ),
   );
 
+  /**
+   * The browse list (tab) the current result was picked from, so "Back to
+   * buildings" only shows when the rider actually came from that list.
+   */
+  browseOrigin: string | null = $state(null);
+
   updateQuery = (obj: QueryStoreState) => {
+    const previous = this._queryStore;
+    this.browseOrigin =
+      previous.type === "result" &&
+      previous.category === "browse" &&
+      obj.category !== "browse"
+        ? previous.value
+        : null;
     this._queryStore = obj;
     this.inputValue = obj.value;
 
@@ -101,6 +114,10 @@ export class QueryStore {
   };
 
   hydrateQuery = (obj: QueryStoreState) => {
+    const previous = this._queryStore;
+    if (previous.category !== obj.category || previous.value !== obj.value) {
+      this.browseOrigin = null;
+    }
     this._queryStore = obj;
     this.inputValue = obj.value;
   };
@@ -128,6 +145,7 @@ export class QueryStore {
   }
 
   clearQuery = () => {
+    this.browseOrigin = null;
     this._queryStore = {
       category: null,
       type: "query",

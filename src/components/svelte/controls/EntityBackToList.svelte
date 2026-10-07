@@ -13,14 +13,18 @@
   const { tab, label }: Props = $props();
 </script>
 
-<button
-  type="button"
-  class="entity-back-to-list"
-  onclick={() => openCampusBrowse(queryStore, sidePanelStore, tab)}
->
-  <ChevronLeft size={15} aria-hidden="true" />
-  {label}
-</button>
+<!-- Only a way back when the rider came from that list; from search, a pin or
+     a deep link there is nothing to go back to. -->
+{#if queryStore.browseOrigin === tab}
+  <button
+    type="button"
+    class="entity-back-to-list"
+    onclick={() => openCampusBrowse(queryStore, sidePanelStore, tab)}
+  >
+    <ChevronLeft size={15} aria-hidden="true" />
+    {label}
+  </button>
+{/if}
 
 <style>
   .entity-back-to-list {
