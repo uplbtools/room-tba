@@ -5,6 +5,7 @@ import {
   getCollegeRooms,
   getDivisionRooms,
   getRoomByCode,
+  getRoomById,
   searchRooms,
 } from "@lib/services/map-data-service";
 import type { RoomData } from "@lib/types";
@@ -34,6 +35,8 @@ export const GET = (async ({ url }) => {
     "division_id",
     "code",
     "search_code",
+    // Room deep links carry the id; the offline app shell resolves them here.
+    "id",
   ];
   if (!fieldSets.includes(searchField))
     return new Response("400 bad request", {
@@ -67,6 +70,10 @@ export const GET = (async ({ url }) => {
       status: 400,
       statusText: "Bad request",
     });
+
+  if (searchField === "id") {
+    return cachedPretty({ data: await getRoomById(id), success: true });
+  }
 
   switch (searchField) {
     case "building_id":
