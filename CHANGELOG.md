@@ -1,3 +1,10 @@
+## [2.34.1](https://github.com/uplbtools/room-tba/compare/v2.34.0...v2.34.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **transit:** verified fares only, Junction boarding, wall-ready printable map ([#1254](https://github.com/uplbtools/room-tba/issues/1254)) ([a33ec0f](https://github.com/uplbtools/room-tba/commit/a33ec0f99e34b4ae3d6b5aa7b8b190bd3fe83564)), closes [hi#contrast](https://github.com/hi/issues/contrast)
+
 # [2.34.0](https://github.com/uplbtools/room-tba/compare/v2.33.0...v2.34.0) (2026-10-07)
 
 
