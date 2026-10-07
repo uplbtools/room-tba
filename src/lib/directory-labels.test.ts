@@ -38,6 +38,12 @@ describe("directory labels", () => {
     });
   });
 
+  test("skips a www prefix instead of reading it as the acronym", () => {
+    expect(
+      collegeLabel("College of Forestry", "https://www.cfnr.uplb.edu.ph"),
+    ).toEqual({ name: "College of Forestry", acronym: "CFNR" });
+  });
+
   test("title-cases all-caps org names and keeps the acronym", () => {
     expect(
       displayOrgName("ALLIANCE OF DEVELOPMENT COMMUNICATION STUDENTS (ADCS)"),

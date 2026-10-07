@@ -18,8 +18,12 @@
     const link = document.createElement("a");
     link.href = url;
     link.download = "uplb-emergency-hotlines.vcf";
+    // Safari needs the link in the document, and iOS/Android browsers can
+    // cancel the download if the URL is revoked right after the click.
+    document.body.append(link);
     link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }
 </script>
 

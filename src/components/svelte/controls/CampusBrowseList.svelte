@@ -280,7 +280,7 @@
       return filteredColleges.map((row) => {
         const { name, acronym } = collegeLabel(
           row.collegeName,
-          (row as { websiteLink?: string | null }).websiteLink,
+          row.websiteLink,
         );
         return {
           id: row.id,

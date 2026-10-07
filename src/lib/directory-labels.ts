@@ -27,7 +27,10 @@ export function collegeLabel(
   const split = splitTrailingAcronym(collegeName);
   if (split.acronym) return split;
   try {
-    const host = websiteLink ? new URL(websiteLink).hostname : "";
+    const host = (websiteLink ? new URL(websiteLink).hostname : "").replace(
+      /^www\./i,
+      "",
+    );
     const sub = host.split(".")[0] ?? "";
     if (host.split(".").length > 2 && /^[a-z]{2,6}$/i.test(sub)) {
       return { name: collegeName, acronym: sub.toUpperCase() };
