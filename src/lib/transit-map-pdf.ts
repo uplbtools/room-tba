@@ -1993,9 +1993,10 @@ export async function renderTransitMapPdf(input: {
       ],
     },
     {
-      title: "Buses, same stop",
+      title: "Buses",
       rows: [
-        ["Manila (Buendia)", "pay on board"],
+        ["Buendia (DLTB)", "UPLB 5 AM, back 6 PM"],
+        ["Buendia (others)", "Junction, pay on board"],
         ["UP Diliman (DLTB)", "dltbbus.com.ph"],
       ],
     },

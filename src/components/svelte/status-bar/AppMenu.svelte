@@ -39,6 +39,7 @@
   import { rafThrottle } from "@lib/layout-css-vars";
   import {
     adminAuthStore,
+    announcementsStore,
     mapToolsStore,
     modalStore,
     proposalsStore,
@@ -357,7 +358,12 @@
           }}
         >
           <Megaphone size={18} aria-hidden="true" />
-          <span>Announcements</span>
+          <span>
+            Announcements
+            {#if announcementsStore.unread > 0}
+              <span class="app-menu__badge">{announcementsStore.unread}</span>
+            {/if}
+          </span>
         </button>
       </section>
 
@@ -406,14 +412,6 @@
         >
           <CloudDownload size={18} aria-hidden="true" />
           <span>Offline maps</span>
-        </button>
-        <button
-          type="button"
-          class="app-menu__nav-action"
-          onclick={handleCoverage}
-        >
-          <ChartColumn size={18} aria-hidden="true" />
-          <span>Campus data coverage</span>
         </button>
       </section>
 
@@ -511,6 +509,16 @@
         <h3 id="app-menu-community-heading" class="app-menu__heading">
           Community
         </h3>
+        <!-- A contributor's view of what is still unmapped, so it sits with
+             the community links rather than the student tools. -->
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={handleCoverage}
+        >
+          <ChartColumn size={18} aria-hidden="true" />
+          <span>Campus data coverage</span>
+        </button>
         <nav aria-label="Community and project links">
           <StatusBarLinkGroups groups={navGroups} onAction={handleNavAction} />
         </nav>
