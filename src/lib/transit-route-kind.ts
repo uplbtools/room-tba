@@ -97,14 +97,12 @@ export type RouteFareInfo =
 
 const CAMPUS_FARE = JEEPNEY_ROUTES[0]!.fare;
 
-/**
- * Campus jeeps whose ₱14 / ₱12 fare was confirmed on FARES_VERIFIED_ON. The
- * SNODLOB e-jeep is newer and its fare is not confirmed yet.
- */
+/** Campus jeeps whose ₱14 / ₱12 fare was confirmed (FARES_VERIFIED_ON). */
 const VERIFIED_CAMPUS_FARE_IDS = new Set([
   "kaliwa-kanan",
   "forestry",
   "up-rural",
+  "snodlob",
 ]);
 
 const minimumText = (fare: JeepneyFare) =>

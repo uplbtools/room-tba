@@ -519,7 +519,6 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     directionNote:
       "One way, in stop order. Look for the UPLB LOOP signboard: jeeps without it go straight to Pili Drive and Bay. In practice drivers do not always follow the approved route; some skip Getulio B. Viado and Copeland or detour on request. From Olivarez, ride Kanan and change at OVCRE Annex (stop 9).",
     color: "#15803d",
-    // Not verified on FARES_VERIFIED_ON; routeFareInfo quotes no price.
     fare: STANDARD_CAMPUS_FARE,
     stops: [
       {

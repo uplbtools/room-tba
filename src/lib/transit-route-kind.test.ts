@@ -105,15 +105,13 @@ describe("routeFareInfo", () => {
     ).toBeNull();
   });
 
-  test("the SNODLOB e-jeep quotes no unverified fare", () => {
-    const info = routeFareInfo({
-      id: "snodlob",
-      name: "UPLB Loop (SNODLOB e-jeep)",
+  test("the SNODLOB e-jeep has the verified campus fare", () => {
+    const route = { id: "snodlob", name: "UPLB Loop (SNODLOB e-jeep)" };
+    expect(routeFareInfo(route)).toMatchObject({
+      kind: "fixed",
+      fare: { regular: 14, discounted: 12 },
     });
-    expect(info.kind).toBe("unverified");
-    expect(
-      perBoardingFare({ id: "snodlob", name: "UPLB Loop (SNODLOB e-jeep)" }),
-    ).toBeNull();
+    expect(perBoardingFare(route)).toEqual({ regular: 14, discounted: 12 });
   });
 
   test("other town jeeps give only the minimum", () => {
