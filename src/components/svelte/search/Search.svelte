@@ -585,13 +585,30 @@
     .map-search-chrome__mobile-chips {
     min-width: 0;
     width: 100%;
-    padding-right: 0.125rem;
   }
 
   .search-root.mobile-shell
     .map-search-chrome--mobile-redesign
     :global(.map-filter-chips) {
     height: auto;
+  }
+
+  /* Phones: an edge-to-edge strip you swipe, like native map apps. Chips
+     run under the screen edge (where a cut-off chip reads as "more") instead
+     of stopping beside arrow buttons that left half-chips and uneven gaps. */
+  .search-root.mobile-shell
+    .map-search-chrome--mobile-redesign
+    :global(.map-filter-chips__scroll) {
+    margin-inline: calc(-1 * var(--map-ui-inline, 1rem));
+    padding-inline: var(--map-ui-inline, 1rem);
+    scroll-padding-inline: var(--map-ui-inline, 1rem);
+    mask-image: none;
+  }
+
+  .search-root.mobile-shell
+    .map-search-chrome--mobile-redesign
+    :global(.map-filter-chips__more) {
+    display: none;
   }
 
   .search-root.mobile-shell
@@ -606,16 +623,6 @@
     padding: 0 0.7rem;
     border-radius: 999px;
     font-size: 0.8125rem;
-  }
-
-  .search-root.mobile-shell
-    .map-search-chrome--mobile-redesign
-    :global(.map-filter-chips__more) {
-    /* Square, and the same 44px as the chips it scrolls. */
-    width: 2.75rem;
-    height: 2.75rem;
-    margin-right: 0.125rem;
-    border-radius: 999px;
   }
 
   .search-root.mobile-shell

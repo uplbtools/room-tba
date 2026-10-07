@@ -41,8 +41,8 @@ describe("MapFilterChips", () => {
     Object.defineProperty(scroller, "scrollWidth", { value: 900 });
     Object.defineProperty(scroller, "clientWidth", { value: 300 });
     scroller.scrollLeft = 200;
-    const scrollBy = vi.fn();
-    scroller.scrollBy = scrollBy as unknown as typeof scroller.scrollBy;
+    const scrollTo = vi.fn();
+    scroller.scrollTo = scrollTo as unknown as typeof scroller.scrollTo;
     await fireEvent.scroll(scroller);
 
     const back = await screen.findByRole("button", {
@@ -56,7 +56,9 @@ describe("MapFilterChips", () => {
     );
     expect(scroller.classList).toContain("map-filter-chips__scroll--fade-end");
 
+    // Pages by whole chips; with no layout every chip sits at 0, so "back"
+    // lands on the start of the row.
     await fireEvent.click(back);
-    expect(scrollBy.mock.calls[0]?.[0]).toMatchObject({ left: -165 });
+    expect(scrollTo.mock.calls[0]?.[0]).toMatchObject({ left: 0 });
   });
 });
