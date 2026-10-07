@@ -3,9 +3,10 @@
   import EntityPanelClose from "./EntityPanelClose.svelte";
 
   type Props = {
-    closeAriaLabel: string;
+    closeAriaLabel?: string;
     closeTitle?: string;
-    onclose: () => void;
+    /** Omit for lists the search bar's X already closes. */
+    onclose?: () => void;
     /** Show the close button on mobile sheets too (browse lists). */
     closeOnMobile?: boolean;
     trailing?: Snippet;
@@ -22,12 +23,14 @@
 
 <header class="entity-panel-header">
   <div class="entity-panel-header-top">
-    <EntityPanelClose
-      ariaLabel={closeAriaLabel}
-      title={closeTitle}
-      onclick={onclose}
-      showOnMobile={closeOnMobile}
-    />
+    {#if onclose}
+      <EntityPanelClose
+        ariaLabel={closeAriaLabel ?? "Close"}
+        title={closeTitle}
+        onclick={onclose}
+        showOnMobile={closeOnMobile}
+      />
+    {/if}
     <div class="entity-panel-header-content">
       {@render trailing?.()}
     </div>

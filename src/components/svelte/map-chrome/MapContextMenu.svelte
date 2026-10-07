@@ -15,14 +15,18 @@
     locationStore,
     mapStore,
     mapViewStore,
+    queryStore,
+    sidePanelStore,
   } from "@lib/store.svelte";
+  import { droppedPinStore } from "@lib/dropped-pin.svelte";
   import { getTransitMapPath } from "@lib/route-links";
+  import DroppedPinPanel from "@ui/controls/DroppedPinPanel.svelte";
   import "./map-chrome.css";
 
   type MenuState = { x: number; y: number; lat: number; lng: number };
 
-  /** Hold this long without moving to open the menu on a touch screen. */
-  const LONG_PRESS_MS = 550;
+  /** Hold this long without moving to drop a pin on a touch screen. */
+  const LONG_PRESS_MS = 500;
   const LONG_PRESS_SLOP_PX = 10;
 
   let menu = $state<MenuState | null>(null);
@@ -31,9 +35,40 @@
 
   onMount(() => registerEphemeralOverlayDismisser(() => (menu = null)));
 
-  // #964: right-click opens map options. Registered here rather than in
-  // Map.svelte so the whole feature stays in one component (the same shape
-  // MapControlsStack uses to subscribe to camera events).
+  /** A press on a pin, route stop or other marker is not "empty map". */
+  function onMarker(target: EventTarget | null): boolean {
+    return (
+      target instanceof Element && target.closest(".maplibregl-marker") !== null
+    );
+  }
+
+  /**
+   * Long-press or right-click on empty map, Google Maps style: drop a pin and
+   * open the Dropped pin sheet. While planning directions the spot is more
+   * likely a start or end, so the small from/to menu (#964) opens instead.
+   */
+  function pressAt(state: MenuState) {
+    if (directionsStore.active) {
+      openEphemeralOverlay(() => {
+        menu = state;
+      });
+      return;
+    }
+    openEphemeralOverlay(() => {
+      droppedPinStore.drop(state.lat, state.lng);
+      // The pin replaces whatever was open, the search bar included.
+      queryStore.clearQuery();
+      sidePanelStore.openPanel({
+        type: "search-result",
+        component: DroppedPinPanel,
+      });
+      sidePanelStore.expand();
+    });
+  }
+
+  // Registered here rather than in Map.svelte so the whole feature stays in
+  // one component (the same shape MapControlsStack uses to subscribe to
+  // camera events).
   $effect(() => {
     const map = mapStore.mapInstance;
     if (!map) return;
@@ -41,13 +76,12 @@
       // MapLibre suppresses the native menu once a listener exists; keep the
       // explicit call so a future listener reshuffle cannot regress it.
       event.originalEvent.preventDefault();
-      openEphemeralOverlay(() => {
-        menu = {
-          x: event.originalEvent.clientX,
-          y: event.originalEvent.clientY,
-          lat: event.lngLat.lat,
-          lng: event.lngLat.lng,
-        };
+      if (onMarker(event.originalEvent.target)) return;
+      pressAt({
+        x: event.originalEvent.clientX,
+        y: event.originalEvent.clientY,
+        lat: event.lngLat.lat,
+        lng: event.lngLat.lng,
       });
     };
     // iOS Safari never fires contextmenu, so a held finger opens the same
@@ -63,6 +97,7 @@
       cancelPress();
       const touch = event.originalEvent.touches[0];
       if (event.originalEvent.touches.length !== 1 || !touch) return;
+      if (onMarker(event.originalEvent.target)) return;
       const { lngLat } = event;
       pressStart = { x: touch.clientX, y: touch.clientY };
       pressTimer = setTimeout(() => {
@@ -72,9 +107,8 @@
         // The finger lifts over the menu it just opened; some browsers turn
         // that lift into a click on whichever item sits under it.
         ignoreClicksUntil = Date.now() + 450;
-        openEphemeralOverlay(() => {
-          menu = { ...at, lat: lngLat.lat, lng: lngLat.lng };
-        });
+        navigator.vibrate?.(10);
+        pressAt({ ...at, lat: lngLat.lat, lng: lngLat.lng });
       }, LONG_PRESS_MS);
     };
     const handleTouchMove = (event: mapGl.MapTouchEvent) => {

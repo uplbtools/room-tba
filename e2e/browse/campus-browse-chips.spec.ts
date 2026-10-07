@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { clickIfAppears, gotoHome, waitForAppBoot } from "../helpers/app";
+import { gotoHome, waitForAppBoot } from "../helpers/app";
 import { openCampusDirectory } from "../helpers/map-tools";
 
 test.describe("campus browsing", () => {
@@ -92,16 +92,18 @@ test.describe("campus browsing", () => {
       timeout: 10_000,
     });
 
-    // The mobile sheet has no close affordance on the list; the next chip
-    // replaces the list either way, so closing is desktop-only.
-    await clickIfAppears(
-      page.getByRole("button", { name: "Close browse list" }),
-      2000,
-    );
+    // The list has no close button or filter box of its own: the search bar
+    // names it and its X is the one way out. The next chip replaces it.
+    await expect(page.getByRole("searchbox")).toHaveValue("Landmarks");
+    await expect(page.locator(".entity-panel-filter")).toHaveCount(0);
     await browse(page, "services");
     await expect(
-      page.getByRole("heading", { name: "Services & Establishments" }),
+      page.getByRole("heading", { name: "Food & stores" }),
     ).toBeVisible({ timeout: 10_000 });
+    await page.getByRole("button", { name: "Close details" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Food & stores" }),
+    ).toBeHidden();
   });
 
   test("Jeepney routes opens the transit browse panel", async ({ page }) => {

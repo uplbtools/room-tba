@@ -168,17 +168,27 @@ export class QueryStore {
   };
 }
 
+export type ToastAction = { label: string; run: () => void };
+
 export class ToastStore {
   message: string | null = $state(null);
   type: "info" | "error" | "success" = $state("info");
+  /** One button that fixes what the toast reports (e.g. "Try again"). */
+  action: ToastAction | null = $state(null);
 
-  show = (message: string, type: "info" | "error" | "success" = "info") => {
+  show = (
+    message: string,
+    type: "info" | "error" | "success" = "info",
+    action: ToastAction | null = null,
+  ) => {
     this.message = message;
     this.type = type;
+    this.action = action;
   };
 
   clear = () => {
     this.message = null;
+    this.action = null;
   };
 }
 

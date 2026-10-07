@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Info from "@lucide/svelte/icons/info";
-  import Layers from "@lucide/svelte/icons/layers";
   import X from "@lucide/svelte/icons/x";
   import IconButton from "@ui/IconButton.svelte";
   import "./map-chrome/map-chrome.css";
@@ -275,7 +274,7 @@
       aria-controls="map-icon-legend"
     >
       {#if trigger === "chip"}
-        <Layers size={18} aria-hidden="true" />
+        <Info size={18} aria-hidden="true" />
       {:else}
         <Info />
       {/if}

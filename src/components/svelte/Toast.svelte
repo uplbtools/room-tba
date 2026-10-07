@@ -4,22 +4,36 @@
   import X from "@lucide/svelte/icons/x";
   import IconButton from "@ui/IconButton.svelte";
 
+  import type { ToastAction } from "@lib/stores/ui-stores.svelte";
+
   let {
     message,
     type = "info",
+    action = null,
     onclose,
   } = $props<{
     message: string;
     type?: "info" | "error" | "success";
+    action?: ToastAction | null;
     onclose: () => void;
   }>();
 
   onMount(() => {
-    const timer = setTimeout(() => {
-      onclose();
-    }, 5000);
+    // A toast with a fix to offer stays long enough to reach the button.
+    const timer = setTimeout(
+      () => {
+        onclose();
+      },
+      action ? 10000 : 5000,
+    );
     return () => clearTimeout(timer);
   });
+
+  function runAction() {
+    const run = action?.run;
+    onclose();
+    run?.();
+  }
 </script>
 
 <div
@@ -81,6 +95,11 @@
     {/if}
   </div>
   <div class="message">{message}</div>
+  {#if action}
+    <button type="button" class="toast-action" onclick={runAction}>
+      {action.label}
+    </button>
+  {/if}
   <IconButton size="sm" class="toast-close" label="Close" onclick={onclose}>
     <X size={16} aria-hidden="true" />
   </IconButton>
@@ -130,6 +149,24 @@
     flex: 1;
     font-size: 0.875rem;
     font-weight: 500;
+  }
+
+  .toast-action {
+    flex-shrink: 0;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .toast-action:hover {
+    background: rgb(0 0 0 / 0.05);
   }
 
   /* Toast text color varies by type; keep the X on currentColor. */

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
 
 /**
- * The Basemap toggle only renders while MapTiler is the live provider, so the
+ * The Satellite map type only renders while MapTiler is the live provider, so the
  * key must look healthy from this origin. The real key is domain-restricted
  * and 403s from localhost (see maptiler-fallback.spec.ts), which would hide
  * the toggle and turn this spec into a silent skip — stub every MapTiler
@@ -11,7 +11,7 @@ import { waitForAppBoot } from "../helpers/app";
  * before the first goto, which that file's beforeEach already performs.
  */
 test.describe("satellite basemap toggle", () => {
-  test("switches to satellite imagery from the map controls", async ({
+  test("switches to satellite imagery from the Layers sheet", async ({
     page,
   }) => {
     test.skip(
@@ -54,17 +54,21 @@ test.describe("satellite basemap toggle", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const toggle = page.getByRole("button", {
-      name: /switch to satellite imagery/i,
+    // Satellite is a map type tile in the Layers sheet, not an edge button.
+    await page.getByRole("button", { name: "Layers", exact: true }).click();
+    const layers = page.getByRole("dialog", { name: "Layers" });
+    const toggle = layers.getByRole("button", {
+      name: "Satellite",
+      exact: true,
     });
     await expect(toggle).toBeVisible();
     await expect(toggle).toHaveAttribute("aria-pressed", "false");
     await toggle.click();
 
-    // The accessible name flips with the state (WCAG 2.5.3), so re-query.
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
     await expect(
-      page.getByRole("button", { name: /switch to the standard map/i }),
-    ).toHaveAttribute("aria-pressed", "true");
+      layers.getByRole("button", { name: "Default", exact: true }),
+    ).toHaveAttribute("aria-pressed", "false");
 
     // The imagery source is added lazily on first toggle; its TileJSON fetch
     // is the proof the layer actually reached MapLibre.

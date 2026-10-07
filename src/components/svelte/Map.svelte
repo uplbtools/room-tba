@@ -60,6 +60,8 @@
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import PinGlyph from "./map/PinGlyph.svelte";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import UserLocationMarker from "./map/UserLocationMarker.svelte";
+  import DroppedPinMarker from "./map/DroppedPinMarker.svelte";
   import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
@@ -126,6 +128,7 @@
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
   import { getResolvedTheme, onThemeChange } from "@lib/theme";
   import { syncSatelliteLayer } from "@lib/map-satellite";
+  import { pointsBounds } from "@lib/map-fit";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
@@ -169,8 +172,10 @@
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
   import {
-    labelsToHide,
+    LABEL_ANCHORS,
+    placeLabels,
     type LabelCandidate,
+    type LabelRect,
   } from "@lib/map-label-declutter";
   import { darkenForWhiteText } from "@lib/color-contrast";
   import { isLoopRoute, transitStopNoun } from "@lib/transit-route-kind";
@@ -293,6 +298,55 @@
         place.lon != null &&
         (placePinFilter === "all" ||
           (placePinFilter === "landmark") === isLandmarkPlaceCategory(place.category)),
+    );
+  });
+
+  // The Events chip filters the map like the pin-mode "Events only" toggle.
+  const showOnlyEvents = $derived(
+    mapViewStore.eventsOnly || queryStore.category === "events",
+  );
+
+  /** [lng, lat] of every pin the active category chip leaves on the map. */
+  function categoryPinPoints(category: string): [number, number][] {
+    if (category === "events") {
+      return eventMarkerGroups.map((group) => group.lngLat);
+    }
+    return [
+      ...filteredBuildings.map((b) => [b.lon, b.lat]),
+      ...filteredDorms.map((d) => [d.lon, d.lat]),
+      ...filteredPlaces.map((p) => [p.lon, p.lat]),
+      ...filteredOrganizations.map((o) => [o.lon, o.lat]),
+    ].filter((point): point is [number, number] =>
+      point.every((value) => typeof value === "number"),
+    );
+  }
+
+  // A category chip filters the map in place; frame what it left on screen,
+  // once per chip and after the data is in, the way a Google Maps category
+  // search fits its results. Transit has its own route framing.
+  let fittedCategory: string | null = null;
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    const category = queryStore.category === "events" ? "events" : browseTab;
+    if (category === null) {
+      fittedCategory = null;
+      return;
+    }
+    if (!map || !loaded || category === fittedCategory) return;
+    if (category === "jeepney") return;
+    const bounds = pointsBounds(untrack(() => categoryPinPoints(category)));
+    fittedCategory = category;
+    if (!bounds) return;
+    // Two frames, like fitMapToRoute: the sheet's resting place is set on
+    // the first, and visibleMapPadding reads it.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        map.fitBounds(bounds, {
+          padding: visibleMapPadding(map),
+          maxZoom: 17.5,
+          duration: 900,
+        });
+      }),
     );
   });
 
@@ -1518,6 +1572,11 @@
   // Buildings and dorms always show. Active (searched) and sponsored pins
   // bypass the gate so deep links and paid placements never vanish.
   const POI_MIN_ZOOM = 15.5;
+  // Names show at the default campus zoom (15.8) like Google Maps' place
+  // labels; the collision pass keeps them from piling up. Buildings and
+  // dorms first; the smaller POI names wait until a little closer in.
+  const LABEL_MIN_ZOOM = 15.5;
+  const POI_LABEL_MIN_ZOOM = 16.5;
   const poiPinsVisible = $derived(zoomLevel >= POI_MIN_ZOOM);
   // Offices and student orgs are ~110 pins stacked on a few dozen buildings.
   // On a phone at the default campus zoom they buried every building pin, so
@@ -1576,9 +1635,9 @@
   }
 
   // Pin labels are HTML, so MapLibre's own label collision never sees them.
-  // After the camera settles (or the pin set changes), hide the labels that
-  // would overlap a more important one, sit on a more important pin, or hide
-  // under the search bar. Hovering a pin still shows its label.
+  // After the camera settles (or the pin set changes), give each label the
+  // first free side of its pin (placeLabels), hiding the ones with none.
+  // Hovering a pin still shows its label.
   const LABEL_PRIORITY: [string, number][] = [
     ["building", 1],
     ["dorm", 1],
@@ -1596,27 +1655,42 @@
     if (!root) return;
     const labels: HTMLElement[] = [];
     const candidates: LabelCandidate[] = [];
+    const pins: LabelRect[] = [];
+    const anchorClasses = LABEL_ANCHORS.map((a) => `pin-label--${a}`);
     for (const pin of root.querySelectorAll<HTMLElement>(".map-entity-pin")) {
       const label = pin.querySelector<HTMLElement>(".pin-label");
-      const icon = pin.querySelector<HTMLElement>(".pin-icon");
-      if (!label || !icon) continue;
-      label.classList.remove("pin-label--collided");
+      if (!label) continue;
+      label.classList.remove("pin-label--collided", ...anchorClasses);
+      const pinRect = pin.getBoundingClientRect();
+      if (pinRect.width === 0) continue;
+      // Every pin is an obstacle, labelled or not: a name painted under a
+      // neighbouring pin was the desktop overlap.
+      pins.push(pinRect);
       if (!label.classList.contains("persistent")) continue;
       const tone = LABEL_PRIORITY.find(([name]) => pin.classList.contains(name));
+      const size = label.getBoundingClientRect();
       candidates.push({
         id: labels.push(label) - 1,
         priority: pin.classList.contains("active") ? 0 : (tone?.[1] ?? 6),
-        label: label.getBoundingClientRect(),
-        pin: icon.getBoundingClientRect(),
+        width: size.width,
+        height: size.height,
+        pin: pinRect,
       });
     }
     const chrome = [
       ...document.querySelectorAll(
-        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips",
+        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .mobile-map-controls, .desktop-map-controls",
       ),
     ].map((el) => el.getBoundingClientRect());
-    for (const id of labelsToHide(candidates, chrome)) {
-      labels[id]?.classList.add("pin-label--collided");
+    for (const [id, anchor] of placeLabels(
+      candidates,
+      pins,
+      chrome,
+      root.getBoundingClientRect(),
+    )) {
+      labels[id]?.classList.add(
+        anchor === null ? "pin-label--collided" : `pin-label--${anchor}`,
+      );
     }
   }
 
@@ -1640,7 +1714,8 @@
   $effect(() => {
     // Re-run when the pin set or which labels show changes without a move.
     void [
-      zoomLevel >= 17,
+      zoomLevel >= LABEL_MIN_ZOOM,
+      zoomLevel >= POI_LABEL_MIN_ZOOM,
       filteredBuildings,
       filteredDorms,
       filteredPlaces,
@@ -3944,21 +4019,9 @@
         attributionControl={false}
       >
         {#if locationStore.coords}
-          <Marker lngLat={locationStore.coords}>
-            {#if directionsStore.navigating}
-              <!-- Heading arrow while navigating (#966); falls back to the
-                   plain dot when the device reports no heading. -->
-              <div
-                class="user-location-puck"
-                class:user-location-puck--heading={locationStore.bearing !==
-                  null}
-                style:--puck-rotation="{locationStore.bearing ?? 0}deg"
-              ></div>
-            {:else}
-              <div class="user-location-pin"></div>
-            {/if}
-          </Marker>
+          <UserLocationMarker lngLat={locationStore.coords} />
         {/if}
+        <DroppedPinMarker />
         {#if directionsStore.active}
           {#if directionsStore.originFixed && directionsStore.origin}
             <Marker
@@ -4281,7 +4344,7 @@
             </Marker>
           {/if}
         {/each}
-        {#if !mapViewStore.eventsOnly}
+        {#if !showOnlyEvents}
           {#each filteredBuildings as building (`building:${building.id}`)}
             {#if building.lat && building.lon}
               {@const editKey = buildingEditKey(building.id)}
@@ -4337,7 +4400,7 @@
                       position.lat,
                       position.lon,
                     ) &&
-                      (zoomLevel >= 17 ||
+                      (zoomLevel >= LABEL_MIN_ZOOM ||
                         activeBuildingName === building.buildingName ||
                         isMyClassBuilding(building.id))}
                     useCentralHoverPreview={centralHoverPreview}
@@ -4390,7 +4453,7 @@
           {/each}
         {/if}
 
-        {#if !mapViewStore.eventsOnly}
+        {#if !showOnlyEvents}
           {#each filteredDorms as dorm (`dorm:${dorm.id}`)}
             {#if dorm.lat && dorm.lon}
               {@const editKey = dormEditKey(dorm.id)}
@@ -4439,7 +4502,8 @@
                       position.lat,
                       position.lon,
                     ) &&
-                      (zoomLevel >= 17 || activeDormName === dorm.dormName)}
+                      (zoomLevel >= LABEL_MIN_ZOOM ||
+                        activeDormName === dorm.dormName)}
                     useCentralHoverPreview={centralHoverPreview}
                     {previewSuppressed}
                     onpointerenter={(event) =>
@@ -4470,7 +4534,7 @@
                     pinSponsorId === undefined) ||
                     isDimmedForDirections(place.lat, place.lon)}
                   labelVisible={!isDimmedForDirections(place.lat, place.lon) &&
-                    (zoomLevel >= 17 ||
+                    (zoomLevel >= POI_LABEL_MIN_ZOOM ||
                       (queryStore.category === "place" &&
                         queryStore.inputValue === place.name))}
                   sponsored={pinSponsorId !== undefined}
@@ -4495,7 +4559,7 @@
           {/each}
         {/if}
 
-        {#if !mapViewStore.eventsOnly}
+        {#if !showOnlyEvents}
           {#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
             {#if orgPinsVisible || activeOrgName === org.name}
             {@const centralHoverPreview = shouldShowEntityHoverPreview()}
@@ -4512,7 +4576,8 @@
                 dimmed={classHighlightActive ||
                   isDimmedForDirections(lat, lon)}
                 labelVisible={!isDimmedForDirections(lat, lon) &&
-                  (zoomLevel >= 17 || activeOrgName === org.name)}
+                  (zoomLevel >= POI_LABEL_MIN_ZOOM ||
+                    activeOrgName === org.name)}
                 useCentralHoverPreview={centralHoverPreview}
                 {previewSuppressed}
                 onclick={() => handleOrgMarkerClick(org.name, lat, lon)}
@@ -5044,60 +5109,6 @@
 
   .edit-dock-action.cancel:hover:not(:disabled) {
     background: var(--theme-accent-fill, #5f0d0f);
-  }
-
-  .user-location-pin {
-    width: 1rem;
-    height: 1rem;
-    background-color: #4285f4;
-    border: 3px solid white;
-    border-radius: 50%;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    z-index: 70;
-  }
-
-  /* Navigation puck (#966): a white disc with a heading arrow, GMaps-style.
-     Without a heading the arrow is hidden and only the disc shows, so the
-     puck never points somewhere the device did not actually report. */
-  .user-location-puck {
-    position: relative;
-    z-index: 70;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: 50%;
-    background: var(--theme-surface, #fff);
-    box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
-  }
-
-  .user-location-puck::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 50%;
-    background: #4285f4;
-  }
-
-  .user-location-puck--heading::before {
-    /* Arrowhead pointing along the reported bearing. */
-    width: 0;
-    height: 0;
-    border-right: 0.4375rem solid transparent;
-    border-bottom: 0.75rem solid #4285f4;
-    border-left: 0.4375rem solid transparent;
-    border-radius: 0;
-    background: none;
-    rotate: var(--puck-rotation, 0deg);
-    transition: rotate 300ms linear;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .user-location-puck--heading::before {
-      transition: none;
-    }
   }
 
   .measure-waypoint {

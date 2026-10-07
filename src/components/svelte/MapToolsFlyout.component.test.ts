@@ -13,12 +13,20 @@ describe("MapToolsFlyout", () => {
   test("chip opens the tools panel", async () => {
     mountAtWidth(320);
     render(MapToolsFlyout);
-    const chip = screen.getByRole("button", { name: "Map tools" });
+    const chip = screen.getByRole("button", { name: "Layers" });
     chip.click();
     expect(mapToolsStore.open).toBe(true);
     expect(
-      await screen.findByRole("dialog", { name: "Map tools" }),
+      await screen.findByRole("dialog", { name: "Layers" }),
     ).toBeInTheDocument();
+  });
+
+  test("layers sheet leads with the map type tiles", async () => {
+    mapToolsStore.toggle();
+    render(MapToolsFlyout);
+    const defaultTile = await screen.findByRole("button", { name: "Default" });
+    expect(defaultTile).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "3D" })).toBeInTheDocument();
   });
 
   test("travel time toggle activates the tool and hands back the map", async () => {
