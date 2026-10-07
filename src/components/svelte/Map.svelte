@@ -61,6 +61,7 @@
   import PinGlyph from "./map/PinGlyph.svelte";
   import EventMapPin from "./map/EventMapPin.svelte";
   import UserLocationMarker from "./map/UserLocationMarker.svelte";
+  import DroppedPinMarker from "./map/DroppedPinMarker.svelte";
   import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
@@ -3939,6 +3940,7 @@
         {#if locationStore.coords}
           <UserLocationMarker lngLat={locationStore.coords} />
         {/if}
+        <DroppedPinMarker />
         {#if directionsStore.active}
           {#if directionsStore.originFixed && directionsStore.origin}
             <Marker
