@@ -1,0 +1,20 @@
+---
+import AppRoot from "@ui/AppRoot.svelte";
+import Layout from "@layouts/Layout.astro";
+
+// Bad links (/this-does-not-exist, /building/nonexistent/) open the map with
+// a "Place not found" toast instead of a blank page. EntityUrlSync spots the
+// unknown path, shows the toast, and moves the URL to "/".
+const title = "Place not found | Room TBA";
+const description =
+  "That Room TBA link does not match a place on the UPLB campus map.";
+---
+
+<Layout
+  title={title}
+  description={description}
+  canonicalPath="/"
+  robots="noindex,follow"
+>
+  <AppRoot client:only="svelte" suppressLandingModal={true} />
+</Layout>

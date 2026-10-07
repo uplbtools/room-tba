@@ -24,6 +24,9 @@
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
+  import { readAppState, withAppState } from "@lib/app-url-state";
+  import { replaceAppUrl } from "@lib/overlay-history";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import { dropdownFadeIn, dropdownFadeOut } from "@lib/motion";
   import { MediaQuery } from "svelte/reactivity";
   import SearchIcon from "@lucide/svelte/icons/search";
@@ -58,6 +61,16 @@
       searchFocused = false;
       searchElement?.blur();
     });
+    // /?q=… opens with that search running. Strip it from the entry under
+    // the search layer; the effect below writes it back where it belongs.
+    const initialQ = readAppState(location.search).q;
+    if (initialQ && queryStore.category === null) {
+      replaceAppUrl((url) => withAppState(url, { q: null }));
+      draftInput = initialQ;
+      queryStore.inputValue = initialQ;
+      queryStore.setType("query");
+      searchElement?.focus();
+    }
     return () => {
       unregisterFocus();
       unregisterDismiss();
@@ -114,6 +127,23 @@
   });
 
   const mobileSearchActive = $derived(mobile.current && searchFocused);
+
+  // The phone search is a full-screen layer: Back closes it. Transient, so a
+  // place picked from it replaces its entry rather than stacking on it.
+  trackOverlay("search", () => mobileSearchActive, dismissMobileSearch, () => ({
+    transient: true,
+  }));
+
+  // Typed search text rides in ?q= (on the search layer's own entry on
+  // phones), so the URL can be shared or reloaded mid-search.
+  $effect(() => {
+    const q =
+      queryStore.type === "query" && queryStore.category === null
+        ? draftInput.trim()
+        : "";
+    if (mobile.current && !mobileSearchActive && q !== "") return;
+    replaceAppUrl((url) => withAppState(url, { q }));
+  });
 
   const clearSelectionLabel = $derived(
     queryStore.type === "result" && queryStore.category !== null

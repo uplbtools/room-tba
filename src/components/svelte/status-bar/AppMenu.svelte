@@ -38,6 +38,7 @@
     openEphemeralOverlay,
   } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import {
     adminAuthStore,
     announcementsStore,
@@ -204,6 +205,9 @@
   function closePanel() {
     open = false;
   }
+
+  // Back closes the menu instead of leaving the app.
+  trackOverlay("menu", () => open, closePanel);
 
   // Focus the panel itself, not its first row: a tap-opened menu should not
   // paint a focus ring (or a "selected" look) on whichever row comes first.

@@ -19,6 +19,7 @@
     registerEphemeralOverlayDismisser,
     openEphemeralOverlay,
   } from "@lib/overlay-stack";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import "./map-chrome.css";
 
   type Props = {
@@ -92,6 +93,8 @@
   function closePanel() {
     open = false;
   }
+
+  trackOverlay("shortcuts", () => open, closePanel);
 
   $effect(() => {
     if (!open || !panelEl) return;

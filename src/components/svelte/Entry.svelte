@@ -49,6 +49,7 @@
   import AcademicCalendarScreen from "@ui/calendar/AcademicCalendarScreen.svelte";
   import TodayScreen from "@ui/today/TodayScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
+  import AppUrlState from "@ui/AppUrlState.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight } from "@lib/layout-css-vars";
@@ -446,6 +447,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <EntityUrlSync />
+<AppUrlState />
 <EntityHoverPreview />
 
 <div
