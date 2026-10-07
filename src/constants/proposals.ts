@@ -2,6 +2,9 @@ export const MIN_SUBMITTER_NAME_LENGTH = 2;
 /** Keep contributor credits short — fits status bar and review queue. */
 export const MAX_SUBMITTER_NAME_LENGTH = 32;
 
+/** Credit for a suggestion sent with the optional name left blank. */
+export const ANONYMOUS_SUBMITTER_NAME = "Anonymous";
+
 /** Contributor's note to the reviewer: a sentence or two, never published. */
 export const MAX_SUBMITTER_NOTE_LENGTH = 500;
 

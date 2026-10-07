@@ -113,6 +113,34 @@
     }
   }
 
+  /* Phones: a full-screen sheet, like any app's "add a place" form. The map
+     is not needed while typing; "Pick on map" hides the sheet for the pin
+     drop and brings it back after (SuggestAdditionPanel.pickOnMap). */
+  @media (max-width: 47.99rem) {
+    .editor-addition-overlay {
+      align-items: stretch;
+      padding: 0;
+    }
+
+    .editor-addition-frame {
+      width: 100%;
+      height: 100dvh;
+      max-height: none;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .editor-addition-header {
+      padding-top: calc(0.625rem + env(safe-area-inset-top, 0px));
+    }
+
+    .editor-addition-body {
+      flex: 1;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
   .editor-addition-frame {
     display: flex;
     /* The overlay is inert; the panel itself is the only live surface. */
