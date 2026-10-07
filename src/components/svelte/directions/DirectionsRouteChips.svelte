@@ -336,4 +336,12 @@
       padding: 0.55rem 0.6rem;
     }
   }
+
+  /* Phone landscape: as wide as the left side panel below it (BottomSheet),
+     so the map to the right stays clear. */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .directions-route-chips {
+      max-width: min(24rem, 52vw);
+    }
+  }
 </style>

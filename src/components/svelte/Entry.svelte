@@ -977,6 +977,31 @@
     pointer-events: auto;
   }
 
+  /* Landscape phones wide enough for the desktop layout (844x390): the
+     bottom-anchored column grew up over the search pill and browse chips,
+     hiding the tools button under "Add". Start it below the chips and wrap
+     into further columns leftwards instead. */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .desktop-map-controls {
+      top: calc(
+        var(--desktop-top-bar-height, 3.5rem) +
+          var(--map-search-pill-height, 2.375rem) +
+          var(--map-chip-height, 2rem) + 1.75rem
+      );
+      bottom: calc(2.25rem + env(safe-area-inset-bottom, 0px));
+      flex-wrap: wrap-reverse;
+      align-content: flex-start;
+      justify-content: flex-end;
+    }
+
+    .desktop-map-controls :global(.map-controls-stack) {
+      flex-flow: column wrap-reverse;
+      justify-content: flex-end;
+      align-content: flex-start;
+      max-height: 100%;
+    }
+  }
+
   /* Mobile 393 frame: controls above bottom nav (Figma spacing). */
   .mobile-map-controls {
     position: fixed;
@@ -1011,15 +1036,49 @@
   }
 
   /* Entity sheet open (peek or expanded): hide locate / 3D / zoom — they sit
-     in the same corner as the sheet and otherwise paint on top of it. */
-  .mobile-map-controls--sheet-open {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
+     in the same corner as the sheet and otherwise paint on top of it. Not in
+     phone landscape, where the sheet is a left side panel beside them. */
+  @media not all and (orientation: landscape) and (max-height: 500px) {
+    .mobile-map-controls--sheet-open {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    .mobile-map-controls--sheet-open > :global(*) {
+      pointer-events: none !important;
+    }
   }
 
-  .mobile-map-controls--sheet-open > :global(*) {
-    pointer-events: none !important;
+  /* Phone landscape (Jakob audit macro 14): the column of tools, locate, 3D
+     and zoom is taller than the map strip between the browse chips and the
+     bottom nav, and its top slid under the chips. Cap the column to that
+     strip and let it wrap into a second column leftwards. Details open as a
+     left side panel here (BottomSheet), so the controls stay usable beside
+     it instead of hiding (see the sheet-open rule above). */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .mobile-map-controls {
+      top: calc(
+        var(--staging-banner-height, 0px) + var(--search-block-height) +
+          var(--map-chip-height, 2.75rem) + 0.75rem
+      );
+      right: max(0.5rem, env(safe-area-inset-right, 0px));
+      bottom: calc(var(--mobile-bottom-nav-height, 2.75rem) + 0.5rem);
+      flex-wrap: wrap-reverse;
+      align-content: flex-start;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .mobile-map-controls :global(.map-controls-stack--mobile) {
+      --map-ctrl-size: 2.5rem;
+      --map-ctrl-compass: 2.5rem;
+      --map-ctrl-zoom-h: 5rem;
+      flex-flow: column wrap-reverse;
+      justify-content: flex-end;
+      align-content: flex-start;
+      max-height: 100%;
+    }
   }
 
   .mobile-bottom-nav-slot {
@@ -1076,6 +1135,16 @@
           env(safe-area-inset-bottom, 0px)
       );
       box-sizing: border-box;
+    }
+
+    /* Their sticky headers (the planner's weekday row is z 6) must stay
+       inside the screen, under the fixed bottom nav (z 5), not paint over it
+       when the screen scrolls in landscape. */
+    .ui-layer > :global(.planner-screen),
+    .ui-layer > :global(.finals-screen),
+    .ui-layer > :global(.today-screen),
+    .ui-layer > :global(.acal-screen) {
+      isolation: isolate;
     }
 
     /* Today / Finals / Calendar ship z-index: 150 (for the desktop layout),

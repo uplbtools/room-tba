@@ -2,6 +2,7 @@
   import type { Snippet } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
   import {
+    LANDSCAPE_COMPACT_MEDIA,
     resolveBottomSheetRelease,
     sheetTranslateY,
     type BottomSheetSnap,
@@ -39,6 +40,8 @@
   } = $props();
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+  /** Phone landscape: a full-height left side panel, no snaps or dragging. */
+  const sidePanel = new MediaQuery(LANDSCAPE_COMPACT_MEDIA);
 
   const DRAG_THRESHOLD = 6;
   const FOLLOW_THRESHOLD = 40;
@@ -168,7 +171,7 @@
   }
 
   function beginDrag(event: PointerEvent, fromHandle: boolean) {
-    if (!open) return;
+    if (!open || sidePanel.current) return;
     dragStartY = event.clientY;
     dragStartTime = performance.now();
     dragMoved = false;
@@ -270,6 +273,7 @@
 {#if open}
   <div
     class="bottom-sheet-root"
+    class:bottom-sheet-root--side={sidePanel.current}
     bind:this={rootEl}
     style:--bs-top={topInset}
     style:--bs-bottom={bottomInset}
@@ -285,14 +289,17 @@
       class="bottom-sheet"
       class:bottom-sheet--dragging={isDragging}
       bind:this={sheetEl}
-      style:transform="translate3d(0, {liveTranslate}px, 0)"
-      style:height="{availableH || 0}px"
+      style:transform={sidePanel.current
+        ? undefined
+        : `translate3d(0, ${liveTranslate}px, 0)`}
+      style:height={sidePanel.current ? undefined : `${availableH || 0}px`}
       onpointerdown={onSheetPointerDown}
       onpointermove={onSheetPointerMove}
       onpointerup={onSheetPointerUp}
       onpointercancel={onSheetPointerCancel}
       onlostpointercapture={onSheetPointerCancel}
     >
+      {#if !sidePanel.current}
       <button
         type="button"
         class="bottom-sheet__handle"
@@ -305,6 +312,7 @@
       >
         <span class="bottom-sheet__grab" aria-hidden="true"></span>
       </button>
+      {/if}
 
       <div class="bottom-sheet__body" bind:this={contentEl}>
         {@render children()}
@@ -428,5 +436,30 @@
     .bottom-sheet {
       transition: none;
     }
+  }
+
+  /* Phone landscape: left side panel from under the search bar, sized to its
+     content and never past the (icon-only) bottom nav, so the nav never
+     covers route cards or the navigation ETA, and the map stays visible to
+     the right. The width is repeated by DirectionsRouteChips. */
+  .bottom-sheet-root--side {
+    right: auto;
+    bottom: var(--mobile-bottom-nav-height, 2.75rem);
+    left: max(0.375rem, env(safe-area-inset-left, 0px));
+    width: min(24rem, 52vw);
+    clip-path: none;
+  }
+
+  .bottom-sheet-root--side .bottom-sheet {
+    top: 0;
+    bottom: auto;
+    height: auto;
+    max-height: calc(100% - 0.375rem);
+    padding-top: 0.5rem;
+    border-bottom: 1px solid
+      var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
+    border-radius: var(--map-chrome-radius, 1rem);
+    touch-action: auto;
+    transition: none;
   }
 </style>

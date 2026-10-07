@@ -226,4 +226,47 @@
     background: var(--theme-accent-soft, #feeaea);
     color: var(--theme-accent-text, #8d1437);
   }
+
+  /* Phone landscape (Jakob audit macro 14): every pixel of height is map, so
+     the bar goes icon-only at 44px with a flat, unraised FAB. Labels stay in
+     the DOM, visually hidden, so each tab keeps its accessible name. */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .mobile-bottom-nav {
+      grid-template-columns: repeat(2, minmax(0, 5.5rem)) auto repeat(
+          2,
+          minmax(0, 5.5rem)
+        );
+      justify-content: center;
+      column-gap: 0.75rem;
+      min-height: 0;
+      padding: 0 max(0.5rem, env(safe-area-inset-right, 0px))
+        env(safe-area-inset-bottom, 0px)
+        max(0.5rem, env(safe-area-inset-left, 0px));
+    }
+
+    .mobile-bottom-nav__item,
+    .mobile-bottom-nav :global(.app-menu__trigger) {
+      position: relative;
+      min-height: 2.75rem;
+      padding: 0;
+    }
+
+    .mobile-bottom-nav__item span,
+    .mobile-bottom-nav :global(.app-menu__trigger span) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .mobile-bottom-nav__fab {
+      width: 2.75rem;
+      height: 2.5rem;
+      border-radius: 0.875rem;
+      box-shadow: none;
+      transform: none;
+    }
+  }
 </style>
