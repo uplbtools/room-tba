@@ -87,7 +87,18 @@ const JUNCTION_BOARDING_NOTE =
 export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
   "lb-to-san-pablo": JUNCTION_BOARDING_NOTE,
   "lb-to-sta-cruz": JUNCTION_BOARDING_NOTE,
+  forestry:
+    "Board at a terminal. Forestry jeeps fill up at their first stop and rarely have room further along: going up, board at the Forestry Jeep Terminal; going down, at the Upper Forestry Jeep Terminal.",
 };
+
+/** The same advice, short enough for a route card on the printable map. */
+export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
+  forestry: "Board at a terminal (bold), up or down; jeeps fill up there.",
+};
+
+/** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */
+export const FORESTRY_DIRECTION_NOTE =
+  "Uphill trips start at the Forestry Jeep Terminal and serve the stops as listed. Past New FOREHA the jeep loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. Downhill trips start at the Upper Forestry Jeep Terminal and run back down to the Forestry Jeep Terminal, serving the same stops in reverse; going down, the jeep stays on Makiling Road instead of turning at the Admin Building.";
 
 export function routeTicketing(routeId: string): RouteTicketing | null {
   return ROUTE_TICKETING[routeId] ?? null;
@@ -337,8 +348,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     name: "Forestry",
     description:
       "Connects the campus core to the upper Forestry campus: from the Forestry jeep terminal past Narra Bridge, the University Health Service, and CPAf, climbing past Makiling Botanic Gardens to the College of Forestry and Natural Resources and the FOREHA, New FOREHA, and MAREHA residence halls.",
-    directionNote:
-      "Uphill the jeep serves the stops as listed. Past New FOREHA it loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. It then comes back down the same road, except it goes straight along Makiling Road instead of turning left again at the Admin Building, so downhill riders board the same stops in reverse.",
+    directionNote: FORESTRY_DIRECTION_NOTE,
     color: "#d97706",
     fare: STANDARD_CAMPUS_FARE,
     stops: [
@@ -414,7 +424,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
       {
         name: "Upper Forestry Jeep Terminal",
         description:
-          "Upper-campus jeep terminal on Makiling Road, between the Forest Biological Sciences Building and the residence halls.",
+          "Upper-campus jeep terminal on Makiling Road, between the Forest Biological Sciences Building and the residence halls. Downhill trips start here.",
         // ponytail: placed from the owner's map sketch, on Makiling Road about two thirds of the way from Martin R. Reyes to Felix O. Chinte Sr.
         lat: 14.153693,
         lon: 121.235186,

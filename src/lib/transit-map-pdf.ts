@@ -40,6 +40,8 @@ export type TransitMapRoute = {
   fareRegular: number;
   fareDiscounted: number;
   directionNote: string | null;
+  /** Where to board, printed on the route card (e.g. Forestry's terminals). */
+  boardingNote?: string | null;
   stops: TransitMapStop[];
   /** Road path in travel order, when one is sourced; else stops are joined. */
   line?: { lat: number; lon: number }[];
@@ -745,7 +747,11 @@ function mergeStops(routes: TransitMapRoute[]): MapStop[] {
   routes.forEach((route, ri) => {
     const loop = isLoopRoute(route);
     route.stops.forEach((stop, si) => {
-      const terminal = si === 0 || (!loop && si === route.stops.length - 1);
+      // Named terminals count too: Forestry's downhill trips start mid-list.
+      const terminal =
+        si === 0 ||
+        (!loop && si === route.stops.length - 1) ||
+        /\bterminal\b/i.test(stop.name);
       const hit = out.find((m) => haversineMeters(m, stop) < 30);
       if (hit) {
         if (!hit.routeIds.includes(route.id)) hit.routeIds.push(route.id);
@@ -801,6 +807,7 @@ export async function renderTransitMapPdf(input: {
     color: palette.routes[route.id] ?? route.color,
     name: toWinAnsi(route.name),
     directionNote: route.directionNote ? toWinAnsi(route.directionNote) : null,
+    boardingNote: route.boardingNote ? toWinAnsi(route.boardingNote) : null,
     stops: route.stops.map((stop) => ({ ...stop, name: toWinAnsi(stop.name) })),
   }));
   const drawnRoutes = routes.filter(isCampusScopeRoute);
@@ -1354,17 +1361,34 @@ export async function renderTransitMapPdf(input: {
       });
     }
 
-    // Scale bar (bottom-left) and north arrow (top-right) reserve space
-    // before labels are placed.
+    // Scale bar and north arrow (bottom-right) reserve space before labels
+    // are placed. The bar takes whichever free corner no route line crosses,
+    // so it never sits on a route (Forestry runs into the bottom-left).
     const barMaxPt = 90;
     const meters = niceScaleBarMeters(barMaxPt / ptPerMeter);
     const barPt = meters * ptPerMeter;
-    const barY = frame.y + 12;
-    const barX = frame.x + 12;
+    const barBoxW = barPt + 40;
+    const linePts = [...routeLines.values()].flat();
+    const corners = [
+      { x: frame.x + 12, y: frame.y + 12 },
+      { x: frame.x + frame.w - barBoxW - 30, y: frame.y + 12 },
+      { x: frame.x + 12, y: frame.y + frame.h - 14 },
+    ];
+    const crossings = (c: ProjectedPoint) =>
+      linePts.filter(
+        (p) =>
+          p.x >= c.x - 14 &&
+          p.x <= c.x + barBoxW + 10 &&
+          p.y >= c.y - 16 &&
+          p.y <= c.y + 18,
+      ).length;
+    const { x: barX, y: barY } = corners.reduce((best, c) =>
+      crossings(c) < crossings(best) ? c : best,
+    );
     page.drawRectangle({
       x: barX - 4,
       y: barY - 6,
-      width: barPt + 40,
+      width: barBoxW,
       height: 14,
       color: WHITE,
       opacity: 0.85,
@@ -1390,7 +1414,7 @@ export async function renderTransitMapPdf(input: {
       font,
       color: INK,
     });
-    obstacles.push({ x: barX - 4, y: barY - 6, w: barPt + 40, h: 14 });
+    obstacles.push({ x: barX - 4, y: barY - 6, w: barBoxW, h: 14 });
     // Bottom-right: the top edge is where the mall terminals' arrows land.
     const nx = frame.x + frame.w - 18;
     const ny = frame.y + 14;
@@ -1658,7 +1682,10 @@ export async function renderTransitMapPdf(input: {
       const note = loop
         ? `Same loop, opposite directions; arrows show the way. ${fareText(route)}.`
         : `${fareText(route)}.`;
-      const lines = wrapText(note, font, 8.5, textW);
+      const fullNote = route.boardingNote
+        ? `${note} ${route.boardingNote}`
+        : note;
+      const lines = wrapText(fullNote, font, 8.5, textW);
       const h = 12 + 13 + (loop ? 13 : 0) + lines.length * 10.5;
       if (py - h < panelFloor) break;
       card(h, tint(color), color);

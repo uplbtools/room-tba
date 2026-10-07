@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { FORESTRY_DIRECTION_NOTE } from "../../src/constants/jeepney-routes";
 import {
   OLIVAREZ_NAME,
   planTransitFixes,
@@ -25,6 +26,7 @@ const route = (over: Partial<RouteRow>): RouteRow => ({
     "Jeepney toward San Pablo City, via Bay and Alaminos to San Pablo.",
   fareRegular: 50,
   fareDiscounted: 40,
+  directionNote: null,
   version: 3,
   ...over,
 });
@@ -124,6 +126,25 @@ describe("planTransitFixes", () => {
       fareDiscounted: 25,
       description: "Serves SM Calamba via Pansol.",
     });
+  });
+
+  test("says Forestry downhill trips start at the upper terminal", () => {
+    const [fix] = planTransitFixes(
+      [
+        route({
+          id: "forestry",
+          fareRegular: 14,
+          fareDiscounted: 12,
+          directionNote: "Uphill the jeep serves the stops as listed.",
+        }),
+      ],
+      [],
+      campus,
+    );
+    expect(fix?.after).toEqual({ directionNote: FORESTRY_DIRECTION_NOTE });
+    expect(FORESTRY_DIRECTION_NOTE).toContain(
+      "Downhill trips start at the Upper Forestry Jeep Terminal",
+    );
   });
 
   test("plans nothing once applied", () => {
