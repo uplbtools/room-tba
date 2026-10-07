@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import SettingsModalHost from "@test/components/SettingsModalHost.svelte";
 import {
@@ -37,6 +38,7 @@ describe("SettingsModal", () => {
     expect(screen.getByRole("heading", { name: "Settings" })).toBeVisible();
     // Transit moved to the sidebar's Jeepney routes browse panel.
     for (const section of [
+      "Appearance",
       "Map",
       "Terrain",
       "Schedule",
@@ -49,6 +51,29 @@ describe("SettingsModal", () => {
       ).toBeInTheDocument();
     }
     expectNoHorizontalOverflow(container);
+  });
+
+  test("Appearance switches the theme and remembers the choice", async () => {
+    localStorage.removeItem("room-tba:theme");
+    render(SettingsModalHost);
+
+    const system = screen.getByRole("button", { name: "System" });
+    const dark = screen.getByRole("button", { name: "Dark" });
+    const light = screen.getByRole("button", { name: "Light" });
+    expect(system).toHaveAttribute("aria-pressed", "true");
+
+    dark.click();
+    await tick();
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(localStorage.getItem("room-tba:theme")).toBe("dark");
+    expect(dark).toHaveAttribute("aria-pressed", "true");
+
+    light.click();
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(localStorage.getItem("room-tba:theme")).toBe("light");
+
+    system.click();
+    expect(localStorage.getItem("room-tba:theme")).toBeNull();
   });
 
   test("links to Send feedback instead of embedding a second form", () => {

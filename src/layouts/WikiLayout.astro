@@ -175,8 +175,10 @@ const isIndex = canonicalPath === "/wiki";
     color-scheme: light dark;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
+  /* Follows Settings → Appearance: Layout.astro resolves System / Light /
+     Dark onto data-theme before first paint. */
+  @media screen {
+    :root[data-theme="dark"] {
       --wiki-paper: hsl(20, 8%, 11%);
       --wiki-paper-2: hsl(20, 7%, 17%);
       --wiki-paper-3: hsl(20, 7%, 15%);

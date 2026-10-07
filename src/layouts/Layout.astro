@@ -17,6 +17,7 @@ import {
   SITE_URL,
   absoluteUrl,
 } from "@lib/site";
+import { darkThemeCss } from "@lib/theme";
 
 type StructuredData = Record<string, unknown>;
 
@@ -167,6 +168,42 @@ const shareTitle = ogTitle ?? title;
       })();
     </script>
 
+    <!-- Appearance (Settings → Appearance): resolve System / Light / Dark
+         onto <html data-theme> before first paint so a dark-mode visitor
+         never sees a white flash. Inline, so it repeats the storage key from
+         src/lib/theme.ts (theme.test.ts checks they match). The change
+         listener follows the OS switching while the page is open. -->
+    <script is:inline>
+      (() => {
+        var KEY = "room-tba:theme";
+        var html = document.documentElement;
+        var mql = window.matchMedia("(prefers-color-scheme: dark)");
+
+        function apply() {
+          var pref = "system";
+          try {
+            pref = localStorage.getItem(KEY) || "system";
+          } catch (err) {
+            /* private mode: follow the system */
+          }
+          var dark = pref === "dark" || (pref !== "light" && mql.matches);
+          html.dataset.theme = dark ? "dark" : "light";
+        }
+
+        function applyAndNotify() {
+          apply();
+          window.dispatchEvent(new Event("room-tba:themechange"));
+        }
+
+        apply();
+        mql.addEventListener("change", applyAndNotify);
+        window.addEventListener("storage", (event) => {
+          if (event.key === KEY) applyAndNotify();
+        });
+      })();
+    </script>
+    <style is:inline set:html={darkThemeCss()}></style>
+
     <style is:global>
       html,
       body {
@@ -199,7 +236,7 @@ const shareTitle = ogTitle ?? title;
         outline-offset: 2px;
 
         &:focus-visible {
-          outline-color: hsl(5, 53%, 32%);
+          outline-color: var(--theme-accent-text, hsl(5, 53%, 32%));
         }
       }
     </style>

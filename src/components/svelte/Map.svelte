@@ -124,6 +124,7 @@
   } from "@lib/travel-graph/engine";
   import { loadTravelGraph } from "@lib/travel-graph/load";
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
+  import { getResolvedTheme, onThemeChange } from "@lib/theme";
   import { syncSatelliteLayer } from "@lib/map-satellite";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
@@ -2330,16 +2331,23 @@
     if (!map) return;
 
     let cancelled = false;
+    let loaded = false;
     const applyPalette = () => {
-      if (!cancelled) applyBasemapPalette(map);
+      loaded = true;
+      if (!cancelled) applyBasemapPalette(map, getResolvedTheme());
     };
     if (map.isStyleLoaded()) {
       applyPalette();
     } else {
       map.once("load", applyPalette);
     }
+    // Dark mode swaps the basemap palette live (Settings or the OS switch).
+    const offTheme = onThemeChange(() => {
+      if (loaded) applyPalette();
+    });
     return () => {
       cancelled = true;
+      offTheme();
     };
   });
 
@@ -4737,7 +4745,7 @@
     /* The basemap's ground colour (MAP_BASEMAP_PALETTE.background): on a slow
        connection the chrome paints before the first tiles, and a bare white
        page under it read as broken. */
-    background: rgb(238, 244, 236);
+    background: var(--theme-green-soft, rgb(238, 244, 236));
   }
 
   /* Marker wrappers are stacking contexts (transform), so pin-level z-index
@@ -4780,11 +4788,11 @@
     );
     min-height: 2.5rem;
     padding: 0.25rem 0.25rem 0.25rem 0.625rem;
-    border: 1px solid hsla(160, 52%, 32%, 0.35);
+    border: 1px solid var(--theme-green-text, hsla(160, 52%, 32%, 0.35));
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.94);
+    background: var(--theme-surface-translucent, rgba(255, 255, 255, 0.94));
     backdrop-filter: blur(12px);
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
     font-size: 0.8125rem;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
     pointer-events: auto;
@@ -4805,7 +4813,7 @@
   }
 
   .map-edit-copy strong {
-    color: hsl(160, 84%, 18%);
+    color: var(--theme-green-text, hsl(160, 84%, 18%));
     font-size: 0.75rem;
     line-height: 1.15;
   }
@@ -4814,7 +4822,7 @@
     display: block;
     min-width: 0;
     overflow: hidden;
-    color: hsl(0, 0%, 24%);
+    color: var(--theme-text, hsl(0, 0%, 24%));
     font-size: 0.75rem;
     line-height: 1.25;
     text-overflow: ellipsis;
@@ -4881,11 +4889,11 @@
     );
     min-height: 2.5rem;
     padding: 0.25rem 0.25rem 0.25rem 0.625rem;
-    border: 1px solid hsla(5, 53%, 32%, 0.35);
+    border: 1px solid var(--theme-accent-text, hsla(5, 53%, 32%, 0.35));
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--theme-surface-translucent, rgba(255, 255, 255, 0.96));
     backdrop-filter: blur(12px);
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
     font-size: 0.8125rem;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
     pointer-events: auto;
@@ -4899,7 +4907,7 @@
   }
 
   .event-placement-copy strong {
-    color: #7b1113;
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.78rem;
     line-height: 1.15;
   }
@@ -4908,7 +4916,7 @@
     display: block;
     min-width: 0;
     overflow: hidden;
-    color: hsl(0, 0%, 24%);
+    color: var(--theme-text, hsl(0, 0%, 24%));
     font-size: 0.75rem;
     line-height: 1.25;
     text-overflow: ellipsis;
@@ -4921,7 +4929,7 @@
     padding: 0.3125rem 0.625rem;
     border: none;
     border-radius: 999px;
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     color: white;
     cursor: pointer;
     font: inherit;
@@ -4931,7 +4939,7 @@
   }
 
   .event-placement-cancel:hover:not(:disabled) {
-    background: #5f0d0f;
+    background: var(--theme-accent-fill, #5f0d0f);
   }
 
   .event-placement-cancel:disabled {
@@ -4960,16 +4968,16 @@
     min-height: 2rem;
     max-height: 2.75rem;
     padding: 0.25rem 0.375rem 0.25rem 0.625rem;
-    border: 1px solid hsla(160, 52%, 32%, 0.35);
+    border: 1px solid var(--theme-green-text, hsla(160, 52%, 32%, 0.35));
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--theme-surface-translucent, rgba(255, 255, 255, 0.96));
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
     pointer-events: auto;
   }
 
   .event-placement-dock {
-    border-color: hsla(5, 53%, 32%, 0.35);
+    border-color: var(--theme-accent-text, hsla(5, 53%, 32%, 0.35));
   }
 
   .edit-dock-status {
@@ -4977,7 +4985,7 @@
     min-width: 0;
     margin: 0;
     overflow: hidden;
-    color: hsl(0, 0%, 24%);
+    color: var(--theme-text, hsl(0, 0%, 24%));
     font-size: 0.75rem;
     font-weight: 500;
     line-height: 1.25;
@@ -5031,11 +5039,11 @@
   }
 
   .edit-dock-action.cancel {
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
   }
 
   .edit-dock-action.cancel:hover:not(:disabled) {
-    background: #5f0d0f;
+    background: var(--theme-accent-fill, #5f0d0f);
   }
 
   .user-location-pin {
@@ -5058,7 +5066,7 @@
     width: 1.75rem;
     height: 1.75rem;
     border-radius: 50%;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
   }
 
@@ -5124,7 +5132,7 @@
     justify-content: center;
     border: 2px solid white;
     border-radius: 50%;
-    background-color: var(--color-brand, #8d1437);
+    background-color: var(--color-brand, var(--theme-accent-fill, #8d1437));
     color: white;
     font-size: 0.75rem;
     font-weight: 700;
@@ -5142,9 +5150,9 @@
   .directions-origin-pin {
     width: 1rem;
     height: 1rem;
-    border: 3px solid var(--color-brand, #8d1437);
+    border: 3px solid var(--color-brand, var(--theme-accent-text, #8d1437));
     border-radius: 50%;
-    background-color: white;
+    background-color: var(--theme-surface, white);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
     position: relative;
     z-index: 71;
@@ -5153,7 +5161,7 @@
   .addition-draft-pin {
     width: 1.125rem;
     height: 1.125rem;
-    background-color: hsl(5, 53%, 42%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 42%));
     border: 3px solid white;
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
@@ -5180,7 +5188,7 @@
     height: 0.7rem;
     border: 2px solid white;
     border-radius: 999px;
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     box-shadow:
       0 0 0 0.14rem rgba(123, 17, 19, 0.22),
       0 0.15rem 0.35rem rgba(0, 0, 0, 0.24);
@@ -5240,7 +5248,7 @@
     padding: 0.22rem 0.35rem 0.22rem 0.22rem;
     border: 2px solid white;
     border-radius: 999px;
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     color: white;
     cursor: grab;
     line-height: 1;
@@ -5352,7 +5360,7 @@
     overflow: hidden;
     border: 2px solid white;
     border-radius: 1rem;
-    background: white;
+    background: var(--theme-surface, white);
     box-shadow:
       0 0 0 0.16rem rgba(123, 17, 19, 0.28),
       0 0.55rem 1.15rem rgba(0, 0, 0, 0.34);
@@ -5364,7 +5372,7 @@
     justify-content: space-between;
     gap: 0.45rem;
     padding: 0.42rem 0.45rem 0.42rem 0.6rem;
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     color: white;
   }
 
@@ -5417,7 +5425,7 @@
   .event-stack-list {
     display: grid;
     gap: 1px;
-    background: #eee1e1;
+    background: var(--theme-accent-soft, #eee1e1);
   }
 
   .event-stack-item {
@@ -5427,19 +5435,19 @@
     align-items: center;
     gap: 0.45rem;
     padding: 0.42rem 0.5rem;
-    background: white;
-    color: #18181b;
+    background: var(--theme-surface, white);
+    color: var(--theme-text, #18181b);
     cursor: pointer;
   }
 
   .event-stack-item:hover,
   .event-stack-item:focus-visible,
   .event-stack-item.active {
-    background: #fdf3f3;
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .event-stack-item:focus-visible {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: -2px;
   }
 
@@ -5452,15 +5460,15 @@
 
   .event-stack-thumb {
     object-fit: contain;
-    background: hsl(0, 0%, 96%);
+    background: var(--theme-surface-2, hsl(0, 0%, 96%));
   }
 
   .event-stack-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #fdf3f3;
-    color: #7b1113;
+    background: var(--theme-accent-soft, #fdf3f3);
+    color: var(--theme-accent-text, #7b1113);
   }
 
   .event-stack-copy {
@@ -5471,7 +5479,7 @@
 
   .event-stack-title {
     overflow: hidden;
-    color: #7b1113;
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.76rem;
     font-weight: 900;
     line-height: 1.15;
@@ -5480,7 +5488,7 @@
   }
 
   .event-stack-meta {
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-size: 0.62rem;
     font-weight: 800;
     line-height: 1;
@@ -5519,7 +5527,7 @@
     justify-content: center;
     border: 2px solid white;
     border-radius: 50%;
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     color: white;
     font-size: 0.72rem;
     font-weight: 800;
@@ -5534,8 +5542,8 @@
     width: max-content;
     padding: 0.25rem 0.5rem;
     border-radius: 0.5rem;
-    background: white;
-    color: #18181b;
+    background: var(--theme-surface, white);
+    color: var(--theme-text, #18181b);
     font-size: 0.72rem;
     font-weight: 700;
     opacity: 0;
@@ -5572,7 +5580,7 @@
   }
 
   .schedule-route-stop-pin.routed {
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
   }
 
   .schedule-route-stop-pin.focused,
@@ -5585,7 +5593,7 @@
   }
 
   .schedule-route-stop-pin:focus-visible {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: 3px;
   }
 
@@ -5598,8 +5606,8 @@
     max-width: 12rem;
     padding: 0.25rem 0.5rem;
     border-radius: 0.5rem;
-    background: white;
-    color: #18181b;
+    background: var(--theme-surface, white);
+    color: var(--theme-text, #18181b);
     font-size: 0.72rem;
     font-weight: 700;
     opacity: 0;
@@ -5663,7 +5671,7 @@
   }
 
   .jeepney-stop-pin:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
@@ -5685,8 +5693,8 @@
     bottom: calc(100% + 0.4rem);
     left: 50%;
     translate: -50% 0;
-    background-color: white;
-    color: hsl(0, 0%, 15%);
+    background-color: var(--theme-surface, white);
+    color: var(--theme-text, hsl(0, 0%, 15%));
     border-radius: 0.5rem;
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;

@@ -11,7 +11,24 @@
     type ResyncOutcome,
   } from "@lib/local/resync-campus-data";
   import { modalStore, syncToastStore } from "@lib/store.svelte";
+  import {
+    readThemePreference,
+    setThemePreference,
+    type ThemePreference,
+  } from "@lib/theme";
   import "../map-chrome/map-chrome.css";
+
+  const APPEARANCE_OPTIONS: { value: ThemePreference; label: string }[] = [
+    { value: "system", label: "System" },
+    { value: "light", label: "Light" },
+    { value: "dark", label: "Dark" },
+  ];
+  let appearance = $state<ThemePreference>(readThemePreference());
+
+  function chooseAppearance(value: ThemePreference) {
+    appearance = value;
+    setThemePreference(value);
+  }
 
   let confirming = $state(false);
   let clearing = $state(false);
@@ -59,6 +76,34 @@
 <div class="settings-modal">
   <ModalHeader id="settings-modal-title" title="Settings" />
   <div class="settings-modal__scroll map-chrome-scroll">
+    <section class="settings-modal__section">
+      <h3>Appearance</h3>
+      <div class="map-chrome-row">
+        <span class="map-chrome-row__label" id="settings-appearance">
+          Theme
+        </span>
+        <div
+          class="map-chrome-row__control"
+          role="group"
+          aria-labelledby="settings-appearance"
+        >
+          {#each APPEARANCE_OPTIONS as option (option.value)}
+            <button
+              type="button"
+              class="map-chrome-chip"
+              class:map-chrome-chip--toggle-active={appearance === option.value}
+              aria-pressed={appearance === option.value}
+              onclick={() => chooseAppearance(option.value)}
+            >
+              {option.label}
+            </button>
+          {/each}
+        </div>
+      </div>
+      <p class="map-chrome-row-hint">
+        System follows your device's light or dark setting.
+      </p>
+    </section>
     <section class="settings-modal__section">
       <h3>Map</h3>
       <MapViewControls embedded variant="settings" />
@@ -215,7 +260,7 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .settings-modal__task {
@@ -228,38 +273,38 @@
      it reads as the separate, bigger hammer it is. */
   .settings-modal__danger-zone {
     padding: 0.625rem 0.75rem 0.75rem;
-    border: 1px solid hsl(0, 55%, 86%);
+    border: 1px solid var(--theme-accent-border, hsl(0, 55%, 86%));
     border-radius: 0.625rem;
-    background: hsl(0, 75%, 99%);
+    background: var(--theme-accent-soft, hsl(0, 75%, 99%));
   }
 
   .settings-modal__danger-zone h3 {
-    color: hsl(0, 70%, 32%);
+    color: var(--theme-accent-text, hsl(0, 70%, 32%));
   }
 
   /* The chrome chip is maroon like the rest of the app, so destructive gets a
      true red: outlined to arm, filled to confirm. Never the same as Resync. */
   .settings-modal__danger {
-    border-color: hsl(0, 55%, 70%);
-    color: hsl(0, 70%, 34%);
+    border-color: var(--theme-accent-border, hsl(0, 55%, 70%));
+    color: var(--theme-accent-text, hsl(0, 70%, 34%));
   }
 
   .settings-modal__danger:hover:not(:disabled),
   .settings-modal__danger:focus-visible {
     border-color: hsl(0, 60%, 52%);
-    background: hsl(0, 75%, 98%);
+    background: var(--theme-accent-soft, hsl(0, 75%, 98%));
   }
 
   .settings-modal__danger--solid,
   .settings-modal__danger--solid:hover:not(:disabled),
   .settings-modal__danger--solid:focus-visible {
-    border-color: hsl(0, 70%, 32%);
-    background: hsl(0, 70%, 32%);
+    border-color: var(--theme-accent-text, hsl(0, 70%, 32%));
+    background: var(--theme-accent-fill, hsl(0, 70%, 32%));
     color: white;
   }
 
   .settings-modal__danger--solid:hover:not(:disabled) {
-    background: hsl(0, 70%, 27%);
-    border-color: hsl(0, 70%, 27%);
+    background: var(--theme-accent-fill, hsl(0, 70%, 27%));
+    border-color: var(--theme-accent-text, hsl(0, 70%, 27%));
   }
 </style>

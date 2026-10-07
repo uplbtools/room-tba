@@ -37,7 +37,7 @@
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
     text-wrap: pretty;
   }
 
@@ -60,13 +60,14 @@
     font-size: 0.8125rem;
   }
 
-  @media (prefers-color-scheme: dark) {
-    .follow-updates__note {
-      color: hsl(0, 0%, 72%);
-    }
+  /* Follows Settings → Appearance (data-theme is resolved before paint). */
+  :global(:root[data-theme="dark"]) .follow-updates__note {
+    color: hsl(0, 0%, 72%);
+  }
 
-    .follow-updates__links :global(.community-platform-link) {
-      color: hsl(5, 65%, 76%);
-    }
+  :global(:root[data-theme="dark"])
+    .follow-updates__links
+    :global(.community-platform-link) {
+    color: hsl(5, 65%, 76%);
   }
 </style>
