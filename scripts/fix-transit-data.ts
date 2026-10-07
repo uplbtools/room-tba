@@ -36,6 +36,7 @@ try {
         description: jeepneyRoutesTable.description,
         fareRegular: jeepneyRoutesTable.fareRegular,
         fareDiscounted: jeepneyRoutesTable.fareDiscounted,
+        directionNote: jeepneyRoutesTable.directionNote,
         version: jeepneyRoutesTable.version,
       })
       .from(jeepneyRoutesTable),
