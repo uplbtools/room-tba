@@ -1,4 +1,5 @@
 <script lang="ts">
+  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
@@ -39,6 +40,14 @@
     return range ? `${term.label} runs ${range}.` : null;
   });
 
+  // Header date, campus time: the screen is "Today", so say which day it is.
+  const todayLabel = new Date().toLocaleDateString("en-PH", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Manila",
+  });
+
   function close() {
     sidebarStore.changeOpened("map");
   }
@@ -51,9 +60,10 @@
     today?.dayIndex == null ? null : (WEEKDAYS[today.dayIndex] ?? null),
   );
   const canRouteToday = $derived(routableTodayWeekday() !== null);
+  // No plan: the empty state below says what to do; the route button stays
+  // hidden until there is something to route.
   const routeHint = $derived.by(() => {
-    if (canRouteToday) return null;
-    if (!hasPlan) return "Add classes in the Planner first.";
+    if (canRouteToday || !hasPlan) return null;
     if (todayWeekday === null) return "No classes on Sundays.";
     return "No classes to route today.";
   });
@@ -118,44 +128,50 @@
       aria-label="Back to map"
       title="Back to map"
     >
-      <ChevronLeft size={18} aria-hidden="true" />
-      <span>Back to map</span>
+      <ChevronLeft size={22} aria-hidden="true" />
     </button>
-    <h1 class="today-title" id="today-screen-title">Today</h1>
+    <div class="today-heading">
+      <h1 class="today-title" id="today-screen-title">Today</h1>
+      <p class="today-date">{todayLabel}</p>
+    </div>
   </header>
 
   {#if offTermNote}
     <p class="today-note" role="note">{offTermNote}</p>
   {/if}
 
-  <div class="today-route">
-    <button
-      type="button"
-      class="today-route__button"
-      disabled={!canRouteToday || routing}
-      onclick={routeMyDay}
-    >
-      <Route size={16} aria-hidden="true" />
-      {routing ? "Routing…" : "Route my day"}
-    </button>
-    {#if routeHint}
-      <span class="today-route__hint">{routeHint}</span>
-    {:else if routedToday && scheduleRouteStore.routeTotals}
-      <span class="today-route__totals">
-        {formatDuration(scheduleRouteStore.routeTotals.seconds)} walk ·
-        {formatDistance(scheduleRouteStore.routeTotals.meters)}
-      </span>
-    {/if}
-  </div>
+  {#if hasPlan}
+    <div class="today-route">
+      <button
+        type="button"
+        class="today-route__button"
+        disabled={!canRouteToday || routing}
+        onclick={routeMyDay}
+      >
+        <Route size={16} aria-hidden="true" />
+        {routing ? "Routing…" : "Route my day"}
+      </button>
+      {#if routeHint}
+        <span class="today-route__hint">{routeHint}</span>
+      {:else if routedToday && scheduleRouteStore.routeTotals}
+        <span class="today-route__totals">
+          {formatDuration(scheduleRouteStore.routeTotals.seconds)} walk ·
+          {formatDistance(scheduleRouteStore.routeTotals.meters)}
+        </span>
+      {/if}
+    </div>
+  {/if}
 
   <div class="today-body">
     {#if !hasPlan}
-      <p class="today-empty-plan">
-        Add classes to see your day.
+      <div class="today-empty-plan">
+        <CalendarDays size={32} aria-hidden="true" />
+        <h2 class="today-empty-plan__title">Nothing planned yet</h2>
+        <p>Add classes to see your day.</p>
         <button type="button" onclick={() => sidebarStore.changeOpened("planner")}>
           Open the Planner
         </button>
-      </p>
+      </div>
     {:else}
       {#each days as day (day.dateKey)}
         <section
@@ -226,22 +242,24 @@
     overflow: hidden;
   }
 
+  /* App bar: icon back button, then title over the date. */
   .today-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-left: -0.5rem;
   }
 
   .today-back {
     all: unset;
+    box-sizing: border-box;
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
     color: hsl(5, 53%, 32%);
     cursor: pointer;
   }
@@ -254,11 +272,23 @@
     outline: 2px solid hsl(5, 53%, 32%);
   }
 
+  .today-heading {
+    min-width: 0;
+  }
+
   .today-title {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 800;
+    line-height: 1.2;
     color: hsl(0, 0%, 12%);
+  }
+
+  .today-date {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 40%);
   }
 
   .today-note {
@@ -328,23 +358,52 @@
   }
 
   .today-empty-plan {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin: auto 0;
+    padding: 2rem 1rem;
+    text-align: center;
+    color: hsl(0, 0%, 45%);
+  }
+
+  .today-empty-plan__title {
     margin: 0;
-    max-width: 52rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: hsl(0, 0%, 15%);
+  }
+
+  .today-empty-plan p {
+    margin: 0;
     font-size: 0.875rem;
     color: hsl(0, 0%, 35%);
   }
 
   .today-empty-plan button {
     all: unset;
-    margin-left: 0.25rem;
-    color: hsl(5, 53%, 32%);
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-top: 0.25rem;
+    padding: 0 1.125rem;
+    border-radius: 999px;
+    background: hsl(5, 53%, 32%);
+    color: #fff;
+    font-size: 0.875rem;
     font-weight: 700;
     cursor: pointer;
-    text-decoration: underline;
+  }
+
+  .today-empty-plan button:hover {
+    background: hsl(5, 53%, 38%);
   }
 
   .today-empty-plan button:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
   }
 
   .today-day {

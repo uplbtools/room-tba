@@ -8,10 +8,14 @@ describe("ChangelogModal", () => {
     syncToastStore.needRefresh = false;
   });
 
-  test("without a pending update: shows the full changelog inline and Close, no reload", () => {
+  test("without a pending update: shows the full changelog inline, no reload", () => {
     syncToastStore.needRefresh = false;
     render(ChangelogModal);
-    expect(screen.getByRole("button", { name: /close/i })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "What's new" }),
+    ).toBeVisible();
+    // The dialog's X is the one close; no second Close button in the body.
+    expect(screen.queryByRole("button", { name: /^close$/i })).toBeNull();
     // The changelog itself renders in the modal — no second click needed (#5).
     const versions = screen.getAllByRole("heading", { level: 3 });
     expect(versions.length).toBeGreaterThan(1);
@@ -19,6 +23,16 @@ describe("ChangelogModal", () => {
     expect(
       screen.queryByRole("button", { name: /reload to update/i }),
     ).toBeNull();
+  });
+
+  test("hides developer-only bullets", () => {
+    render(ChangelogModal);
+    const text = document.querySelector(
+      ".changelog-modal__scroll",
+    )?.textContent;
+    // Scope prefixes are gone and CI/test-only entries are filtered out.
+    expect(text).not.toMatch(/\b(transit|map|ci|e2e): /i);
+    expect(text).not.toMatch(/biome|semantic-release|pixel pass/i);
   });
 
   test("with a pending update: confirming reload calls syncToastStore.reload", async () => {

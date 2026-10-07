@@ -60,7 +60,7 @@ describe("AcademicCalendarScreen", () => {
   test("renders a dialog with the year strip, today marker, and in-session highlight", () => {
     render(AcademicCalendarScreen);
     expect(
-      screen.getByRole("dialog", { name: "Academic Calendar" }),
+      screen.getByRole("dialog", { name: "Academic calendar" }),
     ).toBeTruthy();
 
     const segments = document.querySelectorAll(".acal-seg");
@@ -72,6 +72,19 @@ describe("AcademicCalendarScreen", () => {
       document.querySelector(".acal-seg--in-session")?.textContent,
     ).toContain("2nd sem");
     expect(document.querySelector(".acal-today")).toBeTruthy();
+  });
+
+  test("explains the strip's dots and keeps the caveat collapsed", () => {
+    render(AcademicCalendarScreen);
+    const legend = screen.getByRole("list", { name: "Timeline legend" });
+    for (const label of ["Deadline", "Period", "Holiday", "same spot"]) {
+      expect(legend.textContent).toContain(label);
+    }
+    expect(
+      screen
+        .getByText("May differ from the official UPLB academic calendar")
+        .closest("details"),
+    ).not.toHaveAttribute("open");
   });
 
   test("lists every active term with CRS id, date range, class count, and status", () => {
@@ -94,9 +107,10 @@ describe("AcademicCalendarScreen", () => {
 
   test("shows the community-data disclaimer", () => {
     render(AcademicCalendarScreen);
-    expect(screen.getByRole("note").textContent).toContain(
-      "official UPLB academic calendar",
-    );
+    expect(
+      screen.getByText("May differ from the official UPLB academic calendar"),
+    ).toBeTruthy();
+    expect(screen.getByRole("note").textContent).toContain("Registrar");
   });
 
   test("says so plainly for an AY with no published registrar calendar", () => {

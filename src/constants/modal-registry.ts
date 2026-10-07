@@ -51,7 +51,7 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     component: LandingModal,
     size: "showcase",
     labelledBy: "landing-modal-title",
-    showClose: false,
+    closeLabel: "Close about Room TBA",
     focusDialog: true,
   },
   "schedule-expand": {
@@ -80,9 +80,11 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     label: "What's new",
     closeLabel: "Close changelog",
   },
+  // Sized to its content: an empty or short list must not open a full-height
+  // sheet over the bottom nav.
   announcements: {
     component: AnnouncementsModal,
-    size: "large",
+    size: "reading",
     label: "Announcements",
     closeLabel: "Close announcements",
   },

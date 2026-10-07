@@ -174,6 +174,15 @@ describe("parseHolidays", () => {
       false,
     );
   });
+  it("restores the tilde pdftotext drops from Los Baños", () => {
+    const text = [
+      "OFFICIAL HOLIDAYS*",
+      "      Saturday          17 September    Los Banos Day",
+    ].join("\n");
+    expect(parseHolidays(text).map((holiday) => holiday.label)).toEqual([
+      "Los Baños Day",
+    ]);
+  });
 });
 
 describe("parseAcademicCalendar", () => {

@@ -89,6 +89,86 @@ export function parseChangelogEntries(markdown: string): ChangelogEntry[] {
   return entries.filter((e) => e.sections.some((s) => s.items.length > 0));
 }
 
+/** Commit scopes that describe the repo (tests, CI, tooling), not the app. */
+const INTERNAL_SCOPES = new Set([
+  "agent-tooling",
+  "backup",
+  "batch",
+  "build",
+  "chore",
+  "ci",
+  "db",
+  "deps",
+  "docs",
+  "e2e",
+  "e2e-reset",
+  "infra",
+  "lint",
+  "ops",
+  "refactor",
+  "scripts",
+  "store",
+  "test",
+  "tests",
+  "tsconfig",
+]);
+
+/** Clause-level developer jargon ("mobile pixel pass", "spec label drift"). */
+const JARGON =
+  /(?<![\w-])(e2e|specs?|(test )?suite|lint|biome|tsc|typecheck|refactor|chore|ci|vitest|playwright|pixel pass|flaky|fixtures?|deps)\b/i;
+
+const SECTION_TITLES: Record<string, string> = {
+  "Bug Fixes": "Fixes",
+  Features: "New",
+  "Performance Improvements": "Faster",
+};
+
+/**
+ * Reword one bullet for students, or null when it is developer-only. Drops
+ * the "scope:" prefix, entries whose scopes are all internal, and jargon
+ * clauses inside an otherwise user-facing summary.
+ */
+export function userFacingItem(item: string): string | null {
+  const scoped = item.match(/^([\w.,+/-]+):\s+(.+)$/);
+  let text = item;
+  if (scoped?.[1] && scoped[2]) {
+    const scopes = scoped[1].split(/[+,/]/);
+    if (scopes.every((scope) => INTERNAL_SCOPES.has(scope))) return null;
+    text = scoped[2];
+  }
+  // sanitizeBullet strips the issue links, leaving a bare "closes" tail.
+  const clauses = text.replace(/\s,\s*closes$/i, "").split(/(?<=[,;])\s+/);
+  // The lead clause carries the meaning; jargon there means the whole entry
+  // is developer-facing. Later jargon clauses are trimmed off.
+  if (!clauses[0] || JARGON.test(clauses[0])) return null;
+  const kept = clauses
+    .filter((clause) => !JARGON.test(clause))
+    .join(" ")
+    .replace(/[,;]\s*$/, "")
+    .trim();
+  return kept.charAt(0).toUpperCase() + kept.slice(1);
+}
+
+/**
+ * The in-app "What's new" view: the same releases, minus developer-only
+ * bullets, with plain section names. CHANGELOG.md itself is untouched.
+ */
+export function userFacingEntries(entries: ChangelogEntry[]): ChangelogEntry[] {
+  return entries
+    .map((entry) => ({
+      ...entry,
+      sections: entry.sections
+        .map((section) => ({
+          title: SECTION_TITLES[section.title] ?? section.title,
+          items: section.items
+            .map(userFacingItem)
+            .filter((item): item is string => item !== null),
+        }))
+        .filter((section) => section.items.length > 0),
+    }))
+    .filter((entry) => entry.sections.length > 0);
+}
+
 /** Compare dotted numeric versions ("1.31.1"); returns <0, 0, or >0. */
 function compareVersions(a: string, b: string): number {
   const parse = (v: string) =>

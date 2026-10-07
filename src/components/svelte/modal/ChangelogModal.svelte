@@ -1,13 +1,19 @@
 <script lang="ts">
   import { RefreshCw } from "@lucide/svelte";
   import { syncToastStore, modalStore } from "@lib/store.svelte";
-  import { APP_VERSION_LABEL } from "@constants/version";
-  import { parseChangelogEntries } from "@lib/changelog-highlights";
+  import {
+    parseChangelogEntries,
+    userFacingEntries,
+  } from "@lib/changelog-highlights";
   import { releaseTimestampLabel } from "@lib/release-timestamps";
   import changelogRaw from "../../../../CHANGELOG.md?raw";
   import FollowUpdates from "@ui/community/FollowUpdates.svelte";
 
-  const entries = $derived(parseChangelogEntries(changelogRaw));
+  // Developer-only bullets (CI, tests, refactors) are hidden here; the raw
+  // history stays on /changelog.
+  const entries = $derived(
+    userFacingEntries(parseChangelogEntries(changelogRaw)),
+  );
   const hasUpdate = $derived(syncToastStore.needRefresh);
 
   let reloading = $state(false);
@@ -21,9 +27,7 @@
 
 <div class="changelog-modal">
   <header class="changelog-modal__header">
-    <p class="changelog-modal__version">
-      Room TBA {APP_VERSION_LABEL}
-    </p>
+    <h2 class="changelog-modal__title">What's new</h2>
     {#if hasUpdate}
       <p class="changelog-modal__lead">
         A new version is ready. Review what changed, then reload to update.
@@ -61,16 +65,18 @@
         {/each}
       </section>
     {/each}
+
+    <!-- Inside the scroller so it does not eat a third of a phone screen. -->
+    <div class="changelog-modal__follow">
+      <FollowUpdates
+        note="These notes also go out on Facebook and Instagram, along with term schedule drops and data fixes that ship without a release."
+      />
+    </div>
   </div>
 
-  <div class="changelog-modal__follow">
-    <FollowUpdates
-      note="These notes also go out on Facebook and Instagram, along with term schedule drops and data fixes that ship without a release."
-    />
-  </div>
-
-  <div class="changelog-modal__actions">
-    {#if hasUpdate}
+  <!-- The dialog's X already closes; only a pending update needs a choice. -->
+  {#if hasUpdate}
+    <div class="changelog-modal__actions">
       <button
         type="button"
         class="changelog-modal__btn changelog-modal__btn--secondary"
@@ -91,16 +97,8 @@
         />
         {reloading ? "Reloading…" : "Reload to update"}
       </button>
-    {:else}
-      <button
-        type="button"
-        class="changelog-modal__btn changelog-modal__btn--primary"
-        onclick={() => modalStore.closeModal()}
-      >
-        Close
-      </button>
-    {/if}
-  </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -120,7 +118,7 @@
     padding-right: 2.25rem;
   }
 
-  .changelog-modal__version {
+  .changelog-modal__title {
     margin: 0;
     font-size: 1rem;
     font-weight: 700;
@@ -152,7 +150,7 @@
     padding-bottom: 0.875rem;
   }
 
-  .changelog-modal__entry:last-child {
+  .changelog-modal__entry:last-of-type {
     border-bottom: none;
   }
 
@@ -194,7 +192,7 @@
   }
 
   .changelog-modal__follow {
-    padding-top: 0.625rem;
+    padding: 0.625rem 0 0.5rem;
     border-top: 1px solid hsl(0, 0%, 92%);
   }
 
