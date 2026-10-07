@@ -1,8 +1,20 @@
+<script lang="ts" module>
+  export type MapControlsController = {
+    /** Degrees clockwise from north, like `map.getBearing()`. */
+    readonly bearing: number;
+    resetNorth: () => void;
+    zoomBy: (delta: number) => void;
+    recenter: () => void;
+    exitTo2D: () => void;
+  };
+</script>
+
 <script lang="ts">
   import { onMount } from "svelte";
   import Locate from "@lucide/svelte/icons/locate";
   import LocateFixed from "@lucide/svelte/icons/locate-fixed";
   import Satellite from "@lucide/svelte/icons/satellite";
+  import Focus from "@lucide/svelte/icons/focus";
   import {
     enterFlatMapDimension,
     enterTiltedMapDimension,
@@ -29,9 +41,15 @@
      * two-finger twist can always be undone with one tap.
      */
     hideCompass?: boolean;
+    /**
+     * Drive the stack from a camera other than the main MapLibre map (the 3D
+     * building viewer's three.js scene). Location and satellite hide, the
+     * locate slot becomes "recenter", and the 2D button exits that view.
+     */
+    controller?: MapControlsController;
   };
 
-  let { hideCompass = false }: Props = $props();
+  let { hideCompass = false, controller }: Props = $props();
 
   let bearing = $state(0);
   /** Until the map reports its camera, the bearing above is a placeholder. */
@@ -48,7 +66,7 @@
       : "Switch to satellite imagery",
   );
   /** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
-  const northRotation = $derived(-bearing);
+  const northRotation = $derived(-(controller?.bearing ?? bearing));
   /**
    * Mobile resets to the campus default view, which is itself rotated, so
    * "rotated" means away from that bearing (folded into -180..180; a degree
@@ -61,7 +79,11 @@
   // On phones the compass only appears once the real camera is known: before
   // the map loaded, the placeholder bearing read as "rotated" and the compass
   // flashed up over a blank map.
-  const showCompass = $derived(!hideCompass || (cameraKnown && rotated));
+  const showCompass = $derived(
+    Boolean(controller) || !hideCompass || (cameraKnown && rotated),
+  );
+  /** Round 44px phone styling; the 3D viewer is a touch surface everywhere. */
+  const roundStyle = $derived(hideCompass || Boolean(controller));
 
   onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
 
@@ -89,6 +111,7 @@
   });
 
   function resetNorth() {
+    if (controller) return controller.resetNorth();
     mapStore.mapInstance?.easeTo({ bearing: homeBearing, duration: 400 });
   }
 
@@ -129,6 +152,7 @@
   }
 
   function zoomBy(delta: number) {
+    if (controller) return controller.zoomBy(delta);
     const map = mapStore.mapInstance;
     if (!map) return;
     map.easeTo({ zoom: map.getZoom() + delta, duration: 200 });
@@ -137,14 +161,14 @@
 
 <div
   class="map-controls-stack"
-  class:map-controls-stack--mobile={hideCompass}
+  class:map-controls-stack--mobile={roundStyle}
   aria-label="Map controls"
 >
   {#if showCompass}
     <button
       type="button"
       class="map-ctrl map-ctrl--compass"
-      class:map-ctrl--compass-mobile={hideCompass}
+      class:map-ctrl--compass-mobile={hideCompass && !controller}
       aria-label={hideCompass ? "Reset map rotation" : "Reset map north"}
       title={hideCompass ? "Reset rotation" : "Reset north"}
       onclick={resetNorth}
@@ -162,6 +186,26 @@
     </button>
   {/if}
 
+  {#if controller}
+    <button
+      type="button"
+      class="map-ctrl map-ctrl--round"
+      aria-label="Recenter building"
+      title="Recenter"
+      onclick={controller.recenter}
+    >
+      <Focus size={18} aria-hidden="true" />
+    </button>
+    <button
+      type="button"
+      class="map-ctrl map-ctrl--label map-ctrl--round"
+      aria-label="Exit 3D view to the 2D map"
+      title="2D map"
+      onclick={controller.exitTo2D}
+    >
+      2D
+    </button>
+  {:else}
   <button
     type="button"
     class="map-ctrl"
@@ -204,6 +248,7 @@
     >
       <Satellite size={18} aria-hidden="true" />
     </button>
+  {/if}
   {/if}
 
   <div class="map-ctrl-zoom" role="group" aria-label="Zoom">
