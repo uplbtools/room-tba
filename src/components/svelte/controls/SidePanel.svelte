@@ -88,6 +88,17 @@
     resolvePanelContent(sidePanelStore.state, queryStore.category),
   );
 
+  /** Browse lists (colleges, orgs, classes, events) are a destination picked
+      from the menu, not entity details: their sheet stops above the bottom
+      nav (and the FAB overhanging it) so the tabs and menu stay reachable. */
+  const browseSheet = $derived(
+    !directionsStore.active &&
+      jeepneyStore.selectedStopIndex === null &&
+      (queryStore.category === "browse" ||
+        queryStore.category === "classes" ||
+        queryStore.category === "events"),
+  );
+
   const panelOpen = $derived(
     PanelContent !== null ||
       jeepneyStore.selectedStopIndex !== null ||
@@ -176,7 +187,9 @@
       ? undefined
       : ".entity-actions, .sk-detail__actions"}
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
-    bottomInset="0px"
+    bottomInset={browseSheet
+      ? "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)"
+      : "0px"}
     onDismiss={dismissMobileSheet}
   >
     {@render panelBody()}

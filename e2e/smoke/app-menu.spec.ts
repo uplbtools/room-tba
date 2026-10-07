@@ -8,13 +8,14 @@ test.describe("App Menu", () => {
     await waitForAppBoot(page);
 
     const menu = await openAppMenu(page);
-    await menu.locator("summary").filter({ hasText: "Community" }).click();
     await expect(
       menu.getByRole("button", { name: /leaderboard/i }),
     ).toBeVisible();
-    await expect(
-      menu.getByRole("button", { name: "Contributor sign in" }),
-    ).toBeVisible();
+    // One Sign in per layout: the menu row on phones, the top-bar button on
+    // desktop (the menu then leaves it out).
+    const signIn = page.getByRole("button", { name: /^sign in$/i });
+    await expect(signIn).toHaveCount(1);
+    await expect(signIn).toBeVisible();
   });
 
   test("opens the contributor leaderboard", async ({ page }) => {
@@ -22,7 +23,6 @@ test.describe("App Menu", () => {
     await waitForAppBoot(page);
 
     const menu = await openAppMenu(page);
-    await menu.locator("summary").filter({ hasText: "Community" }).click();
     await menu.getByRole("button", { name: /leaderboard/i }).click();
     await expect(
       page.getByRole("dialog", { name: "Contributor leaderboard" }),
@@ -45,26 +45,25 @@ test.describe("App Menu", () => {
     expect(await versions.count()).toBeGreaterThan(1);
   });
 
-  test("shows the live presence counter", async ({ page }) => {
+  test("keeps live presence in the footer, never as a placeholder", async ({
+    page,
+  }) => {
     await page.goto("/");
     await waitForAppBoot(page);
     const menu = await openAppMenu(page);
-    // Renders "--" until the first heartbeat lands; either way the counter
-    // must be mounted, it vanished silently in the Aug 2026 redesign.
-    const counter = menu.locator(".online-counter");
-    await expect(counter).toBeVisible();
 
-    // Presence and sign-in share one row instead of stacking (user feedback:
-    // the stacked header wasted vertical space).
-    const signIn = menu.getByRole("button", { name: "Contributor sign in" });
-    const [counterBox, signInBox] = await Promise.all([
-      counter.boundingBox(),
-      signIn.boundingBox(),
-    ]);
-    expect(counterBox && signInBox).toBeTruthy();
-    const mid = (b: { y: number; height: number }) => b.y + b.height / 2;
-    expect(Math.abs(mid(counterBox!) - mid(signInBox!))).toBeLessThan(8);
-    expect(counterBox!.x).toBeGreaterThan(signInBox!.x + signInBox!.width);
+    // Hidden until someone besides you is online ("--" and "1 online" read
+    // as a dead app); when shown it is a status line in the footer, not the
+    // first row.
+    await expect(menu.getByText("--", { exact: true })).toHaveCount(0);
+    const counters = menu.locator(".online-counter");
+    await expect(counters).toHaveCount(
+      await menu.locator(".app-menu__footer .online-counter").count(),
+    );
+    if ((await counters.count()) > 0) {
+      await expect(counters).toHaveRole("status");
+      await expect(counters).toHaveText(/\d+ people online now/);
+    }
   });
 
   test("Settings opens from the support section", async ({ page }) => {

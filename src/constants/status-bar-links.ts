@@ -6,7 +6,7 @@ import {
 } from "@constants/community-links";
 
 /** Icon keys resolved in StatusBarLinkGroup — add new icons there when extending. */
-export type StatusBarIcon = "external" | "discord" | "messenger" | "version";
+export type StatusBarIcon = "external" | "discord" | "messenger";
 
 export type StatusBarLinkItem = {
   kind: "link";
@@ -19,7 +19,7 @@ export type StatusBarLinkItem = {
 
 export type StatusBarActionItem = {
   kind: "action";
-  id: "contributors" | "editor-login" | "leaderboard" | "sign-up";
+  id: "contributors" | "leaderboard";
   label: string;
 };
 
@@ -27,6 +27,8 @@ export type StatusBarNavItem = StatusBarLinkItem | StatusBarActionItem;
 
 export type StatusBarNavGroup = {
   id: string;
+  /** Optional sub-heading shown above the group's rows. */
+  label?: string;
   items: StatusBarNavItem[];
 };
 
@@ -61,17 +63,18 @@ export const STATUS_BAR_COMMUNITY_GROUP: StatusBarNavGroup = {
   ],
 };
 
-/** In-app actions (rendered via StatusBar action handler). */
+/** In-app actions (rendered via the App menu's action handler). Sign in and
+    sign up are not here: the menu header carries the one sign-in row, and
+    the sign-in dialog has its own "Sign up" toggle. */
 export const STATUS_BAR_APP_ACTIONS: StatusBarActionItem[] = [
   { kind: "action", id: "contributors", label: "Contributors" },
   { kind: "action", id: "leaderboard", label: "Leaderboard" },
-  { kind: "action", id: "sign-up", label: "Sign up to contribute" },
-  { kind: "action", id: "editor-login", label: "Editor sign in" },
 ];
 
 /** Similar campus map initiatives (#108). */
 export const STATUS_BAR_SIMILAR_PROJECTS_GROUP: StatusBarNavGroup = {
   id: "similar",
+  label: "Similar maps",
   items: [
     {
       kind: "link",
@@ -100,51 +103,19 @@ export const STATUS_BAR_SIMILAR_PROJECTS_GROUP: StatusBarNavGroup = {
   ],
 };
 
-/** Legal + release metadata links. */
-export function buildStatusBarMetaGroup(
-  versionLabel: string,
-): StatusBarNavGroup {
-  return {
-    id: "meta",
-    items: [
-      ...LEGAL_LINKS.map((link) => ({
-        kind: "link" as const,
-        id: link.href,
-        label: link.label,
-        href: link.href,
-      })),
-      {
-        kind: "link",
-        id: "changelog",
-        label: versionLabel,
-        href: "/changelog",
-        icon: "version",
-      },
-    ],
-  };
-}
+/** Legal links for the menu footer. FAQ is left out: "Help & FAQ" is a row. */
+export const STATUS_BAR_LEGAL_LINKS = LEGAL_LINKS.filter(
+  (link) => link.href !== "/faq",
+);
 
-/** Groups shown in the expanded status panel (order matters). */
-export function statusBarNavGroups(options: {
-  versionLabel: string;
-  showEditorLogin: boolean;
-}): StatusBarNavGroup[] {
-  const action = (id: StatusBarActionItem["id"]) =>
-    STATUS_BAR_APP_ACTIONS.find((a) => a.id === id)!;
-  // One Messenger entry total — the community group already links Messenger;
-  // maintainer chat stays discoverable in the Campus team modal.
-  const appItems: StatusBarNavItem[] = [
-    action("contributors"),
-    action("leaderboard"),
-    ...(options.showEditorLogin
-      ? [action("sign-up"), action("editor-login")]
-      : []),
-  ];
-
+/** Groups shown as rows in the App menu (order matters). The release version
+    is not linked here: "What's new" opens the same changelog. */
+export function statusBarNavGroups(): StatusBarNavGroup[] {
   return [
-    STATUS_BAR_COMMUNITY_GROUP,
+    {
+      id: "community",
+      items: [...STATUS_BAR_APP_ACTIONS, ...STATUS_BAR_COMMUNITY_GROUP.items],
+    },
     STATUS_BAR_SIMILAR_PROJECTS_GROUP,
-    { id: "app", items: appItems },
-    buildStatusBarMetaGroup(options.versionLabel),
   ];
 }

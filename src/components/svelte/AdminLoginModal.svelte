@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fade, fly } from "svelte/transition";
-  import { X, Lock } from "@lucide/svelte";
+  import { X, Lock, Eye, EyeOff } from "@lucide/svelte";
   import IconButton from "@ui/IconButton.svelte";
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
   import {
@@ -42,8 +42,9 @@
 
   let loginFrameEl = $state<HTMLDivElement | null>(null);
   let mode = $state<Mode>("signin");
-  let username = $state("admin");
+  let username = $state("");
   let password = $state("");
+  let showPassword = $state(false);
   let confirmPassword = $state("");
   let signupEmail = $state("");
   let error: string | null = $state(null);
@@ -64,6 +65,7 @@
     error = null;
     password = "";
     confirmPassword = "";
+    showPassword = false;
     if (next === "signup") username = "";
   }
 
@@ -208,7 +210,7 @@
       <div class="login-title" id="admin-login-title">
         <Lock size={16} aria-hidden="true" />
         <span>
-          {isSignup ? "Create contributor account" : "Contributor sign in"}
+          {isSignup ? "Create contributor account" : "Sign in"}
         </span>
       </div>
       <IconButton size="sm" shape="rounded" label="Close login" onclick={close}>
@@ -242,16 +244,33 @@
         </EntityEditorFormField>
         <EntityEditorFormField label="Password" inputId="admin-login-password">
           {#snippet control()}
-            <input
-              id="admin-login-password"
-              type="password"
-              autocomplete={isSignup ? "new-password" : "current-password"}
-              minlength={isSignup ? MIN_CONTRIBUTOR_PASSWORD_LENGTH : undefined}
-              bind:value={password}
-              required
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? loginErrorId : undefined}
-            />
+            <span class="login-password">
+              <input
+                id="admin-login-password"
+                type={showPassword ? "text" : "password"}
+                autocomplete={isSignup ? "new-password" : "current-password"}
+                minlength={isSignup
+                  ? MIN_CONTRIBUTOR_PASSWORD_LENGTH
+                  : undefined}
+                bind:value={password}
+                required
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? loginErrorId : undefined}
+              />
+              <button
+                type="button"
+                class="login-password-toggle"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                onclick={() => (showPassword = !showPassword)}
+              >
+                {#if showPassword}
+                  <EyeOff size={18} aria-hidden="true" />
+                {:else}
+                  <Eye size={18} aria-hidden="true" />
+                {/if}
+              </button>
+            </span>
           {/snippet}
         </EntityEditorFormField>
         {#if isSignup}
@@ -316,7 +335,6 @@
           label={isSignup ? "Create account" : "Sign in"}
           savingLabel={isSignup ? "Creating account…" : "Signing in…"}
           saving={adminAuthStore.loading}
-          disabled={turnstileEnabled && !turnstileToken}
         />
         <p class="login-mode-toggle">
           {#if isSignup}
@@ -477,6 +495,36 @@
   }
   .login-body :global(.entity-editor-submit) {
     width: 100%;
+  }
+  .login-password {
+    position: relative;
+    display: block;
+  }
+  .login-password input {
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: 2.75rem;
+  }
+  .login-password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: hsl(0, 0%, 38%);
+    cursor: pointer;
+    transform: translateY(-50%);
+  }
+  .login-password-toggle:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: -4px;
+    border-radius: 0.5rem;
   }
   .login-lead {
     margin: 0 0 0.25rem;
