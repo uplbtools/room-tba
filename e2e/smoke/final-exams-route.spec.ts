@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { suppressLandingModal, waitForAppBoot } from "../helpers/app";
-import { openAppMenu } from "../helpers/map-tools";
+import { openDestination } from "../helpers/map-tools";
 
 // /final-exams is a deep link that must open the Final Exams screen directly.
 // Same trap set as /planner: bare island props, trailing slash, SW denylist
@@ -34,8 +34,7 @@ test.describe("final exams route", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const menu = await openAppMenu(page);
-    await menu.getByRole("button", { name: "Final exams" }).click();
+    await openDestination(page, /^final exams$/i);
     await expect(
       page.getByRole("dialog", { name: "Final Exams" }),
     ).toBeVisible();

@@ -6,7 +6,36 @@ export async function openAppMenu(page: Page): Promise<Locator> {
   await trigger.click({ force: true });
   const menu = page.getByRole("dialog", { name: "App menu" });
   await expect(menu).toBeVisible();
+  await settleAnimations(menu);
   return menu;
+}
+
+/** Wait for the menu's open transition, so boxes and clicks see its resting place. */
+export async function settleAnimations(locator: Locator): Promise<void> {
+  await locator.evaluate((el) =>
+    Promise.all(
+      el
+        .getAnimations({ subtree: true })
+        .map((a) => a.finished.catch(() => {})),
+    ),
+  );
+}
+
+/**
+ * Open a destination the way a person would: its Primary tab when the layout
+ * has one (the bottom nav on phones, the top bar on desktop), else its App
+ * menu row. The menu leaves out what the host's tabs already show.
+ */
+export async function openDestination(page: Page, name: RegExp): Promise<void> {
+  const tab = page
+    .getByRole("navigation", { name: "Primary" })
+    .getByRole("button", { name });
+  if (await tab.count()) {
+    await tab.first().click();
+    return;
+  }
+  const menu = await openAppMenu(page);
+  await menu.getByRole("button", { name }).click();
 }
 
 export async function openCampusDirectory(

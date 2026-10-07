@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
+import { settleAnimations } from "../helpers/map-tools";
 
 // Today, the academic calendar and every App-menu destination lost their only
 // entry point when the rail Sidebar stopped rendering and AppMenu was commented
@@ -13,6 +14,7 @@ async function openMenu(page: Page) {
   await trigger.click({ force: true });
   const panel = page.getByRole("dialog", { name: /^app menu$/i });
   await expect(panel).toBeVisible();
+  await settleAnimations(panel);
   return panel;
 }
 
