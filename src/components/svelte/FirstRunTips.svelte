@@ -10,7 +10,7 @@
   const { ondismiss, onguide }: Props = $props();
 
   const TIPS = [
-    "Search a room, building, or course code like CMSC 12.",
+    "Search a room, building, or course code like CMSC\u00a012.",
     "Tap a pin for details and walking directions.",
     "Add classes in the Planner and their buildings show on the map.",
   ];

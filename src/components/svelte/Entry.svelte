@@ -527,7 +527,9 @@
       : "screen"}
   />
   {#if sidebarStore.panelOpen === "map"}
-    {#if firstRunTipsOpen && !modalStore.open}
+    <!-- Steps aside while a sheet or form is up instead of covering it; it
+         returns when the map is idle again until "Got it". -->
+    {#if firstRunTipsOpen && !modalStore.open && !sidePanelStore.active && !editorChromeStore.additionModalOpen}
       <FirstRunTips
         ondismiss={dismissFirstRunTips}
         onguide={() => {

@@ -72,6 +72,15 @@
     bottom: calc(var(--mobile-bottom-nav-height, 0px) + 0.75rem);
   }
 
+  /* Desktop: the top bar and filter chips fill the top edge; bottom centre
+     sits clear of them, the controls and the attribution. */
+  @media (min-width: 48rem) {
+    .offline-banner {
+      top: auto;
+      bottom: 2.5rem;
+    }
+  }
+
   .offline-banner__text {
     min-width: 0;
   }

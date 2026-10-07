@@ -116,8 +116,8 @@ export default defineConfig({
               /^\/(planner|today|final-exams|calendar)\/?$/.test(url.pathname),
             handler: "NetworkOnly",
             options: {
-              networkTimeoutSeconds: 8,
-              precacheFallback: { fallbackURL: "/index.html" },
+              // The Astro integration precaches index.html as "/".
+              precacheFallback: { fallbackURL: "/" },
             },
           },
           {
