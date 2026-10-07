@@ -6,10 +6,18 @@
     closeAriaLabel: string;
     closeTitle?: string;
     onclose: () => void;
+    /** Show the close button on mobile sheets too (browse lists). */
+    closeOnMobile?: boolean;
     trailing?: Snippet;
   };
 
-  let { closeAriaLabel, closeTitle, onclose, trailing }: Props = $props();
+  let {
+    closeAriaLabel,
+    closeTitle,
+    onclose,
+    closeOnMobile = false,
+    trailing,
+  }: Props = $props();
 </script>
 
 <header class="entity-panel-header">
@@ -18,6 +26,7 @@
       ariaLabel={closeAriaLabel}
       title={closeTitle}
       onclick={onclose}
+      showOnMobile={closeOnMobile}
     />
     <div class="entity-panel-header-content">
       {@render trailing?.()}

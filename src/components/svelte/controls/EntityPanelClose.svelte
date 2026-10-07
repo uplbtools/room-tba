@@ -5,14 +5,18 @@
     ariaLabel: string;
     title?: string;
     onclick: () => void;
+    /** Keep the button on mobile sheets too (browse lists). */
+    showOnMobile?: boolean;
   };
 
-  let { ariaLabel, title = ariaLabel, onclick }: Props = $props();
+  let { ariaLabel, title = ariaLabel, onclick, showOnMobile = false }: Props =
+    $props();
 </script>
 
 <button
   type="button"
   class="entity-panel-close"
+  class:entity-panel-close--mobile={showOnMobile}
   aria-label={ariaLabel}
   {title}
   {onclick}
@@ -28,6 +32,23 @@
      a second Close button reads as a duplicate affordance. Desktop keeps it —
      the pinned drawer has no swipe gesture. */
   :global(.app-layout:not(.redesign-desktop)) .entity-panel-close {
+    display: none;
+  }
+
+  /* Browse lists opened from the App menu are the exception: nothing on the
+     sheet says it can be swiped away, so they keep an icon-only X. */
+  :global(.app-layout:not(.redesign-desktop))
+    .entity-panel-close.entity-panel-close--mobile {
+    display: inline-flex;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    color: hsl(0, 0%, 30%);
+  }
+
+  :global(.app-layout:not(.redesign-desktop))
+    .entity-panel-close--mobile
+    span {
     display: none;
   }
 </style>

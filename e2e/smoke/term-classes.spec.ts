@@ -11,7 +11,9 @@ test.describe("term and classes", () => {
 
   test("term selector visible", async ({ page }) => {
     await openCampusDirectory(page, "classes");
-    await expect(page.getByText(/All classes/i).first()).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "Classes", exact: true }).first(),
+    ).toBeVisible({
       timeout: 10_000,
     });
     await expect(

@@ -8,27 +8,30 @@ import { openSettingsModal } from "../helpers/map-tools";
  * handling) without depending on the shared E2E database.
  */
 test.describe("feedback box @advisory", () => {
+  // Settings links to the one feedback dialog instead of embedding a copy.
   async function openFeedback(page: import("@playwright/test").Page) {
     await page.goto("/");
     await waitForAppBoot(page);
-    return openSettingsModal(page);
+    const settings = await openSettingsModal(page);
+    await settings.getByRole("button", { name: "Send feedback" }).click();
+    const dialog = page.getByRole("dialog", { name: "Send feedback" });
+    await expect(dialog).toBeVisible();
+    return dialog;
   }
 
-  test("settings exposes the box, both community links, and the attached note", async ({
+  test("settings opens the box, both community links, and the attached note", async ({
     page,
   }) => {
-    const settings = await openFeedback(page);
+    const dialog = await openFeedback(page);
 
     await expect(
-      settings.getByRole("heading", { name: "Feedback" }),
+      dialog.getByRole("heading", { name: "Send feedback" }),
     ).toBeVisible();
-    await expect(settings.getByLabel("Your message")).toBeVisible();
-    await expect(settings.getByLabel("Contact (optional)")).toBeVisible();
-    await expect(settings.getByText(/Sent with your message/i)).toBeVisible();
-    await expect(
-      settings.getByRole("link", { name: "Messenger" }),
-    ).toBeVisible();
-    await expect(settings.getByRole("link", { name: "Discord" })).toBeVisible();
+    await expect(dialog.getByLabel("Your message")).toBeVisible();
+    await expect(dialog.getByLabel("Contact (optional)")).toBeVisible();
+    await expect(dialog.getByText(/Sent with your message/i)).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "Messenger" })).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "Discord" })).toBeVisible();
   });
 
   test("a failed send keeps the typed message so it can be retried", async ({
@@ -44,12 +47,12 @@ test.describe("feedback box @advisory", () => {
       }),
     );
 
-    const settings = await openFeedback(page);
-    const box = settings.getByLabel("Your message");
+    const dialog = await openFeedback(page);
+    const box = dialog.getByLabel("Your message");
     await box.fill("advisory spec: the map is blank");
-    await settings.getByRole("button", { name: "Send feedback" }).click();
+    await dialog.getByRole("button", { name: "Send feedback" }).click();
 
-    await expect(settings.getByRole("alert")).toContainText(/could not send/i);
+    await expect(dialog.getByRole("alert")).toContainText(/could not send/i);
     await expect(box).toHaveValue("advisory spec: the map is blank");
 
     await page.unroute("**/api/feedback");
@@ -60,7 +63,7 @@ test.describe("feedback box @advisory", () => {
         body: JSON.stringify({ success: true }),
       }),
     );
-    await settings.getByRole("button", { name: "Send feedback" }).click();
-    await expect(settings.getByText(/Sent\. Thank you/i)).toBeVisible();
+    await dialog.getByRole("button", { name: "Send feedback" }).click();
+    await expect(dialog.getByText(/Sent\. Thank you/i)).toBeVisible();
   });
 });

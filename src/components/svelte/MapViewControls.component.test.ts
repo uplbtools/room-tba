@@ -70,3 +70,36 @@ describe("MapViewControls camera details toggle", () => {
     expect(mapViewStore.cameraDebug).toBe(true);
   });
 });
+
+describe("MapViewControls settings rows", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    plannerStore.plans = [];
+    plannerStore.activePlanIdByTerm = {};
+    mapViewStore.showAll();
+    mapViewStore.cameraDebug = false;
+  });
+
+  test("on/off settings are switches and choices are segments at 320px", () => {
+    mountAtWidth(320);
+    render(MapViewControls, { props: { embedded: true, variant: "settings" } });
+
+    const camera = screen.getByRole("switch", { name: "Camera details" });
+    expect(camera.getAttribute("aria-checked")).toBe("false");
+    camera.click();
+    expect(mapViewStore.cameraDebug).toBe(true);
+
+    const myClasses = screen.getByRole("switch", {
+      name: "Highlight my class buildings",
+    }) as HTMLButtonElement;
+    expect(myClasses.disabled).toBe(true);
+
+    const pins = screen.getByRole("group", { name: "Pins" });
+    const events = screen.getByRole("button", { name: "Events only" });
+    expect(pins.contains(events)).toBe(true);
+    events.click();
+    expect(mapViewStore.eventsOnly).toBe(true);
+
+    expect(screen.getByRole("group", { name: "Map style" })).toBeTruthy();
+  });
+});

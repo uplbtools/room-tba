@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { getGlobalShortcutAction, isTypingTarget } from "./keyboard-shortcuts";
+import {
+  getGlobalShortcutAction,
+  getKeyboardShortcutGroups,
+  isApplePlatform,
+  isTypingTarget,
+} from "./keyboard-shortcuts";
 
 function mockElement(
   tagName: string,
@@ -66,5 +71,34 @@ describe("getGlobalShortcutAction", () => {
         target: mockElement("body"),
       }),
     ).toBe("open-term-picker");
+  });
+});
+
+describe("shortcut help content", () => {
+  test("detects Apple platforms from platform, client hints, or UA", () => {
+    expect(isApplePlatform({ platform: "MacIntel", userAgent: "" })).toBe(true);
+    expect(
+      isApplePlatform({
+        platform: "",
+        userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+      }),
+    ).toBe(true);
+    expect(
+      isApplePlatform({
+        platform: "Linux x86_64",
+        userAgent: "",
+        userAgentData: { platform: "macOS" },
+      }),
+    ).toBe(true);
+    expect(
+      isApplePlatform({ platform: "Win32", userAgent: "Windows NT" }),
+    ).toBe(false);
+  });
+
+  test("the help sheet does not list the key that opened it", () => {
+    const keys = getKeyboardShortcutGroups().flatMap((group) =>
+      group.items.flatMap((item) => [...item.keys]),
+    );
+    expect(keys).not.toContain("?");
   });
 });
