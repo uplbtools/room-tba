@@ -60,6 +60,7 @@
   import Redo2 from "@lucide/svelte/icons/redo-2";
   import PinGlyph from "./map/PinGlyph.svelte";
   import EventMapPin from "./map/EventMapPin.svelte";
+  import UserLocationMarker from "./map/UserLocationMarker.svelte";
   import ContributorDraftPinMarker from "./map/ContributorDraftPinMarker.svelte";
   import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
   import MapEntityPin from "./map/MapEntityPin.svelte";
@@ -3936,20 +3937,7 @@
         attributionControl={false}
       >
         {#if locationStore.coords}
-          <Marker lngLat={locationStore.coords}>
-            {#if directionsStore.navigating}
-              <!-- Heading arrow while navigating (#966); falls back to the
-                   plain dot when the device reports no heading. -->
-              <div
-                class="user-location-puck"
-                class:user-location-puck--heading={locationStore.bearing !==
-                  null}
-                style:--puck-rotation="{locationStore.bearing ?? 0}deg"
-              ></div>
-            {:else}
-              <div class="user-location-pin"></div>
-            {/if}
-          </Marker>
+          <UserLocationMarker lngLat={locationStore.coords} />
         {/if}
         {#if directionsStore.active}
           {#if directionsStore.originFixed && directionsStore.origin}
@@ -5036,60 +5024,6 @@
 
   .edit-dock-action.cancel:hover:not(:disabled) {
     background: #5f0d0f;
-  }
-
-  .user-location-pin {
-    width: 1rem;
-    height: 1rem;
-    background-color: #4285f4;
-    border: 3px solid white;
-    border-radius: 50%;
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    z-index: 70;
-  }
-
-  /* Navigation puck (#966): a white disc with a heading arrow, GMaps-style.
-     Without a heading the arrow is hidden and only the disc shows, so the
-     puck never points somewhere the device did not actually report. */
-  .user-location-puck {
-    position: relative;
-    z-index: 70;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
-  }
-
-  .user-location-puck::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 50%;
-    background: #4285f4;
-  }
-
-  .user-location-puck--heading::before {
-    /* Arrowhead pointing along the reported bearing. */
-    width: 0;
-    height: 0;
-    border-right: 0.4375rem solid transparent;
-    border-bottom: 0.75rem solid #4285f4;
-    border-left: 0.4375rem solid transparent;
-    border-radius: 0;
-    background: none;
-    rotate: var(--puck-rotation, 0deg);
-    transition: rotate 300ms linear;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .user-location-puck--heading::before {
-      transition: none;
-    }
   }
 
   .measure-waypoint {
