@@ -4,10 +4,8 @@
   import MapPinned from "@lucide/svelte/icons/map-pinned";
   import { jeepneyStore, modalStore, transitStore } from "@lib/store.svelte";
   import {
-    BUS_FARE_NOTE,
-    JEEPNEY_FARE_NOTE,
     JEEPNEY_RIDING_NOTES,
-    TOWN_JEEPNEY_FARE_NOTE,
+    ROUTE_BOARDING_NOTES,
     TOWN_JEEPNEY_RIDING_NOTES,
     TRANSIT_DATA_CREDIT,
     resolveRouteGeometry,
@@ -19,6 +17,7 @@
   import {
     distinctStopCount,
     isLoopRoute,
+    routeFareInfo,
     transitRouteKind,
     transitRouteNoun,
   } from "@lib/transit-route-kind";
@@ -54,13 +53,7 @@
   // Campus fares, tips and the transit-map credit are about campus jeeps;
   // buses and town jeeps get their own (or none).
   const kind = $derived(route ? transitRouteKind(route) : "campus");
-  const fareNote = $derived(
-    kind === "bus"
-      ? BUS_FARE_NOTE
-      : kind === "town"
-        ? TOWN_JEEPNEY_FARE_NOTE
-        : JEEPNEY_FARE_NOTE,
-  );
+  const fare = $derived(route ? routeFareInfo(route) : null);
   const ridingNotes = $derived(
     kind === "campus"
       ? JEEPNEY_RIDING_NOTES
@@ -141,21 +134,47 @@
     <div class="jeepney-modal__scroll">
       <p class="jeepney-modal__desc">{route.description}</p>
 
+      {#if ROUTE_BOARDING_NOTES[route.id]}
+        <p class="jeepney-modal__direction">{ROUTE_BOARDING_NOTES[route.id]}</p>
+      {/if}
+
       {#if route.directionNote}
         <p class="jeepney-modal__direction">{route.directionNote}</p>
       {/if}
 
-      <dl class="jeepney-modal__fare">
-        <div>
-          <dt>Regular fare</dt>
-          <dd>₱{route.fare.regular}</dd>
-        </div>
-        <div>
-          <dt>Student / PWD / senior</dt>
-          <dd>₱{route.fare.discounted}</dd>
-        </div>
-      </dl>
-      <p class="jeepney-modal__fare-note">{fareNote}</p>
+      {#if fare?.kind === "ticketed"}
+        <p class="jeepney-modal__ticketing">
+          Buy tickets on the
+          <a href={fare.ticketing.url} target="_blank" rel="noopener noreferrer"
+            >{fare.ticketing.operator} website</a
+          >, which also lists the current fare.
+        </p>
+      {:else if fare}
+        {#if fare.kind === "fixed" || fare.kind === "end-to-end"}
+          <dl class="jeepney-modal__fare">
+            <div>
+              <dt>{fare.kind === "end-to-end" ? "Whole route" : "Regular fare"}</dt>
+              <dd>₱{fare.fare.regular}</dd>
+            </div>
+            <div>
+              <dt>Student / PWD / senior</dt>
+              <dd>₱{fare.fare.discounted}</dd>
+            </div>
+          </dl>
+        {:else if fare.kind === "distance"}
+          <dl class="jeepney-modal__fare">
+            <div>
+              <dt>Minimum fare</dt>
+              <dd>₱{fare.minimum.regular}</dd>
+            </div>
+            <div>
+              <dt>Student / PWD / senior</dt>
+              <dd>₱{fare.minimum.discounted}</dd>
+            </div>
+          </dl>
+        {/if}
+        <p class="jeepney-modal__fare-note">{fare.note}</p>
+      {/if}
 
       {#if geometryNote}
         <p class="jeepney-modal__geometry-note">{geometryNote}</p>
@@ -346,6 +365,17 @@
     font-size: 1.25rem;
     font-weight: 700;
     color: hsl(5, 53%, 32%);
+  }
+
+  .jeepney-modal__ticketing {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+
+  .jeepney-modal__ticketing a {
+    color: hsl(5, 53%, 32%);
+    font-weight: 600;
   }
 
   .jeepney-modal__fare-note {

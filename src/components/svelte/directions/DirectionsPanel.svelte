@@ -353,7 +353,9 @@
       assume a {Math.round(JEEPNEY_WAIT_SECONDS / 60)} min wait and a {JEEPNEY_KPH}
       km/h average — there is no live tracking.
       {#if selected && rideLeg(selected)}
-        {JEEPNEY_FARE_NOTE}
+        {selected.fare
+          ? JEEPNEY_FARE_NOTE
+          : "Town jeep fares depend on distance; ask the driver."}
       {/if}
     </p>
   {/if}

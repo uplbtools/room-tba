@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   distinctStopCount,
   isLoopRoute,
+  perBoardingFare,
+  routeFareInfo,
   transitRouteKind,
   transitRouteNoun,
   transitStopNoun,
@@ -71,5 +73,55 @@ describe("isLoopRoute", () => {
     };
     expect(isLoopRoute(route)).toBe(false);
     expect(distinctStopCount(route)).toBe(3);
+  });
+});
+
+describe("routeFareInfo", () => {
+  test("campus jeeps quote the verified flat fare", () => {
+    const info = routeFareInfo({ id: "kaliwa-kanan", name: "Kaliwa / Kanan" });
+    expect(info).toMatchObject({
+      kind: "fixed",
+      fare: { regular: 14, discounted: 12 },
+    });
+    expect(perBoardingFare({ id: "forestry", name: "Forestry" })).toEqual({
+      regular: 14,
+      discounted: 12,
+    });
+  });
+
+  test("Calamba quotes the whole-route fare and the minimum for shorter rides", () => {
+    const info = routeFareInfo({
+      id: "lb-to-calamba",
+      name: "Los Baños → Calamba",
+    });
+    expect(info.kind).toBe("end-to-end");
+    if (info.kind !== "end-to-end") return;
+    expect(info.fare).toEqual({ regular: 30, discounted: 25 });
+    expect(info.note).toContain("all the way to Calamba");
+    expect(info.note).toContain("₱14 minimum");
+    expect(info.note).toContain("October 7, 2026");
+    expect(
+      perBoardingFare({ id: "lb-to-calamba", name: "Los Baños → Calamba" }),
+    ).toBeNull();
+  });
+
+  test("other town jeeps give only the minimum", () => {
+    const info = routeFareInfo({
+      id: "lb-to-san-pablo",
+      name: "Los Baños → San Pablo",
+    });
+    expect(info).toMatchObject({
+      kind: "distance",
+      minimum: { regular: 14, discounted: 12 },
+    });
+  });
+
+  test("DLTB links to tickets; unverified buses quote nothing", () => {
+    expect(
+      routeFareInfo({ id: "uplb-to-upd", name: "UPLB → UP Diliman" }).kind,
+    ).toBe("ticketed");
+    expect(
+      routeFareInfo({ id: "lb-to-buendia", name: "Los Baños → Buendia" }).kind,
+    ).toBe("unverified");
   });
 });

@@ -33,19 +33,65 @@ export type JeepneyRoute = {
   stops: JeepneyStop[];
 };
 
+/**
+ * The day the maintainer last confirmed fares. Only prices confirmed then
+ * are quoted; everything else says so instead of guessing.
+ */
+export const FARES_VERIFIED_ON = "October 7, 2026";
+export const FARES_VERIFIED_NOTE = `Prices verified as of ${FARES_VERIFIED_ON}.`;
+
 /** Campus jeepney fares are set campus-wide, not per route. */
-export const JEEPNEY_FARE_NOTE =
-  "Indicative fare for the 2025-2026 school year; confirm with the driver.";
+export const JEEPNEY_FARE_NOTE = `${FARES_VERIFIED_NOTE} Pay the driver as you ride.`;
 
-/** Town jeeps charge by distance; the listed fare is end to end. */
-export const TOWN_JEEPNEY_FARE_NOTE =
-  "Indicative fare to the end of the line; shorter trips cost less. Confirm with the driver.";
+/**
+ * Town jeeps charge by distance: the minimum fare, plus a per-kilometre
+ * amount from the LTFRB fare matrix.
+ */
+export const TOWN_JEEPNEY_MINIMUM_FARE: JeepneyFare = {
+  regular: 14,
+  discounted: 12,
+};
 
-/** Provincial and commuter bus fares, end to end. */
-export const BUS_FARE_NOTE =
-  "Indicative fare to the end of the line; confirm with the conductor or at the terminal.";
+/** Whole-route fares the maintainer has confirmed, by route id. */
+export const VERIFIED_END_TO_END_FARES: Readonly<Record<string, JeepneyFare>> =
+  {
+    "lb-to-calamba": { regular: 30, discounted: 25 },
+  };
 
-const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 13, discounted: 11 };
+const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 14, discounted: 12 };
+
+/** Routes sold as advance tickets instead of cash on board. */
+export type RouteTicketing = { operator: string; url: string };
+
+const DLTB_TICKETING: RouteTicketing = {
+  operator: "DLTB",
+  url: "https://dltbbus.com.ph/",
+};
+
+/**
+ * The UPLB <-> UP Diliman bus is booked on DLTB's website, which also has the
+ * current fare, so the app links there instead of quoting a price.
+ */
+const ROUTE_TICKETING: Readonly<Record<string, RouteTicketing>> = {
+  "uplb-to-upd": DLTB_TICKETING,
+  "upd-to-uplb": DLTB_TICKETING,
+};
+
+/**
+ * Where to board, for routes that only pass Los Baños. Shown above the stop
+ * list; kept in code so it does not wait on a database edit.
+ */
+const JUNCTION_BOARDING_NOTE =
+  "Comes from Calamba and does not enter the UPLB campus. Board at the Junction on the national highway by Olivarez Plaza; from campus, ride a Kaliwa or Kanan jeep there first.";
+
+export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
+  "lb-to-san-pablo": JUNCTION_BOARDING_NOTE,
+  "lb-to-sta-cruz": JUNCTION_BOARDING_NOTE,
+};
+
+export function routeTicketing(routeId: string): RouteTicketing | null {
+  return ROUTE_TICKETING[routeId] ?? null;
+}
 
 /** Fallback route line when no road-snapped geometry exists: a straight
  * polyline through the route's stops, in GeoJSON [lon, lat] order. */

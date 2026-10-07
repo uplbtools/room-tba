@@ -30,6 +30,7 @@ import {
 } from "@constants/travel-modes";
 import type { JeepneyFare, JeepneyRoute } from "@constants/jeepney-routes";
 import { distanceMeters } from "../campus-route";
+import { perBoardingFare } from "../transit-route-kind";
 import {
   dijkstra,
   nearestNodeIndex,
@@ -52,7 +53,8 @@ export type RideLeg = {
   routeId: string;
   routeName: string;
   color: string;
-  fare: JeepneyFare;
+  /** One boarding's price, when known (campus jeeps); null otherwise. */
+  fare: JeepneyFare | null;
   boardStopName: string;
   alightStopName: string;
   /** Stops passed through, board and alight inclusive. */
@@ -348,7 +350,7 @@ function planDirect({
       meters: access.meters + ride.meters + egress.meters,
       walkMeters: access.meters + egress.meters,
       legs: [{ kind: "walk", ...access }, ride, egress],
-      fare: route.fare,
+      fare: ride.fare,
       geometrySource: "stops-only",
     });
   }
@@ -395,7 +397,8 @@ function buildRideLeg(
     routeId: route.id,
     routeName: route.name,
     color: route.color,
-    fare: route.fare,
+    // Town jeeps charge by distance, so a partial ride has no known price.
+    fare: perBoardingFare(route),
     boardStopName: stops[board]!.name,
     alightStopName: stops[alight]!.name,
     stopCount: ridden.length,
@@ -419,9 +422,14 @@ function joinJourneys(id: string, parts: (JourneyLeg[] | Journey)[]): Journey {
   const legs = parts.flatMap((part) =>
     Array.isArray(part) ? part : part.legs,
   );
-  let fare: JeepneyFare | null = null;
-  for (const leg of legs)
-    if (leg.kind === "ride") fare = addFares(fare, leg.fare);
+  // A total is only quoted when every ride's price is known.
+  const rides = legs.filter((leg): leg is RideLeg => leg.kind === "ride");
+  const fare = rides.every((leg) => leg.fare)
+    ? rides.reduce<JeepneyFare | null>(
+        (sum, leg) => addFares(sum, leg.fare),
+        null,
+      )
+    : null;
   return {
     id,
     kind: "transit",

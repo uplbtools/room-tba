@@ -7,9 +7,12 @@ import {
 } from "@constants/jeepney-routes";
 import jeepneyGeometries from "@constants/jeepney-geometries.json";
 import transitBasemap from "@constants/transit-basemap.json";
+import { perBoardingFare } from "@lib/transit-route-kind";
 import {
   parseHerePoint,
   renderTransitMapPdf,
+  TRANSIT_MAP_PALETTES,
+  type TransitMapPalette,
   type TransitBasemap,
   type TransitMapHere,
   type TransitMapFormat,
@@ -31,12 +34,18 @@ function json(data: unknown, status = 200) {
 
 /**
  * Printable transit map. GET /api/transit-map with optional `lat`, `lon` and
- * `name` (any point), or `here` (a place id or name), plus `format=a4|letter`.
+ * `name` (any point), or `here` (a place id or name), plus `format=a4|letter`
+ * and `palette=high-contrast|app|colorblind` (default high-contrast).
  * The point is marked "You are here" with the nearest stop and the walk to it.
  */
 export const GET: APIRoute = async ({ url }) => {
   const hereParam = url.searchParams.get("here")?.trim();
   const formatParam = url.searchParams.get("format")?.trim();
+  const paletteParam = url.searchParams.get("palette")?.trim() ?? "";
+  const palette =
+    paletteParam in TRANSIT_MAP_PALETTES
+      ? (paletteParam as TransitMapPalette)
+      : undefined;
   const format: TransitMapFormat = formatParam === "letter" ? "letter" : "a4";
 
   const point = parseHerePoint(url.searchParams);
@@ -85,8 +94,9 @@ export const GET: APIRoute = async ({ url }) => {
         id: route.id,
         name: route.name,
         color: route.color,
-        fareRegular: route.fare?.regular ?? Number.NaN,
-        fareDiscounted: route.fare?.discounted ?? Number.NaN,
+        // Only verified per-ride fares are printed (campus jeeps).
+        fareRegular: perBoardingFare(route)?.regular ?? Number.NaN,
+        fareDiscounted: perBoardingFare(route)?.discounted ?? Number.NaN,
         directionNote: route.directionNote ?? null,
         line:
           geometry.source !== "stops-only" && geometry.line
@@ -107,6 +117,7 @@ export const GET: APIRoute = async ({ url }) => {
       here,
       basemap: transitBasemap as TransitBasemap,
       format,
+      palette,
     });
     const nameSlug = (here?.name ?? "")
       .toLowerCase()

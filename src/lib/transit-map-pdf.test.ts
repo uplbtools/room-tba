@@ -6,7 +6,6 @@ import { getTransitMapPath } from "./route-links";
 import {
   findNearestStop,
   formatDistance,
-  groupIntercityByOrigin,
   haversineMeters,
   isCampusScopeRoute,
   isLoopRoute,
@@ -227,6 +226,14 @@ describe("renderTransitMapPdf", () => {
     expect(header).toBe("%PDF-");
   });
 
+  test("renders every print palette", async () => {
+    for (const palette of ["app", "high-contrast", "colorblind"] as const) {
+      const bytes = await renderTransitMapPdf({ routes: [route()], palette });
+      const header = Buffer.from(bytes.slice(0, 5)).toString("latin1");
+      expect(header).toBe("%PDF-");
+    }
+  });
+
   test("accepts the letter format", async () => {
     const a4 = await renderTransitMapPdf({ routes: [route()], format: "a4" });
     const letter = await renderTransitMapPdf({
@@ -351,48 +358,6 @@ describe("placeLabels", () => {
     const placed = placeLabels([req("edge", 495, 250, 5)], [], bounds);
     const box = placed.get("edge")!;
     expect(box.x + box.w).toBeLessThanOrEqual(500);
-  });
-});
-
-describe("groupIntercityByOrigin", () => {
-  const r = (id: string, name: string, fare: number): TransitMapRoute =>
-    route({
-      id,
-      name,
-      fareRegular: fare,
-      fareDiscounted: Math.round(fare * 0.8),
-      stops: [
-        { name: "Start", lat: 14.17, lon: 121.24 },
-        { name: "End", lat: 14.5, lon: 121.0 },
-      ],
-    });
-
-  test("groups by origin with the larger group first, one route per row", () => {
-    const groups = groupIntercityByOrigin([
-      r("buendia-to-lb", "Buendia → Los Baños", 165),
-      r("lb-to-calamba", "Los Baños → Calamba", 20),
-      r("lb-to-sta-cruz", "Los Baños → Sta. Cruz", 50),
-      r("uplb-to-upd", "UPLB → UP Diliman (DLTB Commuter Bus)", 165),
-    ]);
-    expect(groups.map((g) => g.origin)).toEqual([
-      "Los Baños",
-      "Buendia",
-      "UPLB",
-    ]);
-    expect(groups[0].routes.map((x) => x.destination)).toEqual([
-      "Calamba",
-      "Sta. Cruz",
-    ]);
-    expect(groups[0].routes[0].fareRegular).toBe(20);
-    expect(groups[2].routes[0].destination).toBe(
-      "UP Diliman (DLTB Commuter Bus)",
-    );
-  });
-
-  test("falls back to first and last stop when the name has no arrow", () => {
-    const [g] = groupIntercityByOrigin([r("x", "Bay shuttle", 30)]);
-    expect(g.origin).toBe("Start");
-    expect(g.routes[0].destination).toBe("End");
   });
 });
 

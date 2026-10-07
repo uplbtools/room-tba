@@ -1,4 +1,13 @@
-import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+import {
+  FARES_VERIFIED_NOTE,
+  JEEPNEY_FARE_NOTE,
+  JEEPNEY_ROUTES,
+  type JeepneyFare,
+  type RouteTicketing,
+  routeTicketing,
+  TOWN_JEEPNEY_MINIMUM_FARE,
+  VERIFIED_END_TO_END_FARES,
+} from "@constants/jeepney-routes";
 
 /**
  * What kind of service a transit route is. Routes carry no type column: the
@@ -63,4 +72,73 @@ export function isLoopRoute(route: { stops: StopLike[] }): boolean {
 /** Places a rider can board at: a loop's closing stop is not a new one. */
 export function distinctStopCount(route: { stops: StopLike[] }): number {
   return route.stops.length - (isLoopRoute(route) ? 1 : 0);
+}
+
+/**
+ * What the app may say about a route's fare. Only prices confirmed on
+ * FARES_VERIFIED_ON are quoted; the stored database fare is not shown.
+ * - fixed: campus jeeps, one price per boarding.
+ * - end-to-end: a confirmed whole-route price; shorter rides cost less.
+ * - distance: town jeeps with only the minimum confirmed.
+ * - ticketed: booked on the operator's site, which has the price.
+ * - unverified: nothing confirmed yet.
+ */
+export type RouteFareInfo =
+  | { kind: "fixed"; fare: JeepneyFare; note: string }
+  | {
+      kind: "end-to-end";
+      fare: JeepneyFare;
+      minimum: JeepneyFare;
+      note: string;
+    }
+  | { kind: "distance"; minimum: JeepneyFare; note: string }
+  | { kind: "ticketed"; ticketing: RouteTicketing }
+  | { kind: "unverified"; note: string };
+
+const CAMPUS_FARE = JEEPNEY_ROUTES[0]!.fare;
+
+const minimumText = (fare: JeepneyFare) =>
+  `the ₱${fare.regular} minimum (₱${fare.discounted} student, senior or PWD) plus a per-kilometre amount from the LTFRB fare matrix`;
+
+export function routeFareInfo(route: {
+  id: string;
+  name: string;
+}): RouteFareInfo {
+  const ticketing = routeTicketing(route.id);
+  if (ticketing) return { kind: "ticketed", ticketing };
+  const kind = transitRouteKind(route);
+  if (kind === "campus") {
+    return { kind: "fixed", fare: CAMPUS_FARE, note: JEEPNEY_FARE_NOTE };
+  }
+  const endToEnd = VERIFIED_END_TO_END_FARES[route.id];
+  if (endToEnd) {
+    const destination =
+      route.name.split(/\s*(?:→|->)\s*/).at(-1) ?? "the end of the line";
+    return {
+      kind: "end-to-end",
+      fare: endToEnd,
+      minimum: TOWN_JEEPNEY_MINIMUM_FARE,
+      note: `₱${endToEnd.regular} is for riding all the way to ${destination}. Shorter rides cost ${minimumText(TOWN_JEEPNEY_MINIMUM_FARE)}. ${FARES_VERIFIED_NOTE}`,
+    };
+  }
+  if (kind === "town") {
+    return {
+      kind: "distance",
+      minimum: TOWN_JEEPNEY_MINIMUM_FARE,
+      note: `Fare is ${minimumText(TOWN_JEEPNEY_MINIMUM_FARE)}. The fare to the end of the line is not verified yet. ${FARES_VERIFIED_NOTE}`,
+    };
+  }
+  return {
+    kind: "unverified",
+    note: "Fare not verified yet. Ask the conductor or at the terminal.",
+  };
+}
+
+/** The price of one boarding, when the app knows it: campus jeeps only. */
+export function perBoardingFare(route: {
+  id: string;
+  name: string;
+}): JeepneyFare | null {
+  const info = routeFareInfo(route);
+  return info.kind === "fixed" ? info.fare : null;
 }
