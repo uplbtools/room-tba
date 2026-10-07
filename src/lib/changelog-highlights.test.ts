@@ -3,6 +3,8 @@ import {
   parseChangelogEntries,
   parseChangelogHighlights,
   isChangelogCurrent,
+  userFacingEntries,
+  userFacingItem,
 } from "./changelog-highlights";
 
 describe("isChangelogCurrent", () => {
@@ -112,5 +114,82 @@ describe("parseChangelogEntries", () => {
 `;
     const entries = parseChangelogEntries(md);
     expect(entries.map((e) => e.version)).toEqual(["1.9.9"]);
+  });
+});
+
+describe("userFacingItem", () => {
+  test("drops the scope prefix and capitalizes", () => {
+    expect(
+      userFacingItem(
+        "transit: Forestry boards at its terminals; scale bar off the route",
+      ),
+    ).toBe("Forestry boards at its terminals; scale bar off the route");
+  });
+
+  test("hides entries whose scopes are all internal", () => {
+    expect(userFacingItem("ci: pin bun to 1.3.12")).toBeNull();
+    expect(userFacingItem("e2e: keep the drizzle dir lookup lazy")).toBeNull();
+    expect(
+      userFacingItem("test: restore the 20s integration timeout"),
+    ).toBeNull();
+  });
+
+  test("trims jargon clauses, or the whole entry when it leads", () => {
+    expect(
+      userFacingItem(
+        "SNODLOB e-jeep loop, designed printable map, mobile pixel pass",
+      ),
+    ).toBe("SNODLOB e-jeep loop, designed printable map");
+    expect(
+      userFacingItem(
+        "browse+e2e: browsing away closes the jeepney stop panel, spec label drift",
+      ),
+    ).toBe("Browsing away closes the jeepney stop panel");
+    expect(
+      userFacingItem(
+        "e2e+chrome: revive the suite after the Aug chrome redesign , closes",
+      ),
+    ).toBeNull();
+    expect(
+      userFacingItem(
+        "editor: foundation refactor and map chrome componentization",
+      ),
+    ).toBeNull();
+  });
+
+  test("drops the bare closes tail left by stripped issue links", () => {
+    expect(userFacingItem("today: add a Today screen , closes")).toBe(
+      "Add a Today screen",
+    );
+    expect(userFacingItem("a11y: 44px controls, and drawer closes")).toBe(
+      "44px controls, and drawer closes",
+    );
+  });
+});
+
+describe("userFacingEntries", () => {
+  test("renames sections and drops releases with nothing user-facing", () => {
+    const entries = userFacingEntries([
+      {
+        version: "2.0.1",
+        date: null,
+        sections: [{ title: "Bug Fixes", items: ["ci: fix release"] }],
+      },
+      {
+        version: "2.0.0",
+        date: null,
+        sections: [
+          { title: "Features", items: ["map: a new layer"] },
+          { title: "Bug Fixes", items: ["test: flaky timeout"] },
+        ],
+      },
+    ]);
+    expect(entries).toEqual([
+      {
+        version: "2.0.0",
+        date: null,
+        sections: [{ title: "New", items: ["A new layer"] }],
+      },
+    ]);
   });
 });

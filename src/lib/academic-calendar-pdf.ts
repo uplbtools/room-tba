@@ -335,7 +335,8 @@ export function parseHolidays(text: string): Holiday[] {
     )) {
       const day = match[2]?.padStart(2, "0");
       const month = MONTHS[(match[3] ?? "").slice(0, 3).toLowerCase()];
-      const label = match[4]?.trim();
+      // pdftotext drops the tilde ("Los Banos Day"); restore the place name.
+      const label = match[4]?.trim().replace(/\bLos Banos\b/g, "Los Baños");
       if (!day || !month || !label) continue;
       holidays.push({ label, startsOn: `${day}-${month}` });
     }
