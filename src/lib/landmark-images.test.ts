@@ -1,9 +1,19 @@
 import { describe, expect, test } from "bun:test";
 import { MAX_IMAGES_PER_LANDMARK, landmarkImages } from "@lib/landmark-images";
 
-// "building:Freedom Park" ships in the committed manifest with three
-// Street View headings and at least one Commons photo, so the real manifest
-// doubles as the fixture.
+// "building:CEM Building" ships in the committed manifest with three Street
+// View headings from a Google capture, so the real manifest doubles as the
+// fixture.
+const CEM = {
+  name: "CEM Building",
+  lat: 14.1675,
+  lon: 121.2412,
+  panoId: null,
+  googleKey: "test-google-key",
+};
+
+// The only pano near "building:Freedom Park" is a photo sphere somebody
+// uploaded ("© Ry Clark Media Arts").
 const FREEDOM_PARK = {
   name: "Freedom Park",
   lat: 14.1617660159005,
@@ -23,18 +33,26 @@ const VET_HOSPITAL = {
 };
 
 describe("landmarkImages", () => {
-  test("orders contributor, street view angles, commons; caps at 10", () => {
+  test("orders street view angles, contributor, commons; caps at 10", () => {
     const images = landmarkImages({
-      ...FREEDOM_PARK,
-      imageUrl: "https://r2.example/freedom-park.jpg",
+      ...CEM,
+      imageUrl: "https://r2.example/cem.jpg",
     });
-    expect(images[0]?.source).toBe("contributor");
+    expect(images.slice(0, 4).map((i) => i.source)).toEqual([
+      "street-view",
+      "street-view",
+      "street-view",
+      "contributor",
+    ]);
     const streetView = images.filter((i) => i.source === "street-view");
-    expect(streetView).toHaveLength(3);
     // Manifest headings, not the single default shot.
     expect(
       streetView.map((i) => new URL(i.src).searchParams.get("heading")),
-    ).toEqual(["233", "288", "343"]);
+    ).toEqual(["159", "214", "269"]);
+    expect(new URL(streetView[0]!.src).searchParams.get("pano")).toBe(
+      "wV4r1MZug8UnL2mEU0OtWA",
+    );
+    expect(streetView[0]?.credit).toBe("Street View image © Google");
     expect(images.length).toBeLessThanOrEqual(MAX_IMAGES_PER_LANDMARK);
   });
 
@@ -67,10 +85,15 @@ describe("landmarkImages", () => {
     expect(new URL(images[0]!.src).searchParams.get("heading")).toBeNull();
   });
 
-  test("user-contributed pano credits its uploader, not Google", () => {
-    const streetView = landmarkImages(FREEDOM_PARK).filter(
-      (i) => i.source === "street-view",
-    );
+  test("a pano somebody uploaded comes last, credited to its uploader", () => {
+    const images = landmarkImages({
+      ...FREEDOM_PARK,
+      imageUrl: "https://r2.example/freedom-park.jpg",
+    });
+    expect(images[0]?.source).toBe("contributor");
+    const streetView = images.filter((i) => i.source === "street-view");
+    expect(streetView).toHaveLength(3);
+    expect(images.slice(-3)).toEqual(streetView);
     expect(streetView[0]?.credit).toBe(
       "Street View image © Ry Clark Media Arts",
     );

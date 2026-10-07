@@ -53,6 +53,26 @@ export function distanceMetres(
  */
 export const HEADING_SPREAD = 55;
 
+/**
+ * `count` points on a circle `metres` from `center`, for probing Street View
+ * coverage around a building when the nearest pano is a user upload.
+ */
+export function ringPoints(
+  center: { lat: number; lng: number },
+  metres: number,
+  count = 8,
+): { lat: number; lng: number }[] {
+  const mPerDegLat = 111320;
+  const mPerDegLng = mPerDegLat * Math.cos((center.lat * Math.PI) / 180);
+  return Array.from({ length: count }, (_, i) => {
+    const angle = (2 * Math.PI * i) / count;
+    return {
+      lat: center.lat + (Math.cos(angle) * metres) / mPerDegLat,
+      lng: center.lng + (Math.sin(angle) * metres) / mPerDegLng,
+    };
+  });
+}
+
 export function facadeHeadings(base: number): number[] {
   return [-HEADING_SPREAD, 0, HEADING_SPREAD].map(
     (offset) => (base + offset + 360) % 360,
