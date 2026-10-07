@@ -9,6 +9,10 @@
     ariaBusy?: boolean;
     title?: string;
     toolbar?: boolean;
+    /** Filled brand button: the one main action of a place sheet. */
+    primary?: boolean;
+    /** Toggle buttons (Save / Saved) expose their state. */
+    pressed?: boolean;
     onclick?: () => void;
     children?: Snippet;
   };
@@ -20,6 +24,8 @@
     ariaBusy = false,
     title,
     toolbar = false,
+    primary = false,
+    pressed,
     onclick,
     children,
   }: Props = $props();
@@ -29,10 +35,12 @@
   {type}
   class="map-chrome-action-chip"
   class:map-chrome-action-chip--toolbar={toolbar}
+  class:map-chrome-action-chip--primary={primary}
   {disabled}
   {onclick}
   aria-label={ariaLabel}
   aria-busy={ariaBusy}
+  aria-pressed={pressed}
   title={title ?? ariaLabel}
 >
   <span class="map-chrome-action-chip__inner">

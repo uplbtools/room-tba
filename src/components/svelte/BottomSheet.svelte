@@ -15,6 +15,7 @@
     expandedRatio = 0.92,
     topInset = "0px",
     bottomInset = "0px",
+    scrollResetKey,
     onDismiss,
     children,
   }: {
@@ -34,6 +35,12 @@
     expandedRatio?: number;
     topInset?: string;
     bottomInset?: string;
+    /**
+     * Scroll the body back to the top whenever this changes (another entity
+     * opened): a room opened from a long building sheet must start at its
+     * own name, not at the parent's scroll offset.
+     */
+    scrollResetKey?: unknown;
     onDismiss?: () => void;
     children: Snippet;
   } = $props();
@@ -141,6 +148,11 @@
       mo.disconnect();
       ro.disconnect();
     };
+  });
+
+  $effect(() => {
+    void scrollResetKey;
+    if (contentEl) contentEl.scrollTop = 0;
   });
 
   $effect(() => {

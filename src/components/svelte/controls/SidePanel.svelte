@@ -36,6 +36,7 @@
       !directionsStore.active,
   );
   let lastPanelIdentity = $state<string | null>(null);
+  let detailsEl = $state<HTMLElement | null>(null);
   /** Mobile sheet snap, independent of sidePanelStore.collapsed (Map.expand race). */
   let mobileSnap = $state<BottomSheetSnap>("peek");
 
@@ -132,6 +133,8 @@
       // opened with, so a still-open review queue cannot outlive the query that
       // replaced it.
       sidePanelStore.state = null;
+      // A new entity starts at its own header, not the previous scroll offset.
+      if (detailsEl) detailsEl.scrollTop = 0;
       // Always open at peek on mobile, ignoring Map.expand() full-screen.
       mobileSnap = "peek";
       if (mobile.current) sidePanelStore.collapse();
@@ -202,6 +205,7 @@
     bottomInset={browseSheet
       ? "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)"
       : "0px"}
+    scrollResetKey={panelIdentity}
     onDismiss={dismissMobileSheet}
   >
     {@render panelBody()}
@@ -226,6 +230,7 @@
       </button>
       <div class="drawer-card">
         <div
+          bind:this={detailsEl}
           id="side-panel-details"
           class="side-panel-details map-chrome-scroll"
           aria-hidden={sidePanelStore.collapsed}
@@ -278,6 +283,8 @@
     padding: 1.125rem;
     box-shadow: var(--map-chrome-panel-shadow);
     overflow: hidden;
+    /* Backdrop for the sticky place-sheet header (entity-detail.css). */
+    --entity-sheet-bg: var(--map-chrome-panel-bg, hsl(5 18% 96%));
     display: flex;
     flex-direction: column;
   }
@@ -289,6 +296,7 @@
     padding: 0.75rem 0.875rem;
     background-color: #fff;
     box-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
+    --entity-sheet-bg: #fff;
   }
 
   :global(.app-layout.redesign-desktop) .drawer-handle {

@@ -10,6 +10,8 @@
     destinationLabel?: string;
     label?: string;
     toolbar?: boolean;
+    /** Filled main action (place sheet header). */
+    primary?: boolean;
   };
 
   let {
@@ -18,6 +20,7 @@
     destinationLabel,
     label = "Directions",
     toolbar = true,
+    primary = false,
   }: Props = $props();
 
   const addingStop = $derived(
@@ -63,7 +66,7 @@
   }
 </script>
 
-<MapChromeActionChip {toolbar} {ariaLabel} onclick={onChipClick}>
+<MapChromeActionChip {toolbar} {primary} {ariaLabel} onclick={onChipClick}>
   {#if addingStop}
     <Plus size={14} aria-hidden="true" />
   {:else}
