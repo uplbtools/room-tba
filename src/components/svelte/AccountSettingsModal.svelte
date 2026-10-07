@@ -619,7 +619,7 @@
     margin: 0;
     font-size: 1.125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .settings-masthead__identity {
@@ -628,25 +628,25 @@
     gap: 0.5rem;
     margin: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
   }
 
   .settings-username {
     font-weight: 600;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
   }
 
   .settings-role {
     padding: 0.0625rem 0.375rem;
     border-radius: 999px;
-    background: hsl(0, 0%, 94%);
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
     font-size: 0.75rem;
     text-transform: capitalize;
   }
 
   .settings-loading {
     margin: 0;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .settings-current {
@@ -656,7 +656,7 @@
   .settings-empty {
     margin: 0;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   /* Shared entity-editor input geometry comes from entity-editor.css via the
@@ -666,16 +666,16 @@
     margin: 0;
     font-size: 0.75rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .settings-scroll :global(.editor-field input:disabled) {
-    background: hsl(0, 0%, 96%);
-    color: hsl(0, 0%, 38%);
+    background: var(--theme-surface-2, hsl(0, 0%, 96%));
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .settings-scroll :global(.editor-field input:focus-visible) {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -683,7 +683,7 @@
     background: none;
     border: none;
     padding: 0;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
     font-size: 0.8125rem;
     cursor: pointer;
@@ -692,7 +692,7 @@
   }
 
   .settings-link-btn--danger {
-    color: #9a1b1b;
+    color: var(--theme-accent-text, #9a1b1b);
   }
 
   .credits-visibility {
@@ -706,7 +706,7 @@
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .contributions-list {
@@ -726,6 +726,6 @@
 
   .contributions-list time {
     flex: 0 0 auto;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 </style>

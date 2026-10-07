@@ -275,7 +275,7 @@
     width: 6rem;
     height: 2rem;
     border-radius: 0.75rem;
-    background: #f4f4f5;
+    background: var(--theme-surface-2, #f4f4f5);
   }
 
   .events-list-card-location {
@@ -290,13 +290,13 @@
   }
 
   h2 {
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     font-size: 1.125rem;
     line-height: 1.25;
   }
 
   p {
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
     font-size: 0.85rem;
     line-height: 1.45;
   }
@@ -305,9 +305,9 @@
     display: inline-flex;
     gap: 0.25rem;
     padding: 0.25rem;
-    border: 1px solid #eee1e1;
+    border: 1px solid var(--theme-accent-border, #eee1e1);
     border-radius: 999px;
-    background: #fdf3f3;
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .events-tab {
@@ -321,7 +321,7 @@
     border: none;
     border-radius: 999px;
     background: transparent;
-    color: #7b1113;
+    color: var(--theme-accent-text, #7b1113);
     cursor: pointer;
     font: inherit;
     font-size: 0.8125rem;
@@ -334,17 +334,17 @@
   }
 
   .events-tab:hover {
-    background: #fbe7e7;
+    background: var(--theme-accent-soft, #fbe7e7);
   }
 
   .events-tab.is-active {
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     color: white;
     box-shadow: 0 1px 3px rgba(123, 17, 19, 0.35);
   }
 
   .events-tab:focus-visible {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: -2px; /* panel scroll body clips outward rings */
   }
 
@@ -377,7 +377,7 @@
     align-items: start;
     gap: 0.5rem;
     padding: 0.55rem;
-    border: 1px solid #eee1e1;
+    border: 1px solid var(--theme-accent-border, #eee1e1);
     border-radius: 0.95rem;
     transition:
       background-color 0.2s,
@@ -386,12 +386,12 @@
 
   .events-list-card:hover,
   .events-list-card:focus-within {
-    border-color: #d8b9ba;
-    background-color: #fdf3f3;
+    border-color: var(--theme-accent-border, #d8b9ba);
+    background-color: var(--theme-accent-soft, #fdf3f3);
   }
 
   .events-list-card:focus-within {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: -2px;
   }
 
@@ -418,14 +418,14 @@
 
   .events-list-card-image {
     object-fit: contain;
-    background: hsl(0, 0%, 96%);
+    background: var(--theme-surface-2, hsl(0, 0%, 96%));
   }
 
   .events-list-card-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     color: white;
   }
 
@@ -445,7 +445,7 @@
   .events-list-card-title {
     min-width: 0;
     overflow: hidden;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     font-size: 0.9rem;
     font-weight: 800;
     line-height: 1.2;
@@ -457,8 +457,8 @@
     flex: 0 0 auto;
     padding: 0.1rem 0.45rem;
     border-radius: 999px;
-    background: #fbe7e7;
-    color: #7b1113;
+    background: var(--theme-accent-soft, #fbe7e7);
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.01em;
@@ -472,14 +472,14 @@
   }
 
   .events-status-badge.is-past {
-    background: #e4e4e7;
-    color: #52525b;
+    background: var(--theme-surface-3, #e4e4e7);
+    color: var(--theme-text-2, #52525b);
   }
 
   .events-list-card-meta,
   .events-list-card-location {
     overflow: hidden;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-size: 0.75rem;
     line-height: 1.25;
     text-overflow: ellipsis;
@@ -488,7 +488,7 @@
 
   .events-list-card-action {
     width: max-content;
-    color: #7b1113;
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.72rem;
     font-weight: 800;
     line-height: 1.2;
@@ -501,7 +501,7 @@
   }
 
   .empty-events {
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-size: 0.85rem;
   }
 

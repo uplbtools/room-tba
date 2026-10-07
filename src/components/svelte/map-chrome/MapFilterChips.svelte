@@ -301,8 +301,8 @@
     padding: 0 0.625rem;
     border: none;
     border-radius: 0.5rem;
-    background: #fff;
-    color: #332529;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-text, #332529);
     font: inherit;
     font-size: 0.75rem;
     line-height: 1;
@@ -342,8 +342,8 @@
     padding: 0;
     border: none;
     border-radius: 999px;
-    background: #fff;
-    color: #8a8284;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-text-muted, #8a8284);
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
     cursor: pointer;
   }

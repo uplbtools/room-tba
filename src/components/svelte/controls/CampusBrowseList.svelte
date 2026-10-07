@@ -695,8 +695,8 @@
     margin-left: auto;
     padding: 0.0625rem 0.4375rem;
     border-radius: 999px;
-    background: hsl(5, 30%, 94%);
-    color: hsl(5, 40%, 34%);
+    background: var(--theme-accent-soft, hsl(5, 30%, 94%));
+    color: var(--theme-accent-text, hsl(5, 40%, 34%));
     font-size: 0.6875rem;
     font-weight: 600;
     white-space: nowrap;
@@ -731,7 +731,7 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .jeepney-route-group:first-child {
@@ -739,7 +739,7 @@
   }
 
   .jeepney-route-item--active {
-    background: hsl(5, 53%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .jeepney-route-item__dot {

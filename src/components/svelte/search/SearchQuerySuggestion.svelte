@@ -39,7 +39,7 @@
     cursor: pointer;
     transition: background-color 0.2s;
     &:hover {
-      background-color: hsl(0, 0%, 95%);
+      background-color: var(--theme-surface-2, hsl(0, 0%, 95%));
       border-radius: 0.75rem;
     }
   }

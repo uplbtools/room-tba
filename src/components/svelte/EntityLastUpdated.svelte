@@ -101,7 +101,7 @@
   .entity-last-updated {
     margin: 0.35rem 0 0;
     font-size: 0.8rem;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
     line-height: 1.3;
   }
 
@@ -121,6 +121,6 @@
 
   .entity-last-updated__history:hover,
   .entity-last-updated__history:focus-visible {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 </style>

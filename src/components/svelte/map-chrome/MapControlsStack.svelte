@@ -291,8 +291,8 @@
     padding: 0;
     border: none;
     border-radius: 0.625rem;
-    background: #fff;
-    color: #8d1437;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-accent-text, #8d1437);
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
     cursor: pointer;
   }
@@ -304,7 +304,7 @@
     overflow: hidden;
     border: none;
     border-radius: 999px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
@@ -326,7 +326,7 @@
   }
 
   .map-ctrl--compass:hover {
-    background: #fff;
+    background: var(--theme-surface, #fff);
   }
 
   .map-ctrl__compass-img {
@@ -348,7 +348,7 @@
     font-family: Inter, system-ui, sans-serif;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #111;
+    color: var(--theme-text, #111);
   }
 
   .map-ctrl--round {
@@ -373,8 +373,8 @@
   }
 
   .map-ctrl--active {
-    background: #feeaea;
-    color: #8d1437;
+    background: var(--theme-accent-soft, #feeaea);
+    color: var(--theme-accent-text, #8d1437);
   }
 
   .map-ctrl-zoom {
@@ -385,7 +385,7 @@
     overflow: hidden;
     border: none;
     border-radius: 0.75rem;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
@@ -401,7 +401,7 @@
     border: none;
     border-radius: 0;
     background: transparent;
-    color: #111;
+    color: var(--theme-text, #111);
     font-family: inherit;
     font-size: 1.05rem;
     font-weight: 500;
@@ -415,7 +415,7 @@
   }
 
   .map-ctrl:hover {
-    background: #fafafa;
+    background: var(--theme-surface, #fafafa);
   }
 
   .map-ctrl-zoom__btn:hover {

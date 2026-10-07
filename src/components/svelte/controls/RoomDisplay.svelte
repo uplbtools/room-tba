@@ -74,8 +74,8 @@
     display: flex;
     align-items: center;
     padding: 0.5rem 0.75rem;
-    background-color: white;
-    border: 1px solid #ececec;
+    background-color: var(--theme-surface, white);
+    border: 1px solid var(--theme-border, #ececec);
     border-radius: 0.5rem;
     cursor: pointer;
     transition:
@@ -87,8 +87,8 @@
 
   .room-data:hover,
   .room-data:focus-visible {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 98%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .room-data__content {
@@ -105,7 +105,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .room-code {
@@ -113,7 +113,7 @@
     min-width: 0;
     font-weight: 600;
     font-size: 0.8125rem;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     margin: 0;
     line-height: 1.25rem;
     white-space: nowrap;
@@ -122,7 +122,7 @@
   }
 
   .floor-badge {
-    background-color: hsl(5, 53%, 32%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     border-radius: 0.25rem;
     padding: 1px 0.375rem;
@@ -133,17 +133,17 @@
 
   .class-count {
     flex-shrink: 0;
-    background-color: #f4f4f5;
+    background-color: var(--theme-surface-2, #f4f4f5);
     border-radius: 0.25rem;
     padding: 2px 0.375rem;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     margin-left: auto;
     white-space: nowrap;
   }
 
   :global(mark) {
-    background-color: hsl(5, 53%, 90%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 90%));
   }
 </style>

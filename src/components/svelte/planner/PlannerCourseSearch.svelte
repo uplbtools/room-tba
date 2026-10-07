@@ -362,15 +362,15 @@
     align-items: center;
     gap: 0.375rem;
     padding: 0.375rem 0.625rem;
-    border: 1px solid hsl(0, 0%, 85%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 85%));
     border-radius: 0.5rem;
-    background: white;
-    color: hsl(0, 0%, 45%);
+    background: var(--theme-surface, white);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     flex: 0 0 auto;
   }
 
   .course-search__box:focus-within {
-    border-color: hsl(5, 53%, 42%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 42%));
   }
 
   .course-search__box input {
@@ -378,7 +378,7 @@
     flex: 1;
     min-width: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .course-search__note {
@@ -388,9 +388,9 @@
     padding: 0.5rem 0.375rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(0, 0%, 28%);
-    background: hsl(0, 0%, 100%);
-    border-top: 1px solid hsl(0, 0%, 90%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
+    background: var(--theme-surface, hsl(0, 0%, 100%));
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 90%));
   }
 
   .course-search__empty {
@@ -405,7 +405,7 @@
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .course-search__chips {
@@ -419,8 +419,8 @@
     box-sizing: border-box;
     padding: 0.25rem 0.625rem;
     border-radius: 999px;
-    background: hsl(5, 53%, 95%);
-    color: hsl(5, 53%, 28%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 95%));
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -428,16 +428,16 @@
 
   .course-search__chip:hover,
   .course-search__chip:focus-visible {
-    background: hsl(5, 53%, 90%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 90%));
   }
 
   .course-search__more {
     all: unset;
     margin-left: 0.25rem;
     padding: 0.125rem 0.625rem;
-    border: 1px solid hsl(5, 53%, 82%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 82%));
     border-radius: 999px;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -445,7 +445,7 @@
 
   .course-search__more:hover:not(:disabled),
   .course-search__more:focus-visible {
-    background: hsl(5, 53%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .course-search__more:disabled {
@@ -473,9 +473,9 @@
   }
 
   .course-item {
-    border: 1px solid hsl(0, 0%, 90%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     border-radius: 0.5rem;
-    background: white;
+    background: var(--theme-surface, white);
     overflow: hidden;
   }
 
@@ -490,19 +490,19 @@
 
   .course-item__header:hover,
   .course-item__header:focus-visible {
-    background: hsl(5, 53%, 98%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .course-item__code {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .course-item__meta {
     float: right;
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 50%);
+    color: var(--theme-text-muted, hsl(0, 0%, 50%));
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
@@ -511,8 +511,8 @@
   .course-item__picked {
     padding: 0.0625rem 0.375rem;
     border-radius: 999px;
-    background: hsl(140, 60%, 94%);
-    color: hsl(140, 60%, 25%);
+    background: var(--theme-green-soft, hsl(140, 60%, 94%));
+    color: var(--theme-green-text, hsl(140, 60%, 25%));
     font-weight: 700;
   }
 
@@ -520,7 +520,7 @@
     display: block;
     margin-top: 0.125rem;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -533,7 +533,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    border-top: 1px solid hsl(0, 0%, 93%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 93%));
   }
 
   .section-row {
@@ -552,12 +552,12 @@
   .section-row__name {
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
   }
 
   .section-row__schedule {
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .section-row__toggle {
@@ -566,18 +566,18 @@
     flex-shrink: 0;
     min-width: 2rem;
     padding: 0.1875rem 0.5rem;
-    border: 1px solid hsl(5, 53%, 82%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 82%));
     border-radius: 999px;
     text-align: center;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
   .section-row__toggle:hover,
   .section-row__toggle:focus-visible {
-    background: hsl(5, 53%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   /* Hover/focus used to repaint this pink and leave a white check on it,
@@ -586,7 +586,7 @@
   .section-row__toggle--added:hover,
   .section-row__toggle--added:focus-visible {
     background: hsl(140, 45%, 30%);
-    border-color: hsl(140, 45%, 30%);
+    border-color: var(--theme-green-text, hsl(140, 45%, 30%));
     color: white;
   }
 

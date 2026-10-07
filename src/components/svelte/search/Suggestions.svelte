@@ -225,7 +225,7 @@
     flex-direction: column;
     gap: 0.25rem;
     padding: 0.375rem 0.5rem 0.625rem;
-    border-top: 1px solid hsl(0, 0%, 90%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     max-height: min(50vh, 18rem);
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -253,7 +253,7 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: #7b7c8d;
+    color: var(--theme-text-muted, #7b7c8d);
   }
 
   @media (min-width: 48.0625rem) {
@@ -268,17 +268,17 @@
   .alias-hint {
     padding: 0.125rem 0.5rem;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .alias-hint strong {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .suggestions-status {
     margin: 0;
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 </style>

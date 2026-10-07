@@ -175,8 +175,8 @@
     max-height: 10rem;
     object-fit: cover;
     border-radius: 0.5rem;
-    border: 1px solid hsl(5, 53%, 88%);
-    background: white;
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 88%));
+    background: var(--theme-surface, white);
   }
 
   .image-upload-actions {
@@ -200,7 +200,7 @@
 
   .image-upload-error {
     margin: 0;
-    color: #9a1b1b;
+    color: var(--theme-accent-text, #9a1b1b);
     font-size: 0.75rem;
   }
 </style>

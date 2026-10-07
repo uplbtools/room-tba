@@ -313,7 +313,7 @@
     flex-wrap: wrap;
     gap: 0.25rem;
     padding-block: 0.25rem;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: 0 1px 0 hsl(0, 0%, 90%);
   }
 
@@ -331,7 +331,7 @@
 
   .contributor-progress__field-head strong {
     font-weight: 700;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
   }
 
   .contributor-progress__list li:has(.contributor-progress__building) {
@@ -348,19 +348,19 @@
     min-height: 2.75rem;
     padding: 0.375rem 0.25rem;
     border-radius: 0.375rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     cursor: pointer;
   }
 
   .contributor-progress__building:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
   }
 
   @media (hover: hover) {
     .contributor-progress__building:hover {
-      background: hsl(0, 78%, 98%);
-      color: hsl(5, 53%, 32%);
+      background: var(--theme-accent-soft, hsl(0, 78%, 98%));
+      color: var(--theme-accent-text, hsl(5, 53%, 32%));
     }
   }
 
@@ -385,11 +385,11 @@
     margin: 0;
     font-size: 0.75rem;
     font-weight: 500;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .contributor-progress__status--error {
-    color: hsl(0, 45%, 40%);
+    color: var(--theme-accent-text, hsl(0, 45%, 40%));
   }
 
   .contributor-progress__select {
@@ -398,9 +398,9 @@
     font: inherit;
     font-size: 0.8125rem;
     padding: 0.25rem 0.375rem;
-    border: 1px solid hsl(0, 0%, 82%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 82%));
     border-radius: 0.375rem;
-    background: hsl(0, 0%, 100%);
+    background: var(--theme-surface, hsl(0, 0%, 100%));
   }
 
   .contributor-progress__group {
@@ -413,7 +413,7 @@
     margin: 0;
     font-size: 0.75rem;
     font-weight: 700;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
   }
 
   .contributor-progress__field {
@@ -429,7 +429,7 @@
     gap: 0.5rem;
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 
   .contributor-progress__list,
@@ -446,7 +446,7 @@
     flex-direction: column;
     gap: 0.125rem;
     padding: 0.375rem 0;
-    border-top: 1px solid hsl(0, 0%, 90%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     min-width: 0;
   }
 
@@ -454,7 +454,7 @@
   .contributor-progress__room-code {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 22%);
+    color: var(--theme-text, hsl(0, 0%, 22%));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -465,10 +465,10 @@
   .contributor-progress__complete {
     font-size: 0.75rem;
     font-weight: 500;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .contributor-progress__complete {
-    color: hsl(130, 25%, 32%);
+    color: var(--theme-green-text, hsl(130, 25%, 32%));
   }
 </style>

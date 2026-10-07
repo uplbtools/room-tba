@@ -943,8 +943,8 @@
   .building-orgs__chip {
     border: none;
     cursor: pointer;
-    background-color: hsl(265, 45%, 92%);
-    color: hsl(265, 45%, 34%);
+    background-color: var(--theme-purple-soft, hsl(265, 45%, 92%));
+    color: var(--theme-purple-text, hsl(265, 45%, 34%));
   }
 
   .building-query-wrapper {
@@ -952,9 +952,9 @@
   }
 
   .editor-advanced {
-    border: 1px solid hsl(5, 53%, 90%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 90%));
     border-radius: 0.5rem;
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .editor-advanced summary {
@@ -963,7 +963,7 @@
     font-size: 0.8125rem;
     font-weight: 700;
     line-height: 1.3;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     list-style: none;
   }
 
@@ -974,7 +974,7 @@
   .editor-advanced summary::after {
     content: "▾";
     float: right;
-    color: hsl(5, 53%, 45%);
+    color: var(--theme-accent-text, hsl(5, 53%, 45%));
     transition: transform 0.15s ease;
   }
 
@@ -987,7 +987,7 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 0 0.55rem 0.55rem;
-    border-top: 1px solid hsl(5, 53%, 92%);
+    border-top: 1px solid var(--theme-accent-border, hsl(5, 53%, 92%));
   }
 
   @media (prefers-reduced-motion: reduce) {

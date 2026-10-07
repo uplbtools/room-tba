@@ -149,35 +149,35 @@
     font-size: 0.8125rem;
     font-weight: 600;
     padding: 0.25rem 0.5rem;
-    border: 1px solid hsl(0, 0%, 82%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 82%));
     border-radius: 0.375rem;
-    background: hsl(0, 0%, 100%);
-    color: hsl(0, 0%, 38%);
+    background: var(--theme-surface, hsl(0, 0%, 100%));
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
     cursor: pointer;
   }
 
   .leaderboard-board.selected {
-    border-color: var(--map-ui-primary, hsl(5, 70%, 50%));
-    background: hsl(5, 60%, 96%);
-    color: var(--map-ui-primary, hsl(5, 70%, 50%));
+    border-color: var(--map-ui-primary, var(--theme-accent-text, hsl(5, 70%, 50%)));
+    background: var(--theme-accent-soft, hsl(5, 60%, 96%));
+    color: var(--map-ui-primary, var(--theme-accent-text, hsl(5, 70%, 50%)));
   }
 
   .leaderboard-select {
     font: inherit;
     font-size: 0.8125rem;
     padding: 0.25rem 0.375rem;
-    border: 1px solid hsl(0, 0%, 82%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 82%));
     border-radius: 0.375rem;
-    background: hsl(0, 0%, 100%);
+    background: var(--theme-surface, hsl(0, 0%, 100%));
   }
 
   .leaderboard-status {
     font-size: 0.875rem;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .error {
-    color: hsl(0, 45%, 40%);
+    color: var(--theme-accent-text, hsl(0, 45%, 40%));
   }
 
   .leaderboard-list {
@@ -195,11 +195,11 @@
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
     border-radius: 0.625rem;
-    background: hsl(0, 0%, 97%);
+    background: var(--theme-surface, hsl(0, 0%, 97%));
   }
 
   .leaderboard-item.top {
-    background: hsl(5, 60%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 60%, 96%));
   }
 
   .leaderboard-rank {
@@ -208,7 +208,7 @@
     text-align: center;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .leaderboard-avatar {
@@ -221,7 +221,7 @@
     min-width: 0;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -234,12 +234,12 @@
     gap: 0.25rem;
     font-size: 1rem;
     font-weight: 700;
-    color: var(--map-ui-primary, hsl(5, 70%, 50%));
+    color: var(--map-ui-primary, var(--theme-accent-text, hsl(5, 70%, 50%)));
   }
 
   .leaderboard-score-unit {
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(0, 0%, 55%);
+    color: var(--theme-text-muted, hsl(0, 0%, 55%));
   }
 </style>

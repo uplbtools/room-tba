@@ -556,7 +556,7 @@
     gap: 0.25rem 1rem;
     padding: 0.375rem 0.125rem;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   /* Mobile-only affordance that the week grid scrolls sideways (hidden on
@@ -567,7 +567,7 @@
     justify-content: flex-end;
     margin: 0;
     padding: 0 0.125rem 0.375rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     font-size: 0.75rem;
     font-weight: 600;
   }
@@ -575,7 +575,7 @@
   .planner-grid__drag-hint {
     margin: 0;
     padding: 0 0.125rem 0.375rem;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
     font-size: 0.75rem;
   }
 
@@ -603,9 +603,9 @@
   .planner-grid {
     display: grid;
     grid-template-columns: 3rem repeat(var(--days, 6), minmax(4.5rem, 1fr));
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.5rem;
-    background: white;
+    background: var(--theme-surface, white);
     overflow: clip;
   }
 
@@ -616,7 +616,7 @@
     display: flex;
     flex-direction: column;
     padding-top: 1.5rem;
-    background: hsl(5, 53%, 28%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 28%));
   }
 
   .planner-grid__hour {
@@ -632,7 +632,7 @@
   .planner-grid__day {
     display: flex;
     flex-direction: column;
-    border-left: 1px solid hsl(0, 0%, 90%);
+    border-left: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     min-width: 0;
   }
 
@@ -646,7 +646,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     font-size: 0.75rem;
     font-weight: 700;
@@ -659,8 +659,8 @@
       to bottom,
       transparent,
       transparent calc(2.5rem - 1px),
-      hsl(0, 0%, 93%) calc(2.5rem - 1px),
-      hsl(0, 0%, 93%) 2.5rem
+      var(--theme-border, hsl(0, 0%, 93%)) calc(2.5rem - 1px),
+      var(--theme-border, hsl(0, 0%, 93%)) 2.5rem
     );
   }
 
@@ -689,7 +689,7 @@
   }
 
   .planner-block--conflict {
-    outline: 2px solid hsl(0, 85%, 45%);
+    outline: 2px solid var(--theme-accent-text, hsl(0, 85%, 45%));
     outline-offset: -2px;
   }
 
@@ -766,8 +766,8 @@
     width: max-content;
     max-width: 14rem;
     padding: 0.375rem;
-    background: white;
-    border: 1px solid hsl(0, 0%, 85%);
+    background: var(--theme-surface, white);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 85%));
     border-radius: 0.375rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
@@ -783,15 +783,15 @@
     padding: 0 0.25rem;
     font-size: 0.75rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
   }
 
   .planner-block__conflict {
     margin-left: 0.25rem;
     padding: 0 0.375rem;
     border-radius: 999px;
-    background: hsl(0, 85%, 95%);
-    color: hsl(0, 85%, 35%);
+    background: var(--theme-accent-soft, hsl(0, 85%, 95%));
+    color: var(--theme-accent-text, hsl(0, 85%, 35%));
     font-weight: 700;
   }
 
@@ -807,13 +807,13 @@
     border-radius: 0.25rem;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
   .planner-block__actions button:hover,
   .planner-block__actions button:focus-visible {
-    background: hsl(5, 53%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .planner-ghost {
@@ -824,15 +824,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px dashed hsl(0, 0%, 55%);
+    border: 2px dashed var(--theme-border-strong, hsl(0, 0%, 55%));
     border-radius: 0.25rem;
-    background: hsl(0, 0%, 100%, 0.55);
-    color: hsl(0, 0%, 25%);
+    background: var(--theme-surface-translucent, hsl(0, 0%, 100%, 0.55));
+    color: var(--theme-text, hsl(0, 0%, 25%));
     cursor: copy;
   }
 
   .planner-ghost--hover {
-    background: hsl(140, 60%, 92%, 0.9);
+    background: var(--theme-surface-translucent, hsl(140, 60%, 92%, 0.9));
     border-style: solid;
     box-shadow: 0 0 0 2px hsl(140, 60%, 35%);
   }
@@ -900,8 +900,8 @@
         to bottom,
         transparent,
         transparent calc(3rem - 1px),
-        hsl(0, 0%, 93%) calc(3rem - 1px),
-        hsl(0, 0%, 93%) 3rem
+        var(--theme-border, hsl(0, 0%, 93%)) calc(3rem - 1px),
+        var(--theme-border, hsl(0, 0%, 93%)) 3rem
       );
     }
 

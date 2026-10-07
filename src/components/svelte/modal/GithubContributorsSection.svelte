@@ -66,14 +66,14 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(5, 53%, 28%);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .section-note {
     margin: 0;
     font-size: 0.75rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
     max-width: 28rem;
     text-align: center;
   }
@@ -81,11 +81,11 @@
   .status-line {
     margin: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .status-line.error {
-    color: hsl(0, 65%, 32%);
+    color: var(--theme-accent-text, hsl(0, 65%, 32%));
   }
 
   .people-grid-skeleton {
@@ -99,7 +99,7 @@
   .skeleton-card {
     height: 5.5rem;
     border-radius: 0.5rem;
-    background: hsl(0, 0%, 92%);
+    background: var(--theme-surface-2, hsl(0, 0%, 92%));
   }
 
   .secondary-btn {
@@ -108,12 +108,12 @@
     font-size: 0.875rem;
     font-weight: 700;
     cursor: pointer;
-    background: white;
-    color: hsl(5, 53%, 28%);
-    border: 1px solid hsl(5, 35%, 80%);
+    background: var(--theme-surface, white);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
+    border: 1px solid var(--theme-accent-border, hsl(5, 35%, 80%));
   }
 
   .secondary-btn:hover {
-    background-color: hsl(0, 0%, 92%);
+    background-color: var(--theme-surface-2, hsl(0, 0%, 92%));
   }
 </style>

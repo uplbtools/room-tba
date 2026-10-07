@@ -62,9 +62,9 @@
     box-sizing: border-box;
     padding: 0.5rem 0.75rem;
     padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
-    background: hsl(38 92% 94%);
-    color: hsl(24 62% 18%);
-    border-bottom: 2px solid hsl(32 78% 42%);
+    background: var(--theme-amber-soft, hsl(38 92% 94%));
+    color: var(--theme-amber-text, hsl(24 62% 18%));
+    border-bottom: 2px solid var(--theme-amber-text, hsl(32 78% 42%));
     text-align: center;
   }
 
@@ -80,7 +80,7 @@
     font-size: 0.6875rem;
     font-weight: 500;
     line-height: 1.35;
-    color: hsl(24 45% 28%);
+    color: var(--theme-amber-text, hsl(24 45% 28%));
   }
 
   @media (max-width: 48rem) {

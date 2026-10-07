@@ -521,29 +521,29 @@
 
   .fw__mode-btn {
     padding: 0.35rem 0.75rem;
-    border: 1px solid #c9b7b4;
+    border: 1px solid var(--theme-accent-border, #c9b7b4);
     border-radius: 999px;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     font: inherit;
     font-size: 0.9rem;
     cursor: pointer;
   }
 
   .fw__mode-btn[aria-pressed="true"] {
-    border-color: #8c231c;
-    background: #8c231c;
+    border-color: var(--theme-accent-text, #8c231c);
+    background: var(--theme-accent-fill, #8c231c);
     color: #fff;
   }
 
   .fw__mode-btn:focus-visible {
-    outline: 2px solid #8c231c;
+    outline: 2px solid var(--theme-accent-text, #8c231c);
     outline-offset: 2px;
   }
 
   .fw__map {
     width: 100%;
     height: 420px;
-    border: 1px solid #c9b7b4;
+    border: 1px solid var(--theme-accent-border, #c9b7b4);
     border-radius: 0.75rem;
     overflow: hidden;
   }
@@ -552,7 +552,7 @@
     margin: 0.5rem 0 1rem;
     font-size: 0.85rem;
     font-variant-numeric: tabular-nums;
-    color: #5c4a47;
+    color: var(--theme-accent-text, #5c4a47);
   }
 
   .fw__coords {
@@ -561,7 +561,7 @@
     gap: 0.75rem 1rem;
     margin: 0 0 1rem;
     padding: 0.75rem 1rem;
-    border: 1px solid #e0d5d2;
+    border: 1px solid var(--theme-accent-border, #e0d5d2);
     border-radius: 0.75rem;
   }
 
@@ -601,7 +601,7 @@
   .fw input[type="url"],
   .fw input[type="number"] {
     padding: 0.5rem 0.65rem;
-    border: 1px solid #c9b7b4;
+    border: 1px solid var(--theme-accent-border, #c9b7b4);
     border-radius: 0.5rem;
     font: inherit;
     font-weight: 400;
@@ -610,28 +610,28 @@
   .fw input:focus-visible,
   .fw a:focus-visible,
   .fw button:focus-visible {
-    outline: 2px solid #8c231c;
+    outline: 2px solid var(--theme-accent-text, #8c231c);
     outline-offset: 2px;
   }
 
   .fw input:disabled {
-    background: #f1ebe9;
-    color: #8a7a77;
+    background: var(--theme-accent-soft, #f1ebe9);
+    color: var(--theme-text-muted, #8a7a77);
   }
 
   .fw__hint {
     font-size: 0.8rem;
     font-weight: 400;
-    color: #5c4a47;
+    color: var(--theme-accent-text, #5c4a47);
   }
 
   .fw__errors {
     margin: 0;
     padding: 0.75rem 1rem 0.75rem 2rem;
-    border: 1px solid #d9a29c;
+    border: 1px solid var(--theme-accent-border, #d9a29c);
     border-radius: 0.5rem;
-    background: #fbeeec;
-    color: #6d1b15;
+    background: var(--theme-accent-soft, #fbeeec);
+    color: var(--theme-accent-text, #6d1b15);
   }
 
   .fw__output-actions {
@@ -644,10 +644,10 @@
 
   .fw__copy {
     padding: 0.5rem 1rem;
-    border: 1px solid #8c231c;
+    border: 1px solid var(--theme-accent-text, #8c231c);
     border-radius: 0.5rem;
-    background: #fff;
-    color: #8c231c;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-accent-text, #8c231c);
     font: inherit;
     font-weight: 600;
     cursor: pointer;
@@ -656,7 +656,7 @@
   .fw__copy-status {
     min-width: 4rem;
     font-size: 0.85rem;
-    color: #065f46;
+    color: var(--theme-green-text, #065f46);
   }
 
   .fw__deploy {
@@ -673,7 +673,7 @@
     margin: 0 0 1.5rem;
     padding: 1rem;
     overflow: auto;
-    border: 1px solid #e0d5d2;
+    border: 1px solid var(--theme-accent-border, #e0d5d2);
     border-radius: 0.75rem;
     background: #241d1c;
     color: #f4ece9;
@@ -696,7 +696,7 @@
   .fw__section code {
     padding: 0.1rem 0.3rem;
     border-radius: 0.25rem;
-    background: #f1ebe9;
+    background: var(--theme-accent-soft, #f1ebe9);
     font-size: 0.85em;
   }
 

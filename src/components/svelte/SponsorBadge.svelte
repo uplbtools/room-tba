@@ -34,12 +34,12 @@
     font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1.15;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     text-decoration: none;
   }
 
   .sponsor-badge__name {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 700;
   }
 

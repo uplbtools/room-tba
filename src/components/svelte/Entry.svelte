@@ -557,13 +557,13 @@
     --map-chrome-toggle-radius: 0.625rem;
     /* Map chrome contrast: warm off-white surfaces + stronger edges so controls
        float above light basemap tiles without dimming the map itself. */
-    --map-chrome-surface: hsl(5 20% 97%);
-    --map-chrome-panel-bg: hsl(5 18% 96%);
-    --map-chrome-border: hsl(5 10% 68%);
-    --map-chrome-border-accent: hsl(5 40% 42%);
-    --map-chrome-divider: hsl(5 12% 88%);
-    --map-chrome-panel-accent-border: hsl(5 15% 78%);
-    --map-chrome-band-backdrop: hsla(5, 22%, 96%, 0.82);
+    --map-chrome-surface: var(--theme-surface, hsl(5 20% 97%));
+    --map-chrome-panel-bg: var(--theme-surface, hsl(5 18% 96%));
+    --map-chrome-border: var(--theme-border-strong, hsl(5 10% 68%));
+    --map-chrome-border-accent: var(--theme-accent-text, hsl(5 40% 42%));
+    --map-chrome-divider: var(--theme-border, hsl(5 12% 88%));
+    --map-chrome-panel-accent-border: var(--theme-border, hsl(5 15% 78%));
+    --map-chrome-band-backdrop: var(--theme-surface-translucent, hsla(5, 22%, 96%, 0.82));
     --map-chrome-shadow:
       0 0 0 1px hsla(15, 8%, 20%, 0.14), 0 1px 3px hsla(0, 0%, 0%, 0.12),
       0 4px 12px hsla(0, 0%, 0%, 0.16), 0 10px 24px hsla(0, 0%, 0%, 0.1);
@@ -701,9 +701,9 @@
     min-width: 0;
     max-width: 100%;
     min-height: 2rem;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
     backdrop-filter: blur(10px);
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: var(--map-chrome-radius, 1rem);
     padding: 0.125rem 0.375rem;
     box-shadow: var(
@@ -823,7 +823,7 @@
       to top,
       var(--map-chrome-surface) 0%,
       var(--map-chrome-band-backdrop) 14%,
-      hsla(5, 22%, 96%, 0.35) 54%,
+      var(--theme-surface-faint, hsla(5, 22%, 96%, 0.35)) 54%,
       transparent 100%
     );
     pointer-events: none;
@@ -865,9 +865,9 @@
     --map-ctrl-compass: 3.25rem;
     --map-ctrl-zoom-h: 4.875rem;
     /* Side panel matches search / chip floating cards. */
-    --map-chrome-surface: #fff;
-    --map-chrome-panel-bg: #fff;
-    --map-chrome-border: #e8e4e5;
+    --map-chrome-surface: var(--theme-surface, #fff);
+    --map-chrome-panel-bg: var(--theme-surface, #fff);
+    --map-chrome-border: var(--theme-border, #e8e4e5);
     --map-chrome-panel-accent-border: transparent;
     --map-chrome-panel-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
     --map-chrome-radius: 0.75rem;
@@ -882,8 +882,8 @@
     padding: 0 0.55rem;
     border: none;
     border-radius: 0.5rem;
-    background: #fff;
-    color: var(--color-brand, #8d1437);
+    background: var(--theme-surface, #fff);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     font-size: 0.75rem;
     font-weight: 500;
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
@@ -893,7 +893,7 @@
     :global(.drawer-card .entity-panel-close:hover),
   .app-layout.redesign-desktop
     :global(.drawer-card .entity-panel-close:focus-visible) {
-    background: #fff;
+    background: var(--theme-surface, #fff);
     border-color: transparent;
     box-shadow:
       var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
@@ -932,8 +932,8 @@
     padding: 0.25rem 0.5rem;
     border: none;
     border-radius: 0.5rem;
-    background: #fff;
-    color: var(--color-ink, #332529);
+    background: var(--theme-surface, #fff);
+    color: var(--color-ink, var(--theme-text, #332529));
     font-size: 0.75rem;
     font-weight: 500;
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
@@ -946,7 +946,7 @@
   .app-layout.redesign-desktop
     :global(.drawer-card .editor-toggle--toolbar:hover) {
     border-color: transparent;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow:
       var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
       0 0 0 1px var(--color-brand, #8d1437);
@@ -1005,8 +1005,8 @@
      bordered, heavier-shadowed style. */
   .mobile-map-controls :global(.map-chrome-fab-trigger:not([aria-expanded="true"])) {
     border: none;
-    background-color: #fff;
-    color: #8d1437;
+    background-color: var(--theme-surface, #fff);
+    color: var(--theme-accent-text, #8d1437);
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
@@ -1132,9 +1132,9 @@
     box-sizing: border-box;
     gap: 0.125rem;
     padding: 0.1875rem;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
     backdrop-filter: blur(10px);
-    border: 1.5px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1.5px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: var(--map-chrome-toggle-radius, 0.625rem);
     box-shadow: var(
       --map-chrome-shadow,

@@ -98,10 +98,10 @@
     font-size: 0.8125rem;
     line-height: 1.4;
     font-weight: 500;
-    color: hsl(0, 0%, 34%);
+    color: var(--theme-text-2, hsl(0, 0%, 34%));
   }
 
   .submitter-name-hint.at-limit {
-    color: hsl(5, 53%, 38%);
+    color: var(--theme-accent-text, hsl(5, 53%, 38%));
   }
 </style>

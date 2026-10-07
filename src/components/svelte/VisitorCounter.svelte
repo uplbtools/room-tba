@@ -58,15 +58,15 @@
     margin: 0;
     padding: 0.5rem 0.875rem;
     border-radius: 999px;
-    background: hsl(5, 32%, 95%);
-    border: 1px solid hsl(5, 28%, 78%);
-    color: hsl(5, 58%, 22%);
+    background: var(--theme-accent-soft, hsl(5, 32%, 95%));
+    border: 1px solid var(--theme-accent-border, hsl(5, 28%, 78%));
+    color: var(--theme-accent-text, hsl(5, 58%, 22%));
     box-shadow: 0 1px 2px hsla(5, 40%, 20%, 0.06);
   }
 
   .visitor-counter :global(.visitor-counter__icon) {
     flex-shrink: 0;
-    color: hsl(5, 65%, 32%);
+    color: var(--theme-accent-text, hsl(5, 65%, 32%));
   }
 
   .visitor-counter__copy {
@@ -93,6 +93,6 @@
   .visitor-counter__plain {
     font-size: 0.875rem;
     font-weight: 800;
-    color: hsl(5, 70%, 22%);
+    color: var(--theme-accent-text, hsl(5, 70%, 22%));
   }
 </style>

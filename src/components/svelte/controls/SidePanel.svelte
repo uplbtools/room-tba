@@ -270,8 +270,8 @@
   .drawer-card {
     pointer-events: auto;
     height: 100%;
-    background-color: var(--map-chrome-panel-bg, hsl(5 18% 96%));
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    background-color: var(--map-chrome-panel-bg, var(--theme-surface, hsl(5 18% 96%)));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-left: 3px solid
       var(--map-chrome-panel-accent-border, hsl(5 15% 78%));
     border-radius: 0.8125rem;
@@ -287,7 +287,7 @@
     border-left: none;
     border-radius: var(--map-chrome-radius, 0.75rem);
     padding: 0.75rem 0.875rem;
-    background-color: #fff;
+    background-color: var(--theme-surface, #fff);
     box-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
   }
 
@@ -298,14 +298,14 @@
     height: 3.25rem;
     border: none;
     border-radius: 0 0.625rem 0.625rem 0;
-    background-color: #fff;
-    color: var(--color-brand, #8d1437);
+    background-color: var(--theme-surface, #fff);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
   :global(.app-layout.redesign-desktop) .drawer-handle:hover,
   :global(.app-layout.redesign-desktop) .drawer-handle:focus-visible {
-    background-color: #fff;
+    background-color: var(--theme-surface, #fff);
   }
 
   .drawer-sheet {
@@ -350,19 +350,19 @@
     align-items: center;
     justify-content: center;
     pointer-events: auto;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-left: none;
     border-radius: 0 0.75rem 0.75rem 0;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
-    color: #7b1113;
+    background-color: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
+    color: var(--theme-accent-text, #7b1113);
     cursor: pointer;
   }
   .drawer-handle:hover,
   .drawer-handle:focus-visible {
-    background-color: #fdf3f3;
+    background-color: var(--theme-accent-soft, #fdf3f3);
   }
   .drawer-handle:focus-visible {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: 2px;
   }
 

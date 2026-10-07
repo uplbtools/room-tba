@@ -78,12 +78,12 @@
     margin: 0.375rem 0.75rem 0.125rem;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .status-bar__nav-link :global(.status-bar__nav-external) {
     flex-shrink: 0;
     margin-left: auto;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 </style>

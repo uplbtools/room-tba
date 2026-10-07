@@ -986,19 +986,19 @@
   }
 
   .capacity-badge {
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .up-badge {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .private-badge {
-    color: hsl(210, 55%, 36%);
+    color: var(--theme-blue-text, hsl(210, 55%, 36%));
   }
 
   .price-badge {
-    color: hsl(150, 45%, 27%);
+    color: var(--theme-green-text, hsl(150, 45%, 27%));
   }
 
   .price-disclaimer {
@@ -1006,7 +1006,7 @@
     align-items: center;
     gap: 0.2rem;
     font-size: 0.6875rem;
-    color: hsl(35, 80%, 45%);
+    color: var(--theme-amber-text, hsl(35, 80%, 45%));
     font-weight: 500;
   }
 
@@ -1022,12 +1022,12 @@
   }
 
   .entity-curfew a {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
   }
 
   .no-results {
-    color: #666;
+    color: var(--theme-text-2, #666);
     font-size: 0.875rem;
     text-align: center;
     padding: 1rem 0;

@@ -97,8 +97,8 @@
     min-height: 3.75rem;
     padding: 0.4rem 0.4rem calc(0.4rem + env(safe-area-inset-bottom, 0px));
     border: none;
-    border-top: 1px solid #f0eaeb;
-    background: #fff;
+    border-top: 1px solid var(--theme-accent-border, #f0eaeb);
+    background: var(--theme-surface, #fff);
     box-shadow: 0 -2px 12px rgb(0 0 0 / 0.06);
   }
 
@@ -115,7 +115,7 @@
     border: none;
     border-radius: 0.75rem;
     background: transparent;
-    color: #3a3032;
+    color: var(--theme-text, #3a3032);
     font: inherit;
     font-size: 0.625rem;
     font-weight: 500;
@@ -138,8 +138,8 @@
   }
 
   .mobile-bottom-nav__item--active {
-    background: #feeaea;
-    color: #8d1437;
+    background: var(--theme-accent-soft, #feeaea);
+    color: var(--theme-accent-text, #8d1437);
   }
 
   .mobile-bottom-nav__fab {
@@ -152,7 +152,7 @@
     padding: 0;
     border: none;
     border-radius: 1.05rem;
-    background: #8d1437;
+    background: var(--theme-accent-fill, #8d1437);
     color: #fff;
     box-shadow: 0 3px 10px rgb(141 20 55 / 0.35);
     cursor: pointer;
@@ -161,7 +161,7 @@
 
   @media (hover: hover) {
     .mobile-bottom-nav__fab:hover {
-      background: #7a1130;
+      background: var(--theme-accent-fill, #7a1130);
     }
   }
 
@@ -194,7 +194,7 @@
     border-radius: 0.75rem;
     background: transparent;
     box-shadow: none;
-    color: #3a3032;
+    color: var(--theme-text, #3a3032);
     font: inherit;
     font-size: 0.625rem;
     font-weight: 500;
@@ -223,7 +223,7 @@
 
   .mobile-bottom-nav
     :global(.app-menu button.app-menu__trigger.map-chrome-chip[aria-expanded="true"]) {
-    background: #feeaea;
-    color: #8d1437;
+    background: var(--theme-accent-soft, #feeaea);
+    color: var(--theme-accent-text, #8d1437);
   }
 </style>

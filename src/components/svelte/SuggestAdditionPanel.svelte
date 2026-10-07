@@ -1131,7 +1131,7 @@
     margin: 0;
     font-size: 0.85rem;
     line-height: 1.35;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
   }
 
   .bundled-rooms__row {
@@ -1139,7 +1139,7 @@
     flex-direction: column;
     gap: 0.35rem;
     padding: 0.5rem;
-    border: 1px dashed var(--border-subtle, #e2e8f0);
+    border: 1px dashed var(--border-subtle, var(--theme-border, #e2e8f0));
     border-radius: 0.5rem;
   }
 
@@ -1149,7 +1149,7 @@
     font-size: 0.85rem;
     padding: 0.25rem 0.5rem;
     border-radius: 0.35rem;
-    border: 1px solid var(--border-subtle, #e2e8f0);
+    border: 1px solid var(--border-subtle, var(--theme-border, #e2e8f0));
     background: transparent;
     cursor: pointer;
   }

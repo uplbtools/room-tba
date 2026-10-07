@@ -245,7 +245,7 @@
     border-radius: 0.5rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(0, 0%, 13%);
+    color: var(--theme-text, hsl(0, 0%, 13%));
     cursor: pointer;
   }
 
@@ -263,7 +263,7 @@
   .map-context-menu__item:focus-visible,
   .map-context-menu__item:hover,
   .map-context-menu__toggle:hover {
-    background-color: hsl(5, 20%, 95%);
+    background-color: var(--theme-accent-soft, hsl(5, 20%, 95%));
   }
 
   .map-context-menu__toggle input {

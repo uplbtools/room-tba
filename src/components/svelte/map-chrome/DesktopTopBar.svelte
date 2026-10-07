@@ -86,8 +86,8 @@
     width: 100%;
     height: var(--desktop-top-bar-height, 3.5625rem);
     padding: 0 clamp(0.75rem, 1.5vw, 1.25rem);
-    background: #f9f6f6;
-    border-bottom: 1px solid hsl(5 12% 88%);
+    background: var(--theme-accent-soft, #f9f6f6);
+    border-bottom: 1px solid var(--theme-accent-border, hsl(5 12% 88%));
     z-index: 1;
   }
 
@@ -114,7 +114,7 @@
     font-size: clamp(0.95rem, 1.15vw, 1.09rem);
     font-weight: 700;
     line-height: 1;
-    color: #7e272c;
+    color: var(--theme-accent-text, #7e272c);
   }
 
   .desktop-top-bar__nav {
@@ -132,7 +132,7 @@
     border: none;
     border-radius: 10px;
     background: transparent;
-    color: #332529;
+    color: var(--theme-text, #332529);
     font: inherit;
     font-size: clamp(0.8125rem, 0.95vw, 0.875rem);
     text-decoration: none;
@@ -140,11 +140,11 @@
   }
 
   .desktop-top-bar__link--active {
-    background: #feeaea;
+    background: var(--theme-accent-soft, #feeaea);
   }
 
   .desktop-top-bar__link:hover {
-    background: #feeaea;
+    background: var(--theme-accent-soft, #feeaea);
   }
 
   .desktop-top-bar__signin {
@@ -152,7 +152,7 @@
     padding: 0.45rem clamp(0.75rem, 1.2vw, 1rem);
     border: none;
     border-radius: 10px;
-    background: #8d1437;
+    background: var(--theme-accent-fill, #8d1437);
     color: #fff;
     font: inherit;
     font-size: clamp(0.8125rem, 0.95vw, 0.875rem);

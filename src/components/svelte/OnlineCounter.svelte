@@ -59,13 +59,13 @@
     gap: 0.375rem;
     height: 2.75rem; /* Match map chrome toggle size */
     padding: 0 0.875rem;
-    background: var(--map-chrome-surface, white);
-    border: 1px solid var(--map-chrome-border, #ccc);
+    background: var(--map-chrome-surface, var(--theme-surface, white));
+    border: 1px solid var(--map-chrome-border, var(--theme-border, #ccc));
     border-radius: var(--map-chrome-radius, 1rem);
     box-shadow: var(--map-chrome-shadow, 0 1px 3px rgba(0,0,0,0.1));
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
     white-space: nowrap;
     user-select: none;
     pointer-events: auto;

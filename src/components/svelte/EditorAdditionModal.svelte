@@ -123,8 +123,8 @@
     flex-direction: column;
     overflow: hidden;
     border-radius: 0.75rem;
-    border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
-    background: var(--map-chrome-surface, #fffafa);
+    border: 1px solid var(--map-chrome-border, var(--theme-accent-border, hsl(5, 25%, 78%)));
+    background: var(--map-chrome-surface, var(--theme-surface, #fffafa));
     box-shadow: var(--map-chrome-panel-shadow, 0 18px 38px rgba(0, 0, 0, 0.3));
   }
 
@@ -135,7 +135,7 @@
     justify-content: space-between;
     gap: 0.75rem;
     padding: 0.625rem 0.875rem;
-    border-bottom: 1px solid hsl(0, 0%, 92%);
+    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
   .editor-addition-title {
@@ -143,7 +143,7 @@
     align-items: center;
     gap: 0.5rem;
     font-weight: 600;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .editor-addition-body {

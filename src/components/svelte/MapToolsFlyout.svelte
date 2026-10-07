@@ -226,7 +226,7 @@
     margin: 0 2.5rem 0.75rem 0.5rem;
     font-size: 1.125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .map-tools-dialog__body {
@@ -308,17 +308,17 @@
   }
 
   .map-tools-flyout__tool:hover {
-    background-color: hsl(5, 20%, 95%);
+    background-color: var(--theme-accent-soft, hsl(5, 20%, 95%));
   }
 
   .map-tools-flyout__tool:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
   .map-tools-flyout__tool--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 30%, 95%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-soft, hsl(5, 30%, 95%));
   }
 
   .map-tools-flyout__tool-copy {
@@ -336,6 +336,6 @@
   .map-tools-flyout__tool-description {
     font-size: 0.8125rem;
     line-height: 1.3;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 </style>

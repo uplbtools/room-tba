@@ -945,7 +945,7 @@
   /* The unabbreviated name (#875) reads as the room's real name, so it sits
      a shade darker than the college affiliation line below it. */
   .room-full-name {
-    color: #27272a;
+    color: var(--theme-text, #27272a);
     font-weight: 600;
   }
 
@@ -954,8 +954,8 @@
     align-self: flex-start;
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
-    background: hsl(5, 40%, 94%);
-    color: #7b1113;
+    background: var(--theme-accent-soft, hsl(5, 40%, 94%));
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.6875rem;
     font-weight: 600;
   }
@@ -965,16 +965,16 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.625rem;
-    border: 1px solid hsl(35, 80%, 70%);
+    border: 1px solid var(--theme-amber-border, hsl(35, 80%, 70%));
     border-radius: 0.5rem;
-    background-color: hsl(45, 100%, 97%);
+    background-color: var(--theme-amber-soft, hsl(45, 100%, 97%));
   }
 
   .merge-prompt p {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: #333;
+    color: var(--theme-text, #333);
   }
 
   .merge-actions {
@@ -984,30 +984,30 @@
   }
 
   .merge-btn {
-    border: 1px solid #d8b9ba;
+    border: 1px solid var(--theme-accent-border, #d8b9ba);
     border-radius: 0.375rem;
     padding: 0.375rem 0.625rem;
-    background: white;
-    color: #7b1113;
+    background: var(--theme-surface, white);
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
   }
 
   .merge-btn-primary {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 32%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
   }
 
   .merge-btn:hover:not(:disabled) {
-    border-color: #c58f91;
-    background: #fdf3f3;
+    border-color: var(--theme-accent-border, #c58f91);
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .merge-btn-primary:hover:not(:disabled) {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 38%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .merge-btn:disabled {
@@ -1028,7 +1028,7 @@
   }
 
   .entity-schedule__count {
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-weight: 600;
     letter-spacing: normal;
     text-transform: none;
@@ -1038,15 +1038,15 @@
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #7b1113;
+    color: var(--theme-accent-text, #7b1113);
   }
 
   .entity-schedule__scope {
     margin: 0;
     font-size: 0.6875rem;
     line-height: 1.4;
-    color: #71717a;
-    background-color: #f4f4f5;
+    color: var(--theme-text-2, #71717a);
+    background-color: var(--theme-surface-2, #f4f4f5);
     padding: 0.375rem 0.5rem;
     border-radius: 0.25rem;
   }
@@ -1054,6 +1054,6 @@
   .entity-schedule__empty {
     margin: 0;
     font-size: 0.8125rem;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 </style>

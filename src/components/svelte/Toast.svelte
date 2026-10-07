@@ -100,7 +100,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    background-color: white;
+    background-color: var(--theme-surface, white);
     border-radius: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     min-width: 280px;
@@ -109,15 +109,15 @@
   }
 
   .toast.error {
-    color: #b91c1c;
+    color: var(--theme-accent-text, #b91c1c);
   }
 
   .toast.info {
-    color: #1e40af;
+    color: var(--theme-blue-text, #1e40af);
   }
 
   .toast.success {
-    color: #065f46;
+    color: var(--theme-green-text, #065f46);
   }
 
   .icon {

@@ -248,7 +248,7 @@
   .no-results p {
     margin: 0;
     font-size: 0.8125rem;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .no-results {

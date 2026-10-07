@@ -335,7 +335,7 @@
   .legend-empty-note {
     margin: 0;
     padding: 0 0.25rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     font-size: 0.75rem;
     line-height: 1.35;
   }
@@ -359,11 +359,11 @@
     height: 3rem;
     align-items: center;
     justify-content: center;
-    border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
+    border: 1.5px solid var(--map-chrome-border-accent, var(--theme-accent-text, hsl(5, 40%, 42%)));
     border-radius: 50%;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    background-color: var(--map-chrome-surface, var(--theme-surface-translucent, rgba(255, 255, 255, 0.98)));
     backdrop-filter: blur(10px);
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
     box-shadow: var(
       --map-chrome-shadow,
@@ -377,18 +377,18 @@
   }
 
   .legend-btn:hover {
-    background-color: hsl(0, 0%, 99%);
-    border-color: hsl(5, 53%, 32%);
+    background-color: var(--theme-surface, hsl(0, 0%, 99%));
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .legend-btn:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
   .legend-btn.active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 32%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     box-shadow:
       inset 0 0 0 1px hsla(0, 0%, 100%, 0.2),
@@ -404,7 +404,7 @@
     flex-direction: column;
     gap: 0.625rem;
     border-radius: 0.875rem;
-    background-color: white;
+    background-color: var(--theme-surface, white);
     padding: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     overflow: hidden;
@@ -416,7 +416,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.125rem 0.25rem;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
     font-size: 0.875rem;
     font-weight: 600;
   }
@@ -444,7 +444,7 @@
   .legend-section-title {
     margin: 0;
     padding: 0 0.25rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     font-size: 0.6875rem;
     font-weight: 800;
     letter-spacing: 0.04em;
@@ -471,7 +471,7 @@
     min-width: 0;
     max-width: 100%;
     border-radius: 0.625rem;
-    background-color: hsl(0, 0%, 98%);
+    background-color: var(--theme-surface, hsl(0, 0%, 98%));
     padding: 0.45rem 0.625rem;
   }
 
@@ -491,7 +491,7 @@
   }
 
   .legend-swatch.building {
-    background-color: hsl(5, 53%, 32%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
   }
 
   .legend-swatch.dorm {
@@ -511,7 +511,7 @@
   }
 
   .legend-swatch.establishment {
-    background-color: hsl(334, 54%, 43%);
+    background-color: var(--theme-accent-fill, hsl(334, 54%, 43%));
   }
 
   .legend-toggle {
@@ -523,14 +523,14 @@
     min-width: 0;
     max-width: 100%;
     border-radius: 0.625rem;
-    background-color: hsl(0, 0%, 98%);
+    background-color: var(--theme-surface, hsl(0, 0%, 98%));
     padding: 0.45rem 0.625rem;
     cursor: pointer;
   }
 
   .legend-toggle:hover,
   .legend-toggle:focus-visible {
-    background-color: hsl(5, 30%, 95%);
+    background-color: var(--theme-accent-soft, hsl(5, 30%, 95%));
   }
 
   .legend-toggle--off {
@@ -550,27 +550,27 @@
   }
 
   .legend-swatch.event-active {
-    background-color: #7b1113;
+    background-color: var(--theme-accent-fill, #7b1113);
   }
 
   .legend-swatch.event-upcoming {
-    border-color: #d8b9ba;
-    background-color: #f8fafc;
-    color: #7b1113;
+    border-color: var(--theme-accent-border, #d8b9ba);
+    background-color: var(--theme-surface, #f8fafc);
+    color: var(--theme-accent-text, #7b1113);
   }
 
   .legend-swatch.event-past {
-    border-color: #d4d4d8;
-    background-color: #f4f4f5;
-    color: #71717a;
+    border-color: var(--theme-border, #d4d4d8);
+    background-color: var(--theme-surface-2, #f4f4f5);
+    color: var(--theme-text-2, #71717a);
   }
 
   .legend-swatch.event-route-stop {
-    background-color: #7b1113;
+    background-color: var(--theme-accent-fill, #7b1113);
   }
 
   .legend-swatch.event-linked {
-    background-color: hsl(5, 53%, 32%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     box-shadow:
       0 0 0 0.14rem rgba(250, 204, 21, 0.88),
       0 2px 0.25rem rgba(0, 0, 0, 0.28);
@@ -584,14 +584,14 @@
   }
 
   .legend-label {
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
     font-size: 0.8125rem;
     font-weight: 700;
     line-height: 1.2;
   }
 
   .legend-description {
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     font-size: 0.6875rem;
     line-height: 1.25;
   }

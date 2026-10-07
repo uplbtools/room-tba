@@ -165,8 +165,8 @@
     z-index: 0;
     margin: -0.5rem -0.25rem 0;
     padding: 0.5rem 3rem 0.5rem 0.25rem;
-    background: #fff;
-    border-bottom: 1px solid hsl(0 0% 92%);
+    background: var(--theme-surface, #fff);
+    border-bottom: 1px solid var(--theme-border, hsl(0 0% 92%));
   }
 
   h2 {
@@ -178,17 +178,17 @@
     margin: 0.1rem 0 0;
     font-size: 0.9rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     overflow-wrap: anywhere;
   }
 
   .entity-history-public__none {
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
     font-style: italic;
   }
 
   .entity-history-public__added {
-    background: hsl(140 60% 92%);
+    background: var(--theme-green-soft, hsl(140 60% 92%));
     border-radius: 0.2rem;
   }
 
@@ -200,11 +200,11 @@
   .entity-history-public__error {
     margin: 0;
     font-size: 0.85rem;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
   }
 
   .entity-history-public__error {
-    color: hsl(0, 65%, 40%);
+    color: var(--theme-accent-text, hsl(0, 65%, 40%));
   }
 
   .entity-history-public__list {
@@ -217,7 +217,7 @@
   }
 
   .entity-history-public__entry {
-    border-top: 1px solid hsl(0 0% 88%);
+    border-top: 1px solid var(--theme-border, hsl(0 0% 88%));
     padding-top: 0.6rem;
   }
 
@@ -230,7 +230,7 @@
   }
 
   .entity-history-public__meta time {
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
   }
 
   .entity-history-public__changes {
@@ -251,7 +251,7 @@
   }
 
   del {
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
   }
 
   ins {
@@ -263,13 +263,13 @@
     box-sizing: border-box;
     min-height: 2.75rem;
     padding: 0.5rem 1rem;
-    border: 1px solid hsl(5, 28%, 78%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 28%, 78%));
     border-radius: 0.625rem;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     font: inherit;
     font-size: 0.875rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
