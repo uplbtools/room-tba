@@ -265,6 +265,17 @@
   }
 
   const transitionMs = $derived(reducedMotion.current ? 0 : 320);
+
+  // Publish where the sheet's top edge rests so map controls can sit just
+  // above it (Entry's locate button at peek). The resting snap, not the live
+  // drag: controls should not chase the finger.
+  $effect(() => {
+    if (!open || !rootEl || availableH === 0) return;
+    const top = rootEl.getBoundingClientRect().top + baseTranslate;
+    const root = document.documentElement;
+    root.style.setProperty("--bottom-sheet-top", `${Math.round(top)}px`);
+    return () => root.style.removeProperty("--bottom-sheet-top");
+  });
 </script>
 
 {#if open}

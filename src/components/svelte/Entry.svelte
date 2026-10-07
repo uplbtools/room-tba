@@ -436,10 +436,12 @@
       {#if mobile.current}
         <div
           class="mobile-map-controls"
-          class:mobile-map-controls--sheet-open={sidePanelStore.mobileSheetSnap !==
-            "closed"}
+          class:mobile-map-controls--above-sheet={sidePanelStore.mobileSheetSnap ===
+            "peek"}
+          class:mobile-map-controls--sheet-open={sidePanelStore.mobileSheetSnap ===
+            "expanded"}
           bind:this={mapToolsStackEl}
-          aria-hidden={sidePanelStore.mobileSheetSnap !== "closed"}
+          aria-hidden={sidePanelStore.mobileSheetSnap === "expanded"}
         >
           <MapToolsFlyout />
           <MapControlsStack hideCompass />
@@ -489,6 +491,7 @@
     <Toast
       message={toastStore.message}
       type={toastStore.type}
+      action={toastStore.action}
       onclose={() => toastStore.clear()}
     />
   {/if}
@@ -1010,8 +1013,31 @@
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
-  /* Entity sheet open (peek or expanded): hide locate / 3D / zoom — they sit
-     in the same corner as the sheet and otherwise paint on top of it. */
+  /* Sheet at peek: the locate button (and the compass, when the map is
+     turned) ride just above the sheet's top edge, Google Maps style, so
+     "where am I" stays one tap away while a place is open. BottomSheet
+     publishes --bottom-sheet-top. The Layers button waits for the map. */
+  .mobile-map-controls--above-sheet {
+    top: calc(var(--bottom-sheet-top, 60dvh) - 0.75rem);
+    bottom: auto;
+    translate: 0 -100%;
+    transition:
+      top var(--motion-duration-sheet, 320ms) ease,
+      opacity var(--motion-duration-micro, 200ms) ease;
+  }
+
+  .mobile-map-controls--above-sheet > :global(.map-tools-flyout) {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-map-controls--above-sheet {
+      transition: none;
+    }
+  }
+
+  /* Sheet expanded: hide the controls — the sheet covers that corner and
+     they would otherwise paint on top of it. */
   .mobile-map-controls--sheet-open {
     opacity: 0 !important;
     visibility: hidden !important;

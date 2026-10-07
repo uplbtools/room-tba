@@ -99,7 +99,7 @@ export async function openSettingsModal(page: Page) {
 
 export async function openMapTools(page: Page) {
   const mapMenu = page.getByRole("button", { name: /map menu/i });
-  const mapToolsFab = page.getByRole("button", { name: /^Map tools$/i });
+  const mapToolsFab = page.getByRole("button", { name: /^Layers$/i });
 
   if (await mapMenu.isVisible().catch(() => false)) {
     await mapMenu.click();
@@ -107,7 +107,7 @@ export async function openMapTools(page: Page) {
     await mapToolsFab.click();
   }
 
-  await expect(page.getByRole("dialog", { name: /map tools/i })).toBeVisible({
+  await expect(page.getByRole("dialog", { name: /^layers$/i })).toBeVisible({
     timeout: 10_000,
   });
 }
