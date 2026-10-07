@@ -450,6 +450,9 @@
                 <button
                   type="button"
                   class="planner-block__label"
+                  aria-label="{block.courseCode} {formatSectionType(
+                    block.type,
+                  )} · {block.section}"
                   title="{block.courseCode} {block.type} {block.section}{block.roomCode
                     ? ` · ${block.roomCode}`
                     : ''} — drag to switch section"
