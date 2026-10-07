@@ -6,7 +6,7 @@ import {
   mountAtWidth,
 } from "@test/layout-assertions";
 import { SYNC_TABLE_NAMES } from "@lib/local/data/sync-keys";
-import { syncToastStore } from "@lib/store.svelte";
+import { modalStore, syncToastStore } from "@lib/store.svelte";
 
 const clearCachedData = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("@lib/local/clear-cached-data", () => ({ clearCachedData }));
@@ -37,17 +37,38 @@ describe("SettingsModal", () => {
     expect(screen.getByRole("heading", { name: "Settings" })).toBeVisible();
     // Transit moved to the sidebar's Jeepney routes browse panel.
     for (const section of [
-      "View",
+      "Map",
       "Terrain",
       "Schedule",
       "Feedback",
       "Storage",
+      "Reset",
     ]) {
       expect(
         screen.getByRole("heading", { name: section }),
       ).toBeInTheDocument();
     }
     expectNoHorizontalOverflow(container);
+  });
+
+  test("links to Send feedback instead of embedding a second form", () => {
+    render(SettingsModalHost);
+
+    expect(screen.queryByLabelText("Your message")).toBeNull();
+    screen.getByRole("button", { name: "Send feedback" }).click();
+    expect(modalStore.type).toBe("feedback");
+    modalStore.closeModal();
+  });
+
+  test("exaggeration is disabled while terrain is off", () => {
+    render(SettingsModalHost);
+
+    expect(
+      screen.getByRole("switch", { name: "Makiling terrain" }),
+    ).toHaveAttribute("aria-checked", "false");
+    for (const option of ["1x", "1.5x", "2x"]) {
+      expect(screen.getByRole("button", { name: option })).toBeDisabled();
+    }
   });
 });
 

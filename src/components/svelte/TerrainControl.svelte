@@ -47,14 +47,6 @@
     !isOnline || lowDataConnection || terrainStore.status === "unavailable",
   );
 
-  // Visible label is "Off"/"On", so the accessible name has to contain it
-  // (WCAG 2.5.3) while still naming the action.
-  const toggleLabel = $derived(
-    terrainStore.enabled
-      ? "Terrain is on. Turn terrain off."
-      : "Terrain is off. Turn terrain on.",
-  );
-
   function getConnection(): NetworkInformation | undefined {
     return (navigator as Navigator & { connection?: NetworkInformation })
       .connection;
@@ -119,20 +111,18 @@
       {/if}
 
       <div class="map-chrome-row">
-        <span class="map-chrome-row__label">Makiling terrain</span>
-        <div class="map-chrome-row__control">
-          <button
-            type="button"
-            class="map-chrome-chip"
-            class:map-chrome-chip--toggle-active={terrainStore.enabled}
-            onclick={handleToggle}
-            aria-pressed={terrainStore.enabled}
-            aria-label={toggleLabel}
-            title="Mt. Makiling in 3D. Loads elevation tiles over the network."
-          >
-            {terrainStore.enabled ? "On" : "Off"}
-          </button>
-        </div>
+        <span class="map-chrome-row__label" id="terrain-toggle-label">
+          Makiling terrain
+        </span>
+        <button
+          type="button"
+          role="switch"
+          class="map-chrome-switch"
+          aria-checked={terrainStore.enabled}
+          aria-labelledby="terrain-toggle-label"
+          onclick={handleToggle}
+          title="Mt. Makiling in 3D. Loads elevation tiles over the network."
+        ></button>
       </div>
 
       <div class="map-chrome-row">
@@ -144,13 +134,16 @@
           role="group"
           aria-labelledby="terrain-exaggeration-label"
         >
+          <!-- Nothing to exaggerate while terrain is off, so no option may
+               look selected then. -->
           {#each TERRAIN_EXAGGERATION_OPTIONS as option (option)}
             <button
               type="button"
               class="map-chrome-chip"
-              class:map-chrome-chip--toggle-active={terrainStore.exaggeration ===
-                option}
+              class:map-chrome-chip--toggle-active={terrainStore.enabled &&
+                terrainStore.exaggeration === option}
               aria-pressed={terrainStore.exaggeration === option}
+              disabled={!terrainStore.enabled}
               onclick={() => terrainStore.setExaggeration(option)}
             >
               {option}x

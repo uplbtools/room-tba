@@ -5,7 +5,7 @@
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import Box from "@lucide/svelte/icons/box";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
+  import MapPin from "@lucide/svelte/icons/map-pin";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import MapIcon from "@lucide/svelte/icons/map";
   import Satellite from "@lucide/svelte/icons/satellite";
@@ -31,14 +31,19 @@
   type Props = {
     /** When true, omit outer card chrome (used inside MapToolsFlyout). */
     embedded?: boolean;
-    /** modes = pins + 2D/3D in flyout; camera = desktop rotate/tilt/north on map face. */
-    variant?: "modes" | "camera";
+    /**
+     * modes = pins + 2D/3D in flyout; camera = desktop rotate/tilt/north on map
+     * face; settings = the same modes as labelled rows (switches for on/off,
+     * segments for choices) for the Settings modal.
+     */
+    variant?: "modes" | "camera" | "settings";
   };
 
   let { embedded = false, variant = "modes" }: Props = $props();
 
   const showModes = $derived(variant === "modes");
   const showCameraNav = $derived(variant === "camera");
+  const showSettings = $derived(variant === "settings");
 
   const ROTATE_STEP = 30;
   const PITCH_STEP = 15;
@@ -148,6 +153,11 @@
   const resetNorth = () =>
     withMap((map) => map.easeTo({ bearing: 0, duration: 400 }));
 
+  function setTilted(tilted: boolean) {
+    if (tilted === !is2D) return;
+    toggleView();
+  }
+
   const toggleView = () =>
     withMap((map) => {
       if (!isMap2DPitch(map.getPitch())) {
@@ -166,8 +176,139 @@
   class="map-view-controls"
   class:embedded
   class:camera-only={showCameraNav}
+  class:settings={showSettings}
   aria-label={showCameraNav ? "Map camera controls" : "Map display controls"}
 >
+  {#if showSettings}
+    <div class="map-chrome-row">
+      <span class="map-chrome-row__label" id="map-settings-pins">Pins</span>
+      <div
+        class="map-chrome-row__control"
+        role="group"
+        aria-labelledby="map-settings-pins"
+      >
+        <button
+          type="button"
+          class="map-chrome-chip"
+          class:map-chrome-chip--toggle-active={!mapViewStore.eventsOnly}
+          aria-pressed={!mapViewStore.eventsOnly}
+          onclick={() => mapViewStore.eventsOnly && mapViewStore.toggleEventsOnly()}
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="map-chrome-chip"
+          class:map-chrome-chip--toggle-active={mapViewStore.eventsOnly}
+          aria-pressed={mapViewStore.eventsOnly}
+          onclick={() => !mapViewStore.eventsOnly && mapViewStore.toggleEventsOnly()}
+        >
+          Events only
+        </button>
+      </div>
+    </div>
+
+    <div class="map-chrome-row">
+      <span class="map-chrome-row__label" id="map-settings-my-classes">
+        Highlight my class buildings
+      </span>
+      <button
+        type="button"
+        role="switch"
+        class="map-chrome-switch"
+        aria-checked={mapViewStore.highlightMyBuildings}
+        aria-labelledby="map-settings-my-classes"
+        aria-describedby={hasPlannerClasses
+          ? undefined
+          : "map-settings-my-classes-hint"}
+        disabled={!hasPlannerClasses}
+        onclick={mapViewStore.toggleHighlightMyBuildings}
+      ></button>
+    </div>
+    {#if !hasPlannerClasses}
+      <p id="map-settings-my-classes-hint" class="map-chrome-row-hint">
+        Add classes in the Planner first.
+      </p>
+    {/if}
+
+    <div class="map-chrome-row">
+      <span class="map-chrome-row__label" id="map-settings-style">
+        Map style
+      </span>
+      <div
+        class="map-chrome-row__control"
+        role="group"
+        aria-labelledby="map-settings-style"
+      >
+        <button
+          type="button"
+          class="map-chrome-chip"
+          class:map-chrome-chip--toggle-active={is2D}
+          aria-pressed={is2D}
+          onclick={() => setTilted(false)}
+        >
+          2D flat
+        </button>
+        <button
+          type="button"
+          class="map-chrome-chip"
+          class:map-chrome-chip--toggle-active={!is2D}
+          aria-pressed={!is2D}
+          onclick={() => setTilted(true)}
+        >
+          3D tilted
+        </button>
+      </div>
+    </div>
+
+    {#if satelliteAvailable}
+      <div class="map-chrome-row">
+        <span class="map-chrome-row__label" id="map-settings-basemap">
+          Basemap
+        </span>
+        <div
+          class="map-chrome-row__control"
+          role="group"
+          aria-labelledby="map-settings-basemap"
+        >
+          <button
+            type="button"
+            class="map-chrome-chip"
+            class:map-chrome-chip--toggle-active={!mapViewStore.satellite}
+            aria-pressed={!mapViewStore.satellite}
+            onclick={() => mapViewStore.satellite && mapViewStore.toggleSatellite()}
+          >
+            Standard
+          </button>
+          <button
+            type="button"
+            class="map-chrome-chip"
+            class:map-chrome-chip--toggle-active={mapViewStore.satellite}
+            aria-pressed={mapViewStore.satellite}
+            onclick={() => !mapViewStore.satellite && mapViewStore.toggleSatellite()}
+          >
+            Satellite
+          </button>
+        </div>
+      </div>
+    {/if}
+
+    <div class="map-chrome-row">
+      <span class="map-chrome-row__label" id="map-settings-camera-details">
+        Camera details
+      </span>
+      <button
+        type="button"
+        role="switch"
+        class="map-chrome-switch"
+        aria-checked={mapViewStore.cameraDebug}
+        aria-labelledby="map-settings-camera-details"
+        title={cameraDebugTitle}
+        onclick={mapViewStore.toggleCameraDebug}
+      ></button>
+    </div>
+  {/if}
+
   {#if showModes}
     <button
       class="control mode-toggle pin-toggle"
@@ -177,7 +318,7 @@
       aria-label={pinModeTitle}
       aria-pressed={mapViewStore.eventsOnly}
     >
-      <CalendarDays size={18} aria-hidden="true" />
+      <MapPin size={18} aria-hidden="true" />
       <span class="control-copy">
         <span class="control-kicker">Pins</span>
         <span class="control-value">
@@ -225,7 +366,7 @@
         <Box size={18} aria-hidden="true" />
       {/if}
       <span class="control-copy">
-        <span class="control-kicker">View</span>
+        <span class="control-kicker">Map style</span>
         <span class="control-value">{is2D ? "2D flat" : "3D tilted"}</span>
       </span>
     </button>
@@ -383,6 +524,10 @@
 
   .map-view-controls.embedded:not(.camera-only) {
     width: 100%;
+  }
+
+  .map-view-controls.embedded.settings {
+    gap: 0.375rem;
   }
 
   .divider {

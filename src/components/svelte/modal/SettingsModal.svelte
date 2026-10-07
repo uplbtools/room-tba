@@ -2,14 +2,15 @@
   import MapViewControls from "@ui/MapViewControls.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
-  import FeedbackPanel from "./FeedbackPanel.svelte";
+  import MessageSquare from "@lucide/svelte/icons/message-square";
+  import ModalHeader from "./ModalHeader.svelte";
   import { TERRAIN_ENABLED } from "@constants/map-terrain";
   import { clearCachedData } from "@lib/local/clear-cached-data";
   import {
     resyncCampusData,
     type ResyncOutcome,
   } from "@lib/local/resync-campus-data";
-  import { syncToastStore } from "@lib/store.svelte";
+  import { modalStore, syncToastStore } from "@lib/store.svelte";
   import "../map-chrome/map-chrome.css";
 
   let confirming = $state(false);
@@ -56,11 +57,11 @@
 </script>
 
 <div class="settings-modal">
-  <h2 class="settings-modal__title">Settings</h2>
+  <ModalHeader id="settings-modal-title" title="Settings" />
   <div class="settings-modal__scroll map-chrome-scroll">
     <section class="settings-modal__section">
-      <h3>View</h3>
-      <MapViewControls embedded variant="modes" />
+      <h3>Map</h3>
+      <MapViewControls embedded variant="settings" />
     </section>
     {#if TERRAIN_ENABLED}
       <section class="settings-modal__section">
@@ -74,7 +75,19 @@
     </section>
     <section class="settings-modal__section">
       <h3>Feedback</h3>
-      <FeedbackPanel />
+      <div class="map-chrome-row">
+        <span class="map-chrome-row__label">Found a problem or have an idea?</span>
+        <div class="map-chrome-row__control">
+          <button
+            type="button"
+            class="map-chrome-action-chip"
+            onclick={() => modalStore.openModal("feedback")}
+          >
+            <MessageSquare size={14} aria-hidden="true" />
+            Send feedback
+          </button>
+        </div>
+      </div>
     </section>
     <section class="settings-modal__section">
       <h3>Storage</h3>
@@ -109,7 +122,13 @@
           </p>
         {/if}
       </div>
+    </section>
 
+    <section
+      class="settings-modal__section settings-modal__danger-zone"
+      aria-labelledby="settings-reset-heading"
+    >
+      <h3 id="settings-reset-heading">Reset</h3>
       <div class="map-chrome-row">
         <span class="map-chrome-row__label">Offline data</span>
         {#if !confirming}
@@ -166,18 +185,10 @@
   .settings-modal {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
-    padding: 0.5rem 0.5rem 0.25rem;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
     flex: 1 1 auto;
     min-height: 0;
-  }
-
-  .settings-modal__title {
-    margin: 0;
-    padding-right: 2.25rem;
-    font-size: 1rem;
-    font-weight: 700;
-    color: hsl(0, 0%, 15%);
   }
 
   .settings-modal__scroll {
@@ -189,7 +200,7 @@
     gap: 1rem;
     /* Left padding keeps glyph edges out of the overflow clip (the "E" in
        Explore was losing its left stem). */
-    padding: 0 0.375rem 0 0.25rem;
+    padding: 0 0.5rem 0.25rem;
   }
 
   .settings-modal__section {
@@ -207,14 +218,23 @@
     color: hsl(0, 0%, 40%);
   }
 
-  /* Groups the light fix with its own result line, so the heavier
-     clear-and-reload below reads as the separate, bigger hammer. */
   .settings-modal__task {
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
-    padding-bottom: 0.625rem;
-    border-bottom: 1px solid hsl(0, 0%, 90%);
+  }
+
+  /* The destructive reset gets its own framed section, apart from Resync, so
+     it reads as the separate, bigger hammer it is. */
+  .settings-modal__danger-zone {
+    padding: 0.625rem 0.75rem 0.75rem;
+    border: 1px solid hsl(0, 55%, 86%);
+    border-radius: 0.625rem;
+    background: hsl(0, 75%, 99%);
+  }
+
+  .settings-modal__danger-zone h3 {
+    color: hsl(0, 70%, 32%);
   }
 
   /* The chrome chip is maroon like the rest of the app, so destructive gets a

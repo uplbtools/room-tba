@@ -474,6 +474,68 @@ button.map-chrome-chip:disabled {
   font-weight: 700;
 }
 
+/* On/off settings are a switch (role="switch" + aria-checked); choices stay
+   segmented chips. The button is the 44px touch target, the track is drawn
+   inside it. */
+.map-chrome-switch {
+  all: unset;
+  box-sizing: border-box;
+  position: relative;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.map-chrome-switch::before {
+  content: "";
+  position: absolute;
+  inset: 0.625rem 0;
+  border-radius: 999px;
+  background: hsl(0, 0%, 72%);
+  transition: background-color 0.15s ease;
+}
+
+.map-chrome-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.75rem;
+  left: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.3);
+  transition: translate 0.15s ease;
+}
+
+.map-chrome-switch[aria-checked="true"]::before {
+  background: hsl(5, 53%, 32%);
+}
+
+.map-chrome-switch[aria-checked="true"]::after {
+  translate: 1.25rem 0;
+}
+
+.map-chrome-switch:focus-visible {
+  outline: 2px solid hsl(5, 53%, 32%);
+  outline-offset: 1px;
+}
+
+.map-chrome-switch:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-chrome-switch::before,
+  .map-chrome-switch::after {
+    transition: none;
+  }
+}
+
 .map-chrome-fab-trigger {
   display: flex;
   flex-shrink: 0;

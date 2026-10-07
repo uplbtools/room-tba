@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import FeedbackPanel from "./FeedbackPanel.svelte";
 import {
   expectNoHorizontalOverflow,
@@ -10,6 +10,10 @@ function typeMessage(text: string) {
   const box = screen.getByLabelText("Your message");
   return fireEvent.input(box, { target: { value: text } });
 }
+
+beforeEach(() => {
+  sessionStorage.clear();
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -34,16 +38,49 @@ describe("FeedbackPanel", () => {
     expect(note.textContent).toMatch(/No email and no IP address are stored/i);
   });
 
-  test("keeps send disabled until the message has content", async () => {
+  test("has a titled header", () => {
+    render(FeedbackPanel);
+    expect(
+      screen.getByRole("heading", { name: "Send feedback" }),
+    ).toBeVisible();
+  });
+
+  test("keeps send enabled and says why an empty message is not sent", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
     render(FeedbackPanel);
     const send = screen.getByRole("button", { name: "Send feedback" });
-    expect(send).toBeDisabled();
+    expect(send).toBeEnabled();
 
     await typeMessage("   ");
-    expect(send).toBeDisabled();
+    await fireEvent.click(send);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Write a message first.",
+    );
+    expect(screen.getByLabelText("Your message")).toHaveAccessibleDescription(
+      /a wrong room, a bug, an idea\. Write a message first\./,
+    );
 
     await typeMessage("the map is blank");
-    expect(send).toBeEnabled();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("keeps the draft when the panel closes and reopens", async () => {
+    const first = render(FeedbackPanel);
+    await typeMessage("half a thought");
+    first.unmount();
+
+    render(FeedbackPanel);
+    expect(screen.getByLabelText("Your message")).toHaveValue("half a thought");
+  });
+
+  test("counts down near the cap and says when it is reached", async () => {
+    render(FeedbackPanel);
+    await typeMessage("x".repeat(1850));
+    expect(screen.getByText("150 characters left")).toBeVisible();
+    await typeMessage("x".repeat(2000));
+    expect(screen.getByText(/Limit reached/)).toBeVisible();
   });
 
   test("posts the message with its context and shows a success state", async () => {

@@ -99,6 +99,13 @@ export function progressPercent(filled: number, total: number): number {
   return Math.floor((filled / total) * 100);
 }
 
+/** Bar colour band, so 6% and 100% stop looking the same. */
+export function progressLevel(percent: number): "low" | "mid" | "high" {
+  if (percent >= 80) return "high";
+  if (percent >= 40) return "mid";
+  return "low";
+}
+
 export function emptyProgressCount(total: number): ProgressCount {
   return { filled: 0, total };
 }

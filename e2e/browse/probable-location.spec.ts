@@ -15,7 +15,9 @@ test.describe("probable location for Room TBA sections", () => {
     await waitForAppBoot(page);
 
     await openCampusDirectory(page, "classes");
-    await expect(page.getByText(/All classes/i).first()).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "Classes", exact: true }).first(),
+    ).toBeVisible({
       timeout: 10_000,
     });
 

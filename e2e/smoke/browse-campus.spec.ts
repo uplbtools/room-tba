@@ -10,7 +10,7 @@ test("Campus directory controls open browse panels", async ({ page }) => {
 
   await expect(
     page.locator(".side-panel-details h2, .bottom-sheet__body h2", {
-      hasText: "All classes",
+      hasText: /^Classes$/,
     }),
   ).toBeVisible();
 

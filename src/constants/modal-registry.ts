@@ -103,6 +103,7 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     component: SettingsModal,
     size: "reading",
     label: "Settings",
+    labelledBy: "settings-modal-title",
     closeLabel: "Close settings",
   },
   "jeepney-route": {
@@ -127,12 +128,14 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     component: OfflineMapsModal,
     size: "reading",
     label: "Offline maps",
+    labelledBy: "offline-maps-modal-title",
     closeLabel: "Close offline maps",
   },
   hotlines: {
     component: HotlinesModal,
     size: "reading",
     label: "Emergency hotlines",
+    labelledBy: "hotlines-modal-title",
     closeLabel: "Close emergency hotlines",
   },
   "entity-history": {
@@ -142,12 +145,12 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     closeLabel: "Close edit history",
     scroll: true,
   },
-  // The same panel Settings hosts. Students could not find it there, so the
-  // App menu opens it directly.
+  // Settings links here rather than embedding a second copy of the form.
   feedback: {
     component: FeedbackPanel,
     size: "compact",
     label: "Send feedback",
+    labelledBy: "feedback-modal-title",
     closeLabel: "Close feedback",
   },
 };

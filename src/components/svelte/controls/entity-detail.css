@@ -780,12 +780,25 @@
   text-align: left;
 }
 
-.entity-list-row:hover,
+/* Hover only where there is a pointer to hover: on touch, :hover sticks to
+   the last tapped row and paints a stray highlight on the list. */
 .entity-list-row:focus-visible {
   border-color: #d8b9ba;
   background: #fffafa;
   outline: none;
   box-shadow: inset 0 0 0 1px #d8b9ba;
+}
+
+@media (hover: hover) {
+  .entity-list-row:hover {
+    border-color: #d8b9ba;
+    background: #fffafa;
+    box-shadow: inset 0 0 0 1px #d8b9ba;
+  }
+
+  .entity-list-row:hover :global(.entity-list-row__chevron) {
+    color: #7b1113;
+  }
 }
 
 .entity-list-row__label {
@@ -801,7 +814,6 @@
   color: #a1a1aa;
 }
 
-.entity-list-row:hover :global(.entity-list-row__chevron),
 .entity-list-row:focus-visible :global(.entity-list-row__chevron) {
   color: #7b1113;
 }

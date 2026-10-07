@@ -7,6 +7,7 @@
   import { rafThrottle } from "@lib/layout-css-vars";
   import { trapFocus } from "@lib/focus-trap";
   import { portal } from "@lib/portal";
+  import { fmtBytes } from "@lib/local/offline-maps";
   import "./map-chrome/map-chrome.css";
 
   type Props = {
@@ -89,19 +90,23 @@
     closePopover();
   }
 
-  function fmtBytes(bytes: number | null): string {
-    if (bytes == null) return "—";
-    const mb = bytes / 1024 / 1024;
-    if (mb >= 1) return `${mb.toFixed(1)} MB`;
-    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  }
-
   function fmtSyncedAt(iso: string | null): string {
     if (!iso) return "Not downloaded";
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return "Downloaded";
     return `Updated ${date.toLocaleDateString()}`;
   }
+
+  // Same "status · size" shape as the other two rows' "status" meta.
+  const mapMeta = $derived.by(() => {
+    if (offlineStore.status === "done") {
+      return `Saved · ${fmtBytes(offlineStore.bytesDownloaded)}`;
+    }
+    if (offlineStore.status === "downloading") return "Downloading…";
+    return offlineStore.estimatedBytes > 0
+      ? `Not downloaded · ~${fmtBytes(offlineStore.estimatedBytes)}`
+      : "Not downloaded";
+  });
 
   const mapPct = $derived(Math.round(offlineStore.progress * 100));
   const directoryPct = $derived(
@@ -155,9 +160,7 @@
           <h3 id="offline-map-heading" class="offline-category__title">
             Campus map
           </h3>
-          <span class="offline-category__meta">
-            ~{fmtBytes(offlineStore.estimatedBytes)}
-          </span>
+          <span class="offline-category__meta">{mapMeta}</span>
         </div>
 
         {#if offlineStore.status === "downloading"}
@@ -315,9 +318,14 @@
         {/if}
       </section>
 
-      <p class="map-chrome-popover-footnote">
-        On this device: {fmtBytes(offlineStore.storageUsed)}
-      </p>
+      {#if offlineStore.storageUsed != null}
+        <!-- The browser's figure covers the whole app (code, recently viewed
+             map areas, campus data), not just the downloads above. -->
+        <p class="map-chrome-popover-footnote">
+          Room TBA uses {fmtBytes(offlineStore.storageUsed)} on this device in
+          total, including app files and recently viewed map areas.
+        </p>
+      {/if}
     </div>
   {/if}
 </div>

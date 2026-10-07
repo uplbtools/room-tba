@@ -14,10 +14,10 @@ test.describe("map settings", () => {
 
   test("terrain off by default", async ({ page }) => {
     const settings = await openSettingsModal(page);
-    const terrainToggle = settings.getByRole("button", {
-      name: /turn terrain on/i,
+    const terrainToggle = settings.getByRole("switch", {
+      name: /makiling terrain/i,
     });
     await expect(terrainToggle).toBeVisible();
-    await expect(terrainToggle).toHaveAttribute("aria-pressed", "false");
+    await expect(terrainToggle).toHaveAttribute("aria-checked", "false");
   });
 });
