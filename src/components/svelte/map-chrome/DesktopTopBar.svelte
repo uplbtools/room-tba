@@ -10,7 +10,10 @@
     { id: "finals", label: "Final exams" },
   ];
 
-  const active = $derived(sidebarStore.panelOpen);
+  const hostTabs = links.map((link) => link.id);
+  let menuOpen = $state(false);
+  /** The open menu is the one "you are here"; mute the tab under it. */
+  const active = $derived(menuOpen ? null : sidebarStore.panelOpen);
 
   function go(id: NavId) {
     sidebarStore.changeOpened(id);
@@ -25,7 +28,7 @@
   }
 
   const signInLabel = $derived(
-    adminAuthStore.username ? "Account" : "Contributor sign in",
+    adminAuthStore.username ? "Account" : "Sign in",
   );
 </script>
 
@@ -60,7 +63,7 @@
       </button>
     {/each}
     <a href="/wiki" class="desktop-top-bar__link">Wiki</a>
-    <AppMenu />
+    <AppMenu bind:open={menuOpen} {hostTabs} showAccount={false} />
     <button
       type="button"
       class="desktop-top-bar__signin"

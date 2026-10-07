@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { suppressLandingModal, waitForAppBoot } from "../helpers/app";
-import { openAppMenu } from "../helpers/map-tools";
 
 // /planner is a deep link that must open the Class Planner overlay directly.
 // Without a blocking e2e this route silently breaks (cf. app-menu regressions).
@@ -46,8 +45,12 @@ test.describe("planner route", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    const menu = await openAppMenu(page);
-    await menu.getByRole("button", { name: "Course planner" }).click();
+    // Planner is a primary tab on both layouts, so the App menu no longer
+    // repeats it.
+    await page
+      .getByRole("navigation", { name: "Primary" })
+      .getByRole("button", { name: "Planner" })
+      .click();
     await expect(
       page.getByRole("dialog", { name: "Class Planner" }),
     ).toBeVisible();

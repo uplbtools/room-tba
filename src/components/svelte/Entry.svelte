@@ -1077,6 +1077,15 @@
       );
       box-sizing: border-box;
     }
+
+    /* Today / Finals / Calendar ship z-index: 150 (for the desktop layout),
+       which painted them over the fixed bottom nav (z 5) and left the phone
+       with no tabs and no menu on those screens. Let the nav win here. */
+    .ui-layer > :global(.finals-screen),
+    .ui-layer > :global(.today-screen),
+    .ui-layer > :global(.acal-screen) {
+      z-index: auto;
+    }
   }
 
   /* Desktop redesign: no bottom-left chrome shell (was an empty white pill). */

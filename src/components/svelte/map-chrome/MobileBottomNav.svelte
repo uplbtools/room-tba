@@ -7,7 +7,11 @@
 
   type TabId = "map" | "planner" | "today";
 
-  const active = $derived(sidebarStore.panelOpen);
+  let menuOpen = $state(false);
+  /** While the menu sheet is open it is the one "you are here"; the tab under
+      it must not also look selected. */
+  const active = $derived(menuOpen ? null : sidebarStore.panelOpen);
+  const tabs = ["map", "planner", "today"] as const;
 
   function go(id: TabId) {
     sidebarStore.changeOpened(id);
@@ -78,7 +82,7 @@
        review queue (#951). Sign in / account settings sits inside it. Finals
        lives here rather than the bar because it is seasonal (#951 follow-up:
        daily-relevant Today earns the slot). -->
-  <AppMenu />
+  <AppMenu bind:open={menuOpen} hostTabs={tabs} />
 </nav>
 
 <style>
@@ -155,8 +159,10 @@
     transform: translateY(-0.65rem);
   }
 
-  .mobile-bottom-nav__fab:hover {
-    background: #7a1130;
+  @media (hover: hover) {
+    .mobile-bottom-nav__fab:hover {
+      background: #7a1130;
+    }
   }
 
   /* AppMenu ships its own chip styling for the status bar; here it has to read
@@ -208,7 +214,15 @@
     white-space: nowrap;
   }
 
-  .mobile-bottom-nav :global(.app-menu__trigger[aria-expanded="true"]) {
+  /* Beat map-chrome-chip's :hover (sticky after a tap on touch) so the
+     trigger only tints while the menu is actually open. */
+  .mobile-bottom-nav
+    :global(.app-menu button.app-menu__trigger.map-chrome-chip:hover) {
+    background: transparent;
+  }
+
+  .mobile-bottom-nav
+    :global(.app-menu button.app-menu__trigger.map-chrome-chip[aria-expanded="true"]) {
     background: #feeaea;
     color: #8d1437;
   }

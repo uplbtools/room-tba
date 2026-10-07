@@ -1,9 +1,19 @@
 const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+
+/** False inside a collapsed <details> (its summary excepted) or when hidden. */
+function isRendered(el: HTMLElement): boolean {
+  const closed = el.closest("details:not([open])");
+  if (closed && !(el.tagName === "SUMMARY" && el.parentElement === closed)) {
+    return false;
+  }
+  return typeof el.checkVisibility === "function" ? el.checkVisibility() : true;
+}
 
 function focusableElements(container: HTMLElement): HTMLElement[] {
   return [...container.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-    (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1,
+    (el) =>
+      !el.hasAttribute("disabled") && el.tabIndex !== -1 && isRendered(el),
   );
 }
 
@@ -43,8 +53,9 @@ export function trapFocus(
     const last = items[items.length - 1]!;
     const active = document.activeElement;
 
-    if (!container.contains(active)) {
-      // Focus escaped (or never arrived): pull the next Tab into the dialog.
+    if (!container.contains(active) || active === container) {
+      // Focus escaped, never arrived, or sits on the dialog itself
+      // (initialFocus: container): pull the next Tab onto an item.
       event.preventDefault();
       (event.shiftKey ? last : first).focus();
       return;

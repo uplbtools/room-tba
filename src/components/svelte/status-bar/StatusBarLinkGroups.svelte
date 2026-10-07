@@ -1,8 +1,9 @@
 <script lang="ts">
   import ExternalLink from "@lucide/svelte/icons/external-link";
-  import GitFork from "@lucide/svelte/icons/git-fork";
+  import Globe from "@lucide/svelte/icons/globe";
+  import Trophy from "@lucide/svelte/icons/trophy";
+  import Users from "@lucide/svelte/icons/users";
   import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
-  import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
   import type {
     StatusBarNavGroup,
     StatusBarActionItem,
@@ -16,109 +17,73 @@
   const { groups, onAction }: Props = $props();
 </script>
 
+<!-- One row style for every entry (actions and links alike), shared with the
+     App menu's own rows. External links carry the same trailing icon so they
+     read as "leaves the app" without per-brand guesswork. -->
 {#each groups as group (group.id)}
   <div class="status-bar__nav-group" data-status-nav-group={group.id}>
-    {#if group.id === "similar"}
-      <details class="status-bar__similar-dropdown">
-        <summary class="status-bar__similar-summary">Similar maps</summary>
-        <div class="status-bar__similar-links">
-          {#each group.items as item (item.id)}
-            {#if item.kind === "link"}
-              <a
-                href={item.href}
-                class="map-chrome-ghost-link status-bar__nav-link"
-                target={item.external ? "_blank" : undefined}
-                rel={item.external ? "noopener noreferrer" : undefined}
-              >
-                {#if item.icon === "external"}
-                  <ExternalLink size={14} aria-hidden="true" />
-                {/if}
-                {item.label}
-              </a>
-            {/if}
-          {/each}
-        </div>
-      </details>
-    {:else}
-      {#each group.items as item (item.id)}
-        {#if item.kind === "link"}
-          <a
-            href={item.href}
-            class="map-chrome-ghost-link status-bar__nav-link"
-            target={item.external ? "_blank" : undefined}
-            rel={item.external ? "noopener noreferrer" : undefined}
-          >
-            {#if item.icon === "external"}
-              <ExternalLink size={14} aria-hidden="true" />
-            {:else if item.icon === "discord"}
-              <CommunityBrandIcon brand="discord" size={14} />
-            {:else if item.icon === "messenger"}
-              <CommunityBrandIcon brand="messenger" size={14} />
-            {:else if item.icon === "version"}
-              <GitFork size={14} aria-hidden="true" />
-            {/if}
-            {item.label}
-          </a>
-        {:else}
-          <MapChromeGhostButton
-            variant="muted"
-            onclick={() => onAction(item.id)}
-          >
-            {item.label}
-          </MapChromeGhostButton>
-        {/if}
-      {/each}
+    {#if group.label}
+      <p class="status-bar__nav-label">{group.label}</p>
     {/if}
+    {#each group.items as item (item.id)}
+      {#if item.kind === "link"}
+        <a
+          href={item.href}
+          class="app-menu__nav-action status-bar__nav-link"
+          target={item.external ? "_blank" : undefined}
+          rel={item.external ? "noopener noreferrer" : undefined}
+          aria-label={item.external
+            ? `${item.label} (opens in new tab)`
+            : undefined}
+        >
+          {#if item.icon === "discord" || item.icon === "messenger"}
+            <CommunityBrandIcon brand={item.icon} size={18} />
+          {:else}
+            <Globe size={18} aria-hidden="true" />
+          {/if}
+          <span>{item.label}</span>
+          {#if item.external}
+            <ExternalLink
+              class="status-bar__nav-external"
+              size={14}
+              aria-hidden="true"
+            />
+          {/if}
+        </a>
+      {:else}
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => onAction(item.id)}
+        >
+          {#if item.id === "leaderboard"}
+            <Trophy size={18} aria-hidden="true" />
+          {:else}
+            <Users size={18} aria-hidden="true" />
+          {/if}
+          <span>{item.label}</span>
+        </button>
+      {/if}
+    {/each}
   </div>
 {/each}
 
 <style>
-  .status-bar__similar-dropdown {
-    position: relative;
-  }
-
-  .status-bar__similar-summary {
-    list-style: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.375rem;
-    font: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: hsl(0, 0%, 28%);
-  }
-
-  .status-bar__similar-summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .status-bar__similar-summary::after {
-    content: "▾";
-    font-size: 0.6875rem;
-    color: hsl(0, 0%, 45%);
-  }
-
-  .status-bar__similar-dropdown[open] .status-bar__similar-summary::after {
-    content: "▴";
-  }
-
-  .status-bar__similar-summary:hover,
-  .status-bar__similar-summary:focus-visible {
-    background: hsl(0, 0%, 94%);
-  }
-
-  .status-bar__similar-links {
+  .status-bar__nav-group {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    margin-top: 0.25rem;
-    padding: 0.375rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.5rem;
-    background: white;
-    box-shadow: var(--map-chrome-panel-shadow);
+  }
+
+  .status-bar__nav-label {
+    margin: 0.375rem 0.75rem 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 40%);
+  }
+
+  .status-bar__nav-link :global(.status-bar__nav-external) {
+    flex-shrink: 0;
+    margin-left: auto;
+    color: hsl(0, 0%, 45%);
   }
 </style>

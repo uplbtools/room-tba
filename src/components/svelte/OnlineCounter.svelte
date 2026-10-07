@@ -31,7 +31,7 @@
       const data = (await response.json()) as { online?: number };
       if (typeof data.online === "number") online = data.online;
     } catch {
-      // Offline or API down: keep the last known count (0 renders as "--").
+      // Offline or API down: keep the last known count (0 renders nothing).
     }
   }
 
@@ -43,16 +43,14 @@
   });
 </script>
 
-<div class="online-counter" title="{online} online now">
-  <div class="presence-dot"></div>
-  <span class="online-text">
-    {#if online > 0}
-      {online} online
-    {:else}
-      --
-    {/if}
-  </span>
-</div>
+<!-- Hidden until someone besides you is here: "--" before the first
+     heartbeat and "1 online" (just you) both read as a dead app. -->
+{#if online >= 2}
+  <div class="online-counter" role="status">
+    <div class="presence-dot" aria-hidden="true"></div>
+    <span class="online-text">{online} people online now</span>
+  </div>
+{/if}
 
 <style>
   .online-counter {
