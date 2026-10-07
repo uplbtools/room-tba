@@ -184,14 +184,14 @@
     <h1 class="acal-title" id="acal-screen-title">Academic calendar</h1>
   </header>
 
-  <!-- Collapsed: the caveat stays one tap away instead of a quarter screen. -->
+  <!-- The caveat's headline stays visible (#408); the detail is one tap
+       away instead of a quarter of the screen. -->
   <details class="acal-about">
-    <summary>About these dates</summary>
+    <summary>May differ from the official UPLB academic calendar</summary>
     <p class="acal-note" role="note">
-      Term windows are community-maintained per CRS term and may differ from
-      the official UPLB academic calendar; the dated rows below are read from
-      the Office of the University Registrar's published calendar. Verify
-      anything you are relying on with the Registrar.
+      Term windows are community-maintained per CRS term; the dated rows below
+      are read from the Office of the University Registrar's published
+      calendar. Verify anything you are relying on with the Registrar.
     </p>
   </details>
 

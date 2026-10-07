@@ -81,7 +81,9 @@ describe("AcademicCalendarScreen", () => {
       expect(legend.textContent).toContain(label);
     }
     expect(
-      screen.getByText("About these dates").closest("details"),
+      screen
+        .getByText("May differ from the official UPLB academic calendar")
+        .closest("details"),
     ).not.toHaveAttribute("open");
   });
 
@@ -105,9 +107,10 @@ describe("AcademicCalendarScreen", () => {
 
   test("shows the community-data disclaimer", () => {
     render(AcademicCalendarScreen);
-    expect(screen.getByRole("note").textContent).toContain(
-      "official UPLB academic calendar",
-    );
+    expect(
+      screen.getByText("May differ from the official UPLB academic calendar"),
+    ).toBeTruthy();
+    expect(screen.getByRole("note").textContent).toContain("Registrar");
   });
 
   test("says so plainly for an AY with no published registrar calendar", () => {
