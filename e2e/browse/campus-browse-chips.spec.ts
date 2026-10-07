@@ -105,6 +105,14 @@ test.describe("campus browsing", () => {
   });
 
   test("Jeepney routes opens the transit browse panel", async ({ page }) => {
+    // The route line, stop circles and direction arrows are drawn in one
+    // pass; a failed draw logs this warning instead of throwing.
+    const drawFailures: string[] = [];
+    page.on("console", (message) => {
+      if (message.text().includes("jeepney route draw failed")) {
+        drawFailures.push(message.text());
+      }
+    });
     await browse(page, "jeepney");
     await expect(
       page.getByRole("heading", { name: /Jeepney Routes/i }),
@@ -115,6 +123,21 @@ test.describe("campus browsing", () => {
     await expect(
       page.getByRole("button", { name: /copy link to .+ route/i }),
     ).toBeVisible();
+    await expect(page.locator(".jeepney-stop-pin").first()).toBeVisible();
+    // The draw retries on styledata, so give it a moment before judging.
+    await page.waitForTimeout(1_500);
+    expect(
+      drawFailures.filter((m) => !/style is not done loading/i.test(m)),
+    ).toEqual([]);
+
+    // A focused route has a clear way out back to the plain map.
+    await page
+      .getByRole("button", { name: /close route and return to the map/i })
+      .click();
+    await expect(page.locator(".jeepney-stop-pin")).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /copy link to .+ route/i }),
+    ).toHaveCount(0);
   });
 
   test("classes panel includes term selector", async ({ page }) => {

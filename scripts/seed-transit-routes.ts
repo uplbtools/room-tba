@@ -21,6 +21,7 @@
 import { randomUUID } from "node:crypto";
 import pg from "pg";
 import { loadEnv } from "./load-env";
+import { planTransitFixes } from "./lib/transit-fixes-core";
 
 loadEnv();
 
@@ -329,6 +330,36 @@ const ROUTES: Route[] = [
     ],
   },
 ];
+
+// The research-pass rows below predate the 2026-10-06 corrections (stops km
+// off their lines, six names for Olivarez Plaza). Seed them corrected, with
+// the same plan scripts/fix-transit-data.ts applies to existing databases.
+{
+  let nextId = 1;
+  const stopRows = ROUTES.flatMap((route) =>
+    route.stops.map((stop) => ({
+      id: nextId++,
+      routeId: route.id,
+      ...stop,
+      version: 1,
+      ref: stop,
+    })),
+  );
+  const fixes = planTransitFixes(
+    ROUTES.map((route) => ({ ...route, version: 1 })),
+    stopRows,
+    new Set(),
+  );
+  for (const fix of fixes) {
+    if (fix.table === "jeepney_stops") {
+      const row = stopRows.find((r) => r.id === fix.id);
+      if (row) Object.assign(row.ref, fix.after);
+    } else {
+      const route = ROUTES.find((r) => r.id === fix.id);
+      if (route) Object.assign(route, fix.after);
+    }
+  }
+}
 
 const client = new pg.Client({ connectionString });
 await client.connect();

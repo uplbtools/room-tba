@@ -43,6 +43,8 @@
     /** Close button label, e.g. "Close settings". */
     closeLabel?: string;
     showClose?: boolean;
+    /** Focus the dialog container on open rather than its first control. */
+    focusDialog?: boolean;
     children: Snippet;
   };
 
@@ -54,6 +56,7 @@
     labelledBy,
     closeLabel = "Close dialog",
     showClose = true,
+    focusDialog = false,
     children,
   }: Props = $props();
 
@@ -78,7 +81,10 @@
 
   $effect(() => {
     if (!open || !contentEl) return;
-    return trapFocus(contentEl, { onEscape: onclose });
+    return trapFocus(contentEl, {
+      onEscape: onclose,
+      ...(focusDialog ? { initialFocus: contentEl } : {}),
+    });
   });
 
   function handleOverlayClick() {
@@ -102,6 +108,7 @@
       class="modal-content modal-content--{size}"
       role="dialog"
       aria-modal="true"
+      tabindex={focusDialog ? -1 : undefined}
       aria-label={ariaLabel}
       aria-labelledby={labelledBy}
       in:fly={modalContentReveal(reducedMotion.current)}
@@ -136,6 +143,11 @@
     align-items: center;
     box-sizing: border-box;
     pointer-events: auto;
+  }
+
+  /* Focused as a whole only for focusDialog; the container needs no ring. */
+  .modal-content:focus {
+    outline: none;
   }
 
   .modal-content {

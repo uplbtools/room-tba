@@ -81,6 +81,13 @@
   let triggerEl = $state<HTMLButtonElement | null>(null);
   let panelEl = $state<HTMLDivElement | null>(null);
   let panelStyle = $state("");
+  /** More menu below the fold: fade the bottom edge so it reads as scrollable. */
+  let moreBelow = $state(false);
+
+  function syncMoreBelow() {
+    const el = panelEl;
+    moreBelow = !!el && el.scrollTop + el.clientHeight < el.scrollHeight - 4;
+  }
 
   const contributorSession = $derived(
     adminAuthStore.isLoggedIn &&
@@ -127,8 +134,20 @@
       panelStyle = `left: ${left}px; top: ${top}px; bottom: auto; max-height: ${Math.max(120, window.innerHeight - top - 8)}px; width: ${width}px;`;
       return;
     }
+    // Bottom bar (phones): grow up to just under the search bar and filter
+    // chips instead of stopping at a fixed 28rem mid-list.
     const bottom = Math.max(8, window.innerHeight - rect.top + 8);
-    panelStyle = `left: ${left}px; bottom: ${bottom}px; width: ${width}px;`;
+    const topChrome = Math.max(
+      0,
+      ...[
+        ...document.querySelectorAll(
+          ".search-root .map-search-chrome__pill, .search-root .map-filter-chips",
+        ),
+      ].map((el) => el.getBoundingClientRect().bottom),
+    );
+    const maxHeight = Math.max(160, window.innerHeight - bottom - topChrome - 8);
+    panelStyle = `left: ${left}px; bottom: ${bottom}px; width: ${width}px; max-height: ${maxHeight}px;`;
+    requestAnimationFrame(syncMoreBelow);
   }
 
   $effect(() => {
@@ -259,7 +278,9 @@
       bind:this={panelEl}
       id="app-menu-panel"
       class="app-menu__panel map-chrome-popover"
+      class:app-menu__panel--more-below={moreBelow}
       style={panelStyle}
+      onscroll={syncMoreBelow}
       role="dialog"
       aria-modal="true"
       aria-label="App menu"
@@ -668,6 +689,23 @@
     max-height: min(70vh, 28rem);
     overflow-y: auto;
     padding: 0.75rem;
+  }
+
+  /* A fade pinned to the panel's bottom edge while more items are below, in
+     the panel's own surface colour (a mask would fade the surface too and
+     let the map show through). */
+  .app-menu__panel--more-below::after {
+    content: "";
+    position: sticky;
+    bottom: -0.75rem;
+    flex: 0 0 3rem;
+    margin: -3rem -0.75rem -0.75rem;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--map-chrome-surface, rgba(255, 255, 255, 0.98))
+    );
+    pointer-events: none;
   }
 
   .app-menu__section {

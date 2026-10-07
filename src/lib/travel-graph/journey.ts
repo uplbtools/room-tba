@@ -11,9 +11,11 @@
  * Every board/alight pair is then a table lookup, which keeps the ride search
  * at O(routes x stops^2) over ~20 stops — microseconds, no worker needed.
  *
- * ponytail: no timetable, no transfers between routes. Campus jeeps run on
- * headway rather than a schedule, and the two routes meet only near the core
- * where walking already wins, so a two-ride itinerary would be modelled noise.
+ * ponytail: no timetable. Campus jeeps run on headway rather than a schedule.
+ * Transfers are planned only for a trip end off the campus walk network (a
+ * town terminal like Olivarez Plaza): ride the town jeep to a campus stop,
+ * then plan the rest as usual. Inside campus the routes meet only near the
+ * core where walking already wins, so on-campus two-ride trips stay out.
  */
 
 import {
@@ -165,7 +167,43 @@ function snapEndpoint(graph: TravelGraph, point: LatLng): number | null {
  * that is usually the honest answer — then adds the ride options that save
  * enough time to be worth the wait.
  */
-export function planJourneys({
+/**
+ * A trip end off the campus walk network (Olivarez Plaza, where Kaliwa/Kanan
+ * starts, is in town) can still start or end at a jeep stop this close, as a
+ * straight walk. Without it, "from the jeep terminal" could not be planned.
+ */
+const OFF_NETWORK_STOP_RADIUS_METERS = 350;
+/** Straight-line walks run longer on real streets. */
+const STRAIGHT_WALK_DETOUR = 1.3;
+
+function straightWalk(from: LatLng, to: LatLng): WalkLeg {
+  const meters =
+    distanceMeters(
+      { lat: from.lat, lon: from.lng },
+      { lat: to.lat, lon: to.lng },
+    ) * STRAIGHT_WALK_DETOUR;
+  return {
+    kind: "walk",
+    seconds: meters / WALK_MPS,
+    meters,
+    coordinates: [
+      [from.lng, from.lat],
+      [to.lng, to.lat],
+    ],
+  };
+}
+
+function nearAnyStop(point: LatLng, routes: JeepneyRoute[]): boolean {
+  return routes.some((route) =>
+    route.stops.some(
+      (stop) =>
+        distanceMeters({ lat: point.lat, lon: point.lng }, stop) <=
+        OFF_NETWORK_STOP_RADIUS_METERS,
+    ),
+  );
+}
+
+function planDirect({
   graph,
   origin,
   destination,
@@ -173,20 +211,25 @@ export function planJourneys({
   maxOptions = MAX_JOURNEY_OPTIONS,
 }: PlanJourneysInput): JourneyPlan {
   const originNode = snapEndpoint(graph, origin);
-  if (originNode === null) {
+  if (originNode === null && !nearAnyStop(origin, routes)) {
     return { status: "origin-off-network", journeys: [] };
   }
   const destNode = snapEndpoint(graph, destination);
-  if (destNode === null) {
+  if (destNode === null && !nearAnyStop(destination, routes)) {
     return { status: "destination-off-network", journeys: [] };
   }
 
-  const fromOrigin = dijkstra(graph, originNode, "walk");
-  const fromDestination = dijkstra(graph, destNode, "walk");
+  const fromOrigin =
+    originNode === null ? null : dijkstra(graph, originNode, "walk");
+  const fromDestination =
+    destNode === null ? null : dijkstra(graph, destNode, "walk");
 
   const journeys: Journey[] = [];
 
-  const walkPath = reconstructPath(graph, fromOrigin, originNode, destNode);
+  const walkPath =
+    fromOrigin && originNode !== null && destNode !== null
+      ? reconstructPath(graph, fromOrigin, originNode, destNode)
+      : null;
   if (walkPath) {
     journeys.push({
       id: "walk",
@@ -217,15 +260,34 @@ export function planJourneys({
 
     let best: { board: number; alight: number; seconds: number } | null = null;
 
+    // Seconds on foot between a trip end and a stop: along the walk network
+    // when the end is on it, else a short straight walk (see
+    // OFF_NETWORK_STOP_RADIUS_METERS), else unreachable.
+    const footSeconds = (
+      tree: typeof fromOrigin,
+      end: LatLng,
+      index: number,
+    ): number => {
+      if (tree) {
+        const node = stopNodes[index] ?? -1;
+        return node < 0
+          ? Number.POSITIVE_INFINITY
+          : (tree.seconds[node] ?? Number.POSITIVE_INFINITY);
+      }
+      const stop = stops[index]!;
+      const meters = distanceMeters({ lat: end.lat, lon: end.lng }, stop);
+      return meters <= OFF_NETWORK_STOP_RADIUS_METERS
+        ? (meters * STRAIGHT_WALK_DETOUR) / WALK_MPS
+        : Number.POSITIVE_INFINITY;
+    };
+
     for (let board = 0; board < stops.length - 1; board++) {
-      if (stopNodes[board] < 0) continue;
-      const accessSeconds = fromOrigin.seconds[stopNodes[board]];
+      const accessSeconds = footSeconds(fromOrigin, origin, board);
       if (!Number.isFinite(accessSeconds)) continue;
       if (accessSeconds * WALK_MPS > MAX_ACCESS_WALK_METERS) continue;
 
       for (let alight = board + 1; alight < stops.length; alight++) {
-        if (stopNodes[alight] < 0) continue;
-        const egressSeconds = fromDestination.seconds[stopNodes[alight]];
+        const egressSeconds = footSeconds(fromDestination, destination, alight);
         if (!Number.isFinite(egressSeconds)) continue;
         if (egressSeconds * WALK_MPS > MAX_ACCESS_WALK_METERS) continue;
 
@@ -248,21 +310,28 @@ export function planJourneys({
     // A ride that barely beats walking is not worth standing at a stop for.
     if (best.seconds > walkOnlySeconds - MIN_RIDE_SAVING_SECONDS) continue;
 
-    const access = reconstructPath(
-      graph,
-      fromOrigin,
-      originNode,
-      stopNodes[best.board],
-    );
-    const egressReversed = reconstructPath(
-      graph,
-      fromDestination,
-      destNode,
-      stopNodes[best.alight],
-    );
+    const boardStop = stops[best.board]!;
+    const alightStop = stops[best.alight]!;
+    const access =
+      fromOrigin && originNode !== null
+        ? reconstructPath(graph, fromOrigin, originNode, stopNodes[best.board]!)
+        : straightWalk(origin, { lat: boardStop.lat, lng: boardStop.lon });
+    const egressReversed =
+      fromDestination && destNode !== null
+        ? reconstructPath(
+            graph,
+            fromDestination,
+            destNode,
+            stopNodes[best.alight]!,
+          )
+        : straightWalk(destination, {
+            lat: alightStop.lat,
+            lng: alightStop.lon,
+          });
     if (!access || !egressReversed) continue;
 
-    // Run 2 is rooted at the destination, so its path arrives backwards.
+    // The destination side is rooted at the destination, so its path arrives
+    // backwards.
     const egress: WalkLeg = {
       kind: "walk",
       seconds: egressReversed.seconds,
@@ -270,22 +339,7 @@ export function planJourneys({
       coordinates: [...egressReversed.coordinates].reverse(),
     };
 
-    const ridden = stops.slice(best.board, best.alight + 1);
-    const rideMeters = cumulative[best.alight] - cumulative[best.board];
-    const ride: RideLeg = {
-      kind: "ride",
-      routeId: route.id,
-      routeName: route.name,
-      color: route.color,
-      fare: route.fare,
-      boardStopName: stops[best.board].name,
-      alightStopName: stops[best.alight].name,
-      stopCount: ridden.length,
-      waitSeconds: JEEPNEY_WAIT_SECONDS,
-      seconds: JEEPNEY_WAIT_SECONDS + rideMeters / JEEPNEY_MPS,
-      meters: rideMeters,
-      coordinates: ridden.map((stop) => [stop.lon, stop.lat]),
-    };
+    const ride = buildRideLeg(route, stops, best.board, best.alight);
 
     journeys.push({
       id: `${route.id}${suffix}`,
@@ -315,9 +369,150 @@ export function planJourneys({
   });
 
   return {
-    status: deduped.length > 0 ? "ok" : "no-route",
+    status:
+      deduped.length > 0
+        ? "ok"
+        : originNode === null
+          ? "origin-off-network"
+          : destNode === null
+            ? "destination-off-network"
+            : "no-route",
     journeys: deduped.slice(0, maxOptions),
   };
+}
+
+function buildRideLeg(
+  route: JeepneyRoute,
+  stops: JeepneyRoute["stops"],
+  board: number,
+  alight: number,
+): RideLeg {
+  const ridden = stops.slice(board, alight + 1);
+  const cumulative = cumulativeMeters(stops);
+  const rideMeters = cumulative[alight]! - cumulative[board]!;
+  return {
+    kind: "ride",
+    routeId: route.id,
+    routeName: route.name,
+    color: route.color,
+    fare: route.fare,
+    boardStopName: stops[board]!.name,
+    alightStopName: stops[alight]!.name,
+    stopCount: ridden.length,
+    waitSeconds: JEEPNEY_WAIT_SECONDS,
+    seconds: JEEPNEY_WAIT_SECONDS + rideMeters / JEEPNEY_MPS,
+    meters: rideMeters,
+    coordinates: ridden.map((stop) => [stop.lon, stop.lat]),
+  };
+}
+
+function addFares(a: JeepneyFare | null, b: JeepneyFare | null) {
+  if (!a) return b;
+  if (!b) return a;
+  return {
+    regular: a.regular + b.regular,
+    discounted: a.discounted + b.discounted,
+  };
+}
+
+function joinJourneys(id: string, parts: (JourneyLeg[] | Journey)[]): Journey {
+  const legs = parts.flatMap((part) =>
+    Array.isArray(part) ? part : part.legs,
+  );
+  let fare: JeepneyFare | null = null;
+  for (const leg of legs)
+    if (leg.kind === "ride") fare = addFares(fare, leg.fare);
+  return {
+    id,
+    kind: "transit",
+    seconds: legs.reduce((sum, leg) => sum + leg.seconds, 0),
+    meters: legs.reduce((sum, leg) => sum + leg.meters, 0),
+    walkMeters: legs
+      .filter((leg) => leg.kind === "walk")
+      .reduce((sum, leg) => sum + leg.meters, 0),
+    legs,
+    fare,
+    geometrySource: "stops-only",
+  };
+}
+
+/**
+ * Two-ride trips for an end off the campus walk network: from a town stop
+ * near the origin, ride to any campus stop and plan the rest from there (or,
+ * mirrored, plan to a campus stop and ride out to a town stop near the
+ * destination). One best option per town route.
+ */
+function transferJourneys(input: PlanJourneysInput): Journey[] {
+  const { graph, origin, destination, routes } = input;
+  const originOff = snapEndpoint(graph, origin) === null;
+  const destOff = snapEndpoint(graph, destination) === null;
+  if (originOff === destOff) return [];
+  const end = originOff ? origin : destination;
+  const best = new Map<string, Journey>();
+
+  for (const { route, suffix, stops } of directedRoutes(routes)) {
+    const others = routes.filter((r) => r.id !== route.id);
+    for (let i = 0; i < stops.length; i++) {
+      const here = stops[i]!;
+      const near = distanceMeters({ lat: end.lat, lon: end.lng }, here);
+      if (near > OFF_NETWORK_STOP_RADIUS_METERS) continue;
+      const townStop = { lat: here.lat, lng: here.lon };
+      // Ride from the town stop (origin side) or to it (destination side).
+      const span = originOff
+        ? stops.map((_, j) => j).filter((j) => j > i)
+        : stops.map((_, j) => j).filter((j) => j < i);
+      for (const j of span) {
+        const campusStop = { lat: stops[j]!.lat, lng: stops[j]!.lon };
+        if (snapEndpoint(graph, campusStop) === null) continue;
+        const rest = planDirect({
+          graph,
+          origin: originOff ? campusStop : origin,
+          destination: originOff ? destination : campusStop,
+          routes: others,
+        });
+        for (const leg of rest.journeys) {
+          const journey = originOff
+            ? joinJourneys(`${route.id}${suffix}>${leg.id}`, [
+                [
+                  straightWalk(origin, townStop),
+                  buildRideLeg(route, stops, i, j),
+                ],
+                leg,
+              ])
+            : joinJourneys(`${leg.id}>${route.id}${suffix}`, [
+                leg,
+                [
+                  buildRideLeg(route, stops, j, i),
+                  reverseWalk(straightWalk(destination, townStop)),
+                ],
+              ]);
+          const current = best.get(route.id);
+          if (!current || journey.seconds < current.seconds) {
+            best.set(route.id, journey);
+          }
+        }
+      }
+    }
+  }
+  return [...best.values()];
+}
+
+function reverseWalk(leg: WalkLeg): WalkLeg {
+  return { ...leg, coordinates: [...leg.coordinates].reverse() };
+}
+
+/**
+ * Rank the ways a rider could make this trip, best time first: walk-only and
+ * single rides, plus a town-jeep transfer when one end is off campus.
+ */
+export function planJourneys(input: PlanJourneysInput): JourneyPlan {
+  const direct = planDirect(input);
+  const transfers = transferJourneys(input);
+  if (transfers.length === 0) return direct;
+  const journeys = [...direct.journeys, ...transfers]
+    .sort((a, b) => a.seconds - b.seconds)
+    .slice(0, input.maxOptions ?? MAX_JOURNEY_OPTIONS);
+  return { status: "ok", journeys };
 }
 
 /** Rider-facing copy per status; null when there is nothing to explain. */
@@ -443,12 +638,19 @@ export function routeProgress(
 
 /** "8 min walk · 2 stops on Kaliwa / Kanan" — the option-row subtitle. */
 export function describeJourney(journey: Journey): string {
-  const ride = journey.legs.find((leg): leg is RideLeg => leg.kind === "ride");
-  if (!ride) return "Walking the whole way";
+  const rides = journey.legs.filter(
+    (leg): leg is RideLeg => leg.kind === "ride",
+  );
+  if (rides.length === 0) return "Walking the whole way";
   const walkMinutes = Math.max(
     1,
     Math.round(journey.walkMeters / WALK_MPS / 60),
   );
-  const stops = ride.stopCount - 1;
-  return `${walkMinutes} min walk · ${stops} stop${stops === 1 ? "" : "s"} on ${ride.routeName}`;
+  const ridden = rides
+    .map((ride) => {
+      const stops = ride.stopCount - 1;
+      return `${stops} stop${stops === 1 ? "" : "s"} on ${ride.routeName}`;
+    })
+    .join(", then ");
+  return `${walkMinutes} min walk · ${ridden}`;
 }

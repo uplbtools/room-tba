@@ -8,6 +8,7 @@
     enterTiltedMapDimension,
   } from "@lib/map-dimension-layers";
   import { THREE_D_PITCH, isMap2DPitch } from "@constants/map-dimension";
+  import { CAMPUS_DEFAULT_CAMERA } from "@constants/map-terrain";
   import {
     locationStore,
     mapStore,
@@ -22,7 +23,11 @@
   import compassIcon from "../../../assets/icons/compass.svg?url";
 
   type Props = {
-    /** Mobile Figma: locate / 2D / zoom only (no compass). */
+    /**
+     * Mobile: no permanent compass (Figma: locate / 2D / zoom). It appears
+     * only while the map is turned away from the campus default bearing, so a
+     * two-finger twist can always be undone with one tap.
+     */
     hideCompass?: boolean;
   };
 
@@ -42,6 +47,16 @@
   );
   /** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
   const northRotation = $derived(-bearing);
+  /**
+   * Mobile resets to the campus default view, which is itself rotated, so
+   * "rotated" means away from that bearing (folded into -180..180; a degree
+   * of drift still counts as home).
+   */
+  const homeBearing = $derived(hideCompass ? CAMPUS_DEFAULT_CAMERA.bearing : 0);
+  const rotated = $derived(
+    Math.abs(((((bearing - homeBearing + 180) % 360) + 360) % 360) - 180) > 1,
+  );
+  const showCompass = $derived(!hideCompass || rotated);
 
   onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
 
@@ -68,7 +83,7 @@
   });
 
   function resetNorth() {
-    mapStore.mapInstance?.easeTo({ bearing: 0, duration: 400 });
+    mapStore.mapInstance?.easeTo({ bearing: homeBearing, duration: 400 });
   }
 
   function toggleDimension() {
@@ -119,12 +134,13 @@
   class:map-controls-stack--mobile={hideCompass}
   aria-label="Map controls"
 >
-  {#if !hideCompass}
+  {#if showCompass}
     <button
       type="button"
       class="map-ctrl map-ctrl--compass"
-      aria-label="Reset map north"
-      title="Reset north"
+      class:map-ctrl--compass-mobile={hideCompass}
+      aria-label={hideCompass ? "Reset map rotation" : "Reset map north"}
+      title={hideCompass ? "Reset rotation" : "Reset north"}
       onclick={resetNorth}
     >
       <img
@@ -241,6 +257,23 @@
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
+  .map-ctrl--compass-mobile {
+    animation: map-ctrl-compass-in var(--motion-duration-micro, 200ms) ease-out;
+  }
+
+  @keyframes map-ctrl-compass-in {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .map-ctrl--compass-mobile {
+      animation: none;
+    }
+  }
+
   .map-ctrl--compass:hover {
     background: #fff;
   }
@@ -272,6 +305,7 @@
   }
 
   .map-controls-stack--mobile {
+    --map-ctrl-compass: 2.75rem;
     --map-ctrl-size: 2.75rem;
     --map-ctrl-zoom-h: 5.5rem;
     gap: 0.5rem;

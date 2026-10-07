@@ -25,6 +25,7 @@
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
   import Dialog from "@ui/modal/Dialog.svelte";
+  import { portal } from "@lib/portal";
   import "./map-chrome/map-chrome.css";
   import { MediaQuery } from "svelte/reactivity";
 
@@ -97,6 +98,10 @@
     <Wrench size={18} aria-hidden="true" />
   </MapChromeFabTrigger>
 
+  <!-- Portaled to the layout root: the trigger lives in the mobile controls
+       stack, whose z-index (map tools, 15) would otherwise trap this dialog
+       under the search bar and filter chips (18). -->
+  <div class="map-tools-dialog-host" use:portal={".app-layout"}>
   <Dialog
     open={mapToolsStore.open}
     onclose={() => mapToolsStore.close()}
@@ -202,6 +207,7 @@
       </div>
     </div>
   </Dialog>
+  </div>
 </div>
 
 <style>

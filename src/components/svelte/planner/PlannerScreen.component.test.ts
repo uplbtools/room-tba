@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/svelte";
+import { fireEvent, render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 // The screen's open-effect refreshes sections and finals over the network;
@@ -33,6 +33,8 @@ const row = (overrides: Partial<ClassMapValue>): ClassMapValue => ({
   termId: 1252,
   ...overrides,
 });
+
+const originalConfirm = window.confirm;
 
 describe("PlannerScreen", () => {
   beforeEach(() => {
@@ -122,5 +124,40 @@ describe("PlannerScreen", () => {
       "Untitled Plan 1",
       "Untitled Plan 2",
     ]);
+  });
+
+  test("asks before deleting a plan that has classes", async () => {
+    plannerStore.addOffering([row({})]);
+    const label = plannerStore.activePlan?.label ?? "";
+    const confirm = vi.fn(() => false);
+    window.confirm = confirm;
+    render(PlannerScreen);
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: `Delete ${label}` }),
+    );
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("1 class"));
+    expect(plannerStore.activePlan?.sections).toHaveLength(1);
+
+    confirm.mockReturnValue(true as never);
+    await fireEvent.click(
+      screen.getByRole("button", { name: `Delete ${label}` }),
+    );
+    expect(plannerStore.activePlan?.sections ?? []).toHaveLength(0);
+    window.confirm = originalConfirm;
+  });
+
+  test("deletes an empty plan without asking", async () => {
+    plannerStore.ensurePlanForActiveTerm();
+    const label = plannerStore.activePlan?.label ?? "";
+    const confirm = vi.fn(() => true);
+    window.confirm = confirm;
+    render(PlannerScreen);
+
+    await fireEvent.click(
+      screen.getByRole("button", { name: `Delete ${label}` }),
+    );
+    expect(confirm).not.toHaveBeenCalled();
+    window.confirm = originalConfirm;
   });
 });

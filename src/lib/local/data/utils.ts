@@ -673,6 +673,46 @@ export function getEntityRooms(
   };
 }
 
+/**
+ * Rooms without waiting on a cold local database. On a fresh browser the
+ * PGlite boot alone takes seconds, so the server and the local cache are asked
+ * at once and the first non-empty answer wins. When the server answers, the
+ * local cache is refreshed in the background through `refreshCache`.
+ */
+export async function firstRooms(
+  loadLocal: () => Promise<RoomData[] | undefined>,
+  loadRemote: () => Promise<RoomData[]>,
+  refreshCache: (rooms: RoomData[]) => Promise<void>,
+): Promise<RoomData[]> {
+  const local = loadLocal().then(
+    (rows) => rows ?? [],
+    () => [],
+  );
+  const remote = loadRemote().catch(() => [] as RoomData[]);
+  const nonEmpty = (p: Promise<RoomData[]>) =>
+    p.then((rows) => (rows.length > 0 ? rows : Promise.reject()));
+  void remote
+    .then((rows) => (rows.length > 0 ? refreshCache(rows) : undefined))
+    .catch(() => {});
+  try {
+    return await Promise.any([nonEmpty(local), nonEmpty(remote)]);
+  } catch {
+    return [];
+  }
+}
+
+/** `firstRooms` for one building, refreshing its local cache when it can. */
+export function firstBuildingRooms(
+  id: number,
+  refreshCache: (rooms: RoomData[]) => Promise<void>,
+): Promise<RoomData[]> {
+  return firstRooms(
+    () => getLocalBuildingRooms(id),
+    () => fetchEntityRoomsRemote("building", id),
+    refreshCache,
+  );
+}
+
 const CLASS_ROW_SELECT = `
   c.id,
   c.course_code as "courseCode",

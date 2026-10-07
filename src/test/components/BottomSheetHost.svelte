@@ -4,9 +4,15 @@
   let {
     open = true,
     onDismiss,
-  }: { open?: boolean; onDismiss?: () => void } = $props();
+    peekFitTo,
+  }: {
+    open?: boolean;
+    onDismiss?: () => void;
+    peekFitTo?: string;
+  } = $props();
 </script>
 
-<BottomSheet {open} {onDismiss}>
+<BottomSheet {open} {onDismiss} {peekFitTo}>
   <p>Sheet content</p>
+  <div class="entity-actions">Actions</div>
 </BottomSheet>

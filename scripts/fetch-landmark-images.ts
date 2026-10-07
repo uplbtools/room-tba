@@ -122,7 +122,18 @@ async function commonsQuery(params: Record<string, string>) {
   }>;
 }
 
+/**
+ * Hand-picked Commons files, by manifest key, for places whose good photos
+ * carry no location tag, so the geosearch below never finds them. A name
+ * search is not safe instead: "UPLB Oblation" also matches Oblation Run
+ * photos. Each file here was checked by hand.
+ */
+const PINNED_COMMONS: Record<string, string[]> = {
+  "place:UPLB Oblation (Oblation Park)": ["File:UPLB Oblation Statue.jpg"],
+};
+
 async function commonsImagesFor(target: Target): Promise<CommonsImage[]> {
+  const pinnedTitles = PINNED_COMMONS[`${target.kind}:${target.name}`] ?? [];
   const small = target.kind !== "building";
   const geo = await commonsQuery({
     list: "geosearch",
@@ -135,20 +146,26 @@ async function commonsImagesFor(target: Target): Promise<CommonsImage[]> {
     isLikelyPhotoTitle(page.title),
   );
   pages = pages.filter((page) => titleNamesPlace(page.title, target.name));
-  pages = pages.slice(0, MAX_COMMONS_IMAGES);
-  if (pages.length === 0) return [];
+  const titles = [
+    ...pinnedTitles,
+    ...pages.map((page) => page.title).filter((t) => !pinnedTitles.includes(t)),
+  ].slice(0, MAX_COMMONS_IMAGES);
+  if (titles.length === 0) return [];
 
   const info = await commonsQuery({
-    pageids: pages.map((page) => page.pageid).join("|"),
+    titles: titles.join("|"),
     prop: "imageinfo",
     iiprop: "url|extmetadata",
     iiurlwidth: "800",
   });
+  const byTitle = new Map(
+    Object.values(info.query?.pages ?? {}).map((page) => [page.title, page]),
+  );
 
   const images: CommonsImage[] = [];
-  // Keep ranked order: best match first.
-  for (const page of pages) {
-    const detail = info.query?.pages?.[String(page.pageid)]?.imageinfo?.[0];
+  // Keep ranked order: hand-picked first, then best geosearch match.
+  for (const title of titles) {
+    const detail = byTitle.get(title)?.imageinfo?.[0];
     if (!detail?.thumburl || !detail.descriptionurl) continue;
     const meta = detail.extmetadata ?? {};
     images.push({

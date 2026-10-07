@@ -33,6 +33,12 @@ export type ModalEntry = {
   showClose?: boolean;
   /** Wrap children in a scroll region (long task surfaces). */
   scroll?: boolean;
+  /**
+   * Focus the dialog itself on open instead of its first control. For modals
+   * that open on their own at page load: with no click yet, browsers draw a
+   * keyboard focus ring on the first control (the landing tab outline).
+   */
+  focusDialog?: boolean;
 };
 
 /**
@@ -46,6 +52,7 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     size: "showcase",
     labelledBy: "landing-modal-title",
     showClose: false,
+    focusDialog: true,
   },
   "schedule-expand": {
     component: ScheduleModal,

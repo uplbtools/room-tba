@@ -163,6 +163,12 @@
       {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
         <Suggestion {value} {category} {id} {eventSlug} />
       {/each}
+    {:else}
+      <!-- First visit: an empty white screen gave no hint what search takes. -->
+      <p class="suggestions-status suggestions-hint">
+        Search a room code like ICS MH1, a building, dorm, office, student
+        org, or event.
+      </p>
     {/if}
   {:else if suggestedResult.length !== 0}
     {#each suggestedResult as suggestion, id (id)}

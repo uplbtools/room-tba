@@ -15,6 +15,8 @@ export interface ModalStoreState {
 export type HistoryEntityRef = {
   entityType: string;
   entityId: number;
+  /** Shown under the title so the history says what it belongs to. */
+  name?: string;
 };
 
 export interface QueryStoreState {

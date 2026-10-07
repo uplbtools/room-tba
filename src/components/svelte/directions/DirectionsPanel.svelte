@@ -53,6 +53,10 @@
     return journey.legs.find((leg): leg is RideLeg => leg.kind === "ride");
   }
 
+  function rideLegs(journey: Journey): RideLeg[] {
+    return journey.legs.filter((leg): leg is RideLeg => leg.kind === "ride");
+  }
+
   function measureDirectionsFitPadding(
     map: { getContainer: () => HTMLElement },
     destinationLabel: string,
@@ -204,6 +208,11 @@
       );
     });
   });
+
+  function flyToStop(coordinate: [number, number] | undefined) {
+    if (!coordinate) return;
+    mapStore.mapInstance?.flyTo({ center: coordinate, zoom: 18, duration: 800 });
+  }
 </script>
 
 <section class="directions" aria-label="Directions">
@@ -213,12 +222,28 @@
     <p class="directions__note" role="status">
       Search for a place or tap the map to choose where you are going.
     </p>
+  {:else if directionsStore.phase === "planning" && (locationStore.coords || directionsStore.originFixed)}
+    <p class="directions__note" role="status">Finding the best ways there…</p>
   {:else if directionsStore.phase === "planning"}
-    <p class="directions__note" role="status">
-      {locationStore.coords || directionsStore.originFixed
-        ? "Finding the best ways there…"
-        : "Waiting for your location…"}
-    </p>
+    <!-- No start point yet. Location can be denied, unavailable, or a prompt
+         the rider never answers, so never only wait: always offer to pick a
+         start point instead (search or tap the map, as for any stop). -->
+    {#if locationStore.failure}
+      <p class="directions__note directions__note--warn" role="status">
+        {locationStore.failure} Choose where you are starting from instead.
+      </p>
+    {:else}
+      <p class="directions__note" role="status">
+        Waiting for your location… or choose where you are starting from.
+      </p>
+    {/if}
+    <button
+      type="button"
+      class="directions__ghost"
+      onclick={() => directionsStore.beginPick("origin")}
+    >
+      Choose a starting point
+    </button>
   {:else if directionsStore.phase === "error"}
     <p class="directions__note directions__note--warn" role="status">
       Could not load the campus path map. Check your connection and try again.
@@ -264,16 +289,47 @@
                 )}
               </span>
               <span class="option__desc">{describeJourney(journey)}</span>
-              {#if ride}
-                <span class="option__desc">
-                  Board at {ride.boardStopName} · alight at {ride.alightStopName}
-                </span>
+              {#if ride && !isSelected}
+                {#each rideLegs(journey) as leg, n (n)}
+                  <span class="option__desc">
+                    {n > 0 ? "Then board" : "Board"} at {leg.boardStopName} · alight
+                    at {leg.alightStopName}
+                  </span>
+                {/each}
+              {/if}
+              {#if journey.fare}
                 <span class="option__fare">
-                  ₱{ride.fare.regular} · ₱{ride.fare.discounted} student/senior/PWD
+                  ₱{journey.fare.regular} · ₱{journey.fare.discounted} student/senior/PWD{rideLegs(
+                    journey,
+                  ).length > 1
+                    ? " (both rides)"
+                    : ""}
                 </span>
               {/if}
             </span>
           </button>
+          {#if ride && isSelected}
+            <!-- Outside the option button (no nested buttons): tap a stop
+                 name to see where to board or get off. -->
+            {#each rideLegs(journey) as leg, n (n)}
+              <p class="option__stops">
+                {n > 0 ? "Then board" : "Board"} at
+                <button
+                  type="button"
+                  class="option__stop-link"
+                  onclick={() => flyToStop(leg.coordinates[0])}
+                  >{leg.boardStopName}</button
+                >
+                · alight at
+                <button
+                  type="button"
+                  class="option__stop-link"
+                  onclick={() => flyToStop(leg.coordinates.at(-1))}
+                  >{leg.alightStopName}</button
+                >
+              </p>
+            {/each}
+          {/if}
         </li>
       {/each}
     </ul>
@@ -312,6 +368,24 @@
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
+  }
+
+  .option__stops {
+    margin: 0.375rem 0 0;
+    padding: 0 0.25rem;
+    font-size: 0.8125rem;
+    color: #52525b;
+  }
+
+  .option__stop-link {
+    all: unset;
+    box-sizing: border-box;
+    min-height: 2.75rem;
+    padding: 0 0.125rem;
+    color: var(--color-brand, #8d1437);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   .directions__note {

@@ -234,8 +234,14 @@
                 value={draftInput}
                 bind:this={searchElement}
                 oninput={handleInput}
-                onfocus={() => {
+                onfocus={(event) => {
                   searchFocused = true;
+                  // Picking a start, end or extra stop: the box still holds
+                  // the destination's name, so select it and the first key
+                  // replaces it instead of appending ("IHNF BuildingPhy…").
+                  if (directionsStore.picking !== null) {
+                    event.currentTarget.select();
+                  }
                 }}
                 onblur={() => {
                   searchFocused = false;
@@ -557,6 +563,13 @@
     opacity: 0;
   }
 
+  /* Keeps its 44px hit area without growing the pill: it used to stretch
+     the bar from 48px to 70px whenever a filter or result was active, which
+     pushed the chips and map down. */
+  .search-root.mobile-shell .clear-btn {
+    margin-block: -0.75rem;
+  }
+
   .search-root.mobile-shell .clear-btn--hidden {
     width: 0 !important;
     min-width: 0 !important;
@@ -835,8 +848,10 @@
     text-overflow: ellipsis;
   }
 
+  /* Shrinks when the clear button appears; at 15rem it pushed the Add chip
+     out of the pill and over the first filter chip. */
   .search-root:not(.mobile-shell) .map-search-chrome__pill input {
-    min-width: 15rem;
+    min-width: 6rem;
   }
 
   .map-search-chrome__pill input::placeholder {

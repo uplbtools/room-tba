@@ -776,6 +776,16 @@
     "streetViewHeadings": [188, 243, 298],
     "streetViewPanoId": "BOSz496pEw4t4Nmj8m9uzQ"
   },
+  "place:UPLB Oblation (Oblation Park)": {
+    "commons": [
+      {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/UPLB_Oblation_Statue.jpg/960px-UPLB_Oblation_Statue.jpg",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:UPLB_Oblation_Statue.jpg",
+        "artist": "THELVBE",
+        "license": "CC BY-SA 4.0"
+      }
+    ]
+  },
   "place:UPLB Sculpture Garden": {
     "streetViewHeadings": [96, 151, 206],
     "streetViewPanoId": "25PQwA9rI_LYc6TjsghM-A"

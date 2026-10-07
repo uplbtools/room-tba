@@ -73,3 +73,10 @@ export function resetDocumentMeta() {
   if (typeof document === "undefined" || baseDocumentTitle === null) return;
   document.title = baseDocumentTitle;
 }
+
+/** Set the tab title for app state that has no term-aware meta (transit). */
+export function setDocumentTitle(title: string) {
+  if (typeof document === "undefined") return;
+  if (baseDocumentTitle === null) baseDocumentTitle = document.title;
+  document.title = title;
+}

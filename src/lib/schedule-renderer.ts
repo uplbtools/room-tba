@@ -9,6 +9,46 @@ type Course = {
   groupKey?: string | null;
 };
 
+/**
+ * Greedy word wrap for a class block label, at most `maxLines` lines. A word
+ * too wide for the block, or text past the last line, ends in "..". Narrow
+ * phone columns fit "VMED 101 (LEC)" as three short lines instead of "VME..".
+ */
+export function wrapLabel(
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+  measure: (value: string) => number,
+): string[] {
+  if (!text || maxLines < 1 || maxWidth <= 0) return [];
+  const clip = (value: string) => {
+    if (measure(value) <= maxWidth) return value;
+    let cut = value;
+    while (cut.length > 0 && measure(`${cut}..`) > maxWidth) {
+      cut = cut.slice(0, -1);
+    }
+    cut = cut.trimEnd();
+    return cut.length > 0 ? `${cut}..` : "";
+  };
+  const lines: string[] = [];
+  let current = "";
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (measure(candidate) <= maxWidth) {
+      current = candidate;
+      continue;
+    }
+    if (current) lines.push(current);
+    current = word;
+  }
+  if (current) lines.push(current);
+  if (lines.length <= maxLines) return lines.map(clip);
+  // Overflow: the last line takes the rest, which cannot fit, so it clips.
+  const kept = lines.slice(0, maxLines - 1);
+  kept.push(lines.slice(maxLines - 1).join(" "));
+  return kept.map(clip);
+}
+
 export class ScheduleRenderer {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -58,16 +98,15 @@ export class ScheduleRenderer {
   }
 
   init() {
-    // Responsive canvas for mobile schedule UX (#241)
+    // Responsive canvas for mobile schedule UX (#241). Width follows the
+    // container; height is the caller's, so a phone can get a tall grid that
+    // scrolls instead of a squashed one.
     const dpr = window.devicePixelRatio || 1;
     const cssWidth = Math.min(
       this.config.width,
       this.canvas.clientWidth || this.config.width,
     );
-    const cssHeight = Math.min(
-      this.config.height,
-      this.canvas.clientHeight || this.config.height,
-    );
+    const cssHeight = this.config.height;
     this.canvas.width = cssWidth * dpr;
     this.canvas.height = cssHeight * dpr;
     this.canvas.style.width = `${cssWidth}px`;
@@ -140,8 +179,9 @@ export class ScheduleRenderer {
         (hour - cfg.startHour) * this.cellHeight +
         this.cellHeight / 2;
       const displayHour = hour > 12 ? hour - 12 : hour;
-      const _period = hour >= 12 ? "PM" : "AM";
-      const label = `${displayHour}:00`;
+      const period = hour >= 12 ? "PM" : "AM";
+      // With the period: the grid runs 7 AM to 7 PM, so "7:00" was both.
+      const label = `${displayHour} ${period}`;
       ctx.fillText(label, cfg.timeColumnWidth / 2, y);
     }
 
@@ -211,14 +251,29 @@ export class ScheduleRenderer {
 
       const centerX = x + width / 2;
       const padding = 3;
+      const lineHeight = 13;
       let textY = y + padding;
-
+      const linesThatFit = Math.max(
+        1,
+        Math.floor((height - padding * 2) / lineHeight),
+      );
+      // The course label comes first; the section only gets a line that
+      // the label does not need (a 1-hour block on a phone has two).
       ctx.font = cfg.fonts.course;
-      const courseCode = this.truncateText(course.courseCode, width - 6);
-      ctx.fillText(courseCode, centerX, textY);
-      textY += 11;
+      const labelLines = wrapLabel(
+        course.courseCode,
+        width - 6,
+        linesThatFit,
+        (value) => ctx.measureText(value).width,
+      );
+      const sectionLine =
+        course.section && labelLines.length < linesThatFit ? 1 : 0;
+      for (const line of labelLines) {
+        ctx.fillText(line, centerX, textY);
+        textY += lineHeight;
+      }
 
-      if (height > 28 && course.section) {
+      if (sectionLine) {
         ctx.font = cfg.fonts.section;
         const section = this.truncateText(course.section, width - 6);
         ctx.fillText(section, centerX, textY);

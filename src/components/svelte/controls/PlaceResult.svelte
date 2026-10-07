@@ -227,6 +227,7 @@
         updatedAt={place.updatedAt}
         entityType="place"
         entityId={place.id}
+        entityName={place.name}
       />
     {:else}
       <div class="place-form">

@@ -194,6 +194,12 @@ class LocationStore {
   accuracyMeters: number | null = $state(null);
   bearing: number | null = $state(null);
   isTracking: boolean = $state(false);
+  /**
+   * Why the last location request ended without a fix (denied, unavailable,
+   * off campus). Screens waiting on the blue dot read it so they can stop
+   * waiting and offer another way in; cleared on the next request or fix.
+   */
+  failure: string | null = $state(null);
   destination: [number, number] | null = $state(null);
   routeOrigin: [number, number] | null = $state(null);
   /** Multi-stop foot route (schedule import or 2-point fallback). */
@@ -226,6 +232,7 @@ class LocationStore {
     }
 
     this.isTracking = true;
+    this.failure = null;
     this.announcedGoodFix = false;
     this.announcedApproximateFix = false;
     toastStore.show("Requesting location access...", "info");
@@ -240,9 +247,11 @@ class LocationStore {
             "error",
           );
           this.stopTracking();
+          this.failure = "You appear to be outside the UPLB campus.";
           return;
         }
 
+        this.failure = null;
         this.coords = [longitude, latitude];
         this.accuracyMeters =
           Number.isFinite(accuracy) && accuracy > 0 ? accuracy : null;
@@ -280,6 +289,7 @@ class LocationStore {
         }
         toastStore.show(msg, "error");
         this.stopTracking();
+        this.failure = msg;
       },
       // maximumAge 0: avoid a stale cell/Wi‑Fi fix that can place you hundreds
       // of meters away (common indoors / on LTE). Keep watching for a better GPS fix.

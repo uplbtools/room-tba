@@ -41,14 +41,14 @@ Lowest to highest:
 | Bottom chrome             | `--z-status-bar: 5`      | Status bar tray                                |
 | UI shell                  | `10` (`.ui-layer`)       | Search, side panel host                        |
 | Drawer-lift FABs          | `14`                     | Location button when sheet open                |
-| Map tools (mobile)        | `--z-map-tools: 16`      | Map tools flyout stack                         |
+| Map tools (mobile)        | `--z-map-tools: 16`      | Map tools trigger stack (FAB + camera stack)   |
 | Chrome popovers           | `--z-chrome-popover: 17` | Term picker, offline maps (portaled to `body`) |
 | Edit dock / editor screen | `18`                     | Map edit toolbar                               |
 | Browse modals             | `--z-modal: 100`         | Landing, schedule expand                       |
 | Login / editor addition   | `--z-login-modal: 200`   | Admin login (closes browse modals on open)     |
 | Toast                     | `--z-toast: 1000`        | App-layout sibling (above edit dock)           |
 
-Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome stacking context. Editor login closes browse modals before opening.
+Portaled popovers use `use:portal` so they are not trapped in the bottom-chrome stacking context. The Map tools dialog is portaled to `.app-layout` for the same reason: mounted inside the mobile controls stack it sat under the search shell (`--z-search-elevated: 18`). Editor login closes browse modals before opening.
 
 ## Layout zones (Entry.svelte)
 

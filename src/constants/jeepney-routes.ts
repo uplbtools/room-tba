@@ -37,6 +37,14 @@ export type JeepneyRoute = {
 export const JEEPNEY_FARE_NOTE =
   "Indicative fare for the 2025-2026 school year; confirm with the driver.";
 
+/** Town jeeps charge by distance; the listed fare is end to end. */
+export const TOWN_JEEPNEY_FARE_NOTE =
+  "Indicative fare to the end of the line; shorter trips cost less. Confirm with the driver.";
+
+/** Provincial and commuter bus fares, end to end. */
+export const BUS_FARE_NOTE =
+  "Indicative fare to the end of the line; confirm with the conductor or at the terminal.";
+
 const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 13, discounted: 11 };
 
 /** Fallback route line when no road-snapped geometry exists: a straight
@@ -269,7 +277,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     description:
       "Connects the campus core to the upper Forestry campus: from the Forestry jeep terminal past Narra Bridge, the University Health Service, and CPAf, climbing past Makiling Botanic Gardens to the College of Forestry and Natural Resources and the FOREHA, New FOREHA, and MAREHA residence halls.",
     directionNote:
-      "Uphill the jeep serves the stops as listed, ending at MAREHA. It then comes back down the same road, except it goes straight along Makiling Road instead of turning left again at the Admin Building, so downhill riders board the same stops in reverse.",
+      "Uphill the jeep serves the stops as listed. Past New FOREHA it loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. It then comes back down the same road, except it goes straight along Makiling Road instead of turning left again at the Admin Building, so downhill riders board the same stops in reverse.",
     color: "#d97706",
     fare: STANDARD_CAMPUS_FARE,
     stops: [
@@ -336,19 +344,19 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
         lon: 121.235241,
       },
       {
-        name: "Upper Forestry Jeep Terminal",
-        description:
-          "Upper-campus terminal on Martin R. Reyes, at the southeast end of the front of the Forestry Admin Building.",
-        // ponytail: placed from aerial imagery on the front road, southeast of the admin entrance stop.
-        lat: 14.154884,
-        lon: 121.235512,
-      },
-      {
         name: "Forest Biological Sciences Building",
         description:
           "Upper-campus stop near the Forest Biological Sciences Building.",
         lat: 14.154758,
         lon: 121.235983,
+      },
+      {
+        name: "Upper Forestry Jeep Terminal",
+        description:
+          "Upper-campus jeep terminal on Makiling Road, between the Forest Biological Sciences Building and the residence halls.",
+        // ponytail: placed from the owner's map sketch, on Makiling Road about two thirds of the way from Martin R. Reyes to Felix O. Chinte Sr.
+        lat: 14.153693,
+        lon: 121.235186,
       },
       {
         name: "New Forestry Residence Hall (New FOREHA)",
@@ -358,19 +366,20 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
         lon: 121.234185,
       },
       {
-        name: "Forestry Residence Hall (FOREHA)",
-        description: "Stop at the Forestry Residence Hall.",
-        // ponytail: snapped to Felix O. Chinte Sr.
-        lat: 14.152521,
-        lon: 121.235097,
-      },
-      {
         name: "Makiling Residence Hall (MAREHA)",
         description:
-          "Last uphill stop, at the Makiling Residence Hall; the jeep heads back down campus from here.",
+          "Stop at the Makiling Residence Hall on Felix O. Chinte Sr.",
         // ponytail: snapped to Felix O. Chinte Sr.
         lat: 14.151894,
         lon: 121.235293,
+      },
+      {
+        name: "Forestry Residence Hall (FOREHA)",
+        description:
+          "Last uphill stop, at the Forestry Residence Hall; the jeep heads back down campus from here.",
+        // ponytail: snapped to Felix O. Chinte Sr.
+        lat: 14.152521,
+        lon: 121.235097,
       },
     ],
   },
@@ -378,7 +387,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     id: "up-rural",
     name: "UP Rural / Jubileeville",
     description:
-      "Runs from the campus core out along Pili Drive past IRRI and IPB to Putho Tuntungin, Paciano Rizal, UP Rural High School, and Jubileeville in Bay.",
+      "Runs from the campus core out along Pili Drive and the IPB Road to Paciano Rizal, UP Rural High School, and Jubileeville in Bay.",
     directionNote:
       "Outbound the jeep serves the stops as listed, ending at Jubileeville; it returns to campus along the same road in reverse.",
     color: "#1e3a8a",
@@ -413,35 +422,25 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
         lon: 121.2517,
       },
       {
-        name: "IRRI",
-        description:
-          "Stop at the International Rice Research Institute; IRRI Station on the PNR South Haul line is nearby.",
-        lat: 14.168834,
-        lon: 121.255221,
-      },
-      {
-        name: "Putho Tuntungin",
-        description: "Stop in Barangay Putho-Tuntungin, Los Baños.",
-        lat: 14.1514804,
-        lon: 121.2524347,
-      },
-      {
         name: "IPB",
         description: "Stop at the Institute of Plant Breeding.",
-        lat: 14.151468,
-        lon: 121.262073,
+        // ponytail: snapped onto the IPB Road corridor (Road North 1) where the jeep passes.
+        lat: 14.153557,
+        lon: 121.26499,
       },
       {
         name: "Paciano Rizal",
         description: "Stop in Barangay Paciano Rizal, Bay.",
-        lat: 14.1524888,
-        lon: 121.2665505,
+        // ponytail: snapped onto Road North 1.
+        lat: 14.152132,
+        lon: 121.266056,
       },
       {
         name: "UP Rural High",
         description: "Stop at the UP Rural High School campus in Bay.",
-        lat: 14.1517146,
-        lon: 121.271828,
+        // ponytail: snapped onto Sampaguita Street on the jeep's path.
+        lat: 14.150243,
+        lon: 121.271372,
       },
       {
         name: "Jubileeville",
@@ -458,6 +457,12 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
  * Bernardo "Berniemack" Muerong Arellano III, shown in the route modal with
  * credit. Facts only; the map artwork itself is CC BY-NC-SA and is not reused.
  */
+/** Tips for jeeps leaving Los Baños town (not campus-specific). */
+export const TOWN_JEEPNEY_RIDING_NOTES: string[] = [
+  "Board at Olivarez Plaza (College Junction). Outbound signboards: BAYAN (town proper), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
+  "Tell the driver where you are getting off; stops along the highway are not marked.",
+];
+
 export const JEEPNEY_RIDING_NOTES: string[] = [
   "Jeepneys from Calamba Crossing carry a UP COLLEGE or COLLEGE signboard; they may become Kaliwa, Kanan, Forestry, or UP Gate routes near campus. Check the windshield signboard or ask the driver.",
   "A UP GATE signboard means the jeep stops at Grove and does not enter campus.",
