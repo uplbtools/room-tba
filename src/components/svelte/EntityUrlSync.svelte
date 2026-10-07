@@ -15,8 +15,11 @@
   import { placeCategoryLabel } from "@constants/place-categories";
   import {
     resetDocumentMeta,
+    setDocumentTitle,
     updateTermAwareDocumentMeta,
   } from "@lib/term-document-meta";
+  import { DEFAULT_TITLE } from "@lib/site";
+  import { transitRouteNoun } from "@lib/transit-route-kind";
   import {
     currentRoom,
     jeepneyStore,
@@ -57,7 +60,13 @@
       setTransit: async ({ routeId, stopSlug }) => {
         if (!campusTransit.enabled) return;
         openCampusBrowse(queryStore, sidePanelStore, "jeepney");
-        if (!routeId) return;
+        // Back to /transit/ (or to a route from one of its stops) must close
+        // what the URL no longer names; returning early left the old route
+        // and its pins on screen with the list never coming back.
+        if (!routeId) {
+          jeepneyStore.clearRoute();
+          return;
+        }
         await transitStore.refresh();
         const route = transitStore.getRoute(routeId);
         if (!route) return;
@@ -65,6 +74,8 @@
         const stopIndex = stopSlug ? getTransitStopIndex(route, stopSlug) : -1;
         if (stopIndex >= 0) {
           requestAnimationFrame(() => jeepneyStore.openStop(stopIndex));
+        } else {
+          jeepneyStore.closeStop();
         }
       },
     });
@@ -97,9 +108,35 @@
     });
   });
 
+  // A transit page (/transit/, /transit/forestry/…) loads with its own title;
+  // once the rider leaves transit it must not linger as the page title.
+  const landedOnTransit =
+    typeof location !== "undefined" && /^\/transit(\/|$)/.test(location.pathname);
+
   $effect(() => {
+    // Transit is not a search result, so the title used to stay whatever the
+    // page loaded with while routes and stops changed underneath it.
+    const route = transitStore.getRoute(jeepneyStore.selectedRouteId);
+    if (route) {
+      const stop =
+        jeepneyStore.selectedStopIndex !== null
+          ? route.stops[jeepneyStore.selectedStopIndex]
+          : null;
+      setDocumentTitle(
+        stop
+          ? `${stop.name} | ${route.name} | Room TBA`
+          : `${route.name} ${transitRouteNoun(route)} | UPLB Transit | Room TBA`,
+      );
+      return;
+    }
+    if (queryStore.category === "browse" && queryStore.queryValue === "jeepney") {
+      setDocumentTitle("Jeepney and bus routes | UPLB Transit | Room TBA");
+      return;
+    }
+
     if (queryStore.type !== "result" || queryStore.category === null) {
-      resetDocumentMeta();
+      if (landedOnTransit) setDocumentTitle(DEFAULT_TITLE);
+      else resetDocumentMeta();
       return;
     }
 

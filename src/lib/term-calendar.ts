@@ -84,6 +84,65 @@ export function changeOfMatriculationLabel(
   });
 }
 
+/** A term's change of matriculation (COM) window, date-only (Asia/Manila). */
+export type ChangeOfMatriculationPeriod = { startsOn: string; endsOn: string };
+
+/**
+ * The registrar's "Change of Matriculation Period" for a term, from the
+ * calendar milestones. Falls back to term start through the last COM day when
+ * only the end is known. Null when neither is on file (AY 2025-2026).
+ */
+export function changeOfMatriculationPeriod(
+  termId: number | null | undefined,
+): ChangeOfMatriculationPeriod | null {
+  if (termId == null) return null;
+  for (const calendar of [academicCalendar2024, academicCalendar2026]) {
+    const milestone = (
+      calendar.milestones as {
+        termId: number;
+        label: string;
+        startsOn?: string;
+        endsOn?: string;
+      }[]
+    ).find(
+      (m) =>
+        m.termId === termId &&
+        /change of matriculation/i.test(m.label) &&
+        m.startsOn &&
+        m.endsOn,
+    );
+    if (milestone?.startsOn && milestone.endsOn) {
+      return { startsOn: milestone.startsOn, endsOn: milestone.endsOn };
+    }
+  }
+  const endsOn = CHANGE_OF_MATRICULATION_ENDS[termId];
+  const startsOn = TERM_CALENDAR_WINDOWS[termId]?.startsOn;
+  return endsOn && startsOn ? { startsOn, endsOn } : null;
+}
+
+/** "Aug 3–7, 2026", "Jan 30 – Feb 3, 2027", "Dec 28, 2026 – Jan 2, 2027". */
+export function formatDateRange(startsOn: string, endsOn: string): string {
+  const parse = (iso: string) => {
+    const [year, month, day] = iso.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
+  };
+  const start = parse(startsOn);
+  const end = parse(endsOn);
+  const fmt = (date: Date, options: Intl.DateTimeFormatOptions) =>
+    date.toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
+  const sameYear = start.getUTCFullYear() === end.getUTCFullYear();
+  if (startsOn === endsOn) {
+    return fmt(start, { month: "short", day: "numeric", year: "numeric" });
+  }
+  if (sameYear && start.getUTCMonth() === end.getUTCMonth()) {
+    return `${fmt(start, { month: "short", day: "numeric" })}\u2013${end.getUTCDate()}, ${end.getUTCFullYear()}`;
+  }
+  if (sameYear) {
+    return `${fmt(start, { month: "short", day: "numeric" })} \u2013 ${fmt(end, { month: "short", day: "numeric", year: "numeric" })}`;
+  }
+  return `${fmt(start, { month: "short", day: "numeric", year: "numeric" })} \u2013 ${fmt(end, { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
 /** YYYY-MM-DD for `date` as seen in Asia/Manila — the app's notion of "today". */
 export function toManilaDateKey(date: Date) {
   return date.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });

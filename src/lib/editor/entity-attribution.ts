@@ -208,6 +208,59 @@ function pickPublic(
   );
 }
 
+// A trailing space trimmed off a paragraph is a real edit but reads as no
+// change at all, so spacing-only diffs stay out of the public view.
+function sameIgnoringSpacing(a: string | null, b: string | null): boolean {
+  const squash = (value: string | null) =>
+    (value ?? "").replace(/\s+/g, " ").trim();
+  return squash(a) === squash(b);
+}
+
+/** The card fields a visitor can see change in this row. */
+export function publicChanges(row: HistoryRow): FieldDiff[] {
+  const fields = PUBLIC_HISTORY_FIELDS[row.entityType];
+  if (!fields) return [];
+  return buildFieldDiffs(
+    pickPublic(row.before, fields),
+    pickPublic(row.after, fields) ?? {},
+  ).filter(
+    (diff) =>
+      (diff.before !== null || diff.after !== null) &&
+      !(
+        row.action !== "create" && sameIgnoringSpacing(diff.before, diff.after)
+      ),
+  );
+}
+
+/**
+ * Newest-first rows from `offset` that change something visitors can see,
+ * reading batches until `want` turn up, the history runs out, or `scanLimit`
+ * raw rows have been read. `nextOffset` is the raw-row cursor to resume from,
+ * null once the history is exhausted.
+ */
+export async function scanPublicRows<T extends HistoryRow>(
+  fetchBatch: (offset: number) => Promise<T[]>,
+  {
+    offset,
+    want,
+    batchSize,
+    scanLimit,
+  }: { offset: number; want: number; batchSize: number; scanLimit: number },
+): Promise<{ rows: T[]; nextOffset: number | null }> {
+  const rows: T[] = [];
+  let cursor = offset;
+  while (cursor - offset < scanLimit) {
+    const batch = await fetchBatch(cursor);
+    for (const row of batch) {
+      cursor += 1;
+      if (publicChanges(row).length > 0) rows.push(row);
+      if (rows.length >= want) return { rows, nextOffset: cursor };
+    }
+    if (batch.length < batchSize) return { rows, nextOffset: null };
+  }
+  return { rows, nextOffset: cursor };
+}
+
 /**
  * Whitelists one history row for the public history view. Returns null when
  * nothing visitors can see changed, so private-only edits drop out.
@@ -217,12 +270,7 @@ export function toPublicHistoryEntry(
   credits: readonly ProposalCredit[],
   accounts: readonly EditorAccount[],
 ): PublicHistoryEntry | null {
-  const fields = PUBLIC_HISTORY_FIELDS[row.entityType];
-  if (!fields) return null;
-  const changes = buildFieldDiffs(
-    pickPublic(row.before, fields),
-    pickPublic(row.after, fields) ?? {},
-  ).filter((diff) => diff.before !== null || diff.after !== null);
+  const changes = publicChanges(row);
   if (changes.length === 0) return null;
   return {
     id: row.id,

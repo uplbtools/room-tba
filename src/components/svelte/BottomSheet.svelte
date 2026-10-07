@@ -11,6 +11,7 @@
     open = false,
     snap = $bindable<"peek" | "expanded">("peek"),
     peekRatio = 0.48,
+    peekFitTo,
     expandedRatio = 0.92,
     topInset = "0px",
     bottomInset = "0px",
@@ -21,6 +22,14 @@
     snap?: BottomSheetSnap;
     /** Fraction of the available height used for peek (0–1). */
     peekRatio?: number;
+    /**
+     * Selector inside the content (e.g. ".entity-actions"). When present,
+     * peek ends just below it instead of at peekRatio, never taller than
+     * peekRatio and never under PEEK_FIT_MIN_RATIO: on a tall phone a fixed
+     * ratio covered a third of the map with photo and body text nobody had
+     * scrolled to yet.
+     */
+    peekFitTo?: string;
     /** Fraction used when expanded — leave a map strip for tap-to-collapse. */
     expandedRatio?: number;
     topInset?: string;
@@ -47,7 +56,20 @@
   let dragFromHandle = false;
   let dragOffset = $state(0);
 
-  const peekH = $derived(Math.round(availableH * peekRatio));
+  /** Content offset (px from the sheet top) where a fitted peek should end. */
+  let peekFitPx = $state<number | null>(null);
+  const PEEK_FIT_MIN_RATIO = 0.25;
+  const PEEK_FIT_GAP_PX = 12;
+  const peekH = $derived(
+    Math.round(
+      peekFitPx === null
+        ? availableH * peekRatio
+        : Math.min(
+            availableH * peekRatio,
+            Math.max(availableH * PEEK_FIT_MIN_RATIO, peekFitPx),
+          ),
+    ),
+  );
   const expandedH = $derived(Math.round(availableH * expandedRatio));
   const visibleH = $derived(snap === "expanded" ? expandedH : peekH);
   const baseTranslate = $derived(sheetTranslateY(visibleH, availableH));
@@ -76,6 +98,48 @@
       ro.disconnect();
       window.removeEventListener("resize", measure);
       window.visualViewport?.removeEventListener("resize", measure);
+    };
+  });
+
+  function measurePeekFit() {
+    const target =
+      peekFitTo && contentEl
+        ? contentEl.querySelector<HTMLElement>(peekFitTo)
+        : null;
+    if (!target || !sheetEl || !contentEl) {
+      peekFitPx = null;
+      return;
+    }
+    // Rects move together with the sheet's translate, so the difference is
+    // the target's position in the sheet whatever the current snap.
+    const bottom =
+      target.getBoundingClientRect().bottom -
+      sheetEl.getBoundingClientRect().top +
+      contentEl.scrollTop;
+    peekFitPx = bottom > 0 ? Math.ceil(bottom + PEEK_FIT_GAP_PX) : null;
+  }
+
+  // Re-fit whenever the content changes (another place opened, photos or
+  // actions loaded in).
+  $effect(() => {
+    if (!open || !peekFitTo || !contentEl) {
+      peekFitPx = null;
+      return;
+    }
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measurePeekFit);
+    };
+    schedule();
+    const mo = new MutationObserver(schedule);
+    mo.observe(contentEl, { childList: true, subtree: true });
+    const ro = new ResizeObserver(schedule);
+    ro.observe(contentEl);
+    return () => {
+      cancelAnimationFrame(frame);
+      mo.disconnect();
+      ro.disconnect();
     };
   });
 

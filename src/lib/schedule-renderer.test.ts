@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  wrapLabel,
   getPlannerBlockColor,
   parseDays,
   parseScheduleTime,
@@ -83,5 +84,33 @@ describe("parseDays", () => {
     expect(parseDays("TTH")).toEqual([1, 3]);
     expect(parseDays("MTHF")).toEqual([0, 3, 4]);
     expect(parseDays("MTWTHFS")).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+});
+
+describe("wrapLabel", () => {
+  // 1 unit per character keeps the arithmetic obvious.
+  const measure = (value: string) => value.length;
+
+  it("wraps a course label onto lines instead of cutting it", () => {
+    expect(wrapLabel("VMED 101 (LEC)", 6, 3, measure)).toEqual([
+      "VMED",
+      "101",
+      "(LEC)",
+    ]);
+  });
+
+  it("clips the last line when the block is too short", () => {
+    expect(wrapLabel("VMED 101 (LEC)", 6, 2, measure)).toEqual([
+      "VMED",
+      "101..",
+    ]);
+  });
+
+  it("clips a single word wider than the block", () => {
+    expect(wrapLabel("BIOCHEMISTRY", 6, 2, measure)).toEqual(["BIOC.."]);
+  });
+
+  it("keeps a label that fits on one line", () => {
+    expect(wrapLabel("CMSC 12", 20, 3, measure)).toEqual(["CMSC 12"]);
   });
 });

@@ -30,6 +30,7 @@
     labelledBy={entry.labelledBy}
     closeLabel={entry.closeLabel ?? "Close dialog"}
     showClose={entry.showClose ?? true}
+    focusDialog={entry.focusDialog ?? false}
   >
     {#if entry.scroll}
       <div class="modal-scroll">

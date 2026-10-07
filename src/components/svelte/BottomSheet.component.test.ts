@@ -80,3 +80,68 @@ describe("bottom sheet does not capture the map", () => {
     expect(onDismiss).toHaveBeenCalled();
   });
 });
+
+describe("bottom sheet peek fits its content", () => {
+  const rect = (top: number, height: number) =>
+    ({
+      top,
+      bottom: top + height,
+      height,
+      left: 0,
+      right: 390,
+      width: 390,
+      x: 0,
+      y: top,
+      toJSON: () => ({}),
+    }) as DOMRect;
+
+  function stubLayout(container: HTMLElement, actionsBottom: number) {
+    const root = container.querySelector(".bottom-sheet-root") as HTMLElement;
+    const sheet = container.querySelector(".bottom-sheet") as HTMLElement;
+    const actions = container.querySelector(".entity-actions") as HTMLElement;
+    root.getBoundingClientRect = () => rect(0, 800);
+    sheet.getBoundingClientRect = () => rect(0, 800);
+    actions.getBoundingClientRect = () => rect(actionsBottom - 40, 40);
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  const translateOf = (container: HTMLElement) =>
+    Number(
+      /translate3d\(0, ([\d.]+)px/.exec(
+        (container.querySelector(".bottom-sheet") as HTMLElement).style
+          .transform,
+      )?.[1],
+    );
+
+  test("ends just below the fitted element instead of at the ratio", async () => {
+    const { container } = render(BottomSheetHost, {
+      open: true,
+      peekFitTo: ".entity-actions",
+    });
+    stubLayout(container, 200);
+    // Mutation triggers a re-fit on the next frame.
+    container.querySelector("p")?.append(" ");
+    await vi.waitFor(() =>
+      // 800 tall, actions end at 200 + 12px gap: 212 visible.
+      expect(translateOf(container)).toBe(800 - 212),
+    );
+  });
+
+  test("never shrinks below a quarter of the screen", async () => {
+    const { container } = render(BottomSheetHost, {
+      open: true,
+      peekFitTo: ".entity-actions",
+    });
+    stubLayout(container, 60);
+    container.querySelector("p")?.append(" ");
+    await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 200));
+  });
+
+  test("keeps the ratio without a fit target", async () => {
+    const { container } = render(BottomSheetHost, { open: true });
+    stubLayout(container, 200);
+    await vi.waitFor(() =>
+      expect(translateOf(container)).toBe(800 - Math.round(800 * 0.48)),
+    );
+  });
+});

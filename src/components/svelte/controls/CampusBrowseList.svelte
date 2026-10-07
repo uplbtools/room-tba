@@ -28,6 +28,12 @@
   import DormResult from "./DormResult.svelte";
   import PlaceResult from "./PlaceResult.svelte";
   import { campusTransit } from "../../../campus.config";
+  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+  import {
+    distinctStopCount,
+    transitRouteKind,
+    type TransitRouteKind,
+  } from "@lib/transit-route-kind";
 
   // Derived from campusTransit.label so a fork edits one place:
   // label Jeepney routes → title Jeepney Routes, plural jeepney routes,
@@ -79,7 +85,9 @@
       case "services":
         return "Services & Establishments";
       case "jeepney":
-        return transitTitle;
+        return transitStore.routes.some((r) => transitRouteKind(r) === "bus")
+          ? "Jeepney & Bus Routes"
+          : transitTitle;
       default:
         return "Buildings";
     }
@@ -130,10 +138,11 @@
           placeholder: "Search services & establishments…",
         };
       case "jeepney":
+        // "route", not "jeepney route": the list holds buses too.
         return {
-          noun: transitNoun,
-          plural: transitPlural,
-          placeholder: `Search ${transitPlural}…`,
+          noun: transitNoun.replace(/^jeepney /, ""),
+          plural: transitPlural.replace(/^jeepney /, ""),
+          placeholder: "Search routes or stops…",
         };
       default:
         return {
@@ -263,7 +272,7 @@
       return filteredJeepneyRoutes.map((route) => ({
         id: route.id,
         label: route.name,
-        meta: `${route.stops.length} stops`,
+        meta: `${distinctStopCount(route)} stops`,
         open: () => openJeepneyRoute(route.id),
       }));
     }
@@ -381,17 +390,46 @@
     });
   }
 
+  // Campus jeeps first (in their bundled order, Kaliwa/Kanan leading), then
+  // town jeeps, then buses. Sorted by id, a Manila bus led the list and the
+  // busiest campus loop sat third.
+  const KIND_ORDER: TransitRouteKind[] = ["campus", "town", "bus"];
+  const KIND_HEADING: Record<TransitRouteKind, string> = {
+    campus: "Campus jeepneys",
+    town: "Town jeepneys",
+    bus: "Buses",
+  };
+  const campusOrder = new Map(JEEPNEY_ROUTES.map((r, i) => [r.id, i]));
+
   const filteredJeepneyRoutes = $derived.by(() => {
     if (activeTab !== "jeepney") return [];
     const needle = filterText.trim().toLowerCase();
-    if (!needle) return transitStore.routes;
-    return transitStore.routes.filter(
-      (route) =>
-        route.name.toLowerCase().includes(needle) ||
-        route.description.toLowerCase().includes(needle) ||
-        route.stops.some((stop) => stop.name.toLowerCase().includes(needle)),
+    const matches = needle
+      ? transitStore.routes.filter(
+          (route) =>
+            route.name.toLowerCase().includes(needle) ||
+            route.description.toLowerCase().includes(needle) ||
+            route.stops.some((stop) =>
+              stop.name.toLowerCase().includes(needle),
+            ),
+        )
+      : transitStore.routes;
+    return [...matches].sort(
+      (a, b) =>
+        KIND_ORDER.indexOf(transitRouteKind(a)) -
+          KIND_ORDER.indexOf(transitRouteKind(b)) ||
+        (campusOrder.get(a.id) ?? 99) - (campusOrder.get(b.id) ?? 99) ||
+        a.name.localeCompare(b.name),
     );
   });
+
+  const jeepneyRouteGroups = $derived(
+    KIND_ORDER.map((kind) => ({
+      kind,
+      heading: KIND_HEADING[kind],
+      routes: filteredJeepneyRoutes.filter((r) => transitRouteKind(r) === kind),
+    })).filter((group) => group.routes.length > 0),
+  );
 
   function openJeepneyRoute(id: string) {
     jeepneyStore.openRouteOnMap(id);
@@ -438,8 +476,12 @@
     aria-label={`${tabMeta.plural} list`}
   >
     {#if activeTab === "jeepney" && filteredJeepneyRoutes.length > 0}
+      {#each jeepneyRouteGroups as group (group.kind)}
+      {#if jeepneyRouteGroups.length > 1}
+        <h3 class="jeepney-route-group">{group.heading}</h3>
+      {/if}
       <ul class="entity-nav-list">
-        {#each filteredJeepneyRoutes as route (route.id)}
+        {#each group.routes as route (route.id)}
           <li>
             <button
               type="button"
@@ -455,12 +497,13 @@
               ></span>
               <span class="entity-list-row__label">{route.name}</span>
               <span class="entity-list-row__meta"
-                >{route.stops.length} stops</span
+                >{distinctStopCount(route)} stops</span
               >
             </button>
           </li>
         {/each}
       </ul>
+      {/each}
     {:else if activeTab !== "jeepney" && loaded && visibleCount > 0}
       <ul class="entity-nav-list">
         {#each visibleItems as item (item.id)}
@@ -563,6 +606,20 @@
     font-size: 0.6875rem;
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  .jeepney-route-group {
+    margin: 0.75rem 0 0.25rem;
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: hsl(0, 0%, 40%);
+  }
+
+  .jeepney-route-group:first-child {
+    margin-top: 0;
   }
 
   .jeepney-route-item--active {

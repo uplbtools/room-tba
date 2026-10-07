@@ -3,7 +3,8 @@ export const prerender = false;
 
 import AppRoot from "@ui/AppRoot.svelte";
 import Layout from "@layouts/Layout.astro";
-import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+import { getTransitRouteForPage } from "@lib/services/transit-service";
+import { transitRouteNoun } from "@lib/transit-route-kind";
 import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
 import { campusTransit } from "../../campus.config";
 
@@ -12,13 +13,14 @@ if (!campusTransit.enabled) {
 }
 
 const routeId = Astro.params.route;
-const route = JEEPNEY_ROUTES.find((entry) => entry.id === routeId);
-const routeName = route?.name ?? "UPLB jeepney route";
+const route = await getTransitRouteForPage(routeId);
+const routeName = route?.name ?? "UPLB transit route";
+const routeNoun = route ? transitRouteNoun(route) : "transit route";
 const canonicalPath = `/transit/${encodeURIComponent(routeId ?? "")}/`;
 const title = `${routeName} | UPLB Transit | Room TBA`;
 const description =
   route?.description ??
-  "View this UPLB jeepney route, its stops, and map context in Room TBA.";
+  `View this UPLB ${routeNoun}, its stops, and map context in Room TBA.`;
 const structuredData = jsonLd(
   webpageSchema({ title, description, path: canonicalPath }),
   breadcrumbSchema([

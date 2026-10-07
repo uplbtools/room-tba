@@ -115,7 +115,10 @@
         oninput={onFilterInput}
       />
     <TermSelector />
-    <ScheduleFreshnessNote importedAt={termStore.activeTerm?.classesImportedAt} />
+    <ScheduleFreshnessNote
+      importedAt={termStore.activeTerm?.classesImportedAt}
+      termId={termStore.activeTermId}
+    />
     {/snippet}
   </EntityPanelHeader>
 

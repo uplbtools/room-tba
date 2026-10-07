@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { waitForAppBoot, campusSearchBox } from "../helpers/app";
+import {
+  campusSearchBox,
+  expandDetailsSheet,
+  waitForAppBoot,
+} from "../helpers/app";
 import { searchSuggestions } from "../helpers/search";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
@@ -29,6 +33,8 @@ test.describe("public edit history", () => {
       ),
     ).toBeVisible({ timeout: 10_000 });
 
+    // The phone sheet peeks at the title and actions; history sits below.
+    await expandDetailsSheet(page);
     await page.getByRole("button", { name: "Edit history" }).click();
     const dialog = page.getByRole("dialog", { name: "Edit history" });
     await expect(dialog).toBeVisible();

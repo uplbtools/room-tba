@@ -41,7 +41,7 @@
     plannerRoomCodes,
     directionsStore,
   } from "@lib/store.svelte";
-  import { untrack } from "svelte";
+  import { tick, untrack } from "svelte";
   import { onMount } from "svelte";
   import { getSponsoredPlacePins, loadSponsors } from "@lib/sponsors";
   import {
@@ -99,7 +99,8 @@
   } from "@constants/makiling-trail";
   import {
     CAMPUS_DEFAULT_CAMERA,
-    CAMPUS_MAX_BOUNDS,
+    MAP_REGION_MAX_BOUNDS,
+    MAP_REGION_MIN_ZOOM,
     TERRAIN_CAMERA,
     TERRAIN_MAX_BOUNDS,
     TERRAIN_SOURCE_BOUNDS,
@@ -166,6 +167,12 @@
   } from "@lib/entity-hover-preview.svelte";
   import { patchEventLocations, patchPosition } from "@lib/map-edit/patch-api";
   import { formatMinutes } from "@lib/schedule-import/day-stops";
+  import {
+    labelsToHide,
+    type LabelCandidate,
+  } from "@lib/map-label-declutter";
+  import { darkenForWhiteText } from "@lib/color-contrast";
+  import { isLoopRoute, transitStopNoun } from "@lib/transit-route-kind";
   import type {
     EditableCoords,
     EditableEntityType,
@@ -387,6 +394,9 @@
   const EXTERNAL_CAMPUSES_LABELS_LAYER_ID = "external-campuses-labels";
   let activeRouteId = $state<string | null>(null);
   let activeRouteStops = $state<JeepneyRoute["stops"]>([]);
+  /** Loop routes list the terminal again as the last stop; draw it once. */
+  let activeRouteIsLoop = $state(false);
+  let activeRouteStopNoun = $state("Jeepney stop");
   let activeRouteColor = $state<string>("#dc2626");
   let terrainModeWasEnabled = false;
   let selectedEditKey = $state<string | null>(null);
@@ -1066,19 +1076,76 @@
     // rAF: camera moves fire map event handlers synchronously; keep their
     // state writes out of the reactive flush that called us (see stop flyTo
     // effect) or the scheduler can die with effect_update_depth_exceeded.
-    requestAnimationFrame(() => {
-      map.fitBounds(
-        [
-          [minLng, minLat],
-          [maxLng, maxLat],
-        ],
-        {
-          padding: { top: 80, bottom: 80, left: 80, right: 80 },
-          duration: 1200,
-          pitch: 30,
-        },
-      );
-    });
+    // Two frames: the sheet's target position is set on the first.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        map.fitBounds(
+          [
+            [minLng, minLat],
+            [maxLng, maxLat],
+          ],
+          {
+            padding: visibleMapPadding(map),
+            duration: 1200,
+            pitch: 30,
+          },
+        );
+      }),
+    );
+  }
+
+  /**
+   * Padding that keeps a fitted area inside the part of the map nobody is
+   * covering: below the search bar and chips, above the mobile sheet (or
+   * beside the desktop panel). A flat 80px left most of a route under the
+   * phone sheet.
+   */
+  function visibleMapPadding(map: mapGl.MapLibreMap): mapGl.PaddingOptions {
+    const gap = 24;
+    const frame = map.getContainer().getBoundingClientRect();
+    const chromeBottom = Math.max(
+      frame.top,
+      ...[
+        ...document.querySelectorAll(
+          ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .directions-route-chips",
+        ),
+      ]
+        .map((el) => el.getBoundingClientRect())
+        .filter((r) => r.height > 0 && r.bottom < frame.top + frame.height / 2)
+        .map((r) => r.bottom),
+    );
+    const padding = {
+      top: chromeBottom - frame.top + gap,
+      bottom: gap,
+      left: gap,
+      right: gap,
+    };
+    if (md.current) {
+      const root = document.querySelector(".bottom-sheet-root");
+      const sheet = root?.querySelector<HTMLElement>(".bottom-sheet");
+      if (root && sheet) {
+        // The inline transform is where the sheet is going, not where its
+        // open animation happens to be this frame.
+        const target = /translate3d\(0(?:px)?,\s*([\d.]+)px/.exec(
+          sheet.style.transform,
+        );
+        const sheetTop =
+          root.getBoundingClientRect().top + (target ? Number(target[1]) : 0);
+        padding.bottom = Math.max(gap, frame.bottom - sheetTop + gap);
+      }
+    } else if (!sidePanelStore.collapsed) {
+      padding.left = SIDEPANEL_WIDTH + gap;
+    }
+    // Never ask for more padding than the map has room for.
+    const spareH = frame.height - padding.top - padding.bottom;
+    if (spareH < 80) {
+      const scale = Math.max(0, frame.height - 80) / (padding.top + padding.bottom);
+      padding.top *= scale;
+      padding.bottom *= scale;
+    }
+    const spareW = frame.width - padding.left - padding.right;
+    if (spareW < 80) padding.left = Math.max(gap, frame.width - 80 - padding.right);
+    return padding;
   }
 
   function getEventMapLocations(event: EventData) {
@@ -1444,11 +1511,22 @@
   // bypass the gate so deep links and paid placements never vanish.
   const POI_MIN_ZOOM = 15.5;
   const poiPinsVisible = $derived(zoomLevel >= POI_MIN_ZOOM);
+  // Offices and student orgs are ~110 pins stacked on a few dozen buildings.
+  // On a phone at the default campus zoom they buried every building pin, so
+  // the unfiltered map adds them a little closer in. The Units and offices /
+  // Student orgs filters, and the selected org, still show them from
+  // POI_MIN_ZOOM.
+  const ORG_PINS_MOBILE_MIN_ZOOM = 16.75;
   $effect(() => {
     mapViewStore.poiPinsZoomVisible = poiPinsVisible;
   });
   const SIDEPANEL_WIDTH = 25.75 * 16;
   const md = new MediaQuery("max-width:48rem");
+  const orgPinsVisible = $derived(
+    orgPinFilter === "all" && md.current
+      ? zoomLevel >= ORG_PINS_MOBILE_MIN_ZOOM
+      : poiPinsVisible,
+  );
   let editChromeEl = $state<HTMLElement | null>(null);
   const editChromeActive = $derived(
     eventPlacementStore.active ||
@@ -1488,6 +1566,83 @@
     if (!mapStore.mapInstance) return;
     zoomLevel = mapStore.mapInstance.getZoom();
   }
+
+  // Pin labels are HTML, so MapLibre's own label collision never sees them.
+  // After the camera settles (or the pin set changes), hide the labels that
+  // would overlap a more important one, sit on a more important pin, or hide
+  // under the search bar. Hovering a pin still shows its label.
+  const LABEL_PRIORITY: [string, number][] = [
+    ["building", 1],
+    ["dorm", 1],
+    ["private", 1],
+    ["landmark", 2],
+    ["establishment", 3],
+    ["office", 4],
+    ["organization", 5],
+  ];
+  let mapContainerEl = $state<HTMLDivElement | null>(null);
+  let declutterFrame = 0;
+
+  function declutterPinLabels() {
+    const root = mapContainerEl;
+    if (!root) return;
+    const labels: HTMLElement[] = [];
+    const candidates: LabelCandidate[] = [];
+    for (const pin of root.querySelectorAll<HTMLElement>(".map-entity-pin")) {
+      const label = pin.querySelector<HTMLElement>(".pin-label");
+      const icon = pin.querySelector<HTMLElement>(".pin-icon");
+      if (!label || !icon) continue;
+      label.classList.remove("pin-label--collided");
+      if (!label.classList.contains("persistent")) continue;
+      const tone = LABEL_PRIORITY.find(([name]) => pin.classList.contains(name));
+      candidates.push({
+        id: labels.push(label) - 1,
+        priority: pin.classList.contains("active") ? 0 : (tone?.[1] ?? 6),
+        label: label.getBoundingClientRect(),
+        pin: icon.getBoundingClientRect(),
+      });
+    }
+    const chrome = [
+      ...document.querySelectorAll(
+        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips",
+      ),
+    ].map((el) => el.getBoundingClientRect());
+    for (const id of labelsToHide(candidates, chrome)) {
+      labels[id]?.classList.add("pin-label--collided");
+    }
+  }
+
+  function scheduleLabelDeclutter() {
+    cancelAnimationFrame(declutterFrame);
+    declutterFrame = requestAnimationFrame(() => {
+      void tick().then(declutterPinLabels);
+    });
+  }
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+    map.on("moveend", scheduleLabelDeclutter);
+    return () => {
+      map.off("moveend", scheduleLabelDeclutter);
+      cancelAnimationFrame(declutterFrame);
+    };
+  });
+
+  $effect(() => {
+    // Re-run when the pin set or which labels show changes without a move.
+    void [
+      zoomLevel >= 17,
+      filteredBuildings,
+      filteredDorms,
+      filteredPlaces,
+      filteredOrganizations,
+      orgPinsVisible,
+      queryStore.inputValue,
+      queryStore.category,
+    ];
+    scheduleLabelDeclutter();
+  });
 
   function buildingEditKey(id: number) {
     return `building:${id}`;
@@ -2311,7 +2466,7 @@
 
     const bounds = terrainEnabled
       ? TERRAIN_MAX_BOUNDS
-      : CAMPUS_MAX_BOUNDS;
+      : MAP_REGION_MAX_BOUNDS;
 
     const applyBounds = () => {
       map.setMaxBounds(bounds);
@@ -2973,6 +3128,8 @@
     activeRouteId = route.id;
     activeRouteStops = route.stops;
     activeRouteColor = route.color;
+    activeRouteIsLoop = isLoopRoute(route);
+    activeRouteStopNoun = transitStopNoun(route);
 
     // Geometry is resolved synchronously (static import + stop fallback).
     // Readiness gating is deliberately attempt-based: isStyleLoaded() is false
@@ -3754,7 +3911,7 @@
 <svelte:window onkeydown={handleMapEditKeydown} />
 
 <div class="map-shell">
-  <div class="map-container">
+  <div class="map-container" bind:this={mapContainerEl}>
     {#if eventPlacementStore.active}
       <EventPlacementImageField />
     {/if}
@@ -3762,12 +3919,12 @@
       <MapLibre
         bind:map={mapStore.mapInstance}
         style={mapStyle}
-        maxBounds={CAMPUS_MAX_BOUNDS}
+        maxBounds={MAP_REGION_MAX_BOUNDS}
         center={CAMPUS_DEFAULT_CAMERA.center}
         zoom={17}
         pitch={CAMPUS_DEFAULT_CAMERA.pitch}
         bearing={CAMPUS_DEFAULT_CAMERA.bearing}
-        minZoom={13}
+        minZoom={MAP_REGION_MIN_ZOOM}
         class="map"
         attributionControl={false}
       >
@@ -4184,16 +4341,22 @@
         {/if}
         {#if activeRouteId}
           {#each activeRouteStops as stop, i (`${activeRouteId}-${i}-${stop.name}`)}
-            {@const isHovered = jeepneyStore.hoveredStopIndex === i}
-            {@const isSelected = jeepneyStore.selectedStopIndex === i}
+            {@const loopEnd = activeRouteIsLoop ? activeRouteStops.length - 1 : -1}
+            {@const isHovered =
+              jeepneyStore.hoveredStopIndex === i ||
+              (i === 0 && jeepneyStore.hoveredStopIndex === loopEnd)}
+            {@const isSelected =
+              jeepneyStore.selectedStopIndex === i ||
+              (i === 0 && jeepneyStore.selectedStopIndex === loopEnd)}
+            {#if i !== loopEnd}
             <Marker lngLat={[stop.lon, stop.lat]}>
               <button
                 type="button"
                 class="jeepney-stop-pin"
                 class:jeepney-stop-pin--hovered={isHovered}
                 class:jeepney-stop-pin--selected={isSelected}
-                style:--stop-color={activeRouteColor}
-                aria-label={`Jeepney stop ${i + 1}: ${stop.name}`}
+                style:--stop-color={darkenForWhiteText(activeRouteColor)}
+                aria-label={`${activeRouteStopNoun} ${i + 1}: ${stop.name}`}
                 aria-pressed={isSelected}
                 onclick={(event) => {
                   event.stopPropagation();
@@ -4208,6 +4371,7 @@
                 <span class="stop-label" transition:fade>{stop.name}</span>
               </button>
             </Marker>
+            {/if}
           {/each}
         {/if}
 
@@ -4318,7 +4482,7 @@
 
         {#if !mapViewStore.eventsOnly}
           {#each filteredOrganizations as { org, lat, lon } (`org:${org.id}`)}
-            {#if poiPinsVisible || activeOrgName === org.name}
+            {#if orgPinsVisible || activeOrgName === org.name}
             {@const centralHoverPreview = shouldShowEntityHoverPreview()}
             {@const previewSuppressed =
               centralHoverPreview &&
@@ -5490,6 +5654,15 @@
   .jeepney-stop-pin:focus-visible {
     outline: 2px solid hsl(5, 53%, 32%);
     outline-offset: 2px;
+  }
+
+  /* 44px touch target around the 22px pin; the pin itself stays small so
+     close stops still read as separate dots. */
+  .jeepney-stop-pin::before {
+    content: "";
+    position: absolute;
+    inset: -0.6875rem;
+    border-radius: 50%;
   }
 
   .jeepney-stop-pin .stop-index {

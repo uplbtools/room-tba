@@ -17,12 +17,16 @@
  * Routes with neither stay out of the file entirely and the map falls back to a
  * dashed stops-only line rather than a confident wrong path.
  *
+ * `--only id,id` regenerates just those routes and carries every other entry
+ * over unchanged (useful when Overpass is unreachable or one route changed).
+ *
  * Upstream is other people's infrastructure: responses are cached under
  * `data/transit-geometry-cache/` (gitignored) and requests are serialised with
  * a delay, so a re-run costs nothing. Delete the cache dir to refetch.
  *
  * Usage:
  *   DATABASE_URL=... bun run scripts/generate-transit-geometry.ts
+ *   DATABASE_URL=... bun run scripts/generate-transit-geometry.ts --only uplb-to-upd,upd-to-uplb
  */
 
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -45,13 +49,16 @@ const TERMINAL_TOLERANCE_M = 1500;
 const SIMPLIFY_TOLERANCE_M = 3;
 
 /**
- * OSM maps the DLTB campus shuttle down SLEX/C-5/Katipunan, while the
- * university's own announcements describe Skyway and Quezon Ave. Both are
- * plausible and we cannot settle it, so the line ships as mapped and the
- * disagreement is disclosed rather than silently resolved.
+ * The DLTB UPLB <-> UP Diliman bus runs SLEX, the Skyway and Quezon Ave.
+ * (UPLB's announcements; confirmed by the maintainer 2026-10-06). OSM's
+ * relations 17932246/17932247 map it down C-5 and Katipunan instead, so the
+ * line is road-routed through our stops, which OSRM takes over SLEX, Skyway
+ * Extension, Skyway, Quezon Ave., East Ave. and Commonwealth.
  */
+const DLTB_ROUTED_NOTE =
+  "OSRM car routing through the stops: SLEX, Skyway, Quezon Ave. and Commonwealth to UP Diliman. OSM relations 17932246/17932247 map a C-5/Katipunan path and were not used.";
 const DLTB_CAVEAT =
-  "OSM maps this bus via SLEX, C-5 and Katipunan; UPLB's announcements describe a Skyway and Quezon Ave. routing. The drawn line follows the OSM version, so the Metro Manila stretch may differ.";
+  "Drawn by road routing through the stops along SLEX, the Skyway and Quezon Ave.; the streets inside UP Diliman may differ.";
 
 /**
  * These relations are the full Calamba-origin corridor; our route is the Los
@@ -108,17 +115,13 @@ const PLANS: Record<string, Plan> = {
 
   // DLTB commuter bus, mapped end to end in OSM under the operator's own name.
   "uplb-to-upd": {
-    kind: "osm-relation",
-    relation: 17932247,
-    trim: false,
-    note: "OSM route relation 17932247 — Del Monte Land Transport (DLTB) UP Los Baños → UP Diliman.",
+    kind: "routed",
+    note: DLTB_ROUTED_NOTE,
     caveat: DLTB_CAVEAT,
   },
   "upd-to-uplb": {
-    kind: "osm-relation",
-    relation: 17932246,
-    trim: false,
-    note: "OSM route relation 17932246 — Del Monte Land Transport (DLTB) UP Diliman → UP Los Baños.",
+    kind: "routed",
+    note: DLTB_ROUTED_NOTE,
     caveat: DLTB_CAVEAT,
   },
 
@@ -355,7 +358,17 @@ async function main() {
   >;
   const out: Record<string, unknown> = {};
 
+  const onlyFlag = process.argv.indexOf("--only");
+  const only =
+    onlyFlag >= 0
+      ? new Set((process.argv[onlyFlag + 1] ?? "").split(",").filter(Boolean))
+      : null;
+
   for (const [routeId, plan] of Object.entries(PLANS)) {
+    if (only && !only.has(routeId)) {
+      if (existing[routeId]) out[routeId] = existing[routeId];
+      continue;
+    }
     const stops = stopsByRoute.get(routeId);
     if (!stops || stops.length < 2) {
       // A database without this route (a local one holds only the campus

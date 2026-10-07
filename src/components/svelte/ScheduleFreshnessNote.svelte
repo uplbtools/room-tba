@@ -3,14 +3,23 @@
     classesScheduleFreshnessMessage,
     isClassesScheduleStale,
   } from "@lib/amis/term-schedule-freshness";
+  import { changeOfMatriculationPeriod } from "@lib/term-calendar";
 
   type Props = {
     importedAt?: string | null;
+    /** Term whose change of matriculation dates the note names. */
+    termId?: number | null;
   };
 
-  const { importedAt = null }: Props = $props();
+  const { importedAt = null, termId = null }: Props = $props();
 
-  const message = $derived(classesScheduleFreshnessMessage(importedAt));
+  const message = $derived(
+    classesScheduleFreshnessMessage(
+      importedAt,
+      Date.now(),
+      changeOfMatriculationPeriod(termId),
+    ),
+  );
   const stale = $derived(isClassesScheduleStale(importedAt));
 </script>
 

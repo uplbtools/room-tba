@@ -672,6 +672,7 @@
         updatedAt={event.updatedAt}
         entityType="event"
         entityId={event.id}
+        entityName={event.title}
       />
     </header>
 
