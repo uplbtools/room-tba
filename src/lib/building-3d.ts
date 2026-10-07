@@ -331,3 +331,51 @@ export function pickNonOverlappingLabels(labels: LabelBox[]): number[] {
 
   return keptIndices.sort((a, b) => a - b);
 }
+
+/**
+ * Camera distance that fits a sphere of `radius` meters into the part of the
+ * canvas the user can actually see, the way MapLibre's `fitBounds` honours
+ * `padding`. On phones the bottom sheet covers the lower half of the 3D stage;
+ * framing against the full canvas left the building small and pushed into the
+ * strip behind the sheet.
+ *
+ * `fill` is the share of the visible height (or width, whichever is tighter)
+ * the sphere's diameter should take.
+ */
+export function cameraFitDistance(opts: {
+  radius: number;
+  /** Vertical field of view, degrees. */
+  fovDeg: number;
+  width: number;
+  height: number;
+  padTop?: number;
+  padBottom?: number;
+  fill?: number;
+}): number {
+  const { radius, fovDeg, width, height } = opts;
+  const fill = opts.fill ?? 0.65;
+  if (width <= 0 || height <= 0) return radius * 3;
+  const visibleH = Math.max(
+    height * 0.2,
+    height - (opts.padTop ?? 0) - (opts.padBottom ?? 0),
+  );
+  const tanHalf = Math.tan((fovDeg * Math.PI) / 360);
+  // Half-angle tangents of the visible window; the narrower axis decides.
+  const fit = fill * tanHalf * (Math.min(visibleH, width) / height);
+  return radius / fit;
+}
+
+/**
+ * Should a room's label be drawn? The map labels the same rooms the list
+ * shows: every room on the selected floor. "All floors" stacks every storey on
+ * one footprint, so only the room the user picked (or hovers) gets a label
+ * there; the rest stay plain markers instead of a pile of overlapping chips.
+ */
+export function isRoomLabelShown(opts: {
+  floor: number;
+  selectedFloor: number | "all";
+  focused: boolean;
+}): boolean {
+  if (opts.focused) return true;
+  return opts.selectedFloor !== "all" && opts.floor === opts.selectedFloor;
+}

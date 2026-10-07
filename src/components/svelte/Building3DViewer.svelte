@@ -2,7 +2,20 @@
   import { onMount, untrack } from "svelte";
   import IconButton from "@ui/IconButton.svelte";
   import { fade, fly } from "svelte/transition";
-  import { X, Building2, Loader, RotateCcw, Pencil } from "@lucide/svelte";
+  import { X, Building2, Loader, Pencil, Info } from "@lucide/svelte";
+  import BottomSheet from "@ui/BottomSheet.svelte";
+  import MapControlsStack, {
+    type MapControlsController,
+  } from "./map-chrome/MapControlsStack.svelte";
+  import type { BottomSheetSnap } from "@lib/bottom-sheet-snap";
+  import {
+    MAPTILER_COPYRIGHT_URL,
+    OSM_COPYRIGHT_URL,
+  } from "@constants/data-license";
+  import {
+    getBasemapProvider,
+    onBasemapProviderChange,
+  } from "@lib/basemap-provider";
   import { building3DStore, adminAuthStore } from "@lib/store.svelte";
   import {
     modalContentDismiss,
@@ -28,6 +41,8 @@
     defaultFloorCount,
     maxInferredFloor,
     pickNonOverlappingLabels,
+    cameraFitDistance,
+    isRoomLabelShown,
     type LabelBox,
     type LocalPolygonData,
     type RoomPlacement,
@@ -44,15 +59,31 @@
   let { name }: { name: string } = $props();
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+  const mobile = new MediaQuery("max-width:48rem");
 
   const FLOOR_HEIGHT = 3.5;
+  /** Gap between storeys so each floor reads as its own band. */
+  const FLOOR_GAP = 0.45;
   const ROOM_COLOR = 0xdc2626;
   const ROOM_HIGHLIGHT_COLOR = 0xfacc15;
   const ROOM_EDIT_COLOR = 0x2563eb;
-  const SHELL_COLOR = 0xb89e84;
-  const SHELL_OPACITY = 0.18;
-  const FLOOR_SLAB_COLOR = 0xf5efe6;
-  const FLOOR_SLAB_OPACITY = 0.75;
+  // Brand-tinted storeys (alternating so floors separate) with a maroon
+  // outline, the same #7b1113 the campus map pins use.
+  const FLOOR_COLORS = [0xf1d9d0, 0xe4bcae];
+  const OUTLINE_COLOR = 0x7b1113;
+  /** Storeys above the selected floor fade so its markers stay in view. */
+  const GHOST_OPACITY = 0.14;
+  /** Plain land colour around the ground image, close to the campus style's. */
+  const LAND_COLOR = 0xf5f3ef;
+  const FOV_DEG = 45;
+  /**
+   * Camera tilt, MapLibre-style (degrees from straight down). Past ~50° the
+   * horizon creeps into a phone's short visible strip.
+   */
+  const DEFAULT_PITCH_DEG = 45;
+  const MAX_PITCH_DEG = 50;
+  /** Share of the visible map the building fills when framed. */
+  const FIT_FILL = 1.15;
 
   type RoomPositionPatchResponse = {
     success?: boolean;
@@ -64,6 +95,17 @@
   type RoomPositionDraft = { floor: number; x: number; y: number };
 
   let viewerFrameEl: HTMLDivElement | null = $state(null);
+  let headingEl: HTMLHeadingElement | null = $state(null);
+  let stageEl: HTMLDivElement | null = $state(null);
+  let headerH = $state(0);
+  let sheetSnap = $state<BottomSheetSnap>("peek");
+  /** Stage pixels hidden behind the mobile sheet (MapLibre `padding.bottom`). */
+  let padBottom = $state(0);
+  let attributionOpen = $state(false);
+  // Credit whoever served the ground tiles, as the campus map does (#885).
+  let basemapProvider = $state(getBasemapProvider());
+  /** Degrees clockwise from north, for the compass. */
+  let cameraBearing = $state(0);
   let canvasContainer: HTMLDivElement | null = $state(null);
   let labelContainer: HTMLDivElement | null = $state(null);
 
@@ -115,7 +157,24 @@
     placement: RoomPlacement;
     baseColor: number;
   }> = [];
-  let floorGroups: Array<{ floor: number; group: any }> = [];
+  let floorGroups: Array<{
+    floor: number;
+    group: any;
+    block: any;
+    outline: any;
+  }> = [];
+  /** The three.js module, kept for camera maths outside init(). */
+  let three: any = null;
+  /** Until the user drags or zooms, padding changes re-frame the building. */
+  let userMovedCamera = false;
+  let cameraTween: {
+    fromPos: any;
+    toPos: any;
+    fromTarget: any;
+    toTarget: any;
+    start: number;
+    ms: number;
+  } | null = null;
   /** Raycast targets, hoisted so the render loop stops rebuilding them. */
   let pickTargets: any[] = [];
   let initStarted = false;
@@ -198,10 +257,15 @@
   }
 
   // `aria-modal="true"` tells assistive tech the rest of the page is inert, so
-  // Tab has to honour that. Same shared trap the other modals use.
+  // Tab has to honour that. Same shared trap the other modals use. Focus starts
+  // on the heading: the first focusable was the FAQ link, which painted its
+  // focus ring the moment the viewer opened from a tap.
   $effect(() => {
     if (!viewerFrameEl) return;
-    return trapFocus(viewerFrameEl, { onEscape: close });
+    return trapFocus(viewerFrameEl, {
+      onEscape: close,
+      initialFocus: headingEl,
+    });
   });
 
   async function init() {
@@ -290,16 +354,16 @@
             : null;
 
       // === Scene setup ===
+      three = THREE;
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xeef2f7);
+      // Matches the land apron below, so a background never reads as sky.
+      scene.background = new THREE.Color(LAND_COLOR);
 
       const width = canvasContainer.clientWidth;
       const height = canvasContainer.clientHeight;
 
-      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(FOV_DEG, width / height, 0.1, 6000);
       const radius = Math.max(localPoly.widthMeters, localPoly.depthMeters);
-      camera.position.set(radius * 1.4, radius * 1.2, radius * 1.4);
-      camera.lookAt(0, totalFloors * FLOOR_HEIGHT * 0.4, 0);
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -316,41 +380,52 @@
       labelContainer.appendChild(labelRenderer.domElement);
 
       controls = new OrbitMod.OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, totalFloors * FLOOR_HEIGHT * 0.4, 0);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
       controls.minDistance = 4;
-      controls.maxDistance = radius * 6;
-      controls.maxPolarAngle = Math.PI * 0.495; // don't let users go below ground
-      controls.update();
+      // Pitch cap: steeper than this and the horizon shows above the ground.
+      controls.maxPolarAngle = (MAX_PITCH_DEG * Math.PI) / 180;
+      controls.addEventListener("start", () => {
+        userMovedCamera = true;
+        cameraTween = null;
+      });
+      measurePadding();
+      frameBuilding(false);
 
       // === Lighting ===
-      const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+      const ambient = new THREE.AmbientLight(0xffffff, 0.9);
       scene.add(ambient);
-      const dir = new THREE.DirectionalLight(0xffffff, 0.85);
+      const dir = new THREE.DirectionalLight(0xffffff, 1.2);
       dir.position.set(radius, radius * 2.5, radius * 0.6);
       dir.castShadow = true;
       scene.add(dir);
-      const hemi = new THREE.HemisphereLight(0xffffff, 0x445566, 0.4);
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x8a7f74, 0.5);
       scene.add(hemi);
 
       // === Ground ===
       // Sized to comfortably contain the building plus context. The basemap
       // texture (loaded async below) will be cropped to this exact half-extent
       // so its pixels land 1:1 with world meters.
-      const groundHalf = Math.max(40, radius * 2.5);
-      const groundMat = new THREE.MeshStandardMaterial({
-        color: 0xd9d4cb,
-        roughness: 0.95,
-      });
+      const groundHalf = Math.max(150, radius * 3);
+      // Unlit: lighting the tiles greyed them into a blue-grey haze.
+      const groundMat = new THREE.MeshBasicMaterial({ color: LAND_COLOR });
       const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(groundHalf * 2, groundHalf * 2),
         groundMat,
       );
       ground.rotation.x = -Math.PI / 2;
       ground.position.y = -0.02;
-      ground.receiveShadow = true;
       scene.add(ground);
+      // Land apron far past the tiles: with the pitch capped the view never
+      // reaches the horizon, so the edge of the basemap shows plain land
+      // instead of grey sky.
+      const apron = new THREE.Mesh(
+        new THREE.PlaneGeometry(8000, 8000),
+        new THREE.MeshBasicMaterial({ color: LAND_COLOR }),
+      );
+      apron.rotation.x = -Math.PI / 2;
+      apron.position.y = -0.05;
+      scene.add(apron);
 
       // Asynchronously upgrade the ground with an OSM-based street map. We
       // don't await this — the viewer should be usable while tiles are loading.
@@ -363,7 +438,6 @@
         centerLat: localPoly.centerLat,
         centerLon: localPoly.centerLon,
         radiusMeters: groundHalf,
-        zoom: 18,
       })
         .then((basemap) => {
           if (!basemap || !scene) return;
@@ -404,68 +478,67 @@
         shape.lineTo(p.x, p.y);
       }
 
-      // Outer translucent shell — shows the whole building height.
-      const shellGeom = new THREE.ExtrudeGeometry(shape, {
-        depth: floors * FLOOR_HEIGHT,
+      // One solid block per storey, a little shorter than the floor height,
+      // so "All floors" reads as stacked floors instead of one see-through
+      // box. Markers draw over the blocks (depthTest off), so solid walls never
+      // hide a room.
+      // The footprint corner nearest the default (south-east) camera: floor
+      // badges sit on the building's own edge instead of floating in the
+      // bounding-box corner, which can be metres off an L-shaped footprint.
+      const corner = pts.reduce((best, p) =>
+        p.x - p.y > best.x - best.y ? p : best,
+      );
+      const blockGeom = new THREE.ExtrudeGeometry(shape, {
+        depth: FLOOR_HEIGHT - FLOOR_GAP,
         bevelEnabled: false,
       });
-      shellGeom.rotateX(-Math.PI / 2);
-      const shellMat = new THREE.MeshStandardMaterial({
-        color: SHELL_COLOR,
-        transparent: true,
-        opacity: SHELL_OPACITY,
-        roughness: 0.9,
-        depthWrite: false,
-      });
-      const shellMesh = new THREE.Mesh(shellGeom, shellMat);
-      shellMesh.castShadow = false;
-      shellMesh.receiveShadow = false;
-      scene.add(shellMesh);
-
-      const edgeGeom = new THREE.EdgesGeometry(shellGeom);
-      const edgeMat = new THREE.LineBasicMaterial({
-        color: 0x6b5b48,
-        transparent: true,
-        opacity: 0.6,
-      });
-      const edges = new THREE.LineSegments(edgeGeom, edgeMat);
-      scene.add(edges);
-
-      // Per-floor slabs.
+      blockGeom.rotateX(-Math.PI / 2);
+      const outlineGeom = new THREE.EdgesGeometry(blockGeom);
       floorGroups = [];
       cssLabels = [];
       labelProjection = new THREE.Vector3();
       for (let f = 1; f <= floors; f++) {
-        const slabGeom = new THREE.ExtrudeGeometry(shape, {
-          depth: 0.18,
-          bevelEnabled: false,
-        });
-        slabGeom.rotateX(-Math.PI / 2);
-        const slabMat = new THREE.MeshStandardMaterial({
-          color: FLOOR_SLAB_COLOR,
-          transparent: true,
-          opacity: FLOOR_SLAB_OPACITY,
-          roughness: 0.85,
-          side: THREE.DoubleSide,
-        });
-        const slab = new THREE.Mesh(slabGeom, slabMat);
-        slab.position.y = (f - 1) * FLOOR_HEIGHT;
-        slab.castShadow = false;
-        slab.receiveShadow = true;
+        const block = new THREE.Mesh(
+          blockGeom,
+          new THREE.MeshStandardMaterial({
+            color: FLOOR_COLORS[(f - 1) % FLOOR_COLORS.length],
+            roughness: 0.85,
+            transparent: true,
+            opacity: 1,
+            // Pushed back a hair so the outline wins the depth test.
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
+          }),
+        );
+        block.position.y = (f - 1) * FLOOR_HEIGHT;
+        const outline = new THREE.LineSegments(
+          outlineGeom,
+          new THREE.LineBasicMaterial({
+            color: OUTLINE_COLOR,
+            transparent: true,
+            opacity: 0.9,
+          }),
+        );
+        outline.position.y = block.position.y;
 
         const group = new THREE.Group();
-        group.add(slab);
+        group.add(block);
+        group.add(outline);
 
-        // Floor label sprite
         const labelEl = document.createElement("div");
         labelEl.className = "viewer-floor-label";
         labelEl.textContent = `F${f}`;
         const labelObj = new CSS2DMod.CSS2DObject(labelEl);
         labelObj.position.set(
-          localPoly.widthMeters / 2 + 1.5,
-          (f - 1) * FLOOR_HEIGHT + 0.4,
-          localPoly.depthMeters / 2 + 1.5,
+          corner.x,
+          (f - 1) * FLOOR_HEIGHT + (FLOOR_HEIGHT - FLOOR_GAP) / 2,
+          -corner.y,
         );
+        // Alternate sides of the corner so stacked storeys' badges sit side
+        // by side instead of on top of each other.
+        labelObj.center.set(f % 2 === 1 ? 1.2 : -0.2, 0.5);
+        labelObj.userData.floor = f;
         group.add(labelObj);
         cssLabels.push({
           obj: labelObj,
@@ -477,22 +550,30 @@
         });
 
         scene.add(group);
-        floorGroups.push({ floor: f, group });
+        floorGroups.push({ floor: f, group, block, outline });
       }
 
       // === Room markers ===
+      // Sized to the building so they stay visible once the whole footprint
+      // is framed (a fixed 0.55 m pin was a few pixels on a big building).
+      const markerR = Math.min(1.6, Math.max(0.55, radius * 0.014));
       roomMeshes = [];
       const stableRooms = placements;
       for (const placement of stableRooms) {
         const cyl = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.55, 0.55, 1.4, 16),
+          new THREE.CylinderGeometry(markerR, markerR, 1.4, 16),
           new THREE.MeshStandardMaterial({
             color: ROOM_COLOR,
             emissive: 0x1a0606,
             roughness: 0.45,
             metalness: 0.05,
+            depthTest: false,
+            // The storeys sit in the transparent pass (their opacity fades);
+            // markers must too, or the blocks paint over them.
+            transparent: true,
           }),
         );
+        cyl.renderOrder = 10;
         cyl.position.set(
           placement.x,
           (placement.floor - 1) * FLOOR_HEIGHT + 0.95,
@@ -507,11 +588,21 @@
         cyl.receiveShadow = false;
         scene.add(cyl);
 
+        // The floor chip lives inside the label so it can never drift away
+        // from the room it belongs to.
         const labelEl = document.createElement("div");
         labelEl.className = "viewer-room-label";
-        labelEl.textContent = placement.code;
+        const codeEl = document.createElement("span");
+        codeEl.textContent = placement.code;
+        const floorEl = document.createElement("span");
+        floorEl.className = "viewer-room-label-floor";
+        floorEl.textContent = `F${placement.floor}`;
+        labelEl.append(codeEl, floorEl);
         const labelObj = new CSS2DMod.CSS2DObject(labelEl);
-        labelObj.position.set(0, 1.0, 0);
+        labelObj.position.set(0, 0.9, 0);
+        // Bottom-centre on the marker: the chip sits just above its pin
+        // instead of covering it.
+        labelObj.center.set(0.5, 1);
         cyl.add(labelObj);
         cssLabels.push({
           obj: labelObj,
@@ -638,18 +729,16 @@
           rm.mesh.geometry.dispose();
           rm.mesh.material.dispose();
         }
-        shellGeom.dispose();
-        shellMat.dispose();
-        edgeGeom.dispose();
-        edgeMat.dispose();
+        blockGeom.dispose();
+        outlineGeom.dispose();
         ground.geometry.dispose();
         (ground.material as any).dispose();
+        apron.geometry.dispose();
+        apron.material.dispose();
         if (basemapTexture) basemapTexture.dispose();
         for (const fg of floorGroups) {
-          fg.group.traverse((obj: any) => {
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) obj.material.dispose();
-          });
+            // Geometry is shared across storeys and disposed above.
+          fg.group.traverse((obj: any) => obj.material?.dispose());
         }
         renderer.dispose();
       });
@@ -663,13 +752,16 @@
         renderer.setSize(w, h);
         labelRenderer.setSize(w, h);
         camera.aspect = w / h;
-        camera.updateProjectionMatrix();
+        measurePadding();
       });
       resizeObs.observe(canvasContainer);
 
       const animate = () => {
+        if (cameraTween) stepCameraTween();
         // OrbitControls.update() reports whether the camera actually moved.
         const cameraMoved = controls?.update() === true;
+        // Unchanged values don't re-render the compass.
+        cameraBearing = (-controls.getAzimuthalAngle() * 180) / Math.PI;
         // Hover detection — only when something changed. It used to raycast
         // every frame forever, because pointerNDC stayed set after the first
         // pointermove and was never cleared.
@@ -702,6 +794,10 @@
         if (roomPlacement) {
           selectedFloor = roomPlacement.floor;
         }
+      } else if (placements.length > 0) {
+        // Open on the lowest floor that has rooms, so the map labels exactly
+        // the rooms the list shows. "All floors" is one tap away.
+        selectedFloor = Math.min(...placements.map((p) => p.floor));
       }
       if (building3DStore.initialEditMode && adminAuthStore.canPublish) {
         editMode = true;
@@ -739,6 +835,23 @@
     for (const entry of cssLabels) {
       // CSS2DRenderer already hid it: off-screen, or on a filtered-out floor.
       if (entry.el.style.display === "none") continue;
+      const focused =
+        entry.code !== null &&
+        (entry.code === activeRoomCode || entry.code === hoveredRoomCode);
+      entry.el.classList.toggle("is-active", entry.code === activeRoomCode);
+      // A single floor shows its own badge only; room chips carry the rest.
+      const hidden =
+        entry.code === null
+          ? selectedFloor !== "all" && entry.obj.userData.floor !== selectedFloor
+          : !isRoomLabelShown({
+              floor: entry.obj.parent?.userData.floor ?? 0,
+              selectedFloor,
+              focused,
+            });
+      if (hidden) {
+        entry.el.style.display = "none";
+        continue;
+      }
       // Text never changes, so one layout read per label is enough.
       if (entry.w === 0) {
         entry.w = entry.el.offsetWidth;
@@ -747,15 +860,18 @@
       labelProjection.setFromMatrixPosition(entry.obj.matrixWorld);
       const depth = labelProjection.distanceTo(camera.position);
       labelProjection.project(camera);
-      const focused =
-        entry.code !== null &&
-        (entry.code === activeRoomCode || entry.code === hoveredRoomCode);
       onScreen.push(entry);
       boxes.push({
-        x: (labelProjection.x * 0.5 + 0.5) * width,
-        y: (-labelProjection.y * 0.5 + 0.5) * height,
-        width: entry.w,
-        height: entry.h,
+        // Box centre, honouring each label's anchor (`CSS2DObject.center`).
+        x:
+          (labelProjection.x * 0.5 + 0.5) * width +
+          (0.5 - entry.obj.center.x) * entry.w,
+        y:
+          (-labelProjection.y * 0.5 + 0.5) * height +
+          (entry.obj.center.y - 0.5) * entry.h,
+        // A few px of breathing room so kept labels never touch.
+        width: entry.w + LABEL_GAP_PX,
+        height: entry.h + LABEL_GAP_PX,
         rank: focused ? -1 : entry.priority,
         depth,
       });
@@ -767,13 +883,165 @@
     }
   }
 
-  function resetCamera() {
-    if (!camera || !controls || !polygon) return;
-    const radius = Math.max(polygon.widthMeters, polygon.depthMeters);
-    camera.position.set(radius * 1.4, radius * 1.2, radius * 1.4);
-    controls.target.set(0, totalFloors * FLOOR_HEIGHT * 0.4, 0);
-    controls.update();
+  const LABEL_GAP_PX = 6;
+
+  /**
+   * How much of the stage the mobile sheet covers, applied the way MapLibre
+   * applies `padding`: the projection centre shifts up into the visible strip
+   * (`setViewOffset`), so the building sits in the middle of what the user can
+   * see instead of behind the sheet.
+   */
+  function measurePadding() {
+    if (!stageEl) return;
+    const sheet = mobile.current
+      ? viewerFrameEl?.querySelector<HTMLElement>(".bottom-sheet")
+      : null;
+    const stage = stageEl.getBoundingClientRect();
+    padBottom = sheet
+      ? Math.max(
+          0,
+          Math.min(
+            stage.height,
+            Math.round(stage.bottom - sheet.getBoundingClientRect().top),
+          ),
+        )
+      : 0;
+    if (!camera || !canvasContainer) return;
+    const w = canvasContainer.clientWidth;
+    const h = canvasContainer.clientHeight;
+    if (w === 0 || h === 0) return;
+    if (padBottom > 0) camera.setViewOffset(w, h, 0, padBottom / 2, w, h);
+    else camera.clearViewOffset();
+    camera.updateProjectionMatrix();
+    if (!userMovedCamera && !cameraTween) frameBuilding(false);
   }
+
+  /** Where the camera sits to frame the whole building, MapLibre `fitBounds`-style. */
+  function framedCamera(azimuth: number) {
+    if (!polygon || !canvasContainer || !three) return null;
+    const height = totalFloors * FLOOR_HEIGHT;
+    const distance = cameraFitDistance({
+      radius:
+        0.5 * Math.hypot(polygon.widthMeters, polygon.depthMeters, height),
+      fovDeg: FOV_DEG,
+      width: canvasContainer.clientWidth,
+      height: canvasContainer.clientHeight,
+      padBottom,
+      fill: FIT_FILL,
+    });
+    const target = new three.Vector3(0, height * 0.4, 0);
+    const pitch = (DEFAULT_PITCH_DEG * Math.PI) / 180;
+    const pos = new three.Vector3().setFromSphericalCoords(
+      distance,
+      pitch,
+      azimuth,
+    );
+    return { pos: pos.add(target), target, distance };
+  }
+
+  function frameBuilding(animated = true) {
+    if (!camera || !controls) return;
+    const framed = framedCamera(Math.PI / 4);
+    if (!framed) return;
+    controls.maxDistance = framed.distance * 2.5;
+    moveCamera(framed.pos, framed.target, animated ? 450 : 0);
+  }
+
+  function moveCamera(toPos: any, toTarget: any, ms: number) {
+    if (!camera || !controls) return;
+    if (ms === 0 || reducedMotion.current) {
+      cameraTween = null;
+      camera.position.copy(toPos);
+      controls.target.copy(toTarget);
+      controls.update();
+      return;
+    }
+    cameraTween = {
+      fromPos: camera.position.clone(),
+      toPos,
+      fromTarget: controls.target.clone(),
+      toTarget,
+      start: performance.now(),
+      ms,
+    };
+  }
+
+  function stepCameraTween() {
+    if (!cameraTween) return;
+    const t = Math.min(1, (performance.now() - cameraTween.start) / cameraTween.ms);
+    const eased = 1 - (1 - t) ** 3;
+    camera.position.lerpVectors(cameraTween.fromPos, cameraTween.toPos, eased);
+    controls.target.lerpVectors(
+      cameraTween.fromTarget,
+      cameraTween.toTarget,
+      eased,
+    );
+    if (t === 1) cameraTween = null;
+  }
+
+  /** Same map controls as the campus map, driving the orbit camera. */
+  const cameraController: MapControlsController = {
+    get bearing() {
+      return cameraBearing;
+    },
+    resetNorth() {
+      if (!camera || !controls || !three) return;
+      const offset = camera.position.clone().sub(controls.target);
+      const spherical = new three.Spherical().setFromVector3(offset);
+      spherical.theta = 0;
+      const pos = new three.Vector3()
+        .setFromSpherical(spherical)
+        .add(controls.target);
+      moveCamera(pos, controls.target.clone(), 400);
+    },
+    zoomBy(delta) {
+      if (!camera || !controls) return;
+      userMovedCamera = true;
+      const offset = camera.position.clone().sub(controls.target);
+      const distance = Math.min(
+        controls.maxDistance,
+        Math.max(controls.minDistance, offset.length() / 1.6 ** delta),
+      );
+      const pos = offset.setLength(distance).add(controls.target);
+      moveCamera(pos, controls.target.clone(), 200);
+    },
+    recenter() {
+      userMovedCamera = false;
+      frameBuilding();
+    },
+    exitTo2D: close,
+  };
+
+  // The sheet changes height by animating `transform`, which no
+  // ResizeObserver sees; re-measure when it settles.
+  $effect(() => {
+    const isMobile = mobile.current;
+    void sheetSnap;
+    const frame = viewerFrameEl;
+    if (!frame) return;
+    untrack(measurePadding);
+    if (!isMobile) return;
+    const onEnd = (e: TransitionEvent) => {
+      if ((e.target as Element).classList?.contains("bottom-sheet")) {
+        measurePadding();
+      }
+    };
+    frame.addEventListener("transitionend", onEnd);
+    const settle = setTimeout(measurePadding, 400);
+    return () => {
+      frame.removeEventListener("transitionend", onEnd);
+      clearTimeout(settle);
+    };
+  });
+
+  // A room picked on the map scrolls its list row into view.
+  $effect(() => {
+    const code = activeRoomCode;
+    if (!code || !viewerFrameEl) return;
+    viewerFrameEl
+      .querySelector(`[data-room-code="${CSS.escape(code)}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  });
 
   $effect(() => {
     // Hide rooms not on the selected floor (or show all). A dirty (unsaved)
@@ -787,13 +1055,18 @@
           dirtyMap.get(rm.placement.code)?.floor ?? rm.placement.floor;
         const visible = selected === "all" || effectiveFloor === selected;
         rm.mesh.visible = visible;
+        // "All floors" draws every marker through the storeys above it;
+        // dim the buried ones so the roof doesn't read as one floor.
+        rm.mesh.material.opacity =
+          selected === "all" && effectiveFloor < totalFloors ? 0.45 : 1;
       }
+      // Storeys above the selected floor fade to a ghost so its markers and
+      // labels sit in clear view; the rest stay solid.
       for (const fg of floorGroups) {
-        const slabVisible = selected === "all" || fg.floor === selected;
-        fg.group.children.forEach((child: any) => {
-          // Always show the floor labels; only hide the slab itself when filtered.
-          if (child.isMesh) child.visible = slabVisible;
-        });
+        const ghost = selected !== "all" && fg.floor > selected;
+        fg.block.material.opacity = ghost ? GHOST_OPACITY : 1;
+        fg.block.material.depthWrite = !ghost;
+        fg.outline.material.opacity = ghost ? 0.25 : 0.9;
       }
     });
   });
@@ -860,6 +1133,10 @@
       -position.y,
     );
     target.mesh.userData.floor = position.floor;
+    const chip = target.mesh.children[0]?.element?.querySelector(
+      ".viewer-room-label-floor",
+    );
+    if (chip) chip.textContent = `F${position.floor}`;
   }
 
   function keepActiveRoomVisible(code: string, position: RoomPositionDraft) {
@@ -1136,7 +1413,11 @@
   });
 
   onMount(() => {
+    const offProvider = onBasemapProviderChange(
+      (next) => (basemapProvider = next),
+    );
     return () => {
+      offProvider();
       if (frameId !== null) cancelAnimationFrame(frameId);
       resizeObs?.disconnect();
       for (const dispose of disposers) {
@@ -1203,11 +1484,13 @@
     in:fly={modalContentReveal(reducedMotion.current)}
     out:fly={modalContentDismiss(reducedMotion.current)}
   >
-    <header class="viewer-header">
+    <header class="viewer-header" bind:offsetHeight={headerH}>
       <div class="viewer-title">
         <Building2 size={20} />
         <div>
-          <div class="viewer-name">{name}</div>
+          <h2 class="viewer-name" tabindex="-1" bind:this={headingEl}>
+            {name}
+          </h2>
           <div class="viewer-subtitle">
             3D model from OpenStreetMap footprint
             <a class="viewer-faq-link" href="/faq#3d-models"
@@ -1221,177 +1504,229 @@
       </IconButton>
     </header>
 
-    <div class="viewer-body">
-      <aside class="viewer-sidebar">
-        <section class="viewer-section">
-          <h3>Floor</h3>
-          <div class="floor-pills">
-            {#each floorOptions as opt (opt.value)}
-              <button
-                class="floor-pill"
-                type="button"
-                aria-pressed={selectedFloor === opt.value}
-                class:active={selectedFloor === opt.value}
-                onclick={() => (selectedFloor = opt.value)}
+    {#snippet roomInfo()}
+    {#if activeRoomMeta}
+      <div class="room-info-card" transition:fade={{ duration: 120 }}>
+        <div class="room-info-header">
+          <strong>{activeRoomMeta.code}</strong>
+          {#if editMode && activeRoomFloor !== null}
+            <label class="room-info-floor-edit">
+              Floor
+              <select
+                value={activeRoomFloor}
+                onchange={(e) =>
+                  changeRoomFloor(
+                    activeRoomMeta.code,
+                    parseInt(e.currentTarget.value, 10),
+                  )}
               >
-                {opt.label}
-              </button>
-            {/each}
+                {#each Array.from({ length: totalFloors }, (_, i) => i + 1) as f (f)}
+                  <option value={f}>F{f}</option>
+                {/each}
+              </select>
+            </label>
+          {:else}
+            <span class="room-info-floor"
+              >Floor {activeRoomFloor ?? "?"}</span
+            >
+          {/if}
+        </div>
+        {#if activeRoomMeta.collegeName}
+          <div class="room-info-row">
+            <span>College</span>
+            <span>{activeRoomMeta.collegeName}</span>
           </div>
-        </section>
-
-        <section class="viewer-section rooms-section">
-          <div class="rooms-header">
-            <h3>Rooms</h3>
-            <span class="rooms-count">{visibleRooms.length}</span>
-          </div>
-          <ul class="room-list">
-            {#each visibleRooms as p (p.code)}
-              {@const pending = dirty.get(p.code)}
-              {@const isSavingRoom = savingRoomCodes.has(p.code)}
-              {@const isSavedRoom = savedRoomCodes.has(p.code)}
-              {@const isFailedRoom = failedRoomCodes.has(p.code)}
-              {@const hasRoomStatus =
-                isSavingRoom || isSavedRoom || isFailedRoom}
-              <li>
-                <button
-                  class="room-item"
-                  class:active={activeRoomCode === p.code}
-                  class:dirty={Boolean(pending)}
-                  class:saving={isSavingRoom}
-                  class:failed={isFailedRoom}
-                  onmouseenter={() => (hoveredRoomCode = p.code)}
-                  onmouseleave={() => {
-                    if (hoveredRoomCode === p.code) hoveredRoomCode = null;
-                  }}
-                  onclick={() => {
-                    activeRoomCode = activeRoomCode === p.code ? null : p.code;
-                    if (activeRoomCode)
-                      selectedFloor = pending?.floor ?? p.floor;
-                  }}
-                >
-                  <span class="room-code">{p.code}</span>
-                  <span class="room-meta">
-                    {#if hasRoomStatus}
-                      <span
-                        class="room-save-state"
-                        class:saving={isSavingRoom}
-                        class:saved={isSavedRoom}
-                        class:failed={isFailedRoom}
-                      >
-                        {isSavingRoom
-                          ? "Saving"
-                          : isFailedRoom
-                            ? "Failed"
-                            : "Saved"}
-                      </span>
-                    {/if}
-                    <span class="room-floor" class:dirty={Boolean(pending)}
-                      >F{pending?.floor ?? p.floor}</span
-                    >
-                  </span>
-                </button>
-              </li>
-            {/each}
-            {#if visibleRooms.length === 0}
-              <li class="room-empty">No rooms on this floor.</li>
-            {/if}
-          </ul>
-        </section>
-
-        {#if footprintNote}
-          <p class="viewer-note">{footprintNote}</p>
         {/if}
+        {#if activeRoomMeta.divisionName}
+          <div class="room-info-row">
+            <span>Division</span>
+            <span>{activeRoomMeta.divisionName}</span>
+          </div>
+        {/if}
+      </div>
+    {/if}
+    {/snippet}
 
-        <button class="viewer-reset" onclick={resetCamera}>
-          <RotateCcw size={14} /> Reset camera
-        </button>
+    {#snippet panel()}
+      <section class="viewer-section">
+        <h3>Floor</h3>
+        <div class="floor-pills">
+          {#each floorOptions as opt (opt.value)}
+            <button
+              class="floor-pill"
+              type="button"
+              aria-pressed={selectedFloor === opt.value}
+              class:active={selectedFloor === opt.value}
+              onclick={() => (selectedFloor = opt.value)}
+            >
+              {opt.label}
+            </button>
+          {/each}
+        </div>
+        {#if selectedFloor === "all" && placements.length > 0}
+          <p class="floor-hint">Pick a floor to label its rooms on the map.</p>
+        {/if}
+      </section>
 
-        {#if adminAuthStore.canPublish}
-          <section class="viewer-section editor-section">
-            <h3>Editor</h3>
-            <div class="editor-controls">
+      <section class="viewer-section rooms-section">
+        <div class="rooms-header">
+          <h3>Rooms</h3>
+          <span class="rooms-count">{visibleRooms.length}</span>
+        </div>
+        <ul class="room-list">
+          {#each visibleRooms as p (p.code)}
+            {@const pending = dirty.get(p.code)}
+            {@const isSavingRoom = savingRoomCodes.has(p.code)}
+            {@const isSavedRoom = savedRoomCodes.has(p.code)}
+            {@const isFailedRoom = failedRoomCodes.has(p.code)}
+            {@const hasRoomStatus =
+              isSavingRoom || isSavedRoom || isFailedRoom}
+            <li>
               <button
-                class="edit-toggle"
-                class:active={editMode}
-                type="button"
-                aria-pressed={editMode}
-                onclick={() => (editMode = !editMode)}
+                class="room-item"
+                data-room-code={p.code}
+                aria-pressed={activeRoomCode === p.code}
+                class:active={activeRoomCode === p.code}
+                class:dirty={Boolean(pending)}
+                class:saving={isSavingRoom}
+                class:failed={isFailedRoom}
+                onmouseenter={() => (hoveredRoomCode = p.code)}
+                onmouseleave={() => {
+                  if (hoveredRoomCode === p.code) hoveredRoomCode = null;
+                }}
+                onclick={() => {
+                  activeRoomCode = activeRoomCode === p.code ? null : p.code;
+                  if (activeRoomCode)
+                    selectedFloor = pending?.floor ?? p.floor;
+                }}
               >
-                <span class="edit-toggle-icon">
-                  <Pencil size={12} />
+                <span class="room-code">{p.code}</span>
+                <span class="room-meta">
+                  {#if hasRoomStatus}
+                    <span
+                      class="room-save-state"
+                      class:saving={isSavingRoom}
+                      class:saved={isSavedRoom}
+                      class:failed={isFailedRoom}
+                    >
+                      {isSavingRoom
+                        ? "Saving"
+                        : isFailedRoom
+                          ? "Failed"
+                          : "Saved"}
+                    </span>
+                  {/if}
+                  <span class="room-floor" class:dirty={Boolean(pending)}
+                    >F{pending?.floor ?? p.floor}</span
+                  >
                 </span>
-                <span>{editMode ? "Editing positions" : "Edit positions"}</span>
               </button>
-              {#if editMode}
-                <p class="editor-hint">
-                  Drag a room cylinder or change its floor. Changes autosave to
-                  the server with a version check.
-                </p>
-                {#if suggestions.size > 0}
-                  <div class="suggest-block">
-                    <p class="editor-hint">
-                      {suggestions.size} unsaved room{suggestions.size === 1
-                        ? ""
-                        : "s"} can be placed from their room code. Floors are read
-                      from the code or directions; the spot on the floor is a corridor
-                      estimate — check them before saving.
-                    </p>
-                    <button
-                      class="suggest-accept-all"
-                      type="button"
-                      disabled={acceptingSuggestions}
-                      onclick={acceptAllSuggestions}
-                    >
-                      {acceptingSuggestions
-                        ? "Saving…"
-                        : `Save all ${suggestions.size}`}
-                    </button>
-                    <ul class="suggest-list">
-                      {#each [...suggestions] as [code, placement] (code)}
-                        <li class="suggest-item">
-                          <div class="suggest-row">
-                            <span class="suggest-code" title={code}>{code}</span
-                            >
-                            <span class="suggest-floor">F{placement.floor}</span
-                            >
-                            <span
-                              class="suggest-confidence"
-                              class:high={placement.confidence === "high"}
-                              class:medium={placement.confidence === "medium"}
-                              class:low={placement.confidence === "low"}
-                              >{placement.confidence}</span
-                            >
-                            <button
-                              class="suggest-accept"
-                              type="button"
-                              disabled={acceptingSuggestions ||
-                                savingRoomCodes.has(code)}
-                              onclick={() => acceptSuggestion(code, placement)}
-                              >Save</button
-                            >
-                          </div>
-                          <p class="suggest-reason">{placement.reason}</p>
-                        </li>
-                      {/each}
-                    </ul>
-                  </div>
-                {/if}
-                <p
-                  class="editor-status"
-                  class:error={editorStatus?.type === "error"}
-                  class:success={editorStatus?.type === "success"}
-                >
-                  {editorStatus?.message ??
-                    "Ready. Each move saves automatically."}
-                </p>
-              {/if}
-            </div>
-          </section>
-        {/if}
-      </aside>
+            </li>
+          {/each}
+          {#if visibleRooms.length === 0}
+            <li class="room-empty">No rooms on this floor.</li>
+          {/if}
+        </ul>
+      </section>
 
-      <div class="viewer-stage">
+      {#if footprintNote}
+        <p class="viewer-note">{footprintNote}</p>
+      {/if}
+
+      {#if adminAuthStore.canPublish}
+        <section class="viewer-section editor-section">
+          <h3>Editor</h3>
+          <div class="editor-controls">
+            <button
+              class="edit-toggle"
+              class:active={editMode}
+              type="button"
+              aria-pressed={editMode}
+              onclick={() => (editMode = !editMode)}
+            >
+              <span class="edit-toggle-icon">
+                <Pencil size={12} />
+              </span>
+              <span>{editMode ? "Editing positions" : "Edit positions"}</span>
+            </button>
+            {#if editMode}
+              <p class="editor-hint">
+                Drag a room cylinder or change its floor. Changes autosave to
+                the server with a version check.
+              </p>
+              {#if suggestions.size > 0}
+                <div class="suggest-block">
+                  <p class="editor-hint">
+                    {suggestions.size} unsaved room{suggestions.size === 1
+                      ? ""
+                      : "s"} can be placed from their room code. Floors are read
+                    from the code or directions; the spot on the floor is a corridor
+                    estimate — check them before saving.
+                  </p>
+                  <button
+                    class="suggest-accept-all"
+                    type="button"
+                    disabled={acceptingSuggestions}
+                    onclick={acceptAllSuggestions}
+                  >
+                    {acceptingSuggestions
+                      ? "Saving…"
+                      : `Save all ${suggestions.size}`}
+                  </button>
+                  <ul class="suggest-list">
+                    {#each [...suggestions] as [code, placement] (code)}
+                      <li class="suggest-item">
+                        <div class="suggest-row">
+                          <span class="suggest-code" title={code}>{code}</span
+                          >
+                          <span class="suggest-floor">F{placement.floor}</span
+                          >
+                          <span
+                            class="suggest-confidence"
+                            class:high={placement.confidence === "high"}
+                            class:medium={placement.confidence === "medium"}
+                            class:low={placement.confidence === "low"}
+                            >{placement.confidence}</span
+                          >
+                          <button
+                            class="suggest-accept"
+                            type="button"
+                            disabled={acceptingSuggestions ||
+                              savingRoomCodes.has(code)}
+                            onclick={() => acceptSuggestion(code, placement)}
+                            >Save</button
+                          >
+                        </div>
+                        <p class="suggest-reason">{placement.reason}</p>
+                      </li>
+                    {/each}
+                  </ul>
+                </div>
+              {/if}
+              <p
+                class="editor-status"
+                class:error={editorStatus?.type === "error"}
+                class:success={editorStatus?.type === "success"}
+              >
+                {editorStatus?.message ??
+                  "Ready. Each move saves automatically."}
+              </p>
+            {/if}
+          </div>
+        </section>
+      {/if}
+    {/snippet}
+
+    <div class="viewer-body">
+      {#if !mobile.current}
+        <aside class="viewer-sidebar">{@render panel()}</aside>
+      {/if}
+
+      <div
+        class="viewer-stage"
+        bind:this={stageEl}
+        style:--viewer-pad-bottom="{padBottom}px"
+      >
         {#if loading}
           <div class="viewer-status">
             <Loader size={20} class="viewer-spin" />
@@ -1427,63 +1762,60 @@
         <div bind:this={canvasContainer} class="viewer-canvas"></div>
         <div bind:this={labelContainer} class="viewer-labels"></div>
 
-        <div class="viewer-attribution">
-          ©
-          <a
-            href="https://www.maptiler.com/copyright/"
-            target="_blank"
-            rel="noreferrer">MapTiler</a
-          >
-          ©
-          <a
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noreferrer">OpenStreetMap contributors</a
-          >
-        </div>
-
-        {#if activeRoomMeta}
-          <div class="room-info-card" transition:fade={{ duration: 120 }}>
-            <div class="room-info-header">
-              <strong>{activeRoomMeta.code}</strong>
-              {#if editMode && activeRoomFloor !== null}
-                <label class="room-info-floor-edit">
-                  Floor
-                  <select
-                    value={activeRoomFloor}
-                    onchange={(e) =>
-                      changeRoomFloor(
-                        activeRoomMeta.code,
-                        parseInt(e.currentTarget.value, 10),
-                      )}
-                  >
-                    {#each Array.from({ length: totalFloors }, (_, i) => i + 1) as f (f)}
-                      <option value={f}>F{f}</option>
-                    {/each}
-                  </select>
-                </label>
-              {:else}
-                <span class="room-info-floor"
-                  >Floor {activeRoomFloor ?? "?"}</span
-                >
-              {/if}
-            </div>
-            {#if activeRoomMeta.collegeName}
-              <div class="room-info-row">
-                <span>College</span>
-                <span>{activeRoomMeta.collegeName}</span>
-              </div>
-            {/if}
-            {#if activeRoomMeta.divisionName}
-              <div class="room-info-row">
-                <span>Division</span>
-                <span>{activeRoomMeta.divisionName}</span>
-              </div>
-            {/if}
+        {#if !loading && !errorMsg}
+          <div class="viewer-controls">
+            <MapControlsStack controller={cameraController} />
           </div>
         {/if}
+
+        <!-- Compact, MapLibre-style: the OSM credit stays visible, the rest
+             opens from the (i) button instead of a wide box over the map. -->
+        <div class="viewer-attribution" class:expanded={attributionOpen}>
+          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noreferrer"
+            >© OpenStreetMap{attributionOpen ? " contributors" : ""}</a
+          >
+          {#if attributionOpen && basemapProvider === "maptiler"}
+            <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noreferrer"
+              >© MapTiler</a
+            >
+          {:else if attributionOpen && basemapProvider === "openfreemap"}
+            <a href="https://openfreemap.org/" target="_blank" rel="noreferrer"
+              >© OpenFreeMap</a
+            >
+          {/if}
+          <button
+            type="button"
+            class="viewer-attribution-toggle"
+            aria-label="More map data credits"
+            aria-expanded={attributionOpen}
+            onclick={() => (attributionOpen = !attributionOpen)}
+          >
+            <Info size={12} aria-hidden="true" />
+          </button>
+        </div>
+
+        {#if !mobile.current}{@render roomInfo()}{/if}
       </div>
     </div>
+
+    {#if mobile.current}
+      <!-- Same sheet as the other mobile details panels; the 3D stage stays
+           live above it. Dragging it down past peek closes the viewer. -->
+      <BottomSheet
+        open
+        bind:snap={sheetSnap}
+        peekRatio={0.46}
+        expandedRatio={0.86}
+        topInset="{headerH}px"
+        onDismiss={close}
+      >
+        <div class="viewer-sheet">
+          <!-- On a phone the card sits in the sheet, not over the model. -->
+          {@render roomInfo()}
+          {@render panel()}
+        </div>
+      </BottomSheet>
+    {/if}
   </div>
 </div>
 
@@ -1525,9 +1857,19 @@
     color: hsl(0, 0%, 15%);
   }
   .viewer-name {
+    margin: 0;
     font-weight: 700;
     font-size: 1rem;
     line-height: 1.2;
+  }
+  /* Initial focus lands here on open; only keyboard users get a ring. */
+  .viewer-name:focus {
+    outline: none;
+  }
+  .viewer-name:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
   }
   .viewer-subtitle {
     display: flex;
@@ -1598,6 +1940,11 @@
     background-color: hsl(5, 53%, 32%);
     color: white;
     border-color: hsl(5, 53%, 32%);
+  }
+  .floor-hint {
+    margin: 0.375rem 0 0;
+    font-size: 0.6875rem;
+    color: hsl(0, 0%, 40%);
   }
 
   .rooms-header {
@@ -1728,22 +2075,11 @@
     border-radius: 0.5rem;
   }
 
-  .viewer-reset {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    font-size: 0.75rem;
-    padding: 0.4rem 0.625rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    background: white;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    width: max-content;
-  }
-  .viewer-reset:hover {
-    background-color: hsl(0, 0%, 96%);
+  /* Mobile: the sidebar's contents, inside the shared BottomSheet. */
+  .viewer-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   .editor-section {
@@ -1968,8 +2304,15 @@
     flex: 1 1 auto;
     /* The 3D view is the point of this dialog; never let it collapse. */
     min-height: 12rem;
-    background-color: hsl(212, 24%, 95%);
+    /* LAND_COLOR: the scene's own ground, shown until the canvas paints. */
+    background-color: #f5f3ef;
     overflow: hidden;
+  }
+  .viewer-controls {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 4;
   }
   .viewer-canvas {
     position: absolute;
@@ -1978,23 +2321,50 @@
   .viewer-labels {
     position: absolute;
     inset: 0;
+    /* CSS2DRenderer z-sorts labels with inline z-indexes; keep that whole
+       stack under the controls and the room card. */
+    z-index: 1;
     pointer-events: none;
   }
   .viewer-attribution {
     position: absolute;
-    bottom: 0.4rem;
-    right: 0.4rem;
-    font-size: 0.625rem;
+    /* Above the mobile sheet, not hidden behind it. */
+    bottom: calc(var(--viewer-pad-bottom, 0px) + 0.375rem);
+    right: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: calc(100% - 0.75rem);
+    font-size: 0.5625rem;
+    line-height: 1;
     color: hsl(0, 0%, 25%);
-    background-color: rgba(255, 255, 255, 0.78);
-    padding: 0.15rem 0.4rem;
-    border-radius: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 0.125rem 0.125rem 0.125rem 0.375rem;
+    border-radius: 999px;
     z-index: 3;
     pointer-events: auto;
   }
   .viewer-attribution a {
     color: hsl(0, 0%, 25%);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .viewer-attribution a:hover,
+  .viewer-attribution a:focus-visible {
     text-decoration: underline;
+  }
+  .viewer-attribution-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: hsl(0, 0%, 30%);
+    cursor: pointer;
   }
   .viewer-status {
     position: absolute;
@@ -2027,11 +2397,15 @@
   }
 
   :global(.viewer-room-label) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     background-color: white;
     color: hsl(0, 0%, 15%);
     font-size: 0.6875rem;
     font-weight: 600;
-    padding: 0.125rem 0.375rem;
+    padding: 0.125rem 0.1875rem 0.125rem 0.375rem;
+    border: 1px solid hsl(0, 0%, 85%);
     border-radius: 0.375rem;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
     white-space: nowrap;
@@ -2040,15 +2414,29 @@
        label via its CSS2DObject position instead. */
     pointer-events: none;
   }
+  :global(.viewer-room-label-floor) {
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: hsl(5, 53%, 32%);
+    background-color: hsl(5, 60%, 95%);
+    padding: 0 0.25rem;
+    border-radius: 0.25rem;
+  }
+  /* The room picked in the list (or on the map): same yellow as its row. */
+  :global(.viewer-room-label.is-active) {
+    background-color: hsl(45, 96%, 58%);
+    border-color: hsl(40, 90%, 40%);
+    color: hsl(0, 0%, 8%);
+    z-index: 1;
+  }
   :global(.viewer-floor-label) {
     background-color: hsl(5, 53%, 32%);
     color: white;
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     font-weight: 700;
-    padding: 0.0625rem 0.375rem;
+    padding: 0.0625rem 0.3125rem;
     border-radius: 0.25rem;
     pointer-events: none;
-    opacity: 0.85;
   }
 
   .room-info-card {
@@ -2121,24 +2509,13 @@
     .viewer-title {
       align-items: flex-start;
     }
-    .viewer-body {
-      flex-direction: column;
-    }
-    .viewer-sidebar {
-      width: 100%;
-      border-right: none;
-      border-bottom: 1px solid hsl(0, 0%, 92%);
-      /* Was a flat 16rem, which ate 45% of a 568px-tall phone and left the
-         3D view 184px. Scale with the viewport so the model keeps the room. */
-      max-height: min(14rem, 34vh);
-      flex: 0 0 auto;
+    .viewer-header {
+      padding: 0.625rem 0.75rem 0.625rem 1rem;
     }
     /*
-     * One scroll surface on narrow screens. The desktop layout gives the list
-     * its own scroller inside a sidebar tall enough to also show the controls
-     * beneath it; at this width there is no such room, and a scroller inside a
-     * scroller meant a drag over the list never reached the sidebar, leaving
-     * the note, Reset camera and the editor panel unreachable.
+     * One scroll surface on narrow screens: the bottom sheet's body. A
+     * scroller inside a scroller meant a drag over the list never reached the
+     * sheet, leaving the note and the editor panel unreachable.
      */
     .rooms-section {
       flex: 0 0 auto;
@@ -2151,7 +2528,6 @@
     /* Touch targets: these were 25–31px tall, under the 44px minimum. */
     .floor-pill,
     .room-item,
-    .viewer-reset,
     .edit-toggle {
       min-height: 2.75rem;
     }
@@ -2160,17 +2536,23 @@
       min-height: 2.25rem;
     }
     .viewer-provisional {
-      /* Tighter on a short stage so the notice stays a notice, not a curtain. */
+      /* Tighter on a short stage so the notice stays a notice, not a curtain.
+         Left-aligned so it clears the map controls on the right. */
       top: 0.5rem;
-      width: calc(100% - 1rem);
+      left: 0.5rem;
+      translate: none;
+      width: calc(100% - 4.25rem);
       padding: 0.4rem 0.55rem;
       font-size: 0.6875rem;
       gap: 0.25rem;
     }
     .room-info-card {
-      width: calc(100% - 1.75rem);
-      /* Keep the attribution readable underneath the card. */
-      bottom: 1.75rem;
+      position: static;
+      width: auto;
+      box-sizing: border-box;
+      border: 1px solid hsl(45, 92%, 60%);
+      background-color: hsl(45, 92%, 97%);
+      box-shadow: none;
     }
   }
 </style>
