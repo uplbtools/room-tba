@@ -42,9 +42,9 @@
     max-height: min(12rem, 30dvh);
     overflow: auto;
     padding: 0.625rem;
-    border: 1px solid hsla(5, 53%, 32%, 0.35);
+    border: 1px solid var(--theme-accent-text, hsla(5, 53%, 32%, 0.35));
     border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--theme-surface-translucent, rgba(255, 255, 255, 0.96));
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
     pointer-events: auto;

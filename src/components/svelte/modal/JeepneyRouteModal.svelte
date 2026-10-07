@@ -263,7 +263,7 @@
     min-height: 2.75rem;
     padding-right: 0.5rem;
     gap: 0.25rem;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -284,21 +284,21 @@
     height: 2.75rem;
     margin: -0.5rem -0.5rem -0.5rem auto;
     border-radius: 999px;
-    color: hsl(5, 12%, 30%);
+    color: var(--theme-text, hsl(5, 12%, 30%));
     cursor: pointer;
   }
 
   .jeepney-modal__close:hover {
-    background: hsl(5, 53%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .jeepney-modal__close:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
   }
 
   .jeepney-modal__back:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
     border-radius: 0.25rem;
   }
@@ -314,7 +314,7 @@
     margin: 0;
     font-size: 1.0625rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .jeepney-modal__scroll {
@@ -331,14 +331,14 @@
     margin: 0;
     font-size: 0.9375rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .jeepney-modal__direction {
     margin: 0;
     font-size: 0.9375rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .jeepney-modal__fare {
@@ -349,7 +349,7 @@
 
   .jeepney-modal__fare div {
     flex: 1 1 0;
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.625rem;
     padding: 0.5rem 0.75rem;
   }
@@ -357,14 +357,14 @@
   .jeepney-modal__fare dt {
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
   }
 
   .jeepney-modal__fare dd {
     margin: 0.125rem 0 0;
     font-size: 1.25rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .jeepney-modal__ticketing {
@@ -374,14 +374,14 @@
   }
 
   .jeepney-modal__ticketing a {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
   }
 
   .jeepney-modal__fare-note {
     margin: 0;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 
   .jeepney-modal__tips {
@@ -391,22 +391,22 @@
     flex-direction: column;
     gap: 0.375rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 24%);
+    color: var(--theme-text, hsl(0, 0%, 24%));
   }
 
   .jeepney-modal__credit {
     margin: 0;
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .jeepney-modal__geometry-note {
     margin: 0;
     padding-left: 0.5rem;
-    border-left: 2px solid hsl(0, 0%, 78%);
+    border-left: 2px solid var(--theme-border, hsl(0, 0%, 78%));
     font-size: 0.75rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 
   .jeepney-modal__stops-title {
@@ -415,11 +415,11 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .jeepney-modal__stops-title span {
-    color: hsl(0, 0%, 60%);
+    color: var(--theme-text-muted, hsl(0, 0%, 60%));
   }
 
   /* Metro-map style: numbered dots in the route color, joined by a line. */
@@ -450,7 +450,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     text-align: left;
-    color: hsl(0, 0%, 10%);
+    color: var(--theme-text, hsl(0, 0%, 10%));
     cursor: pointer;
   }
 
@@ -500,7 +500,7 @@
     justify-content: flex-end;
     gap: 0.5rem;
     padding: 0.25rem 0 0.375rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
   .jeepney-modal__actions :global(.map-chrome-action-chip) {
@@ -513,9 +513,9 @@
     gap: 0.375rem;
     min-height: 2.25rem;
     padding: 0.4rem 1rem;
-    border: 1px solid hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     border-radius: 0.625rem;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     font: inherit;
     font-size: 0.875rem;
@@ -524,12 +524,12 @@
   }
 
   .jeepney-modal__view:hover {
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .jeepney-modal__empty {
     padding: 1.5rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     text-align: center;
   }
 </style>

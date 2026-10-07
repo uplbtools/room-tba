@@ -397,8 +397,8 @@
     min-height: 1.5rem;
     padding: 0.125rem 0.5rem;
     border-radius: 0.75rem;
-    background-color: hsl(0, 0%, 97%);
-    color: hsl(0, 0%, 20%);
+    background-color: var(--theme-surface, hsl(0, 0%, 97%));
+    color: var(--theme-text, hsl(0, 0%, 20%));
     font-size: 0.8125rem;
     line-height: 1.15;
     flex: 0 1 auto;
@@ -416,20 +416,20 @@
   }
 
   .sync-status--success {
-    border: 1px solid hsl(133, 60%, 82%);
-    background: hsl(133, 60%, 96%);
-    color: hsl(133, 100%, 13%);
+    border: 1px solid var(--theme-green-border, hsl(133, 60%, 82%));
+    background: var(--theme-green-soft, hsl(133, 60%, 96%));
+    color: var(--theme-green-text, hsl(133, 100%, 13%));
   }
 
   .sync-status--update {
-    border: 1px solid hsl(5, 34%, 82%);
-    background: hsl(0, 0%, 99%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 34%, 82%));
+    background: var(--theme-surface, hsl(0, 0%, 99%));
   }
 
   .sync-status--error {
-    border: 1px solid hsl(5, 34%, 82%);
-    background: hsl(0, 0%, 99%);
-    color: hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 34%, 82%));
+    background: var(--theme-surface, hsl(0, 0%, 99%));
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .sync-status--inline {
@@ -443,27 +443,27 @@
     gap: 0.25rem;
     font-size: inherit;
     line-height: inherit;
-    border-right: 1px solid hsl(0, 0%, 82%);
+    border-right: 1px solid var(--theme-border, hsl(0, 0%, 82%));
     padding-right: 0.5rem;
     margin-right: 0.0625rem;
   }
 
   .sync-status--inline.sync-status--success {
     background: transparent;
-    border-right-color: hsl(133, 40%, 82%);
-    color: hsl(133, 100%, 13%);
+    border-right-color: var(--theme-green-border, hsl(133, 40%, 82%));
+    color: var(--theme-green-text, hsl(133, 100%, 13%));
   }
 
   .sync-status--inline.sync-status--update {
     background: transparent;
-    border-right-color: hsl(5, 34%, 82%);
-    color: hsl(5, 53%, 32%);
+    border-right-color: var(--theme-accent-border, hsl(5, 34%, 82%));
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .sync-status--inline.sync-status--error {
     background: transparent;
-    border-right-color: hsl(5, 34%, 82%);
-    color: hsl(5, 53%, 32%);
+    border-right-color: var(--theme-accent-border, hsl(5, 34%, 82%));
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .sync-status--inline .sync-status-copy {
@@ -525,7 +525,7 @@
 
   .sync-status-detail {
     overflow: hidden;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
     font-size: 0.75rem;
     font-weight: 500;
     line-height: 1.1;
@@ -536,7 +536,7 @@
   .sync-update-highlights {
     margin: 0.25rem 0 0;
     padding-left: 1rem;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
     font-size: 0.6875rem;
     font-weight: 500;
     line-height: 1.35;
@@ -549,7 +549,7 @@
 
   .sync-update-more {
     margin: 0.125rem 0 0;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     font-size: 0.6875rem;
     font-weight: 500;
   }
@@ -563,7 +563,7 @@
     padding: 0.375rem 0.875rem;
     border: none;
     border-radius: 0.625rem;
-    background-color: hsl(5, 53%, 32%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     cursor: pointer;
     font: inherit;
@@ -573,7 +573,7 @@
   }
 
   .sync-action.reload-button:hover:not(:disabled) {
-    background-color: hsl(5, 53%, 38%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .sync-action.reload-button:disabled {
@@ -604,7 +604,7 @@
     height: 6px;
     flex-shrink: 0;
     border-radius: 8px;
-    background-color: hsla(358, 84%, 86%, 1);
+    background-color: var(--theme-accent-soft, hsla(358, 84%, 86%, 1));
     overflow: hidden;
   }
 
@@ -625,7 +625,7 @@
     left: 0;
     height: 100%;
     border-radius: 8px;
-    background-color: hsla(359, 47%, 38%, 1);
+    background-color: var(--theme-accent-fill, hsla(359, 47%, 38%, 1));
     transition: width 0.5s ease-in-out;
   }
 
@@ -675,9 +675,9 @@
     gap: 0.25rem;
     padding: 0.125rem 0.5rem;
     border-radius: 0.5rem;
-    border: 1px solid hsl(5, 34%, 82%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 34%, 82%));
     background: transparent;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -685,7 +685,7 @@
 
   .changelog-link:hover,
   .changelog-link:focus-visible {
-    background: hsl(5, 20%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 20%, 96%));
   }
 
   @media (prefers-reduced-motion: reduce) {

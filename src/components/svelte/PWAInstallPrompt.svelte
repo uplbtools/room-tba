@@ -110,9 +110,9 @@
     min-height: 1.5rem;
     padding: 0.125rem 0.5rem;
     border-radius: 0.75rem;
-    border: 1px solid hsl(5, 34%, 82%);
-    background: hsl(0, 0%, 99%);
-    color: hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 34%, 82%));
+    background: var(--theme-surface, hsl(0, 0%, 99%));
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-size: 0.8125rem;
     line-height: 1.15;
     flex: 0 1 auto;
@@ -132,8 +132,8 @@
     flex-shrink: 0;
     padding: 0.125rem 0.5rem;
     border-radius: 0.5rem;
-    border: 1px solid hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: #fff;
     font-size: 0.75rem;
     font-weight: 600;
@@ -142,20 +142,20 @@
 
   .pwa-install-action:hover,
   .pwa-install-action:focus-visible {
-    background: hsl(5, 53%, 28%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 28%));
   }
 
   /* Compact override: the prompt pill is short, keep the X small. */
   .pwa-install-prompt :global(.pwa-install-dismiss) {
     width: 1.25rem;
     height: 1.25rem;
-    color: hsl(0, 0%, 50%);
+    color: var(--theme-text-muted, hsl(0, 0%, 50%));
   }
 
   .pwa-install-prompt :global(.pwa-install-dismiss:hover),
   .pwa-install-prompt :global(.pwa-install-dismiss:focus-visible) {
-    color: hsl(5, 53%, 32%);
-    background: hsl(5, 20%, 96%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-soft, hsl(5, 20%, 96%));
   }
 
   @media (max-width: 48rem) {

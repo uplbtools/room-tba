@@ -43,7 +43,7 @@
     padding: 0;
     border-color: transparent;
     background: transparent;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   :global(.app-layout:not(.redesign-desktop))

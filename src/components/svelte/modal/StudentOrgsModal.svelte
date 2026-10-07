@@ -100,7 +100,7 @@
     margin: 0;
     font-size: 0.9375rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .orgs-modal__points {
@@ -118,17 +118,17 @@
     align-items: flex-start;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
   }
 
   .orgs-modal__points :global(svg) {
     flex: 0 0 auto;
     margin-top: 0.125rem;
-    color: hsl(265, 45%, 48%);
+    color: var(--theme-purple-text, hsl(265, 45%, 48%));
   }
 
   .orgs-modal__points strong {
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .orgs-modal__actions {
@@ -143,10 +143,10 @@
     text-align: center;
     text-decoration: none;
     padding: 0.5rem 1rem;
-    border: 1px solid hsl(265, 45%, 80%);
+    border: 1px solid var(--theme-purple-border, hsl(265, 45%, 80%));
     border-radius: 0.5rem;
-    background: white;
-    color: hsl(265, 45%, 40%);
+    background: var(--theme-surface, white);
+    color: var(--theme-purple-text, hsl(265, 45%, 40%));
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
@@ -154,12 +154,12 @@
 
   .orgs-modal__btn:hover,
   .orgs-modal__btn:focus-visible {
-    background: hsl(265, 45%, 97%);
+    background: var(--theme-purple-soft, hsl(265, 45%, 97%));
   }
 
   .orgs-modal__btn--primary {
     background: hsl(265, 45%, 48%);
-    border-color: hsl(265, 45%, 48%);
+    border-color: var(--theme-purple-text, hsl(265, 45%, 48%));
     color: white;
   }
 

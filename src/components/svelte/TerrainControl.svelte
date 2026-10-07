@@ -229,21 +229,21 @@
     height: 3rem;
     align-items: center;
     justify-content: center;
-    border: 1px solid #ececec;
+    border: 1px solid var(--theme-border, #ececec);
     border-radius: 50%;
-    background-color: white;
-    color: hsl(5, 53%, 32%);
+    background-color: var(--theme-surface, white);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.2s;
   }
 
   .terrain-btn:hover {
-    background-color: hsl(5, 53%, 98%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .terrain-btn.active {
-    border-color: hsl(160, 84%, 26%);
+    border-color: var(--theme-green-text, hsl(160, 84%, 26%));
     background-color: hsl(160, 84%, 26%);
     color: white;
   }
@@ -255,7 +255,7 @@
     flex-direction: column;
     gap: 0.25rem;
     border-radius: 0.875rem;
-    background-color: white;
+    background-color: var(--theme-surface, white);
     padding: 0.75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
@@ -265,7 +265,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.125rem 0.25rem;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
     font-size: 0.875rem;
     font-weight: 600;
   }

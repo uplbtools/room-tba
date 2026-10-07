@@ -193,7 +193,7 @@
     align-items: center;
     gap: 0.5rem;
     min-width: 0;
-    color: hsl(160, 84%, 22%);
+    color: var(--theme-green-text, hsl(160, 84%, 22%));
     font-size: 0.8125rem;
   }
 
@@ -207,7 +207,7 @@
 
   .editor-shelf-status-copy small {
     overflow: hidden;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
     font-size: 0.75rem;
     font-weight: 600;
     text-overflow: ellipsis;
@@ -217,7 +217,7 @@
   .editor-shelf-badge {
     flex-shrink: 0;
     border-radius: 999px;
-    background: hsl(5, 65%, 42%);
+    background: var(--theme-accent-fill, hsl(5, 65%, 42%));
     color: white;
     font-size: 0.625rem;
     font-weight: 700;
@@ -237,10 +237,10 @@
     gap: 0.375rem;
     width: 100%;
     min-height: 2rem;
-    border: 1px solid #d8b9ba;
+    border: 1px solid var(--theme-accent-border, #d8b9ba);
     border-radius: 0.625rem;
-    background-color: white;
-    color: hsl(5, 53%, 32%);
+    background-color: var(--theme-surface, white);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
     font: inherit;
     font-size: 0.8125rem;
@@ -251,11 +251,11 @@
 
   .editor-shelf-action:hover,
   .editor-shelf-action:focus-visible {
-    background-color: hsl(5, 53%, 98%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .editor-shelf-action:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
   }
 
@@ -265,13 +265,13 @@
   }
 
   .editor-shelf-action.active {
-    border-color: hsl(160, 84%, 26%);
+    border-color: var(--theme-green-text, hsl(160, 84%, 26%));
     background-color: hsl(160, 84%, 26%);
     color: white;
   }
 
   .editor-shelf-action.danger {
-    border-color: hsl(0, 70%, 88%);
-    color: hsl(0, 70%, 38%);
+    border-color: var(--theme-accent-border, hsl(0, 70%, 88%));
+    color: var(--theme-accent-text, hsl(0, 70%, 38%));
   }
 </style>

@@ -122,13 +122,13 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .changelog-modal__lead {
     margin: 0;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
     line-height: 1.4;
   }
 
@@ -146,7 +146,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
-    border-bottom: 1px solid hsl(0, 0%, 92%);
+    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 92%));
     padding-bottom: 0.875rem;
   }
 
@@ -158,7 +158,7 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
@@ -167,14 +167,14 @@
   .changelog-modal__entry-date {
     font-size: 0.75rem;
     font-weight: 500;
-    color: hsl(0, 0%, 50%);
+    color: var(--theme-text-muted, hsl(0, 0%, 50%));
   }
 
   .changelog-modal__section-title {
     margin: 0.25rem 0 0;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
     text-transform: uppercase;
     letter-spacing: 0.02em;
   }
@@ -186,14 +186,14 @@
     flex-direction: column;
     gap: 0.25rem;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 22%);
+    color: var(--theme-text, hsl(0, 0%, 22%));
     line-height: 1.4;
     list-style: disc;
   }
 
   .changelog-modal__follow {
     padding: 0.625rem 0 0.5rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
   .changelog-modal__actions {
@@ -201,7 +201,7 @@
     justify-content: flex-end;
     gap: 0.5rem;
     padding: 0.25rem 0 0.375rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
   .changelog-modal__btn {
@@ -218,13 +218,13 @@
   }
 
   .changelog-modal__btn--primary {
-    border: 1px solid hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
   }
 
   .changelog-modal__btn--primary:hover:not(:disabled) {
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .changelog-modal__btn--primary:disabled {
@@ -233,13 +233,13 @@
   }
 
   .changelog-modal__btn--secondary {
-    border: 1px solid hsl(0, 0%, 80%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 80%));
     background: transparent;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .changelog-modal__btn--secondary:hover {
-    background: hsl(0, 0%, 96%);
+    background: var(--theme-surface-2, hsl(0, 0%, 96%));
   }
 
   :global(.loading-icon) {

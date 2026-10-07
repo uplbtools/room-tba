@@ -182,14 +182,14 @@
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .jeepney-stop-panel__pager {
     display: inline-flex;
     gap: 0.25rem;
     padding-right: 0.5rem;
-    border-right: 1px solid hsl(0 0% 86%);
+    border-right: 1px solid var(--theme-border, hsl(0 0% 86%));
   }
 
   @media (max-width: 30rem) {
@@ -197,7 +197,7 @@
       width: 100%;
       padding: 0 0 0.5rem;
       border: 0;
-      border-bottom: 1px solid hsl(0 0% 86%);
+      border-bottom: 1px solid var(--theme-border, hsl(0 0% 86%));
     }
   }
 

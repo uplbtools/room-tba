@@ -287,7 +287,7 @@
     margin: -0.125rem 0 0;
     font-size: 0.75rem;
     line-height: 1.35;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .feedback-panel textarea {
@@ -300,14 +300,14 @@
     margin: 0;
     font-size: 0.6875rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .feedback-panel__empty {
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0, 60%, 36%);
+    color: var(--theme-accent-text, hsl(0, 60%, 36%));
   }
 
   .feedback-panel__actions {
@@ -319,12 +319,12 @@
 
   .feedback-panel__count {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .feedback-panel__count--full {
     font-weight: 600;
-    color: hsl(25, 85%, 28%);
+    color: var(--theme-amber-text, hsl(25, 85%, 28%));
   }
 
   /* The shared editor submit is deliberately compact; feedback is a one-off
@@ -339,10 +339,10 @@
     align-self: flex-start;
     min-height: 2.75rem;
     padding: 0 0.875rem;
-    border: 1px solid hsl(0, 0%, 85%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 85%));
     border-radius: 0.5rem;
-    background: white;
-    color: hsl(5, 53%, 32%);
+    background: var(--theme-surface, white);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -350,7 +350,7 @@
   }
 
   .feedback-panel__again:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -362,7 +362,7 @@
     margin: 0;
     padding: 0 0.5rem 0.25rem;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .feedback-panel__talk :global(.community-platform-link) {

@@ -41,6 +41,6 @@
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 </style>

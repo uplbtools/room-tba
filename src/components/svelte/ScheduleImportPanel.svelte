@@ -235,11 +235,11 @@
   .schedule-import-panel__error {
     margin: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 65%, 40%);
+    color: var(--theme-accent-text, hsl(0, 65%, 40%));
   }
 
   .schedule-import-panel__planner-link {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
     text-decoration: underline;
   }
@@ -256,14 +256,14 @@
   }
 
   .schedule-import-panel__primary {
-    border: 1px solid hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: #fff;
   }
 
   .schedule-import-panel__primary:hover:not(:disabled),
   .schedule-import-panel__primary:focus-visible {
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .schedule-import-panel__primary:disabled {
@@ -272,15 +272,15 @@
   }
 
   .schedule-import-panel__secondary {
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    background: var(--map-chrome-surface, #fff);
-    color: hsl(5, 53%, 22%);
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
+    background: var(--map-chrome-surface, var(--theme-surface, #fff));
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .schedule-import-panel__secondary:hover,
   .schedule-import-panel__secondary:focus-visible {
-    border-color: #c58f91;
-    background: #fdf3f3;
+    border-color: var(--theme-accent-border, #c58f91);
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .schedule-import-panel__weekdays {
@@ -297,8 +297,8 @@
     padding: 0.3125rem 0.625rem;
     text-align: center;
     border-radius: 999px;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    background: hsl(0, 0%, 98%);
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     font: inherit;
     font-size: 0.75rem;
     cursor: pointer;
@@ -308,14 +308,14 @@
   .schedule-import-panel__weekday:focus-visible:not(
       .schedule-import-panel__weekday--active
     ) {
-    border-color: #c58f91;
-    background: #fdf3f3;
+    border-color: var(--theme-accent-border, #c58f91);
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .schedule-import-panel__weekday--active {
-    border-color: hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 22%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .schedule-import-panel__stops {
@@ -340,7 +340,7 @@
     padding: 0.4375rem 0.5rem;
     border: 1px solid transparent;
     border-radius: 0.5rem;
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     color: inherit;
     cursor: pointer;
     font-size: 0.8125rem;
@@ -359,7 +359,7 @@
   }
 
   .schedule-import-panel__stop-card:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px; /* modal/flyout scroll body clips outward rings */
   }
 
@@ -368,7 +368,7 @@
   }
 
   .schedule-import-panel__stop-card--routed {
-    background: hsl(5, 53%, 97%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 97%));
   }
 
   .schedule-import-panel__stop-index {
@@ -379,7 +379,7 @@
     justify-content: center;
     border: 2px solid white;
     border-radius: 999px;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     font-size: 0.72rem;
     font-weight: 800;
@@ -395,7 +395,7 @@
 
   .schedule-import-panel__stop-time {
     font-weight: 600;
-    color: hsl(5, 53%, 22%);
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .schedule-import-panel__stop-title,
@@ -407,27 +407,27 @@
 
   .schedule-import-panel__gap {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .schedule-import-panel__totals {
     margin: 0;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(5, 53%, 22%);
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .schedule-import-panel__empty,
   .schedule-import-panel__status {
     margin: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .schedule-import-panel__unresolved,
   .schedule-import-panel__scope {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .schedule-import-panel__unresolved ul {

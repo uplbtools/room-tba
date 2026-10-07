@@ -613,7 +613,7 @@
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    background: hsl(5, 22%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 22%, 96%));
   }
 
   .app-crash__card {
@@ -623,14 +623,14 @@
 
   .app-crash__title {
     margin: 0;
-    color: hsl(5, 12%, 16%);
+    color: var(--theme-text, hsl(5, 12%, 16%));
     font-size: 1.0625rem;
     font-weight: 700;
   }
 
   .app-crash__body {
     margin: 0.5rem 0 0;
-    color: hsl(5, 12%, 42%);
+    color: var(--theme-accent-text, hsl(5, 12%, 42%));
     font-size: 0.875rem;
     line-height: 1.5;
   }
@@ -645,10 +645,10 @@
 
   .app-crash__button {
     padding: 0.6rem 1rem;
-    border: 1px solid hsl(5, 28%, 78%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 28%, 78%));
     border-radius: 0.625rem;
-    background: hsl(0, 0%, 100%);
-    color: hsl(5, 12%, 16%);
+    background: var(--theme-surface, hsl(0, 0%, 100%));
+    color: var(--theme-text, hsl(5, 12%, 16%));
     font: inherit;
     font-size: 0.875rem;
     font-weight: 600;
@@ -658,7 +658,7 @@
 
   .app-crash__button--primary {
     border-color: transparent;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: hsl(0, 0%, 100%);
   }
 

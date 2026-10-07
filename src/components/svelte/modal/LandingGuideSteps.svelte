@@ -187,7 +187,7 @@
     margin: 0;
     font-size: 0.875rem;
     font-weight: 700;
-    color: hsl(5, 53%, 28%);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .feature-grid {
@@ -206,9 +206,9 @@
     text-align: center;
     gap: 0.25rem;
     padding: 0.5rem 0.375rem;
-    border: 1px solid hsl(5, 28%, 86%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 28%, 86%));
     border-radius: 0.5rem;
-    background: white;
+    background: var(--theme-surface, white);
     min-width: 0;
   }
 
@@ -219,8 +219,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: hsl(5, 45%, 94%);
-    color: hsl(5, 53%, 32%);
+    background: var(--theme-accent-soft, hsl(5, 45%, 94%));
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .feature-copy {
@@ -234,14 +234,14 @@
   .feature-label {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: hsl(0, 0%, 18%);
+    color: var(--theme-text, hsl(0, 0%, 18%));
     line-height: 1.15;
   }
 
   .feature-hint {
     font-size: 0.625rem;
     line-height: 1.25;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .step-flow {
@@ -260,9 +260,9 @@
     flex-direction: column;
     gap: 0.375rem;
     padding: 0.5rem;
-    border: 1px solid hsl(5, 35%, 88%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 35%, 88%));
     border-radius: 0.5rem;
-    background: hsl(5, 45%, 98%);
+    background: var(--theme-accent-soft, hsl(5, 45%, 98%));
   }
 
   .step-head {
@@ -282,19 +282,19 @@
     font-size: 0.625rem;
     font-weight: 800;
     color: white;
-    background: hsl(5, 53%, 35%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 35%));
     flex-shrink: 0;
   }
 
   .step-icon {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     display: inline-flex;
     flex-shrink: 0;
   }
 
   .step-title {
     font-size: 0.6875rem;
-    color: hsl(5, 53%, 28%);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -303,8 +303,8 @@
 
   .step-mock {
     border-radius: 0.375rem;
-    border: 1px solid hsl(5, 20%, 88%);
-    background: hsl(0, 0%, 99%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 20%, 88%));
+    background: var(--theme-surface, hsl(0, 0%, 99%));
     padding: 0.375rem;
     min-height: 2.75rem;
     display: flex;
@@ -316,7 +316,7 @@
     position: relative;
     height: 2.25rem;
     border-radius: 0.3125rem;
-    background: hsl(145, 18%, 92%);
+    background: var(--theme-green-soft, hsl(145, 18%, 92%));
     overflow: hidden;
   }
 
@@ -337,7 +337,7 @@
     height: 0.5rem;
     border-radius: 999px 999px 999px 0;
     rotate: -45deg;
-    background: hsl(5, 75%, 42%);
+    background: var(--theme-accent-fill, hsl(5, 75%, 42%));
     border: 1px solid white;
   }
 
@@ -355,7 +355,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: hsl(5, 75%, 28%);
+    background: var(--theme-accent-fill, hsl(5, 75%, 28%));
     color: white;
   }
 
@@ -363,8 +363,8 @@
     position: absolute;
     right: 0.2rem;
     top: 0.2rem;
-    color: hsl(145, 45%, 34%);
-    background: white;
+    color: var(--theme-green-text, hsl(145, 45%, 34%));
+    background: var(--theme-surface, white);
     border-radius: 999px;
     display: inline-flex;
   }
@@ -385,24 +385,24 @@
     width: 0.625rem;
     height: 0.625rem;
     border-radius: 0.15rem;
-    border: 1px solid hsl(0, 0%, 72%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 72%));
     flex-shrink: 0;
   }
 
   .mock-check.pending {
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .mock-review-row.done .mock-check {
     background: hsl(145, 45%, 38%);
-    border-color: hsl(145, 45%, 38%);
+    border-color: var(--theme-green-text, hsl(145, 45%, 38%));
   }
 
   .mock-line {
     height: 0.3125rem;
     flex: 1;
     border-radius: 999px;
-    background: hsl(0, 0%, 88%);
+    background: var(--theme-surface-3, hsl(0, 0%, 88%));
   }
 
   .mock-line.short {
@@ -413,14 +413,14 @@
     margin: 0;
     font-size: 0.625rem;
     line-height: 1.35;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
   }
 
   .step-connector {
     list-style: none;
     display: flex;
     align-items: center;
-    color: hsl(5, 35%, 38%);
+    color: var(--theme-accent-text, hsl(5, 35%, 38%));
     flex-shrink: 0;
     align-self: center;
   }
@@ -429,11 +429,11 @@
     margin: 0.125rem 0 0;
     font-size: 0.6875rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 
   .guide-footnote a {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 2px;

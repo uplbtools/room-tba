@@ -199,14 +199,14 @@
     font-size: 1.0625rem;
     font-weight: 700;
     line-height: 1.25;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .shortcuts-panel__lead {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .shortcuts-panel__group {
@@ -222,7 +222,7 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .shortcuts-panel__list {
@@ -241,7 +241,7 @@
     gap: 0.75rem;
     font-size: 0.875rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 22%);
+    color: var(--theme-text, hsl(0, 0%, 22%));
   }
 
   .shortcuts-panel__keys {
@@ -252,7 +252,7 @@
   }
 
   .shortcuts-panel__sep {
-    color: hsl(0, 0%, 55%);
+    color: var(--theme-text-muted, hsl(0, 0%, 55%));
     font-size: 0.625rem;
   }
 
@@ -277,9 +277,9 @@
   kbd {
     display: inline-block;
     padding: 0.1875rem 0.4375rem;
-    border: 1px solid hsl(0, 0%, 78%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 78%));
     border-radius: 0.375rem;
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;

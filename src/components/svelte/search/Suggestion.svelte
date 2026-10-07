@@ -259,7 +259,7 @@
 
   .suggestion-row:hover .suggestion,
   .suggestion-row:focus-within .suggestion {
-    background-color: hsl(0, 0%, 95%);
+    background-color: var(--theme-surface-2, hsl(0, 0%, 95%));
   }
 
   .suggestion {
@@ -288,7 +288,7 @@
     }
 
     .suggestion-row:active .suggestion {
-      background-color: hsl(0, 0%, 97%);
+      background-color: var(--theme-surface, hsl(0, 0%, 97%));
     }
   }
 
@@ -302,13 +302,13 @@
     width: 2rem;
     cursor: pointer;
     border-radius: 0.5rem;
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
   }
 
   .suggestion-remove:hover,
   .suggestion-remove:focus-visible {
-    background-color: hsl(0, 0%, 90%);
-    color: #18181b;
+    background-color: var(--theme-surface-3, hsl(0, 0%, 90%));
+    color: var(--theme-text, #18181b);
   }
 
   .suggestion-add-stop {
@@ -322,7 +322,7 @@
     min-height: 2rem;
     padding: 0.25rem 0.5rem;
     border-radius: 0.5rem;
-    color: var(--color-brand, #8d1437);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -331,14 +331,14 @@
 
   .suggestion-add-stop:hover,
   .suggestion-add-stop:focus-visible {
-    background-color: #fff7f7;
+    background-color: var(--theme-accent-soft, #fff7f7);
   }
 
   .suggestion-add-stop--added,
   .suggestion-add-stop--added:hover,
   .suggestion-add-stop--added:focus-visible {
-    background-color: #ecfdf5;
-    color: #047857;
+    background-color: var(--theme-green-soft, #ecfdf5);
+    color: var(--theme-green-text, #047857);
     cursor: default;
   }
 
@@ -354,7 +354,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     flex-shrink: 0;
   }
 
@@ -366,14 +366,14 @@
     flex: 1 1 auto;
     min-width: 0;
     font-size: 0.875rem;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .text-secondary {
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
   }
 
   .text-secondary::before {
@@ -382,12 +382,12 @@
 
   .text .match {
     font-weight: 700;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
   }
 
   .text .rest {
     font-weight: 400;
-    color: #8b8b96;
+    color: var(--theme-text-muted, #8b8b96);
   }
 
   @media (max-width: 48rem) {

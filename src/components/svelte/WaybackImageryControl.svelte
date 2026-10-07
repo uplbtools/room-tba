@@ -82,7 +82,7 @@
     display: grid;
     gap: 0.25rem;
     padding: 0.5rem 0;
-    color: var(--color-text, #25232a);
+    color: var(--color-text, var(--theme-text, #25232a));
     font-size: 0.8125rem;
   }
 
@@ -90,16 +90,16 @@
     width: 100%;
     min-height: 2.25rem;
     padding: 0.25rem 0.5rem;
-    border: 1px solid var(--color-border, #d4d0d5);
+    border: 1px solid var(--color-border, var(--theme-border, #d4d0d5));
     border-radius: 0.375rem;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     color: inherit;
     font: inherit;
   }
 
   p {
     margin: 0;
-    color: var(--color-text-muted, #6a6670);
+    color: var(--color-text-muted, var(--theme-text-2, #6a6670));
     font-size: 0.75rem;
   }
 </style>

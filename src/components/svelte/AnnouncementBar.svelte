@@ -46,9 +46,9 @@
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
     padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
-    background: hsl(0, 70%, 95%);
-    color: hsl(0, 55%, 22%);
-    border-bottom: 2px solid hsl(0, 60%, 45%);
+    background: var(--theme-accent-soft, hsl(0, 70%, 95%));
+    color: var(--theme-accent-text, hsl(0, 55%, 22%));
+    border-bottom: 2px solid var(--theme-accent-text, hsl(0, 60%, 45%));
   }
 
   .announcement-bar__text {
@@ -69,7 +69,7 @@
   .announcement-bar__body {
     font-size: 0.75rem;
     line-height: 1.35;
-    color: hsl(0, 40%, 30%);
+    color: var(--theme-accent-text, hsl(0, 40%, 30%));
     /* One line on small screens; the panel has the full text. */
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -83,7 +83,7 @@
     font-weight: 700;
     padding: 0.25rem 0.5rem;
     border-radius: 0.375rem;
-    border: 1px solid hsl(0, 60%, 45%);
+    border: 1px solid var(--theme-accent-text, hsl(0, 60%, 45%));
     background: transparent;
     color: inherit;
     cursor: pointer;
@@ -102,7 +102,7 @@
 
   .announcement-bar__more:focus-visible,
   .announcement-bar__dismiss:focus-visible {
-    outline: 2px solid hsl(0, 60%, 30%);
+    outline: 2px solid var(--theme-accent-text, hsl(0, 60%, 30%));
     outline-offset: 1px;
   }
 </style>

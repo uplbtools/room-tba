@@ -376,7 +376,7 @@
     margin: 0.375rem 0 0;
     padding: 0 0.25rem;
     font-size: 0.8125rem;
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
   }
 
   .option__stop-link {
@@ -384,7 +384,7 @@
     box-sizing: border-box;
     min-height: 2.75rem;
     padding: 0 0.125rem;
-    color: var(--color-brand, #8d1437);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     font-weight: 600;
     text-decoration: underline;
     cursor: pointer;
@@ -392,12 +392,12 @@
 
   .directions__note {
     margin: 0;
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
     font-size: 0.875rem;
   }
 
   .directions__note--warn {
-    color: #92400e;
+    color: var(--theme-amber-text, #92400e);
   }
 
   .directions__options {
@@ -428,18 +428,18 @@
     padding: 0.625rem;
     border: 1px solid transparent;
     border-radius: 0.75rem;
-    background: #fafafa;
+    background: var(--theme-surface, #fafafa);
     text-align: left;
     cursor: pointer;
   }
 
   .option:hover {
-    background: #f4f4f5;
+    background: var(--theme-surface-2, #f4f4f5);
   }
 
   .option--selected {
-    border-color: var(--color-brand, #8d1437);
-    background: #fff;
+    border-color: var(--color-brand, var(--theme-accent-text, #8d1437));
+    background: var(--theme-surface, #fff);
     box-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
   }
 
@@ -459,7 +459,7 @@
   }
 
   .option__mode {
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -467,26 +467,26 @@
   }
 
   .option__time {
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     font-size: 1.125rem;
     font-weight: 700;
     line-height: 1.2;
   }
 
   .option__meta {
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
     font-size: 0.8125rem;
   }
 
   .option__desc,
   .option__fare {
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
     font-size: 0.75rem;
     line-height: 1.35;
   }
 
   .option__fare {
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
     font-weight: 600;
   }
 
@@ -502,10 +502,10 @@
     min-width: 0;
     min-height: 2.75rem;
     padding: 0.625rem 1rem;
-    border: 1px solid #e4e4e7;
+    border: 1px solid var(--theme-border, #e4e4e7);
     border-radius: 999px;
-    background: #fff;
-    color: #3f3f46;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-text, #3f3f46);
     font-size: 0.9375rem;
     font-weight: 600;
     cursor: pointer;
@@ -513,7 +513,7 @@
 
   .directions__ghost:hover,
   .directions__ghost:focus-visible {
-    background: #f4f4f5;
+    background: var(--theme-surface-2, #f4f4f5);
   }
 
   .directions__show {
@@ -527,7 +527,7 @@
     padding: 0.625rem 1rem;
     border: none;
     border-radius: 999px;
-    background: var(--color-brand, #8d1437);
+    background: var(--color-brand, var(--theme-accent-fill, #8d1437));
     color: #fff;
     font-size: 0.9375rem;
     font-weight: 600;
@@ -541,7 +541,7 @@
 
   .directions__caveat {
     margin: 0;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-size: 0.6875rem;
     line-height: 1.4;
   }

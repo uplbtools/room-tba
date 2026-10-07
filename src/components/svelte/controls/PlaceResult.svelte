@@ -296,8 +296,8 @@
     align-self: flex-start;
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
-    background: hsl(162, 45%, 92%);
-    color: #0d7a5f;
+    background: var(--theme-green-soft, hsl(162, 45%, 92%));
+    color: var(--theme-green-text, #0d7a5f);
     font-size: 0.6875rem;
     font-weight: 600;
   }
@@ -310,7 +310,7 @@
     gap: 0.375rem;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: #27272a;
+    color: var(--theme-text, #27272a);
   }
   .place-form {
     display: flex;
@@ -329,7 +329,7 @@
   .place-form textarea {
     font: inherit;
     padding: 0.375rem 0.5rem;
-    border: 1px solid hsl(0, 0%, 80%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 80%));
     border-radius: 0.375rem;
   }
   .place-form__actions {
@@ -355,17 +355,17 @@
   }
   .place-cancel-btn {
     padding: 0.375rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 80%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 80%));
     border-radius: 0.375rem;
-    background: white;
+    background: var(--theme-surface, white);
     cursor: pointer;
   }
   .place-cancel-btn:hover:not(:disabled) {
-    border-color: #c58f91;
-    background: #fdf3f3;
+    border-color: var(--theme-accent-border, #c58f91);
+    background: var(--theme-accent-soft, #fdf3f3);
   }
   .place-empty {
     padding: 1rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 </style>

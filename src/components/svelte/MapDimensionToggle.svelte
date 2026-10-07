@@ -99,9 +99,9 @@
     display: inline-flex;
     flex-shrink: 0;
     padding: 0.1875rem;
-    border: 1.5px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1.5px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
     border-radius: 0.75rem;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    background-color: var(--map-chrome-surface, var(--theme-surface-translucent, rgba(255, 255, 255, 0.98)));
     backdrop-filter: blur(10px);
     box-shadow: var(
       --map-chrome-shadow,
@@ -123,7 +123,7 @@
     font-weight: 600;
     letter-spacing: 0.02em;
     line-height: 1;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
     cursor: pointer;
     transition:
       background-color 0.15s ease,
@@ -135,13 +135,13 @@
   }
 
   .segment:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
   .segment.active {
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 28%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
     font-weight: 700;
   }
 
@@ -179,7 +179,7 @@
 
   .map-dimension-toggle.embedded .segment.active {
     background-color: hsla(5, 53%, 32%, 0.1);
-    color: hsl(5, 53%, 28%);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .map-dimension-toggle.compact {
@@ -211,7 +211,7 @@
   }
 
   .map-dimension-toggle.compact .segment.active {
-    background-color: hsl(5, 53%, 22%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 22%));
     color: hsl(5, 53%, 96%);
     font-weight: 600;
   }

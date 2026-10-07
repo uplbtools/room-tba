@@ -237,7 +237,7 @@
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     pointer-events: auto;
     overflow: hidden;
   }
@@ -260,16 +260,16 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 999px;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
   .today-back:hover {
-    background: hsl(5, 30%, 94%);
+    background: var(--theme-accent-soft, hsl(5, 30%, 94%));
   }
 
   .today-back:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .today-heading {
@@ -281,21 +281,21 @@
     font-size: 1.25rem;
     font-weight: 800;
     line-height: 1.2;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .today-date {
     margin: 0;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .today-note {
     margin: 0;
     max-width: 52rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .today-route {
@@ -313,9 +313,9 @@
     align-items: center;
     gap: 0.375rem;
     padding: 0.4375rem 0.875rem;
-    border: 1px solid hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     border-radius: 999px;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: #fff;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -323,11 +323,11 @@
   }
 
   .today-route__button:hover:not(:disabled) {
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .today-route__button:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
@@ -339,12 +339,12 @@
   .today-route__hint,
   .today-route__totals {
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .today-route__totals {
     font-weight: 600;
-    color: hsl(5, 53%, 22%);
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .today-body {
@@ -365,20 +365,20 @@
     margin: auto 0;
     padding: 2rem 1rem;
     text-align: center;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .today-empty-plan__title {
     margin: 0;
     font-size: 1rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .today-empty-plan p {
     margin: 0;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .today-empty-plan button {
@@ -390,7 +390,7 @@
     margin-top: 0.25rem;
     padding: 0 1.125rem;
     border-radius: 999px;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: #fff;
     font-size: 0.875rem;
     font-weight: 700;
@@ -398,11 +398,11 @@
   }
 
   .today-empty-plan button:hover {
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .today-empty-plan button:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
@@ -422,37 +422,37 @@
     padding: 0.25rem 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
   }
 
   .today-day--now .today-day__title {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .today-day__date {
     font-size: 0.8125rem;
     font-weight: 500;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .today-day__empty {
     margin: 0;
     padding: 0.5rem 0.75rem;
-    border: 1px dashed hsl(0, 0%, 82%);
+    border: 1px dashed var(--theme-border, hsl(0, 0%, 82%));
     border-radius: 0.625rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   /* Weekends read as a different kind of day, not just an empty weekday. */
   .today-day--weekend .today-day__heading {
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .today-day--weekend .today-day__empty {
-    background: hsl(0, 0%, 95%);
+    background: var(--theme-surface-2, hsl(0, 0%, 95%));
     border-style: solid;
-    border-color: hsl(0, 0%, 88%);
+    border-color: var(--theme-border, hsl(0, 0%, 88%));
   }
 
   .today-entries {
@@ -470,15 +470,15 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 90%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     border-radius: 0.625rem;
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .today-entry__time {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
     font-variant-numeric: tabular-nums;
   }
 
@@ -491,19 +491,19 @@
   .today-entry__course {
     font-size: 0.875rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .today-entry__type,
   .today-entry__section {
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
   }
 
   .today-entry__course-title {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
     overflow-wrap: anywhere;
   }
 
@@ -516,9 +516,9 @@
     justify-self: end;
     min-height: 2rem;
     padding: 0.25rem 0.625rem;
-    border: 1px solid hsl(5, 53%, 82%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 82%));
     border-radius: 999px;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
@@ -526,17 +526,17 @@
 
   .today-entry__room:hover,
   .today-entry__room:focus-visible {
-    background: hsl(5, 53%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .today-entry__room:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
   .today-entry__room--tba {
-    border-color: hsl(0, 0%, 85%);
-    color: hsl(0, 0%, 45%);
+    border-color: var(--theme-border, hsl(0, 0%, 85%));
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     cursor: default;
   }
 

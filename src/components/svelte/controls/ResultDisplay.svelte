@@ -225,7 +225,7 @@
     padding: 0 0.5rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .room-list--nested {

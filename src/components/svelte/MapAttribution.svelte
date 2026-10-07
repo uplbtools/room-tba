@@ -171,7 +171,7 @@
     gap: 0.25rem;
     min-width: 0;
     margin: 0;
-    color: #111;
+    color: var(--theme-text, #111);
     font-family: Inter, system-ui, sans-serif;
     font-size: 0.625rem;
     font-weight: 400;
@@ -188,7 +188,7 @@
 
   .map-attribution__credits a:hover,
   .map-attribution__credits a:focus-visible {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     text-decoration: underline;
   }
 
@@ -206,7 +206,7 @@
     padding: 0.375rem 0.5rem;
     border: none;
     border-radius: 0.5rem;
-    background-color: #fff;
+    background-color: var(--theme-surface, #fff);
     background-clip: padding-box;
     font-size: 0.6875rem;
     line-height: 1.35;
@@ -224,7 +224,7 @@
     height: 1.125rem;
     min-width: 1.125rem;
     min-height: 1.125rem;
-    color: #5c5c5c;
+    color: var(--theme-text-2, #5c5c5c);
     cursor: pointer;
     border-radius: 999px;
   }
@@ -232,16 +232,16 @@
   .map-attribution__toggle:hover,
   .map-attribution__toggle:focus-visible,
   .map-attribution__toggle--active {
-    color: #8d1437;
+    color: var(--theme-accent-text, #8d1437);
   }
 
   .map-attribution__toggle:focus-visible {
-    outline: 2px solid #8d1437;
+    outline: 2px solid var(--theme-accent-text, #8d1437);
     outline-offset: 1px;
   }
 
   .attrib-body a {
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
     text-decoration: none;
   }
 
@@ -256,7 +256,7 @@
     align-items: center;
     border: none;
     border-radius: 0.375rem;
-    background-color: #fff;
+    background-color: var(--theme-surface, #fff);
     background-clip: padding-box;
     padding: 0.25rem 0.375rem;
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));

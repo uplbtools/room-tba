@@ -232,7 +232,7 @@
     align-items: center;
     gap: 0.375rem;
     min-height: 2.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -253,7 +253,7 @@
   }
 
   .classes-info summary:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
     border-radius: 0.25rem;
   }

@@ -33,7 +33,7 @@
     border: none;
     background: none;
     border-radius: 0.375rem;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -42,6 +42,6 @@
 
   .entity-back-to-list:hover,
   .entity-back-to-list:focus-visible {
-    background-color: hsl(5, 53%, 96%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 </style>
