@@ -4,6 +4,7 @@ import { CAMPUS_BOUNDS } from "@constants/map-terrain";
 import { describeLocationFix } from "@lib/geolocation";
 import { campusTransit } from "../../campus.config";
 import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
+import { isLocalCacheReady } from "../local/data/pgliteDB.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
 import type { ClassMapValue } from "@lib/types";
 import type { RouteTotals } from "../campus-route.js";
@@ -104,19 +105,29 @@ export const currentRoom = {
     const generation = ++roomLoadGeneration;
     _currentRoom = null;
     _currentRoomNotFound = false;
+    const fetchRemote = async () => {
+      const codeParam = encodeURI(code.toUpperCase());
+      const remoteRoomReq = await getJSONFetch<{ data: RoomData }>(
+        `/api/rooms?code=${codeParam}`,
+      );
+      return remoteRoomReq.data;
+    };
     try {
-      const localRoom = await getLocalRoomByCode(code);
-      if (localRoom === null) {
-        const codeParam = encodeURI(code.toUpperCase());
-        const remoteRoomReq = await getJSONFetch<{ data: RoomData }>(
-          `/api/rooms?code=${codeParam}`,
-        );
-        if (generation !== roomLoadGeneration) return;
-        _currentRoom = remoteRoomReq.data;
-        return;
+      let room: RoomData | null;
+      if (isLocalCacheReady()) {
+        room = (await getLocalRoomByCode(code)) ?? (await fetchRemote());
+      } else {
+        // Cold cache (first visit, a fresh tab): booting it first held a
+        // room deep link on a skeleton for seconds. Network first, then the
+        // cache once it is up (offline).
+        try {
+          room = await fetchRemote();
+        } catch {
+          room = await getLocalRoomByCode(code);
+        }
       }
       if (generation !== roomLoadGeneration) return;
-      _currentRoom = localRoom;
+      _currentRoom = room;
     } catch (e) {
       console.error(e);
       if (generation !== roomLoadGeneration) return;

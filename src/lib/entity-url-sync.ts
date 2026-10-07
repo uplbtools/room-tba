@@ -7,7 +7,8 @@ import {
   resolveQueryFromEntityPath,
   type RoutableQueryState,
 } from "./entity-urls";
-import { getLocalRoomById } from "./local/data/utils";
+import { getJSONFetch, getLocalRoomById } from "./local/data/utils";
+import { isLocalCacheReady } from "./local/data/pgliteDB";
 import { currentRoom, termStore } from "./store.svelte";
 import { parseTermIdFromSearch, withTermQuery } from "./term-url";
 import {
@@ -80,9 +81,40 @@ const SCREEN_BY_NORMALIZED_PATH = new Map(
   ),
 );
 
+type LocalRoom = Awaited<ReturnType<typeof getLocalRoomById>>;
+
+/**
+ * A room deep link's row: the local cache when it is already up, else the
+ * network, else (offline) wait for the cache. Booting the cache first kept a
+ * cold second tab on a skeleton for seconds.
+ */
+async function loadRoomById(id: number): Promise<LocalRoom> {
+  if (isLocalCacheReady()) {
+    const local = await getLocalRoomById(id);
+    if (local) return local;
+  }
+  try {
+    const res = await getJSONFetch<{ data: LocalRoom }>(
+      `/api/rooms?id=${id}`,
+      10_000,
+    );
+    if (res.data) return res.data;
+  } catch {
+    // Offline: fall through to the local cache.
+  }
+  return isLocalCacheReady() ? null : getLocalRoomById(id);
+}
+
 export function createEntityUrlSync(context: EntityUrlSyncContext) {
   let applyingFromHistory = false;
   let initialized = false;
+  /**
+   * An entity path the page booted on without a server-hydrated query: the
+   * service worker serves the "/" app shell for /room/…, /building/… in any
+   * tab it controls. Until it resolves, syncing must not push "/" (the
+   * deep-link bounce home).
+   */
+  let pendingPath: string | null = null;
 
   function currentPathname() {
     return normalizePathname(window.location.pathname);
@@ -130,26 +162,28 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     await currentRoom.getRoomByCode(query.value);
   }
 
-  async function hydrateFromPathname(pathname: string) {
+  /** Resolve an entity path into a query; false when it can't (yet). */
+  async function hydrateFromPathname(pathname: string): Promise<boolean> {
     const parsed = parseEntityPathname(pathname);
     if (!parsed) {
       context.clearQuery();
-      return;
+      return false;
     }
 
     if (parsed.category === "room") {
       const { id } = parseRouteSlug(parsed.slug);
-      if (id === null) return;
-      const localRoom = await getLocalRoomById(id);
-      if (!localRoom) return;
-      const query: RoutableQueryState = {
+      if (id === null) return false;
+      const room = await loadRoomById(id);
+      if (!room) return false;
+      // Room first, so the URL sync the query triggers can already build
+      // /room/<slug>/ and the map doesn't refetch it (skeleton flash).
+      currentRoom.setRoom(room);
+      context.hydrateQuery({
         type: "result",
         category: "room",
-        value: localRoom.code,
-      };
-      context.hydrateQuery(query);
-      currentRoom.setRoom(localRoom);
-      return;
+        value: room.code,
+      });
+      return true;
     }
 
     const appData = context.getAppData();
@@ -162,7 +196,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       places: appData.places,
     });
 
-    if (!resolved) return;
+    if (!resolved) return false;
 
     if (parsed.category === "event") {
       const event = appData.events?.find((entry) => entry.slug === parsed.slug);
@@ -172,11 +206,24 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
         value: event?.title ?? parsed.slug,
         eventSlug: parsed.slug,
       });
-      return;
+      return true;
     }
 
     context.hydrateQuery(resolved);
     await hydrateRoomSelection(resolved);
+    return true;
+  }
+
+  /**
+   * Retry the boot path. `dataReady` = campus data is in, so a path that still
+   * doesn't resolve never will; give up and let syncing take over.
+   */
+  async function resolvePendingPath(dataReady: boolean) {
+    const path = pendingPath;
+    if (!path) return;
+    const resolved = await hydrateFromPathname(path);
+    if (pendingPath !== path) return;
+    if (resolved || dataReady) pendingPath = null;
   }
 
   function handlePopState(event: PopStateEvent) {
@@ -243,6 +290,11 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
 
     window.history.replaceState(initialState, "", initialPath);
     window.addEventListener("popstate", handlePopState);
+
+    if (!transit && !initialState.query && parseEntityPathname(pathname)) {
+      pendingPath = pathname;
+      void resolvePendingPath(false);
+    }
   }
 
   function destroy() {
@@ -253,6 +305,12 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
 
   function syncFromQuery(snapshot: EntityUrlSyncSnapshot) {
     if (!initialized || applyingFromHistory || snapshot.editMode) return;
+    if (snapshot.type === "result" && snapshot.category !== null) {
+      // A result (hydrated or picked) supersedes the boot path.
+      pendingPath = null;
+    } else if (pendingPath !== null && !snapshot.screen) {
+      return;
+    }
 
     // A full screen takes over the URL while open, so clicking "Class Planner"
     // moves to /planner (shareable, refreshable). Closing falls through to the
@@ -373,5 +431,6 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     init,
     destroy,
     syncFromQuery,
+    resolvePendingPath,
   };
 }

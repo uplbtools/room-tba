@@ -7,6 +7,9 @@ const { getJSONFetch, getLocalRoomByCode } = vi.hoisted(() => ({
   getLocalRoomByCode: vi.fn(),
 }));
 
+// Warm cache: lookups read it first, so the deferred local lookup is in flight.
+vi.mock("../local/data/pgliteDB.js", () => ({ isLocalCacheReady: () => true }));
+
 vi.mock("../local/data/utils.js", () => ({
   getJSONFetch,
   getLocalRoomByCode,

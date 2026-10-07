@@ -21,6 +21,7 @@
   import { DEFAULT_TITLE } from "@lib/site";
   import { transitRouteNoun } from "@lib/transit-route-kind";
   import {
+    appBootstrapStore,
     currentRoom,
     jeepneyStore,
     mapEditStore,
@@ -106,6 +107,17 @@
       transitStopIndex: jeepneyStore.selectedStopIndex,
       transitRoute: transitStore.getRoute(jeepneyStore.selectedRouteId),
     });
+  });
+
+  // A deep link served by the offline app shell resolves once campus data
+  // (buildings, orgs…) arrives; retry on each data change until it does.
+  $effect(() => {
+    void appData().buildings;
+    const dataReady =
+      appBootstrapStore.hasCachedData ||
+      appBootstrapStore.phase === "ready" ||
+      appBootstrapStore.phase === "error";
+    void sync?.resolvePendingPath(dataReady);
   });
 
   // A transit page (/transit/, /transit/forestry/…) loads with its own title;
