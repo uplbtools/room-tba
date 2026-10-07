@@ -10,26 +10,28 @@
 	const searchInfo = getSearchInfo();
 	const map = getMapStore();
 
-	const data = $derived(await getPlaceById(params.id));
+	const place = $derived(getPlaceById(params.id));
 
-	afterNavigate(resyncSearchInfo);
+	afterNavigate(syncSearchView);
 
-	onMount(() => {
-		if (navigating.type == null && data.lon && data.lat) {
-			map.init({
-				center: [data.lon, data.lat]
-			});
-			resyncSearchInfo();
-		}
+	onMount(async () => {
+		if (navigating.type) return;
+		await syncSearchView();
 	});
 
-	function resyncSearchInfo() {
+	async function syncSearchView() {
+		const placeRes = await place;
+		if (placeRes.lon && placeRes.lat) {
+			map.centerMarker([placeRes.lon, placeRes.lat]);
+		}
 		searchInfo.updateQuery({
 			category: 'place',
 			type: 'result',
-			value: data.name
+			value: placeRes.name
 		});
 	}
 </script>
 
-{data.name}
+<svelte:head>
+	<title>{(await place).name} | Room TBA Place</title>
+</svelte:head>

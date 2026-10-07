@@ -35,50 +35,13 @@
 		// 	return /* position ?  */ ; /* : [] */
 		// });
 	});
-	// function organizationPosition(org: OrgData) {
-	// 	let lat = org.lat;
-	// 	let lon = org.lon;
-	// 	// if ((lat === null || lon === null) && org.buildingId !== null) {
-	// 	// 	const host = (buildings ?? []).find((building) => building.id === org.buildingId);
-	// 	// 	if (host) {
-	// 	// 		lat = host.lat;
-	// 	// 		lon = host.lon;
-	// 	// 	}
-	// 	// }
-	// 	return lat !== null && lon !== null ? { lat, lon } : null;
-	// }
 
 	function handleMarkerClick(org: (typeof filteredOrganizations)[number]) {
-		return () => {
-			goto(resolve(`/map/organizations/${org.id}`));
+		return async () => {
+			await goto(resolve(`/map/organizations/${org.id}`));
 			if (org.lon && org.lat) map.centerMarker([org.lon, org.lat]);
 		};
 	}
-	// function handleMarkerClick({ name, id, lon, lat }: OrgData) {
-	// 	return () => {
-	// 		// if (eventPlacementStore.active) return;
-	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
-	// 		// if (searchInfo.category === 'organization' && name === searchInfo.inputValue) {
-	// 		// 	sidePanelStore.expand();
-	// 		// 	return;
-	// 		// }
-	// 		// searchInfo.updateQuery({
-	// 		// 	category: 'organization',
-	// 		// 	type: 'result',
-	// 		// 	value: name,
-	// 		// 	id
-	// 		// });
-	// 		// searchInfo.inputValue = name;
-	// 		goto(resolve(`/map/organizations/${slugifySegment(name)}-${id}`));
-	// 		// sidePanelStore.openPanel({
-	// 		// 	type: 'search-result',
-	// 		// 	component: OrgResult
-	// 		// });
-	// 		if (lon && lat) {
-	// 			map.centerMarker([lon, lat]);
-	// 		}
-	// 	};
-	// }
 </script>
 
 {#if map.withinZoom(zoomLevel)}

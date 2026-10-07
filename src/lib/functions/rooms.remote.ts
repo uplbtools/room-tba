@@ -18,6 +18,5 @@ export const getRoomsByBuildingId = query(
             .orderBy(roomsTable.id)
             .limit(10)
             .offset(offset);
-        console.log(rows)
         return rows;
     })

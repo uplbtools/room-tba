@@ -9,6 +9,7 @@
 	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import UILayer from './UILayer.svelte';
+	import MapControlsStack from '$lib/components/map-chrome/MapControlsStack.svelte';
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { campusCommunity } from '$lib/campus.config';
@@ -513,17 +514,13 @@
 
 <main class="layout-root">
 	<UILayer>
-		<div class="flex h-full basis-96 flex-col gap-7">
-			<Search />
-			<InfoPanel>
-				<svelte:boundary>
-					{#snippet pending()}
-						<EntitySkeleton variant="detail" />
-						Loading
-					{/snippet}
-					{@render children()}
-				</svelte:boundary>
-			</InfoPanel>
+		<Search />
+
+		<div
+			class="flex grow basis-96 flex-col-reverse items-end justify-end gap-7 self-stretch sm:flex-row"
+		>
+			{@render children()}
+			<MapControlsStack />
 		</div>
 	</UILayer>
 	<UIMap />

@@ -4,6 +4,7 @@ import { dismissEphemeralOverlays } from '../../utils/overlay-stack.js';
 import { deactivateMapModesExcept } from './map-modes.js';
 import type { MapToolsSection, TerrainStatus } from '../store-types.js';
 import { calculatePadding } from '$lib/utils/map/navigate.js';
+import { MediaQuery } from 'svelte/reactivity';
 // import { isMap2DPitch, THREE_D_PITCH } from '$lib/constants/map/dimension.js';
 // import { enterFlatMapDimension, enterTiltedMapDimension } from '$lib/utils/map/map-dimension-layers.js';
 // import { terrainStore } from '$lib/stores.svelte.js';
@@ -17,7 +18,9 @@ type InitialMapOptions = Pick<maplibre.MapOptions, "center" | "zoom" | "pitch" |
 
 
 export class MapStore {
+	private static SIDEPANEL_WIDTH = 4 * 96;
 	private mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
+	private md: MediaQuery;
 	// Emphasize buildings hosting the user's planner classes; dim other pins.
 	// highlightMyBuildings: boolean = $state(false);
 	/** Org/place pins are also zoom-gated in Map.svelte. The legend reads this
@@ -33,6 +36,10 @@ export class MapStore {
 	poiPinsZoomVisible: boolean = $state(true);
 	zoomLevel: number = $state(0);
 	// private viewFilter = $state<MarkerFilter>("all");
+
+	constructor() {
+		this.md = new MediaQuery('max-width:48rem');
+	}
 
 	public getRawInstance = () => this.mapInstance;
 	public setRawInstance = (v : maplibre.MapLibreMap | undefined) => this.mapInstance = v;
@@ -56,9 +63,23 @@ export class MapStore {
 		this.mapInstance.flyTo({
 			center,
 			duration:1000,
-			zoom
-			// padding: calculatePadding(true),
+			zoom,
+			padding: this.calculatePadding(),
 		})
+	}
+
+	private calculatePadding() {
+		console.log(this.md.current)
+		if (this.md.current) {
+			return {
+				bottom: window.innerWidth / 2,
+				left: 0,
+			};
+		}
+		return {
+			left: MapStore.SIDEPANEL_WIDTH,
+			bottom: 0,
+		};
 	}
 
 	public isMapReady(): boolean {

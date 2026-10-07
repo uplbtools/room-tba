@@ -1,7 +1,7 @@
-<!-- <script lang="ts">
+<script lang="ts">
 	import CornerRightUp from '@lucide/svelte/icons/corner-right-up';
 	import MapChromeActionChip from '$lib/components/map-chrome/MapChromeActionChip.svelte';
-	import { userLocation } from '$lib/stores.svelte';
+	import { getUserLocation } from '$lib/utils/context';
 
 	type Props = {
 		lat: number;
@@ -12,6 +12,7 @@
 	};
 
 	let { lat, lon, destinationLabel, label = 'Directions', toolbar = true }: Props = $props();
+	const userLocation = getUserLocation();
 
 	const ariaLabel = $derived(
 		destinationLabel ? `Get directions to ${destinationLabel}` : 'Get directions'
@@ -26,4 +27,4 @@
 <MapChromeActionChip {toolbar} {ariaLabel} onclick={openDirections}>
 	<CornerRightUp size={14} aria-hidden="true" />
 	{label}
-</MapChromeActionChip> -->
+</MapChromeActionChip>

@@ -10,24 +10,28 @@
 	const searchInfo = getSearchInfo();
 	const map = getMapStore();
 
-	const data = $derived(await getOrgById(params.id));
+	const org = $derived(getOrgById(params.id));
 
-	afterNavigate(resyncSearchInfo);
+	afterNavigate(syncSearchView);
 
-	onMount(() => {
-		if (navigating.type === null && data.lon && data.lat) {
-			map.init({
-				center: [data.lon, data.lat]
-			});
-			resyncSearchInfo();
-		}
+	onMount(async () => {
+		if (navigating.type) return;
+		await syncSearchView();
 	});
 
-	function resyncSearchInfo() {
+	async function syncSearchView() {
+		const orgRes = await org;
+		if (orgRes.lon && orgRes.lat) {
+			map.centerMarker([orgRes.lon, orgRes.lat]);
+		}
 		searchInfo.updateQuery({
 			category: 'organization',
 			type: 'result',
-			value: data.name
+			value: orgRes.name
 		});
 	}
 </script>
+
+<svelte:head>
+	<title>{(await org).name} | Room TBA Organization</title>
+</svelte:head>

@@ -5,16 +5,15 @@
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import { onMount } from 'svelte';
 	import BuildingResult from './BuildingResult.svelte';
-	// import { onMount, untrack } from 'svelte';
+	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
 
 	const { params } = $props();
 	const searchInfo = getSearchInfo();
 	const map = getMapStore();
 
 	const building = $derived(getBuildingById(params.id));
-	afterNavigate(async () => {
-		await syncSearchView();
-	});
+
+	afterNavigate(syncSearchView);
 
 	onMount(async () => {
 		if (navigating.type) return;
@@ -22,37 +21,30 @@
 	});
 
 	async function syncSearchView() {
-		await building;
-		if (!building.ready) return;
-		if (building.current.lon && building.current.lat) {
-			map.centerMarker([building.current.lon, building.current.lat]);
+		const buildingRes = await building;
+		if (buildingRes.lon && buildingRes.lat) {
+			map.centerMarker([buildingRes.lon, buildingRes.lat]);
 		}
 		searchInfo.updateQuery({
 			category: 'building',
 			type: 'result',
-			value: building.current.buildingName
+			value: buildingRes.buildingName
 		});
-	}
-
-	async function resyncSearchInfo() {
-		await building;
-		if (building.ready) {
-			searchInfo.updateQuery({
-				category: 'building',
-				type: 'result',
-				value: building.current.buildingName
-			});
-		}
 	}
 </script>
 
-<!-- {#if building.loading}
-	<EntitySkeleton variant="detail" label="Loading building..." />
-	<EntitySkeleton variant="rooms" heading="Rooms in the building" label="Loading rooms…" />
-{:else if building.error}
-	An error occurred
-{:else}
-	{building.current?.buildingName}
-{/if}
-<BuildingResult /> -->
-<BuildingResult building={await building} />
+<svelte:head>
+	<title>{(await building).buildingName} | Room TBA Building</title>
+</svelte:head>
+
+<InfoPanel>
+	<svelte:boundary>
+		{#snippet failed()}
+			failed to load
+		{/snippet}
+		{#snippet pending()}
+			Loading...
+		{/snippet}
+		<BuildingResult building={await building} />
+	</svelte:boundary>
+</InfoPanel>

@@ -4,6 +4,7 @@ import { dormsTable } from "$lib/server/db/schema";
 import { db } from "$lib/utils/db";
 import { error } from "@sveltejs/kit";
 import { eq, isNotNull, or } from "drizzle-orm";
+import {delay} from "es-toolkit/promise"
 
 
 export const getMapDormsData = query(async() => {
@@ -14,6 +15,7 @@ export const getMapDormsData = query(async() => {
         lat: dormsTable.lat,
         isUpManaged: dormsTable.isUpManaged
     }).from(dormsTable).where(or(isNotNull(dormsTable.lon), isNotNull(dormsTable.lat)));
+
     return rows;
 })
 

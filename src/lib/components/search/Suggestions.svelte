@@ -13,31 +13,24 @@
 	import { getSearchInfo } from '$lib/utils/context';
 	import { getUnionSuggestions } from '$lib/functions/search.remote';
 
-	// TODO: implement alias searching
-	// let aliasResults = $state<AliasHit[]>([]);
-	// let roomResults = $state<RoomHit[]>([]);
-	// let roomLoading = $state(false);
-
 	const searchInfo = getSearchInfo();
-	$inspect(searchInfo.inputValue);
 
 	const suggestionsPromise = $derived.by(() => {
-		if (searchInfo.type !== 'query') return [];
-		return getUnionSuggestions(searchInfo.inputValue);
+		if (!searchInfo.hasQuery()) return [];
+		return getUnionSuggestions(searchInfo.queryValue);
 	});
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-	class="suggestions-container search-suggestions"
-	onmousedown={(event) => event.preventDefault()}
->
-	{#if searchInfo.inputValue !== ''}
+{#if searchInfo.isSearchMode() && searchInfo.hasQuery()}
+	<div
+		class="suggestions-container search-suggestions absolute top-full left-0 w-full bg-white"
+		onmousedown={(event) => event.preventDefault()}
+	>
 		<!-- {:else if suggestedResult.length !== 0} -->
 		{#each await suggestionsPromise as { id, name, type }, index (index)}
 			<Suggestion category={type} value={name} entityId={id} />
 		{/each}
-	{:else}
 		<!-- {#if searchInfo.recentSearches.length !== 0}
 		<h2 class="suggestions-header">Recent searches</h2> -->
 		<!-- Normalize search schema data -->
@@ -45,10 +38,10 @@
 			<Suggestion {value} {category} {eventSlug} entityId={id} recent={true} {index} />
 		{/each} -->
 		<!-- {/if} -->
-	{/if}
 
-	<!-- Implement search query suggestion search -->
-</div>
+		<!-- Implement search query suggestion search -->
+	</div>
+{/if}
 
 <style>
 	.suggestions-container {

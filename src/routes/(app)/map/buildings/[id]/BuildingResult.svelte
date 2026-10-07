@@ -55,6 +55,12 @@
 	// import EntityBackToList from '$lib/components/controls/EntityBackToList.svelte';
 	import { getOrgsByBuildingId } from '$lib/functions/organizations.remote';
 	import { getRoomsByBuildingId } from '$lib/functions/rooms.remote';
+	import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	// import EntityBackToList from './EntityBackToList.svelte';
 	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
@@ -595,11 +601,11 @@
 		return isAdmin ? 'Administrative' : 'Class building';
 	});
 	const hasMapPin = $derived(Boolean(building.lat && building.lon));
-	$inspect(buildingRooms);
+	$inspect(building.buildingName);
 </script>
 
-<div class="entity-detail building-query-wrapper">
-	{#if building}
+{#key building}
+	<div class="entity-detail building-query-wrapper">
 		<header class="entity-header">
 			<!-- <EntityBackToList tab="buildings" label="Back to buildings" /> -->
 			<div class="entity-header__title-row">
@@ -616,8 +622,8 @@
 					>
 						<Box size={14} aria-hidden="true" />
 						3D view
-					</MapChromeActionChip> -->z
-					<!-- <EntityDirectionsChip
+					</MapChromeActionChip> -->
+					<EntityDirectionsChip
 						lat={building.lat ?? 0}
 						lon={building.lon ?? 0}
 						destinationLabel={building.buildingName}
@@ -626,9 +632,9 @@
 						lat={building.lat ?? 0}
 						lon={building.lon ?? 0}
 						ariaLabel={`Open ${building.buildingName} in Google Maps`}
-					/> -->
+					/>
 				{/if}
-				<!-- <EntityShareCopyLink url={buildingShareUrl} entityLabel={building.buildingName} /> -->
+				<EntityShareCopyLink url={page.url.href} entityLabel={building.buildingName} />
 				<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
@@ -864,36 +870,36 @@
 				</section>
 			{/if}
 		{/if}
-	{:else}
-		<EntitySkeleton variant="detail" label="Loading building…" />
-	{/if}
 
-	{#if buildingOrgs.length > 0}
-		<section class="building-orgs" aria-label="Organizations and offices here">
-			<h3 class="entity-section-heading">Orgs &amp; offices here</h3>
-			<div class="entity-tag-list">
-				{#each buildingOrgs as org (org.id)}
-					<button
-						type="button"
-						class="entity-tag-chip building-orgs__chip"
-						onclick={() => /* openOrg(org.name) */ {}}
-					>
-						{org.name}
-					</button>
-				{/each}
-			</div>
-		</section>
-	{/if}
-	<!-- {#if buildingRooms}
-		<ResultDisplay filteredRooms={buildingRooms} /* {classCounts} */ />
-	{:else if building}
-		<EntitySkeleton
-			variant="rooms"
-			heading="Rooms in the building"
-			label="Loading rooms for {building.buildingName}…"
-		/>
-	{/if} -->
-</div>
+		{#if buildingOrgs.length > 0}
+			<section class="building-orgs" aria-label="Organizations and offices here">
+				<h3 class="entity-section-heading">Orgs &amp; offices here</h3>
+				<div class="entity-tag-list">
+					{#each buildingOrgs as org (org.id)}
+						<button
+							type="button"
+							class="entity-tag-chip building-orgs__chip"
+							onclick={async () => {
+								await goto(resolve(`/map/organizations/${org.id}`));
+							}}
+						>
+							{org.name}
+						</button>
+					{/each}
+				</div>
+			</section>
+		{/if}
+		{#if buildingRooms}
+			<ResultDisplay filteredRooms={buildingRooms} /* {classCounts} */ />
+		{:else if building}
+			<EntitySkeleton
+				variant="rooms"
+				heading="Rooms in the building"
+				label="Loading rooms for {building.buildingName}…"
+			/>
+		{/if}
+	</div>
+{/key}
 
 <style>
 	/* @import './entity-detail.css';

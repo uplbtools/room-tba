@@ -1,16 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	// import PlaceResult from '$lib/components/controls/PlaceResult.svelte';
 	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
 	import { isPlaceLandmark } from '$lib/constants/content/categories/place';
 	import { getMapPlacesData } from '$lib/functions/places.remote';
-	// import { map, searchInfo, sidePanelStore } from '$lib/stores.svelte';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
-	// import { withinMapZoom } from '$lib/utils/map/navigate';
-	import { slugifySegment } from '$lib/utils/site';
-	import type { PlaceData } from '$lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -35,45 +30,13 @@
 	});
 
 	function handleMarkerClick(place: (typeof filteredPlaces)[number]) {
-		return () => {
-			goto(resolve(`/map/places/${place.id}`));
+		return async () => {
+			await goto(resolve(`/map/places/${place.id}`));
 			if (place.lon && place.lat) {
 				map.centerMarker([place.lon, place.lat]);
 			}
 		};
 	}
-
-	// function handleMarkerClick(place: PlaceData) {
-	// 	// if (pinSponsorId) trackSponsorClick(pinSponsorId, 'map_pin');
-	// 	// handlePlaceMarkerClick(place);
-	// 	return () => {
-	// 		// if (searchInfo.category === 'place' && searchInfo.inputValue === place.name) {
-	// 		// 	sidePanelStore.expand();
-	// 		// 	return;
-	// 		// }
-	// 		// searchInfo.updateQuery({
-	// 		// 	category: 'place',
-	// 		// 	type: 'result',
-	// 		// 	value: place.name,
-	// 		// 	id: place.id
-	// 		// });
-	// 		// searchInfo.inputValue = place.name;
-	// 		let subroute: 'landmarks' | 'establishments';
-	// 		if (isPlaceLandmark(place.category)) {
-	// 			subroute = 'landmarks';
-	// 		} else {
-	// 			subroute = 'establishments';
-	// 		}
-	// 		goto(resolve(`/map/${subroute}/${slugifySegment(place.name)}-${place.id}`));
-	// 		// sidePanelStore.openPanel({
-	// 		// 	type: 'search-result',
-	// 		// 	component: PlaceResult
-	// 		// });
-	// 		if (place.lon && place.lat) {
-	// 			map.centerMarker([place.lon, place.lat]);
-	// 		}
-	// 	};
-	// }
 </script>
 
 {#if map.withinZoom(zoomLevel)}

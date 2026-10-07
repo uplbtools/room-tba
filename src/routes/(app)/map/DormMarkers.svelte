@@ -28,37 +28,11 @@
 	});
 
 	function handleMarkerClick(dorm: (typeof filteredDorms)[number]) {
-		return () => {
-			goto(resolve(`/map/dorms/${dorm.id}`));
+		return async () => {
+			await goto(resolve(`/map/dorms/${dorm.id}`));
 			if (dorm.lon && dorm.lat) map.centerMarker([dorm.lon, dorm.lat]);
 		};
 	}
-
-	// $inspect(searchInfo.isActiveMarker());
-
-	// $inspect(searchInfo.isActiveMarker())
-	// function handleMarkerClick(dorm: DormData) {
-	// 	return () => {
-	// 		// if (eventPlacementStore.active) return;
-	// 		// if (isMapEditEnabled() && selectedEditKey !== null) return;
-	// 		// if (dorm.name === searchInfo.inputValue) return;
-	// 		// searchInfo.updateQuery({
-	// 		// 	category: 'dorm',
-	// 		// 	type: 'result',
-	// 		// 	value: dorm.name,
-	// 		// 	id: dorm.id
-	// 		// });
-	// 		// searchInfo.inputValue = dorm.name;
-	// 		// sidePanelStore.openPanel({
-	// 		// 	type: 'search-result',
-	// 		// 	component: DormResult
-	// 		// });
-	// 		goto(resolve(`/map/dorms/${slugifySegment(dorm.dormName)}-${dorm.id}`));
-	// 		if (dorm.lon && dorm.lat) {
-	// 			map.centerMarker([dorm.lon, dorm.lat]);
-	// 		}
-	// 	};
-	// }
 </script>
 
 {#if map.withinZoom(zoomLevel)}

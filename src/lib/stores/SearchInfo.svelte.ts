@@ -10,7 +10,6 @@ export default class SearchInfo {
     });
     recentSearches: RecentSearch[] = $state([]);
     private _filters = new SvelteMap<string, Exclude<SearchInfoState['category'], null>>();
-    inputValue = $state('');
     category = $derived(this._searchInfo.category);
     type = $derived(this._searchInfo.type);
     queryValue = $derived(this._searchInfo.value);
@@ -35,8 +34,6 @@ export default class SearchInfo {
 
     updateQuery = (obj: SearchInfoState & { id?: number }) => {
         this._searchInfo = obj;
-        this.inputValue = obj.value;
-        this.inputValue = obj.value;
 
         if (obj.type === 'result' && obj.category !== null && obj.category !== 'browse') {
             this.addRecentSearch({
@@ -58,9 +55,16 @@ export default class SearchInfo {
         }
     };
 
+    hasQuery = () => {
+        return this.queryValue !== ''
+    }
+
+    isSearchMode = () => {
+        return this.type === "query";
+    }
+
     hydrateQuery = (obj: SearchInfoState) => {
         this._searchInfo = obj;
-        this.inputValue = obj.value;
     };
 
     addRecentSearch(recentSearch: RecentSearch) {
@@ -86,7 +90,6 @@ export default class SearchInfo {
             type: 'query',
             value: ''
         };
-        this.inputValue = '';
     };
 
     exitResultMode = () => {

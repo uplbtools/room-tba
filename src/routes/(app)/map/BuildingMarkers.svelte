@@ -6,7 +6,6 @@
 	// import { buildingMatchesTypeFilter } from '$lib/constants/content/categories/building';
 	import { getMapBuildingsData } from '$lib/functions/buildings.remote';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
-	import { onMount } from 'svelte';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -34,25 +33,11 @@
 	});
 
 	function handleMarkerClick(building: (typeof filteredBuildings)[number]) {
-		return () => {
+		return async () => {
+			await goto(resolve(`/map/buildings/${building.id}`));
 			map.centerMarker([building.lon, building.lat]);
-			goto(resolve(`/map/buildings/${building.id}`));
 		};
 	}
-
-	/* function handleMarkerClick(building: Building) {
-		return () => {
-			// if (eventPlacementStore.active) return;
-			// if (isMapEditEnabled() && selectedEditKey !== null) return;
-			if (building.buildingName === searchInfo.inputValue) return;
-			goto(resolve(`/map/buildings/${slugifySegment(building.buildingName)}`));
-			// sidePanelStore.openPanel({
-			// 	type: 'search-result',
-			// 	component: BuildingResult
-			// });
-			map.centerMarker([building.lon, building.lat]);
-		};
-	} */
 </script>
 
 {#if map.withinZoom(zoomLevel) && showBuildingPins}

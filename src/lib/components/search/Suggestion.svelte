@@ -52,9 +52,9 @@
 	// const appData = getAppData();
 	// const { places } = $derived(appData());
 
-	function handleSuggestionClick() {
+	async function handleSuggestionClick() {
 		// entityHoverPreviewStore.hideNow();
-		goto(resolve(`/map/${category}s/${id}`));
+		await goto(resolve(`/map/${category}s/${id}`));
 	}
 
 	function handleRemoveRecent() {
@@ -90,7 +90,7 @@
 
 	/** Match query in label; expand to word end so "Institute o" → "Institute of". */
 	const labelParts = $derived.by(() => {
-		const q = searchInfo.inputValue.trim();
+		const q = searchInfo.queryValue.trim();
 		if (!q) return [{ text: value, matched: false }];
 		const idx = value.toLowerCase().indexOf(q.toLowerCase());
 		if (idx < 0) return [{ text: value, matched: false }];
