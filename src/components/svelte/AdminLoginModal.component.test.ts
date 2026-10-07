@@ -44,4 +44,20 @@ describe("AdminLoginModal", () => {
     await fireEvent.click(screen.getByRole("button", { name: /^Sign in$/i }));
     expect(screen.queryByLabelText("Confirm password")).toBeNull();
   });
+
+  test("starts with an empty username and can reveal the password", async () => {
+    render(AdminLoginModal);
+    expect(screen.getByRole("dialog", { name: "Sign in" })).toBeVisible();
+    expect(screen.getByLabelText("Username or email")).toHaveValue("");
+
+    const password = screen.getByLabelText("Password");
+    expect(password).toHaveAttribute("type", "password");
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Show password" }),
+    );
+    expect(password).toHaveAttribute("type", "text");
+    expect(
+      screen.getByRole("button", { name: "Hide password" }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
 });

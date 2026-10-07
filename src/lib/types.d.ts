@@ -106,6 +106,7 @@ type FinalExamRow = {
 type CollegeData = {
   id: number;
   collegeName: string;
+  websiteLink?: string | null;
   version: number;
   updatedAt: string;
   floor?: number | null;

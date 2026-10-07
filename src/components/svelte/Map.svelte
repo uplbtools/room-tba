@@ -205,14 +205,21 @@
 
   // Browsing a sidebar directory declutters the map to just that category's
   // pins; null means no browse filter (all pin kinds show).
+  // The class list (category "classes") filters like a browse tab: only the
+  // buildings that host classes this term.
   const browseTab = $derived(
-    queryStore.category === "browse" ? queryStore.queryValue : null,
+    queryStore.category === "browse"
+      ? queryStore.queryValue
+      : queryStore.category === "classes"
+        ? "classes"
+        : null,
   );
   const showBuildingPins = $derived(
     browseTab === null ||
       browseTab === "buildings" ||
       browseTab === "colleges" ||
-      browseTab === "divisions",
+      browseTab === "divisions" ||
+      browseTab === "classes",
   );
   const showDormPins = $derived(browseTab === null || browseTab === "dorms");
   const orgPinFilter = $derived.by((): "all" | "student" | "office" | "none" => {
@@ -235,7 +242,7 @@
     return buildings.filter((building) =>
       buildingMatchesTypeFilter(
         building,
-        buildingTypeFilter.value,
+        browseTab === "classes" ? "class-building" : buildingTypeFilter.value,
         classVenuesStore.buildingIdsWithClasses,
       ),
     );

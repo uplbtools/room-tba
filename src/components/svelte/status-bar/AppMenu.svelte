@@ -11,7 +11,6 @@
   import CalendarClock from "@lucide/svelte/icons/calendar-clock";
   import ClipboardPenLine from "@lucide/svelte/icons/clipboard-pen-line";
   import CloudDownload from "@lucide/svelte/icons/cloud-download";
-  import Map from "@lucide/svelte/icons/map";
   import Megaphone from "@lucide/svelte/icons/megaphone";
   import MessageSquare from "@lucide/svelte/icons/message-square";
   import UserRound from "@lucide/svelte/icons/user-round";
@@ -19,13 +18,19 @@
   import University from "@lucide/svelte/icons/university";
   import Users from "@lucide/svelte/icons/users";
   import BookText from "@lucide/svelte/icons/book-text";
-  import { onMount } from "svelte";
+  import { onMount, type Component } from "svelte";
+  import { fade, fly } from "svelte/transition";
+  import { MediaQuery } from "svelte/reactivity";
   import { APP_VERSION_LABEL } from "@constants/version";
   import OnlineCounter from "../OnlineCounter.svelte";
-  import { statusBarNavGroups } from "@constants/status-bar-links";
+  import {
+    STATUS_BAR_LEGAL_LINKS,
+    statusBarNavGroups,
+  } from "@constants/status-bar-links";
   import { trapFocus } from "@lib/focus-trap";
   import { openShortcutsHelp } from "@lib/keyboard-shortcuts";
   import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
+  import { overlayFade, panelDismiss, panelReveal } from "@lib/motion";
   import { portal } from "@lib/portal";
   import {
     registerEphemeralOverlayDismisser,
@@ -34,6 +39,7 @@
   import { rafThrottle } from "@lib/layout-css-vars";
   import {
     adminAuthStore,
+    announcementsStore,
     mapToolsStore,
     modalStore,
     proposalsStore,
@@ -48,22 +54,46 @@
   import StatusBarLinkGroups from "./StatusBarLinkGroups.svelte";
   import "../map-chrome/map-chrome.css";
 
+  type ScreenId = "today" | "planner" | "finals" | "calendar";
+
   type Props = {
     /** Optional so the menu can be dropped into any chrome without each host
         re-implementing sign-out. */
     onSignOut?: () => void | Promise<void>;
+    /** Bindable so the host can mute its own active-tab highlight while the
+        menu is open (one "you are here" at a time). */
+    open?: boolean;
+    /** Screens the host chrome already shows as tabs. The menu leaves them out
+        instead of listing every destination twice. */
+    hostTabs?: readonly (ScreenId | "map")[];
+    /** False when the host already shows its own Sign in / Account button. */
+    showAccount?: boolean;
   };
 
-  const { onSignOut = defaultSignOut }: Props = $props();
+  let {
+    onSignOut = defaultSignOut,
+    open = $bindable(false),
+    hostTabs = [],
+    showAccount = true,
+  }: Props = $props();
+
+  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+
+  /** The map itself is never listed: every host has a Map tab or home button. */
+  const SCREENS: { id: ScreenId; label: string; icon: Component }[] = [
+    { id: "today", label: "Today", icon: CalendarClock },
+    { id: "planner", label: "Course planner", icon: ClipboardPenLine },
+    { id: "finals", label: "Final exams", icon: FileText },
+    { id: "calendar", label: "Academic calendar", icon: CalendarDays },
+  ];
+  const screens = $derived(SCREENS.filter((s) => !hostTabs.includes(s.id)));
 
   async function defaultSignOut() {
     await adminAuthStore.logout();
     toastStore.show("Signed out.", "info");
   }
 
-  function handleScreen(
-    id: "map" | "today" | "planner" | "finals" | "calendar",
-  ) {
+  function handleScreen(id: ScreenId) {
     sidebarStore.changeOpened(id);
     closePanel();
   }
@@ -77,10 +107,11 @@
     closePanel();
   }
 
-  let open = $state(false);
   let triggerEl = $state<HTMLButtonElement | null>(null);
   let panelEl = $state<HTMLDivElement | null>(null);
   let panelStyle = $state("");
+  /** Sheet rising from a bottom bar (phones) vs dropdown from a top bar. */
+  let fromBottom = $state(true);
   /** More menu below the fold: fade the bottom edge so it reads as scrollable. */
   let moreBelow = $state(false);
 
@@ -104,12 +135,7 @@
         ? "Editor"
         : "Contributor",
   );
-  const navGroups = $derived(
-    statusBarNavGroups({
-      versionLabel: APP_VERSION_LABEL,
-      showEditorLogin: !adminAuthStore.isLoggedIn,
-    }),
-  );
+  const navGroups = statusBarNavGroups();
 
   onMount(() => {
     const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
@@ -121,32 +147,32 @@
   function updatePanelPosition() {
     if (!open || !triggerEl) return;
     const rect = triggerEl.getBoundingClientRect();
-    const width = Math.min(22 * 16, window.innerWidth - 16);
-    const left = Math.min(
-      Math.max(8, rect.left),
-      window.innerWidth - width - 8,
-    );
     // Anchor away from whichever edge the trigger sits against. Fixed `bottom`
     // is right for a bottom bar but throws the panel off the top of the screen
     // when the trigger lives in the desktop top bar.
-    if (rect.top < window.innerHeight / 2) {
+    fromBottom = rect.top >= window.innerHeight / 2;
+    if (!fromBottom) {
+      const width = Math.min(22 * 16, window.innerWidth - 16);
+      const left = Math.min(
+        Math.max(8, rect.left),
+        window.innerWidth - width - 8,
+      );
       const top = Math.min(rect.bottom + 8, window.innerHeight - 8);
       panelStyle = `left: ${left}px; top: ${top}px; bottom: auto; max-height: ${Math.max(120, window.innerHeight - top - 8)}px; width: ${width}px;`;
       return;
     }
-    // Bottom bar (phones): grow up to just under the search bar and filter
-    // chips instead of stopping at a fixed 28rem mid-list.
-    const bottom = Math.max(8, window.innerHeight - rect.top + 8);
-    const topChrome = Math.max(
-      0,
-      ...[
-        ...document.querySelectorAll(
-          ".search-root .map-search-chrome__pill, .search-root .map-filter-chips",
-        ),
-      ].map((el) => el.getBoundingClientRect().bottom),
+    // Bottom bar (phones): a centred, near-full-height sheet that stops 8px
+    // above the bar, measured from the highest thing the bar paints (the add
+    // FAB overhangs the bar's top edge), so no row scrolls under it.
+    const bar = triggerEl.closest("nav") ?? triggerEl;
+    const barTop = Math.min(
+      bar.getBoundingClientRect().top,
+      ...[...bar.children].map((el) => el.getBoundingClientRect().top),
     );
-    const maxHeight = Math.max(160, window.innerHeight - bottom - topChrome - 8);
-    panelStyle = `left: ${left}px; bottom: ${bottom}px; width: ${width}px; max-height: ${maxHeight}px;`;
+    const bottom = Math.max(8, window.innerHeight - barTop + 8);
+    const width = Math.min(32 * 16, window.innerWidth - 16);
+    const left = Math.round((window.innerWidth - width) / 2);
+    panelStyle = `left: ${left}px; width: ${width}px; bottom: ${bottom}px; top: max(8px, env(safe-area-inset-top, 0px)); max-height: none;`;
     requestAnimationFrame(syncMoreBelow);
   }
 
@@ -178,37 +204,19 @@
     open = false;
   }
 
+  // Focus the panel itself, not its first row: a tap-opened menu should not
+  // paint a focus ring (or a "selected" look) on whichever row comes first.
   $effect(() => {
     if (!open || !panelEl) return;
-    return trapFocus(panelEl, { onEscape: closePanel });
+    return trapFocus(panelEl, { onEscape: closePanel, initialFocus: panelEl });
   });
 
-  function handleDocumentPointerDown(event: PointerEvent) {
-    if (!open) return;
-    const target = event.target;
-    if (!(target instanceof Node)) return;
-    if (triggerEl?.contains(target)) return;
-    if (panelEl?.contains(target)) return;
-    if (target instanceof Element && target.closest("#offline-maps-dialog")) {
-      return;
-    }
-    closePanel();
-  }
-
-  function handleNavAction(
-    id: "contributors" | "editor-login" | "leaderboard" | "sign-up",
-  ) {
-    if (id === "contributors") {
-      modalStore.openModal("landing", { landingTab: "campus" });
-      closePanel();
-      return;
-    }
+  function handleNavAction(id: "contributors" | "leaderboard") {
     if (id === "leaderboard") {
       modalStore.openModal("leaderboard");
-      closePanel();
-      return;
+    } else {
+      modalStore.openModal("landing", { landingTab: "campus" });
     }
-    adminAuthStore.openLogin(id === "sign-up" ? "signup" : "signin");
     closePanel();
   }
 
@@ -252,8 +260,6 @@
   }
 </script>
 
-<svelte:window onpointerdown={handleDocumentPointerDown} />
-
 <div class="app-menu">
   <button
     bind:this={triggerEl}
@@ -274,6 +280,17 @@
   </div>
 
   {#if open}
+    <!-- Modal scrim: a tap outside only closes the menu; it never also lands
+         on the map, search or a tab underneath. Keyboard users close with
+         Escape (focus trap), so the scrim needs no key handler. -->
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div
+      class="app-menu__scrim"
+      aria-hidden="true"
+      onclick={closePanel}
+      use:portal
+      transition:fade={overlayFade(reducedMotion.current)}
+    ></div>
     <div
       bind:this={panelEl}
       id="app-menu-panel"
@@ -284,85 +301,54 @@
       role="dialog"
       aria-modal="true"
       aria-label="App menu"
+      tabindex="-1"
       use:portal
+      in:fly={panelReveal(reducedMotion.current, fromBottom ? 24 : -8)}
+      out:fly={panelDismiss(reducedMotion.current, fromBottom ? 16 : -6)}
     >
-      <!-- Account on the left, live presence on the right, one row. Presence
-           lost its bottom-band chip in the Aug 2026 chrome redesign; the menu
-           is its passive-status home now. -->
-      <div class="app-menu__header">
-        {#if contributorSession}
-          <section class="app-menu__account" aria-label="Signed in">
-            <MapChromeSession
-              roleLabel={sessionRoleLabel}
-              displayName={sessionDisplayName}
-              utilities
-              {onSignOut}
-            />
-          </section>
-        {:else}
-          <section class="app-menu__account" aria-label="Account">
-            <button
-              type="button"
-              class="app-menu__action map-chrome-chip"
-              onclick={handleSignIn}
-            >
-              <UserRound size={14} aria-hidden="true" />
-              <span>
-                {adminAuthStore.username
-                  ? "Account settings"
-                  : "Contributor sign in"}
-              </span>
-            </button>
-          </section>
-        {/if}
-        <OnlineCounter />
-      </div>
+      {#if contributorSession}
+        <section class="app-menu__account" aria-label="Signed in">
+          <MapChromeSession
+            roleLabel={sessionRoleLabel}
+            displayName={sessionDisplayName}
+            utilities
+            {onSignOut}
+          />
+        </section>
+      {:else if showAccount}
+        <section class="app-menu__section" aria-label="Account">
+          <button
+            type="button"
+            class="app-menu__nav-action"
+            onclick={handleSignIn}
+          >
+            <UserRound size={18} aria-hidden="true" />
+            <span>
+              {adminAuthStore.username ? "Account settings" : "Sign in"}
+            </span>
+          </button>
+        </section>
+      {/if}
 
       <section
         class="app-menu__section"
         aria-labelledby="app-menu-go-heading"
       >
         <h3 id="app-menu-go-heading" class="app-menu__heading">Go to</h3>
-        <button
-          type="button"
-          class="app-menu__nav-action"
-          onclick={() => handleScreen("map")}
-        >
-          <Map size={18} aria-hidden="true" />
-          <span>Campus map</span>
-        </button>
-        <button
-          type="button"
-          class="app-menu__nav-action"
-          onclick={() => handleScreen("today")}
-        >
-          <CalendarClock size={18} aria-hidden="true" />
-          <span>Today</span>
-        </button>
-        <button
-          type="button"
-          class="app-menu__nav-action"
-          onclick={() => handleScreen("planner")}
-        >
-          <ClipboardPenLine size={18} aria-hidden="true" />
-          <span>Course planner</span>
-        </button>
-        <button
-          type="button"
-          class="app-menu__nav-action"
-          onclick={() => handleScreen("finals")}
-        >
-          <FileText size={18} aria-hidden="true" />
-          <span>Final exams</span>
-        </button>
-        <button
-          type="button"
-          class="app-menu__nav-action"
-          onclick={() => handleScreen("calendar")}
-        >
-          <CalendarDays size={18} aria-hidden="true" />
-          <span>Academic calendar</span>
-        </button>
+        {#each screens as screen (screen.id)}
+          {@const Icon = screen.icon}
+          <button
+            type="button"
+            class="app-menu__nav-action"
+            aria-current={sidebarStore.panelOpen === screen.id
+              ? "page"
+              : undefined}
+            onclick={() => handleScreen(screen.id)}
+          >
+            <Icon size={18} aria-hidden="true" />
+            <span>{screen.label}</span>
+          </button>
+        {/each}
         <button
           type="button"
           class="app-menu__nav-action"
@@ -372,7 +358,12 @@
           }}
         >
           <Megaphone size={18} aria-hidden="true" />
-          <span>Announcements</span>
+          <span>
+            Announcements
+            {#if announcementsStore.unread > 0}
+              <span class="app-menu__badge">{announcementsStore.unread}</span>
+            {/if}
+          </span>
         </button>
       </section>
 
@@ -422,14 +413,6 @@
           <CloudDownload size={18} aria-hidden="true" />
           <span>Offline maps</span>
         </button>
-        <button
-          type="button"
-          class="app-menu__nav-action"
-          onclick={handleCoverage}
-        >
-          <ChartColumn size={18} aria-hidden="true" />
-          <span>Campus data coverage</span>
-        </button>
       </section>
 
       <section
@@ -467,10 +450,10 @@
         <section class="app-menu__section" aria-label="Review">
           <button
             type="button"
-            class="app-menu__action map-chrome-chip"
+            class="app-menu__nav-action"
             onclick={handleReview}
           >
-            <Inbox size={14} aria-hidden="true" />
+            <Inbox size={18} aria-hidden="true" />
             <span>
               Review suggested edits
               {#if proposalsStore.pendingCount > 0}
@@ -488,47 +471,58 @@
         aria-labelledby="app-menu-help-heading"
       >
         <h3 id="app-menu-help-heading" class="app-menu__heading">Help</h3>
-        <a
-          class="app-menu__action map-chrome-chip"
-          href="/faq"
-          onclick={closePanel}
-        >
-          <CircleHelp size={14} aria-hidden="true" />
+        <a class="app-menu__nav-action" href="/faq" onclick={closePanel}>
+          <CircleHelp size={18} aria-hidden="true" />
           <span>Help &amp; FAQ</span>
         </a>
         <button
           type="button"
-          class="app-menu__action map-chrome-chip"
+          class="app-menu__nav-action"
           onclick={handleHowItWorks}
         >
-          <LifeBuoy size={14} aria-hidden="true" />
+          <LifeBuoy size={18} aria-hidden="true" />
           <span>How Room TBA works</span>
         </button>
         <button
           type="button"
-          class="app-menu__action map-chrome-chip"
+          class="app-menu__nav-action"
           onclick={handleWhatsNew}
         >
-          <FileText size={14} aria-hidden="true" />
+          <FileText size={18} aria-hidden="true" />
           <span>What's new</span>
         </button>
         <button
           type="button"
-          class="app-menu__action map-chrome-chip"
+          class="app-menu__nav-action app-menu__shortcuts-entry"
           aria-keyshortcuts="?"
           onclick={handleShortcutsHelp}
         >
-          <Keyboard size={14} aria-hidden="true" />
+          <Keyboard size={18} aria-hidden="true" />
           <span>Keyboard shortcuts</span>
         </button>
       </section>
 
-      <details class="app-menu__more">
-        <summary>Community &amp; project links</summary>
+      <section
+        class="app-menu__section"
+        aria-labelledby="app-menu-community-heading"
+      >
+        <h3 id="app-menu-community-heading" class="app-menu__heading">
+          Community
+        </h3>
+        <!-- A contributor's view of what is still unmapped, so it sits with
+             the community links rather than the student tools. -->
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={handleCoverage}
+        >
+          <ChartColumn size={18} aria-hidden="true" />
+          <span>Campus data coverage</span>
+        </button>
         <nav aria-label="Community and project links">
           <StatusBarLinkGroups groups={navGroups} onAction={handleNavAction} />
         </nav>
-      </details>
+      </section>
 
       <section
         class="app-menu__section app-menu__section--install"
@@ -536,37 +530,30 @@
       >
         <PWAInstallPrompt />
       </section>
+
+      <!-- Passive status lives at the bottom, next to the version: it is not
+           something to act on, so it should not take the first row. -->
+      <footer class="app-menu__footer">
+        <OnlineCounter />
+        <span class="app-menu__footer-links">
+          <span>{APP_VERSION_LABEL}</span>
+          {#each STATUS_BAR_LEGAL_LINKS as link (link.href)}
+            <a href={link.href}>{link.label}</a>
+          {/each}
+        </span>
+      </footer>
     </div>
   {/if}
 </div>
 
 <style>
-  .app-menu__header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  /* Basis 0, not auto: with auto the row wraps before anything shrinks. */
   .app-menu__account {
     display: flex;
-    flex: 1 1 0;
     min-width: 0;
+    padding: 0.25rem 0.75rem 0.5rem;
   }
 
-  .app-menu__account .app-menu__action {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .app-menu__account .app-menu__action span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* Signed-in row is the widest variant: drop the action icons and let the
-     role chip truncate so it shares a 360px row with presence. */
+  /* Signed-in row: drop the action icons and let the role chip truncate. */
   .app-menu__account :global(.map-chrome-session--utilities) {
     flex-wrap: nowrap;
   }
@@ -588,16 +575,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .app-menu__header :global(.online-counter) {
-    flex-shrink: 0;
-    height: auto;
-    padding: 0;
-    border: 0;
-    background: none;
-    box-shadow: none;
-    font-size: 0.75rem;
   }
 
   .app-menu {
@@ -627,42 +604,64 @@
     bottom: calc(var(--status-bar-block-height, 2.75rem) + 0.25rem);
   }
 
-  .app-menu__action {
-    align-self: flex-start;
-    cursor: pointer;
-    text-decoration: none;
-  }
-
-  .app-menu__nav-action {
+  /* One row style for every entry, including the community rows rendered by
+     StatusBarLinkGroups (hence :global). 44px touch target, no gaps. */
+  .app-menu__panel :global(.app-menu__nav-action) {
     /* No global border-box reset in this app: without this, min-height +
        padding stack to 64px-tall rows and width: 100% + padding overflows
        the panel sideways (stray horizontal scrollbar). */
     box-sizing: border-box;
     width: 100%;
     min-height: 2.75rem;
+    margin: 0;
     border: 0;
     border-radius: 0.5rem;
-    padding: 0.625rem 0.75rem;
+    padding: 0.5rem 0.75rem;
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.75rem;
     background: transparent;
     color: var(--map-chrome-text, hsl(5 20% 18%));
     font: inherit;
     font-size: 0.875rem;
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.15;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
   }
 
-  .app-menu__nav-action:hover {
+  .app-menu__panel :global(.app-menu__nav-action > svg) {
+    flex-shrink: 0;
+  }
+
+  /* Hover only where a pointer can hover: on touch, :hover sticks to the
+     last tapped row. */
+  @media (hover: hover) {
+    .app-menu__panel :global(.app-menu__nav-action:hover) {
+      background: var(--map-chrome-hover, hsl(5 25% 96%));
+    }
+  }
+
+  .app-menu__panel :global(.app-menu__nav-action:active) {
     background: var(--map-chrome-hover, hsl(5 25% 96%));
   }
 
-  .app-menu__nav-action:focus-visible {
+  .app-menu__panel :global(.app-menu__nav-action[aria-current="page"]) {
+    background: #feeaea;
+    color: #8d1437;
+  }
+
+  .app-menu__panel :global(.app-menu__nav-action:focus-visible) {
     outline: 2px solid var(--color-brand, hsl(345 75% 31%));
-    outline-offset: 2px;
+    outline-offset: -2px;
+  }
+
+  /* No physical keyboard on touch-only devices: the entry is noise there. */
+  @media (hover: none) {
+    .app-menu__panel .app-menu__shortcuts-entry {
+      display: none;
+    }
   }
 
   .app-menu__badge {
@@ -679,16 +678,29 @@
     font-weight: 700;
   }
 
+  .app-menu__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-chrome-popover, 17);
+    background: rgb(20 12 14 / 0.32);
+  }
+
   .app-menu__panel {
     position: fixed;
     z-index: var(--z-chrome-popover, 17);
-    border-radius: 0.75rem;
+    box-sizing: border-box;
+    border-radius: 0.875rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0;
     max-height: min(70vh, 28rem);
     overflow-y: auto;
-    padding: 0.75rem;
+    overscroll-behavior: contain;
+    padding: 0.5rem;
+  }
+
+  .app-menu__panel:focus {
+    outline: none;
   }
 
   /* A fade pinned to the panel's bottom edge while more items are below, in
@@ -697,13 +709,13 @@
   .app-menu__panel--more-below::after {
     content: "";
     position: sticky;
-    bottom: -0.75rem;
-    flex: 0 0 3rem;
-    margin: -3rem -0.75rem -0.75rem;
+    bottom: -0.5rem;
+    flex: 0 0 3.5rem;
+    margin: -3.5rem -0.5rem -0.5rem;
     background: linear-gradient(
       to bottom,
       transparent,
-      var(--map-chrome-surface, rgba(255, 255, 255, 0.98))
+      var(--map-chrome-surface, rgba(255, 255, 255, 0.98)) 85%
     );
     pointer-events: none;
   }
@@ -711,18 +723,19 @@
   .app-menu__section {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding-top: 0.25rem;
+    padding: 0.25rem 0;
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
   }
 
-  .app-menu__section:first-child {
+  .app-menu__section:first-child,
+  .app-menu__account:first-child {
     border-top: none;
     padding-top: 0;
   }
 
   .app-menu__heading {
     margin: 0;
+    padding: 0.5rem 0.75rem 0.25rem;
     font: inherit;
     font-size: 0.6875rem;
     font-weight: 700;
@@ -740,31 +753,43 @@
     display: none;
   }
 
-  .app-menu__section :global(.status-bar__nav-group) {
+  .app-menu__footer {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 0.5rem;
-  }
-
-  .app-menu__section :global(.status-bar__nav-group + .status-bar__nav-group) {
-    margin-top: 0.25rem;
-    padding-top: 0.375rem;
-    border-top: 1px dashed hsl(0, 0%, 88%);
-  }
-
-  .app-menu__more {
-    padding-top: 0.625rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+    padding: 0.5rem 0.75rem 0.25rem;
     border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
-    color: hsl(0, 0%, 35%);
     font-size: 0.75rem;
+    color: hsl(0, 0%, 40%);
   }
 
-  .app-menu__more summary {
-    cursor: pointer;
-    font-weight: 650;
+  .app-menu__footer :global(.online-counter) {
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: inherit;
   }
 
-  .app-menu__more nav {
-    margin-top: 0.625rem;
+  .app-menu__footer-links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 0.75rem;
+    margin-left: auto;
+  }
+
+  .app-menu__footer-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 </style>

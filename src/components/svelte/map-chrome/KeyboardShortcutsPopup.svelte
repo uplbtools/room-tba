@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Keyboard from "@lucide/svelte/icons/keyboard";
+  import X from "@lucide/svelte/icons/x";
+  import IconButton from "@ui/IconButton.svelte";
   import {
     getKeyboardShortcutGroups,
     modifierLabel,
@@ -120,9 +121,17 @@
       style={panelStyle}
       role="dialog"
       aria-modal="true"
-      aria-label="Keyboard shortcuts"
+      aria-labelledby="keyboard-shortcuts-title"
       use:portal
     >
+      <div class="shortcuts-panel__header">
+        <h2 id="keyboard-shortcuts-title" class="shortcuts-panel__heading">
+          Keyboard shortcuts
+        </h2>
+        <IconButton label="Close keyboard shortcuts" onclick={closePanel}>
+          <X size={20} aria-hidden="true" />
+        </IconButton>
+      </div>
       <p class="shortcuts-panel__lead">
         Shortcuts are disabled while typing in a search box or form field.
       </p>
@@ -169,9 +178,28 @@
     gap: 0.875rem;
     overflow-y: auto;
     box-sizing: border-box;
+    /* Opened from the menu there is no trigger to anchor to, so no inline
+       width either; take the phone's width rather than the popover's. */
+    width: min(30rem, calc(100vw - 2rem));
     top: 50%;
     left: 50%;
     translate: -50% -50%;
+  }
+
+  .shortcuts-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: -0.5rem -0.75rem -0.375rem 0;
+  }
+
+  .shortcuts-panel__heading {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: hsl(0, 0%, 12%);
   }
 
   .shortcuts-panel__lead {
@@ -226,6 +254,24 @@
   .shortcuts-panel__sep {
     color: hsl(0, 0%, 55%);
     font-size: 0.625rem;
+  }
+
+  /* Side by side, a narrow sheet squeezed the description to a word per
+     line; stack keys over description instead. */
+  @media (max-width: 30rem) {
+    .shortcuts-panel {
+      padding: 1rem;
+    }
+
+    .shortcuts-panel__list {
+      gap: 0.625rem;
+    }
+
+    .shortcuts-panel__list li {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
   }
 
   kbd {

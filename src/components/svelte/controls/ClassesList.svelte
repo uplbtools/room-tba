@@ -7,11 +7,13 @@
   import EntityPagination from "./EntityPagination.svelte";
   import { fetchClassPage } from "@lib/classes-api";
   import { CLASS_BROWSE_SCOPE_NOTE } from "@lib/amis/room-scheduled-types";
-  import { queryStore, termStore } from "@lib/store.svelte";
+  import { queryStore, sidePanelStore, termStore } from "@lib/store.svelte";
   import ScheduleFreshnessNote from "@ui/ScheduleFreshnessNote.svelte";
+  import { formatClassesImportedAt } from "@lib/amis/term-schedule-freshness";
+  import Info from "@lucide/svelte/icons/info";
   import type { ClassMapValue } from "@lib/types";
   import { onMount } from "svelte";
-    import TermSelector from "@ui/TermSelector.svelte";
+  import TermSelector from "@ui/TermSelector.svelte";
 
   const PAGE_SIZE = 25;
 
@@ -36,6 +38,9 @@
   );
   const rangeEnd = $derived(prevCursors.length * PAGE_SIZE + classes.length);
   const coursePrefix = $derived(filterText.trim());
+  const importedLabel = $derived(
+    formatClassesImportedAt(termStore.activeTerm?.classesImportedAt),
+  );
 
   // A new term or filter invalidates keyset positions: back to the first page.
   $effect(() => {
@@ -94,6 +99,7 @@
 
   function closeList() {
     queryStore.clearQuery();
+    sidePanelStore.closePanel();
   }
 </script>
 
@@ -102,23 +108,37 @@
     closeAriaLabel="Close class list"
     closeTitle="Close class list"
     onclose={closeList}
+    closeOnMobile
   >
     {#snippet trailing()}
       <div class="entity-header__title-row">
-        <h2 class="entity-header__title">All classes</h2>
+        <h2 class="entity-header__title">Classes</h2>
       </div>
-      <p class="entity-panel-note">{CLASS_BROWSE_SCOPE_NOTE}</p>
+      <!-- Term first: it decides what the filter searches. -->
+      <TermSelector />
       <EntityPanelFilter
         value={filterText}
         label="Filter by course code"
         placeholder="Filter by course code (e.g. CMSC)"
         oninput={onFilterInput}
       />
-    <TermSelector />
-    <ScheduleFreshnessNote
-      importedAt={termStore.activeTerm?.classesImportedAt}
-      termId={termStore.activeTermId}
-    />
+      <!-- What the list covers and how fresh it is, one tap away instead of
+           two paragraphs above the rows. -->
+      <details class="classes-info">
+        <summary>
+          <Info size={14} aria-hidden="true" />
+          <span>
+            {importedLabel
+              ? `Schedules imported ${importedLabel}`
+              : "Schedule import date unknown"} · About this list
+          </span>
+        </summary>
+        <p class="entity-panel-note">{CLASS_BROWSE_SCOPE_NOTE}</p>
+        <ScheduleFreshnessNote
+          importedAt={termStore.activeTerm?.classesImportedAt}
+          termId={termStore.activeTermId}
+        />
+      </details>
     {/snippet}
   </EntityPanelHeader>
 
@@ -205,5 +225,36 @@
     gap: 0.75rem;
     height: 100%;
     min-height: 0;
+  }
+
+  .classes-info summary {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 2.75rem;
+    color: hsl(0, 0%, 40%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .classes-info summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .classes-info summary span {
+    text-decoration: underline dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  .classes-info[open] summary {
+    min-height: 2rem;
+  }
+
+  .classes-info summary:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
   }
 </style>

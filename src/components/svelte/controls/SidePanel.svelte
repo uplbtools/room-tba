@@ -45,10 +45,22 @@
   const directionsPeek = $derived(
     directionsStore.active && !directionsStore.navigating,
   );
+  /**
+   * Browse lists (colleges, orgs, classes) carry a title, a filter and a count
+   * above the rows, so the entity peek left room for about two rows. They
+   * open taller; the filtered pins above stay in view.
+   */
+  const listPeek = $derived(
+    !directionsStore.active &&
+      jeepneyStore.selectedStopIndex === null &&
+      (queryStore.category === "classes" ||
+        (queryStore.category === "browse" &&
+          queryStore.queryValue !== "jeepney")),
+  );
   // Directions peek must clear the first option + Show on map / Start;
   // 0.3 only showed the Walk card.
   const sheetPeekRatio = $derived(
-    navPeek ? 0.22 : directionsPeek ? 0.44 : 0.48,
+    navPeek ? 0.22 : directionsPeek ? 0.44 : listPeek ? 0.68 : 0.48,
   );
 
   // Entering follow mode from an expanded sheet would otherwise leave the map
@@ -86,6 +98,17 @@
    */
   const PanelContent = $derived(
     resolvePanelContent(sidePanelStore.state, queryStore.category),
+  );
+
+  /** Browse lists (colleges, orgs, classes, events) are a destination picked
+      from the menu, not entity details: their sheet stops above the bottom
+      nav (and the FAB overhanging it) so the tabs and menu stay reachable. */
+  const browseSheet = $derived(
+    !directionsStore.active &&
+      jeepneyStore.selectedStopIndex === null &&
+      (queryStore.category === "browse" ||
+        queryStore.category === "classes" ||
+        queryStore.category === "events"),
   );
 
   const panelOpen = $derived(
@@ -176,7 +199,9 @@
       ? undefined
       : ".entity-actions, .sk-detail__actions"}
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
-    bottomInset="0px"
+    bottomInset={browseSheet
+      ? "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)"
+      : "0px"}
     onDismiss={dismissMobileSheet}
   >
     {@render panelBody()}

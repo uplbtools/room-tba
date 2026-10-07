@@ -324,6 +324,11 @@
     /* Above map-tools + bottom nav so locate/3D/zoom never paint over it. */
     z-index: var(--z-mobile-sheet, 16);
     pointer-events: none;
+    /* The sheet is full height and translated down to its snap; with a
+       bottom inset (browse lists stop above the bottom nav) the translated
+       part must not paint over what sits below. Top stays open for the
+       shadow. */
+    clip-path: inset(-2rem 0 0 0);
   }
 
   .bottom-sheet {

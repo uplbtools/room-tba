@@ -17,7 +17,7 @@ vi.stubGlobal(
   ),
 );
 import PlannerScreen from "@ui/planner/PlannerScreen.svelte";
-import { plannerStore, termStore } from "@lib/store.svelte";
+import { plannerStore, sidebarStore, termStore } from "@lib/store.svelte";
 import type { ClassMapValue } from "@lib/types";
 
 const row = (overrides: Partial<ClassMapValue>): ClassMapValue => ({
@@ -88,6 +88,34 @@ describe("PlannerScreen", () => {
     expect(
       document.querySelectorAll(".planner-block--conflict").length,
     ).toBeGreaterThan(0);
+    // The side panel names the clash and when, not just a count.
+    expect(
+      screen.getByText("CMSC 128 AB-1L overlaps MATH 27 B-2"),
+    ).toBeVisible();
+    expect(document.querySelector(".planner-conflicts")?.textContent).toMatch(
+      /Mon\s+7:30–8 AM/,
+    );
+    // Overlapping blocks share the column instead of stacking on each other.
+    const widths = [
+      ...document.querySelectorAll<HTMLElement>(".planner-block--conflict"),
+    ].map((el) => el.style.width);
+    expect(widths.every((w) => w.includes("50%"))).toBe(true);
+  });
+
+  // Regression: Escape anywhere (even in the search box) closed the planner.
+  test("Escape in the search box clears it instead of closing the planner", async () => {
+    sidebarStore.changeOpened("planner");
+    render(PlannerScreen);
+    const search = screen.getByPlaceholderText(
+      /Search courses/i,
+    ) as HTMLInputElement;
+    // The trap moves focus to its first control in a microtask; wait it out.
+    await Promise.resolve();
+    search.focus();
+    await fireEvent.input(search, { target: { value: "CHEM" } });
+    await fireEvent.keyDown(search, { key: "Escape" });
+    expect(search.value).toBe("");
+    expect(sidebarStore.panelOpen).toBe("planner");
   });
 
   test("lists TBA sections under Unscheduled", () => {

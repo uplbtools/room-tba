@@ -1,11 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import Megaphone from "@lucide/svelte/icons/megaphone";
-  import {
-    adminAuthStore,
-    announcementsStore,
-    modalStore,
-  } from "@lib/store.svelte";
+  import MegaphoneOff from "@lucide/svelte/icons/megaphone-off";
+  import { adminAuthStore, announcementsStore } from "@lib/store.svelte";
+  import { FACEBOOK_URL } from "@constants/community-links";
+  import CommunityPlatformLink from "@ui/community/CommunityPlatformLink.svelte";
   import {
     ANNOUNCEMENT_SEVERITIES,
     ANNOUNCEMENT_SEVERITY_LABELS,
@@ -177,12 +176,7 @@
       <Megaphone size={18} aria-hidden="true" /> Announcements
     </h2>
     <p class="announcements__lead">
-      Campus and app notices from the Room TBA team. Release notes live in
-      <button
-        type="button"
-        class="announcements__inline-link"
-        onclick={() => modalStore.openModal("changelog")}>What's new</button
-      >.
+      Campus and app notices from the Room TBA team.
     </p>
     {#if canPublish}
       <button
@@ -256,9 +250,16 @@
 
   <div class="announcements__list">
     {#if rows.length === 0}
-      <p class="announcements__empty">
-        No announcements right now. Check back when something is up.
-      </p>
+      <div class="announcements__empty">
+        <MegaphoneOff size={28} aria-hidden="true" />
+        <p>No announcements right now.</p>
+        <p>Campus updates also go out on Facebook.</p>
+        <CommunityPlatformLink
+          brand="facebook"
+          href={FACEBOOK_URL}
+          label="Follow on Facebook"
+        />
+      </div>
     {/if}
     {#each rows as row (row.id)}
       <article class="announcements__item" data-severity={row.severity}>
@@ -343,16 +344,37 @@
     color: hsl(0, 0%, 40%);
   }
 
-  .announcements__inline-link {
-    all: unset;
-    cursor: pointer;
-    font-weight: 600;
-    text-decoration: underline;
-    color: hsl(5, 53%, 32%);
+  .announcements__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1.5rem 1rem 0.75rem;
+    text-align: center;
   }
-  .announcements__inline-link:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
-    outline-offset: 2px;
+
+  .announcements__empty p {
+    margin: 0;
+  }
+
+  .announcements__empty p:first-of-type {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: hsl(0, 0%, 20%);
+  }
+
+  .announcements__empty :global(.community-platform-link) {
+    min-height: 2.75rem;
+  }
+
+  /* Phones: stay clear of the bottom nav instead of covering its labels. The
+     dialog is centred, so reserve the nav's height at both ends. */
+  @media (max-width: 48rem) {
+    .announcements {
+      max-height: calc(
+        100dvh - 2 * (var(--mobile-bottom-nav-height, 4.5rem) + 1.5rem)
+      );
+    }
   }
 
   .announcements__error {

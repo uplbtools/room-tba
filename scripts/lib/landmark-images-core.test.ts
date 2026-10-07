@@ -3,6 +3,7 @@ import {
   bearingDegrees,
   distanceMetres,
   facadeHeadings,
+  ringPoints,
   isGoogleCapture,
   isLikelyPhotoTitle,
   isPhysicalOrgCategory,
@@ -17,6 +18,17 @@ describe("bearingDegrees", () => {
     expect(bearingDegrees(origin, { lat: 14.16, lng: 121.25 })).toBe(90);
     expect(bearingDegrees(origin, { lat: 14.15, lng: 121.24 })).toBe(180);
     expect(bearingDegrees(origin, { lat: 14.16, lng: 121.23 })).toBe(270);
+  });
+});
+
+describe("ringPoints", () => {
+  test("points sit the given distance from the center", () => {
+    const center = { lat: 14.165, lng: 121.24 };
+    const points = ringPoints(center, 50);
+    expect(points).toHaveLength(8);
+    for (const p of points) {
+      expect(Math.abs(distanceMetres(center, p) - 50)).toBeLessThan(0.5);
+    }
   });
 });
 

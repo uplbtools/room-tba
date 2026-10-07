@@ -63,8 +63,23 @@ describe("PlannerCourseSearch", () => {
     plannerStore.activePlanIdByTerm = {};
   });
 
-  test("lists courses on mount and adds an offering to the plan", async () => {
+  test("starts with a search hint instead of listing the whole term", async () => {
     render(PlannerCourseSearch);
+    expect(screen.getByText(/Type a course code/)).toBeVisible();
+    expect(screen.queryByRole("button", { name: /CMSC 12/ })).toBeNull();
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Browse all courses" }),
+    );
+    expect(
+      await screen.findByRole("button", { name: /CMSC 12/ }),
+    ).toBeVisible();
+  });
+
+  test("searches a course and adds an offering to the plan", async () => {
+    render(PlannerCourseSearch);
+    await fireEvent.input(screen.getByPlaceholderText(/Search courses/), {
+      target: { value: "CMSC 12" },
+    });
     const courseButton = await screen.findByRole("button", {
       name: /CMSC 12/,
     });
@@ -83,6 +98,12 @@ describe("PlannerCourseSearch", () => {
       expect(plannerStore.activePlan?.sections).toHaveLength(2);
     });
     expect(plannerStore.activePlan?.label).toBe("Untitled Plan 1");
-    expect(await screen.findByRole("button", { name: "✓" })).toBeVisible();
+    const added = await screen.findByRole("button", {
+      name: /^Remove CMSC 12 \S+ from plan$/,
+    });
+    expect(added).toHaveTextContent("✓ Added");
+    expect(added).toHaveAttribute("aria-pressed", "true");
+    // Times read like people write them, with the room.
+    expect(screen.getAllByText("Lec WF 4–5 PM · EAA LH")[0]).toBeVisible();
   });
 });

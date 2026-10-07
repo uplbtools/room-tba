@@ -23,16 +23,18 @@ const BUS_ROUTE_IDS = new Set([
   "upd-to-uplb",
   "lb-to-buendia",
   "buendia-to-lb",
+  "uplb-to-buendia",
+  "buendia-to-uplb",
 ]);
 
 export function transitRouteKind(route: {
   id: string;
   name: string;
 }): TransitRouteKind {
-  if (CAMPUS_ROUTE_IDS.has(route.id)) return "campus";
   if (BUS_ROUTE_IDS.has(route.id) || /\bbus(es)?\b/i.test(route.name)) {
     return "bus";
   }
+  if (CAMPUS_ROUTE_IDS.has(route.id)) return "campus";
   return "town";
 }
 

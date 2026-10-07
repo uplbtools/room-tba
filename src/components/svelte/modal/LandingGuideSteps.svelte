@@ -9,6 +9,7 @@
   import WifiOff from "@lucide/svelte/icons/wifi-off";
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
   import Plus from "@lucide/svelte/icons/plus";
+  import Ticket from "@lucide/svelte/icons/ticket";
   import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
   import { DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
 
@@ -37,7 +38,7 @@
       secondary: false,
     },
     {
-      icon: CalendarDays,
+      icon: Ticket,
       label: "Events",
       hint: "Where things happen",
       secondary: false,

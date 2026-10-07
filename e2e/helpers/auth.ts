@@ -62,7 +62,7 @@ export async function loginAsAdminViaModal(page: Page) {
     .getByLabel("Username")
     .waitFor({ state: "visible", timeout: 30_000 });
   await page.getByLabel("Username").fill(E2E_FIXTURES.users.admin);
-  await page.getByLabel("Password").fill(DEFAULT_PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(DEFAULT_PASSWORD);
   await page
     .locator("form.login-body")
     .getByRole("button", { name: /^sign in$/i })

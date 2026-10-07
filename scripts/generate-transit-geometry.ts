@@ -130,6 +130,19 @@ const PLANS: Record<string, Plan> = {
     note: DLTB_ROUTED_NOTE,
     caveat: DLTB_CAVEAT,
   },
+  // DLTB's daily UPLB <-> LRT Buendia trips (bundled in BUNDLED_BUS_ROUTES).
+  "uplb-to-buendia": {
+    kind: "routed",
+    note: "OSRM car routing from the UPLB main gate to the Buendia bus terminal (LRT-1 Gil Puyat) over SLEX.",
+    caveat:
+      "Drawn by road routing between the two terminals; the bus's exact streets may differ.",
+  },
+  "buendia-to-uplb": {
+    kind: "routed",
+    note: "OSRM car routing from the UPLB main gate to the Buendia bus terminal (LRT-1 Gil Puyat) over SLEX.",
+    caveat:
+      "Drawn by road routing between the two terminals; the bus's exact streets may differ.",
+  },
 
   // The Los Baños legs of two LTFRB-registered PUJ corridors that begin in
   // Calamba and run through Los Baños; trimmed to start at our first stop.

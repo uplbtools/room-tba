@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/svelte";
+import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { modalStore } from "@lib/store.svelte";
@@ -57,19 +57,14 @@ describe("modal scroll chrome", () => {
     modalStore.openModal("landing", { landingTab: "campus" });
     await tick();
 
-    expect(screen.getByRole("tab", { name: "Campus team" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    expect(screen.getByRole("tabpanel")).toHaveAttribute(
-      "id",
-      "landing-panel-campus",
-    );
+    // The Contributors view replaces the old Campus team tab.
+    expect(document.getElementById("landing-panel-campus")).not.toBeNull();
+    expect(document.getElementById("landing-panel-welcome")).toBeNull();
   });
 
   test("campus team credits inspiration tools with their authors", async () => {
+    modalStore.openModal("landing", { landingTab: "campus" });
     render(LandingModal);
-    await fireEvent.click(screen.getByRole("tab", { name: "Campus team" }));
     expect(screen.getByRole("heading", { name: /inspiration/i })).toBeVisible();
     expect(screen.getByRole("link", { name: "Upsked.com" })).toHaveAttribute(
       "href",
@@ -89,8 +84,8 @@ describe("modal scroll chrome", () => {
   });
 
   test("campus team renders live editor credits with optional profile links", async () => {
+    modalStore.openModal("landing", { landingTab: "campus" });
     render(LandingModal);
-    await fireEvent.click(screen.getByRole("tab", { name: "Campus team" }));
     const name = await screen.findByText("Live Editor");
     expect(name.closest("a")).toHaveAttribute(
       "href",

@@ -101,11 +101,19 @@ describe("TodayScreen", () => {
     expect(screen.getByText("No classes to route today.")).toBeVisible();
   });
 
-  test("Route my day is disabled with a Planner hint when there is no plan", () => {
+  // With no plan the empty state already points at the Planner; a disabled
+  // route button and a second hint only repeated it.
+  test("Route my day is hidden when there is no plan", () => {
     render(TodayScreen);
 
-    expect(screen.getByRole("button", { name: /Route my day/ })).toBeDisabled();
-    expect(screen.getByText("Add classes in the Planner first.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Route my day/ })).toBeNull();
+    expect(screen.queryByText("Add classes in the Planner first.")).toBeNull();
+    expect(screen.getAllByText(/Add classes/)).toHaveLength(1);
+  });
+
+  test("the header says which day today is", () => {
+    render(TodayScreen);
+    expect(screen.getByText("Monday, July 27")).toBeVisible();
   });
 
   test("renders an explicit empty state per day and a distinct Sunday", () => {

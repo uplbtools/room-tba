@@ -115,7 +115,7 @@ test.describe("campus browsing", () => {
     });
     await browse(page, "jeepney");
     await expect(
-      page.getByRole("heading", { name: /Jeepney Routes/i }),
+      page.getByRole("heading", { name: /Jeepney (& Bus )?Routes/i }),
     ).toBeVisible({ timeout: 10_000 });
     const route = page.locator("button.entity-list-row").first();
     await expect(route).toBeVisible();
@@ -142,7 +142,9 @@ test.describe("campus browsing", () => {
 
   test("classes panel includes term selector", async ({ page }) => {
     await browse(page, "classes");
-    await expect(page.getByText(/All classes/i).first()).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "Classes", exact: true }).first(),
+    ).toBeVisible({
       timeout: 10_000,
     });
     await expect(
@@ -168,7 +170,9 @@ test.describe("campus browsing", () => {
 
   test("Classes opens class list from the App Menu", async ({ page }) => {
     await browse(page, "classes");
-    await expect(page.getByText(/All classes/i).first()).toBeVisible({
+    await expect(
+      page.getByRole("heading", { name: "Classes", exact: true }).first(),
+    ).toBeVisible({
       timeout: 10_000,
     });
   });
