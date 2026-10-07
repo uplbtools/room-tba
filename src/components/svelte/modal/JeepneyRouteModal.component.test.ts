@@ -3,7 +3,6 @@ import { afterEach, describe, expect, test } from "vitest";
 import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
 import { jeepneyStore, transitStore } from "@lib/store.svelte";
 import {
-  BUS_FARE_NOTE,
   JEEPNEY_ROUTES,
   JEEPNEY_RIDING_NOTES,
 } from "@constants/jeepney-routes";
@@ -35,31 +34,92 @@ describe("JeepneyRouteModal", () => {
     expectNoHorizontalOverflow(container);
   });
 
-  test("a bus route says bus, with bus fares and no campus jeep tips", () => {
+  function withRoute(
+    route: (typeof transitStore.routes)[number],
+    run: () => void,
+  ) {
     const original = transitStore.routes;
-    transitStore.routes = [
-      ...original,
+    transitStore.routes = [...original, route];
+    try {
+      run();
+    } finally {
+      transitStore.routes = original;
+    }
+  }
+
+  const busStops = [
+    { name: "Los Baños", description: "", lat: 14.166, lon: 121.24 },
+    { name: "Buendia", description: "", lat: 14.554, lon: 120.997 },
+  ];
+
+  test("a bus route says bus, quotes no unverified fare and no campus jeep tips", () => {
+    withRoute(
+      {
+        id: "lb-to-buendia",
+        name: "Los Baños → Buendia (LRT Gil Puyat)",
+        description: "Provincial bus.",
+        color: "#2563eb",
+        fare: { regular: 165, discounted: 132 },
+        stops: busStops,
+      },
+      () => {
+        jeepneyStore.modalRouteId = "lb-to-buendia";
+        render(JeepneyRouteModal);
+
+        expect(
+          screen.getByRole("heading", {
+            name: /Buendia \(LRT Gil Puyat\) bus route/,
+          }),
+        ).toBeVisible();
+        expect(screen.getByText(/Fare not verified yet/)).toBeVisible();
+        expect(screen.queryByText("₱165")).toBeNull();
+        expect(screen.queryByText(JEEPNEY_RIDING_NOTES[2]!)).toBeNull();
+      },
+    );
+  });
+
+  test("San Pablo jeep says to board at the Junction and quotes only the minimum", () => {
+    withRoute(
+      {
+        id: "lb-to-san-pablo",
+        name: "Los Baños → San Pablo",
+        description: "Jeepney toward San Pablo City.",
+        color: "#EF6C00",
+        fare: { regular: 50, discounted: 40 },
+        stops: busStops,
+      },
+      () => {
+        jeepneyStore.modalRouteId = "lb-to-san-pablo";
+        render(JeepneyRouteModal);
+
+        expect(screen.getByText(/Board at the Junction/)).toBeVisible();
+        expect(screen.getByText("Minimum fare")).toBeVisible();
+        expect(screen.queryByText("₱50")).toBeNull();
+      },
+    );
+  });
+
+  test("the DLTB UP Diliman bus links to DLTB tickets instead of a fare", () => {
+    withRoute(
       {
         id: "uplb-to-upd",
         name: "UPLB → UP Diliman (DLTB Commuter Bus)",
         description: "Direct DLTB commuter bus.",
         color: "#7c3aed",
         fare: { regular: 165, discounted: 132 },
-        stops: [
-          { name: "UPLB", description: "", lat: 14.166, lon: 121.24 },
-          { name: "UP Diliman", description: "", lat: 14.655, lon: 121.07 },
-        ],
+        stops: busStops,
       },
-    ];
-    jeepneyStore.modalRouteId = "uplb-to-upd";
-    render(JeepneyRouteModal);
+      () => {
+        jeepneyStore.modalRouteId = "uplb-to-upd";
+        render(JeepneyRouteModal);
 
-    expect(
-      screen.getByRole("heading", { name: /DLTB Commuter Bus\) bus route/ }),
-    ).toBeVisible();
-    expect(screen.getByText(BUS_FARE_NOTE)).toBeVisible();
-    expect(screen.queryByText(JEEPNEY_RIDING_NOTES[2]!)).toBeNull();
-    transitStore.routes = original;
+        expect(
+          screen.getByRole("link", { name: "DLTB website" }),
+        ).toHaveAttribute("href", "https://dltbbus.com.ph/");
+        expect(screen.queryByText("₱165")).toBeNull();
+        expect(screen.queryByText(/Fare not verified yet/)).toBeNull();
+      },
+    );
   });
 
   test("clicking a stop selects its route on the map, then the stop", () => {

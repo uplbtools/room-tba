@@ -269,8 +269,8 @@ describe("planJourneys", () => {
       (leg): leg is RideLeg => leg.kind === "ride",
     );
     expect(rides?.map((r) => r.routeId)).toEqual(["town-loop", "corridor"]);
-    // Both fares, one per boarding.
-    expect(plan.journeys[0]?.fare).toEqual({ regular: 26, discounted: 22 });
+    // Town jeeps charge by distance, so no total is quoted for the trip.
+    expect(plan.journeys[0]?.fare).toBeNull();
   });
 
   test("refuses to plan to a point off the mapped network", () => {

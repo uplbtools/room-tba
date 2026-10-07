@@ -34,6 +34,8 @@ try {
         id: jeepneyRoutesTable.id,
         name: jeepneyRoutesTable.name,
         description: jeepneyRoutesTable.description,
+        fareRegular: jeepneyRoutesTable.fareRegular,
+        fareDiscounted: jeepneyRoutesTable.fareDiscounted,
         version: jeepneyRoutesTable.version,
       })
       .from(jeepneyRoutesTable),
