@@ -84,8 +84,8 @@ describe("TodayScreen", () => {
     expect(sidebarStore.panelOpen).toBe("map");
   });
 
-  // #839: the day-route action stays visible when unusable — disabled with a
-  // hint — so users learn it exists.
+  // #839 + Jakob audit micro 14: no faded button without a reason. With no
+  // classes today the button is hidden and the reason takes its place.
   test("Route my day is enabled when today has classes", () => {
     plannerStore.addOffering([row({ schedule: ["M 07:00AM-08:00AM"] })]);
     render(TodayScreen);
@@ -93,11 +93,11 @@ describe("TodayScreen", () => {
     expect(screen.getByRole("button", { name: /Route my day/ })).toBeEnabled();
   });
 
-  test("Route my day is disabled with a hint when today has no classes", () => {
+  test("Route my day is hidden with a reason when today has no classes", () => {
     plannerStore.addOffering([row({ schedule: ["T 07:00AM-08:00AM"] })]);
     render(TodayScreen);
 
-    expect(screen.getByRole("button", { name: /Route my day/ })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /Route my day/ })).toBeNull();
     expect(screen.getByText("No classes to route today.")).toBeVisible();
   });
 

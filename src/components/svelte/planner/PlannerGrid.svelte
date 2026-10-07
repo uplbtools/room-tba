@@ -709,7 +709,6 @@
   }
 
   .planner-block--lane .planner-block__course {
-    white-space: normal;
     overflow-wrap: anywhere;
   }
 
@@ -735,23 +734,22 @@
     outline-offset: -2px;
   }
 
+  /* A phone column is ~60px: wrap "CMSC 12" onto two lines at the space
+     instead of clipping it to "CMS…" (Jakob audit, micro 14). */
   .planner-block__course {
     display: block;
     font-size: 0.6875rem;
     font-weight: 700;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.15;
+    overflow-wrap: break-word;
   }
 
   .planner-block__section {
     display: block;
-    font-size: 0.625rem;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin-top: 0.0625rem;
+    font-size: 0.5625rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
     opacity: 0.9;
   }
 

@@ -22,6 +22,9 @@
     hovered?: boolean;
     label: string;
     labelVisible?: boolean;
+    /** Hosts one of the user's planner classes: blue ring, label always on,
+     * "Your class" tag. */
+    myClass?: boolean;
     onclick?: (event: MouseEvent | KeyboardEvent) => void;
     /** Hide inline pin label while the shared EntityHoverPreview is shown for this pin. */
     previewSuppressed?: boolean;
@@ -46,6 +49,7 @@
     hovered = false,
     label,
     labelVisible = false,
+    myClass = false,
     onclick,
     previewSuppressed = false,
     onpointerenter,
@@ -57,7 +61,7 @@
   }: Props = $props();
 
   const showPinLabel = $derived(
-    (labelVisible || active || sponsored) && !previewSuppressed,
+    (labelVisible || active || sponsored || myClass) && !previewSuppressed,
   );
 
   const statusLabel = $derived(
@@ -103,7 +107,12 @@
   class:saved={saveState === "saved"}
   class:failed={saveState === "failed"}
   class:sponsored
-  aria-label={sponsored ? `${label}, sponsored` : label}
+  class:my-class={myClass}
+  aria-label={sponsored
+    ? `${label}, sponsored`
+    : myClass
+      ? `${label}, your class`
+      : label}
   role={onclick ? "button" : undefined}
   tabindex={onclick ? 0 : undefined}
   {onclick}
@@ -128,6 +137,8 @@
     {label}
     {#if sponsored}
       <span class="pin-status pin-sponsored">Sponsored</span>
+    {:else if myClass}
+      <span class="pin-status pin-my-class">Your class</span>
     {/if}
     {#if statusLabel}
       <span class="pin-status">{statusLabel}</span>
@@ -336,6 +347,17 @@
     letter-spacing: 0.06em;
     font-size: 0.625rem;
     color: hsl(42, 65%, 32%);
+  }
+
+  .map-entity-pin.my-class {
+    z-index: 83;
+    box-shadow:
+      0 0 0 0.22rem hsl(214, 80%, 48%),
+      0 2px 0.25rem rgba(0, 0, 0, 0.3);
+  }
+
+  .pin-my-class {
+    color: hsl(214, 80%, 38%);
   }
 
   .map-entity-pin.dimmed.event-linked {
