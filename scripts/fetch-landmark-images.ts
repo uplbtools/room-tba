@@ -14,10 +14,10 @@
  *    Google-captured panorama, and the pano-to-subject bearing becomes three
  *    facade headings. Only the pano id and headings are stored; the client
  *    builds image URLs with its own key. Google's terms forbid storing the
- *    imagery itself. User-contributed panos are kept for buildings (several
- *    campus buildings have nothing else) with the uploader's copyright stored
- *    for the credit line, and skipped for dorms, places and orgs, where they
- *    are usually a shop interior or somebody else's frontage.
+ *    imagery itself. Photo spheres people upload to Google (classrooms,
+ *    lobbies) are never used: when the nearest pano is one, a ring of points
+ *    around the subject is probed for a Google capture, and if none is found
+ *    the entry is marked streetViewUserUploadOnly so the client shows none.
  *  - Wikimedia Commons: geosearch near the pin, photographs only, capped at
  *    MAX_COMMONS_IMAGES. Hotlinked thumbnails plus the artist/license
  *    attribution their licenses require. Small places only keep files whose
@@ -38,6 +38,7 @@ import {
   distanceMetres,
   facadeHeadings,
   isGoogleCapture,
+  ringPoints,
   isLikelyPhotoTitle,
   isPhysicalOrgCategory,
   titleNamesPlace,
@@ -249,29 +250,39 @@ for (const target of targets) {
   stat.total += 1;
   const coords = { lat: target.lat, lng: target.lon };
 
-  let streetView:
-    | { panoId: string; headings: number[]; copyright?: string }
-    | undefined;
+  let streetView: { panoId: string; headings: number[] } | undefined;
+  let userUploadOnly = false;
   if (hasStreetViewKey(key) && !target.skipStreetView) {
     const radius =
       target.kind === "building" ? BUILDING_PANO_RADIUS : SMALL_PANO_RADIUS;
-    const meta = await fetchStreetViewMetadata(coords, key, {
-      radius,
-      source: "outdoor",
-    });
-    const google = meta.status === "OK" && isGoogleCapture(meta.copyright);
-    if (
-      meta.status === "OK" &&
-      (google || target.kind === "building") &&
+    // Nearest pano first; if it is someone's upload, probe around the
+    // subject for Google's own capture (metadata lookups are free).
+    const probes = [coords, ...ringPoints(coords, radius / 2)];
+    let best: { panoId: string; location: typeof coords } | undefined;
+    for (const [i, probe] of probes.entries()) {
+      const meta = await fetchStreetViewMetadata(probe, key, {
+        radius: i === 0 ? radius : radius / 2,
+        source: "outdoor",
+      });
+      if (meta.status !== "OK") continue;
       // Google's radius is a search hint, not a bound: it has returned panos
       // 150m away for a 60m search. Enforce it ourselves.
-      distanceMetres(meta.location, coords) <= radius
-    ) {
+      const distance = distanceMetres(meta.location, coords);
+      if (distance > radius) continue;
+      if (!isGoogleCapture(meta.copyright)) {
+        userUploadOnly = true;
+        continue;
+      }
+      if (!best || distance < distanceMetres(best.location, coords)) {
+        best = { panoId: meta.panoId, location: meta.location };
+      }
+      if (i === 0) break;
+    }
+    if (best) {
+      userUploadOnly = false;
       streetView = {
-        panoId: meta.panoId,
-        headings: facadeHeadings(bearingDegrees(meta.location, coords)),
-        // Google's own captures use the default credit line.
-        copyright: google ? undefined : meta.copyright,
+        panoId: best.panoId,
+        headings: facadeHeadings(bearingDegrees(best.location, coords)),
       };
       stat.streetView += 1;
     }
@@ -280,7 +291,7 @@ for (const target of targets) {
   const commons = await commonsImagesFor(target);
   if (commons.length > 0) stat.commons += 1;
 
-  if (!streetView && commons.length === 0) continue;
+  if (!streetView && !userUploadOnly && commons.length === 0) continue;
   stat.entries += 1;
   // Name-keyed, not id-keyed: ids differ between the prod, staging, and e2e
   // databases (see LandmarkImagesManifest).
@@ -289,11 +300,10 @@ for (const target of targets) {
       ? {
           streetViewHeadings: streetView.headings,
           streetViewPanoId: streetView.panoId,
-          ...(streetView.copyright
-            ? { streetViewCopyright: streetView.copyright }
-            : {}),
         }
-      : {}),
+      : userUploadOnly
+        ? { streetViewUserUploadOnly: true as const }
+        : {}),
     ...(commons.length > 0 ? { commons } : {}),
   };
   console.log(

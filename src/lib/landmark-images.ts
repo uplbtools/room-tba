@@ -31,10 +31,11 @@ export type LandmarkImagesEntry = {
    */
   streetViewPanoId?: string;
   /**
-   * The pano's copyright line when it is not Google's own capture
-   * ("© Ry Clark Media Arts"). Google requires crediting the uploader.
+   * The only coverage near this landmark is a photo sphere somebody uploaded
+   * to Google (often a classroom or lobby), not Google's own capture. Those
+   * are never shown, and this also overrides the database's cached pano.
    */
-  streetViewCopyright?: string;
+  streetViewUserUploadOnly?: true;
   commons?: CommonsImage[];
 };
 
@@ -79,9 +80,9 @@ export type LandmarkImagesInput = {
 };
 
 /**
- * Every image the panel can show for a landmark, in display order:
- * contributor photo first (ours, current, chosen to show the entrance), then
- * Street View facade angles, then Commons photos. Capped at
+ * Every image the panel can show for a landmark, in display order: Google's
+ * own Street View facade angles first (the thumbnail), then the contributor
+ * photo, then Commons photos. Capped at
  * MAX_IMAGES_PER_LANDMARK; empty when no source has anything.
  */
 export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
@@ -89,12 +90,10 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
   const entry = LANDMARK_IMAGES[`${kind}:${name}`];
   // A pinned manifest pano is itself proof of coverage: the fetch script only
   // records one after the free metadata check found it.
-  const panoId = entry?.streetViewPanoId ?? input.panoId;
+  const panoId = entry?.streetViewUserUploadOnly
+    ? null
+    : (entry?.streetViewPanoId ?? input.panoId);
   const images: LandmarkImage[] = [];
-
-  if (imageUrl) {
-    images.push({ src: imageUrl, alt: name, source: "contributor" });
-  }
 
   if (hasStreetViewKey(googleKey) && panoId && lat != null && lon != null) {
     // No manifest entry still gets the pre-gallery single shot: Google points
@@ -117,12 +116,14 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
           },
         ),
         alt: `Street View of ${name}`,
-        credit: entry?.streetViewCopyright
-          ? `Street View image ${entry.streetViewCopyright}`
-          : STREET_VIEW_ATTRIBUTION,
+        credit: STREET_VIEW_ATTRIBUTION,
         source: "street-view",
       });
     }
+  }
+
+  if (imageUrl) {
+    images.push({ src: imageUrl, alt: name, source: "contributor" });
   }
 
   for (const photo of entry?.commons ?? []) {
