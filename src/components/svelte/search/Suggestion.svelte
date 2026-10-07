@@ -52,9 +52,13 @@
   const stopLat = $derived(lat ?? building?.lat ?? null);
   const stopLon = $derived(lon ?? building?.lon ?? null);
 
+  // Not while filling the From / To field: there the row itself is the pick.
   const canAddStop = $derived(
     directionsStore.active &&
       !directionsStore.navigating &&
+      directionsStore.picking === null &&
+      !directionsStore.addingStop &&
+      directionsStore.destination !== null &&
       directionsStore.waypoints.length < MAX_DIRECTIONS_WAYPOINTS &&
       stopLat != null &&
       stopLon != null &&
@@ -67,9 +71,10 @@
 
   function handleSuggestionClick() {
     entityHoverPreviewStore.hideNow();
-    // Choosing a start or end point for directions: any place with a pin works.
+    // Choosing a start, end or extra stop for directions: any place with a
+    // pin works.
     if (
-      directionsStore.picking &&
+      (directionsStore.picking || directionsStore.addingStop) &&
       stopLat != null &&
       stopLon != null &&
       directionsStore.takePick({ lat: stopLat, lng: stopLon, label: value })

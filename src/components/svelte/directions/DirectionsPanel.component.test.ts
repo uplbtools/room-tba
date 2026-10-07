@@ -69,7 +69,7 @@ describe("DirectionsPanel", () => {
 
     expect(screen.getByText(/Waiting for your location/)).toBeInTheDocument();
     await fireEvent.click(
-      screen.getByRole("button", { name: "Choose a starting point" }),
+      screen.getByRole("button", { name: "Choose starting point" }),
     );
     expect(directionsStore.picking).toBe("origin");
   });
@@ -83,7 +83,7 @@ describe("DirectionsPanel", () => {
     expect(screen.queryByText(/Waiting for your location/)).toBeNull();
     expect(screen.getByText(/Location access denied/)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Choose a starting point" }),
+      screen.getByRole("button", { name: "Choose starting point" }),
     ).toBeVisible();
   });
 
@@ -94,8 +94,11 @@ describe("DirectionsPanel", () => {
       seedReadyDirections();
       const { container } = render(DirectionsPanel);
 
-      expect(screen.getByText("12 min")).toBeInTheDocument();
-      expect(screen.getByText("Walk")).toBeInTheDocument();
+      expect(screen.getAllByText("12 min").length).toBeGreaterThan(0);
+      expect(screen.getByRole("tab", { name: "Walk, 12 min" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
       expect(screen.getByRole("button", { name: "Show on map" })).toBeVisible();
       expect(screen.getByRole("button", { name: "Start" })).toBeVisible();
       expect(container.querySelector(".option--selected")).toBeTruthy();
@@ -120,5 +123,33 @@ describe("DirectionsPanel", () => {
     expect(
       screen.queryByRole("button", { name: "Close directions" }),
     ).toBeNull();
+  });
+
+  test("mode tabs show each mode's time; cards run fastest first, marked", async () => {
+    seedReadyDirections();
+    const jeep: Journey = {
+      ...walkJourney,
+      id: "forestry",
+      kind: "transit",
+      seconds: 9 * 60,
+      meters: 2000,
+    };
+    directionsStore.journeys = [jeep, walkJourney];
+    directionsStore.selectedId = jeep.id;
+    const { container } = render(DirectionsPanel);
+
+    const walkTab = screen.getByRole("tab", { name: "Walk, 12 min" });
+    const jeepTab = screen.getByRole("tab", { name: "Jeep, 9 min" });
+    expect(jeepTab).toHaveAttribute("aria-selected", "true");
+    const cards = container.querySelectorAll(".option");
+    expect(cards[0]?.textContent).toContain("Fastest");
+    expect(cards[1]?.textContent).not.toContain("Fastest");
+    // The pinned Start row repeats the selected option, distance included.
+    const startRow = container.querySelector(".directions__start-row");
+    expect(startRow?.textContent).toContain("9 min");
+    expect(startRow?.textContent).toContain("(2.0 km)");
+
+    await fireEvent.click(walkTab);
+    expect(directionsStore.selectedId).toBe("walk");
   });
 });

@@ -1,10 +1,7 @@
 /**
- * Get Directions "Show on map" framing.
- *
- * Horizontal priority: GPS accuracy ring kisses one side of the free map
- * strip; destination name tag kisses the other — for any destination bearing.
- * Zoom is driven by width (not the tall route bbox), so diagonal walks do not
- * leave empty side gutters.
+ * Get Directions overview framing: fit both trip ends and the route into
+ * the map strip left between the top panel and the bottom sheet (or the
+ * desktop drawer), with room for the destination's name tag.
  */
 
 export type FitPadding = {
@@ -179,56 +176,26 @@ export function directionsFitPaddingFromRects(
   };
 }
 
-type CameraForBoundsMap = {
-  cameraForBounds: (
-    bounds: [[number, number], [number, number]],
-    options?: {
-      padding?: FitPadding;
-      bearing?: number;
-      pitch?: number;
-      maxZoom?: number;
-    },
-  ) => {
-    center: { lng: number; lat: number } | [number, number];
-    zoom: number;
-  };
-};
-
 /**
- * Width-first camera: zoom so west↔east fills the padded strip. Center sits on
- * the origin/destination midpoints (vertical chrome still applied via padding).
+ * fitBounds box for the route overview: both trip ends (with the GPS ring)
+ * plus the drawn line, so a ride that bulges round a hill stays on screen.
+ * Feed it to map.fitBounds with the measured chrome padding; unlike
+ * cameraForBounds, fitBounds quietly does nothing when padding leaves no room
+ * instead of returning undefined (the old `reading 'center'` crash).
  */
-export function directionsEdgeCamera(
-  map: CameraForBoundsMap,
+export function directionsFitBounds(
   extents: DirectionsFitExtents,
-  padding: FitPadding,
-): { center: [number, number]; zoom: number } {
-  const midLat = (extents.south + extents.north) / 2;
-  const midLng = (extents.west + extents.east) / 2;
-  const eps = 1e-7;
-
-  // Degenerate-height bounds → zoom is decided by width only.
-  const cam = map.cameraForBounds(
-    [
-      [extents.west, midLat - eps],
-      [extents.east, midLat + eps],
-    ],
-    {
-      padding,
-      bearing: 0,
-      pitch: 0,
-      maxZoom: 18,
-    },
-  );
-
-  const center = cam.center;
-  const lng = Array.isArray(center) ? center[0] : center.lng;
-  const lat = Array.isArray(center) ? center[1] : center.lat;
-
-  return {
-    // Prefer geographic midpoint of the trip, not whatever cameraForBounds
-    // picked for the flat band (keeps both pins in the vertical free strip).
-    center: [midLng || lng, midLat || lat],
-    zoom: cam.zoom,
-  };
+  line: [number, number][] = [],
+): [[number, number], [number, number]] {
+  let { west, east, south, north } = extents;
+  for (const [lng, lat] of line) {
+    west = Math.min(west, lng);
+    east = Math.max(east, lng);
+    south = Math.min(south, lat);
+    north = Math.max(north, lat);
+  }
+  return [
+    [west, south],
+    [east, north],
+  ];
 }

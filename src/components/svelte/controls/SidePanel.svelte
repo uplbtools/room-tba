@@ -57,8 +57,8 @@
         (queryStore.category === "browse" &&
           queryStore.queryValue !== "jeepney")),
   );
-  // Directions peek must clear the first option + Show on map / Start;
-  // 0.3 only showed the Walk card.
+  // Directions peek ends under the Start row (peekFitTo); the ratio is only
+  // the ceiling, and the fallback before that row exists.
   const sheetPeekRatio = $derived(
     navPeek ? 0.22 : directionsPeek ? 0.44 : listPeek ? 0.68 : 0.48,
   );
@@ -195,9 +195,11 @@
     open={panelOpen}
     bind:snap={mobileSnap}
     peekRatio={sheetPeekRatio}
-    peekFitTo={navPeek || directionsPeek
-      ? undefined
-      : ".entity-actions, .sk-detail__actions"}
+    peekFitTo={navPeek
+      ? ".nav__bar"
+      : directionsPeek
+        ? ".directions__start-row"
+        : ".entity-actions, .sk-detail__actions"}
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
     bottomInset={browseSheet
       ? "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)"

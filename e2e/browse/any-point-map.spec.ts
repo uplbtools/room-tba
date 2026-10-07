@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 import { expandDetailsSheet, gotoHome, waitForAppBoot } from "../helpers/app";
-import { openBuilding, searchAndSelect } from "../helpers/search";
+import { openBuilding, searchSuggestions } from "../helpers/search";
 
 // Any point on the map can be the start of directions and the "You are here"
 // of the printable jeepney map: right-click on desktop, long-press on phones.
@@ -71,21 +71,21 @@ test.describe("directions and printable map from any point", () => {
     await menu.getByRole("button", { name: "Directions from here" }).click();
     await expect(menu).toBeHidden();
     const stops = page.getByRole("list", { name: "Directions stop sequence" });
-    await expect(stops.getByText("Dropped pin")).toBeVisible();
-    await expect(stops.getByText("Choose a destination")).toBeVisible();
+    const start = stops.getByRole("searchbox", { name: "Starting point" });
+    const end = stops.getByRole("searchbox", { name: "Destination" });
+    await expect(start).toHaveValue("Dropped pin");
+    await expect(end).toHaveValue("");
+    await expect(end).toHaveAttribute("placeholder", "Choose destination");
 
-    // Any search result can be the destination.
-    await searchAndSelect(
-      page,
-      E2E_FIXTURES.buildingName,
-      new RegExp(E2E_FIXTURES.buildingName, "i"),
-    );
-    await expect(
-      stops.getByRole("button", {
-        name: `Change destination, now ${E2E_FIXTURES.buildingName}`,
-      }),
-    ).toBeVisible();
-    await expect(stops.getByText("Dropped pin")).toBeVisible();
+    // The To field searches places inline; any result can be the destination.
+    await end.fill(E2E_FIXTURES.buildingName);
+    const suggestion = searchSuggestions(page)
+      .locator("button.suggestion")
+      .filter({ hasText: new RegExp(E2E_FIXTURES.buildingName, "i") })
+      .first();
+    await suggestion.click({ timeout: 30_000 });
+    await expect(end).toHaveValue(E2E_FIXTURES.buildingName);
+    await expect(start).toHaveValue("Dropped pin");
     await expect(
       page.getByText(/Search for a place or tap the map/),
     ).toBeHidden();
@@ -109,18 +109,16 @@ test.describe("directions and printable map from any point", () => {
       .click();
 
     const stops = page.getByRole("list", { name: "Directions stop sequence" });
-    const start = stops.getByRole("button", { name: /^Change starting point/ });
-    await expect(start).toHaveAccessibleName(
-      "Change starting point, now Your location",
-    );
-    await start.click();
-    await expect(stops.getByText("Choose a starting point")).toBeVisible();
+    const start = stops.getByRole("searchbox", { name: "Starting point" });
+    // No fix: the start is empty, never a stale "Your location".
+    await expect(start).toHaveValue("");
 
+    // Arm the start field, then tap the map instead of typing.
+    await start.focus();
+    await start.blur();
     const at = await mapCanvasPoint(page, 0.3, 0.42);
     await page.mouse.click(at.x, at.y);
-    await expect(start).not.toHaveAccessibleName(
-      "Change starting point, now Your location",
-    );
+    await expect(start).toHaveValue("Dropped pin");
     await expect(page.getByText("Waiting for your location")).toBeHidden();
   });
 });

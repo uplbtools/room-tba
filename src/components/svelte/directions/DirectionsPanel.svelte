@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
-   * Google-Maps-shaped directions: a ranked option list with a headline ETA,
-   * rendered inside the existing mobile sheet / desktop drawer (#966).
+   * Google-Maps-shaped directions: travel-mode tabs with their times, a
+   * pinned Start row (the sheet's peek ends just under it), and route cards
+   * ranked fastest first, inside the mobile sheet / desktop drawer (#966).
    *
    * The map stays live behind this panel — see BottomSheet, which no longer
    * lays a dismiss scrim over the map strip.
@@ -14,6 +15,8 @@
     directionsStore,
     locationStore,
     mapStore,
+    YOUR_LOCATION_LABEL,
+    type DirectionsMode,
   } from "@lib/store.svelte";
   import { formatDistance, formatDuration } from "@lib/campus-route";
   import {
@@ -23,13 +26,8 @@
     type RideLeg,
   } from "@lib/travel-graph/journey";
   import { journeyOptionLabel } from "@lib/travel-graph/plan-multi-leg";
-  import {
-    computeDirectionsFitExtents,
-    directionsEdgeCamera,
-    directionsFitPaddingFromRects,
-    estimateDestinationLabelHalfWidthPx,
-  } from "@lib/travel-graph/directions-fit";
   import NavigationBar from "./NavigationBar.svelte";
+  import { fitDirectionsRoute } from "./fit-route";
   import { JEEPNEY_FARE_NOTE } from "@constants/jeepney-routes";
   import {
     JEEPNEY_KPH,
@@ -39,6 +37,11 @@
 
   const journeys = $derived(directionsStore.journeys);
   const selected = $derived(directionsStore.selected);
+
+  const MODE_LABELS: Record<DirectionsMode, string> = {
+    walk: "Walk",
+    transit: "Jeep",
+  };
 
   /** Clock time the rider actually arrives — the "how long till" answer. */
   function arrivalLabel(seconds: number): string {
@@ -55,89 +58,6 @@
 
   function rideLegs(journey: Journey): RideLeg[] {
     return journey.legs.filter((leg): leg is RideLeg => leg.kind === "ride");
-  }
-
-  function measureDirectionsFitPadding(
-    map: { getContainer: () => HTMLElement },
-    destinationLabel: string,
-    destOnRight: boolean,
-  ) {
-    const mapRect = map.getContainer().getBoundingClientRect();
-    const mobile = window.matchMedia("(max-width: 48rem)").matches;
-
-    const topEl =
-      document.querySelector(".directions-route-chips") ??
-      document.querySelector(".map-search-chrome") ??
-      document.querySelector(".search-shell-main");
-    const topBottom =
-      topEl?.getBoundingClientRect().bottom ??
-      mapRect.top + (mobile ? 140 : 88);
-
-    const sheetEl = document.querySelector(".bottom-sheet");
-    const sheetTop =
-      sheetEl?.getBoundingClientRect().top ??
-      mapRect.bottom - (mobile ? mapRect.height * 0.44 : 64);
-
-    const statusEl = document.querySelector(".bottom-chrome");
-    const statusTop =
-      statusEl?.getBoundingClientRect().top ?? mapRect.bottom;
-    const coverBottom = mobile ? Math.min(sheetTop, statusTop) : statusTop;
-
-    const drawerEl = document.querySelector(".drawer:not(.is-collapsed)");
-    const drawerRight = drawerEl?.getBoundingClientRect().right ?? mapRect.left;
-
-    return directionsFitPaddingFromRects(mapRect, {
-      topBottom,
-      coverBottom,
-      leftCover: !mobile ? Math.max(0, drawerRight - mapRect.left) : 0,
-      mobile,
-      destinationLabelHalfWidthPx:
-        estimateDestinationLabelHalfWidthPx(destinationLabel),
-      destOnRight,
-      edgeGutterPx: 2,
-    });
-  }
-
-  function fitSelected() {
-    const map = mapStore.mapInstance;
-    const destination = directionsStore.destination;
-    if (!map || !destination) return;
-
-    // Frame GPS puck ↔ destination pin only. Full polyline bbox is taller than
-    // wide on diagonal walks, so fitBounds zoomed out for height and left gaps.
-    const gps = locationStore.coords;
-    const origin =
-      gps && !directionsStore.originFixed
-        ? { lng: gps[0], lat: gps[1] }
-        : directionsStore.origin;
-    if (!origin) return;
-
-    const extents = computeDirectionsFitExtents({
-      origin,
-      destination,
-      waypoints: directionsStore.waypoints,
-      accuracyMeters: locationStore.accuracyMeters ?? 25,
-    });
-    const destLabel = destination.label || "Destination";
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const padding = measureDirectionsFitPadding(
-          map,
-          destLabel,
-          extents.destOnRight,
-        );
-        const camera = directionsEdgeCamera(map, extents, padding);
-        map.easeTo({
-          center: camera.center,
-          zoom: camera.zoom,
-          bearing: 0,
-          pitch: 0,
-          duration: 900,
-          padding,
-        });
-      });
-    });
   }
 
   /** Fit once per plan shape so open/replan/add-stop reframes both ends. */
@@ -157,7 +77,7 @@
     if (fitTimer) clearTimeout(fitTimer);
     fitTimer = setTimeout(() => {
       fitTimer = null;
-      untrack(() => fitSelected());
+      untrack(() => fitDirectionsRoute());
     }, 180);
   });
 
@@ -187,9 +107,19 @@
     if (!coords) return;
 
     untrack(() => {
-      const destination = directionsStore.destination;
       // A start point the rider chose wins over the blue dot.
-      if (!destination || directionsStore.originFixed) return;
+      if (directionsStore.originFixed) return;
+      const here = {
+        lat: coords[1],
+        lng: coords[0],
+        label: YOUR_LOCATION_LABEL,
+      };
+      const destination = directionsStore.destination;
+      if (!destination) {
+        // Opened from the home screen: the From field shows the fix.
+        directionsStore.origin = here;
+        return;
+      }
 
       if (plannedFrom) {
         const movedMeters = Math.hypot(
@@ -202,10 +132,7 @@
       }
 
       plannedFrom = [coords[0], coords[1]];
-      void directionsStore.replan(
-        { lat: coords[1], lng: coords[0], label: "Your location" },
-        destination,
-      );
+      void directionsStore.replan(here, destination);
     });
   });
 
@@ -222,7 +149,7 @@
     <p class="directions__note" role="status">
       Search for a place or tap the map to choose where you are going.
     </p>
-  {:else if directionsStore.phase === "planning" && (locationStore.coords || directionsStore.originFixed)}
+  {:else if directionsStore.phase === "planning" && directionsStore.origin}
     <p class="directions__note" role="status">Finding the best ways there…</p>
   {:else if directionsStore.phase === "planning"}
     <!-- No start point yet. Location can be denied, unavailable, or a prompt
@@ -237,12 +164,13 @@
         Waiting for your location… or choose where you are starting from.
       </p>
     {/if}
+    <!-- "Use my location" (the retry) sits under the From field. -->
     <button
       type="button"
       class="directions__ghost"
       onclick={() => directionsStore.beginPick("origin")}
     >
-      Choose a starting point
+      Choose starting point
     </button>
   {:else if directionsStore.phase === "error"}
     <p class="directions__note directions__note--warn" role="status">
@@ -253,7 +181,55 @@
       {statusNote ?? "No route found."}
     </p>
   {:else}
-    <ul class="directions__options">
+    <div class="directions__modes" role="tablist" aria-label="Travel mode">
+      {#each directionsStore.modes as { mode, seconds } (mode)}
+        <button
+          type="button"
+          role="tab"
+          class="directions__mode"
+          aria-selected={directionsStore.mode === mode}
+          aria-label={`${MODE_LABELS[mode]}, ${formatDuration(seconds)}`}
+          onclick={() => directionsStore.selectMode(mode)}
+        >
+          {#if mode === "transit"}
+            <Bus size={16} aria-hidden="true" />
+          {:else}
+            <Footprints size={16} aria-hidden="true" />
+          {/if}
+          <span aria-hidden="true">{formatDuration(seconds)}</span>
+        </button>
+      {/each}
+    </div>
+
+    {#if selected}
+      <!-- The sheet's peek ends under this row, so Start is always in reach. -->
+      <div class="directions__start-row">
+        <div class="directions__summary">
+          <p class="directions__summary-time">
+            {formatDuration(selected.seconds)}
+            <span class="directions__summary-meters"
+              >({formatDistance(selected.meters)})</span
+            >
+          </p>
+          <p class="directions__summary-meta">
+            {#if selected.id === directionsStore.fastestId}
+              <span class="directions__fastest">Fastest</span> ·
+            {/if}
+            arrives {arrivalLabel(selected.seconds)}
+          </p>
+        </div>
+        <button
+          type="button"
+          class="directions__show"
+          onclick={() => directionsStore.startNavigation()}
+        >
+          <Navigation size={16} aria-hidden="true" />
+          Start
+        </button>
+      </div>
+    {/if}
+
+    <ul class="directions__options" aria-label="Routes">
       {#each journeys as journey (journey.id)}
         {@const ride = rideLeg(journey)}
         {@const isSelected = selected?.id === journey.id}
@@ -279,7 +255,12 @@
             </span>
 
             <span class="option__body">
-              <span class="option__mode">{modeLabel}</span>
+              <span class="option__mode">
+                {modeLabel}
+                {#if journey.id === directionsStore.fastestId}
+                  · <span class="directions__fastest">Fastest</span>
+                {/if}
+              </span>
               <span class="option__time"
                 >{formatDuration(journey.seconds)}</span
               >
@@ -335,16 +316,12 @@
     </ul>
 
     <div class="directions__actions">
-      <button type="button" class="directions__ghost" onclick={fitSelected}>
-        Show on map
-      </button>
       <button
         type="button"
-        class="directions__show"
-        onclick={() => directionsStore.startNavigation()}
+        class="directions__ghost"
+        onclick={() => fitDirectionsRoute()}
       >
-        <Navigation size={16} aria-hidden="true" />
-        Start
+        Show on map
       </button>
     </div>
 
@@ -516,15 +493,84 @@
     background: #f4f4f5;
   }
 
+  .directions__modes {
+    display: flex;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .directions__mode {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0.375rem 0.875rem;
+    border: 1px solid #e4e4e7;
+    border-radius: 999px;
+    background: #fff;
+    color: #3f3f46;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .directions__mode[aria-selected="true"] {
+    border-color: transparent;
+    background: #fbe9ee;
+    color: var(--color-brand, #8d1437);
+  }
+
+  .directions__start-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.125rem 0 0.25rem;
+  }
+
+  .directions__summary {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .directions__summary-time {
+    margin: 0;
+    color: #18181b;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .directions__summary-meters {
+    color: #52525b;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .directions__summary-meta {
+    margin: 0;
+    color: #52525b;
+    font-size: 0.8125rem;
+  }
+
+  .directions__fastest {
+    color: #15803d;
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
   .directions__show {
     display: flex;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
     min-width: 0;
     min-height: 2.75rem;
-    padding: 0.625rem 1rem;
+    padding: 0.625rem 1.5rem;
     border: none;
     border-radius: 999px;
     background: var(--color-brand, #8d1437);
