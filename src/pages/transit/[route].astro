@@ -46,7 +46,9 @@ const structuredData = jsonLd(
   imagePath={ogCardPath({
     title: routeName,
     subtitle: route
-      ? `${route.stops.length} stops · PHP ${route.fare.regular} regular · PHP ${route.fare.discounted} discounted`
+      ? fare?.kind === "fixed" || fare?.kind === "end-to-end"
+        ? `${route.stops.length} stops · PHP ${fare.fare.regular} regular · PHP ${fare.fare.discounted} discounted`
+        : `${route.stops.length} stops`
       : "Transit at UPLB",
     kicker: "Transit at UPLB",
   })}
