@@ -67,16 +67,29 @@
           jeepneyStore.clearRoute();
           return;
         }
-        await transitStore.refresh();
-        const route = transitStore.getRoute(routeId);
-        if (!route) return;
-        jeepneyStore.openRouteOnMap(route.id);
-        const stopIndex = stopSlug ? getTransitStopIndex(route, stopSlug) : -1;
-        if (stopIndex >= 0) {
-          requestAnimationFrame(() => jeepneyStore.openStop(stopIndex));
-        } else {
-          jeepneyStore.closeStop();
+        const open = () => {
+          const route = transitStore.displayRoute(routeId);
+          if (!route) return false;
+          jeepneyStore.openRouteOnMap(route.id);
+          const stopIndex = stopSlug
+            ? getTransitStopIndex(route, stopSlug)
+            : -1;
+          if (stopIndex >= 0) {
+            requestAnimationFrame(() => jeepneyStore.openStop(stopIndex));
+          } else {
+            jeepneyStore.closeStop();
+          }
+          return true;
+        };
+        // A bundled route opens at once. Waiting on refresh first left
+        // /transit/forestry on the bare route list offline, where the sync
+        // probe retries for a minute before giving up.
+        if (open()) {
+          void transitStore.refresh();
+          return;
         }
+        await transitStore.refresh();
+        open();
       },
     });
 
@@ -104,7 +117,7 @@
       screen: isScreenId(sidebarStore.panelOpen) ? sidebarStore.panelOpen : null,
       transitRouteId: jeepneyStore.selectedRouteId,
       transitStopIndex: jeepneyStore.selectedStopIndex,
-      transitRoute: transitStore.getRoute(jeepneyStore.selectedRouteId),
+      transitRoute: transitStore.displayRoute(jeepneyStore.selectedRouteId),
     });
   });
 
