@@ -105,6 +105,15 @@ describe("routeFareInfo", () => {
     ).toBeNull();
   });
 
+  test("the SNODLOB e-jeep has the verified campus fare", () => {
+    const route = { id: "snodlob", name: "UPLB Loop (SNODLOB e-jeep)" };
+    expect(routeFareInfo(route)).toMatchObject({
+      kind: "fixed",
+      fare: { regular: 14, discounted: 12 },
+    });
+    expect(perBoardingFare(route)).toEqual({ regular: 14, discounted: 12 });
+  });
+
   test("other town jeeps give only the minimum", () => {
     const info = routeFareInfo({
       id: "lb-to-san-pablo",

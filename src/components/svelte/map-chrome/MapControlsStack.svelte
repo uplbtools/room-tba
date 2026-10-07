@@ -34,6 +34,8 @@
   let { hideCompass = false }: Props = $props();
 
   let bearing = $state(0);
+  /** Until the map reports its camera, the bearing above is a placeholder. */
+  let cameraKnown = $state(false);
   let pitch = $state(0);
   let centered = $state(false);
 
@@ -56,7 +58,10 @@
   const rotated = $derived(
     Math.abs(((((bearing - homeBearing + 180) % 360) + 360) % 360) - 180) > 1,
   );
-  const showCompass = $derived(!hideCompass || rotated);
+  // On phones the compass only appears once the real camera is known: before
+  // the map loaded, the placeholder bearing read as "rotated" and the compass
+  // flashed up over a blank map.
+  const showCompass = $derived(!hideCompass || (cameraKnown && rotated));
 
   onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
 
@@ -64,6 +69,7 @@
     const map = mapStore.mapInstance;
     if (!map) return;
     bearing = map.getBearing();
+    cameraKnown = true;
     pitch = map.getPitch();
   }
 
@@ -309,6 +315,16 @@
     --map-ctrl-size: 2.75rem;
     --map-ctrl-zoom-h: 5.5rem;
     gap: 0.5rem;
+  }
+
+  /* Phones: one shape language for the whole column. Every button is a 44px
+     circle and the zoom pair a pill, matching the round filter chips. */
+  .map-controls-stack--mobile .map-ctrl {
+    border-radius: 999px;
+  }
+
+  .map-controls-stack--mobile .map-ctrl-zoom {
+    border-radius: 999px;
   }
 
   .map-ctrl--active {

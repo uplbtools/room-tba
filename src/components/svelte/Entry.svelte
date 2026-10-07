@@ -1000,6 +1000,16 @@
     pointer-events: auto;
   }
 
+  /* The map tools button heads the phone controls column: same white circle,
+     shadow and maroon icon as the buttons under it, instead of its own
+     bordered, heavier-shadowed style. */
+  .mobile-map-controls :global(.map-chrome-fab-trigger:not([aria-expanded="true"])) {
+    border: none;
+    background-color: #fff;
+    color: #8d1437;
+    box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
+  }
+
   /* Entity sheet open (peek or expanded): hide locate / 3D / zoom — they sit
      in the same corner as the sheet and otherwise paint on top of it. */
   .mobile-map-controls--sheet-open {

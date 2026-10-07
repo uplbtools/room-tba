@@ -112,6 +112,12 @@ const PLANS: Record<string, Plan> = {
     kind: "routed",
     note: "OSRM car routing over the 10 stops out Pili Drive to Jubileeville, Bay. No OSM relation found for this service.",
   },
+  snodlob: {
+    kind: "routed",
+    note: "OSRM car routing over the 20 stops of the OVCCA-approved SNODLOB e-jeep loop (Copeland Gym, Getulio B. Viado, Main Library, OVCRE Annex, CAS, Aglibut Ave., CEAT, Pili Drive, Vet Med).",
+    caveat:
+      "Drawn on the approved route; drivers do not always follow it and may skip Getulio B. Viado and Copeland.",
+  },
 
   // DLTB commuter bus, mapped end to end in OSM under the operator's own name.
   "uplb-to-upd": {

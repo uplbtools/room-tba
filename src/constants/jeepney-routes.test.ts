@@ -6,6 +6,7 @@ import {
   resolveRouteGeometry,
   type JeepneyStop,
   type StoredRouteGeometry,
+  withBundledRoutes,
 } from "./jeepney-routes.js";
 import jeepneyGeometries from "./jeepney-geometries.json" with { type: "json" };
 
@@ -155,5 +156,23 @@ describe("JEEPNEY_ROUTES data", () => {
         expect(stop.description.trim().length).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe("withBundledRoutes", () => {
+  test("adds bundled routes the database does not have, keeping database rows", () => {
+    const dbKaliwa = { ...JEEPNEY_ROUTES[0]!, name: "From the database" };
+    const merged = withBundledRoutes([dbKaliwa]);
+    expect(merged[0]).toBe(dbKaliwa);
+    expect(merged.map((r) => r.id)).toContain("snodlob");
+  });
+
+  test("replaces a cached route that lost its stops", () => {
+    const empty = {
+      ...JEEPNEY_ROUTES.find((r) => r.id === "snodlob")!,
+      stops: [],
+    };
+    const merged = withBundledRoutes([empty]);
+    expect(merged.find((r) => r.id === "snodlob")?.stops.length).toBe(21);
   });
 });
