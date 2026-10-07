@@ -74,28 +74,47 @@ describe("landing modal content balance", () => {
 });
 
 describe("landing modal controls", () => {
-  test("tab bar still switches panels", async () => {
+  // The menu has separate "How Room TBA works" and "Contributors" entries, so
+  // each opens its own view; a tab bar inside the tour only duplicated them.
+  test("each menu entry opens its own view, with no tab bar", () => {
+    modalStore.openModal("landing", { landingTab: "campus" });
+    const { unmount } = render(LandingModal);
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(document.getElementById("landing-panel-campus")).not.toBeNull();
+    expect(document.getElementById("landing-panel-welcome")).toBeNull();
+    unmount();
+
+    modalStore.openModal("landing", { landingTab: "welcome" });
     render(LandingModal);
-    expect(screen.getByRole("tabpanel")).toHaveAttribute(
-      "id",
-      "landing-panel-welcome",
-    );
+    expect(document.getElementById("landing-panel-welcome")).not.toBeNull();
+    expect(document.getElementById("landing-panel-campus")).toBeNull();
+  });
 
-    await fireEvent.click(screen.getByRole("tab", { name: "Campus team" }));
-    expect(screen.getByRole("tabpanel")).toHaveAttribute(
-      "id",
-      "landing-panel-campus",
-    );
-    expect(screen.getByRole("tab", { name: "Campus team" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+  test("a revisit from the menu says Got it, not Get Started", async () => {
+    modalStore.openModal("landing", { landingTab: "welcome" });
+    render(LandingModal);
 
-    await fireEvent.click(screen.getByRole("tab", { name: "Welcome" }));
-    expect(screen.getByRole("tabpanel")).toHaveAttribute(
-      "id",
-      "landing-panel-welcome",
+    expect(screen.queryByRole("button", { name: "Get Started" })).toBeNull();
+    await fireEvent.click(screen.getByRole("button", { name: "Got it" }));
+    expect(modalStore.open).toBe(false);
+  });
+
+  test("Contributors closes with Close", () => {
+    modalStore.openModal("landing", { landingTab: "campus" });
+    render(LandingModal);
+
+    expect(screen.queryByRole("button", { name: "Get Started" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Close" })).toBeVisible();
+  });
+
+  test("the dialog has a close button", async () => {
+    modalStore.openModal("landing", { landingTab: "welcome" });
+    render(Modal);
+
+    await fireEvent.click(
+      await screen.findByRole("button", { name: "Close about Room TBA" }),
     );
+    expect(modalStore.open).toBe(false);
   });
 
   test("Get Started closes the modal", async () => {

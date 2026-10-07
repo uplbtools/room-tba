@@ -67,5 +67,10 @@ describe("AnnouncementsModal", () => {
   test("empty state instead of a blank panel", () => {
     render(AnnouncementsModal);
     expect(screen.getByText(/no announcements right now/i)).toBeVisible();
+    // A next step instead of a dead end, and no detour to release notes.
+    expect(
+      screen.getByRole("link", { name: /follow on facebook/i }),
+    ).toHaveAttribute("href", expect.stringContaining("facebook.com"));
+    expect(screen.queryByRole("button", { name: /what's new/i })).toBeNull();
   });
 });

@@ -7,7 +7,7 @@
   const links: { id: NavId; label: string }[] = [
     { id: "map", label: "Map" },
     { id: "planner", label: "Planner" },
-    { id: "finals", label: "Final Exams" },
+    { id: "finals", label: "Final exams" },
   ];
 
   const hostTabs = links.map((link) => link.id);

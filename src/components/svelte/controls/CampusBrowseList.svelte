@@ -9,8 +9,11 @@
   import type { CampusBrowseTab } from "@lib/browse-campus";
   import {
     isStudentOrganization,
+    normalizeOrgCategory,
     orgCategoryLabel,
+    type OrgCategory,
   } from "@constants/org-categories";
+  import { collegeLabel, displayOrgName } from "@lib/directory-labels";
   import {
     isLandmarkPlaceCategory,
     placeDirectoryLabel,
@@ -50,6 +53,7 @@
     $derived(appData());
 
   let filterText = $state("");
+  let orgCategory = $state<OrgCategory | "all">("all");
 
   const activeTab = $derived.by((): CampusBrowseTab => {
     const value = queryStore.queryValue;
@@ -187,19 +191,63 @@
     );
   });
 
-  const filteredOrganizations = $derived.by(() => {
+  const tabOrganizations = $derived.by(() => {
     if (!loaded || !organizations) return [];
     if (activeTab !== "organizations" && activeTab !== "offices") return [];
+    return organizations
+      .filter((row) =>
+        activeTab === "organizations"
+          ? isStudentOrganization(row.category)
+          : !isStudentOrganization(row.category),
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // Filter chips only when the list really mixes kinds (orgs, councils,
+  // publications); one chip per kind present, with its count.
+  const orgCategoryChips = $derived.by(() => {
+    if (activeTab !== "organizations") return [];
+    const counts = new Map<OrgCategory, number>();
+    for (const row of tabOrganizations) {
+      const category = normalizeOrgCategory(row.category);
+      if (category) counts.set(category, (counts.get(category) ?? 0) + 1);
+    }
+    if (counts.size < 2) return [];
+    return [...counts].map(([category, count]) => ({
+      category,
+      count,
+      label: orgCategoryLabel(category) ?? category,
+    }));
+  });
+
+  $effect(() => {
+    void activeTab;
+    orgCategory = "all";
+  });
+
+  const filteredOrganizations = $derived.by(() => {
     const needle = filterText.trim().toLowerCase();
-    const rows = organizations.filter((row) => {
-      return activeTab === "organizations"
-        ? isStudentOrganization(row.category)
-        : !isStudentOrganization(row.category);
-    }).sort((a, b) =>
-      a.name.localeCompare(b.name),
+    return tabOrganizations.filter(
+      (row) =>
+        (orgCategory === "all" ||
+          normalizeOrgCategory(row.category) === orgCategory) &&
+        (!needle || row.name.toLowerCase().includes(needle)),
     );
-    if (!needle) return rows;
-    return rows.filter((row) => row.name.toLowerCase().includes(needle));
+  });
+
+  // Same rule the map uses to place an org: its own pin or its building's.
+  const locatedOrgCount = $derived.by(() => {
+    if (activeTab !== "organizations") return 0;
+    const pinned = new Set(
+      (buildings ?? [])
+        .filter((b) => b.lat !== null && b.lon !== null)
+        .map((b) => b.id),
+    );
+    return filteredOrganizations.filter(
+      (org) =>
+        (org.lat !== null && org.lon !== null) ||
+        (org.buildingId !== null && pinned.has(org.buildingId)),
+    ).length;
   });
 
   const filteredDorms = $derived.by(() => {
@@ -229,12 +277,18 @@
 
   const visibleItems = $derived.by(() => {
     if (activeTab === "colleges") {
-      return filteredColleges.map((row) => ({
-        id: row.id,
-        label: row.collegeName,
-        meta: null as string | null,
-        open: () => openCollege(row.collegeName),
-      }));
+      return filteredColleges.map((row) => {
+        const { name, acronym } = collegeLabel(
+          row.collegeName,
+          row.websiteLink,
+        );
+        return {
+          id: row.id,
+          label: name,
+          meta: acronym,
+          open: () => openCollege(row.collegeName),
+        };
+      });
     }
     if (activeTab === "dorms") {
       return filteredDorms.map((row) => ({
@@ -255,8 +309,14 @@
     if (activeTab === "organizations" || activeTab === "offices") {
       return filteredOrganizations.map((row) => ({
         id: row.id,
-        label: row.name,
-        meta: orgCategoryLabel(row.category),
+        label: activeTab === "organizations" ? displayOrgName(row.name) : row.name,
+        // Every row in the student list is a student org; only say so when it
+        // is a different kind (council, publication).
+        meta:
+          activeTab === "organizations" &&
+          normalizeOrgCategory(row.category) === "student-org"
+            ? null
+            : orgCategoryLabel(row.category),
         open: () => openOrg(row.name),
       }));
     }
@@ -309,6 +369,9 @@
         : `No ${tabMeta.plural} listed.`;
     }
     const unit = visibleCount === 1 ? tabMeta.noun : tabMeta.plural;
+    if (activeTab === "organizations") {
+      return `${visibleCount} ${unit} · ${locatedOrgCount} on the map`;
+    }
     return `${visibleCount} ${unit}`;
   });
 
@@ -450,6 +513,7 @@
     closeAriaLabel="Close browse list"
     closeTitle="Close"
     onclose={closeList}
+    closeOnMobile
   >
     {#snippet trailing()}
       <h2 class="entity-header__title">{tabTitle}</h2>
@@ -460,6 +524,36 @@
         search
         oninput={onFilterInput}
       />
+      {#if orgCategoryChips.length > 0}
+        <div
+          class="campus-browse-chips"
+          role="group"
+          aria-label="Filter by kind"
+        >
+          <button
+            type="button"
+            class="map-chrome-chip"
+            class:map-chrome-chip--filter-selected={orgCategory === "all"}
+            aria-pressed={orgCategory === "all"}
+            onclick={() => (orgCategory = "all")}
+          >
+            All
+          </button>
+          {#each orgCategoryChips as chip (chip.category)}
+            <button
+              type="button"
+              class="map-chrome-chip"
+              class:map-chrome-chip--filter-selected={orgCategory ===
+                chip.category}
+              aria-pressed={orgCategory === chip.category}
+              onclick={() => (orgCategory = chip.category)}
+            >
+              {chip.label}
+              <span class="map-chrome-chip__count">{chip.count}</span>
+            </button>
+          {/each}
+        </div>
+      {/if}
       {#if !loaded}
         <p class="entity-panel-status">
           <LoadingIndicator label="Loading campus directory…" />
@@ -606,6 +700,28 @@
     font-size: 0.6875rem;
     font-weight: 600;
     white-space: nowrap;
+  }
+
+  /* Long college and org names wrap to a second line instead of losing
+     the words that tell them apart. */
+  .campus-browse-body .entity-list-row__label {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+  }
+
+  .campus-browse-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .campus-browse-chips .map-chrome-chip {
+    min-height: 2.25rem;
+    height: auto;
+    font-size: 0.75rem;
   }
 
   .jeepney-route-group {

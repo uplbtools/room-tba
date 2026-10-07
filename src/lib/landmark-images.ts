@@ -31,8 +31,9 @@ export type LandmarkImagesEntry = {
    */
   streetViewPanoId?: string;
   /**
-   * The pano's copyright line when it is not Google's own capture
-   * ("© Ry Clark Media Arts"). Google requires crediting the uploader.
+   * Set when the pano is a photo sphere somebody uploaded to Google (often a
+   * classroom or lobby), not Google's own capture: the uploader's credit
+   * line ("© Ry Clark Media Arts"). Those panos are shown last.
    */
   streetViewCopyright?: string;
   commons?: CommonsImage[];
@@ -79,9 +80,9 @@ export type LandmarkImagesInput = {
 };
 
 /**
- * Every image the panel can show for a landmark, in display order:
- * contributor photo first (ours, current, chosen to show the entrance), then
- * Street View facade angles, then Commons photos. Capped at
+ * Every image the panel can show for a landmark, in display order: Google's
+ * own Street View facade angles first (the thumbnail), then the contributor
+ * photo, then Commons photos, and a pano somebody uploaded to Google last. Capped at
  * MAX_IMAGES_PER_LANDMARK; empty when no source has anything.
  */
 export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
@@ -90,18 +91,14 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
   // A pinned manifest pano is itself proof of coverage: the fetch script only
   // records one after the free metadata check found it.
   const panoId = entry?.streetViewPanoId ?? input.panoId;
-  const images: LandmarkImage[] = [];
-
-  if (imageUrl) {
-    images.push({ src: imageUrl, alt: name, source: "contributor" });
-  }
+  const streetView: LandmarkImage[] = [];
 
   if (hasStreetViewKey(googleKey) && panoId && lat != null && lon != null) {
     // No manifest entry still gets the pre-gallery single shot: Google points
     // the camera at the subject when no heading is given.
     const headings = entry?.streetViewHeadings ?? [undefined];
     for (const heading of headings) {
-      images.push({
+      streetView.push({
         src: streetViewImageUrl(
           { lat: Number(lat), lng: Number(lon) },
           googleKey,
@@ -125,6 +122,12 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
     }
   }
 
+  const uploadedPano = Boolean(entry?.streetViewCopyright);
+  const images: LandmarkImage[] = uploadedPano ? [] : [...streetView];
+  if (imageUrl) {
+    images.push({ src: imageUrl, alt: name, source: "contributor" });
+  }
+
   for (const photo of entry?.commons ?? []) {
     images.push({
       src: photo.url,
@@ -134,6 +137,8 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
       source: "commons",
     });
   }
+
+  if (uploadedPano) images.push(...streetView);
 
   return images.slice(0, MAX_IMAGES_PER_LANDMARK);
 }

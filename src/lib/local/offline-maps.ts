@@ -113,6 +113,14 @@ export function tileUrl(template: string, { z, x, y }: TileCoord): string {
     .replace("{y}", String(y));
 }
 
+/** "38.0 MB" / "12 KB"; an em dash when the size is unknown. */
+export function fmtBytes(bytes: number | null): string {
+  if (bytes == null) return "—";
+  const mb = bytes / 1024 / 1024;
+  if (mb >= 1) return `${mb.toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
 /** Bytes currently used by the browser for this origin (caches + IndexedDB). */
 export async function getStorageUsage(): Promise<number | null> {
   try {

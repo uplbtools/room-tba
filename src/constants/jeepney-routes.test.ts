@@ -6,6 +6,7 @@ import {
   resolveRouteGeometry,
   type JeepneyStop,
   type StoredRouteGeometry,
+  BUNDLED_BUS_ROUTES,
   withBundledRoutes,
 } from "./jeepney-routes.js";
 import jeepneyGeometries from "./jeepney-geometries.json" with { type: "json" };
@@ -165,6 +166,16 @@ describe("withBundledRoutes", () => {
     const merged = withBundledRoutes([dbKaliwa]);
     expect(merged[0]).toBe(dbKaliwa);
     expect(merged.map((r) => r.id)).toContain("snodlob");
+    expect(merged.map((r) => r.id)).toEqual(
+      expect.arrayContaining(["uplb-to-buendia", "buendia-to-uplb"]),
+    );
+  });
+
+  test("bundled buses have a drawn line", () => {
+    for (const route of BUNDLED_BUS_ROUTES) {
+      const geometry = (jeepneyGeometries as Record<string, unknown>)[route.id];
+      expect(geometry).toBeDefined();
+    }
   });
 
   test("replaces a cached route that lost its stops", () => {

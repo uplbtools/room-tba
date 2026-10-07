@@ -8,6 +8,7 @@
     type ClassOfferingGroup,
   } from "@lib/class-offering-groups";
   import { plannerStore, termStore, toastStore } from "@lib/store.svelte";
+  import { formatScheduleShort, formatSectionType } from "@lib/planner/format";
   import type { ClassMapValue } from "@lib/types";
 
   const termId = $derived(
@@ -21,6 +22,14 @@
   let nextCursor = $state<string | null>(null);
   let hasMore = $state(false);
   let sentinelEl = $state<HTMLDivElement | null>(null);
+  // An empty query used to dump the whole term A-Z (AAE 10, AAE 103, ...).
+  // Browsing is now opt-in; the default empty state points at search.
+  let browsing = $state(false);
+  const planCourses = $derived([
+    ...new Set(
+      (plannerStore.activePlan?.sections ?? []).map((s) => s.courseCode),
+    ),
+  ]);
   const expanded = new SvelteSet<string>();
 
   // Browse mode (no query) pages through the term 100 at a time (#planner).
@@ -65,6 +74,13 @@
   $effect(() => {
     const q = query.trim();
     const t = termId;
+    if (!q && !browsing) {
+      rows = [];
+      nextCursor = null;
+      hasMore = false;
+      loading = false;
+      return;
+    }
     const timer = setTimeout(
       () => {
         loading = true;
@@ -158,19 +174,24 @@
       // One section per course: picking a different section of a course you've
       // already added swaps it in rather than stacking multiple labs (#13).
       plannerStore.replaceCourse(offering.courseCode, offering.sections);
+      // Short so it stays one line on a phone; the row's "Added" state
+      // carries the detail.
       toastStore.show(
-        `${offering.courseCode} ${offering.section} added to ${plannerStore.activePlan?.label ?? "plan"}`,
+        `Added ${offering.courseCode} ${offering.section}`,
         "success",
       );
     }
   }
 
-  function offeringSchedule(offering: ClassOfferingGroup): string {
-    const parts = offering.sections.map((s) => {
-      const sched = s.schedule?.length ? s.schedule.join(", ") : "TBA";
-      return `${s.type ?? "Class"} ${sched}`;
+  /** One line per component: "Lec WF 4–5 PM · EAA LH". */
+  function offeringParts(offering: ClassOfferingGroup): string[] {
+    return offering.sections.map((s) => {
+      const sched = s.schedule?.length
+        ? s.schedule.map(formatScheduleShort).join(", ")
+        : "TBA";
+      const room = s.roomCode ? ` · ${s.roomCode}` : "";
+      return `${formatSectionType(s.type)} ${sched}${room}`;
     });
-    return parts.join(" · ");
   }
 
   /** Drop shared HK 12 base name + parens; leave the activity (e.g. Badminton). */
@@ -195,7 +216,34 @@
     />
   </label>
 
-  {#if loading}
+  {#if !query.trim() && !browsing}
+    <div class="course-search__empty">
+      <p class="course-search__hint">
+        Type a course code to see its sections, e.g. <strong>CMSC 12</strong>
+        or <strong>MATH 27</strong>.
+      </p>
+      {#if planCourses.length > 0}
+        <div class="course-search__chips" aria-label="Courses in this plan">
+          {#each planCourses as code (code)}
+            <button
+              type="button"
+              class="course-search__chip"
+              onclick={() => (query = code)}
+            >
+              {code}
+            </button>
+          {/each}
+        </div>
+      {/if}
+      <button
+        type="button"
+        class="course-search__more"
+        onclick={() => (browsing = true)}
+      >
+        Browse all courses
+      </button>
+    </div>
+  {:else if loading}
     <p class="course-search__note">Searching…</p>
   {:else if courses.length === 0}
     <p class="course-search__note">
@@ -247,17 +295,21 @@
                   <li class="section-row">
                     <div class="section-row__main">
                       <span class="section-row__name">{offering.section}</span>
-                      <span class="section-row__schedule">
-                        {offeringSchedule(offering)}
-                      </span>
+                      {#each offeringParts(offering) as part, i (i)}
+                        <span class="section-row__schedule">{part}</span>
+                      {/each}
                     </div>
                     <button
                       type="button"
                       class="section-row__toggle"
                       class:section-row__toggle--added={added}
+                      aria-pressed={added}
+                      aria-label={added
+                        ? `Remove ${offering.courseCode} ${offering.section} from plan`
+                        : undefined}
                       onclick={() => togglePlan(offering)}
                     >
-                      {added ? "✓" : "Add"}
+                      {added ? "✓ Added" : "Add"}
                     </button>
                   </li>
                 {/each}
@@ -339,6 +391,44 @@
     color: hsl(0, 0%, 28%);
     background: hsl(0, 0%, 100%);
     border-top: 1px solid hsl(0, 0%, 90%);
+  }
+
+  .course-search__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.25rem 0.125rem;
+  }
+
+  .course-search__hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: hsl(0, 0%, 35%);
+  }
+
+  .course-search__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .course-search__chip {
+    all: unset;
+    box-sizing: border-box;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    background: hsl(5, 53%, 95%);
+    color: hsl(5, 53%, 28%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .course-search__chip:hover,
+  .course-search__chip:focus-visible {
+    background: hsl(5, 53%, 90%);
   }
 
   .course-search__more {
@@ -472,6 +562,7 @@
 
   .section-row__toggle {
     all: unset;
+    box-sizing: border-box;
     flex-shrink: 0;
     min-width: 2rem;
     padding: 0.1875rem 0.5rem;
@@ -489,9 +580,13 @@
     background: hsl(5, 53%, 96%);
   }
 
-  .section-row__toggle--added {
-    background: hsl(5, 53%, 32%);
-    border-color: hsl(5, 53%, 32%);
+  /* Hover/focus used to repaint this pink and leave a white check on it,
+     near invisible after the tap that added it. Pin the added colors. */
+  .section-row__toggle--added,
+  .section-row__toggle--added:hover,
+  .section-row__toggle--added:focus-visible {
+    background: hsl(140, 45%, 30%);
+    border-color: hsl(140, 45%, 30%);
     color: white;
   }
 
@@ -545,13 +640,34 @@
       font-size: 0.8125rem;
     }
 
+    /* 40px tall (border-box) instead of the 62px pill content-box sizing
+       produced; still a comfortable tap target. */
     .section-row__toggle {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       min-width: 3.5rem;
-      min-height: 2.75rem;
-      padding: 0.5rem 0.875rem;
+      min-height: 2.5rem;
+      padding: 0 0.875rem;
+      font-size: 0.8125rem;
+    }
+
+    .course-search__hint {
+      font-size: 0.875rem;
+    }
+
+    .course-search__chip {
+      min-height: 2.25rem;
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.875rem;
+    }
+
+    .course-search__empty .course-search__more {
+      margin-left: 0;
+      min-height: 2.25rem;
+      display: inline-flex;
+      align-items: center;
       font-size: 0.875rem;
     }
   }

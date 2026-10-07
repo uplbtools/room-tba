@@ -7,13 +7,15 @@
     ROOM_FIELD_LABELS,
     fetchContributorProgress,
     missingFieldLabel,
+    progressLevel,
     progressPercent,
     type BuildingContributorProgress,
     type CampusContributorProgress,
     type MineContributorProgress,
     type RoomFieldCategory,
   } from "@lib/contributor-progress";
-  import { adminAuthStore } from "@lib/store.svelte";
+  import { adminAuthStore, modalStore, queryStore } from "@lib/store.svelte";
+  import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import MapChromeGhostButton from "@ui/map-chrome/MapChromeGhostButton.svelte";
 
   type ScopeTab = "campus" | "building" | "mine";
@@ -97,14 +99,42 @@
       label: ROOM_FIELD_LABELS[category],
       filled: counts[category].filled,
       total: counts[category].total,
-      percent: progressPercent(counts[category].filled, counts[category].total),
     }));
+  }
+
+  // Same path the browse list uses: the side panel resolves from the query.
+  function openBuilding(name: string) {
+    queryStore.updateQuery({ category: "building", type: "result", value: name });
+    queryStore.inputValue = name;
+    modalStore.closeModal();
   }
 
   function formatEntityType(entityType: string): string {
     return entityType.charAt(0).toUpperCase() + entityType.slice(1);
   }
 </script>
+
+{#snippet progressRow(label: string, filled: number, total: number)}
+  {@const percent = progressPercent(filled, total)}
+  <div
+    class="contributor-progress__field contributor-progress__field--{progressLevel(
+      percent,
+    )}"
+    role="progressbar"
+    aria-valuemin={0}
+    aria-valuemax={total}
+    aria-valuenow={filled}
+    aria-label="{label}: {filled} of {total}"
+  >
+    <div class="contributor-progress__field-head">
+      <span>{label}</span>
+      <span>{filled}/{total} · <strong>{percent}%</strong></span>
+    </div>
+    <div class="map-chrome-progress">
+      <div class="map-chrome-progress__value" style:width={`${percent}%`}></div>
+    </div>
+  </div>
+{/snippet}
 
 <section class="contributor-progress" aria-label="Contributor progress">
   <div
@@ -167,51 +197,14 @@
     <div class="contributor-progress__group" aria-label="Room completeness">
       <h3 class="contributor-progress__heading">Rooms</h3>
       {#each fieldRows(campusData.rooms) as row (row.category)}
-        <div
-          class="contributor-progress__field"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={row.total}
-          aria-valuenow={row.filled}
-          aria-label="{row.label}: {row.filled} of {row.total}"
-        >
-          <div class="contributor-progress__field-head">
-            <span>{row.label}</span>
-            <span>{row.filled}/{row.total}</span>
-          </div>
-          <div class="map-chrome-progress">
-            <div
-              class="map-chrome-progress__value"
-              style:width={`${row.percent}%`}
-            ></div>
-          </div>
-        </div>
+        {@render progressRow(row.label, row.filled, row.total)}
       {/each}
     </div>
 
     <div class="contributor-progress__group" aria-label="Building completeness">
       <h3 class="contributor-progress__heading">Buildings</h3>
       {#each [{ label: "Map pins", count: campusData.buildings.pins }, { label: "Directions", count: campusData.buildings.directions }] as row (row.label)}
-        {@const percent = progressPercent(row.count.filled, row.count.total)}
-        <div
-          class="contributor-progress__field"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={row.count.total}
-          aria-valuenow={row.count.filled}
-          aria-label="{row.label}: {row.count.filled} of {row.count.total}"
-        >
-          <div class="contributor-progress__field-head">
-            <span>{row.label}</span>
-            <span>{row.count.filled}/{row.count.total}</span>
-          </div>
-          <div class="map-chrome-progress">
-            <div
-              class="map-chrome-progress__value"
-              style:width={`${percent}%`}
-            ></div>
-          </div>
-        </div>
+        {@render progressRow(row.label, row.count.filled, row.count.total)}
       {/each}
     </div>
 
@@ -221,14 +214,23 @@
         <ul class="contributor-progress__list">
           {#each campusData.topBuildings as building (building.buildingId)}
             <li>
-              <span class="contributor-progress__list-title"
-                >{building.buildingName}</span
+              <button
+                type="button"
+                class="contributor-progress__building"
+                onclick={() => openBuilding(building.buildingName)}
               >
-              <span class="contributor-progress__list-meta">
-                {building.directions.filled}/{building.roomTotal} directions ·
-                {building.schedule.filled}/{building.roomTotal} schedules ·
-                {building.position.filled}/{building.roomTotal} pins
-              </span>
+                <span class="contributor-progress__building-copy">
+                  <span class="contributor-progress__list-title"
+                    >{building.buildingName}</span
+                  >
+                  <span class="contributor-progress__list-meta">
+                    {building.directions.filled}/{building.roomTotal} directions ·
+                    {building.schedule.filled}/{building.roomTotal} schedules ·
+                    {building.position.filled}/{building.roomTotal} pins
+                  </span>
+                </span>
+                <ChevronRight size={16} aria-hidden="true" />
+              </button>
             </li>
           {/each}
         </ul>
@@ -244,25 +246,7 @@
     {/if}
 
     {#each fieldRows(buildingData.rooms) as row (row.category)}
-      <div
-        class="contributor-progress__field"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={row.total}
-        aria-valuenow={row.filled}
-        aria-label="{row.label}: {row.filled} of {row.total}"
-      >
-        <div class="contributor-progress__field-head">
-          <span>{row.label}</span>
-          <span>{row.filled}/{row.total}</span>
-        </div>
-        <div class="map-chrome-progress">
-          <div
-            class="map-chrome-progress__value"
-            style:width={`${row.percent}%`}
-          ></div>
-        </div>
-      </div>
+      {@render progressRow(row.label, row.filled, row.total)}
     {/each}
 
     {#if buildingData.roomRows.length === 0}
@@ -287,7 +271,8 @@
     {/if}
   {:else if activeScope === "mine" && mineData}
     <p class="contributor-progress__meta">
-      {mineData.totalEdits} edits recorded for {mineData.editedBy}.
+      {mineData.totalEdits}
+      {mineData.totalEdits === 1 ? "edit" : "edits"} recorded for {mineData.editedBy}.
     </p>
     {#if mineData.totalEdits === 0}
       <p class="contributor-progress__status">
@@ -300,7 +285,9 @@
             <span class="contributor-progress__list-title"
               >{formatEntityType(entityType)}</span
             >
-            <span class="contributor-progress__list-meta">{count} edits</span>
+            <span class="contributor-progress__list-meta"
+              >{count} {count === 1 ? "edit" : "edits"}</span
+            >
           </li>
         {/each}
       </ul>
@@ -316,10 +303,73 @@
     min-width: 0;
   }
 
+  /* Stays put while the bars scroll, so switching scope never means
+     scrolling back up. */
   .contributor-progress__tabs {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     gap: 0.25rem;
+    padding-block: 0.25rem;
+    background: #fff;
+    box-shadow: 0 1px 0 hsl(0, 0%, 90%);
+  }
+
+  .contributor-progress__field--low :global(.map-chrome-progress__value) {
+    background-color: hsl(25, 80%, 45%);
+  }
+
+  .contributor-progress__field--mid :global(.map-chrome-progress__value) {
+    background-color: hsl(42, 85%, 42%);
+  }
+
+  .contributor-progress__field--high :global(.map-chrome-progress__value) {
+    background-color: hsl(150, 45%, 32%);
+  }
+
+  .contributor-progress__field-head strong {
+    font-weight: 700;
+    color: hsl(0, 0%, 20%);
+  }
+
+  .contributor-progress__list li:has(.contributor-progress__building) {
+    padding: 0;
+  }
+
+  .contributor-progress__building {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.375rem 0.25rem;
+    border-radius: 0.375rem;
+    color: hsl(0, 0%, 45%);
+    cursor: pointer;
+  }
+
+  .contributor-progress__building:focus-visible {
+    outline: 2px solid hsl(5, 53%, 32%);
+    outline-offset: -2px;
+  }
+
+  @media (hover: hover) {
+    .contributor-progress__building:hover {
+      background: hsl(0, 78%, 98%);
+      color: hsl(5, 53%, 32%);
+    }
+  }
+
+  .contributor-progress__building-copy {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
   }
 
   .contributor-progress__building-picker {

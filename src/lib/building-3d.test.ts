@@ -1,5 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { pickNonOverlappingLabels, type LabelBox } from "./building-3d";
+import {
+  cameraFitDistance,
+  isRoomLabelShown,
+  pickNonOverlappingLabels,
+  type LabelBox,
+} from "./building-3d";
 
 const label = (over: Partial<LabelBox> = {}): LabelBox => ({
   x: 0,
@@ -68,5 +73,48 @@ describe("pickNonOverlappingLabels", () => {
 
   it("handles an empty scene", () => {
     expect(pickNonOverlappingLabels([])).toEqual([]);
+  });
+});
+
+describe("cameraFitDistance", () => {
+  const base = { radius: 30, fovDeg: 45, width: 390, height: 750 };
+
+  it("moves the camera back when a sheet covers part of the canvas", () => {
+    const full = cameraFitDistance(base);
+    const padded = cameraFitDistance({ ...base, padBottom: 450 });
+    expect(padded).toBeGreaterThan(full);
+  });
+
+  it("fills the requested share of the narrower visible axis", () => {
+    const d = cameraFitDistance({ ...base, width: 1000, padBottom: 350 });
+    const tanHalf = Math.tan((45 * Math.PI) / 360);
+    // Projected diameter as a share of the visible height (400px of 750).
+    const share = (30 / d / tanHalf) * (750 / 400);
+    expect(share).toBeCloseTo(0.65, 5);
+  });
+
+  it("never divides by a vanished visible area", () => {
+    const d = cameraFitDistance({ ...base, padBottom: 10_000 });
+    expect(Number.isFinite(d)).toBe(true);
+  });
+});
+
+describe("isRoomLabelShown", () => {
+  it("labels every room on the selected floor and none elsewhere", () => {
+    expect(
+      isRoomLabelShown({ floor: 1, selectedFloor: 1, focused: false }),
+    ).toBe(true);
+    expect(
+      isRoomLabelShown({ floor: 2, selectedFloor: 1, focused: false }),
+    ).toBe(false);
+  });
+
+  it("keeps all-floors to the picked room only", () => {
+    expect(
+      isRoomLabelShown({ floor: 2, selectedFloor: "all", focused: false }),
+    ).toBe(false);
+    expect(
+      isRoomLabelShown({ floor: 2, selectedFloor: "all", focused: true }),
+    ).toBe(true);
   });
 });

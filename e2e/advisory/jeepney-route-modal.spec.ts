@@ -13,7 +13,7 @@ test.describe("jeepney route details @advisory", () => {
     await openCampusDirectory(page, "jeepney");
 
     await expect(
-      page.getByRole("heading", { name: /Jeepney Routes/i }),
+      page.getByRole("heading", { name: /Jeepney (& Bus )?Routes/i }),
     ).toBeVisible({ timeout: 10_000 });
 
     // Each route row exposes a details button that opens the fare/stops modal.
