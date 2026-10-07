@@ -97,6 +97,16 @@ export type RouteFareInfo =
 
 const CAMPUS_FARE = JEEPNEY_ROUTES[0]!.fare;
 
+/**
+ * Campus jeeps whose ₱14 / ₱12 fare was confirmed on FARES_VERIFIED_ON. The
+ * SNODLOB e-jeep is newer and its fare is not confirmed yet.
+ */
+const VERIFIED_CAMPUS_FARE_IDS = new Set([
+  "kaliwa-kanan",
+  "forestry",
+  "up-rural",
+]);
+
 const minimumText = (fare: JeepneyFare) =>
   `the ₱${fare.regular} minimum (₱${fare.discounted} student, senior or PWD) plus a per-kilometre amount from the LTFRB fare matrix`;
 
@@ -108,7 +118,13 @@ export function routeFareInfo(route: {
   if (ticketing) return { kind: "ticketed", ticketing };
   const kind = transitRouteKind(route);
   if (kind === "campus") {
-    return { kind: "fixed", fare: CAMPUS_FARE, note: JEEPNEY_FARE_NOTE };
+    if (VERIFIED_CAMPUS_FARE_IDS.has(route.id)) {
+      return { kind: "fixed", fare: CAMPUS_FARE, note: JEEPNEY_FARE_NOTE };
+    }
+    return {
+      kind: "unverified",
+      note: "Fare not verified yet. Ask the driver.",
+    };
   }
   const endToEnd = VERIFIED_END_TO_END_FARES[route.id];
   if (endToEnd) {

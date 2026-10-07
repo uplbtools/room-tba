@@ -105,6 +105,17 @@ describe("routeFareInfo", () => {
     ).toBeNull();
   });
 
+  test("the SNODLOB e-jeep quotes no unverified fare", () => {
+    const info = routeFareInfo({
+      id: "snodlob",
+      name: "UPLB Loop (SNODLOB e-jeep)",
+    });
+    expect(info.kind).toBe("unverified");
+    expect(
+      perBoardingFare({ id: "snodlob", name: "UPLB Loop (SNODLOB e-jeep)" }),
+    ).toBeNull();
+  });
+
   test("other town jeeps give only the minimum", () => {
     const info = routeFareInfo({
       id: "lb-to-san-pablo",

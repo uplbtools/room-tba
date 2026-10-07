@@ -3,6 +3,7 @@ import { jeepneyRoutesTable, jeepneyStopsTable } from "@drizzle/schema";
 import { db } from "@lib/db";
 import {
   JEEPNEY_ROUTES,
+  withBundledRoutes,
   type JeepneyRoute,
   type JeepneyStop,
 } from "@constants/jeepney-routes";
@@ -41,7 +42,7 @@ export async function getAllJeepneyRoutes(): Promise<JeepneyRoute[]> {
       ),
   ]);
 
-  return routes.map((route) => ({
+  const fromDb = routes.map((route) => ({
     id: route.id,
     name: route.name,
     description: route.description,
@@ -66,6 +67,7 @@ export async function getAllJeepneyRoutes(): Promise<JeepneyRoute[]> {
         }),
       ),
   }));
+  return withBundledRoutes(fromDb);
 }
 
 export async function getJeepneyStopById(id: number) {

@@ -494,10 +494,16 @@ export function isCampusScopeRoute(route: TransitMapRoute): boolean {
 }
 
 /** A loop starts and ends at the same stop and runs both ways (Kaliwa / Kanan). */
+/**
+ * A loop run in both directions (Kaliwa / Kanan): the printed map draws both
+ * travel directions and the legend splits the "A / B" name. A one-way loop
+ * such as the SNODLOB e-jeep is drawn like any other single line.
+ */
 export function isLoopRoute(route: TransitMapRoute): boolean {
   const first = route.stops[0];
   const last = route.stops[route.stops.length - 1];
   return (
+    /\s\/\s/.test(route.name) &&
     route.stops.length >= 3 &&
     !!first &&
     !!last &&
