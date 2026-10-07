@@ -48,7 +48,9 @@
     "streetViewPanoId": "7uS0Ze1NKAdeSFQSjkdkKw"
   },
   "building:CAS Main Building": {
-    "streetViewUserUploadOnly": true
+    "streetViewHeadings": [89, 144, 199],
+    "streetViewPanoId": "CAoSF0NJSE0wb2dLRUlDQWdJREd4dXktdndF",
+    "streetViewCopyright": "© Goose Mom"
   },
   "building:CDC Building": {
     "streetViewHeadings": [263, 318, 13],
@@ -123,7 +125,9 @@
     "streetViewPanoId": "zTO8C31QWVe8VUANrh7PUg"
   },
   "building:Freedom Park": {
-    "streetViewUserUploadOnly": true
+    "streetViewHeadings": [233, 288, 343],
+    "streetViewPanoId": "CAoSFkNJSE0wb2dLRUlDQWdJREUwYVhZT1E.",
+    "streetViewCopyright": "© Ry Clark Media Arts"
   },
   "building:Fronda Hall": {
     "streetViewHeadings": [192, 247, 302],
@@ -214,7 +218,9 @@
     "streetViewPanoId": "tkYenvAbVMOzgc1Gvjl2Rg"
   },
   "building:Student Union Building": {
-    "streetViewUserUploadOnly": true
+    "streetViewHeadings": [300, 355, 50],
+    "streetViewPanoId": "CAoSFkNJSE0wb2dLRUlDQWdJQy14STNFRkE.",
+    "streetViewCopyright": "© Sans Seri"
   },
   "building:Temporary Common Classrooms": {
     "streetViewHeadings": [83, 138, 193],

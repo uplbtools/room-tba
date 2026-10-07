@@ -14,10 +14,12 @@
  *    Google-captured panorama, and the pano-to-subject bearing becomes three
  *    facade headings. Only the pano id and headings are stored; the client
  *    builds image URLs with its own key. Google's terms forbid storing the
- *    imagery itself. Photo spheres people upload to Google (classrooms,
- *    lobbies) are never used: when the nearest pano is one, a ring of points
- *    around the subject is probed for a Google capture, and if none is found
- *    the entry is marked streetViewUserUploadOnly so the client shows none.
+ *    imagery itself. When the nearest pano is a photo sphere somebody
+ *    uploaded (a classroom, a lobby), a ring of points around the subject is
+ *    probed for a Google capture first. Failing that, buildings keep the
+ *    upload with its copyright stored for the credit line (the client shows
+ *    it last); dorms, places and orgs skip it, as it is usually a shop
+ *    interior or somebody else's frontage.
  *  - Wikimedia Commons: geosearch near the pin, photographs only, capped at
  *    MAX_COMMONS_IMAGES. Hotlinked thumbnails plus the artist/license
  *    attribution their licenses require. Small places only keep files whose
@@ -250,8 +252,9 @@ for (const target of targets) {
   stat.total += 1;
   const coords = { lat: target.lat, lng: target.lon };
 
-  let streetView: { panoId: string; headings: number[] } | undefined;
-  let userUploadOnly = false;
+  let streetView:
+    | { panoId: string; headings: number[]; copyright?: string }
+    | undefined;
   if (hasStreetViewKey(key) && !target.skipStreetView) {
     const radius =
       target.kind === "building" ? BUILDING_PANO_RADIUS : SMALL_PANO_RADIUS;
@@ -259,6 +262,9 @@ for (const target of targets) {
     // subject for Google's own capture (metadata lookups are free).
     const probes = [coords, ...ringPoints(coords, radius / 2)];
     let best: { panoId: string; location: typeof coords } | undefined;
+    let upload:
+      | { panoId: string; location: typeof coords; copyright?: string }
+      | undefined;
     for (const [i, probe] of probes.entries()) {
       const meta = await fetchStreetViewMetadata(probe, key, {
         radius: i === 0 ? radius : radius / 2,
@@ -270,7 +276,11 @@ for (const target of targets) {
       const distance = distanceMetres(meta.location, coords);
       if (distance > radius) continue;
       if (!isGoogleCapture(meta.copyright)) {
-        userUploadOnly = true;
+        upload ??= {
+          panoId: meta.panoId,
+          location: meta.location,
+          copyright: meta.copyright,
+        };
         continue;
       }
       if (!best || distance < distanceMetres(best.location, coords)) {
@@ -278,11 +288,12 @@ for (const target of targets) {
       }
       if (i === 0) break;
     }
-    if (best) {
-      userUploadOnly = false;
+    const pick = best ?? (target.kind === "building" ? upload : undefined);
+    if (pick) {
       streetView = {
-        panoId: best.panoId,
-        headings: facadeHeadings(bearingDegrees(best.location, coords)),
+        panoId: pick.panoId,
+        headings: facadeHeadings(bearingDegrees(pick.location, coords)),
+        ...(best ? {} : { copyright: upload?.copyright }),
       };
       stat.streetView += 1;
     }
@@ -291,7 +302,7 @@ for (const target of targets) {
   const commons = await commonsImagesFor(target);
   if (commons.length > 0) stat.commons += 1;
 
-  if (!streetView && !userUploadOnly && commons.length === 0) continue;
+  if (!streetView && commons.length === 0) continue;
   stat.entries += 1;
   // Name-keyed, not id-keyed: ids differ between the prod, staging, and e2e
   // databases (see LandmarkImagesManifest).
@@ -300,10 +311,11 @@ for (const target of targets) {
       ? {
           streetViewHeadings: streetView.headings,
           streetViewPanoId: streetView.panoId,
+          ...(streetView.copyright
+            ? { streetViewCopyright: streetView.copyright }
+            : {}),
         }
-      : userUploadOnly
-        ? { streetViewUserUploadOnly: true as const }
-        : {}),
+      : {}),
     ...(commons.length > 0 ? { commons } : {}),
   };
   console.log(

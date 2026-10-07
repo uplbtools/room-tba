@@ -31,11 +31,11 @@ export type LandmarkImagesEntry = {
    */
   streetViewPanoId?: string;
   /**
-   * The only coverage near this landmark is a photo sphere somebody uploaded
-   * to Google (often a classroom or lobby), not Google's own capture. Those
-   * are never shown, and this also overrides the database's cached pano.
+   * Set when the pano is a photo sphere somebody uploaded to Google (often a
+   * classroom or lobby), not Google's own capture: the uploader's credit
+   * line ("© Ry Clark Media Arts"). Those panos are shown last.
    */
-  streetViewUserUploadOnly?: true;
+  streetViewCopyright?: string;
   commons?: CommonsImage[];
 };
 
@@ -82,7 +82,7 @@ export type LandmarkImagesInput = {
 /**
  * Every image the panel can show for a landmark, in display order: Google's
  * own Street View facade angles first (the thumbnail), then the contributor
- * photo, then Commons photos. Capped at
+ * photo, then Commons photos, and a pano somebody uploaded to Google last. Capped at
  * MAX_IMAGES_PER_LANDMARK; empty when no source has anything.
  */
 export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
@@ -90,17 +90,15 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
   const entry = LANDMARK_IMAGES[`${kind}:${name}`];
   // A pinned manifest pano is itself proof of coverage: the fetch script only
   // records one after the free metadata check found it.
-  const panoId = entry?.streetViewUserUploadOnly
-    ? null
-    : (entry?.streetViewPanoId ?? input.panoId);
-  const images: LandmarkImage[] = [];
+  const panoId = entry?.streetViewPanoId ?? input.panoId;
+  const streetView: LandmarkImage[] = [];
 
   if (hasStreetViewKey(googleKey) && panoId && lat != null && lon != null) {
     // No manifest entry still gets the pre-gallery single shot: Google points
     // the camera at the subject when no heading is given.
     const headings = entry?.streetViewHeadings ?? [undefined];
     for (const heading of headings) {
-      images.push({
+      streetView.push({
         src: streetViewImageUrl(
           { lat: Number(lat), lng: Number(lon) },
           googleKey,
@@ -116,12 +114,16 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
           },
         ),
         alt: `Street View of ${name}`,
-        credit: STREET_VIEW_ATTRIBUTION,
+        credit: entry?.streetViewCopyright
+          ? `Street View image ${entry.streetViewCopyright}`
+          : STREET_VIEW_ATTRIBUTION,
         source: "street-view",
       });
     }
   }
 
+  const uploadedPano = Boolean(entry?.streetViewCopyright);
+  const images: LandmarkImage[] = uploadedPano ? [] : [...streetView];
   if (imageUrl) {
     images.push({ src: imageUrl, alt: name, source: "contributor" });
   }
@@ -135,6 +137,8 @@ export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
       source: "commons",
     });
   }
+
+  if (uploadedPano) images.push(...streetView);
 
   return images.slice(0, MAX_IMAGES_PER_LANDMARK);
 }

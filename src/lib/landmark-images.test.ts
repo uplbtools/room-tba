@@ -13,7 +13,7 @@ const CEM = {
 };
 
 // The only pano near "building:Freedom Park" is a photo sphere somebody
-// uploaded; its database row still caches that pano id.
+// uploaded ("© Ry Clark Media Arts").
 const FREEDOM_PARK = {
   name: "Freedom Park",
   lat: 14.1617660159005,
@@ -85,13 +85,22 @@ describe("landmarkImages", () => {
     expect(new URL(images[0]!.src).searchParams.get("heading")).toBeNull();
   });
 
-  test("a user-uploaded photo sphere is never shown, even if cached in the DB", () => {
+  test("a pano somebody uploaded comes last, credited to its uploader", () => {
     const images = landmarkImages({
       ...FREEDOM_PARK,
       imageUrl: "https://r2.example/freedom-park.jpg",
     });
-    expect(images.some((i) => i.source === "street-view")).toBe(false);
     expect(images[0]?.source).toBe("contributor");
+    const streetView = images.filter((i) => i.source === "street-view");
+    expect(streetView).toHaveLength(3);
+    expect(images.slice(-3)).toEqual(streetView);
+    expect(streetView[0]?.credit).toBe(
+      "Street View image © Ry Clark Media Arts",
+    );
+    // Pinned to the pano the headings were computed from.
+    expect(new URL(streetView[0]!.src).searchParams.get("pano")).toBe(
+      "CAoSFkNJSE0wb2dLRUlDQWdJREUwYVhZT1E.",
+    );
   });
 
   test("dorms, places and orgs read their own kind's manifest key", () => {
