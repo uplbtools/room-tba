@@ -19,11 +19,14 @@
     placeDirectoryLabel,
   } from "@constants/place-categories";
   import {
+    appBootstrapStore,
     jeepneyStore,
     queryStore,
     sidePanelStore,
     transitStore,
   } from "@lib/store.svelte";
+  import { campusListState } from "@lib/campus-list-state";
+  import { onlineStatus } from "@lib/stores/online-status.svelte";
   import CollegeResult from "./CollegeResult.svelte";
   import BuildingResult from "./BuildingResult.svelte";
   import DivisionResult from "./DivisionResult.svelte";
@@ -346,12 +349,34 @@
 
   const visibleCount = $derived(visibleItems.length);
 
+  // Campus data loads behind the live map, so an empty list may still be
+  // loading, or never saved on this device while offline. A filter query
+  // with no matches is its own empty state below.
+  const listState = $derived(
+    filterText.trim()
+      ? visibleCount > 0
+        ? "ready"
+        : "empty"
+      : campusListState({
+          count: visibleCount,
+          loaded,
+          phase: appBootstrapStore.phase,
+          online: onlineStatus.online,
+        }),
+  );
+
   const emptyState = $derived.by(() => {
     const query = filterText.trim();
     if (query) {
       return {
         title: "Nothing in this corner of campus",
         description: `No ${tabMeta.plural} match “${query}”. Try a shorter name or another keyword.`,
+      };
+    }
+    if (listState === "offline") {
+      return {
+        title: "Not available offline",
+        description: `${tabTitle} haven’t been saved on this device yet. Connect to the internet once and they’ll stay available offline.`,
       };
     }
     return {
@@ -554,7 +579,7 @@
           {/each}
         </div>
       {/if}
-      {#if !loaded}
+      {#if listState === "loading" && activeTab !== "jeepney"}
         <p class="entity-panel-status">
           <LoadingIndicator label="Loading campus directory…" />
         </p>
@@ -621,7 +646,7 @@
           </li>
         {/each}
       </ul>
-    {:else if !loaded && activeTab !== "jeepney"}
+    {:else if listState === "loading" && activeTab !== "jeepney"}
       <!-- Header LoadingIndicator already announces the load; empty label keeps
            the skeleton out of the accessibility tree. -->
       <EntitySkeleton variant="directory" label="" />

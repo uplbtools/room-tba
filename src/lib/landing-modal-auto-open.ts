@@ -8,12 +8,12 @@ export type LandingModalAutoOpenInput = {
 };
 
 /**
- * Whether the welcome modal should auto-open once per browser (#302).
+ * Whether the first-run tip card should show, once per browser (#302). It
+ * replaced the auto-opening welcome modal; the full tour stays in the menu.
  *
- * Opens as soon as the app is interactive rather than waiting for phase
- * "ready": on slow networks "ready" lands 5-10s after first paint, so the
- * modal used to pop up mid-interaction and swallow clicks. Only the error
- * phase blocks it (the error overlay owns the screen then).
+ * Shows as soon as the app is interactive rather than waiting for phase
+ * "ready": on slow networks "ready" lands 5-10s after first paint. Only the
+ * error phase blocks it (the error overlay owns the screen then).
  */
 export function shouldAutoOpenLandingModal(
   input: LandingModalAutoOpenInput,

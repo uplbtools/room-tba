@@ -89,7 +89,7 @@ export default defineConfig({
           // map shell and the planner never opens for returning (SW-cached)
           // users. The `\?` matters: workbox matches denylist against
           // pathname+search, so /planner?term=… must be covered too (#planner).
-          // Network-first; the in-app planner button covers offline.
+          // Offline it falls back to the map shell via runtimeCaching below.
           /^\/planner(\/|\?|$)/,
           /^\/final-exams(\/|\?|$)/,
           /^\/calendar(\/|\?|$)/,
@@ -103,6 +103,23 @@ export default defineConfig({
         // Cache third-party map resources at runtime so the campus map works
         // offline once visited (or after an explicit "download offline maps").
         runtimeCaching: [
+          {
+            // The full-screen app routes are denylisted from navigateFallback
+            // above so online visits get their own page (and its open*
+            // prop). Offline, that left the browser's "No internet" page.
+            // Try the network, and when it fails serve the precached map
+            // shell; Entry reads the path and opens the right screen
+            // (app-screen-path.ts). Nothing is cached here: a stale page
+            // would point at hashed chunks a newer deploy no longer has.
+            urlPattern: ({ request, url }) =>
+              request.mode === "navigate" &&
+              /^\/(planner|today|final-exams|calendar)\/?$/.test(url.pathname),
+            handler: "NetworkOnly",
+            options: {
+              networkTimeoutSeconds: 8,
+              precacheFallback: { fallbackURL: "/index.html" },
+            },
+          },
           {
             // #716: desktop-only.css, excluded from precache above so mobile
             // installs never fetch it — cached the first time a desktop

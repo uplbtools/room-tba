@@ -10,7 +10,13 @@
   import { getEventImage } from "@lib/event-images";
   import { formatCampusRange } from "@lib/event-time";
   import { getEventShareUrl } from "@lib/share-links";
-  import { queryStore, sidePanelStore } from "@lib/store.svelte";
+  import {
+    appBootstrapStore,
+    queryStore,
+    sidePanelStore,
+  } from "@lib/store.svelte";
+  import { campusListState } from "@lib/campus-list-state";
+  import { onlineStatus } from "@lib/stores/online-status.svelte";
   import type { EventData } from "@lib/types";
   import EventResult from "./EventResult.svelte";
 
@@ -25,6 +31,16 @@
 
   const appData = getAppData();
   const { events, loaded } = $derived(appData());
+  // Skeleton while campus data is still loading behind the map; offline with
+  // nothing saved says so instead of "no events yet".
+  const eventsState = $derived(
+    campusListState({
+      count: events?.length ?? 0,
+      loaded,
+      phase: appBootstrapStore.phase,
+      online: onlineStatus.online,
+    }),
+  );
 
   const upcomingEvents = $derived.by(() => {
     if (!loaded) return [];
@@ -48,7 +64,7 @@
   // Default to whichever tab has events when data first loads.
   let appliedDefault = $state(false);
   $effect(() => {
-    if (!loaded || appliedDefault) return;
+    if (eventsState !== "ready" || appliedDefault) return;
     if (upcomingEvents.length === 0 && pastEvents.length > 0) {
       activeTab = "past";
     }
@@ -99,7 +115,7 @@
 </script>
 
 <div class="events-list-panel">
-  {#if !loaded}
+  {#if eventsState === "loading" || !loaded}
     <EntityPanelHeader
       closeAriaLabel="Close campus events list"
       closeTitle="Close campus events list"
@@ -245,7 +261,9 @@
       {/if}
     {:else}
       <p class="empty-events">
-        {activeTab === "upcoming"
+        {eventsState === "offline"
+          ? "Events aren’t available offline yet. Connect to the internet once and they’ll be saved on this device."
+          : activeTab === "upcoming"
           ? "No active or upcoming campus events yet. Check back soon."
           : "No past campus events to show yet."}
       </p>

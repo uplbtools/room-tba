@@ -60,6 +60,11 @@
   } from "@lib/local/data/sync";
   import { getDB } from "@lib/local/data/pgliteDB";
   import { CAMPUS_DATA_REFRESH_EVENT } from "@lib/local/data/invalidate-sync-key";
+  import {
+    type CampusListKey,
+    type LoadedCampusData,
+    keepCachedRows,
+  } from "@lib/local/data/keep-cached-rows";
 
   type MetadataProps = {
     initialSearch?: InitialSearchState;
@@ -119,6 +124,22 @@
     organizations = data.organizations;
     places = data.places;
     totalRooms = data.totalRooms;
+  }
+
+  /** What the screen shows right now, or null before the first apply. */
+  function currentData(): LoadedCampusData | null {
+    if (buildings === null) return null;
+    return {
+      buildings,
+      colleges: colleges ?? [],
+      divisions: divisions ?? [],
+      dorms: dorms ?? [],
+      events: events ?? [],
+      organizations: organizations ?? [],
+      places: places ?? [],
+      directionCount: directionCount ?? 0,
+      totalRooms: totalRooms ?? 0,
+    };
   }
 
   function hasUsableCampusData(data: DBData) {
@@ -237,17 +258,35 @@
         trackFetch(getRoomsData()),
       ]);
 
-      const nextData = {
-        buildings: buildingLoad.rows,
-        colleges: collegeLoad.rows,
-        divisions: divisionLoad.rows,
-        dorms: dormLoad.rows,
-        events: eventLoad.rows,
-        organizations: organizationLoad.rows,
-        places: placeLoad.rows,
-        directionCount: roomsData.directionCount,
-        totalRooms: roomsData.totalRooms,
+      const loads = {
+        buildings: buildingLoad,
+        colleges: collegeLoad,
+        divisions: divisionLoad,
+        dorms: dormLoad,
+        events: eventLoad,
+        organizations: organizationLoad,
+        places: placeLoad,
       };
+      const cachedKeys = new Set(
+        (Object.keys(loads) as CampusListKey[]).filter(
+          (key) => loads[key].source === "cache",
+        ),
+      );
+      const nextData = keepCachedRows(
+        currentData(),
+        {
+          buildings: buildingLoad.rows,
+          colleges: collegeLoad.rows,
+          divisions: divisionLoad.rows,
+          dorms: dormLoad.rows,
+          events: eventLoad.rows,
+          organizations: organizationLoad.rows,
+          places: placeLoad.rows,
+          directionCount: roomsData.directionCount,
+          totalRooms: roomsData.totalRooms,
+        },
+        cachedKeys,
+      );
       applyData(nextData);
       networkDataApplied = true;
 
@@ -359,18 +398,19 @@
   onMount(() => {
     applyData(EMPTY_DB_DATA);
     loaded = true;
+    // Progressive boot: the map, search and chrome render now; campus data
+    // streams in behind them (CampusLoadProgress shows the slim bar, lists
+    // show skeletons). The static shell only covers the bundle download.
+    dismissStaticLoadingShell();
     appBootstrapStore.setRetryHandler(() => {
       void refreshFromNetwork(false);
     });
 
-    const onOffline = () => {
-      toastStore.show("You are offline. Campus data may be stale.", "info");
-    };
+    // Going offline is announced by the persistent OfflineBanner, not a toast.
     const onOnline = () => {
       toastStore.show("Back online. Syncing latest data...", "success");
       void refreshFromNetwork(appBootstrapStore.hasCachedData);
     };
-    window.addEventListener("offline", onOffline);
     window.addEventListener("online", onOnline);
     const onCampusRefresh = () => {
       void refreshFromNetwork(appBootstrapStore.hasCachedData);
@@ -402,7 +442,7 @@
 
         // Fast path: last visit's data as flat JSON. Applies in milliseconds
         // while PGlite (5 MB wasm) and the network are still warming up, so a
-        // returning visitor (or a wiki round-trip) skips the splash screen.
+        // returning visitor (or a wiki round-trip) sees pins at once.
         let pgliteCacheApplied = false;
         void loadAppDataSnapshot().then((snapshot) => {
           if (!snapshot || !hasUsableCampusData(snapshot)) return;
@@ -410,7 +450,6 @@
           applyData(snapshot);
           appBootstrapStore.setHasCachedData(true);
           appBootstrapStore.complete();
-          dismissStaticLoadingShell();
         }, console.error);
 
         void loadCachedAppData().then((cached) => {
@@ -420,17 +459,20 @@
           // still hydrating; never regress the UI back to the cached copy.
           if (networkDataApplied) return;
           pgliteCacheApplied = true;
-          saveAppDataSnapshot(cached);
-          applyData(cached);
+          // A table PGlite never stored must not blank the snapshot's copy.
+          const merged = keepCachedRows(
+            currentData(),
+            cached as LoadedCampusData,
+            "all",
+          );
+          saveAppDataSnapshot(merged);
+          applyData(merged);
           appBootstrapStore.complete();
-          dismissStaticLoadingShell();
         }, console.error);
 
         await refreshFromNetwork(hasSyncedBefore);
-        dismissStaticLoadingShell();
       } catch (error) {
         console.error("Bootstrap failed", error);
-        dismissStaticLoadingShell();
         if (appBootstrapStore.hasCachedData) {
           appBootstrapStore.complete();
         } else {
@@ -445,10 +487,15 @@
     })();
 
     return () => {
-      window.removeEventListener("offline", onOffline);
       window.removeEventListener("online", onOnline);
       window.removeEventListener(CAMPUS_DATA_REFRESH_EVENT, onCampusRefresh);
     };
+  });
+
+  // Bootstrap phase on <html> for E2E and the boot watchdog: the shell no
+  // longer waits for data, so "booted" and "campus data ready" differ.
+  $effect(() => {
+    document.documentElement.dataset.campusData = appBootstrapStore.phase;
   });
 
   setAppData(() => appData);
