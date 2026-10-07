@@ -755,6 +755,13 @@
   const JOURNEY_WALK_CASING_ID = "directions-journey-walk-casing";
   const JOURNEY_RIDE_LAYER_ID = "directions-journey-ride";
   const JOURNEY_RIDE_CASING_ID = "directions-journey-ride-casing";
+  /** Unselected options, drawn grey under the chosen one and tappable. */
+  const JOURNEY_ALT_SOURCE_ID = "directions-journey-alt";
+  const JOURNEY_ALT_CASING_ID = "directions-journey-alt-casing";
+  const JOURNEY_ALT_LAYER_ID = "directions-journey-alt";
+  /** Invisible fat line so a fingertip can hit a thin grey route. */
+  const JOURNEY_ALT_HIT_ID = "directions-journey-alt-hit";
+  const JOURNEY_ALT_COLOR = "#8e9aa8";
   /** Stock MapLibreGlDirections foot routeline (`layers.ts` routelineFoot). */
   const JOURNEY_WALK_COLOR = "#3665ff";
   /**
@@ -791,6 +798,60 @@
    * 0.85) so walk looks like the pre–multi-modal OSRM path; ride legs use
    * the jeepney route colour with the same widths.
    */
+  function ensureJourneyAltLayers(map: mapGl.MapLibreMap) {
+    if (!map.getSource(JOURNEY_ALT_SOURCE_ID)) {
+      map.addSource(JOURNEY_ALT_SOURCE_ID, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      });
+    }
+    // Under the selected route, which is added after (or already sits above).
+    const before = map.getLayer(JOURNEY_RIDE_CASING_ID)
+      ? JOURNEY_RIDE_CASING_ID
+      : undefined;
+    if (!map.getLayer(JOURNEY_ALT_CASING_ID)) {
+      map.addLayer(
+        {
+          id: JOURNEY_ALT_CASING_ID,
+          type: "line",
+          source: JOURNEY_ALT_SOURCE_ID,
+          layout: { "line-cap": "round", "line-join": "round" },
+          paint: {
+            "line-color": "#5f6b78",
+            "line-width": JOURNEY_CASING_WIDTH,
+            "line-opacity": 0.3,
+          },
+        },
+        before,
+      );
+    }
+    if (!map.getLayer(JOURNEY_ALT_LAYER_ID)) {
+      map.addLayer(
+        {
+          id: JOURNEY_ALT_LAYER_ID,
+          type: "line",
+          source: JOURNEY_ALT_SOURCE_ID,
+          layout: { "line-cap": "round", "line-join": "round" },
+          paint: {
+            "line-color": JOURNEY_ALT_COLOR,
+            "line-width": JOURNEY_LINE_WIDTH,
+            "line-opacity": 0.9,
+          },
+        },
+        before,
+      );
+    }
+    if (!map.getLayer(JOURNEY_ALT_HIT_ID)) {
+      map.addLayer({
+        id: JOURNEY_ALT_HIT_ID,
+        type: "line",
+        source: JOURNEY_ALT_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": "#000", "line-width": 24, "line-opacity": 0 },
+      });
+    }
+  }
+
   function ensureJourneyLayers(map: mapGl.MapLibreMap) {
     if (!map.getSource(JOURNEY_SOURCE_ID)) {
       map.addSource(JOURNEY_SOURCE_ID, {
@@ -882,17 +943,22 @@
     if (map.getLayer(JOURNEY_WALK_LAYER_ID)) {
       map.setPaintProperty(JOURNEY_WALK_LAYER_ID, "line-color", JOURNEY_WALK_COLOR);
     }
-  }  function clearJourneyLayers(map: mapGl.MapLibreMap) {
+  }
+
+  function clearJourneyLayers(map: mapGl.MapLibreMap) {
     for (const id of [
       JOURNEY_WALK_LAYER_ID,
       JOURNEY_WALK_CASING_ID,
       JOURNEY_RIDE_LAYER_ID,
       JOURNEY_RIDE_CASING_ID,
+      JOURNEY_ALT_HIT_ID,
+      JOURNEY_ALT_LAYER_ID,
+      JOURNEY_ALT_CASING_ID,
     ]) {
       if (map.getLayer(id)) map.removeLayer(id);
     }
-    if (map.getSource(JOURNEY_SOURCE_ID)) {
-      map.removeSource(JOURNEY_SOURCE_ID);
+    for (const id of [JOURNEY_SOURCE_ID, JOURNEY_ALT_SOURCE_ID]) {
+      if (map.getSource(id)) map.removeSource(id);
     }
   }
   function ensureEventRouteLayers(map: mapGl.MapLibreMap) {
@@ -2710,9 +2776,33 @@
       return;
     }
 
+    // Other options stay on the map in grey while choosing, as in GMaps;
+    // navigation shows only the route being followed.
+    const alternatives = directionsStore.navigating
+      ? []
+      : directionsStore.journeys.filter((other) => other.id !== journey.id);
+
     const draw = () => {
       ensureJourneyLayers(map);
+      ensureJourneyAltLayers(map);
       applyJourneyPaint(map);
+      (
+        map.getSource(JOURNEY_ALT_SOURCE_ID) as mapGl.GeoJSONSource | undefined
+      )?.setData({
+        type: "FeatureCollection",
+        features: alternatives.flatMap((other) =>
+          other.legs
+            .filter((leg) => leg.coordinates.length >= 2)
+            .map((leg) => ({
+              type: "Feature" as const,
+              geometry: {
+                type: "LineString" as const,
+                coordinates: leg.coordinates,
+              },
+              properties: { journeyId: other.id },
+            })),
+        ),
+      });
       const source = map.getSource(JOURNEY_SOURCE_ID) as
         | mapGl.GeoJSONSource
         | undefined;
@@ -2872,6 +2962,44 @@
       if (canvas.style.cursor === "crosshair") {
         canvas.style.cursor = previousCursor;
       }
+    };
+  });
+
+  // Tap a grey alternative to choose it (#966). A pending start/end pick
+  // wins: that tap is meant to drop a pin.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !directionsStore.active || directionsStore.navigating) return;
+
+    const canvas = map.getCanvas();
+    // Plain listeners, not layer-delegated ones: those query a layer that
+    // does not exist until the first draw and error on every mouse move.
+    const hitJourneyId = (event: mapGl.MapMouseEvent): string | null => {
+      if (!map.getLayer(JOURNEY_ALT_HIT_ID)) return null;
+      const id = map.queryRenderedFeatures(event.point, {
+        layers: [JOURNEY_ALT_HIT_ID],
+      })[0]?.properties?.journeyId;
+      return typeof id === "string" ? id : null;
+    };
+    const choose = (event: mapGl.MapMouseEvent) => {
+      if (directionsStore.picking || directionsStore.addingStop) return;
+      const id = hitJourneyId(event);
+      if (id) directionsStore.select(id);
+    };
+    let pointing = false;
+    const hover = (event: mapGl.MapMouseEvent) => {
+      if (directionsStore.picking) return;
+      const over = hitJourneyId(event) !== null;
+      if (over === pointing) return;
+      pointing = over;
+      canvas.style.cursor = over ? "pointer" : "";
+    };
+    map.on("click", choose);
+    map.on("mousemove", hover);
+    return () => {
+      map.off("click", choose);
+      map.off("mousemove", hover);
+      if (pointing) canvas.style.cursor = "";
     };
   });
 

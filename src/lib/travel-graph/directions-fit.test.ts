@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   computeDirectionsFitExtents,
-  directionsEdgeCamera,
+  directionsFitBounds,
   directionsFitPaddingFromRects,
   estimateDestinationLabelHalfWidthPx,
 } from "./directions-fit";
@@ -77,27 +77,31 @@ describe("directionsFitPaddingFromRects", () => {
   });
 });
 
-describe("directionsEdgeCamera", () => {
-  test("uses width-only cameraForBounds zoom and trip midpoint", () => {
-    const map = {
-      cameraForBounds: () => ({
-        center: { lng: 121.242, lat: 14.162 },
-        zoom: 16.4,
-      }),
-    };
-    const cam = directionsEdgeCamera(
-      map,
-      {
-        west: 121.24,
-        east: 121.245,
-        south: 14.16,
-        north: 14.165,
-        destOnRight: true,
-      },
-      { top: 100, bottom: 200, left: 2, right: 60 },
-    );
-    expect(cam.zoom).toBe(16.4);
-    expect(cam.center[0]).toBeCloseTo(121.2425, 5);
-    expect(cam.center[1]).toBeCloseTo(14.1625, 5);
+describe("directionsFitBounds", () => {
+  const extents = {
+    west: 121.24,
+    east: 121.245,
+    south: 14.16,
+    north: 14.165,
+    destOnRight: true,
+  };
+
+  test("is the endpoint box when the line stays inside it", () => {
+    expect(directionsFitBounds(extents, [[121.242, 14.162]])).toEqual([
+      [121.24, 14.16],
+      [121.245, 14.165],
+    ]);
+  });
+
+  test("grows to keep a bulging route on screen", () => {
+    expect(
+      directionsFitBounds(extents, [
+        [121.239, 14.162],
+        [121.243, 14.167],
+      ]),
+    ).toEqual([
+      [121.239, 14.16],
+      [121.245, 14.167],
+    ]);
   });
 });

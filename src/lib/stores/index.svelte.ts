@@ -187,9 +187,14 @@ import { AnnouncementsStore } from "./announcements-store.svelte";
 import {
   DirectionsStore,
   MAX_DIRECTIONS_WAYPOINTS,
+  YOUR_LOCATION_LABEL,
 } from "./directions-store.svelte";
-export { MAX_DIRECTIONS_WAYPOINTS };
-export type { DirectionsPick } from "./directions-store.svelte";
+export { MAX_DIRECTIONS_WAYPOINTS, YOUR_LOCATION_LABEL };
+export type {
+  DirectionsMode,
+  DirectionsPick,
+  DirectionsSnapshot,
+} from "./directions-store.svelte";
 
 export { plannerRoomCodes } from "./data-stores.svelte";
 

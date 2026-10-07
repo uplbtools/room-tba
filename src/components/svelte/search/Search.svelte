@@ -9,15 +9,17 @@
     adminAuthStore,
     directionsStore,
     editorChromeStore,
+    locationStore,
     mapEditStore,
-    MAX_DIRECTIONS_WAYPOINTS,
     modalStore,
     proposalsStore,
     queryStore,
     sidePanelStore,
+    YOUR_LOCATION_LABEL,
   } from "@lib/store.svelte";
   import Suggestions from "./Suggestions.svelte";
   import DirectionsRouteChips from "@ui/directions/DirectionsRouteChips.svelte";
+  import NavigationBanner from "@ui/directions/NavigationBanner.svelte";
   import MapFilterChips from "@ui/map-chrome/MapFilterChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
@@ -26,7 +28,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import SearchIcon from "@lucide/svelte/icons/search";
   import MapPinPlus from "@lucide/svelte/icons/map-pin-plus";
-  import Plus from "@lucide/svelte/icons/plus";
+  import CornerUpRight from "@lucide/svelte/icons/corner-up-right";
   import ArrowLeft from "@lucide/svelte/icons/arrow-left";
 
   let searchElement = $state<HTMLInputElement | null>(null);
@@ -145,33 +147,27 @@
     directionsStore.active && !directionsStore.navigating,
   );
 
-  const canAddDirectionsStop = $derived(
-    directionsSearchActive &&
-      directionsStore.destination !== null &&
-      directionsStore.waypoints.length < MAX_DIRECTIONS_WAYPOINTS,
-  );
+  /**
+   * Home-screen Directions (GMaps' button in the search bar): start from
+   * the blue dot, or wait for it, and ask where to.
+   */
+  function openDirections() {
+    commitSearchInput.cancel();
+    const coords = locationStore.coords;
+    locationStore.requestLocation();
+    directionsStore.openEmpty(
+      coords
+        ? { lat: coords[1], lng: coords[0], label: YOUR_LOCATION_LABEL }
+        : null,
+    );
+  }
 
-  const searchPlaceholder = $derived(
-    directionsStore.picking === "origin"
-      ? "Search a starting point"
-      : directionsStore.picking === "destination"
-        ? "Search where you are going"
-        : directionsStore.addingStop
-      ? "Search a place to add as a stop"
-      : directionsSearchActive
-        ? "Search to add a stop"
-        : "ex. Institute of Computer Science",
-  );
-
-  function toggleDirectionsAddStop() {
-    if (!canAddDirectionsStop) return;
-    if (directionsStore.addingStop) {
-      directionsStore.cancelAddStop();
-    } else {
-      directionsStore.beginAddStop();
+  /** Typing in the From / To fields drives the same place search. */
+  function handleDirectionsSearchInput(value: string) {
+    if (queryStore.type === "result" || queryStore.category !== null) {
+      queryStore.exitResultMode();
     }
-    searchFocused = true;
-    searchElement?.focus();
+    commitSearchInput(value);
   }
 
   $effect(() => {
@@ -192,6 +188,10 @@
   class:search-query-active={draftInput.trim() !== ""}
 >
   <div class="search-shell-main" bind:this={shellMainEl}>
+    {#if directionsStore.navigating}
+      <!-- Navigating: the instruction banner is the only top chrome. -->
+      <NavigationBanner />
+    {:else}
     <div
       bind:this={chromeEl}
       class="map-search-chrome"
@@ -199,6 +199,17 @@
       class:map-search-chrome--mobile-redesign={mobile.current}
     >
       <div class="map-search-chrome__bar">
+        {#if directionsSearchActive}
+          <!-- One set of controls: the From / To fields replace the search
+               bar (and its leftover query) while directions are open. -->
+          <DirectionsRouteChips
+            searching={searchFocused}
+            onSearchFocus={() => (searchFocused = true)}
+            onSearchBlur={() => (searchFocused = false)}
+            onSearchInput={handleDirectionsSearchInput}
+            onDismissSearch={dismissMobileSearch}
+          />
+        {:else}
         <div class="map-search-chrome__bar-row">
           {#if mobile.current}
             <button
@@ -249,7 +260,7 @@
                 aria-controls="search-suggestions"
                 aria-autocomplete="list"
                 aria-haspopup="listbox"
-                placeholder={searchPlaceholder}
+                placeholder="ex. Institute of Computer Science"
               />
               {#if draftInput !== "" || queryStore.category !== null}
                 <button
@@ -281,25 +292,21 @@
                   >
                 </button>
               {/if}
-              {#if canAddDirectionsStop}
+              {#if draftInput === "" && queryStore.category === null}
                 <button
                   type="button"
-                  class="map-search-chrome__add map-search-chrome__add-stop"
-                  class:map-search-chrome__add-stop--armed={directionsStore.addingStop}
-                  aria-pressed={directionsStore.addingStop}
-                  aria-label={directionsStore.addingStop
-                    ? "Cancel adding a stop"
-                    : "Add a stop from search or the map"}
-                  title={directionsStore.addingStop
-                    ? "Cancel add stop"
-                    : "Add stop"}
+                  class="map-search-chrome__directions"
+                  class:map-search-chrome__directions--hidden={mobileSearchActive}
+                  aria-label="Directions"
+                  title="Directions"
+                  tabindex={mobileSearchActive ? -1 : 0}
                   onmousedown={(event) => event.preventDefault()}
-                  onclick={toggleDirectionsAddStop}
+                  onclick={openDirections}
                 >
-                  <Plus size={14} aria-hidden="true" />
-                  <span class="map-search-chrome__add-stop-text">Add stop</span>
+                  <CornerUpRight size={18} aria-hidden="true" />
                 </button>
-              {:else if !mobile.current && !directionsSearchActive}
+              {/if}
+              {#if !mobile.current}
                 <button
                   type="button"
                   class="map-search-chrome__add"
@@ -313,7 +320,7 @@
             </div>
           </div>
 
-          {#if !mobile.current && !searchFocused && !directionsSearchActive}
+          {#if !mobile.current && !searchFocused}
             <MapFilterChips />
           {/if}
 
@@ -340,8 +347,6 @@
             </button>
           {/if}
         </div>
-        {#if directionsSearchActive}
-          <DirectionsRouteChips />
         {/if}
       </div>
 
@@ -366,6 +371,7 @@
         </div>
       {/if}
     </div>
+    {/if}
   </div>
 </div>
 
@@ -1097,8 +1103,7 @@
   }
 
   /* Figma: Add lives inside the search pill (pink wash). */
-  .map-search-chrome__add,
-  .map-search-chrome__add-stop {
+  .map-search-chrome__add {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -1124,49 +1129,49 @@
      search bar). Fit the chip inside the pill on the desktop shell. */
   .search-root:not(.mobile-shell)
     .map-search-chrome--redesign
-    .map-search-chrome__add,
-  .search-root:not(.mobile-shell)
-    .map-search-chrome--redesign
-    .map-search-chrome__add-stop {
+    .map-search-chrome__add {
     height: 1.625rem;
     align-self: center;
   }
 
   .map-search-chrome__add:hover,
-  .map-search-chrome__add-stop:hover,
-  .map-search-chrome__add:focus-visible,
-  .map-search-chrome__add-stop:focus-visible {
-    background: var(--theme-accent-soft, #fcdada);
+  .map-search-chrome__add:focus-visible {
+    background: #fcdada;
   }
 
-  .map-search-chrome__add-stop--armed {
-    background: var(--color-brand, var(--theme-accent-fill, #8d1437));
-    color: #fff;
-  }
-
-  .map-search-chrome__add-stop--armed:hover,
-  .map-search-chrome__add-stop--armed:focus-visible {
-    background: var(--theme-accent-fill, #7a1130);
-  }
-
-  .search-root.mobile-shell .map-search-chrome__add-stop {
-    width: 2rem;
-    height: 2rem;
-    margin-right: 0.15rem;
-    padding: 0;
+  /* GMaps-style Directions button at the right of the search bar. */
+  .map-search-chrome__directions {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
     justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    /* 44px hit area without growing the pill. */
+    margin-block: -0.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-brand, #8d1437);
+    color: #fff;
+    cursor: pointer;
   }
 
-  .search-root.mobile-shell .map-search-chrome__add-stop-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  .map-search-chrome__directions:hover,
+  .map-search-chrome__directions:focus-visible {
+    background: #7a1130;
+  }
+
+  .map-search-chrome__directions--hidden {
+    display: none;
+  }
+
+  .search-root:not(.mobile-shell)
+    .map-search-chrome--redesign
+    .map-search-chrome__directions {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-block: 0;
   }
 
   .search-root:not(.mobile-shell)
