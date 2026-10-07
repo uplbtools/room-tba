@@ -51,20 +51,24 @@ describe("applyBasemapPalette", () => {
   test("light applies the light table only", () => {
     const { map, state } = fakeMap(LAYERS, STYLE_PAINT);
     applyBasemapPalette(map, "light");
-    expect(state.background?.["background-color"]).toBe(
-      BASEMAP_LAYER_PAINT.background?.["background-color"],
+    expect(state["background"]?.["background-color"]).toBe(
+      BASEMAP_LAYER_PAINT["background"]?.["background-color"],
     );
-    expect(state.road_label?.["text-color"]).toBe("#333");
+    expect(state["road_label"]?.["text-color"]).toBe("#333");
   });
 
   test("dark recolors the basemap but never app overlays", () => {
     const { map, state } = fakeMap(LAYERS, STYLE_PAINT);
     applyBasemapPalette(map, "dark");
-    expect(state.background?.["background-color"]).toBe(uplbNight.background);
-    expect(state.road_label?.["text-color"]).toBe(
+    expect(state["background"]?.["background-color"]).toBe(
+      uplbNight["background"],
+    );
+    expect(state["road_label"]?.["text-color"]).toBe(
       BASEMAP_DARK_GENERIC.symbolText,
     );
-    expect(state.bridge_street?.["line-color"]).toBe(BASEMAP_DARK_GENERIC.road);
+    expect(state["bridge_street"]?.["line-color"]).toBe(
+      BASEMAP_DARK_GENERIC.road,
+    );
     expect(state["campus-labels"]?.["text-color"]).toBe("#7b1113");
   });
 

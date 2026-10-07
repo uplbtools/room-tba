@@ -55,7 +55,9 @@ function systemPrefersDark(): boolean {
 
 export function getResolvedTheme(): ResolvedTheme {
   if (typeof document === "undefined") return "light";
-  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  return document.documentElement.dataset["theme"] === "dark"
+    ? "dark"
+    : "light";
 }
 
 /** Persist the choice and repaint immediately. */
@@ -66,7 +68,7 @@ export function setThemePreference(preference: ThemePreference): void {
   } catch {
     // Private mode: still apply for this page view.
   }
-  document.documentElement.dataset.theme = resolveTheme(
+  document.documentElement.dataset["theme"] = resolveTheme(
     preference,
     systemPrefersDark(),
   );

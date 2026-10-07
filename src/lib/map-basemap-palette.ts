@@ -99,11 +99,11 @@ function basemapLayers(map: maplibregl.Map): { id: string; type: string }[] {
   if (!style) return [];
   const vectorSources = new Set(
     Object.entries(style.sources ?? {})
-      .filter(([, source]) => source.type === "vector")
+      .filter(([, source]) => (source as { type?: string }).type === "vector")
       .map(([id]) => id),
   );
   return (style.layers ?? []).filter(
-    (layer) =>
+    (layer: { id: string; type: string; source?: unknown }) =>
       "source" in layer &&
       typeof layer.source === "string" &&
       vectorSources.has(layer.source),

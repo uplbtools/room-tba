@@ -64,12 +64,12 @@ describe("SettingsModal", () => {
 
     dark.click();
     await tick();
-    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(document.documentElement.dataset["theme"]).toBe("dark");
     expect(localStorage.getItem("room-tba:theme")).toBe("dark");
     expect(dark).toHaveAttribute("aria-pressed", "true");
 
     light.click();
-    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.documentElement.dataset["theme"]).toBe("light");
     expect(localStorage.getItem("room-tba:theme")).toBe("light");
 
     system.click();
