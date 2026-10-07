@@ -141,12 +141,12 @@ Los Baños → Calamba ₱30 (₱25 discounted).
 [`scripts/fix-transit-data.ts`](../scripts/fix-transit-data.ts) applies the
 corrections planned in
 [`scripts/lib/transit-fixes-core.ts`](../scripts/lib/transit-fixes-core.ts),
-writes one history row per change (op key `2026-10-06-transit-stop-fixes`) and
+writes one history row per change (op key `2026-10-07-transit-fixes`) and
 refreshes the `jeepney_routes` sync key. It is idempotent; the seed script
 applies the same plan, so a fresh database needs nothing.
 
 ```sh
-DATABASE_URL=... bun run scripts/fix-transit-data.ts           # plan (18 changes)
+DATABASE_URL=... bun run scripts/fix-transit-data.ts           # plan (19 changes)
 DATABASE_URL=... bun run scripts/fix-transit-data.ts --apply   # write
 ```
 

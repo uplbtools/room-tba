@@ -3,7 +3,6 @@ import { afterEach, describe, expect, test } from "vitest";
 import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
 import { jeepneyStore, transitStore } from "@lib/store.svelte";
 import {
-  BUS_FARE_NOTE,
   JEEPNEY_ROUTES,
   JEEPNEY_RIDING_NOTES,
 } from "@constants/jeepney-routes";
@@ -53,7 +52,7 @@ describe("JeepneyRouteModal", () => {
     { name: "Buendia", description: "", lat: 14.554, lon: 120.997 },
   ];
 
-  test("a bus route says bus, with bus fares and no campus jeep tips", () => {
+  test("a bus route says bus, quotes no unverified fare and no campus jeep tips", () => {
     withRoute(
       {
         id: "lb-to-buendia",
@@ -72,9 +71,30 @@ describe("JeepneyRouteModal", () => {
             name: /Buendia \(LRT Gil Puyat\) bus route/,
           }),
         ).toBeVisible();
-        expect(screen.getByText(BUS_FARE_NOTE)).toBeVisible();
-        expect(screen.getByText("₱165")).toBeVisible();
+        expect(screen.getByText(/Fare not verified yet/)).toBeVisible();
+        expect(screen.queryByText("₱165")).toBeNull();
         expect(screen.queryByText(JEEPNEY_RIDING_NOTES[2]!)).toBeNull();
+      },
+    );
+  });
+
+  test("San Pablo jeep says to board at the Junction and quotes only the minimum", () => {
+    withRoute(
+      {
+        id: "lb-to-san-pablo",
+        name: "Los Baños → San Pablo",
+        description: "Jeepney toward San Pablo City.",
+        color: "#EF6C00",
+        fare: { regular: 50, discounted: 40 },
+        stops: busStops,
+      },
+      () => {
+        jeepneyStore.modalRouteId = "lb-to-san-pablo";
+        render(JeepneyRouteModal);
+
+        expect(screen.getByText(/Board at the Junction/)).toBeVisible();
+        expect(screen.getByText("Minimum fare")).toBeVisible();
+        expect(screen.queryByText("₱50")).toBeNull();
       },
     );
   });
@@ -97,7 +117,7 @@ describe("JeepneyRouteModal", () => {
           screen.getByRole("link", { name: "DLTB website" }),
         ).toHaveAttribute("href", "https://dltbbus.com.ph/");
         expect(screen.queryByText("₱165")).toBeNull();
-        expect(screen.queryByText(BUS_FARE_NOTE)).toBeNull();
+        expect(screen.queryByText(/Fare not verified yet/)).toBeNull();
       },
     );
   });

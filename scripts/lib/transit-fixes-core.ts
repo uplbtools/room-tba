@@ -16,6 +16,9 @@
  *   name now, with the signboard names kept in the description.
  * - Paired bus names read "Los Baños → Buendia (LRT Gil Puyat)" one way and
  *   "Buendia → Los Baños" the other.
+ * - San Pablo and Sta. Cruz jeeps come from Calamba and never enter campus:
+ *   their Los Baños stop is the Junction on the national highway, and the
+ *   descriptions say to get there first.
  * - Fares as of October 2026 (maintainer): campus jeeps ₱14, ₱12 for
  *   students; Los Baños → Calamba ₱30, ₱25 discounted. The DLTB UP Diliman
  *   bus is ticketed on DLTB's site, so the app links there instead
@@ -27,7 +30,7 @@
  * and passes within 10 m of them.
  */
 
-export const TRANSIT_FIX_OP_KEY = "2026-10-06-transit-stop-fixes";
+export const TRANSIT_FIX_OP_KEY = "2026-10-07-transit-fixes";
 
 export const OLIVAREZ_NAME = "Olivarez Plaza Mall";
 const OLIVAREZ_ALIASES =
@@ -62,8 +65,37 @@ const PANSOL = {
   lon: 121.18739,
 };
 
+/**
+ * San Pablo and Sta. Cruz jeeps start in Calamba and only pass Los Baños on
+ * the national highway; riders from campus get to the Junction first.
+ */
+const JUNCTION: StopPatch = {
+  name: "Junction (Los Baños)",
+  description:
+    "Wait on the national highway at the Junction, in front of Olivarez Plaza and the Caltex station. These jeeps come from Calamba and do not enter the UPLB campus.",
+  lat: 14.17895,
+  lon: 121.23929,
+};
+
+// The "board at the Junction" note itself lives in code
+// (ROUTE_BOARDING_NOTES in src/constants/jeepney-routes.ts) so it shows
+// without this script; the descriptions only drop the old boarding text and
+// the unverified fare sentence.
+export const SAN_PABLO_DESCRIPTION =
+  "Jeepney toward San Pablo City via Bay and Calauan, ending at the terminal near the church/Jollibee.";
+export const STA_CRUZ_DESCRIPTION =
+  "Jeepney toward Sta. Cruz along the national highway through Bay, Victoria and Pila, ending at the Pagsawitan terminal.";
+
 /** Stop fixes keyed by route and current stop name. */
 const STOP_FIXES: { routeId: string; name: string; patch: StopPatch }[] = [
+  ...[
+    "Olivarez Plaza (Los Baños)",
+    "College / Olivarez Plaza (Los Baños)",
+    OLIVAREZ_NAME,
+  ].flatMap((name) => [
+    { routeId: "lb-to-san-pablo", name, patch: JUNCTION },
+    { routeId: "lb-to-sta-cruz", name, patch: JUNCTION },
+  ]),
   {
     routeId: "lb-to-san-pablo",
     name: "Alaminos",
@@ -120,9 +152,11 @@ const ROUTE_FIXES: {
   },
   {
     id: "lb-to-san-pablo",
-    patch: (route) => ({
-      description: route.description.replaceAll("Alaminos", "Calauan"),
-    }),
+    patch: () => ({ description: SAN_PABLO_DESCRIPTION }),
+  },
+  {
+    id: "lb-to-sta-cruz",
+    patch: () => ({ description: STA_CRUZ_DESCRIPTION }),
   },
   {
     id: "buendia-to-lb",

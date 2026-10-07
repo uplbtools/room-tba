@@ -30,7 +30,7 @@ import {
   PRINT_MAP_QR,
   RALEWAY_BOLD_HEADINGS,
 } from "@constants/print-brand";
-import { routeTicketing } from "@constants/jeepney-routes";
+import { FARES_VERIFIED_NOTE } from "@constants/jeepney-routes";
 
 export type TransitMapStop = { name: string; lat: number; lon: number };
 
@@ -70,10 +70,53 @@ const INK = rgb(0.102, 0.102, 0.102);
 const MUTED = rgb(0.4, 0.4, 0.4);
 const HAIRLINE = rgb(0.8, 0.8, 0.8);
 const WHITE = rgb(1, 1, 1);
-const BUILDING = rgb(0.9, 0.89, 0.87);
-const ROAD_MAJOR = rgb(0.78, 0.78, 0.78);
-const ROAD_MINOR = rgb(0.85, 0.85, 0.85);
-const WATER = rgb(0.72, 0.84, 0.92);
+/**
+ * Print palettes. The sheet is taped to walls and photocopied, so the base
+ * map stays pale and the routes carry the colour. `routes` overrides a
+ * route's app colour on paper only (by route id).
+ */
+export type TransitMapPalette = "app" | "high-contrast" | "colorblind";
+type PaletteSpec = {
+  building: RGB;
+  roadMajor: RGB;
+  roadMinor: RGB;
+  water: RGB;
+  routes: Record<string, string>;
+};
+export const TRANSIT_MAP_PALETTES: Record<TransitMapPalette, PaletteSpec> = {
+  // The colours riders see in the app, on a lighter base map.
+  app: {
+    building: rgb(0.93, 0.92, 0.9),
+    roadMajor: rgb(0.82, 0.82, 0.82),
+    roadMinor: rgb(0.89, 0.89, 0.89),
+    water: rgb(0.78, 0.87, 0.94),
+    routes: {},
+  },
+  // Deeper route colours on a near-white base: survives a cheap printer.
+  "high-contrast": {
+    building: rgb(0.95, 0.95, 0.95),
+    roadMajor: rgb(0.86, 0.86, 0.86),
+    roadMinor: rgb(0.92, 0.92, 0.92),
+    water: rgb(0.82, 0.9, 0.96),
+    routes: {
+      "kaliwa-kanan": "#B71C1C",
+      forestry: "#E65100",
+      "up-rural": "#0D47A1",
+    },
+  },
+  // Okabe-Ito hues, distinct for the common colour-vision deficiencies.
+  colorblind: {
+    building: rgb(0.94, 0.94, 0.93),
+    roadMajor: rgb(0.84, 0.84, 0.84),
+    roadMinor: rgb(0.91, 0.91, 0.91),
+    water: rgb(0.8, 0.88, 0.95),
+    routes: {
+      "kaliwa-kanan": "#D55E00",
+      forestry: "#009E73",
+      "up-rural": "#0072B2",
+    },
+  },
+};
 
 const MARGIN = 32;
 const HEADER_H = 72;
@@ -373,7 +416,7 @@ export function placeLabels(
     let leader = false;
     if (!spot && r.keep) {
       // Dense core: walk outward ring by ring and tie back with a leader.
-      for (const ring of [2.2, 3.4, 4.6]) {
+      for (const ring of [2.2, 3.4, 4.6, 6, 7.5, 9]) {
         spot = labelCandidates(r, r.gap * ring + 6).find(free);
         if (spot) {
           leader = true;
@@ -388,54 +431,6 @@ export function placeLabels(
   }
   return placed;
 }
-
-// ── Intercity list ──────────────────────────────────────────────────────
-
-export type IntercityGroup = {
-  origin: string;
-  routes: {
-    id: string;
-    destination: string;
-    fareRegular: number;
-    fareDiscounted: number;
-  }[];
-};
-
-/**
- * Group intercity routes by where they leave from. The origin and
- * destination come from the route name ("Los Baños → Calamba"); a name
- * without an arrow falls back to its first and last stop. Groups with more
- * routes come first, so the local departures lead the list.
- */
-export function groupIntercityByOrigin(
-  routes: TransitMapRoute[],
-): IntercityGroup[] {
-  const groups = new Map<string, IntercityGroup>();
-  for (const route of routes) {
-    const parts = route.name.split(/\s*(?:→|->)\s*/);
-    const origin =
-      parts.length >= 2 ? parts[0] : (route.stops[0]?.name ?? route.name);
-    const destination =
-      parts.length >= 2
-        ? parts.slice(1).join(" to ")
-        : (route.stops[route.stops.length - 1]?.name ?? route.name);
-    const key = origin.trim();
-    const group = groups.get(key) ?? { origin: key, routes: [] };
-    group.routes.push({
-      id: route.id,
-      destination: destination.trim(),
-      fareRegular: route.fareRegular,
-      fareDiscounted: route.fareDiscounted,
-    });
-    groups.set(key, group);
-  }
-  return [...groups.values()].sort(
-    (a, b) =>
-      b.routes.length - a.routes.length || a.origin.localeCompare(b.origin),
-  );
-}
-
-// ── Text helpers ────────────────────────────────────────────────────────
 
 function hexToRgb(hex: string) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
@@ -543,6 +538,55 @@ export function routeLineStyles(
   return styles;
 }
 
+/**
+ * Draw mixed regular/bold text, wrapping on spaces across runs. Lines past
+ * `maxLines` are dropped.
+ */
+function drawRuns(
+  page: PDFPage,
+  runs: { text: string; bold?: boolean }[],
+  x: number,
+  y: number,
+  maxW: number,
+  size: number,
+  leading: number,
+  maxLines: number,
+  fonts: { regular: PDFFont; bold: PDFFont; color: RGB },
+) {
+  const words = runs.flatMap((run) =>
+    run.text
+      .split(/(\s+)/)
+      .filter((w) => w.length > 0)
+      .map((w) => ({ text: w, font: run.bold ? fonts.bold : fonts.regular })),
+  );
+  const lines: (typeof words)[] = [[]];
+  let lineW = 0;
+  for (const word of words) {
+    const w = word.font.widthOfTextAtSize(word.text, size);
+    const space = /^\s+$/.test(word.text);
+    if (!space && lineW + w > maxW && lines[lines.length - 1]!.length > 0) {
+      lines.push([]);
+      lineW = 0;
+    }
+    if (space && lineW === 0) continue;
+    lines[lines.length - 1]!.push(word);
+    lineW += w;
+  }
+  lines.slice(0, maxLines).forEach((line, i) => {
+    let cx = x;
+    for (const word of line) {
+      page.drawText(word.text, {
+        x: cx,
+        y: y - i * leading,
+        size,
+        font: word.font,
+        color: fonts.color,
+      });
+      cx += word.font.widthOfTextAtSize(word.text, size);
+    }
+  });
+}
+
 function wrapText(
   text: string,
   font: PDFFont,
@@ -643,10 +687,12 @@ export async function renderTransitMapPdf(input: {
   basemap?: TransitBasemap | null;
   format?: TransitMapFormat;
   generatedAt?: Date;
+  palette?: TransitMapPalette;
 }): Promise<Uint8Array> {
   const format = input.format ?? "a4";
   const { w: pageW, h: pageH } = PAGE_SIZES[format];
   const generatedAt = input.generatedAt ?? new Date();
+  const palette = TRANSIT_MAP_PALETTES[input.palette ?? "high-contrast"];
 
   const pdf = await PDFDocument.create();
   pdf.setTitle("UPLB Jeepney Routes");
@@ -661,19 +707,9 @@ export async function renderTransitMapPdf(input: {
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const italic = await pdf.embedFont(StandardFonts.HelveticaOblique);
 
-  // Intercity grouping reads the arrow in the raw name, so it runs before
-  // sanitizing; every string it returns is sanitized on the way out.
-  const intercityGroups = groupIntercityByOrigin(
-    input.routes.filter((r) => !isCampusScopeRoute(r)),
-  ).map((g) => ({
-    origin: toWinAnsi(g.origin),
-    routes: g.routes.map((r) => ({
-      ...r,
-      destination: toWinAnsi(r.destination),
-    })),
-  }));
   const routes = input.routes.map((route) => ({
     ...route,
+    color: palette.routes[route.id] ?? route.color,
     name: toWinAnsi(route.name),
     directionNote: route.directionNote ? toWinAnsi(route.directionNote) : null,
     stops: route.stops.map((stop) => ({ ...stop, name: toWinAnsi(stop.name) })),
@@ -724,7 +760,7 @@ export async function renderTransitMapPdf(input: {
       scale: size / 1000,
       color,
     });
-  raleway("UPLB Jeepney Routes", MARGIN, pageH - 32, 18, INK);
+  raleway("UPLB Jeepney Routes", MARGIN, pageH - 33, 21, INK);
 
   // Brand block, top right. The sheet gets posted around campus, so the QR
   // leads back to the app; the ref param lets prints be counted.
@@ -782,32 +818,43 @@ export async function renderTransitMapPdf(input: {
     day: "numeric",
     timeZone: "Asia/Manila",
   });
-  let intro: string;
+  // The intro is the part that changes per sheet, so its variable words are
+  // bold: someone reading a taped-up copy finds "where am I" at a glance.
+  type Run = { text: string; bold?: boolean };
+  let intro: Run[];
   if (here && nearest) {
     const servedBy = joinNames(
       drawnRoutes
         .filter((r) => nearest.stop.routeIds.includes(r.id))
         .map((r) => r.name),
     );
-    const at = here.name ?? "the star on this map";
-    intro = `You are at ${at}. The nearest jeepney stop is ${nearest.stop.name}, about ${formatDistance(nearest.walkM)} on foot (approximate). ${servedBy} ${nearest.stop.routeIds.length > 1 ? "stop" : "stops"} there.`;
+    intro = [
+      { text: "You are at " },
+      { text: here.name ?? "the star on this map", bold: true },
+      { text: ". The nearest jeepney stop is " },
+      { text: nearest.stop.name, bold: true },
+      { text: `, about ${formatDistance(nearest.walkM)} on foot. ` },
+      { text: servedBy, bold: true },
+      {
+        text: ` ${nearest.stop.routeIds.length > 1 ? "stop" : "stops"} there.`,
+      },
+    ];
   } else if (here) {
-    intro = `${here.name ?? "This spot"} is about ${formatDistance(haversineMeters(here, center))} from campus, outside this map. The routes below still show how to reach UPLB.`;
+    intro = [
+      { text: here.name ?? "This spot", bold: true },
+      {
+        text: ` is about ${formatDistance(haversineMeters(here, center))} from campus, outside this map. The routes below still show how to reach UPLB.`,
+      },
+    ];
   } else {
-    intro =
-      "Campus jeepney routes with their stops, plus the buses and jeepneys that link UPLB to nearby towns.";
+    intro = [{ text: "Campus jeepney routes and their stops." }];
   }
-  wrapText(intro, font, 10, introW)
-    .slice(0, 2)
-    .forEach((line, i) => {
-      page.drawText(line, {
-        x: MARGIN,
-        y: pageH - 50 - i * 13,
-        size: 10,
-        font,
-        color: INK,
-      });
-    });
+  const INTRO_SIZE = 11;
+  drawRuns(page, intro, MARGIN, pageH - 52, introW, INTRO_SIZE, 14, 2, {
+    regular: font,
+    bold,
+    color: INK,
+  });
   page.drawRectangle({
     x: 0,
     y: pageH - HEADER_H,
@@ -855,8 +902,6 @@ export async function renderTransitMapPdf(input: {
     p.y >= frame.y + pad &&
     p.y <= frame.y + frame.h - pad;
 
-  const indexEntries: { n: number; name: string }[] = [];
-
   if (projector && stops.length > 0) {
     const { project, ptPerMeter } = projector;
     const proj = (p: LatLon) => project(p.lat, p.lon);
@@ -883,19 +928,19 @@ export async function renderTransitMapPdf(input: {
       const b = input.basemap;
       const buildings = layerPath(b.buildings, true);
       if (buildings)
-        page.drawSvgPath(buildings, { ...svgAnchor, color: BUILDING });
+        page.drawSvgPath(buildings, { ...svgAnchor, color: palette.building });
       const water = layerPath(b.water, false);
       if (water)
         page.drawSvgPath(water, {
           ...svgAnchor,
-          borderColor: WATER,
+          borderColor: palette.water,
           borderWidth: 1.4,
         });
       const minor = layerPath(b.roadsMinor, false);
       if (minor)
         page.drawSvgPath(minor, {
           ...svgAnchor,
-          borderColor: ROAD_MINOR,
+          borderColor: palette.roadMinor,
           borderWidth: 1.1,
           borderLineCap: 1,
         });
@@ -903,8 +948,8 @@ export async function renderTransitMapPdf(input: {
       if (major)
         page.drawSvgPath(major, {
           ...svgAnchor,
-          borderColor: ROAD_MAJOR,
-          borderWidth: 2.4,
+          borderColor: palette.roadMajor,
+          borderWidth: 2.9,
           borderLineCap: 1,
         });
       for (const gate of b.gates) {
@@ -933,12 +978,12 @@ export async function renderTransitMapPdf(input: {
       page.drawSvgPath(pathOf(pts), {
         ...svgAnchor,
         borderColor: WHITE,
-        borderWidth: loop ? 9 : 6.5,
+        borderWidth: loop ? 10.5 : 7.5,
         borderLineCap: 1,
       });
       if (loop) {
-        const fwd = offsetPolyline(pts, -2);
-        const rev = offsetPolyline([...pts].reverse(), -2);
+        const fwd = offsetPolyline(pts, -2.3);
+        const rev = offsetPolyline([...pts].reverse(), -2.3);
         page.drawSvgPath(pathOf(fwd), {
           ...svgAnchor,
           borderColor: color,
@@ -948,7 +993,7 @@ export async function renderTransitMapPdf(input: {
         page.drawSvgPath(pathOf(rev), {
           ...svgAnchor,
           borderColor: darken(color, 0.62),
-          borderWidth: 2.4,
+          borderWidth: 2.9,
           borderDashArray: style?.reverseDash ?? LOOP_REVERSE_DASH,
         });
         arrows.push(
@@ -959,7 +1004,7 @@ export async function renderTransitMapPdf(input: {
         page.drawSvgPath(pathOf(pts), {
           ...svgAnchor,
           borderColor: color,
-          borderWidth: 3.2,
+          borderWidth: 4,
           borderDashArray: style?.dash ?? undefined,
         });
       }
@@ -1273,7 +1318,7 @@ export async function renderTransitMapPdf(input: {
         here.name ? `${here.name} (you are here)` : "You are here",
         hereP,
         12,
-        10,
+        11,
         bold,
         BRAND,
         100,
@@ -1291,14 +1336,14 @@ export async function renderTransitMapPdf(input: {
     byDistance.forEach((stop, rank) => {
       const p = stopPos.get(stop.key)!;
       const isNearest = nearest?.stop.key === stop.key;
-      if (isNearest) add(stop.key, stop.name, p, 10, 9, bold, BRAND, 90, true);
+      if (isNearest) add(stop.key, stop.name, p, 10, 10, bold, BRAND, 90, true);
       else if (stop.terminal)
         add(
           stop.key,
           stop.name,
           p,
           markerR(stop) + 2.5,
-          8,
+          9,
           bold,
           INK,
           80,
@@ -1310,10 +1355,13 @@ export async function renderTransitMapPdf(input: {
           stop.name,
           p,
           markerR(stop) + 2.5,
-          7.5,
+          8.5,
           font,
           INK,
           50 - rank * 0.01,
+          // Every stop keeps its name (with a leader line when crowded):
+          // a numbered key is hard to use on a sheet taped to a wall.
+          true,
         );
     });
     gateMarks.forEach((g, i) => {
@@ -1329,40 +1377,8 @@ export async function renderTransitMapPdf(input: {
     };
     const placed = placeLabels(specs, obstacles, bounds);
 
-    // Stops that lost their label get a number, placed in a second pass
-    // around the labels that did fit, and listed in the side panel.
-    const dropped = onMap
-      .filter((s) => !placed.has(s.key))
-      .sort((a, b) => a.order - b.order);
-    const numSpecs: Spec[] = [];
-    dropped.forEach((stop, i) => {
-      const n = i + 1;
-      indexEntries.push({ n, name: stop.name });
-      const p = stopPos.get(stop.key)!;
-      const text = String(n);
-      numSpecs.push({
-        id: `n${stop.key}`,
-        text,
-        ax: p.x,
-        ay: p.y,
-        gap: markerR(stop) + 1.5,
-        w: bold.widthOfTextAtSize(text, 7),
-        h: 7,
-        size: 7,
-        font: bold,
-        color: INK,
-        priority: 1,
-        keep: true,
-      });
-    });
-    const placedNums = placeLabels(
-      numSpecs,
-      [...obstacles, ...placed.values()],
-      bounds,
-    );
-
-    for (const spec of [...specs, ...numSpecs]) {
-      const box = placed.get(spec.id) ?? placedNums.get(spec.id);
+    for (const spec of specs) {
+      const box = placed.get(spec.id);
       if (!box) continue;
       if (box.leader) {
         const cx = Math.min(Math.max(spec.ax, box.x), box.x + box.w);
@@ -1412,8 +1428,8 @@ export async function renderTransitMapPdf(input: {
   const px = pageW - MARGIN - PANEL_W;
   let py = pageH - HEADER_H - 22;
   const heading = (text: string) => {
-    page.drawText(text, { x: px, y: py, size: 9.5, font: bold, color: INK });
-    py -= 14;
+    page.drawText(text, { x: px, y: py, size: 11, font: bold, color: INK });
+    py -= 15;
   };
   const sample = (
     color: RGB,
@@ -1437,10 +1453,12 @@ export async function renderTransitMapPdf(input: {
     }
   };
   const fareText = (r: { fareRegular: number; fareDiscounted: number }) =>
-    `PHP ${r.fareRegular}, or PHP ${r.fareDiscounted} discounted`;
+    Number.isFinite(r.fareRegular)
+      ? `PHP ${r.fareRegular} a ride, PHP ${r.fareDiscounted} student, senior or PWD`
+      : "Fare not verified";
 
   if (drawnRoutes.length > 0) {
-    heading("Campus routes");
+    heading("Campus jeepneys");
     for (const route of drawnRoutes) {
       const color = hexToRgb(route.color);
       const style = styles.get(route.id);
@@ -1450,11 +1468,11 @@ export async function renderTransitMapPdf(input: {
         page.drawText(fwdName ?? route.name, {
           x: px + 34,
           y: py,
-          size: 9,
+          size: 10.5,
           font: bold,
           color: INK,
         });
-        py -= 13;
+        py -= 14;
         sample(
           darken(color, 0.62),
           style?.reverseDash ?? LOOP_REVERSE_DASH,
@@ -1464,7 +1482,7 @@ export async function renderTransitMapPdf(input: {
         page.drawText(revName ?? `${route.name}, reverse`, {
           x: px + 34,
           y: py,
-          size: 9,
+          size: 10.5,
           font: bold,
           color: INK,
         });
@@ -1472,39 +1490,54 @@ export async function renderTransitMapPdf(input: {
         for (const line of wrapText(
           `Same loop, opposite directions. Arrows show the way each jeep travels. ${fareText(route)}.`,
           font,
-          7.5,
+          8.5,
           PANEL_W - 34,
         )) {
           page.drawText(line, {
             x: px + 34,
             y: py,
-            size: 7.5,
+            size: 8.5,
             font,
             color: MUTED,
           });
-          py -= 9.5;
+          py -= 10.5;
         }
       } else {
         sample(color, style?.dash ?? null, false, py);
         page.drawText(route.name, {
           x: px + 34,
           y: py,
-          size: 9,
+          size: 10.5,
           font: bold,
           color: INK,
         });
         py -= 11;
-        page.drawText(`${fareText(route)}.`, {
-          x: px + 34,
-          y: py,
-          size: 7.5,
+        for (const line of wrapText(
+          `${fareText(route)}.`,
           font,
-          color: MUTED,
-        });
-        py -= 9.5;
+          8.5,
+          PANEL_W - 34,
+        )) {
+          page.drawText(line, {
+            x: px + 34,
+            y: py,
+            size: 8.5,
+            font,
+            color: MUTED,
+          });
+          py -= 10.5;
+        }
       }
       py -= 5;
     }
+    page.drawText(FARES_VERIFIED_NOTE, {
+      x: px,
+      y: py,
+      size: 8.5,
+      font: bold,
+      color: INK,
+    });
+    py -= 15;
     // Symbols.
     if (here && hereOnMap) {
       page.drawSvgPath(starPath(px + 13, pageH - (py + 3), 6), {
@@ -1515,11 +1548,11 @@ export async function renderTransitMapPdf(input: {
       page.drawText("You are here", {
         x: px + 34,
         y: py,
-        size: 8,
+        size: 9.5,
         font,
         color: INK,
       });
-      py -= 12;
+      py -= 13;
       page.drawLine({
         start: { x: px, y: py + 3 },
         end: { x: px + 26, y: py + 3 },
@@ -1530,11 +1563,11 @@ export async function renderTransitMapPdf(input: {
       page.drawText("Walk to the nearest stop", {
         x: px + 34,
         y: py,
-        size: 8,
+        size: 9.5,
         font,
         color: INK,
       });
-      py -= 12;
+      py -= 13;
     }
     if (stops.some((st) => st.routeIds.length > 1)) {
       page.drawCircle({
@@ -1548,11 +1581,11 @@ export async function renderTransitMapPdf(input: {
       page.drawText("Stop shared by two routes", {
         x: px + 34,
         y: py,
-        size: 8,
+        size: 9.5,
         font,
         color: INK,
       });
-      py -= 12;
+      py -= 13;
     }
     if (input.basemap) {
       page.drawRectangle({
@@ -1565,114 +1598,26 @@ export async function renderTransitMapPdf(input: {
       page.drawText("Campus gate", {
         x: px + 34,
         y: py,
-        size: 8,
+        size: 9.5,
         font,
         color: INK,
       });
-      py -= 12;
+      py -= 13;
     }
     py -= 6;
   }
 
-  if (indexEntries.length > 0) {
-    heading("Numbered stops");
-    // Two columns keep a long list from pushing the intercity table off.
-    const colW = (PANEL_W - 8) / 2;
-    const rows = Math.ceil(indexEntries.length / 2);
-    const lineFor = (e: { n: number; name: string }) => `${e.n}  ${e.name}`;
-    const twoCols = indexEntries.every(
-      (e) => font.widthOfTextAtSize(lineFor(e), 7) <= colW,
-    );
-    indexEntries.forEach((e, i) => {
-      const col = twoCols ? Math.floor(i / rows) : 0;
-      const row = twoCols ? i % rows : i;
-      const lines = wrapText(lineFor(e), font, 7, twoCols ? colW : PANEL_W);
-      page.drawText(lines.join(" "), {
-        x: px + col * (colW + 8),
-        y: py - row * 9,
-        size: 7,
-        font,
-        color: INK,
-      });
-    });
-    py -= (twoCols ? rows : indexEntries.length) * 9 + 8;
-  }
-
-  if (intercityGroups.length > 0) {
-    heading("Other routes serving UPLB");
-    page.drawText("Not drawn on the map. Fares in PHP.", {
-      x: px,
-      y: py,
-      size: 7.5,
-      font,
-      color: MUTED,
-    });
-    py -= 12;
-    const colReg = px + PANEL_W - 62;
-    const colDisc = px + PANEL_W;
-    const right = (
-      text: string,
-      x: number,
-      y: number,
-      fnt: PDFFont,
-      size: number,
-      color: RGB,
-    ) =>
-      page.drawText(text, {
-        x: x - fnt.widthOfTextAtSize(text, size),
-        y,
-        size,
-        font: fnt,
-        color,
-      });
-    right("Regular", colReg, py, bold, 7, MUTED);
-    right("Discounted", colDisc, py, bold, 7, MUTED);
-    py -= 3;
-    page.drawLine({
-      start: { x: px, y: py },
-      end: { x: colDisc, y: py },
-      thickness: 0.5,
-      color: HAIRLINE,
-    });
-    py -= 10;
-    for (const group of intercityGroups) {
-      page.drawText(`From ${group.origin}`, {
-        x: px,
-        y: py,
-        size: 8,
-        font: bold,
-        color: INK,
-      });
-      py -= 10;
-      for (const r of group.routes) {
-        const lines = wrapText(
-          `to ${r.destination}`,
-          font,
-          7.5,
-          colReg - px - 44,
-        );
-        lines.forEach((line, i) =>
-          page.drawText(line, {
-            x: px + 6,
-            y: py - i * 9,
-            size: 7.5,
-            font,
-            color: INK,
-          }),
-        );
-        // Advance-ticket routes (DLTB) are priced on the operator's site.
-        const fare = (n: number) =>
-          routeTicketing(r.id)
-            ? "online"
-            : Number.isFinite(n)
-              ? String(n)
-              : "ask";
-        right(fare(r.fareRegular), colReg, py, font, 7.5, INK);
-        right(fare(r.fareDiscounted), colDisc, py, font, 7.5, INK);
-        py -= lines.length * 9 + 1;
-      }
-      py -= 4;
-    }
+  // Town jeeps and buses are not drawn; say where they are boarded and
+  // that they are not campus jeeps, without listing unverified fares.
+  heading("Town jeeps and buses");
+  for (const line of wrapText(
+    "Not on this map. Jeeps to Calamba, San Pablo and Sta. Cruz, and buses to Manila and UP Diliman, stop on the national highway at Olivarez Plaza (the Junction). UP Diliman bus tickets: dltbbus.com.ph. Details: room-tba.uplb.tools/transit",
+    font,
+    8.5,
+    PANEL_W,
+  )) {
+    page.drawText(line, { x: px, y: py, size: 8.5, font, color: INK });
+    py -= 11;
   }
 
   // ── Footer ────────────────────────────────────────────────────────────

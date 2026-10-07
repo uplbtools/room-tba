@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   OLIVAREZ_NAME,
   planTransitFixes,
+  SAN_PABLO_DESCRIPTION,
   type RouteRow,
   type StopRow,
 } from "./transit-fixes-core";
@@ -80,6 +81,25 @@ describe("planTransitFixes", () => {
     });
   });
 
+  test("San Pablo and Sta. Cruz board at the Junction", () => {
+    const fixes = planTransitFixes(
+      [],
+      [
+        stop({
+          id: 11,
+          routeId: "lb-to-sta-cruz",
+          name: "College / Olivarez Plaza (Los Baños)",
+        }),
+        stop({ id: 12, routeId: "lb-to-san-pablo", name: OLIVAREZ_NAME }),
+      ],
+      campus,
+    );
+    expect(fixes.map((f) => f.after.name)).toEqual([
+      "Junction (Los Baños)",
+      "Junction (Los Baños)",
+    ]);
+  });
+
   test("sets the October 2026 campus and Calamba fares", () => {
     const fixes = planTransitFixes(
       [
@@ -109,7 +129,7 @@ describe("planTransitFixes", () => {
   test("plans nothing once applied", () => {
     const fixes = planTransitFixes(
       [
-        route({ description: "via Bay and Calauan to San Pablo." }),
+        route({ description: SAN_PABLO_DESCRIPTION }),
         route({
           id: "buendia-to-lb",
           name: "Buendia (LRT Gil Puyat) → Los Baños",
