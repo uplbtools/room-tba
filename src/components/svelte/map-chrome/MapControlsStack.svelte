@@ -8,6 +8,7 @@
     enterTiltedMapDimension,
   } from "@lib/map-dimension-layers";
   import { THREE_D_PITCH, isMap2DPitch } from "@constants/map-dimension";
+  import { CAMPUS_DEFAULT_CAMERA } from "@constants/map-terrain";
   import {
     locationStore,
     mapStore,
@@ -24,8 +25,8 @@
   type Props = {
     /**
      * Mobile: no permanent compass (Figma: locate / 2D / zoom). It appears
-     * only while the map is rotated, as in native map apps, so a two-finger
-     * twist can always be undone with one tap.
+     * only while the map is turned away from the campus default bearing, so a
+     * two-finger twist can always be undone with one tap.
      */
     hideCompass?: boolean;
   };
@@ -46,8 +47,15 @@
   );
   /** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
   const northRotation = $derived(-bearing);
-  /** Bearing folded into -180..180; a degree of drift still reads as north. */
-  const rotated = $derived(Math.abs(((((bearing + 180) % 360) + 360) % 360) - 180) > 1);
+  /**
+   * Mobile resets to the campus default view, which is itself rotated, so
+   * "rotated" means away from that bearing (folded into -180..180; a degree
+   * of drift still counts as home).
+   */
+  const homeBearing = $derived(hideCompass ? CAMPUS_DEFAULT_CAMERA.bearing : 0);
+  const rotated = $derived(
+    Math.abs(((((bearing - homeBearing + 180) % 360) + 360) % 360) - 180) > 1,
+  );
   const showCompass = $derived(!hideCompass || rotated);
 
   onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
@@ -75,7 +83,7 @@
   });
 
   function resetNorth() {
-    mapStore.mapInstance?.easeTo({ bearing: 0, duration: 400 });
+    mapStore.mapInstance?.easeTo({ bearing: homeBearing, duration: 400 });
   }
 
   function toggleDimension() {
@@ -131,8 +139,8 @@
       type="button"
       class="map-ctrl map-ctrl--compass"
       class:map-ctrl--compass-mobile={hideCompass}
-      aria-label="Reset map north"
-      title="Reset north"
+      aria-label={hideCompass ? "Reset map rotation" : "Reset map north"}
+      title={hideCompass ? "Reset rotation" : "Reset north"}
       onclick={resetNorth}
     >
       <img
