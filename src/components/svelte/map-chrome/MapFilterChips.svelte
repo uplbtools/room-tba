@@ -66,6 +66,9 @@
     return null;
   });
 
+  /** Visible width of the chip cut off at the left edge (0 if none). */
+  let leftCutPx = $state(0);
+
   function syncScrollMore() {
     const el = scroller;
     if (!el) {
@@ -77,6 +80,14 @@
     const remaining = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
     canScrollMore = overflow && remaining;
     canScrollBack = overflow && el.scrollLeft > 4;
+    // Fade out exactly the chip cut off on the left, so no sliver of it
+    // shows (at the end of a short row it can stick out past a fixed fade).
+    const cut = ([...el.children] as HTMLElement[]).find(
+      (c) =>
+        c.offsetLeft < el.scrollLeft &&
+        c.offsetLeft + c.offsetWidth > el.scrollLeft,
+    );
+    leftCutPx = cut ? cut.offsetLeft + cut.offsetWidth - el.scrollLeft : 0;
   }
 
   $effect(() => {
@@ -112,12 +123,36 @@
     openCampusBrowse(queryStore, sidePanelStore, id);
   }
 
+  /** Width of the faded edge (matches --fade-start / --fade-end). */
+  const EDGE_PX = 24;
+
+  /**
+   * Page by whole chips: forward brings the first chip cut off on the right
+   * to just inside the left fade; back brings the chip cut off on the left
+   * to just inside the right fade. A fixed pixel step used to stop mid-chip,
+   * leaving a sliver ("s" of "Dorms") beside the arrow.
+   */
   function scrollChips(direction: 1 | -1 = 1) {
-    const step = Math.max(
-      160,
-      Math.round((scroller?.clientWidth ?? 240) * 0.55),
-    );
-    scroller?.scrollBy({ left: step * direction, behavior: "smooth" });
+    const el = scroller;
+    if (!el) return;
+    const chipsEls = [...el.children] as HTMLElement[];
+    const viewStart = el.scrollLeft;
+    const viewEnd = viewStart + el.clientWidth;
+    let target: number;
+    if (direction === 1) {
+      const next = chipsEls.find(
+        (c) => c.offsetLeft + c.offsetWidth > viewEnd - EDGE_PX + 1,
+      );
+      target = next ? next.offsetLeft - EDGE_PX : el.scrollWidth;
+    } else {
+      const prev = [...chipsEls]
+        .reverse()
+        .find((c) => c.offsetLeft < viewStart + EDGE_PX - 1);
+      target = prev
+        ? prev.offsetLeft + prev.offsetWidth - el.clientWidth + EDGE_PX
+        : 0;
+    }
+    el.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
   }
 
   /** Trackpads / mice scroll vertically by default; convert to pan-x here. */
@@ -149,6 +184,7 @@
     class="map-filter-chips__scroll"
     class:map-filter-chips__scroll--fade-start={canScrollBack}
     class:map-filter-chips__scroll--fade-end={canScrollMore}
+    style:--fade-clear={canScrollBack ? `${Math.max(14, leftCutPx)}px` : null}
     onwheel={onWheel}
   >
     {#each chips as chip (chip.id)}
@@ -199,10 +235,11 @@
     min-width: 0;
     max-width: 100%;
     height: var(--map-search-pill-height, 2.25rem);
-    overflow: hidden;
   }
 
   .map-filter-chips__scroll {
+    /* Chips measure offsetLeft against the scroller (see scrollChips). */
+    position: relative;
     display: flex;
     flex: 1 1 auto;
     align-items: center;
@@ -212,6 +249,17 @@
     overscroll-behavior-x: contain;
     touch-action: pan-x;
     scrollbar-width: none;
+    /* Swipes settle on a chip edge, clear of the faded margin. */
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 1.5rem;
+    /* overflow-x clips the other axis too: pad (and pull back) so the chip
+       shadows are not shaved off at the top, bottom and ends. */
+    padding: 0.25rem;
+    margin: -0.25rem;
+  }
+
+  .map-filter-chips__chip {
+    scroll-snap-align: start;
   }
 
   .map-filter-chips__scroll::-webkit-scrollbar {
@@ -222,11 +270,15 @@
   .map-filter-chips__scroll--fade-end {
     --fade-start: 0px;
     --fade-end: 0px;
+    /* Fully clear for most of the edge, then a short ramp: a chip scrolled
+       half past the arrow disappears instead of showing a sliver. */
     mask-image: linear-gradient(
       to right,
       transparent 0,
-      #000 var(--fade-start),
+      transparent var(--fade-clear, calc(var(--fade-start) * 0.6)),
+      #000 calc(var(--fade-clear, calc(var(--fade-start) * 0.6)) + 0.625rem),
       #000 calc(100% - var(--fade-end)),
+      transparent calc(100% - var(--fade-end) * 0.6),
       transparent 100%
     );
   }

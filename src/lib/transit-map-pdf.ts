@@ -30,7 +30,6 @@ import {
   PRINT_MAP_QR,
   RALEWAY_BOLD_HEADINGS,
 } from "@constants/print-brand";
-import { FARES_VERIFIED_NOTE } from "@constants/jeepney-routes";
 
 export type TransitMapStop = { name: string; lat: number; lon: number };
 
@@ -41,6 +40,8 @@ export type TransitMapRoute = {
   fareRegular: number;
   fareDiscounted: number;
   directionNote: string | null;
+  /** Where to board, printed on the route card (e.g. Forestry's terminals). */
+  boardingNote?: string | null;
   stops: TransitMapStop[];
   /** Road path in travel order, when one is sourced; else stops are joined. */
   line?: { lat: number; lon: number }[];
@@ -70,6 +71,11 @@ const INK = rgb(0.102, 0.102, 0.102);
 const MUTED = rgb(0.4, 0.4, 0.4);
 const HAIRLINE = rgb(0.8, 0.8, 0.8);
 const WHITE = rgb(1, 1, 1);
+// Highlight on the maroon band: #FFD54F on BRAND is 6.5:1, past WCAG AA
+// (4.5:1) for small text; SOFT_ON_BRAND (#F6E3E0) is 7.4:1, white 9.2:1.
+const SUNNY = rgb(1, 0.835, 0.31);
+const SOFT_ON_BRAND = rgb(0.965, 0.89, 0.878);
+const PAPER_TINT = rgb(0.98, 0.965, 0.955);
 /**
  * Print palettes. The sheet is taped to walls and photocopied, so the base
  * map stays pale and the routes carry the colour. `routes` overrides a
@@ -119,8 +125,8 @@ export const TRANSIT_MAP_PALETTES: Record<TransitMapPalette, PaletteSpec> = {
 };
 
 const MARGIN = 32;
-const HEADER_H = 72;
-const FOOTER_H = 24;
+const HEADER_H = 86;
+const FOOTER_H = 30;
 const PANEL_W = 222;
 const PANEL_GAP = 14;
 
@@ -494,10 +500,16 @@ export function isCampusScopeRoute(route: TransitMapRoute): boolean {
 }
 
 /** A loop starts and ends at the same stop and runs both ways (Kaliwa / Kanan). */
+/**
+ * A loop run in both directions (Kaliwa / Kanan): the printed map draws both
+ * travel directions and the legend splits the "A / B" name. A one-way loop
+ * such as the SNODLOB e-jeep is drawn like any other single line.
+ */
 export function isLoopRoute(route: TransitMapRoute): boolean {
   const first = route.stops[0];
   const last = route.stops[route.stops.length - 1];
   return (
+    /\s\/\s/.test(route.name) &&
     route.stops.length >= 3 &&
     !!first &&
     !!last &&
@@ -539,6 +551,81 @@ export function routeLineStyles(
 }
 
 /**
+ * SVG path (y-down, anchored at the page top) for a rounded rectangle given
+ * in PDF space: (x, y) is the bottom-left corner.
+ */
+function roundRectPath(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  pageH: number,
+): string {
+  const top = pageH - (y + h);
+  const rr = Math.min(r, w / 2, h / 2);
+  return [
+    `M ${x + rr} ${top}`,
+    `L ${x + w - rr} ${top} Q ${x + w} ${top} ${x + w} ${top + rr}`,
+    `L ${x + w} ${top + h - rr} Q ${x + w} ${top + h} ${x + w - rr} ${top + h}`,
+    `L ${x + rr} ${top + h} Q ${x} ${top + h} ${x} ${top + h - rr}`,
+    `L ${x} ${top + rr} Q ${x} ${top} ${x + rr} ${top} Z`,
+  ].join(" ");
+}
+
+/**
+ * A little side-on jeepney, about 40 x 22 pt at scale 1, with its
+ * bottom-left at (x, y): body, roof rack, windows, wheels.
+ */
+function drawJeep(
+  page: PDFPage,
+  pageH: number,
+  x: number,
+  y: number,
+  scale: number,
+  body: RGB,
+) {
+  const s = scale;
+  const anchor = { x: 0, y: pageH };
+  page.drawSvgPath(roundRectPath(x, y + 4 * s, 40 * s, 14 * s, 4 * s, pageH), {
+    ...anchor,
+    color: body,
+    borderColor: INK,
+    borderWidth: 1.2 * s,
+  });
+  page.drawSvgPath(
+    roundRectPath(x + 4 * s, y + 18 * s, 30 * s, 3 * s, 1.5 * s, pageH),
+    {
+      ...anchor,
+      color: INK,
+    },
+  );
+  for (let i = 0; i < 4; i++) {
+    page.drawSvgPath(
+      roundRectPath(
+        x + (5 + i * 8) * s,
+        y + 11 * s,
+        6 * s,
+        5 * s,
+        1.2 * s,
+        pageH,
+      ),
+      { ...anchor, color: WHITE, borderColor: INK, borderWidth: 0.8 * s },
+    );
+  }
+  for (const wx of [10, 31]) {
+    page.drawCircle({
+      x: x + wx * s,
+      y: y + 4 * s,
+      size: 4 * s,
+      color: INK,
+      borderColor: WHITE,
+      borderWidth: 1 * s,
+    });
+  }
+}
+
+/**
  * Draw mixed regular/bold text, wrapping on spaces across runs. Lines past
  * `maxLines` are dropped.
  */
@@ -551,13 +638,17 @@ function drawRuns(
   size: number,
   leading: number,
   maxLines: number,
-  fonts: { regular: PDFFont; bold: PDFFont; color: RGB },
+  fonts: { regular: PDFFont; bold: PDFFont; color: RGB; boldColor?: RGB },
 ) {
   const words = runs.flatMap((run) =>
     run.text
       .split(/(\s+)/)
       .filter((w) => w.length > 0)
-      .map((w) => ({ text: w, font: run.bold ? fonts.bold : fonts.regular })),
+      .map((w) => ({
+        text: w,
+        font: run.bold ? fonts.bold : fonts.regular,
+        color: run.bold ? (fonts.boldColor ?? fonts.color) : fonts.color,
+      })),
   );
   const lines: (typeof words)[] = [[]];
   let lineW = 0;
@@ -580,7 +671,7 @@ function drawRuns(
         y: y - i * leading,
         size,
         font: word.font,
-        color: fonts.color,
+        color: word.color,
       });
       cx += word.font.widthOfTextAtSize(word.text, size);
     }
@@ -656,7 +747,11 @@ function mergeStops(routes: TransitMapRoute[]): MapStop[] {
   routes.forEach((route, ri) => {
     const loop = isLoopRoute(route);
     route.stops.forEach((stop, si) => {
-      const terminal = si === 0 || (!loop && si === route.stops.length - 1);
+      // Named terminals count too: Forestry's downhill trips start mid-list.
+      const terminal =
+        si === 0 ||
+        (!loop && si === route.stops.length - 1) ||
+        /\bterminal\b/i.test(stop.name);
       const hit = out.find((m) => haversineMeters(m, stop) < 30);
       if (hit) {
         if (!hit.routeIds.includes(route.id)) hit.routeIds.push(route.id);
@@ -712,6 +807,7 @@ export async function renderTransitMapPdf(input: {
     color: palette.routes[route.id] ?? route.color,
     name: toWinAnsi(route.name),
     directionNote: route.directionNote ? toWinAnsi(route.directionNote) : null,
+    boardingNote: route.boardingNote ? toWinAnsi(route.boardingNote) : null,
     stops: route.stops.map((stop) => ({ ...stop, name: toWinAnsi(stop.name) })),
   }));
   const drawnRoutes = routes.filter(isCampusScopeRoute);
@@ -760,13 +856,43 @@ export async function renderTransitMapPdf(input: {
       scale: size / 1000,
       color,
     });
-  raleway("UPLB Jeepney Routes", MARGIN, pageH - 33, 21, INK);
+  // A maroon band with a wavy hem: the sheet is taped up around campus, so
+  // the top should read as a poster, not a printout.
+  const bandBottom = pageH - HEADER_H + 10;
+  let wave = `M 0 0 L ${pageW} 0 L ${pageW} ${pageH - bandBottom}`;
+  const waveStep = 18;
+  for (let x = pageW; x > 0; x -= waveStep) {
+    const nx = Math.max(0, x - waveStep);
+    wave += ` Q ${(x + nx) / 2} ${pageH - bandBottom + 7} ${nx} ${pageH - bandBottom}`;
+  }
+  page.drawSvgPath(`${wave} Z`, { x: 0, y: pageH, color: BRAND });
 
-  // Brand block, top right. The sheet gets posted around campus, so the QR
-  // leads back to the app; the ref param lets prints be counted.
-  const qrSize = 60;
+  raleway("UPLB Jeepney Routes", MARGIN, pageH - 36, 23, WHITE);
+  const titleW =
+    (RALEWAY_BOLD_HEADINGS["UPLB Jeepney Routes"].width * 23) / 1000;
+  drawJeep(page, pageH, MARGIN + titleW + 14, pageH - 38, 0.62, SUNNY);
+
+  // Brand block, top right, on a white card so the QR scans. The sheet gets
+  // posted around campus, so the QR leads back to the app; the ref param
+  // lets prints be counted.
+  const qrSize = 56;
   const qrX = pageW - MARGIN - qrSize;
-  const qrTop = pageH - 7;
+  const qrTop = pageH - 12;
+  page.drawSvgPath(
+    roundRectPath(
+      qrX - 5,
+      qrTop - qrSize - 5,
+      qrSize + 10,
+      qrSize + 10,
+      7,
+      pageH,
+    ),
+    {
+      x: 0,
+      y: pageH,
+      color: WHITE,
+    },
+  );
   const cell = qrSize / PRINT_MAP_QR.length;
   PRINT_MAP_QR.forEach((row, r) => {
     for (const run of row.matchAll(/1+/g)) {
@@ -779,26 +905,34 @@ export async function renderTransitMapPdf(input: {
       });
     }
   });
-  const brandRight = qrX - 10;
+  const brandRight = qrX - 14;
   const logo = await pdf.embedPng(LOGO_PNG_BASE64);
   const wordSize = 15;
   const wordW = (RALEWAY_BOLD_HEADINGS["Room TBA"].width * wordSize) / 1000;
-  raleway("Room TBA", brandRight - wordW, pageH - 25, wordSize, BRAND);
+  raleway("Room TBA", brandRight - wordW, pageH - 27, wordSize, WHITE);
+  page.drawSvgPath(
+    roundRectPath(brandRight - wordW - 28, pageH - 32, 24, 24, 6, pageH),
+    {
+      x: 0,
+      y: pageH,
+      color: WHITE,
+    },
+  );
   page.drawImage(logo, {
-    x: brandRight - wordW - 25,
-    y: pageH - 30,
-    width: 23,
-    height: 23,
+    x: brandRight - wordW - 27,
+    y: pageH - 31,
+    width: 22,
+    height: 22,
   });
   const brandLines: [string, PDFFont, number, RGB][] = [
-    ["by UPLB Tools", bold, 8.5, INK],
-    ["Scan to find any room or jeep route.", font, 7.5, INK],
-    ["room-tba.uplb.tools", font, 7.5, MUTED],
+    ["by UPLB Tools", bold, 8.5, WHITE],
+    ["Scan to find any room or jeep route.", font, 8, SOFT_ON_BRAND],
+    ["room-tba.uplb.tools", bold, 8, SUNNY],
   ];
   brandLines.forEach(([text, fnt, size, color], i) => {
     page.drawText(text, {
       x: brandRight - fnt.widthOfTextAtSize(text, size),
-      y: pageH - 38 - i * 10,
+      y: pageH - 42 - i * 10.5,
       size,
       font: fnt,
       color,
@@ -850,17 +984,11 @@ export async function renderTransitMapPdf(input: {
     intro = [{ text: "Campus jeepney routes and their stops." }];
   }
   const INTRO_SIZE = 11;
-  drawRuns(page, intro, MARGIN, pageH - 52, introW, INTRO_SIZE, 14, 2, {
+  drawRuns(page, intro, MARGIN, pageH - 56, introW, INTRO_SIZE, 14, 2, {
     regular: font,
     bold,
-    color: INK,
-  });
-  page.drawRectangle({
-    x: 0,
-    y: pageH - HEADER_H,
-    width: pageW,
-    height: 3,
-    color: BRAND,
+    color: WHITE,
+    boldColor: SUNNY,
   });
 
   // ── Map frame ─────────────────────────────────────────────────────────
@@ -870,6 +998,13 @@ export async function renderTransitMapPdf(input: {
     w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
     h: pageH - HEADER_H - 10 - FOOTER_H - 8,
   };
+  page.drawRectangle({
+    x: frame.x + 4,
+    y: frame.y - 4,
+    width: frame.w,
+    height: frame.h,
+    color: BRAND,
+  });
   page.drawRectangle({
     x: frame.x,
     y: frame.y,
@@ -1226,17 +1361,34 @@ export async function renderTransitMapPdf(input: {
       });
     }
 
-    // Scale bar (bottom-left) and north arrow (top-right) reserve space
-    // before labels are placed.
+    // Scale bar and north arrow (bottom-right) reserve space before labels
+    // are placed. The bar takes whichever free corner no route line crosses,
+    // so it never sits on a route (Forestry runs into the bottom-left).
     const barMaxPt = 90;
     const meters = niceScaleBarMeters(barMaxPt / ptPerMeter);
     const barPt = meters * ptPerMeter;
-    const barY = frame.y + 12;
-    const barX = frame.x + 12;
+    const barBoxW = barPt + 40;
+    const linePts = [...routeLines.values()].flat();
+    const corners = [
+      { x: frame.x + 12, y: frame.y + 12 },
+      { x: frame.x + frame.w - barBoxW - 30, y: frame.y + 12 },
+      { x: frame.x + 12, y: frame.y + frame.h - 14 },
+    ];
+    const crossings = (c: ProjectedPoint) =>
+      linePts.filter(
+        (p) =>
+          p.x >= c.x - 14 &&
+          p.x <= c.x + barBoxW + 10 &&
+          p.y >= c.y - 16 &&
+          p.y <= c.y + 18,
+      ).length;
+    const { x: barX, y: barY } = corners.reduce((best, c) =>
+      crossings(c) < crossings(best) ? c : best,
+    );
     page.drawRectangle({
       x: barX - 4,
       y: barY - 6,
-      width: barPt + 40,
+      width: barBoxW,
       height: 14,
       color: WHITE,
       opacity: 0.85,
@@ -1262,7 +1414,7 @@ export async function renderTransitMapPdf(input: {
       font,
       color: INK,
     });
-    obstacles.push({ x: barX - 4, y: barY - 6, w: barPt + 40, h: 14 });
+    obstacles.push({ x: barX - 4, y: barY - 6, w: barBoxW, h: 14 });
     // Bottom-right: the top edge is where the mall terminals' arrows land.
     const nx = frame.x + frame.w - 18;
     const ny = frame.y + 14;
@@ -1415,222 +1567,309 @@ export async function renderTransitMapPdf(input: {
       color: MUTED,
     });
   }
+  // Sticker-style frame: a firm ink outline over the offset shadow drawn
+  // behind the map.
   page.drawRectangle({
     x: frame.x,
     y: frame.y,
     width: frame.w,
     height: frame.h,
-    borderColor: HAIRLINE,
-    borderWidth: 1,
+    borderColor: INK,
+    borderWidth: 1.6,
   });
 
   // ── Side panel ────────────────────────────────────────────────────────
+  // Cards on a soft tint, a maroon pill per section. Body text is INK or
+  // BODY_TEXT (#4A4A4A, 7.6:1 or better on every route tint); no text sits
+  // below WCAG AA's 4.5:1, and route lines keep 3:1 against white.
+  const BODY_TEXT = rgb(0.29, 0.29, 0.29);
+  const anchor = { x: 0, y: pageH };
   const px = pageW - MARGIN - PANEL_W;
-  let py = pageH - HEADER_H - 22;
-  const heading = (text: string) => {
-    page.drawText(text, { x: px, y: py, size: 11, font: bold, color: INK });
-    py -= 15;
+  const panelFloor = FOOTER_H + 3;
+  let py = pageH - HEADER_H - 8;
+  const pill = (text: string) => {
+    const w = bold.widthOfTextAtSize(text, 9.5) + 18;
+    page.drawSvgPath(roundRectPath(px, py - 17, w, 17, 8.5, pageH), {
+      ...anchor,
+      color: BRAND,
+    });
+    page.drawText(text, {
+      x: px + 9,
+      y: py - 12,
+      size: 9.5,
+      font: bold,
+      color: WHITE,
+    });
+    return w;
+  };
+  const card = (h: number, fill: RGB, stripe?: RGB) => {
+    page.drawSvgPath(roundRectPath(px, py - h, PANEL_W, h, 8, pageH), {
+      ...anchor,
+      color: fill,
+      borderColor: HAIRLINE,
+      borderWidth: 0.8,
+    });
+    if (stripe)
+      page.drawSvgPath(roundRectPath(px, py - h, 6, h, 3, pageH), {
+        ...anchor,
+        color: stripe,
+      });
   };
   const sample = (
     color: RGB,
     dash: number[] | null,
     chevron: boolean,
+    x: number,
     y: number,
   ) => {
     page.drawLine({
-      start: { x: px, y: y + 3 },
-      end: { x: px + 26, y: y + 3 },
-      thickness: 2.8,
+      start: { x, y: y + 3 },
+      end: { x: x + 24, y: y + 3 },
+      thickness: 3,
       color,
       dashArray: dash ?? undefined,
     });
     if (chevron) {
-      const cx = px + 13;
+      const cx = x + 12;
       page.drawSvgPath(
         `M ${cx - 3.5} ${pageH - (y + 6.5)} L ${cx + 3.5} ${pageH - (y + 3)} L ${cx - 3.5} ${pageH - (y - 0.5)} Z`,
-        { x: 0, y: pageH, color, borderColor: WHITE, borderWidth: 0.7 },
+        { ...anchor, color, borderColor: WHITE, borderWidth: 0.7 },
       );
     }
   };
   const fareText = (r: { fareRegular: number; fareDiscounted: number }) =>
     Number.isFinite(r.fareRegular)
-      ? `PHP ${r.fareRegular} a ride, PHP ${r.fareDiscounted} student, senior or PWD`
-      : "Fare not verified";
+      ? `PHP ${r.fareRegular} a ride, PHP ${r.fareDiscounted} discounted`
+      : "Fare not verified yet: ask the driver";
+  const tint = (c: RGB) =>
+    rgb(
+      1 - (1 - c.red) * 0.09,
+      1 - (1 - c.green) * 0.09,
+      1 - (1 - c.blue) * 0.09,
+    );
+  const textX = px + 46;
+  const textW = PANEL_W - 54;
 
   if (drawnRoutes.length > 0) {
-    heading("Campus jeepneys");
+    const pillW = pill("Campus jeepneys");
+    // Prices badge: ink on sunny yellow (12.3:1).
+    const badge = "Prices verified Oct 7, 2026";
+    const bw = bold.widthOfTextAtSize(badge, 7.5) + 12;
+    if (pillW + 6 + bw <= PANEL_W) {
+      page.drawSvgPath(
+        roundRectPath(px + pillW + 6, py - 15, bw, 13, 6.5, pageH),
+        {
+          ...anchor,
+          color: SUNNY,
+        },
+      );
+      page.drawText(badge, {
+        x: px + pillW + 12,
+        y: py - 11,
+        size: 7.5,
+        font: bold,
+        color: INK,
+      });
+    }
+    py -= 24;
     for (const route of drawnRoutes) {
       const color = hexToRgb(route.color);
       const style = styles.get(route.id);
-      if (isLoopRoute(route)) {
-        const [fwdName, revName] = route.name.split(/\s*\/\s*/);
-        sample(color, null, true, py);
-        page.drawText(fwdName ?? route.name, {
-          x: px + 34,
-          y: py,
-          size: 10.5,
-          font: bold,
-          color: INK,
-        });
-        py -= 14;
+      const loop = isLoopRoute(route);
+      const [fwdName, revName] = loop
+        ? route.name.split(/\s*\/\s*/)
+        : [route.name, undefined];
+      const note = loop
+        ? `Same loop, opposite directions; arrows show the way. ${fareText(route)}.`
+        : `${fareText(route)}.`;
+      const fullNote = route.boardingNote
+        ? `${note} ${route.boardingNote}`
+        : note;
+      const lines = wrapText(fullNote, font, 8.5, textW);
+      const h = 12 + 13 + (loop ? 13 : 0) + lines.length * 10.5;
+      if (py - h < panelFloor) break;
+      card(h, tint(color), color);
+      let cy = py - 18;
+      sample(color, loop ? null : (style?.dash ?? null), loop, px + 14, cy);
+      page.drawText(fwdName ?? route.name, {
+        x: textX,
+        y: cy,
+        size: 10.5,
+        font: bold,
+        color: INK,
+      });
+      if (loop) {
+        cy -= 13;
         sample(
           darken(color, 0.62),
           style?.reverseDash ?? LOOP_REVERSE_DASH,
           true,
-          py,
+          px + 14,
+          cy,
         );
         page.drawText(revName ?? `${route.name}, reverse`, {
-          x: px + 34,
-          y: py,
+          x: textX,
+          y: cy,
           size: 10.5,
           font: bold,
           color: INK,
         });
-        py -= 11;
-        for (const line of wrapText(
-          `Same loop, opposite directions. Arrows show the way each jeep travels. ${fareText(route)}.`,
-          font,
-          8.5,
-          PANEL_W - 34,
-        )) {
-          page.drawText(line, {
-            x: px + 34,
-            y: py,
-            size: 8.5,
-            font,
-            color: MUTED,
-          });
-          py -= 10.5;
-        }
-      } else {
-        sample(color, style?.dash ?? null, false, py);
-        page.drawText(route.name, {
-          x: px + 34,
-          y: py,
-          size: 10.5,
-          font: bold,
-          color: INK,
-        });
-        py -= 11;
-        for (const line of wrapText(
-          `${fareText(route)}.`,
-          font,
-          8.5,
-          PANEL_W - 34,
-        )) {
-          page.drawText(line, {
-            x: px + 34,
-            y: py,
-            size: 8.5,
-            font,
-            color: MUTED,
-          });
-          py -= 10.5;
-        }
       }
-      py -= 5;
+      cy -= 12;
+      for (const line of lines) {
+        page.drawText(line, {
+          x: textX,
+          y: cy,
+          size: 8.5,
+          font,
+          color: BODY_TEXT,
+        });
+        cy -= 10.5;
+      }
+      py -= h + 5;
     }
-    page.drawText(FARES_VERIFIED_NOTE, {
-      x: px,
-      y: py,
-      size: 8.5,
-      font: bold,
-      color: INK,
-    });
-    py -= 15;
-    // Symbols.
+
+    // Map key.
+    const keys: [string, (x: number, y: number) => void][] = [];
     if (here && hereOnMap) {
-      page.drawSvgPath(starPath(px + 13, pageH - (py + 3), 6), {
-        x: 0,
-        y: pageH,
-        color: BRAND,
-      });
-      page.drawText("You are here", {
-        x: px + 34,
-        y: py,
-        size: 9.5,
-        font,
-        color: INK,
-      });
-      py -= 13;
-      page.drawLine({
-        start: { x: px, y: py + 3 },
-        end: { x: px + 26, y: py + 3 },
-        thickness: 1.6,
-        color: BRAND,
-        dashArray: [2.5, 2.5],
-      });
-      page.drawText("Walk to the nearest stop", {
-        x: px + 34,
-        y: py,
-        size: 9.5,
-        font,
-        color: INK,
-      });
-      py -= 13;
+      keys.push([
+        "You are here",
+        (x, y) =>
+          page.drawSvgPath(starPath(x + 12, pageH - (y + 3), 6), {
+            ...anchor,
+            color: BRAND,
+          }),
+      ]);
+      keys.push([
+        "Walk to the nearest stop",
+        (x, y) =>
+          page.drawLine({
+            start: { x, y: y + 3 },
+            end: { x: x + 24, y: y + 3 },
+            thickness: 1.8,
+            color: BRAND,
+            dashArray: [2.5, 2.5],
+          }),
+      ]);
     }
-    if (stops.some((st) => st.routeIds.length > 1)) {
-      page.drawCircle({
-        x: px + 13,
-        y: py + 3,
-        size: 3.4,
-        color: WHITE,
-        borderColor: INK,
-        borderWidth: 1.9,
-      });
-      page.drawText("Stop shared by two routes", {
-        x: px + 34,
-        y: py,
-        size: 9.5,
-        font,
-        color: INK,
-      });
-      py -= 13;
+    if (stops.some((st) => st.routeIds.length > 1))
+      keys.push([
+        "Stop shared by two routes",
+        (x, y) =>
+          page.drawCircle({
+            x: x + 12,
+            y: y + 3,
+            size: 3.6,
+            color: WHITE,
+            borderColor: INK,
+            borderWidth: 1.9,
+          }),
+      ]);
+    if (input.basemap)
+      keys.push([
+        "Campus gate",
+        (x, y) =>
+          page.drawRectangle({
+            x: x + 9.8,
+            y: y + 0.8,
+            width: 4.4,
+            height: 4.4,
+            color: MUTED,
+          }),
+      ]);
+    const keyH = 12 + keys.length * 13;
+    if (keys.length > 0 && py - keyH >= panelFloor) {
+      card(keyH, WHITE);
+      let ky = py - 17;
+      for (const [label, icon] of keys) {
+        icon(px + 14, ky);
+        page.drawText(label, { x: textX, y: ky, size: 9.5, font, color: INK });
+        ky -= 13;
+      }
+      py -= keyH + 10;
     }
-    if (input.basemap) {
-      page.drawRectangle({
-        x: px + 10.8,
-        y: py + 0.8,
-        width: 4.4,
-        height: 4.4,
-        color: MUTED,
-      });
-      page.drawText("Campus gate", {
-        x: px + 34,
-        y: py,
-        size: 9.5,
-        font,
-        color: INK,
-      });
-      py -= 13;
-    }
-    py -= 6;
   }
 
   // Town jeeps and buses are not drawn; say where they are boarded and
   // that they are not campus jeeps, without listing unverified fares.
-  heading("Town jeeps and buses");
-  for (const line of wrapText(
-    "Not on this map. Jeeps to Calamba, San Pablo and Sta. Cruz, and buses to Manila and UP Diliman, stop on the national highway at Olivarez Plaza (the Junction). UP Diliman bus tickets: dltbbus.com.ph. Details: room-tba.uplb.tools/transit",
+  const townLines = wrapText(
+    "Calamba, San Pablo and Sta. Cruz jeeps and the Manila and UP Diliman buses stop on the national highway at Olivarez Plaza (the Junction). UP Diliman bus tickets: dltbbus.com.ph",
     font,
     8.5,
-    PANEL_W,
-  )) {
-    page.drawText(line, { x: px, y: py, size: 8.5, font, color: INK });
-    py -= 11;
+    PANEL_W - 20,
+  );
+  const townH = 10 + townLines.length * 10.5;
+  if (py - 24 - townH >= panelFloor) {
+    pill("Town jeeps and buses");
+    py -= 22;
+    card(townH, PAPER_TINT);
+    let ty = py - 13;
+    for (const line of townLines) {
+      page.drawText(line, { x: px + 10, y: ty, size: 8.5, font, color: INK });
+      ty -= 10.5;
+    }
+    py -= townH + 10;
+  }
+
+  // Riding tips, for first-years and visitors reading the sheet on a wall.
+  const tips = [
+    "Kaliwa turns left at the gate; Kanan, right.",
+    'Say "Para po!" to get off.',
+    "Pass your fare to the driver.",
+  ];
+  const tipLines = tips.map((t) => wrapText(t, font, 8.5, PANEL_W - 36));
+  const tipsH = 8 + tipLines.reduce((n, l) => n + l.length * 10.5 + 3, 0);
+  if (py - 22 - tipsH >= panelFloor) {
+    pill("Riding tips");
+    py -= 22;
+    card(tipsH, WHITE);
+    let ty = py - 14;
+    tipLines.forEach((lines, i) => {
+      page.drawCircle({
+        x: px + 15,
+        y: ty + 3,
+        size: 6.5,
+        color: SUNNY,
+        borderColor: INK,
+        borderWidth: 0.8,
+      });
+      page.drawText(String(i + 1), {
+        x: px + 12.6,
+        y: ty,
+        size: 8,
+        font: bold,
+        color: INK,
+      });
+      for (const line of lines) {
+        page.drawText(line, { x: px + 28, y: ty, size: 8.5, font, color: INK });
+        ty -= 10.5;
+      }
+      ty -= 3;
+    });
+    py -= tipsH + 12;
   }
 
   // ── Footer ────────────────────────────────────────────────────────────
+  // A little road with a jeep on it, then the credits.
+  const roadY = FOOTER_H - 4;
+  page.drawLine({
+    start: { x: MARGIN + 34, y: roadY },
+    end: { x: pageW - MARGIN, y: roadY },
+    thickness: 1.2,
+    color: HAIRLINE,
+    dashArray: [6, 4],
+  });
+  drawJeep(page, pageH, MARGIN, roadY - 2, 0.7, SUNNY);
   page.drawText(
     `Room TBA by UPLB Tools, room-tba.uplb.tools. Printed ${dateLabel}.`,
-    { x: MARGIN, y: FOOTER_H - 12, size: 7.5, font, color: MUTED },
+    { x: MARGIN + 34, y: 9, size: 7.5, font, color: MUTED },
   );
   const footRight = input.basemap
     ? "Map data from OpenStreetMap contributors, ODbL. Route lines and walking distances are approximate."
     : "Route lines and walking distances are approximate.";
   page.drawText(footRight, {
     x: pageW - MARGIN - font.widthOfTextAtSize(footRight, 7.5),
-    y: FOOTER_H - 12,
+    y: 9,
     size: 7.5,
     font,
     color: MUTED,

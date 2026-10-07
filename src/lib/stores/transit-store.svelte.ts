@@ -1,4 +1,8 @@
-import { JEEPNEY_ROUTES, type JeepneyRoute } from "@constants/jeepney-routes";
+import {
+  JEEPNEY_ROUTES,
+  type JeepneyRoute,
+  withBundledRoutes,
+} from "@constants/jeepney-routes";
 import { getLocalJeepneyRoutes } from "@lib/local/data/utils";
 import { localTableSyncCheck, syncJeepneyRoutes } from "@lib/local/data/sync";
 import {
@@ -29,7 +33,7 @@ export class TransitStore {
       localTableSyncCheck("jeepney_routes"),
       getLocalJeepneyRoutes(),
     ]);
-    if (cached && cached.length > 0) this.routes = cached;
+    if (cached && cached.length > 0) this.routes = withBundledRoutes(cached);
     if (checker.valid && cached && cached.length > 0) {
       this.loaded = true;
       return;
@@ -41,7 +45,7 @@ export class TransitStore {
         ENTITY_FETCH_OPTIONS,
       );
       if (Array.isArray(remote) && remote.length > 0) {
-        this.routes = remote;
+        this.routes = withBundledRoutes(remote);
         await syncJeepneyRoutes(checker, remote, true);
       }
     } catch {

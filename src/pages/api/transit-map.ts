@@ -3,6 +3,7 @@ import { getAllJeepneyRoutes } from "@lib/services/transit-service";
 import { getAllPlaces } from "@lib/services/map-data-service";
 import {
   resolveRouteGeometry,
+  ROUTE_PRINT_NOTES,
   type StoredRouteGeometry,
 } from "@constants/jeepney-routes";
 import jeepneyGeometries from "@constants/jeepney-geometries.json";
@@ -98,6 +99,7 @@ export const GET: APIRoute = async ({ url }) => {
         fareRegular: perBoardingFare(route)?.regular ?? Number.NaN,
         fareDiscounted: perBoardingFare(route)?.discounted ?? Number.NaN,
         directionNote: route.directionNote ?? null,
+        boardingNote: ROUTE_PRINT_NOTES[route.id] ?? null,
         line:
           geometry.source !== "stops-only" && geometry.line
             ? geometry.line.coordinates.map(([lon, lat]) => ({

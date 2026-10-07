@@ -373,6 +373,14 @@ describe("route styles", () => {
     });
     expect(isLoopRoute(loop)).toBe(true);
     expect(isLoopRoute(route())).toBe(false);
+    // A one-way loop closes on its first stop but runs one direction only.
+    expect(
+      isLoopRoute({
+        ...loop,
+        id: "snodlob",
+        name: "UPLB Loop (SNODLOB e-jeep)",
+      }),
+    ).toBe(false);
   });
 
   test("every drawn line has a distinct dash pattern for grayscale prints", () => {

@@ -23,12 +23,16 @@
  *   students; Los Baños → Calamba ₱30, ₱25 discounted. The DLTB UP Diliman
  *   bus is ticketed on DLTB's site, so the app links there instead
  *   (routeTicketing in src/constants/jeepney-routes.ts).
+ * - Forestry downhill trips start at the Upper Forestry Jeep Terminal; the
+ *   direction note now says so.
  *
  *
  * The UP Diliman buses' Quezon Ave. / Skyway stops needed no move: their line
  * is road-routed via SLEX and the Skyway (scripts/generate-transit-geometry.ts)
  * and passes within 10 m of them.
  */
+
+import { FORESTRY_DIRECTION_NOTE } from "../../src/constants/jeepney-routes";
 
 export const TRANSIT_FIX_OP_KEY = "2026-10-07-transit-fixes";
 
@@ -52,6 +56,7 @@ export type RouteRow = {
   description: string;
   fareRegular: number;
   fareDiscounted: number;
+  directionNote: string | null;
   version: number;
 };
 
@@ -127,7 +132,10 @@ const STOP_FIXES: { routeId: string; name: string; patch: StopPatch }[] = [
 ];
 
 type RoutePatch = Partial<
-  Pick<RouteRow, "name" | "description" | "fareRegular" | "fareDiscounted">
+  Pick<
+    RouteRow,
+    "name" | "description" | "directionNote" | "fareRegular" | "fareDiscounted"
+  >
 >;
 
 const CAMPUS_FARE: RoutePatch = { fareRegular: 14, fareDiscounted: 12 };
@@ -137,7 +145,10 @@ const ROUTE_FIXES: {
   patch: (route: RouteRow) => RoutePatch;
 }[] = [
   { id: "kaliwa-kanan", patch: () => CAMPUS_FARE },
-  { id: "forestry", patch: () => CAMPUS_FARE },
+  {
+    id: "forestry",
+    patch: () => ({ ...CAMPUS_FARE, directionNote: FORESTRY_DIRECTION_NOTE }),
+  },
   { id: "up-rural", patch: () => CAMPUS_FARE },
   {
     id: "lb-to-calamba",

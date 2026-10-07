@@ -87,10 +87,36 @@ const JUNCTION_BOARDING_NOTE =
 export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
   "lb-to-san-pablo": JUNCTION_BOARDING_NOTE,
   "lb-to-sta-cruz": JUNCTION_BOARDING_NOTE,
+  forestry:
+    "Board at a terminal. Forestry jeeps fill up at their first stop and rarely have room further along: going up, board at the Forestry Jeep Terminal; going down, at the Upper Forestry Jeep Terminal.",
 };
+
+/** The same advice, short enough for a route card on the printable map. */
+export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
+  forestry: "Board at a terminal (bold), up or down; jeeps fill up there.",
+};
+
+/** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */
+export const FORESTRY_DIRECTION_NOTE =
+  "Uphill trips start at the Forestry Jeep Terminal and serve the stops as listed. Past New FOREHA the jeep loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. Downhill trips start at the Upper Forestry Jeep Terminal and run back down to the Forestry Jeep Terminal, serving the same stops in reverse; going down, the jeep stays on Makiling Road instead of turning at the Admin Building.";
 
 export function routeTicketing(routeId: string): RouteTicketing | null {
   return ROUTE_TICKETING[routeId] ?? null;
+}
+
+/**
+ * Database routes plus any bundled route the database does not have yet (a
+ * new route ships in code before anyone adds it to the database, and the
+ * offline cache drops stops without database ids). Database rows win.
+ */
+export function withBundledRoutes(routes: JeepneyRoute[]): JeepneyRoute[] {
+  const usable = new Set(
+    routes.filter((r) => r.stops.length > 0).map((r) => r.id),
+  );
+  const missing = JEEPNEY_ROUTES.filter((r) => !usable.has(r.id));
+  if (missing.length === 0) return routes;
+  const missingIds = new Set(missing.map((r) => r.id));
+  return [...routes.filter((r) => !missingIds.has(r.id)), ...missing];
 }
 
 /** Fallback route line when no road-snapped geometry exists: a straight
@@ -322,8 +348,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     name: "Forestry",
     description:
       "Connects the campus core to the upper Forestry campus: from the Forestry jeep terminal past Narra Bridge, the University Health Service, and CPAf, climbing past Makiling Botanic Gardens to the College of Forestry and Natural Resources and the FOREHA, New FOREHA, and MAREHA residence halls.",
-    directionNote:
-      "Uphill the jeep serves the stops as listed. Past New FOREHA it loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. It then comes back down the same road, except it goes straight along Makiling Road instead of turning left again at the Admin Building, so downhill riders board the same stops in reverse.",
+    directionNote: FORESTRY_DIRECTION_NOTE,
     color: "#d97706",
     fare: STANDARD_CAMPUS_FARE,
     stops: [
@@ -399,7 +424,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
       {
         name: "Upper Forestry Jeep Terminal",
         description:
-          "Upper-campus jeep terminal on Makiling Road, between the Forest Biological Sciences Building and the residence halls.",
+          "Upper-campus jeep terminal on Makiling Road, between the Forest Biological Sciences Building and the residence halls. Downhill trips start here.",
         // ponytail: placed from the owner's map sketch, on Makiling Road about two thirds of the way from Martin R. Reyes to Felix O. Chinte Sr.
         lat: 14.153693,
         lon: 121.235186,
@@ -493,6 +518,153 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
         description: "End of the route at Jubileeville subdivision, Bay.",
         lat: 14.1494971,
         lon: 121.2744736,
+      },
+    ],
+  },
+  {
+    id: "snodlob",
+    name: "UPLB Loop (SNODLOB e-jeep)",
+    description:
+      "Campus e-jeep loop on the route approved by the Office of the Vice Chancellor for Community Affairs (OVCCA). From the temporary e-jeep terminal at Copeland Gym it runs up Getulio B. Viado past the dormitories, around by the Main Library and OVCRE Annex, down past CAS, Physical Sciences and the Seniors' Social Garden to CEAT, then along Pili Drive past Crop Science and Animal Science to Vet Med and back to Copeland.",
+    directionNote:
+      "One way, in stop order. Look for the UPLB LOOP signboard: jeeps without it go straight to Pili Drive and Bay. In practice drivers do not always follow the approved route; some skip Getulio B. Viado and Copeland or detour on request. From Olivarez, ride Kanan and change at OVCRE Annex (stop 9).",
+    color: "#15803d",
+    fare: STANDARD_CAMPUS_FARE,
+    stops: [
+      {
+        name: "EB Copeland Gymnasium (temporary e-jeep terminal)",
+        description: "Temporary e-jeep terminal; start and end of the loop.",
+        lat: 14.1566,
+        lon: 121.24276,
+      },
+      {
+        name: "UPLB New Dormitory",
+        description: "Stop for the UPLB New Dormitory.",
+        lat: 14.15571,
+        lon: 121.24143,
+      },
+      {
+        name: "ATI-NTC Residence Hall",
+        description: "Stop on Getulio B. Viado for the ATI-NTC Residence Hall.",
+        lat: 14.15615,
+        lon: 121.24114,
+      },
+      {
+        name: "Scholar's Dorm",
+        description: "Stop on Getulio B. Viado for Scholar's Dorm.",
+        lat: 14.16009,
+        lon: 121.24075,
+      },
+      {
+        name: "Veterinary Medicine Residence Hall",
+        description:
+          "Stop on Getulio B. Viado for the Veterinary Medicine Residence Hall.",
+        lat: 14.16077,
+        lon: 121.24031,
+      },
+      {
+        name: "Women's Dormitory",
+        description:
+          "Stop on Jose B. Juliano Avenue for the Women's Dormitory.",
+        lat: 14.16236,
+        lon: 121.24056,
+      },
+      {
+        name: "D.L. Umali Hall",
+        description: "Stop on Jose B. Juliano Avenue for D.L. Umali Hall.",
+        lat: 14.16371,
+        lon: 121.23993,
+      },
+      {
+        name: "UPLB Main Library",
+        description: "Stop on Domingo M. Lantican Avenue for the Main Library.",
+        lat: 14.16544,
+        lon: 121.23857,
+      },
+      {
+        name: "OVCRE Annex",
+        description:
+          "Stop on Jose R. Velasco Avenue. Riders coming from Olivarez on a Kanan jeep transfer here.",
+        lat: 14.16721,
+        lon: 121.24041,
+      },
+      {
+        name: "Institute of Biological Sciences (IBS)",
+        description: "Stop for the Institute of Biological Sciences.",
+        lat: 14.16692,
+        lon: 121.23971,
+      },
+      {
+        name: "CAS Annex 1 / UPLB OUR",
+        description:
+          "Stop for CAS Annex 1 and the Office of the University Registrar.",
+        lat: 14.16567,
+        lon: 121.24087,
+      },
+      {
+        name: "CAS / Oblation Park",
+        description: "Stop for CAS and Oblation Park.",
+        lat: 14.16471,
+        lon: 121.24095,
+      },
+      {
+        name: "Physical Sciences Building Wing A / UPLB Post Office",
+        description:
+          "Stop for Physical Sciences Wing A and the UPLB Post Office.",
+        lat: 14.16404,
+        lon: 121.24126,
+      },
+      {
+        name: "UPLB Landscape Horticulture Research and Development Facility",
+        description:
+          "Stop on Andres P. Aglibut Avenue for the Landscape Horticulture R&D Facility.",
+        lat: 14.1635,
+        lon: 121.24298,
+      },
+      {
+        name: "Seniors' Social Garden",
+        description:
+          "Stop on Andres P. Aglibut Avenue at the Seniors' Social Garden.",
+        lat: 14.16268,
+        lon: 121.24382,
+      },
+      {
+        name: "CEAT Lecture Hall / CEAT-DCE / CEAT-DES / CEAT-CE",
+        description: "Stop for the CEAT Lecture Hall and CEAT departments.",
+        lat: 14.161,
+        lon: 121.24493,
+      },
+      {
+        name: "Food Biochemistry Lab, Institute of Food Science and Technology",
+        description:
+          "Stop on Pili Drive for the Institute of Food Science and Technology.",
+        lat: 14.16034,
+        lon: 121.24479,
+      },
+      {
+        name: "Institute of Crop Science (iCropS)",
+        description: "Stop on Pili Drive for the Institute of Crop Science.",
+        lat: 14.16015,
+        lon: 121.24439,
+      },
+      {
+        name: "Institute of Animal Science",
+        description: "Stop for the Institute of Animal Science.",
+        lat: 14.15955,
+        lon: 121.2437,
+      },
+      {
+        name: "College of Veterinary Medicine",
+        description:
+          "Stop on Archibald R. Ward for the College of Veterinary Medicine.",
+        lat: 14.15826,
+        lon: 121.2433,
+      },
+      {
+        name: "EB Copeland Gymnasium (temporary e-jeep terminal)",
+        description: "Back at Copeland Gym: the loop ends where it started.",
+        lat: 14.1566,
+        lon: 121.24276,
       },
     ],
   },

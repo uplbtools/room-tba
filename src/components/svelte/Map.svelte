@@ -4727,6 +4727,10 @@
     height: 100%;
     z-index: 0;
     pointer-events: auto;
+    /* The basemap's ground colour (MAP_BASEMAP_PALETTE.background): on a slow
+       connection the chrome paints before the first tiles, and a bare white
+       page under it read as broken. */
+    background: rgb(238, 244, 236);
   }
 
   /* Marker wrappers are stacking contexts (transform), so pin-level z-index
