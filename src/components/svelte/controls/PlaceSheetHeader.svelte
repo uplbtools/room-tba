@@ -33,10 +33,33 @@
     context = null,
     closeLabel,
     children,
-  }: Props = $props();
+  } = $props();
+
+  // Once the body has scrolled, the header shrinks to name + actions: the
+  // category and facts lines already did their job at peek, and the pinned
+  // part should not eat a third of a full sheet.
+  let headerEl = $state<HTMLElement | null>(null);
+  let stuck = $state(false);
+  $effect(() => {
+    const scroller = headerEl?.closest<HTMLElement>(
+      ".bottom-sheet__body, .side-panel-details",
+    );
+    if (!scroller) return;
+    const sync = () => {
+      // Hysteresis: shrinking moves content up, which must not unstick it.
+      stuck = scroller.scrollTop > (stuck ? 2 : 12);
+    };
+    sync();
+    scroller.addEventListener("scroll", sync, { passive: true });
+    return () => scroller.removeEventListener("scroll", sync);
+  });
 </script>
 
-<header class="place-sheet-header">
+<header
+  class="place-sheet-header"
+  class:place-sheet-header--stuck={stuck}
+  bind:this={headerEl}
+>
   <div class="place-sheet-header__title-row">
     <h2 class="place-sheet-header__title">
       {title}
@@ -165,6 +188,16 @@
     font-weight: 500;
   }
 
+  .place-sheet-header--stuck .place-sheet-header__meta,
+  .place-sheet-header--stuck .place-sheet-header__context {
+    display: none;
+  }
+
+  .place-sheet-header--stuck .place-sheet-header__title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
   .place-sheet-header__context {
     margin: 0;
     font-size: 0.875rem;
@@ -195,6 +228,20 @@
     padding: 0.5rem 0.875rem;
     font-size: 0.875rem;
     border-radius: 999px;
+  }
+
+  /* A partner link in the row (Kubo) is a pill like the rest, on one line. */
+  .place-sheet-header__actions :global(a.entity-footer__link--button) {
+    box-sizing: border-box;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 2.5rem;
+    max-width: none;
+    padding: 0.5rem 0.875rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    text-decoration: none;
   }
 
   .place-sheet-header__actions :global(.map-chrome-action-chip svg),

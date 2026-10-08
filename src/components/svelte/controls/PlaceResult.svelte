@@ -13,6 +13,7 @@
     PLACE_CATEGORIES,
     PLACE_CATEGORY_LABELS,
     isLandmarkPlaceCategory,
+    placeCategoryLabel,
     placeDirectoryLabel,
   } from "@constants/place-categories";
   import type { PlaceData } from "@lib/types";
@@ -161,7 +162,7 @@
     {/if}
     <PlaceSheetHeader
       title={place.name}
-      label={placeDirectoryLabel(place.category) || null}
+      label={placeCategoryLabel(place.category)}
       labelTone="green"
       facts={place.hours && place.hours.length <= 60 ? place.hours : null}
       closeLabel="Close place details"

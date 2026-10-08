@@ -62,7 +62,7 @@ export function countClassesNow(
       const parsed = parseScheduleTime(entry);
       return (
         parsed !== null &&
-        parseDays(parsed.days).includes(dayIndex) &&
+        parseDays(parsed.days ?? "").includes(dayIndex) &&
         minutes >= parsed.startMinutes &&
         minutes < parsed.endMinutes
       );

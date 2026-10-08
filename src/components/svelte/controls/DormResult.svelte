@@ -193,7 +193,8 @@
     const bits = [
       genderLabel,
       dorm.capacity ? `${dorm.capacity} beds` : null,
-      dorm.priceRange || null,
+      // "~P1,250/night solo, inquire for monthly" keeps its first clause.
+      dorm.priceRange?.split(" — ")[0]?.trim() || null,
     ].filter(Boolean);
     return bits.length > 0 ? bits.join(", ") : null;
   });
