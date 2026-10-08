@@ -286,7 +286,10 @@
     box-shadow: var(--map-chrome-panel-shadow);
     overflow: hidden;
     /* Backdrop for the sticky place-sheet header (entity-detail.css). */
-    --entity-sheet-bg: var(--map-chrome-panel-bg, hsl(5 18% 96%));
+    --entity-sheet-bg: var(
+      --map-chrome-panel-bg,
+      var(--theme-surface, hsl(5 18% 96%))
+    );
     display: flex;
     flex-direction: column;
   }
@@ -298,7 +301,7 @@
     padding: 0.75rem 0.875rem;
     background-color: var(--theme-surface, #fff);
     box-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
-    --entity-sheet-bg: #fff;
+    --entity-sheet-bg: var(--theme-surface, #fff);
   }
 
   :global(.app-layout.redesign-desktop) .drawer-handle {

@@ -60,6 +60,7 @@
     border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: var(--map-chrome-radius, 1rem);
     background-color: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
+    color: var(--theme-text, hsl(0, 0%, 12%));
     backdrop-filter: blur(10px);
     padding: 0.5rem 0.625rem;
     box-shadow: var(

@@ -71,9 +71,14 @@
     width: min(15rem, calc(100vw - 1rem));
     align-self: flex-start;
     box-sizing: border-box;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1px solid
+      var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: var(--map-chrome-radius, 1rem);
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: var(
+      --map-chrome-surface,
+      var(--theme-surface, hsl(5 20% 97%))
+    );
+    color: var(--theme-text, hsl(0, 0%, 12%));
     backdrop-filter: blur(10px);
     padding: 0.5rem 0.625rem;
     box-shadow: var(
@@ -111,11 +116,11 @@
   }
 
   .camera-hud__close:hover {
-    background-color: hsl(5, 20%, 90%);
+    background-color: var(--theme-accent-soft, hsl(5, 20%, 90%));
   }
 
   .camera-hud__close:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -130,11 +135,11 @@
   }
 
   .camera-hud__grid dt {
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-muted, hsl(0, 0%, 38%));
   }
 
   .camera-hud__grid dd {
     margin: 0;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 </style>
