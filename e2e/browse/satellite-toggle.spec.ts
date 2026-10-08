@@ -57,18 +57,18 @@ test.describe("satellite basemap toggle", () => {
     // Satellite is a map type tile in the Layers sheet, not an edge button.
     await page.getByRole("button", { name: "Layers", exact: true }).click();
     const layers = page.getByRole("dialog", { name: "Layers" });
-    const toggle = layers.getByRole("button", {
+    const toggle = layers.getByRole("radio", {
       name: "Satellite",
       exact: true,
     });
     await expect(toggle).toBeVisible();
-    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect(toggle).toHaveAttribute("aria-checked", "false");
     await toggle.click();
 
-    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect(toggle).toHaveAttribute("aria-checked", "true");
     await expect(
-      layers.getByRole("button", { name: "Default", exact: true }),
-    ).toHaveAttribute("aria-pressed", "false");
+      layers.getByRole("radio", { name: "Default", exact: true }),
+    ).toHaveAttribute("aria-checked", "false");
 
     // The imagery source is added lazily on first toggle; its TileJSON fetch
     // is the proof the layer actually reached MapLibre.

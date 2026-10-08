@@ -1,27 +1,26 @@
 <script lang="ts">
-  import Box from "@lucide/svelte/icons/box";
   import MapIcon from "@lucide/svelte/icons/map";
   import Satellite from "@lucide/svelte/icons/satellite";
   import { onMount } from "svelte";
-  import { THREE_D_PITCH, isMap2DPitch } from "@constants/map-dimension";
-  import {
-    enterFlatMapDimension,
-    enterTiltedMapDimension,
-  } from "@lib/map-dimension-layers";
   import {
     getBasemapProvider,
     onBasemapProviderChange,
   } from "@lib/basemap-provider";
-  import { mapStore, mapViewStore, terrainStore } from "@lib/store.svelte";
+  import { mapViewStore } from "@lib/store.svelte";
 
   /**
-   * Map type tiles at the top of the Layers sheet, Google Maps style. Default
-   * and Satellite pick the basemap; 3D tilts the camera on either one. They
-   * replace the 3D and satellite buttons that used to stack on the map edge.
+   * Map type tiles at the top of the Layers sheet, Google Maps style: one
+   * exclusive choice between the Default basemap and Satellite. 3D is a
+   * camera tilt that works on either, so it lives in Map details as a
+   * switch instead of posing as a third map type.
    */
 
-  let pitch = $state(0);
-  const tilted = $derived(!isMap2DPitch(pitch));
+  type Props = {
+    /** Id of the section label that names this group. */
+    labelledBy?: string;
+  };
+
+  let { labelledBy }: Props = $props();
 
   // Satellite tiles need a working MapTiler key. Gate on the provider that
   // actually served the basemap: a rejected key (#863) falls back to a
@@ -30,94 +29,96 @@
   onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
   const satelliteAvailable = $derived(basemapProvider === "maptiler");
 
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    const sync = () => (pitch = map.getPitch());
-    sync();
-    map.on("pitch", sync);
-    return () => map.off("pitch", sync);
-  });
+  const options = $derived([
+    { id: "default", label: "Default", icon: MapIcon, disabled: false },
+    {
+      id: "satellite",
+      label: "Satellite",
+      icon: Satellite,
+      disabled: !satelliteAvailable,
+    },
+  ] as const);
 
-  function setSatellite(on: boolean) {
+  const selected = $derived(mapViewStore.satellite ? "satellite" : "default");
+
+  function choose(id: "default" | "satellite") {
+    const on = id === "satellite";
+    if (on && !satelliteAvailable) return;
     if (mapViewStore.satellite !== on) mapViewStore.toggleSatellite();
   }
 
-  function toggle3D() {
-    const map = mapStore.mapInstance;
-    if (!map) return;
-    if (isMap2DPitch(map.getPitch())) {
-      map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
-      map.once("moveend", () =>
-        enterTiltedMapDimension(map, terrainStore.enabled),
-      );
-      return;
-    }
-    enterFlatMapDimension(map, terrainStore.enabled);
-    // Pitch only: snapping north here would throw away a rotation the user
-    // set on purpose. The compass is the control that resets rotation.
-    map.easeTo({ pitch: 0, duration: 400 });
+  let groupEl = $state<HTMLDivElement | null>(null);
+
+  function handleKeydown(event: KeyboardEvent) {
+    const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
+    const back = event.key === "ArrowLeft" || event.key === "ArrowUp";
+    if (!forward && !back) return;
+    event.preventDefault();
+    const enabled = options.filter((option) => !option.disabled);
+    const index = enabled.findIndex((option) => option.id === selected);
+    const next =
+      enabled[(index + (forward ? 1 : -1) + enabled.length) % enabled.length];
+    if (!next) return;
+    choose(next.id);
+    queueMicrotask(() =>
+      groupEl
+        ?.querySelector<HTMLButtonElement>('[aria-checked="true"]')
+        ?.focus(),
+    );
   }
 </script>
 
-<section class="map-type-picker" aria-labelledby="map-type-heading">
-  <h3 id="map-type-heading" class="map-type-picker__heading">Map type</h3>
-  <div class="map-type-picker__tiles">
-    <button
-      type="button"
-      class="map-type-tile"
-      aria-pressed={!mapViewStore.satellite}
-      onclick={() => setSatellite(false)}
-    >
-      <span class="map-type-tile__swatch map-type-tile__swatch--default">
-        <MapIcon size={22} aria-hidden="true" />
-      </span>
-      <span class="map-type-tile__label">Default</span>
-    </button>
-    {#if satelliteAvailable}
+<div class="map-type-picker">
+  <div
+    bind:this={groupEl}
+    class="map-type-picker__tiles"
+    role="radiogroup"
+    aria-labelledby={labelledBy}
+    aria-label={labelledBy ? undefined : "Map type"}
+    tabindex="-1"
+    onkeydown={handleKeydown}
+  >
+    {#each options as option (option.id)}
+      {@const checked = selected === option.id}
       <button
         type="button"
+        role="radio"
         class="map-type-tile"
-        aria-pressed={mapViewStore.satellite}
-        onclick={() => setSatellite(true)}
+        aria-checked={checked}
+        aria-describedby={option.disabled ? "map-type-satellite-reason" : undefined}
+        tabindex={checked ? 0 : -1}
+        disabled={option.disabled}
+        onclick={() => choose(option.id)}
       >
-        <span class="map-type-tile__swatch map-type-tile__swatch--satellite">
-          <Satellite size={22} aria-hidden="true" />
+        <span class="map-type-tile__swatch map-type-tile__swatch--{option.id}">
+          <option.icon size={24} aria-hidden="true" />
         </span>
-        <span class="map-type-tile__label">Satellite</span>
+        <span class="map-type-tile__label">{option.label}</span>
       </button>
-    {/if}
-    <button
-      type="button"
-      class="map-type-tile"
-      aria-pressed={tilted}
-      onclick={toggle3D}
-    >
-      <span class="map-type-tile__swatch map-type-tile__swatch--3d">
-        <Box size={22} aria-hidden="true" />
-      </span>
-      <span class="map-type-tile__label">3D</span>
-    </button>
+    {/each}
   </div>
-</section>
+  {#if !satelliteAvailable}
+    <p id="map-type-satellite-reason" class="map-type-picker__reason">
+      Satellite imagery is unavailable on this map right now.
+    </p>
+  {/if}
+</div>
 
 <style>
   .map-type-picker {
     display: grid;
     gap: 0.5rem;
-  }
-
-  .map-type-picker__heading {
-    margin: 0;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--theme-text, hsl(0, 0%, 25%));
+    padding: 0 1rem;
   }
 
   .map-type-picker__tiles {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 5.5rem));
-    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 5.5rem));
+    gap: 1rem;
+  }
+
+  .map-type-picker__tiles:focus {
+    outline: none;
   }
 
   .map-type-tile {
@@ -133,19 +134,28 @@
     cursor: pointer;
   }
 
+  .map-type-tile:disabled {
+    cursor: default;
+    opacity: 0.38;
+  }
+
+  /* The selection ring is drawn inside the swatch box (inset shadow plus a
+     border the same size in both states), so selecting a tile never grows
+     it past the sheet's padding and no edge gets clipped. */
   .map-type-tile__swatch {
+    box-sizing: border-box;
     display: grid;
     place-items: center;
     width: 100%;
     aspect-ratio: 1;
-    border: 2px solid transparent;
+    border: 3px solid transparent;
     border-radius: 0.75rem;
-    box-shadow: inset 0 0 0 1px hsl(0, 0%, 85%);
+    box-shadow: inset 0 0 0 1px var(--theme-border, hsl(0, 0%, 85%));
   }
 
   .map-type-tile__swatch--default {
     background: linear-gradient(135deg, #eef4ec 0 55%, #c5c5c0 55% 62%, #8fbf8a 62%);
-    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    color: #7b1113;
   }
 
   .map-type-tile__swatch--satellite {
@@ -153,19 +163,31 @@
     color: #fff;
   }
 
-  .map-type-tile__swatch--3d {
-    background: linear-gradient(160deg, #e8e4dc 0 50%, #d8d4cc 50%);
-    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  /* Dark basemap preview: dark land, muted road, deep green, with a light
+     icon so it keeps contrast on the darker swatch. */
+  :global(:root[data-theme="dark"]) .map-type-tile__swatch--default {
+    background: linear-gradient(135deg, #2b2a2c 0 55%, #4c4a4d 55% 62%, #2f4a32 62%);
+    color: #f2a69c;
   }
 
-  .map-type-tile[aria-pressed="true"] .map-type-tile__swatch {
-    border-color: var(--theme-blue-text, #1a73e8);
+  :global(:root[data-theme="dark"]) .map-type-tile__swatch--satellite {
+    background: linear-gradient(135deg, #22321d 0 45%, #55514a 45% 52%, #121f10 52%);
+  }
+
+  .map-type-tile[aria-checked="true"] .map-type-tile__swatch {
+    border-color: var(--theme-accent-fill, #7b1113);
     box-shadow: none;
   }
 
-  .map-type-tile[aria-pressed="true"] .map-type-tile__label {
-    color: var(--theme-blue-text, #1a73e8);
-    font-weight: 700;
+  :global(:root[data-theme="dark"])
+    .map-type-tile[aria-checked="true"]
+    .map-type-tile__swatch {
+    border-color: var(--theme-accent-text, #f2a69c);
+  }
+
+  .map-type-tile[aria-checked="true"] .map-type-tile__label {
+    color: var(--theme-accent-text, #7b1113);
+    font-weight: 600;
   }
 
   .map-type-tile:focus-visible {
@@ -178,7 +200,14 @@
   }
 
   .map-type-tile__label {
-    font-size: 0.8125rem;
-    font-weight: 600;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .map-type-picker__reason {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 </style>

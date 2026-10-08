@@ -35,6 +35,8 @@
   type Props = {
     open: boolean;
     onclose: () => void;
+    /** Escape handler when it should pop a nested screen; defaults to onclose. */
+    onescape?: () => void;
     size?: DialogSize;
     /** Accessible name. Omit when the content supplies `labelledBy`. */
     ariaLabel?: string;
@@ -51,6 +53,7 @@
   let {
     open,
     onclose,
+    onescape,
     size = "default",
     ariaLabel,
     labelledBy,
@@ -82,7 +85,7 @@
   $effect(() => {
     if (!open || !contentEl) return;
     return trapFocus(contentEl, {
-      onEscape: onclose,
+      onEscape: () => (onescape ?? onclose)(),
       ...(focusDialog ? { initialFocus: contentEl } : {}),
     });
   });

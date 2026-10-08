@@ -223,7 +223,8 @@ export class TravelTimeStore {
 
   enable = () => {
     this.active = true;
-    deactivateMapModesExcept("travel-time");
+    // Measure route runs beside it: the heatmap stays while waypoints drop.
+    deactivateMapModesExcept("travel-time", "measure");
     dismissEphemeralOverlays();
   };
 
@@ -272,7 +273,7 @@ export class MeasureRouteStore {
 
   enable = () => {
     this.active = true;
-    deactivateMapModesExcept("measure");
+    deactivateMapModesExcept("measure", "travel-time");
     dismissEphemeralOverlays();
   };
 

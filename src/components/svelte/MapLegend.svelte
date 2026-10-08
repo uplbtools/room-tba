@@ -23,15 +23,6 @@
 
   let { embedded = false, trigger = "icon" }: Props = $props();
 
-  /** Org/place pins answer to the toggle AND a zoom gate, so "Shown" alone
-   * would lie when the user is zoomed out past it. */
-  function legendState(on: boolean): string {
-    if (!on) return "Hidden — tap to toggle.";
-    return mapViewStore.poiPinsZoomVisible
-      ? "Shown — tap to toggle."
-      : "Shown when you zoom in — tap to toggle.";
-  }
-
   const panelId = "legend";
   const open = $derived(floatingControlPanelStore.openPanel === panelId);
   const showPanel = $derived(embedded || open);
@@ -64,6 +55,11 @@
       key: "landmark",
       label: "Landmark",
       description: "Memorials, sights, and campus points of interest.",
+    },
+    {
+      key: "organization",
+      label: "Org, unit or office",
+      description: "Student organization, campus unit, or office.",
     },
     {
       key: "establishment",
@@ -221,41 +217,6 @@
           </div>
         </section>
 
-        <section class="legend-section" aria-labelledby="legend-layers">
-          <h3 id="legend-layers" class="legend-section-title">Layers</h3>
-          <div class="legend-list">
-            <button
-              type="button"
-              class="legend-item legend-toggle"
-              class:legend-toggle--off={!mapViewStore.showOrgs}
-              aria-pressed={mapViewStore.showOrgs}
-              onclick={() => mapViewStore.toggleOrgs()}
-            >
-              <span class="legend-swatch organization" aria-hidden="true"></span>
-              <span class="legend-copy">
-                <span class="legend-label">Orgs, units &amp; offices</span>
-                <span class="legend-description">
-                  {legendState(mapViewStore.showOrgs)}
-                </span>
-              </span>
-            </button>
-            <button
-              type="button"
-              class="legend-item legend-toggle"
-              class:legend-toggle--off={!mapViewStore.showPlaces}
-              aria-pressed={mapViewStore.showPlaces}
-              onclick={() => mapViewStore.togglePlaces()}
-            >
-              <span class="legend-swatch establishment" aria-hidden="true"></span>
-              <span class="legend-copy">
-                <span class="legend-label">Landmarks &amp; establishments</span>
-                <span class="legend-description">
-                  {legendState(mapViewStore.showPlaces)}
-                </span>
-              </span>
-            </button>
-          </div>
-        </section>
       </div>
     </div>
   {/if}
@@ -511,33 +472,6 @@
 
   .legend-swatch.establishment {
     background-color: var(--theme-accent-fill, hsl(334, 54%, 43%));
-  }
-
-  .legend-toggle {
-    all: unset;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    min-width: 0;
-    max-width: 100%;
-    border-radius: 0.625rem;
-    background-color: var(--theme-surface, hsl(0, 0%, 98%));
-    padding: 0.45rem 0.625rem;
-    cursor: pointer;
-  }
-
-  .legend-toggle:hover,
-  .legend-toggle:focus-visible {
-    background-color: var(--theme-accent-soft, hsl(5, 30%, 95%));
-  }
-
-  .legend-toggle--off {
-    opacity: 0.55;
-  }
-
-  .legend-toggle--off .legend-swatch {
-    filter: grayscale(1);
   }
 
   .legend-swatch.jeepney-stop {
