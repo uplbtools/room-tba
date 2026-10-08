@@ -4,12 +4,14 @@
   type Props = {
     name: string;
     size?: number;
+    /** Stable identity for the color, so a rename keeps it. Defaults to name. */
+    colorKey?: string;
   };
 
-  let { name, size = 28 }: Props = $props();
+  let { name, size = 28, colorKey }: Props = $props();
 
   const initials = $derived(nameInitials(name));
-  const background = $derived(nameColor(name));
+  const background = $derived(nameColor(colorKey || name));
 </script>
 
 <span
