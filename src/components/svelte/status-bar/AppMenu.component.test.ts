@@ -68,7 +68,7 @@ describe("You help and feedback", () => {
     expect(
       within(help).getByRole("link", { name: "Help & FAQ" }),
     ).toHaveAttribute("href", "/faq");
-    expect(within(help).getByRole("link", { name: "Wiki" })).toHaveAttribute(
+    expect(within(help).getByRole("link", { name: "Campus wiki" })).toHaveAttribute(
       "href",
       "/wiki",
     );

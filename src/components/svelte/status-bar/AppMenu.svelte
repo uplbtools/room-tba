@@ -494,7 +494,7 @@
             />
             <SettingsRow
               icon={BookOpen}
-              label="Wiki"
+              label="Campus wiki"
               href="/wiki"
               onclick={closePanel}
             />

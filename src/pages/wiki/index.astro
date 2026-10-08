@@ -2,123 +2,75 @@
 export const prerender = true;
 
 import WikiLayout from "@layouts/WikiLayout.astro";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+import { WIKI_PAGES } from "@lib/wiki-pages";
 import { wikiProvenance } from "@lib/wiki-provenance";
 
+const dateFormat = new Intl.DateTimeFormat("en-PH", { dateStyle: "medium" });
+
 const articles = [
+  ...WIKI_PAGES,
   {
-    href: "/wiki/emergency-hotlines",
-    kicker: "Emergency contacts, 2 min read",
-    title: "Emergency hotlines around UPLB",
-    blurb:
-      "Offline-ready contacts for campus security, local responders, and nearby medical services.",
-    sourcePath: "src/pages/wiki/emergency-hotlines.astro",
-  },
-  {
-    href: "/wiki/campus-curfew",
-    kicker: "Dorm guide, 2 min read",
-    title: "Campus curfew and dorm permits",
-    blurb:
-      "Curfew hours and return-permit guidance for residents of UP-managed dormitories.",
-    sourcePath: "src/pages/wiki/campus-curfew.astro",
-  },
-  {
-    href: "/faq",
-    kicker: "Student FAQ, 3 min read",
+    path: "/faq",
     title: "Frequently asked questions",
+    kicker: "Student FAQ",
     blurb:
       "Where the 3D building models come from, whether Room TBA is official UPLB, how class and room data is updated, and how to report wrong data. Short, plain-language answers for students.",
     sourcePath: "src/pages/faq.astro",
-  },
-  {
-    href: "/wiki/upcat-at-uplb",
-    kicker: "UPCAT at UPLB, 8 min read",
-    title: "Taking the UPCAT at UP Los Baños",
-    blurb:
-      "For examinees and the parents driving them, August 1 and 2, 2026. What the test permit does and does not tell you, the two campus jeepney routes, and how to save the campus map before mobile data gets congested.",
-    sourcePath: "src/pages/wiki/upcat-at-uplb.astro",
-  },
-  {
-    href: "/wiki/fork-for-your-campus",
-    kicker: "For other campuses, 6 min read",
-    title: "Fork this for your campus",
-    blurb:
-      "Room TBA is built for UPLB. Here is what you actually replace to run it for a different campus: the UPLB data and glue to rip out, the config to repoint, and the write-your-own parts (class import).",
-    sourcePath: "src/pages/wiki/fork-for-your-campus.astro",
-  },
-  {
-    href: "/wiki/section-times",
-    kicker: "Class schedules, 12 min read",
-    title: "What times do section names correspond to?",
-    blurb:
-      "Exhaustive glossary: letter ladders, NSTP/HK/GI/residency, MS/PhD numbers, every AMIS type, plus oldest→newest term trends (what moved vs what only looks bigger in Room TBA).",
-    sourcePath: "src/pages/wiki/section-times.astro",
-  },
-  {
-    href: "https://www.uplb.tools/transparency",
-    kicker: "Money, 3 min read",
-    title: "Transparency report",
-    blurb:
-      "Where donation and sponsor money goes: monthly ledger of money in, money out, and receipts.",
-    sourcePath: "src/pages/transparency.astro",
   },
 ].map((article) => {
   const { authors, lastEdited } = wikiProvenance(article.sourcePath);
   return {
     ...article,
     authors: authors.map((a) => a.name).join(", "),
-    lastEdited: lastEdited
-      ? new Intl.DateTimeFormat("en-PH", { dateStyle: "medium" }).format(
-          new Date(lastEdited),
-        )
-      : null,
+    lastEdited: lastEdited ? dateFormat.format(new Date(lastEdited)) : null,
   };
 });
 
 const title = "Wiki | Room TBA";
 const description =
-  "Plain-language guides to UPLB class schedules, section names, rooms, and campus systems, backed by Room TBA data.";
-const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/wiki" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Wiki", path: "/wiki" },
-  ]),
-);
+  "Plain-language guides to UPLB class schedules, section names, rooms, jeepneys, and campus systems, backed by Room TBA data.";
 ---
 
-<WikiLayout
-  {title}
-  {description}
-  canonicalPath="/wiki"
-  {structuredData}
->
+<WikiLayout {title} {description} canonicalPath="/wiki">
   <article class="wiki-article">
     <header class="article-hero">
       <p class="wiki-eyebrow">Room TBA Wiki</p>
       <h1 class="wiki-title">The campus details nobody explains</h1>
       <p class="wiki-lede">
         Short guides built from Room TBA’s schedule and campus data. Each
-        article shows its evidence and the cases where the pattern breaks.
+        article shows its evidence, who wrote it, and the cases where the
+        pattern breaks. Spotted a mistake? Every article has a “Report a
+        correction” link.
       </p>
     </header>
 
     <section aria-labelledby="articles-heading">
       <h2 id="articles-heading">Articles</h2>
-      <dl class="wiki-index">
+      <form class="wiki-search" role="search" id="wiki-search" hidden>
+        <label for="wiki-search-input">Filter articles</label>
+        <input
+          id="wiki-search-input"
+          type="search"
+          placeholder="Try: curfew, jeep, TBA"
+          autocomplete="off"
+          enterkeyhint="search"
+        />
+        <p class="wiki-search__status" role="status" aria-live="polite"></p>
+      </form>
+      <dl class="wiki-index" id="wiki-index">
         {
           articles.map((article) => (
-            <>
-              <dt><a href={article.href}>{article.title}</a></dt>
+            <div class="wiki-index__item" data-search={`${article.title} ${article.kicker} ${article.blurb}`.toLowerCase()}>
+              <dt><a href={article.path}>{article.title}</a></dt>
               <dd>
                 <p class="wiki-index__blurb">{article.blurb}</p>
                 <p class="wiki-index__meta">
                   {article.kicker}
-                  {article.lastEdited && `, updated ${article.lastEdited}`}
-                  {article.authors && `, by ${article.authors}`}
+                  {article.lastEdited && `. Updated ${article.lastEdited}`}
+                  {article.authors && `. By ${article.authors}`}
                 </p>
               </dd>
-            </>
+            </div>
           ))
         }
       </dl>
@@ -127,6 +79,14 @@ const structuredData = jsonLd(
     <section aria-labelledby="resources-heading">
       <h2 id="resources-heading">More UPLB resources</h2>
       <ul>
+        <li>
+          <a href="/">Open the Room TBA map</a>
+        </li>
+        <li>
+          <a href="https://www.uplb.tools/transparency" target="_blank" rel="noopener noreferrer">
+            Transparency report</a> (where donation and sponsor money goes)
+            <span aria-hidden="true">↗</span>
+        </li>
         <li>
           <a href="https://guide.stimmie.dev" target="_blank" rel="noopener noreferrer">
             UPLB resources and guides</a> <span aria-hidden="true">↗</span>
@@ -140,24 +100,56 @@ const structuredData = jsonLd(
   </article>
 </WikiLayout>
 
+<script is:inline>
+  // Progressive enhancement: the filter only appears when script runs, and the
+  // full list is always in the HTML.
+  (() => {
+    const form = document.getElementById("wiki-search");
+    const input = document.getElementById("wiki-search-input");
+    const items = [...document.querySelectorAll(".wiki-index__item")];
+    if (!form || !input) return;
+    const status = form.querySelector(".wiki-search__status");
+    form.hidden = false;
+    form.addEventListener("submit", (event) => event.preventDefault());
+    input.addEventListener("input", () => {
+      const terms = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      for (const item of items) {
+        const text = item.getAttribute("data-search") || "";
+        const match = terms.every((term) => text.includes(term));
+        item.hidden = !match;
+        if (match) shown += 1;
+      }
+      if (status) {
+        status.textContent = terms.length
+          ? `${shown} of ${items.length} articles`
+          : "";
+      }
+    });
+  })();
+</script>
+
 <style>
   .wiki-index {
     max-width: var(--wiki-measure);
     margin: 0;
   }
 
-  .wiki-index dt {
+  .wiki-index__item {
     margin-top: 1.25rem;
     padding-top: 0.85rem;
     border-top: 1px solid var(--wiki-rule);
+  }
+
+  .wiki-index__item[hidden] {
+    display: none;
+  }
+
+  .wiki-index dt {
     font-family: var(--wiki-font-display);
     font-size: 1.1875rem;
     font-weight: 700;
     line-height: 1.3;
-  }
-
-  .wiki-index dt:first-of-type {
-    margin-top: 0.75rem;
   }
 
   .wiki-index dd {
@@ -172,5 +164,47 @@ const structuredData = jsonLd(
     margin: 0.35rem 0 0;
     color: var(--wiki-ink-2);
     font-size: var(--wiki-text-md);
+  }
+
+  .wiki-search {
+    max-width: var(--wiki-measure);
+    margin: var(--wiki-space-sm) 0 0;
+  }
+
+  .wiki-search[hidden] {
+    display: none;
+  }
+
+  .wiki-search label {
+    display: block;
+    margin-bottom: var(--wiki-space-2xs);
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+  }
+
+  .wiki-search input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 var(--wiki-space-sm);
+    border: 1px solid var(--wiki-rule-strong);
+    border-radius: 0.5rem;
+    background: var(--wiki-paper);
+    color: var(--wiki-ink);
+    font: inherit;
+    font-size: 1rem;
+  }
+
+  .wiki-search__status {
+    min-height: 1.25rem;
+    margin: var(--wiki-space-2xs) 0 0;
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+  }
+
+  @media print {
+    .wiki-search {
+      display: none;
+    }
   }
 </style>

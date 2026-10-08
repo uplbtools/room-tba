@@ -1,56 +1,122 @@
 ---
 import { wikiProvenance } from "@lib/wiki-provenance";
+import { wikiCorrectionUrl, WIKI_PAGES } from "@lib/wiki-pages";
 
 type Props = {
   /** Repo-relative path of the page source, e.g. src/pages/wiki/foo.astro */
   sourcePath: string;
+  /**
+   * Repo-relative path of a data file whose values the page states as fact
+   * (hours, phone numbers). Shows when that file last changed and says the
+   * values have not been checked against an official source.
+   */
+  unverifiedDataPath?: string;
 };
 
-const { sourcePath } = Astro.props;
+const { sourcePath, unverifiedDataPath } = Astro.props;
 const { authors, revisions, lastEdited, historyUrl, editUrl } =
   wikiProvenance(sourcePath);
+const dataProvenance = unverifiedDataPath
+  ? wikiProvenance(unverifiedDataPath)
+  : null;
+
+const page = WIKI_PAGES.find((p) => p.sourcePath === sourcePath);
+const correctionUrl = page ? wikiCorrectionUrl(page.title, page.path) : null;
 
 const dateFormat = new Intl.DateTimeFormat("en-PH", { dateStyle: "long" });
-const lastEditedLabel = lastEdited
-  ? dateFormat.format(new Date(lastEdited))
-  : null;
+const format = (iso: string | null) =>
+  iso ? dateFormat.format(new Date(iso)) : null;
+const lastEditedLabel = format(lastEdited);
+const dataIso = dataProvenance?.lastEdited ?? undefined;
+const dataChangedLabel = format(dataIso ?? null);
 ---
 
-<p class="wiki-provenance">
+<div class="wiki-provenance">
+  <p class="wiki-provenance__line">
+    {
+      authors.length > 0 && (
+        <span class="wiki-provenance__authors">
+          By{" "}
+          {authors.map((author, i) => (
+            <>
+              {i > 0 && ", "}
+              {author.github ? (
+                <a
+                  class="wiki-link"
+                  href={`https://github.com/${author.github}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {author.name}
+                </a>
+              ) : (
+                author.name
+              )}
+            </>
+          ))}
+        </span>
+      )
+    }
+    {
+      lastEditedLabel && lastEdited && (
+        <span>
+          Page edited <time datetime={lastEdited}>{lastEditedLabel}</time> ({revisions}{" "}
+          {revisions === 1 ? "revision" : "revisions"})
+        </span>
+      )
+    }
+    <a class="wiki-link" href={historyUrl} target="_blank" rel="noopener noreferrer">History</a>
+    <a class="wiki-link" href={editUrl} target="_blank" rel="noopener noreferrer">Edit on GitHub</a>
+    {
+      correctionUrl && (
+        <a class="wiki-link" href={correctionUrl} target="_blank" rel="noopener noreferrer">Report a correction</a>
+      )
+    }
+  </p>
   {
-    authors.length > 0 && (
-      <span class="wiki-provenance__authors">
-        By{" "}
-        {authors.map((author, i) => (
-          <>
-            {i > 0 && ", "}
-            {author.github ? (
-              <a
-                class="wiki-link"
-                href={`https://github.com/${author.github}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {author.name}
-              </a>
-            ) : (
-              author.name
-            )}
-          </>
-        ))}
-      </span>
+    unverifiedDataPath && (
+      <p class="wiki-provenance__verify" role="note">
+        <strong>Needs verification.</strong> These values come from Room TBA’s
+        own data file, not from a published official notice.
+        {dataChangedLabel && (
+          <span>
+            Last updated in Room TBA on <time datetime={dataIso}>{dataChangedLabel}</time>.
+          </span>
+        )}
+        Confirm with the office concerned before relying on them, and
+        {correctionUrl && (
+          <a class="wiki-link" href={correctionUrl} target="_blank" rel="noopener noreferrer">report a correction</a>
+        )}
+        if one is out of date.
+      </p>
     )
   }
-  {
-    lastEditedLabel && lastEdited && (
-      <span>
-        {". "}Last edited <time datetime={lastEdited}>{lastEditedLabel}</time>
-        {" ("}{revisions} {revisions === 1 ? "revision" : "revisions"}{")"}
-      </span>
-    )
+</div>
+
+<style>
+  .wiki-provenance__line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--wiki-space-md);
+    margin: var(--wiki-space-md) 0 0;
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+    line-height: 1.6;
   }
-  <span>
-    {". "}<a class="wiki-link" href={historyUrl} target="_blank" rel="noopener noreferrer">History</a>
-    {" / "}<a class="wiki-link" href={editUrl} target="_blank" rel="noopener noreferrer">Edit on GitHub</a>
-  </span>
-</p>
+
+  .wiki-provenance__authors {
+    color: var(--wiki-ink);
+    font-weight: 600;
+  }
+
+  .wiki-provenance__verify {
+    max-width: var(--wiki-measure);
+    margin: var(--wiki-space-sm) 0 0;
+    padding: var(--wiki-space-xs) var(--wiki-space-sm);
+    border-left: 3px solid var(--wiki-accent);
+    background: var(--wiki-accent-soft);
+    color: var(--wiki-ink);
+    font-size: var(--wiki-text-md);
+    line-height: 1.55;
+  }
+</style>

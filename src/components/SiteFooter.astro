@@ -21,6 +21,7 @@ const externalCommunityLinks = COMMUNITY_LINKS.filter(
 <footer class="site-footer">
   <nav class="site-footer__nav" aria-label="Site links">
     <span class="site-footer__group">
+      <a href="/wiki">Wiki</a>
       {LEGAL_LINKS.map((link) => <a href={link.href}>{link.label}</a>)}
       <a href="/sponsors">Sponsors</a>
       <a href={DONATE_URL}>Donate</a>
@@ -56,13 +57,13 @@ const externalCommunityLinks = COMMUNITY_LINKS.filter(
   .site-footer {
     margin-top: 2.5rem;
     padding-top: 1.25rem;
-    border-top: 1px solid hsl(0, 0%, 88%);
+    border-top: 1px solid var(--wiki-rule, hsl(0, 0%, 88%));
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 35%);
+    color: var(--wiki-ink-2, hsl(0, 0%, 35%));
   }
 
   .site-footer__nav {
@@ -80,12 +81,12 @@ const externalCommunityLinks = COMMUNITY_LINKS.filter(
   }
 
   .site-footer__sep {
-    color: hsl(0, 0%, 72%);
+    color: var(--wiki-rule-strong, hsl(0, 0%, 72%));
     user-select: none;
   }
 
   .site-footer a {
-    color: hsl(5, 53%, 32%);
+    color: var(--wiki-accent, hsl(5, 53%, 32%));
     font-weight: 600;
     text-decoration: none;
   }
