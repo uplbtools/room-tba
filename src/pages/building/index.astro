@@ -26,7 +26,7 @@ const items = buildings
     return {
       href,
       label: building.buildingName,
-      description: `${roomCount} room${roomCount === 1 ? "" : "s"} listed${building.directions ? " · includes directions" : ""}`,
+      description: `${roomCount} room${roomCount === 1 ? "" : "s"} listed${building.directions ? ", includes directions" : ""}`,
       copyUrl: absoluteUrl(href),
       copyLabel: `Copy link to ${building.buildingName}`,
     };

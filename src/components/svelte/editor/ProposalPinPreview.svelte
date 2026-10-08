@@ -97,11 +97,11 @@
         <span class="proposal-pin proposal-pin--after" aria-hidden="true"
         ></span> Proposed
         {#if distance !== null}
-          · moved {distance}m
+          (moved {distance}m)
         {/if}
       {:else}
         <span class="proposal-pin proposal-pin--after" aria-hidden="true"
-        ></span> New position · {change.after.lat.toFixed(5)}, {change.after.lon.toFixed(
+        ></span> New position: {change.after.lat.toFixed(5)}, {change.after.lon.toFixed(
           5,
         )}
       {/if}

@@ -9,6 +9,7 @@
     floatingControlPanelStore,
     mapViewStore,
     queryStore,
+    trailStore,
   } from "@lib/store.svelte";
   import {
     openEphemeralOverlay,
@@ -22,15 +23,6 @@
   };
 
   let { embedded = false, trigger = "icon" }: Props = $props();
-
-  /** Org/place pins answer to the toggle AND a zoom gate, so "Shown" alone
-   * would lie when the user is zoomed out past it. */
-  function legendState(on: boolean): string {
-    if (!on) return "Hidden — tap to toggle.";
-    return mapViewStore.poiPinsZoomVisible
-      ? "Shown — tap to toggle."
-      : "Shown when you zoom in — tap to toggle.";
-  }
 
   const panelId = "legend";
   const open = $derived(floatingControlPanelStore.openPanel === panelId);
@@ -66,8 +58,13 @@
       description: "Memorials, sights, and campus points of interest.",
     },
     {
+      key: "organization",
+      label: "Org, unit or office",
+      description: "Student organization, campus unit, or office.",
+    },
+    {
       key: "establishment",
-      label: "Service / establishment",
+      label: "Service or establishment",
       description: "Food, services, and transport points.",
     },
     {
@@ -221,41 +218,27 @@
           </div>
         </section>
 
-        <section class="legend-section" aria-labelledby="legend-layers">
-          <h3 id="legend-layers" class="legend-section-title">Layers</h3>
-          <div class="legend-list">
-            <button
-              type="button"
-              class="legend-item legend-toggle"
-              class:legend-toggle--off={!mapViewStore.showOrgs}
-              aria-pressed={mapViewStore.showOrgs}
-              onclick={() => mapViewStore.toggleOrgs()}
-            >
-              <span class="legend-swatch organization" aria-hidden="true"></span>
-              <span class="legend-copy">
-                <span class="legend-label">Orgs, units &amp; offices</span>
-                <span class="legend-description">
-                  {legendState(mapViewStore.showOrgs)}
+        {#if trailStore.enabled}
+          <section class="legend-section" aria-labelledby="legend-trails">
+            <h3 id="legend-trails" class="legend-section-title">Trails</h3>
+            <div class="legend-list">
+              <div class="legend-item">
+                <span class="legend-swatch trail-line" aria-hidden="true"></span>
+                <span class="legend-copy">
+                  <span class="legend-label">Makiling Trail</span>
+                  <span class="legend-description">Hiking trail, Station 1 to Peak 2.</span>
                 </span>
-              </span>
-            </button>
-            <button
-              type="button"
-              class="legend-item legend-toggle"
-              class:legend-toggle--off={!mapViewStore.showPlaces}
-              aria-pressed={mapViewStore.showPlaces}
-              onclick={() => mapViewStore.togglePlaces()}
-            >
-              <span class="legend-swatch establishment" aria-hidden="true"></span>
-              <span class="legend-copy">
-                <span class="legend-label">Landmarks &amp; establishments</span>
-                <span class="legend-description">
-                  {legendState(mapViewStore.showPlaces)}
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch trail-stop" aria-hidden="true"></span>
+                <span class="legend-copy">
+                  <span class="legend-label">Trail station</span>
+                  <span class="legend-description">Tap for distance, elevation and tips.</span>
                 </span>
-              </span>
-            </button>
-          </div>
-        </section>
+              </div>
+            </div>
+          </section>
+        {/if}
       </div>
     </div>
   {/if}
@@ -299,44 +282,60 @@
     gap: 0.375rem;
   }
 
+  /* Inside the Layers sheet the legend is a static key: sentence-case group
+     labels, 24px swatches and 16px labels on the same grid as the rows
+     above it. Descriptions stay in the floating panel only. */
   .map-legend.embedded .legend-sections {
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   .map-legend.embedded .legend-section {
     gap: 0.25rem;
   }
 
+  .map-legend.embedded .legend-section-title {
+    padding: 0;
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.25rem;
+    text-transform: none;
+  }
+
   .map-legend.embedded .legend-list {
-    gap: 0.25rem;
+    gap: 0;
   }
 
   .map-legend.embedded .legend-item {
-    gap: 0.5rem;
-    padding: 0.3125rem 0.5rem;
+    gap: 1rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0;
+    background: none;
   }
 
   .map-legend.embedded .legend-swatch {
-    width: 1.125rem;
-    height: 1.125rem;
-    font-size: 0.625rem;
-  }
-
-  .map-legend.embedded .legend-label {
+    width: 1.5rem;
+    height: 1.5rem;
     font-size: 0.75rem;
   }
 
+  .map-legend.embedded .legend-label {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
   .map-legend.embedded .legend-description {
-    font-size: 0.625rem;
-    line-height: 1.2;
+    display: none;
   }
 
   .legend-empty-note {
     margin: 0;
     padding: 0 0.25rem;
     color: var(--theme-text-2, hsl(0, 0%, 45%));
-    font-size: 0.75rem;
-    line-height: 1.35;
+    font-size: 0.875rem;
+    line-height: 1.4;
   }
 
   .map-legend {
@@ -513,39 +512,28 @@
     background-color: var(--theme-accent-fill, hsl(334, 54%, 43%));
   }
 
-  .legend-toggle {
-    all: unset;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    min-width: 0;
-    max-width: 100%;
-    border-radius: 0.625rem;
-    background-color: var(--theme-surface, hsl(0, 0%, 98%));
-    padding: 0.45rem 0.625rem;
-    cursor: pointer;
-  }
-
-  .legend-toggle:hover,
-  .legend-toggle:focus-visible {
-    background-color: var(--theme-accent-soft, hsl(5, 30%, 95%));
-  }
-
-  .legend-toggle--off {
-    opacity: 0.55;
-  }
-
-  .legend-toggle--off .legend-swatch {
-    filter: grayscale(1);
-  }
-
   .legend-swatch.jeepney-stop {
     background-color: #dc2626;
   }
 
   .legend-swatch.schedule-stop {
     background-color: #2563eb;
+  }
+
+  .legend-swatch.trail-line {
+    height: 0.25rem;
+    border-radius: 0.125rem;
+    background: repeating-linear-gradient(
+      90deg,
+      #15803d 0 0.375rem,
+      transparent 0.375rem 0.5625rem
+    );
+  }
+
+  .legend-swatch.trail-stop {
+    border-radius: 50%;
+    background-color: #15803d;
+    box-shadow: inset 0 0 0 2px #fff;
   }
 
   .legend-swatch.event-active {

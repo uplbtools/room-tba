@@ -13,7 +13,7 @@ Before adding UI to entity detail views in the MainControls drawer:
 
 1. Read the existing layout in `entity-detail.css` and sibling result components (`RoomResult`, `BuildingResult`, `DormResult`, `EventResult`).
 2. Integrate into established zones — do not bolt on new sections:
-   - **Header:** breadcrumb (optional), title + badge, context line, **one** primary actions row (Copy link + Edit + entity-specific chips).
+   - **Header:** breadcrumb (optional), then `PlaceSheetHeader` for building, dorm, place and room (title + X, plain-text category, one-line facts, Directions + the scrolling pill row). Category is text, never a pill: pills are for things that act.
    - **Body:** browse content only; editor fields expand inline below the header when Edit is open.
    - **Directions:** one merged block — directions text, contribute/suggest links, nav chips (Directions, Google Maps). No duplicate colored boxes or second nav row.
    - **Footer:** secondary links only (schedule, external refs) as subtle text links — not full-width buttons.

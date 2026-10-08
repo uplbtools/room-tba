@@ -97,11 +97,11 @@ describe("openBrowseClasses", () => {
 describe("browse helper call sites keep the side panel wired", () => {
   const CALL_SITES: Array<{ file: string; helper: string }> = [
     {
-      file: "src/components/svelte/status-bar/AppMenu.svelte",
+      file: "src/components/svelte/map-chrome/MapFilterChips.svelte",
       helper: "openBrowseClasses",
     },
     {
-      file: "src/components/svelte/status-bar/AppMenu.svelte",
+      file: "src/components/svelte/modal/LandingModal.svelte",
       helper: "openCampusBrowse",
     },
     {

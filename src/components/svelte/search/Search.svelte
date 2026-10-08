@@ -21,6 +21,7 @@
   import DirectionsRouteChips from "@ui/directions/DirectionsRouteChips.svelte";
   import NavigationBanner from "@ui/directions/NavigationBanner.svelte";
   import MapFilterChips from "@ui/map-chrome/MapFilterChips.svelte";
+  import ActiveOverlayChips from "@ui/map-chrome/ActiveOverlayChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
@@ -159,6 +160,21 @@
     if (mobile.current && !mobileSearchActive && q !== "") return;
     replaceAppUrl((url) => withAppState(url, { q }));
   });
+
+  /**
+   * A phone place sheet carries its own X beside the name, so the search
+   * bar's "Close details" X (same action) and the filter chips step aside:
+   * two X's a few centimetres apart read as two different things, and the
+   * chips row was sliced under the sheet's edge.
+   */
+  const SHEET_CLOSE_CATEGORIES = new Set(["building", "dorm", "place", "room"]);
+  const sheetOwnsClose = $derived(
+    mobile.current &&
+      queryStore.type === "result" &&
+      queryStore.category !== null &&
+      SHEET_CLOSE_CATEGORIES.has(queryStore.category) &&
+      !directionsStore.active,
+  );
 
   const clearSelectionLabel = $derived(
     queryStore.type === "result" && queryStore.category !== null
@@ -308,7 +324,7 @@
                 aria-haspopup="listbox"
                 placeholder="ex. Institute of Computer Science"
               />
-              {#if draftInput !== "" || queryStore.category !== null}
+              {#if (draftInput !== "" || queryStore.category !== null) && !sheetOwnsClose}
                 <!-- While typing in the overlay the X clears the text; it used to
                      collapse to 0px there, leaving no way to clear. -->
                 <button
@@ -400,10 +416,14 @@
         {/if}
       </div>
 
-      {#if mobile.current && !searchFocused && !directionsSearchActive}
+      {#if mobile.current && !searchFocused && !directionsSearchActive && !sheetOwnsClose}
         <div class="map-search-chrome__mobile-chips">
           <MapFilterChips />
         </div>
+      {/if}
+
+      {#if !searchFocused && !directionsSearchActive}
+        <ActiveOverlayChips />
       {/if}
 
       {#if showSearchDropdown}

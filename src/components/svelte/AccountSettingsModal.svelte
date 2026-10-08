@@ -3,15 +3,23 @@
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
   import Dialog from "@ui/modal/Dialog.svelte";
   import SettingsSection from "@ui/modal/SettingsSection.svelte";
+  import SettingsRow from "@ui/modal/SettingsRow.svelte";
+  import ModalHeader from "@ui/modal/ModalHeader.svelte";
+  import LogOut from "@lucide/svelte/icons/log-out";
+  import MailCheck from "@lucide/svelte/icons/mail-check";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
+  import TwoStepSection from "@ui/account/TwoStepSection.svelte";
+  import EmailNotificationsSection from "@ui/account/EmailNotificationsSection.svelte";
   import "./editor/entity-editor.css";
+  import "./map-chrome/map-chrome.css";
 
   type Profile = {
     username: string;
     displayName: string;
     email: string | null;
+    emailVerified: boolean;
     role: "admin" | "editor" | "contributor";
     hasPassword: boolean;
     linkedGoogle: boolean;
@@ -34,7 +42,8 @@
   let displayNameDraft = $state("");
   let avatarUrlDraft = $state("");
   let profileUrlDraft = $state("");
-  let showInCreditsDraft = $state(true);
+  let savingCredits = $state(false);
+  let creditsError = $state<string | null>(null);
   let savingProfile = $state(false);
   let profileError = $state<string | null>(null);
   let profileSaved = $state(false);
@@ -53,6 +62,13 @@
 
   let unlinkingGoogle = $state(false);
   let identityError = $state<string | null>(null);
+
+  let resendingVerification = $state(false);
+  let verificationSent = $state(false);
+  let verificationError = $state<string | null>(null);
+
+  let signingOutEverywhere = $state(false);
+  let signOutError = $state<string | null>(null);
 
   let showDeleteConfirm = $state(false);
   let deletePasswordDraft = $state("");
@@ -73,7 +89,6 @@
       displayNameDraft = profile.displayName;
       avatarUrlDraft = profile.avatarUrl ?? "";
       profileUrlDraft = profile.profileUrl ?? "";
-      showInCreditsDraft = profile.showInCredits;
 
       const contributionsRes = await fetch("/api/contributions/mine", {
         credentials: "same-origin",
@@ -103,8 +118,7 @@
     profile
       ? displayNameDraft.trim() !== profile.displayName ||
           avatarUrlDraft.trim() !== (profile.avatarUrl ?? "") ||
-          profileUrlDraft.trim() !== (profile.profileUrl ?? "") ||
-          showInCreditsDraft !== profile.showInCredits
+          profileUrlDraft.trim() !== (profile.profileUrl ?? "")
       : false,
   );
 
@@ -122,7 +136,6 @@
           displayName: displayNameDraft,
           avatarUrl: avatarUrlDraft,
           profileUrl: profileUrlDraft,
-          showInCredits: showInCreditsDraft,
         }),
       });
       const data = await res.json().catch(() => ({}) as { error?: string });
@@ -135,7 +148,6 @@
         displayName: displayNameDraft.trim(),
         avatarUrl: avatarUrlDraft.trim() || null,
         profileUrl: profileUrlDraft.trim() || null,
-        showInCredits: showInCreditsDraft,
       };
       await adminAuthStore.refresh();
       profileSaved = true;
@@ -146,6 +158,37 @@
       profileError = "Network error. Try again.";
     } finally {
       savingProfile = false;
+    }
+  }
+
+  // A switch applies on tap, like every other on/off setting; it does not
+  // wait for "Save profile".
+  async function toggleShowInCredits() {
+    if (!profile || savingCredits) return;
+    const next = !profile.showInCredits;
+    savingCredits = true;
+    creditsError = null;
+    profile = { ...profile, showInCredits: next };
+    try {
+      const res = await fetch("/api/account/me", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: profile.displayName,
+          showInCredits: next,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}) as { error?: string });
+        throw new Error(data.error ?? "Could not update credits.");
+      }
+    } catch (err) {
+      profile = { ...profile, showInCredits: !next };
+      creditsError =
+        err instanceof Error ? err.message : "Could not update credits.";
+    } finally {
+      savingCredits = false;
     }
   }
 
@@ -171,6 +214,51 @@
       emailError = "Network error. Try again.";
     } finally {
       emailRequestPending = false;
+    }
+  }
+
+  async function resendVerification() {
+    resendingVerification = true;
+    verificationError = null;
+    verificationSent = false;
+    try {
+      const res = await fetch("/api/account/resend-verification", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}) as { error?: string });
+      if (!res.ok) {
+        verificationError = data.error ?? "Could not send a confirmation link.";
+        return;
+      }
+      verificationSent = true;
+    } catch {
+      verificationError = "Network error. Try again.";
+    } finally {
+      resendingVerification = false;
+    }
+  }
+
+  async function signOutEverywhere() {
+    signingOutEverywhere = true;
+    signOutError = null;
+    try {
+      const res = await fetch("/api/account/sign-out-everywhere", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}) as { error?: string });
+      if (!res.ok) {
+        signOutError = data.error ?? "Could not sign out of all devices.";
+        return;
+      }
+      close();
+      await adminAuthStore.logout();
+      toastStore.show("Signed out of all devices.", "success");
+    } catch {
+      signOutError = "Network error. Try again.";
+    } finally {
+      signingOutEverywhere = false;
     }
   }
 
@@ -274,19 +362,15 @@
   open={adminAuthStore.accountSettingsOpen}
   onclose={close}
   size="reading"
-  ariaLabel="Account settings"
+  labelledBy="account-settings-title"
   closeLabel="Close account settings"
 >
+  <ModalHeader
+    id="account-settings-title"
+    title="Account settings"
+    description={profile ? `${profile.username}, ${profile.role}` : undefined}
+  />
   <div class="settings-scroll">
-    <header class="settings-masthead">
-      <h2 class="settings-masthead__title">Account settings</h2>
-      {#if profile}
-        <p class="settings-masthead__identity">
-          <span class="settings-username">{profile.username}</span>
-          <span class="settings-role">{profile.role}</span>
-        </p>
-      {/if}
-    </header>
 
     {#if loadError}
       <EntityEditorMessage variant="error" message={loadError} />
@@ -339,14 +423,6 @@
             />
           {/snippet}
         </EntityEditorFormField>
-        <label class="credits-visibility">
-          <input
-            type="checkbox"
-            bind:checked={showInCreditsDraft}
-            disabled={savingProfile}
-          />
-          Show my contributions in public credits
-        </label>
         {#if profileError}
           <EntityEditorMessage variant="error" message={profileError} />
         {/if}
@@ -366,12 +442,63 @@
       </SettingsSection>
 
       <SettingsSection
+        title="Credits"
+        description="Your approved edits always count. This only controls whether your name is shown."
+      >
+        <SettingsRow
+          label="Show me in credits"
+          supporting={profile.showInCredits
+            ? "Your name appears on the leaderboard, your contributor profile and edit history."
+            : "Your name is hidden from the leaderboard and edit history."}
+          checked={profile.showInCredits}
+          disabled={savingCredits}
+          onclick={toggleShowInCredits}
+        />
+        {#if creditsError}
+          <EntityEditorMessage variant="error" message={creditsError} />
+        {/if}
+      </SettingsSection>
+
+      <SettingsSection
         title="Email"
         description="Used for sign-in and for replies about your suggested edits."
       >
         {#snippet meta()}
           <span class="settings-current">{profile.email ?? "No email set"}</span>
+          {#if profile.email}
+            <span
+              class="settings-email-status"
+              class:settings-email-status--pending={!profile.emailVerified}
+            >
+              {profile.emailVerified ? "Confirmed" : "Not confirmed"}
+            </span>
+          {/if}
         {/snippet}
+
+        {#if profile.email && !profile.emailVerified}
+          <p class="field-hint">
+            Confirm this address to reset your password by email and get
+            replies about your edits.
+          </p>
+          {#if verificationError}
+            <EntityEditorMessage variant="error" message={verificationError} />
+          {/if}
+          {#if verificationSent}
+            <EntityEditorMessage
+              variant="success"
+              message="Check your inbox for a confirmation link."
+            />
+          {:else}
+            <SettingsRow
+              icon={MailCheck}
+              label={resendingVerification
+                ? "Sending…"
+                : "Send confirmation link"}
+              disabled={resendingVerification}
+              onclick={resendVerification}
+            />
+          {/if}
+        {/if}
 
         {#if !showChangeEmail}
           <button
@@ -436,7 +563,7 @@
         <EntityEditorFormField
           label="New password"
           inputId="account-new-password"
-          hint="At least 10 characters."
+          hint="10 characters to 72 bytes."
         >
           {#snippet control()}
             <input
@@ -466,6 +593,14 @@
           />
         {/snippet}
       </SettingsSection>
+
+      {#if profile.role === "admin" || profile.role === "editor"}
+        <TwoStepSection />
+      {/if}
+
+      <EmailNotificationsSection
+        isStaff={profile.role === "admin" || profile.role === "editor"}
+      />
 
       <SettingsSection
         title="Connected accounts"
@@ -502,6 +637,24 @@
             />
           {/if}
         {/snippet}
+      </SettingsSection>
+
+      <SettingsSection
+        title="Signed-in devices"
+        description="Sign out everywhere, this device included, if you used a shared computer or think someone else has access."
+      >
+        {#if signOutError}
+          <EntityEditorMessage variant="error" message={signOutError} />
+        {/if}
+
+        <SettingsRow
+          icon={LogOut}
+          label={signingOutEverywhere
+            ? "Signing out…"
+            : "Sign out of all devices"}
+          disabled={signingOutEverywhere}
+          onclick={signOutEverywhere}
+        />
       </SettingsSection>
 
       <SettingsSection
@@ -598,51 +751,20 @@
      content and overlapped once the list outgrew the dialog. Grid rows size to
      content and the scroll container takes the overflow. */
   .settings-scroll {
+    --settings-row-inline: 0;
     display: grid;
     grid-auto-rows: min-content;
     gap: 0.75rem;
-    padding: 0.25rem 0.75rem 0.75rem;
+    padding: 0 1rem 1rem;
     overflow-y: auto;
     min-height: 0;
     flex: 1 1 auto;
   }
 
-  .settings-masthead {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    /* Clears the dialog's own close button, which sits top right. */
-    padding: 0.5rem 2.25rem 0.25rem 0.25rem;
-  }
 
-  .settings-masthead__title {
-    margin: 0;
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--theme-text, hsl(0, 0%, 12%));
-  }
 
-  .settings-masthead__identity {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-    font-size: 0.8125rem;
-    color: var(--theme-text-2, hsl(0, 0%, 42%));
-  }
 
-  .settings-username {
-    font-weight: 600;
-    color: var(--theme-text, hsl(0, 0%, 28%));
-  }
 
-  .settings-role {
-    padding: 0.0625rem 0.375rem;
-    border-radius: 999px;
-    background: var(--theme-surface-2, hsl(0, 0%, 94%));
-    font-size: 0.75rem;
-    text-transform: capitalize;
-  }
 
   .settings-loading {
     margin: 0;
@@ -651,6 +773,22 @@
 
   .settings-current {
     font-weight: 500;
+  }
+
+  .settings-email-status {
+    margin-left: 0.5rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 999px;
+    background: var(--theme-green-soft, hsl(140, 40%, 92%));
+    color: var(--theme-green-text, hsl(140, 50%, 24%));
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .settings-email-status--pending {
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
+    color: var(--theme-text-2, hsl(0, 0%, 36%));
   }
 
   .settings-empty {
@@ -695,12 +833,9 @@
     color: var(--theme-accent-text, #9a1b1b);
   }
 
-  .credits-visibility {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-  }
+
+
+
 
   .settings-delete-warning {
     margin: 0;

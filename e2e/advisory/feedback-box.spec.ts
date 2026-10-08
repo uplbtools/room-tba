@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openSettingsModal } from "../helpers/map-tools";
+import { openAppMenu } from "../helpers/map-tools";
 
 /**
  * In-app feedback box (#881). Advisory: the endpoint is stubbed via routing, so
@@ -8,18 +8,18 @@ import { openSettingsModal } from "../helpers/map-tools";
  * handling) without depending on the shared E2E database.
  */
 test.describe("feedback box @advisory", () => {
-  // Settings links to the one feedback dialog instead of embedding a copy.
+  // Send feedback lives in one place: You, under Help & feedback.
   async function openFeedback(page: import("@playwright/test").Page) {
     await page.goto("/");
     await waitForAppBoot(page);
-    const settings = await openSettingsModal(page);
-    await settings.getByRole("button", { name: "Send feedback" }).click();
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: "Send feedback" }).click();
     const dialog = page.getByRole("dialog", { name: "Send feedback" });
     await expect(dialog).toBeVisible();
     return dialog;
   }
 
-  test("settings opens the box, both community links, and the attached note", async ({
+  test("You opens the box, both community links, and the attached note", async ({
     page,
   }) => {
     const dialog = await openFeedback(page);

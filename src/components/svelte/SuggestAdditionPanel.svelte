@@ -654,10 +654,7 @@
 
   {#if !isPublish}
     {#key pendingListVersion}
-      <ContributorPendingProposals
-        {submitterName}
-        onChanged={bumpPendingList}
-      />
+      <ContributorPendingProposals onChanged={bumpPendingList} />
     {/key}
   {/if}
 

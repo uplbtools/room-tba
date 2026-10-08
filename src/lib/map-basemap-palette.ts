@@ -149,3 +149,66 @@ export function applyBasemapPalette(
     map.setLayoutProperty(layerId, "visibility", "none");
   }
 }
+
+/** Ids of the basemap's vector layers, in draw order (cheap: no serialize). */
+function basemapLayerKey(map: maplibregl.Map): string {
+  let order: string[];
+  try {
+    order = map.getLayersOrder();
+  } catch {
+    return "";
+  }
+  return order
+    .filter((id) => {
+      const source = (map.getLayer(id) as { source?: unknown } | undefined)
+        ?.source;
+      return (
+        typeof source === "string" && map.getSource(source)?.type === "vector"
+      );
+    })
+    .join(",");
+}
+
+/**
+ * Keep the theme's palette on the basemap for the life of the map.
+ *
+ * Waiting for the map's "load" event alone was not enough: the map can reach
+ * the app after "load" has already fired, while isStyleLoaded() still reads
+ * false because the app's own GeoJSON sources are loading. "load" then never
+ * comes again, the palette is never applied, and a dark-mode deep link (most
+ * visibly /transit/…) kept the light basemap and its cream 3D buildings.
+ * This applies as soon as the style's layers exist, and again on any
+ * "styledata" that adds or replaces basemap layers. Repeat events with the
+ * same theme and layers are skipped, so app overlays changing do not repaint.
+ * Call sync() after a theme change; stop() detaches.
+ */
+export function syncBasemapPalette(
+  map: maplibregl.Map,
+  theme: () => ResolvedTheme,
+): { sync: () => void; stop: () => void } {
+  let applied = "";
+  const sync = () => {
+    const layers = basemapLayerKey(map);
+    if (!layers) return;
+    const key = `${theme()}|${layers}`;
+    if (key === applied) return;
+    // Marked first: our own paint writes may emit styledata re-entrantly.
+    applied = key;
+    try {
+      applyBasemapPalette(map, theme());
+    } catch {
+      // Style mid-swap ("Style is not done loading"): the next styledata retries.
+      applied = "";
+    }
+  };
+  map.on("styledata", sync);
+  map.on("load", sync);
+  sync();
+  return {
+    sync,
+    stop: () => {
+      map.off("styledata", sync);
+      map.off("load", sync);
+    },
+  };
+}

@@ -70,11 +70,11 @@ describe("CommuteItinerary", () => {
       li.textContent?.replace(/\s+/g, " ").trim(),
     );
     expect(steps).toEqual([
-      "Walk 4 min · 300 m",
+      "Walk 4 min (300 m)",
       "Board Kaliwa / Kanan (Kaliwa) at Carabao Park / Landbank",
-      "Ride 3 stops · 7 min Makiling SchoolSt. Therese / Math Building",
+      "Ride 3 stops (7 min) Makiling SchoolSt. Therese / Math Building",
       "Get off at Headquarters",
-      "Walk 5 min · 300 m",
+      "Walk 5 min (300 m)",
     ]);
     expectNoHorizontalOverflow(container);
   });

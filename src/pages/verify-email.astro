@@ -1,0 +1,146 @@
+---
+// Static page: the token stays in the browser (read client-side, then wiped
+// from the address bar) and is only sent in a POST body, so it never reaches
+// an edge cache, server log, or Referer header (no-referrer, see vercel.json).
+// Confirming takes a button press because mail scanners prefetch links: a
+// GET that consumed the single-use token would burn it before the person
+// ever saw the page.
+import Layout from "@layouts/Layout.astro";
+---
+
+<Layout
+  title="Confirm your email | Room TBA"
+  description="Confirm the email address on your Room TBA account."
+  canonicalPath="/verify-email"
+  showAppLoadingShell={false}
+  robots="noindex,nofollow"
+>
+  <main class="verify-email-page">
+    <a href="/" class="back-link">
+      <span aria-hidden="true">←</span> Back to Room TBA
+    </a>
+    <h1>Confirm your email</h1>
+    <div data-verify-email>
+      <p data-state="ready" hidden>
+        Press the button to confirm this address for your Room TBA account.
+        You can then reset your password by email and hear back about your
+        suggested edits.
+      </p>
+      <button type="button" class="verify-button" data-verify-button hidden>
+        Confirm email
+      </button>
+      <p data-state="working" hidden role="status">Confirming…</p>
+      <p data-state="done" hidden role="status">
+        Your email is confirmed. You can close this tab or
+        <a href="/">go back to the map</a>.
+      </p>
+      <p data-state="missing" hidden role="alert">
+        This link is incomplete. Open the newest confirmation email and use
+        its link, or send a new one from Account settings.
+      </p>
+      <p data-state="error" hidden role="alert">
+        <span data-error-message>This link is invalid or has expired.</span>
+        Send a new one from Account settings, then use the newest email.
+      </p>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-verify-email]");
+  const button = root?.querySelector<HTMLButtonElement>("[data-verify-button]");
+
+  function show(state: string) {
+    for (const el of root?.querySelectorAll<HTMLElement>("[data-state]") ??
+      []) {
+      el.hidden = el.dataset.state !== state;
+    }
+    if (button) button.hidden = state !== "ready";
+  }
+
+  const token = new URLSearchParams(window.location.search).get("token");
+  // Drop the token from the address bar (and so from history and any script
+  // reading location) as soon as it is read.
+  if (token) window.history.replaceState(null, "", window.location.pathname);
+
+  if (!token) {
+    show("missing");
+  } else {
+    show("ready");
+    button?.addEventListener("click", async () => {
+      show("working");
+      try {
+        const res = await fetch("/api/account/verify-email", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        if (res.ok) {
+          show("done");
+          return;
+        }
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        const message = root?.querySelector("[data-error-message]");
+        if (message && data.error) message.textContent = data.error;
+        show("error");
+      } catch {
+        const message = root?.querySelector("[data-error-message]");
+        if (message) message.textContent = "Network error. Try again.";
+        show("ready");
+      }
+    });
+  }
+</script>
+
+<style>
+  .verify-email-page {
+    max-width: 32rem;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+    color: var(--theme-text, hsl(0, 0%, 12%));
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: 1.5rem;
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.875rem;
+  }
+  .back-link:hover,
+  .back-link:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 1.25rem;
+  }
+  p {
+    line-height: 1.5;
+    margin: 0 0 1rem;
+  }
+  a {
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  }
+  .verify-button {
+    min-height: 40px;
+    padding: 0 1.25rem;
+    border: none;
+    border-radius: 999px;
+    background: var(--theme-accent-fill, #a30e00);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .verify-button:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    outline-offset: 2px;
+  }
+</style>

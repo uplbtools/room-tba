@@ -1,10 +1,18 @@
 ---
 export const prerender = true;
 import Layout from "@layouts/Layout.astro";
+import "../styles/static-page-dark.css";
 import SiteFooter from "../components/SiteFooter.astro";
 import FollowUpdates from "@ui/community/FollowUpdates.svelte";
 import * as changelog from "../../CHANGELOG.md";
 import releaseTimestamps from "../generated/release-timestamps.json";
+
+// release-please writes minor versions as "# x.y.0" and patches as "## x.y.z".
+// The page already owns the one h1, so every release becomes an h2 and the
+// "### Bug Fixes" groups sit one level under it.
+const entriesHtml = (await changelog.compiledContent())
+  .replace(/<h1(\s|>)/g, "<h2$1")
+  .replace(/<\/h1>/g, "</h2>");
 ---
 
 <Layout
@@ -34,7 +42,7 @@ import releaseTimestamps from "../generated/release-timestamps.json";
       </div>
     </header>
 
-    <div class="entries" set:html={changelog.compiledContent()} />
+    <div class="entries" set:html={entriesHtml} />
 
     <SiteFooter />
   </main>

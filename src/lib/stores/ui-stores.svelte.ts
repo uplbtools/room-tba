@@ -275,6 +275,14 @@ export class SidePanelStore {
   active = $state<boolean>(false);
   collapsed: boolean = $state(false);
   mobileSheetSnap: MobileSheetSnap = $state("closed");
+  /** One-shot ask from sheet content (a tab) for SidePanel to raise the sheet. */
+  sheetSnapRequest: "half" | "expanded" | null = $state(null);
+  /**
+   * Viewport y (px) of the open bottom sheet's top edge at its resting stop,
+   * 0 when none is open. The map pads its camera by it so the selected pin
+   * sits in the strip above the sheet, whatever height the sheet peeks at.
+   */
+  mobileSheetTop = $state(0);
 
   openPanel(state: SidePanelMetaData) {
     this.state = state;
@@ -298,7 +306,15 @@ export class SidePanelStore {
     this.collapsed = true;
   };
 
+  requestSheetSnap = (snap: "half" | "expanded") => {
+    this.sheetSnapRequest = snap;
+  };
+
   setMobileSheetSnap = (snap: MobileSheetSnap) => {
     this.mobileSheetSnap = snap;
+  };
+
+  setMobileSheetTop = (top: number) => {
+    this.mobileSheetTop = top;
   };
 }

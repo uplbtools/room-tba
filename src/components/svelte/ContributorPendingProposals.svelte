@@ -11,10 +11,8 @@
   import { onMount } from "svelte";
 
   let {
-    submitterName = "",
     onChanged,
   }: {
-    submitterName?: string;
     onChanged?: () => void;
   } = $props();
 
@@ -46,14 +44,7 @@
     withdrawingId = row.id;
     error = null;
     try {
-      const name =
-        adminAuthStore.displayName ||
-        adminAuthStore.username ||
-        submitterName.trim();
-      const result = await withdrawEntityProposal({
-        proposalId: row.id,
-        submitterName: name || undefined,
-      });
+      const result = await withdrawEntityProposal({ proposalId: row.id });
       if (!result.ok) {
         error = result.error ?? "Could not withdraw suggestion.";
         return;

@@ -5,6 +5,8 @@
  * Wikimedia Commons photos are hotlinked with the attribution their licenses
  * require, and Street View is stored only as compass headings — the client
  * builds URLs with its own key because Google's terms forbid storing imagery.
+ * Entities the manifest misses (food spots, stores, newer pins) get one
+ * Street View shot from a runtime metadata lookup (street-view-lookup.ts).
  */
 import manifest from "@constants/landmark-images.json";
 import {
@@ -12,6 +14,7 @@ import {
   hasStreetViewKey,
   streetViewImageUrl,
 } from "./street-view";
+import type { StreetViewPano } from "./street-view-lookup";
 
 export type CommonsImage = {
   /** Direct thumbnail URL on thumb/upload.wikimedia.org (hotlinking is supported). */
@@ -77,7 +80,28 @@ export type LandmarkImagesInput = {
   /** Cached Street View lookup (migration 0052). Null means no coverage. */
   panoId?: string | null;
   googleKey?: string;
+  /**
+   * Runtime metadata lookup (street-view-lookup.ts) for an entity with no
+   * manifest entry and no cached pano: pinned pano, aimed at the place.
+   */
+  lookedUpPano?: StreetViewPano | null;
 };
+
+/**
+ * True when only a runtime lookup can find Street View for this entity: a
+ * key, coordinates, no manifest entry, and no cached pano from the caller
+ * (`panoId: null` is a cached "no coverage", so it skips the request too).
+ */
+export function needsStreetViewLookup(input: LandmarkImagesInput): boolean {
+  const { kind = "building", name, lat, lon, panoId, googleKey } = input;
+  return (
+    hasStreetViewKey(googleKey) &&
+    lat != null &&
+    lon != null &&
+    panoId === undefined &&
+    !LANDMARK_IMAGES[`${kind}:${name}`]
+  );
+}
 
 /**
  * Every image the panel can show for a landmark, in display order: Google's
@@ -87,7 +111,21 @@ export type LandmarkImagesInput = {
  */
 export function landmarkImages(input: LandmarkImagesInput): LandmarkImage[] {
   const { kind = "building", name, imageUrl, lat, lon, googleKey } = input;
-  const entry = LANDMARK_IMAGES[`${kind}:${name}`];
+  const manifestEntry = LANDMARK_IMAGES[`${kind}:${name}`];
+  const lookedUp = manifestEntry ? null : input.lookedUpPano;
+  // A looked-up pano slots in as a one-heading manifest entry, so ordering and
+  // uploader credit follow the same rules.
+  const entry: LandmarkImagesEntry | undefined = lookedUp
+    ? {
+        streetViewPanoId: lookedUp.panoId,
+        streetViewHeadings:
+          lookedUp.heading === undefined ? undefined : [lookedUp.heading],
+        streetViewCopyright:
+          lookedUp.copyright && !/google/i.test(lookedUp.copyright)
+            ? lookedUp.copyright
+            : undefined,
+      }
+    : manifestEntry;
   // A pinned manifest pano is itself proof of coverage: the fetch script only
   // records one after the free metadata check found it.
   const panoId = entry?.streetViewPanoId ?? input.panoId;

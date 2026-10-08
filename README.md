@@ -139,7 +139,7 @@ Contributor notes: [AGENTS.md](AGENTS.md)
 
 - [Bun](https://bun.sh) 1.3+
 - A **Supabase** Postgres URL (`DATABASE_URL`); session pooler recommended for dev
-- `ADMIN_PASSWORD` if you want editor login locally
+- `ADMIN_SESSION_SECRET` plus an admin account for editor login locally (create one with `ADMIN_NEW_PASSWORD='...' bun run scripts/set-admin-user.ts <username>`; there is no shared admin password)
 - `ISR_BYPASS_TOKEN` (optional locally; **required on Vercel** for on-demand SEO page revalidation after editor publishes)
 
 ### Setup
@@ -148,7 +148,7 @@ Contributor notes: [AGENTS.md](AGENTS.md)
 git clone https://github.com/uplbtools/room-tba.git
 cd room-tba
 cp .env.example .env.local
-# Fill DATABASE_URL (staging pooler) and ADMIN_PASSWORD; see .env.example for prod/E2E URLs
+# Fill DATABASE_URL (staging pooler) and ADMIN_SESSION_SECRET; see .env.example for prod/E2E URLs
 
 bun install
 bun dev

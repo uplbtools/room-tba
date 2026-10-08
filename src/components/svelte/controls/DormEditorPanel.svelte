@@ -366,6 +366,7 @@
         prefix="dorms"
         bind:value={imageDraft}
         {disabled}
+        proposalId={activeProposalId}
       />
       <button
         type="button"

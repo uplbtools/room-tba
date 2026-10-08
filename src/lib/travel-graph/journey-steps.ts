@@ -70,7 +70,7 @@ export function journeySteps(journey: Journey, places: Place[]): JourneyStep[] {
       steps.push({
         kind: "walk",
         text: `Walk to ${target}`,
-        detail: `${formatDuration(leg.seconds)} · ${formatDistance(leg.meters)}`,
+        detail: `${formatDuration(leg.seconds)}, ${formatDistance(leg.meters)}`,
         legIndex,
       });
       return;
@@ -80,16 +80,16 @@ export function journeySteps(journey: Journey, places: Place[]): JourneyStep[] {
     steps.push({
       kind: "board",
       text: `Board the ${ride.routeName} jeep`,
-      detail: `At ${ride.boardStopName} · about ${formatDuration(ride.waitSeconds)} wait`,
+      detail: `At ${ride.boardStopName}, about ${formatDuration(ride.waitSeconds)} wait`,
       legIndex,
       color: ride.color,
     });
     steps.push({
       kind: "alight",
       text: `Get off at ${ride.alightStopName}`,
-      detail: `${stops} stop${stops === 1 ? "" : "s"} · ${formatDuration(
+      detail: `${stops} stop${stops === 1 ? "" : "s"}, ${formatDuration(
         ride.seconds - ride.waitSeconds,
-      )} · ${formatDistance(ride.meters)}`,
+      )}, ${formatDistance(ride.meters)}`,
       legIndex,
       color: ride.color,
     });

@@ -27,14 +27,32 @@
     routeName: string;
     stop?: JeepneyStop;
     onRemoved?: () => void;
+    /** Bindable so a host can put the toggle in its own footer row. */
+    expanded?: boolean;
+    /** False when the host renders the toggle itself (route panel footer). */
+    showToggle?: boolean;
   };
 
-  let { routeId, routeName, stop, onRemoved }: Props = $props();
+  let {
+    routeId,
+    routeName,
+    stop,
+    onRemoved,
+    expanded = $bindable(false),
+    showToggle = true,
+  }: Props = $props();
   const isNew = $derived(stop === undefined);
   const canPublish = $derived(adminAuthStore.canPublish);
   const canEdit = $derived(isNew || (stop?.id !== undefined && stop.version !== undefined));
 
-  let expanded = $state(false);
+  let section = $state<HTMLElement | null>(null);
+
+  // Opened from a footer toggle below the scroller: bring the form into view.
+  $effect(() => {
+    if (expanded && !showToggle) {
+      section?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  });
   let submitting = $state(false);
   let error = $state<string | null>(null);
   let success = $state<string | null>(null);
@@ -226,14 +244,16 @@
 </script>
 
 {#if canEdit}
-  <section class="transit-stop-editor">
-    <EntityEditorToggle
-      expanded={expanded}
-      {canPublish}
-      publishOpenLabel={isNew ? "Add stop" : "Edit stop"}
-      suggestOpenLabel={isNew ? "Suggest a stop" : "Suggest an edit"}
-      onclick={() => (expanded = !expanded)}
-    />
+  <section class="transit-stop-editor" bind:this={section}>
+    {#if showToggle}
+      <EntityEditorToggle
+        expanded={expanded}
+        {canPublish}
+        publishOpenLabel={isNew ? "Add stop" : "Edit stop"}
+        suggestOpenLabel={isNew ? "Suggest a stop" : "Suggest an edit"}
+        onclick={() => (expanded = !expanded)}
+      />
+    {/if}
 
     {#if expanded}
       <EntityEditorPanel
@@ -282,7 +302,7 @@
         {/if}
         <EntityEditorPinRow
           label={pin
-            ? `Pin set · ${pin.lat.toFixed(5)}, ${pin.lon.toFixed(5)}`
+            ? `Pin set: ${pin.lat.toFixed(5)}, ${pin.lon.toFixed(5)}`
             : "Drop a pin on the map"}
           pickLabel={pin ? "Move pin" : "Pick on map"}
           disabled={submitting || picking}

@@ -128,7 +128,7 @@
   >
     <div class="contributor-progress__field-head">
       <span>{label}</span>
-      <span>{filled}/{total} · <strong>{percent}%</strong></span>
+      <span>{filled}/{total} (<strong>{percent}%</strong>)</span>
     </div>
     <div class="map-chrome-progress">
       <div class="map-chrome-progress__value" style:width={`${percent}%`}></div>
@@ -224,8 +224,8 @@
                     >{building.buildingName}</span
                   >
                   <span class="contributor-progress__list-meta">
-                    {building.directions.filled}/{building.roomTotal} directions ·
-                    {building.schedule.filled}/{building.roomTotal} schedules ·
+                    {building.directions.filled}/{building.roomTotal} directions,
+                    {building.schedule.filled}/{building.roomTotal} schedules,
                     {building.position.filled}/{building.roomTotal} pins
                   </span>
                 </span>
@@ -239,7 +239,7 @@
   {:else if activeScope === "building" && buildingData}
     {#if buildingData.termLabel}
       <p class="contributor-progress__meta">
-        {buildingData.buildingName} · schedule counts use {buildingData.termLabel}.
+        {buildingData.buildingName}: schedule counts use {buildingData.termLabel}.
       </p>
     {:else}
       <p class="contributor-progress__meta">{buildingData.buildingName}</p>

@@ -29,7 +29,11 @@ test.describe("undo redo", () => {
 
     // The mobile details sheet sits over the fixed edit dock; dismiss the
     // panel (map edit state survives) so the dock is tappable.
-    const closeDetails = page.getByRole("button", { name: "Close details" });
+    // Phones show the sheet's own X ("Close building details"); the search
+    // bar's "Close details" X steps aside there and stays on desktop.
+    const closeDetails = page
+      .getByRole("button", { name: /^Close (building )?details$/ })
+      .first();
     if (
       await closeDetails
         .waitFor({ state: "visible", timeout: 2000 })

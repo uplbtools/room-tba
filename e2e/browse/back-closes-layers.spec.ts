@@ -24,37 +24,68 @@ test.describe("Back closes layers", () => {
     await waitForAppBoot(page);
   });
 
-  test("Back closes the app menu", async ({ page }) => {
+  test("Back closes You", async ({ page }) => {
     const menu = await openAppMenu(page);
     await page.goBack();
     await expect(menu).toBeHidden();
     await expectInApp(page);
   });
 
-  test("Back closes a modal opened from the menu, then stays home", async ({
+  test("Back pops a screen pushed inside You, then closes You", async ({
     page,
   }) => {
-    const settings = await openSettingsModal(page);
-    await expect(page.getByRole("dialog", { name: "App menu" })).toBeHidden();
+    const you = await openSettingsModal(page);
 
     await page.goBack();
-    await expect(settings).toBeHidden();
+    await expect(you.getByRole("heading", { name: "You" })).toBeVisible();
+    await page.goBack();
+    await expect(you).toBeHidden();
     await expectInApp(page);
-    // The menu's own entry went with it: nothing is left to reopen.
-    await expect(page.getByRole("dialog", { name: "App menu" })).toBeHidden();
+  });
+
+  test("Back closes a modal opened from You, then stays home", async ({
+    page,
+  }) => {
+    const menu = await openAppMenu(page);
+    await menu.getByRole("button", { name: "Emergency hotlines" }).click();
+    const hotlines = page.getByRole("dialog", { name: "Emergency hotlines" });
+    await expect(hotlines).toBeVisible();
+    await expect(menu).toBeHidden();
+
+    await page.goBack();
+    await expect(hotlines).toBeHidden();
+    await expectInApp(page);
+    // The sheet's own entry went with it: nothing is left to reopen.
+    await expect(menu).toBeHidden();
   });
 
   test("closing a modal from its X leaves no entry for Back to land on", async ({
     page,
   }) => {
-    const settings = await openSettingsModal(page);
+    const openHotlines = async () => {
+      const menu = await openAppMenu(page);
+      await menu.getByRole("button", { name: "Emergency hotlines" }).click();
+      const dialog = page.getByRole("dialog", { name: "Emergency hotlines" });
+      await expect(dialog).toBeVisible();
+      return dialog;
+    };
+    const hotlines = await openHotlines();
     await page.keyboard.press("Escape");
-    await expect(settings).toBeHidden();
+    await expect(hotlines).toBeHidden();
     const length = await page.evaluate(() => history.length);
 
-    await openSettingsModal(page);
+    await openHotlines();
     // Reopening reuses the freed slot instead of stacking past it.
     expect(await page.evaluate(() => history.length)).toBe(length);
+  });
+
+  test("Back closes the Layers sheet", async ({ page }) => {
+    await page.getByRole("button", { name: "Layers", exact: true }).click();
+    const layers = page.getByRole("dialog", { name: "Layers" });
+    await expect(layers).toBeVisible();
+    await page.goBack();
+    await expect(layers).toBeHidden();
+    await expectInApp(page);
   });
 
   test("a chip list rides in ?browse= and Back closes it", async ({ page }) => {

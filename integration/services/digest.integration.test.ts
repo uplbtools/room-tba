@@ -56,11 +56,26 @@ describeIntegration("digest service integration (#272 follow-up)", () => {
       ],
     );
 
+    // Only confirmed addresses get notification mail (0053): verify all
+    // but the "unverified" editor added below.
+    await client.query(
+      `INSERT INTO admin_user_auth (user_id, verified_email, email_verified_at)
+       SELECT id, lower(email), now() FROM admin_users
+       WHERE username LIKE $1 AND email IS NOT NULL`,
+      [`${PREFIX}%`],
+    );
+    await client.query(
+      `INSERT INTO admin_users (username, password_hash, role, email, is_active)
+       VALUES ($1, 'x', 'editor', $2, true)`,
+      [`${PREFIX}-unverified`, `${PREFIX}-unverified@example.com`],
+    );
+
     const { listDigestRecipients } = await import(
       "@lib/services/digest-service"
     );
     const recipients = await listDigestRecipients();
 
+    expect(recipients).not.toContain(`${PREFIX}-unverified@example.com`);
     expect(recipients).toContain(`${PREFIX}-editor@example.com`);
     // normalized to lowercase
     expect(recipients).toContain(`${PREFIX}-admin@example.com`);

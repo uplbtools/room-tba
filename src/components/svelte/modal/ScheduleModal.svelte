@@ -3,6 +3,7 @@
   import { currentRoom, roomClassesStore, termStore } from "@lib/store.svelte";
   import ScheduleRender from "@ui/room/ScheduleRender.svelte";
   import ScheduleFreshnessNote from "@ui/ScheduleFreshnessNote.svelte";
+  import ModalHeader from "./ModalHeader.svelte";
 
   const room = $derived(currentRoom.value);
   const classes = $derived(roomClassesStore.classes);
@@ -10,17 +11,15 @@
 </script>
 
 <div class="schedule-modal">
-  <div class="schedule-modal__header">
-    <h2>{room ? `Schedule: ${room.code}` : "Schedule"}</h2>
-    {#if termLabel}
-      <span class="schedule-modal__term">{termLabel}</span>
-    {/if}
+  <ModalHeader
+    title={room ? `Schedule: ${room.code}` : "Schedule"}
+    description={termLabel ?? undefined}
+  />
+  <div class="schedule-modal__body map-chrome-scroll">
     <ScheduleFreshnessNote
       importedAt={termStore.activeTerm?.classesImportedAt}
       termId={termStore.activeTermId}
     />
-  </div>
-  <div class="schedule-modal__body map-chrome-scroll">
     {#if roomClassesStore.loading}
       <p class="schedule-modal__empty">
         <LoadingIndicator label="Loading classes…" />
@@ -39,40 +38,14 @@
   .schedule-modal {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    max-height: 100%;
+    flex: 1 1 auto;
     min-height: 0;
-    background: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
-    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
-    border-radius: var(--map-chrome-radius, 1rem);
-    box-shadow: var(--map-chrome-panel-shadow);
-  }
-
-  .schedule-modal__header {
-    display: flex;
-    align-items: baseline;
-    gap: 0.625rem;
-    flex-wrap: wrap;
-    padding-bottom: 0.375rem;
-    border-bottom: 1px solid var(--map-chrome-divider, var(--theme-accent-border, hsl(5 12% 88%)));
-  }
-
-  .schedule-modal__header h2 {
-    margin: 0;
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--theme-accent-text, hsl(5, 53%, 22%));
-  }
-
-  .schedule-modal__term {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .schedule-modal__body {
+    flex: 1 1 auto;
     min-height: 0;
+    padding: 0 1rem 0.75rem;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;

@@ -1,11 +1,27 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import {
+  absoluteUrl,
+  breadcrumbSchema,
+  jsonLd,
+  ogCardPath,
+  webpageSchema,
+} from "@lib/site";
+import { wikiProvenance } from "@lib/wiki-provenance";
+import {
+  enhanceWikiHtml,
+  insertToc,
+  readingMinutes,
+  wikiTocHtml,
+} from "@lib/wiki-html";
+import { WIKI_INDEX_PATH, WIKI_PAGES } from "@lib/wiki-pages";
 
 type Props = {
   title: string;
   description: string;
   canonicalPath: string;
+  /** Extra JSON-LD, added after the page, article, and breadcrumb entries. */
   structuredData?: Record<string, unknown>[];
   /** Leaf name for the breadcrumb, e.g. "Section times". Omit on the index. */
   crumb?: string;
@@ -15,22 +31,93 @@ const {
   title,
   description,
   canonicalPath,
-  structuredData = [],
+  structuredData: extraStructuredData = [],
   crumb,
 } = Astro.props;
 
-// Sibling pages, for the "see also" list every article closes with. Titles
+const isIndex = canonicalPath === WIKI_INDEX_PATH;
+const page = WIKI_PAGES.find((entry) => entry.path === canonicalPath);
+
+// Permalinks, contents list, and focusable tables are added here at build
+// time, so articles ship no script of their own.
+const rendered = await Astro.slots.render("default");
+const enhanced = enhanceWikiHtml(rendered);
+const contentHtml = isIndex
+  ? enhanced.html
+  : insertToc(enhanced.html, wikiTocHtml(enhanced.toc));
+const minutes = readingMinutes(enhanced.words);
+
+// Sibling pages for the "see also" list every article closes with. Titles
 // only, so copy edits to the index blurbs do not have to land here too.
 const siblings = [
-  { href: "/wiki/emergency-hotlines", label: "Emergency hotlines around UPLB" },
-  { href: "/wiki/campus-curfew", label: "Campus curfew and dorm permits" },
-  { href: "/wiki/section-times", label: "What times do section names correspond to?" },
-  { href: "/wiki/upcat-at-uplb", label: "Taking the UPCAT at UP Los Baños" },
-  { href: "/wiki/fork-for-your-campus", label: "Fork this for your campus" },
+  ...WIKI_PAGES.map((entry) => ({ href: entry.path, label: entry.title })),
   { href: "/faq", label: "Frequently asked questions" },
-].filter((page) => page.href !== canonicalPath);
+].filter((entry) => entry.href !== canonicalPath);
 
-const isIndex = canonicalPath === "/wiki";
+const provenance = page ? wikiProvenance(page.sourcePath) : null;
+const articleSchema =
+  page && provenance
+    ? {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        headline: page.title,
+        description,
+        url: absoluteUrl(canonicalPath),
+        inLanguage: "en",
+        ...(provenance.lastEdited
+          ? { dateModified: provenance.lastEdited }
+          : {}),
+        ...(provenance.authors.length > 0
+          ? {
+              author: provenance.authors.map((author) => ({
+                "@type": "Person",
+                name: author.name,
+                ...(author.github
+                  ? { url: `https://github.com/${author.github}` }
+                  : {}),
+              })),
+            }
+          : {}),
+        publisher: { "@type": "Organization", name: "UPLB Tools" },
+        isPartOf: { "@type": "WebSite", name: "Room TBA Wiki", url: absoluteUrl(WIKI_INDEX_PATH) },
+        wordCount: enhanced.words,
+      }
+    : null;
+const indexSchema = isIndex
+  ? {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement: WIKI_PAGES.map((entry, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: absoluteUrl(entry.path),
+        name: entry.title,
+      })),
+    }
+  : null;
+
+const structuredData = [
+  ...(jsonLd(
+    webpageSchema({
+      title,
+      description,
+      path: canonicalPath,
+      image: ogCardPath({
+        title: page?.title ?? "Room TBA Wiki",
+        subtitle: description,
+        kicker: "Wiki",
+      }),
+    }),
+    articleSchema,
+    indexSchema,
+    breadcrumbSchema([
+      { name: "Home", path: "/" },
+      { name: "Wiki", path: WIKI_INDEX_PATH },
+      ...(crumb ? [{ name: crumb, path: canonicalPath }] : []),
+    ]),
+  ) as Record<string, unknown>[]),
+  ...extraStructuredData,
+];
 ---
 
 <Layout
@@ -38,25 +125,38 @@ const isIndex = canonicalPath === "/wiki";
   {description}
   {canonicalPath}
   {structuredData}
+  imagePath={ogCardPath({
+    title: page?.title ?? "Room TBA Wiki",
+    subtitle: description,
+    kicker: "Wiki",
+  })}
   showAppLoadingShell={false}
   enableAds
 >
   <div class="wiki-page">
+    <a class="wiki-skip" href="#wiki-content">Skip to content</a>
+
     <header class="wiki-masthead">
-      <a class="wiki-brand" href="/">
+      <a class="wiki-brand" href="/wiki">
         <img
-          src="/logo.png"
+          src="/favicon.svg"
           alt=""
-          width="40"
-          height="40"
+          width="28"
+          height="28"
           decoding="async"
           class="wiki-brand__logo"
         />
         <span class="wiki-brand__name">Room TBA</span>
+        <span class="wiki-brand__label">Wiki</span>
       </a>
-      <a class="wiki-masthead__label" href="/wiki">Wiki</a>
+      <nav class="wiki-masthead__nav" aria-label="Wiki">
+        <a href="/wiki" aria-current={isIndex ? "page" : undefined}>All guides</a>
+        <a href="/faq">Help &amp; FAQ</a>
+        <a class="wiki-masthead__map" href="/">Open the map</a>
+      </nav>
     </header>
 
+    <div class="wiki-subbar">
     <nav class="wiki-breadcrumb" aria-label="Breadcrumb">
       <ol>
         <li><a href="/">Home</a></li>
@@ -72,9 +172,11 @@ const isIndex = canonicalPath === "/wiki";
         {crumb && <li><span aria-current="page">{crumb}</span></li>}
       </ol>
     </nav>
+    {!isIndex && <p class="wiki-readtime">{minutes} min read</p>}
+    </div>
 
-    <main id="wiki-content">
-      <slot />
+    <main id="wiki-content" tabindex="-1">
+      <Fragment set:html={contentHtml} />
     </main>
 
     {
@@ -82,8 +184,8 @@ const isIndex = canonicalPath === "/wiki";
         <nav class="wiki-seealso" aria-labelledby="wiki-seealso-heading">
           <h2 id="wiki-seealso-heading">See also</h2>
           <ul>
-            {siblings.map((page) => (
-              <li><a href={page.href}>{page.label}</a></li>
+            {siblings.map((entry) => (
+              <li><a href={entry.href}>{entry.label}</a></li>
             ))}
             <li><a href="/wiki">Wiki index</a></li>
           </ul>
@@ -95,36 +197,10 @@ const isIndex = canonicalPath === "/wiki";
   </div>
 </Layout>
 
-<script>
-  // Anchor links on headings, the way every reference wiki has them. Ids that
-  // already exist are left alone so published deep links keep working.
-  const article = document.querySelector(".wiki-article");
-  const slugify = (text: string) =>
-    text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-
-  for (const heading of article?.querySelectorAll("h2, h3") ?? []) {
-    const label = heading.textContent?.trim() ?? "";
-    if (!heading.id) {
-      const slug = slugify(label);
-      if (!slug || document.getElementById(slug)) continue;
-      heading.id = slug;
-    }
-    const anchor = document.createElement("a");
-    anchor.className = "heading-anchor";
-    anchor.href = `#${heading.id}`;
-    anchor.textContent = "#";
-    anchor.setAttribute("aria-label", `Permalink to ${label}`);
-    heading.append(anchor);
-  }
-</script>
-
 <style is:global>
-  /* Hallmark · genre: editorial · macrostructure: Long Document (articles) +
-     Index-First (hub) · nav: N6 masthead · footer: Ft4 dense colophon
-     tone: reference · anchor hue: brick red (brand, preserved)
+  /* Hallmark; genre: editorial; macrostructure: Long Document (articles) +
+     Index-First (hub); nav: N6 masthead; footer: Ft4 dense colophon
+     tone: reference; anchor hue: brick red (brand, preserved)
      pre-emit critique: P5 H5 E4 S5 R5 V4 */
 
   :root {
@@ -176,9 +252,27 @@ const isIndex = canonicalPath === "/wiki";
   }
 
   /* Follows Settings → Appearance: Layout.astro resolves System / Light /
-     Dark onto data-theme before first paint. */
+     Dark onto data-theme before first paint. The prefers-color-scheme copy is
+     the no-script fallback, so a reader without JS still gets dark. */
   @media screen {
     :root[data-theme="dark"] {
+      --wiki-paper: hsl(20, 8%, 11%);
+      --wiki-paper-2: hsl(20, 7%, 17%);
+      --wiki-paper-3: hsl(20, 7%, 15%);
+      --wiki-ink: hsl(30, 12%, 91%);
+      --wiki-ink-2: hsl(30, 7%, 68%);
+      --wiki-ink-3: hsl(30, 6%, 60%);
+      --wiki-rule: hsl(20, 7%, 26%);
+      --wiki-rule-strong: hsl(20, 7%, 40%);
+      --wiki-accent: hsl(6, 68%, 74%);
+      --wiki-accent-hover: hsl(6, 78%, 84%);
+      --wiki-accent-soft: hsl(6, 18%, 20%);
+      --wiki-focus: hsl(206, 92%, 72%);
+    }
+  }
+
+  @media screen and (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
       --wiki-paper: hsl(20, 8%, 11%);
       --wiki-paper-2: hsl(20, 7%, 17%);
       --wiki-paper-3: hsl(20, 7%, 15%);
@@ -223,11 +317,32 @@ const isIndex = canonicalPath === "/wiki";
 
   /* Masthead ------------------------------------------------------------- */
 
+  .wiki-skip {
+    position: absolute;
+    left: var(--wiki-space-sm);
+    top: -4rem;
+    z-index: 10;
+    padding: var(--wiki-space-xs) var(--wiki-space-md);
+    background: var(--wiki-paper);
+    border: 2px solid var(--wiki-accent);
+    color: var(--wiki-accent);
+    font-weight: 600;
+  }
+
+  .wiki-skip:focus {
+    top: var(--wiki-space-sm);
+  }
+
+  .wiki-page main:focus {
+    outline: none;
+  }
+
   .wiki-masthead {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--wiki-space-sm);
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--wiki-space-xs) var(--wiki-space-md);
     padding-bottom: var(--wiki-space-sm);
     border-bottom: 2px solid var(--wiki-ink);
   }
@@ -236,6 +351,7 @@ const isIndex = canonicalPath === "/wiki";
     display: inline-flex;
     align-items: center;
     gap: var(--wiki-space-xs);
+    min-height: 2.75rem;
     color: var(--wiki-ink);
     font-family: var(--wiki-font-display);
     font-size: 1.25rem;
@@ -256,24 +372,74 @@ const isIndex = canonicalPath === "/wiki";
     object-fit: contain;
   }
 
-  .wiki-masthead__label {
+  .wiki-brand__label {
     color: var(--wiki-ink-2);
+    font-family: inherit;
     font-size: var(--wiki-text-sm);
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    text-decoration: none;
-    white-space: nowrap;
   }
 
-  .wiki-masthead__label:hover,
-  .wiki-masthead__label:focus-visible {
+  .wiki-masthead__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--wiki-space-md);
+    font-size: var(--wiki-text-md);
+  }
+
+  .wiki-masthead__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--wiki-ink);
+    text-decoration: none;
+  }
+
+  .wiki-masthead__nav a:hover,
+  .wiki-masthead__nav a:focus-visible {
     color: var(--wiki-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.14em;
+  }
+
+  .wiki-masthead__nav a[aria-current="page"] {
+    font-weight: 600;
+  }
+
+  .wiki-page .wiki-masthead__nav .wiki-masthead__map {
+    min-height: 2.25rem;
+    padding: 0 var(--wiki-space-md);
+    border: 1px solid var(--wiki-accent);
+    border-radius: 999px;
+    color: var(--wiki-accent);
+    font-weight: 600;
+  }
+
+  .wiki-page .wiki-masthead__nav .wiki-masthead__map:hover {
+    background: var(--wiki-accent-soft);
+    text-decoration: none;
   }
 
   /* Breadcrumb ----------------------------------------------------------- */
 
-  .wiki-breadcrumb {
+  .wiki-subbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0 var(--wiki-space-md);
     margin: var(--wiki-space-sm) 0 var(--wiki-space-lg);
+  }
+
+  .wiki-readtime {
+    margin: 0;
+    color: var(--wiki-ink-2);
+    font-size: var(--wiki-text-md);
+  }
+
+  .wiki-breadcrumb {
+    margin: 0;
     color: var(--wiki-ink-2);
     font-size: var(--wiki-text-md);
   }
@@ -496,6 +662,14 @@ const isIndex = canonicalPath === "/wiki";
     padding-left: 1.35rem;
   }
 
+  .wiki-article ul {
+    list-style: disc;
+  }
+
+  .wiki-article ol {
+    list-style: decimal;
+  }
+
   .wiki-article li {
     margin: 0.3rem 0;
   }
@@ -573,6 +747,11 @@ const isIndex = canonicalPath === "/wiki";
   }
 
   /* Tables --------------------------------------------------------------- */
+
+  .table-wrap:focus-visible {
+    outline: 2px solid var(--wiki-focus);
+    outline-offset: 2px;
+  }
 
   .table-wrap {
     margin-top: var(--wiki-space-sm);
@@ -685,31 +864,27 @@ const isIndex = canonicalPath === "/wiki";
     text-decoration-thickness: 2px;
   }
 
-  .article-back {
-    display: none;
-  }
-
   /* Wide screens: the article's own contents list becomes a sticky rail, the
-     way Wikipedia and MDN park it. Pure CSS, so each article keeps one inline
+     way Wikipedia and MDN park it. Pure CSS, so each article gets one inline
      TOC in the markup and it still reads in order without this stylesheet. */
   @media (min-width: 68rem) {
-    .wiki-page:has(article.wiki-article) {
+    .wiki-page:has(article.wiki-article > .toc) {
       width: min(80rem, calc(100% - 2rem));
     }
 
-    .wiki-page article.wiki-article {
+    .wiki-page article.wiki-article:has(> .toc) {
       display: grid;
       grid-template-columns: 15rem minmax(0, 1fr);
       column-gap: var(--wiki-space-2xl);
       align-items: start;
     }
 
-    .wiki-page article.wiki-article > * {
+    .wiki-page article.wiki-article:has(> .toc) > * {
       grid-column: 2;
       min-width: 0;
     }
 
-    .wiki-page article.wiki-article > .article-hero {
+    .wiki-page article.wiki-article:has(> .toc) > .article-hero {
       grid-column: 1 / -1;
     }
 
@@ -739,6 +914,59 @@ const isIndex = canonicalPath === "/wiki";
 
     .wiki-article .table-hint {
       display: block;
+    }
+  }
+
+  /* Print ---------------------------------------------------------------- */
+
+  @media print {
+    .wiki-skip,
+    .wiki-masthead__nav,
+    .wiki-seealso,
+    .toc,
+    .heading-anchor,
+    .wiki-page ins.adsbygoogle {
+      display: none !important;
+    }
+
+    html,
+    body {
+      background: #fff;
+    }
+
+    .wiki-page {
+      width: 100%;
+      padding: 0;
+      color: #000;
+    }
+
+    .wiki-page article.wiki-article {
+      display: block;
+    }
+
+    .wiki-article a:not(.heading-anchor)[href^="http"]::after {
+      content: " (" attr(href) ")";
+      font-size: 0.85em;
+      word-break: break-all;
+    }
+
+    .table-wrap {
+      overflow: visible;
+    }
+
+    .wiki-article table {
+      min-width: 0;
+    }
+
+    .wiki-article tr,
+    .wiki-article figure,
+    .article-callout {
+      break-inside: avoid;
+    }
+
+    .wiki-article h2,
+    .wiki-article h3 {
+      break-after: avoid;
     }
   }
 </style>

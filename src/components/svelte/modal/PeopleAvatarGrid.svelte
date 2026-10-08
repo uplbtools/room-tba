@@ -39,7 +39,7 @@
     const parts = [person.name];
     if (person.login) parts.push(`@${person.login}`);
     if (person.subtitle) parts.push(person.subtitle);
-    return parts.join(" · ");
+    return parts.join(", ");
   }
 </script>
 

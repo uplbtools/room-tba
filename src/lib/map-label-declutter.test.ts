@@ -97,3 +97,31 @@ describe("placeLabels", () => {
     expect(placed.get(2)).toBeNull();
   });
 });
+
+describe("placeLabels clearance and the bottom sheet", () => {
+  test("a label flush against another one is moved, not left touching", () => {
+    // Label A sits right of its pin at y 100-116; B's right label would start
+    // one pixel below it, which reads as one overlapping blob.
+    const a = candidate(1, 1, rect(0, 94, 28, 28));
+    const b = candidate(2, 2, rect(0, 111, 28, 28));
+    const placed = placeLabels([a, b], [a.pin, b.pin]);
+    expect(placed.get(1)).toBe("right");
+    expect(placed.get(2)).not.toBe("right");
+  });
+
+  test("labels under or cut by the sheet's edge are hidden", () => {
+    // Sheet top at y 300: a label straddling it is sliced, so it must go.
+    const sheet = rect(0, 300, 390, 500);
+    const above = candidate(1, 1, rect(10, 100, 28, 28));
+    const straddling = candidate(2, 1, rect(10, 292, 28, 28));
+    const under = candidate(3, 1, rect(10, 400, 28, 28));
+    const placed = placeLabels(
+      [above, straddling, under],
+      [above.pin, straddling.pin, under.pin],
+      [sheet],
+    );
+    expect(placed.get(1)).toBe("right");
+    expect(placed.get(2)).not.toBe("right");
+    expect(placed.get(3)).toBeNull();
+  });
+});

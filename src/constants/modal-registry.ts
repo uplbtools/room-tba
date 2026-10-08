@@ -2,6 +2,7 @@ import type { Component } from "svelte";
 import type { DialogSize } from "@ui/modal/Dialog.svelte";
 import AnnouncementsModal from "@ui/modal/AnnouncementsModal.svelte";
 import ChangelogModal from "@ui/modal/ChangelogModal.svelte";
+import ContributorsModal from "@ui/modal/ContributorsModal.svelte";
 import CoverageModal from "@ui/modal/CoverageModal.svelte";
 import EditorToolsModal from "@ui/modal/EditorToolsModal.svelte";
 import EntityHistoryModal from "@ui/modal/EntityHistoryModal.svelte";
@@ -50,7 +51,7 @@ export type ModalEntry = {
 export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
   landing: {
     component: LandingModal,
-    size: "showcase",
+    size: "default",
     labelledBy: "landing-modal-title",
     closeLabel: "Close about Room TBA",
     focusDialog: true,
@@ -75,10 +76,12 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     labelledBy: "coverage-modal-title",
     closeLabel: "Close data coverage",
   },
+  // Long text: a slightly wider measure, still capped near 680px.
   changelog: {
     component: ChangelogModal,
-    size: "large",
+    size: "wide",
     label: "What's new",
+    labelledBy: "changelog-modal-title",
     closeLabel: "Close changelog",
   },
   // Sized to its content: an empty or short list must not open a full-height
@@ -87,6 +90,7 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     component: AnnouncementsModal,
     size: "reading",
     label: "Announcements",
+    labelledBy: "announcements-modal-title",
     closeLabel: "Close announcements",
   },
   review: {
@@ -130,7 +134,7 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
   "offline-maps": {
     component: OfflineMapsModal,
     size: "reading",
-    label: "Offline maps",
+    label: "Offline maps & storage",
     labelledBy: "offline-maps-modal-title",
     closeLabel: "Close offline maps",
   },
@@ -145,8 +149,8 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     component: EntityHistoryModal,
     size: "reading",
     label: "Edit history",
+    labelledBy: "entity-history-title",
     closeLabel: "Close edit history",
-    scroll: true,
   },
   // Settings links here rather than embedding a second copy of the form.
   feedback: {
@@ -162,5 +166,12 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     label: "Saved",
     labelledBy: "saved-places-modal-title",
     closeLabel: "Close saved places",
+  },
+  contributors: {
+    component: ContributorsModal,
+    size: "reading",
+    label: "Contributors",
+    labelledBy: "contributors-modal-title",
+    closeLabel: "Close contributors",
   },
 };

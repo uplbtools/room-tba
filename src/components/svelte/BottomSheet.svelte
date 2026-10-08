@@ -3,15 +3,21 @@
   import { MediaQuery } from "svelte/reactivity";
   import {
     LANDSCAPE_COMPACT_MEDIA,
+    neighbourSnap,
     resolveBottomSheetRelease,
+    resolveSnapRelease,
     sheetTranslateY,
+    snapHeight,
     type BottomSheetSnap,
+    type SnapHeights,
   } from "@lib/bottom-sheet-snap";
+  import { sidePanelStore } from "@lib/store.svelte";
 
   let {
     open = false,
-    snap = $bindable<"peek" | "expanded">("peek"),
+    snap = $bindable<BottomSheetSnap>("peek"),
     peekRatio = 0.48,
+    halfRatio,
     peekFitTo,
     expandedRatio = 0.92,
     topInset = "0px",
@@ -24,6 +30,13 @@
     snap?: BottomSheetSnap;
     /** Fraction of the available height used for peek (0–1). */
     peekRatio?: number;
+    /**
+     * Fraction for a middle stop between peek and expanded (GMaps' half
+     * sheet). Left out, the sheet has two stops. The stop is dropped when it
+     * would sit within a thumb of peek or expanded (a tall peek on a short
+     * screen).
+     */
+    halfRatio?: number;
     /**
      * Selector inside the content (e.g. ".entity-actions"). When present,
      * peek ends just below it instead of at peekRatio, never taller than
@@ -81,7 +94,25 @@
     ),
   );
   const expandedH = $derived(Math.round(availableH * expandedRatio));
-  const visibleH = $derived(snap === "expanded" ? expandedH : peekH);
+  const HALF_MIN_GAP_PX = 64;
+  const halfH = $derived.by(() => {
+    if (halfRatio === undefined || sidePanel.current) return undefined;
+    const h = Math.round(availableH * halfRatio);
+    return h - peekH >= HALF_MIN_GAP_PX && expandedH - h >= HALF_MIN_GAP_PX
+      ? h
+      : undefined;
+  });
+  const heights = $derived<SnapHeights>({
+    peek: peekH,
+    half: halfH,
+    expanded: expandedH,
+  });
+  const visibleH = $derived(snapHeight(snap, heights));
+
+  // The middle stop can vanish (rotation, keyboard): fall back to peek.
+  $effect(() => {
+    if (snap === "half" && halfH === undefined) snap = "peek";
+  });
   const baseTranslate = $derived(sheetTranslateY(visibleH, availableH));
   const liveTranslate = $derived(
     Math.min(
@@ -240,9 +271,24 @@
       // no-move press on the handle as the tap it is, or the handle can
       // only be dragged, never tapped.
       if (fromHandle) {
-        snap = snap === "peek" ? "expanded" : "peek";
+        cycleSnap();
         pointerToggledAt = performance.now();
       }
+      return;
+    }
+
+    if (halfH !== undefined) {
+      const next = resolveSnapRelease({
+        delta,
+        velocity,
+        snap,
+        heights,
+        followThreshold: FOLLOW_THRESHOLD,
+        dismissThreshold: DISMISS_THRESHOLD,
+        flickVelocity: FLICK_VELOCITY,
+      });
+      if (next === "dismiss") onDismiss?.();
+      else if (next !== "none") snap = next;
       return;
     }
 
@@ -276,7 +322,12 @@
       dragMoved = false;
       return;
     }
-    snap = snap === "peek" ? "expanded" : "peek";
+    cycleSnap();
+  }
+
+  /** Handle tap: up one stop, and from the top back down to peek. */
+  function cycleSnap() {
+    snap = neighbourSnap(snap, 1, heights) ?? "peek";
   }
 
   const transitionMs = $derived(reducedMotion.current ? 0 : 320);
@@ -289,7 +340,11 @@
     const top = rootEl.getBoundingClientRect().top + baseTranslate;
     const root = document.documentElement;
     root.style.setProperty("--bottom-sheet-top", `${Math.round(top)}px`);
-    return () => root.style.removeProperty("--bottom-sheet-top");
+    sidePanelStore.setMobileSheetTop(Math.round(top));
+    return () => {
+      root.style.removeProperty("--bottom-sheet-top");
+      sidePanelStore.setMobileSheetTop(0);
+    };
   });
 </script>
 
@@ -326,10 +381,8 @@
       <button
         type="button"
         class="bottom-sheet__handle"
-        aria-label={snap === "peek"
-          ? "Expand details"
-          : "Collapse details"}
-        aria-expanded={snap === "expanded"}
+        aria-label={snap === "expanded" ? "Collapse details" : "Expand details"}
+        aria-expanded={snap !== "peek"}
         onclick={onHandleClick}
         onpointerdown={onHandlePointerDown}
       >
@@ -346,7 +399,9 @@
 
 <style>
   .bottom-sheet-root {
-    /* Flush to the screen bottom (covers bottom nav); no side gutter. */
+    /* Full width, no side gutter. The bottom is the caller's bottomInset:
+       place sheets stop above the bottom nav so Map, Planner, Today and You
+       stay reachable. */
     position: fixed;
     top: var(--bs-top, 0px);
     right: 0;
@@ -375,13 +430,13 @@
     border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-bottom: none;
     /* Grounded: round only the top; flush to the screen bottom edge. */
-    border-radius: var(--map-chrome-radius, 1rem) var(--map-chrome-radius, 1rem)
-      0 0;
+    border-radius: 1.25rem 1.25rem 0 0;
     background: var(--theme-surface, #fff);
-    box-shadow: var(
-      --shadow-results,
-      0 2px 6px rgb(36 37 46 / 0.2)
-    );
+    /* An upward shadow so the sheet's top edge reads as a surface lifted over
+       the map, not a line cut through it. */
+    box-shadow:
+      0 -4px 16px rgb(0 0 0 / 0.22),
+      var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
     pointer-events: auto;
     touch-action: none;
     will-change: transform;
@@ -399,9 +454,9 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 2rem;
+    min-height: 1.75rem;
     margin: 0;
-    padding: 0.625rem 0 0.375rem;
+    padding: 0.5rem 0 0.25rem;
     border: none;
     background: transparent;
     cursor: grab;
@@ -412,17 +467,25 @@
     cursor: grabbing;
   }
 
+  /* A grabber you can see on both themes: the old surface-3 fill was within
+     1.2:1 of the sheet in dark mode. */
   .bottom-sheet__grab {
     display: block;
-    width: 2.75rem;
-    height: 0.25rem;
+    width: 2.5rem;
+    height: 0.3125rem;
     border-radius: 999px;
-    background: var(--theme-surface-3, #d4d4d8);
+    background: var(--theme-border-strong, #8e8e93);
   }
 
   .bottom-sheet__handle:hover .bottom-sheet__grab,
   .bottom-sheet__handle:focus-visible .bottom-sheet__grab {
-    background: #a1a1aa;
+    background: var(--theme-text-2, #52525b);
+  }
+
+  .bottom-sheet__handle:focus-visible {
+    outline: 2px solid var(--theme-accent-text, #7b1113);
+    outline-offset: -2px;
+    border-radius: 1rem 1rem 0 0;
   }
 
   .bottom-sheet__body {

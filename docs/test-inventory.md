@@ -155,7 +155,6 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (`t
 - `src/lib/services/proposal-access.test.ts`
 - `src/lib/share-links.test.ts`
 - `src/lib/sheet-drag-intent.test.ts`
-- `src/lib/shortcuts-panel-position.test.ts`
 - `src/lib/sponsors.test.ts`
 - `src/lib/stores/map-modes.test.ts`
 - `src/lib/street-view.test.ts`
@@ -252,7 +251,6 @@ Layout guards at 320px / 768px where noted. Included in `bun run test:components
 - `src/components/svelte/room/Classes.component.test.ts`
 - `src/components/svelte/room/RoomResult.component.test.ts`
 - `src/components/svelte/status-bar/AppMenu.component.test.ts`
-- `src/components/svelte/status-bar/StatusBarLinkGroups.component.test.ts`
 - `src/components/svelte/today/TodayScreen.component.test.ts`
 - `src/lib/focus-trap.component.test.ts`
 - `src/test/map-chrome-layout.component.test.ts`

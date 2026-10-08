@@ -33,6 +33,15 @@ const REQUIRED_TABLES = [
   "admin_users",
   "editor_history",
   "edit_proposals",
+  "rate_limits",
+  "notification_outbox",
+  "email_log",
+  "cron_runs",
+  "admin_audit_log",
+  "admin_user_security",
+  "staff_invites",
+  "notification_preferences",
+  "editor_access_requests",
 ];
 
 const REQUIRED_SYNC_ROWS = ["organizations", "places", "announcements"];

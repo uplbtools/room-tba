@@ -54,7 +54,7 @@ const structuredData = jsonLd(
     title: routeName,
     subtitle: route
       ? fare?.kind === "fixed" || fare?.kind === "end-to-end"
-        ? `${route.stops.length} stops · PHP ${fare.fare.regular} regular · PHP ${fare.fare.discounted} discounted`
+        ? `${route.stops.length} stops, PHP ${fare.fare.regular} regular, PHP ${fare.fare.discounted} discounted`
         : `${route.stops.length} stops`
       : "Transit at UPLB",
     kicker: "Transit at UPLB",

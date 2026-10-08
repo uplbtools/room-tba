@@ -15,6 +15,8 @@
  * entity-url-sync's, and swallows the events this module caused itself.
  */
 
+import { carryLayersParam } from "./app-url-state";
+
 type OverlayRecord = {
   id: number;
   key: string;
@@ -247,10 +249,12 @@ export function replaceAppUrl(update: (current: string) => string) {
  */
 export function navigateAppHistory(
   state: Record<string, unknown>,
-  url: string,
+  target: string,
 ) {
   installOverlayHistory();
   schedule(() => {
+    // Map layers the rider turned on (?layers=trail) follow them around.
+    const url = carryLayersParam(target, currentUrl());
     const current = readState();
     const top = stack.at(-1);
     if (

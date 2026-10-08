@@ -80,7 +80,7 @@ You can contribute code without using Cursor, agents, or [AGENTS.md](AGENTS.md).
 1. Install [Bun](https://bun.sh) 1.3+
 2. Clone the repo, copy [`.env.example`](.env.example) to `.env`
 3. Set `DATABASE_URL` (Supabase Postgres; session pooler recommended for local dev)
-4. Optional: `ADMIN_PASSWORD` for editor login locally
+4. Optional: editor login locally: set `ADMIN_SESSION_SECRET`, then create an admin with `ADMIN_NEW_PASSWORD='...' bun run scripts/set-admin-user.ts <username>`
 
 ```sh
 bun install

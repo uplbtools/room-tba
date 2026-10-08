@@ -1,4 +1,6 @@
 import type { APIRoute } from "astro";
+import { clientIp } from "@lib/api/rate-limit";
+import { recordAudit } from "@lib/services/audit-log-service";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import {
   ProposalActionError,
@@ -28,7 +30,15 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
   try {
     const proposal = await requestProposalChanges(id, auth.session, body.note);
     if (proposal) {
-      void emitProposalReviewed(proposal, "needs_changes").catch((err) => {
+      await recordAudit({
+        action: "proposal.changes_requested",
+        actor: auth.session,
+        targetUserId: proposal.submitterUserId ?? null,
+        targetLabel: proposal.submitterName,
+        detail: { proposalId: proposal.id, entityLabel: proposal.entityLabel },
+        ip: clientIp(request),
+      });
+      await emitProposalReviewed(proposal, "needs_changes").catch((err) => {
         logNotificationEmitFailure(
           "Proposal reviewed notification failed",
           err,

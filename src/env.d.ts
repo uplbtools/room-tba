@@ -7,6 +7,8 @@ declare namespace App {
     supabase?: SupabaseClient;
     supabaseUser?: User;
     supabaseCacheHeaders?: Record<string, string>;
+    /** Signed-in editor identity resolved by middleware (cookie or Supabase). */
+    editorUser?: import("@lib/admin/auth").SessionUser;
   }
 }
 

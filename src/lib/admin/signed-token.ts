@@ -4,7 +4,7 @@ import {
   verifySignedToken as verifySignedTokenCore,
 } from "./signed-token-core";
 
-// No ADMIN_PASSWORD fallback — see signingSecret() in ./auth.ts.
+// No password fallback — see signingSecret() in ./auth.ts.
 function signingSecret(): string {
   if (ADMIN_SESSION_SECRET) return ADMIN_SESSION_SECRET;
   throw new Error("ADMIN_SESSION_SECRET must be configured");

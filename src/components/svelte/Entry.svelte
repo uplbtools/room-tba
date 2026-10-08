@@ -37,8 +37,10 @@
   import MeasureRoutePanel from "@ui/MeasureRoutePanel.svelte";
   import CameraDebugHud from "@ui/CameraDebugHud.svelte";
   import MapContextMenu from "@ui/map-chrome/MapContextMenu.svelte";
+  import MakilingTrailLayer from "@ui/map/MakilingTrailLayer.svelte";
   import TravelTimeLegend from "@ui/TravelTimeLegend.svelte";
   import Toast from "@ui/Toast.svelte";
+  import ContributionRewardWatcher from "@ui/status-bar/ContributionRewardWatcher.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
   import AccountSettingsModal from "@ui/AccountSettingsModal.svelte";
@@ -59,6 +61,9 @@
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
   import { trackOverlay } from "@lib/track-overlay.svelte";
+  import { debugMode } from "@lib/debug-flag";
+  import { installMapOverlays, mapIsBare } from "@lib/map-overlay-sources.svelte";
+  import { mapOverlays } from "@lib/stores/map-overlays.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
   import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
@@ -123,6 +128,8 @@
   const appData = getAppData();
 
   onMount(() => {
+    installMapOverlays();
+
     // Session state drives account-backed planner sync too. This belongs at the
     // app root: /planner renders without the map-only location control that
     // used to hydrate auth, so direct planner visits were treated as guests.
@@ -176,6 +183,26 @@
       toastStore.show("Google account connected.", "success");
       adminAuthStore.openAccountSettings();
       window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    // Deep links from the /admin dashboard: open the review queue, user
+    // management, or account settings once the session is known.
+    const wantsReview = urlParams.get("review") === "1";
+    const wantsUsers = urlParams.get("manage") === "users";
+    const wantsSettings = accountEvent === "settings";
+    if (wantsReview || wantsUsers || wantsSettings) {
+      window.history.replaceState({}, "", window.location.pathname);
+      void adminAuthStore.refresh().then(() => {
+        if (!adminAuthStore.isLoggedIn) {
+          adminAuthStore.openLogin();
+        } else if (wantsReview && adminAuthStore.canReview) {
+          modalStore.openModal("review");
+        } else if (wantsUsers && adminAuthStore.role === "admin") {
+          adminAuthStore.openManageUsers();
+        } else if (wantsSettings) {
+          adminAuthStore.openAccountSettings();
+        }
+      });
     }
 
     const accountError = urlParams.get("account_error");
@@ -433,10 +460,6 @@
         editorChromeStore.closeAdditionModal();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
-      } else if (travelTimeStore.active) {
-        travelTimeStore.disable();
-      } else if (measureRouteStore.active) {
-        measureRouteStore.disable();
       } else if (jeepneyStore.selectedStopIndex !== null) {
         jeepneyStore.closeStop();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
@@ -444,6 +467,9 @@
         if (locationStore.destination) {
           locationStore.clearDestination();
         }
+      } else if (mapIsBare()) {
+        // Nothing open but the map: take the newest overlay off it.
+        mapOverlays.clearMostRecent();
       }
       sidePanelStore.closePanel();
     }
@@ -495,18 +521,30 @@
         </div>
       {/if}
       <MapContextMenu />
+      <MakilingTrailLayer />
       <div class="inner-layer">
         <MainControls />
         <div class="bottom-band">
-          {#if travelTimeStore.active}
-            <TravelTimeLegend />
-          {/if}
-          {#if measureRouteStore.active}
-            <MeasureRoutePanel />
-          {/if}
-          {#if mapViewStore.cameraDebug}
-            <CameraDebugHud />
-          {/if}
+        <!-- One slot for every map panel: they stack in a column above the
+             bottom nav (or the desktop attribution) and scroll together
+             when they outgrow the space, instead of overlapping. A sheet
+             covers the tool cards: the active-overlays chip bar stands in
+             for them until it closes. -->
+        {#if ((travelTimeStore.active || measureRouteStore.active) && sidePanelStore.mobileSheetSnap === "closed") || (debugMode && mapViewStore.cameraDebug)}
+          <div class="map-panel-slot" role="group" aria-label="Map panels">
+            {#if sidePanelStore.mobileSheetSnap === "closed"}
+              {#if travelTimeStore.active}
+                <TravelTimeLegend />
+              {/if}
+              {#if measureRouteStore.active}
+                <MeasureRoutePanel />
+              {/if}
+            {/if}
+            {#if debugMode && mapViewStore.cameraDebug}
+              <CameraDebugHud />
+            {/if}
+          </div>
+        {/if}
         </div>
       </div>
     {:else if sidebarStore.panelOpen === "today"}
@@ -532,6 +570,7 @@
       onclose={() => toastStore.clear()}
     />
   {/if}
+  <ContributionRewardWatcher />
   <OfflineBanner
     placement={["map", "contributors", "settings"].includes(sidebarStore.panelOpen)
       ? "map"
@@ -863,6 +902,82 @@
     gap: 0.375rem;
     align-items: flex-end;
     max-width: 100%;
+  }
+
+  /* Shared overlay slot for map panels (walking time legend, measure route,
+     camera readout). Fixed above the bottom nav and its safe area on
+     phones, bottom-left on desktop, and capped below the search block so a
+     tall stack scrolls inside the slot instead of running under either.
+     The slot reaches --slot-pad past its panels on every side so their
+     shadows are not cut square by the scroll box. */
+  .map-panel-slot {
+    --slot-pad: 1rem;
+    --map-panel-slot-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    --map-panel-slot-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    --map-panel-slot-width: min(20rem, calc(100vw - 1.5rem));
+    position: fixed;
+    left: calc(var(--map-panel-slot-left) - var(--slot-pad));
+    bottom: calc(var(--map-panel-slot-bottom) - var(--slot-pad));
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: calc(var(--map-panel-slot-width) + 2 * var(--slot-pad));
+    max-height: calc(
+      100dvh - var(--map-panel-slot-bottom) - var(--map-panel-slot-top, 9rem) +
+        2 * var(--slot-pad)
+    );
+    padding: var(--slot-pad);
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    /* Gaps between panels stay tappable map; the panels opt back in. */
+    pointer-events: none;
+  }
+
+  .map-panel-slot > :global(*) {
+    pointer-events: auto;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  @media (max-width: 48rem) {
+    .map-panel-slot {
+      --map-panel-slot-bottom: calc(
+        var(--mobile-bottom-nav-height, 4.5rem) + 0.5rem
+      );
+      /* Measured search pill plus browse chips. */
+      --map-panel-slot-top: calc(var(--search-block-height, 7.25rem) + 0.75rem);
+      --map-panel-slot-left: max(0.5rem, env(safe-area-inset-left, 0px));
+      /* Clear the Layers and location buttons on the right edge. */
+      --map-panel-slot-width: min(
+        20rem,
+        calc(100vw - 5.25rem - env(safe-area-inset-left, 0px) -
+            env(safe-area-inset-right, 0px))
+      );
+    }
+  }
+
+  /* Phones on their side have width to spare and almost no height: panels
+     sit side by side along the bottom instead of stacking into a column
+     the short screen cannot hold. */
+  @media (orientation: landscape) and (max-height: 31.25rem) {
+    .map-panel-slot {
+      flex-direction: row;
+      align-items: flex-end;
+      --map-panel-slot-width: calc(
+        100vw - 5.25rem - env(safe-area-inset-left, 0px) -
+          env(safe-area-inset-right, 0px)
+      );
+      overflow-x: auto;
+    }
+
+    .map-panel-slot > :global(*) {
+      width: min(20rem, 70vw);
+    }
   }
 
   .bottom-band::before {

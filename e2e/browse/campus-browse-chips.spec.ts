@@ -154,7 +154,9 @@ test.describe("campus browsing", () => {
     ).toBeVisible({
       timeout: 10_000,
     });
-    await expect(page.getByRole("button", { name: "App menu" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "You", exact: true }),
+    ).toBeVisible();
   });
 
   test("mobile keeps its primary navigation available while a drawer is open", async ({
@@ -170,7 +172,7 @@ test.describe("campus browsing", () => {
     ).toBeVisible();
   });
 
-  test("Classes opens class list from the App Menu", async ({ page }) => {
+  test("Classes opens class list from the More chip menu", async ({ page }) => {
     await browse(page, "classes");
     await expect(
       page.getByRole("heading", { name: "Classes", exact: true }).first(),

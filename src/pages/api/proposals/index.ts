@@ -1,10 +1,13 @@
 import type { APIRoute } from "astro";
-import { getEditorSession } from "@lib/admin/require-editor";
+import { optionalEditorSession } from "@lib/admin/require-editor";
 import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { sharedRateLimit } from "@lib/api/rate-limit-db";
 import {
+  enforceProposalDeviceLimits,
   enforceProposalSubmitLimits,
   isProposalHoneypotTripped,
 } from "@lib/api/proposal-rate-limit";
+import { parseContributorId } from "@lib/contributors/contributor-id";
 import { validateSubmitterName } from "@constants/proposals";
 import {
   ProposalValidationError,
@@ -25,13 +28,21 @@ type ProposalBody = {
   submitterName?: string;
   submitterNote?: string;
   proposalId?: number;
+  contributorId?: string;
+  /** Owner token from the first submit; lets an anonymous author revise. */
+  proposalToken?: string;
   _hp?: string;
 };
 
 export const POST: APIRoute = async ({ cookies, request }) => {
-  const session = getEditorSession(cookies);
+  const session = await optionalEditorSession(cookies);
   const ip = clientIp(request);
-  const denied = enforceProposalSubmitLimits(session, ip);
+  const denied = await enforceProposalSubmitLimits(
+    session,
+    ip,
+    Date.now(),
+    sharedRateLimit,
+  );
   if (denied) {
     return rateLimitResponse(denied.resetAt);
   }
@@ -45,6 +56,18 @@ export const POST: APIRoute = async ({ cookies, request }) => {
 
   if (isProposalHoneypotTripped(body as Record<string, unknown>)) {
     return json({ success: true }, 201);
+  }
+
+  // Signed-in submitters are rate limited per account above; the device id
+  // still rides along so points earned before signing in follow the account.
+  const contributorId = parseContributorId(body.contributorId);
+  if (!session) {
+    const deviceDenied = await enforceProposalDeviceLimits(
+      contributorId,
+      Date.now(),
+      sharedRateLimit,
+    );
+    if (deviceDenied) return rateLimitResponse(deviceDenied.resetAt);
   }
 
   const submitterName =
@@ -70,12 +93,17 @@ export const POST: APIRoute = async ({ cookies, request }) => {
         typeof body.submitterNote === "string" ? body.submitterNote : null,
       submitterUserId: session?.id && session.id > 0 ? session.id : null,
       proposalId: Number.isInteger(body.proposalId) ? body.proposalId : null,
+      contributorId,
+      proposalToken:
+        typeof body.proposalToken === "string" ? body.proposalToken : null,
     });
 
-    void emitProposalSubmitted(proposal, session?.id).catch((err) => {
+    await emitProposalSubmitted(proposal, session?.id).catch((err) => {
       logNotificationEmitFailure("Notification emit failed", err);
     });
 
+    // `proposal.withdrawToken` is present only on a fresh proposal: the
+    // client stores it with the proposal ref to withdraw or revise later.
     return json({ success: true, proposal }, 201);
   } catch (err) {
     if (err instanceof ProposalValidationError) {

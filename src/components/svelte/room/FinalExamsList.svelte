@@ -31,14 +31,14 @@
         <div class="final-exam-row__course">
           {exam.courseCode}
           {#if exam.section}
-            <span class="final-exam-row__section">· {exam.section}</span>
+            <span class="final-exam-row__section">{exam.section}</span>
           {/if}
         </div>
         {#if exam.courseTitle}
           <div class="final-exam-row__title">{exam.courseTitle}</div>
         {/if}
         <div class="final-exam-row__when">
-          {formatExamDate(exam.examDate)} · {formatExamTimeRange(
+          {formatExamDate(exam.examDate)}, {formatExamTimeRange(
             exam.startsAt,
             exam.endsAt,
           )}

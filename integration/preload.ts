@@ -10,8 +10,6 @@ const databaseUrl =
 
 process.env.DATABASE_URL = databaseUrl;
 
-const adminPassword =
-  process.env.E2E_ADMIN_PASSWORD?.trim() || "e2e-test-password-change-me";
 const sessionSecret =
   process.env.E2E_ADMIN_SESSION_SECRET?.trim() ||
   process.env.ADMIN_SESSION_SECRET?.trim() ||
@@ -19,8 +17,9 @@ const sessionSecret =
 
 mock.module("astro:env/server", () => ({
   DATABASE_URL: databaseUrl,
-  ADMIN_PASSWORD: adminPassword,
   ADMIN_SESSION_SECRET: sessionSecret,
+  // Break-glass bootstrap value; refused while any active admin exists.
+  ADMIN_PASSWORD: "e2e-break-glass-password",
   ISR_BYPASS_TOKEN: process.env.ISR_BYPASS_TOKEN ?? "",
   R2_ACCOUNT_ID: "",
   R2_ACCESS_KEY_ID: "",
@@ -31,4 +30,6 @@ mock.module("astro:env/server", () => ({
   RESEND_API_KEY: "",
   RESEND_FROM_EMAIL: "",
   TURNSTILE_SECRET_KEY: "",
+  // Staff 2FA on, so the enrollment and sign-in step paths are exercised.
+  TOTP_ENCRYPTION_KEY: "integration-totp-encryption-key-32-chars-min",
 }));

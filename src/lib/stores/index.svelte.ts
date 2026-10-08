@@ -444,6 +444,23 @@ class JeepneyStore {
   hoveredStopIndex: number | null = $state(null);
   /** Route shown in the jeepney-route modal (independent of the map layer). */
   modalRouteId: string | null = $state(null);
+  /**
+   * The rider chose to keep the selected route on the map without its panel
+   * (Map tools route picker). Unpinned routes are cleared when their panel
+   * closes; see `shouldClearDrawnRoute`.
+   */
+  routePinned: boolean = $state(false);
+
+  /** Id and name of the route drawn on the map, or null. For map chrome. */
+  get drawnRoute(): { id: string; name: string } | null {
+    const route = transitStore.getRoute(this.selectedRouteId);
+    return route ? { id: route.id, name: route.name } : null;
+  }
+
+  /** Remove the drawn route line and its stop pins, pinned or not. */
+  clearDrawnRoute = () => {
+    this.clearRoute();
+  };
 
   toggleMenu = () => {
     this.menuOpen = !this.menuOpen;
@@ -467,6 +484,11 @@ class JeepneyStore {
     this.layerActive = true;
     mapToolsStore.close();
     deactivateMapModesExcept("routes");
+    // A routed class day draws its own line and blue numbered stops; over a
+    // jeepney route they read as a stray marker off the route.
+    if (scheduleRouteStore.routedWeekday !== null) {
+      scheduleRouteStore.clearRoute();
+    }
     // Transit is mutually exclusive with building/dorm pin filters: reset to
     // All so filtered pins don't overlap jeepney routes/stops (#325). This
     // covers every enable path (search chip, map tools flyout, route picker).
@@ -476,6 +498,7 @@ class JeepneyStore {
   disableLayer = () => {
     this.layerActive = false;
     this.selectedRouteId = null;
+    this.routePinned = false;
     this.menuOpen = false;
     this.closeStop();
   };
@@ -490,6 +513,8 @@ class JeepneyStore {
       this.closeStop();
     }
     this.selectedRouteId = nextId;
+    // Picked from Map tools with no panel of its own: kept on the map.
+    this.routePinned = nextId !== null;
     this.menuOpen = false;
     if (this.selectedRouteId !== null) {
       deactivateMapModesExcept("routes");
@@ -498,6 +523,7 @@ class JeepneyStore {
 
   clearRoute = () => {
     this.selectedRouteId = null;
+    this.routePinned = false;
     this.closeStop();
   };
 
@@ -507,6 +533,8 @@ class JeepneyStore {
     this.enableLayer();
     if (this.selectedRouteId !== id) this.closeStop();
     this.selectedRouteId = id;
+    // Opened into the route panel, so it lives as long as the panel does.
+    this.routePinned = false;
     this.menuOpen = false;
   };
 
@@ -533,6 +561,21 @@ class JeepneyStore {
   };
 }
 
+import {
+  EMPTY_REVIEW_FILTERS,
+  type ReviewQueueFilters,
+  reviewQueueSearchParams,
+} from "@lib/proposals/review-queue-params";
+
+export type LoginStepState = {
+  step: "mfa" | "enroll_mfa" | "change_password";
+  steps: string[];
+  challenge: string;
+  /** Present after `enroll_start`. */
+  secret?: string;
+  otpauthUri?: string;
+};
+
 class AdminAuthStore {
   isLoggedIn: boolean = $state(false);
   username: string | null = $state(null);
@@ -549,7 +592,18 @@ class AdminAuthStore {
   oauthError: string | null = $state(null);
   accountSettingsOpen: boolean = $state(false);
   manageUsersOpen: boolean = $state(false);
+  /** A password sign-in that still owes a step (2FA, enrollment, new
+   * password) before the session is issued (auth audit item 19). */
+  loginStep: LoginStepState | null = $state(null);
+  /** Recovery codes from a 2FA enrollment finished during sign-in, shown
+   * once before the login modal closes. */
+  loginRecoveryCodes: string[] | null = $state(null);
+  /** Admin signed in without 2FA during the grace period. */
+  mfaEnrollmentSuggested: boolean = $state(false);
   private _hydrated = false;
+  /** Kept only while a login step is open: the forced password change
+   * re-proves the temporary password. Cleared when the step ends. */
+  private _pendingPassword = "";
 
   private applySession(data: {
     loggedIn?: boolean;
@@ -643,21 +697,133 @@ class AdminAuthStore {
                 : "Could not sign in. Check your username and password.")
         );
       }
-      this.applySession({
-        loggedIn: true,
-        username: data.username ?? username.trim().toLowerCase(),
-        displayName: data.displayName,
-        role: data.role ?? "editor",
-        canPublish: data.canPublish,
-        canReview: data.canReview,
-      });
-      this.loginOpen = false;
+      const stepData = data as unknown as Partial<LoginStepState>;
+      if (stepData.step && stepData.challenge) {
+        this._pendingPassword = password;
+        this.loginStep = {
+          step: stepData.step,
+          steps: stepData.steps ?? [stepData.step],
+          challenge: stepData.challenge,
+        };
+        return null;
+      }
+      this.finishLogin(data, username);
       return null;
     } catch {
       return "Network error. Try again.";
     } finally {
       this.loading = false;
     }
+  };
+
+  private finishLogin(
+    data: {
+      username?: string;
+      displayName?: string;
+      role?: "admin" | "editor" | "contributor";
+      canPublish?: boolean;
+      canReview?: boolean;
+      mfaEnrollmentSuggested?: boolean;
+      recoveryCodes?: string[];
+    },
+    fallbackUsername: string,
+  ) {
+    this.applySession({
+      loggedIn: true,
+      username: data.username ?? fallbackUsername.trim().toLowerCase(),
+      displayName: data.displayName,
+      role: data.role ?? "editor",
+      canPublish: data.canPublish,
+      canReview: data.canReview,
+    });
+    this.loginStep = null;
+    this._pendingPassword = "";
+    this.mfaEnrollmentSuggested = Boolean(data.mfaEnrollmentSuggested);
+    if (data.recoveryCodes?.length) {
+      // Keep the modal open on the codes; the user closes it.
+      this.loginRecoveryCodes = data.recoveryCodes;
+      return;
+    }
+    this.loginOpen = false;
+  }
+
+  /** Answer the open login step. Resolves to an error message or null. */
+  submitLoginStep = async (
+    action:
+      | "verify_mfa"
+      | "enroll_start"
+      | "enroll_confirm"
+      | "change_password",
+    fields: { code?: string; newPassword?: string } = {},
+  ): Promise<string | null> => {
+    const current = this.loginStep;
+    if (!current) return "Sign in again.";
+    this.loading = true;
+    try {
+      const res = await fetch("/api/auth/login-step", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challenge: current.challenge,
+          action,
+          code: fields.code,
+          newPassword: fields.newPassword,
+          currentPassword:
+            action === "change_password" ? this._pendingPassword : undefined,
+        }),
+      });
+      const data = (await res
+        .json()
+        .catch(() => ({}))) as Partial<LoginStepState> & {
+        error?: string;
+        success?: boolean;
+        username?: string;
+        displayName?: string;
+        role?: "admin" | "editor" | "contributor";
+        canPublish?: boolean;
+        canReview?: boolean;
+        recoveryCodes?: string[];
+      };
+      if (!res.ok) {
+        if (res.status === 401) this.cancelLoginStep();
+        return data.error ?? "That did not work. Try again.";
+      }
+      if (data.success) {
+        this.finishLogin(data, data.username ?? "");
+        return null;
+      }
+      if (data.step && data.challenge) {
+        this.loginStep = {
+          step: data.step,
+          steps: data.steps ?? [data.step],
+          challenge: data.challenge,
+          secret:
+            data.secret ??
+            (data.step === current.step ? current.secret : undefined),
+          otpauthUri:
+            data.otpauthUri ??
+            (data.step === current.step ? current.otpauthUri : undefined),
+        };
+        if (data.recoveryCodes?.length)
+          this.loginRecoveryCodes = data.recoveryCodes;
+      }
+      return null;
+    } catch {
+      return "Network error. Try again.";
+    } finally {
+      this.loading = false;
+    }
+  };
+
+  cancelLoginStep = () => {
+    this.loginStep = null;
+    this._pendingPassword = "";
+  };
+
+  dismissLoginRecoveryCodes = () => {
+    this.loginRecoveryCodes = null;
+    if (this.isLoggedIn) this.loginOpen = false;
   };
 
   /** Self-signup a contributor account (attribution + username reservation).
@@ -698,7 +864,7 @@ class AdminAuthStore {
         return (
           data.error ??
           (res.status === 409
-            ? "That username is already taken. Try another."
+            ? "We couldn't create an account with those details. Try a different username, or sign in if you already have an account."
             : res.status === 429
               ? "Too many sign-up attempts. Wait about a minute and try again."
               : res.status >= 500
@@ -805,6 +971,9 @@ class AdminAuthStore {
   closeLogin = () => {
     this.loginOpen = false;
     this.oauthError = null;
+    this.loginStep = null;
+    this.loginRecoveryCodes = null;
+    this._pendingPassword = "";
   };
 
   openAccountSettings = () => {
@@ -851,29 +1020,84 @@ class ProposalsStore {
     }>
   >([]);
 
+  /** Review queue filters (auth audit item 17); applied server-side. */
+  filters = $state<ReviewQueueFilters>({ ...EMPTY_REVIEW_FILTERS });
+  /** Keyset cursor for the next page, null on the last page. */
+  nextCursor = $state<string | null>(null);
+  /** Proposals matching the filters across all pages. */
+  matchCount = $state(0);
+  /** Submitters with open proposals, for the filter menu. */
+  submitters = $state<string[]>([]);
+  loadingMore = $state(false);
+
+  private async fetchPage(cursor: string | null) {
+    const params = reviewQueueSearchParams(this.filters, cursor);
+    const qs = params.toString();
+    const res = await fetch(`/api/admin/proposals${qs ? `?${qs}` : ""}`, {
+      credentials: "same-origin",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as {
+      pendingCount?: number;
+      proposals?: ProposalsStore["proposals"];
+      nextCursor?: string | null;
+      matchCount?: number;
+      submitters?: string[];
+    };
+  }
+
   refresh = async () => {
     if (!adminAuthStore.canReview) {
       this.pendingCount = 0;
       this.proposals = [];
+      this.nextCursor = null;
       return;
     }
     this.loading = true;
     try {
-      const res = await fetch("/api/admin/proposals", {
-        credentials: "same-origin",
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as {
-        pendingCount?: number;
-        proposals?: ProposalsStore["proposals"];
-      };
+      const data = await this.fetchPage(null);
+      if (!data) return;
       this.pendingCount = data.pendingCount ?? 0;
       this.proposals = data.proposals ?? [];
+      this.nextCursor = data.nextCursor ?? null;
+      this.matchCount = data.matchCount ?? this.proposals.length;
+      this.submitters = data.submitters ?? [];
     } catch {
       // ignore
     } finally {
       this.loading = false;
     }
+  };
+
+  /** Append the next page of the current filter. */
+  loadMore = async () => {
+    if (!this.nextCursor || this.loadingMore) return;
+    this.loadingMore = true;
+    try {
+      const data = await this.fetchPage(this.nextCursor);
+      if (!data) return;
+      const seen = new Set(this.proposals.map((p) => p.id));
+      this.proposals = [
+        ...this.proposals,
+        ...(data.proposals ?? []).filter((p) => !seen.has(p.id)),
+      ];
+      this.nextCursor = data.nextCursor ?? null;
+      this.pendingCount = data.pendingCount ?? this.pendingCount;
+    } catch {
+      // ignore
+    } finally {
+      this.loadingMore = false;
+    }
+  };
+
+  setFilters = (patch: Partial<ReviewQueueFilters>) => {
+    this.filters = { ...this.filters, ...patch };
+    void this.refresh();
+  };
+
+  clearFilters = () => {
+    this.filters = { ...EMPTY_REVIEW_FILTERS };
+    void this.refresh();
   };
 
   toggle = () => {
@@ -904,6 +1128,21 @@ class ScheduleRouteStore {
   scopeNote = ROOM_SCHEDULE_SCOPE_NOTE;
 
   dayStops = $derived(orderDayStops(this.matches, this.selectedWeekday));
+
+  /** The schedule import panel is on screen (it sets this while mounted). */
+  panelVisible = $state(false);
+
+  /**
+   * The blue numbered day-stop pins belong to the schedule panel or a routed
+   * day. Shown anywhere else (after a day route was cleared, over a jeepney
+   * route) they were stray markers with nothing on screen to remove them.
+   */
+  stopsVisible = $derived(
+    this.panelVisible ||
+      (this.routedWeekday !== null &&
+        this.routedWeekday === this.selectedWeekday &&
+        locationStore.routeWaypoints !== null),
+  );
 
   unresolved = $derived(
     this.matches.filter((match) => match.unresolvedReason !== null),

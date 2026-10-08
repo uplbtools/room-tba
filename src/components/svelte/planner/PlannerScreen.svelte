@@ -18,7 +18,10 @@
     toastStore,
   } from "@lib/store.svelte";
   import { fetchAllClasses } from "@lib/classes-api";
-  import { COURSE_CHANGE_DISCLAIMER } from "@lib/amis/room-scheduled-types";
+  import {
+    COURSE_CHANGE_DISCLAIMER,
+    ROOM_SCHEDULE_SCOPE_NOTE,
+  } from "@lib/amis/room-scheduled-types";
   import { changeOfMatriculationLabel } from "@lib/term-calendar";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import { isUnscheduled } from "@lib/planner/conflicts";
@@ -476,6 +479,12 @@
         anywhere or send to someone.
       {/if}
     </p>
+    <!-- Lived in Settings once; it explains the Planner's own sections, and
+         why some never get a map stop, so it belongs here. -->
+    <p class="planner-save-note" role="note">
+      <strong>Why a class may be missing from your day's stops:</strong>
+      {ROOM_SCHEDULE_SCOPE_NOTE}
+    </p>
   </details>
 
   <div class="planner-tabs" role="tablist" aria-label="Plans">
@@ -588,8 +597,8 @@
           <ul class="planner-conflicts">
             {#each conflictPairs as pair (pair.label)}
               <li>
-                <strong>{pair.label}</strong>
-                · {pair.days.join("/")}
+                <strong>{pair.label}</strong>,
+                {pair.days.join("/")}
                 {pair.range}
               </li>
             {/each}
@@ -637,7 +646,7 @@
                       </span>
                       <span class="planner-offering__part-time">
                         {(s.schedule ?? []).map(formatScheduleShort).join(", ")}{s.roomCode
-                          ? ` · ${s.roomCode}`
+                          ? ` in ${s.roomCode}`
                           : ""}
                       </span>
                     </div>
@@ -666,7 +675,7 @@
           <h2 class="planner-side__heading">Unscheduled (TBA)</h2>
           <ul class="planner-plain-list">
             {#each unscheduled as s (s.courseCode + s.section + s.type)}
-              <li>{s.courseCode} {s.type} · {s.section}</li>
+              <li>{s.courseCode} {s.type} {s.section}</li>
             {/each}
           </ul>
         {/if}
@@ -675,7 +684,7 @@
           <h2 class="planner-side__heading">No longer offered</h2>
           <ul class="planner-plain-list planner-plain-list--stale">
             {#each staleSections as s (s.courseCode + s.section + s.type)}
-              <li>{s.courseCode} {s.type} · {s.section}</li>
+              <li>{s.courseCode} {s.type} {s.section}</li>
             {/each}
           </ul>
         {/if}

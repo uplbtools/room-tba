@@ -278,7 +278,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 0 0.5rem;
+    padding: 0 1rem;
   }
 
   /* The shared field renders its hint bare; here it is secondary copy under
@@ -360,7 +360,7 @@
     align-items: center;
     gap: 0.5rem;
     margin: 0;
-    padding: 0 0.5rem 0.25rem;
+    padding: 0 1rem 0.5rem;
     font-size: 0.75rem;
     color: var(--theme-text-2, hsl(0, 0%, 40%));
   }

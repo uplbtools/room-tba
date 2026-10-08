@@ -42,14 +42,17 @@ describe("dark tokens meet WCAG AA", () => {
     T["accent-soft"],
   ];
 
-  test.each(["text", "text-2", "text-muted", "accent-text"] as const)(
-    "%s on every surface",
-    (fg) => {
-      for (const bg of surfaces) {
-        expect(contrastRatio(T[fg], bg)).toBeGreaterThanOrEqual(4.5);
-      }
-    },
-  );
+  test.each([
+    "text",
+    "text-2",
+    "text-muted",
+    "accent-text",
+    "danger-text",
+  ] as const)("%s on every surface", (fg) => {
+    for (const bg of surfaces) {
+      expect(contrastRatio(T[fg], bg)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 
   test("status hues on their own soft tint and on the base surface", () => {
     for (const hue of ["amber", "green", "blue", "purple"] as const) {

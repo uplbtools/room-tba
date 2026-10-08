@@ -502,7 +502,7 @@ const WINANSI_REPLACEMENTS: [RegExp, string][] = [
   [/≤/g, "<="],
   [/≥/g, ">="],
   [/•/g, "-"],
-  [/·/g, ","], // interpunct
+  [/\u00b7/g, ","], // interpunct
   [/\s*—\s*/g, ", "], // em dash reads as a comma on paper
   [/…/g, ""], // no ellipsis truncation in print
   [/ /g, " "],

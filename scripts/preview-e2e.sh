@@ -20,4 +20,6 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-exec env ASTRO_E2E_NODE=1 bunx astro preview --host "$HOST" --port "$PORT"
+# The E2E preview has no Turnstile secret; opt out explicitly (production
+# fails closed without one, see src/lib/turnstile-core.ts).
+exec env ASTRO_E2E_NODE=1 TURNSTILE_ALLOW_UNCONFIGURED=1 bunx astro preview --host "$HOST" --port "$PORT"

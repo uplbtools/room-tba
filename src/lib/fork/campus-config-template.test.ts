@@ -60,7 +60,7 @@ describe("vercelDeployUrl", () => {
       "https://github.com/uplbtools/room-tba",
     );
     expect(params.get("env")).toBe(
-      "DATABASE_URL,ADMIN_PASSWORD,ADMIN_SESSION_SECRET,ISR_BYPASS_TOKEN",
+      "DATABASE_URL,ADMIN_SESSION_SECRET,ISR_BYPASS_TOKEN,PUBLIC_TURNSTILE_SITE_KEY,TURNSTILE_SECRET_KEY",
     );
     expect(params.get("project-name")).toBe("ssu-room-tba");
   });

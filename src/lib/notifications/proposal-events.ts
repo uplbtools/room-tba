@@ -1,4 +1,4 @@
-import { getNotificationAdapter } from "./index";
+import { enqueueNotification } from "./outbox";
 import type { EditProposalSummary } from "@lib/services/proposal-service";
 
 export type ProposalReviewOutcome = "approved" | "rejected" | "needs_changes";
@@ -7,8 +7,7 @@ export async function emitProposalSubmitted(
   proposal: EditProposalSummary,
   sessionUserId: number | undefined,
 ): Promise<void> {
-  const notifications = getNotificationAdapter();
-  await notifications.notify({
+  await enqueueNotification({
     schemaVersion: 1,
     type: "proposal.submitted",
     source: "room-tba",
@@ -29,8 +28,7 @@ export async function emitProposalReviewed(
   proposal: EditProposalSummary,
   outcome: ProposalReviewOutcome,
 ): Promise<void> {
-  const notifications = getNotificationAdapter();
-  await notifications.notify({
+  await enqueueNotification({
     schemaVersion: 1,
     type: "proposal.reviewed",
     source: "room-tba",

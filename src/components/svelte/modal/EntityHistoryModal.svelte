@@ -1,5 +1,6 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
+  import ModalHeader from "./ModalHeader.svelte";
   import type { PublicHistoryEntry } from "@lib/editor/entity-attribution";
   import {
     formatHistoryTime,
@@ -62,12 +63,12 @@
 </script>
 
 <section class="entity-history-public" aria-labelledby="entity-history-title">
-  <header class="entity-history-public__header">
-    <h2 id="entity-history-title">Edit history</h2>
-    {#if ref?.name}
-      <p class="entity-history-public__subject">{ref.name}</p>
-    {/if}
-  </header>
+  <ModalHeader
+    id="entity-history-title"
+    title="Edit history"
+    description={ref?.name ?? undefined}
+  />
+  <div class="entity-history-public__scroll map-chrome-scroll">
   <p class="entity-history-public__note">
     Changes to what this card shows, newest first. Contact details are not
     listed here.
@@ -145,41 +146,25 @@
       {loading ? "Loading" : "Show older edits"}
     </button>
   {/if}
+  </div>
 </section>
 
 <style>
   .entity-history-public {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .entity-history-public__scroll {
+    display: flex;
+    flex-direction: column;
     gap: 0.6rem;
-    padding: 0.25rem 0.25rem 0.75rem;
-  }
-
-  /* Stays put while the list scrolls; the right padding keeps the title
-     clear of the dialog's close button. The negative top margin covers the
-     scroll container's own padding so text never peeks above it. z-index 0
-     keeps it over the list but under the close button (z-index 1). */
-  .entity-history-public__header {
-    position: sticky;
-    top: -0.5rem;
-    z-index: 0;
-    margin: -0.5rem -0.25rem 0;
-    padding: 0.5rem 3rem 0.5rem 0.25rem;
-    background: var(--theme-surface, #fff);
-    border-bottom: 1px solid var(--theme-border, hsl(0 0% 92%));
-  }
-
-  h2 {
-    margin: 0;
-    font-size: 1.15rem;
-  }
-
-  .entity-history-public__subject {
-    margin: 0.1rem 0 0;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--theme-accent-text, hsl(5, 53%, 32%));
-    overflow-wrap: anywhere;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 1rem 0.75rem;
   }
 
   .entity-history-public__none {

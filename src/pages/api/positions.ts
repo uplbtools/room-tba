@@ -1,14 +1,12 @@
 import type { APIRoute } from "astro";
 import { eq, inArray } from "drizzle-orm";
-import type { AstroCookies } from "astro";
 import { db } from "@lib/db";
 import {
   buildingsTable,
   roomPositionsTable,
   roomsTable,
 } from "@drizzle/schema";
-import { canPublishDirectly } from "@lib/admin/auth";
-import { getEditorSession } from "@lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { refreshSyncKey } from "@lib/services/admin-service";
 
 export const prerender = false;
@@ -32,11 +30,6 @@ function jsonOk<T>(data: T, status = 200): Response {
     status,
     headers: { "content-type": "application/json" },
   });
-}
-
-function canPublish(cookies: AstroCookies): boolean {
-  const session = getEditorSession(cookies);
-  return session !== null && canPublishDirectly(session.role);
 }
 
 export const GET: APIRoute = async ({ url }) => {
@@ -84,7 +77,10 @@ export const PUT: APIRoute = async () => {
 };
 
 export const DELETE: APIRoute = async ({ cookies, url }) => {
-  if (!canPublish(cookies)) return jsonError(401, "Not authorized");
+  const auth = await editorSessionOrUnauthorized(cookies, {
+    requirePublish: true,
+  });
+  if (auth instanceof Response) return auth;
 
   const buildingName = url.searchParams.get("building");
   const roomCode = url.searchParams.get("room");

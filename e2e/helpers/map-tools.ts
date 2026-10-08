@@ -1,10 +1,15 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
+/** Open You (the bottom-bar tab on phones, the top-bar avatar on desktop). */
 export async function openAppMenu(page: Page): Promise<Locator> {
-  const trigger = page.getByRole("button", { name: /app menu/i });
-  await page.keyboard.press("Escape");
+  const trigger = page.getByRole("button", { name: "You", exact: true });
+  // Escape on a bare map clears the newest map overlay (a drawn route), so
+  // press it only to close something that is open.
+  if (await page.getByRole("dialog").count()) {
+    await page.keyboard.press("Escape");
+  }
   await trigger.click({ force: true });
-  const menu = page.getByRole("dialog", { name: "App menu" });
+  const menu = page.getByRole("dialog", { name: "You", exact: true });
   await expect(menu).toBeVisible();
   await settleAnimations(menu);
   return menu;
@@ -52,21 +57,12 @@ export async function openCampusDirectory(
     | "services"
     | "events",
 ) {
-  const appMenuLabels = {
-    colleges: "Colleges",
-    organizations: "Student organizations",
-    classes: "Classes",
-  } as const;
-  const menuLabel = appMenuLabels[directory as keyof typeof appMenuLabels];
-  if (menuLabel) {
-    const menu = await openAppMenu(page);
-    await menu.getByRole("button", { name: menuLabel, exact: true }).click();
-    return;
-  }
-
   const toolbar = page.getByRole("toolbar", { name: "Map pin filters" });
   // The org chart sits behind the row's More chip.
   const moreLabels = {
+    colleges: "Colleges",
+    organizations: "Student orgs",
+    classes: "Classes",
     divisions: "Divisions",
     offices: "Units and offices",
   } as const;
@@ -98,17 +94,14 @@ export async function openCampusDirectory(
 }
 
 /**
- * Open the Settings modal through its live App menu entry. The old path (rail Sidebar >
- * Help & settings > Settings) targets a component that stopped rendering
- * (#930), so specs that used it timed out without touching the feature they
- * covered.
+ * Open Settings the way a person does: You, then Settings, which pushes
+ * inside the You sheet (back arrow returns to You). Returns the sheet.
  */
 export async function openSettingsModal(page: Page) {
   const menu = await openAppMenu(page);
   await menu.getByRole("button", { name: "Settings", exact: true }).click();
-  const settings = page.getByRole("dialog", { name: "Settings" });
-  await expect(settings).toBeVisible();
-  return settings;
+  await expect(menu.getByRole("heading", { name: "Settings" })).toBeVisible();
+  return menu;
 }
 
 export async function openMapTools(page: Page) {
@@ -124,10 +117,4 @@ export async function openMapTools(page: Page) {
   await expect(page.getByRole("dialog", { name: /^layers$/i })).toBeVisible({
     timeout: 10_000,
   });
-}
-
-export async function expandMapToolsSection(page: Page, section: string) {
-  await page
-    .getByRole("button", { name: new RegExp(`^${section}$`, "i") })
-    .click();
 }

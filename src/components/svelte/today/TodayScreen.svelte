@@ -3,6 +3,7 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Route from "@lucide/svelte/icons/route";
+  import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import { fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
   import { formatDistance, formatDuration } from "@lib/campus-route";
@@ -74,6 +75,8 @@
       locationStore.routeWaypoints !== null,
   );
   let routing = $state(false);
+  // Weekday picker for routing a day other than today (was in Layers).
+  let otherDayOpen = $state(false);
 
   async function routeMyDay() {
     if (routing) return;
@@ -158,11 +161,25 @@
         <span class="today-route__hint">{routeHint}</span>
       {:else if routedToday && scheduleRouteStore.routeTotals}
         <span class="today-route__totals">
-          {formatDuration(scheduleRouteStore.routeTotals.seconds)} walk ·
+          {formatDuration(scheduleRouteStore.routeTotals.seconds)} walk,
           {formatDistance(scheduleRouteStore.routeTotals.meters)}
         </span>
       {/if}
+      <button
+        type="button"
+        class="today-route__other"
+        aria-expanded={otherDayOpen}
+        aria-controls="today-other-day"
+        onclick={() => (otherDayOpen = !otherDayOpen)}
+      >
+        Route another day
+      </button>
     </div>
+    {#if otherDayOpen}
+      <div id="today-other-day" class="today-other-day">
+        <ScheduleImportPanel embedded />
+      </div>
+    {/if}
   {/if}
 
   <div class="today-body">
@@ -337,6 +354,34 @@
   .today-route__button:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  .today-route__other {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border-radius: 999px;
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .today-route__other:hover {
+    background: var(--theme-accent-soft, hsl(5, 30%, 94%));
+  }
+
+  .today-route__other:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+  }
+
+  .today-other-day {
+    max-width: 52rem;
+    max-height: 50dvh;
+    overflow-y: auto;
   }
 
   .today-route__hint,

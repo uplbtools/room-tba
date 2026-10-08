@@ -57,7 +57,7 @@ describe("routesAtStop", () => {
     expect(ids).toContain("kaliwa-kanan");
     expect(ids).toContain("snodlob");
     expect(serving.find((e) => e.route.id === "kaliwa-kanan")!.direction).toBe(
-      "Kanan · Kaliwa",
+      "Kanan / Kaliwa",
     );
     expect(serving.find((e) => e.route.id === "snodlob")!.direction).toBe(
       "One-way loop",

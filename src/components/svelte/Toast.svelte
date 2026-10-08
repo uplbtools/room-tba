@@ -166,7 +166,7 @@
   }
 
   .toast-action:hover {
-    background: rgb(0 0 0 / 0.05);
+    background: var(--theme-surface-2, rgb(0 0 0 / 0.05));
   }
 
   /* Toast text color varies by type; keep the X on currentColor. */

@@ -18,17 +18,15 @@
   .coverage-modal {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
     flex: 1 1 auto;
     min-height: 0;
-    padding-bottom: 0.25rem;
   }
 
   .coverage-modal-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 0 0.5rem 0.25rem;
+    padding: 0 1rem 0.5rem;
   }
 
   .coverage-modal-body :global(.contributor-progress) {

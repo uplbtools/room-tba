@@ -16,10 +16,6 @@ exportLine(
   process.env.E2E_DATABASE_URL ?? process.env.DATABASE_URL,
 );
 exportLine(
-  "ADMIN_PASSWORD",
-  process.env.E2E_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD,
-);
-exportLine(
   "ADMIN_SESSION_SECRET",
   process.env.E2E_ADMIN_SESSION_SECRET ?? process.env.ADMIN_SESSION_SECRET,
 );
