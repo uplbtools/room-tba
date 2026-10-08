@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, test } from "vitest";
 import {
   buildingTypeFilter,
   jeepneyStore,
+  locationStore,
   mapToolsStore,
   modalStore,
+  scheduleRouteStore,
 } from "@lib/store.svelte";
 
 describe("JeepneyStore", () => {
@@ -61,5 +63,50 @@ describe("JeepneyStore", () => {
     // Unlike selectRoute, a repeat call keeps the route selected (no toggle).
     jeepneyStore.openRouteOnMap("route-c");
     expect(jeepneyStore.selectedRouteId).toBe("route-c");
+  });
+
+  test("a Map tools pick is pinned; a panel-opened route is not", () => {
+    jeepneyStore.selectRoute("kaliwa-kanan");
+    expect(jeepneyStore.routePinned).toBe(true);
+    jeepneyStore.openRouteOnMap("kaliwa-kanan");
+    expect(jeepneyStore.routePinned).toBe(false);
+    jeepneyStore.selectRoute("snodlob");
+    jeepneyStore.clearRoute();
+    expect(jeepneyStore.routePinned).toBe(false);
+  });
+
+  test("class day-stop pins hide outside their panel or a routed day", () => {
+    expect(scheduleRouteStore.stopsVisible).toBe(false);
+    scheduleRouteStore.panelVisible = true;
+    expect(scheduleRouteStore.stopsVisible).toBe(true);
+    scheduleRouteStore.panelVisible = false;
+
+    scheduleRouteStore.selectedWeekday = "M";
+    scheduleRouteStore.routedWeekday = "M";
+    locationStore.setRouteWaypoints([
+      [121.24, 14.16],
+      [121.25, 14.17],
+    ]);
+    expect(scheduleRouteStore.stopsVisible).toBe(true);
+
+    // Opening a jeepney route clears the routed day, and its pins with it.
+    jeepneyStore.openRouteOnMap("snodlob");
+    expect(scheduleRouteStore.routedWeekday).toBeNull();
+    expect(locationStore.routeWaypoints).toBeNull();
+    expect(scheduleRouteStore.stopsVisible).toBe(false);
+  });
+
+  test("drawnRoute names the drawn route and clearDrawnRoute removes it", () => {
+    expect(jeepneyStore.drawnRoute).toBeNull();
+    jeepneyStore.selectRoute("snodlob");
+    expect(jeepneyStore.drawnRoute).toEqual({
+      id: "snodlob",
+      name: "UPLB Loop (SNODLOB e-jeep)",
+    });
+    jeepneyStore.openStop(1);
+    jeepneyStore.clearDrawnRoute();
+    expect(jeepneyStore.drawnRoute).toBeNull();
+    expect(jeepneyStore.selectedStopIndex).toBeNull();
+    expect(jeepneyStore.routePinned).toBe(false);
   });
 });

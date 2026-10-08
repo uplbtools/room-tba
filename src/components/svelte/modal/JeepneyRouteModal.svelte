@@ -5,7 +5,14 @@
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Clock from "@lucide/svelte/icons/clock";
   import Banknote from "@lucide/svelte/icons/banknote";
-  import { jeepneyStore, modalStore, transitStore } from "@lib/store.svelte";
+  import {
+    jeepneyStore,
+    modalStore,
+    queryStore,
+    sidePanelStore,
+    transitStore,
+  } from "@lib/store.svelte";
+  import { openCampusBrowse } from "@lib/browse-campus";
   import {
     JEEPNEY_RIDING_NOTES,
     ROUTE_BOARDING_NOTES,
@@ -130,6 +137,8 @@
 
   function viewOnMap() {
     if (!route) return;
+    // Into the route panel: a drawn route lives only as long as its panel.
+    openCampusBrowse(queryStore, sidePanelStore, "jeepney");
     jeepneyStore.openRouteOnMap(route.id);
     modalStore.closeModal();
   }
@@ -142,6 +151,7 @@
     // container swaps to JeepneyStopPanel on its own, so there is nothing to
     // select and no modal to dismiss.
     if (routeId === null) {
+      openCampusBrowse(queryStore, sidePanelStore, "jeepney");
       jeepneyStore.openRouteOnMap(route.id);
       modalStore.closeModal();
     }

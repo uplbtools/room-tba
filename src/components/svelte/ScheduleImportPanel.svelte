@@ -32,6 +32,12 @@
   onMount(() => {
     scheduleRouteStore.init();
     plannerStore.init();
+    // The numbered day-stop pins show while this panel is open (see
+    // ScheduleRouteStore.stopsVisible).
+    scheduleRouteStore.panelVisible = true;
+    return () => {
+      scheduleRouteStore.panelVisible = false;
+    };
   });
 
   // Track only planKey; importFromPlanner reads/writes other stores and must
