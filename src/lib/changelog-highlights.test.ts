@@ -157,6 +157,24 @@ describe("userFacingItem", () => {
     ).toBeNull();
   });
 
+  test("drops process-only asides, keeps what changed", () => {
+    // The 2.37.0 release note, after sanitizeBullet stripped its links.
+    expect(
+      userFacingItem(
+        "work like Google Maps (Jakob's-law audit, 30 items) , closes",
+      ),
+    ).toBe("Work like Google Maps");
+    expect(
+      userFacingItem(
+        "mobile UI pass: transit off campus, directions with transfers",
+      ),
+    ).toBe("Transit off campus, directions with transfers");
+    // A parenthetical that says something useful stays.
+    expect(userFacingItem("transit: buses to Buendia (weekdays)")).toBe(
+      "Buses to Buendia (weekdays)",
+    );
+  });
+
   test("drops the bare closes tail left by stripped issue links", () => {
     expect(userFacingItem("today: add a Today screen , closes")).toBe(
       "Add a Today screen",

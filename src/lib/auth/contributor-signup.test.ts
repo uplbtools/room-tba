@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
+  MAX_PASSWORD_BYTES,
   MIN_CONTRIBUTOR_PASSWORD_LENGTH,
+  newPasswordError,
+  passwordByteLength,
+  USERNAME_PATTERN_SOURCE,
+  usernameError,
   validateContributorSignup,
 } from "./contributor-signup";
 
@@ -79,5 +84,45 @@ describe("validateContributorSignup", () => {
     });
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.username).toBe("jane");
+  });
+});
+
+describe("password and username rules (auth audit item 16)", () => {
+  test("byte length is UTF-8 aware", () => {
+    expect(passwordByteLength("abc")).toBe(3);
+    expect(passwordByteLength("é")).toBe(2);
+    expect(passwordByteLength("😀")).toBe(4);
+  });
+
+  test("72 bytes is the cap bcrypt can actually use", () => {
+    expect(newPasswordError("a".repeat(MAX_PASSWORD_BYTES))).toBeNull();
+    expect(newPasswordError("a".repeat(MAX_PASSWORD_BYTES + 1))).toMatch(
+      /72 bytes/,
+    );
+    // 20 emoji are 20 characters but 80 bytes.
+    expect(newPasswordError("😀".repeat(20))).toMatch(/72 bytes/);
+    expect(newPasswordError("short")).toMatch(/at least 10/);
+  });
+
+  test("signup rejects an over-long password", () => {
+    const result = validateContributorSignup({
+      username: "jane",
+      password: "é".repeat(40),
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  test("usernameError mirrors the signup rule", () => {
+    expect(usernameError("jane.doe")).toBeNull();
+    expect(usernameError("JANE")).toBeNull();
+    expect(usernameError("ab")).toMatch(/3/);
+    expect(usernameError("-jane")).not.toBeNull();
+    expect(usernameError("jane doe")).not.toBeNull();
+  });
+
+  test("pattern attribute source compiles with the v flag browsers use", () => {
+    const re = new RegExp(`^(?:${USERNAME_PATTERN_SOURCE})$`, "v");
+    expect(re.test("jane_doe-1.x")).toBe(true);
+    expect(re.test("_jane")).toBe(false);
   });
 });

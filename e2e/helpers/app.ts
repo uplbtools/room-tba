@@ -32,9 +32,11 @@ export async function dismissLandingIfPresent(page: Page) {
     await gotIt.click();
   }
 
-  const getStarted = page.getByRole("button", { name: "Get Started" });
-  if (await getStarted.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await getStarted.click();
+  const done = page
+    .getByRole("dialog", { name: "How Room TBA works" })
+    .getByRole("button", { name: "Done", exact: true });
+  if (await done.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await done.click();
   }
 
   const closeDialog = page.getByRole("button", { name: "Close dialog" });
@@ -88,8 +90,8 @@ export async function clickIfAppears(
   return appeared;
 }
 
-/** Mobile details live in a bottom sheet; expand it so panel content is
- * reachable. Panel-identity changes snap the sheet back to peek right after
+/** Mobile details live in a bottom sheet (peek, half, full); expand it to
+ * full so panel content is reachable. Panel-identity changes snap the sheet back to peek right after
  * a toggle lands, so retry until the expanded label sticks. */
 export async function expandDetailsSheet(page: Page) {
   const expand = page.getByRole("button", {
@@ -102,6 +104,12 @@ export async function expandDetailsSheet(page: Page) {
   });
   for (let attempt = 0; attempt < 4; attempt += 1) {
     if (!(await clickIfAppears(expand, attempt === 0 ? 2000 : 500))) return;
+    // Place sheets have a half stop between peek and full: the first tap
+    // lands on half, which still offers "Expand details". Tap on to full.
+    await page.waitForTimeout(350);
+    if (await expand.isVisible().catch(() => false)) {
+      await expand.click().catch(() => {});
+    }
     const expanded = await collapse
       .waitFor({ state: "visible", timeout: 1500 })
       .then(() => true)

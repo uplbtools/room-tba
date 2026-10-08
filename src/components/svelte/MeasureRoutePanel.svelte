@@ -7,6 +7,12 @@
   import X from "@lucide/svelte/icons/x";
   import { measureRouteStore, type MeasureLeg } from "@lib/store.svelte";
   import { formatDistance, formatDuration } from "@lib/campus-route";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
+
+  // Back closes measuring before it reaches anything under it.
+  trackOverlay("measure", () => measureRouteStore.active, () =>
+    measureRouteStore.disable(),
+  );
 
   const modes = [
     { id: "walk", label: "Walk", icon: Footprints },
@@ -107,7 +113,7 @@
               <span class="measure-panel__leg-name">{i + 1} → {i + 2}</span>
               <span>
                 {leg
-                  ? `${formatDistance(leg.meters)} · ${formatDuration(leg.seconds)}`
+                  ? `${formatDistance(leg.meters)}, ${formatDuration(leg.seconds)}`
                   : "no route"}
               </span>
             </li>

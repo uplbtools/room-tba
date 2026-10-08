@@ -6,7 +6,7 @@ export const SCHEDULE_NOT_PUBLISHED = "Schedule not published";
 export type ScheduleSummary = {
   /** False when nothing is known; `hours` then reads SCHEDULE_NOT_PUBLISHED. */
   published: boolean;
-  /** "Daily · 5:00 AM" or "Daily · about 4:00 AM to about 10:00 PM". */
+  /** "Daily, 5:00 AM" or "Daily, about 4:00 AM to about 10:00 PM". */
   hours: string;
   /** "Every 10 min", "1 trip a day", or "Frequency not published". */
   frequency: string;
@@ -38,7 +38,7 @@ export function summarizeSchedule(
       : "Frequency not published";
   return {
     published: true,
-    hours: `${schedule.days} · ${times}`,
+    hours: `${schedule.days}, ${times}`,
     frequency,
     note: schedule.note ?? null,
   };

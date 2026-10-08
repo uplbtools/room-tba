@@ -100,6 +100,12 @@ export default defineConfig({
           /^\/discord(\/|\?|$)/,
           // Token page: the offline map shell would hide the reset form.
           /^\/reset-password(\/|\?|$)/,
+          // Email confirmation links must load their own page, not the map.
+          /^\/verify-email(\/|\?|$)/,
+          // Per-user server pages (staff dashboard, invites, unsubscribe).
+          /^\/admin(\/|\?|$)/,
+          /^\/invite(\/|\?|$)/,
+          /^\/unsubscribe(\/|\?|$)/,
         ],
         swDest: "dist/client/sw.js",
         // Cache third-party map resources at runtime so the campus map works
@@ -280,6 +286,9 @@ export default defineConfig({
         optional: true,
         default: "production",
       }),
+      // Break-glass only: NOT a normal login. Works solely while the database
+      // has no active admin (blank-username sign-in creates/reactivates
+      // `admin`). Use scripts/set-admin-user.ts instead and leave this unset.
       ADMIN_PASSWORD: envField.string({
         access: "secret",
         context: "server",
@@ -292,6 +301,13 @@ export default defineConfig({
         optional: true,
       }),
       ADMIN_SESSION_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Encrypts staff TOTP secrets at rest (32 bytes, base64 or hex). Unset
+      // turns two-step verification off rather than storing seeds in clear.
+      TOTP_ENCRYPTION_KEY: envField.string({
         access: "secret",
         context: "server",
         optional: true,
@@ -359,8 +375,10 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
-      // Cloudflare Turnstile on editor login (#443). Widget is hidden and
-      // server verification skipped when unset (local dev).
+      // Cloudflare Turnstile on sign-in, sign-up and password reset (#443).
+      // Required in production: without the secret those requests are
+      // rejected. `astro dev` and TURNSTILE_ALLOW_UNCONFIGURED=1 (E2E
+      // preview) skip verification instead.
       PUBLIC_TURNSTILE_SITE_KEY: envField.string({
         access: "public",
         context: "client",
@@ -436,7 +454,17 @@ export default defineConfig({
           // /reset-password carries a per-user ?token=, and ISR keys on the
           // pathname alone: one cached render (an empty error body, in the
           // 2026-10 outage) was served to every reset link for a day.
-          exclude: [/^\/api\//, /^\/og\.png$/, /^\/reset-password\/?$/],
+          exclude: [
+            /^\/api\//,
+            /^\/og\.png$/,
+            /^\/reset-password\/?$/,
+            // Same for every per-user page: the staff dashboard (its
+            // logged-out redirect was cached for everyone), invites, and
+            // unsubscribe links.
+            /^\/admin(\/.*)?$/,
+            /^\/invite\/?$/,
+            /^\/unsubscribe\/?$/,
+          ],
         },
       }),
 });

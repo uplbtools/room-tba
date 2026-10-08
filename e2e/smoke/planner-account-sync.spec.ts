@@ -69,7 +69,7 @@ test("a direct planner visit enables account sync for a signed-in user", async (
 
   const planner = page.getByRole("dialog", { name: "Class Planner" });
   await expect(planner).toBeVisible();
-  await expect(planner.locator(".planner-save-note")).toContainText(
+  await expect(planner.locator(".planner-save-note").first()).toContainText(
     "sync to your account",
   );
   await expect.poll(() => accountPlansRead).toBe(true);

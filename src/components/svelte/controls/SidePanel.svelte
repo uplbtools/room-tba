@@ -15,6 +15,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import { resolvePanelContent } from "@lib/side-panel-content";
   import type { BottomSheetSnap } from "@lib/bottom-sheet-snap";
+  import TransitRouteLifecycle from "./TransitRouteLifecycle.svelte";
 
   const mobile = new MediaQuery("max-width:48rem");
   // Entity detail views only, never list/browse panels (docs/ad-policy.md).
@@ -101,15 +102,18 @@
     resolvePanelContent(sidePanelStore.state, queryStore.category),
   );
 
-  /** Browse lists (colleges, orgs, classes, events) are a destination picked
-      from the menu, not entity details: their sheet stops above the bottom
-      nav (and the FAB overhanging it) so the tabs and menu stay reachable. */
-  const browseSheet = $derived(
+  /** Every sheet stops above the bottom nav (and the FAB overhanging it), so
+      Map, Planner, Today and You stay reachable while a place is open. The
+      nav is hidden while following a route, and its height var is 0 then. */
+  const sheetBottomInset =
+    "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)";
+
+  /** Place sheets get a middle stop (peek, half, full) like GMaps. */
+  const entitySheet = $derived(
     !directionsStore.active &&
       jeepneyStore.selectedStopIndex === null &&
-      (queryStore.category === "browse" ||
-        queryStore.category === "classes" ||
-        queryStore.category === "events"),
+      queryStore.category !== null &&
+      SPONSOR_CATEGORIES.has(queryStore.category),
   );
 
   const panelOpen = $derived(
@@ -143,13 +147,26 @@
     lastPanelIdentity = identity;
   });
 
+  // Sheet content (place tabs) can ask for a taller sheet; it never lowers.
+  $effect(() => {
+    const request = sidePanelStore.sheetSnapRequest;
+    if (!request) return;
+    sidePanelStore.sheetSnapRequest = null;
+    if (!mobile.current || !panelOpen) return;
+    if (request === "expanded" || mobileSnap === "peek") mobileSnap = request;
+  });
+
   // Drive map-control visibility in Entry (hide locate/3D/zoom while sheet open).
   $effect(() => {
     if (!mobile.current || !panelOpen) {
       sidePanelStore.setMobileSheetSnap("closed");
       return;
     }
-    sidePanelStore.setMobileSheetSnap(mobileSnap);
+    // Map controls only care whether the sheet leaves room for them, and the
+    // half stop does not.
+    sidePanelStore.setMobileSheetSnap(
+      mobileSnap === "peek" ? "peek" : "expanded",
+    );
   });
 
   function togglePanel() {
@@ -173,6 +190,8 @@
     sidePanelStore.setMobileSheetSnap("closed");
   }
 </script>
+
+<TransitRouteLifecycle />
 
 {#snippet panelBody()}
   {#if directionsStore.active}
@@ -198,15 +217,14 @@
     open={panelOpen}
     bind:snap={mobileSnap}
     peekRatio={sheetPeekRatio}
+    halfRatio={entitySheet ? 0.62 : undefined}
     peekFitTo={navPeek
       ? ".nav__bar"
       : directionsPeek
         ? ".directions__start-row"
-        : ".entity-actions, .sk-detail__actions"}
+        : ".place-sheet-header__actions, .sk-detail__actions"}
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
-    bottomInset={browseSheet
-      ? "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)"
-      : "0px"}
+    bottomInset={sheetBottomInset}
     scrollResetKey={panelIdentity}
     onDismiss={dismissMobileSheet}
   >
@@ -286,7 +304,10 @@
     box-shadow: var(--map-chrome-panel-shadow);
     overflow: hidden;
     /* Backdrop for the sticky place-sheet header (entity-detail.css). */
-    --entity-sheet-bg: var(--map-chrome-panel-bg, hsl(5 18% 96%));
+    --entity-sheet-bg: var(
+      --map-chrome-panel-bg,
+      var(--theme-surface, hsl(5 18% 96%))
+    );
     display: flex;
     flex-direction: column;
   }
@@ -298,7 +319,7 @@
     padding: 0.75rem 0.875rem;
     background-color: var(--theme-surface, #fff);
     box-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
-    --entity-sheet-bg: #fff;
+    --entity-sheet-bg: var(--theme-surface, #fff);
   }
 
   :global(.app-layout.redesign-desktop) .drawer-handle {
@@ -342,6 +363,15 @@
     overscroll-behavior: contain;
     scroll-padding: 4px 0 0.5rem;
   }
+  /* With a mouse, the scrollbar is a stray grey line running down the
+     panel's edge beside the content; show the thumb only while the panel is
+     hovered or has focus (wheel and keyboard scroll work either way). */
+  @media (hover: hover) and (pointer: fine) {
+    .side-panel-details:not(:hover):not(:focus-within) {
+      --map-chrome-scrollbar-thumb: transparent;
+    }
+  }
+
   .side-panel-details > :global(*) {
     flex: 0 1 auto;
     min-height: 0;

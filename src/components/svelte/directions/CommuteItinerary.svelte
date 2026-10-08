@@ -30,7 +30,7 @@
           >
           <span
             >Walk {formatDuration(leg.seconds)}
-            <span class="itinerary__meta">· {formatDistance(leg.meters)}</span
+            <span class="itinerary__meta">({formatDistance(leg.meters)})</span
             ></span
           >
         </li>
@@ -69,7 +69,7 @@
             <summary
               >Ride {hops} stop{hops === 1 ? "" : "s"}
               <span class="itinerary__meta"
-                >· {formatDuration(leg.seconds - leg.waitSeconds)}</span
+                >({formatDuration(leg.seconds - leg.waitSeconds)})</span
               ></summary
             >
             <ol class="itinerary__between">
@@ -82,7 +82,7 @@
           <span
             >Ride {hops} stop{hops === 1 ? "" : "s"}
             <span class="itinerary__meta"
-              >· {formatDuration(leg.seconds - leg.waitSeconds)}</span
+              >({formatDuration(leg.seconds - leg.waitSeconds)})</span
             ></span
           >
         {/if}

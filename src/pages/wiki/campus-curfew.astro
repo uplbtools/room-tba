@@ -4,26 +4,16 @@ export const prerender = true;
 import WikiLayout from "@layouts/WikiLayout.astro";
 import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
 import { CAMPUS_CURFEW } from "@constants/campus-curfew";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const title = "Campus curfew and dorm permits | Room TBA Wiki";
 const description =
   "UPLB campus curfew hours and return-permit information for UP-managed dorm residents.";
-const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/wiki/campus-curfew" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Wiki", path: "/wiki" },
-    { name: "Campus curfew", path: "/wiki/campus-curfew" },
-  ]),
-);
 ---
 
 <WikiLayout
   {title}
   {description}
   canonicalPath="/wiki/campus-curfew"
-  {structuredData}
   crumb="Campus curfew"
 >
   <article class="wiki-article">
@@ -34,7 +24,10 @@ const structuredData = jsonLd(
         A short reference for the curfew and return permits that apply to
         residents of UP-managed dormitories.
       </p>
-      <WikiProvenance sourcePath="src/pages/wiki/campus-curfew.astro" />
+      <WikiProvenance
+        sourcePath="src/pages/wiki/campus-curfew.astro"
+        unverifiedDataPath="src/constants/campus-curfew.ts"
+      />
     </header>
 
     <section aria-labelledby="curfew-hours">
@@ -50,6 +43,18 @@ const structuredData = jsonLd(
         <li>{CAMPUS_CURFEW.latePermit}</li>
         <li>{CAMPUS_CURFEW.overnightPermit}</li>
       </ul>
+    </section>
+
+    <section aria-labelledby="curfew-help">
+      <h2 id="curfew-help">Who to ask</h2>
+      <p>
+        Permit rules are set and applied by each dormitory’s management, so the
+        office that issued your dorm slot is the authority, not this page. Find
+        your dorm’s details in the <a href="/dorm/">dorm directory</a>. If you
+        are locked out or someone is in trouble after hours, call
+        <a href="/wiki/emergency-hotlines">campus security and the emergency
+        hotlines</a>.
+      </p>
     </section>
   </article>
 </WikiLayout>

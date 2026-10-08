@@ -796,6 +796,69 @@ export async function getLocalRoomClassCounts(
   }
 }
 
+/**
+ * Schedules of every class held in a building, from PGlite, for the sheet's
+ * "classes now" fact. Null when classes were never synced (#415): the sheet
+ * then falls back to the per-room term counts it already fetched.
+ */
+export async function getLocalBuildingClassSchedules(
+  buildingId: number,
+  termId?: number,
+): Promise<(string[] | null)[] | null> {
+  try {
+    const localDB = await getDB();
+    await localDB.waitReady;
+    const hasAny = (await localDB.query(
+      "SELECT 1 FROM classes LIMIT 1",
+    )) as Results<Record<string, unknown>>;
+    if (hasAny.rows.length === 0) return null;
+
+    const scoped = termId != null;
+    const data = (await localDB.query(
+      `
+      SELECT c.schedule
+      FROM classes AS c
+      JOIN rooms AS r ON r.id = c.room_id
+      WHERE r.building_id = $1
+      ${scoped ? "AND c.term_id = $2" : ""}
+      `,
+      scoped ? [buildingId, termId] : [buildingId],
+    )) as Results<{ schedule: string[] | null }>;
+    return data.rows.map((row) => row.schedule);
+  } catch (e) {
+    console.error("Error: ", e);
+    return null;
+  }
+}
+
+/**
+ * Every class schedule in a building: the local copy when classes were
+ * synced, else one /api/rooms/class-schedules request. Null when neither
+ * answers, so the sheet shows only what it knows.
+ */
+export async function fetchBuildingClassSchedules(
+  buildingId: number,
+  termId?: number,
+): Promise<(string[] | null)[] | null> {
+  const local = await getLocalBuildingClassSchedules(buildingId, termId);
+  if (local !== null) return local;
+
+  const params = new URLSearchParams({ building_id: String(buildingId) });
+  if (termId != null) params.set("term_id", String(termId));
+  try {
+    const response = await fetch(
+      `/api/rooms/class-schedules?${params.toString()}`,
+    );
+    if (!response.ok) return null;
+    const payload = (await response.json()) as {
+      data?: (string[] | null)[];
+    };
+    return Array.isArray(payload?.data) ? payload.data : null;
+  } catch {
+    return null;
+  }
+}
+
 export const getBuildingRooms = getEntityRooms(
   "building",
   getLocalBuildingRooms,

@@ -47,7 +47,7 @@
             </span>
           </p>
           <p class="nav__meta">
-            {formatDistance(nav.remainingMeters)} · {arrival}
+            {formatDistance(nav.remainingMeters)}, arrives {arrival}
           </p>
         {/if}
       </div>

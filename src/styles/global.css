@@ -11,4 +11,6 @@ hr {
 
 mark {
   background-color: var(--theme-accent-soft, hsl(5, 53%, 90%));
+  /* The UA default is black text, invisible on the dark accent tint. */
+  color: inherit;
 }

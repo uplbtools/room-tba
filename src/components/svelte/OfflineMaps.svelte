@@ -97,14 +97,14 @@
     return `Updated ${date.toLocaleDateString()}`;
   }
 
-  // Same "status · size" shape as the other two rows' "status" meta.
+  // Same "status (size)" shape as the other two rows' "status" meta.
   const mapMeta = $derived.by(() => {
     if (offlineStore.status === "done") {
-      return `Saved · ${fmtBytes(offlineStore.bytesDownloaded)}`;
+      return `Saved (${fmtBytes(offlineStore.bytesDownloaded)})`;
     }
     if (offlineStore.status === "downloading") return "Downloading…";
     return offlineStore.estimatedBytes > 0
-      ? `Not downloaded · ~${fmtBytes(offlineStore.estimatedBytes)}`
+      ? `Not downloaded (~${fmtBytes(offlineStore.estimatedBytes)})`
       : "Not downloaded";
   });
 
@@ -181,7 +181,7 @@
           </button>
         {:else if offlineStore.status === "done"}
           <p class="map-chrome-popover-sub">
-            Saved · {offlineStore.tilesTotal} tiles · {fmtBytes(
+            Saved: {offlineStore.tilesTotal} tiles, {fmtBytes(
               offlineStore.bytesDownloaded,
             )}
           </p>

@@ -183,13 +183,13 @@
     }
   }
 
-  /** One line per component: "Lec WF 4–5 PM · EAA LH". */
+  /** One line per component: "Lec WF 4–5 PM in EAA LH". */
   function offeringParts(offering: ClassOfferingGroup): string[] {
     return offering.sections.map((s) => {
       const sched = s.schedule?.length
         ? s.schedule.map(formatScheduleShort).join(", ")
         : "TBA";
-      const room = s.roomCode ? ` · ${s.roomCode}` : "";
+      const room = s.roomCode ? ` in ${s.roomCode}` : "";
       return `${formatSectionType(s.type)} ${sched}${room}`;
     });
   }

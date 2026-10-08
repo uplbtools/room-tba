@@ -3,11 +3,11 @@
   import DoorOpen from "@lucide/svelte/icons/door-open";
   import House from "@lucide/svelte/icons/house";
   import MapPin from "@lucide/svelte/icons/map-pin";
-  import Star from "@lucide/svelte/icons/star";
   import X from "@lucide/svelte/icons/x";
   import type { Component } from "svelte";
   import ModalHeader from "./ModalHeader.svelte";
   import { modalStore } from "@lib/store.svelte";
+  import { getSheetContext } from "./sheet-context";
   import {
     openSavedPlace,
     recentPlaces,
@@ -24,8 +24,11 @@
     place: MapPin,
   };
 
+  // Close whichever surface holds this screen (the modal, or the You sheet).
+  const sheet = getSheetContext();
+
   function open(place: SavedPlace) {
-    modalStore.closeModal();
+    (sheet?.close ?? modalStore.closeModal)();
     openSavedPlace(place);
   }
 </script>
@@ -72,8 +75,7 @@
       <h3 id="saved-places-starred">Saved places</h3>
       {#if savedPlaces.items.length === 0}
         <p class="saved-places__empty">
-          Tap <Star size={13} aria-hidden="true" /> Save on any building, room, dorm
-          or place to keep it here.
+          Tap the star on any place to save it here.
         </p>
       {:else}
         <ul>
@@ -118,17 +120,17 @@
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
-    gap: 0.5rem;
-    padding-bottom: 0.25rem;
   }
 
   .saved-places__scroll {
     display: flex;
+    flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
     overflow-y: auto;
-    padding: 0 0.5rem 0.25rem;
+    overscroll-behavior: contain;
+    padding: 0 0.5rem 0.5rem;
   }
 
   .saved-places__scroll > section {
@@ -136,13 +138,13 @@
     gap: 0.375rem;
   }
 
+  /* Section label, the same style as every settings screen. */
   h3 {
     margin: 0;
-    color: var(--theme-accent-text, hsl(5 53% 28%));
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    padding: 0.5rem 0.5rem 0.25rem;
+    color: var(--theme-accent-text, hsl(345 75% 31%));
+    font-size: 0.875rem;
+    font-weight: 500;
   }
 
   .saved-places__section-head {
@@ -244,12 +246,8 @@
     margin: 0;
     padding: 0.25rem 0.5rem;
     color: var(--theme-text-2, hsl(0 0% 40%));
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     line-height: 1.4;
-  }
-
-  .saved-places__empty :global(svg) {
-    vertical-align: -2px;
   }
 
   @media (hover: hover) {

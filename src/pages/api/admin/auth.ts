@@ -5,18 +5,21 @@ import {
   clearSessionCookie,
   createSessionToken,
   setSessionCookie,
+  type SessionUser,
 } from "@lib/admin/auth";
-import { getEditorSession } from "@lib/admin/require-editor";
-import {
-  checkRateLimit,
-  clientIp,
-  rateLimitResponse,
-} from "@lib/api/rate-limit";
+import { optionalEditorSession } from "@lib/admin/require-editor";
+import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { accountBackoff, sharedRateLimit } from "@lib/api/rate-limit-db";
+import { accountKey } from "@lib/api/rate-limit-shared";
+import { readSessionVersion } from "@lib/services/account-security";
 import {
   authenticateAdminUser,
-  authenticateLegacyAdminPassword,
+  bootstrapAdminLogin,
   getAdminUserBySupabaseId,
 } from "@lib/services/admin-user-service";
+import { loginStepResponse } from "@lib/auth/login-challenge";
+import { recordAudit } from "@lib/services/audit-log-service";
+import { loginPlanFor } from "@lib/services/staff-security-service";
 import { createServerSupabaseClient } from "@lib/supabase/server";
 import { verifyTurnstileToken } from "@lib/turnstile";
 
@@ -27,9 +30,13 @@ const LOGIN_IP_LIMIT = { max: 12, windowMs: LOGIN_RATE_LIMIT_WINDOW_MS };
 const LOGIN_USER_LIMIT = { max: 8, windowMs: LOGIN_RATE_LIMIT_WINDOW_MS };
 const LOGIN_RATE_LIMIT_MESSAGE =
   "Too many sign-in attempts. Wait about 30 seconds and try again.";
+const LOGIN_BACKOFF_MESSAGE =
+  "Too many failed sign-ins for this account. Wait a few minutes, or reset your password.";
 
+/** Session status for the app shell. Revalidated against the DB so a revoked
+ * or deactivated session reads as signed out right away; never cached. */
 export const GET: APIRoute = async ({ cookies }) => {
-  const session = getEditorSession(cookies);
+  const session = await optionalEditorSession(cookies);
   return new Response(
     JSON.stringify({
       admin: session !== null,
@@ -42,7 +49,10 @@ export const GET: APIRoute = async ({ cookies }) => {
     }),
     {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "private, no-store",
+      },
     },
   );
 };
@@ -53,7 +63,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       process.env.ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === "1";
     const ip = clientIp(request);
     if (!skipLoginRateLimit) {
-      const ipRate = checkRateLimit(
+      const ipRate = await sharedRateLimit(
         `admin-login:ip:${ip}`,
         LOGIN_IP_LIMIT.max,
         LOGIN_IP_LIMIT.windowMs,
@@ -69,19 +79,35 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const username = typeof usernameRaw === "string" ? usernameRaw.trim() : "";
     const password = typeof passwordRaw === "string" ? passwordRaw : "";
 
-    if (username && !skipLoginRateLimit) {
-      const userRate = checkRateLimit(
-        `admin-login:user:${username.toLowerCase()}`,
+    // Every normal sign-in names an account (first admin:
+    // scripts/set-admin-user.ts). A blank username is only the break-glass
+    // ADMIN_PASSWORD bootstrap, which works solely while the database has no
+    // active admin at all (bootstrapAdminLogin); otherwise it is refused
+    // with the same answer as any blank username.
+    const breakGlass = !username;
+    if (breakGlass && !password) {
+      return json({ error: "Enter your username or email." }, 400);
+    }
+    if (!password) {
+      return json({ error: "Password is required" }, 400);
+    }
+
+    const backoffKey = breakGlass
+      ? "login-backoff:break-glass"
+      : accountKey("login-backoff", username);
+    if (!skipLoginRateLimit) {
+      const userRate = await sharedRateLimit(
+        `admin-login:user:${breakGlass ? "(break-glass)" : username.toLowerCase()}`,
         LOGIN_USER_LIMIT.max,
         LOGIN_USER_LIMIT.windowMs,
       );
       if (!userRate.allowed) {
         return rateLimitResponse(userRate.resetAt, LOGIN_RATE_LIMIT_MESSAGE);
       }
-    }
-
-    if (!password) {
-      return json({ error: "Password is required" }, 400);
+      const lockedUntil = await accountBackoff.check(backoffKey);
+      if (lockedUntil !== null) {
+        return rateLimitResponse(lockedUntil, LOGIN_BACKOFF_MESSAGE);
+      }
     }
 
     const turnstileToken = formData.get("turnstileToken");
@@ -94,6 +120,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         { error: "Verification failed. Refresh the page and try again." },
         400,
       );
+    }
+
+    if (breakGlass) {
+      const bootstrap = await bootstrapAdminLogin(password);
+      if (!bootstrap) {
+        if (!skipLoginRateLimit) await accountBackoff.fail(backoffKey);
+        return json({ error: "Enter your username or email." }, 400);
+      }
+      await recordAudit({
+        action: "login.success",
+        actor: bootstrap,
+        targetUserId: bootstrap.id,
+        targetLabel: bootstrap.username,
+        detail: { method: "break-glass" },
+        ip,
+      });
+      return sessionResponse(bootstrap);
     }
 
     let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
@@ -132,20 +175,34 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     if (!user) {
-      user = username ? await authenticateAdminUser(username, password) : null;
-    }
-
-    if (!user && !username) {
-      user = await authenticateLegacyAdminPassword(password);
+      user = await authenticateAdminUser(username, password);
     }
 
     if (!user) {
+      if (!skipLoginRateLimit) await accountBackoff.fail(backoffKey);
+      await recordAudit({
+        action: "login.failure",
+        actorLabel: username.toLowerCase().slice(0, 100) || null,
+        ip,
+      });
       return json({ error: "Invalid username or password" }, 401);
     }
+    if (!skipLoginRateLimit) await accountBackoff.succeed(backoffKey);
 
+    // Two-step code, required 2FA enrollment, or a forced password change
+    // come before the session (auth audit item 19). The client finishes
+    // them through /api/admin/auth/step with the returned challenge.
+    const plan = await loginPlanFor(user);
+    if (plan.steps.length > 0) {
+      return loginStepResponse(user.id, plan.steps, []);
+    }
+
+    // The cookie carries the account's current session version, so the next
+    // "sign out everywhere" or password change revokes it.
+    const sessionVersion = await readSessionVersion(user.id);
     let token: string;
     try {
-      token = createSessionToken(user);
+      token = createSessionToken({ ...user, sessionVersion });
     } catch (error) {
       console.error("Admin session signing misconfigured:", error);
       return json(
@@ -157,6 +214,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
+    await recordAudit({
+      action: "login.success",
+      actor: user,
+      targetUserId: user.id,
+      targetLabel: user.username,
+      detail: { method: "password" },
+      ip,
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -165,6 +231,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         role: user.role,
         canPublish: canPublishDirectly(user.role),
         canReview: canReviewProposals(user.role),
+        mfaEnrollmentSuggested: plan.enrollSuggested,
       }),
       {
         status: 200,
@@ -186,15 +253,56 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 };
 
+/** Sign out this device. "Sign out of all devices" lives at
+ * /api/account/sign-out-everywhere (bumps the session version). */
 export const DELETE: APIRoute = async () => {
   return new Response(JSON.stringify({ success: true }), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
+      "Cache-Control": "private, no-store",
       "Set-Cookie": clearSessionCookie(),
     },
   });
 };
+
+/** Mint the session cookie for a signed-in user (normal or break-glass). */
+async function sessionResponse(user: SessionUser): Promise<Response> {
+  // The cookie carries the account's current session version, so the next
+  // "sign out everywhere" or password change revokes it.
+  const sessionVersion = await readSessionVersion(user.id);
+  let token: string;
+  try {
+    token = createSessionToken({ ...user, sessionVersion });
+  } catch (error) {
+    console.error("Admin session signing misconfigured:", error);
+    return json(
+      {
+        error:
+          "Editor sign-in is not configured on this server. Contact the site maintainer.",
+      },
+      503,
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      username: user.username,
+      displayName: user.displayName,
+      role: user.role,
+      canPublish: canPublishDirectly(user.role),
+      canReview: canReviewProposals(user.role),
+    }),
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": setSessionCookie(token),
+      },
+    },
+  );
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

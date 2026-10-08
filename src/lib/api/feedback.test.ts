@@ -10,7 +10,7 @@ import {
 import { resetRateLimitsForTests } from "./rate-limit";
 
 describe("validateFeedback", () => {
-  test("accepts a message and trims it", () => {
+  test("accepts a message and trims it", async () => {
     const result = validateFeedback({ message: "  the map is blank  " });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -19,7 +19,7 @@ describe("validateFeedback", () => {
     expect(result.value.wasOnline).toBeNull();
   });
 
-  test("rejects an empty or whitespace-only message with 400", () => {
+  test("rejects an empty or whitespace-only message with 400", async () => {
     for (const message of ["", "   ", "\n\t"]) {
       const result = validateFeedback({ message });
       expect(result.ok).toBe(false);
@@ -28,14 +28,14 @@ describe("validateFeedback", () => {
     }
   });
 
-  test("rejects a non-object body with 400", () => {
+  test("rejects a non-object body with 400", async () => {
     for (const body of [null, undefined, "hello", 42, ["message"]]) {
       const result = validateFeedback(body);
       expect(result.ok).toBe(false);
     }
   });
 
-  test("rejects an oversized message with 413", () => {
+  test("rejects an oversized message with 413", async () => {
     const result = validateFeedback({
       message: "x".repeat(FEEDBACK_MESSAGE_MAX + 1),
     });
@@ -44,13 +44,13 @@ describe("validateFeedback", () => {
     expect(result.status).toBe(413);
   });
 
-  test("accepts a message exactly at the cap", () => {
+  test("accepts a message exactly at the cap", async () => {
     expect(
       validateFeedback({ message: "x".repeat(FEEDBACK_MESSAGE_MAX) }).ok,
     ).toBe(true);
   });
 
-  test("truncates an overlong contact instead of failing the send", () => {
+  test("truncates an overlong contact instead of failing the send", async () => {
     const result = validateFeedback({
       message: "hi",
       contact: "a".repeat(FEEDBACK_CONTACT_MAX + 50),
@@ -60,7 +60,7 @@ describe("validateFeedback", () => {
     expect(result.value.contact).toHaveLength(FEEDBACK_CONTACT_MAX);
   });
 
-  test("keeps a same-site path but drops its query string", () => {
+  test("keeps a same-site path but drops its query string", async () => {
     const result = validateFeedback({
       message: "hi",
       screen: "/planner?term=1252&q=secret",
@@ -70,7 +70,7 @@ describe("validateFeedback", () => {
     expect(result.value.screen).toBe("/planner");
   });
 
-  test("drops a screen that is not a same-site path", () => {
+  test("drops a screen that is not a same-site path", async () => {
     for (const screen of [
       "https://evil.example/x",
       "//evil.example",
@@ -85,7 +85,7 @@ describe("validateFeedback", () => {
     }
   });
 
-  test("keeps wasOnline only when it is a real boolean", () => {
+  test("keeps wasOnline only when it is a real boolean", async () => {
     const on = validateFeedback({ message: "hi", wasOnline: false });
     expect(on.ok && on.value.wasOnline).toBe(false);
     const bogus = validateFeedback({ message: "hi", wasOnline: "yes" });
@@ -94,13 +94,13 @@ describe("validateFeedback", () => {
 });
 
 describe("isFeedbackBodyTooLarge", () => {
-  test("allows a missing or normal Content-Length", () => {
+  test("allows a missing or normal Content-Length", async () => {
     expect(isFeedbackBodyTooLarge(null)).toBe(false);
     expect(isFeedbackBodyTooLarge("512")).toBe(false);
     expect(isFeedbackBodyTooLarge(String(FEEDBACK_MAX_BODY_BYTES))).toBe(false);
   });
 
-  test("rejects a declared body over the cap", () => {
+  test("rejects a declared body over the cap", async () => {
     expect(isFeedbackBodyTooLarge(String(FEEDBACK_MAX_BODY_BYTES + 1))).toBe(
       true,
     );
@@ -108,35 +108,35 @@ describe("isFeedbackBodyTooLarge", () => {
 });
 
 describe("enforceFeedbackLimits", () => {
-  test("allows the first few messages from one IP", () => {
+  test("allows the first few messages from one IP", async () => {
     resetRateLimitsForTests();
     const now = 5_000_000;
     for (let i = 0; i < 5; i += 1) {
-      expect(enforceFeedbackLimits("198.51.100.10", now)).toBeNull();
+      expect(await enforceFeedbackLimits("198.51.100.10", now)).toBeNull();
     }
   });
 
-  test("blocks the next message from the same IP", () => {
+  test("blocks the next message from the same IP", async () => {
     resetRateLimitsForTests();
     const now = 6_000_000;
     for (let i = 0; i < 5; i += 1) {
-      enforceFeedbackLimits("198.51.100.11", now);
+      await enforceFeedbackLimits("198.51.100.11", now);
     }
-    const blocked = enforceFeedbackLimits("198.51.100.11", now);
+    const blocked = await enforceFeedbackLimits("198.51.100.11", now);
     expect(blocked).not.toBeNull();
     expect(blocked?.resetAt).toBeGreaterThan(now);
   });
 
-  test("does not let one IP's burst block another", () => {
+  test("does not let one IP's burst block another", async () => {
     resetRateLimitsForTests();
     const now = 7_000_000;
     for (let i = 0; i < 6; i += 1) {
-      enforceFeedbackLimits("198.51.100.12", now);
+      await enforceFeedbackLimits("198.51.100.12", now);
     }
-    expect(enforceFeedbackLimits("198.51.100.13", now)).toBeNull();
+    expect(await enforceFeedbackLimits("198.51.100.13", now)).toBeNull();
   });
 
-  test("lets the short window recover but keeps the daily cap", () => {
+  test("lets the short window recover but keeps the daily cap", async () => {
     resetRateLimitsForTests();
     const start = 8_000_000;
     const shortWindowMs = 10 * 60 * 1000;
@@ -145,7 +145,10 @@ describe("enforceFeedbackLimits", () => {
     for (let window = 0; window < 6; window += 1) {
       const now = start + window * shortWindowMs;
       for (let i = 0; i < 5; i += 1) {
-        if (enforceFeedbackLimits("198.51.100.14", now) && blockedAt === null) {
+        if (
+          (await enforceFeedbackLimits("198.51.100.14", now)) &&
+          blockedAt === null
+        ) {
           blockedAt = window;
         }
       }

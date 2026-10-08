@@ -66,3 +66,76 @@ describe("ResultDisplay rooms list (Jakob micro 8)", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("ResultDisplay Filter rooms field", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 503 })),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const field = () => screen.getByRole("searchbox", { name: "Filter rooms" });
+  const roomButtons = () =>
+    screen
+      .getAllByRole("button")
+      .filter((el) => el.classList.contains("room-data"));
+
+  test("only buildings with more than 8 rooms get the field", () => {
+    const view = render(ResultDisplay, { props: { filteredRooms: rooms(8) } });
+    expect(screen.queryByRole("searchbox")).toBeNull();
+    view.unmount();
+
+    render(ResultDisplay, { props: { filteredRooms: rooms(9) } });
+    expect(field()).toHaveAttribute("placeholder", "Filter rooms…");
+  });
+
+  test("filters by code or name, case-insensitively, past the Show all cut", async () => {
+    const list = rooms(30);
+    list[25] = { ...list[25]!, fullName: "Audio Visual Room" };
+    render(ResultDisplay, { props: { filteredRooms: list } });
+
+    await fireEvent.input(field(), { target: { value: "ps 12" } });
+    // PS 120–PS 129: all ten match, including rows past the first 12.
+    expect(roomButtons()).toHaveLength(10);
+    expect(screen.queryByRole("button", { name: /Show all/ })).toBeNull();
+
+    await fireEvent.input(field(), { target: { value: "AUDIO" } });
+    expect(roomButtons()).toHaveLength(1);
+    expect(roomButtons()[0]).toHaveTextContent("PS 125");
+  });
+
+  test("no match says so; the clear button brings the list back", async () => {
+    render(ResultDisplay, { props: { filteredRooms: rooms(20) } });
+
+    expect(screen.queryByRole("button", { name: "Clear filter" })).toBeNull();
+    await fireEvent.input(field(), { target: { value: "zzz(" } });
+    expect(roomButtons()).toHaveLength(0);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "No rooms match “zzz(”",
+    );
+
+    await fireEvent.click(screen.getByRole("button", { name: "Clear filter" }));
+    expect(field()).toHaveValue("");
+    expect(field()).toHaveFocus();
+    expect(roomButtons()).toHaveLength(12);
+    expect(
+      screen.getByRole("button", { name: "Show all 20 rooms" }),
+    ).toBeInTheDocument();
+  });
+
+  test("another building opens with an empty filter", async () => {
+    const view = render(ResultDisplay, {
+      props: { filteredRooms: rooms(20) },
+    });
+    await fireEvent.input(field(), { target: { value: "PS 101" } });
+    // Different room ids, so a different list (a refresh keeps the filter).
+    await view.rerender({ filteredRooms: rooms(21, "CHE") });
+    expect(field()).toHaveValue("");
+    expect(roomButtons()).toHaveLength(12);
+  });
+});

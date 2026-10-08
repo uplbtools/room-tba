@@ -41,7 +41,7 @@ describe("TravelTimeLegend", () => {
 
   test("close button turns the tool off", async () => {
     render(TravelTimeLegend);
-    screen.getByRole("button", { name: /turn off travel time/i }).click();
+    screen.getByRole("button", { name: /turn off walking time/i }).click();
     expect(travelTimeStore.active).toBe(false);
   });
 });

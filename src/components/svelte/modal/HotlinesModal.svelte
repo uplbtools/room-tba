@@ -72,17 +72,15 @@
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
-    gap: 0.5rem;
-    padding-bottom: 0.25rem;
   }
 
+  /* Section label, the same style as every settings screen. */
   h3 {
     margin: 0;
-    color: var(--theme-accent-text, hsl(5 53% 28%));
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    padding-top: 0.5rem;
+    color: var(--theme-accent-text, hsl(345 75% 31%));
+    font-size: 0.875rem;
+    font-weight: 500;
   }
 
   .hotlines-modal__save {
@@ -113,7 +111,7 @@
     flex-direction: column;
     gap: 1rem;
     overflow-y: auto;
-    padding: 0 0.5rem 0.25rem;
+    padding: 0 1rem 0.5rem;
   }
 
   .hotlines-modal__scroll > section {

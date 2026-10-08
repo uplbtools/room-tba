@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { LANDSCAPE_COMPACT_MEDIA } from "@lib/bottom-sheet-snap";
   import { MapLibre, Marker } from "svelte-maplibre";
   import * as maplibregl from "maplibre-gl";
   import { configureMaplibreWorker } from "@lib/maplibre-worker";
@@ -92,16 +93,6 @@
   import { type Position, stopArrows } from "@lib/route-arrows";
   import { reverseLine } from "@lib/transit-direction";
   import {
-    MAKILING_TRAIL_COLOR,
-    MAKILING_TRAIL_LAYER_CASING_ID,
-    MAKILING_TRAIL_LAYER_ID,
-    MAKILING_TRAIL_LINE,
-    MAKILING_TRAIL_STATIONS,
-    MAKILING_TRAIL_STATIONS_LAYER_ID,
-    MAKILING_TRAIL_STATIONS_SOURCE_ID,
-    MAKILING_TRAIL_SOURCE_ID,
-  } from "@constants/makiling-trail";
-  import {
     CAMPUS_DEFAULT_CAMERA,
     MAP_REGION_MAX_BOUNDS,
     MAP_REGION_MIN_ZOOM,
@@ -127,10 +118,14 @@
     type TravelMode,
   } from "@lib/travel-graph/engine";
   import { loadTravelGraph } from "@lib/travel-graph/load";
-  import { applyBasemapPalette } from "@lib/map-basemap-palette";
+  import { syncBasemapPalette } from "@lib/map-basemap-palette";
   import { getResolvedTheme, onThemeChange } from "@lib/theme";
   import { syncSatelliteLayer } from "@lib/map-satellite";
-  import { pointsBounds } from "@lib/map-fit";
+  import {
+    measureVisibleMapPadding,
+    pointsBounds,
+    SIDE_PANEL_WIDTH_PX,
+  } from "@lib/map-fit";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
@@ -371,6 +366,11 @@
     lon: number,
     label: string,
   ): boolean {
+    // Measure mode: a pin tap is one more waypoint, never a place sheet.
+    if (measureRouteStore.active) {
+      measureRouteStore.addWaypoint(lat, lon);
+      return true;
+    }
     // A start point, an end point or an extra stop, whichever is waiting.
     return directionsStore.takePick({ lat, lng: lon, label });
   }
@@ -1080,101 +1080,6 @@
     }
   }
 
-  function ensureTrailLayers(map: mapGl.MapLibreMap) {
-    // Trail line source + casing + line
-    if (!map.getSource(MAKILING_TRAIL_SOURCE_ID)) {
-      map.addSource(MAKILING_TRAIL_SOURCE_ID, {
-        type: "geojson",
-        data: {
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: MAKILING_TRAIL_LINE,
-          },
-          properties: {},
-        },
-      });
-    }
-
-    if (!map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID)) {
-      map.addLayer({
-        id: MAKILING_TRAIL_LAYER_CASING_ID,
-        type: "line",
-        source: MAKILING_TRAIL_SOURCE_ID,
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": "#ffffff",
-          "line-width": 7,
-          "line-opacity": 0.9,
-        },
-      });
-    }
-
-    if (!map.getLayer(MAKILING_TRAIL_LAYER_ID)) {
-      map.addLayer({
-        id: MAKILING_TRAIL_LAYER_ID,
-        type: "line",
-        source: MAKILING_TRAIL_SOURCE_ID,
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": MAKILING_TRAIL_COLOR,
-          "line-width": 4,
-          "line-opacity": 0.95,
-        },
-      });
-    }
-
-    // Station markers source + circle layer
-    if (!map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID)) {
-      map.addSource(MAKILING_TRAIL_STATIONS_SOURCE_ID, {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: MAKILING_TRAIL_STATIONS.map((s) => ({
-            type: "Feature" as const,
-            geometry: {
-              type: "Point" as const,
-              coordinates: [s.lon, s.lat],
-            },
-            properties: {
-              station: s.station,
-              name: s.name,
-              elevation: s.elevationMeters,
-            },
-          })),
-        },
-      });
-    }
-
-    if (!map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID)) {
-      map.addLayer({
-        id: MAKILING_TRAIL_STATIONS_LAYER_ID,
-        type: "circle",
-        source: MAKILING_TRAIL_STATIONS_SOURCE_ID,
-        paint: {
-          "circle-radius": 6,
-          "circle-color": MAKILING_TRAIL_COLOR,
-          "circle-stroke-color": "#ffffff",
-          "circle-stroke-width": 2,
-          "circle-opacity": 0.95,
-        },
-      });
-    }
-  }
-
-  function clearTrailLayers(map: mapGl.MapLibreMap) {
-    if (map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID))
-      map.removeLayer(MAKILING_TRAIL_STATIONS_LAYER_ID);
-    if (map.getLayer(MAKILING_TRAIL_LAYER_ID))
-      map.removeLayer(MAKILING_TRAIL_LAYER_ID);
-    if (map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID))
-      map.removeLayer(MAKILING_TRAIL_LAYER_CASING_ID);
-    if (map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID))
-      map.removeSource(MAKILING_TRAIL_STATIONS_SOURCE_ID);
-    if (map.getSource(MAKILING_TRAIL_SOURCE_ID))
-      map.removeSource(MAKILING_TRAIL_SOURCE_ID);
-  }
-
   function buildEventRouteGeometry(
     route: EventData["routes"][number],
   ): LineString | null {
@@ -1234,58 +1139,12 @@
     );
   }
 
-  /**
-   * Padding that keeps a fitted area inside the part of the map nobody is
-   * covering: below the search bar and chips, above the mobile sheet (or
-   * beside the desktop panel). A flat 80px left most of a route under the
-   * phone sheet.
-   */
+  /** Padding that keeps a fitted area clear of the search bar, chips and sheet. */
   function visibleMapPadding(map: mapGl.MapLibreMap): mapGl.PaddingOptions {
-    const gap = 24;
-    const frame = map.getContainer().getBoundingClientRect();
-    const chromeBottom = Math.max(
-      frame.top,
-      ...[
-        ...document.querySelectorAll(
-          ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .directions-route-chips",
-        ),
-      ]
-        .map((el) => el.getBoundingClientRect())
-        .filter((r) => r.height > 0 && r.bottom < frame.top + frame.height / 2)
-        .map((r) => r.bottom),
-    );
-    const padding = {
-      top: chromeBottom - frame.top + gap,
-      bottom: gap,
-      left: gap,
-      right: gap,
-    };
-    if (md.current) {
-      const root = document.querySelector(".bottom-sheet-root");
-      const sheet = root?.querySelector<HTMLElement>(".bottom-sheet");
-      if (root && sheet) {
-        // The inline transform is where the sheet is going, not where its
-        // open animation happens to be this frame.
-        const target = /translate3d\(0(?:px)?,\s*([\d.]+)px/.exec(
-          sheet.style.transform,
-        );
-        const sheetTop =
-          root.getBoundingClientRect().top + (target ? Number(target[1]) : 0);
-        padding.bottom = Math.max(gap, frame.bottom - sheetTop + gap);
-      }
-    } else if (!sidePanelStore.collapsed) {
-      padding.left = SIDEPANEL_WIDTH + gap;
-    }
-    // Never ask for more padding than the map has room for.
-    const spareH = frame.height - padding.top - padding.bottom;
-    if (spareH < 80) {
-      const scale = Math.max(0, frame.height - 80) / (padding.top + padding.bottom);
-      padding.top *= scale;
-      padding.bottom *= scale;
-    }
-    const spareW = frame.width - padding.left - padding.right;
-    if (spareW < 80) padding.left = Math.max(gap, frame.width - 80 - padding.right);
-    return padding;
+    return measureVisibleMapPadding(map, {
+      mobile: md.current,
+      leftPanelWidth: sidePanelStore.collapsed ? 0 : SIDEPANEL_WIDTH,
+    });
   }
 
   function getEventMapLocations(event: EventData) {
@@ -1665,7 +1524,7 @@
   $effect(() => {
     mapViewStore.poiPinsZoomVisible = poiPinsVisible;
   });
-  const SIDEPANEL_WIDTH = 25.75 * 16;
+  const SIDEPANEL_WIDTH = SIDE_PANEL_WIDTH_PX;
   const md = new MediaQuery("max-width:48rem");
   const orgPinsVisible = $derived(
     orgPinFilter === "all" && md.current
@@ -1694,10 +1553,35 @@
     });
   });
 
-  /** Share of the phone screen the place sheet covers at peek, nav included. */
-  const MOBILE_SHEET_COVER_RATIO = 0.55;
+  /**
+   * Share of the phone screen the place sheet covers at peek, nav included:
+   * the estimate for the first fly-to, before the sheet has measured itself
+   * and reported its real top edge (sidePanelStore.mobileSheetTop).
+   */
+  const MOBILE_SHEET_COVER_RATIO = 0.4;
+  const MIN_VISIBLE_STRIP_PX = 96;
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
+    if (md && window.matchMedia(LANDSCAPE_COMPACT_MEDIA).matches) {
+      // Phone landscape: the place sheet is a left side panel
+      // (min(24rem, 52vw) plus its gutter), not a bottom sheet, so keep pins
+      // right of it and use the full height under the search chips.
+      const searchBlock = mapContainerEl
+        ? Number.parseFloat(
+            getComputedStyle(mapContainerEl).getPropertyValue(
+              "--search-block-height",
+            ),
+          )
+        : 0;
+      return {
+        top: Number.isFinite(searchBlock)
+          ? Math.min(searchBlock, Math.round(window.innerHeight * 0.4))
+          : 0,
+        bottom: 0,
+        left: Math.round(Math.min(384, window.innerWidth * 0.52)) + 6,
+        right: 0,
+      };
+    }
     if (md) {
       // Centre the pin in the strip between the search bar and the place
       // sheet: half the screen *width* used to leave it under the sheet.
@@ -1708,12 +1592,25 @@
             ),
           )
         : 0;
+      // Untracked: the camera effects that call this must not re-fly when the
+      // sheet changes stop; the effect below re-pads on its own.
+      const sheetTop = untrack(() => sidePanelStore.mobileSheetTop);
+      const top = Number.isFinite(searchBlock)
+        ? // Capped: while the search overlay is open it measures full screen.
+          Math.min(searchBlock, Math.round(window.innerHeight * 0.25))
+        : 0;
+      const covered =
+        sheetTop > 0
+          ? Math.max(0, Math.round(window.innerHeight - sheetTop))
+          : Math.round(window.innerHeight * MOBILE_SHEET_COVER_RATIO);
       return {
-        // Capped: while the search overlay is open it measures full screen.
-        top: Number.isFinite(searchBlock)
-          ? Math.min(searchBlock, Math.round(window.innerHeight * 0.25))
-          : 0,
-        bottom: Math.round(window.innerHeight * MOBILE_SHEET_COVER_RATIO),
+        top,
+        // A full sheet leaves only a sliver of map: never pad past the point
+        // where less than a pin's worth of strip is left to centre in.
+        bottom: Math.min(
+          covered,
+          Math.max(0, window.innerHeight - top - MIN_VISIBLE_STRIP_PX),
+        ),
         left: 0,
         right: 0,
       };
@@ -1774,7 +1671,7 @@
     }
     const chrome = [
       ...document.querySelectorAll(
-        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .mobile-map-controls, .desktop-map-controls",
+        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .mobile-map-controls, .desktop-map-controls, .bottom-sheet",
       ),
     ].map((el) => el.getBoundingClientRect());
     for (const [id, anchor] of placeLabels(
@@ -1818,8 +1715,35 @@
       orgPinsVisible,
       queryStore.inputValue,
       queryStore.category,
+      sidePanelStore.mobileSheetTop,
     ];
     scheduleLabelDeclutter();
+    // The sheet slides for 320ms to its stop; labels under its final edge
+    // (it is a blocked rect above) hide once it has settled.
+    const settle = setTimeout(scheduleLabelDeclutter, 380);
+    return () => clearTimeout(settle);
+  });
+
+  // The place sheet reports where its top edge rests once it has measured
+  // itself, and again when it moves to another stop. The first fly-to only had
+  // an estimate, so re-pad the camera to the real strip above the sheet: the
+  // selected pin then sits in the middle of the visible map, not under it.
+  $effect(() => {
+    const top = sidePanelStore.mobileSheetTop;
+    const map = mapStore.mapInstance;
+    if (!map || top <= 0 || !md.current || queryStore.category === null) return;
+    const apply = () => {
+      const want = calculatePadding(true);
+      if (Math.abs((want.bottom ?? 0) - map.getPadding().bottom) < 24) return;
+      map.easeTo({ padding: want, duration: 280 });
+    };
+    if (map.isMoving()) {
+      map.once("moveend", apply);
+      return () => {
+        map.off("moveend", apply);
+      };
+    }
+    apply();
   });
 
   function buildingEditKey(id: number) {
@@ -2500,23 +2424,13 @@
     const map = mapStore.mapInstance;
     if (!map) return;
 
-    let cancelled = false;
-    let loaded = false;
-    const applyPalette = () => {
-      loaded = true;
-      if (!cancelled) applyBasemapPalette(map, getResolvedTheme());
-    };
-    if (map.isStyleLoaded()) {
-      applyPalette();
-    } else {
-      map.once("load", applyPalette);
-    }
+    // Applies once the style's layers exist and whenever basemap layers are
+    // (re)added; see syncBasemapPalette for why "load" alone missed deep links.
+    const palette = syncBasemapPalette(map, getResolvedTheme);
     // Dark mode swaps the basemap palette live (Settings or the OS switch).
-    const offTheme = onThemeChange(() => {
-      if (loaded) applyPalette();
-    });
+    const offTheme = onThemeChange(palette.sync);
     return () => {
-      cancelled = true;
+      palette.stop();
       offTheme();
     };
   });
@@ -3068,6 +2982,9 @@
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
     const handleTravelTimeClick = (event: mapGl.MapMouseEvent) => {
+      // Beside measure route, only the first tap (the start point) is ours;
+      // later taps are measure waypoints.
+      if (measureRouteStore.active && travelTimeStore.origin) return;
       travelTimeStore.setOrigin(event.lngLat.lat, event.lngLat.lng);
     };
 
@@ -3145,6 +3062,10 @@
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
     const handleMeasureClick = (event: mapGl.MapMouseEvent) => {
+      // Pin taps bubble here too; their own handler adds that waypoint.
+      if (event.originalEvent.target !== canvas) return;
+      // Walking time is still waiting for its start point: this tap is that.
+      if (travelTimeStore.active && !travelTimeStore.origin) return;
       measureRouteStore.addWaypoint(event.lngLat.lat, event.lngLat.lng);
     };
 
@@ -3471,19 +3392,6 @@
     return () => cancelAnimationFrame(frame);
   });
 
-  // #716: Makiling trail overlay — toggle trail line + station markers
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    const enabled = trailStore.enabled;
-    if (!map) return;
-
-    if (enabled) {
-      ensureTrailLayers(map);
-    } else {
-      clearTrailLayers(map);
-    }
-  });
-
   // Load external campuses footprint layers
   $effect(() => {
     const map = mapStore.mapInstance;
@@ -3567,10 +3475,13 @@
           });
         }
       } else if (category === null) {
-        flyToCamera(
-          map,
-          isTerrainEnabled ? TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
-        );
+        // The trail sheet frames its own view; going home would undo it.
+        if (!trailStore.sheetOpen) {
+          flyToCamera(
+            map,
+            isTerrainEnabled ? TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
+          );
+        }
         if (directions) directions.clear();
       } else if (category === "room") {
         // A deep link already loaded this room; refetching blanked the panel
@@ -3728,9 +3639,16 @@
     });
   }
 
-  function handleEventMarkerClick(event: EventData) {
+  function handleEventMarkerClick(
+    event: EventData,
+    lngLat?: [number, number],
+  ) {
     if (eventPlacementStore.active) return;
     if (isMapEditEnabled() && selectedEditKey !== null) return;
+    if (measureRouteStore.active && lngLat) {
+      measureRouteStore.addWaypoint(lngLat[1], lngLat[0]);
+      return;
+    }
     if (queryStore.selectedEventSlug === event.slug) return;
     queryStore.updateQuery({
       category: "event",
@@ -4272,7 +4190,10 @@
               lngLat={getEventMarkerLngLat(editableEventLocation)}
               draggable={canDragPin(editKey)}
               onclick={() =>
-                handleEventMarkerClick(editableEventLocation.event)}
+                handleEventMarkerClick(
+                  editableEventLocation.event,
+                  getEventMarkerLngLat(editableEventLocation),
+                )}
               ondragstart={() => beginMarkerDrag(editKey)}
               ondragend={(e) =>
                 handleEventLocationDragEnd(
@@ -4353,11 +4274,15 @@
                         title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
                         ariaLabel={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
                         labelTitle={entry.event.title}
-                        labelMeta={`${getEventStatusLabel(entry.event)} · ${formatEventMarkerDateTime(
+                        labelMeta={`${getEventStatusLabel(entry.event)}, ${formatEventMarkerDateTime(
                           entry.event.occurrenceStartsAt,
                         )}`}
                         labelVisible={zoomLevel >= 17 || active}
-                        onclick={() => handleEventMarkerClick(entry.event)}
+                        onclick={() =>
+                          handleEventMarkerClick(
+                            entry.event,
+                            getEventMarkerLngLat(entry),
+                          )}
                         onpointerenter={(event) =>
                           handleEventPinPointerEnter(entry.event, event)}
                         onpointerleave={handleEventPinPointerLeave}
@@ -4427,7 +4352,10 @@
                                 title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
                                 aria-label={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
                                 onclick={() =>
-                                  handleEventMarkerClick(entry.event)}
+                                  handleEventMarkerClick(
+                                    entry.event,
+                                    getEventMarkerLngLat(entry),
+                                  )}
                               >
                                 {#if image}
                                   <img
@@ -4485,7 +4413,7 @@
             </Marker>
           {/each}
         {/if}
-        {#each scheduleRouteStore.dayStops as stop, index (`schedule-stop:${index}:${stop.courseCode}:${stop.roomCode}:${stop.scheduleSlot}`)}
+        {#each scheduleRouteStore.stopsVisible ? scheduleRouteStore.dayStops : [] as stop, index (`schedule-stop:${index}:${stop.courseCode}:${stop.roomCode}:${stop.scheduleSlot}`)}
           {#if stop.coords}
             {@const routeActive =
               scheduleRouteStore.routedWeekday ===
@@ -4505,7 +4433,7 @@
                 <span class="schedule-route-stop-label" transition:fade>
                   {formatMinutes(stop.startMinutes)}
                   {stop.courseCode}
-                  {#if stop.roomCode} · {stop.roomCode}{/if}
+                  {#if stop.roomCode} in {stop.roomCode}{/if}
                 </span>
               </button>
             </Marker>

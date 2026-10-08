@@ -16,7 +16,7 @@ function sendFeedback(body: unknown, ip: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Forwarded-For": ip,
+        "X-Real-IP": ip,
       },
       body: JSON.stringify(body),
     }),

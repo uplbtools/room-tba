@@ -121,7 +121,8 @@ See also `docs/map-ui-mode-matrix.md` for chrome visibility by mode. Verify at *
 - Disabled users (`is_active = false`) receive 401 on login.
 - Admin writes store the signed-in username/display name in `editor_history.edited_by`.
 - Session cookie remains httpOnly; `/admin` still redirects to in-app login.
-- Legacy `ADMIN_PASSWORD`-only login bootstraps user `admin` when `admin_users` is empty.
+- There is no shared-password login. The first admin is created (or reset) with `ADMIN_NEW_PASSWORD='...' bun run scripts/set-admin-user.ts <username>`.
+- Password change/reset, role change, deactivation and "Sign out of all devices" revoke existing sessions (session version).
 
 ## Version History
 

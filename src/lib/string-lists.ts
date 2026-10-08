@@ -112,8 +112,18 @@ export function splitMergedListItem(text: string): string[] {
   const trimmed = text.trim();
   if (!trimmed) return [];
 
+  // Keep "WiFi" intact (its inner "iF" looks like a merged-label boundary).
   const byCaseBoundary = trimmed
     .split(/(?<=[a-z])(?=[A-Z])/)
+    .reduce<string[]>((parts, part) => {
+      const prev = parts.at(-1) ?? "";
+      if (/(?:^|[^A-Za-z])Wi$/.test(prev) && /^Fi/.test(part)) {
+        parts[parts.length - 1] = prev + part;
+      } else {
+        parts.push(part);
+      }
+      return parts;
+    }, [])
     .map((part) => part.trim())
     .filter(Boolean);
 

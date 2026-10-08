@@ -1,5 +1,6 @@
 import type { SessionUser } from "@lib/admin/auth";
 import { canReviewProposals } from "@lib/admin/roles";
+import { proposalTokenMatches } from "@lib/proposals/proposal-token";
 
 type ProposalAccessRow = {
   submitterUserId: number | null;
@@ -17,26 +18,38 @@ export function canViewProposalSubmitterDetails(
   return false;
 }
 
-type WithdrawProposalRow = ProposalAccessRow & {
+type OwnedProposalRow = Pick<ProposalAccessRow, "submitterUserId"> & {
+  withdrawTokenHash: string | null;
+};
+
+/**
+ * Does the caller own this proposal? Signed-in owners match by account id;
+ * anonymous proposals only by the random token handed out at submit (the
+ * display name is public and guessable, so it proves nothing).
+ */
+export function ownsProposal(
+  session: SessionUser | null,
+  proposal: OwnedProposalRow,
+  proposalToken?: unknown,
+): boolean {
+  if (session && session.id > 0 && proposal.submitterUserId === session.id) {
+    return true;
+  }
+  return (
+    proposal.submitterUserId == null &&
+    proposalTokenMatches(proposalToken, proposal.withdrawTokenHash)
+  );
+}
+
+type WithdrawProposalRow = OwnedProposalRow & {
   status: string;
 };
 
 export function canWithdrawProposal(
   session: SessionUser | null,
   proposal: WithdrawProposalRow,
-  submitterName?: string,
+  proposalToken?: unknown,
 ): boolean {
   if (!["pending", "needs_changes"].includes(proposal.status)) return false;
-  if (session && session.id > 0 && proposal.submitterUserId === session.id) {
-    return true;
-  }
-  if (
-    !session &&
-    proposal.submitterUserId == null &&
-    typeof submitterName === "string" &&
-    submitterName.trim() === proposal.submitterName.trim()
-  ) {
-    return true;
-  }
-  return false;
+  return ownsProposal(session, proposal, proposalToken);
 }

@@ -452,9 +452,9 @@
                   class="planner-block__label"
                   aria-label="{block.courseCode} {formatSectionType(
                     block.type,
-                  )} · {block.section}"
+                  )} {block.section}"
                   title="{block.courseCode} {block.type} {block.section}{block.roomCode
-                    ? ` · ${block.roomCode}`
+                    ? ` in ${block.roomCode}`
                     : ''} — drag to switch section"
                   onclick={() => onBlockClick(block)}
                   onpointerdown={(e) => onBlockPointerDown(e, block)}
@@ -464,7 +464,7 @@
                 >
                   <span class="planner-block__course">{block.courseCode}</span>
                   <span class="planner-block__section">
-                    {formatSectionType(block.type)} · {block.section}
+                    {formatSectionType(block.type)} {block.section}
                   </span>
                 </button>
                 {#if selectedKey === block.key}
@@ -482,7 +482,7 @@
                       <br />
                       {DAY_NAMES[block.dayIndex]}
                       {formatMinutesRange(block.startMin, block.endMin)}{block.roomCode
-                        ? ` · ${block.roomCode}`
+                        ? ` in ${block.roomCode}`
                         : ""}
                     </p>
                     <div class="planner-block__buttons">
@@ -540,11 +540,11 @@
     {#if hoverGhost}
       → {hoverGhost}
     {:else if alternativesLoading}
-      · loading other sections…
+      (loading other sections…)
     {:else if !hasGhostTargets}
-      · no scheduled alternate section
+      (no scheduled alternate section)
     {:else}
-      · drop on a section
+      (drop on a section)
     {/if}
   </div>
 {/if}

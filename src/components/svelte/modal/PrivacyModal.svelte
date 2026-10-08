@@ -1,13 +1,13 @@
 <script lang="ts">
+  import ModalHeader from "./ModalHeader.svelte";
   import { DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "@constants/community-links";
 </script>
 
 <section class="privacy-modal">
-  <header>
-    <p class="privacy-modal__eyebrow">Legal</p>
-    <h2>Privacy Policy</h2>
-    <p>Last updated: June 29, 2026.</p>
-  </header>
+  <ModalHeader
+    title="Privacy Policy"
+    description="Last updated: June 29, 2026."
+  />
 
   <div class="privacy-modal__scroll map-chrome-scroll">
     <p>
@@ -59,37 +59,12 @@
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
-    gap: 0.625rem;
-    padding: 0.5rem 0.5rem 0.25rem;
   }
 
-  header {
-    padding-right: 2.25rem;
-  }
-
-  h2,
   h3,
   p,
   ul {
     margin: 0;
-  }
-
-  h2 {
-    font-size: 1rem;
-    color: var(--theme-text, hsl(0 0% 15%));
-  }
-
-  header > p:last-child,
-  .privacy-modal__eyebrow {
-    color: var(--theme-text-2, hsl(0 0% 42%));
-    font-size: 0.75rem;
-  }
-
-  .privacy-modal__eyebrow {
-    margin-bottom: 0.125rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
 
   .privacy-modal__scroll {
@@ -98,7 +73,7 @@
     flex-direction: column;
     gap: 0.875rem;
     overflow-y: auto;
-    padding-right: 0.375rem;
+    padding: 0 1rem 0.5rem;
     color: var(--theme-text, hsl(0 0% 22%));
     font-size: 0.875rem;
     line-height: 1.55;

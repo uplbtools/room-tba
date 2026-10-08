@@ -70,7 +70,7 @@ describe("navigation", () => {
   test("the sheet quotes the route card's distance and exits with X / Exit", async () => {
     render(NavigationBar);
     // Same formatter and total as the route card: 2.0 km, not a re-measure.
-    expect(screen.getByText(/^2\.0 km ·/)).toBeInTheDocument();
+    expect(screen.getByText(/^2\.0 km, arrives /)).toBeInTheDocument();
     expect(screen.queryByText("⇅")).toBeNull();
     expect(screen.queryByRole("button", { name: /route options/i })).toBeNull();
 

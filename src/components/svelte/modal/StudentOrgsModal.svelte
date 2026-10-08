@@ -8,6 +8,7 @@
     queryStore,
     sidePanelStore,
   } from "@lib/store.svelte";
+  import ModalHeader from "./ModalHeader.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
   import { UPLB_OSA_ORGANIZATIONS_URL } from "@constants/community-links";
 
@@ -22,9 +23,10 @@
   }
 </script>
 
-<div class="orgs-modal map-chrome-scroll">
+<div class="orgs-modal">
+  <ModalHeader id="student-orgs-modal-title" title="Student organizations" />
+  <div class="orgs-modal__scroll map-chrome-scroll">
   <header class="orgs-modal__header">
-    <h2 id="student-orgs-modal-title">Student organizations</h2>
     <p class="orgs-modal__lead">
       Room TBA lists UPLB student organizations and maps their tambayans when
       a location is known. Every OSA-imported listing links back to its
@@ -77,6 +79,7 @@
       </button>
     {/if}
   </div>
+  </div>
 </div>
 
 <style>
@@ -85,15 +88,18 @@
   .orgs-modal {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem;
-    max-height: calc(100vh - 4rem);
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
-  .orgs-modal__header h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.25rem;
-    font-weight: 700;
+  .orgs-modal__scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 1rem 1rem;
   }
 
   .orgs-modal__lead {

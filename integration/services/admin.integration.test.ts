@@ -199,6 +199,16 @@ describeIntegration("admin auth integration", () => {
       `UPDATE admin_users SET email = $1 WHERE username = 'e2e-admin'`,
       [testEmail],
     );
+    // Only a confirmed address is a login handle (the password is still
+    // required), so confirm it the way the emailed link would.
+    await client.query(
+      `INSERT INTO admin_user_auth (user_id, verified_email, email_verified_at)
+       SELECT id, $1, now() FROM admin_users WHERE username = 'e2e-admin'
+       ON CONFLICT (user_id) DO UPDATE
+         SET verified_email = EXCLUDED.verified_email,
+             email_verified_at = EXCLUDED.email_verified_at`,
+      [testEmail],
+    );
 
     try {
       const { authenticateAdminUser } = await import(
@@ -212,6 +222,10 @@ describeIntegration("admin auth integration", () => {
     } finally {
       await client.query(
         `UPDATE admin_users SET email = NULL WHERE username = 'e2e-admin'`,
+      );
+      await client.query(
+        `DELETE FROM admin_user_auth
+         WHERE user_id = (SELECT id FROM admin_users WHERE username = 'e2e-admin')`,
       );
     }
   });

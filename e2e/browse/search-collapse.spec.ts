@@ -3,7 +3,7 @@ import { campusSearchBox, waitForAppBoot } from "../helpers/app";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
 test.describe("mobile search collapse", () => {
-  test("app menu blur preserves query and panel @mobile", async ({
+  test("You sheet roundtrip preserves query and panel @mobile", async ({
     page,
     isMobile,
   }) => {
@@ -19,10 +19,11 @@ test.describe("mobile search collapse", () => {
     await search.fill(E2E_FIXTURES.buildingName);
     await search.blur();
 
-    await page.getByRole("button", { name: /app menu/i }).click();
-    await expect(page.getByRole("dialog", { name: /app menu/i })).toBeVisible();
+    const you = page.getByRole("dialog", { name: "You", exact: true });
+    await page.getByRole("button", { name: "You", exact: true }).click();
+    await expect(you).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog", { name: /app menu/i })).toBeHidden();
+    await expect(you).toBeHidden();
 
     await expect(search).toHaveValue(E2E_FIXTURES.buildingName);
     await search.click();

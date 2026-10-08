@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
 import { openAppMenu } from "../helpers/map-tools";
 
-test.describe("App Menu", () => {
+test.describe("You", () => {
   test("contributors exposes the core community entries", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
@@ -11,8 +11,8 @@ test.describe("App Menu", () => {
     await expect(
       menu.getByRole("button", { name: /leaderboard/i }),
     ).toBeVisible();
-    // One Sign in per layout: the menu row on phones, the top-bar button on
-    // desktop (the menu then leaves it out).
+    // One Sign in per layout: the You row, on phones and desktop alike (the
+    // desktop top bar shows the You avatar instead of its own button).
     const signIn = page.getByRole("button", { name: /^sign in$/i });
     await expect(signIn).toHaveCount(1);
     await expect(signIn).toBeVisible();
@@ -66,24 +66,29 @@ test.describe("App Menu", () => {
     }
   });
 
-  test("Settings opens from the support section", async ({ page }) => {
+  test("Settings pushes inside You with a back arrow", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
 
     const menu = await openAppMenu(page);
     await menu.getByRole("button", { name: "Settings", exact: true }).click();
-    const modal = page.getByRole("dialog", { name: "Settings" });
-    await expect(modal).toBeVisible();
+    await expect(menu.getByRole("heading", { name: "Settings" })).toBeVisible();
+    await menu.getByRole("button", { name: "Back" }).click();
+    await expect(menu.getByRole("heading", { name: "You" })).toBeVisible();
   });
 
-  test("offline maps opens from the support section", async ({ page }) => {
+  test("offline maps, resync and reset share one screen", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
 
     const menu = await openAppMenu(page);
-    await menu.getByRole("button", { name: "Offline maps" }).click();
+    await menu.getByRole("button", { name: "Offline maps & storage" }).click();
     await expect(
-      page.getByRole("dialog", { name: "Offline maps" }),
+      menu.getByRole("heading", { name: "Offline maps & storage" }),
+    ).toBeVisible();
+    await expect(menu.getByRole("button", { name: "Resync" })).toBeVisible();
+    await expect(
+      menu.getByRole("button", { name: "Reset offline data" }),
     ).toBeVisible();
   });
 });

@@ -6,6 +6,7 @@ import {
   publicActorName,
   ROOM_TBA_TEAM,
   scanPublicRows,
+  toIsoTimestamp,
   toPublicHistoryEntry,
   type HistoryRow,
 } from "./entity-attribution";
@@ -244,5 +245,18 @@ describe("scanPublicRows", () => {
     });
     expect(rows).toEqual([]);
     expect(nextOffset).toBe(4);
+  });
+});
+
+describe("toIsoTimestamp", () => {
+  test("parses timestamp and timestamptz text alike", () => {
+    for (const value of [
+      "2026-10-07 07:19:31.316662",
+      "2026-10-07 07:19:31.316662+00",
+      "2026-10-07T07:19:31.316662+00:00",
+      "2026-10-07T07:19:31.316Z",
+    ]) {
+      expect(Number.isNaN(Date.parse(toIsoTimestamp(value)))).toBe(false);
+    }
   });
 });

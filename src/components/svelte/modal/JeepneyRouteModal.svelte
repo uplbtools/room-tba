@@ -5,7 +5,15 @@
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Clock from "@lucide/svelte/icons/clock";
   import Banknote from "@lucide/svelte/icons/banknote";
-  import { jeepneyStore, modalStore, transitStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    jeepneyStore,
+    modalStore,
+    queryStore,
+    sidePanelStore,
+    transitStore,
+  } from "@lib/store.svelte";
+  import { openCampusBrowse } from "@lib/browse-campus";
   import {
     JEEPNEY_RIDING_NOTES,
     ROUTE_BOARDING_NOTES,
@@ -26,8 +34,18 @@
   } from "@lib/transit-route-kind";
   import { routeDirections } from "@lib/transit-direction";
   import { routeScheduleSummary } from "@lib/transit-schedule";
+  import Radio from "@lucide/svelte/icons/radio";
+  import { routeReportLine } from "@lib/transit-reports";
+  import {
+    type ReportsResponse,
+    fetchRouteReports,
+  } from "@lib/transit-reports-client";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
+  import Printer from "@lucide/svelte/icons/printer";
+  import MapChromeActionLink from "@ui/map-chrome/MapChromeActionLink.svelte";
   import TransitStopEditor from "../controls/TransitStopEditor.svelte";
+  import ModalHeader from "./ModalHeader.svelte";
+  import EntityEditorToggle from "../editor/EntityEditorToggle.svelte";
 
   type Props = {
     routeId?: string | null;
@@ -62,6 +80,7 @@
   // Campus fares, tips and the transit-map credit are about campus jeeps;
   // buses and town jeeps get their own (or none).
   const kind = $derived(route ? transitRouteKind(route) : "campus");
+  let suggestOpen = $state(false);
   const fare = $derived(route ? routeFareInfo(route) : null);
   const ridingNotes = $derived(
     kind === "campus"
@@ -83,12 +102,49 @@
       : null,
   );
 
+  // Rider reports from the last hour; null (no line at all) until loaded or
+  // when the request fails, so a failure never reads as "No recent reports".
+  let routeReports = $state<ReportsResponse | null>(null);
+  let reportsNow = $state(Date.now());
+  const routeIdForReports = $derived(route?.id ?? null);
+
+  $effect(() => {
+    const id = routeIdForReports;
+    routeReports = null;
+    if (!id) return;
+    let cancelled = false;
+    const load = () =>
+      fetchRouteReports(id).then((result) => {
+        if (cancelled) return;
+        routeReports = result;
+        reportsNow = Date.now();
+      });
+    void load();
+    const poll = setInterval(load, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(poll);
+    };
+  });
+
+  const reportLine = $derived(
+    route && routeReports
+      ? routeReportLine(
+          routeReports.reports,
+          route.stops,
+          reportsNow + routeReports.skewMs,
+        )
+      : null,
+  );
+
   function setDirection(reverse: boolean) {
     if (route) transitStore.setReversed(route.id, reverse);
   }
 
   function viewOnMap() {
     if (!route) return;
+    // Into the route panel: a drawn route lives only as long as its panel.
+    openCampusBrowse(queryStore, sidePanelStore, "jeepney");
     jeepneyStore.openRouteOnMap(route.id);
     modalStore.closeModal();
   }
@@ -101,6 +157,7 @@
     // container swaps to JeepneyStopPanel on its own, so there is nothing to
     // select and no modal to dismiss.
     if (routeId === null) {
+      openCampusBrowse(queryStore, sidePanelStore, "jeepney");
       jeepneyStore.openRouteOnMap(route.id);
       modalStore.closeModal();
     }
@@ -113,6 +170,7 @@
 {#if route}
   <div
     class="jeepney-modal"
+    class:jeepney-modal--sheet={!onback && !onclose}
     style:--route-color={darkenForWhiteText(route.color)}
   >
     {#if onback || onclose}
@@ -135,16 +193,21 @@
         {/if}
       </div>
     {/if}
-    <header class="jeepney-modal__header">
-      <span
-        class="jeepney-modal__swatch"
-        style:background-color={route.color}
-        aria-hidden="true"
-      ></span>
-      <h2 class="jeepney-modal__title">{route.name} {transitRouteNoun(route)}</h2>
-    </header>
+    {#if onback || onclose}
+      <header class="jeepney-modal__header">
+        <span
+          class="jeepney-modal__swatch"
+          style:background-color={route.color}
+          aria-hidden="true"
+        ></span>
+        <h2 class="jeepney-modal__title">{route.name} {transitRouteNoun(route)}</h2>
+      </header>
+    {:else}
+      <!-- Opened as a modal: the standard top app bar (X at the top-left). -->
+      <ModalHeader title={`${route.name} ${transitRouteNoun(route)}`} />
+    {/if}
 
-    <div class="jeepney-modal__scroll">
+    <div class="jeepney-modal__scroll map-chrome-scroll">
       {#if directions}
         <div class="jeepney-modal__directions">
           <div
@@ -188,12 +251,12 @@
               >{fare.kind === "end-to-end" ? "Whole route " : ""}<strong
                 >₱{fare.fare.regular}</strong
               >
-              · <strong>₱{fare.fare.discounted}</strong> student / PWD / senior</span
+              regular, <strong>₱{fare.fare.discounted}</strong> student / PWD / senior</span
             >
           {:else if fare?.kind === "distance"}
             <span
               >Minimum fare <strong>₱{fare.minimum.regular}</strong>
-              · <strong>₱{fare.minimum.discounted}</strong> student / PWD / senior</span
+              regular, <strong>₱{fare.minimum.discounted}</strong> student / PWD / senior</span
             >
           {:else if fare}
             <span>{fare.note}</span>
@@ -204,8 +267,18 @@
             <Clock size={16} aria-hidden="true" />
             <span
               >{schedule.hours}{schedule.published
-                ? ` · ${schedule.frequency}`
+                ? `, ${schedule.frequency}`
                 : ""}{schedule.note ? `. ${schedule.note}` : ""}</span
+            >
+          </li>
+        {/if}
+        {#if reportLine}
+          <li class="jeepney-modal__reports">
+            <Radio size={16} aria-hidden="true" />
+            <span
+              >{reportLine.last}{reportLine.frequency
+                ? `. ${reportLine.frequency}`
+                : ""}</span
             >
           </li>
         {/if}
@@ -272,14 +345,37 @@
         {/if}
       </details>
 
-      <TransitStopEditor routeId={route.id} routeName={route.name} />
+      <TransitStopEditor
+        routeId={route.id}
+        routeName={route.name}
+        bind:expanded={suggestOpen}
+        showToggle={false}
+      />
     </div>
 
+    <!-- One footer row, one button style: the suggest toggle used to sit in
+         the scroller above a divider, with Copy link alone on the far side. -->
     <div class="jeepney-modal__actions">
+      <EntityEditorToggle
+        variant="toolbar"
+        expanded={suggestOpen}
+        canPublish={adminAuthStore.canPublish}
+        publishOpenLabel="Add stop"
+        suggestOpenLabel="Suggest a stop"
+        onclick={() => (suggestOpen = !suggestOpen)}
+      />
       <EntityShareCopyLink
         url={getJeepneyRouteShareUrl(route.id)}
         entityLabel={`${route.name} route`}
       />
+      <MapChromeActionLink
+        href="/api/transit-map"
+        ariaLabel="Printable transit map (PDF)"
+        toolbar
+      >
+        <Printer size={14} aria-hidden="true" />
+        Printable map
+      </MapChromeActionLink>
       {#if routeId === null}
         <button type="button" class="jeepney-modal__view" onclick={viewOnMap}>
           <MapPinned size={16} aria-hidden="true" />
@@ -300,6 +396,20 @@
     padding: 0.5rem 0.5rem 0.25rem;
     flex: 1 1 auto;
     min-height: 0;
+  }
+
+  /* In a Dialog the top app bar runs edge to edge; the body keeps the
+     16px side gutter every modal screen uses. */
+  .jeepney-modal--sheet {
+    padding: 0;
+  }
+
+  .jeepney-modal--sheet .jeepney-modal__scroll {
+    padding: 0 1rem 0.5rem;
+  }
+
+  .jeepney-modal--sheet .jeepney-modal__actions {
+    padding: 0 1rem 0.75rem;
   }
 
   .jeepney-modal__header {
@@ -613,14 +723,22 @@
   .jeepney-modal__actions {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0.25rem 0 0.375rem;
+    padding: 0.5rem 0 0.375rem;
     border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
-  .jeepney-modal__actions :global(.map-chrome-action-chip) {
+  .jeepney-modal__actions :global(.map-chrome-action-chip),
+  .jeepney-modal__actions :global(.editor-toggle--toolbar) {
+    box-sizing: border-box;
     min-height: 2.25rem;
+    border-radius: 999px;
+  }
+
+  /* View on map is the primary action: it takes the far end of the row. */
+  .jeepney-modal__view {
+    margin-left: auto;
   }
 
   .jeepney-modal__view {

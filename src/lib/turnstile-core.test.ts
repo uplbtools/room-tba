@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { verifyTurnstileToken } from "./turnstile-core";
+import {
+  turnstileMayBeUnconfigured,
+  verifyTurnstileToken,
+} from "./turnstile-core";
 
 const originalFetch = globalThis.fetch;
 
@@ -8,9 +11,21 @@ afterEach(() => {
 });
 
 describe("verifyTurnstileToken", () => {
-  test("always passes when unconfigured (empty secret)", async () => {
-    expect(await verifyTurnstileToken(null, "")).toBe(true);
-    expect(await verifyTurnstileToken("some-token", "")).toBe(true);
+  test("fails closed when unconfigured (empty secret)", async () => {
+    expect(await verifyTurnstileToken(null, "")).toBe(false);
+    expect(await verifyTurnstileToken("some-token", "   ")).toBe(false);
+  });
+
+  test("passes unconfigured only with the explicit opt-out", async () => {
+    const opts = { allowUnconfigured: true };
+    expect(await verifyTurnstileToken(null, "", opts)).toBe(true);
+    expect(await verifyTurnstileToken("some-token", "", opts)).toBe(true);
+  });
+
+  test("the opt-out never bypasses a configured secret", async () => {
+    expect(
+      await verifyTurnstileToken(null, "secret", { allowUnconfigured: true }),
+    ).toBe(false);
   });
 
   test("rejects a missing token when configured", async () => {
@@ -32,9 +47,7 @@ describe("verifyTurnstileToken", () => {
       posted = String(init?.body ?? "");
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }) as typeof fetch;
-    expect(
-      await verifyTurnstileToken("good-token", "  secret  ", "1.2.3.4"),
-    ).toBe(true);
+    expect(await verifyTurnstileToken("good-token", "  secret  ")).toBe(true);
     expect(posted).toContain("secret=secret");
     expect(posted).not.toContain("remoteip");
   });
@@ -58,5 +71,23 @@ describe("verifyTurnstileToken", () => {
       throw new Error("network down");
     }) as typeof fetch;
     expect(await verifyTurnstileToken("token", "secret")).toBe(false);
+  });
+});
+
+describe("turnstileMayBeUnconfigured", () => {
+  test("dev server may run without a secret", () => {
+    expect(turnstileMayBeUnconfigured({ dev: true, flag: undefined })).toBe(
+      true,
+    );
+  });
+
+  test("production needs the explicit flag", () => {
+    expect(turnstileMayBeUnconfigured({ dev: false, flag: undefined })).toBe(
+      false,
+    );
+    expect(turnstileMayBeUnconfigured({ dev: false, flag: "true" })).toBe(
+      false,
+    );
+    expect(turnstileMayBeUnconfigured({ dev: false, flag: "1" })).toBe(true);
   });
 });

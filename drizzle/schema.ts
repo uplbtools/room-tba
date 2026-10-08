@@ -545,6 +545,8 @@ export const editProposalsTable = pgTable("edit_proposals", {
   submitterUserId: integer("submitter_user_id").references(
     () => adminUsersTable.id,
   ),
+  // contributor_id uuid (migration 0053) exists but is not declared here:
+  // see readProposalContributorId in contribution-service.ts.
   adminNote: text("admin_note"),
   /** Contributor's message to the reviewer. Never published (#873). */
   submitterNote: text("submitter_note"),
@@ -553,6 +555,52 @@ export const editProposalsTable = pgTable("edit_proposals", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
+
+/**
+ * Per-account auth state (0055), kept off admin_users so code shipped ahead
+ * of the migration never breaks admin_users queries. Server-only.
+ * `verified_email` counts only while it equals the account's current email.
+ */
+export const adminUserAuthTable = pgTable(
+  "admin_user_auth",
+  {
+    userId: integer("user_id")
+      .primaryKey()
+      .references(() => adminUsersTable.id, { onDelete: "cascade" }),
+    sessionVersion: integer("session_version").default(0).notNull(),
+    verifiedEmail: text("verified_email"),
+    emailVerifiedAt: timestamp("email_verified_at", { mode: "string" }),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("admin_user_auth_verified_email_idx").on(table.verifiedEmail),
+  ],
+);
+
+/** SHA-256 of each proposal's owner token (0057). Server-only. */
+export const proposalOwnerTokensTable = pgTable("proposal_owner_tokens", {
+  proposalId: integer("proposal_id")
+    .primaryKey()
+    .references(() => editProposalsTable.id, { onDelete: "cascade" }),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+/** Shared fixed-window rate-limit buckets (0056). Server-only. */
+export const rateLimitsTable = pgTable(
+  "rate_limits",
+  {
+    key: varchar({ length: 200 }).primaryKey(),
+    count: integer().default(0).notNull(),
+    resetAt: timestamp("reset_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [index("rate_limits_reset_at_idx").on(table.resetAt)],
+);
 
 export const editorHistoryTable = pgTable("editor_history", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -568,24 +616,42 @@ export const editorHistoryTable = pgTable("editor_history", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
-export const contributionsTable = pgTable("contributions", {
-  id: integer().primaryKey().generatedByDefaultAsIdentity({
-    name: "contributions_id_seq",
-    startWith: 1,
-    increment: 1,
-    minValue: 1,
-    maxValue: 2147483647,
-    cache: 1,
-  }),
-  userId: integer("user_id").references(() => adminUsersTable.id),
-  submitterName: varchar("submitter_name", { length: 100 }),
-  entityType: varchar("entity_type", { length: 32 }).notNull(),
-  entityId: integer("entity_id").notNull(),
-  entityLabel: text("entity_label").notNull(),
-  source: varchar({ length: 32 }).notNull(),
-  proposalId: integer("proposal_id").references(() => editProposalsTable.id),
-  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-});
+export const contributionsTable = pgTable(
+  "contributions",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "contributions_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    userId: integer("user_id").references(() => adminUsersTable.id),
+    submitterName: varchar("submitter_name", { length: 100 }),
+    entityType: varchar("entity_type", { length: 32 }).notNull(),
+    entityId: integer("entity_id").notNull(),
+    entityLabel: text("entity_label").notNull(),
+    source: varchar({ length: 32 }).notNull(),
+    proposalId: integer("proposal_id").references(() => editProposalsTable.id),
+    /** Browser-held uuid crediting a public submitter (never published). */
+    contributorId: uuid("contributor_id"),
+    /** Leaderboard weight class; null on legacy rows (classified on read). */
+    kind: varchar({ length: 16 }),
+    /** Set when a later restore undid this edit; it stops earning points. */
+    revertedAt: timestamp("reverted_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("contributions_source_created_idx").on(table.source, table.createdAt),
+    index("contributions_entity_idx").on(table.entityType, table.entityId),
+  ],
+);
 
 /**
  * A signed-in user's saved course planner (#2). One row per user holding the
@@ -791,6 +857,46 @@ export const sponsorImpressionsTable = pgTable("sponsor_impressions", {
 // user id, or an IP. Server-only: deliberately absent from the PGlite
 // SYNCED_TABLES set so it never reaches the browser cache. Rows are pruned
 // opportunistically by /api/presence.
+// "Jeep is here" reports (0054). Server-only: not in the PGlite generator's
+// SYNCED_TABLES. `deviceId` is an anonymous localStorage UUID; no IP is stored.
+export const jeepReportsTable = pgTable(
+  "jeep_reports",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "jeep_reports_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    routeId: varchar("route_id", { length: 64 }).notNull(),
+    /** `transitStopKey()`: the stop's rounded "lat,lon". */
+    stopKey: varchar("stop_key", { length: 32 }).notNull(),
+    /** "forward" | "reverse" for two-way routes, null otherwise. */
+    direction: varchar({ length: 8 }),
+    deviceId: varchar("device_id", { length: 64 }).notNull(),
+    isFull: boolean("is_full").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("jeep_reports_stop_created_idx").on(
+      table.stopKey,
+      table.createdAt.desc(),
+    ),
+    index("jeep_reports_route_created_idx").on(
+      table.routeId,
+      table.createdAt.desc(),
+    ),
+    index("jeep_reports_device_created_idx").on(
+      table.deviceId,
+      table.createdAt.desc(),
+    ),
+  ],
+);
+
 export const presenceTable = pgTable("presence", {
   sid: varchar({ length: 64 }).primaryKey(),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true, mode: "string" })

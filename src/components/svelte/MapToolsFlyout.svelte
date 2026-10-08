@@ -1,93 +1,159 @@
 <script lang="ts">
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import Route from "@lucide/svelte/icons/route";
+  import Box from "@lucide/svelte/icons/box";
+  import Bus from "@lucide/svelte/icons/bus";
+  import Gauge from "@lucide/svelte/icons/gauge";
+  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
+  import Landmark from "@lucide/svelte/icons/landmark";
   import Ruler from "@lucide/svelte/icons/ruler";
   import Timer from "@lucide/svelte/icons/timer";
-  // One Layers button, Google Maps style: map type (default / satellite /
-  // 3D) on top, the map tools below. It replaced separate 3D, satellite and
-  // wrench buttons on the right edge.
+  import Users from "@lucide/svelte/icons/users";
+  import X from "@lucide/svelte/icons/x";
+  // One Layers button, Google Maps style: map type on top, then the map
+  // details, pins and tools as Material settings rows. It replaced separate
+  // 3D, satellite and wrench buttons on the right edge.
   import Layers from "@lucide/svelte/icons/layers";
+  import { onMount } from "svelte";
   import {
+    jeepneyStore,
+    mapStore,
     mapToolsStore,
+    mapViewStore,
     measureRouteStore,
+    plannerStore,
+    terrainStore,
+    toastStore,
     travelTimeStore,
-    type MapToolsSection,
   } from "@lib/store.svelte";
-  import { sidebarStore } from "@lib/store.svelte";
-  import { routableTodayWeekday, routeToday } from "@lib/today-route";
-  import MapViewControls from "@ui/MapViewControls.svelte";
+  import { THREE_D_PITCH, isMap2DPitch } from "@constants/map-dimension";
+  import {
+    enterFlatMapDimension,
+    enterTiltedMapDimension,
+  } from "@lib/map-dimension-layers";
+  import { debugMode } from "@lib/debug-flag";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import WaybackImageryControl from "@ui/WaybackImageryControl.svelte";
   import MapLegend from "@ui/MapLegend.svelte";
   import TerrainControl from "@ui/TerrainControl.svelte";
   import { TERRAIN_ENABLED } from "@constants/map-terrain";
   import TrailControl from "@ui/TrailControl.svelte";
-  import JeepneyMenu from "@ui/JeepneyMenu.svelte";
-  import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
   import MapTypePicker from "@ui/map-chrome/MapTypePicker.svelte";
   import Dialog from "@ui/modal/Dialog.svelte";
+  import SegmentedControl from "@ui/modal/SegmentedControl.svelte";
+  import SettingsRow from "@ui/modal/SettingsRow.svelte";
   import { portal } from "@lib/portal";
+  import { campusTransit } from "../../campus.config";
   import "./map-chrome/map-chrome.css";
-  import { MediaQuery } from "svelte/reactivity";
 
-  const mobile = new MediaQuery("max-width:48rem");
-  // Transit moved to the sidebar's Jeepney routes browse panel; Map tools now
-  // mirrors the Settings modal sections.
-  const sections: { id: MapToolsSection; label: string }[] = [
-    { id: "view", label: "View" },
-    { id: "legend", label: "Legend" },
-    ...(TERRAIN_ENABLED
-      ? [{ id: "terrain" as const, label: "Terrain" }]
-      : []),
-    { id: "trail", label: "Makiling Trail" },
-    { id: "schedule", label: "Schedule" },
-  ];
+  let scrolled = $state(false);
 
-  function toggleSection(id: MapToolsSection) {
-    if (mobile.current) {
-      const isOpen = mapToolsStore.expandedSections.has(id);
-      mapToolsStore.expandedSections = isOpen ? new Set() : new Set([id]);
-      mapToolsStore.activeSection = isOpen ? null : id;
-      return;
-    }
-    mapToolsStore.toggleSection(id);
+  function closeSheet() {
+    mapToolsStore.close();
   }
 
-  function isExpanded(id: MapToolsSection) {
-    return mapToolsStore.expandedSections.has(id);
+  // Each closed sheet starts again at the top without a divider.
+  $effect(() => {
+    if (!mapToolsStore.open) scrolled = false;
+  });
+
+  // Back closes the sheet (overlay history), like Escape and the X.
+  trackOverlay("layers", () => mapToolsStore.open, closeSheet);
+
+  // 3D is a camera tilt, independent of the map type underneath.
+  let pitch = $state(0);
+  const tilted = $derived(!isMap2DPitch(pitch));
+
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+    const sync = () => (pitch = map.getPitch());
+    sync();
+    map.on("pitch", sync);
+    return () => map.off("pitch", sync);
+  });
+
+  function toggle3D() {
+    const map = mapStore.mapInstance;
+    if (!map) return;
+    if (isMap2DPitch(map.getPitch())) {
+      map.easeTo({ pitch: THREE_D_PITCH, duration: 400 });
+      map.once("moveend", () =>
+        enterTiltedMapDimension(map, terrainStore.enabled),
+      );
+      return;
+    }
+    enterFlatMapDimension(map, terrainStore.enabled);
+    // Pitch only: snapping north here would throw away a rotation the user
+    // set on purpose. The compass is the control that resets rotation.
+    map.easeTo({ pitch: 0, duration: 400 });
+  }
+
+  // Saved plans decide whether "My classes" has anything to highlight.
+  onMount(() => plannerStore.init());
+  const hasPlannerClasses = $derived(
+    (plannerStore.activePlan?.sections.length ?? 0) > 0,
+  );
+
+  function poiSupporting(on: boolean): string | undefined {
+    // Org/place pins also answer to a zoom gate, so "on" alone would lie
+    // while the user is zoomed out past it.
+    return on && !mapViewStore.poiPinsZoomVisible
+      ? "Shown when you zoom in"
+      : undefined;
+  }
+
+  const pinOptions = [
+    { value: "all", label: "All" },
+    { value: "events", label: "Events only" },
+  ] as const;
+
+  function setPins(value: "all" | "events") {
+    if ((value === "events") !== mapViewStore.eventsOnly) {
+      mapViewStore.toggleEventsOnly();
+    }
   }
 
   function toggleTravelTime() {
     travelTimeStore.toggle();
     // Hand the map back so the user can tap an origin right away.
-    if (travelTimeStore.active) mapToolsStore.close();
-  }
-
-  // Day route lived on its own status-bar chip before the chrome redesign;
-  // the redesign dropped that mount, so the toolbox is its home now. Hidden
-  // when there is nothing to route today, same as the old chip.
-  const dayRoutable = $derived(routableTodayWeekday() !== null);
-  let dayRouting = $state(false);
-
-  async function handleRouteMyDay() {
-    if (dayRouting) return;
-    dayRouting = true;
-    try {
-      if (await routeToday()) {
-        mapToolsStore.close();
-        sidebarStore.changeOpened("map");
-      }
-    } finally {
-      dayRouting = false;
-    }
+    if (travelTimeStore.active) closeSheet();
   }
 
   function toggleMeasureRoute() {
+    // Walking time beside measuring is fine once its start point is set. One
+    // still waiting for that tap would swallow the first waypoint, so that is
+    // the one case that turns it off.
+    const pickingStart = travelTimeStore.active && !travelTimeStore.origin;
     measureRouteStore.toggle();
-    if (measureRouteStore.active) mapToolsStore.close();
+    if (!measureRouteStore.active) return;
+    if (pickingStart) {
+      travelTimeStore.disable();
+      toastStore.show("Walking time turned off while measuring");
+    }
+    closeSheet();
   }
 
+  // Drag the handle down to dismiss the phone sheet, the way a Material
+  // bottom sheet does; a short drag springs back.
+  let dragStartY: number | null = null;
+  let dragOffset = $state(0);
+
+  function handleDragStart(event: PointerEvent) {
+    dragStartY = event.clientY;
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  function handleDragMove(event: PointerEvent) {
+    if (dragStartY === null) return;
+    dragOffset = Math.max(0, event.clientY - dragStartY);
+  }
+
+  function handleDragEnd() {
+    if (dragStartY === null) return;
+    dragStartY = null;
+    if (dragOffset > 96) closeSheet();
+    dragOffset = 0;
+  }
 </script>
 
 <div class="map-tools-flyout">
@@ -106,110 +172,160 @@
   <div class="map-tools-dialog-host" use:portal={".app-layout"}>
   <Dialog
     open={mapToolsStore.open}
-    onclose={() => mapToolsStore.close()}
-    size="large"
+    onclose={closeSheet}
     ariaLabel="Layers"
-    closeLabel="Close layers"
+    showClose={false}
   >
-    <div class="map-tools-dialog" id="map-tools-panel">
-      <h2 class="map-tools-dialog__title">Layers</h2>
-      <div class="map-tools-dialog__body">
-        <div class="map-tools-dialog__map-type">
-          <MapTypePicker />
-        </div>
-        <h3 class="map-tools-dialog__subheading">Map tools</h3>
-        {#if dayRoutable}
-          <button
-            type="button"
-            class="map-tools-flyout__tool"
-            aria-busy={dayRouting}
-            onclick={handleRouteMyDay}
-          >
-            <Route size={18} aria-hidden="true" />
-            <span class="map-tools-flyout__tool-copy">
-              <span class="map-tools-flyout__tool-label">Route my day</span>
-              <span class="map-tools-flyout__tool-description">
-                {dayRouting
-                  ? "Routing your classes now"
-                  : "Walk route through today's classes"}
-              </span>
-            </span>
-          </button>
-        {/if}
+    <div
+      class="layers-sheet"
+      id="map-tools-panel"
+      style:translate={dragOffset ? `0 ${dragOffset}px` : undefined}
+    >
+      <div
+        class="layers-sheet__handle"
+        aria-hidden="true"
+        onpointerdown={handleDragStart}
+        onpointermove={handleDragMove}
+        onpointerup={handleDragEnd}
+        onpointercancel={handleDragEnd}
+      >
+        <span class="layers-sheet__handle-bar"></span>
+      </div>
+      <header class="layers-bar" class:layers-bar--scrolled={scrolled}>
         <button
           type="button"
-          class="map-tools-flyout__tool"
-          class:map-tools-flyout__tool--active={travelTimeStore.active}
-          aria-pressed={travelTimeStore.active}
-          onclick={toggleTravelTime}
+          class="layers-bar__nav"
+          aria-label="Close layers"
+          onclick={closeSheet}
         >
-          <Timer size={18} aria-hidden="true" />
-          <span class="map-tools-flyout__tool-copy">
-            <span class="map-tools-flyout__tool-label">Travel time</span>
-            <span class="map-tools-flyout__tool-description">
-              {travelTimeStore.active
-                ? "On — tap the map to pick a start point"
-                : "Color paths by walking minutes from a point"}
-            </span>
-          </span>
+          <X size={24} aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          class="map-tools-flyout__tool"
-          class:map-tools-flyout__tool--active={measureRouteStore.active}
-          aria-pressed={measureRouteStore.active}
-          onclick={toggleMeasureRoute}
-        >
-          <Ruler size={18} aria-hidden="true" />
-          <span class="map-tools-flyout__tool-copy">
-            <span class="map-tools-flyout__tool-label">Measure route</span>
-            <span class="map-tools-flyout__tool-description">
-              {measureRouteStore.active
-                ? "On — tap the map to drop waypoints"
-                : "Drop waypoints, get walk / cycle / car times"}
-            </span>
-          </span>
-        </button>
+        <h2 class="layers-bar__title">Layers</h2>
+      </header>
 
-        {#each sections as section (section.id)}
-          <div class="accordion-section">
-            <button
-              type="button"
-              class="map-chrome-accordion-toggle"
-              aria-expanded={isExpanded(section.id)}
-              aria-controls={`map-tools-section-${section.id}`}
-              onclick={() => toggleSection(section.id)}
-            >
-              {#if isExpanded(section.id)}
-                <ChevronDown size={18} aria-hidden="true" />
-              {:else}
-                <ChevronRight size={18} aria-hidden="true" />
-              {/if}
-              <span>{section.label}</span>
-            </button>
-            {#if isExpanded(section.id)}
-              <div
-                id={`map-tools-section-${section.id}`}
-                class="map-chrome-accordion-body map-chrome-accordion-body--enter"
-              >
-                {#if section.id === "view"}
-                  <MapViewControls embedded variant="modes" />
-                  <WaybackImageryControl />
-                {:else if section.id === "legend"}
-                  <MapLegend embedded />
-                {:else if section.id === "terrain"}
-                  <TerrainControl embedded />
-                {:else if section.id === "trail"}
-                  <TrailControl embedded />
-                {:else if section.id === "jeepney"}
-                  <JeepneyMenu embedded />
-                {:else if section.id === "schedule"}
-                  <ScheduleImportPanel embedded />
-                {/if}
-              </div>
-            {/if}
+      <div
+        class="layers-sheet__body"
+        onscroll={(event) =>
+          (scrolled = (event.currentTarget as HTMLElement).scrollTop > 0)}
+      >
+        <section class="layers-section" aria-labelledby="layers-map-type">
+          <h3 id="layers-map-type" class="layers-section__label">Map type</h3>
+          <MapTypePicker labelledBy="layers-map-type" />
+          <div class="layers-section__pad">
+            <WaybackImageryControl />
           </div>
-        {/each}
+        </section>
+
+        <section class="layers-section" aria-labelledby="layers-details">
+          <h3 id="layers-details" class="layers-section__label">
+            Map details
+          </h3>
+          <div class="layers-list">
+            <SettingsRow
+              label="3D"
+              supporting="Tilt the map to show buildings in 3D"
+              icon={Box}
+              checked={tilted}
+              onclick={toggle3D}
+            />
+            {#if TERRAIN_ENABLED}
+              <TerrainControl variant="row" />
+            {/if}
+            <TrailControl />
+            <SettingsRow
+              label="Orgs, units and offices"
+              supporting={poiSupporting(mapViewStore.showOrgs)}
+              icon={Users}
+              checked={mapViewStore.showOrgs}
+              onclick={mapViewStore.toggleOrgs}
+            />
+            <SettingsRow
+              label="Landmarks and establishments"
+              supporting={poiSupporting(mapViewStore.showPlaces)}
+              icon={Landmark}
+              checked={mapViewStore.showPlaces}
+              onclick={mapViewStore.togglePlaces}
+            />
+            {#if campusTransit.enabled}
+              <SettingsRow
+                label="Jeepney routes"
+                icon={Bus}
+                checked={jeepneyStore.layerActive}
+                onclick={jeepneyStore.toggleLayer}
+              />
+            {/if}
+            <SettingsRow
+              label="My classes"
+              supporting={hasPlannerClasses
+                ? "Highlight the buildings your classes are in"
+                : "Add classes in the Planner first"}
+              icon={GraduationCap}
+              checked={hasPlannerClasses && mapViewStore.highlightMyBuildings}
+              disabled={!hasPlannerClasses}
+              onclick={mapViewStore.toggleHighlightMyBuildings}
+            />
+          </div>
+        </section>
+
+        <section class="layers-section" aria-labelledby="layers-pins">
+          <h3 id="layers-pins" class="layers-section__label">Pins</h3>
+          <div class="layers-section__pad">
+            <SegmentedControl
+              options={pinOptions}
+              value={mapViewStore.eventsOnly ? "events" : "all"}
+              labelledBy="layers-pins"
+              onchange={setPins}
+            />
+          </div>
+        </section>
+
+        <section class="layers-section" aria-labelledby="layers-tools">
+          <h3 id="layers-tools" class="layers-section__label">Map tools</h3>
+          <div class="layers-list">
+            <SettingsRow
+              label="Walking time"
+              supporting={travelTimeStore.active
+                ? "Tap the map to choose where you start"
+                : "Shows how many minutes it takes to walk from a point you tap"}
+              icon={Timer}
+              checked={travelTimeStore.active}
+              onclick={toggleTravelTime}
+            />
+            <SettingsRow
+              label="Measure route"
+              supporting={measureRouteStore.active
+                ? "Tap the map or a pin to drop waypoints"
+                : "Tap the map to add stops and see walking, cycling and driving times"}
+              icon={Ruler}
+              checked={measureRouteStore.active}
+              onclick={toggleMeasureRoute}
+            />
+          </div>
+        </section>
+
+        {#if debugMode}
+          <section class="layers-section" aria-labelledby="layers-developer">
+            <h3 id="layers-developer" class="layers-section__label">
+              Developer
+            </h3>
+            <div class="layers-list">
+              <SettingsRow
+                label="Camera details"
+                supporting="Live zoom, pitch, bearing and center readout"
+                icon={Gauge}
+                checked={mapViewStore.cameraDebug}
+                onclick={mapViewStore.toggleCameraDebug}
+              />
+            </div>
+          </section>
+        {/if}
+
+        <section class="layers-section" aria-labelledby="layers-legend">
+          <h3 id="layers-legend" class="layers-section__label">Legend</h3>
+          <div class="layers-section__pad">
+            <MapLegend embedded />
+          </div>
+        </section>
       </div>
     </div>
   </Dialog>
@@ -217,77 +333,165 @@
 </div>
 
 <style>
-  /* Map tools is a full dialog now, not a popover wedged under its trigger.
-     The old shell had to measure remaining viewport space and cap its own
-     height; the dialog just scrolls its body. */
-  .map-tools-dialog {
+  /* Phone portrait (< 600px): a partial-height bottom sheet with a drag
+     handle. Wider screens and phones on their side: a right side sheet,
+     360 to 400px, so the map stays visible beside it (Google Maps layers). */
+  .map-tools-dialog-host :global(.overlay) {
+    background-color: hsla(0, 0%, 0%, 0.32);
+  }
+
+  .map-tools-dialog-host :global(.modal-set) {
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .map-tools-dialog-host :global(.modal-content) {
+    flex: 0 0 auto;
+    width: min(25rem, calc(100vw - 3.5rem));
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 0 env(safe-area-inset-right, 0px) 0 0;
+    border-radius: 1rem 0 0 1rem;
+  }
+
+  @media (max-width: 37.4375rem) {
+    .map-tools-dialog-host :global(.modal-set) {
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .map-tools-dialog-host :global(.modal-content) {
+      width: 100%;
+      height: auto;
+      /* Starts 64px down, under the search bar and over the chip row, so
+         no chip is ever sliced by the sheet edge. */
+      max-height: calc(100dvh - 4rem - env(safe-area-inset-top, 0px));
+      border-radius: 1.75rem 1.75rem 0 0;
+    }
+  }
+
+  .layers-sheet {
     display: flex;
     flex-direction: column;
-    min-height: 0;
     flex: 1 1 auto;
-    padding: 0.25rem 0.25rem 0.5rem;
+    min-height: 0;
+    min-width: 0;
+    background: var(--theme-surface, #fff);
   }
 
-  .map-tools-dialog__title {
-    margin: 0 2.5rem 0.75rem 0.5rem;
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--theme-text, hsl(0, 0%, 15%));
+  .layers-sheet__handle {
+    display: none;
   }
 
-  .map-tools-dialog__body {
+  @media (max-width: 37.4375rem) {
+    .layers-sheet__handle {
+      display: flex;
+      flex-shrink: 0;
+      justify-content: center;
+      align-items: center;
+      height: 1.5rem;
+      cursor: grab;
+      touch-action: none;
+    }
+  }
+
+  .layers-sheet__handle-bar {
+    width: 2rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--theme-border-strong, hsl(0, 0%, 60%));
+  }
+
+  .layers-bar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 3.5rem;
+    padding: 0 1rem 0 0.25rem;
+    border-bottom: 1px solid transparent;
+  }
+
+  .layers-bar--scrolled {
+    border-bottom-color: var(--theme-border, hsl(0, 0%, 88%));
+  }
+
+  .layers-bar__nav {
+    all: unset;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    flex: 0 0 3rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    color: var(--theme-text, hsl(0, 0%, 12%));
+    cursor: pointer;
+  }
+
+  .layers-bar__nav:hover {
+    background-color: var(--theme-accent-soft, hsl(5, 30%, 95%));
+  }
+
+  .layers-bar__nav:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    outline-offset: -2px;
+  }
+
+  .layers-bar__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--theme-text, hsl(0, 0%, 12%));
+  }
+
+  .layers-sheet__body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    min-height: 0;
     flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
-    padding: 0 0.5rem 0.25rem;
+    overscroll-behavior: contain;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Two columns of tools on a wide dialog: the list was a single cramped
-     column even when there was room for more. */
-  @media (min-width: 48rem) {
-    .map-tools-dialog__body {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      align-content: start;
-      gap: 0.75rem 1rem;
-    }
-
-    .map-tools-dialog__body :global(.accordion-section),
-    .map-tools-dialog__map-type,
-    .map-tools-dialog__subheading {
-      grid-column: 1 / -1;
-    }
+  .layers-section {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
 
-  .map-tools-dialog__map-type {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 90%));
+  .layers-section__label {
+    margin: 0;
+    padding: 1rem 1rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
-  .map-tools-dialog__subheading {
-    margin: 0.25rem 0 0;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--theme-text, hsl(0, 0%, 25%));
+  .layers-section__pad {
+    min-width: 0;
+    padding: 0 1rem;
   }
 
-  /* Phones: a bottom sheet over the map, the way Google Maps opens its
-     layers, instead of a centred full-height dialog. */
-  @media (max-width: 48rem) {
-    .map-tools-dialog-host :global(.modal-set) {
-      align-items: flex-end;
-      padding: 0;
-    }
+  .layers-section__pad:empty {
+    display: none;
+  }
 
-    .map-tools-dialog-host :global(.modal-content--large) {
-      height: auto;
-      max-height: 85dvh;
-      border-radius: 1rem 1rem 0 0;
-      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-    }
+  .layers-list {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
 
   .map-tools-flyout {
@@ -300,78 +504,8 @@
     overflow: visible;
   }
 
-  .map-tools-panel-shell {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* Desktop: panel overlays below the Layers FAB without growing the stack
-     (camera controls stay fixed under the trigger).
-     #716: was @media (min-width: 48.0625rem), now gated by .desktop class */
+  /* #716: was @media (min-width: 48.0625rem), now gated by .desktop class */
   :global(.desktop) .map-tools-flyout {
     z-index: 1;
-  }
-
-  :global(.desktop) .map-tools-panel-shell {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    right: 0;
-    width: min(24rem, calc(100vw - 1rem));
-    z-index: 2;
-  }
-
-  .accordion-section {
-    display: grid;
-    gap: 0.25rem;
-    min-width: 0;
-  }
-
-  .map-tools-flyout__tool {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 0.5rem;
-    border: 1px solid transparent;
-    border-radius: 0.5rem;
-    background: none;
-    padding: 0.375rem 0.5rem;
-    text-align: left;
-    color: inherit;
-    cursor: pointer;
-  }
-
-  .map-tools-flyout__tool:hover {
-    background-color: var(--theme-accent-soft, hsl(5, 20%, 95%));
-  }
-
-  .map-tools-flyout__tool:focus-visible {
-    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
-    outline-offset: 2px;
-  }
-
-  .map-tools-flyout__tool--active {
-    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
-    background-color: var(--theme-accent-soft, hsl(5, 30%, 95%));
-  }
-
-  .map-tools-flyout__tool-copy {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 0.125rem;
-  }
-
-  .map-tools-flyout__tool-label {
-    font-size: 0.9375rem;
-    font-weight: 600;
-  }
-
-  .map-tools-flyout__tool-description {
-    font-size: 0.8125rem;
-    line-height: 1.3;
-    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 </style>

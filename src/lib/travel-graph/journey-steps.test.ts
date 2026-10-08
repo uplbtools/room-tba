@@ -70,7 +70,7 @@ describe("journeySteps", () => {
     ]);
     expect(steps).toHaveLength(1);
     expect(steps[0]!.text).toBe("Walk to Main Library");
-    expect(steps[0]!.detail).toBe("13 min · 1.0 km");
+    expect(steps[0]!.detail).toBe("13 min, 1.0 km");
   });
 });
 

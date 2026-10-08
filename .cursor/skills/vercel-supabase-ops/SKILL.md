@@ -23,7 +23,7 @@ Use **`gh`** and **`vercel`** CLI by default; do not send maintainers to dashboa
 | `DATABASE_URL` | Production + all Preview | **Mandatory** for `bun run build` (SSG prerender) |
 | `NOTIFICATION_GATEWAY_URL` | Production + Preview staging | See [discord-notifications](../discord-notifications/SKILL.md) |
 | `NOTIFICATION_INGRESS_SECRET` | Production + Preview staging | Same |
-| `ADMIN_PASSWORD` | Dev/local | Editor login |
+| `TURNSTILE_SECRET_KEY` | Production + Preview | Required: sign-in, sign-up and reset fail closed without it (`TURNSTILE_ALLOW_UNCONFIGURED=1` only off-production) |
 | `ISR_BYPASS_TOKEN` | Vercel | On-demand SEO revalidation after publish |
 
 Runtime code uses **`DATABASE_URL` only** (not `NEON_CONNECTION_STRING`).

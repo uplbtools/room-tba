@@ -2,6 +2,7 @@ import { and, eq, ne, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { parsePublishingActor } from "@lib/admin/auth";
 import { recordEditorContribution } from "./contribution-service";
+import { changedKeys, classifyContribution } from "@lib/contributors/scoring";
 import {
   buildingsTable,
   collegesTable,
@@ -158,6 +159,11 @@ export async function recordEditorHistory({
       entityId,
       entityLabel:
         typeof label === "string" ? label : `${entityType} #${entityId}`,
+      kind: classifyContribution({
+        entityType,
+        action,
+        keys: changedKeys(before, after),
+      }),
     });
   }
 }

@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { checkRateLimit, resetRateLimitsForTests } from "./rate-limit";
+import {
+  checkRateLimit,
+  clientIp,
+  resetRateLimitsForTests,
+} from "./rate-limit";
 
 describe("checkRateLimit", () => {
   test("allows requests under the cap", () => {
@@ -24,5 +28,30 @@ describe("checkRateLimit", () => {
     expect(blocked.allowed).toBe(false);
     const afterWindow = checkRateLimit("ip:3", 1, 60_000, 62_001);
     expect(afterWindow.allowed).toBe(true);
+  });
+});
+
+describe("clientIp", () => {
+  const req = (headers: Record<string, string>) =>
+    new Request("https://example.test/api", { headers });
+
+  test("prefers the Vercel-set header", () => {
+    expect(
+      clientIp(
+        req({
+          "x-vercel-forwarded-for": "198.51.100.7",
+          "x-real-ip": "198.51.100.8",
+          "x-forwarded-for": "203.0.113.1, 198.51.100.7",
+        }),
+      ),
+    ).toBe("198.51.100.7");
+  });
+
+  test("falls back to x-real-ip", () => {
+    expect(clientIp(req({ "x-real-ip": "198.51.100.8" }))).toBe("198.51.100.8");
+  });
+
+  test("never trusts the client-typed first X-Forwarded-For entry", () => {
+    expect(clientIp(req({ "x-forwarded-for": "203.0.113.1" }))).toBe("unknown");
   });
 });

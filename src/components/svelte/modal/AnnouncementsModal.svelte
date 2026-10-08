@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Megaphone from "@lucide/svelte/icons/megaphone";
   import MegaphoneOff from "@lucide/svelte/icons/megaphone-off";
   import { adminAuthStore, announcementsStore } from "@lib/store.svelte";
   import { FACEBOOK_URL } from "@constants/community-links";
+  import ModalHeader from "./ModalHeader.svelte";
   import CommunityPlatformLink from "@ui/community/CommunityPlatformLink.svelte";
   import {
     ANNOUNCEMENT_SEVERITIES,
@@ -171,23 +171,24 @@
 </script>
 
 <div class="announcements">
-  <header class="announcements__header">
-    <h2 class="announcements__title">
-      <Megaphone size={18} aria-hidden="true" /> Announcements
-    </h2>
-    <p class="announcements__lead">
-      Campus and app notices from the Room TBA team.
-    </p>
-    {#if canPublish}
-      <button
-        type="button"
-        class="announcements__btn announcements__btn--primary"
-        onclick={newDraft}
-      >
-        New announcement
-      </button>
-    {/if}
-  </header>
+  <ModalHeader
+    id="announcements-modal-title"
+    title="Announcements"
+    description="Campus and app notices from the Room TBA team."
+  >
+    {#snippet trailing()}
+      {#if canPublish}
+        <button
+          type="button"
+          class="announcements__btn announcements__btn--primary"
+          aria-label="New announcement"
+          onclick={newDraft}
+        >
+          New
+        </button>
+      {/if}
+    {/snippet}
+  </ModalHeader>
 
   {#if editorError}
     <p class="announcements__error" role="alert">{editorError}</p>
@@ -284,9 +285,9 @@
           <time datetime={row.startsOn} title={formatCampusDateTime(row.startsOn)}>
             {relativeDateLabel(row.startsOn)}
           </time>
-          {#if row.author}<span>· {row.author}</span>{/if}
+          {#if row.author}<span>by {row.author}</span>{/if}
           {#if canPublish && statusLabel(row)}
-            <span class="announcements__status">· {statusLabel(row)}</span>
+            <span class="announcements__status">({statusLabel(row)})</span>
           {/if}
         </p>
         {#if canPublish}
@@ -314,29 +315,10 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 0.25rem 0.25rem 0;
     flex: 1 1 auto;
     min-height: 0;
   }
 
-  .announcements__header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    padding-right: 2.25rem;
-  }
-
-  .announcements__title {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--theme-text, hsl(0, 0%, 15%));
-  }
-
-  .announcements__lead,
   .announcements__empty,
   .announcements__meta {
     margin: 0;
@@ -378,7 +360,7 @@
   }
 
   .announcements__error {
-    margin: 0;
+    margin: 0 1rem;
     font-size: 0.8125rem;
     color: var(--theme-accent-text, hsl(0, 65%, 38%));
   }
@@ -388,7 +370,9 @@
     flex-direction: column;
     gap: 0.625rem;
     overflow-y: auto;
+    overscroll-behavior: contain;
     min-height: 0;
+    padding: 0 1rem 0.5rem;
   }
 
   .announcements__item {
@@ -460,6 +444,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin: 0 1rem;
     padding: 0.625rem;
     border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.5rem;

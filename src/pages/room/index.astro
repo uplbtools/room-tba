@@ -17,7 +17,7 @@ const items = rooms
     href: `/room/${getRoomRouteSlug(room)}/`,
     label: room.code,
     description: room.building?.name
-      ? `${room.building.name} at UPLB${classesMap.has(room.code) ? ` · ${classesMap.get(room.code)?.length ?? 0} classes${termPhrase}` : ""}`
+      ? `${room.building.name} at UPLB${classesMap.has(room.code) ? `, ${classesMap.get(room.code)?.length ?? 0} classes${termPhrase}` : ""}`
       : "UPLB room listing",
   }));
 

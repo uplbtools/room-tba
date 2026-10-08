@@ -16,7 +16,7 @@ test.describe("travel time tool @advisory", () => {
 
     await page.getByRole("button", { name: "Layers", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Layers" })).toBeVisible();
-    await page.getByRole("button", { name: /travel time/i }).click();
+    await page.getByRole("switch", { name: "Walking time" }).click();
 
     // Tool active: panel hands the map back and the legend prompts for a tap.
     await expect(page.getByText(/tap the map/i)).toBeVisible();
@@ -37,7 +37,7 @@ test.describe("travel time tool @advisory", () => {
     ).toBeVisible();
 
     // Turning the tool off removes the legend.
-    await page.getByRole("button", { name: /turn off travel time/i }).click();
+    await page.getByRole("button", { name: /turn off walking time/i }).click();
     await expect(page.getByText("30+ min")).toBeHidden();
 
     expect(pageErrors).toEqual([]);

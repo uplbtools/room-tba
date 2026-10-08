@@ -108,6 +108,7 @@ export const DARK_THEME_TOKENS = {
   "accent-soft": "#3a2422",
   "accent-border": "#8a4a44",
   "accent-fill": "#a8362b",
+  "danger-text": "#f2b8b5",
   "amber-text": "#f3cf7a",
   "amber-soft": "#3a3020",
   "amber-border": "#7a6233",

@@ -32,6 +32,12 @@
   onMount(() => {
     scheduleRouteStore.init();
     plannerStore.init();
+    // The numbered day-stop pins show while this panel is open (see
+    // ScheduleRouteStore.stopsVisible).
+    scheduleRouteStore.panelVisible = true;
+    return () => {
+      scheduleRouteStore.panelVisible = false;
+    };
   });
 
   // Track only planKey; importFromPlanner reads/writes other stores and must
@@ -187,7 +193,7 @@
 
       {#if routeActive && scheduleRouteStore.routeTotals}
         <p class="schedule-import-panel__totals">
-          Total walk: {formatDuration(scheduleRouteStore.routeTotals.seconds)} ·
+          Total walk: {formatDuration(scheduleRouteStore.routeTotals.seconds)},
           {formatDistance(scheduleRouteStore.routeTotals.meters)}
         </p>
       {/if}
@@ -214,12 +220,8 @@
     {/if}
   {/if}
 
-  <!-- Which section types have a room at all. Real, but it is a footnote, not
-       the first thing you read in a settings panel. -->
-  <details class="schedule-import-panel__scope">
-    <summary>Why a class may be missing</summary>
-    <p>{scheduleRouteStore.scopeNote}</p>
-  </details>
+  <!-- Which section types have a room at all is explained in the Planner,
+       where the sections are. -->
 </div>
 
 <style>
@@ -424,8 +426,7 @@
     color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
-  .schedule-import-panel__unresolved,
-  .schedule-import-panel__scope {
+  .schedule-import-panel__unresolved {
     font-size: 0.75rem;
     color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
@@ -436,18 +437,12 @@
   }
 
   /* 44px tap target on the disclosure row. */
-  .schedule-import-panel__scope summary,
   .schedule-import-panel__unresolved summary {
     display: list-item;
     padding: 0.375rem 0;
     min-height: 2.75rem;
     align-content: center;
     cursor: pointer;
-  }
-
-  .schedule-import-panel__scope p {
-    margin: 0.25rem 0 0;
-    line-height: 1.4;
   }
 
   .schedule-import-panel__route-actions {

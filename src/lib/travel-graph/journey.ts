@@ -728,7 +728,7 @@ export function routeProgress(
   };
 }
 
-/** "8 min walk · 2 stops on Kaliwa / Kanan" — the option-row subtitle. */
+/** "8 min walk, 2 stops on Kaliwa / Kanan" — the option-row subtitle. */
 export function describeJourney(journey: Journey): string {
   const rides = journey.legs.filter(
     (leg): leg is RideLeg => leg.kind === "ride",
@@ -744,5 +744,5 @@ export function describeJourney(journey: Journey): string {
       return `${stops} stop${stops === 1 ? "" : "s"} on ${ride.routeName}`;
     })
     .join(", then ");
-  return `${walkMinutes} min walk · ${ridden}`;
+  return `${walkMinutes} min walk, ${ridden}`;
 }

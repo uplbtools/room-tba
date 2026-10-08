@@ -9,10 +9,10 @@ import { settleAnimations } from "../helpers/map-tools";
 // geometry: #893 shipped a regression past a suite that only measured widths.
 
 async function openMenu(page: Page) {
-  const trigger = page.getByRole("button", { name: /^app menu$/i });
+  const trigger = page.getByRole("button", { name: "You", exact: true });
   await page.keyboard.press("Escape");
   await trigger.click({ force: true });
-  const panel = page.getByRole("dialog", { name: /^app menu$/i });
+  const panel = page.getByRole("dialog", { name: "You", exact: true });
   await expect(panel).toBeVisible();
   await settleAnimations(panel);
   return panel;
@@ -65,6 +65,20 @@ for (const viewport of [
       await openMenu(page);
     });
 
+    test("switches the theme from the top of the menu", async ({ page }) => {
+      const panel = await openMenu(page);
+      const appearance = panel.getByRole("group", { name: /^appearance$/i });
+      await appearance.getByRole("button", { name: /^dark$/i }).click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+      await appearance.getByRole("button", { name: /^light$/i }).click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+      const { scrollWidth, clientWidth } = await panel.evaluate((el) => ({
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth,
+      }));
+      expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
+    });
+
     test("reaches the academic calendar", async ({ page }) => {
       const panel = await openMenu(page);
       await panel.getByRole("button", { name: /^academic calendar$/i }).click();
@@ -90,7 +104,7 @@ for (const viewport of [
 
     test("reaches sign in", async ({ page }) => {
       await openMenu(page);
-      // Menu row on phones, top-bar button on desktop: exactly one either way.
+      // The You row on both layouts: exactly one either way.
       const signIn = page.getByRole("button", { name: /^sign in$/i });
       await expect(signIn).toHaveCount(1);
       await expect(signIn).toBeVisible();

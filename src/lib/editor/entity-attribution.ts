@@ -128,6 +128,8 @@ export function publicActorName(
 /** Drizzle string timestamps carry no zone; the database runs in UTC. */
 export function toIsoTimestamp(value: string): string {
   const iso = value.includes("T") ? value : value.replace(" ", "T");
+  // timestamptz text comes back as "+00": Date.parse needs "+00:00".
+  if (/[+-]\d\d$/.test(iso)) return `${iso}:00`;
   return /(Z|[+-]\d\d(:?\d\d)?)$/.test(iso) ? iso : `${iso}Z`;
 }
 

@@ -79,7 +79,7 @@ const structuredData = jsonLd(
     : null}
   ogCard={{
     title: buildingName,
-    subtitle: `${roomCount} room${roomCount === 1 ? "" : "s"} · ${classCount} class${classCount === 1 ? "" : "es"}${termLabel ? ` · ${termLabel}` : ""}`,
+    subtitle: `${roomCount} room${roomCount === 1 ? "" : "s"}, ${classCount} class${classCount === 1 ? "" : "es"}${termLabel ? `, ${termLabel}` : ""}`,
     kicker: "Building at UPLB",
   }}
   heading={`${buildingName} at UPLB`}

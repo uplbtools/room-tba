@@ -15,6 +15,7 @@ import {
 } from "@lib/api/feedback";
 import { errorResponse, json } from "@lib/api/json";
 import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { sharedRateLimit } from "@lib/api/rate-limit-db";
 import { db } from "@lib/db";
 import { emitFeedbackSubmitted } from "@lib/notifications/feedback-events";
 import { logNotificationEmitFailure } from "@lib/notifications/proposal-events";
@@ -25,8 +26,13 @@ const RATE_LIMIT_MESSAGE =
   "Thanks — that is a lot of feedback at once. Try again in a few minutes.";
 
 export const POST: APIRoute = async ({ request }) => {
-  // The IP keys an in-memory bucket only; it is never written to the table.
-  const denied = enforceFeedbackLimits(clientIp(request));
+  // The IP only forms a hashed rate-limit key; it is never stored with the
+  // message.
+  const denied = await enforceFeedbackLimits(
+    clientIp(request),
+    Date.now(),
+    sharedRateLimit,
+  );
   if (denied) {
     return rateLimitResponse(denied.resetAt, RATE_LIMIT_MESSAGE);
   }
@@ -63,9 +69,10 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  // Persisted, so the submission has already succeeded. A gateway 500 only ever
-  // reaches the server log (matches emitProposalSubmitted in api/proposals).
-  void emitFeedbackSubmitted({ feedbackId, ...validated.value }).catch(
+  // Persisted, so the submission has already succeeded. The event is queued
+  // in the outbox and delivered after the response; a gateway 500 is retried
+  // by cron and never reaches the submitter.
+  await emitFeedbackSubmitted({ feedbackId, ...validated.value }).catch(
     (err) => {
       logNotificationEmitFailure("Feedback notification emit failed", err);
     },

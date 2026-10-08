@@ -13,12 +13,15 @@ describeIntegration("HTTP redirects", () => {
     await requirePreview(PREVIEW_BASE);
   });
 
-  test("/admin redirects to in-app login", async () => {
+  // /admin is a landing page now (auth audit item 15): signed out, it explains
+  // roles and links to sign-in, and it is never cached.
+  test("/admin serves the landing page to signed-out visitors", async () => {
     const res = await fetch(`${PREVIEW_BASE}/admin`, { redirect: "manual" });
-    expect(res.status).toBeGreaterThanOrEqual(300);
-    expect(res.status).toBeLessThan(400);
-    const location = res.headers.get("location") ?? "";
-    expect(location).toContain("editor=login");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toContain("no-store");
+    const html = await res.text();
+    expect(html).toContain("Who can do what");
+    expect(html).toContain("editor=login");
   });
 
   test("/api/health returns ok", async () => {

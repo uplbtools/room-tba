@@ -1,10 +1,13 @@
 <script lang="ts">
+  import EntityActionScroll from "./EntityActionScroll.svelte";
+  import PlaceSheetTabs from "./PlaceSheetTabs.svelte";
   import EntitySkeleton from "@ui/EntitySkeleton.svelte";
   import {
     adminAuthStore,
     mapEditStore,
     mapProposalStore,
     queryStore,
+    sidePanelStore,
     building3DStore,
     toastStore,
     termStore,
@@ -17,7 +20,7 @@
   import BuildingPhoto from "./BuildingPhoto.svelte";
   import EntityShareButton from "./EntityShareButton.svelte";
   import EntitySaveButton from "./EntitySaveButton.svelte";
-  import EntityPanelClose from "./EntityPanelClose.svelte";
+  import PlaceSheetHeader from "./PlaceSheetHeader.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
@@ -36,7 +39,14 @@
     getBuildingRooms,
     fetchRoomClassCounts,
     fetchEntityRoomsRemote,
+    fetchBuildingClassSchedules,
   } from "@lib/local/data/utils";
+  import { isDateWithinTerm } from "@lib/term-calendar";
+  import {
+    buildingFactsLine,
+    countClassesNow,
+    expandCampusAbbreviations,
+  } from "@lib/place-facts";
   import {
     checkLocalBuildingRoom,
     getLocalBuildingRooms,
@@ -113,6 +123,51 @@
     building ? mapProposalStore.allowsKey(`building:${building.id}`) : false,
   );
 
+  // Overview / Rooms / Photos jump within the one scrolling sheet. Rooms and
+  // Photos live below the fold at peek, so they raise the sheet first.
+  const PLACE_TABS = [
+    { id: "overview", label: "Overview" },
+    { id: "rooms", label: "Rooms" },
+    { id: "photos", label: "Photos" },
+  ];
+  let activeTab = $state("overview");
+  let roomsEl = $state<HTMLElement | null>(null);
+  let photoEl = $state<HTMLElement | null>(null);
+  let tabsEl = $state<HTMLElement | null>(null);
+
+  // The tab strip sticks under the sticky place header so every tab stays
+  // reachable after a jump. Track the header's height (it shrinks once the
+  // sheet scrolls) for the strip's offset and the jump's scroll margin.
+  $effect(() => {
+    const header = tabsEl?.previousElementSibling;
+    const host = tabsEl?.parentElement;
+    if (!header || !host || typeof ResizeObserver === "undefined") return;
+    const sync = () => {
+      const top = header.getBoundingClientRect().height;
+      tabsEl?.style.setProperty("--place-header-h", `${top}px`);
+      host.style.setProperty(
+        "--place-sticky-h",
+        `${top + (tabsEl?.getBoundingClientRect().height ?? 0)}px`,
+      );
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(header);
+    return () => ro.disconnect();
+  });
+
+  async function selectTab(id: string) {
+    activeTab = id;
+    if (id !== "overview") sidePanelStore.requestSheetSnap("expanded");
+    await tick();
+    const scroller = tabsEl?.closest<HTMLElement>(
+      ".bottom-sheet__body, .side-panel-details",
+    );
+    const target = id === "rooms" ? roomsEl : id === "photos" ? photoEl : null;
+    if (target) target.scrollIntoView({ block: "start", behavior: "smooth" });
+    else scroller?.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   let buildingRooms = $state<RoomData[] | null>(null);
   let classCounts = $state<Map<number, number> | null>(null);
 
@@ -125,9 +180,51 @@
   });
   const buildingTypeLabel = $derived.by(() => {
     const isAdmin = building?.buildingType === "admin";
-    if (isAdmin && hostsClasses) return "Administrative · Class venue";
+    if (isAdmin && hostsClasses) return "Administrative and class venue";
     return isAdmin ? "Administrative" : "Class building";
   });
+
+  // "42 rooms, 3 classes now": the at-a-glance line under the name. The
+  // schedule comes from the local copy (null until classes were synced), and
+  // the minute tick keeps "now" honest while the sheet stays open.
+  let classSchedules = $state<(string[] | null)[] | null>(null);
+  let nowTick = $state(Date.now());
+  $effect(() => {
+    const timer = setInterval(() => (nowTick = Date.now()), 60_000);
+    return () => clearInterval(timer);
+  });
+  $effect(() => {
+    const id = building?.id;
+    const termId = termStore.activeTermId;
+    classSchedules = null;
+    if (id == null) return;
+    let live = true;
+    void fetchBuildingClassSchedules(id, termId ?? undefined).then(
+      (rows) => {
+        if (live) classSchedules = rows;
+      },
+    );
+    return () => {
+      live = false;
+    };
+  });
+  const termInSession = $derived.by(() => {
+    const term = termStore.activeTerm;
+    return term ? isDateWithinTerm(term, new Date(nowTick)) : false;
+  });
+  const buildingFacts = $derived(
+    buildingFactsLine({
+      roomCount: buildingRooms?.length ?? null,
+      // Only while the term is in session: on a break nothing is "on now".
+      classesNow:
+        classSchedules && classSchedules.length > 0 && termInSession
+          ? countClassesNow(classSchedules, new Date(nowTick))
+          : null,
+      classesThisTerm: classCounts
+        ? [...classCounts.values()].reduce((sum, n) => sum + n, 0)
+        : null,
+    }),
+  );
 
   let editing = $state(false);
   let draftBuildingId = $state<number | null>(null);
@@ -600,70 +697,70 @@
 <div class="entity-detail building-query-wrapper">
   {#if building}
     <EntityBackToList tab="buildings" label="Back to buildings" />
-    <header class="entity-header entity-header--sticky">
-      <div
-        class="entity-header__title-row entity-header__title-row--with-close"
-      >
-        <h2 class="entity-header__title">{building.buildingName}</h2>
-        <span class="entity-header__badge">{buildingTypeLabel}</span>
-        <EntityPanelClose ariaLabel="Close building details" showOnMobile />
-      </div>
-
-      <div class="entity-actions entity-actions--place">
+    <PlaceSheetHeader
+      title={building.buildingName}
+      label={buildingTypeLabel}
+      facts={buildingFacts}
+      closeLabel="Close building details"
+    >
+      {#if hasMapPin}
+        <EntityDirectionsChip
+          primary
+          lat={building.lat ?? 0}
+          lon={building.lon ?? 0}
+          destinationLabel={building.buildingName}
+        />
+      {/if}
+      <EntityActionScroll>
+        <EntitySaveButton
+          place={{
+            category: "building",
+            value: building.buildingName,
+            label: building.buildingName,
+            subtitle: buildingTypeLabel,
+            lat: building.lat,
+            lon: building.lon,
+          }}
+        />
+        <EntityShareButton
+          url={buildingShareUrl}
+          entityLabel={building.buildingName}
+        />
         {#if hasMapPin}
-          <EntityDirectionsChip
-            primary
+          <MapChromeActionChip
+            toolbar
+            ariaLabel="3D view"
+            onclick={() => building3DStore.open(building.buildingName)}
+          >
+            <Box size={14} aria-hidden="true" />
+            3D view
+          </MapChromeActionChip>
+          <EntityGoogleMapsLink
             lat={building.lat ?? 0}
             lon={building.lon ?? 0}
-            destinationLabel={building.buildingName}
+            name={building.buildingName}
+            ariaLabel={`Open ${building.buildingName} in Google Maps`}
           />
         {/if}
-        <div class="entity-actions__scroll">
-          <EntitySaveButton
-            place={{
-              category: "building",
-              value: building.buildingName,
-              label: building.buildingName,
-              subtitle: buildingTypeLabel,
-              lat: building.lat,
-              lon: building.lon,
-            }}
-          />
-          <EntityShareButton
-            url={buildingShareUrl}
-            entityLabel={building.buildingName}
-          />
-          {#if hasMapPin}
-            <MapChromeActionChip
-              toolbar
-              ariaLabel="3D view"
-              onclick={() => building3DStore.open(building.buildingName)}
-            >
-              <Box size={14} aria-hidden="true" />
-              3D view
-            </MapChromeActionChip>
-            <EntityGoogleMapsLink
-              lat={building.lat ?? 0}
-              lon={building.lon ?? 0}
-              name={building.buildingName}
-              ariaLabel={`Open ${building.buildingName} in Google Maps`}
-            />
-            <EntityPrintableMapLink
-              lat={building.lat ?? 0}
-              lon={building.lon ?? 0}
-              name={building.buildingName}
-            />
-          {/if}
-          <EntityEditorToggle
-            expanded={editing}
-            {canPublish}
-            publishOpenLabel="Edit building"
-            variant="toolbar"
-            onclick={() => (editing = !editing)}
-          />
-        </div>
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit building"
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
+      </EntityActionScroll>
+    </PlaceSheetHeader>
+
+    {#if !editing}
+      <div class="building-tabs" bind:this={tabsEl}>
+        <PlaceSheetTabs
+          tabs={PLACE_TABS}
+          active={activeTab}
+          onselect={selectTab}
+        />
       </div>
-    </header>
+    {/if}
 
     {#if editing}
       <section
@@ -840,6 +937,7 @@
                     prefix="buildings"
                     bind:value={imageDraft}
                     disabled={savingField !== null}
+                    proposalId={activeProposalId}
                   />
                   <button
                     type="button"
@@ -860,51 +958,72 @@
         </EntityEditorPanel>
       </section>
     {:else}
-      <BuildingPhoto
-        imageUrl={building.imageUrl}
-        name={building.buildingName}
-        lat={building.lat}
-        lon={building.lon}
-        panoId={building.streetViewPanoId}
-        captured={building.streetViewCaptured}
-      />
-      <section class="entity-directions" aria-label="Directions">
-        <div class="entity-directions__segment">
-          {#if hasMapPin}
-            <EntityStreetAddress
-              lat={building.lat ?? 0}
-              lon={building.lon ?? 0}
-            />
-          {/if}
-          {#if building.directions}
-            <p class="entity-directions__label">Directions</p>
-            <p class="entity-directions__text">{building.directions}</p>
-          {:else}
-            <p class="entity-directions__empty">No directions listed.</p>
-          {/if}
-        </div>
-        <EntityLastUpdated
-          updatedAt={building.updatedAt}
-          entityType="building"
-          entityId={building.id}
-          entityName={building.buildingName}
+      <div class="building-photo-anchor" bind:this={photoEl}>
+        <BuildingPhoto
+          imageUrl={building.imageUrl}
+          name={building.buildingName}
+          lat={building.lat}
+          lon={building.lon}
+          panoId={building.streetViewPanoId}
+          captured={building.streetViewCaptured}
         />
-      </section>
-      {#if sanitizeCrFacilities(building.crFacilities).length > 0}
-        <section class="building-cr" aria-label="CR facilities">
-          <h3 class="entity-section-heading">CR facilities</h3>
-          <div class="entity-tag-list">
-            {#each sanitizeCrFacilities(building.crFacilities) as slug (slug)}
-              <span class="entity-tag-chip building-cr__chip"
-                >{crFacilityLabel(slug)}</span
-              >
-            {/each}
-          </div>
-        </section>
+      </div>
+      {#if hasMapPin}
+        <EntityStreetAddress
+          lat={building.lat ?? 0}
+          lon={building.lon ?? 0}
+        />
       {/if}
     {/if}
   {:else}
     <EntitySkeleton variant="detail" label="Loading building…" />
+  {/if}
+
+  <!-- A class building is about its rooms and what is on now, so they come
+       before the long prose (GMaps: the sections people came for first). -->
+  <div class="building-rooms-anchor" bind:this={roomsEl}>
+    {#if buildingRooms}
+      <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
+    {:else if building}
+      <EntitySkeleton
+        variant="rooms"
+        heading="Rooms in the building"
+        label="Loading rooms for {building.buildingName}…"
+      />
+    {/if}
+  </div>
+
+  {#if building && !editing}
+    <section class="entity-directions" aria-labelledby="building-how-to-find">
+      <h3 id="building-how-to-find" class="entity-section-heading">
+        How to find it
+      </h3>
+      {#if building.directions}
+        <p class="entity-directions__text">
+          {expandCampusAbbreviations(building.directions)}
+        </p>
+      {:else}
+        <p class="entity-directions__empty">No directions listed.</p>
+      {/if}
+      <EntityLastUpdated
+        updatedAt={building.updatedAt}
+        entityType="building"
+        entityId={building.id}
+        entityName={building.buildingName}
+      />
+    </section>
+    {#if sanitizeCrFacilities(building.crFacilities).length > 0}
+      <section class="building-cr" aria-label="CR facilities">
+        <h3 class="entity-section-heading">CR facilities</h3>
+        <div class="entity-tag-list">
+          {#each sanitizeCrFacilities(building.crFacilities) as slug (slug)}
+            <span class="entity-tag-chip building-cr__chip"
+              >{crFacilityLabel(slug)}</span
+            >
+          {/each}
+        </div>
+      </section>
+    {/if}
   {/if}
 
   {#if buildingOrgs.length > 0}
@@ -923,14 +1042,16 @@
       </div>
     </section>
   {/if}
-  {#if buildingRooms}
-    <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
-  {:else if building}
-    <EntitySkeleton
-      variant="rooms"
-      heading="Rooms in the building"
-      label="Loading rooms for {building.buildingName}…"
-    />
+
+  {#if building && hasMapPin && !editing}
+    <div class="entity-footer">
+      <EntityPrintableMapLink
+        lat={building.lat ?? 0}
+        lon={building.lon ?? 0}
+        name={building.buildingName}
+        inline
+      />
+    </div>
   {/if}
 </div>
 
@@ -938,6 +1059,30 @@
   @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
+
+  /* Leave room for the sticky header and tab strip when a tab scrolls here. */
+  .building-photo-anchor,
+  .building-rooms-anchor {
+    scroll-margin-top: var(--place-sticky-h, 10.5rem);
+  }
+
+  .building-tabs {
+    position: sticky;
+    top: var(--place-header-h, 6.5rem);
+    z-index: 3;
+    background: var(--entity-sheet-bg, var(--theme-surface, #fff));
+  }
+
+  /* Landscape phones leave too little height to pin the strip. */
+  @media (max-height: 480px) {
+    .building-tabs {
+      position: static;
+    }
+    .building-photo-anchor,
+    .building-rooms-anchor {
+      scroll-margin-top: 7.5rem;
+    }
+  }
 
   .building-orgs {
     padding: 0.5rem 0.25rem 0;

@@ -3,11 +3,20 @@ export const prerender = true;
 
 import WikiLayout from "@layouts/WikiLayout.astro";
 import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+import {
+  JEEPNEY_ROUTES,
+  ROUTE_DIRECTIONS,
+  TOWN_JEEPNEY_MINIMUM_FARE,
+} from "@constants/jeepney-routes";
+import {
+  UPCAT_EXAM_LAST_DAY,
+  formatLongDay,
+  hasDayPassed,
+} from "@lib/wiki-freshness";
 
 const title = "Taking the UPCAT at UP Los Baños | Room TBA Wiki";
 const description =
-  "A first-timer's guide to the UPCAT at UPLB on August 1 and 2, 2026: what the test permit does and does not tell you, what to bring, how to get on campus, and how to load the campus map before mobile data gets congested.";
+  "A first-timer's guide to the UPCAT at UPLB, written for the August 1 and 2, 2026 exam: what the test permit does and does not tell you, what to bring, how to get on campus, and how to load the campus map before mobile data gets congested.";
 
 /** What the UP Office of Admissions says the permit carries. */
 const permitFields = [
@@ -69,58 +78,19 @@ const permitOmissions = [
   "Which entrance or gate to use.",
 ] as const;
 
-/** jeepney_routes + jeepney_stops, Room TBA production database. */
-const jeepneyRoutes = [
-  {
-    id: "Kaliwa / Kanan",
-    links:
-      "Olivarez Plaza in Los Baños town and the UPLB academic core, passing Raymundo Gate, the Main Library, the dormitories, and CEAT.",
-    stops: 20,
-  },
-  {
-    id: "Forestry",
-    links:
-      "The Forestry jeep terminal up to the upper Forestry campus, past the Main Library area, Narra Bridge, and the University Health Service.",
-    stops: 7,
-  },
-] as const;
+/** Read from the bundled route data so this page cannot drift from the map. */
+const campusRoutes = JEEPNEY_ROUTES;
+const kaliwaKanan = campusRoutes.find((route) => route.id === "kaliwa-kanan");
+const forestry = campusRoutes.find((route) => route.id === "forestry");
+const directions = ROUTE_DIRECTIONS["kaliwa-kanan"];
+const routeStopCount = campusRoutes.reduce(
+  (total, route) => total + route.stops.length,
+  0,
+);
+const fare = kaliwaKanan?.fare ?? TOWN_JEEPNEY_MINIMUM_FARE;
 
-const fareRegular = 14;
-const fareDiscounted = 12;
-
-/** Kaliwa order. Kanan runs the same loop in reverse. */
-const kaliwaKananStops = [
-  "Olivarez Plaza Mall",
-  "Robinsons Town Mall",
-  "Carabao Park / DevCom",
-  "Raymundo Gate",
-  "CAP-CSI",
-  "Sacay",
-  "Main Library",
-  "Graduate School / Umali",
-  "Women's Dormitory",
-  "Men's Dormitory",
-  "Baker Hall",
-  "Animal Husbandry",
-  "Agronomy Building",
-  "College of Engineering and Agro-Industrial Technology",
-  "Senior's Social Garden",
-  "Headquarters",
-  "St. Therese / Math Building",
-  "Makiling School",
-  "Carabao Park / Landbank",
-  "Olivarez Plaza Mall",
-] as const;
-
-const forestryStops = [
-  "Forestry Jeep Terminal",
-  "CEM Jeepney Stop",
-  "OVCRE Annex Building",
-  "Narra Bridge",
-  "Maria Makiling Statue",
-  "UP University Health Service",
-  "Forest Biological Sciences Building",
-] as const;
+const examPassed = hasDayPassed(UPCAT_EXAM_LAST_DAY);
+const examLastDayLabel = formatLongDay(UPCAT_EXAM_LAST_DAY);
 
 /** places table, category census. */
 const placeCategories = [
@@ -183,21 +153,12 @@ const cannotAnswer = [
   },
 ] as const;
 
-const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/wiki/upcat-at-uplb" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Wiki", path: "/wiki" },
-    { name: "UPCAT at UPLB", path: "/wiki/upcat-at-uplb" },
-  ]),
-);
 ---
 
 <WikiLayout
   {title}
   {description}
   canonicalPath="/wiki/upcat-at-uplb"
-  {structuredData}
   crumb="UPCAT at UPLB"
 >
   <article class="wiki-article">
@@ -212,10 +173,11 @@ const structuredData = jsonLd(
         driving and the waiting.
       </p>
       <p class="article-meta">
-        UPCAT for AY 2027 to 2028 is on <strong>August 1 and 2, 2026</strong>, a
-        Saturday and a Sunday. Campus figures on this page are a census of the
-        Room TBA production database on July 27, 2026: 52 buildings, 530 rooms,
-        2 jeepney routes, 27 stops, 49 places, 79 name aliases. Exam details
+        UPCAT for AY 2027 to 2028 {examPassed ? "was held on" : "is on"}
+        <strong>August 1 and 2, 2026</strong>, a Saturday and a Sunday. Campus
+        figures on this page are a census of the Room TBA production database
+        on July 27, 2026: 52 buildings, 530 rooms, 49 places, 79 name aliases
+        (jeepney figures are read live from the route data). Exam details
         come from the UP General Information Bulletin. UPLB campus-specific
         instructions (venue, gates, reporting point) were
         <strong>not published</strong> at the time of writing; last cycle they
@@ -224,22 +186,22 @@ const structuredData = jsonLd(
       <WikiProvenance sourcePath="src/pages/wiki/upcat-at-uplb.astro" />
     </header>
 
-    <nav class="toc" aria-label="On this page">
-      <p class="toc__title">On this page</p>
-      <ol>
-        <li><a href="#start-here">The short version</a></li>
-        <li><a href="#offline">Load the campus map before you arrive</a></li>
-        <li><a href="#permit">What the permit says, and what it does not</a></li>
-        <li><a href="#bring">What to bring, and what is banned</a></li>
-        <li><a href="#not-published">What UPLB has not published yet</a></li>
-        <li><a href="#last-cycle">What last cycle looked like at UPLB</a></li>
-        <li><a href="#getting-there">Getting to campus and moving around it</a></li>
-        <li><a href="#finding-the-building">Finding a building once someone names it</a></li>
-        <li><a href="#parent">For the parent who waits</a></li>
-        <li><a href="#cannot">What no app can tell you, including this one</a></li>
-        <li><a href="#sources">Sources</a></li>
-      </ol>
-    </nav>
+    {
+      examPassed && (
+        <aside class="article-callout article-callout--stale" role="note" aria-labelledby="exam-passed">
+          <h2 id="exam-passed">This guide is for an exam that has passed</h2>
+          <p>
+            The exam this page was written for ended on {examLastDayLabel}. The
+            permit, bring-list, and campus-map advice still describes how the
+            UPCAT works at UPLB, but every date, time, and “not published yet”
+            note below refers to that cycle. Venue, gates, and reporting times
+            for the next cycle are not on this page. Check
+            <a href="https://upcat.up.edu.ph" target="_blank" rel="noopener noreferrer">upcat.up.edu.ph</a>
+            for the current announcement.
+          </p>
+        </aside>
+      )
+    }
 
     <section aria-labelledby="start-here">
       <h2 id="start-here">The short version</h2>
@@ -547,10 +509,13 @@ const structuredData = jsonLd(
     <section aria-labelledby="getting-there">
       <h2 id="getting-there">Getting to campus and moving around it</h2>
       <p>
-        Room TBA records two jeepney routes for UPLB, with 27 stops between
-        them. These are the ordinary campus routes, not exam-day arrangements.
+        Room TBA records {campusRoutes.length} campus jeepney routes with
+        {routeStopCount} stops between them. These are the ordinary campus
+        routes, not exam-day arrangements. The full stop lists, fares, and
+        boarding tips are in the
+        <a href="/wiki/jeepney-guide">jeepney guide</a>, which reads the same
+        route data as the map.
       </p>
-      <p class="table-hint">Scroll sideways for the full table.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -561,19 +526,19 @@ const structuredData = jsonLd(
             </tr>
           </thead>
           <tbody>
-            {jeepneyRoutes.map((route) => (
+            {campusRoutes.map((route) => (
               <tr>
-                <td><strong>{route.id}</strong></td>
-                <td>{route.links}</td>
-                <td class="num">{route.stops}</td>
+                <td><strong>{route.name}</strong></td>
+                <td>{route.description}</td>
+                <td class="num">{route.stops.length}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <p class="figure-note">
-        Recorded fare on both routes: {fareRegular} pesos regular,
-        {" "}{fareDiscounted} pesos discounted. Fares change and the app is not
+        Recorded fare on the campus routes: {fare.regular} pesos regular,
+        {" "}{fare.discounted} pesos discounted. Fares change and the app is not
         the authority on them. Carry coins and small bills.
       </p>
 
@@ -582,39 +547,24 @@ const structuredData = jsonLd(
         This confuses first-timers more than anything else on campus.
         <strong> Kaliwa</strong> and <strong>Kanan</strong> are not two
         different destinations. They are one loop, and the name tells you which
-        way the jeep turns after it enters the UPLB gate. Kaliwa turns left and
-        hits Carabao Park / DevCom first. Kanan turns right and serves the same
-        stops in reverse, hitting Carabao Park / Landbank first.
+        way the jeep turns after it enters the UPLB gate.
+        {directions.reverse.label}: {directions.reverse.summary}
+        {" "}{directions.forward.label}: {directions.forward.summary}
       </p>
       <p>
-        Practically: if the building you want is early in the Kaliwa order, take
-        Kaliwa. If it is near the end, Kanan gets you there in a few stops
-        instead of most of the loop. If you get it wrong you still arrive, just
-        the long way around, which on exam morning is the difference that
-        matters.
+        Practically: if the building you want comes early after the gate on one
+        direction, take that direction. If it is near the end, the other
+        direction gets you there in a few stops instead of most of the loop. If
+        you get it wrong you still arrive, just the long way around, which on
+        exam morning is the difference that matters.
       </p>
-      <p>Kaliwa order, from the town side:</p>
-      <ol class="stop-list">
-        {kaliwaKananStops.map((stop) => (
-          <li>{stop}</li>
-        ))}
-      </ol>
       <p class="figure-note">
-        The loop opens and closes at Olivarez Plaza Mall, which is why it
-        appears twice. Kanan runs this list bottom to top.
+        The loop opens and closes at Olivarez Plaza Mall
+        ({kaliwaKanan?.stops.length ?? 0} stops counting it twice). The
+        Forestry route ({forestry?.stops.length ?? 0} stops) climbs to the upper
+        Forestry campus. Worth knowing mostly so you do not board it by
+        accident, and because the University Health Service sits on it.
       </p>
-
-      <h3 id="forestry-route">The Forestry route</h3>
-      <p>
-        A separate route climbing to the upper Forestry campus. Worth knowing
-        mostly so you do not board it by accident, and because the University
-        Health Service sits on it.
-      </p>
-      <ol class="stop-list">
-        {forestryStops.map((stop) => (
-          <li>{stop}</li>
-        ))}
-      </ol>
     </section>
 
     <section aria-labelledby="finding-the-building">
@@ -917,6 +867,11 @@ const structuredData = jsonLd(
     color: var(--wiki-ink-2);
     font-size: var(--wiki-text-sm);
     font-weight: 600;
+  }
+
+  .article-callout--stale {
+    border-color: var(--wiki-accent);
+    background: var(--wiki-accent-soft);
   }
 
   .article-callout--action {

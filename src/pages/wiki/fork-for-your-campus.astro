@@ -3,26 +3,17 @@ export const prerender = true;
 
 import WikiLayout from "@layouts/WikiLayout.astro";
 import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+import { APP_VERSION_LABEL } from "@constants/version";
 
 const title = "Fork this for your campus | Room TBA Wiki";
 const description =
   "What you actually have to change to run Room TBA for a different campus: the UPLB-specific data and glue to rip out, the config to repoint, and the parts that are write-your-own.";
-const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/wiki/fork-for-your-campus" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Wiki", path: "/wiki" },
-    { name: "Fork for your campus", path: "/wiki/fork-for-your-campus" },
-  ]),
-);
 ---
 
 <WikiLayout
   {title}
   {description}
   canonicalPath="/wiki/fork-for-your-campus"
-  {structuredData}
   crumb="Fork for your campus"
 >
   <article class="wiki-article">
@@ -36,25 +27,12 @@ const structuredData = jsonLd(
         order that matters, with the real file paths.
       </p>
       <p class="article-meta">
-        Current as of v2.1.x. If the repo has moved, the file paths below are
-        still the map. Re-check them.
+        File paths below were checked against the repository at
+        {APP_VERSION_LABEL} by an automated test. If the repo has moved, they
+        are still the map. Re-check them.
       </p>
       <WikiProvenance sourcePath="src/pages/wiki/fork-for-your-campus.astro" />
     </header>
-
-    <nav class="toc" aria-label="On this page">
-      <p class="toc__title">On this page</p>
-      <ol>
-        <li><a href="#what-is-generic">What you keep</a></li>
-        <li><a href="#what-is-uplb">What is UPLB-only</a></li>
-        <li><a href="#prereq">What you need before you start</a></li>
-        <li><a href="#steps">The actual steps</a></li>
-        <li><a href="#data">Loading your own data</a></li>
-        <li><a href="#deploy">Deploy</a></li>
-        <li><a href="#pain">The painful parts</a></li>
-        <li><a href="#license">License and credit</a></li>
-      </ol>
-    </nav>
 
     <section aria-labelledby="what-is-generic">
       <h2 id="what-is-generic">What you keep</h2>
@@ -81,12 +59,12 @@ const structuredData = jsonLd(
           <tbody>
             <tr><td><code>src/lib/site.ts</code></td><td>Site name, URL, title, and description are UPLB.</td></tr>
             <tr><td><code>src/campus.config.ts</code></td><td>Map bounds, default camera, the Mt. Makiling terrain block, the jeepney transit flag and label, and E2E fixture coordinates. <code>bun run fork:init</code> rewrites it for you.</td></tr>
-            <tr><td><code>src/constants/community-links.ts</code> + <code>status-bar-links.ts</code></td><td>UPLB Tools, Discord, and Messenger links.</td></tr>
+            <tr><td><code>src/constants/community-links.ts</code></td><td>UPLB Tools, Discord, and Messenger links.</td></tr>
             <tr><td><code>public/room_info.json</code></td><td>UPLB buildings, aliases, and walking directions. Seed file for aliases.</td></tr>
             <tr><td><code>src/constants/jeepney-routes.ts</code> + <code>jeepney-geometries.json</code></td><td>UPLB jeepney routes. Replace with your routes, or set <code>campusTransit.enabled: false</code> if your campus has no equivalent.</td></tr>
             <tr><td><code>scripts/import-amis-classes.ts</code></td><td>AMIS is UPLB's course system. You do not have AMIS.</td></tr>
             <tr><td><code>scripts/import-final-exams.ts</code></td><td>Reads UPLB OUR finals JSON.</td></tr>
-            <tr><td><code>scripts/import-osa-orgs.ts</code> + <code>import-campus-offices.ts</code></td><td>UPLB org and office directories.</td></tr>
+            <tr><td><code>scripts/import-osa-organizations.ts</code> + <code>scripts/import-campus-office-directory.ts</code></td><td>UPLB org and office directories.</td></tr>
             <tr><td><code>astro.config.mjs</code> <code>site</code></td><td>Hardcoded to <code>room-tba.uplb.tools</code>.</td></tr>
             <tr><td>The database contents</td><td>Every row is UPLB. The schema stays; the data goes.</td></tr>
           </tbody>
@@ -124,9 +102,9 @@ cp .env.example .env.local</code></pre>
       <p>
         Create a project. In SQL settings, copy the <strong>session pooler</strong>
         connection string (the one ending in <code>*.pooler.supabase.com</code>).
-        Paste it as <code>DATABASE_URL</code> in <code>.env.local</code>. Set
-        <code>ADMIN_PASSWORD</code> to something long and random. You need it
-        to log into the editor.
+        Paste it as <code>DATABASE_URL</code> in <code>.env.local</code>, and
+        set <code>ADMIN_SESSION_SECRET</code> to 32+ random characters (it
+        signs editor sessions).
       </p>
 
       <h3>3. Install and create the tables</h3>
@@ -165,7 +143,7 @@ bunx drizzle-kit push</code></pre>
       <ul>
         <li>Replace <code>public/room_info.json</code> with your buildings (or delete it and seed the DB directly).</li>
         <li>Replace the routes in <code>src/constants/jeepney-routes.ts</code> and <code>jeepney-geometries.json</code> with your campus transit, or leave them and set <code>campusTransit.enabled: false</code>.</li>
-        <li>Delete the UPLB import scripts you cannot reuse: <code>import-amis-classes.ts</code>, <code>import-final-exams.ts</code>, <code>import-osa-orgs.ts</code>, <code>import-campus-offices.ts</code>. Keep them as reference while you write your own.</li>
+        <li>Delete the UPLB import scripts you cannot reuse: <code>import-amis-classes.ts</code>, <code>import-final-exams.ts</code>, <code>import-osa-organizations.ts</code>, <code>import-campus-office-directory.ts</code>. Keep them as reference while you write your own.</li>
         <li>Delete <code>src/pages/wiki/section-times.astro</code> (the UPLB section-code glossary) and its card on the wiki index.</li>
       </ul>
 
@@ -195,8 +173,9 @@ bunx drizzle-kit push</code></pre>
         Two ways. Use both.
       </p>
       <p>
-        <strong>The in-app editor.</strong> Log in at
-        <code>/?editor=login</code> with your <code>ADMIN_PASSWORD</code>. Drop
+        <strong>The in-app editor.</strong> Create your admin account once with
+        <code>ADMIN_NEW_PASSWORD='…' bun run scripts/set-admin-user.ts admin</code>,
+        then log in at <code>/?editor=login</code> as <code>admin</code>. Drop
         pins, add buildings and rooms, set aliases. This is how you fix data
         day-to-day and how volunteers contribute without touching the DB.
       </p>
@@ -232,8 +211,8 @@ bunx drizzle-kit push</code></pre>
       </p>
       <ul>
         <li><code>DATABASE_URL</code>: your Supabase pooler URL.</li>
-        <li><code>ADMIN_PASSWORD</code>: same one you used locally.</li>
         <li><code>ADMIN_SESSION_SECRET</code>: 32+ random chars, used to sign editor cookies.</li>
+        <li><code>PUBLIC_TURNSTILE_SITE_KEY</code> and <code>TURNSTILE_SECRET_KEY</code>: a free Cloudflare Turnstile widget. Production sign-in, sign-up and password reset refuse to run without the secret (set <code>TURNSTILE_ALLOW_UNCONFIGURED=1</code> only on a private test deploy).</li>
         <li><code>ISR_BYPASS_TOKEN</code>: 32+ random chars, must match <code>bypassToken</code> in <code>astro.config.mjs</code>. Without it, editor publishes do not revalidate the SEO pages.</li>
         <li><code>PUBLIC_MAPTILER_KEY</code>: your key.</li>
         <li><code>PUBLIC_APP_ENV=production</code> on your production deploy; <code>staging</code> on preview.</li>

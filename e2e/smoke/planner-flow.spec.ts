@@ -52,7 +52,7 @@ test.describe("planner interactions", () => {
       .click();
 
     // The Sections side panel appears and lists the added offering.
-    const offering = planner.getByText(/E2E 101\s*·\s*AB/);
+    const offering = planner.getByText(/E2E 101,?\s*AB/);
     await expect(offering).toBeVisible();
     await expect(
       planner.getByRole("heading", { name: /Sections \(1\)/ }),

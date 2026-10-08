@@ -16,4 +16,18 @@ describe("map-modes", () => {
     expect(calls).toContain("terrain");
     expect(calls).not.toContain("routes");
   });
+
+  test("coexisting modes are left on", () => {
+    const calls: string[] = [];
+    registerMapMode("terrain", { disable: () => calls.push("terrain") });
+    registerMapMode("travel-time", {
+      disable: () => calls.push("travel-time"),
+    });
+    registerMapMode("measure", { disable: () => calls.push("measure") });
+
+    deactivateMapModesExcept("measure", "travel-time");
+    expect(calls).toContain("terrain");
+    expect(calls).not.toContain("travel-time");
+    expect(calls).not.toContain("measure");
+  });
 });

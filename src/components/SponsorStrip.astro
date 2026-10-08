@@ -45,7 +45,7 @@ const featured = [...getByTier(sponsors, "gold"), ...getByTier(sponsors, "silver
     align-items: center;
     gap: 0.5rem 0.75rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 35%);
+    color: var(--wiki-ink-2, hsl(0, 0%, 35%));
   }
 
   .sponsor-strip__lede {
@@ -63,7 +63,7 @@ const featured = [...getByTier(sponsors, "gold"), ...getByTier(sponsors, "silver
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    color: hsl(5, 53%, 32%);
+    color: var(--wiki-accent, hsl(5, 53%, 32%));
     font-weight: 600;
     text-decoration: none;
   }

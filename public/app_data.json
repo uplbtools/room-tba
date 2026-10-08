@@ -206,7 +206,7 @@
         "CAS A1 GAL 2",
         "CATL"
       ],
-      "directions": "The tall 4-floor building to the LEFT of Oble, beside OUR (Office of the University Registrar). Has galleries (GAL) on lower floors and lecture rooms on floors 3-4.",
+      "directions": "The tall 4-floor building to the LEFT of the Oblation, beside OUR (Office of the University Registrar). Has galleries (GAL) on lower floors and lecture rooms on floors 3-4.",
       "aka": "CAS A1",
       "lat": 14.165447317040943,
       "lon": 121.24109655582862,
@@ -228,7 +228,7 @@
         "CAS A2MPH2",
         "INSTAT RA2"
       ],
-      "directions": "The 2-storey building beside CAS Annex 1, to the left of Oble.",
+      "directions": "The 2-storey building beside CAS Annex 1, to the left of the Oblation.",
       "aka": "CAS A2",
       "lat": 14.165488927458338,
       "lon": 121.24174028595435,
@@ -408,7 +408,7 @@
         "DCERP  AVR",
         "DCERP AVR"
       ],
-      "directions": "College of Human Ecology (Gil F. Saguiguit Hall). Located beside Physical Sciences, on the left side of OPark when facing the Oblation.",
+      "directions": "College of Human Ecology (Gil F. Saguiguit Hall). Located beside Physical Sciences, on the left side of Oblation Park when facing the Oblation.",
       "aka": "College of Human Ecology",
       "lat": 14.164995709591306,
       "lon": 121.241894417301,
@@ -761,7 +761,7 @@
         "MMM LH",
         "SMA LH"
       ],
-      "directions": "Francisco O. Santos Hall. A wide building to the RIGHT of Oble. Has PSLH (Physical Science Lecture Halls) A and B, plus many PS rooms (B-100 to B-205, C-101 to C-320).",
+      "directions": "Francisco O. Santos Hall. A wide building to the RIGHT of the Oblation. Has PSLH (Physical Science Lecture Halls) A and B, plus many PS rooms (B-100 to B-205, C-101 to C-320).",
       "aka": "Francisco O. Santos Hall",
       "lat": 14.16449638298952,
       "lon": 121.24167984077903,
@@ -8830,7 +8830,7 @@
         }
       ],
       "floor": "3rd Floor",
-      "directions": "CAS Annex 1, 3rd Floor, Room 306. CAS Annex 1 is the tall building to the left of Oble, beside OUR."
+      "directions": "CAS Annex 1, 3rd Floor, Room 306. CAS Annex 1 is the tall building to the left of the Oblation, beside OUR."
     },
     "CAS A1 402": {
       "building": "CAS Annex 1",
@@ -32080,7 +32080,7 @@
           "course_title": "Organic Chemistry II"
         }
       ],
-      "directions": "In the Physical Sciences Building (Francisco O. Santos Hall), to the right of Oble. Ground floor, easy to spot."
+      "directions": "In the Physical Sciences Building (Francisco O. Santos Hall), to the right of the Oblation. Ground floor, easy to spot."
     },
     "PSLH B": {
       "building": "CAFS Building",

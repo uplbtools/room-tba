@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { transitStopKey } from "@lib/transit-reports";
 import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
 import { jeepneyStore, transitStore } from "@lib/store.svelte";
 import {
@@ -206,7 +207,7 @@ describe("JeepneyRouteModal", () => {
   test("shows published hours and says when a schedule is not published", () => {
     jeepneyStore.modalRouteId = "uplb-to-buendia";
     const { unmount } = render(JeepneyRouteModal);
-    expect(screen.getByText(/Daily · 5:00 AM · 1 trip a day/)).toBeVisible();
+    expect(screen.getByText(/Daily, 5:00 AM, 1 trip a day/)).toBeVisible();
     unmount();
 
     jeepneyStore.modalRouteId = "kaliwa-kanan";
@@ -214,9 +215,89 @@ describe("JeepneyRouteModal", () => {
     expect(screen.getByText(/Schedule not published/)).toBeVisible();
   });
 
+  test("Suggest a stop and Copy link share one footer row", async () => {
+    jeepneyStore.modalRouteId = "kaliwa-kanan";
+    const { container } = render(JeepneyRouteModal);
+
+    const footer = container.querySelector(".jeepney-modal__actions");
+    expect(footer).not.toBeNull();
+    const suggest = screen.getByRole("button", { name: "Suggest a stop" });
+    expect(footer?.contains(suggest)).toBe(true);
+    expect(
+      footer?.contains(screen.getByRole("button", { name: /copy link/i })),
+    ).toBe(true);
+    // Only the footer's toggle: the editor below the stops has none of its own.
+    expect(
+      screen.getAllByRole("button", { name: /suggest a stop/i }),
+    ).toHaveLength(1);
+
+    suggest.click();
+    await tick();
+    expect(
+      container.querySelector(".jeepney-modal__scroll .transit-stop-editor"),
+    ).not.toBeNull();
+    expect(screen.getByLabelText("Stop name")).toBeInTheDocument();
+  });
+
   test("shows an empty state when the route id is unknown", () => {
     jeepneyStore.modalRouteId = "does-not-exist";
     render(JeepneyRouteModal);
     expect(screen.getByText(/no longer available/i)).toBeVisible();
+  });
+});
+
+describe("JeepneyRouteModal jeep reports line", () => {
+  const route = JEEPNEY_ROUTES.find((r) => r.id === "kaliwa-kanan")!;
+  const stop = route.stops[3]!;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Date.UTC(2026, 9, 8, 2, 3));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  test("shows the newest rider report with its stop", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          now: new Date().toISOString(),
+          reports: [
+            {
+              routeId: route.id,
+              stopKey: transitStopKey(stop),
+              direction: "forward",
+              full: false,
+              at: new Date(Date.now() - 5 * 60_000).toISOString(),
+            },
+          ],
+        }),
+      ),
+    );
+    jeepneyStore.modalRouteId = route.id;
+    render(JeepneyRouteModal);
+
+    expect(
+      await screen.findByText(
+        `Last jeep reported 5 min ago at ${stop.name}`,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeVisible();
+  });
+
+  test("says nothing about reports when they cannot load", async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+    jeepneyStore.modalRouteId = route.id;
+    render(JeepneyRouteModal);
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await tick();
+
+    expect(screen.queryByText(/reported|No recent reports/)).toBeNull();
   });
 });
