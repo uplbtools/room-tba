@@ -65,7 +65,8 @@ export type MapToolsSection =
   | "legend"
   | "terrain"
   | "trail"
-  | "jeepney";
+  | "jeepney"
+  | "schedule";
 
 export type MapProposalTarget = {
   type: "building" | "dorm" | "event";

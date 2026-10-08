@@ -24,12 +24,18 @@ test.describe("map overlays", () => {
 
     const chip = page.locator(".active-overlays__chip");
     await expect
-      .poll(async () => (await stopPins.count()) === 0 || (await chip.count()) > 0, {
-        timeout: 10_000,
-      })
+      .poll(
+        async () => (await stopPins.count()) === 0 || (await chip.count()) > 0,
+        {
+          timeout: 10_000,
+        },
+      )
       .toBe(true);
     if ((await chip.count()) > 0) {
-      await chip.getByRole("button", { name: /^Remove / }).first().click();
+      await chip
+        .getByRole("button", { name: /^Remove / })
+        .first()
+        .click();
     }
     await expect(stopPins).toHaveCount(0);
     await expect(chip).toHaveCount(0);
