@@ -1,11 +1,13 @@
 <script lang="ts">
   import EntityActionScroll from "./EntityActionScroll.svelte";
+  import PlaceSheetTabs from "./PlaceSheetTabs.svelte";
   import EntitySkeleton from "@ui/EntitySkeleton.svelte";
   import {
     adminAuthStore,
     mapEditStore,
     mapProposalStore,
     queryStore,
+    sidePanelStore,
     building3DStore,
     toastStore,
     termStore,
@@ -120,6 +122,30 @@
   const pinProposalActive = $derived(
     building ? mapProposalStore.allowsKey(`building:${building.id}`) : false,
   );
+
+  // Overview / Rooms / Photos jump within the one scrolling sheet. Rooms and
+  // Photos live below the fold at peek, so they raise the sheet first.
+  const PLACE_TABS = [
+    { id: "overview", label: "Overview" },
+    { id: "rooms", label: "Rooms" },
+    { id: "photos", label: "Photos" },
+  ];
+  let activeTab = $state("overview");
+  let roomsEl = $state<HTMLElement | null>(null);
+  let photoEl = $state<HTMLElement | null>(null);
+  let tabsEl = $state<HTMLElement | null>(null);
+
+  async function selectTab(id: string) {
+    activeTab = id;
+    if (id !== "overview") sidePanelStore.requestSheetSnap("expanded");
+    await tick();
+    const scroller = tabsEl?.closest<HTMLElement>(
+      ".bottom-sheet__body, .side-panel-details",
+    );
+    const target = id === "rooms" ? roomsEl : id === "photos" ? photoEl : null;
+    if (target) target.scrollIntoView({ block: "start", behavior: "smooth" });
+    else scroller?.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   let buildingRooms = $state<RoomData[] | null>(null);
   let classCounts = $state<Map<number, number> | null>(null);
@@ -705,6 +731,16 @@
       </EntityActionScroll>
     </PlaceSheetHeader>
 
+    {#if !editing}
+      <div bind:this={tabsEl}>
+        <PlaceSheetTabs
+          tabs={PLACE_TABS}
+          active={activeTab}
+          onselect={selectTab}
+        />
+      </div>
+    {/if}
+
     {#if editing}
       <section
         class="entity-editor"
@@ -901,14 +937,16 @@
         </EntityEditorPanel>
       </section>
     {:else}
-      <BuildingPhoto
-        imageUrl={building.imageUrl}
-        name={building.buildingName}
-        lat={building.lat}
-        lon={building.lon}
-        panoId={building.streetViewPanoId}
-        captured={building.streetViewCaptured}
-      />
+      <div class="building-photo-anchor" bind:this={photoEl}>
+        <BuildingPhoto
+          imageUrl={building.imageUrl}
+          name={building.buildingName}
+          lat={building.lat}
+          lon={building.lon}
+          panoId={building.streetViewPanoId}
+          captured={building.streetViewCaptured}
+        />
+      </div>
       {#if hasMapPin}
         <EntityStreetAddress
           lat={building.lat ?? 0}
@@ -922,15 +960,17 @@
 
   <!-- A class building is about its rooms and what is on now, so they come
        before the long prose (GMaps: the sections people came for first). -->
-  {#if buildingRooms}
-    <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
-  {:else if building}
-    <EntitySkeleton
-      variant="rooms"
-      heading="Rooms in the building"
-      label="Loading rooms for {building.buildingName}…"
-    />
-  {/if}
+  <div class="building-rooms-anchor" bind:this={roomsEl}>
+    {#if buildingRooms}
+      <ResultDisplay filteredRooms={buildingRooms} {classCounts} />
+    {:else if building}
+      <EntitySkeleton
+        variant="rooms"
+        heading="Rooms in the building"
+        label="Loading rooms for {building.buildingName}…"
+      />
+    {/if}
+  </div>
 
   {#if building && !editing}
     <section class="entity-directions" aria-labelledby="building-how-to-find">
@@ -998,6 +1038,12 @@
   @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
+
+  /* Leave room for the sticky place header when a tab scrolls here. */
+  .building-photo-anchor,
+  .building-rooms-anchor {
+    scroll-margin-top: 7.5rem;
+  }
 
   .building-orgs {
     padding: 0.5rem 0.25rem 0;

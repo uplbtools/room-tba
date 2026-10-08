@@ -147,6 +147,15 @@
     lastPanelIdentity = identity;
   });
 
+  // Sheet content (place tabs) can ask for a taller sheet; it never lowers.
+  $effect(() => {
+    const request = sidePanelStore.sheetSnapRequest;
+    if (!request) return;
+    sidePanelStore.sheetSnapRequest = null;
+    if (!mobile.current || !panelOpen) return;
+    if (request === "expanded" || mobileSnap === "peek") mobileSnap = request;
+  });
+
   // Drive map-control visibility in Entry (hide locate/3D/zoom while sheet open).
   $effect(() => {
     if (!mobile.current || !panelOpen) {
