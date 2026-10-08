@@ -9,10 +9,10 @@ import { settleAnimations } from "../helpers/map-tools";
 // geometry: #893 shipped a regression past a suite that only measured widths.
 
 async function openMenu(page: Page) {
-  const trigger = page.getByRole("button", { name: /^app menu$/i });
+  const trigger = page.getByRole("button", { name: "You", exact: true });
   await page.keyboard.press("Escape");
   await trigger.click({ force: true });
-  const panel = page.getByRole("dialog", { name: /^app menu$/i });
+  const panel = page.getByRole("dialog", { name: "You", exact: true });
   await expect(panel).toBeVisible();
   await settleAnimations(panel);
   return panel;
@@ -90,7 +90,7 @@ for (const viewport of [
 
     test("reaches sign in", async ({ page }) => {
       await openMenu(page);
-      // Menu row on phones, top-bar button on desktop: exactly one either way.
+      // The You row on both layouts: exactly one either way.
       const signIn = page.getByRole("button", { name: /^sign in$/i });
       await expect(signIn).toHaveCount(1);
       await expect(signIn).toBeVisible();

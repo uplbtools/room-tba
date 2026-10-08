@@ -2,6 +2,7 @@
   import EntitySkeleton from "@ui/EntitySkeleton.svelte";
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import Printer from "@lucide/svelte/icons/printer";
   import EntityEmptyState from "./EntityEmptyState.svelte";
   import EntityPanelHeader from "./EntityPanelHeader.svelte";
   import { getAppData } from "@lib/context";
@@ -516,6 +517,17 @@
     aria-label={`${tabMeta.plural} list`}
   >
     {#if activeTab === "jeepney" && filteredJeepneyRoutes.length > 0}
+      <!-- Every route on one sheet, to print or keep on a phone. -->
+      <a
+        class="entity-list-row transit-print-link"
+        href="/api/transit-map"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <Printer size={18} aria-hidden="true" />
+        <span class="entity-list-row__label">Printable transit map</span>
+        <span class="entity-list-row__meta">PDF</span>
+      </a>
       {#each jeepneyRouteGroups as group (group.kind)}
       {#if jeepneyRouteGroups.length > 1}
         <h3 class="jeepney-route-group">{group.heading}</h3>
@@ -668,6 +680,15 @@
     min-height: 2.25rem;
     height: auto;
     font-size: 0.75rem;
+  }
+
+  .transit-print-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+    color: var(--theme-accent-text, hsl(345, 75%, 31%));
+    text-decoration: none;
   }
 
   .jeepney-route-group {

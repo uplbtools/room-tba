@@ -8,6 +8,7 @@
   import { releaseTimestampLabel } from "@lib/release-timestamps";
   import changelogRaw from "../../../../CHANGELOG.md?raw";
   import FollowUpdates from "@ui/community/FollowUpdates.svelte";
+  import ModalHeader from "./ModalHeader.svelte";
 
   // Developer-only bullets (CI, tests, refactors) are hidden here; the raw
   // history stays on /changelog.
@@ -26,14 +27,13 @@
 </script>
 
 <div class="changelog-modal">
-  <header class="changelog-modal__header">
-    <h2 class="changelog-modal__title">What's new</h2>
-    {#if hasUpdate}
-      <p class="changelog-modal__lead">
-        A new version is ready. Review what changed, then reload to update.
-      </p>
-    {/if}
-  </header>
+  <ModalHeader
+    id="changelog-modal-title"
+    title="What's new"
+    description={hasUpdate
+      ? "A new version is ready. Review what changed, then reload to update."
+      : undefined}
+  />
 
   <div class="changelog-modal__scroll">
     {#if entries.length === 0}
@@ -105,24 +105,8 @@
   .changelog-modal {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
-    padding: 0.25rem 0.25rem 0;
     flex: 1 1 auto;
     min-height: 0;
-  }
-
-  .changelog-modal__header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    padding-right: 2.25rem;
-  }
-
-  .changelog-modal__title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .changelog-modal__lead {
@@ -139,7 +123,8 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding-right: 0.5rem;
+    overscroll-behavior: contain;
+    padding: 0 1.5rem 0.5rem;
   }
 
   .changelog-modal__entry {
@@ -200,7 +185,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    padding: 0.25rem 0 0.375rem;
+    padding: 0.75rem 1.5rem 0.5rem;
     border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
@@ -208,9 +193,9 @@
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    min-height: 2.25rem;
-    padding: 0.4rem 1rem;
-    border-radius: 0.625rem;
+    min-height: 2.5rem;
+    padding: 0 1.5rem;
+    border-radius: 999px;
     font: inherit;
     font-size: 0.875rem;
     font-weight: 600;

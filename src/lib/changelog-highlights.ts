@@ -115,7 +115,10 @@ const INTERNAL_SCOPES = new Set([
 
 /** Clause-level developer jargon ("mobile pixel pass", "spec label drift"). */
 const JARGON =
-  /(?<![\w-])(e2e|specs?|(test )?suite|lint|biome|tsc|typecheck|refactor|chore|ci|vitest|playwright|pixel pass|flaky|fixtures?|deps)\b/i;
+  /(?<![\w-])(e2e|specs?|(test )?suite|lint|biome|tsc|typecheck|refactor|chore|ci|vitest|playwright|(pixel|ui) pass|flaky|fixtures?|deps|jakob('s)?(-law)?|audit|heuristics?|\d+ items)\b/i;
+
+/** "mobile UI pass: transit off campus" leads with how it was made, not what. */
+const PROCESS_PREFIX = /^[^:]{0,40}\bpass:\s+/i;
 
 const SECTION_TITLES: Record<string, string> = {
   "Bug Fixes": "Fixes",
@@ -137,7 +140,15 @@ export function userFacingItem(item: string): string | null {
     text = scoped[2];
   }
   // sanitizeBullet strips the issue links, leaving a bare "closes" tail.
-  const clauses = text.replace(/\s,\s*closes$/i, "").split(/(?<=[,;])\s+/);
+  // Parentheticals that only name the process ("(Jakob's-law audit, 30
+  // items)") go; the summary before them stays.
+  const clauses = text
+    .replace(/\s*,\s*closes$/i, "")
+    .replace(/\s*\(([^)]*)\)/g, (match, inner: string) =>
+      JARGON.test(inner) ? "" : match,
+    )
+    .replace(PROCESS_PREFIX, "")
+    .split(/(?<=[,;])\s+/);
   // The lead clause carries the meaning; jargon there means the whole entry
   // is developer-facing. Later jargon clauses are trimmed off.
   if (!clauses[0] || JARGON.test(clauses[0])) return null;

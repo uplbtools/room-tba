@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-/** Phone-sized welcome modal: header reads as a title bar, CTA needs no scroll. */
+/** Phone-sized guide: a standard top app bar, Done in view, one scroll. */
 test.describe("landing modal on a phone", () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
-  test("keeps the header small and Get Started in view", async ({ page }) => {
+  test("keeps the bar small and Done in view", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.removeItem("hideLandingModal");
     });
@@ -18,16 +18,18 @@ test.describe("landing modal on a phone", () => {
     const dialog = page.getByRole("dialog", { name: /room tba/i });
     await expect(dialog).toBeVisible({ timeout: 30_000 });
 
-    const cta = page.getByRole("button", { name: "Get Started" });
-    await expect(cta).toBeInViewport({ ratio: 1 });
+    const done = dialog.getByRole("button", { name: "Done", exact: true });
+    await expect(done).toBeInViewport({ ratio: 1 });
 
     const modalHeight = await dialog.evaluate((el) => el.clientHeight);
-    const headerHeight = await page
-      .locator(".landing-header")
+    const headerHeight = await dialog
+      .locator(".modal-header")
       .evaluate((el) => el.clientHeight);
     expect(headerHeight / modalHeight).toBeLessThan(0.3);
 
-    // Four cards on phones; the rest are desktop-only (see LandingGuideSteps).
-    await expect(page.locator(".feature-card:visible")).toHaveCount(4);
+    // Every feature is an actionable row, the same on phone and desktop.
+    await expect(
+      dialog.getByRole("button", { name: "Search rooms and buildings" }),
+    ).toBeVisible();
   });
 });

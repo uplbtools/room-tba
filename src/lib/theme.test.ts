@@ -42,7 +42,9 @@ describe("dark tokens meet WCAG AA", () => {
     T["accent-soft"],
   ];
 
-  test.each(["text", "text-2", "text-muted", "accent-text"] as const)(
+  test.each(
+    ["text", "text-2", "text-muted", "accent-text", "danger-text"] as const,
+  )(
     "%s on every surface",
     (fg) => {
       for (const bg of surfaces) {

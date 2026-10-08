@@ -77,11 +77,10 @@
     <span>Today</span>
   </button>
 
-  <!-- Menu, not Account: this is the only mobile entry point to Final Exams,
-       the academic calendar, the changelog, coverage, the leaderboard and the
-       review queue (#951). Sign in / account settings sits inside it. Finals
-       lives here rather than the bar because it is seasonal (#951 follow-up:
-       daily-relevant Today earns the slot). -->
+  <!-- You: the account plus every destination that is not a tab (Final
+       exams, the academic calendar, the changelog, coverage, the leaderboard,
+       the review queue; #951). Finals lives there rather than the bar because
+       it is seasonal; daily-relevant Today earns the slot. -->
   <AppMenu bind:open={menuOpen} hostTabs={tabs} />
 </nav>
 

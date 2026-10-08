@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { openSettingsModal } from "../helpers/map-tools";
+import {
+  expandMapToolsSection,
+  openMapTools,
+  openSettingsModal,
+} from "../helpers/map-tools";
 
 test.describe("map settings", () => {
   test.beforeEach(async ({ page }) => {
@@ -12,9 +16,12 @@ test.describe("map settings", () => {
     await openSettingsModal(page);
   });
 
+  // Terrain lives in Layers only; Settings has no map controls.
   test("terrain off by default", async ({ page }) => {
-    const settings = await openSettingsModal(page);
-    const terrainToggle = settings.getByRole("switch", {
+    await openMapTools(page);
+    await expandMapToolsSection(page, "Terrain");
+    const layers = page.getByRole("dialog", { name: /^layers$/i });
+    const terrainToggle = layers.getByRole("switch", {
       name: /makiling terrain/i,
     });
     await expect(terrainToggle).toBeVisible();

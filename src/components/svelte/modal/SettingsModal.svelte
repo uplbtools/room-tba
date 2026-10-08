@@ -1,16 +1,7 @@
 <script lang="ts">
-  import MapViewControls from "@ui/MapViewControls.svelte";
-  import TerrainControl from "@ui/TerrainControl.svelte";
-  import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
-  import MessageSquare from "@lucide/svelte/icons/message-square";
   import ModalHeader from "./ModalHeader.svelte";
-  import { TERRAIN_ENABLED } from "@constants/map-terrain";
-  import { clearCachedData } from "@lib/local/clear-cached-data";
-  import {
-    resyncCampusData,
-    type ResyncOutcome,
-  } from "@lib/local/resync-campus-data";
-  import { modalStore, syncToastStore } from "@lib/store.svelte";
+  import SettingsSection from "./SettingsSection.svelte";
+  import DataStorage from "./DataStorage.svelte";
   import {
     readThemePreference,
     setThemePreference,
@@ -18,6 +9,13 @@
   } from "@lib/theme";
   import "../map-chrome/map-chrome.css";
 
+  /**
+   * Settings holds only what changes how the app behaves on this device.
+   * Map style, basemap, terrain, pins and the other map layers live in
+   * Layers; help, feedback and the about links sit next to Settings in the
+   * You sheet. The app has no notification preferences, so there is no
+   * Notifications section.
+   */
   const APPEARANCE_OPTIONS: { value: ThemePreference; label: string }[] = [
     { value: "system", label: "System" },
     { value: "light", label: "Light" },
@@ -30,281 +28,138 @@
     setThemePreference(value);
   }
 
-  let confirming = $state(false);
-  let clearing = $state(false);
-  let confirmButton = $state<HTMLButtonElement | null>(null);
-  let resyncing = $state(false);
-  let resyncResult = $state<ResyncOutcome | null>(null);
-
-  const RESYNC_MESSAGE: Record<ResyncOutcome, string> = {
-    synced: "Campus data is up to date.",
-    failed: "Resync failed. Check your connection and try again.",
-    timeout: "Still syncing in the background. Check again in a moment.",
-  };
-
-  // No reload to signal success here, so the result has to be said out loud.
-  async function resync() {
-    if (resyncing) return;
-    resyncing = true;
-    resyncResult = null;
-    try {
-      resyncResult = await resyncCampusData(() => ({
-        allSynced: syncToastStore.allSynced,
-        syncError: syncToastStore.syncError,
-      }));
-    } finally {
-      resyncing = false;
-    }
-  }
-
-  // Opening the confirm swaps the button out from under the pointer, which
-  // would drop keyboard focus to <body>. Move it to the confirm instead.
-  $effect(() => {
-    if (confirming) confirmButton?.focus();
-  });
-
-  // The reload is the success signal, so there is no toast: either the page
-  // comes back clean or the button is still sitting there.
-  async function clearAndReload() {
-    if (clearing) return;
-    clearing = true;
-    await clearCachedData();
-    location.reload();
+  /** Arrow keys move the choice, as in any radio group. */
+  function handleRadioKeydown(event: KeyboardEvent) {
+    const step =
+      event.key === "ArrowRight" || event.key === "ArrowDown"
+        ? 1
+        : event.key === "ArrowLeft" || event.key === "ArrowUp"
+          ? -1
+          : 0;
+    if (!step) return;
+    event.preventDefault();
+    const at = APPEARANCE_OPTIONS.findIndex((o) => o.value === appearance);
+    const next =
+      APPEARANCE_OPTIONS[
+        (at + step + APPEARANCE_OPTIONS.length) % APPEARANCE_OPTIONS.length
+      ];
+    if (!next) return;
+    chooseAppearance(next.value);
+    const group = event.currentTarget as HTMLElement;
+    group
+      .querySelector<HTMLElement>(`[data-value="${next.value}"]`)
+      ?.focus();
   }
 </script>
 
-<div class="settings-modal">
+<div class="settings-screen">
   <ModalHeader id="settings-modal-title" title="Settings" />
-  <div class="settings-modal__scroll map-chrome-scroll">
-    <section class="settings-modal__section">
-      <h3>Appearance</h3>
-      <div class="map-chrome-row">
-        <span class="map-chrome-row__label" id="settings-appearance">
-          Theme
-        </span>
+  <div class="settings-screen__scroll map-chrome-scroll">
+    <SettingsSection variant="list" title="Appearance">
+      <div class="settings-screen__row">
+        <span class="settings-screen__label" id="settings-appearance">Theme</span>
+        <!-- svelte-ignore a11y_interactive_supports_focus -->
         <div
-          class="map-chrome-row__control"
-          role="group"
+          class="settings-screen__segmented"
+          role="radiogroup"
           aria-labelledby="settings-appearance"
+          aria-describedby="settings-appearance-hint"
+          onkeydown={handleRadioKeydown}
         >
           {#each APPEARANCE_OPTIONS as option (option.value)}
             <button
               type="button"
-              class="map-chrome-chip"
-              class:map-chrome-chip--toggle-active={appearance === option.value}
-              aria-pressed={appearance === option.value}
+              role="radio"
+              data-value={option.value}
+              class="settings-screen__segment"
+              aria-checked={appearance === option.value}
+              tabindex={appearance === option.value ? 0 : -1}
               onclick={() => chooseAppearance(option.value)}
             >
               {option.label}
             </button>
           {/each}
         </div>
-      </div>
-      <p class="map-chrome-row-hint">
-        System follows your device's light or dark setting.
-      </p>
-    </section>
-    <section class="settings-modal__section">
-      <h3>Map</h3>
-      <MapViewControls embedded variant="settings" />
-    </section>
-    {#if TERRAIN_ENABLED}
-      <section class="settings-modal__section">
-        <h3>Terrain</h3>
-        <TerrainControl embedded />
-      </section>
-    {/if}
-    <section class="settings-modal__section">
-      <h3>Schedule</h3>
-      <ScheduleImportPanel embedded />
-    </section>
-    <section class="settings-modal__section">
-      <h3>Feedback</h3>
-      <div class="map-chrome-row">
-        <span class="map-chrome-row__label">Found a problem or have an idea?</span>
-        <div class="map-chrome-row__control">
-          <button
-            type="button"
-            class="map-chrome-action-chip"
-            onclick={() => modalStore.openModal("feedback")}
-          >
-            <MessageSquare size={14} aria-hidden="true" />
-            Send feedback
-          </button>
-        </div>
-      </div>
-    </section>
-    <section class="settings-modal__section">
-      <h3>Storage</h3>
-
-      <div class="settings-modal__task">
-        <div class="map-chrome-row">
-          <span class="map-chrome-row__label">Campus data</span>
-          <div class="map-chrome-row__control">
-            <button
-              type="button"
-              class="map-chrome-action-chip"
-              aria-describedby="settings-resync-hint"
-              disabled={resyncing}
-              onclick={resync}
-            >
-              {resyncing ? "Resyncing…" : "Resync"}
-            </button>
-          </div>
-        </div>
-        <p id="settings-resync-hint" class="map-chrome-row-hint">
-          Fetches rooms and classes again. Your downloaded offline maps are
-          kept.
+        <p id="settings-appearance-hint" class="settings-screen__hint">
+          System follows your device's light or dark setting.
         </p>
-        {#if resyncResult}
-          <p
-            class="map-chrome-row-hint"
-            class:map-chrome-row-hint--warn={resyncResult !== "synced"}
-            class:map-chrome-row-hint--ok={resyncResult === "synced"}
-            role="status"
-          >
-            {RESYNC_MESSAGE[resyncResult]}
-          </p>
-        {/if}
       </div>
-    </section>
+    </SettingsSection>
 
-    <section
-      class="settings-modal__section settings-modal__danger-zone"
-      aria-labelledby="settings-reset-heading"
-    >
-      <h3 id="settings-reset-heading">Reset</h3>
-      <div class="map-chrome-row">
-        <span class="map-chrome-row__label">Offline data</span>
-        {#if !confirming}
-          <div class="map-chrome-row__control">
-            <button
-              type="button"
-              class="map-chrome-action-chip settings-modal__danger"
-              aria-describedby="settings-storage-hint"
-              onclick={() => (confirming = true)}
-            >
-              Reset offline data
-            </button>
-          </div>
-        {/if}
-      </div>
-      <p id="settings-storage-hint" class="map-chrome-row-hint">
-        Removes saved campus data, offline maps, and cached app files. Your
-        saved class plans stay.
-      </p>
-      {#if confirming}
-        <p
-          id="settings-storage-warning"
-          class="map-chrome-row-hint map-chrome-row-hint--warn"
-        >
-          Downloaded offline maps will be removed. You will need a connection
-          to download them again.
-        </p>
-        <div class="map-chrome-row-actions">
-          <button
-            type="button"
-            class="map-chrome-action-chip settings-modal__danger settings-modal__danger--solid"
-            aria-describedby="settings-storage-warning"
-            disabled={clearing}
-            bind:this={confirmButton}
-            onclick={clearAndReload}
-          >
-            {clearing ? "Resetting…" : "Reset and reload"}
-          </button>
-          <button
-            type="button"
-            class="map-chrome-action-chip"
-            disabled={clearing}
-            onclick={() => (confirming = false)}
-          >
-            Cancel
-          </button>
-        </div>
-      {/if}
-    </section>
+    <DataStorage />
   </div>
 </div>
 
 <style>
-  .settings-modal {
+  .settings-screen {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding-bottom: 0.25rem;
     flex: 1 1 auto;
     min-height: 0;
   }
 
-  .settings-modal__scroll {
+  .settings-screen__scroll {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    /* Left padding keeps glyph edges out of the overflow clip (the "E" in
-       Explore was losing its left stem). */
-    padding: 0 0.5rem 0.25rem;
+    overscroll-behavior: contain;
   }
 
-  .settings-modal__section {
+  .settings-screen__row {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.5rem;
+    padding: 0.25rem 1rem 0.5rem;
   }
 
-  .settings-modal__section h3 {
+  .settings-screen__label {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--theme-text, hsl(0, 0%, 12%));
+  }
+
+  .settings-screen__hint {
     margin: 0;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    font-size: 0.875rem;
+    line-height: 1.4;
     color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
-  .settings-modal__task {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
+  /* Material segmented button: 40px, outlined, the choice filled. */
+  .settings-screen__segmented {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    border: 1px solid var(--theme-border-strong, hsl(0, 0%, 47%));
+    border-radius: 999px;
+    overflow: hidden;
   }
 
-  /* The destructive reset gets its own framed section, apart from Resync, so
-     it reads as the separate, bigger hammer it is. */
-  .settings-modal__danger-zone {
-    padding: 0.625rem 0.75rem 0.75rem;
-    border: 1px solid var(--theme-accent-border, hsl(0, 55%, 86%));
-    border-radius: 0.625rem;
-    background: var(--theme-accent-soft, hsl(0, 75%, 99%));
+  .settings-screen__segment {
+    min-height: 2.5rem;
+    min-width: 0;
+    padding: 0 0.75rem;
+    border: none;
+    border-left: 1px solid var(--theme-border-strong, hsl(0, 0%, 47%));
+    background: transparent;
+    color: var(--theme-text, hsl(0, 0%, 12%));
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
   }
 
-  .settings-modal__danger-zone h3 {
-    color: var(--theme-accent-text, hsl(0, 70%, 32%));
+  .settings-screen__segment:first-child {
+    border-left: none;
   }
 
-  /* The chrome chip is maroon like the rest of the app, so destructive gets a
-     true red: outlined to arm, filled to confirm. Never the same as Resync. */
-  .settings-modal__danger {
-    border-color: var(--theme-accent-border, hsl(0, 55%, 70%));
-    color: var(--theme-accent-text, hsl(0, 70%, 34%));
+  .settings-screen__segment[aria-checked="true"] {
+    background: var(--theme-accent-soft, hsl(345, 60%, 93%));
+    color: var(--theme-accent-text, hsl(345, 75%, 28%));
   }
 
-  .settings-modal__danger:hover:not(:disabled),
-  .settings-modal__danger:focus-visible {
-    border-color: hsl(0, 60%, 52%);
-    background: var(--theme-accent-soft, hsl(0, 75%, 98%));
-  }
-
-  .settings-modal__danger--solid,
-  .settings-modal__danger--solid:hover:not(:disabled),
-  .settings-modal__danger--solid:focus-visible {
-    border-color: var(--theme-accent-text, hsl(0, 70%, 32%));
-    background: var(--theme-accent-fill, hsl(0, 70%, 32%));
-    color: white;
-  }
-
-  .settings-modal__danger--solid:hover:not(:disabled) {
-    background: var(--theme-accent-fill, hsl(0, 70%, 27%));
-    border-color: var(--theme-accent-text, hsl(0, 70%, 27%));
+  .settings-screen__segment:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(345, 75%, 31%));
+    outline-offset: -3px;
   }
 </style>

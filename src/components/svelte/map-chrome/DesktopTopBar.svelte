@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { adminAuthStore, sidebarStore } from "@lib/store.svelte";
+  import { sidebarStore } from "@lib/store.svelte";
   import AppMenu from "../status-bar/AppMenu.svelte";
 
   type NavId = "map" | "planner" | "finals";
@@ -19,17 +19,6 @@
     sidebarStore.changeOpened(id);
   }
 
-  function handleSignIn() {
-    if (adminAuthStore.username) {
-      adminAuthStore.openAccountSettings();
-      return;
-    }
-    adminAuthStore.openLogin("signin");
-  }
-
-  const signInLabel = $derived(
-    adminAuthStore.username ? "Account" : "Sign in",
-  );
 </script>
 
 <header class="desktop-top-bar" aria-label="App navigation">
@@ -62,15 +51,9 @@
         {link.label}
       </button>
     {/each}
-    <a href="/wiki" class="desktop-top-bar__link">Wiki</a>
-    <AppMenu bind:open={menuOpen} {hostTabs} showAccount={false} />
-    <button
-      type="button"
-      class="desktop-top-bar__signin"
-      onclick={handleSignIn}
-    >
-      {signInLabel}
-    </button>
+    <!-- You: account, sign in and everything that is not a tab (the Wiki
+         sits under Help & feedback there), the same sheet the phone opens. -->
+    <AppMenu bind:open={menuOpen} {hostTabs} variant="avatar" />
   </nav>
 </header>
 
@@ -145,17 +128,5 @@
 
   .desktop-top-bar__link:hover {
     background: var(--theme-accent-soft, #feeaea);
-  }
-
-  .desktop-top-bar__signin {
-    margin: 0 0 0 4px;
-    padding: 0.45rem clamp(0.75rem, 1.2vw, 1rem);
-    border: none;
-    border-radius: 10px;
-    background: var(--theme-accent-fill, #8d1437);
-    color: #fff;
-    font: inherit;
-    font-size: clamp(0.8125rem, 0.95vw, 0.875rem);
-    cursor: pointer;
   }
 </style>

@@ -18,4 +18,5 @@ export const modalOptions = [
   "entity-history",
   "feedback",
   "saved-places",
+  "contributors",
 ] as const;

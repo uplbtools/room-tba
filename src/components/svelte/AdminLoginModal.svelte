@@ -1,14 +1,8 @@
 <script lang="ts">
-  import { fade, fly } from "svelte/transition";
-  import { X, Lock, Eye, EyeOff } from "@lucide/svelte";
-  import IconButton from "@ui/IconButton.svelte";
+  import { Eye, EyeOff } from "@lucide/svelte";
+  import Dialog from "@ui/modal/Dialog.svelte";
+  import ModalHeader from "@ui/modal/ModalHeader.svelte";
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
-  import {
-    modalContentDismiss,
-    modalContentReveal,
-    overlayFade,
-  } from "@lib/motion";
-  import { trapFocus } from "@lib/focus-trap";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
@@ -16,7 +10,6 @@
   import TurnstileWidget from "@ui/TurnstileWidget.svelte";
   import { MESSENGER_MAINTAIN_TARGET } from "@constants/community-links";
   import "./editor/entity-editor.css";
-  import { MediaQuery } from "svelte/reactivity";
 
   import { isSupabaseConfigured } from "@lib/supabase/env";
   import {
@@ -25,7 +18,6 @@
   } from "@lib/turnstile-client";
   import { MIN_CONTRIBUTOR_PASSWORD_LENGTH } from "@lib/auth/contributor-signup";
 
-  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
   const loginErrorId = "admin-login-error";
   const googleEnabled = isSupabaseConfigured();
   const turnstileEnabled = isTurnstileWidgetConfigured();
@@ -40,7 +32,6 @@
 
   type Mode = "signin" | "signup";
 
-  let loginFrameEl = $state<HTMLDivElement | null>(null);
   let mode = $state<Mode>("signin");
   let username = $state("");
   let password = $state("");
@@ -184,39 +175,23 @@
     mode = "signin";
   }
 
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") close();
-  }
-
-  $effect(() => {
-    if (!loginFrameEl) return;
-    return trapFocus(loginFrameEl, { onEscape: close });
-  });
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
-<div class="login-overlay" transition:fade={overlayFade(reducedMotion.current)}>
-  <div
-    bind:this={loginFrameEl}
-    class="login-frame"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="admin-login-title"
-    in:fly={modalContentReveal(reducedMotion.current)}
-    out:fly={modalContentDismiss(reducedMotion.current)}
+<!-- The standard dialog, one layer above other modals: sign in can open from
+     inside one (suggest an edit, account). -->
+<div class="login-layer">
+  <Dialog
+    open
+    onclose={close}
+    size="compact"
+    labelledBy="admin-login-title"
+    closeLabel="Close login"
   >
-    <header class="login-header">
-      <div class="login-title" id="admin-login-title">
-        <Lock size={16} aria-hidden="true" />
-        <span>
-          {isSignup ? "Create contributor account" : "Sign in"}
-        </span>
-      </div>
-      <IconButton size="sm" shape="rounded" label="Close login" onclick={close}>
-        <X size={18} aria-hidden="true" />
-      </IconButton>
-    </header>
+  <div class="login-frame">
+    <ModalHeader
+      id="admin-login-title"
+      title={isSignup ? "Create contributor account" : "Sign in"}
+    />
     <form class="login-body entity-editor-form" onsubmit={submit}>
       {#if !showForgotPassword}
         {#if isSignup}
@@ -456,42 +431,25 @@
       </a>
     </p>
   </div>
+  </Dialog>
 </div>
 
 <style>
-  .login-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(8, 12, 22, 0.55);
-    z-index: var(--z-login-modal, 200);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+  /* No box of its own: the Dialog inherits the higher layer. */
+  .login-layer {
+    display: contents;
+    --z-modal: var(--z-login-modal, 200);
   }
   .login-frame {
-    width: min(22rem, 100%);
-    background: var(--theme-surface, white);
-    border-radius: 0.75rem;
-    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-  }
-  .login-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 92%));
-  }
-  .login-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    color: var(--theme-text, hsl(0, 0%, 15%));
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .login-body {
-    padding: 1rem;
+    padding: 0.5rem 1.5rem 1rem;
   }
   .login-body :global(.entity-editor-submit) {
     width: 100%;
