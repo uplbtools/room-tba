@@ -1,10 +1,7 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
-import {
-  checkRateLimit,
-  clientIp,
-  rateLimitResponse,
-} from "@lib/api/rate-limit";
+import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { sharedRateLimit } from "@lib/api/rate-limit-db";
 import {
   AccountActionError,
   requestEmailChange,
@@ -18,7 +15,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
-  const rate = checkRateLimit(
+  const rate = await sharedRateLimit(
     `account-request-email-change:${auth.session.id}:${clientIp(request)}`,
     LIMIT.max,
     LIMIT.windowMs,

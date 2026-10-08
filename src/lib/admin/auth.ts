@@ -9,14 +9,20 @@ export type SessionUser = {
   username: string;
   displayName: string;
   role: AdminRole;
+  /** admin_users.session_version when the cookie was issued (0055). */
+  sessionVersion?: number;
 };
 
-type SessionPayload = SessionUser & { exp: number };
+type SessionPayload = Omit<SessionUser, "sessionVersion"> & {
+  exp: number;
+  /** Session version; cookies minted before 0055 carry none and read as 0. */
+  sv?: number;
+};
 
 const COOKIE_NAME = "admin_session";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
-// No ADMIN_PASSWORD fallback: the login password must never double as the
+// No password fallback: a login password must never double as the
 // key that signs sessions and reset tokens (knowing it would let anyone
 // forge a session for any user).
 function signingSecret(): string {
@@ -35,16 +41,30 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(aBuf, bBuf);
 }
 
-/** Per-user signed session token (v2). */
+/**
+ * Per-user signed session token (v2). The session version rides inside the
+ * signed body, so a cookie cannot claim a newer version than it was issued
+ * with; revalidateSession rejects it once the DB value moves on.
+ */
 export function createSessionToken(user: SessionUser): string {
   const payload: SessionPayload = {
-    ...user,
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    role: user.role,
+    sv: user.sessionVersion ?? 0,
     exp: Math.floor(Date.now() / 1000) + COOKIE_MAX_AGE,
   };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${body}.${signBody(body)}`;
 }
 
+/**
+ * Cookie-only decode: proves the cookie was signed by us and has not
+ * expired, nothing more. Role, activation and revocation live in the DB, so
+ * route handlers must go through require-editor.ts (which revalidates); the
+ * middleware only uses this as a cheap pre-filter.
+ */
 export function getSessionUser(
   cookieValue: string | undefined,
 ): SessionUser | null {
@@ -80,6 +100,7 @@ export function getSessionUser(
         payload.role === "contributor"
           ? payload.role
           : "contributor",
+      sessionVersion: Number.isInteger(payload.sv) ? payload.sv : 0,
     };
   } catch {
     return null;

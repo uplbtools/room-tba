@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getEditorSession } from "@lib/admin/require-editor";
+import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
 import { db } from "@lib/db";
 import { editProposalsTable } from "@drizzle/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
@@ -10,10 +10,9 @@ export const prerender = false;
 const OPEN_STATUSES = ["pending", "needs_changes"] as const;
 
 export const GET: APIRoute = async ({ cookies }) => {
-  const session = getEditorSession(cookies);
-  if (!session) {
-    return json({ error: "Sign in required." }, 401);
-  }
+  const auth = await editorSessionOrUnauthorized(cookies);
+  if (auth instanceof Response) return auth;
+  const { session } = auth;
 
   const rows = await db
     .select()

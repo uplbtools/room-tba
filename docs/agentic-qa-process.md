@@ -16,7 +16,7 @@ One agent can play multiple roles, but the report must separate automated eviden
 ## Required Inputs
 
 - PR URL or branch name.
-- Local `.env` with `DATABASE_URL` and `ADMIN_PASSWORD`.
+- Local `.env` with `DATABASE_URL`, `ADMIN_SESSION_SECRET`, and an admin account (`ADMIN_NEW_PASSWORD='...' bun run scripts/set-admin-user.ts <username>`).
 - Current test checklist: `docs/editor-foundation-test-plan.md`.
 - A running local dev server on the expected port, usually `http://localhost:4321`.
 - Linked GitHub issue number(s), if any; re-read with `gh issue view N` before coding; see [issue-hygiene.md](issue-hygiene.md).

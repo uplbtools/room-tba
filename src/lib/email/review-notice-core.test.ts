@@ -1,24 +1,58 @@
 import { describe, expect, it } from "vitest";
-import { buildReviewEmail, reviewRecipients } from "./review-notice-core";
+import {
+  buildReviewEmail,
+  buildStaffReviewEmail,
+  reviewNoticeSends,
+} from "./review-notice-core";
 
-describe("reviewRecipients", () => {
-  it("contributor in To, core in CC", () => {
-    expect(reviewRecipients("a@x.ph", ["core@x.ph", "b@x.ph"])).toEqual({
-      to: ["a@x.ph"],
-      cc: ["core@x.ph", "b@x.ph"],
-    });
+describe("reviewNoticeSends", () => {
+  it("contributor gets a copy of their own with no staff addresses", () => {
+    const sends = reviewNoticeSends("a@x.ph", ["core@x.ph", "b@x.ph"]);
+    expect(sends).toEqual([
+      { audience: "contributor", to: ["a@x.ph"] },
+      { audience: "staff", to: ["core@x.ph", "b@x.ph"] },
+    ]);
+    const contributorSend = sends.find((s) => s.audience === "contributor");
+    expect(contributorSend?.to).not.toContain("core@x.ph");
   });
-  it("core-only when contributor has no email", () => {
-    expect(reviewRecipients(null, ["core@x.ph"])).toEqual({
-      to: ["core@x.ph"],
-      cc: [],
-    });
+  it("staff-only when the contributor has no confirmed email", () => {
+    expect(reviewNoticeSends(null, ["core@x.ph"])).toEqual([
+      { audience: "staff", to: ["core@x.ph"] },
+    ]);
   });
-  it("never CCs the contributor to themselves", () => {
-    expect(reviewRecipients("core@x.ph", ["core@x.ph", "b@x.ph"])).toEqual({
-      to: ["core@x.ph"],
-      cc: ["b@x.ph"],
+  it("a staff contributor gets only their own copy", () => {
+    expect(reviewNoticeSends("Core@x.ph", ["core@x.ph", "b@x.ph"])).toEqual([
+      { audience: "contributor", to: ["core@x.ph"] },
+      { audience: "staff", to: ["b@x.ph"] },
+    ]);
+  });
+  it("sends nothing when nobody has an address", () => {
+    expect(reviewNoticeSends(null, [])).toEqual([]);
+  });
+});
+
+describe("buildStaffReviewEmail", () => {
+  it("says whether the contributor was told", () => {
+    const told = buildStaffReviewEmail({
+      outcome: "approved",
+      entityLabel: "Humanities Building",
+      submitterName: "Ana",
+      reviewedBy: "stimmie",
+      contributorNotified: true,
     });
+    expect(told.subject).toBe("Review approved: Humanities Building");
+    expect(told.text).toContain("emailed separately");
+    const untold = buildStaffReviewEmail({
+      outcome: "needs_changes",
+      entityLabel: null,
+      submitterName: null,
+      reviewedBy: "stimmie",
+      note: "Add the floor",
+      contributorNotified: false,
+    });
+    expect(untold.subject).toBe("Review changes requested: a map entry");
+    expect(untold.text).toContain("no confirmed email");
+    expect(untold.text).toContain("Add the floor");
   });
 });
 

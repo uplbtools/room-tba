@@ -72,7 +72,6 @@
     try {
       const result = await withdrawEntityProposal({
         proposalId: activeProposalId,
-        submitterName: submitterName.trim() || undefined,
       });
       if (!result.ok) {
         withdrawError = result.error ?? "Could not withdraw suggestion.";

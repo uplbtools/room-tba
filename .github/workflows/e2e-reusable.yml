@@ -18,7 +18,6 @@ jobs:
       E2E_SCHEMA: e2e_${{ github.run_id }}_${{ github.run_attempt }}
       E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
       E2E_ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
-      ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
       ADMIN_SESSION_SECRET: ${{ secrets.E2E_ADMIN_SESSION_SECRET }}
       PUBLIC_MAPTILER_KEY: ${{ secrets.PUBLIC_MAPTILER_KEY }}
       CI: true

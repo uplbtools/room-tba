@@ -822,6 +822,7 @@
               prefix={`events/${event.slug}`}
               bind:value={form.imageUrl}
               disabled={saving}
+              proposalId={activeProposalId}
             />
             <EntityEditorFormField
               label="Recurrence"

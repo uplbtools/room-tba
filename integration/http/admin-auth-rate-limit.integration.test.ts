@@ -26,7 +26,7 @@ describeIntegration("admin auth rate limit", () => {
           body: form,
           // Isolated IP bucket: the 9 failed attempts here must not consume
           // the shared runner IP's login budget for later suite logins.
-          headers: { "X-Forwarded-For": "203.0.113.77" },
+          headers: { "X-Real-IP": "203.0.113.77" },
         }),
       );
       lastStatus = res.status;

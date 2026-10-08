@@ -7,6 +7,7 @@ import {
 } from "./lib/supabase/session";
 import { getAdminUserBySupabaseId } from "./lib/services/admin-user-service";
 import { recordLatency } from "./lib/latency-tracker";
+import { applySecurityHeaders } from "./lib/security-headers";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   bootstrapObservability();
@@ -17,8 +18,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   await refreshSupabaseSession(context);
 
   const isAdminPage = pathname.startsWith("/admin");
+  // /api/admin/upload also serves anonymous authors of an open proposal
+  // (token-checked in the route), so it skips this signed-in pre-filter.
   const isAdminApi =
-    pathname.startsWith("/api/admin") && pathname !== "/api/admin/auth";
+    pathname.startsWith("/api/admin") &&
+    pathname !== "/api/admin/auth" &&
+    pathname !== "/api/admin/upload";
 
   // Resolve editor identity from HMAC cookie or Supabase session (#293).
   let editorUser = getSessionUser(
@@ -71,6 +76,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (duration > 500) {
       console.warn(`[Slow API] ${pathname} took ${duration}ms`);
     }
+  }
+
+  try {
+    applySecurityHeaders(response.headers, pathname);
+  } catch {
+    // Immutable headers (e.g. a Response.redirect): vercel.json still sets
+    // the same values at the edge.
   }
 
   return applySupabaseCacheHeaders(response, context);

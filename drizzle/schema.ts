@@ -556,6 +556,52 @@ export const editProposalsTable = pgTable("edit_proposals", {
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
+/**
+ * Per-account auth state (0055), kept off admin_users so code shipped ahead
+ * of the migration never breaks admin_users queries. Server-only.
+ * `verified_email` counts only while it equals the account's current email.
+ */
+export const adminUserAuthTable = pgTable(
+  "admin_user_auth",
+  {
+    userId: integer("user_id")
+      .primaryKey()
+      .references(() => adminUsersTable.id, { onDelete: "cascade" }),
+    sessionVersion: integer("session_version").default(0).notNull(),
+    verifiedEmail: text("verified_email"),
+    emailVerifiedAt: timestamp("email_verified_at", { mode: "string" }),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("admin_user_auth_verified_email_idx").on(table.verifiedEmail),
+  ],
+);
+
+/** SHA-256 of each proposal's owner token (0057). Server-only. */
+export const proposalOwnerTokensTable = pgTable("proposal_owner_tokens", {
+  proposalId: integer("proposal_id")
+    .primaryKey()
+    .references(() => editProposalsTable.id, { onDelete: "cascade" }),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+/** Shared fixed-window rate-limit buckets (0056). Server-only. */
+export const rateLimitsTable = pgTable(
+  "rate_limits",
+  {
+    key: varchar({ length: 200 }).primaryKey(),
+    count: integer().default(0).notNull(),
+    resetAt: timestamp("reset_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [index("rate_limits_reset_at_idx").on(table.resetAt)],
+);
+
 export const editorHistoryTable = pgTable("editor_history", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   entityType: varchar("entity_type", { length: 32 }).notNull(),

@@ -841,6 +841,7 @@
                     prefix="buildings"
                     bind:value={imageDraft}
                     disabled={savingField !== null}
+                    proposalId={activeProposalId}
                   />
                   <button
                     type="button"

@@ -10,8 +10,6 @@ const databaseUrl =
 
 process.env.DATABASE_URL = databaseUrl;
 
-const adminPassword =
-  process.env.E2E_ADMIN_PASSWORD?.trim() || "e2e-test-password-change-me";
 const sessionSecret =
   process.env.E2E_ADMIN_SESSION_SECRET?.trim() ||
   process.env.ADMIN_SESSION_SECRET?.trim() ||
@@ -19,7 +17,6 @@ const sessionSecret =
 
 mock.module("astro:env/server", () => ({
   DATABASE_URL: databaseUrl,
-  ADMIN_PASSWORD: adminPassword,
   ADMIN_SESSION_SECRET: sessionSecret,
   ISR_BYPASS_TOKEN: process.env.ISR_BYPASS_TOKEN ?? "",
   R2_ACCOUNT_ID: "",

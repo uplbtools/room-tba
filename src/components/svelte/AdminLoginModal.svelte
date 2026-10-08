@@ -67,6 +67,10 @@
   let forgotPasswordError = $state<string | null>(null);
 
   async function sendForgotPassword() {
+    if (turnstileEnabled && !turnstileToken) {
+      forgotPasswordError = "Complete the verification check, then try again.";
+      return;
+    }
     forgotPasswordSending = true;
     forgotPasswordError = null;
     try {
@@ -74,9 +78,14 @@
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ login: forgotLoginDraft }),
+        body: JSON.stringify({
+          login: forgotLoginDraft,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
-      if (!res.ok && res.status === 429) {
+      // The Turnstile token is single-use either way.
+      refreshTurnstile();
+      if (!res.ok && (res.status === 429 || res.status === 400)) {
         const data = await res.json().catch(() => ({}) as { error?: string });
         forgotPasswordError =
           data.error ?? "Too many attempts. Wait a bit and try again.";
@@ -150,7 +159,12 @@
       confirmPassword = "";
       const label =
         adminAuthStore.displayName ?? adminAuthStore.username ?? "contributor";
-      toastStore.show(`Signed in as ${label}.`, "success");
+      toastStore.show(
+        signupEmail.trim()
+          ? `Signed in as ${label}. Check your email to confirm your address.`
+          : `Signed in as ${label}.`,
+        "success",
+      );
       return;
     }
 
@@ -366,6 +380,14 @@
                 />
               {/snippet}
             </EntityEditorFormField>
+            {#if turnstileEnabled}
+              {#key turnstileMountKey}
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  bind:token={turnstileToken}
+                />
+              {/key}
+            {/if}
             {#if forgotPasswordError}
               <EntityEditorMessage variant="error" message={forgotPasswordError} />
             {/if}
@@ -374,7 +396,8 @@
                 label="Send reset link"
                 savingLabel="Sending…"
                 saving={forgotPasswordSending}
-                disabled={!forgotLoginDraft.trim()}
+                disabled={!forgotLoginDraft.trim() ||
+                  (turnstileEnabled && !turnstileToken)}
                 onclick={sendForgotPassword}
               />
               <button

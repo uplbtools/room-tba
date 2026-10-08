@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "astro dev",
     "dev:debug": "astro dev --verbose",
-    "build": "bash scripts/vercel-build-guard.sh && bun run generate:release-timestamps && bun run scripts/copy-maplibre-worker.ts && astro build",
+    "build": "bash scripts/vercel-build-guard.sh && bun run generate:release-timestamps && bun run scripts/copy-maplibre-worker.ts && astro build && bun run scripts/vercel-security-headers.ts",
     "generate:release-timestamps": "bun run scripts/generate-release-timestamps.ts",
     "check:vercel-env": "bash scripts/check-vercel-env.sh",
     "check:prod-branch": "bash scripts/check-production-branch.sh",

@@ -100,6 +100,8 @@ export default defineConfig({
           /^\/discord(\/|\?|$)/,
           // Token page: the offline map shell would hide the reset form.
           /^\/reset-password(\/|\?|$)/,
+          // Email confirmation links must load their own page, not the map.
+          /^\/verify-email(\/|\?|$)/,
         ],
         swDest: "dist/client/sw.js",
         // Cache third-party map resources at runtime so the campus map works
@@ -280,11 +282,6 @@ export default defineConfig({
         optional: true,
         default: "production",
       }),
-      ADMIN_PASSWORD: envField.string({
-        access: "secret",
-        context: "server",
-        optional: true,
-      }),
       // PayMongo secret key for one-time donations (/api/donate).
       PAYMONGO_SECRET_KEY: envField.string({
         access: "secret",
@@ -359,8 +356,10 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
-      // Cloudflare Turnstile on editor login (#443). Widget is hidden and
-      // server verification skipped when unset (local dev).
+      // Cloudflare Turnstile on sign-in, sign-up and password reset (#443).
+      // Required in production: without the secret those requests are
+      // rejected. `astro dev` and TURNSTILE_ALLOW_UNCONFIGURED=1 (E2E
+      // preview) skip verification instead.
       PUBLIC_TURNSTILE_SITE_KEY: envField.string({
         access: "public",
         context: "client",

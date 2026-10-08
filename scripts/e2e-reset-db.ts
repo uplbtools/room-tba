@@ -90,6 +90,9 @@ const E2E_MIGRATION_FILES = [
   "0052_building_street_view.sql",
   "0053_contributor_identity.sql",
   "0054_add_jeep_reports.sql",
+  "0055_auth_account_security.sql",
+  "0056_auth_rate_limits.sql",
+  "0057_proposal_owner_tokens.sql",
 ] as const;
 
 /**
@@ -246,6 +249,9 @@ async function main() {
       TRUNCATE TABLE
         jeep_reports,
         feedback,
+        rate_limits,
+        proposal_owner_tokens,
+        admin_user_auth,
         announcements,
         sponsor_impressions,
         planner_plans,

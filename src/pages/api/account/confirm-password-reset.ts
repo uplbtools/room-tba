@@ -1,9 +1,7 @@
 import type { APIRoute } from "astro";
-import {
-  checkRateLimit,
-  clientIp,
-  rateLimitResponse,
-} from "@lib/api/rate-limit";
+import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { accountBackoff, sharedRateLimit } from "@lib/api/rate-limit-db";
+import { accountKey } from "@lib/api/rate-limit-shared";
 import {
   AccountActionError,
   confirmPasswordReset,
@@ -14,7 +12,7 @@ export const prerender = false;
 const LIMIT = { max: 8, windowMs: 60 * 1000 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const rate = checkRateLimit(
+  const rate = await sharedRateLimit(
     `account-confirm-password-reset:${clientIp(request)}`,
     LIMIT.max,
     LIMIT.windowMs,
@@ -33,7 +31,10 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    await confirmPasswordReset(body.token, body.newPassword);
+    const username = await confirmPasswordReset(body.token, body.newPassword);
+    // The reset proved ownership; lift any failed-sign-in cooldown. Every
+    // existing session was revoked by the reset (session version bump).
+    await accountBackoff.succeed(accountKey("login-backoff", username));
     return json({ success: true });
   } catch (error) {
     if (error instanceof AccountActionError) {
@@ -47,6 +48,9 @@ export const POST: APIRoute = async ({ request }) => {
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+    },
   });
 }

@@ -4,6 +4,7 @@ import {
   AccountActionError,
   createAdminUser,
   listAllAdminUsers,
+  sendEmailVerification,
 } from "@lib/services/admin-user-service";
 
 export const prerender = false;
@@ -53,6 +54,9 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       password: body.password,
       role,
     });
+    // The admin typed the address, the user still has to confirm it before
+    // it is used for Google linking, resets or notifications.
+    if (user.email) await sendEmailVerification(user.id);
     return json({ success: true, user }, 201);
   } catch (error) {
     if (error instanceof AccountActionError) {
