@@ -244,6 +244,14 @@
     text-decoration: none;
   }
 
+  /* Kubo's dark brown is unreadable on the dark card (about 1.3:1). */
+  :global(:root[data-theme="dark"])
+    .place-sheet-header__actions
+    :global(a.entity-footer__link--kubo) {
+    color: var(--theme-text, #efe9e4);
+    border-color: var(--theme-border-strong, hsl(0, 0%, 52%));
+  }
+
   .place-sheet-header__actions :global(.map-chrome-action-chip svg),
   .place-sheet-header__actions :global(.editor-toggle--toolbar svg) {
     width: 1rem;
@@ -258,6 +266,49 @@
   .place-sheet-header__actions :global(.editor-toggle--toolbar) {
     border-color: var(--theme-border-strong, hsl(0, 0%, 52%));
     color: var(--theme-text, #18181b);
+  }
+
+  /* The desktop drawer restyles every chip as a borderless 30px shadow pill
+     (Entry.svelte), which vanishes into the dark card and leaves the primary
+     taller than the rest. A place sheet keeps one outlined 36px pill for all;
+     the :root prefix outranks that rule. */
+  :global(:root .app-layout.redesign-desktop)
+    .place-sheet-header__actions
+    :global(.map-chrome-action-chip),
+  :global(:root .app-layout.redesign-desktop)
+    .place-sheet-header__actions
+    :global(.editor-toggle--toolbar),
+  :global(:root .app-layout.redesign-desktop)
+    .place-sheet-header__actions
+    :global(a.entity-footer__link--button) {
+    min-height: 2.25rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--theme-border-strong, hsl(0, 0%, 52%));
+    border-radius: 999px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--theme-text, #18181b);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  :global(:root .app-layout.redesign-desktop)
+    .place-sheet-header__actions
+    :global(.map-chrome-action-chip.map-chrome-action-chip--primary) {
+    border-color: var(--theme-accent-fill, #7b1113);
+    background: var(--theme-accent-fill, #7b1113);
+    color: #fff;
+  }
+
+  :global(:root .app-layout.redesign-desktop)
+    .place-sheet-header__actions
+    :global(.map-chrome-action-chip:not(.map-chrome-action-chip--primary):hover:not(:disabled)),
+  :global(:root .app-layout.redesign-desktop)
+    .place-sheet-header__actions
+    :global(.editor-toggle--toolbar:hover) {
+    border-color: var(--theme-accent-text, #7b1113);
+    background: var(--theme-accent-soft, #fdf3f3);
+    box-shadow: none;
   }
 
   .place-sheet-header__actions

@@ -39,6 +39,7 @@
     fetchEntityRoomsRemote,
     fetchBuildingClassSchedules,
   } from "@lib/local/data/utils";
+  import { isDateWithinTerm } from "@lib/term-calendar";
   import {
     buildingFactsLine,
     countClassesNow,
@@ -160,12 +161,18 @@
       live = false;
     };
   });
+  const termInSession = $derived.by(() => {
+    const term = termStore.activeTerm;
+    return term ? isDateWithinTerm(term, new Date(nowTick)) : false;
+  });
   const buildingFacts = $derived(
     buildingFactsLine({
       roomCount: buildingRooms?.length ?? null,
-      classesNow: classSchedules
-        ? countClassesNow(classSchedules, new Date(nowTick))
-        : null,
+      // Only while the term is in session: on a break nothing is "on now".
+      classesNow:
+        classSchedules && classSchedules.length > 0 && termInSession
+          ? countClassesNow(classSchedules, new Date(nowTick))
+          : null,
       classesThisTerm: classCounts
         ? [...classCounts.values()].reduce((sum, n) => sum + n, 0)
         : null,

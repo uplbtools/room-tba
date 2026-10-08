@@ -181,6 +181,12 @@
   );
 
   function onViewerKey(event: KeyboardEvent) {
+    // Esc closes only the viewer (the dialog does that itself). The app's
+    // window-level Esc would also close the place sheet behind it.
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      return;
+    }
     if (images.length < 2) return;
     if (event.key === "ArrowLeft") prev();
     else if (event.key === "ArrowRight") next();

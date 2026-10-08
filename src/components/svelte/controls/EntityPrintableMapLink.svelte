@@ -30,7 +30,7 @@
 {#if inline}
   <a class="entity-printable-link" {href} aria-label={ariaLabel}>
     <Printer size={16} aria-hidden="true" />
-    Print jeepney route map with this place marked
+    Print jeepney route map
   </a>
 {:else}
   <MapChromeActionLink {href} {ariaLabel} toolbar>

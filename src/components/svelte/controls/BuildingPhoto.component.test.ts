@@ -127,6 +127,35 @@ describe("BuildingPhoto", () => {
     );
   });
 
+  test("Esc in the viewer does not reach the app's window Esc handler", async () => {
+    render(BuildingPhoto, {
+      props: {
+        name: "Ghost Hall",
+        panoId: null,
+        imageUrl: "https://r2.example/ghost.jpg",
+      },
+    });
+    await fireEvent.click(
+      screen.getByRole("button", {
+        name: /view ghost hall photo full screen/i,
+      }),
+    );
+    const dialog = document.querySelector(
+      "dialog.building-photo__viewer",
+    ) as HTMLElement;
+    const windowKey = vi.fn();
+    window.addEventListener("keydown", windowKey);
+    try {
+      await fireEvent.keyDown(dialog, { key: "Escape" });
+      expect(windowKey).not.toHaveBeenCalled();
+      // Other keys still travel as usual.
+      await fireEvent.keyDown(dialog, { key: "a" });
+      expect(windowKey).toHaveBeenCalledTimes(1);
+    } finally {
+      window.removeEventListener("keydown", windowKey);
+    }
+  });
+
   test("a sideways swipe changes photo and does not open the viewer", async () => {
     render(BuildingPhoto, {
       props: {

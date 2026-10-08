@@ -1559,6 +1559,7 @@
    * and reported its real top edge (sidePanelStore.mobileSheetTop).
    */
   const MOBILE_SHEET_COVER_RATIO = 0.4;
+  const MIN_VISIBLE_STRIP_PX = 96;
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md && window.matchMedia(LANDSCAPE_COMPACT_MEDIA).matches) {
@@ -1594,15 +1595,22 @@
       // Untracked: the camera effects that call this must not re-fly when the
       // sheet changes stop; the effect below re-pads on its own.
       const sheetTop = untrack(() => sidePanelStore.mobileSheetTop);
+      const top = Number.isFinite(searchBlock)
+        ? // Capped: while the search overlay is open it measures full screen.
+          Math.min(searchBlock, Math.round(window.innerHeight * 0.25))
+        : 0;
+      const covered =
+        sheetTop > 0
+          ? Math.max(0, Math.round(window.innerHeight - sheetTop))
+          : Math.round(window.innerHeight * MOBILE_SHEET_COVER_RATIO);
       return {
-        // Capped: while the search overlay is open it measures full screen.
-        top: Number.isFinite(searchBlock)
-          ? Math.min(searchBlock, Math.round(window.innerHeight * 0.25))
-          : 0,
-        bottom:
-          sheetTop > 0
-            ? Math.max(0, Math.round(window.innerHeight - sheetTop))
-            : Math.round(window.innerHeight * MOBILE_SHEET_COVER_RATIO),
+        top,
+        // A full sheet leaves only a sliver of map: never pad past the point
+        // where less than a pin's worth of strip is left to centre in.
+        bottom: Math.min(
+          covered,
+          Math.max(0, window.innerHeight - top - MIN_VISIBLE_STRIP_PX),
+        ),
         left: 0,
         right: 0,
       };
