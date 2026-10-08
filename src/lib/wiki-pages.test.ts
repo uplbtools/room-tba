@@ -76,8 +76,8 @@ describe("no interpuncts in wiki copy", () => {
     test(file, () => {
       const source = read(file);
       expect(source).not.toContain("\u00b7");
-      expect(source).not.toContain("&middot;");
-      expect(source).not.toContain("&#183;");
+      expect(source).not.toContain(`&${"middot"};`);
+      expect(source).not.toContain(`&#${"183"};`);
     });
   }
 });
