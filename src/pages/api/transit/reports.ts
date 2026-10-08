@@ -23,6 +23,7 @@ import {
   enforceReportIpLimit,
   isReportTooFar,
   isRouteId,
+  isUndefinedTableError,
   parseStopKeysParam,
   reportMatchesRoute,
   validateReport,
@@ -123,6 +124,11 @@ export const GET: APIRoute = async ({ request, url }) => {
       : await getRouteReports(routeId!);
     return json({ now: new Date().toISOString(), reports });
   } catch (error) {
+    // Code can ship before migration 0054 reaches the database: no table
+    // means no reports yet, which is true, not an outage.
+    if (isUndefinedTableError(error)) {
+      return json({ now: new Date().toISOString(), reports: [] });
+    }
     console.error("[transit-reports] read failed:", error);
     return json({ error: "Reports are unavailable right now." }, 503);
   }

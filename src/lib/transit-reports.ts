@@ -359,6 +359,24 @@ export function parseStopKeysParam(values: string[]): string[] | null {
   return keys.length > MAX_STOPS_PER_QUERY ? null : keys;
 }
 
+/**
+ * Postgres "undefined_table" (42P01), possibly wrapped by Drizzle in `cause`:
+ * the jeep_reports migration has not been applied to this database yet.
+ */
+export function isUndefinedTableError(error: unknown): boolean {
+  let current: unknown = error;
+  for (let depth = 0; depth < 4 && current; depth++) {
+    if (
+      typeof current === "object" &&
+      (current as { code?: unknown }).code === "42P01"
+    ) {
+      return true;
+    }
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
 // --- IP rate limit --------------------------------------------------------
 
 /**

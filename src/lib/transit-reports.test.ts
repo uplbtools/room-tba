@@ -10,6 +10,7 @@ import {
   enforceReportIpLimit,
   frequencyText,
   isReportTooFar,
+  isUndefinedTableError,
   lastReportText,
   median,
   parseStopKey,
@@ -326,6 +327,20 @@ describe("cooldownDecision", () => {
     expect(cooldownDecision({ at: ago(1), full: false }, true, NOW)).toBe(
       "mark-full",
     );
+  });
+});
+
+describe("isUndefinedTableError", () => {
+  test("spots 42P01 directly or wrapped in cause", () => {
+    expect(isUndefinedTableError({ code: "42P01" })).toBe(true);
+    expect(
+      isUndefinedTableError(
+        new Error("Failed query", { cause: { code: "42P01" } }),
+      ),
+    ).toBe(true);
+    expect(isUndefinedTableError({ code: "28P01" })).toBe(false);
+    expect(isUndefinedTableError(new Error("timeout"))).toBe(false);
+    expect(isUndefinedTableError(null)).toBe(false);
   });
 });
 
