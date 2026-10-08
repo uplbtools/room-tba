@@ -433,7 +433,7 @@
     width: min(25rem, calc(100vw - 3.5rem));
     height: 100dvh;
     max-height: 100dvh;
-    padding: 0;
+    padding: 0 env(safe-area-inset-right, 0px) 0 0;
     border-radius: 1rem 0 0 1rem;
   }
 

@@ -883,26 +883,32 @@
   /* Shared overlay slot for map panels (walking time legend, measure route,
      camera readout). Fixed above the bottom nav and its safe area on
      phones, bottom-left on desktop, and capped below the search block so a
-     tall stack scrolls inside the slot instead of running under either. */
+     tall stack scrolls inside the slot instead of running under either.
+     The slot reaches --slot-pad past its panels on every side so their
+     shadows are not cut square by the scroll box. */
   .map-panel-slot {
+    --slot-pad: 1rem;
     --map-panel-slot-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    --map-panel-slot-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    --map-panel-slot-width: min(20rem, calc(100vw - 1.5rem));
     position: fixed;
-    left: max(0.75rem, env(safe-area-inset-left, 0px));
-    bottom: var(--map-panel-slot-bottom);
+    left: calc(var(--map-panel-slot-left) - var(--slot-pad));
+    bottom: calc(var(--map-panel-slot-bottom) - var(--slot-pad));
     z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    width: min(20rem, calc(100vw - 1.5rem));
+    width: calc(var(--map-panel-slot-width) + 2 * var(--slot-pad));
     max-height: calc(
-      100dvh - var(--map-panel-slot-bottom) -
-        var(--map-panel-slot-top, 9rem)
+      100dvh - var(--map-panel-slot-bottom) - var(--map-panel-slot-top, 9rem) +
+        2 * var(--slot-pad)
     );
+    padding: var(--slot-pad);
     box-sizing: border-box;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-width: thin;
+    scrollbar-width: none;
     /* Gaps between panels stay tappable map; the panels opt back in. */
     pointer-events: none;
   }
@@ -919,17 +925,34 @@
       --map-panel-slot-bottom: calc(
         var(--mobile-bottom-nav-height, 4.5rem) + 0.5rem
       );
-      --map-panel-slot-top: calc(
-        var(--search-block-height, 3.25rem) + var(--map-chip-height, 2.75rem) +
-          1.25rem
-      );
-      left: max(0.5rem, env(safe-area-inset-left, 0px));
+      /* Measured search pill plus browse chips. */
+      --map-panel-slot-top: calc(var(--search-block-height, 7.25rem) + 0.75rem);
+      --map-panel-slot-left: max(0.5rem, env(safe-area-inset-left, 0px));
       /* Clear the Layers and location buttons on the right edge. */
-      width: min(
+      --map-panel-slot-width: min(
         20rem,
         calc(100vw - 5.25rem - env(safe-area-inset-left, 0px) -
             env(safe-area-inset-right, 0px))
       );
+    }
+  }
+
+  /* Phones on their side have width to spare and almost no height: panels
+     sit side by side along the bottom instead of stacking into a column
+     the short screen cannot hold. */
+  @media (orientation: landscape) and (max-height: 31.25rem) {
+    .map-panel-slot {
+      flex-direction: row;
+      align-items: flex-end;
+      --map-panel-slot-width: calc(
+        100vw - 5.25rem - env(safe-area-inset-left, 0px) -
+          env(safe-area-inset-right, 0px)
+      );
+      overflow-x: auto;
+    }
+
+    .map-panel-slot > :global(*) {
+      width: min(20rem, 70vw);
     }
   }
 
