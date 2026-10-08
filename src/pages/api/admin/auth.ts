@@ -5,6 +5,7 @@ import {
   clearSessionCookie,
   createSessionToken,
   setSessionCookie,
+  type SessionUser,
 } from "@lib/admin/auth";
 import { optionalEditorSession } from "@lib/admin/require-editor";
 import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
@@ -13,6 +14,7 @@ import { accountKey } from "@lib/api/rate-limit-shared";
 import { readSessionVersion } from "@lib/services/account-security";
 import {
   authenticateAdminUser,
+  bootstrapAdminLogin,
   getAdminUserBySupabaseId,
 } from "@lib/services/admin-user-service";
 import { createServerSupabaseClient } from "@lib/supabase/server";
@@ -74,19 +76,25 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const username = typeof usernameRaw === "string" ? usernameRaw.trim() : "";
     const password = typeof passwordRaw === "string" ? passwordRaw : "";
 
-    // The shared ADMIN_PASSWORD login (blank username) is gone: every
-    // sign-in names an account. First admin: scripts/set-admin-user.ts.
-    if (!username) {
+    // Every normal sign-in names an account (first admin:
+    // scripts/set-admin-user.ts). A blank username is only the break-glass
+    // ADMIN_PASSWORD bootstrap, which works solely while the database has no
+    // active admin at all (bootstrapAdminLogin); otherwise it is refused
+    // with the same answer as any blank username.
+    const breakGlass = !username;
+    if (breakGlass && !password) {
       return json({ error: "Enter your username or email." }, 400);
     }
     if (!password) {
       return json({ error: "Password is required" }, 400);
     }
 
-    const backoffKey = accountKey("login-backoff", username);
+    const backoffKey = breakGlass
+      ? "login-backoff:break-glass"
+      : accountKey("login-backoff", username);
     if (!skipLoginRateLimit) {
       const userRate = await sharedRateLimit(
-        `admin-login:user:${username.toLowerCase()}`,
+        `admin-login:user:${breakGlass ? "(break-glass)" : username.toLowerCase()}`,
         LOGIN_USER_LIMIT.max,
         LOGIN_USER_LIMIT.windowMs,
       );
@@ -109,6 +117,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         { error: "Verification failed. Refresh the page and try again." },
         400,
       );
+    }
+
+    if (breakGlass) {
+      const bootstrap = await bootstrapAdminLogin(password);
+      if (!bootstrap) {
+        if (!skipLoginRateLimit) await accountBackoff.fail(backoffKey);
+        return json({ error: "Enter your username or email." }, 400);
+      }
+      return sessionResponse(bootstrap);
     }
 
     let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
@@ -156,40 +173,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
     if (!skipLoginRateLimit) await accountBackoff.succeed(backoffKey);
 
-    // The cookie carries the account's current session version, so the next
-    // "sign out everywhere" or password change revokes it.
-    const sessionVersion = await readSessionVersion(user.id);
-    let token: string;
-    try {
-      token = createSessionToken({ ...user, sessionVersion });
-    } catch (error) {
-      console.error("Admin session signing misconfigured:", error);
-      return json(
-        {
-          error:
-            "Editor sign-in is not configured on this server. Contact the site maintainer.",
-        },
-        503,
-      );
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        username: user.username,
-        displayName: user.displayName,
-        role: user.role,
-        canPublish: canPublishDirectly(user.role),
-        canReview: canReviewProposals(user.role),
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Set-Cookie": setSessionCookie(token),
-        },
-      },
-    );
+    return sessionResponse(user);
   } catch (error) {
     console.error("Admin login failed:", error);
     return json(
@@ -214,6 +198,44 @@ export const DELETE: APIRoute = async () => {
     },
   });
 };
+
+/** Mint the session cookie for a signed-in user (normal or break-glass). */
+async function sessionResponse(user: SessionUser): Promise<Response> {
+  // The cookie carries the account's current session version, so the next
+  // "sign out everywhere" or password change revokes it.
+  const sessionVersion = await readSessionVersion(user.id);
+  let token: string;
+  try {
+    token = createSessionToken({ ...user, sessionVersion });
+  } catch (error) {
+    console.error("Admin session signing misconfigured:", error);
+    return json(
+      {
+        error:
+          "Editor sign-in is not configured on this server. Contact the site maintainer.",
+      },
+      503,
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      username: user.username,
+      displayName: user.displayName,
+      role: user.role,
+      canPublish: canPublishDirectly(user.role),
+      canReview: canReviewProposals(user.role),
+    }),
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": setSessionCookie(token),
+      },
+    },
+  );
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

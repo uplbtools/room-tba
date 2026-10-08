@@ -18,6 +18,8 @@ const sessionSecret =
 mock.module("astro:env/server", () => ({
   DATABASE_URL: databaseUrl,
   ADMIN_SESSION_SECRET: sessionSecret,
+  // Break-glass bootstrap value; refused while any active admin exists.
+  ADMIN_PASSWORD: "e2e-break-glass-password",
   ISR_BYPASS_TOKEN: process.env.ISR_BYPASS_TOKEN ?? "",
   R2_ACCOUNT_ID: "",
   R2_ACCESS_KEY_ID: "",

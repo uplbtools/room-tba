@@ -39,7 +39,7 @@ test.describe("admin auth", () => {
     await expect(page.locator("#admin-login-error")).toBeVisible();
   });
 
-  test("there is no shared-password login without a username", async ({
+  test("a blank-username shared-password login is refused while an admin exists", async ({
     page,
   }) => {
     const status = await page.evaluate(async () => {

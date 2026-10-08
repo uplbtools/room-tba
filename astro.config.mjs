@@ -280,6 +280,14 @@ export default defineConfig({
         optional: true,
         default: "production",
       }),
+      // Break-glass only: NOT a normal login. Works solely while the database
+      // has no active admin (blank-username sign-in creates/reactivates
+      // `admin`). Use scripts/set-admin-user.ts instead and leave this unset.
+      ADMIN_PASSWORD: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
       // PayMongo secret key for one-time donations (/api/donate).
       PAYMONGO_SECRET_KEY: envField.string({
         access: "secret",
