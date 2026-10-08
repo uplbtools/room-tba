@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { transitStopKey } from "@lib/transit-reports";
 import JeepneyRouteModal from "./JeepneyRouteModal.svelte";
 import { jeepneyStore, transitStore } from "@lib/store.svelte";
 import {
@@ -242,5 +243,61 @@ describe("JeepneyRouteModal", () => {
     jeepneyStore.modalRouteId = "does-not-exist";
     render(JeepneyRouteModal);
     expect(screen.getByText(/no longer available/i)).toBeVisible();
+  });
+});
+
+describe("JeepneyRouteModal jeep reports line", () => {
+  const route = JEEPNEY_ROUTES.find((r) => r.id === "kaliwa-kanan")!;
+  const stop = route.stops[3]!;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Date.UTC(2026, 9, 8, 2, 3));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  test("shows the newest rider report with its stop", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          now: new Date().toISOString(),
+          reports: [
+            {
+              routeId: route.id,
+              stopKey: transitStopKey(stop),
+              direction: "forward",
+              full: false,
+              at: new Date(Date.now() - 5 * 60_000).toISOString(),
+            },
+          ],
+        }),
+      ),
+    );
+    jeepneyStore.modalRouteId = route.id;
+    render(JeepneyRouteModal);
+
+    expect(
+      await screen.findByText(
+        `Last jeep reported 5 min ago at ${stop.name}`,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeVisible();
+  });
+
+  test("says nothing about reports when they cannot load", async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 503 }));
+    vi.stubGlobal("fetch", fetchMock);
+    jeepneyStore.modalRouteId = route.id;
+    render(JeepneyRouteModal);
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await tick();
+
+    expect(screen.queryByText(/reported|No recent reports/)).toBeNull();
   });
 });

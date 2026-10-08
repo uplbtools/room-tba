@@ -444,6 +444,23 @@ class JeepneyStore {
   hoveredStopIndex: number | null = $state(null);
   /** Route shown in the jeepney-route modal (independent of the map layer). */
   modalRouteId: string | null = $state(null);
+  /**
+   * The rider chose to keep the selected route on the map without its panel
+   * (Map tools route picker). Unpinned routes are cleared when their panel
+   * closes; see `shouldClearDrawnRoute`.
+   */
+  routePinned: boolean = $state(false);
+
+  /** Id and name of the route drawn on the map, or null. For map chrome. */
+  get drawnRoute(): { id: string; name: string } | null {
+    const route = transitStore.getRoute(this.selectedRouteId);
+    return route ? { id: route.id, name: route.name } : null;
+  }
+
+  /** Remove the drawn route line and its stop pins, pinned or not. */
+  clearDrawnRoute = () => {
+    this.clearRoute();
+  };
 
   toggleMenu = () => {
     this.menuOpen = !this.menuOpen;
@@ -467,6 +484,11 @@ class JeepneyStore {
     this.layerActive = true;
     mapToolsStore.close();
     deactivateMapModesExcept("routes");
+    // A routed class day draws its own line and blue numbered stops; over a
+    // jeepney route they read as a stray marker off the route.
+    if (scheduleRouteStore.routedWeekday !== null) {
+      scheduleRouteStore.clearRoute();
+    }
     // Transit is mutually exclusive with building/dorm pin filters: reset to
     // All so filtered pins don't overlap jeepney routes/stops (#325). This
     // covers every enable path (search chip, map tools flyout, route picker).
@@ -476,6 +498,7 @@ class JeepneyStore {
   disableLayer = () => {
     this.layerActive = false;
     this.selectedRouteId = null;
+    this.routePinned = false;
     this.menuOpen = false;
     this.closeStop();
   };
@@ -490,6 +513,8 @@ class JeepneyStore {
       this.closeStop();
     }
     this.selectedRouteId = nextId;
+    // Picked from Map tools with no panel of its own: kept on the map.
+    this.routePinned = nextId !== null;
     this.menuOpen = false;
     if (this.selectedRouteId !== null) {
       deactivateMapModesExcept("routes");
@@ -498,6 +523,7 @@ class JeepneyStore {
 
   clearRoute = () => {
     this.selectedRouteId = null;
+    this.routePinned = false;
     this.closeStop();
   };
 
@@ -507,6 +533,8 @@ class JeepneyStore {
     this.enableLayer();
     if (this.selectedRouteId !== id) this.closeStop();
     this.selectedRouteId = id;
+    // Opened into the route panel, so it lives as long as the panel does.
+    this.routePinned = false;
     this.menuOpen = false;
   };
 
@@ -904,6 +932,21 @@ class ScheduleRouteStore {
   scopeNote = ROOM_SCHEDULE_SCOPE_NOTE;
 
   dayStops = $derived(orderDayStops(this.matches, this.selectedWeekday));
+
+  /** The schedule import panel is on screen (it sets this while mounted). */
+  panelVisible = $state(false);
+
+  /**
+   * The blue numbered day-stop pins belong to the schedule panel or a routed
+   * day. Shown anywhere else (after a day route was cleared, over a jeepney
+   * route) they were stray markers with nothing on screen to remove them.
+   */
+  stopsVisible = $derived(
+    this.panelVisible ||
+      (this.routedWeekday !== null &&
+        this.routedWeekday === this.selectedWeekday &&
+        locationStore.routeWaypoints !== null),
+  );
 
   unresolved = $derived(
     this.matches.filter((match) => match.unresolvedReason !== null),

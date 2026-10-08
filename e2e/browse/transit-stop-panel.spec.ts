@@ -28,5 +28,29 @@ test.describe("transit stop deep link", () => {
       .getByRole("button", { name: "Class Buildings", exact: true })
       .click();
     await expect(stopPanel).toBeHidden({ timeout: 10_000 });
+    // Leaving for another list takes the route's numbered stop pins with it.
+    await expect(page.locator(".jeepney-stop-pin")).toHaveCount(0);
+  });
+
+  test("one tap reports a jeep at the stop @desktop-only", async ({ page }) => {
+    await suppressLandingModal(page);
+    await page.goto("/transit/e2e-route/e2e-stop");
+    await waitForAppBoot(page);
+
+    const reports = page.locator(".jeep-reports");
+    await expect(reports).toBeVisible({ timeout: 30_000 });
+    // The seeded stop may share its kerb with a bundled route: one row each.
+    await expect(reports.getByText("No recent reports").first()).toBeVisible();
+
+    await reports
+      .getByRole("button", { name: "Jeep is here: E2E Route" })
+      .click();
+    await expect(reports.getByText("Thanks, reported.")).toBeVisible();
+    await expect(
+      reports.getByText("Last jeep reported just now"),
+    ).toBeVisible();
+    await expect(
+      reports.getByRole("button", { name: "Jeep is here: E2E Route" }),
+    ).toBeDisabled();
   });
 });

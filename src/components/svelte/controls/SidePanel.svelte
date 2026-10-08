@@ -15,6 +15,7 @@
   import { MediaQuery } from "svelte/reactivity";
   import { resolvePanelContent } from "@lib/side-panel-content";
   import type { BottomSheetSnap } from "@lib/bottom-sheet-snap";
+  import TransitRouteLifecycle from "./TransitRouteLifecycle.svelte";
 
   const mobile = new MediaQuery("max-width:48rem");
   // Entity detail views only, never list/browse panels (docs/ad-policy.md).
@@ -173,6 +174,8 @@
     sidePanelStore.setMobileSheetSnap("closed");
   }
 </script>
+
+<TransitRouteLifecycle />
 
 {#snippet panelBody()}
   {#if directionsStore.active}

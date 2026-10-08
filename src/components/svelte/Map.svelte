@@ -4504,7 +4504,7 @@
             </Marker>
           {/each}
         {/if}
-        {#each scheduleRouteStore.dayStops as stop, index (`schedule-stop:${index}:${stop.courseCode}:${stop.roomCode}:${stop.scheduleSlot}`)}
+        {#each scheduleRouteStore.stopsVisible ? scheduleRouteStore.dayStops : [] as stop, index (`schedule-stop:${index}:${stop.courseCode}:${stop.roomCode}:${stop.scheduleSlot}`)}
           {#if stop.coords}
             {@const routeActive =
               scheduleRouteStore.routedWeekday ===

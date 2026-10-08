@@ -9,10 +9,18 @@
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import TransitStopEditor from "./TransitStopEditor.svelte";
+  import JeepStopReports from "./JeepStopReports.svelte";
   import { getGoogleStreetViewUrl } from "@lib/google-maps-links";
   import { getJeepneyRouteShareUrl } from "@lib/share-links";
   import MapChromeActionLink from "@ui/map-chrome/MapChromeActionLink.svelte";
-  import { jeepneyStore, transitStore } from "@lib/store.svelte";
+  import {
+    jeepneyStore,
+    queryStore,
+    sidePanelStore,
+    transitStore,
+  } from "@lib/store.svelte";
+  import { openCampusBrowse } from "@lib/browse-campus";
+  import { isRoutePanelQuery } from "@lib/transit-route-visibility";
   import { darkenForWhiteText } from "@lib/color-contrast";
   import { distinctStopCount, isLoopRoute } from "@lib/transit-route-kind";
   import { activeDirection, routesAtStop } from "@lib/transit-direction";
@@ -61,6 +69,11 @@
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
       return;
     event.preventDefault();
+    // The route shows in the route panel; a stop opened over a pinned route
+    // (or another list) has none behind it yet.
+    if (!isRoutePanelQuery(queryStore.category, queryStore.queryValue)) {
+      openCampusBrowse(queryStore, sidePanelStore, "jeepney");
+    }
     jeepneyStore.openRouteOnMap(id);
     jeepneyStore.closeStop();
   }
@@ -186,6 +199,8 @@
         entityLabel={stop.name}
       />
     </div>
+
+    <JeepStopReports entries={servingRoutes} />
 
     <p class="entity-directions__text">{stop.description}</p>
     <p class="entity-panel-note">{route.description}</p>
