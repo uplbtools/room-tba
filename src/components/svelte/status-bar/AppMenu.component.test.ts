@@ -287,11 +287,9 @@ describe("AppMenu appearance row", () => {
     localStorage.removeItem("room-tba:theme");
     render(AppMenu, { props: { onSignOut: () => {} } });
 
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-
-    const group = screen.getByRole("group", { name: "Appearance" });
-    const panel = screen.getByRole("dialog", { name: "App menu" });
-    const firstNav = within(panel).getByRole("button", { name: "Saved" });
+    const panel = await openYou();
+    const group = within(panel).getByRole("group", { name: "Appearance" });
+    const firstNav = within(panel).getByRole("button", { name: /^sign in/i });
     expect(
       group.compareDocumentPosition(firstNav) &
         Node.DOCUMENT_POSITION_FOLLOWING,
