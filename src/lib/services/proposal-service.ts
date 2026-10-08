@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { sendReviewNotice } from "@lib/email/review-notice";
+import { afterResponse } from "@lib/server/after-response";
 import {
   adminUsersTable,
   buildingsTable,
@@ -1057,13 +1058,18 @@ export async function approveProposal(id: number, reviewer: SessionUser) {
     const published = await applyProposalPatch(claimed, reviewedBy);
     const proposal = await withEntityLabel(claimed);
     await recordProposalContribution(proposal);
-    await sendReviewNotice({
-      outcome: "approved",
-      entityLabel: proposal.entityLabel,
-      submitterName: proposal.submitterName,
-      submitterUserId: proposal.submitterUserId ?? null,
-      reviewedBy,
-    });
+    // Mail must not hold up (or roll back) the review: it runs after the
+    // response and logs its own failures (auth audit item 13).
+    await afterResponse(
+      sendReviewNotice({
+        proposalId: proposal.id,
+        outcome: "approved",
+        entityLabel: proposal.entityLabel,
+        submitterName: proposal.submitterName,
+        submitterUserId: proposal.submitterUserId ?? null,
+        reviewedBy,
+      }),
+    );
     return { proposal, published };
   } catch (err) {
     await db
@@ -1108,14 +1114,19 @@ export async function rejectProposal(
   );
   if (!finalized) throw new ProposalActionError("Proposal not found.", 404);
   const labeled = await withEntityLabel(finalized);
-  await sendReviewNotice({
-    outcome: "rejected",
-    entityLabel: labeled.entityLabel,
-    submitterName: labeled.submitterName,
-    submitterUserId: labeled.submitterUserId ?? null,
-    reviewedBy: reviewer.displayName || reviewer.username,
-    note,
-  });
+  // Mail must not hold up (or roll back) the review: it runs after the
+  // response and logs its own failures (auth audit item 13).
+  await afterResponse(
+    sendReviewNotice({
+      proposalId: labeled.id,
+      outcome: "rejected",
+      entityLabel: labeled.entityLabel,
+      submitterName: labeled.submitterName,
+      submitterUserId: labeled.submitterUserId ?? null,
+      reviewedBy: reviewer.displayName || reviewer.username,
+      note,
+    }),
+  );
   return labeled;
 }
 
@@ -1142,14 +1153,19 @@ export async function requestProposalChanges(
   );
   if (!finalized) throw new ProposalActionError("Proposal not found.", 404);
   const labeled = await withEntityLabel(finalized);
-  await sendReviewNotice({
-    outcome: "needs_changes",
-    entityLabel: labeled.entityLabel,
-    submitterName: labeled.submitterName,
-    submitterUserId: labeled.submitterUserId ?? null,
-    reviewedBy: reviewer.displayName || reviewer.username,
-    note,
-  });
+  // Mail must not hold up (or roll back) the review: it runs after the
+  // response and logs its own failures (auth audit item 13).
+  await afterResponse(
+    sendReviewNotice({
+      proposalId: labeled.id,
+      outcome: "needs_changes",
+      entityLabel: labeled.entityLabel,
+      submitterName: labeled.submitterName,
+      submitterUserId: labeled.submitterUserId ?? null,
+      reviewedBy: reviewer.displayName || reviewer.username,
+      note,
+    }),
+  );
   return labeled;
 }
 

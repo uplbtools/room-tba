@@ -6,6 +6,10 @@ import {
   setSessionCookie,
 } from "@lib/admin/auth";
 import {
+  BREACHED_PASSWORD_MESSAGE,
+  pwnedPasswordCount,
+} from "@lib/auth/breached-password";
+import {
   type SignupInput,
   validateContributorSignup,
 } from "@lib/auth/contributor-signup";
@@ -18,6 +22,7 @@ import {
   AccountActionError,
   createAdminUser,
 } from "@lib/services/admin-user-service";
+import { recordAudit } from "@lib/services/audit-log-service";
 import { verifyTurnstileToken } from "@lib/turnstile";
 
 export const prerender = false;
@@ -68,6 +73,12 @@ export const POST: APIRoute = async ({ request }) => {
     const valid = validateContributorSignup(body);
     if (!valid.ok) return json({ error: valid.error }, valid.status);
 
+    // Breached-password check (HIBP k-anonymity); fails open.
+    const breaches = await pwnedPasswordCount(valid.password);
+    if (breaches && breaches > 0) {
+      return json({ error: BREACHED_PASSWORD_MESSAGE }, 400);
+    }
+
     // Reuses the admin-user insert (bcrypt + atomic username-unique guard),
     // but the role is hard-coded here so this public endpoint can never mint
     // an admin/editor. A taken username surfaces as AccountActionError(409).
@@ -86,6 +97,15 @@ export const POST: APIRoute = async ({ request }) => {
       }
       throw error;
     }
+
+    await recordAudit({
+      action: "user.created",
+      actorLabel: user.username,
+      targetUserId: user.id,
+      targetLabel: user.username,
+      detail: { role: user.role, via: "signup" },
+      ip,
+    });
 
     let token: string;
     try {

@@ -1,10 +1,14 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { clientIp } from "@lib/api/rate-limit";
 import {
   AccountActionError,
   createAdminUser,
   listAllAdminUsers,
 } from "@lib/services/admin-user-service";
+import { recordAudit } from "@lib/services/audit-log-service";
+import { listPendingInvites } from "@lib/services/staff-invite-service";
+import { setMustChangePassword } from "@lib/services/staff-security-service";
 
 export const prerender = false;
 
@@ -14,8 +18,14 @@ export const GET: APIRoute = async ({ cookies }) => {
   });
   if (auth instanceof Response) return auth;
 
-  const users = await listAllAdminUsers();
-  return json({ users });
+  const [users, invites] = await Promise.all([
+    listAllAdminUsers(),
+    listPendingInvites().catch((error) => {
+      console.error("List pending invites failed:", error);
+      return [];
+    }),
+  ]);
+  return json({ users, invites });
 };
 
 export const POST: APIRoute = async ({ cookies, request }) => {
@@ -52,6 +62,19 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       email: body.email,
       password: body.password,
       role,
+    });
+    // An admin chose this password, so the owner must replace it at their
+    // first sign-in (auth audit item 19). Invites avoid this entirely.
+    await setMustChangePassword(user.id, true).catch((error) =>
+      console.error("Setting must_change_password failed:", error),
+    );
+    await recordAudit({
+      action: "user.created",
+      actor: auth.session,
+      targetUserId: user.id,
+      targetLabel: user.username,
+      detail: { role, via: "temporary-password" },
+      ip: clientIp(request),
     });
     return json({ success: true, user }, 201);
   } catch (error) {

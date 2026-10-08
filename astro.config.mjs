@@ -296,6 +296,13 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
+      // Encrypts staff TOTP secrets at rest (32 bytes, base64 or hex). Unset
+      // turns two-step verification off rather than storing seeds in clear.
+      TOTP_ENCRYPTION_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
       // Cloudflare R2 (S3-compatible). Required for /api/admin/upload.
       R2_ACCOUNT_ID: envField.string({
         access: "secret",

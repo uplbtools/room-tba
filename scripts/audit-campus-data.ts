@@ -593,8 +593,8 @@ async function main(): Promise<void> {
   say();
   say("### Headline counts");
   say();
-  say(`| Detection | Findings |`);
-  say(`| --- | --- |`);
+  say("| Detection | Findings |");
+  say("| --- | --- |");
   say(`| 1. Pin contradicts its own directions | ${contradictions.length} |`);
   say(`| 2a. Tenants scattered from their building | ${scattered.length} |`);
   say(

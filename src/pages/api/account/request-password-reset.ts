@@ -5,6 +5,7 @@ import {
   rateLimitResponse,
 } from "@lib/api/rate-limit";
 import { requestPasswordReset } from "@lib/services/admin-user-service";
+import { recordAudit } from "@lib/services/audit-log-service";
 
 export const prerender = false;
 
@@ -31,13 +32,22 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: "login is required." }, 400);
   }
 
+  let sendFailed = false;
   try {
     await requestPasswordReset(body.login);
   } catch (error) {
+    sendFailed = true;
     console.error("Request password reset failed:", error);
     // Still report success to the client — avoid leaking whether the
-    // account exists or the email send failed.
+    // account exists or the email send failed. The failure is in email_log
+    // and the audit log, both on the staff dashboard at /admin.
   }
+  await recordAudit({
+    action: "password.reset_requested",
+    actorLabel: body.login.trim().toLowerCase().slice(0, 100),
+    detail: sendFailed ? { emailFailed: true } : null,
+    ip: clientIp(request),
+  });
   return json({ success: true });
 };
 

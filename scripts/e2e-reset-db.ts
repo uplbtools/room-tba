@@ -88,6 +88,11 @@ const E2E_MIGRATION_FILES = [
   "0050_dorm_gender_nullable.sql",
   "0051_room_position_source.sql",
   "0052_building_street_view.sql",
+  "0061_notification_outbox.sql",
+  "0062_email_log_and_cron_runs.sql",
+  "0063_admin_audit_log.sql",
+  "0064_staff_security_and_invites.sql",
+  "0065_notification_prefs_and_access_requests.sql",
 ] as const;
 
 /**
@@ -242,6 +247,10 @@ async function main() {
 
     await client.query(`
       TRUNCATE TABLE
+        notification_outbox,
+        email_log,
+        cron_runs,
+        admin_audit_log,
         feedback,
         announcements,
         sponsor_impressions,

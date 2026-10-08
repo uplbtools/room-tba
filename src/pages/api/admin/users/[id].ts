@@ -1,9 +1,11 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { clientIp } from "@lib/api/rate-limit";
 import {
   AccountActionError,
   updateManagedUser,
 } from "@lib/services/admin-user-service";
+import { recordAudit } from "@lib/services/audit-log-service";
 
 export const prerender = false;
 
@@ -38,6 +40,29 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       role: body.role,
       isActive: body.isActive,
     });
+    const ip = clientIp(request);
+    const base = {
+      actor: auth.session,
+      targetUserId: user.id,
+      targetLabel: user.username,
+      ip,
+    };
+    if (body.role !== undefined && body.role !== user.previous.role) {
+      await recordAudit({
+        ...base,
+        action: "user.role_changed",
+        detail: { from: user.previous.role, to: user.role },
+      });
+    }
+    if (
+      body.isActive !== undefined &&
+      body.isActive !== user.previous.isActive
+    ) {
+      await recordAudit({
+        ...base,
+        action: body.isActive ? "user.activated" : "user.deactivated",
+      });
+    }
     return json({ success: true, user });
   } catch (error) {
     if (error instanceof AccountActionError) {

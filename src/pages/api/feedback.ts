@@ -63,9 +63,10 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  // Persisted, so the submission has already succeeded. A gateway 500 only ever
-  // reaches the server log (matches emitProposalSubmitted in api/proposals).
-  void emitFeedbackSubmitted({ feedbackId, ...validated.value }).catch(
+  // Persisted, so the submission has already succeeded. The event is queued
+  // in the outbox and delivered after the response; a gateway 500 is retried
+  // by cron and never reaches the submitter.
+  await emitFeedbackSubmitted({ feedbackId, ...validated.value }).catch(
     (err) => {
       logNotificationEmitFailure("Feedback notification emit failed", err);
     },

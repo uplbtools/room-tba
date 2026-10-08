@@ -3,8 +3,10 @@ import type { EditProposalSummary } from "@lib/services/proposal-service";
 
 const notify = mock(async () => {});
 
-mock.module("./index", () => ({
-  getNotificationAdapter: () => ({ notify }),
+// Emits go through the durable outbox (auth audit item 12); capture what it
+// is handed instead of touching the database.
+mock.module("./outbox", () => ({
+  enqueueNotification: notify,
 }));
 
 const { emitProposalReviewed, emitProposalSubmitted } = await import(
@@ -29,7 +31,7 @@ const sampleProposal = {
 } satisfies EditProposalSummary;
 
 describe("proposal notification events", () => {
-  test("emitProposalSubmitted uses NoOp adapter without error", async () => {
+  test("emitProposalSubmitted enqueues without error", async () => {
     await expect(
       emitProposalSubmitted(sampleProposal, undefined),
     ).resolves.toBeUndefined();
