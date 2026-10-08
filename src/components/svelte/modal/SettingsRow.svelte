@@ -12,6 +12,9 @@
    *
    * It renders as a link with `href`, a switch with `checked`, a button with
    * `onclick`, and a plain row otherwise (a row that only holds a control).
+   *
+   * `children` renders under the row (sub-options such as terrain
+   * exaggeration) while `expanded`; callers tie it to the row being on.
    */
   type Props = {
     label: string;
@@ -35,6 +38,8 @@
     /** Renders the row as a switch. */
     checked?: boolean;
     disabled?: boolean;
+    /** Work in progress for this row (aria-busy). */
+    busy?: boolean;
     /** Destructive action: red label. */
     danger?: boolean;
     badge?: number;
@@ -44,6 +49,9 @@
     class?: string;
     /** Custom trailing control (a text button) for a plain row. */
     trailing?: Snippet;
+    /** Show `children` under the row. */
+    expanded?: boolean;
+    children?: Snippet;
   };
 
   let {
@@ -60,6 +68,7 @@
     chevron = false,
     checked,
     disabled = false,
+    busy = false,
     danger = false,
     badge,
     current = false,
@@ -67,6 +76,8 @@
     describedby,
     class: klass = "",
     trailing,
+    expanded = true,
+    children,
   }: Props = $props();
 
   const isSwitch = $derived(checked !== undefined);
@@ -111,51 +122,65 @@
   {/if}
 {/snippet}
 
-{#if href}
-  <a
-    class="settings-row {klass}"
-    class:settings-row--two-line={!!supporting}
-    class:settings-row--danger={danger}
-    {href}
-    target={external ? "_blank" : undefined}
-    rel={external ? "noopener noreferrer" : undefined}
-    download={download ? "" : undefined}
-    aria-label={external ? `${label} (opens in new tab)` : undefined}
-    aria-current={current ? "page" : undefined}
-    aria-labelledby={labelledby}
-    aria-describedby={description}
-    {onclick}
-  >
-    {@render body()}
-  </a>
-{:else if isSwitch || onclick}
-  <button
-    type="button"
-    class="settings-row {klass}"
-    class:settings-row--two-line={!!supporting}
-    class:settings-row--danger={danger}
-    role={isSwitch ? "switch" : undefined}
-    aria-checked={isSwitch ? checked : undefined}
-    aria-current={current ? "page" : undefined}
-    aria-keyshortcuts={keyshortcuts}
-    aria-labelledby={labelledby}
-    aria-describedby={description}
-    {disabled}
-    {onclick}
-  >
-    {@render body()}
-  </button>
-{:else}
-  <div
-    class="settings-row settings-row--static {klass}"
-    class:settings-row--two-line={!!supporting}
-    class:settings-row--danger={danger}
-  >
-    {@render body()}
-    {#if trailing}
-      <span class="settings-row__control">{@render trailing()}</span>
+{#snippet row()}
+  {#if href}
+    <a
+      class="settings-row {klass}"
+      class:settings-row--two-line={!!supporting}
+      class:settings-row--danger={danger}
+      {href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      download={download ? "" : undefined}
+      aria-label={external ? `${label} (opens in new tab)` : undefined}
+      aria-current={current ? "page" : undefined}
+      aria-labelledby={labelledby}
+      aria-describedby={description}
+      {onclick}
+    >
+      {@render body()}
+    </a>
+  {:else if isSwitch || onclick}
+    <button
+      type="button"
+      class="settings-row {klass}"
+      class:settings-row--two-line={!!supporting}
+      class:settings-row--danger={danger}
+      role={isSwitch ? "switch" : undefined}
+      aria-checked={isSwitch ? checked : undefined}
+      aria-current={current ? "page" : undefined}
+      aria-keyshortcuts={keyshortcuts}
+      aria-labelledby={labelledby}
+      aria-describedby={description}
+      aria-busy={busy || undefined}
+      {disabled}
+      {onclick}
+    >
+      {@render body()}
+    </button>
+  {:else}
+    <div
+      class="settings-row settings-row--static {klass}"
+      class:settings-row--two-line={!!supporting}
+      class:settings-row--danger={danger}
+    >
+      {@render body()}
+      {#if trailing}
+        <span class="settings-row__control">{@render trailing()}</span>
+      {/if}
+    </div>
+  {/if}
+{/snippet}
+
+{#if children}
+  <div class="settings-row-group">
+    {@render row()}
+    {#if expanded}
+      <div class="settings-row__sub">{@render children()}</div>
     {/if}
   </div>
+{:else}
+  {@render row()}
 {/if}
 
 <style>
@@ -176,6 +201,20 @@
     text-align: left;
     text-decoration: none;
     cursor: pointer;
+  }
+
+  .settings-row-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .settings-row__sub {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0 1rem 0.75rem 4rem;
   }
 
   .settings-row--two-line {

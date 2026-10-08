@@ -371,6 +371,11 @@
     lon: number,
     label: string,
   ): boolean {
+    // Measure mode: a pin tap is one more waypoint, never a place sheet.
+    if (measureRouteStore.active) {
+      measureRouteStore.addWaypoint(lat, lon);
+      return true;
+    }
     // A start point, an end point or an extra stop, whichever is waiting.
     return directionsStore.takePick({ lat, lng: lon, label });
   }
@@ -3058,6 +3063,9 @@
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
     const handleTravelTimeClick = (event: mapGl.MapMouseEvent) => {
+      // Beside measure route, only the first tap (the start point) is ours;
+      // later taps are measure waypoints.
+      if (measureRouteStore.active && travelTimeStore.origin) return;
       travelTimeStore.setOrigin(event.lngLat.lat, event.lngLat.lng);
     };
 
@@ -3135,6 +3143,10 @@
     const previousCursor = canvas.style.cursor;
     canvas.style.cursor = "crosshair";
     const handleMeasureClick = (event: mapGl.MapMouseEvent) => {
+      // Pin taps bubble here too; their own handler adds that waypoint.
+      if (event.originalEvent.target !== canvas) return;
+      // Walking time is still waiting for its start point: this tap is that.
+      if (travelTimeStore.active && !travelTimeStore.origin) return;
       measureRouteStore.addWaypoint(event.lngLat.lat, event.lngLat.lng);
     };
 
@@ -3718,9 +3730,16 @@
     });
   }
 
-  function handleEventMarkerClick(event: EventData) {
+  function handleEventMarkerClick(
+    event: EventData,
+    lngLat?: [number, number],
+  ) {
     if (eventPlacementStore.active) return;
     if (isMapEditEnabled() && selectedEditKey !== null) return;
+    if (measureRouteStore.active && lngLat) {
+      measureRouteStore.addWaypoint(lngLat[1], lngLat[0]);
+      return;
+    }
     if (queryStore.selectedEventSlug === event.slug) return;
     queryStore.updateQuery({
       category: "event",
@@ -4262,7 +4281,10 @@
               lngLat={getEventMarkerLngLat(editableEventLocation)}
               draggable={canDragPin(editKey)}
               onclick={() =>
-                handleEventMarkerClick(editableEventLocation.event)}
+                handleEventMarkerClick(
+                  editableEventLocation.event,
+                  getEventMarkerLngLat(editableEventLocation),
+                )}
               ondragstart={() => beginMarkerDrag(editKey)}
               ondragend={(e) =>
                 handleEventLocationDragEnd(
@@ -4347,7 +4369,11 @@
                           entry.event.occurrenceStartsAt,
                         )}`}
                         labelVisible={zoomLevel >= 17 || active}
-                        onclick={() => handleEventMarkerClick(entry.event)}
+                        onclick={() =>
+                          handleEventMarkerClick(
+                            entry.event,
+                            getEventMarkerLngLat(entry),
+                          )}
                         onpointerenter={(event) =>
                           handleEventPinPointerEnter(entry.event, event)}
                         onpointerleave={handleEventPinPointerLeave}
@@ -4417,7 +4443,10 @@
                                 title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
                                 aria-label={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
                                 onclick={() =>
-                                  handleEventMarkerClick(entry.event)}
+                                  handleEventMarkerClick(
+                                    entry.event,
+                                    getEventMarkerLngLat(entry),
+                                  )}
                               >
                                 {#if image}
                                   <img

@@ -4,9 +4,6 @@
   import RotateCw from "@lucide/svelte/icons/rotate-cw";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import MapPin from "@lucide/svelte/icons/map-pin";
-  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
-  import Gauge from "@lucide/svelte/icons/gauge";
   import {
     mapStore,
     mapViewStore,
@@ -24,21 +21,22 @@
     enterTiltedMapDimension,
   } from "@lib/map-dimension-layers";
   import type { MapLibreMap } from "maplibre-gl";
+  import { debugMode } from "@lib/debug-flag";
 
   type Props = {
     /** When true, omit outer card chrome (used inside MapToolsFlyout). */
     embedded?: boolean;
     /**
-     * modes = pins + 2D/3D in flyout; camera = desktop rotate/tilt/north on map
-     * face; settings = the same modes as labelled rows (switches for on/off,
-     * segments for choices) for the Settings modal.
+     * camera = desktop rotate/tilt/north on map face; settings = pins, class
+     * highlight, map style and basemap as labelled rows (switches for on/off,
+     * segments for choices) for the Settings modal. The Layers sheet builds
+     * its own rows from the same stores.
      */
-    variant?: "modes" | "camera" | "settings";
+    variant?: "camera" | "settings";
   };
 
-  let { embedded = false, variant = "modes" }: Props = $props();
+  let { embedded = false, variant = "settings" }: Props = $props();
 
-  const showModes = $derived(variant === "modes");
   const showCameraNav = $derived(variant === "camera");
   const showSettings = $derived(variant === "settings");
 
@@ -57,20 +55,8 @@
 
   const northRotation = $derived(-NORTH_ICON_OFFSET - bearing);
   const is2D = $derived(isMap2DPitch(pitch));
-  const pinModeTitle = $derived(
-    mapViewStore.eventsOnly
-      ? "Showing event pins only. Switch to all pins."
-      : "Showing all pins. Switch to event pins only.",
-  );
   const hasPlannerClasses = $derived(
     (plannerStore.activePlan?.sections.length ?? 0) > 0,
-  );
-  const classHighlightTitle = $derived(
-    !hasPlannerClasses
-      ? "Add classes in the Planner to highlight their buildings."
-      : mapViewStore.highlightMyBuildings
-        ? "Highlighting your class buildings. Switch back to normal pins."
-        : "Highlight the buildings your planned classes are in.",
   );
   // Satellite tiles need a working MapTiler key. Gate on the provider that
   // actually served the basemap: a configured-but-rejected key (#863) falls
@@ -280,6 +266,8 @@
       </div>
     {/if}
 
+    <!-- Developer tool: only with ?debug=1 / room-tba:debug. -->
+    {#if debugMode}
     <div class="map-chrome-row">
       <span class="map-chrome-row__label" id="map-settings-camera-details">
         Camera details
@@ -294,69 +282,7 @@
         onclick={mapViewStore.toggleCameraDebug}
       ></button>
     </div>
-  {/if}
-
-  {#if showModes}
-    <button
-      class="control mode-toggle pin-toggle"
-      class:active={mapViewStore.eventsOnly}
-      onclick={mapViewStore.toggleEventsOnly}
-      title={pinModeTitle}
-      aria-label={pinModeTitle}
-      aria-pressed={mapViewStore.eventsOnly}
-    >
-      <MapPin size={18} aria-hidden="true" />
-      <span class="control-copy">
-        <span class="control-kicker">Pins</span>
-        <span class="control-value">
-          {mapViewStore.eventsOnly ? "Events" : "All"}
-        </span>
-      </span>
-    </button>
-
-    <div class="divider"></div>
-
-    <button
-      class="control mode-toggle class-highlight-toggle"
-      class:active={mapViewStore.highlightMyBuildings}
-      onclick={mapViewStore.toggleHighlightMyBuildings}
-      disabled={!hasPlannerClasses}
-      title={classHighlightTitle}
-      aria-label={classHighlightTitle}
-      aria-pressed={mapViewStore.highlightMyBuildings}
-    >
-      <GraduationCap size={18} aria-hidden="true" />
-      <span class="control-copy">
-        <span class="control-kicker">My classes</span>
-        <span class="control-value">
-          {mapViewStore.highlightMyBuildings ? "Highlighted" : "Off"}
-        </span>
-      </span>
-    </button>
-    {#if !hasPlannerClasses}
-      <p class="control-hint">Add classes in the Planner first.</p>
     {/if}
-
-    <!-- Map style (2D / 3D) and basemap moved to the Map type tiles at the
-         top of the Layers sheet; the Settings variant keeps its rows. -->
-    <div class="divider"></div>
-
-    <button
-      class="control mode-toggle camera-debug-toggle"
-      class:active={mapViewStore.cameraDebug}
-      onclick={mapViewStore.toggleCameraDebug}
-      title={cameraDebugTitle}
-      aria-label={cameraDebugTitle}
-      aria-pressed={mapViewStore.cameraDebug}
-    >
-      <Gauge size={18} aria-hidden="true" />
-      <span class="control-copy">
-        <span class="control-kicker">Camera details</span>
-        <span class="control-value">
-          {mapViewStore.cameraDebug ? "On" : "Off"}
-        </span>
-      </span>
-    </button>
   {/if}
 
   {#if showCameraNav}
@@ -473,12 +399,6 @@
     gap: 0.375rem;
   }
 
-  .divider {
-    height: 1px;
-    background-color: var(--theme-surface-3, hsl(0, 0%, 90%));
-    margin: 0 0.125rem;
-  }
-
   .control {
     display: flex;
     align-items: center;
@@ -520,12 +440,6 @@
     background-color: transparent;
   }
 
-  /* The kicker's 0.72 opacity stacked on the disabled grey left the label at
-     1.76:1, so the row read as blank rather than disabled. */
-  .control:disabled .control-kicker {
-    opacity: 1;
-  }
-
   .north-btn {
     color: var(--theme-accent-text, hsl(5, 40%, 42%));
   }
@@ -541,137 +455,10 @@
     }
   }
 
-  .mode-toggle {
-    display: grid;
-    grid-template-columns: 1.125rem minmax(0, 1fr);
-    column-gap: 0.4375rem;
-    align-items: center;
-    justify-items: start;
-    width: 100%;
-    max-width: 100%;
-    min-height: 2.125rem;
-    height: auto;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
-    border-radius: 0.625rem;
-    box-sizing: border-box;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.15;
-    color: var(--theme-accent-text, hsl(5, 53%, 32%));
-    overflow: visible;
-  }
-
-  .mode-toggle :global(svg) {
-    grid-column: 1;
-    justify-self: center;
-    flex-shrink: 0;
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-
-  .mode-toggle .control-copy {
-    grid-column: 2;
-    width: 100%;
-  }
-
-  .control-copy {
-    display: grid;
-    gap: 0.0625rem;
-    min-width: 0;
-    text-align: left;
-    overflow: visible;
-  }
-
-  .control-kicker {
-    font-size: 0.6875rem;
-    letter-spacing: 0.04em;
-    line-height: 1.15;
-    opacity: 0.8;
-    text-transform: uppercase;
-  }
-
-  .control-value {
-    overflow: visible;
-    font-size: 0.875rem;
-    line-height: 1.15;
-    text-overflow: clip;
-    white-space: nowrap;
-  }
-
-  .pin-toggle {
-    border-color: var(--theme-accent-border, hsl(5, 34%, 78%));
-    background-color: var(--theme-accent-soft, hsl(0, 100%, 99%));
-  }
-
-  .pin-toggle:hover {
-    border-color: var(--theme-accent-border, hsl(5, 34%, 68%));
-    background-color: var(--theme-accent-soft, hsl(0, 78%, 97%));
-  }
-
-  .class-highlight-toggle {
-    border-color: var(--theme-accent-border, hsl(5, 34%, 78%));
-    background-color: var(--theme-accent-soft, hsl(0, 100%, 99%));
-  }
-
-  .class-highlight-toggle:hover:not(:disabled) {
-    border-color: var(--theme-accent-border, hsl(5, 34%, 68%));
-    background-color: var(--theme-accent-soft, hsl(0, 78%, 97%));
-  }
-
-  .class-highlight-toggle:disabled {
-    border-color: var(--theme-border, hsl(0, 0%, 88%));
-    background-color: var(--theme-surface, hsl(0, 0%, 98%));
-  }
-
-  .control-hint {
-    margin: 0;
-    padding: 0 0.25rem;
-    color: var(--theme-text-2, hsl(0, 0%, 45%));
-    font-size: 0.625rem;
-    line-height: 1.3;
-  }
-
-  .camera-debug-toggle {
-    border-color: var(--theme-accent-border, hsl(5, 34%, 78%));
-    background-color: var(--theme-accent-soft, hsl(0, 100%, 99%));
-  }
-
-  .camera-debug-toggle:hover {
-    border-color: var(--theme-accent-border, hsl(5, 34%, 68%));
-    background-color: var(--theme-accent-soft, hsl(0, 78%, 97%));
-  }
-
-  .mode-toggle.active {
-    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
-    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
-    color: white;
-  }
-
-  .mode-toggle.active .control-kicker,
-  .mode-toggle.active .control-value {
-    color: white;
-  }
-
-  .mode-toggle.active .control-kicker {
-    opacity: 0.88;
-  }
-
-  .mode-toggle.active:hover:not(:disabled) {
-    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
-    background-color: var(--theme-accent-fill, hsl(5, 53%, 38%));
-  }
-
   @media (max-width: 48rem) {
     .icon-btn {
       width: 2rem;
       height: 2rem;
-    }
-
-    .mode-toggle {
-      width: 100%;
-      min-height: 2.25rem;
-      padding: 0.3125rem 0.5625rem;
     }
   }
 </style>

@@ -7,6 +7,12 @@
   import X from "@lucide/svelte/icons/x";
   import { measureRouteStore, type MeasureLeg } from "@lib/store.svelte";
   import { formatDistance, formatDuration } from "@lib/campus-route";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
+
+  // Back closes measuring before it reaches anything under it.
+  trackOverlay("measure", () => measureRouteStore.active, () =>
+    measureRouteStore.disable(),
+  );
 
   const modes = [
     { id: "walk", label: "Walk", icon: Footprints },

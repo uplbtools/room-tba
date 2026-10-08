@@ -4,6 +4,8 @@
   import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
   import X from "@lucide/svelte/icons/x";
   import IconButton from "@ui/IconButton.svelte";
+  import SegmentedControl from "@ui/modal/SegmentedControl.svelte";
+  import SettingsRow from "@ui/modal/SettingsRow.svelte";
   import {
     TERRAIN_EXAGGERATION_OPTIONS,
     TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
@@ -13,9 +15,16 @@
 
   type Props = {
     embedded?: boolean;
+    /** row: one Layers switch row, exaggeration shown only while it is on. */
+    variant?: "panel" | "row";
   };
 
-  let { embedded = false }: Props = $props();
+  let { embedded = false, variant = "panel" }: Props = $props();
+
+  const exaggerationOptions = TERRAIN_EXAGGERATION_OPTIONS.map((option) => ({
+    value: option,
+    label: `${option}x`,
+  }));
 
   type NetworkInformation = EventTarget & {
     effectiveType?: string;
@@ -93,6 +102,45 @@
   });
 </script>
 
+
+{#if variant === "row"}
+  <SettingsRow
+    label="Terrain"
+    supporting={statusText || "Mt. Makiling relief from online elevation tiles"}
+    icon={Mountain}
+    checked={terrainStore.enabled}
+    onclick={handleToggle}
+    expanded={terrainStore.enabled}
+  >
+    <div class="terrain-row__option">
+      <span class="terrain-row__option-label" id="terrain-row-exaggeration">
+        Exaggeration
+      </span>
+      <SegmentedControl
+        options={exaggerationOptions}
+        value={terrainStore.exaggeration}
+        labelledBy="terrain-row-exaggeration"
+        onchange={(value) => terrainStore.setExaggeration(value)}
+      />
+    </div>
+    <button
+      type="button"
+      class="map-chrome-action-chip terrain-row__reset"
+      onclick={() => terrainStore.requestReset()}
+      title="Point the camera back at Mt. Makiling."
+    >
+      <RotateCcw size="14" aria-hidden="true" />
+      Reset view
+    </button>
+    <p class="map-chrome-row-note">
+      Elevation tiles by <a
+        href="https://www.maptiler.com/"
+        target="_blank"
+        rel="noreferrer">MapTiler</a
+      >.
+    </p>
+  </SettingsRow>
+{:else}
 <div class="terrain-control" class:embedded>
   {#if showPanel}
     <div class="terrain-panel" class:embedded>
@@ -199,8 +247,24 @@
     </button>
   {/if}
 </div>
+{/if}
 
 <style>
+  .terrain-row__option {
+    display: grid;
+    gap: 0.375rem;
+  }
+
+  .terrain-row__option-label {
+    font-size: 0.875rem;
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
+  }
+
+  .terrain-row__reset {
+    justify-self: start;
+    align-self: flex-start;
+  }
+
   .terrain-control.embedded {
     width: 100%;
   }

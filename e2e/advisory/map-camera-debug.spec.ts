@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
 
-// #964: camera debug mode. Right-click on the map now drops a pin (Google
-// Maps), so the live camera HUD is toggled from the Layers sheet's View
-// section; confirm Escape/close behavior.
+// #964: camera debug mode. A developer tool: the Layers sheet only offers it
+// with ?debug=1 (remembered in localStorage). Confirm Escape/close behavior.
 test.describe("map camera debug @advisory", () => {
   test("Layers toggles the camera HUD; Escape and close work", async ({
     page,
@@ -11,19 +10,13 @@ test.describe("map camera debug @advisory", () => {
     const pageErrors: Error[] = [];
     page.on("pageerror", (error) => pageErrors.push(error));
 
-    await page.goto("/");
+    await page.goto("/?debug=1");
     await waitForAppBoot(page);
 
     await page.getByRole("button", { name: "Layers", exact: true }).click();
     const layers = page.getByRole("dialog", { name: "Layers" });
     await expect(layers).toBeVisible();
-    const view = layers.getByRole("button", { name: "View", exact: true });
-    if ((await view.getAttribute("aria-expanded")) !== "true") {
-      await view.click();
-    }
-    await layers
-      .getByRole("button", { name: /show a live camera readout/i })
-      .click();
+    await layers.getByRole("switch", { name: "Camera details" }).click();
 
     // Escape closes the sheet, HUD stays.
     await page.keyboard.press("Escape");
@@ -37,5 +30,16 @@ test.describe("map camera debug @advisory", () => {
     await expect(hud).toBeHidden();
 
     expect(pageErrors).toEqual([]);
+  });
+
+  test("normal users never see camera details", async ({ page }) => {
+    await page.goto("/");
+    await waitForAppBoot(page);
+    await page.getByRole("button", { name: "Layers", exact: true }).click();
+    const layers = page.getByRole("dialog", { name: "Layers" });
+    await expect(layers).toBeVisible();
+    await expect(
+      layers.getByRole("switch", { name: "Camera details" }),
+    ).toHaveCount(0);
   });
 });

@@ -79,6 +79,24 @@ test.describe("Back closes layers", () => {
     expect(await page.evaluate(() => history.length)).toBe(length);
   });
 
+  test("Back pops the Layers sub-screen, then closes the sheet", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Layers", exact: true }).click();
+    const layers = page.getByRole("dialog", { name: "Layers" });
+    await expect(layers).toBeVisible();
+    await layers.getByRole("button", { name: "Schedule route" }).click();
+    await expect(
+      layers.getByRole("button", { name: "Back to layers" }),
+    ).toBeVisible();
+
+    await page.goBack();
+    await expect(layers.getByRole("heading", { name: "Layers" })).toBeVisible();
+    await page.goBack();
+    await expect(layers).toBeHidden();
+    await expectInApp(page);
+  });
+
   test("a chip list rides in ?browse= and Back closes it", async ({ page }) => {
     await openCampusDirectory(page, "buildings");
     await expect(page.getByRole("heading", { name: /Buildings/i })).toBeVisible(

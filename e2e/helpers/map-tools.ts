@@ -114,9 +114,3 @@ export async function openMapTools(page: Page) {
     timeout: 10_000,
   });
 }
-
-export async function expandMapToolsSection(page: Page, section: string) {
-  await page
-    .getByRole("button", { name: new RegExp(`^${section}$`, "i") })
-    .click();
-}
