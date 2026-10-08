@@ -194,6 +194,16 @@
   const appActions = getAppActions();
   const { buildings, dorms, events, organizations, places, loaded } =
     $derived(data());
+  // `loaded` flips on at mount with empty arrays; this flips once campus rows
+  // are actually in, so a selection made before then can still fly.
+  const campusRowsReady = $derived(
+    loaded &&
+      (buildings.length > 0 ||
+        dorms.length > 0 ||
+        places.length > 0 ||
+        organizations.length > 0 ||
+        events.length > 0),
+  );
   // Refresh the set of buildings that host classes whenever the term changes
   // or an offline sync lands, so dual-role buildings (admin + class venue)
   // filter correctly.
@@ -3319,7 +3329,7 @@
     // Deep links and fast taps commit the query before campus data arrives;
     // re-run once it does so the camera still flies to the place. Read only
     // for selections that need it, so boot doesn't re-home an idle camera.
-    if (category !== null && category !== "room" && !loaded) return;
+    if (category !== null && category !== "room" && !campusRowsReady) return;
 
     untrack(() => {
       const isTerrainEnabled = terrainStore.enabled;

@@ -45,6 +45,8 @@
 
   /** A search fetch that hangs must not leave "Loading…" up forever. */
   const SEARCH_FETCH_TIMEOUT_MS = 8_000;
+  /** Longest Enter waits on a slow source before opening the top result. */
+  const ENTER_WAIT_MS = 2_000;
 
   const appData = getAppData();
   const {
@@ -176,7 +178,12 @@
     }
 
     let cancelled = false;
-    void fetchClassPage({ termId, courseCodePrefix: course, limit: 12 })
+    void fetchClassPage({
+      termId,
+      courseCodePrefix: course,
+      limit: 12,
+      timeoutMs: SEARCH_FETCH_TIMEOUT_MS,
+    })
       .then((page) => page.rows)
       .catch(() => [] as ClassMapValue[])
       .then((rows) => {
@@ -245,7 +252,10 @@
   );
 
   let enterPending = $state(false);
+  /** Set when Enter has waited long enough: act on what has answered. */
+  let enterWaited = $state(false);
   let enterQuery = "";
+  let enterTimer: ReturnType<typeof setTimeout> | undefined;
 
   function runEnter() {
     const action = enterAction(ranked);
@@ -257,16 +267,27 @@
     }
   }
 
-  /** Enter in the search box: waits for in-flight sources, then acts. */
+  /**
+   * Enter in the search box: waits for in-flight sources, then acts. A slow
+   * source gets ENTER_WAIT_MS; after that Enter acts on what has answered
+   * instead of looking dead.
+   */
   export function handleEnter() {
     if (query === "") return;
     enterQuery = query;
     enterPending = true;
+    enterWaited = false;
+    clearTimeout(enterTimer);
+    enterTimer = setTimeout(() => {
+      enterWaited = true;
+    }, ENTER_WAIT_MS);
   }
 
   $effect(() => {
-    if (!enterPending || searching) return;
+    if (!enterPending) return;
+    if (searching && !(enterWaited && ranked.length !== 0)) return;
     enterPending = false;
+    clearTimeout(enterTimer);
     runEnter();
   });
 
@@ -275,8 +296,11 @@
     if (query !== enterQuery) {
       enterQuery = query;
       enterPending = false;
+      clearTimeout(enterTimer);
     }
   });
+
+  $effect(() => () => clearTimeout(enterTimer));
 
   const showShortcuts = $derived(!directionsStore.active);
 

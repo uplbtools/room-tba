@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/svelte";
+import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import SuggestionsHost from "@test/components/SuggestionsHost.svelte";
 import { loadedAppContext } from "@test/fixtures/app-context";
@@ -13,7 +13,7 @@ const physSci = {
 } as BuildingData;
 
 /** Search endpoints: aliases know "PS", rooms and classes match nothing. */
-function stubSearchApi() {
+function stubSearchApi({ hangRooms = false } = {}) {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
@@ -27,6 +27,7 @@ function stubSearchApi() {
         return Response.json({ data });
       }
       if (url.startsWith("/api/rooms")) {
+        if (hangRooms) return new Promise<Response>(() => {});
         // The server's "no rooms match" is data: null, not an error.
         return Response.json({ data: null, success: true });
       }
@@ -39,7 +40,7 @@ function stubSearchApi() {
 }
 
 function renderSuggestions() {
-  return render(SuggestionsHost, {
+  const result = render(SuggestionsHost, {
     props: {
       data: {
         ...loadedAppContext({ buildings: [physSci] }),
@@ -48,6 +49,8 @@ function renderSuggestions() {
       },
     },
   });
+  // The host's exported pressEnter() isn't in the inferred component type.
+  return result as typeof result & { component: { pressEnter(): void } };
 }
 
 describe("Suggestions", () => {
@@ -128,5 +131,31 @@ describe("Suggestions", () => {
     expect(first).toBeVisible();
     // Only one type here, so no group headers.
     expect(screen.queryByRole("heading", { name: "Places" })).toBeNull();
+  });
+
+  test("Enter opens a clear winner", async () => {
+    queryStore.inputValue = "PS";
+    const { component } = renderSuggestions();
+    await screen.findByRole("button", { name: /Physical Sciences Building/ });
+
+    component.pressEnter();
+
+    await waitFor(() => expect(queryStore.category).toBe("building"));
+    expect(queryStore.inputValue).toBe("Physical Sciences Building");
+  });
+
+  test("Enter does not wait forever on a slow source", async () => {
+    vi.unstubAllGlobals();
+    stubSearchApi({ hangRooms: true });
+    queryStore.inputValue = "PS";
+    const { component } = renderSuggestions();
+    await screen.findByRole("button", { name: /Physical Sciences Building/ });
+    expect(screen.getByText("Searching…")).toBeVisible();
+
+    component.pressEnter();
+
+    await waitFor(() => expect(queryStore.category).toBe("building"), {
+      timeout: 3_000,
+    });
   });
 });
