@@ -564,7 +564,7 @@ Local checks: `bun run check:vercel-env`, `bun run check:prod-branch` (set `VERC
 
 - **`DATABASE_URL` is mandatory** for `bun run build` (Astro SSG prerender hits Postgres). Required on **Production** and **Preview (all branches)**: not only `staging`.
 - Legacy **`NEON_CONNECTION_STRING`** may still appear in Vercel; **runtime code uses `DATABASE_URL` only**.
-- Optional server vars: `ADMIN_SESSION_SECRET`, `TURNSTILE_SECRET_KEY` (required in production; auth fails closed without it), `R2_*`. No shared admin password: create/reset admins with `scripts/set-admin-user.ts`. Supabase JS client uses separate `PUBLIC_SUPABASE_URL` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` (optional until Auth features need them). See `.env.example`.
+- Optional server vars: `ADMIN_SESSION_SECRET`, `TURNSTILE_SECRET_KEY` (required in production; auth fails closed without it), `R2_*`. No shared admin password: create/reset admins with `scripts/set-admin-user.ts`. `ADMIN_PASSWORD` is break-glass only (works solely while zero active admins exist). Supabase JS client uses separate `PUBLIC_SUPABASE_URL` + `PUBLIC_SUPABASE_PUBLISHABLE_KEY` (optional until Auth features need them). See `.env.example`.
 
 ### Commands (cheat sheet)
 

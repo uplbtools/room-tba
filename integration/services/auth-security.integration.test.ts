@@ -368,4 +368,60 @@ describeIntegration("auth security (audit items 1, 2, 5, 9)", () => {
       });
     });
   });
+
+  describe("break-glass ADMIN_PASSWORD bootstrap", () => {
+    const BREAK_GLASS = "e2e-break-glass-password";
+
+    test("refused while any active admin exists", async () => {
+      const { bootstrapAdminLogin } = await import(
+        "@lib/services/admin-user-service"
+      );
+      // The E2E seed has an active admin (e2e-admin).
+      expect(await bootstrapAdminLogin(BREAK_GLASS, BREAK_GLASS)).toBeNull();
+    });
+
+    test("works only with zero active admins, once, and is recorded", async () => {
+      const { bootstrapAdminLogin, BOOTSTRAP_ADMIN_USERNAME } = await import(
+        "@lib/services/admin-user-service"
+      );
+      const { rows: admins } = await client.query<{ id: number }>(
+        "SELECT id FROM admin_users WHERE role = 'admin' AND is_active = true",
+      );
+      const ids = admins.map((row) => row.id);
+      await client.query(
+        "UPDATE admin_users SET is_active = false WHERE id = ANY($1)",
+        [ids],
+      );
+      try {
+        expect(
+          await bootstrapAdminLogin("wrong-password", BREAK_GLASS),
+        ).toBeNull();
+        expect(await bootstrapAdminLogin(BREAK_GLASS, "")).toBeNull();
+
+        const user = await bootstrapAdminLogin(BREAK_GLASS, BREAK_GLASS);
+        expect(user?.username).toBe(BOOTSTRAP_ADMIN_USERNAME);
+        expect(user?.role).toBe("admin");
+
+        const { rows: history } = await client.query(
+          "SELECT 1 FROM editor_history WHERE entity_type = 'admin_user' AND action = 'bootstrap_login' AND entity_id = $1",
+          [user!.id],
+        );
+        expect(history).toHaveLength(1);
+
+        // Now an active admin exists, so the path is dead again.
+        expect(await bootstrapAdminLogin(BREAK_GLASS, BREAK_GLASS)).toBeNull();
+      } finally {
+        await client.query(
+          "DELETE FROM editor_history WHERE entity_type = 'admin_user' AND action = 'bootstrap_login'",
+        );
+        await client.query("DELETE FROM admin_users WHERE username = $1", [
+          BOOTSTRAP_ADMIN_USERNAME,
+        ]);
+        await client.query(
+          "UPDATE admin_users SET is_active = true WHERE id = ANY($1)",
+          [ids],
+        );
+      }
+    });
+  });
 });

@@ -1,11 +1,13 @@
-import { createHash } from "node:crypto";
+import { createHash, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcrypt";
 import { and, desc, eq, getTableColumns, ne, sql } from "drizzle-orm";
 import { withUndefinedColumnFallback } from "@lib/db-column-fallback";
+import { ADMIN_PASSWORD } from "astro:env/server";
 import {
   adminUsersTable,
   contributionsTable,
   editProposalsTable,
+  editorHistoryTable,
   plannerPlansTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
@@ -1123,6 +1125,88 @@ export async function createContributorAccount(input: {
     }
   } else if (email) {
     await sendEmailVerification(user.id);
+  }
+  return user;
+}
+
+// ── Break-glass bootstrap (security audit item 7 follow-up) ──
+
+export const BOOTSTRAP_ADMIN_USERNAME = "admin";
+
+/**
+ * ADMIN_PASSWORD is no longer a login. It survives only as break-glass for a
+ * database with NO active admin (fresh fork, or every admin deactivated):
+ * then a blank-username sign-in with that password creates or reactivates
+ * the `admin` account and signs it in. As soon as any active admin exists the
+ * path is dead, so a leaked env value cannot open an established site. Each
+ * use is logged loudly and written to editor_history; the admin should then
+ * set their own password (Account settings) and remove ADMIN_PASSWORD.
+ */
+export async function bootstrapAdminLogin(
+  password: string,
+  configuredPassword: string | undefined = ADMIN_PASSWORD,
+): Promise<SessionUser | null> {
+  const expected = configuredPassword ?? "";
+  if (!expected || !password) return null;
+  const given = createHash("sha256").update(password).digest();
+  const wanted = createHash("sha256").update(expected).digest();
+  if (!timingSafeEqual(given, wanted)) return null;
+
+  const passwordHash = await bcrypt.hash(expected, 12);
+  const user = await db.transaction(async (tx) => {
+    // Same lock as updateManagedUser, so the zero-admin check cannot race
+    // an admin being created or reactivated.
+    await tx.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtext('admin_users:last-admin-guard'))`,
+    );
+    const activeAdmins = await countActiveAdmins(tx);
+    if (activeAdmins > 0) return null;
+
+    const [row] = await tx
+      .insert(adminUsersTable)
+      .values({
+        username: BOOTSTRAP_ADMIN_USERNAME,
+        displayName: "Admin",
+        passwordHash,
+        role: "admin",
+        isActive: true,
+      })
+      .onConflictDoUpdate({
+        target: adminUsersTable.username,
+        set: {
+          passwordHash,
+          role: "admin",
+          isActive: true,
+          deletedAt: null,
+          updatedAt: sql`now()`,
+        },
+      })
+      .returning({
+        id: adminUsersTable.id,
+        username: adminUsersTable.username,
+        displayName: adminUsersTable.displayName,
+        role: adminUsersTable.role,
+      });
+    if (!row) return null;
+    await tx.insert(editorHistoryTable).values({
+      entityType: "admin_user",
+      entityId: row.id,
+      action: "bootstrap_login",
+      editedBy: "break-glass",
+      summary:
+        "Break-glass ADMIN_PASSWORD sign-in: no active admin existed, so the admin account was created or reactivated.",
+    });
+    return toSessionUser(row);
+  });
+
+  if (user) {
+    console.error(
+      `[SECURITY] Break-glass ADMIN_PASSWORD bootstrap used: signed in as "${user.username}" (id ${user.id}) because no active admin existed. Set a personal password and unset ADMIN_PASSWORD.`,
+    );
+  } else {
+    console.warn(
+      "[SECURITY] Break-glass ADMIN_PASSWORD sign-in refused: an active admin exists.",
+    );
   }
   return user;
 }
