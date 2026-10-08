@@ -1,7 +1,15 @@
 <script lang="ts">
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import { landmarkImages, type LandmarkKind } from "@lib/landmark-images";
+  import {
+    landmarkImages,
+    needsStreetViewLookup,
+    type LandmarkKind,
+  } from "@lib/landmark-images";
+  import {
+    lookupStreetView,
+    type StreetViewPano,
+  } from "@lib/street-view-lookup";
 
   type Props = {
     /** Manifest key prefix; the gallery serves dorms, places and orgs too. */
@@ -20,6 +28,27 @@
   const { kind, imageUrl, name, lat, lon, panoId, captured }: Props =
     $props();
 
+  const googleKey = $derived(import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY);
+
+  // No manifest entry (food spots, stores, newer dorms): one cached metadata
+  // request when the sheet opens, so the image only loads for a real pano.
+  let lookedUpPano = $state<StreetViewPano | null>(null);
+  $effect(() => {
+    lookedUpPano = null;
+    const input = { kind, name, lat, lon, panoId, googleKey };
+    if (!needsStreetViewLookup(input)) return;
+    let live = true;
+    void lookupStreetView(
+      { lat: Number(lat), lng: Number(lon) },
+      googleKey as string,
+    ).then((pano) => {
+      if (live) lookedUpPano = pano;
+    });
+    return () => {
+      live = false;
+    };
+  });
+
   const images = $derived(
     landmarkImages({
       kind,
@@ -28,7 +57,8 @@
       lat,
       lon,
       panoId,
-      googleKey: import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY,
+      googleKey,
+      lookedUpPano,
     }),
   );
 
@@ -44,13 +74,14 @@
 
   /** "2026-02" reads as a date, not a version. */
   const capturedLabel = $derived.by(() => {
-    if (!captured || current?.source !== "street-view") return null;
-    const [year, month] = captured.split("-");
-    if (!year) return null;
-    if (!month) return year;
-    const date = new Date(Number(year), Number(month) - 1, 1);
+    const month = captured ?? lookedUpPano?.date;
+    if (!month || current?.source !== "street-view") return null;
+    const [y, m] = month.split("-");
+    if (!y) return null;
+    if (!m) return y;
+    const date = new Date(Number(y), Number(m) - 1, 1);
     return Number.isNaN(date.getTime())
-      ? captured
+      ? month
       : date.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   });
 

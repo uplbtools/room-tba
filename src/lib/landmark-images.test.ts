@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { MAX_IMAGES_PER_LANDMARK, landmarkImages } from "@lib/landmark-images";
+import {
+  MAX_IMAGES_PER_LANDMARK,
+  landmarkImages,
+  needsStreetViewLookup,
+} from "@lib/landmark-images";
 
 // "building:CEM Building" ships in the committed manifest with three Street
 // View headings from a Google capture, so the real manifest doubles as the
@@ -148,5 +152,68 @@ describe("landmarkImages", () => {
 
   test("nothing anywhere yields an empty gallery", () => {
     expect(landmarkImages({ name: "Ghost", panoId: null })).toEqual([]);
+  });
+});
+
+// A food spot no manifest run has seen: Street View comes from the runtime
+// metadata lookup instead.
+const FOOD_TRUCK = {
+  kind: "place" as const,
+  name: "Test Food Truck",
+  lat: 14.165,
+  lon: 121.242,
+  googleKey: "test-google-key",
+};
+
+describe("runtime Street View lookup", () => {
+  test("only unlisted entities with a key and coordinates need one", () => {
+    expect(needsStreetViewLookup(FOOD_TRUCK)).toBe(true);
+    expect(needsStreetViewLookup({ ...FOOD_TRUCK, googleKey: undefined })).toBe(
+      false,
+    );
+    expect(needsStreetViewLookup({ ...FOOD_TRUCK, lat: null })).toBe(false);
+    // A cached "no coverage" skips the request.
+    expect(needsStreetViewLookup({ ...FOOD_TRUCK, panoId: null })).toBe(false);
+    expect(
+      needsStreetViewLookup({ ...FOOD_TRUCK, name: "Church Among the Palms" }),
+    ).toBe(false);
+  });
+
+  test("looked-up pano leads, pinned and aimed at the place", () => {
+    const images = landmarkImages({
+      ...FOOD_TRUCK,
+      imageUrl: "https://r2.example/truck.jpg",
+      lookedUpPano: {
+        panoId: "lookup-pano",
+        heading: 87,
+        copyright: "© Google",
+      },
+    });
+    expect(images.map((i) => i.source)).toEqual(["street-view", "contributor"]);
+    const url = new URL(images[0]!.src);
+    expect(url.searchParams.get("pano")).toBe("lookup-pano");
+    expect(url.searchParams.get("heading")).toBe("87");
+    expect(images[0]?.credit).toBe("Street View image © Google");
+  });
+
+  test("an uploaded photo sphere goes last with its uploader credit", () => {
+    const images = landmarkImages({
+      ...FOOD_TRUCK,
+      imageUrl: "https://r2.example/truck.jpg",
+      lookedUpPano: { panoId: "sphere", copyright: "© Juan Dela Cruz" },
+    });
+    expect(images.map((i) => i.source)).toEqual(["contributor", "street-view"]);
+    expect(images[1]?.credit).toBe("Street View image © Juan Dela Cruz");
+    expect(new URL(images[1]!.src).searchParams.get("heading")).toBeNull();
+  });
+
+  test("no lookup result, no Street View; a manifest entry wins", () => {
+    expect(landmarkImages({ ...FOOD_TRUCK, lookedUpPano: null })).toEqual([]);
+    const church = landmarkImages({
+      ...FOOD_TRUCK,
+      name: "Church Among the Palms",
+      lookedUpPano: { panoId: "lookup-pano", heading: 10 },
+    });
+    expect(church.some((i) => i.src.includes("lookup-pano"))).toBe(false);
   });
 });
