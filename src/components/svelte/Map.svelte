@@ -28,6 +28,7 @@
     additionProposalStore,
     buildingTypeFilter,
     terrainStore,
+    trailStore,
     travelTimeStore,
     measureRouteStore,
     scheduleRouteStore,
@@ -3408,10 +3409,13 @@
           });
         }
       } else if (category === null) {
-        flyToCamera(
-          map,
-          isTerrainEnabled ? TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
-        );
+        // The trail sheet frames its own view; going home would undo it.
+        if (!trailStore.sheetOpen) {
+          flyToCamera(
+            map,
+            isTerrainEnabled ? TERRAIN_CAMERA : CAMPUS_DEFAULT_CAMERA,
+          );
+        }
         if (directions) directions.clear();
       } else if (category === "room") {
         // A deep link already loaded this room; refetching blanked the panel

@@ -225,6 +225,10 @@
       : null;
   let cameraRestored = false;
 
+  // ?layers=trail turns the trail on (the toggle is also remembered). Before
+  // any effect runs, so the layers effect never writes the param away first.
+  if (initial?.state.layers.includes("trail")) trailStore.enable();
+
   $effect(() => {
     const map = mapStore.mapInstance;
     if (!map) return;
@@ -298,9 +302,7 @@
       replaceAppUrl((url) => withAppState(url, { dir: null, mode: null }));
     }
 
-    // ?layers=trail turns the trail on (the toggle is also remembered);
-    // ?trail= reopens its sheet over a bare entry, like ?dir= above.
-    if (state.layers.includes("trail")) trailStore.enable();
+    // ?trail= reopens the trail sheet over a bare entry, like ?dir= above.
     if (state.trail) {
       replaceAppUrl((url) => withAppState(url, { trail: null }));
       openTrailSheet(findTrailStop(state.trail)?.id ?? null, {

@@ -315,8 +315,14 @@ const TRAIL_ALIASES = [
   "Hiking trail",
 ];
 
+/**
+ * Best score, word starts only: short stop names would otherwise answer
+ * every two-letter query mid-word ("PS" in "campsite").
+ */
 function bestOf(scores: (number | null)[]): number | null {
-  const hits = scores.filter((score): score is number => score !== null);
+  const hits = scores.filter(
+    (score): score is number => score !== null && score < MATCH.midWord,
+  );
   return hits.length ? Math.min(...hits) : null;
 }
 
@@ -353,11 +359,7 @@ export function searchTrail(query: string): TrailSearchHit[] {
         ? MATCH.exact
         : null,
     ]);
-    // Two letters land mid-word in some stop alias ("ps" in "campsite") and
-    // would crowd real campus hits; mid-word needs a longer query.
-    if (score === null || (score >= MATCH.midWord && needle.length < 3)) {
-      continue;
-    }
+    if (score === null) continue;
     hits.push({
       lat: stop.lat,
       lon: stop.lon,
