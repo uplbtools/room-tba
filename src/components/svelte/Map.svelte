@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { LANDSCAPE_COMPACT_MEDIA } from "@lib/bottom-sheet-snap";
   import { MapLibre, Marker } from "svelte-maplibre";
   import * as maplibregl from "maplibre-gl";
   import { configureMaplibreWorker } from "@lib/maplibre-worker";
@@ -1556,6 +1557,26 @@
   const MOBILE_SHEET_COVER_RATIO = 0.55;
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
+    if (md && window.matchMedia(LANDSCAPE_COMPACT_MEDIA).matches) {
+      // Phone landscape: the place sheet is a left side panel
+      // (min(24rem, 52vw) plus its gutter), not a bottom sheet, so keep pins
+      // right of it and use the full height under the search chips.
+      const searchBlock = mapContainerEl
+        ? Number.parseFloat(
+            getComputedStyle(mapContainerEl).getPropertyValue(
+              "--search-block-height",
+            ),
+          )
+        : 0;
+      return {
+        top: Number.isFinite(searchBlock)
+          ? Math.min(searchBlock, Math.round(window.innerHeight * 0.4))
+          : 0,
+        bottom: 0,
+        left: Math.round(Math.min(384, window.innerWidth * 0.52)) + 6,
+        right: 0,
+      };
+    }
     if (md) {
       // Centre the pin in the strip between the search bar and the place
       // sheet: half the screen *width* used to leave it under the sheet.
