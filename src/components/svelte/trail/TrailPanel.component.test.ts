@@ -52,7 +52,7 @@ describe("TrailPanel", () => {
       screen.getByText(/reach Agila Base \(Station 11\) by 09:00/),
     ).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/Wilderness Zone start/);
-    expect(document.body.textContent).not.toContain("·");
+    expect(document.body.textContent).not.toContain("\u00b7");
   });
 
   test("every stop is a row in the sheet's own scroll", () => {

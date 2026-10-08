@@ -353,7 +353,11 @@ export function searchTrail(query: string): TrailSearchHit[] {
         ? MATCH.exact
         : null,
     ]);
-    if (score === null) continue;
+    // Two letters land mid-word in some stop alias ("ps" in "campsite") and
+    // would crowd real campus hits; mid-word needs a longer query.
+    if (score === null || (score >= MATCH.midWord && needle.length < 3)) {
+      continue;
+    }
     hits.push({
       lat: stop.lat,
       lon: stop.lon,
