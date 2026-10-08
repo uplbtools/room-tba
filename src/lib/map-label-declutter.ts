@@ -24,8 +24,12 @@ export type LabelCandidate = {
   pin: LabelRect;
 };
 
-/** Slack so labels that only kiss at their rounded corners both stay. */
-const GAP_PX = 2;
+/**
+ * Clearance two labels need between them. Negative: "Institute of Computer
+ * Science (ICS)" sat flush on "UPLB Oblation (Oblation Park)" with the old
+ * 2px of slack, and flush text reads as one overlapping blob.
+ */
+const GAP_PX = -3;
 /** Space between a pin and its label. */
 const OFFSET_PX = 4;
 

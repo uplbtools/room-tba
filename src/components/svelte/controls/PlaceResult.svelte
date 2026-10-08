@@ -24,7 +24,8 @@
   import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityShareButton from "./EntityShareButton.svelte";
   import EntitySaveButton from "./EntitySaveButton.svelte";
-  import EntityPanelClose from "./EntityPanelClose.svelte";
+  import PlaceSheetHeader from "./PlaceSheetHeader.svelte";
+  import { expandCampusAbbreviations } from "@lib/place-facts";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import BuildingPhoto from "./BuildingPhoto.svelte";
@@ -158,80 +159,68 @@
     {:else}
       <EntityBackToList tab="services" label="Back to establishments" />
     {/if}
-    <header class="entity-header entity-header--sticky">
-      <div
-        class="entity-header__title-row entity-header__title-row--with-close"
-      >
-        <h2 class="entity-header__title">{place.name}</h2>
-        {#if placeDirectoryLabel(place.category)}
-          <span class="place-category-badge"
-            >{placeDirectoryLabel(place.category)}</span
+    <PlaceSheetHeader
+      title={place.name}
+      label={placeDirectoryLabel(place.category) || null}
+      labelTone="green"
+      facts={place.hours && place.hours.length <= 60 ? place.hours : null}
+      closeLabel="Close place details"
+    >
+      {#if place.lat != null && place.lon != null}
+        <EntityDirectionsChip
+          primary
+          lat={place.lat}
+          lon={place.lon}
+          destinationLabel={place.name}
+        />
+      {/if}
+      <EntityActionScroll>
+        <EntitySaveButton
+          place={{
+            category: "place",
+            value: place.name,
+            label: place.name,
+            subtitle: placeDirectoryLabel(place.category) || null,
+            lat: place.lat,
+            lon: place.lon,
+          }}
+        />
+        {#if trailStop}
+          {@const stopId = trailStop.id}
+          <MapChromeActionChip
+            toolbar
+            onclick={() => openTrailSheet(stopId, { overPlace: true })}
           >
+            <Route size={14} aria-hidden="true" />
+            Show trail
+          </MapChromeActionChip>
         {/if}
-        <EntityPanelClose ariaLabel="Close place details" showOnMobile />
-      </div>
-      <div class="entity-actions entity-actions--place">
+        <EntityShareButton url={placeShareUrl} entityLabel={place.name} />
         {#if place.lat != null && place.lon != null}
-          <EntityDirectionsChip
-            primary
+          <EntityGoogleMapsLink
             lat={place.lat}
             lon={place.lon}
-            destinationLabel={place.name}
+            name={place.name}
+            ariaLabel={`Open ${place.name} in Google Maps`}
           />
         {/if}
-        <EntityActionScroll>
-          <EntitySaveButton
-            place={{
-              category: "place",
-              value: place.name,
-              label: place.name,
-              subtitle: placeDirectoryLabel(place.category) || null,
-              lat: place.lat,
-              lon: place.lon,
-            }}
-          />
-          {#if trailStop}
-            {@const stopId = trailStop.id}
-            <MapChromeActionChip
-              toolbar
-              onclick={() => openTrailSheet(stopId, { overPlace: true })}
-            >
-              <Route size={14} aria-hidden="true" />
-              Show trail
-            </MapChromeActionChip>
-          {/if}
-          <EntityShareButton url={placeShareUrl} entityLabel={place.name} />
-          {#if place.lat != null && place.lon != null}
-            <EntityGoogleMapsLink
-              lat={place.lat}
-              lon={place.lon}
-              name={place.name}
-              ariaLabel={`Open ${place.name} in Google Maps`}
-            />
-            <EntityPrintableMapLink
-              lat={place.lat}
-              lon={place.lon}
-              name={place.name}
-            />
-          {/if}
-          <EntityEditorToggle
-            expanded={editing}
-            {canPublish}
-            publishOpenLabel="Edit place"
-            closeLabel={canPublish ? "Close editor" : "Close"}
-            variant="toolbar"
-            onclick={() => {
-              if (editing) {
-                editing = false;
-                additionProposalStore.clearDraftPin();
-              } else {
-                startEdit();
-              }
-            }}
-          />
-        </EntityActionScroll>
-      </div>
-    </header>
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit place"
+          closeLabel={canPublish ? "Close editor" : "Close"}
+          variant="toolbar"
+          onclick={() => {
+            if (editing) {
+              editing = false;
+              additionProposalStore.clearDraftPin();
+            } else {
+              startEdit();
+            }
+          }}
+        />
+      </EntityActionScroll>
+    </PlaceSheetHeader>
 
     {#if !editing}
       <BuildingPhoto
@@ -245,10 +234,12 @@
         <EntityStreetAddress lat={place.lat} lon={place.lon} />
       {/if}
       {#if place.description}
-        <p class="entity-directions__text">{place.description}</p>
+        <p class="entity-directions__text">
+          {expandCampusAbbreviations(place.description)}
+        </p>
       {/if}
       <ul class="place-facts">
-        {#if place.hours}
+        {#if place.hours && place.hours.length > 60}
           <li><strong>Hours:</strong> {place.hours}</li>
         {/if}
         {#if place.websiteLink}
@@ -268,6 +259,16 @@
         entityId={place.id}
         entityName={place.name}
       />
+      {#if place.lat != null && place.lon != null}
+        <div class="entity-footer">
+          <EntityPrintableMapLink
+            lat={place.lat}
+            lon={place.lon}
+            name={place.name}
+            inline
+          />
+        </div>
+      {/if}
     {:else}
       <div class="place-form">
         <label>Name<input bind:value={nameDraft} /></label>
@@ -330,18 +331,6 @@
 <style>
   @import "./entity-detail.css";
 
-  .place-category-badge {
-    display: inline-block;
-    flex-shrink: 0;
-    align-self: center;
-    white-space: nowrap;
-    padding: 0.125rem 0.5rem;
-    border-radius: 999px;
-    background: var(--theme-green-soft, hsl(162, 45%, 92%));
-    color: var(--theme-green-text, #0d7a5f);
-    font-size: 0.6875rem;
-    font-weight: 600;
-  }
   .place-facts {
     list-style: none;
     padding: 0;

@@ -1553,8 +1553,12 @@
     });
   });
 
-  /** Share of the phone screen the place sheet covers at peek, nav included. */
-  const MOBILE_SHEET_COVER_RATIO = 0.55;
+  /**
+   * Share of the phone screen the place sheet covers at peek, nav included:
+   * the estimate for the first fly-to, before the sheet has measured itself
+   * and reported its real top edge (sidePanelStore.mobileSheetTop).
+   */
+  const MOBILE_SHEET_COVER_RATIO = 0.4;
 
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md && window.matchMedia(LANDSCAPE_COMPACT_MEDIA).matches) {
@@ -1587,12 +1591,18 @@
             ),
           )
         : 0;
+      // Untracked: the camera effects that call this must not re-fly when the
+      // sheet changes stop; the effect below re-pads on its own.
+      const sheetTop = untrack(() => sidePanelStore.mobileSheetTop);
       return {
         // Capped: while the search overlay is open it measures full screen.
         top: Number.isFinite(searchBlock)
           ? Math.min(searchBlock, Math.round(window.innerHeight * 0.25))
           : 0,
-        bottom: Math.round(window.innerHeight * MOBILE_SHEET_COVER_RATIO),
+        bottom:
+          sheetTop > 0
+            ? Math.max(0, Math.round(window.innerHeight - sheetTop))
+            : Math.round(window.innerHeight * MOBILE_SHEET_COVER_RATIO),
         left: 0,
         right: 0,
       };
@@ -1653,7 +1663,7 @@
     }
     const chrome = [
       ...document.querySelectorAll(
-        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .mobile-map-controls, .desktop-map-controls",
+        ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .mobile-map-controls, .desktop-map-controls, .bottom-sheet",
       ),
     ].map((el) => el.getBoundingClientRect());
     for (const [id, anchor] of placeLabels(
@@ -1697,8 +1707,35 @@
       orgPinsVisible,
       queryStore.inputValue,
       queryStore.category,
+      sidePanelStore.mobileSheetTop,
     ];
     scheduleLabelDeclutter();
+    // The sheet slides for 320ms to its stop; labels under its final edge
+    // (it is a blocked rect above) hide once it has settled.
+    const settle = setTimeout(scheduleLabelDeclutter, 380);
+    return () => clearTimeout(settle);
+  });
+
+  // The place sheet reports where its top edge rests once it has measured
+  // itself, and again when it moves to another stop. The first fly-to only had
+  // an estimate, so re-pad the camera to the real strip above the sheet: the
+  // selected pin then sits in the middle of the visible map, not under it.
+  $effect(() => {
+    const top = sidePanelStore.mobileSheetTop;
+    const map = mapStore.mapInstance;
+    if (!map || top <= 0 || !md.current || queryStore.category === null) return;
+    const apply = () => {
+      const want = calculatePadding(true);
+      if (Math.abs((want.bottom ?? 0) - map.getPadding().bottom) < 24) return;
+      map.easeTo({ padding: want, duration: 280 });
+    };
+    if (map.isMoving()) {
+      map.once("moveend", apply);
+      return () => {
+        map.off("moveend", apply);
+      };
+    }
+    apply();
   });
 
   function buildingEditKey(id: number) {
