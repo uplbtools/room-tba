@@ -39,8 +39,9 @@ export type MapPadding = {
 /**
  * Padding that keeps a fitted area inside the part of the map nobody is
  * covering: below the search bar and chips, above the mobile sheet (or
- * beside the desktop panel, `leftPanelWidth` wide; 0 when collapsed). A flat
- * 80px left most of a route under the phone sheet.
+ * beside the desktop panel, `leftPanelWidth` wide; 0 when collapsed; or
+ * beside the phone-landscape side sheet). A flat 80px left most of a route
+ * under the phone sheet.
  */
 export function measureVisibleMapPadding(
   map: { getContainer: () => HTMLElement },
@@ -68,7 +69,14 @@ export function measureVisibleMapPadding(
   if (mobile) {
     const root = document.querySelector(".bottom-sheet-root");
     const sheet = root?.querySelector<HTMLElement>(".bottom-sheet");
-    if (root && sheet) {
+    if (root?.classList.contains("bottom-sheet-root--side") && sheet) {
+      // Phone landscape: the sheet is a left side panel, so it covers the
+      // left of the map, not the bottom.
+      const rect = sheet.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        padding.left = Math.max(gap, rect.right - frame.left + gap);
+      }
+    } else if (root && sheet) {
       // The inline transform is where the sheet is going, not where its
       // open animation happens to be this frame.
       const target = /translate3d\(0(?:px)?,\s*([\d.]+)px/.exec(
