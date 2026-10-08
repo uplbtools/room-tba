@@ -102,6 +102,10 @@ export default defineConfig({
           /^\/reset-password(\/|\?|$)/,
           // Email confirmation links must load their own page, not the map.
           /^\/verify-email(\/|\?|$)/,
+          // Per-user server pages (staff dashboard, invites, unsubscribe).
+          /^\/admin(\/|\?|$)/,
+          /^\/invite(\/|\?|$)/,
+          /^\/unsubscribe(\/|\?|$)/,
         ],
         swDest: "dist/client/sw.js",
         // Cache third-party map resources at runtime so the campus map works
@@ -293,6 +297,13 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
+      // Encrypts staff TOTP secrets at rest (32 bytes, base64 or hex). Unset
+      // turns two-step verification off rather than storing seeds in clear.
+      TOTP_ENCRYPTION_KEY: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
       // Cloudflare R2 (S3-compatible). Required for /api/admin/upload.
       R2_ACCOUNT_ID: envField.string({
         access: "secret",
@@ -435,7 +446,17 @@ export default defineConfig({
           // /reset-password carries a per-user ?token=, and ISR keys on the
           // pathname alone: one cached render (an empty error body, in the
           // 2026-10 outage) was served to every reset link for a day.
-          exclude: [/^\/api\//, /^\/og\.png$/, /^\/reset-password\/?$/],
+          exclude: [
+            /^\/api\//,
+            /^\/og\.png$/,
+            /^\/reset-password\/?$/,
+            // Same for every per-user page: the staff dashboard (its
+            // logged-out redirect was cached for everyone), invites, and
+            // unsubscribe links.
+            /^\/admin(\/.*)?$/,
+            /^\/invite\/?$/,
+            /^\/unsubscribe\/?$/,
+          ],
         },
       }),
 });

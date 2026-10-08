@@ -16,6 +16,8 @@
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityReviewActions from "@ui/editor/EntityReviewActions.svelte";
   import Avatar from "@ui/Avatar.svelte";
+  import ReviewQueueFilters from "@ui/editor/ReviewQueueFilters.svelte";
+  import { hasActiveReviewFilters } from "@lib/proposals/review-queue-params";
   import { proposalPinChange } from "@lib/proposals/proposal-pin";
   import {
     getReviewShortcutAction,
@@ -471,12 +473,20 @@
       </div>
     {/if}
 
+    {#if proposalsStore.pendingCount > 0 || hasActiveReviewFilters(proposalsStore.filters)}
+      <ReviewQueueFilters />
+    {/if}
+
     {#if proposalsStore.loading}
       <p class="entity-review-empty">
         <LoadingIndicator label="Loading proposals…" />
       </p>
     {:else if proposalsStore.proposals.length === 0}
-      <p class="entity-review-empty">No pending suggestions.</p>
+      <p class="entity-review-empty">
+        {hasActiveReviewFilters(proposalsStore.filters)
+          ? "No suggestions match these filters."
+          : "No pending suggestions."}
+      </p>
     {:else}
       <div class="entity-review-batch">
         <label class="entity-review-select-all">
@@ -781,6 +791,18 @@
           </li>
         {/each}
       </ul>
+      {#if proposalsStore.nextCursor}
+        <button
+          type="button"
+          class="entity-review-load-more"
+          disabled={proposalsStore.loadingMore}
+          onclick={() => void proposalsStore.loadMore()}
+        >
+          {proposalsStore.loadingMore
+            ? "Loading…"
+            : `Show more (${proposalsStore.proposals.length} of ${proposalsStore.matchCount})`}
+        </button>
+      {/if}
     {/if}
   </section>
 {/if}
@@ -969,6 +991,17 @@
     border-radius: 8px;
   }
 
+  .entity-review-load-more {
+    align-self: center;
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border: 1px solid var(--theme-border-strong, hsl(0, 0%, 75%));
+    border-radius: 999px;
+    background: none;
+    color: var(--theme-text, hsl(0, 0%, 15%));
+    font-weight: 600;
+    cursor: pointer;
+  }
   .entity-review-group {
     display: flex;
     flex-direction: column;

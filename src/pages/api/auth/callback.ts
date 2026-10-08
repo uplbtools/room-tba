@@ -1,7 +1,9 @@
 import type { APIRoute } from "astro";
 import { createSessionToken, setSessionCookie } from "@lib/admin/auth";
 import { readSessionVersion } from "@lib/services/account-security";
+import { clientIp } from "@lib/api/rate-limit";
 import { linkOrCreateContributorFromSupabase } from "@lib/services/admin-user-service";
+import { recordAudit } from "@lib/services/audit-log-service";
 import { createServerSupabaseClient } from "@lib/supabase/server";
 
 export const prerender = false;
@@ -36,6 +38,16 @@ export const GET: APIRoute = async ({ url, request, cookies }) => {
       name: meta?.full_name ?? meta?.name ?? null,
     });
     if (!user) return fail("account_unavailable");
+    // Google's own sign-in (and its 2-Step Verification) stands in for
+    // ours, so staff skip the TOTP step here (auth audit item 19).
+    await recordAudit({
+      action: "login.success",
+      actor: user,
+      targetUserId: user.id,
+      targetLabel: user.username,
+      detail: { method: "google" },
+      ip: clientIp(request),
+    });
 
     const token = createSessionToken({
       ...user,

@@ -6,6 +6,8 @@
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
+  import TwoStepSection from "@ui/account/TwoStepSection.svelte";
+  import EmailNotificationsSection from "@ui/account/EmailNotificationsSection.svelte";
   import "./editor/entity-editor.css";
   import "./map-chrome/map-chrome.css";
 
@@ -576,7 +578,7 @@
         <EntityEditorFormField
           label="New password"
           inputId="account-new-password"
-          hint="At least 10 characters."
+          hint="10 characters to 72 bytes."
         >
           {#snippet control()}
             <input
@@ -606,6 +608,14 @@
           />
         {/snippet}
       </SettingsSection>
+
+      {#if profile.role === "admin" || profile.role === "editor"}
+        <TwoStepSection />
+      {/if}
+
+      <EmailNotificationsSection
+        isStaff={profile.role === "admin" || profile.role === "editor"}
+      />
 
       <SettingsSection
         title="Connected accounts"

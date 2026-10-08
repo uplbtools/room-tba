@@ -15,6 +15,9 @@ import {
   authenticateAdminUser,
   getAdminUserBySupabaseId,
 } from "@lib/services/admin-user-service";
+import { loginStepResponse } from "@lib/auth/login-challenge";
+import { recordAudit } from "@lib/services/audit-log-service";
+import { loginPlanFor } from "@lib/services/staff-security-service";
 import { createServerSupabaseClient } from "@lib/supabase/server";
 import { verifyTurnstileToken } from "@lib/turnstile";
 
@@ -152,9 +155,22 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     if (!user) {
       if (!skipLoginRateLimit) await accountBackoff.fail(backoffKey);
+      await recordAudit({
+        action: "login.failure",
+        actorLabel: username.toLowerCase().slice(0, 100) || null,
+        ip,
+      });
       return json({ error: "Invalid username or password" }, 401);
     }
     if (!skipLoginRateLimit) await accountBackoff.succeed(backoffKey);
+
+    // Two-step code, required 2FA enrollment, or a forced password change
+    // come before the session (auth audit item 19). The client finishes
+    // them through /api/admin/auth/step with the returned challenge.
+    const plan = await loginPlanFor(user);
+    if (plan.steps.length > 0) {
+      return loginStepResponse(user.id, plan.steps, []);
+    }
 
     // The cookie carries the account's current session version, so the next
     // "sign out everywhere" or password change revokes it.
@@ -173,6 +189,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
+    await recordAudit({
+      action: "login.success",
+      actor: user,
+      targetUserId: user.id,
+      targetLabel: user.username,
+      detail: { method: "password" },
+      ip,
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -181,6 +206,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         role: user.role,
         canPublish: canPublishDirectly(user.role),
         canReview: canReviewProposals(user.role),
+        mfaEnrollmentSuggested: plan.enrollSuggested,
       }),
       {
         status: 200,

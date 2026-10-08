@@ -504,6 +504,7 @@ export async function requestEmailChange(
   const confirmUrl = `${SITE_URL}/api/account/confirm-email-change?token=${encodeURIComponent(token)}`;
 
   await sendEmail({
+    template: "email-change",
     to: [normalized],
     subject: "Confirm your Room TBA email change",
     text: [
@@ -570,7 +571,10 @@ export async function requestPasswordReset(login: string): Promise<void> {
   );
   const resetUrl = `${SITE_URL}/reset-password?token=${encodeURIComponent(token)}`;
 
+  // A failed send throws to the route (still a generic reply to the user)
+  // and lands in email_log, where the staff dashboard shows it.
   await sendEmail({
+    template: "password-reset",
     to: [user.email],
     subject: "Reset your Room TBA password",
     text: [
@@ -923,7 +927,12 @@ export type UpdateManagedUserInput = {
 export async function updateManagedUser(
   targetUserId: number,
   input: UpdateManagedUserInput,
-): Promise<AdminManagedUser> {
+): Promise<
+  AdminManagedUser & {
+    /** Role and active state before this change, for the audit log. */
+    previous: { role: SessionUser["role"]; isActive: boolean };
+  }
+> {
   // Transaction + advisory lock serializes admin role/active changes so two
   // concurrent demotions can't both pass the last-admin check and leave
   // zero active admins. Lock is xact-scoped: released on commit/rollback.
@@ -989,6 +998,7 @@ export async function updateManagedUser(
       ...updated,
       displayName: updated.displayName ?? updated.username,
       role: updated.role ?? "editor",
+      previous: { role: target.role ?? "editor", isActive: target.isActive },
     };
   });
   if (revoke) await bumpSessionVersion(targetUserId);

@@ -7,7 +7,9 @@ import {
   type ReviewOutcome,
   reviewNoticeSends,
 } from "@lib/email/review-notice-core";
-import { listDigestRecipients } from "@lib/services/digest-service";
+import { unsubscribeParts } from "@lib/email/unsubscribe";
+import { listStaffRecipients } from "@lib/services/digest-service";
+import { optedOutUserIds } from "@lib/services/notification-preferences-service";
 import { and, eq } from "drizzle-orm";
 import {
   emailIsVerifiedSql,
@@ -17,6 +19,7 @@ import {
 export type { ReviewOutcome } from "@lib/email/review-notice-core";
 
 type ReviewNoticeInput = {
+  proposalId: number;
   outcome: ReviewOutcome;
   entityLabel: string | null;
   submitterName: string | null;
@@ -27,9 +30,15 @@ type ReviewNoticeInput = {
 
 /**
  * Email the contributor about a review outcome, and the core team in a
- * separate message: the contributor's copy never exposes staff addresses.
- * Only a verified contributor address is used. Best effort: review actions
- * must never fail because mail did (#nagger); each send fails on its own.
+ * separate staff copy. Best effort: review actions must never fail because
+ * mail did (#nagger), and callers run this after the response.
+ *
+ * Only a verified contributor address is used (staff recipients are
+ * verified-only too). Every recipient gets their own message: addresses stay
+ * private to each person, and each copy carries that person's unsubscribe
+ * link and List-Unsubscribe headers (auth audit item 20). People who switched
+ * review notices off are skipped. The Resend Idempotency-Key makes a retried
+ * review request unable to mail twice.
  *
  * The wording and the recipient split live in review-notice-core so bun test
  * can load them: this file reaches astro:env/server through resend.ts, and
@@ -38,7 +47,7 @@ type ReviewNoticeInput = {
 export async function sendReviewNotice(input: ReviewNoticeInput) {
   if (!isResendConfigured()) return;
   try {
-    let contributorEmail: string | null = null;
+    let contributor: { id: number; email: string } | null = null;
     if (input.submitterUserId) {
       const submitterUserId = input.submitterUserId;
       const [row] = await withVerification(
@@ -51,26 +60,51 @@ export async function sendReviewNotice(input: ReviewNoticeInput) {
             ),
         [],
       );
-      contributorEmail = row?.email?.trim() || null;
+      const email = row?.email?.trim().toLowerCase();
+      if (email) {
+        const optedOut = await optedOutUserIds(
+          [submitterUserId],
+          "review_notices",
+        );
+        if (!optedOut.has(submitterUserId)) {
+          contributor = { id: submitterUserId, email };
+        }
+      }
     }
-    const core = await listDigestRecipients();
-    const sends = reviewNoticeSends(contributorEmail, core);
+    const core = await listStaffRecipients("review_notices");
+    const sends = reviewNoticeSends(
+      contributor?.email ?? null,
+      core.map((r) => r.email),
+    );
     const contributorNotified = sends.some(
       (send) => send.audience === "contributor",
     );
-    await Promise.all(
-      sends.map(async (send) => {
-        const content =
-          send.audience === "contributor"
-            ? buildReviewEmail(input)
-            : buildStaffReviewEmail({ ...input, contributorNotified });
+    const byEmail = new Map(core.map((r) => [r.email, r.id]));
+    if (contributor) byEmail.set(contributor.email, contributor.id);
+
+    for (const send of sends) {
+      const { subject, text } =
+        send.audience === "contributor"
+          ? buildReviewEmail(input)
+          : buildStaffReviewEmail({ ...input, contributorNotified });
+      for (const email of send.to) {
+        const userId = byEmail.get(email);
+        if (userId === undefined) continue;
+        const { footer, headers } = unsubscribeParts(userId, "review_notices");
         try {
-          await sendEmail({ to: send.to, ...content });
+          await sendEmail({
+            to: [email],
+            subject,
+            text: `${text}${footer}`,
+            template: `review-${input.outcome}${send.audience === "staff" ? "-staff" : ""}`,
+            idempotencyKey: `review:${input.proposalId}:${input.outcome}:${email}`,
+            headers,
+          });
         } catch (err) {
-          console.error(`Review notice email (${send.audience}) failed:`, err);
+          console.error(`Review notice (${send.audience}) to ${email} failed:`, err);
         }
-      }),
-    );
+      }
+    }
   } catch (err) {
     console.error("Review notice email failed:", err);
   }

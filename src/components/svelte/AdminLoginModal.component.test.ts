@@ -6,7 +6,6 @@ import {
   expectNoHorizontalOverflow,
   mountAtWidth,
 } from "@test/layout-assertions";
-import { MESSENGER_MAINTAIN_TARGET } from "@constants/community-links";
 
 describe("AdminLoginModal", () => {
   beforeEach(() => {
@@ -21,9 +20,11 @@ describe("AdminLoginModal", () => {
     expectNoHorizontalOverflow(frame);
     expect(screen.getByLabelText("Username or email")).toBeVisible();
     expect(screen.getByLabelText("Password")).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: /Message maintainers/i }),
-    ).toHaveAttribute("href", MESSENGER_MAINTAIN_TARGET);
+    // Editor access is requested in-app now, not over Messenger (#15).
+    expect(screen.getByRole("link", { name: /Request it/i })).toHaveAttribute(
+      "href",
+      "/admin",
+    );
   });
 
   test('the "Sign up" toggle reveals the contributor signup form', async () => {
@@ -35,7 +36,9 @@ describe("AdminLoginModal", () => {
 
     expect(screen.getByLabelText("Username")).toBeVisible();
     expect(screen.getByLabelText("Confirm password")).toBeVisible();
-    expect(screen.getByLabelText("Email (optional)")).toBeVisible();
+    expect(
+      screen.getByLabelText("Email (needed to reset your password)"),
+    ).toBeVisible();
     expect(
       screen.getByRole("button", { name: /Create account/i }),
     ).toBeVisible();
@@ -59,5 +62,61 @@ describe("AdminLoginModal", () => {
     expect(
       screen.getByRole("button", { name: "Hide password" }),
     ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("forgot password is titled Reset password and explains the dead ends", async () => {
+    render(AdminLoginModal);
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Forgot password?" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Reset password" }),
+    ).toBeVisible();
+    expect(screen.getByText(/Signed up with Google\?/)).toBeVisible();
+    expect(screen.getByText(/An admin has to reset it/)).toBeVisible();
+  });
+
+  test("signup hints the username rule live and flags a bad one", async () => {
+    render(AdminLoginModal);
+    await fireEvent.click(screen.getByRole("button", { name: /^Sign up$/i }));
+    const username = screen.getByLabelText("Username");
+    expect(username).toHaveAttribute("pattern");
+    expect(screen.getByText(/3 to 32 characters/)).toBeVisible();
+    await fireEvent.input(username, { target: { value: "-bad name" } });
+    expect(username).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText(/Username must be/)).toBeVisible();
+    await fireEvent.input(screen.getByLabelText("Password"), {
+      target: { value: "😀".repeat(20) },
+    });
+    expect(screen.getByText(/72 bytes/)).toBeVisible();
+  });
+
+  test("a pending two-step code replaces the form with the code step", () => {
+    adminAuthStore.loginStep = {
+      step: "mfa",
+      steps: ["mfa"],
+      challenge: "c.sig",
+    };
+    render(AdminLoginModal);
+    expect(
+      screen.getByRole("dialog", { name: "Two-step verification" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Verification code")).toBeVisible();
+    expect(screen.queryByLabelText("Username or email")).toBeNull();
+    adminAuthStore.cancelLoginStep();
+  });
+
+  test("forced password change step", () => {
+    adminAuthStore.loginStep = {
+      step: "change_password",
+      steps: ["change_password"],
+      challenge: "c.sig",
+    };
+    render(AdminLoginModal);
+    expect(
+      screen.getByRole("dialog", { name: "Choose a new password" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Confirm new password")).toBeVisible();
+    adminAuthStore.cancelLoginStep();
   });
 });

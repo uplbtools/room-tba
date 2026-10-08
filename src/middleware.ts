@@ -17,7 +17,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   await refreshSupabaseSession(context);
 
-  const isAdminPage = pathname.startsWith("/admin");
+  // /admin itself is a landing page that also serves signed-out and
+  // non-staff visitors (roles explainer); only deeper pages need a session.
+  const isAdminPage = pathname.startsWith("/admin/") && pathname !== "/admin/";
   // /api/admin/upload also serves anonymous authors of an open proposal
   // (token-checked in the route), so it skips this signed-in pre-filter.
   const isAdminApi =
@@ -40,6 +42,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
       }
     }
   }
+
+  context.locals.editorUser = editorUser ?? undefined;
 
   if (isAdminPage) {
     if (!editorUser) {

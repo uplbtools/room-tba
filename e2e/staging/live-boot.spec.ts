@@ -8,8 +8,12 @@ test.describe("staging live boot", () => {
     await expect(campusSearchBox(page)).toBeVisible();
   });
 
-  test("/admin redirects", async ({ page }) => {
+  test("/admin serves the landing page", async ({ page }) => {
     await page.goto("/admin");
-    await expect(page).toHaveURL(/editor=login/);
+    await expect(page.getByText("Who can do what")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+      "href",
+      "/?editor=login",
+    );
   });
 });

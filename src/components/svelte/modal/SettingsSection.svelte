@@ -164,6 +164,11 @@
     background: var(--theme-surface, hsl(0, 0%, 98%));
   }
 
+  /* A footer snippet whose branches render nothing in the current state. */
+  .settings-section__footer:empty {
+    display: none;
+  }
+
   .settings-section--danger {
     border-color: var(--theme-accent-border, #edc9c9);
   }

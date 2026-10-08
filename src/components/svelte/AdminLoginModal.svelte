@@ -6,9 +6,8 @@
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
-  import CommunityBrandIcon from "@ui/community/CommunityBrandIcon.svelte";
   import TurnstileWidget from "@ui/TurnstileWidget.svelte";
-  import { MESSENGER_MAINTAIN_TARGET } from "@constants/community-links";
+  import LoginStepPanel from "@ui/LoginStepPanel.svelte";
   import "./editor/entity-editor.css";
 
   import { isSupabaseConfigured } from "@lib/supabase/env";
@@ -16,7 +15,15 @@
     getTurnstileSiteKey,
     isTurnstileWidgetConfigured,
   } from "@lib/turnstile-client";
-  import { MIN_CONTRIBUTOR_PASSWORD_LENGTH } from "@lib/auth/contributor-signup";
+  import {
+    MAX_PASSWORD_BYTES,
+    MIN_CONTRIBUTOR_PASSWORD_LENGTH,
+    USERNAME_MAX_LENGTH,
+    USERNAME_MIN_LENGTH,
+    USERNAME_PATTERN_SOURCE,
+    newPasswordError,
+    usernameError,
+  } from "@lib/auth/contributor-signup";
 
   const loginErrorId = "admin-login-error";
   const googleEnabled = isSupabaseConfigured();
@@ -50,6 +57,34 @@
   }
 
   const isSignup = $derived(mode === "signup");
+  // Live signup hints from the same pure validator the server runs (auth
+  // audit item 16): shown as the field hint, switching to the problem once
+  // something is typed.
+  const signupUsernameProblem = $derived(
+    isSignup && username ? usernameError(username) : null,
+  );
+  const signupPasswordProblem = $derived(
+    isSignup && password ? newPasswordError(password) : null,
+  );
+  const signupMismatch = $derived(
+    isSignup && confirmPassword.length > 0 && confirmPassword !== password,
+  );
+  const inStep = $derived(
+    Boolean(adminAuthStore.loginStep || adminAuthStore.loginRecoveryCodes),
+  );
+  const title = $derived(
+    adminAuthStore.loginRecoveryCodes
+      ? "Save your recovery codes"
+      : adminAuthStore.loginStep?.step === "change_password"
+        ? "Choose a new password"
+        : adminAuthStore.loginStep
+          ? "Two-step verification"
+          : showForgotPassword
+            ? "Reset password"
+            : isSignup
+              ? "Create contributor account"
+              : "Sign in",
+  );
 
   function switchMode(next: Mode) {
     mode = next;
@@ -140,6 +175,12 @@
     error = null;
 
     if (isSignup) {
+      const problem =
+        usernameError(username) ?? newPasswordError(password);
+      if (problem) {
+        error = problem;
+        return;
+      }
       if (password !== confirmPassword) {
         error = "Passwords do not match.";
         return;
@@ -175,9 +216,17 @@
       return;
     }
     password = "";
+    // A two-step code or new password is still needed: LoginStepPanel
+    // takes over and toasts when the session is issued.
+    if (adminAuthStore.loginStep) return;
     const label =
       adminAuthStore.displayName ?? adminAuthStore.username ?? "contributor";
-    toastStore.show(`Logged in as ${label}.`, "success");
+    toastStore.show(
+      adminAuthStore.mfaEnrollmentSuggested
+        ? `Logged in as ${label}. Admins need two-step verification: turn it on in Account settings.`
+        : `Logged in as ${label}.`,
+      "success",
+    );
   }
 
   function close() {
@@ -202,10 +251,10 @@
     closeLabel="Close login"
   >
   <div class="login-frame">
-    <ModalHeader
-      id="admin-login-title"
-      title={isSignup ? "Create contributor account" : "Sign in"}
-    />
+    <ModalHeader id="admin-login-title" {title} />
+    {#if inStep}
+      <LoginStepPanel />
+    {:else}
     <form class="login-body entity-editor-form" onsubmit={submit}>
       {#if !showForgotPassword}
         {#if isSignup}
@@ -218,6 +267,10 @@
         <EntityEditorFormField
           label={isSignup ? "Username" : "Username or email"}
           inputId="admin-login-username"
+          hint={isSignup
+            ? (signupUsernameProblem ??
+              `${USERNAME_MIN_LENGTH} to ${USERNAME_MAX_LENGTH} characters: lowercase letters, numbers, and . _ -`)
+            : undefined}
         >
           {#snippet control()}
             <input
@@ -226,12 +279,24 @@
               autocomplete="username"
               autocapitalize="none"
               spellcheck="false"
+              minlength={isSignup ? USERNAME_MIN_LENGTH : undefined}
+              maxlength={isSignup ? USERNAME_MAX_LENGTH : undefined}
+              pattern={isSignup ? USERNAME_PATTERN_SOURCE : undefined}
+              aria-invalid={signupUsernameProblem ? true : undefined}
+              aria-describedby={isSignup ? "admin-login-username-hint" : undefined}
               bind:value={username}
               required
             />
           {/snippet}
         </EntityEditorFormField>
-        <EntityEditorFormField label="Password" inputId="admin-login-password">
+        <EntityEditorFormField
+          label="Password"
+          inputId="admin-login-password"
+          hint={isSignup
+            ? (signupPasswordProblem ??
+              `${MIN_CONTRIBUTOR_PASSWORD_LENGTH} characters to ${MAX_PASSWORD_BYTES} bytes.`)
+            : undefined}
+        >
           {#snippet control()}
             <span class="login-password">
               <input
@@ -243,8 +308,12 @@
                   : undefined}
                 bind:value={password}
                 required
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? loginErrorId : undefined}
+                aria-invalid={error || signupPasswordProblem ? true : undefined}
+                aria-describedby={error
+                  ? loginErrorId
+                  : isSignup
+                    ? "admin-login-password-hint"
+                    : undefined}
               />
               <button
                 type="button"
@@ -273,14 +342,19 @@
                 type="password"
                 autocomplete="new-password"
                 minlength={MIN_CONTRIBUTOR_PASSWORD_LENGTH}
+                aria-invalid={signupMismatch ? true : undefined}
                 bind:value={confirmPassword}
                 required
               />
             {/snippet}
           </EntityEditorFormField>
+          {#if signupMismatch}
+            <p class="login-inline-problem">Passwords do not match.</p>
+          {/if}
           <EntityEditorFormField
-            label="Email (optional)"
+            label="Email (needed to reset your password)"
             inputId="admin-signup-email"
+            hint="Optional, but without it a forgotten password can only be reset by an admin."
           >
             {#snippet control()}
               <input
@@ -366,6 +440,20 @@
               Back to sign in
             </button>
           {:else}
+            <p class="login-lead">
+              Enter your username or email and we will send a reset link to the
+              email on the account.
+            </p>
+            <ul class="forgot-password-notes">
+              <li>
+                Signed up with Google? Use Continue with Google instead; your
+                password is managed by Google.
+              </li>
+              <li>
+                No email on your account? An admin has to reset it for you.
+                Ask in the editor group.
+              </li>
+            </ul>
             <EntityEditorFormField
               label="Username or email"
               inputId="forgot-password-login"
@@ -443,16 +531,9 @@
     </form>
     <p class="login-footer">
       Need editor access?
-      <a
-        href={MESSENGER_MAINTAIN_TARGET}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="login-footer-link"
-      >
-        <CommunityBrandIcon brand="messenger" size={14} />
-        Message maintainers
-      </a>
+      <a href="/admin" class="login-footer-link">Request it</a>
     </p>
+    {/if}
   </div>
   </Dialog>
 </div>
@@ -534,6 +615,18 @@
   .login-mode-btn:hover,
   .login-mode-btn:focus-visible {
     color: var(--theme-accent-text, hsl(5, 53%, 24%));
+  }
+  .login-inline-problem {
+    margin: -0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  }
+  .forgot-password-notes {
+    margin: 0;
+    padding-left: 1.125rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
   .login-footer {
     margin: 0;

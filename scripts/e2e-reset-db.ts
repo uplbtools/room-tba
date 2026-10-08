@@ -93,6 +93,11 @@ const E2E_MIGRATION_FILES = [
   "0055_auth_account_security.sql",
   "0056_auth_rate_limits.sql",
   "0057_proposal_owner_tokens.sql",
+  "0061_notification_outbox.sql",
+  "0062_email_log_and_cron_runs.sql",
+  "0063_admin_audit_log.sql",
+  "0064_staff_security_and_invites.sql",
+  "0065_notification_prefs_and_access_requests.sql",
 ] as const;
 
 /**
@@ -248,6 +253,10 @@ async function main() {
     await client.query(`
       TRUNCATE TABLE
         jeep_reports,
+        notification_outbox,
+        email_log,
+        cron_runs,
+        admin_audit_log,
         feedback,
         rate_limits,
         proposal_owner_tokens,

@@ -4,6 +4,7 @@ import { sharedRateLimit } from "@lib/api/rate-limit-db";
 import { accountKey } from "@lib/api/rate-limit-shared";
 import { requestPasswordReset } from "@lib/services/admin-user-service";
 import { verifyTurnstileToken } from "@lib/turnstile";
+import { recordAudit } from "@lib/services/audit-log-service";
 
 export const prerender = false;
 
@@ -58,15 +59,24 @@ export const POST: APIRoute = async ({ request }) => {
     : await sharedRateLimit(key, ACCOUNT_LIMIT.max, ACCOUNT_LIMIT.windowMs);
   // A login that is cooling down from failed sign-ins can still ask for a
   // reset: that is the way out of the lock, so only the mail cooldown applies.
+  let sendFailed = false;
   if (accountRate.allowed) {
     try {
       await requestPasswordReset(body.login);
     } catch (error) {
+      sendFailed = true;
       console.error("Request password reset failed:", error);
-      // Still report success to the client — avoid leaking whether the
-      // account exists or the email send failed.
+      // Still report success to the client: avoid leaking whether the
+      // account exists or the email send failed. The failure is in email_log
+      // and the audit log, both on the staff dashboard at /admin.
     }
   }
+  await recordAudit({
+    action: "password.reset_requested",
+    actorLabel: body.login.trim().toLowerCase().slice(0, 100),
+    detail: sendFailed ? { emailFailed: true } : null,
+    ip: clientIp(request),
+  });
   return json({ success: true });
 };
 

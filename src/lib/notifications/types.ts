@@ -2,6 +2,7 @@ export type NotificationEventType =
   | "proposal.submitted"
   | "proposal.reviewed"
   | "feedback.submitted"
+  | "access.requested"
   | "deploy.succeeded"
   | "deploy.failed"
   | "release.published"
@@ -52,4 +53,12 @@ export type ProposalReviewedPayload = {
   submitterName: string;
   reviewedBy: string;
   adminNote: string | null;
+};
+
+/** In-app "Request editor access" (auth audit item 15). */
+export type AccessRequestedPayload = {
+  requestId: number;
+  username: string;
+  displayName: string;
+  message: string;
 };
