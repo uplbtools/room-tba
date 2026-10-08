@@ -525,6 +525,31 @@ export async function getRoomClassCounts(
   }
 }
 
+/** Schedule strings of every class held in a building, for "classes now" on
+ * its sheet. Rooms with nothing scheduled contribute nothing; TBA rows come
+ * through as-is and are skipped by the reader. */
+export async function getBuildingClassSchedules(
+  buildingId: number,
+  termId?: number,
+): Promise<(string[] | null)[]> {
+  try {
+    const data = await db
+      .select({ schedule: classesTable.schedule })
+      .from(classesTable)
+      .innerJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
+      .where(
+        and(
+          eq(roomsTable.buildingId, buildingId),
+          termId != null ? eq(classesTable.termId, termId) : undefined,
+        ),
+      );
+    return data.map((row) => row.schedule);
+  } catch (e) {
+    console.error("Error: ", e);
+    throw new Error("Failed to fetch building class schedules", { cause: e });
+  }
+}
+
 export type AliasMatch = {
   alias: string;
   targetType: string;

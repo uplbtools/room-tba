@@ -162,23 +162,6 @@
   padding-top: 0.125rem;
 }
 
-/* Place sheets (building, room, dorm, place), GMaps action hierarchy:
-   name + one filled Directions button stay pinned while the sheet scrolls;
-   the secondary actions are one horizontally scrolling row of pills, never
-   wrapped into a second row of equal buttons. */
-.entity-header--sticky {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  padding-top: 0.25rem;
-  background: var(--entity-sheet-bg, var(--theme-surface, #fff));
-  /* Paint the sheet's side gutters too, so rows scrolling under the header
-     do not peek out at its edges (the scroll container clips the rest). */
-  box-shadow:
-    -1rem 0 0 var(--entity-sheet-bg, var(--theme-surface, #fff)),
-    1rem 0 0 var(--entity-sheet-bg, var(--theme-surface, #fff));
-}
-
 .entity-header__title-row--with-close {
   flex-wrap: nowrap;
   align-items: flex-start;
@@ -198,20 +181,6 @@
 .entity-header__title-row--with-close :global(.entity-panel-close span) {
   display: none;
 }
-
-.entity-header .entity-actions--place {
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.entity-actions--place > :global(.map-chrome-action-chip--primary) {
-  flex-shrink: 0;
-}
-
-/* The pill row itself (.entity-actions__scroll) lives in
-   EntityActionScroll.svelte with its edge fades and chevrons. */
 
 .entity-actions :global(.editor-toggle--toolbar),
 .entity-directions__nav :global(.map-chrome-action-chip) {

@@ -102,15 +102,18 @@
     resolvePanelContent(sidePanelStore.state, queryStore.category),
   );
 
-  /** Browse lists (colleges, orgs, classes, events) are a destination picked
-      from the menu, not entity details: their sheet stops above the bottom
-      nav (and the FAB overhanging it) so the tabs and menu stay reachable. */
-  const browseSheet = $derived(
+  /** Every sheet stops above the bottom nav (and the FAB overhanging it), so
+      Map, Planner, Today and You stay reachable while a place is open. The
+      nav is hidden while following a route, and its height var is 0 then. */
+  const sheetBottomInset =
+    "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)";
+
+  /** Place sheets get a middle stop (peek, half, full) like GMaps. */
+  const entitySheet = $derived(
     !directionsStore.active &&
       jeepneyStore.selectedStopIndex === null &&
-      (queryStore.category === "browse" ||
-        queryStore.category === "classes" ||
-        queryStore.category === "events"),
+      queryStore.category !== null &&
+      SPONSOR_CATEGORIES.has(queryStore.category),
   );
 
   const panelOpen = $derived(
@@ -150,7 +153,11 @@
       sidePanelStore.setMobileSheetSnap("closed");
       return;
     }
-    sidePanelStore.setMobileSheetSnap(mobileSnap);
+    // Map controls only care whether the sheet leaves room for them, and the
+    // half stop does not.
+    sidePanelStore.setMobileSheetSnap(
+      mobileSnap === "peek" ? "peek" : "expanded",
+    );
   });
 
   function togglePanel() {
@@ -201,15 +208,14 @@
     open={panelOpen}
     bind:snap={mobileSnap}
     peekRatio={sheetPeekRatio}
+    halfRatio={entitySheet ? 0.62 : undefined}
     peekFitTo={navPeek
       ? ".nav__bar"
       : directionsPeek
         ? ".directions__start-row"
-        : ".entity-actions, .sk-detail__actions"}
+        : ".place-sheet-header__actions, .sk-detail__actions"}
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
-    bottomInset={browseSheet
-      ? "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)"
-      : "0px"}
+    bottomInset={sheetBottomInset}
     scrollResetKey={panelIdentity}
     onDismiss={dismissMobileSheet}
   >

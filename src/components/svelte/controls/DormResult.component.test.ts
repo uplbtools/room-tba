@@ -98,7 +98,7 @@ describe("DormResult Kubo link", () => {
 
     // The CTA lives in the entity-actions row since the live-directory
     // change, not in the dorm-details links row.
-    const actions = link.closest<HTMLElement>(".entity-actions");
+    const actions = link.closest<HTMLElement>(".place-sheet-header__actions");
     expect(actions).not.toBeNull();
     expectNoHorizontalOverflow(actions!);
 

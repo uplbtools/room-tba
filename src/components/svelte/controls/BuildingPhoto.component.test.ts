@@ -78,6 +78,111 @@ describe("BuildingPhoto", () => {
     ).toContain("r2.example");
   });
 
+  test("dots show where you are, jump to a photo, and replace the counter", async () => {
+    const { container } = render(BuildingPhoto, {
+      props: {
+        ...VET_HOSPITAL,
+        imageUrl: "https://r2.example/freedom-park.jpg",
+      },
+    });
+
+    expect(container.querySelector(".building-photo__counter")).toBeNull();
+    const dots = screen.getAllByRole("button", {
+      name: /^Photo \d+ of \d+$/,
+    });
+    expect(dots.length).toBeGreaterThan(1);
+    expect(dots[0]?.getAttribute("aria-current")).toBe("true");
+
+    await fireEvent.click(dots[1] as HTMLElement);
+    expect(dots[1]?.getAttribute("aria-current")).toBe("true");
+    expect(dots[0]?.getAttribute("aria-current")).toBeNull();
+  });
+
+  test("tapping the photo opens a full-screen viewer that can be closed", async () => {
+    render(BuildingPhoto, {
+      props: {
+        name: "Ghost Hall",
+        panoId: null,
+        imageUrl: "https://r2.example/ghost.jpg",
+      },
+    });
+
+    const trigger = screen.getByRole("button", {
+      name: /view ghost hall photo full screen/i,
+    });
+    await fireEvent.click(trigger);
+    const close = await screen.findByRole("button", {
+      name: /close photo viewer/i,
+      hidden: true,
+    });
+    expect(close).toBeTruthy();
+    await fireEvent.click(close);
+    await vi.waitFor(() =>
+      expect(
+        screen.queryByRole("button", {
+          name: /close photo viewer/i,
+          hidden: true,
+        }),
+      ).toBeNull(),
+    );
+  });
+
+  test("Esc in the viewer does not reach the app's window Esc handler", async () => {
+    render(BuildingPhoto, {
+      props: {
+        name: "Ghost Hall",
+        panoId: null,
+        imageUrl: "https://r2.example/ghost.jpg",
+      },
+    });
+    await fireEvent.click(
+      screen.getByRole("button", {
+        name: /view ghost hall photo full screen/i,
+      }),
+    );
+    const dialog = document.querySelector(
+      "dialog.building-photo__viewer",
+    ) as HTMLElement;
+    const windowKey = vi.fn();
+    window.addEventListener("keydown", windowKey);
+    try {
+      await fireEvent.keyDown(dialog, { key: "Escape" });
+      expect(windowKey).not.toHaveBeenCalled();
+      // Other keys still travel as usual.
+      await fireEvent.keyDown(dialog, { key: "a" });
+      expect(windowKey).toHaveBeenCalledTimes(1);
+    } finally {
+      window.removeEventListener("keydown", windowKey);
+    }
+  });
+
+  test("a sideways swipe changes photo and does not open the viewer", async () => {
+    render(BuildingPhoto, {
+      props: {
+        ...VET_HOSPITAL,
+        imageUrl: "https://r2.example/freedom-park.jpg",
+      },
+    });
+    const trigger = screen.getByRole("button", {
+      name: /view veterinary teaching hospital photo full screen/i,
+    });
+    await fireEvent.pointerDown(trigger, { clientX: 300 });
+    await fireEvent.pointerUp(trigger, { clientX: 120 });
+    await fireEvent.click(trigger);
+
+    expect(
+      screen
+        .getByRole("img", { name: /Wikimedia Commons/i })
+        .getAttribute("src"),
+    ).toContain("wikimedia.org");
+    expect(
+      screen.queryByRole("button", {
+        name: /close photo viewer/i,
+        hidden: true,
+      }),
+    ).toBeNull();
+  });
+
   test("dorm, place and org cards read their own manifest kind", () => {
     // Committed manifest entries with Commons photos (Street View is off
     // without a key in vitest).
@@ -148,8 +253,17 @@ describe("BuildingPhoto runtime Street View", () => {
     expect(url.searchParams.get("pano")).toBe("canteen-pano");
     // Pano is south of the canteen, so the camera faces north.
     expect(url.searchParams.get("heading")).toBe("0");
-    expect(screen.getByText("Street View image © Google")).toBeTruthy();
-    expect(screen.getByText(/2024/)).toBeTruthy();
+    // One credit line: what it is and when it was taken. Google's own logo
+    // and "© Google" already sit inside the image, so the caption does not
+    // say it a third time.
+    expect(screen.getByText("Street View")).toBeTruthy();
+    expect(screen.queryByText(/©/)).toBeNull();
+    expect(screen.getByText(/March 2024/)).toBeTruthy();
+    const open = screen.getByRole("link", {
+      name: /Open in Google Maps Street View/i,
+    });
+    expect(open.getAttribute("href")).toContain("map_action=pano");
+    expect(open.getAttribute("href")).toContain("pano=canteen-pano");
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
       "/streetview/metadata",

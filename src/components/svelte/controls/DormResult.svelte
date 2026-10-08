@@ -8,7 +8,6 @@
     toastStore,
   } from "@lib/store.svelte";
   import { getAppActions, getAppData } from "@lib/context";
-  import Users from "@lucide/svelte/icons/users";
   import Mail from "@lucide/svelte/icons/mail";
   import Phone from "@lucide/svelte/icons/phone";
   import Building2 from "@lucide/svelte/icons/building-2";
@@ -16,9 +15,6 @@
   import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
   import EntityStreetAddress from "./EntityStreetAddress.svelte";
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
-  import BadgeCheck from "@lucide/svelte/icons/badge-check";
-  import KeyRound from "@lucide/svelte/icons/key-round";
-  import CircleDollarSign from "@lucide/svelte/icons/circle-dollar-sign";
   import Maximize2 from "@lucide/svelte/icons/maximize-2";
   import X from "@lucide/svelte/icons/x";
   import TriangleAlert from "@lucide/svelte/icons/triangle-alert";
@@ -41,7 +37,8 @@
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import EntityShareButton from "./EntityShareButton.svelte";
   import EntitySaveButton from "./EntitySaveButton.svelte";
-  import EntityPanelClose from "./EntityPanelClose.svelte";
+  import PlaceSheetHeader from "./PlaceSheetHeader.svelte";
+  import { expandCampusAbbreviations } from "@lib/place-facts";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import BuildingPhoto from "./BuildingPhoto.svelte";
@@ -183,19 +180,23 @@
           : null,
   );
 
-  const genderColor = $derived(
-    dorm?.gender === "male"
-      ? "hsl(210, 65%, 50%)"
-      : dorm?.gender === "female"
-        ? "hsl(330, 65%, 50%)"
-        : "hsl(150, 55%, 40%)",
-  );
-
   /** Only show shortName when it's a real abbreviation, not just the first word */
   const showShortName = $derived.by(() => {
     if (!dorm?.shortName) return false;
     const first = dorm.dormName.split(/\s+/)[0].toLowerCase();
     return dorm.shortName.toLowerCase() !== first;
+  });
+
+  /** "Co-ed, 120 beds, PHP 3,000 a month": the dorm's facts in one line. */
+  const dormFacts = $derived.by(() => {
+    if (!dorm) return null;
+    const bits = [
+      genderLabel,
+      dorm.capacity ? `${dorm.capacity} beds` : null,
+      // "~P1,250/night solo, inquire for monthly" keeps its first clause.
+      dorm.priceRange?.split(" — ")[0]?.trim() || null,
+    ].filter(Boolean);
+    return bits.length > 0 ? bits.join(", ") : null;
   });
 
   function linesToList(text: string) {
@@ -682,108 +683,64 @@
 <div class="entity-detail">
   {#if dorm}
     <EntityBackToList tab="dorms" label="Back to dormitories" />
-    <header class="entity-header entity-header--sticky">
-      <div
-        class="entity-header__title-row entity-header__title-row--with-close"
-      >
-        <h2 class="entity-header__title">
-          {dorm.dormName}
-          {#if showShortName}
-            <span class="entity-header__abbrev">{dorm.shortName}</span>
-          {/if}
-        </h2>
-        <EntityPanelClose ariaLabel="Close dorm details" showOnMobile />
-      </div>
-
-      <div class="entity-actions entity-actions--place">
-        {#if dorm.lon && dorm.lat}
-          <EntityDirectionsChip
-            primary
-            lat={dorm.lat}
-            lon={dorm.lon}
-            destinationLabel={dorm.dormName}
+    <PlaceSheetHeader
+      title={dorm.dormName}
+      label={dorm.isUpManaged ? "UP-managed dorm" : "Private dorm"}
+      facts={dormFacts}
+      closeLabel="Close dorm details"
+    >
+      {#snippet titleSuffix()}
+        {#if showShortName}
+          <span class="entity-header__abbrev">{dorm.shortName}</span>
+        {/if}
+      {/snippet}
+      {#if dorm.lon && dorm.lat}
+        <EntityDirectionsChip
+          primary
+          lat={dorm.lat}
+          lon={dorm.lon}
+          destinationLabel={dorm.dormName}
+        />
+      {/if}
+      <EntityActionScroll>
+        <EntitySaveButton
+          place={{
+            category: "dorm",
+            value: dorm.dormName,
+            label: dorm.dormName,
+            subtitle: dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
+            lat: dorm.lat,
+            lon: dorm.lon,
+          }}
+        />
+        <EntityShareButton url={dormShareUrl} entityLabel={dorm.dormName} />
+        {#if kuboDormCta}
+          <EntityExternalLink
+            href={kuboDormCta.href}
+            label={kuboDormCta.label}
+            ariaLabel={kuboDormCta.ariaLabel}
+            class="entity-footer__link--button entity-footer__link--kubo"
+            iconSrc="/kubo-logo.png"
           />
         {/if}
-        <EntityActionScroll>
-          <EntitySaveButton
-            place={{
-              category: "dorm",
-              value: dorm.dormName,
-              label: dorm.dormName,
-              subtitle: dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
-              lat: dorm.lat,
-              lon: dorm.lon,
-            }}
+        {#if dorm.lon && dorm.lat}
+          <EntityGoogleMapsLink
+            lat={dorm.lat}
+            lon={dorm.lon}
+            name={dorm.dormName}
+            ariaLabel={`Open ${dorm.dormName} in Google Maps`}
           />
-          <EntityShareButton url={dormShareUrl} entityLabel={dorm.dormName} />
-          {#if kuboDormCta}
-            <EntityExternalLink
-              href={kuboDormCta.href}
-              label={kuboDormCta.label}
-              ariaLabel={kuboDormCta.ariaLabel}
-              class="entity-footer__link--button entity-footer__link--kubo"
-              iconSrc="/kubo-logo.png"
-            />
-          {/if}
-          {#if dorm.lon && dorm.lat}
-            <EntityGoogleMapsLink
-              lat={dorm.lat}
-              lon={dorm.lon}
-              name={dorm.dormName}
-              ariaLabel={`Open ${dorm.dormName} in Google Maps`}
-            />
-            <EntityPrintableMapLink
-              lat={dorm.lat}
-              lon={dorm.lon}
-              name={dorm.dormName}
-            />
-          {/if}
-          <EntityEditorToggle
-            expanded={editing}
-            {canPublish}
-            publishOpenLabel="Edit dorm"
-            closeLabel={canPublish ? "Close editor" : "Close"}
-            variant="toolbar"
-            onclick={() => (editing = !editing)}
-          />
-        </EntityActionScroll>
-      </div>
-    </header>
-
-    <div class="entity-meta-row">
-      {#if dorm.isUpManaged}
-        <span class="entity-meta-chip up-badge">
-          <BadgeCheck size={12} />
-          UP-managed
-        </span>
-      {:else}
-        <span class="entity-meta-chip private-badge">
-          <KeyRound size={12} />
-          Private
-        </span>
-      {/if}
-      {#if genderLabel}
-        <span
-          class="entity-meta-chip gender-badge"
-          style:--badge-color={genderColor}
-        >
-          <Users size={12} />
-          {genderLabel}
-        </span>
-      {/if}
-      {#if dorm.capacity}
-        <span class="entity-meta-chip capacity-badge">
-          <Building2 size={12} />
-          {dorm.capacity} beds
-        </span>
-      {/if}
-      {#if dorm.priceRange}
-        <span class="entity-meta-chip price-badge">
-          <CircleDollarSign size={12} aria-hidden="true" />
-          {dorm.priceRange}
-        </span>
-      {/if}
-    </div>
+        {/if}
+        <EntityEditorToggle
+          expanded={editing}
+          {canPublish}
+          publishOpenLabel="Edit dorm"
+          closeLabel={canPublish ? "Close editor" : "Close"}
+          variant="toolbar"
+          onclick={() => (editing = !editing)}
+        />
+      </EntityActionScroll>
+    </PlaceSheetHeader>
 
     {#if !editing}
       <div class="entity-body entity-body--compact">
@@ -791,7 +748,9 @@
           <EntityStreetAddress lat={dorm.lat} lon={dorm.lon} />
         {/if}
         {#if dorm.description}
-          <p class="entity-directions__text">{dorm.description}</p>
+          <p class="entity-directions__text">
+            {expandCampusAbbreviations(dorm.description)}
+          </p>
         {/if}
         <EntityLastUpdated
           updatedAt={dorm.updatedAt}
@@ -991,6 +950,16 @@
         {/if}
       </section>
     {/if}
+    {#if !editing && dorm.lat && dorm.lon}
+      <div class="entity-footer">
+        <EntityPrintableMapLink
+          lat={dorm.lat}
+          lon={dorm.lon}
+          name={dorm.dormName}
+          inline
+        />
+      </div>
+    {/if}
   {:else}
     <div class="no-results">Dorm not found.</div>
   {/if}
@@ -1000,27 +969,6 @@
   @import "./entity-detail.css";
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
-
-  /* Each badge only sets its tone; .entity-meta-chip derives border + wash. */
-  .gender-badge {
-    color: color-mix(in srgb, var(--badge-color) 85%, black);
-  }
-
-  .capacity-badge {
-    color: var(--theme-text, hsl(0, 0%, 30%));
-  }
-
-  .up-badge {
-    color: var(--theme-accent-text, hsl(5, 53%, 32%));
-  }
-
-  .private-badge {
-    color: var(--theme-blue-text, hsl(210, 55%, 36%));
-  }
-
-  .price-badge {
-    color: var(--theme-green-text, hsl(150, 45%, 27%));
-  }
 
   .price-disclaimer {
     display: inline-flex;

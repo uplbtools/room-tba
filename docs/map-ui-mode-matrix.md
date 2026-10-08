@@ -87,7 +87,7 @@ Entity detail views (`RoomResult`, `BuildingResult`, `DormResult`, etc.) use sha
 
 | Zone       | Contents                                                                                             |
 | ---------- | ---------------------------------------------------------------------------------------------------- |
-| Header     | Breadcrumb (optional), title + badge, context line, **one** actions row (Copy link, Edit, nav chips) |
+| Header     | Breadcrumb (optional), `PlaceSheetHeader`: title + the one close X, plain-text category, one-line facts, then Directions + one scrolling pill row |
 | Body       | Browse text; editor panel expands inline when Edit is open                                           |
 | Directions | Merged directions text + suggest links + Directions / Google Maps chips                              |
 | Footer     | Secondary links only (e.g. classes schedule, external refs)                                          |
@@ -95,6 +95,8 @@ Entity detail views (`RoomResult`, `BuildingResult`, `DormResult`, etc.) use sha
 Do not add duplicate action rows or colored highlight boxes. See `.cursor/rules/side-panel.mdc`.
 
 On mobile, browse and entity drawers open above the map and do not obscure the bottom navigation. Closing the drawer returns to the map.
+
+Place sheets (building, dorm, place, room) on phones have three stops, like Google Maps: **peek** (header only: name, category, facts, Directions and the action row), **half** (about 62% of the free height) and **full**. The sheet's bottom edge sits above the bottom nav at every stop. The map camera pads by the sheet's resting top edge (`sidePanelStore.mobileSheetTop`) so the selected pin stays in the strip above it, and pin labels under the sheet are hidden by the label declutter. While a place sheet is open the search bar's X and the filter chips step aside: the sheet's own X is the one close control.
 
 ## Verification viewports
 
