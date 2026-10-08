@@ -92,7 +92,7 @@
 <style>
   .theme-switch {
     display: inline-flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 0.25rem;
   }
 
