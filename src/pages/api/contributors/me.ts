@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getEditorSession } from "@lib/admin/require-editor";
+import { optionalEditorSession } from "@lib/admin/require-editor";
 import { parseContributorId } from "@lib/contributors/contributor-id";
 import { parseLeaderboardQuery } from "@lib/contributors/leaderboard-query";
 import { getContributorStanding } from "@lib/services/contribution-service";
@@ -12,7 +12,7 @@ export const prerender = false;
  */
 export const GET: APIRoute = async ({ url, cookies }) => {
   const { window, board, source } = parseLeaderboardQuery(url);
-  const session = getEditorSession(cookies);
+  const session = await optionalEditorSession(cookies);
   const userId = session && session.id > 0 ? session.id : null;
   const contributorId = parseContributorId(
     url.searchParams.get("contributorId"),
