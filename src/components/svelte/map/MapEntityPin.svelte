@@ -506,6 +506,21 @@
     --pin-label-color: hsl(334, 54%, 35%);
   }
 
+  /* Dark map: a light tint of the category hue on a dark halo, as the light
+     map's dark tint sits on a white one. */
+  :global(:root[data-theme="dark"]) .pin-label {
+    color: color-mix(
+      in srgb,
+      var(--pin-label-color, hsl(5, 53%, 28%)) 35%,
+      #fff
+    );
+    text-shadow:
+      0 0 2px #000,
+      0 0 2px #000,
+      0 0 3px #000,
+      0 0 4px rgb(0 0 0 / 0.8);
+  }
+
   /* The selected place keeps a filled name card so it stands out. */
   .map-entity-pin.active .pin-label {
     max-width: none;
