@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { waitForAppBoot } from "../helpers/app";
-import { expandMapToolsSection, openMapTools } from "../helpers/map-tools";
+import { openMapTools } from "../helpers/map-tools";
 import { E2E_FIXTURES } from "../../scripts/e2e-reset-db";
 
 test.describe("schedule route from planner @advisory", () => {
@@ -37,8 +37,11 @@ test.describe("schedule route from planner @advisory", () => {
 
     // Day stops live in Layers; Settings no longer carries them.
     await openMapTools(page);
-    await expandMapToolsSection(page, "Schedule");
-    const settings = page.getByRole("dialog", { name: /^layers$/i });
+    await page
+      .getByRole("dialog", { name: /^layers$/i })
+      .getByRole("button", { name: /^schedule route/i })
+      .click();
+    const settings = page.getByRole("dialog", { name: /^schedule route$/i });
     await expect(settings.locator(".schedule-import-panel")).toBeVisible();
     await expect(
       settings.locator(".schedule-import-panel__plan"),
