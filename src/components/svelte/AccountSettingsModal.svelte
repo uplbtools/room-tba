@@ -3,6 +3,10 @@
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
   import Dialog from "@ui/modal/Dialog.svelte";
   import SettingsSection from "@ui/modal/SettingsSection.svelte";
+  import SettingsRow from "@ui/modal/SettingsRow.svelte";
+  import ModalHeader from "@ui/modal/ModalHeader.svelte";
+  import LogOut from "@lucide/svelte/icons/log-out";
+  import MailCheck from "@lucide/svelte/icons/mail-check";
   import EntityEditorFormField from "@ui/editor/EntityEditorFormField.svelte";
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
@@ -358,19 +362,15 @@
   open={adminAuthStore.accountSettingsOpen}
   onclose={close}
   size="reading"
-  ariaLabel="Account settings"
+  labelledBy="account-settings-title"
   closeLabel="Close account settings"
 >
+  <ModalHeader
+    id="account-settings-title"
+    title="Account settings"
+    description={profile ? `${profile.username}, ${profile.role}` : undefined}
+  />
   <div class="settings-scroll">
-    <header class="settings-masthead">
-      <h2 class="settings-masthead__title">Account settings</h2>
-      {#if profile}
-        <p class="settings-masthead__identity">
-          <span class="settings-username">{profile.username}</span>
-          <span class="settings-role">{profile.role}</span>
-        </p>
-      {/if}
-    </header>
 
     {#if loadError}
       <EntityEditorMessage variant="error" message={loadError} />
@@ -445,28 +445,15 @@
         title="Credits"
         description="Your approved edits always count. This only controls whether your name is shown."
       >
-        <div class="credits-row">
-          <span class="credits-row__copy">
-            <span id="account-show-in-credits" class="credits-row__label"
-              >Show me in credits</span
-            >
-            <span id="account-show-in-credits-hint" class="credits-row__hint">
-              {profile.showInCredits
-                ? "Your name appears on the leaderboard, your contributor profile and edit history."
-                : "Your name is hidden from the leaderboard and edit history."}
-            </span>
-          </span>
-          <button
-            type="button"
-            role="switch"
-            class="map-chrome-switch"
-            aria-checked={profile.showInCredits}
-            aria-labelledby="account-show-in-credits"
-            aria-describedby="account-show-in-credits-hint"
-            disabled={savingCredits}
-            onclick={toggleShowInCredits}
-          ></button>
-        </div>
+        <SettingsRow
+          label="Show me in credits"
+          supporting={profile.showInCredits
+            ? "Your name appears on the leaderboard, your contributor profile and edit history."
+            : "Your name is hidden from the leaderboard and edit history."}
+          checked={profile.showInCredits}
+          disabled={savingCredits}
+          onclick={toggleShowInCredits}
+        />
         {#if creditsError}
           <EntityEditorMessage variant="error" message={creditsError} />
         {/if}
@@ -502,16 +489,14 @@
               message="Check your inbox for a confirmation link."
             />
           {:else}
-            <button
-              type="button"
-              class="settings-link-btn"
-              disabled={resendingVerification}
-              onclick={resendVerification}
-            >
-              {resendingVerification
+            <SettingsRow
+              icon={MailCheck}
+              label={resendingVerification
                 ? "Sending…"
                 : "Send confirmation link"}
-            </button>
+              disabled={resendingVerification}
+              onclick={resendVerification}
+            />
           {/if}
         {/if}
 
@@ -662,15 +647,14 @@
           <EntityEditorMessage variant="error" message={signOutError} />
         {/if}
 
-        {#snippet footer()}
-          <EntityEditorSubmitButton
-            label="Sign out of all devices"
-            savingLabel="Signing out…"
-            saving={signingOutEverywhere}
-            variant="secondary"
-            onclick={signOutEverywhere}
-          />
-        {/snippet}
+        <SettingsRow
+          icon={LogOut}
+          label={signingOutEverywhere
+            ? "Signing out…"
+            : "Sign out of all devices"}
+          disabled={signingOutEverywhere}
+          onclick={signOutEverywhere}
+        />
       </SettingsSection>
 
       <SettingsSection
@@ -767,51 +751,20 @@
      content and overlapped once the list outgrew the dialog. Grid rows size to
      content and the scroll container takes the overflow. */
   .settings-scroll {
+    --settings-row-inline: 0;
     display: grid;
     grid-auto-rows: min-content;
     gap: 0.75rem;
-    padding: 0.25rem 0.75rem 0.75rem;
+    padding: 0 1rem 1rem;
     overflow-y: auto;
     min-height: 0;
     flex: 1 1 auto;
   }
 
-  .settings-masthead {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    /* Clears the dialog's own close button, which sits top right. */
-    padding: 0.5rem 2.25rem 0.25rem 0.25rem;
-  }
 
-  .settings-masthead__title {
-    margin: 0;
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--theme-text, hsl(0, 0%, 12%));
-  }
 
-  .settings-masthead__identity {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-    font-size: 0.8125rem;
-    color: var(--theme-text-2, hsl(0, 0%, 42%));
-  }
 
-  .settings-username {
-    font-weight: 600;
-    color: var(--theme-text, hsl(0, 0%, 28%));
-  }
 
-  .settings-role {
-    padding: 0.0625rem 0.375rem;
-    border-radius: 999px;
-    background: var(--theme-surface-2, hsl(0, 0%, 94%));
-    font-size: 0.75rem;
-    text-transform: capitalize;
-  }
 
   .settings-loading {
     margin: 0;
@@ -880,30 +833,9 @@
     color: var(--theme-accent-text, #9a1b1b);
   }
 
-  .credits-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    min-height: 4.5rem;
-  }
 
-  .credits-row__copy {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-  }
 
-  .credits-row__label {
-    font-size: 1rem;
-    color: var(--theme-text, hsl(0, 0%, 12%));
-  }
 
-  .credits-row__hint {
-    font-size: 0.875rem;
-    color: var(--theme-text-2, hsl(0, 0%, 38%));
-  }
 
   .settings-delete-warning {
     margin: 0;

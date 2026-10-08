@@ -192,7 +192,8 @@
     width: 100%;
     min-height: 3.5rem;
     margin: 0;
-    padding: 0.5rem 1rem;
+    /* Rows inside a framed card (Account settings) set this to 0. */
+    padding: 0.5rem var(--settings-row-inline, 1rem);
     border: 0;
     border-radius: 0;
     background: transparent;

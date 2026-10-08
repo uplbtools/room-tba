@@ -1,8 +1,7 @@
 <script lang="ts">
   import LoadingIndicator from "@ui/LoadingIndicator.svelte";
-  import IconButton from "@ui/IconButton.svelte";
+  import ModalHeader from "./ModalHeader.svelte";
   import { fade, fly } from "svelte/transition";
-  import { X, Users } from "@lucide/svelte";
   import { adminAuthStore, toastStore } from "@lib/store.svelte";
   import {
     modalContentDismiss,
@@ -247,15 +246,12 @@
     in:fly={modalContentReveal(reducedMotion.current)}
     out:fly={modalContentDismiss(reducedMotion.current)}
   >
-    <header class="settings-header">
-      <div class="settings-title" id="manage-users-title">
-        <Users size={16} aria-hidden="true" />
-        <span>Manage users</span>
-      </div>
-      <IconButton size="sm" shape="rounded" label="Close" onclick={close}>
-        <X size={18} aria-hidden="true" />
-      </IconButton>
-    </header>
+    <ModalHeader
+      id="manage-users-title"
+      title="Manage users"
+      onclose={close}
+      closeLabel="Close"
+    />
 
     <div class="settings-body">
       {#if loadError}
@@ -455,25 +451,11 @@
     width: min(28rem, 100%);
     max-height: min(38rem, 90vh);
     background: var(--theme-surface, white);
-    border-radius: 0.75rem;
+    border-radius: 1.75rem;
     box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-  }
-  .settings-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 92%));
-  }
-  .settings-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    color: var(--theme-text, hsl(0, 0%, 15%));
   }
   .settings-body {
     padding: 1rem;

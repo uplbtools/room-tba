@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import SettingsSection from "@ui/modal/SettingsSection.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
+  import SettingsRow from "@ui/modal/SettingsRow.svelte";
 
   /**
    * Email notification switches (auth audit item 20). Each switch saves on
@@ -56,24 +57,13 @@
 </script>
 
 {#snippet switchRow(key: keyof Prefs, label: string, supporting: string)}
-  <div class="notify-row">
-    <span class="notify-text">
-      <span class="notify-label" id={`notify-${key}-label`}>{label}</span>
-      <span class="notify-supporting" id={`notify-${key}-desc`}>{supporting}</span>
-    </span>
-    <button
-      type="button"
-      class="notify-switch"
-      role="switch"
-      aria-checked={prefs?.[key] ?? false}
-      aria-labelledby={`notify-${key}-label`}
-      aria-describedby={`notify-${key}-desc`}
-      disabled={!prefs || saving === key}
-      onclick={() => toggle(key)}
-    >
-      <span class="notify-thumb" aria-hidden="true"></span>
-    </button>
-  </div>
+  <SettingsRow
+    {label}
+    {supporting}
+    checked={prefs?.[key] ?? false}
+    disabled={!prefs || saving === key}
+    onclick={() => toggle(key)}
+  />
 {/snippet}
 
 <SettingsSection
@@ -98,75 +88,3 @@
     <EntityEditorMessage variant="error" message={error} />
   {/if}
 </SettingsSection>
-
-<style>
-  .notify-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    min-height: 3.5rem;
-  }
-  .notify-text {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .notify-label {
-    font-size: 1rem;
-    color: var(--theme-text, hsl(0, 0%, 12%));
-  }
-  .notify-supporting {
-    font-size: 0.875rem;
-    line-height: 1.4;
-    color: var(--theme-text-2, hsl(0, 0%, 42%));
-  }
-  .notify-switch {
-    position: relative;
-    flex: 0 0 auto;
-    width: 3.25rem;
-    height: 2rem;
-    padding: 0;
-    border: 2px solid var(--theme-border-strong, hsl(0, 0%, 55%));
-    border-radius: 999px;
-    background: var(--theme-surface-3, hsl(0, 0%, 92%));
-    cursor: pointer;
-  }
-  .notify-thumb {
-    position: absolute;
-    top: 50%;
-    left: 0.375rem;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    background: var(--theme-border-strong, hsl(0, 0%, 45%));
-    transform: translateY(-50%);
-    transition:
-      left 150ms ease,
-      width 150ms ease,
-      height 150ms ease;
-  }
-  .notify-switch[aria-checked="true"] {
-    border-color: var(--theme-accent-fill, #7b1113);
-    background: var(--theme-accent-fill, #7b1113);
-  }
-  .notify-switch[aria-checked="true"] .notify-thumb {
-    left: calc(100% - 1.75rem);
-    width: 1.5rem;
-    height: 1.5rem;
-    background: #fff;
-  }
-  .notify-switch:disabled {
-    opacity: 0.38;
-    cursor: default;
-  }
-  .notify-switch:focus-visible {
-    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
-    outline-offset: 2px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .notify-thumb {
-      transition: none;
-    }
-  }
-</style>
