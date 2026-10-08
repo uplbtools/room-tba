@@ -6,6 +6,7 @@
   import FileText from "@lucide/svelte/icons/file-text";
   import LifeBuoy from "@lucide/svelte/icons/life-buoy";
   import CircleHelp from "@lucide/svelte/icons/circle-help";
+  import BookOpen from "@lucide/svelte/icons/book-open";
   import Inbox from "@lucide/svelte/icons/inbox";
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import CalendarClock from "@lucide/svelte/icons/calendar-clock";
@@ -490,6 +491,10 @@
         <a class="app-menu__nav-action" href="/faq" onclick={closePanel}>
           <CircleHelp size={18} aria-hidden="true" />
           <span>Help &amp; FAQ</span>
+        </a>
+        <a class="app-menu__nav-action" href="/wiki" onclick={closePanel}>
+          <BookOpen size={18} aria-hidden="true" />
+          <span>Campus wiki</span>
         </a>
         <button
           type="button"

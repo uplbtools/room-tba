@@ -1,0 +1,278 @@
+---
+export const prerender = true;
+
+import WikiLayout from "@layouts/WikiLayout.astro";
+import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
+
+const title = "UPLB glossary: TBA, LH, AB, CAS and more | Room TBA Wiki";
+const description =
+  "What the abbreviations on UPLB class schedules, room signs, and building names stand for: TBA, AMIS, LH, LR, AB, WF, CAS, CEAT, and the rest.";
+
+type Term = { term: string; meaning: string; seen?: string; href?: string };
+
+const schedule: Term[] = [
+  {
+    term: "TBA",
+    meaning:
+      "To be announced. A class whose room or time shows TBA in AMIS has not been assigned one yet. It is also where Room TBA gets its name.",
+    seen: "A schedule or room cell that reads TBA",
+  },
+  {
+    term: "AMIS",
+    meaning:
+      "The Academic Management Information System, the university system that holds class schedules and enrollment. Room TBA imports class rows from it.",
+    seen: "Every class row in the app",
+  },
+  {
+    term: "LEC, LAB, RCT, SEM",
+    meaning:
+      "Activity types: lecture, laboratory, recitation, seminar. The full list of twelve is explained in the section-times guide.",
+    seen: "The type of a class",
+    href: "/wiki/section-times#activity-types",
+  },
+  {
+    term: "Section",
+    meaning:
+      "The code after a course number, such as B, ST, or AB2R. For regular lectures the letters encode the day group and start time.",
+    seen: "ENG 10 B",
+    href: "/wiki/section-times",
+  },
+  {
+    term: "AB, ST, UV and other letter pairs",
+    meaning:
+      "Two-letter lecture sections made of adjacent time blocks, for example A and B together. A to H are Wednesday and Friday blocks, and S to Z are the same clock times on Tuesday and Thursday.",
+    seen: "Section column",
+    href: "/wiki/section-times#two-letters",
+  },
+  {
+    term: "WF, TTh",
+    meaning: "Wednesday and Friday, and Tuesday and Thursday.",
+    seen: "Day pattern of a class",
+  },
+  {
+    term: "L, R, C suffixes",
+    meaning:
+      "A section ending in L is usually a laboratory, R a recitation, and C a computational laboratory.",
+    seen: "B3L, AB2R, UV-2C",
+    href: "/wiki/section-times#numbers-suffixes",
+  },
+  {
+    term: "NSTP, HK",
+    meaning:
+      "The National Service Training Program, and Human Kinetics, the physical education courses. Both use their own section codes.",
+    seen: "NSTP 1, HK 11",
+    href: "/wiki/section-times#special-courses",
+  },
+  {
+    term: "Term code (for example 1252)",
+    meaning:
+      "The four-digit number AMIS uses to name a semester. Room TBA keeps one set of classes per term code.",
+    seen: "Imports and the term picker",
+  },
+];
+
+const rooms: Term[] = [
+  {
+    term: "LH",
+    meaning: "Lecture hall: a large room used for lectures.",
+    seen: "ANSC LH2",
+  },
+  {
+    term: "LR",
+    meaning: "Lecture room: a smaller classroom.",
+    seen: "CVM LR1, AFBED LR1",
+  },
+  {
+    term: "Annex",
+    meaning:
+      "A building attached to or beside a main college building, often numbered, such as CAS Annex 1.",
+    seen: "CAS Annex 1, CDC Annex 2",
+  },
+  {
+    term: "Room code",
+    meaning:
+      "The building or unit prefix followed by the room number, for example CEM 101. Room TBA matches spellings that differ only by spaces, dashes, or case.",
+    seen: "Search results and class rows",
+    href: "/room/",
+  },
+  {
+    term: "ABC",
+    meaning: "The Agricultural and Biological Chemistry Building.",
+    seen: "ABC 161",
+  },
+  {
+    term: "ASI",
+    meaning: "The Agricultural Systems Institute Building.",
+    seen: "ASI 231",
+  },
+  {
+    term: "FBS",
+    meaning:
+      "The Forestry Biological Sciences Building, up at the College of Forestry and Natural Resources.",
+    seen: "FBS 151",
+  },
+  {
+    term: "PhySci",
+    meaning: "The Physical Sciences Building.",
+    seen: "Search and directions",
+  },
+];
+
+const colleges: Term[] = [
+  { term: "CAFS", meaning: "College of Agriculture and Food Science" },
+  { term: "CAS", meaning: "College of Arts and Sciences" },
+  { term: "CDC", meaning: "College of Development Communication" },
+  { term: "CEM", meaning: "College of Economics and Management" },
+  {
+    term: "CEAT",
+    meaning: "College of Engineering and Agro-Industrial Technology",
+  },
+  { term: "CFNR", meaning: "College of Forestry and Natural Resources" },
+  { term: "CHE", meaning: "College of Human Ecology" },
+  { term: "CVM", meaning: "College of Veterinary Medicine" },
+  { term: "GS", meaning: "Graduate School" },
+];
+
+const offices: Term[] = [
+  {
+    term: "OUR",
+    meaning:
+      "Office of the University Registrar. Official source for enrollment, grades, and the academic calendar.",
+    href: "https://our.uplb.edu.ph",
+  },
+  {
+    term: "OVCCA",
+    meaning:
+      "Office of the Vice Chancellor for Community Affairs. Published the campus traffic and gate advisory for the previous UPCAT.",
+  },
+  {
+    term: "UPCAT",
+    meaning: "The UP College Admission Test.",
+    href: "/wiki/upcat-at-uplb",
+  },
+  {
+    term: "UHS",
+    meaning: "University Health Service, the campus clinic.",
+    href: "/wiki/emergency-hotlines",
+  },
+  {
+    term: "DRRMO",
+    meaning:
+      "Disaster Risk Reduction and Management Office. There is a municipal and a provincial one.",
+    href: "/wiki/emergency-hotlines",
+  },
+];
+
+const around: Term[] = [
+  {
+    term: "Kaliwa, Kanan",
+    meaning:
+      "The two directions of the same campus jeepney loop. The name says which way the jeep turns after the gate.",
+    href: "/wiki/jeepney-guide",
+  },
+  {
+    term: "Grove",
+    meaning:
+      "The strip of eateries and shops in Batong Malake just outside the campus, near Raymundo Gate.",
+  },
+  {
+    term: "Oble",
+    meaning:
+      "The Oblation statue, a common meeting point and a landmark in directions.",
+  },
+];
+
+const groups = [
+  { id: "schedules", heading: "Schedules and sections", terms: schedule },
+  { id: "rooms", heading: "Rooms and buildings", terms: rooms },
+  { id: "colleges", heading: "Colleges", terms: colleges },
+  { id: "offices", heading: "Offices and exams", terms: offices },
+  { id: "around", heading: "Around campus", terms: around },
+];
+---
+
+<WikiLayout
+  {title}
+  {description}
+  canonicalPath="/wiki/glossary"
+  crumb="Glossary"
+>
+  <article class="wiki-article">
+    <header class="article-hero">
+      <p class="wiki-eyebrow">Glossary</p>
+      <h1 class="wiki-title">UPLB glossary: TBA, LH, AB, CAS and more</h1>
+      <p class="wiki-lede">
+        The short forms you meet on a class schedule, a room sign, or a
+        building directory, each with where you will see it.
+      </p>
+      <p class="article-meta">
+        These meanings are how Room TBA’s own data and pages use each term. They
+        are not an official university glossary. If one is wrong or missing, use
+        “Report a correction” below.
+      </p>
+      <WikiProvenance sourcePath="src/pages/wiki/glossary.astro" />
+    </header>
+
+    {
+      groups.map((group) => (
+        <section aria-labelledby={group.id}>
+          <h2 id={group.id}>{group.heading}</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Term</th>
+                  <th scope="col">Meaning</th>
+                  {group.terms.some((t) => t.seen) && <th scope="col">Where you see it</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {group.terms.map((t) => (
+                  <tr>
+                    <th scope="row" class="glossary-term">{t.term}</th>
+                    <td>
+                      {t.meaning}
+                      {t.href && (
+                        <>
+                          {" "}
+                          <a
+                            href={t.href}
+                            {...(t.href.startsWith("http")
+                              ? { target: "_blank", rel: "noopener noreferrer" }
+                              : {})}
+                          >
+                            Read more
+                            <span class="glossary-sr"> about {t.term}</span>
+                          </a>
+                        </>
+                      )}
+                    </td>
+                    {group.terms.some((x) => x.seen) && <td>{t.seen ?? ""}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ))
+    }
+  </article>
+</WikiLayout>
+
+<style>
+  .wiki-article th.glossary-term {
+    background: none;
+    border-bottom: 1px solid var(--wiki-rule);
+    font-size: var(--wiki-text-md);
+    white-space: nowrap;
+  }
+
+  .glossary-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

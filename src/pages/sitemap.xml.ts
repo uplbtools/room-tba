@@ -13,6 +13,7 @@ import {
   loadAppData,
 } from "@lib/app-data";
 import { absoluteUrl } from "@lib/site";
+import { WIKI_PATHS } from "@lib/wiki-pages";
 import { campusTransit } from "../campus.config";
 import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
 import {
@@ -31,10 +32,7 @@ export const GET: APIRoute = async () => {
     "/faq",
     "/privacy",
     "/terms",
-    "/wiki",
-    "/wiki/section-times",
-    "/wiki/upcat-at-uplb",
-    "/wiki/fork-for-your-campus",
+    ...WIKI_PATHS,
     "/donate",
     "/sponsors",
     "/room/",

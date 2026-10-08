@@ -3,7 +3,6 @@ export const prerender = true;
 
 import WikiLayout from "@layouts/WikiLayout.astro";
 import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
 
 const title = "What times do UPLB section names correspond to? | Room TBA Wiki";
 const description =
@@ -424,27 +423,18 @@ const termTrends = [
   { term: "1261", label: "AY 26–27 1st", db: 12876, lecSched: 2466, tth: 36.9, wf: 32.3, single: 28.4, dense: 0, d90: 1364, note: "DB still full roomless import" },
 ] as const;
 
-const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/wiki/section-times" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Wiki", path: "/wiki" },
-    { name: "Section times", path: "/wiki/section-times" },
-  ]),
-);
 ---
 
 <WikiLayout
   {title}
   {description}
   canonicalPath="/wiki/section-times"
-  {structuredData}
   crumb="Section times"
 >
   <article class="wiki-article">
     <header class="article-hero">
       <p class="wiki-eyebrow">Class schedules</p>
-      <h1 class="wiki-title">What times do section names correspond to?</h1>
+      <h1 class="wiki-title">What times do UPLB section names correspond to?</h1>
       <p class="wiki-lede">
         Every class row in Room TBA has an AMIS <strong>activity type</strong>
         (LEC, LAB, RCT, …) and a <strong>section code</strong> (B, ST, AB2R,
@@ -453,34 +443,14 @@ const structuredData = jsonLd(
         lecture times.
       </p>
       <p class="article-meta">
-        Glossary census: July 16, 2026 · all terms in prod. Letter-ladder match
-        test: July 14, 2026 · 8,917 single-letter regular-semester lectures
-        (87.5%). Term-trend pass: July 16, 2026 · AMIS caches 1231→1261 + prod
+        Glossary census: July 16, 2026, all terms in prod. Letter-ladder match
+        test: July 14, 2026, 8,917 single-letter regular-semester lectures
+        (87.5%). Term-trend pass: July 16, 2026, AMIS caches 1231→1261 + prod
         row counts.
       </p>
       <WikiProvenance sourcePath="src/pages/wiki/section-times.astro" />
     </header>
 
-    <nav class="toc" aria-label="On this page">
-      <p class="toc__title">On this page</p>
-      <ol>
-        <li><a href="#activity-types">Activity type codes</a></li>
-        <li><a href="#morphology">How a section label is built</a></li>
-        <li><a href="#single-letters">Every single-letter code</a></li>
-        <li><a href="#paired-blocks">Paired WF / TTh time blocks</a></li>
-        <li><a href="#two-letters">Every two-letter LEC code</a></li>
-        <li><a href="#numbers-suffixes">Numbers and L / R / C suffixes</a></li>
-        <li><a href="#special-courses">NSTP, HK, GI, residency, ROTC</a></li>
-        <li><a href="#grad-courses">MS / PhD course numbers (200+ / 300+ / 400+)</a></li>
-        <li><a href="#term-trends">What changed across terms</a></li>
-        <li><a href="#regular-sem">Regular semester day structure</a></li>
-        <li><a href="#midyear">Midyear calendar</a></li>
-        <li><a href="#midyear-names">Midyear section names</a></li>
-        <li><a href="#when-useful">When the letter is useful</a></li>
-        <li><a href="#why-not-perfect">Why the code is not perfect</a></li>
-        <li><a href="#method">How we checked</a></li>
-      </ol>
-    </nav>
 
     <section aria-labelledby="short-answer">
       <h2 id="short-answer">The short answer</h2>
@@ -1035,7 +1005,7 @@ const structuredData = jsonLd(
         PM or 9:00–12:00) on one weekday.
       </p>
       <figure class="share-chart">
-        <figcaption>LEC day patterns · term 1252 (2,653 slots)</figcaption>
+        <figcaption>LEC day patterns, term 1252 (2,653 slots)</figcaption>
         <ul class="share-bars">
           {dayShare1252.map((row) => (
             <li>
@@ -1078,7 +1048,7 @@ const structuredData = jsonLd(
         S–Z inference for midyear or for <code>*L</code> labs.
       </p>
       <figure class="share-chart">
-        <figcaption>LEC day patterns · term 1253 (132 slots)</figcaption>
+        <figcaption>LEC day patterns, term 1253 (132 slots)</figcaption>
         <ul class="share-bars">
           {dayShare1253.map((row) => (
             <li>

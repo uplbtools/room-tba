@@ -3,26 +3,17 @@ export const prerender = true;
 
 import WikiLayout from "@layouts/WikiLayout.astro";
 import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
-import { breadcrumbSchema, jsonLd, webpageSchema } from "@lib/site";
+import { APP_VERSION_LABEL } from "@constants/version";
 
 const title = "Fork this for your campus | Room TBA Wiki";
 const description =
   "What you actually have to change to run Room TBA for a different campus: the UPLB-specific data and glue to rip out, the config to repoint, and the parts that are write-your-own.";
-const structuredData = jsonLd(
-  webpageSchema({ title, description, path: "/wiki/fork-for-your-campus" }),
-  breadcrumbSchema([
-    { name: "Home", path: "/" },
-    { name: "Wiki", path: "/wiki" },
-    { name: "Fork for your campus", path: "/wiki/fork-for-your-campus" },
-  ]),
-);
 ---
 
 <WikiLayout
   {title}
   {description}
   canonicalPath="/wiki/fork-for-your-campus"
-  {structuredData}
   crumb="Fork for your campus"
 >
   <article class="wiki-article">
@@ -36,25 +27,12 @@ const structuredData = jsonLd(
         order that matters, with the real file paths.
       </p>
       <p class="article-meta">
-        Current as of v2.1.x. If the repo has moved, the file paths below are
-        still the map. Re-check them.
+        File paths below were checked against the repository at
+        {APP_VERSION_LABEL} by an automated test. If the repo has moved, they
+        are still the map. Re-check them.
       </p>
       <WikiProvenance sourcePath="src/pages/wiki/fork-for-your-campus.astro" />
     </header>
-
-    <nav class="toc" aria-label="On this page">
-      <p class="toc__title">On this page</p>
-      <ol>
-        <li><a href="#what-is-generic">What you keep</a></li>
-        <li><a href="#what-is-uplb">What is UPLB-only</a></li>
-        <li><a href="#prereq">What you need before you start</a></li>
-        <li><a href="#steps">The actual steps</a></li>
-        <li><a href="#data">Loading your own data</a></li>
-        <li><a href="#deploy">Deploy</a></li>
-        <li><a href="#pain">The painful parts</a></li>
-        <li><a href="#license">License and credit</a></li>
-      </ol>
-    </nav>
 
     <section aria-labelledby="what-is-generic">
       <h2 id="what-is-generic">What you keep</h2>
@@ -86,7 +64,7 @@ const structuredData = jsonLd(
             <tr><td><code>src/constants/jeepney-routes.ts</code> + <code>jeepney-geometries.json</code></td><td>UPLB jeepney routes. Replace with your routes, or set <code>campusTransit.enabled: false</code> if your campus has no equivalent.</td></tr>
             <tr><td><code>scripts/import-amis-classes.ts</code></td><td>AMIS is UPLB's course system. You do not have AMIS.</td></tr>
             <tr><td><code>scripts/import-final-exams.ts</code></td><td>Reads UPLB OUR finals JSON.</td></tr>
-            <tr><td><code>scripts/import-osa-orgs.ts</code> + <code>import-campus-offices.ts</code></td><td>UPLB org and office directories.</td></tr>
+            <tr><td><code>scripts/import-osa-organizations.ts</code> + <code>scripts/import-campus-office-directory.ts</code></td><td>UPLB org and office directories.</td></tr>
             <tr><td><code>astro.config.mjs</code> <code>site</code></td><td>Hardcoded to <code>room-tba.uplb.tools</code>.</td></tr>
             <tr><td>The database contents</td><td>Every row is UPLB. The schema stays; the data goes.</td></tr>
           </tbody>
@@ -165,7 +143,7 @@ bunx drizzle-kit push</code></pre>
       <ul>
         <li>Replace <code>public/room_info.json</code> with your buildings (or delete it and seed the DB directly).</li>
         <li>Replace the routes in <code>src/constants/jeepney-routes.ts</code> and <code>jeepney-geometries.json</code> with your campus transit, or leave them and set <code>campusTransit.enabled: false</code>.</li>
-        <li>Delete the UPLB import scripts you cannot reuse: <code>import-amis-classes.ts</code>, <code>import-final-exams.ts</code>, <code>import-osa-orgs.ts</code>, <code>import-campus-offices.ts</code>. Keep them as reference while you write your own.</li>
+        <li>Delete the UPLB import scripts you cannot reuse: <code>import-amis-classes.ts</code>, <code>import-final-exams.ts</code>, <code>import-osa-organizations.ts</code>, <code>import-campus-office-directory.ts</code>. Keep them as reference while you write your own.</li>
         <li>Delete <code>src/pages/wiki/section-times.astro</code> (the UPLB section-code glossary) and its card on the wiki index.</li>
       </ul>
 

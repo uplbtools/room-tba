@@ -60,6 +60,14 @@ describe("AppMenu help entry", () => {
     expect(faq).toHaveAttribute("href", "/faq");
   });
 
+  test("Campus wiki is reachable from the menu on every screen size", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    const wiki = screen.getByRole("link", { name: /campus wiki/i });
+    expect(wiki).toBeVisible();
+    expect(wiki).toHaveAttribute("href", "/wiki");
+  });
+
   test("'How Room TBA works' opens the landing modal on the welcome tab", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
     await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
