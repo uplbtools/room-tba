@@ -63,4 +63,60 @@ describe("AdminLoginModal", () => {
       screen.getByRole("button", { name: "Hide password" }),
     ).toHaveAttribute("aria-pressed", "true");
   });
+
+  test("forgot password is titled Reset password and explains the dead ends", async () => {
+    render(AdminLoginModal);
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Forgot password?" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Reset password" }),
+    ).toBeVisible();
+    expect(screen.getByText(/Signed up with Google\?/)).toBeVisible();
+    expect(screen.getByText(/An admin has to reset it/)).toBeVisible();
+  });
+
+  test("signup hints the username rule live and flags a bad one", async () => {
+    render(AdminLoginModal);
+    await fireEvent.click(screen.getByRole("button", { name: /^Sign up$/i }));
+    const username = screen.getByLabelText("Username");
+    expect(username).toHaveAttribute("pattern");
+    expect(screen.getByText(/3 to 32 characters/)).toBeVisible();
+    await fireEvent.input(username, { target: { value: "-bad name" } });
+    expect(username).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText(/Username must be/)).toBeVisible();
+    await fireEvent.input(screen.getByLabelText("Password"), {
+      target: { value: "😀".repeat(20) },
+    });
+    expect(screen.getByText(/72 bytes/)).toBeVisible();
+  });
+
+  test("a pending two-step code replaces the form with the code step", () => {
+    adminAuthStore.loginStep = {
+      step: "mfa",
+      steps: ["mfa"],
+      challenge: "c.sig",
+    };
+    render(AdminLoginModal);
+    expect(
+      screen.getByRole("dialog", { name: "Two-step verification" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Verification code")).toBeVisible();
+    expect(screen.queryByLabelText("Username or email")).toBeNull();
+    adminAuthStore.cancelLoginStep();
+  });
+
+  test("forced password change step", () => {
+    adminAuthStore.loginStep = {
+      step: "change_password",
+      steps: ["change_password"],
+      challenge: "c.sig",
+    };
+    render(AdminLoginModal);
+    expect(
+      screen.getByRole("dialog", { name: "Choose a new password" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Confirm new password")).toBeVisible();
+    adminAuthStore.cancelLoginStep();
+  });
 });
