@@ -1,5 +1,6 @@
 <script lang="ts">
   import EntityEmptyState from "./EntityEmptyState.svelte";
+  import EntityPanelFilter from "./EntityPanelFilter.svelte";
   import { queryStore } from "@lib/store.svelte";
   import type { RoomData } from "@lib/types";
   import RoomDisplay from "./RoomDisplay.svelte";
@@ -7,6 +8,8 @@
 
   /** Rows shown before "Show all N rooms"; the rest append in place. */
   const INITIAL_ROOMS = 12;
+  /** Buildings with more rooms than this get a "Filter rooms…" field. */
+  const FILTER_MIN_ROOMS = 8;
 
   interface Props {
     filteredRooms: RoomData[];
@@ -61,10 +64,32 @@
   const listKey = $derived(filteredRooms.map((room) => room.id).join(","));
   let expandedKey = $state<string | null>(null);
   const showAll = $derived(expandedKey === listKey);
-  const visibleRooms = $derived(
-    showAll ? filteredRooms : filteredRooms.slice(0, INITIAL_ROOMS),
+
+  // The filter text is keyed to its list the same way, so it clears itself
+  // when another building opens.
+  let filter = $state({ key: "", text: "" });
+  const filterText = $derived(filter.key === listKey ? filter.text : "");
+  const needle = $derived(filterText.trim().toLowerCase());
+  const showFilter = $derived(
+    !groupByBuilding && filteredRooms.length > FILTER_MIN_ROOMS,
   );
-  const hiddenCount = $derived(filteredRooms.length - visibleRooms.length);
+  const matchingRooms = $derived(
+    needle
+      ? filteredRooms.filter((room) =>
+          `${room.code} ${room.fullName ?? ""}`.toLowerCase().includes(needle),
+        )
+      : filteredRooms,
+  );
+  // While filtering, every match shows: hiding some behind "Show all" would
+  // make a match look missing.
+  const visibleRooms = $derived(
+    showAll || needle ? matchingRooms : matchingRooms.slice(0, INITIAL_ROOMS),
+  );
+  const hiddenCount = $derived(matchingRooms.length - visibleRooms.length);
+
+  function setFilter(text: string) {
+    filter = { key: listKey, text };
+  }
 
   function openBuilding(buildingName: string) {
     queryStore.updateQuery({
@@ -157,14 +182,31 @@
       </div>
     {/if}
   {:else}
+    {#if showFilter}
+      <EntityPanelFilter
+        search
+        value={filterText}
+        label="Filter rooms"
+        placeholder="Filter rooms…"
+        oninput={(event) =>
+          setFilter((event.currentTarget as HTMLInputElement).value)}
+        onclear={() => setFilter("")}
+      />
+    {/if}
     <div class="room-list">
       {#each visibleRooms as room (room.id)}
         <RoomDisplay
           {room}
-          searchInput=""
+          searchInput={filterText}
           classCount={classCounts?.get(room.id)}
         />
       {/each}
+
+      {#if needle && matchingRooms.length === 0}
+        <p class="rooms-filter-empty" role="status">
+          No rooms match “{filterText.trim()}”
+        </p>
+      {/if}
 
       {#if hiddenCount > 0}
         <button
@@ -227,10 +269,26 @@
     flex: 0 0 auto;
   }
 
+  .rooms-filter-empty {
+    margin: 0;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8125rem;
+    text-align: center;
+    color: var(--theme-text-2, #52525b);
+  }
+
+  /* Same secondary pill as "Show all past events", full width. Explicit box
+     model: without it the label sat flush against the left of the pill. */
   .rooms-show-all {
     align-self: stretch;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 2.75rem;
     margin-top: 0.25rem;
+    padding: 0.5rem 1rem;
+    text-align: center;
     border: 1px solid var(--theme-accent-border, #c58f91);
     border-radius: 999px;
     background: var(--theme-surface, #fff);

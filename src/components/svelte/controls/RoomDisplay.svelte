@@ -10,9 +10,14 @@
   };
 
   const { room, searchInput, classCount }: Props = $props();
-  const pattern = $derived(new RegExp(`(${searchInput.trim()})`, "gi"));
+  // Escaped: the building's "Filter rooms…" field feeds raw typing in here,
+  // and a stray "(" must not throw.
+  const escaped = $derived(
+    searchInput.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+  );
+  const pattern = $derived(new RegExp(`(${escaped})`, "gi"));
   function highlightSearch(original: string, pattern: RegExp): string {
-    return searchInput.length < 2
+    return searchInput.trim().length < 2
       ? original
       : original.replaceAll(pattern, (substr) => `<mark>${substr}</mark>`);
   }
@@ -145,5 +150,7 @@
 
   :global(mark) {
     background-color: var(--theme-accent-soft, hsl(5, 53%, 90%));
+    /* The UA default is black text, invisible on the dark accent tint. */
+    color: inherit;
   }
 </style>
