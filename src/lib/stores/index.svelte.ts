@@ -533,6 +533,15 @@ class JeepneyStore {
   };
 }
 
+export type LoginStepState = {
+  step: "mfa" | "enroll_mfa" | "change_password";
+  steps: string[];
+  challenge: string;
+  /** Present after `enroll_start`. */
+  secret?: string;
+  otpauthUri?: string;
+};
+
 class AdminAuthStore {
   isLoggedIn: boolean = $state(false);
   username: string | null = $state(null);
@@ -549,7 +558,18 @@ class AdminAuthStore {
   oauthError: string | null = $state(null);
   accountSettingsOpen: boolean = $state(false);
   manageUsersOpen: boolean = $state(false);
+  /** A password sign-in that still owes a step (2FA, enrollment, new
+   * password) before the session is issued (auth audit item 19). */
+  loginStep: LoginStepState | null = $state(null);
+  /** Recovery codes from a 2FA enrollment finished during sign-in, shown
+   * once before the login modal closes. */
+  loginRecoveryCodes: string[] | null = $state(null);
+  /** Admin signed in without 2FA during the grace period. */
+  mfaEnrollmentSuggested: boolean = $state(false);
   private _hydrated = false;
+  /** Kept only while a login step is open: the forced password change
+   * re-proves the temporary password. Cleared when the step ends. */
+  private _pendingPassword = "";
 
   private applySession(data: {
     loggedIn?: boolean;
@@ -643,21 +663,126 @@ class AdminAuthStore {
                 : "Could not sign in. Check your username and password.")
         );
       }
-      this.applySession({
-        loggedIn: true,
-        username: data.username ?? username.trim().toLowerCase(),
-        displayName: data.displayName,
-        role: data.role ?? "editor",
-        canPublish: data.canPublish,
-        canReview: data.canReview,
-      });
-      this.loginOpen = false;
+      const stepData = data as unknown as Partial<LoginStepState>;
+      if (stepData.step && stepData.challenge) {
+        this._pendingPassword = password;
+        this.loginStep = {
+          step: stepData.step,
+          steps: stepData.steps ?? [stepData.step],
+          challenge: stepData.challenge,
+        };
+        return null;
+      }
+      this.finishLogin(data, username);
       return null;
     } catch {
       return "Network error. Try again.";
     } finally {
       this.loading = false;
     }
+  };
+
+  private finishLogin(
+    data: {
+      username?: string;
+      displayName?: string;
+      role?: "admin" | "editor" | "contributor";
+      canPublish?: boolean;
+      canReview?: boolean;
+      mfaEnrollmentSuggested?: boolean;
+      recoveryCodes?: string[];
+    },
+    fallbackUsername: string,
+  ) {
+    this.applySession({
+      loggedIn: true,
+      username: data.username ?? fallbackUsername.trim().toLowerCase(),
+      displayName: data.displayName,
+      role: data.role ?? "editor",
+      canPublish: data.canPublish,
+      canReview: data.canReview,
+    });
+    this.loginStep = null;
+    this._pendingPassword = "";
+    this.mfaEnrollmentSuggested = Boolean(data.mfaEnrollmentSuggested);
+    if (data.recoveryCodes?.length) {
+      // Keep the modal open on the codes; the user closes it.
+      this.loginRecoveryCodes = data.recoveryCodes;
+      return;
+    }
+    this.loginOpen = false;
+  }
+
+  /** Answer the open login step. Resolves to an error message or null. */
+  submitLoginStep = async (
+    action: "verify_mfa" | "enroll_start" | "enroll_confirm" | "change_password",
+    fields: { code?: string; newPassword?: string } = {},
+  ): Promise<string | null> => {
+    const current = this.loginStep;
+    if (!current) return "Sign in again.";
+    this.loading = true;
+    try {
+      const res = await fetch("/api/auth/login-step", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challenge: current.challenge,
+          action,
+          code: fields.code,
+          newPassword: fields.newPassword,
+          currentPassword:
+            action === "change_password" ? this._pendingPassword : undefined,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as Partial<
+        LoginStepState
+      > & {
+        error?: string;
+        success?: boolean;
+        username?: string;
+        displayName?: string;
+        role?: "admin" | "editor" | "contributor";
+        canPublish?: boolean;
+        canReview?: boolean;
+        recoveryCodes?: string[];
+      };
+      if (!res.ok) {
+        if (res.status === 401) this.cancelLoginStep();
+        return data.error ?? "That did not work. Try again.";
+      }
+      if (data.success) {
+        this.finishLogin(data, data.username ?? "");
+        return null;
+      }
+      if (data.step && data.challenge) {
+        this.loginStep = {
+          step: data.step,
+          steps: data.steps ?? [data.step],
+          challenge: data.challenge,
+          secret: data.secret ?? (data.step === current.step ? current.secret : undefined),
+          otpauthUri:
+            data.otpauthUri ??
+            (data.step === current.step ? current.otpauthUri : undefined),
+        };
+        if (data.recoveryCodes?.length) this.loginRecoveryCodes = data.recoveryCodes;
+      }
+      return null;
+    } catch {
+      return "Network error. Try again.";
+    } finally {
+      this.loading = false;
+    }
+  };
+
+  cancelLoginStep = () => {
+    this.loginStep = null;
+    this._pendingPassword = "";
+  };
+
+  dismissLoginRecoveryCodes = () => {
+    this.loginRecoveryCodes = null;
+    if (this.isLoggedIn) this.loginOpen = false;
   };
 
   /** Self-signup a contributor account (attribution + username reservation).
@@ -805,6 +930,9 @@ class AdminAuthStore {
   closeLogin = () => {
     this.loginOpen = false;
     this.oauthError = null;
+    this.loginStep = null;
+    this.loginRecoveryCodes = null;
+    this._pendingPassword = "";
   };
 
   openAccountSettings = () => {

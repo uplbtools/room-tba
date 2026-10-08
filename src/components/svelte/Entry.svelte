@@ -178,6 +178,26 @@
       window.history.replaceState({}, "", window.location.pathname);
     }
 
+    // Deep links from the /admin dashboard: open the review queue, user
+    // management, or account settings once the session is known.
+    const wantsReview = urlParams.get("review") === "1";
+    const wantsUsers = urlParams.get("manage") === "users";
+    const wantsSettings = accountEvent === "settings";
+    if (wantsReview || wantsUsers || wantsSettings) {
+      window.history.replaceState({}, "", window.location.pathname);
+      void adminAuthStore.refresh().then(() => {
+        if (!adminAuthStore.isLoggedIn) {
+          adminAuthStore.openLogin();
+        } else if (wantsReview && adminAuthStore.canReview) {
+          modalStore.openModal("review");
+        } else if (wantsUsers && adminAuthStore.role === "admin") {
+          adminAuthStore.openManageUsers();
+        } else if (wantsSettings) {
+          adminAuthStore.openAccountSettings();
+        }
+      });
+    }
+
     const accountError = urlParams.get("account_error");
     if (accountError) {
       const messages: Record<string, string> = {

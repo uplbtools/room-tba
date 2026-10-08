@@ -6,7 +6,6 @@ import {
   expectNoHorizontalOverflow,
   mountAtWidth,
 } from "@test/layout-assertions";
-import { MESSENGER_MAINTAIN_TARGET } from "@constants/community-links";
 
 describe("AdminLoginModal", () => {
   beforeEach(() => {
@@ -21,9 +20,11 @@ describe("AdminLoginModal", () => {
     expectNoHorizontalOverflow(frame);
     expect(screen.getByLabelText("Username or email")).toBeVisible();
     expect(screen.getByLabelText("Password")).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: /Message maintainers/i }),
-    ).toHaveAttribute("href", MESSENGER_MAINTAIN_TARGET);
+    // Editor access is requested in-app now, not over Messenger (#15).
+    expect(screen.getByRole("link", { name: /Request it/i })).toHaveAttribute(
+      "href",
+      "/admin",
+    );
   });
 
   test('the "Sign up" toggle reveals the contributor signup form', async () => {
@@ -35,7 +36,9 @@ describe("AdminLoginModal", () => {
 
     expect(screen.getByLabelText("Username")).toBeVisible();
     expect(screen.getByLabelText("Confirm password")).toBeVisible();
-    expect(screen.getByLabelText("Email (optional)")).toBeVisible();
+    expect(
+      screen.getByLabelText("Email (needed to reset your password)"),
+    ).toBeVisible();
     expect(
       screen.getByRole("button", { name: /Create account/i }),
     ).toBeVisible();
