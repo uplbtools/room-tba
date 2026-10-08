@@ -56,6 +56,15 @@ describe("enhanceWikiHtml", () => {
     );
   });
 
+  test("table wrappers keep scoped-style attributes Astro adds", () => {
+    const out = enhanceWikiHtml(
+      '<h2>Codes</h2><div class="table-wrap" data-astro-cid-abc123><table></table></div>',
+    ).html;
+    expect(out).toContain(
+      '<div class="table-wrap" data-astro-cid-abc123 role="region" tabindex="0" aria-label="Table: Codes">',
+    );
+  });
+
   test("counts visible words only", () => {
     const { words } = enhanceWikiHtml("<p>one <b>two</b></p><p>three</p>");
     expect(words).toBe(3);

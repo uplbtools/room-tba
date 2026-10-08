@@ -60,16 +60,17 @@ export function enhanceWikiHtml(html: string): EnhancedWikiHtml {
   let lastHeading = "";
 
   const out = html.replace(
-    /<(h[23])((?:\s[^>]*)?)>([\s\S]*?)<\/\1>|<div class="table-wrap">/g,
+    /<(h[23])((?:\s[^>]*)?)>([\s\S]*?)<\/\1>|<div class="table-wrap"((?:\s[^>]*)?)>/g,
     (
       whole: string,
       tag: string | undefined,
       attrs: string | undefined,
       inner: string | undefined,
+      wrapAttrs: string | undefined,
     ) => {
       if (!tag) {
         const label = lastHeading ? `Table: ${lastHeading}` : "Table";
-        return `<div class="table-wrap" role="region" tabindex="0" aria-label="${escapeHtml(label)}">`;
+        return `<div class="table-wrap"${wrapAttrs ?? ""} role="region" tabindex="0" aria-label="${escapeHtml(label)}">`;
       }
       const text = stripTags(inner ?? "");
       const idMatch = /\sid="([^"]+)"/.exec(attrs ?? "");
