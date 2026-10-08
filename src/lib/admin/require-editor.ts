@@ -13,6 +13,7 @@ import {
   type SessionUser,
 } from "./auth";
 import { isSessionVersionCurrent } from "./session-version";
+import { readSessionVersion } from "@lib/services/account-security";
 
 /** Cookie-only decode. Deliberately not exported: every route goes through
  * the DB-revalidating helpers below so revocation applies immediately. */
@@ -42,7 +43,6 @@ export async function revalidateSession(
       .select({
         role: adminUsersTable.role,
         displayName: adminUsersTable.displayName,
-        sessionVersion: adminUsersTable.sessionVersion,
       })
       .from(adminUsersTable)
       .where(
@@ -53,14 +53,17 @@ export async function revalidateSession(
       )
       .limit(1);
     if (!row) return null;
-    if (!isSessionVersionCurrent(session.sessionVersion, row.sessionVersion)) {
+    // 0 until drizzle/0053 lands (readSessionVersion degrades), which still
+    // matches every cookie minted meanwhile, so nobody is signed out by it.
+    const sessionVersion = await readSessionVersion(session.id);
+    if (!isSessionVersionCurrent(session.sessionVersion, sessionVersion)) {
       return null;
     }
     return {
       ...session,
       displayName: row.displayName ?? session.displayName,
       role: row.role ?? session.role,
-      sessionVersion: row.sessionVersion,
+      sessionVersion,
     };
   } catch (error) {
     // DB down: fail closed for privileged routes.

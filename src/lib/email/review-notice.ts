@@ -8,7 +8,11 @@ import {
   reviewNoticeSends,
 } from "@lib/email/review-notice-core";
 import { listDigestRecipients } from "@lib/services/digest-service";
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import {
+  emailIsVerifiedSql,
+  withVerification,
+} from "@lib/services/account-security";
 
 export type { ReviewOutcome } from "@lib/email/review-notice-core";
 
@@ -36,15 +40,17 @@ export async function sendReviewNotice(input: ReviewNoticeInput) {
   try {
     let contributorEmail: string | null = null;
     if (input.submitterUserId) {
-      const [row] = await db
-        .select({ email: adminUsersTable.email })
-        .from(adminUsersTable)
-        .where(
-          and(
-            eq(adminUsersTable.id, input.submitterUserId),
-            isNotNull(adminUsersTable.emailVerifiedAt),
-          ),
-        );
+      const submitterUserId = input.submitterUserId;
+      const [row] = await withVerification(
+        () =>
+          db
+            .select({ email: adminUsersTable.email })
+            .from(adminUsersTable)
+            .where(
+              and(eq(adminUsersTable.id, submitterUserId), emailIsVerifiedSql),
+            ),
+        [],
+      );
       contributorEmail = row?.email?.trim() || null;
     }
     const core = await listDigestRecipients();

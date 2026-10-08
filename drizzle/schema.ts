@@ -516,10 +516,6 @@ export const adminUsersTable = pgTable(
     legacyCredit: boolean("legacy_credit").default(false).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     supabaseUserId: uuid("supabase_user_id"),
-    /** Set once the owner clicked the signed confirmation link (0053). */
-    emailVerifiedAt: timestamp("email_verified_at", { mode: "string" }),
-    /** Copied into session cookies; bump to revoke every live session (0053). */
-    sessionVersion: integer("session_version").default(0).notNull(),
     deletedAt: timestamp("deleted_at", { mode: "string" }),
     createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
@@ -552,12 +548,42 @@ export const editProposalsTable = pgTable("edit_proposals", {
   adminNote: text("admin_note"),
   /** Contributor's message to the reviewer. Never published (#873). */
   submitterNote: text("submitter_note"),
-  /** SHA-256 of the random token returned at submit (0055). */
-  withdrawTokenHash: varchar("withdraw_token_hash", { length: 64 }),
   reviewedBy: varchar("reviewed_by", { length: 100 }),
   reviewedAt: timestamp("reviewed_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+});
+
+/**
+ * Per-account auth state (0053), kept off admin_users so code shipped ahead
+ * of the migration never breaks admin_users queries. Server-only.
+ * `verified_email` counts only while it equals the account's current email.
+ */
+export const adminUserAuthTable = pgTable(
+  "admin_user_auth",
+  {
+    userId: integer("user_id")
+      .primaryKey()
+      .references(() => adminUsersTable.id, { onDelete: "cascade" }),
+    sessionVersion: integer("session_version").default(0).notNull(),
+    verifiedEmail: text("verified_email"),
+    emailVerifiedAt: timestamp("email_verified_at", { mode: "string" }),
+    updatedAt: timestamp("updated_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("admin_user_auth_verified_email_idx").on(table.verifiedEmail),
+  ],
+);
+
+/** SHA-256 of each proposal's owner token (0055). Server-only. */
+export const proposalOwnerTokensTable = pgTable("proposal_owner_tokens", {
+  proposalId: integer("proposal_id")
+    .primaryKey()
+    .references(() => editProposalsTable.id, { onDelete: "cascade" }),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull(),
+  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
 /** Shared fixed-window rate-limit buckets (0054). Server-only. */

@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { createSessionToken, setSessionCookie } from "@lib/admin/auth";
+import { readSessionVersion } from "@lib/services/account-security";
 import { linkOrCreateContributorFromSupabase } from "@lib/services/admin-user-service";
 import { createServerSupabaseClient } from "@lib/supabase/server";
 
@@ -36,7 +37,10 @@ export const GET: APIRoute = async ({ url, request, cookies }) => {
     });
     if (!user) return fail("account_unavailable");
 
-    const token = createSessionToken(user);
+    const token = createSessionToken({
+      ...user,
+      sessionVersion: await readSessionVersion(user.id),
+    });
     return new Response(null, {
       status: 303,
       headers: {

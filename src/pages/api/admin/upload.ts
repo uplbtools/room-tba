@@ -17,6 +17,7 @@ import {
   uploadImageToR2,
 } from "@lib/r2-upload";
 import { ownsProposal } from "@lib/services/proposal-access";
+import { readProposalTokenHash } from "@lib/services/proposal-service";
 
 export const prerender = false;
 
@@ -57,13 +58,17 @@ async function ownedOpenProposalId(
     .select({
       status: editProposalsTable.status,
       submitterUserId: editProposalsTable.submitterUserId,
-      withdrawTokenHash: editProposalsTable.withdrawTokenHash,
     })
     .from(editProposalsTable)
     .where(eq(editProposalsTable.id, proposalId))
     .limit(1);
   if (!row || !["pending", "needs_changes"].includes(row.status)) return null;
-  return ownsProposal(session, row, proposalToken) ? proposalId : null;
+  const withdrawTokenHash = row.submitterUserId
+    ? null
+    : await readProposalTokenHash(proposalId);
+  return ownsProposal(session, { ...row, withdrawTokenHash }, proposalToken)
+    ? proposalId
+    : null;
 }
 
 export const POST: APIRoute = async ({ cookies, request }) => {

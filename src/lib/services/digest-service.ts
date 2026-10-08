@@ -1,25 +1,30 @@
 import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { adminUsersTable } from "@drizzle/schema";
 import { db } from "@lib/db";
+import { emailIsVerifiedSql, withVerification } from "./account-security";
 import { buildProposalDigest } from "@lib/email/digest-core";
 import { isResendConfigured, sendEmail } from "@lib/email/resend";
 import { listPendingProposals } from "@lib/services/proposal-service";
 import { SITE_URL } from "@lib/site";
 
 export async function listDigestRecipients(): Promise<string[]> {
-  const rows = await db
-    .select({ email: adminUsersTable.email })
-    .from(adminUsersTable)
-    .where(
-      and(
-        eq(adminUsersTable.isActive, true),
-        isNotNull(adminUsersTable.email),
-        // Notification mail only to addresses the owner confirmed (0053).
-        isNotNull(adminUsersTable.emailVerifiedAt),
-        sql`${adminUsersTable.email} <> ''`,
-        inArray(adminUsersTable.role, ["admin", "editor"] as const),
-      ),
-    );
+  const rows = await withVerification(
+    () =>
+      db
+        .select({ email: adminUsersTable.email })
+        .from(adminUsersTable)
+        .where(
+          and(
+            eq(adminUsersTable.isActive, true),
+            isNotNull(adminUsersTable.email),
+            // Notification mail only to addresses the owner confirmed (0053).
+            emailIsVerifiedSql,
+            sql`${adminUsersTable.email} <> ''`,
+            inArray(adminUsersTable.role, ["admin", "editor"] as const),
+          ),
+        ),
+    [],
+  );
   return rows
     .map((row) => row.email?.trim().toLowerCase())
     .filter((email): email is string => Boolean(email));

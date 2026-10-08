@@ -10,6 +10,7 @@ import { optionalEditorSession } from "@lib/admin/require-editor";
 import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
 import { accountBackoff, sharedRateLimit } from "@lib/api/rate-limit-db";
 import { accountKey } from "@lib/api/rate-limit-shared";
+import { readSessionVersion } from "@lib/services/account-security";
 import {
   authenticateAdminUser,
   getAdminUserBySupabaseId,
@@ -155,9 +156,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
     if (!skipLoginRateLimit) await accountBackoff.succeed(backoffKey);
 
+    // The cookie carries the account's current session version, so the next
+    // "sign out everywhere" or password change revokes it.
+    const sessionVersion = await readSessionVersion(user.id);
     let token: string;
     try {
-      token = createSessionToken(user);
+      token = createSessionToken({ ...user, sessionVersion });
     } catch (error) {
       console.error("Admin session signing misconfigured:", error);
       return json(

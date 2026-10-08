@@ -13,6 +13,7 @@ import {
   jeepneyStopsTable,
   organizationsTable,
   roomsTable,
+  proposalOwnerTokensTable,
 } from "@drizzle/schema";
 import { normalizeAlias } from "@lib/site";
 import type { SessionUser } from "@lib/admin/auth";
@@ -31,6 +32,7 @@ import {
 } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
 import { canWithdrawProposal } from "./proposal-access";
+import { isMissingSchemaError } from "./account-security";
 import {
   generateProposalToken,
   hashProposalToken,
@@ -134,9 +136,7 @@ export function isUpdateProposalType(
 
 export type EditProposalRow = typeof editProposalsTable.$inferSelect;
 
-/** Never carries the withdraw-token hash: summaries reach reviewers and
- * notification payloads. Ownership checks read it with readProposalTokenHash. */
-export type EditProposalSummary = Omit<EditProposalRow, "withdrawTokenHash"> & {
+export type EditProposalSummary = EditProposalRow & {
   entityLabel: string;
 };
 
@@ -415,11 +415,10 @@ export function toSubmitterProposalView(
   };
 }
 export async function withEntityLabel(
-  row: EditProposalRow | EditProposalSummary,
+  row: EditProposalRow,
 ): Promise<EditProposalSummary> {
-  const { withdrawTokenHash: _hash, ...rest } = row as EditProposalRow;
   return {
-    ...rest,
+    ...row,
     entityLabel: await getEntityLabel(
       row.entityType as ProposalEntityType,
       row.entityId,
@@ -428,16 +427,38 @@ export async function withEntityLabel(
   };
 }
 
-/** Stored SHA-256 of the proposal's owner token (null for pre-0055 rows). */
+/**
+ * Stored SHA-256 of the proposal's owner token: null for proposals from
+ * before drizzle/0055, or while that table does not exist yet.
+ */
 export async function readProposalTokenHash(
   id: number,
 ): Promise<string | null> {
-  const [row] = await db
-    .select({ hash: editProposalsTable.withdrawTokenHash })
-    .from(editProposalsTable)
-    .where(eq(editProposalsTable.id, id))
-    .limit(1);
-  return row?.hash ?? null;
+  try {
+    const [row] = await db
+      .select({ hash: proposalOwnerTokensTable.tokenHash })
+      .from(proposalOwnerTokensTable)
+      .where(eq(proposalOwnerTokensTable.proposalId, id))
+      .limit(1);
+    return row?.hash ?? null;
+  } catch (error) {
+    if (isMissingSchemaError(error)) return null;
+    throw error;
+  }
+}
+
+/** Mint and store an owner token; undefined if the table is not there yet. */
+async function issueProposalToken(id: number): Promise<string | undefined> {
+  const token = generateProposalToken();
+  try {
+    await db
+      .insert(proposalOwnerTokensTable)
+      .values({ proposalId: id, tokenHash: hashProposalToken(token) });
+    return token;
+  } catch (error) {
+    if (isMissingSchemaError(error)) return undefined;
+    throw error;
+  }
 }
 
 export async function listPendingProposals(): Promise<EditProposalSummary[]> {
@@ -721,7 +742,7 @@ export async function submitProposal(
         : existing.submitterUserId == null &&
           proposalTokenMatches(
             input.proposalToken,
-            existing.withdrawTokenHash,
+            await readProposalTokenHash(existing.id),
           ));
     if (
       !existing ||
@@ -792,7 +813,6 @@ export async function submitProposal(
     return withEntityLabel(updated);
   }
 
-  const withdrawToken = generateProposalToken();
   const [created] = await db
     .insert(editProposalsTable)
     .values({
@@ -803,13 +823,16 @@ export async function submitProposal(
       submitterName: name,
       submitterUserId: input.submitterUserId ?? null,
       submitterNote,
-      withdrawTokenHash: hashProposalToken(withdrawToken),
       status: "pending",
     })
     .returning();
 
   if (!created) throw new Error("Failed to create proposal.");
-  return { ...(await withEntityLabel(created)), withdrawToken };
+  const withdrawToken = await issueProposalToken(created.id);
+  return {
+    ...(await withEntityLabel(created)),
+    ...(withdrawToken ? { withdrawToken } : {}),
+  };
 }
 
 export {
