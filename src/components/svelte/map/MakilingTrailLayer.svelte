@@ -166,6 +166,8 @@
         minzoom: LABEL_MIN_ZOOM,
         layout: {
           "text-field": ["get", "name"],
+          // A font both basemaps (MapTiler, OpenFreeMap) serve glyphs for.
+          "text-font": ["Noto Sans Regular"],
           "text-size": 12,
           "text-anchor": "left",
           "text-offset": [0.9, 0],
@@ -313,8 +315,33 @@
     });
   }
 
+  /**
+   * Run a camera move once the style is ready and after any camera move
+   * already under way (turning terrain on flies to its own view), so ours
+   * lands last.
+   */
+  function whenReady(map: maplibre.Map, move: () => void) {
+    let frames = 0;
+    const step = () => {
+      frames += 1;
+      // Wait for the style (a deep link asks before it loads), then two
+      // more frames so the sheet has reached its resting place.
+      // Terrain turned on just now flies to its own view once the map has
+      // loaded; wait for that flight too.
+      const pending =
+        !map.isStyleLoaded() || terrainStore.status === "loading";
+      if ((pending && frames < 600) || frames < 3) {
+        requestAnimationFrame(step);
+        return;
+      }
+      if (map.isMoving()) map.once("moveend", () => move());
+      else move();
+    };
+    requestAnimationFrame(step);
+  }
+
   // Frame the whole trail north-up with a gentle tilt, so the climb reads in
-  // relief. Two frames late: the sheet and dialogs settle first.
+  // relief.
   $effect(() => {
     const nonce = trailStore.frameNonce;
     // A deep link asks before the map exists; answer once it does.
@@ -324,16 +351,33 @@
       if (TERRAIN_ENABLED && !terrainStore.enabled) terrainStore.enable();
       const bounds = pointsBounds(lineCoords);
       if (!bounds) return;
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          map.fitBounds(bounds, {
-            padding: padding(map),
+      whenReady(
+        map,
+        () => {
+          // Fit flat, then tilt: a pitched fit zooms far out on phones. The
+          // map already carries the sheet inset as its own padding, so ask
+          // only for what the chrome covers beyond it (as fit-route does).
+          const chrome = padding(map);
+          const current = map.getPadding();
+          const camera = map.cameraForBounds(bounds, {
+            bearing: 0,
+            padding: {
+              top: Math.max(0, chrome.top - (current.top ?? 0)),
+              bottom: Math.max(0, chrome.bottom - (current.bottom ?? 0)),
+              left: Math.max(0, chrome.left - (current.left ?? 0)),
+              right: Math.max(0, chrome.right - (current.right ?? 0)),
+            },
+          });
+          if (!camera?.center || camera.zoom === undefined) return;
+          map.easeTo({
+            center: camera.center,
+            // A little out, so the tilted far end stays on screen.
+            zoom: Math.min(15, camera.zoom - 0.3),
             bearing: 0,
             pitch: 45,
-            maxZoom: 15,
             duration: 1200,
           });
-        }),
+        },
       );
     });
   });
@@ -346,17 +390,15 @@
     untrack(() => {
       const stop = findTrailStop(trailStore.selectedStopId);
       if (!stop) return;
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          map.flyTo({
-            center: [stop.lon, stop.lat],
-            zoom: Math.max(map.getZoom(), 15.5),
-            padding: padding(map),
-            duration: 900,
-            essential: true,
-          });
-        }),
-      );
+      whenReady(map, () => {
+        map.flyTo({
+          center: [stop.lon, stop.lat],
+          zoom: Math.max(map.getZoom(), 15.5),
+          padding: padding(map),
+          duration: 900,
+          essential: true,
+        });
+      });
     });
   });
 </script>

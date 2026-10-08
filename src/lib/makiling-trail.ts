@@ -315,8 +315,14 @@ const TRAIL_ALIASES = [
   "Hiking trail",
 ];
 
+/**
+ * Best score, word starts only: short stop names would otherwise answer
+ * every two-letter query mid-word ("PS" in "campsite").
+ */
 function bestOf(scores: (number | null)[]): number | null {
-  const hits = scores.filter((score): score is number => score !== null);
+  const hits = scores.filter(
+    (score): score is number => score !== null && score < MATCH.midWord,
+  );
   return hits.length ? Math.min(...hits) : null;
 }
 

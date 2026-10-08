@@ -213,5 +213,7 @@ describe("searchTrail", () => {
   test("misses stay empty", () => {
     expect(searchTrail("")).toEqual([]);
     expect(searchTrail("physci")).toEqual([]);
+    // Mid-word hits ("ps" in "campsite") are noise for a two-letter query.
+    expect(searchTrail("ps")).toEqual([]);
   });
 });
