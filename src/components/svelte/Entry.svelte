@@ -39,6 +39,7 @@
   import MapContextMenu from "@ui/map-chrome/MapContextMenu.svelte";
   import TravelTimeLegend from "@ui/TravelTimeLegend.svelte";
   import Toast from "@ui/Toast.svelte";
+  import ContributionRewardWatcher from "@ui/status-bar/ContributionRewardWatcher.svelte";
   import Building3DViewer from "@ui/Building3DViewer.svelte";
   import AdminLoginModal from "@ui/AdminLoginModal.svelte";
   import AccountSettingsModal from "@ui/AccountSettingsModal.svelte";
@@ -547,6 +548,7 @@
       onclose={() => toastStore.clear()}
     />
   {/if}
+  <ContributionRewardWatcher />
   <OfflineBanner
     placement={["map", "contributors", "settings"].includes(sidebarStore.panelOpen)
       ? "map"

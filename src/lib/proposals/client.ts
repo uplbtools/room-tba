@@ -8,6 +8,7 @@ import {
   validateSubmitterNote,
 } from "@constants/proposals";
 import type { RoomData } from "@lib/types";
+import { ensureContributorId } from "@lib/contributors/contributor-id";
 import {
   isOpenProposalStatus,
   type PendingProposalRow,
@@ -552,7 +553,12 @@ export async function submitEntityProposal(input: {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ...input, proposalId, _hp: "" }),
+    body: JSON.stringify({
+      ...input,
+      proposalId,
+      contributorId: ensureContributorId(),
+      _hp: "",
+    }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

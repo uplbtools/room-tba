@@ -87,6 +87,33 @@ export function enforceProposalSubmitLimits(
   return null;
 }
 
+/**
+ * Per-device cap for public submissions, keyed by the browser contributor id.
+ * The IP buckets above lump a whole dorm NAT together; this one follows one
+ * browser across networks, at the anonymous per-IP rates.
+ */
+export function enforceProposalDeviceLimits(
+  contributorId: string | null,
+  now = Date.now(),
+): { allowed: false; resetAt: number } | null {
+  if (!contributorId || shouldSkipProposalRateLimits()) return null;
+  const short = checkRateLimit(
+    `proposals:device:${contributorId}`,
+    ANON_IP_SHORT_MAX,
+    SHORT_WINDOW_MS,
+    now,
+  );
+  if (!short.allowed) return { allowed: false, resetAt: short.resetAt };
+  const daily = checkRateLimit(
+    `proposals:daily:device:${contributorId}`,
+    ANON_IP_DAILY_MAX,
+    DAILY_WINDOW_MS,
+    now,
+  );
+  if (!daily.allowed) return { allowed: false, resetAt: daily.resetAt };
+  return null;
+}
+
 export function enforceProposalWithdrawLimits(
   session: ProposalRateLimitSession,
   ip: string,

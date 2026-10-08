@@ -7,6 +7,7 @@
   import EntityEditorSubmitButton from "@ui/editor/EntityEditorSubmitButton.svelte";
   import EntityEditorMessage from "@ui/editor/EntityEditorMessage.svelte";
   import "./editor/entity-editor.css";
+  import "./map-chrome/map-chrome.css";
 
   type Profile = {
     username: string;
@@ -34,7 +35,8 @@
   let displayNameDraft = $state("");
   let avatarUrlDraft = $state("");
   let profileUrlDraft = $state("");
-  let showInCreditsDraft = $state(true);
+  let savingCredits = $state(false);
+  let creditsError = $state<string | null>(null);
   let savingProfile = $state(false);
   let profileError = $state<string | null>(null);
   let profileSaved = $state(false);
@@ -73,7 +75,6 @@
       displayNameDraft = profile.displayName;
       avatarUrlDraft = profile.avatarUrl ?? "";
       profileUrlDraft = profile.profileUrl ?? "";
-      showInCreditsDraft = profile.showInCredits;
 
       const contributionsRes = await fetch("/api/contributions/mine", {
         credentials: "same-origin",
@@ -103,8 +104,7 @@
     profile
       ? displayNameDraft.trim() !== profile.displayName ||
           avatarUrlDraft.trim() !== (profile.avatarUrl ?? "") ||
-          profileUrlDraft.trim() !== (profile.profileUrl ?? "") ||
-          showInCreditsDraft !== profile.showInCredits
+          profileUrlDraft.trim() !== (profile.profileUrl ?? "")
       : false,
   );
 
@@ -122,7 +122,6 @@
           displayName: displayNameDraft,
           avatarUrl: avatarUrlDraft,
           profileUrl: profileUrlDraft,
-          showInCredits: showInCreditsDraft,
         }),
       });
       const data = await res.json().catch(() => ({}) as { error?: string });
@@ -135,7 +134,6 @@
         displayName: displayNameDraft.trim(),
         avatarUrl: avatarUrlDraft.trim() || null,
         profileUrl: profileUrlDraft.trim() || null,
-        showInCredits: showInCreditsDraft,
       };
       await adminAuthStore.refresh();
       profileSaved = true;
@@ -146,6 +144,37 @@
       profileError = "Network error. Try again.";
     } finally {
       savingProfile = false;
+    }
+  }
+
+  // A switch applies on tap, like every other on/off setting; it does not
+  // wait for "Save profile".
+  async function toggleShowInCredits() {
+    if (!profile || savingCredits) return;
+    const next = !profile.showInCredits;
+    savingCredits = true;
+    creditsError = null;
+    profile = { ...profile, showInCredits: next };
+    try {
+      const res = await fetch("/api/account/me", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: profile.displayName,
+          showInCredits: next,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}) as { error?: string });
+        throw new Error(data.error ?? "Could not update credits.");
+      }
+    } catch (err) {
+      profile = { ...profile, showInCredits: !next };
+      creditsError =
+        err instanceof Error ? err.message : "Could not update credits.";
+    } finally {
+      savingCredits = false;
     }
   }
 
@@ -339,14 +368,6 @@
             />
           {/snippet}
         </EntityEditorFormField>
-        <label class="credits-visibility">
-          <input
-            type="checkbox"
-            bind:checked={showInCreditsDraft}
-            disabled={savingProfile}
-          />
-          Show my contributions in public credits
-        </label>
         {#if profileError}
           <EntityEditorMessage variant="error" message={profileError} />
         {/if}
@@ -363,6 +384,37 @@
             onclick={saveProfile}
           />
         {/snippet}
+      </SettingsSection>
+
+      <SettingsSection
+        title="Credits"
+        description="Your approved edits always count. This only controls whether your name is shown."
+      >
+        <div class="credits-row">
+          <span class="credits-row__copy">
+            <span id="account-show-in-credits" class="credits-row__label"
+              >Show me in credits</span
+            >
+            <span id="account-show-in-credits-hint" class="credits-row__hint">
+              {profile.showInCredits
+                ? "Your name appears on the leaderboard, your contributor profile and edit history."
+                : "Your name is hidden from the leaderboard and edit history."}
+            </span>
+          </span>
+          <button
+            type="button"
+            role="switch"
+            class="map-chrome-switch"
+            aria-checked={profile.showInCredits}
+            aria-labelledby="account-show-in-credits"
+            aria-describedby="account-show-in-credits-hint"
+            disabled={savingCredits}
+            onclick={toggleShowInCredits}
+          ></button>
+        </div>
+        {#if creditsError}
+          <EntityEditorMessage variant="error" message={creditsError} />
+        {/if}
       </SettingsSection>
 
       <SettingsSection
@@ -695,11 +747,29 @@
     color: var(--theme-accent-text, #9a1b1b);
   }
 
-  .credits-visibility {
+  .credits-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
+    min-height: 4.5rem;
+  }
+
+  .credits-row__copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .credits-row__label {
+    font-size: 1rem;
+    color: var(--theme-text, hsl(0, 0%, 12%));
+  }
+
+  .credits-row__hint {
     font-size: 0.875rem;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .settings-delete-warning {

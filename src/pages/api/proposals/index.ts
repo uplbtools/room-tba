@@ -2,9 +2,11 @@ import type { APIRoute } from "astro";
 import { getEditorSession } from "@lib/admin/require-editor";
 import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
 import {
+  enforceProposalDeviceLimits,
   enforceProposalSubmitLimits,
   isProposalHoneypotTripped,
 } from "@lib/api/proposal-rate-limit";
+import { parseContributorId } from "@lib/contributors/contributor-id";
 import { validateSubmitterName } from "@constants/proposals";
 import {
   ProposalValidationError,
@@ -25,6 +27,7 @@ type ProposalBody = {
   submitterName?: string;
   submitterNote?: string;
   proposalId?: number;
+  contributorId?: string;
   _hp?: string;
 };
 
@@ -45,6 +48,14 @@ export const POST: APIRoute = async ({ cookies, request }) => {
 
   if (isProposalHoneypotTripped(body as Record<string, unknown>)) {
     return json({ success: true }, 201);
+  }
+
+  // Signed-in submitters are rate limited per account above; the device id
+  // still rides along so points earned before signing in follow the account.
+  const contributorId = parseContributorId(body.contributorId);
+  if (!session) {
+    const deviceDenied = enforceProposalDeviceLimits(contributorId);
+    if (deviceDenied) return rateLimitResponse(deviceDenied.resetAt);
   }
 
   const submitterName =
@@ -70,6 +81,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
         typeof body.submitterNote === "string" ? body.submitterNote : null,
       submitterUserId: session?.id && session.id > 0 ? session.id : null,
       proposalId: Number.isInteger(body.proposalId) ? body.proposalId : null,
+      contributorId,
     });
 
     void emitProposalSubmitted(proposal, session?.id).catch((err) => {

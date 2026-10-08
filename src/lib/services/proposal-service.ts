@@ -21,7 +21,11 @@ import {
   validateSubmitterName,
   validateSubmitterNote,
 } from "@constants/proposals";
-import { recordProposalContribution } from "./contribution-service";
+import {
+  readProposalContributorId,
+  recordProposalContribution,
+  writeProposalContributorId,
+} from "./contribution-service";
 import { parseImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
 import { canWithdrawProposal } from "./proposal-access";
@@ -592,6 +596,8 @@ type SubmitProposalInput = {
   proposalId?: number | null;
   /** Contributor's message to the reviewer. Never merged into the patch. */
   submitterNote?: string | null;
+  /** Browser-held uuid that credits a public submitter on the leaderboard. */
+  contributorId?: string | null;
 };
 
 /** Anonymous submitters cannot borrow a registered contributor's identity:
@@ -686,6 +692,10 @@ export async function submitProposal(
         existing.submitterUserId !== input.submitterUserId)
     ) {
       existing = undefined;
+    } else if (input.contributorId) {
+      // Same typed name from another browser is another person.
+      const owner = await readProposalContributorId(existing.id);
+      if (owner && owner !== input.contributorId) existing = undefined;
     }
   } else if (allowEntityScopedProposalMerge(isCreate, input.submitterUserId)) {
     [existing] = await db
@@ -746,6 +756,7 @@ export async function submitProposal(
       .where(eq(editProposalsTable.id, existing.id))
       .returning();
     if (!updated) throw new Error("Failed to update proposal.");
+    await writeProposalContributorId(updated.id, input.contributorId);
     return withEntityLabel(updated);
   }
 
@@ -764,6 +775,7 @@ export async function submitProposal(
     .returning();
 
   if (!created) throw new Error("Failed to create proposal.");
+  await writeProposalContributorId(created.id, input.contributorId);
   return withEntityLabel(created);
 }
 

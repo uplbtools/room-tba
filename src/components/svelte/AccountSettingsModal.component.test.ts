@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/svelte";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/svelte";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import AccountSettingsModalHost from "@test/components/AccountSettingsModalHost.svelte";
 import {
@@ -89,6 +95,30 @@ describe("AccountSettingsModal", () => {
     expect(
       within(profile).getByRole("button", { name: "Save profile" }),
     ).toBeVisible();
+  });
+
+  test('"Show me in credits" is a switch that saves on tap', async () => {
+    stubAccountApi();
+    const fetchMock = vi.mocked(fetch);
+    render(AccountSettingsModalHost);
+
+    const credits = await screen.findByRole("region", { name: "Credits" });
+    const toggle = within(credits).getByRole("switch", {
+      name: "Show me in credits",
+    });
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+
+    await fireEvent.click(toggle);
+    await waitFor(() =>
+      expect(toggle).toHaveAttribute("aria-checked", "false"),
+    );
+    const patch = fetchMock.mock.calls.find(
+      ([, init]) => (init as RequestInit | undefined)?.method === "PATCH",
+    );
+    expect(JSON.parse(String((patch![1] as RequestInit).body))).toMatchObject({
+      displayName: "Stimmie",
+      showInCredits: false,
+    });
   });
 
   test("renders at 320px without horizontal overflow", async () => {
