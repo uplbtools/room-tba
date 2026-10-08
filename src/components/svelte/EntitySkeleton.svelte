@@ -375,7 +375,7 @@
   }
 
   .sk-exam-row__course {
-    width: 8rem; /* "CMSC 130 · XYZ-1" */
+    width: 8rem; /* "CMSC 130 XYZ-1" */
     height: 0.875rem;
   }
 
@@ -384,7 +384,7 @@
   }
 
   .sk-exam-row__when {
-    width: 11rem; /* "Dec 11 · 8:00 AM - 10:00 AM" */
+    width: 11rem; /* "Dec 11, 8:00 AM - 10:00 AM" */
     height: 0.8125rem;
   }
 

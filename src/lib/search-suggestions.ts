@@ -333,7 +333,7 @@ export function scoreClasses(
         secondary:
           [row.roomCode ?? "No room listed", row.schedule?.[0]]
             .filter(Boolean)
-            .join(" · ") || null,
+            .join(", ") || null,
         score: compact(courseCode) === needle ? MATCH.exact : MATCH.prefix,
       };
     });

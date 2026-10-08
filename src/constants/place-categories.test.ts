@@ -33,6 +33,6 @@ describe("normalizePlaceCategory", () => {
     expect(isLandmarkPlaceCategory("tourist-spot")).toBe(true);
     expect(isLandmarkPlaceCategory("food")).toBe(false);
     expect(placeDirectoryLabel("landmark")).toBe("Landmark");
-    expect(placeDirectoryLabel("food")).toBe("Service / establishment · Food");
+    expect(placeDirectoryLabel("food")).toBe("Service / establishment (Food)");
   });
 });

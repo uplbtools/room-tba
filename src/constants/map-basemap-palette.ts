@@ -16,52 +16,52 @@
 import type { ExpressionSpecification } from "maplibre-gl";
 
 /** OSM Liberty defaults (reference only — rejected neon grass):
- *  background rgb(239,239,239) · grass rgba(177,255,142,0.3) · water rgba(164,219,255,1)
- *  building hsl(35,8%,85%) · extrusion rgba(247,242,235,1) · roads near-white / #fea
+ *  background rgb(239,239,239); grass rgba(177,255,142,0.3); water rgba(164,219,255,1)
+ *  building hsl(35,8%,85%); extrusion rgba(247,242,235,1); roads near-white / #fea
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // osm-liberty-neon-rejected
 
 /** Prior subtle pass (commit 9d1dc52):
- *  background rgb(228,224,216) · grass rgba(150,168,132,0.28) · water rgba(145,185,205,1)
- *  building hsl(35,10%,78%) · extrusion rgba(230,222,210,0.82)
+ *  background rgb(228,224,216); grass rgba(150,168,132,0.28); water rgba(145,185,205,1)
+ *  building hsl(35,10%,78%); extrusion rgba(230,222,210,0.82)
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // subtle-warm
 
 /** Cool dusk alternate:
- *  background rgb(208,212,218) · grass rgba(118,138,128,0.26) · water rgba(108,132,152,1)
- *  building #dce0e4 · extrusion rgba(208,212,218,0.88) · roads hsl(220,6%,86%)
+ *  background rgb(208,212,218); grass rgba(118,138,128,0.26); water rgba(108,132,152,1)
+ *  building #dce0e4; extrusion rgba(208,212,218,0.88); roads hsl(220,6%,86%)
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // cool-dusk
 
 /** Rejected Jun 2026 — warm sage read as too green:
- *  background rgb(214,210,200) · grass rgba(132,145,112,1) · park #b4c0a4 · wood rgba(98,128,92,0.48)
- *  pitch rgba(100,122,92,1) · landuseTrack #b8c0a8 · building #c8beb0 · extrusion #beb2a0
+ *  background rgb(214,210,200); grass rgba(132,145,112,1); park #b4c0a4; wood rgba(98,128,92,0.48)
+ *  pitch rgba(100,122,92,1); landuseTrack #b8c0a8; building #c8beb0; extrusion #beb2a0
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // warm-sage-rejected
 
 /** Rejected Jun 2026 — warm stone read as too brown/ochre:
- *  background rgb(212,207,196) · grass rgba(194,182,162,1) · park #d6cab6 · building #e8e4e0 · extrusion #dcd4c8
- *  roads hsl(35,5%,88%) · motorway rgba(186,162,124,1)
+ *  background rgb(212,207,196); grass rgba(194,182,162,1); park #d6cab6; building #e8e4e0; extrusion #dcd4c8
+ *  roads hsl(35,5%,88%); motorway rgba(186,162,124,1)
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // warm-stone-rejected
 
 /** Rejected Jun 2026 — paper floor still too warm; buildings too brown:
- *  background rgb(234,232,228) · building #aa9e90 · extrusion #958874 · roads hsl(40,4%,86%)
+ *  background rgb(234,232,228); building #aa9e90; extrusion #958874; roads hsl(40,4%,86%)
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // paper-floor-warm-rejected
 
 /** Rejected Jun 2026 — neutral greige insufficient ground/building contrast:
- *  background rgb(226,224,220) · building #d4d0ca · extrusion #c8c4be · outline hsl(220,4%,48%)
+ *  background rgb(226,224,220); building #d4d0ca; extrusion #c8c4be; outline hsl(220,4%,48%)
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // neutral-greige-rejected
 
 /** Rejected Jun 2026 — cool paper inverted hierarchy (dark blocks on white sand):
- *  background rgb(236,238,240) · building #a8adb2 · extrusion #94999e · outline hsl(220,10%,30%)
+ *  background rgb(236,238,240); building #a8adb2; extrusion #94999e; outline hsl(220,10%,30%)
  */
 // export const MAP_BASEMAP_PALETTE = { ... } as const; // cool-paper-rejected
 
 /** Prior alternate — morning-mist ground with warm stone buildings (superseded by uplbRefreshing):
- *  background rgb(232,237,230) · grass rgba(156,184,150,0.24) · building #e2ddd4 · extrusion #d4cec4
+ *  background rgb(232,237,230); grass rgba(156,184,150,0.24); building #e2ddd4; extrusion #d4cec4
  */
 export const uplbFresh = {
   background: "rgb(232, 237, 230)",
@@ -100,7 +100,7 @@ export const uplbFresh = {
 } as const;
 
 /** Prior active preset — light neutral floor, warm greige buildings (too brown/neutral):
- *  background rgb(228,226,222) · grass rgba(186,190,178,0.2) · building #c8c4bc · extrusion #d0ccc4
+ *  background rgb(228,226,222); grass rgba(186,190,178,0.2); building #c8c4bc; extrusion #d0ccc4
  */
 export const campusGreige = {
   background: "rgb(228, 226, 222)",
@@ -139,8 +139,8 @@ export const campusGreige = {
 } as const;
 
 /** Active preset — uplbRefreshing: green campus, fresh campus stone buildings.
- *  background #EEF4EC · grass #7CB87A @ 0.38 · park #8FBF8A · wood forest rgba(62,96,58,0.48)
- *  water #6BA3B8 · building #E8E4DC · extrusion #D8D4CC · outline #B8B4AC · roads #C5C5C0
+ *  background #EEF4EC; grass #7CB87A @ 0.38; park #8FBF8A; wood forest rgba(62,96,58,0.48)
+ *  water #6BA3B8; building #E8E4DC; extrusion #D8D4CC; outline #B8B4AC; roads #C5C5C0
  *  Jun 2026 (#285): POI layers hidden at runtime; softer labels + lower extrusion so native pins read first.
  */
 export const uplbRefreshing = {

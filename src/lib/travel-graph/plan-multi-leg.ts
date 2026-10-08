@@ -96,13 +96,13 @@ export function journeyOptionLabel(journey: Journey): string {
   if (rides.length === 0) return "Walk";
   const names = [...new Set(rides.map((r) => r.routeName))];
   // A planned transfer (town jeep into campus): both rides are the trip.
-  if (journey.id.includes(">")) return `Commute · ${names.join(" + ")}`;
+  if (journey.id.includes(">")) return `Commute via ${names.join(" + ")}`;
   if (journey.id.includes("partial") || names.length > 1) {
     return names.length === 1
-      ? `Commute (partial) · ${names[0]}`
+      ? `Commute (partial) via ${names[0]}`
       : "Commute (partial)";
   }
-  return names.length === 1 ? `Commute · ${names[0]}` : "Commute";
+  return names.length === 1 ? `Commute via ${names[0]}` : "Commute";
 }
 
 /**

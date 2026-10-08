@@ -284,9 +284,9 @@
           <time datetime={row.startsOn} title={formatCampusDateTime(row.startsOn)}>
             {relativeDateLabel(row.startsOn)}
           </time>
-          {#if row.author}<span>· {row.author}</span>{/if}
+          {#if row.author}<span>by {row.author}</span>{/if}
           {#if canPublish && statusLabel(row)}
-            <span class="announcements__status">· {statusLabel(row)}</span>
+            <span class="announcements__status">({statusLabel(row)})</span>
           {/if}
         </p>
         {#if canPublish}

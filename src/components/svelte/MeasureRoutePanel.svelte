@@ -107,7 +107,7 @@
               <span class="measure-panel__leg-name">{i + 1} → {i + 2}</span>
               <span>
                 {leg
-                  ? `${formatDistance(leg.meters)} · ${formatDuration(leg.seconds)}`
+                  ? `${formatDistance(leg.meters)}, ${formatDuration(leg.seconds)}`
                   : "no route"}
               </span>
             </li>

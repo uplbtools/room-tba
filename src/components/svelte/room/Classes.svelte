@@ -33,7 +33,7 @@
 
   function formatSchedule(schedule: string[] | null): string {
     if (!schedule?.length) return "Schedule TBA";
-    return schedule.join(" · ");
+    return schedule.join(", ");
   }
 
   /** "Offered by Institute of Computer Science (CAS)" — hedged, never "is at". */
@@ -120,7 +120,7 @@
                   </span>
                 {:else if !sectionClass.roomCode}
                   <span class="class-section-row__room class-section-row__room--unassigned">
-                    · {NO_ASSIGNED_ROOM_LABEL}
+                    ({NO_ASSIGNED_ROOM_LABEL})
                   </span>
                 {/if}
               </div>

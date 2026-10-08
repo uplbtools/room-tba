@@ -188,12 +188,12 @@
               >{fare.kind === "end-to-end" ? "Whole route " : ""}<strong
                 >₱{fare.fare.regular}</strong
               >
-              · <strong>₱{fare.fare.discounted}</strong> student / PWD / senior</span
+              regular, <strong>₱{fare.fare.discounted}</strong> student / PWD / senior</span
             >
           {:else if fare?.kind === "distance"}
             <span
               >Minimum fare <strong>₱{fare.minimum.regular}</strong>
-              · <strong>₱{fare.minimum.discounted}</strong> student / PWD / senior</span
+              regular, <strong>₱{fare.minimum.discounted}</strong> student / PWD / senior</span
             >
           {:else if fare}
             <span>{fare.note}</span>
@@ -204,7 +204,7 @@
             <Clock size={16} aria-hidden="true" />
             <span
               >{schedule.hours}{schedule.published
-                ? ` · ${schedule.frequency}`
+                ? `, ${schedule.frequency}`
                 : ""}{schedule.note ? `. ${schedule.note}` : ""}</span
             >
           </li>

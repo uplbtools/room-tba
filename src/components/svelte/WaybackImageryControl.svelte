@@ -70,7 +70,7 @@
       <p>
         Wayback release {selected.releaseDate}
         {#if selected.acquisitionDate}
-          · captured {selected.acquisitionDate}
+          (captured {selected.acquisitionDate})
         {/if}
       </p>
     {/if}

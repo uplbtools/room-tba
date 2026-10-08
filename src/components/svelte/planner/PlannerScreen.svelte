@@ -588,8 +588,8 @@
           <ul class="planner-conflicts">
             {#each conflictPairs as pair (pair.label)}
               <li>
-                <strong>{pair.label}</strong>
-                · {pair.days.join("/")}
+                <strong>{pair.label}</strong>,
+                {pair.days.join("/")}
                 {pair.range}
               </li>
             {/each}
@@ -637,7 +637,7 @@
                       </span>
                       <span class="planner-offering__part-time">
                         {(s.schedule ?? []).map(formatScheduleShort).join(", ")}{s.roomCode
-                          ? ` · ${s.roomCode}`
+                          ? ` in ${s.roomCode}`
                           : ""}
                       </span>
                     </div>
@@ -666,7 +666,7 @@
           <h2 class="planner-side__heading">Unscheduled (TBA)</h2>
           <ul class="planner-plain-list">
             {#each unscheduled as s (s.courseCode + s.section + s.type)}
-              <li>{s.courseCode} {s.type} · {s.section}</li>
+              <li>{s.courseCode} {s.type} {s.section}</li>
             {/each}
           </ul>
         {/if}
@@ -675,7 +675,7 @@
           <h2 class="planner-side__heading">No longer offered</h2>
           <ul class="planner-plain-list planner-plain-list--stale">
             {#each staleSections as s (s.courseCode + s.section + s.type)}
-              <li>{s.courseCode} {s.type} · {s.section}</li>
+              <li>{s.courseCode} {s.type} {s.section}</li>
             {/each}
           </ul>
         {/if}

@@ -44,13 +44,13 @@ const lastEditedLabel = lastEdited
   {
     lastEditedLabel && lastEdited && (
       <span>
-        {" · "}Last edited <time datetime={lastEdited}>{lastEditedLabel}</time>
-        {" · "}{revisions} {revisions === 1 ? "revision" : "revisions"}
+        {". "}Last edited <time datetime={lastEdited}>{lastEditedLabel}</time>
+        {" ("}{revisions} {revisions === 1 ? "revision" : "revisions"}{")"}
       </span>
     )
   }
   <span>
-    {" · "}<a class="wiki-link" href={historyUrl} target="_blank" rel="noopener noreferrer">History</a>
-    {" · "}<a class="wiki-link" href={editUrl} target="_blank" rel="noopener noreferrer">Edit on GitHub</a>
+    {". "}<a class="wiki-link" href={historyUrl} target="_blank" rel="noopener noreferrer">History</a>
+    {" / "}<a class="wiki-link" href={editUrl} target="_blank" rel="noopener noreferrer">Edit on GitHub</a>
   </span>
 </p>

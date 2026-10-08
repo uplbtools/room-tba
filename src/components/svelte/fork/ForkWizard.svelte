@@ -279,10 +279,10 @@
     ></div>
 
     <p class="fw__readout" aria-live="polite">
-      Center: {round(centerLat, 6)}, {round(centerLng, 6)} · Bounds: [{round(
+      Center: {round(centerLat, 6)}, {round(centerLng, 6)}<br />Bounds: [{round(
         west,
         4,
-      )}, {round(south, 4)}] → [{round(east, 4)}, {round(north, 4)}] · Map zoom:
+      )}, {round(south, 4)}] → [{round(east, 4)}, {round(north, 4)}]<br />Map zoom:
       {round(mapZoom, 2)}
     </p>
 

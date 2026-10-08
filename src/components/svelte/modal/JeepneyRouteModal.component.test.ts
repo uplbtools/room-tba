@@ -206,7 +206,7 @@ describe("JeepneyRouteModal", () => {
   test("shows published hours and says when a schedule is not published", () => {
     jeepneyStore.modalRouteId = "uplb-to-buendia";
     const { unmount } = render(JeepneyRouteModal);
-    expect(screen.getByText(/Daily · 5:00 AM · 1 trip a day/)).toBeVisible();
+    expect(screen.getByText(/Daily, 5:00 AM, 1 trip a day/)).toBeVisible();
     unmount();
 
     jeepneyStore.modalRouteId = "kaliwa-kanan";

@@ -158,7 +158,7 @@
         <span class="today-route__hint">{routeHint}</span>
       {:else if routedToday && scheduleRouteStore.routeTotals}
         <span class="today-route__totals">
-          {formatDuration(scheduleRouteStore.routeTotals.seconds)} walk ·
+          {formatDuration(scheduleRouteStore.routeTotals.seconds)} walk,
           {formatDistance(scheduleRouteStore.routeTotals.meters)}
         </span>
       {/if}

@@ -104,6 +104,6 @@ describe("PlannerCourseSearch", () => {
     expect(added).toHaveTextContent("✓ Added");
     expect(added).toHaveAttribute("aria-pressed", "true");
     // Times read like people write them, with the room.
-    expect(screen.getAllByText("Lec WF 4–5 PM · EAA LH")[0]).toBeVisible();
+    expect(screen.getAllByText("Lec WF 4–5 PM in EAA LH")[0]).toBeVisible();
   });
 });

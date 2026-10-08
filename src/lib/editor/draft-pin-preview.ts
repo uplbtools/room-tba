@@ -165,5 +165,5 @@ export function draftPinRowLabel(
 ): string {
   if (!hasCoords) return "Drop a pin on the map";
   if (!preview?.label) return "Pin set on map";
-  return `Pin set · ${preview.label}`;
+  return `Pin set: ${preview.label}`;
 }

@@ -22,7 +22,7 @@ const structuredData = jsonLd(
   canonicalPath="/transit/"
   imagePath={ogCardPath({
     title: "UPLB Jeepney and Bus Routes",
-    subtitle: JEEPNEY_ROUTES.map((route) => route.name).join(" · "),
+    subtitle: JEEPNEY_ROUTES.map((route) => route.name).join(", "),
     kicker: "Transit at UPLB",
   })}
   {structuredData}

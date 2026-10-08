@@ -46,12 +46,12 @@
       Map data © OpenStreetMap contributors
     </a>
     {#if servedByMaptiler}
-      <span aria-hidden="true">·</span>
+      <span aria-hidden="true">/</span>
       <a href={MAPTILER_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
         © MapTiler
       </a>
     {:else if provider === "openfreemap"}
-      <span aria-hidden="true">·</span>
+      <span aria-hidden="true">/</span>
       <a
         href="https://openfreemap.org/"
         target="_blank"
@@ -61,7 +61,7 @@
       </a>
     {/if}
     {#if mapViewStore.waybackSnapshot}
-      <span aria-hidden="true">·</span>
+      <span aria-hidden="true">/</span>
       <a
         href={WAYBACK_ATTRIBUTION_URL}
         target="_blank"
