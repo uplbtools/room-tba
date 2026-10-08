@@ -167,8 +167,8 @@
   /* Paint the sheet's side gutters too, so rows scrolling under the header
      do not peek out at its edges (the scroll container clips the rest). */
   box-shadow:
-    -1rem 0 0 var(--entity-sheet-bg, #fff),
-    1rem 0 0 var(--entity-sheet-bg, #fff);
+    -1rem 0 0 var(--entity-sheet-bg, var(--theme-surface, #fff)),
+    1rem 0 0 var(--entity-sheet-bg, var(--theme-surface, #fff));
 }
 
 .entity-header__title-row--with-close {

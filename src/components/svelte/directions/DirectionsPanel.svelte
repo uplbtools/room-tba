@@ -557,4 +557,48 @@
     font-size: 0.6875rem;
     line-height: 1.4;
   }
+
+  /* Phone landscape: the From / To card leaves the side panel one short
+     strip above the nav, so the mode tabs and the Start row share one line
+     and Start is in reach without scrolling. */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .directions {
+      flex-flow: row wrap;
+      align-items: center;
+      column-gap: 0.5rem;
+    }
+
+    .directions > :global(*) {
+      flex: 1 0 100%;
+    }
+
+    .directions > .directions__modes {
+      flex: 0 0 auto;
+    }
+
+    .directions > .directions__start-row {
+      flex: 1 1 0;
+      gap: 0.5rem;
+      padding: 0;
+    }
+
+    .directions__mode,
+    .directions__show {
+      min-height: 2.5rem;
+      padding-block: 0.25rem;
+    }
+
+    .directions__show {
+      padding-inline: 1rem;
+    }
+
+    .directions__summary-time {
+      font-size: 1rem;
+    }
+
+    .directions__summary-meters,
+    .directions__summary-meta {
+      font-size: 0.75rem;
+    }
+  }
 </style>

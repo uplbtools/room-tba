@@ -137,9 +137,14 @@
   const directionsParam = $derived.by(() => {
     if (!directionsStore.active || !directionsStore.destination) return null;
     const origin = directionsStore.origin;
+    // A swapped GPS start is pinned at the fix but still means "me" to
+    // whoever opens the link.
+    const fromGps =
+      !origin ||
+      !directionsStore.originFixed ||
+      origin.label === YOUR_LOCATION_LABEL;
     return formatDirectionsParam({
-      from:
-        origin && directionsStore.originFixed ? tokenFor(origin) : { kind: "me" },
+      from: fromGps ? { kind: "me" } : tokenFor(origin),
       to: tokenFor(directionsStore.destination),
       via: directionsStore.waypoints.map(tokenFor),
     });
