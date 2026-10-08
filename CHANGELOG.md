@@ -1,3 +1,10 @@
+## [2.37.1](https://github.com/uplbtools/room-tba/compare/v2.37.0...v2.37.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* **auth:** password reset page renders on every request ([#1281](https://github.com/uplbtools/room-tba/issues/1281)) ([ca9f7c4](https://github.com/uplbtools/room-tba/commit/ca9f7c42440e611c22a18ccfe9921bb637e6596e))
+
 # [2.37.0](https://github.com/uplbtools/room-tba/compare/v2.36.1...v2.37.0) (2026-10-08)
 
 
