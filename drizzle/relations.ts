@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { jeepneyRoutes, jeepneyStops, buildings, rooms, colleges, divisions, classes, eventLocations, dorms, events, adminUsers, editProposals, finalExams, terms, plannerPlans, contributions, floraSpecies, floraSpecimens, roomPositions, eventRouteStops, eventRoutes } from "./schema";
+import { jeepneyRoutes, jeepneyStops, buildings, rooms, colleges, divisions, classes, eventLocations, dorms, events, adminUsers, editProposals, finalExams, terms, plannerPlans, contributions, floraSpecies, floraSpecimens, roomPositions, eventRouteStops, eventRoutes, contributorProfiles, contributorSocialLinks, contributorProfileAudits } from "./schema";
 
 export const jeepneyStopsRelations = relations(jeepneyStops, ({one}) => ({
 	jeepneyRoute: one(jeepneyRoutes, {
@@ -92,6 +92,35 @@ export const adminUsersRelations = relations(adminUsers, ({many}) => ({
 	editProposals: many(editProposals),
 	plannerPlans: many(plannerPlans),
 	contributions: many(contributions),
+	contributorProfiles: many(contributorProfiles),
+	contributorProfileAudits: many(contributorProfileAudits),
+}));
+
+export const contributorProfilesRelations = relations(contributorProfiles, ({one, many}) => ({
+	adminUser: one(adminUsers, {
+		fields: [contributorProfiles.userId],
+		references: [adminUsers.id]
+	}),
+	socialLinks: many(contributorSocialLinks),
+	audits: many(contributorProfileAudits),
+}));
+
+export const contributorSocialLinksRelations = relations(contributorSocialLinks, ({one}) => ({
+	profile: one(contributorProfiles, {
+		fields: [contributorSocialLinks.profileId],
+		references: [contributorProfiles.id]
+	}),
+}));
+
+export const contributorProfileAuditsRelations = relations(contributorProfileAudits, ({one}) => ({
+	profile: one(contributorProfiles, {
+		fields: [contributorProfileAudits.profileId],
+		references: [contributorProfiles.id]
+	}),
+	actor: one(adminUsers, {
+		fields: [contributorProfileAudits.actorUserId],
+		references: [adminUsers.id]
+	}),
 }));
 
 export const finalExamsRelations = relations(finalExams, ({one}) => ({

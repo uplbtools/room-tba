@@ -1,4 +1,4 @@
-import { pgTable, integer, text, varchar, doublePrecision, timestamp, index, bigserial, boolean, uniqueIndex, foreignKey, uuid, jsonb, date, time, unique, numeric, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, integer, text, varchar, doublePrecision, timestamp, index, bigserial, boolean, uniqueIndex, foreignKey, uuid, jsonb, date, time, unique, numeric, pgEnum, check } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const adminRole = pgEnum("admin_role", ['admin', 'editor', 'contributor'])
@@ -7,6 +7,8 @@ export const editProposalStatus = pgEnum("edit_proposal_status", ['pending', 'ap
 export const eventCategory = pgEnum("event_category", ['tradition', 'fair', 'ceremony', 'sports', 'other'])
 export const eventLocationAnchor = pgEnum("event_location_anchor", ['building', 'dorm', 'custom'])
 export const eventRecurrence = pgEnum("event_recurrence", ['none', 'annual', 'every_1st_sem', 'every_2nd_sem'])
+export const contributorSocialKind = pgEnum("contributor_social_kind", ['github', 'website', 'discord', 'messenger', 'linkedin', 'custom'])
+export const contributorProfileAuditAction = pgEnum("contributor_profile_audit_action", ['create', 'update', 'publish', 'hide', 'restore', 'remove_link'])
 
 
 export const places = pgTable("places", {
@@ -301,6 +303,72 @@ export const adminUsers = pgTable("admin_users", {
 	legacyCredit: boolean("legacy_credit").default(false).notNull(),
 }, (table) => [
 	uniqueIndex("admin_users_username_unique").using("btree", table.username.asc().nullsLast().op("text_ops")),
+]);
+export const contributorProfiles = pgTable("contributor_profiles", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "contributor_profiles_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	userId: integer("user_id").notNull(),
+	slug: varchar({ length: 120 }).notNull(),
+	bio: varchar({ length: 280 }).default('').notNull(),
+	isPublic: boolean("is_public").default(true).notNull(),
+	isModeratorHidden: boolean("is_moderator_hidden").default(false).notNull(),
+	version: integer().default(1).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	uniqueIndex("contributor_profiles_user_id_unique").using("btree", table.userId.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("contributor_profiles_slug_unique").using("btree", table.slug.asc().nullsLast().op("text_ops")),
+	check("contributor_profiles_bio_length", sql`char_length(${table.bio}) <= 280`),
+	foreignKey({
+		columns: [table.userId],
+		foreignColumns: [adminUsers.id],
+		name: "contributor_profiles_user_id_admin_users_id_fk"
+	}),
+]);
+
+export const contributorSocialLinks = pgTable("contributor_social_links", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "contributor_social_links_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	profileId: integer("profile_id").notNull(),
+	kind: contributorSocialKind().notNull(),
+	label: varchar({ length: 40 }),
+	url: varchar({ length: 2048 }).notNull(),
+	isPublic: boolean("is_public").default(true).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("contributor_social_links_profile_idx").using("btree", table.profileId.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("contributor_social_links_known_kind_unique").using("btree", table.profileId.asc().nullsLast().op("int4_ops"), table.kind.asc().nullsLast().op("enum_ops")).where(sql`${table.kind} in ('github', 'discord', 'messenger', 'linkedin')`),
+	check("contributor_social_links_https_url", sql`${table.url} ~ '^https://'`),
+	check("contributor_social_links_custom_label", sql`${table.kind} <> 'custom' OR (${table.label} IS NOT NULL AND char_length(trim(${table.label})) > 0)`),
+	foreignKey({
+		columns: [table.profileId],
+		foreignColumns: [contributorProfiles.id],
+		name: "contributor_social_links_profile_id_contributor_profiles_id_fk"
+	}).onDelete("cascade"),
+]);
+
+export const contributorProfileAudits = pgTable("contributor_profile_audits", {
+	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "contributor_profile_audits_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	profileId: integer("profile_id").notNull(),
+	actorUserId: integer("actor_user_id"),
+	action: contributorProfileAuditAction().notNull(),
+	fromVersion: integer("from_version"),
+	toVersion: integer("to_version").notNull(),
+	before: jsonb(),
+	after: jsonb().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("contributor_profile_audits_profile_created_idx").using("btree", table.profileId.asc().nullsLast().op("int4_ops"), table.createdAt.desc().nullsLast().op("timestamptz_ops")),
+	index("contributor_profile_audits_actor_idx").using("btree", table.actorUserId.asc().nullsLast().op("int4_ops")),
+	foreignKey({
+		columns: [table.profileId],
+		foreignColumns: [contributorProfiles.id],
+		name: "contributor_profile_audits_profile_id_contributor_profiles_id_fk"
+	}),
+	foreignKey({
+		columns: [table.actorUserId],
+		foreignColumns: [adminUsers.id],
+		name: "contributor_profile_audits_actor_user_id_admin_users_id_fk"
+	}),
 ]);
 
 export const buildings = pgTable("buildings", {

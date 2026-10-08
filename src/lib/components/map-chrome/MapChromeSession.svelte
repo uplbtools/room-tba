@@ -2,6 +2,7 @@
   import LogOut from "@lucide/svelte/icons/log-out";
   import Settings from "@lucide/svelte/icons/settings";
   import ShieldCheck from "@lucide/svelte/icons/shield-check";
+  import { onMount } from "svelte";
   import { adminAuthStore } from "$lib/stores.svelte";
   import MapChromeGhostButton from "./MapChromeGhostButton.svelte";
   import "./map-chrome.css";
@@ -28,6 +29,18 @@
     expanded = false,
     onSignOut,
   }: Props = $props();
+  let isOnline = $state(true);
+
+  onMount(() => {
+    const updateOnlineState = () => (isOnline = navigator.onLine);
+    updateOnlineState();
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+    return () => {
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
+  });
 
   const signedInTitle = $derived(
     title ?? `Signed in as ${roleLabel.toLowerCase()}`,
@@ -52,10 +65,12 @@
       <ShieldCheck size={14} aria-hidden="true" />
       <span>{roleLabel}</span>
     </span>
-    <MapChromeGhostButton onclick={() => adminAuthStore.openAccountSettings()}>
-      <Settings size={14} aria-hidden="true" />
-      Account
-    </MapChromeGhostButton>
+    {#if isOnline}
+      <MapChromeGhostButton onclick={() => adminAuthStore.openAccountSettings()}>
+        <Settings size={14} aria-hidden="true" />
+        Account
+      </MapChromeGhostButton>
+    {/if}
     <MapChromeGhostButton onclick={() => void onSignOut()}>
       <LogOut size={14} aria-hidden="true" />
       Sign out
@@ -67,10 +82,12 @@
       <ShieldCheck size={16} aria-hidden="true" />
       <span>{expandedLabel}</span>
     </div>
-    <MapChromeGhostButton onclick={() => adminAuthStore.openAccountSettings()}>
-      <Settings size={14} aria-hidden="true" />
-      Account
-    </MapChromeGhostButton>
+    {#if isOnline}
+      <MapChromeGhostButton onclick={() => adminAuthStore.openAccountSettings()}>
+        <Settings size={14} aria-hidden="true" />
+        Account
+      </MapChromeGhostButton>
+    {/if}
     <MapChromeGhostButton onclick={() => void onSignOut()}>
       <LogOut size={14} aria-hidden="true" />
       Sign out

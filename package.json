@@ -16,9 +16,13 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright install && playwright test",
+		"test:components": "vitest run --project component",
 		"apply:migrations": "bun run scripts/apply-migrations.ts",
 		"apply:migrations:prod": "bun run scripts/apply-migrations.ts --prod",
+		"e2e:reset-db": "bun run scripts/e2e-reset-db.ts",
 		"check:migrations": "bun run scripts/check-migrations.ts",
+		"check:feature-test-retirement": "bun run scripts/check-feature-test-retirement.ts",
+		"generate:pglite-schema": "bun scripts/generate-pglite-schema.ts",
 		"db:generate": "drizzle-kit generate",
 		"db:studio": "drizzle-kit studio"
 	},

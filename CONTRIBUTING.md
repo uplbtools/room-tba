@@ -71,6 +71,42 @@ Helpful checks: search a room you know, open schedules for the current term, try
 
 ---
 
+## Contributor profiles
+
+Signed-in contributors have a public profile at `/contributor/<slug>`. Profiles
+start public. The account owner can turn profile visibility off and can control
+each social link separately. A private, hidden, inactive, or deleted profile
+returns `404`; existing credits remain as text when no safe profile link exists.
+
+Profile fields:
+
+- Bio: plain text, up to 280 characters. Line breaks are preserved. Markdown and
+  embedded HTML are not accepted.
+- Avatar: use the managed profile-photo upload. JPEG, PNG, and WebP files up to
+  5 MB are accepted when R2 image storage is configured.
+- Links: GitHub, website, Discord, Messenger, LinkedIn, and custom HTTPS links.
+  GitHub, Discord, Messenger, and LinkedIn allow one link each. Website and
+  custom links can repeat. Custom links require a label.
+- Messaging links start hidden. Publishing a Discord or Messenger link requires
+  checking the disclosure in account settings.
+- Credits visibility is separate from profile visibility. Turning credits off
+  removes the account from public contributor credits without deleting the
+  profile.
+
+Profile changes require an online connection. The editor uses optimistic
+version checks, so a stale save is rejected and the editor offers the current
+server state instead of overwriting local edits.
+
+Administrators can hide or restore profiles and remove unsafe social links or
+managed avatar references. Hide and removal actions require a reason and remain
+in the read-only profile audit history. Removing an avatar reference does not
+delete its existing storage object. Report profile abuse through the [coding
+task issue form](https://github.com/uplbtools/room-tba/issues/new?template=coding_task.yml)
+or contact the team through [Discord](https://discord.uplbtools.me) or
+[Messenger](https://messenger.uplbtools.me/contribute).
+
+---
+
 ## Developers (no AI required)
 
 You can contribute code without using Cursor, agents, or [AGENTS.md](AGENTS.md).

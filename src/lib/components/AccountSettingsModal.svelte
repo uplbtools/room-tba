@@ -12,6 +12,11 @@
 	import ImageUpload from '$lib/components/editor/ImageUpload.svelte';
 	import './editor/entity-editor.css';
 	import { MediaQuery } from 'svelte/reactivity';
+	import {
+		SOCIAL_KIND_METADATA,
+		SOCIAL_KINDS,
+		type SocialKind
+	} from '$lib/utils/contributor-profile';
 
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
@@ -27,6 +32,32 @@
 		showInCredits: boolean;
 	};
 
+	type EditableProfile = {
+		displayName: string;
+		role: 'Admin' | 'Editor' | 'Contributor';
+		bio: string;
+		isPublic: boolean;
+		showInCredits: boolean;
+		avatarUrl: string | null;
+		version: number;
+		socialLinks: Array<{
+			id: number;
+			kind: SocialKind;
+			label: string | null;
+			url: string;
+			isPublic: boolean;
+			createdAt: string;
+			updatedAt: string;
+		}>;
+	};
+
+	type SocialDraft = {
+		kind: SocialKind;
+		label: string | null;
+		url: string;
+		isPublic: boolean;
+	};
+
 	type Contribution = {
 		id: number;
 		entityLabel: string;
@@ -35,17 +66,23 @@
 
 	let frameEl = $state<HTMLDivElement | null>(null);
 	let profile = $state<Profile | null>(null);
+	let contributorProfile = $state<EditableProfile | null>(null);
 	let loadError = $state<string | null>(null);
 	let contributions = $state<Contribution[]>([]);
 	let contributionsError = $state<string | null>(null);
+	let isOnline = $state(true);
 
-	let displayNameDraft = $state('');
 	let avatarUrlDraft = $state('');
 	let profileUrlDraft = $state('');
+	let bioDraft = $state('');
+	let isPublicDraft = $state(false);
 	let showInCreditsDraft = $state(true);
+	let socialLinksDraft = $state<SocialDraft[]>([]);
+	let messagingDisclosureAcknowledgedDraft = $state(false);
 	let savingProfile = $state(false);
 	let profileError = $state<string | null>(null);
 	let profileSaved = $state(false);
+	let conflictProfile = $state<EditableProfile | null>(null);
 
 	let newEmailDraft = $state('');
 	let showChangeEmail = $state(false);
@@ -67,29 +104,94 @@
 	let deleting = $state(false);
 	let deleteError = $state<string | null>(null);
 
+	function setProfileDraft(next: EditableProfile) {
+		contributorProfile = next;
+		avatarUrlDraft = next.avatarUrl ?? '';
+		bioDraft = next.bio;
+		isPublicDraft = next.isPublic;
+		showInCreditsDraft = next.showInCredits;
+		socialLinksDraft = next.socialLinks.map(({ kind, label, url, isPublic }) => ({
+			kind,
+			label,
+			url,
+			isPublic
+		}));
+		messagingDisclosureAcknowledgedDraft = false;
+	}
+
+	function addSocialLink(kind: SocialKind) {
+		if (kind !== 'website' && kind !== 'custom' && socialLinksDraft.some((link) => link.kind === kind)) return;
+		socialLinksDraft = [
+			...socialLinksDraft,
+			{
+				kind,
+				label: kind === 'custom' ? '' : null,
+				url: '',
+				isPublic: SOCIAL_KIND_METADATA[kind].defaultPublic
+			}
+		];
+	}
+
+	function removeSocialLink(index: number) {
+		socialLinksDraft = socialLinksDraft.filter((_, linkIndex) => linkIndex !== index);
+	}
+
+	function updateSocialLink(index: number, patch: Partial<SocialDraft>) {
+		socialLinksDraft = socialLinksDraft.map((link, linkIndex) =>
+			linkIndex === index ? { ...link, ...patch } : link
+		);
+	}
+
+	function socialIndices(kind: SocialKind) {
+		return socialLinksDraft
+			.map((link, index) => (link.kind === kind ? index : -1))
+			.filter((index) => index >= 0);
+	}
+
+	function hasPublicMessagingLink() {
+		return socialLinksDraft.some(
+			(link) => (link.kind === 'messenger' || link.kind === 'discord') && link.isPublic
+		);
+	}
+
+	function profileChanged() {
+		if (!contributorProfile) return false;
+		const currentLinks = contributorProfile.socialLinks.map(({ kind, label, url, isPublic }) => ({
+			kind,
+			label,
+			url,
+			isPublic
+		}));
+		return (
+			bioDraft.trim() !== contributorProfile.bio ||
+			isPublicDraft !== contributorProfile.isPublic ||
+			showInCreditsDraft !== contributorProfile.showInCredits ||
+			JSON.stringify(socialLinksDraft) !== JSON.stringify(currentLinks) ||
+			avatarUrlDraft.trim() !== (contributorProfile.avatarUrl ?? '')
+		);
+	}
+
 	async function loadProfile() {
 		loadError = null;
 		contributionsError = null;
 		contributions = [];
 		try {
-			const res = await fetch('/api/account/me', { credentials: 'same-origin' });
-			if (!res.ok) {
+			const [accountRes, contributorRes, contributionsRes] = await Promise.all([
+				fetch('/api/account/me', { credentials: 'same-origin' }),
+				fetch('/api/contributors/me', { credentials: 'same-origin' }),
+				fetch('/api/contributions/mine', { credentials: 'same-origin' })
+			]);
+			if (!accountRes.ok || !contributorRes.ok) {
 				loadError = 'Could not load your account.';
 				return;
 			}
-			profile = (await res.json()) as Profile;
-			displayNameDraft = profile.displayName;
-			avatarUrlDraft = profile.avatarUrl ?? '';
+			profile = (await accountRes.json()) as Profile;
+			const contributor = (await contributorRes.json()) as EditableProfile;
+			avatarUrlDraft = contributor.avatarUrl ?? '';
 			profileUrlDraft = profile.profileUrl ?? '';
-			showInCreditsDraft = profile.showInCredits;
-
-			const contributionsRes = await fetch('/api/contributions/mine', {
-				credentials: 'same-origin'
-			});
+			setProfileDraft(contributor);
 			if (contributionsRes.ok) {
-				const data = (await contributionsRes.json()) as {
-					contributions?: Contribution[];
-				};
+				const data = (await contributionsRes.json()) as { contributions?: Contribution[] };
 				contributions = data.contributions ?? [];
 			} else {
 				contributionsError = 'Could not load your contributions.';
@@ -101,6 +203,18 @@
 
 	$effect(() => {
 		if (adminAuthStore.accountSettingsOpen) void loadProfile();
+	});
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		const updateOnlineState = () => (isOnline = navigator.onLine);
+		updateOnlineState();
+		window.addEventListener('online', updateOnlineState);
+		window.addEventListener('offline', updateOnlineState);
+		return () => {
+			window.removeEventListener('online', updateOnlineState);
+			window.removeEventListener('offline', updateOnlineState);
+		};
 	});
 
 	function close() {
@@ -116,32 +230,71 @@
 		return trapFocus(frameEl, { onEscape: close });
 	});
 
+	function reloadConflict() {
+		if (!conflictProfile) return;
+		setProfileDraft(conflictProfile);
+		conflictProfile = null;
+		profileError = null;
+	}
+
 	async function saveProfile() {
-		if (!profile) return;
+		if (!profile || !contributorProfile || !isOnline || savingProfile) return;
 		savingProfile = true;
 		profileError = null;
 		profileSaved = false;
+		conflictProfile = null;
 		try {
-			const res = await fetch('/api/account/me', {
-				method: 'PATCH',
+			const res = await fetch('/api/contributors/me', {
+				method: 'PUT',
 				credentials: 'same-origin',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					displayName: displayNameDraft,
-					avatarUrl: avatarUrlDraft,
-					profileUrl: profileUrlDraft,
-					showInCredits: showInCreditsDraft
+					version: contributorProfile.version,
+					bio: bioDraft,
+					isPublic: isPublicDraft,
+					showInCredits: showInCreditsDraft,
+					messagingDisclosureAcknowledged: messagingDisclosureAcknowledgedDraft,
+					socialLinks: socialLinksDraft
 				})
 			});
-			const data = await res.json().catch(() => ({}) as { error?: string });
-			if (!res.ok) {
-				profileError = data.error ?? 'Could not save profile.';
+			const data = (await res.json().catch(() => null)) as
+				| (EditableProfile & { error?: string; profile?: EditableProfile })
+				| null;
+			if (res.status === 409 && data?.profile) {
+				conflictProfile = data.profile;
+				profileError = data.error ?? 'Profile changed on the server. Reload to continue.';
 				return;
+			}
+			if (!res.ok || !data) {
+				profileError = data?.error ?? 'Could not save profile.';
+				return;
+			}
+			const nextAvatarUrl = avatarUrlDraft.trim() || null;
+			const accountAvatarChanged = nextAvatarUrl !== profile.avatarUrl;
+			const savedContributorProfile = data as EditableProfile;
+			setProfileDraft(savedContributorProfile);
+			if (accountAvatarChanged) {
+				// Keep pending account avatar change intact while contributor state advances.
+				avatarUrlDraft = nextAvatarUrl ?? '';
+				const accountRes = await fetch('/api/account/me', {
+					method: 'PATCH',
+					credentials: 'same-origin',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						displayName: profile.displayName,
+						avatarUrl: nextAvatarUrl
+					})
+				});
+				if (!accountRes.ok) {
+					const accountData = (await accountRes.json().catch(() => ({}))) as { error?: string };
+					profileError = accountData.error ?? 'Profile saved, but account photo could not be saved.';
+					return;
+				}
+				setProfileDraft({ ...savedContributorProfile, avatarUrl: nextAvatarUrl });
 			}
 			profile = {
 				...profile,
-				displayName: displayNameDraft.trim(),
-				avatarUrl: avatarUrlDraft.trim() || null,
+				avatarUrl: nextAvatarUrl,
 				profileUrl: profileUrlDraft.trim() || null,
 				showInCredits: showInCreditsDraft
 			};
@@ -320,11 +473,7 @@
 					</EntityEditorFormField>
 					<EntityEditorFormField label="Display name" inputId="account-display-name">
 						{#snippet control()}
-							<input
-								id="account-display-name"
-								bind:value={displayNameDraft}
-								disabled={savingProfile}
-							/>
+							<input id="account-display-name" value={profile?.displayName ?? ''} disabled />
 						{/snippet}
 					</EntityEditorFormField>
 					<ImageUpload
@@ -332,44 +481,129 @@
 						label="Profile photo"
 						endpoint="/api/account/avatar"
 						bind:value={avatarUrlDraft}
-						disabled={savingProfile}
+						disabled={savingProfile || !isOnline}
 					/>
-					<EntityEditorFormField
-						label="Avatar URL"
-						inputId="account-avatar-url"
-						hint="Optional HTTPS image URL shown in public credits. Uploading a profile photo fills this field."
-					>
+					<EntityEditorFormField label="Bio" inputId="contributor-bio" hint="Up to 280 characters.">
 						{#snippet control()}
-							<input
-								id="account-avatar-url"
-								type="url"
-								placeholder="https://example.com/avatar.png"
-								bind:value={avatarUrlDraft}
-								disabled={savingProfile}
-							/>
-						{/snippet}
-					</EntityEditorFormField>
-					<EntityEditorFormField
-						label="Profile URL"
-						inputId="account-profile-url"
-						hint="Optional HTTPS link shown from your public credit."
-					>
-						{#snippet control()}
-							<input
-								id="account-profile-url"
-								type="url"
-								placeholder="https://example.com"
-								bind:value={profileUrlDraft}
-								disabled={savingProfile}
-							/>
+							<textarea
+								id="contributor-bio"
+								rows="4"
+								maxlength="280"
+								bind:value={bioDraft}
+								disabled={savingProfile || !isOnline}
+							></textarea>
 						{/snippet}
 					</EntityEditorFormField>
 					<label class="credits-visibility">
-						<input type="checkbox" bind:checked={showInCreditsDraft} disabled={savingProfile} />
+						<input type="checkbox" bind:checked={isPublicDraft} disabled={savingProfile || !isOnline} />
+						Make my contributor profile public
+					</label>
+					<label class="credits-visibility">
+						<input type="checkbox" bind:checked={showInCreditsDraft} disabled={savingProfile || !isOnline} />
 						Show my contributions in public credits
 					</label>
+
+					<div class="social-links" aria-labelledby="social-links-heading">
+						<h4 id="social-links-heading">Social links</h4>
+						<p class="field-hint">Only links marked public appear on your profile.</p>
+						{#each SOCIAL_KINDS as kind}
+							<div class="social-kind-group">
+								<h5>{SOCIAL_KIND_METADATA[kind].label}</h5>
+								{#each socialIndices(kind) as index (index)}
+									<div class="social-row">
+										{#if kind === 'custom'}
+											<input
+												aria-label="Custom link label"
+												placeholder="Label"
+												value={socialLinksDraft[index].label ?? ''}
+												oninput={(event) =>
+													updateSocialLink(index, {
+														label: (event.currentTarget as HTMLInputElement).value
+													})}
+												disabled={savingProfile || !isOnline}
+											/>
+										{/if}
+										<input
+											type="url"
+											aria-label={`${SOCIAL_KIND_METADATA[kind].label} URL`}
+											placeholder="https://"
+											value={socialLinksDraft[index].url}
+											oninput={(event) =>
+												updateSocialLink(index, {
+													url: (event.currentTarget as HTMLInputElement).value
+												})}
+											disabled={savingProfile || !isOnline}
+										/>
+										<label class="social-public">
+											<input
+												type="checkbox"
+												checked={socialLinksDraft[index].isPublic}
+												onchange={(event) =>
+													updateSocialLink(index, {
+														isPublic: (event.currentTarget as HTMLInputElement).checked
+													})}
+												disabled={savingProfile || !isOnline}
+											/>
+											Public
+										</label>
+										<button
+											type="button"
+											class="settings-link-btn"
+											onclick={() => removeSocialLink(index)}
+											disabled={savingProfile || !isOnline}
+										>
+											Remove
+										</button>
+									</div>
+								{/each}
+								<button
+									type="button"
+									class="settings-link-btn"
+									onclick={() => addSocialLink(kind)}
+									disabled={savingProfile ||
+										!isOnline ||
+										(kind !== 'website' &&
+											kind !== 'custom' &&
+											socialLinksDraft.some((link) => link.kind === kind))}
+								>
+									Add {SOCIAL_KIND_METADATA[kind].label}
+								</button>
+							</div>
+						{/each}
+					</div>
+
+					{#if hasPublicMessagingLink()}
+						<label class="credits-visibility disclosure">
+							<input
+								type="checkbox"
+								bind:checked={messagingDisclosureAcknowledgedDraft}
+								disabled={savingProfile || !isOnline}
+							/>
+							I understand public messaging links let visitors contact me.
+						</label>
+					{/if}
+					{#if !isOnline}
+						<EntityEditorMessage
+							variant="error"
+							message="Profile editing requires a connection. Cached account and security controls remain available."
+						/>
+					{/if}
+					{#if profileUrlDraft}
+						<EntityEditorFormField label="Legacy credit URL" inputId="account-profile-url">
+							{#snippet control()}
+								<input id="account-profile-url" value={profileUrlDraft} disabled />
+							{/snippet}
+						</EntityEditorFormField>
+					{/if}
 					{#if profileError}
 						<EntityEditorMessage variant="error" message={profileError} />
+					{/if}
+					{#if conflictProfile}
+						<EntityEditorSubmitButton
+							label="Reload server profile"
+							variant="secondary"
+							onclick={reloadConflict}
+						/>
 					{/if}
 					{#if profileSaved}
 						<EntityEditorMessage variant="success" message="Profile saved." />
@@ -378,13 +612,9 @@
 						label="Save profile"
 						savingLabel="Saving…"
 						saving={savingProfile}
-						disabled={displayNameDraft.trim() === profile.displayName &&
-							avatarUrlDraft.trim() === (profile.avatarUrl ?? '') &&
-							profileUrlDraft.trim() === (profile.profileUrl ?? '') &&
-							showInCreditsDraft === profile.showInCredits}
+						disabled={!isOnline || !contributorProfile || !profileChanged()}
 						onclick={saveProfile}
 					/>
-
 					<section class="contributions-section" aria-labelledby="my-contributions-heading">
 						<h4 id="my-contributions-heading">My contributions</h4>
 						{#if contributionsError}
@@ -654,6 +884,82 @@
 	.settings-body :global(.editor-field input:focus-visible) {
 		outline: 2px solid hsl(5, 53%, 32%);
 		outline-offset: 1px;
+	}
+	.settings-body :global(.editor-field textarea) {
+		width: 100%;
+		box-sizing: border-box;
+		resize: vertical;
+		font: inherit;
+		line-height: 1.4;
+		padding: 0.5rem;
+		border: 1px solid hsl(0, 0%, 78%);
+		border-radius: 0.375rem;
+	}
+	.settings-body :global(.editor-field textarea:focus-visible),
+	.social-row input:focus-visible,
+	.settings-link-btn:focus-visible {
+		outline: 2px solid hsl(5, 53%, 32%);
+		outline-offset: 1px;
+	}
+	.social-links {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+	.social-links h4,
+	.social-kind-group h5 {
+		margin: 0;
+		font-size: 0.8125rem;
+	}
+	.social-kind-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+	.social-row {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-width: 0;
+		flex-wrap: wrap;
+	}
+	.social-row input[type='url'],
+	.social-row input[aria-label='Custom link label'] {
+		min-width: 0;
+		flex: 1 1 8rem;
+		box-sizing: border-box;
+		padding: 0.4rem;
+		border: 1px solid hsl(0, 0%, 78%);
+		border-radius: 0.375rem;
+		font: inherit;
+	}
+	.social-public {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.75rem;
+		white-space: nowrap;
+	}
+	.social-row .settings-link-btn {
+		flex: 0 0 auto;
+	}
+	.disclosure {
+		padding: 0.5rem;
+		border: 1px solid hsl(35, 60%, 70%);
+		border-radius: 0.375rem;
+		background: hsl(45, 100%, 97%);
+	}
+	.settings-body :global(.editor-field input[type='url']) {
+		min-width: 0;
+		max-width: 100%;
+	}
+	@media (max-width: 20rem) {
+		.settings-overlay {
+			padding: 0.5rem;
+		}
+		.settings-body {
+			padding: 0.75rem;
+		}
 	}
 	.settings-section h3 {
 		margin: 0 0 0.25rem;

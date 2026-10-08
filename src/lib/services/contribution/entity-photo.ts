@@ -1,38 +1,16 @@
-import { eq } from 'drizzle-orm';
-import { adminUsersTable } from '$lib/server/db/schema';
-import { db } from '$lib/utils/db';
+import { resolveContributorAttribution } from './contributor-profile';
 import type { PhotoAttribution } from '$lib/utils/entity/entity-photos';
 
-function validatedProfileUrl(value: string | null): string | null {
-  const trimmed = value?.trim() ?? "";
-  if (!trimmed) return null;
-  try {
-    if (new URL(trimmed).protocol !== "https:") return null;
-  } catch {
-    return null;
-  }
-  return trimmed;
-}
-
 export async function resolvePhotoAttribution(
-  userId: number | null,
-  fallbackName: string,
+	userId: number | null,
+	fallbackName: string
 ): Promise<PhotoAttribution> {
-  const name = fallbackName.trim();
-  if (userId === null) return { name, profileUrl: null };
+	const name = fallbackName.trim();
+	if (userId === null) return { name, profileUrl: null };
 
-  const [account] = await db
-    .select({
-      profileUrl: adminUsersTable.profileUrl,
-      showInCredits: adminUsersTable.showInCredits,
-    })
-    .from(adminUsersTable)
-    .where(eq(adminUsersTable.id, userId))
-    .limit(1);
-
-  if (!account?.showInCredits) return { name, profileUrl: null };
-  return {
-    name,
-    profileUrl: validatedProfileUrl(account.profileUrl),
-  };
+	const attribution = await resolveContributorAttribution(userId);
+	return {
+		name,
+		profileUrl: attribution?.href ?? null
+	};
 }
