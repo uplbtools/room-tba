@@ -768,6 +768,7 @@
     color: var(--theme-green-text, hsl(140, 50%, 24%));
     font-size: 0.75rem;
     font-weight: 600;
+    white-space: nowrap;
   }
 
   .settings-email-status--pending {
