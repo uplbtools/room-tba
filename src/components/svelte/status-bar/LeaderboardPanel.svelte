@@ -674,6 +674,13 @@
     background: var(--theme-surface, hsl(0, 0%, 100%));
   }
 
+  /* Phone landscape: a pinned row would cover most of the list. */
+  @media (max-height: 500px) {
+    .lb-me {
+      position: static;
+    }
+  }
+
   .lb-row--pinned {
     background: var(--theme-surface-2, hsl(0, 0%, 96%));
   }
