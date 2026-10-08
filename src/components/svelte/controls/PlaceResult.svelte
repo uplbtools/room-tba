@@ -30,6 +30,10 @@
   import BuildingPhoto from "./BuildingPhoto.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import { getPlaceShareUrl } from "@lib/share-links";
+  import Route from "@lucide/svelte/icons/route";
+  import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
+  import { trailStopForPlace } from "@lib/makiling-trail";
+  import { openTrailSheet } from "@lib/trail-sheet";
 
   const appData = getAppData();
   const appActions = getAppActions();
@@ -42,6 +46,8 @@
   const canPublish = $derived(adminAuthStore.canPublish);
   const draftPin = $derived(additionProposalStore.draftPin);
   const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : "");
+  /** Trailhead, Peak 2 and the side-trip spots open the Makiling trail. */
+  const trailStop = $derived(trailStopForPlace(place?.name));
 
   let editing = $state(false);
   let submitting = $state(false);
@@ -184,6 +190,16 @@
               lon: place.lon,
             }}
           />
+          {#if trailStop}
+            {@const stopId = trailStop.id}
+            <MapChromeActionChip
+              toolbar
+              onclick={() => openTrailSheet(stopId, { overPlace: true })}
+            >
+              <Route size={14} aria-hidden="true" />
+              Show trail
+            </MapChromeActionChip>
+          {/if}
           <EntityShareButton url={placeShareUrl} entityLabel={place.name} />
           {#if place.lat != null && place.lon != null}
             <EntityGoogleMapsLink

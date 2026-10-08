@@ -14,6 +14,7 @@
     formatMapHash,
     parseMapHash,
     readAppState,
+    TRAIL_OVERVIEW_PARAM,
     withAppState,
     withHash,
     type DirectionsToken,
@@ -21,6 +22,8 @@
   import { replaceAppUrl } from "@lib/overlay-history";
   import { trackOverlay } from "@lib/track-overlay.svelte";
   import { droppedPinStore } from "@lib/dropped-pin.svelte";
+  import { findTrailStop } from "@lib/makiling-trail";
+  import { closeTrailSheet, openTrailSheet } from "@lib/trail-sheet";
   import { slugifySegment } from "@lib/site";
   import {
     YOUR_LOCATION_LABEL,
@@ -40,6 +43,7 @@
     queryStore,
     sidePanelStore,
     sidebarStore,
+    trailStore,
   } from "@lib/store.svelte";
 
   const appData = getAppData();
@@ -75,6 +79,35 @@
     () => droppedPinStore.at !== null,
     sidePanelStore.closePanel,
   );
+
+  // ── Makiling trail: ?layers=trail, ?trail=overview | <stop> ────────────
+  // The sheet takes one entry and a stop another on top, so Back steps from
+  // a stop to the overview, then closes the sheet.
+  trackOverlay("trail", () => trailStore.sheetOpen, closeTrailSheet, () => ({
+    url: (url) => withAppState(url, { trail: TRAIL_OVERVIEW_PARAM }),
+  }));
+  trackOverlay(
+    "trail-stop",
+    () => trailStore.sheetOpen && trailStore.selectedStopId !== null,
+    () => trailStore.selectStop(null),
+    () => ({
+      url: (url) =>
+        withAppState(url, {
+          trail: trailStore.selectedStopId ?? TRAIL_OVERVIEW_PARAM,
+        }),
+    }),
+  );
+  // Prev / Next swap the stop in place on the stop's own entry.
+  $effect(() => {
+    const stopId = trailStore.selectedStopId;
+    if (!trailStore.sheetOpen || stopId === null) return;
+    replaceAppUrl((url) => withAppState(url, { trail: stopId }));
+  });
+  // The layer is shareable state: on the URL while it is drawn.
+  $effect(() => {
+    const layers = trailStore.enabled ? "trail" : null;
+    replaceAppUrl((url) => withAppState(url, { layers }));
+  });
 
   // ── Directions: /…?dir=<from>/<to> ─────────────────────────────────────
   type Named = { name: string; lat: number | null; lon: number | null };
@@ -263,6 +296,16 @@
     // (Search restores ?q= itself; it owns the draft text.)
     if (state.dir) {
       replaceAppUrl((url) => withAppState(url, { dir: null, mode: null }));
+    }
+
+    // ?layers=trail turns the trail on (the toggle is also remembered);
+    // ?trail= reopens its sheet over a bare entry, like ?dir= above.
+    if (state.layers.includes("trail")) trailStore.enable();
+    if (state.trail) {
+      replaceAppUrl((url) => withAppState(url, { trail: null }));
+      openTrailSheet(findTrailStop(state.trail)?.id ?? null, {
+        overPlace: true,
+      });
     }
 
     if (state.browse === "events") {
