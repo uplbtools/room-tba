@@ -752,7 +752,7 @@
     display: flex;
     flex-direction: column;
     padding: 0.25rem 0;
-    border-top: 1px solid var(--map-chrome-divider, var(--theme-accent-border, hsl(5 12% 88%)));
+    border-top: 1px solid var(--map-chrome-divider, var(--theme-border, hsl(5 12% 88%)));
   }
 
   .app-menu__section:first-child,
@@ -806,7 +806,7 @@
     justify-content: space-between;
     gap: 0.25rem 0.75rem;
     padding: 0.5rem 0.75rem 0.25rem;
-    border-top: 1px solid var(--map-chrome-divider, var(--theme-accent-border, hsl(5 12% 88%)));
+    border-top: 1px solid var(--map-chrome-divider, var(--theme-border, hsl(5 12% 88%)));
     font-size: 0.75rem;
     color: var(--theme-text-2, hsl(0, 0%, 40%));
   }

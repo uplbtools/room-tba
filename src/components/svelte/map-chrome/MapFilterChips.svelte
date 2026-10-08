@@ -454,7 +454,7 @@
   .map-filter-chips__chip--active {
     box-shadow:
       var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
-      0 0 0 1px #8d1437;
+      0 0 0 1px var(--theme-accent-text, #8d1437);
   }
 
   .map-filter-chips__icon {
@@ -464,6 +464,13 @@
     justify-content: center;
     width: 1rem;
     height: 1rem;
+  }
+
+  /* The chip SVGs are drawn in a fixed dark ink (#4a3d40), which vanishes on
+     the dark surface (the outline jeepney most of all). Flip them to a light
+     ink, keeping their cut-outs. */
+  :global(:root[data-theme="dark"]) img.map-filter-chips__icon {
+    filter: invert(0.9) hue-rotate(180deg);
   }
 
   .map-filter-chips__icon :global(svg) {

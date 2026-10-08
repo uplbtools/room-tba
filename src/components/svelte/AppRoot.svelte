@@ -711,7 +711,7 @@
 
   .app-crash__detail {
     margin: 1rem 0 0;
-    color: hsl(5, 12%, 52%);
+    color: var(--theme-text-muted, hsl(5, 12%, 52%));
     font-size: 0.75rem;
     word-break: break-word;
   }
