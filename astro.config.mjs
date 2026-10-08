@@ -100,6 +100,10 @@ export default defineConfig({
           /^\/discord(\/|\?|$)/,
           // Token page: the offline map shell would hide the reset form.
           /^\/reset-password(\/|\?|$)/,
+          // Per-user server pages (staff dashboard, invites, unsubscribe).
+          /^\/admin(\/|\?|$)/,
+          /^\/invite(\/|\?|$)/,
+          /^\/unsubscribe(\/|\?|$)/,
         ],
         swDest: "dist/client/sw.js",
         // Cache third-party map resources at runtime so the campus map works
@@ -443,7 +447,17 @@ export default defineConfig({
           // /reset-password carries a per-user ?token=, and ISR keys on the
           // pathname alone: one cached render (an empty error body, in the
           // 2026-10 outage) was served to every reset link for a day.
-          exclude: [/^\/api\//, /^\/og\.png$/, /^\/reset-password\/?$/],
+          exclude: [
+            /^\/api\//,
+            /^\/og\.png$/,
+            /^\/reset-password\/?$/,
+            // Same for every per-user page: the staff dashboard (its
+            // logged-out redirect was cached for everyone), invites, and
+            // unsubscribe links.
+            /^\/admin(\/.*)?$/,
+            /^\/invite\/?$/,
+            /^\/unsubscribe\/?$/,
+          ],
         },
       }),
 });
