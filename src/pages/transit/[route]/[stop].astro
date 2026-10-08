@@ -45,7 +45,7 @@ const structuredData = jsonLd(
   imagePath={ogCardPath({
     title: stopName,
     subtitle: route && stop
-      ? `${routeName} · Stop ${stopIndex + 1} of ${route.stops.length}`
+      ? `${routeName}, stop ${stopIndex + 1} of ${route.stops.length}`
       : routeName,
     kicker: `UPLB ${stopNoun.toLowerCase()}`,
   })}

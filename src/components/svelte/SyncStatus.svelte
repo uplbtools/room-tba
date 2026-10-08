@@ -256,7 +256,7 @@
         <span class="sync-status-label">
           {displayedLabel}
           {#if APP_VERSION_LABEL}
-            <span class="version-label">· {APP_VERSION_LABEL}</span>
+            <span class="version-label">({APP_VERSION_LABEL})</span>
           {/if}
         </span>
         {#if showDetail && displayedDetail}

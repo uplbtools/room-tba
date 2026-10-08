@@ -28,7 +28,7 @@ describe("JeepneyStopPanel", () => {
 
     const current = screen.getByRole("link", { name: /Kaliwa \/ Kanan/ });
     expect(current).toHaveAttribute("aria-current", "page");
-    expect(current).toHaveTextContent("Kanan · Kaliwa");
+    expect(current).toHaveTextContent("Kanan / Kaliwa");
     const loop = screen.getByRole("link", { name: /SNODLOB/ });
     expect(loop).toHaveAttribute("href", "/transit/snodlob/");
     expect(loop).toHaveTextContent("One-way loop");
@@ -55,6 +55,6 @@ describe("JeepneyStopPanel", () => {
     expect(
       screen.getByRole("heading", { name: "Carabao Park / Landbank" }),
     ).toBeVisible();
-    expect(screen.getByText(/Stop 2 of 19 on the loop · Kaliwa/)).toBeVisible();
+    expect(screen.getByText(/Stop 2 of 19 on the loop, Kaliwa/)).toBeVisible();
   });
 });

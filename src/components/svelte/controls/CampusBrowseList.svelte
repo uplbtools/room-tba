@@ -346,7 +346,7 @@
     if (visibleCount === 0) return `No ${tabMeta.plural} listed.`;
     const unit = visibleCount === 1 ? tabMeta.noun : tabMeta.plural;
     if (activeTab === "organizations") {
-      return `${visibleCount} ${unit} · ${locatedOrgCount} on the map`;
+      return `${visibleCount} ${unit}, ${locatedOrgCount} on the map`;
     }
     return `${visibleCount} ${unit}`;
   });

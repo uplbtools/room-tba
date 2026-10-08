@@ -377,7 +377,11 @@
   }
 
   .text-secondary::before {
-    content: " · ";
+    content: " (";
+  }
+
+  .text-secondary::after {
+    content: ")";
   }
 
   .text .match {

@@ -132,7 +132,7 @@ export async function renderPlanToPng(
   if (opts.termLabel) {
     ctx.fillStyle = "#6b6b6b";
     ctx.font = "500 14px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`${opts.termLabel} · Room TBA`, pad, pad + 28);
+    ctx.fillText(`${opts.termLabel}, Room TBA`, pad, pad + 28);
   } else {
     ctx.fillStyle = "#6b6b6b";
     ctx.font = "500 14px system-ui, -apple-system, sans-serif";

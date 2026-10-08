@@ -196,7 +196,7 @@
             <li class="user-row" class:user-row--inactive={!user.isActive}>
               <div class="user-row-info">
                 <strong>{user.displayName}</strong>
-                <small>{user.username}{user.email ? ` · ${user.email}` : ""}</small>
+                <small>{user.username}{user.email ? ` (${user.email})` : ""}</small>
               </div>
               <select
                 value={user.role}

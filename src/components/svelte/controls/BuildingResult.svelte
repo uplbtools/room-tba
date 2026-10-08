@@ -126,7 +126,7 @@
   });
   const buildingTypeLabel = $derived.by(() => {
     const isAdmin = building?.buildingType === "admin";
-    if (isAdmin && hostsClasses) return "Administrative · Class venue";
+    if (isAdmin && hostsClasses) return "Administrative and class venue";
     return isAdmin ? "Administrative" : "Class building";
   });
 

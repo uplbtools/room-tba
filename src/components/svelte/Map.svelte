@@ -4343,7 +4343,7 @@
                         title={`${entry.event.title}: ${entry.location.resolvedLabel}`}
                         ariaLabel={`Open event ${entry.event.title} at ${entry.location.resolvedLabel}`}
                         labelTitle={entry.event.title}
-                        labelMeta={`${getEventStatusLabel(entry.event)} · ${formatEventMarkerDateTime(
+                        labelMeta={`${getEventStatusLabel(entry.event)}, ${formatEventMarkerDateTime(
                           entry.event.occurrenceStartsAt,
                         )}`}
                         labelVisible={zoomLevel >= 17 || active}
@@ -4495,7 +4495,7 @@
                 <span class="schedule-route-stop-label" transition:fade>
                   {formatMinutes(stop.startMinutes)}
                   {stop.courseCode}
-                  {#if stop.roomCode} · {stop.roomCode}{/if}
+                  {#if stop.roomCode} in {stop.roomCode}{/if}
                 </span>
               </button>
             </Marker>

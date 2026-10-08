@@ -20,7 +20,7 @@ const items = dorms
       dorm.priceRange,
     ]
       .filter((value): value is string => Boolean(value))
-      .join(" · "),
+      .join(", "),
   }));
 
 const title = "Dorms at UPLB | Room TBA";

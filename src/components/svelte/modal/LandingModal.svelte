@@ -323,7 +323,7 @@
       </div>
       <p class="legal-hint">
         <a href="/privacy" class="inline-link">Privacy</a>
-        ·
+        /
         <a href="/terms" class="inline-link">Terms</a>
       </p>
     </div>

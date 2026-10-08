@@ -51,7 +51,7 @@ const structuredData = jsonLd(
                 <dd>
                   {entry.numbers.map((number, index) => (
                     <>
-                      {index > 0 && " · "}
+                      {index > 0 && ", "}
                       <a href={emergencyHotlineTel(number)}>{number}</a>
                     </>
                   ))}

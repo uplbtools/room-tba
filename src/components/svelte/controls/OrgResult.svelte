@@ -383,7 +383,7 @@
         </label>
         <EntityEditorPinRow
           label={draftPin
-            ? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+            ? `Pin set: ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
             : "Drop a pin on the map"}
           pickLabel={draftPin ? "Move pin" : "Pick on map"}
           disabled={saving}

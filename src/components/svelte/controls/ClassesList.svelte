@@ -130,7 +130,7 @@
           <span>
             {importedLabel
               ? `Schedules imported ${importedLabel}`
-              : "Schedule import date unknown"} · About this list
+              : "Schedule import date unknown"}. About this list
           </span>
         </summary>
         <p class="entity-panel-note">{CLASS_BROWSE_SCOPE_NOTE}</p>

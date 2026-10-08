@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import BuildingPhoto from "@ui/controls/BuildingPhoto.svelte";
+import { resetStreetViewLookupCache } from "@lib/street-view-lookup";
 
 // "building:Veterinary Teaching Hospital" ships in the committed manifest (three Street View
 // headings plus Commons photos), so the real manifest is the fixture. Street
@@ -101,5 +102,73 @@ describe("BuildingPhoto", () => {
       props: { kind: "dorm", name: "Church Among the Palms" },
     });
     expect(container.querySelector("img")).toBeNull();
+  });
+});
+
+describe("BuildingPhoto runtime Street View", () => {
+  // A food spot with coordinates but no manifest entry.
+  const CANTEEN = {
+    kind: "place" as const,
+    name: "Test Canteen",
+    lat: 14.165,
+    lon: 121.242,
+  };
+
+  function stubMetadata(body: unknown) {
+    vi.stubEnv("PUBLIC_GOOGLE_MAPS_API_KEY", "test-google-key-123");
+    const fetchMock = vi.fn(
+      async (_url: string) =>
+        new Response(JSON.stringify(body), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    resetStreetViewLookupCache();
+    localStorage.clear();
+  });
+
+  test("shows the confirmed pano aimed at the place, with Google credit", async () => {
+    const fetchMock = stubMetadata({
+      status: "OK",
+      pano_id: "canteen-pano",
+      location: { lat: 14.1645, lng: 121.242 },
+      date: "2024-03",
+      copyright: "© Google",
+    });
+    render(BuildingPhoto, { props: CANTEEN });
+
+    const img = await screen.findByRole("img", {
+      name: "Street View of Test Canteen",
+    });
+    const url = new URL(img.getAttribute("src") ?? "");
+    expect(url.searchParams.get("pano")).toBe("canteen-pano");
+    // Pano is south of the canteen, so the camera faces north.
+    expect(url.searchParams.get("heading")).toBe("0");
+    expect(screen.getByText("Street View image © Google")).toBeTruthy();
+    expect(screen.getByText(/2024/)).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
+      "/streetview/metadata",
+    );
+  });
+
+  test("no coverage renders nothing, never the grey tile", async () => {
+    const fetchMock = stubMetadata({ status: "ZERO_RESULTS" });
+    const { container } = render(BuildingPhoto, { props: CANTEEN });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await Promise.resolve();
+    expect(container.querySelector("img")).toBeNull();
+  });
+
+  test("manifest entries skip the request", () => {
+    const fetchMock = stubMetadata({ status: "OK", pano_id: "x" });
+    render(BuildingPhoto, {
+      props: { kind: "place", name: "Church Among the Palms", lat: 1, lon: 1 },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

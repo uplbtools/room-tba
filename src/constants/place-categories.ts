@@ -45,6 +45,6 @@ export function placeDirectoryLabel(value: unknown): string | null {
   const category = normalizePlaceCategory(value);
   if (!category) return null;
   if (category === "landmark") return "Landmark";
-  if (category === "tourist-spot") return "Landmark · Tourist spot";
-  return `Service / establishment · ${PLACE_CATEGORY_LABELS[category]}`;
+  if (category === "tourist-spot") return "Landmark (Tourist spot)";
+  return `Service / establishment (${PLACE_CATEGORY_LABELS[category]})`;
 }

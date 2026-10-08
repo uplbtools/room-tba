@@ -607,12 +607,12 @@
                           {proposal.entityLabel}
                         </span>
                         <span class="entity-review-summary-meta">
-                          {proposal.entityType} · {diffs.length} field{diffs.length ===
+                          {proposal.entityType}, {diffs.length} field{diffs.length ===
                           1
                             ? ""
                             : "s"}
                           {#if submittedOn(proposal.createdAt)}
-                            · {submittedOn(proposal.createdAt)}
+                            (submitted {submittedOn(proposal.createdAt)})
                           {/if}
                         </span>
                         {#if proposal.status === "needs_changes"}

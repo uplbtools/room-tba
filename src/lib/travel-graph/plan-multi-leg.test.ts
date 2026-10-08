@@ -98,6 +98,6 @@ describe("journeyOptionLabel", () => {
     expect(walk).toBeDefined();
     expect(transit).toBeDefined();
     expect(journeyOptionLabel(walk!)).toBe("Walk");
-    expect(journeyOptionLabel(transit!)).toBe("Commute · Corridor Line");
+    expect(journeyOptionLabel(transit!)).toBe("Commute via Corridor Line");
   });
 });

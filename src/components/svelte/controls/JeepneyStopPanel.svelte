@@ -101,7 +101,7 @@
       </div>
       <h2 class="entity-header__title">{stop.name}</h2>
       <p class="entity-header__context">
-        {stopPosition}{direction ? ` · ${direction.label}` : ""}
+        {stopPosition}{direction ? `, ${direction.label}` : ""}
       </p>
       <MapChromeActionChip toolbar onclick={openRouteDetails}>
         <ChevronLeft size={14} aria-hidden="true" />

@@ -302,7 +302,7 @@
         {/if}
         <EntityEditorPinRow
           label={pin
-            ? `Pin set · ${pin.lat.toFixed(5)}, ${pin.lon.toFixed(5)}`
+            ? `Pin set: ${pin.lat.toFixed(5)}, ${pin.lon.toFixed(5)}`
             : "Drop a pin on the map"}
           pickLabel={pin ? "Move pin" : "Pick on map"}
           disabled={submitting || picking}

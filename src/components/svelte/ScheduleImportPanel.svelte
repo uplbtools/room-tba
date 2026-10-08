@@ -187,7 +187,7 @@
 
       {#if routeActive && scheduleRouteStore.routeTotals}
         <p class="schedule-import-panel__totals">
-          Total walk: {formatDuration(scheduleRouteStore.routeTotals.seconds)} ·
+          Total walk: {formatDuration(scheduleRouteStore.routeTotals.seconds)},
           {formatDistance(scheduleRouteStore.routeTotals.meters)}
         </p>
       {/if}

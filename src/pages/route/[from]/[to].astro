@@ -86,9 +86,10 @@ const contextLinks = [from, to]
       {
         route ? (
           <p class="route-stats">
-            <span>{formatDistance(route.meters)}</span>
-            <span aria-hidden="true">·</span>
-            <span>{formatDuration(route.seconds)} on foot</span>
+            <span>
+              {formatDistance(route.meters)}, {formatDuration(route.seconds)} on
+              foot
+            </span>
           </p>
         ) : null
       }

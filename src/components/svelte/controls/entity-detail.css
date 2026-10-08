@@ -96,10 +96,18 @@
   white-space: nowrap;
 }
 
-.entity-header__abbrev::before {
-  content: "· ";
+.entity-header__abbrev::before,
+.entity-header__abbrev::after {
   font-weight: 400;
   color: var(--theme-text-muted, #a1a1aa);
+}
+
+.entity-header__abbrev::before {
+  content: "(";
+}
+
+.entity-header__abbrev::after {
+  content: ")";
 }
 
 .entity-header__context {

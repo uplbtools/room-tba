@@ -8,7 +8,7 @@ import { wikiProvenance } from "@lib/wiki-provenance";
 const articles = [
   {
     href: "/wiki/emergency-hotlines",
-    kicker: "Emergency contacts · 2 min read",
+    kicker: "Emergency contacts, 2 min read",
     title: "Emergency hotlines around UPLB",
     blurb:
       "Offline-ready contacts for campus security, local responders, and nearby medical services.",
@@ -16,7 +16,7 @@ const articles = [
   },
   {
     href: "/wiki/campus-curfew",
-    kicker: "Dorm guide · 2 min read",
+    kicker: "Dorm guide, 2 min read",
     title: "Campus curfew and dorm permits",
     blurb:
       "Curfew hours and return-permit guidance for residents of UP-managed dormitories.",
@@ -24,7 +24,7 @@ const articles = [
   },
   {
     href: "/faq",
-    kicker: "Student FAQ · 3 min read",
+    kicker: "Student FAQ, 3 min read",
     title: "Frequently asked questions",
     blurb:
       "Where the 3D building models come from, whether Room TBA is official UPLB, how class and room data is updated, and how to report wrong data. Short, plain-language answers for students.",
@@ -32,7 +32,7 @@ const articles = [
   },
   {
     href: "/wiki/upcat-at-uplb",
-    kicker: "UPCAT at UPLB · 8 min read",
+    kicker: "UPCAT at UPLB, 8 min read",
     title: "Taking the UPCAT at UP Los Baños",
     blurb:
       "For examinees and the parents driving them, August 1 and 2, 2026. What the test permit does and does not tell you, the two campus jeepney routes, and how to save the campus map before mobile data gets congested.",
@@ -40,7 +40,7 @@ const articles = [
   },
   {
     href: "/wiki/fork-for-your-campus",
-    kicker: "For other campuses · 6 min read",
+    kicker: "For other campuses, 6 min read",
     title: "Fork this for your campus",
     blurb:
       "Room TBA is built for UPLB. Here is what you actually replace to run it for a different campus: the UPLB data and glue to rip out, the config to repoint, and the write-your-own parts (class import).",
@@ -48,7 +48,7 @@ const articles = [
   },
   {
     href: "/wiki/section-times",
-    kicker: "Class schedules · 12 min read",
+    kicker: "Class schedules, 12 min read",
     title: "What times do section names correspond to?",
     blurb:
       "Exhaustive glossary: letter ladders, NSTP/HK/GI/residency, MS/PhD numbers, every AMIS type, plus oldest→newest term trends (what moved vs what only looks bigger in Room TBA).",
@@ -56,7 +56,7 @@ const articles = [
   },
   {
     href: "https://www.uplb.tools/transparency",
-    kicker: "Money · 3 min read",
+    kicker: "Money, 3 min read",
     title: "Transparency report",
     blurb:
       "Where donation and sponsor money goes: monthly ledger of money in, money out, and receipts.",
@@ -114,8 +114,8 @@ const structuredData = jsonLd(
                 <p class="wiki-index__blurb">{article.blurb}</p>
                 <p class="wiki-index__meta">
                   {article.kicker}
-                  {article.lastEdited && ` · Updated ${article.lastEdited}`}
-                  {article.authors && ` · ${article.authors}`}
+                  {article.lastEdited && `, updated ${article.lastEdited}`}
+                  {article.authors && `, by ${article.authors}`}
                 </p>
               </dd>
             </>

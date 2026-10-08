@@ -214,7 +214,7 @@
           </p>
           <p class="directions__summary-meta">
             {#if selected.id === directionsStore.fastestId}
-              <span class="directions__fastest">Fastest</span> ·
+              <span class="directions__fastest">Fastest</span>,
             {/if}
             arrives {arrivalLabel(selected.seconds)}
           </p>
@@ -257,16 +257,14 @@
 
             <span class="option__body">
               <span class="option__mode">
-                {modeLabel}
-                {#if journey.id === directionsStore.fastestId}
-                  · <span class="directions__fastest">Fastest</span>
-                {/if}
+                {modeLabel}{#if journey.id === directionsStore.fastestId},
+                  <span class="directions__fastest">Fastest</span>{/if}
               </span>
               <span class="option__time"
                 >{formatDuration(journey.seconds)}</span
               >
               <span class="option__meta">
-                {formatDistance(journey.meters)} · arrives {arrivalLabel(
+                {formatDistance(journey.meters)}, arrives {arrivalLabel(
                   journey.seconds,
                 )}
               </span>
@@ -274,14 +272,14 @@
               {#if ride && !isSelected}
                 {#each rideLegs(journey) as leg, n (n)}
                   <span class="option__desc">
-                    {n > 0 ? "Then board" : "Board"} at {leg.boardStopName} · alight
+                    {n > 0 ? "Then board" : "Board"} at {leg.boardStopName}, alight
                     at {leg.alightStopName}
                   </span>
                 {/each}
               {/if}
               {#if journey.fare}
                 <span class="option__fare">
-                  ₱{journey.fare.regular} · ₱{journey.fare.discounted} student/senior/PWD{rideLegs(
+                  ₱{journey.fare.regular} regular, ₱{journey.fare.discounted} student/senior/PWD{rideLegs(
                     journey,
                   ).length > 1
                     ? " (both rides)"

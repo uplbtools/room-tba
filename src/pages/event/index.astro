@@ -17,7 +17,7 @@ const items = events.map((event) => {
   return {
     href,
     label: event.title,
-    description: `${event.category} · ${formatCampusDateLong(event.occurrenceStartsAt)}`,
+    description: `${event.category}, ${formatCampusDateLong(event.occurrenceStartsAt)}`,
     copyUrl: absoluteUrl(href),
     copyLabel: `Copy link to ${event.title}`,
   };

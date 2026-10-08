@@ -98,7 +98,7 @@ test.describe("today day route", () => {
     // Totals from the mocked OSRM legs surface back on the agenda screen.
     await openDestination(page, /^today$/i);
     await expect(page.getByRole("dialog", { name: "Today" })).toBeVisible();
-    await expect(page.getByText(/15 min walk\s*·\s*1\.2 km/)).toBeVisible({
+    await expect(page.getByText(/15 min walk,\s*1\.2 km/)).toBeVisible({
       timeout: 15_000,
     });
   });

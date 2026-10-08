@@ -71,7 +71,7 @@ test("planner switches a section when a mouse drag ends on its first target move
   await waitForPlannerBoot(page);
 
   const planner = page.getByRole("dialog", { name: "Class Planner" });
-  const source = planner.getByRole("button", { name: /ZZZ 1\s+LEC\s+·\s+A/i });
+  const source = planner.getByRole("button", { name: /ZZZ 1\s+LEC\s+A/i });
   await expect(source).toBeVisible();
   const sourceBox = await source.boundingBox();
   expect(sourceBox).not.toBeNull();

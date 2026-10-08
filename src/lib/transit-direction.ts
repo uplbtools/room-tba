@@ -48,14 +48,14 @@ export type RouteAtStop = {
   route: JeepneyRoute;
   /** Index into the route's listed (forward) stop order. */
   stopIndex: number;
-  /** "Kanan · Kaliwa", "Toward Jubileeville", "One-way loop", "Last stop". */
+  /** "Kanan / Kaliwa", "Toward Jubileeville", "One-way loop", "Last stop". */
   direction: string;
 };
 
 function directionAt(route: JeepneyRoute, stopIndex: number): string {
   const directions = routeDirections(route.id);
   if (directions) {
-    return `${directions.forward.label} · ${directions.reverse.label}`;
+    return `${directions.forward.label} / ${directions.reverse.label}`;
   }
   if (isLoopRoute(route)) return "One-way loop";
   const last = route.stops.length - 1;
